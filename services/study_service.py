@@ -10,7 +10,7 @@ import json
 import os
 import time
 from collections.abc import Coroutine
-from typing import Any, Optional, TypeVar
+from typing import Any, TypeVar
 
 from core.bootstrap import _get_etap_provider, _get_power_system_engine, _to_jsonable, logger
 from core.tracing import trace_operation
@@ -210,7 +210,7 @@ _STUDIES_REQUIRING_SYSTEM = {
 T = TypeVar("T")
 
 
-def _run_async(coro: Coroutine[Any, Any, T]) -> T:
+def _run_async(coro: Coroutine[Any, Any, T]) -> T:  # noqa: UP047 — CI pins ruff 0.7.0 (pre-UP047); PEP 695 needs 3.12 syntax and local dev Python is 3.8
     """Run an async coroutine safely, whether or not an event loop is active."""
     try:
         loop = asyncio.get_running_loop()
@@ -230,7 +230,7 @@ def _run_async(coro: Coroutine[Any, Any, T]) -> T:
 @trace_operation("_run_native_study", attributes={"component": "engineering_service"})
 def _run_native_study(  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     study_type: str,
-    system: Optional[Any],
+    system: Any | None,
     parameters: dict[str, Any],
 ) -> dict[str, Any]:
     """Execute a study using the native PowerSystemEngine."""

@@ -30,7 +30,6 @@ import logging
 import os
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from typing import Optional
 
 UTC = timezone.utc  # noqa: UP017
 
@@ -47,10 +46,10 @@ class EngineeringDocument:
     doc_id: str
     title: str
     source: str  # IEEE, IEC, NFPA, etc.
-    standard_number: Optional[str] = None
+    standard_number: str | None = None
     content: str = ""
     metadata: dict = field(default_factory=dict)
-    embedding: Optional[np.ndarray] = None
+    embedding: np.ndarray | None = None
     created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
@@ -61,7 +60,7 @@ class RetrievalResult:
     document: EngineeringDocument
     relevance_score: float
     excerpt: str
-    page_reference: Optional[str] = None
+    page_reference: str | None = None
 
 
 class EmbeddingModel:
@@ -426,8 +425,8 @@ class EngineeringKnowledgeBase:
 
     def __init__(
         self,
-        embedding_model: Optional[EmbeddingModel] = None,
-        vector_db: Optional[VectorDatabase] = None,
+        embedding_model: EmbeddingModel | None = None,
+        vector_db: VectorDatabase | None = None,
     ):
         """
         Initialize knowledge base.

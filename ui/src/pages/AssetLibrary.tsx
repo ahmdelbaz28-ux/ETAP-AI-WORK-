@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Database, Filter, Loader2, Package, Plus, Search, Trash2 } from "lucide-react";
-import { type ReactNode, useEffect, useState } from "react";
+import { type ReactNode, useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ContextHelpButton } from "../components/help/ContextHelpButton";
 import { Badge, Button, Card, Modal } from "../components/ui";
@@ -28,6 +28,17 @@ const statusVariant = (status: Asset["status"]): "success" | "warning" | "defaul
   return "default";
 };
 
+interface AssetFormState {
+  name: string;
+  type: string;
+  category: string;
+  manufacturer: string;
+  model: string;
+  rating: string;
+  status: Asset["status"];
+  location: string;
+}
+
 export default function AssetLibrary() {
   useTranslation();
   const { notify } = useNotify();
@@ -36,18 +47,18 @@ export default function AssetLibrary() {
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
   const [showCreate, setShowCreate] = useState(false);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<AssetFormState>({
     name: "",
     type: "transformer",
     category: "",
     manufacturer: "",
     model: "",
     rating: "",
-    status: "active" as const,
+    status: "active",
     location: "",
   });
 
-  const fetchAssets = async () => {
+  const fetchAssets = useCallback(async () => {
     setLoading(true);
     try {
       const token = getAuthToken();
@@ -62,11 +73,11 @@ export default function AssetLibrary() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [notify]);
 
   useEffect(() => {
     fetchAssets();
-  }, []);
+  }, [fetchAssets]);
 
   const handleCreate = async () => {
     try {
@@ -305,7 +316,9 @@ export default function AssetLibrary() {
               <select
                 id="asset-status"
                 value={formData.status}
-                onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
+                onChange={(e) =>
+                  setFormData({ ...formData, status: e.target.value as Asset["status"] })
+                }
                 className="w-full px-3 py-2 rounded-lg border border-[var(--border-primary)] bg-[var(--bg-primary)] text-[var(--text-primary)]"
               >
                 <option value="active">Active</option>

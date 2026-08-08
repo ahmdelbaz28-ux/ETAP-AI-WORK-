@@ -24,7 +24,7 @@ Usage::
 
 from __future__ import annotations
 
-from typing import Any, Optional, Protocol
+from typing import Any, Protocol
 
 # ============================================================================
 # Load Flow Solver
@@ -130,7 +130,7 @@ class CoordinationEngineProtocol(Protocol):
         downstream_relay: Any,
         fault_currents: list[float],
         target_margin: float = 0.2,
-    ) -> Optional[float]: ...
+    ) -> float | None: ...
 
 
 # ============================================================================

@@ -13,17 +13,12 @@ import {
   FolderKanban,
   GitBranch,
   Grid,
-<<<<<<< HEAD
   KeyRound,
   Layers,
   LayoutDashboard,
-=======
-  Key,
-  Layers,
-  LayoutDashboard,
->>>>>>> 65a4db40 (feat(ui): complete Remediation Pass 1 (Tasks 1-5) with 100% clean build verification)
+  Link2,
   Mail,
-  Map,
+  Map as MapIcon,
   Moon,
   Network,
   Package,
@@ -78,11 +73,16 @@ const navItems: NavItem[] = [
     labelKey: "sidebar.assetManagement",
     section: "engineering",
   },
-<<<<<<< HEAD
   {
     to: "/equipment",
     icon: Package,
     labelKey: "sidebar.equipment",
+    section: "engineering",
+  },
+  {
+    to: "/vision-keys",
+    icon: KeyRound,
+    labelKey: "sidebar.visionKeys",
     section: "engineering",
   },
   {
@@ -93,7 +93,7 @@ const navItems: NavItem[] = [
   },
   {
     to: "/gis",
-    icon: Map,
+    icon: MapIcon,
     labelKey: "sidebar.gisIntegration",
     section: "integration",
   },
@@ -180,63 +180,6 @@ const navItems: NavItem[] = [
     to: "/admin/agents",
     icon: Bot,
     labelKey: "sidebar.agentsControlPanel",
-    section: "system",
-  },
-=======
-  { to: "/vision-keys", icon: KeyRound, labelKey: "sidebar.visionKeys", section: "engineering" },
-  {
-    to: "/equipment",
-    icon: Package,
-    labelKey: "sidebar.equipment",
-    section: "engineering",
-  },
-  {
-    to: "/etap",
-    icon: Plug,
-    labelKey: "sidebar.etapIntegration",
-    section: "integration",
-  },
-  {
-    to: "/gis",
-    icon: Map,
-    labelKey: "sidebar.gisIntegration",
-    section: "integration",
-  },
-  {
-    to: "/scada",
-    icon: Activity,
-    labelKey: "sidebar.scadaIntegration",
-    section: "integration",
-  },
-  {
-    to: "/digital-twin",
-    icon: Layers,
-    labelKey: "sidebar.digitalTwin",
-    section: "integration",
-  },
-  { to: "/reports", icon: FileText, labelKey: "sidebar.reports" },
-  {
-    to: "/data-import",
-    icon: Upload,
-    labelKey: "sidebar.dataImport",
-    section: "system",
-  },
-  {
-    to: "/data-export",
-    icon: Download,
-    labelKey: "sidebar.dataExport",
-    section: "system",
-  },
-  {
-    to: "/settings",
-    icon: Settings,
-    labelKey: "sidebar.settings",
-    section: "system",
-  },
-  {
-    to: "/admin",
-    icon: ShieldCheck,
-    labelKey: "sidebar.administration",
     section: "system",
   },
   {
@@ -245,7 +188,6 @@ const navItems: NavItem[] = [
     labelKey: "sidebar.cuaMonitor",
     section: "system",
   },
-<<<<<<< HEAD
   {
     to: "/diagnostics",
     icon: Bug,
@@ -280,91 +222,6 @@ const navItems: NavItem[] = [
     to: "/logs",
     icon: ScrollText,
     labelKey: "sidebar.logs",
-    section: "system",
-  },
-=======
-  {
-    to: "/diagnostics",
-    icon: Bug,
-    labelKey: "sidebar.diagnostics",
-    section: "system",
-  },
-  {
-    to: "/code-guard",
-    icon: Shield,
-    labelKey: "sidebar.codeGuard",
-    section: "system",
-  },
-  {
-    to: "/context-engine",
-    icon: Search,
-    labelKey: "sidebar.contextEngine",
-    section: "system",
-  },
-  {
-    to: "/templates",
-    icon: FileText,
-    labelKey: "sidebar.templates",
-    section: "system",
-  },
-  {
-    to: "/asset-library",
-    icon: Package,
-    labelKey: "sidebar.assetLibrary",
-    section: "system",
-  },
-  {
-    to: "/logs",
-    icon: ScrollText,
-    labelKey: "sidebar.logs",
-    section: "system",
-  },
-  {
-    to: "/admin/rbac",
-    icon: Shield,
-    labelKey: "sidebar.rbacAdmin",
-    section: "system",
-  },
-  {
-    to: "/admin/email-dashboard",
-    icon: Mail,
-    labelKey: "sidebar.emailDashboard",
-    section: "system",
-  },
-  {
-    to: "/admin/email-digest",
-    icon: CalendarClock,
-    labelKey: "sidebar.emailDigest",
-    section: "system",
-  },
-  {
-    to: "/admin/study-versions",
-    icon: GitBranch,
-    labelKey: "sidebar.studyVersions",
-    section: "system",
-  },
-  {
-    to: "/admin/email-otp",
-    icon: KeyRound,
-    labelKey: "sidebar.emailOtp",
-    section: "system",
-  },
-  {
-    to: "/admin/magic-links",
-    icon: Link2,
-    labelKey: "sidebar.magicLinks",
-    section: "system",
-  },
-  {
-    to: "/admin/mfa",
-    icon: ShieldCheck,
-    labelKey: "sidebar.mfa",
-    section: "system",
-  },
-  {
-    to: "/admin/agents",
-    icon: Bot,
-    labelKey: "sidebar.agentsControlPanel",
     section: "system",
   },
   {
@@ -373,7 +230,6 @@ const navItems: NavItem[] = [
     labelKey: "sidebar.auditLogs",
     section: "system",
   },
->>>>>>> 65a4db40 (feat(ui): complete Remediation Pass 1 (Tasks 1-5) with 100% clean build verification)
 ];
 
 const sectionOrder = ["engineering", "integration", "system"] as const;
@@ -407,14 +263,14 @@ function partitionNavItems(items: readonly NavItem[]): {
 } {
   const grouped: Record<string, NavItem[]> = {};
   const topLevel: NavItem[] = [];
-  items.forEach((item) => {
+  for (const item of items) {
     if (item.section) {
       if (!grouped[item.section]) grouped[item.section] = [];
       grouped[item.section].push(item);
     } else {
       topLevel.push(item);
     }
-  });
+  }
   return { topLevel, grouped };
 }
 
@@ -447,9 +303,17 @@ function MobileSidebarDrawer({
       {/* Backdrop */}
       {mobileSidebarOpen && (
         <div
+          role="button"
+          tabIndex={0}
           className="lg:hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-[90]"
           onClick={() => setMobileSidebarOpen(false)}
-          aria-hidden="true"
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              setMobileSidebarOpen(false);
+            }
+          }}
+          aria-label="Close mobile sidebar"
         />
       )}
 
@@ -588,9 +452,10 @@ export function Sidebar() {
   const isRtl = i18n.language === "ar";
 
   // Close mobile drawer on route change
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional - runs on location change
   useEffect(() => {
     setMobileSidebarOpen(false);
-  }, [location.pathname, setMobileSidebarOpen]);
+  }, [location, setMobileSidebarOpen]);
 
   // Close mobile drawer on Escape
   useEffect(() => {

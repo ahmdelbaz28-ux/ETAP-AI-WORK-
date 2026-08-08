@@ -783,9 +783,7 @@ class TestAuthentication:
         """A connection with an incorrect API key is rejected."""
         from starlette.websockets import WebSocketDisconnect
 
-        with pytest.raises(
-            WebSocketDisconnect
-        ):  # NOSONAR
+        with pytest.raises(WebSocketDisconnect):  # NOSONAR
             with auth_client.websocket_connect(WS_PATH, headers={"x-api-key": "wrong-key"}) as ws:
                 ws.receive_json()  # NOSONAR S5778: test asserts specific exception type from a single logical operation; refactoring would obscure test intent
 
@@ -793,9 +791,7 @@ class TestAuthentication:
         """An empty ``x-api-key`` header is treated as missing."""
         from starlette.websockets import WebSocketDisconnect
 
-        with pytest.raises(
-            WebSocketDisconnect
-        ):  # NOSONAR
+        with pytest.raises(WebSocketDisconnect):  # NOSONAR
             with auth_client.websocket_connect(WS_PATH, headers={"x-api-key": ""}) as ws:
                 ws.receive_json()
 

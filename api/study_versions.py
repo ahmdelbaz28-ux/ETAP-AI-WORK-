@@ -20,7 +20,7 @@ from __future__ import annotations
 import json
 import uuid
 from datetime import UTC, datetime
-from typing import Any, Optional
+from typing import Any
 
 UTC = UTC
 
@@ -57,15 +57,15 @@ class StudyVersion(Base):
     study_id: Mapped[str] = mapped_column(String(36), index=True, nullable=False)
     project_id: Mapped[str] = mapped_column(String(36), index=True, nullable=False)
     version_number: Mapped[int] = mapped_column(Integer, nullable=False)
-    label: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
-    description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    label: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
     config_snapshot: Mapped[dict] = mapped_column(
         JSON, nullable=False
     )  # Full study config at this version
-    results_snapshot: Mapped[Optional[dict]] = mapped_column(
+    results_snapshot: Mapped[dict | None] = mapped_column(
         JSON, nullable=True
     )  # Results at this version
-    diff_summary: Mapped[Optional[str]] = mapped_column(Text, nullable=True)  # What changed
+    diff_summary: Mapped[str | None] = mapped_column(Text, nullable=True)  # What changed
     created_by: Mapped[str] = mapped_column(String(36), nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
@@ -74,8 +74,8 @@ class StudyVersion(Base):
 
 
 class VersionCreateRequest(BaseModel):
-    label: Optional[str] = Field(default=None, max_length=255)
-    description: Optional[str] = Field(default=None, max_length=2000)
+    label: str | None = Field(default=None, max_length=255)
+    description: str | None = Field(default=None, max_length=2000)
 
 
 class VersionResponse(BaseModel):
@@ -84,12 +84,12 @@ class VersionResponse(BaseModel):
     study_id: str
     project_id: str
     version_number: int
-    label: Optional[str] = None
-    description: Optional[str] = None
-    config_snapshot: Optional[dict] = None
-    diff_summary: Optional[str] = None
+    label: str | None = None
+    description: str | None = None
+    config_snapshot: dict | None = None
+    diff_summary: str | None = None
     created_by: str = ""
-    created_at: Optional[datetime] = None
+    created_at: datetime | None = None
 
 
 class VersionListResponse(BaseModel):
@@ -103,7 +103,7 @@ class CompareResponse(BaseModel):
     version_a: VersionResponse
     version_b: VersionResponse
     config_diff: dict[str, Any]
-    results_diff: Optional[dict[str, Any]] = None
+    results_diff: dict[str, Any] | None = None
 
 
 router = APIRouter(

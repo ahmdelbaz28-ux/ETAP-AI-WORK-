@@ -169,15 +169,9 @@ class LoadFlowSolver:
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         # Voltage magnitude products
-        v_i = vmag[
-            :, np.newaxis
-        ]  # NOSONAR
-        v_j = vmag[
-            np.newaxis, :
-        ]  # NOSONAR
-        v_i_v_j = (
-            v_i * v_j
-        )  # NOSONAR
+        v_i = vmag[:, np.newaxis]  # NOSONAR
+        v_j = vmag[np.newaxis, :]  # NOSONAR
+        v_i_v_j = v_i * v_j  # NOSONAR
 
         # Current power injections (P_calc, Q_calc)
         P, Q = self._calculate_power(v)
@@ -212,9 +206,7 @@ class LoadFlowSolver:
         #   off-diag: V_i*(G_ij*cos + B_ij*sin)          ← d(P_calc)/d|V|
         #   needed:   -V_i*(G_ij*cos + B_ij*sin)         ← d(ΔP)/d|V| = -d(P_calc)/d|V|
         V_i_col = vmag[:, None]  # NOSONAR physics/engineering notation
-        j2_off = -V_i_col * (
-            GC + BS
-        )  # NOSONAR
+        j2_off = -V_i_col * (GC + BS)  # NOSONAR
 
         # dQ_i/dθ_k  (Q-calc derivative)
         #   off-diag: -V_i*V_j*(G_ij*cos + B_ij*sin)     ← d(Q_calc)/dθ
@@ -224,9 +216,7 @@ class LoadFlowSolver:
         # dQ_i/d|V|_k (Q-calc derivative)
         #   off-diag: V_i*(G_ij*sin - B_ij*cos)          ← d(Q_calc)/d|V|
         #   needed:   -V_i*(G_ij*sin - B_ij*cos)         ← d(ΔQ)/d|V| = -d(Q_calc)/d|V|
-        j4_off = (
-            -V_i_col * (GS - BC)
-        )  # NOSONAR
+        j4_off = -V_i_col * (GS - BC)  # NOSONAR
 
         # ── Diagonal helpers ────────────────────────────────────────────
         B_diag = B.diagonal()  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability

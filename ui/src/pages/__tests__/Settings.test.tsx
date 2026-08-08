@@ -78,7 +78,8 @@ describe("Settings", () => {
     await waitFor(() => {
       const stored = localStorage.getItem("etap-settings");
       expect(stored).not.toBeNull();
-      const parsed = JSON.parse(stored!);
+      if (stored === null) return;
+      const parsed = JSON.parse(stored);
       expect(parsed.OPENAI_MODEL).toBeTruthy();
     });
   });

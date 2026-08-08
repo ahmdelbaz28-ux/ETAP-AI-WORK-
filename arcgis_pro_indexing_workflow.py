@@ -5,7 +5,7 @@ import json
 import logging
 import re
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 from urllib.parse import urlparse
 
 try:
@@ -64,7 +64,7 @@ class ArcGISProIndexingWorkflow:
         self,
         section: dict[str, Any],
         base_url: str,
-        parent: Optional[str] = None,
+        parent: str | None = None,
     ) -> list[dict[str, Any]]:
         """
         Recursively extract documentation items from nested sections.

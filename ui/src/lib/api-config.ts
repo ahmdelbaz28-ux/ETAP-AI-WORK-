@@ -288,7 +288,7 @@ export async function decryptSecret(encryptedValue: string): Promise<string> {
     const combined = new Uint8Array(
       atob(encryptedValue)
         .split("")
-        .map((c) => c.codePointAt(0)!),
+        .map((c) => c.codePointAt(0) ?? 0),
     );
 
     // Extract IV (first 12 bytes) and ciphertext
@@ -349,7 +349,7 @@ function deobfuscateLegacy(value: string): string {
     let result = "";
     for (let i = 0; i < decoded.length; i++) {
       result += String.fromCodePoint(
-        decoded.codePointAt(i)! ^ newKey.codePointAt(i % newKey.length)!,
+        (decoded.codePointAt(i) ?? 0) ^ (newKey.codePointAt(i % newKey.length) ?? 0),
       );
     }
     // If the result looks like an API key (non-garbage), return it
@@ -360,8 +360,8 @@ function deobfuscateLegacy(value: string): string {
     let legacyResult = "";
     for (let i = 0; i < decoded.length; i++) {
       legacyResult += String.fromCodePoint(
-        decoded.codePointAt(i)! ^
-          _LEGACY_OBFUSCATION_KEY.codePointAt(i % _LEGACY_OBFUSCATION_KEY.length)!,
+        (decoded.codePointAt(i) ?? 0) ^
+          (_LEGACY_OBFUSCATION_KEY.codePointAt(i % _LEGACY_OBFUSCATION_KEY.length) ?? 0),
       );
     }
     return legacyResult;

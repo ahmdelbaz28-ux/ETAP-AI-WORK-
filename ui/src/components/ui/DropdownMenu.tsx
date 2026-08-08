@@ -42,7 +42,21 @@ export function DropdownMenu({ trigger, items, align = "right", className }: Dro
 
   return (
     <div ref={ref} className={cn("relative inline-flex", className)}>
-      <div onClick={() => setOpen((p) => !p)}>{trigger}</div>
+      {/* biome-ignore lint/a11y/useSemanticElements: trigger wrapper accepts an arbitrary ReactNode (may itself be a native button, so nesting <button> would be invalid HTML); it is fully keyboard-accessible via role=button + tabIndex + onKeyDown */}
+      <div
+        role="button"
+        tabIndex={0}
+        className="inline-flex"
+        onClick={() => setOpen((p) => !p)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            setOpen((p) => !p);
+          }
+        }}
+      >
+        {trigger}
+      </div>
       {open && (
         <div
           className={cn(
@@ -56,6 +70,7 @@ export function DropdownMenu({ trigger, items, align = "right", className }: Dro
           {items.map((item) => (
             <button
               key={item.id}
+              type="button"
               role="menuitem"
               disabled={item.disabled}
               onClick={() => {

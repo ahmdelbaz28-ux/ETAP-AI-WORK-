@@ -52,7 +52,7 @@ import os
 import time
 from dataclasses import dataclass, field
 from email.utils import formataddr
-from typing import Any, Optional
+from typing import Any
 
 logger = logging.getLogger("etap.resend")
 
@@ -84,13 +84,13 @@ class EmailParams:
 
     to: str | list[str]
     subject: str
-    html: Optional[str] = None
-    text: Optional[str] = None
-    from_email: Optional[str] = None
-    from_name: Optional[str] = None
-    reply_to: Optional[str] = None
-    cc: Optional[list[str]] = None
-    bcc: Optional[list[str]] = None
+    html: str | None = None
+    text: str | None = None
+    from_email: str | None = None
+    from_name: str | None = None
+    reply_to: str | None = None
+    cc: list[str] | None = None
+    bcc: list[str] | None = None
     headers: dict[str, str] = field(default_factory=dict)
     tags: list[dict[str, str]] = field(default_factory=list)
     # Internal: set by client
@@ -102,17 +102,17 @@ class EmailResult:
     """Result of an email send attempt."""
 
     success: bool
-    message_id: Optional[str] = None
-    error: Optional[str] = None
-    status_code: Optional[int] = None
-    raw_response: Optional[dict[str, Any]] = None
+    message_id: str | None = None
+    error: str | None = None
+    status_code: int | None = None
+    raw_response: dict[str, Any] | None = None
     elapsed_ms: int = 0
 
 
 class ResendError(Exception):
     """Raised when Resend API returns a non-retryable error."""
 
-    def __init__(self, message: str, status_code: int = 0, raw: Optional[dict] = None):
+    def __init__(self, message: str, status_code: int = 0, raw: dict | None = None):
         super().__init__(message)
         self.status_code = status_code
         self.raw = raw
@@ -201,26 +201,26 @@ class ResendEmailClient:
     """Async Resend email client."""
 
     def __init__(self) -> None:
-        self._api_key: Optional[str] = None
+        self._api_key: str | None = None
         self._from_email: str = DEFAULT_FROM_EMAIL
         self._from_name: str = DEFAULT_FROM_NAME
-        self._reply_to: Optional[str] = None
+        self._reply_to: str | None = None
         self._timeout: float = 15.0
         self._max_retries: int = 3
-        self._enabled: Optional[bool] = None
+        self._enabled: bool | None = None
         self._rate_limiter = _RateLimiter()
 
     # -- Configuration ---------------------------------------------------
 
     def configure(
         self,
-        api_key: Optional[str] = None,
-        from_email: Optional[str] = None,
-        from_name: Optional[str] = None,
-        reply_to: Optional[str] = None,
-        timeout: Optional[float] = None,
-        max_retries: Optional[int] = None,
-        enabled: Optional[bool] = None,
+        api_key: str | None = None,
+        from_email: str | None = None,
+        from_name: str | None = None,
+        reply_to: str | None = None,
+        timeout: float | None = None,
+        max_retries: int | None = None,
+        enabled: bool | None = None,
     ) -> None:
         """Explicit configuration (overrides env vars)."""
         if api_key is not None:
@@ -286,9 +286,9 @@ class ResendEmailClient:
         subject: str,
         flow: str,
         success: bool,
-        message_id: Optional[str],
-        error: Optional[str],
-        status_code: Optional[int],
+        message_id: str | None,
+        error: str | None,
+        status_code: int | None,
         elapsed_ms: int,
         tags: list,
     ) -> None:
@@ -453,9 +453,9 @@ class ResendEmailClient:
     ) -> EmailResult:
         """Execute the HTTP request with retry logic."""
         start = time.monotonic()
-        last_error: Optional[str] = None
-        last_status: Optional[int] = None
-        last_body: Optional[dict[str, Any]] = None
+        last_error: str | None = None
+        last_status: int | None = None
+        last_body: dict[str, Any] | None = None
 
         for attempt in range(1, self._max_retries + 1):
             params._attempt = attempt

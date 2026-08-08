@@ -12,7 +12,7 @@ import {
   HelpCircle,
   Layers,
   LayoutDashboard,
-  Map,
+  Map as MapIcon,
   ScrollText,
   Search,
   Settings,
@@ -25,7 +25,7 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import { cn } from "../../utils/helpers";
 
-interface Command {
+interface CommandItem {
   id: string;
   label: string;
   description?: string;
@@ -159,7 +159,7 @@ const COMMAND_DEFS: ReadonlyArray<CommandDef> = [
   {
     id: "nav-gis",
     label: { en: "GIS Integration", ar: "تكامل GIS" },
-    icon: Map,
+    icon: MapIcon,
     section: ENG_SECTION,
     buildAction: (navigate) => () => navigate("/gis"),
   },
@@ -209,7 +209,7 @@ const COMMAND_DEFS: ReadonlyArray<CommandDef> = [
   },
 ];
 
-function buildStaticCommands(lang: Lang, navigate: ReturnType<typeof useNavigate>): Command[] {
+function buildStaticCommands(lang: Lang, navigate: ReturnType<typeof useNavigate>): CommandItem[] {
   return COMMAND_DEFS.map((def) => ({
     id: def.id,
     label: def.label[lang],
@@ -232,7 +232,7 @@ export function CommandPalette() {
   const lang: Lang = i18n.language === "ar" ? "ar" : "en";
 
   // ─── Static commands (always available) ──────────────────────────────
-  const staticCommands: Command[] = useMemo(
+  const staticCommands: CommandItem[] = useMemo(
     () => buildStaticCommands(lang, navigate),
     [lang, navigate],
   );
@@ -249,11 +249,13 @@ export function CommandPalette() {
 
   const sections = useMemo(() => {
     const set = new Set<string>();
-    filtered.forEach((c) => set.add(c.section));
+    for (const c of filtered) {
+      set.add(c.section);
+    }
     return Array.from(set);
   }, [filtered]);
 
-  const executeCommand = useCallback((cmd: Command) => {
+  const executeCommand = useCallback((cmd: CommandItem) => {
     cmd.action();
     setOpen(false);
     setQuery("");
@@ -281,6 +283,7 @@ export function CommandPalette() {
   }, [open]);
 
   // Reset selection on query change
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional - runs on query change
   useEffect(() => {
     setSelectedIndex(0);
   }, [query]);

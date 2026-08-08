@@ -22,7 +22,7 @@ import time
 from collections import defaultdict
 from collections.abc import Iterable
 from functools import partial
-from typing import Any, Optional
+from typing import Any
 
 import anyio
 
@@ -57,9 +57,9 @@ class AcpRuntime:
         self,
         handlers: Iterable[Any],
         *,
-        tracer: Optional[Any] = None,
-        metrics: Optional[Any] = None,
-        logger: Optional[Any] = None,
+        tracer: Any | None = None,
+        metrics: Any | None = None,
+        logger: Any | None = None,
     ) -> None:
         self._handlers: list[Any] = list(handlers)
         self._registry: dict[str, tuple[Any, CapabilityMeta]] = {}
@@ -92,7 +92,7 @@ class AcpRuntime:
         """Sorted list of all registered capability names."""
         return sorted(self._registry.keys())
 
-    def get_meta(self, name: str) -> Optional[CapabilityMeta]:
+    def get_meta(self, name: str) -> CapabilityMeta | None:
         """Return the metadata for a capability, or None if not registered."""
         entry = self._registry.get(name)
         return entry[1] if entry is not None else None

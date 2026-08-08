@@ -19,7 +19,6 @@ import io
 import json
 import uuid
 from datetime import UTC, datetime
-from typing import Optional
 
 UTC = UTC
 
@@ -54,10 +53,10 @@ class ExportHistory(Base):
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     project_id: Mapped[str] = mapped_column(String(36), index=True, nullable=False)
-    study_id: Mapped[Optional[str]] = mapped_column(String(36), nullable=True)
+    study_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
     export_type: Mapped[str] = mapped_column(String(16), nullable=False)  # pdf, excel, csv
     file_name: Mapped[str] = mapped_column(String(255), nullable=False)
-    file_size_bytes: Mapped[Optional[int]] = mapped_column(nullable=True)
+    file_size_bytes: Mapped[int | None] = mapped_column(nullable=True)
     created_by: Mapped[str] = mapped_column(String(36), nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
@@ -69,12 +68,12 @@ class ExportResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: str
     project_id: str
-    study_id: Optional[str] = None
+    study_id: str | None = None
     export_type: str
     file_name: str
-    file_size_bytes: Optional[int] = None
+    file_size_bytes: int | None = None
     created_by: str = ""
-    created_at: Optional[datetime] = None
+    created_at: datetime | None = None
 
 
 class ExportHistoryResponse(BaseModel):

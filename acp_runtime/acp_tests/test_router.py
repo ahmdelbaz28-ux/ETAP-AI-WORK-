@@ -17,8 +17,6 @@ Covers:
 
 from __future__ import annotations
 
-from typing import Optional
-
 import anyio
 import pytest
 from acp.router import Router, RouterConfig, ScopeValidator, check_scope
@@ -272,7 +270,7 @@ async def test_notification_no_response():
 @pytest.mark.anyio
 async def test_notification_callback():
     runtime = AcpRuntime([MathHandler()])
-    called_with: Optional[dict] = None
+    called_with: dict | None = None
 
     async def on_notification(
         env: dict,

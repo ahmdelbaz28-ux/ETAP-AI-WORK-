@@ -125,7 +125,7 @@ export default function Reports() {
             {/* Table Rows */}
             {reports.map((report, i) => (
               <motion.div
-                key={i} // NOSONAR — S6479: array index as key; items lack stable IDs (tech debt)
+                key={`${report.name}-${report.date}-${report.format}`}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.05 * i }}

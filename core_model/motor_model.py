@@ -24,7 +24,6 @@ CRITICAL FIX — Motor Transient Undervoltage Drop:
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Optional
 
 import numpy as np
 
@@ -48,7 +47,7 @@ class MotorParameters:
     r_rotor: float = 0.02  # Rotor resistance (per-unit)
     slip_rated: float = 0.03  # Rated slip
     base_mva: float = 100.0  # System base MVA
-    torque_speed_curve: Optional[dict] = None  # Optional: {slip: torque_pu}
+    torque_speed_curve: dict | None = None  # Optional: {slip: torque_pu}
 
     def __post_init__(self):
         """Calculate derived parameters."""
@@ -193,9 +192,7 @@ class MotorModel:
 
         # Average motor torque during acceleration (simplified)
         # Typically 1.0-1.5 pu of rated torque
-        t_motor_avg = (
-            1.2 * voltage_fraction**2
-        )  # NOSONAR
+        t_motor_avg = 1.2 * voltage_fraction**2  # NOSONAR
 
         # Average load torque (typically 0.3 for fans, 0.1 for pumps)
         T_load_avg = load_torque_fraction  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
@@ -307,7 +304,9 @@ class MotorModel:
         if v_terminal_pu >= 0.90:
             assessment = "Acceptable — motor should start successfully"
         elif v_terminal_pu >= 0.80:
-            assessment = "Marginal — motor may start but with reduced torque; verify load requirements"
+            assessment = (
+                "Marginal — motor may start but with reduced torque; verify load requirements"
+            )
         elif v_terminal_pu >= 0.70:
             assessment = "Concerning — risk of contactor drop-out and process disruption"
         else:
@@ -363,12 +362,8 @@ class MotorModel:
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         # Time constants (simplified)
-        t_double_prime = (
-            p.x_d_double_prime / (2 * np.pi * 60 * p.r_rotor)
-        )  # NOSONAR
-        t_prime = (
-            p.x_d_prime / (2 * np.pi * 60 * p.r_rotor)
-        )  # NOSONAR
+        t_double_prime = p.x_d_double_prime / (2 * np.pi * 60 * p.r_rotor)  # NOSONAR
+        t_prime = p.x_d_prime / (2 * np.pi * 60 * p.r_rotor)  # NOSONAR
 
         # DC offset decay
         t_dc = (

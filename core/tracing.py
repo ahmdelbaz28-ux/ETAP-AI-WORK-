@@ -28,7 +28,7 @@ import logging
 import os as _os
 from collections.abc import Callable
 from functools import wraps
-from typing import Any, Optional
+from typing import Any
 
 from opentelemetry import trace
 from opentelemetry.context import Context
@@ -52,7 +52,7 @@ logger = logging.getLogger(__name__)
 # Module-level state
 # ---------------------------------------------------------------------------
 
-_tracer: Optional[trace.Tracer] = None
+_tracer: trace.Tracer | None = None
 _propagator: TextMapPropagator = TraceContextTextMapPropagator()
 
 # ---------------------------------------------------------------------------
@@ -64,7 +64,7 @@ def setup_tracing(  # NOSONAR cognitive complexity; scheduled for refactoring sp
     service_name: str = "ahmedetap",
     service_version: str = "1.0.0",
     exporter_type: str = "console",
-    otlp_endpoint: Optional[str] = None,
+    otlp_endpoint: str | None = None,
     environment: str = "development",
 ) -> trace.Tracer:
     """Initialise the global TracerProvider and return a named tracer.

@@ -12,7 +12,6 @@ import logging
 import platform
 import sys
 from dataclasses import dataclass, field
-from typing import Optional
 
 logger = logging.getLogger(__name__)
 
@@ -72,7 +71,7 @@ class CheckResult:
 
 @dataclass
 class CompatibilityReport:
-    etap_version: Optional[str]
+    etap_version: str | None
     version_supported: bool
     windows_ok: bool
     dotnet_ok: bool
@@ -101,10 +100,10 @@ class ETAPCompatibilityChecker:
 
     def __init__(self, etap_prog_id: str = "ETAP.Application") -> None:
         self._etap_prog_id = etap_prog_id
-        self._cached_version: Optional[str] = None
+        self._cached_version: str | None = None
         self._cached_com_modules: dict[str, bool] | None = None
 
-    def check_version(self) -> Optional[str]:
+    def check_version(self) -> str | None:
         """Detect the installed ETAP version via COM."""
         if self._cached_version is not None:
             return self._cached_version
@@ -125,7 +124,7 @@ class ETAPCompatibilityChecker:
             logger.debug("Could not get ETAP version: %s", e)
             return None
 
-    def is_version_supported(self, version: Optional[str] = None) -> bool:
+    def is_version_supported(self, version: str | None = None) -> bool:
         """Check whether the given (or installed) version is supported."""
         if version is None:
             version = self.check_version()

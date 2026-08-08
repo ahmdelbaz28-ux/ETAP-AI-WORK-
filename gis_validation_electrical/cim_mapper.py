@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Optional
+from typing import Any
 
 from gis_integration.models import ADMSAsset, ADMSAssetType
 
@@ -18,7 +18,7 @@ class CIMConductingEquipment:
 class CIMConnectivityNode:
     cim_id: str
     label: str
-    voltage_level_kv: Optional[float] = None
+    voltage_level_kv: float | None = None
     metadata: dict[str, Any] = field(default_factory=dict)
 
 

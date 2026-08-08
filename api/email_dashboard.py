@@ -26,7 +26,7 @@ from __future__ import annotations
 
 import logging
 import os
-from typing import Annotated, Optional
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import HTMLResponse, JSONResponse
@@ -147,7 +147,7 @@ async def get_recent(
     request: Request,
     _: Annotated[dict, Depends(_require_admin)],
     limit: int = 100,
-    flow: Optional[str] = None,
+    flow: str | None = None,
 ) -> JSONResponse:
     """Recent send records (newest first)."""
     from services.email_send_log import get_recent_sends

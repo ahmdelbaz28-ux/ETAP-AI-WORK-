@@ -16,7 +16,7 @@ from gis_integration.providers.mock_gis import MockGISProvider
 from gis_integration.providers.qgis_provider import QGISProvider
 
 
-def get_gis_provider(provider_type: Optional[str] = None) -> GISProviderInterface:
+def get_gis_provider(provider_type: str | None = None) -> GISProviderInterface:
     """
     Factory to resolve the appropriate GIS provider.
 

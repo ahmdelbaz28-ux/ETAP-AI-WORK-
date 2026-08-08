@@ -37,7 +37,6 @@ from __future__ import annotations
 
 import logging
 import os
-from typing import Optional
 
 from fastapi import Request
 
@@ -50,7 +49,9 @@ _DISABLE_TEST_MODE = os.getenv("DISABLE_TEST_MODE", "").lower().strip() in ("tru
 
 # Log the test mode status at module load time for audit trail
 if _DISABLE_TEST_MODE:
-    _logger.warning("test_mode HARD DISABLED via DISABLE_TEST_MODE=true — test features are blocked")
+    _logger.warning(
+        "test_mode HARD DISABLED via DISABLE_TEST_MODE=true — test features are blocked"
+    )
 
 
 def _is_production_env() -> bool:
@@ -167,7 +168,7 @@ def normalize_template_var(value: str, default: str = "") -> str:
     return value
 
 
-def get_api_key_auth(request: Request) -> Optional[dict]:
+def get_api_key_auth(request: Request) -> dict | None:
     """Check if request has valid API key auth. Returns user dict or None.
 
     This is used by dashboard endpoints that accept X-API-Key as an

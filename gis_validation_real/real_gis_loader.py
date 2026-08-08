@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Optional
 
 from gis_integration.base import GISProviderInterface
 from gis_integration.exceptions import (
@@ -23,8 +22,8 @@ class RealGISProject:
 
 def load_real_gis_project(
     *,
-    qgis_project_path: Optional[str] = None,
-    arcgis_project_path: Optional[str] = None,
+    qgis_project_path: str | None = None,
+    arcgis_project_path: str | None = None,
 ) -> list[RealGISProject]:
     """
     Real GIS loader with lazy provider imports.

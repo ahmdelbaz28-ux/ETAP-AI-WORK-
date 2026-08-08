@@ -203,7 +203,7 @@ export default function Logs() {
                 const config = levelConfig[log.level];
                 return (
                   <motion.div
-                    key={i} // NOSONAR — S6479: array index as key; items lack stable IDs (tech debt)
+                    key={`${log.timestamp}-${log.source}-${log.level}-${log.message}`}
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.01 * i }}

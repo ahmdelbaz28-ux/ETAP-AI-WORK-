@@ -23,7 +23,7 @@ import logging
 from datetime import datetime, timezone
 
 UTC = timezone.utc  # noqa: UP017
-from typing import Any, Optional
+from typing import Any
 
 import numpy as np
 
@@ -177,7 +177,7 @@ class SCADAConnection:
         self.port = port
         self.protocol = protocol
         self.connected = False
-        self.last_poll_time: Optional[datetime] = None
+        self.last_poll_time: datetime | None = None
 
     def connect(self) -> bool:
         """Simulate establishing a SCADA connection.
@@ -729,10 +729,7 @@ class SCADAAgent(BaseAgent):
         for bus_id in ["BUS1", "BUS2", "BUS3"]:
             v_nom = 13.8  # kV
             v_kv = v_nom * (
-                1.0
-                + _RNG.normal(
-                    0, 0.02
-                )  # NOSONAR
+                1.0 + _RNG.normal(0, 0.02)  # NOSONAR
             )  # NOSONAR
 
             measurements.append(

@@ -36,7 +36,7 @@ except ImportError:
     # parser is disabled entirely.
     ET = None
 from datetime import UTC, datetime
-from typing import Annotated, Any, Optional
+from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from pydantic import BaseModel, Field
@@ -79,9 +79,9 @@ class BusRecord(BaseModel):
     """A single bus/node in the imported power-system model."""
 
     id: str
-    name: Optional[str] = None
-    voltage_kv: Optional[float] = None
-    type: Optional[str] = None  # PQ, PV, SLACK, etc.
+    name: str | None = None
+    voltage_kv: float | None = None
+    type: str | None = None  # PQ, PV, SLACK, etc.
 
 
 class BranchRecord(BaseModel):
@@ -90,10 +90,10 @@ class BranchRecord(BaseModel):
     id: str
     from_bus: str
     to_bus: str
-    type: Optional[str] = None  # LINE, TRANSFORMER, etc.
-    r_pu: Optional[float] = None
-    x_pu: Optional[float] = None
-    rating_mva: Optional[float] = None
+    type: str | None = None  # LINE, TRANSFORMER, etc.
+    r_pu: float | None = None
+    x_pu: float | None = None
+    rating_mva: float | None = None
 
 
 class ImportResult(BaseModel):
@@ -245,7 +245,7 @@ def _json_branch_record(br: dict[str, Any]) -> BranchRecord:
 _BUS_TYPE_MAP: dict[int, str] = {1: "PQ", 2: "PV", 3: "SLACK", 4: "ISOLATED"}
 
 
-def _psse_bus_record(parts: list[str], line_num: int, warnings: list[str]) -> Optional[BusRecord]:
+def _psse_bus_record(parts: list[str], line_num: int, warnings: list[str]) -> BusRecord | None:
     """Parse a single PSS/E bus line into a BusRecord, or None on failure."""
     if len(parts) < 3:
         return None
@@ -265,7 +265,7 @@ def _psse_bus_record(parts: list[str], line_num: int, warnings: list[str]) -> Op
         return None
 
 
-def _extract_rdf_id(elem: Any) -> Optional[str]:
+def _extract_rdf_id(elem: Any) -> str | None:
     """Extract the RDF ID attribute from an XML element."""
     for attr_key, attr_val in elem.attrib.items():
         if attr_key.split("}")[-1] == "ID":
@@ -273,7 +273,7 @@ def _extract_rdf_id(elem: Any) -> Optional[str]:
     return None
 
 
-def _extract_child_text(elem: Any, local_tag: str) -> Optional[str]:
+def _extract_child_text(elem: Any, local_tag: str) -> str | None:
     """Extract text of a child element matching a local tag name."""
     for child in elem:
         if child.tag.split("}")[-1] == local_tag:

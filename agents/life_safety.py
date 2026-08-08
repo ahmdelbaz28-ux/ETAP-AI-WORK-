@@ -71,7 +71,7 @@ from datetime import datetime, timezone
 
 UTC = timezone.utc
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 logger = logging.getLogger("agent.life_safety")
 
@@ -322,11 +322,11 @@ class SafetyCheckResult:
     blocked: bool
     reason: str = ""
     requires_dual_confirmation: bool = False
-    matched_pattern: Optional[str] = None
+    matched_pattern: str | None = None
     safety_level: str = "ok"  # Union[ok, blocked] | Union[dual_confirmation, degraded]
-    annotated_screenshot: Optional[str] = None
-    state_snapshot_id: Optional[str] = None
-    audit_entry_hash: Optional[str] = None  # tamper-evident chain
+    annotated_screenshot: str | None = None
+    state_snapshot_id: str | None = None
+    audit_entry_hash: str | None = None  # tamper-evident chain
     timestamp: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
 
     def to_dict(self) -> dict[str, Any]:
@@ -348,7 +348,7 @@ class TamperEvidentAuditLog:
 
     GENESIS_HASH = "0" * 64
 
-    def __init__(self, log_path: Optional[str] = None) -> None:
+    def __init__(self, log_path: str | None = None) -> None:
         # Default to the per-user cache directory (NOT /tmp) to avoid
         # SonarCloud S5443 (publicly writable directories).
         if log_path is None:
@@ -487,8 +487,8 @@ class LifeSafetyGuard:
 
     def __init__(
         self,
-        audit_dir: Optional[str] = None,
-        safety_log_path: Optional[str] = None,
+        audit_dir: str | None = None,
+        safety_log_path: str | None = None,
     ) -> None:
         # Default audit_dir to the per-user cache (NOT /tmp) to avoid
         # SonarCloud S5443 (publicly writable directories).
@@ -504,14 +504,14 @@ class LifeSafetyGuard:
             log_path=safety_log_path or str(self.audit_dir / "safety_chain.jsonl"),
         )
         self._last_control_action_time: float = 0.0
-        self._last_safety_check: Optional[SafetyCheckResult] = None
+        self._last_safety_check: SafetyCheckResult | None = None
 
     # ─── Pre-action check — called before EVERY action ─────────────────────
 
     def pre_action_check(  # NOSONAR cognitive complexity; refactoring sprint
         self,
         action,  # CUAAction
-        screenshot_before: Optional[str],
+        screenshot_before: str | None,
         gemini_analysis: dict[str, Any] | None,
         vision_source: str = "gemini",
         mode: str = "analyze",
@@ -575,7 +575,7 @@ class LifeSafetyGuard:
 
         # ── LAYER 3: Dual confirmation for protection settings ───────────
         requires_dual = False
-        matched_dual_pattern: Optional[str] = None
+        matched_dual_pattern: str | None = None
         for pattern in DUAL_CONFIRMATION_PATTERNS:
             if pattern in target_text or pattern in action_text:
                 requires_dual = True
@@ -606,7 +606,7 @@ class LifeSafetyGuard:
             return result
 
         # ── LAYER 5: Pre-action screenshot annotation ────────────────────
-        annotated_path: Optional[str] = None
+        annotated_path: str | None = None
         if screenshot_before and action.type in ("click", "double_click", "right_click"):
             annotated_path = self._annotate_screenshot(
                 screenshot_before,
@@ -655,9 +655,9 @@ class LifeSafetyGuard:
     def post_action_record(
         self,
         action,
-        screenshot_after: Optional[str],
+        screenshot_after: str | None,
         pre_check: SafetyCheckResult,
-        exec_error: Optional[str] = None,
+        exec_error: str | None = None,
     ) -> None:
         """Record the post-action state for rollback and audit."""
         self._last_control_action_time = time.monotonic()
@@ -682,9 +682,9 @@ class LifeSafetyGuard:
     def _capture_state_snapshot(
         self,
         action,
-        screenshot_before: Optional[str],
+        screenshot_before: str | None,
         timestamp: str,
-    ) -> Optional[str]:
+    ) -> str | None:
         """Capture a serialisable snapshot of the pre-action state.
 
         The snapshot is written as a JSON file in the audit directory under
@@ -835,7 +835,7 @@ class LifeSafetyGuard:
         screenshot_path: str,
         action,
         gemini_analysis: dict[str, Any] | None,  # NOSONAR unused param kept for API compatibility
-    ) -> Optional[str]:
+    ) -> str | None:
         """Draw a red crosshair on the screenshot at the click location.
 
         This creates a VISUAL RECORD of intent — investigators can see

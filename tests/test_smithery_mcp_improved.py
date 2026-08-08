@@ -524,14 +524,11 @@ class TestAtexitHandler:
             fresh_smithery_module._atexit_close()
 
         # Filter for DeprecationWarnings related to asyncio.
-        deprecation_warnings = [
-            w for w in captured if issubclass(w.category, DeprecationWarning)
-        ]
+        deprecation_warnings = [w for w in captured if issubclass(w.category, DeprecationWarning)]
         asyncio_warnings = [
             w
             for w in deprecation_warnings
-            if "asyncio" in str(w.message).lower()
-            or "get_event_loop" in str(w.message).lower()
+            if "asyncio" in str(w.message).lower() or "get_event_loop" in str(w.message).lower()
         ]
         assert len(asyncio_warnings) == 0, (
             f"_atexit_close emitted asyncio DeprecationWarning(s): "

@@ -156,9 +156,7 @@ describe("AIAssistant", () => {
   it("shows an error notification when chat fails", async () => {
     const user = userEvent.setup();
     // Both streaming and non-streaming fallback fail.
-    mockChatWithLLMStream.mockImplementation(async function* () {
-      throw new Error("Network error");
-    });
+    mockChatWithLLMStream.mockRejectedValue(new Error("Network error"));
     mockChatWithLLM.mockRejectedValue(new Error("Network error"));
     renderAssistant();
     await waitFor(() => expect(mockFetchAgents).toHaveBeenCalledOnce());

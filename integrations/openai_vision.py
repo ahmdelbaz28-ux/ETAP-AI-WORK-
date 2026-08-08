@@ -47,7 +47,7 @@ from __future__ import annotations
 import json
 import logging
 import os
-from typing import Any, Optional
+from typing import Any
 
 from integrations import _vision_base
 
@@ -149,7 +149,7 @@ class OpenAIVisionClient:
         self,
         image: Any,
         objective: str,
-        context: Optional[str] = None,
+        context: str | None = None,
     ) -> dict[str, Any] | None:
         """Analyze a screenshot using OpenAI-compatible Vision API.
 
@@ -235,7 +235,7 @@ class OpenAIVisionClient:
         return _vision_base.to_pil_image(image, PIL_AVAILABLE)
 
     @staticmethod
-    def _image_to_data_url(pil_image) -> Optional[str]:
+    def _image_to_data_url(pil_image) -> str | None:
         """Convert PIL Image to base64 data URL.
 
         Returns: data:image/png;base64,<base64-encoded-png>
@@ -248,7 +248,7 @@ class OpenAIVisionClient:
     @staticmethod
     def _build_user_content(
         objective: str,
-        context: Optional[str],
+        context: str | None,
         image_size: tuple[int, int],
         image_data_url: str,
     ) -> list[dict[str, Any]]:

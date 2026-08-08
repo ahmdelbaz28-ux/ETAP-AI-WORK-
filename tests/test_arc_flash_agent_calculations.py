@@ -65,9 +65,9 @@ class TestCalculateArcCurrent:
         high = agent.calculate_arc_current(
             voltage_kv=0.480, bolted_fault_current_ka=50.0, gap_mm=25.0
         )
-        assert (
-            high["arc_current_ka"] > low["arc_current_ka"]
-        ), "Higher fault current should yield higher arc current"
+        assert high["arc_current_ka"] > low["arc_current_ka"], (
+            "Higher fault current should yield higher arc current"
+        )
 
 
 class TestCalculateIncidentEnergy:
@@ -109,9 +109,9 @@ class TestCalculateIncidentEnergy:
             working_distance_mm=455,
             gap_mm=25.0,
         )
-        assert (
-            long_dur["incident_energy_cal_cm2"] > short_time["incident_energy_cal_cm2"]
-        ), "Longer clearing time should yield higher energy"
+        assert long_dur["incident_energy_cal_cm2"] > short_time["incident_energy_cal_cm2"], (
+            "Longer clearing time should yield higher energy"
+        )
 
     def test_closer_distance_gives_higher_energy(self):
         """GIVEN two working distances (300mm and 1000mm)
@@ -133,9 +133,9 @@ class TestCalculateIncidentEnergy:
             working_distance_mm=1000,
             gap_mm=25.0,
         )
-        assert (
-            close["incident_energy_cal_cm2"] > far["incident_energy_cal_cm2"]
-        ), "Closer distance should yield higher energy"
+        assert close["incident_energy_cal_cm2"] > far["incident_energy_cal_cm2"], (
+            "Closer distance should yield higher energy"
+        )
 
 
 class TestClassifyPPE:

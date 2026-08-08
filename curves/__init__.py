@@ -6,10 +6,10 @@ and safety-guard constants.
 """
 
 from curves.curves import (
-    IEC60255Curves,
-    calculate_iec_operating_time,
     MAX_MULTIPLIER_OF_PICKUP,
     MIN_OPERATING_TIME_S,
+    IEC60255Curves,
+    calculate_iec_operating_time,
 )
 
 __all__ = [

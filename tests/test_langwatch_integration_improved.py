@@ -632,9 +632,7 @@ class TestTrackTraceValidation:
 
         # Mock langwatch.trace to return a plain dict (no .send method)
         fresh_langwatch_module.langwatch = MagicMock()
-        fresh_langwatch_module.langwatch.trace = MagicMock(
-            return_value={"not": "a trace"}
-        )
+        fresh_langwatch_module.langwatch.trace = MagicMock(return_value={"not": "a trace"})
 
         # Must not raise — the defensive check short-circuits.
         tracker.track(name="test_op", input_text="hello", output_text="world")

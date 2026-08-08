@@ -18,7 +18,7 @@ from __future__ import annotations
 
 import hmac
 import logging
-from typing import Any, Optional
+from typing import Any
 
 from fastapi import Request
 
@@ -47,7 +47,7 @@ def verify_origin_secret(request: Request, secret: str) -> bool:
     return hmac.compare_digest(provided, secret)
 
 
-def parse_int_header(value: Optional[str]) -> Optional[int]:
+def parse_int_header(value: str | None) -> int | None:
     """Parse an optional integer header value. Returns None on failure.
 
     Used by both Akamai (bot score) and Cloudflare (status codes) to

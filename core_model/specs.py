@@ -16,7 +16,7 @@ runtime filtering if needed.
 from __future__ import annotations
 
 import os
-from typing import Any, Optional
+from typing import Any
 
 from pydantic import (
     AliasChoices,
@@ -63,7 +63,7 @@ class BusSpec(_BaseSpecModel):
         validation_alias=AliasChoices("generation_power_imag", "power_reactive", "qg"),
     )
     bus_type: str = "pq"
-    base_kv: Optional[float] = None
+    base_kv: float | None = None
     q_min: float = Field(
         default=-999.0,
         validation_alias=AliasChoices("q_min", "min_power_reactive", "min_q"),
@@ -72,9 +72,9 @@ class BusSpec(_BaseSpecModel):
         default=999.0,
         validation_alias=AliasChoices("q_max", "max_power_reactive", "max_q"),
     )
-    area: Optional[int] = None
-    zone: Optional[int] = None
-    voltage_setpoint: Optional[float] = Field(
+    area: int | None = None
+    zone: int | None = None
+    voltage_setpoint: float | None = Field(
         default=None,
         validation_alias=AliasChoices("voltage_setpoint", "voltage_magnitude_setpoint"),
     )
@@ -126,18 +126,18 @@ class LineSpec(_BaseSpecModel):
     to_bus_id: int = Field(validation_alias=AliasChoices("to_bus_id", "to"))
     r1: float = Field(default=0.01, validation_alias=AliasChoices("r1", "resistance"))
     x1: float = Field(default=0.05, validation_alias=AliasChoices("x1", "reactance"))
-    r0: Optional[float] = None
-    x0: Optional[float] = None
+    r0: float | None = None
+    x0: float | None = None
     bshunt1: float = Field(
         default=0.02,
         validation_alias=AliasChoices("bshunt1", "b1", "bshunt", "susceptance"),
     )
-    bshunt0: Optional[float] = Field(default=None, validation_alias=AliasChoices("bshunt0", "b0"))
-    rating_mva: Optional[float] = None
+    bshunt0: float | None = Field(default=None, validation_alias=AliasChoices("bshunt0", "b0"))
+    rating_mva: float | None = None
 
     @field_validator("r1", "x1", "r0", "x0")
     @classmethod
-    def validate_impedance_values(cls, v: Optional[float], info: Any) -> Optional[float]:
+    def validate_impedance_values(cls, v: float | None, info: Any) -> float | None:
         """Impedance values must be non-negative."""
         if v is not None and v < 0:
             raise ValueError(f"{info.field_name} must be non-negative, got {v}")
@@ -145,7 +145,7 @@ class LineSpec(_BaseSpecModel):
 
     @field_validator("rating_mva")
     @classmethod
-    def validate_rating(cls, v: Optional[float]) -> Optional[float]:
+    def validate_rating(cls, v: float | None) -> float | None:
         """Line rating must be positive if provided."""
         if v is not None and v <= 0:
             raise ValueError(f"rating_mva must be positive, got {v}")
@@ -196,10 +196,10 @@ class GeneratorSpec(_BaseSpecModel):
     bus_id: int
     r1: float = 0.0
     x1: float = Field(default=0.2, validation_alias=AliasChoices("x1", "xd_pu", "xdash"))
-    r2: Optional[float] = None
-    x2: Optional[float] = None
-    r0: Optional[float] = None
-    x0: Optional[float] = None
+    r2: float | None = None
+    x2: float | None = None
+    r0: float | None = None
+    x0: float | None = None
     internal_voltage_mag: float = Field(
         default=1.05,
         validation_alias=AliasChoices("internal_voltage_mag", "voltage_setpoint", "v_setpoint"),
@@ -208,19 +208,19 @@ class GeneratorSpec(_BaseSpecModel):
         default=0.0,
         validation_alias=AliasChoices("internal_voltage_ang_deg", "voltage_angle"),
     )
-    power_real: Optional[float] = Field(
+    power_real: float | None = Field(
         default=None,
         validation_alias=AliasChoices("power_real", "pg"),
     )
-    power_reactive: Optional[float] = Field(
+    power_reactive: float | None = Field(
         default=None,
         validation_alias=AliasChoices("power_reactive", "qg"),
     )
-    max_power_reactive: Optional[float] = Field(
+    max_power_reactive: float | None = Field(
         default=None,
         validation_alias=AliasChoices("max_power_reactive", "q_max"),
     )
-    min_power_reactive: Optional[float] = Field(
+    min_power_reactive: float | None = Field(
         default=None,
         validation_alias=AliasChoices("min_power_reactive", "q_min"),
     )
@@ -310,18 +310,18 @@ class StudyRequest(_BaseSpecModel):
     """Request to run a power-system study."""
 
     study_type: str = Field(..., description="Type of study to run")
-    system: Optional[SystemSpec] = Field(
+    system: SystemSpec | None = Field(
         default=None,
         validation_alias=AliasChoices("system", "system_spec"),
     )
     parameters: dict[str, Any] = Field(default_factory=dict)
-    task_id: Optional[str] = None
+    task_id: str | None = None
     use_etap: bool = Field(
         default=False,
         description="If True, route to ETAP provider instead of native engine",
     )
-    etap_project_path: Optional[str] = None
-    pe_stamp: Optional[dict[str, Any]] = Field(
+    etap_project_path: str | None = None
+    pe_stamp: dict[str, Any] | None = Field(
         default=None,
         description="Professional Engineer (PE) stamp for regulated studies",
     )
@@ -354,10 +354,10 @@ class StudyResult(_BaseSpecModel):
     errors: list[str] = Field(default_factory=list)
     execution_time_sec: float = 0.0
     trace_id: str = ""
-    task_id: Optional[str] = None
+    task_id: str | None = None
     study_type: str = ""
     provider: str = "native"
-    pe_stamp: Optional[dict[str, Any]] = Field(
+    pe_stamp: dict[str, Any] | None = Field(
         default=None,
         description="Professional Engineer (PE) stamp for regulated studies",
     )

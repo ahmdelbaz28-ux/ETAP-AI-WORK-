@@ -1,10 +1,6 @@
 import { motion } from "framer-motion";
-<<<<<<< HEAD
 import { Copy, FileText, Loader2, Pencil, Plus, Search, Trash2 } from "lucide-react";
-=======
-import { Copy, FileText, Loader2, Pencil, Plus, Search, Trash2 } from "lucide-react";
->>>>>>> 65a4db40 (feat(ui): complete Remediation Pass 1 (Tasks 1-5) with 100% clean build verification)
-import { type ReactNode, useEffect, useState } from "react";
+import { type ReactNode, useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ContextHelpButton } from "../components/help/ContextHelpButton";
 import { Badge, Button, Card, Modal } from "../components/ui";
@@ -107,7 +103,7 @@ export default function Templates() {
   const [formSaving, setFormSaving] = useState(false);
   const [loadingDetail, setLoadingDetail] = useState(false);
 
-  const fetchTemplates = async () => {
+  const fetchTemplates = useCallback(async () => {
     setLoading(true);
     try {
       const data = await templatesFetch<{ templates: Template[] } | Template[]>(
@@ -120,11 +116,11 @@ export default function Templates() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [notify]);
 
   useEffect(() => {
     fetchTemplates();
-  }, []);
+  }, [fetchTemplates]);
 
   const openCreate = () => {
     setEditTemplate(null);
@@ -254,11 +250,7 @@ export default function Templates() {
   const filtered = templates.filter(
     (t) =>
       t.name.toLowerCase().includes(search.toLowerCase()) ||
-<<<<<<< HEAD
       (t.description ?? "").toLowerCase().includes(search.toLowerCase()),
-=======
-       (t.description ?? "").toLowerCase().includes(search.toLowerCase()),
->>>>>>> 65a4db40 (feat(ui): complete Remediation Pass 1 (Tasks 1-5) with 100% clean build verification)
   );
 
   // S3358: render states via if/else instead of a nested ternary chain.
@@ -374,11 +366,7 @@ export default function Templates() {
         </div>
         <div className="flex items-center gap-3">
           <ContextHelpButton contextId="templates" />
-<<<<<<< HEAD
           <Button onClick={openCreate}>
-=======
-           <Button onClick={openCreate}>
->>>>>>> 65a4db40 (feat(ui): complete Remediation Pass 1 (Tasks 1-5) with 100% clean build verification)
             <Plus className="w-4 h-4" /> New Template
           </Button>
         </div>
@@ -517,18 +505,11 @@ export default function Templates() {
           )}
 
           <div className="flex justify-end gap-3 pt-2">
-<<<<<<< HEAD
             <Button variant="ghost" onClick={() => setShowCreate(false)} disabled={formSaving}>
               Cancel
             </Button>
             <Button onClick={handleCreateOrUpdate} disabled={!formData.name.trim() || formSaving}>
               {formSaving && <Loader2 className="w-4 h-4 animate-spin" />}
-=======
-            <Button variant="ghost" onClick={() => setShowCreate(false)} disabled={formSaving}>
-              Cancel
-            </Button>
-            <Button onClick={handleCreateOrUpdate} disabled={!formData.name.trim() || formSaving}>
->>>>>>> 65a4db40 (feat(ui): complete Remediation Pass 1 (Tasks 1-5) with 100% clean build verification)
               {editTemplate ? "Update" : "Create"}
             </Button>
           </div>

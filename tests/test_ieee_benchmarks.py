@@ -183,9 +183,9 @@ class TestIEEE4Bus:
         v2 = abs(bv.get(2, 0j))
         v3 = abs(bv.get(3, 0j))
         v4 = abs(bv.get(4, 0j))
-        assert (
-            v1 >= v2 >= v3 >= v4
-        ), f"Voltage should decrease along feeder: {v1:.4f} >= {v2:.4f} >= {v3:.4f} >= {v4:.4f}"
+        assert v1 >= v2 >= v3 >= v4, (
+            f"Voltage should decrease along feeder: {v1:.4f} >= {v2:.4f} >= {v3:.4f} >= {v4:.4f}"
+        )
 
     def test_line_flows_conserved(self, engine):
         """Power flow into lines should balance (check total load matches slack injection)."""
@@ -298,9 +298,9 @@ class TestArcFlashIEEE1584:
         # IEEE 1584-2018 Table 2: ~4.5 cal/cm² for 20kA at 480V
         # Note: simplified engine (no gap correction) yields smaller values
         assert ie > 0, f"Incident energy should be positive, got {ie}"
-        assert (
-            ie < 10.0
-        ), f"IEEE 1584 reference: IE={ie:.4f} cal/cm² outside expected range (simplified engine)"
+        assert ie < 10.0, (
+            f"IEEE 1584 reference: IE={ie:.4f} cal/cm² outside expected range (simplified engine)"
+        )
 
 
 # ─── Protection Coordination Reference Tests ────────────────────────────────

@@ -71,7 +71,7 @@ import logging
 import os
 import uuid
 from pathlib import Path
-from typing import Any, Optional, Union
+from typing import Any, Union
 
 logger = logging.getLogger(__name__)
 
@@ -255,8 +255,8 @@ def upload_bytes(
     filename: str,
     content: bytes,
     content_type: str,
-    user_id: Optional[str] = None,
-    metadata: Optional[dict] = None,
+    user_id: str | None = None,
+    metadata: dict | None = None,
     upsert: bool = False,
 ) -> dict[str, Any]:
     """Upload bytes to a Supabase Storage bucket.
@@ -334,7 +334,7 @@ def upload_bytes(
         except Exception:
             # If we can't fetch the bucket info, assume private (safer)
             is_public = False
-        public_url: Optional[str] = None
+        public_url: str | None = None
         if is_public:
             public_url = client.storage.from_(bucket).get_public_url(safe_path)
 
@@ -360,8 +360,8 @@ def upload_file(
     bucket: str,
     file_path: Union[str, Path],
     content_type: str,
-    user_id: Optional[str] = None,
-    metadata: Optional[dict] = None,
+    user_id: str | None = None,
+    metadata: dict | None = None,
 ) -> dict[str, Any]:
     """Upload a file from disk. See ``upload_bytes`` for parameter docs."""
     path = Path(file_path)
@@ -376,7 +376,7 @@ def upload_file(
     )
 
 
-def get_public_url(bucket: str, path: str) -> Optional[str]:
+def get_public_url(bucket: str, path: str) -> str | None:
     """Return the public URL for a file in a public bucket.
 
     Returns ``None`` if the bucket is private.
@@ -399,7 +399,7 @@ def get_public_url(bucket: str, path: str) -> Optional[str]:
         return None
 
 
-def get_signed_url(*, bucket: str, path: str, expires_in: int = 3600) -> Optional[str]:
+def get_signed_url(*, bucket: str, path: str, expires_in: int = 3600) -> str | None:
     """Return a signed URL for a private file.
 
     Parameters

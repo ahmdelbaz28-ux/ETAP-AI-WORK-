@@ -29,11 +29,11 @@ export function RadioGroup({
   disabled,
 }: RadioGroupProps) {
   return (
-    <div className="w-full">
+    <fieldset className="w-full border-none p-0 m-0">
       {label && (
-        <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">
+        <legend className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">
           {label}
-        </label>
+        </legend>
       )}
       {description && <p className="text-xs text-[var(--text-muted)] mb-2">{description}</p>}
       <div
@@ -84,6 +84,6 @@ export function RadioGroup({
           );
         })}
       </div>
-    </div>
+    </fieldset>
   );
 }

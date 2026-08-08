@@ -122,9 +122,9 @@ class TestRegister:
                 "password": TEST_USER_PASSWORD,
             },
         )
-        assert (
-            resp.status_code == 409
-        ), f"Expected 409 for duplicate username, got {resp.status_code}"
+        assert resp.status_code == 409, (
+            f"Expected 409 for duplicate username, got {resp.status_code}"
+        )
         assert "Username already registered" in resp.json()["detail"]
 
     def test_register_duplicate_email(self, client):
@@ -190,9 +190,9 @@ class TestRegister:
                 "password": TEST_PASSWORD_3,
             },
         )
-        assert (
-            resp.status_code == 422
-        ), f"Expected 422 for password containing username, got {resp.status_code}"
+        assert resp.status_code == 422, (
+            f"Expected 422 for password containing username, got {resp.status_code}"
+        )
 
 
 # ===========================================================================
@@ -255,9 +255,9 @@ class TestLogin:
         )
         assert resp.status_code == 401, f"Expected 401, got {resp.status_code}"
         # Must be the SAME error message to avoid user enumeration
-        assert (
-            "Invalid credentials" in resp.json()["detail"]
-        ), "Error for non-existent user should be identical to wrong password error"
+        assert "Invalid credentials" in resp.json()["detail"], (
+            "Error for non-existent user should be identical to wrong password error"
+        )
 
     def test_login_rate_limiting(self, client):
         """After 5 failed login attempts, the 6th is rate-limited (429)."""
@@ -286,9 +286,9 @@ class TestLogin:
             "/api/v1/auth/login",
             json={"username": username, "password": TEST_PASSWORD_1},
         )
-        assert (
-            resp.status_code == 429
-        ), f"Expected 429 after 5 failed attempts, got {resp.status_code}"
+        assert resp.status_code == 429, (
+            f"Expected 429 after 5 failed attempts, got {resp.status_code}"
+        )
 
 
 # ===========================================================================
@@ -374,9 +374,9 @@ class TestRefresh:
             "/api/v1/auth/refresh",
             json={"refresh_token": access_token},
         )
-        assert (
-            resp.status_code == 401
-        ), f"Access token should not be accepted as refresh token, got {resp.status_code}"
+        assert resp.status_code == 401, (
+            f"Access token should not be accepted as refresh token, got {resp.status_code}"
+        )
 
 
 # ===========================================================================
@@ -564,9 +564,9 @@ class TestForgotPassword:
             "/api/v1/auth/forgot-password",
             json={"email": "nonexistent@example.com"},
         )
-        assert (
-            resp.status_code == 200
-        ), f"Expected 200 for non-existent email (no enumeration), got {resp.status_code}"
+        assert resp.status_code == 200, (
+            f"Expected 200 for non-existent email (no enumeration), got {resp.status_code}"
+        )
         data = resp.json()
         assert "reset_token" not in data, "Non-existent email must NOT return a reset token"
 

@@ -32,7 +32,7 @@ import importlib
 import os
 import sys
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import anyio
 
@@ -66,13 +66,13 @@ from acp.transport import (
 __all__ = ["main"]
 
 
-def _split_scopes(text: Optional[str]) -> set[str]:
+def _split_scopes(text: str | None) -> set[str]:
     if not text:
         return set()
     return {s.strip() for s in text.split(",") if s.strip()}
 
 
-def _parse_labels(text: Optional[str]) -> dict[str, str]:
+def _parse_labels(text: str | None) -> dict[str, str]:
     """Parse a comma-separated ``key=value`` string into a dict.
 
     Example: ``"transport=stdio,env=prod"`` → ``{"transport": "stdio", "env": "prod"}``
@@ -151,7 +151,7 @@ def _build_runtime(
     metrics: Any,
     logger: Any,
     transport_name: str = "unknown",
-) -> tuple[AcpRuntime, Optional[HealthHandler]]:
+) -> tuple[AcpRuntime, HealthHandler | None]:
     """Build an AcpRuntime from CLI args / env.
 
     Returns the runtime and the optional ``HealthHandler`` so callers
@@ -166,7 +166,7 @@ def _build_runtime(
         raise SystemExit(f"Module {handler_module!r} contains no @capability classes.")
 
     # Auto-register built-in health handler unless opted out
-    health_handler: Optional[HealthHandler] = None
+    health_handler: HealthHandler | None = None
     if not getattr(args, "no_health", False):
         health_handler = HealthHandler(
             transport_name=transport_name,

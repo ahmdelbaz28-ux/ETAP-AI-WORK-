@@ -29,7 +29,6 @@ from __future__ import annotations
 import logging
 import uuid
 from contextvars import ContextVar
-from typing import Optional
 
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
@@ -130,7 +129,7 @@ def _extract_tenant_id_from_jwt(request: Request) -> str:
     except pyjwt.InvalidTokenError:
         return ""
 
-    tenant_id: Optional[str] = payload.get("tenant_id")
+    tenant_id: str | None = payload.get("tenant_id")
     if tenant_id and tenant_id.strip():
         return tenant_id.strip()
     return ""
@@ -315,7 +314,7 @@ class TenantMiddleware(BaseHTTPMiddleware):
             # No explicit close event listener is needed anymore.
 
             logger.info(
-                "Registered SQLAlchemy before_cursor_execute event " "for RLS tenant isolation"
+                "Registered SQLAlchemy before_cursor_execute event for RLS tenant isolation"
             )
 
         except Exception:

@@ -44,9 +44,9 @@ from engine.engine import PowerSystemEngine  # noqa: E402
 # the structural tests are skipped (the semantic tests still run against
 # the public API).
 try:
-    from engine.engine import _STUDY_REGISTRY  # noqa: E402
+    from engine.engine import _STUDY_REGISTRY  # type: ignore[attr-defined]  # noqa: E402
 except ImportError:  # pragma: no cover - exercised only pre-refactor
-    _STUDY_REGISTRY = None
+    _STUDY_REGISTRY: dict[str, tuple[tuple[str, ...], str]] | None = None
 
 
 # ---------------------------------------------------------------------------
@@ -165,10 +165,7 @@ class TestRunStudyValidationSemantics:
 
     def test_protection_coordination_missing_required_raises_exact_message(self) -> None:
         engine = PowerSystemEngine()
-        expected = (
-            "upstream_relay_id, downstream_relay_id, and fault_currents "
-            "must be provided"
-        )
+        expected = "upstream_relay_id, downstream_relay_id, and fault_currents must be provided"
         with pytest.raises(ValueError, match=expected):
             engine.run_study(study_type="protection_coordination")
 

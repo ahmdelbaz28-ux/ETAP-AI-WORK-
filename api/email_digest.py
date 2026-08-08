@@ -32,7 +32,7 @@ from __future__ import annotations
 import logging
 import os
 from datetime import UTC, datetime, timedelta
-from typing import Annotated, Any, Optional
+from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import HTMLResponse, JSONResponse
@@ -71,7 +71,7 @@ def _config() -> dict:
 class GenerateDigestRequest(BaseModel):
     email: EmailStr
     period: str = Field(default="daily", pattern=r"^(daily|weekly)$")
-    user_name: Optional[str] = None
+    user_name: str | None = None
 
 
 # ---------------------------------------------------------------------------
@@ -82,7 +82,7 @@ class GenerateDigestRequest(BaseModel):
 def _build_digest_context(
     email: str,
     period: str,
-    user_name: Optional[str] = None,
+    user_name: str | None = None,
 ) -> dict[str, Any]:
     """Build the template context for a user's digest."""
     now = datetime.now(UTC)

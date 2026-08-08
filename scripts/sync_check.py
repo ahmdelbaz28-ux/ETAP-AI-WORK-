@@ -30,7 +30,7 @@ import argparse
 import os
 import sys
 from dataclasses import dataclass
-from typing import Any, Optional
+from typing import Any
 
 import requests
 
@@ -99,14 +99,14 @@ class SyncStatus:
     in_sync: bool
     missing_secrets: list[str]
     extra_secrets: list[str]
-    last_deployment: Optional[str] = None
-    error: Optional[str] = None
+    last_deployment: str | None = None
+    error: str | None = None
 
 
 # ─── GitHub ──────────────────────────────────────────────────────────────────
 
 
-def check_github_secrets() -> tuple[set[str], Optional[str]]:
+def check_github_secrets() -> tuple[set[str], str | None]:
     """Return (present_secret_names, error) for GitHub Actions secrets."""
     headers = {
         "Authorization": f"Bearer {GITHUB_TOKEN}",
@@ -123,7 +123,7 @@ def check_github_secrets() -> tuple[set[str], Optional[str]]:
     return secrets, None
 
 
-def check_github_latest_commit() -> Optional[str]:
+def check_github_latest_commit() -> str | None:
     """Return the latest commit SHA on main."""
     headers = {"Authorization": f"Bearer {GITHUB_TOKEN}", "Accept": "application/vnd.github+json"}
     r = requests.get(
@@ -139,7 +139,7 @@ def check_github_latest_commit() -> Optional[str]:
 # ─── HuggingFace Space ──────────────────────────────────────────────────────
 
 
-def check_hf_secrets() -> tuple[set[str], Optional[str]]:
+def check_hf_secrets() -> tuple[set[str], str | None]:
     """Return (present_secret_names, error) for HF Space secrets."""
     headers = {"Authorization": f"Bearer {HF_TOKEN}"}
     r = requests.get(
@@ -175,7 +175,7 @@ def check_hf_runtime_status() -> dict[str, Any]:
 # ─── Vercel ──────────────────────────────────────────────────────────────────
 
 
-def check_vercel_envs() -> tuple[set[str], Optional[str]]:
+def check_vercel_envs() -> tuple[set[str], str | None]:
     """Return (present_env_names, error) for Vercel project env vars."""
     headers = {"Authorization": f"Bearer {VERCEL_TOKEN}"}
     r = requests.get(
@@ -189,7 +189,7 @@ def check_vercel_envs() -> tuple[set[str], Optional[str]]:
     return envs, None
 
 
-def check_vercel_latest_deployment() -> Optional[dict[str, Any]]:
+def check_vercel_latest_deployment() -> dict[str, Any] | None:
     """Return latest Vercel deployment info."""
     headers = {"Authorization": f"Bearer {VERCEL_TOKEN}"}
     r = requests.get(

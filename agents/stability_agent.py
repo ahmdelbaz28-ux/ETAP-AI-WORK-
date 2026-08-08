@@ -75,8 +75,8 @@ class StabilityAgent(BaseAgent):
         self,
         H: np.ndarray,  # NOSONAR
         D: np.ndarray,  # NOSONAR
-        pm: np.ndarray,  # NOSONAR
-        ybus_red: np.ndarray,  # NOSONAR
+        Pm: np.ndarray,  # NOSONAR
+        Ybus_red: np.ndarray,  # NOSONAR
         E: np.ndarray,  # NOSONAR
         delta0: np.ndarray,
         fault_bus: int,
@@ -161,7 +161,7 @@ class StabilityAgent(BaseAgent):
 
             # Select appropriate Ybus based on time period
             if t < t_fault:
-                Y = ybus_red
+                Y = Ybus_red
             elif t < t_clear:
                 Y = fault_Ybus
             else:
@@ -177,7 +177,7 @@ class StabilityAgent(BaseAgent):
                     d, _Y
                 )  # NOSONAR
                 ddelta = w - self.omega_synchronous
-                domega = (self.omega_synchronous / (2.0 * H)) * (pm - pe - D * ddelta)
+                domega = (self.omega_synchronous / (2.0 * H)) * (Pm - pe - D * ddelta)
                 return ddelta, domega
 
             k1_d, k1_w = derivatives(delta, omega)
@@ -210,8 +210,8 @@ class StabilityAgent(BaseAgent):
         self,
         H: np.ndarray,  # NOSONAR
         D: np.ndarray,  # NOSONAR
-        pm: np.ndarray,  # NOSONAR
-        ybus_red: np.ndarray,  # NOSONAR
+        Pm: np.ndarray,  # NOSONAR
+        Ybus_red: np.ndarray,  # NOSONAR
         E: np.ndarray,  # NOSONAR
         delta0: np.ndarray,
     ) -> dict[str, Any]:
@@ -266,7 +266,7 @@ class StabilityAgent(BaseAgent):
                 E * np.exp(1j * delta_pert)
             )  # NOSONAR
             i_plus = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
-                ybus_red @ e_plus
+                Ybus_red @ e_plus
             )  # NOSONAR
             pe_plus = np.real(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                 e_plus * np.conj(i_plus)
@@ -277,7 +277,7 @@ class StabilityAgent(BaseAgent):
                 E * np.exp(1j * delta_pert)
             )  # NOSONAR
             i_minus = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
-                ybus_red @ e_minus
+                Ybus_red @ e_minus
             )  # NOSONAR
             pe_minus = np.real(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                 e_minus * np.conj(i_minus)
@@ -371,7 +371,7 @@ class StabilityAgent(BaseAgent):
     def critical_clearing_time(
         self,
         H: float,  # NOSONAR
-        pm: float,  # NOSONAR
+        Pm: float,  # NOSONAR
         E_gen: float,  # NOSONAR
         V_inf: float,  # NOSONAR
         X_total: float,  # NOSONAR
@@ -428,19 +428,19 @@ class StabilityAgent(BaseAgent):
 
         # Initial angle where Pm = Pmax_pre * sin(delta0)
         # delta0 is given; verify Pm <= Pmax_pre
-        if pm > pmax_pre:
+        if Pm > pmax_pre:
             return {
                 "critical_clearing_angle_rad": float(delta0),
                 "critical_clearing_angle_deg": float(np.degrees(delta0)),
                 "critical_clearing_time_s": 0.0,
                 "equal_area_method": "infeasible",
                 "stable": False,
-                "error": f"Pm ({pm:.3f}) > Pmax_pre ({pmax_pre:.3f}): operating point invalid",
+                "error": f"Pm ({Pm:.3f}) > Pmax_pre ({pmax_pre:.3f}): operating point invalid",
             }
 
         # Find delta_max: angle where Pm = Pmax_post * sin(delta_max)
         # delta_max = pi - arcsin(Pm / Pmax_post)
-        delta_max = np.pi - np.arcsin(min(pm / Pmax_post, 1.0))
+        delta_max = np.pi - np.arcsin(min(Pm / Pmax_post, 1.0))
 
         # Critical clearing angle from equal area criterion:
         # cos(delta_cr) = [Pm*(delta_max - delta0) + Pmax_post*cos(delta_max)
@@ -450,7 +450,7 @@ class StabilityAgent(BaseAgent):
             pmax_fault = 0.0
 
         numerator = (
-            pm * (delta_max - delta0) + Pmax_post * np.cos(delta_max) - pmax_fault * np.cos(delta0)
+            Pm * (delta_max - delta0) + Pmax_post * np.cos(delta_max) - pmax_fault * np.cos(delta0)
         )
         denominator = Pmax_post - pmax_fault
 
@@ -461,8 +461,8 @@ class StabilityAgent(BaseAgent):
         # Critical clearing time
         # From the swing equation with Pmax_fault = 0 during fault:
         # t_cr = sqrt(2H * (delta_cr - delta0) / (omega_s * Pm))
-        if delta_cr > delta0 and pm > 0:
-            t_cr = np.sqrt(2.0 * H * (delta_cr - delta0) / (omega_s * pm))
+        if delta_cr > delta0 and Pm > 0:
+            t_cr = np.sqrt(2.0 * H * (delta_cr - delta0) / (omega_s * Pm))
         else:
             t_cr = 0.0
 
@@ -558,8 +558,8 @@ class StabilityAgent(BaseAgent):
                 transient_result = self.analyze_transient_stability(
                     H=H,
                     D=D,
-                    pm=pm,
-                    ybus_red=ybus_red,
+                    Pm=pm,
+                    Ybus_red=ybus_red,
                     E=E,
                     delta0=delta0,
                     fault_bus=fault_bus,
@@ -605,8 +605,8 @@ class StabilityAgent(BaseAgent):
                 ss_result = self.analyze_small_signal_stability(
                     H=H,
                     D=D,
-                    pm=pm,
-                    ybus_red=ybus_red,
+                    Pm=pm,
+                    Ybus_red=ybus_red,
                     E=E,
                     delta0=delta0,
                 )
@@ -616,7 +616,7 @@ class StabilityAgent(BaseAgent):
             if analysis_type in ("critical_clearing_time", "full"):
                 cct_result = self.critical_clearing_time(
                     H=float(task.parameters.get("smib_H", 5.0)),
-                    pm=float(task.parameters.get("smib_Pm", 0.8)),
+                    Pm=float(task.parameters.get("smib_Pm", 0.8)),
                     E_gen=float(task.parameters.get("smib_E", 1.1)),
                     V_inf=float(task.parameters.get("smib_V_inf", 1.0)),
                     X_total=float(task.parameters.get("smib_X_total", 0.5)),

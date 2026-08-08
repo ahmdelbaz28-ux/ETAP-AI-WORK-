@@ -59,6 +59,16 @@ interface Load {
   qMvar: number;
 }
 
+interface LoadFlowBusResult {
+  voltage_magnitude_pu?: number;
+  voltage_magnitude?: number;
+  voltage_angle?: number;
+}
+
+interface LoadFlowResults {
+  buses?: Record<string, LoadFlowBusResult>;
+}
+
 const CAIRO_TEMPLATE = {
   buses: [
     {
@@ -241,8 +251,7 @@ export default function GridEditor() {
 
   // Connecting line handler — delegates to per-mode helpers to keep
   // cognitive complexity below the S3776 threshold.
-  const handleBusClick = (e: React.MouseEvent, bus: Bus) => {
-    e.stopPropagation();
+  const activateBus = (bus: Bus) => {
     if (activeMode === "line") {
       handleLineModeClick(bus);
     } else if (activeMode === "generator") {
@@ -252,6 +261,11 @@ export default function GridEditor() {
     } else {
       setSelectedElement({ type: "bus", id: bus.id });
     }
+  };
+
+  const handleBusClick = (e: React.MouseEvent, bus: Bus) => {
+    e.stopPropagation();
+    activateBus(bus);
   };
 
   const handleLineModeClick = (bus: Bus) => {
@@ -407,8 +421,8 @@ export default function GridEditor() {
       } else {
         notify("error", isRtl ? "فشل التحقق من صحة الشبكة" : "Grid failed validation checks");
       }
-    } catch (err: any) {
-      notify("error", err.message || "Unknown error");
+    } catch (err: unknown) {
+      notify("error", err instanceof Error ? err.message : "Unknown error");
     } finally {
       setIsLoading(false);
     }
@@ -456,8 +470,8 @@ export default function GridEditor() {
       } else {
         notify("error", isRtl ? "سريان الحمل لم يتقارب!" : "Load flow failed to converge!");
       }
-    } catch (err: any) {
-      notify("error", err.message || "Unknown error");
+    } catch (err: unknown) {
+      notify("error", err instanceof Error ? err.message : "Unknown error");
     } finally {
       setIsLoading(false);
     }
@@ -466,11 +480,12 @@ export default function GridEditor() {
   // Apply converged load-flow results to the bus array (extracted from
   // handleRunLoadFlow to keep S3776 cognitive complexity below the threshold).
   // Accepts both string-keyed (`"1"`, `"2"`) and BusN-keyed result shapes.
-  const applyLoadFlowResultsToBuses = (results: any) => {
-    if (!results.buses) return;
+  const applyLoadFlowResultsToBuses = (results: LoadFlowResults) => {
+    const resultBuses = results.buses;
+    if (!resultBuses) return;
     setBuses((prev) =>
       prev.map((b) => {
-        const resBus = results.buses[String(b.id)] || results.buses[`Bus${b.id}`];
+        const resBus = resultBuses[String(b.id)] || resultBuses[`Bus${b.id}`];
         if (!resBus) return b;
         return {
           ...b,
@@ -495,7 +510,7 @@ export default function GridEditor() {
   }, [selectedElement, buses, lines, generators, loads]);
 
   // Update properties of currently selected item
-  const updateSelectedProperty = (key: string, value: any) => {
+  const updateSelectedProperty = (key: string, value: unknown) => {
     if (!selectedElement) return;
     const { type, id } = selectedElement;
 
@@ -644,6 +659,7 @@ export default function GridEditor() {
                 onMouseUp={handleSvgMouseUp}
                 onMouseDown={handleSvgMouseDown}
               >
+                <title>Network diagram editor canvas</title>
                 {/* SVG Grid pattern background */}
                 <defs>
                   <pattern id="gridPattern" width="20" height="20" patternUnits="userSpaceOnUse">
@@ -688,9 +704,18 @@ export default function GridEditor() {
                   return (
                     <g
                       key={`line-${line.id}`}
+                      tabIndex={0}
+                      aria-label={isRtl ? `الخط ${line.id}` : `Line ${line.id}`}
                       onClick={(e) => {
                         e.stopPropagation();
                         setSelectedElement({ type: "line", id: line.id });
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setSelectedElement({ type: "line", id: line.id });
+                        }
                       }}
                     >
                       <line
@@ -725,8 +750,17 @@ export default function GridEditor() {
                     <g
                       key={`bus-${bus.id}`}
                       transform={`translate(${bus.x}, ${bus.y})`}
+                      tabIndex={0}
+                      aria-label={bus.name}
                       onMouseDown={(e) => handleBusMouseDown(e, bus)}
                       onClick={(e) => handleBusClick(e, bus)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          activateBus(bus);
+                        }
+                      }}
                       className="cursor-grab active:cursor-grabbing"
                     >
                       {/* Horizontal bar symbol representing Bus bar */}
@@ -780,9 +814,18 @@ export default function GridEditor() {
                     <g
                       key={`gen-${gen.id}`}
                       transform={`translate(${bus.x}, ${bus.y - 45})`}
+                      tabIndex={0}
+                      aria-label={gen.name}
                       onClick={(e) => {
                         e.stopPropagation();
                         setSelectedElement({ type: "generator", id: gen.id });
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setSelectedElement({ type: "generator", id: gen.id });
+                        }
                       }}
                       className="cursor-pointer"
                     >
@@ -828,9 +871,18 @@ export default function GridEditor() {
                     <g
                       key={`load-${ld.id}`}
                       transform={`translate(${bus.x}, ${bus.y + 15})`}
+                      tabIndex={0}
+                      aria-label={ld.name}
                       onClick={(e) => {
                         e.stopPropagation();
                         setSelectedElement({ type: "load", id: ld.id });
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setSelectedElement({ type: "load", id: ld.id });
+                        }
                       }}
                       className="cursor-pointer"
                     >
@@ -892,12 +944,17 @@ export default function GridEditor() {
             {selectedDetails ? (
               <div className="space-y-4 text-xs">
                 <div>
-                  <label className="block text-[var(--text-tertiary)] mb-1">
+                  <label htmlFor="sel-name" className="block text-[var(--text-tertiary)] mb-1">
                     {isRtl ? "الاسم" : "Name"}
                   </label>
                   <input
+                    id="sel-name"
                     type="text"
-                    value={(selectedDetails as any).name || `Line ${selectedDetails.id}`}
+                    value={
+                      "name" in selectedDetails
+                        ? selectedDetails.name
+                        : `Line ${selectedDetails.id}`
+                    }
                     onChange={(e) => updateSelectedProperty("name", e.target.value)}
                     className="w-full bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded px-2.5 py-1.5 text-[var(--text-primary)] focus:outline-none"
                   />
@@ -910,10 +967,14 @@ export default function GridEditor() {
                     return (
                       <>
                         <div>
-                          <label className="block text-[var(--text-tertiary)] mb-1">
+                          <label
+                            htmlFor="bus-type"
+                            className="block text-[var(--text-tertiary)] mb-1"
+                          >
                             {isRtl ? "نوع الناقل" : "Bus Type"}
                           </label>
                           <select
+                            id="bus-type"
                             value={b.type}
                             onChange={(e) => updateSelectedProperty("type", e.target.value)}
                             className="w-full bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded px-2 py-1.5 text-[var(--text-primary)] focus:outline-none"
@@ -924,10 +985,14 @@ export default function GridEditor() {
                           </select>
                         </div>
                         <div>
-                          <label className="block text-[var(--text-tertiary)] mb-1">
+                          <label
+                            htmlFor="bus-basekv"
+                            className="block text-[var(--text-tertiary)] mb-1"
+                          >
                             {isRtl ? "الجهد الاسمي (kV)" : "Nominal KV"}
                           </label>
                           <input
+                            id="bus-basekv"
                             type="number"
                             value={b.baseKv}
                             onChange={(e) =>
@@ -947,10 +1012,14 @@ export default function GridEditor() {
                     return (
                       <>
                         <div>
-                          <label className="block text-[var(--text-tertiary)] mb-1">
+                          <label
+                            htmlFor="line-r1"
+                            className="block text-[var(--text-tertiary)] mb-1"
+                          >
                             {isRtl ? "المقاومة R1 (pu)" : "Resistance R1 (pu)"}
                           </label>
                           <input
+                            id="line-r1"
                             type="number"
                             step="0.001"
                             value={l.r1}
@@ -961,10 +1030,14 @@ export default function GridEditor() {
                           />
                         </div>
                         <div>
-                          <label className="block text-[var(--text-tertiary)] mb-1">
+                          <label
+                            htmlFor="line-x1"
+                            className="block text-[var(--text-tertiary)] mb-1"
+                          >
                             {isRtl ? "المفاعلة X1 (pu)" : "Reactance X1 (pu)"}
                           </label>
                           <input
+                            id="line-x1"
                             type="number"
                             step="0.001"
                             value={l.x1}
@@ -985,10 +1058,14 @@ export default function GridEditor() {
                     return (
                       <>
                         <div>
-                          <label className="block text-[var(--text-tertiary)] mb-1">
+                          <label
+                            htmlFor="gen-pg"
+                            className="block text-[var(--text-tertiary)] mb-1"
+                          >
                             {isRtl ? "القدرة الحقيقية pg (MW)" : "Real Power pg (MW)"}
                           </label>
                           <input
+                            id="gen-pg"
                             type="number"
                             value={g.pg}
                             onChange={(e) =>
@@ -998,10 +1075,14 @@ export default function GridEditor() {
                           />
                         </div>
                         <div>
-                          <label className="block text-[var(--text-tertiary)] mb-1">
+                          <label
+                            htmlFor="gen-vset"
+                            className="block text-[var(--text-tertiary)] mb-1"
+                          >
                             {isRtl ? "قيمة تنظيم الجهد" : "Voltage Setpoint (pu)"}
                           </label>
                           <input
+                            id="gen-vset"
                             type="number"
                             step="0.01"
                             value={g.vSetpoint}
@@ -1022,10 +1103,14 @@ export default function GridEditor() {
                     return (
                       <>
                         <div>
-                          <label className="block text-[var(--text-tertiary)] mb-1">
+                          <label
+                            htmlFor="load-pmw"
+                            className="block text-[var(--text-tertiary)] mb-1"
+                          >
                             {isRtl ? "القدرة الفعالة P (MW)" : "Real Load P (MW)"}
                           </label>
                           <input
+                            id="load-pmw"
                             type="number"
                             value={ld.pMw}
                             onChange={(e) =>
@@ -1035,10 +1120,14 @@ export default function GridEditor() {
                           />
                         </div>
                         <div>
-                          <label className="block text-[var(--text-tertiary)] mb-1">
+                          <label
+                            htmlFor="load-qmvar"
+                            className="block text-[var(--text-tertiary)] mb-1"
+                          >
                             {isRtl ? "القدرة غير الفعالة Q (MVAR)" : "Reactive Load Q (MVAR)"}
                           </label>
                           <input
+                            id="load-qmvar"
                             type="number"
                             value={ld.qMvar}
                             onChange={(e) =>

@@ -86,9 +86,7 @@ def check_pdf_files():
         return 0
 
     pdf_count = len(
-        list(
-            pdfs_path.glob(_PDF_GLOB_PATTERN)
-        )  # NOSONAR
+        list(pdfs_path.glob(_PDF_GLOB_PATTERN))  # NOSONAR
     )  # NOSONAR intentional repetition (audit constant)
     ac_count = len(list(ac_path.glob(_PDF_GLOB_PATTERN))) if ac_path.exists() else 0
 

@@ -2,14 +2,11 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from collections.abc import Iterator
-from typing import Optional
 
 from gis_integration.models import GeoCRSInfo, GISFeature
 
 # Module-level string constants (extracted to satisfy S1192).
-_NO_GIS_PROJECT_MSG = (
-    "No GIS project loaded; call load_project() first"  # NOSONAR
-)
+_NO_GIS_PROJECT_MSG = "No GIS project loaded; call load_project() first"  # NOSONAR
 
 
 class GISProviderInterface(ABC):
@@ -83,7 +80,7 @@ class GISProviderInterface(ABC):
             },
         }
 
-    def get_crs(self, layer_id: Optional[str] = None) -> GeoCRSInfo:
+    def get_crs(self, layer_id: str | None = None) -> GeoCRSInfo:
         """
         Return CRS information for the given layer (or project default).
 

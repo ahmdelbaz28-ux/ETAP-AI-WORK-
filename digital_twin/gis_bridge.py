@@ -26,7 +26,7 @@ from __future__ import annotations
 import logging
 import time
 from dataclasses import dataclass, field
-from typing import Any, Optional
+from typing import Any
 
 from digital_twin.event_bus import (
     DigitalTwinStateUpdated,
@@ -225,7 +225,7 @@ class GISSyncBridge:
                 details={"error": str(exc)},
             )
 
-    def _upsert_bus(self, bus_id: str, _coords: Optional[tuple]) -> None:
+    def _upsert_bus(self, bus_id: str, _coords: tuple | None) -> None:
         """Create or update a bus in the electrical model."""
         from core_model.bus import Bus
 
@@ -244,7 +244,7 @@ class GISSyncBridge:
             )
             self.dt_state.system.add_bus(bus)
 
-    def _upsert_transformer(self, xf_id: str, _coords: Optional[tuple]) -> None:
+    def _upsert_transformer(self, xf_id: str, _coords: tuple | None) -> None:
         """Create or update a transformer in the electrical model."""
         from core_model.transformer import Transformer
 
@@ -269,7 +269,7 @@ class GISSyncBridge:
                 )
                 self.dt_state.system.add_transformer(xf)
 
-    def _upsert_line(self, line_id: str, _coords: Optional[tuple], _geometry: dict) -> None:
+    def _upsert_line(self, line_id: str, _coords: tuple | None, _geometry: dict) -> None:
         """Create or update a line in the electrical model."""
         from core_model.line import Line
 
@@ -294,7 +294,7 @@ class GISSyncBridge:
                 )
                 self.dt_state.system.add_line(line)
 
-    def _upsert_switch(self, switch_id: str, _coords: Optional[tuple]) -> None:
+    def _upsert_switch(self, switch_id: str, _coords: tuple | None) -> None:
         """Register a switch in the digital twin."""
         if (
             self.dt_state.adms is not None
@@ -308,7 +308,7 @@ class GISSyncBridge:
                 bus2 = str(buses[-1])
                 self.dt_state.adms.topology.switches[switch_id] = (bus1, bus2)
 
-    def _upsert_load(self, load_id: str, _coords: Optional[tuple], props: dict) -> None:
+    def _upsert_load(self, load_id: str, _coords: tuple | None, props: dict) -> None:
         """Create or update a load in the electrical model."""
         from core_model.load import Load
 
@@ -336,16 +336,14 @@ class GISSyncBridge:
             )
             self.dt_state.system.add_load(load)
 
-    def _upsert_generator(self, gen_id: str, _coords: Optional[tuple], _props: dict) -> None:
+    def _upsert_generator(self, gen_id: str, _coords: tuple | None, _props: dict) -> None:
         """Create or update a generator in the electrical model."""
         from core_model.generator import Generator
 
         gid = (
             int(gen_id.split("_")[-1])
             if "_" in gen_id
-            else int(
-                gen_id
-            )  # NOSONAR
+            else int(gen_id)  # NOSONAR
             if gen_id.isdigit()
             else 1  # NOSONAR nested conditional; extract to named variable (tech debt)
         )
@@ -635,7 +633,7 @@ class GISSyncBridge:
             },
         }
 
-    def _get_bus_coordinates(self, bus_id) -> Optional[tuple]:
+    def _get_bus_coordinates(self, bus_id) -> tuple | None:
         """Try to get GIS coordinates for a bus from PostGIS."""
         if self.postgis is not None:
             asset = self.postgis.get_asset(str(bus_id))
@@ -650,7 +648,7 @@ class GISSyncBridge:
         return None
 
     @staticmethod
-    def _extract_coords(geometry: Optional[dict]) -> Optional[tuple]:
+    def _extract_coords(geometry: dict | None) -> tuple | None:
         """Extract (lon, lat) from a GeoJSON geometry dict."""
         if geometry is None:
             return None

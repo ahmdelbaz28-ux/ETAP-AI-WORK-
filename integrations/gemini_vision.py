@@ -32,7 +32,7 @@ import base64
 import json
 import logging
 import os
-from typing import Any, Optional
+from typing import Any
 
 from integrations import _vision_base
 
@@ -140,7 +140,7 @@ class GeminiVisionClient:
         self,
         image: Any,
         objective: str,
-        context: Optional[str] = None,
+        context: str | None = None,
     ) -> dict[str, Any] | None:
         """Analyze a screenshot and return structured UI description + next action.
 
@@ -199,7 +199,7 @@ class GeminiVisionClient:
         return _vision_base.to_pil_image(image, PIL_AVAILABLE)
 
     @staticmethod
-    def _build_prompt(objective: str, context: Optional[str], image_size: tuple[int, int]) -> str:
+    def _build_prompt(objective: str, context: str | None, image_size: tuple[int, int]) -> str:
         width, height = image_size
         parts = [
             f"OBJECTIVE: {objective}",

@@ -66,9 +66,7 @@ Usage::
 from __future__ import annotations
 
 # Module-level string constants (extracted to satisfy S1192).
-_PROMPT_NOT_FOUND_FALLBACK_MSG = (
-    "Prompt '%s' not found, using fallback_agent prompt"  # NOSONAR
-)
+_PROMPT_NOT_FOUND_FALLBACK_MSG = "Prompt '%s' not found, using fallback_agent prompt"  # NOSONAR
 
 import asyncio
 import hashlib
@@ -77,7 +75,7 @@ import os
 import threading
 import time
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import yaml
 
@@ -131,7 +129,7 @@ _CB_FAILURE_THRESHOLD = int(os.environ.get("PROMPT_CB_FAILURE_THRESHOLD", "5"))
 _CB_RESET_SECONDS = float(os.environ.get("PROMPT_CB_RESET_SECONDS", "60"))
 
 # Cache: handle -> (content, fetched_at, source)
-_prompt_cache: dict[str, tuple[Optional[str], float, str]] = {}
+_prompt_cache: dict[str, tuple[str | None, float, str]] = {}
 _cache_lock = threading.Lock()
 
 
@@ -153,7 +151,7 @@ class _CircuitBreaker:
         self.failure_threshold = failure_threshold
         self.reset_seconds = reset_seconds
         self._failures = 0
-        self._opened_at: Optional[float] = None
+        self._opened_at: float | None = None
         self._lock = threading.Lock()
 
     @property
@@ -205,7 +203,7 @@ def _hash_prompt(text: str) -> str:
 # ---------------------------------------------------------------------------
 
 
-def _extract_system_message(parsed: Any) -> Optional[str]:
+def _extract_system_message(parsed: Any) -> str | None:
     """Extract the system message from a parsed YAML prompt structure."""
     if not isinstance(parsed, dict):
         return None
@@ -225,7 +223,7 @@ def _extract_system_message(parsed: Any) -> Optional[str]:
     return None
 
 
-def _read_yaml_system_message(filepath: Path) -> Optional[str]:
+def _read_yaml_system_message(filepath: Path) -> str | None:
     """Read a YAML file and return its system message, if any."""
     try:
         content = filepath.read_text(encoding="utf-8")
@@ -236,7 +234,7 @@ def _read_yaml_system_message(filepath: Path) -> Optional[str]:
         return None
 
 
-def _resolve_prompts_json_path(handle: str) -> Optional[Path]:
+def _resolve_prompts_json_path(handle: str) -> Path | None:
     """Resolve the prompt path from prompts.json, if present."""
     prompts_json_path = _PROMPTS_DIR.parent / "prompts.json"
     if not prompts_json_path.is_file():
@@ -259,7 +257,7 @@ def _resolve_prompts_json_path(handle: str) -> Optional[Path]:
 
 def _load_from_yaml(
     handle: str,
-) -> Optional[str]:
+) -> str | None:
     """Load a prompt from a local YAML file in the prompts/ directory.
 
     Tries several filename patterns to locate the file.
@@ -291,7 +289,7 @@ def _load_from_yaml(
 # ---------------------------------------------------------------------------
 
 
-async def _load_from_langfuse_async(handle: str) -> Optional[str]:
+async def _load_from_langfuse_async(handle: str) -> str | None:
     """Asynchronously attempt to load a prompt from Langfuse.
 
     Returns ``None`` on any error, timeout, or when the circuit breaker
@@ -345,7 +343,7 @@ async def _load_from_langfuse_async(handle: str) -> Optional[str]:
 # ---------------------------------------------------------------------------
 
 
-async def _load_from_langwatch_async(handle: str) -> Optional[str]:
+async def _load_from_langwatch_async(handle: str) -> str | None:
     """Asynchronously attempt to load a prompt from LangWatch (legacy)."""
     if not _LANGWATCH_API_KEY or not _LANGWATCH_OVERRIDE_MODE:
         return None
@@ -444,9 +442,7 @@ def get_system_prompt(handle: str) -> str:
         if result:
             with _cache_lock:
                 _prompt_cache[handle] = (result, time.monotonic(), "fallback_yaml")
-            logger.warning(
-                _PROMPT_NOT_FOUND_FALLBACK_MSG, handle
-            )  # NOSONAR
+            logger.warning(_PROMPT_NOT_FOUND_FALLBACK_MSG, handle)  # NOSONAR
             return result
 
     # Tier 3: Hardcoded safety-net
@@ -460,7 +456,7 @@ def get_system_prompt(handle: str) -> str:
     return _FALLBACK_PROMPT
 
 
-def _read_cache(handle: str) -> tuple[Optional[str], bool]:
+def _read_cache(handle: str) -> tuple[str | None, bool]:
     """Return (content, is_valid) from the in-memory cache within TTL."""
     with _cache_lock:
         cached = _prompt_cache.get(handle)
@@ -473,7 +469,7 @@ def _read_cache(handle: str) -> tuple[Optional[str], bool]:
         return None, False
 
 
-def _cache_prompt(handle: str, content: Optional[str], source: str) -> None:
+def _cache_prompt(handle: str, content: str | None, source: str) -> None:
     """Store a prompt in the in-memory cache."""
     with _cache_lock:
         _prompt_cache[handle] = (content, time.monotonic(), source)
@@ -483,9 +479,9 @@ def _apply_remote_override(
     handle: str,
     remote_name: str,
     remote_prompt: str,
-    yaml_prompt: Optional[str],
-    yaml_hash: Optional[str],
-) -> Optional[str]:
+    yaml_prompt: str | None,
+    yaml_hash: str | None,
+) -> str | None:
     """Apply an integrity-checked remote override; returns the prompt to use.
 
     When the remote hash differs from the local YAML hash, the local YAML
@@ -518,7 +514,7 @@ def _apply_remote_override(
     return remote_prompt
 
 
-def _resolve_yaml_fallback(handle: str, yaml_prompt: Optional[str]) -> str:
+def _resolve_yaml_fallback(handle: str, yaml_prompt: str | None) -> str:
     """Tier 4-6: local YAML baseline, fallback agent prompt, then safety-net."""
     if yaml_prompt:
         _cache_prompt(handle, yaml_prompt, "yaml")

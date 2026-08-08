@@ -12,7 +12,7 @@ ACP extensions on top of vanilla JSON-RPC 2.0:
 
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -77,9 +77,9 @@ class JsonRpcResponse(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid")
 
     jsonrpc: str = Field(default="2.0", pattern=_JSONRPC_VERSION_PATTERN)
-    id: Optional[RequestId] = None
-    result: Optional[Any] = None
-    error: Optional[JsonRpcError] = None
+    id: RequestId | None = None
+    result: Any | None = None
+    error: JsonRpcError | None = None
 
     @model_validator(mode="after")
     def _exactly_one_of_result_or_error(self) -> JsonRpcResponse:
@@ -109,6 +109,6 @@ class JsonRpcNotification(BaseModel):
     jsonrpc: str = Field(default="2.0", pattern=_JSONRPC_VERSION_PATTERN)
     method: str = Field(min_length=1, max_length=256)
     params: list[Any] | dict[str, Any] | None = None
-    capability: Optional[str] = Field(default=None, max_length=128)
+    capability: str | None = Field(default=None, max_length=128)
     trace_id: str = Field(default="", max_length=512)
-    deadline_ms: Optional[int] = Field(default=None, ge=1, le=600_000)
+    deadline_ms: int | None = Field(default=None, ge=1, le=600_000)

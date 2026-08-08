@@ -28,7 +28,6 @@ import os
 import secrets
 import time
 from dataclasses import dataclass
-from typing import Optional
 
 logger = logging.getLogger("etap.otp_store")
 
@@ -80,7 +79,7 @@ class _InMemoryOtpStore:
         await asyncio.sleep(0)  # yield to event loop — genuine async for swappable backend contract
         self._records[key] = rec
 
-    async def get(self, key: str) -> Optional[_OtpRecord]:
+    async def get(self, key: str) -> _OtpRecord | None:
         await asyncio.sleep(0)  # yield to event loop — genuine async for swappable backend contract
         rec = self._records.get(key)
         if rec is None:
@@ -153,9 +152,9 @@ class OtpIssueResult:
     def __init__(
         self,
         success: bool,
-        code: Optional[str] = None,
+        code: str | None = None,
         retry_after: int = 0,
-        error: Optional[str] = None,
+        error: str | None = None,
     ):
         self.success = success
         self.code = code
@@ -166,7 +165,7 @@ class OtpIssueResult:
 class OtpVerifyResult:
     """Result of a verify attempt."""
 
-    def __init__(self, success: bool, error: Optional[str] = None, retry_after: int = 0):
+    def __init__(self, success: bool, error: str | None = None, retry_after: int = 0):
         self.success = success
         self.error = error
         self.retry_after = retry_after

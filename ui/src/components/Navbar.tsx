@@ -376,6 +376,11 @@ export function Navbar() {
             <div // NOSONAR — S6848: non-interactive DOM role; intentional
               className="dropdown-enhanced absolute right-0 top-full mt-2 w-96 bg-[var(--bg-secondary)] border border-[var(--border-secondary)] rounded-xl shadow-2xl shadow-black/40 overflow-hidden z-50"
               onClick={(e) => e.stopPropagation()}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.stopPropagation();
+                }
+              }}
             >
               {/* Header */}
               <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border-primary)] bg-[var(--bg-primary)]/50">
@@ -512,6 +517,11 @@ export function Navbar() {
             <div // NOSONAR — S6848: non-interactive DOM role; intentional
               className="dropdown-enhanced absolute right-0 top-full mt-2 w-64 bg-[var(--bg-secondary)] border border-[var(--border-secondary)] rounded-xl shadow-2xl shadow-black/40 overflow-hidden z-50"
               onClick={(e) => e.stopPropagation()}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.stopPropagation();
+                }
+              }}
             >
               {/* User header */}
               <div className="px-4 py-3 bg-gradient-to-br from-brand-500/8 to-transparent border-b border-[var(--border-primary)]">

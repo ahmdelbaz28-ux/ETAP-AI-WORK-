@@ -42,7 +42,7 @@ from __future__ import annotations
 import json
 import logging
 import os
-from typing import Any, Optional
+from typing import Any
 
 from integrations import _vision_base
 
@@ -136,7 +136,7 @@ class AnthropicVisionClient:
         self,
         image: Any,
         objective: str,
-        context: Optional[str] = None,
+        context: str | None = None,
     ) -> dict[str, Any] | None:
         """Analyze a screenshot using Anthropic Claude Vision API."""
         if not self.enabled:
@@ -232,7 +232,7 @@ class AnthropicVisionClient:
         return _vision_base.to_pil_image(image, PIL_AVAILABLE)
 
     @staticmethod
-    def _image_to_base64(pil_image) -> Optional[str]:
+    def _image_to_base64(pil_image) -> str | None:
         """Convert PIL Image to base64 string (no data URL prefix).
 
         Delegates to integrations._vision_base.image_to_base64_png (shared

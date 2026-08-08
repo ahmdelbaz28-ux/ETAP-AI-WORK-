@@ -206,8 +206,11 @@ filterwarnings = [
     # This is an environment-level notice from a vendored dependency, not a
     # code-under-test warning; it only appears because this machine's runtime
     # is Python 3.8.4 (the project's declared floor is 3.12). Suppressed so
-    # the test suite runs warning-free.
-    "ignore:Python 3.8 is no longer supported by the Python core team:DeprecationWarning",
+    # the test suite runs warning-free. Filtered by module with the base
+    # ``Warning`` category so it matches regardless of the exact subclass
+    # (CryptographyDeprecationWarning may or may not subclass
+    # DeprecationWarning depending on the installed cryptography version).
+    "ignore::Warning:redis\\.utils",
 ]
 markers = [
     "slow: marks tests as slow",

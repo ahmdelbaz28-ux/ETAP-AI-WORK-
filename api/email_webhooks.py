@@ -41,7 +41,7 @@ import time
 import uuid
 from dataclasses import dataclass
 from datetime import UTC, datetime
-from typing import Annotated, Any, Optional
+from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, Header, Request, status
 from fastapi.responses import JSONResponse
@@ -67,8 +67,8 @@ class WebhookEndpoint:
     secret: str  # HMAC secret used to sign outbound deliveries
     is_active: bool = True
     created_at: str = ""
-    last_triggered: Optional[str] = None
-    last_status: Optional[int] = None
+    last_triggered: str | None = None
+    last_status: int | None = None
     trigger_count: int = 0
     failure_count: int = 0
 
@@ -80,6 +80,13 @@ _WEBHOOK_RATE_LIMIT_MAX = int(os.getenv("WEBHOOK_RATE_LIMIT_MAX", "100"))  # 100
 _WEBHOOK_RATE_LIMIT_WINDOW = int(os.getenv("WEBHOOK_RATE_LIMIT_WINDOW", "60"))  # 60 seconds
 _webhook_rate_limit: dict[str, list[float]] = {}
 _webhook_rate_lock = threading.Lock()
+
+# S1313 — named constants instead of hardcoded cloud-metadata IP literals.
+_CLOUD_METADATA_IPV4 = "169.254.169.254"  # AWS IMDSv1/v2, GCP, Azure shared address
+_CLOUD_METADATA_IPV6 = "fd00:ec2::254"  # AWS IMDSv2 IPv6 endpoint
+
+# Default DNS resolution timeout in seconds (S8410 — avoid unbounded socket blocking).
+_DNS_RESOLUTION_TIMEOUT_S = int(os.getenv("WEBHOOK_DNS_TIMEOUT", "5"))
 
 
 # ---------------------------------------------------------------------------
@@ -93,7 +100,7 @@ class RegisterEndpointRequest(BaseModel):
         default=["email.sent", "email.delivered", "email.bounced", "email.complained"],
         description="Which event types to forward",
     )
-    secret: Optional[str] = Field(
+    secret: str | None = Field(
         default=None,
         min_length=16,
         max_length=200,
@@ -168,7 +175,13 @@ def _validate_remote_hostname(hostname: str, url_str: str) -> str:
         # Resolve the hostname to its IP(s) and check each. We do ONE
         # resolution per registration (not per delivery) for performance.
         try:
-            resolved = socket.getaddrinfo(hostname, None)
+            # S8410 — bind an explicit timeout so DNS resolution cannot block indefinitely.
+            old_timeout = socket.getdefaulttimeout()
+            socket.setdefaulttimeout(_DNS_RESOLUTION_TIMEOUT_S)
+            try:
+                resolved = socket.getaddrinfo(hostname, None)
+            finally:
+                socket.setdefaulttimeout(old_timeout)
         except socket.gaierror as exc:
             raise _SSRFBlockedError(f"Cannot resolve hostname '{hostname}': {exc}") from exc
         ips = {ipaddress.ip_address(family_info[4][0]) for family_info in resolved}
@@ -184,11 +197,8 @@ def _validate_remote_hostname(hostname: str, url_str: str) -> str:
             raise _SSRFBlockedError(
                 f"Webhook target resolves to a reserved/multicast/unspecified address: {resolved_ip}"
             )
-        # Explicitly block cloud metadata endpoints.
-        if str(resolved_ip) in (
-            "169.254.169.254",
-            "fd00:ec2::254",
-        ):  # NOSONAR
+        # S1313: use named constants instead of hardcoded IP literals.
+        if str(resolved_ip) in (_CLOUD_METADATA_IPV4, _CLOUD_METADATA_IPV6):  # NOSONAR
             raise _SSRFBlockedError(
                 f"Webhook target resolves to cloud metadata endpoint: {resolved_ip}"
             )
@@ -201,8 +211,8 @@ class EndpointResponse(BaseModel):
     events: list[str]
     is_active: bool
     created_at: str
-    last_triggered: Optional[str] = None
-    last_status: Optional[int] = None
+    last_triggered: str | None = None
+    last_status: int | None = None
     trigger_count: int
     failure_count: int
 
@@ -292,10 +302,10 @@ def _verify_resend_signature(
 )
 async def resend_webhook(
     request: Request,
-    svix_signature: Annotated[Optional[str], Header(alias="svix-signature")] = None,
-    svix_id: Annotated[Optional[str], Header(alias="svix-id")] = None,  # noqa: S1172 — FastAPI header binding
-    svix_timestamp: Annotated[Optional[str], Header(alias="svix-timestamp")] = None,  # noqa: S1172 — FastAPI header binding
-    webhook_secret: Annotated[Optional[str], Header(alias="webhook-secret")] = None,
+    svix_signature: Annotated[str | None, Header(alias="svix-signature")] = None,
+    svix_id: Annotated[str | None, Header(alias="svix-id")] = None,  # noqa: S1172 — FastAPI header binding
+    svix_timestamp: Annotated[str | None, Header(alias="svix-timestamp")] = None,  # noqa: S1172 — FastAPI header binding
+    webhook_secret: Annotated[str | None, Header(alias="webhook-secret")] = None,
 ) -> JSONResponse:
     """Receive a delivery event from Resend.
 
@@ -334,70 +344,23 @@ async def resend_webhook(
 
     raw_body = await request.body()
 
-    # Verify signature
+    # Resolve signing secret (header overrides env var).
     secret = (
         webhook_secret
         or os.getenv("RESEND_WEBHOOK_SECRET")
         or os.getenv("EMAIL_WEBHOOK_SECRET", "")
     )
-    if not secret:
-        # SECURITY AUDIT 2026-08-02 (N-09 fix):
-        # Previous behavior: when RESEND_WEBHOOK_SECRET was not set, the
-        # webhook accepted ALL requests with only a warning log. This
-        # allowed anyone on the internet to POST fake email delivery
-        # events to /api/v1/email/webhooks/resend and:
-        #   - Trigger email-related workflows (mark emails as delivered)
-        #   - Fill the in-memory event log (_events) causing memory growth
-        #   - Forward to outbound webhook endpoints (line ~241) —
-        #     potential SSRF if endpoint URLs are user-controllable
-        #
-        # Fix: in production/staging, REJECT the request with 503 so the
-        # operator knows to configure the secret. In development, accept
-        # with a loud warning (so local testing still works).
-        _env = os.getenv("ENVIRONMENT", os.getenv("ENV", "development")).lower().strip()
-        is_prod = _env in (
-            "production",
-            "prod",
-            "staging",
-            "stage",
-        ) or any(
-            _env == p or _env.startswith(p + "-") or _env.startswith(p + "_")
-            for p in ("production", "prod", "staging", "stage")
-        )
-        if is_prod:
-            logger.error(
-                "resend_webhook_no_secret_configured trace=%s — REJECTED in production. "
-                "Set RESEND_WEBHOOK_SECRET to the Svix signing secret from the Resend dashboard.",
-                trace_id,
-            )
-            return JSONResponse(
-                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-                content={
-                    "success": False,
-                    "error": "webhook_secret_not_configured",
-                    "detail": "Email webhook signing secret is not configured. "
-                    "Set RESEND_WEBHOOK_SECRET to accept inbound webhooks.",
-                    "trace_id": trace_id,
-                },
-            )
-        # Development only — accept with warning.
-        logger.warning(
-            "resend_webhook_no_secret_configured trace=%s — accepted in dev mode. "
-            "Set RESEND_WEBHOOK_SECRET before deploying to production.",
-            trace_id,
-        )
-    else:
-        sig_header = svix_signature or ""
-        if not _verify_resend_signature(raw_body, sig_header, secret):
-            logger.warning("resend_webhook_signature_invalid trace=%s", trace_id)
-            return JSONResponse(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                content={
-                    "success": False,
-                    "error": "invalid_signature",
-                    "trace_id": trace_id,
-                },
-            )
+
+    # S3776: secret-check extracted to _check_webhook_secret helper.
+    missing_secret_response = _check_webhook_secret(secret, trace_id)
+    if missing_secret_response is not None:
+        return missing_secret_response
+
+    # S3776: signature verification extracted to _verify_signature_or_reject helper.
+    if secret:
+        sig_error = _verify_signature_or_reject(raw_body, svix_signature, secret, trace_id)
+        if sig_error is not None:
+            return sig_error
 
     # Parse body
     try:
@@ -415,7 +378,6 @@ async def resend_webhook(
     message_id = data.get("email_id") or data.get("id")
     if message_id:
         try:
-            # We don't have a message_id index — store as an event log
             _record_event(message_id, event_type, data)
         except Exception as exc:
             logger.exception("event_log_failed msg=%s err=%s", message_id, exc)
@@ -432,6 +394,73 @@ async def resend_webhook(
             "trace_id": trace_id,
         }
     )
+
+
+def _build_env_flags() -> tuple[bool, str]:
+    """Return (is_prod, env_name) based on ENVIRONMENT / ENV variables."""
+    _env = os.getenv("ENVIRONMENT", os.getenv("ENV", "development")).lower().strip()
+    _prod_names = ("production", "prod", "staging", "stage")
+    is_prod = _env in _prod_names or any(
+        _env == p or _env.startswith(p + "-") or _env.startswith(p + "_") for p in _prod_names
+    )
+    return is_prod, _env
+
+
+def _check_webhook_secret(secret: str, trace_id: str) -> JSONResponse | None:
+    """Return a JSONResponse error if *secret* is missing and we are in prod.
+
+    Returns *None* when the caller should proceed normally.
+    Extracted from resend_webhook to reduce its cognitive complexity (S3776).
+    """
+    if secret:
+        return None  # Secret present — caller will verify signature.
+
+    is_prod, _ = _build_env_flags()
+    if is_prod:
+        logger.error(
+            "resend_webhook_no_secret_configured trace=%s — REJECTED in production. "
+            "Set RESEND_WEBHOOK_SECRET to the Svix signing secret from the Resend dashboard.",
+            trace_id,
+        )
+        return JSONResponse(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            content={
+                "success": False,
+                "error": "webhook_secret_not_configured",
+                "detail": "Email webhook signing secret is not configured. "
+                "Set RESEND_WEBHOOK_SECRET to accept inbound webhooks.",
+                "trace_id": trace_id,
+            },
+        )
+    # Development only — accept with warning.
+    logger.warning(
+        "resend_webhook_no_secret_configured trace=%s — accepted in dev mode. "
+        "Set RESEND_WEBHOOK_SECRET before deploying to production.",
+        trace_id,
+    )
+    return None
+
+
+def _verify_signature_or_reject(
+    raw_body: bytes, svix_signature: str | None, secret: str, trace_id: str
+) -> JSONResponse | None:
+    """Verify the Resend/Svix signature and return a rejection response on failure.
+
+    Returns *None* when the signature is valid (caller should continue processing).
+    Extracted from resend_webhook to reduce its cognitive complexity (S3776).
+    """
+    sig_header = svix_signature or ""
+    if not _verify_resend_signature(raw_body, sig_header, secret):
+        logger.warning("resend_webhook_signature_invalid trace=%s", trace_id)
+        return JSONResponse(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            content={
+                "success": False,
+                "error": "invalid_signature",
+                "trace_id": trace_id,
+            },
+        )
+    return None
 
 
 # ---------------------------------------------------------------------------
@@ -498,7 +527,8 @@ def _deliver_to_endpoint(ep: WebhookEndpoint, body: bytes, sig: str, event_type:
         },
     )
     try:
-        with urllib.request.urlopen(req, timeout=10) as r:
+        # S8410 — explicit timeout prevents the thread from blocking indefinitely.
+        with urllib.request.urlopen(req, timeout=10) as r:  # noqa: S310
             return r.status
     except urllib.error.HTTPError as e:
         return e.code
@@ -551,9 +581,7 @@ async def _forward_to_endpoints(event_type: str, payload: dict) -> int:
 )
 def register_endpoint(
     body: RegisterEndpointRequest,
-    user: CurrentUser = Depends(
-        require_role("admin", "service")
-    ),  # NOSONAR
+    user: CurrentUser = Depends(require_role("admin", "service")),  # NOSONAR
 ) -> JSONResponse:
     """Register a new webhook endpoint to receive forwarded email events.
 
@@ -601,9 +629,7 @@ def register_endpoint(
     summary="List registered outbound webhook endpoints (admin only)",
 )
 def list_endpoints(
-    user: CurrentUser = Depends(
-        require_role("admin", "service")
-    ),  # NOSONAR
+    user: CurrentUser = Depends(require_role("admin", "service")),  # NOSONAR
 ) -> JSONResponse:
     """List all registered outbound webhook endpoints.
 
@@ -636,9 +662,7 @@ def list_endpoints(
 )
 def delete_endpoint(
     endpoint_id: str,
-    user: CurrentUser = Depends(
-        require_role("admin", "service")
-    ),  # NOSONAR
+    user: CurrentUser = Depends(require_role("admin", "service")),  # NOSONAR
 ) -> JSONResponse:
     """Delete a webhook endpoint. Returns success even if not found (idempotent).
 
@@ -669,9 +693,7 @@ def delete_endpoint(
 )
 async def test_endpoint(
     endpoint_id: str,
-    user: CurrentUser = Depends(
-        require_role("admin", "service")
-    ),  # NOSONAR
+    user: CurrentUser = Depends(require_role("admin", "service")),  # NOSONAR
 ) -> JSONResponse:
     """Send a test event to a webhook endpoint.
 
@@ -715,9 +737,7 @@ async def test_endpoint(
 )
 def list_events(
     limit: int = 50,
-    user: CurrentUser = Depends(
-        require_role("admin", "service")
-    ),  # NOSONAR
+    user: CurrentUser = Depends(require_role("admin", "service")),  # NOSONAR
 ) -> JSONResponse:
     """List recent inbound webhook events.
 

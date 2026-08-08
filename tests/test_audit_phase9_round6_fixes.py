@@ -42,9 +42,9 @@ class TestAuditLogRegressionFix:
         # Find end of docstring (triple quote)
         doc_end = body.index('"""', body.index('"""') + 3) + 3
         after_docstring = body[doc_end : doc_end + 500]
-        assert (
-            "_require_api_key(request)" in after_docstring
-        ), "/admin/cua/audit-log does NOT call _require_api_key after docstring — REGRESSION"
+        assert "_require_api_key(request)" in after_docstring, (
+            "/admin/cua/audit-log does NOT call _require_api_key after docstring — REGRESSION"
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -63,25 +63,25 @@ class TestNotificationsWebSocketSecurity:
         """WebSocket must reject non-access tokens."""
         ws_pos = routes_source.index("websocket_notifications_handler")
         ws_body = routes_source[ws_pos : ws_pos + 3000]
-        assert (
-            'token_type != "access"' in ws_body
-        ), "/ws/notifications must check payload type == 'access'"
+        assert 'token_type != "access"' in ws_body, (
+            "/ws/notifications must check payload type == 'access'"
+        )
 
     def test_ws_notifications_has_blacklist_check(self, routes_source: str) -> None:
         """WebSocket must check JTI against token blacklist."""
         ws_pos = routes_source.index("websocket_notifications_handler")
         ws_body = routes_source[ws_pos : ws_pos + 3000]
-        assert (
-            "_is_token_blacklisted" in ws_body
-        ), "/ws/notifications must call _is_token_blacklisted(jti)"
+        assert "_is_token_blacklisted" in ws_body, (
+            "/ws/notifications must call _is_token_blacklisted(jti)"
+        )
 
     def test_ws_notifications_revoked_token_rejected(self, routes_source: str) -> None:
         """Revoked tokens must close the WebSocket."""
         ws_pos = routes_source.index("websocket_notifications_handler")
         ws_body = routes_source[ws_pos : ws_pos + 3000]
-        assert (
-            "Token has been revoked" in ws_body
-        ), "/ws/notifications must close with 'Token has been revoked' message"
+        assert "Token has been revoked" in ws_body, (
+            "/ws/notifications must close with 'Token has been revoked' message"
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -101,9 +101,9 @@ class TestNewEndpointAuthentication:
         marker = "async def scada_live("
         pos = routes_source.index(marker)
         body = routes_source[pos : pos + 1500]
-        assert (
-            "_require_api_key(request)" in body
-        ), "/api/v1/scada/live must call _require_api_key(request)"
+        assert "_require_api_key(request)" in body, (
+            "/api/v1/scada/live must call _require_api_key(request)"
+        )
 
     def test_scada_live_has_request_param(self, routes_source: str) -> None:
         """/api/v1/scada/live must accept request: Request."""
@@ -114,9 +114,9 @@ class TestNewEndpointAuthentication:
         marker = "async def digital_twin_status("
         pos = routes_source.index(marker)
         body = routes_source[pos : pos + 1500]
-        assert (
-            "_require_api_key(request)" in body
-        ), "/api/v1/digital-twin/status must call _require_api_key(request)"
+        assert "_require_api_key(request)" in body, (
+            "/api/v1/digital-twin/status must call _require_api_key(request)"
+        )
 
     def test_digital_twin_has_request_param(self, routes_source: str) -> None:
         """/api/v1/digital-twin/status must accept request: Request."""
@@ -150,9 +150,9 @@ class TestSQLInjectionSafety:
         source = _read_file(file)
         # Search for execute calls with f-strings
         matches = re.findall(r'\.execute\([^)]*f["\']', source)
-        assert (
-            len(matches) == 0
-        ), f"{file}: found {len(matches)} f-string SQL execute calls (SQL injection risk)"
+        assert len(matches) == 0, (
+            f"{file}: found {len(matches)} f-string SQL execute calls (SQL injection risk)"
+        )
 
     def test_postgis_uses_parameterized(self) -> None:
         """PostGIS provider must use %s placeholders, not string formatting."""

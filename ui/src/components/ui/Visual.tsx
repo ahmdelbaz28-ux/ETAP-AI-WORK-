@@ -279,7 +279,7 @@ export function Sparkline({
   const lastX = (data.length - 1) * xStep;
   const areaPath = `${points} L${lastX},${height + 2} L${firstX},${height + 2} Z`;
 
-  const trend = data.at(-1)! >= data[0];
+  const trend = (data.at(-1) ?? 0) >= data[0];
   const trendColor = trend ? "var(--color-success, #22c55e)" : "var(--color-danger, #ef4444)";
   const lineColor = color || trendColor;
 
@@ -318,7 +318,7 @@ export function Sparkline({
       {/* End dot */}
       <circle
         cx={(data.length - 1) * xStep}
-        cy={height - ((data.at(-1)! - min) / range) * (height - 4) - 2}
+        cy={height - (((data.at(-1) ?? 0) - min) / range) * (height - 4) - 2}
         r={2.5}
         fill={lineColor}
         stroke="var(--bg-card, #1a2340)"

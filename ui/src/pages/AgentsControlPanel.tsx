@@ -741,10 +741,10 @@ export default function AgentsControlPanelPage() {
       if (orchExpectedUnit.trim()) body.expected_unit = orchExpectedUnit;
       if (orchLeadAgent.trim()) body.lead_agent = orchLeadAgent;
 
-      const res = await agentsFetch<OrchestrateResponse>(
-        "/api/v1/agents/ahmed-etap/orchestrate",
-        { method: "POST", body: JSON.stringify(body) },
-      );
+      const res = await agentsFetch<OrchestrateResponse>("/api/v1/agents/ahmed-etap/orchestrate", {
+        method: "POST",
+        body: JSON.stringify(body),
+      });
       if (res.success && res.data) {
         setOrchResult(res.data);
         notify("success", `Orchestration ${res.data.verdict ?? "complete"}`);
@@ -801,7 +801,15 @@ export default function AgentsControlPanelPage() {
       loadSiemEvents();
     }
     if (tab === "orchestration") loadAhmedInfo();
-  }, [tab, loadAgents, loadAgentsInfo, loadCuaHealth, loadSiemHealth, loadSiemEvents, loadAhmedInfo]);
+  }, [
+    tab,
+    loadAgents,
+    loadAgentsInfo,
+    loadCuaHealth,
+    loadSiemHealth,
+    loadSiemEvents,
+    loadAhmedInfo,
+  ]);
 
   // -------------------------------------------------------------------------
   // Render
@@ -898,10 +906,7 @@ export default function AgentsControlPanelPage() {
                       </thead>
                       <tbody>
                         {filteredAgents.map((a) => (
-                          <tr
-                            key={a.id}
-                            className="border-b border-zinc-900 hover:bg-zinc-900/40"
-                          >
+                          <tr key={a.id} className="border-b border-zinc-900 hover:bg-zinc-900/40">
                             <td className="px-3 py-2 font-medium text-zinc-100">{a.name}</td>
                             <td className="px-3 py-2 font-mono text-xs text-zinc-400">{a.id}</td>
                             <td className="px-3 py-2 text-zinc-400">{a.standard || "—"}</td>
@@ -1151,9 +1156,7 @@ export default function AgentsControlPanelPage() {
                   <Button
                     variant="secondary"
                     onClick={deactivateKillSwitch}
-                    disabled={
-                      deactivateLoading || !safetyHealth?.kill_switch_active
-                    }
+                    disabled={deactivateLoading || !safetyHealth?.kill_switch_active}
                     title="Deactivate emergency stop"
                   >
                     {deactivateLoading ? (
@@ -1213,8 +1216,8 @@ export default function AgentsControlPanelPage() {
               <CardHeader title="CUA Execute" />
               <CardSection className="space-y-3">
                 <p className="text-xs text-zinc-500">
-                  Run the real CUA loop — captures screenshots, analyses them via Gemini Vision,
-                  and drives pyautogui to click/type/hotkey.
+                  Run the real CUA loop — captures screenshots, analyses them via Gemini Vision, and
+                  drives pyautogui to click/type/hotkey.
                 </p>
                 <textarea
                   className="w-full rounded-md border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-100 placeholder-zinc-500"
@@ -1341,9 +1344,7 @@ export default function AgentsControlPanelPage() {
                             className="border-b border-zinc-900"
                           >
                             <td className="px-3 py-2 text-zinc-500">{i + 1}</td>
-                            <td className="px-3 py-2 text-zinc-200">
-                              {String(ev.event ?? "—")}
-                            </td>
+                            <td className="px-3 py-2 text-zinc-200">{String(ev.event ?? "—")}</td>
                             <td className="px-3 py-2">
                               <Badge className="bg-zinc-800 text-zinc-300 border border-zinc-700">
                                 {String(ev.level ?? "info")}
@@ -1396,9 +1397,7 @@ export default function AgentsControlPanelPage() {
                     />
                     <StatCard
                       label="Token Budget"
-                      value={
-                        ahmedInfo.token_budget_defaults?.default ?? 8000
-                      }
+                      value={ahmedInfo.token_budget_defaults?.default ?? 8000}
                       tone="neutral"
                       icon={<Activity className="h-5 w-5" />}
                     />
@@ -1566,12 +1565,7 @@ export default function AgentsControlPanelPage() {
       </div>
 
       {/* ─── Agent detail modal ──────────────────────────────────── */}
-      <Modal
-        open={detailOpen}
-        onClose={() => setDetailOpen(false)}
-        title="Agent Detail"
-        size="lg"
-      >
+      <Modal open={detailOpen} onClose={() => setDetailOpen(false)} title="Agent Detail" size="lg">
         {detailLoading ? (
           <LoadingInline label="Loading agent…" />
         ) : detailAgent ? (
@@ -1640,8 +1634,8 @@ export default function AgentsControlPanelPage() {
         <div className="space-y-3 text-sm">
           <div className="rounded-md border border-red-500/30 bg-red-500/10 p-3 text-red-300">
             <AlertTriangle className="mr-2 inline h-4 w-4" />
-            This will immediately halt the CUA Loop on its next action check. Only deactivate
-            after the safety issue has been resolved and reviewed.
+            This will immediately halt the CUA Loop on its next action check. Only deactivate after
+            the safety issue has been resolved and reviewed.
           </div>
           <label className="flex flex-col gap-1 text-zinc-400">
             Reason

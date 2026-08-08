@@ -27,7 +27,7 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -382,7 +382,7 @@ class EngineeringAssertionLayer:
     def validate_arc_flash_results(
         self,
         incident_energy_cal_cm2: dict[str, float],
-        arc_flash_boundaries_mm: Optional[dict[str, float]] = None,
+        arc_flash_boundaries_mm: dict[str, float] | None = None,
     ) -> list[AssertionResult]:
         """
         Validate arc flash results against IEEE 1584 bounds.

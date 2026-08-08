@@ -84,14 +84,16 @@ ENGINEERING_STANDARDS = {
 }
 
 
-_NO_STANDARDS_EXCEPTIONS = frozenset({
-    "sample_prompt.yaml",
-    "fallback_agent.prompt.yaml",
-    "weather_activity_planner.prompt.yaml",
-    "goal_planner_agent.yaml",
-    "etap_gui_agent.prompt.yaml",
-    "code_guard_agent.prompt.yaml",
-})
+_NO_STANDARDS_EXCEPTIONS = frozenset(
+    {
+        "sample_prompt.yaml",
+        "fallback_agent.prompt.yaml",
+        "weather_activity_planner.prompt.yaml",
+        "goal_planner_agent.yaml",
+        "etap_gui_agent.prompt.yaml",
+        "code_guard_agent.prompt.yaml",
+    }
+)
 
 
 def _validate_required_fields(parsed: dict, issues: list) -> None:
@@ -149,7 +151,9 @@ def _validate_messages(parsed: dict, issues: list) -> bool:
     return has_system
 
 
-def _check_engineering_standards(messages: list, has_system: bool, filepath: Path, issues: list) -> None:
+def _check_engineering_standards(
+    messages: list, has_system: bool, filepath: Path, issues: list
+) -> None:
     """Check for engineering standards references in system messages."""
     if not has_system:
         return

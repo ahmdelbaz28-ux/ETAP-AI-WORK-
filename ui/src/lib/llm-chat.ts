@@ -217,7 +217,10 @@ async function callOpenAICompatible(
       console.warn("Failed to read response text:", error);
       return "Unknown error";
     });
-    throw new Error(`${provider.name} API error ${res.status}: ${text.slice(0, 200)}`);
+    const sanitizedText = text
+      .replace(/(sk-[A-Za-z0-9_-]{4})[A-Za-z0-9_-]+/g, "$1...****")
+      .slice(0, 200);
+    throw new Error(`${provider.name} API error ${res.status}: ${sanitizedText}`);
   }
 
   const data = await res.json();

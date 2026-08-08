@@ -199,9 +199,9 @@ class TestDatabaseEngineCreation:
             async with engine.connect() as conn:
                 tables = await conn.run_sync(lambda sync_conn: inspect(sync_conn).get_table_names())
             assert "users" in tables, f"init_db should have created 'users' table, got: {tables}"
-            assert (
-                "projects" in tables
-            ), f"init_db should have created 'projects' table, got: {tables}"
+            assert "projects" in tables, (
+                f"init_db should have created 'projects' table, got: {tables}"
+            )
         finally:
             await engine.dispose()
 

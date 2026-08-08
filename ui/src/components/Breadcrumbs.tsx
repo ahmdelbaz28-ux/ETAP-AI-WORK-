@@ -41,7 +41,7 @@ export function Breadcrumbs({ path }: { readonly path: string }) {
         const isLast = i === segments.length - 1;
         const labelKey = routeLabels[segment];
         return (
-          <span key={`${segment}-${i}`} className="flex items-center gap-1.5">
+          <span key={segment} className="flex items-center gap-1.5">
             <span className={isLast ? "text-[var(--text-secondary)] font-medium" : ""}>
               {labelKey ? t(labelKey) : segment.replaceAll("-", " ")}
             </span>

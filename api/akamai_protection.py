@@ -32,7 +32,7 @@ from __future__ import annotations
 
 import logging
 import os
-from typing import Any, Optional
+from typing import Any
 
 from fastapi import Request, status
 from fastapi.responses import JSONResponse
@@ -310,7 +310,7 @@ def _verify_origin_secret(request: Request) -> bool:
     return verify_origin_secret(request, AKAMAI_ORIGIN_SECRET)
 
 
-def _parse_int(value: Optional[str]) -> Optional[int]:
+def _parse_int(value: str | None) -> int | None:
     """Parse an optional integer header value. Returns None on failure.
 
     Delegates to ``api._cdn_base.parse_int_header``.

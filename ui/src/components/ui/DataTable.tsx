@@ -97,9 +97,9 @@ export function DataTable<T>({
     if (!onSelectionChange) return;
     const next = new Set(selectedKeys);
     if (allOnPageSelected) {
-      paged.forEach((r) => next.delete(keyExtractor(r, 0)));
+      for (const r of paged) next.delete(keyExtractor(r, 0));
     } else {
-      paged.forEach((r) => next.add(keyExtractor(r, 0)));
+      for (const r of paged) next.add(keyExtractor(r, 0));
     }
     onSelectionChange(next);
   };
@@ -158,6 +158,8 @@ export function DataTable<T>({
                 {columns.map((col) => (
                   <th
                     key={col.key}
+                    scope="col"
+                    tabIndex={col.sortable !== false ? 0 : undefined}
                     className={cn(
                       "px-3 py-2.5 text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider",
                       col.align === "center" && "text-center",
@@ -167,6 +169,12 @@ export function DataTable<T>({
                     )}
                     style={{ width: col.width }}
                     onClick={() => col.sortable !== false && handleSort(col.key)}
+                    onKeyDown={(e) => {
+                      if (col.sortable !== false && (e.key === "Enter" || e.key === " ")) {
+                        e.preventDefault();
+                        handleSort(col.key);
+                      }
+                    }}
                   >
                     <span className="inline-flex items-center gap-1.5">
                       {col.label}

@@ -213,7 +213,6 @@ export default function App() {
                 <Route path="/asset-library" element={<AssetLibraryPage />} />
                 <Route path="/admin/cua-monitor" element={<CuaMonitorPage />} />
                 <Route path="/admin/rbac" element={<RbacAdminPage />} />
-<<<<<<< HEAD
                 <Route path="/admin/email-dashboard" element={<EmailDashboardPage />} />
                 <Route path="/admin/email-digest" element={<EmailDigestPage />} />
                 <Route path="/admin/study-versions" element={<StudyVersionsPage />} />
@@ -222,10 +221,7 @@ export default function App() {
                 <Route path="/admin/mfa" element={<MfaPage />} />
                 <Route path="/admin/agents" element={<AgentsControlPanelPage />} />
                 <Route path="/equipment" element={<EquipmentManagementPage />} />
-                <Route path="/admin/email-dashboard" element={<EmailDashboardPage />} />
                 <Route path="/admin/email/webhooks" element={<EmailWebhooksPage />} />
-                <Route path="/admin/email-digest" element={<EmailDigestPage />} />
->>>>>>> 65a4db40 (feat(ui): complete Remediation Pass 1 (Tasks 1-5) with 100% clean build verification)
                 <Route path="*" element={<Navigate to="/dashboard" replace />} />
               </Route>
             </Routes>

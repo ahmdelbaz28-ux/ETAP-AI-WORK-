@@ -50,7 +50,7 @@ from __future__ import annotations
 
 import logging
 import re
-from typing import Any, Optional
+from typing import Any
 
 from integrations import _vision_base
 
@@ -184,7 +184,7 @@ class OpenCVVisionClient:
         self,
         image: Any,
         objective: str,
-        context: Optional[str] = None,
+        context: str | None = None,
     ) -> dict[str, Any] | None:
         """Analyze a screenshot locally via OpenCV + OCR.
 

@@ -459,7 +459,9 @@ class GraphBuilder:
         }
         graph.edges.append({"from": root_id, "to": panel_id, "type": "creates"})
 
-    def _add_missing_transformer_node(self, graph: EngineeringGraph, root_id: str, raw_text: str) -> None:
+    def _add_missing_transformer_node(
+        self, graph: EngineeringGraph, root_id: str, raw_text: str
+    ) -> None:
         """Add a transformer node if missing and substation intent."""
         xf_id = f"transformer_{uuid.uuid4().hex[:8]}"
         xf_type = self._determine_transformer_type(raw_text.lower())
@@ -471,7 +473,9 @@ class GraphBuilder:
         }
         graph.edges.append({"from": root_id, "to": xf_id, "type": "supplies"})
 
-    def _add_missing_generator_node(self, graph: EngineeringGraph, root_id: str, raw_text: str) -> None:
+    def _add_missing_generator_node(
+        self, graph: EngineeringGraph, root_id: str, raw_text: str
+    ) -> None:
         """Add a generator node if missing and text mentions generator."""
         gen_id = f"generator_{uuid.uuid4().hex[:8]}"
         gen_type = self._determine_generator_type(raw_text.lower())
@@ -483,7 +487,9 @@ class GraphBuilder:
         }
         graph.edges.append({"from": root_id, "to": gen_id, "type": "supplies"})
 
-    def _add_missing_nodes(self, graph: EngineeringGraph, root_id: str, intent: EngineeringIntent) -> None:
+    def _add_missing_nodes(
+        self, graph: EngineeringGraph, root_id: str, intent: EngineeringIntent
+    ) -> None:
         """Add missing entity nodes for panel/substation intents."""
         if intent.type not in (
             EngineeringIntentType.CREATE_PANEL,
@@ -507,7 +513,14 @@ class GraphBuilder:
         """Apply extracted parameters to relevant graph nodes."""
         if not parameters:
             return
-        _PARAM_KEYS = ("voltage", "power", "count", "feeder_count", "main_current", "feeder_current")
+        _PARAM_KEYS = (
+            "voltage",
+            "power",
+            "count",
+            "feeder_count",
+            "main_current",
+            "feeder_current",
+        )
         for node_id in graph.nodes:
             if graph.nodes[node_id].get("type") not in ("panel", "transformer", "bus"):
                 continue

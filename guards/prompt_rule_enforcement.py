@@ -46,9 +46,8 @@ from __future__ import annotations
 import logging
 import re
 from dataclasses import dataclass, field
-from enum import Enum
 from functools import wraps
-from typing import Any, Callable, Optional
+from typing import Any, Callable
 
 from guards.base import GuardMode, GuardResult, GuardSeverity, GuardViolation
 
@@ -83,14 +82,16 @@ MANDATORY_TOOL_RULES: dict[str, list[str]] = {
 }
 
 # Study types that are life-safety critical and MUST go through validation_agent
-LIFE_SAFETY_STUDY_TYPES = frozenset({
-    "ARC_FLASH",
-    "SHORT_CIRCUIT",
-    "EARTH_GRID",
-    "PROTECTION_COORDINATION",
-    "CABLE_SIZING",
-    "BATTERY_SIZING",
-})
+LIFE_SAFETY_STUDY_TYPES = frozenset(
+    {
+        "ARC_FLASH",
+        "SHORT_CIRCUIT",
+        "EARTH_GRID",
+        "PROTECTION_COORDINATION",
+        "CABLE_SIZING",
+        "BATTERY_SIZING",
+    }
+)
 
 # ─── Mandatory Format Rules (per agent) ─────────────────────────────────
 # Maps agent_id → list of (field_name, regex_pattern) tuples.
@@ -125,9 +126,11 @@ MANDATORY_FORMAT_RULES: dict[str, list[tuple[str, str]]] = {
 
 # ─── Validation Result ───────────────────────────────────────────────────
 
+
 @dataclass
 class PromptRuleViolation:
     """A single prompt rule violation."""
+
     rule_id: str
     agent_id: str
     rule_type: str  # "tool_call" or "format_field" or "validation_gate"
@@ -139,6 +142,7 @@ class PromptRuleViolation:
 @dataclass
 class PromptRuleResult:
     """Aggregate result of prompt rule validation."""
+
     agent_id: str
     violations: list[PromptRuleViolation] = field(default_factory=list)
 
@@ -173,11 +177,12 @@ class PromptRuleResult:
 
 # ─── Core Validation Function ───────────────────────────────────────────
 
+
 def validate_agent_response(
     agent_id: str,
     response_text: str,
-    tool_calls_made: Optional[list[str]] = None,
-    study_type: Optional[str] = None,
+    tool_calls_made: list[str] | None = None,
+    study_type: str | None = None,
     validation_agent_called: bool = False,
 ) -> PromptRuleResult:
     """Validate that an agent's response satisfies its mandatory prompt rules.
@@ -208,40 +213,46 @@ def validate_agent_response(
     for tool_name in required_tools:
         if tool_name not in tool_calls:
             is_life_safety = agent_id in {
-                "arcflash-agent", "short-circuit-agent", "protection-agent",
+                "arcflash-agent",
+                "short-circuit-agent",
+                "protection-agent",
             }
-            violations.append(PromptRuleViolation(
-                rule_id=f"F03-TOOL-{tool_name}",
-                agent_id=agent_id,
-                rule_type="tool_call",
-                description=(
-                    f"Agent '{agent_id}' did not call required tool '{tool_name}'. "
-                    f"This violates the MANDATORY RULE in the agent's prompt that "
-                    f"requires using {tool_name} for all numerical computations. "
-                    f"Per SKILL.md Fix Strategy #1: 'Code-gate tool requirements — "
-                    f"enforce in code, not just prompt text.'"
-                ),
-                severity=GuardSeverity.MUST_FIX if is_life_safety else GuardSeverity.SHOULD_FIX,
-                evidence=f"tool_calls_made={sorted(tool_calls)}, required={sorted(required_tools)}",
-            ))
+            violations.append(
+                PromptRuleViolation(
+                    rule_id=f"F03-TOOL-{tool_name}",
+                    agent_id=agent_id,
+                    rule_type="tool_call",
+                    description=(
+                        f"Agent '{agent_id}' did not call required tool '{tool_name}'. "
+                        f"This violates the MANDATORY RULE in the agent's prompt that "
+                        f"requires using {tool_name} for all numerical computations. "
+                        f"Per SKILL.md Fix Strategy #1: 'Code-gate tool requirements — "
+                        f"enforce in code, not just prompt text.'"
+                    ),
+                    severity=GuardSeverity.MUST_FIX if is_life_safety else GuardSeverity.SHOULD_FIX,
+                    evidence=f"tool_calls_made={sorted(tool_calls)}, required={sorted(required_tools)}",
+                )
+            )
 
     # ── Check 2: Mandatory format fields ──────────────────────────────
     format_rules = MANDATORY_FORMAT_RULES.get(agent_id, [])
     for field_name, pattern in format_rules:
         if not re.search(pattern, response_text, re.IGNORECASE):
             is_life_safety = agent_id in {"arcflash-agent", "short-circuit-agent"}
-            violations.append(PromptRuleViolation(
-                rule_id=f"F03-FMT-{field_name}",
-                agent_id=agent_id,
-                rule_type="format_field",
-                description=(
-                    f"Agent '{agent_id}' response is missing mandatory format field "
-                    f"'{field_name}' (pattern: /{pattern}/). The prompt declares this "
-                    f"field as 'mandatory' but the response does not contain it."
-                ),
-                severity=GuardSeverity.MUST_FIX if is_life_safety else GuardSeverity.SHOULD_FIX,
-                evidence=f"response_length={len(response_text)}, pattern=/{pattern}/",
-            ))
+            violations.append(
+                PromptRuleViolation(
+                    rule_id=f"F03-FMT-{field_name}",
+                    agent_id=agent_id,
+                    rule_type="format_field",
+                    description=(
+                        f"Agent '{agent_id}' response is missing mandatory format field "
+                        f"'{field_name}' (pattern: /{pattern}/). The prompt declares this "
+                        f"field as 'mandatory' but the response does not contain it."
+                    ),
+                    severity=GuardSeverity.MUST_FIX if is_life_safety else GuardSeverity.SHOULD_FIX,
+                    evidence=f"response_length={len(response_text)}, pattern=/{pattern}/",
+                )
+            )
 
     # ── Check 3: Life-safety validation gate ──────────────────────────
     # The coordinator prompt states: "validation_agent MUST review the
@@ -249,21 +260,23 @@ def validate_agent_response(
     # for any life-safety calculation.
     if study_type and study_type.upper() in LIFE_SAFETY_STUDY_TYPES:
         if not validation_agent_called:
-            violations.append(PromptRuleViolation(
-                rule_id="F03-VAL-life_safety",
-                agent_id=agent_id,
-                rule_type="validation_gate",
-                description=(
-                    f"Life-safety study type '{study_type}' was executed but "
-                    f"validation_agent was NOT called to review the result. "
-                    f"The coordinator prompt mandates: 'validation_agent MUST review "
-                    f"the specialist's result before the response is returned to the user' "
-                    f"for any life-safety calculation. This is a Tool Discipline Failure "
-                    f"(L6 in the 12-layer stack)."
-                ),
-                severity=GuardSeverity.MUST_FIX,
-                evidence=f"study_type={study_type}, validation_agent_called={validation_agent_called}",
-            ))
+            violations.append(
+                PromptRuleViolation(
+                    rule_id="F03-VAL-life_safety",
+                    agent_id=agent_id,
+                    rule_type="validation_gate",
+                    description=(
+                        f"Life-safety study type '{study_type}' was executed but "
+                        f"validation_agent was NOT called to review the result. "
+                        f"The coordinator prompt mandates: 'validation_agent MUST review "
+                        f"the specialist's result before the response is returned to the user' "
+                        f"for any life-safety calculation. This is a Tool Discipline Failure "
+                        f"(L6 in the 12-layer stack)."
+                    ),
+                    severity=GuardSeverity.MUST_FIX,
+                    evidence=f"study_type={study_type}, validation_agent_called={validation_agent_called}",
+                )
+            )
 
     # ── Check 4: Fallback agent numerical refusal ─────────────────────
     # The fallback_agent prompt states: "You MUST REFUSE to give numerical
@@ -272,28 +285,33 @@ def validate_agent_response(
     if agent_id == "fallback-agent":
         # Look for patterns like "X = 123.45 kA" or "result: 8.5 cal/cm²"
         # without a "REFUSE" or "cannot" disclaimer
-        numerical_pattern = r'\d+\.?\d*\s*(kA|MW|MVAr|cal/cm|pu|kV|mm|V|A|Ω|Hz)'
+        numerical_pattern = r"\d+\.?\d*\s*(kA|MW|MVAr|cal/cm|pu|kV|mm|V|A|Ω|Hz)"
         has_numerical = bool(re.search(numerical_pattern, response_text))
-        has_refusal = bool(re.search(r'refuse|cannot|unable|not available|do not', response_text, re.IGNORECASE))
+        has_refusal = bool(
+            re.search(r"refuse|cannot|unable|not available|do not", response_text, re.IGNORECASE)
+        )
         if has_numerical and not has_refusal:
-            violations.append(PromptRuleViolation(
-                rule_id="F03-FALL-numerical",
-                agent_id=agent_id,
-                rule_type="format_field",
-                description=(
-                    "Fallback agent returned numerical answers for what may be a "
-                    "life-safety calculation without a refusal disclaimer. The prompt "
-                    "states: 'You MUST REFUSE to give numerical answers for any "
-                    "life-safety calculation.'"
-                ),
-                severity=GuardSeverity.MUST_FIX,
-                evidence=f"response contains numerical values without refusal disclaimer",
-            ))
+            violations.append(
+                PromptRuleViolation(
+                    rule_id="F03-FALL-numerical",
+                    agent_id=agent_id,
+                    rule_type="format_field",
+                    description=(
+                        "Fallback agent returned numerical answers for what may be a "
+                        "life-safety calculation without a refusal disclaimer. The prompt "
+                        "states: 'You MUST REFUSE to give numerical answers for any "
+                        "life-safety calculation.'"
+                    ),
+                    severity=GuardSeverity.MUST_FIX,
+                    evidence="response contains numerical values without refusal disclaimer",
+                )
+            )
 
     return PromptRuleResult(agent_id=agent_id, violations=violations)
 
 
 # ─── Decorator for Enforcement ──────────────────────────────────────────
+
 
 def enforce_prompt_rules(agent_id: str) -> Callable:
     """Decorator that validates agent response against mandatory prompt rules.
@@ -307,6 +325,7 @@ def enforce_prompt_rules(agent_id: str) -> Callable:
         async def run_agent(query: str) -> AgentResponse:
             ...
     """
+
     def decorator(func: Callable) -> Callable:
         @wraps(func)
         async def async_wrapper(*args: Any, **kwargs: Any) -> Any:
@@ -326,8 +345,9 @@ def enforce_prompt_rules(agent_id: str) -> Callable:
                 tool_calls_made = list(result.get("tool_calls", result.get("tools_used", [])))
 
             if hasattr(result, "tool_calls"):
-                tool_calls_made = [tc.name if hasattr(tc, "name") else str(tc)
-                                   for tc in result.tool_calls]
+                tool_calls_made = [
+                    tc.name if hasattr(tc, "name") else str(tc) for tc in result.tool_calls
+                ]
 
             # Validate
             validation = validate_agent_response(
@@ -338,15 +358,15 @@ def enforce_prompt_rules(agent_id: str) -> Callable:
             )
 
             if not validation.passed:
-                must_fix = [v for v in validation.violations
-                            if v.severity == GuardSeverity.MUST_FIX]
-                should_fix = [v for v in validation.violations
-                              if v.severity == GuardSeverity.SHOULD_FIX]
+                must_fix = [
+                    v for v in validation.violations if v.severity == GuardSeverity.MUST_FIX
+                ]
+                should_fix = [
+                    v for v in validation.violations if v.severity == GuardSeverity.SHOULD_FIX
+                ]
 
                 for v in should_fix:
-                    logger.warning(
-                        "F-03 SHOULD_FIX: %s (agent=%s)", v.description, agent_id
-                    )
+                    logger.warning("F-03 SHOULD_FIX: %s (agent=%s)", v.description, agent_id)
 
                 if must_fix:
                     _violation_summary = "; ".join(v.rule_id for v in must_fix)
@@ -389,13 +409,15 @@ def enforce_prompt_rules(agent_id: str) -> Callable:
             )
 
             if not validation.passed:
-                must_fix = [v for v in validation.violations
-                            if v.severity == GuardSeverity.MUST_FIX]
+                must_fix = [
+                    v for v in validation.violations if v.severity == GuardSeverity.MUST_FIX
+                ]
                 if must_fix:
                     _violation_summary = "; ".join(v.rule_id for v in must_fix)
                     logger.error(
                         "F-03 MUST_FIX: %s — blocking response from '%s'",
-                        _violation_summary, agent_id,
+                        _violation_summary,
+                        agent_id,
                     )
                     raise RuntimeError(
                         f"Agent '{agent_id}' response blocked: violates mandatory rules "
@@ -405,6 +427,7 @@ def enforce_prompt_rules(agent_id: str) -> Callable:
             return result
 
         import asyncio
+
         if asyncio.iscoroutinefunction(func):
             return async_wrapper
         return sync_wrapper
@@ -414,10 +437,11 @@ def enforce_prompt_rules(agent_id: str) -> Callable:
 
 # ─── API Boundary Enforcement ───────────────────────────────────────────
 
+
 def enforce_at_api_boundary(
     agent_id: str,
     response: dict[str, Any],
-    study_type: Optional[str] = None,
+    study_type: str | None = None,
 ) -> dict[str, Any]:
     """Enforce prompt rules at the API boundary before returning to client.
 

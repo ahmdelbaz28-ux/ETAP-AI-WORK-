@@ -222,10 +222,10 @@ export function ErrorRecovery({ error, onDismiss, onRetry }: ErrorRecoveryProps)
             Retry
           </button>
         )}
-        {help.actions?.map((a, i) => (
+        {help.actions?.map((a) => (
           <button
             type="button"
-            key={i} // NOSONAR — S6479: array index as key; items lack stable IDs (tech debt)
+            key={a.label}
             onClick={() => handleAction(a.action)}
             className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium bg-[var(--bg-elevated)] text-[var(--text-secondary)] rounded-lg hover:bg-[var(--border-primary)] transition-colors"
           >

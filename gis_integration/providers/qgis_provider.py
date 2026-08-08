@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from collections.abc import Iterator
-from typing import Optional
 
 from gis_integration.base import GISProviderInterface
 from gis_integration.exceptions import GISDataExtractionError, GISProviderUnavailableError
@@ -20,7 +19,7 @@ class QGISProvider(GISProviderInterface):
 
     def __init__(self) -> None:
         self._loaded = False
-        self._project_path: Optional[str] = None
+        self._project_path: str | None = None
         self._crs: GeoCRSInfo = GeoCRSInfo()
         self._layers: list[str] = []
         self._layer_index: dict[str, str] = {}
@@ -132,7 +131,7 @@ class QGISProvider(GISProviderInterface):
         except Exception as exc:
             raise GISDataExtractionError(f"Failed to export GeoJSON from QGIS: {exc}") from exc
 
-    def get_crs(self, layer_id: Optional[str] = None) -> GeoCRSInfo:
+    def get_crs(self, layer_id: str | None = None) -> GeoCRSInfo:
         # Best-effort: keep default unless provider can supply.
         # QGIS CRS extraction is omitted here to avoid brittle SDK dependency assumptions.
         return self._crs

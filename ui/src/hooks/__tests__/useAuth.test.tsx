@@ -28,7 +28,7 @@ function mockResponse({
   ok,
   status = 200,
   data = {},
-}: { ok: boolean; status?: number; data?: any }) {
+}: { ok: boolean; status?: number; data?: unknown }) {
   const bodyText = typeof data === "string" ? data : JSON.stringify(data);
   return {
     ok,
@@ -48,6 +48,7 @@ function createWrapper() {
 describe("useAuth", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    sessionStorage.clear();
     localStorage.clear();
     // Default: no token, so no validate call needed
     mockFetch.mockResolvedValue(
@@ -116,8 +117,8 @@ describe("useAuth", () => {
       }),
     );
 
-    expect(localStorage.getItem("authToken")).toBe("test-access-token");
-    expect(localStorage.getItem("refreshToken")).toBe("test-refresh-token");
+    expect(sessionStorage.getItem("authToken")).toBe("test-access-token");
+    expect(sessionStorage.getItem("refreshToken")).toBe("test-refresh-token");
     expect(result.current.user).toEqual(mockUser);
     expect(result.current.isAuthenticated).toBe(true);
   });
@@ -178,12 +179,12 @@ describe("useAuth", () => {
 
     expect(result.current.user).toBeNull();
     expect(result.current.isAuthenticated).toBe(false);
-    expect(localStorage.getItem("authToken")).toBeNull();
-    expect(localStorage.getItem("refreshToken")).toBeNull();
+    expect(sessionStorage.getItem("authToken")).toBeNull();
+    expect(sessionStorage.getItem("refreshToken")).toBeNull();
   });
 
   it("validates existing token on mount and sets user", async () => {
-    localStorage.setItem("authToken", "existing-token");
+    sessionStorage.setItem("authToken", "existing-token");
     const mockUser = { id: "2", email: "existing@etap.com", name: "Existing User", role: "user" };
     mockFetch.mockResolvedValueOnce(
       mockResponse({
@@ -212,7 +213,7 @@ describe("useAuth", () => {
   });
 
   it("removes invalid token on mount", async () => {
-    localStorage.setItem("authToken", "invalid-token");
+    sessionStorage.setItem("authToken", "invalid-token");
     mockFetch.mockResolvedValueOnce(
       mockResponse({
         ok: false,
@@ -227,13 +228,13 @@ describe("useAuth", () => {
       expect(result.current.isLoading).toBe(false);
     });
 
-    expect(localStorage.getItem("authToken")).toBeNull();
+    expect(sessionStorage.getItem("authToken")).toBeNull();
     expect(result.current.user).toBeNull();
     expect(result.current.isAuthenticated).toBe(false);
   });
 
   it("refreshes token successfully", async () => {
-    localStorage.setItem("refreshToken", "old-refresh-token");
+    sessionStorage.setItem("refreshToken", "old-refresh-token");
     const { result } = renderHook(() => useAuth(), { wrapper: createWrapper() });
 
     await waitFor(() => {
@@ -261,12 +262,12 @@ describe("useAuth", () => {
       }),
     );
 
-    expect(localStorage.getItem("authToken")).toBe("new-access-token");
+    expect(sessionStorage.getItem("authToken")).toBe("new-access-token");
   });
 
   it("logs out when refresh token fails", async () => {
-    localStorage.setItem("authToken", "old-token");
-    localStorage.setItem("refreshToken", "expired-refresh-token");
+    sessionStorage.setItem("authToken", "old-token");
+    sessionStorage.setItem("refreshToken", "expired-refresh-token");
 
     // Mount validation succeeds
     mockFetch.mockResolvedValueOnce(

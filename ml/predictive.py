@@ -26,14 +26,12 @@ informative errors when unavailable.
 from __future__ import annotations
 
 # Module-level string constants (extracted to satisfy S1192).
-_MODEL_NOT_TRAINED_MSG = (
-    "Model has not been trained yet. Call train() first."  # NOSONAR
-)
+_MODEL_NOT_TRAINED_MSG = "Model has not been trained yet. Call train() first."  # NOSONAR
 
 import contextlib
 import logging
 from datetime import datetime, timedelta
-from typing import Any, Optional
+from typing import Any
 
 import numpy as np
 
@@ -157,7 +155,7 @@ class LoadForecaster:
             'auto' selects the best available: lstm > prophet > linear.
         """
         self.model: Any = None
-        self.scaler: Optional[Any] = None
+        self.scaler: Any | None = None
         self._is_lstm: bool = False
         self._is_prophet: bool = False
         self._window_size: int = 24  # default sliding window for sequences
@@ -165,13 +163,13 @@ class LoadForecaster:
         # training run. We persist the trained window here so predict() can
         # use the same window the model was actually fit on. ``_window_size``
         # stays at its default (24) for the next train() call.
-        self._trained_window_size: Optional[int] = None
-        self._fallback_weights: Optional[np.ndarray] = None
+        self._trained_window_size: int | None = None
+        self._fallback_weights: np.ndarray | None = None
         self._fallback_bias: float = 0.0
         self._fallback_mean: float = 0.0
         self._fallback_std: float = 1.0
         self._method = method
-        self._training_data: Optional[np.ndarray] = None
+        self._training_data: np.ndarray | None = None
 
     # ------------------------------------------------------------------
     # Training
@@ -519,7 +517,7 @@ class FaultPredictor:
         self._optimize = optimize and _HAS_OPTUNA
         self._use_shap = _HAS_SHAP
         self._explainer: Any = None
-        self._last_training_features: Optional[np.ndarray] = None
+        self._last_training_features: np.ndarray | None = None
 
     def train(  # NOSONAR
         self, features: np.ndarray, labels: np.ndarray
@@ -861,10 +859,10 @@ class AnomalyDetector:
         self.model: Any = None
         self.contamination = contamination
         self.method = method
-        self._threshold: Optional[float] = None
+        self._threshold: float | None = None
         self._is_trained: bool = False
-        self._train_mean: Optional[float] = None
-        self._train_std: Optional[float] = None
+        self._train_mean: float | None = None
+        self._train_std: float | None = None
 
     def train(self, normal_data: np.ndarray) -> dict[str, Any]:
         """Train on normal operating data.
@@ -1029,8 +1027,8 @@ class PowerGridGNN:
         self.num_layers = num_layers
         self.model: Any = None
         self._is_trained: bool = False
-        self._input_dim: Optional[int] = None
-        self._output_dim: Optional[int] = None
+        self._input_dim: int | None = None
+        self._output_dim: int | None = None
 
     def _build_model(self, input_dim: int, output_dim: int) -> None:
         """Build the GNN model architecture."""
@@ -1195,7 +1193,7 @@ class ModelRegistry:
     - Model artifact storage
     """
 
-    def __init__(self, tracking_uri: Optional[str] = None) -> None:
+    def __init__(self, tracking_uri: str | None = None) -> None:
         """Initialize ModelRegistry.
 
         Parameters

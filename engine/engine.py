@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Callable, Dict, Optional, Tuple
+from typing import Any, Callable, Dict, Tuple
 
 from coordination.coordination import CoordinationEngine
 from core_model.system import System
@@ -15,7 +15,6 @@ from fault_analysis.fault import FaultAnalyzer
 from load_flow.load_flow import LoadFlowSolver
 from relays.relay import OvercurrentRelay
 from visualization.visualization import Visualizer
-
 
 # ---------------------------------------------------------------------------
 # Internal study registry
@@ -111,12 +110,12 @@ class PowerSystemEngine:
 
     def __init__(
         self,
-        system: Optional[System] = None,
+        system: System | None = None,
         *,
-        load_flow_solver: Optional[LoadFlowSolverProtocol] = None,
-        arc_flash_engine: Optional[ArcFlashEngineProtocol] = None,
-        coordination_engine: Optional[CoordinationEngineProtocol] = None,
-        visualizer: Optional[VisualizerProtocol] = None,
+        load_flow_solver: LoadFlowSolverProtocol | None = None,
+        arc_flash_engine: ArcFlashEngineProtocol | None = None,
+        coordination_engine: CoordinationEngineProtocol | None = None,
+        visualizer: VisualizerProtocol | None = None,
     ) -> None:
         self.system = system
 
@@ -282,7 +281,7 @@ class PowerSystemEngine:
         upstream_relay_id: int,
         downstream_relay_id: int,
         fault_currents: list[float],
-        relays_config: Optional[dict[str, Any]] = None,
+        relays_config: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """
         Run protection coordination check between two relays.

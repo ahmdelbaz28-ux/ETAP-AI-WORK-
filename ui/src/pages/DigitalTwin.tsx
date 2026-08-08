@@ -55,6 +55,7 @@ function DigitalTwinDiagram() {
         </Badge>
       </div>
       <svg viewBox="0 0 700 400" className="w-full h-auto" style={{ minHeight: 240 }}>
+        <title>System one-line diagram</title>
         {/* Grid background */}
         <defs>
           <pattern id="dt-grid" width="20" height="20" patternUnits="userSpaceOnUse">
@@ -413,7 +414,7 @@ export default function DigitalTwin() {
     } finally {
       setLoading(false);
     }
-  }, [API_BASE_URL]);
+  }, []);
 
   useEffect(() => {
     fetchStatus();

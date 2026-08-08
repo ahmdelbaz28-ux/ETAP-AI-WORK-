@@ -33,7 +33,7 @@ import logging
 from datetime import datetime, timezone
 
 UTC = timezone.utc  # noqa: UP017
-from typing import Any, Optional
+from typing import Any
 
 import numpy as np
 
@@ -132,7 +132,7 @@ class MotorStartingAgent(BaseAgent):
         voltage_v: float,
         nema_code: str = "F",
         starting_method: str = "DOL",
-        fla_a: Optional[float] = None,
+        fla_a: float | None = None,
     ) -> dict[str, Any]:
         """
         Calculate motor starting (locked-rotor) current.
@@ -677,7 +677,9 @@ class MotorStartingAgent(BaseAgent):
             if not tvd_data.get("is_startable", True):
                 # This is a warning, not an error — the motor may not start
                 # but the calculation itself is valid
-                errors.append(f"WARNING: Motor may not start — terminal voltage {tv_pu:.2%} is below 80% of nominal")
+                errors.append(
+                    f"WARNING: Motor may not start — terminal voltage {tv_pu:.2%} is below 80% of nominal"
+                )
 
         acc_data = result.data.get("acceleration_time")
         if acc_data is not None:

@@ -34,6 +34,7 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
+from typing import Any, Dict, cast
 
 import pytest
 
@@ -47,7 +48,6 @@ from core_model.bus import Bus  # noqa: E402
 from core_model.line import Line  # noqa: E402
 from core_model.system import System  # noqa: E402
 from engine.engine import PowerSystemEngine  # noqa: E402
-
 
 # ---------------------------------------------------------------------------
 # Canonical study parameters
@@ -199,7 +199,7 @@ class TestRunStudyEqualsTypedMethod:
             "relays_config": RELAYS_CONFIG,
         }
         via_study = engine.run_study(study_type="protection_coordination", **kwargs)
-        via_typed = engine.run_protection_coordination(**kwargs)
+        via_typed = engine.run_protection_coordination(**(cast(Dict[str, Any], kwargs)))
         # The dispatcher drops relays_config → simulated error.
         assert via_study["is_simulated"] is True
         assert via_study["all_coordinated"] is False
@@ -305,9 +305,7 @@ class TestRunStudyExceptionEquivalence:
 
     def test_short_circuit_missing_bus_id_message(self) -> None:
         engine = PowerSystemEngine()
-        with pytest.raises(
-            ValueError, match=r"^bus_id must be provided for fault study$"
-        ):
+        with pytest.raises(ValueError, match=r"^bus_id must be provided for fault study$"):
             engine.run_study(study_type="short_circuit")
 
     def test_protection_coordination_missing_required_message(self) -> None:
@@ -315,10 +313,7 @@ class TestRunStudyExceptionEquivalence:
         message. The current implementation does NOT distinguish which one is
         missing — it checks ``None`` for all three in one if."""
         engine = PowerSystemEngine()
-        expected = (
-            "upstream_relay_id, downstream_relay_id, and fault_currents "
-            "must be provided"
-        )
+        expected = "upstream_relay_id, downstream_relay_id, and fault_currents must be provided"
         with pytest.raises(ValueError, match=expected):
             engine.run_study(study_type="protection_coordination")
 
@@ -326,10 +321,7 @@ class TestRunStudyExceptionEquivalence:
         """Even if only one required kwarg is missing, the same combined
         message is raised. Preserves current ``None``-check semantics."""
         engine = PowerSystemEngine()
-        expected = (
-            "upstream_relay_id, downstream_relay_id, and fault_currents "
-            "must be provided"
-        )
+        expected = "upstream_relay_id, downstream_relay_id, and fault_currents must be provided"
         with pytest.raises(ValueError, match=expected):
             engine.run_study(
                 study_type="protection_coordination",

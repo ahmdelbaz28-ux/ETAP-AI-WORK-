@@ -162,7 +162,8 @@ function DocTreeViewNode({
 
   return (
     <div className="select-none text-left" style={{ marginLeft: `${level * 10}px` }}>
-      <div // NOSONAR — S6848: non-interactive DOM role; intentional
+      <button
+        type="button"
         onClick={() => {
           if (isFolder) {
             onToggleNode(nodeKey);
@@ -170,8 +171,19 @@ function DocTreeViewNode({
             onSelectTopic(node.topicId);
           }
         }}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            if (isFolder) {
+              onToggleNode(nodeKey);
+            } else if (node.topicId) {
+              onSelectTopic(node.topicId);
+            }
+          }
+        }}
         className={cn(
           "flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium cursor-pointer transition-all mt-0.5",
+          "bg-transparent border-0 text-left w-full appearance-none",
           "hover:bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]",
           !isFolder && "pl-6 border-l border-transparent hover:border-[var(--accent-primary)]/40",
         )}
@@ -184,7 +196,7 @@ function DocTreeViewNode({
           <FileQuestion className="w-3 h-3 text-[var(--text-muted)] shrink-0" />
         )}
         <span className="truncate">{node.label[lang]}</span>
-      </div>
+      </button>
 
       {isFolder && isExpanded && node.children && (
         <div className="mt-0.5 border-l border-[var(--border-primary)] ml-3.5 pl-1.5 space-y-0.5">
@@ -268,8 +280,10 @@ function TopicDetailView({
         {activeTopic.navigateTo && (
           <button
             onClick={() => {
-              navigate(activeTopic.navigateTo!);
-              onClose();
+              if (activeTopic.navigateTo) {
+                navigate(activeTopic.navigateTo);
+                onClose();
+              }
             }}
             className="w-full flex items-center gap-2 px-4 py-2.5 text-sm font-medium bg-[var(--accent-primary)]/10 text-[var(--accent-primary)] rounded-lg hover:bg-[var(--accent-primary)]/20 transition-colors"
             type="button"

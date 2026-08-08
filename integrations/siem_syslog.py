@@ -62,7 +62,7 @@ import socket
 import ssl
 import threading
 from datetime import UTC
-from typing import Any, Optional
+from typing import Any
 
 from api._messages import ISO_8601_UTC_FMT
 
@@ -173,7 +173,7 @@ class SIEMSyslogForwarder:
         self._facility_code = SYSLOG_FACILITY[self.facility_name]
 
         # TLS context (lazy init)
-        self._tls_context: Optional[ssl.SSLContext] = None
+        self._tls_context: ssl.SSLContext | None = None
 
         # Ensure log file directory exists (for logging-only mode)
         if self.logging_only and self.log_file:

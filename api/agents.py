@@ -17,7 +17,7 @@ import logging
 import os
 import re
 from datetime import UTC, datetime
-from typing import Any, List, Optional
+from typing import Any, List
 
 import aiofiles
 from fastapi import APIRouter, Depends, Request
@@ -453,11 +453,11 @@ class ETAPGUIExecuteRequest(BaseModel):
         default=True,
         description="If True, CONTROL/SOLVE actions pause for human approval",
     )
-    audit_dir: Optional[str] = Field(
+    audit_dir: str | None = Field(
         default=None,
         description="Directory for before/after screenshots (default: /tmp/cua_audit)",
     )
-    start_url: Optional[str] = Field(
+    start_url: str | None = Field(
         default=None,
         description=(
             "URL to navigate to before starting the CUA loop (Browser CUA only). "
@@ -843,7 +843,7 @@ class AhmedETAPOrchestrateRequest(BaseModel):
         default="voltage",
         description="Quantity kind for units check (voltage, current, power, energy, ...).",
     )
-    expected_unit: Optional[str] = Field(
+    expected_unit: str | None = Field(
         default=None,
         description="If set, MathGuard requires the agent's unit to match exactly.",
     )
@@ -851,7 +851,7 @@ class AhmedETAPOrchestrateRequest(BaseModel):
         default=8000,
         description="Token budget for the workflow. Compression triggers at 70 %.",
     )
-    lead_agent: Optional[str] = Field(
+    lead_agent: str | None = Field(
         default=None,
         description="Override the default Lead Agent (e.g. 'load_flow'). "
         "If omitted, derived from study_type.",

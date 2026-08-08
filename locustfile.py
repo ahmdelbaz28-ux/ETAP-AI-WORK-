@@ -19,7 +19,9 @@ logger = logging.getLogger("ahmedetap-locust")
 
 # Module-level PRNG for load-test scenario selection only.
 # NOSONAR
-_LOAD_RNG = random.Random()  # NOSONAR ─── Custom Event Listeners & Metrics ────────────────────────────────────────
+_LOAD_RNG = (
+    random.Random()
+)  # NOSONAR ─── Custom Event Listeners & Metrics ────────────────────────────────────────
 
 # Track study execution times for custom reporting
 _study_execution_times: list[float] = []
@@ -372,9 +374,7 @@ class EngineeringServiceUser(AuthenticatedUser):
     @task(4)
     def etap_gui_chat(self):
         """Chat with the ETAP GUI Agent."""
-        question = _LOAD_RNG.choice(
-            AI_QUESTIONS[:5]
-        )  # NOSONAR
+        question = _LOAD_RNG.choice(AI_QUESTIONS[:5])  # NOSONAR
         self.client.post(
             "/api/v1/agents/etap-gui/chat",
             json={

@@ -23,7 +23,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 
 UTC = timezone.utc  # noqa: UP017
-from typing import Any, Optional
+from typing import Any
 
 import numpy as np
 
@@ -83,13 +83,11 @@ class RenewableAgent(BaseAgent):
         self,
         dc_capacity_kw: float,
         ac_capacity_kw: float,
-        irradiance_kw_m2: Optional[np.ndarray] = None,
-        temperature_c: Optional[  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
-            np.ndarray
-        ] = None,  # NOSONAR
+        irradiance_kw_m2: np.ndarray | None = None,
+        temperature_c: np.ndarray | None = None,
         noct_C: float = 45.0,  # NOSONAR
         temp_coeff_power_pctK: float = -0.40,  # NOSONAR
-        losses: Optional[PVSystemLossConfig] = None,
+        losses: PVSystemLossConfig | None = None,
         tilt_deg: float = 25.0,
         azimuth_deg: float = 180.0,
         latitude_deg: float = 33.0,
@@ -292,18 +290,12 @@ class RenewableAgent(BaseAgent):
         )
 
         poa = ghi * tilt_factor * 0.85  # Plane-of-array with diffuse contribution
-        poa = np.clip(
-            poa, 0.0, 1.2
-        )  # NOSONAR
+        poa = np.clip(poa, 0.0, 1.2)  # NOSONAR
 
         # Add some cloud randomness
         np.random.seed(42)
-        cloud_factor = (
-            0.7
-            + 0.3
-            * np.random.random(  # NOSONAR
-                hours
-            )
+        cloud_factor = 0.7 + 0.3 * np.random.random(  # NOSONAR
+            hours
         )  # NOSONAR
         poa = poa * cloud_factor
 

@@ -314,5 +314,5 @@ declare module "lucide-react" {
   export type LucideIcon = Icon;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  export const createElement: any;
+  export const createElement: unknown;
 }

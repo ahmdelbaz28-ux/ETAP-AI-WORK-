@@ -197,9 +197,7 @@ class YbusRebuildHandler(PropagationHandler):
                 ctx.record_step(
                     "ybus_rebuild",
                     False,
-                    {
-                        "error": _NO_ELECTRICAL_MODEL_MSG
-                    },  # NOSONAR
+                    {"error": _NO_ELECTRICAL_MODEL_MSG},  # NOSONAR
                 )  # NOSONAR intentional repetition (audit constant)
                 ctx.stop = True
         except Exception as e:

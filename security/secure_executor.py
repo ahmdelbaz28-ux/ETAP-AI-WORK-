@@ -31,9 +31,17 @@ import contextlib
 import json
 import logging
 import os
-import resource
 import sys
-from typing import Any, Optional
+
+# `resource` is a POSIX-only module (not available on Windows).
+# The memory-limit functionality in the sandbox wrapper already handles
+# ImportError gracefully; this top-level guard ensures the executor
+# can start on Windows without crashing.
+if sys.platform != "win32":
+    import resource  # noqa: F401  # POSIX only
+else:
+    resource = None  # type: ignore[assignment]
+from typing import Any, Tuple
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -64,7 +72,7 @@ ALLOWED_IMPORT_NAMES = [
 ]
 
 
-def _read_code_from_stdin() -> Optional[str]:
+def _read_code_from_stdin() -> str | None:
     try:
         code = sys.stdin.read()
         if not code or not code.strip():
@@ -75,7 +83,7 @@ def _read_code_from_stdin() -> Optional[str]:
         return None
 
 
-def _sandbox_escape_pre_scan(code: str) -> tuple[bool, str]:
+def _sandbox_escape_pre_scan(code: str) -> Tuple[bool, str]:
     """V-39: Pre-scan for common sandbox escape patterns in Python code.
 
     Checks for patterns that exploit Python's object model to escape
@@ -384,7 +392,7 @@ def _build_wrapper_script(safe_globals: dict) -> str:
     _safe_builtins_names = list(safe_globals["__builtins__"].keys())
 
     # NOSONAR
-    wrapper_code = """
+    wrapper_code = f"""
 import sys
 import io
 import json
@@ -393,15 +401,15 @@ from contextlib import redirect_stdout
 # V-42: Set memory limit
 try:
     import resource
-    max_bytes = {max_memory_mb} * 1024 * 1024
+    max_bytes = {MAX_MEMORY_MB} * 1024 * 1024
     resource.setrlimit(resource.RLIMIT_AS, (max_bytes, max_bytes))
 except (ValueError, OSError, ImportError):
     pass
 
 # Reconstruct safe_globals in the subprocess
 # Builtins: only the safe subset
-_safe_builtins_names = {safe_builtins_names_json}
-_allowed_import_names = {allowed_imports_json}
+_safe_builtins_names = {json.dumps(_safe_builtins_names)}
+_allowed_import_names = {json.dumps(ALLOWED_IMPORT_NAMES)}
 
 def _safe_import(name, globals=None, locals=None, fromlist=(), level=0):
     root_name = name.split(".")[0]
@@ -451,23 +459,19 @@ except Exception as e:
     print(str(e))
     import traceback
     traceback.print_exc()
-""".format(
-        max_memory_mb=MAX_MEMORY_MB,
-        safe_builtins_names_json=json.dumps(_safe_builtins_names),
-        allowed_imports_json=json.dumps(ALLOWED_IMPORT_NAMES),
-    )
+"""
     return wrapper_code
 
 
 def _handle_subprocess_result(stdout: str, stderr: str) -> None:
     """Print the JSON result based on subprocess output."""
     if stdout.startswith("__RESULT_OK__"):
-        output = stdout[len("__RESULT_OK__"):]
+        output = stdout[len("__RESULT_OK__") :]
         if len(output) > MAX_OUTPUT_LENGTH:
             output = output[:MAX_OUTPUT_LENGTH] + "\n... [output truncated]"
         print(json.dumps({"success": True, "output": output, "error": None}))
     elif stdout.startswith("__RESULT_ERROR__"):
-        error_text = stdout[len("__RESULT_ERROR__"):]
+        error_text = stdout[len("__RESULT_ERROR__") :]
         if stderr:
             error_text += "\n" + stderr
         print(

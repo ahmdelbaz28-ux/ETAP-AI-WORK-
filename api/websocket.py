@@ -14,7 +14,7 @@ import json
 import logging
 import time
 from datetime import datetime, timezone
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 UTC = timezone.utc  # noqa: UP017
 
@@ -46,7 +46,7 @@ class SCADALiveFeed:
         self.broadcast_task = None
         # V-01: Track connection metadata for lifecycle management
         self._connection_meta: Dict[int, dict] = {}  # id(ws) -> meta
-        self._heartbeat_task: Optional[asyncio.Task] = None
+        self._heartbeat_task: asyncio.Task | None = None
         self._cleanup_lock = asyncio.Lock()
 
     async def connect(self, websocket: WebSocket) -> None:
@@ -273,8 +273,7 @@ class SCADALiveFeed:
                 if elapsed > HEARTBEAT_INTERVAL + HEARTBEAT_TIMEOUT:
                     meta["missed_heartbeats"] += 1
                     logger.warning(
-                        "WebSocket heartbeat missed for connection %s "
-                        "(missed=%d, elapsed=%.1fs)",
+                        "WebSocket heartbeat missed for connection %s (missed=%d, elapsed=%.1fs)",
                         ws_id,
                         meta["missed_heartbeats"],
                         elapsed,

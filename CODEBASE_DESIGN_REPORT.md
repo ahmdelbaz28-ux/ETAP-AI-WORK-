@@ -18,6 +18,8 @@ Using the [codebase-design skill](.agents/skills/codebase-design/SKILL.md) vocab
 
 **Recommendation:** Extract `run_study` dispatch into a registry pattern or separate runner modules.
 
+**Status: ✅ Implemented (2026-08-07)** — `run_study` is now a thin, registry-backed JSON adapter at the external seam (HTTP API, MCP, AI agents, CLI, automation). The if/elif + `kwargs.get(...)` chain was replaced with a lookup against the module-private `_STUDY_REGISTRY` in `engine/engine.py`, which maps each `study_type` one-to-one to its typed method (`run_load_flow`, `run_fault_analysis`, `run_arc_flash`, `run_protection_coordination`) via `(required_kwargs, method_name)` specs. Validation is centralized in the module-private `_validate_study_kwargs` helper, reproducing every exception message byte-for-byte. The public signature `run_study(self, study_type: str, **kwargs: Any) -> dict[str, Any]` is unchanged; the registry is internal and not exported from `engine/__init__.py`. Behavioral equivalence is proven by `tests/test_run_study_behavioral_equivalence.py` (golden baseline + exception equivalence) and `tests/test_run_study_registry.py` (registry structure + validation semantics) — 29 tests, all passing with zero warnings/skips/errors.
+
 ### 2. 🟡 `etap_integration/__init__.py` — Massive Re-export Surface
 
 **Issue:** 141 lines of boilerplate `__getattr__` lazy-loading 20+ names. Each group repeats the same pattern: check global, import, return. The interface is large (20+ symbols) and the implementation is thin (just delegation to submodules).
@@ -54,9 +56,16 @@ Using the [codebase-design skill](.agents/skills/codebase-design/SKILL.md) vocab
 
 ---
 
+## Previously Fixed Findings
+
+| # | Finding | Recommendation | Status | Date |
+|---|---------|----------------|--------|------|
+| 1 | `PowerSystemEngine` — God Object (`run_study` dispatcher) | Extract `run_study` dispatch into a registry pattern | ✅ Implemented — registry-backed adapter in `engine/engine.py` (`_STUDY_REGISTRY` + `_validate_study_kwargs`); proven by `tests/test_run_study_behavioral_equivalence.py` + `tests/test_run_study_registry.py` (29 tests, zero warnings/skips/errors) | 2026-08-07 |
+
 ## Summary
 
 - **Deep modules (good):** `engine/interfaces.py`, `engine/cache_manager.py`, `engine/error_handler.py`, `load_flow/load_flow.py`
 - **Shallow modules (needs deepening):** `engine/__init__.py` (re-export), `etap_integration/__init__.py` (boilerplate lazy-load), individual provider `USE_ETAP` checks
 - **Seam discipline:** Strong — protocols defined in `engine/interfaces.py`, constructor injection in `PowerSystemEngine`
 - **Deletion test:** Remove `engine/__init__.py` re-exports? No code breaks if callers import from submodules directly (pass-through detected)
+- **Fixed:** `run_study` registry-backed adapter (finding #1) — see "Previously Fixed Findings"

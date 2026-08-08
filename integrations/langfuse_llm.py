@@ -63,7 +63,7 @@ from __future__ import annotations
 import logging
 import os
 import time
-from typing import Any, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -102,7 +102,7 @@ class SafetyValidationError(ValueError):
 
 
 def _validate_input(  # NOSONAR
-    messages: list[dict], metadata: Optional[dict]
+    messages: list[dict], metadata: dict | None
 ) -> None:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     """Run safety guardrails before the LLM call is made.
 
@@ -182,7 +182,11 @@ def _get_openai_client():
             _openai_client = lf_openai
             logger.info("Langfuse-wrapped OpenAI client loaded")
         except ImportError as e:
-            _langfuse_configured = os.environ.get("LANGFUSE_ENABLED", "").lower() in ("1", "true", "yes")
+            _langfuse_configured = os.environ.get("LANGFUSE_ENABLED", "").lower() in (
+                "1",
+                "true",
+                "yes",
+            )
             if _langfuse_configured:
                 logger.critical(
                     "⚠️ ARCHITECTURE AUDIT F-04: Langfuse is ENABLED but langfuse.openai "
@@ -226,7 +230,11 @@ def _get_anthropic_client():
         _anthropic_client = lf_anthropic
         logger.info("Langfuse-wrapped Anthropic client loaded")
     except ImportError as e:
-        _langfuse_configured = os.environ.get("LANGFUSE_ENABLED", "").lower() in ("1", "true", "yes")
+        _langfuse_configured = os.environ.get("LANGFUSE_ENABLED", "").lower() in (
+            "1",
+            "true",
+            "yes",
+        )
         if _langfuse_configured:
             logger.critical(
                 "⚠️ ARCHITECTURE AUDIT F-04: Langfuse is ENABLED but langfuse.anthropic "
@@ -263,9 +271,9 @@ def safe_openai_chat(
     *,
     model: str,
     messages: list[dict],
-    metadata: Optional[dict] = None,
-    user: Optional[str] = None,
-    session_id: Optional[str] = None,
+    metadata: dict | None = None,
+    user: str | None = None,
+    session_id: str | None = None,
     **kwargs: Any,
 ):
     """Call ``openai.chat.completions.create`` with safety guardrails + tracing.
@@ -306,7 +314,9 @@ def safe_openai_chat(
     _validate_model(model)
 
     # F-04: If using plain (untraced) SDK, increment counter for observability alerting
-    _is_traced = hasattr(openai, 'langfuse') or (hasattr(openai, '__name__') and 'langfuse' in openai.__name__)
+    _is_traced = hasattr(openai, "langfuse") or (
+        hasattr(openai, "__name__") and "langfuse" in openai.__name__
+    )
     if not _is_traced:
         increment_untraced_call()
 
@@ -365,9 +375,9 @@ def safe_anthropic_message(
     model: str,
     messages: list[dict],
     max_tokens: int = 4096,
-    metadata: Optional[dict] = None,
-    user: Optional[str] = None,  # NOSONAR unused param kept for API compatibility
-    session_id: Optional[str] = None,
+    metadata: dict | None = None,
+    user: str | None = None,  # NOSONAR unused param kept for API compatibility
+    session_id: str | None = None,
     **kwargs: Any,
 ):
     """Call ``anthropic.messages.create`` with safety guardrails + tracing.
@@ -381,7 +391,9 @@ def safe_anthropic_message(
     _validate_model(model)
 
     # F-04: If using plain (untraced) SDK, increment counter for observability alerting
-    _is_traced = hasattr(anthropic, 'langfuse') or (hasattr(anthropic, '__name__') and 'langfuse' in anthropic.__name__)
+    _is_traced = hasattr(anthropic, "langfuse") or (
+        hasattr(anthropic, "__name__") and "langfuse" in anthropic.__name__
+    )
     if not _is_traced:
         increment_untraced_call()
 
@@ -443,7 +455,7 @@ _PRICING_USD_PER_1K = {
 }
 
 
-def estimate_cost_usd(model: str, input_tokens: int, output_tokens: int) -> Optional[float]:
+def estimate_cost_usd(model: str, input_tokens: int, output_tokens: int) -> float | None:
     """Estimate the USD cost of an LLM call.
 
     Returns ``None`` if the model is not in the pricing table.

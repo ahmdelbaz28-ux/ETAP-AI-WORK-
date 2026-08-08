@@ -20,7 +20,7 @@ For production use, wrap a ``websockets`` connection::
 from __future__ import annotations
 
 import logging
-from typing import Any, Callable, Coroutine, Optional
+from typing import Any, Callable, Coroutine
 
 import anyio
 
@@ -49,7 +49,7 @@ class WebSocketTransport(Transport):
         self._closed = False
         self._log = logging.getLogger("acp.transport.websocket")
 
-    async def read_message(self) -> Optional[str]:
+    async def read_message(self) -> str | None:
         if self._closed:
             return None
         try:

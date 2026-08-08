@@ -22,7 +22,7 @@ from datetime import datetime, timedelta, timezone
 
 UTC = timezone.utc  # noqa: UP017
 from email.message import EmailMessage
-from typing import Any, Optional
+from typing import Any
 from urllib.error import URLError
 from urllib.request import Request, urlopen
 
@@ -70,9 +70,9 @@ class EngineSystemError:
     timestamp: datetime
     details: dict = field(default_factory=dict)
     stack_trace: str = ""
-    user_id: Optional[str] = None
+    user_id: str | None = None
     acknowledged: bool = False
-    resolution: Optional[str] = None
+    resolution: str | None = None
 
 
 # Backward-compatible alias — maps SystemError to EngineSystemError so
@@ -100,8 +100,8 @@ class AlertManager:
 
     def __init__(self) -> None:
         self._logger = logging.getLogger("alert")
-        self._email_config: Optional[dict] = None
-        self._webhook_config: Optional[dict] = None
+        self._email_config: dict | None = None
+        self._webhook_config: dict | None = None
         self._rules: list[dict] = []
         self._lock = threading.Lock()
 
@@ -141,7 +141,7 @@ class AlertManager:
             "to_addrs": to_addrs,
         }
 
-    def configure_webhook(self, url: str, headers: Optional[dict] = None) -> None:
+    def configure_webhook(self, url: str, headers: dict | None = None) -> None:
         """Configure a webhook URL for alert delivery.
 
         Args:
@@ -325,8 +325,8 @@ class ErrorHandler:
         self._max_history = max_history
         self._history: deque = deque(maxlen=max_history)
         self._history_map: dict[str, EngineSystemError] = {}
-        self._alert_manager: Optional[AlertManager] = None
-        self._audit_logger: Optional[logging.Logger] = None
+        self._alert_manager: AlertManager | None = None
+        self._audit_logger: logging.Logger | None = None
         self._lock = threading.Lock()
         self._logger: logging.Logger = logging.getLogger(__name__)
 
@@ -350,9 +350,9 @@ class ErrorHandler:
         component: str,
         message: str,
         severity: ErrorSeverity = ErrorSeverity.ERROR,
-        details: Optional[dict] = None,
-        exception: Optional[BaseException] = None,
-        user_id: Optional[str] = None,
+        details: dict | None = None,
+        exception: BaseException | None = None,
+        user_id: str | None = None,
     ) -> EngineSystemError:
         """Record and process an error.
 
@@ -396,8 +396,8 @@ class ErrorHandler:
 
     def get_error_history(
         self,
-        component: Optional[str] = None,
-        severity: Optional[ErrorSeverity] = None,
+        component: str | None = None,
+        severity: ErrorSeverity | None = None,
         limit: int = 100,
     ) -> list[EngineSystemError]:
         """Query error history with optional filters.
@@ -419,7 +419,7 @@ class ErrorHandler:
         result.sort(key=lambda e: e.timestamp, reverse=True)
         return result[:limit]
 
-    def get_error_by_id(self, error_id: str) -> Optional[EngineSystemError]:
+    def get_error_by_id(self, error_id: str) -> EngineSystemError | None:
         """Retrieve a single error by its UUID.
 
         Args:
@@ -579,7 +579,7 @@ class AutoRecoveryManager:
         error_pattern: str,
         action_fn: Callable[[EngineSystemError], bool],
         cooldown_seconds: int = 300,
-        action_name: Optional[str] = None,
+        action_name: str | None = None,
     ) -> None:
         """Register an automatic recovery action.
 
@@ -699,8 +699,8 @@ def component_guard(
     component_name: str,
     error_handler: ErrorHandler,
     severity: ErrorSeverity = ErrorSeverity.ERROR,
-    details: Optional[dict] = None,
-    user_id: Optional[str] = None,
+    details: dict | None = None,
+    user_id: str | None = None,
 ):
     """Context manager that catches exceptions and routes them to the handler.
 
@@ -743,9 +743,9 @@ def component_guard(
 # Singleton factory
 # ---------------------------------------------------------------------------
 
-_handler: Optional[ErrorHandler] = None
-_alert_manager: Optional[AlertManager] = None
-_auto_recovery: Optional[AutoRecoveryManager] = None
+_handler: ErrorHandler | None = None
+_alert_manager: AlertManager | None = None
+_auto_recovery: AutoRecoveryManager | None = None
 _lock = threading.Lock()
 
 

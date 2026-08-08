@@ -149,9 +149,8 @@ describe("AIAssistant AbortController integration", () => {
     // Capture the first signal
     const capturedSignal = mockChatWithLLMStream.mock.calls[0][2] as AbortSignal;
 
-    // Clear input and send second message (which should abort the first)
+    // Send second message (which should abort the first)
     const inputEl = screen.getByPlaceholderText(/Message AI Assistant/i) as HTMLTextAreaElement;
-    await user.clear(inputEl);
     await user.type(inputEl, "Second message");
     await user.keyboard("{Enter}");
 
@@ -163,9 +162,9 @@ describe("AIAssistant AbortController integration", () => {
 
   it("handles AbortError gracefully — no crash or duplicate error messages", async () => {
     // Simulate an aborted stream that throws AbortError
-    mockChatWithLLMStream.mockImplementationOnce(async function* () {
-      throw new DOMException("The user aborted a request.", "AbortError");
-    });
+    mockChatWithLLMStream.mockRejectedValueOnce(
+      new DOMException("The user aborted a request.", "AbortError"),
+    );
 
     // Fallback also aborted
     mockChatWithLLM.mockRejectedValueOnce(new DOMException("Aborted", "AbortError"));
