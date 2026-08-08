@@ -35,7 +35,7 @@ export function loadConfig(): AppConfig {
   }
 
   return {
-    port: Number.parseInt(process.env['PORT'] ?? '3000', 10),
+    port: parseInt(process.env['PORT'] ?? '3000', 10),
     nodeEnv,
     logLevel: process.env['LOG_LEVEL'] ?? 'info',
     databaseUrl: process.env['DATABASE_URL'] ?? '',

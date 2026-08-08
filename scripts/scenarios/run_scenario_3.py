@@ -239,7 +239,7 @@ async def run_all(duration_sec: int) -> None:
             try:
                 await task
             except asyncio.CancelledError:
-                pass  # noqa: S7497 — intentional: cleanup-only cancellation
+                pass
 
 
 def main() -> None:

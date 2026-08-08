@@ -26,7 +26,7 @@ class LoadFlowSolver:
         self.system = system
         self.Ybus = self.system.get_ybus(
             seq="1"
-        )  # noqa: S116 — standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
+        )  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
         self.n_buses = self.Ybus.shape[0]
 
         self.bus_ids = sorted(self.system.buses.keys())
@@ -158,16 +158,13 @@ class LoadFlowSolver:
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         # Angle differences
-        θ = (  # noqa: S117 — domain notation
-
+        θ = (
             vang[:, np.newaxis] - vang[np.newaxis, :]
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        cos_θ = np.cos(  # noqa: S117 — domain notation
-
+        cos_θ = np.cos(
             θ
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        sin_θ = np.sin(  # noqa: S117 — domain notation
-
+        sin_θ = np.sin(
             θ
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
@@ -206,8 +203,7 @@ class LoadFlowSolver:
 
         # dP_i/dθ_k  (P-calc derivative)  —  see formula docstring above
         #   off-diag: V_i*V_j*(G_ij*sin - B_ij*cos)      ← d(P_calc)/dθ
-        #   needed:   -V_i*V_j*(G_ij*sin - B_ij*cos)     ← d(ΔP)/dθ = -d(P_calc)/dθ  # noqa: S117 — domain notation
-
+        #   needed:   -V_i*V_j*(G_ij*sin - B_ij*cos)     ← d(ΔP)/dθ = -d(P_calc)/dθ
         j1_off = (
             -v_i_v_j * (GS - BC)
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
@@ -222,10 +218,8 @@ class LoadFlowSolver:
 
         # dQ_i/dθ_k  (Q-calc derivative)
         #   off-diag: -V_i*V_j*(G_ij*cos + B_ij*sin)     ← d(Q_calc)/dθ
-        #   needed:   V_i*V_j*(G_ij*cos + B_ij*sin)      ← d(ΔQ)/dθ = -d(Q_calc)/dθ  # noqa: S117 — domain notation
-
-        J3_off = v_i_v_j * (GC + BS)  # noqa: S117 — domain notation
-
+        #   needed:   V_i*V_j*(G_ij*cos + B_ij*sin)      ← d(ΔQ)/dθ = -d(Q_calc)/dθ
+        J3_off = v_i_v_j * (GC + BS)
 
         # dQ_i/d|V|_k (Q-calc derivative)
         #   off-diag: V_i*(G_ij*sin - B_ij*cos)          ← d(Q_calc)/d|V|

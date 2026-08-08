@@ -30,7 +30,7 @@ from __future__ import annotations
 
 import hashlib
 import logging
-from typing import Optional, Annotated
+from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import JSONResponse
@@ -309,7 +309,7 @@ async def invalidate_otp_endpoint(
     request: Request,
     email: str,
     purpose: str,
-    current_user: Annotated[CurrentUser, Depends(get_current_user_from_header)],
+    current_user: CurrentUser = Depends(get_current_user_from_header),
 ) -> JSONResponse:
     """Force-invalidate a pending OTP.
 

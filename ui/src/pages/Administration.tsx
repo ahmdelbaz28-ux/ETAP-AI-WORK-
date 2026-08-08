@@ -40,12 +40,6 @@ import { useNotify } from "../context/NotificationContext";
 import { cn } from "../utils/helpers";
 
 import { ContextHelpButton } from "../components/help/ContextHelpButton";
-
-function featureFlagsSubtitle(flagEnv: string): string {
-  const suffix = flagEnv ? ` · ENV=${flagEnv}` : "";
-  return `Toggle study-type feature flags${suffix}`;
-}
-
 export default function Administration() {
   const [metrics, setMetrics] = useState<AdminMetrics | null>(null);
   const [agents, setAgents] = useState<AgentMeta[]>([]);
@@ -83,7 +77,7 @@ export default function Administration() {
         const resp = await patchFeatureFlag(key, !current);
         setFeatureFlags((prev) => prev.map((f) => (f.key === key ? { ...f, ...resp.data } : f)));
         setFlagEnv(resp.data.env);
-        const isDev = /^(dev|test|development)$/.exec(resp.data.env ?? "") !== null;
+        const isDev = resp.data.env?.match(/^(dev|test|development)$/);
         notify(
           "success",
           `Flag '${key}' ${resp.data.enabled ? "enabled" : "disabled"}${
@@ -545,7 +539,7 @@ export function Administration() {
           <Card padding="lg">
             <CardHeader
               title="Feature Flags"
-              subtitle={featureFlagsSubtitle(flagEnv)}
+              subtitle={`Toggle study-type feature flags${flagEnv ? ` · ENV=${flagEnv}` : ""}`}
               icon={<Flag className="w-4 h-4" />}
               action={
                 <Button variant="ghost" size="sm" onClick={load} disabled={loading}>
@@ -556,9 +550,9 @@ export function Administration() {
             />
             {flagEnv?.match(/^(dev|test|development)$/i) && (
               <div className="mt-2 mb-3 px-3 py-2 rounded-md bg-yellow-500/10 border border-yellow-500/20 text-yellow-300 text-xs">
-                <span>⚠ Dev/test environment detected — all flags are </span>
+                ⚠ Dev/test environment detected — all flags are{" "}
                 <code>effective_enabled = true</code>
-                <span> regardless of the toggled value. Toggle is still persisted for production.</span>
+                regardless of the toggled value. Toggle is still persisted for production.
               </div>
             )}
             <div className="space-y-2 mt-3">

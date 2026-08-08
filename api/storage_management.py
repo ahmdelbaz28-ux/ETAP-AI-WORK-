@@ -246,7 +246,7 @@ def _set_retention_state(days: Optional[int], auto_purge: Optional[bool]) -> Non
 async def _list_all_objects(prefix: str = "") -> list[dict[str, Any]]:
     """List all objects under a prefix, paginating up to _METRICS_MAX_OBJECTS."""
     all_objects: list[dict[str, Any]] = []
-    _continuation_token: Optional[str] = None  # sonar:S1481 unused
+    continuation_token: Optional[str] = None
     fetched = 0
 
     while fetched < _METRICS_MAX_OBJECTS:
@@ -287,9 +287,9 @@ def _filter_objects_by_age(
         except (ValueError, TypeError):
             logger.warning(
                 "storage_purge_skip_invalid_date key=%s last_modified=%s",
-                _sanitize_for_log(obj.get("key", "?")),
-                _sanitize_for_log(last_modified_str),
-            )  # noqa: S5145
+                obj.get("key", "?"),
+                last_modified_str,
+            )
             continue
     return filtered
 
@@ -301,6 +301,7 @@ def _filter_objects_by_age(
 
 @router.get(
     "/metrics",
+    response_model=StorageMetricsResponse,
     summary="Get storage usage metrics",
     description="Return storage usage metrics including total objects, sizes, "
     "and a breakdown by key prefix. Requires API key or JWT.",
@@ -373,6 +374,7 @@ async def get_storage_metrics(
 
 @router.post(
     "/purge",
+    response_model=StoragePurgeResponse,
     summary="Purge temporary files",
     description="Purge temporary or old files from R2 storage. "
     "Defaults to dry_run=true for safety — no files are deleted unless "
@@ -401,7 +403,7 @@ async def purge_storage(
 
     logger.info(
         "storage_purge_requested prefix=%s older_than_days=%s dry_run=%s",
-        _sanitize_for_log(prefix or "(all)"),
+        prefix or "(all)",
         older_than_days,
         request.dry_run,
     )
@@ -461,7 +463,7 @@ async def purge_storage(
         "storage_purge_completed deleted=%d freed_bytes=%d prefix=%s",
         deleted_count,
         freed_bytes,
-        _sanitize_for_log(prefix or "(all)"),
+        prefix or "(all)",
     )
 
     return StoragePurgeResponse(
@@ -474,6 +476,7 @@ async def purge_storage(
 
 @router.get(
     "/retention",
+    response_model=RetentionPolicyResponse,
     summary="Get current retention policy",
     description="Return the current retention policy for the R2 bucket, "
     "including the retention period in days and whether auto-purge is enabled.",
@@ -497,6 +500,7 @@ async def get_retention_policy(
 
 @router.put(
     "/retention",
+    response_model=RetentionPolicyResponse,
     summary="Update retention policy",
     description="Update the retention policy for the R2 bucket. "
     "Only non-null fields in the request body will be updated.",
@@ -535,6 +539,7 @@ async def update_retention_policy(
 
 @router.delete(
     "/artifacts/cad",
+    response_model=StoragePurgeResponse,
     summary="Clear temporary CAD artifacts",
     description="Delete all temporary CAD artifacts from the R2 bucket. "
     "These are objects stored under the ``cad/`` prefix. "

@@ -75,10 +75,14 @@ function ZIPLoadPreviewChart({ coefficients }: { readonly coefficients: ZIPLoadC
   for (let i = 0; i <= nPoints; i++) {
     const v = 0.8 + (i / nPoints) * 0.4; // V/V0 from 0.8 to 1.2
     const pActive = coefficients.aZ * v * v + coefficients.aI * v + coefficients.aP;
+    const pReactive = coefficients.bZ * v * v + coefficients.bI * v + coefficients.bP;
+
     const x = padX + (i / nPoints) * plotW;
     const yActive = padY + plotH - ((pActive - 0.4) / 1.0) * plotH;
+    const yReactive = padY + plotH - ((pReactive - 0.4) / 1.0) * plotH;
+
     points.push(`${x},${Math.max(padY, Math.min(padY + plotH, yActive))}`);
-    // Reactive points are collected in a separate pass below.
+    // We'll store reactive points separately
   }
 
   const reactivePoints: string[] = [];
@@ -421,57 +425,42 @@ export default function ZIPLoadEditorDialog({ open, onClose, onLoadSaved }: ZIPL
           {/* Existing loads list */}
           <div>
             <p className="text-sm font-medium text-[var(--text-secondary)] mb-2">Existing ZIP Loads</p>
-            {(() => {
-              if (loading) {
-                return (
-                  <div className="flex items-center justify-center py-6">
-                    <div className="w-6 h-6 border-2 border-[var(--accent-primary)] border-t-transparent rounded-full animate-spin" />
-                  </div>
-                );
-              }
-              if (loads.length === 0) {
-                return <p className="text-xs text-[var(--text-muted)] py-4 text-center">No ZIP loads configured</p>;
-              }
-              return (
-                <div className="max-h-48 overflow-y-auto space-y-2 pr-1">
-                  {loads.map((load) => (
-                    <div
-                      key={load.id}
-                      role="button"
-                      tabIndex={0}
-                      aria-label={`Select ${load.name}`}
-                      className={cn(
-                        "flex items-center justify-between p-2.5 rounded-lg border cursor-pointer transition-all",
-                        activeLoadId === load.id
-                          ? "bg-brand-500/10 border-brand-500/30"
-                          : "bg-[var(--bg-primary)] border-[var(--border-primary)] hover:border-brand-500/30",
-                      )}
-                      onClick={() => handleSelectLoad(load)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" || e.key === " ") {
-                          e.preventDefault();
-                          handleSelectLoad(load);
-                        }
-                      }}
-                    >
-                      <div>
-                        <p className="text-sm font-medium text-[var(--text-primary)]">{load.name}</p>
-                        <p className="text-xs text-[var(--text-muted)] font-mono">
-                          aZ={load.coefficients.aZ.toFixed(2)} aI={load.coefficients.aI.toFixed(2)} aP={load.coefficients.aP.toFixed(2)}
-                        </p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={(e) => { e.stopPropagation(); handleDelete(load.id); }}
-                        className="p-1.5 rounded-lg hover:bg-red-500/10 text-[var(--text-muted)] hover:text-red-400 transition-colors"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
+            {loading ? (
+              <div className="flex items-center justify-center py-6">
+                <div className="w-6 h-6 border-2 border-[var(--accent-primary)] border-t-transparent rounded-full animate-spin" />
+              </div>
+            ) : loads.length === 0 ? (
+              <p className="text-xs text-[var(--text-muted)] py-4 text-center">No ZIP loads configured</p>
+            ) : (
+              <div className="max-h-48 overflow-y-auto space-y-2 pr-1">
+                {loads.map((load) => (
+                  <div
+                    key={load.id}
+                    className={cn(
+                      "flex items-center justify-between p-2.5 rounded-lg border cursor-pointer transition-all",
+                      activeLoadId === load.id
+                        ? "bg-brand-500/10 border-brand-500/30"
+                        : "bg-[var(--bg-primary)] border-[var(--border-primary)] hover:border-brand-500/30",
+                    )}
+                    onClick={() => handleSelectLoad(load)}
+                  >
+                    <div>
+                      <p className="text-sm font-medium text-[var(--text-primary)]">{load.name}</p>
+                      <p className="text-xs text-[var(--text-muted)] font-mono">
+                        aZ={load.coefficients.aZ.toFixed(2)} aI={load.coefficients.aI.toFixed(2)} aP={load.coefficients.aP.toFixed(2)}
+                      </p>
                     </div>
-                  ))}
-                </div>
-              );
-            })()}
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); handleDelete(load.id); }}
+                      className="p-1.5 rounded-lg hover:bg-red-500/10 text-[var(--text-muted)] hover:text-red-400 transition-colors"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>

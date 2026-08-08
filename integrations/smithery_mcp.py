@@ -82,21 +82,6 @@ logger = logging.getLogger(__name__)
 from integrations._observability_base import env_truthy as _env_truthy
 
 
-_SAFE_LOG_RE = re.compile(r"[\x00-\x1f\x7f]")
-
-
-def _sanitize_for_log(value: object, max_len: int = 200) -> str:
-    """Sanitize user-controlled input before writing to logs.
-
-    Strips control characters (prevents log injection / CRLF spoofing) and
-    truncates to a sensible length so an attacker cannot flood log storage.
-    """
-    if value is None:
-        return "None"
-    s = _SAFE_LOG_RE.sub("_", str(value))
-    if len(s) > max_len:
-        s = s[:max_len] + "...[truncated]"
-    return s
 def _env_int(var: str, default: int) -> int:
     """Read an int from an env var with a default. Logs and falls back on parse error."""
     raw = os.environ.get(var)
