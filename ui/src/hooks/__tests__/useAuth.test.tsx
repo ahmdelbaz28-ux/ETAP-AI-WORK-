@@ -28,7 +28,7 @@ function mockResponse({
   ok,
   status = 200,
   data = {},
-}: { ok: boolean; status?: number; data?: any }) {
+}: { ok: boolean; status?: number; data?: unknown }) {
   const bodyText = typeof data === "string" ? data : JSON.stringify(data);
   return {
     ok,
@@ -49,6 +49,7 @@ describe("useAuth", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     sessionStorage.clear();
+    localStorage.clear();
     // Default: no token, so no validate call needed
     mockFetch.mockResolvedValue(
       mockResponse({

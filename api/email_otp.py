@@ -65,7 +65,7 @@ class SendOtpRequest(BaseModel):
         default="login",
         description="One of: signup, login, password_reset, mfa, sensitive_action",
     )
-    user_name: Optional[str] = Field(default=None, max_length=120)
+    user_name: str | None = Field(default=None, max_length=120)
 
     @field_validator("purpose")
     @classmethod
@@ -120,8 +120,8 @@ class VerifyOtpResponse(BaseModel):
     verified_email: str
     purpose: str
     # Token is only returned for passwordless login & sensitive_action
-    action_token: Optional[str] = None
-    action_token_expires_in: Optional[int] = None
+    action_token: str | None = None
+    action_token_expires_in: int | None = None
 
 
 # ---------------------------------------------------------------------------

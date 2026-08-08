@@ -68,7 +68,7 @@ import os
 import platform
 import socket
 import time
-from typing import Any, Optional
+from typing import Any
 
 from fastapi import APIRouter, HTTPException
 
@@ -87,10 +87,10 @@ _WORKER_CAPABILITY_VERSION = "2.1.0"
 # Redis connection helper
 # ---------------------------------------------------------------------------
 
-_redis_client: Optional[Any] = None
+_redis_client: Any | None = None
 
 
-def _get_sync_redis(redis_url: str) -> Optional[Any]:
+def _get_sync_redis(redis_url: str) -> Any | None:
     """Return a synchronous Redis client (used by the heartbeat thread)."""
     try:
         import redis as _redis  # type: ignore
@@ -101,7 +101,7 @@ def _get_sync_redis(redis_url: str) -> Optional[Any]:
         return None
 
 
-async def _get_async_redis(redis_url: str) -> Optional[Any]:
+async def _get_async_redis(redis_url: str) -> Any | None:
     """Return an async Redis client (used by FastAPI endpoints)."""
     try:
         import redis.asyncio as aioredis  # type: ignore
@@ -155,8 +155,8 @@ class ETAPWorkerHeartbeat:
 
     def __init__(
         self,
-        worker_id: Optional[str] = None,
-        redis_url: Optional[str] = None,
+        worker_id: str | None = None,
+        redis_url: str | None = None,
         interval: int = _HEARTBEAT_INTERVAL,
     ) -> None:
         self.worker_id = worker_id or f"{socket.gethostname()}-{os.getpid()}"
@@ -166,10 +166,10 @@ class ETAPWorkerHeartbeat:
         )  # NOSONAR intentional repetition (audit constant)
         self.interval = interval
         self._stop_event = asyncio.Event()
-        self._redis: Optional[Any] = None
+        self._redis: Any | None = None
         self._key = f"{_REGISTRY_PREFIX}{self.worker_id}"
 
-    async def _get_redis(self) -> Optional[Any]:
+    async def _get_redis(self) -> Any | None:
         if self._redis is None:
             self._redis = await _get_async_redis(self.redis_url)
         return self._redis
@@ -247,14 +247,14 @@ class WorkerRegistry:
 
     def __init__(
         self,
-        redis_url: Optional[str] = None,
+        redis_url: str | None = None,
         stale_threshold: int = _WORKER_TTL,
     ) -> None:
         self.redis_url = redis_url or os.getenv("REDIS_URL", _REDIS_DEFAULT_URL)
         self.stale_threshold = stale_threshold
-        self._redis: Optional[Any] = None
+        self._redis: Any | None = None
 
-    async def _get_redis(self) -> Optional[Any]:
+    async def _get_redis(self) -> Any | None:
         if self._redis is None:
             self._redis = await _get_async_redis(self.redis_url)
         return self._redis

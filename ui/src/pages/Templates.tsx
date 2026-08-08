@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { Copy, FileText, Loader2, Pencil, Plus, Search, Trash2 } from "lucide-react";
 import { type ReactNode, useEffect, useState } from "react";
+import { type ReactNode, useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ContextHelpButton } from "../components/help/ContextHelpButton";
 import { Badge, Button, Card, Modal } from "../components/ui";
@@ -103,7 +104,7 @@ export default function Templates() {
   const [formSaving, setFormSaving] = useState(false);
   const [loadingDetail, setLoadingDetail] = useState(false);
 
-  const fetchTemplates = async () => {
+  const fetchTemplates = useCallback(async () => {
     setLoading(true);
     try {
       const data = await templatesFetch<{ templates: Template[] } | Template[]>(
@@ -116,11 +117,11 @@ export default function Templates() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [notify]);
 
   useEffect(() => {
     fetchTemplates();
-  }, []);
+  }, [fetchTemplates]);
 
   const openCreate = () => {
     setEditTemplate(null);

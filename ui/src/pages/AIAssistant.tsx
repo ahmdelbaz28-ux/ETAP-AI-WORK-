@@ -141,6 +141,7 @@ function createCodeRenderer(ctx: CodeRendererCtx) {
   // Use React.FC with explicit props type to satisfy react-markdown v10's
   // stricter ComponentType signature (requires ExtraProps compatibility).
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // biome-ignore lint/suspicious/noExplicitAny: react-markdown v10 ComponentType requires a permissive signature
   const CodeRenderer: React.FC<any> = (props: MarkdownCodeProps) => {
     return (
       <MarkdownCode
@@ -223,11 +224,11 @@ export default function AIAssistant() {
     // focus input on mount
     setTimeout(() => inputRef.current?.focus(), 100);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [notify]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, loading]);
+  });
 
   // Abort any in-flight request on unmount.
   useEffect(() => {
@@ -675,7 +676,7 @@ export default function AIAssistant() {
                 disabled={!input.trim()}
                 className={cn(
                   "p-2 rounded-xl transition-all duration-200 flex items-center justify-center",
-                  loading || !input.trim()
+                  !input.trim()
                     ? "bg-gray-100 dark:bg-gray-800 text-gray-400 cursor-not-allowed"
                     : "bg-[#d97706] hover:bg-[#b45309] text-white shadow-md shadow-amber-500/20",
                 )}
@@ -707,8 +708,11 @@ function LoaderIcon(props: React.SVGProps<SVGSVGElement>) {
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
+      role="img"
+      aria-label="Loading"
       {...props}
     >
+      <title>Loading</title>
       <path d="M21 12a9 9 0 1 1-6.219-8.56" />
     </svg>
   );

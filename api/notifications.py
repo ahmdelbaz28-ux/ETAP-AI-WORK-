@@ -23,7 +23,7 @@ import os
 import uuid
 from datetime import UTC, datetime
 from enum import Enum
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 from fastapi import APIRouter, Depends, HTTPException, Query, WebSocket, WebSocketDisconnect, status
 from pydantic import BaseModel, ConfigDict, Field
@@ -106,7 +106,7 @@ class Notification(Base):
     title: Mapped[str] = mapped_column(String(255), nullable=False)
     message: Mapped[str] = mapped_column(Text, nullable=False)
     priority: Mapped[str] = mapped_column(String(16), default=NotificationPriority.NORMAL.value)
-    data: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)  # Additional payload
+    data: Mapped[dict | None] = mapped_column(JSON, nullable=True)  # Additional payload
     is_read: Mapped[bool] = mapped_column(Boolean, default=False)
     is_archived: Mapped[bool] = mapped_column(Boolean, default=False)
     requires_email: Mapped[bool] = mapped_column(Boolean, default=False)
@@ -115,7 +115,7 @@ class Notification(Base):
         DateTime(timezone=True),
         default=lambda: datetime.now(UTC),
     )
-    read_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    read_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
 
 # ---------------------------------------------------------------------------
@@ -134,11 +134,11 @@ class NotificationResponse(BaseModel):
     title: str
     message: str
     priority: str = "normal"
-    data: Optional[dict[str, Any]] = None
+    data: dict[str, Any] | None = None
     is_read: bool = False
     is_archived: bool = False
-    created_at: Optional[datetime] = None
-    read_at: Optional[datetime] = None
+    created_at: datetime | None = None
+    read_at: datetime | None = None
 
 
 class NotificationListResponse(BaseModel):
@@ -234,7 +234,7 @@ async def create_notification(
     title: str,
     message: str,
     priority: str = NotificationPriority.NORMAL.value,
-    data: Optional[dict[str, Any]] = None,
+    data: dict[str, Any] | None = None,
     requires_email: bool = False,
 ) -> Notification:
     """Create a notification and send it via WebSocket if connected."""
@@ -342,7 +342,7 @@ async def list_notifications(
     user: CurrentUser = Depends(get_current_user_from_header),  # noqa: B008
     pagination: PaginationParams = Depends(pagination_params),  # noqa: B008
     unread_only: bool = Query(False, description="Only show unread notifications"),
-    notification_type: Optional[str] = Query(None, description="Filter by type"),
+    notification_type: str | None = Query(None, description="Filter by type"),
 ) -> Any:
     """Return a paginated list of notifications for the current user."""
     # Build filters

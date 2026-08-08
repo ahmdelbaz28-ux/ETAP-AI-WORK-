@@ -27,7 +27,6 @@ import os
 from collections import deque
 from dataclasses import asdict, dataclass, field
 from datetime import UTC, datetime
-from typing import Optional
 
 logger = logging.getLogger("etap.email_send_log")
 
@@ -66,9 +65,9 @@ class EmailSendRecord:
     subject: str
     flow: str  # otp, password_reset, welcome, login_alert, etc.
     success: bool
-    message_id: Optional[str] = None
-    error: Optional[str] = None
-    status_code: Optional[int] = None
+    message_id: str | None = None
+    error: str | None = None
+    status_code: int | None = None
     elapsed_ms: int = 0
     tags: list = field(default_factory=list)
 
@@ -83,11 +82,11 @@ async def log_email_send(
     subject: str,
     flow: str,
     success: bool,
-    message_id: Optional[str] = None,
-    error: Optional[str] = None,
-    status_code: Optional[int] = None,
+    message_id: str | None = None,
+    error: str | None = None,
+    status_code: int | None = None,
     elapsed_ms: int = 0,
-    tags: Optional[list] = None,
+    tags: list | None = None,
 ) -> str:
     """Log a single email send. Returns the record ID."""
     import uuid
@@ -124,7 +123,7 @@ async def log_email_send(
     return record.id
 
 
-def get_recent_sends(limit: int = 100, flow: Optional[str] = None) -> list[dict]:
+def get_recent_sends(limit: int = 100, flow: str | None = None) -> list[dict]:
     """Return recent send records (newest first)."""
     items = list(reversed(_buffer))
     if flow:
@@ -231,7 +230,7 @@ def get_send_count_by_day(days: int = 7) -> list[dict]:
     return sorted(buckets.values(), key=lambda b: b["date"])
 
 
-def get_record_by_id(record_id: str) -> Optional[dict]:
+def get_record_by_id(record_id: str) -> dict | None:
     """Look up a single record by ID."""
     for r in reversed(_buffer):
         if r.id == record_id:

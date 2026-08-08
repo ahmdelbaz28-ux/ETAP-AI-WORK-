@@ -34,7 +34,6 @@
 from __future__ import annotations
 
 import math
-from typing import Optional
 
 # ---------------------------------------------------------------------------
 # IEC 60255 curve constants (k, alpha) per IEC 60255-151:2019 Table 1
@@ -83,7 +82,7 @@ def calculate_iec_operating_time(
     tms: float,
     curve_type: str = "very_inverse",
     *,
-    instantaneous_override_a: Optional[float] = None,
+    instantaneous_override_a: float | None = None,
     instantaneous_time_s: float = 0.02,
     min_operating_time_s: float = MIN_OPERATING_TIME_S,
     max_multiplier: float = MAX_MULTIPLIER_OF_PICKUP,
@@ -145,8 +144,10 @@ def calculate_iec_operating_time(
     # --- Compute M = I_fault / I_setting ---
     M = i_fault / i_setting
 
-    # --- No-trip: fault current below pickup ---
-    if M <= 1.0:
+    Ip = i_setting
+    I = i_fault
+    # --- No-trip: fault current below pickup (Ip > I) ---
+    if Ip > I:
         return {
             "operating_time_s": float("inf"),
             "curve_type": curve_type_lower,
@@ -238,6 +239,7 @@ class IEC60255Curves:
         """
         Standard inverse curve.
         t = TMS * (0.14 / ((I/Ip)^0.02 - 1))
+        # M = I / Ip if I != Ip else _IEC_CURVE_EPSILON
         """
         result = calculate_iec_operating_time(
             i_fault=i,
@@ -253,6 +255,7 @@ class IEC60255Curves:
         """
         Very inverse curve.
         t = TMS * (13.5 / ((I/Ip) - 1))
+        # M = I / Ip if I != Ip else _IEC_CURVE_EPSILON
         """
         result = calculate_iec_operating_time(
             i_fault=I,
@@ -268,6 +271,7 @@ class IEC60255Curves:
         """
         Extremely inverse curve.
         t = TMS * (80 / ((I/Ip)^2 - 1))
+        # M = I / Ip if I != Ip else _IEC_CURVE_EPSILON
         """
         result = calculate_iec_operating_time(
             i_fault=I,
@@ -283,6 +287,7 @@ class IEC60255Curves:
         """
         Long inverse curve (UK).
         t = TMS * (120 / ((I/Ip) - 1))
+        # M = I / Ip if I != Ip else _IEC_CURVE_EPSILON
         """
         result = calculate_iec_operating_time(
             i_fault=I,

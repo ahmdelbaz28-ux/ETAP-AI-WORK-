@@ -21,7 +21,7 @@ from collections import defaultdict
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -74,7 +74,7 @@ class DomainEvent:
     timestamp: float = field(default_factory=time.time)
     event_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     source: str = "unknown"
-    correlation_id: Optional[str] = None  # Links related events
+    correlation_id: str | None = None  # Links related events
     metadata: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict:
@@ -355,7 +355,7 @@ class EventBus:
                 self._element_locks[element_id] = threading.Lock()
             return self._element_locks[element_id]
 
-    def _extract_element_id(self, event: DomainEvent) -> Optional[str]:
+    def _extract_element_id(self, event: DomainEvent) -> str | None:
         """Extract the element identifier from a state-modifying event.
 
         Returns None for events that don't modify a specific element.

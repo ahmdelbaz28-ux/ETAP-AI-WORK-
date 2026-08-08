@@ -20,7 +20,7 @@ from __future__ import annotations
 
 import json
 import logging
-from typing import Any, Optional
+from typing import Any
 
 from acp.transport.base import Transport
 
@@ -50,8 +50,8 @@ class Server:
         router: Any,
         transport: Transport,
         *,
-        metrics: Optional[Any] = None,
-        logger: Optional[Any] = None,
+        metrics: Any | None = None,
+        logger: Any | None = None,
     ) -> None:
         self._router = router
         self._transport = transport

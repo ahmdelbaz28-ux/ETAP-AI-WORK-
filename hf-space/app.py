@@ -29,7 +29,7 @@ import logging
 import os
 import time
 from contextlib import asynccontextmanager
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 import aiofiles  # async file I/O for S7493 compliance
 
@@ -1250,7 +1250,7 @@ async def study_types():
 
 
 # -- CRITICAL #2 fix (AhmedETAP_Error_Report_AR.pdf):
-# These three endpoints were documented (TESTSPRITE_OVERVIEW.md, PROJECT_INDEX.md,
+# These three endpoints were documented (docs/archive/TESTSPRITE_OVERVIEW.md, PROJECT_INDEX.md,
 # curl examples in README.hf.md) but missing from hf-space/app.py, causing HTTP 404
 # on HF Space. They delegate to shared handlers / lightweight in-process logic so
 # they work on cpu-basic HF hardware without external dependencies.
@@ -1514,7 +1514,7 @@ async def settings_delete_key(provider: str):
     }
 
 
-def _parse_inline_key_config(body: dict, provider: str) -> Optional[APIKeyConfig]:
+def _parse_inline_key_config(body: dict, provider: str) -> APIKeyConfig | None:
     """Build an APIKeyConfig from request body, or None if no inline key.
 
     Body shape: { "api_key": "sk-...", "base_url": None, "model_name": None }

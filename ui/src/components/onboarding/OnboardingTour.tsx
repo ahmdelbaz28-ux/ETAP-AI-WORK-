@@ -9,7 +9,7 @@ import {
   X,
   Zap,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router";
 import { cn } from "../../utils/helpers";
 
@@ -32,68 +32,71 @@ export function OnboardingTour() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const steps: TourStep[] = [
-    {
-      id: "welcome",
-      title: "Welcome to Ahmed etap Platform",
-      description:
-        "Enterprise-grade autonomous engineering intelligence for power systems. This tour will guide you through the key features.",
-      icon: Zap,
-      position: "bottom",
-    },
-    {
-      id: "sidebar",
-      title: "Navigation Sidebar",
-      description:
-        "Access all modules from the sidebar. It's organized into sections: main navigation, engineering, integration, and system tools. You can collapse it for more workspace.",
-      icon: LayoutDashboard,
-      target: "sidebar",
-      position: "right",
-    },
-    {
-      id: "projects",
-      title: "Project Management",
-      description:
-        "Create and manage power system projects. Each project stores your system configuration, study results, and reports in one place.",
-      icon: FolderPlus,
-      action: () => navigate("/projects"),
-      position: "bottom",
-    },
-    {
-      id: "studies",
-      title: "Engineering Studies",
-      description:
-        "Run real engineering computations: Load Flow, Short Circuit, Arc Flash, Harmonic Analysis, and more. Select a study type and configure parameters.",
-      icon: Zap,
-      action: () => navigate("/studies"),
-      position: "bottom",
-    },
-    {
-      id: "help",
-      title: "Smart Help",
-      description:
-        "Press F1 anytime to open contextual help. When errors occur, the help system maps them to relevant troubleshooting guides.",
-      icon: HelpCircle,
-      position: "bottom",
-    },
-    {
-      id: "status",
-      title: "Backend Status",
-      description:
-        "Monitor the connection to the engineering service. The status indicator in the sidebar shows real-time connectivity.",
-      icon: Activity,
-      action: () => navigate("/diagnostics"),
-      position: "bottom",
-    },
-    {
-      id: "complete",
-      title: "You're All Set!",
-      description:
-        "You're ready to start using Ahmed etap. Press Ctrl+K anytime to open the command palette for quick navigation.",
-      icon: CheckCircle,
-      position: "bottom",
-    },
-  ];
+  const steps: TourStep[] = useMemo(
+    () => [
+      {
+        id: "welcome",
+        title: "Welcome to Ahmed etap Platform",
+        description:
+          "Enterprise-grade autonomous engineering intelligence for power systems. This tour will guide you through the key features.",
+        icon: Zap,
+        position: "bottom",
+      },
+      {
+        id: "sidebar",
+        title: "Navigation Sidebar",
+        description:
+          "Access all modules from the sidebar. It's organized into sections: main navigation, engineering, integration, and system tools. You can collapse it for more workspace.",
+        icon: LayoutDashboard,
+        target: "sidebar",
+        position: "right",
+      },
+      {
+        id: "projects",
+        title: "Project Management",
+        description:
+          "Create and manage power system projects. Each project stores your system configuration, study results, and reports in one place.",
+        icon: FolderPlus,
+        action: () => navigate("/projects"),
+        position: "bottom",
+      },
+      {
+        id: "studies",
+        title: "Engineering Studies",
+        description:
+          "Run real engineering computations: Load Flow, Short Circuit, Arc Flash, Harmonic Analysis, and more. Select a study type and configure parameters.",
+        icon: Zap,
+        action: () => navigate("/studies"),
+        position: "bottom",
+      },
+      {
+        id: "help",
+        title: "Smart Help",
+        description:
+          "Press F1 anytime to open contextual help. When errors occur, the help system maps them to relevant troubleshooting guides.",
+        icon: HelpCircle,
+        position: "bottom",
+      },
+      {
+        id: "status",
+        title: "Backend Status",
+        description:
+          "Monitor the connection to the engineering service. The status indicator in the sidebar shows real-time connectivity.",
+        icon: Activity,
+        action: () => navigate("/diagnostics"),
+        position: "bottom",
+      },
+      {
+        id: "complete",
+        title: "You're All Set!",
+        description:
+          "You're ready to start using Ahmed etap. Press Ctrl+K anytime to open the command palette for quick navigation.",
+        icon: CheckCircle,
+        position: "bottom",
+      },
+    ],
+    [navigate],
+  );
 
   useEffect(() => {
     // Don't show onboarding on auth pages (login/register) — users haven't
@@ -111,7 +114,18 @@ export function OnboardingTour() {
     return undefined; // QUALITY v2.1.1: explicit return for TS7030 (strict mode)
   }, [location.pathname]);
 
-  const handleNext = () => {
+  const handleComplete = useCallback(() => {
+    localStorage.setItem(ONBOARDING_KEY, "true");
+    setCompleted(true);
+    setTimeout(() => setShow(false), 300);
+  }, []);
+
+  // handleSkip is intentionally identical to handleComplete — both dismiss
+  // the tour and mark it as seen. Kept as a separate name for call-site
+  // readability (Skip vs Complete convey different user intents).
+  const handleSkip = handleComplete;
+
+  const handleNext = useCallback(() => {
     if (currentStep < steps.length - 1) {
       const nextStep = steps[currentStep + 1];
       if (nextStep.action) nextStep.action();
@@ -119,29 +133,18 @@ export function OnboardingTour() {
     } else {
       handleComplete();
     }
-  };
+  }, [currentStep, steps, handleComplete]);
 
-  const handlePrev = () => {
+  const handlePrev = useCallback(() => {
     if (currentStep > 0) setCurrentStep(currentStep - 1);
-  };
+  }, [currentStep]);
 
-  const handleComplete = () => {
-    localStorage.setItem(ONBOARDING_KEY, "true");
-    setCompleted(true);
-    setTimeout(() => setShow(false), 300);
-  };
-
-  // handleSkip is intentionally identical to handleComplete — both dismiss
-  // the tour and mark it as seen. Kept as a separate name for call-site
-  // readability (Skip vs Complete convey different user intents).
-  const handleSkip = handleComplete;
-
-  const handleRestart = () => {
+  const handleRestart = useCallback(() => {
     localStorage.removeItem(ONBOARDING_KEY);
     setCurrentStep(0);
     setCompleted(false);
     setShow(true);
-  };
+  }, []);
 
   // Expose restart function globally
   useEffect(() => {
@@ -150,7 +153,7 @@ export function OnboardingTour() {
     return () => {
       (w as Record<string, unknown>).__restartOnboarding = undefined;
     };
-  }, []);
+  }, [handleRestart]);
 
   // Keyboard shortcuts: Esc = skip, Enter = next, Backspace = prev
   useEffect(() => {
@@ -169,7 +172,7 @@ export function OnboardingTour() {
     };
     globalThis.addEventListener("keydown", onKey);
     return () => globalThis.removeEventListener("keydown", onKey);
-  }, [show, currentStep]);
+  }, [show, currentStep, handleSkip, handleNext, handlePrev]);
 
   if (!show) return null;
 

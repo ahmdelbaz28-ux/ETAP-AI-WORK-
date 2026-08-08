@@ -1,3 +1,4 @@
+import { useId } from "react";
 import { cn } from "../../utils/helpers";
 
 interface ToggleProps {
@@ -18,6 +19,7 @@ export function Toggle({
   size = "md",
 }: ToggleProps) {
   // NOSONAR — S6759: React props read-only; requires `readonly` refactor across component tree
+  const reactId = useId();
   const isMd = size === "md";
   // Note: previously a <label>, but Biome's noLabelWithoutControl rule
   // flags <label> that wraps a <button> instead of an <input>. The accessible
@@ -27,12 +29,15 @@ export function Toggle({
   return (
     <div
       role="group"
+    <label
+      htmlFor={reactId}
       className={cn(
         "flex items-center gap-3 cursor-pointer group",
         disabled && "opacity-50 cursor-not-allowed",
       )}
     >
       <button
+        id={reactId}
         role="switch"
         aria-checked={checked}
         aria-label={label ?? "toggle"}

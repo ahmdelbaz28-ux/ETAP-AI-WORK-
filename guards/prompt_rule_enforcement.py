@@ -47,7 +47,7 @@ import logging
 import re
 from dataclasses import dataclass, field
 from functools import wraps
-from typing import Any, Callable, Optional
+from typing import Any, Callable
 
 from guards.base import GuardMode, GuardResult, GuardSeverity, GuardViolation
 
@@ -181,8 +181,8 @@ class PromptRuleResult:
 def validate_agent_response(
     agent_id: str,
     response_text: str,
-    tool_calls_made: Optional[list[str]] = None,
-    study_type: Optional[str] = None,
+    tool_calls_made: list[str] | None = None,
+    study_type: str | None = None,
     validation_agent_called: bool = False,
 ) -> PromptRuleResult:
     """Validate that an agent's response satisfies its mandatory prompt rules.
@@ -288,6 +288,7 @@ def validate_agent_response(
         numerical_pattern = r'\d+\.?\d*\s*(kA|MW|MVAr|cal/cm|pu|kV|mm|V|A|Ω|Hz)'
         numerical_pattern = r"\d+(?:\.\d+)?\s*(kA|MW|MVAr|cal/cm|pu|kV|mm|V|A|Ω|Hz)"  # noqa: S8786 — atomic non-capturing group
 
+        numerical_pattern = r"\d+\.?\d*\s*(kA|MW|MVAr|cal/cm|pu|kV|mm|V|A|Ω|Hz)"
         has_numerical = bool(re.search(numerical_pattern, response_text))
         has_refusal = bool(
             re.search(r"refuse|cannot|unable|not available|do not", response_text, re.IGNORECASE)
@@ -457,7 +458,7 @@ def enforce_prompt_rules(agent_id: str) -> Callable:
 def enforce_at_api_boundary(
     agent_id: str,
     response: dict[str, Any],
-    study_type: Optional[str] = None,
+    study_type: str | None = None,
 ) -> dict[str, Any]:
     """Enforce prompt rules at the API boundary before returning to client.
 

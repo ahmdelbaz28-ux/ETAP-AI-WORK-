@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import logging
 import sys
-from typing import Optional, TextIO
+from typing import TextIO
 
 import anyio
 
@@ -29,7 +29,7 @@ class StdioTransport(Transport):
         stdout: output stream. Defaults to ``sys.stdout``.
     """
 
-    def __init__(self, stdin: Optional[TextIO] = None, stdout: Optional[TextIO] = None) -> None:
+    def __init__(self, stdin: TextIO | None = None, stdout: TextIO | None = None) -> None:
         self.stdin = stdin or sys.stdin
         self.stdout = stdout or sys.stdout
         self._read_lock = anyio.Lock()
@@ -37,7 +37,7 @@ class StdioTransport(Transport):
         self._closed = False
         self._log = logging.getLogger("acp.transport.stdio")
 
-    async def read_message(self) -> Optional[str]:
+    async def read_message(self) -> str | None:
         """Read one line from stdin."""
         if self._closed:
             return None

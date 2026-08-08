@@ -52,7 +52,6 @@ import threading
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Optional
 
 logger = logging.getLogger(__name__)
 
@@ -88,11 +87,11 @@ class APIKeyConfig:
 
     provider: str
     api_key: str  # decrypted
-    base_url: Optional[str] = None
-    model_name: Optional[str] = None
+    base_url: str | None = None
+    model_name: str | None = None
     is_active: bool = True
-    created_at: Optional[str] = None
-    updated_at: Optional[str] = None
+    created_at: str | None = None
+    updated_at: str | None = None
 
     def to_masked_dict(self) -> dict:
         """Return a dict with the API key masked (for frontend display)."""
@@ -255,8 +254,8 @@ class APIKeyStore:
         self,
         provider: str,
         api_key: str,
-        base_url: Optional[str] = None,
-        model_name: Optional[str] = None,
+        base_url: str | None = None,
+        model_name: str | None = None,
         is_active: bool = True,
     ) -> bool:
         """Save or update an API key.
@@ -301,7 +300,7 @@ class APIKeyStore:
         logger.info("API key saved for provider '%s' (active=%s)", provider, is_active)
         return True
 
-    def get_key(self, provider: str) -> Optional[APIKeyConfig]:
+    def get_key(self, provider: str) -> APIKeyConfig | None:
         """Retrieve a decrypted API key configuration.
 
         Args:

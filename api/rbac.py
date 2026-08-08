@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """
 api/rbac.py — Role-Based Access Control (RBAC) system.
 
@@ -19,8 +21,6 @@ Exposes endpoints under the ``/api/v1/auth`` prefix:
 * ``POST   /users/{user_id}/roles``  — Assign roles to user (admin only)
 * ``DELETE /users/{user_id}/roles/{role_id}`` — Remove role from user (admin only)
 """
-
-from __future__ import annotations
 
 import uuid
 from datetime import UTC, datetime

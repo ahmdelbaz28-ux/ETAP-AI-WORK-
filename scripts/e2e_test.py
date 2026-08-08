@@ -21,7 +21,6 @@ from __future__ import annotations
 import os
 import sys
 import time
-from typing import Optional
 
 import httpx
 
@@ -124,7 +123,7 @@ def _agents_check(client: httpx.Client) -> None:
         report("  25 active agents", len(actives) == 25, f"active={len(actives)}")
 
 
-def _auth_flow(client: httpx.Client) -> Optional[dict]:
+def _auth_flow(client: httpx.Client) -> dict | None:
     """Test registration and login. Returns auth headers dict or None."""
     print("\n" + "=" * 70)
     print("3. AUTH: REGISTER + LOGIN")
@@ -174,7 +173,7 @@ def _auth_flow(client: httpx.Client) -> Optional[dict]:
     )
 
 
-def _projects_crud(client: httpx.Client, auth_headers: dict) -> Optional[str]:
+def _projects_crud(client: httpx.Client, auth_headers: dict) -> str | None:
     """Test project CRUD operations. Returns the created project ID or None."""
     print("\n" + "=" * 70)
     print("4. PROJECTS CRUD")
@@ -235,7 +234,7 @@ def _projects_crud(client: httpx.Client, auth_headers: dict) -> Optional[str]:
     return project_id
 
 
-def _assets_crud(client: httpx.Client, auth_headers: dict) -> Optional[str]:
+def _assets_crud(client: httpx.Client, auth_headers: dict) -> str | None:
     """Test asset CRUD operations. Returns the created asset ID or None."""
     print("\n" + "=" * 70)
     print("5. ASSETS CRUD")

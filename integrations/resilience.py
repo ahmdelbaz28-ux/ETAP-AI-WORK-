@@ -47,7 +47,7 @@ import uuid
 from collections.abc import Callable
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -90,7 +90,7 @@ def retry_with_backoff(
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
-            last_exc: Optional[Exception] = None
+            last_exc: Exception | None = None
             for attempt in range(1, max_retries + 2):  # +1 for initial attempt
                 try:
                     return func(*args, **kwargs)
@@ -307,7 +307,7 @@ class HybridVisionRouter:
         self,
         image: Any,
         objective: str,
-        context: Optional[str] = None,
+        context: str | None = None,
     ) -> dict[str, Any] | None:
         """Analyze a screenshot, trying each backend in the chain.
 

@@ -26,7 +26,7 @@ import logging
 import os
 import time
 from dataclasses import dataclass, field
-from typing import Any, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -263,7 +263,7 @@ class ETAPSyncEngine:
     # ------------------------------------------------------------------
 
     def export_to_etap(  # NOSONAR
-        self, project_path: Optional[str] = None
+        self, project_path: str | None = None
     ) -> dict[
         str, Any
     ]:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)

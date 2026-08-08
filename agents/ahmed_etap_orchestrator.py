@@ -51,7 +51,7 @@ from pathlib import Path
 # Import used only in type annotations; guarded to avoid circular imports.
 # ChiefEngineeringOrchestrator is defined in agents/orchestrator.py and used
 # as a type hint in AhmedETAPSkillAgent.__init__ and _resolve_orchestrator.
-from typing import TYPE_CHECKING, Any, Callable, Optional
+from typing import TYPE_CHECKING, Any, Callable
 
 from agents.orchestrator import (
     AgentResult,
@@ -121,10 +121,10 @@ class TaskRecord:
     study_type: str
     status: str  # "pending" | "running" | "completed" | "failed" | "reviewed"
     result: dict[str, Any] = field(default_factory=dict)
-    math_guard_passed: Optional[bool] = None
-    peer_review_passed: Optional[bool] = None
-    started_at: Optional[datetime] = None
-    completed_at: Optional[datetime] = None
+    math_guard_passed: bool | None = None
+    peer_review_passed: bool | None = None
+    started_at: datetime | None = None
+    completed_at: datetime | None = None
 
 
 @dataclass
@@ -134,7 +134,7 @@ class ReviewRecord:
     reviewer: str = ""
     verdict: str = "pending"  # "pending" | "approved" | "rejected" | "needs_revision"
     notes: str = ""
-    timestamp: Optional[datetime] = None
+    timestamp: datetime | None = None
 
 
 class SharedContext:
@@ -177,10 +177,10 @@ class SharedContext:
 
     def __init__(
         self,
-        project: Optional[ProjectRef] = None,
+        project: ProjectRef | None = None,
         max_tokens: int = 16_000,
-        standards: Optional[list[str]] = None,
-        glossary: Optional[dict[str, str]] = None,
+        standards: list[str] | None = None,
+        glossary: dict[str, str] | None = None,
     ):
         self.project: ProjectRef = project or ProjectRef()
         self.budget: TokenBudget = TokenBudget(max_tokens=max_tokens)
@@ -433,7 +433,7 @@ class MathGuard:
         recompute: Callable[[], float],
         quantity_kind: str,
         claim_unit: str,
-        expected_unit: Optional[str] = None,
+        expected_unit: str | None = None,
     ) -> MathGuardResult:
         """Validate a single numerical claim.
 
@@ -495,7 +495,7 @@ class MathGuard:
         self,
         kind: str,
         claimed: str,
-        expected: Optional[str],
+        expected: str | None,
     ) -> tuple[bool, str]:
         if kind not in _UNIT_RULES:
             return True, f"no unit rules for kind '{kind}' (skipped)"
@@ -537,7 +537,7 @@ class MathGuardResult:
     passed: bool
     reason: str
     claim_value: float
-    recomputed_value: Optional[float]
+    recomputed_value: float | None
     units_ok: bool
     units_message: str
 
@@ -590,10 +590,10 @@ class PeerReview:
       - No out-of-scope claim is being made.
     """
 
-    def __init__(self, matrix: Optional[dict[str, str]] = None):
+    def __init__(self, matrix: dict[str, str] | None = None):
         self.matrix = matrix or PEER_REVIEW_MATRIX
 
-    def reviewer_for(self, lead_study_type: str) -> Optional[str]:
+    def reviewer_for(self, lead_study_type: str) -> str | None:
         """Return the canonical study type of the peer reviewer."""
         return self.matrix.get(canonicalize_study_type(lead_study_type))
 
@@ -601,7 +601,7 @@ class PeerReview:
         self,
         lead_study_type: str,
         result: dict[str, Any],
-        reviewer_fn: Optional[Callable[[dict[str, Any]], tuple[bool, str]]] = None,
+        reviewer_fn: Callable[[dict[str, Any]], tuple[bool, str]] | None = None,
     ) -> PeerReviewResult:
         """Run a peer review on ``result``.
 
@@ -640,7 +640,7 @@ class PeerReview:
     # ---- Default sanity checks -----------------------------------------
 
     @staticmethod
-    def _check_load_flow(result: dict[str, Any], notes_parts: list[str]) -> Optional[str]:
+    def _check_load_flow(result: dict[str, Any], notes_parts: list[str]) -> str | None:
         """Plausibility check for load_flow results; returns a failure message or None."""
         buses = result.get("buses") or result.get("bus_results") or {}
         for bus_id, bdata in buses.items():
@@ -651,7 +651,7 @@ class PeerReview:
         return None
 
     @staticmethod
-    def _check_short_circuit(result: dict[str, Any], notes_parts: list[str]) -> Optional[str]:
+    def _check_short_circuit(result: dict[str, Any], notes_parts: list[str]) -> str | None:
         """Plausibility check for short_circuit results; returns a failure message or None."""
         fr = result.get("fault_results") or {}
         for bus_id, faults in fr.items():
@@ -664,7 +664,7 @@ class PeerReview:
         return None
 
     @staticmethod
-    def _check_arc_flash(result: dict[str, Any], notes_parts: list[str]) -> Optional[str]:
+    def _check_arc_flash(result: dict[str, Any], notes_parts: list[str]) -> str | None:
         """Plausibility check for arc_flash results; returns a failure message or None."""
         ie = result.get("incident_energy") or result.get("incident_energy_cal_cm2")
         if ie is not None and float(ie) > 100.0:
@@ -675,7 +675,7 @@ class PeerReview:
     @staticmethod
     def _check_protection_coordination(
         result: dict[str, Any], notes_parts: list[str]
-    ) -> Optional[str]:
+    ) -> str | None:
         """Plausibility check for protection_coordination results (never fails hard)."""
         cr = result.get("coordination_results") or result.get("results") or []
         for entry in cr:
@@ -755,8 +755,8 @@ class OrchestrationResult:
     study_type: str
     lead_agent: str
     peer_reviewer: str
-    math_guard: Optional[MathGuardResult]
-    peer_review: Optional[PeerReviewResult]
+    math_guard: MathGuardResult | None
+    peer_review: PeerReviewResult | None
     shared_context_snapshot: dict[str, Any]
     response: dict[str, Any] = field(default_factory=dict)
     iterations: int = 0
@@ -800,16 +800,16 @@ class AhmedETAPOrchestrator:
 
     def __init__(
         self,
-        math_guard: Optional[MathGuard] = None,
-        peer_review: Optional[PeerReview] = None,
+        math_guard: MathGuard | None = None,
+        peer_review: PeerReview | None = None,
     ):
         self.math_guard = math_guard or MathGuard()
         self.peer_review = peer_review or PeerReview()
 
     @staticmethod
     def _final_verdict(
-        last_math_guard: Optional[MathGuardResult],
-        last_peer_review: Optional[PeerReviewResult],
+        last_math_guard: MathGuardResult | None,
+        last_peer_review: PeerReviewResult | None,
     ) -> OrchestrationVerdict:
         """Derive the terminal verdict from the last guard results."""
         if (
@@ -833,7 +833,7 @@ class AhmedETAPOrchestrator:
         start: float,
         lead_agent: str = "",
         peer_reviewer: str = "",
-        ctx: Optional[SharedContext] = None,
+        ctx: SharedContext | None = None,
         iterations: int = 0,
     ) -> OrchestrationResult:
         """Build a FAILED :class:`OrchestrationResult` with the given error."""
@@ -860,9 +860,9 @@ class AhmedETAPOrchestrator:
         claim_value: float,
         claim_unit: str,
         quantity_kind: str = "voltage",
-        expected_unit: Optional[str] = None,
+        expected_unit: str | None = None,
         budget_tokens: int = 8_000,
-        reviewer_fn: Optional[Callable[[dict[str, Any]], tuple[bool, str]]] = None,
+        reviewer_fn: Callable[[dict[str, Any]], tuple[bool, str]] | None = None,
     ) -> OrchestrationResult:
         """Execute a single study through the full skill pipeline.
 
@@ -893,8 +893,8 @@ class AhmedETAPOrchestrator:
         ctx.budget.estimate_and_record(f"{ctx.project.name} {canonical} " + " ".join(ctx.standards))
 
         # Iteration loop: lead → math_guard → peer_review (max MAX_RETRIES retries)
-        last_math_guard: Optional[MathGuardResult] = None
-        last_peer_review: Optional[PeerReviewResult] = None
+        last_math_guard: MathGuardResult | None = None
+        last_peer_review: PeerReviewResult | None = None
         last_response: dict[str, Any] = {}
         iteration = 0
 
@@ -1069,7 +1069,7 @@ class AhmedETAPSkillAgent(BaseAgent):
 
     prompt_handle = "ahmed_etap_agent"
 
-    def __init__(self, orchestrator: Optional[ChiefEngineeringOrchestrator] = None) -> None:
+    def __init__(self, orchestrator: ChiefEngineeringOrchestrator | None = None) -> None:
         super().__init__("ahmed_etap_skill")
         self._orch = orchestrator
         self._skill_orch = AhmedETAPOrchestrator()
@@ -1241,8 +1241,8 @@ class AhmedETAPSkillAgent(BaseAgent):
 _SKILL_PATH = Path(__file__).resolve().parent.parent / "skills" / "ahmed-etap" / "SKILL.md"
 _REFERENCE_PATH = Path(__file__).resolve().parent.parent / "skills" / "ahmed-etap" / "REFERENCE.md"
 
-_skill_cache: Optional[str] = None
-_reference_cache: Optional[str] = None
+_skill_cache: str | None = None
+_reference_cache: str | None = None
 
 
 def load_skill_text() -> str:

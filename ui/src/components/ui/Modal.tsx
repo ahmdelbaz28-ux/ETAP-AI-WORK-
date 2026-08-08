@@ -67,7 +67,16 @@ export function Modal({
       {/* Backdrop */}
       <div // NOSONAR — S6848: non-interactive DOM role; intentional
         className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        role="button"
+        tabIndex={closeOnOverlay ? 0 : undefined}
+        aria-label="Close modal"
         onClick={closeOnOverlay ? onClose : undefined}
+        onKeyDown={(e) => {
+          if (closeOnOverlay && (e.key === "Enter" || e.key === " ")) {
+            e.preventDefault();
+            onClose();
+          }
+        }}
       />
 
       {/* Content */}

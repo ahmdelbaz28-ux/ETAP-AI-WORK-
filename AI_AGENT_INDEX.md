@@ -380,7 +380,7 @@ CREATE TABLE study_results (
 | Security | `.mcp.json` was committed with secrets (now cleaned) | High |
 | Config | `ui/package.json` version is `0.0.0` — needs bumping | Low |
 | Test | Some test files use `pytest` markers not in config | Low |
-| docs | `COMPLETION_REPORT.md` is outdated | Low |
+| docs | `docs/archive/COMPLETION_REPORT.md` is outdated | Low |
 
 ---
 

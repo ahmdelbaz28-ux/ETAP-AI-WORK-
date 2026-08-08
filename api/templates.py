@@ -19,7 +19,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import UTC, datetime
-from typing import Any, Optional
+from typing import Any
 
 UTC = UTC
 
@@ -57,11 +57,11 @@ class StudyTemplate(Base):
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     name: Mapped[str] = mapped_column(String(255), nullable=False)
-    description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
     study_type: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
     parameters: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)
-    system_config: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
-    tags: Mapped[Optional[list]] = mapped_column(JSON, nullable=True)
+    system_config: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    tags: Mapped[list | None] = mapped_column(JSON, nullable=True)
     is_public: Mapped[bool] = mapped_column(Boolean, default=False)
     usage_count: Mapped[int] = mapped_column(default=0)
     created_by: Mapped[str] = mapped_column(String(36), nullable=False)
@@ -79,39 +79,39 @@ class StudyTemplate(Base):
 class TemplateCreateRequest(BaseModel):
     model_config = ConfigDict(strict=False)
     name: str = Field(min_length=1, max_length=255)
-    description: Optional[str] = Field(default=None, max_length=2000)
+    description: str | None = Field(default=None, max_length=2000)
     study_type: str = Field(min_length=1, max_length=64)
     parameters: dict[str, Any] = Field(default_factory=dict)
-    system_config: Optional[dict[str, Any]] = None
-    tags: Optional[list[str]] = None
+    system_config: dict[str, Any] | None = None
+    tags: list[str] | None = None
     is_public: bool = False
 
 
 class TemplateUpdateRequest(BaseModel):
     model_config = ConfigDict(strict=False)
-    name: Optional[str] = Field(default=None, min_length=1, max_length=255)
-    description: Optional[str] = Field(default=None, max_length=2000)
-    study_type: Optional[str] = Field(default=None, min_length=1, max_length=64)
-    parameters: Optional[dict[str, Any]] = None
-    system_config: Optional[dict[str, Any]] = None
-    tags: Optional[list[str]] = None
-    is_public: Optional[bool] = None
+    name: str | None = Field(default=None, min_length=1, max_length=255)
+    description: str | None = Field(default=None, max_length=2000)
+    study_type: str | None = Field(default=None, min_length=1, max_length=64)
+    parameters: dict[str, Any] | None = None
+    system_config: dict[str, Any] | None = None
+    tags: list[str] | None = None
+    is_public: bool | None = None
 
 
 class TemplateResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: str
     name: str
-    description: Optional[str] = None
+    description: str | None = None
     study_type: str
-    parameters: Optional[dict] = None
-    system_config: Optional[dict] = None
-    tags: Optional[list] = None
+    parameters: dict | None = None
+    system_config: dict | None = None
+    tags: list | None = None
     is_public: bool = False
     usage_count: int = 0
     created_by: str = ""
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
 
 
 class TemplateListResponse(BaseModel):
@@ -140,8 +140,8 @@ async def list_templates(
     db,
     user: CurrentUser = Depends(require_permission("templates", "list")),
     pagination: PaginationParams = Depends(pagination_params),
-    study_type: Optional[str] = None,
-    search: Optional[str] = None,
+    study_type: str | None = None,
+    search: str | None = None,
 ):
     filters = or_(StudyTemplate.is_public == True, StudyTemplate.created_by == user.user_id)
     if study_type:
@@ -298,7 +298,7 @@ async def delete_template(
 async def apply_template(
     template_id: str,
     db,
-    project_id: Optional[str] = None,
+    project_id: str | None = None,
     user: CurrentUser = Depends(require_permission("templates", "update")),
 ):
     template = await _get_template(template_id, db)

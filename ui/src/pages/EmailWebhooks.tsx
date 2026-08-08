@@ -44,8 +44,8 @@ export default function EmailWebhooks() {
         "/api/v1/email/webhooks/",
       );
       setWebhooks(res.webhooks || res.items || []);
-    } catch (err: any) {
-      notify("error", err?.message || "Failed to load webhook endpoints");
+    } catch (err: unknown) {
+      notify("error", err instanceof Error ? err.message : "Failed to load webhook endpoints");
     } finally {
       setLoading(false);
     }
@@ -84,8 +84,8 @@ export default function EmailWebhooks() {
       notify("success", "Webhook endpoint registered successfully");
       setIsModalOpen(false);
       loadData();
-    } catch (err: any) {
-      notify("error", err?.message || "Failed to register webhook");
+    } catch (err: unknown) {
+      notify("error", err instanceof Error ? err.message : "Failed to register webhook");
     }
   };
 
@@ -95,8 +95,8 @@ export default function EmailWebhooks() {
       await request(`/api/v1/email/webhooks/${id}`, { method: "DELETE" });
       notify("success", "Webhook endpoint removed");
       loadData();
-    } catch (err: any) {
-      notify("error", err?.message || "Failed to delete webhook");
+    } catch (err: unknown) {
+      notify("error", err instanceof Error ? err.message : "Failed to delete webhook");
     }
   };
 
@@ -104,8 +104,8 @@ export default function EmailWebhooks() {
     try {
       await request(`/api/v1/email/webhooks/${id}/test`, { method: "POST" });
       notify("success", "Test event ping sent successfully");
-    } catch (err: any) {
-      notify("error", err?.message || "Test ping failed");
+    } catch (err: unknown) {
+      notify("error", err instanceof Error ? err.message : "Test ping failed");
     }
   };
 
@@ -221,10 +221,11 @@ export default function EmailWebhooks() {
       >
         <div className="space-y-4">
           <div>
-            <label className="block text-xs font-medium text-slate-300 mb-1">
+            <label htmlFor="webhook-url" className="block text-xs font-medium text-slate-300 mb-1">
               Target Endpoint URL *
             </label>
             <input
+              id="webhook-url"
               type="url"
               placeholder="https://api.yourcompany.com/webhooks/email"
               value={targetUrl}
@@ -234,6 +235,7 @@ export default function EmailWebhooks() {
           </div>
 
           <div>
+            {/* biome-ignore lint/a11y/noLabelWithoutControl: group heading for the checkbox list below; each checkbox has its own wrapped <label> */}
             <label className="block text-xs font-medium text-slate-300 mb-2">
               Event Subscriptions
             </label>
@@ -265,10 +267,14 @@ export default function EmailWebhooks() {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-300 mb-1">
+            <label
+              htmlFor="webhook-secret"
+              className="block text-xs font-medium text-slate-300 mb-1"
+            >
               Signing Secret (Auto-Generated)
             </label>
             <input
+              id="webhook-secret"
               type="text"
               readOnly
               value={autoSecret}

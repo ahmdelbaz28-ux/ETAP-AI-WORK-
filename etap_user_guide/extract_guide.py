@@ -16,7 +16,6 @@ import json
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
 
 # PDF processing libraries
 # SECURITY: migrated from deprecated PyPDF2 (30+ CVEs) to pypdf (maintained successor).
@@ -68,7 +67,7 @@ class ETAPGuideExtractor:
             "files": [],
         }
 
-    def extract_text_from_pdf(self, pdf_path: Path) -> tuple[Optional[str], int]:
+    def extract_text_from_pdf(self, pdf_path: Path) -> tuple[str | None, int]:
         """
         Extract text from a single PDF file.
 

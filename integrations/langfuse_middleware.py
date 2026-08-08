@@ -39,7 +39,7 @@ import os
 import re
 import time
 from collections.abc import Awaitable, Callable
-from typing import Any, Optional
+from typing import Any
 
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
@@ -123,7 +123,7 @@ def _redact_pii(text: str) -> str:
     return text
 
 
-def _truncate_body(body: bytes, max_chars: int = _MAX_BODY_CAPTURE) -> Optional[str]:
+def _truncate_body(body: bytes, max_chars: int = _MAX_BODY_CAPTURE) -> str | None:
     """Truncate a request/response body for safe capture."""
     if not body:
         return None

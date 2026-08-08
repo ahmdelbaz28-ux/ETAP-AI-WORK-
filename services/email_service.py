@@ -42,7 +42,7 @@ import logging
 import os
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 from integrations.resend_email import EmailParams, EmailResult, resend_client
 
@@ -58,7 +58,7 @@ _TEMPLATES_DIR = Path(__file__).resolve().parent.parent / "templates" / "emails"
 _template_cache: dict[str, str] = {}
 
 
-def _load_template(name: str) -> Optional[str]:
+def _load_template(name: str) -> str | None:
     """Load an HTML template by filename (e.g. 'otp.html')."""
     if name in _template_cache:
         return _template_cache[name]
@@ -119,7 +119,7 @@ async def send_email_otp(
     email: str,
     code: str,
     purpose: str = "login",
-    user_name: Optional[str] = None,
+    user_name: str | None = None,
     ttl_minutes: int = 10,
 ) -> EmailResult:
     """Send an OTP code by email.
@@ -178,7 +178,7 @@ async def send_email_otp(
 async def send_password_reset(
     email: str,
     reset_link: str,
-    user_name: Optional[str] = None,
+    user_name: str | None = None,
     ttl_minutes: int = 30,
 ) -> EmailResult:
     """Send a password reset email with a one-time link."""
@@ -208,7 +208,7 @@ async def send_password_reset(
     )
 
 
-async def send_welcome(email: str, user_name: Optional[str] = None) -> EmailResult:
+async def send_welcome(email: str, user_name: str | None = None) -> EmailResult:
     """Send a welcome email after successful registration."""
     subject = f"Welcome to {_BRAND_NAME}!"
     template = _load_template("welcome.html")
@@ -238,7 +238,7 @@ async def send_welcome(email: str, user_name: Optional[str] = None) -> EmailResu
 async def send_email_verification(
     email: str,
     verify_link: str,
-    user_name: Optional[str] = None,
+    user_name: str | None = None,
 ) -> EmailResult:
     """Send a 'verify your email' link email (post-signup)."""
     subject = f"{_BRAND_NAME} — Verify Your Email Address"
@@ -265,9 +265,9 @@ async def send_login_alert(
     email: str,
     ip: str,
     user_agent: str,
-    timestamp: Optional[datetime] = None,
-    user_name: Optional[str] = None,
-    location: Optional[str] = None,
+    timestamp: datetime | None = None,
+    user_name: str | None = None,
+    location: str | None = None,
 ) -> EmailResult:
     """Send a 'new login' security alert."""
     ts = timestamp or datetime.now(UTC)
@@ -305,7 +305,7 @@ async def send_login_alert(
 async def send_account_lockout(
     email: str,
     unlock_at: datetime,
-    user_name: Optional[str] = None,
+    user_name: str | None = None,
 ) -> EmailResult:
     """Notify a user their account was locked due to failed login attempts."""
     subject = f"{_BRAND_NAME} — Account Temporarily Locked"
@@ -344,9 +344,9 @@ async def send_notification_email(
     title: str,
     message: str,
     priority: str = "normal",
-    user_name: Optional[str] = None,
-    action_url: Optional[str] = None,
-    action_label: Optional[str] = None,
+    user_name: str | None = None,
+    action_url: str | None = None,
+    action_label: str | None = None,
 ) -> EmailResult:
     """Send a generic notification email (for ``requires_email=True``)."""
     subject = f"[{_BRAND_NAME}] {title}"
@@ -380,8 +380,8 @@ async def send_study_complete_email(
     email: str,
     study_name: str,
     study_url: str,
-    user_name: Optional[str] = None,
-    duration_sec: Optional[float] = None,
+    user_name: str | None = None,
+    duration_sec: float | None = None,
 ) -> EmailResult:
     """Notify a user that their long-running engineering study finished."""
     subject = f"{_BRAND_NAME} — Study Completed: {study_name}"
@@ -420,7 +420,7 @@ async def send_study_failed_email(
     email: str,
     study_name: str,
     error_message: str,
-    user_name: Optional[str] = None,
+    user_name: str | None = None,
 ) -> EmailResult:
     """Notify a user their study failed."""
     subject = f"{_BRAND_NAME} — Study Failed: {study_name}"
@@ -458,7 +458,7 @@ async def send_role_change_email(
     email: str,
     new_role: str,
     changed_by: str,
-    user_name: Optional[str] = None,
+    user_name: str | None = None,
 ) -> EmailResult:
     """Notify a user their RBAC role was changed."""
     subject = f"{_BRAND_NAME} — Your Role Has Been Updated"
@@ -489,8 +489,8 @@ async def send_role_change_email(
 
 async def send_password_change_email(
     email: str,
-    user_name: Optional[str] = None,
-    ip: Optional[str] = None,
+    user_name: str | None = None,
+    ip: str | None = None,
 ) -> EmailResult:
     """Confirm a password change."""
     subject = f"{_BRAND_NAME} — Your Password Was Changed"
@@ -529,7 +529,7 @@ async def send_critical_alert(
     email: str,
     title: str,
     body: str,
-    dashboard_url: Optional[str] = None,
+    dashboard_url: str | None = None,
 ) -> EmailResult:
     """Send a critical system alert to an admin/ops recipient."""
     subject = f"[CRITICAL] {_BRAND_NAME} — {title}"
@@ -674,7 +674,7 @@ def _fallback_role_html(role: str, by: str) -> str:
     return _fallback_html_shell(body)
 
 
-def _fallback_pwd_change_html(ip: Optional[str]) -> str:
+def _fallback_pwd_change_html(ip: str | None) -> str:
     body = (
         f"<h2>Password Changed</h2>\n"
         f"<p>Your {_BRAND_NAME} password was changed.</p>\n"

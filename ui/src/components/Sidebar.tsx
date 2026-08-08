@@ -16,8 +16,9 @@ import {
   KeyRound,
   Layers,
   LayoutDashboard,
+  Link2,
   Mail,
-  Map,
+  Map as MapIcon,
   Moon,
   Network,
   Package,
@@ -80,6 +81,12 @@ const navItems: NavItem[] = [
     section: "engineering",
   },
   {
+    to: "/vision-keys",
+    icon: KeyRound,
+    labelKey: "sidebar.visionKeys",
+    section: "engineering",
+  },
+  {
     to: "/etap",
     icon: Plug,
     labelKey: "sidebar.etapIntegration",
@@ -87,7 +94,7 @@ const navItems: NavItem[] = [
   },
   {
     to: "/gis",
-    icon: Map,
+    icon: MapIcon,
     labelKey: "sidebar.gisIntegration",
     section: "integration",
   },
@@ -180,6 +187,9 @@ const navItems: NavItem[] = [
     to: "/admin/ai-playground",
     icon: Sparkles,
     labelKey: "sidebar.aiPlayground",
+    to: "/admin/cua-monitor",
+    icon: ShieldAlert,
+    labelKey: "sidebar.cuaMonitor",
     section: "system",
   },
   {
@@ -218,6 +228,12 @@ const navItems: NavItem[] = [
     labelKey: "sidebar.logs",
     section: "system",
   },
+  {
+    to: "/audit-logs",
+    icon: ScrollText,
+    labelKey: "sidebar.auditLogs",
+    section: "system",
+  },
 ];
 
 const sectionOrder = ["engineering", "integration", "system"] as const;
@@ -251,14 +267,14 @@ function partitionNavItems(items: readonly NavItem[]): {
 } {
   const grouped: Record<string, NavItem[]> = {};
   const topLevel: NavItem[] = [];
-  items.forEach((item) => {
+  for (const item of items) {
     if (item.section) {
       if (!grouped[item.section]) grouped[item.section] = [];
       grouped[item.section].push(item);
     } else {
       topLevel.push(item);
     }
-  });
+  }
   return { topLevel, grouped };
 }
 
@@ -303,6 +319,7 @@ function MobileSidebarDrawer({
            tabIndex={0}
            aria-hidden="true"
          />
+          aria-label="Close mobile sidebar"
       )}
 
       {/* Drawer */}
@@ -440,9 +457,10 @@ export function Sidebar() {
   const isRtl = i18n.language === "ar";
 
   // Close mobile drawer on route change
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional - runs on location change
   useEffect(() => {
     setMobileSidebarOpen(false);
-  }, [location.pathname, setMobileSidebarOpen]);
+  }, [location, setMobileSidebarOpen]);
 
   // Close mobile drawer on Escape
   useEffect(() => {

@@ -34,7 +34,7 @@ import logging
 import math
 import time
 from dataclasses import dataclass, field
-from typing import Any, Optional
+from typing import Any
 
 import numpy as np
 from scipy.sparse import csr_matrix, issparse, lil_matrix
@@ -163,7 +163,7 @@ class SparseYBus:
 
     def __init__(self, system: Any = None) -> None:
         self._system = system
-        self._ybus_sparse: Optional[csr_matrix] = None
+        self._ybus_sparse: csr_matrix | None = None
         self._buses: list[BusData] = []
         self._branches: list[BranchData] = []
         self._bus_index: dict[int, int] = {}
@@ -302,7 +302,7 @@ class SparseYBus:
     # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     def sparse_newton_raphson(  # NOSONAR cognitive complexity; refactoring sprint
         self,
-        ybus: Optional[csr_matrix] = None,
+        ybus: csr_matrix | None = None,
         bus_data: list[BusData] | None = None,
         max_iter: int = 50,
         tol: float = 1e-8,

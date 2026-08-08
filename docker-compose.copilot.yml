@@ -219,6 +219,7 @@ services:
       # here, GRAFANA_PASS in monitoring.yml — causing confusion when running
       # multiple compose files together.
       - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_USER:?GRAFANA_USER is required}
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:?GRAFANA_ADMIN_PASSWORD is required}
       - GF_INSTALL_PLUGINS=grafana-piechart-panel
     volumes:

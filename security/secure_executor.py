@@ -31,9 +31,17 @@ import contextlib
 import json
 import logging
 import os
-import resource
 import sys
-from typing import Any, Optional
+
+# `resource` is a POSIX-only module (not available on Windows).
+# The memory-limit functionality in the sandbox wrapper already handles
+# ImportError gracefully; this top-level guard ensures the executor
+# can start on Windows without crashing.
+if sys.platform != "win32":
+    import resource  # noqa: F401  # POSIX only
+else:
+    resource = None  # type: ignore[assignment]
+from typing import Any, Tuple
 
 # V-69 FIX: Removed sys.path.insert(0, ...) — it added the project root
 # with highest priority, allowing sandbox code to import project modules
@@ -69,7 +77,7 @@ ALLOWED_IMPORT_NAMES = [
 ]
 
 
-def _read_code_from_stdin() -> Optional[str]:
+def _read_code_from_stdin() -> str | None:
     try:
         code = sys.stdin.read()
         if not code or not code.strip():
@@ -80,7 +88,7 @@ def _read_code_from_stdin() -> Optional[str]:
         return None
 
 
-def _sandbox_escape_pre_scan(code: str) -> tuple[bool, str]:
+def _sandbox_escape_pre_scan(code: str) -> Tuple[bool, str]:
     """V-39: Pre-scan for common sandbox escape patterns in Python code.
 
     Checks for patterns that exploit Python's object model to escape

@@ -14,7 +14,7 @@ import sys
 import threading as _threading
 import time
 import uuid
-from typing import Any, Optional
+from typing import Any
 
 import aiofiles
 from fastapi import FastAPI, HTTPException, Request, WebSocket
@@ -236,7 +236,7 @@ except Exception:  # pragma: no cover
 _redis_client = None
 
 
-def _get_rate_limit_redis() -> Optional[Any]:
+def _get_rate_limit_redis() -> Any | None:
     global _redis_client
     if not _REDIS_URL or redis_async is None:
         return None
@@ -378,7 +378,7 @@ class ReadyResponse(BaseModel):
 _celery_cache: tuple = ()  # empty tuple = not yet loaded
 
 
-def get_celery_components() -> tuple[Optional[Any], Optional[Any], Optional[Any]]:
+def get_celery_components() -> tuple[Any | None, Any | None, Any | None]:
     """Lazy loading of Celery components to avoid import errors during startup.
 
     Uses a module-level cache so that imports are performed only once;
@@ -815,7 +815,7 @@ async def websocket_notifications_handler(websocket: WebSocket) -> None:
 
 # ============================================================================
 # CRITICAL #2 fix (AhmedETAP_Error_Report_AR.pdf):
-# These three endpoints were documented (TESTSPRITE_OVERVIEW.md, PROJECT_INDEX.md,
+# These three endpoints were documented (docs/archive/TESTSPRITE_OVERVIEW.md, PROJECT_INDEX.md,
 # curl examples in README.hf.md) but missing from BOTH api/routes.py AND
 # hf-space/app.py. They are now added to BOTH entry points so they work
 # regardless of which FastAPI app serves the request.

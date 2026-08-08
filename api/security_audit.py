@@ -36,7 +36,7 @@ import os
 import re
 import sys
 from dataclasses import dataclass, field
-from typing import Any, Optional
+from typing import Any
 
 import aiofiles  # async file I/O for S7493 compliance
 
@@ -81,12 +81,12 @@ class SecurityFinding:
     severity: Severity
     title: str
     description: str
-    file_path: Optional[str] = None
-    line_number: Optional[int] = None
-    endpoint: Optional[str] = None
+    file_path: str | None = None
+    line_number: int | None = None
+    endpoint: str | None = None
     remediation: str = ""
     references: list[str] = field(default_factory=list)
-    cwe_id: Optional[str] = None  # CWE identifier, e.g. "CWE-306"
+    cwe_id: str | None = None  # CWE identifier, e.g. "CWE-306"
 
     def to_dict(self) -> dict[str, Any]:
         """Convert to a JSON-serializable dictionary."""
@@ -276,7 +276,7 @@ class SecurityAuditor:
         print(f"Security Score: {report.security_score}/100 ({report.grade})")
     """
 
-    def __init__(self, project_root: Optional[str] = None) -> None:
+    def __init__(self, project_root: str | None = None) -> None:
         """Initialize the auditor.
 
         Args:
@@ -360,12 +360,12 @@ class SecurityAuditor:
         severity: Severity,
         title: str,
         description: str,
-        file_path: Optional[str] = None,
-        line_number: Optional[int] = None,
-        endpoint: Optional[str] = None,
+        file_path: str | None = None,
+        line_number: int | None = None,
+        endpoint: str | None = None,
         remediation: str = "",
         references: list[str] | None = None,
-        cwe_id: Optional[str] = None,
+        cwe_id: str | None = None,
     ) -> None:
         """Create and register a security finding."""
         self._finding_counter += 1
@@ -419,8 +419,8 @@ class SecurityAuditor:
                 lines = await fh.readlines()
 
             # Parse to find endpoint definitions
-            current_endpoint: Optional[str] = None
-            endpoint_line: Optional[int] = None
+            current_endpoint: str | None = None
+            endpoint_line: int | None = None
             has_auth_check = False
 
             for i, line in enumerate(lines, 1):

@@ -299,6 +299,87 @@ class EngineeringServiceUser(HttpUser):
         )
 
     @task(1)
+    @task(4)
+    def run_short_circuit(self):
+        """Execute a short circuit study."""
+        self.client.post(
+            "/api/v1/studies/run",
+            json={
+                "study_type": "short_circuit",
+                "system": SAMPLE_SYSTEM,
+                "parameters": {
+                    "fault_type": "three_phase",
+                    "bus_id": 2,
+                },
+            },
+            headers=self._get_auth_headers(),
+            name="POST /api/v1/studies/run [short_circuit]",
+        )
+
+    @task(3)
+    def run_arc_flash(self):
+        """Execute an arc flash study."""
+        self.client.post(
+            "/api/v1/studies/run",
+            json={
+                "study_type": "arc_flash",
+                "parameters": {
+                    "voltage_kv": 13.8,
+                    "bolted_fault_current_ka": 20.0,
+                    "arc_duration_sec": 0.5,
+                    "working_distance_mm": 610,
+                },
+            },
+            headers=self._get_auth_headers(),
+            name="POST /api/v1/studies/run [arc_flash]",
+        )
+
+    # NOSONAR S2245: load-test PRNG (non-crypto); actual _LOAD_RNG.choice() below already has NOSONAR
+    # ── AI Assistant Chat (weight: 15) ──────────────────────────────────────
+
+    @task(8)
+    def etap_expert_chat(self):
+        """Chat with the ETAP Expert AI assistant."""
+        question = _LOAD_RNG.choice(AI_QUESTIONS)  # NOSONAR
+        self.client.post(
+            "/api/v1/agents/etap-expert/chat",
+            json={
+                "question": question,
+            },
+            headers=self._get_auth_headers(),
+            name="POST /api/v1/agents/etap-expert/chat",
+        )
+
+    # NOSONAR S2245: load-test PRNG (non-crypto); actual _LOAD_RNG.choice() below already has NOSONAR
+    @task(4)
+    def etap_gui_chat(self):
+        """Chat with the ETAP GUI Agent."""
+        question = _LOAD_RNG.choice(AI_QUESTIONS[:5])  # NOSONAR
+        self.client.post(
+            "/api/v1/agents/etap-gui/chat",
+            json={
+                "question": question,
+            },
+            headers=self._get_auth_headers(),
+            name="POST /api/v1/agents/etap-gui/chat",
+        )
+
+    @task(3)
+    def rag_query(self):
+        """Query the engineering knowledge base via RAG."""
+        self.client.post(
+            "/api/v1/rag/query",
+            json={
+                "query": "What are the IEEE 1584 arc flash calculation methods?",
+                "top_k": 3,
+            },
+            headers=self._get_auth_headers(),
+            name="POST /api/v1/rag/query",
+        )
+
+    # ── System Validation (weight: 10) ──────────────────────────────────────
+
+    @task(5)
     def validate_system(self):
         self.client.post(
             "/api/v1/system/validate",

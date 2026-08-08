@@ -62,7 +62,6 @@ import math
 import os
 import time
 import uuid
-from typing import Optional
 
 logger = logging.getLogger(__name__)
 
@@ -95,8 +94,8 @@ class EngineeringSession:
         session_id: str,
         user_id: str,
         study_type: str,
-        project_id: Optional[str] = None,
-        metadata: Optional[dict] = None,
+        project_id: str | None = None,
+        metadata: dict | None = None,
     ):
         self.id = session_id
         self.user_id = user_id
@@ -130,9 +129,9 @@ def start_engineering_session(
     *,
     user_id: str,
     study_type: str,
-    project_id: Optional[str] = None,
-    session_id: Optional[str] = None,
-    metadata: Optional[dict] = None,
+    project_id: str | None = None,
+    session_id: str | None = None,
+    metadata: dict | None = None,
 ) -> EngineeringSession:
     """Start a new engineering session.
 
@@ -191,7 +190,7 @@ def record_user_feedback(
     trace_id: str,
     feedback: str,  # "positive" | "negative" | "neutral"
     comment: str = "",
-    user_id: Optional[str] = None,
+    user_id: str | None = None,
 ) -> bool:
     """Attach user feedback to a trace as a Langfuse score.
 
@@ -248,7 +247,7 @@ def record_user_feedback(
 # ─── Public trace URLs ────────────────────────────────────────────────────
 
 
-def get_trace_share_url(trace_id: str, make_public: bool = True) -> Optional[str]:
+def get_trace_share_url(trace_id: str, make_public: bool = True) -> str | None:
     """Return a shareable URL for a trace.
 
     Parameters
@@ -300,7 +299,7 @@ def alert_on_unsafe_trace(
     *,
     trace_id: str,
     reason: str,
-    user_id: Optional[str] = None,
+    user_id: str | None = None,
     severity: str = "high",
 ) -> bool:
     """Emit a safety alert for an unsafe trace.
@@ -387,7 +386,7 @@ def alert_on_unsafe_trace(
 def add_trace_comment(
     trace_id: str,
     comment: str,
-    author: Optional[str] = None,
+    author: str | None = None,
 ) -> bool:
     """Add a review comment to a trace (for senior-engineer review).
 

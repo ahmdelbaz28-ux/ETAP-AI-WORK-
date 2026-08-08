@@ -13,7 +13,6 @@ import time
 from collections import deque
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Optional
 
 # ============================================================
 # ADMS CONTROL TYPES
@@ -53,7 +52,7 @@ class SwitchingAction:
     timestamp: float = field(default_factory=time.time)
     status: ControlCommandStatus = ControlCommandStatus.PENDING
     reason: str = ""
-    rollback_action_id: Optional[str] = None
+    rollback_action_id: str | None = None
 
     def to_dict(self) -> dict:
         return {
@@ -94,11 +93,11 @@ class SwitchingSequence:
 class FLISRResult:
     """Result of FLISR operation."""
 
-    fault_section: Optional[str] = None
+    fault_section: str | None = None
     isolated_sections: list[str] = field(default_factory=list)
     restored_sections: list[str] = field(default_factory=list)
     unrestored_sections: list[str] = field(default_factory=list)
-    switching_sequence: Optional[SwitchingSequence] = None
+    switching_sequence: SwitchingSequence | None = None
     stage: FLISRStage = FLISRStage.FAULT_DETECTION
     customers_restored: int = 0
     customers_affected: int = 0
@@ -248,7 +247,7 @@ class ADMSControlEngine:
     def __init__(self, topology: TopologyProcessor = None):
         self.topology = topology or TopologyProcessor()
         self.switching_history: list[SwitchingSequence] = []
-        self.active_flisr: Optional[FLISRResult] = None
+        self.active_flisr: FLISRResult | None = None
         self.source_buses: set[str] = set()  # Buses with generation/source
         self.feeder_roots: dict[str, str] = {}  # feeder_id -> root_bus
         self.section_loads: dict[str, float] = {}  # section_id -> load MW
@@ -370,7 +369,7 @@ class ADMSControlEngine:
         from_feeder: str,
         to_feeder: str,
         section_id: str,
-    ) -> Optional[SwitchingSequence]:
+    ) -> SwitchingSequence | None:
         """
         Plan a load transfer from one feeder to another.
 
@@ -409,7 +408,7 @@ class ADMSControlEngine:
 
     # --- FLISR ---
 
-    def detect_fault_section(self, tripped_switch_ids: list[str]) -> Optional[str]:
+    def detect_fault_section(self, tripped_switch_ids: list[str]) -> str | None:
         """
         Identify the faulted section based on tripped switches.
 
@@ -433,7 +432,7 @@ class ADMSControlEngine:
                 return section_id
         return None
 
-    def isolate_fault(self, fault_section: str) -> Optional[SwitchingSequence]:
+    def isolate_fault(self, fault_section: str) -> SwitchingSequence | None:
         """
         Create switching sequence to isolate the faulted section.
 
@@ -464,7 +463,7 @@ class ADMSControlEngine:
 
     def _find_restoration_action(
         self, section_id: str, fault_section: str
-    ) -> Optional[tuple[str, SwitchingActionType, str]]:
+    ) -> tuple[str, SwitchingActionType, str] | None:
         """Find a tie switch re-energizing ``section_id``; returns an action or None."""
         section_buses = self.topology.section_buses.get(section_id, set())
         if not section_buses:
@@ -492,7 +491,7 @@ class ADMSControlEngine:
         self,
         fault_section: str,
         de_energized_sections: list[str] = None,
-    ) -> Optional[SwitchingSequence]:
+    ) -> SwitchingSequence | None:
         """
         Plan service restoration for de-energized sections after fault isolation.
 

@@ -32,6 +32,24 @@ interface SCADAAlarm {
   location: string;
 }
 
+interface ScadaMeasurementItem {
+  bus_id?: string;
+  voltage_kV?: number;
+  gen_id?: string;
+  mw?: number;
+}
+
+interface ScadaWsMeasurements {
+  bus_voltages?: ScadaMeasurementItem[];
+  generator_outputs?: ScadaMeasurementItem[];
+}
+
+interface ScadaWsMessage {
+  is_simulated?: boolean;
+  measurements?: ScadaWsMeasurements;
+  alarms?: SCADAAlarm[];
+}
+
 // --- Module-scope simulation helpers (extracted to reduce function nesting) ---
 
 const simRand = (): number => crypto.getRandomValues(new Uint32Array(1))[0] / 0x100000000;
@@ -197,6 +215,7 @@ export default function ScadaIntegration() {
   const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Load configuration from local storage on mount
+  // biome-ignore lint/correctness/useExhaustiveDependencies: mount-once load; addLog/isRtl changes must not re-run it
   useEffect(() => {
     try {
       const stored = localStorage.getItem("etap-settings");
@@ -209,7 +228,7 @@ export default function ScadaIntegration() {
           setSyncInterval(Number.parseInt(parsed.SCADA_SYNC_INTERVAL_SEC) || 2);
       }
       addLog(isRtl ? "تم تحميل إعدادات SCADA بنجاح." : "SCADA settings loaded successfully.");
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Failed to load SCADA settings:", err);
     }
   }, []);
@@ -239,8 +258,8 @@ export default function ScadaIntegration() {
           ? "تم حفظ إعدادات خادم زينون في النظام."
           : "Zenon SCADA server configurations updated.",
       );
-    } catch (err: any) {
-      notify("error", err.message || "Unknown error");
+    } catch (err: unknown) {
+      notify("error", err instanceof Error ? err.message : "Unknown error");
     }
   };
 
@@ -321,13 +340,14 @@ export default function ScadaIntegration() {
   // Apply a parsed WS message to telemetry/alarm/simulation state. Extracted
   // to its own helper so startRealSync stays a flat WebSocket-setup sequence.
   const handleWsMessage = (raw: string) => {
-    let parsed: any;
+    let parsed: ScadaWsMessage | null = null;
     try {
-      parsed = JSON.parse(raw);
+      parsed = JSON.parse(raw) as ScadaWsMessage;
     } catch (e) {
       console.error("Error parsing WS message:", e);
       return;
     }
+    if (!parsed) return;
     // Respect the backend's is_simulated flag — when the backend tells us
     // the data is simulated (e.g. HF Space synthetic feed), we show a
     // red banner warning operators that this is NOT live production data.
@@ -342,33 +362,33 @@ export default function ScadaIntegration() {
       setTelemetryPoints((prev) => (mappedPoints.length > 0 ? mappedPoints : prev));
     }
     if (parsed.alarms && parsed.alarms.length > 0) {
-      setAlarms((prev) => [...parsed.alarms, ...prev].slice(0, 30));
+      setAlarms((prev) => [...(parsed.alarms ?? []), ...prev].slice(0, 30));
     }
   };
 
   // Map structured `measurements` payload (bus_voltages, generator_outputs)
   // into the flat TelemetryPoint[] shape the table consumes.
-  const mapMeasurementsToTelemetry = (measurements: any): TelemetryPoint[] => {
+  const mapMeasurementsToTelemetry = (measurements: ScadaWsMeasurements): TelemetryPoint[] => {
     const out: TelemetryPoint[] = [];
     if (measurements.bus_voltages) {
-      measurements.bus_voltages.forEach((b: any) => {
+      for (const b of measurements.bus_voltages) {
         out.push({
           tag: `${b.bus_id}.V`,
-          value: b.voltage_kV,
+          value: b.voltage_kV ?? 0,
           unit: "kV",
           quality: "GOOD",
         });
-      });
+      }
     }
     if (measurements.generator_outputs) {
-      measurements.generator_outputs.forEach((g: any) => {
+      for (const g of measurements.generator_outputs) {
         out.push({
           tag: `${g.gen_id}.P`,
-          value: g.mw,
+          value: g.mw ?? 0,
           unit: "MW",
           quality: "GOOD",
         });
-      });
+      }
     }
     return out;
   };
@@ -446,6 +466,7 @@ export default function ScadaIntegration() {
     addLog(isRtl ? "تم إيقاف المزامنة وبث البيانات." : "Data synchronization paused.");
   };
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: unmount-only cleanup via refs; must not re-run per render
   useEffect(() => {
     return () => {
       stopSync();
@@ -526,9 +547,11 @@ export default function ScadaIntegration() {
             <div className="space-y-3.5 text-xs">
               <div>
                 <span className="block text-[var(--text-tertiary)] mb-1">
+                <label htmlFor="scada-url" className="block text-[var(--text-tertiary)] mb-1">
                   {isRtl ? "رابط خادم زينون (Zenon URL)" : "Zenon Server URL"}
                 </span>
                 <input
+                  id="scada-url"
                   type="text"
                   value={scadaUrl}
                   onChange={(e) => setScadaUrl(e.target.value)}
@@ -538,9 +561,11 @@ export default function ScadaIntegration() {
 
               <div>
                 <span className="block text-[var(--text-tertiary)] mb-1">
+                <label htmlFor="scada-api-key" className="block text-[var(--text-tertiary)] mb-1">
                   {isRtl ? "مفتاح واجهة برمجة التطبيقات (API Key)" : "SCADA API Key / Token"}
                 </span>
                 <input
+                  id="scada-api-key"
                   type="password"
                   value={apiKey}
                   onChange={(e) => setApiKey(e.target.value)}
@@ -552,9 +577,14 @@ export default function ScadaIntegration() {
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <span className="block text-[var(--text-tertiary)] mb-1">
+                  <label
+                    htmlFor="scada-project-name"
+                    className="block text-[var(--text-tertiary)] mb-1"
+                  >
                     {isRtl ? "اسم مشروع زينون" : "Project Name"}
                   </span>
                   <input
+                    id="scada-project-name"
                     type="text"
                     value={projectName}
                     onChange={(e) => setProjectName(e.target.value)}
@@ -563,9 +593,14 @@ export default function ScadaIntegration() {
                 </div>
                 <div>
                   <span className="block text-[var(--text-tertiary)] mb-1">
+                  <label
+                    htmlFor="scada-sync-interval"
+                    className="block text-[var(--text-tertiary)] mb-1"
+                  >
                     {isRtl ? "معدل التحديث (ثانية)" : "Sync Rate (sec)"}
                   </span>
                   <input
+                    id="scada-sync-interval"
                     type="number"
                     value={syncInterval}
                     onChange={(e) => setSyncInterval(Number.parseInt(e.target.value) || 1)}

@@ -51,6 +51,7 @@ export function Progress({
           sizeClasses[size],
         )}
         role="progressbar"
+        tabIndex={0}
         aria-valuenow={Math.round(pct)}
         aria-valuemin={0}
         aria-valuemax={100}

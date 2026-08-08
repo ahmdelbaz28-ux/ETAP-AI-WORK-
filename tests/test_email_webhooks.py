@@ -42,6 +42,7 @@ from api.email_webhooks import WebhookEndpoint, _should_forward
 # We use "# nosec" + "# pragma: allowlist secret" so the repo's local
 # NOSONAR
 _TEST_HMAC_SECRET = "x" * 32  # NOSONAR
+_TEST_HMAC_SECRET = "x" * 32  # NOSONAR  # nosec  # pragma: allowlist secret
 
 
 def _make_endpoint(

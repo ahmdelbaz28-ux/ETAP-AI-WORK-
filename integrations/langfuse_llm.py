@@ -64,7 +64,7 @@ import logging
 import os
 import threading
 import time
-from typing import Any, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -256,7 +256,7 @@ class SafetyValidationError(ValueError):
 
 
 def _validate_input(  # NOSONAR
-    messages: list[dict], metadata: Optional[dict]
+    messages: list[dict], metadata: dict | None
 ) -> None:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     """Run safety guardrails before the LLM call is made.
 
@@ -425,9 +425,9 @@ def safe_openai_chat(
     *,
     model: str,
     messages: list[dict],
-    metadata: Optional[dict] = None,
-    user: Optional[str] = None,
-    session_id: Optional[str] = None,
+    metadata: dict | None = None,
+    user: str | None = None,
+    session_id: str | None = None,
     **kwargs: Any,
 ):
     """Call ``openai.chat.completions.create`` with safety guardrails + tracing.
@@ -544,9 +544,9 @@ def safe_anthropic_message(
     model: str,
     messages: list[dict],
     max_tokens: int = 4096,
-    metadata: Optional[dict] = None,
-    user: Optional[str] = None,  # NOSONAR unused param kept for API compatibility
-    session_id: Optional[str] = None,
+    metadata: dict | None = None,
+    user: str | None = None,  # NOSONAR unused param kept for API compatibility
+    session_id: str | None = None,
     **kwargs: Any,
 ):
     """Call ``anthropic.messages.create`` with safety guardrails + tracing.
@@ -641,7 +641,7 @@ _PRICING_USD_PER_1K = {
 }
 
 
-def estimate_cost_usd(model: str, input_tokens: int, output_tokens: int) -> Optional[float]:
+def estimate_cost_usd(model: str, input_tokens: int, output_tokens: int) -> float | None:
     """Estimate the USD cost of an LLM call.
 
     Returns ``None`` if the model is not in the pricing table.

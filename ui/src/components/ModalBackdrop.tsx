@@ -27,9 +27,8 @@ export default function ModalBackdrop({
     // requires imperative showModal()/close() API that doesn't fit React's
     // declarative model. role="dialog" + aria-modal + Escape handler satisfy
     // WCAG 2.1 AA accessibility requirements.
-    <div // NOSONAR — S6847, S6819: see comment above
+    <dialog
       className={`fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 ${className}`}
-      role="dialog"
       aria-modal="true"
       onClick={() => !disabled && onClose()}
       onKeyDown={(e) => {

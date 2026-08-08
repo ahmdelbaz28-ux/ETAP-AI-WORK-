@@ -36,6 +36,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     {
       variant = "primary",
       size = "md",
+      type = "button",
       loading,
       icon: Icon,
       className,
@@ -48,6 +49,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     return (
       <button
         ref={ref}
+        type={type}
         disabled={disabled || loading}
         type="button"
         className={cn(
@@ -59,6 +61,8 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           className,
         )}
         {...props}>
+        {...props}
+      >
         {loading ? (
           <Loader2 className={cn("animate-spin", size === "sm" ? "w-3.5 h-3.5" : "w-4 h-4")} />
         ) : Icon ? ( // NOSONAR — S3358: nested ternary; refactor to named variable (tech debt)

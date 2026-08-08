@@ -160,6 +160,7 @@ describe("AIAssistant", () => {
     mockChatWithLLMStream.mockImplementation(async function* () {
       throw new Error("Network error");
     });
+    mockChatWithLLMStream.mockRejectedValue(new Error("Network error"));
     mockChatWithLLM.mockRejectedValue(new Error("Network error"));
     renderAssistant();
     await waitFor(() => expect(mockFetchAgents).toHaveBeenCalledOnce());

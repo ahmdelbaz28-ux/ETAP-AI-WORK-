@@ -1,11 +1,18 @@
+/**
+ * Vitest configuration — resolves React module duplication by:
+ * 1. Externalizing React packages to prevent Vite transformation
+ * 2. Deduplicating React to prevent multiple instances
+ */
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vitest/config";
 
-// Minimal config matching Vitest official React 19 example
-// to diagnose if extra config causes the Proxy wrapping issue
 export default defineConfig({
   plugins: [react()],
+  resolve: {
+    dedupe: ["react", "react-dom", "react-is", "scheduler"],
+  },
   test: {
+    globals: true,
     environment: "jsdom",
     globals: true,
     setupFiles: ["./src/test-setup.ts"],
@@ -14,5 +21,17 @@ export default defineConfig({
       "**/dist/**",
       "**/tests/**",
     ],
+    // Force SSR transform mode for all files to ensure consistent module resolution
+    transformMode: {
+      web: {
+        exclude: [/.*/], // Use SSR mode for all files
+      },
+    },
+  },
+  // Externalize React packages to prevent Vite transformation
+  server: {
+    deps: {
+      external: ["react", "react-dom", "react-is", "scheduler", "@testing-library/react"],
+    },
   },
 });

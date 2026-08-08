@@ -31,7 +31,7 @@ from datetime import datetime, timezone
 
 UTC = timezone.utc  # noqa: UP017
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 import numpy as np
 
@@ -129,7 +129,7 @@ class BaseAgent:
             self.prompt_handle = self._derive_prompt_handle()
 
         # Load prompt-driven metadata (description, standards, guidance)
-        self._system_prompt: Optional[str] = None
+        self._system_prompt: str | None = None
         self._prompt_metadata: dict[str, Any] = {}
         self._load_prompt()
 
@@ -1127,11 +1127,15 @@ class ValidationAgent(BaseAgent):
             # Validate bus voltages if present in result data
             buses = result.data.get("buses", {})
             if buses:
-                bus_voltages = {}
-                for bus_id, bus_data in buses.items():
-                    v_kv = bus_data.get("voltage_kv", bus_data.get("voltage_magnitude_pu", 0))
-                    if v_kv:
-                        bus_voltages[bus_id] = v_kv
+                # validate_voltage_results expects kV values.
+                # Only include buses that explicitly provide a kV reading;
+                # voltage_magnitude_pu cannot be treated as kV (unit mismatch
+                # would produce fictitious Range-B violations).
+                bus_voltages = {
+                    bus_id: bus_data["voltage_kv"]
+                    for bus_id, bus_data in buses.items()
+                    if "voltage_kv" in bus_data and bus_data["voltage_kv"]
+                }
                 if bus_voltages:
                     assertion_results = assertion_layer.validate_voltage_results(
                         bus_voltages=bus_voltages,
@@ -1688,7 +1692,7 @@ class ChiefEngineeringOrchestrator:
         self.logger = logging.getLogger("orchestrator")
 
         # Load orchestrator's own prompt for coordination guidance
-        self._system_prompt: Optional[str] = None
+        self._system_prompt: str | None = None
         self._load_prompt()
 
     def _load_prompt(self) -> None:
@@ -1731,7 +1735,7 @@ class ChiefEngineeringOrchestrator:
         self,
         user_goal: str,
         system_data: Any,
-        parameters: Optional[dict] = None,
+        parameters: dict | None = None,
     ) -> dict[str, Any]:
         """
         Execute complete autonomous engineering workflow based on user goal.
@@ -2044,7 +2048,7 @@ class ChiefEngineeringOrchestrator:
 
         return sorted(study_types, key=lambda x: priority_order.get(x, 99))
 
-    def _get_agent_for_study(self, study_type: StudyType) -> Optional[BaseAgent]:
+    def _get_agent_for_study(self, study_type: StudyType) -> BaseAgent | None:
         """Get appropriate agent for study type."""
         agent_mapping = {
             StudyType.LOAD_FLOW: "load_flow",
@@ -2361,7 +2365,7 @@ class ChiefEngineeringOrchestrator:
 
     async def get_task_status(  # NOSONAR
         self, task_id: str
-    ) -> Optional[EngineeringTask]:  # NOSONAR
+    ) -> EngineeringTask | None:  # NOSONAR
         """Get status of a task."""
         return self.completed_tasks.get(task_id)
 

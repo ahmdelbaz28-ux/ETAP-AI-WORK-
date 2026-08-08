@@ -25,7 +25,6 @@ import threading
 import time
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
-from typing import Optional
 
 UTC = timezone.utc  # noqa: UP017
 from enum import Enum
@@ -140,10 +139,10 @@ class User:
     role: UserRole
     password_hash: str
     created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
-    last_login: Optional[datetime] = None
+    last_login: datetime | None = None
     is_active: bool = True
     failed_login_attempts: int = 0
-    locked_until: Optional[datetime] = None
+    locked_until: datetime | None = None
 
 
 @dataclass
@@ -171,7 +170,7 @@ class AuthenticationManager:
 
     def __init__(
         self,
-        secret_key: Optional[str] = None,
+        secret_key: str | None = None,
         token_expiry_hours: int = 8,
         max_failed_attempts: int = 5,
         lockout_duration_minutes: int = 30,
@@ -248,7 +247,7 @@ class AuthenticationManager:
         email: str,
         password: str,
         role: UserRole = UserRole.VIEWER,
-    ) -> Optional[User]:
+    ) -> User | None:
         """Create a new user (returns User on success, None on duplicate username)."""
         with self._lock:  # V-50: thread safety
             if username in self.username_to_id:
@@ -282,7 +281,7 @@ class AuthenticationManager:
             logger.info("User created: %s (role=%s)", username, role.value)
             return user
 
-    def authenticate(self, username: str, password: str) -> Optional[str]:
+    def authenticate(self, username: str, password: str) -> str | None:
         """Authenticate a user and return a token (or None on failure)."""
         with self._lock:  # V-50: thread safety
             user_id = self.username_to_id.get(username)
@@ -355,7 +354,7 @@ class AuthenticationManager:
             token = token.decode("utf-8")
         return token
 
-    def validate_token(self, token: str) -> Optional[User]:
+    def validate_token(self, token: str) -> User | None:
         """Validate a session token and return the User (or None if invalid)."""
         with self._lock:  # V-50: thread safety
             if isinstance(token, bytes):

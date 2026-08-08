@@ -537,6 +537,7 @@ def _parse_env_example() -> dict:
                     line,  # noqa: S8786
 
                 )  # NOSONAR
+                section_match = re.search(r"#\s*=+\s*([^=]+)\s*=", line)  # NOSONAR
                 if section_match:
                     current_section = section_match.group(1).strip()
             continue
@@ -638,6 +639,7 @@ def scan_scripts() -> (  # NOSONAR
                         re.MULTILINE,  # noqa: S8786
 
                     )  # NOSONAR
+                    m = re.search(r"^#\s*([^\n]+)$", content, re.MULTILINE)  # NOSONAR
                     if m:
                         desc = m.group(1).strip()[:120]
             except Exception:

@@ -12,7 +12,7 @@ import {
   HelpCircle,
   Layers,
   LayoutDashboard,
-  Map,
+  Map as MapIcon,
   ScrollText,
   Search,
   Settings,
@@ -159,7 +159,7 @@ const COMMAND_DEFS: ReadonlyArray<CommandDef> = [
   {
     id: "nav-gis",
     label: { en: "GIS Integration", ar: "تكامل GIS" },
-    icon: Map,
+    icon: MapIcon,
     section: ENG_SECTION,
     buildAction: (navigate) => () => navigate("/gis"),
   },
@@ -249,7 +249,9 @@ export function CommandPalette() {
 
   const sections = useMemo(() => {
     const set = new Set<string>();
-    filtered.forEach((c) => set.add(c.section));
+    for (const c of filtered) {
+      set.add(c.section);
+    }
     return Array.from(set);
   }, [filtered]);
 
@@ -281,6 +283,7 @@ export function CommandPalette() {
   }, [open]);
 
   // Reset selection on query change
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional - runs on query change
   useEffect(() => {
     setSelectedIndex(0);
   }, [query]);

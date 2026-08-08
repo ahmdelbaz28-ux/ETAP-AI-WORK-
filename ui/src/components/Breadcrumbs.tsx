@@ -47,6 +47,7 @@ export function Breadcrumbs({ path }: { readonly path: string }) {
         const key = segments.slice(0, i + 1).join("/");
         return (
           <span key={key} className="flex items-center gap-1.5">
+          <span key={segment} className="flex items-center gap-1.5">
             <span className={isLast ? "text-[var(--text-secondary)] font-medium" : ""}>
               {labelKey ? t(labelKey) : segment.replaceAll("-", " ")}
             </span>

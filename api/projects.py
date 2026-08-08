@@ -19,7 +19,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime, timezone
-from typing import Any, Optional
+from typing import Any
 
 UTC = timezone.utc  # noqa: UP017
 
@@ -80,15 +80,15 @@ class Project(Base):
     __tablename__ = "projects"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    tenant_id: Mapped[Optional[str]] = mapped_column(
+    tenant_id: Mapped[str | None] = mapped_column(
         String(36),
         ForeignKey("tenants.id", ondelete="SET NULL"),
         nullable=True,
         index=True,
     )
     name: Mapped[str] = mapped_column(String(255), nullable=False)
-    description: Mapped[Optional[str]] = mapped_column(String(2000), nullable=True)
-    system_config: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
+    description: Mapped[str | None] = mapped_column(String(2000), nullable=True)
+    system_config: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(UTC),
@@ -108,7 +108,7 @@ class StudyResult(Base):
     __tablename__ = "study_results"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    tenant_id: Mapped[Optional[str]] = mapped_column(
+    tenant_id: Mapped[str | None] = mapped_column(
         String(36),
         ForeignKey("tenants.id", ondelete="SET NULL"),
         nullable=True,
@@ -117,14 +117,14 @@ class StudyResult(Base):
     project_id: Mapped[str] = mapped_column(String(36), index=True, nullable=False)
     study_type: Mapped[str] = mapped_column(String(64), nullable=False)
     status: Mapped[str] = mapped_column(String(32), default=StudyStatus.PENDING.value)
-    config: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
-    results: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
-    error_message: Mapped[Optional[str]] = mapped_column(String(2000), nullable=True)
+    config: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    results: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    error_message: Mapped[str | None] = mapped_column(String(2000), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(UTC),
     )
-    completed_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_by: Mapped[str] = mapped_column(String(36), nullable=False)
 
 
@@ -139,8 +139,8 @@ class ProjectCreateRequest(BaseModel):
     model_config = ConfigDict(strict=False)
 
     name: str = Field(min_length=1, max_length=255)
-    description: Optional[str] = Field(default=None, max_length=2000)
-    system_config: Optional[dict[str, Any]] = None
+    description: str | None = Field(default=None, max_length=2000)
+    system_config: dict[str, Any] | None = None
 
 
 class ProjectUpdateRequest(BaseModel):
@@ -148,14 +148,14 @@ class ProjectUpdateRequest(BaseModel):
 
     model_config = ConfigDict(strict=False)
 
-    name: Optional[str] = Field(default=None, min_length=1, max_length=255)
-    description: Optional[str] = Field(default=None, max_length=2000)
-    system_config: Optional[dict[str, Any]] = None
-    status: Optional[ProjectStatus] = None
+    name: str | None = Field(default=None, min_length=1, max_length=255)
+    description: str | None = Field(default=None, max_length=2000)
+    system_config: dict[str, Any] | None = None
+    status: ProjectStatus | None = None
 
     @field_validator("status")
     @classmethod
-    def reject_deleted_status(cls, v: Optional[ProjectStatus]) -> Optional[ProjectStatus]:
+    def reject_deleted_status(cls, v: ProjectStatus | None) -> ProjectStatus | None:
         """Prevent setting status to 'deleted' via the update endpoint."""
         if v == ProjectStatus.DELETED:
             raise ValueError("Use DELETE endpoint to soft-delete a project")
@@ -169,13 +169,13 @@ class ProjectResponse(BaseModel):
 
     id: str
     name: str
-    description: Optional[str] = None
-    system_config: Optional[dict[str, Any]] = None
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
+    description: str | None = None
+    system_config: dict[str, Any] | None = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
     created_by: str
     status: str
-    tenant_id: Optional[str] = None
+    tenant_id: str | None = None
 
 
 class ProjectListResponse(BaseModel):
@@ -200,7 +200,7 @@ class StudyRunRequest(BaseModel):
     model_config = ConfigDict(strict=False)
 
     study_type: StudyType
-    config: Optional[dict[str, Any]] = None
+    config: dict[str, Any] | None = None
 
 
 class StudyResultResponse(BaseModel):
@@ -212,13 +212,13 @@ class StudyResultResponse(BaseModel):
     project_id: str
     study_type: str
     status: str
-    config: Optional[dict[str, Any]] = None
-    results: Optional[dict[str, Any]] = None
-    error_message: Optional[str] = None
-    created_at: Optional[datetime] = None
-    completed_at: Optional[datetime] = None
+    config: dict[str, Any] | None = None
+    results: dict[str, Any] | None = None
+    error_message: str | None = None
+    created_at: datetime | None = None
+    completed_at: datetime | None = None
     created_by: str
-    tenant_id: Optional[str] = None
+    tenant_id: str | None = None
 
 
 class StudyListResponse(BaseModel):
@@ -299,7 +299,7 @@ async def list_projects(
     db: DbDep,
     user: UserDep,  # V-07: Require authentication for listing
     status_filter: Annotated[
-        Optional[ProjectStatus], Query(alias="status", description="Filter by status")
+        ProjectStatus | None, Query(alias="status", description="Filter by status")
     ] = None,
 ) -> Any:
     """Return a paginated, filterable list of power-system projects.

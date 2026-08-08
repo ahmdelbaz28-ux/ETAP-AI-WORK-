@@ -16,7 +16,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Optional
 
 import numpy as np
 
@@ -49,8 +48,8 @@ class StateEstimationResult:
     max_residual: float = 0.0
     objective_value: float = 0.0
     bad_data_detected: list[int] = field(default_factory=list)
-    measurement_residuals: Optional[np.ndarray] = None
-    covariance_matrix: Optional[np.ndarray] = None
+    measurement_residuals: np.ndarray | None = None
+    covariance_matrix: np.ndarray | None = None
 
 
 class WLSEstimator:

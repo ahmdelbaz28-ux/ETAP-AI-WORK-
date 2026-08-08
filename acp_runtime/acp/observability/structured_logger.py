@@ -26,7 +26,7 @@ import re
 import sys
 import time
 from dataclasses import dataclass, field
-from typing import Any, Optional
+from typing import Any
 
 import anyio
 
@@ -343,8 +343,8 @@ class InMemoryStructuredLogger(StructuredLogger):
 
     def filter(
         self,
-        level: Optional[LogLevel] = None,
-        logger: Optional[str] = None,
+        level: LogLevel | None = None,
+        logger: str | None = None,
     ) -> list[LogEntry]:
         """Filter entries by level and/or logger name."""
         out = self._entries
@@ -371,7 +371,7 @@ class ConsoleStructuredLogger(StructuredLogger):
         self,
         name: str = "acp",
         *,
-        stream: Optional[Any] = None,
+        stream: Any | None = None,
         min_level: LogLevel = LogLevel.INFO,
     ) -> None:
         super().__init__(name)

@@ -32,7 +32,7 @@ import json
 import logging
 import uuid
 from datetime import UTC, datetime
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 UTC = UTC
 
@@ -79,8 +79,8 @@ class EquipmentCategory(Base):
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     name: Mapped[str] = mapped_column(String(128), unique=True, index=True, nullable=False)
     slug: Mapped[str] = mapped_column(String(128), unique=True, index=True, nullable=False)
-    description: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
-    icon: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
+    description: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    icon: Mapped[str | None] = mapped_column(String(64), nullable=True)
     display_order: Mapped[int] = mapped_column(Integer, default=0)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
@@ -109,26 +109,26 @@ class Equipment(Base):
         index=True,
     )
     name: Mapped[str] = mapped_column(String(255), nullable=False)
-    manufacturer: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
-    model_number: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
-    serial_number: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    manufacturer: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    model_number: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    serial_number: Mapped[str | None] = mapped_column(String(255), nullable=True)
 
     # Electrical specifications (JSON for flexibility)
-    specs: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
+    specs: Mapped[dict | None] = mapped_column(JSON, nullable=True)
 
     # Physical specifications
-    weight_kg: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
-    dimensions: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)  # "LxWxH"
+    weight_kg: Mapped[float | None] = mapped_column(Float, nullable=True)
+    dimensions: Mapped[str | None] = mapped_column(String(255), nullable=True)  # "LxWxH"
 
     # Standards compliance
-    standards: Mapped[Optional[dict]] = mapped_column(
+    standards: Mapped[dict | None] = mapped_column(
         JSON, nullable=True
     )  # {"IEEE": "C57.12.00", "IEC": "60076"}
 
     # Metadata
-    tags: Mapped[Optional[list]] = mapped_column(JSON, nullable=True)
+    tags: Mapped[list | None] = mapped_column(JSON, nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
-    notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    notes: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_by: Mapped[str] = mapped_column(String(36), nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
@@ -158,8 +158,8 @@ class CategoryCreateRequest(BaseModel):
 
     name: str = Field(min_length=1, max_length=128)
     slug: str = Field(min_length=1, max_length=128, pattern=r"^[a-z0-9_-]+$")
-    description: Optional[str] = Field(default=None, max_length=500)
-    icon: Optional[str] = Field(default=None, max_length=64)
+    description: str | None = Field(default=None, max_length=500)
+    icon: str | None = Field(default=None, max_length=64)
     display_order: int = Field(default=0, ge=0)
 
 
@@ -168,13 +168,11 @@ class CategoryUpdateRequest(BaseModel):
 
     model_config = ConfigDict(strict=False)
 
-    name: Optional[str] = Field(default=None, min_length=1, max_length=128)
-    slug: Optional[str] = Field(
-        default=None, min_length=1, max_length=128, pattern=r"^[a-z0-9_-]+$"
-    )
-    description: Optional[str] = Field(default=None, max_length=500)
-    icon: Optional[str] = Field(default=None, max_length=64)
-    display_order: Optional[int] = Field(default=None, ge=0)
+    name: str | None = Field(default=None, min_length=1, max_length=128)
+    slug: str | None = Field(default=None, min_length=1, max_length=128, pattern=r"^[a-z0-9_-]+$")
+    description: str | None = Field(default=None, max_length=500)
+    icon: str | None = Field(default=None, max_length=64)
+    display_order: int | None = Field(default=None, ge=0)
 
 
 class CategoryResponse(BaseModel):
@@ -185,12 +183,12 @@ class CategoryResponse(BaseModel):
     id: str
     name: str
     slug: str
-    description: Optional[str] = None
-    icon: Optional[str] = None
+    description: str | None = None
+    icon: str | None = None
     display_order: int = 0
     equipment_count: int = 0
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
 
 
 class CategoryListResponse(BaseModel):
@@ -214,15 +212,15 @@ class EquipmentCreateRequest(BaseModel):
 
     category_id: str = Field(min_length=1)
     name: str = Field(min_length=1, max_length=255)
-    manufacturer: Optional[str] = Field(default=None, max_length=255)
-    model_number: Optional[str] = Field(default=None, max_length=255)
-    serial_number: Optional[str] = Field(default=None, max_length=255)
-    specs: Optional[dict[str, Any]] = None
-    weight_kg: Optional[float] = None
-    dimensions: Optional[str] = Field(default=None, max_length=255)
-    standards: Optional[dict[str, str]] = None
-    tags: Optional[list[str]] = None
-    notes: Optional[str] = Field(default=None, max_length=2000)
+    manufacturer: str | None = Field(default=None, max_length=255)
+    model_number: str | None = Field(default=None, max_length=255)
+    serial_number: str | None = Field(default=None, max_length=255)
+    specs: dict[str, Any] | None = None
+    weight_kg: float | None = None
+    dimensions: str | None = Field(default=None, max_length=255)
+    standards: dict[str, str] | None = None
+    tags: list[str] | None = None
+    notes: str | None = Field(default=None, max_length=2000)
 
 
 class EquipmentUpdateRequest(BaseModel):
@@ -230,18 +228,18 @@ class EquipmentUpdateRequest(BaseModel):
 
     model_config = ConfigDict(strict=False)
 
-    category_id: Optional[str] = None
-    name: Optional[str] = Field(default=None, min_length=1, max_length=255)
-    manufacturer: Optional[str] = Field(default=None, max_length=255)
-    model_number: Optional[str] = Field(default=None, max_length=255)
-    serial_number: Optional[str] = Field(default=None, max_length=255)
-    specs: Optional[dict[str, Any]] = None
-    weight_kg: Optional[float] = None
-    dimensions: Optional[str] = Field(default=None, max_length=255)
-    standards: Optional[dict[str, str]] = None
-    tags: Optional[list[str]] = None
-    is_active: Optional[bool] = None
-    notes: Optional[str] = Field(default=None, max_length=2000)
+    category_id: str | None = None
+    name: str | None = Field(default=None, min_length=1, max_length=255)
+    manufacturer: str | None = Field(default=None, max_length=255)
+    model_number: str | None = Field(default=None, max_length=255)
+    serial_number: str | None = Field(default=None, max_length=255)
+    specs: dict[str, Any] | None = None
+    weight_kg: float | None = None
+    dimensions: str | None = Field(default=None, max_length=255)
+    standards: dict[str, str] | None = None
+    tags: list[str] | None = None
+    is_active: bool | None = None
+    notes: str | None = Field(default=None, max_length=2000)
 
 
 class EquipmentResponse(BaseModel):
@@ -253,19 +251,19 @@ class EquipmentResponse(BaseModel):
     category_id: str
     category_name: str = ""
     name: str
-    manufacturer: Optional[str] = None
-    model_number: Optional[str] = None
-    serial_number: Optional[str] = None
-    specs: Optional[dict[str, Any]] = None
-    weight_kg: Optional[float] = None
-    dimensions: Optional[str] = None
-    standards: Optional[dict[str, str]] = None
-    tags: Optional[list[str]] = None
+    manufacturer: str | None = None
+    model_number: str | None = None
+    serial_number: str | None = None
+    specs: dict[str, Any] | None = None
+    weight_kg: float | None = None
+    dimensions: str | None = None
+    standards: dict[str, str] | None = None
+    tags: list[str] | None = None
     is_active: bool = True
-    notes: Optional[str] = None
+    notes: str | None = None
     created_by: str = ""
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
 
 
 class EquipmentListResponse(BaseModel):
@@ -560,10 +558,10 @@ async def list_equipment(
     db: AsyncSession = Depends(get_db),
     user: CurrentUser = Depends(require_permission("equipment", "list")),  # noqa: B008
     pagination: PaginationParams = Depends(pagination_params),  # noqa: B008
-    category_id: Optional[str] = Query(None, description="Filter by category"),
-    manufacturer: Optional[str] = Query(None, description="Filter by manufacturer"),
-    search: Optional[str] = Query(None, description="Search by name/model"),
-    is_active: Optional[bool] = Query(None, description="Filter by active status"),
+    category_id: str | None = Query(None, description="Filter by category"),
+    manufacturer: str | None = Query(None, description="Filter by manufacturer"),
+    search: str | None = Query(None, description="Search by name/model"),
+    is_active: bool | None = Query(None, description="Filter by active status"),
 ) -> Any:
     """Return a paginated, filterable list of equipment."""
     # Build query
@@ -742,7 +740,7 @@ async def search_equipment(
     db: AsyncSession = Depends(get_db),
     user: CurrentUser = Depends(require_permission("equipment", "list")),  # noqa: B008
     query: str = Query(..., min_length=1, description="Search query"),
-    category_id: Optional[str] = Query(None, description="Filter by category"),
+    category_id: str | None = Query(None, description="Filter by category"),
     pagination: PaginationParams = Depends(pagination_params),  # noqa: B008
 ) -> Any:
     """Search equipment by name, model, manufacturer, or specs."""
@@ -922,7 +920,7 @@ async def import_equipment(
 async def export_equipment(
     db: AsyncSession = Depends(get_db),
     user: CurrentUser = Depends(require_permission("equipment", "list")),  # noqa: B008
-    category_id: Optional[str] = Query(None, description="Filter by category"),
+    category_id: str | None = Query(None, description="Filter by category"),
 ) -> Any:
     """Export all equipment (optionally filtered by category) as JSON."""
     query = select(Equipment).where(Equipment.is_active == True)

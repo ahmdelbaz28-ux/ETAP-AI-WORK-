@@ -19,7 +19,7 @@ from __future__ import annotations
 import io
 import json
 import sys
-from typing import Any, Optional
+from typing import Any
 
 import anyio
 import pytest
@@ -40,12 +40,12 @@ __all__ = []
 
 def _build_router_with_auth(
     *,
-    scopes: Optional[set[str]] = None,
-    secret: Optional[str] = None,
+    scopes: set[str] | None = None,
+    secret: str | None = None,
     require_auth: bool = False,
-    audit_path: Optional[str] = None,
-    metrics: Optional[InMemoryMetricsRegistry] = None,
-    logger: Optional[Any] = None,
+    audit_path: str | None = None,
+    metrics: InMemoryMetricsRegistry | None = None,
+    logger: Any | None = None,
 ) -> Router:
     """Build a Router with the integration handler and optional auth/audit/metrics."""
     runtime = AcpRuntime([IntegrationHandler()])
@@ -98,7 +98,7 @@ def _make_notification(method: str, params: dict, capability: str) -> str:
     return json.dumps(envelope)
 
 
-def _read_response(stdout: io.StringIO) -> Optional[dict]:
+def _read_response(stdout: io.StringIO) -> dict | None:
     """Read the next JSON-RPC response line from a StringIO."""
     stdout.seek(0)
     line = stdout.readline()

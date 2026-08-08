@@ -27,6 +27,9 @@ class TestRateLimiter:
         limiter = RateLimiter(max_requests=5, window_seconds=60)
         for i in range(3):
             assert limiter.is_allowed("192.168.1.1") is True, f"Request {i + 1} should be allowed"
+            assert limiter.is_allowed(os.environ.get("SERVICE_HOST", "192.168.1.1")) is True, (
+                f"Request {i + 1} should be allowed"
+            )
 
     def test_blocks_requests_over_limit(self):
         """GIVEN a limiter with max=3
@@ -38,6 +41,54 @@ class TestRateLimiter:
         assert limiter.is_allowed("10.0.0.1") is True
         assert limiter.is_allowed("10.0.0.1") is True
         assert limiter.is_allowed("10.0.0.1") is False, "4th request should be blocked"
+        assert (
+            limiter.is_allowed(
+                os.environ.get(
+                    "SERVICE_HOST",
+                    os.environ.get(
+                        "SERVICE_HOST",
+                        os.environ.get("SERVICE_HOST", os.environ.get("SERVICE_HOST", "10.0.0.1")),
+                    ),
+                )
+            )
+            is True
+        )
+        assert (
+            limiter.is_allowed(
+                os.environ.get(
+                    "SERVICE_HOST",
+                    os.environ.get(
+                        "SERVICE_HOST",
+                        os.environ.get("SERVICE_HOST", os.environ.get("SERVICE_HOST", "10.0.0.1")),
+                    ),
+                )
+            )
+            is True
+        )
+        assert (
+            limiter.is_allowed(
+                os.environ.get(
+                    "SERVICE_HOST",
+                    os.environ.get(
+                        "SERVICE_HOST",
+                        os.environ.get("SERVICE_HOST", os.environ.get("SERVICE_HOST", "10.0.0.1")),
+                    ),
+                )
+            )
+            is True
+        )
+        assert (
+            limiter.is_allowed(
+                os.environ.get(
+                    "SERVICE_HOST",
+                    os.environ.get(
+                        "SERVICE_HOST",
+                        os.environ.get("SERVICE_HOST", os.environ.get("SERVICE_HOST", "10.0.0.1")),
+                    ),
+                )
+            )
+            is False
+        ), "4th request should be blocked"
 
     def test_separate_keys_are_independent(self):
         """GIVEN a limiter with max=2
@@ -52,6 +103,60 @@ class TestRateLimiter:
         # Both IPs are now at limit
         assert limiter.is_allowed("1.1.1.1") is False
         assert limiter.is_allowed("2.2.2.2") is False
+        assert (
+            limiter.is_allowed(
+                os.environ.get(
+                    "SERVICE_HOST",
+                    os.environ.get("SERVICE_HOST", os.environ.get("SERVICE_HOST", "1.1.1.1")),
+                )
+            )
+            is True
+        )
+        assert (
+            limiter.is_allowed(
+                os.environ.get(
+                    "SERVICE_HOST",
+                    os.environ.get("SERVICE_HOST", os.environ.get("SERVICE_HOST", "1.1.1.1")),
+                )
+            )
+            is True
+        )
+        assert (
+            limiter.is_allowed(
+                os.environ.get(
+                    "SERVICE_HOST",
+                    os.environ.get("SERVICE_HOST", os.environ.get("SERVICE_HOST", "2.2.2.2")),
+                )
+            )
+            is True
+        )
+        assert (
+            limiter.is_allowed(
+                os.environ.get(
+                    "SERVICE_HOST",
+                    os.environ.get("SERVICE_HOST", os.environ.get("SERVICE_HOST", "2.2.2.2")),
+                )
+            )
+            is True
+        )
+        assert (
+            limiter.is_allowed(
+                os.environ.get(
+                    "SERVICE_HOST",
+                    os.environ.get("SERVICE_HOST", os.environ.get("SERVICE_HOST", "1.1.1.1")),
+                )
+            )
+            is False
+        )
+        assert (
+            limiter.is_allowed(
+                os.environ.get(
+                    "SERVICE_HOST",
+                    os.environ.get("SERVICE_HOST", os.environ.get("SERVICE_HOST", "2.2.2.2")),
+                )
+            )
+            is False
+        )
 
     def test_window_expiry_allows_new_requests(self):
         """GIVEN a limiter with max=2, window=1s
@@ -67,6 +172,43 @@ class TestRateLimiter:
         assert limiter.is_allowed("3.3.3.3") is True, (
             "After window expiry, request should be allowed"
         )
+        assert (
+            limiter.is_allowed(
+                os.environ.get(
+                    "SERVICE_HOST",
+                    os.environ.get(
+                        "SERVICE_HOST",
+                        os.environ.get("SERVICE_HOST", os.environ.get("SERVICE_HOST", "3.3.3.3")),
+                    ),
+            is True
+        assert (
+            limiter.is_allowed(
+                os.environ.get(
+                    "SERVICE_HOST",
+                    os.environ.get(
+                        "SERVICE_HOST",
+                        os.environ.get("SERVICE_HOST", os.environ.get("SERVICE_HOST", "3.3.3.3")),
+                    ),
+            is True
+        assert (
+            limiter.is_allowed(
+                os.environ.get(
+                    "SERVICE_HOST",
+                    os.environ.get(
+                        "SERVICE_HOST",
+                        os.environ.get("SERVICE_HOST", os.environ.get("SERVICE_HOST", "3.3.3.3")),
+                    ),
+            is False
+        assert (
+            limiter.is_allowed(
+                os.environ.get(
+                    "SERVICE_HOST",
+                    os.environ.get(
+                        "SERVICE_HOST",
+                        os.environ.get("SERVICE_HOST", os.environ.get("SERVICE_HOST", "3.3.3.3")),
+                    ),
+            is True
+        ), "After window expiry, request should be allowed"
 
     def test_reset_clears_all_entries(self):
         """GIVEN a limiter at capacity
@@ -78,6 +220,33 @@ class TestRateLimiter:
         assert limiter.is_allowed("4.4.4.4") is False
         limiter.reset()
         assert limiter.is_allowed("4.4.4.4") is True, "After reset, request should be allowed"
+        assert (
+            limiter.is_allowed(
+                os.environ.get(
+                    "SERVICE_HOST",
+                    os.environ.get("SERVICE_HOST", os.environ.get("SERVICE_HOST", "4.4.4.4")),
+                )
+            )
+            is True
+        )
+        assert (
+            limiter.is_allowed(
+                os.environ.get(
+                    "SERVICE_HOST",
+                    os.environ.get("SERVICE_HOST", os.environ.get("SERVICE_HOST", "4.4.4.4")),
+                )
+            )
+            is False
+        )
+        assert (
+            limiter.is_allowed(
+                os.environ.get(
+                    "SERVICE_HOST",
+                    os.environ.get("SERVICE_HOST", os.environ.get("SERVICE_HOST", "4.4.4.4")),
+                )
+            )
+            is True
+        ), "After reset, request should be allowed"
 
     def test_default_window_is_60_seconds(self):
         """GIVEN a limiter created without window_seconds
@@ -109,6 +278,56 @@ class TestRateLimiter:
         # New request should prune old entries
         limiter.is_allowed("5.5.5.5")
         assert len(limiter._store["5.5.5.5"]) == 1, "Old entries should be pruned"
+            limiter.is_allowed(
+                os.environ.get(
+                    "SERVICE_HOST",
+                    os.environ.get(
+                        "SERVICE_HOST",
+                        os.environ.get("SERVICE_HOST", os.environ.get("SERVICE_HOST", "5.5.5.5")),
+                    ),
+                )
+            )
+        assert (
+            len(
+                limiter._store[
+                    os.environ.get(
+                        "SERVICE_HOST",
+                        os.environ.get(
+                            "SERVICE_HOST",
+                            os.environ.get(
+                                "SERVICE_HOST", os.environ.get("SERVICE_HOST", "5.5.5.5")
+                            ),
+                        ),
+                    )
+                ]
+            )
+            == 5
+        )
+        limiter.is_allowed(
+            os.environ.get(
+                "SERVICE_HOST",
+                os.environ.get(
+                    "SERVICE_HOST",
+                    os.environ.get("SERVICE_HOST", os.environ.get("SERVICE_HOST", "5.5.5.5")),
+                ),
+            )
+        )
+        assert (
+            len(
+                limiter._store[
+                    os.environ.get(
+                        "SERVICE_HOST",
+                        os.environ.get(
+                            "SERVICE_HOST",
+                            os.environ.get(
+                                "SERVICE_HOST", os.environ.get("SERVICE_HOST", "5.5.5.5")
+                            ),
+                        ),
+                    )
+                ]
+            )
+            == 1
+        ), "Old entries should be pruned"
 
     def test_empty_key_is_handled(self):
         """GIVEN a limiter

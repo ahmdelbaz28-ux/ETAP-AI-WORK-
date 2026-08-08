@@ -24,7 +24,7 @@ import secrets
 import threading
 import time
 from datetime import UTC, datetime
-from typing import Any, Optional
+from typing import Any
 
 logger = logging.getLogger("api.dual_control")
 
@@ -176,7 +176,7 @@ def create_approval_request(
 def approve_request(
     request_id: str,
     approver_id: str,
-    secret: Optional[str] = None,
+    secret: str | None = None,
     *,
     authenticated_user_id: str | None = None,
 ) -> dict[str, Any]:
@@ -405,6 +405,7 @@ def _notify_clients(request_id: str, request: dict) -> None:
         ):  # NOSONAR
         for session_id, sockets in list(_websocket_clients.items()):  # noqa: S7504 — list() needed: dict mutated during iteration
 
+        for session_id, sockets in list(_websocket_clients.items()):  # NOSONAR
             for ws in list(sockets):  # NOSONAR
                 try:
                     # `send_text` is async; some WebSocket impls (Starlette)

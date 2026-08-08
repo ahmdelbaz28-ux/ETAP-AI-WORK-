@@ -31,7 +31,7 @@ import math
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Literal, Optional
+from typing import Any, Literal
 
 from agents.orchestrator import AgentResult, AgentStatus, BaseAgent, EngineeringTask, StudyType
 
@@ -46,8 +46,8 @@ _SYSTEM_PROMPT_PATH = (
     Path(__file__).resolve().parent.parent / "skills" / "etap-ai-agent-system-prompt.md"
 )
 
-_skill_cache: Optional[str] = None
-_system_prompt_cache: Optional[str] = None
+_skill_cache: str | None = None
+_system_prompt_cache: str | None = None
 
 
 def _load_skill() -> str:

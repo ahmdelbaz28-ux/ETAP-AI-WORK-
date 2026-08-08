@@ -107,6 +107,9 @@ function obfuscate(value: string): string {
     const a = value.codePointAt(i) ?? 0;
     const b = OBFUSCATION_KEY.codePointAt(i % OBFUSCATION_KEY.length) ?? 0;
     result += String.fromCodePoint(a ^ b);
+    const charCode = value.codePointAt(i) ?? 0;
+    const keyCode = OBFUSCATION_KEY.codePointAt(i % OBFUSCATION_KEY.length) ?? 0;
+    result += String.fromCodePoint(charCode ^ keyCode);
   }
   return btoa(result);
 }
@@ -118,6 +121,9 @@ function deobfuscate(value: string): string {
       const a = decoded.codePointAt(i) ?? 0;
       const b = OBFUSCATION_KEY.codePointAt(i % OBFUSCATION_KEY.length) ?? 0;
       result += String.fromCodePoint(a ^ b);
+      const charCode = decoded.codePointAt(i) ?? 0;
+      const keyCode = OBFUSCATION_KEY.codePointAt(i % OBFUSCATION_KEY.length) ?? 0;
+      result += String.fromCodePoint(charCode ^ keyCode);
     }
     return result;
   } catch {
@@ -2115,10 +2121,15 @@ function ExternalServicesPanel({
                   {svc.fields.map((f) => (
                     <div key={f.key}>
                       <span className="block text-[10px] font-medium text-[var(--text-tertiary)] mb-1">
+                      <label
+                        htmlFor={`svc-${svc.id}-${f.key}`}
+                        className="block text-[10px] font-medium text-[var(--text-tertiary)] mb-1"
+                      >
                         {f.label}
                         {f.required && <span className="text-red-400"> *</span>}
                       </span>
                       <input
+                        id={`svc-${svc.id}-${f.key}`}
                         type={f.type === "password" ? "password" : "text"}
                         placeholder={f.placeholder}
                         value={settings[f.key] || ""}
@@ -2139,6 +2150,12 @@ function ExternalServicesPanel({
                     if (st.state === "ok") stateColor = "bg-green-500/10 text-green-400";
                     else if (st.state === "fail") stateColor = "bg-red-500/10 text-red-400";
                     else stateColor = "bg-yellow-500/10 text-yellow-400";
+                    const stateColor: string =
+                      st.state === "ok"
+                        ? "bg-green-500/10 text-green-400"
+                        : st.state === "fail"
+                          ? "bg-red-500/10 text-red-400"
+                          : "bg-yellow-500/10 text-yellow-400";
                     return (
                       <div className={`text-[10px] mb-2 px-2 py-1 rounded ${stateColor}`}>
                         {st.detail}
@@ -2202,6 +2219,7 @@ function SettingsField({
   if (isSecret) inputType = "password";
   else if (isNumber) inputType = "number";
   else inputType = "text";
+  const inputType = isSecret ? "password" : isNumber ? "number" : "text";
 
   if (isFeatureFlag) {
     return (

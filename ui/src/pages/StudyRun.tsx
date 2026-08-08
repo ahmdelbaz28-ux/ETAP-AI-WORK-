@@ -107,6 +107,8 @@ function OneLineDiagram() {
         aria-label="Study diagram"
       >
         <title>Study diagram</title>
+      <svg viewBox="0 0 600 300" className="w-full h-auto" style={{ minHeight: 200 }}>
+        <title>System one-line diagram</title>
         {/* Grid */}
         <defs>
           <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
@@ -433,10 +435,15 @@ export default function StudyRun() {
               {category.params.map((p) => (
                 <div key={p.name}>
                   <span className="block text-sm font-medium text-[var(--text-secondary)] mb-1.5 capitalize">
+                  <label
+                    htmlFor={p.name}
+                    className="block text-sm font-medium text-[var(--text-secondary)] mb-1.5 capitalize"
+                  >
                     {p.label || p.name.replaceAll("_", " ")}
                   </span>
                   {p.type === "select" ? (
                     <select
+                      id={p.name}
                       name={p.name}
                       defaultValue={p.default}
                       className="w-full px-3 py-2.5 bg-[var(--bg-input)] border border-[var(--border-primary)] rounded-lg text-[var(--text-primary)] text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500/30 outline-none transition-colors"
@@ -445,6 +452,7 @@ export default function StudyRun() {
                     </select>
                   ) : (
                     <input
+                      id={p.name}
                       type={p.type}
                       name={p.name}
                       defaultValue={p.default}

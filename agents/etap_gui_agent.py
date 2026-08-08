@@ -34,7 +34,7 @@ from __future__ import annotations
 import logging
 import os
 from pathlib import Path
-from typing import Any, Literal, Optional
+from typing import Any, Literal
 
 from agents.life_safety import _CUA_AUDIT_DIR
 from agents.orchestrator import AgentResult, AgentStatus, BaseAgent, EngineeringTask, StudyType
@@ -47,7 +47,7 @@ logger = logging.getLogger("agent.etap_gui")
 
 _SKILL_PATH = Path(__file__).resolve().parent.parent / "skills" / "etap-gui-agent.md"
 
-_skill_cache: Optional[str] = None
+_skill_cache: str | None = None
 
 
 def _load_skill() -> str:
@@ -531,8 +531,8 @@ class ETAPGUIAgent(BaseAgent):
         max_steps: int = 15,
         require_confirmation: bool = True,
         on_confirmation_request=None,
-        audit_dir: Optional[str] = None,
-        start_url: Optional[str] = None,
+        audit_dir: str | None = None,
+        start_url: str | None = None,
     ) -> dict[str, Any]:
         """Run the actual CUA Loop — captures screenshots, analyzes them
         via Gemini Vision, and drives the appropriate executor to click/type/hotkey.

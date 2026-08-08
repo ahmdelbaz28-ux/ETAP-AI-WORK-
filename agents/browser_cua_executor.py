@@ -44,7 +44,7 @@ import logging
 import os
 import uuid
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 from agents.cua_base_executor import (
     DEFAULT_ACTION_TIMEOUT,
@@ -153,7 +153,7 @@ class BrowserCUAExecutor(BaseCUAExecutor):
 
     def __init__(
         self,
-        audit_dir: Optional[str] = None,
+        audit_dir: str | None = None,
         viewport: dict[str, int] | None = None,
         headless: bool = True,
     ) -> None:
@@ -197,11 +197,11 @@ class BrowserCUAExecutor(BaseCUAExecutor):
     def execute_loop(
         self,
         objective: str,
-        start_url: Optional[str] = None,
+        start_url: str | None = None,
         max_steps: int = 15,
         require_confirmation: bool = True,
         on_confirmation_request=None,
-        context: Optional[str] = None,
+        context: str | None = None,
         mode: str = "control",
     ) -> CUAExecutionResult:
         """Run the CUA Loop against a headless browser.
@@ -276,7 +276,7 @@ class BrowserCUAExecutor(BaseCUAExecutor):
 
     # ─── Platform-specific hooks ──────────────────────────────────────────
 
-    def _capture_screenshot_hook(self, step_num: int, phase: str, **kwargs) -> Optional[str]:
+    def _capture_screenshot_hook(self, step_num: int, phase: str, **kwargs) -> str | None:
         """Capture a screenshot from the browser page. Returns path."""
         if self._page is None:
             return None
@@ -289,7 +289,7 @@ class BrowserCUAExecutor(BaseCUAExecutor):
             logger.exception("Browser screenshot failed: %s", exc)
             return None
 
-    def _action_click(self, page, action: CUAAction) -> Optional[str]:
+    def _action_click(self, page, action: CUAAction) -> str | None:
         """Perform a left-click at the given coordinates."""
         if action.x is None or action.y is None:
             return f"click action missing x/y: {action}"
@@ -297,21 +297,21 @@ class BrowserCUAExecutor(BaseCUAExecutor):
         logger.info("browser click(%d, %d) — %s", action.x, action.y, action.target)
         return None
 
-    def _action_double_click(self, page, action: CUAAction) -> Optional[str]:
+    def _action_double_click(self, page, action: CUAAction) -> str | None:
         """Perform a double-click at the given coordinates."""
         if action.x is None or action.y is None:
             return "double_click missing x/y"
         page.mouse.dblclick(action.x, action.y)
         return None
 
-    def _action_right_click(self, page, action: CUAAction) -> Optional[str]:
+    def _action_right_click(self, page, action: CUAAction) -> str | None:
         """Perform a right-click at the given coordinates."""
         if action.x is None or action.y is None:
             return "right_click missing x/y"
         page.mouse.click(action.x, action.y, button="right")
         return None
 
-    def _action_type(self, page, action: CUAAction) -> Optional[str]:
+    def _action_type(self, page, action: CUAAction) -> str | None:
         """Type text, clicking to focus first when coordinates are given."""
         if action.text is None:
             return "type action missing text"
@@ -323,7 +323,7 @@ class BrowserCUAExecutor(BaseCUAExecutor):
         logger.info("browser type(%d chars)", len(action.text))
         return None
 
-    def _action_hotkey(self, page, action: CUAAction) -> Optional[str]:
+    def _action_hotkey(self, page, action: CUAAction) -> str | None:
         """Press a key combination, mapping pyautogui names to Playwright."""
         if not action.keys:
             return "hotkey missing keys"
@@ -347,14 +347,14 @@ class BrowserCUAExecutor(BaseCUAExecutor):
         logger.info("browser hotkey(%s)", combo)
         return None
 
-    def _action_wait(self, page, action: CUAAction) -> Optional[str]:
+    def _action_wait(self, page, action: CUAAction) -> str | None:
         """Wait for the requested duration."""
         seconds = action.seconds or 1.0
         page.wait_for_timeout(int(seconds * 1000))
         logger.info("browser wait(%.1fs)", seconds)
         return None
 
-    def _execute_action_hook(self, action: CUAAction, **kwargs) -> Optional[str]:
+    def _execute_action_hook(self, action: CUAAction, **kwargs) -> str | None:
         """Execute a single browser action. Returns error string or None."""
         if self._page is None:
             return "browser page not available"
@@ -394,10 +394,10 @@ class BrowserCUAExecutor(BaseCUAExecutor):
 
 async def execute_browser_cua_loop_async(
     objective: str,
-    start_url: Optional[str] = None,
+    start_url: str | None = None,
     max_steps: int = 15,
     require_confirmation: bool = True,
-    audit_dir: Optional[str] = None,
+    audit_dir: str | None = None,
 ) -> CUAExecutionResult:
     """Async wrapper — runs the browser CUA loop in a thread pool.
 

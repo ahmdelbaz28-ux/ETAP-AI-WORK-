@@ -24,7 +24,7 @@ import os
 import threading
 import time
 from datetime import UTC, datetime
-from typing import Any, Optional
+from typing import Any
 
 from fastapi import HTTPException, Request
 from pydantic import BaseModel, ConfigDict, Field
@@ -432,8 +432,8 @@ class InMemoryRateLimiter:
 
     def __init__(
         self,
-        window_seconds: Optional[int] = None,
-        max_requests: Optional[int] = None,
+        window_seconds: int | None = None,
+        max_requests: int | None = None,
         max_entries: int = 10_000,
     ) -> None:
         self.window = window_seconds or int(os.environ.get("RATE_LIMIT_WINDOW", "60"))
@@ -769,7 +769,7 @@ def run_study_lightweight(  # NOSONAR cognitive complexity; refactoring sprint
 
     # -- Load Flow (native engine) ------------------------------------------
     result_data: Any = None
-    engine_error: Optional[str] = None
+    engine_error: str | None = None
 
     if study_type == "load_flow" and system:
         try:

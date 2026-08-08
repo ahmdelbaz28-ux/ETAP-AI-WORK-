@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import Any, Optional
+from typing import Any, Callable, Dict, Tuple
 
 from coordination.coordination import CoordinationEngine
 from core_model.system import System
@@ -15,6 +16,74 @@ from fault_analysis.fault import FaultAnalyzer
 from load_flow.load_flow import LoadFlowSolver
 from relays.relay import OvercurrentRelay
 from visualization.visualization import Visualizer
+
+# ---------------------------------------------------------------------------
+# Internal study registry
+# ---------------------------------------------------------------------------
+# ``run_study`` is a thin JSON adapter at the external seam (HTTP API, MCP,
+# AI agents, CLI, automation). It dispatches on ``study_type`` via this
+# module-private registry and delegates to the typed study methods. The
+# registry is an internal implementation detail and is NOT exported from
+# ``engine/__init__.py``.
+#
+# Each entry maps a ``study_type`` string to a ``_StudySpec``:
+# ``(required_kwargs, method_name)``.
+#
+#   - ``required_kwargs`` is the tuple of keyword names that must be present
+#     in ``kwargs`` for that study type (mirroring the current inline
+#     validation).
+#   - ``method_name`` is the string name of the bound typed method to call
+#     (e.g. ``"run_arc_flash"``), resolved via ``getattr(self, method_name)``
+#     at call time to avoid module-level binding to ``self``.
+#
+# This is the single source of truth for the one-to-one study_type to
+# typed-method mapping.
+
+# NOTE: These aliases are evaluated at runtime (they are module-level
+# assignments, not annotations), so they must use ``typing.Dict``/``typing.Tuple``
+# rather than PEP 585 builtin generics (``dict[...]``/``tuple[...]``), which are
+# only subscriptable at runtime on Python 3.9+. The project supports Python 3.8
+# at runtime (see the CI/worker images), so runtime-safe generics are required.
+_StudyHandler = Callable[..., Dict[str, Any]]
+_StudySpec = Tuple[Tuple[str, ...], str]
+
+_STUDY_REGISTRY: Dict[str, _StudySpec] = {
+    "load_flow": ((), "run_load_flow"),
+    "short_circuit": (("bus_id",), "run_fault_analysis"),
+    "protection_coordination": (
+        ("upstream_relay_id", "downstream_relay_id", "fault_currents"),
+        "run_protection_coordination",
+    ),
+    "arc_flash": (
+        ("voltage_kv", "bolted_fault_current_ka", "arc_duration_sec", "working_distance_mm"),
+        "run_arc_flash",
+    ),
+}
+
+
+def _validate_study_kwargs(
+    required: tuple[str, ...], kwargs: dict[str, Any], study_type: str
+) -> None:
+    """Raise the exact ValueError messages the current inline validation
+    produces, so the registry entries stay declarative and the messages stay
+    byte-identical."""
+    if study_type == "short_circuit":
+        if kwargs.get("bus_id") is None:
+            raise ValueError("bus_id must be provided for fault study")
+    elif study_type == "protection_coordination":
+        upstream_relay_id = kwargs.get("upstream_relay_id")
+        downstream_relay_id = kwargs.get("downstream_relay_id")
+        fault_currents = kwargs.get("fault_currents")
+        if upstream_relay_id is None or downstream_relay_id is None or fault_currents is None:
+            raise ValueError(
+                "upstream_relay_id, downstream_relay_id, and fault_currents must be provided",
+            )
+    elif study_type == "arc_flash":
+        missing = [k for k in required if k not in kwargs]
+        if missing:
+            raise ValueError(
+                f"arc_flash requires: {', '.join(required)} (missing: {', '.join(missing)})",
+            )
 
 
 class PowerSystemEngine:
@@ -42,12 +111,12 @@ class PowerSystemEngine:
 
     def __init__(
         self,
-        system: Optional[System] = None,
+        system: System | None = None,
         *,
-        load_flow_solver: Optional[LoadFlowSolverProtocol] = None,
-        arc_flash_engine: Optional[ArcFlashEngineProtocol] = None,
-        coordination_engine: Optional[CoordinationEngineProtocol] = None,
-        visualizer: Optional[VisualizerProtocol] = None,
+        load_flow_solver: LoadFlowSolverProtocol | None = None,
+        arc_flash_engine: ArcFlashEngineProtocol | None = None,
+        coordination_engine: CoordinationEngineProtocol | None = None,
+        visualizer: VisualizerProtocol | None = None,
     ) -> None:
         self.system = system
 
@@ -213,7 +282,7 @@ class PowerSystemEngine:
         upstream_relay_id: int,
         downstream_relay_id: int,
         fault_currents: list[float],
-        relays_config: Optional[dict[str, Any]] = None,
+        relays_config: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """
         Run protection coordination check between two relays.

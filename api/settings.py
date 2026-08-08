@@ -53,6 +53,7 @@ from __future__ import annotations
 import logging
 import re
 from typing import Any, Optional
+from typing import Any
 
 import fastapi
 
@@ -103,12 +104,12 @@ class SaveKeyRequest(BaseModel):
         max_length=500,
         description="The API key (will be encrypted before storage)",
     )
-    base_url: Optional[str] = Field(
+    base_url: str | None = Field(
         default=None,
         max_length=500,
         description="Custom endpoint URL (e.g., https://api.openai.com/v1)",
     )
-    model_name: Optional[str] = Field(
+    model_name: str | None = Field(
         default=None,
         max_length=100,
         description="Model name override (e.g., gpt-4o)",

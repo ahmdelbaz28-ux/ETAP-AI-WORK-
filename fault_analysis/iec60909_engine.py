@@ -20,7 +20,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 import numpy as np
 import numpy.typing as npt
@@ -302,7 +302,7 @@ class IEC60909Engine:
     def calculate_three_phase_fault(
         self,
         bus_index: int,
-        c_factor: Optional[float] = None,
+        c_factor: float | None = None,
         bus_kv: float = 115.0,
         maximum: bool = True,
         t_min: float | None = None,
@@ -391,7 +391,7 @@ class IEC60909Engine:
     def calculate_line_to_ground_fault(
         self,
         bus_index: int,
-        c_factor: Optional[float] = None,
+        c_factor: float | None = None,
         bus_kv: float = 115.0,
         maximum: bool = True,
         t_min: float | None = None,
@@ -486,7 +486,7 @@ class IEC60909Engine:
     def calculate_line_to_line_fault(
         self,
         bus_index: int,
-        c_factor: Optional[float] = None,
+        c_factor: float | None = None,
         bus_kv: float = 115.0,
         maximum: bool = True,
         t_min: float | None = None,
@@ -584,7 +584,7 @@ class IEC60909Engine:
     def calculate_double_line_to_ground_fault(
         self,
         bus_index: int,
-        c_factor: Optional[float] = None,
+        c_factor: float | None = None,
         bus_kv: float = 115.0,
         maximum: bool = True,
         t_min: float | None = None,

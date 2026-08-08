@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import os
 import sys
-from typing import Annotated, Any, Optional
+from typing import Annotated, Any
 
 import uvicorn
 from fastapi import Depends, FastAPI, HTTPException, Security
@@ -35,7 +35,7 @@ API_KEY_NAME = "X-ETAP-Worker-Key"
 api_key_header = APIKeyHeader(name=API_KEY_NAME, auto_error=False)
 
 
-def _reject_legacy_api_key(api_key: Optional[str]) -> None:
+def _reject_legacy_api_key(api_key: str | None) -> None:
     if api_key:
         raise HTTPException(  # NOSONAR
             status_code=401,
@@ -44,7 +44,7 @@ def _reject_legacy_api_key(api_key: Optional[str]) -> None:
 
 
 async def _require_auth(  # NOSONAR async function uses sync I/O for compatibility reasons
-    legacy_api_key: Optional[str] = Security(api_key_header),
+    legacy_api_key: str | None = Security(api_key_header),
     creds: HTTPAuthorizationCredentials = Security(bearer_scheme),  # noqa: B008
 ) -> str:
     """

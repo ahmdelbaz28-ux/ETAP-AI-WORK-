@@ -67,7 +67,7 @@ class _MagicLinkRecord:
     issued_at: float
     expires_at: float
     used: bool = False
-    user_id: Optional[str] = None  # filled at issue time if user exists
+    user_id: str | None = None  # filled at issue time if user exists
 
 
 # SECURITY AUDIT 2026-08-02 (F-02, F-03 fix):
@@ -85,7 +85,7 @@ _issue_log: dict[str, list[float]] = {}
 _store_lock = threading.Lock()
 
 
-def _issue(email: str, user_id: Optional[str]) -> tuple[bool, str, int]:
+def _issue(email: str, user_id: str | None) -> tuple[bool, str, int]:
     """Issue a magic link. Returns (success, raw_token, retry_after_seconds).
 
     Thread-safe via `_store_lock`. The lock is held for the entire
@@ -124,7 +124,7 @@ def _issue(email: str, user_id: Optional[str]) -> tuple[bool, str, int]:
     return True, raw_token, 0
 
 
-def _verify(raw_token: str) -> tuple[bool, Optional[_MagicLinkRecord], str]:
+def _verify(raw_token: str) -> tuple[bool, _MagicLinkRecord | None, str]:
     """Verify a magic link token. Returns (success, record, error).
 
     Thread-safe via `_store_lock`. The `used` flag flip is atomic under the
@@ -193,8 +193,8 @@ async def request_magic_link(
     trace_id = getattr(request.state, "trace_id", "unknown")
 
     # Look up user by email — this is a soft dependency on api.auth.User
-    user_id: Optional[str] = None
-    user_name: Optional[str] = None
+    user_id: str | None = None
+    user_name: str | None = None
     try:
         from sqlalchemy import select
 

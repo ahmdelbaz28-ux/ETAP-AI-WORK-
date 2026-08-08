@@ -20,7 +20,7 @@ import hashlib
 import hmac
 import json
 import time
-from typing import Any, Callable, Coroutine, Optional, Union
+from typing import Any, Callable, Coroutine, Union
 
 from acp.errors import AuthenticationRequired
 from acp.schema.capability import is_valid_scope
@@ -86,8 +86,8 @@ class AuthConfig:
         secret_key: Union[str, bytes],
         *,
         token_ttl_seconds: int = 3_600,
-        issuer: Optional[str] = None,
-        audience: Optional[str] = None,
+        issuer: str | None = None,
+        audience: str | None = None,
     ) -> None:
         self.secret_key = secret_key if isinstance(secret_key, bytes) else secret_key.encode()
         self.token_ttl_seconds = token_ttl_seconds
@@ -239,9 +239,9 @@ class HmacTokenValidator:
 
 
 def validate_bearer_token(
-    header_value: Optional[str],
-    validator: Optional[AuthValidator],
-) -> Optional[CallerIdentity]:
+    header_value: str | None,
+    validator: AuthValidator | None,
+) -> CallerIdentity | None:
     """Extract a Bearer token from an HTTP-style header and validate it.
 
     Parameters:
@@ -274,7 +274,7 @@ def validate_bearer_token(
     return result
 
 
-def extract_token_from_header(header_value: Optional[str]) -> Optional[str]:
+def extract_token_from_header(header_value: str | None) -> str | None:
     """Extract the raw token string from a ``Bearer <token>`` header.
 
     Returns ``None`` if the header is missing or not a Bearer token.

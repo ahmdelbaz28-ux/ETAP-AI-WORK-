@@ -19,7 +19,7 @@ from __future__ import annotations
 import ast
 import logging
 import re
-from typing import Any, Optional
+from typing import Any
 
 from guards.ai_failure_modes import AIFailureModeDetector
 from guards.base import BaseGuard, GuardMode, GuardResult, GuardSeverity, GuardViolation
@@ -57,7 +57,7 @@ class CodeGuard(BaseGuard):
         violations.extend(ai_result.violations)
 
         # Parse AST for structural checks
-        tree: Optional[ast.AST] = None
+        tree: ast.AST | None = None
         try:
             tree = ast.parse(source)
         except SyntaxError:

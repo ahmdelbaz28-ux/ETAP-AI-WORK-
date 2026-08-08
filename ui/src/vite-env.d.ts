@@ -315,4 +315,5 @@ declare module "lucide-react" {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   export const createElement: React.FC<React.PropsWithChildren<Record<string, unknown>>>;
+  export const createElement: unknown;
 }

@@ -22,7 +22,7 @@ import io
 import logging
 import time
 from pathlib import Path
-from typing import Any, Callable, Optional, TypeVar
+from typing import Any, Callable, TypeVar
 
 logger = logging.getLogger(__name__)
 
@@ -108,7 +108,7 @@ def to_pil_image(image: Any, pil_available: bool):
     return None
 
 
-def image_to_base64_png(pil_image, max_dim: int = MAX_IMAGE_DIMENSION) -> Optional[str]:
+def image_to_base64_png(pil_image, max_dim: int = MAX_IMAGE_DIMENSION) -> str | None:
     """Convert PIL Image to base64-encoded PNG string (no data URL prefix).
 
     Resizes the image if either dimension exceeds `max_dim` (default 1568px).
@@ -131,7 +131,7 @@ def image_to_base64_png(pil_image, max_dim: int = MAX_IMAGE_DIMENSION) -> Option
         return None
 
 
-def image_to_data_url(pil_image, max_dim: int = MAX_IMAGE_DIMENSION) -> Optional[str]:
+def image_to_data_url(pil_image, max_dim: int = MAX_IMAGE_DIMENSION) -> str | None:
     """Convert PIL Image to base64 data URL.
 
     Returns: data:image/png;base64,<base64-encoded-png>
@@ -162,7 +162,7 @@ def retry_with_backoff(
     Returns:
         Parsed result dict on success, or {"error": "api_error", ...} on failure.
     """
-    last_error: Optional[str] = None
+    last_error: str | None = None
     for attempt in range(1, max_retries + 1):
         try:
             response = make_request()

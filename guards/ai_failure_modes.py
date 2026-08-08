@@ -29,7 +29,7 @@ import ast
 import logging
 import re
 from dataclasses import dataclass
-from typing import Any, Optional
+from typing import Any
 
 from guards.base import GuardMode, GuardResult, GuardSeverity, GuardViolation
 
@@ -211,7 +211,7 @@ class AIFailureModeDetector:
         context = context or {}
 
         # Parse AST once; fall back to regex if AST fails
-        tree: Optional[ast.AST] = None
+        tree: ast.AST | None = None
         try:
             tree = ast.parse(source)
         except SyntaxError:
@@ -274,7 +274,7 @@ class AIFailureModeDetector:
     # FM-01: Catch-all error swallowing
     # ------------------------------------------------------------------
     def _detect_catch_all(  # NOSONAR
-        self, tree: Optional[ast.AST], source: str
+        self, tree: ast.AST | None, source: str
     ) -> list[
         GuardViolation
     ]:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
@@ -350,6 +350,7 @@ class AIFailureModeDetector:
     def _detect_impossible_guard(
         self,
         _tree: Optional[ast.AST],  # NOSONAR
+        _tree: ast.AST | None,  # NOSONAR
         source: str,  # NOSONAR unused param kept for API compatibility
     ) -> list[GuardViolation]:
         """Heuristic: 'if x is None' checks on values that cannot be None by construction."""
@@ -383,7 +384,7 @@ class AIFailureModeDetector:
     # ------------------------------------------------------------------
     def _detect_hardcoded_success(  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         self,
-        tree: Optional[ast.AST],
+        tree: ast.AST | None,
         source: str,  # NOSONAR unused param kept for API compatibility
     ) -> list[GuardViolation]:
         violations: list[GuardViolation] = []
@@ -443,7 +444,7 @@ class AIFailureModeDetector:
     # FM-05: Re-derive instead of reuse
     # ------------------------------------------------------------------
     def _detect_rederive(  # NOSONAR
-        self, tree: Optional[ast.AST], _source: str
+        self, tree: ast.AST | None, _source: str
     ) -> list[
         GuardViolation
     ]:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
@@ -484,7 +485,7 @@ class AIFailureModeDetector:
     # FM-07: Dead code — unused imports
     # ------------------------------------------------------------------
     def _detect_unused_imports(  # NOSONAR
-        self, tree: Optional[ast.AST], _source: str
+        self, tree: ast.AST | None, _source: str
     ) -> list[
         GuardViolation
     ]:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
@@ -534,7 +535,7 @@ class AIFailureModeDetector:
     # ------------------------------------------------------------------
     def _detect_write_before_read(  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         self,
-        tree: Optional[ast.AST],
+        tree: ast.AST | None,
         source: str,  # NOSONAR unused param kept for API compatibility
     ) -> list[GuardViolation]:
         """Heuristic: function parameter immediately reassigned without reading."""
@@ -602,7 +603,7 @@ class AIFailureModeDetector:
     # ------------------------------------------------------------------
     def _detect_speculative_feature(
         self,
-        tree: Optional[ast.AST],
+        tree: ast.AST | None,
         source: str,  # NOSONAR unused param kept for API compatibility
     ) -> list[GuardViolation]:
         """Heuristic: functions over 50 lines are likely doing more than specified."""
@@ -675,7 +676,7 @@ class AIFailureModeDetector:
     # ------------------------------------------------------------------
     def _detect_over_engineering(  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         self,
-        tree: Optional[ast.AST],
+        tree: ast.AST | None,
         source: str,  # NOSONAR unused param kept for API compatibility
     ) -> list[GuardViolation]:
         """Heuristic: abstract base class with only one concrete subclass."""
@@ -717,7 +718,7 @@ class AIFailureModeDetector:
     # FM-13: Magic numbers without named constants
     # ------------------------------------------------------------------
     def _detect_magic_numbers(  # NOSONAR
-        self, tree: Optional[ast.AST], source: str
+        self, tree: ast.AST | None, source: str
     ) -> list[
         GuardViolation
     ]:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
@@ -764,7 +765,7 @@ class AIFailureModeDetector:
     # ------------------------------------------------------------------
     def _detect_hallucinated_api(  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         self,
-        tree: Optional[ast.AST],
+        tree: ast.AST | None,
         _source: str,  # NOSONAR
         context: dict[str, Any] | None,  # NOSONAR unused param kept for API compatibility
     ) -> list[GuardViolation]:
@@ -968,7 +969,7 @@ class AIFailureModeDetector:
     # FM-06: Enum boundary not enumerated first
     # ------------------------------------------------------------------
     def _detect_enum_boundary(  # NOSONAR
-        self, tree: Optional[ast.AST], _source: str
+        self, tree: ast.AST | None, _source: str
     ) -> list[
         GuardViolation
     ]:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
@@ -1039,7 +1040,7 @@ class AIFailureModeDetector:
     # ------------------------------------------------------------------
     def _detect_unverified_import_side_effects(  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         self,
-        tree: Optional[ast.AST],
+        tree: ast.AST | None,
         source: str,
     ) -> list[GuardViolation]:
         """Detect bare imports used only for side effects without verification.
@@ -1148,7 +1149,7 @@ class AIFailureModeDetector:
     # ------------------------------------------------------------------
     # FM-14: Test asserts on mock behavior, not system behavior
     # ------------------------------------------------------------------
-    def _detect_mock_assert(self, _tree: Optional[ast.AST], source: str) -> list[GuardViolation]:
+    def _detect_mock_assert(self, _tree: ast.AST | None, source: str) -> list[GuardViolation]:
         """Heuristic: assert_called_with / assert_any_call / assert_called_once in test functions."""
         violations: list[GuardViolation] = []
         # Match both direct and chained attribute access: mock.assert_called_with, mock.method.assert_called

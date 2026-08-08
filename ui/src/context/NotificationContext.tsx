@@ -72,10 +72,13 @@ interface NotificationContextType {
   dismiss: (id: string) => void;
   /** True when the backend notification feed is reachable; false when degraded. */
   backendReachable: boolean;
+  notify: (type: ToastNotification["type"], message: string) => void;
+  dismiss: (id: string) => void;
 }
 
 const NotificationContext = createContext<NotificationContextType>({
   notifications: [],
+  backendReachable: true,
   notify: () => {},
   dismiss: () => {},
   backendReachable: true,

@@ -139,7 +139,7 @@ export default function AssetManagement() {
     } finally {
       setLoading(false);
     }
-  }, [API_BASE_URL]);
+  }, []);
 
   useEffect(() => {
     fetchAssets();
@@ -183,7 +183,7 @@ export default function AssetManagement() {
     } finally {
       setSubmitting(false);
     }
-  }, [form, notify, fetchAssets, API_BASE_URL]);
+  }, [form, notify, fetchAssets]);
 
   const handleDelete = useCallback(
     async (asset: Asset) => {
@@ -209,7 +209,7 @@ export default function AssetManagement() {
         setActionInProgress(null);
       }
     },
-    [notify, fetchAssets, API_BASE_URL],
+    [notify, fetchAssets],
   );
 
   const summaryCards = [

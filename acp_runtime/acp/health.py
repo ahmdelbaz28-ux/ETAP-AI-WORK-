@@ -18,7 +18,7 @@ by monitoring tools and load balancers without authentication.
 from __future__ import annotations
 
 import time
-from typing import Any, Optional
+from typing import Any
 
 from acp import __version__
 from acp.runtime import capability
@@ -43,15 +43,15 @@ class HealthHandler:
         self,
         *,
         transport_name: str = "unknown",
-        start_time: Optional[float] = None,
-        metrics: Optional[Any] = None,
+        start_time: float | None = None,
+        metrics: Any | None = None,
         user_handler_count: int = 0,
     ) -> None:
         self._transport_name = transport_name
         self._start_time = start_time or time.time()
         self._metrics = metrics
         self._user_handler_count = user_handler_count
-        self._runtime: Optional[Any] = None
+        self._runtime: Any | None = None
 
     def set_runtime(self, runtime: Any) -> None:
         """Attach the AcpRuntime instance so readiness checks can

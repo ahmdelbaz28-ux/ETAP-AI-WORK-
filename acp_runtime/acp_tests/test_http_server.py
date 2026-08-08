@@ -12,7 +12,6 @@ Covers:
 from __future__ import annotations
 
 import json
-from typing import Optional
 
 import anyio
 import pytest
@@ -23,7 +22,7 @@ from acp.http_server import start_http_server
 
 
 async def _http_get(
-    host: str, port: int, path: str, accept: Optional[str] = None
+    host: str, port: int, path: str, accept: str | None = None
 ) -> tuple[int, bytes, str]:
     """Make a simple HTTP/1.1 GET request and return (status, body, content_type)."""
     client = await anyio.connect_tcp(host, port)

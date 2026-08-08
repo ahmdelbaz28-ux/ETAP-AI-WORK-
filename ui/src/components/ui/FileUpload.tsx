@@ -66,7 +66,10 @@ export function FileUpload({
   return (
     <div className="w-full">
       {label && (
-        <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">
+        <label
+          htmlFor="file-upload-input"
+          className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5"
+        >
           {label}
         </label>
       )}
@@ -90,6 +93,7 @@ export function FileUpload({
         )}
       >
         <input
+          id="file-upload-input"
           type="file"
           accept={accept}
           multiple={multiple}

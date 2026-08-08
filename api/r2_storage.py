@@ -51,7 +51,7 @@ import asyncio
 import logging
 import os
 import uuid
-from typing import Any, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -259,8 +259,8 @@ async def upload(
     data: bytes,
     content_type: str = "application/octet-stream",
     *,
-    metadata: Optional[dict[str, str]] = None,
-    cache_control: Optional[str] = None,
+    metadata: dict[str, str] | None = None,
+    cache_control: str | None = None,
 ) -> str:
     """Upload bytes to R2 and return the object key.
 
@@ -496,7 +496,7 @@ def generate_key(
     *,
     prefix: str = "",
     extension: str = "",
-    user_id: Optional[str] = None,
+    user_id: str | None = None,
 ) -> str:
     """Generate a unique object key with optional prefix and user scope.
 

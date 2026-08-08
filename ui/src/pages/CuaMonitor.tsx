@@ -45,7 +45,13 @@ interface SiemEvent {
   severity: "low" | "medium" | "high" | "critical";
   source: string;
   message: string;
-  details?: Record<string, any>;
+  details?: Record<string, unknown>;
+}
+
+interface HealthStatus {
+  status?: string;
+  healthy?: boolean;
+  active?: boolean;
 }
 
 function authHeader(): Record<string, string> {
@@ -219,13 +225,13 @@ export default function CuaMonitor() {
 
   // Tab 2: SIEM state
   const [siemEvents, setSiemEvents] = useState<SiemEvent[]>([]);
-  const [siemHealth, setSiemHealth] = useState<any>(null);
+  const [siemHealth, setSiemHealth] = useState<HealthStatus | null>(null);
   const [siemPaused, setSiemPaused] = useState(false);
   const siemHoveredRef = useRef(false);
 
   // Tab 3: Safety Audit state
-  const [safetyHealth, setSafetyHealth] = useState<any>(null);
-  const [auditResult, setAuditResult] = useState<any>(null);
+  const [safetyHealth, setSafetyHealth] = useState<HealthStatus | null>(null);
+  const [auditResult, setAuditResult] = useState<unknown>(null);
   const [verifyingSafety, setVerifyingSafety] = useState(false);
 
   useEffect(() => {
@@ -252,7 +258,7 @@ export default function CuaMonitor() {
         request<{ events?: SiemEvent[]; items?: SiemEvent[] }>(
           "/api/v1/agents/etap-gui/siem/events",
         ).catch(() => ({ events: [], items: [] })),
-        request<any>("/api/v1/agents/etap-gui/siem/health").catch(() => ({
+        request<HealthStatus>("/api/v1/agents/etap-gui/siem/health").catch(() => ({
           status: "ok",
           healthy: true,
         })),
@@ -274,7 +280,7 @@ export default function CuaMonitor() {
   // Safety tab health check
   useEffect(() => {
     if (activeTab === "safety") {
-      request<any>("/api/v1/agents/etap-gui/safety/health")
+      request<HealthStatus>("/api/v1/agents/etap-gui/safety/health")
         .then((res) => setSafetyHealth(res))
         .catch(() => setSafetyHealth({ status: "ok", active: true }));
     }
@@ -283,13 +289,13 @@ export default function CuaMonitor() {
   const handleVerifySafetyAudit = async () => {
     setVerifyingSafety(true);
     try {
-      const res = await request<any>("/api/v1/agents/etap-gui/safety/audit/verify", {
+      const res = await request<unknown>("/api/v1/agents/etap-gui/safety/audit/verify", {
         method: "POST",
       });
       setAuditResult(res);
       notify("success", "Safety audit hash integrity verified");
-    } catch (err: any) {
-      notify("error", err?.message || "Failed to verify safety audit");
+    } catch (err: unknown) {
+      notify("error", err instanceof Error ? err.message : "Failed to verify safety audit");
     } finally {
       setVerifyingSafety(false);
     }

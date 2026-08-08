@@ -41,7 +41,6 @@ import contextlib
 import logging
 import re
 from re import Pattern
-from typing import Optional
 
 __all__ = ["SecretRedactionFilter", "redact_text", "install_globally"]
 
@@ -208,7 +207,7 @@ class SecretRedactionFilter(logging.Filter):
 # Convenience: install globally on the root logger
 # ---------------------------------------------------------------------------
 
-_GLOBAL_FILTER: Optional[SecretRedactionFilter] = None
+_GLOBAL_FILTER: SecretRedactionFilter | None = None
 
 
 def install_globally(level: int = logging.WARNING) -> SecretRedactionFilter:

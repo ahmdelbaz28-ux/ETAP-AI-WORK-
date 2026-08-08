@@ -34,6 +34,7 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
+from typing import Any, Dict, cast
 
 import pytest
 
@@ -198,7 +199,7 @@ class TestRunStudyEqualsTypedMethod:
             "relays_config": RELAYS_CONFIG,
         }
         via_study = engine.run_study(study_type="protection_coordination", **kwargs)
-        via_typed = engine.run_protection_coordination(**kwargs)
+        via_typed = engine.run_protection_coordination(**(cast(Dict[str, Any], kwargs)))
         # The dispatcher drops relays_config → simulated error.
         assert via_study["is_simulated"] is True
         assert via_study["all_coordinated"] is False

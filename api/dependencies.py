@@ -15,7 +15,6 @@ import hmac
 import logging
 import os
 import secrets
-from typing import Optional
 
 import jwt
 from fastapi import Depends, Header, HTTPException, Query, Request, status
@@ -132,7 +131,7 @@ class CurrentUser(BaseModel):
 
 async def get_current_user(
     db: AsyncSession = Depends(get_db),  # noqa: B008
-    authorization: Optional[str] = None,  # injected by FastAPI header param
+    authorization: str | None = None,  # injected by FastAPI header param
 ) -> CurrentUser:
     """Validate the JWT from the ``Authorization: Bearer <token>`` header.
 
@@ -173,8 +172,8 @@ async def get_current_user(
             detail="Invalid token",
         ) from err
 
-    user_id: Optional[str] = payload.get("sub")
-    token_type: Optional[str] = payload.get("type")
+    user_id: str | None = payload.get("sub")
+    token_type: str | None = payload.get("type")
 
     # SECURITY AUDIT 2026-07-29 (self-critique pass, EC-03):
     # Previous check was `if user_id is None or token_type != "access"`.
@@ -194,7 +193,7 @@ async def get_current_user(
 
     # SECURITY (S-09): Check token blacklist (revoked tokens).
     # Lazy import to avoid circular dependency (auth.py imports dependencies.py).
-    jti: Optional[str] = payload.get("jti")
+    jti: str | None = payload.get("jti")
     if jti:
         try:
             from api.auth import _is_token_blacklisted

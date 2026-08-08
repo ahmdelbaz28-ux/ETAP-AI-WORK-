@@ -27,7 +27,7 @@
 
 | Backend | أحدث إصدار | لغة | ميزات رئيسية | connectors المدعومة |
 |---|---|---|---|---|
-| PyScada | 0.10.12+ | Python/Django | open source،EMS plugin, web dashboard | MQTT, OPC-UA, Modbus, HTTP, EMS |
+| PyScada | 0.8.0+ | Python/Django | open source،EMS plugin, web dashboard | MQTT, OPC-UA, Modbus, HTTP, EMS |
 | Scada-LTS | 2.8.5+ | Java | web-based, multi-platform،connectors | Modbus, OPC UA, MQTT, HTTP |
 | JSON-SCADA | 1.2.3+ | Go/MongoDB | portable, scalable (up to 70k tags) | IEC 61850, IEC 60870, DNP3, OPC UA, MQTT |
 | Node-RED + mqtt + dashboard | 4.0.0+ | JavaScript | lightweight, fluid dashboard | MQTT, HTTP, Modbus, OPC UA |
@@ -45,7 +45,9 @@ source scada-env/bin/activate  # Linux/macOS
 
 # Upgrade pip and install PyScada
 pip install --upgrade pip
-pip install pyscada==0.10.12 pyscada-mqtt pyscada-opcua pyscada-modbus pyscada-ems
+# Latest version on PyPI is 0.8.0 (2023). No 0.10.x release exists there —
+# pin 0.8.0 explicitly to avoid `pip install` failing with version-not-found.
+pip install pyscada==0.8.0 pyscada-mqtt pyscada-opcua pyscada-modbus pyscada-ems
 ```
 
 #### 2. إعداد MQTT Broker (mosquitto):
