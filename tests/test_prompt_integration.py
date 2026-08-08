@@ -346,13 +346,7 @@ class TestPromptHandleMapping:
             "etap_gui_agent": "ETAP GUI Agent or interface handler",
             "ahmed_etap_agent": "AhmedETAPSkillAgent (orchestration skill) + study_type='ahmed_etap_orchestration'",
             "qgis_agent": "QGIS & GIS Integration Agent (GIS/ArcGIS Pro/QGIS)",
-
-            "etap_engineer_agent_v2": "Reserved for V2 agent variant",
-            "arcflash_agent_prompt": "arcFlashAgent (TS)",
-            "arcflash_agent": "arcFlashAgent (TS) — alias for arcflash_agent_prompt",
-            "weather_activity_planner": "Weather workflow (TS)",
             "generic_agent_chat": "Generic chat fallback",
-            "coordination_agent": "CoordinationAgent (future relay)",
             "sample_prompt": "Template/sample only",
         }
 
