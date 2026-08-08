@@ -1,14 +1,11 @@
 import { motion } from "framer-motion";
 import {
-  Box,
   CheckCircle2,
   Cpu,
   Download,
   FileCode,
   Layers,
   Loader2,
-  RefreshCw,
-  Sliders,
   Sparkles,
 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -116,29 +113,28 @@ export function CadSimReadyCard() {
 
   return (
     <Card variant="default" className="border-[var(--border-primary)] shadow-lg overflow-hidden">
-      <CardHeader className="bg-gradient-to-r from-emerald-900/20 via-slate-900/40 to-cyan-900/20 border-b border-[var(--border-primary)] pb-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3 gap-3">
-            <div className="p-2.5 bg-emerald-500/10 rounded-xl border border-emerald-500/20 text-emerald-400">
-              <Sparkles className="w-5 h-5 animate-pulse" />
-            </div>
-            <div>
-              <h3 className="text-base font-semibold text-[var(--text-primary)] flex items-center gap-2">
-                NVIDIA CAD to SimReady 3D Engine
-                <Badge variant="success" size="sm">
-                  Active Skill
-                </Badge>
-              </h3>
-              <p className="text-xs text-[var(--text-secondary)] mt-0.5">
-                Convert CAD/DXF & Revit BIM layouts to interactive 3D OpenUSD presentation models with physics & PBR materials.
-              </p>
-            </div>
+      <CardHeader
+        className="bg-gradient-to-r from-emerald-900/20 via-slate-900/40 to-cyan-900/20 border-b border-[var(--border-primary)] pb-4"
+        icon={
+          <div className="p-2.5 bg-emerald-500/10 rounded-xl border border-emerald-500/20 text-emerald-400">
+            <Sparkles className="w-5 h-5 animate-pulse" />
           </div>
+        }
+        title={
+          <span className="flex items-center gap-2">
+            NVIDIA CAD to SimReady 3D Engine
+            <Badge variant="success" size="sm">
+              Active Skill
+            </Badge>
+          </span>
+        }
+        subtitle="Convert CAD/DXF & Revit BIM layouts to interactive 3D OpenUSD presentation models with physics & PBR materials."
+        action={
           <Badge variant="info" size="sm" className="hidden sm:flex items-center gap-1">
             <Cpu className="w-3 h-3" /> PhysX 5 / OpenUSD
           </Badge>
-        </div>
-      </CardHeader>
+        }
+      />
 
       <div className="p-5 space-y-5">
         {/* Controls Grid */}
