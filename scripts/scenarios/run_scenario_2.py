@@ -346,7 +346,7 @@ def _extract_gis_features(gis_source: str, gis_project_path: str) -> list[dict[s
 
 def _compute_diff(
     gis_features: list[dict[str, Any]],
-    etap_project_path: str,
+    _etap_project_path: str,
     trace_id: str,
 ) -> dict[str, list[dict[str, Any]]]:
     """حساب الفروقات بين GIS features و ETAP objects."""

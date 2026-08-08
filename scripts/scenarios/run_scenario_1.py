@@ -516,7 +516,7 @@ def _build_geojson_from_etap_result(
 
 
 def _generate_qgis_project(
-    geojson_path: str, output_dir: str, trace_id: str
+    geojson_path: str, output_dir: str, _trace_id: str
 ) -> str:
     """Generate QGIS .qgz project from GeoJSON."""
     from gis_integration.providers.qgis_provider import QGISProvider
@@ -576,7 +576,7 @@ def _generate_qgis_project(
 
 
 def _generate_arcgis_project(
-    geojson_path: str, output_dir: str, trace_id: str
+    geojson_path: str, output_dir: str, _trace_id: str
 ) -> str:
     """Generate ArcGIS Pro .aprx project from GeoJSON."""
     import arcpy  # type: ignore
