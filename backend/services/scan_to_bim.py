@@ -300,7 +300,7 @@ class ScanToBIMService:
         """
         file_path = Path(file_path)
 
-        self.logger.info(f"Starting ScanToBIM process for: {file_path}")
+        self.logger.info("Starting ScanToBIM process for: %s", file_path)
 
         # First, perform OCR on the file
         try:
@@ -354,7 +354,7 @@ class ScanToBIMService:
 
             # Assign standalone areas to potential names
             for i, area_value in enumerate(standalone_areas):
-                if i < len(potential_names):
+                if i < len(potential_names):  # noqa: SIM108
                     room_name = potential_names[i]
                 else:
                     # If no names available, create generic name
@@ -405,7 +405,7 @@ class ScanToBIMService:
         )
 
         self.logger.info(
-            f"ScanToBIM process completed for {file_path}. "
+            f"ScanToBIM process completed for {file_path}. "  # noqa: G004
             f"Rooms extracted: {len(bim_rooms)} (valid: {len(valid_rooms)}, invalid: {len(invalid_rooms)}). "
             f"Requires review: True"
         )
@@ -452,7 +452,7 @@ class ScanToBIMService:
             with open(output_path, 'w', encoding='utf-8') as f:
                 json.dump(ifc_data, f, indent=2, ensure_ascii=False)
 
-            self.logger.info(f"Exported {len(rooms)} rooms to IFC-compatible JSON: {output_path}")
+            self.logger.info("Exported %s rooms to IFC-compatible JSON: %s", len(rooms), output_path)
             return True
 
         except Exception:  # NOSONAR - python:S1481

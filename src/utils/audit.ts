@@ -8,6 +8,7 @@
  *   4. Overflow audit event (logs its own overflow)
  *   5. 90-day retention (CONFIG.AUDIT_RETENTION_DAYS)
  *   6. v2 format: { entries, _hmac, _version } with v1 backward compat
+ */
 
 /**
  * Audit logging buffer with KV fallback flush.
@@ -62,20 +63,6 @@ export function recordAudit(entry: AuditLogEntry): void {
   if (!entry.severity) entry.severity = classifySeverity(entry.action);
   _auditBuffer.push(entry);
 
-  if (_auditBuffer.length >= CONFIG.AUDIT_FLUSH_THRESHOLD * 2) {
-    const overflow: AuditLogEntry = {
-      timestamp: new Date().toISOString(), traceId: crypto.randomUUID(),
-      clientIp: 'system', method: 'SYSTEM', path: '/internal/audit-overflow',
-      statusCode: 0, userAgent: 'system', action: 'AUDIT_BUFFER_OVERFLOW',
-      authenticated: false, rateLimited: false, severity: 'high',
-      details: { bufferSize: _auditBuffer.length, droppedCount: CONFIG.AUDIT_FLUSH_THRESHOLD },
-    };
-    _auditBuffer.splice(0, CONFIG.AUDIT_FLUSH_THRESHOLD);
-    _auditBuffer.unshift(overflow);
-    _lastFlush = Date.now();
-
-  _auditBuffer.push(entry);
-
   // Hardening: prevent unbounded memory growth when KV flush is delayed.
   // When we hit the threshold, proactively trim the buffer by discarding
   // the oldest batch.  The request-boundary flush in the Worker fetcher
@@ -103,11 +90,6 @@ export async function flushAuditLog(env: Env): Promise<number> {
   const kv = getAuditKv(env);
   if (!kv || _auditBuffer.length === 0) return 0;
 
-
-/** Flush to KV. Returns the number of entries flushed. */
-export async function flushAuditLog(env: Env): Promise<number> {
-  if (!env.RATE_LIMIT_KV || _auditBuffer.length === 0) return 0;
-
   // Snapshot the buffer and clear immediately to avoid races.
   const batch = _auditBuffer.splice(0, _auditBuffer.length);
   if (batch.length === 0) return 0;
@@ -124,16 +106,9 @@ export async function flushAuditLog(env: Env): Promise<number> {
     _lastFlush = Date.now();
     return batch.length;
   } catch {
-    for (const entry of [...batch].reverse()) {
-
-    const key = `audit:${new Date().toISOString().split('T')[0]}:${crypto.randomUUID()}`;
-    await env.RATE_LIMIT_KV.put(key, JSON.stringify(batch), { expirationTtl: 90 * 24 * 60 * 60 });
-    _lastFlush = Date.now();
-    return batch.length;
-  } catch {
     // Best-effort: re-add to the front of the buffer (loss bounded
     // by next flush), but cap the in-memory buffer to MAX_AUDIT_BUFFER.
-    for (const entry of batch.reverse()) {
+    for (const entry of [...batch].reverse()) {
       _auditBuffer.unshift(entry);
       if (_auditBuffer.length > CONFIG.MAX_AUDIT_BUFFER) _auditBuffer.shift();
     }
@@ -158,14 +133,5 @@ export async function getAuditLogs(env: Env, date?: string): Promise<AuditLogEnt
       }
     }
   } catch { /* fail silently */ }
-
-    const listResult = await env.RATE_LIMIT_KV.list({ prefix });
-    for (const key of listResult.keys) {
-      const raw = (await env.RATE_LIMIT_KV.get(key.name, { type: 'json' })) as AuditLogEntry[] | null;
-      if (Array.isArray(raw)) logs.push(...raw);
-    }
-  } catch {
-    // Fail silently
-  }
   return logs;
 }

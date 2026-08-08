@@ -70,37 +70,6 @@ const ARABIC_TO_ENGLISH_KEYBOARD_MAP: Record<string, string> = {
   ر: 'b',
   ى: 'n',
   ة: 'm',
-
-  'ض': 'q',
-  'ص': 'w',
-  'ث': 'e',
-  'ق': 'r',
-  'ف': 't',
-  'غ': 'y',
-  'ع': 'u',
-  'ه': 'i',
-  'خ': 'o',
-  'ح': 'p',
-  'ج': '[',
-  'د': ']',
-  'ش': 'a',
-  'س': 's',
-  'ي': 'd',
-  'ب': 'f',
-  'ل': 'g',
-  'ا': 'h',
-  'ت': 'j',
-  'ن': 'k',
-  'م': 'l',
-  'ك': ';',
-  'ط': "'",
-  'ئ': 'z',
-  'ء': 'x',
-  'ظ': 'c',
-  'و': 'v',
-  'ر': 'b',
-  'ى': 'n',
-  'ة': 'm',
   '،': ',',
   '.': '.',
   // Numbers (Arabic numerals to English)
@@ -191,15 +160,6 @@ function estimateArabicConfidence(text: string): number {
 
   if (totalChars === 0) {
     return 0.0; // NOSONAR — S7748: number literal trailing zero; cosmetic
-
-    return 0.0;
-  }
-
-  const arabicChars = Array.from(text).filter(char => ARABIC_CHARACTERS.has(char)).length;
-  const totalChars = text.length;
-
-  if (totalChars === 0) {
-    return 0.0;
   }
 
   const arabicRatio = arabicChars / totalChars;
@@ -334,11 +294,6 @@ export function convertKeyboardLayout(
  * Normalize input text by detecting language and converting keyboard layout
  */
 export function normalizeInput(text: string, autoCorrect: boolean = config.autoCorrect): string {
-
-export function normalizeInput(
-  text: string,
-  autoCorrect: boolean = config.autoCorrect
-): string {
   if (!text) {
     return text;
   }
@@ -397,11 +352,6 @@ export function normalizeInputForAPI(
  * This middleware normalizes the user's input before it reaches the agent
  */
 export async function languageDetectionMiddleware(context: AgentContext, next: NextFunction) {
-
-export async function languageDetectionMiddleware(
-  context: AgentContext,
-  next: NextFunction
-) {
   // Normalize the user's input
   if (context.input && typeof context.input === 'string') {
     context.input = normalizeInput(context.input);
@@ -421,10 +371,6 @@ export async function languageDetectionMiddleware(
  * Configure the language detection middleware
  */
 export function configureLanguageDetection(options: Partial<LanguageDetectionConfig> = {}): void {
-
-export function configureLanguageDetection(
-  options: Partial<LanguageDetectionConfig> = {}
-): void {
   config = {
     ...config,
     ...options,

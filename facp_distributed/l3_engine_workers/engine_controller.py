@@ -512,7 +512,7 @@ class DistributedEngineController(EngineController):
             local_load = len(self.active_tasks) / (self.pool_size * 5)  # Assuming 5 max concurrent per worker
             cluster_avg_load = self._get_cluster_average_load()
             return local_load <= cluster_avg_load
-        if self.task_distribution_policy == "remote_only":
+        if self.task_distribution_policy == "remote_only":  # noqa: SIM103
             return False  # Always forward to other nodes
         return True
 

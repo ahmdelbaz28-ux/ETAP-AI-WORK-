@@ -350,7 +350,7 @@ class TestSafetyMaximized:
     def test_safety_maximized_uses_reduced_spacing(self):
         """SAFETY_MAXIMIZED_SPACING_FACTOR must be < 1.0 (reduced spacing)."""
         assert SAFETY_MAXIMIZED_SPACING_FACTOR < 1.0
-        assert SAFETY_MAXIMIZED_SPACING_FACTOR == pytest.approx(0.85)
+        assert pytest.approx(0.85) == SAFETY_MAXIMIZED_SPACING_FACTOR
 
     def test_safety_maximized_produces_layout(self, sequential_agent, small_office):
         """Safety-Maximized variant must produce a valid DetectorLayout."""

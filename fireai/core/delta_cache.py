@@ -204,7 +204,7 @@ class _LRUCache:
         copied under the lock.
         """
         with self._lock:
-            return [(k, v) for k, v in self._data.items()]
+            return list(self._data.items())
 
 
 # ---------------------------------------------------------------------------

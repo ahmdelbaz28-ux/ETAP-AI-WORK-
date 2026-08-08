@@ -150,7 +150,7 @@ def validate_secret(secret: str, source: str = "unknown") -> None:
 def _read_secret_from_file(filepath: str) -> str:
     """Read a secret from a file (Docker/K8s secret mount)."""
     try:
-        with open(filepath, "r", encoding="utf-8") as f:
+        with open(filepath, encoding="utf-8") as f:
             # Strip whitespace/newlines — secret files often have trailing newline
             return f.read().strip()
     except FileNotFoundError:

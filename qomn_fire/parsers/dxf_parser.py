@@ -503,7 +503,7 @@ class DxfParser:
             raise ValueError(
                 f"Cannot read DXF file for height extraction: {e}. "
                 f"Room height must be specified manually."
-            )
+            ) from None
 
         lines = content.split("\n")
 

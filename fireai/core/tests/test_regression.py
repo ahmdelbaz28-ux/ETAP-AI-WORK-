@@ -382,12 +382,12 @@ class TestV130SmokeFlatSpacing:
     def test_constants_smoke_max_spacing_is_9_1(self) -> None:
         """Canonical SSoT: SMOKE_MAX_SPACING_M == 9.1."""
         from fireai.constants.nfpa72 import SMOKE_MAX_SPACING_M
-        assert SMOKE_MAX_SPACING_M == pytest.approx(9.1)
+        assert pytest.approx(9.1) == SMOKE_MAX_SPACING_M
 
     def test_constants_smoke_coverage_radius(self) -> None:
         """Smoke coverage radius = 0.7 × 9.1 = 6.37m."""
         from fireai.constants.nfpa72 import SMOKE_COVERAGE_RADIUS_M
-        assert SMOKE_COVERAGE_RADIUS_M == pytest.approx(6.37)
+        assert pytest.approx(6.37) == SMOKE_COVERAGE_RADIUS_M
 
     def test_constants_smoke_height_table_all_flat(self) -> None:
         """Every entry in SMOKE_HEIGHT_SPACING_TABLE must be 9.1m."""
@@ -418,7 +418,7 @@ class TestV130SmokeFlatSpacing:
     def test_constants_smoke_fallback_is_9_1(self) -> None:
         """SMOKE_SPACING_FALLBACK_M must be 9.1m."""
         from fireai.constants.nfpa72 import SMOKE_SPACING_FALLBACK_M
-        assert SMOKE_SPACING_FALLBACK_M == pytest.approx(9.1)
+        assert pytest.approx(9.1) == SMOKE_SPACING_FALLBACK_M
 
     def test_get_detector_spacing_smoke_at_low_ceiling(self) -> None:
         """Smoke spacing at 3m ceiling should be from table."""

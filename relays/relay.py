@@ -8,15 +8,13 @@ max multiplier, instantaneous override) are always enforced.
 
 from __future__ import annotations
 
-from typing import Optional
-
 import numpy as np
 
 from curves.curves import (
-    IEC60255Curves,
-    calculate_iec_operating_time,
     MAX_MULTIPLIER_OF_PICKUP,
     MIN_OPERATING_TIME_S,
+    IEC60255Curves,
+    calculate_iec_operating_time,
 )
 
 

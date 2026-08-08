@@ -65,7 +65,7 @@ def _validate_path_safety(path: Path, allowed_root: str) -> Path:
         raise RuntimeError(
             f"Path traversal detected: {resolved} is outside {allowed}. "
             "Aborting to prevent unsafe file write."
-        )
+        ) from None
     return resolved
 
 

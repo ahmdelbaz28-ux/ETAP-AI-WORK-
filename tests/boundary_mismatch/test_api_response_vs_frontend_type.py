@@ -113,9 +113,9 @@ def test_chatwithagent_casing_consistency():
                 snake_case_keys.append(k)
 
     if camel_case_keys and snake_case_keys:
-        print(f"\n[BOUNDARY MISMATCH] Inconsistent casing in api.ts request bodies:")
+        print("\n[BOUNDARY MISMATCH] Inconsistent casing in api.ts request bodies:")
         print(f"  camelCase keys: {camel_case_keys}")
         print(f"  snake_case keys: {snake_case_keys}")
-        print(f"  Recommendation: pick one convention (snake_case for Python backend)")
+        print("  Recommendation: pick one convention (snake_case for Python backend)")
     else:
         print("✓ Casing is consistent in api.ts request bodies")

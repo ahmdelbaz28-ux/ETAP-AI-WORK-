@@ -16,6 +16,7 @@ This test file:
 """
 import os
 import sys
+
 import pytest
 
 # Set auth-enabled environment BEFORE conftest's setup_test_environment runs.
@@ -44,6 +45,7 @@ def _keep_auth_enabled(monkeypatch):
 def auth_client():
     """Create a TestClient with auth ENABLED + DB initialized."""
     import asyncio
+
     from api.database import Base, engine
 
     async def _init_db():
@@ -53,6 +55,7 @@ def auth_client():
     asyncio.run(_init_db())
 
     from starlette.testclient import TestClient
+
     from api.routes import app
     client = TestClient(app)
     yield client

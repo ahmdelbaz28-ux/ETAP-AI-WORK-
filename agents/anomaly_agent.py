@@ -21,15 +21,10 @@ Standards:
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
-
-UTC = timezone.utc  # noqa: UP017
+from datetime import UTC, datetime
 from typing import Any, Optional, Union
 
-from datetime import UTC, datetime
-
 UTC = UTC
-from typing import Any, Dict, List
 
 import numpy as np
 
@@ -682,10 +677,7 @@ class AnomalyAgent(BaseAgent):
             if method in ("ml", "full"):
                 ml_method = task.parameters.get("ml_method", "iforest")
                 contamination = float(task.parameters.get("contamination", 0.05))
-                if data.ndim == 1:
-                    ml_data = data.reshape(-1, 1)
-                else:
-                    ml_data = data
+                ml_data = data.reshape(-1, 1) if data.ndim == 1 else data
                 results["ml_anomaly"] = self.detect_ml_anomaly(
                     data=ml_data,
                     method=ml_method,

@@ -23,6 +23,7 @@ applied via batch mode (table recreation behind the scenes).
 from __future__ import annotations
 
 import sqlalchemy as sa
+
 from alembic import op
 
 # ---------------------------------------------------------------------------
