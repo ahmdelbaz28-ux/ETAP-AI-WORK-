@@ -114,7 +114,7 @@ unfixable = []
 
 [lint.per-file-ignores]
 "__init__.py" = ["F401", "E402"]
-"tests/**" = ["F401", "F841", "E741", "S101", "B017", "T201", "SIM103", "SIM118", "N999"]  # T201: tests use print() for debug output
+"tests/**" = ["F401", "F841", "E741", "S101", "B017", "T201", "SIM103", "SIM118"]  # T201: tests use print() for debug output
 "tests/property_based/**" = ["S101", "N802", "N803"]
 "validation_*.py" = ["F401", "F841"]
 "docs/demos/**" = ["E501", "F821", "T201"]  # T201: notebook demos use print() for output display
