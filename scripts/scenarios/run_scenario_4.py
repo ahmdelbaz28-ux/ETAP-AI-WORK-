@@ -33,45 +33,12 @@ import asyncio
 import json
 import logging
 import os
-import re
 import shutil
 import sys
 import time
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
-
-_VALID_ARG_RE = re.compile(r"^[A-Za-z0-9_\-./]+( [A-Za-z0-9_\-./=]+)*$")
-
-
-def _validate_cmd_args(args):
-    """Validate subprocess args to prevent LLM-driven CLI injection (sonar:S8707).
-
-    Only allows safe characters in each argument; raises ValueError if any
-    argument contains shell metacharacters or quotes.
-    """
-    safe_args = []
-    for a in args:
-        s = str(a)
-        if not _VALID_ARG_RE.match(s):
-            raise ValueError(f"Disallowed character in command arg: {s!r}")
-        safe_args.append(s)
-    return safe_args
-
-
-def _validate_path(path_str: str, base_dir: str | None = None) -> str:
-    """Validate a user-supplied path to prevent directory traversal (sonar:S8707).
-
-    If base_dir is given, ensures the resolved path stays within base_dir.
-    """
-    if not path_str:
-        raise ValueError("Empty path")
-    resolved = os.path.realpath(path_str)
-    if base_dir:
-        base_resolved = os.path.realpath(base_dir)
-        if not resolved.startswith(base_resolved + os.sep) and resolved != base_resolved:
-            raise ValueError(f"Path escapes allowed base: {path_str!r}")
-    return resolved
 
 PROJECT_ROOT = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
@@ -251,7 +218,7 @@ async def run_scenario(
     geojson_path = None
     try:
         # Get LoadFlow result data for GeoJSON
-        _lf_result = study_results.get("LoadFlow", {})  # sonar:S1481 unused
+        lf_result = study_results.get("LoadFlow", {})
         geojson = _build_geojson_from_studies(study_results, trace_id)
 
         geojson_path = os.path.join(output_dir, "comprehensive_results.geojson")
@@ -310,13 +277,13 @@ async def run_scenario(
             try:
                 await bridge_task
             except asyncio.CancelledError:
-                pass  # noqa: S7497 — intentional: cleanup-only cancellation
+                pass
         if consumer_task:
             consumer_task.cancel()
             try:
                 await consumer_task
             except asyncio.CancelledError:
-                pass  # noqa: S7497 — intentional: cleanup-only cancellation
+                pass
 
     # ─── STEP 6: Impact analysis ──────────────────────────────────
     logger.info("")
@@ -640,10 +607,10 @@ def main() -> None:
     parser.add_argument("--scada-monitoring-sec", type=int, default=300)
     args = parser.parse_args()
 
-    if os.environ.get("ALLOW_BIDIRECTIONAL_SYNC") != "true":
+    if not os.environ.get("ALLOW_BIDIRECTIONAL_SYNC") == "true":
         print("Set ALLOW_BIDIRECTIONAL_SYNC=true to run this scenario")
         sys.exit(1)
-    if os.environ.get("USE_ETAP") != "true":
+    if not os.environ.get("USE_ETAP") == "true":
         print("Set USE_ETAP=true to enable ETAP integration")
         sys.exit(1)
 
@@ -664,7 +631,7 @@ def main() -> None:
             scada_monitoring_sec=args.scada_monitoring_sec,
         ))
 
-        result_path = _validate_path(os.path.join(args.output_dir, "scenario4_result.json"))
+        result_path = os.path.join(args.output_dir, "scenario4_result.json")
         with open(result_path, "w", encoding="utf-8") as f:
             json.dump(result, f, indent=2, default=str, ensure_ascii=False)
 

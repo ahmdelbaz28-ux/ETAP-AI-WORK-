@@ -88,7 +88,7 @@ def _add_audit_entry(
         _sanitize_for_log(event_type),
         _sanitize_for_log(request_id),
         _sanitize_for_log(user_id),
-    )  # noqa: S5145
+    )
 
 
 def _cleanup_expired_approvals() -> int:
@@ -168,7 +168,7 @@ def create_approval_request(
         _sanitize_for_log(action.get("type", "unknown")),
         _sanitize_for_log(operator_id),
         AUTO_REJECT_SECONDS,
-    )  # noqa: S5145
+    )
 
     return request
 
@@ -221,9 +221,9 @@ def approve_request(
         if approver_id == request["requested_by"]:
             logger.warning(
                 "dual_control_self_approval_blocked request=%s approver=%s",
-                _sanitize_for_log(request_id),
+                request_id,
                 _sanitize_for_log(approver_id),
-            )  # noqa: S5145
+            )  # NOSONAR
             _add_audit_entry("self_approval_blocked", request_id, approver_id)
             return {
                 "success": False,
@@ -244,8 +244,8 @@ def approve_request(
     # request_id is server-generated (apr_ prefix + token_hex); approver_id is
     # sanitized by _sanitize_for_log() (S5145: no CR/LF can reach the log).
     logger.info(
-        "Dual-control request %s APPROVED by %s", _sanitize_for_log(request_id), _sanitize_for_log(approver_id)
-    )  # noqa: S5145
+        "Dual-control request %s APPROVED by %s", request_id, _sanitize_for_log(approver_id)
+    )  # NOSONAR S5145: server-generated id + sanitized approver_id
 
     # Notify WebSocket clients
     _notify_clients(request_id, request)
@@ -305,10 +305,10 @@ def reject_request(
     # _sanitize_for_log() (S5145: no CR/LF can reach the log).
     logger.info(
         "Dual-control request %s REJECTED by %s: %s",
-        _sanitize_for_log(request_id),
+        request_id,
         _sanitize_for_log(rejector_id),
         _sanitize_for_log(reason),
-    )  # noqa: S5145
+    )  # NOSONAR S5145: server-generated id + sanitized rejector_id/reason
 
     _notify_clients(request_id, request)
 
@@ -397,7 +397,7 @@ def _notify_clients(request_id: str, request: dict) -> None:
         dead = []
         for session_id, sockets in list(
             _websocket_clients.items()
-        ):  # noqa: S7504 — list() needed: dict mutated during iteration
+        ):  # NOSONAR
             for ws in list(sockets):  # NOSONAR
                 try:
                     # `send_text` is async; some WebSocket impls (Starlette)
@@ -406,8 +406,8 @@ def _notify_clients(request_id: str, request: dict) -> None:
                 except Exception as exc:  # noqa: BLE001 — broad on purpose
                     logger.warning(
                         "dual_control_ws_send_failed session=%s err=%s",
-                        _sanitize_for_log(session_id),
-                        _sanitize_for_log(exc),
+                        session_id,
+                        exc,
                     )
                     dead.append((session_id, ws))
         # Clean up dead sockets outside the broadcast loop

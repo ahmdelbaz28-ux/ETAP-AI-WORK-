@@ -773,31 +773,31 @@ class TestAuthentication:
         """A connection without an API key is rejected with code 1008."""
         from starlette.websockets import WebSocketDisconnect
 
-        # Server rejects at handshake (closes without accepting), so the
-        # WebSocketDisconnect originates from the connect call itself.
-        ws_ctx = auth_client.websocket_connect(WS_PATH)
-        with pytest.raises(WebSocketDisconnect):
-            ws_ctx.__enter__()
+        with pytest.raises(
+            WebSocketDisconnect
+        ):  # NOSONAR The server should close the connection immediately
+            with auth_client.websocket_connect(WS_PATH) as ws:
+                ws.receive_json()
 
     def test_wrong_api_key_rejected(self, auth_client: TestClient):
         """A connection with an incorrect API key is rejected."""
         from starlette.websockets import WebSocketDisconnect
 
-        # Server rejects at handshake (closes without accepting), so the
-        # WebSocketDisconnect originates from the connect call itself.
-        ws_ctx = auth_client.websocket_connect(WS_PATH, headers={"x-api-key": "wrong-key"})
-        with pytest.raises(WebSocketDisconnect):
-            ws_ctx.__enter__()
+        with pytest.raises(
+            WebSocketDisconnect
+        ):  # NOSONAR
+            with auth_client.websocket_connect(WS_PATH, headers={"x-api-key": "wrong-key"}) as ws:
+                ws.receive_json()  # NOSONAR S5778: test asserts specific exception type from a single logical operation; refactoring would obscure test intent
 
     def test_empty_api_key_rejected(self, auth_client: TestClient):
         """An empty ``x-api-key`` header is treated as missing."""
         from starlette.websockets import WebSocketDisconnect
 
-        # Server rejects at handshake (closes without accepting), so the
-        # WebSocketDisconnect originates from the connect call itself.
-        ws_ctx = auth_client.websocket_connect(WS_PATH, headers={"x-api-key": ""})
-        with pytest.raises(WebSocketDisconnect):
-            ws_ctx.__enter__()
+        with pytest.raises(
+            WebSocketDisconnect
+        ):  # NOSONAR
+            with auth_client.websocket_connect(WS_PATH, headers={"x-api-key": ""}) as ws:
+                ws.receive_json()
 
 
 # NOSONAR S5778: test asserts specific exception type from a single logical operation; refactoring would obscure test intent

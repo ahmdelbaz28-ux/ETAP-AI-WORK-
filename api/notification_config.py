@@ -43,21 +43,6 @@ from pydantic import BaseModel, Field, HttpUrl, field_validator
 
 from api.dependencies import get_api_key
 
-_SAFE_LOG_RE = re.compile(r"[\x00-\x1f\x7f]")
-
-
-def _sanitize_for_log(value: object, max_len: int = 200) -> str:
-    """Sanitize user-controlled input before writing to logs.
-
-    Strips control characters (prevents log injection / CRLF spoofing) and
-    truncates to a sensible length so an attacker cannot flood log storage.
-    """
-    if value is None:
-        return "None"
-    s = _SAFE_LOG_RE.sub("_", str(value))
-    if len(s) > max_len:
-        s = s[:max_len] + "...[truncated]"
-    return s
 logger = logging.getLogger("etap.api.notification_config")
 
 # ---------------------------------------------------------------------------
@@ -329,6 +314,7 @@ def _current_config_response() -> NotificationConfigResponse:
 
 @router.get(
     "/",
+    response_model=NotificationConfigResponse,
     summary="Retrieve current notification configuration",
 )
 async def get_notification_config() -> NotificationConfigResponse:
@@ -339,6 +325,7 @@ async def get_notification_config() -> NotificationConfigResponse:
 
 @router.put(
     "/",
+    response_model=NotificationConfigResponse,
     summary="Update notification configuration (partial update)",
 )
 async def update_notification_config(
@@ -351,7 +338,7 @@ async def update_notification_config(
     """
     if body.digest is not None:
         _store["digest"].update(body.digest.model_dump())
-        logger.info("digest_config_updated new_config=%s", _sanitize_for_log(body.digest.model_dump()))
+        logger.info("digest_config_updated new_config=%s", body.digest.model_dump())
 
     if body.alerts is not None:
         for alert_cfg in body.alerts:
@@ -368,6 +355,7 @@ async def update_notification_config(
 
 @router.get(
     "/digest",
+    response_model=DigestScheduleConfig,
     summary="Get digest schedule configuration",
 )
 async def get_digest_config() -> DigestScheduleConfig:
@@ -377,6 +365,7 @@ async def get_digest_config() -> DigestScheduleConfig:
 
 @router.put(
     "/digest",
+    response_model=DigestScheduleConfig,
     summary="Update digest schedule",
 )
 async def update_digest_config(
@@ -387,7 +376,7 @@ async def update_digest_config(
     All fields of the digest schedule are replaced with the provided values.
     """
     _store["digest"].update(body.model_dump())
-    logger.info("digest_schedule_updated config=%s", _sanitize_for_log(body.model_dump()))
+    logger.info("digest_schedule_updated config=%s", body.model_dump())
     return DigestScheduleConfig(**_store["digest"])
 
 
@@ -398,6 +387,7 @@ async def update_digest_config(
 
 @router.get(
     "/alerts",
+    response_model=List[AlertTypeConfig],
     summary="List all alert type configurations",
 )
 async def list_alert_configs() -> List[AlertTypeConfig]:
@@ -407,6 +397,7 @@ async def list_alert_configs() -> List[AlertTypeConfig]:
 
 @router.put(
     "/alerts/{alert_type}",
+    response_model=AlertTypeConfig,
     summary="Toggle / update a specific alert type",
 )
 async def update_alert_config(
@@ -431,7 +422,7 @@ async def update_alert_config(
         )
 
     _store["alerts"][alert_type] = body.model_dump()
-    logger.info("alert_config_updated alert_type=%s config=%s", _sanitize_for_log(alert_type), _sanitize_for_log(body.model_dump()))
+    logger.info("alert_config_updated alert_type=%s config=%s", alert_type, body.model_dump())
     return AlertTypeConfig(**_store["alerts"][alert_type])
 
 
@@ -442,6 +433,7 @@ async def update_alert_config(
 
 @router.get(
     "/webhooks",
+    response_model=List[WebhookResponse],
     summary="List registered webhooks",
 )
 async def list_webhooks() -> List[WebhookResponse]:
@@ -451,6 +443,7 @@ async def list_webhooks() -> List[WebhookResponse]:
 
 @router.post(
     "/webhooks",
+    response_model=WebhookResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Register a new webhook",
 )
@@ -479,9 +472,9 @@ async def create_webhook(
     _store["webhooks"][webhook_id] = webhook_data
     logger.info(
         "webhook_created id=%s url=%s events=%s",
-        _sanitize_for_log(webhook_id),
-        _sanitize_for_log(body.url),
-        _sanitize_for_log(body.events),
+        webhook_id,
+        body.url,
+        body.events,
     )
     return _webhook_to_response(webhook_data)
 
@@ -505,7 +498,7 @@ async def delete_webhook(
         )
 
     del _store["webhooks"][webhook_id]
-    logger.info("webhook_deleted id=%s", _sanitize_for_log(webhook_id))
+    logger.info("webhook_deleted id=%s", webhook_id)
 
 
 __all__ = ["router"]

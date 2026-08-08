@@ -22,42 +22,9 @@ from __future__ import annotations
 import argparse
 import logging
 import os
-import re
 import sys
 import time
 from pathlib import Path
-
-_VALID_ARG_RE = re.compile(r"^[A-Za-z0-9_\-./]+( [A-Za-z0-9_\-./=]+)*$")
-
-
-def _validate_cmd_args(args):
-    """Validate subprocess args to prevent LLM-driven CLI injection (sonar:S8707).
-
-    Only allows safe characters in each argument; raises ValueError if any
-    argument contains shell metacharacters or quotes.
-    """
-    safe_args = []
-    for a in args:
-        s = str(a)
-        if not _VALID_ARG_RE.match(s):
-            raise ValueError(f"Disallowed character in command arg: {s!r}")
-        safe_args.append(s)
-    return safe_args
-
-
-def _validate_path(path_str: str, base_dir: str | None = None) -> str:
-    """Validate a user-supplied path to prevent directory traversal (sonar:S8707).
-
-    If base_dir is given, ensures the resolved path stays within base_dir.
-    """
-    if not path_str:
-        raise ValueError("Empty path")
-    resolved = os.path.realpath(path_str)
-    if base_dir:
-        base_resolved = os.path.realpath(base_dir)
-        if not resolved.startswith(base_resolved + os.sep) and resolved != base_resolved:
-            raise ValueError(f"Path escapes allowed base: {path_str!r}")
-    return resolved
 
 logging.basicConfig(
     level=logging.INFO,

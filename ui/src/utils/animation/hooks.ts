@@ -1,3 +1,10 @@
+// Secure pseudorandom helper using Web Crypto CSPRNG (sonar:S2245).
+export function secureRandom(): number {
+  const a = new Uint32Array(1);
+  crypto.getRandomValues(a);
+  return a[0] / 4294967296;
+}
+
 // AhmedETAP GSAP React Hooks
 // ===========================
 // Custom React hooks for seamless GSAP integration with React components
@@ -5,14 +12,6 @@
 import { gsap } from "gsap";
 import { useEffect, useRef, useState } from "react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-
-// Secure pseudorandom helper (Web Crypto CSPRNG).
-// Animation-only usage, routed through CSPRNG to satisfy typescript:S2245.
-function secureRandom(): number {
-  const a = new Uint32Array(1);
-  crypto.getRandomValues(a);
-  return a[0] / 4294967296;
-}
 
 // Type helpers for GSAP - avoid self-referencing type annotation issues
 type GSAPAnimation = gsap.core.Animation | gsap.core.Animation[];
@@ -283,7 +282,6 @@ export function useGSAPParticleSystem(canvasRef: React.RefObject<HTMLCanvasEleme
     // Create particles
     const particles: Particle[] = [];
     for (let i = 0; i < particleCount; i++) {
-      const angle = secureRandom() * Math.PI * 2;
       particles.push({
         x: secureRandom() * canvas.width,
         y: secureRandom() * canvas.height,
@@ -291,10 +289,10 @@ export function useGSAPParticleSystem(canvasRef: React.RefObject<HTMLCanvasEleme
         baseX: secureRandom() * canvas.width,
         baseY: secureRandom() * canvas.height,
         speed: particleSpeed * (secureRandom() * 0.5 + 0.5),
-        directionAngle: angle,
+        directionAngle: secureRandom() * Math.PI * 2,
         velocity: {
-          x: Math.cos(angle) * particleSpeed,
-          y: Math.sin(angle) * particleSpeed
+          x: Math.cos(secureRandom() * Math.PI * 2) * particleSpeed,
+          y: Math.sin(secureRandom() * Math.PI * 2) * particleSpeed
         }
       });
     }
@@ -329,7 +327,7 @@ export function useGSAPParticleSystem(canvasRef: React.RefObject<HTMLCanvasEleme
           for (let j = i + 1; j < particles.length; j++) {
             const dx = particles[i].x - particles[j].x;
             const dy = particles[i].y - particles[j].y;
-            const distance = Math.hypot(dx, dy);
+            const distance = Math.sqrt(dx * dx + dy * dy);
 
             if (distance < connectionDistance) {
               ctx.beginPath();

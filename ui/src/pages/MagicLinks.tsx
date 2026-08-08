@@ -401,17 +401,17 @@ function RequestTab({
           subtitle={t("adminPages.magicLinks.request.resultSubtitle")}
         />
         <CardSection className="p-4">
-          {(() => {
-            if (loading) return <LoadingRow label={t("adminPages.magicLinks.request.loading")} />;
-            if (result) return <RequestResultCard result={result} />;
-            return (
-              <EmptyState
-                icon={<Mail className="w-5 h-5 text-zinc-500" />}
-                title={t("adminPages.magicLinks.request.emptyTitle")}
-                description={t("adminPages.magicLinks.request.emptyDescription")}
-              />
-            );
-          })()}
+          {loading ? (
+            <LoadingRow label={t("adminPages.magicLinks.request.loading")} />
+          ) : result ? (
+            <RequestResultCard result={result} />
+          ) : (
+            <EmptyState
+              icon={<Mail className="w-5 h-5 text-zinc-500" />}
+              title={t("adminPages.magicLinks.request.emptyTitle")}
+              description={t("adminPages.magicLinks.request.emptyDescription")}
+            />
+          )}
         </CardSection>
       </Card>
     </div>
@@ -541,17 +541,17 @@ function VerifyTab({
           subtitle={t("adminPages.magicLinks.verify.resultSubtitle")}
         />
         <CardSection className="p-4">
-          {(() => {
-            if (loading) return <LoadingRow label={t("adminPages.magicLinks.verify.loading")} />;
-            if (result) return <VerifyResultCard result={result} />;
-            return (
-              <EmptyState
-                icon={<ShieldCheck className="w-5 h-5 text-zinc-500" />}
-                title={t("adminPages.magicLinks.verify.emptyTitle")}
-                description={t("adminPages.magicLinks.verify.emptyDescription")}
-              />
-            );
-          })()}
+          {loading ? (
+            <LoadingRow label={t("adminPages.magicLinks.verify.loading")} />
+          ) : result ? (
+            <VerifyResultCard result={result} />
+          ) : (
+            <EmptyState
+              icon={<ShieldCheck className="w-5 h-5 text-zinc-500" />}
+              title={t("adminPages.magicLinks.verify.emptyTitle")}
+              description={t("adminPages.magicLinks.verify.emptyDescription")}
+            />
+          )}
         </CardSection>
       </Card>
     </div>
@@ -680,17 +680,17 @@ function InvalidateTab({
           subtitle={t("adminPages.magicLinks.invalidate.resultSubtitle")}
         />
         <CardSection className="p-4">
-          {(() => {
-            if (loading) return <LoadingRow label={t("adminPages.magicLinks.invalidate.loading")} />;
-            if (result) return <InvalidateResultCard result={result} />;
-            return (
-              <EmptyState
-                icon={<Ban className="w-5 h-5 text-zinc-500" />}
-                title={t("adminPages.magicLinks.invalidate.emptyTitle")}
-                description={t("adminPages.magicLinks.invalidate.emptyDescription")}
-              />
-            );
-          })()}
+          {loading ? (
+            <LoadingRow label={t("adminPages.magicLinks.invalidate.loading")} />
+          ) : result ? (
+            <InvalidateResultCard result={result} />
+          ) : (
+            <EmptyState
+              icon={<Ban className="w-5 h-5 text-zinc-500" />}
+              title={t("adminPages.magicLinks.invalidate.emptyTitle")}
+              description={t("adminPages.magicLinks.invalidate.emptyDescription")}
+            />
+          )}
         </CardSection>
       </Card>
     </div>

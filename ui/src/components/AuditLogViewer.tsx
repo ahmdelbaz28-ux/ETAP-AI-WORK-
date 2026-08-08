@@ -84,14 +84,14 @@ export default function AuditLogViewer() {
       const response: AuditLogResponse = {
         entries: Array.isArray(data.entries ?? data)
           ? (data.entries ?? data).map((e: Record<string, unknown>) => ({
-              id: typeof e.id === "string" ? e.id : crypto.randomUUID(),
-              timestamp: typeof e.timestamp === "string" ? e.timestamp : new Date().toISOString(),
-              user: typeof e.user === "string" ? e.user : "—",
-              action: typeof e.action === "string" ? e.action : "—",
-              resource: typeof e.resource === "string" ? e.resource : "—",
+              id: String(e.id ?? crypto.randomUUID()),
+              timestamp: String(e.timestamp ?? new Date().toISOString()),
+              user: String(e.user ?? "—"),
+              action: String(e.action ?? "—"),
+              resource: String(e.resource ?? "—"),
               severity: (e.severity as Severity) ?? "info",
-              details: typeof e.details === "string" ? e.details : "",
-              ip_address: typeof e.ip_address === "string" ? e.ip_address : "—",
+              details: String(e.details ?? ""),
+              ip_address: String(e.ip_address ?? "—"),
             }))
           : [],
         total: Number(data.total ?? (Array.isArray(data) ? data.length : 0)),
@@ -121,7 +121,7 @@ export default function AuditLogViewer() {
       log.action,
       log.resource,
       log.severity,
-      `"${log.details.replaceAll('"', '""')}"`,
+      `"${log.details.replace(/"/g, '""')}"`,
       log.ip_address,
     ]);
 
@@ -206,11 +206,10 @@ export default function AuditLogViewer() {
           <div className="flex flex-wrap items-end gap-4">
             {/* Search */}
             <div className="flex-1 min-w-[200px]">
-              <label htmlFor="audit-search" className="block text-xs font-medium text-[var(--text-tertiary)] mb-1.5">Search</label>
+              <label className="block text-xs font-medium text-[var(--text-tertiary)] mb-1.5">Search</label>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
                 <input
-                  id="audit-search"
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
@@ -223,9 +222,8 @@ export default function AuditLogViewer() {
 
             {/* Severity filter */}
             <div className="min-w-[140px]">
-              <label htmlFor="audit-severity" className="block text-xs font-medium text-[var(--text-tertiary)] mb-1.5">Severity</label>
+              <label className="block text-xs font-medium text-[var(--text-tertiary)] mb-1.5">Severity</label>
               <select
-                id="audit-severity"
                 value={severityFilter}
                 onChange={(e) => { setSeverityFilter(e.target.value as Severity | "all"); setPage(1); }}
                 className="w-full px-3 py-2 rounded-lg bg-[var(--bg-primary)] border border-[var(--border-primary)] text-sm text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
@@ -240,9 +238,8 @@ export default function AuditLogViewer() {
 
             {/* Action filter */}
             <div className="min-w-[140px]">
-              <label htmlFor="audit-action" className="block text-xs font-medium text-[var(--text-tertiary)] mb-1.5">Action</label>
+              <label className="block text-xs font-medium text-[var(--text-tertiary)] mb-1.5">Action</label>
               <input
-                id="audit-action"
                 type="text"
                 value={actionFilter}
                 onChange={(e) => setActionFilter(e.target.value)}
@@ -254,9 +251,8 @@ export default function AuditLogViewer() {
 
             {/* User filter */}
             <div className="min-w-[140px]">
-              <label htmlFor="audit-user" className="block text-xs font-medium text-[var(--text-tertiary)] mb-1.5">User</label>
+              <label className="block text-xs font-medium text-[var(--text-tertiary)] mb-1.5">User</label>
               <input
-                id="audit-user"
                 type="text"
                 value={userFilter}
                 onChange={(e) => setUserFilter(e.target.value)}

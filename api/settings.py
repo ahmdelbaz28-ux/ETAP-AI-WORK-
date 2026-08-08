@@ -67,15 +67,12 @@ from pydantic import BaseModel, Field
 from api.dependencies import get_api_key
 from services.api_key_store import APIKeyStore, api_key_store
 
-_SAFE_LOG_RE = re.compile(r"[\x00-\x1f\x7f]")
+import re as _re_for_log
+_SAFE_LOG_RE = _re_for_log.compile(r"[\x00-\x1f\x7f]")
 
 
 def _sanitize_for_log(value: object, max_len: int = 200) -> str:
-    """Sanitize user-controlled input before writing to logs.
-
-    Strips control characters (prevents log injection / CRLF spoofing) and
-    truncates to a sensible length so an attacker cannot flood log storage.
-    """
+    """Sanitize user-controlled input before writing to logs."""
     if value is None:
         return "None"
     s = _SAFE_LOG_RE.sub("_", str(value))

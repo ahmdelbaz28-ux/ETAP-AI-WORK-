@@ -1259,7 +1259,7 @@ class ValidationAgent(BaseAgent):
         try:
             from copilot.ai.engineering_assertions import EngineeringAssertionLayer
 
-            _assertion_layer = EngineeringAssertionLayer()  # sonar:S1481 unused
+            assertion_layer = EngineeringAssertionLayer()
             opf_data = result.data.get("opf_results", result.data)
             generators = opf_data.get("generators", {})
             if generators:
@@ -1929,7 +1929,7 @@ class ChiefEngineeringOrchestrator:
             self.logger.warning("Guard review failed (non-blocking): %s", guard_err)
 
     async def _run_engineering_assertions(
-        self, task: EngineeringTask, results: list[AgentResult]
+        self, _task: EngineeringTask, results: list[AgentResult]
     ) -> None:
         """Phase 2.5: Run deterministic engineering assertions on all results.
 

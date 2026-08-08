@@ -116,7 +116,7 @@ const MOCK_SIEM_HEALTH = {
   data: {
     enabled: true,
     protocol: "file",
-    log_file: "/tmp/siem.log", // noqa: S5443 — test fixture
+    log_file: "/tmp/siem.log",
     events_forwarded: 42,
   },
 };
@@ -130,7 +130,7 @@ const MOCK_SIEM_EVENTS = {
       { event: "lethal_pattern_blocked", level: "warning", timestamp: "2026-08-04T09:50:00Z" },
     ],
     total: 3,
-    log_file: "/tmp/siem.log", // noqa: S5443 — test fixture
+    log_file: "/tmp/siem.log",
   },
 };
 
@@ -527,7 +527,7 @@ test.describe("Agents Control Panel page (TASK-5)", () => {
     await expect(siemTable.getByText("cua_action_executed")).toBeVisible();
     await expect(siemTable.getByText("lethal_pattern_blocked")).toBeVisible();
     // The syslog forwarder health JSON should show the log_file
-    await expect(page.getByText("/tmp/siem.log").first()).toBeVisible(); // noqa: S5443 — test fixture
+    await expect(page.getByText("/tmp/siem.log").first()).toBeVisible();
   });
 
   test("Orchestration: fill form + submit fires POST /ahmed-etap/orchestrate", async ({ page }) => {

@@ -42,7 +42,7 @@ if [[ -z "$BACKUP_FILE" ]]; then
 fi
 
 if [[ ! -f "$BACKUP_FILE" ]]; then
-    echo "ERROR: Backup file not found: $BACKUP_FILE" >&2  # noqa: S7677
+    echo "ERROR: Backup file not found: $BACKUP_FILE"
     exit 1
 fi
 
@@ -76,7 +76,7 @@ echo ""
 echo "[1/5] Verifying backup integrity..."
 if [[ "$BACKUP_FILE" == *.gz ]]; then
     if ! gzip -t "$BACKUP_FILE" 2>/dev/null; then
-        echo "ERROR: Backup file is corrupted (gzip integrity check failed)" >&2  # noqa: S7677
+        echo "ERROR: Backup file is corrupted (gzip integrity check failed)"
         exit 1
     fi
     BACKUP_SIZE=$(gzip -l "$BACKUP_FILE" | tail -1 | awk '{print $2}')
@@ -95,7 +95,7 @@ if [[ -f "$CHECKSUM_FILE" ]]; then
     EXPECTED=$(cat "$CHECKSUM_FILE" | awk '{print $1}')
     ACTUAL=$(sha256sum "$BACKUP_FILE" | awk '{print $1}')
     if [[ "$EXPECTED" != "$ACTUAL" ]]; then
-        echo "ERROR: Checksum mismatch! Expected: $EXPECTED, Got: $ACTUAL" >&2  # noqa: S7677
+        echo "ERROR: Checksum mismatch! Expected: $EXPECTED, Got: $ACTUAL"
         exit 1
     fi
     echo "  OK: Checksum verified"

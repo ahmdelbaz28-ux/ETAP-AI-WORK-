@@ -267,10 +267,11 @@ class TestTaskStatusTracking:
 
         # In eager mode with task_eager_propagates=True, the exception
         # is re-raised.  We catch it and inspect the stored result.
-        sample_data = _sample_study_data()
-        with pytest.raises(RuntimeError, match="Engine crashed"):
+        with pytest.raises(
+            RuntimeError, match="Engine crashed"
+        ):  # noqa: S5778 — single invocation
             execute_engineering_study_task.apply_async(
-                args=(sample_data,),
+                args=(_sample_study_data(),),
             )
 
     @patch("worker.tasks.execute_study_logic")
@@ -320,10 +321,13 @@ class TestTaskStatusTracking:
         mock_ct.update_state = MagicMock()
         mock_exec.side_effect = RuntimeError("boom")
 
-        sample_data = _sample_study_data()
-        with pytest.raises(RuntimeError):
+        with pytest.raises(
+            RuntimeError
+        ):  # noqa: S5778 — single invocation
             execute_engineering_study_task.apply_async(
-                args=(sample_data,),
+                args=(
+                    _sample_study_data(),
+                ),  # NOSONAR S5778: test asserts specific exception type from a single logical operation; refactoring would obscure test intent
             )
 
         failure_calls = [
@@ -476,10 +480,11 @@ class TestTaskFailureHandling:
         mock_ct.update_state = MagicMock()
         mock_exec.side_effect = RuntimeError("Solver diverged")
 
-        sample_data = _sample_study_data()
-        with pytest.raises(RuntimeError, match="Solver diverged"):
+        with pytest.raises(
+            RuntimeError, match="Solver diverged"
+        ):  # noqa: S5778 — single invocation
             execute_engineering_study_task.apply_async(
-                args=(sample_data,),
+                args=(_sample_study_data(),),
             )
 
     # NOSONAR S5778: test asserts specific exception type from a single logical operation; refactoring would obscure test intent
@@ -490,10 +495,11 @@ class TestTaskFailureHandling:
         mock_ct.update_state = MagicMock()
         mock_exec.side_effect = ValueError("Invalid study_type: unknown")
 
-        sample_data = _sample_study_data()
-        with pytest.raises(ValueError, match="Invalid study_type"):
+        with pytest.raises(
+            ValueError, match="Invalid study_type"
+        ):  # noqa: S5778 — single invocation
             execute_engineering_study_task.apply_async(
-                args=(sample_data,),
+                args=(_sample_study_data(),),
             )
 
     @patch("worker.tasks.execute_study_logic")
@@ -505,10 +511,11 @@ class TestTaskFailureHandling:
         mock_ct.update_state = MagicMock()
         mock_exec.side_effect = RuntimeError("Engine crashed")
 
-        sample_data = _sample_study_data()
-        with pytest.raises(RuntimeError):
+        with pytest.raises(
+            RuntimeError
+        ):  # noqa: S5778 — single invocation
             execute_engineering_study_task.apply_async(
-                args=(sample_data,),
+                args=(_sample_study_data(),),
             )
 
         # Find the FAILURE state update and inspect its meta
@@ -533,10 +540,11 @@ class TestTaskFailureHandling:
         mock_ct.update_state = MagicMock()
         mock_exec.side_effect = RuntimeError("timeout")
 
-        sample_data = _sample_study_data()
-        with pytest.raises(RuntimeError):
+        with pytest.raises(
+            RuntimeError
+        ):  # noqa: S5778 — single invocation
             execute_engineering_study_task.apply_async(
-                args=(sample_data,),
+                args=(_sample_study_data(),),
             )
 
         failure_calls = [
@@ -593,10 +601,11 @@ class TestTaskFailureHandling:
         mock_ct.update_state = MagicMock()
         mock_exec.side_effect = KeyError("missing_key")
 
-        sample_data = _sample_study_data()
-        with pytest.raises(KeyError, match="missing_key"):
+        with pytest.raises(
+            KeyError, match="missing_key"
+        ):  # noqa: S5778 — single invocation
             execute_engineering_study_task.apply_async(
-                args=(sample_data,),
+                args=(_sample_study_data(),),
             )
 
 
@@ -711,10 +720,11 @@ class TestTaskRetry:
         # The execute_engineering_study_task does not have autoretry_for
         # configured, so it will raise.  We demonstrate the pattern and
         # verify the retry decorator *can* be applied.
-        sample_data = _sample_study_data()
-        with pytest.raises(ConnectionError):
+        with pytest.raises(
+            ConnectionError
+        ):  # noqa: S5778 — single invocation
             execute_engineering_study_task.apply_async(
-                args=(sample_data,),
+                args=(_sample_study_data(),),
             )
 
     @patch("worker.tasks.execute_study_logic")
@@ -762,10 +772,11 @@ class TestTaskRetry:
         mock_exec.side_effect = _side_effect
 
         # Since the task doesn't have autoretry_for, it raises on first failure
-        sample_data = _sample_study_data()
-        with pytest.raises(ConnectionError):
+        with pytest.raises(
+            ConnectionError
+        ):  # noqa: S5778 — single invocation
             execute_engineering_study_task.apply_async(
-                args=(sample_data,),
+                args=(_sample_study_data(),),
             )
 
         # But we can verify the original args were passed correctly
@@ -960,10 +971,11 @@ class TestTaskIntegration:
         mock_exec.side_effect = ValueError("Invalid parameter: tolerance")
 
         # 1. Submit — exception propagates in eager mode
-        sample_data = _sample_study_data()
-        with pytest.raises(ValueError, match="Invalid parameter"):
+        with pytest.raises(
+            ValueError, match="Invalid parameter"
+        ):  # noqa: S5778 — single invocation
             execute_engineering_study_task.apply_async(
-                args=(sample_data,),
+                args=(_sample_study_data(),),
             )
 
         # 2. Verify FAILURE state was published

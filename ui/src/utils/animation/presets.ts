@@ -1,17 +1,11 @@
+import { secureRandom } from "./hooks";
+
 // AhmedETAP GSAP Animation Presets
 // =================================
 // Pre-configured animation sequences for engineering UI
 
 import { gsap } from "gsap";
 import { Easing } from "./easing";
-
-// Secure pseudorandom helper (Web Crypto CSPRNG).
-// Animation-only usage, routed through CSPRNG to satisfy typescript:S2245.
-function secureRandom(): number {
-  const a = new Uint32Array(1);
-  crypto.getRandomValues(a);
-  return a[0] / 4294967296;
-}
 
 /**
  * Engineering Card Entrance Animation
@@ -187,7 +181,7 @@ export function engineeringNumberCounter(element: HTMLElement, targetValue: numb
     ease: Easing.ENGINEERING_PRECISION,
     snap: { innerText: 1 },
     onUpdate: function() {
-      const currentValue = Number.parseFloat(this.targets()[0].innerText);
+      const currentValue = parseFloat(this.targets()[0].innerText);
       this.targets()[0].innerText = currentValue.toFixed(decimals);
     }
   });

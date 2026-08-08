@@ -93,10 +93,6 @@ async function verifyAuth(request, env, rayID) {
     const userData = await verifyResponse.json();
     return { authorized: true, user: userData };
   } catch (err) {
-    // Log the auth-service failure so operators can debug upstream outages.
-    // The user-facing response is intentionally generic (503) to avoid leaking
-    // internal error details.
-    console.error("[worker-r2] verifyAuth failed", rayID, err);
     return {
       authorized: false,
       response: jsonResponse(

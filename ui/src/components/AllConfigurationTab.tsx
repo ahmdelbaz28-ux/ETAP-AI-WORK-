@@ -682,7 +682,7 @@ export function AllConfigurationTab() {
   const categories: readonly (ConfigCategory | "all")[] = useMemo(() => {
     const present = new Set<ConfigCategory>();
     for (const e of CONFIG_CATALOG) present.add(e.category);
-    return ["all", ...Array.from(present).sort((a, b) => a.localeCompare(b))] as const;
+    return ["all", ...Array.from(present).sort()] as const;
   }, []);
 
   return (
@@ -765,11 +765,13 @@ export function AllConfigurationTab() {
       </div>
 
       <p className="text-xs text-[var(--text-tertiary)] mt-4 leading-relaxed">
-        <span>This tab is a discoverability surface, not an editor. Secret-classified keys never display their value — the Rotate button sends only the key name to </span>
+        This tab is a discoverability surface, not an editor. Secret-classified keys never display
+        their value — the Rotate button sends only the key name to
         <code className="mx-1 font-mono text-[var(--text-muted)]">
           POST {API_BASE_URL}/api/v1/settings/rotate
         </code>
-        <span> and the new value stays server-side. Non-secret values may be revealed on demand for debugging.</span>
+        and the new value stays server-side. Non-secret values may be revealed on demand for
+        debugging.
       </p>
     </Card>
   );

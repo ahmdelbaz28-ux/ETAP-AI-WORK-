@@ -272,7 +272,7 @@ def validate_agent_response(
     if agent_id == "fallback-agent":
         # Look for patterns like "X = 123.45 kA" or "result: 8.5 cal/cm²"
         # without a "REFUSE" or "cannot" disclaimer
-        numerical_pattern = r'\d+(?:\.\d+)?\s*(kA|MW|MVAr|cal/cm|pu|kV|mm|V|A|Ω|Hz)'  # noqa: S8786 — atomic non-capturing group
+        numerical_pattern = r'\d+\.?\d*\s*(kA|MW|MVAr|cal/cm|pu|kV|mm|V|A|Ω|Hz)'
         has_numerical = bool(re.search(numerical_pattern, response_text))
         has_refusal = bool(re.search(r'refuse|cannot|unable|not available|do not', response_text, re.IGNORECASE))
         if has_numerical and not has_refusal:

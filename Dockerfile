@@ -47,7 +47,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY hf-space/requirements.hf.txt /tmp/requirements.hf.txt
 RUN pip install --no-cache-dir --only-binary :all: --upgrade pip==25.0.1 && \
     pip install --no-cache-dir --only-binary :all: \
-        --requirement /tmp/requirements.hf.txt  # noqa: docker:S8544 — versions pinned in requirements.hf.txt
+        --requirement /tmp/requirements.hf.txt
 
 # Install Chromium for Playwright (BrowserCUAExecutor — headless CUA on HF Space).
 # On HF Spaces cpu-basic hardware, `--with-deps` can fail or exhaust disk.
