@@ -211,7 +211,8 @@ async function callOpenAICompatible(
       console.warn("Failed to read response text:", error);
       return "Unknown error";
     });
-    throw new Error(`${provider.name} API error ${res.status}: ${text.slice(0, 200)}`);
+    const redactedText = text.slice(0, 200).replace(/sk-[a-zA-Z0-9]+/g, "[REDACTED]");
+    throw new Error(`${provider.name} API error ${res.status}: ${redactedText}`);
   }
 
   const data = await res.json();
@@ -250,7 +251,8 @@ async function callAnthropic(
       console.warn("Failed to read Anthropic response text:", error);
       return "Unknown error";
     });
-    throw new Error(`${provider.name} API error ${res.status}: ${text.slice(0, 200)}`);
+    const redactedText = text.slice(0, 200).replace(/sk-[a-zA-Z0-9]+/g, "[REDACTED]");
+    throw new Error(`${provider.name} API error ${res.status}: ${redactedText}`);
   }
 
   const data = await res.json();
@@ -297,7 +299,8 @@ async function callGemini(messages: ChatMessage[], provider: ProviderConfig, sig
       console.warn("Failed to read Gemini response text:", error);
       return "Unknown error";
     });
-    throw new Error(`${provider.name} API error ${res.status}: ${text.slice(0, 200)}`);
+    const redactedText = text.slice(0, 200).replace(/sk-[a-zA-Z0-9]+/g, "[REDACTED]");
+    throw new Error(`${provider.name} API error ${res.status}: ${redactedText}`);
   }
 
   const data = await res.json();
@@ -325,7 +328,8 @@ async function callCloudflare(
       console.warn("Failed to read Cloudflare response text:", error);
       return "Unknown error";
     });
-    throw new Error(`${provider.name} API error ${res.status}: ${text.slice(0, 200)}`);
+    const redactedText = text.slice(0, 200).replace(/sk-[a-zA-Z0-9]+/g, "[REDACTED]");
+    throw new Error(`${provider.name} API error ${res.status}: ${redactedText}`);
   }
 
   const data = await res.json();
@@ -352,7 +356,8 @@ async function callCohere(messages: ChatMessage[], provider: ProviderConfig, sig
       console.warn("Failed to read Cohere response text:", error);
       return "Unknown error";
     });
-    throw new Error(`${provider.name} API error ${res.status}: ${text.slice(0, 200)}`);
+    const redactedText = text.slice(0, 200).replace(/sk-[a-zA-Z0-9]+/g, "[REDACTED]");
+    throw new Error(`${provider.name} API error ${res.status}: ${redactedText}`);
   }
 
   const data = await res.json();
@@ -683,7 +688,8 @@ async function* streamFromAnthropic(
       console.warn("Failed to read Anthropic stream response text:", error);
       return "Unknown error";
     });
-    throw new Error(`${provider.name} API error ${res.status}: ${text.slice(0, 200)}`);
+    const redactedText = text.slice(0, 200).replace(/sk-[a-zA-Z0-9]+/g, "[REDACTED]");
+    throw new Error(`${provider.name} API error ${res.status}: ${redactedText}`);
   }
 
   const reader = res.body?.getReader();
@@ -768,7 +774,8 @@ function buildOpenAIError(provider: ProviderConfig, status: number, text: string
       return parseErr;
     }
   }
-  return new Error(`${provider.name} API error ${status}: ${text.slice(0, 200)}`);
+  const redactedText = text.slice(0, 200).replace(/sk-[a-zA-Z0-9]+/g, "[REDACTED]");
+  return new Error(`${provider.name} API error ${status}: ${redactedText}`);
 }
 
 async function* streamFromOpenAICompatible(
