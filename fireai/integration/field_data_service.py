@@ -15,7 +15,7 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from enum import Enum
+from enum import Enum, StrEnum
 
 from fireai.core.event_bus import EventBus, Events
 
@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 # ===========================================================================
 
 
-class FindingCategory(str, Enum):
+class FindingCategory(StrEnum):
     CRITICAL = "CRITICAL"
     HIGH = "HIGH"
     MEDIUM = "MEDIUM"
@@ -35,7 +35,7 @@ class FindingCategory(str, Enum):
     INFO = "INFO"
 
 
-class InspectionStatus(str, Enum):
+class InspectionStatus(StrEnum):
     PENDING = "PENDING"
     IN_PROGRESS = "IN_PROGRESS"
     COMPLETED = "COMPLETED"
@@ -43,7 +43,7 @@ class InspectionStatus(str, Enum):
     REJECTED = "REJECTED"
 
 
-class SyncStatus(str, Enum):
+class SyncStatus(StrEnum):
     SYNCED = "SYNCED"
     CONFLICT = "CONFLICT"
     PENDING = "PENDING"

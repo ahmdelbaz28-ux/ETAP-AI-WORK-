@@ -17,7 +17,7 @@ from __future__ import annotations
 import math
 import os
 from dataclasses import asdict, dataclass, field
-from enum import Enum
+from enum import Enum, StrEnum
 from typing import Any
 
 # ============================================================================
@@ -27,7 +27,7 @@ from typing import Any
 CONTRACT_VERSION = "v1"
 
 
-class CeilingType(str, Enum):
+class CeilingType(StrEnum):
     """
     NFPA 72 ceiling classifications.
 
@@ -50,7 +50,7 @@ class CeilingType(str, Enum):
     COMBUSTIBLE = "COMBUSTIBLE"
 
 
-class ConfidenceLevel(str, Enum):
+class ConfidenceLevel(StrEnum):
     """Confidence levels for analysis results."""
 
     HIGH = "HIGH"
@@ -59,7 +59,7 @@ class ConfidenceLevel(str, Enum):
     UNKNOWN = "UNKNOWN"
 
 
-class DetectorType(str, Enum):
+class DetectorType(StrEnum):
     """
     NFPA 72 detector types.
 
@@ -241,7 +241,7 @@ class AuditEventContract:
 # ============================================================================
 
 
-class PathwaySurvivabilityLevel(str, Enum):
+class PathwaySurvivabilityLevel(StrEnum):
     """
     NFPA 72-2022 §12.4 — Pathway Survivability Levels.
 
@@ -264,7 +264,7 @@ class PathwaySurvivabilityLevel(str, Enum):
     LEVEL_3 = "LEVEL_3"
 
 
-class CableType(str, Enum):
+class CableType(StrEnum):
     """
     NEC Article 760 — Fire alarm cable ratings.
 
@@ -280,7 +280,7 @@ class CableType(str, Enum):
     CI = "CI"
 
 
-class OccupancyCategory(str, Enum):
+class OccupancyCategory(StrEnum):
     """
     Building occupancy classification for pathway survivability determination.
 
@@ -300,7 +300,7 @@ class OccupancyCategory(str, Enum):
     DETENTION = "DETENTION"  # IBC Group I-3 — prisons
 
 
-class FeatureFlag(str, Enum):
+class FeatureFlag(StrEnum):
     """
     Feature flags for toggling functionality per service.
 

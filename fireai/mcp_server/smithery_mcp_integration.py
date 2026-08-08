@@ -58,7 +58,7 @@ import os
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from enum import Enum
+from enum import Enum, StrEnum
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -83,7 +83,7 @@ REVIT_API_DOCS_PATHS = {
 # ---------------------------------------------------------------------------
 
 
-class ActionType(str, Enum):
+class ActionType(StrEnum):
     """Types of actions the AI can propose (NOT execute)."""
 
     CREATE = "create"      # Create a new Revit element
@@ -92,7 +92,7 @@ class ActionType(str, Enum):
     READ = "read"          # Read element data (safe — can execute directly)
 
 
-class ActionStatus(str, Enum):
+class ActionStatus(StrEnum):
     """Status of a proposed action in the review queue."""
 
     PROPOSED = "proposed"        # AI proposed, awaiting human review

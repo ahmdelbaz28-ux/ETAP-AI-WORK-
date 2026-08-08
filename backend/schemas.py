@@ -6,7 +6,7 @@ Maps to core/models.py dataclasses for REST API request/response validation.
 
 from __future__ import annotations
 
-from enum import Enum
+from enum import Enum, StrEnum
 from typing import Any, Generic, TypeVar
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
@@ -83,7 +83,7 @@ class CamelModel(BaseModel):
 # ENUMERATIONS (mirroring core/models.py)
 # ════════════════════════════════════════════════════════════════════════════
 
-class ElementType(str, Enum):
+class ElementType(StrEnum):
     WALL = "wall"
     DOOR = "door"
     WINDOW = "window"
@@ -94,21 +94,21 @@ class ElementType(str, Enum):
     UNKNOWN = "unknown"
 
 
-class ChangeSource(str, Enum):
+class ChangeSource(StrEnum):
     AUTOCAD = "autocad"
     REVIT = "revit"
     MANUAL = "manual"
     SYSTEM = "system"
 
 
-class ConflictType(str, Enum):
+class ConflictType(StrEnum):
     GEOMETRY_MISMATCH = "geometry_mismatch"
     PROPERTY_CONFLICT = "property_conflict"
     DELETION_CONFLICT = "deletion_conflict"
     TIMING_CONFLICT = "timing_conflict"
 
 
-class ProjectStatus(str, Enum):
+class ProjectStatus(StrEnum):
     DRAFT = "draft"
     ACTIVE = "active"
     ARCHIVED = "archived"

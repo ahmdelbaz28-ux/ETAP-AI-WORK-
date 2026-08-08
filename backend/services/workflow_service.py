@@ -47,7 +47,7 @@ import math
 import os
 import time
 from datetime import datetime, timezone
-from enum import Enum
+from enum import Enum, StrEnum
 from typing import Any, TypedDict
 
 from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
@@ -86,7 +86,7 @@ except ImportError:
 
 # ── Workflow State Definition ────────────────────────────────────────────────
 
-class WorkflowStatus(str, Enum):
+class WorkflowStatus(StrEnum):
     """Workflow execution status — matches agent.md V13 status terminology + V77 STUCK."""
 
     PENDING = "PENDING"

@@ -29,7 +29,7 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import Enum, StrEnum
 from typing import Any
 
 from fireai.constants.nfpa72 import (
@@ -58,7 +58,7 @@ from fireai.core.qomn_kernel import (
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
-class DetectorType(str, Enum):
+class DetectorType(StrEnum):
     SMOKE = "smoke"
     HEAT = "heat"
     DUCT = "duct"
@@ -67,7 +67,7 @@ class DetectorType(str, Enum):
     MULTI = "multi"
 
 
-class OccupancyType(str, Enum):
+class OccupancyType(StrEnum):
     """Occupancy types per NFPA 101-2021."""
 
     ASSEMBLY = "assembly"
@@ -82,7 +82,7 @@ class OccupancyType(str, Enum):
     HIGH_HAZARD = "high_hazard"
 
 
-class CeilingType(str, Enum):
+class CeilingType(StrEnum):
     FLAT = "flat"
     SLOPED = "sloped"
     PEAKED = "peaked"

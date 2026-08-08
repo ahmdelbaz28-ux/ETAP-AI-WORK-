@@ -28,7 +28,7 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime, timezone
-from enum import Enum
+from enum import Enum, StrEnum
 from typing import Any, Generic, TypeVar
 
 from pydantic import BaseModel, Field, ValidationError
@@ -43,7 +43,7 @@ T = TypeVar("T", bound=BaseModel)
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
-class ContractSeverity(str, Enum):
+class ContractSeverity(StrEnum):
     """How strictly to enforce the contract."""
 
     STRICT = "strict"  # Raise exception on violation

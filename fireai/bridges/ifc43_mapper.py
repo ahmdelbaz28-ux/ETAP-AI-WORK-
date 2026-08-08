@@ -43,7 +43,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import Enum, StrEnum
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -70,7 +70,7 @@ IFC43_IMPLEMENTATION_LEVEL = "official"
 # ---------------------------------------------------------------------------
 
 
-class IFC43ElementType(str, Enum):
+class IFC43ElementType(StrEnum):
     """
     IFC 4.3 element types for fire alarm system components.
 

@@ -77,7 +77,7 @@ import logging
 import math
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from enum import Enum
+from enum import Enum, StrEnum
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -117,7 +117,7 @@ PLACEHOLDER_VALIDATION_WARNING: str = (
 # ---------------------------------------------------------------------------
 
 
-class SimulationStatus(str, Enum):
+class SimulationStatus(StrEnum):
     """Status of smoke simulation data."""
 
     PLACEHOLDER = "placeholder"  # No real simulation run yet

@@ -91,7 +91,7 @@ import time
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from enum import Enum
+from enum import Enum, StrEnum
 from typing import Any
 from urllib.parse import urlparse
 
@@ -125,7 +125,7 @@ WEBHOOK_EVENT_TYPES = frozenset({
 # ---------------------------------------------------------------------------
 
 
-class WebhookStatus(str, Enum):
+class WebhookStatus(StrEnum):
     """Status of a webhook subscription."""
 
     ACTIVE = "active"
@@ -133,7 +133,7 @@ class WebhookStatus(str, Enum):
     DISABLED = "disabled"
 
 
-class DeliveryStatus(str, Enum):
+class DeliveryStatus(StrEnum):
     """Status of a single webhook delivery attempt."""
 
     PENDING = "pending"
