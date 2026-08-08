@@ -1,5 +1,6 @@
 # NOSONAR
 """Cluster Communicator for Event Bus in Distributed FACP System"""
+
 import json
 import socket
 import threading
@@ -41,11 +42,7 @@ class ClusterNode:
         self.joined_at = time.time()
         self.capabilities = []
         self.load = 0.0  # Current load (0.0 to 1.0)
-        self.resource_usage = {
-            "cpu_percent": 0.0,
-            "memory_mb": 0.0,
-            "disk_gb": 0.0
-        }
+        self.resource_usage = {"cpu_percent": 0.0, "memory_mb": 0.0, "disk_gb": 0.0}
         self.location = "unknown"  # Geographic location
         self.version = "FACP/1.1"
         self.labels = {}  # Node labels for scheduling
@@ -75,15 +72,21 @@ class ClusterNode:
             "version": self.version,
             "labels": self.labels,
             "is_healthy": self.is_healthy(),
-            "uptime_seconds": time.time() - self.joined_at
+            "uptime_seconds": time.time() - self.joined_at,
         }
 
 
 class ClusterCommunicator:
     """Manages communication between nodes in the distributed FACP cluster"""
 
-    def __init__(self, node_id: Optional[str] = None, host: str = "0.0.0.0", port: int = 9000,
-                 node_type: str = "worker", location: str = "primary"):
+    def __init__(
+        self,
+        node_id: Optional[str] = None,
+        host: str = "0.0.0.0",
+        port: int = 9000,
+        node_type: str = "worker",
+        location: str = "primary",
+    ):
         self.node_id = node_id or f"node_{int(time.time())}_{uuid.uuid4().hex[:8]}"
         self.host = host
         self.port = port
@@ -109,7 +112,7 @@ class ClusterCommunicator:
             "messages_received": 0,
             "connections_made": 0,
             "connection_errors": 0,
-            "state_syncs": 0
+            "state_syncs": 0,
         }
         self.leader_node = None  # Current leader
         self.is_leader = False  # Whether this node is the leader
@@ -193,9 +196,7 @@ class ClusterCommunicator:
 
                     # Handle the connection in a separate thread
                     client_thread = threading.Thread(
-                        target=self._handle_client_connection,
-                        args=(conn, addr),
-                        daemon=True
+                        target=self._handle_client_connection, args=(conn, addr), daemon=True
                     )
                     client_thread.start()
 
@@ -224,7 +225,7 @@ class ClusterCommunicator:
                         break
 
                     try:
-                        message = json.loads(data.decode('utf-8'))
+                        message = json.loads(data.decode("utf-8"))
                         self._handle_incoming_message(message, conn, addr)
                     except json.JSONDecodeError:
                         print(f"Invalid JSON from {addr}")
@@ -237,7 +238,9 @@ class ClusterCommunicator:
         finally:
             conn.close()
 
-    def _handle_incoming_message(self, message: Dict[str, Any], _conn: socket.socket, addr):  # NOSONAR — S3776: cognitive complexity is inherent to the safety-critical algorithm
+    def _handle_incoming_message(
+        self, message: Dict[str, Any], _conn: socket.socket, addr
+    ):  # NOSONAR — S3776: cognitive complexity is inherent to the safety-critical algorithm
         """Handle an incoming message from another node"""
         with self.lock:
             self.stats["messages_received"] += 1
@@ -275,7 +278,9 @@ class ClusterCommunicator:
                 except Exception as e:
                     print(f"Error in message handler: {e}")
 
-    def _update_node_info(self, node_id: str, node_info: Dict[str, Any]):  # NOSONAR — S3776: cognitive complexity is inherent to the safety-critical algorithm
+    def _update_node_info(
+        self, node_id: str, node_info: Dict[str, Any]
+    ):  # NOSONAR — S3776: cognitive complexity is inherent to the safety-critical algorithm
         """Update information about a cluster node"""
         with self.lock:
             if node_id in self.nodes:
@@ -301,7 +306,7 @@ class ClusterCommunicator:
                         node_id=node_id,
                         host=node_info["host"],
                         port=node_info["port"],
-                        node_type=node_info.get("node_type", "unknown")
+                        node_type=node_info.get("node_type", "unknown"),
                     )
                     new_node.status = NodeStatus(node_info.get("status", "healthy"))
                     new_node.load = node_info.get("load", 0.0)
@@ -326,12 +331,15 @@ class ClusterCommunicator:
             self._update_node_info(node_id, node_info)
 
             # Broadcast the new node to other nodes
-            self.broadcast_message({
-                "type": ClusterMessageType.NODE_JOIN.value,
-                "sender_node_id": self.node_id,
-                "node_info": node_info,
-                "timestamp": time.time()
-            }, exclude_node=self.node_id)
+            self.broadcast_message(
+                {
+                    "type": ClusterMessageType.NODE_JOIN.value,
+                    "sender_node_id": self.node_id,
+                    "node_info": node_info,
+                    "timestamp": time.time(),
+                },
+                exclude_node=self.node_id,
+            )
 
     def _handle_node_leave_message(self, message: Dict[str, Any]):
         """Handle node leave message"""
@@ -439,16 +447,18 @@ class ClusterCommunicator:
             if self.leader_node != new_leader:
                 old_leader = self.leader_node
                 self.leader_node = new_leader
-                self.is_leader = (new_leader == self.node_id)
+                self.is_leader = new_leader == self.node_id
 
                 print(f"Leader elected: {self.leader_node} (was {old_leader})")
 
                 # Broadcast leader change
-                self.broadcast_message({
-                    "type": "leader_change",
-                    "new_leader": self.leader_node,
-                    "timestamp": time.time()
-                })
+                self.broadcast_message(
+                    {
+                        "type": "leader_change",
+                        "new_leader": self.leader_node,
+                        "timestamp": time.time(),
+                    }
+                )
 
     def _discovery_loop(self):
         """Background loop for discovering new nodes"""
@@ -477,7 +487,7 @@ class ClusterCommunicator:
             # Try to send via existing connection
             if node_id in self.client_sockets:
                 try:
-                    self.client_sockets[node_id].send(json_msg.encode('utf-8'))
+                    self.client_sockets[node_id].send(json_msg.encode("utf-8"))
                     with self.lock:
                         self.stats["messages_sent"] += 1
                     return True
@@ -493,7 +503,7 @@ class ClusterCommunicator:
                     sock.settimeout(5.0)  # 5-second timeout
                     sock.connect((node.host, node.port))
 
-                    sock.send(json_msg.encode('utf-8'))
+                    sock.send(json_msg.encode("utf-8"))
                     self.client_sockets[node_id] = sock
 
                     with self.lock:
@@ -523,7 +533,7 @@ class ClusterCommunicator:
         heartbeat_msg = {
             "type": ClusterMessageType.HEARTBEAT.value,
             "node_info": self.local_node.get_status(),
-            "timestamp": time.time()
+            "timestamp": time.time(),
         }
 
         self.broadcast_message(heartbeat_msg)
@@ -533,7 +543,7 @@ class ClusterCommunicator:
         join_msg = {
             "type": ClusterMessageType.NODE_JOIN.value,
             "node_info": self.local_node.get_status(),
-            "timestamp": time.time()
+            "timestamp": time.time(),
         }
 
         # Try to connect to the peer
@@ -543,13 +553,13 @@ class ClusterCommunicator:
             sock.connect((peer_host, peer_port))
 
             json_msg = json.dumps(join_msg)
-            sock.send(json_msg.encode('utf-8'))
+            sock.send(json_msg.encode("utf-8"))
 
             # Receive initial cluster state
             response_data = sock.recv(4096)
             if response_data:
                 try:
-                    response = json.loads(response_data.decode('utf-8'))
+                    response = json.loads(response_data.decode("utf-8"))
                     if response.get("type") == "cluster_state":
                         self._handle_state_sync_message(response)
                 except json.JSONDecodeError:
@@ -566,10 +576,7 @@ class ClusterCommunicator:
 
     def leave_cluster(self):
         """Leave the cluster gracefully"""
-        leave_msg = {
-            "type": ClusterMessageType.NODE_LEAVE.value,
-            "timestamp": time.time()
-        }
+        leave_msg = {"type": ClusterMessageType.NODE_LEAVE.value, "timestamp": time.time()}
 
         self.broadcast_message(leave_msg)
 
@@ -615,7 +622,7 @@ class ClusterCommunicator:
                 "is_leader": self.is_leader,
                 "known_peers": list(self.known_peers),
                 "stats": self.stats.copy(),
-                "uptime_seconds": time.time() - self.local_node.joined_at
+                "uptime_seconds": time.time() - self.local_node.joined_at,
             }
 
     def get_node_status(self, node_id: str) -> Optional[Dict[str, Any]]:
@@ -635,7 +642,7 @@ class ClusterCommunicator:
         sync_msg = {
             "type": ClusterMessageType.STATE_SYNC.value,
             "state": state,
-            "timestamp": time.time()
+            "timestamp": time.time(),
         }
 
         self.broadcast_message(sync_msg)
@@ -644,24 +651,27 @@ class ClusterCommunicator:
         """Get list of healthy nodes"""
         with self.lock:
             return [
-                node_id for node_id, node in self.nodes.items()
+                node_id
+                for node_id, node in self.nodes.items()
                 if node.is_healthy() and node.status == NodeStatus.HEALTHY
             ]
 
     def get_node_by_type(self, node_type: str) -> List[str]:
         """Get nodes of a specific type"""
         with self.lock:
-            return [
-                node_id for node_id, node in self.nodes.items()
-                if node.node_type == node_type
-            ]
+            return [node_id for node_id, node in self.nodes.items() if node.node_type == node_type]
 
     def update_local_load(self, load: float):
         """Update the load of the local node"""
         with self.lock:
             self.local_node.load = load
 
-    def update_local_resource_usage(self, cpu_percent: Optional[float] = None, memory_mb: Optional[float] = None, disk_gb: Optional[float] = None):
+    def update_local_resource_usage(
+        self,
+        cpu_percent: Optional[float] = None,
+        memory_mb: Optional[float] = None,
+        disk_gb: Optional[float] = None,
+    ):
         """Update resource usage of the local node"""
         with self.lock:
             if cpu_percent is not None:
@@ -675,8 +685,14 @@ class ClusterCommunicator:
 class DistributedClusterCommunicator(ClusterCommunicator):
     """Extended cluster communicator with additional distributed features"""
 
-    def __init__(self, node_id: Optional[str] = None, host: str = "0.0.0.0", port: int = 9000,
-                 node_type: str = "worker", location: str = "primary"):
+    def __init__(
+        self,
+        node_id: Optional[str] = None,
+        host: str = "0.0.0.0",
+        port: int = 9000,
+        node_type: str = "worker",
+        location: str = "primary",
+    ):
         super().__init__(node_id, host, port, node_type, location)
         self.consensus_algorithm = "raft"  # Default consensus algorithm
         self.partition_tolerance_enabled = True
@@ -693,7 +709,7 @@ class DistributedClusterCommunicator(ClusterCommunicator):
         config_exchange_msg = {
             "type": "config_exchange",
             "config": self.cluster_config,
-            "timestamp": time.time()
+            "timestamp": time.time(),
         }
 
         # Find the leader to exchange configs with
@@ -703,7 +719,9 @@ class DistributedClusterCommunicator(ClusterCommunicator):
             # If no leader, broadcast to all
             self.broadcast_message(config_exchange_msg)
 
-    def handle_config_exchange(self, config_data: Dict[str, Any], _sender_node_id: str):  # NOSONAR — S1172: parameter retained for API stability
+    def handle_config_exchange(
+        self, config_data: Dict[str, Any], _sender_node_id: str
+    ):  # NOSONAR — S1172: parameter retained for API stability
         """Handle configuration exchange message"""
         # Merge configurations
         self.cluster_config.update(config_data.get("config", {}))
@@ -717,7 +735,7 @@ class DistributedClusterCommunicator(ClusterCommunicator):
                     "type": "consensus_forward",
                     "proposal": proposal,
                     "original_sender": self.node_id,
-                    "timestamp": time.time()
+                    "timestamp": time.time(),
                 }
                 self.send_message(self.leader_node, forward_msg)
                 # Wait for response (simplified)
@@ -750,7 +768,7 @@ class DistributedClusterCommunicator(ClusterCommunicator):
             "nodes": {},
             "connections": [],
             "subnets": {},
-            "partition_tolerance": self.partition_tolerance_enabled
+            "partition_tolerance": self.partition_tolerance_enabled,
         }
 
         with self.lock:
@@ -760,7 +778,7 @@ class DistributedClusterCommunicator(ClusterCommunicator):
                     "location": node.location,
                     "status": node.status.value,
                     "load": node.load,
-                    "capabilities": node.capabilities
+                    "capabilities": node.capabilities,
                 }
 
         return topology

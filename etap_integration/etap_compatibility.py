@@ -69,7 +69,7 @@ COM_MODULES = [
 # These are checked as fallbacks if the 2021 names are not found.
 COM_MODULES_LEGACY = [
     "MotorAcceleration",  # pre-2021 alias for MotorStarting
-    "HarmonicAnalysis",   # pre-2021 alias for Harmonic
+    "HarmonicAnalysis",  # pre-2021 alias for Harmonic
 ]
 
 

@@ -100,9 +100,7 @@ class SCADAProtocolManager:
             elif cfg.strict_lib_check:
                 raise RuntimeError(f"pymodbus not available: {info}")
             else:
-                logger.warning(
-                    "Modbus enabled in config but pymodbus not available — skipped"
-                )
+                logger.warning("Modbus enabled in config but pymodbus not available — skipped")
 
         # --- OPC UA ---
         if cfg.opcua.enabled:
@@ -124,9 +122,7 @@ class SCADAProtocolManager:
             elif cfg.strict_lib_check:
                 raise RuntimeError(f"asyncua not available: {info}")
             else:
-                logger.warning(
-                    "OPC UA enabled in config but asyncua not available — skipped"
-                )
+                logger.warning("OPC UA enabled in config but asyncua not available — skipped")
 
         # --- IEC 104 ---
         if cfg.iec104.enabled:
@@ -147,9 +143,7 @@ class SCADAProtocolManager:
             elif cfg.strict_lib_check:
                 raise RuntimeError(f"c104 not available: {info}")
             else:
-                logger.warning(
-                    "IEC 104 enabled in config but c104 not available — skipped"
-                )
+                logger.warning("IEC 104 enabled in config but c104 not available — skipped")
 
     # -- lifecycle ----------------------------------------------------------
 
@@ -162,9 +156,7 @@ class SCADAProtocolManager:
                 try:
                     adapter.start()
                 except Exception as exc:
-                    logger.error(
-                        "Failed to start %s adapter: %s", ptype.value, exc
-                    )
+                    logger.error("Failed to start %s adapter: %s", ptype.value, exc)
             self._started = True
             logger.info(
                 "SCADAProtocolManager started — %d adapter(s) active",
@@ -180,9 +172,7 @@ class SCADAProtocolManager:
                 try:
                     adapter.stop()
                 except Exception as exc:
-                    logger.error(
-                        "Failed to stop %s adapter: %s", ptype.value, exc
-                    )
+                    logger.error("Failed to stop %s adapter: %s", ptype.value, exc)
             self._started = False
             logger.info("SCADAProtocolManager stopped")
 

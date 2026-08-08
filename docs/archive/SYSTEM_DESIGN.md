@@ -155,22 +155,22 @@ class SafetyValidator:
     Comprehensive safety validation system that enforces
     multiple layers of safety checks before executing any operation.
     """
-    
+
     def __init__(self):
         self.risk_assessment_engine = RiskAssessmentEngine()
         self.input_sanitizer = InputSanitizer()
         self.access_control = AccessControl()
-        
+
     def validate(self, operation):
         # Perform multiple validation checks
         input_validation = self.input_sanitizer.validate(operation)
         risk_assessment = self.risk_assessment_engine.assess(operation)
         access_check = self.access_control.check_permissions(operation)
-        
+
         return SafetyValidationResult(
             is_valid=input_validation.is_valid,
             risk_level=risk_assessment.level,
-            access_granted=access_check.granted
+            access_granted=access_check.granted,
         )
 ```
 

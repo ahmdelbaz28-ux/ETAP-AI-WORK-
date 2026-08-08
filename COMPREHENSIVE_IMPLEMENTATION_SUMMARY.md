@@ -225,19 +225,10 @@ service = RevitService()
 service.initialize()
 
 # Create walls
-wall_id = service.create_wall(
-    start=(0, 0, 0),
-    end=(10000, 0, 0),
-    height=3000,
-    level="Level 1"
-)
+wall_id = service.create_wall(start=(0, 0, 0), end=(10000, 0, 0), height=3000, level="Level 1")
 
 # Place door in wall
-service.place_door(
-    wall_id=wall_id,
-    location=(5000, 0, 0),
-    door_type="Single-Flush"
-)
+service.place_door(wall_id=wall_id, location=(5000, 0, 0), door_type="Single-Flush")
 
 # Save model
 service.save("building_model.rvt")
@@ -252,10 +243,7 @@ from backend.services.digital_twin_service import DigitalTwinService
 service = DigitalTwinService()
 
 # Convert DWG to RVT
-result = service.convert_autocad_to_revit(
-    dwg_path="input.dwg",
-    rvt_path="output.rvt"
-)
+result = service.convert_autocad_to_revit(dwg_path="input.dwg", rvt_path="output.rvt")
 
 # Check result
 if result.success:
@@ -278,10 +266,7 @@ from backend.services.digital_twin_service import DigitalTwinService
 service = DigitalTwinService()
 
 # Convert RVT to DWG
-result = service.convert_revit_to_autocad(
-    rvt_path="model.rvt",
-    dwg_path="output.dwg"
-)
+result = service.convert_revit_to_autocad(rvt_path="model.rvt", dwg_path="output.dwg")
 
 # Check result
 print(f"Converted {result.elements_converted} elements")

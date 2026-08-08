@@ -18,8 +18,10 @@ def _check_inherits_base(agent_class: ast.ClassDef) -> list[str]:
     """Check if an agent class inherits from BaseAgent."""
     for base in agent_class.bases:
         is_base = (
-            isinstance(base, ast.Name) and base.id == "BaseAgent"
-            or isinstance(base, ast.Attribute) and base.attr == "BaseAgent"
+            isinstance(base, ast.Name)
+            and base.id == "BaseAgent"
+            or isinstance(base, ast.Attribute)
+            and base.attr == "BaseAgent"
         )
         if is_base:
             return []
@@ -77,7 +79,8 @@ def check_agent_class_structure(filepath: str) -> list[str]:
 
         # Find all class definitions that end with 'Agent'
         agent_classes = [
-            node for node in ast.walk(tree)
+            node
+            for node in ast.walk(tree)
             if isinstance(node, ast.ClassDef) and node.name.endswith("Agent")
         ]
 

@@ -84,11 +84,17 @@ _NO_CAPTURE_ROUTES = frozenset(
 # PII patterns to redact before sending to Langfuse
 _PII_PATTERNS = [
     # API keys and tokens in headers or JSON bodies
-    (re.compile(r'(api[_-]?key|token|secret|password|authorization)["\s:=]+["\']?([\w\-]{8,})["\']?', re.IGNORECASE), r'\1=**REDACTED**'),
+    (
+        re.compile(
+            r'(api[_-]?key|token|secret|password|authorization)["\s:=]+["\']?([\w\-]{8,})["\']?',
+            re.IGNORECASE,
+        ),
+        r"\1=**REDACTED**",
+    ),
     # Bearer tokens
-    (re.compile(r'Bearer\s+[\w\-\.]+', re.IGNORECASE), r'Bearer **REDACTED**'),
+    (re.compile(r"Bearer\s+[\w\-\.]+", re.IGNORECASE), r"Bearer **REDACTED**"),
     # Email addresses
-    (re.compile(r'[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}'), r'**EMAIL_REDACTED**'),
+    (re.compile(r"[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}"), r"**EMAIL_REDACTED**"),
 ]
 
 
@@ -244,9 +250,9 @@ class LangfuseMiddleware(BaseHTTPMiddleware):
         response_body = b""
         try:
             # Re-wrap the request body since we already consumed it
-            def receive() -> (
-                dict[str, Any]
-            ):  # NOSONAR async function uses sync I/O for compatibility reasons
+            def receive() -> dict[
+                str, Any
+            ]:  # NOSONAR async function uses sync I/O for compatibility reasons
                 return {"type": "http.request", "body": body_bytes, "more_body": False}
 
             request._receive = receive  # type: ignore[attr-defined]

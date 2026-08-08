@@ -50,7 +50,9 @@ _DISABLE_TEST_MODE = os.getenv("DISABLE_TEST_MODE", "").lower().strip() in ("tru
 
 # Log the test mode status at module load time for audit trail
 if _DISABLE_TEST_MODE:
-    _logger.warning("test_mode HARD DISABLED via DISABLE_TEST_MODE=true — test features are blocked")
+    _logger.warning(
+        "test_mode HARD DISABLED via DISABLE_TEST_MODE=true — test features are blocked"
+    )
 
 
 def _is_production_env() -> bool:

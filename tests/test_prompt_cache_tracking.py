@@ -8,6 +8,7 @@ correctly aggregates savings across calls.
 These tests do NOT make real LLM calls — they use ``unittest.mock`` to
 fake the OpenAI / Anthropic SDK responses.
 """
+
 from __future__ import annotations
 
 from types import SimpleNamespace
@@ -232,12 +233,20 @@ class TestPromptCacheStats:
 
     def test_record_multiple_calls_aggregates(self):
         PROMPT_CACHE_STATS.record(
-            provider="openai", model="gpt-4o", agent="A",
-            input_tokens=1000, cached_tokens=600, output_tokens=200,
+            provider="openai",
+            model="gpt-4o",
+            agent="A",
+            input_tokens=1000,
+            cached_tokens=600,
+            output_tokens=200,
         )
         PROMPT_CACHE_STATS.record(
-            provider="anthropic", model="claude-3-5-sonnet-20241022", agent="B",
-            input_tokens=2000, cached_tokens=1500, output_tokens=400,
+            provider="anthropic",
+            model="claude-3-5-sonnet-20241022",
+            agent="B",
+            input_tokens=2000,
+            cached_tokens=1500,
+            output_tokens=400,
         )
         snap = PROMPT_CACHE_STATS.snapshot()
         assert snap["call_count"] == 2
@@ -249,8 +258,12 @@ class TestPromptCacheStats:
 
     def test_reset_clears(self):
         PROMPT_CACHE_STATS.record(
-            provider="openai", model="gpt-4o", agent="A",
-            input_tokens=100, cached_tokens=0, output_tokens=10,
+            provider="openai",
+            model="gpt-4o",
+            agent="A",
+            input_tokens=100,
+            cached_tokens=0,
+            output_tokens=10,
         )
         assert PROMPT_CACHE_STATS.snapshot()["call_count"] == 1
         PROMPT_CACHE_STATS.reset()
@@ -258,8 +271,12 @@ class TestPromptCacheStats:
 
     def test_zero_input_does_not_divide_by_zero(self):
         PROMPT_CACHE_STATS.record(
-            provider="openai", model="gpt-4o", agent="A",
-            input_tokens=0, cached_tokens=0, output_tokens=0,
+            provider="openai",
+            model="gpt-4o",
+            agent="A",
+            input_tokens=0,
+            cached_tokens=0,
+            output_tokens=0,
         )
         snap = PROMPT_CACHE_STATS.snapshot()
         assert snap["cache_hit_ratio"] == 0.0
@@ -271,8 +288,12 @@ class TestPromptCacheStats:
         """
         local = PromptCacheStats()
         local.record(
-            provider="openai", model="gpt-4o", agent="X",
-            input_tokens=999, cached_tokens=999, output_tokens=999,
+            provider="openai",
+            model="gpt-4o",
+            agent="X",
+            input_tokens=999,
+            cached_tokens=999,
+            output_tokens=999,
         )
         # Global should still be empty (reset in setup_method).
         assert PROMPT_CACHE_STATS.snapshot()["call_count"] == 0
@@ -315,6 +336,7 @@ class TestSafeOpenAiChatRecordsCacheStats:
         monkeypatch.setenv("LLM_REQUIRE_AGENT_TAG", "false")
         # Reload the module-level config so the env vars take effect
         import importlib
+
         importlib.reload(llm)
 
         with patch.object(llm, "openai", fake_openai):
@@ -347,9 +369,7 @@ class TestSafeAnthropicMessageInjectsCacheControl:
     def teardown_method(self):
         PROMPT_CACHE_STATS.reset()
 
-    def test_safe_anthropic_message_injects_cache_control_and_records(
-        self, monkeypatch
-    ):
+    def test_safe_anthropic_message_injects_cache_control_and_records(self, monkeypatch):
         """GIVEN a long system message
         WHEN safe_anthropic_message is called
         THEN the messages sent to anthropic.messages.create include a
@@ -371,6 +391,7 @@ class TestSafeAnthropicMessageInjectsCacheControl:
         monkeypatch.setenv("LLM_ALLOW_UNKNOWN_MODELS", "true")
         monkeypatch.setenv("LLM_REQUIRE_AGENT_TAG", "false")
         import importlib
+
         importlib.reload(llm)
 
         original_messages = [

@@ -38,7 +38,9 @@ def _verify_project(project_id: str) -> dict:
     db = get_db()
     project = db.get_project(project_id)
     if not project:
-        raise HTTPException(status_code=404, detail="Project not found")  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
+        raise HTTPException(
+            status_code=404, detail="Project not found"
+        )  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
     return project
 
 
@@ -78,12 +80,12 @@ async def export_dxf(project_id: str):
 
     # ── Draw devices as circles with labels ─────────────────────────────
     DEVICE_COLORS = {
-        "smoke_detector": 3,    # Green
-        "heat_detector": 1,     # Red
-        "manual_pull": 5,      # Blue
-        "notification": 6,     # Magenta
-        "panel": 2,            # Yellow
-        "module": 4,           # Cyan
+        "smoke_detector": 3,  # Green
+        "heat_detector": 1,  # Red
+        "manual_pull": 5,  # Blue
+        "notification": 6,  # Magenta
+        "panel": 2,  # Yellow
+        "module": 4,  # Cyan
     }
 
     for device in devices:
@@ -141,7 +143,7 @@ async def export_dxf(project_id: str):
         io.BytesIO(dxf_bytes),
         media_type="application/dxf",
         headers={
-            "Content-Disposition": f"attachment; filename=\"{_safe_filename(project['name'])}_export.dxf\""
+            "Content-Disposition": f'attachment; filename="{_safe_filename(project["name"])}_export.dxf"'
         },
     )
 
@@ -207,7 +209,7 @@ async def export_revit(project_id: str):
         io.BytesIO(content.encode("utf-8")),
         media_type="application/json",
         headers={
-            "Content-Disposition": f"attachment; filename=\"{_safe_filename(project['name'])}_revit.json\""
+            "Content-Disposition": f'attachment; filename="{_safe_filename(project["name"])}_revit.json"'
         },
     )
 
@@ -265,7 +267,7 @@ async def export_ifc(
             io.BytesIO(content.encode("utf-8")),
             media_type="application/json",
             headers={
-                "Content-Disposition": f"attachment; filename=\"{_safe_filename(project['name'])}_ifc.json\""
+                "Content-Disposition": f'attachment; filename="{_safe_filename(project["name"])}_ifc.json"'
             },
         )
 
@@ -281,19 +283,19 @@ async def export_ifc(
         )
 
         # Create basic spatial structure
-        site = ifcopenshell.api.run(
-            "root.create_entity", ifc_file, ifc_class="IfcSite"
-        )
-        building = ifcopenshell.api.run(
-            "root.create_entity", ifc_file, ifc_class="IfcBuilding"
-        )
-        storey = ifcopenshell.api.run(
-            "root.create_entity", ifc_file, ifc_class="IfcBuildingStorey"
-        )
+        site = ifcopenshell.api.run("root.create_entity", ifc_file, ifc_class="IfcSite")
+        building = ifcopenshell.api.run("root.create_entity", ifc_file, ifc_class="IfcBuilding")
+        storey = ifcopenshell.api.run("root.create_entity", ifc_file, ifc_class="IfcBuildingStorey")
 
-        ifcopenshell.api.run("aggregate.assign_object", ifc_file, products=[site], relating_object=project_ifc)  # NOSONAR — S1192: duplicated literal acceptable in this localized context
-        ifcopenshell.api.run("aggregate.assign_object", ifc_file, products=[building], relating_object=site)
-        ifcopenshell.api.run("aggregate.assign_object", ifc_file, products=[storey], relating_object=building)
+        ifcopenshell.api.run(
+            "aggregate.assign_object", ifc_file, products=[site], relating_object=project_ifc
+        )  # NOSONAR — S1192: duplicated literal acceptable in this localized context
+        ifcopenshell.api.run(
+            "aggregate.assign_object", ifc_file, products=[building], relating_object=site
+        )
+        ifcopenshell.api.run(
+            "aggregate.assign_object", ifc_file, products=[storey], relating_object=building
+        )
 
         # Add devices as building element proxies
         for device in devices:
@@ -312,14 +314,20 @@ async def export_ifc(
         # not a BytesIO. Older versions accepted BytesIO but the current
         # version raises TypeError for non-str/non-PathLike arguments.
         import tempfile
-        with tempfile.NamedTemporaryFile(suffix=".ifc", delete=False, prefix="fireai_ifc_") as tmp:  # NOSONAR — S7493: default mutable acceptable (frozen at module load)
+
+        with tempfile.NamedTemporaryFile(
+            suffix=".ifc", delete=False, prefix="fireai_ifc_"
+        ) as tmp:  # NOSONAR — S7493: default mutable acceptable (frozen at module load)
             tmp_path = tmp.name
         try:
             ifc_file.write(tmp_path)
-            with open(tmp_path, "rb") as f:  # NOSONAR — S7493: default mutable acceptable (frozen at module load)
+            with open(
+                tmp_path, "rb"
+            ) as f:  # NOSONAR — S7493: default mutable acceptable (frozen at module load)
                 ifc_bytes = f.read()
         finally:
             import os as _os
+
             with contextlib.suppress(OSError):
                 _os.unlink(tmp_path)
 
@@ -327,7 +335,7 @@ async def export_ifc(
             io.BytesIO(ifc_bytes),
             media_type="application/ifc",
             headers={
-                "Content-Disposition": f"attachment; filename=\"{_safe_filename(project['name'])}.ifc\""
+                "Content-Disposition": f'attachment; filename="{_safe_filename(project["name"])}.ifc"'
             },
         )
     except Exception as e:
@@ -352,7 +360,9 @@ class ExportDataInput(BaseModel):
     dataIds: Optional[list] = None
 
 
-@project_router.post("", status_code=200, dependencies=[Depends(require_permission(Permission.EXPORT_READ))])
+@project_router.post(
+    "", status_code=200, dependencies=[Depends(require_permission(Permission.EXPORT_READ))]
+)
 async def export_data_global(input_data: ExportDataInput):
     """
     Export project data globally using the first available project for compatibility.
@@ -373,7 +383,9 @@ async def export_data_global(input_data: ExportDataInput):
     db = get_db()
     projects = db.list_projects(page=1, limit=1)
     if not projects or not projects.get("data"):
-        raise HTTPException(status_code=404, detail="No projects found to export data")  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
+        raise HTTPException(
+            status_code=404, detail="No projects found to export data"
+        )  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
 
     project_id = projects["data"][0]["id"]
     project = projects["data"][0]
@@ -405,9 +417,7 @@ async def export_data_global(input_data: ExportDataInput):
         ws_proj.title = "Project"
         header_font = Font(bold=True, color="FFFFFF")
         header_fill = PatternFill(start_color="1F4E78", end_color="1F4E78", fill_type="solid")
-        for col, val in enumerate(
-            ["Field", "Value"], start=1
-        ):
+        for col, val in enumerate(["Field", "Value"], start=1):
             cell = ws_proj.cell(row=1, column=col, value=val)
             cell.font = header_font
             cell.fill = header_fill
@@ -430,10 +440,20 @@ async def export_data_global(input_data: ExportDataInput):
         # ── Sheet 2: Devices ───────────────────────────────────────────
         ws_dev = wb.create_sheet("Devices")
         dev_cols = [
-            "ID", "Name", "Type", "Category",
-            "X", "Y", "Z", "Rotation",
-            "Voltage (V)", "Current (A)", "Load (W)",
-            "Created At", "Updated At", "Properties",
+            "ID",
+            "Name",
+            "Type",
+            "Category",
+            "X",
+            "Y",
+            "Z",
+            "Rotation",
+            "Voltage (V)",
+            "Current (A)",
+            "Load (W)",
+            "Created At",
+            "Updated At",
+            "Properties",
         ]
         for col, name in enumerate(dev_cols, start=1):
             cell = ws_dev.cell(row=1, column=col, value=name)
@@ -444,12 +464,19 @@ async def export_data_global(input_data: ExportDataInput):
             props = d.get("properties") or {}
             props_str = json.dumps(props, ensure_ascii=False) if props else ""
             row_vals = [
-                d.get("id", ""), d.get("name", ""),
-                d.get("type", ""), d.get("category", ""),
-                d.get("x", 0.0), d.get("y", 0.0), d.get("z", 0.0),
+                d.get("id", ""),
+                d.get("name", ""),
+                d.get("type", ""),
+                d.get("category", ""),
+                d.get("x", 0.0),
+                d.get("y", 0.0),
+                d.get("z", 0.0),
                 d.get("rotation", 0.0),
-                d.get("voltage", 0.0), d.get("current", 0.0), d.get("load", 0.0),
-                d.get("createdAt", ""), d.get("updatedAt", ""),
+                d.get("voltage", 0.0),
+                d.get("current", 0.0),
+                d.get("load", 0.0),
+                d.get("createdAt", ""),
+                d.get("updatedAt", ""),
                 props_str,
             ]
             for col, val in enumerate(row_vals, start=1):
@@ -469,9 +496,13 @@ async def export_data_global(input_data: ExportDataInput):
             cell.alignment = Alignment(horizontal="center")
         for i, c in enumerate(connections, start=2):
             row_vals = [
-                c.get("id", ""), c.get("fromId", ""), c.get("toId", ""),
-                c.get("cableSize", ""), c.get("length", 0.0),
-                c.get("type", ""), c.get("createdAt", ""),
+                c.get("id", ""),
+                c.get("fromId", ""),
+                c.get("toId", ""),
+                c.get("cableSize", ""),
+                c.get("length", 0.0),
+                c.get("type", ""),
+                c.get("createdAt", ""),
             ]
             for col, val in enumerate(row_vals, start=1):
                 ws_conn.cell(row=i, column=col, value=val)
@@ -557,5 +588,5 @@ async def export_data_global(input_data: ExportDataInput):
     return StreamingResponse(
         io.BytesIO(content),
         media_type=media_type,
-        headers={"Content-Disposition": f"attachment; filename=\"{filename}\""}
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )

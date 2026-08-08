@@ -729,10 +729,7 @@ class SCADAAgent(BaseAgent):
         for bus_id in ["BUS1", "BUS2", "BUS3"]:
             v_nom = 13.8  # kV
             v_kv = v_nom * (
-                1.0
-                + _RNG.normal(
-                    0, 0.02
-                )  # NOSONAR
+                1.0 + _RNG.normal(0, 0.02)  # NOSONAR
             )  # NOSONAR
 
             measurements.append(

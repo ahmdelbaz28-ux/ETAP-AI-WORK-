@@ -23,6 +23,7 @@ Test Categories:
   8. Edge cases: zero release rate, missing properties, extreme temps
   9. Physical sanity: zone radius bounds, volume consistency
 """
+
 from __future__ import annotations
 
 import math
@@ -633,7 +634,7 @@ class TestPhysicalSanity:
         )
         horizontal, vertical, volume = result  # NOSONAR
         # Indoor hemisphere: V = (2/3) π r³
-        expected_volume = (2.0 / 3.0) * math.pi * (horizontal ** 3)
+        expected_volume = (2.0 / 3.0) * math.pi * (horizontal**3)
         # Allow 50% tolerance due to buoyancy factors and other adjustments
         ratio = volume / expected_volume if expected_volume > 0 else 0
         assert 0.3 < ratio < 3.0, (

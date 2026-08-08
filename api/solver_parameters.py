@@ -92,12 +92,8 @@ class SolverParametersCreate(SolverParametersBase):
     solver_convergence_tolerance: float = SolverParametersBase.model_fields[
         "solver_convergence_tolerance"
     ].default  # type: ignore[assignment]
-    max_iterations: int = SolverParametersBase.model_fields[
-        "max_iterations"
-    ].default  # type: ignore[assignment]
-    acceleration_factor: float = SolverParametersBase.model_fields[
-        "acceleration_factor"
-    ].default  # type: ignore[assignment]
+    max_iterations: int = SolverParametersBase.model_fields["max_iterations"].default  # type: ignore[assignment]
+    acceleration_factor: float = SolverParametersBase.model_fields["acceleration_factor"].default  # type: ignore[assignment]
 
 
 class SolverParametersUpdate(BaseModel):
@@ -172,8 +168,7 @@ async def get_solver_parameters() -> SolverParametersResponse:
     status_code=status.HTTP_201_CREATED,
     summary="Create / overwrite solver parameters",
     description=(
-        "Creates or completely replaces all solver parameters. "
-        "Every field must be provided."
+        "Creates or completely replaces all solver parameters. Every field must be provided."
     ),
 )
 async def create_solver_parameters(

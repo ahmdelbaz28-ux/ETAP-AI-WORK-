@@ -47,6 +47,7 @@ try:
 
 except ImportError:
     import warnings
+
     warnings.warn(
         "PyMuPDF (pymupdf) is not installed. PDF parsing features will be "
         "unavailable. DXF parsing still works. Install with: pip install pymupdf",
@@ -62,6 +63,7 @@ except ImportError:
                 f"pymupdf is not installed. Cannot access fitz.{name}. "
                 "Install with: pip install pymupdf"
             )
+
         def __call__(self, *args: Any, **kwargs: Any) -> Any:
             raise ImportError(
                 "pymupdf is not installed. PDF operations are unavailable. "

@@ -145,6 +145,7 @@ class SCADAProtocolBridge:
                 MeasurementType,
                 QualityFlag,
             )
+
             self._Measurement = Measurement
             self._MeasurementType = MeasurementType
             self._QualityFlag = QualityFlag

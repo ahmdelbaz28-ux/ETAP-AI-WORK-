@@ -142,7 +142,9 @@ class DWGParser:
             return False
 
     @staticmethod
-    def _assemble_closed_polygons(lines: list, tolerance: float = 0.01) -> list:  # NOSONAR — S3776: cognitive complexity is inherent to the safety-critical algorithm
+    def _assemble_closed_polygons(
+        lines: list, tolerance: float = 0.01
+    ) -> list:  # NOSONAR — S3776: cognitive complexity is inherent to the safety-critical algorithm
         """
         Chain LINE segments into closed polygons by matching endpoints.
 
@@ -295,7 +297,9 @@ class DWGParser:
 
         return closed_polygons
 
-    def extract_rooms_from_chaos(self, doc) -> list:  # NOSONAR — S3776: cognitive complexity is inherent to the safety-critical algorithm
+    def extract_rooms_from_chaos(
+        self, doc
+    ) -> list:  # NOSONAR — S3776: cognitive complexity is inherent to the safety-critical algorithm
         """
         Extract rooms from a potentially-corrupted or adversarial document.
 
@@ -340,7 +344,9 @@ class DWGParser:
         try:
             modelspace = doc.modelspace()
         except Exception:
-            logger.warning("extract_rooms_from_chaos: doc.modelspace() failed — returning empty list")
+            logger.warning(
+                "extract_rooms_from_chaos: doc.modelspace() failed — returning empty list"
+            )
             return rooms
 
         for entity in modelspace:
@@ -403,7 +409,9 @@ class DWGParser:
                             continue
 
                         if not (self._is_valid_coordinate(vx) and self._is_valid_coordinate(vy)):
-                            logger.warning("extract_rooms_from_chaos: POLYLINE vertex NaN/Inf — entity dropped")
+                            logger.warning(
+                                "extract_rooms_from_chaos: POLYLINE vertex NaN/Inf — entity dropped"
+                            )
                             vertices = []  # reject entire entity
                             break
                         vertices.append((vx, vy))
@@ -416,7 +424,9 @@ class DWGParser:
                         rooms.append(room)
 
                 except Exception as exc:
-                    logger.warning("extract_rooms_from_chaos: POLYLINE parse error: %s — skipped", exc)
+                    logger.warning(
+                        "extract_rooms_from_chaos: POLYLINE parse error: %s — skipped", exc
+                    )
                     continue
 
             # Other entity types (CIRCLE, ARC, TEXT, etc.) are not rooms.
@@ -499,7 +509,9 @@ class DWGParser:
 
         # Step 1: Check LibreDWG
         if not self._check_tool():
-            result.errors.append("LibreDWG not installed. Install with: sudo apt install libredwg-tools")
+            result.errors.append(
+                "LibreDWG not installed. Install with: sudo apt install libredwg-tools"
+            )
             return result
 
         # Step 2: Convert DWG → DXF
@@ -520,7 +532,9 @@ class DWGParser:
                 except Exception as exc:
                     logger.debug("Temp file cleanup failed: %s", exc)
 
-    def _parse_dxf_directly(self, dxf_path: str, start_time: Optional[float] = None) -> DWGParseResult:
+    def _parse_dxf_directly(
+        self, dxf_path: str, start_time: Optional[float] = None
+    ) -> DWGParseResult:
         """
         Parse DXF file directly using ezdxf without LibreDWG conversion.
 
@@ -587,6 +601,7 @@ class DWGParser:
         )
 
         import ezdxf
+
         doc = ezdxf.readfile(str(safe_path))
         return self.extract_rooms_from_chaos(doc)
 
@@ -613,9 +628,7 @@ class DWGParser:
             # Use the validated/sanitized path
             dwg_path = str(safe_path.resolve())
         except UnsafePathError as e:
-            raise DWGConversionError(
-                f"SECURITY: Invalid path in DWG conversion: {e}"
-            ) from e
+            raise DWGConversionError(f"SECURITY: Invalid path in DWG conversion: {e}") from e
 
         # V122 SECURITY: Additional checks for path injection patterns
         if dwg_path.startswith("-") or "\x00" in dwg_path:
@@ -628,7 +641,7 @@ class DWGParser:
             temp_fd, temp_path = tempfile.mkstemp(
                 suffix=".dxf",
                 prefix="fireai_dwg_",
-                dir=tempfile.gettempdir()  # Explicitly use secure temp directory
+                dir=tempfile.gettempdir(),  # Explicitly use secure temp directory
             )
             os.close(temp_fd)
 
@@ -655,7 +668,7 @@ class DWGParser:
         except Exception:
             # Clean up temp file on failure
             try:
-                if 'temp_path' in locals():
+                if "temp_path" in locals():
                     temp_path.unlink(missing_ok=True)
             finally:
                 raise

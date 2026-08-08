@@ -1023,7 +1023,9 @@ class ValidationAgent(BaseAgent):
                     from agents.output_schema_guard import validate_agent_output
 
                     guard_result = validate_agent_output(
-                        agent_result.agent_name.lower().replace(" ", "_").replace("agent", "_agent"),
+                        agent_result.agent_name.lower()
+                        .replace(" ", "_")
+                        .replace("agent", "_agent"),
                         agent_result.data,
                     )
                     if not guard_result.passed:
@@ -1042,7 +1044,9 @@ class ValidationAgent(BaseAgent):
 
                     agent_output_text = str(agent_result.data) if agent_result.data else ""
                     fm_warnings = scan_agent_output(
-                        agent_result.agent_name.lower().replace(" ", "_").replace("agent", "_agent"),
+                        agent_result.agent_name.lower()
+                        .replace(" ", "_")
+                        .replace("agent", "_agent"),
                         agent_output_text,
                     )
                     for w in fm_warnings:
@@ -1975,7 +1979,9 @@ class ChiefEngineeringOrchestrator:
                 # Run assertions appropriate to the study type
                 assertion_results = assertion_layer.validate(
                     data=result.data,
-                    study_type=study_type.value if hasattr(study_type, "value") else str(study_type),
+                    study_type=study_type.value
+                    if hasattr(study_type, "value")
+                    else str(study_type),
                 )
 
                 if assertion_results and hasattr(assertion_results, "failures"):
@@ -1989,7 +1995,9 @@ class ChiefEngineeringOrchestrator:
                                 f"{failure.message if hasattr(failure, 'message') else failure}"
                             )
                             result.validation_errors.append(_msg)
-                            severity = failure.severity if hasattr(failure, "severity") else "WARNING"
+                            severity = (
+                                failure.severity if hasattr(failure, "severity") else "WARNING"
+                            )
                             if str(severity).upper() in ("CRITICAL", "FATAL"):
                                 self.logger.critical("F-07: %s", _msg)
                             else:

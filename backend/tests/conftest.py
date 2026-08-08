@@ -73,6 +73,7 @@ os.environ["FIREAI_API_KEY"] = TEST_API_KEY
 # safe to commit (it's a test-only secret with no production access).
 if not os.environ.get("FIREAI_SESSION_SECRET"):
     import secrets as _secrets
+
     os.environ["FIREAI_SESSION_SECRET"] = _secrets.token_urlsafe(64)
 
 # V212 FIX: backend/app.py::lifespan also requires DATABASE_URL and
@@ -94,7 +95,11 @@ for _stale in ["db/api_keys.secret", "db/digital_twin.db", "db/udm_elements.db"]
         except OSError:
             pass
 # Also clean /tmp test DBs
-for _tmp_db in ["/tmp/fireai_test_conftest.db", "/tmp/udm_test_conftest.db", "/tmp/fireai_deploy_test.db"]:
+for _tmp_db in [
+    "/tmp/fireai_test_conftest.db",
+    "/tmp/udm_test_conftest.db",
+    "/tmp/fireai_deploy_test.db",
+]:
     _p = _pathlib.Path(_tmp_db)
     if _p.exists():
         try:
@@ -125,6 +130,7 @@ try:
     import sys as _sys
 
     from starlette.testclient import TestClient as _StarletteTestClient
+
     _original_testclient_init = _StarletteTestClient.__init__
 
     # V140: cache the backend/tests/ directory path for fast comparison
@@ -142,13 +148,18 @@ try:
         caller_file = ""
         while frame is not None:
             f_filename = frame.f_code.co_filename
-            if f_filename and ("test_" in _os.path.basename(f_filename) or "conftest" in f_filename):
+            if f_filename and (
+                "test_" in _os.path.basename(f_filename) or "conftest" in f_filename
+            ):
                 caller_file = f_filename
                 break
             frame = frame.f_back
 
         # Only inject header if the caller is under backend/tests/
-        is_backend_test = bool(caller_file and _os.path.normcase(caller_file).startswith(_os.path.normcase(_BACKEND_TESTS_DIR)))
+        is_backend_test = bool(
+            caller_file
+            and _os.path.normcase(caller_file).startswith(_os.path.normcase(_BACKEND_TESTS_DIR))
+        )
         if is_backend_test:
             caller_headers = kwargs.pop("headers", None) or {}
             # setdefault so a test can still override with its own X-API-Key
@@ -187,14 +198,21 @@ try:
     _NON_VERSIONED_API_PATHS: set[str] = set()
     try:
         import os as _os
+
         _os.environ.setdefault("FIREAI_API_KEY", TEST_API_KEY)
         import logging as _logging
+
         _logging.disable(_logging.CRITICAL)
         from backend.app import app as _app
+
         _schema = _app.openapi()
         for _path in _schema.get("paths", {}):
             # Collect /api/* paths that are NOT under /api/v1/ or /api/v2/
-            if _path.startswith("/api/") and not _path.startswith("/api/v1/") and not _path.startswith("/api/v2/"):  # NOSONAR — S1192: duplicated literal acceptable in this localized context
+            if (
+                _path.startswith("/api/")
+                and not _path.startswith("/api/v1/")
+                and not _path.startswith("/api/v2/")
+            ):  # NOSONAR — S1192: duplicated literal acceptable in this localized context
                 # Strip path params ({project_id} etc.) for prefix matching
                 _NON_VERSIONED_API_PATHS.add(_path.split("/{")[0])
         _logging.disable(_logging.NOTSET)
@@ -215,7 +233,9 @@ try:
             return url
         if not url.startswith("/api/"):
             return url
-        if url.startswith("/api/v1/") or url.startswith("/api/v2/"):  # NOSONAR — S8513: trailing comma acceptable in this multi-line collection
+        if url.startswith("/api/v1/") or url.startswith(
+            "/api/v2/"
+        ):  # NOSONAR — S8513: trailing comma acceptable in this multi-line collection
             return url
         # Check if the URL (or its prefix) matches a known /api/ route
         # Strip query string for matching
@@ -224,7 +244,7 @@ try:
             if path_only == prefix or path_only.startswith(prefix + "/"):
                 return url  # Don't rewrite — route exists at /api/
         # Default: rewrite to /api/v1/
-        return "/api/v1/" + url[len("/api/"):]
+        return "/api/v1/" + url[len("/api/") :]
 
     for _method_name in _HTTP_METHODS:
         _original_method = getattr(_StarletteTestClient, _method_name)
@@ -234,22 +254,27 @@ try:
                 # V140 FIX: Use instance flag instead of call-stack inspection.
                 # The flag is set in _patched_testclient_init based on whether
                 # the TestClient was created from a test under backend/tests/.
-                if getattr(self, '_fireai_backend_test', False):
+                if getattr(self, "_fireai_backend_test", False):
                     return orig(self, _rewrite_legacy_url(url), *args, **kwargs)
                 return orig(self, url, *args, **kwargs)
+
             _patched_method.__name__ = name
             return _patched_method
 
-        setattr(_StarletteTestClient, _method_name, _make_patched_method(_original_method, _method_name))
+        setattr(
+            _StarletteTestClient, _method_name, _make_patched_method(_original_method, _method_name)
+        )
 
     # Also patch `request` (lower-level method used by some tests)
     if hasattr(_StarletteTestClient, "request"):
         _original_request = _StarletteTestClient.request
+
         def _patched_request(self, method, url, *args, **kwargs):
             # V140 FIX: Same instance-flag check as _patched_method
-            if getattr(self, '_fireai_backend_test', False):
+            if getattr(self, "_fireai_backend_test", False):
                 return _original_request(self, method, _rewrite_legacy_url(url), *args, **kwargs)
             return _original_request(self, method, url, *args, **kwargs)
+
         _StarletteTestClient.request = _patched_request
 
 except ImportError:
@@ -325,6 +350,7 @@ def _reset_rate_limiter_storage():
     """
     try:
         from backend.limiter import limiter as _limiter
+
         if _limiter is not None and hasattr(_limiter, "_storage"):
             _storage = _limiter._storage
             # MemoryStorage internal state (from limits/storage/memory.py):

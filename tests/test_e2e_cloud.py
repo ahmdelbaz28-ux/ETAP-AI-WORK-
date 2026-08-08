@@ -26,6 +26,7 @@ import pytest
 # Helper: Load .env
 # ---------------------------------------------------------------------------
 
+
 def load_env():
     """Load .env file if it exists."""
     env_path = Path(__file__).resolve().parent.parent / ".env"
@@ -119,12 +120,18 @@ class TestNeo4jAuraE2E:
         service.add_element(NetworkElement("E2E-LOAD-001", ElementType.LOAD, "E2E Load"))
 
         # Add connections
-        assert service.add_connection(NetworkConnection(
-            "E2E-BRK-001", "E2E-BUS-002", RelationshipType.FEEDS
-        )) is True
-        assert service.add_connection(NetworkConnection(
-            "E2E-BUS-002", "E2E-LOAD-001", RelationshipType.FEEDS
-        )) is True
+        assert (
+            service.add_connection(
+                NetworkConnection("E2E-BRK-001", "E2E-BUS-002", RelationshipType.FEEDS)
+            )
+            is True
+        )
+        assert (
+            service.add_connection(
+                NetworkConnection("E2E-BUS-002", "E2E-LOAD-001", RelationshipType.FEEDS)
+            )
+            is True
+        )
 
     @skip_neo4j
     def test_neo4j_impact_analysis_real(self):
@@ -137,10 +144,12 @@ class TestNeo4jAuraE2E:
         result = service.analyze_breaker_impact("E2E-BRK-001")
 
         assert result.breaker_id == "E2E-BRK-001"
-        assert "E2E-BUS-002" in result.affected_buses, \
+        assert "E2E-BUS-002" in result.affected_buses, (
             f"BUS-002 should be affected. Got: {result.affected_buses}"
-        assert "E2E-LOAD-001" in result.affected_loads, \
+        )
+        assert "E2E-LOAD-001" in result.affected_loads, (
             f"LOAD-001 should be affected. Got: {result.affected_loads}"
+        )
         assert result.analysis_ms > 0, "Should take >0ms"
         assert result.analysis_ms < 5000, "Should take <5s (cloud latency)"
         assert result.path_count > 0, "Should find at least 1 path"
@@ -222,10 +231,12 @@ class TestQdrantCloudE2E:
             limit=5,
         )
         assert result.total > 0, "Should find at least 1 result for exact match"
-        assert result.results[0].content == unique_text, \
+        assert result.results[0].content == unique_text, (
             f"Top result should match. Got: {result.results[0].content[:50]}"
-        assert result.results[0].score > 0.99, \
+        )
+        assert result.results[0].score > 0.99, (
             f"Exact match should have score >0.99. Got: {result.results[0].score}"
+        )
 
     @skip_qdrant
     def test_qdrant_store_multiple_collections_real(self):
@@ -251,8 +262,9 @@ class TestQdrantCloudE2E:
 
         # With hash-based embeddings, exact match should work
         # If sentence-transformers not installed, score may be 1.0 for exact match
-        assert r1.total > 0 or r2.total > 0, \
+        assert r1.total > 0 or r2.total > 0, (
             "At least one collection should return results for exact match"
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -287,8 +299,9 @@ class TestGraphRAGE2E:
         engine = GraphRAGEngine()
         # If MODAL_API_KEY is set, model should be GLM-5.1-FP8
         if os.environ.get("MODAL_API_KEY") and not os.environ.get("OPENAI_API_KEY"):
-            assert "GLM" in engine._llm_model or "glm" in engine._llm_model, \
+            assert "GLM" in engine._llm_model or "glm" in engine._llm_model, (
                 f"Should use GLM model when Modal key is set. Got: {engine._llm_model}"
+            )
         assert engine._openai_key, "Should have an API key set"
 
     @skip_modal
@@ -305,8 +318,9 @@ class TestGraphRAGE2E:
         assert isinstance(answer, str), "Answer should be a string"
         assert len(answer) > 0, "Answer should not be empty"
         # Should NOT be the fallback message
-        assert "not available" not in answer.lower(), \
+        assert "not available" not in answer.lower(), (
             f"Should get a real answer, not fallback. Got: {answer[:100]}"
+        )
 
     @skip_modal
     @skip_neo4j
@@ -318,9 +332,9 @@ class TestGraphRAGE2E:
         assert engine._openai_key, "Should have API key detected"
 
         if os.environ.get("MODAL_API_KEY"):
-            assert "modal" in engine._openai_base_url.lower() or \
-                   "us-west-2" in engine._openai_base_url, \
-                f"Should detect Modal base_url. Got: {engine._openai_base_url}"
+            assert (
+                "modal" in engine._openai_base_url.lower() or "us-west-2" in engine._openai_base_url
+            ), f"Should detect Modal base_url. Got: {engine._openai_base_url}"
 
 
 # ---------------------------------------------------------------------------
@@ -338,21 +352,26 @@ class TestFullStackE2E:
         """Verify ALL cloud services are simultaneously connected."""
         # Neo4j
         from fireai.infrastructure.topology_graph_service import TopologyGraphService
+
         neo4j = TopologyGraphService()
         neo4j._initialize()
         assert neo4j.health_check()["healthy"] is True, "Neo4j should be healthy"
 
         # Qdrant
         from fireai.infrastructure.vector_memory_service import VectorMemoryService
+
         qdrant = VectorMemoryService()
         qdrant._initialize()
         assert qdrant.health_check()["healthy"] is True, "Qdrant should be healthy"
 
         # GraphRAG
         from fireai.infrastructure.graphrag_engine import GraphRAGEngine
+
         graphrag = GraphRAGEngine()
         graphrag._initialize()
-        assert graphrag.health_check()["neo4j_connected"] is True, "GraphRAG Neo4j should be connected"
+        assert graphrag.health_check()["neo4j_connected"] is True, (
+            "GraphRAG Neo4j should be connected"
+        )
 
     @skip_neo4j
     def test_v2_api_topology_endpoint_e2e(self):
@@ -370,8 +389,9 @@ class TestFullStackE2E:
         data = r.json()
         # When .env is loaded, Neo4j should be connected
         if _HAS_NEO4J:
-            assert data.get("healthy") is True, \
+            assert data.get("healthy") is True, (
                 f"Topology health should be True with real Neo4j. Got: {data}"
+            )
 
     @skip_qdrant
     def test_v2_api_memory_endpoint_e2e(self):
@@ -388,5 +408,6 @@ class TestFullStackE2E:
         assert r.status_code == 200
         data = r.json()
         if _HAS_QDRANT:
-            assert data.get("healthy") is True, \
+            assert data.get("healthy") is True, (
                 f"Memory health should be True with real Qdrant. Got: {data}"
+            )

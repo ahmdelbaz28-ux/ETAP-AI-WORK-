@@ -81,9 +81,7 @@ def _cleanup_mfa_stores() -> None:
             del _failed_attempts[user_id]
 
         # Prune expired lockouts
-        expired_lockouts = [
-            uid for uid, ts in _lockouts.items() if now - ts >= _LOCKOUT_DURATION
-        ]
+        expired_lockouts = [uid for uid, ts in _lockouts.items() if now - ts >= _LOCKOUT_DURATION]
         for uid in expired_lockouts:
             del _lockouts[uid]
 

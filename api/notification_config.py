@@ -34,6 +34,7 @@ Author: ETAP Integration Team
 from __future__ import annotations
 
 import logging
+import re
 import uuid
 from datetime import UTC, datetime
 from typing import Any, Dict, List, Optional
@@ -42,6 +43,23 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field, field_validator
 
 from api.dependencies import get_api_key
+
+_SAFE_LOG_RE = re.compile(r"[\x00-\x1f\x7f]")
+
+
+def _sanitize_for_log(value: object, max_len: int = 200) -> str:
+    """Sanitize user-controlled input before writing to logs.
+
+    Strips control characters (prevents log injection / CRLF spoofing) and
+    truncates to a sensible length so an attacker cannot flood log storage.
+    """
+    if value is None:
+        return "None"
+    s = _SAFE_LOG_RE.sub("_", str(value))
+    if len(s) > max_len:
+        s = s[:max_len] + "...[truncated]"
+    return s
+
 
 logger = logging.getLogger("etap.api.notification_config")
 
@@ -83,8 +101,16 @@ def _default_alert_configs() -> Dict[str, Dict[str, Any]]:
     """Return default alert type configurations for every supported alert type."""
     return {
         "arc_flash": {"alert_type": "arc_flash", "enabled": True, "severity_threshold": "high"},
-        "short_circuit": {"alert_type": "short_circuit", "enabled": True, "severity_threshold": "high"},
-        "scada_fault": {"alert_type": "scada_fault", "enabled": True, "severity_threshold": "medium"},
+        "short_circuit": {
+            "alert_type": "short_circuit",
+            "enabled": True,
+            "severity_threshold": "high",
+        },
+        "scada_fault": {
+            "alert_type": "scada_fault",
+            "enabled": True,
+            "severity_threshold": "medium",
+        },
         "load_flow": {"alert_type": "load_flow", "enabled": True, "severity_threshold": "medium"},
         "protection_coordination": {
             "alert_type": "protection_coordination",
@@ -101,7 +127,11 @@ def _default_alert_configs() -> Dict[str, Dict[str, Any]]:
             "enabled": False,
             "severity_threshold": "medium",
         },
-        "system_alert": {"alert_type": "system_alert", "enabled": True, "severity_threshold": "low"},
+        "system_alert": {
+            "alert_type": "system_alert",
+            "enabled": True,
+            "severity_threshold": "low",
+        },
     }
 
 
@@ -339,6 +369,9 @@ async def update_notification_config(
     if body.digest is not None:
         _store["digest"].update(body.digest.model_dump())
         logger.info("digest_config_updated new_config=%s", body.digest.model_dump())
+        logger.info(
+            "digest_config_updated new_config=%s", _sanitize_for_log(body.digest.model_dump())
+        )
 
     if body.alerts is not None:
         for alert_cfg in body.alerts:
@@ -423,6 +456,11 @@ async def update_alert_config(
 
     _store["alerts"][alert_type] = body.model_dump()
     logger.info("alert_config_updated alert_type=%s config=%s", alert_type, body.model_dump())
+    logger.info(
+        "alert_config_updated alert_type=%s config=%s",
+        _sanitize_for_log(alert_type),
+        _sanitize_for_log(body.model_dump()),
+    )
     return AlertTypeConfig(**_store["alerts"][alert_type])
 
 

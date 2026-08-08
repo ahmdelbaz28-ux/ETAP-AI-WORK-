@@ -343,9 +343,7 @@ class GISSyncBridge:
         gid = (
             int(gen_id.split("_")[-1])
             if "_" in gen_id
-            else int(
-                gen_id
-            )  # NOSONAR
+            else int(gen_id)  # NOSONAR
             if gen_id.isdigit()
             else 1  # NOSONAR nested conditional; extract to named variable (tech debt)
         )

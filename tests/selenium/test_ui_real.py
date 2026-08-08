@@ -26,6 +26,7 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC  # noqa: N812
+from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
 BASE_URL = "http://127.0.0.1:7860"
@@ -79,6 +80,7 @@ def create_driver():
 # ---------------------------------------------------------------------------
 # UI Tests
 # ---------------------------------------------------------------------------
+
 
 def test_homepage_loads(driver):
     """Test that the homepage loads and has the correct title."""
@@ -148,7 +150,11 @@ def test_docs_page_loads(driver):
 
     body_text = driver.find_element(By.TAG_NAME, "body").text
     # Swagger UI should have "API" or "AhmedETAP" or "OpenAPI"
-    if "AhmedETAP" not in body_text and "API" not in body_text and "swagger" not in body_text.lower():
+    if (
+        "AhmedETAP" not in body_text
+        and "API" not in body_text
+        and "swagger" not in body_text.lower()
+    ):
         print(f"  ✗ FAIL: docs page should contain 'AhmedETAP' or 'API', got: {body_text[:200]!r}")
         return False
     print("  Docs page loaded")

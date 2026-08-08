@@ -1,4 +1,5 @@
 """Integration tests for authentication, RBAC, and API versioning."""
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -9,6 +10,7 @@ def client(monkeypatch):
     monkeypatch.setenv("FIREAI_API_KEY", "test-admin-key")
     monkeypatch.setenv("FIREAI_ENV", "development")
     from backend.app import app
+
     return TestClient(app)
 
 

@@ -30,6 +30,8 @@ import logging
 from datetime import datetime, timezone
 from enum import StrEnum
 from typing import Any, Generic, TypeVar
+from typing import Any, TypeVar
+
 
 from pydantic import BaseModel, Field, ValidationError
 
@@ -52,6 +54,8 @@ class ContractSeverity(StrEnum):
 
 
 class APIContract(BaseModel, Generic[T]):  # noqa: UP046
+class APIContract[T: BaseModel](BaseModel):
+
     """
     Defines a typed API contract for an endpoint.
 
@@ -234,7 +238,11 @@ class ContractValidator:
             if self.severity == ContractSeverity.STRICT:
                 raise
 
-            logger.exception("Contract violation on %s: %s. Returning unvalidated response (severity=LOG).", key, e.errors())
+            logger.exception(
+                "Contract violation on %s: %s. Returning unvalidated response (severity=LOG).",
+                key,
+                e.errors(),
+            )
             return data
 
     def validate_request(

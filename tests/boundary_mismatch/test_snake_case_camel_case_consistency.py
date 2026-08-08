@@ -2,6 +2,7 @@
 
 Catches field naming drift between DB columns, API responses, and TS types.
 """
+
 import re
 from pathlib import Path
 
@@ -11,6 +12,7 @@ def test_api_response_field_casing():
     api_dir = Path(__file__).resolve().parents[2] / "api"
     if not api_dir.exists():
         import pytest
+
         pytest.skip("api/ not found")
 
     camel_case_findings = []
@@ -36,6 +38,7 @@ def test_frontend_type_casing():
     api_ts = Path(__file__).resolve().parents[2] / "ui" / "src" / "lib" / "api.ts"
     if not api_ts.exists():
         import pytest
+
         pytest.skip("api.ts not found")
 
     content = api_ts.read_text()

@@ -998,9 +998,7 @@ class SecurityAuditor:
         service_files = [
             os.path.join(self.project_root, _ENGINEERING_SERVICE_FILENAME),
             os.path.join(self.project_root, "api", _REFACTORED_SERVICE_FILENAME),
-            os.path.join(
-                self.project_root, "api", "auth.py"
-            ),  # NOSONAR
+            os.path.join(self.project_root, "api", "auth.py"),  # NOSONAR
         ]
 
         for service_file in service_files:
@@ -1059,9 +1057,7 @@ class SecurityAuditor:
         """Check for potential information disclosure vulnerabilities."""
         service_files = [
             os.path.join(self.project_root, _ENGINEERING_SERVICE_FILENAME),
-            os.path.join(
-                self.project_root, "api", _REFACTORED_SERVICE_FILENAME
-            ),  # NOSONAR
+            os.path.join(self.project_root, "api", _REFACTORED_SERVICE_FILENAME),  # NOSONAR
         ]
 
         for service_file in service_files:
@@ -1271,6 +1267,8 @@ async def _main() -> (  # NOSONAR
             else stack.enter_context(
                 open(args.output, "w", encoding="utf-8")
             )  # NOSONAR S8707/S7493: output path validated above (NUL + parent dir); sync open kept for lib compat
+            else stack.enter_context(open(args.output, "w", encoding="utf-8"))  # noqa: S7493 — output path validated above (NUL + parent dir); sync open kept for lib compat
+
         )
 
         if not args.json_only:

@@ -30,6 +30,7 @@ NOTE on equipment table:
   This migration only creates the three tables that genuinely lack
   ORM models: scada_tags, gis_features, email_send_log.
 """
+
 from __future__ import annotations
 
 import sqlalchemy as sa

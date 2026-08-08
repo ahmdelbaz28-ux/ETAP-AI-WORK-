@@ -40,6 +40,7 @@ def _lazy_import_pandas():
     if pd is None:
         try:
             import pandas as _pd  # type: ignore
+
             pd = _pd
         except ImportError as e:
             raise ImportError(
@@ -53,6 +54,7 @@ def _lazy_import_pandas():
 # EXCEPTIONS
 # ═══════════════════════════════════════════════════════
 
+
 class ExcelParseError(Exception):
     """Raised when Excel parsing fails."""
 
@@ -62,6 +64,7 @@ class ExcelParseError(Exception):
 # ═══════════════════════════════════════════════════════
 # DATA CLASS
 # ═══════════════════════════════════════════════════════
+
 
 @dataclass
 class ExcelRoom:
@@ -106,6 +109,7 @@ class ExcelParseResult:
 # EXCEL PARSER
 # ═══════════════════════════════════════════════════════
 
+
 class ExcelParser:
     """
     Parses Excel room specifications into room objects.
@@ -118,16 +122,16 @@ class ExcelParser:
             print(f"Found {result.room_count} rooms")
     """
 
-    REQUIRED_COLUMNS = ['name', 'width_m', 'depth_m', 'height_m']
+    REQUIRED_COLUMNS = ["name", "width_m", "depth_m", "height_m"]
 
     # Column aliases (flexible matching)
     COLUMN_ALIASES = {
-        'name': ['name', 'room', 'room_name', 'room_number', 'number', 'room_id'],
-        'width_m': ['width_m', 'width', 'width_meters', 'w'],
-        'depth_m': ['depth_m', 'depth', 'depth_meters', 'd', 'length'],
-        'height_m': ['height_m', 'height', 'height_meters', 'h', 'ceiling_height'],
-        'detector_type': ['detector_type', 'detector', 'type', 'device_type'],
-        'occupancy_type': ['occupancy_type', 'occupancy', 'use', 'usage', 'room_type'],
+        "name": ["name", "room", "room_name", "room_number", "number", "room_id"],
+        "width_m": ["width_m", "width", "width_meters", "w"],
+        "depth_m": ["depth_m", "depth", "depth_meters", "d", "length"],
+        "height_m": ["height_m", "height", "height_meters", "h", "ceiling_height"],
+        "detector_type": ["detector_type", "detector", "type", "device_type"],
+        "occupancy_type": ["occupancy_type", "occupancy", "use", "usage", "room_type"],
     }
 
     def __init__(self, min_area: float = 2.0):
@@ -156,8 +160,11 @@ class ExcelParser:
             validate_file_size,
             validate_input_path,
         )
+
         _ALLOWED_EXTENSIONS = frozenset({".xlsx", ".xls", ".csv"})
-        _MAX_FILE_SIZE_BYTES = int(os.getenv("FIREAI_EXCEL_MAX_FILE_SIZE_BYTES", 25 * 1024 * 1024))  # 25 MB default
+        _MAX_FILE_SIZE_BYTES = int(
+            os.getenv("FIREAI_EXCEL_MAX_FILE_SIZE_BYTES", 25 * 1024 * 1024)
+        )  # 25 MB default
         try:
             safe_path = validate_input_path(
                 file_path,
@@ -181,7 +188,7 @@ class ExcelParser:
             # V140: lazy import pandas (raises clear error if missing)
             _lazy_import_pandas()
             # Read Excel
-            df = pd.read_excel(str(safe_path), engine='openpyxl')
+            df = pd.read_excel(str(safe_path), engine="openpyxl")
 
             if df.empty:
                 result.errors.append("Excel file is empty")
@@ -207,7 +214,7 @@ class ExcelParser:
                             f"Skipped {room.name}: area {room.floor_area:.1f}m² < {self.min_area}m²"
                         )
                 except ValueError as e:
-                    result.warnings.append(f"Row {idx+1}: {e}")
+                    result.warnings.append(f"Row {idx + 1}: {e}")
 
             result.room_count = len(result.rooms)
             result.success = result.room_count > 0
@@ -231,17 +238,17 @@ class ExcelParser:
 
     def _parse_row(self, row: pd.Series) -> ExcelRoom:
         """Parse single row to ExcelRoom."""
-        name = str(row['name']).strip()
+        name = str(row["name"]).strip()
 
-        width = float(row['width_m'])
-        depth = float(row['depth_m'])
-        height = float(row['height_m'])
+        width = float(row["width_m"])
+        depth = float(row["depth_m"])
+        height = float(row["height_m"])
 
         if width <= 0 or depth <= 0 or height <= 0:
             raise ValueError(f"Invalid dimensions for {name}")
 
-        detector_str = str(row.get('detector_type', 'SMOKE')).strip().upper()
-        occupancy_str = str(row.get('occupancy_type', 'office')).strip().lower()
+        detector_str = str(row.get("detector_type", "SMOKE")).strip().upper()
+        occupancy_str = str(row.get("occupancy_type", "office")).strip().lower()
 
         return ExcelRoom(
             name=name,
@@ -256,6 +263,7 @@ class ExcelParser:
 # ═══════════════════════════════════════════════════════
 # CONVENIENCE FUNCTION
 # ═══════════════════════════════════════════════════════
+
 
 def parse_excel(file_path: str) -> ExcelParseResult:
     """Quick parse Excel file."""

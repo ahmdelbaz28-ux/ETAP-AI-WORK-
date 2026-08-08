@@ -128,9 +128,7 @@ class TestConfig:
               measurement_type: "voltage_magnitude"
               type_id: "M_ME_NC_1"
         """
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".yaml", delete=False
-        ) as tmp:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as tmp:
             tmp.write(yaml_text)
             tmp_path = tmp.name
         try:

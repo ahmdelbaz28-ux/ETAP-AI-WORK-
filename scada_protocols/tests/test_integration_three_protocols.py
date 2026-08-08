@@ -34,9 +34,7 @@ from scada_protocols.common.config import (
 )
 from scada_protocols.manager import SCADAProtocolManager
 
-ALL_LIBS_AVAILABLE = (
-    probe_modbus()[0] and probe_opcua()[0] and probe_iec104()[0]
-)
+ALL_LIBS_AVAILABLE = probe_modbus()[0] and probe_opcua()[0] and probe_iec104()[0]
 pytestmark = pytest.mark.skipif(
     not ALL_LIBS_AVAILABLE,
     reason="requires pymodbus + asyncua + c104",
@@ -202,6 +200,8 @@ def test_three_protocol_manager_lifecycle():
         protocol_sources = [
             k for k in stats["by_protocol"]
             if k.startswith(("modbus:", "opcua:", "iec104:"))
+            k for k in stats["by_protocol"] if k.startswith(("modbus:", "opcua:", "iec104:"))
+
         ]
         assert len(protocol_sources) > 0
 

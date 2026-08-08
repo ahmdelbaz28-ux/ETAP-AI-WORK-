@@ -66,9 +66,7 @@ Usage::
 from __future__ import annotations
 
 # Module-level string constants (extracted to satisfy S1192).
-_PROMPT_NOT_FOUND_FALLBACK_MSG = (
-    "Prompt '%s' not found, using fallback_agent prompt"  # NOSONAR
-)
+_PROMPT_NOT_FOUND_FALLBACK_MSG = "Prompt '%s' not found, using fallback_agent prompt"  # NOSONAR
 
 import asyncio
 import hashlib
@@ -152,7 +150,9 @@ try:
         """Adapter wrapping canonical CircuitBreaker with .is_open property for prompt_loader."""
 
         def __init__(self, name: str, failure_threshold: int, recovery_timeout: float):
-            self._cb = _CanonicalCB(name, failure_threshold=failure_threshold, recovery_timeout=recovery_timeout)
+            self._cb = _CanonicalCB(
+                name, failure_threshold=failure_threshold, recovery_timeout=recovery_timeout
+            )
 
         @property
         def is_open(self) -> bool:
@@ -164,8 +164,12 @@ try:
         def record_failure(self) -> None:
             self._cb.record_failure()
 
-    _langfuse_cb = _CircuitBreakerAdapter("langfuse_prompt", _CB_FAILURE_THRESHOLD, _CB_RESET_SECONDS)
-    _langwatch_cb = _CircuitBreakerAdapter("langwatch_prompt", _CB_FAILURE_THRESHOLD, _CB_RESET_SECONDS)
+    _langfuse_cb = _CircuitBreakerAdapter(
+        "langfuse_prompt", _CB_FAILURE_THRESHOLD, _CB_RESET_SECONDS
+    )
+    _langwatch_cb = _CircuitBreakerAdapter(
+        "langwatch_prompt", _CB_FAILURE_THRESHOLD, _CB_RESET_SECONDS
+    )
 except ImportError:
     # Fallback: engine.resilience unavailable (minimal deployment)
     class _CircuitBreaker:
@@ -201,7 +205,6 @@ except ImportError:
 
     _langfuse_cb = _CircuitBreaker(_CB_FAILURE_THRESHOLD, _CB_RESET_SECONDS)
     _langwatch_cb = _CircuitBreaker(_CB_FAILURE_THRESHOLD, _CB_RESET_SECONDS)
-
 
 
 # ---------------------------------------------------------------------------
@@ -460,9 +463,7 @@ def get_system_prompt(handle: str) -> str:
         if result:
             with _cache_lock:
                 _prompt_cache[handle] = (result, time.monotonic(), "fallback_yaml")
-            logger.warning(
-                _PROMPT_NOT_FOUND_FALLBACK_MSG, handle
-            )  # NOSONAR
+            logger.warning(_PROMPT_NOT_FOUND_FALLBACK_MSG, handle)  # NOSONAR
             return result
 
     # Tier 3: Hardcoded safety-net

@@ -46,10 +46,10 @@ logger = logging.getLogger(__name__)
 # These are used when the API is unavailable or returns invalid data.
 # Values are CONSERVATIVE (safer than optimistic).
 
-DEFAULT_INDOOR_TEMP_C = 40.0       # Industrial indoor per IEC 60079-10-1
-DEFAULT_OUTDOOR_TEMP_C = 20.0      # Standard conditions per ISO 2533
-DEFAULT_WIND_SPEED_M_S = 0.5       # Stagnant indoor (conservative for zone extent)
-DEFAULT_HUMIDITY_PCT = 50.0        # Mid-range (conservative for acoustic propagation)
+DEFAULT_INDOOR_TEMP_C = 40.0  # Industrial indoor per IEC 60079-10-1
+DEFAULT_OUTDOOR_TEMP_C = 20.0  # Standard conditions per ISO 2533
+DEFAULT_WIND_SPEED_M_S = 0.5  # Stagnant indoor (conservative for zone extent)
+DEFAULT_HUMIDITY_PCT = 50.0  # Mid-range (conservative for acoustic propagation)
 
 
 @dataclass(frozen=True)
@@ -183,9 +183,7 @@ class WeatherService:
         wait=wait_exponential(min=1, max=10),
         reraise=True,
     )
-    async def _fetch_open_meteo(
-        self, latitude: float, longitude: float
-    ) -> WeatherData:
+    async def _fetch_open_meteo(self, latitude: float, longitude: float) -> WeatherData:
         """
         Fetch current weather from Open-Meteo API.
 
@@ -306,6 +304,8 @@ class WeatherService:
                 f"Invalid coordinates: lat={latitude}, lon={longitude}. "  # noqa: G004
                 f"Using defaults."
             )
+            logger.warning(f"Invalid coordinates: lat={latitude}, lon={longitude}. Using defaults.")
+
             return self._get_default(latitude, longitude)
 
         # Check cache first

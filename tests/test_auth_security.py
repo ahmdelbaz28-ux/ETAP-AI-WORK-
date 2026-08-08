@@ -30,6 +30,7 @@ def _setup_env() -> Generator[None, None, None]:
     os.environ["FIREAI_API_KEY"] = "test_key_for_security_audit"
     # Clear session store between tests
     from backend.routers import auth as auth_module
+
     auth_module._SESSION_STORE.clear()
     auth_module._FAILED_ATTEMPTS.clear()
     yield
@@ -41,6 +42,7 @@ def _setup_env() -> Generator[None, None, None]:
 def client() -> Generator[TestClient, None, None]:
     """Create a test client for the FastAPI app."""
     from backend.app import app
+
     with TestClient(app) as c:
         yield c
 
@@ -55,7 +57,7 @@ class TestRateLimiting:
                 "/api/v1/auth/login",
                 json={"api_key": "wrong_key"},
             )
-            assert resp.status_code == 401, f"Attempt {i+1} should be 401"
+            assert resp.status_code == 401, f"Attempt {i + 1} should be 401"
 
         # 6th attempt should be rate limited
         resp = client.post(
@@ -73,7 +75,9 @@ class TestRateLimiting:
         # Successful login
         resp = client.post(
             "/api/v1/auth/login",
-            json={"api_key": "test_key_for_security_audit"},  # NOSONAR: hard-coded secret in test fixture  # NOSONAR — S7632: test function documented via class name / module path
+            json={
+                "api_key": "test_key_for_security_audit"
+            },  # NOSONAR: hard-coded secret in test fixture  # NOSONAR — S7632: test function documented via class name / module path
         )
         assert resp.status_code == 200
 
@@ -90,7 +94,9 @@ class TestCookieSecurity:
         """The cookie value must NOT be the API key itself."""
         resp = client.post(
             "/api/v1/auth/login",
-            json={"api_key": "test_key_for_security_audit"},  # NOSONAR: hard-coded secret in test fixture  # NOSONAR — S7632: test function documented via class name / module path
+            json={
+                "api_key": "test_key_for_security_audit"
+            },  # NOSONAR: hard-coded secret in test fixture  # NOSONAR — S7632: test function documented via class name / module path
         )
         assert resp.status_code == 200
 
@@ -102,8 +108,9 @@ class TestCookieSecurity:
         token_part = set_cookie.split("fireai_session=")[1].split(";")[0]
 
         # CRITICAL: token must NOT equal the API key
-        assert token_part != "test_key_for_security_audit", \
+        assert token_part != "test_key_for_security_audit", (
             "Cookie contains API key in plaintext — CRITICAL security failure!"
+        )
 
         # Token should be longer than the API key (it's session_id.signature)
         assert len(token_part) > 60, f"Token too short: {len(token_part)} chars"
@@ -112,7 +119,9 @@ class TestCookieSecurity:
         """Cookie must have HttpOnly flag (XSS protection)."""
         resp = client.post(
             "/api/v1/auth/login",
-            json={"api_key": "test_key_for_security_audit"},  # NOSONAR: hard-coded secret in test fixture  # NOSONAR — S7632: test function documented via class name / module path
+            json={
+                "api_key": "test_key_for_security_audit"
+            },  # NOSONAR: hard-coded secret in test fixture  # NOSONAR — S7632: test function documented via class name / module path
         )
         set_cookie = resp.headers.get("set-cookie", "").lower()
         assert "httponly" in set_cookie, "Cookie missing HttpOnly flag"
@@ -121,7 +130,9 @@ class TestCookieSecurity:
         """Cookie must have SameSite=Strict (CSRF protection)."""
         resp = client.post(
             "/api/v1/auth/login",
-            json={"api_key": "test_key_for_security_audit"},  # NOSONAR: hard-coded secret in test fixture  # NOSONAR — S7632: test function documented via class name / module path
+            json={
+                "api_key": "test_key_for_security_audit"
+            },  # NOSONAR: hard-coded secret in test fixture  # NOSONAR — S7632: test function documented via class name / module path
         )
         set_cookie = resp.headers.get("set-cookie", "").lower()
         assert "samesite=strict" in set_cookie, "Cookie missing SameSite=Strict"
@@ -130,7 +141,9 @@ class TestCookieSecurity:
         """Login response must have Cache-Control: no-store."""
         resp = client.post(
             "/api/v1/auth/login",
-            json={"api_key": "test_key_for_security_audit"},  # NOSONAR: hard-coded secret in test fixture  # NOSONAR — S7632: test function documented via class name / module path
+            json={
+                "api_key": "test_key_for_security_audit"
+            },  # NOSONAR: hard-coded secret in test fixture  # NOSONAR — S7632: test function documented via class name / module path
         )
         cache_control = resp.headers.get("cache-control", "").lower()
         assert "no-store" in cache_control, "Missing Cache-Control: no-store"
@@ -144,7 +157,9 @@ class TestTamperedCookie:
         # Login to get valid cookie
         client.post(
             "/api/v1/auth/login",
-            json={"api_key": "test_key_for_security_audit"},  # NOSONAR: hard-coded secret in test fixture  # NOSONAR — S7632: test function documented via class name / module path
+            json={
+                "api_key": "test_key_for_security_audit"
+            },  # NOSONAR: hard-coded secret in test fixture  # NOSONAR — S7632: test function documented via class name / module path
         )
 
         # Clear ALL cookies then set tampered one
@@ -178,12 +193,15 @@ class TestSessionRevocation:
         # Clear any existing cookies/session state
         client.cookies.clear()
         from backend.routers import auth as auth_module
+
         auth_module._SESSION_STORE.clear()
 
         # Login
         login_resp = client.post(
             "/api/v1/auth/login",
-            json={"api_key": "test_key_for_security_audit"},  # NOSONAR: hard-coded secret in test fixture  # NOSONAR — S7632: test function documented via class name / module path
+            json={
+                "api_key": "test_key_for_security_audit"
+            },  # NOSONAR: hard-coded secret in test fixture  # NOSONAR — S7632: test function documented via class name / module path
         )
         assert login_resp.status_code == 200
 
@@ -203,14 +221,18 @@ class TestSessionRevocation:
         # First login
         resp1 = client.post(
             "/api/v1/auth/login",
-            json={"api_key": "test_key_for_security_audit"},  # NOSONAR: hard-coded secret in test fixture  # NOSONAR — S7632: test function documented via class name / module path
+            json={
+                "api_key": "test_key_for_security_audit"
+            },  # NOSONAR: hard-coded secret in test fixture  # NOSONAR — S7632: test function documented via class name / module path
         )
         token1 = resp1.headers.get("set-cookie", "").split("fireai_session=")[1].split(";")[0]
 
         # Second login (should create new session, not reuse)
         resp2 = client.post(
             "/api/v1/auth/login",
-            json={"api_key": "test_key_for_security_audit"},  # NOSONAR: hard-coded secret in test fixture  # NOSONAR — S7632: test function documented via class name / module path
+            json={
+                "api_key": "test_key_for_security_audit"
+            },  # NOSONAR: hard-coded secret in test fixture  # NOSONAR — S7632: test function documented via class name / module path
         )
         token2 = resp2.headers.get("set-cookie", "").split("fireai_session=")[1].split(";")[0]
 
@@ -234,6 +256,7 @@ class TestProductionSecret:
 
         # Reset the global secret manager singleton
         import backend.session_secret as secret_mod
+
         old_manager = secret_mod._secret_manager
         secret_mod._secret_manager = None
 

@@ -3,6 +3,7 @@
 Serves index.html for all non-asset routes (SPA fallback).
 Also proxies /api/* to the backend on port 8000.
 """
+
 import http.server
 import os
 import socketserver
@@ -19,7 +20,11 @@ class SPAHandler(http.server.SimpleHTTPRequestHandler):
         super().__init__(*args, directory=DIST_DIR, **kwargs)
 
     def do_GET(self):
-        if self.path.startswith("/api/") or self.path.startswith("/health") or self.path.startswith("/openapi"):
+        if (
+            self.path.startswith("/api/")
+            or self.path.startswith("/health")
+            or self.path.startswith("/openapi")
+        ):
             return self._proxy_to_backend()
         if "." not in os.path.basename(self.path.split("?")[0]):
             self.path = "/index.html"

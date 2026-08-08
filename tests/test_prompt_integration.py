@@ -68,9 +68,9 @@ class TestPromptLoader:
         for handle in agent_handles:
             clear_prompt_cache()
             prompt = get_system_prompt(handle)
-            assert (
-                len(prompt) > 20
-            ), f"Prompt '{handle}' returned too-short content ({len(prompt)} chars)"
+            assert len(prompt) > 20, (
+                f"Prompt '{handle}' returned too-short content ({len(prompt)} chars)"
+            )
 
             assert len(prompt) > 20, (
                 f"Prompt '{handle}' returned too-short content ({len(prompt)} chars)"
@@ -151,9 +151,9 @@ class TestAgentPromptIntegration:
         from agents.orchestrator import LoadFlowAgent
 
         agent = LoadFlowAgent()
-        assert (
-            agent.prompt_handle == "load_flow_agent"
-        ), f"Expected 'load_flow_agent', got '{agent.prompt_handle}'"
+        assert agent.prompt_handle == "load_flow_agent", (
+            f"Expected 'load_flow_agent', got '{agent.prompt_handle}'"
+        )
 
         assert agent.prompt_handle == "load_flow_agent", (
             f"Expected 'load_flow_agent', got '{agent.prompt_handle}'"
@@ -174,12 +174,12 @@ class TestAgentPromptIntegration:
 
         orch = ChiefEngineeringOrchestrator()
         for key, agent in orch.agents.items():
-            assert (
-                agent._system_prompt is not None
-            ), f"Agent '{key}' ({agent.agent_name}) has no prompt loaded"
-            assert (
-                len(agent._system_prompt) > 20
-            ), f"Agent '{key}' prompt is too short ({len(agent._system_prompt)} chars)"
+            assert agent._system_prompt is not None, (
+                f"Agent '{key}' ({agent.agent_name}) has no prompt loaded"
+            )
+            assert len(agent._system_prompt) > 20, (
+                f"Agent '{key}' prompt is too short ({len(agent._system_prompt)} chars)"
+            )
 
             assert agent._system_prompt is not None, (
                 f"Agent '{key}' ({agent.agent_name}) has no prompt loaded"
@@ -321,6 +321,12 @@ class TestPromptHandleMapping:
             "ahmed_etap_agent": "AhmedETAPSkillAgent (orchestration skill) + study_type='ahmed_etap_orchestration'",
             "qgis_agent": "QGIS & GIS Integration Agent (GIS/ArcGIS Pro/QGIS)",
             "generic_agent_chat": "Generic chat fallback",
+            "etap_engineer_agent_v2": "Reserved for V2 agent variant",
+            "arcflash_agent_prompt": "arcFlashAgent (TS)",
+            "arcflash_agent": "arcFlashAgent (TS) — alias for arcflash_agent_prompt",
+            "weather_activity_planner": "Weather workflow (TS)",
+            "coordination_agent": "CoordinationAgent (future relay)",
+
             "sample_prompt": "Template/sample only",
         }
 
@@ -330,9 +336,9 @@ class TestPromptHandleMapping:
             if p not in prompt_consumers:
                 unmapped.append(p)
 
-        assert (
-            len(unmapped) == 0
-        ), f"Unmapped prompts: {unmapped}. Add them to the consumer mapping."
+        assert len(unmapped) == 0, (
+            f"Unmapped prompts: {unmapped}. Add them to the consumer mapping."
+        )
 
         assert len(unmapped) == 0, (
             f"Unmapped prompts: {unmapped}. Add them to the consumer mapping."

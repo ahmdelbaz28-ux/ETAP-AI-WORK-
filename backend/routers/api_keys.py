@@ -89,7 +89,9 @@ async def delete_key(
     """Delete an API key by its hash (admin only)."""
     deleted = delete_api_key(key_hash)
     if not deleted:
-        raise HTTPException(status_code=404, detail="API key not found")  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
+        raise HTTPException(
+            status_code=404, detail="API key not found"
+        )  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
     return {"success": True, "message": "API key deleted"}
 
 
@@ -102,7 +104,9 @@ async def update_key_role_endpoint(
     """Update an API key's role (admin only)."""
     updated = update_api_key_role(key_hash, request.role)
     if not updated:
-        raise HTTPException(status_code=404, detail="API key not found")  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
+        raise HTTPException(
+            status_code=404, detail="API key not found"
+        )  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
     return {"success": True, "message": f"API key role updated to {request.role.value}"}
 
 

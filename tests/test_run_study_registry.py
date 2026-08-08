@@ -165,10 +165,7 @@ class TestRunStudyValidationSemantics:
 
     def test_protection_coordination_missing_required_raises_exact_message(self) -> None:
         engine = PowerSystemEngine()
-        expected = (
-            "upstream_relay_id, downstream_relay_id, and fault_currents "
-            "must be provided"
-        )
+        expected = "upstream_relay_id, downstream_relay_id, and fault_currents must be provided"
         with pytest.raises(ValueError, match=expected):
             engine.run_study(study_type="protection_coordination")
 

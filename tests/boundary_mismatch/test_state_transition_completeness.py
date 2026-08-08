@@ -4,6 +4,7 @@ If the codebase defines a STATE_TRANSITIONS map, verify every status update
 in the code is present in the map. If no map exists, this test passes with
 a note.
 """
+
 import re
 from pathlib import Path
 
@@ -27,6 +28,7 @@ def test_state_transitions_exist_or_skip():
 
     if not found_in:
         import pytest
+
         pytest.skip(
             "No STATE_TRANSITIONS map found. "
             "If the app has status fields (e.g. study status), "

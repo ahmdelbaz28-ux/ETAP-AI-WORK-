@@ -118,7 +118,10 @@ def __getattr__(name):
 
             if name in ("FireAISystem", "EnhancedRoomResult"):
                 return (
-                    locals().get(name) or {"FireAISystem": FireAISystem, "EnhancedRoomResult": EnhancedRoomResult}[name]
+                    locals().get(name)
+                    or {"FireAISystem": FireAISystem, "EnhancedRoomResult": EnhancedRoomResult}[
+                        name
+                    ]
                 )
         except ImportError:
             pass

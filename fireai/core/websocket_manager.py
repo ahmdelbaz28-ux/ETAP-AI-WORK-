@@ -52,7 +52,9 @@ class ConnectionManager:
         self._active_connections: dict[str, WebSocket] = {}
         self._connection_keys: dict[WebSocket, str] = {}
 
-    async def connect(self, websocket: WebSocket, client_id: str, api_key: str | None = None) -> None:
+    async def connect(
+        self, websocket: WebSocket, client_id: str, api_key: str | None = None
+    ) -> None:
         verify_api_key_ws(api_key)
         await websocket.accept()
         self._active_connections[client_id] = websocket
@@ -78,7 +80,9 @@ class ConnectionManager:
 
     async def broadcast(self, message: str) -> int:
         sent_count = 0
-        for client_id, websocket in list(self._active_connections.items()):  # NOSONAR - python:S7504
+        for client_id, websocket in list(
+            self._active_connections.items()
+        ):  # NOSONAR - python:S7504
             try:
                 await websocket.send_text(message)
                 sent_count += 1

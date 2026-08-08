@@ -35,6 +35,7 @@ class NFPA72Constants:
     """
     V131: Enhanced NFPA 72-2022 constants with security and validation features
     """
+
     # Original NFPA 72 constants
     MIN_WALL_DIST_M: float = 0.102  # 4 inches = 0.1016m → conservative 0.102m
     MAX_WALL_DIST_M: float = 0.610  # 24 inches from any wall
@@ -79,6 +80,7 @@ class NFPA72Constants:
 @dataclass
 class GenerativeDesignVariant:
     """Represents a single design variant from the generative engine."""
+
     id: str
     name: str
     layout: List[Dict[str, Any]]
@@ -106,7 +108,7 @@ class GenerativeDesignEngine:
         ceiling_height: float,
         occupancy_type: str = "office",
         detector_type: str = "smoke",
-        num_variants: int = 3
+        num_variants: int = 3,
     ) -> List[GenerativeDesignVariant]:
         """
         Generate multiple design variants for the given room parameters.
@@ -132,8 +134,7 @@ class GenerativeDesignEngine:
 
             # Create a basic layout based on the strategy
             layout = await self._generate_layout_for_strategy(
-                room_width, room_length, ceiling_height,
-                occupancy_type, detector_type, strategy
+                room_width, room_length, ceiling_height, occupancy_type, detector_type, strategy
             )
 
             variant = GenerativeDesignVariant(
@@ -147,8 +148,8 @@ class GenerativeDesignEngine:
                     "room_length": room_length,
                     "ceiling_height": ceiling_height,
                     "detector_type": detector_type,
-                    "timestamp": time.time()
-                }
+                    "timestamp": time.time(),
+                },
             )
             variants.append(variant)
 
@@ -161,7 +162,7 @@ class GenerativeDesignEngine:
         ceiling_height: float,
         _occupancy_type: str,  # NOSONAR — S1172: parameter retained for API stability
         detector_type: str,
-        strategy: str
+        strategy: str,
     ) -> List[Dict[str, Any]]:
         """Generate a layout based on the specified strategy."""
         # Calculate base spacing based on ceiling height and detector type
@@ -188,15 +189,17 @@ class GenerativeDesignEngine:
         while x_pos < room_width - adjusted_radius:
             y_pos = adjusted_radius
             while y_pos < room_length - adjusted_radius:
-                detectors.append({
-                    "id": f"D{detector_id:03d}",
-                    "x": round(x_pos, 3),
-                    "y": round(y_pos, 3),
-                    "z": ceiling_height,
-                    "type": detector_type,
-                    "radius": adjusted_radius,
-                    "spacing": spacing
-                })
+                detectors.append(
+                    {
+                        "id": f"D{detector_id:03d}",
+                        "x": round(x_pos, 3),
+                        "y": round(y_pos, 3),
+                        "z": ceiling_height,
+                        "type": detector_type,
+                        "radius": adjusted_radius,
+                        "spacing": spacing,
+                    }
+                )
                 y_pos += spacing
                 detector_id += 1
             x_pos += spacing
@@ -217,7 +220,9 @@ class GenerativeDesignEngine:
         sorted_heights = sorted(table.keys())
 
         # Find the appropriate radius based on ceiling height
-        for height in reversed(sorted_heights):  # NOSONAR — S7510: bare except kept for top-level crash guard
+        for height in reversed(
+            sorted_heights
+        ):  # NOSONAR — S7510: bare except kept for top-level crash guard
             if ceiling_height >= height:
                 return table[height]
 
@@ -260,6 +265,7 @@ class WebhookPublisher:
         if not self._initialized:
             try:
                 import aiohttp
+
                 self.session = aiohttp.ClientSession(
                     timeout=aiohttp.ClientTimeout(total=NFPA72Constants.WEBHOOK_TIMEOUT_SECONDS)
                 )
@@ -269,11 +275,7 @@ class WebhookPublisher:
                 self.logger.warning("aiohttp not available, webhook publishing disabled")
 
     async def publish_event(
-        self,
-        url: str,
-        event_type: str,
-        data: Dict[str, Any],
-        secret: Optional[str] = None
+        self, url: str, event_type: str, data: Dict[str, Any], secret: Optional[str] = None
     ) -> bool:
         """
         Publish an event to the specified webhook URL.
@@ -304,7 +306,7 @@ class WebhookPublisher:
             "event_type": event_type,
             "timestamp": time.time(),
             "data": data,
-            "event_id": str(uuid.uuid4())
+            "event_id": str(uuid.uuid4()),
         }
 
         # Add HMAC signature if secret is provided
@@ -313,13 +315,10 @@ class WebhookPublisher:
             headers = {
                 "Content-Type": "application/json",
                 "X-FireAI-Signature": signature,
-                "X-FireAI-Event-ID": payload["event_id"]
+                "X-FireAI-Event-ID": payload["event_id"],
             }
         else:
-            headers = {
-                "Content-Type": "application/json",
-                "X-FireAI-Event-ID": payload["event_id"]
-            }
+            headers = {"Content-Type": "application/json", "X-FireAI-Event-ID": payload["event_id"]}
 
         try:
             # Serialize payload safely
@@ -342,18 +341,25 @@ class WebhookPublisher:
     def _validate_url(self, url: str) -> bool:
         """Validate the webhook URL."""
         from urllib.parse import urlparse
+
         try:
             parsed = urlparse(url)
             # Only allow https in production for security
             # V131: Add URL validation against allowed hosts
             allowed_hosts_env = os.getenv("FIREAI_WEBHOOK_ALLOWED_HOSTS", "")
             if allowed_hosts_env:
-                allowed_hosts = [host.strip() for host in allowed_hosts_env.split(",") if host.strip()]
+                allowed_hosts = [
+                    host.strip() for host in allowed_hosts_env.split(",") if host.strip()
+                ]
                 if parsed.hostname and parsed.hostname not in allowed_hosts:
                     self.logger.warning("Webhook hostname %s not in allowed hosts list", parsed.hostname)
+                    self.logger.warning(
+                        f"Webhook hostname {parsed.hostname} not in allowed hosts list"
+                    )
+
                     return False
 
-            return parsed.scheme in ('http', 'https') and len(parsed.netloc) > 0
+            return parsed.scheme in ("http", "https") and len(parsed.netloc) > 0
         except Exception:
             return False
 
@@ -362,16 +368,18 @@ class WebhookPublisher:
         import hmac
 
         # Convert payload to JSON string for consistent hashing
-        json_str = json.dumps(payload, sort_keys=True, separators=(',', ':'))
+        json_str = json.dumps(payload, sort_keys=True, separators=(",", ":"))
         signature = hmac.new(
-            secret.encode('utf-8'),
-            json_str.encode('utf-8'),
-            hashlib.sha256
+            secret.encode("utf-8"), json_str.encode("utf-8"), hashlib.sha256
         ).hexdigest()
 
         return signature
 
-    def _safe_serialize(self, obj: Any, depth: int = 0) -> Optional[str]:  # NOSONAR — S3776: cognitive complexity is inherent to the safety-critical algorithm
+    def _safe_serialize(
+        self, obj: Any, depth: int = 0
+    ) -> Optional[
+        str
+    ]:  # NOSONAR — S3776: cognitive complexity is inherent to the safety-critical algorithm
         """Safely serialize an object to JSON, preventing circular references and security issues."""
         if depth > NFPA72Constants.MAX_SERIALIZATION_DEPTH:
             self.logger.error("Serialization depth exceeded maximum allowed")
@@ -400,6 +408,10 @@ class WebhookPublisher:
                                 result[key] = serialized
                             else:
                                 self.logger.warning("Skipping unserializable value for key '%s'", key)
+                                self.logger.warning(
+                                    f"Skipping unserializable value for key '{key}'"
+                                )
+
                         else:
                             self.logger.warning("Skipping non-string key: %s", key)
                     return result
@@ -408,7 +420,7 @@ class WebhookPublisher:
                     return str(item)
 
             safe_obj = safe_serializer(obj)
-            return json.dumps(safe_obj, separators=(',', ':'))
+            return json.dumps(safe_obj, separators=(",", ":"))
         except Exception as e:
             self.logger.exception("Serialization failed: %s", e)
             return None
@@ -426,7 +438,9 @@ class ARHookManager:
         self.active_sessions: Dict[str, Dict[str, Any]] = {}
         self.visualization_cache: Dict[str, bytes] = {}
 
-    async def create_session(self, building_id: str, session_config: Optional[Dict[str, Any]] = None) -> str:  # NOSONAR - python:S7503
+    async def create_session(
+        self, building_id: str, session_config: Optional[Dict[str, Any]] = None
+    ) -> str:  # NOSONAR - python:S7503
         """
         Create a new AR session for the specified building.
 
@@ -445,11 +459,7 @@ class ARHookManager:
             "created_at": time.time(),
             "expires_at": time.time() + NFPA72Constants.AR_SESSION_TIMEOUT,
             "config": session_config or {},
-            "visualization_state": {
-                "detectors": [],
-                "coverage_zones": [],
-                "alerts": []
-            }
+            "visualization_state": {"detectors": [], "coverage_zones": [], "alerts": []},
         }
 
         self.active_sessions[session_id] = session_data
@@ -537,7 +547,9 @@ class ARHookManager:
 
         return False
 
-    async def generate_ar_visualization(self, building_data: Dict[str, Any], format_type: str = "glb") -> Optional[bytes]:  # NOSONAR - python:S7503
+    async def generate_ar_visualization(
+        self, building_data: Dict[str, Any], format_type: str = "glb"
+    ) -> Optional[bytes]:  # NOSONAR - python:S7503
         """
         Generate AR visualization data in the specified format.
 
@@ -565,7 +577,7 @@ class ARHookManager:
                 placeholder_data = b"# USDZ placeholder data"
             else:
                 # Default to JSON representation
-                placeholder_data = json.dumps(building_data, default=str).encode('utf-8')
+                placeholder_data = json.dumps(building_data, default=str).encode("utf-8")
 
             self.visualization_cache[cache_key] = placeholder_data
             return placeholder_data
@@ -596,7 +608,7 @@ class V131KernelExtension:
         room_length: float,
         ceiling_height: float,
         occupancy_type: str = "office",
-        detector_type: str = "smoke"
+        detector_type: str = "smoke",
     ) -> List[GenerativeDesignVariant]:
         """
         V131: Generate multiple design variants for the given room parameters.
@@ -612,16 +624,11 @@ class V131KernelExtension:
             List of design variants with scores
         """
         return await self.generative_engine.generate_variants(
-            room_width, room_length, ceiling_height,
-            occupancy_type, detector_type
+            room_width, room_length, ceiling_height, occupancy_type, detector_type
         )
 
     async def publish_webhook_event(
-        self,
-        url: str,
-        event_type: str,
-        data: Dict[str, Any],
-        secret: Optional[str] = None
+        self, url: str, event_type: str, data: Dict[str, Any], secret: Optional[str] = None
     ) -> bool:
         """
         V131: Publish an event to an external webhook.
@@ -638,9 +645,7 @@ class V131KernelExtension:
         return await self.webhook_publisher.publish_event(url, event_type, data, secret)
 
     async def create_ar_session(
-        self,
-        building_id: str,
-        session_config: Optional[Dict[str, Any]] = None
+        self, building_id: str, session_config: Optional[Dict[str, Any]] = None
     ) -> str:
         """
         V131: Create a new AR session for visualization.
@@ -654,11 +659,7 @@ class V131KernelExtension:
         """
         return await self.ar_hook_manager.create_session(building_id, session_config)
 
-    async def update_ar_visualization(
-        self,
-        session_id: str,
-        data: Dict[str, Any]
-    ) -> bool:
+    async def update_ar_visualization(self, session_id: str, data: Dict[str, Any]) -> bool:
         """
         V131: Update visualization data for an AR session.
 

@@ -28,6 +28,7 @@ Usage:
 Branch: feat/scenario-2-gis-to-etap
 Refs: PRODUCTION_PLAN/06_SCENARIO_2_GIS_TO_ETAP.md
 """
+
 from __future__ import annotations
 
 import argparse
@@ -41,6 +42,39 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+
+_VALID_ARG_RE = re.compile(r"^[A-Za-z0-9_\-./]+( [A-Za-z0-9_\-./=]+)*$")
+
+
+def _validate_cmd_args(args):
+    """Validate subprocess args to prevent LLM-driven CLI injection (sonar:S8707).
+
+    Only allows safe characters in each argument; raises ValueError if any
+    argument contains shell metacharacters or quotes.
+    """
+    safe_args = []
+    for a in args:
+        s = str(a)
+        if not _VALID_ARG_RE.match(s):
+            raise ValueError(f"Disallowed character in command arg: {s!r}")
+        safe_args.append(s)
+    return safe_args
+
+
+def _validate_path(path_str: str, base_dir: str | None = None) -> str:
+    """Validate a user-supplied path to prevent directory traversal (sonar:S8707).
+
+    If base_dir is given, ensures the resolved path stays within base_dir.
+    """
+    if not path_str:
+        raise ValueError("Empty path")
+    resolved = os.path.realpath(path_str)
+    if base_dir:
+        base_resolved = os.path.realpath(base_dir)
+        if not resolved.startswith(base_resolved + os.sep) and resolved != base_resolved:
+            raise ValueError(f"Path escapes allowed base: {path_str!r}")
+    return resolved
+
 
 PROJECT_ROOT = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
@@ -86,12 +120,13 @@ async def run_scenario(
             "duration_sec": round(phase1_time, 2),
             "features_count": len(gis_features),
         }
-        logger.info("✅ Phase 1 done in %.2fs — %d features",
-                    phase1_time, len(gis_features))
+        logger.info("✅ Phase 1 done in %.2fs — %d features", phase1_time, len(gis_features))
     except Exception as exc:
         phase1_time = time.time() - phase1_start
         results["phases"]["1_extract_gis"] = {
-            "status": "failed", "duration_sec": round(phase1_time, 2), "error": str(exc),
+            "status": "failed",
+            "duration_sec": round(phase1_time, 2),
+            "error": str(exc),
         }
         logger.exception("❌ Phase 1 failed: %s", exc)
         results["status"] = "failed"
@@ -117,7 +152,10 @@ async def run_scenario(
         }
         logger.info(
             "✅ Phase 2 done in %.2fs — %d creates, %d updates, %d deletes",
-            phase2_time, len(diff["creates"]), len(diff["updates"]), len(diff["deletes"]),
+            phase2_time,
+            len(diff["creates"]),
+            len(diff["updates"]),
+            len(diff["deletes"]),
         )
 
         diff_path = os.path.join(output_dir, "diff_report.json")
@@ -128,7 +166,9 @@ async def run_scenario(
     except Exception as exc:
         phase2_time = time.time() - phase2_start
         results["phases"]["2_compute_diff"] = {
-            "status": "failed", "duration_sec": round(phase2_time, 2), "error": str(exc),
+            "status": "failed",
+            "duration_sec": round(phase2_time, 2),
+            "error": str(exc),
         }
         logger.exception("❌ Phase 2 failed: %s", exc)
         results["status"] = "failed"
@@ -149,12 +189,13 @@ async def run_scenario(
             "duration_sec": round(phase3_time, 2),
             "operations_audited": audit_count,
         }
-        logger.info("✅ Phase 3 done in %.2fs — %d operations audited",
-                    phase3_time, audit_count)
+        logger.info("✅ Phase 3 done in %.2fs — %d operations audited", phase3_time, audit_count)
     except Exception as exc:
         phase3_time = time.time() - phase3_start
         results["phases"]["3_audit_neo4j"] = {
-            "status": "failed", "duration_sec": round(phase3_time, 2), "error": str(exc),
+            "status": "failed",
+            "duration_sec": round(phase3_time, 2),
+            "error": str(exc),
         }
         logger.warning("⚠️ Phase 3 (Neo4j) failed — continuing: %s", exc)
 
@@ -165,8 +206,7 @@ async def run_scenario(
         results["status"] = "dry_run_completed"
         results["total_duration_sec"] = round(time.time() - start_time, 2)
         results["completed_at"] = datetime.now(timezone.utc).isoformat()
-        logger.info("🎉 Scenario 2 (dry run) completed in %.2fs",
-                    results["total_duration_sec"])
+        logger.info("🎉 Scenario 2 (dry run) completed in %.2fs", results["total_duration_sec"])
         return results
 
     # ─── Phase 4: Backup ETAP ─────────────────────────────────────
@@ -186,7 +226,9 @@ async def run_scenario(
     except Exception as exc:
         phase4_time = time.time() - phase4_start
         results["phases"]["4_backup_etap"] = {
-            "status": "failed", "duration_sec": round(phase4_time, 2), "error": str(exc),
+            "status": "failed",
+            "duration_sec": round(phase4_time, 2),
+            "error": str(exc),
         }
         logger.exception("❌ Phase 4 failed: %s", exc)
         results["status"] = "failed"
@@ -203,13 +245,16 @@ async def run_scenario(
         _apply_diff_to_etap(etap_project_path, diff)
         phase5_time = time.time() - phase5_start
         results["phases"]["5_apply_diff"] = {
-            "status": "success", "duration_sec": round(phase5_time, 2),
+            "status": "success",
+            "duration_sec": round(phase5_time, 2),
         }
         logger.info("✅ Phase 5 done in %.2fs", phase5_time)
     except Exception as exc:
         phase5_time = time.time() - phase5_start
         results["phases"]["5_apply_diff"] = {
-            "status": "failed", "duration_sec": round(phase5_time, 2), "error": str(exc),
+            "status": "failed",
+            "duration_sec": round(phase5_time, 2),
+            "error": str(exc),
         }
         logger.exception("❌ Phase 5 failed — restoring from backup")
         _restore_etap(backup_path, etap_project_path)
@@ -238,9 +283,7 @@ async def run_scenario(
         )
 
         if not new_result.success:
-            raise RuntimeError(
-                f"Load Flow failed after sync. Errors: {new_result.errors}"
-            )
+            raise RuntimeError(f"Load Flow failed after sync. Errors: {new_result.errors}")
 
         phase6_time = time.time() - phase6_start
         results["phases"]["6_rerun_loadflow"] = {
@@ -250,13 +293,18 @@ async def run_scenario(
             "buses_count": len(new_result.data.get("buses", {})),
             "iterations": new_result.data.get("iterations", 0),
         }
-        logger.info("✅ Phase 6 done in %.2fs — converged=%s",
-                    phase6_time, new_result.data.get("converged", False))
+        logger.info(
+            "✅ Phase 6 done in %.2fs — converged=%s",
+            phase6_time,
+            new_result.data.get("converged", False),
+        )
 
     except Exception as exc:
         phase6_time = time.time() - phase6_start
         results["phases"]["6_rerun_loadflow"] = {
-            "status": "failed", "duration_sec": round(phase6_time, 2), "error": str(exc),
+            "status": "failed",
+            "duration_sec": round(phase6_time, 2),
+            "error": str(exc),
         }
         logger.error("❌ Phase 6 failed — restoring ETAP from backup")
         _restore_etap(backup_path, etap_project_path)
@@ -303,7 +351,9 @@ async def run_scenario(
     except Exception as exc:
         phase7_time = time.time() - phase7_start
         results["phases"]["7_comparison_report"] = {
-            "status": "failed", "duration_sec": round(phase7_time, 2), "error": str(exc),
+            "status": "failed",
+            "duration_sec": round(phase7_time, 2),
+            "error": str(exc),
         }
         logger.warning("⚠️ Phase 7 failed — continuing: %s", exc)
 
@@ -323,9 +373,11 @@ def _extract_gis_features(gis_source: str, gis_project_path: str) -> list[dict[s
     """استخراج features من QGIS أو ArcGIS Pro."""
     if gis_source == "qgis":
         from gis_integration.providers.qgis_provider import QGISProvider
+
         provider = QGISProvider()
     elif gis_source == "arcgis":
         from gis_integration.providers.arcgis_provider import ArcGISProvider
+
         provider = ArcGISProvider()
     else:
         raise ValueError(f"Unknown GIS source: {gis_source}")
@@ -335,12 +387,14 @@ def _extract_gis_features(gis_source: str, gis_project_path: str) -> list[dict[s
     features: list[dict[str, Any]] = []
     for layer_name in provider.list_layers():
         for feat in provider.extract_features(layer_name):
-            features.append({
-                "layer": layer_name,
-                "id": feat.id,
-                "geometry": feat.geometry,
-                "properties": feat.properties,
-            })
+            features.append(
+                {
+                    "layer": layer_name,
+                    "id": feat.id,
+                    "geometry": feat.geometry,
+                    "properties": feat.properties,
+                }
+            )
 
     return features
 
@@ -359,6 +413,7 @@ def _compute_diff(
     etap_buses: dict[str, dict[str, Any]] = {}
     try:
         from integrations.supabase_integration import get_supabase_client
+
         client = get_supabase_client()
         if client is not None:
             response = client.table("gis_buses").select("*").execute()
@@ -384,11 +439,14 @@ def _compute_diff(
         in_etap = bus_id in etap_buses
 
         if in_gis and not in_etap:
-            creates.append({
-                "object_type": "bus", "id": bus_id,
-                "properties": gis_buses[bus_id].get("properties", {}),
-                "trace_id": trace_id,
-            })
+            creates.append(
+                {
+                    "object_type": "bus",
+                    "id": bus_id,
+                    "properties": gis_buses[bus_id].get("properties", {}),
+                    "trace_id": trace_id,
+                }
+            )
         elif in_gis and in_etap:
             gis_props = gis_buses[bus_id].get("properties", {})
             etap_props = etap_buses[bus_id]
@@ -401,14 +459,22 @@ def _compute_diff(
                 if gis_val != etap_val:
                     changes[key] = {"old": etap_val, "new": gis_val}
             if changes:
-                updates.append({
-                    "object_type": "bus", "id": bus_id,
-                    "changes": changes, "trace_id": trace_id,
-                })
+                updates.append(
+                    {
+                        "object_type": "bus",
+                        "id": bus_id,
+                        "changes": changes,
+                        "trace_id": trace_id,
+                    }
+                )
         elif in_etap and not in_gis:
-            deletes.append({
-                "object_type": "bus", "id": bus_id, "trace_id": trace_id,
-            })
+            deletes.append(
+                {
+                    "object_type": "bus",
+                    "id": bus_id,
+                    "trace_id": trace_id,
+                }
+            )
 
     return {"creates": creates, "updates": updates, "deletes": deletes, "trace_id": trace_id}
 
@@ -417,6 +483,7 @@ def _audit_to_neo4j(diff: dict[str, list], trace_id: str) -> int:
     """تسجيل diff في Neo4j كـ audit trail."""
     try:
         from integrations.neo4j_integration import neo4j_client
+
         if not neo4j_client.enabled:
             logger.info("Neo4j not enabled — skipping audit")
             return 0
@@ -465,8 +532,7 @@ def _apply_diff_to_etap(etap_project_path: str, diff: dict[str, list]) -> None:
     """تطبيق diff على ETAP عبر COM. Windows-only."""
     if os.name != "nt":
         raise RuntimeError(
-            f"apply_diff_to_etap requires Windows (COM automation). "
-            f"Current platform: {os.name}"
+            f"apply_diff_to_etap requires Windows (COM automation). Current platform: {os.name}"
         )
 
     import pythoncom  # type: ignore
@@ -508,8 +574,7 @@ def _apply_diff_to_etap(etap_project_path: str, diff: dict[str, list]) -> None:
                                 setattr(bus, field, change["new"])
                                 logger.info("✏️ Updated %s.%s", bus_id, field)
                             except Exception as exc:
-                                logger.warning("Failed to update %s.%s: %s",
-                                               bus_id, field, exc)
+                                logger.warning("Failed to update %s.%s: %s", bus_id, field, exc)
                 except Exception as exc:
                     logger.warning("Bus %s not found: %s", bus_id, exc)
 
@@ -541,8 +606,9 @@ def main() -> None:
     parser.add_argument("--gis-project-path", required=True)
     parser.add_argument("--etap-project-path", required=True)
     parser.add_argument("--output-dir", default="./outputs/scenario2")
-    parser.add_argument("--dry-run", action="store_true",
-                        help="Compute diff only, don't apply to ETAP")
+    parser.add_argument(
+        "--dry-run", action="store_true", help="Compute diff only, don't apply to ETAP"
+    )
     args = parser.parse_args()
 
     if os.environ.get("ALLOW_GIS_TO_ETAP_SYNC") != "true":
@@ -559,13 +625,15 @@ def main() -> None:
     )
 
     try:
-        result = asyncio.run(run_scenario(
-            gis_source=args.gis_source,
-            gis_project_path=args.gis_project_path,
-            etap_project_path=args.etap_project_path,
-            output_dir=args.output_dir,
-            dry_run=args.dry_run,
-        ))
+        result = asyncio.run(
+            run_scenario(
+                gis_source=args.gis_source,
+                gis_project_path=args.gis_project_path,
+                etap_project_path=args.etap_project_path,
+                output_dir=args.output_dir,
+                dry_run=args.dry_run,
+            )
+        )
 
         result_path = os.path.join(args.output_dir, "scenario2_result.json")
         with open(result_path, "w", encoding="utf-8") as f:

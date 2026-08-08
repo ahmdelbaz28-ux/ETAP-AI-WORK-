@@ -1,5 +1,6 @@
 # NOSONAR
 """Enhanced FACP Message Schema for Distributed System"""
+
 import json
 import uuid
 from datetime import datetime, timezone
@@ -61,9 +62,11 @@ class FACPRequest:
         execution_state: ExecutionState,
         timestamp: Optional[str] = None,
         security: Optional[Dict[str, Any]] = None,
-        constraints: Optional[Dict[str, Any]] = None
+        constraints: Optional[Dict[str, Any]] = None,
     ):
-        self.protocol = "FACP/1.1"  # NOSONAR — S1192: duplicated literal acceptable in this localized context
+        self.protocol = (
+            "FACP/1.1"  # NOSONAR — S1192: duplicated literal acceptable in this localized context
+        )
         self.type = MessageType.REQUEST.value
         self.id = id
         self.method = method
@@ -79,7 +82,7 @@ class FACPRequest:
         self.constraints = constraints or {
             "timeout_ms": 8000,
             "max_memory_mb": 512,
-            "max_recursion_depth": 5
+            "max_recursion_depth": 5,
         }
 
     def to_dict(self) -> Dict[str, Any]:
@@ -95,11 +98,11 @@ class FACPRequest:
             "method": self.method,
             "params": self.params,
             "security": self.security,
-            "constraints": self.constraints
+            "constraints": self.constraints,
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'FACPRequest':
+    def from_dict(cls, data: Dict[str, Any]) -> "FACPRequest":
         """Create request from dictionary"""
         return cls(
             id=data.get("id", str(uuid.uuid4())),
@@ -110,7 +113,7 @@ class FACPRequest:
             execution_state=ExecutionState(data.get("execution_state", "RECEIVED")),
             timestamp=data.get("timestamp"),
             security=data.get("security", {}),
-            constraints=data.get("constraints", {})
+            constraints=data.get("constraints", {}),
         )
 
 
@@ -123,7 +126,7 @@ class FACPResponse:
         status: StatusType,
         result: Optional[Dict[str, Any]] = None,
         error: Optional[Dict[str, str]] = None,
-        trace: Optional[Dict[str, Any]] = None
+        trace: Optional[Dict[str, Any]] = None,
     ):
         self.protocol = "FACP/1.1"
         self.type = MessageType.RESPONSE.value
@@ -141,21 +144,21 @@ class FACPResponse:
             "id": self.id,
             "status": self.status,
             "result": self.result,
-            "trace": self.trace
+            "trace": self.trace,
         }
         if self.error:
             response["error"] = self.error
         return response
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'FACPResponse':
+    def from_dict(cls, data: Dict[str, Any]) -> "FACPResponse":
         """Create response from dictionary"""
         return cls(
             id=data["id"],
             status=StatusType(data["status"]),
             result=data.get("result"),
             error=data.get("error"),
-            trace=data.get("trace")
+            trace=data.get("trace"),
         )
 
 
@@ -218,15 +221,24 @@ class FACPMessageValidator:
             errors.append("Constraints must be a dictionary")
         else:
             if "timeout_ms" in request.constraints:
-                if not isinstance(request.constraints["timeout_ms"], int) or request.constraints["timeout_ms"] <= 0:
+                if (
+                    not isinstance(request.constraints["timeout_ms"], int)
+                    or request.constraints["timeout_ms"] <= 0
+                ):
                     errors.append("timeout_ms must be a positive integer")
 
             if "max_memory_mb" in request.constraints:
-                if not isinstance(request.constraints["max_memory_mb"], (int, float)) or request.constraints["max_memory_mb"] <= 0:
+                if (
+                    not isinstance(request.constraints["max_memory_mb"], (int, float))
+                    or request.constraints["max_memory_mb"] <= 0
+                ):
                     errors.append("max_memory_mb must be a positive number")
 
             if "max_recursion_depth" in request.constraints:
-                if not isinstance(request.constraints["max_recursion_depth"], int) or request.constraints["max_recursion_depth"] <= 0:
+                if (
+                    not isinstance(request.constraints["max_recursion_depth"], int)
+                    or request.constraints["max_recursion_depth"] <= 0
+                ):
                     errors.append("max_recursion_depth must be a positive integer")
 
         return len(errors) == 0, errors
@@ -254,11 +266,13 @@ class FACPMessageValidator:
         return len(errors) == 0, errors
 
     @staticmethod
-    def sanitize_payload(payload: Any, max_size: int = 1024*1024) -> tuple[Any, bool, str]:  # 1MB default
+    def sanitize_payload(
+        payload: Any, max_size: int = 1024 * 1024
+    ) -> tuple[Any, bool, str]:  # 1MB default
         """Sanitize and validate payload size"""
         try:
             serialized = json.dumps(payload)
-            if len(serialized.encode('utf-8')) > max_size:
+            if len(serialized.encode("utf-8")) > max_size:
                 return None, False, f"Payload exceeds maximum size of {max_size} bytes"
             return payload, True, ""
         except Exception as e:

@@ -129,9 +129,13 @@ class TestPointMap:
 class TestDecodeInformation:
     def test_normalized_info(self) -> None:
         pt = IEC104Point(
-            ca=1, ioa=1, element_id="B",
-            measurement_type="voltage_magnitude", type_id="M_ME_NA_1",
-            scale=1.0, offset=0.0,
+            ca=1,
+            ioa=1,
+            element_id="B",
+            measurement_type="voltage_magnitude",
+            type_id="M_ME_NA_1",
+            scale=1.0,
+            offset=0.0,
         )
         info = _FakeNormalizedInfo(actual=0.95)
         val = decode_information(info, pt)
@@ -140,8 +144,11 @@ class TestDecodeInformation:
 
     def test_short_info(self) -> None:
         pt = IEC104Point(
-            ca=1, ioa=1, element_id="B",
-            measurement_type="voltage_magnitude", type_id="M_ME_NC_1",
+            ca=1,
+            ioa=1,
+            element_id="B",
+            measurement_type="voltage_magnitude",
+            type_id="M_ME_NC_1",
         )
         info = _FakeShortInfo(value=1.05)
         val = decode_information(info, pt)
@@ -150,8 +157,11 @@ class TestDecodeInformation:
 
     def test_scaled_info(self) -> None:
         pt = IEC104Point(
-            ca=1, ioa=1, element_id="B",
-            measurement_type="active_power", type_id="M_ME_NB_1",
+            ca=1,
+            ioa=1,
+            element_id="B",
+            measurement_type="active_power",
+            type_id="M_ME_NB_1",
         )
         info = _FakeScaledInfo(value=100)
         val = decode_information(info, pt)
@@ -159,8 +169,11 @@ class TestDecodeInformation:
 
     def test_single_info(self) -> None:
         pt = IEC104Point(
-            ca=1, ioa=1, element_id="BRK",
-            measurement_type="breaker_status", type_id="M_SP_NA_1",
+            ca=1,
+            ioa=1,
+            element_id="BRK",
+            measurement_type="breaker_status",
+            type_id="M_SP_NA_1",
         )
         info = _FakeSingleInfo(on=True)
         val = decode_information(info, pt)
@@ -171,9 +184,13 @@ class TestDecodeInformation:
 
     def test_scale_offset_applied(self) -> None:
         pt = IEC104Point(
-            ca=1, ioa=1, element_id="B",
-            measurement_type="v", type_id="M_ME_NC_1",
-            scale=10.0, offset=2.0,
+            ca=1,
+            ioa=1,
+            element_id="B",
+            measurement_type="v",
+            type_id="M_ME_NC_1",
+            scale=10.0,
+            offset=2.0,
         )
         info = _FakeShortInfo(value=1.0)
         # value = raw * scale + offset = 1.0 * 10 + 2 = 12.0
@@ -182,8 +199,11 @@ class TestDecodeInformation:
 
     def test_none_info_returns_none(self) -> None:
         pt = IEC104Point(
-            ca=1, ioa=1, element_id="B",
-            measurement_type="v", type_id="M_ME_NC_1",
+            ca=1,
+            ioa=1,
+            element_id="B",
+            measurement_type="v",
+            type_id="M_ME_NC_1",
         )
         assert decode_information(None, pt) is None
 

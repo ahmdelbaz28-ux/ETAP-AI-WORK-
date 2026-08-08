@@ -246,6 +246,11 @@ def approve_request(
     logger.info(
         "Dual-control request %s APPROVED by %s", request_id, _sanitize_for_log(approver_id)
     )  # NOSONAR S5145: server-generated id + sanitized approver_id
+        "Dual-control request %s APPROVED by %s",
+        _sanitize_for_log(request_id),
+        _sanitize_for_log(approver_id),
+    )  # noqa: S5145
+
 
     # Notify WebSocket clients
     _notify_clients(request_id, request)
@@ -398,6 +403,8 @@ def _notify_clients(request_id: str, request: dict) -> None:
         for session_id, sockets in list(
             _websocket_clients.items()
         ):  # NOSONAR
+        for session_id, sockets in list(_websocket_clients.items()):  # noqa: S7504 — list() needed: dict mutated during iteration
+
             for ws in list(sockets):  # NOSONAR
                 try:
                     # `send_text` is async; some WebSocket impls (Starlette)

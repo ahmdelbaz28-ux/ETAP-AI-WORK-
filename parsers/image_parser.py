@@ -38,7 +38,7 @@ from typing import List, Optional, Tuple
 # or directly:
 #   pip install opencv-python numpy
 cv2 = None  # type: ignore[assignment]
-np = None   # type: ignore[assignment]
+np = None  # type: ignore[assignment]
 
 logger = logging.getLogger("fireai.image_parser")
 
@@ -50,6 +50,7 @@ def _lazy_import_cv2():
         try:
             import cv2 as _cv2  # type: ignore
             import numpy as _np
+
             cv2 = _cv2
             np = _np
         except ImportError as e:
@@ -64,6 +65,7 @@ def _lazy_import_cv2():
 # ═══════════════════════════════════════════════════════
 # DATA CLASSES
 # ═══════════════════════════════════════════════════════
+
 
 @dataclass
 class ImageRoom:
@@ -106,7 +108,18 @@ class ImageParseResult:
 ROOM_KEYWORDS = {
     "office": ["office", "مكتب", "مكتبه", "Administration"],
     "bedroom": ["bedroom", "bed room", "bedroom", "Sleeping", "bed", "غرفه نوم"],
-    "bathroom": ["bath", "toilet", "restroom", "bathroom", "WR", "bath room", "bathroom", "bath room", "حمام", "toilet"],
+    "bathroom": [
+        "bath",
+        "toilet",
+        "restroom",
+        "bathroom",
+        "WR",
+        "bath room",
+        "bathroom",
+        "bath room",
+        "حمام",
+        "toilet",
+    ],
     "kitchen": ["kitchen", "kitch", "pantry", " kitchen", "مطبخ", "مطبخ"],
     "living_room": ["living", "lounge", "living room", "salon", "salon", "غرفة معيشة", "صالة"],
     "hall": ["hall", "corridor", "entrance", "lobby", "lobby", "ممر", "ردهة", "corridor"],
@@ -133,6 +146,7 @@ def classify_room(text: str) -> str:
 # IMAGE PARSER
 # ═══════════════════════════════════════════════════════
 
+
 class ImageParser:
     """
     Parses floor plans from images.
@@ -145,7 +159,18 @@ class ImageParser:
             print(f"Found {result.room_count} rooms")
     """
 
-    SUPPORTED_FORMATS = ['.jpg', '.jpeg', '.png', '.bmp', '.tiff', '.tif', '.gif', '.webp', '.heic', '.heif']
+    SUPPORTED_FORMATS = [
+        ".jpg",
+        ".jpeg",
+        ".png",
+        ".bmp",
+        ".tiff",
+        ".tif",
+        ".gif",
+        ".webp",
+        ".heic",
+        ".heif",
+    ]
 
     # Room classification thresholds
     MIN_ROOM_SIZE = 20  # pixels
@@ -182,8 +207,11 @@ class ImageParser:
             validate_file_size,
             validate_input_path,
         )
+
         _ALLOWED_EXTENSIONS = frozenset({".png", ".jpg", ".jpeg", ".bmp", ".tiff", ".tif", ".webp"})
-        _MAX_FILE_SIZE_BYTES = int(os.getenv("FIREAI_IMAGE_MAX_FILE_SIZE_BYTES", 50 * 1024 * 1024))  # 50 MB default
+        _MAX_FILE_SIZE_BYTES = int(
+            os.getenv("FIREAI_IMAGE_MAX_FILE_SIZE_BYTES", 50 * 1024 * 1024)
+        )  # 50 MB default
         try:
             safe_path = validate_input_path(
                 image_path,
@@ -198,7 +226,9 @@ class ImageParser:
         except FileNotFoundError as e:
             return ImageParseResult(source_file=image_path, success=False, errors=[str(e)])
         except UnsafePathError as e:
-            return ImageParseResult(source_file=image_path, success=False, errors=[f"SECURITY: {e}"])
+            return ImageParseResult(
+                source_file=image_path, success=False, errors=[f"SECURITY: {e}"]
+            )
 
         image_path = str(safe_path)
         safe_path.suffix.lower()  # NOSONAR: S2201 return value intentionally unused  # NOSONAR — S7632: test function documented via class name / module path
@@ -234,7 +264,9 @@ class ImageParser:
 
             # Process each contour
             for contour in contours:
-                room = self._process_contour(contour, img, result.image_size)  # NOSONAR - python:S930
+                room = self._process_contour(
+                    contour, img, result.image_size
+                )  # NOSONAR - python:S930
                 if room and room.floor_area > 2.0:  # Min 2m²
                     result.rooms.append(room)
 
@@ -251,9 +283,10 @@ class ImageParser:
         """Load image handling different formats."""
         _lazy_import_cv2()  # V140: lazy import — raises clear error if cv2 missing
         # Try HEIC first
-        if path.lower().endswith(('.heic', '.heif')):
+        if path.lower().endswith((".heic", ".heif")):
             try:
                 import pillow_heif
+
                 heif_file = pillow_heif.open_heif(path)
                 img = np.array(heif_file.to_pillow())
                 return cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
@@ -263,7 +296,9 @@ class ImageParser:
         # Regular image
         return cv2.imread(path)
 
-    def _try_yolo_segmentation(self, image_path: str, _image_size: tuple) -> list:  # NOSONAR — S1172: parameter retained for API stability
+    def _try_yolo_segmentation(
+        self, image_path: str, _image_size: tuple
+    ) -> list:  # NOSONAR — S1172: parameter retained for API stability
         """
         V140 Phase 10: Try YOLO segmentation service for layout analysis.
         Returns list of ImageRoom if successful, empty list if unavailable.
@@ -295,18 +330,20 @@ class ImageParser:
                             x = left + width / 2
                             y = top + height / 2
                             area_px = width * height
-                            area_m2 = area_px * (self.scale_factor ** 2)
-                            rooms.append(ImageRoom(
-                                name=f"YOLO_{segment.segment_type}_{len(rooms)+1}",
-                                x=int(x),
-                                y=int(y),
-                                width=int(width),
-                                height=int(height),
-                                width_m=width * self.scale_factor,
-                                height_m=height * self.scale_factor,
-                                floor_area=area_m2,
-                                room_type=segment.segment_type,
-                            ))
+                            area_m2 = area_px * (self.scale_factor**2)
+                            rooms.append(
+                                ImageRoom(
+                                    name=f"YOLO_{segment.segment_type}_{len(rooms) + 1}",
+                                    x=int(x),
+                                    y=int(y),
+                                    width=int(width),
+                                    height=int(height),
+                                    width_m=width * self.scale_factor,
+                                    height_m=height * self.scale_factor,
+                                    floor_area=area_m2,
+                                    room_type=segment.segment_type,
+                                )
+                            )
             return rooms
 
         except Exception as e:
@@ -347,7 +384,9 @@ class ImageParser:
 
         return valid[:20]  # Max 20 rooms
 
-    def _process_contour(self, contour, img) -> Optional[ImageRoom]:  # NOSONAR — S1172: parameter retained for API stability
+    def _process_contour(
+        self, contour, img
+    ) -> Optional[ImageRoom]:  # NOSONAR — S1172: parameter retained for API stability
         """Process contour to extract room info."""
         # Get bounding box
         x, y, w, h = cv2.boundingRect(contour)
@@ -364,8 +403,12 @@ class ImageParser:
 
         return ImageRoom(
             name=room_name or f"Room_{x}_{y}",
-            x=x, y=y, width=w, height=h,
-            width_m=width_m, height_m=height_m,
+            x=x,
+            y=y,
+            width=w,
+            height=h,
+            width_m=width_m,
+            height_m=height_m,
             floor_area=width_m * height_m,
             room_type=room_type,
         )
@@ -373,10 +416,10 @@ class ImageParser:
     def _extract_room_name(self, img, x: int, y: int, w: int, h: int) -> str:
         """Extract room name using OCR."""
         try:
-
             _lazy_import_cv2()  # V140: lazy import — needed for cvtColor below
             import pytesseract
-            os.environ['TESSDATA_PREFIX'] = '/usr/share/tesseract-ocr'
+
+            os.environ["TESSDATA_PREFIX"] = "/usr/share/tesseract-ocr"
 
             # Crop region
             margin = 10
@@ -392,13 +435,12 @@ class ImageParser:
 
             # OCR
             text = pytesseract.image_to_string(
-                roi_gray,
-                config='--tessdata-dir /usr/share/tesseract-ocr/5/tessdata'
+                roi_gray, config="--tessdata-dir /usr/share/tesseract-ocr/5/tessdata"
             )
 
             # Clean text
             text = text.strip()
-            text = re.sub(r'[^\w\s]', '', text)
+            text = re.sub(r"[^\w\s]", "", text)
 
             return text[:50]  # Limit length
 
@@ -410,6 +452,7 @@ class ImageParser:
 # ═══════════════════════════════════════════════════════
 # CONVENIENCE FUNCTION
 # ═══════════════════════════════════════════════════════
+
 
 def parse_image(image_path: str, scale_factor: float = 0.1) -> ImageParseResult:
     """Quick parse image."""

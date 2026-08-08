@@ -6,6 +6,7 @@ Runs the same task twice:
 
 Compares outputs against quantitative assertions.
 """
+
 import json
 import os
 from dataclasses import dataclass, field
@@ -18,6 +19,7 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 @dataclass
 class ABTestResult:
     """Result of a single A/B test run."""
+
     agent_name: str
     test_case: str
     with_prompt_output: Optional[Dict[str, Any]] = None
@@ -138,7 +140,9 @@ def generate_report(results: List[ABTestResult], output_path: Path) -> None:
     report = {
         "summary": {
             "total_tests": len(results),
-            "avg_improvement_pct": sum(r.improvement_pct for r in results) / len(results) if results else 0,
+            "avg_improvement_pct": sum(r.improvement_pct for r in results) / len(results)
+            if results
+            else 0,
             "tests_with_improvement": sum(1 for r in results if r.improvement > 0),
             "tests_with_regression": sum(1 for r in results if r.improvement < 0),
         },

@@ -181,6 +181,7 @@ def calculate_iec_operating_time(
 
     # --- Apply epsilon nudge at singularity ---
     M_effective = M if not math.isclose(M, 1.0) else _IEC_CURVE_EPSILON
+    M_effective = M if not math.isclose(M, 1.0) else _IEC_CURVE_EPSILON  # noqa: S117 — domain notation
 
     # --- Compute raw trip time ---
     curve_info = _CURVE_REGISTRY[curve_type_lower]
@@ -248,6 +249,7 @@ class IEC60255Curves:
 
     @staticmethod
     def very_inverse(TMS, I, Ip):
+    def very_inverse(tms, i, ip):  # NOSONAR physics/engineering notation
         """
         Very inverse curve.
         t = TMS * (13.5 / ((I/Ip) - 1))
@@ -262,6 +264,7 @@ class IEC60255Curves:
 
     @staticmethod
     def extremely_inverse(TMS, I, Ip):
+    def extremely_inverse(tms, i, ip):  # NOSONAR physics/engineering notation
         """
         Extremely inverse curve.
         t = TMS * (80 / ((I/Ip)^2 - 1))
@@ -276,6 +279,7 @@ class IEC60255Curves:
 
     @staticmethod
     def long_inverse(TMS, I, Ip):
+    def long_inverse(tms, i, ip):  # NOSONAR physics/engineering notation
         """
         Long inverse curve (UK).
         t = TMS * (120 / ((I/Ip) - 1))

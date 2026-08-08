@@ -64,12 +64,15 @@ try:
         reset_stuck_detector,
         with_stuck_detection,
     )
+
     STUCK_DETECTION_AVAILABLE = True
 except ImportError:
     STUCK_DETECTION_AVAILABLE = False
+
     # Fallback: no-op decorator
     def with_stuck_detection(func):
         return func
+
 
 try:
     from fireai.infrastructure.langfuse_setup import (
@@ -78,6 +81,7 @@ try:
         langfuse_health_check,  # noqa: F401
         log_workflow_scores,
     )
+
     LANGFUSE_AVAILABLE = True
 except ImportError:
     LANGFUSE_AVAILABLE = False
@@ -113,73 +117,77 @@ class PipelineState(TypedDict, total=False):
     """
 
     # ── Input ────────────────────────────────────────────────────────
-    file_path: str                              # Source DWG/PDF path
-    file_sha256: str                            # File integrity hash
-    file_type: str                              # "dxf", "dwg", "pdf", "ifc"
+    file_path: str  # Source DWG/PDF path
+    file_sha256: str  # File integrity hash
+    file_type: str  # "dxf", "dwg", "pdf", "ifc"
 
     # ── Parse Output ─────────────────────────────────────────────────
-    rooms: list[dict[str, Any]]                 # Extracted rooms
-    parse_warnings: list[str]                   # Parser warnings
-    parse_success: bool                         # Parse completed?
+    rooms: list[dict[str, Any]]  # Extracted rooms
+    parse_warnings: list[str]  # Parser warnings
+    parse_success: bool  # Parse completed?
 
     # ── Validation Output ────────────────────────────────────────────
-    validation_result: dict[str, Any]           # Validation findings
-    validation_passed: bool                     # All gates passed?
-    validation_evidence: list[dict[str, Any]]   # Evidence per gate
+    validation_result: dict[str, Any]  # Validation findings
+    validation_passed: bool  # All gates passed?
+    validation_evidence: list[dict[str, Any]]  # Evidence per gate
 
     # ── Environmental Context ────────────────────────────────────────
-    latitude: float | None                   # Building latitude
-    longitude: float | None                  # Building longitude
-    environmental_context: dict[str, Any]       # Weather, region, elevation, etc.
+    latitude: float | None  # Building latitude
+    longitude: float | None  # Building longitude
+    environmental_context: dict[str, Any]  # Weather, region, elevation, etc.
 
     # ── NFPA Analysis Output ─────────────────────────────────────────
-    nfpa_results: list[dict[str, Any]]          # Per-room NFPA compliance
-    total_detectors: int                        # Total detector count
-    coverage_pct: float                         # Overall coverage percentage
-    nfpa_compliant: bool                        # NFPA 72 compliant?
+    nfpa_results: list[dict[str, Any]]  # Per-room NFPA compliance
+    total_detectors: int  # Total detector count
+    coverage_pct: float  # Overall coverage percentage
+    nfpa_compliant: bool  # NFPA 72 compliant?
 
     # ── Conflict Detection Output ────────────────────────────────────
-    conflicts: list[dict[str, Any]]             # Detected conflicts
-    conflict_count: int                         # Number of conflicts
-    has_critical_conflicts: bool                # Any CRITICAL conflicts?
+    conflicts: list[dict[str, Any]]  # Detected conflicts
+    conflict_count: int  # Number of conflicts
+    has_critical_conflicts: bool  # Any CRITICAL conflicts?
 
     # ── Memory Context (V73: Mem0 Integration) ───────────────────────
-    memory_context: dict[str, Any]              # Advisory hints from Mem0
-    memory_enrichment_time_ms: float            # Time spent on memory enrichment
+    memory_context: dict[str, Any]  # Advisory hints from Mem0
+    memory_enrichment_time_ms: float  # Time spent on memory enrichment
 
     # ── Human Review Gate ────────────────────────────────────────────
-    review_required: bool                       # Does this need human review?
-    review_items: list[dict[str, Any]]          # Items needing review
-    reviewer_decision: str | None            # "approved" | "rejected" | None
-    reviewer_comments: str | None            # Reviewer notes
-    reviewer_timestamp: str | None           # ISO 8601 timestamp (V82: also stored as review_timestamp in audit trail)
+    review_required: bool  # Does this need human review?
+    review_items: list[dict[str, Any]]  # Items needing review
+    reviewer_decision: str | None  # "approved" | "rejected" | None
+    reviewer_comments: str | None  # Reviewer notes
+    reviewer_timestamp: (
+        str | None
+    )  # ISO 8601 timestamp (V82: also stored as review_timestamp in audit trail)
 
     # ── Report Output ────────────────────────────────────────────────
-    report: dict[str, Any]                      # Final design report
-    report_sha256: str                          # Report integrity hash
+    report: dict[str, Any]  # Final design report
+    report_sha256: str  # Report integrity hash
 
     # ── Stuck Detection (V77) ────────────────────────────────────────
-    stuck_detected: bool                        # Was a stuck condition detected?
-    stuck_node: str | None                   # Which node is stuck
-    stuck_duration_seconds: float | None     # How long the node has been stuck
-    node_timings: dict[str, Any]                # Per-node timing data
+    stuck_detected: bool  # Was a stuck condition detected?
+    stuck_node: str | None  # Which node is stuck
+    stuck_duration_seconds: float | None  # How long the node has been stuck
+    node_timings: dict[str, Any]  # Per-node timing data
 
     # ── Engineer Identity (V85: Dynamic scoping) ──────────────────────
-    engineer_id: str                            # Engineer identifier for Mem0 user-scoping
+    engineer_id: str  # Engineer identifier for Mem0 user-scoping
 
     # ── Workflow Metadata ────────────────────────────────────────────
-    workflow_id: str                            # Unique workflow ID
-    status: str                                 # WorkflowStatus value
-    started_at: str                             # ISO 8601 start time
-    completed_at: str | None                 # ISO 8601 end time
-    transition_log: list[dict[str, Any]]        # Full audit trail
-    error_message: str | None                # Error details if FAILED
+    workflow_id: str  # Unique workflow ID
+    status: str  # WorkflowStatus value
+    started_at: str  # ISO 8601 start time
+    completed_at: str | None  # ISO 8601 end time
+    transition_log: list[dict[str, Any]]  # Full audit trail
+    error_message: str | None  # Error details if FAILED
 
 
 # ── State Transition Logger ──────────────────────────────────────────────────
 
-def _log_transition(state: PipelineState, from_node: str, to_node: str,
-                    evidence: str = "") -> PipelineState:
+
+def _log_transition(
+    state: PipelineState, from_node: str, to_node: str, evidence: str = ""
+) -> PipelineState:
     """
     Record a state transition in the audit trail.
 
@@ -216,6 +224,7 @@ def _compute_sha256(data: Any) -> str:
 # Each node is a pure function: PipelineState → PipelineState
 # No side effects, no AI generation, no hallucination chains.
 # DETERMINISTIC: same input → same output, always.
+
 
 @with_stuck_detection
 def node_initialize(state: PipelineState) -> PipelineState:
@@ -310,7 +319,9 @@ def node_parse(state: PipelineState) -> PipelineState:
 
             extractor = GeometryExtractor(file_path)
             walls = extractor.extract_walls()
-            rooms_result, _report = extract_rooms_from_walls(walls, pdf_path=file_path)  # NOSONAR - python:S930
+            rooms_result, _report = extract_rooms_from_walls(
+                walls, pdf_path=file_path
+            )  # NOSONAR - python:S930
 
             rooms = [
                 {
@@ -325,6 +336,7 @@ def node_parse(state: PipelineState) -> PipelineState:
 
         elif file_type in ("dxf", "dwg"):
             from parsers.dwg_parser import DWGParser
+
             parser = DWGParser()
             parsed = parser.parse(file_path)
             if parsed:
@@ -400,17 +412,21 @@ def node_validate(state: PipelineState) -> PipelineState:
             gate1_evidence.append(f"Room {i}: negative area={area}")
         if area > 100000:  # 100,000 m² is unrealistic for a single room
             gate1_passed = False  # V87 FIX: impossibly large area is a parser error
-            gate1_evidence.append(f"Room {i}: impossibly large area={area} m² (likely parser error)")
+            gate1_evidence.append(
+                f"Room {i}: impossibly large area={area} m² (likely parser error)"
+            )
 
     validation_result["gates"]["gate1_static"] = {
         "passed": gate1_passed,
         "evidence": gate1_evidence or ["All rooms have finite, non-negative areas"],
     }
-    validation_evidence.append({
-        "gate": "gate1_static",
-        "passed": gate1_passed,
-        "details": gate1_evidence,
-    })
+    validation_evidence.append(
+        {
+            "gate": "gate1_static",
+            "passed": gate1_passed,
+            "details": gate1_evidence,
+        }
+    )
     validation_passed = validation_passed and gate1_passed
 
     # Gate 2: Runtime Validation — rooms have valid areas > 0
@@ -435,11 +451,13 @@ def node_validate(state: PipelineState) -> PipelineState:
         "passed": gate2_passed,
         "evidence": gate2_evidence,
     }
-    validation_evidence.append({
-        "gate": "gate2_runtime",
-        "passed": gate2_passed,
-        "details": gate2_evidence,
-    })
+    validation_evidence.append(
+        {
+            "gate": "gate2_runtime",
+            "passed": gate2_passed,
+            "details": gate2_evidence,
+        }
+    )
     validation_passed = validation_passed and gate2_passed
 
     # Gate 3: Behavioral Validation — occupancy type coverage
@@ -447,9 +465,7 @@ def node_validate(state: PipelineState) -> PipelineState:
     gate3_evidence = []
     unknown_rooms = sum(1 for r in rooms if r.get("occupancy_type") == "unknown")
     if unknown_rooms > 0:
-        gate3_evidence.append(
-            f"{unknown_rooms}/{len(rooms)} rooms have unknown occupancy type"
-        )
+        gate3_evidence.append(f"{unknown_rooms}/{len(rooms)} rooms have unknown occupancy type")
         # Unknown occupancy = no detectors = MUST be reviewed
         # Per run_full_pipeline.py: "MANUAL REVIEW REQUIRED"
 
@@ -457,11 +473,13 @@ def node_validate(state: PipelineState) -> PipelineState:
         "passed": gate3_passed,
         "evidence": gate3_evidence or ["All rooms have known occupancy types"],
     }
-    validation_evidence.append({
-        "gate": "gate3_behavioral",
-        "passed": gate3_passed,
-        "details": gate3_evidence,
-    })
+    validation_evidence.append(
+        {
+            "gate": "gate3_behavioral",
+            "passed": gate3_passed,
+            "details": gate3_evidence,
+        }
+    )
 
     # Gate 5: Adversarial Audit — search for hidden defects
     gate5_passed = True
@@ -477,11 +495,13 @@ def node_validate(state: PipelineState) -> PipelineState:
         "passed": gate5_passed,
         "evidence": gate5_evidence or ["No hidden defects detected"],
     }
-    validation_evidence.append({
-        "gate": "gate5_adversarial",
-        "passed": gate5_passed,
-        "details": gate5_evidence,
-    })
+    validation_evidence.append(
+        {
+            "gate": "gate5_adversarial",
+            "passed": gate5_passed,
+            "details": gate5_evidence,
+        }
+    )
 
     validation_result["all_passed"] = validation_passed
 
@@ -497,7 +517,7 @@ def node_validate(state: PipelineState) -> PipelineState:
         from_node="parse",
         to_node="validate",
         evidence=f"Gates: 4/4 checked, All passed: {validation_passed}, "
-                 f"Unknown rooms: {unknown_rooms}, Zero-area: {rooms_with_zero_area}",
+        f"Unknown rooms: {unknown_rooms}, Zero-area: {rooms_with_zero_area}",
     )
 
 
@@ -561,7 +581,7 @@ def node_memory_enrich(state: PipelineState) -> PipelineState:
             "source": "memory",
             "enrichment_performed": True,
             "total_memories_searched": result.total_memories_searched,
-            "hint_count": result.hint_count if hasattr(result, 'hint_count') else len(result.hints),
+            "hint_count": result.hint_count if hasattr(result, "hint_count") else len(result.hints),
             "error": None,
         }
         enrichment_time_ms = result.enrichment_time_ms
@@ -574,9 +594,7 @@ def node_memory_enrich(state: PipelineState) -> PipelineState:
         )
 
     except ImportError:
-        logger.warning(
-            "mem0_workflow_bridge not available — proceeding without memory context"
-        )
+        logger.warning("mem0_workflow_bridge not available — proceeding without memory context")
         memory_context["error"] = "bridge_not_available"
     except Exception as e:
         logger.warning(
@@ -646,20 +664,28 @@ async def _fetch_environmental_data(lat: float, lon: float) -> dict[str, Any]:
         "weather": {
             "temperature_c": getattr(weather, "temperature_c", 25.0),
             "source": getattr(weather, "source", "default"),
-        } if not isinstance(weather, Exception) else {"source": "default"},
+        }
+        if not isinstance(weather, Exception)
+        else {"source": "default"},
         "elevation": {
             "elevation_m": getattr(elevation, "elevation_m", 0.0),
             "atmospheric_pressure_pa": getattr(elevation, "atmospheric_pressure_pa", 101325.0),
             "source": getattr(elevation, "source", "default"),
-        } if not isinstance(elevation, Exception) else {"source": "default"},
+        }
+        if not isinstance(elevation, Exception)
+        else {"source": "default"},
         "air_quality": {
             "aqi": getattr(air_quality, "aqi", 100),
             "source": getattr(air_quality, "source", "default"),
-        } if not isinstance(air_quality, Exception) else {"source": "default"},
+        }
+        if not isinstance(air_quality, Exception)
+        else {"source": "default"},
         "severe_weather": {
             "has_critical_alerts": getattr(severe_weather, "has_critical_alerts", False),
             "source": getattr(severe_weather, "source", "default"),
-        } if not isinstance(severe_weather, Exception) else {"source": "default"},
+        }
+        if not isinstance(severe_weather, Exception)
+        else {"source": "default"},
     }
 
     # Get region context
@@ -715,12 +741,11 @@ def node_environmental_context(state: PipelineState) -> PipelineState:
             def _fetch_env_data():
                 """Run async environmental data fetch in a dedicated thread."""
                 import asyncio
+
                 loop = asyncio.new_event_loop()
                 asyncio.set_event_loop(loop)
                 try:
-                    return loop.run_until_complete(
-                        _fetch_environmental_data(lat, lon)
-                    )
+                    return loop.run_until_complete(_fetch_environmental_data(lat, lon))
                 finally:
                     loop.close()
 
@@ -759,7 +784,11 @@ def node_environmental_context(state: PipelineState) -> PipelineState:
 
 
 @with_stuck_detection
-def node_nfpa_analysis(state: PipelineState) -> PipelineState:  # NOSONAR — S3776: cognitive complexity is inherent to the safety-critical algorithm
+def node_nfpa_analysis(
+    state: PipelineState,
+) -> (
+    PipelineState
+):  # NOSONAR — S3776: cognitive complexity is inherent to the safety-critical algorithm
     """
     Run NFPA 72 analysis on each room.
 
@@ -829,9 +858,7 @@ def node_nfpa_analysis(state: PipelineState) -> PipelineState:  # NOSONAR — S3
                 # Flag large rooms for special review
                 if area_sqm > 500:
                     is_flagged = True
-                    warnings.append(
-                        f"Large room ({area_sqm:.1f}m²) — verify NFPA 72 §17.6.3.1"
-                    )
+                    warnings.append(f"Large room ({area_sqm:.1f}m²) — verify NFPA 72 §17.6.3.1")
 
                 # Kitchen: smoke detectors prohibited per NFPA 72 §17.6.4
                 if occupancy_type == "kitchen" and detector_type.startswith("SMOKE"):
@@ -845,13 +872,15 @@ def node_nfpa_analysis(state: PipelineState) -> PipelineState:  # NOSONAR — S3
                     hint_content = hint.get("content", "")
                     hint_confidence = hint.get("confidence", 0.0)
                     if hint_content and hint_confidence >= 0.5:
-                        memory_suggestions.append({
-                            "source": "memory",
-                            "content": hint_content[:200],
-                            "confidence": hint_confidence,
-                            "category": hint.get("category", "general"),
-                            "note": "ADVISORY — does not affect calculation",
-                        })
+                        memory_suggestions.append(
+                            {
+                                "source": "memory",
+                                "content": hint_content[:200],
+                                "confidence": hint_confidence,
+                                "category": hint.get("category", "general"),
+                                "note": "ADVISORY — does not affect calculation",
+                            }
+                        )
                         memory_suggestions_used += 1
 
             except Exception as e:
@@ -864,22 +893,23 @@ def node_nfpa_analysis(state: PipelineState) -> PipelineState:  # NOSONAR — S3
 
         total_detectors += detector_count
 
-        nfpa_results.append({
-            "name": room_name,
-            "area_sqm": round(area_sqm, 1),
-            "occupancy_type": occupancy_type,
-            "detector_type": detector_type,
-            "detector_count": detector_count,
-            "coverage_pct": coverage_pct,
-            "is_flagged": is_flagged,
-            "warnings": warnings,
-            "memory_suggestions": memory_suggestions,
-        })
+        nfpa_results.append(
+            {
+                "name": room_name,
+                "area_sqm": round(area_sqm, 1),
+                "occupancy_type": occupancy_type,
+                "detector_type": detector_type,
+                "detector_count": detector_count,
+                "coverage_pct": coverage_pct,
+                "is_flagged": is_flagged,
+                "warnings": warnings,
+                "memory_suggestions": memory_suggestions,
+            }
+        )
 
     # Overall assessment
     coverage_pct = (
-        (sum(r["coverage_pct"] for r in nfpa_results) / len(nfpa_results))
-        if nfpa_results else 0.0
+        (sum(r["coverage_pct"] for r in nfpa_results) / len(nfpa_results)) if nfpa_results else 0.0
     )
     nfpa_compliant = rooms_failing == 0 and coverage_pct >= 99.0
 
@@ -896,14 +926,18 @@ def node_nfpa_analysis(state: PipelineState) -> PipelineState:  # NOSONAR — S3
         from_node="environmental_context",
         to_node="nfpa_analysis",
         evidence=f"Rooms: {len(rooms)}, Detectors: {total_detectors}, "
-                 f"Coverage: {coverage_pct:.1f}%, Compliant: {nfpa_compliant}, "
-                 f"Failing rooms: {rooms_failing}, "
-                 f"Memory suggestions: {memory_suggestions_used}",
+        f"Coverage: {coverage_pct:.1f}%, Compliant: {nfpa_compliant}, "
+        f"Failing rooms: {rooms_failing}, "
+        f"Memory suggestions: {memory_suggestions_used}",
     )
 
 
 @with_stuck_detection
-def node_conflict_detection(state: PipelineState) -> PipelineState:  # NOSONAR — S3776: cognitive complexity is inherent to the safety-critical algorithm
+def node_conflict_detection(
+    state: PipelineState,
+) -> (
+    PipelineState
+):  # NOSONAR — S3776: cognitive complexity is inherent to the safety-critical algorithm
     """
     Detect conflicts in detector placement and device routing.
 
@@ -932,35 +966,41 @@ def node_conflict_detection(state: PipelineState) -> PipelineState:  # NOSONAR �
     # Check 1: Rooms without detectors
     for result in nfpa_results:
         if result.get("detector_count", 0) == 0:
-            conflicts.append({
-                "type": "MISSING_DETECTION",
-                "severity": "CRITICAL",
-                "room": result["name"],
-                "message": f"Room '{result['name']}' has zero detectors — NO FIRE PROTECTION",
-                "reference": "NFPA 72 §17.6.1",
-            })
+            conflicts.append(
+                {
+                    "type": "MISSING_DETECTION",
+                    "severity": "CRITICAL",
+                    "room": result["name"],
+                    "message": f"Room '{result['name']}' has zero detectors — NO FIRE PROTECTION",
+                    "reference": "NFPA 72 §17.6.1",
+                }
+            )
 
     # Check 2: Unknown occupancy rooms
     for result in nfpa_results:
         if result.get("occupancy_type") == "unknown":
-            conflicts.append({
-                "type": "UNKNOWN_OCCUPANCY",
-                "severity": "HIGH",
-                "room": result["name"],
-                "message": f"Room '{result['name']}' has unknown occupancy type",
-                "reference": "NFPA 72 §17.6.3.1",
-            })
+            conflicts.append(
+                {
+                    "type": "UNKNOWN_OCCUPANCY",
+                    "severity": "HIGH",
+                    "room": result["name"],
+                    "message": f"Room '{result['name']}' has unknown occupancy type",
+                    "reference": "NFPA 72 §17.6.3.1",
+                }
+            )
 
     # Check 3: Flagged rooms needing special review
     for result in nfpa_results:
         if result.get("is_flagged", False) and result.get("detector_count", 0) > 0:
-            conflicts.append({
-                "type": "SPECIAL_REVIEW",
-                "severity": "MEDIUM",
-                "room": result["name"],
-                "message": f"Room '{result['name']}' flagged for engineer review",
-                "reference": "NFPA 72 §17.6.3",
-            })
+            conflicts.append(
+                {
+                    "type": "SPECIAL_REVIEW",
+                    "severity": "MEDIUM",
+                    "room": result["name"],
+                    "message": f"Room '{result['name']}' flagged for engineer review",
+                    "reference": "NFPA 72 §17.6.3",
+                }
+            )
 
     # ── V75: Memory-aware conflict checks (ADVISORY only) ──
     # These use memory context to add ADVISORY warnings for known
@@ -973,16 +1013,18 @@ def node_conflict_detection(state: PipelineState) -> PipelineState:  # NOSONAR �
         occupancy = result.get("occupancy_type", "")
         detector_type = result.get("detector_type", "")
         if occupancy == "kitchen" and detector_type.startswith("SMOKE"):
-            conflicts.append({
-                "type": "KITCHEN_SMOKE_PROHIBITED",
-                "severity": "CRITICAL",
-                "room": result["name"],
-                "message": (
-                    f"Room '{result['name']}': SMOKE detector in kitchen "
-                    "PROHIBITED per NFPA 72 §17.6.4 — must use HEAT detector"
-                ),
-                "reference": "NFPA 72 §17.6.4",
-            })
+            conflicts.append(
+                {
+                    "type": "KITCHEN_SMOKE_PROHIBITED",
+                    "severity": "CRITICAL",
+                    "room": result["name"],
+                    "message": (
+                        f"Room '{result['name']}': SMOKE detector in kitchen "
+                        "PROHIBITED per NFPA 72 §17.6.4 — must use HEAT detector"
+                    ),
+                    "reference": "NFPA 72 §17.6.4",
+                }
+            )
 
     # Check 5: Memory-suggested conflict patterns (ADVISORY)
     # Memory hints about hazardous areas, duct detectors, etc.
@@ -1000,18 +1042,17 @@ def node_conflict_detection(state: PipelineState) -> PipelineState:  # NOSONAR �
             for result in nfpa_results:
                 occupancy = result.get("occupancy_type", "")
                 if occupancy and occupancy.lower() in content.lower():
-                    conflicts.append({
-                        "type": "MEMORY_ADVISORY",
-                        "severity": "LOW",
-                        "room": result["name"],
-                        "message": (
-                            f"Memory advisory for '{result['name']}': "
-                            f"{content[:150]}"
-                        ),
-                        "reference": std_ref or "memory",
-                        "source": "memory",
-                        "note": "ADVISORY — from engineering memory, not deterministic check",
-                    })
+                    conflicts.append(
+                        {
+                            "type": "MEMORY_ADVISORY",
+                            "severity": "LOW",
+                            "room": result["name"],
+                            "message": (f"Memory advisory for '{result['name']}': {content[:150]}"),
+                            "reference": std_ref or "memory",
+                            "source": "memory",
+                            "note": "ADVISORY — from engineering memory, not deterministic check",
+                        }
+                    )
                     break  # One advisory per hint
 
     # Check 6: Mechanical/electrical rooms need heat detectors
@@ -1020,24 +1061,24 @@ def node_conflict_detection(state: PipelineState) -> PipelineState:  # NOSONAR �
         detector_type = result.get("detector_type", "")
         if occupancy in ("mechanical", "electrical", "electrical_room"):
             if detector_type.startswith("SMOKE"):
-                conflicts.append({
-                    "type": "HAZARDOUS_AREA_DETECTOR",
-                    "severity": "HIGH",
-                    "room": result["name"],
-                    "message": (
-                        f"Room '{result['name']}': {occupancy} rooms typically "
-                        "require HEAT detectors (rate-of-rise), not SMOKE. "
-                        "Review per NFPA 72 and environmental conditions."
-                    ),
-                    "reference": "NFPA 72 §17.6.3.1",
-                })
+                conflicts.append(
+                    {
+                        "type": "HAZARDOUS_AREA_DETECTOR",
+                        "severity": "HIGH",
+                        "room": result["name"],
+                        "message": (
+                            f"Room '{result['name']}': {occupancy} rooms typically "
+                            "require HEAT detectors (rate-of-rise), not SMOKE. "
+                            "Review per NFPA 72 and environmental conditions."
+                        ),
+                        "reference": "NFPA 72 §17.6.3.1",
+                    }
+                )
 
     has_critical = any(c["severity"] == "CRITICAL" for c in conflicts)
 
     # Count memory advisory conflicts separately for reporting
-    memory_advisory_count = sum(
-        1 for c in conflicts if c.get("source") == "memory"
-    )
+    memory_advisory_count = sum(1 for c in conflicts if c.get("source") == "memory")
 
     updates = {
         "conflicts": conflicts,
@@ -1082,36 +1123,40 @@ def node_human_review_gate(state: PipelineState) -> PipelineState:
     # Critical conflicts → MANDATORY review
     for conflict in conflicts:
         if conflict["severity"] == "CRITICAL":
-            review_items.append({
-                "item": conflict["message"],
-                "type": conflict["type"],
-                "severity": conflict["severity"],
-                "action_required": "Resolve conflict before proceeding",
-            })
+            review_items.append(
+                {
+                    "item": conflict["message"],
+                    "type": conflict["type"],
+                    "severity": conflict["severity"],
+                    "action_required": "Resolve conflict before proceeding",
+                }
+            )
 
     # Unknown occupancy rooms → MANDATORY review
-    unknown_rooms = [
-        r for r in nfpa_results if r.get("occupancy_type") == "unknown"
-    ]
+    unknown_rooms = [r for r in nfpa_results if r.get("occupancy_type") == "unknown"]
     if unknown_rooms:
         review_required = True
-        review_items.append({
-            "item": f"{len(unknown_rooms)} room(s) with unknown occupancy type",
-            "type": "UNKNOWN_OCCUPANCY",
-            "severity": "HIGH",
-            "action_required": "Assign occupancy types before design can complete",
-        })
+        review_items.append(
+            {
+                "item": f"{len(unknown_rooms)} room(s) with unknown occupancy type",
+                "type": "UNKNOWN_OCCUPANCY",
+                "severity": "HIGH",
+                "action_required": "Assign occupancy types before design can complete",
+            }
+        )
 
     # Large rooms → RECOMMENDED review
     flagged_rooms = [r for r in nfpa_results if r.get("is_flagged", False)]
     if flagged_rooms:
         for r in flagged_rooms:
-            review_items.append({
-                "item": f"Room '{r['name']}' ({r['area_sqm']}m²) flagged for review",
-                "type": "SPECIAL_REVIEW",
-                "severity": "MEDIUM",
-                "action_required": "Verify detector placement meets NFPA 72",
-            })
+            review_items.append(
+                {
+                    "item": f"Room '{r['name']}' ({r['area_sqm']}m²) flagged for review",
+                    "type": "SPECIAL_REVIEW",
+                    "severity": "MEDIUM",
+                    "action_required": "Verify detector placement meets NFPA 72",
+                }
+            )
 
     updates = {
         "review_required": review_required,
@@ -1127,7 +1172,7 @@ def node_human_review_gate(state: PipelineState) -> PipelineState:
         from_node="conflict_detection",
         to_node="human_review_gate",
         evidence=f"Review required: {review_required}, Items: {len(review_items)}, "
-                 f"Critical: {has_critical}",
+        f"Critical: {has_critical}",
     )
 
 
@@ -1153,9 +1198,7 @@ def node_generate_report(state: PipelineState) -> PipelineState:
     workflow_id = state.get("workflow_id", "")
 
     # Build report
-    unknown_count = sum(
-        1 for r in nfpa_results if r.get("occupancy_type") == "unknown"
-    )
+    unknown_count = sum(1 for r in nfpa_results if r.get("occupancy_type") == "unknown")
     has_unknown = unknown_count > 0
 
     report = {
@@ -1168,7 +1211,8 @@ def node_generate_report(state: PipelineState) -> PipelineState:
             "design_complete": not has_unknown,
             "review_reason": (
                 f"Design incomplete. {unknown_count} rooms require manual type verification."
-                if has_unknown else None
+                if has_unknown
+                else None
             ),
             # V85 FIX: generated_utc is added AFTER SHA-256 computation.
             # Per agent.md Priority 5 (Determinism): report_sha256 must be
@@ -1194,7 +1238,8 @@ def node_generate_report(state: PipelineState) -> PipelineState:
             "transition_count": len(state.get("transition_log", [])),
             "review_required": state.get("review_required", False),
             "reviewer_decision": state.get("reviewer_decision"),
-            "review_timestamp": state.get("reviewer_timestamp") or state.get("review_timestamp"),  # V82: check both keys
+            "review_timestamp": state.get("reviewer_timestamp")
+            or state.get("review_timestamp"),  # V82: check both keys
         },
         "memory_context_used": {
             "hints_available": len(memory_context.get("hints", [])),
@@ -1231,6 +1276,7 @@ def node_generate_report(state: PipelineState) -> PipelineState:
     memory_storage_result = {"stored": 0, "failed": 0, "skipped": True}
     try:
         from fireai.infrastructure.mem0_workflow_bridge import store_analysis_result
+
         memory_storage_result = store_analysis_result(
             workflow_id=workflow_id,
             rooms=rooms,
@@ -1255,6 +1301,7 @@ def node_generate_report(state: PipelineState) -> PipelineState:
     # FAIL-SAFE: Storage failure NEVER blocks report generation.
     try:
         from fireai.infrastructure.mem0_workflow_bridge import store_procedural_trace
+
         procedural_result = store_procedural_trace(
             workflow_id=workflow_id,
             transition_log=state.get("transition_log", []),
@@ -1263,6 +1310,7 @@ def node_generate_report(state: PipelineState) -> PipelineState:
         logger.info(
             f"Procedural trace: {procedural_result.get('stored', 0)} steps stored"  # noqa: G004
         )
+        logger.info(f"Procedural trace: {procedural_result.get('stored', 0)} steps stored")
     except ImportError:
         logger.warning("store_procedural_trace not available — skipping")
     except Exception as e:
@@ -1282,11 +1330,12 @@ def node_generate_report(state: PipelineState) -> PipelineState:
         from_node="human_review_gate",
         to_node="generate_report",
         evidence=f"Report SHA256: {report_sha256}, Status: {final_status}, "
-                 f"Rooms: {len(rooms)}, Compliant: {not has_unknown}",
+        f"Rooms: {len(rooms)}, Compliant: {not has_unknown}",
     )
 
 
 # ── Conditional Edge Functions ────────────────────────────────────────────────
+
 
 def should_proceed_after_parse(state: PipelineState) -> str:
     """Route after parse: success → validate, failure → END."""
@@ -1337,6 +1386,7 @@ def should_proceed_after_review(state: PipelineState) -> str:
 
 
 # ── Workflow Graph Builder ───────────────────────────────────────────────────
+
 
 def build_fireai_workflow() -> StateGraph:
     """
@@ -1440,6 +1490,7 @@ def build_fireai_workflow() -> StateGraph:
 
 # ── Workflow Service ─────────────────────────────────────────────────────────
 
+
 class WorkflowService:
     """
     Service for managing FireAI analysis workflows.
@@ -1469,7 +1520,8 @@ class WorkflowService:
         # Per agent.md Rule 1 (Absolute Truth) and Priority 4 (Reliability).
         checkpoint_dir = os.path.join(
             os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
-            "data", "checkpoints"
+            "data",
+            "checkpoints",
         )
         os.makedirs(checkpoint_dir, exist_ok=True)
         self._checkpoint_db_path = os.path.join(checkpoint_dir, "workflow_checkpoints.db")
@@ -1499,7 +1551,9 @@ class WorkflowService:
         else:
             logger.warning("StuckDetector not available — workflow stuck detection DISABLED")
 
-        logger.info("WorkflowService initialized with SQLite checkpointing at %s", self._checkpoint_db_path)
+        logger.info(
+            "WorkflowService initialized with SQLite checkpointing at %s", self._checkpoint_db_path
+        )
 
     async def _ensure_compiled(self):
         """
@@ -1683,6 +1737,7 @@ class WorkflowService:
             # Per agent.md Rule 17: Root cause is using a deprecated API
             # that will break in future Python versions.
             import asyncio
+
             loop = asyncio.get_running_loop()
             result = await loop.run_in_executor(
                 None,
@@ -1725,9 +1780,9 @@ class WorkflowService:
         try:
             # Get the trace ID from the handler
             trace_id = None
-            if hasattr(handler, 'trace_id') and handler.trace_id:
+            if hasattr(handler, "trace_id") and handler.trace_id:
                 trace_id = handler.trace_id
-            elif hasattr(handler, '_trace_id') and handler._trace_id:
+            elif hasattr(handler, "_trace_id") and handler._trace_id:
                 trace_id = handler._trace_id
 
             if not trace_id:
@@ -1749,9 +1804,7 @@ class WorkflowService:
                 "nfpa_compliant": state.get("nfpa_compliant", False),
                 "conflict_count": state.get("conflict_count", 0),
                 "validation_passed": state.get("validation_passed", False),
-                "safety_gates": {
-                    "overall": overall
-                }
+                "safety_gates": {"overall": overall},
             }
 
             log_workflow_scores(result_dict, handler)
@@ -1763,7 +1816,9 @@ class WorkflowService:
         except Exception as e:
             logger.debug("Langfuse score logging failed (non-blocking): %s", e)
 
-    async def get_workflow_status(self, workflow_id: str) -> dict[str, Any] | None:  # NOSONAR - python:S7503
+    async def get_workflow_status(
+        self, workflow_id: str
+    ) -> dict[str, Any] | None:  # NOSONAR - python:S7503
         """Get the current status of a workflow."""
         if workflow_id not in self._workflows:
             return None
@@ -1783,7 +1838,9 @@ class WorkflowService:
             "node_timings": state.get("node_timings", {}),
         }
 
-    async def check_stuck_workflow(self, workflow_id: str) -> dict[str, Any] | None:  # NOSONAR - python:S7503
+    async def check_stuck_workflow(
+        self, workflow_id: str
+    ) -> dict[str, Any] | None:  # NOSONAR - python:S7503
         """
         Check if a specific workflow is stuck (V77).
 
@@ -1929,6 +1986,7 @@ class WorkflowService:
             # asyncio.get_event_loop() with asyncio.get_running_loop().
             # This is an async method so a running loop is guaranteed.
             import asyncio
+
             loop = asyncio.get_running_loop()
             result = await loop.run_in_executor(
                 None,
@@ -1995,7 +2053,9 @@ class WorkflowService:
             "reviewer_comments": reviewer_comments,
         }
 
-    async def get_audit_trail(self, workflow_id: str) -> list[dict[str, Any]] | None:  # NOSONAR - python:S7503
+    async def get_audit_trail(
+        self, workflow_id: str
+    ) -> list[dict[str, Any]] | None:  # NOSONAR - python:S7503
         """Get the full audit trail for a workflow."""
         if workflow_id not in self._workflows:
             return None
@@ -2053,9 +2113,7 @@ class WorkflowService:
                 if checkpoint_tuple is not None:
                     # Extract the channel values from the checkpoint
                     if isinstance(checkpoint_tuple, dict):
-                        checkpoint_state = checkpoint_tuple.get(
-                            "channel_values", checkpoint_tuple
-                        )
+                        checkpoint_state = checkpoint_tuple.get("channel_values", checkpoint_tuple)
                     else:
                         checkpoint_state = checkpoint_tuple
             except Exception as e:
@@ -2066,9 +2124,7 @@ class WorkflowService:
 
             # If checkpoint recovery succeeded, store the recovered state
             if checkpoint_state is not None:
-                recovered_state = (
-                    checkpoint_state if isinstance(checkpoint_state, dict) else {}
-                )
+                recovered_state = checkpoint_state if isinstance(checkpoint_state, dict) else {}
 
                 # Log the recovery event
                 recovered_state = _log_transition(
@@ -2103,13 +2159,11 @@ class WorkflowService:
                     "review_required": recovered_state.get("review_required", False),
                     "total_detectors": recovered_state.get("total_detectors", 0),
                     "nfpa_compliant": recovered_state.get("nfpa_compliant", False),
-                    "transition_count": len(
-                        recovered_state.get("transition_log", [])
-                    ),
+                    "transition_count": len(recovered_state.get("transition_log", [])),
                     "rooms_analyzed": len(recovered_state.get("rooms", [])),
-                    "memory_enriched": recovered_state.get(
-                        "memory_context", {}
-                    ).get("enrichment_performed", False),
+                    "memory_enriched": recovered_state.get("memory_context", {}).get(
+                        "enrichment_performed", False
+                    ),
                 }
 
             # Check in-memory workflows as fallback
@@ -2119,6 +2173,7 @@ class WorkflowService:
                 logger.info(
                     f"Workflow {workflow_id} found in memory "  # noqa: G004
                     "(no checkpoint recovery needed)"
+                    f"Workflow {workflow_id} found in memory (no checkpoint recovery needed)"
                 )
                 return {
                     "workflow_id": workflow_id,
@@ -2131,6 +2186,7 @@ class WorkflowService:
             logger.warning(
                 f"Workflow {workflow_id} not found in checkpoints or memory. "  # noqa: G004
                 "No recovery possible."
+                f"Workflow {workflow_id} not found in checkpoints or memory. No recovery possible."
             )
             return None
 
@@ -2138,6 +2194,7 @@ class WorkflowService:
             logger.exception(
                 f"Crash recovery failed for workflow {workflow_id}: "  # noqa: G004
                 f"{type(e).__name__}: {e}",
+                f"Crash recovery failed for workflow {workflow_id}: {type(e).__name__}: {e}",
             )
             return {
                 "workflow_id": workflow_id,
@@ -2159,12 +2216,14 @@ class WorkflowService:
         recoverable = []
         for workflow_id, wf in self._workflows.items():
             state = wf["state"]
-            recoverable.append({
-                "workflow_id": workflow_id,
-                "status": state.get("status", "UNKNOWN"),
-                "started_at": state.get("started_at"),
-                "review_required": state.get("review_required", False),
-            })
+            recoverable.append(
+                {
+                    "workflow_id": workflow_id,
+                    "status": state.get("status", "UNKNOWN"),
+                    "started_at": state.get("started_at"),
+                    "review_required": state.get("review_required", False),
+                }
+            )
         return recoverable
 
 

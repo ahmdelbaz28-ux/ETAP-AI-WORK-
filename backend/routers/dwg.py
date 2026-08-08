@@ -32,6 +32,7 @@ from backend.rbac import Permission
 
 try:
     from backend.limiter import limiter
+
     _HAS_LIMITER = True
 except ImportError:
     _HAS_LIMITER = False
@@ -62,7 +63,9 @@ _AUTH = [Depends(require_permission(Permission.PROJECT_CREATE))]
 # limiter-wrapped function is what the route uses.
 
 
-async def _parse_dwg_impl(request: Request, file: UploadFile):  # NOSONAR — S3776: cognitive complexity is inherent to the safety-critical algorithm
+async def _parse_dwg_impl(
+    request: Request, file: UploadFile
+):  # NOSONAR — S3776: cognitive complexity is inherent to the safety-critical algorithm
     """
     Upload a DWG or DXF file for parsing.
 
@@ -91,7 +94,9 @@ async def _parse_dwg_impl(request: Request, file: UploadFile):  # NOSONAR — S3
     try:
         fd, temp_path = tempfile.mkstemp(suffix=ext, prefix="fireai_dwg_upload_")
         # Wrap the os-level fd in a Python file object for buffered writes
-        with os.fdopen(fd, "wb") as out_f:  # NOSONAR: S7493 sync file I/O acceptable for small config reads  # NOSONAR — S7632: test function documented via class name / module path
+        with (
+            os.fdopen(fd, "wb") as out_f
+        ):  # NOSONAR: S7493 sync file I/O acceptable for small config reads  # NOSONAR — S7632: test function documented via class name / module path
             _CHUNK_SIZE = 1024 * 1024  # 1 MB per read
             file_size = 0
             empty = True
@@ -105,8 +110,8 @@ async def _parse_dwg_impl(request: Request, file: UploadFile):  # NOSONAR — S3
                     # Caller will clean up via finally block
                     raise HTTPException(
                         status_code=413,
-                        detail=f"File too large (max {_MAX_DWG_SIZE_BYTES // (1024*1024)} MB). "
-                               "Upload a smaller file or split the drawing.",
+                        detail=f"File too large (max {_MAX_DWG_SIZE_BYTES // (1024 * 1024)} MB). "
+                        "Upload a smaller file or split the drawing.",
                     )
                 out_f.write(chunk)
             # fsync to ensure data is on disk before parser reads it
@@ -167,7 +172,9 @@ async def _parse_dwg_impl(request: Request, file: UploadFile):  # NOSONAR — S3
         raise  # Re-raise HTTPExceptions (400, 422, 503) — don't convert to 500
     except Exception as exc:
         logger.exception(
-            "DWG parse request failed: %s: %s", type(exc).__name__, exc,
+            "DWG parse request failed: %s: %s",
+            type(exc).__name__,
+            exc,
         )
         raise HTTPException(  # noqa: B904
             status_code=500,
@@ -189,6 +196,7 @@ async def _parse_dwg_impl(request: Request, file: UploadFile):  # NOSONAR — S3
 # @limiter.limit. This ensures the limiter-wrapped function is the actual
 # endpoint. The previous @router.post + @limiter.limit order was wrong.
 if _HAS_LIMITER:
+
     @limiter.limit("10/minute")
     async def _rate_limited_parse_dwg(request: Request, file: UploadFile = File(...)):  # noqa: B008
         """Rate-limited wrapper for DWG parse endpoint."""
@@ -221,4 +229,3 @@ else:
 # production endpoint. The alias points to the unwrapped _parse_dwg_impl so
 # tests can register it without auth.
 parse_dwg = _parse_dwg_impl
-

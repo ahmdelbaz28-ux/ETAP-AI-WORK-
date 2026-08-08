@@ -125,6 +125,10 @@ class TestZbus:
             [-5 + 10j, 10 - 20j, -5 + 10j],
             [-5 + 10j, -5 + 10j, 10 - 20j],
         ])
+        Ybus = np.array(
+            [
+            ]
+        )
         Z = zbus_from_ybus(Ybus, reference_bus=0)
         assert Z.shape == (2, 2)
         # Should be symmetric
@@ -140,11 +144,13 @@ class TestZbus:
             ]
         )
 
-        Ybus = np.array([
-            [10 - 20j, -3 + 6j, -2 + 5j],
-            [-3 + 6j, 8 - 15j, 0],
-            [-2 + 5j, 0, 6 - 12j],
-        ])
+        Ybus = np.array(
+            [
+                [10 - 20j, -3 + 6j, -2 + 5j],
+                [-3 + 6j, 8 - 15j, 0],
+                [-2 + 5j, 0, 6 - 12j],
+            ]
+        )
         Z = zbus_full(Ybus)
         assert Z.shape == (3, 3)
         # Z * Y should be approx identity
@@ -163,11 +169,13 @@ class TestZbus:
             Ybus
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
-        Ybus = np.array([
-            [10 - 20j, -2 + 5j, 0],
-            [-2 + 5j, 8 - 15j, -3 + 6j],
-            [0, -3 + 6j, 5 - 10j],
-        ])
+        Ybus = np.array(
+            [
+                [10 - 20j, -2 + 5j, 0],
+                [-2 + 5j, 8 - 15j, -3 + 6j],
+                [0, -3 + 6j, 5 - 10j],
+            ]
+        )
         Z = zbus_from_ybus(Ybus, reference_bus=0)
         Z_full = zbus_full(Ybus)
         assert Z.shape == (2, 2)
@@ -182,10 +190,12 @@ class TestZbus:
             ]
         )
 
-        Ybus = np.array([
-            [1 + 1j, 2 + 2j],
-            [1 + 1j, 2 + 2j],
-        ])
+        Ybus = np.array(
+            [
+                [1 + 1j, 2 + 2j],
+                [1 + 1j, 2 + 2j],
+            ]
+        )
         Z = zbus_full(Ybus)
         assert Z.shape == (2, 2)
 
@@ -197,10 +207,12 @@ class TestZbus:
             ]
         )
 
-        Ybus = np.array([
-            [1 + 1j, 2 + 2j],
-            [1 + 1j, 2 + 2j],
-        ])
+        Ybus = np.array(
+            [
+                [1 + 1j, 2 + 2j],
+                [1 + 1j, 2 + 2j],
+            ]
+        )
         Z = zbus_from_ybus(Ybus, reference_bus=0)
         assert Z.shape == (1, 1)
 
@@ -235,11 +247,13 @@ class TestZbus:
             ]
         )
 
-        Ybus = np.array([
-            [15 - 25j, -5 + 10j, -3 + 6j],
-            [-5 + 10j, 12 - 22j, -7 + 14j],
-            [-3 + 6j, -7 + 14j, 10 - 20j],
-        ])
+        Ybus = np.array(
+            [
+                [15 - 25j, -5 + 10j, -3 + 6j],
+                [-5 + 10j, 12 - 22j, -7 + 14j],
+                [-3 + 6j, -7 + 14j, 10 - 20j],
+            ]
+        )
         Z0 = zbus_from_ybus(Ybus, reference_bus=0)
         Z1 = zbus_from_ybus(Ybus, reference_bus=1)
         Z2 = zbus_from_ybus(Ybus, reference_bus=2)
@@ -262,10 +276,12 @@ class TestZbus:
             ]
         )
 
-        Ybus = np.array([
-            [5 - 10j, -5 + 10j],
-            [-5 + 10j, 5 - 10j],
-        ])
+        Ybus = np.array(
+            [
+                [5 - 10j, -5 + 10j],
+                [-5 + 10j, 5 - 10j],
+            ]
+        )
         Z = zbus_from_ybus(Ybus, reference_bus=0)
         assert Z.shape == (1, 1)
         # Expected: 1/(5-10j) = 0.04+0.08j
@@ -302,6 +318,23 @@ class TestZbus:
         Ybus = np.diag([1+1j, 2+2j, 3+3j])
         Z = zbus_full(Ybus)
         assert np.allclose(Z @ Ybus, np.eye(3), atol=1e-10)
+        Ybus = np.array(
+            [
+                [10 - 20j, -3 + 6j, -2 + 5j],
+                [-3 + 6j, 8 - 15j, 0],
+                [-2 + 5j, 0, 6 - 12j],
+            ]
+        )
+        # Full Zbus: Z @ Y should be identity
+        Z_full = zbus_full(Ybus)
+        assert np.allclose(Z_full @ Ybus, np.eye(3), atol=1e-10)
+        # Reduced Zbus: reduced Z @ reduced Y should be identity
+        for ref in range(3):
+            Z_red = zbus_from_ybus(Ybus, reference_bus=ref)
+            # Remove reference bus row/col from Ybus
+            mask = [i for i in range(3) if i != ref]
+            Y_red = Ybus[np.ix_(mask, mask)]
+            assert np.allclose(Z_red @ Y_red, np.eye(2), atol=1e-10)
 
     def test_zbus_large_values(self):
         n = 10

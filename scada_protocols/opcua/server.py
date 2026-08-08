@@ -114,9 +114,7 @@ class OpcUaServerAdapter(ProtocolAdapter):
             finally:
                 loop.close()
 
-        self._thread = threading.Thread(
-            target=_thread_target, name="opcua-server", daemon=True
-        )
+        self._thread = threading.Thread(target=_thread_target, name="opcua-server", daemon=True)
         self._thread.start()
 
     def stop_server(self) -> None:

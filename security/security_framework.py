@@ -529,9 +529,7 @@ class InputValidator:
         return False
 
     @staticmethod
-    def validate_python_code(
-        code: str, allowed_imports: set[str] = None
-    ) -> bool:
+    def validate_python_code(code: str, allowed_imports: set[str] = None) -> bool:
         """
         Validate Python code for safety using AST parsing.
 
@@ -609,9 +607,9 @@ class InputValidator:
             "Union",
             ";",
             "|",  # V-71 FIX: Block pipe chains — prevents multi-command pipelines
-                  # where the first cmdlet is whitelisted but the second is dangerous.
-                  # E.g., Get-Process | Where-Object { $_.Name -eq "explorer" }
-                  # The cmdlet whitelist only checks the first token.
+            # where the first cmdlet is whitelisted but the second is dangerous.
+            # E.g., Get-Process | Where-Object { $_.Name -eq "explorer" }
+            # The cmdlet whitelist only checks the first token.
             "-Enc",
             "-EncodedCommand",
             "System.Diagnostics",

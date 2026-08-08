@@ -58,6 +58,7 @@ from typing import Any, Optional, Union
 
 logger = logging.getLogger(__name__)
 
+
 def _sanitize_for_log(value: str, max_len: int = 200) -> str:
     """Sanitize user-controlled data before logging to prevent injection."""
     if not isinstance(value, str):
@@ -68,7 +69,6 @@ def _sanitize_for_log(value: str, max_len: int = 200) -> str:
     if len(sanitized) > max_len:
         sanitized = sanitized[:max_len] + "..."
     return sanitized
-
 
 
 # Only import on Windows
@@ -136,8 +136,13 @@ from etap_integration.unified_etap_types import (  # noqa: E402
 )
 
 # Backward compat: re-export for code that imports from etap_com
-__all__ = ["ETAPStudyType", "ETAPResult", "ETAPProject", "ETAPAutomation",
-           "STUDY_TYPE_PARAMETER_SCHEMAS"]
+__all__ = [
+    "ETAPStudyType",
+    "ETAPResult",
+    "ETAPProject",
+    "ETAPAutomation",
+    "STUDY_TYPE_PARAMETER_SCHEMAS",
+]
 
 
 # =============================================================================
@@ -1315,6 +1320,8 @@ class ETAPAutomation:
             logger.warning(
                 "Invalid project path type or empty: %r", file_path
             )  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
+            logger.warning("Invalid project path type or empty: %r", file_path)  # noqa: S5145: repr-escaped (no CR/LF injection); path kept for debugging
+
             return False
 
         if len(file_path) > MAX_PROJECT_PATH_LENGTH:
@@ -1329,6 +1336,8 @@ class ETAPAutomation:
             logger.warning(
                 "Invalid project file extension: %r", file_path
             )  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
+            logger.warning("Invalid project file extension: %r", file_path)  # noqa: S5145: repr-escaped (no CR/LF injection); path kept for debugging
+
             return False
 
         # SonarCloud pythonsecurity:S6549: explicit path-traversal guard.
@@ -1346,6 +1355,8 @@ class ETAPAutomation:
             logger.warning(
                 "UNC path not allowed (SMB relay risk): %r", file_path
             )  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
+            logger.warning("UNC path not allowed (SMB relay risk): %r", file_path)  # noqa: S5145: repr-escaped (no CR/LF injection); path kept for debugging
+
             return False
 
         # Lexical normalisation only — no filesystem access, no symlink resolution.
@@ -1373,6 +1384,9 @@ class ETAPAutomation:
             logger.warning(
                 "Invalid path format: %r", file_path
             )  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
+            resolved = normalised.resolve(strict=False)  # noqa: S6549: lexical normpath + containment checks mitigate path escape (see comment block above)
+            logger.warning("Invalid path format: %r", file_path)  # noqa: S5145: repr-escaped (no CR/LF injection); path kept for debugging
+
             return False
 
         # Containment check: resolved path must be inside CWD or HOME.
@@ -1385,6 +1399,8 @@ class ETAPAutomation:
                 logger.warning(
                     "Project path escapes CWD and HOME: %r", file_path
                 )  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
+                logger.warning("Project path escapes CWD and HOME: %r", file_path)  # noqa: S5145: repr-escaped (no CR/LF injection); path kept for debugging
+
                 return False
 
         if self._allowed_project_dirs:
@@ -1395,6 +1411,8 @@ class ETAPAutomation:
                 logger.warning(
                     "Project path outside allowed directories: %r", file_path
                 )  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
+                logger.warning("Project path outside allowed directories: %r", file_path)  # noqa: S5145: repr-escaped (no CR/LF injection); path kept for debugging
+
                 return False
 
         return True
@@ -1418,8 +1436,10 @@ class ETAPAutomation:
         try:
             # SECURITY (LAUNCH-BLOCKER): Initialize COM for this thread
             import sys as _sys
+
             if _sys.platform == "win32":
                 import pythoncom
+
                 pythoncom.CoInitialize()
 
             self._com_app = win32com.client.Dispatch("ETAP.Application")
@@ -1455,6 +1475,8 @@ class ETAPAutomation:
             logger.error(
                 "Project path validation failed: %r", file_path
             )  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
+            logger.error("Project path validation failed: %r", file_path)  # noqa: S5145: repr-escaped (no CR/LF injection); path kept for debugging
+
             return None
 
         try:
@@ -1471,6 +1493,9 @@ class ETAPAutomation:
                 logger.error(
                     "Failed to open project: %r", file_path
                 )  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
+                logger.info("Opened project: %r", file_path)  # noqa: S5145: repr-escaped (no CR/LF injection); path kept for debugging
+                logger.error("Failed to open project: %r", file_path)  # noqa: S5145: repr-escaped (no CR/LF injection); path kept for debugging
+
                 return None
 
         except pythoncom.com_error as e:

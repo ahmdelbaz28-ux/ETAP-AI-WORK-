@@ -40,6 +40,24 @@ from pydantic import BaseModel, ConfigDict, Field
 from api.dependencies import get_api_key
 
 # ---------------------------------------------------------------------------
+# Duplicated-string-literal constants (python:S1192)
+# ---------------------------------------------------------------------------
+
+_DESC_FILTER_SEVERITY = "Filter by severity level"
+_DESC_FILTER_ACTION = "Filter by action type"
+_DESC_FILTER_USER = "Filter by username"
+_DESC_START_DATE = "Start date (ISO-8601)"
+_DESC_END_DATE = "End date (ISO-8601)"
+_DESC_SEARCH = "Search in details field"
+
+_PATH_AUTH_LOGIN = "/api/v1/auth/login"
+_PATH_AUTH_REFRESH = "/api/v1/auth/refresh"
+_PATH_AUTH_ROLES = "/api/v1/auth/roles"
+
+_DETAILS_LOGIN_JWT = "Successful login via JWT authentication"
+_DETAILS_TOKEN_REFRESHED = "Access token refreshed successfully"
+
+# ---------------------------------------------------------------------------
 # Router
 # ---------------------------------------------------------------------------
 
@@ -133,7 +151,9 @@ class AuditLogExportRequest(BaseModel):
         filters: Optional filter criteria to apply before exporting.
     """
 
-    format: str = Field(default="csv", pattern=r"^(csv|pdf)$", description="Export format: csv or pdf")
+    format: str = Field(
+        default="csv", pattern=r"^(csv|pdf)$", description="Export format: csv or pdf"
+    )
     filters: Optional[AuditLogFilter] = Field(default=None, description="Filter criteria")
 
 
@@ -530,6 +550,8 @@ def _apply_filters(
             for e in result
             if datetime.fromisoformat(e["timestamp"]) >= start_dt
         ]
+            )
+        result = [e for e in result if datetime.fromisoformat(e["timestamp"]) >= start_dt]
 
     if end_date is not None:
         try:
@@ -544,6 +566,8 @@ def _apply_filters(
             for e in result
             if datetime.fromisoformat(e["timestamp"]) <= end_dt
         ]
+            )
+        result = [e for e in result if datetime.fromisoformat(e["timestamp"]) <= end_dt]
 
     if search is not None:
         search_lower = search.lower()

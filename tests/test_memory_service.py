@@ -368,9 +368,7 @@ class TestNeo4jIntegrationMocked:
                     answer = svc.query_graph("Are Bus 1 and Bus 2 connected?")
 
         assert answer == "Bus 1 and Bus 2 are connected via Line 10."
-        mock_chain.invoke.assert_called_once_with(
-            {"query": "Are Bus 1 and Bus 2 connected?"}
-        )
+        mock_chain.invoke.assert_called_once_with({"query": "Are Bus 1 and Bus 2 connected?"})
 
 
 # ---------------------------------------------------------------------------

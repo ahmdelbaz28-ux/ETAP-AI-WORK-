@@ -30,12 +30,14 @@ router = APIRouter(prefix="", tags=["health"])
 def _get_db_context():
     """Lazy import of the DB session context manager."""
     from api.database import get_db_context
+
     return get_db_context
 
 
 def _get_redis_client_func():
     """Lazy import of the Redis client getter (returns None if not configured)."""
     from api.auth import _get_redis_client
+
     return _get_redis_client
 
 
@@ -50,8 +52,6 @@ class HealthResponse:
         self.version = version
         self.timestamp = timestamp
         self.trace_id = trace_id
-
-
 class ReadyResponse:
     def __init__(
         self,
@@ -66,8 +66,6 @@ class ReadyResponse:
         self.etap_available = etap_available
         self.timestamp = timestamp
         self.trace_id = trace_id
-
-
 class MetricsResponse:
     def __init__(
         self,
@@ -82,6 +80,21 @@ class MetricsResponse:
         self.requests_failed = requests_failed
         self.avg_execution_time_ms = avg_execution_time_ms
         self.trace_id = trace_id
+class HealthResponse(BaseModel):
+    status: str
+    version: str
+    timestamp: str
+    trace_id: str
+class ReadyResponse(BaseModel):
+    ready: bool
+    native_engine_available: bool
+    etap_available: bool
+class MetricsResponse(BaseModel):
+    requests_total: int
+    requests_success: int
+    requests_failed: int
+    avg_execution_time_ms: float
+
 
 
 @router.head("/")
@@ -105,6 +118,53 @@ async def readyz():
     checks = {"python": True, "imports": True}
     all_ready = all(checks.values())
     return {"ready": all_ready, "checks": checks}
+async def readyz() -> Dict[str, object]:
+    """Readiness probe — checks critical dependencies.
+    SECURITY/OPS (E-07): Previously this returned a hardcoded {"ready": True}
+    regardless of DB/Redis state. K8s/HF would route traffic to a broken
+    instance. Now performs real checks on DB + Redis and returns 503 if
+    any critical dependency is down.
+    """
+    checks: Dict[str, object] = {"python": True, "imports": True}
+    # DB check
+    try:
+        get_db_context = _get_db_context()
+        async with get_db_context() as db:
+            result = await db.execute(text("SELECT 1"))
+            if result.scalar() == 1:
+                checks["db"] = "ok"
+            else:
+                checks["db"] = "fail: unexpected scalar"
+    except Exception as exc:
+        checks["db"] = f"fail: {type(exc).__name__}: {exc}"
+    # Redis check
+        get_redis_client = _get_redis_client_func()
+        r = get_redis_client()
+        if r is None:
+            # Redis is optional — mark as not-configured, not failed
+            checks["redis"] = "not_configured"
+        else:
+            await r.ping()
+            checks["redis"] = "ok"
+        checks["redis"] = f"fail: {type(exc).__name__}: {exc}"
+    # Critical dependencies: DB must be ok. Redis is optional in dev but
+    # required in production (fail-closed if configured but unreachable).
+    _env = os.getenv("ENVIRONMENT", "development").lower()
+    is_prod = _env in ("production", "prod", "staging")
+    db_ok = checks["db"] == "ok"
+    redis_ok = checks["redis"] == "ok"
+    redis_required = is_prod
+    all_ready = db_ok and (redis_ok or not redis_required)
+    # SECURITY (LB-2): Return HTTP 503 when not ready — K8s/HF readiness
+    # probes check the HTTP status code, not the JSON body. Previously
+    # this always returned 200, so the probe would route traffic to a
+    # broken instance even when DB/Redis were down.
+    status_code = 200 if all_ready else 503
+    return JSONResponse(
+        status_code=status_code,
+        content={"ready": all_ready, "checks": checks},
+    )
+
 
 
 @router.head("/health")

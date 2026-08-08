@@ -127,14 +127,20 @@ engine = BuildingEngine("BLDG-001", opt)
 
 floors = {
     "GF": [
-        {"room_id": "lobby", "name": "Lobby",
-         "polygon_coords": [(0,0), (12,0), (12,8), (0,8)],
-         "ceiling_height": 3.0},
+        {
+            "room_id": "lobby",
+            "name": "Lobby",
+            "polygon_coords": [(0, 0), (12, 0), (12, 8), (0, 8)],
+            "ceiling_height": 3.0,
+        },
     ],
     "L1": [
-        {"room_id": "office", "name": "Office",
-         "polygon_coords": [(0,0), (10,0), (10,8), (0,8)],
-         "ceiling_height": 3.0},
+        {
+            "room_id": "office",
+            "name": "Office",
+            "polygon_coords": [(0, 0), (10, 0), (10, 8), (0, 8)],
+            "ceiling_height": 3.0,
+        },
     ],
 }
 

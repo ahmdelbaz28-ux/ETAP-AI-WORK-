@@ -53,6 +53,7 @@ USAGE
     print(result.content)
     print(result.source)  # "zenmux" or "aliyun-maas"
 """
+
 from __future__ import annotations
 
 import logging
@@ -134,25 +135,20 @@ class LLMService:
             model=os.environ.get("ZENMUX_MODEL", _DEFAULT_MODEL),
         )
         # Fallback provider (Alibaba Cloud MaaS — optional)
-        self._fallback_enabled = os.environ.get(
-            "LLM_FALLBACK_ENABLED", ""
-        ).lower() in ("1", "true", "yes", "on")
+        self._fallback_enabled = os.environ.get("LLM_FALLBACK_ENABLED", "").lower() in (
+            "1",
+            "true",
+            "yes",
+            "on",
+        )
         self._fallback = _ProviderConfig(
             name="aliyun-maas",
             api_key=os.environ.get("LLM_FALLBACK_API_KEY", ""),
-            base_url=os.environ.get(
-                "LLM_FALLBACK_BASE_URL", _FALLBACK_DEFAULT_BASE_URL
-            ),
-            model=os.environ.get(
-                "LLM_FALLBACK_MODEL", _FALLBACK_DEFAULT_MODEL
-            ),
+            base_url=os.environ.get("LLM_FALLBACK_BASE_URL", _FALLBACK_DEFAULT_BASE_URL),
+            model=os.environ.get("LLM_FALLBACK_MODEL", _FALLBACK_DEFAULT_MODEL),
         )
-        self._timeout: float = float(
-            os.environ.get("ZENMUX_REQUEST_TIMEOUT", _DEFAULT_TIMEOUT)
-        )
-        self._max_tokens: int = int(
-            os.environ.get("ZENMUX_MAX_TOKENS", _DEFAULT_MAX_TOKENS)
-        )
+        self._timeout: float = float(os.environ.get("ZENMUX_REQUEST_TIMEOUT", _DEFAULT_TIMEOUT))
+        self._max_tokens: int = int(os.environ.get("ZENMUX_MAX_TOKENS", _DEFAULT_MAX_TOKENS))
         # Cache of clients per provider name
         self._clients: dict[str, Any] = {}
         self._lock = threading.Lock()
@@ -162,9 +158,7 @@ class LLMService:
     @property
     def available(self) -> bool:
         """True if at least one provider is configured."""
-        return self._primary.available or (
-            self._fallback_enabled and self._fallback.available
-        )
+        return self._primary.available or (self._fallback_enabled and self._fallback.available)
 
     @property
     def base_url(self) -> str:
@@ -200,8 +194,7 @@ class LLMService:
             from openai import AsyncOpenAI
         except ImportError as exc:
             raise RuntimeError(
-                "The 'openai' package is not installed. "
-                "Install with: pip install openai"
+                "The 'openai' package is not installed. Install with: pip install openai"
             ) from exc
 
         with self._lock:
@@ -260,9 +253,7 @@ class LLMService:
         if not prompt or not prompt.strip():
             raise ValueError("prompt must be non-empty")
         if not self.available:
-            raise RuntimeError(
-                "LLM service not configured. Set ZENMUX_API_KEY to enable."
-            )
+            raise RuntimeError("LLM service not configured. Set ZENMUX_API_KEY to enable.")
 
         messages: list[dict[str, str]] = []
         if system:
@@ -280,8 +271,7 @@ class LLMService:
             except Exception as exc:
                 primary_error = exc
                 logger.warning(
-                    "Primary LLM provider '%s' failed: %s. "
-                    "Attempting fallback if enabled.",
+                    "Primary LLM provider '%s' failed: %s. Attempting fallback if enabled.",
                     self._primary.name,
                     type(exc).__name__,
                 )
@@ -299,9 +289,7 @@ class LLMService:
                 )
                 # Raise the fallback error (most recent), but log primary too
                 if primary_error:
-                    logger.error(
-                        "Primary provider error was: %s", primary_error
-                    )
+                    logger.error("Primary provider error was: %s", primary_error)
                 raise
 
         # No fallback available, raise primary error

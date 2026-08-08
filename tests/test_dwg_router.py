@@ -120,7 +120,9 @@ class TestFileValidation:
         )
         assert response.status_code == 400
         data = response.json()
-        assert "extension" in data.get("detail", "").lower() or "Unsupported" in data.get("detail", "")
+        assert "extension" in data.get("detail", "").lower() or "Unsupported" in data.get(
+            "detail", ""
+        )
 
     def test_valid_dxf_returns_success(self, client, valid_dxf_bytes):
         """Uploading a valid DXF should return 200 with room_count."""

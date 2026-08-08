@@ -463,12 +463,12 @@ except Exception as e:
 def _handle_subprocess_result(stdout: str, stderr: str) -> None:
     """Print the JSON result based on subprocess output."""
     if stdout.startswith("__RESULT_OK__"):
-        output = stdout[len("__RESULT_OK__"):]
+        output = stdout[len("__RESULT_OK__") :]
         if len(output) > MAX_OUTPUT_LENGTH:
             output = output[:MAX_OUTPUT_LENGTH] + "\n... [output truncated]"
         print(json.dumps({"success": True, "output": output, "error": None}))
     elif stdout.startswith("__RESULT_ERROR__"):
-        error_text = stdout[len("__RESULT_ERROR__"):]
+        error_text = stdout[len("__RESULT_ERROR__") :]
         if stderr:
             error_text += "\n" + stderr
         print(

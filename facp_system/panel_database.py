@@ -28,6 +28,7 @@ class FireAlarmPanel:
     alarm_current_amps: float
     power_supply_watts: int
 
+
 # Immutable manufacturer master FACP parameters
 NOTIFIER_PANELS = [
     FireAlarmPanel(
@@ -42,7 +43,7 @@ NOTIFIER_PANELS = [
         listings=["UL", "ULC"],
         standby_current_amps=0.200,
         alarm_current_amps=0.350,
-        power_supply_watts=144
+        power_supply_watts=144,
     ),
     FireAlarmPanel(
         model="NFS-640",
@@ -56,7 +57,7 @@ NOTIFIER_PANELS = [
         listings=["UL", "ULC"],
         standby_current_amps=0.250,
         alarm_current_amps=0.450,
-        power_supply_watts=144
+        power_supply_watts=144,
     ),
     FireAlarmPanel(
         model="NFS2-3030",
@@ -70,8 +71,8 @@ NOTIFIER_PANELS = [
         listings=["UL", "ULC", "FM"],
         standby_current_amps=0.350,
         alarm_current_amps=0.650,
-        power_supply_watts=288
-    )
+        power_supply_watts=288,
+    ),
 ]
 
 SIEMENS_PANELS = [
@@ -87,7 +88,7 @@ SIEMENS_PANELS = [
         listings=["UL", "FM", "FDNY"],
         standby_current_amps=0.120,
         alarm_current_amps=0.250,
-        power_supply_watts=170
+        power_supply_watts=170,
     ),
     FireAlarmPanel(
         model="FC922",
@@ -101,7 +102,7 @@ SIEMENS_PANELS = [
         listings=["UL", "FM", "FDNY"],
         standby_current_amps=0.180,
         alarm_current_amps=0.350,
-        power_supply_watts=170
+        power_supply_watts=170,
     ),
     FireAlarmPanel(
         model="FC924",
@@ -115,8 +116,8 @@ SIEMENS_PANELS = [
         listings=["UL", "FM", "FDNY"],
         standby_current_amps=0.220,
         alarm_current_amps=0.450,
-        power_supply_watts=300
-    )
+        power_supply_watts=300,
+    ),
 ]
 
 SIMPLEX_PANELS = [
@@ -132,7 +133,7 @@ SIMPLEX_PANELS = [
         listings=["UL", "FM", "FDNY"],
         standby_current_amps=0.450,
         alarm_current_amps=0.850,
-        power_supply_watts=360
+        power_supply_watts=360,
     )
 ]
 

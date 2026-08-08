@@ -78,6 +78,13 @@ class ShortCircuitResult:
     ic: complex = complex(
         0, 0
     )  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
+    i_positive: complex = complex(0, 0)  # noqa: S116 — standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
+    i_negative: complex = complex(0, 0)  # noqa: S116 — standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
+    i_zero: complex = complex(0, 0)  # noqa: S116 — standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
+    ia: complex = complex(0, 0)  # noqa: S116 — standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
+    ib: complex = complex(0, 0)  # noqa: S116 — standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
+    ic: complex = complex(0, 0)  # noqa: S116 — standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
+
 
 
 # Default R/X ratio when the bus impedance is purely resistive (imaginary
@@ -155,6 +162,10 @@ class IEC60909Engine:
             self.Zbus_zero = np.linalg.inv(
                 self.Ybus_zero
             )  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
+            self.Zbus_pos = np.linalg.inv(self.Ybus_pos)  # noqa: S116 — standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
+            self.Zbus_neg = np.linalg.inv(self.Ybus_neg)  # noqa: S116 — standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
+            self.Zbus_zero = np.linalg.inv(self.Ybus_zero)  # noqa: S116 — standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
+
         except np.linalg.LinAlgError:
             self.Zbus_zero = np.linalg.pinv(self.Ybus_zero)
 
@@ -317,9 +328,7 @@ class IEC60909Engine:
             c_factor = self._get_voltage_factor(bus_kv, maximum)
 
         # Pre-fault voltage (per-unit)
-        v_pre = (
-            c_factor * 1.0
-        )  # NOSONAR
+        v_pre = c_factor * 1.0  # NOSONAR
 
         # Positive sequence driving point impedance
         Z1 = self.Zbus_pos[bus_index, bus_index]

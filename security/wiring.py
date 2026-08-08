@@ -14,6 +14,7 @@ Security Middleware Wiring
 Branch: fix/security-wiring-rasp-abac
 Refs: PRODUCTION_PLAN/01_SELF_CRITICISM.md §3.6 #23-24
 """
+
 from __future__ import annotations
 
 import json
@@ -71,6 +72,7 @@ if _HAS_STARLETTE:
             if engine is None:
                 try:
                     from security.rasp import create_default_rasp_engine
+
                     engine = create_default_rasp_engine()
                 except ImportError as exc:
                     logger.error("Failed to import RASPEngine: %s", exc)
@@ -112,9 +114,7 @@ if _HAS_STARLETTE:
                         try:
                             inspect_data["body"] = json.loads(body_bytes)
                         except (json.JSONDecodeError, UnicodeDecodeError):
-                            inspect_data["body"] = body_bytes.decode(
-                                "utf-8", errors="replace"
-                            )
+                            inspect_data["body"] = body_bytes.decode("utf-8", errors="replace")
                 except Exception:
                     pass  # body already consumed or unavailable
 
@@ -125,8 +125,7 @@ if _HAS_STARLETTE:
             for result in results:
                 if result.action.value == "block":
                     logger.warning(
-                        "RASP BLOCKED request: rule=%s severity=%s "
-                        "field=%s path=%s method=%s",
+                        "RASP BLOCKED request: rule=%s severity=%s field=%s path=%s method=%s",
                         result.rule_name,
                         result.severity.value,
                         result.matched_field,
@@ -148,7 +147,9 @@ if _HAS_STARLETTE:
                 if result.action.value == "log":
                     logger.info(
                         "RASP LOGGED: rule=%s field=%s path=%s",
-                        result.rule_name, result.matched_field, path,
+                        result.rule_name,
+                        result.matched_field,
+                        path,
                     )
 
             return await call_next(request)
@@ -196,9 +197,7 @@ def install_security_middleware(app: Any) -> None:
         except ImportError as exc:
             logger.error("❌ ABACMiddleware not available: %s", exc)
             if os.environ.get("ENVIRONMENT") == "production":
-                raise RuntimeError(
-                    f"ABAC middleware not available in production: {exc}"
-                ) from exc
+                raise RuntimeError(f"ABAC middleware not available in production: {exc}") from exc
         except Exception as exc:
             logger.error("❌ Failed to register ABACMiddleware: %s", exc)
             if os.environ.get("ENVIRONMENT") == "production":
@@ -238,9 +237,7 @@ def verify_security_wiring(app: Any) -> dict[str, Any]:
     return {
         "RASPMiddleware": "RASPMiddleware" in middleware_names,
         "ABACMiddleware": "ABACMiddleware" in middleware_names,
-        "BodySizeLimitMiddleware": any(
-            "BodySize" in name for name in middleware_names
-        ),
+        "BodySizeLimitMiddleware": any("BodySize" in name for name in middleware_names),
         "CORSMiddleware": "CORSMiddleware" in middleware_names,
         "total_count": len(middleware_names),
         "all_names": middleware_names,

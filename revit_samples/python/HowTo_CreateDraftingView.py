@@ -21,11 +21,22 @@ from Autodesk.Revit.DB import (
 
 uidoc = __revit__.ActiveUIDocument  # noqa: F821
 doc = __revit__.ActiveUIDocument.Document  # noqa: F821
+# pyRevit runtime global — injected by the pyRevit loader at runtime.
+# Fallback to None for static analysis / direct execution outside pyRevit.
+try:
+    __revit__  # type: ignore[used-before-def]  # noqa: F821
+except NameError:
+    __revit__ = None  # type: ignore[assignment]
+uidoc = __revit__.ActiveUIDocument
+doc = __revit__.ActiveUIDocument.Document
 
-t = Transaction(doc, 'Create Drafting View')
+
+t = Transaction(doc, "Create Drafting View")
 t.Start()
 
 """Create a Drafting View"""
+
+
 def get_drafting_type_id():
     """Selects First available ViewType that Matches Drafting Type."""
     viewfamily_types = FilteredElementCollector(doc).OfClass(ViewFamilyType)
@@ -33,6 +44,7 @@ def get_drafting_type_id():
         if i.ViewFamily == ViewFamily.Drafting:
             return i.Id
     return None
+
 
 drafting_type_id = get_drafting_type_id()
 drafting_view = ViewDrafting.Create(doc, drafting_type_id)

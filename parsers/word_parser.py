@@ -24,6 +24,7 @@ logger = logging.getLogger("fireai.word_parser")
 # DATA CLASS
 # ═══════════════════════════════════════════════════════
 
+
 @dataclass
 class WordParseResult:
     """Result of parsing Word document."""
@@ -44,6 +45,7 @@ class WordParseResult:
 # WORD PARSER
 # ═══════════════════════════════════════════════════════
 
+
 class WordParser:
     """
     Parses Word documents for project specifications.
@@ -59,28 +61,28 @@ class WordParser:
 
     # Patterns for extraction
     FLOOR_PATTERNS = [
-        r'floor\s*(\d+)',
-        r'level\s*(\d+)',
-        r'Floor\s*(\d+)',
-        r'Level\s*(\d+)',
-        r'(\d+)st\s*floor',
-        r'(\d+)nd\s*floor',
-        r'(\d+)rd\s*floor',
-        r'(\d+)th\s*floor',
+        r"floor\s*(\d+)",
+        r"level\s*(\d+)",
+        r"Floor\s*(\d+)",
+        r"Level\s*(\d+)",
+        r"(\d+)st\s*floor",
+        r"(\d+)nd\s*floor",
+        r"(\d+)rd\s*floor",
+        r"(\d+)th\s*floor",
     ]
 
     BUILDING_PATTERNS = [
-        r'building\s*([A-Z])',
-        r'tower\s*([A-Z])',
-        r'block\s*([A-Z])',
-        r'([A-Z])\s*building',
+        r"building\s*([A-Z])",
+        r"tower\s*([A-Z])",
+        r"block\s*([A-Z])",
+        r"([A-Z])\s*building",
     ]
 
     CEILING_PATTERNS = [
-        r'ceiling\s*height[:\s]*(\d+\.?\d*)\s*m',
-        r'height[:\s]*(\d+\.?\d*)\s*m',
-        r'flat\s*ceiling[:\s]*(\d+\.?\d*)',
-        r'suspended\s*ceiling[:\s]*(\d+\.?\d*)',
+        r"ceiling\s*height[:\s]*(\d+\.?\d*)\s*m",
+        r"height[:\s]*(\d+\.?\d*)\s*m",
+        r"flat\s*ceiling[:\s]*(\d+\.?\d*)",
+        r"suspended\s*ceiling[:\s]*(\d+\.?\d*)",
     ]
 
     def __init__(self):
@@ -107,8 +109,11 @@ class WordParser:
             validate_file_size,
             validate_input_path,
         )
+
         _ALLOWED_EXTENSIONS = frozenset({".docx", ".doc"})
-        _MAX_FILE_SIZE_BYTES = int(os.getenv("FIREAI_WORD_MAX_FILE_SIZE_BYTES", 25 * 1024 * 1024))  # 25 MB default
+        _MAX_FILE_SIZE_BYTES = int(
+            os.getenv("FIREAI_WORD_MAX_FILE_SIZE_BYTES", 25 * 1024 * 1024)
+        )  # 25 MB default
         try:
             safe_path = validate_input_path(
                 file_path,
@@ -134,7 +139,7 @@ class WordParser:
             doc = Document(str(safe_path))
 
             # Extract from all paragraphs
-            all_text = '\n'.join(p.text for p in doc.paragraphs)
+            all_text = "\n".join(p.text for p in doc.paragraphs)
 
             # Extract title (first heading)
             result.title = self._extract_title(doc.paragraphs)
@@ -165,7 +170,7 @@ class WordParser:
     def _extract_title(self, paragraphs) -> str:
         """Extract title from first heading."""
         for para in paragraphs:
-            if para.style.name.startswith('Heading'):
+            if para.style.name.startswith("Heading"):
                 return para.text.strip()
         return ""
 
@@ -173,9 +178,9 @@ class WordParser:
         """Extract project/building name."""
         # Look for project patterns
         patterns = [
-            r'Project[:\s]*([^\n]+)',
-            r'Building[:\s]*([^\n]+)',
-            r'Tower\s*([A-Z])',
+            r"Project[:\s]*([^\n]+)",
+            r"Building[:\s]*([^\n]+)",
+            r"Tower\s*([A-Z])",
         ]
 
         for pattern in patterns:
@@ -210,10 +215,12 @@ class WordParser:
             for match in matches:
                 try:
                     height = float(match.group(1))
-                    specs.append({
-                        'type': 'flat',
-                        'height_m': height,
-                    })
+                    specs.append(
+                        {
+                            "type": "flat",
+                            "height_m": height,
+                        }
+                    )
                 except (ValueError, IndexError):
                     continue
 
@@ -227,14 +234,25 @@ class WordParser:
             text = para.text.strip()
 
             # Check for bullet points
-            if text.startswith('•') or text.startswith('- ') or text.startswith('* '):  # NOSONAR — S8513: trailing comma acceptable in this multi-line collection
-                clean_text = text.lstrip('•-* ').strip()
+            if (
+                text.startswith("•") or text.startswith("- ") or text.startswith("* ")
+            ):  # NOSONAR — S8513: trailing comma acceptable in this multi-line collection
+                clean_text = text.lstrip("•-* ").strip()
 
                 # Filter relevant requirements
-                if any(kw in clean_text.lower() for kw in [
-                    'detector', 'alarm', 'fire', 'sprinkler',
-                    'system', 'zone', 'coverage', 'code'
-                ]):
+                if any(
+                    kw in clean_text.lower()
+                    for kw in [
+                        "detector",
+                        "alarm",
+                        "fire",
+                        "sprinkler",
+                        "system",
+                        "zone",
+                        "coverage",
+                        "code",
+                    ]
+                ):
                     requirements.append(clean_text)
 
         return requirements
@@ -248,7 +266,7 @@ class WordParser:
             text = para.text.strip()
 
             # Check for notes section
-            if 'note' in text.lower() and len(text) < 20:
+            if "note" in text.lower() and len(text) < 20:
                 in_notes = True
                 continue
 
@@ -261,6 +279,7 @@ class WordParser:
 # ═══════════════════════════════════════════════════════
 # CONVENIENCE FUNCTION
 # ═══════════════════════════════════════════════════════
+
 
 def parse_word(file_path: str) -> WordParseResult:
     """Quick parse Word file."""

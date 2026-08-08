@@ -149,7 +149,9 @@ BLOCKED_EXTENSIONS: set[str] = {
 
 # V-27: Maximum upload size (100 MB by default)
 # V-63 FIX: Validate R2_MAX_UPLOAD_SIZE_MB env var — clamp to 1-1024 MB
-MAX_UPLOAD_SIZE_BYTES: int = max(1, min(int(os.getenv("R2_MAX_UPLOAD_SIZE_MB", "100")), 1024)) * 1024 * 1024
+MAX_UPLOAD_SIZE_BYTES: int = (
+    max(1, min(int(os.getenv("R2_MAX_UPLOAD_SIZE_MB", "100")), 1024)) * 1024 * 1024
+)
 
 
 # SECURITY AUDIT 2026-07-25 — Fix S-10: Path traversal validation for R2 keys.
@@ -312,7 +314,7 @@ async def upload(
     if len(data) > MAX_UPLOAD_SIZE_BYTES:
         raise ValueError(
             f"File too large: {len(data)} bytes exceeds maximum "
-            f"of {MAX_UPLOAD_SIZE_BYTES} bytes ({MAX_UPLOAD_SIZE_BYTES // (1024*1024)} MB)"
+            f"of {MAX_UPLOAD_SIZE_BYTES} bytes ({MAX_UPLOAD_SIZE_BYTES // (1024 * 1024)} MB)"
         )
 
     client = _get_client()

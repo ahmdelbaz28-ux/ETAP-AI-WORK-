@@ -16200,7 +16200,12 @@ confirmation.
 **Root Cause:** In V141.2, I created this file and logged `trace_id` and
 `project_id` at DEBUG level:
 ```python
-logger.debug("Langfuse CallbackHandler created (trace_name=%s, trace_id=%s, project_id=%s)", name, effective_trace_id, project_id)
+logger.debug(
+    "Langfuse CallbackHandler created (trace_name=%s, trace_id=%s, project_id=%s)",
+    name,
+    effective_trace_id,
+    project_id,
+)
 ```
 CodeQL correctly identified that `project_id` can contain sensitive
 project identifiers. Logging it (even at DEBUG) leaks data to anyone
@@ -16219,7 +16224,7 @@ that bandit misses. Future cycles must run CodeQL locally before push.
 **Rule:** `py/clear-text-logging-sensitive-data` (error)
 **Root Cause:** In V141.2, I logged `workflow_id`:
 ```python
-logger.info("Langfuse tracing ACTIVE for workflow %s", initial_state.get('workflow_id', '?'))
+logger.info("Langfuse tracing ACTIVE for workflow %s", initial_state.get("workflow_id", "?"))
 ```
 CodeQL flagged `workflow_id` as potentially containing project identifiers.
 **Fix:** Removed `workflow_id` from the log:

@@ -49,9 +49,9 @@ class TestRASPDefaultRules:
         ]
         for rule in _DEFAULT_RULES:
             if rule.name in block_required:
-                assert (
-                    rule.action == RASPAction.BLOCK
-                ), f"Rule '{rule.name}' must be BLOCK, got {rule.action}"
+                assert rule.action == RASPAction.BLOCK, (
+                    f"Rule '{rule.name}' must be BLOCK, got {rule.action}"
+                )
 
                 assert rule.action == RASPAction.BLOCK, (
                     f"Rule '{rule.name}' must be BLOCK, got {rule.action}"
@@ -60,9 +60,9 @@ class TestRASPDefaultRules:
     def test_nosql_injection_blocks_not_logs(self):
         """CRITICAL: NoSQL injection must BLOCK, not LOG."""
         rule = next(r for r in _DEFAULT_RULES if r.name == "nosql_injection")
-        assert (
-            rule.action == RASPAction.BLOCK
-        ), f"nosql_injection action must be BLOCK, got {rule.action}"
+        assert rule.action == RASPAction.BLOCK, (
+            f"nosql_injection action must be BLOCK, got {rule.action}"
+        )
         assert rule.severity in (
             RASPSeverity.HIGH,
             RASPSeverity.CRITICAL,
@@ -78,12 +78,12 @@ class TestRASPDefaultRules:
     def test_ssrf_blocks_not_logs(self):
         """CRITICAL: SSRF must BLOCK, not LOG."""
         rule = next(r for r in _DEFAULT_RULES if r.name == "ssrf_basic")
-        assert (
-            rule.action == RASPAction.BLOCK
-        ), f"ssrf_basic action must be BLOCK, got {rule.action}"
-        assert (
-            rule.severity == RASPSeverity.CRITICAL
-        ), f"ssrf_basic severity must be CRITICAL, got {rule.severity}"
+        assert rule.action == RASPAction.BLOCK, (
+            f"ssrf_basic action must be BLOCK, got {rule.action}"
+        )
+        assert rule.severity == RASPSeverity.CRITICAL, (
+            f"ssrf_basic severity must be CRITICAL, got {rule.severity}"
+        )
 
         assert rule.action == RASPAction.BLOCK, (
             f"ssrf_basic action must be BLOCK, got {rule.action}"

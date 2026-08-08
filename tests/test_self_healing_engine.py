@@ -75,6 +75,7 @@ class TestQomnFireSelfHealing(unittest.TestCase):
     def test_tier_1_index_error_recovery(self):
         """Verify IndexError falls back to the last element of the input list."""
         tones = ["TONE_A", "TONE_B", "TONE_C"]
+
         # Wrap local helper
         @self_healing(safe_minimum=0.0, default_value="TONE_A", force_mock_ollama=True)
         def get_index_test(arr, idx):
@@ -123,18 +124,14 @@ class TestQomnFireSelfHealing(unittest.TestCase):
         # REMOVED as a CRITICAL security vulnerability (forged audit signatures).
         # The test now reads the actual key from the logger instance.
         secret_key = global_audit_logger.secret_key
-        self.assertIsNotNone(secret_key,
-                             "global_audit_logger.secret_key must not be None")
-        self.assertNotEqual(secret_key, b"QOMN_SECRET_KEY",
-                            "V127 SAFETY: hardcoded default key must NEVER be used")
-        payload_bytes = json.dumps(
-            logged_entry["payload"], sort_keys=True, default=str
-        ).encode("utf-8")
-        expected_sig = hmac.new(
-            secret_key,
-            payload_bytes,
-            hashlib.sha256
-        ).hexdigest()
+        self.assertIsNotNone(secret_key, "global_audit_logger.secret_key must not be None")
+        self.assertNotEqual(
+            secret_key, b"QOMN_SECRET_KEY", "V127 SAFETY: hardcoded default key must NEVER be used"
+        )
+        payload_bytes = json.dumps(logged_entry["payload"], sort_keys=True, default=str).encode(
+            "utf-8"
+        )
+        expected_sig = hmac.new(secret_key, payload_bytes, hashlib.sha256).hexdigest()
 
         self.assertEqual(logged_entry["signature"], expected_sig)
 
@@ -143,11 +140,14 @@ class TestQomnFireSelfHealing(unittest.TestCase):
 # V2.0 MERGED FEATURE TESTS
 # =====================================================================
 
+
 class TestWeightedCircuitBreaker(unittest.TestCase):
     """Tests for the WeightedCircuitBreaker with severity-based scoring."""
 
     def setUp(self):
-        self.cb = WeightedCircuitBreaker(threshold=10.0, window_seconds=60.0, cooldown_seconds=1.0, half_open_max=3)
+        self.cb = WeightedCircuitBreaker(
+            threshold=10.0, window_seconds=60.0, cooldown_seconds=1.0, half_open_max=3
+        )
         # Reset the global CB to avoid interference
         global_circuit_breaker.reset()
 
@@ -159,8 +159,8 @@ class TestWeightedCircuitBreaker(unittest.TestCase):
         result2 = self.cb.register_healing_event("ZeroDivisionError")  # 10.0
         result3 = self.cb.register_healing_event("ZeroDivisionError")  # 15.0
 
-        self.assertTrue(result1)   # Still CLOSED (5.0 > 10.0 is False)
-        self.assertTrue(result2)   # Still CLOSED (10.0 > 10.0 is False)
+        self.assertTrue(result1)  # Still CLOSED (5.0 > 10.0 is False)
+        self.assertTrue(result2)  # Still CLOSED (10.0 > 10.0 is False)
         self.assertFalse(result3)  # TRIPPED (15.0 > 10.0)
 
     def test_weighted_scoring_transient_trips_slower(self):
@@ -170,7 +170,7 @@ class TestWeightedCircuitBreaker(unittest.TestCase):
         result = True  # initialize so the loop variable is defined for the assertion
         for i in range(10):
             result = self.cb.register_healing_event("IndexError")
-            self.assertTrue(result, f"Should be CLOSED at event {i+1}")
+            self.assertTrue(result, f"Should be CLOSED at event {i + 1}")
 
         result11 = self.cb.register_healing_event("IndexError")  # 11.0
         self.assertFalse(result11)  # TRIPPED (11.0 > 10.0)
@@ -212,8 +212,7 @@ class TestHalfOpenRecovery(unittest.TestCase):
 
     def setUp(self):
         self.cb = WeightedCircuitBreaker(
-            threshold=5.0, window_seconds=60.0,
-            cooldown_seconds=0.5, half_open_max=2
+            threshold=5.0, window_seconds=60.0, cooldown_seconds=0.5, half_open_max=2
         )
         global_circuit_breaker.reset()
 
@@ -345,7 +344,9 @@ class TestAsyncAuditLoggerRotation(unittest.TestCase):
         # Original file should exist (possibly rotated)
         # At least one backup should exist
         files = os.listdir(self.temp_dir)
-        self.assertTrue(len(files) >= 1, f"Expected log files, got: {files}")  # NOSONAR - python:S5906
+        self.assertTrue(
+            len(files) >= 1, f"Expected log files, got: {files}"
+        )  # NOSONAR - python:S5906
 
     def test_backward_compatible_log_event(self):
         """Verify log_event still works exactly like the old AuditLogger."""
@@ -519,9 +520,15 @@ class TestConfig(unittest.TestCase):
         """Verify Config has sensible defaults."""
         # Clean environment to test defaults
         env_vars = [
-            "QOMN_CB_THRESHOLD", "QOMN_CB_WINDOW", "QOMN_CB_COOLDOWN",
-            "QOMN_CB_HALF_OPEN_MAX", "QOMN_OLLAMA_TIMEOUT", "QOMN_OLLAMA_MAX_RPS",
-            "QOMN_AUDIT_MAX_BYTES", "QOMN_AUDIT_BACKUP_COUNT", "QOMN_AUDIT_FLUSH_INTERVAL",
+            "QOMN_CB_THRESHOLD",
+            "QOMN_CB_WINDOW",
+            "QOMN_CB_COOLDOWN",
+            "QOMN_CB_HALF_OPEN_MAX",
+            "QOMN_OLLAMA_TIMEOUT",
+            "QOMN_OLLAMA_MAX_RPS",
+            "QOMN_AUDIT_MAX_BYTES",
+            "QOMN_AUDIT_BACKUP_COUNT",
+            "QOMN_AUDIT_FLUSH_INTERVAL",
         ]
         saved = {}
         for var in env_vars:
@@ -662,10 +669,11 @@ class TestV66VulnerabilityFixes(unittest.TestCase):
     # V67: NaN/Inf guard in Tier 3
     def test_v67_nan_inf_guard_tier3(self):
         """V67: NaN/Inf default_value must be rejected in Tier 3 fallback."""
+
         @self_healing(
             safe_minimum=7.0,
-            default_value=float('inf'),
-            physics_validator=validate_sprinkler_pressure
+            default_value=float("inf"),
+            physics_validator=validate_sprinkler_pressure,
         )
         def bad_pressure_calc():
             raise ZeroDivisionError("test")
@@ -689,9 +697,8 @@ class TestV66VulnerabilityFixes(unittest.TestCase):
     # V70: log_event catches all exceptions
     def test_v70_log_event_catches_all_exceptions(self):
         """V70: log_event must not crash on non-OSError exceptions."""
-        logger = AsyncAuditLogger(
-            filepath=os.path.join(tempfile.gettempdir(), "test_v70.jsonl")
-        )
+        logger = AsyncAuditLogger(filepath=os.path.join(tempfile.gettempdir(), "test_v70.jsonl"))
+
         # Create an event with a non-serializable object that would
         # cause TypeError in json.dumps
         class BadObj:
@@ -727,8 +734,10 @@ class TestV66VulnerabilityFixes(unittest.TestCase):
     # V72: SafetyCriticalFailure is re-raised
     def test_v72_safety_critical_failure_reraised(self):
         """V72: SafetyCriticalFailure must be re-raised, not swallowed."""
-        @self_healing(safe_minimum=7.0, default_value=7.0,
-                       physics_validator=validate_sprinkler_pressure)
+
+        @self_healing(
+            safe_minimum=7.0, default_value=7.0, physics_validator=validate_sprinkler_pressure
+        )
         def critical_func():
             raise SafetyCriticalFailure("All tiers exhausted")
 
@@ -759,10 +768,11 @@ class TestV66VulnerabilityFixes(unittest.TestCase):
     # V75: KeyError NaN/Inf guard
     def test_v75_keyerror_nan_guard(self):
         """V75: KeyError path must reject NaN/Inf default_value."""
+
         @self_healing(
             safe_minimum=7.0,
-            default_value=float('nan'),
-            physics_validator=validate_sprinkler_pressure
+            default_value=float("nan"),
+            physics_validator=validate_sprinkler_pressure,
         )
         def key_error_func():
             d = {}
@@ -802,6 +812,7 @@ class TestV66VulnerabilityFixes(unittest.TestCase):
 #   FIX 3 (HIGH):     Audit hash chain with rotation integrity
 # =====================================================================
 
+
 class TestV76NominalPhysicsValidation(unittest.TestCase):
     """
     V76 FIX 1 (CRITICAL): Functions returning physically invalid values
@@ -824,13 +835,12 @@ class TestV76NominalPhysicsValidation(unittest.TestCase):
 
     def test_v76_fix1_nan_nominal_rejected(self):
         """V76 FIX 1: A function returning NaN must NOT be reported as NOMINAL."""
+
         @self_healing(
-            safe_minimum=7.0,
-            default_value=7.0,
-            physics_validator=validate_sprinkler_pressure
+            safe_minimum=7.0, default_value=7.0, physics_validator=validate_sprinkler_pressure
         )
         def returns_nan():
-            return float('nan')
+            return float("nan")
 
         result = returns_nan()
         self.assertNotEqual(result.status, SystemStatus.NOMINAL)
@@ -838,10 +848,9 @@ class TestV76NominalPhysicsValidation(unittest.TestCase):
 
     def test_v76_fix1_negative_pressure_nominal_rejected(self):
         """V76 FIX 1: Negative pressure in nominal path must be caught and healed."""
+
         @self_healing(
-            safe_minimum=7.0,
-            default_value=7.0,
-            physics_validator=validate_sprinkler_pressure
+            safe_minimum=7.0, default_value=7.0, physics_validator=validate_sprinkler_pressure
         )
         def returns_negative_pressure():
             return -5.0  # Physically impossible pressure
@@ -859,10 +868,9 @@ class TestV76NominalPhysicsValidation(unittest.TestCase):
         stored as 'Last Known Good' and recovered on MemoryError —
         poisoning the fallback with a physically impossible value.
         """
+
         @self_healing(
-            safe_minimum=7.0,
-            default_value=7.0,
-            physics_validator=validate_sprinkler_pressure
+            safe_minimum=7.0, default_value=7.0, physics_validator=validate_sprinkler_pressure
         )
         def returns_negative_pressure():
             return -10.0
@@ -918,6 +926,7 @@ class TestV76NominalPhysicsValidation(unittest.TestCase):
         — dangerous in a fire alarm system. default_value should be tried
         first if it passes the physics validator.
         """
+
         def validate_audio_tone(val):
             """Audio tone must be a non-empty string."""
             return isinstance(val, str) and len(val) > 0
@@ -943,6 +952,7 @@ class TestV76NominalPhysicsValidation(unittest.TestCase):
         passed. The safest choice is safe_minimum — the most conservative
         physically valid value.
         """
+
         def crashing_validator(val):
             raise RuntimeError("Validator crashed!")
 
@@ -960,13 +970,12 @@ class TestV76NominalPhysicsValidation(unittest.TestCase):
 
     def test_v76_fix1_inf_nominal_rejected(self):
         """V76 FIX 1: A function returning float('inf') must NOT be NOMINAL."""
+
         @self_healing(
-            safe_minimum=7.0,
-            default_value=7.0,
-            physics_validator=validate_sprinkler_pressure
+            safe_minimum=7.0, default_value=7.0, physics_validator=validate_sprinkler_pressure
         )
         def returns_inf():
-            return float('inf')
+            return float("inf")
 
         result = returns_inf()
         self.assertNotEqual(result.status, SystemStatus.NOMINAL)
@@ -1027,7 +1036,7 @@ class TestV76ConfigNaNInfGuard(unittest.TestCase):
         guard prevents NaN from reaching the breaker.
         """
         # Direct test: NaN threshold means breaker cannot trip via comparison
-        cb = WeightedCircuitBreaker(threshold=float('nan'))
+        cb = WeightedCircuitBreaker(threshold=float("nan"))
         cb.register_healing_event("ZeroDivisionError")
         # NaN comparison: current_weight > NaN → False → breaker stays CLOSED
         # This proves the vulnerability — if NaN reaches the breaker, it breaks
@@ -1070,7 +1079,7 @@ class TestV76ConfigNaNInfGuard(unittest.TestCase):
                     actual = getattr(config, attr_name)
                     self.assertTrue(
                         math.isfinite(actual),
-                        f"{env_var}={bad_val} produced non-finite value {actual}"
+                        f"{env_var}={bad_val} produced non-finite value {actual}",
                     )
                 finally:
                     del os.environ[env_var]
@@ -1107,9 +1116,7 @@ class TestV76AuditHashChain(unittest.TestCase):
             entry = json.loads(f.readline())
 
         self.assertEqual(
-            entry["payload"]["previous_hash"],
-            "0" * 64,
-            "First entry must have genesis hash"
+            entry["payload"]["previous_hash"], "0" * 64, "First entry must have genesis hash"
         )
 
     def test_v76_fix3_chain_linking(self):
@@ -1132,7 +1139,7 @@ class TestV76AuditHashChain(unittest.TestCase):
             self.assertEqual(
                 entry["payload"]["previous_hash"],
                 prev_hash,
-                "Chain link broken: previous_hash mismatch"
+                "Chain link broken: previous_hash mismatch",
             )
             # Compute expected hash for next entry
             prev_hash = hashlib.sha256(line.strip().encode("utf-8")).hexdigest()
@@ -1159,7 +1166,9 @@ class TestV76AuditHashChain(unittest.TestCase):
         # Verify chain detects the break
         report = logger.verify_chain(filepath=tampered_path)
         self.assertFalse(report["chain_valid"], "Chain should be INVALID after deletion")
-        self.assertTrue(len(report["break_points"]) > 0, "Break points must be reported")  # NOSONAR - python:S5906
+        self.assertTrue(
+            len(report["break_points"]) > 0, "Break points must be reported"
+        )  # NOSONAR - python:S5906
 
     def test_v76_fix3_valid_chain_passes_verification(self):
         """V76 FIX 3: Intact chain must pass verify_chain()."""
@@ -1196,9 +1205,7 @@ class TestV76AuditHashChain(unittest.TestCase):
         # have advanced from the events written
         stats = logger.stats()
         self.assertNotEqual(
-            stats["chain_hash"],
-            "0" * 64,
-            "Chain hash must have advanced from events"
+            stats["chain_hash"], "0" * 64, "Chain hash must have advanced from events"
         )
 
         # Verify cross-file chain integrity:
@@ -1211,9 +1218,7 @@ class TestV76AuditHashChain(unittest.TestCase):
                 backup_lines = f.readlines()
             if backup_lines:
                 last_backup_line = backup_lines[-1].strip()
-                expected_prev_hash = hashlib.sha256(
-                    last_backup_line.encode("utf-8")
-                ).hexdigest()
+                expected_prev_hash = hashlib.sha256(last_backup_line.encode("utf-8")).hexdigest()
 
                 # Read the first entry of the current file
                 with open(self.log_path) as f:
@@ -1226,7 +1231,7 @@ class TestV76AuditHashChain(unittest.TestCase):
                     current_first_entry["payload"]["previous_hash"],
                     expected_prev_hash,
                     "Chain must carry forward across rotation: "
-                    "new file's first entry must reference rotated file's last entry"
+                    "new file's first entry must reference rotated file's last entry",
                 )
 
         # Verify the current file's INTERNAL chain is intact
@@ -1236,19 +1241,13 @@ class TestV76AuditHashChain(unittest.TestCase):
                 lines = f.readlines()
             if len(lines) > 1:
                 # Verify chain from 2nd entry onward
-                prev_hash = hashlib.sha256(
-                    lines[0].strip().encode("utf-8")
-                ).hexdigest()
+                prev_hash = hashlib.sha256(lines[0].strip().encode("utf-8")).hexdigest()
                 for i, line in enumerate(lines[1:], 2):
                     entry = json.loads(line.strip())
                     self.assertEqual(
-                        entry["payload"]["previous_hash"],
-                        prev_hash,
-                        f"Chain broken at line {i}"
+                        entry["payload"]["previous_hash"], prev_hash, f"Chain broken at line {i}"
                     )
-                    prev_hash = hashlib.sha256(
-                        line.strip().encode("utf-8")
-                    ).hexdigest()
+                    prev_hash = hashlib.sha256(line.strip().encode("utf-8")).hexdigest()
 
     def test_v76_fix3_stats_includes_chain_hash(self):
         """V76 FIX 3: stats() must include current chain tip hash."""
@@ -1257,8 +1256,9 @@ class TestV76AuditHashChain(unittest.TestCase):
 
         stats = logger.stats()
         self.assertIn("chain_hash", stats)
-        self.assertNotEqual(stats["chain_hash"], "0" * 64,
-                           "Chain hash must advance after logging events")
+        self.assertNotEqual(
+            stats["chain_hash"], "0" * 64, "Chain hash must advance after logging events"
+        )
 
     def test_v76_fix3_previous_hash_in_payload(self):
         """V76 FIX 3: Each audit entry must include previous_hash in payload."""
@@ -1268,8 +1268,9 @@ class TestV76AuditHashChain(unittest.TestCase):
         with open(self.log_path) as f:
             entry = json.loads(f.readline())
 
-        self.assertIn("previous_hash", entry["payload"],
-                      "Audit entry must include previous_hash field")
+        self.assertIn(
+            "previous_hash", entry["payload"], "Audit entry must include previous_hash field"
+        )
 
     def test_v76_fix3_verify_chain_missing_file(self):
         """V76 FIX 3: verify_chain() must handle missing file gracefully."""
@@ -1279,7 +1280,7 @@ class TestV76AuditHashChain(unittest.TestCase):
         self.assertIn("error", report)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Run the demonstration run first
     demonstrate_and_verify_all_tiers()
     # Execute the self-verifying test suite
@@ -1308,6 +1309,7 @@ class TestV127HmacKeySecurity(unittest.TestCase):
         """
         import os
         import sys
+
         # Ensure pytest is in sys.modules (it is, since we're running under pytest)
         self.assertIn("pytest", sys.modules, "Test precondition: pytest must be in sys.modules")
 
@@ -1318,8 +1320,12 @@ class TestV127HmacKeySecurity(unittest.TestCase):
             os.environ["FIREAI_ENV"] = "production"
             os.environ.pop("QOMN_AUDIT_SECRET_KEY", None)
 
-            with pytest.raises(Exception) as ctx:  # NOSONAR — S5778: re-raise inside except is intentional (context-specific)  # NOSONAR — S5958: parameter name documents intent at call site
-                AsyncAuditLogger(filepath=os.path.join(tempfile.gettempdir(), "v127_security_test.jsonl"))
+            with (
+                pytest.raises(Exception) as ctx
+            ):  # NOSONAR — S5778: re-raise inside except is intentional (context-specific)  # NOSONAR — S5958: parameter name documents intent at call site
+                AsyncAuditLogger(
+                    filepath=os.path.join(tempfile.gettempdir(), "v127_security_test.jsonl")
+                )
             self.assertIn("QOMN_AUDIT_SECRET_KEY", str(ctx.value))
         finally:
             if saved_env is not None:
@@ -1332,16 +1338,23 @@ class TestV127HmacKeySecurity(unittest.TestCase):
     def test_dev_mode_generates_random_key_not_hardcoded(self):
         """In dev mode, the fallback key must be RANDOM, not b"QOMN_SECRET_KEY"."""
         import os
+
         saved_env = os.environ.get("FIREAI_ENV")
         saved_key = os.environ.get("QOMN_AUDIT_SECRET_KEY")
         try:
             os.environ["FIREAI_ENV"] = "development"
             os.environ.pop("QOMN_AUDIT_SECRET_KEY", None)
-            logger = AsyncAuditLogger(filepath=os.path.join(tempfile.gettempdir(), "v127_dev_test.jsonl"))
-            self.assertNotEqual(logger.secret_key, b"QOMN_SECRET_KEY",
-                                "V127 SAFETY: hardcoded default key must NEVER be used")
-            self.assertEqual(len(logger.secret_key), 32,
-                             "Random fallback must be 32 bytes (256 bits)")
+            logger = AsyncAuditLogger(
+                filepath=os.path.join(tempfile.gettempdir(), "v127_dev_test.jsonl")
+            )
+            self.assertNotEqual(
+                logger.secret_key,
+                b"QOMN_SECRET_KEY",
+                "V127 SAFETY: hardcoded default key must NEVER be used",
+            )
+            self.assertEqual(
+                len(logger.secret_key), 32, "Random fallback must be 32 bytes (256 bits)"
+            )
         finally:
             if saved_env is not None:
                 os.environ["FIREAI_ENV"] = saved_env
@@ -1362,12 +1375,15 @@ class TestV127HmacKeySecurity(unittest.TestCase):
     def test_env_var_secret_key_takes_precedence_in_production(self):
         """In production, QOMN_AUDIT_SECRET_KEY env var must be honored."""
         import os
+
         saved_env = os.environ.get("FIREAI_ENV")
         saved_key = os.environ.get("QOMN_AUDIT_SECRET_KEY")
         try:
             os.environ["FIREAI_ENV"] = "production"
             os.environ["QOMN_AUDIT_SECRET_KEY"] = "production-stable-key-32-bytes-long"
-            logger = AsyncAuditLogger(filepath=os.path.join(tempfile.gettempdir(), "v127_prod_env.jsonl"))
+            logger = AsyncAuditLogger(
+                filepath=os.path.join(tempfile.gettempdir(), "v127_prod_env.jsonl")
+            )
             self.assertEqual(logger.secret_key, b"production-stable-key-32-bytes-long")
         finally:
             if saved_env is not None:

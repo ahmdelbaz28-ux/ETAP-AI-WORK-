@@ -141,6 +141,8 @@ def build_router() -> APIRouter:
             return {"ok": True, "state": adapter.state.value}
         except Exception as exc:
             raise HTTPException(status_code=500, detail=str(exc)) from None
+            raise HTTPException(status_code=500, detail=str(exc)) from exc
+
 
     @router.post("/{protocol}/stop")
     def stop_protocol(protocol: str) -> Dict[str, Any]:

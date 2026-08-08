@@ -14,6 +14,7 @@ This test file:
 5. Verifies that endpoints return 200 with valid JWT
 6. Verifies ownership checks (user A cannot access user B's data)
 """
+
 import os
 import sys
 
@@ -37,6 +38,7 @@ def _keep_auth_enabled(monkeypatch):
     monkeypatch.setenv("ENGINEERING_SERVICE_API_KEY", "test-api-key-for-auth-tests")
     # Patch the module-level API_KEY in dependencies (read at import time)
     import api.dependencies as deps
+
     monkeypatch.setattr(deps, "API_KEY", "test-api-key-for-auth-tests")
     yield
 
@@ -57,6 +59,7 @@ def auth_client():
     from starlette.testclient import TestClient
 
     from api.routes import app
+
     client = TestClient(app)
     yield client
 
@@ -91,11 +94,12 @@ class TestAuthActuallyWorks:
         """GET /api/v1/assets without any auth header should return 401."""
         resp = auth_client.get("/api/v1/assets")
         assert resp.status_code == 401, (
-            f"Expected 401 without auth, got {resp.status_code}. "
-            "Auth is not being enforced!"
+            f"Expected 401 without auth, got {resp.status_code}. Auth is not being enforced!"
         )
 
-    def test_protected_endpoint_with_api_key_and_jwt_returns_200(self, auth_client, registered_user_token):
+    def test_protected_endpoint_with_api_key_and_jwt_returns_200(
+        self, auth_client, registered_user_token
+    ):
         """GET /api/v1/assets with valid API key + JWT should return 200.
 
         The /assets endpoint requires BOTH:
@@ -134,9 +138,7 @@ class TestAuthActuallyWorks:
             "/api/v1/assets",
             headers={"X-API-Key": "wrong-key"},
         )
-        assert resp.status_code == 401, (
-            f"Expected 401 with wrong API key, got {resp.status_code}"
-        )
+        assert resp.status_code == 401, f"Expected 401 with wrong API key, got {resp.status_code}"
 
     def test_protected_endpoint_with_invalid_jwt_returns_401(self, auth_client):
         """GET /api/v1/assets with invalid JWT should return 401."""
@@ -144,26 +146,21 @@ class TestAuthActuallyWorks:
             "/api/v1/assets",
             headers={"Authorization": "Bearer invalid.jwt.token"},
         )
-        assert resp.status_code == 401, (
-            f"Expected 401 with invalid JWT, got {resp.status_code}"
-        )
+        assert resp.status_code == 401, f"Expected 401 with invalid JWT, got {resp.status_code}"
 
     def test_ai_ml_endpoints_require_auth(self, auth_client):
         """GET /api/v1/ml/capabilities should require auth (API key)."""
         # Without auth → 401
         resp = auth_client.get("/api/v1/ml/capabilities")
         assert resp.status_code == 401, (
-            f"AI/ML endpoint returned {resp.status_code} without auth — "
-            "CR-NEW fix not working!"
+            f"AI/ML endpoint returned {resp.status_code} without auth — CR-NEW fix not working!"
         )
         # With API key → 200 (router-level Depends(get_api_key))
         resp = auth_client.get(
             "/api/v1/ml/capabilities",
             headers={"X-API-Key": "test-api-key-for-auth-tests"},
         )
-        assert resp.status_code == 200, (
-            f"AI/ML endpoint returned {resp.status_code} with API key"
-        )
+        assert resp.status_code == 200, f"AI/ML endpoint returned {resp.status_code} with API key"
 
     def test_scada_endpoints_require_auth(self, auth_client):
         """GET /api/v1/scada/live should require auth (API key).
@@ -193,9 +190,7 @@ class TestAuthActuallyWorks:
                 "the dependency was already resolved to skip auth. "
                 "Fix: move auth to function-level in a P2 refactoring."
             )
-        assert resp.status_code == 401, (
-            f"SCADA endpoint returned {resp.status_code} without auth"
-        )
+        assert resp.status_code == 401, f"SCADA endpoint returned {resp.status_code} without auth"
 
     def test_register_rejects_role_field(self, auth_client):
         """POST /register with role field should return 422 (CR-NEW-01)."""

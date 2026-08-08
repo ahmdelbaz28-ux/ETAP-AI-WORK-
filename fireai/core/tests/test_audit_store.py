@@ -54,6 +54,7 @@ from fireai.core.audit_store import (
 # Fixtures
 # ---------------------------------------------------------------------------
 
+
 @pytest.fixture(autouse=True)
 def _reset_module_state():
     """Reset module-level globals between tests so tests are isolated."""
@@ -132,6 +133,7 @@ def production_env():
 # SecurityError
 # ---------------------------------------------------------------------------
 
+
 class TestSecurityError:
     def test_is_exception(self) -> None:
         assert issubclass(SecurityError, Exception)
@@ -149,6 +151,7 @@ class TestSecurityError:
 # NFPA_VERSION constant
 # ---------------------------------------------------------------------------
 
+
 class TestNFPAVersion:
     def test_value(self) -> None:
         assert NFPA_VERSION == "NFPA 72-2022"
@@ -157,6 +160,7 @@ class TestNFPAVersion:
 # ---------------------------------------------------------------------------
 # _get_hmac_key
 # ---------------------------------------------------------------------------
+
 
 class TestGetHmacKey:
     def test_env_var_set(self, hmac_key_env) -> None:
@@ -252,6 +256,7 @@ class TestGetHmacKey:
 # _compute_hash
 # ---------------------------------------------------------------------------
 
+
 class TestComputeHash:
     def test_deterministic(self) -> None:
         """Same inputs always produce the same hash."""
@@ -303,6 +308,7 @@ class TestComputeHash:
 # _compute_signature
 # ---------------------------------------------------------------------------
 
+
 class TestComputeSignature:
     def test_hmac_sha256(self, hmac_key_env) -> None:
         """Signature matches a manually computed HMAC-SHA256."""
@@ -329,14 +335,13 @@ class TestComputeSignature:
 # _init_database
 # ---------------------------------------------------------------------------
 
+
 class TestInitDatabase:
     def test_creates_table(self, memory_db) -> None:
         """After init, audit_log table exists."""
         conn = audit_mod._memory_conn
         cursor = conn.cursor()
-        cursor.execute(
-            "SELECT name FROM sqlite_master WHERE type='table' AND name='audit_log'"
-        )
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='audit_log'")
         assert cursor.fetchone() is not None
 
     def test_creates_prevent_update_trigger(self, memory_db) -> None:
@@ -376,6 +381,7 @@ class TestInitDatabase:
 # _get_connection / _release_connection
 # ---------------------------------------------------------------------------
 
+
 class TestConnectionManagement:
     def test_get_connection_returns_connection(self, memory_db) -> None:
         conn = audit_mod._get_connection()
@@ -414,6 +420,7 @@ class TestConnectionManagement:
 # _get_last_hash
 # ---------------------------------------------------------------------------
 
+
 class TestGetLastHash:
     def test_genesis_on_empty(self, memory_db) -> None:
         """Empty database returns 'GENESIS'."""
@@ -429,6 +436,7 @@ class TestGetLastHash:
 # add_event
 # ---------------------------------------------------------------------------
 
+
 class TestAddEvent:
     def test_returns_hash(self, memory_db, hmac_key_env) -> None:
         """add_event returns a non-empty hash string."""
@@ -439,17 +447,23 @@ class TestAddEvent:
     def test_invalid_details_raises(self, memory_db, hmac_key_env) -> None:
         """Non-dict details_dict raises ValueError."""
         with pytest.raises(ValueError, match="must be a dictionary"):
-            add_event("TEST", "R1", "not a dict")  # NOSONAR — S5655: intentional wrong-type arg (test verifies rejection)
+            add_event(
+                "TEST", "R1", "not a dict"
+            )  # NOSONAR — S5655: intentional wrong-type arg (test verifies rejection)
 
     def test_invalid_details_list_raises(self, memory_db, hmac_key_env) -> None:
         """List details_dict raises ValueError."""
         with pytest.raises(ValueError, match="must be a dictionary"):
-            add_event("TEST", "R1", [1, 2, 3])  # NOSONAR — S5655: intentional wrong-type arg (test verifies rejection)
+            add_event(
+                "TEST", "R1", [1, 2, 3]
+            )  # NOSONAR — S5655: intentional wrong-type arg (test verifies rejection)
 
     def test_invalid_details_none_raises(self, memory_db, hmac_key_env) -> None:
         """None details_dict raises ValueError."""
         with pytest.raises(ValueError, match="must be a dictionary"):
-            add_event("TEST", "R1", None)  # NOSONAR — S5655: intentional wrong-type arg (test verifies rejection)
+            add_event(
+                "TEST", "R1", None
+            )  # NOSONAR — S5655: intentional wrong-type arg (test verifies rejection)
 
     def test_chains_to_genesis(self, memory_db, hmac_key_env) -> None:
         """First event chains to 'GENESIS'."""
@@ -478,8 +492,11 @@ class TestAddEvent:
         """The stored current_hash matches _compute_hash of the fields."""
         with patch("fireai.core.audit_store.datetime") as mock_dt:
             import datetime as dt
+
             fixed_ts = "2024-06-15T12:00:00Z"
-            mock_dt.datetime.now.return_value.isoformat.return_value = fixed_ts.replace("Z", "+00:00")
+            mock_dt.datetime.now.return_value.isoformat.return_value = fixed_ts.replace(
+                "Z", "+00:00"
+            )
             mock_dt.datetime.now.return_value = dt.datetime(
                 2024, 6, 15, 12, 0, 0, tzinfo=dt.timezone.utc
             )
@@ -519,6 +536,7 @@ class TestAddEvent:
 # verify_chain
 # ---------------------------------------------------------------------------
 
+
 class TestVerifyChain:
     def test_empty_chain_valid(self, memory_db, hmac_key_env) -> None:
         """An empty chain is valid."""
@@ -549,9 +567,7 @@ class TestVerifyChain:
         conn = audit_mod._memory_conn
         # Must bypass the trigger by dropping it first
         conn.execute("DROP TRIGGER IF EXISTS prevent_update")
-        conn.execute(
-            "UPDATE audit_log SET current_hash = 'tampered_hash' WHERE id = 1"
-        )
+        conn.execute("UPDATE audit_log SET current_hash = 'tampered_hash' WHERE id = 1")
         conn.commit()
         is_valid, error = verify_chain()
         assert is_valid is False
@@ -563,9 +579,7 @@ class TestVerifyChain:
         add_event("TEST", "R1", {"k": "v"})
         conn = audit_mod._memory_conn
         conn.execute("DROP TRIGGER IF EXISTS prevent_update")
-        conn.execute(
-            "UPDATE audit_log SET signature = 'bad_signature' WHERE id = 1"
-        )
+        conn.execute("UPDATE audit_log SET signature = 'bad_signature' WHERE id = 1")
         conn.commit()
         is_valid, error = verify_chain()
         assert is_valid is False
@@ -577,9 +591,7 @@ class TestVerifyChain:
         add_event("TEST", "R1", {"k": "v"})
         conn = audit_mod._memory_conn
         conn.execute("DROP TRIGGER IF EXISTS prevent_update")
-        conn.execute(
-            "UPDATE audit_log SET signature = '' WHERE id = 1"
-        )
+        conn.execute("UPDATE audit_log SET signature = '' WHERE id = 1")
         conn.commit()
         is_valid, error = verify_chain()
         assert is_valid is False
@@ -590,9 +602,7 @@ class TestVerifyChain:
         add_event("TEST", "R1", {"k": "v"})
         conn = audit_mod._memory_conn
         conn.execute("DROP TRIGGER IF EXISTS prevent_update")
-        conn.execute(
-            "UPDATE audit_log SET details = '{\"k\": \"tampered\"}' WHERE id = 1"
-        )
+        conn.execute('UPDATE audit_log SET details = \'{"k": "tampered"}\' WHERE id = 1')
         conn.commit()
         is_valid, _error = verify_chain()
         assert is_valid is False
@@ -602,9 +612,7 @@ class TestVerifyChain:
         add_event("TEST", "R1", {"k": "v"})
         conn = audit_mod._memory_conn
         conn.execute("DROP TRIGGER IF EXISTS prevent_update")
-        conn.execute(
-            "UPDATE audit_log SET current_hash = 'bad' WHERE id = 1"
-        )
+        conn.execute("UPDATE audit_log SET current_hash = 'bad' WHERE id = 1")
         conn.commit()
         _is_valid, error = verify_chain()
         assert error["event_id"] == 1
@@ -613,6 +621,7 @@ class TestVerifyChain:
 # ---------------------------------------------------------------------------
 # get_events
 # ---------------------------------------------------------------------------
+
 
 class TestGetEvents:
     def test_empty_database(self, memory_db, hmac_key_env) -> None:
@@ -667,6 +676,7 @@ class TestGetEvents:
 # AuditStore facade
 # ---------------------------------------------------------------------------
 
+
 class TestAuditStoreFacade:
     def test_add_event_delegates(self, memory_db, hmac_key_env) -> None:
         """AuditStore.add_event delegates to module-level add_event."""
@@ -690,7 +700,7 @@ class TestAuditStoreFacade:
     def test_facade_returns_same_as_functions(self, memory_db, hmac_key_env) -> None:
         """Facade methods return the same values as the functions they wrap."""
         h = AuditStore.add_event("TEST", "R1", {"k": "v"})
-        assert h == add_event.__wrapped__(h) if hasattr(add_event, '__wrapped__') else True
+        assert h == add_event.__wrapped__(h) if hasattr(add_event, "__wrapped__") else True
         # Direct comparison
         facade_events = AuditStore.get_events()
         func_events = get_events()
@@ -705,6 +715,7 @@ class TestAuditStoreFacade:
 # ---------------------------------------------------------------------------
 # Database immutability triggers
 # ---------------------------------------------------------------------------
+
 
 class TestImmutabilityTriggers:
     def test_update_prevented(self, memory_db, hmac_key_env) -> None:
@@ -725,6 +736,7 @@ class TestImmutabilityTriggers:
 # ---------------------------------------------------------------------------
 # ECDSA layer (graceful when ecdsa not installed)
 # ---------------------------------------------------------------------------
+
 
 class TestECDSA:
     def test_get_ecdsa_signer_returns_none_without_env(self, memory_db) -> None:
@@ -750,20 +762,32 @@ class TestECDSA:
             pytest.skip("ecdsa library is installed; cannot test ImportError path")
         with pytest.raises(ImportError, match="ecdsa library required"):
             verify_ecdsa_signature(
-                {"timestamp": "t", "event_type": "e", "room_id": "r",
-                 "details": {}, "previous_hash": "p", "current_hash": "c",
-                 "ecdsa_signature": "sig"},
-                "not-a-real-key"
+                {
+                    "timestamp": "t",
+                    "event_type": "e",
+                    "room_id": "r",
+                    "details": {},
+                    "previous_hash": "p",
+                    "current_hash": "c",
+                    "ecdsa_signature": "sig",
+                },
+                "not-a-real-key",
             )
 
     @pytest.mark.skipif(not audit_mod.HAS_ECDSA, reason="ecdsa not installed")
     def test_verify_ecdsa_invalid_public_key(self) -> None:
         """verify_ecdsa_signature returns False with an invalid public key."""
         result = verify_ecdsa_signature(
-            {"timestamp": "t", "event_type": "e", "room_id": "r",
-             "details": {}, "previous_hash": "p", "current_hash": "c",
-             "ecdsa_signature": "sig"},
-            "not-a-valid-pem"
+            {
+                "timestamp": "t",
+                "event_type": "e",
+                "room_id": "r",
+                "details": {},
+                "previous_hash": "p",
+                "current_hash": "c",
+                "ecdsa_signature": "sig",
+            },
+            "not-a-valid-pem",
         )
         assert result is False
 
@@ -771,12 +795,19 @@ class TestECDSA:
     def test_verify_ecdsa_missing_signature(self) -> None:
         """verify_ecdsa_signature returns False when record has no ecdsa_signature."""
         from ecdsa import NIST256p, SigningKey
+
         sk = SigningKey.generate(curve=NIST256p)
         vk_pem = sk.verifying_key.to_pem().decode()
         result = verify_ecdsa_signature(
-            {"timestamp": "t", "event_type": "e", "room_id": "r",
-             "details": {}, "previous_hash": "p", "current_hash": "c"},
-            vk_pem
+            {
+                "timestamp": "t",
+                "event_type": "e",
+                "room_id": "r",
+                "details": {},
+                "previous_hash": "p",
+                "current_hash": "c",
+            },
+            vk_pem,
         )
         assert result is False
 
@@ -784,16 +815,23 @@ class TestECDSA:
     def test_verify_ecdsa_hash_mismatch(self) -> None:
         """verify_ecdsa_signature returns False when hash doesn't match."""
         from ecdsa import NIST256p, SigningKey
+
         sk = SigningKey.generate(curve=NIST256p)
         vk_pem = sk.verifying_key.to_pem().decode()
         # Sign a hash, but pass a different current_hash in the record
         real_hash = "a" * 64
         sig = sk.sign(real_hash.encode("utf-8"))
         result = verify_ecdsa_signature(
-            {"timestamp": "t", "event_type": "e", "room_id": "r",
-             "details": {}, "previous_hash": "p", "current_hash": "b" * 64,
-             "ecdsa_signature": sig.hex()},
-            vk_pem
+            {
+                "timestamp": "t",
+                "event_type": "e",
+                "room_id": "r",
+                "details": {},
+                "previous_hash": "p",
+                "current_hash": "b" * 64,
+                "ecdsa_signature": sig.hex(),
+            },
+            vk_pem,
         )
         assert result is False
 
@@ -801,6 +839,7 @@ class TestECDSA:
     def test_verify_ecdsa_valid_signature(self) -> None:
         """verify_ecdsa_signature returns True for a properly signed record."""
         from ecdsa import NIST256p, SigningKey
+
         sk = SigningKey.generate(curve=NIST256p)
         vk_pem = sk.verifying_key.to_pem().decode()
 
@@ -813,8 +852,11 @@ class TestECDSA:
         }
         details_json = json.dumps(record["details"], sort_keys=True)
         current_hash = _compute_hash(
-            record["timestamp"], record["event_type"],
-            record["room_id"], details_json, record["previous_hash"]
+            record["timestamp"],
+            record["event_type"],
+            record["room_id"],
+            details_json,
+            record["previous_hash"],
         )
         record["current_hash"] = current_hash
         sig = sk.sign(current_hash.encode("utf-8"))
@@ -827,6 +869,7 @@ class TestECDSA:
     def test_verify_ecdsa_tampered_signature(self) -> None:
         """verify_ecdsa_signature returns False for a forged signature."""
         from ecdsa import NIST256p, SigningKey
+
         sk = SigningKey.generate(curve=NIST256p)
         vk_pem = sk.verifying_key.to_pem().decode()
 
@@ -839,8 +882,11 @@ class TestECDSA:
         }
         details_json = json.dumps(record["details"], sort_keys=True)
         current_hash = _compute_hash(
-            record["timestamp"], record["event_type"],
-            record["room_id"], details_json, record["previous_hash"]
+            record["timestamp"],
+            record["event_type"],
+            record["room_id"],
+            details_json,
+            record["previous_hash"],
         )
         record["current_hash"] = current_hash
         record["ecdsa_signature"] = "ff" * 64  # fake signature
@@ -868,6 +914,7 @@ class TestECDSA:
     def test_ecdsa_signer_with_valid_pem(self) -> None:
         """_get_ecdsa_signer returns a SigningKey for valid PEM."""
         from ecdsa import NIST256p, SigningKey
+
         sk = SigningKey.generate(curve=NIST256p)
         pem = sk.to_pem().decode()
         audit_mod._ecdsa_initialized = False
@@ -887,6 +934,7 @@ class TestECDSA:
     def test_compute_ecdsa_signature_with_signer(self) -> None:
         """_compute_ecdsa_signature returns hex string when ECDSA is configured."""
         from ecdsa import NIST256p, SigningKey
+
         sk = SigningKey.generate(curve=NIST256p)
         pem = sk.to_pem().decode()
         audit_mod._ecdsa_initialized = False
@@ -911,6 +959,7 @@ class TestECDSA:
 # ---------------------------------------------------------------------------
 # Thread safety of _init_database
 # ---------------------------------------------------------------------------
+
 
 class TestThreadSafety:
     def test_concurrent_init(self) -> None:
@@ -946,14 +995,13 @@ class TestThreadSafety:
 # DATABASE_PATH and module-level configuration
 # ---------------------------------------------------------------------------
 
+
 class TestConfiguration:
     def test_database_path_default(self) -> None:
         """Default DATABASE_PATH points to audit_store.db beside the module."""
         # Restore to original (may have been changed by fixture)
         # Just check it ends with audit_store.db
-        original = os.path.join(
-            os.path.dirname(audit_mod.__file__), "audit_store.db"
-        )
+        original = os.path.join(os.path.dirname(audit_mod.__file__), "audit_store.db")
         # The module-level DATABASE_PATH can be overridden by AUDIT_DB_PATH env var
         # so we just check the default computation is correct
         assert original.endswith("audit_store.db")
@@ -970,11 +1018,13 @@ class TestConfiguration:
 # Edge cases for verify_ecdsa_signature with details as string
 # ---------------------------------------------------------------------------
 
+
 class TestVerifyEcdsaEdgeCases:
     @pytest.mark.skipif(not audit_mod.HAS_ECDSA, reason="ecdsa not installed")
     def test_details_as_string_uses_as_is(self) -> None:
         """When details is a string (not dict), it's used directly for hash."""
         from ecdsa import NIST256p, SigningKey
+
         sk = SigningKey.generate(curve=NIST256p)
         vk_pem = sk.verifying_key.to_pem().decode()
 
@@ -987,8 +1037,11 @@ class TestVerifyEcdsaEdgeCases:
             "previous_hash": "GENESIS",
         }
         current_hash = _compute_hash(
-            record["timestamp"], record["event_type"],
-            record["room_id"], details_str, record["previous_hash"]
+            record["timestamp"],
+            record["event_type"],
+            record["room_id"],
+            details_str,
+            record["previous_hash"],
         )
         record["current_hash"] = current_hash
         sig = sk.sign(current_hash.encode("utf-8"))
@@ -1001,6 +1054,7 @@ class TestVerifyEcdsaEdgeCases:
 # ---------------------------------------------------------------------------
 # File-based database path coverage
 # ---------------------------------------------------------------------------
+
 
 class TestFileDatabase:
     """Tests using a temporary file database (not :memory:)."""
@@ -1077,6 +1131,7 @@ class TestFileDatabase:
 # V10 migration (ALTER TABLE for ecdsa_signature column)
 # ---------------------------------------------------------------------------
 
+
 class TestV10Migration:
     """Test migration from V10 (8-column) schema to V11 (9-column)."""
 
@@ -1121,6 +1176,7 @@ class TestV10Migration:
 # V10 row handling in verify_chain and get_events (8-column rows)
 # ---------------------------------------------------------------------------
 
+
 class TestV10RowHandling:
     """Test that verify_chain and get_events handle 8-column (V10) rows."""
 
@@ -1153,9 +1209,7 @@ class TestV10RowHandling:
             det = '{"key": "value"}'
             prev = "GENESIS"
             cur = _compute_hash(ts, et, rid, det, prev)
-            sig = hmac.new(
-                hmac_key_env.encode(), cur.encode(), hashlib.sha256
-            ).hexdigest()
+            sig = hmac.new(hmac_key_env.encode(), cur.encode(), hashlib.sha256).hexdigest()
             conn.execute(
                 "INSERT INTO audit_log (timestamp, event_type, room_id, details, previous_hash, current_hash, signature) VALUES (?, ?, ?, ?, ?, ?, ?)",
                 (ts, et, rid, det, prev, cur, sig),
@@ -1199,9 +1253,7 @@ class TestV10RowHandling:
             det = '{"key": "value"}'
             prev = "GENESIS"
             cur = _compute_hash(ts, et, rid, det, prev)
-            sig = hmac.new(
-                hmac_key_env.encode(), cur.encode(), hashlib.sha256
-            ).hexdigest()
+            sig = hmac.new(hmac_key_env.encode(), cur.encode(), hashlib.sha256).hexdigest()
             conn.execute(
                 "INSERT INTO audit_log (timestamp, event_type, room_id, details, previous_hash, current_hash, signature) VALUES (?, ?, ?, ?, ?, ?, ?)",
                 (ts, et, rid, det, prev, cur, sig),
@@ -1222,6 +1274,7 @@ class TestV10RowHandling:
 # ---------------------------------------------------------------------------
 # Double-checked locking in _init_database
 # ---------------------------------------------------------------------------
+
 
 class TestDoubleCheckedLocking:
     def test_returns_early_if_already_initialized(self) -> None:
@@ -1259,6 +1312,7 @@ class TestDoubleCheckedLocking:
 # ecdsa_signature present in get_events
 # ---------------------------------------------------------------------------
 
+
 class TestEcdsaSignatureInEvents:
     def test_ecdsa_signature_present_when_not_null(self, memory_db, hmac_key_env) -> None:
         """When ecdsa_signature column has a value, get_events includes it."""
@@ -1270,9 +1324,7 @@ class TestEcdsaSignatureInEvents:
         det = '{"key": "value"}'
         prev = "GENESIS"
         cur = _compute_hash(ts, et, rid, det, prev)
-        sig = hmac.new(
-            hmac_key_env.encode(), cur.encode(), hashlib.sha256
-        ).hexdigest()
+        sig = hmac.new(hmac_key_env.encode(), cur.encode(), hashlib.sha256).hexdigest()
         ecdsa_sig = "abcd1234"
         conn.execute(
             "INSERT INTO audit_log (timestamp, event_type, room_id, details, previous_hash, current_hash, signature, ecdsa_signature) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",

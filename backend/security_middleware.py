@@ -99,7 +99,9 @@ _STATIC_SECURITY_HEADERS: dict[str, str] = {
 _HSTS_HEADER = "max-age=31536000; includeSubDomains"
 
 
-def _should_emit_hsts(_scope: Scope) -> bool:  # NOSONAR — S1172: parameter retained for API stability
+def _should_emit_hsts(
+    _scope: Scope,
+) -> bool:  # NOSONAR — S1172: parameter retained for API stability
     """
     Decide whether to emit HSTS on this response.
 
@@ -110,6 +112,7 @@ def _should_emit_hsts(_scope: Scope) -> bool:  # NOSONAR — S1172: parameter re
     localhost, so dev access via http://localhost is unaffected.
     """
     return True
+
 
 # Production CSP: locked down. unsafe-inline is permitted for script-src
 # ONLY because the frontend (Vite/React) uses inline event handlers in
@@ -209,8 +212,7 @@ class SecurityHeadersMiddleware:
         csp_value = _build_csp(scope)
 
         extra_headers: list[tuple[bytes, bytes]] = [
-            (k.encode("latin-1"), v.encode("latin-1"))
-            for k, v in _STATIC_SECURITY_HEADERS.items()
+            (k.encode("latin-1"), v.encode("latin-1")) for k, v in _STATIC_SECURITY_HEADERS.items()
         ]
         extra_headers.append((b"content-security-policy", csp_value.encode("latin-1")))
 
@@ -219,9 +221,7 @@ class SecurityHeadersMiddleware:
         # or direct https scheme). Emitting on plain HTTP can lock users
         # out of dev/test environments via browser HSTS caching.
         if _should_emit_hsts(scope):  # NOSONAR — pythonbugs:S2589: condition intentional
-            extra_headers.append(
-                (b"strict-transport-security", _HSTS_HEADER.encode("latin-1"))
-            )
+            extra_headers.append((b"strict-transport-security", _HSTS_HEADER.encode("latin-1")))
 
         # Pre-computed set of header names we're adding, for O(1) dedup check.
         # If an upstream handler already set one of our headers, we DO NOT
@@ -287,30 +287,32 @@ from backend.api_keys import validate_api_key as _validate_api_key
 # ASGI scope['path'] is already URL-decoded and normalized (no /../, no //),
 # but trailing slashes are preserved. We normalize by stripping trailing
 # slash (except for root).
-_PUBLIC_PATHS_EXACT = frozenset({
-    "/docs",
-    "/redoc",
-    "/openapi.json",
-    "/api/v1/health",
-    "/api/v2/health",
-    "/api/health",
-    "/api/health/statistics",
-    "/api/reports/statistics",
-    "/health",
-    # M-3: Auth endpoints must be public (login validates credentials itself)
-    "/api/v1/auth/login",
-    "/api/v1/auth/logout",
-    "/api/v1/auth/session/login",
-    # V206: Frontend static entry points — served by FastAPI on HuggingFace Spaces.
-    # These are HTML/JS/CSS bundles with NO secrets; all sensitive data flows
-    # through /api/* which still requires X-API-Key. Without these, the HF
-    # Space root URL returns 401 and users see JSON instead of the app.
-    "/",
-    "/index.html",
-    "/favicon.ico",
-    "/manifest.json",
-    "/robots.txt",
-})
+_PUBLIC_PATHS_EXACT = frozenset(
+    {
+        "/docs",
+        "/redoc",
+        "/openapi.json",
+        "/api/v1/health",
+        "/api/v2/health",
+        "/api/health",
+        "/api/health/statistics",
+        "/api/reports/statistics",
+        "/health",
+        # M-3: Auth endpoints must be public (login validates credentials itself)
+        "/api/v1/auth/login",
+        "/api/v1/auth/logout",
+        "/api/v1/auth/session/login",
+        # V206: Frontend static entry points — served by FastAPI on HuggingFace Spaces.
+        # These are HTML/JS/CSS bundles with NO secrets; all sensitive data flows
+        # through /api/* which still requires X-API-Key. Without these, the HF
+        # Space root URL returns 401 and users see JSON instead of the app.
+        "/",
+        "/index.html",
+        "/favicon.ico",
+        "/manifest.json",
+        "/robots.txt",
+    }
+)
 
 # Path prefixes that are public (for routes with path params, e.g. /docs/*)
 # Used ONLY for documented sub-paths, NOT for security bypass.
@@ -420,10 +422,12 @@ class ApiKeyMiddleware:
                                 # Validate the signed session token
                                 try:
                                     from backend.routers.auth import validate_session_cookie
+
                                     role_from_cookie = validate_session_cookie(cookie_token)
                                     if role_from_cookie is not None:
                                         # Session is valid — set role directly
                                         from backend.rbac import Role as _Role
+
                                         try:
                                             role = _Role(role_from_cookie)
                                         except ValueError:
@@ -447,6 +451,7 @@ class ApiKeyMiddleware:
             if api_key and env_key and _hmac.compare_digest(api_key, env_key):
                 # Env var bypass — grant admin role (env key is the admin key)
                 from backend.rbac import Role as _Role
+
                 role = _Role.ADMIN
             elif api_key:
                 # Validate via RBAC key store
@@ -495,14 +500,14 @@ class ApiKeyMiddleware:
         headers.append((b"content-security-policy", csp_value.encode("latin-1")))
         # Add HSTS (always emit per _should_emit_hsts policy)
         if _should_emit_hsts(scope):
-            headers.append(
-                (b"strict-transport-security", _HSTS_HEADER.encode("latin-1"))
-            )
-        await send({
-            "type": "http.response.start",
-            "status": 401,
-            "headers": headers,
-        })
+            headers.append((b"strict-transport-security", _HSTS_HEADER.encode("latin-1")))
+        await send(
+            {
+                "type": "http.response.start",
+                "status": 401,
+                "headers": headers,
+            }
+        )
         await send({"type": "http.response.body", "body": body})
 
 

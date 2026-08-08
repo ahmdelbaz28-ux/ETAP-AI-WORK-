@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from enum import StrEnum
 from typing import Any, Generic, TypeVar
+from typing import Any, TypeVar
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
@@ -32,8 +33,7 @@ def _validate_json_size_and_depth(
 
     if len(serialized) > max_bytes:
         raise ValueError(
-            f"{field_name}: JSON size ({len(serialized)} bytes) exceeds "
-            f"maximum ({max_bytes} bytes)"
+            f"{field_name}: JSON size ({len(serialized)} bytes) exceeds maximum ({max_bytes} bytes)"
         )
 
     # Check nesting depth
@@ -50,9 +50,7 @@ def _validate_json_size_and_depth(
 
     depth = _get_depth(value)
     if depth > max_depth:
-        raise ValueError(
-            f"{field_name}: nesting depth ({depth}) exceeds maximum ({max_depth})"
-        )
+        raise ValueError(f"{field_name}: nesting depth ({depth}) exceeds maximum ({max_depth})")
 
     return value
 
@@ -62,8 +60,8 @@ def _validate_json_size_and_depth(
 # keeping Python snake_case attribute names internally.
 def _to_camel(field_name: str) -> str:
     """Convert snake_case to camelCase for API serialization."""
-    components = field_name.split('_')
-    return components[0] + ''.join(x.title() for x in components[1:])
+    components = field_name.split("_")
+    return components[0] + "".join(x.title() for x in components[1:])
 
 
 # V108 FIX: Base model with camelCase serialization.
@@ -118,6 +116,7 @@ class ProjectStatus(StrEnum):
 # GEOMETRY SCHEMAS
 # ════════════════════════════════════════════════════════════════════════════
 
+
 class Point3DCreate(BaseModel):
     x: float
     y: float
@@ -145,6 +144,7 @@ class GeometryResponse(CamelModel):
 # ════════════════════════════════════════════════════════════════════════════
 # SEMANTIC PROPERTIES SCHEMAS
 # ════════════════════════════════════════════════════════════════════════════
+
 
 class SemanticPropertiesCreate(BaseModel):
     element_type: ElementType
@@ -188,6 +188,7 @@ class SemanticPropertiesResponse(CamelModel):
 # ════════════════════════════════════════════════════════════════════════════
 # ELEMENT SCHEMAS
 # ════════════════════════════════════════════════════════════════════════════
+
 
 class ElementCreate(BaseModel):
     """Schema for creating a new element."""
@@ -251,6 +252,7 @@ class ElementListResponse(CamelModel):
 # ════════════════════════════════════════════════════════════════════════════
 # PROJECT SCHEMAS
 # ════════════════════════════════════════════════════════════════════════════
+
 
 class ProjectCreate(BaseModel):
     """Schema for creating a new project."""
@@ -335,6 +337,7 @@ class ProjectListResponse(CamelModel):
 # DEVICE SCHEMAS
 # ════════════════════════════════════════════════════════════════════════════
 
+
 class DeviceCreate(BaseModel):
     """Schema for creating a device (element with electrical/equipment type)."""
 
@@ -355,7 +358,7 @@ class DeviceCreate(BaseModel):
         if v is None:
             return v
         # Validate the serialized size of the properties dict
-        raw = v.model_dump() if hasattr(v, 'model_dump') else v
+        raw = v.model_dump() if hasattr(v, "model_dump") else v
         _validate_json_size_and_depth(raw, "properties", max_bytes=10240, max_depth=5)
         return v
 
@@ -380,6 +383,7 @@ class DeviceResponse(CamelModel):
 # CONNECTION / RELATIONSHIP SCHEMAS
 # ════════════════════════════════════════════════════════════════════════════
 
+
 class ConnectionCreate(BaseModel):
     """Schema for creating a connection (relationship)."""
 
@@ -401,7 +405,9 @@ class ConnectionCreate(BaseModel):
         """
         from_id = info.data.get("from_element_id")
         if from_id and v == from_id:
-            raise ValueError("to_element_id must be different from from_element_id — self-connections are not allowed")
+            raise ValueError(
+                "to_element_id must be different from from_element_id — self-connections are not allowed"
+            )
         return v
 
 
@@ -429,6 +435,7 @@ class ConnectionListResponse(CamelModel):
 # ════════════════════════════════════════════════════════════════════════════
 # CONFLICT SCHEMAS
 # ════════════════════════════════════════════════════════════════════════════
+
 
 class ConflictResolveRequest(BaseModel):
     """Schema for resolving a conflict."""
@@ -466,6 +473,7 @@ class ConflictListResponse(CamelModel):
 # STATISTICS SCHEMAS
 # ════════════════════════════════════════════════════════════════════════════
 
+
 class StatisticsResponse(CamelModel):
     """Database statistics response."""
 
@@ -491,6 +499,7 @@ T = TypeVar("T")
 
 
 class ApiResponse(CamelModel, Generic[T]):  # noqa: UP046
+class ApiResponse[T](CamelModel):
     """Universal response wrapper for all API endpoints."""
 
     success: bool
@@ -499,6 +508,7 @@ class ApiResponse(CamelModel, Generic[T]):  # noqa: UP046
 
 
 class PaginatedData(CamelModel, Generic[T]):  # noqa: UP046
+class PaginatedData[T](CamelModel):
     """Wrapper for paginated data inside ApiResponse."""
 
     items: list[T]

@@ -27,10 +27,7 @@ from qomn_fire.engine.panel_database import MASTER_PANEL_DATABASE
 class SelectionEngine:
     @staticmethod
     def compute_battery_ah(
-        device_count: int,
-        nac_circuit_count: int,
-        panel: FireAlarmPanel,
-        requires_voice: bool
+        device_count: int, nac_circuit_count: int, panel: FireAlarmPanel, requires_voice: bool
     ) -> Tuple[float, Dict[str, Any]]:
         """
         Calculates battery capacity per NFPA 72 §10.6.10 with tiered derating.
@@ -57,9 +54,7 @@ class SelectionEngine:
         temperature_derating = 1.10
         aging_derating = 1.15
         nfpa_margin = 1.20
-        combined_safety_factor = round(
-            temperature_derating * aging_derating * nfpa_margin, 6
-        )
+        combined_safety_factor = round(temperature_derating * aging_derating * nfpa_margin, 6)
 
         battery_size = round(raw_capacity * combined_safety_factor, 2)
 
@@ -81,7 +76,11 @@ class SelectionEngine:
         return battery_size, derating_details
 
     @classmethod
-    def select_panel(cls, req: ProjectRequirements) -> Result[PanelRecommendation, FACPSelectionError]:  # NOSONAR — S3776: cognitive complexity is inherent to the safety-critical algorithm
+    def select_panel(
+        cls, req: ProjectRequirements
+    ) -> Result[
+        PanelRecommendation, FACPSelectionError
+    ]:  # NOSONAR — S3776: cognitive complexity is inherent to the safety-critical algorithm
         # Enforce code capacity margins (20% spare capacity per NFPA 72 §10.6.10.2)
         required_points = req.device_count * 1.2
         # V54 FIX F2: NAC circuits sized by exact count, NOT 1.2x
@@ -119,24 +118,29 @@ class SelectionEngine:
             else:
                 score += 5.0
 
-            if req.preferred_manufacturer and req.preferred_manufacturer.upper() == p.manufacturer.upper():
+            if (
+                req.preferred_manufacturer
+                and req.preferred_manufacturer.upper() == p.manufacturer.upper()
+            ):
                 score += 100.0
 
             eligible_panels.append((p, score))
 
         if not eligible_panels:
-            return Result(error=FACPSelectionError(
-                message="No compliant FACP models found satisfying constraints in database.",
-                code_ref="UL 864 / NFPA 72",
-                remedy="Reduce required device loads or transition to a multi-node networked panel architecture."
-            ))
+            return Result(
+                error=FACPSelectionError(
+                    message="No compliant FACP models found satisfying constraints in database.",
+                    code_ref="UL 864 / NFPA 72",
+                    remedy="Reduce required device loads or transition to a multi-node networked panel architecture.",
+                )
+            )
 
         # V54 FIX F3: Deterministic sorting with right-sizing principle
         # Primary: highest score. Tie-break: smallest capacity (right-sizing),
         # then lowest standby draw, then model name for determinism.
         eligible_panels.sort(
             key=lambda x: (x[1], -x[0].points_capacity, -x[0].standby_current_amps, x[0].model),
-            reverse=True
+            reverse=True,
         )
 
         selected, _ = eligible_panels[0]
@@ -152,10 +156,7 @@ class SelectionEngine:
             warnings.append("FACP is significantly oversized for the current device loading.")
 
         battery_size, derating_details = cls.compute_battery_ah(
-            req.device_count,
-            req.nac_circuit_count,
-            selected,
-            req.requires_voice
+            req.device_count, req.nac_circuit_count, selected, req.requires_voice
         )
 
         # Cryptographic checksum for deterministic outputs
@@ -171,12 +172,9 @@ class SelectionEngine:
             battery_derating_details=derating_details,
             power_supply_watts=selected.power_supply_watts,
             listings=selected.listings,
-            code_compliance=(
-                "UL 864 10th Edition",
-                "NFPA 72 §10.6.10 Compliance"
-            ),
+            code_compliance=("UL 864 10th Edition", "NFPA 72 §10.6.10 Compliance"),
             warnings=tuple(warnings),
             alternatives=alternatives,
-            signature_hash=signature
+            signature_hash=signature,
         )
         return Result(value=rec)

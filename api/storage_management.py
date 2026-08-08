@@ -25,6 +25,7 @@ from __future__ import annotations
 
 import logging
 import os
+import re
 import threading
 from datetime import UTC, datetime, timedelta
 from typing import Any, Optional
@@ -43,6 +44,25 @@ from api.r2_storage import (
     is_r2_enabled,
     list_objects,
 )
+
+# SECURITY: S5145 - strip control characters from user-controlled values
+# before they reach the logger. Prevents log injection / CRLF spoofing.
+# Mirrors the helper in api/copilot_config.py (SonarCloud S5145 batch 5).
+_SAFE_LOG_RE = re.compile(r"[\x00-\x1f\x7f]")
+
+
+def _sanitize_for_log(value: object, max_len: int = 200) -> str:
+    """Sanitize user-controlled input before writing to logs.
+
+    Strips control characters and truncates to prevent log-flooding / injection.
+    """
+    if value is None:
+        return "None"
+    s = _SAFE_LOG_RE.sub("_", str(value))
+    if len(s) > max_len:
+        s = s[:max_len] + "...[truncated]"
+    return s
+
 
 logger = logging.getLogger(__name__)
 
@@ -124,16 +144,12 @@ class StorageMetricsResponse(BaseModel):
     total_size_bytes: int = Field(
         ..., description="Total storage consumed in bytes across all objects"
     )
-    total_objects: int = Field(
-        ..., description="Total number of objects in the bucket"
-    )
+    total_objects: int = Field(..., description="Total number of objects in the bucket")
     by_prefix: list[ByPrefixBreakdown] = Field(
         default_factory=list,
         description="Breakdown of size and object count by prefix",
     )
-    retention_days: int = Field(
-        ..., description="Current retention period in days"
-    )
+    retention_days: int = Field(..., description="Current retention period in days")
 
 
 class StoragePurgeRequest(BaseModel):
@@ -170,15 +186,9 @@ class StoragePurgeResponse(BaseModel):
 
     model_config = ConfigDict(frozen=True)
 
-    deleted_count: int = Field(
-        ..., description="Number of objects deleted (0 if dry_run)"
-    )
-    freed_bytes: int = Field(
-        ..., description="Bytes freed by the purge (0 if dry_run)"
-    )
-    dry_run: bool = Field(
-        ..., description="Whether this was a dry run (no actual deletion)"
-    )
+    deleted_count: int = Field(..., description="Number of objects deleted (0 if dry_run)")
+    freed_bytes: int = Field(..., description="Bytes freed by the purge (0 if dry_run)")
+    dry_run: bool = Field(..., description="Whether this was a dry run (no actual deletion)")
     candidates: Optional[list[StorageObjectInfo]] = Field(
         default=None,
         description="Objects that would be deleted (populated in dry_run mode)",
@@ -193,9 +203,7 @@ class RetentionPolicyResponse(BaseModel):
     retention_days: int = Field(
         ..., description="Number of days to retain objects before they are eligible for purge"
     )
-    auto_purge_enabled: bool = Field(
-        ..., description="Whether automatic purge is enabled"
-    )
+    auto_purge_enabled: bool = Field(..., description="Whether automatic purge is enabled")
     last_updated: Optional[str] = Field(
         default=None,
         description="ISO-8601 timestamp of the last policy update",
@@ -332,9 +340,7 @@ async def get_storage_metrics(
     # Build by-prefix breakdown
     by_prefix: list[ByPrefixBreakdown] = []
     for prefix in _KNOWN_PREFIXES:
-        prefix_objects = [
-            obj for obj in all_objects if obj.get("key", "").startswith(prefix)
-        ]
+        prefix_objects = [obj for obj in all_objects if obj.get("key", "").startswith(prefix)]
         prefix_size = sum(obj.get("size", 0) for obj in prefix_objects)
         prefix_count = len(prefix_objects)
         by_prefix.append(

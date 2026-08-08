@@ -18,7 +18,6 @@ import unittest
 
 
 class TestIntegratedQomnFire(unittest.TestCase):
-
     def test_complete_integrated_selection_flow(self):
         """
         VERIFICATION TEST 1: Integrated FACP Selection Sizing
@@ -36,7 +35,7 @@ class TestIntegratedQomnFire(unittest.TestCase):
             requires_network=False,
             requires_voice=False,
             requires_releasing=False,
-            jurisdiction="US"
+            jurisdiction="US",
         )
 
         res = SelectionEngine.select_panel(req)
@@ -77,7 +76,7 @@ class TestIntegratedQomnFire(unittest.TestCase):
             requires_network=False,
             requires_voice=False,
             requires_releasing=False,
-            jurisdiction="US"
+            jurisdiction="US",
         )
 
         select_res = SelectionEngine.select_panel(req)
@@ -101,7 +100,7 @@ class TestIntegratedQomnFire(unittest.TestCase):
             requires_network=False,
             requires_voice=False,
             requires_releasing=False,
-            jurisdiction="FDNY"
+            jurisdiction="FDNY",
         )
         res = SelectionEngine.select_panel(req)
         self.assertTrue(res.is_success)
@@ -126,7 +125,7 @@ class TestIntegratedQomnFire(unittest.TestCase):
             requires_voice=True,
             requires_releasing=True,
             jurisdiction="US",
-            preferred_manufacturer="SIEMENS"
+            preferred_manufacturer="SIEMENS",
         )
         res = SelectionEngine.select_panel(req)
         self.assertTrue(res.is_success)
@@ -153,7 +152,7 @@ class TestIntegratedQomnFire(unittest.TestCase):
             requires_voice=True,
             requires_releasing=False,
             jurisdiction="US",
-            preferred_manufacturer="SIEMENS"
+            preferred_manufacturer="SIEMENS",
         )
         res = SelectionEngine.select_panel(req)
         self.assertTrue(res.is_success)
@@ -173,7 +172,7 @@ class TestIntegratedQomnFire(unittest.TestCase):
             requires_network=True,
             requires_voice=True,
             requires_releasing=False,
-            jurisdiction="US"
+            jurisdiction="US",
         )
 
         ref_hash = None
@@ -202,7 +201,7 @@ class TestIntegratedQomnFire(unittest.TestCase):
             start=Point3D(0.0, 0.0, 0.0),
             end=Point3D(4.0, 0.0, 0.0),
             conduit=ConduitType.EMT,
-            conduit_id="C_TEST_001"
+            conduit_id="C_TEST_001",
         )
         self.assertTrue(res.is_success)
         run = res.unwrap()
@@ -219,7 +218,7 @@ class TestIntegratedQomnFire(unittest.TestCase):
             start=Point3D(0.0, 0.0, 0.0),
             end=Point3D(4.0, 0.0, 0.0),
             conduit=ConduitType.EMT,
-            conduit_id="C_TEST_002"
+            conduit_id="C_TEST_002",
         )
         # Should either find a detour path or fail with NEC violation
         if res2.is_success:
@@ -229,9 +228,11 @@ class TestIntegratedQomnFire(unittest.TestCase):
 
 def execute_integrated_master_project():
     """Runs a complete end-to-end fire protective design, sizing, and CAD production pipeline."""
-    print("\n" + "="*80)
+    print("\n" + "=" * 80)
     print("        QOMN-FIRE INTEGRATED PIPELINE: FULL PROJECT COMPILATION")
-    print("="*80)
+    print("=" * 80)
+
+    from qomn_fire.output.revit_exporter import export_to_revit_json
 
     from qomn_fire.core.constants import NFPA_SMOKE_DETECTOR_SPACING_M
     from qomn_fire.core.types import (
@@ -259,7 +260,6 @@ def execute_integrated_master_project():
     from qomn_fire.engine.placement import place_smoke_detectors_room
     from qomn_fire.engine.routing import GridMap3D
     from qomn_fire.integration.cable_hatch import route_conduit_and_hatch
-    from qomn_fire.output.revit_exporter import export_to_revit_json
 
     # 1. Initialize Drawing Doc
     doc = create_document()
@@ -285,11 +285,25 @@ def execute_integrated_master_project():
         sys.exit(1)
     devices = place_res.unwrap()
 
-    h_spec_coverage = HatchSpec("ANSI31", 45.0, 0.1, 3, "A-FIRE-HATC", "Smoke Coverage", "NFPA 72 SS17")
+    h_spec_coverage = HatchSpec(
+        "ANSI31", 45.0, 0.1, 3, "A-FIRE-HATC", "Smoke Coverage", "NFPA 72 SS17"
+    )
 
     for d in devices:
-        msp.add_circle(d.location.to_tuple()[:2], radius=0.4, dxfattribs={"layer": "A-FIRE-DEVICES", "color": 1})
-        msp.add_text(d.id, dxfattribs={"insert": (d.location.x + 0.5, d.location.y + 0.5), "height": 0.25, "layer": "A-FIRE-TEXT", "color": 5})
+        msp.add_circle(
+            d.location.to_tuple()[:2],
+            radius=0.4,
+            dxfattribs={"layer": "A-FIRE-DEVICES", "color": 1},
+        )
+        msp.add_text(
+            d.id,
+            dxfattribs={
+                "insert": (d.location.x + 0.5, d.location.y + 0.5),
+                "height": 0.25,
+                "layer": "A-FIRE-TEXT",
+                "color": 5,
+            },
+        )
 
         boundary = generate_circle_polyline(d.location, NFPA_SMOKE_DETECTOR_SPACING_M)
         hatch_res = place_boundary_hatch(doc, boundary, h_spec_coverage, d.id)
@@ -307,7 +321,7 @@ def execute_integrated_master_project():
         requires_voice=False,
         requires_releasing=False,
         jurisdiction="FDNY",
-        preferred_manufacturer="SIEMENS"
+        preferred_manufacturer="SIEMENS",
     )
 
     selection_res = SelectionEngine.select_panel(req)
@@ -316,8 +330,12 @@ def execute_integrated_master_project():
         sys.exit(1)
     rec = selection_res.unwrap()
     print(f"   -> Selected FACP: {rec.recommended_model} ({rec.manufacturer})")
-    print(f"   -> Battery: {rec.battery_size_ah} Ah ({rec.battery_derating_details.get('method', 'N/A')})")
-    print(f"   -> Derating Safety Factor: {rec.battery_derating_details.get('enhanced_safety_factor', rec.battery_derating_details.get('combined_safety_factor', 'N/A'))}")
+    print(
+        f"   -> Battery: {rec.battery_size_ah} Ah ({rec.battery_derating_details.get('method', 'N/A')})"
+    )
+    print(
+        f"   -> Derating Safety Factor: {rec.battery_derating_details.get('enhanced_safety_factor', rec.battery_derating_details.get('combined_safety_factor', 'N/A'))}"
+    )
 
     # 5. Routing conduits between sequential devices
     print(" -> Routing conduit paths...")
@@ -330,7 +348,7 @@ def execute_integrated_master_project():
 
     for idx in range(len(devices) - 1):
         start_pt = devices[idx].location
-        end_pt = devices[idx+1].location
+        end_pt = devices[idx + 1].location
 
         grid_map.obstacles.discard(grid_map.to_grid(start_pt))
         grid_map.obstacles.discard(grid_map.to_grid(end_pt))
@@ -342,7 +360,7 @@ def execute_integrated_master_project():
             end=end_pt,
             conduit=ConduitType.EMT,
             conduit_id=f"CONDUIT_RUN_{idx:02d}",
-            spec=conduit_spec
+            spec=conduit_spec,
         )
 
         grid_map.add_obstacle(start_pt)
@@ -360,7 +378,7 @@ def execute_integrated_master_project():
             p1=devices[0].location.to_tuple()[:2],
             p2=devices[1].location.to_tuple()[:2],
             distance=2.0,
-            dxfattribs={"layer": "A-FIRE-DIMS", "color": 4}
+            dxfattribs={"layer": "A-FIRE-DIMS", "color": 4},
         )
 
     # Title Block Sheet
@@ -374,16 +392,23 @@ def execute_integrated_master_project():
         checker="Senior Verification Audit Engineer",
         pe_stamp="LICENSED PROFESSIONAL ENGINEER - STAMP #PE-90998",
         client="Hospital General Board",
-        address="Zone 2 Building C Complex"
+        address="Zone 2 Building C Complex",
     )
     draw_title_block(doc, title)
 
     draw_facp_schedule(doc, rec)
 
-    add_viewport(doc, center=(350.0, 300.0), size=(500.0, 400.0), view_center=(12.5, 7.5), view_height=20.0)
+    add_viewport(
+        doc, center=(350.0, 300.0), size=(500.0, 400.0), view_center=(12.5, 7.5), view_height=20.0
+    )
 
     revs = [
-        Revision(0, "2026-06-01", "Merged routing with dynamic FACP selections (V54 fixes preserved)", "SYS_INTEGRATOR")
+        Revision(
+            0,
+            "2026-06-01",
+            "Merged routing with dynamic FACP selections (V54 fixes preserved)",
+            "SYS_INTEGRATOR",
+        )
     ]
     draw_revision_table(doc, revs)
 
@@ -410,19 +435,19 @@ def execute_integrated_master_project():
 
 
 if __name__ == "__main__":
-    print("="*80)
+    print("=" * 80)
     print("        QOMN-FIRE: MASTER INTEGRATED SUITE RUNTIME ENGINE")
     print("        V54 Safety Fixes Preserved (F1-F6)")
-    print("="*80)
+    print("=" * 80)
 
     # Add project root to Python path
     project_root = os.path.dirname(os.path.abspath(__file__))
     sys.path.insert(0, project_root)
 
     # 1. Run the dynamic unit testing suite
-    print("\n" + "="*80)
+    print("\n" + "=" * 80)
     print("             EXECUTING AUTOMATED CRITICAL UNIT TEST SUITE")
-    print("="*80)
+    print("=" * 80)
 
     suite = unittest.TestLoader().loadTestsFromTestCase(TestIntegratedQomnFire)
     runner = unittest.TextTestRunner(verbosity=2)
@@ -433,7 +458,7 @@ if __name__ == "__main__":
         sys.exit(1)
 
     # 2. Run production master project
-    print("\n" + "="*80)
+    print("\n" + "=" * 80)
     print("             RUNNING END-TO-END CAD/BIM PRODUCTION WORKFLOW")
-    print("="*80)
+    print("=" * 80)
     execute_integrated_master_project()

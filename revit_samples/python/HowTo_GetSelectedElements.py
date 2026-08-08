@@ -11,6 +11,17 @@ License: http://github.com/gtalarico/revitapidocs/blob/master/LICENSE.md
 """
 
 uidoc = __revit__.ActiveUIDocument  # noqa: F821
+# pyRevit runtime globals — injected by the pyRevit loader at runtime.
+# Fallback to None for static analysis / direct execution outside pyRevit.
+try:
+    __revit__  # type: ignore[used-before-def]  # noqa: F821
+except NameError:
+    __revit__ = None  # type: ignore[assignment]
+    doc  # type: ignore[used-before-def]  # noqa: F821
+    doc = __revit__.ActiveUIDocument.Document if __revit__ else None  # type: ignore[assignment]
+uidoc = __revit__.ActiveUIDocument
+
+
 
 def get_selected_elements():
     """

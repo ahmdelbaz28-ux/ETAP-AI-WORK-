@@ -36,6 +36,8 @@ class TestManagerConstruction:
         # Monkey-patch probe_all to return all-unavailable before construction.
         from scada_protocols.common import base as _base
         from scada_protocols.manager import SCADAProtocolManager as _M  # noqa: N814
+        from scada_protocols.manager import SCADAProtocolManager as _M
+
 
         def _fake_probe():
             return {
@@ -48,6 +50,7 @@ class TestManagerConstruction:
         _base.probe_all = _fake_probe
         # Also patch the manager module's reference (it imports probe_all by name).
         from scada_protocols import manager as _mgr_mod
+
         _mgr_mod.probe_all = _fake_probe
         try:
             cfg = SCADAProtocolsConfig()

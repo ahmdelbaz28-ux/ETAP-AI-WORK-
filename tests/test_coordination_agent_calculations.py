@@ -73,9 +73,9 @@ class TestCalculateRelayOperatingTime:
             time_multiplier=0.5,
             curve_type="standard_inverse",
         )
-        assert (
-            slow["operating_time_s"] > fast["operating_time_s"]
-        ), "Higher TMS should yield longer operating time"
+        assert slow["operating_time_s"] > fast["operating_time_s"], (
+            "Higher TMS should yield longer operating time"
+        )
 
     def test_fault_below_pickup_returns_inf_or_large(self):
         """GIVEN a fault current below pickup
@@ -90,9 +90,9 @@ class TestCalculateRelayOperatingTime:
             curve_type="standard_inverse",
         )
         # Relay should not operate — result should be inf or very large
-        assert (
-            result["operating_time_s"] == float("inf") or result["operating_time_s"] > 1000
-        ), f"Below-pickup fault should not trip, got {result}"
+        assert result["operating_time_s"] == float("inf") or result["operating_time_s"] > 1000, (
+            f"Below-pickup fault should not trip, got {result}"
+        )
 
 
 class TestVerifyCoordination:

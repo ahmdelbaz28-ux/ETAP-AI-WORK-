@@ -50,6 +50,7 @@ def _make_temp(suffix: str, size: int = 100) -> str:
 class TestPDFParserSecurity:
     def setup_method(self):
         from parsers.pdf_parser import PDFParser
+
         self.parser = PDFParser()
 
     def test_leading_dash_rejected(self):
@@ -58,7 +59,9 @@ class TestPDFParserSecurity:
         assert any("SECURITY" in e for e in r.errors)
 
     def test_null_byte_rejected(self):
-        r = self.parser.parse("/tmp/x\x00.pdf")  # NOSONAR — S5443: safe in test (uses tempfile + cleanup)
+        r = self.parser.parse(
+            "/tmp/x\x00.pdf"
+        )  # NOSONAR — S5443: safe in test (uses tempfile + cleanup)
         assert not r.success
         assert any("SECURITY" in e for e in r.errors)
 
@@ -72,7 +75,9 @@ class TestPDFParserSecurity:
             os.unlink(p)
 
     def test_missing_file_friendly_error(self):
-        r = self.parser.parse("/tmp/v125_pdf_missing.pdf")  # NOSONAR — S5443: safe in test (uses tempfile + cleanup)
+        r = self.parser.parse(
+            "/tmp/v125_pdf_missing.pdf"
+        )  # NOSONAR — S5443: safe in test (uses tempfile + cleanup)
         assert not r.success
         assert any("not found" in e for e in r.errors)
 
@@ -85,6 +90,7 @@ class TestPDFParserSecurity:
 class TestImageParserSecurity:
     def setup_method(self):
         from parsers.image_parser import ImageParser
+
         self.parser = ImageParser()
 
     def test_leading_dash_rejected(self):
@@ -93,7 +99,9 @@ class TestImageParserSecurity:
         assert any("SECURITY" in e for e in r.errors)
 
     def test_null_byte_rejected(self):
-        r = self.parser.parse("/tmp/x\x00.png")  # NOSONAR — S5443: safe in test (uses tempfile + cleanup)
+        r = self.parser.parse(
+            "/tmp/x\x00.png"
+        )  # NOSONAR — S5443: safe in test (uses tempfile + cleanup)
         assert not r.success
         assert any("SECURITY" in e for e in r.errors)
 
@@ -113,8 +121,7 @@ class TestImageParserSecurity:
         real image — but security validation MUST not reject them).
         V127: Updated to match actual _ALLOWED_EXTENSIONS in image_parser.py.
         """
-        for ext in (".jpg", ".jpeg", ".png", ".bmp", ".tiff", ".tif",
-                    ".webp"):
+        for ext in (".jpg", ".jpeg", ".png", ".bmp", ".tiff", ".tif", ".webp"):
             p = _make_temp(ext)
             try:
                 r = self.parser.parse(p)
@@ -135,6 +142,7 @@ class TestImageParserSecurity:
 class TestExcelParserSecurity:
     def setup_method(self):
         from parsers.excel_parser import ExcelParser
+
         self.parser = ExcelParser()
 
     def test_leading_dash_rejected(self):
@@ -143,7 +151,9 @@ class TestExcelParserSecurity:
         assert any("SECURITY" in e for e in r.errors)
 
     def test_null_byte_rejected(self):
-        r = self.parser.parse("/tmp/x\x00.xlsx")  # NOSONAR — S5443: safe in test (uses tempfile + cleanup)
+        r = self.parser.parse(
+            "/tmp/x\x00.xlsx"
+        )  # NOSONAR — S5443: safe in test (uses tempfile + cleanup)
         assert not r.success
         assert any("SECURITY" in e for e in r.errors)
 
@@ -176,6 +186,7 @@ class TestExcelParserSecurity:
 class TestWordParserSecurity:
     def setup_method(self):
         from parsers.word_parser import WordParser
+
         self.parser = WordParser()
 
     def test_leading_dash_rejected(self):
@@ -184,7 +195,9 @@ class TestWordParserSecurity:
         assert any("SECURITY" in e for e in r.errors)
 
     def test_null_byte_rejected(self):
-        r = self.parser.parse("/tmp/x\x00.docx")  # NOSONAR — S5443: safe in test (uses tempfile + cleanup)
+        r = self.parser.parse(
+            "/tmp/x\x00.docx"
+        )  # NOSONAR — S5443: safe in test (uses tempfile + cleanup)
         assert not r.success
         assert any("SECURITY" in e for e in r.errors)
 
@@ -210,27 +223,40 @@ class TestWordParserSecurity:
 class TestIFCParserSecurity:
     def _make(self, path):
         from parsers.ifc_parser import IFCParser
+
         return IFCParser(path)
 
     def test_leading_dash_rejected(self):
-        with pytest.raises(ValueError, match="SECURITY"):  # NOSONAR — S5778: re-raise inside except is intentional (context-specific)  # noqa: S5778
+        with pytest.raises(
+            ValueError, match="SECURITY"
+        ):  # NOSONAR — S5778: re-raise inside except is intentional (context-specific)  # noqa: S5778
             self._make("--evil.ifc").parse()
 
     def test_null_byte_rejected(self):
-        with pytest.raises(ValueError, match="SECURITY"):  # NOSONAR — S5778: re-raise inside except is intentional (context-specific)  # noqa: S5778
-            self._make("/tmp/x\x00.ifc").parse()  # NOSONAR — S5443: safe in test (uses tempfile + cleanup)
+        with pytest.raises(
+            ValueError, match="SECURITY"
+        ):  # NOSONAR — S5778: re-raise inside except is intentional (context-specific)  # noqa: S5778
+            self._make(
+                "/tmp/x\x00.ifc"
+            ).parse()  # NOSONAR — S5443: safe in test (uses tempfile + cleanup)
 
     def test_wrong_extension_rejected(self):
         p = _make_temp(".txt")
         try:
-            with pytest.raises(ValueError, match="SECURITY"):  # NOSONAR — S5778: re-raise inside except is intentional (context-specific)  # noqa: S5778
+            with pytest.raises(
+                ValueError, match="SECURITY"
+            ):  # NOSONAR — S5778: re-raise inside except is intentional (context-specific)  # noqa: S5778
                 self._make(p).parse()
         finally:
             os.unlink(p)
 
     def test_missing_file_raises_ValueError(self):  # NOSONAR - python:S100
-        with pytest.raises(ValueError, match="not found"):  # NOSONAR — S5778: re-raise inside except is intentional (context-specific)  # noqa: S5778
-            self._make("/tmp/v125_ifc_missing.ifc").parse()  # NOSONAR — S5443: safe in test (uses tempfile + cleanup)
+        with pytest.raises(
+            ValueError, match="not found"
+        ):  # NOSONAR — S5778: re-raise inside except is intentional (context-specific)  # noqa: S5778
+            self._make(
+                "/tmp/v125_ifc_missing.ifc"
+            ).parse()  # NOSONAR — S5443: safe in test (uses tempfile + cleanup)
 
 
 # Rule #23 enforcement: each parser MUST use the shared helper  # NOSONAR - python:S125
@@ -244,15 +270,18 @@ class TestV125SingleSourceOfTruth:
     removes the import (or replaces it with inline code), this fails.
     """
 
-    @pytest.mark.parametrize("parser_file", [
-        "parsers/pdf_parser.py",
-        "parsers/image_parser.py",
-        "parsers/excel_parser.py",
-        "parsers/word_parser.py",
-        "parsers/ifc_parser.py",
-        "parsers/dwg_parser.py",      # V122
-        "parsers/ddc_adapter.py",      # V123
-    ])
+    @pytest.mark.parametrize(
+        "parser_file",
+        [
+            "parsers/pdf_parser.py",
+            "parsers/image_parser.py",
+            "parsers/excel_parser.py",
+            "parsers/word_parser.py",
+            "parsers/ifc_parser.py",
+            "parsers/dwg_parser.py",  # V122
+            "parsers/ddc_adapter.py",  # V123
+        ],
+    )
     def test_parser_uses_shared_helper(self, parser_file):
         src = (_PROJECT_ROOT / parser_file).read_text(encoding="utf-8")
         assert "from parsers._path_security import" in src, (
@@ -277,20 +306,21 @@ class TestV125DoSCapConsistency:
     (operators must be able to tune per deployment without forking).
     """
 
-    @pytest.mark.parametrize(("parser_file", "env_var"), [
-        ("parsers/pdf_parser.py",   "FIREAI_PDF_MAX_FILE_SIZE_BYTES"),
-        ("parsers/image_parser.py", "FIREAI_IMAGE_MAX_FILE_SIZE_BYTES"),
-        ("parsers/excel_parser.py", "FIREAI_EXCEL_MAX_FILE_SIZE_BYTES"),
-        ("parsers/word_parser.py",  "FIREAI_WORD_MAX_FILE_SIZE_BYTES"),
-        ("parsers/ifc_parser.py",   "FIREAI_IFC_MAX_FILE_SIZE_BYTES"),
-        ("parsers/dwg_parser.py",   "FIREAI_DWG_MAX_FILE_SIZE_BYTES"),
-    ])
+    @pytest.mark.parametrize(
+        ("parser_file", "env_var"),
+        [
+            ("parsers/pdf_parser.py", "FIREAI_PDF_MAX_FILE_SIZE_BYTES"),
+            ("parsers/image_parser.py", "FIREAI_IMAGE_MAX_FILE_SIZE_BYTES"),
+            ("parsers/excel_parser.py", "FIREAI_EXCEL_MAX_FILE_SIZE_BYTES"),
+            ("parsers/word_parser.py", "FIREAI_WORD_MAX_FILE_SIZE_BYTES"),
+            ("parsers/ifc_parser.py", "FIREAI_IFC_MAX_FILE_SIZE_BYTES"),
+            ("parsers/dwg_parser.py", "FIREAI_DWG_MAX_FILE_SIZE_BYTES"),
+        ],
+    )
     def test_parser_advertises_env_configurable_cap(self, parser_file, env_var):
         src = (_PROJECT_ROOT / parser_file).read_text(encoding="utf-8")
         assert env_var in src, (
             f"V125: {parser_file} should expose its size cap via {env_var} "
             f"so operators can tune without code changes."
         )
-        assert "validate_file_size" in src, (
-            f"V125: {parser_file} should call validate_file_size()."
-        )
+        assert "validate_file_size" in src, f"V125: {parser_file} should call validate_file_size()."

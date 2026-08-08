@@ -33,13 +33,26 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/conflicts", tags=["conflicts"])
 
 
-@router.get("", response_model=ApiResponse[PaginatedData[ConflictResponse]], dependencies=[Depends(require_permission(Permission.CONFLICT_READ))])
+@router.get(
+    "",
+    response_model=ApiResponse[PaginatedData[ConflictResponse]],
+    dependencies=[Depends(require_permission(Permission.CONFLICT_READ))],
+)
 async def list_conflicts(
-    resolved: bool | None = Query(None, description="Filter by resolution status"),  # NOSONAR - python:S8410
-    conflict_type: str | None = Query(None, description="Filter by conflict type"),  # NOSONAR - python:S8410
+    resolved: bool | None = Query(
+        None, description="Filter by resolution status"
+    ),  # NOSONAR - python:S8410
+    conflict_type: str | None = Query(
+        None, description="Filter by conflict type"
+    ),  # NOSONAR - python:S8410
     page: int = Query(1, ge=1, description="Page number"),  # NOSONAR - python:S8410
     page_size: int = Query(20, ge=1, le=100, description="Items per page"),  # NOSONAR - python:S8410
     db: DatabaseService = Depends(get_db_service),  # NOSONAR - python:S8410  # noqa: B008
+    page_size: int = Query(
+        20, ge=1, le=100, description="Items per page"
+    ),  # NOSONAR - python:S8410
+    db: DatabaseService = Depends(get_db_service),  # NOSONAR - python:S8410
+
 ):
     """List conflicts with optional filtering and pagination."""
     try:
@@ -64,9 +77,17 @@ async def list_conflicts(
     except Exception as e:
         logger.exception("list_conflicts failed: %s", e)
         raise HTTPException(status_code=500, detail="Internal server error")  # NOSONAR — S1192: duplicated literal acceptable in this localized context  # noqa: B904
+        raise HTTPException(
+            status_code=500, detail="Internal server error"
+        )  # NOSONAR — S1192: duplicated literal acceptable in this localized context
 
 
-@router.post("/detect", response_model=ApiResponse[list], dependencies=[Depends(require_permission(Permission.CONFLICT_READ))])
+
+@router.post(
+    "/detect",
+    response_model=ApiResponse[list],
+    dependencies=[Depends(require_permission(Permission.CONFLICT_READ))],
+)
 async def detect_conflicts(
     db: DatabaseService = Depends(get_db_service),  # NOSONAR - python:S8410  # noqa: B008
 ):
@@ -81,9 +102,17 @@ async def detect_conflicts(
     except Exception as e:
         logger.exception("detect_conflicts failed: %s", e)
         raise HTTPException(status_code=500, detail="Internal server error")  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
+        raise HTTPException(
+            status_code=500, detail="Internal server error"
+        )  # NOSONAR — S8415: assignment kept for readability / debuggability
 
 
-@router.post("/{conflict_id}/resolve", response_model=ApiResponse[ConflictResponse], dependencies=[Depends(require_permission(Permission.CONFLICT_RESOLVE))])
+
+@router.post(
+    "/{conflict_id}/resolve",
+    response_model=ApiResponse[ConflictResponse],
+    dependencies=[Depends(require_permission(Permission.CONFLICT_RESOLVE))],
+)
 async def resolve_conflict(
     conflict_id: str,
     resolve_data: ConflictResolveRequest,
@@ -93,7 +122,9 @@ async def resolve_conflict(
     try:
         conflict = db.resolve_conflict(conflict_id, strategy=resolve_data.strategy)
         if conflict is None:
-            raise HTTPException(status_code=404, detail="Conflict not found")  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
+            raise HTTPException(
+                status_code=404, detail="Conflict not found"
+            )  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
         return ApiResponse(success=True, data=conflict, message="Conflict resolved successfully")
     except HTTPException:
         raise
@@ -104,3 +135,8 @@ async def resolve_conflict(
     except Exception as e:
         logger.exception("resolve_conflict failed: %s", e)
         raise HTTPException(status_code=500, detail="Internal server error")  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
+        raise HTTPException(
+            status_code=422, detail="Conflict resolution failed — check server logs for details"
+        )  # NOSONAR — S8415: assignment kept for readability / debuggability
+            status_code=500, detail="Internal server error"
+

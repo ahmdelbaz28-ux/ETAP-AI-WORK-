@@ -12,6 +12,12 @@ from typing import Any, Dict
 
 from core.bootstrap import logger
 
+# ─── ETAP types (Python API contract) ───────────────────────────────────
+# NOTE: This module defines its own ETAPStudyType enum with snake_case
+# values matching the public HTTP API layer. A separate canonical type
+# with CamelCase values for direct ETAP COM API mapping lives in
+# etap_integration/unified_etap_types.py. The two are intentionally distinct.
+
 
 # ─── Unified types (single source of truth) ─────────────────────────────
 # ETAPStudyType + ETAPResult are now defined in unified_etap_types.py

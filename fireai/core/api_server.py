@@ -317,7 +317,9 @@ class RoomRequest(BaseModel):
                 raise ValueError(f"Point {i} must have exactly 2 coordinates (x, y)")
             x, y = point
             if abs(x) > MAX_ROOM_DIMENSION or abs(y) > MAX_ROOM_DIMENSION:
-                raise ValueError(f"Point {i} coordinates exceed maximum room dimension ({MAX_ROOM_DIMENSION}m)")
+                raise ValueError(
+                    f"Point {i} coordinates exceed maximum room dimension ({MAX_ROOM_DIMENSION}m)"
+                )
         return v
 
     @field_validator("height_high")
@@ -334,7 +336,9 @@ class RoomRequest(BaseModel):
         """Validate occupancy type against known types."""
         v_lower = v.lower().strip()
         if v_lower not in VALID_OCCUPANCY_TYPES:
-            raise ValueError(f"Unknown occupancy type: '{v}'. Valid types: {sorted(VALID_OCCUPANCY_TYPES)}")
+            raise ValueError(
+                f"Unknown occupancy type: '{v}'. Valid types: {sorted(VALID_OCCUPANCY_TYPES)}"
+            )
         return v_lower
 
     @field_validator("ceiling_type")
@@ -380,7 +384,9 @@ def _build_spec(req: RoomRequest) -> RoomSpec:
     ceiling = CeilingSpec.create_safe(
         height_at_low_point_m=req.height,
         height_at_high_point_m=req.height_high or req.height,
-        ceiling_type=next((c for c in CeilingType if c.value == req.ceiling_type), CeilingType.FLAT)
+        ceiling_type=next(
+            (c for c in CeilingType if c.value == req.ceiling_type), CeilingType.FLAT
+        ),
     )
     # CRITICAL FIX: Calculate width/depth from polygon using geometric SPAN.
     # Previously used max(x) and max(y) which is WRONG for translated/negative
@@ -410,13 +416,17 @@ def _to_response(r) -> RoomResponse:
         detector_count=len(r.detector_positions),
         detector_type=r.detector_type.value if r.detector_type else "SMOKE",
         occupancy=r.occupancy_class.value if r.occupancy_class else "office",
-        coverage_pct=round(r.placement_proof.coverage_fraction * 100, 2) if r.placement_proof else 0,
+        coverage_pct=round(r.placement_proof.coverage_fraction * 100, 2)
+        if r.placement_proof
+        else 0,
         wall_violations=len(r.wall_violations),
         resilient=r.resilience.resilient if r.resilience else None,
         resilience_pass_rate=round(r.resilience.pass_rate, 3) if r.resilience else None,
         warnings=r.warnings,
         errors=r.errors,
-        detector_positions=[DetectorPos(x=round(x, 3), y=round(y, 3)) for x, y in r.detector_positions],
+        detector_positions=[
+            DetectorPos(x=round(x, 3), y=round(y, 3)) for x, y in r.detector_positions
+        ],
     )
 
 
@@ -439,6 +449,10 @@ def memory_summary():
     except Exception as e:
         logger.exception("Memory summary failed: %s", e)
         raise HTTPException(status_code=500, detail="Internal error")  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
+        raise HTTPException(
+            status_code=500, detail="Internal error"
+        )  # NOSONAR — S8415: assignment kept for readability / debuggability
+
 
 
 @app.post("/analyse", response_model=RoomResponse, dependencies=[Depends(verify_api_key)])
@@ -448,6 +462,10 @@ def analyse_room(req: RoomRequest):
         spec = _build_spec(req)
     except Exception as exc:
         raise HTTPException(status_code=422, detail=f"Invalid room spec: {exc}")  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
+        raise HTTPException(
+            status_code=422, detail=f"Invalid room spec: {exc}"
+        )  # NOSONAR — S8415: assignment kept for readability / debuggability
+
 
     try:
         result = _get_system().analyse_room(spec, user_id="api", run_resilience=req.run_resilience)
@@ -457,15 +475,26 @@ def analyse_room(req: RoomRequest):
     except Exception as exc:
         logger.exception("Room analysis failed: %s", exc)
         raise HTTPException(status_code=500, detail="Analysis failed")  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
+        raise HTTPException(
+            status_code=422, detail=str(exc)
+        )  # NOSONAR — S8415: assignment kept for readability / debuggability
+            status_code=500, detail="Analysis failed"
 
 
-@app.post("/analyse/floor", response_model=List[RoomResponse], dependencies=[Depends(verify_api_key)])
+
+@app.post(
+    "/analyse/floor", response_model=List[RoomResponse], dependencies=[Depends(verify_api_key)]
+)
 def analyse_floor(rooms: list[RoomRequest]):
     """Analyse multiple rooms (floor) — authenticated, max 50 rooms."""
     if not rooms:
-        raise HTTPException(status_code=422, detail="No rooms provided.")  # NOSONAR — S8415: assignment kept for readability / debuggability
+        raise HTTPException(
+            status_code=422, detail="No rooms provided."
+        )  # NOSONAR — S8415: assignment kept for readability / debuggability
     if len(rooms) > 50:
-        raise HTTPException(status_code=422, detail="Maximum 50 rooms per floor request.")  # NOSONAR — S8415: assignment kept for readability / debuggability
+        raise HTTPException(
+            status_code=422, detail="Maximum 50 rooms per floor request."
+        )  # NOSONAR — S8415: assignment kept for readability / debuggability
 
     try:
         specs = [_build_spec(r) for r in rooms]
@@ -474,6 +503,10 @@ def analyse_floor(rooms: list[RoomRequest]):
     except Exception as exc:
         logger.exception("Floor analysis failed: %s", exc)
         raise HTTPException(status_code=500, detail="Floor analysis failed")  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
+        raise HTTPException(
+            status_code=500, detail="Floor analysis failed"
+        )  # NOSONAR — S8415: assignment kept for readability / debuggability
+
 
 
 # ✅ NEW: Audit verification endpoint (from consultant suggestion)
@@ -495,6 +528,10 @@ def audit_verify():
     except Exception as exc:
         logger.exception("Audit verification failed: %s", exc)
         raise HTTPException(status_code=500, detail="Verification failed")  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
+        raise HTTPException(
+            status_code=500, detail="Verification failed"
+        )  # NOSONAR — S8415: assignment kept for readability / debuggability
+
 
 
 # ============================================================================
@@ -536,7 +573,10 @@ def run_integration(req: IntegrationRequest):
         # Convert panel_positions from list[list] to list[tuple]
         panel_positions = None
         if req.panel_positions:
-            panel_positions = [(p[0], p[1], p[2]) if len(p) == 3 else (p[0], p[1], 0.0) for p in req.panel_positions]
+            panel_positions = [
+                (p[0], p[1], p[2]) if len(p) == 3 else (p[0], p[1], 0.0)
+                for p in req.panel_positions
+            ]
 
         # Convert obstacle_polygons from list[list[list]] to list[list[tuple]]
         obstacle_polygons = None
@@ -562,6 +602,11 @@ def run_integration(req: IntegrationRequest):
     except Exception as exc:
         logger.exception("Integration pipeline failed: %s", exc)
         raise HTTPException(status_code=500, detail="Integration pipeline failed")  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
+        raise HTTPException(
+            status_code=422, detail=str(exc)
+        )  # NOSONAR — S8415: assignment kept for readability / debuggability
+            status_code=500, detail="Integration pipeline failed"
+
 
 
 @app.get("/audit/hashchain", dependencies=[Depends(verify_api_key)])
@@ -583,6 +628,10 @@ def hashchain_report():
     except Exception as exc:
         logger.exception("Hash chain report failed: %s", exc)
         raise HTTPException(status_code=500, detail="Hash chain report failed")  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
+        raise HTTPException(
+            status_code=500, detail="Hash chain report failed"
+        )  # NOSONAR — S8415: assignment kept for readability / debuggability
+
 
 
 # ============================================================================

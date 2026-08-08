@@ -36,9 +36,11 @@ os.environ.setdefault("DIGITAL_TWIN_DB_PATH", ":memory:")
 
 # ─── Fixtures ─────────────────────────────────────────────────────────────────
 
+
 @pytest.fixture
 def kernel():
     from fireai.core.qomn_kernel import QOMNKernel
+
     return QOMNKernel()
 
 
@@ -46,15 +48,16 @@ def kernel():
 def standard_room():
     """Standard 15×10m office room at h=3.0m — baseline test case."""
     return {
-        "room_id":          "QOMN-TEST-001",
-        "room_polygon":     [[0,0],[15,0],[15,10],[0,10]],
+        "room_id": "QOMN-TEST-001",
+        "room_polygon": [[0, 0], [15, 0], [15, 10], [0, 10]],
         "ceiling_height_m": 3.0,
-        "detector_type":    "smoke",
-        "occupancy_type":   "office",
+        "detector_type": "smoke",
+        "occupancy_type": "office",
     }
 
 
 # ─── QOMN Kernel Unit Tests ───────────────────────────────────────────────────
+
 
 class TestQOMNKernelLayer0PhysicsGuards:
     """Layer 0 — Input Sanitization (QOMN §3 Layer 0)."""
@@ -62,6 +65,7 @@ class TestQOMNKernelLayer0PhysicsGuards:
     def test_negative_ceiling_rejected(self, kernel):
         """Negative ceiling height is physically impossible."""
         from fireai.core.qomn_kernel import PhysicsGuardError
+
         # Negative ceiling height is physically impossible (not a code limit)
         # Error references "Physics" — correct per QOMN Layer 0
         with pytest.raises(PhysicsGuardError):
@@ -70,12 +74,14 @@ class TestQOMNKernelLayer0PhysicsGuards:
     def test_zero_ceiling_rejected(self, kernel):
         """Zero ceiling height is physically impossible."""
         from fireai.core.qomn_kernel import PhysicsGuardError
+
         with pytest.raises(PhysicsGuardError):
             kernel.smoke_detector_spacing(0.0)
 
     def test_ceiling_above_60ft_rejected(self, kernel):
         """Ceiling > 18.288m (60 ft) exceeds NFPA 72 §17.7.3.2.4 scope."""
         from fireai.core.qomn_kernel import PhysicsGuardError
+
         with pytest.raises(PhysicsGuardError) as exc_info:
             kernel.smoke_detector_spacing(20.0)
         assert "18.288" in str(exc_info.value)
@@ -83,30 +89,39 @@ class TestQOMNKernelLayer0PhysicsGuards:
     def test_efficiency_over_100pct_rejected(self, kernel):
         """Efficiency > 1.0 violates conservation of energy."""
         from fireai.core.qomn_kernel import PhysicsGuardError, guard_efficiency
+
         with pytest.raises(PhysicsGuardError):
             guard_efficiency(1.01)
 
     def test_nan_ceiling_rejected(self, kernel):
         """NaN inputs are caught per IEEE-754-2008 §7."""
         from fireai.core.qomn_kernel import PhysicsGuardError
-        with pytest.raises(PhysicsGuardError):  # NOSONAR — S5778: re-raise inside except is intentional (context-specific)  # noqa: S5778
+
+        with pytest.raises(
+            PhysicsGuardError
+        ):  # NOSONAR — S5778: re-raise inside except is intentional (context-specific)  # noqa: S5778
             kernel.smoke_detector_spacing(float("nan"))
 
     def test_inf_ceiling_rejected(self, kernel):
         """Inf inputs are caught per IEEE-754-2008 §7.4."""
         from fireai.core.qomn_kernel import PhysicsGuardError
-        with pytest.raises(PhysicsGuardError):  # NOSONAR — S5778: re-raise inside except is intentional (context-specific)  # noqa: S5778
+
+        with pytest.raises(
+            PhysicsGuardError
+        ):  # NOSONAR — S5778: re-raise inside except is intentional (context-specific)  # noqa: S5778
             kernel.smoke_detector_spacing(float("inf"))
 
     def test_negative_area_rejected(self):
         """Negative area is physically impossible."""
         from fireai.core.qomn_kernel import PhysicsGuardError, guard_area_m2
+
         with pytest.raises(PhysicsGuardError):
             guard_area_m2(-5.0)
 
     def test_area_above_nfpa_max_rejected(self):
         """Area > 232.26m² exceeds NFPA 72 §17.7.3.2.1 max 2500 ft²."""
         from fireai.core.qomn_kernel import PhysicsGuardError, guard_area_m2
+
         with pytest.raises(PhysicsGuardError) as exc_info:
             guard_area_m2(300.0)
         assert "232" in str(exc_info.value)
@@ -123,29 +138,32 @@ class TestQOMNKernelLayer2Computation:
         fireai/constants/__init__.py:SMOKE_MAX_SPACING_M = 9.10.
         """
         r = kernel.smoke_detector_spacing(3.0)
-        assert abs(r["listed_spacing_m"] - 9.10) < 1e-3, \
+        assert abs(r["listed_spacing_m"] - 9.10) < 1e-3, (
             f"Expected 9.10m per NFPA 72 §17.7.3.2.3.1, got {r['listed_spacing_m']}"
+        )
 
     def test_smoke_coverage_radius_factor(self, kernel):
         """R = 0.7 × S per NFPA 72 §17.7.4.2.3.1."""
         r = kernel.smoke_detector_spacing(3.0)
         S = r["listed_spacing_m"]
         R = r["coverage_radius_m"]
-        assert abs(R - 0.7 * S) < 1e-4, f"R={R} ≠ 0.7×S={0.7*S}"
+        assert abs(R - 0.7 * S) < 1e-4, f"R={R} ≠ 0.7×S={0.7 * S}"
 
     def test_smoke_spacing_flat_at_all_heights(self, kernel):
         """V130 FIX: Spacing is FLAT 9.1m at ALL heights per §17.7.3.2.3."""
-        r_low  = kernel.smoke_detector_spacing(3.0)
+        r_low = kernel.smoke_detector_spacing(3.0)
         r_high = kernel.smoke_detector_spacing(9.0)
-        assert r_low["listed_spacing_m"] == r_high["listed_spacing_m"], \
+        assert r_low["listed_spacing_m"] == r_high["listed_spacing_m"], (
             "V130: Spacing must be flat 9.1m at ALL heights per §17.7.3.2.3"
+        )
 
     def test_battery_golden(self, kernel):
         """GOLDEN TEST: Battery formula per NFPA 72 §10.6.7.2.1."""
         r = kernel.battery_capacity(0.5, 3.0)
-        expected_ah = ((0.5 * 24.0 + 3.0 * (5.0/60.0)) / 0.80) * 1.25
-        assert abs(r["required_ah"] - expected_ah) < 1e-4, \
+        expected_ah = ((0.5 * 24.0 + 3.0 * (5.0 / 60.0)) / 0.80) * 1.25
+        assert abs(r["required_ah"] - expected_ah) < 1e-4, (
             f"Expected {expected_ah:.4f}Ah, got {r['required_ah']}"
+        )
 
     def test_battery_installed_gte_required(self, kernel):
         """Installed battery must always ≥ required capacity."""
@@ -163,8 +181,9 @@ class TestQOMNKernelLayer2Computation:
         r = kernel.voltage_drop(2.5, 100, "14", 24.0)
         # R_effective = R_20 × temp_correction = 4.263 × (1 + 0.00393×55) = 5.184 Ω/km
         expected = 2.0 * 2.5 * 100 * (4.263 * (1.0 + 0.00393 * 55.0) / 1000.0)
-        assert abs(r["voltage_drop_v"] - expected) < 1e-4, \
+        assert abs(r["voltage_drop_v"] - expected) < 1e-4, (
             f"Expected {expected:.4f}V, got {r['voltage_drop_v']}"
+        )
 
     def test_voltage_drop_invalid_gauge(self, kernel):
         """Invalid AWG gauge raises ValueError (not silent)."""
@@ -174,11 +193,13 @@ class TestQOMNKernelLayer2Computation:
     def test_computation_hash_deterministic(self, kernel):
         """Same input → same computation hash on any run."""
         from fireai.core.qomn_kernel import QOMNKernel
+
         k2 = QOMNKernel()
         r1 = kernel.smoke_detector_spacing(3.0)
         r2 = k2.smoke_detector_spacing(3.0)
-        assert r1["computation_hash"] == r2["computation_hash"], \
+        assert r1["computation_hash"] == r2["computation_hash"], (
             "Computation hash must be deterministic (IEEE-754 bit-exact)"
+        )
 
 
 class TestQOMNKernelLayer3Validation:
@@ -239,6 +260,7 @@ class TestQOMNKernelLayer4Audit:
 
 # ─── Device Placement Tests ───────────────────────────────────────────────────
 
+
 class TestDevicePlacement:
     """NFPA 72-2022 device placement compliance tests."""
 
@@ -249,6 +271,7 @@ class TestDevicePlacement:
             QOMNKernel,
             RoomSpec,
         )
+
         engine = DetectorPlacementEngine(QOMNKernel())
         room = RoomSpec("R001", 10.0, 8.0, 3.0)
         result = engine.place_detectors(room)
@@ -261,6 +284,7 @@ class TestDevicePlacement:
             QOMNKernel,
             RoomSpec,
         )
+
         engine = DetectorPlacementEngine(QOMNKernel())
         room = RoomSpec("R002", 12.0, 8.0, 3.0)
         result = engine.place_detectors(room)
@@ -276,6 +300,7 @@ class TestDevicePlacement:
             QOMNKernel,
             RoomSpec,
         )
+
         engine = DetectorPlacementEngine(QOMNKernel())
         room = RoomSpec("R003", 10.0, 8.0, 3.0, exit_doors=[ExitDoor(0.0, 4.0)])
         result = engine.place_detectors(room)
@@ -290,6 +315,7 @@ class TestDevicePlacement:
             QOMNKernel,
             RoomSpec,
         )
+
         engine = DetectorPlacementEngine(QOMNKernel())
         room = RoomSpec("R004", 10.0, 8.0, 3.0, exit_doors=[ExitDoor(0.0, 4.0)])
         result = engine.place_detectors(room)
@@ -304,6 +330,7 @@ class TestDevicePlacement:
             QOMNKernel,
             RoomSpec,
         )
+
         engine = DetectorPlacementEngine(QOMNKernel())
         room = RoomSpec("R005", 10.0, 8.0, 3.0, is_sleeping_area=False)
         result = engine.place_detectors(room)
@@ -318,6 +345,7 @@ class TestDevicePlacement:
             QOMNKernel,
             RoomSpec,
         )
+
         engine = DetectorPlacementEngine(QOMNKernel())
         room = RoomSpec("R006", 10.0, 8.0, 3.0, is_sleeping_area=True)
         result = engine.place_detectors(room)
@@ -328,12 +356,16 @@ class TestDevicePlacement:
         """Duct velocity < 60fpm (0.305m/s) must be rejected."""
         from fireai.core.device_placement import DuctDetectorSpec, place_duct_detector
         from fireai.core.qomn_kernel import PhysicsGuardError
-        with pytest.raises(PhysicsGuardError):  # NOSONAR — S5778: re-raise inside except is intentional (context-specific)  # noqa: S5778
+
+        with pytest.raises(
+            PhysicsGuardError
+        ):  # NOSONAR — S5778: re-raise inside except is intentional (context-specific)  # noqa: S5778
             place_duct_detector(DuctDetectorSpec("D1", 0.6, 0.4, 0.1))
 
     def test_duct_detector_single_narrow(self):
         """Duct ≤ 0.305m wide needs only 1 detector."""
         from fireai.core.device_placement import DuctDetectorSpec, place_duct_detector
+
         r = place_duct_detector(DuctDetectorSpec("D2", 0.3, 0.3, 2.0))
         assert r["n_detectors"] == 1
 
@@ -344,6 +376,7 @@ class TestDevicePlacement:
             QOMNKernel,
             RoomSpec,
         )
+
         engine = DetectorPlacementEngine(QOMNKernel())
         room = RoomSpec("R007", 10.0, 8.0, 3.0)
         result = engine.place_detectors(room)
@@ -352,20 +385,22 @@ class TestDevicePlacement:
 
 # ─── Pipeline Integration Tests ──────────────────────────────────────────────
 
+
 class TestPipelineQOMNIntegration:
     """Verify QOMN is correctly integrated into the full pipeline."""
 
     def test_stage_05_in_pipeline(self, standard_room):
         """Stage 0.5 (QOMN physics guard) must appear in pipeline stages."""
         from fireai.core.pipeline import analyze_room
+
         r = analyze_room(standard_room)
         stage_names = [s.stage_name for s in r.stages]
-        assert "S0.5_qomn_physics_guard" in stage_names, \
-            f"Stage 0.5 missing from: {stage_names}"
+        assert "S0.5_qomn_physics_guard" in stage_names, f"Stage 0.5 missing from: {stage_names}"
 
     def test_stage_05_succeeds(self, standard_room):
         """Stage 0.5 must succeed for valid inputs."""
         from fireai.core.pipeline import analyze_room
+
         r = analyze_room(standard_room)
         s05 = next(s for s in r.stages if "0.5" in s.stage_name)
         assert s05.success is True, f"Stage 0.5 failed: {s05.errors}"
@@ -373,6 +408,7 @@ class TestPipelineQOMNIntegration:
     def test_stage_05_physics_guard_passed(self, standard_room):
         """Physics guard must pass for valid room spec."""
         from fireai.core.pipeline import analyze_room
+
         r = analyze_room(standard_room)
         s05 = next(s for s in r.stages if "0.5" in s.stage_name)
         assert s05.data.get("physics_guard_passed") is True
@@ -380,20 +416,23 @@ class TestPipelineQOMNIntegration:
     def test_qomn_spacing_matches_stage1(self, standard_room):
         """QOMN spacing must match Stage 1 spacing within 1mm tolerance."""
         from fireai.core.pipeline import analyze_room
+
         r = analyze_room(standard_room)
         s05 = next(s for s in r.stages if "0.5" in s.stage_name)
-        s1  = next(s for s in r.stages if s.stage_name == "S1_nfpa_spacing")
-        qomn_s  = s05.data.get("qomn_spacing_m")
+        s1 = next(s for s in r.stages if s.stage_name == "S1_nfpa_spacing")
+        qomn_s = s05.data.get("qomn_spacing_m")
         stage1_s = s1.data.get("max_spacing_m")
         if qomn_s and stage1_s:
             # QOMN uses exact table value (9.144m); nfpa72_engine may round (9.1m)
             # Both are correct — tolerance is 0.05m (5cm engineering acceptable)
-            assert abs(qomn_s - stage1_s) < 0.05, \
+            assert abs(qomn_s - stage1_s) < 0.05, (
                 f"QOMN spacing {qomn_s}m ≠ Stage 1 spacing {stage1_s}m > 5cm discrepancy!"
+            )
 
     def test_qomn_audit_in_pipeline_result(self, standard_room):
         """PipelineResult must include QOMN audit log."""
         from fireai.core.pipeline import analyze_room
+
         r = analyze_room(standard_room)
         assert r.qomn_audit is not None, "qomn_audit missing from PipelineResult"
         assert r.qomn_audit.get("total_entries", 0) > 0
@@ -401,6 +440,7 @@ class TestPipelineQOMNIntegration:
     def test_qomn_audit_chain_valid_in_result(self, standard_room):
         """QOMN audit chain must be valid in pipeline result."""
         from fireai.core.pipeline import analyze_room
+
         r = analyze_room(standard_room)
         if r.qomn_audit:
             # chain_valid not directly in audit_log dict — verify separately
@@ -409,30 +449,40 @@ class TestPipelineQOMNIntegration:
     def test_pipeline_all_stages_present(self, standard_room):
         """All 8+ pipeline stages must run for valid room."""
         from fireai.core.pipeline import analyze_room
+
         r = analyze_room(standard_room)
         stage_names = [s.stage_name for s in r.stages]
-        required = ["S0_contract", "S0.5_qomn_physics_guard", "S1_nfpa_spacing",
-                    "S2_placement", "S4_safety", "S5_release_gates"]
+        required = [
+            "S0_contract",
+            "S0.5_qomn_physics_guard",
+            "S1_nfpa_spacing",
+            "S2_placement",
+            "S4_safety",
+            "S5_release_gates",
+        ]
         for req in required:
             assert req in stage_names, f"Required stage '{req}' missing from pipeline"
 
     def test_pipeline_nonzero_coverage(self, standard_room):
         """Coverage must be > 0% for any valid room (W-01 regression guard)."""
         from fireai.core.pipeline import analyze_room
+
         r = analyze_room(standard_room)
-        assert r.coverage_pct > 0.0, \
+        assert r.coverage_pct > 0.0, (
             f"W-01 regression: coverage={r.coverage_pct}% (0% is a critical bug)"
+        )
 
     def test_pipeline_nonzero_detectors(self, standard_room):
         """At least one detector must be placed in any valid room."""
         from fireai.core.pipeline import analyze_room
+
         r = analyze_room(standard_room)
-        assert r.detector_count > 0, \
-            "No detectors placed in valid room — engine failure"
+        assert r.detector_count > 0, "No detectors placed in valid room — engine failure"
 
     def test_pipeline_with_battery_includes_qomn_battery(self, standard_room):
         """When battery params provided, QOMN battery result in Stage 0.5."""
         from fireai.core.pipeline import analyze_room
+
         room = {**standard_room}
         r = analyze_room(room, standby_current_a=0.3, alarm_current_a=2.0)
         s05 = next(s for s in r.stages if "0.5" in s.stage_name)
@@ -441,6 +491,7 @@ class TestPipelineQOMNIntegration:
     def test_to_dict_includes_qomn_audit(self, standard_room):
         """PipelineResult.to_dict() must include qomn_audit."""
         from fireai.core.pipeline import analyze_room
+
         r = analyze_room(standard_room)
         d = r.to_dict()
         assert "qomn_audit" in d
@@ -448,16 +499,19 @@ class TestPipelineQOMNIntegration:
     def test_pipeline_stage_ordering(self, standard_room):
         """Stages must appear in S0 → S0.5 → S1 → ... order."""
         from fireai.core.pipeline import analyze_room
+
         r = analyze_room(standard_room)
         names = [s.stage_name for s in r.stages]
-        s0_idx  = names.index("S0_contract")
+        s0_idx = names.index("S0_contract")
         s05_idx = names.index("S0.5_qomn_physics_guard")
-        s1_idx  = names.index("S1_nfpa_spacing")
-        assert s0_idx < s05_idx < s1_idx, \
+        s1_idx = names.index("S1_nfpa_spacing")
+        assert s0_idx < s05_idx < s1_idx, (
             f"Stage ordering wrong: S0={s0_idx}, S0.5={s05_idx}, S1={s1_idx}"
+        )
 
 
 # ─── Golden Tests ─────────────────────────────────────────────────────────────
+
 
 class TestGoldenOutputs:
     """Known inputs → known outputs. Any change = regression."""
@@ -480,13 +534,14 @@ class TestGoldenOutputs:
         at ALL ceiling heights.
         """
         r = kernel.smoke_detector_spacing(4.572)
-        assert abs(r["listed_spacing_m"] - 9.10) < 1e-3, \
+        assert abs(r["listed_spacing_m"] - 9.10) < 1e-3, (
             f"Expected 9.10m flat per §17.7.3.2.3, got {r['listed_spacing_m']}"
+        )
 
     def test_golden_battery_standard(self, kernel):
         """Battery: 0.5A×24h + 3.0A×5min / 0.80 × 1.25."""
         r = kernel.battery_capacity(0.5, 3.0)
-        expected = ((0.5*24 + 3.0*(5/60)) / 0.80) * 1.25
+        expected = ((0.5 * 24 + 3.0 * (5 / 60)) / 0.80) * 1.25
         assert abs(r["required_ah"] - expected) < 1e-4
 
     def test_golden_vdrop_awg14_100m(self, kernel):
@@ -505,6 +560,7 @@ class TestGoldenOutputs:
     def test_deterministic_across_instances(self):
         """Two independent kernel instances produce identical hashes."""
         from fireai.core.qomn_kernel import QOMNKernel
+
         k1, k2 = QOMNKernel(), QOMNKernel()
         r1 = k1.smoke_detector_spacing(3.5)
         r2 = k2.smoke_detector_spacing(3.5)

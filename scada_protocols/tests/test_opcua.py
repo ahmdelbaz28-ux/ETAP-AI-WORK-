@@ -142,9 +142,7 @@ class TestBuildFromSystem:
         assert folder_names == ["Buses", "Lines", "Transformers", "Switches"]
 
     def test_all_variables_helper(self) -> None:
-        sys_obj = _FakeSystem(
-            buses=[_FakeBus("B1")], lines=[], transformers=[], switches=[]
-        )
+        sys_obj = _FakeSystem(buses=[_FakeBus("B1")], lines=[], transformers=[], switches=[])
         plan = build_plan_from_system(sys_obj)
         all_vars = plan.all_variables()
         assert len(all_vars) == 5  # 5 measurement types per bus

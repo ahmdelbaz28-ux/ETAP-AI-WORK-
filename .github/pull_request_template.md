@@ -1,45 +1,43 @@
-## What does this PR do?
+## Summary
 
-<!-- One sentence summary. -->
+Brief description of the changes.
 
-## Why is this change needed?
+## Type of Change
 
-<!-- Link to issue, audit report, or describe the problem. -->
+- [ ] Bug fix
+- [ ] New feature
+- [ ] Breaking change
+- [ ] Documentation update
+- [ ] Refactoring
+- [ ] Performance improvement
 
-## Type of change
+## Related Issues
 
-- [ ] Bug fix (non-breaking)
-- [ ] New feature (non-breaking)
-- [ ] Breaking change (existing behavior changes)
-- [ ] Safety-critical: modifies regulatory data (NFPA/NEC/IEC/etc.)
-- [ ] Security hardening
-- [ ] Documentation / governance only
-- [ ] Test changes only
+Closes #(issue number)
 
-## Safety-critical checklist (REQUIRED if you checked "Safety-critical")
+## Changes Made
 
-- [ ] I have read `agent.md` in full
-- [ ] Commit message includes either:
-  - `Signed-off-by: <name> PE/FPE <license-number>` trailer, OR
-  - Verbatim citation of published standard (e.g., "NFPA 72-2022 §17.7.3.2.3.1")
-- [ ] I have verified no other implementation of the same regulatory
-      data exists in the repo (Rule 23: single source of truth)
-- [ ] Tests cover both the new behavior AND boundary conditions
-- [ ] Behavioral diff documented in commit message
+- Change 1
+- Change 2
+- Change 3
 
-## Verification
+## Testing
 
-```
-# Paste the output of:
-pytest tests/ -q --tb=line | tail -3
-ruff check fireai/ qomn_conduit/ parsers/ backend/
-bandit -ll -r fireai/ parsers/ backend/
-```
+- [ ] Unit tests pass (`pytest -q`)
+- [ ] Integration tests pass
+- [ ] UI builds successfully (`cd ui && pnpm build`)
+- [ ] Manual testing completed
+- [ ] Validation suite passes
 
-## Risks
+## Checklist
 
-<!-- What could break? Who needs to know? -->
+- [ ] Code follows project style guidelines
+- [ ] Self-reviewed the code
+- [ ] Comments added for complex logic
+- [ ] Documentation updated
+- [ ] No new warnings introduced
+- [ ] Security implications considered
 
-## Rollback plan
+## Screenshots (if applicable)
 
-<!-- If this PR causes problems in production, how do we undo it? -->
+<!-- Add screenshots showing the changes -->

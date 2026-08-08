@@ -77,6 +77,7 @@ def get_correlation_id() -> str | None:
     """
     try:
         from backend.request_context import get_correlation_id as _get_cid
+
         return _get_cid()
     except ImportError:
         return None
@@ -143,7 +144,9 @@ def record_audit_write(
         # Per fail-safe principle: audit failure MUST NOT block the operation
         logger.exception(
             "Failed to record audit write for %s on %s: %s",
-            operation, table, exc,
+            operation,
+            table,
+            exc,
         )
         return None
 
@@ -232,6 +235,7 @@ def audit_db_write(
 
         # Return the appropriate wrapper based on whether the function is async
         import inspect
+
         if inspect.iscoroutinefunction(func):
             return async_wrapper
         return sync_wrapper
@@ -252,6 +256,7 @@ def _extract_record_id(
             return str(kwargs[record_id_arg])
         # Try to find in function signature
         import inspect
+
         sig = inspect.signature(func)
         params = list(sig.parameters.keys())
         if record_id_arg in params:

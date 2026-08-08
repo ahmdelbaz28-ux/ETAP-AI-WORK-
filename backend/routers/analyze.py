@@ -33,6 +33,7 @@ from fireai.core.qomn_kernel import (
 
 logger = logging.getLogger(__name__)
 
+
 # ----------------------------------------------------------------------------
 # Safe error helper for PhysicsGuardError
 # ----------------------------------------------------------------------------
@@ -53,6 +54,7 @@ def _physics_guard_detail(exc: Exception) -> dict:
         }
     # Fallback — never leak raw str(exc)
     return {"error_type": "physics_guard_violation", "hint": "Input rejected by physics guard."}
+
 
 # ----------------------------------------------------------------------------
 # Routers
@@ -107,7 +109,9 @@ class RoomAnalyzeRequest(BaseModel):
         ..., description="Room polygon as [[x,y], ...] list of vertices"
     )
     ceiling_height_m: float = Field(
-        ..., gt=0, le=18.288,
+        ...,
+        gt=0,
+        le=18.288,
         description="Ceiling height (m). NFPA 72 §17.7.3.2.4 caps at 18.288m (60ft).",
     )
     detector_type: str = Field("smoke", description="Detector type: smoke | heat")
@@ -151,6 +155,11 @@ async def analyze_battery(req: BatteryRequest) -> dict[str, Any]:
     except Exception:
         logger.exception("battery calculation failed")
         raise HTTPException(status_code=500, detail="Internal calculation error")  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
+        raise HTTPException(
+            status_code=422, detail=_physics_guard_detail(e)
+        )  # NOSONAR — S8415: assignment kept for readability / debuggability
+            status_code=500, detail="Internal calculation error"
+
 
 
 @router.post(
@@ -183,6 +192,11 @@ async def analyze_voltage(req: VoltageRequest) -> dict[str, Any]:
     except Exception:
         logger.exception("voltage drop calculation failed")
         raise HTTPException(status_code=500, detail="Internal calculation error")  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
+        raise HTTPException(
+            status_code=422, detail=_physics_guard_detail(e)
+        )  # NOSONAR — S8415: assignment kept for readability / debuggability
+            status_code=500, detail="Internal calculation error"
+
 
 
 @project_router.post(
@@ -199,7 +213,9 @@ async def analyze_project_room(project_id: str, req: RoomAnalyzeRequest) -> dict
     # Scope the room_id under the project
     if not req.room_id.startswith(project_id):
         # Don't leak project_id structure in error -- use generic message
-        logger.warning("room_id %r does not match project_id %r", req.room_id, project_id)  # NOSONAR
+        logger.warning(
+            "room_id %r does not match project_id %r", req.room_id, project_id
+        )  # NOSONAR
 
     try:
         result = analyze_room(
@@ -221,3 +237,8 @@ async def analyze_project_room(project_id: str, req: RoomAnalyzeRequest) -> dict
     except Exception:
         logger.exception("room analysis failed for project %s", project_id)
         raise HTTPException(status_code=500, detail="Internal pipeline error")  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
+        raise HTTPException(
+            status_code=422, detail=_physics_guard_detail(e)
+        )  # NOSONAR — S8415: assignment kept for readability / debuggability
+            status_code=500, detail="Internal pipeline error"
+

@@ -136,7 +136,11 @@ def get_disabled_studies() -> list[dict]:
         return []
     flags = _load_flags()
     return [
-        {"study_type": k, "status": v.get("status", "beta"), "description": v.get("description", "")}
+        {
+            "study_type": k,
+            "status": v.get("status", "beta"),
+            "description": v.get("description", ""),
+        }
         for k, v in flags.items()
         if not v.get("enabled", False)
     ]

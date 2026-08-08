@@ -1,5 +1,6 @@
 # NOSONAR
 """Engine Worker for L3 in Distributed FACP System"""
+
 import logging
 import threading
 import time
@@ -17,12 +18,20 @@ class EngineWorker:
     Runs as a separate node in the distributed system
     """
 
-    def __init__(self, worker_id: Optional[str] = None, capabilities: Optional[list] = None,
-                 max_concurrent_tasks: int = 10):
+    def __init__(
+        self,
+        worker_id: Optional[str] = None,
+        capabilities: Optional[list] = None,
+        max_concurrent_tasks: int = 10,
+    ):
         self.worker_id = worker_id or f"engine_worker_{int(time.time())}_{uuid.uuid4().hex[:8]}"
         self.capabilities = capabilities or [
-            "engine.calculate", "engine.validate", "engine.transform",
-            "calc.*", "analysis.*", "validation.*"
+            "engine.calculate",
+            "engine.validate",
+            "engine.transform",
+            "calc.*",
+            "analysis.*",
+            "validation.*",
         ]
         self.max_concurrent_tasks = max_concurrent_tasks
         self.current_tasks = 0
@@ -42,26 +51,25 @@ class EngineWorker:
         self.stateless_validator = StatelessExecutionValidator()
 
         # Create sandbox templates for different types of computations
-        self.sandbox_controller.create_sandbox_template("calculation", {
-            "timeout_ms": 5000,
-            "max_memory_mb": 256,
-            "network_access": False,
-            "file_access": []
-        })
+        self.sandbox_controller.create_sandbox_template(
+            "calculation",
+            {"timeout_ms": 5000, "max_memory_mb": 256, "network_access": False, "file_access": []},
+        )
 
-        self.sandbox_controller.create_sandbox_template("validation", {
-            "timeout_ms": 8000,
-            "max_memory_mb": 512,
-            "network_access": False,
-            "file_access": []
-        })
+        self.sandbox_controller.create_sandbox_template(
+            "validation",
+            {"timeout_ms": 8000, "max_memory_mb": 512, "network_access": False, "file_access": []},
+        )
 
-        self.sandbox_controller.create_sandbox_template("transformation", {
-            "timeout_ms": 10000,
-            "max_memory_mb": 1024,
-            "network_access": False,
-            "file_access": []
-        })
+        self.sandbox_controller.create_sandbox_template(
+            "transformation",
+            {
+                "timeout_ms": 10000,
+                "max_memory_mb": 1024,
+                "network_access": False,
+                "file_access": [],
+            },
+        )
 
     def start(self):
         """Start the engine worker"""
@@ -91,14 +99,14 @@ class EngineWorker:
                 status="error",
                 error={
                     "code": "METHOD_NOT_SUPPORTED",
-                    "message": f"Method {method} not supported by this worker"
+                    "message": f"Method {method} not supported by this worker",
                 },
                 trace={
                     "execution_path": ["L3_EngineWorker"],
                     "latency_ms": 0,
                     "node_id": self.worker_id,
-                    "engine_version": "FACP/1.1"  # NOSONAR — S1192: duplicated literal acceptable in this localized context
-                }
+                    "engine_version": "FACP/1.1",  # NOSONAR — S1192: duplicated literal acceptable in this localized context
+                },
             ).to_dict()
 
         # Validate request constraints
@@ -107,16 +115,13 @@ class EngineWorker:
             return FACPResponse(
                 id=request_id,
                 status="error",
-                error={
-                    "code": "CONSTRAINT_VIOLATION",
-                    "message": constraint_error
-                },
+                error={"code": "CONSTRAINT_VIOLATION", "message": constraint_error},
                 trace={
                     "execution_path": ["L3_EngineWorker"],
                     "latency_ms": 0,
                     "node_id": self.worker_id,
-                    "engine_version": "FACP/1.1"
-                }
+                    "engine_version": "FACP/1.1",
+                },
             ).to_dict()
 
         # Execute the request
@@ -130,7 +135,7 @@ class EngineWorker:
 
         # Check for wildcard matches
         for capability in self.capabilities:
-            if capability.endswith('.*') and method.startswith(capability[:-2]):
+            if capability.endswith(".*") and method.startswith(capability[:-2]):
                 return True
 
         return False
@@ -190,12 +195,20 @@ class EngineWorker:
             execution_time = (time.time() - execution_start) * 1000  # Convert to ms
 
             # Validate that execution was deterministic
-            is_deterministic, det_message = self.stateless_validator.validate_deterministic_function(
-                lambda: result if isinstance(result, (int, float, str, bool, list, dict)) else {"result": result}
+            is_deterministic, det_message = (
+                self.stateless_validator.validate_deterministic_function(
+                    lambda: (
+                        result
+                        if isinstance(result, (int, float, str, bool, list, dict))
+                        else {"result": result}
+                    )
+                )
             )
 
             if not is_deterministic:
-                self.logger.warning("Deterministic validation warning for %s: %s", request_id, det_message)
+                self.logger.warning(
+                    "Deterministic validation warning for %s: %s", request_id, det_message
+                )
 
             # Create successful response
             response = FACPResponse(
@@ -208,8 +221,8 @@ class EngineWorker:
                     "node_id": self.worker_id,
                     "engine_version": "FACP/1.1",
                     "sandbox_id": sandbox_id,
-                    "deterministic": True
-                }
+                    "deterministic": True,
+                },
             ).to_dict()
 
         except Exception as e:
@@ -219,17 +232,14 @@ class EngineWorker:
             response = FACPResponse(
                 id=request_id,
                 status="error",
-                error={
-                    "code": "EXECUTION_ERROR",
-                    "message": f"Execution failed: {e!s}"
-                },
+                error={"code": "EXECUTION_ERROR", "message": f"Execution failed: {e!s}"},
                 trace={
                     "execution_path": ["L3_EngineWorker"],
                     "latency_ms": execution_time,
                     "node_id": self.worker_id,
                     "engine_version": "FACP/1.1",
-                    "sandbox_id": sandbox_id
-                }
+                    "sandbox_id": sandbox_id,
+                },
             ).to_dict()
 
         finally:
@@ -287,7 +297,7 @@ class EngineWorker:
             "last_heartbeat": self.heartbeat_timestamp,
             "uptime_seconds": time.time() - self.heartbeat_timestamp,
             "sandbox_health": self.sandbox_controller.get_sandbox_health(),
-            "engine_version": "FACP/1.1"
+            "engine_version": "FACP/1.1",
         }
 
     def heartbeat(self) -> Dict[str, Any]:
@@ -299,12 +309,14 @@ class EngineWorker:
         """Get execution statistics for this worker"""
         return {
             "worker_id": self.worker_id,
-            "total_executions": getattr(self, '_total_executions', 0),
-            "successful_executions": getattr(self, '_successful_executions', 0),
-            "failed_executions": getattr(self, '_failed_executions', 0),
-            "average_execution_time": getattr(self, '_average_execution_time', 0),
-            "current_load": self.current_tasks / self.max_concurrent_tasks if self.max_concurrent_tasks > 0 else 0,
-            "capabilities_count": len(self.capabilities)
+            "total_executions": getattr(self, "_total_executions", 0),
+            "successful_executions": getattr(self, "_successful_executions", 0),
+            "failed_executions": getattr(self, "_failed_executions", 0),
+            "average_execution_time": getattr(self, "_average_execution_time", 0),
+            "current_load": self.current_tasks / self.max_concurrent_tasks
+            if self.max_concurrent_tasks > 0
+            else 0,
+            "capabilities_count": len(self.capabilities),
         }
 
     def cleanup_idle_sandboxes(self):
@@ -340,10 +352,7 @@ class EngineWorker:
     def queue_task(self, request_data: Dict[str, Any]):
         """Queue a task for processing"""
         with self.lock:
-            self.task_queue.append({
-                "request_data": request_data,
-                "queued_at": time.time()
-            })
+            self.task_queue.append({"request_data": request_data, "queued_at": time.time()})
 
     def get_queue_status(self) -> Dict[str, Any]:
         """Get status of the task queue"""
@@ -351,8 +360,10 @@ class EngineWorker:
             return {
                 "queue_size": len(self.task_queue),
                 "max_queue_size": 100,  # Arbitrary max
-                "current_load": self.current_tasks / self.max_concurrent_tasks if self.max_concurrent_tasks > 0 else 0,
-                "tasks_waiting": len(self.task_queue)
+                "current_load": self.current_tasks / self.max_concurrent_tasks
+                if self.max_concurrent_tasks > 0
+                else 0,
+                "tasks_waiting": len(self.task_queue),
             }
 
     def enforce_execution_constraints(self, request_data: Dict[str, Any]) -> tuple[bool, str]:

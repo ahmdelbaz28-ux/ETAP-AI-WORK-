@@ -16,15 +16,18 @@ class DeviceType(Enum):
     MANUAL_PULL_STATION = "MANUAL_PULL_STATION"
     HORN_STROBE = "HORN_STROBE"
 
+
 class ConduitType(Enum):
     EMT = "EMT"  # Electrical Metallic Tubing (NEC Art. 358)
     RMC = "RMC"  # Rigid Metal Conduit (NEC Art. 344)
     FMC = "FMC"  # Flexible Metal Conduit (NEC Art. 348)
 
+
 class FittingType(Enum):
     ELBOW_90 = "ELBOW_90"
     TEE = "TEE"
     COUPLING = "COUPLING"
+
 
 @dataclass(frozen=True)
 class Point3D:
@@ -33,15 +36,16 @@ class Point3D:
     z: float = 0.0
 
     def __post_init__(self):
-        object.__setattr__(self, 'x', round(float(self.x), 4))
-        object.__setattr__(self, 'y', round(float(self.y), 4))
-        object.__setattr__(self, 'z', round(float(self.z), 4))
+        object.__setattr__(self, "x", round(float(self.x), 4))
+        object.__setattr__(self, "y", round(float(self.y), 4))
+        object.__setattr__(self, "z", round(float(self.z), 4))
 
     def to_tuple(self) -> Tuple[float, float, float]:
         return (self.x, self.y, self.z)
 
     def to_dict(self) -> Dict[str, float]:
         return {"X": self.x, "Y": self.y, "Z": self.z}
+
 
 @dataclass(frozen=True)
 class Wall:
@@ -53,6 +57,7 @@ class Wall:
     height_m: float
     thickness_m: float
 
+
 @dataclass(frozen=True)
 class Opening:
     """Door or window opening in a wall."""
@@ -62,6 +67,7 @@ class Opening:
     location: Point3D
     width_m: float
     height_m: float
+
 
 @dataclass(frozen=True)
 class Room:
@@ -78,6 +84,7 @@ class Room:
     # placeholder boundaries — the geometry is NOT the real building.
     # Per NFPA 72 §17.7.4, coverage calculations require accurate room geometry.
     has_placeholder_boundary: bool = False
+
 
 @dataclass(frozen=True)
 class Building:
@@ -141,6 +148,7 @@ class Building:
         )
         return hashlib.sha256(serialized.encode("utf-8")).hexdigest()
 
+
 @dataclass(frozen=True)
 class Device:
     id: str
@@ -154,10 +162,12 @@ class Device:
         serialized = f"{self.id}:{self.device_type.value}:{self.location.x:.4f},{self.location.y:.4f},{self.location.z:.4f}:{self.elevation_ft}:{self.circuit}:{self.zone}"
         return hashlib.sha256(serialized.encode("utf-8")).hexdigest()
 
+
 @dataclass(frozen=True)
 class Fitting:
     fitting_type: FittingType
     location: Point3D
+
 
 @dataclass(frozen=True)
 class ConduitRun:
@@ -175,6 +185,7 @@ class ConduitRun:
         serialized = f"{self.id}:{self.conduit_type.value}:{self.trade_size}:{pt_strs}:{self.total_length_ft:.4f}:{self.bend_count}:{self.bend_degrees}"
         return hashlib.sha256(serialized.encode("utf-8")).hexdigest()
 
+
 @dataclass(frozen=True)
 class FireAlarmPanel:
     model: str
@@ -190,6 +201,7 @@ class FireAlarmPanel:
     alarm_current_amps: float
     power_supply_watts: int
 
+
 @dataclass(frozen=True)
 class ProjectRequirements:
     device_count: int
@@ -201,6 +213,7 @@ class ProjectRequirements:
     requires_releasing: bool
     jurisdiction: str
     preferred_manufacturer: Optional[str] = None
+
 
 @dataclass(frozen=True)
 class PanelRecommendation:
@@ -217,6 +230,7 @@ class PanelRecommendation:
     alternatives: Tuple[str, ...]
     signature_hash: str
 
+
 @dataclass(frozen=True)
 class HatchSpec:
     pattern_name: str
@@ -226,6 +240,7 @@ class HatchSpec:
     layer: str
     description: str
     code_reference: str
+
 
 @dataclass(frozen=True)
 class TitleBlock:
@@ -239,6 +254,7 @@ class TitleBlock:
     pe_stamp: str
     client: str
     address: str
+
 
 @dataclass(frozen=True)
 class Revision:

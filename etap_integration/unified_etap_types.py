@@ -9,6 +9,7 @@ unified_etap_types.py — Single Source of Truth for ETAP types
 Branch: fix/etap-unified-types
 Refs: PRODUCTION_PLAN/02_DUPLICATION_REPORT.md Cluster #1
 """
+
 from __future__ import annotations
 
 import time
@@ -101,8 +102,7 @@ class ETAPStudyType(Enum):
             return legacy_mapping[name]
 
         raise ValueError(
-            f"Unknown ETAP study type: {name!r}. "
-            f"Valid values: {[m.value for m in cls]}"
+            f"Unknown ETAP study type: {name!r}. Valid values: {[m.value for m in cls]}"
         )
 
     @classmethod

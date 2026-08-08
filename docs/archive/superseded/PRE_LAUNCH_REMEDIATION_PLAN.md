@@ -62,12 +62,9 @@ The following protections are **already implemented**:
 # Current placeholder at line ~507
 if not csrf_token:
     response = Response(
-        content=json.dumps({
-            "success": False, 
-            "error": "Missing CSRF token"
-        }),
+        content=json.dumps({"success": False, "error": "Missing CSRF token"}),
         status_code=403,
-        media_type="application/json"
+        media_type="application/json",
     )
 ```
 
@@ -149,10 +146,7 @@ raise HTTPException(status_code=500, detail=str(e))
 
 # Use:
 logger.error(f"Internal error: {e}", exc_info=True, extra={"path": scope.get("path")})
-raise HTTPException(
-    status_code=500,
-    detail="An unexpected error occurred. Please contact support."
-)
+raise HTTPException(status_code=500, detail="An unexpected error occurred. Please contact support.")
 ```
 
 **Verification Test:**
@@ -253,17 +247,19 @@ projects = db.query(Project).options(joinedload(Project.owner)).all()
 1. **In-Memory Cache** (L1): For frequently accessed, rarely changing data
    ```python
    from functools import lru_cache
-   
+
+
    @lru_cache(maxsize=1024)
-   def get_standard_code(region_code: str) -> StandardConfig:
-       ...
+   def get_standard_code(region_code: str) -> StandardConfig: ...
    ```
 
 2. **Redis Cache** (L2): For API responses, user sessions
    ```python
    import redis
-   r = redis.Redis(host='localhost', port=6379, db=0)
-   
+
+   r = redis.Redis(host="localhost", port=6379, db=0)
+
+
    def cached_get(endpoint: str):
        key = f"cache:{endpoint}"
        data = r.get(key)
@@ -303,13 +299,14 @@ python -m tracemalloc backend/server.py
 ```python
 from locust import HttpUser, task, between
 
+
 class APIUser(HttpUser):
     wait_time = between(1, 3)
-    
+
     @task(3)
     def get_health(self):
         self.client.get("/api/v1/health")
-    
+
     @task(1)
     def parse_drawing(self):
         # Simulate heavy operation
@@ -343,10 +340,11 @@ locust -f tests/load_test.py --host=http://localhost:8000
 ```python
 from tenacity import retry, stop_after_attempt, wait_exponential
 
+
 @retry(
     stop=stop_after_attempt(3),
     wait=wait_exponential(multiplier=1, min=2, max=10),
-    retry=retry_if_exception_type(httpx.Timeout)
+    retry=retry_if_exception_type(httpx.Timeout),
 )
 async def fetch_weather_data(lat: float, lon: float):
     async with httpx.AsyncClient(timeout=10.0) as client:
@@ -368,11 +366,11 @@ class CircuitBreaker:
         self.threshold = failure_threshold
         self.last_failure = None
         self.recovery_timeout = recovery_timeout
-    
+
     async def call(self, func, *args, **kwargs):
         if self.should_fail():
             raise CircuitOpenError("Service temporarily unavailable")
-        
+
         try:
             result = await func(*args, **kwargs)
             self.reset()
@@ -381,8 +379,10 @@ class CircuitBreaker:
             self.record_failure()
             raise
 
+
 # Usage
 breaker = CircuitBreaker()
+
 
 async def get_air_quality(lat, lon):
     return await breaker.call(fetch_air_quality_api, lat, lon)
@@ -404,15 +404,13 @@ import structlog
 
 logger = structlog.get_logger()
 
+
 # In middleware
 async def __call__(self, scope, receive, send):
     correlation_id = scope["state"]["correlation_id"]
-    
+
     logger.info(
-        "request_started",
-        method=scope["method"],
-        path=scope["path"],
-        correlation_id=correlation_id
+        "request_started", method=scope["method"], path=scope["path"], correlation_id=correlation_id
     )
 ```
 
@@ -442,12 +440,13 @@ import pytest
 from backend.auth import get_current_role, require_permission
 from backend.rbac import Role, Permission
 
+
 class TestGetCurrentRole:
     def test_returns_admin_from_state(self):
         request = Mock(spec=Request)
         request.state.fireai_role = Role.ADMIN
         assert get_current_role(request) == Role.ADMIN
-    
+
     def test_defaults_to_viewer(self):
         request = Mock(spec=Request)
         assert get_current_role(request) == Role.VIEWER

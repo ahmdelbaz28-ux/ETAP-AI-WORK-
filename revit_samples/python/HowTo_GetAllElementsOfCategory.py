@@ -11,20 +11,35 @@ For more information visit http://github.com/gtalarico/revitapidocs
 License: http://github.com/gtalarico/revitapidocs/blob/master/LICENSE.md
 """
 
-#Imports.
+# Imports.
 from Autodesk.Revit.DB import BuiltInCategory, FilteredElementCollector
 
 doc = __revit__.ActiveUIDocument.Document  # noqa: F821
-
 def all_elements_of_category(category):
 	return FilteredElementCollector(doc).OfCategory(category).WhereElementIsNotElementType().ToElements()  # noqa: W191
+# pyRevit runtime global — injected by the pyRevit loader at runtime.
+# Fallback to None for static analysis / direct execution outside pyRevit.
+try:
+    __revit__  # type: ignore[used-before-def]  # noqa: F821
+except NameError:
+    __revit__ = None  # type: ignore[assignment]
+doc = __revit__.ActiveUIDocument.Document
 
-#All Elements Of Walls Category.
+
+def all_elements_of_category(category):
+    return (
+        FilteredElementCollector(doc)
+        .OfCategory(category)
+        .WhereElementIsNotElementType()
+        .ToElements()
+    )
+
+
+# All Elements Of Walls Category.
 walls = all_elements_of_category(BuiltInCategory.OST_Walls)
 
-#All Elements Of Doors Category.
+# All Elements Of Doors Category.
 doors = all_elements_of_category(BuiltInCategory.OST_Doors)
 
-#All Elements Of Windows Category.
+# All Elements Of Windows Category.
 windows = all_elements_of_category(BuiltInCategory.OST_Windows)
-

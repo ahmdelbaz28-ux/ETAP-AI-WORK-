@@ -304,6 +304,6 @@ def test_production_unknown_study_type_rejected():
         {"study_type": "nonexistent_study", "parameters": {}, "use_etap": False},
     )
     _skip_if_secured(d)
-    assert (
-        d.get("_http_error") == 400 or "error" in d or "Unknown" in str(d)
-    ), f"Expected 400 or error for unknown study type, got: {d}"
+    assert d.get("_http_error") == 400 or "error" in d or "Unknown" in str(d), (
+        f"Expected 400 or error for unknown study type, got: {d}"
+    )

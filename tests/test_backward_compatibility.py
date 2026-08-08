@@ -165,5 +165,7 @@ def test_old_prompts_still_loaded():
     ]
     for handle in old_handles:
         prompt = get_system_prompt(handle)
-        assert prompt, f"Prompt '{handle}' no longer loads (None/empty)"  # NOSONAR S9073: composite assertion verifies a correlated set of conditions; splitting would obscure the invariant under test
+        assert prompt, (
+            f"Prompt '{handle}' no longer loads (None/empty)"
+        )  # NOSONAR S9073: composite assertion verifies a correlated set of conditions; splitting would obscure the invariant under test
     assert len(prompt) > 20, f"Prompt '{handle}' no longer loads (too short: {len(prompt)} chars)"

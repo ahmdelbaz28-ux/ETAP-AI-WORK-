@@ -28,22 +28,23 @@ logger = logging.getLogger("fireai.pdf_parser")
 # DATA CLASSES
 # ═══════════════════════════════════════════════════════
 
+
 @dataclass
 class PDFDevice:
     """Single fire device from PDF."""
 
-    device_type: str      # SMOKE_DETECTOR, HEAT_DETECTOR, PULL_STATION, etc.
-    location: str         # Room/area description
+    device_type: str  # SMOKE_DETECTOR, HEAT_DETECTOR, PULL_STATION, etc.
+    location: str  # Room/area description
     page: int
-    x: float            # X coordinate on page
-    y: float            # Y coordinate on page
+    x: float  # X coordinate on page
+    y: float  # Y coordinate on page
 
     def to_dict(self) -> dict:
         return {
             "type": self.device_type,
             "location": self.location,
             "page": self.page,
-            "coordinates": (self.x, self.y)
+            "coordinates": (self.x, self.y),
         }
 
 
@@ -71,45 +72,40 @@ class PDFParseResult:
 # Device type keywords - order matters (most specific first)
 DEVICE_PATTERNS = [
     # Smoke/Heat detectors
-    (r'smoke\s*detector', 'SMOKE_DETECTOR'),
-    (r'heat\s*detector', 'HEAT_DETECTOR'),
-    (r'photoelectric\s*detector', 'SMOKE_DETECTOR'),
-    (r'ionization\s*detector', 'SMOKE_DETECTOR'),
-    (r'fixed\s*temp', 'HEAT_DETECTOR'),
-    (r'rate-of-rise', 'HEAT_DETECTOR'),
-
+    (r"smoke\s*detector", "SMOKE_DETECTOR"),
+    (r"heat\s*detector", "HEAT_DETECTOR"),
+    (r"photoelectric\s*detector", "SMOKE_DETECTOR"),
+    (r"ionization\s*detector", "SMOKE_DETECTOR"),
+    (r"fixed\s*temp", "HEAT_DETECTOR"),
+    (r"rate-of-rise", "HEAT_DETECTOR"),
     # Pull stations
-    (r'pull\s*station', 'PULL_STATION'),
-    (r'fire\s*alarm\s*pull', 'PULL_STATION'),
-    (r'manual\s*pull', 'PULL_STATION'),
-    (r'break\s*glass', 'PULL_STATION'),
-
+    (r"pull\s*station", "PULL_STATION"),
+    (r"fire\s*alarm\s*pull", "PULL_STATION"),
+    (r"manual\s*pull", "PULL_STATION"),
+    (r"break\s*glass", "PULL_STATION"),
     # Notification appliances — ORDER MATTERS (most specific first)
     # V78 FIX: Moved horn-strobe pattern BEFORE simple horn pattern.
     # Previously, 'horn' matched "horn/strobe" first, misclassifying
     # combined devices as simple HORN. NFPA 72 requires separate
     # counting for combined vs standalone notification appliances.
-    (r'horn[\s-]*strobe', 'HORN_STROBE'),
-    (r'horn', 'HORN'),
-    (r'strobe', 'STROBE'),
-    (r'bell', 'BELL'),
-    (r'speaker', 'SPEAKER'),
-    (r'notification', 'NOTIFICATION'),
-
+    (r"horn[\s-]*strobe", "HORN_STROBE"),
+    (r"horn", "HORN"),
+    (r"strobe", "STROBE"),
+    (r"bell", "BELL"),
+    (r"speaker", "SPEAKER"),
+    (r"notification", "NOTIFICATION"),
     # Panel
-    (r'fire\s*alarm\s*panel', 'FAP'),
-    (r'control\s*panel', 'FAP'),
-    (r'facp', 'FAP'),
-    (r'main\s*panel', 'FAP'),
-
+    (r"fire\s*alarm\s*panel", "FAP"),
+    (r"control\s*panel", "FAP"),
+    (r"facp", "FAP"),
+    (r"main\s*panel", "FAP"),
     # Sprinkler
-    (r'sprinkler', 'SPRINKLER'),
-    (r'flow\s*switch', 'FLOW_SWITCH'),
-    (r'tamper\s*switch', 'TAMPER_SWITCH'),
-
+    (r"sprinkler", "SPRINKLER"),
+    (r"flow\s*switch", "FLOW_SWITCH"),
+    (r"tamper\s*switch", "TAMPER_SWITCH"),
     # Power
-    (r'power\s*supply', 'POWER_SUPPLY'),
-    (r'battery', 'BATTERY'),
+    (r"power\s*supply", "POWER_SUPPLY"),
+    (r"battery", "BATTERY"),
 ]
 
 
@@ -155,8 +151,11 @@ class PDFParser:
             validate_file_size,
             validate_input_path,
         )
+
         _ALLOWED_EXTENSIONS = frozenset({".pdf"})
-        _MAX_FILE_SIZE_BYTES = int(os.getenv("FIREAI_PDF_MAX_FILE_SIZE_BYTES", 200 * 1024 * 1024))  # 200 MB default
+        _MAX_FILE_SIZE_BYTES = int(
+            os.getenv("FIREAI_PDF_MAX_FILE_SIZE_BYTES", 200 * 1024 * 1024)
+        )  # 200 MB default
         try:
             safe_path = validate_input_path(
                 pdf_path,
@@ -196,8 +195,9 @@ class PDFParser:
             validate_input_path,
         )
 
-        _PDF_MAX_BYTES = int(_os.getenv("FIREAI_PDF_MAX_FILE_SIZE_BYTES",
-                                       str(200 * 1024 * 1024)))  # 200 MB
+        _PDF_MAX_BYTES = int(
+            _os.getenv("FIREAI_PDF_MAX_FILE_SIZE_BYTES", str(200 * 1024 * 1024))
+        )  # 200 MB
 
         try:
             safe_path = validate_input_path(
@@ -205,8 +205,7 @@ class PDFParser:
                 allowed_extensions=frozenset({".pdf"}),
                 parser_name="PDFParser",
             )
-            validate_file_size(safe_path, max_size_bytes=_PDF_MAX_BYTES,
-                               parser_name="PDFParser")
+            validate_file_size(safe_path, max_size_bytes=_PDF_MAX_BYTES, parser_name="PDFParser")
         except FileNotFoundError as e:
             result.errors.append(str(e))
             return result
@@ -272,23 +271,25 @@ class PDFParser:
                 tables = page.extract_tables()
                 for table in tables:
                     if table:
-                        table_text = ' '.join(str(cell) for row in table for cell in row)
+                        table_text = " ".join(str(cell) for row in table for cell in row)
                         table_devices = self._find_devices(table_text, page_num)
                         devices.extend(table_devices)
 
         devices = self._deduplicate_devices(devices)
 
-        return devices, '\n'.join(all_text), page_count
+        return devices, "\n".join(all_text), page_count
 
     def _ocr_page(self, page) -> str:
         """Extract text from page using OCR (Tesseract or DocTR)."""
         # V140 Phase 10: Try DocTR OCR service first (more accurate), fall back to Tesseract
         try:
             from fireai.integration.document_intelligence import is_doctr_available, ocr_image
+
             if is_doctr_available():
                 # Render page to image
                 img = page.to_image(resolution=200)
                 import io
+
                 buf = io.BytesIO()
                 img.original.save(buf, format="PNG")
                 image_bytes = buf.getvalue()
@@ -304,10 +305,9 @@ class PDFParser:
 
         # Fall back to Tesseract
         try:
-
             import pytesseract
 
-            os.environ['TESSDATA_PREFIX'] = '/usr/share/tesseract-ocr'
+            os.environ["TESSDATA_PREFIX"] = "/usr/share/tesseract-ocr"
 
             # Get page as image
             img = page.to_image(resolution=150)
@@ -315,9 +315,7 @@ class PDFParser:
 
             # Run OCR
             return pytesseract.image_to_string(
-                pil_img,
-                lang='eng',
-                config='--tessdata-dir /usr/share/tesseract-ocr/5/tessdata'
+                pil_img, lang="eng", config="--tessdata-dir /usr/share/tesseract-ocr/5/tessdata"
             )
 
         except ImportError:
@@ -345,26 +343,24 @@ class PDFParser:
                 # Get position if possible
                 x, y = self._guess_coordinates(text, match.start())
 
-                devices.append(PDFDevice(
-                    device_type=device_type,
-                    location=location or "Unknown",
-                    page=page,
-                    x=x,
-                    y=y
-                ))
+                devices.append(
+                    PDFDevice(
+                        device_type=device_type, location=location or "Unknown", page=page, x=x, y=y
+                    )
+                )
 
         return devices
 
     def _extract_location(self, text: str, position: int) -> Optional[str]:
         """Extract room/location near match position."""
         # Look for room numbers nearby (e.g., Room 101, R-101, 101)
-        window = text[max(0, position-50):position+50]
+        window = text[max(0, position - 50) : position + 50]
 
         # Room patterns
         room_patterns = [
-            r'(?:room|r[\s-]*|#)\s*(\d+[A-Za-z]?)',
-            r'((?:\d+)[A-Za-z]?)\s*$',
-            r'([A-Z]\d+)',
+            r"(?:room|r[\s-]*|#)\s*(\d+[A-Za-z]?)",
+            r"((?:\d+)[A-Za-z]?)\s*$",
+            r"([A-Z]\d+)",
         ]
 
         for pattern in room_patterns:
@@ -380,7 +376,9 @@ class PDFParser:
         # This is approximate - real coordinates need PDF layout analysis
         return (0.0, 0.0)
 
-    def _extract_layout_devices(self, _page_num: int) -> List[PDFDevice]:  # NOSONAR — S1172: parameter retained for API stability
+    def _extract_layout_devices(
+        self, _page_num: int
+    ) -> List[PDFDevice]:  # NOSONAR — S1172: parameter retained for API stability
         """Extract devices from PDF layout (images/shapes)."""
         devices = []
 
@@ -415,6 +413,7 @@ class PDFParser:
 # REPORT GENERATOR
 # ═══════════════════════════════════════════════════════
 
+
 class PDFReportGenerator:
     """Generate PDF inspection reports."""
 
@@ -446,18 +445,16 @@ class PDFReportGenerator:
             "devices": [d.to_dict() for d in result.devices],
             "errors": result.errors,
             "warnings": result.warnings,
-
             # NFPA 72 summary
             "smoke_detectors": device_counts.get("SMOKE_DETECTOR", 0),
             "heat_detectors": device_counts.get("HEAT_DETECTOR", 0),
             "pull_stations": device_counts.get("PULL_STATION", 0),
             "notification_appliances": (
-                device_counts.get("HORN", 0) +
-                device_counts.get("STROBE", 0) +
-                device_counts.get("HORN_STROBE", 0)
+                device_counts.get("HORN", 0)
+                + device_counts.get("STROBE", 0)
+                + device_counts.get("HORN_STROBE", 0)
             ),
         }
-
 
     def print_report(self, pdf_path: str) -> str:
         """Generate and return formatted report."""
@@ -476,32 +473,35 @@ class PDFReportGenerator:
             "-" * 40,
         ]
 
-        for dtype, count in report['device_counts'].items():
+        for dtype, count in report["device_counts"].items():
             lines.append(f"  {dtype}: {count}")
 
-        lines.extend([
-            "",
-            "-" * 40,
-            "NFPA 72 COMPLIANCE",
-            "-" * 40,
-            f"  Smoke Detectors: {report['smoke_detectors']}",
-            f"  Heat Detectors: {report['heat_detectors']}",
-            f"  Pull Stations: {report['pull_stations']}",
-            f"  Notification: {report['notification_appliances']}",
-        ])
+        lines.extend(
+            [
+                "",
+                "-" * 40,
+                "NFPA 72 COMPLIANCE",
+                "-" * 40,
+                f"  Smoke Detectors: {report['smoke_detectors']}",
+                f"  Heat Detectors: {report['heat_detectors']}",
+                f"  Pull Stations: {report['pull_stations']}",
+                f"  Notification: {report['notification_appliances']}",
+            ]
+        )
 
-        if report['errors']:
-            lines.extend(["", "ERRORS:"] + report['errors'])
+        if report["errors"]:
+            lines.extend(["", "ERRORS:"] + report["errors"])
 
-        if report['warnings']:
-            lines.extend(["", "WARNINGS:"] + report['warnings'])
+        if report["warnings"]:
+            lines.extend(["", "WARNINGS:"] + report["warnings"])
 
-        return '\n'.join(lines)
+        return "\n".join(lines)
 
 
 # ═══════════════════════════════════════════════════════
 # CONVENIENCE FUNCTION
 # ═══════════════════════════════════════════════════════
+
 
 def parse_pdf(pdf_path: str) -> PDFParseResult:
     """Quick parse PDF floor plan."""

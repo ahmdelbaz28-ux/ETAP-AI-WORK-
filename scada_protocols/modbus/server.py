@@ -100,10 +100,12 @@ class ModbusServerAdapter(ProtocolAdapter):
         # Support both shapes for forward/backward compatibility.
         try:
             from pymodbus.datastore import ModbusDeviceContext  # type: ignore
+
             DeviceCtxCls = ModbusDeviceContext
             _NEW_API = True
         except ImportError:
             from pymodbus.datastore import ModbusSlaveContext  # type: ignore
+
             DeviceCtxCls = ModbusSlaveContext
             _NEW_API = False
 
@@ -112,6 +114,7 @@ class ModbusServerAdapter(ProtocolAdapter):
         # tolerates address=0 (unlike ModbusSequentialDataBlock in 3.13).
         try:
             from pymodbus.datastore import ModbusSparseDataBlock  # type: ignore
+
             _USE_SPARSE = True
         except ImportError:  # pragma: no cover - very old pymodbus
             _USE_SPARSE = False
@@ -186,9 +189,7 @@ class ModbusServerAdapter(ProtocolAdapter):
                             continue
                         words = self._register_map.encode_value(entry, float(val))
                         for i, w in enumerate(words):
-                            self._register_map.write_registers(
-                                entry.address + i, [w]
-                            )
+                            self._register_map.write_registers(entry.address + i, [w])
                         # Mirror into the datastore so external readers see it.
                         try:
                             device = context[self._cfg.server_unit_id]
@@ -227,9 +228,7 @@ class ModbusServerAdapter(ProtocolAdapter):
 
         import threading
 
-        self._thread = threading.Thread(
-            target=_thread_target, name="modbus-server", daemon=True
-        )
+        self._thread = threading.Thread(target=_thread_target, name="modbus-server", daemon=True)
         self._thread.start()
 
     def stop_server(self) -> None:
@@ -248,9 +247,7 @@ class ModbusServerAdapter(ProtocolAdapter):
                     for t in tasks:
                         t.cancel()
 
-                self._loop.call_soon_threadsafe(
-                    lambda: self._loop.create_task(_shutdown())
-                )
+                self._loop.call_soon_threadsafe(lambda: self._loop.create_task(_shutdown()))
             except Exception as exc:
                 self._mark_error(f"stop_server: {exc}")
         self._thread = None
@@ -268,10 +265,7 @@ class ModbusServerAdapter(ProtocolAdapter):
     # -- health -------------------------------------------------------------
 
     def health_check(self) -> bool:
-        return (
-            self._thread is not None
-            and self._thread.is_alive()
-        )
+        return self._thread is not None and self._thread.is_alive()
 
 
 __all__ = ["ModbusServerAdapter", "MeasurementProvider"]

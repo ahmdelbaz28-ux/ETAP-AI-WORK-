@@ -227,9 +227,7 @@ MANDATORY_RULES: dict[str, list[dict[str, Any]]] = {
 }
 
 
-def _check_dict_keys_contain(
-    data: dict, required_keys: list[str]
-) -> list[str]:
+def _check_dict_keys_contain(data: dict, required_keys: list[str]) -> list[str]:
     """Check that data dict contains all required keys (recursively)."""
     missing = []
     for key in required_keys:
@@ -245,9 +243,7 @@ def _check_dict_keys_contain(
     return missing
 
 
-def _check_field_value_contains(
-    data: dict, key: str, expected_substring: str
-) -> bool:
+def _check_field_value_contains(data: dict, key: str, expected_substring: str) -> bool:
     """Check that data[key] contains the expected substring."""
     value = data.get(key, "")
     return expected_substring in str(value)

@@ -33,6 +33,7 @@ Usage:
 Branch: feat/scenario-1-etap-to-gis
 Refs: PRODUCTION_PLAN/05_SCENARIO_1_ETAP_TO_GIS.md
 """
+
 from __future__ import annotations
 
 import argparse
@@ -45,6 +46,39 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+
+_VALID_ARG_RE = re.compile(r"^[A-Za-z0-9_\-./]+( [A-Za-z0-9_\-./=]+)*$")
+
+
+def _validate_cmd_args(args):
+    """Validate subprocess args to prevent LLM-driven CLI injection (sonar:S8707).
+
+    Only allows safe characters in each argument; raises ValueError if any
+    argument contains shell metacharacters or quotes.
+    """
+    safe_args = []
+    for a in args:
+        s = str(a)
+        if not _VALID_ARG_RE.match(s):
+            raise ValueError(f"Disallowed character in command arg: {s!r}")
+        safe_args.append(s)
+    return safe_args
+
+
+def _validate_path(path_str: str, base_dir: str | None = None) -> str:
+    """Validate a user-supplied path to prevent directory traversal (sonar:S8707).
+
+    If base_dir is given, ensures the resolved path stays within base_dir.
+    """
+    if not path_str:
+        raise ValueError("Empty path")
+    resolved = os.path.realpath(path_str)
+    if base_dir:
+        base_resolved = os.path.realpath(base_dir)
+        if not resolved.startswith(base_resolved + os.sep) and resolved != base_resolved:
+            raise ValueError(f"Path escapes allowed base: {path_str!r}")
+    return resolved
+
 
 # Ensure project root is on path
 PROJECT_ROOT = Path(__file__).parent.parent.parent
@@ -133,7 +167,9 @@ async def run_scenario(
         }
         logger.info(
             "✅ Phase 1 done in %.2fs — %d buses, %d branches, converged=%s",
-            phase1_time, len(buses), len(branches),
+            phase1_time,
+            len(buses),
+            len(branches),
             etap_result.data.get("converged", False),
         )
 
@@ -252,7 +288,9 @@ async def run_scenario(
         }
         logger.info(
             "✅ Phase 2 done in %.2fs — %d buses, %d branches synced",
-            phase2_time, buses_synced, branches_synced,
+            phase2_time,
+            buses_synced,
+            branches_synced,
         )
 
     except Exception as exc:
@@ -287,7 +325,8 @@ async def run_scenario(
         }
         logger.info(
             "✅ Phase 3 done in %.2fs — %d features in GeoJSON",
-            phase3_time, len(geojson.get("features", [])),
+            phase3_time,
+            len(geojson.get("features", [])),
         )
 
     except Exception as exc:
@@ -311,9 +350,7 @@ async def run_scenario(
         phase4_start = time.time()
 
         try:
-            qgis_project_path = _generate_qgis_project(
-                geojson_path, output_dir, trace_id
-            )
+            qgis_project_path = _generate_qgis_project(geojson_path, output_dir, trace_id)
             phase4_time = time.time() - phase4_start
             results["phases"]["4_generate_qgis"] = {
                 "status": "success",
@@ -338,9 +375,7 @@ async def run_scenario(
         phase5_start = time.time()
 
         try:
-            arcgis_project_path = _generate_arcgis_project(
-                geojson_path, output_dir, trace_id
-            )
+            arcgis_project_path = _generate_arcgis_project(geojson_path, output_dir, trace_id)
             phase5_time = time.time() - phase5_start
             results["phases"]["5_generate_arcgis"] = {
                 "status": "success",
@@ -408,8 +443,7 @@ async def run_scenario(
             "files_uploaded": len(uploaded_urls),
             "signed_urls": uploaded_urls,
         }
-        logger.info("✅ Phase 6 done in %.2fs — %d files uploaded",
-                    phase6_time, len(uploaded_urls))
+        logger.info("✅ Phase 6 done in %.2fs — %d files uploaded", phase6_time, len(uploaded_urls))
 
     except Exception as exc:
         phase6_time = time.time() - phase6_start
@@ -458,19 +492,21 @@ def _build_geojson_from_etap_result(
         lon = bus_data.get("longitude", 0.0)
         lat = bus_data.get("latitude", 0.0)
 
-        features.append({
-            "type": "Feature",
-            "geometry": {"type": "Point", "coordinates": [lon, lat]},
-            "properties": {
-                "id": bus_id,
-                "type": "bus",
-                "voltage_magnitude": bus_data.get("voltage_magnitude"),
-                "voltage_angle": bus_data.get("voltage_angle"),
-                "active_power_mw": bus_data.get("active_power"),
-                "reactive_power_mvar": bus_data.get("reactive_power"),
-                "project_id": gis_project_id,
-            },
-        })
+        features.append(
+            {
+                "type": "Feature",
+                "geometry": {"type": "Point", "coordinates": [lon, lat]},
+                "properties": {
+                    "id": bus_id,
+                    "type": "bus",
+                    "voltage_magnitude": bus_data.get("voltage_magnitude"),
+                    "voltage_angle": bus_data.get("voltage_angle"),
+                    "active_power_mw": bus_data.get("active_power"),
+                    "reactive_power_mvar": bus_data.get("reactive_power"),
+                    "project_id": gis_project_id,
+                },
+            }
+        )
 
     # Add branches as LineString features
     for branch_id, branch_data in branches.items():
@@ -483,24 +519,26 @@ def _build_geojson_from_etap_result(
         to_lon = branch_data.get("to_longitude", 0.1)
         to_lat = branch_data.get("to_latitude", 0.1)
 
-        features.append({
-            "type": "Feature",
-            "geometry": {
-                "type": "LineString",
-                "coordinates": [[from_lon, from_lat], [to_lon, to_lat]],
-            },
-            "properties": {
-                "id": branch_id,
-                "type": "line",
-                "from_bus": from_bus,
-                "to_bus": to_bus,
-                "active_power_from_mw": branch_data.get("active_power_from"),
-                "reactive_power_from_mvar": branch_data.get("reactive_power_from"),
-                "active_power_to_mw": branch_data.get("active_power_to"),
-                "current_amps": branch_data.get("current"),
-                "project_id": gis_project_id,
-            },
-        })
+        features.append(
+            {
+                "type": "Feature",
+                "geometry": {
+                    "type": "LineString",
+                    "coordinates": [[from_lon, from_lat], [to_lon, to_lat]],
+                },
+                "properties": {
+                    "id": branch_id,
+                    "type": "line",
+                    "from_bus": from_bus,
+                    "to_bus": to_bus,
+                    "active_power_from_mw": branch_data.get("active_power_from"),
+                    "reactive_power_from_mvar": branch_data.get("reactive_power_from"),
+                    "active_power_to_mw": branch_data.get("active_power_to"),
+                    "current_amps": branch_data.get("current"),
+                    "project_id": gis_project_id,
+                },
+            }
+        )
 
     return {
         "type": "FeatureCollection",
@@ -515,9 +553,7 @@ def _build_geojson_from_etap_result(
     }
 
 
-def _generate_qgis_project(
-    geojson_path: str, output_dir: str, trace_id: str
-) -> str:
+def _generate_qgis_project(geojson_path: str, output_dir: str, trace_id: str) -> str:
     """Generate QGIS .qgz project from GeoJSON."""
     from gis_integration.providers.qgis_provider import QGISProvider
 
@@ -572,9 +608,7 @@ def _generate_qgis_project(
     return output_path
 
 
-def _generate_arcgis_project(
-    geojson_path: str, output_dir: str, trace_id: str
-) -> str:
+def _generate_arcgis_project(geojson_path: str, output_dir: str, trace_id: str) -> str:
     """Generate ArcGIS Pro .aprx project from GeoJSON."""
     import arcpy  # type: ignore
     import arcpy.mp as mp  # type: ignore
@@ -598,7 +632,9 @@ def _generate_arcgis_project(
 
     # GeoJSON → FeatureClass
     arcpy.conversion.JSONToFeatures(
-        geojson_path, fc_path, "POLYGON"  # will auto-detect geometry type
+        geojson_path,
+        fc_path,
+        "POLYGON",  # will auto-detect geometry type
     )
 
     # Add to project's first map
@@ -642,19 +678,23 @@ Examples:
         """,
     )
     parser.add_argument(
-        "--etap-project", required=True,
+        "--etap-project",
+        required=True,
         help="Path to ETAP .edb project file",
     )
     parser.add_argument(
-        "--gis-project-id", required=True,
+        "--gis-project-id",
+        required=True,
         help="GIS project ID in PostGIS/Supabase",
     )
     parser.add_argument(
-        "--output-dir", default="./outputs/scenario1",
+        "--output-dir",
+        default="./outputs/scenario1",
         help="Output directory for generated files",
     )
     parser.add_argument(
-        "--gis-output", choices=["qgis", "arcgis", "both", "none"],
+        "--gis-output",
+        choices=["qgis", "arcgis", "both", "none"],
         default="both",
         help="GIS output format (default: both)",
     )
@@ -671,12 +711,14 @@ Examples:
     )
 
     try:
-        result = asyncio.run(run_scenario(
-            etap_project_path=args.etap_project,
-            gis_project_id=args.gis_project_id,
-            output_dir=args.output_dir,
-            gis_output=args.gis_output,
-        ))
+        result = asyncio.run(
+            run_scenario(
+                etap_project_path=args.etap_project,
+                gis_project_id=args.gis_project_id,
+                output_dir=args.output_dir,
+                gis_output=args.gis_output,
+            )
+        )
 
         # Save result JSON
         result_path = os.path.join(args.output_dir, "scenario1_result.json")

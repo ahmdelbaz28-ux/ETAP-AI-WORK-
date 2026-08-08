@@ -197,9 +197,7 @@ class YbusRebuildHandler(PropagationHandler):
                 ctx.record_step(
                     "ybus_rebuild",
                     False,
-                    {
-                        "error": _NO_ELECTRICAL_MODEL_MSG
-                    },  # NOSONAR
+                    {"error": _NO_ELECTRICAL_MODEL_MSG},  # NOSONAR
                 )  # NOSONAR intentional repetition (audit constant)
                 ctx.stop = True
         except Exception as e:
@@ -426,7 +424,6 @@ class ArcFlashRefreshHandler(PropagationHandler):
             )
 
             af_engine = ArcFlashEngine()
-            results: Dict[str, Any] = {}
             bus_ids = sorted(ctx.dt_state.system.buses.keys())
             bus_index = {bid: idx for idx, bid in enumerate(ctx.dt_state.system.buses.keys())}
             system_base_kv = getattr(ctx.dt_state.system, "base_kv", None) or 115.0  # kV
@@ -585,7 +582,6 @@ class ProtectionRefreshHandler(PropagationHandler):
                 Ybus_pos, Ybus_neg, Ybus_zero, base_mva=ctx.dt_state.system.base_mva
             )
 
-            fault_currents: List[float] = []
             bus_ids = sorted(ctx.dt_state.system.buses.keys())
             bus_index = {bid: idx for idx, bid in enumerate(ctx.dt_state.system.buses.keys())}
             for bus_id in bus_ids:

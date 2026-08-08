@@ -142,9 +142,7 @@ class ProtocolAdapter(ABC):
                 self.start_client()
             self._state = AdapterState.RUNNING
             self._metric.state = self._state
-            logger.info(
-                "[%s/%s] adapter started", self.protocol.value, self.role.value
-            )
+            logger.info("[%s/%s] adapter started", self.protocol.value, self.role.value)
         except Exception as exc:
             self._state = AdapterState.ERROR
             self._metric.state = self._state
@@ -216,9 +214,7 @@ class ProtocolAdapter(ABC):
                 # Never let a bridge error kill the protocol loop.
                 self._metric.errors += 1
                 self._metric.last_error = f"bridge_error: {exc}"
-                logger.exception(
-                    "[%s] bridge callback raised: %s", self.protocol.value, exc
-                )
+                logger.exception("[%s] bridge callback raised: %s", self.protocol.value, exc)
 
     def _mark_served(self, n: int = 1) -> None:
         self._metric.points_served += n

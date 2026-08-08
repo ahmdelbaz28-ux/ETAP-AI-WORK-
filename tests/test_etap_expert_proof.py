@@ -51,13 +51,13 @@ def test_vitest_config_does_not_exclude_scenarios_globally():
         "block (transparency) — but a separate scenarios config must exist."
     )
     scenarios_config = root / "vitest.scenarios.config.ts"
-    assert (
-        scenarios_config.exists()
-    ), "vitest.scenarios.config.ts must exist so scenarios are not dead code"
+    assert scenarios_config.exists(), (
+        "vitest.scenarios.config.ts must exist so scenarios are not dead code"
+    )
     sc = scenarios_config.read_text(encoding="utf-8")
-    assert (
-        "tests/scenarios/**/*.test.ts" in sc
-    ), "vitest.scenarios.config.ts must include scenario test files"
+    assert "tests/scenarios/**/*.test.ts" in sc, (
+        "vitest.scenarios.config.ts must include scenario test files"
+    )
 
 
 def test_ci_workflow_runs_scenario_tests_step():
@@ -217,9 +217,9 @@ def test_study_endpoint_rejects_missing_question(fastapi_client):
     # detail (see api/studies.py line 675) to avoid leaking internal messages.
     # The original ValueError ("'question' field is required") is logged but
     # not returned to the client.
-    assert (
-        "invalid" in str(body).lower()
-    ), f"Error message must indicate invalid request, got: {body}"
+    assert "invalid" in str(body).lower(), (
+        f"Error message must indicate invalid request, got: {body}"
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -286,7 +286,9 @@ def test_backward_compat_all_old_prompts_load():
     ]
     for h in old_handles:
         p = get_system_prompt(h)
-        assert p, f"Prompt '{h}' no longer loads (None/empty)"  # NOSONAR S9073: composite assertion verifies a correlated set of conditions; splitting would obscure the invariant under test
+        assert p, (
+            f"Prompt '{h}' no longer loads (None/empty)"
+        )  # NOSONAR S9073: composite assertion verifies a correlated set of conditions; splitting would obscure the invariant under test
     assert len(p) > 20, f"Prompt '{h}' no longer loads (too short: {len(p)} chars)"
 
 
@@ -331,9 +333,9 @@ def test_format_a_simulation_matches_skill_example_1():
     # Example 1 (skills/etap-expert.md Section 15.2 Example 1).
     assert "5.44" in response, "Voltage drop must be 5.44V (skill Example 1)"
     assert "1.13" in response, "%VD must be 1.13% (skill Example 1)"
-    assert (
-        "3/0 AWG" in response or "4/0 AWG" in response
-    ), "Cable must be 3/0 or 4/0 AWG per NEC Table 310.16"
+    assert "3/0 AWG" in response or "4/0 AWG" in response, (
+        "Cable must be 3/0 or 4/0 AWG per NEC Table 310.16"
+    )
 
 
 def test_format_a_contains_all_mandatory_sections():
@@ -491,9 +493,9 @@ def test_format_d_mentions_state_estimation():
     agent = ETAPExpertAgent()
     r = agent.answer("How does FLISR work for fault on Feeder 1?")
     resp = r["response"]
-    assert (
-        "DSE" in resp or "State Estimation" in resp
-    ), "ADMS must use DSE (not Load Flow) per skill Section 5.2"
+    assert "DSE" in resp or "State Estimation" in resp, (
+        "ADMS must use DSE (not Load Flow) per skill Section 5.2"
+    )
 
 
 def test_format_d_includes_references():
@@ -519,9 +521,9 @@ def test_skill_md_file_is_substantial():
     content = p.read_text(encoding="utf-8")
     lines = content.count("\n")
     assert lines >= 4000, f"Skill file too short: {lines} lines (expected >= 4000)"
-    assert (
-        len(content.encode()) >= 100_000
-    ), f"Skill file too small: {len(content)} bytes (expected >= 100KB)"
+    assert len(content.encode()) >= 100_000, (
+        f"Skill file too small: {len(content)} bytes (expected >= 100KB)"
+    )
 
 
 def test_skill_md_contains_all_17_sections():

@@ -29,6 +29,8 @@ import json
 import logging
 import time
 from typing import Annotated, List
+from typing import Annotated
+
 
 from fastapi import APIRouter, FastAPI, HTTPException, Query
 from pydantic import BaseModel, Field
@@ -100,7 +102,7 @@ class SyncRequest(BaseModel):
 
 class ValidateRequest(BaseModel):
     model_json: str | None = Field(None, description="Optional model JSON to validate")
-    checks: List[str] = Field(default_factory=lambda: ["voltage", "overcurrent", "coordination"])
+    checks: list[str] = Field(default_factory=lambda: ["voltage", "overcurrent", "coordination"])
 
 
 # ---------------------------------------------------------------------------

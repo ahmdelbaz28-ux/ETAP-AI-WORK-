@@ -124,12 +124,13 @@ backend/app.py                →  registers implementations via DI container
 ```python
 # fireai/core/plugin_registry.py
 
+
 class PluginRegistry:
     """Central registry for all FireAI plugins.
-    
+
     Plugins register themselves on startup. The app.py initialization
     calls registry.discover() to load all registered plugins.
-    
+
     Categories:
       - computation: ComputationKernel implementations
       - parser: ParserGateway implementations (DXF, DWG, IFC, PDF, etc.)
@@ -138,17 +139,17 @@ class PluginRegistry:
       - audit: AuditChain implementations
       - service: External service adapters (weather, geocoding, etc.)
     """
-    
+
     _registry: Dict[str, Dict[str, Type]] = {}
-    
+
     @classmethod
     def register(cls, category: str, name: str, implementation: Type) -> None:
         cls._registry.setdefault(category, {})[name] = implementation
-    
+
     @classmethod
     def get(cls, category: str, name: str) -> Type:
         return cls._registry[category][name]
-    
+
     @classmethod
     def discover(cls) -> None:
         """Auto-discover plugins via entry_points or explicit registration."""
@@ -165,9 +166,11 @@ class PluginRegistry:
 def register():
     PluginRegistry.register("computation", "qomn", QOMNKernel)
 
-# parsers/dxf_parser.py  
+
+# parsers/dxf_parser.py
 def register():
     PluginRegistry.register("parser", "dxf", DXFParser)
+
 
 # parsers/dwg_parser.py
 def register():
@@ -203,22 +206,24 @@ kernel = kernel_cls()
 
 PROJECT_SCHEMA_VERSION = "1.0.0"
 
+
 @dataclass(frozen=True)
 class ProjectState:
     """Canonical project state — single source of truth.
-    
+
     Both System A and System B must convert to/from this format.
     schema_version enables future migration detection.
     """
+
     schema_version: str = PROJECT_SCHEMA_VERSION
-    project_id: str          # Unified ID (was 'id' in System A, 'project_id' in System B)
+    project_id: str  # Unified ID (was 'id' in System A, 'project_id' in System B)
     name: str
     description: str
-    status: str              # "active" | "draft" | "archived"
+    status: str  # "active" | "draft" | "archived"
     author: str = ""
     metadata: Dict[str, Any] = field(default_factory=dict)
-    created_at: str = ""     # ISO 8601 UTC
-    updated_at: str = ""     # ISO 8601 UTC
+    created_at: str = ""  # ISO 8601 UTC
+    updated_at: str = ""  # ISO 8601 UTC
     element_count: int = 0
     device_count: int = 0
     connection_count: int = 0
@@ -270,23 +275,24 @@ def upss_to_system_b(state: ProjectState) -> dict:
 ```python
 # fireai/core/cad_sandbox.py
 
+
 class CADOperationSandbox:
     """Sandboxed, reversible CAD operation execution.
-    
+
     Before any parser/export operation:
     1. Snapshot current project state (twin_db.save_snapshot)
     2. Execute operation in isolated context
     3. Validate result (contract check, no NaN/Inf, no negative areas)
     4. If validation fails → rollback to snapshot
-    
+
     All operations produce a OperationRecord for audit trail.
     """
-    
+
     def __init__(self, project_id: str, twin_db: TwinDB):
         self.project_id = project_id
         self.twin_db = twin_db
         self._operation_log: List[OperationRecord] = []
-    
+
     def execute_parse(
         self,
         parser_name: str,
@@ -318,14 +324,14 @@ class CADOperationSandbox:
         )
         self._operation_log.append(record)
         return result, record
-    
+
     def undo(self, operation_id: str) -> None:
         """Undo a CAD operation by restoring the pre-operation snapshot."""
         record = self._find_record(operation_id)
         pre_snapshot = self.twin_db.load_snapshot_bundle(record.snapshot_before)
         # Restore project state from pre_snapshot
         ...
-    
+
     def _validate_parse_result(self, result: Any) -> bool:
         """Post-parse validation: no NaN, no negative areas, no missing room_ids."""
         ...
@@ -374,9 +380,10 @@ DWG/DXF ──parse──→ Room[] ──compute──→ DetectorLayout[] ─�
 ```python
 # fireai/core/cad_transform_verifier.py
 
+
 class CADTransformVerifier:
     """Verify bidirectional CAD transformations are loss-minimized.
-    
+
     For every DXF→Room→IFC round-trip:
     1. Compute checksum of input (DXF room properties)
     2. Compute checksum of output (IFC room properties)
@@ -384,13 +391,13 @@ class CADTransformVerifier:
     4. For safety-critical properties (wall thickness, door locations),
        FAIL if lost — these affect NFPA calculations.
     """
-    
+
     CRITICAL_PROPERTIES = [
-        "wall_thickness_m",   # Affects cable routing clearance
-        "door_locations",     # Affects door entrapment (NFPA 92)
-        "ceiling_height_m",   # Affects detector spacing (NFPA 72 §17.6.3)
+        "wall_thickness_m",  # Affects cable routing clearance
+        "door_locations",  # Affects door entrapment (NFPA 92)
+        "ceiling_height_m",  # Affects detector spacing (NFPA 72 §17.6.3)
     ]
-    
+
     def verify_round_trip(
         self,
         input_rooms: List[dict],
@@ -456,103 +463,112 @@ from typing import Any, Dict, List, Optional
 
 # ── Computation Plugin ──────────────────────────────────────────────────
 
+
 class ComputationKernel(ABC):
     """Interface for deterministic computation engines.
-    
+
     Safety guarantee: all implementations MUST go through L0-L4 pipeline.
     No implementation may skip validation (L3) or audit (L4).
     """
-    
+
     @abstractmethod
     def compute_detector_spacing(self, room_spec: Any) -> Any:
         """Compute detector spacing for a room. Must pass through all 5 layers."""
         ...
-    
+
     @abstractmethod
     def compute_voltage_drop(self, params: Dict[str, float]) -> Any:
         """Compute voltage drop. Must pass through L0-L4."""
         ...
 
+
 # ── Parser Plugin ────────────────────────────────────────────────────────
+
 
 class ParserGateway(ABC):
     """Interface for CAD/BIM file parsers.
-    
+
     Safety guarantee: all implementations MUST validate path security.
     All implementations MUST validate input before processing.
     """
-    
+
     @abstractmethod
     def detect_format(self, file_path: str) -> str:
         """Detect file format (dxf, dwg, ifc, pdf, etc.)."""
         ...
-    
+
     @abstractmethod
     def parse(self, file_path: str) -> List[Dict[str, Any]]:
         """Parse file into room specifications. Must validate path first."""
         ...
-    
+
     @abstractmethod
     def supported_formats(self) -> List[str]:
         """Return list of supported format identifiers."""
         ...
 
+
 # ── Validation Plugin ────────────────────────────────────────────────────
+
 
 class ValidationEngine(ABC):
     """Interface for code-compliance validation engines.
-    
+
     Safety guarantee: validation results are NON-BYPASSABLE.
     is_safe=False cannot be overridden by downstream code.
     """
-    
+
     @abstractmethod
     def validate(self, context: Dict[str, Any]) -> List[Any]:
         """Validate computation results against code rules."""
         ...
-    
+
     @abstractmethod
     def rule_count(self) -> int:
         """Return number of active validation rules."""
         ...
 
+
 # ── Audit Plugin ─────────────────────────────────────────────────────────
+
 
 class AuditChain(ABC):
     """Interface for tamper-evident audit logging.
-    
+
     Safety guarantee: chain integrity is verifiable.
     append-only, no delete/update allowed.
     """
-    
+
     @abstractmethod
     def append(self, entry: Dict[str, Any]) -> str:
         """Append entry to chain. Returns entry hash."""
         ...
-    
+
     @abstractmethod
     def verify_chain(self) -> bool:
         """Verify entire chain integrity."""
         ...
-    
+
     @abstractmethod
     def export(self) -> str:
         """Export chain for AHJ review."""
         ...
 
+
 # ── Export Plugin ─────────────────────────────────────────────────────────
+
 
 class ExportGateway(ABC):
     """Interface for CAD/BIM file exporters.
-    
+
     Safety guarantee: exported files must include code references.
     """
-    
+
     @abstractmethod
     def export(self, project_state: Any, output_path: str) -> str:
         """Export project state to CAD format."""
         ...
-    
+
     @abstractmethod
     def supported_formats(self) -> List[str]:
         """Return list of supported export formats."""
@@ -578,22 +594,27 @@ def _discover_plugins():
     """Discover and register all plugins."""
     # Core plugins (always available)
     from fireai.core.qomn_kernel import register as qomn_register
+
     qomn_register()
-    
+
     from fireai.core.pipeline import register as pipeline_register
+
     pipeline_register()
-    
+
     # Parser plugins (always available)
     from parsers.dxf_parser import register as dxf_register
+
     dxf_register()
-    
+
     # Optional plugins (conditional)
     if WORKFLOW_ROUTER_AVAILABLE:
         from backend.services.workflow_service import register as workflow_register
+
         workflow_register()
-    
+
     if MEMORY_ROUTER_AVAILABLE:
         from backend.services.memory_service import register as memory_register
+
         memory_register()
 ```
 
@@ -798,28 +819,28 @@ SIGN-OFF: [System Architect + PE Review Required for NFPA changes]
 ```python
 # tests/test_cad_transform_verifier.py
 
+
 class TestCADTransformVerification:
     """Verify DXF→Room→IFC/Revit round-trips preserve safety-critical data."""
-    
+
     def test_ceiling_height_preserved(self):
         """ceiling_height_m MUST survive round-trip (NFPA 72 §17.6.3)."""
         dxf_rooms = parse_dxf(test_file)
         ifc_rooms = export_ifc(dxf_rooms)
         for room_in, room_out in zip(dxf_rooms, ifc_rooms):
             assert room_out.ceiling_height_m == room_in.ceiling_height_m
-    
+
     def test_wall_thickness_not_hardcoded(self):
         """Wall thickness SHOULD come from DXF, not hardcoded 0.2m."""
         result = verifier.verify_round_trip(input_rooms, output_rooms)
         assert "wall_thickness_m" not in result.lost_properties
-    
+
     def test_door_locations_preserved(self):
         """Door locations MUST survive round-trip (NFPA 92 door entrapment)."""
         result = verifier.verify_round_trip(input_rooms, output_rooms)
-        critical_losses = [p for p in result.lost_properties 
-                          if p in verifier.CRITICAL_PROPERTIES]
+        critical_losses = [p for p in result.lost_properties if p in verifier.CRITICAL_PROPERTIES]
         assert len(critical_losses) == 0
-    
+
     def test_detector_positions_survive_export(self):
         """Computed detector positions MUST appear in IFC output."""
         ...

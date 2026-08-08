@@ -51,29 +51,31 @@ __all__ = [
 # Uses case-insensitive substring matching: any key containing these
 # substrings (e.g. "db_password", "access_token", "client_secret")
 # will have its value replaced with "***REDACTED***".
-SENSITIVE_KEYS: frozenset[str] = frozenset({
-    "password",
-    "passwd",
-    "token",
-    "secret",
-    "authorization",
-    "mfa_code",
-    "api_key",
-    "apikey",
-    "access_key",
-    "secret_key",
-    "private_key",
-    "credential",
-    "cookie",
-    "session_id",
-    "refresh_token",
-    "id_token",
-    "auth_header",
-    "connection_string",
-    "db_url",
-    "database_url",
-    "dsn",
-})
+SENSITIVE_KEYS: frozenset[str] = frozenset(
+    {
+        "password",
+        "passwd",
+        "token",
+        "secret",
+        "authorization",
+        "mfa_code",
+        "api_key",
+        "apikey",
+        "access_key",
+        "secret_key",
+        "private_key",
+        "credential",
+        "cookie",
+        "session_id",
+        "refresh_token",
+        "id_token",
+        "auth_header",
+        "connection_string",
+        "db_url",
+        "database_url",
+        "dsn",
+    }
+)
 
 # Maximum depth for recursive sanitization to prevent stack overflow
 # on deeply nested payloads (e.g. JSON bomb attacks).
@@ -146,8 +148,10 @@ def sanitize_log_payload(
             clean_payload[key] = sanitize_log_payload(value, _depth=_depth + 1)
         elif isinstance(value, list):
             clean_payload[key] = [
-                sanitize_log_payload(item, _depth=_depth + 1) if isinstance(item, dict)
-                else _REDACTED if isinstance(item, str) and _looks_sensitive(key, item)
+                sanitize_log_payload(item, _depth=_depth + 1)
+                if isinstance(item, dict)
+                else _REDACTED
+                if isinstance(item, str) and _looks_sensitive(key, item)
                 else item
                 for item in value
             ]

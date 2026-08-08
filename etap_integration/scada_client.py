@@ -73,11 +73,6 @@ class SCADATelemetry:
     active_power: list[SCADAReading] = field(default_factory=list)
     reactive_power: list[SCADAReading] = field(default_factory=list)
 
-    voltages: List[SCADAReading] = field(default_factory=list)
-    currents: List[SCADAReading] = field(default_factory=list)
-    frequencies: List[SCADAReading] = field(default_factory=list)
-    active_power: List[SCADAReading] = field(default_factory=list)
-    reactive_power: List[SCADAReading] = field(default_factory=list)
     timestamp: float = field(default_factory=time.time)
     source: str = "simulation"  # simulation, iec61850, mock
 

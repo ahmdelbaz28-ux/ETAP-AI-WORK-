@@ -654,6 +654,10 @@ class BenchmarkReport:
             for s in self.latency.get("studies", []):
                 print(f"  {s['n_buses']:5d}  {s['load_flow_ms_p50']:>7.1f}ms  "
                       f"{s['load_flow_ms_p95']:>7.1f}ms  {s['load_flow_ms_p99']:>7.1f}ms")
+                print(
+                    f"  {s['n_buses']:5d}  {s['load_flow_ms_p50']:>7.1f}ms  "
+                    f"{s['load_flow_ms_p95']:>7.1f}ms  {s['load_flow_ms_p99']:>7.1f}ms"
+                )
 
             print(f"  {'Buses':>5}  {'LF P50':>8}  {'LF P95':>8}  {'LF P99':>8}  |"
                   f"  {'Fault P50':>8}  {'Fault P95':>8}  {'Fault P99':>8}")

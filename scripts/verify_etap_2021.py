@@ -17,11 +17,45 @@ Usage:
 
 Branch: fix/etap-com-2021-properties
 """
+
 from __future__ import annotations
 
 import argparse
 import logging
 import sys
+
+_VALID_ARG_RE = re.compile(r"^[A-Za-z0-9_\-./]+( [A-Za-z0-9_\-./=]+)*$")
+
+
+def _validate_cmd_args(args):
+    """Validate subprocess args to prevent LLM-driven CLI injection (sonar:S8707).
+
+    Only allows safe characters in each argument; raises ValueError if any
+    argument contains shell metacharacters or quotes.
+    """
+    safe_args = []
+    for a in args:
+        s = str(a)
+        if not _VALID_ARG_RE.match(s):
+            raise ValueError(f"Disallowed character in command arg: {s!r}")
+        safe_args.append(s)
+    return safe_args
+
+
+def _validate_path(path_str: str, base_dir: str | None = None) -> str:
+    """Validate a user-supplied path to prevent directory traversal (sonar:S8707).
+
+    If base_dir is given, ensures the resolved path stays within base_dir.
+    """
+    if not path_str:
+        raise ValueError("Empty path")
+    resolved = os.path.realpath(path_str)
+    if base_dir:
+        base_resolved = os.path.realpath(base_dir)
+        if not resolved.startswith(base_resolved + os.sep) and resolved != base_resolved:
+            raise ValueError(f"Path escapes allowed base: {path_str!r}")
+    return resolved
+
 
 logging.basicConfig(
     level=logging.INFO,
@@ -33,16 +67,38 @@ logger = logging.getLogger("verify_etap_2021")
 # Properties to verify per object type
 PROPERTIES_TO_VERIFY = {
     "Bus": [
-        "ID", "VoltageMag", "VoltageAng", "PMW", "QMVAR",
-        "I3PhaseKA", "ILGKA", "ILLKA", "IDLGKA",  # ⚠️ ILLKA not IllKA
-        "VoltageKV", "X", "Y",
+        "ID",
+        "VoltageMag",
+        "VoltageAng",
+        "PMW",
+        "QMVAR",
+        "I3PhaseKA",
+        "ILGKA",
+        "ILLKA",
+        "IDLGKA",  # ⚠️ ILLKA not IllKA
+        "VoltageKV",
+        "X",
+        "Y",
     ],
     "Branch": [
-        "ID", "PFrom", "QFrom", "PTo", "QTo", "Current",
-        "FromBus", "ToBus", "Length_m", "R_Ohm_per_km", "X_Ohm_per_km",
+        "ID",
+        "PFrom",
+        "QFrom",
+        "PTo",
+        "QTo",
+        "Current",
+        "FromBus",
+        "ToBus",
+        "Length_m",
+        "R_Ohm_per_km",
+        "X_Ohm_per_km",
     ],
     "Equipment": [
-        "ID", "IncidentEnergy", "ArcFlashBoundary", "PPELevel", "ArcDuration",
+        "ID",
+        "IncidentEnergy",
+        "ArcFlashBoundary",
+        "PPELevel",
+        "ArcDuration",
     ],
 }
 
@@ -169,9 +225,7 @@ def verify_etap_compatibility(etap_project_path: str | None = None) -> dict:
                                         )
                                 except Exception as exc:
                                     props_check[prop] = False
-                                    results["warnings"].append(
-                                        f"Bus.{prop} access failed: {exc}"
-                                    )
+                                    results["warnings"].append(f"Bus.{prop} access failed: {exc}")
                         else:
                             results["warnings"].append("Project has no buses to verify properties")
                     except Exception as exc:
@@ -230,7 +284,8 @@ def main():
         help="Path to .edb file for full verification (optional)",
     )
     parser.add_argument(
-        "--output", default=None,
+        "--output",
+        default=None,
         help="Output JSON file (default: print to stdout)",
     )
     args = parser.parse_args()

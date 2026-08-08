@@ -259,9 +259,11 @@ if is_production:
 ```python
 def _get_cors_origins():
     # Wildcard ('*') origins are ALWAYS rejected, even in development
-    if "*" in origins: origins = [o for o in origins if o != "*"]
+    if "*" in origins:
+        origins = [o for o in origins if o != "*"]
     # Production: fail-closed if CORS_ORIGINS not set
-    if not env_origins: return []
+    if not env_origins:
+        return []
 ```
 ✅ VERIFIED — CORS wildcards always rejected, production fails closed
 

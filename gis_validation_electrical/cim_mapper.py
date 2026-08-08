@@ -56,13 +56,6 @@ class CIMModel:
     breakers: dict[str, CIMBreaker]
     traceability: dict[str, str]  # cim_id -> adms_asset_id
 
-    conducting_equipment: Dict[str, CIMConductingEquipment]
-    connectivity_nodes: Dict[str, CIMConnectivityNode]
-    terminals: Dict[str, CIMTerminal]
-    power_transformers: Dict[str, CIMPowerTransformer]
-    breakers: Dict[str, CIMBreaker]
-    traceability: Dict[str, str]  # cim_id -> adms_asset_id
-
 
 def _bool_from_metadata(value: Any, *, default: bool = False) -> bool:
     if value is None:
@@ -105,15 +98,6 @@ def map_adms_to_cim(  # NOSONAR
     power_transformers: dict[str, CIMPowerTransformer] = {}
     breakers: dict[str, CIMBreaker] = {}
     traceability: dict[str, str] = {}
-
-    sub_coords_to_node: Dict[Tuple[float, float], str] = {}
-
-    conducting_equipment: Dict[str, CIMConductingEquipment] = {}
-    connectivity_nodes: Dict[str, CIMConnectivityNode] = {}
-    terminals: Dict[str, CIMTerminal] = {}
-    power_transformers: Dict[str, CIMPowerTransformer] = {}
-    breakers: Dict[str, CIMBreaker] = {}
-    traceability: Dict[str, str] = {}
 
     for s in substations:
         geom = s.geometry or {}

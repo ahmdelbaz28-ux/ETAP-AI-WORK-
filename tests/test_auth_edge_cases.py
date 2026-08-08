@@ -31,6 +31,7 @@ def _setup_env() -> Generator[None, None, None]:
     os.environ["FIREAI_ENV"] = "development"
     os.environ["FIREAI_API_KEY"] = "test_key_edge_cases"
     from backend.routers import auth as auth_module
+
     auth_module._SESSION_STORE.clear()
     auth_module._FAILED_ATTEMPTS.clear()
     yield
@@ -42,6 +43,7 @@ def _setup_env() -> Generator[None, None, None]:
 def client() -> Generator[TestClient, None, None]:
     """Create a test client for the FastAPI app."""
     from backend.app import app
+
     with TestClient(app) as c:
         yield c
 
@@ -57,7 +59,9 @@ class TestSessionExpiry:
         # Login
         resp = client.post(
             "/api/v1/auth/login",
-            json={"api_key": "test_key_edge_cases"},  # NOSONAR: hard-coded secret in test fixture  # NOSONAR — S7632: test function documented via class name / module path
+            json={
+                "api_key": "test_key_edge_cases"
+            },  # NOSONAR: hard-coded secret in test fixture  # NOSONAR — S7632: test function documented via class name / module path
         )
         assert resp.status_code == 200
 
@@ -80,7 +84,9 @@ class TestSessionExpiry:
         # Login
         client.post(
             "/api/v1/auth/login",
-            json={"api_key": "test_key_edge_cases"},  # NOSONAR: hard-coded secret in test fixture  # NOSONAR — S7632: test function documented via class name / module path
+            json={
+                "api_key": "test_key_edge_cases"
+            },  # NOSONAR: hard-coded secret in test fixture  # NOSONAR — S7632: test function documented via class name / module path
         )
 
         store_keys = list(auth_module._SESSION_STORE.keys())
@@ -93,8 +99,9 @@ class TestSessionExpiry:
         client.get("/api/v1/auth/me")
 
         # Session should be removed from store
-        assert store_keys[0] not in auth_module._SESSION_STORE, \
+        assert store_keys[0] not in auth_module._SESSION_STORE, (
             "Expired session should be cleaned up from store"
+        )
 
 
 class TestConcurrentSessions:
@@ -107,7 +114,9 @@ class TestConcurrentSessions:
         # First login
         resp1 = client.post(
             "/api/v1/auth/login",
-            json={"api_key": "test_key_edge_cases"},  # NOSONAR: hard-coded secret in test fixture  # NOSONAR — S7632: test function documented via class name / module path
+            json={
+                "api_key": "test_key_edge_cases"
+            },  # NOSONAR: hard-coded secret in test fixture  # NOSONAR — S7632: test function documented via class name / module path
         )
         token1 = resp1.headers.get("set-cookie", "").split("fireai_session=")[1].split(";")[0]
 
@@ -115,7 +124,9 @@ class TestConcurrentSessions:
         client.cookies.clear()
         resp2 = client.post(
             "/api/v1/auth/login",
-            json={"api_key": "test_key_edge_cases"},  # NOSONAR: hard-coded secret in test fixture  # NOSONAR — S7632: test function documented via class name / module path
+            json={
+                "api_key": "test_key_edge_cases"
+            },  # NOSONAR: hard-coded secret in test fixture  # NOSONAR — S7632: test function documented via class name / module path
         )
         token2 = resp2.headers.get("set-cookie", "").split("fireai_session=")[1].split(";")[0]
 
@@ -129,20 +140,24 @@ class TestConcurrentSessions:
         # Login twice
         resp1 = client.post(
             "/api/v1/auth/login",
-            json={"api_key": "test_key_edge_cases"},  # NOSONAR: hard-coded secret in test fixture  # NOSONAR — S7632: test function documented via class name / module path
+            json={
+                "api_key": "test_key_edge_cases"
+            },  # NOSONAR: hard-coded secret in test fixture  # NOSONAR — S7632: test function documented via class name / module path
         )
         resp1.headers.get("set-cookie", "").split("fireai_session=")[1].split(";")[0]
 
         client.cookies.clear()
         client.post(
             "/api/v1/auth/login",
-            json={"api_key": "test_key_edge_cases"},  # NOSONAR: hard-coded secret in test fixture  # NOSONAR — S7632: test function documented via class name / module path
+            json={
+                "api_key": "test_key_edge_cases"
+            },  # NOSONAR: hard-coded secret in test fixture  # NOSONAR — S7632: test function documented via class name / module path
         )
 
         # Both should be in session store
         from backend.routers import auth as auth_module
-        assert len(auth_module._SESSION_STORE) >= 2, \
-            "Both sessions should exist in store"
+
+        assert len(auth_module._SESSION_STORE) >= 2, "Both sessions should exist in store"
 
     def test_logout_one_session_does_not_affect_other(self, client: TestClient) -> None:
         """Logging out one session should not invalidate the other."""
@@ -152,7 +167,9 @@ class TestConcurrentSessions:
         # First login
         client.post(
             "/api/v1/auth/login",
-            json={"api_key": "test_key_edge_cases"},  # NOSONAR: hard-coded secret in test fixture  # NOSONAR — S7632: test function documented via class name / module path
+            json={
+                "api_key": "test_key_edge_cases"
+            },  # NOSONAR: hard-coded secret in test fixture  # NOSONAR — S7632: test function documented via class name / module path
         )
         first_session_count = len(auth_module._SESSION_STORE)
 
@@ -160,7 +177,9 @@ class TestConcurrentSessions:
         client.cookies.clear()
         client.post(
             "/api/v1/auth/login",
-            json={"api_key": "test_key_edge_cases"},  # NOSONAR: hard-coded secret in test fixture  # NOSONAR — S7632: test function documented via class name / module path
+            json={
+                "api_key": "test_key_edge_cases"
+            },  # NOSONAR: hard-coded secret in test fixture  # NOSONAR — S7632: test function documented via class name / module path
         )
         assert len(auth_module._SESSION_STORE) == first_session_count + 1
 
@@ -168,8 +187,9 @@ class TestConcurrentSessions:
         client.post("/api/v1/auth/logout")
 
         # Only one session should be removed
-        assert len(auth_module._SESSION_STORE) == first_session_count, \
+        assert len(auth_module._SESSION_STORE) == first_session_count, (
             "Logout should only remove the current session, not others"
+        )
 
 
 class TestInputValidation:
@@ -273,12 +293,16 @@ class TestRateLimitWindow:
         # Successful login
         client.post(
             "/api/v1/auth/login",
-            json={"api_key": "test_key_edge_cases"},  # NOSONAR: hard-coded secret in test fixture  # NOSONAR — S7632: test function documented via class name / module path
+            json={
+                "api_key": "test_key_edge_cases"
+            },  # NOSONAR: hard-coded secret in test fixture  # NOSONAR — S7632: test function documented via class name / module path
         )
 
         # Failed attempts should be cleared
-        assert client_ip not in auth_module._FAILED_ATTEMPTS or \
-               len(auth_module._FAILED_ATTEMPTS.get(client_ip, [])) == 0
+        assert (
+            client_ip not in auth_module._FAILED_ATTEMPTS
+            or len(auth_module._FAILED_ATTEMPTS.get(client_ip, [])) == 0
+        )
 
 
 class TestCookieSecurityHeaders:
@@ -288,7 +312,9 @@ class TestCookieSecurityHeaders:
         """Cookie should have Path=/."""
         resp = client.post(
             "/api/v1/auth/login",
-            json={"api_key": "test_key_edge_cases"},  # NOSONAR: hard-coded secret in test fixture  # NOSONAR — S7632: test function documented via class name / module path
+            json={
+                "api_key": "test_key_edge_cases"
+            },  # NOSONAR: hard-coded secret in test fixture  # NOSONAR — S7632: test function documented via class name / module path
         )
         set_cookie = resp.headers.get("set-cookie", "").lower()
         assert "path=/" in set_cookie, "Cookie should have Path=/"
@@ -297,7 +323,9 @@ class TestCookieSecurityHeaders:
         """Cookie should have Max-Age."""
         resp = client.post(
             "/api/v1/auth/login",
-            json={"api_key": "test_key_edge_cases"},  # NOSONAR: hard-coded secret in test fixture  # NOSONAR — S7632: test function documented via class name / module path
+            json={
+                "api_key": "test_key_edge_cases"
+            },  # NOSONAR: hard-coded secret in test fixture  # NOSONAR — S7632: test function documented via class name / module path
         )
         set_cookie = resp.headers.get("set-cookie", "").lower()
         assert "max-age=" in set_cookie, "Cookie should have Max-Age"
@@ -307,7 +335,9 @@ class TestCookieSecurityHeaders:
         # Login first
         client.post(
             "/api/v1/auth/login",
-            json={"api_key": "test_key_edge_cases"},  # NOSONAR: hard-coded secret in test fixture  # NOSONAR — S7632: test function documented via class name / module path
+            json={
+                "api_key": "test_key_edge_cases"
+            },  # NOSONAR: hard-coded secret in test fixture  # NOSONAR — S7632: test function documented via class name / module path
         )
 
         # Logout
@@ -323,7 +353,9 @@ class TestSessionTokenFormat:
         """Token should have format: session_id.signature."""
         resp = client.post(
             "/api/v1/auth/login",
-            json={"api_key": "test_key_edge_cases"},  # NOSONAR: hard-coded secret in test fixture  # NOSONAR — S7632: test function documented via class name / module path
+            json={
+                "api_key": "test_key_edge_cases"
+            },  # NOSONAR: hard-coded secret in test fixture  # NOSONAR — S7632: test function documented via class name / module path
         )
         token = resp.headers.get("set-cookie", "").split("fireai_session=")[1].split(";")[0]
 
@@ -337,11 +369,14 @@ class TestSessionTokenFormat:
         """Session ID should have at least 256 bits (43+ URL-safe base64 chars)."""
         resp = client.post(
             "/api/v1/auth/login",
-            json={"api_key": "test_key_edge_cases"},  # NOSONAR: hard-coded secret in test fixture  # NOSONAR — S7632: test function documented via class name / module path
+            json={
+                "api_key": "test_key_edge_cases"
+            },  # NOSONAR: hard-coded secret in test fixture  # NOSONAR — S7632: test function documented via class name / module path
         )
         token = resp.headers.get("set-cookie", "").split("fireai_session=")[1].split(";")[0]
         session_id = token.split(".")[0]
 
         # 32 bytes = 256 bits = 43 URL-safe base64 chars
-        assert len(session_id) >= 43, \
+        assert len(session_id) >= 43, (
             f"Session ID should be >=43 chars (256 bits), got {len(session_id)}"
+        )

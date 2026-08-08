@@ -160,11 +160,14 @@ class RoomSpec:
                 "room_dimensions",
                 f"{self.width_m!r}×{self.length_m!r}",
                 "room dimensions must be finite numbers (NaN/Inf rejected)",
-                "Physics"
+                "Physics",
             )
         if self.width_m <= 0 or self.length_m <= 0:
             raise PhysicsGuardError(
-                "room_dimensions", f"{self.width_m}×{self.length_m}", "room dimensions must be > 0", "Physics"
+                "room_dimensions",
+                f"{self.width_m}×{self.length_m}",
+                "room dimensions must be > 0",
+                "Physics",
             )
         if self.slope_degrees < 0 or self.slope_degrees > 45:
             raise PhysicsGuardError(
@@ -309,9 +312,7 @@ class DetectorPlacementEngine:
             # derivation per the NFPA contract.
             NFPA72_HEAT_MAX_AREA_M2 = 232.26  # NFPA 72-2022 §17.6.3.1 (2500 ft²)
             area_per_detector = min(room.area_m2, NFPA72_HEAT_MAX_AREA_M2)
-            spacing_result = compute_heat_detector_spacing(
-                room.ceiling_height_m, area_per_detector
-            )
+            spacing_result = compute_heat_detector_spacing(room.ceiling_height_m, area_per_detector)
             nfpa_refs.append("NFPA 72-2022 §17.6.3.1")
 
         S = spacing_result.get("listed_spacing_m") or spacing_result.get("spacing_m")
@@ -321,15 +322,17 @@ class DetectorPlacementEngine:
         # S=None causes TypeError. Both are catastrophic in a safety-critical system.
         if S is None or not math.isfinite(S) or S <= 0:
             raise PhysicsGuardError(
-                "spacing_m", S,
+                "spacing_m",
+                S,
                 "detector spacing must be a positive finite number — cannot place detectors without valid spacing",
-                "NFPA 72"
+                "NFPA 72",
             )
         if R is None or not math.isfinite(R) or R <= 0:
             raise PhysicsGuardError(
-                "coverage_radius_m", R,
+                "coverage_radius_m",
+                R,
                 "coverage radius must be a positive finite number — cannot verify coverage without valid radius",
-                "NFPA 72 §17.7"
+                "NFPA 72 §17.7",
             )
         # wall_offset: distance from wall for first/last detector row.
         # Per NFPA 72 §17.6.3.1.1, max wall distance = S/2 (half the listed spacing).
@@ -469,7 +472,9 @@ class DetectorPlacementEngine:
         """Check if point is within room bounds."""
         return 0 <= x <= room.width_m and 0 <= y <= room.length_m
 
-    def _check_beam_obstructions(self, room: RoomSpec, _spacing_m: float) -> int:  # NOSONAR — S1172: parameter retained for API stability
+    def _check_beam_obstructions(
+        self, room: RoomSpec, _spacing_m: float
+    ) -> int:  # NOSONAR — S1172: parameter retained for API stability
         """
         Check for beam obstructions that divide detector zones.
 
@@ -560,6 +565,7 @@ class DetectorPlacementEngine:
         # with architectural plans. This is flagged for manual FPE review.
         if stations:
             import logging
+
             _pull_logger = logging.getLogger(__name__)
             _pull_logger.warning(
                 f"Room {room.room_id}: Pull stations placed on right side of "  # noqa: G004
@@ -636,7 +642,9 @@ def place_duct_detector(spec: DuctDetectorSpec) -> dict[str, Any]:
     """
     v = spec.velocity_m_s
     if not math.isfinite(v) or v <= 0:
-        raise PhysicsGuardError("velocity_m_s", v, "air velocity must be > 0", "NFPA 72-2022 §17.7.4.2.2")  # NOSONAR — S1192: duplicated literal acceptable in this localized context
+        raise PhysicsGuardError(
+            "velocity_m_s", v, "air velocity must be > 0", "NFPA 72-2022 §17.7.4.2.2"
+        )  # NOSONAR — S1192: duplicated literal acceptable in this localized context
 
     MIN_VEL = 0.305  # 60 fpm
     MAX_VEL = 15.24  # 3000 fpm

@@ -128,9 +128,7 @@ def _env_list(name: str, default: Iterable[str] = ()) -> frozenset[str]:
     raw = os.getenv(name, "")
     if not raw.strip():
         return frozenset(default)
-    return frozenset(
-        item.strip().upper() for item in raw.split(",") if item.strip()
-    )
+    return frozenset(item.strip().upper() for item in raw.split(",") if item.strip())
 
 
 class AkamaiConfig:
@@ -153,21 +151,14 @@ class AkamaiConfig:
 
     def __init__(self) -> None:
         self.enabled: bool = _env_bool("AKAMAI_ENABLED", default=False)
-        self.require_origin_token: str = os.getenv(
-            "AKAMAI_REQUIRE_ORIGIN_TOKEN", ""
-        ).strip()
-        self.blocked_countries: frozenset[str] = _env_list(
-            "AKAMAI_BLOCKED_COUNTRIES"
+        self.require_origin_token: str = os.getenv("AKAMAI_REQUIRE_ORIGIN_TOKEN", "").strip()
+        self.blocked_countries: frozenset[str] = _env_list("AKAMAI_BLOCKED_COUNTRIES")
+        self.allowed_bot_score: int = _env_int("AKAMAI_ALLOWED_BOT_SCORE", default=30)
+        self.rate_limit_passthrough: bool = _env_bool("AKAMAI_RATE_LIMIT_HEADER", default=True)
+        self.production_mode: bool = os.getenv("FIREAI_ENV", "production").lower() in (
+            "production",
+            "prod",
         )
-        self.allowed_bot_score: int = _env_int(
-            "AKAMAI_ALLOWED_BOT_SCORE", default=30
-        )
-        self.rate_limit_passthrough: bool = _env_bool(
-            "AKAMAI_RATE_LIMIT_HEADER", default=True
-        )
-        self.production_mode: bool = os.getenv(
-            "FIREAI_ENV", "production"
-        ).lower() in ("production", "prod")
 
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
@@ -224,9 +215,7 @@ class AkamaiIntegrationMiddleware:
         else:
             logger.debug("AkamaiIntegrationMiddleware disabled (AKAMAI_ENABLED=false)")
 
-    async def __call__(
-        self, scope: Scope, receive: Receive, send: Send
-    ) -> None:
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         # Only inspect HTTP requests; WebSocket / lifespan pass through.
         if scope["type"] != "http" or not self.config.enabled:
             await self.app(scope, receive, send)
@@ -267,12 +256,8 @@ class AkamaiIntegrationMiddleware:
                 headers = message.setdefault("headers", [])
                 # Inject traceability header
                 if akamai_grn:
-                    headers.append(
-                        (b"x-akamai-grn", akamai_grn.encode("latin-1"))
-                    )
-                headers.append(
-                    (b"x-akamai-translated-request", b"true")
-                )
+                    headers.append((b"x-akamai-grn", akamai_grn.encode("latin-1")))
+                headers.append((b"x-akamai-translated-request", b"true"))
             await send(message)
 
         await self.app(scope, receive, send_wrapper)
@@ -302,8 +287,7 @@ class AkamaiIntegrationMiddleware:
             await self._send_forbidden(send, "Direct origin access forbidden")
             return False
         logger.warning(
-            "Missing Akamai-Internal token in non-production env (allowed). "
-            "path=%s",
+            "Missing Akamai-Internal token in non-production env (allowed). path=%s",
             scope.get("path", ""),
         )
         return True
@@ -322,9 +306,7 @@ class AkamaiIntegrationMiddleware:
                 path,
                 true_client_ip or "unknown",
             )
-            await self._send_forbidden(
-                send, f"Access from {country} is not permitted"
-            )
+            await self._send_forbidden(send, f"Access from {country} is not permitted")
             return False
         return True
 
@@ -340,9 +322,7 @@ class AkamaiIntegrationMiddleware:
         try:
             bot_score = int(bot_score_str)
         except ValueError:
-            logger.debug(
-                "Invalid Akamai-Bot-Score header value: %r", bot_score_str
-            )
+            logger.debug("Invalid Akamai-Bot-Score header value: %r", bot_score_str)
             return True
         if bot_score <= self.config.allowed_bot_score:
             return True
@@ -353,9 +333,7 @@ class AkamaiIntegrationMiddleware:
             path,
             true_client_ip or "unknown",
         )
-        await self._send_forbidden(
-            send, "Automated traffic detected on sensitive endpoint"
-        )
+        await self._send_forbidden(send, "Automated traffic detected on sensitive endpoint")
         return False
 
     # ── Internal helpers ────────────────────────────────────────────────────

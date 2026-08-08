@@ -116,11 +116,11 @@ def test_version_parsing(version):
 def test_invalid_version_rejected(name, author):
     """Property: Invalid version formats are rejected."""
     invalid_versions = [
-        "1.0",           # Missing patch
-        "1",             # Missing minor and patch
-        "1.0.0.0",       # Too many parts  # NOSONAR - python:S1313
-        "v1.0.0",        # Contains letter
-        "1.0.-1",        # Negative number
+        "1.0",  # Missing patch
+        "1",  # Missing minor and patch
+        "1.0.0.0",  # Too many parts  # NOSONAR - python:S1313
+        "v1.0.0",  # Contains letter
+        "1.0.-1",  # Negative number
     ]
 
     for invalid_version in invalid_versions:
@@ -208,10 +208,12 @@ def test_execution_result_mutual_exclusion(success, has_data, has_error):
         assert result.data is None
 
 
-@given(timestamp=st.datetimes(
-    min_value=datetime(2020, 1, 1),
-    max_value=datetime(2030, 12, 31),
-))
+@given(
+    timestamp=st.datetimes(
+        min_value=datetime(2020, 1, 1),
+        max_value=datetime(2030, 12, 31),
+    )
+)
 @settings(max_examples=30)
 def test_execution_result_timestamp_preserved(timestamp):
     """Property: Custom timestamps are preserved."""
@@ -247,8 +249,7 @@ def test_version_compatibility_rules(skill_major, skill_minor, sys_major, sys_mi
     expected = (skill_major == sys_major) and (skill_minor <= sys_minor)
 
     assert compatible == expected, (
-        f"skill={skill_version}, system={system_version}, "
-        f"expected={expected}, got={compatible}"
+        f"skill={skill_version}, system={system_version}, expected={expected}, got={compatible}"
     )
 
 
@@ -287,12 +288,9 @@ def test_full_manifest_valid(name, version, author, short_desc, triggers):
 @given(
     invalid_data=st.dictionaries(
         st.text(),
-        st.one_of([
-            st.text(),
-            st.integers(),
-            st.lists(st.text()),
-            st.dictionaries(st.text(), st.text())
-        ])
+        st.one_of(
+            [st.text(), st.integers(), st.lists(st.text()), st.dictionaries(st.text(), st.text())]
+        ),
     ).filter(lambda x: len(x) > 0)
 )
 @settings(max_examples=20)
@@ -336,12 +334,32 @@ def test_specific_invalid_cases():
     """Test specific known invalid cases."""
     invalid_cases = [
         # Invalid version formats
-        ({"metadata": {"name": "test", "version": "invalid", "author": "test"}, "description": {"short_description": "test", "trigger_words": ["test"]}}),
-        ({"metadata": {"name": "test", "version": "1.0", "author": "test"}, "description": {"short_description": "test", "trigger_words": ["test"]}}),
+        (
+            {
+                "metadata": {"name": "test", "version": "invalid", "author": "test"},
+                "description": {"short_description": "test", "trigger_words": ["test"]},
+            }
+        ),
+        (
+            {
+                "metadata": {"name": "test", "version": "1.0", "author": "test"},
+                "description": {"short_description": "test", "trigger_words": ["test"]},
+            }
+        ),
         # Missing required fields
-        ({"metadata": {"name": "test", "author": "test"}, "description": {"short_description": "test", "trigger_words": ["test"]}}),
+        (
+            {
+                "metadata": {"name": "test", "author": "test"},
+                "description": {"short_description": "test", "trigger_words": ["test"]},
+            }
+        ),
         # Empty trigger words
-        ({"metadata": {"name": "test", "version": "1.0.0", "author": "test"}, "description": {"short_description": "test", "trigger_words": []}}),
+        (
+            {
+                "metadata": {"name": "test", "version": "1.0.0", "author": "test"},
+                "description": {"short_description": "test", "trigger_words": []},
+            }
+        ),
     ]
 
     for invalid_case in invalid_cases:

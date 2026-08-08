@@ -13,6 +13,7 @@ from fastapi.testclient import TestClient
 # Step 1: Solver Parameters API
 # ---------------------------------------------------------------------------
 
+
 class TestSolverParametersAPI:
     """Tests for /api/v1/studies/parameters endpoint."""
 
@@ -69,6 +70,7 @@ class TestSolverParametersAPI:
 # Step 2: ZIP Load & Generator Config API
 # ---------------------------------------------------------------------------
 
+
 class TestZIPLoadGeneratorAPI:
     """Tests for /api/v1/equipment/zip-generators endpoints."""
 
@@ -113,6 +115,7 @@ class TestZIPLoadGeneratorAPI:
 # Step 3: Copilot Config API
 # ---------------------------------------------------------------------------
 
+
 class TestCopilotConfigAPI:
     """Tests for /api/v1/copilot/config endpoint."""
 
@@ -140,6 +143,7 @@ class TestCopilotConfigAPI:
 # Step 4: Storage Management API
 # ---------------------------------------------------------------------------
 
+
 class TestStorageManagementAPI:
     """Tests for /api/v1/storage endpoints."""
 
@@ -160,6 +164,7 @@ class TestStorageManagementAPI:
 # ---------------------------------------------------------------------------
 # Step 5: Notification Config API
 # ---------------------------------------------------------------------------
+
 
 class TestNotificationConfigAPI:
     """Tests for /api/v1/notifications/digest/config endpoint."""
@@ -186,6 +191,7 @@ class TestNotificationConfigAPI:
 # Step 6: Autodesk Connector API
 # ---------------------------------------------------------------------------
 
+
 class TestAutodeskConnectorAPI:
     """Tests for /api/v1/connectors/autodesk endpoints."""
 
@@ -206,6 +212,7 @@ class TestAutodeskConnectorAPI:
 # Step 7: Audit Logs API
 # ---------------------------------------------------------------------------
 
+
 class TestAuditLogsAPI:
     """Tests for /api/v1/security/audit-logs endpoint."""
 
@@ -219,9 +226,7 @@ class TestAuditLogsAPI:
 
     def test_list_audit_logs_with_filters(self, client: TestClient) -> None:
         """GET with query parameters filters logs."""
-        response = client.get(
-            "/api/v1/security/audit-logs?severity=high&page=1&page_size=10"
-        )
+        response = client.get("/api/v1/security/audit-logs?severity=high&page=1&page_size=10")
         assert response.status_code == 200
 
     def test_get_audit_log_stats(self, client: TestClient) -> None:
@@ -238,6 +243,7 @@ class TestAuditLogsAPI:
 # ---------------------------------------------------------------------------
 # Step 8: Feature Flags API
 # ---------------------------------------------------------------------------
+
 
 class TestFeatureFlagsAPI:
     """Tests for /api/v1/feature-flags endpoint."""

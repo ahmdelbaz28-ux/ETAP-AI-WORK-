@@ -51,6 +51,8 @@ def _sanitize_filename(name: str, max_length: int = 64) -> str:
     if not sanitized:
         sanitized = "untitled"
     return sanitized[:max_length]
+
+
 from pydantic import BaseModel, ConfigDict
 from sqlalchemy import (
     DateTime,
@@ -274,7 +276,9 @@ async def export_pdf(
     return StreamingResponse(
         io.BytesIO(pdf_bytes),
         media_type="application/pdf",
-        headers={"Content-Disposition": f'attachment; filename="{_sanitize_filename(project.name)}_report.pdf"'},
+        headers={
+            "Content-Disposition": f'attachment; filename="{_sanitize_filename(project.name)}_report.pdf"'
+        },
     )
 
 
@@ -309,7 +313,9 @@ async def export_excel(
     return StreamingResponse(
         io.BytesIO(excel_bytes),
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        headers={"Content-Disposition": f'attachment; filename="{_sanitize_filename(project.name)}_results.xlsx"'},
+        headers={
+            "Content-Disposition": f'attachment; filename="{_sanitize_filename(project.name)}_results.xlsx"'
+        },
     )
 
 

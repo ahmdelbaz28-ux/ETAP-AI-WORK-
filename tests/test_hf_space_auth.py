@@ -11,6 +11,7 @@ session.
 NOTE: These tests import hf-space/app.py which has heavy dependencies.
 If deps are missing, the tests are skipped (not failed).
 """
+
 from __future__ import annotations
 
 import os
@@ -34,8 +35,13 @@ _HF_APP_ERROR = None
 
 # Temporarily set env for the import ONLY, then restore
 _saved = {}
-for k in ("ENGINEERING_SERVICE_AUTH_DISABLED", "ENGINEERING_SERVICE_API_KEY",
-          "JWT_SECRET_KEY", "ENVIRONMENT", "DATABASE_URL"):
+for k in (
+    "ENGINEERING_SERVICE_AUTH_DISABLED",
+    "ENGINEERING_SERVICE_API_KEY",
+    "JWT_SECRET_KEY",
+    "ENVIRONMENT",
+    "DATABASE_URL",
+):
     _saved[k] = os.environ.get(k)
     os.environ.pop("ENGINEERING_SERVICE_AUTH_DISABLED", None)
     os.environ.setdefault("ENGINEERING_SERVICE_API_KEY", "test-hf-secret-key-12345")
@@ -44,6 +50,7 @@ for k in ("ENGINEERING_SERVICE_AUTH_DISABLED", "ENGINEERING_SERVICE_API_KEY",
     # Use a SEPARATE database for HF Space tests to avoid conflicts
     # with test_auth_api.py which uses the default ./data/etap_platform.db
     import tempfile as _tf
+
     _hf_db = _tf.mktemp(suffix=".db")
     os.environ["DATABASE_URL"] = f"sqlite+aiosqlite:///{_hf_db}"
 
@@ -54,6 +61,7 @@ for mod in list(sys.modules.keys()):
 
 try:
     import app as hf_app_module
+
     _HF_APP = hf_app_module.app
 except Exception as e:
     _HF_APP_ERROR = str(e)
@@ -83,6 +91,7 @@ def hf_client(monkeypatch):
     monkeypatch.setenv("ENGINEERING_SERVICE_API_KEY", "test-hf-secret-key-12345")
     monkeypatch.setenv("JWT_SECRET_KEY", "test-jwt-secret-key-minimum-32-characters-long")
     from fastapi.testclient import TestClient
+
     return TestClient(_HF_APP)
 
 
@@ -104,7 +113,9 @@ class TestPublicEndpoints:
 
     def test_readyz_no_auth(self, hf_client):
         resp = hf_client.get("/readyz")
-        assert resp.status_code in (200, 503), f"/readyz should be public (200 or 503), got {resp.status_code}"
+        assert resp.status_code in (200, 503), (
+            f"/readyz should be public (200 or 503), got {resp.status_code}"
+        )
 
     def test_info_no_auth(self, hf_client):
         resp = hf_client.get("/api/v1/info")
@@ -121,18 +132,21 @@ class TestPublicEndpoints:
 class TestProtectedEndpoints:
     """Endpoints that must require authentication."""
 
-    @pytest.mark.parametrize("method,path,body", [
-        ("GET", "/api/v1/scada/live", None),
-        ("GET", "/api/v1/digital-twin/status", None),
-        ("GET", "/api/v1/benchmark", None),
-        ("GET", "/api/v1/studies/types", None),
-        ("POST", "/api/v1/studies/run", {}),
-        ("POST", "/api/v1/context/retrieve", {"query": "test"}),
-        ("POST", "/api/v1/context/impact", {"component": "test"}),
-        ("GET", "/api/v1/knowledge", None),
-        ("GET", "/api/v1/ml/capabilities", None),
-        ("GET", "/api/v1/settings/keys", None),
-    ])
+    @pytest.mark.parametrize(
+        "method,path,body",
+        [
+            ("GET", "/api/v1/scada/live", None),
+            ("GET", "/api/v1/digital-twin/status", None),
+            ("GET", "/api/v1/benchmark", None),
+            ("GET", "/api/v1/studies/types", None),
+            ("POST", "/api/v1/studies/run", {}),
+            ("POST", "/api/v1/context/retrieve", {"query": "test"}),
+            ("POST", "/api/v1/context/impact", {"component": "test"}),
+            ("GET", "/api/v1/knowledge", None),
+            ("GET", "/api/v1/ml/capabilities", None),
+            ("GET", "/api/v1/settings/keys", None),
+        ],
+    )
     def test_endpoint_requires_auth(self, hf_client, method, path, body):
         """Each endpoint must return 401 without auth headers."""
         if method == "GET":

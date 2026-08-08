@@ -99,6 +99,7 @@ async def health_check():
     Python version, and worker process uptime.
     """
     import time as _time
+
     is_windows = sys.platform == "win32"
     etap_available = False
 
@@ -107,6 +108,7 @@ async def health_check():
         try:
             import pythoncom  # noqa: F401
             import win32com.client  # noqa: F401
+
             etap_available = True
         except ImportError:
             etap_available = False

@@ -29,6 +29,7 @@ This migration creates the missing tables:
 - notifications
 - export_history
 """
+
 from __future__ import annotations
 
 import sqlalchemy as sa
@@ -58,7 +59,9 @@ def upgrade() -> None:
     if "error_message" not in study_results_cols:
         op.add_column("study_results", sa.Column("error_message", sa.String(2000), nullable=True))
     if "completed_at" not in study_results_cols:
-        op.add_column("study_results", sa.Column("completed_at", sa.DateTime(timezone=True), nullable=True))
+        op.add_column(
+            "study_results", sa.Column("completed_at", sa.DateTime(timezone=True), nullable=True)
+        )
 
     # Migrate data from old columns to new (best-effort, non-fatal on error)
     try:
@@ -79,8 +82,11 @@ def upgrade() -> None:
     # ── 2. Create missing ORM tables ───────────────────────────────
 
     # equipment_categories (ORM: api/equipment.py:EquipmentCategory)
-    equipment_cols = {c["name"] for c in inspector.get_columns("equipment_categories")} \
-        if "equipment_categories" in inspector.get_table_names() else set()
+    equipment_cols = (
+        {c["name"] for c in inspector.get_columns("equipment_categories")}
+        if "equipment_categories" in inspector.get_table_names()
+        else set()
+    )
     if not equipment_cols:
         op.create_table(
             "equipment_categories",
@@ -95,8 +101,11 @@ def upgrade() -> None:
         )
 
     # study_templates (ORM: api/templates.py)
-    templates_cols = {c["name"] for c in inspector.get_columns("study_templates")} \
-        if "study_templates" in inspector.get_table_names() else set()
+    templates_cols = (
+        {c["name"] for c in inspector.get_columns("study_templates")}
+        if "study_templates" in inspector.get_table_names()
+        else set()
+    )
     if not templates_cols:
         op.create_table(
             "study_templates",
@@ -113,8 +122,11 @@ def upgrade() -> None:
         # NOTE: index already created by index=True in Column definition above
 
     # notifications (ORM: api/notifications.py)
-    notif_cols = {c["name"] for c in inspector.get_columns("notifications")} \
-        if "notifications" in inspector.get_table_names() else set()
+    notif_cols = (
+        {c["name"] for c in inspector.get_columns("notifications")}
+        if "notifications" in inspector.get_table_names()
+        else set()
+    )
     if not notif_cols:
         op.create_table(
             "notifications",
@@ -130,13 +142,21 @@ def upgrade() -> None:
         # NOTE: index already created by index=True in Column definition above
 
     # export_history (ORM: api/export.py)
-    export_cols = {c["name"] for c in inspector.get_columns("export_history")} \
-        if "export_history" in inspector.get_table_names() else set()
+    export_cols = (
+        {c["name"] for c in inspector.get_columns("export_history")}
+        if "export_history" in inspector.get_table_names()
+        else set()
+    )
     if not export_cols:
         op.create_table(
             "export_history",
             sa.Column("id", sa.String(36), primary_key=True),
-            sa.Column("project_id", sa.String(36), sa.ForeignKey("projects.id", ondelete="CASCADE"), nullable=False),
+            sa.Column(
+                "project_id",
+                sa.String(36),
+                sa.ForeignKey("projects.id", ondelete="CASCADE"),
+                nullable=False,
+            ),
             sa.Column("format", sa.String(16), nullable=False),
             sa.Column("file_name", sa.String(255), nullable=True),
             sa.Column("file_size_bytes", sa.Integer(), nullable=True),
@@ -146,8 +166,11 @@ def upgrade() -> None:
         # NOTE: index already created by index=True in Column definition above
 
     # RBAC tables (ORM: api/rbac.py)
-    roles_cols = {c["name"] for c in inspector.get_columns("roles")} \
-        if "roles" in inspector.get_table_names() else set()
+    roles_cols = (
+        {c["name"] for c in inspector.get_columns("roles")}
+        if "roles" in inspector.get_table_names()
+        else set()
+    )
     if not roles_cols:
         op.create_table(
             "roles",
@@ -157,8 +180,11 @@ def upgrade() -> None:
             sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now()),
         )
 
-    permissions_cols = {c["name"] for c in inspector.get_columns("permissions")} \
-        if "permissions" in inspector.get_table_names() else set()
+    permissions_cols = (
+        {c["name"] for c in inspector.get_columns("permissions")}
+        if "permissions" in inspector.get_table_names()
+        else set()
+    )
     if not permissions_cols:
         op.create_table(
             "permissions",
@@ -169,22 +195,43 @@ def upgrade() -> None:
             sa.UniqueConstraint("resource", "action", name="uq_permission_resource_action"),
         )
 
-    role_perms_cols = {c["name"] for c in inspector.get_columns("role_permissions")} \
-        if "role_permissions" in inspector.get_table_names() else set()
+    role_perms_cols = (
+        {c["name"] for c in inspector.get_columns("role_permissions")}
+        if "role_permissions" in inspector.get_table_names()
+        else set()
+    )
     if not role_perms_cols:
         op.create_table(
             "role_permissions",
-            sa.Column("role_id", sa.String(36), sa.ForeignKey("roles.id", ondelete="CASCADE"), primary_key=True),
-            sa.Column("permission_id", sa.String(36), sa.ForeignKey("permissions.id", ondelete="CASCADE"), primary_key=True),
+            sa.Column(
+                "role_id",
+                sa.String(36),
+                sa.ForeignKey("roles.id", ondelete="CASCADE"),
+                primary_key=True,
+            ),
+            sa.Column(
+                "permission_id",
+                sa.String(36),
+                sa.ForeignKey("permissions.id", ondelete="CASCADE"),
+                primary_key=True,
+            ),
         )
 
-    user_roles_cols = {c["name"] for c in inspector.get_columns("user_roles")} \
-        if "user_roles" in inspector.get_table_names() else set()
+    user_roles_cols = (
+        {c["name"] for c in inspector.get_columns("user_roles")}
+        if "user_roles" in inspector.get_table_names()
+        else set()
+    )
     if not user_roles_cols:
         op.create_table(
             "user_roles",
             sa.Column("id", sa.String(36), primary_key=True),
-            sa.Column("user_id", sa.String(36), sa.ForeignKey("users.id", ondelete="CASCADE"), nullable=False),
+            sa.Column(
+                "user_id",
+                sa.String(36),
+                sa.ForeignKey("users.id", ondelete="CASCADE"),
+                nullable=False,
+            ),
             sa.Column("role_id", sa.String(36), sa.ForeignKey("roles.id"), nullable=False),
             sa.Column("assigned_by", sa.String(36), nullable=True),
             sa.Column("assigned_at", sa.DateTime(timezone=True), server_default=sa.func.now()),

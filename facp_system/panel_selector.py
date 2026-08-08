@@ -41,8 +41,8 @@ logger = logging.getLogger(__name__)
 # Typical addressable device quiescent current: 0.3-2.0 mA
 # Conservative average for mixed device load: 0.8 mA
 # Reference: Notifier FLASHSCAN, Siemens FDNet, Simplex IDNet datasheets
-STANDBY_MA_PER_DEVICE = 0.8   # mA per device (conservative average)
-ALARM_MA_PER_DEVICE = 5.0     # mA per device in alarm (LED annunciator)
+STANDBY_MA_PER_DEVICE = 0.8  # mA per device (conservative average)
+ALARM_MA_PER_DEVICE = 5.0  # mA per device in alarm (LED annunciator)
 
 
 @dataclass(frozen=True)
@@ -57,6 +57,7 @@ class ProjectRequirements:
     jurisdiction: str  # e.g., "US", "Canada", "FDNY"
     preferred_manufacturer: Optional[str] = None
     min_temperature_c: float = 20.0  # V54 FIX F5: For battery temperature derating
+
 
 @dataclass(frozen=True)
 class PanelRecommendation:
@@ -73,6 +74,7 @@ class PanelRecommendation:
     alternatives: List[str]
     signature_hash: str
 
+
 class SelectionEngine:
     @staticmethod
     def compute_battery_ah(
@@ -80,7 +82,7 @@ class SelectionEngine:
         nac_circuit_count: int,
         panel: FireAlarmPanel,
         requires_voice: bool,
-        min_temperature_c: float = 20.0
+        min_temperature_c: float = 20.0,
     ) -> Tuple[float, dict]:
         """
         Calculates battery back-up capacity per NFPA 72 SS10.6.7.
@@ -101,7 +103,11 @@ class SelectionEngine:
         """
         # V54 FIX F6: Realistic per-device currents
         standby_load = (device_count * STANDBY_MA_PER_DEVICE / 1000.0) + panel.standby_current_amps
-        alarm_load = (nac_circuit_count * 2.0) + (device_count * ALARM_MA_PER_DEVICE / 1000.0) + panel.alarm_current_amps
+        alarm_load = (
+            (nac_circuit_count * 2.0)
+            + (device_count * ALARM_MA_PER_DEVICE / 1000.0)
+            + panel.alarm_current_amps
+        )
 
         # NFPA 72 SS10.6.7.2.1: 24h standby + alarm duration
         alarm_duration_h = 0.25 if requires_voice else (5.0 / 60.0)
@@ -126,8 +132,14 @@ class SelectionEngine:
                 "aging_derating": result.aging_derating,
                 "discharge_rate_correction": result.discharge_rate_correction,
                 "combined_safety_factor": round(
-                    1.0 / max(result.temperature_derating * result.aging_derating * result.discharge_rate_correction, 0.01),
-                    2
+                    1.0
+                    / max(
+                        result.temperature_derating
+                        * result.aging_derating
+                        * result.discharge_rate_correction,
+                        0.01,
+                    ),
+                    2,
                 ),
                 "standby_ah": result.standby_ah,
                 "alarm_ah": result.alarm_ah,
@@ -168,7 +180,11 @@ class SelectionEngine:
             return round(battery_ah, 2), derating_details
 
     @classmethod
-    def select_panel(cls, req: ProjectRequirements) -> PanelRecommendation:  # NOSONAR — S3776: cognitive complexity is inherent to the safety-critical algorithm
+    def select_panel(
+        cls, req: ProjectRequirements
+    ) -> (
+        PanelRecommendation
+    ):  # NOSONAR — S3776: cognitive complexity is inherent to the safety-critical algorithm
         # Step 1: Compute code-mandated capacity margins
         # Points: 20% spare capacity per NFPA 72 engineering best practice
         required_points = req.device_count * 1.2
@@ -220,13 +236,18 @@ class SelectionEngine:
                 score += 5.0  # Oversized or excessively tight
 
             # Preferred manufacturer match
-            if req.preferred_manufacturer and req.preferred_manufacturer.upper() == p.manufacturer.upper():
+            if (
+                req.preferred_manufacturer
+                and req.preferred_manufacturer.upper() == p.manufacturer.upper()
+            ):
                 score += 100.0
 
             eligible_panels.append((p, score))
 
         if not eligible_panels:
-            raise ValueError("No compliant panels found in database for the given design requirements.")
+            raise ValueError(
+                "No compliant panels found in database for the given design requirements."
+            )
 
         # V54 FIX F3: Sort by HIGHEST score, then SMALLEST adequate capacity on ties.
         # Root cause: With reverse=True and x[0].points_capacity, the most OVERSIZED
@@ -234,10 +255,10 @@ class SelectionEngine:
         # panel that meets requirements (best utilization, lowest cost).
         eligible_panels.sort(
             key=lambda x: (
-                -x[1],                        # HIGHEST score first
-                x[0].points_capacity,          # SMALLEST adequate capacity first (best utilization)
-                x[0].standby_current_amps,     # LOWEST standby current first (most efficient)
-                x[0].model                     # Alphabetical tiebreaker
+                -x[1],  # HIGHEST score first
+                x[0].points_capacity,  # SMALLEST adequate capacity first (best utilization)
+                x[0].standby_current_amps,  # LOWEST standby current first (most efficient)
+                x[0].model,  # Alphabetical tiebreaker
             )
         )
 
@@ -265,7 +286,9 @@ class SelectionEngine:
 
         # V54 FIX F4: Warning if releasing required but no releasing-capable alternatives
         if req.requires_releasing:
-            releasing_alternatives = [p[0].model for p in eligible_panels[1:] if p[0].supports_releasing]
+            releasing_alternatives = [
+                p[0].model for p in eligible_panels[1:] if p[0].supports_releasing
+            ]
             if not releasing_alternatives:
                 warnings.append(
                     "No alternative releasing-capable panels available. "
@@ -278,7 +301,7 @@ class SelectionEngine:
             req.nac_circuit_count,
             selected_panel,
             req.requires_voice,
-            req.min_temperature_c
+            req.min_temperature_c,
         )
 
         # Generate cryptographic signature to verify deterministic calculation outputs
@@ -305,5 +328,5 @@ class SelectionEngine:
             ],
             warnings=warnings,
             alternatives=alternatives,
-            signature_hash=signature
+            signature_hash=signature,
         )

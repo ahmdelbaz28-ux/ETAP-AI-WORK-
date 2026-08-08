@@ -340,9 +340,7 @@ class ArcFlashEngine:
         if enclosure_type == EnclosureType.BOX:
             # Enclosure size correction per IEEE 1584-2018
             # CF = 1.0 for typical enclosures; adjusted for non-standard sizes
-            v_enc = (
-                enclosure_width_mm * enclosure_height_mm * enclosure_depth_mm
-            )  # NOSONAR
+            v_enc = enclosure_width_mm * enclosure_height_mm * enclosure_depth_mm  # NOSONAR
             # Reference enclosure volume: 20" x 20" x 20" = 508^3 mm^3
             v_ref = (
                 508.0**3

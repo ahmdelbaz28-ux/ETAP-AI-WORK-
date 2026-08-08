@@ -1,4 +1,5 @@
 """Message Queue for Event Bus in Distributed FACP System"""
+
 import queue
 import threading
 import time
@@ -25,8 +26,15 @@ class MessageStatus(Enum):
 class Message:
     """Represents a message in the distributed FACP system"""
 
-    def __init__(self, topic: str, data: Dict[str, Any], priority: MessagePriority = MessagePriority.NORMAL,
-                 correlation_id: Optional[str] = None, reply_to: Optional[str] = None, headers: Optional[Dict[str, str]] = None):
+    def __init__(
+        self,
+        topic: str,
+        data: Dict[str, Any],
+        priority: MessagePriority = MessagePriority.NORMAL,
+        correlation_id: Optional[str] = None,
+        reply_to: Optional[str] = None,
+        headers: Optional[Dict[str, str]] = None,
+    ):
         self.id = str(uuid.uuid4())
         self.topic = topic
         self.data = data
@@ -60,11 +68,11 @@ class Message:
             "max_attempts": self.max_attempts,
             "delay_until": self.delay_until,
             "node_source": self.node_source,
-            "node_target": self.node_target
+            "node_target": self.node_target,
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'Message':
+    def from_dict(cls, data: Dict[str, Any]) -> "Message":
         """Create message from dictionary representation"""
         msg = cls(
             topic=data["topic"],
@@ -72,7 +80,7 @@ class Message:
             priority=MessagePriority(data["priority"]),
             correlation_id=data["correlation_id"],
             reply_to=data.get("reply_to"),
-            headers=data.get("headers", {})
+            headers=data.get("headers", {}),
         )
         msg.id = data["id"]
         msg.created_at = data["created_at"]
@@ -95,13 +103,7 @@ class MessageQueue:
         self.topic_queues = {}  # topic -> queue.PriorityQueue
         self.subscribers = {}  # topic -> [callbacks]
         self.lock = threading.Lock()
-        self.stats = {
-            "enqueued": 0,
-            "dequeued": 0,
-            "processed": 0,
-            "failed": 0,
-            "retried": 0
-        }
+        self.stats = {"enqueued": 0, "dequeued": 0, "processed": 0, "failed": 0, "retried": 0}
         self.running = True
         self.message_ttl = 3600  # 1 hour default TTL
 
@@ -301,7 +303,7 @@ class PriorityQueue(MessageQueue):
             MessagePriority.LOW: queue.PriorityQueue(maxsize=max_size),
             MessagePriority.NORMAL: queue.PriorityQueue(maxsize=max_size),
             MessagePriority.HIGH: queue.PriorityQueue(maxsize=max_size),
-            MessagePriority.CRITICAL: queue.PriorityQueue(maxsize=max_size)
+            MessagePriority.CRITICAL: queue.PriorityQueue(maxsize=max_size),
         }
 
     def enqueue(self, message: Message) -> bool:
@@ -363,7 +365,7 @@ class PriorityQueue(MessageQueue):
                 "critical": self.priority_queues[MessagePriority.CRITICAL].qsize(),
                 "high": self.priority_queues[MessagePriority.HIGH].qsize(),
                 "normal": self.priority_queues[MessagePriority.NORMAL].qsize(),
-                "low": self.priority_queues[MessagePriority.LOW].qsize()
+                "low": self.priority_queues[MessagePriority.LOW].qsize(),
             }
 
 
@@ -387,12 +389,14 @@ class DistributedMessageQueue(MessageQueue):
 
         # Replicate to other nodes if callback is available
         if success and self.cluster_sync_callback:
-            self.cluster_sync_callback({
-                "action": "message_enqueued",
-                "message": message.to_dict(),
-                "node_id": self.node_id,
-                "timestamp": time.time()
-            })
+            self.cluster_sync_callback(
+                {
+                    "action": "message_enqueued",
+                    "message": message.to_dict(),
+                    "node_id": self.node_id,
+                    "timestamp": time.time(),
+                }
+            )
 
         return success
 
@@ -407,6 +411,7 @@ class DistributedMessageQueue(MessageQueue):
     def get_local_and_distributed_messages(self, topic: Optional[str] = None) -> List[Message]:
         """Get both local and distributed messages"""
         local_msgs = self.get_messages_by_topic(topic) if topic else list(self.messages.values())
-        distributed_msgs = [msg for msg in self.distributed_messages.values()
-                           if topic is None or msg.topic == topic]
+        distributed_msgs = [
+            msg for msg in self.distributed_messages.values() if topic is None or msg.topic == topic
+        ]
         return local_msgs + distributed_msgs

@@ -165,6 +165,7 @@ the ×2 factor for the DC return path. This understated voltage drop by 50%.
 **After (FIXED):**
 ```python
 from fireai.constants.nfpa72 import DC_RETURN_PATH_FACTOR  # = 2.0
+
 total_resistance = cable_resistance_ohm_per_m * cable_length_m * DC_RETURN_PATH_FACTOR
 ```
 

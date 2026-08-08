@@ -211,6 +211,8 @@ T = TypeVar("T")
 
 
 def _run_async(coro: Coroutine[Any, Any, T]) -> T:  # noqa: UP047
+def _run_async[T](coro: Coroutine[Any, Any, T]) -> T:
+
     """Run an async coroutine safely, whether or not an event loop is active."""
     try:
         loop = asyncio.get_running_loop()

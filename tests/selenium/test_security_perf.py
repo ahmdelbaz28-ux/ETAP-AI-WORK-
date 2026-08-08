@@ -43,7 +43,9 @@ def run_test(name: str, test_fn):
         errors.append(f"{name} (exception: {e})")
 
 
-def request(method: str, path: str, body: dict | None = None, raw_body: str | None = None) -> tuple[int, Any]:
+def request(
+    method: str, path: str, body: dict | None = None, raw_body: str | None = None
+) -> tuple[int, Any]:
     url = BASE_URL + path
     if raw_body:
         data = raw_body.encode()
@@ -52,7 +54,9 @@ def request(method: str, path: str, body: dict | None = None, raw_body: str | No
     else:
         data = None
     req = urllib.request.Request(
-        url, data=data, method=method,
+        url,
+        data=data,
+        method=method,
         headers={"Content-Type": "application/json", "Accept": "application/json"},
     )
     try:
@@ -75,6 +79,7 @@ def request(method: str, path: str, body: dict | None = None, raw_body: str | No
 # ---------------------------------------------------------------------------
 # Security: SQL Injection
 # ---------------------------------------------------------------------------
+
 
 def test_sql_injection_in_agent_id():
     """SQL injection attempt in agent_id path parameter should not crash."""
@@ -122,6 +127,7 @@ def test_sql_injection_in_chat():
 # Security: XSS
 # ---------------------------------------------------------------------------
 
+
 def test_xss_in_chat_message():
     """XSS payload in chat message should be escaped/sanitized, not executed.
 
@@ -165,11 +171,15 @@ def test_xss_in_chat_message():
 
 def test_xss_in_study_parameters():
     """XSS in study parameters should not crash."""
-    status, data = request("POST", "/api/v1/studies/run", {
-        "study_type": "load_flow",
-        "system": {"base_mva": 100.0, "buses": [{"id": 1, "type": "slack"}], "lines": []},
-        "parameters": {"name": "<script>alert(1)</script>"}
-    })
+    status, data = request(
+        "POST",
+        "/api/v1/studies/run",
+        {
+            "study_type": "load_flow",
+            "system": {"base_mva": 100.0, "buses": [{"id": 1, "type": "slack"}], "lines": []},
+            "parameters": {"name": "<script>alert(1)</script>"},
+        },
+    )
     if status == 0 or status == 500:
         print(f"  ✗ FAIL: XSS in study params caused error (status={status})")
         return False
@@ -180,6 +190,7 @@ def test_xss_in_study_parameters():
 # ---------------------------------------------------------------------------
 # Security: Path Traversal
 # ---------------------------------------------------------------------------
+
 
 def test_path_traversal_in_agent_id():
     """Path traversal attempt in agent_id should be rejected."""
@@ -207,6 +218,7 @@ def test_path_traversal_in_agent_id():
 # ---------------------------------------------------------------------------
 # Performance: Response Time
 # ---------------------------------------------------------------------------
+
 
 def test_response_time_healthz():
     """Healthz endpoint should respond in < 100ms."""
@@ -244,6 +256,7 @@ def test_response_time_agents_list():
 
 def test_concurrent_requests():
     """Server should handle 20 concurrent requests without errors."""
+
     def make_request(_):
         status, _ = request("GET", "/healthz")
         return status
@@ -262,9 +275,11 @@ def test_concurrent_requests():
 
 def test_concurrent_chat_requests():
     """Server should handle 5 concurrent chat requests without 500 errors."""
+
     def make_chat_request(_):
-        status, _ = request("POST", "/api/v1/agents/etap-expert/chat",
-                           {"question": "What is load flow?"})
+        status, _ = request(
+            "POST", "/api/v1/agents/etap-expert/chat", {"question": "What is load flow?"}
+        )
         return status
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
@@ -284,15 +299,16 @@ def test_concurrent_chat_requests():
 # Performance: Large Payloads
 # ---------------------------------------------------------------------------
 
+
 def test_large_payload_handling():
     """Server should handle a 100KB JSON payload gracefully."""
     # Create a large but valid payload
     large_data = ["data_point_" + str(i) for i in range(5000)]  # ~50KB
-    status, data = request("POST", "/api/v1/predict/anomaly", {
-        "data": [100 + i for i in range(100)],
-        "threshold": 3.0,
-        "_large_field": large_data
-    })
+    status, data = request(
+        "POST",
+        "/api/v1/predict/anomaly",
+        {"data": [100 + i for i in range(100)], "threshold": 3.0, "_large_field": large_data},
+    )
     if status == 0:
         print("  ✗ FAIL: server crashed on large payload")
         return False
@@ -319,7 +335,9 @@ def test_wrong_content_type():
     """POST with wrong content type should not crash."""
     url = BASE_URL + "/api/v1/agents/etap-expert/chat"
     req = urllib.request.Request(
-        url, data=b"plain text body", method="POST",
+        url,
+        data=b"plain text body",
+        method="POST",
         headers={"Content-Type": "text/plain"},
     )
     try:

@@ -23,6 +23,7 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC  # noqa: N812
+from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
 BASE_URL = "http://127.0.0.1:7860"
@@ -59,7 +60,11 @@ def create_driver():
     options.add_argument("--disable-gpu")
     options.add_argument("--window-size=1920,1080")
     chromedriver_path = "/home/z/.npm-global/bin/chromedriver"
-    service = Service(executable_path=chromedriver_path) if os.path.exists(chromedriver_path) else Service()
+    service = (
+        Service(executable_path=chromedriver_path)
+        if os.path.exists(chromedriver_path)
+        else Service()
+    )
     driver = webdriver.Chrome(service=service, options=options)
     driver.set_page_load_timeout(30)
     return driver
@@ -74,6 +79,7 @@ def get_api_json(path: str):
 # ---------------------------------------------------------------------------
 # Interactive UI tests
 # ---------------------------------------------------------------------------
+
 
 def test_homepage_displays_correct_agent_count(driver):
     """Verify the 'AI Agents' stat on homepage matches the API response."""
@@ -388,11 +394,23 @@ if __name__ == "__main__":
         sys.exit(1)
 
     try:
-        run_test("Homepage displays correct agent count (cross-check with API)", test_homepage_displays_correct_agent_count, driver)
-        run_test("Homepage displays version (cross-check with API)", test_homepage_displays_version, driver)
+        run_test(
+            "Homepage displays correct agent count (cross-check with API)",
+            test_homepage_displays_correct_agent_count,
+            driver,
+        )
+        run_test(
+            "Homepage displays version (cross-check with API)",
+            test_homepage_displays_version,
+            driver,
+        )
         run_test("Homepage displays standards badges", test_homepage_standards_badges, driver)
-        run_test("Homepage status indicator shows LIVE + uptime", test_homepage_status_indicator, driver)
-        run_test("Click 'Swagger Docs' link navigates to /docs", test_click_swagger_docs_link, driver)
+        run_test(
+            "Homepage status indicator shows LIVE + uptime", test_homepage_status_indicator, driver
+        )
+        run_test(
+            "Click 'Swagger Docs' link navigates to /docs", test_click_swagger_docs_link, driver
+        )
         run_test("Click 'Health' link navigates to /healthz", test_click_health_link, driver)
         run_test("Click 'Agents' link navigates to agents list", test_click_agents_link, driver)
         run_test("Swagger UI displays API endpoints", test_swagger_ui_has_endpoints, driver)

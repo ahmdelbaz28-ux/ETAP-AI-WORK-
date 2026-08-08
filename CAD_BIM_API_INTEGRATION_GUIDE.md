@@ -31,6 +31,7 @@ This document provides complete instructions for integrating the new AutoCAD, Re
 # ── CAD/BIM Integration Routers ─────────────────────────────────────────────
 try:
     from backend.routers import autocad
+
     app.include_router(
         autocad.router,
         prefix="/api/v1",
@@ -42,6 +43,7 @@ except ImportError as e:
 
 try:
     from backend.routers import revit
+
     app.include_router(
         revit.router,
         prefix="/api/v1",
@@ -53,6 +55,7 @@ except ImportError as e:
 
 try:
     from backend.routers import digital_twin
+
     app.include_router(
         digital_twin.router,
         prefix="/api/v1",
@@ -60,7 +63,9 @@ try:
     )
     logger.info("Digital Twin router registered successfully")
 except ImportError as e:
-    logger.warning(f"Digital Twin router not available: {e}. Digital Twin endpoints will not be accessible.")
+    logger.warning(
+        f"Digital Twin router not available: {e}. Digital Twin endpoints will not be accessible."
+    )
 ```
 
 **Note:** The routers are wrapped in try/except to gracefully handle missing dependencies (pywin32, ezdxf, etc.).
