@@ -263,9 +263,8 @@ class TestV214MSHAReport:
     """V214: MSHA report generation."""
 
     def test_generate_markdown_report(self):
-        from fireai.mining.output.msha_report import generate_msha_report
-
         from fireai.mining.core.msha_compliance import MSHAComplianceChecker
+        from fireai.mining.output.msha_report import generate_msha_report
 
         report = MSHAComplianceChecker.full_compliance_report(
             mine_name="Test Mine",
@@ -282,9 +281,8 @@ class TestV214MSHAReport:
     def test_generate_json_report(self):
         import json
 
-        from fireai.mining.output.msha_report import generate_msha_report
-
         from fireai.mining.core.msha_compliance import MSHAComplianceChecker
+        from fireai.mining.output.msha_report import generate_msha_report
 
         report = MSHAComplianceChecker.full_compliance_report(
             mine_name="Test Mine",

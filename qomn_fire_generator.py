@@ -1842,8 +1842,6 @@ def execute_integrated_master_project():
     print("        QOMN-FIRE INTEGRATED PIPELINE: FULL PROJECT COMPILATION")
     print("="*80)
 
-    from qomn_fire.output.revit_exporter import export_to_revit_json
-
     from qomn_fire.core.constants import NFPA_SMOKE_DETECTOR_SPACING_M
     from qomn_fire.core.types import (
         ConduitType,
@@ -1870,6 +1868,7 @@ def execute_integrated_master_project():
     from qomn_fire.engine.placement import place_smoke_detectors_room
     from qomn_fire.engine.routing import GridMap3D
     from qomn_fire.integration.cable_hatch import route_conduit_and_hatch
+    from qomn_fire.output.revit_exporter import export_to_revit_json
 
     # 1. Initialize Drawing Doc
     doc = create_document()
