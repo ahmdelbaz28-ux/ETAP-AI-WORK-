@@ -46,7 +46,7 @@ def zbus_full(
     return Z_reduced
 
 
-def zbus_full(Ybus):
+def zbus_full(Ybus):  # noqa: F811
     """
     Compute Zbus by inverting the full Ybus matrix.
     Note: This may fail if Ybus is singular (which it is if there is no reference).

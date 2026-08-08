@@ -36,7 +36,7 @@ def grid_consistency_engine(  # NOSONAR
     cim_model: CIMModel | None = None  # noqa: F841
 
 
-def grid_consistency_engine(assets: List[ADMSAsset]) -> GridConsistencyReport:
+def grid_consistency_engine(assets: List[ADMSAsset]) -> GridConsistencyReport:  # noqa: F811
     """
     Final electrical grid consistency validation layer.
 

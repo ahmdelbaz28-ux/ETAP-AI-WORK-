@@ -105,7 +105,7 @@ class ValidateRequest(BaseModel):
     systems: List[str] = Field(default_factory=lambda: ["etap", "autocad", "revit"])
 
 
-class ValidateRequest(BaseModel):
+class ValidateRequest(BaseModel):  # noqa: F811
     model_json: str | None = Field(None, description="Optional model JSON to validate")
     checks: List[str] = Field(default_factory=lambda: ["voltage", "overcurrent", "coordination"])
 

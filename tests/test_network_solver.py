@@ -45,10 +45,10 @@ class TestPerUnit:
 
         assert from_per_unit(2.0, 50) == 100.0
 
-    def test_from_per_unit_identity(self):
+    def test_from_per_unit_identity(self):  # noqa: F811
         assert from_per_unit(1.0, 50) == 50.0
 
-    def test_from_per_unit_zero_base(self):
+    def test_from_per_unit_zero_base(self):  # noqa: F811
         # Multiplication by zero gives 0.0, no error
         assert from_per_unit(1.0, 0) == 0.0
 
@@ -135,7 +135,7 @@ class TestZbus:
             ]
         )
 
-class TestZbus:
+class TestZbus:  # noqa: F811
     def test_zbus_from_ybus_3bus(self):
         # Simple 3-bus system Ybus
         Ybus = np.array([
@@ -337,7 +337,7 @@ class TestZbus:
             Y_red = Ybus[np.ix_(mask, mask)]
             assert np.allclose(Z_red @ Y_red, np.eye(2), atol=1e-10)
 
-    def test_zbus_zero_off_diagonal(self):
+    def test_zbus_zero_off_diagonal(self):  # noqa: F811
         Ybus = np.diag([1+1j, 2+2j, 3+3j])
         Z = zbus_full(Ybus)
         assert np.allclose(Z @ Ybus, np.eye(3), atol=1e-10)

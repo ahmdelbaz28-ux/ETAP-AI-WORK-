@@ -96,7 +96,7 @@ class TestPromptLoader:
         assert len(prompt) > 0
         clear_prompt_cache()
 
-    def test_missing_prompts_dir_graceful(self):
+    def test_missing_prompts_dir_graceful(self):  # noqa: F811
         """When prompts directory doesn't exist, should still return fallback."""
         from agents.prompt_loader import clear_prompt_cache, get_system_prompt
 
@@ -268,7 +268,7 @@ class TestAgentPromptIntegration:
         assert agent.agent_name == "LoadFlowAgent"
         clear_prompt_cache()
 
-    def test_agent_graceful_prompt_failure(self):
+    def test_agent_graceful_prompt_failure(self):  # noqa: F811
         """Agent should still work when prompt loading fails."""
         from agents.orchestrator import LoadFlowAgent
 

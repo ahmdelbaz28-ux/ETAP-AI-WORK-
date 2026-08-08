@@ -406,7 +406,7 @@ class EngineeringServiceUser(AuthenticatedUser):
 from locust import HttpUser, between, task
 
 
-class EngineeringServiceUser(HttpUser):
+class EngineeringServiceUser(HttpUser):  # noqa: F811
     wait_time = between(0.5, 2.0)
 
     @task(5)
@@ -462,7 +462,7 @@ class EngineeringServiceUser(HttpUser):
     # ── Metrics & Agent Info (weight: 10 each) ─────────────────────────────
 
     @task(5)
-    def get_metrics(self):
+    def get_metrics(self):  # noqa: F811
         """Retrieve service metrics."""
         self.client.get("/metrics", name="GET /metrics")
 

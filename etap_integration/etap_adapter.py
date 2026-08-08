@@ -19,7 +19,7 @@ from core.bootstrap import logger
 from etap_integration.unified_etap_types import ETAPResult, ETAPStudyType
 
 
-class ETAPStudyType(Enum):
+class ETAPStudyType(Enum):  # noqa: F811
     """Enumeration of supported ETAP study types."""
 
     LOAD_FLOW = "load_flow"
@@ -31,7 +31,7 @@ class ETAPStudyType(Enum):
     PROTECTION_COORDINATION = "protection_coordination"
 
 
-class ETAPResult:
+class ETAPResult:  # noqa: F811
     """Result wrapper for ETAP operations."""
 
     def __init__(

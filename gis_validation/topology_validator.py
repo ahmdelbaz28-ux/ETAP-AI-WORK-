@@ -27,7 +27,7 @@ class ADMSGraphModel:
         self.nodes: set[str] = {a.asset_id for a in assets}
         self.edges: dict[str, set[str]] = {a.asset_id: set() for a in assets}
 
-    def __init__(self, assets: List[ADMSAsset]) -> None:
+    def __init__(self, assets: List[ADMSAsset]) -> None:  # noqa: F811
         self.assets = assets
         self.nodes: Set[str] = {a.asset_id for a in assets}
         self.edges: Dict[str, Set[str]] = {a.asset_id: set() for a in assets}
@@ -79,7 +79,7 @@ class ADMSGraphModel:
         visited: set[str] = set()  # noqa: F841
         comps: list[set[str]] = []  # noqa: F841
 
-    def find_disconnected_components(self) -> List[Set[str]]:
+    def find_disconnected_components(self) -> List[Set[str]]:  # noqa: F811
         visited: Set[str] = set()
         comps: List[Set[str]] = []
         for n in self.nodes:

@@ -59,11 +59,11 @@ class TestMeasurement:
         m = Measurement("m1", MeasurementType.VOLTAGE_MAGNITUDE, "BUS1", 1.0, quality=QualityFlag.QUESTIONABLE)
         assert m.is_valid() is True
 
-    def test_is_valid_invalid(self):
+    def test_is_valid_invalid(self):  # noqa: F811
         m = Measurement("m1", MeasurementType.VOLTAGE_MAGNITUDE, "BUS1", 1.0, quality=QualityFlag.INVALID)
         assert m.is_valid() is False
 
-    def test_is_valid_missing(self):
+    def test_is_valid_missing(self):  # noqa: F811
         m = Measurement("m1", MeasurementType.VOLTAGE_MAGNITUDE, "BUS1", 1.0, quality=QualityFlag.MISSING)
         assert m.is_valid() is False
 

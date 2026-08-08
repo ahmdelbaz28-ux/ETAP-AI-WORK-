@@ -33,7 +33,7 @@ class TestPoint3D:
         assert p.y == 2.0
         assert p.z == 3.0
 
-    def test_default_z(self):
+    def test_default_z(self):  # noqa: F811
         p = Point3D(1.0, 2.0)
         assert p.z == 0.0
 

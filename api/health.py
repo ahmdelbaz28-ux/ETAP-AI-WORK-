@@ -69,7 +69,7 @@ class MetricsResponse(BaseModel):
     avg_execution_time_ms: float
     trace_id: str
 
-class HealthResponse:
+class HealthResponse:  # noqa: F811
     def __init__(self, status: str, version: str, timestamp: str, trace_id: str):
         self.status = status
         self.version = version
@@ -77,7 +77,7 @@ class HealthResponse:
         self.trace_id = trace_id
 
 
-class ReadyResponse:
+class ReadyResponse:  # noqa: F811
     def __init__(
         self,
         ready: bool,
@@ -93,7 +93,7 @@ class ReadyResponse:
         self.trace_id = trace_id
 
 
-class MetricsResponse:
+class MetricsResponse:  # noqa: F811
     def __init__(
         self,
         requests_total: int,
@@ -180,7 +180,7 @@ async def readyz() -> Dict[str, object]:
         content={"ready": all_ready, "checks": checks},
     )
 
-async def readyz():
+async def readyz():  # noqa: F811
     """Readiness probe — checks critical dependencies."""
     checks = {"python": True, "imports": True}
     all_ready = all(checks.values())

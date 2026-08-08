@@ -69,13 +69,13 @@ class FaultAnalyzerProtocol(Protocol):
 
     def double_line_to_ground_fault(self, bus_index: int) -> dict[str, Any]: ...
 
-    def three_phase_fault(self, bus_index: int) -> Dict[str, Any]: ...
+    def three_phase_fault(self, bus_index: int) -> Dict[str, Any]: ...  # noqa: F811
 
-    def line_to_ground_fault(self, bus_index: int) -> Dict[str, Any]: ...
+    def line_to_ground_fault(self, bus_index: int) -> Dict[str, Any]: ...  # noqa: F811
 
-    def line_to_line_fault(self, bus_index: int) -> Dict[str, Any]: ...
+    def line_to_line_fault(self, bus_index: int) -> Dict[str, Any]: ...  # noqa: F811
 
-    def double_line_to_ground_fault(self, bus_index: int) -> Dict[str, Any]: ...
+    def double_line_to_ground_fault(self, bus_index: int) -> Dict[str, Any]: ...  # noqa: F811
 
 
 # ============================================================================

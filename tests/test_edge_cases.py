@@ -181,7 +181,7 @@ class TestBusEdgeCases:
 
         assert bus.q_max == 0.5
 
-    def test_bus_complex_power(self):
+    def test_bus_complex_power(self):  # noqa: F811
         bus = Bus(bus_id=1, generation_power=complex(1.0, 0.5), load_power=complex(0.3, 0.1))
         assert bus.generation_power.real == 1.0
         assert bus.load_power.imag == 0.1

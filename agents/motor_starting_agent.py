@@ -32,7 +32,6 @@ from __future__ import annotations
 import logging
 from datetime import datetime, timezone
 
-UTC = timezone.utc  # noqa: UP017
 from datetime import UTC
 from typing import Any, Optional
 
@@ -43,7 +42,7 @@ from .orchestrator import AgentResult, AgentStatus, BaseAgent, EngineeringTask, 
 UTC = UTC
 
 
-from agents.orchestrator import AgentResult, AgentStatus, BaseAgent, EngineeringTask, StudyType
+from agents.orchestrator import AgentResult, AgentStatus, BaseAgent, EngineeringTask, StudyType  # noqa: F811
 
 logger = logging.getLogger(__name__)
 

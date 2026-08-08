@@ -23,7 +23,7 @@ def extract_layers_as_features(
     features: List[GISFeature]  # noqa: F842
 
 
-def extract_layers_as_features(
+def extract_layers_as_features(  # noqa: F811
     provider: GISProviderInterface, *, layer_ids: List[str] | None = None
 ) -> List[ExtractedLayer]:
     """

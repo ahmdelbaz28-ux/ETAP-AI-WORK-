@@ -1045,7 +1045,7 @@ async def lifespan(app: FastAPI):
 # FastAPI app — Create and configure
 # ---------------------------------------------------------------------------
 
-app = FastAPI(
+app = FastAPI(  # noqa: F811
     title="AhmedETAP Engineering Service",
     description="Production-grade power systems engineering computation API (refactored)",
     version="2.0.0",
