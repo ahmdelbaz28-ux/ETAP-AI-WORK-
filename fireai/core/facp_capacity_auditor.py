@@ -240,7 +240,7 @@ def _build_rule_applied(
             )
         except Exception as e:
             logger.warning(
-                f"V112: _build_rule_applied: failed to construct RuleApplied provenance for rule_id={rule_id!r}: {e!r}"
+                f"V112: _build_rule_applied: failed to construct RuleApplied provenance for rule_id={rule_id!r}: {e!r}"  # noqa: G004
             )
             pass  # NOSONAR - python:S2772
     return entry
@@ -611,7 +611,7 @@ class FACPCapacityAuditor:
                 )
             except Exception as e:
                 logger.warning(
-                    f"V112: audit_slc_protocol_limits: failed to construct DecisionProvenance audit result: {e!r}"
+                    f"V112: audit_slc_protocol_limits: failed to construct DecisionProvenance audit result: {e!r}"  # noqa: G004
                 )
                 pass  # NOSONAR - python:S2772
 

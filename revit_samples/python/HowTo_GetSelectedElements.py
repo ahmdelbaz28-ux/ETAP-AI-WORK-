@@ -10,7 +10,7 @@ For more information visit http://github.com/gtalarico/revitapidocs
 License: http://github.com/gtalarico/revitapidocs/blob/master/LICENSE.md
 """
 
-uidoc = __revit__.ActiveUIDocument
+uidoc = __revit__.ActiveUIDocument  # noqa: F821
 
 def get_selected_elements():
     """
@@ -24,5 +24,5 @@ def get_selected_elements():
     selection_ids = selection.GetElementIds()
     elements = []
     for element_id in selection_ids:
-        elements.append(doc.GetElement(element_id))
+        elements.append(doc.GetElement(element_id))  # noqa: F821
     return elements

@@ -38,7 +38,6 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, ConfigDict, Field
 
 from api.dependencies import get_api_key
-from api.security_audit import Severity
 
 # ---------------------------------------------------------------------------
 # Router
@@ -525,7 +524,7 @@ def _apply_filters(
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                 detail=f"Invalid start_date format: {start_date!r}. Expected ISO-8601.",
-            )
+            ) from None
         result = [
             e
             for e in result
@@ -539,7 +538,7 @@ def _apply_filters(
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                 detail=f"Invalid end_date format: {end_date!r}. Expected ISO-8601.",
-            )
+            ) from None
         result = [
             e
             for e in result

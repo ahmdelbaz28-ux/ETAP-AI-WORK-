@@ -20,16 +20,15 @@ import math
 import pytest
 
 from curves.curves import (
-    IEC60255Curves,
-    calculate_iec_operating_time,
-    MAX_MULTIPLIER_OF_PICKUP,
-    MIN_OPERATING_TIME_S,
+    _CURVE_REGISTRY,
     _IEC_CURVE_PARAMS,
     _IEEE_CURVE_PARAMS,
-    _CURVE_REGISTRY,
+    MAX_MULTIPLIER_OF_PICKUP,
+    MIN_OPERATING_TIME_S,
+    IEC60255Curves,
+    calculate_iec_operating_time,
 )
 from relays.relay import OvercurrentRelay
-
 
 # =====================================================================
 # 1. IEC 60255 Formula Accuracy

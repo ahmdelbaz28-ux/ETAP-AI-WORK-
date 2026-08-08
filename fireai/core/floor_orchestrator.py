@@ -113,7 +113,7 @@ class FloorResult:
             import logging
 
             logging.getLogger(__name__).error(
-                f"Room count mismatch: {counted} counted vs {self.total_rooms} total. "
+                f"Room count mismatch: {counted} counted vs {self.total_rooms} total. "  # noqa: G004
                 f"Some rooms have unrecognized status — downgrading to ERROR."
             )
             self.status = "ERROR"
@@ -334,7 +334,7 @@ class FloorOrchestrator:
             # Heat detectors use square/Chebyshev geometry per NFPA 72 Table 17.6.2.1.
             # Previous code hardcoded "circular" for ALL detector types, causing
             # heat detector coverage to be verified with wrong geometry.
-            from fireai.core.nfpa72_models import DetectorType as _DT
+            from fireai.core.nfpa72_models import DetectorType as _DT  # noqa: N814
 
             is_heat = spec.detector_type == _DT.HEAT if hasattr(spec, "detector_type") else False
             coverage_geom = "square_grid" if is_heat else "circular"
@@ -383,7 +383,7 @@ class FloorOrchestrator:
                             f"({adaptive_result.coverage_percent:.1f}% coverage)"
                         )
                         logger.info(
-                            f"  {spec.name}: ADAPTIVE RE-SOLVE succeeded "
+                            f"  {spec.name}: ADAPTIVE RE-SOLVE succeeded "  # noqa: G004
                             f"({adaptive_result.num_devices} detectors, "
                             f"{adaptive_result.coverage_percent:.1f}%)"
                         )

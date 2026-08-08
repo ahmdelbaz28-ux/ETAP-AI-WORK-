@@ -16,7 +16,7 @@ import clr
 clr.AddReference("RevitAPI")
 from Autodesk.Revit.DB import Transaction, Workset
 
-doc = __revit__.ActiveUIDocument.Document
+doc = __revit__.ActiveUIDocument.Document  # noqa: F821
 
 workset_name = 'Point Clouds'
 t = Transaction(doc)

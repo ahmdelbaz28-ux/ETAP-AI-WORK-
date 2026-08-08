@@ -82,7 +82,7 @@ async def _require_admin(request: Request) -> dict:
     auth_header = request.headers.get("authorization", "")
     if auth_header.lower().startswith("bearer "):
         try:
-            from api.dependencies import _validate_jwt_access_token, _extract_bearer_token
+            from api.dependencies import _extract_bearer_token, _validate_jwt_access_token
 
             # Delegate JWT validation to the canonical helper (deep module interface)
             # This replaces the inline jwt.decode + type check + blacklist check.

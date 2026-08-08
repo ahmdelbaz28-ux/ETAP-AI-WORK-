@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Dict, List, Set
 
 from gis_integration.models import ADMSAsset, ADMSAssetType
 
@@ -21,11 +21,6 @@ class ADMSGraphModel:
     - nodes are asset_ids
     - edges are inferred only from explicit geometry endpoints for determinism
     """
-
-    def __init__(self, assets: list[ADMSAsset]) -> None:
-        self.assets = assets
-        self.nodes: set[str] = {a.asset_id for a in assets}
-        self.edges: dict[str, set[str]] = {a.asset_id: set() for a in assets}
 
     def __init__(self, assets: List[ADMSAsset]) -> None:
         self.assets = assets
@@ -74,10 +69,6 @@ class ADMSGraphModel:
                 for sid in matches:
                     self.edges[l.asset_id].add(sid)
                     self.edges[sid].add(l.asset_id)
-
-    def find_disconnected_components(self) -> list[set[str]]:
-        visited: set[str] = set()
-        comps: list[set[str]] = []
 
     def find_disconnected_components(self) -> List[Set[str]]:
         visited: Set[str] = set()

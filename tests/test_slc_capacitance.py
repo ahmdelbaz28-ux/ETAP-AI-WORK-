@@ -119,20 +119,6 @@ class TestManufacturerLimits:
 # ─────────────────────────────────────────────────────────────────────────────
 
 
-class TestDeviceParasiticCapacitance:
-    """V20.2 FIX: Per-device parasitic capacitance values."""
-
-    def test_device_capacitance_25pf(self):
-        assert pytest.approx(25.0) == DEVICE_CAPACITANCE_PF
-
-    def test_isolator_capacitance_40pf(self):
-        assert pytest.approx(40.0) == ISOLATOR_CAPACITANCE_PF
-
-    def test_isolator_higher_than_device(self):
-        """Isolators have higher parasitic capacitance than detectors."""
-        assert ISOLATOR_CAPACITANCE_PF > DEVICE_CAPACITANCE_PF
-
-
 # ─────────────────────────────────────────────────────────────────────────────
 # SLCLoopSpec Dataclass
 # ─────────────────────────────────────────────────────────────────────────────
@@ -373,7 +359,7 @@ class TestUnknownWireType:
 # ─────────────────────────────────────────────────────────────────────────────
 
 
-class TestDeviceParasiticCapacitance:  # noqa: F811  (duplicate test class — second definition wins)
+class TestDeviceParasiticCapacitance:
     """V20.2 FIX: Device parasitic capacitance included in total."""
 
     def test_device_count_affects_compliance(self):

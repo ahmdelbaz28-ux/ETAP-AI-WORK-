@@ -36,7 +36,7 @@ import os
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from enum import Enum
+from enum import StrEnum
 from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
@@ -66,7 +66,7 @@ EMBEDDING_DIMENSIONS = 384
 # ---------------------------------------------------------------------------
 
 
-class MemoryType(str, Enum):
+class MemoryType(StrEnum):
     """Types of semantic memory stored in Qdrant."""
 
     CONVERSATION = "conversation"

@@ -87,11 +87,11 @@ class ModbusServerAdapter(ProtocolAdapter):
         # pymodbus is not installed (the manager skips adapters whose
         # ``start_server`` raises ImportError).
         try:
-            from pymodbus.server import StartAsyncTcpServer  # type: ignore
             from pymodbus.datastore import (  # type: ignore
                 ModbusSequentialDataBlock,
                 ModbusServerContext,
             )
+            from pymodbus.server import StartAsyncTcpServer  # type: ignore
         except Exception as exc:  # pragma: no cover - import-time check
             raise ImportError(f"pymodbus not available: {exc}") from exc
 
@@ -123,7 +123,7 @@ class ModbusServerAdapter(ProtocolAdapter):
 
         if _USE_SPARSE:
             # Sparse block keyed by address. Initialize all addresses to 0.
-            initial = {addr: 0 for addr in range(0, max_addr + 10)}
+            initial = dict.fromkeys(range(0, max_addr + 10), 0)
             block = ModbusSparseDataBlock(initial)
             # Seed the block with encoded current values.
             for entry in self._register_map.entries:
@@ -139,7 +139,7 @@ class ModbusServerAdapter(ProtocolAdapter):
 
         if _NEW_API:
             # di/co can be sparse too — they only need a tiny address space.
-            _di_co_initial = {addr: 0 for addr in range(1, 101)}
+            _di_co_initial = dict.fromkeys(range(1, 101), 0)
             try:
                 _di_block = ModbusSparseDataBlock(_di_co_initial)
                 _co_block = ModbusSparseDataBlock(_di_co_initial)

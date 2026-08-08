@@ -362,7 +362,7 @@ class InMemoryEventBus(EventBus):
             except Exception as e:
                 last_error = str(e)
                 logger.warning(
-                    f"Handler {handler.__name__} failed on attempt {attempt}/{self._retry_policy.max_retries} "
+                    f"Handler {handler.__name__} failed on attempt {attempt}/{self._retry_policy.max_retries} "  # noqa: G004
                     f"for event {event.id}: {e}"
                 )
                 if attempt < self._retry_policy.max_retries:
@@ -378,7 +378,7 @@ class InMemoryEventBus(EventBus):
             attempt_count=self._retry_policy.max_retries,
         ))
         logger.error(
-            f"Event {event.id} moved to DLQ after {self._retry_policy.max_retries} failed attempts "
+            f"Event {event.id} moved to DLQ after {self._retry_policy.max_retries} failed attempts "  # noqa: G004
             f"to handler {handler.__name__}: {last_error}"
         )
 
@@ -472,7 +472,7 @@ class RedisEventBus(EventBus):
                 self._redis = aioredis.from_url(self._redis_url, decode_responses=True)
                 logger.info("Connected to Redis at %s", self._redis_url)
             except ImportError:
-                raise RuntimeError("redis-py is required for RedisEventBus: pip install redis")
+                raise RuntimeError("redis-py is required for RedisEventBus: pip install redis") from None
         return self._redis
 
     async def publish(self, event: Event) -> None:
@@ -552,7 +552,7 @@ class RedisEventBus(EventBus):
                 except Exception as e:
                     last_error = str(e)
                     logger.warning(
-                        f"Handler {handler.__name__} attempt {attempt} failed for event {event.id}: {e}"
+                        f"Handler {handler.__name__} attempt {attempt} failed for event {event.id}: {e}"  # noqa: G004
                     )
                     if attempt < self._retry_policy.max_retries:
                         await asyncio.sleep(self._retry_policy.delay(attempt))
@@ -641,7 +641,7 @@ class KafkaEventBus(EventBus):
                 await self._producer.start()  # type: ignore[attr-defined]
                 logger.info("Kafka producer connected to %s", self._bootstrap_servers)
             except ImportError:
-                raise RuntimeError("aiokafka is required for KafkaEventBus: pip install aiokafka")
+                raise RuntimeError("aiokafka is required for KafkaEventBus: pip install aiokafka") from None
         return self._producer
 
     async def _get_consumer(self):
@@ -659,7 +659,7 @@ class KafkaEventBus(EventBus):
                 await self._consumer.start()  # type: ignore[attr-defined]
                 logger.info("Kafka consumer started for topics: %s", topics)
             except ImportError:
-                raise RuntimeError("aiokafka is required for KafkaEventBus: pip install aiokafka")
+                raise RuntimeError("aiokafka is required for KafkaEventBus: pip install aiokafka") from None
         return self._consumer
 
     async def publish(self, event: Event) -> None:
@@ -721,7 +721,7 @@ class KafkaEventBus(EventBus):
                 except Exception as e:
                     last_error = str(e)
                     logger.warning(
-                        f"Handler {handler.__name__} attempt {attempt} failed for event {event.id}: {e}"
+                        f"Handler {handler.__name__} attempt {attempt} failed for event {event.id}: {e}"  # noqa: G004
                     )
                     if attempt < self._retry_policy.max_retries:
                         await asyncio.sleep(self._retry_policy.delay(attempt))
