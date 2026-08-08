@@ -48,12 +48,12 @@ def test_hf_space_app_py_has_etap_expert_chat_endpoint():
     app_py = (Path(__file__).resolve().parent.parent / "hf-space" / "app.py").read_text(
         encoding="utf-8"
     )
-    assert (
-        "/api/v1/agents/etap-expert/chat" in app_py
-    ), "hf-space/app.py must define the etap-expert chat endpoint"
-    assert (
-        "ETAPExpertChatRequest" in app_py
-    ), "hf-space/app.py must define the ETAPExpertChatRequest schema"
+    assert "/api/v1/agents/etap-expert/chat" in app_py, (
+        "hf-space/app.py must define the etap-expert chat endpoint"
+    )
+    assert "ETAPExpertChatRequest" in app_py, (
+        "hf-space/app.py must define the ETAPExpertChatRequest schema"
+    )
 
 
 def test_hf_space_app_py_routes_etap_expert_to_agent():
@@ -61,9 +61,9 @@ def test_hf_space_app_py_routes_etap_expert_to_agent():
     app_py = (Path(__file__).resolve().parent.parent / "hf-space" / "app.py").read_text(
         encoding="utf-8"
     )
-    assert (
-        "run_study_lightweight" in app_py
-    ), "hf-space/app.py must use run_study_lightweight to execute studies"
+    assert "run_study_lightweight" in app_py, (
+        "hf-space/app.py must use run_study_lightweight to execute studies"
+    )
 
 
 def test_hf_space_agents_list_includes_etap_expert_agent():
@@ -71,9 +71,9 @@ def test_hf_space_agents_list_includes_etap_expert_agent():
     from api.shared_handlers import AGENTS
 
     agent_ids = [a["id"] for a in AGENTS]
-    assert (
-        "etap-expert-agent" in agent_ids
-    ), "AGENTS list in api/shared_handlers.py must include 'etap-expert-agent'"
+    assert "etap-expert-agent" in agent_ids, (
+        "AGENTS list in api/shared_handlers.py must include 'etap-expert-agent'"
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -92,9 +92,9 @@ def test_dockerfile_copies_skill_files():
         "prompts/",
     ]
     for pat in required_copy_patterns:
-        assert (
-            pat in dockerfile
-        ), f"Dockerfile must include '{pat}' so the skill is available in the HF Space container"
+        assert pat in dockerfile, (
+            f"Dockerfile must include '{pat}' so the skill is available in the HF Space container"
+        )
 
 
 def test_dockerfile_uses_hf_requirements():
@@ -167,14 +167,14 @@ def test_hf_space_app_py_imports_cleanly():
         assert hasattr(mod, "app"), "hf_app must expose 'app' (FastAPI instance)"
         assert hasattr(mod, "STUDY_TYPES"), "hf_app must expose STUDY_TYPES list"
         assert hasattr(mod, "AGENTS"), "hf_app must expose AGENTS list"
-        assert (
-            "etap_expert" in mod.STUDY_TYPES
-        ), f"STUDY_TYPES must include 'etap_expert', got: {mod.STUDY_TYPES}"
+        assert "etap_expert" in mod.STUDY_TYPES, (
+            f"STUDY_TYPES must include 'etap_expert', got: {mod.STUDY_TYPES}"
+        )
         # Verify etap-expert-agent is in AGENTS
         agent_ids = [a["id"] for a in mod.AGENTS]
-        assert (
-            "etap-expert-agent" in agent_ids
-        ), f"AGENTS must include 'etap-expert-agent', got: {agent_ids}"
+        assert "etap-expert-agent" in agent_ids, (
+            f"AGENTS must include 'etap-expert-agent', got: {agent_ids}"
+        )
     except ImportError as e:
         # If we can't import (missing dep in test env), at least verify the
         # source code structure is correct via grep — but warn loudly.

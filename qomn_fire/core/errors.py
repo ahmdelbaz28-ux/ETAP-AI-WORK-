@@ -6,12 +6,13 @@ Safety-Critical: Each error type maps to a specific physical failure mode.
 Missing an error means a corrupted file passes silently = wrong building model = people die.
 """
 
-from typing import Generic, Optional, TypeVar
+from typing import Optional, TypeVar
 
-T = TypeVar('T')
-E = TypeVar('E')
+T = TypeVar("T")
+E = TypeVar("E")
 
-class Result(Generic[T, E]):
+
+class Result[T, E]:
     def __init__(self, value: Optional[T] = None, error: Optional[E] = None):
         # BUG-43 FIX: Prevent constructing Result with neither value nor error.
         # A Result(value=None) without an error would be is_success=True but
@@ -85,6 +86,7 @@ class Result(Generic[T, E]):
             return f"Result.ok({self._value!r})"
         return f"Result.err({self._error!r})"
 
+
 class BaseEngineeringError(Exception):
     """
     Base class for all QOMN-FIRE engineering errors.
@@ -108,44 +110,66 @@ class BaseEngineeringError(Exception):
     def __str__(self) -> str:
         return f"[{self.code_ref}] {self.message}"
 
-class ConduitFillError(BaseEngineeringError): pass
-class NECViolationError(BaseEngineeringError): pass
-class HatchPlacementError(BaseEngineeringError): pass
-class PhysicalConstraintError(BaseEngineeringError): pass
-class FACPSelectionError(BaseEngineeringError): pass
+
+class ConduitFillError(BaseEngineeringError):
+    pass
+
+
+class NECViolationError(BaseEngineeringError):
+    pass
+
+
+class HatchPlacementError(BaseEngineeringError):
+    pass
+
+
+class PhysicalConstraintError(BaseEngineeringError):
+    pass
+
+
+class FACPSelectionError(BaseEngineeringError):
+    pass
+
 
 # ── Input Parsing Pipeline Error Types ──
 # These errors prevent corrupted BIM files from producing wrong fire protection designs.
+
 
 class FileValidationError(BaseEngineeringError):
     """File does not meet structural requirements (existence, size, permissions)."""
 
     pass
 
+
 class FormatError(BaseEngineeringError):
     """File format cannot be identified — magic bytes don't match any known specification."""
 
     pass
+
 
 class VersionError(BaseEngineeringError):
     """File version is unsupported or incompatible with the parser."""
 
     pass
 
+
 class CorruptionError(BaseEngineeringError):
     """File is structurally corrupted — missing mandatory sections or markers."""
 
     pass
+
 
 class ConversionError(BaseEngineeringError):
     """DWG→DXF or RVT→IFC conversion failed — external tool error."""
 
     pass
 
+
 class GeometryError(BaseEngineeringError):
     """Building geometry is physically impossible (zero-area rooms, unclosed boundaries)."""
 
     pass
+
 
 class UnitError(BaseEngineeringError):
     """File uses wrong unit system (mm/inches instead of meters) — coordinates exceed limits."""

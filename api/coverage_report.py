@@ -847,9 +847,7 @@ async def _main() -> (  # NOSONAR
         out = (
             sys.stdout
             if args.output == "-"
-            else stack.enter_context(
-                open(args.output, "w", encoding="utf-8")
-            )  # noqa: S7493 — output path validated above (NUL + parent dir); sync open kept for lib compat
+            else stack.enter_context(open(args.output, "w", encoding="utf-8"))  # noqa: S7493 — output path validated above (NUL + parent dir); sync open kept for lib compat
         )
 
         report_dict = report.to_dict()

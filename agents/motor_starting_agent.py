@@ -30,19 +30,10 @@ CRITICAL FIX — Motor Transient Undervoltage Drop:
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
+from datetime import datetime
 
-UTC = timezone.utc  # noqa: UP017
+from datetime import UTC
 from typing import Any, Optional
-
-import numpy as np
-
-from .orchestrator import AgentResult, AgentStatus, BaseAgent, EngineeringTask, StudyType
-
-from datetime import UTC, datetime
-
-UTC = UTC
-from typing import Any, Dict, List
 
 import numpy as np
 
@@ -278,10 +269,8 @@ class MotorStartingAgent(BaseAgent):
             "source_impedance_r_pu": round(source_impedance_pu.real, 6),
             "source_impedance_x_pu": round(source_impedance_pu.imag, 6),
             "motor_starting_impedance_pu": round(z_motor_pu, 6),
-
             "motor_bus_voltage_pu": round(float(motor_voltage_pu), 4),
             "voltage_dip_percent": round(float(voltage_dip_pct), 2),
-            "source_voltage_pu": source_voltage_pu,
             "source_impedance_r_pu": round(float(source_impedance_pu.real), 6),
             "source_impedance_x_pu": round(float(source_impedance_pu.imag), 6),
             "motor_starting_impedance_pu": round(float(z_motor_pu), 6),
@@ -466,12 +455,9 @@ class MotorStartingAgent(BaseAgent):
             "method_voltage_ratio": round(v_ratio, 4),
             "motor_bus_voltage_pu": motor_bus_voltage_pu,
             "voltage_factor": round(combined_voltage_factor, 4),
-
             "starting_torque_nm": round(float(starting_torque), 2),
             "torque_per_rated": round(float(torque_ratio), 4),
-            "starting_method": starting_method,
             "method_voltage_ratio": round(float(v_ratio), 4),
-            "motor_bus_voltage_pu": motor_bus_voltage_pu,
             "voltage_factor": round(float(combined_voltage_factor), 4),
             "rated_torque_nm": rated_torque_nm,
         }
@@ -512,10 +498,7 @@ class MotorStartingAgent(BaseAgent):
             "j_total_kgm2": j_total_kgm2,
             "avg_accelerating_torque_nm": round(avg_accelerating_torque_nm, 2),
             "omega_rated_rad_s": round(omega_rated, 2),
-
             "acceleration_time_s": round(float(t_acc), 2),
-            "rated_speed_rpm": rated_speed_rpm,
-            "j_total_kgm2": j_total_kgm2,
             "avg_accelerating_torque_nm": round(float(avg_accelerating_torque_nm), 2),
             "omega_rated_rad_s": round(float(omega_rated), 2),
         }
@@ -711,7 +694,9 @@ class MotorStartingAgent(BaseAgent):
             if not tvd_data.get("is_startable", True):
                 # This is a warning, not an error — the motor may not start
                 # but the calculation itself is valid
-                errors.append(f"WARNING: Motor may not start — terminal voltage {tv_pu:.2%} is below 80% of nominal")
+                errors.append(
+                    f"WARNING: Motor may not start — terminal voltage {tv_pu:.2%} is below 80% of nominal"
+                )
 
         acc_data = result.data.get("acceleration_time")
         if acc_data is not None:

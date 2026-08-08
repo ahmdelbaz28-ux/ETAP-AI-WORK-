@@ -7,9 +7,7 @@ from typing import Optional
 from gis_integration.models import GeoCRSInfo, GISFeature
 
 # Module-level string constants (extracted to satisfy S1192).
-_NO_GIS_PROJECT_MSG = (
-    "No GIS project loaded; call load_project() first"  # NOSONAR
-)
+_NO_GIS_PROJECT_MSG = "No GIS project loaded; call load_project() first"  # NOSONAR
 
 
 class GISProviderInterface(ABC):

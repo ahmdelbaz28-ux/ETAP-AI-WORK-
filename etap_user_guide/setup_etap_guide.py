@@ -59,7 +59,6 @@ def check_directory_structure():
         "etap_user_guide/pdfs",  # NOSONAR intentional repetition (audit constant)
         "etap_user_guide/ac_element",  # NOSONAR intentional repetition (audit constant)
         "etap_user_guide/extract_guide.py",  # NOSONAR intentional repetition (audit constant)
-
         "etap_user_guide/pdfs",
         "etap_user_guide/ac_element",
         "etap_user_guide/extract_guide.py",
@@ -90,9 +89,7 @@ def check_pdf_files():
         return 0
 
     pdf_count = len(
-        list(
-            pdfs_path.glob(_PDF_GLOB_PATTERN)
-        )  # NOSONAR
+        list(pdfs_path.glob(_PDF_GLOB_PATTERN))  # NOSONAR
     )  # NOSONAR intentional repetition (audit constant)
     ac_count = len(list(ac_path.glob(_PDF_GLOB_PATTERN))) if ac_path.exists() else 0
 

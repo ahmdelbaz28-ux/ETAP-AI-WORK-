@@ -57,7 +57,7 @@ import hashlib
 import json
 import logging
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -86,7 +86,7 @@ except ImportError:
 # ============================================================================
 
 
-class LogicFunction(str, Enum):
+class LogicFunction(StrEnum):
     """
     Output actions that a FACP can trigger per NFPA 72 §14.4.
 
@@ -127,7 +127,7 @@ class LogicFunction(str, Enum):
 # ============================================================================
 
 
-class DeviceInputType(str, Enum):
+class DeviceInputType(StrEnum):
     """
     Input device types for cause-effect mapping.
 
@@ -528,7 +528,9 @@ class SequenceOfOperationsMatrix:
                 "matrix": matrix_data,
                 "hash": matrix_hash,
                 "device_count": len(devices),
-                "unique_output_types": list({o.value for row in matrix_rows for o in row.outputs_triggered}),
+                "unique_output_types": list(
+                    {o.value for row in matrix_rows for o in row.outputs_triggered}
+                ),
                 "zone_count": len({row.zone_id for row in matrix_rows if row.zone_id}),
             }
 
@@ -647,7 +649,9 @@ class SequenceOfOperationsMatrix:
         # An unknown device is NOT a confirmed condition — false general alarm
         # in a high-rise or healthcare building causes injuries during
         # unnecessary evacuation.
-        logger.warning("Unknown device type '%s' for device %s", raw_type, dev.get('device_id', '?'))
+        logger.warning(
+            "Unknown device type '%s' for device %s", raw_type, dev.get("device_id", "?")
+        )
         return DeviceInputType.UNKNOWN
 
 

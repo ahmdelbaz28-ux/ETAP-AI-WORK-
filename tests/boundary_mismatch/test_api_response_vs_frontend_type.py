@@ -6,6 +6,7 @@ but frontend expects {status: 'completed' | 'failed' | ...}.
 This test parses api/*.py for Pydantic response models and ui/src/lib/api.ts
 for TypeScript interfaces, then verifies field-name alignment.
 """
+
 import re
 from pathlib import Path
 
@@ -17,6 +18,7 @@ def test_study_result_shape_alignment():
 
     if not api_studies.exists() or not api_ts.exists():
         import pytest
+
         pytest.skip("api/studies.py or ui/src/lib/api.ts not found")
 
     py_content = api_studies.read_text()
@@ -32,10 +34,14 @@ def test_study_result_shape_alignment():
 
     # Document the known mismatch (this is a finding, not a hard failure)
     mismatches = []
-    if backend_has_success and frontend_has_status and "success" not in ts_content.split("StudyResult")[1].split("}")[0]:
+    if (
+        backend_has_success
+        and frontend_has_status
+        and "success" not in ts_content.split("StudyResult")[1].split("}")[0]
+    ):
         mismatches.append(
             "CRITICAL: Backend StudyResult uses 'success: bool', "
-            "frontend uses 'status: \"completed\"|\"failed\"|...'. "
+            'frontend uses \'status: "completed"|"failed"|...\'. '
             "UI cannot tell if a study succeeded without manual recasting."
         )
     if backend_has_execution_time_sec and frontend_has_duration_ms:
@@ -61,6 +67,7 @@ def test_agents_endpoint_path_alignment():
 
     if not api_ts.exists() or not api_agents.exists():
         import pytest
+
         pytest.skip("Required files not found")
 
     ts_content = api_ts.read_text()
@@ -71,7 +78,9 @@ def test_agents_endpoint_path_alignment():
     agents_calls = [c for c in frontend_calls if "/agents" in c]
 
     # Backend routes
-    backend_routes = re.findall(r"@router\.(get|post|put|delete|patch)\(['\"]([^'\"]+)['\"]", py_content)
+    backend_routes = re.findall(
+        r"@router\.(get|post|put|delete|patch)\(['\"]([^'\"]+)['\"]", py_content
+    )
 
     findings = []
     for fc in agents_calls:
@@ -95,6 +104,7 @@ def test_chatwithagent_casing_consistency():
     api_ts = Path(__file__).resolve().parents[2] / "ui" / "src" / "lib" / "api.ts"
     if not api_ts.exists():
         import pytest
+
         pytest.skip("api.ts not found")
 
     ts_content = api_ts.read_text()
@@ -113,9 +123,9 @@ def test_chatwithagent_casing_consistency():
                 snake_case_keys.append(k)
 
     if camel_case_keys and snake_case_keys:
-        print(f"\n[BOUNDARY MISMATCH] Inconsistent casing in api.ts request bodies:")
+        print("\n[BOUNDARY MISMATCH] Inconsistent casing in api.ts request bodies:")
         print(f"  camelCase keys: {camel_case_keys}")
         print(f"  snake_case keys: {snake_case_keys}")
-        print(f"  Recommendation: pick one convention (snake_case for Python backend)")
+        print("  Recommendation: pick one convention (snake_case for Python backend)")
     else:
         print("✓ Casing is consistent in api.ts request bodies")

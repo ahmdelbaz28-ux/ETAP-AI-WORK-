@@ -704,20 +704,16 @@ class ArcGISProMQTTClient:
             detector_id = topic.split("/")[-1]  # Extract detector ID from topic
             self.update_detector_status(detector_id, "alarm_triggered")
 
+        self.scada_tags[topic] = {"data": data, "timestamp": time.time()}
 
-        self.scada_tags[topic] = {
-            'data': data,
-            'timestamp': time.time()
-        }
-        
         # In a real implementation, this would update the corresponding feature in the geodatabase
         print(f"Updated SCADA tag {topic} with data: {data}")
-        
+
         # Example: If it's a fire alarm, update the corresponding detector
-        if 'fire/alarm' in topic:
-            detector_id = topic.split('/')[-1]  # Extract detector ID from topic
-            self.update_detector_status(detector_id, 'alarm_triggered')
-    
+        if "fire/alarm" in topic:
+            detector_id = topic.split("/")[-1]  # Extract detector ID from topic
+            self.update_detector_status(detector_id, "alarm_triggered")
+
     def update_detector_status(self, detector_id, status):
         """
         Update detector status in ArcGIS Pro feature class
@@ -737,19 +733,19 @@ class ArcGISProMQTTClient:
 
         print(f"Updated detector {detector_id} status to {status}")
 
-
-        
         # Update the detector status
-        with arcpy.da.UpdateCursor(f"{gdb_path}\\detectors", 
-                                 ["ID", "STATUS", "TIMESTAMP"], 
-                                 where_clause=f"ID = '{detector_id}'") as cursor:
+        with arcpy.da.UpdateCursor(
+            f"{gdb_path}\\detectors",
+            ["ID", "STATUS", "TIMESTAMP"],
+            where_clause=f"ID = '{detector_id}'",
+        ) as cursor:
             for row in cursor:
                 row[1] = status  # Update status
-                row[2] = time.strftime('%Y-%m-%d %H:%M:%S')  # Update timestamp
+                row[2] = time.strftime("%Y-%m-%d %H:%M:%S")  # Update timestamp
                 cursor.updateRow(row)
-        
+
         print(f"Updated detector {detector_id} status to {status}")
-    
+
     def connect(self, broker_host="localhost", broker_port=1883):
         """
         Connect to MQTT broker

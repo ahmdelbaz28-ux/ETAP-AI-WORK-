@@ -33,11 +33,10 @@ from api.agents import router as agents_router
 from api.ai_ml import router as ai_ml_router
 from api.assets import router as assets_router
 from api.audit_logs import router as audit_logs_router
-from api.autodesk_connectors import router as autodesk_connectors_router
 from api.auth import router as auth_router
-from api.copilot_config import router as copilot_config_router
-from api.feature_flags import router as feature_flags_router
+from api.autodesk_connectors import router as autodesk_connectors_router
 from api.context_engine import router as context_engine_router
+from api.copilot_config import router as copilot_config_router
 from api.csrf import CSRFMiddleware, csrf_router
 from api.data_import import router as data_import_router
 from api.email_dashboard import router as email_dashboard_router
@@ -55,15 +54,15 @@ from api.notifications import router as notifications_router
 from api.projects import router as projects_router
 from api.rbac import router as rbac_router
 from api.settings import router as settings_router
-from api.storage_management import router as storage_management_router
 from api.solver_parameters import router as solver_parameters_router
+from api.storage_management import router as storage_management_router
 from api.studies import router as studies_router
 from api.study_versions import router as study_versions_router
 from api.templates import router as templates_router
 from api.tenants import router as tenants_router
 from api.validation import router as validation_router
-from api.zip_generator_config import router as zip_generator_config_router
 from api.websocket import scada_websocket_endpoint
+from api.zip_generator_config import router as zip_generator_config_router
 from backend.request_context import CorrelationIdMiddleware, TenantMiddleware
 from core.bootstrap import lifespan, logger
 from core.tracing import get_tracer
@@ -652,6 +651,7 @@ async def _security_headers_middleware(request: Request, call_next):
         response.headers["Strict-Transport-Security"] = f"max-age={_hsts_env}; includeSubDomains"
     return response
 
+
 # ─── Security middleware: RASP + ABAC ─────────────────────────────
 # These were previously written (security/rasp.py 288 LOC, security/abac.py
 # 823 LOC) but NEVER registered on the FastAPI app — making them dead code.
@@ -734,10 +734,14 @@ app.include_router(email_webhooks_router)  # /api/v1/email/webhooks/*
 app.include_router(email_dashboard_router)  # /api/v1/email-dashboard/*
 app.include_router(copilot_config_router)  # /api/v1/copilot/config/*
 app.include_router(storage_management_router)  # /api/v1/storage/* — R2 storage management
-app.include_router(autodesk_connectors_router)  # /api/v1/connectors/autodesk/* — Autodesk connector health & test
+app.include_router(
+    autodesk_connectors_router
+)  # /api/v1/connectors/autodesk/* — Autodesk connector health & test
 app.include_router(audit_logs_router)  # /api/v1/security/audit-logs/* — Security audit log API
 app.include_router(solver_parameters_router)  # /api/v1/studies/parameters/* — Solver parameters
-app.include_router(notification_config_router)  # /api/v1/notifications/digest/config/* — Notification preferences
+app.include_router(
+    notification_config_router
+)  # /api/v1/notifications/digest/config/* — Notification preferences
 app.include_router(feature_flags_router)  # /api/v1/feature-flags/* — Feature flags management
 
 

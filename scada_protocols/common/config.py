@@ -23,7 +23,6 @@ import yaml
 
 from scada_protocols.common.base import AdapterRole
 
-
 # ---------------------------------------------------------------------------
 # Per-protocol config dataclasses
 # ---------------------------------------------------------------------------
@@ -146,9 +145,7 @@ def _build_modbus(raw: Dict[str, Any]) -> ModbusConfig:
     for i, entry in enumerate(cfg.register_map):
         for key in ("name", "element_id", "measurement_type", "address"):
             if key not in entry:
-                raise ConfigError(
-                    f"modbus.register_map[{i}] missing required key {key!r}"
-                )
+                raise ConfigError(f"modbus.register_map[{i}] missing required key {key!r}")
     return cfg
 
 
@@ -170,9 +167,7 @@ def _build_opcua(raw: Dict[str, Any]) -> OpcUaConfig:
     for i, entry in enumerate(cfg.node_map):
         for key in ("node_id", "element_id", "measurement_type"):
             if key not in entry:
-                raise ConfigError(
-                    f"opcua.node_map[{i}] missing required key {key!r}"
-                )
+                raise ConfigError(f"opcua.node_map[{i}] missing required key {key!r}")
     return cfg
 
 
@@ -196,9 +191,7 @@ def _build_iec104(raw: Dict[str, Any]) -> Iec104Config:
     for i, entry in enumerate(cfg.point_map):
         for key in ("ca", "ioa", "element_id", "measurement_type"):
             if key not in entry:
-                raise ConfigError(
-                    f"iec104.point_map[{i}] missing required key {key!r}"
-                )
+                raise ConfigError(f"iec104.point_map[{i}] missing required key {key!r}")
     return cfg
 
 

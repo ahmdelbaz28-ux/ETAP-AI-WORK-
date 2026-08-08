@@ -532,7 +532,8 @@ def _parse_env_example() -> dict:
             # Capture section headers (lines of # === Text ===)
             if line.startswith("# ===") and "===" in line[5:]:
                 section_match = re.search(
-                    r"#\s*=+\s*([^=]+)\s*=", line  # noqa: S8786
+                    r"#\s*=+\s*([^=]+)\s*=",
+                    line,  # noqa: S8786
                 )  # NOSONAR
                 if section_match:
                     current_section = section_match.group(1).strip()
@@ -548,9 +549,7 @@ def _parse_env_example() -> dict:
     return env_vars
 
 
-_ENV_VAR_PATTERN = re.compile(
-    r'os\.(?:getenv|environ\.get)\(\s*["\']([A-Z_][A-Z0-9_]*)["\']'
-)
+_ENV_VAR_PATTERN = re.compile(r'os\.(?:getenv|environ\.get)\(\s*["\']([A-Z_][A-Z0-9_]*)["\']')
 
 
 def _scan_python_files_for_env_vars(env_vars: dict) -> None:
@@ -631,7 +630,9 @@ def scan_scripts() -> (  # NOSONAR
                         desc = m.group(1).strip().split("\n")[0][:120]
                 elif fname.endswith((".sh", ".mjs", ".js")):
                     m = re.search(
-                        r"^#\s*([^\n]+)$", content, re.MULTILINE  # noqa: S8786
+                        r"^#\s*([^\n]+)$",
+                        content,
+                        re.MULTILINE,  # noqa: S8786
                     )  # NOSONAR
                     if m:
                         desc = m.group(1).strip()[:120]

@@ -54,6 +54,7 @@ import unittest
 # AUTOMATED WORKSPACE VERIFICATION
 # =====================================================================
 
+
 def verify_workspace():
     """Verify all FACP system files exist on disk."""
     print("[FACP WORKSPACE] Verifying codebase integrity...")
@@ -78,10 +79,11 @@ def verify_workspace():
 # INTEGRATED MASTER TEST SUITE (pytest/unittest compatible)
 # =====================================================================
 
-class TestFACPSelectionEngine(unittest.TestCase):
 
+class TestFACPSelectionEngine(unittest.TestCase):
     def setUp(self):
         from facp_system.panel_selector import ProjectRequirements, SelectionEngine
+
         self.engine = SelectionEngine
         self.req_class = ProjectRequirements
 
@@ -107,7 +109,7 @@ class TestFACPSelectionEngine(unittest.TestCase):
             requires_network=False,
             requires_voice=False,
             requires_releasing=False,
-            jurisdiction="US"
+            jurisdiction="US",
         )
         rec = self.engine.select_panel(req)
         self.assertEqual(rec.manufacturer, "SIEMENS")
@@ -137,7 +139,7 @@ class TestFACPSelectionEngine(unittest.TestCase):
             requires_voice=True,
             requires_releasing=False,
             jurisdiction="US",
-            preferred_manufacturer="SIEMENS"
+            preferred_manufacturer="SIEMENS",
         )
         rec = self.engine.select_panel(req)
         self.assertEqual(rec.manufacturer, "SIEMENS")
@@ -163,7 +165,7 @@ class TestFACPSelectionEngine(unittest.TestCase):
             requires_network=False,
             requires_voice=False,
             requires_releasing=False,
-            jurisdiction="FDNY"
+            jurisdiction="FDNY",
         )
         rec = self.engine.select_panel(req)
         self.assertIn("FDNY", rec.listings)
@@ -185,7 +187,7 @@ class TestFACPSelectionEngine(unittest.TestCase):
             requires_voice=True,
             requires_releasing=True,  # V54 FIX F4: This was previously ignored
             jurisdiction="US",
-            preferred_manufacturer="SIEMENS"
+            preferred_manufacturer="SIEMENS",
         )
         rec = self.engine.select_panel(req)
         # FC924 supports releasing, FC922 does not
@@ -207,7 +209,7 @@ class TestFACPSelectionEngine(unittest.TestCase):
             requires_network=True,
             requires_voice=True,
             requires_releasing=False,
-            jurisdiction="US"
+            jurisdiction="US",
         )
 
         signature_ref = None
@@ -216,8 +218,11 @@ class TestFACPSelectionEngine(unittest.TestCase):
             if signature_ref is None:
                 signature_ref = rec.signature_hash
             else:
-                self.assertEqual(signature_ref, rec.signature_hash,
-                    f"Nondeterministic deviation on cycle {cycle}")
+                self.assertEqual(
+                    signature_ref,
+                    rec.signature_hash,
+                    f"Nondeterministic deviation on cycle {cycle}",
+                )
         print(f"[SUCCESS] Evaluated determinism over 100 cycles. Stable hash: {signature_ref}")
 
     def test_battery_derating_method(self):
@@ -233,7 +238,7 @@ class TestFACPSelectionEngine(unittest.TestCase):
             requires_network=False,
             requires_voice=False,
             requires_releasing=False,
-            jurisdiction="US"
+            jurisdiction="US",
         )
         rec = self.engine.select_panel(req)
         method = rec.battery_derating_details.get("method", "unknown")
@@ -241,7 +246,7 @@ class TestFACPSelectionEngine(unittest.TestCase):
         # The derating method should include IEEE or NFPA references
         self.assertTrue(
             "NFPA" in method or "IEEE" in method or "derating" in method.lower(),
-            f"Expected proper derating method, got: {method}"
+            f"Expected proper derating method, got: {method}",
         )
 
 
@@ -249,11 +254,12 @@ class TestFACPSelectionEngine(unittest.TestCase):
 # INTEGRATED PRODUCTION SELECTION DEMONSTRATION RUNNER
 # =====================================================================
 
+
 def execute_production_selection_pipeline():
     """Runs selection engine, executes verifier, and outputs submittal packages."""
-    print("\n" + "="*80)
+    print("\n" + "=" * 80)
     print("          QOMN-FIRE PANEL SELECTION ENGINE - REAL-WORLD DEMONSTRATION")
-    print("="*80)
+    print("=" * 80)
 
     from facp_system.panel_output import OutputGenerator
     from facp_system.panel_selector import ProjectRequirements, SelectionEngine
@@ -270,11 +276,13 @@ def execute_production_selection_pipeline():
         requires_releasing=True,
         jurisdiction="FDNY",
         preferred_manufacturer="SIEMENS",
-        min_temperature_c=20.0
+        min_temperature_c=20.0,
     )
 
     print("Project Inputs:")
-    print(f"  - Device Count        : {req.device_count} points (Required with margin: {req.device_count*1.2:.1f} pts)")
+    print(
+        f"  - Device Count        : {req.device_count} points (Required with margin: {req.device_count * 1.2:.1f} pts)"
+    )
     print(f"  - NAC Circuit Count   : {req.nac_circuit_count} circuits")
     print(f"  - Location Compliance : {req.jurisdiction} Authority Having Jurisdiction (AHJ)")
     print("  - Audio Evacuation    : YES (Requires Integrated Voice Evac)")
@@ -306,19 +314,19 @@ def execute_production_selection_pipeline():
     spec = OutputGenerator.generate_csi_specification(req, rec)
     alternatives = OutputGenerator.generate_alternatives_table(rec)
 
-    print("\n" + "="*80)
+    print("\n" + "=" * 80)
     print("              AUTO-GENERATED CAD LAYOUT VIEWPORT SCHEDULE")
-    print("="*80)
+    print("=" * 80)
     print(schedule)
 
-    print("\n" + "="*80)
+    print("\n" + "=" * 80)
     print("              CSI SPECIFICATION PARAGRAPH FOR SUBMITTALS")
-    print("="*80)
+    print("=" * 80)
     print(spec)
 
-    print("\n" + "="*80)
+    print("\n" + "=" * 80)
     print("              ENGINEERING ALTERNATIVES COMPARISON")
-    print("="*80)
+    print("=" * 80)
     print(alternatives)
 
     return rec, violations
@@ -329,10 +337,10 @@ def execute_production_selection_pipeline():
 # =====================================================================
 
 if __name__ == "__main__":
-    print("="*80)
+    print("=" * 80)
     print("        QOMN-FIRE: FIRE ALARM CONTROL PANEL SELECTION ENGINE")
     print("        V54 — 6 Safety Bug Fixes Applied (F1-F6)")
-    print("="*80)
+    print("=" * 80)
 
     # Add project root to Python path
     project_root = os.path.dirname(os.path.abspath(__file__))
@@ -340,13 +348,15 @@ if __name__ == "__main__":
 
     # 1. Verify workspace files exist
     if not verify_workspace():
-        print("\n[CRITICAL ERROR] Workspace files missing. Ensure all facp_system/ files are present.")
+        print(
+            "\n[CRITICAL ERROR] Workspace files missing. Ensure all facp_system/ files are present."
+        )
         sys.exit(1)
 
     # 2. Run the dynamic unit testing suite
-    print("\n" + "="*80)
+    print("\n" + "=" * 80)
     print("             EXECUTING AUTOMATED CRITICAL UNIT TEST SUITE")
-    print("="*80)
+    print("=" * 80)
     suite = unittest.TestLoader().loadTestsFromTestCase(TestFACPSelectionEngine)
     runner = unittest.TextTestRunner(verbosity=2)
     test_result = runner.run(suite)
@@ -359,13 +369,15 @@ if __name__ == "__main__":
     rec, violations = execute_production_selection_pipeline()
 
     # 4. Final verdict
-    print("\n" + "="*80)
+    print("\n" + "=" * 80)
     print("              FINAL ENGINEERING VERDICT")
-    print("="*80)
+    print("=" * 80)
     if not violations:
         print("  STATUS: APPROVED FOR SUBMITTAL USE")
         print(f"  Selected Panel: {rec.manufacturer} {rec.recommended_model}")
-        print(f"  Battery: {rec.battery_size_ah} Ah ({rec.battery_derating_details.get('method', 'N/A')})")
+        print(
+            f"  Battery: {rec.battery_size_ah} Ah ({rec.battery_derating_details.get('method', 'N/A')})"
+        )
         print(f"  Deterministic Signature: {rec.signature_hash}")
     else:
         print("  STATUS: REQUIRES MANUAL REVIEW")

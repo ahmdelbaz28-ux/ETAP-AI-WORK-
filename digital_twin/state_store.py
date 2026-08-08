@@ -98,11 +98,6 @@ class TopologyState:
     de_energized_buses: list[str] = field(default_factory=list)
     section_buses: dict[str, list[str]] = field(default_factory=dict)
 
-    connected_components: List[List[str]] = field(default_factory=list)
-    energized_buses: List[str] = field(default_factory=list)
-    de_energized_buses: List[str] = field(default_factory=list)
-    section_buses: Dict[str, List[str]] = field(default_factory=dict)
-
     def to_dict(self) -> dict:
         return {
             "connected_components": self.connected_components,
@@ -146,11 +141,8 @@ class SimulationResults:
     fault_currents: dict[str, complex] = field(default_factory=dict)
     arc_flash_incident_energy: dict[str, float] = field(default_factory=dict)
 
-    load_flow_bus_voltages: Dict[str, complex] = field(default_factory=dict)
     state_estimation_converged: bool = False
     state_estimation_bad_data: int = 0
-    fault_currents: Dict[str, complex] = field(default_factory=dict)
-    arc_flash_incident_energy: Dict[str, float] = field(default_factory=dict)
     protection_coordination_ok: bool = False
 
     def to_dict(self) -> dict:
@@ -194,16 +186,10 @@ class StateSnapshot:
     # ADMS Layer State
     switch_states: dict[str, SwitchState] = field(default_factory=dict)
 
-    gis_assets: Dict[str, GISAssetState] = field(default_factory=dict)
-    gis_zones: Dict[str, str] = field(default_factory=dict)
-
     # Electrical Layer State
-    bus_states: Dict[str, BusState] = field(default_factory=dict)
-    ybus_shape: Tuple[int, int] = (0, 0)
     ybus_checksum: int = 0  # Hash of Ybus for change detection
 
     # ADMS Layer State
-    switch_states: Dict[str, SwitchState] = field(default_factory=dict)
     topology: TopologyState = field(default_factory=TopologyState)
     scada_measurement_count: int = 0
 

@@ -48,7 +48,7 @@ from __future__ import annotations
 import logging
 import math
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 # Import smoke control primitives from building_systems_integration — these
@@ -130,7 +130,7 @@ _CITE_NFPA72_21_6 = "NFPA 72-2022 §21.6"
 # ============================================================================
 
 
-class FanStatus(str, Enum):
+class FanStatus(StrEnum):
     """
     Pressurization fan operational status per NFPA 72 supervisory signal.
 
@@ -151,7 +151,7 @@ class FanStatus(str, Enum):
     UNKNOWN = "UNKNOWN"
 
 
-class FailSafeState(str, Enum):
+class FailSafeState(StrEnum):
     """
     Fail-safe state for stairwell pressurization on power loss.
 
@@ -175,7 +175,7 @@ class FailSafeState(str, Enum):
     ALARM_ONLY = "ALARM_ONLY"
 
 
-class VestibuleType(str, Enum):
+class VestibuleType(StrEnum):
     """
     Vestibule classification for smoke-proof enclosures.
 
@@ -723,18 +723,23 @@ class StairwellSmokeControlIntegrator:
             # Validate top_floor_z
             top_floor_z = stair.get("top_floor_z", 0.0)
             if not math.isfinite(top_floor_z):
-                raise ValueError(f"Stairwell '{name}' ({zone_id}): top_floor_z must be finite, got {top_floor_z}.")
+                raise ValueError(
+                    f"Stairwell '{name}' ({zone_id}): top_floor_z must be finite, got {top_floor_z}."
+                )
 
             # Validate design_pressure_pa if provided
             design_pressure_pa = stair.get("design_pressure_pa", None)
             if design_pressure_pa is not None:
-                _validate_non_negative_finite(design_pressure_pa, f"Stairwell '{name}' ({zone_id}) design_pressure_pa")
+                _validate_non_negative_finite(
+                    design_pressure_pa, f"Stairwell '{name}' ({zone_id}) design_pressure_pa"
+                )
 
             # Validate vestibule_design_pressure_pa if provided
             vestibule_design_pressure_pa = stair.get("vestibule_design_pressure_pa", None)
             if vestibule_design_pressure_pa is not None:
                 _validate_non_negative_finite(
-                    vestibule_design_pressure_pa, f"Stairwell '{name}' ({zone_id}) vestibule_design_pressure_pa"
+                    vestibule_design_pressure_pa,
+                    f"Stairwell '{name}' ({zone_id}) vestibule_design_pressure_pa",
                 )
 
             # If pressurization is not required for this building, skip
@@ -744,10 +749,14 @@ class StairwellSmokeControlIntegrator:
             # means we cannot determine if pressurization is required.
             if not pressurization_required:
                 is_compliant = not self._height_unknown
-                violations_list = () if is_compliant else (
-                    "BUILDING_HEIGHT_UNKNOWN: Building height not provided — "
-                    "pressurization requirement cannot be determined per NFPA 92 §6.1. "
-                    "Zone marked NON-COMPLIANT (fail-safe).",
+                violations_list = (
+                    ()
+                    if is_compliant
+                    else (
+                        "BUILDING_HEIGHT_UNKNOWN: Building height not provided — "
+                        "pressurization requirement cannot be determined per NFPA 92 §6.1. "
+                        "Zone marked NON-COMPLIANT (fail-safe).",
+                    )
                 )
                 zone_results.append(
                     StairwellSmokeControlResult(
@@ -967,13 +976,19 @@ class StairwellSmokeControlIntegrator:
                             for r in zone_results
                         ],
                         "fan_controls": sum(
-                            1 for i in all_injections if i.get("device_type") == "CTRL_PRESSURIZATION_FAN"
+                            1
+                            for i in all_injections
+                            if i.get("device_type") == "CTRL_PRESSURIZATION_FAN"
                         ),
                         "pressure_monitors": sum(
-                            1 for i in all_injections if i.get("device_type") == "MON_PRESSURE_SWITCH"
+                            1
+                            for i in all_injections
+                            if i.get("device_type") == "MON_PRESSURE_SWITCH"
                         ),
                         "vestibule_controls": sum(
-                            1 for i in all_injections if i.get("device_type") == "CTRL_VESTIBULE_FAN"
+                            1
+                            for i in all_injections
+                            if i.get("device_type") == "CTRL_VESTIBULE_FAN"
                         ),
                         "safe": safe,
                     },
@@ -1320,7 +1335,10 @@ class StairwellSmokeControlIntegrator:
                 )
 
             # Check vestibule pressure doesn't exceed door force limit
-            if vestibule_design_pressure_pa is not None and vestibule_design_pressure_pa > MAX_POSITIVE_PRESSURE_PA:
+            if (
+                vestibule_design_pressure_pa is not None
+                and vestibule_design_pressure_pa > MAX_POSITIVE_PRESSURE_PA
+            ):
                 violations.append(
                     f"Stairwell '{name}' ({zone_id}): Vestibule design "
                     f"pressure ({vestibule_design_pressure_pa:.1f} Pa) "
@@ -1406,7 +1424,9 @@ class StairwellSmokeControlIntegrator:
         violations: list[str] = []
 
         # Can the stairwell maintain pressurization on power loss?
-        can_maintain = fail_safe_state == FailSafeState.MAINTAIN_PRESSURIZATION and has_emergency_power
+        can_maintain = (
+            fail_safe_state == FailSafeState.MAINTAIN_PRESSURIZATION and has_emergency_power
+        )
 
         # MAINTAIN_PRESSURIZATION without emergency power is impossible
         if fail_safe_state == FailSafeState.MAINTAIN_PRESSURIZATION and not has_emergency_power:

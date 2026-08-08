@@ -540,15 +540,9 @@ class SparseYBus:
         cos_theta = np.cos(theta)
 
         # NOSONAR
-        v_i = vmag[
-            :, np.newaxis
-        ]  # NOSONAR
-        v_j = vmag[
-            np.newaxis, :
-        ]  # NOSONAR
-        v_i_v_j = (
-            v_i * v_j
-        )  # NOSONAR
+        v_i = vmag[:, np.newaxis]  # NOSONAR
+        v_j = vmag[np.newaxis, :]  # NOSONAR
+        v_i_v_j = v_i * v_j  # NOSONAR
 
         # Current power injections
         I = Ybus @ V
@@ -563,14 +557,10 @@ class SparseYBus:
         vm_col_buses = pq_idx  # Union[\u0394|V, columns]
 
         # NOSONAR
-        gs_minus_bc = (
-            G * sin_theta - B * cos_theta
-        )  # NOSONAR
+        gs_minus_bc = G * sin_theta - B * cos_theta  # NOSONAR
         gs_minus_bc[np.arange(n), np.arange(n)] = 0.0  # zero diagonal for off-diag formulas
         # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        gc_plus_bs = (
-            G * cos_theta + B * sin_theta
-        )  # NOSONAR
+        gc_plus_bs = G * cos_theta + B * sin_theta  # NOSONAR
         gc_plus_bs[np.arange(n), np.arange(n)] = 0.0
 
         # NOSONAR

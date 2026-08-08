@@ -20,16 +20,15 @@ import math
 import pytest
 
 from curves.curves import (
-    IEC60255Curves,
-    calculate_iec_operating_time,
-    MAX_MULTIPLIER_OF_PICKUP,
-    MIN_OPERATING_TIME_S,
+    _CURVE_REGISTRY,
     _IEC_CURVE_PARAMS,
     _IEEE_CURVE_PARAMS,
-    _CURVE_REGISTRY,
+    MAX_MULTIPLIER_OF_PICKUP,
+    MIN_OPERATING_TIME_S,
+    IEC60255Curves,
+    calculate_iec_operating_time,
 )
 from relays.relay import OvercurrentRelay
-
 
 # =====================================================================
 # 1. IEC 60255 Formula Accuracy
@@ -65,9 +64,9 @@ class TestIECFormulaAccuracy:
             tms=tms,
             curve_type=curve_type,
         )
-        assert result["operating_time_s"] == pytest.approx(
-            expected_approx, rel=0.05
-        ), f"{curve_type}: expected ~{expected_approx}s, got {result['operating_time_s']:.4f}s"
+        assert result["operating_time_s"] == pytest.approx(expected_approx, rel=0.05), (
+            f"{curve_type}: expected ~{expected_approx}s, got {result['operating_time_s']:.4f}s"
+        )
 
     def test_standard_inverse_known_point(self):
         """GIVEN M=2 (I_fault=2, I_setting=1), TMS=1

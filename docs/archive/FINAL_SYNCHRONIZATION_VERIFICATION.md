@@ -39,12 +39,10 @@ This document provides complete evidence that all changes have been successfully
 ### SGL Core Functionality Test
 ```python
 from sgov import SystemGovernanceEngine
+
 engine = SystemGovernanceEngine()
 result = engine.process_request(
-    user_id='test_user',
-    role='admin', 
-    payload={'op': 'test'},
-    idempotency_key='idemp_key'
+    user_id="test_user", role="admin", payload={"op": "test"}, idempotency_key="idemp_key"
 )
 # Result: Decision=ALLOW (SUCCESS)
 ```

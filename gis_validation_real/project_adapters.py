@@ -14,17 +14,8 @@ class ExtractedLayer:
 
 
 def extract_layers_as_features(
-    provider: GISProviderInterface,
-    *,
-    layer_ids: list[str] | None = None,
+    provider: GISProviderInterface, *, layer_ids: list[str] | None = None
 ) -> list[ExtractedLayer]:
-
-    features: List[GISFeature]
-
-
-def extract_layers_as_features(
-    provider: GISProviderInterface, *, layer_ids: List[str] | None = None
-) -> List[ExtractedLayer]:
     """
     Adapter: extract real GIS layers into normalized GISFeature lists.
 
@@ -38,13 +29,6 @@ def extract_layers_as_features(
         target = sorted(available) if layer_ids is None else sorted(layer_ids)
 
         extracted: list[ExtractedLayer] = []
-
-        if layer_ids is None:
-            target = sorted(available)
-        else:
-            target = sorted(layer_ids)
-
-        extracted: List[ExtractedLayer] = []
         for lid in target:
             feats = list(provider.extract_features(lid))
             extracted.append(ExtractedLayer(layer_id=lid, features=feats))

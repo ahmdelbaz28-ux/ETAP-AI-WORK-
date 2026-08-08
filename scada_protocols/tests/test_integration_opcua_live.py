@@ -25,9 +25,7 @@ from scada_protocols.common.config import OpcUaConfig
 from scada_protocols.opcua import OpcUaAdapter
 
 opcua_available, _ = probe_opcua()
-pytestmark = pytest.mark.skipif(
-    not opcua_available, reason="asyncua not installed"
-)
+pytestmark = pytest.mark.skipif(not opcua_available, reason="asyncua not installed")
 
 
 def _free_port() -> int:

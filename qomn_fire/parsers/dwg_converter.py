@@ -54,7 +54,7 @@ class DwgConverter:
     # on PATH is used. This lets the same code work in environments with
     # LibreDWG (Linux Docker), ODA File Converter (Windows), or neither.
     _CONVERTER_BINARIES = (
-        "dwg2dxf",          # LibreDWG (open source, Linux/Mac/Windows)
+        "dwg2dxf",  # LibreDWG (open source, Linux/Mac/Windows)
         "ODAFileConverter",  # ODA SDK (freeware, Windows/Linux)
         "oda_file_converter",  # ODA SDK alternate name
     )
@@ -82,11 +82,13 @@ class DwgConverter:
             # Use the validated/sanitized path from here forward
             dwg_path = safe_input_path
         except UnsafePathError as e:
-            return Result.failure(ConversionError(
-                message=f"Unsafe input path: {e}",
-                code_ref="DwgConverter.convert_dwg_to_dxf",  # NOSONAR — S1192: duplicated literal acceptable in this localized context
-                remedy="Ensure input file is in allowed upload directory with correct extension."
-            ))
+            return Result.failure(
+                ConversionError(
+                    message=f"Unsafe input path: {e}",
+                    code_ref="DwgConverter.convert_dwg_to_dxf",  # NOSONAR — S1192: duplicated literal acceptable in this localized context
+                    remedy="Ensure input file is in allowed upload directory with correct extension.",
+                )
+            )
 
         # V128 SECURITY: Validate output path to prevent path traversal in output.
         # V142 FIX: Use validate_output_path (not validate_input_path) — the
@@ -98,11 +100,13 @@ class DwgConverter:
             )
             output_dxf_path = str(safe_output_path)
         except UnsafePathError as e:
-            return Result.failure(ConversionError(
-                message=f"Unsafe output path: {e}",
-                code_ref="DwgConverter.convert_dwg_to_dxf",
-                remedy="Ensure output file is in allowed directory with correct extension."
-            ))
+            return Result.failure(
+                ConversionError(
+                    message=f"Unsafe output path: {e}",
+                    code_ref="DwgConverter.convert_dwg_to_dxf",
+                    remedy="Ensure output file is in allowed directory with correct extension.",
+                )
+            )
 
         # V213: Try each converter binary in order. First one found wins.
         converter_bin = None
@@ -129,8 +133,11 @@ class DwgConverter:
                 input_dir = str(Path(dwg_path).parent)
                 output_dir = str(Path(output_dxf_path).parent)
                 cmd = [
-                    converter_bin, input_dir, output_dir,
-                    "ACAD2010", "DXF_0",  # output version + format
+                    converter_bin,
+                    input_dir,
+                    output_dir,
+                    "ACAD2010",
+                    "DXF_0",  # output version + format
                 ]
             else:
                 cmd = [converter_bin, "-o", output_dxf_path, str(dwg_path)]
@@ -153,43 +160,55 @@ class DwgConverter:
             # Verify output file exists and is non-empty
             output_path = Path(output_dxf_path)
             if not output_path.exists():
-                return Result.failure(ConversionError(
-                    message="Conversion succeeded but output file was not created",
-                    code_ref="DwgConverter.convert_dwg_to_dxf",
-                    remedy="Check converter permissions and disk space"
-                ))
+                return Result.failure(
+                    ConversionError(
+                        message="Conversion succeeded but output file was not created",
+                        code_ref="DwgConverter.convert_dwg_to_dxf",
+                        remedy="Check converter permissions and disk space",
+                    )
+                )
 
             if output_path.stat().st_size == 0:
-                return Result.failure(ConversionError(
-                    message="Conversion resulted in empty output file",
-                    code_ref="DwgConverter.convert_dwg_to_dxf",
-                    remedy="Verify input file is a valid DWG file"
-                ))
+                return Result.failure(
+                    ConversionError(
+                        message="Conversion resulted in empty output file",
+                        code_ref="DwgConverter.convert_dwg_to_dxf",
+                        remedy="Verify input file is a valid DWG file",
+                    )
+                )
 
             # V213: Real conversion succeeded — simulation_mode=False
             return Result.success(output_dxf_path)
 
         except subprocess.CalledProcessError as e:
-            return Result.failure(ConversionError(
-                message=f"DWG to DXF conversion failed (converter={converter_bin}): {e}",
-                code_ref="DwgConverter.convert_dwg_to_dxf",
-                remedy="Verify input file is a valid DWG file and converter is properly configured"
-            ))
+            return Result.failure(
+                ConversionError(
+                    message=f"DWG to DXF conversion failed (converter={converter_bin}): {e}",
+                    code_ref="DwgConverter.convert_dwg_to_dxf",
+                    remedy="Verify input file is a valid DWG file and converter is properly configured",
+                )
+            )
         except subprocess.TimeoutExpired:
-            return Result.failure(ConversionError(
-                message=f"DWG to DXF conversion timed out (converter={converter_bin})",
-                code_ref="DwgConverter.convert_dwg_to_dxf",
-                remedy="Try with a smaller input file or increase timeout"
-            ))
+            return Result.failure(
+                ConversionError(
+                    message=f"DWG to DXF conversion timed out (converter={converter_bin})",
+                    code_ref="DwgConverter.convert_dwg_to_dxf",
+                    remedy="Try with a smaller input file or increase timeout",
+                )
+            )
         except Exception as e:
-            return Result.failure(ConversionError(
-                message=f"Unexpected error during DWG to DXF conversion (converter={converter_bin}): {e}",
-                code_ref="DwgConverter.convert_dwg_to_dxf",
-                remedy="Check logs for additional details"
-            ))
+            return Result.failure(
+                ConversionError(
+                    message=f"Unexpected error during DWG to DXF conversion (converter={converter_bin}): {e}",
+                    code_ref="DwgConverter.convert_dwg_to_dxf",
+                    remedy="Check logs for additional details",
+                )
+            )
 
     @staticmethod
-    def _mock_convert_dwg_to_dxf(dwg_path: str, output_dxf_path: str) -> Result[str, ConversionError]:
+    def _mock_convert_dwg_to_dxf(
+        dwg_path: str, output_dxf_path: str
+    ) -> Result[str, ConversionError]:
         """
         Mock converter for environments where dwg2dxf (LibreDWG) is not
         installed. Writes a minimal, structurally-valid DXF file so that
@@ -208,11 +227,13 @@ class DwgConverter:
             # main flow in tests).
             input_path = Path(dwg_path)
             if not input_path.exists():
-                return Result.failure(ConversionError(
-                    message=f"Input file does not exist: {dwg_path}",
-                    code_ref="DwgConverter._mock_convert_dwg_to_dxf",
-                    remedy="Provide a valid DWG file path"
-                ))
+                return Result.failure(
+                    ConversionError(
+                        message=f"Input file does not exist: {dwg_path}",
+                        code_ref="DwgConverter._mock_convert_dwg_to_dxf",
+                        remedy="Provide a valid DWG file path",
+                    )
+                )
 
             # Create minimal DXF content. Per AutoCAD DXF specification a
             # valid DXF must contain at minimum HEADER (with $ACADVER) and
@@ -252,8 +273,10 @@ class DwgConverter:
             return Result.success(output_dxf_path)
 
         except Exception as e:
-            return Result.failure(ConversionError(
-                message=f"Mock DWG to DXF conversion failed: {e}",
-                code_ref="DwgConverter._mock_convert_dwg_to_dxf",
-                remedy="Check file permissions and paths"
-            ))
+            return Result.failure(
+                ConversionError(
+                    message=f"Mock DWG to DXF conversion failed: {e}",
+                    code_ref="DwgConverter._mock_convert_dwg_to_dxf",
+                    remedy="Check file permissions and paths",
+                )
+            )

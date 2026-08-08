@@ -1,4 +1,5 @@
 """Execution Isolation System for Distributed FACP System"""
+
 import os
 import shutil
 import signal
@@ -17,7 +18,7 @@ class ExecutionEnvironment(Enum):
     SANDBOXED_SUBPROCESS = "sandboxed_subprocess"
     CONTAINERIZED = "containerized"  # Conceptual for now
     THREAD_ISOLATED = "thread_isolated"
-    VM_ISOLATED = "vm_isolated"     # Conceptual for now
+    VM_ISOLATED = "vm_isolated"  # Conceptual for now
 
 
 class ExecutionIsolationManager:
@@ -34,8 +35,14 @@ class ExecutionIsolationManager:
         self.lock = threading.Lock()
         self.sandbox_base_path = tempfile.mkdtemp(prefix="facp_sandbox_")
 
-    def create_sandboxed_execution(self, func: Callable, args: tuple = (), kwargs: Optional[dict] = None,
-                                   timeout: int = 8000, max_memory_mb: int = 512) -> Dict[str, Any]:
+    def create_sandboxed_execution(
+        self,
+        func: Callable,
+        args: tuple = (),
+        kwargs: Optional[dict] = None,
+        timeout: int = 8000,
+        max_memory_mb: int = 512,
+    ) -> Dict[str, Any]:
         """Create a sandboxed execution environment for a function"""
         kwargs = kwargs or {}
 
@@ -100,10 +107,10 @@ except Exception as e:
         try:
             proc = subprocess.run(
                 [sys.executable, script_path],
-                timeout=timeout/1000,  # Convert ms to seconds
+                timeout=timeout / 1000,  # Convert ms to seconds
                 capture_output=True,
                 cwd=exec_dir,
-                check=False
+                check=False,
             )
 
             execution_time = (time.time() - start_time) * 1000  # Convert to ms
@@ -122,20 +129,22 @@ except Exception as e:
 
             # Log execution
             with self.lock:
-                self.execution_logs.append({
-                    "timestamp": time.time(),
-                    "execution_time_ms": execution_time,
-                    "status": status,
-                    "timeout": timeout,
-                    "max_memory_mb": max_memory_mb,
-                    "sandbox_path": exec_dir
-                })
+                self.execution_logs.append(
+                    {
+                        "timestamp": time.time(),
+                        "execution_time_ms": execution_time,
+                        "status": status,
+                        "timeout": timeout,
+                        "max_memory_mb": max_memory_mb,
+                        "sandbox_path": exec_dir,
+                    }
+                )
 
             return {
                 "status": status,
                 "result": result,
                 "execution_time_ms": execution_time,
-                "sandbox_path": exec_dir
+                "sandbox_path": exec_dir,
             }
 
         except subprocess.TimeoutExpired:
@@ -150,7 +159,7 @@ except Exception as e:
                 "status": "error",
                 "result": f"Execution timed out after {timeout}ms",
                 "execution_time_ms": execution_time,
-                "sandbox_path": exec_dir
+                "sandbox_path": exec_dir,
             }
         except Exception as e:
             # Cleanup
@@ -160,7 +169,7 @@ except Exception as e:
                 "status": "error",
                 "result": f"Execution failed: {e!s}",
                 "execution_time_ms": (time.time() - start_time) * 1000,
-                "sandbox_path": exec_dir
+                "sandbox_path": exec_dir,
             }
 
     def enforce_resource_limits(self, pid: int, timeout_ms: int, max_memory_mb: int):
@@ -168,7 +177,7 @@ except Exception as e:
         self.resource_limits[pid] = {
             "timeout_ms": timeout_ms,
             "max_memory_mb": max_memory_mb,
-            "applied_at": time.time()
+            "applied_at": time.time(),
         }
 
     def check_resource_compliance(self, pid: int) -> bool:
@@ -213,13 +222,19 @@ except Exception as e:
         """Get statistics about sandboxed executions"""
         return {
             "total_executions": len(self.execution_logs),
-            "successful_executions": len([log for log in self.execution_logs if log["status"] == "success"]),
-            "failed_executions": len([log for log in self.execution_logs if log["status"] == "error"]),
-            "average_execution_time": (
-                sum(log["execution_time_ms"] for log in self.execution_logs) / len(self.execution_logs)
-                if self.execution_logs else 0
+            "successful_executions": len(
+                [log for log in self.execution_logs if log["status"] == "success"]
             ),
-            "sandbox_base_path": self.sandbox_base_path
+            "failed_executions": len(
+                [log for log in self.execution_logs if log["status"] == "error"]
+            ),
+            "average_execution_time": (
+                sum(log["execution_time_ms"] for log in self.execution_logs)
+                / len(self.execution_logs)
+                if self.execution_logs
+                else 0
+            ),
+            "sandbox_base_path": self.sandbox_base_path,
         }
 
 
@@ -240,7 +255,7 @@ class SandboxController:
             "max_memory_mb": config.get("max_memory_mb", 512),
             "network_access": config.get("network_access", False),
             "file_access": config.get("file_access", []),  # Restricted file paths
-            "created_at": time.time()
+            "created_at": time.time(),
         }
 
     def provision_sandbox(self, template_name: str, task_id: Optional[str] = None) -> str:
@@ -264,7 +279,7 @@ class SandboxController:
             "task_id": task_id,
             "node_id": self.node_id,
             "sandbox_path": sandbox_path,
-            "status": "ready"
+            "status": "ready",
         }
 
         with self.lock:
@@ -272,8 +287,14 @@ class SandboxController:
 
         return sandbox_id
 
-    def execute_in_sandbox(self, sandbox_id: str, func: Callable, args: tuple = (),
-                          kwargs: Optional[dict] = None, custom_config: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    def execute_in_sandbox(
+        self,
+        sandbox_id: str,
+        func: Callable,
+        args: tuple = (),
+        kwargs: Optional[dict] = None,
+        custom_config: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
         """Execute a function in a specific sandbox"""
         if sandbox_id not in self.active_sandboxes:
             raise ValueError(f"Sandbox '{sandbox_id}' not found")
@@ -287,9 +308,7 @@ class SandboxController:
 
         # Execute in isolated environment
         result = self.isolation_manager.create_sandboxed_execution(
-            func, args, kwargs,
-            timeout=config["timeout_ms"],
-            max_memory_mb=config["max_memory_mb"]
+            func, args, kwargs, timeout=config["timeout_ms"], max_memory_mb=config["max_memory_mb"]
         )
 
         # Update sandbox status
@@ -372,7 +391,7 @@ class SandboxController:
             "total_sandboxes": total_count,
             "healthy_sandboxes": healthy_count,
             "unhealthy_sandboxes": total_count - healthy_count,
-            "isolation_manager_stats": self.isolation_manager.get_execution_stats()
+            "isolation_manager_stats": self.isolation_manager.get_execution_stats(),
         }
 
     def cleanup_unused_sandboxes(self, max_age_minutes: int = 60):
@@ -392,6 +411,7 @@ class SandboxController:
 
 def create_deterministic_execution_wrapper(func: Callable) -> Callable:
     """Create a wrapper that ensures deterministic execution"""
+
     def wrapper(*args, **kwargs):
         # Set a fixed random seed based on input to ensure deterministic behavior
         import hashlib

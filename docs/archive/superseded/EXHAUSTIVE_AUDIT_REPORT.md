@@ -448,16 +448,12 @@ class SemanticMapper:
 ```python
 def convert_revit_to_autocad(self, rvt_filepath, dwg_filepath):
     rvt_data = revit_service.read_current_document()
-    
+
     for element in rvt_data.get("elements", []):
         acad_spec = self.mapper.map_revit_to_autocad(element)
-        
+
         if acad_spec["entity_type"] == "LINE":
-            acad_service.draw_line(
-                acad_spec["start"],
-                acad_spec["end"],
-                layer=acad_spec["layer"]
-            )
+            acad_service.draw_line(acad_spec["start"], acad_spec["end"], layer=acad_spec["layer"])
 ```
 
 #### 6.5 UI for Digital Twin Operations

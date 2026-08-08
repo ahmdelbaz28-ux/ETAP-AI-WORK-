@@ -530,7 +530,9 @@ class NullEtapProvider(IEtapProvider):
                 "ETAP COM is not available on this platform. "
                 "Results are synthetic/empty — do NOT use for engineering decisions."
             ),
-            "_study_type": str(study_type.value) if hasattr(study_type, "value") else str(study_type),
+            "_study_type": str(study_type.value)
+            if hasattr(study_type, "value")
+            else str(study_type),
         }
 
         # F-05: CRITICAL alert in production — NullEtapProvider means no real

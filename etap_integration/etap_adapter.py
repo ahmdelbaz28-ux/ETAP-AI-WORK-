@@ -7,20 +7,16 @@ from __future__ import annotations
 
 import os
 from abc import ABC, abstractmethod
-from typing import Any
-
-from core.bootstrap import logger
-
-# ─── Unified types (single source of truth) ─────────────────────────────
-# ETAPStudyType + ETAPResult are now defined in unified_etap_types.py
-# to eliminate the 3-way duplication.
-# See: PRODUCTION_PLAN/02_DUPLICATION_REPORT.md Cluster #1
-from etap_integration.unified_etap_types import ETAPResult, ETAPStudyType
-
 from enum import Enum
 from typing import Any, Dict
 
 from core.bootstrap import logger
+
+# ─── ETAP types (Python API contract) ───────────────────────────────────
+# NOTE: This module defines its own ETAPStudyType enum with snake_case
+# values matching the public HTTP API layer. A separate canonical type
+# with CamelCase values for direct ETAP COM API mapping lives in
+# etap_integration/unified_etap_types.py. The two are intentionally distinct.
 
 
 class ETAPStudyType(Enum):

@@ -63,6 +63,7 @@ from fireai.validation.compliance_engine import ComplianceEngine
 # P0-1: Heat Detector Spacing Verification
 # ============================================================================
 
+
 class TestHeatDetectorSpacing:
     """
     Verify heat detector spacing is 6.1m (20ft), NOT 15.24m (50ft).
@@ -79,7 +80,7 @@ class TestHeatDetectorSpacing:
 
     def test_heat_max_spacing_not_15_24m(self):
         """Ensure the old dangerous value 15.24m is NOT present."""
-        assert NFPA72_HEAT_MAX_SPACING_M != pytest.approx(15.24)
+        assert pytest.approx(15.24) != NFPA72_HEAT_MAX_SPACING_M
 
     def test_heat_detector_spec_spacing(self):
         """HeatDetectorSpec uses 6.1m, not 9.1m (smoke) or 15.24m."""
@@ -106,6 +107,7 @@ class TestHeatDetectorSpacing:
 # P0-2: Wall Distance Verification
 # ============================================================================
 
+
 class TestWallDistances:
     """
     Verify wall distances per NFPA 72 §17.6.3.1.1.
@@ -121,7 +123,7 @@ class TestWallDistances:
 
     def test_wall_min_not_0_305m(self):
         """Ensure old value 0.305m is NOT present."""
-        assert NFPA72_WALL_MIN_DISTANCE_M != pytest.approx(0.305)
+        assert pytest.approx(0.305) != NFPA72_WALL_MIN_DISTANCE_M
 
     def test_wall_max_factor_0_5(self):
         """Wall max distance = S/2 per NFPA 72 §17.6.3.1.1."""
@@ -149,6 +151,7 @@ class TestWallDistances:
 # ============================================================================
 # P0-3: Coverage Radius vs Wall Distance Distinction
 # ============================================================================
+
 
 class TestCoverageRadiusVsWallDistance:
     """
@@ -201,6 +204,7 @@ class TestCoverageRadiusVsWallDistance:
 # P0-4: Dual-Engine Compliance Divergence Detection
 # ============================================================================
 
+
 class TestDualComplianceCheck:
     """
     Verify that dual_compliance_check correctly detects divergence
@@ -215,16 +219,16 @@ class TestDualComplianceCheck:
     def test_dual_check_both_pass(self):
         """When both engines pass their respective checks, result should reflect both."""
         context = {
-            'ceiling_height_m': 3.0,
-            'spacing_m': 9.1,
-            'max_spacing_for_height': 9.1,
-            'coverage_pct': 100.0,
-            'radius_m': 6.37,
-            'v_drop_percent': 1.5,
-            'v_drop_total_percent': 2.5,
-            'wall_distance_m': 4.0,
-            'detector_type': 'smoke',
-            'terminal_voltage_v': 24.0,  # Must be >= 16VDC
+            "ceiling_height_m": 3.0,
+            "spacing_m": 9.1,
+            "max_spacing_for_height": 9.1,
+            "coverage_pct": 100.0,
+            "radius_m": 6.37,
+            "v_drop_percent": 1.5,
+            "v_drop_total_percent": 2.5,
+            "wall_distance_m": 4.0,
+            "detector_type": "smoke",
+            "terminal_voltage_v": 24.0,  # Must be >= 16VDC
         }
         result = dual_compliance_check(context, session_id="test-both-pass")
         # Both engines should pass with complete context
@@ -234,8 +238,8 @@ class TestDualComplianceCheck:
     def test_dual_check_clause_fails(self):
         """When clause engine fails, result should NOT be safe."""
         context = {
-            'coverage_pct': 50.0,  # Way below 99.9%
-            'v_drop_percent': 10.0,  # Way above 3%
+            "coverage_pct": 50.0,  # Way below 99.9%
+            "v_drop_percent": 10.0,  # Way above 3%
         }
         result = dual_compliance_check(context, session_id="test-clause-fails")
         assert result.clause_engine_safe is False
@@ -278,6 +282,7 @@ class TestDualComplianceCheck:
 # ============================================================================
 # P0-5: Interior Rings / Holes in Room Polygons
 # ============================================================================
+
 
 class TestInteriorRings:
     """
@@ -347,9 +352,15 @@ class TestInteriorRings:
         ceiling = CeilingSpec(3.0, 3.0)
         # Place detectors at grid covering the room
         detectors = [
-            (4.55, 4.55), (4.55, 13.65), (4.55, 18.0),
-            (13.65, 4.55), (13.65, 13.65), (13.65, 18.0),
-            (18.0, 4.55), (18.0, 13.65), (18.0, 18.0),
+            (4.55, 4.55),
+            (4.55, 13.65),
+            (4.55, 18.0),
+            (13.65, 4.55),
+            (13.65, 13.65),
+            (13.65, 18.0),
+            (18.0, 4.55),
+            (18.0, 13.65),
+            (18.0, 18.0),
         ]
         result = check_coverage_polygon(
             detector_positions=detectors,
@@ -383,6 +394,7 @@ class TestInteriorRings:
 # P1-1: ComplianceEngine Wall Distance Rules
 # ============================================================================
 
+
 class TestComplianceEngineWallRules:
     """Verify that ComplianceEngine now checks wall distances."""
 
@@ -390,44 +402,44 @@ class TestComplianceEngineWallRules:
         """Detector too far from wall should be flagged."""
         engine = ComplianceEngine()
         context = {
-            'spacing_m': 9.1,
-            'wall_distance_m': 5.0,  # > S/2 = 4.55m
+            "spacing_m": 9.1,
+            "wall_distance_m": 5.0,  # > S/2 = 4.55m
         }
         violations = engine.validate(context)
-        wall_violations = [v for v in violations if 'wall_max' in v]
+        wall_violations = [v for v in violations if "wall_max" in v]
         assert len(wall_violations) > 0, "Should flag wall distance > S/2"
 
     def test_wall_distance_within_s_over_2(self):
         """Detector within S/2 of wall should pass."""
         engine = ComplianceEngine()
         context = {
-            'spacing_m': 9.1,
-            'wall_distance_m': 4.0,  # < S/2 = 4.55m
+            "spacing_m": 9.1,
+            "wall_distance_m": 4.0,  # < S/2 = 4.55m
         }
         violations = engine.validate(context)
-        wall_violations = [v for v in violations if 'wall_max' in v]
+        wall_violations = [v for v in violations if "wall_max" in v]
         assert len(wall_violations) == 0, "Should pass wall distance <= S/2"
 
     def test_wall_distance_too_close(self):
         """Detector in dead air space (< 0.1016m) should be flagged."""
         engine = ComplianceEngine()
         context = {
-            'spacing_m': 9.1,
-            'wall_distance_m': 0.05,  # < 0.1016m (4 inches)
+            "spacing_m": 9.1,
+            "wall_distance_m": 0.05,  # < 0.1016m (4 inches)
         }
         violations = engine.validate(context)
-        dead_air_violations = [v for v in violations if 'wall_min' in v]
+        dead_air_violations = [v for v in violations if "wall_min" in v]
         assert len(dead_air_violations) > 0, "Should flag dead air space"
 
     def test_wall_distance_at_minimum(self):
         """Detector at exactly 0.1016m from wall should pass."""
         engine = ComplianceEngine()
         context = {
-            'spacing_m': 9.1,
-            'wall_distance_m': 0.1016,  # Exactly at minimum
+            "spacing_m": 9.1,
+            "wall_distance_m": 0.1016,  # Exactly at minimum
         }
         violations = engine.validate(context)
-        dead_air_violations = [v for v in violations if 'wall_min' in v]
+        dead_air_violations = [v for v in violations if "wall_min" in v]
         assert len(dead_air_violations) == 0, "0.1016m should pass"
 
 
@@ -435,12 +447,13 @@ class TestComplianceEngineWallRules:
 # P1-2: NFPA 72 Constants Consistency
 # ============================================================================
 
+
 class TestNFPA72ConstantsConsistency:
     """Verify that NFPA 72 constants are consistent across modules."""
 
     def test_coverage_radius_factor_consistent(self):
         """COVERAGE_RADIUS_FACTOR should be 0.7 in all modules."""
-        assert NFPA72_COVERAGE_RADIUS_FACTOR == pytest.approx(0.7)
+        assert pytest.approx(0.7) == NFPA72_COVERAGE_RADIUS_FACTOR
 
     def test_heat_spacing_matches_table(self):
         """Heat max spacing matches NFPA 72 Table 17.6.2.1."""
@@ -468,6 +481,7 @@ class TestNFPA72ConstantsConsistency:
 # ============================================================================
 # INTEGRATION: Full Coverage Workflow with Holes
 # ============================================================================
+
 
 class TestCoverageWorkflowWithHoles:
     """Integration test: full coverage check workflow with rooms containing holes."""
@@ -498,9 +512,7 @@ class TestCoverageWorkflowWithHoles:
     def test_l_shaped_room_coverage(self):
         """L-shaped room with custom_polygon."""
         # L-shape: 20m × 10m with a 10m × 5m notch removed
-        l_shape = [
-            (0, 0), (20, 0), (20, 10), (10, 10), (10, 5), (0, 5), (0, 0)
-        ]
+        l_shape = [(0, 0), (20, 0), (20, 10), (10, 10), (10, 5), (0, 5), (0, 0)]
         room = RoomSpec(
             room_id="l-room",
             width_m=20.0,

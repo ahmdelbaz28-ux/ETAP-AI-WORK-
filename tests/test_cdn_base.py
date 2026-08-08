@@ -133,17 +133,65 @@ class TestRateLimitCheck:
 
         limiter = RateLimiter(max_requests=2, window_seconds=60)
         # First two requests pass
-        assert rate_limit_check(os.environ.get("SERVICE_HOST", os.environ.get("SERVICE_HOST", os.environ.get("SERVICE_HOST", os.environ.get("SERVICE_HOST", "10.0.0.1")))), limiter) is True
-        assert rate_limit_check(os.environ.get("SERVICE_HOST", os.environ.get("SERVICE_HOST", os.environ.get("SERVICE_HOST", os.environ.get("SERVICE_HOST", "10.0.0.1")))), limiter) is True
+        assert (
+            rate_limit_check(
+                os.environ.get(
+                    "SERVICE_HOST",
+                    os.environ.get(
+                        "SERVICE_HOST",
+                        os.environ.get("SERVICE_HOST", os.environ.get("SERVICE_HOST", "10.0.0.1")),
+                    ),
+                ),
+                limiter,
+            )
+            is True
+        )
+        assert (
+            rate_limit_check(
+                os.environ.get(
+                    "SERVICE_HOST",
+                    os.environ.get(
+                        "SERVICE_HOST",
+                        os.environ.get("SERVICE_HOST", os.environ.get("SERVICE_HOST", "10.0.0.1")),
+                    ),
+                ),
+                limiter,
+            )
+            is True
+        )
         # Third request is blocked
-        assert rate_limit_check(os.environ.get("SERVICE_HOST", os.environ.get("SERVICE_HOST", os.environ.get("SERVICE_HOST", os.environ.get("SERVICE_HOST", "10.0.0.1")))), limiter) is False
+        assert (
+            rate_limit_check(
+                os.environ.get(
+                    "SERVICE_HOST",
+                    os.environ.get(
+                        "SERVICE_HOST",
+                        os.environ.get("SERVICE_HOST", os.environ.get("SERVICE_HOST", "10.0.0.1")),
+                    ),
+                ),
+                limiter,
+            )
+            is False
+        )
 
     def test_different_ips_independent(self):
         from api._cdn_base import rate_limit_check
         from api._rate_limit import RateLimiter
 
         limiter = RateLimiter(max_requests=1, window_seconds=60)
-        assert rate_limit_check(os.environ.get("SERVICE_HOST", os.environ.get("SERVICE_HOST", os.environ.get("SERVICE_HOST", os.environ.get("SERVICE_HOST", "10.0.0.1")))), limiter) is True
+        assert (
+            rate_limit_check(
+                os.environ.get(
+                    "SERVICE_HOST",
+                    os.environ.get(
+                        "SERVICE_HOST",
+                        os.environ.get("SERVICE_HOST", os.environ.get("SERVICE_HOST", "10.0.0.1")),
+                    ),
+                ),
+                limiter,
+            )
+            is True
+        )
         assert rate_limit_check(os.environ.get("SERVICE_HOST", "10.0.0.2"), limiter) is True
 
 
@@ -155,7 +203,9 @@ class TestLogSecurityEvent:
 
         request = MagicMock()
         request.state = MagicMock()
-        request.state.cloudflare = {"client_ip": os.environ.get("SERVICE_HOST", os.environ.get("SERVICE_HOST", "1.2.3.4"))}
+        request.state.cloudflare = {
+            "client_ip": os.environ.get("SERVICE_HOST", os.environ.get("SERVICE_HOST", "1.2.3.4"))
+        }
 
         with caplog.at_level(logging.INFO, logger="api._cdn_base"):
             log_security_event(
@@ -168,14 +218,18 @@ class TestLogSecurityEvent:
             )
         assert "security_event" in caplog.text
         assert "test_event" in caplog.text
-        assert os.environ.get("SERVICE_HOST", os.environ.get("SERVICE_HOST", "1.2.3.4")) in caplog.text
+        assert (
+            os.environ.get("SERVICE_HOST", os.environ.get("SERVICE_HOST", "1.2.3.4")) in caplog.text
+        )
 
     def test_logs_warning_severity(self, caplog):
         from api._cdn_base import log_security_event
 
         request = MagicMock()
         request.state = MagicMock()
-        request.state.akamai = {"client_ip": os.environ.get("SERVICE_HOST", os.environ.get("SERVICE_HOST", "5.6.7.8"))}
+        request.state.akamai = {
+            "client_ip": os.environ.get("SERVICE_HOST", os.environ.get("SERVICE_HOST", "5.6.7.8"))
+        }
 
         with caplog.at_level(logging.WARNING, logger="api._cdn_base"):
             log_security_event(
@@ -186,7 +240,9 @@ class TestLogSecurityEvent:
                 metadata_attr="akamai",
             )
         assert "unauthorized_access" in caplog.text
-        assert os.environ.get("SERVICE_HOST", os.environ.get("SERVICE_HOST", "5.6.7.8")) in caplog.text
+        assert (
+            os.environ.get("SERVICE_HOST", os.environ.get("SERVICE_HOST", "5.6.7.8")) in caplog.text
+        )
 
     def test_no_metadata_attr_falls_back(self, caplog):
         from api._cdn_base import log_security_event

@@ -383,8 +383,7 @@ import requests
 
 # Check status
 response = requests.get(
-    "http://localhost:8000/api/v1/autocad/status",
-    headers={"X-API-Key": "your-api-key"}
+    "http://localhost:8000/api/v1/autocad/status", headers={"X-API-Key": "your-api-key"}
 )
 print(response.json())
 
@@ -392,14 +391,7 @@ print(response.json())
 response = requests.post(
     "http://localhost:8000/api/v1/autocad/draw/line",
     headers={"X-API-Key": "your-api-key"},
-    json={
-        "start_x": 0,
-        "start_y": 0,
-        "end_x": 100,
-        "end_y": 0,
-        "layer": "Walls",
-        "color": 1
-    }
+    json={"start_x": 0, "start_y": 0, "end_x": 100, "end_y": 0, "layer": "Walls", "color": 1},
 )
 print(response.json())
 ```
@@ -422,8 +414,8 @@ response = requests.post(
         "end_z": 0,
         "height": 3000,
         "level": "Level 1",
-        "wall_type": "Generic - 200mm"
-    }
+        "wall_type": "Generic - 200mm",
+    },
 )
 print(response.json())
 ```
@@ -438,7 +430,7 @@ with open("building.dwg", "rb") as f:
     response = requests.post(
         "http://localhost:8000/api/v1/digital-twin/convert/autocad-to-revit",
         headers={"X-API-Key": "your-api-key"},
-        files={"file": f}
+        files={"file": f},
     )
 result = response.json()
 print(f"Converted {result['elements_converted']} elements")

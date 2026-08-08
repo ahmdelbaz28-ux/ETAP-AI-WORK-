@@ -19,7 +19,7 @@ import logging
 import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import StrEnum
 from typing import Any, Callable, Dict, Optional, Tuple
 
 logger = logging.getLogger(__name__)
@@ -30,7 +30,7 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 
-class ProtocolType(str, Enum):
+class ProtocolType(StrEnum):
     """Identifies the SCADA protocol implementation."""
 
     MODBUS_TCP = "modbus_tcp"
@@ -38,7 +38,7 @@ class ProtocolType(str, Enum):
     IEC_104 = "iec_104"
 
 
-class AdapterRole(str, Enum):
+class AdapterRole(StrEnum):
     """Whether the adapter acts as a server (slave), a client (master), or both."""
 
     SERVER = "server"
@@ -46,7 +46,7 @@ class AdapterRole(str, Enum):
     BOTH = "both"
 
 
-class AdapterState(str, Enum):
+class AdapterState(StrEnum):
     STOPPED = "stopped"
     STARTING = "starting"
     RUNNING = "running"
@@ -142,9 +142,7 @@ class ProtocolAdapter(ABC):
                 self.start_client()
             self._state = AdapterState.RUNNING
             self._metric.state = self._state
-            logger.info(
-                "[%s/%s] adapter started", self.protocol.value, self.role.value
-            )
+            logger.info("[%s/%s] adapter started", self.protocol.value, self.role.value)
         except Exception as exc:
             self._state = AdapterState.ERROR
             self._metric.state = self._state
@@ -216,9 +214,7 @@ class ProtocolAdapter(ABC):
                 # Never let a bridge error kill the protocol loop.
                 self._metric.errors += 1
                 self._metric.last_error = f"bridge_error: {exc}"
-                logger.exception(
-                    "[%s] bridge callback raised: %s", self.protocol.value, exc
-                )
+                logger.exception("[%s] bridge callback raised: %s", self.protocol.value, exc)
 
     def _mark_served(self, n: int = 1) -> None:
         self._metric.points_served += n

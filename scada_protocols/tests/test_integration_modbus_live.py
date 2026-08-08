@@ -23,9 +23,7 @@ from scada_protocols.common.config import ModbusConfig
 from scada_protocols.modbus import ModbusAdapter
 
 pymodbus_available, _ = probe_modbus()
-pytestmark = pytest.mark.skipif(
-    not pymodbus_available, reason="pymodbus not installed"
-)
+pytestmark = pytest.mark.skipif(not pymodbus_available, reason="pymodbus not installed")
 
 
 def _free_port() -> int:

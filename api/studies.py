@@ -13,7 +13,7 @@ import math
 import os
 import time
 import uuid
-from typing import Any, Dict, Mapping, Optional, Annotated
+from typing import Any, Dict, Mapping, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 
@@ -521,9 +521,7 @@ def _validate_study_request(payload: StudyRequest) -> None:
     if payload.system is not None:
         pf_result = pre_flight_check(payload.system.model_dump())
         if pf_result is not None:
-            raise HTTPException(
-                status_code=400, detail=pf_result["error"]
-            )  # NOSONAR
+            raise HTTPException(status_code=400, detail=pf_result["error"])  # NOSONAR
 
 
 def _build_cache_params(payload: StudyRequest) -> dict:
@@ -550,6 +548,7 @@ async def _lookup_cache(study_cache, payload: StudyRequest, trace_id: str) -> tu
         cached_result = await study_cache.get(payload.study_type, cache_params)
         if cached_result:
             from logging import getLogger
+
             logger = getLogger("engineering_service")
             logger.info(  # NOSONAR
                 "study_cache_hit study_type=%s task_id=%s",
@@ -568,7 +567,7 @@ async def _run_etap_study(payload: StudyRequest) -> tuple[dict, list, list]:
     if not payload.etap_project_path:
         raise ValueError("etap_project_path is required when use_etap=True")
 
-    from etap_integration.etap_provider import get_etap_provider, ETAPStudyType
+    from etap_integration.etap_provider import ETAPStudyType, get_etap_provider
 
     provider = get_etap_provider()
 
@@ -599,7 +598,9 @@ async def _run_etap_study(payload: StudyRequest) -> tuple[dict, list, list]:
     return data, warnings, errors
 
 
-async def _store_cache_result(study_cache, payload: StudyRequest, data: dict, trace_id: str) -> None:
+async def _store_cache_result(
+    study_cache, payload: StudyRequest, data: dict, trace_id: str
+) -> None:
     """Store study result in cache (non-fatal on failure)."""
     if not study_cache:
         return
@@ -608,6 +609,7 @@ async def _store_cache_result(study_cache, payload: StudyRequest, data: dict, tr
         await study_cache.set(payload.study_type, cache_params, data)
     except Exception as cache_err:
         from logging import getLogger
+
         logger = getLogger("engineering_service")
         logger.debug(
             "Cache store failed (non-fatal): %s",
@@ -626,9 +628,7 @@ async def _store_cache_result(study_cache, payload: StudyRequest, data: dict, tr
 async def run_study(
     req: Request,
     payload: StudyRequest,
-    _: str = Depends(
-        get_api_key
-    ),
+    _: str = Depends(get_api_key),
 ):
     trace_id = getattr(req.state, "trace_id", "unknown")
     task_id = payload.task_id or str(uuid.uuid4())
@@ -748,10 +748,13 @@ async def run_study(
         if _ai_fm_violations:
             _must_fix = [v for v in _ai_fm_violations if v.get("severity") == "must_fix"]
             if _must_fix:
-                errors.insert(0, (
-                    f"AI failure mode scan blocked result: {len(_must_fix)} MUST_FIX "
-                    f"violations detected (F-12). See ai_failure_mode_violations in data."
-                ))
+                errors.insert(
+                    0,
+                    (
+                        f"AI failure mode scan blocked result: {len(_must_fix)} MUST_FIX "
+                        f"violations detected (F-12). See ai_failure_mode_violations in data."
+                    ),
+                )
                 status = "failed"
             data["ai_failure_mode_violations"] = _ai_fm_violations
 
@@ -851,11 +854,13 @@ def _scan_ai_failure_modes(data: dict[str, Any], study_type: str) -> list[dict[s
 
         violations = []
         for v in result.violations:
-            violations.append({
-                "rule_id": v.rule_id,
-                "severity": v.severity.value,
-                "description": v.description[:200],
-            })
+            violations.append(
+                {
+                    "rule_id": v.rule_id,
+                    "severity": v.severity.value,
+                    "description": v.description[:200],
+                }
+            )
 
         if violations:
             _must_fix_count = sum(1 for v in violations if v["severity"] == "must_fix")

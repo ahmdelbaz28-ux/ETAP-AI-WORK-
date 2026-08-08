@@ -208,9 +208,7 @@ def _inject_anthropic_cache_control(messages: list[dict]) -> list[dict]:
     # can attach cache_control. Anthropic accepts either form.
     content = msg.get("content")
     if isinstance(content, str):
-        msg["content"] = [
-            {"type": "text", "text": content, "cache_control": {"type": "ephemeral"}}
-        ]
+        msg["content"] = [{"type": "text", "text": content, "cache_control": {"type": "ephemeral"}}]
     elif isinstance(content, list) and content:
         # Tag only the last block; cache_control is a hint that says
         # "cache everything up to and including this block".
@@ -221,6 +219,7 @@ def _inject_anthropic_cache_control(messages: list[dict]) -> list[dict]:
         msg["content"] = blocks
     out[last_sys_idx] = msg
     return out
+
 
 # ─── Safety guardrails (config) ───────────────────────────────────────────
 
@@ -337,7 +336,11 @@ def _get_openai_client():
             _openai_client = lf_openai
             logger.info("Langfuse-wrapped OpenAI client loaded")
         except ImportError as e:
-            _langfuse_configured = os.environ.get("LANGFUSE_ENABLED", "").lower() in ("1", "true", "yes")
+            _langfuse_configured = os.environ.get("LANGFUSE_ENABLED", "").lower() in (
+                "1",
+                "true",
+                "yes",
+            )
             if _langfuse_configured:
                 logger.critical(
                     "⚠️ ARCHITECTURE AUDIT F-04: Langfuse is ENABLED but langfuse.openai "
@@ -381,7 +384,11 @@ def _get_anthropic_client():
         _anthropic_client = lf_anthropic
         logger.info("Langfuse-wrapped Anthropic client loaded")
     except ImportError as e:
-        _langfuse_configured = os.environ.get("LANGFUSE_ENABLED", "").lower() in ("1", "true", "yes")
+        _langfuse_configured = os.environ.get("LANGFUSE_ENABLED", "").lower() in (
+            "1",
+            "true",
+            "yes",
+        )
         if _langfuse_configured:
             logger.critical(
                 "⚠️ ARCHITECTURE AUDIT F-04: Langfuse is ENABLED but langfuse.anthropic "
@@ -461,7 +468,9 @@ def safe_openai_chat(
     _validate_model(model)
 
     # F-04: If using plain (untraced) SDK, increment counter for observability alerting
-    _is_traced = hasattr(openai, 'langfuse') or (hasattr(openai, '__name__') and 'langfuse' in openai.__name__)
+    _is_traced = hasattr(openai, "langfuse") or (
+        hasattr(openai, "__name__") and "langfuse" in openai.__name__
+    )
     if not _is_traced:
         increment_untraced_call()
 
@@ -508,8 +517,7 @@ def safe_openai_chat(
             output_tokens=completion_tokens,
         )
         logger.debug(
-            "OpenAI call: model=%s, agent=%s, latency=%.2fs, "
-            "tokens=in:%d/cached:%d/out:%d",
+            "OpenAI call: model=%s, agent=%s, latency=%.2fs, tokens=in:%d/cached:%d/out:%d",
             model,
             (metadata or {}).get("agent", "unknown"),
             elapsed,
@@ -552,7 +560,9 @@ def safe_anthropic_message(
     _validate_model(model)
 
     # F-04: If using plain (untraced) SDK, increment counter for observability alerting
-    _is_traced = hasattr(anthropic, 'langfuse') or (hasattr(anthropic, '__name__') and 'langfuse' in anthropic.__name__)
+    _is_traced = hasattr(anthropic, "langfuse") or (
+        hasattr(anthropic, "__name__") and "langfuse" in anthropic.__name__
+    )
     if not _is_traced:
         increment_untraced_call()
 
@@ -592,8 +602,7 @@ def safe_anthropic_message(
             output_tokens=output_tokens,
         )
         logger.debug(
-            "Anthropic call: model=%s, agent=%s, latency=%.2fs, "
-            "tokens=in:%d/cached:%d/out:%d",
+            "Anthropic call: model=%s, agent=%s, latency=%.2fs, tokens=in:%d/cached:%d/out:%d",
             model,
             (metadata or {}).get("agent", "unknown"),
             elapsed,

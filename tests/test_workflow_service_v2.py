@@ -25,12 +25,14 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 try:
     import backend.services.workflow_service as _wfs_mod  # noqa: F401
+
     _WORKFLOW_AVAILABLE = True
 except (ModuleNotFoundError, ImportError):  # NOSONAR - python:S5713
     _WORKFLOW_AVAILABLE = False
 
 if not _WORKFLOW_AVAILABLE:
     import pytest as _pytest
+
     _pytest.skip(
         "backend.services.workflow_service not installed — skipping workflow tests",
         allow_module_level=True,
@@ -62,6 +64,7 @@ except ImportError:
 
 
 # ── Fixtures ─────────────────────────────────────────────────────────────────
+
 
 @pytest.fixture
 def service():
@@ -116,6 +119,7 @@ def sample_state() -> PipelineState:
 
 # ── 1. WorkflowStatus Enum ────────────────────────────────────────────────────
 
+
 class TestWorkflowStatus:
     def test_all_members_present(self):
         assert WorkflowStatus.PENDING.value == "PENDING"
@@ -137,23 +141,49 @@ class TestWorkflowStatus:
 
 # ── 2. PipelineState TypedDict ────────────────────────────────────────────────
 
+
 class TestPipelineState:
     def test_required_keys(self, sample_state):
         required_keys = {
-            "file_path", "file_sha256", "file_type",
-            "rooms", "parse_warnings", "parse_success",
-            "validation_result", "validation_passed", "validation_evidence",
-            "latitude", "longitude", "environmental_context",
-            "nfpa_results", "total_detectors", "coverage_pct", "nfpa_compliant",
-            "conflicts", "conflict_count", "has_critical_conflicts",
-            "memory_context", "memory_enrichment_time_ms",
-            "review_required", "review_items",
-            "reviewer_decision", "reviewer_comments", "review_timestamp",
-            "report", "report_sha256",
-            "workflow_id", "engineer_id",
-            "status", "started_at", "completed_at",
-            "transition_log", "error_message",
-            "stuck_detected", "stuck_node", "stuck_duration_seconds", "node_timings",
+            "file_path",
+            "file_sha256",
+            "file_type",
+            "rooms",
+            "parse_warnings",
+            "parse_success",
+            "validation_result",
+            "validation_passed",
+            "validation_evidence",
+            "latitude",
+            "longitude",
+            "environmental_context",
+            "nfpa_results",
+            "total_detectors",
+            "coverage_pct",
+            "nfpa_compliant",
+            "conflicts",
+            "conflict_count",
+            "has_critical_conflicts",
+            "memory_context",
+            "memory_enrichment_time_ms",
+            "review_required",
+            "review_items",
+            "reviewer_decision",
+            "reviewer_comments",
+            "review_timestamp",
+            "report",
+            "report_sha256",
+            "workflow_id",
+            "engineer_id",
+            "status",
+            "started_at",
+            "completed_at",
+            "transition_log",
+            "error_message",
+            "stuck_detected",
+            "stuck_node",
+            "stuck_duration_seconds",
+            "node_timings",
             "reviewer_timestamp",
         }
         for key in required_keys:
@@ -166,6 +196,7 @@ class TestPipelineState:
 
 
 # ── 3. _log_transition() ──────────────────────────────────────────────────────
+
 
 class TestLogTransition:
     def test_log_entry_structure(self, sample_state):
@@ -202,17 +233,37 @@ class TestLogTransition:
         assert state["transition_log"][0]["evidence"] == ""
 
     def test_log_with_missing_fields(self):
-        minimal_state: PipelineState = {"file_path": "", "file_sha256": "", "file_type": "",
-            "rooms": [], "parse_warnings": [], "parse_success": False,
-            "validation_result": {}, "validation_passed": False, "validation_evidence": [],
-            "environmental_context": {}, "nfpa_results": [], "total_detectors": 0,
-            "coverage_pct": 0.0, "nfpa_compliant": False,
-            "conflicts": [], "conflict_count": 0, "has_critical_conflicts": False,
-            "review_required": False, "review_items": [],
-            "reviewer_decision": None, "reviewer_comments": None, "review_timestamp": None,
-            "report": {}, "report_sha256": "", "workflow_id": "minimal",
-            "status": "PENDING", "started_at": "", "completed_at": None,
-            "transition_log": [], "error_message": None,
+        minimal_state: PipelineState = {
+            "file_path": "",
+            "file_sha256": "",
+            "file_type": "",
+            "rooms": [],
+            "parse_warnings": [],
+            "parse_success": False,
+            "validation_result": {},
+            "validation_passed": False,
+            "validation_evidence": [],
+            "environmental_context": {},
+            "nfpa_results": [],
+            "total_detectors": 0,
+            "coverage_pct": 0.0,
+            "nfpa_compliant": False,
+            "conflicts": [],
+            "conflict_count": 0,
+            "has_critical_conflicts": False,
+            "review_required": False,
+            "review_items": [],
+            "reviewer_decision": None,
+            "reviewer_comments": None,
+            "review_timestamp": None,
+            "report": {},
+            "report_sha256": "",
+            "workflow_id": "minimal",
+            "status": "PENDING",
+            "started_at": "",
+            "completed_at": None,
+            "transition_log": [],
+            "error_message": None,
         }
         state = _log_transition(minimal_state, "A", "B", "minimal")
         assert state["transition_log"][0]["workflow_id"] == "minimal"
@@ -220,6 +271,7 @@ class TestLogTransition:
 
 
 # ── 4. _compute_sha256() ──────────────────────────────────────────────────────
+
 
 class TestComputeSha256:
     def test_deterministic(self):
@@ -252,6 +304,7 @@ class TestComputeSha256:
         class Custom:
             def __str__(self):
                 return "custom_obj"
+
         h = _compute_sha256({"obj": Custom()})
         assert isinstance(h, str)
         assert len(h) == 16
@@ -264,12 +317,19 @@ class TestComputeSha256:
 
 # ── 5. node_initialize() ──────────────────────────────────────────────────────
 
+
 class TestNodeInitialize:
     @patch("os.environ.get")
     @patch("os.path.realpath")
     def test_path_traversal_blocked(self, mock_realpath, mock_env_get, sample_state):
         mock_env_get.return_value = "/allowed"
-        mock_realpath.side_effect = lambda p: "/etc/passwd" if p == "../../etc/passwd" else os.path.realpath.__wrapped__(p) if hasattr(os.path.realpath, '__wrapped__') else p  # NOSONAR — S3358: nested ternary acceptable in this localized context
+        mock_realpath.side_effect = lambda p: (
+            "/etc/passwd"
+            if p == "../../etc/passwd"
+            else os.path.realpath.__wrapped__(p)
+            if hasattr(os.path.realpath, "__wrapped__")
+            else p
+        )  # NOSONAR — S3358: nested ternary acceptable in this localized context
         sample_state["file_path"] = "../../etc/passwd"
         result = node_initialize(sample_state)
         assert result["status"] == WorkflowStatus.FAILED.value
@@ -277,7 +337,9 @@ class TestNodeInitialize:
 
     @patch("os.environ.get")
     @patch("os.path.realpath")
-    def test_path_traversal_empty_allowed_dir_skipped(self, mock_realpath, mock_env_get, sample_state):
+    def test_path_traversal_empty_allowed_dir_skipped(
+        self, mock_realpath, mock_env_get, sample_state
+    ):
         mock_env_get.return_value = "/allowed::/tmp"
         mock_realpath.side_effect = lambda p: p
         mock_exists = MagicMock(return_value=False)
@@ -289,7 +351,9 @@ class TestNodeInitialize:
     @patch("os.environ.get")
     @patch("os.path.realpath")
     def test_file_not_found(self, mock_realpath, mock_env_get, sample_state):
-        mock_env_get.return_value = "/tmp/fireai_uploads"  # NOSONAR — S5443: safe in test (uses tempfile + cleanup)
+        mock_env_get.return_value = (
+            "/tmp/fireai_uploads"  # NOSONAR — S5443: safe in test (uses tempfile + cleanup)
+        )
         mock_realpath.return_value = "/tmp/fireai_uploads/nonexistent.pdf"  # NOSONAR — S5443: safe in test (uses tempfile + cleanup)
         with patch("os.path.exists", return_value=False):
             result = node_initialize(sample_state)
@@ -299,7 +363,9 @@ class TestNodeInitialize:
     @patch("os.environ.get")
     @patch("os.path.realpath")
     def test_empty_file_path_returns_failed(self, mock_realpath, mock_env_get, sample_state):
-        mock_env_get.return_value = "/tmp/fireai_uploads"  # NOSONAR — S5443: safe in test (uses tempfile + cleanup)
+        mock_env_get.return_value = (
+            "/tmp/fireai_uploads"  # NOSONAR — S5443: safe in test (uses tempfile + cleanup)
+        )
         mock_realpath.return_value = ""
         sample_state["file_path"] = ""
         with patch("os.path.exists", return_value=False):
@@ -309,13 +375,14 @@ class TestNodeInitialize:
     @patch("os.environ.get")
     @patch("os.path.realpath")
     def test_normal_initialization(self, mock_realpath, mock_env_get, sample_state):
-        mock_env_get.return_value = "/tmp/fireai_uploads"  # NOSONAR — S5443: safe in test (uses tempfile + cleanup)
+        mock_env_get.return_value = (
+            "/tmp/fireai_uploads"  # NOSONAR — S5443: safe in test (uses tempfile + cleanup)
+        )
         mock_realpath.return_value = "/tmp/fireai_uploads/test.pdf"  # NOSONAR — S5443: safe in test (uses tempfile + cleanup)
         file_content = b"fake pdf content"
         m_open = mock_open(read_data=file_content)
 
-        with patch("os.path.exists", return_value=True), \
-             patch("builtins.open", m_open):
+        with patch("os.path.exists", return_value=True), patch("builtins.open", m_open):
             result = node_initialize(sample_state)
 
         assert result["status"] == WorkflowStatus.RUNNING.value
@@ -328,12 +395,13 @@ class TestNodeInitialize:
     @patch("os.environ.get")
     @patch("os.path.realpath")
     def test_sha256_computation(self, mock_realpath, mock_env_get, sample_state):
-        mock_env_get.return_value = "/tmp/fireai_uploads"  # NOSONAR — S5443: safe in test (uses tempfile + cleanup)
+        mock_env_get.return_value = (
+            "/tmp/fireai_uploads"  # NOSONAR — S5443: safe in test (uses tempfile + cleanup)
+        )
         mock_realpath.return_value = "/tmp/fireai_uploads/test.pdf"  # NOSONAR — S5443: safe in test (uses tempfile + cleanup)
         m_open = mock_open(read_data=b"deterministic content")
 
-        with patch("os.path.exists", return_value=True), \
-             patch("builtins.open", m_open):
+        with patch("os.path.exists", return_value=True), patch("builtins.open", m_open):
             result1 = node_initialize(sample_state.copy())
             result2 = node_initialize(sample_state.copy())
 
@@ -341,24 +409,34 @@ class TestNodeInitialize:
 
     @patch("os.environ.get")
     @patch("os.path.realpath")
-    @pytest.mark.parametrize(("ext", "expected_type"), [
-        ("test.pdf", "pdf"),
-        ("test.dwg", "dwg"),
-        ("test.dxf", "dxf"),
-        ("test.ifc", "ifc"),
-        ("test.unknown", "unknown"),
-        ("test.PDF", "pdf"),
-        ("test.DWG", "dwg"),
-    ])
-    def test_file_type_detection(self, mock_realpath, mock_env_get,
-                                  sample_state, ext, expected_type):
-        mock_env_get.return_value = "/tmp/fireai_uploads"  # NOSONAR — S5443: safe in test (uses tempfile + cleanup)
-        full_path = f"/tmp/fireai_uploads/{ext}"  # NOSONAR — S5443: safe in test (uses tempfile + cleanup)
+    @pytest.mark.parametrize(
+        ("ext", "expected_type"),
+        [
+            ("test.pdf", "pdf"),
+            ("test.dwg", "dwg"),
+            ("test.dxf", "dxf"),
+            ("test.ifc", "ifc"),
+            ("test.unknown", "unknown"),
+            ("test.PDF", "pdf"),
+            ("test.DWG", "dwg"),
+        ],
+    )
+    def test_file_type_detection(
+        self, mock_realpath, mock_env_get, sample_state, ext, expected_type
+    ):
+        mock_env_get.return_value = (
+            "/tmp/fireai_uploads"  # NOSONAR — S5443: safe in test (uses tempfile + cleanup)
+        )
+        full_path = (
+            f"/tmp/fireai_uploads/{ext}"  # NOSONAR — S5443: safe in test (uses tempfile + cleanup)
+        )
         mock_realpath.return_value = full_path
         sample_state["file_path"] = full_path
 
-        with patch("os.path.exists", return_value=True), \
-             patch("builtins.open", mock_open(read_data=b"data")):
+        with (
+            patch("os.path.exists", return_value=True),
+            patch("builtins.open", mock_open(read_data=b"data")),
+        ):
             result = node_initialize(sample_state)
 
         assert result["file_type"] == expected_type
@@ -366,11 +444,15 @@ class TestNodeInitialize:
     @patch("os.environ.get")
     @patch("os.path.realpath")
     def test_transition_logged_on_success(self, mock_realpath, mock_env_get, sample_state):
-        mock_env_get.return_value = "/tmp/fireai_uploads"  # NOSONAR — S5443: safe in test (uses tempfile + cleanup)
+        mock_env_get.return_value = (
+            "/tmp/fireai_uploads"  # NOSONAR — S5443: safe in test (uses tempfile + cleanup)
+        )
         mock_realpath.return_value = "/tmp/fireai_uploads/test.pdf"  # NOSONAR — S5443: safe in test (uses tempfile + cleanup)
 
-        with patch("os.path.exists", return_value=True), \
-             patch("builtins.open", mock_open(read_data=b"data")):
+        with (
+            patch("os.path.exists", return_value=True),
+            patch("builtins.open", mock_open(read_data=b"data")),
+        ):
             result = node_initialize(sample_state)
 
         assert len(result["transition_log"]) == 1
@@ -380,6 +462,7 @@ class TestNodeInitialize:
 
 
 # ── 6. node_parse() ───────────────────────────────────────────────────────────
+
 
 class TestNodeParse:
     @patch("backend.services.workflow_service.node_initialize")
@@ -406,8 +489,7 @@ class TestNodeParse:
 
     @patch("adapters.pdf_to_rooms_adapter.extract_rooms_from_walls")
     @patch("parsers.geometry_extractor.GeometryExtractor")
-    def test_pdf_parse_calls_extractor(self, mock_geo_cls, mock_extract_rooms,
-                                       sample_state):
+    def test_pdf_parse_calls_extractor(self, mock_geo_cls, mock_extract_rooms, sample_state):
         sample_state["file_type"] = "pdf"
         mock_extractor = MagicMock()
         mock_extractor.extract_walls.return_value = []
@@ -424,8 +506,10 @@ class TestNodeParse:
             mock_extractor = MagicMock()
             mock_extractor.extract_walls.return_value = []
             mock_geo.return_value = mock_extractor
-            with patch("adapters.pdf_to_rooms_adapter.extract_rooms_from_walls",
-                       return_value=([], {"status": "ok"})):
+            with patch(
+                "adapters.pdf_to_rooms_adapter.extract_rooms_from_walls",
+                return_value=([], {"status": "ok"}),
+            ):
                 result = node_parse(sample_state)
 
         assert result["parse_success"] is False
@@ -433,8 +517,10 @@ class TestNodeParse:
 
     def test_exception_during_parse_handled(self, sample_state):
         sample_state["file_type"] = "pdf"
-        with patch("parsers.geometry_extractor.GeometryExtractor",
-                   side_effect=RuntimeError("parse crashed")):
+        with patch(
+            "parsers.geometry_extractor.GeometryExtractor",
+            side_effect=RuntimeError("parse crashed"),
+        ):
             result = node_parse(sample_state)
 
         assert result["parse_success"] is False
@@ -442,6 +528,7 @@ class TestNodeParse:
 
 
 # ── 7. Conditional Edge Functions ─────────────────────────────────────────────
+
 
 class TestShouldProceedAfterParse:
     def test_parse_success_routes_to_validate(self, sample_state):
@@ -489,6 +576,7 @@ class TestShouldProceedAfterReview:
 
 # ── 8. build_fireai_workflow() ────────────────────────────────────────────────
 
+
 class TestBuildFireaiWorkflow:
     def test_returns_stategraph(self):
         graph = build_fireai_workflow()
@@ -497,9 +585,15 @@ class TestBuildFireaiWorkflow:
     def test_all_nodes_registered(self, service):
         graph = build_fireai_workflow()
         expected_nodes = {
-            "initialize", "parse", "validate", "memory_enrich",
-            "environmental_context", "nfpa_analysis", "conflict_detection",
-            "human_review_gate", "generate_report",
+            "initialize",
+            "parse",
+            "validate",
+            "memory_enrich",
+            "environmental_context",
+            "nfpa_analysis",
+            "conflict_detection",
+            "human_review_gate",
+            "generate_report",
         }
         for node in expected_nodes:
             assert node in graph.nodes, f"Missing node: {node}"
@@ -513,7 +607,7 @@ class TestBuildFireaiWorkflow:
     def test_direct_edges_exist(self):
         graph = build_fireai_workflow()
         # LangGraph edges are in graph.edges (public attribute)
-        edges = getattr(graph, 'edges', [])
+        edges = getattr(graph, "edges", [])
         assert any("initialize" in str(e) for e in edges) or "initialize" in graph.nodes
 
     def test_conditional_edges_exist(self):
@@ -530,6 +624,7 @@ class TestBuildFireaiWorkflow:
 
 # ── 9. WorkflowService ────────────────────────────────────────────────────────
 
+
 class TestWorkflowServiceInit:
     def test_service_initializes_successfully(self, service):
         assert service is not None
@@ -538,9 +633,17 @@ class TestWorkflowServiceInit:
         assert service._workflows == {}
 
     def test_graph_has_all_nodes(self, service):
-        expected = {"initialize", "parse", "validate", "memory_enrich",
-                    "environmental_context", "nfpa_analysis", "conflict_detection",
-                    "human_review_gate", "generate_report"}
+        expected = {
+            "initialize",
+            "parse",
+            "validate",
+            "memory_enrich",
+            "environmental_context",
+            "nfpa_analysis",
+            "conflict_detection",
+            "human_review_gate",
+            "generate_report",
+        }
         for node in expected:
             assert node in service._graph.nodes
 

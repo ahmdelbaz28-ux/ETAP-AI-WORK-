@@ -33,10 +33,9 @@ class TestManagerConstruction:
         """When strict_lib_check is True and a protocol is enabled but its
         library is unavailable, the manager construction raises RuntimeError.
         """
-        from scada_protocols.manager import SCADAProtocolManager as _M
-
         # Monkey-patch probe_all to return all-unavailable before construction.
         from scada_protocols.common import base as _base
+        from scada_protocols.manager import SCADAProtocolManager as _M
 
         def _fake_probe():
             return {
@@ -49,6 +48,7 @@ class TestManagerConstruction:
         _base.probe_all = _fake_probe
         # Also patch the manager module's reference (it imports probe_all by name).
         from scada_protocols import manager as _mgr_mod
+
         _mgr_mod.probe_all = _fake_probe
         try:
             cfg = SCADAProtocolsConfig()

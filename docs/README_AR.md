@@ -225,9 +225,9 @@ Ybus_pos = system.get_ybus(seq="1")
 Ybus_neg = system.get_ybus(seq="2")
 Ybus_zero = system.get_ybus(seq="0")
 
-Ybus_pos = system.get_ybus(seq='1')
-Ybus_neg = system.get_ybus(seq='2')
-Ybus_zero = system.get_ybus(seq='0')
+Ybus_pos = system.get_ybus(seq="1")
+Ybus_neg = system.get_ybus(seq="2")
+Ybus_zero = system.get_ybus(seq="0")
 
 # إنشاء محلل الأعطال
 analyzer = FaultAnalyzer(Ybus_pos, Ybus_neg, Ybus_zero)

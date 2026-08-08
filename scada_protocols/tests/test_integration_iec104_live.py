@@ -24,9 +24,7 @@ from scada_protocols.common.config import Iec104Config
 from scada_protocols.iec104 import IEC104Adapter
 
 iec104_available, _ = probe_iec104()
-pytestmark = pytest.mark.skipif(
-    not iec104_available, reason="c104 not installed"
-)
+pytestmark = pytest.mark.skipif(not iec104_available, reason="c104 not installed")
 
 
 def _free_port() -> int:

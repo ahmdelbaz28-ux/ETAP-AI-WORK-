@@ -33,6 +33,7 @@ Branch: fix/scada-bridge-real-opcua
 Refs: PRODUCTION_PLAN/01_SELF_CRITICISM.md §3.5 #20
 Refs: PRODUCTION_PLAN/04_MOCK_TO_REAL_PLAN.md M1
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -173,14 +174,13 @@ class ETAPScadaBridge:
             except Exception as exc:
                 logger.warning(
                     "OPC UA connect attempt %d/3 failed: %s",
-                    attempt + 1, exc,
+                    attempt + 1,
+                    exc,
                 )
                 if attempt < 2:
-                    await asyncio.sleep(2 ** attempt)  # exponential backoff
+                    await asyncio.sleep(2**attempt)  # exponential backoff
 
-        raise RuntimeError(
-            f"Failed to connect to OPC UA after 3 attempts: {self.opc_endpoint}"
-        )
+        raise RuntimeError(f"Failed to connect to OPC UA after 3 attempts: {self.opc_endpoint}")
 
     # ─── MQTT Connection ───────────────────────────────────────────
 
@@ -338,9 +338,7 @@ class ETAPScadaBridge:
                     self._reconnect_attempts += 1
 
                     if self._reconnect_attempts > self._max_reconnect_attempts:
-                        logger.error(
-                            "❌ Max reconnect attempts reached, exiting"
-                        )
+                        logger.error("❌ Max reconnect attempts reached, exiting")
                         break
 
                     # Try to reconnect OPC UA

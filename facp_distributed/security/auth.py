@@ -1,4 +1,5 @@
 """Authentication System for Distributed FACP"""
+
 import hashlib
 import secrets
 import time
@@ -23,7 +24,9 @@ class TokenManager:
         self.active_tokens = {}  # token_hash -> token_data
         self.revoked_tokens = set()  # Set of revoked token hashes
 
-    def generate_token(self, user_id: str, permissions: list, roles: list, expires_in: int = 3600) -> str:
+    def generate_token(
+        self, user_id: str, permissions: list, roles: list, expires_in: int = 3600
+    ) -> str:
         """
         Generate a new authentication token
         :param user_id: User identifier
@@ -38,7 +41,7 @@ class TokenManager:
             "roles": roles,
             "exp": time.time() + expires_in,
             "iat": time.time(),
-            "jti": secrets.token_urlsafe(16)  # JWT ID for uniqueness
+            "jti": secrets.token_urlsafe(16),  # JWT ID for uniqueness
         }
 
         # Create token string using JWT
@@ -100,16 +103,20 @@ class AuthProvider:
         self.users = {}  # user_id -> user_data
         self.distributed_cache = {}  # For sharing auth state across nodes
 
-    def register_user(self, user_id: str, roles: list, permissions: list, node_id: Optional[str] = None):
+    def register_user(
+        self, user_id: str, roles: list, permissions: list, node_id: Optional[str] = None
+    ):
         """Register a new user"""
         self.users[user_id] = {
             "roles": roles,
             "permissions": permissions,
             "created_at": time.time(),
-            "node_id": node_id  # Which node registered this user
+            "node_id": node_id,  # Which node registered this user
         }
 
-    def authenticate_request(self, security_block: Dict[str, Any], source_node: Optional[str] = None) -> tuple[bool, Optional[Dict[str, Any]]]:
+    def authenticate_request(
+        self, security_block: Dict[str, Any], source_node: Optional[str] = None
+    ) -> tuple[bool, Optional[Dict[str, Any]]]:
         """
         Authenticate a request based on security block
         :param security_block: Security information from request
@@ -144,11 +151,16 @@ class AuthProvider:
             "permissions": list(granted_perms),
             "token_data": token_data,
             "source_node": source_node,
-            "authenticated_at": time.time()
+            "authenticated_at": time.time(),
         }
 
-    def create_session_token(self, user_id: str, permissions: Optional[list] = None,
-                           roles: Optional[list] = None, expires_in: int = 3600) -> Optional[str]:
+    def create_session_token(
+        self,
+        user_id: str,
+        permissions: Optional[list] = None,
+        roles: Optional[list] = None,
+        expires_in: int = 3600,
+    ) -> Optional[str]:
         """Create a session token for a user"""
         if user_id not in self.users:
             return None
@@ -163,7 +175,9 @@ class AuthProvider:
         if permissions and not set(permissions).issubset(set(user_perms)):
             return None
 
-        return self.token_manager.generate_token(user_id, perms_to_grant, roles_to_assign, expires_in)
+        return self.token_manager.generate_token(
+            user_id, perms_to_grant, roles_to_assign, expires_in
+        )
 
     def distribute_auth_state(self, target_nodes: list):
         """Distribute authentication state to other nodes in the cluster"""
@@ -171,7 +185,7 @@ class AuthProvider:
             "users": self.users,
             "active_tokens": dict(self.active_tokens.items()),
             "revoked_tokens": list(self.revoked_tokens),
-            "timestamp": time.time()
+            "timestamp": time.time(),
         }
 
         # In a real implementation, this would send the state to other nodes
@@ -206,19 +220,23 @@ class DistributedTokenManager(TokenManager):
         """Set callback for syncing token state with cluster"""
         self.token_sync_callback = callback
 
-    def generate_token(self, user_id: str, permissions: list, roles: list, expires_in: int = 3600) -> str:
+    def generate_token(
+        self, user_id: str, permissions: list, roles: list, expires_in: int = 3600
+    ) -> str:
         """Generate token and sync with cluster"""
         token = super().generate_token(user_id, permissions, roles, expires_in)
 
         # Sync with cluster if callback is available
         if self.token_sync_callback:
-            self.token_sync_callback({
-                "action": "token_generated",
-                "token_hash": hashlib.sha256(token.encode()).hexdigest(),
-                "token_data": self.active_tokens[hashlib.sha256(token.encode()).hexdigest()],
-                "node_id": self.node_id,
-                "timestamp": time.time()
-            })
+            self.token_sync_callback(
+                {
+                    "action": "token_generated",
+                    "token_hash": hashlib.sha256(token.encode()).hexdigest(),
+                    "token_data": self.active_tokens[hashlib.sha256(token.encode()).hexdigest()],
+                    "node_id": self.node_id,
+                    "timestamp": time.time(),
+                }
+            )
 
         return token
 
@@ -228,11 +246,13 @@ class DistributedTokenManager(TokenManager):
 
         # Sync with cluster if callback is available
         if self.token_sync_callback:
-            self.token_sync_callback({
-                "action": "token_revoked",
-                "token_hash": hashlib.sha256(token.encode()).hexdigest(),
-                "node_id": self.node_id,
-                "timestamp": time.time()
-            })
+            self.token_sync_callback(
+                {
+                    "action": "token_revoked",
+                    "token_hash": hashlib.sha256(token.encode()).hexdigest(),
+                    "node_id": self.node_id,
+                    "timestamp": time.time(),
+                }
+            )
 
         return result

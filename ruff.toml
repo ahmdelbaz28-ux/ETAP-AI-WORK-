@@ -66,6 +66,10 @@ ignore = [
     "N801",   # Invalid class name (some legacy patterns)
     "N802",   # Function name should be lowercase (do_POST/do_GET are BaseHTTPRequestHandler convention)
     "B007",   # Loop control variable not used (acceptable when iterating for side-effects)
+    # B008 - Depends()/Query()/Body()/Header() in argument defaults is the
+    # canonical FastAPI dependency-injection pattern. Disabling project-wide
+    # is the standard practice for FastAPI apps.
+    "B008",
     # QUALITY v2.1.1: BLE001 (blind except Exception) is intentionally allowed
     # for service-layer error containment. The codebase has 455 occurrences, most
     # of which are deliberate "catch-all → log → continue" patterns that prevent

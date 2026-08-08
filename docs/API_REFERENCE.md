@@ -1421,10 +1421,7 @@ api_key = "your-api-key"
 base_url = "http://localhost:8000/api/v1"
 headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
 
-headers = {
-    "Authorization": f"Bearer {api_key}",
-    "Content-Type": "application/json"
-}
+headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
 
 # Run load flow
 response = requests.post(
@@ -1442,10 +1439,7 @@ print(f"Converged: {result['converged']}")
 # Check SCADA measurements
 response = requests.get(f"{base_url}/scada/measurements?bus_id=1", headers=headers)
 
-response = requests.get(
-    f"{base_url}/scada/measurements?bus_id=1",
-    headers=headers
-)
+response = requests.get(f"{base_url}/scada/measurements?bus_id=1", headers=headers)
 measurements = response.json()
 
 # Run anomaly detection

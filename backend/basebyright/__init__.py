@@ -73,7 +73,9 @@ __all__ = [
 class BaseByRightError(AssertionError):
     """Raised when a BASEBYRIGHT contract is violated."""
 
-    def __init__(self, message: str, contract: str, detail: Optional[Dict[str, Any]] = None) -> None:
+    def __init__(
+        self, message: str, contract: str, detail: Optional[Dict[str, Any]] = None
+    ) -> None:
         self.contract = contract
         self.detail = detail or {}
         super().__init__(f"[BASEBYRIGHT:{contract}] {message}")
@@ -197,7 +199,11 @@ class StateIsolationContext:
                 + self._created_connection_ids
             )
 
-    def cleanup(self) -> Dict[str, int]:  # NOSONAR — S3776: cognitive complexity is inherent to the safety-critical algorithm
+    def cleanup(
+        self,
+    ) -> Dict[
+        str, int
+    ]:  # NOSONAR — S3776: cognitive complexity is inherent to the safety-critical algorithm
         """Delete all tracked resources. Returns counts of deleted items."""
         counts: Dict[str, int] = {
             "projects": 0,
@@ -279,6 +285,7 @@ class StateIsolationContext:
         """
         try:
             from backend.app import _cache
+
             _cache.clear()
         except Exception:
             pass
@@ -432,7 +439,7 @@ class GoldenTestRunner:
                 detail={"name": name, "path": path},
             )
 
-        with open(path, "r", encoding="utf-8") as f:
+        with open(path, encoding="utf-8") as f:
             golden = json.load(f)
 
         try:
@@ -460,18 +467,32 @@ class GoldenTestRunner:
         self.results.append(test_result)
         return test_result
 
-    def _shallow_compare(self, expected: Any, actual: Any, path: str = "") -> bool:  # NOSONAR — S3776: cognitive complexity is inherent to the safety-critical algorithm
+    def _shallow_compare(
+        self, expected: Any, actual: Any, path: str = ""
+    ) -> bool:  # NOSONAR — S3776: cognitive complexity is inherent to the safety-critical algorithm
         """
         Compare two values, ignoring non-deterministic fields.
 
         Non-deterministic fields (timestamp, id, uptime, etc.) are compared
         by type only — they must exist and have the right type.
         """
-        NON_DETERMINISTIC_KEYS = frozenset({
-            "id", "project_id", "device_id", "element_id", "connection_id",
-            "report_id", "created_at", "updated_at", "timestamp", "uptime",
-            "uptime_seconds", "version", "correlation_id",
-        })
+        NON_DETERMINISTIC_KEYS = frozenset(
+            {
+                "id",
+                "project_id",
+                "device_id",
+                "element_id",
+                "connection_id",
+                "report_id",
+                "created_at",
+                "updated_at",
+                "timestamp",
+                "uptime",
+                "uptime_seconds",
+                "version",
+                "correlation_id",
+            }
+        )
 
         if isinstance(expected, dict) and isinstance(actual, dict):
             for key in expected:
@@ -555,9 +576,7 @@ class IdempotencyChecker:
 
         if resp1.status_code == expected_first_status and resp2.status_code == 404:
             return True, f"Idempotent: first={resp1.status_code}, second=404"
-        return False, (
-            f"NOT idempotent: first={resp1.status_code}, second={resp2.status_code}"
-        )
+        return False, (f"NOT idempotent: first={resp1.status_code}, second={resp2.status_code}")
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -586,23 +605,27 @@ class BaseByRight:
     """
 
     # Known public paths (from backend/security_middleware.py :: _PUBLIC_PATHS_EXACT)
-    PUBLIC_PATHS: Set[str] = frozenset({  # NOSONAR — acceptable in this context  # NOSONAR — acceptable in this context
-        "/docs",
-        "/redoc",
-        "/openapi.json",
-        "/api/v1/health",
-        "/api/v2/health",
-        "/api/health",
-        "/api/health/statistics",
-        "/api/reports/statistics",
-        "/health",
-    })
+    PUBLIC_PATHS: Set[str] = frozenset(
+        {  # NOSONAR — acceptable in this context  # NOSONAR — acceptable in this context
+            "/docs",
+            "/redoc",
+            "/openapi.json",
+            "/api/v1/health",
+            "/api/v2/health",
+            "/api/health",
+            "/api/health/statistics",
+            "/api/reports/statistics",
+            "/health",
+        }
+    )
 
     # Known admin-only paths (require SYSTEM_CONFIG or higher permission)
-    ADMIN_ONLY_PATHS: Set[str] = frozenset({  # NOSONAR — acceptable in this context  # NOSONAR — acceptable in this context
-        "/api/v1/cache/clear",
-        "/api/v1/cache/stats",
-    })
+    ADMIN_ONLY_PATHS: Set[str] = frozenset(
+        {  # NOSONAR — acceptable in this context  # NOSONAR — acceptable in this context
+            "/api/v1/cache/clear",
+            "/api/v1/cache/stats",
+        }
+    )
 
     def __init__(
         self,
@@ -704,7 +727,9 @@ class BaseByRight:
 
     # ── Core Assertions (Layers 4+8 — Exception Guarding + Behavior Contracts) ──
 
-    def _record_assertion(self, passed: bool, contract: str, message: str, detail: Optional[Dict] = None) -> None:
+    def _record_assertion(
+        self, passed: bool, contract: str, message: str, detail: Optional[Dict] = None
+    ) -> None:
         """Record an assertion result for reporting."""
         entry = {
             "contract": contract,
@@ -740,10 +765,7 @@ class BaseByRight:
             The actual status code (for chaining).
         """
         actual = response.status_code
-        if isinstance(expected, (set, list)):
-            passed = actual in expected
-        else:
-            passed = actual == expected
+        passed = actual in expected if isinstance(expected, (set, list)) else actual == expected
 
         contract_name = f"STATUS_{actual}" if passed else f"STATUS_{expected}"
         ctx = f" [{context}]" if context else ""
@@ -751,7 +773,10 @@ class BaseByRight:
             passed=passed,
             contract=contract_name,
             message=f"Expected status {expected}, got {actual}{ctx}",
-            detail={"expected": list(expected) if isinstance(expected, (set, list)) else expected, "actual": actual},
+            detail={
+                "expected": list(expected) if isinstance(expected, (set, list)) else expected,
+                "actual": actual,
+            },
         )
         return actual
 
@@ -827,7 +852,9 @@ class BaseByRight:
         self._record_assertion(
             passed=passed,
             contract="SECURITY_HEADERS",
-            message=f"Missing security headers: {missing}{ctx}" if missing else f"All security headers present{ctx}",
+            message=f"Missing security headers: {missing}{ctx}"
+            if missing
+            else f"All security headers present{ctx}",
             detail={"missing": list(missing), "present": list(headers.keys())},
         )
         return missing
@@ -931,7 +958,9 @@ class BaseByRight:
         self._record_assertion(
             passed=passed,
             contract="JSON_BODY",
-            message=f"Response missing 'success' field{ctx}" if "success" not in data else f"Valid JSON response{ctx}",
+            message=f"Response missing 'success' field{ctx}"
+            if "success" not in data
+            else f"Valid JSON response{ctx}",
             detail={"has_success": "success" in data, "keys": list(data.keys())},
         )
         return data

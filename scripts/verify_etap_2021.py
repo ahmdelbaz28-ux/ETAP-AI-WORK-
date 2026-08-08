@@ -17,6 +17,7 @@ Usage:
 
 Branch: fix/etap-com-2021-properties
 """
+
 from __future__ import annotations
 
 import argparse
@@ -24,8 +25,6 @@ import logging
 import os
 import re
 import sys
-import time
-from pathlib import Path
 
 _VALID_ARG_RE = re.compile(r"^[A-Za-z0-9_\-./]+( [A-Za-z0-9_\-./=]+)*$")
 
@@ -59,6 +58,7 @@ def _validate_path(path_str: str, base_dir: str | None = None) -> str:
             raise ValueError(f"Path escapes allowed base: {path_str!r}")
     return resolved
 
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
@@ -69,16 +69,38 @@ logger = logging.getLogger("verify_etap_2021")
 # Properties to verify per object type
 PROPERTIES_TO_VERIFY = {
     "Bus": [
-        "ID", "VoltageMag", "VoltageAng", "PMW", "QMVAR",
-        "I3PhaseKA", "ILGKA", "ILLKA", "IDLGKA",  # ⚠️ ILLKA not IllKA
-        "VoltageKV", "X", "Y",
+        "ID",
+        "VoltageMag",
+        "VoltageAng",
+        "PMW",
+        "QMVAR",
+        "I3PhaseKA",
+        "ILGKA",
+        "ILLKA",
+        "IDLGKA",  # ⚠️ ILLKA not IllKA
+        "VoltageKV",
+        "X",
+        "Y",
     ],
     "Branch": [
-        "ID", "PFrom", "QFrom", "PTo", "QTo", "Current",
-        "FromBus", "ToBus", "Length_m", "R_Ohm_per_km", "X_Ohm_per_km",
+        "ID",
+        "PFrom",
+        "QFrom",
+        "PTo",
+        "QTo",
+        "Current",
+        "FromBus",
+        "ToBus",
+        "Length_m",
+        "R_Ohm_per_km",
+        "X_Ohm_per_km",
     ],
     "Equipment": [
-        "ID", "IncidentEnergy", "ArcFlashBoundary", "PPELevel", "ArcDuration",
+        "ID",
+        "IncidentEnergy",
+        "ArcFlashBoundary",
+        "PPELevel",
+        "ArcDuration",
     ],
 }
 
@@ -101,21 +123,21 @@ MODULES_TO_VERIFY = [
 def verify_etap_compatibility(etap_project_path: str | None = None) -> dict:
     """
     التحقق من توافق ETAP 2021 COM.
-    
+
     Returns:
         dict مع نتائج كل فحص
     """
     if sys.platform != "win32":
         logger.error("❌ ETAP COM requires Windows. Current: %s", sys.platform)
         return {"error": "Windows required"}
-    
+
     try:
-        import win32com.client
         import pythoncom
+        import win32com.client
     except ImportError:
         logger.error("❌ pywin32 not installed. Run: pip install pywin32")
         return {"error": "pywin32 missing"}
-    
+
     pythoncom.CoInitialize()
     results = {
         "platform": sys.platform,
@@ -123,7 +145,7 @@ def verify_etap_compatibility(etap_project_path: str | None = None) -> dict:
         "warnings": [],
         "errors": [],
     }
-    
+
     try:
         # ─── Check 1: ProgID ───────────────────────────────────────
         logger.info("Check 1: ProgID 'ETAP.Application'...")
@@ -136,7 +158,7 @@ def verify_etap_compatibility(etap_project_path: str | None = None) -> dict:
             results["errors"].append(f"ProgID Dispatch failed: {exc}")
             logger.error("  ❌ ProgID failed: %s", exc)
             return results
-        
+
         # ─── Check 2: Version ──────────────────────────────────────
         logger.info("Check 2: ETAP version...")
         try:
@@ -153,7 +175,7 @@ def verify_etap_compatibility(etap_project_path: str | None = None) -> dict:
             results["checks"]["version"] = None
             results["errors"].append(f"Version read failed: {exc}")
             logger.error("  ❌ Version read failed: %s", exc)
-        
+
         # ─── Check 3: Open project (if path provided) ──────────────
         if etap_project_path:
             logger.info("Check 3: OpenProject('%s')...", etap_project_path)
@@ -163,7 +185,7 @@ def verify_etap_compatibility(etap_project_path: str | None = None) -> dict:
                 if project:
                     results["checks"]["open_project"] = True
                     logger.info("  ✅ Project opened")
-                    
+
                     # ─── Check 4: Modules ───────────────────────────
                     logger.info("Check 4: Module availability...")
                     modules_found = {}
@@ -185,9 +207,9 @@ def verify_etap_compatibility(etap_project_path: str | None = None) -> dict:
                                 f"Module '{module_name}' access failed: {exc}"
                             )
                             logger.warning("  ⚠️  %s failed: %s", module_name, exc)
-                    
+
                     results["checks"]["modules"] = modules_found
-                    
+
                     # ─── Check 5: Properties ─────────────────────────
                     logger.info("Check 5: Property availability on Buses...")
                     props_check = {}
@@ -205,19 +227,17 @@ def verify_etap_compatibility(etap_project_path: str | None = None) -> dict:
                                         )
                                 except Exception as exc:
                                     props_check[prop] = False
-                                    results["warnings"].append(
-                                        f"Bus.{prop} access failed: {exc}"
-                                    )
+                                    results["warnings"].append(f"Bus.{prop} access failed: {exc}")
                         else:
                             results["warnings"].append("Project has no buses to verify properties")
                     except Exception as exc:
                         results["errors"].append(f"Buses access failed: {exc}")
-                    
+
                     results["checks"]["bus_properties"] = props_check
-                    
+
                     # Close project
                     project.Close()
-                    
+
                 else:
                     results["checks"]["open_project"] = False
                     results["errors"].append("OpenProject returned None")
@@ -226,21 +246,21 @@ def verify_etap_compatibility(etap_project_path: str | None = None) -> dict:
                 results["checks"]["open_project"] = False
                 results["errors"].append(f"OpenProject failed: {exc}")
                 logger.error("  ❌ OpenProject failed: %s", exc)
-        
+
         # Cleanup
         try:
             app.Quit()
         except Exception:
             pass
-        
+
     finally:
         pythoncom.CoUninitialize()
-    
+
     # ─── Summary ──────────────────────────────────────────────────
     total_checks = len(results["checks"])
     passed = sum(1 for v in results["checks"].values() if v is True)
     failed = sum(1 for v in results["checks"].values() if v is False)
-    
+
     results["summary"] = {
         "total_checks": total_checks,
         "passed": passed,
@@ -253,7 +273,7 @@ def verify_etap_compatibility(etap_project_path: str | None = None) -> dict:
             and failed == 0
         ),
     }
-    
+
     return results
 
 
@@ -266,27 +286,28 @@ def main():
         help="Path to .edb file for full verification (optional)",
     )
     parser.add_argument(
-        "--output", default=None,
+        "--output",
+        default=None,
         help="Output JSON file (default: print to stdout)",
     )
     args = parser.parse_args()
-    
+
     import json
-    
+
     print("🔍 Verifying ETAP 2021 COM compatibility...")
     print()
-    
+
     results = verify_etap_compatibility(args.etap_project)
-    
+
     output = json.dumps(results, indent=2, default=str)
-    
+
     if args.output:
         with open(args.output, "w") as f:
             f.write(output)
         print(f"✅ Results saved to: {args.output}")
     else:
         print(output)
-    
+
     print()
     if results.get("summary", {}).get("etap_2021_compatible"):
         print("✅ ETAP 2021 is compatible with the code")

@@ -30,6 +30,7 @@ from backend.config import config
 try:
     from qdrant_client import QdrantClient
     from qdrant_client.http import models
+
     HAS_QDRANT = True
 except ImportError:
     HAS_QDRANT = False
@@ -38,6 +39,7 @@ except ImportError:
 
 try:
     from neo4j import GraphDatabase
+
     HAS_NEO4J = True
 except ImportError:
     HAS_NEO4J = False
@@ -103,9 +105,7 @@ class MultiDatabaseService:
         try:
             if config.REDIS_URL and config.REDIS_URL != "redis://localhost:6379":
                 self._redis_client = redis.from_url(
-                    config.REDIS_URL,
-                    decode_responses=True,
-                    password=config.REDIS_PASSWORD
+                    config.REDIS_URL, decode_responses=True, password=config.REDIS_PASSWORD
                 )
             else:
                 self._redis_client = redis.Redis(
@@ -113,7 +113,7 @@ class MultiDatabaseService:
                     port=config.REDIS_PORT,
                     db=config.REDIS_DB,
                     password=config.REDIS_PASSWORD,
-                    decode_responses=True
+                    decode_responses=True,
                 )
 
             # Test connection
@@ -133,16 +133,12 @@ class MultiDatabaseService:
             if config.QDRANT_URL:
                 # Cloud instance
                 self._qdrant_client = QdrantClient(
-                    url=config.QDRANT_URL,
-                    api_key=config.QDRANT_API_KEY,
-                    prefer_grpc=True
+                    url=config.QDRANT_URL, api_key=config.QDRANT_API_KEY, prefer_grpc=True
                 )
             else:
                 # Local instance
                 self._qdrant_client = QdrantClient(
-                    host=config.QDRANT_HOST,
-                    port=config.QDRANT_PORT,
-                    api_key=config.QDRANT_API_KEY
+                    host=config.QDRANT_HOST, port=config.QDRANT_PORT, api_key=config.QDRANT_API_KEY
                 )
 
             # Test connection
@@ -160,8 +156,7 @@ class MultiDatabaseService:
 
         try:
             self._neo4j_driver = GraphDatabase.driver(
-                config.NEO4J_URI,
-                auth=(config.NEO4J_USERNAME, config.NEO4J_PASSWORD)
+                config.NEO4J_URI, auth=(config.NEO4J_USERNAME, config.NEO4J_PASSWORD)
             )
 
             # Test connection
@@ -176,7 +171,9 @@ class MultiDatabaseService:
     def _setup_postgres(self):
         """Initialize PostgreSQL connection pool."""
         if not HAS_POSTGRES:
-            logger.warning("PostgreSQL adapter not installed. Install with: pip install psycopg2-binary")
+            logger.warning(
+                "PostgreSQL adapter not installed. Install with: pip install psycopg2-binary"
+            )
             return
 
         try:
@@ -248,9 +245,7 @@ class MultiDatabaseService:
             return []
         try:
             results = self._qdrant_client.search(
-                collection_name=collection_name,
-                query_vector=query_vector,
-                limit=limit
+                collection_name=collection_name, query_vector=query_vector, limit=limit
             )
             return results
         except Exception:
@@ -274,7 +269,9 @@ class MultiDatabaseService:
         finally:
             session.close()
 
-    def neo4j_execute_query(self, query: str, parameters: dict = None, database: Optional[str] = None) -> list:
+    def neo4j_execute_query(
+        self, query: str, parameters: dict = None, database: Optional[str] = None
+    ) -> list:
         """Execute a Cypher query against Neo4j."""
         if not self._neo4j_driver:
             return []

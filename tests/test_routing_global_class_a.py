@@ -20,7 +20,7 @@ Reference: NFPA 72-2022 §12.2.2, NEC 760.154
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import Enum, StrEnum
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -31,7 +31,8 @@ import fireai.core.routing_global_class_a as routing_mod
 # Mock provenance classes that accept BOTH old and new field names
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class _MockConfidenceLevel(str, Enum):
+
+class _MockConfidenceLevel(StrEnum):
     HIGH = "HIGH"
     MEDIUM = "MEDIUM"
     LOW = "LOW"
@@ -256,7 +257,9 @@ class TestRouteClassALoop:
 
         rule = result.rules_applied[0]
         assert rule.constant_id == "CLASS_A_SEP"
-        assert rule.value_used == 1.0  # NOSONAR — S1244: import retained for re-export / API surface
+        assert (
+            rule.value_used == 1.0
+        )  # NOSONAR — S1244: import retained for re-export / API surface
         assert rule.unit == "m"
 
     @patch("fireai.core.routing_global_class_a.EliteClassARouter")

@@ -131,32 +131,33 @@ pytest -m safety_critical
 from typing import Tuple
 import numpy as np
 
+
 def calculate_detector_coverage(
     detector_position: Tuple[float, float, float],
     room_dimensions: Tuple[float, float, float],
-    coverage_radius: float = 9.1  # Default: 9.1m for smoke detectors per NFPA 72
+    coverage_radius: float = 9.1,  # Default: 9.1m for smoke detectors per NFPA 72
 ) -> float:
     """
     Calculate coverage percentage for a detector in a given room.
-    
+
     Safety Note: This function implements NFPA 72 Chapter 17 requirements
     for minimum coverage. Conservative assumptions are made when data
     is ambiguous to ensure safety.
-    
+
     Args:
         detector_position: (x, y, z) coordinates of detector
         room_dimensions: (length, width, height) of room
         coverage_radius: Coverage radius in meters (default per NFPA 72)
-        
+
     Returns:
         Coverage percentage (0.0 to 1.0)
-        
+
     Raises:
         ValueError: If inputs are invalid or would cause unsafe calculations
     """
     if coverage_radius <= 0:
         raise ValueError("Coverage radius must be positive for safe operation")
-    
+
     # Implementation here...
     return coverage_percentage
 ```

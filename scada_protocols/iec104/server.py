@@ -106,9 +106,7 @@ class IEC104ServerAdapter(ProtocolAdapter):
                     suggested = suggested_asdu_type(pt.measurement_type)
                     type_enum = getattr(self._c104.Type, suggested, None)
                 if type_enum is None:
-                    self._mark_error(
-                        f"unknown ASDU type {pt.type_id!r} for ioa={pt.ioa}"
-                    )
+                    self._mark_error(f"unknown ASDU type {pt.type_id!r} for ioa={pt.ioa}")
                     continue
                 # report_ms=0 means no cyclic auto-transmit; we drive it
                 # ourselves from the refresh thread so we have full control.
@@ -134,9 +132,7 @@ class IEC104ServerAdapter(ProtocolAdapter):
 
         # Start the c104 server thread.
         self._stop_event = threading.Event()
-        self._thread = threading.Thread(
-            target=self._run_server, name="iec104-server", daemon=True
-        )
+        self._thread = threading.Thread(target=self._run_server, name="iec104-server", daemon=True)
         self._thread.start()
 
         # Start our refresh thread that pushes spontaneous transmissions.

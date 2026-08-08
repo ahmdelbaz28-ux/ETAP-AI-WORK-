@@ -31,8 +31,10 @@ from marine.core.types import ShipProject, ShipType
 from backend.services.marine_service import get_marine_service
 
 ship = ShipProject(
-    project_id="P-001", ship_name="MV Test",
-    ship_type=ShipType.CARGO, length_overall_m=120.0,
+    project_id="P-001",
+    ship_name="MV Test",
+    ship_type=ShipType.CARGO,
+    length_overall_m=120.0,
     gross_tonnage=8000.0,
 )
 result = get_marine_service().design_full(ship)

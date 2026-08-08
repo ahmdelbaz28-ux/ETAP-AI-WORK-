@@ -1,5 +1,6 @@
 # NOSONAR
 """WebSocket Transport for Distributed FACP System"""
+
 import asyncio
 import json
 import threading
@@ -26,17 +27,25 @@ class WebSocketTransport(TransportLayer):
         self.running = False
         self.loop = None
 
-    async def _register_client(self, websocket: websockets.WebSocketServerProtocol):  # NOSONAR - python:S7503
+    async def _register_client(
+        self, websocket: websockets.WebSocketServerProtocol
+    ):  # NOSONAR - python:S7503
         """Register a new client connection"""
         self.clients.add(websocket)
         print(f"Client connected: {websocket.remote_address}, Total clients: {len(self.clients)}")
 
-    async def _unregister_client(self, websocket: websockets.WebSocketServerProtocol):  # NOSONAR - python:S7503
+    async def _unregister_client(
+        self, websocket: websockets.WebSocketServerProtocol
+    ):  # NOSONAR - python:S7503
         """Unregister a client connection"""
         self.clients.remove(websocket)
-        print(f"Client disconnected: {websocket.remote_address}, Total clients: {len(self.clients)}")
+        print(
+            f"Client disconnected: {websocket.remote_address}, Total clients: {len(self.clients)}"
+        )
 
-    async def _handle_client_message(self, websocket: websockets.WebSocketServerProtocol, path: str):
+    async def _handle_client_message(
+        self, websocket: websockets.WebSocketServerProtocol, path: str
+    ):
         """Handle incoming messages from a client"""
         await self._register_client(websocket)
         try:
@@ -54,7 +63,11 @@ class WebSocketTransport(TransportLayer):
                     method = request_data.get("method", "")
                     if method in self.handlers:
                         handler = self.handlers[method]
-                        response = await handler(request_data) if asyncio.iscoroutinefunction(handler) else handler(request_data)
+                        response = (
+                            await handler(request_data)
+                            if asyncio.iscoroutinefunction(handler)
+                            else handler(request_data)
+                        )
 
                         # Send response back to client
                         await websocket.send(json.dumps(response))
@@ -65,14 +78,14 @@ class WebSocketTransport(TransportLayer):
                             "status": "error",
                             "error": {
                                 "code": "METHOD_NOT_FOUND",
-                                "message": f"Method {method} not found"
+                                "message": f"Method {method} not found",
                             },
                             "trace": {
                                 "node_id": self.node_id,
                                 "node_type": self.node_type,
                                 "execution_path": [self.node_type],
-                                "latency_ms": 0
-                            }
+                                "latency_ms": 0,
+                            },
                         }
                         await websocket.send(json.dumps(error_response))
 
@@ -81,33 +94,29 @@ class WebSocketTransport(TransportLayer):
                         "protocol": "FACP/1.1",
                         "id": "unknown",
                         "status": "error",
-                        "error": {
-                            "code": "INVALID_JSON",
-                            "message": "Invalid JSON in request"
-                        },
+                        "error": {"code": "INVALID_JSON", "message": "Invalid JSON in request"},
                         "trace": {
                             "node_id": self.node_id,
                             "node_type": self.node_type,
                             "execution_path": [self.node_type],
-                            "latency_ms": 0
-                        }
+                            "latency_ms": 0,
+                        },
                     }
                     await websocket.send(json.dumps(error_response))
                 except Exception as e:
                     error_response = {
                         "protocol": "FACP/1.1",
-                        "id": request_data.get("id", "unknown") if 'request_data' in locals() else "unknown",
+                        "id": request_data.get("id", "unknown")
+                        if "request_data" in locals()
+                        else "unknown",
                         "status": "error",
-                        "error": {
-                            "code": "WEBSOCKET_ERROR",
-                            "message": str(e)
-                        },
+                        "error": {"code": "WEBSOCKET_ERROR", "message": str(e)},
                         "trace": {
                             "node_id": self.node_id,
                             "node_type": self.node_type,
                             "execution_path": [self.node_type],
-                            "latency_ms": 0
-                        }
+                            "latency_ms": 0,
+                        },
                     }
                     await websocket.send(json.dumps(error_response))
         except websockets.exceptions.ConnectionClosed:
@@ -117,18 +126,17 @@ class WebSocketTransport(TransportLayer):
 
     def start(self):
         """Start WebSocket server in a separate thread"""
+
         def run_server():
             self.loop = asyncio.new_event_loop()
             asyncio.set_event_loop(self.loop)
 
-            start_server = websockets.serve(
-                self._handle_client_message,
-                self.host,
-                self.port
-            )
+            start_server = websockets.serve(self._handle_client_message, self.host, self.port)
 
             self.websocket_server = self.loop.run_until_complete(start_server)
-            print(f"WebSocket Transport listening on {self.host}:{self.port} (Node: {self.node_id})")
+            print(
+                f"WebSocket Transport listening on {self.host}:{self.port} (Node: {self.node_id})"
+            )
 
             self.running = True
             self.loop.run_forever()
@@ -149,7 +157,9 @@ class WebSocketTransport(TransportLayer):
         if websocket in self.clients:
             await websocket.send(message)
 
-    def send_request(self, request_data: Dict[str, Any], target_node: Optional[str] = None) -> Dict[str, Any]:
+    def send_request(
+        self, request_data: Dict[str, Any], target_node: Optional[str] = None
+    ) -> Dict[str, Any]:
         """
         Send request to target WebSocket endpoint
         target_node format: "ws://host:port" (e.g., "ws://localhost:8002")
@@ -171,7 +181,9 @@ class WebSocketTransport(TransportLayer):
         #
         # Fix: use a separate local variable `node` for the resolved URL.
         # This is the audit's recommended fix and is the minimal change.
-        node = target_node or f"ws://{self.host}:{self.port}"  # NOSONAR: internal comms, WSS handled at transport layer  # NOSONAR — S7632: test function documented via class name / module path
+        node = (
+            target_node or f"ws://{self.host}:{self.port}"
+        )  # NOSONAR: internal comms, WSS handled at transport layer  # NOSONAR — S7632: test function documented via class name / module path
 
         async def send_to_target():
             try:
@@ -184,16 +196,13 @@ class WebSocketTransport(TransportLayer):
                     "protocol": "FACP/1.1",
                     "id": request_data.get("id", "unknown"),
                     "status": "error",
-                    "error": {
-                        "code": "WEBSOCKET_CONNECTION_ERROR",
-                        "message": str(e)
-                    },
+                    "error": {"code": "WEBSOCKET_CONNECTION_ERROR", "message": str(e)},
                     "trace": {
                         "node_id": self.node_id,
                         "node_type": self.node_type,
                         "execution_path": [self.node_type],
-                        "latency_ms": 0
-                    }
+                        "latency_ms": 0,
+                    },
                 }
 
         try:
@@ -207,22 +216,18 @@ class WebSocketTransport(TransportLayer):
                 "protocol": "FACP/1.1",
                 "id": request_data.get("id", "unknown"),
                 "status": "error",
-                "error": {
-                    "code": "ASYNC_ERROR",
-                    "message": str(e)
-                },
+                "error": {"code": "ASYNC_ERROR", "message": str(e)},
                 "trace": {
                     "node_id": self.node_id,
                     "node_type": self.node_type,
                     "execution_path": [self.node_type],
-                    "latency_ms": 0
-                }
+                    "latency_ms": 0,
+                },
             }
 
     async def broadcast_message(self, message: str):
         """Broadcast a message to all connected clients"""
         if self.clients:
             await asyncio.gather(
-                *[client.send(message) for client in self.clients],
-                return_exceptions=True
+                *[client.send(message) for client in self.clients], return_exceptions=True
             )

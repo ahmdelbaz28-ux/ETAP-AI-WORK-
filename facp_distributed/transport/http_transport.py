@@ -1,5 +1,6 @@
 # NOSONAR
 """HTTP Transport for Distributed FACP System"""
+
 import asyncio
 import logging
 import threading
@@ -20,7 +21,9 @@ class TransportLayer(ABC):
     def __init__(self):
         self.handlers = {}  # method -> handler_function
         self.is_running = False
-        self.node_id = f"node_{int(time.time())}_{hash(str(threading.current_thread().ident)) % 10000}"
+        self.node_id = (
+            f"node_{int(time.time())}_{hash(str(threading.current_thread().ident)) % 10000}"
+        )
 
     def register_handler(self, method: str, handler: Callable):
         """Register a handler for a specific method"""
@@ -37,7 +40,9 @@ class TransportLayer(ABC):
         raise NotImplementedError("Subclasses must implement stop()")
 
     @abstractmethod
-    def send_request(self, request_data: Dict[str, Any], target_node: Optional[str] = None) -> Dict[str, Any]:
+    def send_request(
+        self, request_data: Dict[str, Any], target_node: Optional[str] = None
+    ) -> Dict[str, Any]:
         """Send request to target"""
         raise NotImplementedError("Subclasses must implement send_request()")
 
@@ -61,6 +66,7 @@ class HTTPTransport(TransportLayer):
 
     def _setup_routes(self):
         """Setup FastAPI routes for the transport"""
+
         @self.app.post("/facp/request")
         async def handle_facp_request(request: Request):
             try:
@@ -76,39 +82,42 @@ class HTTPTransport(TransportLayer):
                 method = request_data.get("method", "")
                 if method in self.handlers:
                     handler = self.handlers[method]
-                    return await handler(request_data) if asyncio.iscoroutinefunction(handler) else handler(request_data)
+                    return (
+                        await handler(request_data)
+                        if asyncio.iscoroutinefunction(handler)
+                        else handler(request_data)
+                    )
                 return {
                     "protocol": "FACP/1.1",  # NOSONAR — S1192: duplicated literal acceptable in this localized context
                     "id": request_data.get("id", "unknown"),
                     "status": "error",
-                    "error": {
-                        "code": "METHOD_NOT_FOUND",
-                        "message": f"Method {method} not found"
-                    },
+                    "error": {"code": "METHOD_NOT_FOUND", "message": f"Method {method} not found"},
                     "trace": {
                         "node_id": self.node_id,
                         "node_type": self.node_type,
                         "execution_path": [self.node_type],
-                        "latency_ms": 0
-                    }
+                        "latency_ms": 0,
+                    },
                 }
             except Exception as e:
                 # CodeQL: py/stack-trace-exposure — sanitize error message
                 safe_msg = str(e)[:200] if "Traceback" not in str(e) else "Transport error"
                 return {
                     "protocol": "FACP/1.1",
-                    "id": request_data.get("id", "unknown") if 'request_data' in locals() else "unknown",
+                    "id": request_data.get("id", "unknown")
+                    if "request_data" in locals()
+                    else "unknown",
                     "status": "error",
                     "error": {
                         "code": "TRANSPORT_ERROR",
-                        "message": safe_msg  # lgtm[py/stack-trace-exposure] — sanitized
+                        "message": safe_msg,  # lgtm[py/stack-trace-exposure] — sanitized
                     },
                     "trace": {
                         "node_id": self.node_id,
                         "node_type": self.node_type,
                         "execution_path": [self.node_type],
-                        "latency_ms": 0
-                    }
+                        "latency_ms": 0,
+                    },
                 }
 
         @self.app.get("/health")
@@ -117,18 +126,14 @@ class HTTPTransport(TransportLayer):
                 "status": "healthy",
                 "node_id": self.node_id,
                 "node_type": self.node_type,
-                "timestamp": time.time()
+                "timestamp": time.time(),
             }
 
     def start(self):
         """Start HTTP server in a separate thread"""
+
         def run_server():
-            uvicorn.run(
-                self.app,
-                host=self.host,
-                port=self.port,
-                log_level="info"
-            )
+            uvicorn.run(self.app, host=self.host, port=self.port, log_level="info")
 
         self.server_thread = threading.Thread(target=run_server, daemon=True)
         self.server_thread.start()
@@ -140,7 +145,9 @@ class HTTPTransport(TransportLayer):
         # Note: In a real implementation, we'd have a proper shutdown mechanism
         self.is_running = False
 
-    async def async_send_request(self, request_data: Dict[str, Any], target_host: str = "localhost", target_port: int = 8000) -> Dict[str, Any]:
+    async def async_send_request(
+        self, request_data: Dict[str, Any], target_host: str = "localhost", target_port: int = 8000
+    ) -> Dict[str, Any]:
         """Send request asynchronously to target HTTP endpoint"""
         target_url = f"http://{target_host}:{target_port}/facp/request"  # NOSONAR - python:S5332
 
@@ -160,19 +167,18 @@ class HTTPTransport(TransportLayer):
                 "protocol": "FACP/1.1",
                 "id": request_data.get("id", "unknown"),
                 "status": "error",
-                "error": {
-                    "code": "NETWORK_ERROR",
-                    "message": str(e)
-                },
+                "error": {"code": "NETWORK_ERROR", "message": str(e)},
                 "trace": {
                     "node_id": self.node_id,
                     "node_type": self.node_type,
                     "execution_path": [self.node_type],
-                    "latency_ms": 0
-                }
+                    "latency_ms": 0,
+                },
             }
 
-    def send_request(self, request_data: Dict[str, Any], target_node: Optional[str] = None) -> Dict[str, Any]:
+    def send_request(
+        self, request_data: Dict[str, Any], target_node: Optional[str] = None
+    ) -> Dict[str, Any]:
         """
         Send request to target (synchronous wrapper for async method)
         target_node format: "host:port" (e.g., "localhost:8001")
@@ -186,6 +192,7 @@ class HTTPTransport(TransportLayer):
 
         # Run the async function synchronously
         import asyncio
+
         try:
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
@@ -197,16 +204,13 @@ class HTTPTransport(TransportLayer):
                 "protocol": "FACP/1.1",
                 "id": request_data.get("id", "unknown"),
                 "status": "error",
-                "error": {
-                    "code": "ASYNC_ERROR",
-                    "message": str(e)
-                },
+                "error": {"code": "ASYNC_ERROR", "message": str(e)},
                 "trace": {
                     "node_id": self.node_id,
                     "node_type": self.node_type,
                     "execution_path": [self.node_type],
-                    "latency_ms": 0
-                }
+                    "latency_ms": 0,
+                },
             }
 
     def get_client_session(self, host: str, port: int):
@@ -240,8 +244,12 @@ class TransportRouter:
         """Get a specific transport"""
         return self.transports.get(name)
 
-    def route_request(self, request_data: Dict[str, Any], target_node: Optional[str] = None,
-                     transport_hint: Optional[str] = None) -> Dict[str, Any]:
+    def route_request(
+        self,
+        request_data: Dict[str, Any],
+        target_node: Optional[str] = None,
+        transport_hint: Optional[str] = None,
+    ) -> Dict[str, Any]:
         """Route request to appropriate transport and node"""
         transport = None
 
@@ -259,7 +267,7 @@ class TransportRouter:
         return {
             "error": {
                 "code": "TRANSPORT_UNAVAILABLE",
-                "message": "No transport available to handle request"
+                "message": "No transport available to handle request",
             }
         }
 

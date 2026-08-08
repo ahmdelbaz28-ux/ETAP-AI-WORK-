@@ -109,7 +109,10 @@ if not logger.handlers:
 # to XSS amplification via 'unsafe-eval'. Modern frontend libraries
 # (recharts >=2.x, three.js >=0.150) work without it in production builds.
 
-def _build_csp() -> str:  # NOSONAR — S3776: cognitive complexity is inherent to the safety-critical algorithm
+
+def _build_csp() -> (
+    str
+):  # NOSONAR — S3776: cognitive complexity is inherent to the safety-critical algorithm
     """
     Build a Content-Security-Policy header value.
 
@@ -161,7 +164,9 @@ def _build_csp() -> str:  # NOSONAR — S3776: cognitive complexity is inherent 
     # connect-src: development allows localhost (Vite HMR / websockets);
     # production uses CSP_CONNECT_SRC env var if provided, else 'self'.
     if is_dev:
-        connect_src = "'self' http://localhost:* ws://localhost:* http://127.0.0.1:* ws://127.0.0.1:*"
+        connect_src = (
+            "'self' http://localhost:* ws://localhost:* http://127.0.0.1:* ws://127.0.0.1:*"
+        )
         custom_connect = os.getenv("CSP_CONNECT_SRC")
         if custom_connect:
             connect_src += f" {custom_connect}"
@@ -181,6 +186,7 @@ def _build_csp() -> str:  # NOSONAR — S3776: cognitive complexity is inherent 
         "frame-ancestors 'none'",
     ]
     return "; ".join(parts)
+
 
 # ── In-memory cache with expiration support ────────────────────────────────
 # STRESS-TEST FIX #3: Bounded cache with LRU eviction and thread-safe lock.
@@ -308,7 +314,8 @@ async def cache_set(key: str, value: object, expire: int = 300) -> None:  # NOSO
         if raw_size > _CACHE_MAX_VALUE_SIZE:
             logger.warning(
                 "Cache value too large before coercion (%d bytes raw, max %d) -- rejecting",
-                raw_size, _CACHE_MAX_VALUE_SIZE,
+                raw_size,
+                _CACHE_MAX_VALUE_SIZE,
             )
             return
         # Coerce to str for cache storage (cache stores str per signature)
@@ -316,7 +323,8 @@ async def cache_set(key: str, value: object, expire: int = 300) -> None:  # NOSO
     if len(value) > _CACHE_MAX_VALUE_SIZE:
         logger.warning(
             "Cache value too large (%d bytes, max %d) — rejecting",
-            len(value), _CACHE_MAX_VALUE_SIZE,
+            len(value),
+            _CACHE_MAX_VALUE_SIZE,
         )
         return
 
@@ -367,6 +375,7 @@ async def lifespan(app: FastAPI):
     # This is the ROOT-CAUSE fix for the silent auth-router failure that
     # allowed the app to start in a broken state.
     import os as _os
+
     _secret = _os.environ.get("FIREAI_SESSION_SECRET", "")
     if not _secret:
         raise RuntimeError(
@@ -382,7 +391,7 @@ async def lifespan(app: FastAPI):
             f"Minimum is 43 chars (256 bits of entropy). "
             f"Current value appears to be a placeholder or truncated. "
             f"Generate a strong one with: "
-            f"python3 -c \"import secrets; print(secrets.token_urlsafe(64))\" "
+            f'python3 -c "import secrets; print(secrets.token_urlsafe(64))" '
             f"and set it as FIREAI_SESSION_SECRET."
         )
 
@@ -390,12 +399,14 @@ async def lifespan(app: FastAPI):
     # HOTFIX C-2: Mark core modules as loaded so health check reports "ok".
     try:
         from backend.routers.health import set_core_modules_loaded
+
         set_core_modules_loaded(True)
         logger.info("Core modules marked as loaded for health check")
     except ImportError as exc:
         logger.warning("Could not import set_core_modules_loaded: %s", exc)
     yield
     logger.info("Shutting down CAD/BIM Integration Platform...")
+
 
 # Create FastAPI app with lifespan
 # V130 SECURITY FIX: docs/redoc/openapi are now gated by FIREAI_ENV.
@@ -439,7 +450,7 @@ All endpoints require API key authentication via `X-API-Key` header.
     lifespan=lifespan,
     docs_url=_docs_url,
     redoc_url=_redoc_url,
-    openapi_url=_openapi_url
+    openapi_url=_openapi_url,
 )
 
 # Add rate limiter state
@@ -536,9 +547,12 @@ app.add_middleware(
 # Include our CAD/BIM integration routers
 # FIX #35: Removed redundant prefix from app.include_router since each
 # router already defines its own prefix (e.g., prefix="/autocad").
-app.include_router(autocad.router, prefix="/api/v1", tags=["AutoCAD-v1"])  # NOSONAR — S1192: duplicated literal acceptable in this localized context
+app.include_router(
+    autocad.router, prefix="/api/v1", tags=["AutoCAD-v1"]
+)  # NOSONAR — S1192: duplicated literal acceptable in this localized context
 app.include_router(revit.router, prefix="/api/v1", tags=["Revit-v1"])
 app.include_router(digital_twin.router, prefix="/api/v1", tags=["Digital-Twin-v1"])
+
 
 # ── STRESS-TEST FIX #8: Register ALL backend routers ───────────────────────
 # Previously only autocad/revit/digital_twin/marine/monitor/health were
@@ -579,6 +593,7 @@ def _safe_include_router(module_name: str, prefix: str = "/api/v1", tag: str = "
 
     try:
         import importlib
+
         mod = importlib.import_module(f"backend.routers.{module_name}")
         if hasattr(mod, "router"):
             app.include_router(mod.router, prefix=prefix, tags=[tag or module_name.title()])
@@ -600,7 +615,9 @@ def _safe_include_router(module_name: str, prefix: str = "/api/v1", tag: str = "
         # prefix preserves the documented "/ws" path.
         if hasattr(mod, "ws_router"):
             app.include_router(mod.ws_router, tags=[tag or module_name.title()])
-            logger.debug("Registered ws_router from: %s (no prefix — preserves /ws root path)", module_name)
+            logger.debug(
+                "Registered ws_router from: %s (no prefix — preserves /ws root path)", module_name
+            )
     except ImportError as e:
         # Optional dependency missing (e.g. langgraph for workflow router).
         # Safe to skip — feature is unavailable but app still works.
@@ -614,11 +631,13 @@ def _safe_include_router(module_name: str, prefix: str = "/api/v1", tag: str = "
                 "This router is mission-critical; the app cannot function safely without it. "
                 "Fix the underlying issue (likely FIREAI_SESSION_SECRET is missing or too short — "
                 "minimum 43 chars / 256 bits).",
-                module_name, e,
+                module_name,
+                e,
             )
             raise
         # Non-critical router: log and continue (graceful degradation)
         logger.warning("Router '%s' registration failed: %s", module_name, e)
+
 
 # Register the missing routers. Order matters for route precedence, but
 # FastAPI raises on conflict, so duplicates are caught at startup.
@@ -648,6 +667,7 @@ for _router_name in (
 # V215 FIX: Register multi_db router (was never registered — 11 endpoints returned 404)
 try:
     from backend.routers import multi_db as _multi_db_module
+
     app.include_router(_multi_db_module.router, prefix="/api/v1", tags=["multi-db"])
 except ImportError as e:
     logger.warning("Router 'multi_db' skipped (optional dependency missing): %s", e)
@@ -694,6 +714,7 @@ app.include_router(monitor_router_module.router, tags=["Monitor"])
 # alias — both required by backend/tests/test_routers.py.
 app.include_router(health_router_module.router, prefix="/api", tags=["Health"])
 
+
 # ── V132 (MISSION TASK 3.1): API v2 with Deprecation Headers ─────────────
 # Per RFC 7234: v1 endpoints receive Deprecation + Sunset + Link headers
 # pointing to their v2 successors. This enables smooth migration to the
@@ -704,12 +725,14 @@ def _register_v2_router() -> None:
     """Mount the v2 router with all new cloud-native endpoints."""
     try:
         from backend.routers.v2 import router as v2_router
+
         app.include_router(v2_router, prefix="/api/v2", tags=["v2"])
         logger.info("V2 API router mounted at /api/v2/")
     except ImportError as e:
         logger.warning("V2 router skipped (optional dependency missing): %s", e)
     except Exception as e:
         logger.warning("V2 router registration failed: %s", e)
+
 
 _register_v2_router()
 
@@ -722,11 +745,13 @@ _register_v2_router()
 def _register_csrf_middleware() -> None:
     """Register CSRF middleware if not explicitly disabled."""
     import os
+
     if os.environ.get("FIREAI_CSRF_DISABLED", "").lower() in ("1", "true", "yes"):
         logger.info("CSRF middleware DISABLED via FIREAI_CSRF_DISABLED env var")
         return
     try:
         from backend.security_csrf import CSRFMiddleware
+
         # Pure ASGI middleware — wraps the app
         app.add_middleware(CSRFMiddleware)
         logger.info("CSRF middleware registered (Double Submit Cookie pattern)")
@@ -734,6 +759,7 @@ def _register_csrf_middleware() -> None:
         logger.warning("CSRF middleware skipped (import failed): %s", e)
     except Exception as e:
         logger.warning("CSRF middleware registration failed: %s", e)
+
 
 # Deprecation middleware: add Deprecation/Sunset/Link headers to v1 responses.
 # Per RFC 7234 (HTTP Caching) and the HTTP Deprecation header draft.
@@ -774,6 +800,7 @@ async def add_deprecation_headers(request: Request, call_next):
 # /api/v2/health is kept as a separate v2-only endpoint.
 app.include_router(health_router_module.router, prefix="/api/v1", tags=["Health-v1"])
 
+
 # V139 FIX: /health (no /api prefix) — alias to /api/health for backward
 # compatibility with stress tests and deployment probes that hit /health.
 @app.get("/health", tags=["Health"])
@@ -784,7 +811,9 @@ async def health_check_legacy_alias() -> dict[str, Any]:
     Returns the same database-aware response as /api/health.
     """
     from backend.routers.health import health_check
+
     return await health_check()
+
 
 @app.get("/api/v2/health", tags=["Health-v2"])
 async def health_check_v2() -> dict[str, object]:
@@ -795,12 +824,18 @@ async def health_check_v2() -> dict[str, object]:
         "version": "1.0.0",
         "api_version": "v2",
         "features": [
-            "rate_limiting", "enhanced_caching", "streaming",
-            "generative_design", "bim_provider_abstraction",
-            "ifc43_mapping", "ar_metadata_export",
-            "webhook_delivery", "smoke_simulation_state",
+            "rate_limiting",
+            "enhanced_caching",
+            "streaming",
+            "generative_design",
+            "bim_provider_abstraction",
+            "ifc43_mapping",
+            "ar_metadata_export",
+            "webhook_delivery",
+            "smoke_simulation_state",
         ],
     }
+
 
 # ── Error handlers ──────────────────────────────────────────────────────────
 # FIX #2: Return JSONResponse (not HTTPException) and never expose str(exc)
@@ -809,10 +844,11 @@ async def health_check_v2() -> dict[str, object]:
 @app.exception_handler(Exception)
 async def general_exception_handler(request: Request, exc: Exception) -> Response:
     """General exception handler — logs full traceback, returns safe message."""
-    logger.error("Unhandled exception on %s %s: %s", request.method, request.url.path, exc, exc_info=True)
+    logger.error(
+        "Unhandled exception on %s %s: %s", request.method, request.url.path, exc, exc_info=True
+    )
     return JSONResponse(
-        status_code=500,
-        content={"detail": "Internal server error", "success": False}
+        status_code=500, content={"detail": "Internal server error", "success": False}
     )
 
 
@@ -828,6 +864,7 @@ async def database_health():
 # ═══════════════════════════════════════════════════════════════════════════
 # CACHE MANAGEMENT ENDPOINTS
 # ═══════════════════════════════════════════════════════════════════════════
+
 
 # V129: Cache management endpoints now require SYSTEM_CONFIG permission.
 # Previously these were public — an anonymous attacker could clear the cache
@@ -890,6 +927,7 @@ if __name__ == "__main__":
     # V129: Bind to loopback only (127.0.0.1), not 0.0.0.0
     # Production deployments must use a reverse proxy (nginx, traefik, AWS ALB)
     import uvicorn
+
     uvicorn.run(
         "backend.app:app",
         host="127.0.0.1",  # V129: loopback only
@@ -942,11 +980,15 @@ if _FRONTEND_DIST and _Path(_FRONTEND_DIST).is_dir():
 
     # SPA fallback: any non-/api route returns index.html so React Router can handle it
     @app.get("/{full_path:path}", include_in_schema=False)
-    async def _spa_fallback(full_path: str):  # NOSONAR — S1172: full_path used to exclude /api routes
+    async def _spa_fallback(
+        full_path: str,
+    ):  # NOSONAR — S1172: full_path used to exclude /api routes
         # Never intercept API routes — those are handled by routers above
         if full_path.startswith("api/"):
             return _JSONResponse(status_code=404, content={"detail": "Not Found", "success": False})
         # Serve index.html for all other paths (client-side routing)
         if _FRONTEND_INDEX.is_file():
             return _FileResponse(str(_FRONTEND_INDEX))
-        return _JSONResponse(status_code=404, content={"detail": "Frontend not built", "success": False})
+        return _JSONResponse(
+            status_code=404, content={"detail": "Frontend not built", "success": False}
+        )

@@ -117,16 +117,12 @@ class IEC104ClientAdapter(ProtocolAdapter):
                                 None,
                             )
                         if type_enum is None:
-                            self._mark_error(
-                                f"unknown ASDU type {pt.type_id!r} for ioa={pt.ioa}"
-                            )
+                            self._mark_error(f"unknown ASDU type {pt.type_id!r} for ioa={pt.ioa}")
                             continue
                         try:
                             point = station.add_point(io_address=pt.ioa, type=type_enum)
                         except Exception as exc:
-                            self._mark_error(
-                                f"add_point failed (ca={ca_val}, ioa={pt.ioa}): {exc}"
-                            )
+                            self._mark_error(f"add_point failed (ca={ca_val}, ioa={pt.ioa}): {exc}")
                             continue
                         self._points[name][pt.ioa] = point
 
@@ -181,9 +177,7 @@ class IEC104ClientAdapter(ProtocolAdapter):
 
         # Start the c104 client thread.
         self._stop_event = threading.Event()
-        self._thread = threading.Thread(
-            target=self._run_client, name="iec104-client", daemon=True
-        )
+        self._thread = threading.Thread(target=self._run_client, name="iec104-client", daemon=True)
         self._thread.start()
 
         # Start an interrogation loop that periodically polls each connection.

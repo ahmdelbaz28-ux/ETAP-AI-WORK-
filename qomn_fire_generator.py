@@ -1584,19 +1584,20 @@ def export_to_revit_json(devices: List[Device], runs: List[ConduitRun], facp: Pa
 # 16. requirements.txt & setup.py
 # ─────────────────────────────────────────────────────────────────────
 INTEGRATED_FILES["requirements.txt"] = "ezdxf>=1.1.0\n"
-INTEGRATED_FILES["setup.py"] = '''from setuptools import setup, find_packages
+INTEGRATED_FILES["setup.py"] = """from setuptools import setup, find_packages
 setup(
     name="qomn_fire",
     version="1.0.0",
     packages=find_packages(),
     install_requires=["ezdxf>=1.1.0"],
 )
-'''
+"""
 
 
 # =====================================================================
 # AUTOMATED WORKSPACE EXPORTER
 # =====================================================================
+
 
 def build_workspace_to_disk():
     print("[QOMN-FIRE INTEGRATION] Setting up workspace directory mappings...")
@@ -1615,7 +1616,7 @@ def build_workspace_to_disk():
         "qomn_fire/engine/__init__.py",
         "qomn_fire/drawing/__init__.py",
         "qomn_fire/integration/__init__.py",
-        "qomn_fire/output/__init__.py"
+        "qomn_fire/output/__init__.py",
     ]
     for p in init_paths:
         with open(p, "w", encoding="utf-8") as f:
@@ -1628,10 +1629,11 @@ def build_workspace_to_disk():
 # INTEGRATED MULTI-ENGINE UNIT TESTING
 # =====================================================================
 
-class TestIntegratedQomnFire(unittest.TestCase):
 
+class TestIntegratedQomnFire(unittest.TestCase):
     def setUp(self):
         from qomn_fire.engine.routing import GridMap3D
+
         self.grid_map = GridMap3D(step_m=0.5)
 
     def test_01_conduit_fill_golden(self):
@@ -1641,6 +1643,7 @@ class TestIntegratedQomnFire(unittest.TestCase):
         Expected: fill_ratio = 3 * 8.58 / 196.1 ≈ 0.1312
         """
         from qomn_fire.engine.fill import calculate_conduit_fill
+
         res = calculate_conduit_fill("1/2", "12 AWG", 3)
         self.assertTrue(res.is_success)
         self.assertAlmostEqual(res.unwrap(), 3 * 8.58 / 196.1, places=4)
@@ -1652,6 +1655,7 @@ class TestIntegratedQomnFire(unittest.TestCase):
         Expected: Both return failure with correct code_ref
         """
         from qomn_fire.engine.fill import calculate_conduit_fill
+
         res1 = calculate_conduit_fill("NOT_REAL_CONDUIT", "12 AWG", 5)
         self.assertTrue(res1.is_failure)
         self.assertEqual(res1.error().code_ref, "NEC Table 4")
@@ -1703,7 +1707,7 @@ class TestIntegratedQomnFire(unittest.TestCase):
                 start=Point3D(0.0, 0.0, 0.0),
                 end=Point3D(5.0, 5.0, 0.0),
                 conduit=ConduitType.EMT,
-                conduit_id="C_RUN_1"
+                conduit_id="C_RUN_1",
             )
             self.assertTrue(res.is_success)
             run = res.unwrap()
@@ -1715,7 +1719,9 @@ class TestIntegratedQomnFire(unittest.TestCase):
                 self.assertEqual(sig_ref, cycle_sig, f"Deviation found on iteration cycle {cycle}")
         print(f"[DETERMINISM] 50 iterations verified. SHA-256: {sig_ref}")
 
-    def test_05_routing_exceeds_bend_limits_fails(self):  # NOSONAR — S3776: cognitive complexity is inherent to the safety-critical algorithm
+    def test_05_routing_exceeds_bend_limits_fails(
+        self,
+    ):  # NOSONAR — S3776: cognitive complexity is inherent to the safety-critical algorithm
         """
         VERIFICATION TEST 5: Conduit Bend Constraint Enforcement (NEC Art 358.26)
         Case: Bounded corridor with alternating walls forces >360 degrees of bends.
@@ -1755,7 +1761,7 @@ class TestIntegratedQomnFire(unittest.TestCase):
             start=Point3D(0.0, 0.0, 0.0),
             end=Point3D(2.0, 18.0, 0.0),
             conduit=ConduitType.EMT,
-            conduit_id="C_VIOL"
+            conduit_id="C_VIOL",
         )
         self.assertTrue(res.is_failure)
         self.assertEqual(res.error().code_ref, "NEC Article 358.26")
@@ -1778,7 +1784,7 @@ class TestIntegratedQomnFire(unittest.TestCase):
             requires_network=False,
             requires_voice=False,
             requires_releasing=False,
-            jurisdiction="US"
+            jurisdiction="US",
         )
 
         res = SelectionEngine.select_panel(req)
@@ -1791,7 +1797,9 @@ class TestIntegratedQomnFire(unittest.TestCase):
         self.assertAlmostEqual(rec.battery_size_ah, 5.80, delta=0.01)
         # V58: battery_derating_details present with tiered derating info
         self.assertIn("combined_safety_factor", rec.battery_derating_details)
-        self.assertAlmostEqual(rec.battery_derating_details["combined_safety_factor"], 1.518, places=3)
+        self.assertAlmostEqual(
+            rec.battery_derating_details["combined_safety_factor"], 1.518, places=3
+        )
         self.assertEqual(rec.battery_derating_details["per_device_standby_mA"], 0.8)
 
     def test_07_placement_to_selection_vascular_pipeline(self):
@@ -1822,7 +1830,7 @@ class TestIntegratedQomnFire(unittest.TestCase):
             requires_network=False,
             requires_voice=False,
             requires_releasing=False,
-            jurisdiction="US"
+            jurisdiction="US",
         )
 
         select_res = SelectionEngine.select_panel(req)
@@ -1836,11 +1844,14 @@ class TestIntegratedQomnFire(unittest.TestCase):
 # INTEGRATED SYSTEM PILOT DEMONSTRATION
 # =====================================================================
 
+
 def execute_integrated_master_project():
     """Runs a complete end-to-end fire protective design, sizing, and CAD production pipeline."""
-    print("\n" + "="*80)
+    print("\n" + "=" * 80)
     print("        QOMN-FIRE INTEGRATED PIPELINE: FULL PROJECT COMPILATION")
-    print("="*80)
+    print("=" * 80)
+
+    from qomn_fire.output.revit_exporter import export_to_revit_json
 
     from qomn_fire.core.constants import NFPA_SMOKE_DETECTOR_SPACING_M
     from qomn_fire.core.types import (
@@ -1868,7 +1879,6 @@ def execute_integrated_master_project():
     from qomn_fire.engine.placement import place_smoke_detectors_room
     from qomn_fire.engine.routing import GridMap3D
     from qomn_fire.integration.cable_hatch import route_conduit_and_hatch
-    from qomn_fire.output.revit_exporter import export_to_revit_json
 
     # 1. Initialize Drawing Doc
     doc = create_document()
@@ -1891,11 +1901,25 @@ def execute_integrated_master_project():
     place_res = place_smoke_detectors_room(room_min, room_max, 9.0, "FA-LP1", "ZONE_1")
     devices = place_res.unwrap()
 
-    h_spec_coverage = HatchSpec("ANSI31", 45.0, 0.1, 3, "A-FIRE-HATC", "Smoke Coverage", "NFPA 72 §17")
+    h_spec_coverage = HatchSpec(
+        "ANSI31", 45.0, 0.1, 3, "A-FIRE-HATC", "Smoke Coverage", "NFPA 72 §17"
+    )
 
     for d in devices:
-        msp.add_circle(d.location.to_tuple()[:2], radius=0.4, dxfattribs={"layer": "A-FIRE-DEVICES", "color": 1})
-        msp.add_text(d.id, dxfattribs={"insert": (d.location.x + 0.5, d.location.y + 0.5), "height": 0.25, "layer": "A-FIRE-TEXT", "color": 5})
+        msp.add_circle(
+            d.location.to_tuple()[:2],
+            radius=0.4,
+            dxfattribs={"layer": "A-FIRE-DEVICES", "color": 1},
+        )
+        msp.add_text(
+            d.id,
+            dxfattribs={
+                "insert": (d.location.x + 0.5, d.location.y + 0.5),
+                "height": 0.25,
+                "layer": "A-FIRE-TEXT",
+                "color": 5,
+            },
+        )
 
         # Coverage zone boundary hatch
         boundary = generate_circle_polyline(d.location, NFPA_SMOKE_DETECTOR_SPACING_M)
@@ -1912,12 +1936,14 @@ def execute_integrated_master_project():
         requires_voice=False,
         requires_releasing=False,
         jurisdiction="FDNY",
-        preferred_manufacturer="SIEMENS"
+        preferred_manufacturer="SIEMENS",
     )
 
     selection_res = SelectionEngine.select_panel(req)
     rec = selection_res.unwrap()
-    print(f"   -> Selected FACP: {rec.recommended_model} ({rec.manufacturer}) - Battery size: {rec.battery_size_ah} Ah")
+    print(
+        f"   -> Selected FACP: {rec.recommended_model} ({rec.manufacturer}) - Battery size: {rec.battery_size_ah} Ah"
+    )
 
     # 5. Routing conduits between sequential devices
     print(" -> Routing routing paths...")
@@ -1930,7 +1956,7 @@ def execute_integrated_master_project():
 
     for idx in range(len(devices) - 1):
         start_pt = devices[idx].location
-        end_pt = devices[idx+1].location
+        end_pt = devices[idx + 1].location
 
         grid_map.obstacles.discard(grid_map.to_grid(start_pt))
         grid_map.obstacles.discard(grid_map.to_grid(end_pt))
@@ -1942,7 +1968,7 @@ def execute_integrated_master_project():
             end=end_pt,
             conduit=ConduitType.EMT,
             conduit_id=f"CONDUIT_RUN_{idx:02d}",
-            spec=conduit_spec
+            spec=conduit_spec,
         )
 
         grid_map.add_obstacle(start_pt)
@@ -1958,7 +1984,7 @@ def execute_integrated_master_project():
             p1=devices[0].location.to_tuple()[:2],
             p2=devices[1].location.to_tuple()[:2],
             distance=2.0,
-            dxfattribs={"layer": "A-FIRE-DIMS", "color": 4}
+            dxfattribs={"layer": "A-FIRE-DIMS", "color": 4},
         )
 
     # Title Block Sheet
@@ -1972,7 +1998,7 @@ def execute_integrated_master_project():
         checker="Senior Verification Audit Engineer",
         pe_stamp="LICENSED PROFESSIONAL ENGINEER - STAMP #PE-90998",
         client="Hospital General Board",
-        address="Zone 2 Building C Complex"
+        address="Zone 2 Building C Complex",
     )
     draw_title_block(doc, title)
 
@@ -1982,7 +2008,9 @@ def execute_integrated_master_project():
     # Aligned Viewport
     # S930 fix: parameter name must match `qomn_fire/drawing/dxf_generator.py::add_viewport`
     # which uses `view_center=` (NOT `view_center_point=`).
-    add_viewport(doc, center=(350.0, 300.0), size=(500.0, 400.0), view_center=(12.5, 7.5), view_height=20.0)
+    add_viewport(
+        doc, center=(350.0, 300.0), size=(500.0, 400.0), view_center=(12.5, 7.5), view_height=20.0
+    )
 
     # Legend Table and Revisions table
     revs = [
@@ -2009,9 +2037,9 @@ def execute_integrated_master_project():
 # =====================================================================
 
 if __name__ == "__main__":
-    print("="*80)
+    print("=" * 80)
     print("        QOMN-FIRE: MASTER INTEGRATED SUITE RUNTIME ENGINE")
-    print("="*80)
+    print("=" * 80)
 
     # 1. Output the workspace codefiles on disk
     build_workspace_to_disk()
@@ -2020,9 +2048,9 @@ if __name__ == "__main__":
     sys.path.insert(0, os.path.abspath(os.getcwd()))
 
     # 2. Run the dynamic unit testing suite
-    print("="*80)
+    print("=" * 80)
     print("             EXECUTING AUTOMATED CRITICAL UNIT TEST SUITE")
-    print("="*80)
+    print("=" * 80)
     suite = unittest.TestLoader().loadTestsFromTestCase(TestIntegratedQomnFire)
     runner = unittest.TextTestRunner(verbosity=2)
     test_result = runner.run(suite)
@@ -2032,7 +2060,7 @@ if __name__ == "__main__":
         sys.exit(1)
 
     # 3. Run production master project
-    print("\n" + "="*80)
+    print("\n" + "=" * 80)
     print("             RUNNING END-TO-END CAD/BIM PRODUCTION WORKFLOW")
-    print("="*80)
+    print("=" * 80)
     execute_integrated_master_project()

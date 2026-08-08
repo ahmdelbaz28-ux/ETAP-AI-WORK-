@@ -101,9 +101,6 @@ class ETAPGuideRAG:
         self.chunks: list[str] = []
         self.chunk_metadata: list[dict] = []
 
-        self.documents: List[Dict] = []
-        self.chunks: List[str] = []
-        self.chunk_metadata: List[Dict] = []
         self.embeddings = None
         self.vector_db = None
 

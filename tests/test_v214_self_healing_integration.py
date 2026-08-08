@@ -45,6 +45,7 @@ def _reset_healing_state():
             global_audit_logger,
             global_circuit_breaker,
         )
+
         global_circuit_breaker.reset()
         # Truncate the audit log file to prevent chain verification failures
         # in other test files that expect a fresh log.
@@ -62,6 +63,7 @@ def _reset_healing_state():
     yield
     try:
         from fireai.core.qomn_self_healing_engine import global_circuit_breaker
+
         global_circuit_breaker.reset()
         # Truncate again after test
         audit_path = os.environ.get("QOMN_AUDIT_LOG_PATH", "qomn_fire_healing_audit.jsonl")
@@ -196,7 +198,10 @@ class TestV214SelfHealingCircuitBreaker:
         # Generate many errors to trip the breaker
         for i in range(15):
             result = kernel.voltage_drop(-1.0, 30.0, "14", 24.0, 10.0)
-            if result.get("healing_tier") == 3 or "circuit" in str(result.get("healing_error", "")).lower():
+            if (
+                result.get("healing_tier") == 3
+                or "circuit" in str(result.get("healing_error", "")).lower()
+            ):
                 break
 
         # The circuit breaker may or may not trip depending on threshold config.

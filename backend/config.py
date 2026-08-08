@@ -20,6 +20,7 @@ from typing import Optional
 # Falls back gracefully if python-dotenv is not installed.
 try:
     from dotenv import load_dotenv
+
     load_dotenv(override=False)  # Never override real environment variables
 except ImportError:
     pass
@@ -31,13 +32,13 @@ class Config:
     # PostgreSQL Configuration (Primary Database)
     DATABASE_URL: str = os.environ.get(
         "DATABASE_URL",
-        "sqlite:///./db/digital_twin.db"  # Default fallback
+        "sqlite:///./db/digital_twin.db",  # Default fallback
     )
 
     # Digital Twin Database Path (for the existing system)
     DIGITAL_TWIN_DB_PATH: str = os.environ.get(
         "DIGITAL_TWIN_DB_PATH",
-        os.path.join(os.path.dirname(os.path.dirname(__file__)), "db", "digital_twin.db")
+        os.path.join(os.path.dirname(os.path.dirname(__file__)), "db", "digital_twin.db"),
     )
 
     # Qdrant Configuration (Vector Database)
@@ -65,22 +66,26 @@ class Config:
     # and rejects direct origin access in production.
     # See backend/akamai_middleware.py for the full integration.
     AKAMAI_ENABLED: bool = os.environ.get("AKAMAI_ENABLED", "false").lower() in (
-        "true", "1", "yes", "on",
+        "true",
+        "1",
+        "yes",
+        "on",
     )
     # Shared secret injected by Akamai EdgeWorker / Property Manager.
     # When set, requests without this header are rejected in production.
-    AKAMAI_REQUIRE_ORIGIN_TOKEN: str = os.environ.get(
-        "AKAMAI_REQUIRE_ORIGIN_TOKEN", ""
-    ).strip()
+    AKAMAI_REQUIRE_ORIGIN_TOKEN: str = os.environ.get("AKAMAI_REQUIRE_ORIGIN_TOKEN", "").strip()
     # Comma-separated ISO 3166-1 alpha-2 country codes to block (e.g. "CN,RU,IR,KP")
     AKAMAI_BLOCKED_COUNTRIES: str = os.environ.get("AKAMAI_BLOCKED_COUNTRIES", "")
     # Bot score threshold (0-100, 0=human, 100=bot) for sensitive endpoints.
     # Requests above this score on /api/v1/auth/* are rejected.
     AKAMAI_ALLOWED_BOT_SCORE: int = int(os.environ.get("AKAMAI_ALLOWED_BOT_SCORE", "30"))
     # Forward Akamai's X-RateLimit-* response headers to the client
-    AKAMAI_RATE_LIMIT_HEADER: bool = os.environ.get(
-        "AKAMAI_RATE_LIMIT_HEADER", "true"
-    ).lower() in ("true", "1", "yes", "on")
+    AKAMAI_RATE_LIMIT_HEADER: bool = os.environ.get("AKAMAI_RATE_LIMIT_HEADER", "true").lower() in (
+        "true",
+        "1",
+        "yes",
+        "on",
+    )
 
     # Additional settings
     ENVIRONMENT: str = os.environ.get("FIREAI_ENV", "development")

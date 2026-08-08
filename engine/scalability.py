@@ -86,9 +86,7 @@ class LoadBalancer:
                     key=lambda wid: healthy[wid].current_load / max(healthy[wid].capacity, 1e-9),
                 )
             elif self._strategy == LoadBalancingStrategy.RANDOM:
-                return _RNG.choice(
-                    list(healthy.keys())
-                )  # NOSONAR
+                return _RNG.choice(list(healthy.keys()))  # NOSONAR
             elif self._strategy == LoadBalancingStrategy.WEIGHTED:
                 total = sum(w.weight for w in healthy.values())
                 r = _RNG.uniform(0, total)  # NOSONAR

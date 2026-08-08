@@ -25,6 +25,7 @@ Author: ETAP Integration Team
 from __future__ import annotations
 
 import logging
+import re
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
@@ -48,6 +49,8 @@ def _sanitize_for_log(value: object, max_len: int = 200) -> str:
     if len(s) > max_len:
         s = s[:max_len] + "...[truncated]"
     return s
+
+
 logger = logging.getLogger("etap.api.copilot_config")
 
 router = APIRouter(
@@ -122,9 +125,7 @@ class CopilotConfigResponse(BaseModel):
     fallback_notification_enabled: bool = Field(
         ..., description="Whether to notify on fallback events"
     )
-    primary_model: str = Field(
-        ..., description="The first-choice model name"
-    )
+    primary_model: str = Field(..., description="The first-choice model name")
 
     model_config = {"from_attributes": True}
 
@@ -154,9 +155,7 @@ class CopilotConfigUpdateRequest(BaseModel):
     fallback_notification_enabled: Optional[bool] = Field(
         default=None, description="Whether to notify on fallback events"
     )
-    primary_model: Optional[str] = Field(
-        default=None, description="The first-choice model name"
-    )
+    primary_model: Optional[str] = Field(default=None, description="The first-choice model name")
 
     model_config = {"from_attributes": True}
 
@@ -339,8 +338,7 @@ async def reorder_models(
     if unknown:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail=f"Unknown models: {unknown}. "
-            f"Available models: {list(_MODEL_CATALOG.keys())}",
+            detail=f"Unknown models: {unknown}. Available models: {list(_MODEL_CATALOG.keys())}",
         )
 
     # Check for duplicates

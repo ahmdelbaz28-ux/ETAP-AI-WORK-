@@ -24,9 +24,10 @@ from api.feature_flags import (
     _db_path,
     _load_flags,
     _save_flags,
+)
+from api.feature_flags import (
     router as feature_flags_router,
 )
-
 
 # ---------------------------------------------------------------------------
 # Fixtures
@@ -149,7 +150,9 @@ class TestListFeatureFlags:
             assert "effective_enabled" in flag
             assert isinstance(flag["effective_enabled"], bool)
 
-    def test_dev_env_forces_effective_true(self, client: TestClient, monkeypatch, auth_headers: dict):
+    def test_dev_env_forces_effective_true(
+        self, client: TestClient, monkeypatch, auth_headers: dict
+    ):
         monkeypatch.setenv("ENV", "development")
         resp = client.get("/api/v1/feature-flags", headers=auth_headers)
         for flag in resp.json()["data"]:
@@ -157,7 +160,9 @@ class TestListFeatureFlags:
                 f"Dev env should force effective_enabled=True for {flag['key']}"
             )
 
-    def test_prod_env_respects_disabled_state(self, client: TestClient, monkeypatch, auth_headers: dict):
+    def test_prod_env_respects_disabled_state(
+        self, client: TestClient, monkeypatch, auth_headers: dict
+    ):
         monkeypatch.setenv("ENV", "production")
         resp = client.get("/api/v1/feature-flags", headers=auth_headers)
         for flag in resp.json()["data"]:

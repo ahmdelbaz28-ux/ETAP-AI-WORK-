@@ -153,7 +153,9 @@ def _validate_file_path(filepath: str) -> str:
         )
     except FileNotFoundError as exc:
         # Benign missing-file case — return 404.
-        raise HTTPException(status_code=404, detail="File not found.") from exc  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
+        raise HTTPException(
+            status_code=404, detail="File not found."
+        ) from exc  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
     except UnsafePathError as exc:
         # Hard security rejection — log details, return generic 400.
         logger.warning("Path traversal blocked: %s", exc)
@@ -179,6 +181,7 @@ _MAX_UPLOAD_SIZE = 50 * 1024 * 1024
 # REQUEST/RESPONSE MODELS
 # =============================================================================
 
+
 class ConnectRequest(BaseModel):
     """
     Request model for Revit connection.
@@ -190,9 +193,9 @@ class ConnectRequest(BaseModel):
     """
 
     method: str = Field(
-        default="auto",
-        description="Connection method: 'api', 'macro', 'simulation', or 'auto'"
+        default="auto", description="Connection method: 'api', 'macro', 'simulation', or 'auto'"
     )
+
 
 class ConnectResponse(BaseModel):
     """Response model for Revit connection.
@@ -223,6 +226,7 @@ class StatusResponse(BaseModel):
 # DOCUMENT MODELS
 # =============================================================================
 
+
 class DocumentOpenRequest(BaseModel):
     """Request to open an RVT file."""
 
@@ -245,6 +249,7 @@ class DocumentCloseRequest(BaseModel):
 # ELEMENT CREATE MODELS
 # =============================================================================
 
+
 class CreateWallRequest(BaseModel):
     """
     Request to create a wall.
@@ -261,7 +266,9 @@ class CreateWallRequest(BaseModel):
     start_point: List[float] = Field(..., description="Start point [x, y, z]")
     end_point: List[float] = Field(..., description="End point [x, y, z]")
     height: float = Field(3000.0, description="Wall height in mm")
-    level: str = Field("Level 1", description="Level name")  # NOSONAR — S1192: duplicated literal acceptable in this localized context
+    level: str = Field(
+        "Level 1", description="Level name"
+    )  # NOSONAR — S1192: duplicated literal acceptable in this localized context
     wall_type: str = Field("Basic Wall", description="Wall type name")
 
 
@@ -276,10 +283,7 @@ class CreateFloorRequest(BaseModel):
 
     """
 
-    boundary_points: List[List[float]] = Field(
-        ...,
-        description="Boundary points [[x,y,z], ...]"
-    )
+    boundary_points: List[List[float]] = Field(..., description="Boundary points [[x,y,z], ...]")
     level: str = Field("Level 1", description="Level name")
     floor_type: str = Field("Floor", description="Floor type name")
 
@@ -297,7 +301,9 @@ class CreateDoorRequest(BaseModel):
     """
 
     host_wall_id: str = Field(..., description="Host wall element ID")
-    location_point: List[float] = Field(..., description="Insertion point [x, y, z]")  # NOSONAR — S1192: duplicated literal acceptable in this localized context
+    location_point: List[float] = Field(
+        ..., description="Insertion point [x, y, z]"
+    )  # NOSONAR — S1192: duplicated literal acceptable in this localized context
     family_type: str = Field("M_Single-Flush", description="Door family type")
     level: str = Field("Level 1", description="Level name")
 
@@ -385,6 +391,7 @@ class ElementsResponse(BaseModel):
 # SEARCH MODELS
 # =============================================================================
 
+
 class SearchAPIRequest(BaseModel):
     """Request to search local API data."""
 
@@ -441,9 +448,11 @@ class WriteRvtRequest(BaseModel):
     filepath: str = Field(..., description="Path to save the RVT file")
     elements: List[Dict[str, Any]] = Field(..., description="List of elements to write")
 
+
 # =============================================================================
 # CONNECTION ENDPOINTS
 # =============================================================================
+
 
 @router.post("/connect", response_model=ConnectResponse, tags=["revit"])  # NOSONAR - python:S8409
 async def connect_to_revit(request: ConnectRequest = None) -> ConnectResponse:
@@ -483,15 +492,17 @@ async def connect_to_revit(request: ConnectRequest = None) -> ConnectResponse:
             message=message,
             connected=svc.connected,
             simulation_mode=svc.simulation_mode,
-            connection_method=svc.connection_method
+            connection_method=svc.connection_method,
         )
     except HTTPException:
         raise
     except Exception as e:
-        raise _safe_error(503, "Failed to connect to Revit", e)
+        raise _safe_error(503, "Failed to connect to Revit", e) from e
 
 
-@router.post("/disconnect", response_model=ConnectResponse, tags=["revit"])  # NOSONAR - python:S8409
+@router.post(
+    "/disconnect", response_model=ConnectResponse, tags=["revit"]
+)  # NOSONAR - python:S8409
 async def disconnect_from_revit() -> ConnectResponse:
     """Disconnect from Revit application."""
     try:
@@ -523,24 +534,27 @@ async def get_revit_status() -> StatusResponse:
             connected=svc.connected,
             message="Revit service status" if svc.connected else "Revit not connected",
             connection_method=svc.connection_method,
-            document_info=doc_info if doc_info else None
+            document_info=doc_info if doc_info else None,
         )
     except HTTPException:
         raise
     except Exception as e:
-        raise _safe_error(500, "Error getting Revit status", e)
+        raise _safe_error(500, "Error getting Revit status", e) from e
 
 
 # =============================================================================
 # DOCUMENT ENDPOINTS
 # =============================================================================
 
+
 @router.post("/document/open", tags=["revit"])
 async def open_document(request: DocumentOpenRequest) -> Dict[str, Any]:
     """Open an RVT file."""
     svc = get_revit_service()
     if not svc.connected:
-        raise HTTPException(status_code=503, detail="Not connected to Revit")  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S1192: duplicated literal acceptable in this localized context
+        raise HTTPException(
+            status_code=503, detail="Not connected to Revit"
+        )  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S1192: duplicated literal acceptable in this localized context
 
     # FIX: Path traversal validation
     _validate_file_path(request.filepath)
@@ -548,7 +562,9 @@ async def open_document(request: DocumentOpenRequest) -> Dict[str, Any]:
     success = svc.open_document(request.filepath)
     if success:
         return {"success": True, "message": f"Opened: {request.filepath}"}
-    raise HTTPException(status_code=500, detail="Failed to open document")  # NOSONAR — S8415: assignment kept for readability / debuggability
+    raise HTTPException(
+        status_code=500, detail="Failed to open document"
+    )  # NOSONAR — S8415: assignment kept for readability / debuggability
 
 
 @router.post("/document/save", tags=["revit"])
@@ -556,7 +572,9 @@ async def save_document(request: DocumentSaveRequest) -> Dict[str, Any]:
     """Save the current document."""
     svc = get_revit_service()
     if not svc.connected:
-        raise HTTPException(status_code=503, detail="Not connected to Revit")  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
+        raise HTTPException(
+            status_code=503, detail="Not connected to Revit"
+        )  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
 
     # FIX: Path traversal validation for save path
     if request.filepath:
@@ -565,7 +583,9 @@ async def save_document(request: DocumentSaveRequest) -> Dict[str, Any]:
     success = svc.save_document(request.filepath)
     if success:
         return {"success": True, "message": "Document saved"}
-    raise HTTPException(status_code=500, detail="Failed to save document")  # NOSONAR — S8415: assignment kept for readability / debuggability
+    raise HTTPException(
+        status_code=500, detail="Failed to save document"
+    )  # NOSONAR — S8415: assignment kept for readability / debuggability
 
 
 @router.post("/document/close", tags=["revit"])
@@ -573,39 +593,57 @@ async def close_document(request: DocumentCloseRequest) -> Dict[str, Any]:
     """Close the current document."""
     svc = get_revit_service()
     if not svc.connected:
-        raise HTTPException(status_code=503, detail="Not connected to Revit")  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
+        raise HTTPException(
+            status_code=503, detail="Not connected to Revit"
+        )  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
 
     success = svc.close_document(request.save_changes)
     if success:
         return {"success": True, "message": "Document closed"}
-    raise HTTPException(status_code=500, detail="Failed to close document")  # NOSONAR — S8415: assignment kept for readability / debuggability
+    raise HTTPException(
+        status_code=500, detail="Failed to close document"
+    )  # NOSONAR — S8415: assignment kept for readability / debuggability
+
 
 # =============================================================================
 # LEGACY FILE ENDPOINTS
 # =============================================================================
 
-@router.post("/read_rvt", tags=["revit"], dependencies=[Depends(require_permission(Permission.ELEMENT_READ))])
+
+@router.post(
+    "/read_rvt", tags=["revit"], dependencies=[Depends(require_permission(Permission.ELEMENT_READ))]
+)
 async def read_rvt_file(request: ReadRvtRequest) -> Dict[str, Any]:
     """Read elements from an RVT file (legacy endpoint)."""
     svc = get_revit_service()
     if not svc.connected:
-        raise HTTPException(status_code=503, detail="Not connected to Revit")  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
+        raise HTTPException(
+            status_code=503, detail="Not connected to Revit"
+        )  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
 
     # FIX: Path traversal validation
     _validate_file_path(request.filepath)
 
     result = svc.read_rvt(request.filepath)
     if not result.get("success", False):
-        raise HTTPException(status_code=400, detail=_sanitize_error(result.get("error", "Unknown error")))  # NOSONAR — S8415: assignment kept for readability / debuggability
+        raise HTTPException(
+            status_code=400, detail=_sanitize_error(result.get("error", "Unknown error"))
+        )  # NOSONAR — S8415: assignment kept for readability / debuggability
     return result
 
 
-@router.post("/write_rvt", tags=["revit"], dependencies=[Depends(require_permission(Permission.ELEMENT_CREATE))])
+@router.post(
+    "/write_rvt",
+    tags=["revit"],
+    dependencies=[Depends(require_permission(Permission.ELEMENT_CREATE))],
+)
 async def write_rvt_file(request: WriteRvtRequest) -> Dict[str, Any]:
     """Write elements to an RVT file (legacy endpoint)."""
     svc = get_revit_service()
     if not svc.connected:
-        raise HTTPException(status_code=503, detail="Not connected to Revit")  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
+        raise HTTPException(
+            status_code=503, detail="Not connected to Revit"
+        )  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
 
     # FIX: Path traversal validation
     _validate_file_path(request.filepath)
@@ -613,13 +651,23 @@ async def write_rvt_file(request: WriteRvtRequest) -> Dict[str, Any]:
     success = svc.write_rvt(request.filepath, request.elements)
     if success:
         return {"success": True, "message": "File written successfully"}
-    raise HTTPException(status_code=500, detail="Failed to write file")  # NOSONAR — S8415: assignment kept for readability / debuggability
+    raise HTTPException(
+        status_code=500, detail="Failed to write file"
+    )  # NOSONAR — S8415: assignment kept for readability / debuggability
 
 
-@router.post("/upload_rvt", tags=["revit"], dependencies=[Depends(require_permission(Permission.ELEMENT_CREATE))])
-@router.post("/upload", tags=["revit"], dependencies=[Depends(require_permission(Permission.ELEMENT_CREATE))])
+@router.post(
+    "/upload_rvt",
+    tags=["revit"],
+    dependencies=[Depends(require_permission(Permission.ELEMENT_CREATE))],
+)
+@router.post(
+    "/upload", tags=["revit"], dependencies=[Depends(require_permission(Permission.ELEMENT_CREATE))]
+)
 @limiter.limit("10/minute")
-async def upload_and_read_rvt(request: Request, file: UploadFile = File(...)) -> Dict[str, Any]:  # NOSONAR - python:S8410
+async def upload_and_read_rvt(
+    request: Request, file: UploadFile = File(...)
+) -> Dict[str, Any]:  # NOSONAR - python:S8410
     """
     Upload an RVT file and read its contents.
 
@@ -627,26 +675,34 @@ async def upload_and_read_rvt(request: Request, file: UploadFile = File(...)) ->
     """
     svc = get_revit_service()
     if not svc.connected:
-        raise HTTPException(status_code=503, detail="Not connected to Revit")  # NOSONAR: S7493 sync file I/O acceptable for small config reads  # NOSONAR — S8415: assignment kept for readability / debuggability  # NOSONAR — S7632: test function documented via class name / module path
+        raise HTTPException(
+            status_code=503, detail="Not connected to Revit"
+        )  # NOSONAR: S7493 sync file I/O acceptable for small config reads  # NOSONAR — S8415: assignment kept for readability / debuggability  # NOSONAR — S7632: test function documented via class name / module path
 
     # Read with size check
     contents = await file.read()
     if len(contents) > _MAX_UPLOAD_SIZE:
-        raise HTTPException(status_code=413, detail="File too large (max 50MB)")  # NOSONAR — S8415: assignment kept for readability / debuggability
+        raise HTTPException(
+            status_code=413, detail="File too large (max 50MB)"
+        )  # NOSONAR — S8415: assignment kept for readability / debuggability
 
     # FIX: Safe temp path instead of f"temp_{file.filename}"
-    safe_name = re.sub(r'[^\w\-.]', '_', file.filename or "upload.rvt")
+    safe_name = re.sub(r"[^\w\-.]", "_", file.filename or "upload.rvt")
     temp_dir = tempfile.mkdtemp()
     temp_path = os.path.join(temp_dir, f"{uuid.uuid4().hex}_{safe_name}")
 
     try:
-        with open(temp_path, "wb") as buffer:  # NOSONAR — S7493: default mutable acceptable (frozen at module load)
+        with open(
+            temp_path, "wb"
+        ) as buffer:  # NOSONAR — S7493: default mutable acceptable (frozen at module load)
             buffer.write(contents)
 
         result = svc.read_rvt(temp_path)
 
         if not result.get("success", False):
-            raise HTTPException(status_code=400, detail=_sanitize_error(result.get("error", "Unknown error")))  # NOSONAR — S8415: assignment kept for readability / debuggability
+            raise HTTPException(
+                status_code=400, detail=_sanitize_error(result.get("error", "Unknown error"))
+            )  # NOSONAR — S8415: assignment kept for readability / debuggability
         return result
     finally:
         # Guaranteed cleanup
@@ -662,26 +718,39 @@ async def upload_and_read_rvt(request: Request, file: UploadFile = File(...)) ->
 # ELEMENT READ ENDPOINTS
 # =============================================================================
 
+
 @router.get("/elements", response_model=ElementsResponse, tags=["revit"])  # NOSONAR - python:S8409
 async def get_elements(
-    category: Optional[str] = Query(None, description="Filter by category (Walls, Floors, Doors, etc.)"),  # NOSONAR - python:S8410
-    element_class: Optional[str] = Query(None, description="Filter by class name")  # NOSONAR - python:S8410
+    category: Optional[str] = Query(
+        None, description="Filter by category (Walls, Floors, Doors, etc.)"
+    ),  # NOSONAR - python:S8410
+    element_class: Optional[str] = Query(
+        None, description="Filter by class name"
+    ),  # NOSONAR - python:S8410
 ) -> ElementsResponse:
     """Get elements using FilteredElementCollector pattern."""
     svc = get_revit_service()
     if not svc.connected:
-        raise HTTPException(status_code=503, detail="Not connected to Revit")  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
+        raise HTTPException(
+            status_code=503, detail="Not connected to Revit"
+        )  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
 
-    elements = svc.get_elements(category=category, element_class=element_class)  # NOSONAR - python:S930
+    elements = svc.get_elements(
+        category=category, element_class=element_class
+    )  # NOSONAR - python:S930
     return ElementsResponse(success=True, elements=elements, count=len(elements))
 
 
-@router.get("/elements/selected", response_model=ElementsResponse, tags=["revit"])  # NOSONAR - python:S8409
+@router.get(
+    "/elements/selected", response_model=ElementsResponse, tags=["revit"]
+)  # NOSONAR - python:S8409
 async def get_selected_elements() -> ElementsResponse:
     """Get currently selected elements in Revit UI."""
     svc = get_revit_service()
     if not svc.connected:
-        raise HTTPException(status_code=503, detail="Not connected to Revit")  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
+        raise HTTPException(
+            status_code=503, detail="Not connected to Revit"
+        )  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
 
     elements = svc.get_selected_elements()
     return ElementsResponse(success=True, elements=elements, count=len(elements))
@@ -692,12 +761,16 @@ async def get_element(element_id: str) -> Dict[str, Any]:
     """Get a single element by ID."""
     svc = get_revit_service()
     if not svc.connected:
-        raise HTTPException(status_code=503, detail="Not connected to Revit")  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
+        raise HTTPException(
+            status_code=503, detail="Not connected to Revit"
+        )  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
 
     element = svc.get_element_by_id(element_id)
     if element:
         return {"success": True, "element": element}
-    raise HTTPException(status_code=404, detail="Element not found")  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
+    raise HTTPException(
+        status_code=404, detail="Element not found"
+    )  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
 
 
 @router.get("/elements/{element_id}/parameters", tags=["revit"])
@@ -705,7 +778,9 @@ async def get_element_parameters(element_id: str) -> Dict[str, Any]:
     """Get all parameters of an element."""
     svc = get_revit_service()
     if not svc.connected:
-        raise HTTPException(status_code=503, detail="Not connected to Revit")  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
+        raise HTTPException(
+            status_code=503, detail="Not connected to Revit"
+        )  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
 
     params = svc.get_element_parameters(element_id)
     return {"success": True, "parameters": params}
@@ -715,151 +790,178 @@ async def get_element_parameters(element_id: str) -> Dict[str, Any]:
 # ELEMENT CREATE ENDPOINTS
 # =============================================================================
 
-@router.post("/elements/create/wall", response_model=ElementResponse, tags=["revit"])  # NOSONAR - python:S8409
+
+@router.post(
+    "/elements/create/wall", response_model=ElementResponse, tags=["revit"]
+)  # NOSONAR - python:S8409
 async def create_wall(request: CreateWallRequest) -> ElementResponse:
     """Create a wall in Revit."""
     svc = get_revit_service()
     if not svc.connected:
-        raise HTTPException(status_code=503, detail="Not connected to Revit")  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
+        raise HTTPException(
+            status_code=503, detail="Not connected to Revit"
+        )  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
 
     element_id = svc.create_wall(
         start_point=request.start_point,
         end_point=request.end_point,
         height=request.height,
         level=request.level,
-        wall_type=request.wall_type
+        wall_type=request.wall_type,
     )
 
     return ElementResponse(
         success=element_id is not None,
         message=f"Wall created: {element_id}" if element_id else "Failed to create wall",
-        element_id=element_id
+        element_id=element_id,
     )
 
 
-@router.post("/elements/create/floor", response_model=ElementResponse, tags=["revit"])  # NOSONAR - python:S8409
+@router.post(
+    "/elements/create/floor", response_model=ElementResponse, tags=["revit"]
+)  # NOSONAR - python:S8409
 async def create_floor(request: CreateFloorRequest) -> ElementResponse:
     """Create a floor in Revit."""
     svc = get_revit_service()
     if not svc.connected:
-        raise HTTPException(status_code=503, detail="Not connected to Revit")  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
+        raise HTTPException(
+            status_code=503, detail="Not connected to Revit"
+        )  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
 
     element_id = svc.create_floor(
-        boundary_points=request.boundary_points,
-        level=request.level,
-        floor_type=request.floor_type
+        boundary_points=request.boundary_points, level=request.level, floor_type=request.floor_type
     )
 
     return ElementResponse(
         success=element_id is not None,
         message=f"Floor created: {element_id}" if element_id else "Failed to create floor",
-        element_id=element_id
+        element_id=element_id,
     )
 
 
-@router.post("/elements/create/door", response_model=ElementResponse, tags=["revit"])  # NOSONAR - python:S8409
+@router.post(
+    "/elements/create/door", response_model=ElementResponse, tags=["revit"]
+)  # NOSONAR - python:S8409
 async def create_door(request: CreateDoorRequest) -> ElementResponse:
     """Create a door in a wall."""
     svc = get_revit_service()
     if not svc.connected:
-        raise HTTPException(status_code=503, detail="Not connected to Revit")  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
+        raise HTTPException(
+            status_code=503, detail="Not connected to Revit"
+        )  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
 
     element_id = svc.create_door(
         host_wall_id=request.host_wall_id,
         location_point=request.location_point,
         family_type=request.family_type,
-        level=request.level
+        level=request.level,
     )
 
     return ElementResponse(
         success=element_id is not None,
         message=f"Door created: {element_id}" if element_id else "Failed to create door",
-        element_id=element_id
+        element_id=element_id,
     )
 
 
-@router.post("/elements/create/window", response_model=ElementResponse, tags=["revit"])  # NOSONAR - python:S8409
+@router.post(
+    "/elements/create/window", response_model=ElementResponse, tags=["revit"]
+)  # NOSONAR - python:S8409
 async def create_window(request: CreateWindowRequest) -> ElementResponse:
     """Create a window in a wall."""
     svc = get_revit_service()
     if not svc.connected:
-        raise HTTPException(status_code=503, detail="Not connected to Revit")  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
+        raise HTTPException(
+            status_code=503, detail="Not connected to Revit"
+        )  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
 
     element_id = svc.create_window(
         host_wall_id=request.host_wall_id,
         location_point=request.location_point,
         family_type=request.family_type,
-        level=request.level
+        level=request.level,
     )
 
     return ElementResponse(
         success=element_id is not None,
         message=f"Window created: {element_id}" if element_id else "Failed to create window",
-        element_id=element_id
+        element_id=element_id,
     )
 
 
-@router.post("/elements/create/column", response_model=ElementResponse, tags=["revit"])  # NOSONAR - python:S8409
+@router.post(
+    "/elements/create/column", response_model=ElementResponse, tags=["revit"]
+)  # NOSONAR - python:S8409
 async def create_column(request: CreateColumnRequest) -> ElementResponse:
     """Create a structural column."""
     svc = get_revit_service()
     if not svc.connected:
-        raise HTTPException(status_code=503, detail="Not connected to Revit")  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
+        raise HTTPException(
+            status_code=503, detail="Not connected to Revit"
+        )  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
 
     element_id = svc.create_column(
         location_point=request.location_point,
         height=request.height,
         level=request.level,
-        column_type=request.column_type
+        column_type=request.column_type,
     )
 
     return ElementResponse(
         success=element_id is not None,
         message=f"Column created: {element_id}" if element_id else "Failed to create column",
-        element_id=element_id
+        element_id=element_id,
     )
 
 
-@router.post("/elements/create/beam", response_model=ElementResponse, tags=["revit"])  # NOSONAR - python:S8409
+@router.post(
+    "/elements/create/beam", response_model=ElementResponse, tags=["revit"]
+)  # NOSONAR - python:S8409
 async def create_beam(request: CreateBeamRequest) -> ElementResponse:
     """Create a structural beam."""
     svc = get_revit_service()
     if not svc.connected:
-        raise HTTPException(status_code=503, detail="Not connected to Revit")  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
+        raise HTTPException(
+            status_code=503, detail="Not connected to Revit"
+        )  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
 
     element_id = svc.create_beam(
         start_point=request.start_point,
         end_point=request.end_point,
         level=request.level,
-        beam_type=request.beam_type
+        beam_type=request.beam_type,
     )
 
     return ElementResponse(
         success=element_id is not None,
         message=f"Beam created: {element_id}" if element_id else "Failed to create beam",
-        element_id=element_id
+        element_id=element_id,
     )
 
 
-@router.post("/elements/create/family", response_model=ElementResponse, tags=["revit"])  # NOSONAR - python:S8409
+@router.post(
+    "/elements/create/family", response_model=ElementResponse, tags=["revit"]
+)  # NOSONAR - python:S8409
 async def create_family(request: CreateFamilyRequest) -> ElementResponse:
     """Create a generic family instance."""
     svc = get_revit_service()
     if not svc.connected:
-        raise HTTPException(status_code=503, detail="Not connected to Revit")  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
+        raise HTTPException(
+            status_code=503, detail="Not connected to Revit"
+        )  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
 
     element_id = svc.create_family_instance(
         family_name=request.family_name,
         category=request.category,
         location_point=request.location_point,
         level=request.level,  # NOSONAR - python:S930
-        parameters=request.parameters
+        parameters=request.parameters,
     )
 
     return ElementResponse(
         success=element_id is not None,
         message=f"Family instance created: {element_id}" if element_id else "Failed to create",
-        element_id=element_id
+        element_id=element_id,
     )
 
 
@@ -867,15 +969,15 @@ async def create_family(request: CreateFamilyRequest) -> ElementResponse:
 # ELEMENT UPDATE/DELETE ENDPOINTS
 # =============================================================================
 
+
 @router.put("/elements/{element_id}/parameters", tags=["revit"])
-async def update_parameters(
-    element_id: str,
-    request: ParameterUpdateRequest
-) -> Dict[str, Any]:
+async def update_parameters(element_id: str, request: ParameterUpdateRequest) -> Dict[str, Any]:
     """Update element parameters."""
     svc = get_revit_service()
     if not svc.connected:
-        raise HTTPException(status_code=503, detail="Not connected to Revit")  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
+        raise HTTPException(
+            status_code=503, detail="Not connected to Revit"
+        )  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
 
     success = True
     for param_name, value in request.parameters.items():
@@ -884,7 +986,7 @@ async def update_parameters(
 
     return {
         "success": success,
-        "message": "Parameters updated" if success else "Some parameters failed"
+        "message": "Parameters updated" if success else "Some parameters failed",
     }
 
 
@@ -893,24 +995,31 @@ async def delete_element(element_id: str) -> Dict[str, Any]:
     """Delete an element."""
     svc = get_revit_service()
     if not svc.connected:
-        raise HTTPException(status_code=503, detail="Not connected to Revit")  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
+        raise HTTPException(
+            status_code=503, detail="Not connected to Revit"
+        )  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
 
     success = svc.delete_element(element_id)
     if success:
         return {"success": True, "message": f"Element {element_id} deleted"}
-    raise HTTPException(status_code=500, detail="Failed to delete element")  # NOSONAR — S8415: assignment kept for readability / debuggability
+    raise HTTPException(
+        status_code=500, detail="Failed to delete element"
+    )  # NOSONAR — S8415: assignment kept for readability / debuggability
 
 
 # =============================================================================
 # VIEW/LEVEL/GRID ENDPOINTS
 # =============================================================================
 
+
 @router.get("/views", response_model=ElementsResponse, tags=["revit"])  # NOSONAR - python:S8409
 async def get_views() -> ElementsResponse:
     """Get all views in the project."""
     svc = get_revit_service()
     if not svc.connected:
-        raise HTTPException(status_code=503, detail="Not connected to Revit")  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
+        raise HTTPException(
+            status_code=503, detail="Not connected to Revit"
+        )  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
 
     views = svc.get_views()
     return ElementsResponse(success=True, elements=views, count=len(views))
@@ -921,7 +1030,9 @@ async def get_levels() -> ElementsResponse:
     """Get all levels in the project."""
     svc = get_revit_service()
     if not svc.connected:
-        raise HTTPException(status_code=503, detail="Not connected to Revit")  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
+        raise HTTPException(
+            status_code=503, detail="Not connected to Revit"
+        )  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
 
     levels = svc.get_levels()
     return ElementsResponse(success=True, elements=levels, count=len(levels))
@@ -932,7 +1043,9 @@ async def get_grids() -> ElementsResponse:
     """Get all grids in the project."""
     svc = get_revit_service()
     if not svc.connected:
-        raise HTTPException(status_code=503, detail="Not connected to Revit")  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
+        raise HTTPException(
+            status_code=503, detail="Not connected to Revit"
+        )  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
 
     grids = svc.get_grids()
     return ElementsResponse(success=True, elements=grids, count=len(grids))
@@ -943,7 +1056,9 @@ async def get_worksets() -> ElementsResponse:
     """Get all worksets in the project."""
     svc = get_revit_service()
     if not svc.connected:
-        raise HTTPException(status_code=503, detail="Not connected to Revit")  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
+        raise HTTPException(
+            status_code=503, detail="Not connected to Revit"
+        )  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
 
     worksets = svc.get_worksets()
     return ElementsResponse(success=True, elements=worksets, count=len(worksets))
@@ -952,6 +1067,7 @@ async def get_worksets() -> ElementsResponse:
 # =============================================================================
 # FAMILY ENDPOINTS
 # =============================================================================
+
 
 @router.get("/families/{category}/symbols", tags=["revit"])
 async def get_family_symbols(category: str) -> Dict[str, Any]:
@@ -962,7 +1078,9 @@ async def get_family_symbols(category: str) -> Dict[str, Any]:
     """
     svc = get_revit_service()
     if not svc.connected:
-        raise HTTPException(status_code=503, detail="Not connected to Revit")  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
+        raise HTTPException(
+            status_code=503, detail="Not connected to Revit"
+        )  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
 
     symbols = svc.get_family_symbols(category)
     return {"success": True, "symbols": symbols, "count": len(symbols)}
@@ -973,17 +1091,22 @@ async def load_family(request: LoadFamilyRequest) -> Dict[str, Any]:
     """Load a family (.rfa) file into the project."""
     svc = get_revit_service()
     if not svc.connected:
-        raise HTTPException(status_code=503, detail="Not connected to Revit")  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
+        raise HTTPException(
+            status_code=503, detail="Not connected to Revit"
+        )  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
 
     success = svc.load_family(request.family_path, request.category)
     if success:
         return {"success": True, "message": f"Family loaded: {request.family_path}"}
-    raise HTTPException(status_code=500, detail="Failed to load family")  # NOSONAR — S8415: assignment kept for readability / debuggability
+    raise HTTPException(
+        status_code=500, detail="Failed to load family"
+    )  # NOSONAR — S8415: assignment kept for readability / debuggability
 
 
 # =============================================================================
 # API SEARCH ENDPOINTS
 # =============================================================================
+
 
 @router.post("/search/api/load", tags=["revit"])
 async def load_api_data(request: LoadAPIDataRequest) -> Dict[str, Any]:
@@ -996,10 +1119,14 @@ async def load_api_data(request: LoadAPIDataRequest) -> Dict[str, Any]:
     success = svc.load_revit_api_data(request.json_path)
     if success:
         return {"success": True, "message": f"API data loaded from {request.json_path}"}
-    raise HTTPException(status_code=500, detail="Failed to load API data")  # NOSONAR — S8415: assignment kept for readability / debuggability
+    raise HTTPException(
+        status_code=500, detail="Failed to load API data"
+    )  # NOSONAR — S8415: assignment kept for readability / debuggability
 
 
-@router.post("/search/api", response_model=APIResultResponse, tags=["revit"])  # NOSONAR - python:S8409
+@router.post(
+    "/search/api", response_model=APIResultResponse, tags=["revit"]
+)  # NOSONAR - python:S8409
 async def search_api_data(request: SearchAPIRequest) -> APIResultResponse:
     """
     Search loaded API data locally.
@@ -1011,7 +1138,7 @@ async def search_api_data(request: SearchAPIRequest) -> APIResultResponse:
         keyword=request.keyword,
         api_name=request.api_name,
         namespace=request.namespace,
-        api_type=request.api_type
+        api_type=request.api_type,
     )
 
     api_results = [
@@ -1021,7 +1148,7 @@ async def search_api_data(request: SearchAPIRequest) -> APIResultResponse:
             "description": r.description,
             "type": r.type,
             "namespace": r.namespace,
-            "url": svc.get_api_url(r)
+            "url": svc.get_api_url(r),
         }
         for r in results
     ]
@@ -1029,22 +1156,19 @@ async def search_api_data(request: SearchAPIRequest) -> APIResultResponse:
     return APIResultResponse(success=True, results=api_results, count=len(api_results))
 
 
-@router.get("/search/online", response_model=APIResultResponse, tags=["revit"])  # NOSONAR - python:S8409
+@router.get(
+    "/search/online", response_model=APIResultResponse, tags=["revit"]
+)  # NOSONAR - python:S8409
 async def search_online(
     query: str = Query(..., description="Search query"),  # NOSONAR - python:S8410
-    engine: str = Query("revitapidocs", description="Search engine")  # NOSONAR - python:S8410
+    engine: str = Query("revitapidocs", description="Search engine"),  # NOSONAR - python:S8410
 ) -> APIResultResponse:
     """Search Revit API documentation online (RevitAPIDocs.com)."""
     svc = get_revit_service()
     results = await svc.search_revit_api(query, engine)
 
     api_results = [
-        {
-            "name": r.related_key,
-            "description": r.description,
-            "url": r.url
-        }
-        for r in results
+        {"name": r.related_key, "description": r.description, "url": r.url} for r in results
     ]
 
     return APIResultResponse(success=True, results=api_results, count=len(api_results))
@@ -1054,7 +1178,12 @@ async def search_online(
 # AI COMMAND ENDPOINT
 # =============================================================================
 
-@router.post("/execute", tags=["revit"], dependencies=[Depends(require_permission(Permission.ELEMENT_CREATE))])
+
+@router.post(
+    "/execute",
+    tags=["revit"],
+    dependencies=[Depends(require_permission(Permission.ELEMENT_CREATE))],
+)
 async def execute_ai_command(request: AICommandRequest) -> Dict[str, Any]:
     """
     Execute a natural language command from AI agent.
@@ -1069,6 +1198,8 @@ async def execute_ai_command(request: AICommandRequest) -> Dict[str, Any]:
     """
     svc = get_revit_service()
     if not svc.connected:
-        raise HTTPException(status_code=503, detail="Not connected to Revit")  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
+        raise HTTPException(
+            status_code=503, detail="Not connected to Revit"
+        )  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
 
     return svc.execute_ai_command(request.command, request.context)

@@ -17,6 +17,7 @@ Usage:
 Branch: feat/scenario-3-scada-live
 Refs: PRODUCTION_PLAN/07_SCENARIO_3_SCADA_LIVE.md
 """
+
 from __future__ import annotations
 
 import argparse
@@ -28,7 +29,6 @@ import sys
 import time
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
 
 PROJECT_ROOT = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
@@ -54,6 +54,7 @@ async def run_bridge() -> None:
 async def run_consumer() -> None:
     """تشغيل SCADA consumer (MQTT → TimescaleDB + anomaly detection)."""
     import ssl
+
     import paho.mqtt.client as mqtt
 
     # ─── Setup TimescaleDB ────────────────────────────────────────
@@ -65,7 +66,10 @@ async def run_consumer() -> None:
             import asyncpg
 
             db_pool = await asyncpg.create_pool(
-                dsn=timescale_url, min_size=2, max_size=10, command_timeout=30,
+                dsn=timescale_url,
+                min_size=2,
+                max_size=10,
+                command_timeout=30,
             )
 
             async with db_pool.acquire() as conn:
@@ -134,6 +138,7 @@ async def run_consumer() -> None:
             stats["messages_received"] += 1
 
             if db_pool:
+
                 async def store():
                     async with db_pool.acquire() as conn:
                         for field, value in data.items():
@@ -142,13 +147,16 @@ async def run_consumer() -> None:
                             if not isinstance(value, (int, float)):
                                 continue
                             tag_id = f"{device_id}.{field}"
-                            ts = data.get("timestamp",
-                                          datetime.now(timezone.utc).isoformat())
+                            ts = data.get("timestamp", datetime.now(timezone.utc).isoformat())
                             await conn.execute(
                                 """INSERT INTO timeseries.scada_tags
                                    (timestamp, tag_id, value, quality, source)
                                    VALUES ($1, $2, $3, $4, $5)""",
-                                ts, tag_id, float(value), 2, "etap_opcua",
+                                ts,
+                                tag_id,
+                                float(value),
+                                2,
+                                "etap_opcua",
                             )
                             stats["db_inserts"] += 1
 
@@ -209,9 +217,11 @@ async def run_monitor(duration_sec: int) -> None:
             if r.status_code == 200:
                 data = r.json()
                 elapsed = time.time() - start
-                print(f"[{elapsed:.0f}s] Tags: {data.get('tags_count', 0)}, "
-                      f"Last msg: {data.get('last_message_age_sec', '?')}s ago, "
-                      f"Alerts: {data.get('alerts_count', 0)}")
+                print(
+                    f"[{elapsed:.0f}s] Tags: {data.get('tags_count', 0)}, "
+                    f"Last msg: {data.get('last_message_age_sec', '?')}s ago, "
+                    f"Alerts: {data.get('alerts_count', 0)}"
+                )
             else:
                 logger.warning("Health check failed: %d", r.status_code)
 
@@ -247,12 +257,15 @@ def main() -> None:
         description="Scenario 3: SCADA - ETAP - GIS (Live)",
     )
     parser.add_argument(
-        "--mode", choices=["bridge", "consumer", "monitor", "all"],
+        "--mode",
+        choices=["bridge", "consumer", "monitor", "all"],
         default="all",
         help="Component to run (default: all)",
     )
     parser.add_argument(
-        "--duration", type=int, default=300,
+        "--duration",
+        type=int,
+        default=300,
         help="Duration in seconds for monitor/all mode (default: 300)",
     )
     args = parser.parse_args()

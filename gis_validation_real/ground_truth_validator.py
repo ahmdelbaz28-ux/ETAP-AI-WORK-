@@ -17,12 +17,6 @@ class GroundTruthMismatch:
 
 
 def _feature_count(assets: list[Any]) -> int:
-
-    affected_assets: List[str]
-    details: Dict[str, Any]
-
-
-def _feature_count(assets: List[Any]) -> int:
     return len(assets)
 
 

@@ -11,12 +11,13 @@ Tests:
 
 Run: python3 tests/selenium/test_security_perf.py
 """
+
+import concurrent.futures
+import json
 import sys
 import time
-import json
-import urllib.request
 import urllib.error
-import concurrent.futures
+import urllib.request
 from typing import Any
 
 BASE_URL = "http://127.0.0.1:7860"
@@ -32,7 +33,7 @@ def run_test(name: str, test_fn):
     try:
         result = test_fn()
         if result:
-            print(f"  ✓ PASS")
+            print("  ✓ PASS")
             passed += 1
         else:
             failed += 1
@@ -43,7 +44,9 @@ def run_test(name: str, test_fn):
         errors.append(f"{name} (exception: {e})")
 
 
-def request(method: str, path: str, body: dict | None = None, raw_body: str | None = None) -> tuple[int, Any]:
+def request(
+    method: str, path: str, body: dict | None = None, raw_body: str | None = None
+) -> tuple[int, Any]:
     url = BASE_URL + path
     if raw_body:
         data = raw_body.encode()
@@ -52,7 +55,9 @@ def request(method: str, path: str, body: dict | None = None, raw_body: str | No
     else:
         data = None
     req = urllib.request.Request(
-        url, data=data, method=method,
+        url,
+        data=data,
+        method=method,
         headers={"Content-Type": "application/json", "Accept": "application/json"},
     )
     try:
@@ -76,6 +81,7 @@ def request(method: str, path: str, body: dict | None = None, raw_body: str | No
 # Security: SQL Injection
 # ---------------------------------------------------------------------------
 
+
 def test_sql_injection_in_agent_id():
     """SQL injection attempt in agent_id path parameter should not crash."""
     payloads = [
@@ -95,7 +101,7 @@ def test_sql_injection_in_agent_id():
             return False
         if status != 404:
             print(f"  ⚠ WARNING: payload {payload!r} returned status {status} (expected 404)")
-    print(f"  All SQL injection payloads safely rejected (404, no 500)")
+    print("  All SQL injection payloads safely rejected (404, no 500)")
     return True
 
 
@@ -114,13 +120,14 @@ def test_sql_injection_in_chat():
         if status == 500:
             print(f"  ✗ FAIL: payload caused 500 error: {payload!r}")
             return False
-    print(f"  SQL injection in chat body safely handled (no 500 errors)")
+    print("  SQL injection in chat body safely handled (no 500 errors)")
     return True
 
 
 # ---------------------------------------------------------------------------
 # Security: XSS
 # ---------------------------------------------------------------------------
+
 
 def test_xss_in_chat_message():
     """XSS payload in chat message should be escaped/sanitized, not executed.
@@ -153,33 +160,38 @@ def test_xss_in_chat_message():
                 print(f"  ⚠ WARNING: XSS payload reflected unescaped in response: {payload!r}")
 
     if reflection_found:
-        print(f"  ⚠ XSS payloads are reflected in JSON response without escaping.")
-        print(f"    This is safe for JSON API consumers but DANGEROUS if the frontend")
-        print(f"    renders the 'response' field as HTML without sanitization.")
-        print(f"    RECOMMENDATION: frontend must escape HTML in chat responses.")
+        print("  ⚠ XSS payloads are reflected in JSON response without escaping.")
+        print("    This is safe for JSON API consumers but DANGEROUS if the frontend")
+        print("    renders the 'response' field as HTML without sanitization.")
+        print("    RECOMMENDATION: frontend must escape HTML in chat responses.")
     else:
-        print(f"  XSS payloads not reflected in response")
+        print("  XSS payloads not reflected in response")
     # Test passes because the API returns JSON, not HTML. But we flag the issue.
     return True
 
 
 def test_xss_in_study_parameters():
     """XSS in study parameters should not crash."""
-    status, data = request("POST", "/api/v1/studies/run", {
-        "study_type": "load_flow",
-        "system": {"base_mva": 100.0, "buses": [{"id": 1, "type": "slack"}], "lines": []},
-        "parameters": {"name": "<script>alert(1)</script>"}
-    })
+    status, data = request(
+        "POST",
+        "/api/v1/studies/run",
+        {
+            "study_type": "load_flow",
+            "system": {"base_mva": 100.0, "buses": [{"id": 1, "type": "slack"}], "lines": []},
+            "parameters": {"name": "<script>alert(1)</script>"},
+        },
+    )
     if status == 0 or status == 500:
         print(f"  ✗ FAIL: XSS in study params caused error (status={status})")
         return False
-    print(f"  XSS in study parameters safely handled")
+    print("  XSS in study parameters safely handled")
     return True
 
 
 # ---------------------------------------------------------------------------
 # Security: Path Traversal
 # ---------------------------------------------------------------------------
+
 
 def test_path_traversal_in_agent_id():
     """Path traversal attempt in agent_id should be rejected."""
@@ -198,15 +210,16 @@ def test_path_traversal_in_agent_id():
             return False
         # Should not return 200 with file contents
         if status == 200 and isinstance(data, str) and "root:" in data:
-            print(f"  ✗ CRITICAL: path traversal exposed /etc/passwd!")
+            print("  ✗ CRITICAL: path traversal exposed /etc/passwd!")
             return False
-    print(f"  Path traversal attempts safely rejected")
+    print("  Path traversal attempts safely rejected")
     return True
 
 
 # ---------------------------------------------------------------------------
 # Performance: Response Time
 # ---------------------------------------------------------------------------
+
 
 def test_response_time_healthz():
     """Healthz endpoint should respond in < 100ms."""
@@ -244,6 +257,7 @@ def test_response_time_agents_list():
 
 def test_concurrent_requests():
     """Server should handle 20 concurrent requests without errors."""
+
     def make_request(_):
         status, _ = request("GET", "/healthz")
         return status
@@ -262,9 +276,11 @@ def test_concurrent_requests():
 
 def test_concurrent_chat_requests():
     """Server should handle 5 concurrent chat requests without 500 errors."""
+
     def make_chat_request(_):
-        status, _ = request("POST", "/api/v1/agents/etap-expert/chat",
-                           {"question": "What is load flow?"})
+        status, _ = request(
+            "POST", "/api/v1/agents/etap-expert/chat", {"question": "What is load flow?"}
+        )
         return status
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
@@ -284,20 +300,21 @@ def test_concurrent_chat_requests():
 # Performance: Large Payloads
 # ---------------------------------------------------------------------------
 
+
 def test_large_payload_handling():
     """Server should handle a 100KB JSON payload gracefully."""
     # Create a large but valid payload
     large_data = ["data_point_" + str(i) for i in range(5000)]  # ~50KB
-    status, data = request("POST", "/api/v1/predict/anomaly", {
-        "data": [100 + i for i in range(100)],
-        "threshold": 3.0,
-        "_large_field": large_data
-    })
+    status, data = request(
+        "POST",
+        "/api/v1/predict/anomaly",
+        {"data": [100 + i for i in range(100)], "threshold": 3.0, "_large_field": large_data},
+    )
     if status == 0:
-        print(f"  ✗ FAIL: server crashed on large payload")
+        print("  ✗ FAIL: server crashed on large payload")
         return False
     if status == 500:
-        print(f"  ✗ FAIL: large payload caused 500 error")
+        print("  ✗ FAIL: large payload caused 500 error")
         return False
     print(f"  Large payload handled (status={status})")
     return True
@@ -307,7 +324,7 @@ def test_empty_body_post():
     """POST with empty body should return appropriate error (not 500)."""
     status, data = request("POST", "/api/v1/agents/etap-expert/chat", {})
     if status == 500:
-        print(f"  ✗ FAIL: empty body caused 500 error (should be 422)")
+        print("  ✗ FAIL: empty body caused 500 error (should be 422)")
         return False
     if status != 422:
         print(f"  ⚠ WARNING: empty body returned {status} (expected 422)")
@@ -319,7 +336,9 @@ def test_wrong_content_type():
     """POST with wrong content type should not crash."""
     url = BASE_URL + "/api/v1/agents/etap-expert/chat"
     req = urllib.request.Request(
-        url, data=b"plain text body", method="POST",
+        url,
+        data=b"plain text body",
+        method="POST",
         headers={"Content-Type": "text/plain"},
     )
     try:
@@ -332,7 +351,7 @@ def test_wrong_content_type():
         return False
 
     if status == 500:
-        print(f"  ✗ FAIL: wrong content type caused 500 error")
+        print("  ✗ FAIL: wrong content type caused 500 error")
         return False
     print(f"  Wrong content type handled (status={status})")
     return True

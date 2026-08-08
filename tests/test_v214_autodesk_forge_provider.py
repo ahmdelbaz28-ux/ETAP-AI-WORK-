@@ -98,9 +98,7 @@ class TestV214AutodeskForgeProviderRealImplementation:
             # Mock httpx.get for the two API calls (metadata + object tree)
             mock_metadata_resp = MagicMock()
             mock_metadata_resp.status_code = 200
-            mock_metadata_resp.json.return_value = {
-                "data": {"metadata": [{"guid": "test_guid"}]}
-            }
+            mock_metadata_resp.json.return_value = {"data": {"metadata": [{"guid": "test_guid"}]}}
 
             mock_tree_resp = MagicMock()
             mock_tree_resp.status_code = 200
@@ -136,9 +134,7 @@ class TestV214AutodeskForgeProviderRealImplementation:
         with patch.object(provider, "_get_auth_token", return_value="fake_token"):
             mock_metadata_resp = MagicMock()
             mock_metadata_resp.status_code = 200
-            mock_metadata_resp.json.return_value = {
-                "data": {"metadata": [{"guid": "test_guid"}]}
-            }
+            mock_metadata_resp.json.return_value = {"data": {"metadata": [{"guid": "test_guid"}]}}
 
             mock_tree_resp = MagicMock()
             mock_tree_resp.status_code = 200
@@ -196,8 +192,10 @@ class TestV214AutodeskForgeProviderRealImplementation:
             mock_poll_resp.status_code = 200
             mock_poll_resp.json.return_value = {"status": "success"}
 
-            with patch("httpx.post", return_value=mock_create_resp) as mock_post, \
-                 patch("httpx.get", return_value=mock_poll_resp):
+            with (
+                patch("httpx.post", return_value=mock_create_resp) as mock_post,
+                patch("httpx.get", return_value=mock_poll_resp),
+            ):
                 result = provider.write_devices(
                     devices=[{"id": "d1", "name": "Smoke Detector"}],
                     target="oss://bucket/output.rvt",
@@ -239,7 +237,10 @@ class TestV214AutodeskForgeProviderRealImplementation:
 
         assert result["healthy"] is False
         # Accept either regular dash or em dash
-        assert "Authentication failed" in result["details"] or "authentication failed" in result["details"].lower()
+        assert (
+            "Authentication failed" in result["details"]
+            or "authentication failed" in result["details"].lower()
+        )
 
     def test_no_stub_markers_in_source(self):
         """The source file must NOT contain actual STUB return patterns
@@ -247,20 +248,21 @@ class TestV214AutodeskForgeProviderRealImplementation:
         STUB mentions in docstrings/comments are allowed (historical notes).
         """
         import re
+
         src_path = "fireai/bridges/bim_provider.py"
-        with open(src_path, "r", encoding="utf-8") as f:
+        with open(src_path, encoding="utf-8") as f:
             content = f.read()
 
         # Check for actual STUB return patterns as CODE (not in comments)
         # Lines that have 'return None' or 'return []' followed by STUB comment
-        stub_code_pattern = re.compile(r'^[^#]*return\s+(None|\[\])\s*.*STUB', re.MULTILINE | re.IGNORECASE)
-        matches = stub_code_pattern.findall(content)
-        assert matches == [], (
-            f"Found STUB return patterns as code in {src_path}: {matches}"
+        stub_code_pattern = re.compile(
+            r"^[^#]*return\s+(None|\[\])\s*.*STUB", re.MULTILINE | re.IGNORECASE
         )
+        matches = stub_code_pattern.findall(content)
+        assert matches == [], f"Found STUB return patterns as code in {src_path}: {matches}"
 
         # Also verify no NotImplementedError with STUB in the message
-        notimpl_stub_pattern = re.compile(r'NotImplementedError\([^)]*STUB[^)]*\)', re.IGNORECASE)
+        notimpl_stub_pattern = re.compile(r"NotImplementedError\([^)]*STUB[^)]*\)", re.IGNORECASE)
         notimpl_matches = notimpl_stub_pattern.findall(content)
         assert notimpl_matches == [], (
             f"Found NotImplementedError with STUB in {src_path}: {notimpl_matches}"

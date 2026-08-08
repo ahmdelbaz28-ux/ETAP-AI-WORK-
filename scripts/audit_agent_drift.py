@@ -15,6 +15,7 @@ Exit codes:
     0 = no drift found
     1 = drift detected (or --strict and any warning)
 """
+
 from __future__ import annotations
 
 import argparse
@@ -22,7 +23,7 @@ import json
 import re
 import sys
 from collections import defaultdict
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Dict, List, Set
 
@@ -55,12 +56,12 @@ def discover_agents() -> Dict[str, Path]:
         for handle in matches:
             agents[handle] = py
         # Also find class definitions that inherit BaseAgent
-        class_matches = re.findall(r'class\s+(\w+Agent)\s*\([^)]*BaseAgent', content)
+        class_matches = re.findall(r"class\s+(\w+Agent)\s*\([^)]*BaseAgent", content)
         for class_name in class_matches:
             # Derive handle: LoadFlowAgent → load_flow_agent (keep _agent suffix)
             # Strip "Agent" suffix, convert CamelCase to snake_case, re-add _agent
             name = class_name[:-5] if class_name.endswith("Agent") else class_name
-            handle = re.sub(r'(?<=[a-z0-9])([A-Z])', r'_\1', name).lower() + "_agent"
+            handle = re.sub(r"(?<=[a-z0-9])([A-Z])", r"_\1", name).lower() + "_agent"
             if handle not in agents:
                 agents[handle] = py
     return agents
@@ -113,32 +114,38 @@ def audit() -> List[DriftFinding]:
 
     # Check 1: agents without matching prompt
     for handle in sorted(agent_handles - prompt_handles):
-        findings.append(DriftFinding(
-            severity="WARNING",
-            category="agent_without_prompt",
-            message=f"Agent '{handle}' (in {agents[handle].relative_to(REPO_ROOT)}) has no matching prompt file in prompts/",
-            file=str(agents[handle].relative_to(REPO_ROOT)),
-        ))
+        findings.append(
+            DriftFinding(
+                severity="WARNING",
+                category="agent_without_prompt",
+                message=f"Agent '{handle}' (in {agents[handle].relative_to(REPO_ROOT)}) has no matching prompt file in prompts/",
+                file=str(agents[handle].relative_to(REPO_ROOT)),
+            )
+        )
 
     # Check 2: prompts without matching agent
     for handle in sorted(prompt_handles - agent_handles):
-        findings.append(DriftFinding(
-            severity="INFO",
-            category="prompt_without_agent",
-            message=f"Prompt '{handle}' (in {prompts[handle].relative_to(REPO_ROOT)}) has no matching agent class in agents/",
-            file=str(prompts[handle].relative_to(REPO_ROOT)),
-        ))
+        findings.append(
+            DriftFinding(
+                severity="INFO",
+                category="prompt_without_agent",
+                message=f"Prompt '{handle}' (in {prompts[handle].relative_to(REPO_ROOT)}) has no matching agent class in agents/",
+                file=str(prompts[handle].relative_to(REPO_ROOT)),
+            )
+        )
 
     # Check 3: agents mentioned in docs but not in code
     for handle, docs in doc_mentions.items():
         if handle not in agent_handles:
             # This is OK for general mentions, but flag if it looks like an agent reference
             if handle.endswith("_agent"):
-                findings.append(DriftFinding(
-                    severity="WARNING",
-                    category="doc_mentions_missing_agent",
-                    message=f"Docs mention '{handle}' but no agent class exists. Docs: {docs[:3]}",
-                ))
+                findings.append(
+                    DriftFinding(
+                        severity="WARNING",
+                        category="doc_mentions_missing_agent",
+                        message=f"Docs mention '{handle}' but no agent class exists. Docs: {docs[:3]}",
+                    )
+                )
 
     # Check 4: verify prompt_handle references in code resolve to actual files
     # (already covered by check 1)
@@ -159,13 +166,13 @@ def print_report(findings: List[DriftFinding], as_json: bool = False) -> None:
     warnings = [f for f in findings if f.severity == "WARNING"]
     infos = [f for f in findings if f.severity == "INFO"]
 
-    print(f"\n{'='*60}")
-    print(f"  Agent Drift Audit Report")
-    print(f"{'='*60}")
+    print(f"\n{'=' * 60}")
+    print("  Agent Drift Audit Report")
+    print(f"{'=' * 60}")
     print(f"  Errors:   {len(errors)}")
     print(f"  Warnings: {len(warnings)}")
     print(f"  Info:     {len(infos)}")
-    print(f"{'='*60}\n")
+    print(f"{'=' * 60}\n")
 
     for f in errors:
         print(f"  [ERROR] {f.category}: {f.message}")

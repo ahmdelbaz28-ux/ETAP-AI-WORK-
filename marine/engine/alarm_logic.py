@@ -157,21 +157,25 @@ def generate_logic_tree(  # NOSONAR — S3776: cognitive complexity is inherent 
             outputs = ("horn_zone",)
             delay = 0.0
 
-        nodes.append(AlarmLogicNode(
-            node_id=node_id,
-            trigger_detector=dp.detector_id,
-            zone_id=zone.zone_id,
-            alarm_level=level,
-            action_outputs=outputs,
-            delay_s=delay,
-            interlocks=("verify_two_detectors",) if level == AlarmLevel.ACTION else (),
-            standard_reference="SOLAS II-2/5.6 + IEC 60092-502",
-        ))
+        nodes.append(
+            AlarmLogicNode(
+                node_id=node_id,
+                trigger_detector=dp.detector_id,
+                zone_id=zone.zone_id,
+                alarm_level=level,
+                action_outputs=outputs,
+                delay_s=delay,
+                interlocks=("verify_two_detectors",) if level == AlarmLevel.ACTION else (),
+                standard_reference="SOLAS II-2/5.6 + IEC 60092-502",
+            )
+        )
 
     return nodes
 
 
-def export_to_plc_script(nodes: list[AlarmLogicNode]) -> str:  # NOSONAR — S3776: cognitive complexity is inherent to the safety-critical algorithm
+def export_to_plc_script(
+    nodes: list[AlarmLogicNode],
+) -> str:  # NOSONAR — S3776: cognitive complexity is inherent to the safety-critical algorithm
     """
     Export logic tree as a Structured Text (ST) PLC script (IEC 61131-3).
 
@@ -192,14 +196,14 @@ def export_to_plc_script(nodes: list[AlarmLogicNode]) -> str:  # NOSONAR — S37
          latch forever when the detector clears.
     """
     # ── Collect unique I/O tags across all nodes ───────────────────────────
-    declared_inputs: list[str] = []   # detector inputs
+    declared_inputs: list[str] = []  # detector inputs
     declared_outputs: list[str] = []  # action outputs
     declared_interlocks: list[str] = []
     seen_inputs: set[str] = set()
     seen_outputs: set[str] = set()
 
     delayed_outputs: list[tuple] = []  # (node_id, output_name, delay_s)
-    needs_interlock: list[str] = []   # node_ids with interlocks
+    needs_interlock: list[str] = []  # node_ids with interlocks
 
     for n in nodes:
         in_ident = _to_ident(n.trigger_detector)
@@ -235,7 +239,9 @@ def export_to_plc_script(nodes: list[AlarmLogicNode]) -> str:  # NOSONAR — S37
     for i, in_name in enumerate(declared_inputs):
         byte, bit = divmod(i, 8)
         lines.append(f"    {in_name} AT %IX{byte}.{bit} : BOOL;  // Detector input")
-    lines.append("  END_VAR")  # NOSONAR — S1192: duplicated literal acceptable in this localized context
+    lines.append(
+        "  END_VAR"
+    )  # NOSONAR — S1192: duplicated literal acceptable in this localized context
     lines.append("")
     lines.append("  VAR_OUTPUT")
     # Action outputs at %QX0.0, %QX0.1, ... (one bit each).
@@ -261,10 +267,7 @@ def export_to_plc_script(nodes: list[AlarmLogicNode]) -> str:  # NOSONAR — S37
     # don't latch forever (SOLAS II-2/5.6 requires reset-on-clear).
     for n in nodes:
         in_ident = _to_ident(n.trigger_detector)
-        if n.interlocks:
-            cond = f"{in_ident} AND {_to_ident(f'interlock_{n.node_id}')}"
-        else:
-            cond = in_ident
+        cond = f"{in_ident} AND {_to_ident(f'interlock_{n.node_id}')}" if n.interlocks else in_ident
         lines.append(f"  // {n.node_id}: zone={n.zone_id} level={n.alarm_level.value}")
         lines.append(f"  IF {cond} THEN")
         for out in n.action_outputs:
@@ -272,9 +275,7 @@ def export_to_plc_script(nodes: list[AlarmLogicNode]) -> str:  # NOSONAR — S37
             if n.delay_s > 0:
                 ton_inst = _to_ident(f"TON_{n.node_id}_{out_ident}")
                 # Instantiate the TON properly: assign IN/PT, then read .Q
-                lines.append(
-                    f"    {ton_inst}(IN := TRUE, PT := T#{int(n.delay_s)}s);"
-                )
+                lines.append(f"    {ton_inst}(IN := TRUE, PT := T#{int(n.delay_s)}s);")
                 lines.append(f"    {out_ident} := {ton_inst}.Q;")
             else:
                 lines.append(f"    {out_ident} := TRUE;")

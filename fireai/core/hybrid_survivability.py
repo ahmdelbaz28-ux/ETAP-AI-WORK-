@@ -53,7 +53,7 @@ from __future__ import annotations
 import datetime
 import json
 import logging
-from enum import Enum
+from enum import StrEnum
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -76,7 +76,7 @@ logger = logging.getLogger(__name__)
 # ===========================================================================
 
 
-class SurvivabilityClass(str, Enum):
+class SurvivabilityClass(StrEnum):
     """
     Per-point hybrid survivability classification.
 
@@ -425,7 +425,9 @@ class HybridSurvivabilityEngine:
 
         for sensor in ugld_sensors:
             if sensor.sensor_id not in sensor_positions:
-                raise ValueError(f"UGLD sensor '{sensor.sensor_id}' has no position in sensor_positions mapping.")
+                raise ValueError(
+                    f"UGLD sensor '{sensor.sensor_id}' has no position in sensor_positions mapping."
+                )
 
         obstacles = acoustic_obstacles or []
         warnings: list[str] = []
@@ -434,7 +436,9 @@ class HybridSurvivabilityEngine:
             warnings.append(
                 "No UGLD sensors provided — all points classified as OPTICAL_ONLY or BLIND_SPOT (no acoustic analysis)."
             )
-            logger.warning("HybridSurvivabilityEngine: no UGLD sensors — falling back to optical-only classification.")
+            logger.warning(
+                "HybridSurvivabilityEngine: no UGLD sensors — falling back to optical-only classification."
+            )
 
         # ── Step 1: Optical coverage lookup ───────────────────────────
         # redundancy_map: Dict[int, int] → point_index → detector_count
@@ -551,7 +555,9 @@ class HybridSurvivabilityEngine:
             acoustic_only_count=ao_count,
             blind_spot_count=bs_count,
             hybrid_coverage_fraction=(round(rh_count / total, 4) if total else 0.0),
-            any_coverage_fraction=(round((rh_count + oo_count + ao_count) / total, 4) if total else 0.0),
+            any_coverage_fraction=(
+                round((rh_count + oo_count + ao_count) / total, 4) if total else 0.0
+            ),
             blind_spot_fraction=(round(bs_count / total, 4) if total else 0.0),
             warnings=warnings,
         )

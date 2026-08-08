@@ -83,9 +83,9 @@ class TestAPIKeyBypass:
                 "/api/v1/projects/",
                 headers={"X-API-Key": "test-secret-key"},
             )
-            assert (
-                resp.status_code == 200
-            ), f"Expected 200 with correct API key, got {resp.status_code}"
+            assert resp.status_code == 200, (
+                f"Expected 200 with correct API key, got {resp.status_code}"
+            )
 
     def test_project_list_with_wrong_api_key(self, client, auth_headers):
         """When an incorrect API key is provided, the request is rejected."""
@@ -94,9 +94,9 @@ class TestAPIKeyBypass:
                 "/api/v1/projects/",
                 headers={"X-API-Key": "wrong-key"},
             )
-            assert (
-                resp.status_code == 401
-            ), f"Expected 401 with wrong API key, got {resp.status_code}"
+            assert resp.status_code == 401, (
+                f"Expected 401 with wrong API key, got {resp.status_code}"
+            )
 
 
 # ===========================================================================
@@ -382,9 +382,9 @@ class TestRateLimitEnforcement:
             "/api/v1/auth/login",
             json={"username": "rl_user2", "password": TEST_PASSWORD_2},
         )
-        assert (
-            resp2.status_code == 401
-        ), "Different user should not be affected by another's rate limit"
+        assert resp2.status_code == 401, (
+            "Different user should not be affected by another's rate limit"
+        )
 
     @pytest.mark.timeout(60)  # bcrypt.checkpw is CPU-intensive; allow up to 60s
     def test_rate_limit_per_username_isolation(self, client):
@@ -519,9 +519,9 @@ class TestABACPolicyEnforcement:
             headers=auth_headers,
             json={"study_type": "load_flow"},
         )
-        assert (
-            study_resp.status_code == 201
-        ), f"Engineer should be able to run studies, got {study_resp.status_code}"
+        assert study_resp.status_code == 201, (
+            f"Engineer should be able to run studies, got {study_resp.status_code}"
+        )
 
     def test_abac_engine_deny_viewer_study(self):
         """Test the ABAC engine directly: viewer role is denied for study execution."""

@@ -117,9 +117,7 @@ def esri_json_to_geojson(esri: dict[str, Any]) -> dict[str, Any]:
         GISDataExtractionError: if the Esri JSON shape is unknown.
     """
     if not isinstance(esri, dict):
-        raise GISDataExtractionError(
-            f"Esri JSON must be a dict, got {type(esri).__name__}"
-        )
+        raise GISDataExtractionError(f"Esri JSON must be a dict, got {type(esri).__name__}")
 
     # Point: {"x":.., "y":..}
     if "x" in esri and "y" in esri:

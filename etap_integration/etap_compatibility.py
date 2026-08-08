@@ -69,7 +69,7 @@ COM_MODULES = [
 # These are checked as fallbacks if the 2021 names are not found.
 COM_MODULES_LEGACY = [
     "MotorAcceleration",  # pre-2021 alias for MotorStarting
-    "HarmonicAnalysis",   # pre-2021 alias for Harmonic
+    "HarmonicAnalysis",  # pre-2021 alias for Harmonic
 ]
 
 
@@ -95,14 +95,6 @@ class CompatibilityReport:
 
 
 def _parse_version(v: str) -> tuple[int, ...]:
-
-    com_modules_available: List[str]
-    com_modules_missing: List[str]
-    checks: List[CheckResult] = field(default_factory=list)
-    overall_pass: bool = False
-
-
-def _parse_version(v: str) -> Tuple[int, ...]:
     try:
         return tuple(int(p) for p in v.strip().split("."))
     except (ValueError, AttributeError):
@@ -122,11 +114,6 @@ class ETAPCompatibilityChecker:
         self._etap_prog_id = etap_prog_id
         self._cached_version: Optional[str] = None
         self._cached_com_modules: dict[str, bool] | None = None
-
-    def check_version(self) -> Optional[str]:
-
-        self._cached_version: str | None = None
-        self._cached_com_modules: Dict[str, bool] | None = None
 
     def check_version(self) -> str | None:
         """Detect the installed ETAP version via COM."""

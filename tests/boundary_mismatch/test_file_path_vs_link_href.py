@@ -3,6 +3,7 @@
 Catches broken links: UI page links to /dashboard/studies but the actual
 page file is at /studies (or vice versa).
 """
+
 import re
 from pathlib import Path
 
@@ -12,6 +13,7 @@ def test_no_broken_internal_links():
     ui_dir = Path(__file__).resolve().parents[2] / "ui" / "src"
     if not ui_dir.exists():
         import pytest
+
         pytest.skip("ui/src/ not found")
 
     # Collect all page files (pages/*.tsx)
@@ -47,7 +49,9 @@ def test_no_broken_internal_links():
             findings.append(f"  {href} → no matching page file '{last_segment}.tsx'")
 
     if findings:
-        print(f"\n[BOUNDARY MISMATCH] Internal links without matching page files ({len(findings)}):")
+        print(
+            f"\n[BOUNDARY MISMATCH] Internal links without matching page files ({len(findings)}):"
+        )
         for f in findings[:20]:  # limit output
             print(f)
         if len(findings) > 20:

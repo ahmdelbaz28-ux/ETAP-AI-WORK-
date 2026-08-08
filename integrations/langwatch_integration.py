@@ -106,9 +106,7 @@ def _env_int(var: str, default: int) -> int:
     try:
         return int(float(raw))
     except (TypeError, ValueError):
-        logger.warning(
-            "Invalid int for %s=%r — using default %d", var, raw, default
-        )
+        logger.warning("Invalid int for %s=%r — using default %d", var, raw, default)
         return default
 
 

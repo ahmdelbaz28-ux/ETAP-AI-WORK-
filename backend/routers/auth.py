@@ -95,13 +95,17 @@ _FAILED_ATTEMPT_WINDOW = 300  # 5 minutes
 
 class LoginRequest(BaseModel):
     """Request body for POST /auth/login."""
-    api_key: str | None = Field(None, min_length=1, description="FireAI API key (must be non-empty if provided)")
+
+    api_key: str | None = Field(
+        None, min_length=1, description="FireAI API key (must be non-empty if provided)"
+    )
     username: str | None = None
     password: str | None = None
 
 
 class LoginResponse(BaseModel):
     """Response body for POST /auth/login."""
+
     role: str
     expires_at: str
 
@@ -194,8 +198,7 @@ def _check_rate_limit(client_ip: str) -> bool:
     # Clean old entries
     if client_ip in _FAILED_ATTEMPTS:
         _FAILED_ATTEMPTS[client_ip] = [
-            t for t in _FAILED_ATTEMPTS[client_ip]
-            if now - t < _FAILED_ATTEMPT_WINDOW
+            t for t in _FAILED_ATTEMPTS[client_ip] if now - t < _FAILED_ATTEMPT_WINDOW
         ]
     else:
         _FAILED_ATTEMPTS[client_ip] = []
@@ -216,7 +219,9 @@ def _record_failed_attempt(client_ip: str) -> None:
 
 @router.post("/login")
 @router.post("/session/login")
-async def login(request: Request, body: LoginRequest):  # NOSONAR — S3776: cognitive complexity is inherent to the safety-critical algorithm
+async def login(
+    request: Request, body: LoginRequest
+):  # NOSONAR — S3776: cognitive complexity is inherent to the safety-critical algorithm
     """
     Authenticate with an API key and receive a signed HttpOnly session cookie.
 
@@ -244,9 +249,13 @@ async def login(request: Request, body: LoginRequest):  # NOSONAR — S3776: cog
     if not api_key:
         if body.username and body.password:
             # Fallback to the default key for Postman integration tests
-            api_key = os.getenv("API_KEY")  # NOSONAR — reads from env, not hard-coded (S6418 false positive)
+            api_key = os.getenv(
+                "API_KEY"
+            )  # NOSONAR — reads from env, not hard-coded (S6418 false positive)
         else:
-            raise HTTPException(status_code=400, detail="API key is required")  # NOSONAR — S8415: assignment kept for readability / debuggability
+            raise HTTPException(
+                status_code=400, detail="API key is required"
+            )  # NOSONAR — S8415: assignment kept for readability / debuggability
 
     # Validate the API key
     role: Role | None = None
@@ -266,7 +275,9 @@ async def login(request: Request, body: LoginRequest):  # NOSONAR — S3776: cog
             len(_FAILED_ATTEMPTS.get(client_ip, [])),
             _MAX_FAILED_ATTEMPTS,
         )
-        raise HTTPException(status_code=401, detail="Invalid API key")  # NOSONAR — S8415: assignment kept for readability / debuggability
+        raise HTTPException(
+            status_code=401, detail="Invalid API key"
+        )  # NOSONAR — S8415: assignment kept for readability / debuggability
 
     # ── Create session ──────────────────────────────────────────────
     # Generate cryptographically random session ID (256 bits entropy)
@@ -309,11 +320,14 @@ async def login(request: Request, body: LoginRequest):  # NOSONAR — S3776: cog
     expires_at_iso = datetime.now(timezone.utc) + timedelta(seconds=_COOKIE_MAX_AGE_SECONDS)
 
     from fastapi.responses import JSONResponse
+
     response = JSONResponse(
-        content=success({
-            "role": role.value,
-            "expires_at": expires_at_iso.isoformat(),
-        }),
+        content=success(
+            {
+                "role": role.value,
+                "expires_at": expires_at_iso.isoformat(),
+            }
+        ),
     )
     response.headers["Set-Cookie"] = "; ".join(cookie_parts)
     response.headers["Cache-Control"] = "no-store"
@@ -326,7 +340,9 @@ async def login(request: Request, body: LoginRequest):  # NOSONAR — S3776: cog
 
 
 @router.post("/logout")
-async def logout(request: Request):  # NOSONAR — S3776: cognitive complexity is inherent to the safety-critical algorithm
+async def logout(
+    request: Request,
+):  # NOSONAR — S3776: cognitive complexity is inherent to the safety-critical algorithm
     """Clear the cookie AND revoke the server-side session."""
     from fastapi.responses import JSONResponse
 
@@ -361,7 +377,9 @@ async def get_current_user(request: Request):
     """Return the current session's role (requires auth)."""
     role = request.scope.get("fireai_role")
     if role is None:
-        raise HTTPException(status_code=401, detail="Not authenticated")  # NOSONAR — S8415: assignment kept for readability / debuggability
+        raise HTTPException(
+            status_code=401, detail="Not authenticated"
+        )  # NOSONAR — S8415: assignment kept for readability / debuggability
     return success({"role": role.value})
 
 

@@ -12,7 +12,9 @@ from __future__ import annotations
 
 # Module-level string constants (extracted to satisfy S1192).
 _DOCS_PATH = "/docs"  # NOSONAR
-_REDOC_PATH = "/redoc"  # NOSONAR datetime.UTC is available in Python 3.11+. The project requires Python 3.12+
+_REDOC_PATH = (
+    "/redoc"  # NOSONAR datetime.UTC is available in Python 3.11+. The project requires Python 3.12+
+)
 # (pyproject.toml) in production, but local testing may run on Python <3.11.
 # The polyfill is restored with a noqa comment to suppress Ruff UP017 checks.
 import datetime

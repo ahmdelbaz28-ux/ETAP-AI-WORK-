@@ -73,19 +73,27 @@ class TestSmokeDensityPoint:
         assert p.density_kg_m3 == pytest.approx(0.025)
 
     def test_nan_x_rejected(self):
-        with pytest.raises(ValueError, match="must be finite"):  # NOSONAR — S5778: re-raise inside except is intentional (context-specific)  # noqa: S5778
+        with pytest.raises(
+            ValueError, match="must be finite"
+        ):  # NOSONAR — S5778: re-raise inside except is intentional (context-specific)  # noqa: S5778
             SmokeDensityPoint(x=float("nan"), y=0, z=0, density_kg_m3=0.01)
 
     def test_nan_y_rejected(self):
-        with pytest.raises(ValueError, match="must be finite"):  # NOSONAR — S5778: re-raise inside except is intentional (context-specific)  # noqa: S5778
+        with pytest.raises(
+            ValueError, match="must be finite"
+        ):  # NOSONAR — S5778: re-raise inside except is intentional (context-specific)  # noqa: S5778
             SmokeDensityPoint(x=0, y=float("nan"), z=0, density_kg_m3=0.01)
 
     def test_nan_z_rejected(self):
-        with pytest.raises(ValueError, match="must be finite"):  # NOSONAR — S5778: re-raise inside except is intentional (context-specific)  # noqa: S5778
+        with pytest.raises(
+            ValueError, match="must be finite"
+        ):  # NOSONAR — S5778: re-raise inside except is intentional (context-specific)  # noqa: S5778
             SmokeDensityPoint(x=0, y=0, z=float("nan"), density_kg_m3=0.01)
 
     def test_nan_density_rejected(self):
-        with pytest.raises(ValueError, match="must be finite"):  # NOSONAR — S5778: re-raise inside except is intentional (context-specific)  # noqa: S5778
+        with pytest.raises(
+            ValueError, match="must be finite"
+        ):  # NOSONAR — S5778: re-raise inside except is intentional (context-specific)  # noqa: S5778
             SmokeDensityPoint(x=0, y=0, z=0, density_kg_m3=float("nan"))
 
     def test_negative_density_rejected(self):
@@ -93,7 +101,9 @@ class TestSmokeDensityPoint:
             SmokeDensityPoint(x=0, y=0, z=0, density_kg_m3=-0.01)
 
     def test_inf_density_rejected(self):
-        with pytest.raises(ValueError, match="must be finite"):  # NOSONAR — S5778: re-raise inside except is intentional (context-specific)  # noqa: S5778
+        with pytest.raises(
+            ValueError, match="must be finite"
+        ):  # NOSONAR — S5778: re-raise inside except is intentional (context-specific)  # noqa: S5778
             SmokeDensityPoint(x=0, y=0, z=0, density_kg_m3=float("inf"))
 
     def test_tenability_threshold_detection(self):
@@ -130,7 +140,9 @@ class TestVisibilityGradient:
         assert len(g.visibility_at_height) == 2
 
     def test_nan_height_rejected(self):
-        with pytest.raises(ValueError, match="Invalid height"):  # NOSONAR — S5778: re-raise inside except is intentional (context-specific)  # noqa: S5778
+        with pytest.raises(
+            ValueError, match="Invalid height"
+        ):  # NOSONAR — S5778: re-raise inside except is intentional (context-specific)  # noqa: S5778
             VisibilityGradient(room_id="R", visibility_at_height={float("nan"): 5.0})
 
     def test_negative_height_rejected(self):
@@ -138,7 +150,9 @@ class TestVisibilityGradient:
             VisibilityGradient(room_id="R", visibility_at_height={-1.0: 5.0})
 
     def test_nan_visibility_rejected(self):
-        with pytest.raises(ValueError, match="Invalid visibility"):  # NOSONAR — S5778: re-raise inside except is intentional (context-specific)  # noqa: S5778
+        with pytest.raises(
+            ValueError, match="Invalid visibility"
+        ):  # NOSONAR — S5778: re-raise inside except is intentional (context-specific)  # noqa: S5778
             VisibilityGradient(room_id="R", visibility_at_height={1.7: float("nan")})
 
     def test_negative_visibility_rejected(self):
@@ -365,7 +379,9 @@ class TestFDSIntegrationConfig:
             FDSIntegrationConfig(mesh_resolution_m=0.0)
 
     def test_invalid_mesh_resolution_nan_rejected(self):
-        with pytest.raises(ValueError, match="mesh_resolution_m must be positive"):  # NOSONAR — S5778: re-raise inside except is intentional (context-specific)  # noqa: S5778
+        with pytest.raises(
+            ValueError, match="mesh_resolution_m must be positive"
+        ):  # NOSONAR — S5778: re-raise inside except is intentional (context-specific)  # noqa: S5778
             FDSIntegrationConfig(mesh_resolution_m=float("nan"))
 
     def test_invalid_simulation_duration_rejected(self):
@@ -385,14 +401,14 @@ class TestFDSIntegrationConfig:
 class TestConstants:
     def test_visibility_tenability_threshold_is_10m(self):
         """Per NFPA 101 §A.7.2: minimum 10m visibility for safe egress."""
-        assert VISIBILITY_TENABILITY_THRESHOLD_M == pytest.approx(10.0)
+        assert pytest.approx(10.0) == VISIBILITY_TENABILITY_THRESHOLD_M
 
     def test_smoke_density_tenability_threshold_is_0_05(self):
         """Per SFPE Handbook: 0.05 kg/m³ (50 mg/m³) max survivable."""
-        assert SMOKE_DENSITY_TENABILITY_THRESHOLD_KG_M3 == pytest.approx(0.05)
+        assert pytest.approx(0.05) == SMOKE_DENSITY_TENABILITY_THRESHOLD_KG_M3
 
     def test_eye_level_adult_is_1_7m(self):
-        assert EYE_LEVEL_ADULT_M == pytest.approx(1.7)
+        assert pytest.approx(1.7) == EYE_LEVEL_ADULT_M
 
     def test_default_visibility_heights_include_eye_level(self):
         assert EYE_LEVEL_ADULT_M in DEFAULT_VISIBILITY_HEIGHTS_M

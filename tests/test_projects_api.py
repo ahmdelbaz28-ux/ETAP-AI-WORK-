@@ -275,9 +275,9 @@ class TestUpdateProject:
             headers=auth_headers,
             json={"status": "deleted"},
         )
-        assert (
-            resp.status_code == 422
-        ), f"Expected 422 for setting deleted via PUT, got {resp.status_code}"
+        assert resp.status_code == 422, (
+            f"Expected 422 for setting deleted via PUT, got {resp.status_code}"
+        )
 
         assert resp.status_code == 422, (
             f"Expected 422 for setting deleted via PUT, got {resp.status_code}"
@@ -311,9 +311,9 @@ class TestDeleteProject:
 
         # Second delete attempt
         resp = client.delete(f"/api/v1/projects/{project_id}", headers=auth_headers)
-        assert (
-            resp.status_code == 410
-        ), f"Expected 410 for already-deleted project, got {resp.status_code}"
+        assert resp.status_code == 410, (
+            f"Expected 410 for already-deleted project, got {resp.status_code}"
+        )
 
         assert resp.status_code == 410, (
             f"Expected 410 for already-deleted project, got {resp.status_code}"
@@ -389,9 +389,9 @@ class TestRunStudy:
             headers=auth_headers,
             json={"study_type": "invalid_study_type"},
         )
-        assert (
-            resp.status_code == 422
-        ), f"Expected 422 for invalid study type, got {resp.status_code}"
+        assert resp.status_code == 422, (
+            f"Expected 422 for invalid study type, got {resp.status_code}"
+        )
 
         assert resp.status_code == 422, (
             f"Expected 422 for invalid study type, got {resp.status_code}"

@@ -125,9 +125,7 @@ if _env in ("production", "prod"):
         )
     _cors_origins = [o.strip() for o in _cors_raw.split(",") if o.strip()]
     if "*" in _cors_origins:
-        raise RuntimeError(
-            "CORS_ORIGINS='*' is forbidden in production. List explicit origins."
-        )
+        raise RuntimeError("CORS_ORIGINS='*' is forbidden in production. List explicit origins.")
 else:
     # Development / testing — safe defaults (localhost only).
     _cors_origins = os.getenv(
@@ -175,8 +173,12 @@ app.include_router(analyze_project_router, prefix="/api")
 # ----------------------------------------------------------------------------
 @app.get("/", include_in_schema=False)
 async def root():
-    return {"name": "FireAI QOMN-FIRE API", "version": "1.0.0",
-            "docs": "/docs", "health": "/api/health"}
+    return {
+        "name": "FireAI QOMN-FIRE API",
+        "version": "1.0.0",
+        "docs": "/docs",
+        "health": "/api/health",
+    }
 
 
 @app.exception_handler(Exception)
@@ -187,8 +189,9 @@ async def _unhandled_exception_handler(request: Request, exc: Exception):
     Never leak internal exception text to clients -- fire-safety systems
     may have sensitive paths / connection strings in error messages.
     """
-    logger.error("Unhandled exception on %s %s: %s",
-                 request.method, request.url.path, exc, exc_info=True)
+    logger.error(
+        "Unhandled exception on %s %s: %s", request.method, request.url.path, exc, exc_info=True
+    )
     return JSONResponse(
         status_code=500,
         content={"detail": "Internal server error", "success": False},
@@ -197,6 +200,7 @@ async def _unhandled_exception_handler(request: Request, exc: Exception):
 
 if __name__ == "__main__":
     import uvicorn
+
     # V129: Bind to 127.0.0.1 (loopback) by default. Production deployments
     # MUST use a reverse proxy (nginx, traefik, AWS ALB) to terminate TLS and
     # forward to this loopback address. Binding to 0.0.0.0 exposes the API

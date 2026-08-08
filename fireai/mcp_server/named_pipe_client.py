@@ -50,7 +50,6 @@ from __future__ import annotations
 import json
 import logging
 import platform
-import sys
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -91,9 +90,9 @@ class RevitNamedPipeClient:
 
         try:
             # Try to connect with a very short timeout to check availability
+            import pywintypes
             import win32file
             import win32pipe
-            import pywintypes
 
             try:
                 handle = win32file.CreateFile(
@@ -143,9 +142,9 @@ class RevitNamedPipeClient:
             }
 
         try:
+            import pywintypes
             import win32file
             import win32pipe
-            import pywintypes
         except ImportError:
             return {
                 "status": "error",
@@ -221,13 +220,15 @@ class RevitNamedPipeClient:
         nfpa_reference: str = "",
     ) -> dict[str, Any]:
         """Convenience method for set_parameter action."""
-        return self.send_command({
-            "action": "set_parameter",
-            "element_id": str(element_id),
-            "parameter_name": parameter_name,
-            "value": float(value),
-            "nfpa_reference": nfpa_reference,
-        })
+        return self.send_command(
+            {
+                "action": "set_parameter",
+                "element_id": str(element_id),
+                "parameter_name": parameter_name,
+                "value": float(value),
+                "nfpa_reference": nfpa_reference,
+            }
+        )
 
     def send_set_string_parameter(
         self,
@@ -237,13 +238,15 @@ class RevitNamedPipeClient:
         nfpa_reference: str = "",
     ) -> dict[str, Any]:
         """Convenience method for set_string_parameter action."""
-        return self.send_command({
-            "action": "set_string_parameter",
-            "element_id": str(element_id),
-            "parameter_name": parameter_name,
-            "value": str(value),
-            "nfpa_reference": nfpa_reference,
-        })
+        return self.send_command(
+            {
+                "action": "set_string_parameter",
+                "element_id": str(element_id),
+                "parameter_name": parameter_name,
+                "value": str(value),
+                "nfpa_reference": nfpa_reference,
+            }
+        )
 
     def send_create_wall(
         self,
@@ -252,12 +255,14 @@ class RevitNamedPipeClient:
         level: str = "Level 1",
     ) -> dict[str, Any]:
         """Convenience method for create_wall action. Coordinates in mm."""
-        return self.send_command({
-            "action": "create_wall",
-            "start_point": [float(c) for c in start_point],
-            "end_point": [float(c) for c in end_point],
-            "level": level,
-        })
+        return self.send_command(
+            {
+                "action": "create_wall",
+                "start_point": [float(c) for c in start_point],
+                "end_point": [float(c) for c in end_point],
+                "level": level,
+            }
+        )
 
     def get_stats(self) -> dict[str, Any]:
         """Get connection status and statistics."""

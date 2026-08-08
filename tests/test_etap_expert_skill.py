@@ -216,9 +216,9 @@ def test_workflow_steps_count(agent):
         "How does FLISR work for fault on Feeder 1?",
     ]:
         result = agent.answer(question)
-        assert (
-            result["workflow_steps_executed"] == 6
-        ), f"Question '{question}' did not complete 6 workflow steps"
+        assert result["workflow_steps_executed"] == 6, (
+            f"Question '{question}' did not complete 6 workflow steps"
+        )
 
         assert result["workflow_steps_executed"] == 6, (
             f"Question '{question}' did not complete 6 workflow steps"

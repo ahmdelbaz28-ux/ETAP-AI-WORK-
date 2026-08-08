@@ -12,17 +12,7 @@ class LoadFlowIssue:
     details: dict[str, object]
 
 
-def _compute_deterministic_voltages(  # NOSONAR
-    model: ElectricalModel,
-) -> dict[
-    str, float
-]:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
-
-    affected_assets: List[str]
-    details: Dict[str, object]
-
-
-def _compute_deterministic_voltages(model: ElectricalModel) -> Dict[str, float]:
+def _compute_deterministic_voltages(model: ElectricalModel) -> dict[str, float]:
     """
     Simplified deterministic "voltage propagation" model:
     - Substation node voltage initialized deterministically (based on node_id)

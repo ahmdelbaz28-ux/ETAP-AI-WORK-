@@ -45,13 +45,13 @@ class TestArcFlashE01E02:
         # Must reference IEEE 1584
         assert "IEEE 1584" in src
         # Must contain the full equation with log10(t)
-        assert (
-            "log10_t" in src or "log10(t)" in src
-        ), "E-01: Formula must include log10(t) time term"
+        assert "log10_t" in src or "log10(t)" in src, (
+            "E-01: Formula must include log10(t) time term"
+        )
         # Must include gap distance G
-        assert (
-            "log10_G" in src or "gap" in src.lower()
-        ), "E-01: Formula must include gap distance G term"
+        assert "log10_G" in src or "gap" in src.lower(), (
+            "E-01: Formula must include gap distance G term"
+        )
         # Must include K4 interaction term
         assert "k4" in src.lower(), "E-01: Formula must include K4 interaction term"
 
@@ -59,9 +59,9 @@ class TestArcFlashE01E02:
         """E-02: x_factor must be unpacked from coefficients (not discarded)."""
         src = Path("fault_analysis/arc_flash_engine.py").read_text(encoding="utf-8")
         # The unpack line must use x_factor, not _ (now 5-tuple: k1,k2,k3,k4,x_factor)
-        assert re.search(
-            r"k1,\s*k2,\s*k3,\s*k4,\s*x_factor\s*=", src
-        ), "x_factor must be unpacked from INCIDENT_ENERGY_COEFFICIENTS (5-tuple), not discarded"
+        assert re.search(r"k1,\s*k2,\s*k3,\s*k4,\s*x_factor\s*=", src), (
+            "x_factor must be unpacked from INCIDENT_ENERGY_COEFFICIENTS (5-tuple), not discarded"
+        )
 
     def test_e02_x_power_not_hardcoded(self):
         """E-02: x_power must NOT be hardcoded to 1.0."""
@@ -99,9 +99,9 @@ class TestArcFlashE01E02:
     def test_e02_clamped_range(self):
         """E-02: x_power should be clamped to safe range."""
         src = Path("fault_analysis/arc_flash_engine.py").read_text(encoding="utf-8")
-        assert (
-            "max(" in src
-        ), "x_power should be clamped with max() to prevent overflow"  # NOSONAR S9073: composite assertion verifies a correlated set of conditions; splitting would obscure the invariant under test
+        assert "max(" in src, (
+            "x_power should be clamped with max() to prevent overflow"
+        )  # NOSONAR S9073: composite assertion verifies a correlated set of conditions; splitting would obscure the invariant under test
         assert "min(" in src, "x_power should be clamped with min() to prevent division-by-zero"
 
     def test_e01_formula_uses_log10_t(self):
@@ -109,9 +109,9 @@ class TestArcFlashE01E02:
         src = Path("fault_analysis/arc_flash_engine.py").read_text(encoding="utf-8")
         # Should NOT have `* arc_duration_sec` as linear multiplier
         # Should have `+ log10_t` in the formula
-        assert (
-            "+ log10_t" in src or "+ np.log10(t)" in src
-        ), "E-01: Formula must use log10(t) term, not linear t multiplication"
+        assert "+ log10_t" in src or "+ np.log10(t)" in src, (
+            "E-01: Formula must use log10(t) term, not linear t multiplication"
+        )
         # Ensure the old pattern `* arc_duration_sec * CF` is gone
         lines = src.splitlines()
         for line in lines:
@@ -129,17 +129,17 @@ class TestArcFlashE01E02:
 
         for config, enclosures in INCIDENT_ENERGY_COEFFICIENTS.items():
             for enc, coeffs in enclosures.items():
-                assert (
-                    len(coeffs) == 5
-                ), f"Coefficients must be 5-tuple (k1,k2,k3,k4,x_factor), got {len(coeffs)}"
+                assert len(coeffs) == 5, (
+                    f"Coefficients must be 5-tuple (k1,k2,k3,k4,x_factor), got {len(coeffs)}"
+                )
 
     def test_e20_frequency_parameter(self):
         """S-20: IEC 60909 engine must have configurable frequency."""
         src = Path("fault_analysis/iec60909_engine.py").read_text(encoding="utf-8")
         assert "frequency_hz" in src, "S-20: frequency_hz parameter must exist in __init__"
-        assert (
-            "self.frequency_hz" in src
-        ), "S-20: self.frequency_hz must be stored as instance attribute"
+        assert "self.frequency_hz" in src, (
+            "S-20: self.frequency_hz must be stored as instance attribute"
+        )
         # Must NOT have hardcoded 50 Hz assumption
         lines = src.splitlines()
         for line in lines:
@@ -150,9 +150,9 @@ class TestArcFlashE01E02:
         """S-21: IEC 60909 must use z_pos.imag, not abs(z_pos.imag)."""
         src = Path("fault_analysis/iec60909_engine.py").read_text(encoding="utf-8")
         # Should NOT have abs(z_pos.imag) in R/X ratio
-        assert (
-            "abs(z_pos.imag)" not in src
-        ), "S-21: R/X ratio must use z_pos.imag (not abs), per IEC 60909"
+        assert "abs(z_pos.imag)" not in src, (
+            "S-21: R/X ratio must use z_pos.imag (not abs), per IEC 60909"
+        )
         # Should use z_pos.imag directly
         assert "z_pos.imag" in src, "S-21: Must use z_pos.imag for R/X ratio"
 
@@ -177,12 +177,12 @@ class TestLoadFlowE03:
                 found_return_false = True
                 # Check preceding 20 lines for writeback
                 preceding = "\n".join(lines[max(0, i - 20) : i + 1])
-                assert (
-                    "bus.voltage" not in preceding or "logger.warning" in preceding
-                ), "Non-convergence path should NOT silently write bus voltages"
-                assert (
-                    "generation_power" not in preceding or "logger.warning" in preceding
-                ), "Non-convergence path should NOT silently write generation power"
+                assert "bus.voltage" not in preceding or "logger.warning" in preceding, (
+                    "Non-convergence path should NOT silently write bus voltages"
+                )
+                assert "generation_power" not in preceding or "logger.warning" in preceding, (
+                    "Non-convergence path should NOT silently write generation power"
+                )
                 break
         assert found_return_false, "Could not find 'return False' in load_flow.py"
 
@@ -212,12 +212,12 @@ class TestCSRFS01:
         """S-01: No code path should accept literal 'bypass' as valid token."""
         src = Path("api/csrf.py").read_text(encoding="utf-8")
         # Should NOT have: if token == "bypass"
-        assert (
-            'token == "bypass"' not in src
-        ), "S-01: CSRF bypass via literal 'bypass' string must be removed"
-        assert "token == _BYPASS_VALUE" not in src.replace(
-            "#", ""
-        ), "S-01: No active code should reference _BYPASS_VALUE"
+        assert 'token == "bypass"' not in src, (
+            "S-01: CSRF bypass via literal 'bypass' string must be removed"
+        )
+        assert "token == _BYPASS_VALUE" not in src.replace("#", ""), (
+            "S-01: No active code should reference _BYPASS_VALUE"
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -232,18 +232,18 @@ class TestAuthS02:
         """S-02: RegisterRequest should NOT have a role field, or it should be ignored."""
         src = Path("api/auth.py").read_text(encoding="utf-8")
         # The registration handler should force a fixed role
-        assert (
-            'role="viewer"' in src or 'role = "viewer"' in src
-        ), "S-02: Registration must force a fixed role (e.g., 'viewer')"
+        assert 'role="viewer"' in src or 'role = "viewer"' in src, (
+            "S-02: Registration must force a fixed role (e.g., 'viewer')"
+        )
 
     def test_s02_register_creates_viewer(self):
         """S-02: New users should always get 'viewer' role, never 'admin'."""
         src = Path("api/auth.py").read_text(encoding="utf-8")
         # The role passed to create user should be hardcoded
         # Look for the register function's user creation
-        assert (
-            "body.role" not in src or "# SECURITY" in src
-        ), "S-02: body.role should not be used in user creation (privilege escalation)"
+        assert "body.role" not in src or "# SECURITY" in src, (
+            "S-02: body.role should not be used in user creation (privilege escalation)"
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -257,24 +257,24 @@ class TestWebSocketS03:
     def test_s03_token_parameter_exists(self):
         """S-03: WebSocket endpoint should accept a token parameter."""
         src = Path("api/websocket.py").read_text(encoding="utf-8")
-        assert (
-            "token" in src.lower()
-        ), "S-03: WebSocket endpoint should accept token for authentication"
+        assert "token" in src.lower(), (
+            "S-03: WebSocket endpoint should accept token for authentication"
+        )
         assert "Query" in src or "token:" in src, "S-03: token should be a query parameter"
 
     def test_s03_auth_validation_exists(self):
         """S-03: Token validation function should exist."""
         src = Path("api/websocket.py").read_text(encoding="utf-8")
-        assert (
-            "_validate_ws_token" in src
-        ), "S-03: WebSocket should have a token validation function"
+        assert "_validate_ws_token" in src, (
+            "S-03: WebSocket should have a token validation function"
+        )
 
     def test_s03_rejects_unauthenticated(self):
         """S-03: Unauthenticated connections should be rejected."""
         src = Path("api/websocket.py").read_text(encoding="utf-8")
-        assert (
-            "4001" in src or "close" in src.lower()
-        ), "S-03: Unauthenticated WebSocket connections should be closed"
+        assert "4001" in src or "close" in src.lower(), (
+            "S-03: Unauthenticated WebSocket connections should be closed"
+        )
 
 
 # ---------------------------------------------------------------------------

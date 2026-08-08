@@ -108,10 +108,7 @@ procedure = rag.get_etap_procedure("load flow analysis")
 # التحقق من الخطوات
 validation = rag.validate_etap_operation("load flow analysis", ["Step 1", "Step 2", "Step 3"])
 
-validation = rag.validate_etap_operation(
-    "load flow analysis",
-    ["Step 1", "Step 2", "Step 3"]
-)
+validation = rag.validate_etap_operation("load flow analysis", ["Step 1", "Step 2", "Step 3"])
 
 # الاستعلام
 answer = rag.query("How to add a transformer?")
@@ -421,12 +418,8 @@ if procedure["found"]:
     # التحقق من الخطوات
     validation = rag.validate_etap_operation(operation_name, proposed_steps)
 
+    validation = rag.validate_etap_operation(operation_name, proposed_steps)
 
-    validation = rag.validate_etap_operation(
-        operation_name,
-        proposed_steps
-    )
-    
     if validation["valid"]:
         # تنفيذ العملية
         execute_operation()

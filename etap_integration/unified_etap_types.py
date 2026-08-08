@@ -9,6 +9,7 @@ unified_etap_types.py — Single Source of Truth for ETAP types
 Branch: fix/etap-unified-types
 Refs: PRODUCTION_PLAN/02_DUPLICATION_REPORT.md Cluster #1
 """
+
 from __future__ import annotations
 
 import time
@@ -58,7 +59,7 @@ class ETAPStudyType(Enum):
     MOTOR_ACCELERATION = "MotorStarting"  # alias for MOTOR_STARTING
 
     @classmethod
-    def from_com_string(cls, name: str) -> "ETAPStudyType":
+    def from_com_string(cls, name: str) -> ETAPStudyType:
         """
         تحويل string من COM (مثل "LoadFlow") إلى enum.
 
@@ -101,12 +102,11 @@ class ETAPStudyType(Enum):
             return legacy_mapping[name]
 
         raise ValueError(
-            f"Unknown ETAP study type: {name!r}. "
-            f"Valid values: {[m.value for m in cls]}"
+            f"Unknown ETAP study type: {name!r}. Valid values: {[m.value for m in cls]}"
         )
 
     @classmethod
-    def from_name(cls, name: str) -> "ETAPStudyType":
+    def from_name(cls, name: str) -> ETAPStudyType:
         """تحويل enum name (مثل "LOAD_FLOW") إلى enum."""
         try:
             return cls[name]
@@ -163,7 +163,7 @@ class ETAPResult:
         }
 
     @classmethod
-    def from_dict(cls, d: dict[str, Any]) -> "ETAPResult":
+    def from_dict(cls, d: dict[str, Any]) -> ETAPResult:
         """Deserialize من dict."""
         return cls(
             success=d.get("success", False),

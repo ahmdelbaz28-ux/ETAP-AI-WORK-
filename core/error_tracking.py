@@ -43,44 +43,69 @@ logger = logging.getLogger(__name__)
 # is replaced with '[REDACTED]' before being sent to Sentry or logged.
 _SENSITIVE_PATTERNS = [
     # API keys
-    re.compile(r'sk-[a-zA-Z0-9]{20,}', re.IGNORECASE),
-    re.compile(r'ghp_[a-zA-Z0-9]{36}', re.IGNORECASE),
-    re.compile(r'github_pat_[a-zA-Z0-9_]{20,}', re.IGNORECASE),
-    re.compile(r'hf_[a-zA-Z0-9]{30,}', re.IGNORECASE),
-    re.compile(r'sb_secret_[a-zA-Z0-9_-]+', re.IGNORECASE),
-    re.compile(r'sb_publishable_[a-zA-Z0-9_-]+', re.IGNORECASE),
+    re.compile(r"sk-[a-zA-Z0-9]{20,}", re.IGNORECASE),
+    re.compile(r"ghp_[a-zA-Z0-9]{36}", re.IGNORECASE),
+    re.compile(r"github_pat_[a-zA-Z0-9_]{20,}", re.IGNORECASE),
+    re.compile(r"hf_[a-zA-Z0-9]{30,}", re.IGNORECASE),
+    re.compile(r"sb_secret_[a-zA-Z0-9_-]+", re.IGNORECASE),
+    re.compile(r"sb_publishable_[a-zA-Z0-9_-]+", re.IGNORECASE),
     # JWT tokens (eyJ... header.payload.signature)
-    re.compile(r'eyJ[a-zA-Z0-9_-]{10,}\.[a-zA-Z0-9_-]{10,}\.[a-zA-Z0-9_-]{10,}'),
+    re.compile(r"eyJ[a-zA-Z0-9_-]{10,}\.[a-zA-Z0-9_-]{10,}\.[a-zA-Z0-9_-]{10,}"),
     # Bearer tokens
-    re.compile(r'Bearer\s+[a-zA-Z0-9_.-]{20,}', re.IGNORECASE),
+    re.compile(r"Bearer\s+[a-zA-Z0-9_.-]{20,}", re.IGNORECASE),
     # Generic API key patterns in JSON
-    re.compile(r'["\'](?:api[_-]?key|apikey|secret|password|token|jwt)["\']\s*:\s*["\'][^"\']{8,}["\']', re.IGNORECASE),
+    re.compile(
+        r'["\'](?:api[_-]?key|apikey|secret|password|token|jwt)["\']\s*:\s*["\'][^"\']{8,}["\']',
+        re.IGNORECASE,
+    ),
 ]
 
 # Keys whose VALUES should be redacted entirely
 _SENSITIVE_KEYS = {
-    'password', 'passwd', 'pwd',
-    'api_key', 'apikey', 'api-key',
-    'secret', 'secret_key', 'secretkey',
-    'token', 'access_token', 'refresh_token', 'auth_token',
-    'jwt', 'jwt_secret', 'jwt_secret_key',
-    'authorization',
-    'cookie',
-    'session_id', 'sessionid',
-    'private_key', 'privatekey',
-    'fernet_key', 'encryption_key',
-    'service_role_key',
-    'supabase_service_role_key',
-    'supabase_anon_key',
-    'neo4j_password',
-    'redis_password',
-    'postgres_password',
-    'openai_api_key', 'anthropic_api_key', 'google_api_key',
-    'nvidia_api_key', 'huggingface_token', 'hf_token',
-    'langfuse_secret_key', 'langfuse_public_key',
-    'langwatch_api_key', 'smithery_api_key',
-    'vercel_token', 'github_token', 'gh_pat',
-    'cloudflare_api_token',
+    "password",
+    "passwd",
+    "pwd",
+    "api_key",
+    "apikey",
+    "api-key",
+    "secret",
+    "secret_key",
+    "secretkey",
+    "token",
+    "access_token",
+    "refresh_token",
+    "auth_token",
+    "jwt",
+    "jwt_secret",
+    "jwt_secret_key",
+    "authorization",
+    "cookie",
+    "session_id",
+    "sessionid",
+    "private_key",
+    "privatekey",
+    "fernet_key",
+    "encryption_key",
+    "service_role_key",
+    "supabase_service_role_key",
+    "supabase_anon_key",
+    "neo4j_password",
+    "redis_password",
+    "postgres_password",
+    "openai_api_key",
+    "anthropic_api_key",
+    "google_api_key",
+    "nvidia_api_key",
+    "huggingface_token",
+    "hf_token",
+    "langfuse_secret_key",
+    "langfuse_public_key",
+    "langwatch_api_key",
+    "smithery_api_key",
+    "vercel_token",
+    "github_token",
+    "gh_pat",
+    "cloudflare_api_token",
 }
 
 _MAX_CONTEXT_VALUE_LENGTH = 1024  # Truncate long values
@@ -93,15 +118,15 @@ def _scrub_value(value: Any) -> Any:
         # Apply regex patterns to redact secrets
         scrubbed = value
         for pattern in _SENSITIVE_PATTERNS:
-            scrubbed = pattern.sub('[REDACTED]', scrubbed)
+            scrubbed = pattern.sub("[REDACTED]", scrubbed)
         # Truncate very long strings
         if len(scrubbed) > _MAX_CONTEXT_VALUE_LENGTH:
-            scrubbed = scrubbed[:_MAX_CONTEXT_VALUE_LENGTH] + '...[truncated]'
+            scrubbed = scrubbed[:_MAX_CONTEXT_VALUE_LENGTH] + "...[truncated]"
         return scrubbed
 
     if isinstance(value, dict):
         return {
-            k: '[REDACTED]' if k.lower() in _SENSITIVE_KEYS else _scrub_value(v)
+            k: "[REDACTED]" if k.lower() in _SENSITIVE_KEYS else _scrub_value(v)
             for k, v in value.items()
         }
 
@@ -131,41 +156,43 @@ def _init_sentry() -> bool:
 
     _sentry_initialized = True
 
-    dsn = os.environ.get('SENTRY_DSN', '').strip()
+    dsn = os.environ.get("SENTRY_DSN", "").strip()
     if not dsn:
-        logger.debug('SENTRY_DSN not set — error tracking falls back to logging')
+        logger.debug("SENTRY_DSN not set — error tracking falls back to logging")
         return False
 
     try:
         import sentry_sdk  # type: ignore
         from sentry_sdk.integrations.logging import LoggingIntegration  # type: ignore
     except ImportError:
-        logger.warning('SENTRY_DSN is set but sentry-sdk is not installed. '
-                       'Install with: pip install sentry-sdk')
+        logger.warning(
+            "SENTRY_DSN is set but sentry-sdk is not installed. "
+            "Install with: pip install sentry-sdk"
+        )
         return False
 
     # Read release version from VERSION file
-    release = os.environ.get('SENTRY_RELEASE', '')
+    release = os.environ.get("SENTRY_RELEASE", "")
     if not release:
-        version_file = Path(__file__).parent.parent / 'VERSION'
+        version_file = Path(__file__).parent.parent / "VERSION"
         if version_file.exists():
             release = version_file.read_text().strip()
-            release = f'ahmedetap@{release}'
+            release = f"ahmedetap@{release}"
 
     # Configure Sentry
     sentry_sdk.init(
         dsn=dsn,
-        environment=os.environ.get('SENTRY_ENVIRONMENT', 'development'),
+        environment=os.environ.get("SENTRY_ENVIRONMENT", "development"),
         release=release or None,
-        traces_sample_rate=float(os.environ.get('SENTRY_TRACES_SAMPLE_RATE', '0.1')),
-        profiles_sample_rate=float(os.environ.get('SENTRY_PROFILES_SAMPLE_RATE', '0.0')),
+        traces_sample_rate=float(os.environ.get("SENTRY_TRACES_SAMPLE_RATE", "0.1")),
+        profiles_sample_rate=float(os.environ.get("SENTRY_PROFILES_SAMPLE_RATE", "0.0")),
         # Send default PII: False — we NEVER send IP addresses or cookies
         send_default_pii=False,
         # Don't send request bodies automatically (we scrub them manually)
-        max_request_body_size='small',
+        max_request_body_size="small",
         integrations=[
             LoggingIntegration(
-                level=logging.INFO,        # Capture INFO+ as breadcrumbs
+                level=logging.INFO,  # Capture INFO+ as breadcrumbs
                 event_level=logging.ERROR,  # Send ERROR+ as events
             ),
         ],
@@ -176,41 +203,44 @@ def _init_sentry() -> bool:
     )
 
     _sentry_available = True
-    logger.info('Sentry initialized (env=%s, release=%s)',
-                os.environ.get('SENTRY_ENVIRONMENT', 'development'),
-                release or 'unknown')
+    logger.info(
+        "Sentry initialized (env=%s, release=%s)",
+        os.environ.get("SENTRY_ENVIRONMENT", "development"),
+        release or "unknown",
+    )
     return True
 
 
 def _before_send_filter(event: Dict[str, Any], hint: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """Filter sensitive data before sending to Sentry."""
     # Scrub request data
-    if 'request' in event:
-        event['request'] = _scrub_value(event['request'])
+    if "request" in event:
+        event["request"] = _scrub_value(event["request"])
 
     # Scrub extra context
-    if 'extra' in event:
-        event['extra'] = _scrub_context(event['extra'])
+    if "extra" in event:
+        event["extra"] = _scrub_context(event["extra"])
 
     # Scrub breadcrumbs
-    if 'breadcrumbs' in event:
-        for breadcrumb in event['breadcrumbs'].get('values', []):
-            if 'data' in breadcrumb:
-                breadcrumb['data'] = _scrub_context(breadcrumb['data'])
+    if "breadcrumbs" in event:
+        for breadcrumb in event["breadcrumbs"].get("values", []):
+            if "data" in breadcrumb:
+                breadcrumb["data"] = _scrub_context(breadcrumb["data"])
 
     # Don't send user IP
-    if 'user' in event and 'ip_address' in event['user']:
-        event['user']['ip_address'] = None
+    if "user" in event and "ip_address" in event["user"]:
+        event["user"]["ip_address"] = None
 
     return event
 
 
 # ─── Public API ──────────────────────────────────────────────────────────────
 
+
 def capture_exception(
     exc: BaseException,
     context: Optional[Dict[str, Any]] = None,
-    level: str = 'error',
+    level: str = "error",
 ) -> None:
     """Capture an exception and send to Sentry (if configured) + log it.
 
@@ -228,24 +258,25 @@ def capture_exception(
 
     # Always log (even without Sentry)
     log_method = getattr(logger, level, logger.error)
-    log_method('Exception captured: %s: %s', type(exc).__name__, exc, extra=scrubbed_context)
+    log_method("Exception captured: %s: %s", type(exc).__name__, exc, extra=scrubbed_context)
 
     # Send to Sentry if available
     if _init_sentry():
         try:
             import sentry_sdk  # type: ignore
+
             with sentry_sdk.push_scope() as scope:
                 for key, value in scrubbed_context.items():
                     scope.set_extra(key, value)
                 sentry_sdk.capture_exception(exc)
         except Exception as sentry_err:
             # Never let Sentry itself cause a failure
-            logger.debug('Sentry capture failed: %s', sentry_err)
+            logger.debug("Sentry capture failed: %s", sentry_err)
 
 
 def capture_message(
     message: str,
-    level: str = 'info',
+    level: str = "info",
     context: Optional[Dict[str, Any]] = None,
 ) -> None:
     """Capture a message (non-exception) and send to Sentry if configured.
@@ -267,12 +298,13 @@ def capture_message(
     if _init_sentry():
         try:
             import sentry_sdk  # type: ignore
+
             with sentry_sdk.push_scope() as scope:
                 for key, value in scrubbed_context.items():
                     scope.set_extra(key, value)
                 sentry_sdk.capture_message(message, level=level)
         except Exception as sentry_err:
-            logger.debug('Sentry message capture failed: %s', sentry_err)
+            logger.debug("Sentry message capture failed: %s", sentry_err)
 
 
 def set_user_context(
@@ -288,21 +320,24 @@ def set_user_context(
     if _init_sentry():
         try:
             import sentry_sdk  # type: ignore
-            sentry_sdk.set_user({
-                'id': user_id,
-                'username': username,
-                'email': email,
-                'role': role,
-                # ip_address intentionally omitted — never send IPs to Sentry
-            })
+
+            sentry_sdk.set_user(
+                {
+                    "id": user_id,
+                    "username": username,
+                    "email": email,
+                    "role": role,
+                    # ip_address intentionally omitted — never send IPs to Sentry
+                }
+            )
         except Exception as sentry_err:
-            logger.debug('Sentry set_user failed: %s', sentry_err)
+            logger.debug("Sentry set_user failed: %s", sentry_err)
 
 
 def add_breadcrumb(
     message: str,
-    category: str = 'custom',
-    level: str = 'info',
+    category: str = "custom",
+    level: str = "info",
     data: Optional[Dict[str, Any]] = None,
 ) -> None:
     """Add a breadcrumb for debugging error context.
@@ -315,11 +350,12 @@ def add_breadcrumb(
     # Truncate breadcrumb data to prevent oversized payloads
     total_size = sum(len(str(v)) for v in scrubbed_data.values())
     if total_size > _MAX_BREADCRUMB_SIZE:
-        scrubbed_data = {'_truncated': True, 'original_size': total_size}
+        scrubbed_data = {"_truncated": True, "original_size": total_size}
 
     if _init_sentry():
         try:
             import sentry_sdk  # type: ignore
+
             sentry_sdk.add_breadcrumb(
                 message=message,
                 category=category,
@@ -327,7 +363,7 @@ def add_breadcrumb(
                 data=scrubbed_data,
             )
         except Exception as sentry_err:
-            logger.debug('Sentry add_breadcrumb failed: %s', sentry_err)
+            logger.debug("Sentry add_breadcrumb failed: %s", sentry_err)
 
 
 def flush() -> None:
@@ -335,12 +371,14 @@ def flush() -> None:
     if _sentry_available:
         try:
             import sentry_sdk  # type: ignore
+
             sentry_sdk.flush(timeout=5.0)
         except Exception:
             pass
 
 
 # ─── FastAPI middleware integration ──────────────────────────────────────────
+
 
 def setup_fastapi_error_tracking(app: Any) -> None:
     """Set up error tracking middleware for a FastAPI app.
@@ -349,24 +387,25 @@ def setup_fastapi_error_tracking(app: Any) -> None:
         from core.error_tracking import setup_fastapi_error_tracking
         setup_fastapi_error_tracking(app)
     """
-    from fastapi import Request
-    from fastapi.responses import JSONResponse
     import time
 
-    @app.middleware('http')
+    from fastapi import Request
+    from fastapi.responses import JSONResponse
+
+    @app.middleware("http")
     async def error_tracking_middleware(request: Request, call_next):
         """Capture unhandled exceptions and add request context breadcrumbs."""
         start_time = time.time()
 
         # Add breadcrumb for request start
         add_breadcrumb(
-            f'{request.method} {request.url.path}',
-            category='request',
-            level='info',
+            f"{request.method} {request.url.path}",
+            category="request",
+            level="info",
             data={
-                'method': request.method,
-                'path': request.url.path,
-                'query_params': dict(request.query_params),
+                "method": request.method,
+                "path": request.url.path,
+                "query_params": dict(request.query_params),
                 # Don't include headers — may contain API keys
             },
         )
@@ -377,12 +416,12 @@ def setup_fastapi_error_tracking(app: Any) -> None:
 
             # Add breadcrumb for response
             add_breadcrumb(
-                f'Response {response.status_code} ({duration_ms:.0f}ms)',
-                category='response',
-                level='info' if response.status_code < 400 else 'warning',
+                f"Response {response.status_code} ({duration_ms:.0f}ms)",
+                category="response",
+                level="info" if response.status_code < 400 else "warning",
                 data={
-                    'status_code': response.status_code,
-                    'duration_ms': round(duration_ms, 2),
+                    "status_code": response.status_code,
+                    "duration_ms": round(duration_ms, 2),
                 },
             )
 
@@ -393,14 +432,17 @@ def setup_fastapi_error_tracking(app: Any) -> None:
             capture_exception(
                 exc,
                 context={
-                    'request_method': request.method,
-                    'request_path': request.url.path,
-                    'duration_ms': round(duration_ms, 2),
-                    'request_id': request.headers.get('x-request-id', ''),
+                    "request_method": request.method,
+                    "request_path": request.url.path,
+                    "duration_ms": round(duration_ms, 2),
+                    "request_id": request.headers.get("x-request-id", ""),
                 },
-                level='error',
+                level="error",
             )
             return JSONResponse(
                 status_code=500,
-                content={'detail': 'Internal server error', 'trace_id': request.headers.get('x-request-id', '')},
+                content={
+                    "detail": "Internal server error",
+                    "trace_id": request.headers.get("x-request-id", ""),
+                },
             )

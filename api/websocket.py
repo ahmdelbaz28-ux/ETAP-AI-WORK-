@@ -278,8 +278,7 @@ class SCADALiveFeed:
                 if elapsed > HEARTBEAT_INTERVAL + HEARTBEAT_TIMEOUT:
                     meta["missed_heartbeats"] += 1
                     logger.warning(
-                        "WebSocket heartbeat missed for connection %s "
-                        "(missed=%d, elapsed=%.1fs)",
+                        "WebSocket heartbeat missed for connection %s (missed=%d, elapsed=%.1fs)",
                         ws_id,
                         meta["missed_heartbeats"],
                         elapsed,

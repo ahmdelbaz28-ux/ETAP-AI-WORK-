@@ -38,12 +38,16 @@ def _free_port_if_zero(port: int) -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="SCADA simulator (Modbus slave)")
-    parser.add_argument("--modbus-port", type=int, default=5021,
-                        help="TCP port for the Modbus slave (0 = random free port)")
-    parser.add_argument("--interval-ms", type=int, default=1000,
-                        help="Provider refresh interval in milliseconds")
-    parser.add_argument("--host", default="0.0.0.0",
-                        help="Bind address")
+    parser.add_argument(
+        "--modbus-port",
+        type=int,
+        default=5021,
+        help="TCP port for the Modbus slave (0 = random free port)",
+    )
+    parser.add_argument(
+        "--interval-ms", type=int, default=1000, help="Provider refresh interval in milliseconds"
+    )
+    parser.add_argument("--host", default="0.0.0.0", help="Bind address")
     args = parser.parse_args()
 
     port = _free_port_if_zero(args.modbus_port)
@@ -118,12 +122,18 @@ def main() -> int:
         provider=provider,
     )
 
-    print(f"SCADA simulator starting Modbus slave on {args.host}:{port} "
-          f"(unit_id=1, refresh={args.interval_ms}ms)", flush=True)
+    print(
+        f"SCADA simulator starting Modbus slave on {args.host}:{port} "
+        f"(unit_id=1, refresh={args.interval_ms}ms)",
+        flush=True,
+    )
     print("Connect a Modbus master to read 4 measurements:", flush=True)
     for entry in register_map:
-        print(f"  addr={entry['address']:>3}  {entry['name']:<14} "
-              f"({entry['measurement_type']}, {entry['data_type']})", flush=True)
+        print(
+            f"  addr={entry['address']:>3}  {entry['name']:<14} "
+            f"({entry['measurement_type']}, {entry['data_type']})",
+            flush=True,
+        )
 
     adapter.start()
 

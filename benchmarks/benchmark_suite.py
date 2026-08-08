@@ -42,7 +42,6 @@ IEEE_SIZES = [14, 30, 57] if QUICK_MODE else [14, 30, 57, 118]
 #  Benchmark 1: Jacobian build time — analytical vs finite-difference
 # NOSONAR
 
-def benchmark_1_jacobian() -> Dict[str, Any]:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
 
 # ═══════════════════════════════════════════════════════════════════════════
 #  Benchmark 1: Jacobian build time — analytical vs finite-difference
@@ -245,7 +244,6 @@ def benchmark_2_load_flow_solver() -> Dict[str, Any]:
 #  Benchmark 3: Zbus computation — dense inversion vs LU factorization
 # NOSONAR
 
-def benchmark_3_zbus() -> Dict[str, Any]:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
 
 # ═══════════════════════════════════════════════════════════════════════════
 #  Benchmark 3: Zbus computation — dense inversion vs LU factorization
@@ -656,8 +654,10 @@ class BenchmarkReport:
             print(f"  {'Buses':>5}  {'LF P50':>8}  {'LF P95':>8}  {'LF P99':>8}  "
                   f"{'Fault P50':>8}  {'Fault P95':>8}  {'Fault P99':>8}")
             for s in self.latency.get("studies", []):
-                print(f"  {s['n_buses']:5d}  {s['load_flow_ms_p50']:>7.1f}ms  "
-                      f"{s['load_flow_ms_p95']:>7.1f}ms  {s['load_flow_ms_p99']:>7.1f}ms"
+                print(
+                    f"  {s['n_buses']:5d}  {s['load_flow_ms_p50']:>7.1f}ms  "
+                    f"{s['load_flow_ms_p95']:>7.1f}ms  {s['load_flow_ms_p99']:>7.1f}ms"
+                )
 
             print(f"  {'Buses':>5}  {'LF P50':>8}  {'LF P95':>8}  {'LF P99':>8}  |"
                   f"  {'Fault P50':>8}  {'Fault P95':>8}  {'Fault P99':>8}")
@@ -699,16 +699,6 @@ class BenchmarkReport:
 # NOSONAR
 #  Main
 # NOSONAR
-
-def main() -> int:
-    print("+" + "-" * 70 + "+")
-    print("\nAhmedETAP -- Benchmark Suite")
-    print(f"Mode: {'QUICK' if QUICK_MODE else 'FULL'}")
-    print(f"System sizes: {IEEE_SIZES}")
-
-            best_hit = max(s["hit_rate_pct"] for s in ca)
-            print(f"  • Cache hit rate: {best_hit:.1f}% best case (Zipfian workload)")
-
 
 # ═══════════════════════════════════════════════════════════════════════════
 #  Main

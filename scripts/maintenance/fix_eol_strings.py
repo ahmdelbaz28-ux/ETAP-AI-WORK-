@@ -92,9 +92,7 @@ def fix_file(path: Path) -> bool:
         ast.parse(fixed)
     except SyntaxError as exc:
         # Roll back so we never leave a broken file on disk.
-        safe_path.write_text(
-            original, encoding="utf-8"
-        )  # noqa: S2083: safe_path realpath-validated within script directory (see main())
+        safe_path.write_text(original, encoding="utf-8")  # noqa: S2083: safe_path realpath-validated within script directory (see main())
         print(f"REVERTED: {safe_path.name} - fix introduced a SyntaxError: {exc}")
         return False
 

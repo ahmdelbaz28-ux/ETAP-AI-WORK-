@@ -8,15 +8,13 @@ max multiplier, instantaneous override) are always enforced.
 
 from __future__ import annotations
 
-from typing import Optional
-
 import numpy as np
 
 from curves.curves import (
-    IEC60255Curves,
-    calculate_iec_operating_time,
     MAX_MULTIPLIER_OF_PICKUP,
     MIN_OPERATING_TIME_S,
+    IEC60255Curves,
+    calculate_iec_operating_time,
 )
 
 
@@ -125,9 +123,7 @@ class OvercurrentRelay(Relay):
         self.curve_type = curve_type.lower().strip()
         if self.curve_type not in self.VALID_CURVE_TYPES:
             valid = sorted(self.VALID_CURVE_TYPES)
-            raise ValueError(
-                f"Unknown curve type '{curve_type}'. Valid: {valid}"
-            )
+            raise ValueError(f"Unknown curve type '{curve_type}'. Valid: {valid}")
 
         self.TMS = float(tms)  # NOSONAR physics/engineering notation
         self.Ip = float(ip)  # NOSONAR physics/engineering notation
@@ -271,8 +267,8 @@ class DifferentialRelay(Relay):
         if ibias < Ibias2:
             return idiff > self.Ip + self.slope1 * ibias
         else:
-            return (
-                idiff > self.Ip + self.slope1 * Ibias2 + self.slope2 * (ibias - Ibias2)
+            return idiff > self.Ip + self.slope1 * Ibias2 + self.slope2 * (
+                ibias - Ibias2
             )  # NOSONAR physics/engineering notation
 
     def operate(

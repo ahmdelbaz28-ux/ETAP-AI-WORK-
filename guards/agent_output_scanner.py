@@ -24,7 +24,7 @@ from __future__ import annotations
 
 import logging
 import re
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -137,8 +137,7 @@ def scan_agent_output(
     if warnings:
         critical_count = sum(1 for w in warnings if w.severity == "critical")
         logger.warning(
-            "Agent '%s' output triggered %d failure mode warnings "
-            "(%d critical, %d regular): %s",
+            "Agent '%s' output triggered %d failure mode warnings (%d critical, %d regular): %s",
             agent_handle,
             len(warnings),
             critical_count,

@@ -17,7 +17,7 @@ from __future__ import annotations
 import math
 import os
 from dataclasses import asdict, dataclass, field
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 # ============================================================================
@@ -27,7 +27,7 @@ from typing import Any
 CONTRACT_VERSION = "v1"
 
 
-class CeilingType(str, Enum):
+class CeilingType(StrEnum):
     """
     NFPA 72 ceiling classifications.
 
@@ -50,7 +50,7 @@ class CeilingType(str, Enum):
     COMBUSTIBLE = "COMBUSTIBLE"
 
 
-class ConfidenceLevel(str, Enum):
+class ConfidenceLevel(StrEnum):
     """Confidence levels for analysis results."""
 
     HIGH = "HIGH"
@@ -59,7 +59,7 @@ class ConfidenceLevel(str, Enum):
     UNKNOWN = "UNKNOWN"
 
 
-class DetectorType(str, Enum):
+class DetectorType(StrEnum):
     """
     NFPA 72 detector types.
 
@@ -241,7 +241,7 @@ class AuditEventContract:
 # ============================================================================
 
 
-class PathwaySurvivabilityLevel(str, Enum):
+class PathwaySurvivabilityLevel(StrEnum):
     """
     NFPA 72-2022 §12.4 — Pathway Survivability Levels.
 
@@ -264,7 +264,7 @@ class PathwaySurvivabilityLevel(str, Enum):
     LEVEL_3 = "LEVEL_3"
 
 
-class CableType(str, Enum):
+class CableType(StrEnum):
     """
     NEC Article 760 — Fire alarm cable ratings.
 
@@ -280,7 +280,7 @@ class CableType(str, Enum):
     CI = "CI"
 
 
-class OccupancyCategory(str, Enum):
+class OccupancyCategory(StrEnum):
     """
     Building occupancy classification for pathway survivability determination.
 
@@ -300,7 +300,7 @@ class OccupancyCategory(str, Enum):
     DETENTION = "DETENTION"  # IBC Group I-3 — prisons
 
 
-class FeatureFlag(str, Enum):
+class FeatureFlag(StrEnum):
     """
     Feature flags for toggling functionality per service.
 
@@ -408,7 +408,11 @@ class ContractViolation(ValueError):
     pass
 
 
-def validate_room_input(payload: dict[str, Any]) -> dict[str, Any]:  # NOSONAR — S3776: cognitive complexity is inherent to the safety-critical algorithm
+def validate_room_input(
+    payload: dict[str, Any],
+) -> dict[
+    str, Any
+]:  # NOSONAR — S3776: cognitive complexity is inherent to the safety-critical algorithm
     """
     Validate a room input payload before it enters the calculation pipeline.
 
@@ -458,7 +462,9 @@ def validate_room_input(payload: dict[str, Any]) -> dict[str, Any]:  # NOSONAR �
     # 4. Validate polygon is a list of at least 3 points
     polygon = payload.get("polygon")
     if not isinstance(polygon, (list, tuple)) or len(polygon) < 3:
-        raise ContractViolation(f"polygon must be a list of at least 3 points, got {type(polygon).__name__}")
+        raise ContractViolation(
+            f"polygon must be a list of at least 3 points, got {type(polygon).__name__}"
+        )
 
     # 4a. Validate polygon points are numeric — prevents downstream crashes
     #     A polygon like [{"x": "abc"}] passes the len check but crashes
@@ -467,12 +473,16 @@ def validate_room_input(payload: dict[str, Any]) -> dict[str, Any]:  # NOSONAR �
     for i, pt in enumerate(polygon):
         if isinstance(pt, (list, tuple)):
             if len(pt) < 2:
-                raise ContractViolation(f"polygon point {i} must have at least 2 coordinates, got {len(pt)}")
+                raise ContractViolation(
+                    f"polygon point {i} must have at least 2 coordinates, got {len(pt)}"
+                )
             try:
                 x_val = float(pt[0])
                 y_val = float(pt[1])
             except (TypeError, ValueError):
-                raise ContractViolation(f"polygon point {i} coordinates must be numeric, got {pt!r}")
+                raise ContractViolation(
+                    f"polygon point {i} coordinates must be numeric, got {pt!r}"
+                )
             if not (math.isfinite(x_val) and math.isfinite(y_val)):
                 raise ContractViolation(
                     f"polygon point {i} contains non-finite coordinate: ({x_val}, {y_val}). "
@@ -489,12 +499,16 @@ def validate_room_input(payload: dict[str, Any]) -> dict[str, Any]:  # NOSONAR �
             x_val = pt.get("x", pt.get("X"))
             y_val = pt.get("y", pt.get("Y"))
             if x_val is None or y_val is None:
-                raise ContractViolation(f"polygon point {i} dict must have 'x' and 'y' keys, got {list(pt.keys())}")
+                raise ContractViolation(
+                    f"polygon point {i} dict must have 'x' and 'y' keys, got {list(pt.keys())}"
+                )
             try:
                 x_val = float(x_val)
                 y_val = float(y_val)
             except (TypeError, ValueError):
-                raise ContractViolation(f"polygon point {i} coordinates must be numeric, got x={x_val!r} y={y_val!r}")
+                raise ContractViolation(
+                    f"polygon point {i} coordinates must be numeric, got x={x_val!r} y={y_val!r}"
+                )
             if not (math.isfinite(x_val) and math.isfinite(y_val)):
                 raise ContractViolation(
                     f"polygon point {i} dict contains non-finite coordinate: ({x_val}, {y_val})."
@@ -506,7 +520,9 @@ def validate_room_input(payload: dict[str, Any]) -> dict[str, Any]:  # NOSONAR �
                 )
             coords.append((x_val, y_val))
         else:
-            raise ContractViolation(f"polygon point {i} must be a tuple/list or dict, got {type(pt).__name__}")
+            raise ContractViolation(
+                f"polygon point {i} must be a tuple/list or dict, got {type(pt).__name__}"
+            )
 
     # 4b. Polygon self-intersection check — prevents wrong area calculations.
     #     A self-intersecting polygon (e.g. figure-8) has ambiguous area
@@ -572,7 +588,11 @@ FORBIDDEN_LOOP_DERIVED_FIELDS: tuple = (
 )
 
 
-def validate_loop_input(payload: dict[str, Any]) -> dict[str, Any]:  # NOSONAR — S3776: cognitive complexity is inherent to the safety-critical algorithm
+def validate_loop_input(
+    payload: dict[str, Any],
+) -> dict[
+    str, Any
+]:  # NOSONAR — S3776: cognitive complexity is inherent to the safety-critical algorithm
     """
     Validate an SLC loop input payload before design.
 

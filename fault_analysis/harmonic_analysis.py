@@ -417,9 +417,7 @@ class HarmonicAnalysisEngine:
     def check_ieee_519_compliance(
         self,
         thd_voltage: dict[str, float],
-        _tdd_current: dict[
-            str, float
-        ],  # NOSONAR
+        _tdd_current: dict[str, float],  # NOSONAR
         voltage_kv: float,  # NOSONAR unused param kept for API compatibility
     ) -> dict[str, bool]:
         """
@@ -573,9 +571,7 @@ class HarmonicAnalysisEngine:
         # Choose capacitor rating (typical values)
         Q_cap_MVAR = 1.0  # NOSONAR
         V_ll = 13.8  # NOSONAR
-        v_phase = (
-            V_ll / np.sqrt(3)
-        )  # NOSONAR
+        v_phase = V_ll / np.sqrt(3)  # NOSONAR
 
         # Calculate capacitance
         # Q = V^2 / Xc = V^2 * omega * C

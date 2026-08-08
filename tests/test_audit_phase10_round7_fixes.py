@@ -44,9 +44,9 @@ class TestRouterAuthentication:
     def test_router_has_auth_dependency(self, file: str, router_line_fragment: str) -> None:
         """Each router must declare dependencies=[Depends(get_api_key)]."""
         source = _read_file(file)
-        assert (
-            router_line_fragment in source
-        ), f"{file}: router does NOT have {router_line_fragment}"
+        assert router_line_fragment in source, (
+            f"{file}: router does NOT have {router_line_fragment}"
+        )
 
     @pytest.mark.parametrize(
         "file",
@@ -82,12 +82,12 @@ class TestHFSpaceCUAWebSocketAuth:
         """CUA WebSocket must check API key before accepting."""
         ws_pos = hf_source.index("websocket_cua_confirmation")
         ws_body = hf_source[ws_pos : ws_pos + 1500]
-        assert (
-            "compare_digest" in ws_body
-        ), "hf-space CUA WebSocket must use compare_digest for auth"
-        assert (
-            "x-api-key" in ws_body or "token" in ws_body
-        ), "hf-space CUA WebSocket must check API key"
+        assert "compare_digest" in ws_body, (
+            "hf-space CUA WebSocket must use compare_digest for auth"
+        )
+        assert "x-api-key" in ws_body or "token" in ws_body, (
+            "hf-space CUA WebSocket must check API key"
+        )
         assert "code=1008" in ws_body, "hf-space CUA WebSocket must close with 1008 on auth failure"
 
     def test_cua_ws_imports_hmac(self, hf_source: str) -> None:
@@ -117,12 +117,12 @@ class TestHFSpaceDualControlTimingAttack:
             if "token != expected" in dc_body
             else dc_body
         )
-        assert (
-            "token != expected" not in auth_section
-        ), "Dual-control must NOT use != for token comparison (timing attack)"
-        assert (
-            "compare_digest" in auth_section
-        ), "Dual-control must use hmac.compare_digest for token comparison"
+        assert "token != expected" not in auth_section, (
+            "Dual-control must NOT use != for token comparison (timing attack)"
+        )
+        assert "compare_digest" in auth_section, (
+            "Dual-control must use hmac.compare_digest for token comparison"
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -139,9 +139,9 @@ class TestCIPinning:
 
     def test_no_trivy_at_master(self, ci_cd_source: str) -> None:
         """trivy-action must NOT be pinned to @master."""
-        assert (
-            "trivy-action@master" not in ci_cd_source
-        ), "trivy-action must not use @master (supply chain risk)"
+        assert "trivy-action@master" not in ci_cd_source, (
+            "trivy-action must not use @master (supply chain risk)"
+        )
 
     def test_trivy_pinned_to_sha(self, ci_cd_source: str) -> None:
         """trivy-action must be pinned to a specific commit SHA (not a

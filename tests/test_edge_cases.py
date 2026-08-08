@@ -83,6 +83,7 @@ class TestLoadFlowEdgeCases:
     def test_three_bus_mesh(self):
         """3-bus meshed system with 2 lines."""
         system = System(base_mva=100.0)
+
         b1 = Bus(
             bus_id=1, voltage_magnitude=1.02, voltage_angle=0.0, bus_type="slack", base_kv=13.8
         )
@@ -102,10 +103,6 @@ class TestLoadFlowEdgeCases:
             base_kv=13.8,
             load_power=complex(0.5, 0.2),
         )
-
-        b1 = Bus(bus_id=1, voltage_magnitude=1.02, voltage_angle=0.0, bus_type="slack", base_kv=13.8)
-        b2 = Bus(bus_id=2, voltage_magnitude=1.0, voltage_angle=0.0, bus_type="pq", base_kv=13.8, load_power=complex(0.8, 0.3))
-        b3 = Bus(bus_id=3, voltage_magnitude=1.01, voltage_angle=0.0, bus_type="pq", base_kv=13.8, load_power=complex(0.5, 0.2))
         system.add_bus(b1)
         system.add_bus(b2)
         system.add_bus(b3)
@@ -173,13 +170,6 @@ class TestBusEdgeCases:
         bus = Bus(bus_id=1, bus_type="pv", q_min=-0.5, q_max=0.5)
         assert bus.q_min == -0.5
         assert bus.q_max == pytest.approx(0.5)
-
-    def test_bus_complex_power(self):
-        bus = Bus(bus_id=1, generation_power=complex(1.0, 0.5), load_power=complex(0.3, 0.1))
-        assert bus.generation_power.real == pytest.approx(1.0)
-        assert bus.load_power.imag == pytest.approx(0.1)
-
-        assert bus.q_max == 0.5
 
     def test_bus_complex_power(self):
         bus = Bus(bus_id=1, generation_power=complex(1.0, 0.5), load_power=complex(0.3, 0.1))

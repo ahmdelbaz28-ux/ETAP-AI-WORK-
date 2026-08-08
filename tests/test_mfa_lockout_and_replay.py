@@ -17,8 +17,8 @@ Run:
 from __future__ import annotations
 
 import hashlib
-import time
 import threading
+import time
 from collections import defaultdict
 
 import pytest
@@ -74,9 +74,7 @@ class MFALockoutTracker:
             self._failed_attempts.pop(user_id, None)
             self._lockouts.pop(user_id, None)
 
-    def check_totp_replay(
-        self, user_id: str, code: str, now: float, is_valid: bool
-    ) -> bool:
+    def check_totp_replay(self, user_id: str, code: str, now: float, is_valid: bool) -> bool:
         """Check if a valid TOTP code is being replayed within 30s.
 
         Returns True if the code should be REJECTED (replay detected).

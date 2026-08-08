@@ -479,22 +479,20 @@ async def test_autonomous_optimization_workflow():
     # Verify reports generated
     assert "pdf" in results.get("report_paths", {})
 
-    
     # Create test system
     system = create_industrial_system()
-    
+
     # Execute workflow
     results = await orchestrator.execute_autonomous_workflow(
-        user_goal="Optimize this network",
-        system_data=system
+        user_goal="Optimize this network", system_data=system
     )
-    
+
     # Verify all studies completed
-    assert len(results['studies_performed']) >= 3
-    assert results['all_validated'] == True
-    
+    assert len(results["studies_performed"]) >= 3
+    assert results["all_validated"] == True
+
     # Verify reports generated
-    assert 'pdf' in results.get('report_paths', {})
+    assert "pdf" in results.get("report_paths", {})
 ```
 
 #### C. Engineering Validation (`validation_suite.py`)
@@ -1000,9 +998,10 @@ REQUEST_LATENCY = Histogram("http_request_duration_seconds", "Request latency")
 ACTIVE_WORKFLOWS = Gauge("active_workflows", "Number of active workflows")
 
 
-REQUEST_COUNT = Counter('http_requests_total', 'Total HTTP requests')
-REQUEST_LATENCY = Histogram('http_request_duration_seconds', 'Request latency')
-ACTIVE_WORKFLOWS = Gauge('active_workflows', 'Number of active workflows')
+REQUEST_COUNT = Counter("http_requests_total", "Total HTTP requests")
+REQUEST_LATENCY = Histogram("http_request_duration_seconds", "Request latency")
+ACTIVE_WORKFLOWS = Gauge("active_workflows", "Number of active workflows")
+
 
 # Example usage
 @app.middleware("http")

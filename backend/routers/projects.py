@@ -68,7 +68,9 @@ async def list_projects(
     return success(result)
 
 
-@router.post("", status_code=201, dependencies=[Depends(require_permission(Permission.PROJECT_CREATE))])
+@router.post(
+    "", status_code=201, dependencies=[Depends(require_permission(Permission.PROJECT_CREATE))]
+)
 async def create_project(input_data: CreateProjectInput):
     """Create a new project."""
     db = get_db()
@@ -96,7 +98,9 @@ async def get_project(project_id: str):
     db = get_db()
     project = db.get_project(project_id)
     if not project:
-        raise HTTPException(status_code=404, detail="Project not found")  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S1192: duplicated literal acceptable in this localized context
+        raise HTTPException(
+            status_code=404, detail="Project not found"
+        )  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S1192: duplicated literal acceptable in this localized context
     validate_project(project)
     return success(project)
 
@@ -107,10 +111,14 @@ async def update_project(project_id: str, input_data: UpdateProjectInput):
     db = get_db()
     updates = input_data.model_dump(exclude_none=True)
     if not updates:
-        raise HTTPException(status_code=400, detail="No fields to update")  # NOSONAR — S8415: assignment kept for readability / debuggability
+        raise HTTPException(
+            status_code=400, detail="No fields to update"
+        )  # NOSONAR — S8415: assignment kept for readability / debuggability
     project = db.update_project(project_id, updates)
     if not project:
-        raise HTTPException(status_code=404, detail="Project not found")  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
+        raise HTTPException(
+            status_code=404, detail="Project not found"
+        )  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
     validate_project(project)
 
     # Sync update to UDM (System B) — non-blocking, never raises
@@ -122,13 +130,17 @@ async def update_project(project_id: str, input_data: UpdateProjectInput):
     return success(project)
 
 
-@router.delete("/{project_id}", dependencies=[Depends(require_permission(Permission.PROJECT_DELETE))])
+@router.delete(
+    "/{project_id}", dependencies=[Depends(require_permission(Permission.PROJECT_DELETE))]
+)
 async def delete_project(project_id: str):
     """Delete a project and all its children."""
     db = get_db()
     deleted = db.delete_project(project_id)
     if not deleted:
-        raise HTTPException(status_code=404, detail="Project not found")  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
+        raise HTTPException(
+            status_code=404, detail="Project not found"
+        )  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
 
     # Sync deletion to UDM (System B) — non-blocking, never raises
     try:

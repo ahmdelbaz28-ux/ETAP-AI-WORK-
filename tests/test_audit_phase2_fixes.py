@@ -30,9 +30,9 @@ class TestCSRFS06:
         """S-06: Source must contain production environment guard."""
         src = Path("api/csrf.py").read_text(encoding="utf-8")
         assert "RuntimeError" in src, "S-06: _get_secret() must raise RuntimeError in production"
-        assert (
-            "production" in src.lower() or "ENVIRONMENT" in src
-        ), "S-06: Must check ENVIRONMENT for production guard"
+        assert "production" in src.lower() or "ENVIRONMENT" in src, (
+            "S-06: Must check ENVIRONMENT for production guard"
+        )
 
     def test_s06_dev_fallback_with_warning(self):
         """S-06: Dev/test environments should log warning when using default."""
@@ -53,33 +53,33 @@ class TestRateLimiterS08:
         from api._rate_limit import RateLimiter
 
         limiter = RateLimiter(max_requests=10, window_seconds=60)
-        assert hasattr(
-            limiter, "_lock"
-        ), "S-08: RateLimiter must have a _lock attribute for thread safety"
+        assert hasattr(limiter, "_lock"), (
+            "S-08: RateLimiter must have a _lock attribute for thread safety"
+        )
         import threading
 
         # threading.Lock() returns _thread.lock in CPython
-        assert hasattr(
-            limiter._lock, "acquire"
-        ), "S-08: _lock must support acquire (thread lock protocol)"  # NOSONAR S9073: composite assertion verifies a correlated set of conditions; splitting would obscure the invariant under test
-        assert hasattr(
-            limiter._lock, "release"
-        ), "S-08: _lock must support release (thread lock protocol)"
+        assert hasattr(limiter._lock, "acquire"), (
+            "S-08: _lock must support acquire (thread lock protocol)"
+        )  # NOSONAR S9073: composite assertion verifies a correlated set of conditions; splitting would obscure the invariant under test
+        assert hasattr(limiter._lock, "release"), (
+            "S-08: _lock must support release (thread lock protocol)"
+        )
 
     def test_s08_lock_used_in_is_allowed(self):
         """S-08: is_allowed() must acquire the lock."""
         src = Path("api/_rate_limit.py").read_text(encoding="utf-8")
         # Should contain 'with self._lock'
-        assert (
-            "with self._lock" in src
-        ), "S-08: is_allowed() must use 'with self._lock' for thread safety"
+        assert "with self._lock" in src, (
+            "S-08: is_allowed() must use 'with self._lock' for thread safety"
+        )
 
     def test_s08_stale_key_eviction(self):
         """S-08: Must have stale key eviction mechanism."""
         src = Path("api/_rate_limit.py").read_text(encoding="utf-8")
-        assert (
-            "_evict_stale_keys" in src or "evict" in src.lower() or "cleanup" in src.lower()
-        ), "S-08: Must have stale key eviction to prevent memory leak"
+        assert "_evict_stale_keys" in src or "evict" in src.lower() or "cleanup" in src.lower(), (
+            "S-08: Must have stale key eviction to prevent memory leak"
+        )
 
     def test_s08_reset_clears_under_lock(self):
         """S-08: reset() must also acquire the lock."""
@@ -99,9 +99,9 @@ class TestRateLimiterS08:
                     break
         # Verify reset uses lock by checking source text
         reset_section = src[src.find("def reset") :] if "def reset" in src else ""
-        assert (
-            "with self._lock" in reset_section or "self._lock" in reset_section
-        ), "S-08: reset() must also acquire the lock for thread safety"
+        assert "with self._lock" in reset_section or "self._lock" in reset_section, (
+            "S-08: reset() must also acquire the lock for thread safety"
+        )
 
     def test_s08_concurrent_safety(self):
         """S-08: Concurrent calls should not corrupt state."""
@@ -156,9 +156,9 @@ class TestJWTS09:
     def test_s09_blacklist_check(self):
         """S-09: Must check token JTI against blacklist."""
         src = Path("api/dependencies.py").read_text(encoding="utf-8")
-        assert (
-            "_is_token_blacklisted" in src
-        ), "S-09: Must import and call _is_token_blacklisted for revoked tokens"
+        assert "_is_token_blacklisted" in src, (
+            "S-09: Must import and call _is_token_blacklisted for revoked tokens"
+        )
         assert "jti" in src, "S-09: Must extract JTI from token payload for blacklist check"
         assert "revoked" in src.lower(), "S-09: Must reject revoked/blacklisted tokens"
 
@@ -167,9 +167,9 @@ class TestJWTS09:
         src = Path("api/dependencies.py").read_text(encoding="utf-8")
         # Should import inside the function body, not at module level
         section = src[src.find("async def get_api_key") :]
-        assert (
-            "from api.auth import" in section
-        ), "S-09: Must use lazy import inside function to avoid circular dependency"
+        assert "from api.auth import" in section, (
+            "S-09: Must use lazy import inside function to avoid circular dependency"
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -189,16 +189,16 @@ class TestR2S10:
         """S-10: Must reject keys containing '..'."""
         src = Path("api/r2_storage.py").read_text(encoding="utf-8")
         assert ".." in src, "S-10: Must reject directory traversal ('..')"
-        assert (
-            "raise" in src or "ValueError" in src
-        ), "S-10: Must raise ValueError on directory traversal"  # NOSONAR S9073: composite assertion verifies a correlated set of conditions; splitting would obscure the invariant under test
+        assert "raise" in src or "ValueError" in src, (
+            "S-10: Must raise ValueError on directory traversal"
+        )  # NOSONAR S9073: composite assertion verifies a correlated set of conditions; splitting would obscure the invariant under test
 
     def test_s10_rejects_absolute_path(self):
         """S-10: Must reject keys starting with '/'."""
         src = Path("api/r2_storage.py").read_text(encoding="utf-8")
-        assert (
-            'startswith("/")' in src or "absolute" in src.lower()
-        ), "S-10: Must reject absolute paths"
+        assert 'startswith("/")' in src or "absolute" in src.lower(), (
+            "S-10: Must reject absolute paths"
+        )
 
     def test_s10_rejects_null_bytes(self):
         """S-10: Must reject keys containing null bytes."""
@@ -239,17 +239,17 @@ class TestAssetsS11:
         src = Path("api/assets.py").read_text(encoding="utf-8")
         update_section = src[src.find("async def update_asset") :]
         # Must have user parameter with get_current_user_from_header
-        assert (
-            "user:" in update_section or "CurrentUser" in update_section
-        ), "S-11: update_asset() must have user parameter for authorization"
+        assert "user:" in update_section or "CurrentUser" in update_section, (
+            "S-11: update_asset() must have user parameter for authorization"
+        )
 
     def test_s11_delete_has_user_param(self):
         """S-11: delete_asset() must require authenticated user."""
         src = Path("api/assets.py").read_text(encoding="utf-8")
         delete_section = src[src.find("async def delete_asset") :]
-        assert (
-            "user:" in delete_section or "CurrentUser" in delete_section
-        ), "S-11: delete_asset() must have user parameter for authorization"
+        assert "user:" in delete_section or "CurrentUser" in delete_section, (
+            "S-11: delete_asset() must have user parameter for authorization"
+        )
 
     def test_s11_owner_or_admin_check(self):
         """S-11: Must check created_by == user_id or role == admin."""
@@ -289,9 +289,9 @@ class TestDockerComposeS12:
                 in_redis = False
             if in_redis and "6379" in line and "ports" not in line.lower():
                 # This is a port mapping line
-                assert (
-                    "127.0.0.1" in line
-                ), f"S-12: Redis port must be bound to 127.0.0.1: {line.strip()}"
+                assert "127.0.0.1" in line, (
+                    f"S-12: Redis port must be bound to 127.0.0.1: {line.strip()}"
+                )
 
     def test_s12_postgres_localhost(self):
         """S-12: Postgres port should be bound to 127.0.0.1."""
@@ -304,9 +304,9 @@ class TestDockerComposeS12:
             elif in_postgres and line.strip().startswith(("grafana:", "redis:", "  redis:")):
                 in_postgres = False
             if in_postgres and "5432" in line and "ports" not in line.lower():
-                assert (
-                    "127.0.0.1" in line
-                ), f"S-12: Postgres port must be bound to 127.0.0.1: {line.strip()}"
+                assert "127.0.0.1" in line, (
+                    f"S-12: Postgres port must be bound to 127.0.0.1: {line.strip()}"
+                )
 
     def test_s12_no_zero_dot_zero_dot_zero(self):
         """S-12: No port binding should use 0.0.0.0."""
@@ -316,9 +316,9 @@ class TestDockerComposeS12:
             stripped = line.strip()
             # Only check port mapping lines (contain both a colon for IP:PORT and a port number)
             if stripped.startswith("-") and re.match(r'-\s+"[\d.]+:\d+', stripped):
-                assert (
-                    "0.0.0.0" not in stripped
-                ), f"S-12: Port binding uses 0.0.0.0 (exposes to all interfaces): {stripped}"
+                assert "0.0.0.0" not in stripped, (
+                    f"S-12: Port binding uses 0.0.0.0 (exposes to all interfaces): {stripped}"
+                )
 
     def test_s12_grafana_localhost(self):
         """S-12: Grafana port should be bound to 127.0.0.1."""
@@ -331,9 +331,9 @@ class TestDockerComposeS12:
             elif in_grafana and line.strip().startswith(("qdrant:", "neo4j:")):
                 in_grafana = False
             if in_grafana and "3000" in line and "ports" not in line.lower():
-                assert (
-                    "127.0.0.1" in line
-                ), f"S-12: Grafana port must be bound to 127.0.0.1: {line.strip()}"
+                assert "127.0.0.1" in line, (
+                    f"S-12: Grafana port must be bound to 127.0.0.1: {line.strip()}"
+                )
 
     def test_s12_neo4j_localhost(self):
         """S-12: Neo4j ports should be bound to 127.0.0.1."""
@@ -346,9 +346,9 @@ class TestDockerComposeS12:
             elif in_neo4j and line.strip().startswith(("volumes:", "networks:")):
                 in_neo4j = False
             if in_neo4j and ("7474" in line or "7687" in line) and "ports" not in line.lower():
-                assert (
-                    "127.0.0.1" in line
-                ), f"S-12: Neo4j port must be bound to 127.0.0.1: {line.strip()}"
+                assert "127.0.0.1" in line, (
+                    f"S-12: Neo4j port must be bound to 127.0.0.1: {line.strip()}"
+                )
 
 
 # ---------------------------------------------------------------------------
@@ -369,16 +369,16 @@ class TestLLMS18:
         """S-18: Old 0.2 default must be removed."""
         src = Path("agents/orchestrator.py").read_text(encoding="utf-8")
         # Should not have: get("temperature", 0.2)
-        assert (
-            'get("temperature", 0.2)' not in src
-        ), "S-18: Old 0.2 default temperature must be removed"
+        assert 'get("temperature", 0.2)' not in src, (
+            "S-18: Old 0.2 default temperature must be removed"
+        )
 
     def test_s18_safety_critical_comment(self):
         """S-18: Must document why temperature is 0.0."""
         src = Path("agents/orchestrator.py").read_text(encoding="utf-8")
-        assert (
-            "safety" in src.lower() or "deterministic" in src.lower()
-        ), "S-18: Must document safety-critical reasoning for temperature=0.0"
+        assert "safety" in src.lower() or "deterministic" in src.lower(), (
+            "S-18: Must document safety-critical reasoning for temperature=0.0"
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -393,13 +393,13 @@ class TestCodeGuardS19:
         """S-19: Code guard import failure must log WARNING, not INFO."""
         src = Path("agents/orchestrator.py").read_text(encoding="utf-8")
         # Should have .warning( for the failure case
-        assert (
-            ".warning(" in src
-        ), "S-19: Code guard import failure must use .warning(), not .info()"
+        assert ".warning(" in src, (
+            "S-19: Code guard import failure must use .warning(), not .info()"
+        )
         # Should mention that review is disabled
-        assert (
-            "DISABLED" in src or "disabled" in src.lower()
-        ), "S-19: Must warn that safety code review is DISABLED"
+        assert "DISABLED" in src or "disabled" in src.lower(), (
+            "S-19: Must warn that safety code review is DISABLED"
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -455,15 +455,15 @@ class TestEnvExampleS14:
     def test_s14_no_real_domain(self):
         """S-14: Must not contain real production domain."""
         src = Path(".env.example").read_text(encoding="utf-8")
-        assert (
-            "etap.ahmed.net" not in src
-        ), "S-14: .env.example must not contain real production domain"
-        assert (
-            "storage.ahmed.net" not in src
-        ), "S-14: .env.example must not contain real R2 storage domain"
-        assert (
-            "vercel.app" not in src or "your-app" in src
-        ), "S-14: .env.example must use placeholder for Vercel URLs"
+        assert "etap.ahmed.net" not in src, (
+            "S-14: .env.example must not contain real production domain"
+        )
+        assert "storage.ahmed.net" not in src, (
+            "S-14: .env.example must not contain real R2 storage domain"
+        )
+        assert "vercel.app" not in src or "your-app" in src, (
+            "S-14: .env.example must use placeholder for Vercel URLs"
+        )
 
     def test_s14_placeholder_keywords_present(self):
         """S-14: Must contain obvious placeholder keywords."""

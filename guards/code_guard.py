@@ -351,9 +351,7 @@ class CodeGuard(BaseGuard):
     def _is_nonlocal_mutation(obj: ast.AST, func_node: ast.AST) -> bool:
         """Check if a mutation target is on a non-local object (self.x or param.x)."""
         if isinstance(obj, ast.Name):
-            param_names = {
-                a.arg for a in func_node.args.args if a.arg not in ("self", "cls")
-            }
+            param_names = {a.arg for a in func_node.args.args if a.arg not in ("self", "cls")}
             if obj.id in param_names or obj.id == "self":
                 return True
         elif isinstance(obj, ast.Attribute) and isinstance(obj.value, ast.Name):

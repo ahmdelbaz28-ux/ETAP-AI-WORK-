@@ -197,9 +197,7 @@ class YbusRebuildHandler(PropagationHandler):
                 ctx.record_step(
                     "ybus_rebuild",
                     False,
-                    {
-                        "error": _NO_ELECTRICAL_MODEL_MSG
-                    },  # NOSONAR
+                    {"error": _NO_ELECTRICAL_MODEL_MSG},  # NOSONAR
                 )  # NOSONAR intentional repetition (audit constant)
                 ctx.stop = True
         except Exception as e:
@@ -426,7 +424,6 @@ class ArcFlashRefreshHandler(PropagationHandler):
             )
 
             af_engine = ArcFlashEngine()
-            results: Dict[str, Any] = {}
             bus_ids = sorted(ctx.dt_state.system.buses.keys())
             bus_index = {bid: idx for idx, bid in enumerate(ctx.dt_state.system.buses.keys())}
             system_base_kv = getattr(ctx.dt_state.system, "base_kv", None) or 115.0  # kV
@@ -444,10 +441,7 @@ class ArcFlashRefreshHandler(PropagationHandler):
                 bus = ctx.dt_state.system.buses.get(bus_id)
                 bus_kv = abs(bus.voltage) * system_base_kv if bus is not None else system_base_kv
 
-                if bus is not None:
-                    bus_kv = abs(bus.voltage) * system_base_kv
-                else:
-                    bus_kv = system_base_kv
+                bus_kv = abs(bus.voltage) * system_base_kv if bus is not None else system_base_kv
 
                 # IEEE 1584-2018 valid range: 0.208–15 kV.
                 # Buses above 15 kV (transmission) use Ralph Lee fallback.
@@ -578,8 +572,6 @@ class ProtectionRefreshHandler(PropagationHandler):
 
             fault_currents: list[float] = []
 
-            from relays.relay import OvercurrentRelay
-
             ctx.dt_state.system.build_sequence_networks(for_fault=True)
             Ybus_pos = ctx.dt_state.system.get_ybus(seq="1")
             Ybus_neg = ctx.dt_state.system.get_ybus(seq="2")
@@ -589,7 +581,6 @@ class ProtectionRefreshHandler(PropagationHandler):
                 Ybus_pos, Ybus_neg, Ybus_zero, base_mva=ctx.dt_state.system.base_mva
             )
 
-            fault_currents: List[float] = []
             bus_ids = sorted(ctx.dt_state.system.buses.keys())
             bus_index = {bid: idx for idx, bid in enumerate(ctx.dt_state.system.buses.keys())}
             for bus_id in bus_ids:

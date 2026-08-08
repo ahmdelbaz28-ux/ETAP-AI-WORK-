@@ -65,7 +65,9 @@ ALLOWED_DATA_DIRS = os.environ.get(
 ALLOWED_FILE_EXTENSIONS = frozenset({".dxf", ".dwg", ".pdf", ".ifc", ".rvt"})
 
 
-def _validate_file_path(file_path: str) -> str:  # NOSONAR — S3516: both branches return `file_path` because this is a validation gate (returns input on success, raises on failure)
+def _validate_file_path(
+    file_path: str,
+) -> str:  # NOSONAR — S3516: both branches return `file_path` because this is a validation gate (returns input on success, raises on failure)
     """
     Validate file_path against path traversal and extension whitelist.
 
@@ -91,8 +93,7 @@ def _validate_file_path(file_path: str) -> str:  # NOSONAR — S3516: both branc
         raise HTTPException(  # NOSONAR — S8415: assignment kept for readability / debuggability
             status_code=400,
             detail=(
-                f"File extension '{ext}' not allowed. "
-                f"Permitted: {sorted(ALLOWED_FILE_EXTENSIONS)}"
+                f"File extension '{ext}' not allowed. Permitted: {sorted(ALLOWED_FILE_EXTENSIONS)}"
             ),
         )
 
@@ -150,31 +151,40 @@ async def get_workflow_engine_status():
     initialized = getattr(svc, "is_initialized", False)
 
     from backend.response import success
-    return success({
-        "engine": {
-            "initialized": initialized,
-            "langgraph_available": langgraph_available,
-            "status": "operational" if initialized and langgraph_available else "degraded",
-        },
-        "workflows": {
-            "total": len(svc._workflows),
-            "by_status": status_counts,
-        },
-    })
+
+    return success(
+        {
+            "engine": {
+                "initialized": initialized,
+                "langgraph_available": langgraph_available,
+                "status": "operational" if initialized and langgraph_available else "degraded",
+            },
+            "workflows": {
+                "total": len(svc._workflows),
+                "by_status": status_counts,
+            },
+        }
+    )
 
 
 @router.post("/start", dependencies=[Depends(require_permission(Permission.WORKFLOW_MANAGE))])
 async def start_workflow(
     file_path: str = Query(  # NOSONAR - python:S8410
-        ..., min_length=1, max_length=1000,
+        ...,
+        min_length=1,
+        max_length=1000,
         description="Path to DWG/PDF/DXF file to analyze",
     ),
     latitude: float | None = Query(  # NOSONAR - python:S8410
-        None, ge=-90, le=90,
+        None,
+        ge=-90,
+        le=90,
         description="Building latitude for environmental context",
     ),
     longitude: float | None = Query(  # NOSONAR - python:S8410
-        None, ge=-180, le=180,
+        None,
+        ge=-180,
+        le=180,
         description="Building longitude for environmental context",
     ),
     skip_human_review: bool = Query(  # NOSONAR - python:S8410
@@ -233,7 +243,9 @@ async def start_workflow(
     }
 
 
-@router.get("/{workflow_id}/status", dependencies=[Depends(require_permission(Permission.WORKFLOW_READ))])
+@router.get(
+    "/{workflow_id}/status", dependencies=[Depends(require_permission(Permission.WORKFLOW_READ))]
+)
 async def get_workflow_status(
     workflow_id: str,
 ):
@@ -258,11 +270,14 @@ async def get_workflow_status(
     }
 
 
-@router.post("/{workflow_id}/approve", dependencies=[Depends(require_permission(Permission.WORKFLOW_MANAGE))])
+@router.post(
+    "/{workflow_id}/approve", dependencies=[Depends(require_permission(Permission.WORKFLOW_MANAGE))]
+)
 async def approve_workflow(
     workflow_id: str,
     reviewer_comments: str | None = Query(  # NOSONAR - python:S8410
-        None, max_length=2000,
+        None,
+        max_length=2000,
         description="Reviewer comments (optional but recommended)",
     ),
 ):
@@ -303,11 +318,14 @@ async def approve_workflow(
     }
 
 
-@router.post("/{workflow_id}/reject", dependencies=[Depends(require_permission(Permission.WORKFLOW_MANAGE))])
+@router.post(
+    "/{workflow_id}/reject", dependencies=[Depends(require_permission(Permission.WORKFLOW_MANAGE))]
+)
 async def reject_workflow(
     workflow_id: str,
     reviewer_comments: str | None = Query(  # NOSONAR - python:S8410
-        None, max_length=2000,
+        None,
+        max_length=2000,
         description="Reviewer comments (required for rejection — explain why)",
     ),
 ):
@@ -347,7 +365,9 @@ async def reject_workflow(
     }
 
 
-@router.get("/{workflow_id}/audit", dependencies=[Depends(require_permission(Permission.WORKFLOW_READ))])
+@router.get(
+    "/{workflow_id}/audit", dependencies=[Depends(require_permission(Permission.WORKFLOW_READ))]
+)
 async def get_audit_trail(
     workflow_id: str,
 ):

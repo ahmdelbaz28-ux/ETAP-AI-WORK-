@@ -29,7 +29,7 @@ import math
 import time
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from enum import Enum
+from enum import StrEnum
 from typing import Any, Callable
 
 from fireai.core.event_bus import EventBus
@@ -42,7 +42,7 @@ logger = logging.getLogger(__name__)
 # ===========================================================================
 
 
-class SensorType(str, Enum):
+class SensorType(StrEnum):
     SMOKE_DETECTOR = "SMOKE_DETECTOR"
     HEAT_DETECTOR = "HEAT_DETECTOR"
     FLAME_DETECTOR = "FLAME_DETECTOR"
@@ -55,7 +55,7 @@ class SensorType(str, Enum):
     CURRENT_SENSOR = "CURRENT_SENSOR"
 
 
-class EventSeverity(str, Enum):
+class EventSeverity(StrEnum):
     CRITICAL = "CRITICAL"
     HIGH = "HIGH"
     MEDIUM = "MEDIUM"
@@ -63,7 +63,7 @@ class EventSeverity(str, Enum):
     INFO = "INFO"
 
 
-class SensorStatus(str, Enum):
+class SensorStatus(StrEnum):
     NORMAL = "NORMAL"
     ALARM = "ALARM"
     TROUBLE = "TROUBLE"
@@ -72,7 +72,7 @@ class SensorStatus(str, Enum):
     UNKNOWN = "UNKNOWN"
 
 
-class CommunicationProtocol(str, Enum):
+class CommunicationProtocol(StrEnum):
     MQTT = "MQTT"
     OPC_UA = "OPC_UA"
     MODBUS = "MODBUS"
@@ -100,13 +100,9 @@ class SensorReading:
         if not self.sensor_id.strip():
             raise ValueError("sensor_id is required")
         if math.isnan(self.value) or math.isinf(self.value):
-            raise ValueError(
-                f"Invalid sensor value: {self.value}"
-            )
+            raise ValueError(f"Invalid sensor value: {self.value}")
         if not 0.0 <= self.quality <= 1.0:
-            raise ValueError(
-                f"quality must be in [0,1], got {self.quality}"
-            )
+            raise ValueError(f"quality must be in [0,1], got {self.quality}")
         if self.timestamp.tzinfo is None:
             raise ValueError("timestamp must be timezone-aware")
 
@@ -243,9 +239,7 @@ class IoTPipeline:
                 "asyncio-mqtt not available — using simulated MQTT. "
                 "Install with: pip install asyncio-mqtt"
             )
-            self._mqtt_connected = await self._connect_mqtt_simulated(
-                broker, port, topic
-            )
+            self._mqtt_connected = await self._connect_mqtt_simulated(broker, port, topic)
 
         if self._mqtt_connected:
             self._event_bus.publish(
@@ -300,17 +294,13 @@ class IoTPipeline:
             import opcua  # noqa: F401
             import opcua_client  # noqa: F401
 
-            self._opcua_connected = await self._connect_opcua_real(
-                endpoint, username, password
-            )
+            self._opcua_connected = await self._connect_opcua_real(endpoint, username, password)
         except ImportError:
             logger.warning(
                 "opcua-asyncio not available — using simulated OPC-UA. "
                 "Install with: pip install opcua-asyncio"
             )
-            self._opcua_connected = await self._connect_opcua_simulated(
-                endpoint
-            )
+            self._opcua_connected = await self._connect_opcua_simulated(endpoint)
 
         if self._opcua_connected:
             self._event_bus.publish(
@@ -381,9 +371,7 @@ class IoTPipeline:
         # Rate-of-change check
         last = self._last_readings.get(sensor_id)
         if last is not None:
-            time_delta = (
-                timestamp - last.timestamp
-            ).total_seconds()
+            time_delta = (timestamp - last.timestamp).total_seconds()
             if time_delta > 0:
                 rate = abs(value - last.value) / time_delta
                 if rate > config.rate_of_change_limit:
@@ -426,9 +414,7 @@ class IoTPipeline:
 
     # ── Event Processing ───────────────────────────────────────────────
 
-    def process_event(
-        self, reading: SensorReading
-    ) -> SecurityEvent | None:
+    def process_event(self, reading: SensorReading) -> SecurityEvent | None:
         """
         Process a sensor reading and generate a SecurityEvent if
         any thresholds or anomaly conditions are triggered.
@@ -489,9 +475,7 @@ class IoTPipeline:
         # Rate-of-change anomaly
         last = self._last_readings.get(reading.sensor_id)
         if last is not None:
-            time_delta = (
-                reading.timestamp - last.timestamp
-            ).total_seconds()
+            time_delta = (reading.timestamp - last.timestamp).total_seconds()
             if time_delta > 0:
                 rate = abs(reading.value - last.value) / time_delta
                 if rate > config.rate_of_change_limit:
@@ -519,8 +503,7 @@ class IoTPipeline:
                 event_type="SENSOR_FAULT",
                 severity=EventSeverity.CRITICAL,
                 message=(
-                    f"Sensor {reading.sensor_id} quality "
-                    f"{reading.quality:.2f} below threshold 0.5"
+                    f"Sensor {reading.sensor_id} quality {reading.quality:.2f} below threshold 0.5"
                 ),
                 timestamp=reading.timestamp,
                 reading_value=reading.value,
@@ -555,9 +538,7 @@ class IoTPipeline:
                 except asyncio.CancelledError:  # NOSONAR — S7497: default value is correct
                     break
                 except Exception as exc:
-                    logger.exception(
-                        "Comm loss monitor error: %s", exc
-                    )
+                    logger.exception("Comm loss monitor error: %s", exc)
                     await asyncio.sleep(interval_seconds)
 
         self._running = True
@@ -579,8 +560,7 @@ class IoTPipeline:
             elapsed = now - last_hb
             if elapsed > config.comm_loss_seconds:
                 logger.warning(
-                    "Communication loss: sensor %s "
-                    "last seen %.0f seconds ago",
+                    "Communication loss: sensor %s last seen %.0f seconds ago",
                     sensor_id,
                     elapsed,
                 )
@@ -604,9 +584,7 @@ class IoTPipeline:
         """Check OPC-UA connection status."""
         return self._opcua_connected
 
-    def get_latest_reading(
-        self, sensor_id: str
-    ) -> SensorReading | None:
+    def get_latest_reading(self, sensor_id: str) -> SensorReading | None:
         """Get the latest reading for a sensor."""
         return self._last_readings.get(sensor_id)
 
@@ -685,9 +663,7 @@ class IoTPipeline:
     async def _connect_opcua_simulated(  # NOSONAR - python:S7503
         self, endpoint: str
     ) -> bool:
-        logger.info(
-            "Simulated OPC-UA connected to %s", endpoint
-        )
+        logger.info("Simulated OPC-UA connected to %s", endpoint)
         return True
 
     @staticmethod
@@ -721,14 +697,10 @@ if __name__ == "__main__":
             )
         )
 
-        mqtt_ok = await pipeline.connect_mqtt(
-            "localhost", 1883, "fireai/#"
-        )
+        mqtt_ok = await pipeline.connect_mqtt("localhost", 1883, "fireai/#")
         print(f"MQTT connected: {mqtt_ok}")
 
-        opcua_ok = await pipeline.connect_opcua(
-            "opc.tcp://localhost:4840"
-        )
+        opcua_ok = await pipeline.connect_opcua("opc.tcp://localhost:4840")
         print(f"OPC-UA connected: {opcua_ok}")
 
         # Normal reading

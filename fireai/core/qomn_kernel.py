@@ -87,11 +87,17 @@ def _guard_finite(value: float, field: str) -> float:
         raise PhysicsGuardError(field, value, "must be numeric", "IEEE-754-2008 §7")
     if math.isnan(value):
         raise PhysicsGuardError(
-            field, "NaN", "NaN is not permitted in safety-critical computation", "IEEE-754-2008 §7.2"
+            field,
+            "NaN",
+            "NaN is not permitted in safety-critical computation",
+            "IEEE-754-2008 §7.2",
         )
     if math.isinf(value):
         raise PhysicsGuardError(
-            field, "Inf", "Infinity is not permitted in safety-critical computation", "IEEE-754-2008 §7.4"
+            field,
+            "Inf",
+            "Infinity is not permitted in safety-critical computation",
+            "IEEE-754-2008 §7.4",
         )
     return float(value)
 
@@ -112,7 +118,10 @@ def guard_area_m2(area_m2: float) -> float:
         raise PhysicsGuardError("area_m2", v, "area must be > 0 m²", "Physics")
     if v > NFPA_MAX_M2:
         raise PhysicsGuardError(
-            "area_m2", f"{v:.2f}", "exceeds NFPA 72 max 232.26 m² (2500 ft²) per detector", "NFPA 72-2022 §17.7.3.2.1"
+            "area_m2",
+            f"{v:.2f}",
+            "exceeds NFPA 72 max 232.26 m² (2500 ft²) per detector",
+            "NFPA 72-2022 §17.7.3.2.1",
         )
     return v
 
@@ -152,10 +161,14 @@ def guard_current_a(current: float, wire_ampacity: float, gauge: str) -> float:
     """
     v = _guard_finite(current, "current_a")
     if v < 0:
-        raise PhysicsGuardError("current_a", v, "current cannot be negative", "Physics")  # NOSONAR — S1192: duplicated literal acceptable in this localized context
+        raise PhysicsGuardError(
+            "current_a", v, "current cannot be negative", "Physics"
+        )  # NOSONAR — S1192: duplicated literal acceptable in this localized context
     wa = _guard_finite(wire_ampacity, "wire_ampacity")
     if v > wa:
-        raise PhysicsGuardError("current_a", f"{v:.3f}A", f"exceeds AWG {gauge} ampacity {wa:.1f}A", "NEC 2023 §310.16")
+        raise PhysicsGuardError(
+            "current_a", f"{v:.3f}A", f"exceeds AWG {gauge} ampacity {wa:.1f}A", "NEC 2023 §310.16"
+        )
     return v
 
 
@@ -170,7 +183,10 @@ def guard_voltage_v(voltage: float, system_rating: float) -> float:
         raise PhysicsGuardError("voltage_v", v, "voltage cannot be negative", "Physics")
     if v > system_rating:
         raise PhysicsGuardError(
-            "voltage_v", f"{v:.2f}V", f"exceeds system rating {system_rating:.1f}V", "NEC 2023 §110.3(B)"
+            "voltage_v",
+            f"{v:.2f}V",
+            f"exceeds system rating {system_rating:.1f}V",
+            "NEC 2023 §110.3(B)",
         )
     return v
 
@@ -204,7 +220,9 @@ def guard_efficiency(eff: float) -> float:
     if v <= 0:
         raise PhysicsGuardError("efficiency", v, "efficiency must be > 0", "Physics")
     if v > 1.0:
-        raise PhysicsGuardError("efficiency", v, "efficiency > 1.0 (100%) violates conservation of energy", "Physics")
+        raise PhysicsGuardError(
+            "efficiency", v, "efficiency > 1.0 (100%) violates conservation of energy", "Physics"
+        )
     return v
 
 
@@ -452,21 +470,21 @@ def compute_smoke_detector_spacing(ceiling_height_m: float) -> dict[str, Any]:
         )
         try:
             import logging as _logging
+
             _logger = _logging.getLogger("fireai.core.qomn_kernel")
             _logger.warning(audit_notice)
         except Exception:
             pass
 
     nfpa_section = "NFPA 72-2022 §17.7.3.2.3 (flat spacing — NO height reduction)"
-    formula = (
-        f"R = 0.7 × S [§17.7.4.2.3.1], S = {spacing_m:.2f}m "
-        f"[flat per §17.7.3.2.3]"
-    )
+    formula = f"R = 0.7 × S [§17.7.4.2.3.1], S = {spacing_m:.2f}m [flat per §17.7.3.2.3]"
 
     result = {
         "listed_spacing_m": round(spacing_m, 6),
         "coverage_radius_m": round(radius_m, 6),
-        "wall_min_m": round(NFPA72_WALL_MIN_DISTANCE_M, 4),  # 0.1016m dead air space per §17.6.3.1.1
+        "wall_min_m": round(
+            NFPA72_WALL_MIN_DISTANCE_M, 4
+        ),  # 0.1016m dead air space per §17.6.3.1.1
         "wall_max_m": round(0.5 * spacing_m, 6),  # S/2 max wall distance per §17.6.3.1.1
         "corner_min_m": round(0.7 * spacing_m, 6),
         "nfpa_section": nfpa_section,
@@ -501,15 +519,17 @@ def compute_heat_detector_spacing(
     a = _guard_finite(area_per_detector_m2, "area_per_detector_m2")
     if a <= 0:
         raise PhysicsGuardError(
-            "area_per_detector_m2", a,
+            "area_per_detector_m2",
+            a,
             "coverage area must be > 0 m2 -- zero produces zero coverage radius",
-            "NFPA 72-2022 §17.6.3.1"  # NOSONAR — S1192: duplicated literal acceptable in this localized context
+            "NFPA 72-2022 §17.6.3.1",  # NOSONAR — S1192: duplicated literal acceptable in this localized context
         )
     if a < 1e-6:
         raise PhysicsGuardError(
-            "area_per_detector_m2", a,
+            "area_per_detector_m2",
+            a,
             f"area {a:.2e} m2 too small -- minimum 1e-6 m2 for meaningful calculation",
-            "Physics / NFPA 72-2022 §17.6.3.1"
+            "Physics / NFPA 72-2022 §17.6.3.1",
         )
     # V117 FIX: Reject area > NFPA 72 §17.6.3.1 maximum coverage (232.26 m²
     # ≈ 2500 ft²). Previously, an absurd input like area=10000 m² was silently
@@ -526,14 +546,15 @@ def compute_heat_detector_spacing(
     NFPA72_HEAT_MAX_AREA_M2 = 232.26  # 2500 ft² × 0.0929 = 232.26 m²
     if a > NFPA72_HEAT_MAX_AREA_M2:
         raise PhysicsGuardError(
-            "area_per_detector_m2", f"{a:.2f}",
+            "area_per_detector_m2",
+            f"{a:.2f}",
             (
                 f"exceeds NFPA 72 §17.6.3.1 maximum {NFPA72_HEAT_MAX_AREA_M2} m² "
                 f"(2500 ft²) per heat detector. At max spacing 15.24 m (50 ft), "
                 f"a single detector covers at most {NFPA72_HEAT_MAX_AREA_M2} m². "
                 "Split the space into multiple detector coverage zones."
             ),
-            "NFPA 72-2022 §17.6.3.1"
+            "NFPA 72-2022 §17.6.3.1",
         )
 
     # S = 0.7 × √A — NFPA 72 §17.6.3.1 (in feet; convert)
@@ -607,7 +628,10 @@ def compute_battery_capacity_ah(
     sf = _guard_finite(safety_factor, "safety_factor")
     if sf < 1.0:
         raise PhysicsGuardError(
-            "safety_factor", sf, "safety factor must be ≥ 1.0 for life-safety applications", "NFPA 72-2022 §10.6.7.2.1"
+            "safety_factor",
+            sf,
+            "safety factor must be ≥ 1.0 for life-safety applications",
+            "NFPA 72-2022 §10.6.7.2.1",
         )
 
     alarm_hours = alarm_minutes / 60.0  # Convert minutes to hours
@@ -692,7 +716,9 @@ def compute_voltage_drop(
     # Using the 20°C values directly (as the old code did with "75°C" values
     # that were actually lower than 20°C) UNDERESTIMATES voltage drop.
     r_20_ohm_per_km = NEC_TABLE8_RESISTANCE_OHM_PER_KM[awg]
-    temp_correction = 1.0 + COPPER_TEMP_COEFFICIENT * (_NEC_DEFAULT_OPERATING_TEMP_C - _NEC_TABLE8_REFERENCE_TEMP_C)
+    temp_correction = 1.0 + COPPER_TEMP_COEFFICIENT * (
+        _NEC_DEFAULT_OPERATING_TEMP_C - _NEC_TABLE8_REFERENCE_TEMP_C
+    )
     r_ohm_per_m = (r_20_ohm_per_km * temp_correction) / 1000.0
 
     # V_drop = 2 × I × L × R  (round-trip DC)
@@ -744,9 +770,13 @@ def validate_smoke_spacing_result(result: dict) -> dict:
     if S <= 0:
         raise ValidationError(f"Smoke spacing {S}m ≤ 0 — physically impossible")
     if S > NFPA72_SMOKE_MAX_SPACING_M:
-        raise ValidationError(f"Computed spacing {S:.3f}m > NFPA 72 max {NFPA72_SMOKE_MAX_SPACING_M}m")
+        raise ValidationError(
+            f"Computed spacing {S:.3f}m > NFPA 72 max {NFPA72_SMOKE_MAX_SPACING_M}m"
+        )
     if abs(R - 0.7 * S) > 1e-5:  # IEEE-754 rounding tolerance for intermediate operations
-        raise ValidationError(f"Coverage radius {R:.6f}m ≠ 0.7 × {S:.6f}m = {0.7 * S:.6f}m — computation error")
+        raise ValidationError(
+            f"Coverage radius {R:.6f}m ≠ 0.7 × {S:.6f}m = {0.7 * S:.6f}m — computation error"
+        )
     result["layer3_validated"] = True
     return result
 
@@ -762,7 +792,9 @@ def validate_battery_result(result: dict) -> dict:
         raise ComputationError(f"Battery result {ah}Ah is non-physical")
     # Sanity: result must be ≥ standby + alarm raw
     if ah < result["ah_raw"] * 0.9:
-        raise ValidationError(f"Required Ah {ah:.4f} < raw Ah {result['ah_raw']:.4f} × 0.9 — computation error")
+        raise ValidationError(
+            f"Required Ah {ah:.4f} < raw Ah {result['ah_raw']:.4f} × 0.9 — computation error"
+        )
     result["layer3_validated"] = True
     return result
 
@@ -777,7 +809,9 @@ def validate_voltage_drop_result(result: dict) -> dict:
     if not math.isfinite(vd) or vd < 0:
         raise ComputationError(f"Voltage drop {vd}V is non-physical")
     if vd >= result["supply_voltage_v"]:
-        raise ValidationError(f"Voltage drop {vd:.4f}V ≥ supply {result['supply_voltage_v']}V — no current would flow")
+        raise ValidationError(
+            f"Voltage drop {vd:.4f}V ≥ supply {result['supply_voltage_v']}V — no current would flow"
+        )
     result["layer3_validated"] = True
     return result
 
@@ -873,7 +907,9 @@ class QOMNAuditLog:
         timestamp = time.strftime("%Y-%m-%dT%H:%M:%S.000Z", time.gmtime())
 
         # Compute result hash (outside lock — pure computation, no shared state)
-        result_hash = hashlib.sha256(json.dumps(output_data, sort_keys=True, default=str).encode()).hexdigest()
+        result_hash = hashlib.sha256(
+            json.dumps(output_data, sort_keys=True, default=str).encode()
+        ).hexdigest()
 
         with self._lock:  # V-10: prevent split-brain chain hash under concurrent workers
             # Chain hash: links this entry to all previous entries (inside lock)
@@ -927,7 +963,7 @@ class QOMNAuditLog:
             if not self._entries:
                 return True
             entries_snapshot = list(self._entries)
-            expected_final   = self._chain_hash
+            expected_final = self._chain_hash
         chain = self._compute_chain_hash(b"QOMN-GENESIS")
         for e in entries_snapshot:
             chain_input = f"{chain}:{e.result_hash}:{e.timestamp_utc}"
@@ -975,7 +1011,9 @@ class QOMNKernel:
         )
         return result
 
-    def heat_detector_spacing(self, ceiling_height_m: float, area_per_detector_m2: float) -> dict[str, Any]:
+    def heat_detector_spacing(
+        self, ceiling_height_m: float, area_per_detector_m2: float
+    ) -> dict[str, Any]:
         """
         Compute heat detector spacing. Full L0→L4 pipeline.
 
@@ -1025,7 +1063,9 @@ class QOMNKernel:
         max_drop_pct: float = 10.0,
     ) -> dict[str, Any]:
         """Compute voltage drop. Full L0→L4 pipeline."""
-        result = compute_voltage_drop(current_a, length_m, awg_gauge, supply_voltage_v, max_drop_pct)
+        result = compute_voltage_drop(
+            current_a, length_m, awg_gauge, supply_voltage_v, max_drop_pct
+        )
         result = validate_voltage_drop_result(result)
         # V58 FIX (BUG #5): Pass layer3_passed=True
         self.audit.record(
@@ -1084,13 +1124,20 @@ def _healing_wrapper(
                      to construct a minimal valid result).
         safe_minimum: Float fallback value for numeric fields.
     """
+
     def decorator(method):
         @functools.wraps(method)
         def wrapper(self, *args, **kwargs):
             try:
                 return method(self, *args, **kwargs)
-            except (PhysicsGuardError, ValueError, TypeError, ZeroDivisionError,
-                    KeyError, IndexError) as exc:
+            except (
+                PhysicsGuardError,
+                ValueError,
+                TypeError,
+                ZeroDivisionError,
+                KeyError,
+                IndexError,
+            ) as exc:
                 # Import self-healing engine (lazy to avoid circular imports)
                 try:
                     from fireai.core.qomn_self_healing_engine import (  # noqa: F401
@@ -1102,7 +1149,8 @@ def _healing_wrapper(
                     # Self-healing engine not available — re-raise the exception
                     _healing_logger.warning(
                         "Self-healing engine not available — re-raising %s: %s",
-                        type(exc).__name__, exc,
+                        type(exc).__name__,
+                        exc,
                     )
                     raise
 
@@ -1114,9 +1162,7 @@ def _healing_wrapper(
                         method.__name__,
                     )
                 else:
-                    global_circuit_breaker.register_healing_event(
-                        error_type=type(exc).__name__
-                    )
+                    global_circuit_breaker.register_healing_event(error_type=type(exc).__name__)
 
                 # Build safe fallback result
                 if safe_result is not None:
@@ -1133,21 +1179,21 @@ def _healing_wrapper(
                 try:
                     before_hash = compute_hash({"args": str(args), "kwargs": str(kwargs)})
                     after_hash = compute_hash(fallback)
-                    global_audit_logger.log_event({
-                        "function_name": f"QOMNKernel.{method.__name__}",
-                        "error_type": type(exc).__name__,
-                        "error_message": str(exc),
-                        "tier_used": 1,
-                        "fix_applied": fallback,
-                        "verification_result": "HEALED_FALLBACK",
-                        "before_hash": before_hash,
-                        "after_hash": after_hash,
-                        "user_notification_status": "ALERTED",
-                    })
-                except Exception as log_err:
-                    _healing_logger.warning(
-                        "Failed to log healing event: %s", log_err
+                    global_audit_logger.log_event(
+                        {
+                            "function_name": f"QOMNKernel.{method.__name__}",
+                            "error_type": type(exc).__name__,
+                            "error_message": str(exc),
+                            "tier_used": 1,
+                            "fix_applied": fallback,
+                            "verification_result": "HEALED_FALLBACK",
+                            "before_hash": before_hash,
+                            "after_hash": after_hash,
+                            "user_notification_status": "ALERTED",
+                        }
                     )
+                except Exception as log_err:
+                    _healing_logger.warning("Failed to log healing event: %s", log_err)
 
                 # Add healing metadata to the result
                 fallback["healed"] = True
@@ -1155,17 +1201,20 @@ def _healing_wrapper(
                 fallback["healing_tier"] = 1
                 _healing_logger.warning(
                     "Self-healing activated for %s: %s → fallback returned",
-                    method.__name__, type(exc).__name__,
+                    method.__name__,
+                    type(exc).__name__,
                 )
                 return fallback
 
         return wrapper
+
     return decorator
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # Self-Healing Protected Kernel
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 class SelfHealingQOMNKernel(QOMNKernel):
     """
@@ -1197,11 +1246,10 @@ class SelfHealingQOMNKernel(QOMNKernel):
         },
         safe_minimum=0.0,
     )
-    def voltage_drop(self, current_a, length_m, awg_gauge,
-                     supply_voltage_v=24.0, max_drop_pct=10.0):
-        return super().voltage_drop(
-            current_a, length_m, awg_gauge, supply_voltage_v, max_drop_pct
-        )
+    def voltage_drop(
+        self, current_a, length_m, awg_gauge, supply_voltage_v=24.0, max_drop_pct=10.0
+    ):
+        return super().voltage_drop(current_a, length_m, awg_gauge, supply_voltage_v, max_drop_pct)
 
     @_healing_wrapper(
         safe_result={

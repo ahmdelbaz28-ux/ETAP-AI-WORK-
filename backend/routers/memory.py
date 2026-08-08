@@ -57,7 +57,9 @@ router = APIRouter(
     prefix="/memory",
     tags=["memory"],
     responses={
-        404: {"description": "Memory not found"},  # NOSONAR — S1192: duplicated literal acceptable in this localized context
+        404: {
+            "description": "Memory not found"
+        },  # NOSONAR — S1192: duplicated literal acceptable in this localized context
         500: {"description": "Internal server error"},
     },
 )
@@ -76,7 +78,12 @@ MEMORY_DISCLAIMER = (
 
 # ── Endpoints ─────────────────────────────────────────────────────────────────
 
-@router.get("/status", summary="Get memory service status", dependencies=[Depends(require_permission(Permission.HEALTH_READ))])
+
+@router.get(
+    "/status",
+    summary="Get memory service status",
+    dependencies=[Depends(require_permission(Permission.HEALTH_READ))],
+)
 async def get_status():
     """
     Get the current status of the memory service.
@@ -93,7 +100,11 @@ async def get_status():
     }
 
 
-@router.post("/add", summary="Add a memory", dependencies=[Depends(require_permission(Permission.USER_MANAGE))])
+@router.post(
+    "/add",
+    summary="Add a memory",
+    dependencies=[Depends(require_permission(Permission.USER_MANAGE))],
+)
 async def add_memory(request: MemoryAddRequest):
     """
     Add a memory to the FireAI memory store.
@@ -116,7 +127,11 @@ async def add_memory(request: MemoryAddRequest):
     return result
 
 
-@router.post("/search", summary="Search memories", dependencies=[Depends(require_permission(Permission.QOMN_READ))])
+@router.post(
+    "/search",
+    summary="Search memories",
+    dependencies=[Depends(require_permission(Permission.QOMN_READ))],
+)
 async def search_memories(request: MemorySearchRequest):
     """
     Search memories using hybrid search (semantic + BM25 + entity boosting).
@@ -136,9 +151,15 @@ async def search_memories(request: MemorySearchRequest):
     return response.model_dump()
 
 
-@router.get("/all", summary="Get all memories", dependencies=[Depends(require_permission(Permission.QOMN_READ))])
+@router.get(
+    "/all",
+    summary="Get all memories",
+    dependencies=[Depends(require_permission(Permission.QOMN_READ))],
+)
 async def get_all_memories(
-    user_id: str | None = Query(None, description="Filter by user/engineer"),  # NOSONAR - python:S8410
+    user_id: str | None = Query(
+        None, description="Filter by user/engineer"
+    ),  # NOSONAR - python:S8410
     agent_id: str | None = Query(None, description="Filter by agent"),  # NOSONAR - python:S8410
     run_id: str | None = Query(None, description="Filter by project/run"),  # NOSONAR - python:S8410
 ):
@@ -166,7 +187,11 @@ async def get_all_memories(
     return result
 
 
-@router.delete("/{memory_id}", summary="Delete a memory", dependencies=[Depends(require_permission(Permission.USER_MANAGE))])
+@router.delete(
+    "/{memory_id}",
+    summary="Delete a memory",
+    dependencies=[Depends(require_permission(Permission.USER_MANAGE))],
+)
 async def delete_memory(memory_id: str):
     """
     Delete a specific memory by ID.
@@ -181,12 +206,18 @@ async def delete_memory(memory_id: str):
     service = get_memory_service()
     result = service.delete_memory(memory_id=memory_id)
     if not result.get("success"):
-        raise HTTPException(status_code=404, detail=_sanitize_error(result.get("error", "Memory not found")))  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
+        raise HTTPException(
+            status_code=404, detail=_sanitize_error(result.get("error", "Memory not found"))
+        )  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
     result["disclaimer"] = MEMORY_DISCLAIMER
     return result
 
 
-@router.get("/{memory_id}/history", summary="Get memory history", dependencies=[Depends(require_permission(Permission.QOMN_READ))])
+@router.get(
+    "/{memory_id}/history",
+    summary="Get memory history",
+    dependencies=[Depends(require_permission(Permission.QOMN_READ))],
+)
 async def get_memory_history(memory_id: str):
     """
     Get the full history of a memory (all changes over time).
@@ -203,6 +234,8 @@ async def get_memory_history(memory_id: str):
     service = get_memory_service()
     result = service.get_memory_history(memory_id=memory_id)
     if not result.get("success"):
-        raise HTTPException(status_code=404, detail=_sanitize_error(result.get("error", "Memory not found")))  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
+        raise HTTPException(
+            status_code=404, detail=_sanitize_error(result.get("error", "Memory not found"))
+        )  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
     result["disclaimer"] = MEMORY_DISCLAIMER
     return result

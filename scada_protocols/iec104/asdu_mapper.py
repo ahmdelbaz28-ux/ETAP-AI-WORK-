@@ -30,13 +30,13 @@ logger = logging.getLogger(__name__)
 # The keys mirror ``c104.Type`` enum names.
 _MONITORING_TYPES = {
     # Single-point information
-    "M_SP_NA_1": "breaker_status",      # single point (0/1)
-    "M_SP_TA_1": "breaker_status",      # single point with timestamp
+    "M_SP_NA_1": "breaker_status",  # single point (0/1)
+    "M_SP_TA_1": "breaker_status",  # single point with timestamp
     # Double-point information (used for switch status: 0=undefined, 1=off, 2=on, 3=undefined)
     "M_DP_NA_1": "breaker_status",
     "M_DP_TA_1": "breaker_status",
     # Measured values, normalized [-1..1] — typical for voltage/current in p.u.
-    "M_ME_NA_1": "voltage_magnitude",   # normalized
+    "M_ME_NA_1": "voltage_magnitude",  # normalized
     "M_ME_TA_1": "voltage_magnitude",
     # Measured values, scaled (integer)
     "M_ME_NB_1": "active_power",
@@ -108,9 +108,7 @@ class PointMap:
     def find_by_ioa(self, ioa: int) -> Optional[IEC104Point]:
         return self._by_ioa.get(ioa)
 
-    def find_by_element_type(
-        self, element_id: str, measurement_type: str
-    ) -> Optional[IEC104Point]:
+    def find_by_element_type(self, element_id: str, measurement_type: str) -> Optional[IEC104Point]:
         return self._by_element_type.get((element_id, measurement_type))
 
     def all_points(self) -> List[IEC104Point]:

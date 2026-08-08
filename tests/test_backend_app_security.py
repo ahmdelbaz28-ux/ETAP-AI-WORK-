@@ -69,28 +69,34 @@ class TestV127CorsHardening:
     def test_production_requires_cors_origins_env_var(self):
         """Production + no CORS_ORIGINS → RuntimeError (fail-safe)."""
         with pytest.raises(RuntimeError, match="CORS_ORIGINS.*REQUIRED"):
-            _reload_backend_app({
-                "FIREAI_ENV": "production",
-                "CORS_ORIGINS": None,
-                "DIGITAL_TWIN_DB_PATH": ":memory:",
-            })
+            _reload_backend_app(
+                {
+                    "FIREAI_ENV": "production",
+                    "CORS_ORIGINS": None,
+                    "DIGITAL_TWIN_DB_PATH": ":memory:",
+                }
+            )
 
     def test_production_rejects_wildcard_origin(self):
         """Production + CORS_ORIGINS='*' → RuntimeError (wildcard forbidden)."""
         with pytest.raises(RuntimeError, match=r"'\*'.*forbidden"):
-            _reload_backend_app({
-                "FIREAI_ENV": "production",
-                "CORS_ORIGINS": "*",
-                "DIGITAL_TWIN_DB_PATH": ":memory:",
-            })
+            _reload_backend_app(
+                {
+                    "FIREAI_ENV": "production",
+                    "CORS_ORIGINS": "*",
+                    "DIGITAL_TWIN_DB_PATH": ":memory:",
+                }
+            )
 
     def test_production_accepts_explicit_origins(self):
         """Production + explicit origins → CORS middleware configured correctly."""
-        backend_app = _reload_backend_app({
-            "FIREAI_ENV": "production",
-            "CORS_ORIGINS": "https://app.example.com,https://admin.example.com",
-            "DIGITAL_TWIN_DB_PATH": ":memory:",
-        })
+        backend_app = _reload_backend_app(
+            {
+                "FIREAI_ENV": "production",
+                "CORS_ORIGINS": "https://app.example.com,https://admin.example.com",
+                "DIGITAL_TWIN_DB_PATH": ":memory:",
+            }
+        )
         kwargs = _get_cors_middleware_kwargs(backend_app.app)
         assert kwargs is not None, "CORS middleware must be present"
         assert "https://app.example.com" in kwargs["allow_origins"]
@@ -99,11 +105,13 @@ class TestV127CorsHardening:
 
     def test_development_defaults_to_localhost_only(self):
         """Development mode → CORS defaults to localhost dev ports."""
-        backend_app = _reload_backend_app({
-            "FIREAI_ENV": "development",
-            "CORS_ORIGINS": None,
-            "DIGITAL_TWIN_DB_PATH": ":memory:",
-        })
+        backend_app = _reload_backend_app(
+            {
+                "FIREAI_ENV": "development",
+                "CORS_ORIGINS": None,
+                "DIGITAL_TWIN_DB_PATH": ":memory:",
+            }
+        )
         kwargs = _get_cors_middleware_kwargs(backend_app.app)
         assert kwargs is not None
         origins = kwargs["allow_origins"]
@@ -120,11 +128,13 @@ class TestV127CorsHardening:
         be False — prevents CORS-spec violation (wildcard + credentials).
         """
         for env in ("development", "testing"):
-            backend_app = _reload_backend_app({
-                "FIREAI_ENV": env,
-                "CORS_ORIGINS": None,
-                "DIGITAL_TWIN_DB_PATH": ":memory:",
-            })
+            backend_app = _reload_backend_app(
+                {
+                    "FIREAI_ENV": env,
+                    "CORS_ORIGINS": None,
+                    "DIGITAL_TWIN_DB_PATH": ":memory:",
+                }
+            )
             kwargs = _get_cors_middleware_kwargs(backend_app.app)
             assert kwargs.get("allow_credentials") is False, (
                 f"allow_credentials must be False in {env} mode (header auth, not cookies)"
@@ -136,8 +146,10 @@ class TestV127CorsHardening:
         the code MUST raise RuntimeError (defensive).
         """
         with pytest.raises(RuntimeError, match=r"'\*'.*forbidden"):
-            _reload_backend_app({
-                "FIREAI_ENV": "production",
-                "CORS_ORIGINS": "https://a.com,*,https://b.com",
-                "DIGITAL_TWIN_DB_PATH": ":memory:",
-            })
+            _reload_backend_app(
+                {
+                    "FIREAI_ENV": "production",
+                    "CORS_ORIGINS": "https://a.com,*,https://b.com",
+                    "DIGITAL_TWIN_DB_PATH": ":memory:",
+                }
+            )

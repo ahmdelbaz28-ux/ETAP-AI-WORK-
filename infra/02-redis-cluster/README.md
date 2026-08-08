@@ -82,7 +82,7 @@ so `redis.cluster.RedisCluster` is available. For Celery:
 # worker/celery_app.py — already in your repo, just update the broker URL
 import os
 
-broker_url = os.environ["CELERY_BROKER_URL"]   # wired in by the Helm ConfigMap
+broker_url = os.environ["CELERY_BROKER_URL"]  # wired in by the Helm ConfigMap
 result_backend = os.environ["CELERY_RESULT_BACKEND"]
 ```
 
@@ -94,7 +94,7 @@ the cluster topology automatically when it sees more than one node.
 
 ```python
 # In your Celery config
-broker_pool_limit = 10          # one pool per worker process
+broker_pool_limit = 10  # one pool per worker process
 broker_connection_retry_on_startup = True
 broker_connection_max_retries = 5
 

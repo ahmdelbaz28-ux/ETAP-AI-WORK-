@@ -231,11 +231,12 @@ async def seed_rbac() -> None:
             # 3. First user in DB (if no arg)
             # 4. No one (if DB is empty)
             import argparse as _ap
+
             _parser = _ap.ArgumentParser(description="Seed RBAC")
-            _parser.add_argument("--admin-username", default=None,
-                                 help="Username to assign admin role")
-            _parser.add_argument("--admin-email", default=None,
-                                 help="Email to assign admin role")
+            _parser.add_argument(
+                "--admin-username", default=None, help="Username to assign admin role"
+            )
+            _parser.add_argument("--admin-email", default=None, help="Email to assign admin role")
             _args, _ = _parser.parse_known_args()
 
             target_user = None
@@ -245,14 +246,18 @@ async def seed_rbac() -> None:
                 )
                 target_user = user_result.scalar_one_or_none()
                 if target_user is None:
-                    print(f"[RBAC Seed] ⚠️  User '{_args.admin_username}' not found — no admin assigned.")
+                    print(
+                        f"[RBAC Seed] ⚠️  User '{_args.admin_username}' not found — no admin assigned."
+                    )
             elif _args.admin_email:
                 user_result = await session.execute(
                     select(User).where(User.email == _args.admin_email)
                 )
                 target_user = user_result.scalar_one_or_none()
                 if target_user is None:
-                    print(f"[RBAC Seed] ⚠️  User '{_args.admin_email}' not found — no admin assigned.")
+                    print(
+                        f"[RBAC Seed] ⚠️  User '{_args.admin_email}' not found — no admin assigned."
+                    )
             else:
                 # Default: assign to first user (oldest account)
                 user_result = await session.execute(
@@ -260,7 +265,9 @@ async def seed_rbac() -> None:
                 )
                 target_user = user_result.scalar_one_or_none()
                 if target_user:
-                    print(f"[RBAC Seed] No --admin-username specified. Assigning admin to first user: '{target_user.username}'")
+                    print(
+                        f"[RBAC Seed] No --admin-username specified. Assigning admin to first user: '{target_user.username}'"
+                    )
 
             if target_user is not None:
                 # Check if already assigned
@@ -282,7 +289,9 @@ async def seed_rbac() -> None:
                 else:
                     print(f"[RBAC Seed] User '{target_user.username}' already has admin role.")
             else:
-                print("[RBAC Seed] ⚠️  No users in database. Create a user first, then re-run with --admin-username.")
+                print(
+                    "[RBAC Seed] ⚠️  No users in database. Create a user first, then re-run with --admin-username."
+                )
 
             await session.commit()
 

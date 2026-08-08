@@ -81,6 +81,7 @@ logger = logging.getLogger(__name__)
 # CONSTANTS AND ENUMS
 # ============================================================================
 
+
 class ConnectionMethod(Enum):
     """Revit connection methods."""
 
@@ -142,6 +143,7 @@ IS_WINDOWS = platform.system() == "Windows"
 if IS_WINDOWS:
     try:
         import clr
+
         clr.AddReference("System.Windows.Forms")
         clr.AddReference("System.Drawing")
         HAS_PYTHONNET = True
@@ -155,6 +157,7 @@ HAS_REVIT_API = False
 if IS_WINDOWS and HAS_PYTHONNET:
     try:
         import clr
+
         clr.AddReference("RevitAPI")
         clr.AddReference("RevitAPIUI")
         HAS_REVIT_API = True
@@ -164,6 +167,7 @@ if IS_WINDOWS and HAS_PYTHONNET:
 # ============================================================================
 # REVIT SERVICE CLASS
 # ============================================================================
+
 
 class RevitService:
     """
@@ -247,18 +251,18 @@ class RevitService:
     # CONNECTION METHODS
     # =========================================================================
 
-    def connect(self, method: str = 'auto') -> bool:
+    def connect(self, method: str = "auto") -> bool:
         """Connect to Revit. Methods: 'api', 'macro', 'simulation', 'auto'."""
         method = method.lower()
-        if method == 'auto':
-            method = 'api' if HAS_REVIT_API else 'simulation'
+        if method == "auto":
+            method = "api" if HAS_REVIT_API else "simulation"
 
         try:
-            if method == 'api':
+            if method == "api":
                 return self._connect_via_api()
-            if method == 'macro':
+            if method == "macro":
                 return self._connect_via_macro()
-            if method == 'simulation':
+            if method == "simulation":
                 return self._connect_simulation()
             logger.error("Unknown method: %s", method)
             return False
@@ -303,13 +307,12 @@ class RevitService:
         except ImportError as ie:
             logger.warning(
                 "Could not import Marshal from System.Runtime.InteropServices "
-                "(%s). Falling back to SIMULATION mode.", ie
+                "(%s). Falling back to SIMULATION mode.",
+                ie,
             )
             return self._connect_simulation()
         except Exception as ge:
-            logger.warning(
-                "CLR/Marshal access failed (%s). Falling back to SIMULATION mode.", ge
-            )
+            logger.warning("CLR/Marshal access failed (%s). Falling back to SIMULATION mode.", ge)
             return self._connect_simulation()
 
         # Attempt to bind to a running Revit instance.
@@ -352,6 +355,7 @@ class RevitService:
         # ``if not self._revit_doc: return None`` guard.
         try:
             from Autodesk.Revit.UI import UIApplication  # type: ignore[import-not-found]
+
             self._uiapp = UIApplication(revit_app_com)
             self._revit_app = self._uiapp.Application
             try:
@@ -383,13 +387,15 @@ class RevitService:
             logger.warning(
                 "Could not import Autodesk.Revit.UI.UIApplication (%s). "
                 "RevitAPIUI assembly may not be loaded. Falling back to "
-                "SIMULATION mode.", ie
+                "SIMULATION mode.",
+                ie,
             )
             return self._connect_simulation()
         except Exception as e:
             logger.exception(
                 "Failed to wrap Revit COM object in UIApplication: %s. "
-                "Falling back to SIMULATION mode.", e
+                "Falling back to SIMULATION mode.",
+                e,
             )
             return self._connect_simulation()
 
@@ -442,7 +448,11 @@ class RevitService:
             logger.exception("Disconnect error: %s", e)
             return False
 
-    def _extract_element_data(self, element) -> Dict[str, Any]:  # NOSONAR — S3776: cognitive complexity is inherent to the safety-critical algorithm
+    def _extract_element_data(
+        self, element
+    ) -> Dict[
+        str, Any
+    ]:  # NOSONAR — S3776: cognitive complexity is inherent to the safety-critical algorithm
         """
         Extract detailed data from a Revit element.
         In a real implementation, this would extract actual element properties.
@@ -474,7 +484,7 @@ class RevitService:
             #   - 'tostring' (default): try ToString() first (for Id-like attrs)
             #   - 'name': try .Name first (for compound attrs)
             #   - 'auto': primitives returned as-is, otherwise ToString fallback
-            def get_attr(obj: Any, name: str, default: Any = None, prefer: str = 'auto') -> Any:
+            def get_attr(obj: Any, name: str, default: Any = None, prefer: str = "auto") -> Any:
                 try:
                     val = getattr(obj, name, default)
                 except Exception:
@@ -484,22 +494,22 @@ class RevitService:
                 # Primitive — return as-is
                 if isinstance(val, (str, int, float, bool)):
                     return val
-                if prefer == 'name':
+                if prefer == "name":
                     try:
-                        if hasattr(val, 'Name') and val.Name is not None:
+                        if hasattr(val, "Name") and val.Name is not None:
                             return val.Name
                     except Exception:
                         pass
                 # Object with ToString() (e.g. ElementId) — coerce to string
                 try:
-                    if hasattr(val, 'ToString'):
+                    if hasattr(val, "ToString"):
                         return val.ToString()  # type: ignore[union-attr]
                 except Exception:
                     return default
                 # Fallback: try .Name (compound object whose ToString doesn't exist)
-                if prefer != 'name':
+                if prefer != "name":
                     try:
-                        if hasattr(val, 'Name') and val.Name is not None:
+                        if hasattr(val, "Name") and val.Name is not None:
                             return val.Name
                     except Exception:
                         pass
@@ -507,12 +517,12 @@ class RevitService:
 
             # V140 FIX: pass `prefer` per-attribute to match Revit API semantics.
             element_data = {
-                "id": get_attr(element, 'Id', 'unknown', prefer='tostring'),
-                "name": get_attr(element, 'Name', 'unnamed', prefer='auto'),
-                "category": get_attr(element, 'Category', 'unknown', prefer='name'),
-                "level": get_attr(element, 'Level', 'Level 1', prefer='name'),
-                "workset": get_attr(element, 'WorksetId', 'default', prefer='tostring'),
-                "element_type": getattr(element, 'GetType', lambda: 'Element')(),
+                "id": get_attr(element, "Id", "unknown", prefer="tostring"),
+                "name": get_attr(element, "Name", "unnamed", prefer="auto"),
+                "category": get_attr(element, "Category", "unknown", prefer="name"),
+                "level": get_attr(element, "Level", "Level 1", prefer="name"),
+                "workset": get_attr(element, "WorksetId", "default", prefer="tostring"),
+                "element_type": getattr(element, "GetType", lambda: "Element")(),
             }
 
             # V214 FIX (self-critique revised): Extract REAL geometry from Revit
@@ -525,18 +535,18 @@ class RevitService:
             # CORRECT APPROACH: Use try/except around the entire Revit API section.
             # Import BuiltInParameter at the top of the try block. If anything
             # fails, skip geometry silently (don't fabricate values).
-            elem_type_str = str(element_data.get('element_type', ''))
+            elem_type_str = str(element_data.get("element_type", ""))
             FT_TO_MM = 304.8  # Revit internal units = feet; 1 ft = 304.8 mm
             try:
                 # Import Revit DB types — only available on Windows + pythonnet
                 from Autodesk.Revit.DB import BuiltInParameter  # type: ignore[import-not-found]
 
-                if 'Wall' in elem_type_str:
+                if "Wall" in elem_type_str:
                     # Read real LocationCurve
-                    loc = getattr(element, 'Location', None)
-                    if loc and hasattr(loc, 'Curve'):
+                    loc = getattr(element, "Location", None)
+                    if loc and hasattr(loc, "Curve"):
                         curve = loc.Curve
-                        if curve and hasattr(curve, 'GetEndPoint'):
+                        if curve and hasattr(curve, "GetEndPoint"):
                             sp = curve.GetEndPoint(0)
                             ep = curve.GetEndPoint(1)
                             if sp and ep:
@@ -550,12 +560,12 @@ class RevitService:
                     if h_param and h_param.AsDouble():
                         element_data["height"] = h_param.AsDouble() * FT_TO_MM
 
-                elif 'Floor' in elem_type_str:
+                elif "Floor" in elem_type_str:
                     area_param = element.get_Parameter(BuiltInParameter.FLOOR_PARAM_AREA)
                     if area_param and area_param.AsDouble():
                         element_data["area"] = area_param.AsDouble() * 0.092903  # sq ft → sq m
 
-                elif 'Door' in elem_type_str or 'Window' in elem_type_str:
+                elif "Door" in elem_type_str or "Window" in elem_type_str:
                     # Use LookupParameter for family instance width/height
                     w_param = element.LookupParameter("Width")
                     if w_param and w_param.AsDouble():
@@ -577,28 +587,27 @@ class RevitService:
             except Exception as geom_err:
                 logger.debug(
                     "Geometry extraction skipped for element %s: %s",
-                    element_data.get('id'), geom_err,
+                    element_data.get("id"),
+                    geom_err,
                 )
                 # CRITICAL: Do NOT fabricate geometry values. If we can't read
                 # real data, the element simply has no geometry in the output.
 
             # Add common parameters
             element_data["parameters"] = {
-                "mark": getattr(element, 'Mark', '') if hasattr(element, 'Mark') else '',
-                "comments": getattr(element, 'Comments', '') if hasattr(element, 'Comments') else '',
-                "phase_created": get_attr(element, 'PhaseCreated', ''),
-                "phase_demolished": get_attr(element, 'PhaseDemolished', ''),
+                "mark": getattr(element, "Mark", "") if hasattr(element, "Mark") else "",
+                "comments": getattr(element, "Comments", "")
+                if hasattr(element, "Comments")
+                else "",
+                "phase_created": get_attr(element, "PhaseCreated", ""),
+                "phase_demolished": get_attr(element, "PhaseDemolished", ""),
             }
 
             return element_data
 
         except Exception as e:
             logger.exception("Error extracting element data: %s", e)
-            return {
-                "id": "unknown",
-                "name": "error_extraction",
-                "error": str(e)
-            }
+            return {"id": "unknown", "name": "error_extraction", "error": str(e)}
 
     def read_rvt(self, filepath: str) -> Dict[str, Any]:
         """
@@ -633,6 +642,7 @@ class RevitService:
         try:
             # V141.4 SECURITY FIX (CodeQL: py/path-injection):
             from parsers._path_security import validate_input_path
+
             safe_path = validate_input_path(filepath)
             filepath = str(safe_path)
 
@@ -644,8 +654,11 @@ class RevitService:
                     from Autodesk.Revit.DB import (
                         FilteredElementCollector,  # type: ignore[import-not-found]
                     )
+
                     elements = []
-                    collector = FilteredElementCollector(self._revit_doc).WhereElementIsNotElementType()
+                    collector = FilteredElementCollector(
+                        self._revit_doc
+                    ).WhereElementIsNotElementType()
                     for elem in collector:
                         try:
                             elem_data = self._extract_element_data(elem)
@@ -668,8 +681,8 @@ class RevitService:
                     }
                 except ImportError as ie:
                     logger.warning(
-                        "Could not import FilteredElementCollector (%s) — "
-                        "falling back to error.", ie
+                        "Could not import FilteredElementCollector (%s) — falling back to error.",
+                        ie,
                     )
                 except Exception as e:
                     logger.exception("Real Revit element read failed: %s", e)
@@ -709,16 +722,11 @@ class RevitService:
                 "success": False,
                 "error": f"RVT file not found: {filepath}",
                 "elements": [],
-                "count": 0
+                "count": 0,
             }
         except Exception as e:
             logger.exception("Error reading RVT file %s: %s", filepath, e)
-            return {
-                "success": False,
-                "error": str(e),
-                "elements": [],
-                "count": 0
-            }
+            return {"success": False, "error": str(e), "elements": [], "count": 0}
 
     def write_rvt(self, filepath: str, elements: List[Dict[str, Any]]) -> bool:
         """
@@ -761,6 +769,7 @@ class RevitService:
         try:
             # V141.4 SECURITY FIX (CodeQL: py/path-injection):
             from parsers._path_security import validate_output_path
+
             safe_path = validate_output_path(filepath, parser_name="revit_write_rvt")
             filepath = str(safe_path)
 
@@ -773,6 +782,7 @@ class RevitService:
             if self._connection_method == ConnectionMethod.API and self._revit_doc is not None:
                 try:
                     from Autodesk.Revit.DB import Transaction  # type: ignore[import-not-found]
+
                     tx = Transaction(self._revit_doc, "FireAI: Write Elements")
                     tx.Start()
                     try:
@@ -791,8 +801,12 @@ class RevitService:
                                 cat = elem.get("category", "").lower()
                                 if cat == "walls":
                                     self.create_wall(
-                                        start_point=elem.get("location_curve", [[0,0,0],[1,0,0]])[0],
-                                        end_point=elem.get("location_curve", [[0,0,0],[1,0,0]])[1],
+                                        start_point=elem.get(
+                                            "location_curve", [[0, 0, 0], [1, 0, 0]]
+                                        )[0],
+                                        end_point=elem.get(
+                                            "location_curve", [[0, 0, 0], [1, 0, 0]]
+                                        )[1],
                                         level=elem.get("level", "Level 1"),
                                     )
                                     created_count += 1
@@ -801,14 +815,16 @@ class RevitService:
                                         "write_rvt API mode: %s creation not yet implemented "
                                         "for element %s — skipped. Use IFC export path for "
                                         "full element creation.",
-                                        cat, elem.get("id", "?"),
+                                        cat,
+                                        elem.get("id", "?"),
                                     )
                                     skipped_count += 1
                                 else:
                                     logger.warning(
                                         "write_rvt API mode: unknown category '%s' for "
                                         "element %s — skipped.",
-                                        cat, elem.get("id", "?"),
+                                        cat,
+                                        elem.get("id", "?"),
                                     )
                                     skipped_count += 1
                             except Exception:
@@ -816,13 +832,15 @@ class RevitService:
                                 continue
                         logger.info(
                             "write_rvt API mode: created %d elements, skipped %d",
-                            created_count, skipped_count,
+                            created_count,
+                            skipped_count,
                         )
                         tx.Commit()
                         self._revit_doc.SaveAs(filepath)
                         logger.info(
                             "Wrote %d elements to real RVT file via Revit API: %s",
-                            created_count, filepath,
+                            created_count,
+                            filepath,
                         )
                         return True
                     except Exception as create_err:
@@ -841,47 +859,62 @@ class RevitService:
                 logger.error(
                     "Cannot write file: neither Revit API (not Windows) nor "
                     "ifcopenshell (%s) is available. Install ifcopenshell: "
-                    "pip install ifcopenshell", ie
+                    "pip install ifcopenshell",
+                    ie,
                 )
                 return False
 
             # Change .rvt extension to .ifc for honest file type
-            if filepath.lower().endswith(".rvt"):
-                ifc_path = filepath[:-4] + ".ifc"
-            else:
-                ifc_path = filepath
+            ifc_path = filepath[:-4] + ".ifc" if filepath.lower().endswith(".rvt") else filepath
 
             # Create a new IFC4 model
             model = ifcopenshell.file(schema="IFC4")
 
             # Create project/site/building/storey hierarchy (required by IFC spec)
-            project = ifcopenshell.api.run("root.create_entity", model, ifc_class="IfcProject", name="FireAI Export")
-            site = ifcopenshell.api.run("root.create_entity", model, ifc_class="IfcSite", name="Site")
-            building = ifcopenshell.api.run("root.create_entity", model, ifc_class="IfcBuilding", name="Building")
-            storey = ifcopenshell.api.run("root.create_entity", model, ifc_class="IfcBuildingStorey", name="Ground Floor")
+            project = ifcopenshell.api.run(
+                "root.create_entity", model, ifc_class="IfcProject", name="FireAI Export"
+            )
+            site = ifcopenshell.api.run(
+                "root.create_entity", model, ifc_class="IfcSite", name="Site"
+            )
+            building = ifcopenshell.api.run(
+                "root.create_entity", model, ifc_class="IfcBuilding", name="Building"
+            )
+            storey = ifcopenshell.api.run(
+                "root.create_entity", model, ifc_class="IfcBuildingStorey", name="Ground Floor"
+            )
 
-            ifcopenshell.api.run("aggregate.assign_object", model, products=[site], relating_object=project)
-            ifcopenshell.api.run("aggregate.assign_object", model, products=[building], relating_object=site)
-            ifcopenshell.api.run("aggregate.assign_object", model, products=[storey], relating_object=building)
+            ifcopenshell.api.run(
+                "aggregate.assign_object", model, products=[site], relating_object=project
+            )
+            ifcopenshell.api.run(
+                "aggregate.assign_object", model, products=[building], relating_object=site
+            )
+            ifcopenshell.api.run(
+                "aggregate.assign_object", model, products=[storey], relating_object=building
+            )
 
             # Add each element as an IfcBuildingElementProxy
             for elem in elements:
                 try:
                     name = str(elem.get("name", "Unnamed"))
                     proxy = ifcopenshell.api.run(
-                        "root.create_entity", model,
+                        "root.create_entity",
+                        model,
                         ifc_class="IfcBuildingElementProxy",
                         name=name,
                     )
                     # Assign to storey
                     ifcopenshell.api.run(
-                        "spatial.assign_container", model,
+                        "spatial.assign_container",
+                        model,
                         products=[proxy],
                         relating_structure=storey,
                     )
                     # Add properties as pset
                     pset = ifcopenshell.api.run(
-                        "pset.add_pset", model,
+                        "pset.add_pset",
+                        model,
                         product=proxy,
                         name="Pset_FireAI_Element",
                     )
@@ -894,23 +927,29 @@ class RevitService:
                         props["Level"] = str(elem["level"])
                     # Add any other scalar properties
                     for k, v in elem.items():
-                        if k not in ("id", "category", "level", "name") and isinstance(v, (str, int, float, bool)):
+                        if k not in ("id", "category", "level", "name") and isinstance(
+                            v, (str, int, float, bool)
+                        ):
                             props[k] = str(v)
                     if props:
                         ifcopenshell.api.run(
-                            "pset.edit_pset", model,
+                            "pset.edit_pset",
+                            model,
                             pset=pset,
                             properties=props,
                         )
                 except Exception as elem_err:
-                    logger.warning("Failed to add element %s to IFC: %s", elem.get("name", "?"), elem_err)
+                    logger.warning(
+                        "Failed to add element %s to IFC: %s", elem.get("name", "?"), elem_err
+                    )
                     continue
 
             # Write the IFC file
             model.write(ifc_path)
             logger.info(
                 "Wrote %d elements to real IFC4 file: %s (Revit can import via File → Open → IFC)",
-                len(elements), ifc_path,
+                len(elements),
+                ifc_path,
             )
 
             # V214 self-critique fix: Do NOT write a fake .rvt file with a
@@ -933,9 +972,16 @@ class RevitService:
             logger.exception("Error writing RVT/IFC file %s: %s", filepath, e)
             return False
 
-    def create_wall(self, start_point: List[float], end_point: List[float],  # NOSONAR — S3776: cognitive complexity is inherent to the safety-critical algorithm
-                   height: float = 3000.0, level: str = "Level 1",
-                   wall_type: str = "Basic Wall") -> Optional[str]:
+    def create_wall(
+        self,
+        start_point: List[float],
+        end_point: List[
+            float
+        ],  # NOSONAR — S3776: cognitive complexity is inherent to the safety-critical algorithm
+        height: float = 3000.0,
+        level: str = "Level 1",
+        wall_type: str = "Basic Wall",
+    ) -> Optional[str]:
         """
         Create a wall in the active Revit document.
 
@@ -999,16 +1045,19 @@ class RevitService:
 
             # Convert mm to internal feet (Revit internal units)
             MM_TO_FEET = 1.0 / 304.8
-            start = XYZ(start_point[0] * MM_TO_FEET,
-                        start_point[1] * MM_TO_FEET,
-                        start_point[2] * MM_TO_FEET)
-            end = XYZ(end_point[0] * MM_TO_FEET,
-                      end_point[1] * MM_TO_FEET,
-                      end_point[2] * MM_TO_FEET)
+            start = XYZ(
+                start_point[0] * MM_TO_FEET,
+                start_point[1] * MM_TO_FEET,
+                start_point[2] * MM_TO_FEET,
+            )
+            end = XYZ(
+                end_point[0] * MM_TO_FEET, end_point[1] * MM_TO_FEET, end_point[2] * MM_TO_FEET
+            )
             line = Line.CreateBound(start, end)
 
             # Find the level by name
             from Autodesk.Revit.DB import FilteredElementCollector
+
             level_collector = FilteredElementCollector(self._revit_doc).OfClass(Level)
             target_level = None
             for lvl in level_collector:
@@ -1016,7 +1065,9 @@ class RevitService:
                     target_level = lvl
                     break
             if target_level is None:
-                logger.error("create_wall failed: Level '%s' not found in document.", level)  # NOSONAR
+                logger.error(
+                    "create_wall failed: Level '%s' not found in document.", level
+                )  # NOSONAR
                 return None
 
             # Create wall inside a transaction (Revit API requires this)
@@ -1039,13 +1090,19 @@ class RevitService:
                             wall.ChangeTypeId(wt.Id)
                             break
                 except Exception as wt_err:
-                    logger.warning("Could not set wall type to '%s': %s", wall_type, wt_err)  # NOSONAR
+                    logger.warning(
+                        "Could not set wall type to '%s': %s", wall_type, wt_err
+                    )  # NOSONAR
 
                 tx.Commit()
                 element_id = str(wall.Id)
                 logger.info(  # NOSONAR
                     "Created wall (ElementId=%s) from %s to %s on %s (type=%s)",
-                    element_id, start_point, end_point, level, wall_type
+                    element_id,
+                    start_point,
+                    end_point,
+                    level,
+                    wall_type,
                 )
                 return element_id
 
@@ -1065,8 +1122,13 @@ class RevitService:
             logger.exception("Error creating wall: %s", e)
             return None
 
-    def create_floor(self, boundary: Optional[List[List[float]]] = None, level: str = "Level 1",  # NOSONAR — S3776: cognitive complexity is inherent to the safety-critical algorithm
-                     floor_type: str = "Floor", boundary_points: Optional[List[List[float]]] = None) -> Optional[str]:
+    def create_floor(
+        self,
+        boundary: Optional[List[List[float]]] = None,
+        level: str = "Level 1",  # NOSONAR — S3776: cognitive complexity is inherent to the safety-critical algorithm
+        floor_type: str = "Floor",
+        boundary_points: Optional[List[List[float]]] = None,
+    ) -> Optional[str]:
         """
         Create a floor in the active Revit document.
 
@@ -1122,8 +1184,10 @@ class RevitService:
             return None
 
         if len(actual_boundary) < 3:
-            logger.error("create_floor failed: need at least 3 boundary points, got %d.",
-                         len(actual_boundary))
+            logger.error(
+                "create_floor failed: need at least 3 boundary points, got %d.",
+                len(actual_boundary),
+            )
             return None
 
         try:
@@ -1161,7 +1225,9 @@ class RevitService:
                     target_level = lvl
                     break
             if target_level is None:
-                logger.error("create_floor failed: Level '%s' not found in document.", level)  # NOSONAR
+                logger.error(
+                    "create_floor failed: Level '%s' not found in document.", level
+                )  # NOSONAR
                 return None
 
             # Create floor inside a transaction
@@ -1196,13 +1262,18 @@ class RevitService:
                             floor.ChangeTypeId(ft.Id)
                             break
                 except Exception as ft_err:
-                    logger.warning("Could not set floor type to '%s': %s", floor_type, ft_err)  # NOSONAR
+                    logger.warning(
+                        "Could not set floor type to '%s': %s", floor_type, ft_err
+                    )  # NOSONAR
 
                 tx.Commit()
                 element_id = str(floor.Id)
                 logger.info(  # NOSONAR
                     "Created floor (ElementId=%s) with %d boundary points on %s (type=%s)",
-                    element_id, len(actual_boundary), level, floor_type
+                    element_id,
+                    len(actual_boundary),
+                    level,
+                    floor_type,
                 )
                 return element_id
 
@@ -1222,9 +1293,14 @@ class RevitService:
             logger.exception("Error creating floor: %s", e)
             return None
 
-    def create_column(self, location: Optional[List[float]] = None, height: float = 3000.0,  # NOSONAR — S3776: cognitive complexity is inherent to the safety-critical algorithm
-                      level: str = "Level 1", column_type: str = "M_Columns",
-                      location_point: Optional[List[float]] = None) -> Optional[str]:
+    def create_column(
+        self,
+        location: Optional[List[float]] = None,
+        height: float = 3000.0,  # NOSONAR — S3776: cognitive complexity is inherent to the safety-critical algorithm
+        level: str = "Level 1",
+        column_type: str = "M_Columns",
+        location_point: Optional[List[float]] = None,
+    ) -> Optional[str]:
         """
         Create a column in the active Revit document.
 
@@ -1335,6 +1411,7 @@ class RevitService:
                 # Structural column creation (Revit 2022+ API)
                 try:
                     from Autodesk.Revit.DB.Structure import StructuralType
+
                     new_column = self._revit_doc.Create.NewFamilyInstance(
                         location_xyz, target_symbol, target_level, StructuralType.Column
                     )
@@ -1353,7 +1430,11 @@ class RevitService:
                 element_id = str(new_column.Id)
                 logger.info(  # NOSONAR
                     "Created column (ElementId=%s) at %s height %s on %s (type=%s)",
-                    element_id, actual_location, height, level, column_type
+                    element_id,
+                    actual_location,
+                    height,
+                    level,
+                    column_type,
                 )
                 return element_id
             except Exception as create_err:
@@ -1386,11 +1467,11 @@ class RevitService:
                     "name": "Simulation Project",
                     "number": "SIM-001",
                     "address": "Simulation Address",
-                    "client_name": "Simulation Client"
+                    "client_name": "Simulation Client",
                 },
                 "active_view": "Architecture",
                 "current_phase": "Design Phase",
-                "units": "millimeters"
+                "units": "millimeters",
             }
         except Exception as e:
             logger.exception("Error getting document info: %s", e)
@@ -1418,7 +1499,7 @@ class RevitService:
 
             # In a real implementation, this would save the actual Revit document
             # For now, we'll just touch the file to simulate
-            with open(filepath, 'a'):
+            with open(filepath, "a"):
                 os.utime(filepath, None)
 
             logger.info("Simulated saving document to %s", filepath)
@@ -1507,7 +1588,9 @@ class RevitService:
     def get_elements(
         self,
         category: Optional[str] = None,
-        element_class: Optional[str] = None  # NOSONAR — S1172: accepted for API stability; Revit element class filter flows here for FilteredElementCollector queries
+        element_class: Optional[
+            str
+        ] = None,  # NOSONAR — S1172: accepted for API stability; Revit element class filter flows here for FilteredElementCollector queries
     ) -> List[Dict[str, Any]]:
         """Get elements using FilteredElementCollector pattern."""
         if not self._connected:
@@ -1574,6 +1657,7 @@ class RevitService:
         try:
             if self._connection_method == ConnectionMethod.API and self._revit_doc:
                 from Autodesk.Revit.DB import ElementId
+
                 elem = self._revit_doc.GetElement(ElementId(int(element_id)))
                 if elem:
                     return self._extract_element_data(elem)
@@ -1652,7 +1736,7 @@ class RevitService:
         host_wall_id: str,
         location_point: List[float],
         family_type: str = "M_Single-Flush",
-        level: str = "Level 1"
+        level: str = "Level 1",
     ) -> Optional[str]:
         """
         Create a door in a wall.
@@ -1712,7 +1796,9 @@ class RevitService:
                 wall = self._revit_doc.GetElement(host_wall_id)
                 if wall is None:
                     t.RollBack()
-                    logger.error("create_door failed: host wall '%s' not found.", host_wall_id)  # NOSONAR
+                    logger.error(
+                        "create_door failed: host wall '%s' not found.", host_wall_id
+                    )  # NOSONAR
                     return None
 
                 # Convert mm to feet (Revit internal units)
@@ -1736,7 +1822,10 @@ class RevitService:
                 element_id = str(new_door.Id)
                 logger.info(  # NOSONAR
                     "Created door (ElementId=%s) in wall %s (type=%s, level=%s)",
-                    element_id, host_wall_id, family_type, level
+                    element_id,
+                    host_wall_id,
+                    family_type,
+                    level,
                 )
                 return element_id
             except Exception as create_err:
@@ -1752,7 +1841,7 @@ class RevitService:
         host_wall_id: str,
         location_point: List[float],
         family_type: str = "M_Single-Flush",
-        level: str = "Level 1"
+        level: str = "Level 1",
     ) -> Optional[str]:
         """
         Create a window in a wall.
@@ -1777,7 +1866,7 @@ class RevitService:
         start_point: List[float],
         end_point: List[float],
         level: str = "Level 1",
-        beam_type: str = "W-Wide Flange"
+        beam_type: str = "W-Wide Flange",
     ) -> Optional[str]:
         """
         Create a structural beam.
@@ -1831,12 +1920,14 @@ class RevitService:
             )
 
             MM_TO_FEET = 1.0 / 304.8
-            start = XYZ(start_point[0] * MM_TO_FEET,
-                        start_point[1] * MM_TO_FEET,
-                        start_point[2] * MM_TO_FEET)
-            end = XYZ(end_point[0] * MM_TO_FEET,
-                      end_point[1] * MM_TO_FEET,
-                      end_point[2] * MM_TO_FEET)
+            start = XYZ(
+                start_point[0] * MM_TO_FEET,
+                start_point[1] * MM_TO_FEET,
+                start_point[2] * MM_TO_FEET,
+            )
+            end = XYZ(
+                end_point[0] * MM_TO_FEET, end_point[1] * MM_TO_FEET, end_point[2] * MM_TO_FEET
+            )
             curve = Line.CreateBound(start, end)
 
             # Find the level by name
@@ -1872,6 +1963,7 @@ class RevitService:
 
                 try:
                     from Autodesk.Revit.DB.Structure import StructuralType
+
                     new_beam = self._revit_doc.Create.NewFamilyInstance(
                         curve, target_symbol, target_level, StructuralType.Beam
                     )
@@ -1889,7 +1981,11 @@ class RevitService:
                 element_id = str(new_beam.Id)
                 logger.info(  # NOSONAR
                     "Created beam (ElementId=%s) from %s to %s on %s (type=%s)",
-                    element_id, start_point, end_point, level, beam_type
+                    element_id,
+                    start_point,
+                    end_point,
+                    level,
+                    beam_type,
                 )
                 return element_id
             except Exception as create_err:
@@ -1905,8 +2001,10 @@ class RevitService:
         family_name: str,
         category: str,
         location_point: List[float],
-        level: Optional[str] = None,  # NOSONAR — S1172: accepted for API stability; Revit level name flows here for family instance placement
-        parameters: Optional[Dict[str, Any]] = None
+        level: Optional[
+            str
+        ] = None,  # NOSONAR — S1172: accepted for API stability; Revit level name flows here for family instance placement
+        parameters: Optional[Dict[str, Any]] = None,
     ) -> Optional[str]:
         """
         Create a generic family instance.
@@ -2061,15 +2159,21 @@ class RevitService:
 
         if self._connection_method == ConnectionMethod.SIMULATION:
             return [
-                {"id": "v1", "name": "Level 1 Floor Plan", "type": "Floor Plan"},  # NOSONAR — S1192: duplicated literal acceptable in this localized context
+                {
+                    "id": "v1",
+                    "name": "Level 1 Floor Plan",
+                    "type": "Floor Plan",
+                },  # NOSONAR — S1192: duplicated literal acceptable in this localized context
                 {"id": "v2", "name": "Level 2 Floor Plan", "type": "Floor Plan"},
                 {"id": "v3", "name": "Section 1", "type": "Section"},
-                {"id": "v4", "name": "3D View", "type": "3D View"}
+                {"id": "v4", "name": "3D View", "type": "3D View"},
             ]
 
         return self.get_elements(category="Views")
 
-    def create_view(self, view_name: str, view_type: str = "Floor Plan", level: str = "Level 1") -> Optional[str]:
+    def create_view(
+        self, view_name: str, view_type: str = "Floor Plan", level: str = "Level 1"
+    ) -> Optional[str]:
         """
         Create a new view.
 
@@ -2101,8 +2205,7 @@ class RevitService:
 
         if not HAS_REVIT_API:
             logger.error(
-                "create_view failed: Revit API not available "
-                "(pythonnet/RevitAPI not loaded)."
+                "create_view failed: Revit API not available (pythonnet/RevitAPI not loaded)."
             )
             return None
 
@@ -2134,7 +2237,9 @@ class RevitService:
             tx.Start()
             try:
                 # ViewPlan.Create for floor plans; falls back to View.Create
-                if view_type.lower() in ("floor plan", "floor_plan", "plan"):  # NOSONAR: S3923 branches intentionally identical  # NOSONAR — S7632: test function documented via class name / module path
+                if (
+                    view_type.lower() in ("floor plan", "floor_plan", "plan")
+                ):  # NOSONAR: S3923 branches intentionally identical  # NOSONAR — S7632: test function documented via class name / module path
                     new_view = ViewPlan.Create(self._revit_doc, target_level.Id)
                 else:
                     # Other view types: requires ViewFamilyType lookup.
@@ -2152,7 +2257,10 @@ class RevitService:
                 element_id = str(new_view.Id)
                 logger.info(
                     "Created view (ElementId=%s) '%s' (type=%s, level=%s)",
-                    element_id, view_name, view_type, level
+                    element_id,
+                    view_name,
+                    view_type,
+                    level,
                 )
                 return element_id
             except Exception as create_err:
@@ -2169,7 +2277,7 @@ class RevitService:
             return [
                 {"id": "l1", "name": "Level 1", "elevation": 0.0},
                 {"id": "l2", "name": "Level 2", "elevation": 3000.0},
-                {"id": "l3", "name": "Level 3", "elevation": 6000.0}
+                {"id": "l3", "name": "Level 3", "elevation": 6000.0},
             ]
 
         return self.get_elements(category="Levels")
@@ -2206,8 +2314,7 @@ class RevitService:
 
         if not HAS_REVIT_API:
             logger.error(
-                "create_level failed: Revit API not available "
-                "(pythonnet/RevitAPI not loaded)."
+                "create_level failed: Revit API not available (pythonnet/RevitAPI not loaded)."
             )
             return None
 
@@ -2237,7 +2344,9 @@ class RevitService:
                 element_id = str(new_level.Id)
                 logger.info(
                     "Created level (ElementId=%s) '%s' (elevation=%s mm)",
-                    element_id, name, elevation
+                    element_id,
+                    name,
+                    elevation,
                 )
                 return element_id
             except Exception as create_err:
@@ -2257,7 +2366,7 @@ class RevitService:
         if not self._connected:
             return [
                 {"id": "w1", "name": "Workset 1", "owner": "User1"},
-                {"id": "w2", "name": "Workset 2", "owner": "User2"}
+                {"id": "w2", "name": "Workset 2", "owner": "User2"},
             ]
 
         return []
@@ -2270,8 +2379,16 @@ class RevitService:
         """Get all family symbols for a category."""
         if not self._connected:
             return [
-                {"name": "M_Single-Flush 36\" x 84\"", "category": category, "family": "M_Single-Flush"},
-                {"name": "M_Double-Flush 72\" x 84\"", "category": category, "family": "M_Double-Flush"}
+                {
+                    "name": 'M_Single-Flush 36" x 84"',
+                    "category": category,
+                    "family": "M_Single-Flush",
+                },
+                {
+                    "name": 'M_Double-Flush 72" x 84"',
+                    "category": category,
+                    "family": "M_Double-Flush",
+                },
             ]
 
         try:
@@ -2284,12 +2401,14 @@ class RevitService:
                 symbols = []
                 for symbol in collector:
                     if symbol.Category and symbol.Category.Name == category:
-                        symbols.append({
-                            "name": symbol.Name,
-                            "family": symbol.FamilyName,
-                            "category": category,
-                            "id": str(symbol.Id)
-                        })
+                        symbols.append(
+                            {
+                                "name": symbol.Name,
+                                "family": symbol.FamilyName,
+                                "category": category,
+                                "id": str(symbol.Id),
+                            }
+                        )
 
                 return symbols
 
@@ -2298,7 +2417,9 @@ class RevitService:
 
         return []
 
-    def load_family(self, family_path: str, _category: Optional[str] = None) -> bool:  # NOSONAR — S1172: parameter retained for API stability
+    def load_family(
+        self, family_path: str, _category: Optional[str] = None
+    ) -> bool:  # NOSONAR — S1172: parameter retained for API stability
         """Load a family (.rfa) into the project."""
         if not self._connected:
             return False
@@ -2335,11 +2456,12 @@ class RevitService:
             # Validate path before opening. Previous code called open() on
             # an unvalidated path — path-injection vulnerability.
             from parsers._path_security import validate_input_path
+
             # V141.4.1 FIX (Devin review): convert Path to str after validation.
             safe_path = validate_input_path(json_path)
             json_path = str(safe_path)
 
-            with open(json_path, encoding='utf-8') as f:
+            with open(json_path, encoding="utf-8") as f:
                 self._api_data_cache = json.load(f)
 
             self._api_data_loaded = True
@@ -2355,7 +2477,7 @@ class RevitService:
         keyword: Optional[str] = None,
         api_name: Optional[str] = None,
         namespace: Optional[str] = None,
-        api_type: Optional[str] = None
+        api_type: Optional[str] = None,
     ) -> List[RevitAPIInfo]:
         """Search loaded API data locally."""
         if not self._api_data_loaded:
@@ -2368,9 +2490,11 @@ class RevitService:
 
             if keyword:
                 kw = keyword.lower()
-                if not (kw in entry.get("Keywords", "").lower() or
-                        kw in entry.get("Title", "").lower() or
-                        kw in entry.get("Description", "").lower()):
+                if not (
+                    kw in entry.get("Keywords", "").lower()
+                    or kw in entry.get("Title", "").lower()
+                    or kw in entry.get("Description", "").lower()
+                ):
                     match = False
 
             if api_name and match:
@@ -2385,15 +2509,17 @@ class RevitService:
                 match = False
 
             if match:
-                results.append(RevitAPIInfo(
-                    title=entry.get("Title", ""),
-                    keywords=entry.get("Keywords", ""),
-                    api_name=entry.get("APIName", ""),
-                    description=entry.get("Description", ""),
-                    namespace=entry.get("Namespace", ""),
-                    guid=entry.get("Guid", ""),
-                    type=entry.get("Type", "")
-                ))
+                results.append(
+                    RevitAPIInfo(
+                        title=entry.get("Title", ""),
+                        keywords=entry.get("Keywords", ""),
+                        api_name=entry.get("APIName", ""),
+                        description=entry.get("Description", ""),
+                        namespace=entry.get("Namespace", ""),
+                        guid=entry.get("Guid", ""),
+                        type=entry.get("Type", ""),
+                    )
+                )
 
         return results
 
@@ -2403,7 +2529,9 @@ class RevitService:
             return ""
         return f"https://www.revitapidocs.com/{revit_version}/{api_info.guid}.htm"
 
-    async def search_revit_api(self, query: str, engine: str = "revitapidocs") -> List[SearchResult]:
+    async def search_revit_api(
+        self, query: str, engine: str = "revitapidocs"
+    ) -> List[SearchResult]:
         """Search Revit API documentation online."""
         results = []
 
@@ -2415,10 +2543,11 @@ class RevitService:
                 params = {
                     "autocomplete_key": "key_yyAC1mb0cTgZTwSo",
                     "query": query,
-                    "num_results": 30
+                    "num_results": 30,
                 }
 
                 import urllib.parse
+
                 safe_query = urllib.parse.quote(query)
 
                 async with httpx.AsyncClient() as client:
@@ -2430,11 +2559,13 @@ class RevitService:
                         products = sections.get("Products", [])
 
                         for item in products:
-                            results.append(SearchResult(
-                                related_key=item.get("value", ""),
-                                description=item.get("data", {}).get("description", ""),
-                                url=item.get("data", {}).get("url", "")
-                            ))
+                            results.append(
+                                SearchResult(
+                                    related_key=item.get("value", ""),
+                                    description=item.get("data", {}).get("description", ""),
+                                    url=item.get("data", {}).get("url", ""),
+                                )
+                            )
 
         except Exception as e:
             logger.exception("Search failed: %s", e)
@@ -2445,7 +2576,11 @@ class RevitService:
     # AI COMMAND EXECUTION
     # =========================================================================
 
-    def execute_ai_command(self, command: str, context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:  # NOSONAR — S3776: cognitive complexity is inherent to the safety-critical algorithm
+    def execute_ai_command(
+        self, command: str, context: Optional[Dict[str, Any]] = None
+    ) -> Dict[
+        str, Any
+    ]:  # NOSONAR — S3776: cognitive complexity is inherent to the safety-critical algorithm
         """Execute a natural language command from AI agent."""
         command = command.lower()
 
@@ -2468,7 +2603,7 @@ class RevitService:
                 result = {
                     "success": element_id is not None,
                     "message": f"Wall created: {element_id}",
-                    "element_id": element_id
+                    "element_id": element_id,
                 }
 
             elif "create door" in command or "add door" in command:
@@ -2485,7 +2620,7 @@ class RevitService:
                     result = {
                         "success": element_id is not None,
                         "message": f"Door created: {element_id}",
-                        "element_id": element_id
+                        "element_id": element_id,
                     }
 
             elif "get elements" in command or "list elements" in command:
@@ -2495,7 +2630,7 @@ class RevitService:
                 result = {
                     "success": True,
                     "message": f"Found {len(elements)} elements",
-                    "elements": elements
+                    "elements": elements,
                 }
 
             elif "delete" in command or "remove" in command:
@@ -2504,7 +2639,7 @@ class RevitService:
                     success = self.delete_element(element_id)
                     result = {
                         "success": success,
-                        "message": f"Element {element_id} deleted" if success else "Delete failed"
+                        "message": f"Element {element_id} deleted" if success else "Delete failed",
                     }
 
             elif "search api" in command or "lookup api" in command:
@@ -2519,17 +2654,17 @@ class RevitService:
                             "name": r.title,
                             "api_name": r.api_name,
                             "type": r.type,
-                            "url": self.get_api_url(r)
+                            "url": self.get_api_url(r),
                         }
                         for r in api_results[:10]
-                    ]
+                    ],
                 }
 
             else:
                 result = {
                     "success": False,
                     "message": f"Unknown command: {command}",
-                    "suggestion": "Try: create wall, create door, get elements, delete, search api"
+                    "suggestion": "Try: create wall, create door, get elements, delete, search api",
                 }
 
         except Exception as e:
@@ -2599,7 +2734,9 @@ class RevitService:
 
         return None
 
-    def _get_family_symbol(self, _category: str, symbol_name: str):  # NOSONAR — S1172: parameter retained for API stability
+    def _get_family_symbol(
+        self, _category: str, symbol_name: str
+    ):  # NOSONAR — S1172: parameter retained for API stability
         """Get FamilySymbol - similar to RevitJumper pattern."""
         if not self._revit_doc:
             return None
@@ -2699,6 +2836,7 @@ class RevitService:
                         param.Set(float(value))
                     elif param.StorageType == StorageType.ElementId:
                         from Autodesk.Revit.DB import ElementId
+
                         param.Set(ElementId(int(value)))
                     return True
             return False
@@ -2723,6 +2861,7 @@ class RevitService:
     def _extract_level(self, command: str) -> Optional[str]:
         """Extract level name from command."""
         import re
+
         patterns = [r"level\s+(\d+)", r"level\s+(\w+)"]
         for pattern in patterns:
             match = re.search(pattern, command, re.IGNORECASE)
@@ -2741,6 +2880,7 @@ class RevitService:
     def _extract_element_id(self, command: str, selected: List[Dict]) -> Optional[str]:
         """Extract element ID from command."""
         import re
+
         id_match = re.search(r"id[:\s]*(\d+)", command, re.IGNORECASE)
         if id_match:
             return id_match.group(1)
@@ -2755,7 +2895,9 @@ class RevitService:
                 return elem
         return None
 
-    def _get__wall_center(self, _wall: Dict) -> List[float]:  # NOSONAR — S1172: parameter retained for API stability
+    def _get__wall_center(
+        self, _wall: Dict
+    ) -> List[float]:  # NOSONAR — S1172: parameter retained for API stability
         """Get center point of a wall."""
         return [2500, 0, 0]
 
@@ -2771,6 +2913,7 @@ class RevitService:
 # ============================================================================
 
 _revit_service_instance: Optional[RevitService] = None
+
 
 def get_revit_service() -> RevitService:
     """Get singleton RevitService instance."""

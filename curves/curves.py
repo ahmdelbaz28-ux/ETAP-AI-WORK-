@@ -172,7 +172,7 @@ def calculate_iec_operating_time(
         }
 
     # --- Cap M at maximum valid range ---
-    if M > max_multiplier:
+    if max_multiplier < M:
         warnings.append(
             f"M={M:.1f} exceeds max_multiplier={max_multiplier}; "
             f"capped to {max_multiplier}. Results may be unreliable."
@@ -181,7 +181,6 @@ def calculate_iec_operating_time(
 
     # --- Apply epsilon nudge at singularity ---
     M_effective = M if not math.isclose(M, 1.0) else _IEC_CURVE_EPSILON  # noqa: S117 — domain notation
-
 
     # --- Compute raw trip time ---
     curve_info = _CURVE_REGISTRY[curve_type_lower]
@@ -248,18 +247,7 @@ class IEC60255Curves:
         return result["operating_time_s"]
 
     @staticmethod
-    def very_inverse(
-        tms,
-        i,
-        ip,
-    ):  # NOSONAR physics/engineering notation
-
-        if I <= Ip:
-            return float("inf")
-        return TMS * (0.14 / ((I / Ip) ** 0.02 - 1))
-
-    @staticmethod
-    def very_inverse(TMS, I, Ip):
+    def very_inverse(tms, i, ip):  # NOSONAR physics/engineering notation
         """
         Very inverse curve.
         t = TMS * (13.5 / ((I/Ip) - 1))
@@ -273,18 +261,7 @@ class IEC60255Curves:
         return result["operating_time_s"]
 
     @staticmethod
-    def extremely_inverse(
-        tms,
-        i,
-        ip,
-    ):  # NOSONAR physics/engineering notation
-
-        if I <= Ip:
-            return float("inf")
-        return TMS * (13.5 / ((I / Ip) - 1))
-
-    @staticmethod
-    def extremely_inverse(TMS, I, Ip):
+    def extremely_inverse(tms, i, ip):  # NOSONAR physics/engineering notation
         """
         Extremely inverse curve.
         t = TMS * (80 / ((I/Ip)^2 - 1))
@@ -298,18 +275,7 @@ class IEC60255Curves:
         return result["operating_time_s"]
 
     @staticmethod
-    def long_inverse(
-        tms,
-        i,
-        ip,
-    ):  # NOSONAR physics/engineering notation
-
-        if I <= Ip:
-            return float("inf")
-        return TMS * (80 / ((I / Ip) ** 2 - 1))
-
-    @staticmethod
-    def long_inverse(TMS, I, Ip):
+    def long_inverse(tms, i, ip):  # NOSONAR physics/engineering notation
         """
         Long inverse curve (UK).
         t = TMS * (120 / ((I/Ip) - 1))
@@ -321,7 +287,3 @@ class IEC60255Curves:
             curve_type="long_inverse",
         )
         return result["operating_time_s"]
-
-        if I <= Ip:
-            return float("inf")
-        return TMS * (120 / ((I / Ip) - 1))

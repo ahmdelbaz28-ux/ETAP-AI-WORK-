@@ -38,7 +38,6 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, ConfigDict, Field
 
 from api.dependencies import get_api_key
-from api.security_audit import Severity
 
 # ---------------------------------------------------------------------------
 # Duplicated-string-literal constants (python:S1192)
@@ -152,7 +151,9 @@ class AuditLogExportRequest(BaseModel):
         filters: Optional filter criteria to apply before exporting.
     """
 
-    format: str = Field(default="csv", pattern=r"^(csv|pdf)$", description="Export format: csv or pdf")
+    format: str = Field(
+        default="csv", pattern=r"^(csv|pdf)$", description="Export format: csv or pdf"
+    )
     filters: Optional[AuditLogFilter] = Field(default=None, description="Filter criteria")
 
 
@@ -544,11 +545,7 @@ def _apply_filters(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                 detail=f"Invalid start_date format: {start_date!r}. Expected ISO-8601.",
             )
-        result = [
-            e
-            for e in result
-            if datetime.fromisoformat(e["timestamp"]) >= start_dt
-        ]
+        result = [e for e in result if datetime.fromisoformat(e["timestamp"]) >= start_dt]
 
     if end_date is not None:
         try:
@@ -558,11 +555,7 @@ def _apply_filters(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                 detail=f"Invalid end_date format: {end_date!r}. Expected ISO-8601.",
             )
-        result = [
-            e
-            for e in result
-            if datetime.fromisoformat(e["timestamp"]) <= end_dt
-        ]
+        result = [e for e in result if datetime.fromisoformat(e["timestamp"]) <= end_dt]
 
     if search is not None:
         search_lower = search.lower()

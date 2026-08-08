@@ -30,23 +30,25 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 # Try to import the real AhmedETAP modules.
 try:
-    from scada_model.scada_model import (
-        SCADADatabase,
-        MeasurementType,
-        QualityFlag,
-    )
     from digital_twin.event_bus import (
         EventBus,
-        SCADAUpdateReceived,
         EventType,
+        SCADAUpdateReceived,
     )
+    from scada_model.scada_model import (
+        MeasurementType,
+        QualityFlag,
+        SCADADatabase,
+    )
+
     ETAP_AVAILABLE = True
 except Exception as _exc:  # pragma: no cover - environment-dependent
     ETAP_AVAILABLE = False
     _IMPORT_ERROR = _exc
 
 pytestmark = pytest.mark.skipif(
-    not ETAP_AVAILABLE, reason=f"AhmedETAP modules not importable: {_IMPORT_ERROR if not ETAP_AVAILABLE else ''}"
+    not ETAP_AVAILABLE,
+    reason=f"AhmedETAP modules not importable: {_IMPORT_ERROR if not ETAP_AVAILABLE else ''}",
 )
 
 from scada_protocols.common.base import AdapterRole, probe_modbus
@@ -165,8 +167,7 @@ def test_end_to_end_with_real_etap_stack():
         matching = [
             m
             for m in db.measurements.values()
-            if m.element_id == "BUS-1"
-            and m.measurement_type == MeasurementType.VOLTAGE_MAGNITUDE
+            if m.element_id == "BUS-1" and m.measurement_type == MeasurementType.VOLTAGE_MAGNITUDE
         ]
         assert len(matching) > 0, "SCADADatabase has no measurement for BUS-1"
         latest = matching[-1]

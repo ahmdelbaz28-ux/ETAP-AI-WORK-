@@ -244,7 +244,9 @@ def approve_request(
     # request_id is server-generated (apr_ prefix + token_hex); approver_id is
     # sanitized by _sanitize_for_log() (S5145: no CR/LF can reach the log).
     logger.info(
-        "Dual-control request %s APPROVED by %s", _sanitize_for_log(request_id), _sanitize_for_log(approver_id)
+        "Dual-control request %s APPROVED by %s",
+        _sanitize_for_log(request_id),
+        _sanitize_for_log(approver_id),
     )  # noqa: S5145
 
     # Notify WebSocket clients
@@ -395,9 +397,7 @@ def _notify_clients(request_id: str, request: dict) -> None:
 
     async def _broadcast() -> None:
         dead = []
-        for session_id, sockets in list(
-            _websocket_clients.items()
-        ):  # noqa: S7504 — list() needed: dict mutated during iteration
+        for session_id, sockets in list(_websocket_clients.items()):  # noqa: S7504 — list() needed: dict mutated during iteration
             for ws in list(sockets):  # NOSONAR
                 try:
                     # `send_text` is async; some WebSocket impls (Starlette)

@@ -26,6 +26,7 @@ Usage:
 Branch: feat/scenario-4-bidirectional
 Refs: PRODUCTION_PLAN/08_SCENARIO_4_BIDIRECTIONAL.md
 """
+
 from __future__ import annotations
 
 import argparse
@@ -73,6 +74,7 @@ def _validate_path(path_str: str, base_dir: str | None = None) -> str:
             raise ValueError(f"Path escapes allowed base: {path_str!r}")
     return resolved
 
+
 PROJECT_ROOT = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
@@ -117,8 +119,7 @@ async def run_scenario(
             "duration_sec": round(time.time() - t1, 2),
             "features_count": len(gis_features),
         }
-        logger.info("✅ Step 1: %d features in %.2fs",
-                    len(gis_features), time.time() - t1)
+        logger.info("✅ Step 1: %d features in %.2fs", len(gis_features), time.time() - t1)
     except Exception as exc:
         results["phases"]["1_extract_gis"] = {"status": "failed", "error": str(exc)}
         results["status"] = "failed"
@@ -133,8 +134,12 @@ async def run_scenario(
 
     try:
         diff = _compute_diff(gis_features, etap_project_path, trace_id)
-        logger.info("  Diff: %d creates, %d updates, %d deletes",
-                    len(diff["creates"]), len(diff["updates"]), len(diff["deletes"]))
+        logger.info(
+            "  Diff: %d creates, %d updates, %d deletes",
+            len(diff["creates"]),
+            len(diff["updates"]),
+            len(diff["deletes"]),
+        )
 
         # Audit
         _audit_to_neo4j(diff, trace_id)
@@ -170,7 +175,8 @@ async def run_scenario(
 
     try:
         from etap_integration.unified_etap_types import (
-            ETAPStudyType, get_etap_provider,
+            ETAPStudyType,
+            get_etap_provider,
         )
 
         etap_provider = get_etap_provider()
@@ -197,14 +203,14 @@ async def run_scenario(
                     "data_summary": _summarize_result(study_type, result.data),
                 }
                 if result.success:
-                    logger.info("  ✅ %s done in %.2fs",
-                                study_type.value, result.execution_time)
+                    logger.info("  ✅ %s done in %.2fs", study_type.value, result.execution_time)
                 else:
-                    logger.error("  ❌ %s failed: %s",
-                                 study_type.value, result.errors[:1])
+                    logger.error("  ❌ %s failed: %s", study_type.value, result.errors[:1])
             except Exception as exc:
                 study_results[study_type.value] = {
-                    "success": False, "execution_time": 0, "errors": [str(exc)],
+                    "success": False,
+                    "execution_time": 0,
+                    "errors": [str(exc)],
                 }
                 logger.exception("  ❌ %s exception: %s", study_type.value, exc)
 
@@ -232,8 +238,12 @@ async def run_scenario(
             "studies_total": len(studies_to_run),
             "study_results": study_results,
         }
-        logger.info("✅ Step 3: %d/%d studies succeeded in %.2fs",
-                    successful, len(studies_to_run), time.time() - t3)
+        logger.info(
+            "✅ Step 3: %d/%d studies succeeded in %.2fs",
+            successful,
+            len(studies_to_run),
+            time.time() - t3,
+        )
 
     except Exception as exc:
         results["phases"]["3_rerun_studies"] = {"status": "failed", "error": str(exc)}
@@ -327,9 +337,7 @@ async def run_scenario(
         impact = {
             "trace_id": trace_id,
             "studies_run": len(study_results),
-            "studies_successful": sum(
-                1 for r in study_results.values() if r.get("success")
-            ),
+            "studies_successful": sum(1 for r in study_results.values() if r.get("success")),
             "diff_applied": {
                 "creates": len(diff["creates"]),
                 "updates": len(diff["updates"]),
@@ -337,9 +345,9 @@ async def run_scenario(
             },
             "scada_monitoring_sec": scada_monitoring_sec,
             "recommendation": (
-                "PROCEED" if all(
-                    r.get("success") for r in study_results.values()
-                ) else "REVIEW_REQUIRED"
+                "PROCEED"
+                if all(r.get("success") for r in study_results.values())
+                else "REVIEW_REQUIRED"
             ),
         }
         results["phases"]["6_impact_analysis"] = {
@@ -416,9 +424,11 @@ async def run_scenario(
 def _extract_gis_features(gis_source: str, gis_project_path: str) -> list[dict[str, Any]]:
     if gis_source == "qgis":
         from gis_integration.providers.qgis_provider import QGISProvider
+
         provider = QGISProvider()
     elif gis_source == "arcgis":
         from gis_integration.providers.arcgis_provider import ArcGISProvider
+
         provider = ArcGISProvider()
     else:
         raise ValueError(f"Unknown GIS source: {gis_source}")
@@ -427,21 +437,28 @@ def _extract_gis_features(gis_source: str, gis_project_path: str) -> list[dict[s
     features: list[dict[str, Any]] = []
     for layer_name in provider.list_layers():
         for feat in provider.extract_features(layer_name):
-            features.append({
-                "layer": layer_name, "id": feat.id,
-                "geometry": feat.geometry, "properties": feat.properties,
-            })
+            features.append(
+                {
+                    "layer": layer_name,
+                    "id": feat.id,
+                    "geometry": feat.geometry,
+                    "properties": feat.properties,
+                }
+            )
     return features
 
 
 def _compute_diff(
-    gis_features: list[dict[str, Any]], etap_project_path: str, trace_id: str,
+    gis_features: list[dict[str, Any]],
+    etap_project_path: str,
+    trace_id: str,
 ) -> dict[str, list]:
     creates, updates, deletes = [], [], []
 
     etap_buses: dict[str, dict] = {}
     try:
         from integrations.supabase_integration import get_supabase_client
+
         client = get_supabase_client()
         if client is not None:
             response = client.table("gis_buses").select("*").execute()
@@ -460,12 +477,19 @@ def _compute_diff(
     for bus_id in set(gis_buses.keys()) | set(etap_buses.keys()):
         in_gis, in_etap = bus_id in gis_buses, bus_id in etap_buses
         if in_gis and not in_etap:
-            creates.append({"object_type": "bus", "id": bus_id,
-                            "properties": gis_buses[bus_id].get("properties", {}),
-                            "trace_id": trace_id})
+            creates.append(
+                {
+                    "object_type": "bus",
+                    "id": bus_id,
+                    "properties": gis_buses[bus_id].get("properties", {}),
+                    "trace_id": trace_id,
+                }
+            )
         elif in_gis and in_etap:
             changes = {}
-            for key in set(gis_buses[bus_id].get("properties", {}).keys()) | set(etap_buses[bus_id].keys()):
+            for key in set(gis_buses[bus_id].get("properties", {}).keys()) | set(
+                etap_buses[bus_id].keys()
+            ):
                 if key in ("id", "trace_id", "updated_at", "created_at", "project_id"):
                     continue
                 gis_val = gis_buses[bus_id].get("properties", {}).get(key)
@@ -473,8 +497,9 @@ def _compute_diff(
                 if gis_val != etap_val:
                     changes[key] = {"old": etap_val, "new": gis_val}
             if changes:
-                updates.append({"object_type": "bus", "id": bus_id,
-                                "changes": changes, "trace_id": trace_id})
+                updates.append(
+                    {"object_type": "bus", "id": bus_id, "changes": changes, "trace_id": trace_id}
+                )
         elif in_etap and not in_gis:
             deletes.append({"object_type": "bus", "id": bus_id, "trace_id": trace_id})
 
@@ -484,6 +509,7 @@ def _compute_diff(
 def _audit_to_neo4j(diff: dict[str, list], trace_id: str) -> int:
     try:
         from integrations.neo4j_integration import neo4j_client
+
         if not neo4j_client.enabled:
             return 0
         count = 0
@@ -492,9 +518,13 @@ def _audit_to_neo4j(diff: dict[str, list], trace_id: str) -> int:
                 neo4j_client.execute_query(
                     "CREATE (op:SyncOperation {action: $a, object_type: $t, "
                     "object_id: $i, trace_id: $tr, timestamp: $ts})",
-                    {"a": op_type.rstrip("s"), "t": op.get("object_type", ""),
-                     "i": op.get("id", ""), "tr": trace_id,
-                     "ts": datetime.now(timezone.utc).isoformat()},
+                    {
+                        "a": op_type.rstrip("s"),
+                        "t": op.get("object_type", ""),
+                        "i": op.get("id", ""),
+                        "tr": trace_id,
+                        "ts": datetime.now(timezone.utc).isoformat(),
+                    },
                 )
                 count += 1
         return count
@@ -516,8 +546,8 @@ def _restore_etap(backup_path: str, original_path: str) -> None:
 def _apply_diff_to_etap(etap_project_path: str, diff: dict[str, list]) -> None:
     if os.name != "nt":
         raise RuntimeError("apply_diff_to_etap requires Windows (COM)")
-    import win32com.client  # type: ignore
     import pythoncom  # type: ignore
+    import win32com.client  # type: ignore
 
     pythoncom.CoInitialize()
     try:
@@ -582,11 +612,13 @@ def _build_geojson_from_studies(study_results: dict[str, Any], trace_id: str) ->
     lf = study_results.get("LoadFlow", {})
     if lf.get("success"):
         for bus_id, bus_data in lf.get("data_summary", {}).items():
-            features.append({
-                "type": "Feature",
-                "geometry": {"type": "Point", "coordinates": [0, 0]},
-                "properties": {"id": bus_id, "type": "bus", "source": "LoadFlow"},
-            })
+            features.append(
+                {
+                    "type": "Feature",
+                    "geometry": {"type": "Point", "coordinates": [0, 0]},
+                    "properties": {"id": bus_id, "type": "bus", "source": "LoadFlow"},
+                }
+            )
 
     return {
         "type": "FeatureCollection",
@@ -603,6 +635,7 @@ async def _run_consumer_simplified() -> None:
     """Simplified consumer for Step 5 (full consumer in scenario 3)."""
     try:
         import json
+
         import paho.mqtt.client as mqtt
 
         broker = os.environ.get("MQTT_BROKER", "tcp://localhost:1883")
@@ -656,13 +689,15 @@ def main() -> None:
         asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
 
     try:
-        result = asyncio.run(run_scenario(
-            gis_source=args.gis_source,
-            gis_project_path=args.gis_project_path,
-            etap_project_path=args.etap_project_path,
-            output_dir=args.output_dir,
-            scada_monitoring_sec=args.scada_monitoring_sec,
-        ))
+        result = asyncio.run(
+            run_scenario(
+                gis_source=args.gis_source,
+                gis_project_path=args.gis_project_path,
+                etap_project_path=args.etap_project_path,
+                output_dir=args.output_dir,
+                scada_monitoring_sec=args.scada_monitoring_sec,
+            )
+        )
 
         result_path = _validate_path(os.path.join(args.output_dir, "scenario4_result.json"))
         with open(result_path, "w", encoding="utf-8") as f:

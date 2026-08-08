@@ -35,7 +35,7 @@ from __future__ import annotations
 import logging
 import os
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import StrEnum
 from typing import Any, Dict, List, Optional, Set
 
 logger = logging.getLogger(__name__)
@@ -58,7 +58,7 @@ NEO4J_PASSWORD_DEFAULT = "etap_password"
 # ---------------------------------------------------------------------------
 
 
-class ElementType(str, Enum):
+class ElementType(StrEnum):
     """Types of electrical network elements (Neo4j node labels)."""
 
     BUS = "Bus"
@@ -72,7 +72,7 @@ class ElementType(str, Enum):
     PANEL = "Panel"
 
 
-class RelationshipType(str, Enum):
+class RelationshipType(StrEnum):
     """Types of relationships between network elements (Neo4j edge types)."""
 
     CONNECTED_TO = "CONNECTED_TO"
@@ -251,8 +251,7 @@ class TopologyGraphService:
             logger.info("Neo4j connected to %s", self._uri)
         except Exception as exc:
             logger.warning(
-                "Neo4j initialization failed (%s). "
-                "Topology graph will use in-memory fallback.",
+                "Neo4j initialization failed (%s). Topology graph will use in-memory fallback.",
                 exc,
             )
             self._driver = None
@@ -367,6 +366,7 @@ class TopologyGraphService:
             ImpactAnalysisResult with affected loads and buses.
         """
         import time
+
         t_start = time.perf_counter()
 
         self._initialize()
@@ -522,12 +522,14 @@ class TopologyGraphService:
                         et = ElementType(type_str)
                     except ValueError:
                         et = ElementType.BUS
-                    elements.append(NetworkElement(
-                        element_id=record["id"],
-                        element_type=et,
-                        name=record["name"] or "",
-                        properties=dict(record["props"]) if record["props"] else {},
-                    ))
+                    elements.append(
+                        NetworkElement(
+                            element_id=record["id"],
+                            element_type=et,
+                            name=record["name"] or "",
+                            properties=dict(record["props"]) if record["props"] else {},
+                        )
+                    )
                 return elements
 
         except Exception as exc:
@@ -554,8 +556,7 @@ class TopologyGraphService:
         try:
             with self._driver.session() as session:
                 result = session.run(
-                    "MATCH (n) RETURN count(n) AS node_count, "
-                    "count {()-[]->()} AS edge_count"
+                    "MATCH (n) RETURN count(n) AS node_count, count {()-[]->()} AS edge_count"
                 )
                 record = result.single()
 

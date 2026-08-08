@@ -64,15 +64,15 @@ class DXFParser:
     # produces catastrophically wrong room areas → wrong detector count →
     # building unprotected. Source: AutoCAD DXF Reference — $INSUNITS header.
     INSUNITS_TO_METERS = {
-        0: 1.0,         # Unspecified — assume meters (documented assumption)
-        1: 0.0254,      # Inches
-        2: 0.3048,      # Feet
-        3: 1609.344,    # Miles (was missing — caused ValueError)
-        4: 0.001,       # Millimeters
-        5: 0.01,        # Centimeters
-        6: 1.0,         # Meters
-        7: 1000.0,      # Kilometers (was missing — caused ValueError)
-        8: 2.54e-8,     # Microinches (was 1000.0 — 3.9×10¹⁰ error!)
+        0: 1.0,  # Unspecified — assume meters (documented assumption)
+        1: 0.0254,  # Inches
+        2: 0.3048,  # Feet
+        3: 1609.344,  # Miles (was missing — caused ValueError)
+        4: 0.001,  # Millimeters
+        5: 0.01,  # Centimeters
+        6: 1.0,  # Meters
+        7: 1000.0,  # Kilometers (was missing — caused ValueError)
+        8: 2.54e-8,  # Microinches (was 1000.0 — 3.9×10¹⁰ error!)
     }
 
     def __init__(self, min_area: float = MIN_ROOM_AREA_M2, max_area: float = MAX_ROOM_AREA_M2):
@@ -126,7 +126,12 @@ class DXFParser:
                 # A room with area 500,000 m² is likely a unit conversion error
                 # (DXF in mm parsed as meters). Accepting it produces catastrophically
                 # wrong detector counts — a 500,000 m² room would get 0 detectors/m².
-                logger.warning("%s: area %sm² > max %sm² — SKIPPED (possible unit error)", rid, poly.area, self.max_area)
+                logger.warning(
+                    "%s: area %sm² > max %sm² — SKIPPED (possible unit error)",
+                    rid,
+                    poly.area,
+                    self.max_area,
+                )
                 skipped += 1
                 continue
 
@@ -183,7 +188,9 @@ class DXFParser:
             "CRITICAL: Cannot proceed - incorrect unit = incorrect coverage calculation."
         )
 
-    def _detect_unit_heuristic(self, doc) -> int:  # NOSONAR — S3776: cognitive complexity is inherent to the safety-critical algorithm
+    def _detect_unit_heuristic(
+        self, doc
+    ) -> int:  # NOSONAR — S3776: cognitive complexity is inherent to the safety-critical algorithm
         """
         Detect actual unit by testing scale factors.
 
@@ -256,7 +263,9 @@ class DXFParser:
 
         return None  # NOSONAR — acceptable in this context  # NOSONAR — acceptable in this context
 
-    def _extract_lines(self, msp, scale: float) -> List:  # NOSONAR — S3776: cognitive complexity is inherent to the safety-critical algorithm
+    def _extract_lines(
+        self, msp, scale: float
+    ) -> List:  # NOSONAR — S3776: cognitive complexity is inherent to the safety-critical algorithm
         from shapely.geometry import LineString
 
         lines = []
@@ -266,8 +275,19 @@ class DXFParser:
                 ex, ey = ent.dxf.end.x * scale, ent.dxf.end.y * scale
                 # V76 HIGH-08 FIX: NaN/Inf coordinates from corrupt DXF files
                 # produce invalid Shapely geometries that crash downstream analysis.
-                if not (math.isfinite(sx) and math.isfinite(sy) and math.isfinite(ex) and math.isfinite(ey)):
-                    logger.warning("Skipping LINE with non-finite coordinates: start=(%s,%s) end=(%s,%s)", sx, sy, ex, ey)
+                if not (
+                    math.isfinite(sx)
+                    and math.isfinite(sy)
+                    and math.isfinite(ex)
+                    and math.isfinite(ey)
+                ):
+                    logger.warning(
+                        "Skipping LINE with non-finite coordinates: start=(%s,%s) end=(%s,%s)",
+                        sx,
+                        sy,
+                        ex,
+                        ey,
+                    )
                     continue
                 s, e = (sx, sy), (ex, ey)
                 if s != e:
@@ -280,11 +300,14 @@ class DXFParser:
                     # removed vertex, producing self-intersecting or significantly
                     # different room boundaries. Skip the entire entity instead.
                     if not all(math.isfinite(x) and math.isfinite(y) for x, y in raw_pts):
-                        bad_count = sum(1 for x, y in raw_pts if not (math.isfinite(x) and math.isfinite(y)))
+                        bad_count = sum(
+                            1 for x, y in raw_pts if not (math.isfinite(x) and math.isfinite(y))
+                        )
                         logger.warning(
                             "Polyline had %d non-finite vertices out of %d total. "
                             "Geometry would be corrupted by filtering — skipping this entity.",
-                            bad_count, len(raw_pts),
+                            bad_count,
+                            len(raw_pts),
                         )
                         continue
                     pts = raw_pts
@@ -320,7 +343,9 @@ class DXFParser:
         """Convert CIRCLE to Polygon approximation (36 points)"""
         c = Point(entity.dxf.center.x * scale, entity.dxf.center.y * scale)
         r = entity.dxf.radius * scale
-        return c.buffer(r, quad_segs=36)  # V108 FIX: quad_segs= replaces deprecated resolution= in Shapely 2.x
+        return c.buffer(
+            r, quad_segs=36
+        )  # V108 FIX: quad_segs= replaces deprecated resolution= in Shapely 2.x
 
     def _arc_to_segments(self, entity, scale, num_points: int = 32):
         """Convert ARC to LineString segments (default 32 points)"""

@@ -61,6 +61,7 @@ import atexit
 import contextlib
 import json
 import logging
+import re
 import os
 import random
 import threading
@@ -81,7 +82,6 @@ logger = logging.getLogger(__name__)
 # dependency — avoids import-time failure when opentelemetry is not installed).
 from integrations._observability_base import env_truthy as _env_truthy
 
-
 _SAFE_LOG_RE = re.compile(r"[\x00-\x1f\x7f]")
 
 
@@ -97,6 +97,8 @@ def _sanitize_for_log(value: object, max_len: int = 200) -> str:
     if len(s) > max_len:
         s = s[:max_len] + "...[truncated]"
     return s
+
+
 def _env_int(var: str, default: int) -> int:
     """Read an int from an env var with a default. Logs and falls back on parse error."""
     raw = os.environ.get(var)

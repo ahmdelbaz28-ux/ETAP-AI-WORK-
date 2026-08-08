@@ -15,7 +15,7 @@ MASTER_PANEL_DATABASE = [
         listings=("UL", "ULC"),
         standby_current_amps=0.200,
         alarm_current_amps=0.350,
-        power_supply_watts=144
+        power_supply_watts=144,
     ),
     FireAlarmPanel(
         model="NFS-640",
@@ -29,7 +29,7 @@ MASTER_PANEL_DATABASE = [
         listings=("UL", "ULC"),
         standby_current_amps=0.250,
         alarm_current_amps=0.450,
-        power_supply_watts=144
+        power_supply_watts=144,
     ),
     FireAlarmPanel(
         model="NFS2-3030",
@@ -43,7 +43,7 @@ MASTER_PANEL_DATABASE = [
         listings=("UL", "ULC", "FM"),
         standby_current_amps=0.350,
         alarm_current_amps=0.650,
-        power_supply_watts=288
+        power_supply_watts=288,
     ),
     FireAlarmPanel(
         model="FC901",
@@ -57,7 +57,7 @@ MASTER_PANEL_DATABASE = [
         listings=("UL", "FM", "FDNY"),
         standby_current_amps=0.120,
         alarm_current_amps=0.250,
-        power_supply_watts=170
+        power_supply_watts=170,
     ),
     FireAlarmPanel(
         model="FC922",
@@ -71,7 +71,7 @@ MASTER_PANEL_DATABASE = [
         listings=("UL", "FM", "FDNY"),
         standby_current_amps=0.180,
         alarm_current_amps=0.350,
-        power_supply_watts=170
+        power_supply_watts=170,
     ),
     FireAlarmPanel(
         model="FC924",
@@ -85,7 +85,7 @@ MASTER_PANEL_DATABASE = [
         listings=("UL", "FM", "FDNY"),
         standby_current_amps=0.220,
         alarm_current_amps=0.450,
-        power_supply_watts=300
+        power_supply_watts=300,
     ),
     FireAlarmPanel(
         model="4100ES",
@@ -99,6 +99,6 @@ MASTER_PANEL_DATABASE = [
         listings=("UL", "FM", "FDNY"),
         standby_current_amps=0.450,
         alarm_current_amps=0.850,
-        power_supply_watts=360
-    )
+        power_supply_watts=360,
+    ),
 ]

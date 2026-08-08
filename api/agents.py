@@ -312,10 +312,15 @@ class ETAPExpertChatRequest(BaseModel):
         description="Optional additional context (voltages, currents, etc.)",
     )
 
-    question: str = Field(..., min_length=1, max_length=4000,
-                          description="The ETAP-related question to ask the expert agent")
-    context: Dict[str, Any] | None = Field(default=None,
-                                            description="Optional additional context (voltages, currents, etc.)")
+    question: str = Field(
+        ...,
+        min_length=1,
+        max_length=4000,
+        description="The ETAP-related question to ask the expert agent",
+    )
+    context: dict[str, Any] | None = Field(
+        default=None, description="Optional additional context (voltages, currents, etc.)"
+    )
 
 
 @router.post("/etap-expert/chat")

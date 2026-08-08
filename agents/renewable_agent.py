@@ -292,18 +292,12 @@ class RenewableAgent(BaseAgent):
         )
 
         poa = ghi * tilt_factor * 0.85  # Plane-of-array with diffuse contribution
-        poa = np.clip(
-            poa, 0.0, 1.2
-        )  # NOSONAR
+        poa = np.clip(poa, 0.0, 1.2)  # NOSONAR
 
         # Add some cloud randomness
         np.random.seed(42)
-        cloud_factor = (
-            0.7
-            + 0.3
-            * np.random.random(  # NOSONAR
-                hours
-            )
+        cloud_factor = 0.7 + 0.3 * np.random.random(  # NOSONAR
+            hours
         )  # NOSONAR
         poa = poa * cloud_factor
 

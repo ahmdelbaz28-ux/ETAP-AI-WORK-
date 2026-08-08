@@ -74,9 +74,7 @@ class ModbusClientAdapter(ProtocolAdapter):
                     AsyncModbusTCPClient as AsyncModbusTcpClient,  # type: ignore
                 )
             except Exception as exc2:
-                raise ImportError(
-                    f"pymodbus not available: {exc} / {exc2}"
-                ) from exc2
+                raise ImportError(f"pymodbus not available: {exc} / {exc2}") from exc2
 
         self._stop_event = threading.Event()
         self._AsyncModbusTcpClient = AsyncModbusTcpClient
@@ -94,9 +92,7 @@ class ModbusClientAdapter(ProtocolAdapter):
             finally:
                 loop.close()
 
-        self._thread = threading.Thread(
-            target=_thread_target, name="modbus-client", daemon=True
-        )
+        self._thread = threading.Thread(target=_thread_target, name="modbus-client", daemon=True)
         self._thread.start()
 
     def stop_client(self) -> None:
@@ -180,9 +176,13 @@ class ModbusClientAdapter(ProtocolAdapter):
                         try:
                             fc = entry.function_code
                             if fc == 3:
-                                rr = await _read_holding(cli, entry.address, entry.register_count, unit_id)
+                                rr = await _read_holding(
+                                    cli, entry.address, entry.register_count, unit_id
+                                )
                             elif fc == 4:
-                                rr = await _read_input(cli, entry.address, entry.register_count, unit_id)
+                                rr = await _read_input(
+                                    cli, entry.address, entry.register_count, unit_id
+                                )
                             else:
                                 continue
                             if rr is None or getattr(rr, "isError", lambda: True)():

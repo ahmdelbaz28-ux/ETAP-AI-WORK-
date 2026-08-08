@@ -13,7 +13,11 @@ from __future__ import annotations
 
 import numpy as np
 
-from curves.curves import calculate_iec_operating_time, MAX_MULTIPLIER_OF_PICKUP, MIN_OPERATING_TIME_S
+from curves.curves import (
+    MAX_MULTIPLIER_OF_PICKUP,
+    MIN_OPERATING_TIME_S,
+    calculate_iec_operating_time,
+)
 
 
 class CoordinationEngine:

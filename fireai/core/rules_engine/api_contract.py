@@ -28,8 +28,8 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime, timezone
-from enum import Enum
-from typing import Any, Generic, TypeVar
+from enum import StrEnum
+from typing import Any, TypeVar
 
 from pydantic import BaseModel, Field, ValidationError
 
@@ -43,7 +43,7 @@ T = TypeVar("T", bound=BaseModel)
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
-class ContractSeverity(str, Enum):
+class ContractSeverity(StrEnum):
     """How strictly to enforce the contract."""
 
     STRICT = "strict"  # Raise exception on violation
@@ -51,7 +51,7 @@ class ContractSeverity(str, Enum):
     DISABLED = "disabled"  # No validation (development only)
 
 
-class APIContract(BaseModel, Generic[T]):
+class APIContract[T: BaseModel](BaseModel):
     """
     Defines a typed API contract for an endpoint.
 
@@ -234,7 +234,11 @@ class ContractValidator:
             if self.severity == ContractSeverity.STRICT:
                 raise
 
-            logger.exception("Contract violation on %s: %s. Returning unvalidated response (severity=LOG).", key, e.errors())
+            logger.exception(
+                "Contract violation on %s: %s. Returning unvalidated response (severity=LOG).",
+                key,
+                e.errors(),
+            )
             return data
 
     def validate_request(

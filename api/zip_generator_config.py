@@ -22,6 +22,7 @@ Exposes endpoints under the ``/api/v1/equipment/zip-generators`` prefix:
 from __future__ import annotations
 
 import logging
+import re
 import uuid
 from typing import Any, Optional
 
@@ -46,6 +47,8 @@ def _sanitize_for_log(value: object, max_len: int = 200) -> str:
     if len(s) > max_len:
         s = s[:max_len] + "...[truncated]"
     return s
+
+
 logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
@@ -75,15 +78,27 @@ class ZIPCoefficientsModel(BaseModel):
 
     model_config = ConfigDict(strict=False)
 
-    aZ: float = Field(default=0.0, ge=0.0, le=1.0, description="Constant impedance fraction (active power)")
-    aI: float = Field(default=0.0, ge=0.0, le=1.0, description="Constant current fraction (active power)")
-    aP: float = Field(default=1.0, ge=0.0, le=1.0, description="Constant power fraction (active power)")
-    bZ: float = Field(default=0.0, ge=0.0, le=1.0, description="Constant impedance fraction (reactive power)")
-    bI: float = Field(default=0.0, ge=0.0, le=1.0, description="Constant current fraction (reactive power)")
-    bP: float = Field(default=1.0, ge=0.0, le=1.0, description="Constant power fraction (reactive power)")
+    aZ: float = Field(
+        default=0.0, ge=0.0, le=1.0, description="Constant impedance fraction (active power)"
+    )
+    aI: float = Field(
+        default=0.0, ge=0.0, le=1.0, description="Constant current fraction (active power)"
+    )
+    aP: float = Field(
+        default=1.0, ge=0.0, le=1.0, description="Constant power fraction (active power)"
+    )
+    bZ: float = Field(
+        default=0.0, ge=0.0, le=1.0, description="Constant impedance fraction (reactive power)"
+    )
+    bI: float = Field(
+        default=0.0, ge=0.0, le=1.0, description="Constant current fraction (reactive power)"
+    )
+    bP: float = Field(
+        default=1.0, ge=0.0, le=1.0, description="Constant power fraction (reactive power)"
+    )
 
     @model_validator(mode="after")
-    def _validate_coefficient_sums(self) -> "ZIPCoefficientsModel":
+    def _validate_coefficient_sums(self) -> ZIPCoefficientsModel:
         """Ensure active and reactive coefficient groups each sum to 1.0."""
         a_sum = self.aZ + self.aI + self.aP
         b_sum = self.bZ + self.bI + self.bP
@@ -169,14 +184,20 @@ class GeneratorCapabilityCreateRequest(BaseModel):
 
     model_config = ConfigDict(strict=False)
 
-    name: str = Field(min_length=1, max_length=255, description="Descriptive name for the generator")
+    name: str = Field(
+        min_length=1, max_length=255, description="Descriptive name for the generator"
+    )
     max_power_real: float = Field(gt=0.0, description="Maximum real power output (per-unit)")
-    max_power_reactive: float = Field(default=0.0, description="Maximum reactive power output (per-unit)")
+    max_power_reactive: float = Field(
+        default=0.0, description="Maximum reactive power output (per-unit)"
+    )
     min_power_real: float = Field(default=0.0, description="Minimum real power output (per-unit)")
-    min_power_reactive: float = Field(default=0.0, description="Minimum reactive power output (per-unit)")
+    min_power_reactive: float = Field(
+        default=0.0, description="Minimum reactive power output (per-unit)"
+    )
 
     @model_validator(mode="after")
-    def _validate_power_limits(self) -> "GeneratorCapabilityCreateRequest":
+    def _validate_power_limits(self) -> GeneratorCapabilityCreateRequest:
         """Ensure max limits are not less than min limits."""
         if self.max_power_real < self.min_power_real:
             raise ValueError(
@@ -389,7 +410,9 @@ async def create_zip_load(body: ZIPLoadConfigCreateRequest) -> Any:
         "preset": body.preset if body.coefficients is None else None,
     }
     _zip_loads[load_id] = entry
-    logger.info("zip_load_created id=%s name=%s", _sanitize_for_log(load_id), _sanitize_for_log(body.name))
+    logger.info(
+        "zip_load_created id=%s name=%s", _sanitize_for_log(load_id), _sanitize_for_log(body.name)
+    )
     return ZIPLoadConfigResponse(
         id=load_id,
         name=body.name,
@@ -526,7 +549,11 @@ async def create_generator(body: GeneratorCapabilityCreateRequest) -> Any:
         "min_power_reactive": body.min_power_reactive,
     }
     _generator_caps[gen_id] = entry
-    logger.info("generator_capability_created id=%s name=%s", _sanitize_for_log(gen_id), _sanitize_for_log(body.name))
+    logger.info(
+        "generator_capability_created id=%s name=%s",
+        _sanitize_for_log(gen_id),
+        _sanitize_for_log(body.name),
+    )
     return GeneratorCapabilityResponse(
         id=gen_id,
         name=body.name,

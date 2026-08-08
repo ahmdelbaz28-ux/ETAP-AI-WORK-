@@ -675,9 +675,9 @@ class TestTaskTimeout:
         """
         vis_timeout = celery_app.conf.broker_transport_options.get("visibility_timeout", 0)
         hard_limit = celery_app.conf.task_time_limit
-        assert (
-            vis_timeout >= hard_limit
-        ), f"visibility_timeout ({vis_timeout}s) should be >= task_time_limit ({hard_limit}s)"
+        assert vis_timeout >= hard_limit, (
+            f"visibility_timeout ({vis_timeout}s) should be >= task_time_limit ({hard_limit}s)"
+        )
 
     def test_result_expires_configured(self):
         """The result TTL should be configured to prevent premature cleanup."""

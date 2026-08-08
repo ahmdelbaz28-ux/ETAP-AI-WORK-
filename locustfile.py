@@ -19,7 +19,9 @@ logger = logging.getLogger("ahmedetap-locust")
 
 # Module-level PRNG for load-test scenario selection only.
 # NOSONAR
-_LOAD_RNG = random.Random()  # NOSONAR ─── Custom Event Listeners & Metrics ────────────────────────────────────────
+_LOAD_RNG = (
+    random.Random()
+)  # NOSONAR ─── Custom Event Listeners & Metrics ────────────────────────────────────────
 
 # Track study execution times for custom reporting
 _study_execution_times: list[float] = []
@@ -270,142 +272,6 @@ class AuthenticatedUser(HttpUser):
         return self.auth_headers
 
 
-class EngineeringServiceUser(AuthenticatedUser):
-    """Simulates an engineering service user performing various operations.
-
-    Task weights:
-      - Health/Ready checks: 30%  (lightweight, frequent)
-      - Study execution:     25%  (heavy, core functionality)
-      - AI assistant chat:   15%  (medium, LLM-backed)
-      - System validation:   10%  (medium)
-      - Metrics retrieval:   10%  (lightweight)
-      - Agent info:          10%  (lightweight)
-    """
-
-    # ── Health & Readiness (weight 5 each = 10 total) ───────────────────────
-
-    @task(5)
-    def health_check(self):
-        self.client.get("/health", name="GET /health")
-
-    @task(5)
-    def readiness_check(self):
-        self.client.get("/ready", name="GET /ready")
-
-    @task(3)
-    def liveness_probe(self):
-        self.client.get("/healthz", name="GET /healthz")
-
-    # ── Study Execution (weight: 15) ────────────────────────────────────────
-
-    @task(8)
-    def run_load_flow(self):
-        """Execute a load flow study with a realistic power system model."""
-        # start_time reserved for future latency reporting
-        self.client.post(
-            "/api/v1/studies/run",  # NOSONAR intentional repetition (audit constant)
-            json={
-                "study_type": "load_flow",
-                "system": SAMPLE_SYSTEM,
-                "parameters": {
-                    "max_iterations": 100,
-                    "tolerance": 1e-6,
-                    "algorithm": "newton_raphson",
-                },
-            },
-            headers=self._get_auth_headers(),
-            name="POST /api/v1/studies/run [load_flow]",
-        )
-
-    @task(4)
-    def run_short_circuit(self):
-        """Execute a short circuit study."""
-        self.client.post(
-            "/api/v1/studies/run",
-            json={
-                "study_type": "short_circuit",
-                "system": SAMPLE_SYSTEM,
-                "parameters": {
-                    "fault_type": "three_phase",
-                    "bus_id": 2,
-                },
-            },
-            headers=self._get_auth_headers(),
-            name="POST /api/v1/studies/run [short_circuit]",
-        )
-
-    @task(3)
-    def run_arc_flash(self):
-        """Execute an arc flash study."""
-        self.client.post(
-            "/api/v1/studies/run",
-            json={
-                "study_type": "arc_flash",
-                "parameters": {
-                    "voltage_kv": 13.8,
-                    "bolted_fault_current_ka": 20.0,
-                    "arc_duration_sec": 0.5,
-                    "working_distance_mm": 610,
-                },
-            },
-            headers=self._get_auth_headers(),
-            name="POST /api/v1/studies/run [arc_flash]",
-        )
-
-    # NOSONAR S2245: load-test PRNG (non-crypto); actual _LOAD_RNG.choice() below already has NOSONAR
-    # ── AI Assistant Chat (weight: 15) ──────────────────────────────────────
-
-    @task(8)
-    def etap_expert_chat(self):
-        """Chat with the ETAP Expert AI assistant."""
-        question = _LOAD_RNG.choice(AI_QUESTIONS)  # NOSONAR
-        self.client.post(
-            "/api/v1/agents/etap-expert/chat",
-            json={
-                "question": question,
-            },
-            headers=self._get_auth_headers(),
-            name="POST /api/v1/agents/etap-expert/chat",
-        )
-
-    # NOSONAR S2245: load-test PRNG (non-crypto); actual _LOAD_RNG.choice() below already has NOSONAR
-    @task(4)
-    def etap_gui_chat(self):
-        """Chat with the ETAP GUI Agent."""
-        question = _LOAD_RNG.choice(
-            AI_QUESTIONS[:5]
-        )  # NOSONAR
-        self.client.post(
-            "/api/v1/agents/etap-gui/chat",
-            json={
-                "question": question,
-            },
-            headers=self._get_auth_headers(),
-            name="POST /api/v1/agents/etap-gui/chat",
-        )
-
-    @task(3)
-    def rag_query(self):
-        """Query the engineering knowledge base via RAG."""
-        self.client.post(
-            "/api/v1/rag/query",
-            json={
-                "query": "What are the IEEE 1584 arc flash calculation methods?",
-                "top_k": 3,
-            },
-            headers=self._get_auth_headers(),
-            name="POST /api/v1/rag/query",
-        )
-
-    # ── System Validation (weight: 10) ──────────────────────────────────────
-
-    @task(5)
-    def validate_system(self):
-        """Validate a power system model."""
-
-from locust import HttpUser, between, task
-
-
 class EngineeringServiceUser(HttpUser):
     wait_time = between(0.5, 2.0)
 
@@ -416,10 +282,6 @@ class EngineeringServiceUser(HttpUser):
     @task(3)
     def readiness_check(self):
         self.client.get("/ready")
-
-    @task(2)
-    def get_metrics(self):
-        self.client.get("/metrics")
 
     @task(1)
     def run_load_flow(self):

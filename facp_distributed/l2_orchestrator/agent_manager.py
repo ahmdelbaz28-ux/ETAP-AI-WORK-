@@ -1,5 +1,6 @@
 # NOSONAR
 """Agent Manager for L2 Orchestrator in Distributed FACP System"""
+
 import threading
 import time
 import uuid
@@ -49,7 +50,7 @@ class BaseAgent(ABC):
             "is_active": self.is_active,
             "utilization": self.utilization,
             "node_affinity": self.node_affinity,
-            "uptime_seconds": time.time() - self.created_at
+            "uptime_seconds": time.time() - self.created_at,
         }
 
 
@@ -81,15 +82,10 @@ class PlannerAgent(BaseAgent):
                 "tasks": plan_params.get("tasks", []),
                 "estimated_duration": plan_params.get("duration", "unknown"),
                 "resources_required": plan_params.get("resources", []),
-                "created_at": time.time()
+                "created_at": time.time(),
             }
 
-            return {
-                "status": "success",
-                "result": result,
-                "agent_id": self.id,
-                "method": method
-            }
+            return {"status": "success", "result": result, "agent_id": self.id, "method": method}
 
         if method.startswith("schedule."):
             # Optimize a schedule
@@ -98,20 +94,15 @@ class PlannerAgent(BaseAgent):
             result = {
                 "optimized_schedule": schedule_params.get("tasks", []),
                 "improvement_percentage": 15.5,  # Example improvement
-                "optimized_at": time.time()
+                "optimized_at": time.time(),
             }
 
-            return {
-                "status": "success",
-                "result": result,
-                "agent_id": self.id,
-                "method": method
-            }
+            return {"status": "success", "result": result, "agent_id": self.id, "method": method}
 
         return {
             "status": "error",
             "error": f"Planner agent cannot handle method: {method}",
-            "agent_id": self.id
+            "agent_id": self.id,
         }
 
 
@@ -143,20 +134,15 @@ class ExecutorAgent(BaseAgent):
                 "status": "completed",
                 "execution_time": 0.123,  # seconds
                 "output": task.get("expected_output", "Task completed successfully"),
-                "executed_at": time.time()
+                "executed_at": time.time(),
             }
 
-            return {
-                "status": "success",
-                "result": result,
-                "agent_id": self.id,
-                "method": method
-            }
+            return {"status": "success", "result": result, "agent_id": self.id, "method": method}
 
         return {
             "status": "error",
             "error": f"Executor agent cannot handle method: {method}",
-            "agent_id": self.id
+            "agent_id": self.id,
         }
 
 
@@ -164,7 +150,9 @@ class ValidatorAgent(BaseAgent):
     """Agent for validation tasks"""
 
     def __init__(self):
-        super().__init__("validator_agent", "Validator Agent", "Handles validation and verification tasks")
+        super().__init__(
+            "validator_agent", "Validator Agent", "Handles validation and verification tasks"
+        )
         self.capabilities = ["validate.*", "check.*", "verify.*", "confirm.*"]
 
     def execute_task(self, request_data: Dict[str, Any]) -> Dict[str, Any]:
@@ -176,7 +164,9 @@ class ValidatorAgent(BaseAgent):
         method = request_data.get("method", "")
         params = request_data.get("params", {})
 
-        if method.startswith("validate.") or method.startswith("check."):  # NOSONAR — S8513: trailing comma acceptable in this multi-line collection
+        if method.startswith("validate.") or method.startswith(
+            "check."
+        ):  # NOSONAR — S8513: trailing comma acceptable in this multi-line collection
             # Validate the provided data
             params.get("payload", {}).get("target", {})
             validation_type = params.get("payload", {}).get("type", "generic")
@@ -188,20 +178,20 @@ class ValidatorAgent(BaseAgent):
                 "validation_type": validation_type,
                 "issues_found": 0,
                 "validation_details": {"compliance": True, "accuracy": True},
-                "validated_at": time.time()
+                "validated_at": time.time(),
             }
 
             return {
                 "status": "success",
                 "result": validation_result,
                 "agent_id": self.id,
-                "method": method
+                "method": method,
             }
 
         return {
             "status": "error",
             "error": f"Validator agent cannot handle method: {method}",
-            "agent_id": self.id
+            "agent_id": self.id,
         }
 
 
@@ -231,23 +221,18 @@ class OptimizerAgent(BaseAgent):
                 "improvement_metrics": {
                     "performance_gain": "15%",
                     "resource_efficiency": "20% reduction",
-                    "cost_savings": "10%"
+                    "cost_savings": "10%",
                 },
                 "optimized_parameters": target.get("parameters", {}),
-                "optimized_at": time.time()
+                "optimized_at": time.time(),
             }
 
-            return {
-                "status": "success",
-                "result": result,
-                "agent_id": self.id,
-                "method": method
-            }
+            return {"status": "success", "result": result, "agent_id": self.id, "method": method}
 
         return {
             "status": "error",
             "error": f"Optimizer agent cannot handle method: {method}",
-            "agent_id": self.id
+            "agent_id": self.id,
         }
 
 
@@ -274,7 +259,9 @@ class AgentManager:
         """Register a new agent type"""
         self.agent_types[agent_type] = agent_class
 
-    def create_agent(self, agent_type: str, agent_id: Optional[str] = None, **kwargs) -> Optional[BaseAgent]:
+    def create_agent(
+        self, agent_type: str, agent_id: Optional[str] = None, **kwargs
+    ) -> Optional[BaseAgent]:
         """Create a new agent instance"""
         if agent_type not in self.agent_types:
             return None
@@ -336,7 +323,7 @@ class AgentManager:
             return {
                 "status": "error",
                 "error": f"No agent available to handle method: {method}",
-                "available_agents": [a.id for a in self.agents.values() if a.is_active]
+                "available_agents": [a.id for a in self.agents.values() if a.is_active],
             }
 
         try:
@@ -345,7 +332,7 @@ class AgentManager:
             return {
                 "status": "error",
                 "error": f"Agent {agent.id} execution failed: {e!s}",
-                "agent_id": agent.id
+                "agent_id": agent.id,
             }
 
     def get_agent_status(self, agent_id: str) -> Optional[Dict[str, Any]]:
@@ -399,8 +386,10 @@ class AgentManager:
             "active_agents": len(active_agents),
             "inactive_agents": len(all_statuses) - len(active_agents),
             "total_executions": total_executions,
-            "average_executions_per_agent": total_executions / len(all_statuses) if all_statuses else 0,
-            "agent_types_registered": list(self.agent_types.keys())
+            "average_executions_per_agent": total_executions / len(all_statuses)
+            if all_statuses
+            else 0,
+            "agent_types_registered": list(self.agent_types.keys()),
         }
 
     def cleanup_inactive_agents(self, min_uptime_hours: float = 24):
@@ -429,9 +418,13 @@ class AgentManager:
                 "total_agents": len(self.agents),
                 "active_agents": active_agents,
                 "average_utilization": total_utilization / len(self.agents) if self.agents else 0,
-                "highest_utilization": max((a.utilization for a in self.agents.values()), default=0),
+                "highest_utilization": max(
+                    (a.utilization for a in self.agents.values()), default=0
+                ),
                 "lowest_utilization": min((a.utilization for a in self.agents.values()), default=0),
-                "agent_utilizations": {aid: agent.utilization for aid, agent in self.agents.items()}
+                "agent_utilizations": {
+                    aid: agent.utilization for aid, agent in self.agents.items()
+                },
             }
 
     def update_agent_utilization(self, agent_id: str, utilization_change: float):
@@ -463,15 +456,17 @@ class DistributedAgentManager(AgentManager):
 
         # Sync with cluster if callback is available
         if self.cluster_sync_callback:
-            self.cluster_sync_callback({
-                "action": "agent_registered",
-                "agent_id": agent.id,
-                "agent_type": type(agent).__name__,
-                "capabilities": agent.capabilities,
-                "is_local": is_local,
-                "node_id": getattr(self, 'node_id', 'unknown'),
-                "timestamp": time.time()
-            })
+            self.cluster_sync_callback(
+                {
+                    "action": "agent_registered",
+                    "agent_id": agent.id,
+                    "agent_type": type(agent).__name__,
+                    "capabilities": agent.capabilities,
+                    "is_local": is_local,
+                    "node_id": getattr(self, "node_id", "unknown"),
+                    "timestamp": time.time(),
+                }
+            )
 
     def find_appropriate_agent(self, method: str, prefer_local: bool = True) -> Optional[BaseAgent]:
         """Find an agent that can handle the specified method, with option to prefer local agents"""
@@ -493,25 +488,29 @@ class DistributedAgentManager(AgentManager):
             for agent_id in self.local_agents:
                 agent = self.agents.get(agent_id)
                 if agent and agent.is_active and agent.can_handle_method(method):
-                    local_agents.append({
-                        "agent_id": agent.id,
-                        "agent_type": type(agent).__name__,
-                        "utilization": agent.utilization,
-                        "location": "local",
-                        "node_id": getattr(self, 'node_id', 'unknown')
-                    })
+                    local_agents.append(
+                        {
+                            "agent_id": agent.id,
+                            "agent_type": type(agent).__name__,
+                            "utilization": agent.utilization,
+                            "location": "local",
+                            "node_id": getattr(self, "node_id", "unknown"),
+                        }
+                    )
 
         # Add cluster agents that can handle the method
         cluster_agents = []
         for agent_id, agent_info in self.cluster_agents.items():
             if method in agent_info.get("capabilities", []) and agent_info.get("available", True):
-                cluster_agents.append({
-                    "agent_id": agent_id,
-                    "agent_type": agent_info.get("type"),
-                    "utilization": agent_info.get("utilization", 0),
-                    "location": "remote",
-                    "node_id": agent_info.get("node_id")
-                })
+                cluster_agents.append(
+                    {
+                        "agent_id": agent_id,
+                        "agent_type": agent_info.get("type"),
+                        "utilization": agent_info.get("utilization", 0),
+                        "location": "remote",
+                        "node_id": agent_info.get("node_id"),
+                    }
+                )
 
         return local_agents + cluster_agents
 
@@ -526,10 +525,12 @@ class DistributedAgentManager(AgentManager):
     def notify_agent_status_change(self, agent_id: str, status: str, node_id: Optional[str] = None):
         """Notify the cluster about an agent status change"""
         if self.cluster_sync_callback:
-            self.cluster_sync_callback({
-                "action": "agent_status_change",
-                "agent_id": agent_id,
-                "status": status,
-                "node_id": node_id or getattr(self, 'node_id', 'unknown'),
-                "timestamp": time.time()
-            })
+            self.cluster_sync_callback(
+                {
+                    "action": "agent_status_change",
+                    "agent_id": agent_id,
+                    "status": status,
+                    "node_id": node_id or getattr(self, "node_id", "unknown"),
+                    "timestamp": time.time(),
+                }
+            )

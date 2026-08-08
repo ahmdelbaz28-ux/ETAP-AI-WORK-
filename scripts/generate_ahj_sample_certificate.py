@@ -16,7 +16,6 @@ in OPS_RUNBOOK.md Task 3.
 
 from __future__ import annotations
 
-import json
 import math
 import sys
 from pathlib import Path
@@ -25,11 +24,11 @@ from pathlib import Path
 REPO_ROOT = Path("/home/z/my-project/work/revit")
 sys.path.insert(0, str(REPO_ROOT))
 
+from fireai.core.spatial_engine.density_optimizer import DETECTOR_RADIUS  # noqa: E402
 from fireai.core.spatial_engine.proof_certificate import (  # noqa: E402
     ProofCertificate,
     ProofCertificateGenerator,
 )
-from fireai.core.spatial_engine.density_optimizer import DETECTOR_RADIUS  # noqa: E402
 
 OUTPUT_DIR = Path("/home/z/my-project/download")
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
@@ -62,7 +61,7 @@ def main() -> int:
         (7.5, 7.5),
     ]
 
-    print(f"\nSample Room Configuration:")  # NOSONAR
+    print("\nSample Room Configuration:")  # NOSONAR
     print(f"  Dimensions: {ROOM_WIDTH} m × {ROOM_LENGTH} m ({ROOM_WIDTH * ROOM_LENGTH} m²)")
     print(f"  Ceiling height: {CEILING_HEIGHT} m")
     print(f"  Detector type: {DETECTOR_TYPE}")
@@ -71,7 +70,7 @@ def main() -> int:
     print(f"  Detector positions: {DETECTORS}")
 
     # ── Generate the certificate ──
-    print(f"\nGenerating ProofCertificate...")  # NOSONAR
+    print("\nGenerating ProofCertificate...")  # NOSONAR
     generator = ProofCertificateGenerator(
         grid_step=0.20,  # δ = 20 cm (documented in ENGINEERING_REVIEW_REQUIRED.md)
         coverage_radius=DETECTOR_RADIUS,
@@ -96,7 +95,7 @@ def main() -> int:
     )
     cert.seal()  # Compute hash + timestamp
 
-    print(f"\n  Certificate generated:")  # NOSONAR
+    print("\n  Certificate generated:")  # NOSONAR
     print(f"    Room ID: {cert.room_id}")
     print(f"    Grid points: {cert.n_grid_points}")
     print(f"    Covered: {cert.n_covered}")
@@ -109,14 +108,14 @@ def main() -> int:
     print(f"    Sealed at: {cert.timestamp}")
 
     # ── Verify the certificate ──
-    print(f"\nVerifying certificate hash...")  # NOSONAR
+    print("\nVerifying certificate hash...")  # NOSONAR
     if cert.verify_hash():
-        print(f"  ✅ Hash verification PASSED")  # NOSONAR
+        print("  ✅ Hash verification PASSED")  # NOSONAR
     else:
-        print(f"  ❌ Hash verification FAILED — certificate may have been tampered")  # NOSONAR
+        print("  ❌ Hash verification FAILED — certificate may have been tampered")  # NOSONAR
         return 1
     # ── Manual coverage verification (independent check) ──
-    print(f"\nIndependent coverage verification (manual calculation)...")  # NOSONAR
+    print("\nIndependent coverage verification (manual calculation)...")  # NOSONAR
     # For each room corner, check that the NEAREST detector is within R
     corners = [(0, 0), (ROOM_WIDTH, 0), (0, ROOM_LENGTH), (ROOM_WIDTH, ROOM_LENGTH)]
     max_corner_dist = 0.0
@@ -131,9 +130,9 @@ def main() -> int:
     print(f"  Distance from worst corner to nearest detector: {max_corner_dist:.4f} m")
     print(f"  Coverage radius R: {DETECTOR_RADIUS} m")
     if max_corner_dist <= DETECTOR_RADIUS:
-        print(f"  ✅ All corners within R of nearest detector — manual check PASSED")  # NOSONAR
+        print("  ✅ All corners within R of nearest detector — manual check PASSED")  # NOSONAR
     else:
-        print(f"  ⚠️  Some corners exceed R — but grid proof is the authoritative check")  # NOSONAR
+        print("  ⚠️  Some corners exceed R — but grid proof is the authoritative check")  # NOSONAR
 
     # ── Save certificate as JSON ──
     cert_json_path = OUTPUT_DIR / "ahj_sample_certificate.json"
@@ -148,15 +147,15 @@ def main() -> int:
 
     # ── Print summary ──
     print(f"\n{'=' * 70}")
-    print(f"AHJ Sample Certificate Generation — COMPLETE")  # NOSONAR
+    print("AHJ Sample Certificate Generation — COMPLETE")  # NOSONAR
     print(f"{'=' * 70}")
-    print(f"\nFiles for AHJ submission package:")  # NOSONAR
+    print("\nFiles for AHJ submission package:")  # NOSONAR
     print(f"  1. {cert_json_path}  (machine-readable certificate)")
     print(f"  2. {md_path}  (human-readable report)")
-    print(f"\nNext steps:")  # NOSONAR
-    print(f"  - Include these files in the AHJ technical package (OPS_RUNBOOK.md Task 3 Step 1)")
-    print(f"  - Have a PE/FPE review and sign the certificate")  # NOSONAR
-    print(f"  - Submit with the AHJ engagement letter (OPS_RUNBOOK.md Task 3 Step 3)")
+    print("\nNext steps:")  # NOSONAR
+    print("  - Include these files in the AHJ technical package (OPS_RUNBOOK.md Task 3 Step 1)")
+    print("  - Have a PE/FPE review and sign the certificate")  # NOSONAR
+    print("  - Submit with the AHJ engagement letter (OPS_RUNBOOK.md Task 3 Step 3)")
 
     return 0
 
@@ -175,8 +174,8 @@ def generate_markdown_report(cert: ProofCertificate, max_corner_dist: float) -> 
         "",
         "## 1. Room Configuration",
         "",
-        f"| Parameter | Value |",  # NOSONAR
-        f"|-----------|-------|",
+        "| Parameter | Value |",  # NOSONAR
+        "|-----------|-------|",
         f"| Room ID | `{cert.room_id}` |",
         f"| Width | {cert.room_width_m} m |",
         f"| Length | {cert.room_length_m} m |",
@@ -193,98 +192,100 @@ def generate_markdown_report(cert: ProofCertificate, max_corner_dist: float) -> 
     for i, (x, y) in enumerate(cert.detector_positions, 1):
         lines.append(f"| D{i} | {x} | {y} |")
 
-    lines.extend([
-        "",
-        "## 3. Proof Method — δ-Conservative Grid Verification",
-        "",
-        "**Reference:** NFPA 72-2022 §17.7.4.2.3.1 (R = 0.7 × S)",
-        "",
-        "**Mathematical Foundation:**",
-        "",
-        "```",
-        "For any room point P, let G be the nearest grid point:",
-        "  dist(P, D) ≤ dist(P, G) + dist(G, D)",
-        "             ≤ δ√2/2 + R_eff",
-        "             = δ√2/2 + (R − δ√2/2)",
-        "             = R",
-        "",
-        "Therefore, if every grid point is within R_eff of a detector,",
-        "every room point is within R of a detector. QED.",
-        "```",
-        "",
-        "## 4. Proof Parameters",
-        "",
-        "| Parameter | Value | Source |",
-        "|-----------|-------|--------|",
-        f"| δ (grid step) | {cert.grid_step_m} m | ENGINEERING_REVIEW_REQUIRED.md |",
-        f"| δ√2/2 (max grid-to-point distance) | {cert.delta_margin_m:.4f} m | Computed |",
-        f"| R (coverage radius) | {DETECTOR_RADIUS} m | NFPA 72 §17.7.4.2.3.1 |",
-        f"| R_eff (effective radius) | {cert.effective_radius_m:.4f} m | R − δ√2/2 |",
-        f"| S (max spacing) | {cert.max_spacing_m} m | NFPA 72 §17.7.4.2.3.1 |",
-        f"| Wall min distance | {cert.wall_min_m} m | NFPA 72 §17.6.3.1.1 (4 in) |",
-        "",
-        "## 5. Verification Results",
-        "",
-        "| Metric | Value |",
-        "|--------|-------|",
-        f"| Total grid points | {cert.n_grid_points} |",
-        f"| Covered grid points | {cert.n_covered} |",
-        f"| Uncovered grid points | {cert.n_uncovered} |",
-        f"| Coverage lower bound | {cert.coverage_lower_bound_pct:.4f}% |",
-        f"| Coverage guaranteed | {'✅ YES' if cert.coverage_guaranteed else '❌ NO'} |",
-        f"| Max uncovered area | {cert.uncovered_area_upper_bound_sqm:.4f} m² |",
-        f"| NFPA compliant | {'✅ YES' if cert.nfpa_compliant else '❌ NO'} |",
-        f"| Wall coverage complete | {'✅ YES' if cert.wall_coverage_complete else '❌ NO'} |",
-        f"| Spacing compliant | {'✅ YES' if cert.spacing_compliant else '❌ NO'} |",
-        "",
-        "## 6. Independent Verification",
-        "",
-        "An AHJ or third-party auditor can independently verify this certificate:",
-        "",
-        "1. **Recompute the grid** with δ = 0.20 m on a 10×10 m room",
-        "2. **Check each grid point** is within R_eff = 6.2292 m of a detector",
-        "3. **Verify the hash** matches:",
-        "   ```",
-        f"   expected_hash = '{cert.proof_hash}'",
-        "   ```",
-        "4. **Manual corner check**: max corner-to-detector distance = "
-        f"{max_corner_dist:.4f} m ≤ R = {DETECTOR_RADIUS} m ✅",
-        "",
-        "## 7. Standards References",
-        "",
-        "- **NFPA 72-2022 §17.7.4.2.3.1** — Coverage radius R = 0.7 × S",
-        "- **NFPA 72-2022 §17.6.3.1.1** — Minimum wall distance (4 inches = 0.102 m)",
-        "- **NFPA 72-2022 Annex B.2** — Engineering guide for detector spacing",
-        "- **NFPA 72-2022 §17.7.3** — Response time requirements (≤60 s)",
-        "",
-        "## 8. PE/FPE Sign-Off",
-        "",
-        "> ⚠️ **This certificate is NOT valid for permit submission until a",
-        "> licensed PE/FPE has signed the appropriate block in",
-        "> `ENGINEERING_REVIEW_REQUIRED.md` (Change 2).**",
-        "",
-        "| Field | Value |",
-        "|-------|-------|",
-        "| Engineer Name | _________________________________ |",
-        "| PE/FPE License # | _________________________________ |",
-        "| License State | _________________________________ |",
-        "| Review Date | _________________________________ |",
-        "| Signature | _________________________________ |",
-        "",
-        "## 9. AHJ Acceptance",
-        "",
-        "| Field | Value |",
-        "|-------|-------|",
-        "| AHJ Name | _________________________________ |",
-        "| AHJ Reference # | _________________________________ |",
-        "| Acceptance Date | _________________________________ |",
-        "| Accepted Scope | _________________________________ |",
-        "| Conditions | _________________________________ |",
-        "",
-        "---",
-        "",
-        f"*Generated by `generate_ahj_sample_certificate.py` on {cert.timestamp}*",
-    ])
+    lines.extend(
+        [
+            "",
+            "## 3. Proof Method — δ-Conservative Grid Verification",
+            "",
+            "**Reference:** NFPA 72-2022 §17.7.4.2.3.1 (R = 0.7 × S)",
+            "",
+            "**Mathematical Foundation:**",
+            "",
+            "```",
+            "For any room point P, let G be the nearest grid point:",
+            "  dist(P, D) ≤ dist(P, G) + dist(G, D)",
+            "             ≤ δ√2/2 + R_eff",
+            "             = δ√2/2 + (R − δ√2/2)",
+            "             = R",
+            "",
+            "Therefore, if every grid point is within R_eff of a detector,",
+            "every room point is within R of a detector. QED.",
+            "```",
+            "",
+            "## 4. Proof Parameters",
+            "",
+            "| Parameter | Value | Source |",
+            "|-----------|-------|--------|",
+            f"| δ (grid step) | {cert.grid_step_m} m | ENGINEERING_REVIEW_REQUIRED.md |",
+            f"| δ√2/2 (max grid-to-point distance) | {cert.delta_margin_m:.4f} m | Computed |",
+            f"| R (coverage radius) | {DETECTOR_RADIUS} m | NFPA 72 §17.7.4.2.3.1 |",
+            f"| R_eff (effective radius) | {cert.effective_radius_m:.4f} m | R − δ√2/2 |",
+            f"| S (max spacing) | {cert.max_spacing_m} m | NFPA 72 §17.7.4.2.3.1 |",
+            f"| Wall min distance | {cert.wall_min_m} m | NFPA 72 §17.6.3.1.1 (4 in) |",
+            "",
+            "## 5. Verification Results",
+            "",
+            "| Metric | Value |",
+            "|--------|-------|",
+            f"| Total grid points | {cert.n_grid_points} |",
+            f"| Covered grid points | {cert.n_covered} |",
+            f"| Uncovered grid points | {cert.n_uncovered} |",
+            f"| Coverage lower bound | {cert.coverage_lower_bound_pct:.4f}% |",
+            f"| Coverage guaranteed | {'✅ YES' if cert.coverage_guaranteed else '❌ NO'} |",
+            f"| Max uncovered area | {cert.uncovered_area_upper_bound_sqm:.4f} m² |",
+            f"| NFPA compliant | {'✅ YES' if cert.nfpa_compliant else '❌ NO'} |",
+            f"| Wall coverage complete | {'✅ YES' if cert.wall_coverage_complete else '❌ NO'} |",
+            f"| Spacing compliant | {'✅ YES' if cert.spacing_compliant else '❌ NO'} |",
+            "",
+            "## 6. Independent Verification",
+            "",
+            "An AHJ or third-party auditor can independently verify this certificate:",
+            "",
+            "1. **Recompute the grid** with δ = 0.20 m on a 10×10 m room",
+            "2. **Check each grid point** is within R_eff = 6.2292 m of a detector",
+            "3. **Verify the hash** matches:",
+            "   ```",
+            f"   expected_hash = '{cert.proof_hash}'",
+            "   ```",
+            "4. **Manual corner check**: max corner-to-detector distance = "
+            f"{max_corner_dist:.4f} m ≤ R = {DETECTOR_RADIUS} m ✅",
+            "",
+            "## 7. Standards References",
+            "",
+            "- **NFPA 72-2022 §17.7.4.2.3.1** — Coverage radius R = 0.7 × S",
+            "- **NFPA 72-2022 §17.6.3.1.1** — Minimum wall distance (4 inches = 0.102 m)",
+            "- **NFPA 72-2022 Annex B.2** — Engineering guide for detector spacing",
+            "- **NFPA 72-2022 §17.7.3** — Response time requirements (≤60 s)",
+            "",
+            "## 8. PE/FPE Sign-Off",
+            "",
+            "> ⚠️ **This certificate is NOT valid for permit submission until a",
+            "> licensed PE/FPE has signed the appropriate block in",
+            "> `ENGINEERING_REVIEW_REQUIRED.md` (Change 2).**",
+            "",
+            "| Field | Value |",
+            "|-------|-------|",
+            "| Engineer Name | _________________________________ |",
+            "| PE/FPE License # | _________________________________ |",
+            "| License State | _________________________________ |",
+            "| Review Date | _________________________________ |",
+            "| Signature | _________________________________ |",
+            "",
+            "## 9. AHJ Acceptance",
+            "",
+            "| Field | Value |",
+            "|-------|-------|",
+            "| AHJ Name | _________________________________ |",
+            "| AHJ Reference # | _________________________________ |",
+            "| Acceptance Date | _________________________________ |",
+            "| Accepted Scope | _________________________________ |",
+            "| Conditions | _________________________________ |",
+            "",
+            "---",
+            "",
+            f"*Generated by `generate_ahj_sample_certificate.py` on {cert.timestamp}*",
+        ]
+    )
     return "\n".join(lines)
 
 

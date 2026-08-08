@@ -68,9 +68,9 @@ class TestPromptLoader:
         for handle in agent_handles:
             clear_prompt_cache()
             prompt = get_system_prompt(handle)
-            assert (
-                len(prompt) > 20
-            ), f"Prompt '{handle}' returned too-short content ({len(prompt)} chars)"
+            assert len(prompt) > 20, (
+                f"Prompt '{handle}' returned too-short content ({len(prompt)} chars)"
+            )
 
             assert len(prompt) > 20, (
                 f"Prompt '{handle}' returned too-short content ({len(prompt)} chars)"
@@ -84,17 +84,6 @@ class TestPromptLoader:
         prompt = get_system_prompt("nonexistent_agent_xyz_12345")
         assert isinstance(prompt, str)
         assert len(prompt) > 0, "Fallback prompt should not be empty"
-
-    def test_missing_prompts_dir_graceful(self, monkeypatch):
-        """When prompts directory doesn't exist, should still return fallback."""
-        from agents.prompt_loader import clear_prompt_cache, get_system_prompt
-
-        monkeypatch.setenv("ETAP_PROMPTS_DIR", "/nonexistent/directory")
-        clear_prompt_cache()
-        prompt = get_system_prompt("load_flow_agent")
-        assert isinstance(prompt, str)
-        assert len(prompt) > 0
-        clear_prompt_cache()
 
     def test_missing_prompts_dir_graceful(self):
         """When prompts directory doesn't exist, should still return fallback."""
@@ -162,9 +151,9 @@ class TestAgentPromptIntegration:
         from agents.orchestrator import LoadFlowAgent
 
         agent = LoadFlowAgent()
-        assert (
-            agent.prompt_handle == "load_flow_agent"
-        ), f"Expected 'load_flow_agent', got '{agent.prompt_handle}'"
+        assert agent.prompt_handle == "load_flow_agent", (
+            f"Expected 'load_flow_agent', got '{agent.prompt_handle}'"
+        )
 
         assert agent.prompt_handle == "load_flow_agent", (
             f"Expected 'load_flow_agent', got '{agent.prompt_handle}'"
@@ -185,12 +174,12 @@ class TestAgentPromptIntegration:
 
         orch = ChiefEngineeringOrchestrator()
         for key, agent in orch.agents.items():
-            assert (
-                agent._system_prompt is not None
-            ), f"Agent '{key}' ({agent.agent_name}) has no prompt loaded"
-            assert (
-                len(agent._system_prompt) > 20
-            ), f"Agent '{key}' prompt is too short ({len(agent._system_prompt)} chars)"
+            assert agent._system_prompt is not None, (
+                f"Agent '{key}' ({agent.agent_name}) has no prompt loaded"
+            )
+            assert len(agent._system_prompt) > 20, (
+                f"Agent '{key}' prompt is too short ({len(agent._system_prompt)} chars)"
+            )
 
             assert agent._system_prompt is not None, (
                 f"Agent '{key}' ({agent.agent_name}) has no prompt loaded"
@@ -252,21 +241,6 @@ class TestAgentPromptIntegration:
             agent = cls()
             assert agent._system_prompt is not None, f"{cls.__name__} has no prompt loaded"
             assert len(agent._system_prompt) > 50, f"{cls.__name__} prompt is too short"
-
-    def test_agent_graceful_prompt_failure(self, monkeypatch):
-        """Agent should still work when prompt loading fails."""
-        from agents.orchestrator import LoadFlowAgent
-
-        monkeypatch.setenv("ETAP_PROMPTS_DIR", "/nonexistent/directory")
-        from agents.prompt_loader import clear_prompt_cache
-
-        clear_prompt_cache()
-        agent = LoadFlowAgent()
-        # Agent should still have a system_prompt property (fallback)
-        assert len(agent.system_prompt) > 0
-        # Agent should still be functional
-        assert agent.agent_name == "LoadFlowAgent"
-        clear_prompt_cache()
 
     def test_agent_graceful_prompt_failure(self):
         """Agent should still work when prompt loading fails."""
@@ -346,22 +320,12 @@ class TestPromptHandleMapping:
             "etap_gui_agent": "ETAP GUI Agent or interface handler",
             "ahmed_etap_agent": "AhmedETAPSkillAgent (orchestration skill) + study_type='ahmed_etap_orchestration'",
             "qgis_agent": "QGIS & GIS Integration Agent (GIS/ArcGIS Pro/QGIS)",
-
             "etap_engineer_agent_v2": "Reserved for V2 agent variant",
-            "etap_expert_agent": "ETAPExpertAgent (skill) + study_type='etap_expert'",
             "arcflash_agent_prompt": "arcFlashAgent (TS)",
             "arcflash_agent": "arcFlashAgent (TS) — alias for arcflash_agent_prompt",
-            "code_guard_agent": "CodeGuardAgent (guard skills)",
-            "goal_planner_agent": "goalPlannerAgent (TS)",
-            "weather_agent": "weatherAgent (TS)",
             "weather_activity_planner": "Weather workflow (TS)",
-            "power_system_coordinator_agent": "ChiefEngineeringOrchestrator + powerSystemCoordinatorAgent (TS)",
-            "fallback_agent": "Fallback prompt for missing handles",
             "generic_agent_chat": "Generic chat fallback",
-            "anomaly_agent": "AnomalyAgent (future ML)",
             "coordination_agent": "CoordinationAgent (future relay)",
-            "digital_twin_agent": "DigitalTwinAgent (future DT)",
-            "predictive_agent": "PredictiveAgent (future ML)",
             "sample_prompt": "Template/sample only",
         }
 
@@ -371,9 +335,9 @@ class TestPromptHandleMapping:
             if p not in prompt_consumers:
                 unmapped.append(p)
 
-        assert (
-            len(unmapped) == 0
-        ), f"Unmapped prompts: {unmapped}. Add them to the consumer mapping."
+        assert len(unmapped) == 0, (
+            f"Unmapped prompts: {unmapped}. Add them to the consumer mapping."
+        )
 
         assert len(unmapped) == 0, (
             f"Unmapped prompts: {unmapped}. Add them to the consumer mapping."

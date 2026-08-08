@@ -202,9 +202,9 @@ class TestIntegrityCheck:
         assert "MALICIOUS" not in prompt
         # A CRITICAL log must be emitted
         critical_logs = [r for r in caplog.records if r.levelname == "CRITICAL"]
-        assert any(
-            "hash mismatch" in r.message.lower() for r in critical_logs
-        ), "Hash mismatch must emit CRITICAL log"
+        assert any("hash mismatch" in r.message.lower() for r in critical_logs), (
+            "Hash mismatch must emit CRITICAL log"
+        )
 
     def test_hash_match_uses_remote(self, monkeypatch, caplog):
         """Remote prompt with matching hash → use remote (override OK)."""

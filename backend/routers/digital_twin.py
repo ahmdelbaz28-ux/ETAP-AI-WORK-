@@ -45,6 +45,7 @@ router = APIRouter(prefix="/digital-twin", tags=["digital-twin"])
 # Previously, service and config_manager were created at module level,
 # making testing difficult and causing import-order issues.
 
+
 def get_digital_twin_service() -> DigitalTwinService:
     """Provide DigitalTwinService instance via dependency injection."""
     return DigitalTwinService()
@@ -73,11 +74,14 @@ def _safe_resolve_upload_path(filename: str) -> str:
     resolved = os.path.abspath(os.path.join(upload_dir, filename))
     # Verify the resolved path is still within upload_dir
     if not resolved.startswith(abs_upload):
-        raise HTTPException(status_code=400, detail="Invalid file path")  # NOSONAR — S8415: assignment kept for readability / debuggability
+        raise HTTPException(
+            status_code=400, detail="Invalid file path"
+        )  # NOSONAR — S8415: assignment kept for readability / debuggability
     return resolved
 
 
 # ── Pydantic models ────────────────────────────────────────────────────────
+
 
 class ConvertRequest(BaseModel):
     """Request model for conversion operation."""
@@ -182,6 +186,7 @@ def _safe_error(status_code: int, log_msg: str, exc: Exception) -> HTTPException
 
 # ── Endpoints ───────────────────────────────────────────────────────────────
 
+
 @router.post("/convert", response_model=ConvertResponse)  # NOSONAR - python:S8409
 async def convert_files(  # NOSONAR — S3776: cognitive complexity is inherent to the safety-critical algorithm
     request: ConvertRequest,
@@ -217,6 +222,7 @@ async def convert_files(  # NOSONAR — S3776: cognitive complexity is inherent 
             # Create the dummy source file if it doesn't exist
             if not os.path.exists(source_filepath):
                 import anyio  # NOSONAR: S7493 sync file I/O acceptable for small config reads  # NOSONAR — S7632: test function documented via class name / module path
+
                 async with await anyio.open_file(source_filepath, "w", encoding="utf-8") as f:
                     await f.write("MOCK SOURCE DATA")
 
@@ -250,12 +256,14 @@ async def convert_files(  # NOSONAR — S3776: cognitive complexity is inherent 
             duration_seconds=getattr(result, "duration_seconds", None),
             errors=result.errors,
             warnings=result.warnings,
-            download_url=f"/api/v1/digital-twin/download/{os.path.basename(result.target_file)}" if result.success else None,
+            download_url=f"/api/v1/digital-twin/download/{os.path.basename(result.target_file)}"
+            if result.success
+            else None,
         )
     except HTTPException:
         raise
     except Exception as e:
-        raise _safe_error(500, "Error during conversion", e)
+        raise _safe_error(500, "Error during conversion", e) from e
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -303,10 +311,7 @@ async def upload_and_convert(
         if ext not in (".ifc", ".dxf", ".dwg"):
             raise HTTPException(
                 status_code=400,
-                detail=(
-                    f"Unsupported file type: '{ext}'. "
-                    "Supported: .ifc, .dxf, .dwg"
-                ),
+                detail=(f"Unsupported file type: '{ext}'. Supported: .ifc, .dxf, .dwg"),
             )
 
         # Save uploaded file to uploads directory
@@ -350,14 +355,15 @@ async def upload_and_convert(
             warnings=result.warnings,
             download_url=(
                 f"/api/v1/digital-twin/download/{os.path.basename(result.target_file)}"
-                if result.success else None
+                if result.success
+                else None
             ),
         )
 
     except HTTPException:
         raise
     except Exception as e:
-        raise _safe_error(500, "Upload and convert failed", e)
+        raise _safe_error(500, "Upload and convert failed", e) from e
 
 
 @router.get("/history", response_model=HistoryResponse)  # NOSONAR - python:S8409
@@ -369,7 +375,7 @@ async def get_conversion_history(
         history = service.get_conversion_history()
         return HistoryResponse(history=history)
     except Exception as e:
-        raise _safe_error(500, "Error getting conversion history", e)
+        raise _safe_error(500, "Error getting conversion history", e) from e
 
 
 @router.post("/configure", response_model=ConfigureResponse)  # NOSONAR - python:S8409
@@ -387,11 +393,13 @@ async def configure_conversion(
                 success=True,
                 message="Configuration updated successfully",
             )
-        raise HTTPException(status_code=500, detail="Failed to save configuration")  # NOSONAR — S8415: assignment kept for readability / debuggability
+        raise HTTPException(
+            status_code=500, detail="Failed to save configuration"
+        )  # NOSONAR — S8415: assignment kept for readability / debuggability
     except HTTPException:
         raise
     except Exception as e:
-        raise _safe_error(500, "Error updating configuration", e)
+        raise _safe_error(500, "Error updating configuration", e) from e
 
 
 @router.post(
@@ -426,7 +434,7 @@ async def rollback_to_version(
     except HTTPException:
         raise
     except Exception as e:
-        raise _safe_error(500, "Rollback failed", e)
+        raise _safe_error(500, "Rollback failed", e) from e
 
 
 @router.get("/mappings", response_model=MappingsResponse)  # NOSONAR - python:S8409
@@ -445,7 +453,7 @@ async def get_available_mappings(
             levels=mappings["levels"],
         )
     except Exception as e:
-        raise _safe_error(500, "Error getting mappings", e)
+        raise _safe_error(500, "Error getting mappings", e) from e
 
 
 @router.get("/status")
@@ -468,7 +476,7 @@ async def get_digital_twin_status(
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
     except Exception as e:
-        raise _safe_error(500, "Error getting Digital Twin status", e)
+        raise _safe_error(500, "Error getting Digital Twin status", e) from e
 
 
 @router.post("/update_mapping")
@@ -490,11 +498,13 @@ async def update_single_mapping(
                 "message": f"Mapping updated: {request.layer} -> {request.category} ({request.direction})",
                 "mapping": {request.layer: request.category},
             }
-        raise HTTPException(status_code=500, detail="Failed to update mapping")  # NOSONAR — S8415: assignment kept for readability / debuggability
+        raise HTTPException(
+            status_code=500, detail="Failed to update mapping"
+        )  # NOSONAR — S8415: assignment kept for readability / debuggability
     except HTTPException:
         raise
     except Exception as e:
-        raise _safe_error(500, "Error updating mapping", e)
+        raise _safe_error(500, "Error updating mapping", e) from e
 
 
 @router.get(
@@ -514,10 +524,12 @@ async def get_config(
         config = config_mgr.load_config()
         return {
             "config": config.to_dict(),
-            "loaded_from": str(config_mgr.config_file) if hasattr(config_mgr, "config_file") and config_mgr.config_file.exists() else "default",
+            "loaded_from": str(config_mgr.config_file)
+            if hasattr(config_mgr, "config_file") and config_mgr.config_file.exists()
+            else "default",
         }
     except Exception as e:
-        raise _safe_error(500, "Error getting configuration", e)
+        raise _safe_error(500, "Error getting configuration", e) from e
 
 
 @router.put(
@@ -544,7 +556,7 @@ async def update_config(
             message="Configuration updated successfully",
         )
     except Exception as e:
-        raise _safe_error(500, "Configuration update failed", e)
+        raise _safe_error(500, "Configuration update failed", e) from e
 
 
 @router.get(
@@ -575,4 +587,4 @@ async def download_file(filename: str) -> FileResponse:
     except HTTPException:
         raise
     except Exception as e:
-        raise _safe_error(500, "Download failed", e)
+        raise _safe_error(500, "Download failed", e) from e
