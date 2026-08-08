@@ -314,7 +314,6 @@ def _current_config_response() -> NotificationConfigResponse:
 
 @router.get(
     "/",
-    response_model=NotificationConfigResponse,
     summary="Retrieve current notification configuration",
 )
 async def get_notification_config() -> NotificationConfigResponse:
@@ -325,7 +324,6 @@ async def get_notification_config() -> NotificationConfigResponse:
 
 @router.put(
     "/",
-    response_model=NotificationConfigResponse,
     summary="Update notification configuration (partial update)",
 )
 async def update_notification_config(
@@ -355,7 +353,6 @@ async def update_notification_config(
 
 @router.get(
     "/digest",
-    response_model=DigestScheduleConfig,
     summary="Get digest schedule configuration",
 )
 async def get_digest_config() -> DigestScheduleConfig:
@@ -365,7 +362,6 @@ async def get_digest_config() -> DigestScheduleConfig:
 
 @router.put(
     "/digest",
-    response_model=DigestScheduleConfig,
     summary="Update digest schedule",
 )
 async def update_digest_config(
@@ -387,7 +383,6 @@ async def update_digest_config(
 
 @router.get(
     "/alerts",
-    response_model=List[AlertTypeConfig],
     summary="List all alert type configurations",
 )
 async def list_alert_configs() -> List[AlertTypeConfig]:
@@ -397,7 +392,6 @@ async def list_alert_configs() -> List[AlertTypeConfig]:
 
 @router.put(
     "/alerts/{alert_type}",
-    response_model=AlertTypeConfig,
     summary="Toggle / update a specific alert type",
 )
 async def update_alert_config(
@@ -433,7 +427,6 @@ async def update_alert_config(
 
 @router.get(
     "/webhooks",
-    response_model=List[WebhookResponse],
     summary="List registered webhooks",
 )
 async def list_webhooks() -> List[WebhookResponse]:
@@ -443,7 +436,6 @@ async def list_webhooks() -> List[WebhookResponse]:
 
 @router.post(
     "/webhooks",
-    response_model=WebhookResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Register a new webhook",
 )

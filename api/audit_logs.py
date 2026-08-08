@@ -558,7 +558,7 @@ def _apply_filters(
 # ---------------------------------------------------------------------------
 
 
-@router.get("/", response_model=AuditLogListResponse, summary="List audit logs")
+@router.get("/", summary="List audit logs")
 async def list_audit_logs(
     page: int = Query(default=1, ge=1, description="1-based page number"),
     page_size: int = Query(default=20, ge=1, le=100, description="Items per page"),
@@ -663,7 +663,7 @@ async def export_audit_logs_csv(
     )
 
 
-@router.get("/stats", response_model=AuditLogStats, summary="Get audit log statistics")
+@router.get("/stats", summary="Get audit log statistics")
 async def get_audit_log_stats() -> AuditLogStats:
     """Return aggregate statistics for audit log entries.
 
@@ -730,7 +730,6 @@ async def get_audit_log_stats() -> AuditLogStats:
 
 @router.get(
     "/{log_id}",
-    response_model=AuditLogEntry,
     summary="Get a specific audit log entry",
 )
 async def get_audit_log(log_id: str) -> AuditLogEntry:
