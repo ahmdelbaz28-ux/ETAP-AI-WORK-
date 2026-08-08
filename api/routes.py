@@ -771,7 +771,7 @@ async def websocket_notifications_handler(websocket: WebSocket) -> None:
 
 # ============================================================================
 # CRITICAL #2 fix (AhmedETAP_Error_Report_AR.pdf):
-# These three endpoints were documented (TESTSPRITE_OVERVIEW.md, PROJECT_INDEX.md,
+# These three endpoints were documented (docs/archive/TESTSPRITE_OVERVIEW.md, PROJECT_INDEX.md,
 # curl examples in README.hf.md) but missing from BOTH api/routes.py AND
 # hf-space/app.py. They are now added to BOTH entry points so they work
 # regardless of which FastAPI app serves the request.

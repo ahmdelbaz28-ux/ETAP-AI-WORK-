@@ -7,7 +7,7 @@ services:
       context: .
       dockerfile: Dockerfile.engineering-service
     ports:
-      - "8000:8000"
+      - "127.0.0.1:8000:8000"
     environment:
       - REDIS_URL=redis://:${REDIS_PASSWORD:?REDIS_PASSWORD is required}@redis:6379/0
       - USE_ETAP=${USE_ETAP:-false}
@@ -15,6 +15,14 @@ services:
       - ENGINEERING_SERVICE_API_KEY=${ENGINEERING_SERVICE_API_KEY:?ENGINEERING_SERVICE_API_KEY is required}
       - ENVIRONMENT=${ENVIRONMENT:-development}
       - DATABASE_URL=postgresql+asyncpg://etap:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}@postgres:5432/etap_platform
+    # HEALTHCHECK: python urllib is used instead of curl because the
+    # engineering-service image (python slim) does not bundle curl/wget.
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request as u; u.urlopen('http://localhost:8000/health', timeout=5)\""]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
     # CRITICAL FIX: Added resource limits to prevent resource exhaustion.
     # Per CI/CD skill: production services must have CPU/memory boundaries.
     deploy:
@@ -70,6 +78,14 @@ services:
     # was leftover from when tasks shared state via the API service.
     # Fix: depend only on Redis. Celery now starts as soon as Redis is
     # healthy, independent of the API service state.
+    # HEALTHCHECK: celery inspect ping requires the broker (redis) healthy —
+    # reuses the same image as engineering-service (celery is installed).
+    healthcheck:
+      test: ["CMD-SHELL", "celery -A worker.celery_app inspect ping -d celery@$$HOSTNAME >/dev/null 2>&1 || exit 1"]
+      interval: 30s
+      timeout: 15s
+      retries: 5
+      start_period: 30s
     depends_on:
       redis:
         condition: service_healthy
@@ -131,6 +147,13 @@ services:
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:?GRAFANA_ADMIN_PASSWORD is required}
     volumes:
       - grafana_storage:/var/lib/grafana
+    # HEALTHCHECK: the official grafana image bundles curl.
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:3000/api/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     networks:
       - etap_network
     depends_on:
@@ -149,6 +172,13 @@ services:
       - etap_network
     environment:
       - QDRANT__SERVICE__API_KEY=${QDRANT_API_KEY:?QDRANT_API_KEY is required}
+    # HEALTHCHECK: per qdrant/qdrant official docs — the image bundles curl.
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:6333/healthz || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
   neo4j:
     image: neo4j:5-community
@@ -171,8 +201,11 @@ services:
     volumes:
       - neo4j_data:/data
       - neo4j_logs:/logs
+    # HEALTHCHECK: uses cypher-shell (bundled with the neo4j image) instead
+    # of curl — curl is not guaranteed in the official neo4j image.
+    # Authenticates over Bolt (:7687) using the password from NEO4J_AUTH.
     healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost:7474 || exit 1"]
+      test: ["CMD-SHELL", "PASS=$${NEO4J_AUTH#*/}; cypher-shell -u neo4j -p \"$$PASS\" 'RETURN 1' >/dev/null 2>&1 || exit 1"]
       interval: 15s
       timeout: 10s
       retries: 5

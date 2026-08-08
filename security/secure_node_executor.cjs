@@ -44,7 +44,7 @@
  *   5  — OOM (memory limit hit)
  *
  * Reference: matches the security posture of security/secure_executor.py
- * (Python AST sandbox) — see IMPLEMENTATION_PLAN.md §1.
+ * (Python AST sandbox) — see docs/archive/IMPLEMENTATION_PLAN.md §1.
  */
 
 'use strict';

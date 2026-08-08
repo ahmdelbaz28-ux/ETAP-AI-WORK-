@@ -180,7 +180,7 @@ Focus: **Stabilization, Security Hardening, Production Readiness**
 - [ ] Update frontend package version from `0.0.0` to `2.1.0`
 - [ ] Standardize CSS variable naming conventions in `ui/src/index.css`
 - [ ] Remove dead code files (`fix_eol_strings.py`, `run_complete_setup.py`)
-- [ ] Update `COMPLETION_REPORT.md` to reflect current status
+- [ ] Update `docs/archive/COMPLETION_REPORT.md` to reflect current status
 
 ---
 
@@ -352,7 +352,7 @@ Focus: **Enterprise Features, Marketplace, Emerging Technologies**
 
 ## Technical Debt
 
-> Full details in [TECHNICAL_DEBT.md](TECHNICAL_DEBT.md)
+> Full details in [docs/archive/TECHNICAL_DEBT.md](docs/archive/TECHNICAL_DEBT.md)
 
 | ID | Severity | Description | Target Resolution |
 |---|---|---|---|
@@ -362,7 +362,7 @@ Focus: **Enterprise Features, Marketplace, Emerging Technologies**
 | TD-005 | High | WebAuthn fallback is insecure | Q3 2026 Sprint 1 |
 | TD-006 | Medium | Missing `useApi` hook in frontend | Q3 2026 Sprint 2 |
 | TD-007 | Medium | Frontend package version `0.0.0` | Q3 2026 Sprint 2 |
-| TD-008 | Medium | Outdated `COMPLETION_REPORT.md` | Q3 2026 Sprint 2 |
+| TD-008 | Medium | Outdated `docs/archive/COMPLETION_REPORT.md` | Q3 2026 Sprint 2 |
 | TD-009 | Medium | No HTTPS enforcement in production | Q3 2026 Sprint 1 |
 | TD-010 | Medium | Audit logs not rotated in Docker | Q3 2026 Sprint 3 |
 | TD-011 | Low | Dead code files | Q3 2026 Sprint 3 |

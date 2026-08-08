@@ -24,7 +24,7 @@
     "ai-agent"
   ],
   "author": "Power Systems Engineering Team",
-  "license": "ISC",
+  "license": "MIT",
   "devEngines": {},
   "type": "module",
   "dependencies": {

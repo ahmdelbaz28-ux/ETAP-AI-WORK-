@@ -145,9 +145,9 @@ asyncpg>=0.29,<0.32
 #   CVE-2026-54283 (request.form() limit bypass DoS)                  [HIGH]
 #   CVE-2026-48818 (SSRF + NTLM credential theft via UNC paths on Win) [HIGH]
 #   CVE-2025-62727 (Range header O(n^2) DoS in FileResponse)          [HIGH]
-#   CVE-2026-XXXX (multipart large file DoS)                           [MED]
-#   CVE-2026-XXXX (Host header poisoning bypasses path security)       [MED]
-#   CVE-2026-XXXX (Arbitrary HTTP method dispatch via getattr)         [MED]
+#   plus 3 MED fixes (multipart large-file DoS, host-header path-security
+#   bypass, arbitrary HTTP method dispatch) — see the pinned `starlette`
+#   entry below for the exact fix versions.
 # fastapi 0.133+ is the first release that allows starlette 1.x (drops
 # the `starlette<1.0.0` upper bound). fastapi 0.134+ additionally requires
 # starlette>=0.46.0, which guarantees the CVE fixes are present.

@@ -94,7 +94,7 @@ The platform features a modern, professional, dark-themed user interface designe
 
 This release stabilises a deployment pipeline that had accumulated **520+ failed
 Vercel preview deploys** in a row. The root cause and remediation are summarised
-below — full detail is in [`DEPLOYMENT_FIX.md`](DEPLOYMENT_FIX.md).
+below — full detail is in [`docs/archive/DEPLOYMENT_FIX.md`](docs/archive/DEPLOYMENT_FIX.md).
 
 ### 1. Vercel auto-detection of MkDocs (root cause of the 520 failures)
 

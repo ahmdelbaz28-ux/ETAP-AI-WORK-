@@ -5,7 +5,7 @@
 # Opens the credential-rotation page for every service that was exposed in
 # plain chat on 2026-07-08. Run this script, rotate each credential, then
 # update the Vercel env vars with the new values (see
-# SECURITY_INCIDENT_2026-07-08.md for the env var key list).
+# docs/archive/SECURITY_INCIDENT_2026-07-08.md for the env var key list).
 #
 # Usage:
 #   bash scripts/rotate-credentials.sh        # macOS / Linux (xdg-open)
