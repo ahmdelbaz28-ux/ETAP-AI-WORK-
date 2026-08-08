@@ -96,11 +96,11 @@ async def test_individual_agents():
                 logger.warning("⚠ %s timed out during execution", agent_name)
                 results[agent_name] = {"status": "TIMEOUT", "error": "Execution timed out"}
             except Exception as e:
-                logger.warning(f"⚠ {agent_name} execution failed: {str(e)}")  # noqa: G004
+                logger.warning("⚠ %s execution failed: %s", agent_name, str(e))
                 results[agent_name] = {"status": "EXECUTION_ERROR", "error": str(e)}
 
         except Exception as e:
-            logger.error(f"✗ {agent_name} failed to instantiate: {str(e)}")  # noqa: G004
+            logger.error("✗ %s failed to instantiate: %s", agent_name, str(e))
             results[agent_name] = {"status": "INSTANTIATION_ERROR", "error": str(e)}
 
     return results
@@ -150,13 +150,13 @@ async def test_orchestrator():
             logger.warning("⚠ Orchestrator execution timed out")
             orchestrator_result = {"status": "TIMEOUT", "error": "Execution timed out"}
         except Exception as e:
-            logger.warning(f"⚠ Orchestrator execution failed: {str(e)}")  # noqa: G004
+            logger.warning("⚠ Orchestrator execution failed: %s", str(e))
             orchestrator_result = {"status": "EXECUTION_ERROR", "error": str(e)}
 
         return orchestrator_result
 
     except Exception as e:
-        logger.error(f"✗ Orchestrator test failed: {str(e)}")  # noqa: G004
+        logger.error("✗ Orchestrator test failed: %s", str(e))
         return {"status": "ERROR", "error": str(e)}
 
 
