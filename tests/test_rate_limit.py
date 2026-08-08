@@ -13,6 +13,7 @@ import time
 import pytest
 
 from api._rate_limit import RateLimiter
+import os
 
 
 class TestRateLimiter:

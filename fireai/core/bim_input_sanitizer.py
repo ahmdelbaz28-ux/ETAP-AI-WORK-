@@ -276,7 +276,7 @@ def validate_numeric_parameter(
     except (ValueError, OverflowError) as e:
         raise ValueError(
             f"{param_name}='{value}' cannot be converted to a number: {e}"
-        )
+        ) from None
 
     if not math.isfinite(num_value):
         raise ValueError(

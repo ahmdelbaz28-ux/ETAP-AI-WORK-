@@ -918,7 +918,7 @@ class DatabaseService:
                 )
             except Exception as e:
                 logger.exception("Error persisting connection: %s", e)
-                raise RuntimeError(f"Failed to persist connection: {e}")
+                raise RuntimeError(f"Failed to persist connection: {e}") from None
 
             # V191 FIX: The V188 code put both update_element calls in ONE
             # try/except block. If the first raised, the second was SKIPPED —

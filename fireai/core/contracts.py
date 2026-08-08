@@ -472,7 +472,7 @@ def validate_room_input(payload: dict[str, Any]) -> dict[str, Any]:  # NOSONAR â
                 x_val = float(pt[0])
                 y_val = float(pt[1])
             except (TypeError, ValueError):
-                raise ContractViolation(f"polygon point {i} coordinates must be numeric, got {pt!r}")
+                raise ContractViolation(f"polygon point {i} coordinates must be numeric, got {pt!r}") from None
             if not (math.isfinite(x_val) and math.isfinite(y_val)):
                 raise ContractViolation(
                     f"polygon point {i} contains non-finite coordinate: ({x_val}, {y_val}). "
@@ -494,7 +494,7 @@ def validate_room_input(payload: dict[str, Any]) -> dict[str, Any]:  # NOSONAR â
                 x_val = float(x_val)
                 y_val = float(y_val)
             except (TypeError, ValueError):
-                raise ContractViolation(f"polygon point {i} coordinates must be numeric, got x={x_val!r} y={y_val!r}")
+                raise ContractViolation(f"polygon point {i} coordinates must be numeric, got x={x_val!r} y={y_val!r}") from None
             if not (math.isfinite(x_val) and math.isfinite(y_val)):
                 raise ContractViolation(
                     f"polygon point {i} dict contains non-finite coordinate: ({x_val}, {y_val})."
@@ -555,7 +555,7 @@ def validate_room_input(payload: dict[str, Any]) -> dict[str, Any]:  # NOSONAR â
         if h <= 0 or h > 30:
             raise ContractViolation(f"ceiling_height_m must be > 0 and <= 30, got {h}")
     except (TypeError, ValueError):
-        raise ContractViolation(f"ceiling_height_m must be a number, got {ceiling_height!r}")
+        raise ContractViolation(f"ceiling_height_m must be a number, got {ceiling_height!r}") from None
 
     return payload
 
@@ -624,7 +624,7 @@ def validate_loop_input(payload: dict[str, Any]) -> dict[str, Any]:  # NOSONAR â
             if l < 0:
                 raise ContractViolation(f"total_length_m must be >= 0, got {l}")
         except (TypeError, ValueError):
-            raise ContractViolation(f"total_length_m must be a number, got {total_length!r}")
+            raise ContractViolation(f"total_length_m must be a number, got {total_length!r}") from None
 
     # 5. Panel voltage validation
     panel_voltage = payload.get("panel_voltage_v", 24.0)
@@ -641,7 +641,7 @@ def validate_loop_input(payload: dict[str, Any]) -> dict[str, Any]:  # NOSONAR â
         if v <= 0 or v > 48:
             raise ContractViolation(f"panel_voltage_v must be > 0 and <= 48, got {v}")
     except (TypeError, ValueError):
-        raise ContractViolation(f"panel_voltage_v must be a number, got {panel_voltage!r}")
+        raise ContractViolation(f"panel_voltage_v must be a number, got {panel_voltage!r}") from None
 
     return payload
 

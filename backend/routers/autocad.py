@@ -301,7 +301,7 @@ async def connect_to_autocad(request: ConnectRequest) -> ConnectResponse:
     except HTTPException:
         raise
     except Exception as e:
-        raise _safe_error(503, "Failed to connect to AutoCAD", e)
+        raise _safe_error(503, "Failed to connect to AutoCAD", e) from None
 
 
 @router.post("/disconnect", response_model=ConnectResponse)  # NOSONAR - python:S8409
@@ -345,7 +345,7 @@ async def list_autocad_documents() -> DocumentsResponse:
     except HTTPException:
         raise
     except Exception as e:
-        raise _safe_error(500, "Error getting documents", e)
+        raise _safe_error(500, "Error getting documents", e) from None
 
 
 @router.post("/read_dwg", response_model=ReadFileResponse, dependencies=[Depends(require_permission(Permission.ELEMENT_READ))])  # NOSONAR - python:S8409
@@ -377,7 +377,7 @@ async def read_dwg_file(request: ReadDwgRequest) -> ReadFileResponse:
     except HTTPException:
         raise
     except Exception as e:
-        raise _safe_error(500, "Error reading DWG file", e)
+        raise _safe_error(500, "Error reading DWG file", e) from None
 
 
 @router.post("/write_dwg", response_model=OperationResponse, dependencies=[Depends(require_permission(Permission.ELEMENT_CREATE))])  # NOSONAR - python:S8409
@@ -410,7 +410,7 @@ async def write_dwg_file(request: WriteDwgRequest) -> OperationResponse:
     except HTTPException:
         raise
     except Exception as e:
-        raise _safe_error(500, "Error writing DWG file", e)
+        raise _safe_error(500, "Error writing DWG file", e) from None
 
 
 @router.post("/draw_line", response_model=OperationResponse)  # NOSONAR - python:S8409
@@ -443,7 +443,7 @@ async def draw_line(request: DrawLineRequest) -> OperationResponse:
     except HTTPException:
         raise
     except Exception as e:
-        raise _safe_error(500, "Error drawing line", e)
+        raise _safe_error(500, "Error drawing line", e) from None
 
 
 @router.post("/draw_polyline", response_model=OperationResponse)  # NOSONAR - python:S8409
@@ -476,7 +476,7 @@ async def draw_polyline(request: DrawPolylineRequest) -> OperationResponse:
     except HTTPException:
         raise
     except Exception as e:
-        raise _safe_error(500, "Error drawing polyline", e)
+        raise _safe_error(500, "Error drawing polyline", e) from None
 
 
 @router.post("/draw_circle", response_model=OperationResponse)  # NOSONAR - python:S8409
@@ -509,7 +509,7 @@ async def draw_circle(request: DrawCircleRequest) -> OperationResponse:
     except HTTPException:
         raise
     except Exception as e:
-        raise _safe_error(500, "Error drawing circle", e)
+        raise _safe_error(500, "Error drawing circle", e) from None
 
 
 @router.post("/draw_text", response_model=OperationResponse)  # NOSONAR - python:S8409
@@ -543,7 +543,7 @@ async def draw_text(request: DrawTextRequest) -> OperationResponse:
     except HTTPException:
         raise
     except Exception as e:
-        raise _safe_error(500, "Error drawing text", e)
+        raise _safe_error(500, "Error drawing text", e) from None
 
 
 @router.get("/status", response_model=StatusResponse)  # NOSONAR - python:S8409
@@ -562,7 +562,7 @@ async def get_autocad_status() -> StatusResponse:
             document_info=doc_info if doc_info else None
         )
     except Exception as e:
-        raise _safe_error(500, "Error getting AutoCAD status", e)
+        raise _safe_error(500, "Error getting AutoCAD status", e) from None
 
 
 @router.post("/save", response_model=OperationResponse)  # NOSONAR - python:S8409
@@ -592,7 +592,7 @@ async def save_document(request: SaveRequest) -> OperationResponse:
     except HTTPException:
         raise
     except Exception as e:
-        raise _safe_error(500, "Error saving document", e)
+        raise _safe_error(500, "Error saving document", e) from None
 
 
 # Maximum upload file size (50 MB)
@@ -647,7 +647,7 @@ async def upload_and_read_dwg(request: Request, file: UploadFile = File(...)) ->
     except HTTPException:
         raise
     except Exception as e:
-        raise _safe_error(500, "Error processing uploaded DWG file", e)
+        raise _safe_error(500, "Error processing uploaded DWG file", e) from None
     finally:
         # FIX #5: Guaranteed cleanup even on error
         if temp_path and os.path.exists(temp_path):
@@ -682,7 +682,7 @@ async def delete_entity(handle: str) -> DeleteEntityResponse:
     except HTTPException:
         raise
     except Exception as e:
-        raise _safe_error(500, "Error deleting entity", e)
+        raise _safe_error(500, "Error deleting entity", e) from None
 
 
 @router.put("/entity/{handle}", response_model=OperationResponse)  # NOSONAR - python:S8409
@@ -718,4 +718,4 @@ async def update_entity(handle: str, request: ModifyEntityRequest) -> OperationR
     except HTTPException:
         raise
     except Exception as e:
-        raise _safe_error(500, "Error modifying entity", e)
+        raise _safe_error(500, "Error modifying entity", e) from None

@@ -560,7 +560,7 @@ async def get_physics_guards():
                 "missing_module": "fireai.core.qomn_kernel",
                 "action": "Install the fireai package. Check server logs for details.",
             },
-        )
+        ) from None
     return {
         "success": True,
         "data": {
@@ -643,7 +643,7 @@ async def get_qomn_constants():
                 "missing_module": "fireai.core.qomn_kernel",
                 "action": "Install the fireai package. Check server logs for details.",
             },
-        )
+        ) from None
     return {
         "success": True,
         "data": {
@@ -695,7 +695,7 @@ async def run_golden_tests():
                 "missing_module": "fireai.core.qomn_kernel",
                 "action": "Install the fireai package. Check server logs for details.",
             },
-        )
+        ) from None
 
     results = []
     all_pass = True

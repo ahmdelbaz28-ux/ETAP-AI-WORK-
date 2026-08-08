@@ -28,7 +28,7 @@ _COPILOT_API_BASE_4830 = "http://localhost:4830"  # NOSONAR
 import json
 import logging
 import time
-from typing import Annotated, Optional
+from typing import Annotated, List, Optional
 
 from fastapi import APIRouter, FastAPI, HTTPException, Query
 from pydantic import BaseModel, Field

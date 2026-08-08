@@ -28,7 +28,7 @@ def _validate_json_size_and_depth(
     try:
         serialized = _json.dumps(value)
     except (TypeError, ValueError) as e:
-        raise ValueError(f"{field_name}: must be JSON-serializable ({e})")
+        raise ValueError(f"{field_name}: must be JSON-serializable ({e})") from None
 
     if len(serialized) > max_bytes:
         raise ValueError(

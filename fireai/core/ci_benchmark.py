@@ -307,7 +307,7 @@ class CIBenchmarkSuite:
             if not allowed:
                 raise ValueError(f"Path escapes allowed workspace: {path}")
         except Exception as e:
-            raise ValueError(f"Invalid baseline path: {path} ({e})")
+            raise ValueError(f"Invalid baseline path: {path} ({e})") from None
 
         data = {
             "fireai_version": "29.0.0",
@@ -349,7 +349,7 @@ class CIBenchmarkSuite:
             if not allowed:
                 raise ValueError(f"Path escapes allowed workspace: {path}")
         except Exception as e:
-            raise ValueError(f"Invalid baseline path: {path} ({e})")
+            raise ValueError(f"Invalid baseline path: {path} ({e})") from None
 
         if not os.path.exists(path):
             print(f"No baseline found at {path}. Run with --baseline save first.")

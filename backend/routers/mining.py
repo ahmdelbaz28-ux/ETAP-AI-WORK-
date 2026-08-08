@@ -108,10 +108,10 @@ async def methane_check(request: MethaneCheckRequest):
             "thresholds": MSHA_THRESHOLDS,
         }
     except ImportError as e:
-        raise HTTPException(status_code=503, detail=f"Mining module not available: {e}")
+        raise HTTPException(status_code=503, detail=f"Mining module not available: {e}") from None
     except Exception as e:
         logger.exception("Methane check failed: %s", e)
-        raise HTTPException(status_code=500, detail="Methane check failed")
+        raise HTTPException(status_code=500, detail="Methane check failed") from None
 
 
 @router.post("/ventilation-check", dependencies=[Depends(require_permission(Permission.ELEMENT_READ))])
@@ -142,10 +142,10 @@ async def ventilation_check(request: VentilationCheckRequest):
             "standard": "MSHA 30 CFR §75.326-327",
         }
     except ImportError as e:
-        raise HTTPException(status_code=503, detail=f"Mining module not available: {e}")
+        raise HTTPException(status_code=503, detail=f"Mining module not available: {e}") from None
     except Exception as e:
         logger.exception("Ventilation check failed: %s", e)
-        raise HTTPException(status_code=500, detail="Ventilation check failed")
+        raise HTTPException(status_code=500, detail="Ventilation check failed") from None
 
 
 @router.post("/co-check", dependencies=[Depends(require_permission(Permission.ELEMENT_READ))])
@@ -175,10 +175,10 @@ async def co_check(request: CoCheckRequest):
             "standard": "MSHA 30 CFR §75.351",
         }
     except ImportError as e:
-        raise HTTPException(status_code=503, detail=f"Mining module not available: {e}")
+        raise HTTPException(status_code=503, detail=f"Mining module not available: {e}") from None
     except Exception as e:
         logger.exception("CO check failed: %s", e)
-        raise HTTPException(status_code=500, detail="CO check failed")
+        raise HTTPException(status_code=500, detail="CO check failed") from None
 
 
 @router.post("/conveyor-suppression", dependencies=[Depends(require_permission(Permission.ELEMENT_READ))])
@@ -212,10 +212,10 @@ async def conveyor_suppression(request: ConveyorSuppressionRequest):
             "standard": "NFPA 120-2022 §8.4 + MSHA 30 CFR §75.1108",
         }
     except ImportError as e:
-        raise HTTPException(status_code=503, detail=f"Mining module not available: {e}")
+        raise HTTPException(status_code=503, detail=f"Mining module not available: {e}") from None
     except Exception as e:
         logger.exception("Conveyor suppression design failed: %s", e)
-        raise HTTPException(status_code=500, detail="Conveyor suppression design failed")
+        raise HTTPException(status_code=500, detail="Conveyor suppression design failed") from None
 
 
 @router.post("/compliance-report", dependencies=[Depends(require_permission(Permission.REPORT_GENERATE))])
@@ -257,7 +257,7 @@ async def compliance_report(request: ComplianceReportRequest):
             "markdown_report": markdown,
         }
     except ImportError as e:
-        raise HTTPException(status_code=503, detail=f"Mining module not available: {e}")
+        raise HTTPException(status_code=503, detail=f"Mining module not available: {e}") from None
     except Exception as e:
         logger.exception("Compliance report failed: %s", e)
-        raise HTTPException(status_code=500, detail="Compliance report generation failed")
+        raise HTTPException(status_code=500, detail="Compliance report generation failed") from None

@@ -472,7 +472,7 @@ class RedisEventBus(EventBus):
                 self._redis = aioredis.from_url(self._redis_url, decode_responses=True)
                 logger.info("Connected to Redis at %s", self._redis_url)
             except ImportError:
-                raise RuntimeError("redis-py is required for RedisEventBus: pip install redis")
+                raise RuntimeError("redis-py is required for RedisEventBus: pip install redis") from None
         return self._redis
 
     async def publish(self, event: Event) -> None:
@@ -641,7 +641,7 @@ class KafkaEventBus(EventBus):
                 await self._producer.start()  # type: ignore[attr-defined]
                 logger.info("Kafka producer connected to %s", self._bootstrap_servers)
             except ImportError:
-                raise RuntimeError("aiokafka is required for KafkaEventBus: pip install aiokafka")
+                raise RuntimeError("aiokafka is required for KafkaEventBus: pip install aiokafka") from None
         return self._producer
 
     async def _get_consumer(self):
@@ -659,7 +659,7 @@ class KafkaEventBus(EventBus):
                 await self._consumer.start()  # type: ignore[attr-defined]
                 logger.info("Kafka consumer started for topics: %s", topics)
             except ImportError:
-                raise RuntimeError("aiokafka is required for KafkaEventBus: pip install aiokafka")
+                raise RuntimeError("aiokafka is required for KafkaEventBus: pip install aiokafka") from None
         return self._consumer
 
     async def publish(self, event: Event) -> None:

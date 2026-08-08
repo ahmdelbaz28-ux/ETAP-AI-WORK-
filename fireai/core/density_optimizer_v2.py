@@ -196,7 +196,7 @@ def _optimize_room_worker(args: tuple) -> tuple[str, Any]:  # NOSONAR — S3776:
         return (room_id, result)
 
     except Exception as e:
-        log.exception(f"Worker error for room {room_id}: {e}")
+        log.exception("Worker error for room %s: %s", room_id, e)
         return (room_id, {"error": str(e)})
 
 
@@ -357,7 +357,7 @@ class DensityOptimizerV2:
             except Exception as e:
                 failed += 1
                 results[room_id] = {"error": str(e)}
-                log.exception(f"Room {room_id}: {e}")
+                log.exception("Room %s: %s", room_id, e)
 
         elapsed = time.perf_counter() - t0
         rps = len(room_specs) / elapsed if elapsed > 0 else 0
@@ -416,7 +416,7 @@ class DensityOptimizerV2:
                     results[room_id] = result
 
         except Exception as e:
-            log.exception(f"Multiprocessing pool error: {e}")
+            log.exception("Multiprocessing pool error: %s", e)
             # Fallback to sequential for remaining rooms
             log.warning("Falling back to sequential processing")
             for room_id, spec in room_specs.items():

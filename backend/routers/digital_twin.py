@@ -255,7 +255,7 @@ async def convert_files(  # NOSONAR — S3776: cognitive complexity is inherent 
     except HTTPException:
         raise
     except Exception as e:
-        raise _safe_error(500, "Error during conversion", e)
+        raise _safe_error(500, "Error during conversion", e) from None
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -357,7 +357,7 @@ async def upload_and_convert(
     except HTTPException:
         raise
     except Exception as e:
-        raise _safe_error(500, "Upload and convert failed", e)
+        raise _safe_error(500, "Upload and convert failed", e) from None
 
 
 @router.get("/history", response_model=HistoryResponse)  # NOSONAR - python:S8409
@@ -369,7 +369,7 @@ async def get_conversion_history(
         history = service.get_conversion_history()
         return HistoryResponse(history=history)
     except Exception as e:
-        raise _safe_error(500, "Error getting conversion history", e)
+        raise _safe_error(500, "Error getting conversion history", e) from None
 
 
 @router.post("/configure", response_model=ConfigureResponse)  # NOSONAR - python:S8409
@@ -391,7 +391,7 @@ async def configure_conversion(
     except HTTPException:
         raise
     except Exception as e:
-        raise _safe_error(500, "Error updating configuration", e)
+        raise _safe_error(500, "Error updating configuration", e) from None
 
 
 @router.post(
@@ -426,7 +426,7 @@ async def rollback_to_version(
     except HTTPException:
         raise
     except Exception as e:
-        raise _safe_error(500, "Rollback failed", e)
+        raise _safe_error(500, "Rollback failed", e) from None
 
 
 @router.get("/mappings", response_model=MappingsResponse)  # NOSONAR - python:S8409
@@ -445,7 +445,7 @@ async def get_available_mappings(
             levels=mappings["levels"],
         )
     except Exception as e:
-        raise _safe_error(500, "Error getting mappings", e)
+        raise _safe_error(500, "Error getting mappings", e) from None
 
 
 @router.get("/status")
@@ -468,7 +468,7 @@ async def get_digital_twin_status(
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
     except Exception as e:
-        raise _safe_error(500, "Error getting Digital Twin status", e)
+        raise _safe_error(500, "Error getting Digital Twin status", e) from None
 
 
 @router.post("/update_mapping")
@@ -494,7 +494,7 @@ async def update_single_mapping(
     except HTTPException:
         raise
     except Exception as e:
-        raise _safe_error(500, "Error updating mapping", e)
+        raise _safe_error(500, "Error updating mapping", e) from None
 
 
 @router.get(
@@ -517,7 +517,7 @@ async def get_config(
             "loaded_from": str(config_mgr.config_file) if hasattr(config_mgr, "config_file") and config_mgr.config_file.exists() else "default",
         }
     except Exception as e:
-        raise _safe_error(500, "Error getting configuration", e)
+        raise _safe_error(500, "Error getting configuration", e) from None
 
 
 @router.put(
@@ -544,7 +544,7 @@ async def update_config(
             message="Configuration updated successfully",
         )
     except Exception as e:
-        raise _safe_error(500, "Configuration update failed", e)
+        raise _safe_error(500, "Configuration update failed", e) from None
 
 
 @router.get(
@@ -575,4 +575,4 @@ async def download_file(filename: str) -> FileResponse:
     except HTTPException:
         raise
     except Exception as e:
-        raise _safe_error(500, "Download failed", e)
+        raise _safe_error(500, "Download failed", e) from None

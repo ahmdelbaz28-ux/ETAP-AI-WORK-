@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from gis_integration.base import GISProviderInterface
 from gis_integration.exceptions import GISIntegrationError
 from gis_integration.models import GISFeature
+from typing import List
 
 
 @dataclass(frozen=True)

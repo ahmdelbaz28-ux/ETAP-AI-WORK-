@@ -138,7 +138,7 @@ class Database:
             raise ImportError(
                 "PostgreSQL mode requires psycopg2. Install it with: "
                 "pip install psycopg2-binary  OR  pip install psycopg2"
-            )
+            ) from None
 
         db_url = getattr(self, '_database_url', _DATABASE_URL)
         neon_url = os.environ.get("NEON_DATABASE_URL", "")

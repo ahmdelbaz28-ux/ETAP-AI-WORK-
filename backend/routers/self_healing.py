@@ -40,7 +40,7 @@ async def self_healing_health():
         raise HTTPException(
             status_code=503,
             detail=f"Self-healing engine not available: {e}",
-        )
+        ) from None
 
     return {
         "success": True,
@@ -65,7 +65,7 @@ async def self_healing_audit(limit: int = 20):
         raise HTTPException(
             status_code=503,
             detail=f"Self-healing engine not available: {e}",
-        )
+        ) from None
 
     limit = min(limit, 100)
     stats = global_audit_logger.stats()
@@ -99,7 +99,7 @@ async def self_healing_reset():
         raise HTTPException(
             status_code=503,
             detail=f"Self-healing engine not available: {e}",
-        )
+        ) from None
 
     global_circuit_breaker.reset()
     return {

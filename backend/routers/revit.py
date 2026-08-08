@@ -488,7 +488,7 @@ async def connect_to_revit(request: ConnectRequest = None) -> ConnectResponse:
     except HTTPException:
         raise
     except Exception as e:
-        raise _safe_error(503, "Failed to connect to Revit", e)
+        raise _safe_error(503, "Failed to connect to Revit", e) from None
 
 
 @router.post("/disconnect", response_model=ConnectResponse, tags=["revit"])  # NOSONAR - python:S8409
@@ -528,7 +528,7 @@ async def get_revit_status() -> StatusResponse:
     except HTTPException:
         raise
     except Exception as e:
-        raise _safe_error(500, "Error getting Revit status", e)
+        raise _safe_error(500, "Error getting Revit status", e) from None
 
 
 # =============================================================================

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Dict, List
 
 from gis_integration.models import GISFeature
 from gis_integration.transformer import GIS_TO_ADMS_Transformer

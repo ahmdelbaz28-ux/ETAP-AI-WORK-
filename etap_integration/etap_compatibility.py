@@ -12,7 +12,7 @@ import logging
 import platform
 import sys
 from dataclasses import dataclass, field
-from typing import Optional
+from typing import Dict, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 

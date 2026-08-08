@@ -143,7 +143,7 @@ class HeadlessIFCBridge:
         try:
             self.model = ifcopenshell.open(ifc_path)
         except Exception as e:
-            raise ValueError(f"Failed to open IFC model: {e}")
+            raise ValueError(f"Failed to open IFC model: {e}") from None
         # Geometry settings for tessellation (lazy-initialized)
         self._geom_settings: object = None  # V131 FIX: Typed as object for mypy compatibility
 

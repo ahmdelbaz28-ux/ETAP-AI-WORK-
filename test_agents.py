@@ -60,7 +60,7 @@ async def test_individual_agents():
 
     for agent_class in ALL_AGENT_CLASSES:
         agent_name = agent_class.__name__
-        logger.info(f"Testing {agent_name}...")
+        logger.info("Testing %s...", agent_name)
 
         try:
             # Instantiate the agent
@@ -93,7 +93,7 @@ async def test_individual_agents():
                     "validation_errors": result.validation_errors,
                 }
             except TimeoutError:
-                logger.warning(f"⚠ {agent_name} timed out during execution")
+                logger.warning("⚠ %s timed out during execution", agent_name)
                 results[agent_name] = {"status": "TIMEOUT", "error": "Execution timed out"}
             except Exception as e:
                 logger.warning(f"⚠ {agent_name} execution failed: {str(e)}")

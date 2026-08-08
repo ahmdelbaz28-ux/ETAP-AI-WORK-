@@ -524,7 +524,7 @@ def _apply_filters(
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                 detail=f"Invalid start_date format: {start_date!r}. Expected ISO-8601.",
-            )
+            ) from None
         result = [
             e
             for e in result
@@ -538,7 +538,7 @@ def _apply_filters(
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                 detail=f"Invalid end_date format: {end_date!r}. Expected ISO-8601.",
-            )
+            ) from None
         result = [
             e
             for e in result

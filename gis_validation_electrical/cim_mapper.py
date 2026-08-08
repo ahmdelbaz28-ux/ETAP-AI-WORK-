@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Optional
+from typing import Any, Dict, Optional, Tuple
 
 from gis_integration.models import ADMSAsset, ADMSAssetType
 

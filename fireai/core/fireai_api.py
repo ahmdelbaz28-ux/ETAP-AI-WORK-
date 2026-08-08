@@ -129,7 +129,7 @@ async def _run_with_timeout(coro, timeout: float = REQUEST_TIMEOUT_SECONDS):  # 
         raise HTTPException(
             status_code=503,
             detail=f"Request timeout after {timeout}s. Please use /analyse/floor/async for large floors.",
-        )
+        ) from None
 
 
 async def verify_api_key(x_api_key: str = Header(...)) -> str:  # NOSONAR - python:S7503
