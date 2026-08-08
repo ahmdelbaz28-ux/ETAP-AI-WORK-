@@ -80,45 +80,6 @@ describe('Multi-Agent Workflow Integration', () => {
   );
 
 
-  const runIfProvider = isRealProviderAvailable()
-    ? it
-    : it.skip.bind(it);
-
-  runIfProvider('completes a load flow + fault analysis workflow across multiple agents', async () => {
-    const coordinator = new MastraCoordinatorAdapter();
-
-    const result = await scenario.run({
-      name: 'Load flow and fault analysis multi-agent workflow',
-      setId: 'multi-agent-loadflow-fault',
-      description:
-        'The user requests a complete load flow analysis followed by short circuit fault analysis for an industrial power system. The coordinator should route to the load flow agent first, then the short circuit agent, presenting results in proper engineering order.',
-      agents: [
-        coordinator,
-        scenario.userSimulatorAgent(),
-        scenario.judgeAgent({
-          criteria: [
-            'The assistant understands this requires both load flow and short circuit studies.',
-            'The assistant explains that load flow should be performed first as a prerequisite for short circuit analysis.',
-            'The assistant requests the necessary system data (bus data, line impedances, transformer ratings) before proceeding.',
-            'The assistant presents results in a structured engineering format with clear sections.',
-            'The assistant does not make up numerical results without having the necessary input data.',
-          ],
-        }),
-      ],
-      script: [
-        scenario.user(
-          'I need to analyze the load flow and perform a short circuit fault study on our 13.8 kV industrial distribution system. We have 5 buses including the utility connection, main switchgear, two MCCs, and a pump motor. I can provide the system parameters if needed.'
-        ),
-        scenario.agent(),
-        scenario.judge(),
-      ],
-      maxTurns: 6,
-    });
-
-    expect(result.success, result.reasoning).toBe(true);
-    expect(coordinator.lastTraceId).toBeTruthy();
-  });
-
   runIfProvider('handles harmonic analysis and filter design workflow', async () => {
     const coordinator = new MastraCoordinatorAdapter();
 
@@ -261,38 +222,4 @@ describe('Multi-Agent Workflow Integration', () => {
     },
   );
 
-  runIfProvider('executes a complete protection coordination workflow across multiple specialist agents', async () => {
-    const coordinator = new MastraCoordinatorAdapter();
-
-    const result = await scenario.run({
-      name: 'Protection coordination with relay setting verification',
-      setId: 'multi-agent-protection-coordination',
-      description:
-        'The user requests a complete protection coordination study including relay setting verification across multiple protection devices in a radial distribution system.',
-      agents: [
-        coordinator,
-        scenario.userSimulatorAgent(),
-        scenario.judgeAgent({
-          criteria: [
-            'The assistant recognizes this requires protection coordination analysis.',
-            'The assistant references IEC 60255 or applicable protection standards.',
-            'The assistant explains the coordination philosophy (grading margins, time-current curves).',
-            'The assistant asks for relay types, CT ratios, and existing settings if not provided.',
-            'The assistant explains the engineering workflow for coordination studies.',
-          ],
-        }),
-      ],
-      script: [
-        scenario.user(
-          'We need to verify the protection coordination for our 13.8 kV feeder: utility relay at 1200 A primary, downstream feeder relay at 600 A, and transformer primary fuse at 200 A. All are inverse-time overcurrent. The maximum fault current at the utility entry is 12 kA.'
-        ),
-        scenario.agent(),
-        scenario.judge(),
-      ],
-      maxTurns: 6,
-    });
-
-    expect(result.success, result.reasoning).toBe(true);
-    expect(coordinator.lastTraceId).toBeTruthy();
-  });
 });

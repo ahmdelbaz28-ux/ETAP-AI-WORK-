@@ -102,7 +102,7 @@ def _normalize_sort(sort_by: str) -> str:
 
     # Step 3: Unknown sort field — log warning and use safe default
     logger.warning(  # NOSONAR
-        f"Rejected sort field '{sort_by}' — not in whitelist. "
+        f"Rejected sort field '{sort_by}' — not in whitelist. "  # noqa: G004
         f"Falling back to 'created_at'. "
         f"Allowed: {sorted(_SORT_WHITELIST)}"
     )
@@ -918,7 +918,7 @@ class DatabaseService:
                 )
             except Exception as e:
                 logger.exception("Error persisting connection: %s", e)
-                raise RuntimeError(f"Failed to persist connection: {e}")
+                raise RuntimeError(f"Failed to persist connection: {e}") from None
 
             # V191 FIX: The V188 code put both update_element calls in ONE
             # try/except block. If the first raised, the second was SKIPPED —

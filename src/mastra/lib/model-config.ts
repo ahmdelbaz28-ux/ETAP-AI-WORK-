@@ -39,13 +39,6 @@ const OPENAI_API_KEY = process.env.OPENAI_API_KEY ?? '';
 const OPENAI_BASE_URL = process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1';
 const ACTIVE_MODEL_ID = process.env.OPENAI_MODEL_ID || process.env.OPENAI_MODEL || 'gpt-4o';
 
-const OPENAI_BASE_URL =
-  process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1';
-const ACTIVE_MODEL_ID =
-  process.env.OPENAI_MODEL_ID ||
-  process.env.OPENAI_MODEL ||
-  'gpt-4o';
-
 // Single shared OpenAI client. createOpenAI() does NOT throw if the API
 // key is missing — it only fails when an actual API call is made. This
 // lets `mastra build` succeed in CI without secrets.
@@ -103,10 +96,6 @@ export function getProviderStatus(): ProviderConfig[] {
  * the test fails with a clear error message.
  */
 export async function testProviderById(id: string): Promise<ProviderTestResult> {
-
-export async function testProviderById(
-  id: string,
-): Promise<ProviderTestResult> {
   const providers = getProviderStatus();
   const provider = providers.find((p) => p.name === id);
   if (!provider) {
@@ -115,10 +104,6 @@ export async function testProviderById(
       error: `Unknown provider: ${id}. Configured providers: ${
         providers.map((p) => p.name).join(', ') || '(none)'
       }`,
-
-      error: `Unknown provider: ${id}. Configured providers: ${providers
-        .map((p) => p.name)
-        .join(', ') || '(none)'}`,
     };
   }
 

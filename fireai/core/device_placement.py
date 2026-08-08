@@ -29,7 +29,7 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from fireai.constants.nfpa72 import (
@@ -58,7 +58,7 @@ from fireai.core.qomn_kernel import (
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
-class DetectorType(str, Enum):
+class DetectorType(StrEnum):
     SMOKE = "smoke"
     HEAT = "heat"
     DUCT = "duct"
@@ -67,7 +67,7 @@ class DetectorType(str, Enum):
     MULTI = "multi"
 
 
-class OccupancyType(str, Enum):
+class OccupancyType(StrEnum):
     """Occupancy types per NFPA 101-2021."""
 
     ASSEMBLY = "assembly"
@@ -82,7 +82,7 @@ class OccupancyType(str, Enum):
     HIGH_HAZARD = "high_hazard"
 
 
-class CeilingType(str, Enum):
+class CeilingType(StrEnum):
     FLAT = "flat"
     SLOPED = "sloped"
     PEAKED = "peaked"
@@ -562,7 +562,7 @@ class DetectorPlacementEngine:
             import logging
             _pull_logger = logging.getLogger(__name__)
             _pull_logger.warning(
-                f"Room {room.room_id}: Pull stations placed on right side of "
+                f"Room {room.room_id}: Pull stations placed on right side of "  # noqa: G004
                 f"exit doors. Verify latch-side placement per ADA/IBC — door "
                 f"swing direction not available in data model."
             )

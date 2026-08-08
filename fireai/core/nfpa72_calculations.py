@@ -1215,7 +1215,7 @@ def calculate_inrush_current(
         import logging
         logger = logging.getLogger(__name__)
         logger.warning(
-            f"Unknown device type '{device_type}' — using conservative defaults "
+            f"Unknown device type '{device_type}' — using conservative defaults "  # noqa: G004
             f"(0.25A steady / 0.63A inrush). VERIFY actual current draw with "
             f"manufacturer datasheet. Incorrect current assumptions can cause "
             f"devices to fail during alarm (NFPA 72 §10.14.1)."

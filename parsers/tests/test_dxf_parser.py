@@ -587,7 +587,7 @@ class TestDXFParserErrorHandling:
 
     def test_missing_file_raises(self, parser):
         """Missing DXF file raises an error."""
-        with pytest.raises(Exception):  # NOSONAR — S5958: parameter name documents intent at call site
+        with pytest.raises(Exception):  # NOSONAR — S5958: parameter name documents intent at call site  # noqa: B017
             parser.parse("/tmp/does_not_exist_xyzzy.dxf")  # NOSONAR — S5443: safe in test (uses tempfile + cleanup)
 
     def test_empty_dxf_raises(self, parser):

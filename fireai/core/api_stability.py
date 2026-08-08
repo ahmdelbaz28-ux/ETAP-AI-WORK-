@@ -385,4 +385,4 @@ def check_api_compatibility(plugin_requires: str) -> None:
                 f"Plugin must be updated for MAJOR version {API_VERSION_TUPLE[0]}."
             )
     except ValueError:
-        raise ValueError(f"Invalid plugin_requires version: {plugin_requires!r}")
+        raise ValueError(f"Invalid plugin_requires version: {plugin_requires!r}") from None

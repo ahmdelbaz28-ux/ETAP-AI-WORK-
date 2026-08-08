@@ -23,7 +23,6 @@ import yaml
 
 from scada_protocols.common.base import AdapterRole
 
-
 # ---------------------------------------------------------------------------
 # Per-protocol config dataclasses
 # ---------------------------------------------------------------------------

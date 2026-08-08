@@ -2,7 +2,6 @@
 
 from copilot.ai.drawing_engine import AIDrawingEngine, IntentParser, ModelGenerator
 
-
 __all__ = [
     "AIDrawingEngine",
     "IntentParser",

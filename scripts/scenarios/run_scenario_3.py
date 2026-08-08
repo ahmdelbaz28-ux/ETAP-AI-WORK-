@@ -28,7 +28,6 @@ import sys
 import time
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
 
 PROJECT_ROOT = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
@@ -54,6 +53,7 @@ async def run_bridge() -> None:
 async def run_consumer() -> None:
     """تشغيل SCADA consumer (MQTT → TimescaleDB + anomaly detection)."""
     import ssl
+
     import paho.mqtt.client as mqtt
 
     # ─── Setup TimescaleDB ────────────────────────────────────────

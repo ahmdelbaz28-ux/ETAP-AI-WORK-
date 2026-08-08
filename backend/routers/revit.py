@@ -488,7 +488,7 @@ async def connect_to_revit(request: ConnectRequest = None) -> ConnectResponse:
     except HTTPException:
         raise
     except Exception as e:
-        raise _safe_error(503, "Failed to connect to Revit", e)
+        raise _safe_error(503, "Failed to connect to Revit", e) from None
 
 
 @router.post("/disconnect", response_model=ConnectResponse, tags=["revit"])  # NOSONAR - python:S8409
@@ -507,7 +507,7 @@ async def disconnect_from_revit() -> ConnectResponse:
     except HTTPException:
         raise
     except Exception as e:
-        raise _safe_error(500, "Failed to disconnect from Revit", e)
+        raise _safe_error(500, "Failed to disconnect from Revit", e)  # noqa: B904
 
 
 @router.get("/status", response_model=StatusResponse, tags=["revit"])  # NOSONAR - python:S8409
@@ -528,7 +528,7 @@ async def get_revit_status() -> StatusResponse:
     except HTTPException:
         raise
     except Exception as e:
-        raise _safe_error(500, "Error getting Revit status", e)
+        raise _safe_error(500, "Error getting Revit status", e) from None
 
 
 # =============================================================================
@@ -619,7 +619,7 @@ async def write_rvt_file(request: WriteRvtRequest) -> Dict[str, Any]:
 @router.post("/upload_rvt", tags=["revit"], dependencies=[Depends(require_permission(Permission.ELEMENT_CREATE))])
 @router.post("/upload", tags=["revit"], dependencies=[Depends(require_permission(Permission.ELEMENT_CREATE))])
 @limiter.limit("10/minute")
-async def upload_and_read_rvt(request: Request, file: UploadFile = File(...)) -> Dict[str, Any]:  # NOSONAR - python:S8410
+async def upload_and_read_rvt(request: Request, file: UploadFile = File(...)) -> Dict[str, Any]:  # NOSONAR - python:S8410  # noqa: B008
     """
     Upload an RVT file and read its contents.
 

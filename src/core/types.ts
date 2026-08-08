@@ -2,15 +2,13 @@
  * Shared types for the worker.
  * Security additions: TRUSTED_ORIGINS, AUDIT_HMAC_SECRET, AUDIT_KV, IP_BLOCK_KV.
  */
-export interface Env {
-  // AI provider secrets
 
 /**
  * Shared types for the worker.
  * Kept in core/ so every module can import without circular deps.
  */
 export interface Env {
-  // AI provider secrets (only NVIDIA + OpenAI are used; see src/core/config.ts)
+  // AI provider secrets
   OPENAI_API_KEY?: string;
   OPENAI_BASE_URL?: string;
   OPENAI_MODEL?: string;

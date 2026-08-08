@@ -179,10 +179,7 @@ def _looks_sensitive(key: str, value: str) -> bool:
         return True
 
     # Connection string with embedded password
-    if re.match(r"^[a-z+]+://[^:]+:[^@]+@", value, re.IGNORECASE):
-        return True
-
-    return False
+    return bool(re.match(r"^[a-z+]+://[^:]+:[^@]+@", value, re.IGNORECASE))
 
 
 # ------------------------------------------------------------------ LogLevel

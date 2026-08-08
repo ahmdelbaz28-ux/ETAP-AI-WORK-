@@ -788,8 +788,8 @@ class TestModuleReExports:
 
     def test_import_point3d(self) -> None:
         """Test that Point3D is importable from core."""
-        from core import Point3D as P
-        assert P is Point3D
+        from core import Point3D as point_cls  # noqa: N813,N814
+        assert point_cls is Point3D
 
     def test_import_geometry(self) -> None:
         """Test that Geometry is importable from core."""

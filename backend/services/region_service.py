@@ -33,14 +33,14 @@ from __future__ import annotations
 import logging
 import os
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 
 import httpx
 
 logger = logging.getLogger(__name__)
 
 
-class RegulatoryFramework(str, Enum):
+class RegulatoryFramework(StrEnum):
     """International regulatory frameworks supported by FireAI."""
 
     NFPA = "nfpa"            # US: NFPA 72, NEC
@@ -55,7 +55,7 @@ class RegulatoryFramework(str, Enum):
     STANDARD_IEC = "standard_iec"  # Default: IEC standards
 
 
-class ElectricalCode(str, Enum):
+class ElectricalCode(StrEnum):
     """Electrical code standards."""
 
     NEC = "nec"      # US: National Electrical Code (NFPA 70)
@@ -270,13 +270,13 @@ class RegionService:
                 )
         except Exception as e:
             logger.warning(  # NOSONAR
-                f"REST Countries API failed for {cc}: {e}. "
+                f"REST Countries API failed for {cc}: {e}. "  # noqa: G004
                 f"Using IEC defaults."
             )
 
         # 3. Default to IEC (most internationally applicable)
         logger.warning(  # NOSONAR
-            f"Unknown country code '{cc}'. Defaulting to IEC standards."
+            f"Unknown country code '{cc}'. Defaulting to IEC standards."  # noqa: G004
         )
         return RegionContext(
             country_code=cc,

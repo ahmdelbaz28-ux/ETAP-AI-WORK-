@@ -65,7 +65,7 @@ import struct
 import zipfile
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -88,7 +88,7 @@ USDZ_USDA_FILENAME = "scene.usda"
 # ---------------------------------------------------------------------------
 
 
-class ARExportFormat(str, Enum):
+class ARExportFormat(StrEnum):
     """AR export format options."""
 
     GLB = "glb"      # Binary glTF 2.0 — Unity/Web/Android
@@ -96,7 +96,7 @@ class ARExportFormat(str, Enum):
     BOTH = "both"    # Export both formats
 
 
-class ARVisibilityMode(str, Enum):
+class ARVisibilityMode(StrEnum):
     """AR visibility modes for behind-the-wall display."""
 
     NORMAL = "normal"             # Only visible elements shown

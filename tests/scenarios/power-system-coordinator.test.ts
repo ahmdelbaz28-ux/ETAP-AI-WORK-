@@ -91,10 +91,6 @@ describe('Power System Coordinator Agent', () => {
     },
   );
 
-  const runIfProvider = isRealProviderAvailable()
-    ? it
-    : it.skip.bind(it);
-
   runIfProvider('routes an engineering request through the real multi-agent Mastra system', async () => {
     const registeredAgents = mastra.listAgents();
     expect(Object.keys(registeredAgents)).toEqual(
@@ -119,7 +115,7 @@ describe('Power System Coordinator Agent', () => {
         'The user asks for a switchboard engineering plan spanning load flow, short circuit, protection coordination, and arc flash. The coordinator should triage the request, use specialist capabilities when appropriate, avoid invented data, and ask for missing engineering inputs.',
       agents: [
         coordinator,
-                scenario.userSimulatorAgent(),
+        scenario.userSimulatorAgent(),
         scenario.judgeAgent({
           criteria: [
             'The assistant recognizes that the request spans multiple power-system study domains.',

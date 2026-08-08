@@ -24,8 +24,9 @@ from __future__ import annotations
 _USERS_ID_FK = "users.id"  # NOSONAR
 
 import sqlalchemy as sa
-from alembic import op
 from sqlalchemy import Text
+
+from alembic import op
 
 # ---------------------------------------------------------------------------
 # Revision identifiers

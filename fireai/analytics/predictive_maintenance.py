@@ -19,7 +19,7 @@ import logging
 import math
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from enum import Enum
+from enum import StrEnum
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
 # ===========================================================================
 
 
-class AssetType(str, Enum):
+class AssetType(StrEnum):
     DETECTOR_SMOKE = "DETECTOR_SMOKE"
     DETECTOR_HEAT = "DETECTOR_HEAT"
     DETECTOR_FLAME = "DETECTOR_FLAME"
@@ -41,14 +41,14 @@ class AssetType(str, Enum):
     CABLE = "CABLE"
 
 
-class RiskLevel(str, Enum):
+class RiskLevel(StrEnum):
     CRITICAL = "CRITICAL"
     HIGH = "HIGH"
     MEDIUM = "MEDIUM"
     LOW = "LOW"
 
 
-class MaintenanceType(str, Enum):
+class MaintenanceType(StrEnum):
     INSPECTION = "INSPECTION"
     TEST = "TEST"
     REPAIR = "REPAIR"
