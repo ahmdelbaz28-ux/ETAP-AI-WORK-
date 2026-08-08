@@ -35,6 +35,14 @@
       "sourceType": "github",
       "skillPath": "skills/in-progress/wizard/SKILL.md",
       "computedHash": "c75a4b0f51705c6bbbc5c2082d927380198219bdcba8ff64832b689564d57b48"
+    },
+    "rag-blueprint": {
+      "source": "NVIDIA/skills",
+      "sourceType": "github",
+      "skillPath": ".agents/skills/rag-blueprint/SKILL.md",
+      "computedHash": "e890b21a37c98b671a4f08920194bc028fa160912185c60205847b2c58908321",
+      "_note": "NVIDIA RAG Blueprint skill for enterprise multimodal RAG, hybrid search, and guardrails."
     }
   }
 }
+
