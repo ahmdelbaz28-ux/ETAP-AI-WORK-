@@ -402,7 +402,7 @@ def _extract_gis_features(gis_source: str, gis_project_path: str) -> list[dict[s
 
 
 def _compute_diff(
-    gis_features: list[dict[str, Any]], _etap_project_path: str, trace_id: str,
+    gis_features: list[dict[str, Any]], etap_project_path: str, trace_id: str,
 ) -> dict[str, list]:
     creates, updates, deletes = [], [], []
 
