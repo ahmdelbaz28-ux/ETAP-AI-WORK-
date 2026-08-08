@@ -1,3 +1,5 @@
+import { secureRandom } from "./hooks";
+
 // AhmedETAP GSAP Animation Presets
 // =================================
 // Pre-configured animation sequences for engineering UI
@@ -119,7 +121,7 @@ export function loginPagePowerGridAnimation(canvas: HTMLCanvasElement) {
         ctx.beginPath();
         ctx.moveTo(x, 0);
         ctx.lineTo(x, gridHeight);
-        ctx.strokeStyle = `rgba(70, 120, 200, ${0.1 + Math.random() * 0.05})`;
+        ctx.strokeStyle = `rgba(70, 120, 200, ${0.1 + secureRandom() * 0.05})`;
         ctx.lineWidth = 1;
         ctx.stroke();
       }
@@ -129,7 +131,7 @@ export function loginPagePowerGridAnimation(canvas: HTMLCanvasElement) {
         ctx.beginPath();
         ctx.moveTo(0, y);
         ctx.lineTo(gridWidth, y);
-        ctx.strokeStyle = `rgba(70, 120, 200, ${0.1 + Math.random() * 0.05})`;
+        ctx.strokeStyle = `rgba(70, 120, 200, ${0.1 + secureRandom() * 0.05})`;
         ctx.lineWidth = 1;
         ctx.stroke();
       }

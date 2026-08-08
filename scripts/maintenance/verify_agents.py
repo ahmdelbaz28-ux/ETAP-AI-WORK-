@@ -56,7 +56,7 @@ def _check_required_methods(agent_class: ast.ClassDef) -> list[str]:
     return issues
 
 
-def _check_agent_class(agent_class: ast.ClassDef, filepath: str) -> list[str]:
+def _check_agent_class(agent_class: ast.ClassDef, _filepath: str) -> list[str]:
     """Run all checks on a single agent class."""
     issues = []
     issues.extend(_check_inherits_base(agent_class))

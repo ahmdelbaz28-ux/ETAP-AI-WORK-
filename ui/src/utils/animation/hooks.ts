@@ -1,3 +1,10 @@
+// Secure pseudorandom helper using Web Crypto CSPRNG (sonar:S2245).
+export function secureRandom(): number {
+  const a = new Uint32Array(1);
+  crypto.getRandomValues(a);
+  return a[0] / 4294967296;
+}
+
 // AhmedETAP GSAP React Hooks
 // ===========================
 // Custom React hooks for seamless GSAP integration with React components
@@ -276,16 +283,16 @@ export function useGSAPParticleSystem(canvasRef: React.RefObject<HTMLCanvasEleme
     const particles: Particle[] = [];
     for (let i = 0; i < particleCount; i++) {
       particles.push({
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height,
+        x: secureRandom() * canvas.width,
+        y: secureRandom() * canvas.height,
         size: particleSize,
-        baseX: Math.random() * canvas.width,
-        baseY: Math.random() * canvas.height,
-        speed: particleSpeed * (Math.random() * 0.5 + 0.5),
-        directionAngle: Math.random() * Math.PI * 2,
+        baseX: secureRandom() * canvas.width,
+        baseY: secureRandom() * canvas.height,
+        speed: particleSpeed * (secureRandom() * 0.5 + 0.5),
+        directionAngle: secureRandom() * Math.PI * 2,
         velocity: {
-          x: Math.cos(Math.random() * Math.PI * 2) * particleSpeed,
-          y: Math.sin(Math.random() * Math.PI * 2) * particleSpeed
+          x: Math.cos(secureRandom() * Math.PI * 2) * particleSpeed,
+          y: Math.sin(secureRandom() * Math.PI * 2) * particleSpeed
         }
       });
     }

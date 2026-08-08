@@ -263,6 +263,7 @@ export function Sidebar() {
         </div>
 
         <button
+          type="button"
           onClick={toggleTheme}
           className={cn(
             'w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text-primary)] transition-colors',
@@ -286,6 +287,7 @@ export function Sidebar() {
         </button>
 
         <button
+          type="button"
           onClick={toggleSidebar}
           className={cn(
             'w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-[var(--text-muted)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text-secondary)] transition-colors',

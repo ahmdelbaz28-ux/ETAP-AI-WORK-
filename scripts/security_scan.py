@@ -57,7 +57,7 @@ EXCLUDED_PATHS = {
     "tests/test_security_e2e.py",
     "tests/conftest.py",  # defines _TEST_DEFAULT_PASSWORD for test fixtures
     "tests/test_secrets_manager.py",
-    "tests/test_new_features.py",
+    # removed duplicate key (sonar:S5781): "tests/test_new_features.py",
     "acp_runtime/tests/test_integration.py",
     "acp_runtime/acp_tests/test_integration.py",
     # Security fixtures — these files DEFINE the blocklist / redaction rules.
