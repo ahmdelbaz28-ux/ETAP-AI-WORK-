@@ -632,7 +632,7 @@ class RoutingEngineV10:
         """
         if n_workers > 1:
             log.warning(
-                f"route_batch: n_workers={n_workers} requested but "
+                f"route_batch: n_workers={n_workers} requested but "  # noqa: G004
                 f"RoutingEngineV10 is not thread-safe. Using sequential."
             )
         return [self.route(s, e) for s, e in segments]

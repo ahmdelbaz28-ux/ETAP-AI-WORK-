@@ -113,7 +113,7 @@ class FloorResult:
             import logging
 
             logging.getLogger(__name__).error(
-                f"Room count mismatch: {counted} counted vs {self.total_rooms} total. "
+                f"Room count mismatch: {counted} counted vs {self.total_rooms} total. "  # noqa: G004
                 f"Some rooms have unrecognized status — downgrading to ERROR."
             )
             self.status = "ERROR"
@@ -383,7 +383,7 @@ class FloorOrchestrator:
                             f"({adaptive_result.coverage_percent:.1f}% coverage)"
                         )
                         logger.info(
-                            f"  {spec.name}: ADAPTIVE RE-SOLVE succeeded "
+                            f"  {spec.name}: ADAPTIVE RE-SOLVE succeeded "  # noqa: G004
                             f"({adaptive_result.num_devices} detectors, "
                             f"{adaptive_result.coverage_percent:.1f}%)"
                         )

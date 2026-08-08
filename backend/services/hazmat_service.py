@@ -371,7 +371,7 @@ class HazmatService:
         - Low AIT = restrictive temperature class = conservative
         """
         logger.warning(
-            f"Using CONSERVATIVE DEFAULT hazmat data for '{material_name}'. "
+            f"Using CONSERVATIVE DEFAULT hazmat data for '{material_name}'. "  # noqa: G004
             f"Material not in internal DB and PubChem unavailable. "
             f"Assuming most restrictive classification."
         )
@@ -424,12 +424,12 @@ class HazmatService:
             return data
         except (httpx.HTTPError, ValueError, KeyError) as e:
             logger.warning(
-                f"PubChem fetch failed for '{material_name}': "
+                f"PubChem fetch failed for '{material_name}': "  # noqa: G004
                 f"{type(e).__name__}: {e}. Using defaults."
             )
         except Exception as e:
             logger.exception(
-                f"Unexpected error fetching hazmat data for '{material_name}': "
+                f"Unexpected error fetching hazmat data for '{material_name}': "  # noqa: G004
                 f"{type(e).__name__}: {e}. Using defaults."
             )
 

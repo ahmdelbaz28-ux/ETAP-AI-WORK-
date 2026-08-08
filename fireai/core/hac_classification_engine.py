@@ -469,7 +469,7 @@ def _iec_annex_b_extent(  # NOSONAR — S3776: cognitive complexity is inherent 
         import logging as _hac_log
 
         _hac_log.getLogger(__name__).critical(
-            f"IEC Annex B: Computed Vz ({Vz_diluted_m3:.1f} m³) exceeds room volume "  # NOSONAR - python:S3827
+            f"IEC Annex B: Computed Vz ({Vz_diluted_m3:.1f} m³) exceeds room volume "  # NOSONAR - python:S3827  # noqa: G004
             f"({room_volume_m3:.1f} m³). Entire room is potentially hazardous. "
             f"[IEC 60079-10-1 Annex B §B.3]"
         )

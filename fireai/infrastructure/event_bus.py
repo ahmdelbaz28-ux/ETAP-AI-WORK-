@@ -362,7 +362,7 @@ class InMemoryEventBus(EventBus):
             except Exception as e:
                 last_error = str(e)
                 logger.warning(
-                    f"Handler {handler.__name__} failed on attempt {attempt}/{self._retry_policy.max_retries} "
+                    f"Handler {handler.__name__} failed on attempt {attempt}/{self._retry_policy.max_retries} "  # noqa: G004
                     f"for event {event.id}: {e}"
                 )
                 if attempt < self._retry_policy.max_retries:
@@ -378,7 +378,7 @@ class InMemoryEventBus(EventBus):
             attempt_count=self._retry_policy.max_retries,
         ))
         logger.error(
-            f"Event {event.id} moved to DLQ after {self._retry_policy.max_retries} failed attempts "
+            f"Event {event.id} moved to DLQ after {self._retry_policy.max_retries} failed attempts "  # noqa: G004
             f"to handler {handler.__name__}: {last_error}"
         )
 
@@ -552,7 +552,7 @@ class RedisEventBus(EventBus):
                 except Exception as e:
                     last_error = str(e)
                     logger.warning(
-                        f"Handler {handler.__name__} attempt {attempt} failed for event {event.id}: {e}"
+                        f"Handler {handler.__name__} attempt {attempt} failed for event {event.id}: {e}"  # noqa: G004
                     )
                     if attempt < self._retry_policy.max_retries:
                         await asyncio.sleep(self._retry_policy.delay(attempt))
@@ -721,7 +721,7 @@ class KafkaEventBus(EventBus):
                 except Exception as e:
                     last_error = str(e)
                     logger.warning(
-                        f"Handler {handler.__name__} attempt {attempt} failed for event {event.id}: {e}"
+                        f"Handler {handler.__name__} attempt {attempt} failed for event {event.id}: {e}"  # noqa: G004
                     )
                     if attempt < self._retry_policy.max_retries:
                         await asyncio.sleep(self._retry_policy.delay(attempt))

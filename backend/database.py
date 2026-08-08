@@ -826,7 +826,7 @@ class Database:
             deleted_conns = cur.rowcount
             if deleted_conns > 0:
                 logger.info(  # NOSONAR
-                    f"Deleted {deleted_conns} orphaned connection(s) for device {device_id}"
+                    f"Deleted {deleted_conns} orphaned connection(s) for device {device_id}"  # noqa: G004
                 )
             cur.execute(
                 f"DELETE FROM devices WHERE id = {self._ph()} AND project_id = {self._ph()}",

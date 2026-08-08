@@ -61,7 +61,7 @@ def _get_or_create_api_key() -> str:
     # Development: auto-generate and warn
     generated = secrets.token_urlsafe(32)
     logger.warning(
-        "\n"
+        "\n"  # noqa: G004
         "╔══════════════════════════════════════════════════════════════╗\n"
         "║  ⚠️  FIREAI_API_KEY not set — auto-generated for dev:      ║\n"
         f"║  {generated:<57s}║\n"
@@ -93,7 +93,7 @@ def _init_api_keys() -> None:
             # Development: auto-generate and warn
             generated = secrets.token_urlsafe(32)
             logger.warning(
-                "\n"
+                "\n"  # noqa: G004
                 "╔══════════════════════════════════════════════════════════════╗\n"
                 "║  FIREAI_API_KEYS not set — auto-generated for dev:         ║\n"
                 f"║  {generated:<57s}║\n"

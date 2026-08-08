@@ -776,7 +776,7 @@ class ConduitSizer:
                     }
                 )
                 logger.info(
-                    f"Conduit-wire feedback loop: bundle '{bundle_id}' "
+                    f"Conduit-wire feedback loop: bundle '{bundle_id}' "  # noqa: G004
                     f"AWG {original_awg} → {upgraded_awg} "
                     f"(voltage-drop upsized)"
                 )

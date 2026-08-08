@@ -281,7 +281,7 @@ class HazardOverrideVerifier:
             if is_more_severe(mandatory_hazard, ml_predicted_hazard):
                 # SAFETY OVERRIDE: mandatory is more severe than prediction
                 logger.warning(
-                    f"[SAFETY OVERRIDE]: Room '{room_name}' matched keyword "
+                    f"[SAFETY OVERRIDE]: Room '{room_name}' matched keyword "  # noqa: G004
                     f"'{matched_keyword}'. ML prediction '{ml_predicted_hazard}' "
                     f"overridden to '{mandatory_hazard}'. "
                     "This override is NON-BYPASSABLE per NFPA 13 / SBC 801."
@@ -317,7 +317,7 @@ class HazardOverrideVerifier:
         # No keyword match — apply minimum default if prediction is below it
         if is_more_severe(self._minimum_default, ml_predicted_hazard):
             logger.warning(
-                f"[SAFETY DEFAULT]: Room '{room_name}' has no keyword match. "
+                f"[SAFETY DEFAULT]: Room '{room_name}' has no keyword match. "  # noqa: G004
                 f"ML prediction '{ml_predicted_hazard}' is below minimum default "
                 f"'{self._minimum_default}'. Applying safe minimum."
             )

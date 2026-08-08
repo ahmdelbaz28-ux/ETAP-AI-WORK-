@@ -469,7 +469,7 @@ def calculate_strobe_candela(  # NOSONAR — S3776: cognitive complexity is inhe
     # may not provide adequate coverage. Flag for manual FPE review.
     if room_area_sqft > table[-1][0]:
         logger.warning(
-            f"Room area {room_area_sqft:.0f} sq ft exceeds NFPA 72 "
+            f"Room area {room_area_sqft:.0f} sq ft exceeds NFPA 72 "  # noqa: G004
             f"Table 18.5.5.1 maximum ({table[-1][0]} sq ft). "
             f"Using {required_candela} cd (last table value) — "
             f"manual fire protection engineer review REQUIRED per "

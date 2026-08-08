@@ -91,7 +91,7 @@ class ConnectionManager:
 
         if current_count >= self.MAX_CONNECTIONS_PER_IP:
             logger.warning(
-                f"WebSocket connection rejected for IP {client_ip}: "
+                f"WebSocket connection rejected for IP {client_ip}: "  # noqa: G004
                 f"limit of {self.MAX_CONNECTIONS_PER_IP} concurrent connections exceeded "
                 f"(current: {current_count})"
             )
@@ -111,7 +111,7 @@ class ConnectionManager:
         self._ip_connections[client_ip].append(websocket)
 
         logger.info(
-            f"WebSocket client connected from {client_ip}. "
+            f"WebSocket client connected from {client_ip}. "  # noqa: G004
             f"Total: {len(self.active_connections)}, "
             f"IP connections: {len(self._ip_connections[client_ip])}/{self.MAX_CONNECTIONS_PER_IP}"
         )
@@ -339,7 +339,7 @@ async def websocket_endpoint(websocket: WebSocket) -> None:  # NOSONAR — S3776
     # ── Origin check ────────────────────────────────────────────────────
     if not _validate_ws_origin(websocket):
         logger.warning(
-            f"WebSocket connection rejected: invalid origin "
+            f"WebSocket connection rejected: invalid origin "  # noqa: G004
             f"origin={websocket.headers.get('origin', 'missing')} "
             f"client={websocket.client.host if websocket.client else 'unknown'}"
         )
@@ -355,7 +355,7 @@ async def websocket_endpoint(websocket: WebSocket) -> None:  # NOSONAR — S3776
     current_ip_count = len(manager._ip_connections.get(client_ip, []))
     if current_ip_count >= manager.MAX_CONNECTIONS_PER_IP:
         logger.warning(
-            f"WebSocket connection rejected for IP {client_ip}: "
+            f"WebSocket connection rejected for IP {client_ip}: "  # noqa: G004
             f"limit of {manager.MAX_CONNECTIONS_PER_IP} concurrent connections exceeded "
             f"(current: {current_ip_count})"
         )
@@ -457,7 +457,7 @@ async def websocket_endpoint(websocket: WebSocket) -> None:  # NOSONAR — S3776
         manager._ip_connections[client_ip] = []
     manager._ip_connections[client_ip].append(websocket)
     logger.info(
-        f"WebSocket client authenticated and connected from {client_ip}. "
+        f"WebSocket client authenticated and connected from {client_ip}. "  # noqa: G004
         f"Total: {len(manager.active_connections)}, "
         f"IP connections: {len(manager._ip_connections[client_ip])}/{manager.MAX_CONNECTIONS_PER_IP}"
     )

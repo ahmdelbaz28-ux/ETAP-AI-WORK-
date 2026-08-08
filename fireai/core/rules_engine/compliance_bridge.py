@@ -476,7 +476,7 @@ class NFPA72ComplianceChecker:
         )
         fid = self.engine.assert_fact(fact)
         logger.info(
-            f"Battery result added: required={required_ah:.2f}Ah, "
+            f"Battery result added: required={required_ah:.2f}Ah, "  # noqa: G004
             f"installed={installed_ah:.2f}Ah, "
             f"adequate={is_adequate}"
         )
@@ -530,7 +530,7 @@ class NFPA72ComplianceChecker:
         )
         fid = self.engine.assert_fact(fact)
         logger.info(
-            f"Fault isolation result added: devices={device_count}, isolators={isolator_count}, compliant={compliant}"
+            f"Fault isolation result added: devices={device_count}, isolators={isolator_count}, compliant={compliant}"  # noqa: G004
         )
         return fid
 
@@ -566,7 +566,7 @@ class NFPA72ComplianceChecker:
 
         # Log summary
         logger.info(
-            f"Compliance evaluation complete: "
+            f"Compliance evaluation complete: "  # noqa: G004
             f"safe={report.is_safe}, "
             f"critical={len(report.critical_issues)}, "
             f"violations={len(report.violations)}, "

@@ -84,7 +84,7 @@ async def test_individual_agents():
                 result = await asyncio.wait_for(agent.execute(task), timeout=10.0)
 
                 # Log the result status
-                logger.info(f"✓ {agent_name} executed successfully - Status: {result.status.value}")
+                logger.info(f"✓ {agent_name} executed successfully - Status: {result.status.value}")  # noqa: G004
 
                 results[agent_name] = {
                     "status": "SUCCESS",
@@ -96,11 +96,11 @@ async def test_individual_agents():
                 logger.warning("⚠ %s timed out during execution", agent_name)
                 results[agent_name] = {"status": "TIMEOUT", "error": "Execution timed out"}
             except Exception as e:
-                logger.warning(f"⚠ {agent_name} execution failed: {str(e)}")
+                logger.warning(f"⚠ {agent_name} execution failed: {str(e)}")  # noqa: G004
                 results[agent_name] = {"status": "EXECUTION_ERROR", "error": str(e)}
 
         except Exception as e:
-            logger.error(f"✗ {agent_name} failed to instantiate: {str(e)}")
+            logger.error(f"✗ {agent_name} failed to instantiate: {str(e)}")  # noqa: G004
             results[agent_name] = {"status": "INSTANTIATION_ERROR", "error": str(e)}
 
     return results
@@ -122,7 +122,7 @@ async def test_orchestrator():
         )
 
         agent_info = orchestrator.get_agents_info()
-        logger.info(f"✓ Orchestrator retrieved info for {len(agent_info.get('agents', []))} agents")
+        logger.info(f"✓ Orchestrator retrieved info for {len(agent_info.get('agents', []))} agents")  # noqa: G004
 
         test_system = await create_test_system()
         parameters = {"test_mode": True}
@@ -150,13 +150,13 @@ async def test_orchestrator():
             logger.warning("⚠ Orchestrator execution timed out")
             orchestrator_result = {"status": "TIMEOUT", "error": "Execution timed out"}
         except Exception as e:
-            logger.warning(f"⚠ Orchestrator execution failed: {str(e)}")
+            logger.warning(f"⚠ Orchestrator execution failed: {str(e)}")  # noqa: G004
             orchestrator_result = {"status": "EXECUTION_ERROR", "error": str(e)}
 
         return orchestrator_result
 
     except Exception as e:
-        logger.error(f"✗ Orchestrator test failed: {str(e)}")
+        logger.error(f"✗ Orchestrator test failed: {str(e)}")  # noqa: G004
         return {"status": "ERROR", "error": str(e)}
 
 
@@ -197,7 +197,7 @@ async def main():
         return 0
     else:
         logger.warning(
-            f"⚠ {total_agents - successful_agents} agents failed basic functionality tests"
+            f"⚠ {total_agents - successful_agents} agents failed basic functionality tests"  # noqa: G004
         )
         return 1
 

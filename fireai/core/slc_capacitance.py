@@ -256,7 +256,7 @@ class SLCCapacitanceAuditor:
                 # may be tighter (e.g., 0.3µF vs default 0.5µF), so a loop at 0.45µF
                 # would be falsely marked compliant.
                 logger.warning(
-                    f"Unknown manufacturer '{loop_mfr}' for SLC loop '{loop_id}'; "
+                    f"Unknown manufacturer '{loop_mfr}' for SLC loop '{loop_id}'; "  # noqa: G004
                     f"using default {self.max_cap_uf} µF which may EXCEED the "
                     f"actual panel limit. Verify with manufacturer installation manual."
                 )
@@ -288,7 +288,7 @@ class SLCCapacitanceAuditor:
             if cap_pf_per_m is None:
                 cap_pf_per_m = max(CABLE_CAPACITANCE_PF_PER_M.values())  # 164.0
                 logger.warning(
-                    f"Unknown wire_type '{wire_type}' for SLC loop '{loop_id}'; "
+                    f"Unknown wire_type '{wire_type}' for SLC loop '{loop_id}'; "  # noqa: G004
                     f"using conservative default {cap_pf_per_m} pF/m. "
                     f"Specify a known cable type for accurate results."
                 )

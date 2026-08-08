@@ -240,7 +240,7 @@ class WeatherService:
         )
 
         logger.info(
-            f"Weather fetched from Open-Meteo: "
+            f"Weather fetched from Open-Meteo: "  # noqa: G004
             f"lat={latitude:.4f}, lon={longitude:.4f}, "
             f"T={weather.temperature_c:.1f}°C, "
             f"WS={weather.wind_speed_m_s:.1f}m/s, "
@@ -258,7 +258,7 @@ class WeatherService:
         - 50% humidity (mid-range for acoustic propagation)
         """
         logger.warning(
-            f"Using CONSERVATIVE DEFAULT weather data for "
+            f"Using CONSERVATIVE DEFAULT weather data for "  # noqa: G004
             f"lat={latitude:.4f}, lon={longitude:.4f}. "
             f"External API unavailable. Calculations proceed with safe defaults."
         )
@@ -296,7 +296,7 @@ class WeatherService:
         # Validate coordinates
         if not (-90 <= latitude <= 90 and -180 <= longitude <= 180):
             logger.warning(
-                f"Invalid coordinates: lat={latitude}, lon={longitude}. "
+                f"Invalid coordinates: lat={latitude}, lon={longitude}. "  # noqa: G004
                 f"Using defaults."
             )
             return self._get_default(latitude, longitude)
@@ -313,7 +313,7 @@ class WeatherService:
             return weather
         except (httpx.HTTPError, ValueError, KeyError) as e:
             logger.warning(
-                f"Open-Meteo fetch failed for lat={latitude:.4f}, "
+                f"Open-Meteo fetch failed for lat={latitude:.4f}, "  # noqa: G004
                 f"lon={longitude:.4f}: {type(e).__name__}: {e}. "
                 f"Using conservative defaults."
             )
@@ -321,7 +321,7 @@ class WeatherService:
         except Exception as e:
             # Catch-all: external API must NEVER crash the calculation engine
             logger.exception(
-                f"Unexpected error fetching weather for lat={latitude:.4f}, "
+                f"Unexpected error fetching weather for lat={latitude:.4f}, "  # noqa: G004
                 f"lon={longitude:.4f}: {type(e).__name__}: {e}. "
                 f"Using conservative defaults."
             )

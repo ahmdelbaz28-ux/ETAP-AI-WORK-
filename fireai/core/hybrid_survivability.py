@@ -671,6 +671,6 @@ class HybridSurvivabilityEngine:
             json.dump(payload, f, ensure_ascii=False, indent=2)
 
         logger.info(
-            f"Heatmap JSON exported: {output_path} ({total_pts} points, {cls_counts['BLIND_SPOT']} blind spots)"
+            f"Heatmap JSON exported: {output_path} ({total_pts} points, {cls_counts['BLIND_SPOT']} blind spots)"  # noqa: G004
         )
         return output_path

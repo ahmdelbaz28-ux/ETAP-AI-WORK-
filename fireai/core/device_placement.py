@@ -562,7 +562,7 @@ class DetectorPlacementEngine:
             import logging
             _pull_logger = logging.getLogger(__name__)
             _pull_logger.warning(
-                f"Room {room.room_id}: Pull stations placed on right side of "
+                f"Room {room.room_id}: Pull stations placed on right side of "  # noqa: G004
                 f"exit doors. Verify latch-side placement per ADA/IBC — door "
                 f"swing direction not available in data model."
             )

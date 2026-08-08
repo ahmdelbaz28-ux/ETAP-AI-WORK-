@@ -440,7 +440,7 @@ class SevereWeatherService:
         """
         client = await self._get_client()
         logger.info(
-            f"Fetching NWS alerts: lat={latitude:.4f}, lon={longitude:.4f}"
+            f"Fetching NWS alerts: lat={latitude:.4f}, lon={longitude:.4f}"  # noqa: G004
         )
         response = await client.get(
             self.NWS_ALERTS_URL,
@@ -501,7 +501,7 @@ class SevereWeatherService:
         )
 
         logger.info(
-            f"NWS alerts fetched: lat={latitude:.4f}, lon={longitude:.4f}, "
+            f"NWS alerts fetched: lat={latitude:.4f}, lon={longitude:.4f}, "  # noqa: G004
             f"{len(alerts)} active alerts, power_risk={has_power_risk}, "
             f"extreme_temp={has_extreme_temp}"
         )
@@ -562,7 +562,7 @@ class SevereWeatherService:
             )
         except Exception as e:
             logger.warning(
-                f"MeteoAlarm JSON API failed for country={cc}: "
+                f"MeteoAlarm JSON API failed for country={cc}: "  # noqa: G004
                 f"{type(e).__name__}: {e}. Trying Atom feed fallback."
             )
             # Fall back to Atom feed
@@ -572,7 +572,7 @@ class SevereWeatherService:
                 )
             except Exception as atom_err:
                 logger.warning(
-                    f"MeteoAlarm Atom feed also failed for country={cc}: "
+                    f"MeteoAlarm Atom feed also failed for country={cc}: "  # noqa: G004
                     f"{type(atom_err).__name__}: {atom_err}. Returning defaults."
                 )
                 # Both sources failed — return default EU data
@@ -589,7 +589,7 @@ class SevereWeatherService:
         )
 
         logger.info(
-            f"MeteoAlarm alerts fetched: country={cc}, "
+            f"MeteoAlarm alerts fetched: country={cc}, "  # noqa: G004
             f"lat={latitude:.4f}, lon={longitude:.4f}, "
             f"{len(alerts)} active alerts, power_risk={has_power_risk}, "
             f"extreme_temp={has_extreme_temp}"
@@ -659,7 +659,7 @@ class SevereWeatherService:
 
             except Exception as parse_err:
                 logger.warning(
-                    f"Failed to parse MeteoAlarm warning: {parse_err}. "
+                    f"Failed to parse MeteoAlarm warning: {parse_err}. "  # noqa: G004
                     f"Skipping warning."
                 )
                 continue
@@ -822,7 +822,7 @@ class SevereWeatherService:
 
                 except Exception as parse_err:
                     logger.warning(
-                        f"Failed to parse MeteoAlarm Atom entry: {parse_err}. Skipping."
+                        f"Failed to parse MeteoAlarm Atom entry: {parse_err}. Skipping."  # noqa: G004
                     )
                     continue
 
@@ -954,7 +954,7 @@ class SevereWeatherService:
 
         try:
             logger.info(
-                f"Attempting Open-Meteo alert check: "
+                f"Attempting Open-Meteo alert check: "  # noqa: G004
                 f"lat={latitude:.4f}, lon={longitude:.4f}"
             )
             response = await client.get(
@@ -1025,7 +1025,7 @@ class SevereWeatherService:
             )
 
             logger.info(
-                f"Open-Meteo alert check: lat={latitude:.4f}, lon={longitude:.4f}, "
+                f"Open-Meteo alert check: lat={latitude:.4f}, lon={longitude:.4f}, "  # noqa: G004
                 f"WMO code={weather_code}, {len(alerts)} alerts generated, "
                 f"source={source}"
             )
@@ -1033,7 +1033,7 @@ class SevereWeatherService:
 
         except Exception as e:
             logger.warning(
-                f"Open-Meteo alert check failed for lat={latitude:.4f}, "
+                f"Open-Meteo alert check failed for lat={latitude:.4f}, "  # noqa: G004
                 f"lon={longitude:.4f}: {type(e).__name__}: {e}. "
                 f"Using defaults (no alerts)."
             )
@@ -1065,7 +1065,7 @@ class SevereWeatherService:
 
         """
         logger.warning(
-            f"Using DEFAULT severe weather data (no alerts) for "
+            f"Using DEFAULT severe weather data (no alerts) for "  # noqa: G004
             f"lat={latitude:.4f}, lon={longitude:.4f}. "
             f"Coverage area: {coverage_area}. "
             f"No alert source available for this location."
@@ -1109,7 +1109,7 @@ class SevereWeatherService:
             logger.debug("GeocodingService not available for country resolution")
         except Exception as e:
             logger.debug(
-                f"Reverse geocoding failed for lat={latitude:.4f}, "
+                f"Reverse geocoding failed for lat={latitude:.4f}, "  # noqa: G004
                 f"lon={longitude:.4f}: {type(e).__name__}: {e}"
             )
         return None
@@ -1167,7 +1167,7 @@ class SevereWeatherService:
                 return data
             except (httpx.HTTPError, ValueError, KeyError) as e:
                 logger.warning(
-                    f"NWS API fetch failed for lat={latitude:.4f}, "
+                    f"NWS API fetch failed for lat={latitude:.4f}, "  # noqa: G004
                     f"lon={longitude:.4f}: {type(e).__name__}: {e}. "
                     f"Using defaults (no alerts)."
                 )
@@ -1176,7 +1176,7 @@ class SevereWeatherService:
                 return default
             except Exception as e:
                 logger.exception(
-                    f"Unexpected error fetching NWS severe weather for "
+                    f"Unexpected error fetching NWS severe weather for "  # noqa: G004
                     f"lat={latitude:.4f}, lon={longitude:.4f}: "
                     f"{type(e).__name__}: {e}. Using defaults."
                 )
@@ -1201,7 +1201,7 @@ class SevereWeatherService:
                 # resolved country code (some nearby countries may work).
                 if country_code:
                     logger.info(
-                        f"Country {country_code} not in MeteoAlarm list, "
+                        f"Country {country_code} not in MeteoAlarm list, "  # noqa: G004
                         f"attempting API call anyway for lat={latitude:.4f}, "
                         f"lon={longitude:.4f}"
                     )
@@ -1218,7 +1218,7 @@ class SevereWeatherService:
                 # No country code resolved or MeteoAlarm failed —
                 # try Open-Meteo as global fallback
                 logger.info(
-                    f"MeteoAlarm not available for lat={latitude:.4f}, "
+                    f"MeteoAlarm not available for lat={latitude:.4f}, "  # noqa: G004
                     f"lon={longitude:.4f} (country={country_code}). "
                     f"Trying Open-Meteo fallback."
                 )
@@ -1228,7 +1228,7 @@ class SevereWeatherService:
 
             except (httpx.HTTPError, ValueError, KeyError) as e:
                 logger.warning(
-                    f"MeteoAlarm API fetch failed for lat={latitude:.4f}, "
+                    f"MeteoAlarm API fetch failed for lat={latitude:.4f}, "  # noqa: G004
                     f"lon={longitude:.4f}: {type(e).__name__}: {e}. "
                     f"Trying Open-Meteo fallback."
                 )
@@ -1243,7 +1243,7 @@ class SevereWeatherService:
                     return default
             except Exception as e:
                 logger.exception(
-                    f"Unexpected error fetching MeteoAlarm severe weather for "
+                    f"Unexpected error fetching MeteoAlarm severe weather for "  # noqa: G004
                     f"lat={latitude:.4f}, lon={longitude:.4f}: "
                     f"{type(e).__name__}: {e}. Using defaults."
                 )
@@ -1258,7 +1258,7 @@ class SevereWeatherService:
             return data
         except Exception as e:
             logger.exception(
-                f"Open-Meteo alert check failed for lat={latitude:.4f}, "
+                f"Open-Meteo alert check failed for lat={latitude:.4f}, "  # noqa: G004
                 f"lon={longitude:.4f}: {type(e).__name__}: {e}. "
                 f"Using defaults (no alerts)."
             )

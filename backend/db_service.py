@@ -102,7 +102,7 @@ def _normalize_sort(sort_by: str) -> str:
 
     # Step 3: Unknown sort field — log warning and use safe default
     logger.warning(  # NOSONAR
-        f"Rejected sort field '{sort_by}' — not in whitelist. "
+        f"Rejected sort field '{sort_by}' — not in whitelist. "  # noqa: G004
         f"Falling back to 'created_at'. "
         f"Allowed: {sorted(_SORT_WHITELIST)}"
     )

@@ -279,7 +279,7 @@ class ThreadSafeModelUpdateQueue:
             self._stats["enqueued"] += 1
 
         logger.info(
-            f"[MCP QUEUE]: Enqueued {action.action_type.value} "
+            f"[MCP QUEUE]: Enqueued {action.action_type.value} "  # noqa: G004
             f"action_id={action.action_id} element={action.element_id} "
             f"param={action.parameter_name} source={action.source}"
         )
@@ -333,7 +333,7 @@ class ThreadSafeModelUpdateQueue:
                 self._stats["rejected"] += 1
 
         logger.info(
-            f"[MCP QUEUE]: Result for {result.action_id}: "
+            f"[MCP QUEUE]: Result for {result.action_id}: "  # noqa: G004
             f"{result.status.value} "
             f"({result.execution_time_ms:.1f}ms) "
             f"{result.error_message or ''}"
