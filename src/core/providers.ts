@@ -130,32 +130,6 @@ function _getProviderConfig(env: Env, name: string): ProviderConfig | null {
     baseURL: baseURL!,
     model: e[desc.modelKey] || BUILTIN_MODELS[name as keyof typeof BUILTIN_MODELS],
   };
-
-function _getProviderConfig(env: Env, name: string): ProviderConfig | null {
-  switch (name) {
-    case 'openai': {
-      const apiKey = env.OPENAI_API_KEY;
-      if (!apiKey) return null;
-      return {
-        name: 'openai',
-        apiKey,
-        baseURL: env.OPENAI_BASE_URL || BUILTIN_BASE_URLS.openai,
-        model: env.OPENAI_MODEL || BUILTIN_MODELS.openai,
-      };
-    }
-    case 'nvidia': {
-      const apiKey = env.NVIDIA_API_KEY;
-      if (!apiKey) return null;
-      return {
-        name: 'nvidia',
-        apiKey,
-        baseURL: env.NVIDIA_BASE_URL || BUILTIN_BASE_URLS.nvidia,
-        model: env.NVIDIA_MODEL || BUILTIN_MODELS.nvidia,
-      };
-    }
-    default:
-      return null;
-  }
 }
 
 function _listConfiguredProviders(env: Env): ProviderConfig[] {
