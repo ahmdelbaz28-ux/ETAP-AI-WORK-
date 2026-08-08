@@ -37,10 +37,6 @@ describe('ETAP Integration Scenarios', () => {
   let mockEtap: MockEtapProvider;
   const runIfProvider = isRealProviderAvailable() ? it : it.skip.bind(it);
 
-  const runIfProvider = isRealProviderAvailable()
-    ? it
-    : it.skip.bind(it);
-
   beforeEach(async () => {
     const setup = createMockEtapScenario();
     mockEtap = setup.provider;
