@@ -92,7 +92,7 @@ class RevitNamedPipeClient:
             # Try to connect with a very short timeout to check availability
             import pywintypes
             import win32file
-            import win32pipe
+            import win32pipe  # noqa: F401
 
             try:
                 handle = win32file.CreateFile(
@@ -144,7 +144,7 @@ class RevitNamedPipeClient:
         try:
             import pywintypes
             import win32file
-            import win32pipe
+            import win32pipe  # noqa: F401
         except ImportError:
             return {
                 "status": "error",

@@ -32,8 +32,8 @@ def grid_consistency_engine(  # NOSONAR
 ) -> GridConsistencyReport:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
 
     failures: List[ElectricalFailure]  # noqa: F842
-    electrical_model: ElectricalModel | None = None
-    cim_model: CIMModel | None = None
+    electrical_model: ElectricalModel | None = None  # noqa: F841
+    cim_model: CIMModel | None = None  # noqa: F841
 
 
 def grid_consistency_engine(assets: List[ADMSAsset]) -> GridConsistencyReport:

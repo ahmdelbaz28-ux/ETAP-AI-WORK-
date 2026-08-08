@@ -548,7 +548,7 @@ def _generate_qgis_project(
     if field_name in [f.name() for f in layer.fields()]:
         renderer = QgsGraduatedSymbolRenderer(field_name)
         # Color ramp: red (0.9) → yellow (0.95) → green (1.05) → yellow (1.1) → red
-        ramp_colors = [
+        ramp_colors = [  # noqa: F841
             (QColor(255, 0, 0), "0.90"),
             (QColor(255, 255, 0), "0.95"),
             (QColor(0, 255, 0), "1.00"),

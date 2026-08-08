@@ -64,7 +64,7 @@ from __future__ import annotations
 
 import logging
 import os
-from enum import Enum, StrEnum
+from enum import StrEnum
 from typing import Any, Protocol, runtime_checkable
 
 # Re-export BIMRoom from revit_bim_sync for backward compatibility.

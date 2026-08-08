@@ -29,7 +29,7 @@ import math
 import time
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from enum import Enum, StrEnum
+from enum import StrEnum
 from typing import Any, Callable
 
 from fireai.core.event_bus import EventBus

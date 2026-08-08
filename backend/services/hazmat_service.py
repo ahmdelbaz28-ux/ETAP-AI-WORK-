@@ -35,7 +35,7 @@ from __future__ import annotations
 import logging
 import time
 from dataclasses import dataclass
-from enum import Enum, StrEnum
+from enum import StrEnum
 
 import httpx
 from tenacity import retry, stop_after_attempt, wait_exponential

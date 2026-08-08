@@ -37,7 +37,7 @@ import logging
 import math
 import warnings as _warnings
 from dataclasses import dataclass
-from enum import Enum, StrEnum
+from enum import StrEnum
 
 from fireai.core.international_reg_selector import (
     ATEXZone,

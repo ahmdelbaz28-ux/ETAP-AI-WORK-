@@ -29,7 +29,7 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass, field
-from enum import Enum, StrEnum
+from enum import StrEnum
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # ELEVATOR RECALL — NFPA 72 §21.3

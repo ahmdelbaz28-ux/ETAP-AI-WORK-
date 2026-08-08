@@ -6,7 +6,7 @@ Maps to core/models.py dataclasses for REST API request/response validation.
 
 from __future__ import annotations
 
-from enum import Enum, StrEnum
+from enum import StrEnum
 from typing import Any, Generic, TypeVar
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator

@@ -76,8 +76,8 @@ class ADMSGraphModel:
                     self.edges[sid].add(l.asset_id)
 
     def find_disconnected_components(self) -> list[set[str]]:
-        visited: set[str] = set()
-        comps: list[set[str]] = []
+        visited: set[str] = set()  # noqa: F841
+        comps: list[set[str]] = []  # noqa: F841
 
     def find_disconnected_components(self) -> List[Set[str]]:
         visited: Set[str] = set()

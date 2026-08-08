@@ -63,7 +63,7 @@ from __future__ import annotations
 import logging
 import os
 from datetime import datetime, timezone
-from enum import Enum, StrEnum
+from enum import StrEnum
 from pathlib import Path
 from typing import Any
 

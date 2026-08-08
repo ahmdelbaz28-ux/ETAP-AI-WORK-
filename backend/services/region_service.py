@@ -33,7 +33,7 @@ from __future__ import annotations
 import logging
 import os
 from dataclasses import dataclass
-from enum import Enum, StrEnum
+from enum import StrEnum
 
 import httpx
 

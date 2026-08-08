@@ -98,8 +98,8 @@ def _parse_version(v: str) -> tuple[int, ...]:
 
     com_modules_available: List[str]  # noqa: F842
     com_modules_missing: List[str]  # noqa: F842
-    checks: List[CheckResult] = field(default_factory=list)
-    overall_pass: bool = False
+    checks: List[CheckResult] = field(default_factory=list)  # noqa: F841
+    overall_pass: bool = False  # noqa: F841
 
 
 def _parse_version(v: str) -> Tuple[int, ...]:

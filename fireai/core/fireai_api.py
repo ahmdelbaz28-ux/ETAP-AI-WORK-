@@ -118,7 +118,6 @@ async def _run_with_timeout(coro, timeout: float = REQUEST_TIMEOUT_SECONDS):  # 
     """Run coroutine with timeout, return 503 on timeout."""
     try:
         # Use asyncio.timeout as a context manager (available in Python 3.11+)
-        import sys
         async with asyncio.timeout(timeout):
             return await coro
     except TimeoutError:

@@ -219,7 +219,7 @@ async def run_scenario(
     geojson_path = None
     try:
         # Get LoadFlow result data for GeoJSON
-        lf_result = study_results.get("LoadFlow", {})
+        lf_result = study_results.get("LoadFlow", {})  # noqa: F841
         geojson = _build_geojson_from_studies(study_results, trace_id)
 
         geojson_path = os.path.join(output_dir, "comprehensive_results.geojson")

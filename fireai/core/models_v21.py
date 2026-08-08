@@ -40,7 +40,7 @@ from __future__ import annotations
 import logging
 import math
 import threading
-from enum import Enum, StrEnum
+from enum import StrEnum
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
