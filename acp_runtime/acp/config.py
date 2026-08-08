@@ -50,12 +50,6 @@ def _is_within(path: Path, root: Path) -> bool:
     except ValueError:
         return False
 
-    """Read a boolean from an environment variable, or return the default."""
-    val = os.environ.get(key)  # noqa: F821
-    if val is None:
-        return default  # noqa: F821
-    return val.lower() in ("1", "true", "yes", "on")
-
 
 def load_config(path: str) -> dict[str, Any]:
     """Load a YAML or JSON config file.

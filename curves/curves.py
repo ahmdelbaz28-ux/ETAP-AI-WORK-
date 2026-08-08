@@ -253,9 +253,9 @@ class IEC60255Curves:
         t = TMS * (13.5 / ((I/Ip) - 1))
         """
         result = calculate_iec_operating_time(
-            i_fault=i,  # noqa: F821
-            i_setting=ip,  # noqa: F821
-            tms=tms,  # noqa: F821
+            i_fault=I,
+            i_setting=Ip,
+            tms=TMS,
             curve_type="very_inverse",
         )
         return result["operating_time_s"]
@@ -267,9 +267,9 @@ class IEC60255Curves:
         t = TMS * (80 / ((I/Ip)^2 - 1))
         """
         result = calculate_iec_operating_time(
-            i_fault=i,  # noqa: F821
-            i_setting=ip,  # noqa: F821
-            tms=tms,  # noqa: F821
+            i_fault=I,
+            i_setting=Ip,
+            tms=TMS,
             curve_type="extremely_inverse",
         )
         return result["operating_time_s"]
@@ -281,9 +281,9 @@ class IEC60255Curves:
         t = TMS * (120 / ((I/Ip) - 1))
         """
         result = calculate_iec_operating_time(
-            i_fault=i,  # noqa: F821
-            i_setting=ip,  # noqa: F821
-            tms=tms,  # noqa: F821
+            i_fault=I,
+            i_setting=Ip,
+            tms=TMS,
             curve_type="long_inverse",
         )
         return result["operating_time_s"]
