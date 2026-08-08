@@ -34,6 +34,7 @@ from api.ai_ml import router as ai_ml_router
 from api.assets import router as assets_router
 from api.audit_logs import router as audit_logs_router
 from api.autodesk_connectors import router as autodesk_connectors_router
+from api.cad_simready import router as cad_simready_router
 from api.auth import router as auth_router
 from api.copilot_config import router as copilot_config_router
 from api.feature_flags import router as feature_flags_router
@@ -735,6 +736,7 @@ app.include_router(email_dashboard_router)  # /api/v1/email-dashboard/*
 app.include_router(copilot_config_router)  # /api/v1/copilot/config/*
 app.include_router(storage_management_router)  # /api/v1/storage/* — R2 storage management
 app.include_router(autodesk_connectors_router)  # /api/v1/connectors/autodesk/* — Autodesk connector health & test
+app.include_router(cad_simready_router)  # /api/v1/cad-simready/* — NVIDIA CAD to SimReady 3D OpenUSD converter
 app.include_router(audit_logs_router)  # /api/v1/security/audit-logs/* — Security audit log API
 app.include_router(solver_parameters_router)  # /api/v1/studies/parameters/* — Solver parameters
 app.include_router(notification_config_router)  # /api/v1/notifications/digest/config/* — Notification preferences

@@ -19,6 +19,7 @@ import { getAuthToken } from "../lib/tokenStorage";
 import { cn } from "../utils/helpers";
 
 import { ContextHelpButton } from "../components/help/ContextHelpButton";
+import { CadSimReadyCard } from "../components/digital-twin/CadSimReadyCard";
 interface SyncSource {
   name: string;
   status: "online" | "offline" | "warning";
@@ -599,6 +600,15 @@ export default function DigitalTwin() {
             />
             <DigitalTwinDiagram />
           </Card>
+
+          {/* NVIDIA CAD to SimReady 3D Presentation Engine */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+          >
+            <CadSimReadyCard />
+          </motion.div>
         </motion.div>
 
         {/* Right sidebar */}
