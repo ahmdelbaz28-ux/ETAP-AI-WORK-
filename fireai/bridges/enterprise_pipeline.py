@@ -130,7 +130,7 @@ class EnterpriseOrchestrator:
             self._v17_available = True
         except ImportError as e:
             logger.critical(
-                f"V17 core modules unavailable: {e}. Enterprise pipeline DISABLED."
+                f"V17 core modules unavailable: {e}. Enterprise pipeline DISABLED."  # noqa: G004
             )
             self._v17_available = False
             self.acoustic_calc = None

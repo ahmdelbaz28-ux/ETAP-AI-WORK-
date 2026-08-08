@@ -60,7 +60,7 @@ async def export_dxf(project_id: str):
                 "error": "DXF export unavailable: ezdxf package not installed",
                 "install": "pip install ezdxf",
             },
-        )
+        ) from None
 
     doc = ezdxf.new("R2010")
     doc.header["$INSUNITS"] = 6  # Meters
@@ -339,7 +339,7 @@ async def export_ifc(
         raise HTTPException(  # NOSONAR — S8415: assignment kept for readability / debuggability
             status_code=500,
             detail="IFC export failed — an internal error occurred. Contact administrator.",
-        )
+        ) from None
 
 
 from typing import Optional
@@ -396,7 +396,7 @@ async def export_data_global(input_data: ExportDataInput):
                     "error": "Excel export unavailable: openpyxl package not installed",
                     "install": "pip install openpyxl",
                 },
-            )
+            ) from None
 
         wb = Workbook()
 

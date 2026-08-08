@@ -90,7 +90,7 @@ jobs:
         # SonarCloud S8544: use npm ci (reads package-lock.json) instead of
         # npm install. No fallback to npm install — a lockfile mismatch must
         # be fixed by regenerating the lockfile (SonarCloud S8543).
-        run: npm ci --ignore-scripts --omit=optional@^6.14.15
+        run: npm ci --ignore-scripts --include=optional
 
       - name: TypeScript type-check
         # FIXED: Removed `|| echo "::warning::"` workaround.

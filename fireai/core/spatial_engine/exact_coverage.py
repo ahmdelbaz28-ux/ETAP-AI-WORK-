@@ -258,7 +258,7 @@ class ExactCoverageEngine:
                     sensor_areas.append(clipped)
             except Exception as e:
                 logger.warning(
-                    f"V112: verify_with_obstacles: failed to build sensor coverage circle at loc={loc!r}: {e!r}"
+                    f"V112: verify_with_obstacles: failed to build sensor coverage circle at loc={loc!r}: {e!r}"  # noqa: G004
                 )
                 continue
 

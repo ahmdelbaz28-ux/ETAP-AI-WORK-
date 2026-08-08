@@ -226,7 +226,8 @@ async def run_scenario(
 
     try:
         from etap_integration.unified_etap_types import (
-            ETAPStudyType, get_etap_provider,
+            ETAPStudyType,
+            get_etap_provider,
         )
 
         etap_provider = get_etap_provider()
@@ -468,8 +469,8 @@ def _apply_diff_to_etap(etap_project_path: str, diff: dict[str, list]) -> None:
             f"Current platform: {os.name}"
         )
 
-    import win32com.client  # type: ignore
     import pythoncom  # type: ignore
+    import win32com.client  # type: ignore
 
     pythoncom.CoInitialize()
     try:
@@ -544,11 +545,11 @@ def main() -> None:
                         help="Compute diff only, don't apply to ETAP")
     args = parser.parse_args()
 
-    if not os.environ.get("ALLOW_GIS_TO_ETAP_SYNC") == "true":
+    if os.environ.get("ALLOW_GIS_TO_ETAP_SYNC") != "true":
         print("❌ Set ALLOW_GIS_TO_ETAP_SYNC=true to run this scenario")
         sys.exit(1)
 
-    if not args.dry_run and not os.environ.get("USE_ETAP") == "true":
+    if not args.dry_run and os.environ.get("USE_ETAP") != "true":
         print("❌ Set USE_ETAP=true to enable ETAP integration")
         sys.exit(1)
 

@@ -9,6 +9,7 @@
  *     (c) creating a dedicated KV for this would add cost without security benefit.
  *   - Key length is bounded to prevent KV key-length abuse.
  *   - TTL is enforced both in-memory and in KV.
+ */
 
 /**
  * Idempotency-Key support.
@@ -82,55 +83,4 @@ export async function cacheResponse(
     for (const [k] of oldest.slice(0, Math.floor(_MEM_MAP_MAX * 0.25))) _mem.delete(k);
   }
   _mem.set(key, cached);
-
-/** Look up a cached response. Returns null if absent. */
-export async function getCachedResponse(
-  env: Env,
-  apiKeyId: string,
-  route: string,
-  idempotencyKey: string
-): Promise<CachedResponse | null> {
-  const key = makeKey(apiKeyId, route, idempotencyKey);
-  const ttlSeconds = Math.ceil(CONFIG.IDEMPOTENCY_TTL_MS / 1000);
-
-  if (env.RATE_LIMIT_KV) {
-    try {
-      const raw = (await env.RATE_LIMIT_KV.get(key, { type: 'json' })) as CachedResponse | null;
-      if (raw) return raw;
-    } catch {
-      // Fall through to in-memory
-    }
-  }
-
-  const mem = _idempotencyInMemory.get(key);
-  if (mem && Date.now() - mem.storedAt < CONFIG.IDEMPOTENCY_TTL_MS) {
-    return mem;
-  }
-  _idempotencyInMemory.delete(key);
-  return null;
-}
-
-/** Persist a response under the idempotency key. */
-export async function cacheResponse(
-  env: Env,
-  apiKeyId: string,
-  route: string,
-  idempotencyKey: string,
-  status: number,
-  body: string,
-  contentType: string
-): Promise<void> {
-  const key = makeKey(apiKeyId, route, idempotencyKey);
-  const ttlSeconds = Math.ceil(CONFIG.IDEMPOTENCY_TTL_MS / 1000);
-  const cached: CachedResponse = { status, body, contentType, storedAt: Date.now() };
-
-  if (env.RATE_LIMIT_KV) {
-    try {
-      await env.RATE_LIMIT_KV.put(key, JSON.stringify(cached), { expirationTtl: ttlSeconds });
-      return;
-    } catch {
-      // Fall through to in-memory
-    }
-  }
-  _idempotencyInMemory.set(key, cached);
 }

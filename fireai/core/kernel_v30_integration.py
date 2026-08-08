@@ -311,9 +311,9 @@ class MmapResultCache:
             # FIX: Use 'r+b' for existing files, 'w+b' for new files
             # 'a+b' doesn't properly extend the file with seek+write
             if exists and os.path.getsize(self._filepath) >= self._size:
-                self._file = open(self._filepath, "r+b")
+                self._file = open(self._filepath, "r+b")  # noqa: SIM115
             else:
-                self._file = open(self._filepath, "w+b")
+                self._file = open(self._filepath, "w+b")  # noqa: SIM115
                 # Extend file to required size
                 self._file.seek(self._size - 1)
                 self._file.write(b"\x00")

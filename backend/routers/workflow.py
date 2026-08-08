@@ -214,7 +214,7 @@ async def start_workflow(
                 ),
             )
         logger.warning(  # NOSONAR
-            f"⚠️ DEVELOPMENT ONLY: Human review gate BYPASSED for {file_path}. "
+            f"⚠️ DEVELOPMENT ONLY: Human review gate BYPASSED for {file_path}. "  # noqa: G004
             f"This is acceptable for development/testing ONLY. "
             f"NFPA 72 requires PE review for all fire alarm designs."
         )

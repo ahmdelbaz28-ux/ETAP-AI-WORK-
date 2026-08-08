@@ -692,7 +692,7 @@ class TestV214NoMockDwgData:
         """
         import re
         src_path = "backend/services/autocad_service.py"
-        with open(src_path, "r", encoding="utf-8") as f:
+        with open(src_path, encoding="utf-8") as f:
             content = f.read()
 
         # Match f.write("MOCK...") or f.write('MOCK...') — actual write calls
@@ -839,7 +839,7 @@ class TestV214NoHardcodedReadDwgEntities:
         """
         import re
         src_path = "backend/services/autocad_service.py"
-        with open(src_path, "r", encoding="utf-8") as f:
+        with open(src_path, encoding="utf-8") as f:
             content = f.read()
 
         # Match "handle": "H1" or "handle": "H2" as dict values (actual code)

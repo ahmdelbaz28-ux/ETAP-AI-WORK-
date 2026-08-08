@@ -71,7 +71,6 @@ export function validateCsrf(request: Request, method: string, traceId: string, 
   if (!CONFIG.CSRF_REQUIRED_METHODS.includes(method)) return null;
   if (request.headers.has('x-api-key')) return null;
 
-
   const origin = request.headers.get('origin');
   const referer = request.headers.get('referer');
   const secFetchSite = request.headers.get('sec-fetch-site');
@@ -131,29 +130,6 @@ export function jsonResponse(status: number, body: Json, extraHeaders?: Record<s
 export function errorResponse(status: number, message: string, traceId: string, extraHeaders?: Record<string, string>): Response {
   const safeMessage = status === 500 ? 'Internal server error' : message;
   return jsonResponse(status, { error: true, status, message: safeMessage, traceId, timestamp: new Date().toISOString() }, extraHeaders);
-}
-
-
-export async function checkBodySize(request: Request): Promise<Response | null> {
-  const cl = request.headers.get('content-length');
-  if (cl) {
-    const n = Number.parseInt(cl, 10);
-
-export function corsHeaders(origin: string): Record<string, string> {
-  return {
-    'Access-Control-Allow-Origin': origin || '*',
-    'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-api-key, Idempotency-Key',
-    'Access-Control-Max-Age': '86400',
-  };
-}
-
-export function errorResponse(status: number, message: string, traceId: string, extraHeaders?: Record<string, string>): Response {
-  return jsonResponse(
-    status,
-    { error: true, status, message, traceId, timestamp: new Date().toISOString() },
-    extraHeaders
-  );
 }
 
 /**

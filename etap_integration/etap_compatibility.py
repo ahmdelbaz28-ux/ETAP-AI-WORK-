@@ -12,7 +12,7 @@ import logging
 import platform
 import sys
 from dataclasses import dataclass, field
-from typing import Optional
+from typing import List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -96,10 +96,10 @@ class CompatibilityReport:
 
 def _parse_version(v: str) -> tuple[int, ...]:
 
-    com_modules_available: List[str]
-    com_modules_missing: List[str]
-    checks: List[CheckResult] = field(default_factory=list)
-    overall_pass: bool = False
+    com_modules_available: List[str]  # noqa: F842
+    com_modules_missing: List[str]  # noqa: F842
+    checks: List[CheckResult] = field(default_factory=list)  # noqa: F841
+    overall_pass: bool = False  # noqa: F841
 
 
 def _parse_version(v: str) -> Tuple[int, ...]:
@@ -122,11 +122,6 @@ class ETAPCompatibilityChecker:
         self._etap_prog_id = etap_prog_id
         self._cached_version: Optional[str] = None
         self._cached_com_modules: dict[str, bool] | None = None
-
-    def check_version(self) -> Optional[str]:
-
-        self._cached_version: str | None = None
-        self._cached_com_modules: Dict[str, bool] | None = None
 
     def check_version(self) -> str | None:
         """Detect the installed ETAP version via COM."""

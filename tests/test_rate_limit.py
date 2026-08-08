@@ -8,6 +8,7 @@ code duplication (SonarCloud new_duplicated_lines_density).
 
 from __future__ import annotations
 
+import os
 import time
 
 import pytest

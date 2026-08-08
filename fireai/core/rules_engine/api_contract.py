@@ -28,7 +28,7 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime, timezone
-from enum import Enum
+from enum import StrEnum
 from typing import Any, Generic, TypeVar
 
 from pydantic import BaseModel, Field, ValidationError
@@ -43,7 +43,7 @@ T = TypeVar("T", bound=BaseModel)
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
-class ContractSeverity(str, Enum):
+class ContractSeverity(StrEnum):
     """How strictly to enforce the contract."""
 
     STRICT = "strict"  # Raise exception on violation
@@ -51,7 +51,7 @@ class ContractSeverity(str, Enum):
     DISABLED = "disabled"  # No validation (development only)
 
 
-class APIContract(BaseModel, Generic[T]):
+class APIContract(BaseModel, Generic[T]):  # noqa: UP046
     """
     Defines a typed API contract for an endpoint.
 
@@ -177,7 +177,7 @@ class ContractValidator:
             # Safety-critical contract — FALL THROUGH to validation
             # even in DISABLED mode. Log a warning that we're overriding.
             logger.warning(
-                f"V93: Severity is DISABLED but contract for {key} is "
+                f"V93: Severity is DISABLED but contract for {key} is "  # noqa: G004
                 f"safety_critical=True — OVERRIDING to enforce validation. "
                 f"Safety-critical data must NEVER pass unvalidated."
             )
@@ -194,7 +194,7 @@ class ContractValidator:
                     input_data=data,
                 )
             logger.warning(
-                f"No contract registered for {key}. "
+                f"No contract registered for {key}. "  # noqa: G004
                 f"Response validation SKIPPED. Register a contract "
                 f"to ensure type safety."
             )
@@ -222,7 +222,7 @@ class ContractValidator:
 
             if safety_critical:
                 logger.critical(
-                    f"SAFETY-CRITICAL contract violation on {key}: {e.errors()}. "
+                    f"SAFETY-CRITICAL contract violation on {key}: {e.errors()}. "  # noqa: G004
                     f"In a fire alarm system, malformed data could cause "
                     f"incorrect engineering decisions."
                 )

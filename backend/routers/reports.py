@@ -739,7 +739,7 @@ async def generate_report(project_id: str, input_data: GenerateReportInput):
         # file paths, variable names, and internal implementation details.
         # This data is retrievable via the API, creating an information
         # leakage vulnerability. Log the full error server-side instead.
-        logger.exception("Report generation failed for project %s", project_id, exc_info=True)  # NOSONAR
+        logger.exception("Report generation failed for project %s", project_id, exc_info=True)  # NOSONAR  # noqa: G202
         db.update_report(
             project_id,
             report["id"],
@@ -792,7 +792,7 @@ async def generate_global_report(input_data: GenerateReportInput):
             },
         )
     except Exception:
-        logger.exception("Global report generation failed", exc_info=True)
+        logger.exception("Global report generation failed", exc_info=True)  # noqa: G202
         db.update_report(
             project_id,
             report["id"],
@@ -927,14 +927,14 @@ async def export_report(  # NOSONAR — S3776: cognitive complexity is inherent 
             raise HTTPException(  # NOSONAR — S8415: assignment kept for readability / debuggability
                 status_code=501,
                 detail="PDF export requires the reportlab package",
-            )
+            ) from None
         except Exception:
             # V113 SECURITY: Never expose str(e) to client
-            logger.exception("PDF generation failed", exc_info=True)  # Use exception instead of error
+            logger.exception("PDF generation failed", exc_info=True)  # Use exception instead of error  # noqa: G202
             raise HTTPException(  # NOSONAR — S8415: assignment kept for readability / debuggability
                 status_code=500,
                 detail="PDF generation failed — an internal error occurred. Contact administrator.",
-            )
+            ) from None
     elif format == "dxf":
         # DXF export of report data
         try:
@@ -981,7 +981,7 @@ async def export_report(  # NOSONAR — S3776: cognitive complexity is inherent 
             raise HTTPException(  # NOSONAR — S8415: assignment kept for readability / debuggability
                 status_code=501,
                 detail="DXF export requires ezdxf package",
-            )
+            ) from None
     else:
         raise HTTPException(status_code=400, detail=f"Unsupported format: {format}")  # NOSONAR — S8415: assignment kept for readability / debuggability
 
@@ -1060,7 +1060,7 @@ async def generate_ahj_submittal(project_id: str, request: AhjSubmittalRequest):
         )
     except ImportError as ie:
         logger.exception("AHJ document dependencies not available: %s", ie)
-        raise HTTPException(  # NOSONAR — S8415: assignment kept for readability
+        raise HTTPException(  # NOSONAR — S8415: assignment kept for readability  # noqa: B904
             status_code=503,
             detail={
                 "success": False,
@@ -1183,7 +1183,7 @@ async def generate_ahj_submittal(project_id: str, request: AhjSubmittalRequest):
         raise HTTPException(  # NOSONAR — S8415: assignment kept for readability
             status_code=500,
             detail="AHJ document generation failed — see server logs.",
-        )
+        ) from None
 
     # Return as markdown file download
     safe_name = _safe_filename(project.get("name", project_id))

@@ -240,7 +240,7 @@ def _load_server_secret() -> bytes:
                 raise RuntimeError(
                     f"Server secret file {path} exists but is invalid. "
                     f"Delete it and restart to regenerate."
-                )
+                ) from None
             logger.info("Reused existing API-key lookup secret (race avoided)")
     except OSError as e:
         # If we can't persist a secret, generate an ephemeral one. Keys won't

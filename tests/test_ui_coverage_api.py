@@ -9,7 +9,6 @@ from __future__ import annotations
 import pytest
 from fastapi.testclient import TestClient
 
-
 # ---------------------------------------------------------------------------
 # Step 1: Solver Parameters API
 # ---------------------------------------------------------------------------

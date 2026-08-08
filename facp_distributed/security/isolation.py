@@ -180,7 +180,7 @@ except Exception as e:
 
         # Check timeout (this is a simplified check - real implementation would monitor continuously)
         elapsed = (time.time() - limits["applied_at"]) * 1000
-        if elapsed > limits["timeout_ms"]:
+        if elapsed > limits["timeout_ms"]:  # noqa: SIM103
             return False
 
         # Memory check would require platform-specific code

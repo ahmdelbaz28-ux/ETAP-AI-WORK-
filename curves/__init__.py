@@ -6,10 +6,10 @@ and safety-guard constants.
 """
 
 from curves.curves import (
-    IEC60255Curves,
-    calculate_iec_operating_time,
     MAX_MULTIPLIER_OF_PICKUP,
     MIN_OPERATING_TIME_S,
+    IEC60255Curves,
+    calculate_iec_operating_time,
 )
 
 __all__ = [
@@ -25,6 +25,5 @@ Provides standard time-current characteristic curves used in
 protection relay coordination studies per IEC 60255.
 """
 
-from curves.curves import IEC60255Curves
 
 __all__ = ["IEC60255Curves"]

@@ -75,17 +75,17 @@ class TestNFPA72Constants:
 
     def test_min_wall_distance_is_4_inches_conservative(self):
         """§17.6.3.1.1 — minimum wall distance = 4 in = 0.1016 m, rounded up."""
-        assert NFPA72.MIN_WALL_DIST_M == pytest.approx(0.102, abs=1e-3)
+        assert pytest.approx(0.102, abs=1e-3) == NFPA72.MIN_WALL_DIST_M
         # Conservative: must be >= exact 4-inch value
         assert NFPA72.MIN_WALL_DIST_M >= 0.1016
 
     def test_max_wall_distance_is_24_inches(self):
         """§17.6.3.1.1 — maximum wall distance = 24 in = 0.6096 m."""
-        assert NFPA72.MAX_WALL_DIST_M == pytest.approx(0.610, abs=1e-3)
+        assert pytest.approx(0.610, abs=1e-3) == NFPA72.MAX_WALL_DIST_M
 
     def test_dead_air_offset_is_4_inches(self):
         """§17.6.3.1.3 — dead air offset at peak of sloped ceiling = 4 in."""
-        assert NFPA72.DEAD_AIR_OFFSET_M == pytest.approx(0.102, abs=1e-3)
+        assert pytest.approx(0.102, abs=1e-3) == NFPA72.DEAD_AIR_OFFSET_M
 
     def test_smoke_radius_table_monotonic_in_ceiling_height(self):
         """Coverage radius must not decrease as ceiling height increases."""
@@ -146,8 +146,8 @@ class TestNFPA72Constants:
     def test_grid_spacings_are_positive(self):
         """Verification grid spacings must be positive reals."""
         assert 0 < NFPA72.GRID_FINE_M < NFPA72.GRID_COARSE_M
-        assert NFPA72.GRID_FINE_M == pytest.approx(0.25, abs=1e-9)
-        assert NFPA72.GRID_COARSE_M == pytest.approx(1.00, abs=1e-9)
+        assert pytest.approx(0.25, abs=1e-9) == NFPA72.GRID_FINE_M
+        assert pytest.approx(1.00, abs=1e-9) == NFPA72.GRID_COARSE_M
 
 
 # ═══════════════════════════════════════════════════════════════════════════════

@@ -639,7 +639,7 @@ class DWGParser:
             # Use "--" to mark the end of options and ensure the path is treated as a positional argument
             cmd = [self.DXF_OUT_CMD, "--", "--file", str(dwg_path), "--output", str(temp_path)]
 
-            logger.debug(f"Executing command: {' '.join(cmd)}")
+            logger.debug(f"Executing command: {' '.join(cmd)}")  # noqa: G004
 
             proc = subprocess.run(cmd, capture_output=True, timeout=60)
 

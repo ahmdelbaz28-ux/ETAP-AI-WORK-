@@ -34,7 +34,7 @@ import threading
 import time
 from dataclasses import dataclass
 from datetime import UTC
-from typing import Optional, Annotated
+from typing import Annotated, Optional
 
 from fastapi import APIRouter, Depends, Request, status
 from fastapi.responses import JSONResponse

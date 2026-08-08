@@ -27,14 +27,6 @@ class TestPoint3D:
 
     def test_default_z(self):
         p = Point3D(1.0, 2.0)
-        assert p.z == pytest.approx(0.0)
-
-        assert p.x == 1.0
-        assert p.y == 2.0
-        assert p.z == 3.0
-
-    def test_default_z(self):
-        p = Point3D(1.0, 2.0)
         assert p.z == 0.0
 
     def test_to_dict(self):
