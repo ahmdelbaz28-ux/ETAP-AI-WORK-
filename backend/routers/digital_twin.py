@@ -185,7 +185,7 @@ def _safe_error(status_code: int, log_msg: str, exc: Exception) -> HTTPException
 @router.post("/convert", response_model=ConvertResponse)  # NOSONAR - python:S8409
 async def convert_files(  # NOSONAR — S3776: cognitive complexity is inherent to the safety-critical algorithm
     request: ConvertRequest,
-    service: DigitalTwinService = Depends(get_digital_twin_service),  # NOSONAR - python:S8410
+    service: DigitalTwinService = Depends(get_digital_twin_service),  # NOSONAR - python:S8410  # noqa: B008
 ) -> ConvertResponse:
     """Perform bidirectional CAD/BIM conversion."""
     try:
@@ -255,7 +255,7 @@ async def convert_files(  # NOSONAR — S3776: cognitive complexity is inherent 
     except HTTPException:
         raise
     except Exception as e:
-        raise _safe_error(500, "Error during conversion", e)
+        raise _safe_error(500, "Error during conversion", e) from None
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -268,9 +268,9 @@ async def convert_files(  # NOSONAR — S3776: cognitive complexity is inherent 
     dependencies=[Depends(require_permission(Permission.EXPORT_EXECUTE))],
 )
 async def upload_and_convert(
-    file: UploadFile = File(...),
+    file: UploadFile = File(...),  # noqa: B008
     target_format: str = "ifc",
-    service: DigitalTwinService = Depends(get_digital_twin_service),
+    service: DigitalTwinService = Depends(get_digital_twin_service),  # noqa: B008
 ):
     """
     Upload a file and convert it to the target format.
@@ -357,25 +357,25 @@ async def upload_and_convert(
     except HTTPException:
         raise
     except Exception as e:
-        raise _safe_error(500, "Upload and convert failed", e)
+        raise _safe_error(500, "Upload and convert failed", e) from None
 
 
 @router.get("/history", response_model=HistoryResponse)  # NOSONAR - python:S8409
 async def get_conversion_history(
-    service: DigitalTwinService = Depends(get_digital_twin_service),  # NOSONAR - python:S8410
+    service: DigitalTwinService = Depends(get_digital_twin_service),  # NOSONAR - python:S8410  # noqa: B008
 ) -> HistoryResponse:
     """Get conversion history."""
     try:
         history = service.get_conversion_history()
         return HistoryResponse(history=history)
     except Exception as e:
-        raise _safe_error(500, "Error getting conversion history", e)
+        raise _safe_error(500, "Error getting conversion history", e) from None
 
 
 @router.post("/configure", response_model=ConfigureResponse)  # NOSONAR - python:S8409
 async def configure_conversion(
     request: ConfigureRequest,
-    config_mgr: ConversionConfigManager = Depends(get_config_manager),  # NOSONAR - python:S8410
+    config_mgr: ConversionConfigManager = Depends(get_config_manager),  # NOSONAR - python:S8410  # noqa: B008
 ) -> ConfigureResponse:
     """Update conversion configuration."""
     try:
@@ -391,7 +391,7 @@ async def configure_conversion(
     except HTTPException:
         raise
     except Exception as e:
-        raise _safe_error(500, "Error updating configuration", e)
+        raise _safe_error(500, "Error updating configuration", e) from None
 
 
 @router.post(
@@ -402,7 +402,7 @@ async def configure_conversion(
 async def rollback_to_version(
     version_id: str,
     request: RollbackRequest,
-    service: DigitalTwinService = Depends(get_digital_twin_service),  # NOSONAR - python:S8410
+    service: DigitalTwinService = Depends(get_digital_twin_service),  # NOSONAR - python:S8410  # noqa: B008
 ) -> OperationResponse:
     """
     Rollback to a specific conversion version.
@@ -426,12 +426,12 @@ async def rollback_to_version(
     except HTTPException:
         raise
     except Exception as e:
-        raise _safe_error(500, "Rollback failed", e)
+        raise _safe_error(500, "Rollback failed", e) from None
 
 
 @router.get("/mappings", response_model=MappingsResponse)  # NOSONAR - python:S8409
 async def get_available_mappings(
-    config_mgr: ConversionConfigManager = Depends(get_config_manager),  # NOSONAR - python:S8410
+    config_mgr: ConversionConfigManager = Depends(get_config_manager),  # NOSONAR - python:S8410  # noqa: B008
 ) -> MappingsResponse:
     """Get available mapping configurations."""
     try:
@@ -445,12 +445,12 @@ async def get_available_mappings(
             levels=mappings["levels"],
         )
     except Exception as e:
-        raise _safe_error(500, "Error getting mappings", e)
+        raise _safe_error(500, "Error getting mappings", e) from None
 
 
 @router.get("/status")
 async def get_digital_twin_status(
-    service: DigitalTwinService = Depends(get_digital_twin_service),  # NOSONAR - python:S8410
+    service: DigitalTwinService = Depends(get_digital_twin_service),  # NOSONAR - python:S8410  # noqa: B008
 ) -> Dict[str, Any]:
     """
     Get Digital Twin service status.
@@ -468,13 +468,13 @@ async def get_digital_twin_status(
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
     except Exception as e:
-        raise _safe_error(500, "Error getting Digital Twin status", e)
+        raise _safe_error(500, "Error getting Digital Twin status", e) from None
 
 
 @router.post("/update_mapping")
 async def update_single_mapping(
     request: UpdateMappingRequest,
-    config_mgr: ConversionConfigManager = Depends(get_config_manager),  # NOSONAR - python:S8410
+    config_mgr: ConversionConfigManager = Depends(get_config_manager),  # NOSONAR - python:S8410  # noqa: B008
 ) -> Dict[str, Any]:
     """
     Update a single mapping rule.
@@ -494,7 +494,7 @@ async def update_single_mapping(
     except HTTPException:
         raise
     except Exception as e:
-        raise _safe_error(500, "Error updating mapping", e)
+        raise _safe_error(500, "Error updating mapping", e) from None
 
 
 @router.get(
@@ -502,7 +502,7 @@ async def update_single_mapping(
     dependencies=[Depends(require_permission(Permission.EXPORT_READ))],
 )
 async def get_config(
-    config_mgr: ConversionConfigManager = Depends(get_config_manager),  # NOSONAR - python:S8410
+    config_mgr: ConversionConfigManager = Depends(get_config_manager),  # NOSONAR - python:S8410  # noqa: B008
 ) -> Dict[str, Any]:
     """
     Get current conversion configuration.
@@ -517,7 +517,7 @@ async def get_config(
             "loaded_from": str(config_mgr.config_file) if hasattr(config_mgr, "config_file") and config_mgr.config_file.exists() else "default",
         }
     except Exception as e:
-        raise _safe_error(500, "Error getting configuration", e)
+        raise _safe_error(500, "Error getting configuration", e) from None
 
 
 @router.put(
@@ -527,7 +527,7 @@ async def get_config(
 )
 async def update_config(
     request: ConfigureRequest,
-    config_mgr: ConversionConfigManager = Depends(get_config_manager),  # NOSONAR - python:S8410
+    config_mgr: ConversionConfigManager = Depends(get_config_manager),  # NOSONAR - python:S8410  # noqa: B008
 ) -> OperationResponse:
     """Update conversion configuration.
 
@@ -544,7 +544,7 @@ async def update_config(
             message="Configuration updated successfully",
         )
     except Exception as e:
-        raise _safe_error(500, "Configuration update failed", e)
+        raise _safe_error(500, "Configuration update failed", e) from None
 
 
 @router.get(
@@ -575,4 +575,4 @@ async def download_file(filename: str) -> FileResponse:
     except HTTPException:
         raise
     except Exception as e:
-        raise _safe_error(500, "Download failed", e)
+        raise _safe_error(500, "Download failed", e) from None

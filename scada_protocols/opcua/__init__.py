@@ -17,8 +17,8 @@ from scada_protocols.common.base import (
 from scada_protocols.common.config import OpcUaConfig
 from scada_protocols.opcua.address_space import (
     AddressSpacePlan,
-    UAVariable,
     UAFolder,
+    UAVariable,
     build_plan_from_node_map,
     build_plan_from_system,
 )

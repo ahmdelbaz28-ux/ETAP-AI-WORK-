@@ -224,10 +224,7 @@ class DeterministicEngine:
                 result *= operand
         elif operation == "divide" and len(operands) == 2:
             divisor = Decimal(str(operands[1]))
-            if divisor != 0:
-                result = Decimal(str(operands[0])) / divisor
-            else:
-                result = float('inf')
+            result = Decimal(str(operands[0])) / divisor if divisor != 0 else float('inf')
         elif operation == "subtract" and len(operands) >= 2:
             result = operands[0]
             for op in operands[1:]:
@@ -683,10 +680,7 @@ class FluidCalculator:
         # Cross-sectional area: A = πd²/4
         area = math.pi * (float(diameter) ** 2) / 4
 
-        if area != 0:
-            velocity = float(flow_rate) / area
-        else:
-            velocity = float('inf')
+        velocity = float(flow_rate) / area if area != 0 else float('inf')
 
         return {
             "flow_rate_m3_per_s": float(flow_rate),

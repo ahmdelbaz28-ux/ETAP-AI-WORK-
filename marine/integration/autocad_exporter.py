@@ -40,7 +40,7 @@ def _init_doc() -> Drawing:
 
 
 def _dxf_string(doc: Drawing) -> str:
-    tmp = tempfile.NamedTemporaryFile(mode="w+", suffix=".dxf", delete=False)
+    tmp = tempfile.NamedTemporaryFile(mode="w+", suffix=".dxf", delete=False)  # noqa: SIM115
     try:
         doc.saveas(tmp.name)
         tmp.seek(0)

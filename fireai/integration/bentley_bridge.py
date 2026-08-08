@@ -46,7 +46,7 @@ import logging
 import os
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from fireai.core.event_bus import EventBus, Events
@@ -59,7 +59,7 @@ logger = logging.getLogger(__name__)
 # ===========================================================================
 
 
-class BentleyProduct(str, Enum):
+class BentleyProduct(StrEnum):
     OPENBUILDINGS = "OPENBUILDINGS"
     STAAD_PRO = "STAAD_PRO"
     AECOsim = "AECOSIM"
@@ -68,13 +68,13 @@ class BentleyProduct(str, Enum):
     iTWIN = "iTWIN"
 
 
-class SyncDirection(str, Enum):
+class SyncDirection(StrEnum):
     IMPORT = "IMPORT"
     EXPORT = "EXPORT"
     BIDIRECTIONAL = "BIDIRECTIONAL"
 
 
-class SyncState(str, Enum):
+class SyncState(StrEnum):
     PENDING = "PENDING"
     IN_PROGRESS = "IN_PROGRESS"
     COMPLETED = "COMPLETED"
@@ -82,7 +82,7 @@ class SyncState(str, Enum):
     CONFLICT = "CONFLICT"
 
 
-class BentleyElementType(str, Enum):
+class BentleyElementType(StrEnum):
     BEAM = "BEAM"
     COLUMN = "COLUMN"
     SLAB = "SLAB"

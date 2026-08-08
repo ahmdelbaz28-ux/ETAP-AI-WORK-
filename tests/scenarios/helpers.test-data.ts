@@ -118,18 +118,6 @@ export function generateSimpleIndustrialSystem(): PowerSystemData {
         b_pu: 0.005,
         rating_mva: 5,
       },
-
-      { id: 'UTILITY', nominal_kv: 115, voltage_pu: 1.02, angle_deg: 0, load_mw: 0, load_mvar: 0, gen_mw: 0, gen_mvar: 0 },
-      { id: 'MAIN-SWGR', nominal_kv: 13.8, voltage_pu: 1.01, angle_deg: -1.5, load_mw: 5, load_mvar: 2, gen_mw: 0, gen_mvar: 0 },
-      { id: 'MCC-1', nominal_kv: 0.48, voltage_pu: 0.98, angle_deg: -3.2, load_mw: 1.2, load_mvar: 0.5, gen_mw: 0, gen_mvar: 0 },
-      { id: 'MCC-2', nominal_kv: 0.48, voltage_pu: 0.97, angle_deg: -3.5, load_mw: 0.8, load_mvar: 0.3, gen_mw: 0, gen_mvar: 0 },
-      { id: 'PUMP-MOTOR', nominal_kv: 4.16, voltage_pu: 0.99, angle_deg: -2.8, load_mw: 0.25, load_mvar: 0.12, gen_mw: 0, gen_mvar: 0 },
-    ],
-    branches: [
-      { from_bus: 'UTILITY', to_bus: 'MAIN-SWGR', r_pu: 0.01, x_pu: 0.10, b_pu: 0.02, rating_mva: 50 },
-      { from_bus: 'MAIN-SWGR', to_bus: 'MCC-1', r_pu: 0.02, x_pu: 0.08, b_pu: 0.01, rating_mva: 10 },
-      { from_bus: 'MAIN-SWGR', to_bus: 'MCC-2', r_pu: 0.02, x_pu: 0.08, b_pu: 0.01, rating_mva: 10 },
-      { from_bus: 'MAIN-SWGR', to_bus: 'PUMP-MOTOR', r_pu: 0.015, x_pu: 0.06, b_pu: 0.005, rating_mva: 5 },
     ],
   };
 }
@@ -170,10 +158,6 @@ export function generateRelayCoordinationData(): Record<string, unknown>[] {
       time_dial: 0.08,
       ct_ratio: 100,
     },
-
-    { id: 'RELAY-01', type: 'overcurrent', curve: 'IEC_VI', pickup_a: 100, time_dial: 0.15, ct_ratio: 200 },
-    { id: 'RELAY-02', type: 'overcurrent', curve: 'IEC_VI', pickup_a: 80, time_dial: 0.10, ct_ratio: 150 },
-    { id: 'RELAY-03', type: 'overcurrent', curve: 'IEC_NI', pickup_a: 50, time_dial: 0.08, ct_ratio: 100 },
   ];
 }
 

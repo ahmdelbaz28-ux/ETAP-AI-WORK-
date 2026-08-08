@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import Dict, List
 
 # Try to import vector database libraries
 try:

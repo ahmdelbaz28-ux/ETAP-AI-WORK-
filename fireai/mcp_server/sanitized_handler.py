@@ -251,7 +251,7 @@ class SanitizedMCPHandler:
                 "[OWASP A03:2021 — tool injection attempt?]"
             )
             logger.critical(
-                f"[MCP SECURITY]: Unknown tool name rejected: '{request.tool_name}' "
+                f"[MCP SECURITY]: Unknown tool name rejected: '{request.tool_name}' "  # noqa: G004
                 f"from source={request.source} request_id={request.request_id}"
             )
             return MCPResponse(
@@ -272,7 +272,7 @@ class SanitizedMCPHandler:
                             "[OWASP A03:2021 — code injection attempt?]"
                         )
                         logger.critical(
-                            f"[MCP SECURITY]: Code injection attempt in parameter '{key}'. "
+                            f"[MCP SECURITY]: Code injection attempt in parameter '{key}'. "  # noqa: G004
                             f"Pattern: {pattern.pattern}. Value: '{value[:100]}'. "
                             f"Source: {request.source}. Request: {request.request_id}"
                         )
@@ -388,7 +388,7 @@ class SanitizedMCPHandler:
                 sanitized_params["_override_applied"] = True
                 sanitized_params["_override_rationale"] = override_result.safety_rationale
                 logger.warning(
-                    f"[MCP SAFETY]: Hazard override applied for room '{room_name}'. "
+                    f"[MCP SAFETY]: Hazard override applied for room '{room_name}'. "  # noqa: G004
                     f"AI predicted '{hazard_class}' → overridden to "
                     f"'{override_result.final_classification}'. "
                     f"Reason: {override_result.safety_rationale}"

@@ -261,10 +261,7 @@ def export_to_plc_script(nodes: list[AlarmLogicNode]) -> str:  # NOSONAR — S37
     # don't latch forever (SOLAS II-2/5.6 requires reset-on-clear).
     for n in nodes:
         in_ident = _to_ident(n.trigger_detector)
-        if n.interlocks:
-            cond = f"{in_ident} AND {_to_ident(f'interlock_{n.node_id}')}"
-        else:
-            cond = in_ident
+        cond = f"{in_ident} AND {_to_ident(f'interlock_{n.node_id}')}" if n.interlocks else in_ident
         lines.append(f"  // {n.node_id}: zone={n.zone_id} level={n.alarm_level.value}")
         lines.append(f"  IF {cond} THEN")
         for out in n.action_outputs:

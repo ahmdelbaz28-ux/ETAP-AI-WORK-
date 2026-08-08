@@ -447,7 +447,7 @@ class AnalysisPipeline:
             result.timing["optimization"] = round(time.monotonic() - t0, 4)
 
             logger.info(
-                f"  OPTIMIZATION: {layout.count} detectors, "
+                f"  OPTIMIZATION: {layout.count} detectors, "  # noqa: G004
                 f"coverage={layout.coverage_pct:.1f}%, "
                 f"nfpa_valid={layout.nfpa_valid}, method={layout.method}"
             )
@@ -688,7 +688,7 @@ class AnalysisPipeline:
                 result.timing["certification"] = round(time.monotonic() - t0, 4)
 
                 logger.info(
-                    f"  CERTIFICATION: guaranteed={cert.coverage_guaranteed}, "
+                    f"  CERTIFICATION: guaranteed={cert.coverage_guaranteed}, "  # noqa: G004
                     f"lower_bound={cert.coverage_lower_bound_pct:.1f}%, "
                     f"grid_points={cert.n_grid_points}, "
                     f"uncovered={cert.n_uncovered}"
@@ -735,7 +735,7 @@ class AnalysisPipeline:
             if result.certificate is not None:
                 result.certificate.seal()
                 logger.info(
-                    f"  SIGNING: hash={result.certificate.proof_hash[:16]}..., timestamp={result.certificate.timestamp}"
+                    f"  SIGNING: hash={result.certificate.proof_hash[:16]}..., timestamp={result.certificate.timestamp}"  # noqa: G004
                 )
             else:
                 # No certificate to sign — create a pipeline-level hash
@@ -940,7 +940,7 @@ class AnalysisPipeline:
         )
 
         logger.info(
-            f"Pipeline END: room={room_id}, success={result.success}, "
+            f"Pipeline END: room={room_id}, success={result.success}, "  # noqa: G004
             f"total_time={result.timing.get('total', 0.0):.3f}s, "
             f"errors={len(result.errors)}, warnings={len(result.warnings)}"
         )
@@ -1027,7 +1027,7 @@ class AnalysisPipeline:
             except Exception as exc:
                 # Non-critical: Record failure and continue with other rooms
                 logger.exception(
-                    f"Room {room_id} failed with {type(exc).__name__}: {exc}. Continuing with remaining rooms."
+                    f"Room {room_id} failed with {type(exc).__name__}: {exc}. Continuing with remaining rooms."  # noqa: G004
                 )
                 results.append(
                     PipelineResult(
@@ -1046,7 +1046,7 @@ class AnalysisPipeline:
         total_time = sum(r.timing.get("total", 0.0) for r in results)
 
         logger.info(
-            f"Building analysis END: {n_success}/{n_rooms} rooms passed, "
+            f"Building analysis END: {n_success}/{n_rooms} rooms passed, "  # noqa: G004
             f"{n_failed} failed, {n_total_detectors} total detectors, "
             f"total_time={total_time:.3f}s"
         )

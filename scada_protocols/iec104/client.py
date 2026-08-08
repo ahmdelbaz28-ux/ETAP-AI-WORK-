@@ -145,20 +145,20 @@ class IEC104ClientAdapter(ProtocolAdapter):
 
                         def _cb(point, previous_info, message):
                             try:
-                                val = decode_information(previous_info, _point_meta)
+                                val = decode_information(previous_info, _point_meta)  # noqa: B023
                                 q = decode_quality(previous_info)
                                 if val is None:
                                     return c104.ResponseState.NONE
-                                _adapter._ingest(
-                                    _point_meta.element_id,
-                                    _point_meta.measurement_type,
+                                _adapter._ingest(  # noqa: B023
+                                    _point_meta.element_id,  # noqa: B023
+                                    _point_meta.measurement_type,  # noqa: B023
                                     float(val),
                                     quality=q,
-                                    source="iec104:" + _src_name,
+                                    source="iec104:" + _src_name,  # noqa: B023
                                 )
                             except Exception as exc:
-                                _adapter._mark_error(
-                                    "on_receive (ioa=" + str(_point_meta.ioa) + "): " + str(exc)
+                                _adapter._mark_error(  # noqa: B023
+                                    "on_receive (ioa=" + str(_point_meta.ioa) + "): " + str(exc)  # noqa: B023
                                 )
                             return c104.ResponseState.NONE
 

@@ -496,7 +496,7 @@ class CableHatchIntegrator:
             )
         if hatch_scale > 1.0:
             logger.warning(
-                f"Hatch scale '{hatch_scale}' exceeds 1.0. "
+                f"Hatch scale '{hatch_scale}' exceeds 1.0. "  # noqa: G004
                 "Pattern density might appear too sparse."
             )
 
@@ -519,7 +519,7 @@ class CableHatchIntegrator:
                     )
                     warnings.append(warn_msg)
                     logger.warning(
-                        f"[NFPA 72 REVIEW REQUIRED] {warn_msg}"
+                        f"[NFPA 72 REVIEW REQUIRED] {warn_msg}"  # noqa: G004
                     )
                     break
 
@@ -543,7 +543,7 @@ class CableHatchIntegrator:
                     )
                     infos.append(info_msg)
                     logger.info(
-                        f"[HATCH INTERSECTION] {info_msg} "
+                        f"[HATCH INTERSECTION] {info_msg} "  # noqa: G004
                         "Render with unique pattern ANSI31."
                     )
                     break

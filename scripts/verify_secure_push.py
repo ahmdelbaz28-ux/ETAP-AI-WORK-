@@ -152,7 +152,7 @@ if os.path.exists(ui_lock):
         m = re.match(r'7\.(\d+)', undici_ver)
         if m:
             ok = int(m.group(1)) >= 29
-            check(f"ui: undici >= 7.29.0", ok,
+            check("ui: undici >= 7.29.0", ok,
                   f"found {undici_ver}", blocking=True)
 
 # ============================================================
@@ -174,7 +174,7 @@ try:
         total = audit.get('metadata', {}).get('vulnerabilities', {}).get('total', -1)
         high = audit.get('metadata', {}).get('vulnerabilities', {}).get('high', 0)
         critical = audit.get('metadata', {}).get('vulnerabilities', {}).get('critical', 0)
-        check(f"ui npm audit: 0 high/critical", high == 0 and critical == 0,
+        check("ui npm audit: 0 high/critical", high == 0 and critical == 0,
               f"high={high}, critical={critical}", blocking=True)
     except (json.JSONDecodeError, KeyError):
         check("ui npm audit", "0 vulnerabilities" in result.stdout,
@@ -217,7 +217,7 @@ print()
 print("=" * 70)
 if BLOCKED:
     print(f"  🚫 PUSH BLOCKED — {FAILED} blocking issue(s) found")
-    print(f"  Resolve all blocking issues before pushing.")
+    print("  Resolve all blocking issues before pushing.")
     sys.exit(1)
 elif FAILED > 0:
     print(f"  ⚠️  {PASSED} passed, {FAILED} warning(s) — review before pushing")
