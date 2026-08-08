@@ -636,7 +636,7 @@ class MemoryService:
 
             except Exception as e2:
                 logger.exception(
-                    f"Memory get_all failed with BOTH v1 and v2 APIs: {e2}",  # noqa: G004
+                    "Memory get_all failed with BOTH v1 and v2 APIs: %s", e2,
                 )
                 return {
                     "success": False,

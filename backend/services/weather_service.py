@@ -240,11 +240,16 @@ class WeatherService:
         )
 
         logger.info(
-            f"Weather fetched from Open-Meteo: "  # noqa: G004
-            f"lat={latitude:.4f}, lon={longitude:.4f}, "
-            f"T={weather.temperature_c:.1f}°C, "
-            f"WS={weather.wind_speed_m_s:.1f}m/s, "
-            f"RH={weather.relative_humidity_pct:.0f}%"
+            "Weather fetched from Open-Meteo: "
+            "lat=%.4f, lon=%.4f, "
+            "T=%.1f°C, "
+            "WS=%.1fm/s, "
+            "RH=%.0f%%",
+            latitude,
+            longitude,
+            weather.temperature_c,
+            weather.wind_speed_m_s,
+            weather.relative_humidity_pct,
         )
         return weather
 
@@ -258,9 +263,11 @@ class WeatherService:
         - 50% humidity (mid-range for acoustic propagation)
         """
         logger.warning(
-            f"Using CONSERVATIVE DEFAULT weather data for "  # noqa: G004
-            f"lat={latitude:.4f}, lon={longitude:.4f}. "
-            f"External API unavailable. Calculations proceed with safe defaults."
+            "Using CONSERVATIVE DEFAULT weather data for "
+            "lat=%.4f, lon=%.4f. "
+            "External API unavailable. Calculations proceed with safe defaults.",
+            latitude,
+            longitude,
         )
         return WeatherData(
             temperature_c=DEFAULT_OUTDOOR_TEMP_C,

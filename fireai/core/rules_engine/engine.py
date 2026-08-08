@@ -208,7 +208,7 @@ class Rule:
             return self.condition(fact)
         except Exception as e:
             logger.exception(
-                f"Rule {self.rule_id} condition error on fact {fact.fact_id}: {e}",  # noqa: G004
+                "Rule %s condition error on fact %s: %s", self.rule_id, fact.fact_id, e,
             )
             # SAFETY: On condition error, do NOT fire the rule.
             # Conservative = safer.
@@ -574,7 +574,7 @@ class RulesEngine:
 
                 except Exception as e:
                     logger.exception(
-                        f"Rule {rule.rule_id} action error: {e}",  # noqa: G004
+                        "Rule %s action error: %s", rule.rule_id, e,
                     )
                     audit.fired = False
                     audit.reason = f"Action error: {e}"
@@ -661,7 +661,7 @@ class RulesEngine:
                                 join_results.append((rule, [f1, f2]))
                         except Exception as e:
                             logger.exception(
-                                f"Join condition error in rule {rule.rule_id}: {e}",  # noqa: G004
+                                "Join condition error in rule %s: %s", rule.rule_id, e,
                             )
 
         return join_results

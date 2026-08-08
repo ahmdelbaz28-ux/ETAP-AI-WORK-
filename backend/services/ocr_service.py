@@ -264,7 +264,7 @@ class OCRService:
         if file_ext not in ['.pdf', '.png', '.jpg', '.jpeg', '.tiff', '.bmp']:
             raise ValueError(f"Unsupported file type: {file_ext}. Supported: .pdf, .png, .jpg, .jpeg, .tiff, .bmp")
 
-        self.logger.info(f"Processing OCR for file: {file_path}, size: {file_size} bytes")  # noqa: G004
+        self.logger.info("Processing OCR for file: %s, size: %s bytes", file_path, file_size)
 
         extracted_pages = []
         total_confidence = 0

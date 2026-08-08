@@ -105,9 +105,11 @@ def sanitize_bim_parameter(param_value: str) -> str:
     for pattern in _INJECTION_PATTERNS:
         if pattern.search(param_value):
             logger.critical(
-                f"[SECURITY ALERT]: Injection pattern detected in BIM parameter. "  # noqa: G004
-                f"Original: '{param_value}'. Pattern: {pattern.pattern}. "
-                "This may be an active attack on the fire protection system."
+                "[SECURITY ALERT]: Injection pattern detected in BIM parameter. "
+                "Original: '%s'. Pattern: %s. "
+                "This may be an active attack on the fire protection system.",
+                param_value,
+                pattern.pattern,
             )
             raise ValueError(
                 "Potential injection attack detected in input. "
@@ -121,9 +123,11 @@ def sanitize_bim_parameter(param_value: str) -> str:
 
     if sanitized != param_value:
         logger.warning(
-            f"[SANITIZATION]: BIM parameter sanitized. "  # noqa: G004
-            f"Original: '{param_value}' → Sanitized: '{sanitized}'. "
-            "Non-whitelisted characters were removed."
+            "[SANITIZATION]: BIM parameter sanitized. "
+            "Original: '%s' → Sanitized: '%s'. "
+            "Non-whitelisted characters were removed.",
+            param_value,
+            sanitized,
         )
 
     return sanitized
@@ -170,8 +174,10 @@ def sanitize_room_name(room_name: str) -> str:
 
     if sanitized != room_name:
         logger.warning(
-            f"[SANITIZATION]: Room name sanitized. "  # noqa: G004
-            f"'{room_name}' → '{sanitized}'"
+            "[SANITIZATION]: Room name sanitized. "
+            "'%s' → '%s'",
+            room_name,
+            sanitized,
         )
 
     return sanitized.strip()
@@ -216,8 +222,10 @@ def sanitize_file_path(file_path: str) -> str:
 
     if sanitized != file_path:
         logger.warning(
-            f"[SANITIZATION]: File path sanitized. "  # noqa: G004
-            f"'{file_path}' → '{sanitized}'"
+            "[SANITIZATION]: File path sanitized. "
+            "'%s' → '%s'",
+            file_path,
+            sanitized,
         )
 
     return sanitized

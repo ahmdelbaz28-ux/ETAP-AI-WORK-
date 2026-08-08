@@ -226,9 +226,11 @@ class ElevationService:
         Sea level = standard atmospheric pressure = safest for calculations.
         """
         logger.warning(
-            f"Using CONSERVATIVE DEFAULT elevation (sea level) for "  # noqa: G004
-            f"lat={latitude:.4f}, lon={longitude:.4f}. "
-            f"External API unavailable. Calculations proceed with safe defaults."
+            "Using CONSERVATIVE DEFAULT elevation (sea level) for "
+            "lat=%.4f, lon=%.4f. "
+            "External API unavailable. Calculations proceed with safe defaults.",
+            latitude,
+            longitude,
         )
         return ElevationData(
             elevation_m=DEFAULT_ELEVATION_M,

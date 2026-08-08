@@ -566,11 +566,15 @@ class NFPA72ComplianceChecker:
 
         # Log summary
         logger.info(
-            f"Compliance evaluation complete: "  # noqa: G004
-            f"safe={report.is_safe}, "
-            f"critical={len(report.critical_issues)}, "
-            f"violations={len(report.violations)}, "
-            f"checks={len(report.compliance_checks)}"
+            "Compliance evaluation complete: "
+            "safe=%s, "
+            "critical=%s, "
+            "violations=%s, "
+            "checks=%s",
+            report.is_safe,
+            len(report.critical_issues),
+            len(report.violations),
+            len(report.compliance_checks),
         )
 
         return report

@@ -300,7 +300,7 @@ class ScanToBIMService:
         """
         file_path = Path(file_path)
 
-        self.logger.info(f"Starting ScanToBIM process for: {file_path}")  # noqa: G004
+        self.logger.info("Starting ScanToBIM process for: %s", file_path)
 
         # First, perform OCR on the file
         try:

@@ -495,9 +495,9 @@ class AsyncAuditLogger:
                 os.remove(dst)
             os.rename(self.filepath, dst)
 
-            logging.info(f"[AUDIT ROTATION] Rotated audit log to {dst}")  # noqa: G004
+            logging.info("[AUDIT ROTATION] Rotated audit log to %s", dst)
         except OSError as e:
-            logging.warning(f"[AUDIT ROTATION FAILED] {e}. Continuing without rotation.")  # noqa: G004
+            logging.warning("[AUDIT ROTATION FAILED] %s. Continuing without rotation.", e)
 
     def log_event(self, event_data: dict[str, Any]) -> bool:
         """
@@ -824,9 +824,12 @@ class WeightedCircuitBreaker:
                 self.open_time = now
                 self.half_open_count = 0
                 logging.critical(
-                    f"[CIRCUIT BREAKER CRITICAL] Weighted fault rate exceeded threshold "  # noqa: G004
-                    f"(weight: {current_weight:.1f}/{self.threshold:.1f} in {self.window_seconds}s). "
-                    f"State transitioned to OPEN. System is in fallback recovery."
+                    "[CIRCUIT BREAKER CRITICAL] Weighted fault rate exceeded threshold "
+                    "(weight: %.1f/%.1f in %ss). "
+                    "State transitioned to OPEN. System is in fallback recovery.",
+                    current_weight,
+                    self.threshold,
+                    self.window_seconds,
                 )
                 return False
             return True
@@ -1573,8 +1576,10 @@ def self_healing(  # NOSONAR — S3776: cognitive complexity is inherent to the 
                 # TIER 2: LOCAL LLM RECOVERY LOOP (OLLAMA / LLAMA)
                 # -----------------------------------------------------
                 logging.warning(
-                    f"[TIER 2 HEALING INITIALIZED] Standard Tier 1 rules could "  # noqa: G004
-                    f"not safely resolve {err_type} in {func_name}. Querying Local LLM Agent..."
+                    "[TIER 2 HEALING INITIALIZED] Standard Tier 1 rules could "
+                    "not safely resolve %s in %s. Querying Local LLM Agent...",
+                    err_type,
+                    func_name,
                 )
 
                 llm_response_val = None

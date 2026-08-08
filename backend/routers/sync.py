@@ -339,9 +339,11 @@ async def websocket_endpoint(websocket: WebSocket) -> None:  # NOSONAR — S3776
     # ── Origin check ────────────────────────────────────────────────────
     if not _validate_ws_origin(websocket):
         logger.warning(
-            f"WebSocket connection rejected: invalid origin "  # noqa: G004
-            f"origin={websocket.headers.get('origin', 'missing')} "
-            f"client={websocket.client.host if websocket.client else 'unknown'}"
+            "WebSocket connection rejected: invalid origin "
+            "origin=%s "
+            "client=%s",
+            websocket.headers.get("origin", "missing"),
+            websocket.client.host if websocket.client else "unknown",
         )
         await websocket.close(code=4001, reason="Unauthorized origin")
         return

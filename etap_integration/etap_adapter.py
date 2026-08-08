@@ -12,6 +12,7 @@ from typing import Any, Dict
 
 from core.bootstrap import logger
 
+
 # ─── Unified types (single source of truth) ─────────────────────────────
 # ETAPStudyType + ETAPResult are now defined in unified_etap_types.py
 # to eliminate the 3-way duplication.

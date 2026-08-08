@@ -954,8 +954,10 @@ class SevereWeatherService:
 
         try:
             logger.info(
-                f"Attempting Open-Meteo alert check: "  # noqa: G004
-                f"lat={latitude:.4f}, lon={longitude:.4f}"
+                "Attempting Open-Meteo alert check: "
+                "lat=%.4f, lon=%.4f",
+                latitude,
+                longitude,
             )
             response = await client.get(
                 self.OPENMETEO_ALERTS_URL,
@@ -1065,10 +1067,13 @@ class SevereWeatherService:
 
         """
         logger.warning(
-            f"Using DEFAULT severe weather data (no alerts) for "  # noqa: G004
-            f"lat={latitude:.4f}, lon={longitude:.4f}. "
-            f"Coverage area: {coverage_area}. "
-            f"No alert source available for this location."
+            "Using DEFAULT severe weather data (no alerts) for "
+            "lat=%.4f, lon=%.4f. "
+            "Coverage area: %s. "
+            "No alert source available for this location.",
+            latitude,
+            longitude,
+            coverage_area,
         )
         return SevereWeatherData(
             active_alerts=(),
@@ -1176,9 +1181,13 @@ class SevereWeatherService:
                 return default
             except Exception as e:
                 logger.exception(
-                    f"Unexpected error fetching NWS severe weather for "  # noqa: G004
-                    f"lat={latitude:.4f}, lon={longitude:.4f}: "
-                    f"{type(e).__name__}: {e}. Using defaults."
+                    "Unexpected error fetching NWS severe weather for "
+                    "lat=%.4f, lon=%.4f: "
+                    "%s: %s. Using defaults.",
+                    latitude,
+                    longitude,
+                    type(e).__name__,
+                    e,
                 )
                 default = self._get_default(latitude, longitude, coverage_area="us")
                 self._set_cached(latitude, longitude, default)
@@ -1243,9 +1252,13 @@ class SevereWeatherService:
                     return default
             except Exception as e:
                 logger.exception(
-                    f"Unexpected error fetching MeteoAlarm severe weather for "  # noqa: G004
-                    f"lat={latitude:.4f}, lon={longitude:.4f}: "
-                    f"{type(e).__name__}: {e}. Using defaults."
+                    "Unexpected error fetching MeteoAlarm severe weather for "
+                    "lat=%.4f, lon=%.4f: "
+                    "%s: %s. Using defaults.",
+                    latitude,
+                    longitude,
+                    type(e).__name__,
+                    e,
                 )
                 default = self._get_default(latitude, longitude, coverage_area="eu")
                 self._set_cached(latitude, longitude, default)

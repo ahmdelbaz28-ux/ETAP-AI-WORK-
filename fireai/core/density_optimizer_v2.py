@@ -350,7 +350,7 @@ class DensityOptimizerV2:
                 room_id_result, result = _optimize_room_worker((room_id, spec, detector_type, kwargs))
                 if isinstance(result, dict) and "error" in result:
                     failed += 1
-                    log.error(f"Room {room_id}: {result['error']}")  # noqa: G004
+                    log.error("Room %s: %s", room_id, result['error'])
                 else:
                     successful += 1
                 results[room_id_result] = result

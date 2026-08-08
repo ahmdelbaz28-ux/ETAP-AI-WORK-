@@ -394,9 +394,11 @@ class AirQualityService:
         tenability calculations.
         """
         logger.warning(
-            f"Using CONSERVATIVE DEFAULT air quality for "  # noqa: G004
-            f"lat={latitude:.4f}, lon={longitude:.4f}. "
-            f"External API unavailable. Assuming MODERATE AQI."
+            "Using CONSERVATIVE DEFAULT air quality for "
+            "lat=%.4f, lon=%.4f. "
+            "External API unavailable. Assuming MODERATE AQI.",
+            latitude,
+            longitude,
         )
         return AirQualityData(
             aqi=DEFAULT_AQI,

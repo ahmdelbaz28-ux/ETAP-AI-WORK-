@@ -505,7 +505,7 @@ def check_coverage_polygon(  # NOSONAR — S3776: cognitive complexity is inhere
         # (e.g., invalid geometry, degenerate polygon)
         import logging as _logging
 
-        _logging.getLogger(__name__).warning(f"Area-based coverage failed, falling back to point-based: {area_err}")  # noqa: G004
+        _logging.getLogger(__name__).warning("Area-based coverage failed, falling back to point-based: %s", area_err)
         primary_pct = covered_count / total_points * 100 if total_points > 0 else 0
         is_covered = primary_pct >= 99.9  # V20.2 FIX: Must match primary threshold (was 99%)
 

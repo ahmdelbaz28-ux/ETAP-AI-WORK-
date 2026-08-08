@@ -5,14 +5,11 @@ Handles all health check endpoints with REAL dependency checks.
 Separated from main engineering service for better modularity.
 """
 
-import os
 import time
 from typing import Dict
 
 from fastapi import APIRouter, Request
-from fastapi.responses import JSONResponse, Response
-from pydantic import BaseModel
-from sqlalchemy import text
+from fastapi.responses import Response
 
 from api._messages import ISO_8601_UTC_FMT
 from core.bootstrap import (
