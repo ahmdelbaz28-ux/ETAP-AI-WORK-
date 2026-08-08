@@ -100,6 +100,7 @@ class SyncRequest(BaseModel):
 
 class ValidateRequest(BaseModel):
     model_json: str | None = Field(None, description="Optional model JSON to validate")
+    checks: list[str] = Field(default_factory=lambda: ["voltage", "overcurrent", "coordination"])
 
 
 # ---------------------------------------------------------------------------

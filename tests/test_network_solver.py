@@ -132,6 +132,13 @@ class TestZbus:
 
     def test_zbus_full_3bus(self):
         # Non-singular Ybus (diagonally dominant, each row != 0)
+        Ybus = np.array(  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            [
+                [10 - 20j, -3 + 6j, -2 + 5j],
+                [-3 + 6j, 8 - 15j, 0],
+                [-2 + 5j, 0, 6 - 12j],
+            ]
+        )
 
         Ybus = np.array(
             [
@@ -146,6 +153,17 @@ class TestZbus:
         assert np.allclose(Z @ Ybus, np.eye(3), atol=1e-10)
 
     def test_zbus_invertibility(self):
+        Ybus = np.array(  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            [
+                [10 - 20j, -2 + 5j, 0],
+                [-2 + 5j, 8 - 15j, -3 + 6j],
+                [0, -3 + 6j, 5 - 10j],
+            ]
+        )
+        Z = zbus_from_ybus(Ybus, reference_bus=0)
+        Z_full = zbus_full(
+            Ybus
+        )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         Ybus = np.array(
             [
@@ -161,6 +179,12 @@ class TestZbus:
 
     def test_zbus_singular_fallback(self):
         # Singular Ybus (all rows identical)
+        Ybus = np.array(  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            [
+                [1 + 1j, 2 + 2j],
+                [1 + 1j, 2 + 2j],
+            ]
+        )
 
         Ybus = np.array(
             [
@@ -172,6 +196,12 @@ class TestZbus:
         assert Z.shape == (2, 2)
 
     def test_zbus_singular_reduced_fallback(self):
+        Ybus = np.array(  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            [
+                [1 + 1j, 2 + 2j],
+                [1 + 1j, 2 + 2j],
+            ]
+        )
 
         Ybus = np.array(
             [
@@ -193,7 +223,9 @@ class TestZbus:
         """Inverse of a Hermitian matrix should be Hermitian (Z == Z^H)."""
         n = 5
         np.random.seed(42)
-        Y = np.random.randn(n, n) + 1j * np.random.randn(n, n)
+        Y = np.random.randn(n, n) + 1j * np.random.randn(
+            n, n
+        )  # NOSONAR numpy.random.Generator migration; API change required
         Y = Y @ Y.conj().T  # Make Hermitian (positive semidefinite)
         np.fill_diagonal(Y, np.sum(np.abs(Y), axis=1) + 10)
         Z = zbus_full(Y)
@@ -203,6 +235,13 @@ class TestZbus:
     def test_zbus_different_ref_bus(self):
         """Different reference bus should produce different reduced Zbus."""
         # Use a non-uniform Ybus so reference bus selection matters
+        Ybus = np.array(  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            [
+                [15 - 25j, -5 + 10j, -3 + 6j],
+                [-5 + 10j, 12 - 22j, -7 + 14j],
+                [-3 + 6j, -7 + 14j, 10 - 20j],
+            ]
+        )
 
         Ybus = np.array(
             [
@@ -226,6 +265,12 @@ class TestZbus:
             assert np.all(np.isfinite(Z))
 
     def test_zbus_2bus(self):
+        Ybus = np.array(  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+            [
+                [5 - 10j, -5 + 10j],
+                [-5 + 10j, 5 - 10j],
+            ]
+        )
 
         Ybus = np.array(
             [
@@ -266,14 +311,30 @@ class TestZbus:
             assert np.allclose(Z_red @ Y_red, np.eye(2), atol=1e-10)
 
     def test_zbus_zero_off_diagonal(self):
-        Ybus = np.diag([1 + 1j, 2 + 2j, 3 + 3j])
-        Z = zbus_full(Ybus)
-        assert np.allclose(Z @ Ybus, np.eye(3), atol=1e-10)
+        Ybus = np.array(
+            [
+                [10 - 20j, -3 + 6j, -2 + 5j],
+                [-3 + 6j, 8 - 15j, 0],
+                [-2 + 5j, 0, 6 - 12j],
+            ]
+        )
+        # Full Zbus: Z @ Y should be identity
+        Z_full = zbus_full(Ybus)
+        assert np.allclose(Z_full @ Ybus, np.eye(3), atol=1e-10)
+        # Reduced Zbus: reduced Z @ reduced Y should be identity
+        for ref in range(3):
+            Z_red = zbus_from_ybus(Ybus, reference_bus=ref)
+            # Remove reference bus row/col from Ybus
+            mask = [i for i in range(3) if i != ref]
+            Y_red = Ybus[np.ix_(mask, mask)]
+            assert np.allclose(Z_red @ Y_red, np.eye(2), atol=1e-10)
 
     def test_zbus_large_values(self):
         n = 10
         np.random.seed(123)
-        Y = np.random.randn(n, n) + 1j * np.random.randn(n, n)
+        Y = np.random.randn(n, n) + 1j * np.random.randn(
+            n, n
+        )  # NOSONAR numpy.random.Generator migration; API change required
         Y = Y @ Y.conj().T + np.eye(n) * 100
         Z = zbus_full(Y)
         assert Z.shape == (n, n)
