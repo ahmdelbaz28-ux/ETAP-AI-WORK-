@@ -39,22 +39,6 @@ export const run_python = createTool({
       });
 
       stderrStream.on('data', (data: Buffer) => {
-
-      // Use spawn instead of execFile to pass code via stdin (prevents shell injection)
-      const child = spawn('python', [secureExecutorPath], {
-        env: { ...process.env, PYTHONDONTWRITEBYTECODE: '1', PYTHONUNBUFFERED: '1' },
-        stdio: ['pipe', 'pipe', 'pipe'],
-        timeout: PYTHON_TIMEOUT_MS,
-      });
-
-      let stdout = '';
-      let stderr = '';
-
-      child.stdout.on('data', (data: Buffer) => {
-        stdout += data.toString();
-      });
-
-      child.stderr.on('data', (data: Buffer) => {
         stderr += data.toString();
       });
 
@@ -98,5 +82,5 @@ export const run_python = createTool({
         reject(new Error('Failed to get stdin stream from secure executor'));
       }
     });
-  }
+  },
 });
