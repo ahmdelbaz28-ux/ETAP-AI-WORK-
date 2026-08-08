@@ -257,7 +257,7 @@ class StandardValidator(ABC):
             )
         except Exception as e:
             logger.exception(
-                f"Error applying rule {rule['rule_id']} for {self._standard.value}: {e}"
+                f"Error applying rule {rule['rule_id']} for {self._standard.value}: {e}"  # noqa: G004
             )
             return RuleApplication(
                 rule_id=rule["rule_id"],

@@ -37,7 +37,7 @@ import logging
 import math
 import warnings as _warnings
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 
 from fireai.core.international_reg_selector import (
     ATEXZone,
@@ -63,25 +63,25 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 
-class ReleaseGrade(str, Enum):
+class ReleaseGrade(StrEnum):
     CONTINUOUS = "CONTINUOUS"
     PRIMARY = "PRIMARY"
     SECONDARY = "SECONDARY"
 
 
-class VentilationDegree(str, Enum):
+class VentilationDegree(StrEnum):
     HIGH = "HIGH"
     MEDIUM = "MEDIUM"
     LOW = "LOW"
 
 
-class VentilationAvailability(str, Enum):
+class VentilationAvailability(StrEnum):
     GOOD = "GOOD"
     FAIR = "FAIR"
     POOR = "POOR"
 
 
-class HazardousMaterial(str, Enum):
+class HazardousMaterial(StrEnum):
     GAS = "GAS"
     VAPOR = "VAPOR"
     DUST_COMB = "DUST_COMB"
@@ -89,7 +89,7 @@ class HazardousMaterial(str, Enum):
     MIST = "MIST"
 
 
-class SoRGeometry(str, Enum):
+class SoRGeometry(StrEnum):
     POINT = "POINT"
     LINE = "LINE"
     AREA = "AREA"
@@ -469,7 +469,7 @@ def _iec_annex_b_extent(  # NOSONAR — S3776: cognitive complexity is inherent 
         import logging as _hac_log
 
         _hac_log.getLogger(__name__).critical(
-            f"IEC Annex B: Computed Vz ({Vz_diluted_m3:.1f} m³) exceeds room volume "  # NOSONAR - python:S3827
+            f"IEC Annex B: Computed Vz ({Vz_diluted_m3:.1f} m³) exceeds room volume "  # NOSONAR - python:S3827  # noqa: G004
             f"({room_volume_m3:.1f} m³). Entire room is potentially hazardous. "
             f"[IEC 60079-10-1 Annex B §B.3]"
         )
@@ -1063,7 +1063,7 @@ class HACClassificationEngine:
         # that made zones 2× smaller (less conservative = less safe).
         r_v = r_h  # Uniform hemisphere/sphere per IEC simplified method
 
-        if indoor:
+        if indoor:  # noqa: SIM108
             vol = (2.0 / 3.0) * math.pi * r_h**3  # Hemisphere (IEC Annex A)
         else:
             vol = (4.0 / 3.0) * math.pi * r_h**3  # Full sphere (IEC Annex A)
@@ -1109,7 +1109,7 @@ class HACClassificationEngine:
         # The V43 fix incorrectly applied hemi-ellipsoid here too.
         r_v = r_h  # Uniform hemisphere/sphere per IEC simplified method
 
-        if indoor:
+        if indoor:  # noqa: SIM108
             vol = (2.0 / 3.0) * math.pi * r_h**3  # Hemisphere (IEC Annex A)
         else:
             vol = (4.0 / 3.0) * math.pi * r_h**3  # Full sphere (IEC Annex A)

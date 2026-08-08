@@ -45,7 +45,7 @@ async def list_connections(
     relationship_type: str | None = Query(None, description="Filter by relationship type"),  # NOSONAR - python:S8410
     page: int = Query(1, ge=1, description="Page number"),  # NOSONAR - python:S8410
     page_size: int = Query(20, ge=1, le=100, description="Items per page"),  # NOSONAR - python:S8410
-    db: DatabaseService = Depends(get_db_service),  # NOSONAR - python:S8410
+    db: DatabaseService = Depends(get_db_service),  # NOSONAR - python:S8410  # noqa: B008
 ):
     """List connections (relationships) with optional filtering and pagination."""
     try:
@@ -70,13 +70,13 @@ async def list_connections(
         )
     except Exception as e:
         logger.exception("list_connections failed: %s", e)
-        raise HTTPException(status_code=500, detail="Internal server error")  # NOSONAR — S1192: duplicated literal acceptable in this localized context
+        raise HTTPException(status_code=500, detail="Internal server error")  # NOSONAR — S1192: duplicated literal acceptable in this localized context  # noqa: B904
 
 
 @router.post("", response_model=ApiResponse[ConnectionResponse], status_code=201, dependencies=[Depends(require_permission(Permission.CONNECTION_CREATE))])
 async def create_connection(
     connection_data: ConnectionCreate,
-    db: DatabaseService = Depends(get_db_service),  # NOSONAR - python:S8410
+    db: DatabaseService = Depends(get_db_service),  # NOSONAR - python:S8410  # noqa: B008
 ):
     """Create a new connection (relationship) between elements."""
     try:
@@ -85,17 +85,17 @@ async def create_connection(
     except ValueError as e:
         # Never expose str(e) from ValueError to the client.
         logger.warning("Connection creation ValueError: %s", e)
-        raise HTTPException(status_code=400, detail="Invalid connection data. Please check the input parameters.")  # NOSONAR — S8415: assignment kept for readability / debuggability
+        raise HTTPException(status_code=400, detail="Invalid connection data. Please check the input parameters.")  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
     except Exception as e:
         logger.exception("create_connection failed: %s", e)
-        raise HTTPException(status_code=500, detail="Internal server error")  # NOSONAR — S8415: assignment kept for readability / debuggability
+        raise HTTPException(status_code=500, detail="Internal server error")  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
 
 
 @router.put("/{connection_id}", response_model=ApiResponse[ConnectionResponse], dependencies=[Depends(require_permission(Permission.CONNECTION_UPDATE))])
 async def update_connection(
     connection_id: str,
     data: ConnectionCreate,
-    db: DatabaseService = Depends(get_db_service),  # NOSONAR - python:S8410
+    db: DatabaseService = Depends(get_db_service),  # NOSONAR - python:S8410  # noqa: B008
 ):
     """Update a connection by ID. V215 FIX: was missing — frontend got 405."""
     try:
@@ -111,13 +111,13 @@ async def update_connection(
         raise
     except Exception as e:
         logger.exception("update_connection failed: %s", e)
-        raise HTTPException(status_code=500, detail="Internal server error")  # noqa: S8415
+        raise HTTPException(status_code=500, detail="Internal server error") from None  # noqa: S8415
 
 
 @router.delete("/{connection_id}", response_model=ApiResponse[None], dependencies=[Depends(require_permission(Permission.CONNECTION_DELETE))])
 async def delete_connection(
     connection_id: str,
-    db: DatabaseService = Depends(get_db_service),  # NOSONAR - python:S8410
+    db: DatabaseService = Depends(get_db_service),  # NOSONAR - python:S8410  # noqa: B008
 ):
     """Delete a connection by ID."""
     try:
@@ -130,4 +130,4 @@ async def delete_connection(
         raise
     except Exception as e:
         logger.exception("delete_connection failed: %s", e)
-        raise HTTPException(status_code=500, detail="Internal server error")  # NOSONAR — S8415: assignment kept for readability / debuggability
+        raise HTTPException(status_code=500, detail="Internal server error")  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904

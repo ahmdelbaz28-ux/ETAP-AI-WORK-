@@ -22,7 +22,7 @@ import json
 import re
 import sys
 from collections import defaultdict
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Dict, List, Set
 
@@ -160,7 +160,7 @@ def print_report(findings: List[DriftFinding], as_json: bool = False) -> None:
     infos = [f for f in findings if f.severity == "INFO"]
 
     print(f"\n{'='*60}")
-    print(f"  Agent Drift Audit Report")
+    print("  Agent Drift Audit Report")
     print(f"{'='*60}")
     print(f"  Errors:   {len(errors)}")
     print(f"  Warnings: {len(warnings)}")

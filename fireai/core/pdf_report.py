@@ -627,7 +627,7 @@ def generate_building_report(
             raise ValueError("Output path escapes file system restrictions")
     except Exception as e:
         _logger.exception("Path validation failed: %s", e)  # NOSONAR — acceptable in this context  # NOSONAR — acceptable in this context
-        raise ValueError(f"Invalid output path: {e}")
+        raise ValueError(f"Invalid output path: {e}") from None
 
     try:
         # Ensure parent directory exists before building the PDF

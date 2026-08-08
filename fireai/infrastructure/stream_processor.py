@@ -261,7 +261,7 @@ class StreamProcessor:
         agg = WindowedAggregation(window_spec)
         self._aggregators[name] = agg
         logger.info(
-            f"StreamProcessor '{self._name}': added aggregator '{name}' "
+            f"StreamProcessor '{self._name}': added aggregator '{name}' "  # noqa: G004
             f"({window_spec.name}, duration={window_spec.duration})"
         )
         return agg
@@ -289,14 +289,14 @@ class StreamProcessor:
                             with self._metrics_lock:
                                 self._events_dropped += 1
                             logger.debug(
-                                f"StreamProcessor '{self._name}': event {event.id} "
+                                f"StreamProcessor '{self._name}': event {event.id} "  # noqa: G004
                                 f"dropped by transform '{name}'"
                             )
                             return
                         current = result
                     except Exception as e:
                         logger.exception(
-                            f"StreamProcessor '{self._name}': transform '{name}' "
+                            f"StreamProcessor '{self._name}': transform '{name}' "  # noqa: G004
                             f"raised error on event {event.id}: {e}"
                         )
                         with self._metrics_lock:
@@ -311,13 +311,13 @@ class StreamProcessor:
                             with self._metrics_lock:
                                 self._events_dropped += 1
                             logger.debug(
-                                f"StreamProcessor '{self._name}': event {event.id} "
+                                f"StreamProcessor '{self._name}': event {event.id} "  # noqa: G004
                                 f"filtered out by '{name}'"
                             )
                             return
                     except Exception as e:
                         logger.exception(
-                            f"StreamProcessor '{self._name}': filter '{name}' "
+                            f"StreamProcessor '{self._name}': filter '{name}' "  # noqa: G004
                             f"raised error on event {event.id}: {e}"
                         )
                         with self._metrics_lock:
@@ -334,7 +334,7 @@ class StreamProcessor:
                             agg.add(agg_key, agg_value, current.timestamp)
                         except Exception as e:
                             logger.exception(
-                                f"StreamProcessor '{self._name}': aggregator '{agg_name}' "
+                                f"StreamProcessor '{self._name}': aggregator '{agg_name}' "  # noqa: G004
                                 f"error on event {event.id}: {e}"
                             )
 
@@ -353,7 +353,7 @@ class StreamProcessor:
                     self._events_errored += 1
                     self._last_error = str(e)
                 logger.exception(
-                    f"StreamProcessor '{self._name}': unhandled error processing "
+                    f"StreamProcessor '{self._name}': unhandled error processing "  # noqa: G004
                     f"event {event.id}: {e}"
                 )
 
@@ -365,7 +365,7 @@ class StreamProcessor:
             await sink_fn(event)
         except Exception as e:
             logger.exception(
-                f"StreamProcessor '{self._name}': sink '{name}' failed "
+                f"StreamProcessor '{self._name}': sink '{name}' failed "  # noqa: G004
                 f"on event {event.id}: {e}"
             )
             with self._metrics_lock:

@@ -12,9 +12,9 @@ from fastapi.testclient import TestClient
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 
+import scada_protocols.wiring as _wiring_mod
 from scada_protocols.common.config import SCADAProtocolsConfig
 from scada_protocols.wiring import get_wired_manager, wire_into_app
-import scada_protocols.wiring as _wiring_mod
 
 
 @pytest.fixture(autouse=True)
@@ -44,9 +44,9 @@ def test_wire_into_app_mounts_router_and_starts_manager():
     # Use a config with all protocols disabled so no sockets are opened.
     cfg = _make_disabled_config()
     # Patch load_config to return our test config.
-    from scada_protocols.wiring import wire_into_app as _wire
     from scada_protocols import wiring as _w
     from scada_protocols.common import config as _cfg_mod
+    from scada_protocols.wiring import wire_into_app as _wire
 
     original_load = _cfg_mod.load_config
     _cfg_mod.load_config = lambda *a, **kw: cfg

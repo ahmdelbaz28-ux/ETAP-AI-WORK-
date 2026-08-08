@@ -166,7 +166,7 @@ class GeocodingService:
         )
 
         logger.info(  # NOSONAR
-            f"Geocoding: '{address}' → lat={lat:.6f}, lon={lon:.6f}, "
+            f"Geocoding: '{address}' → lat={lat:.6f}, lon={lon:.6f}, "  # noqa: G004
             f"country={country_code}"
         )
         return result
@@ -202,13 +202,13 @@ class GeocodingService:
             return result
         except (httpx.HTTPError, ValueError, KeyError) as e:
             logger.warning(
-                f"Geocoding failed for '{address}': "
+                f"Geocoding failed for '{address}': "  # noqa: G004
                 f"{type(e).__name__}: {e}"
             )
             return None
         except Exception as e:
             logger.exception(
-                f"Unexpected geocoding error for '{address}': "
+                f"Unexpected geocoding error for '{address}': "  # noqa: G004
                 f"{type(e).__name__}: {e}"
             )
             return None
@@ -254,7 +254,7 @@ class GeocodingService:
             )
         except Exception as e:
             logger.warning(
-                f"Reverse geocoding failed for lat={latitude}, lon={longitude}: "
+                f"Reverse geocoding failed for lat={latitude}, lon={longitude}: "  # noqa: G004
                 f"{type(e).__name__}: {e}"
             )
             return None

@@ -48,7 +48,6 @@ from core_model.line import Line  # noqa: E402
 from core_model.system import System  # noqa: E402
 from engine.engine import PowerSystemEngine  # noqa: E402
 
-
 # ---------------------------------------------------------------------------
 # Canonical study parameters
 # ---------------------------------------------------------------------------

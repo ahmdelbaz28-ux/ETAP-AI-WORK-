@@ -15,7 +15,6 @@ from autodesk_connector.revit.connector import (
     RevitPluginClient,
 )
 
-
 __all__ = [
     "RevitConnector",
     "RevitElementType",

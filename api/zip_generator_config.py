@@ -68,7 +68,7 @@ class ZIPCoefficientsModel(BaseModel):
     bP: float = Field(default=1.0, ge=0.0, le=1.0, description="Constant power fraction (reactive power)")
 
     @model_validator(mode="after")
-    def _validate_coefficient_sums(self) -> "ZIPCoefficientsModel":
+    def _validate_coefficient_sums(self) -> ZIPCoefficientsModel:
         """Ensure active and reactive coefficient groups each sum to 1.0."""
         a_sum = self.aZ + self.aI + self.aP
         b_sum = self.bZ + self.bI + self.bP
@@ -161,7 +161,7 @@ class GeneratorCapabilityCreateRequest(BaseModel):
     min_power_reactive: float = Field(default=0.0, description="Minimum reactive power output (per-unit)")
 
     @model_validator(mode="after")
-    def _validate_power_limits(self) -> "GeneratorCapabilityCreateRequest":
+    def _validate_power_limits(self) -> GeneratorCapabilityCreateRequest:
         """Ensure max limits are not less than min limits."""
         if self.max_power_real < self.min_power_real:
             raise ValueError(

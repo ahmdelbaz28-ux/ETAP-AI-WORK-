@@ -85,17 +85,6 @@ class TestPromptLoader:
         assert isinstance(prompt, str)
         assert len(prompt) > 0, "Fallback prompt should not be empty"
 
-    def test_missing_prompts_dir_graceful(self, monkeypatch):
-        """When prompts directory doesn't exist, should still return fallback."""
-        from agents.prompt_loader import clear_prompt_cache, get_system_prompt
-
-        monkeypatch.setenv("ETAP_PROMPTS_DIR", "/nonexistent/directory")
-        clear_prompt_cache()
-        prompt = get_system_prompt("load_flow_agent")
-        assert isinstance(prompt, str)
-        assert len(prompt) > 0
-        clear_prompt_cache()
-
     def test_missing_prompts_dir_graceful(self):
         """When prompts directory doesn't exist, should still return fallback."""
         from agents.prompt_loader import clear_prompt_cache, get_system_prompt
@@ -253,21 +242,6 @@ class TestAgentPromptIntegration:
             assert agent._system_prompt is not None, f"{cls.__name__} has no prompt loaded"
             assert len(agent._system_prompt) > 50, f"{cls.__name__} prompt is too short"
 
-    def test_agent_graceful_prompt_failure(self, monkeypatch):
-        """Agent should still work when prompt loading fails."""
-        from agents.orchestrator import LoadFlowAgent
-
-        monkeypatch.setenv("ETAP_PROMPTS_DIR", "/nonexistent/directory")
-        from agents.prompt_loader import clear_prompt_cache
-
-        clear_prompt_cache()
-        agent = LoadFlowAgent()
-        # Agent should still have a system_prompt property (fallback)
-        assert len(agent.system_prompt) > 0
-        # Agent should still be functional
-        assert agent.agent_name == "LoadFlowAgent"
-        clear_prompt_cache()
-
     def test_agent_graceful_prompt_failure(self):
         """Agent should still work when prompt loading fails."""
         from agents.orchestrator import LoadFlowAgent
@@ -346,22 +320,7 @@ class TestPromptHandleMapping:
             "etap_gui_agent": "ETAP GUI Agent or interface handler",
             "ahmed_etap_agent": "AhmedETAPSkillAgent (orchestration skill) + study_type='ahmed_etap_orchestration'",
             "qgis_agent": "QGIS & GIS Integration Agent (GIS/ArcGIS Pro/QGIS)",
-
-            "etap_engineer_agent_v2": "Reserved for V2 agent variant",
-            "etap_expert_agent": "ETAPExpertAgent (skill) + study_type='etap_expert'",
-            "arcflash_agent_prompt": "arcFlashAgent (TS)",
-            "arcflash_agent": "arcFlashAgent (TS) — alias for arcflash_agent_prompt",
-            "code_guard_agent": "CodeGuardAgent (guard skills)",
-            "goal_planner_agent": "goalPlannerAgent (TS)",
-            "weather_agent": "weatherAgent (TS)",
-            "weather_activity_planner": "Weather workflow (TS)",
-            "power_system_coordinator_agent": "ChiefEngineeringOrchestrator + powerSystemCoordinatorAgent (TS)",
-            "fallback_agent": "Fallback prompt for missing handles",
             "generic_agent_chat": "Generic chat fallback",
-            "anomaly_agent": "AnomalyAgent (future ML)",
-            "coordination_agent": "CoordinationAgent (future relay)",
-            "digital_twin_agent": "DigitalTwinAgent (future DT)",
-            "predictive_agent": "PredictiveAgent (future ML)",
             "sample_prompt": "Template/sample only",
         }
 

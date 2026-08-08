@@ -259,13 +259,13 @@ class CeilingSpec:
         if height_at_low_point_m < MIN_HEIGHT:
             clamped = MIN_HEIGHT
             logger.warning(
-                f"CeilingSpec.create_safe: height {height_at_low_point_m}m < NFPA min {MIN_HEIGHT}m "
+                f"CeilingSpec.create_safe: height {height_at_low_point_m}m < NFPA min {MIN_HEIGHT}m "  # noqa: G004
                 f"— clamped to {MIN_HEIGHT}m. Review with licensed PE."
             )
         elif height_at_low_point_m > MAX_HEIGHT:
             clamped = MAX_HEIGHT
             logger.warning(
-                f"CeilingSpec.create_safe: height {height_at_low_point_m}m > NFPA max {MAX_HEIGHT}m (50 ft) "
+                f"CeilingSpec.create_safe: height {height_at_low_point_m}m > NFPA max {MAX_HEIGHT}m (50 ft) "  # noqa: G004
                 f"— clamped to {MAX_HEIGHT}m. Review with licensed PE."
             )
 

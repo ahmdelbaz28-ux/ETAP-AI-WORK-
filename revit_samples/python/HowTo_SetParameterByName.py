@@ -15,22 +15,22 @@ License: http://github.com/gtalarico/revitapidocs/blob/master/LICENSE.md
 #Imports
 from Autodesk.Revit.DB import Transaction
 
-doc = __revit__.ActiveUIDocument.Document
-uidoc = __revit__.ActiveUIDocument
+doc = __revit__.ActiveUIDocument.Document  # noqa: F821
+uidoc = __revit__.ActiveUIDocument  # noqa: F821
 t = Transaction(doc, 'Set Parameter by Name')
 
 #Select element from revit.
 selection = [doc.GetElement(x) for x in uidoc.Selection.GetElementIds()]
 
 def set_parameter_by_name(element, parameterName, value):  # NOSONAR - python:S117
-	element.LookupParameter(parameterName).Set(value)
+	element.LookupParameter(parameterName).Set(value)  # noqa: W191
 
 #Start Transaction
 t.Start()
 
 for s in selection:
     #Set a new Comment
-	set_parameter_by_name(s,"Comments", "Good Element")
+	set_parameter_by_name(s,"Comments", "Good Element")  # noqa: W191
 
 #End Transaction
 t.Commit()
