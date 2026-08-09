@@ -2,7 +2,7 @@
   "version": 1,
   "skills": {
     "ahmed-etap": {
-      "source": "local",
+      "source": "./local",
       "sourceType": "local",
       "skillPath": "skills/ahmed-etap/SKILL.md",
       "referencePath": "skills/ahmed-etap/REFERENCE.md",
@@ -24,6 +24,19 @@
       "skillPath": "plugins/stitch-utilities/skills/enhance-prompt/SKILL.md",
       "computedHash": "28c47bcbc0e8d81f48fbbbe41d227efe4018a32c5d4674b0d052a70d215072d3"
     },
+    "rag-blueprint": {
+      "source": "NVIDIA/skills",
+      "sourceType": "github",
+      "skillPath": ".agents/skills/rag-blueprint/SKILL.md",
+      "computedHash": "e890b21a37c98b671a4f08920194bc028fa160912185c60205847b2c58908321",
+      "_note": "NVIDIA RAG Blueprint skill for enterprise multimodal RAG, hybrid search, and guardrails."
+    },
+    "resolving-merge-conflicts": {
+      "source": "mattpocock/skills",
+      "sourceType": "github",
+      "skillPath": "skills/engineering/resolving-merge-conflicts/SKILL.md",
+      "computedHash": "6a005119c18c477c2122321a380a43d40242bae3cc7027125f13497d90875be2"
+    },
     "ui-ux-pro-max": {
       "source": "nextlevelbuilder/ui-ux-pro-max-skill",
       "sourceType": "github",
@@ -35,14 +48,6 @@
       "sourceType": "github",
       "skillPath": "skills/in-progress/wizard/SKILL.md",
       "computedHash": "c75a4b0f51705c6bbbc5c2082d927380198219bdcba8ff64832b689564d57b48"
-    },
-    "rag-blueprint": {
-      "source": "NVIDIA/skills",
-      "sourceType": "github",
-      "skillPath": ".agents/skills/rag-blueprint/SKILL.md",
-      "computedHash": "e890b21a37c98b671a4f08920194bc028fa160912185c60205847b2c58908321",
-      "_note": "NVIDIA RAG Blueprint skill for enterprise multimodal RAG, hybrid search, and guardrails."
     }
   }
 }
-
