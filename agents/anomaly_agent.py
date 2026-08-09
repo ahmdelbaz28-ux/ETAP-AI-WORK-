@@ -21,12 +21,11 @@ Standards:
 from __future__ import annotations
 
 import logging
-from datetime import UTC, datetime
-from datetime import datetime
-from datetime import UTC
-
-from typing import Any, Optional, Union
-UTC = timezone.utc  # noqa: UP017
+from datetime import datetime, timezone
+try:
+    from datetime import UTC
+except ImportError:
+    UTC = timezone.utc
 from typing import Any, Union
 
 UTC = UTC

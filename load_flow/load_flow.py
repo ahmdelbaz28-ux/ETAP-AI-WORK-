@@ -160,19 +160,9 @@ class LoadFlowSolver:
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         # Angle differences
-        θ = (
-            vang[:, np.newaxis] - vang[np.newaxis, :]
-        )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        cos_θ = np.cos(
-            θ
-        )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        sin_θ = np.sin(
-        θ = (  # noqa: S117 — domain notation
-        cos_θ = np.cos(  # noqa: S117 — domain notation
-        sin_θ = np.sin(  # noqa: S117 — domain notation
-
-            θ
-        )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        θ = vang[:, np.newaxis] - vang[np.newaxis, :]  # NOSONAR
+        cos_θ = np.cos(θ)  # NOSONAR
+        sin_θ = np.sin(θ)  # NOSONAR
 
         # Voltage magnitude products
         v_i = vmag[:, np.newaxis]  # NOSONAR
