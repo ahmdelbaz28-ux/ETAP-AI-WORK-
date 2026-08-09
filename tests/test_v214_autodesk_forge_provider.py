@@ -192,9 +192,8 @@ class TestV214AutodeskForgeProviderRealImplementation:
             mock_poll_resp.status_code = 200
             mock_poll_resp.json.return_value = {"status": "success"}
 
-            with (
-                patch("httpx.post", return_value=mock_create_resp) as mock_post,
-                patch("httpx.get", return_value=mock_poll_resp),
+            with patch("httpx.post", return_value=mock_create_resp) as mock_post, patch(
+                "httpx.get", return_value=mock_poll_resp
             ):
                 result = provider.write_devices(
                     devices=[{"id": "d1", "name": "Smoke Detector"}],

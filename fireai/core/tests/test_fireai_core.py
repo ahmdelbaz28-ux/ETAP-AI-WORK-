@@ -1495,14 +1495,12 @@ class TestRunIntegrationAdvancedSubsystems:
         """run_integration should run kernel V30 when enabled."""
         mock_bridge_result = self._make_mock_integration_result()
 
-        with (
-            patch(
-                "fireai.bridges.integration_bridge.IntegrationBridge.run",
-                return_value=mock_bridge_result,
-            ),
-            patch("fireai.core.kernel_v30_integration.KernelV30Dispatcher") as MockDispatcher,
-            patch("fireai.core.kernel_v30_integration.MPSCWorkerPool") as MockPool,
-        ):
+        with patch(
+            "fireai.bridges.integration_bridge.IntegrationBridge.run",
+            return_value=mock_bridge_result,
+        ), patch("fireai.core.kernel_v30_integration.KernelV30Dispatcher") as MockDispatcher, patch(
+            "fireai.core.kernel_v30_integration.MPSCWorkerPool"
+        ) as MockPool:
             mock_dispatcher = MagicMock()
             mock_dispatcher._simd_mode = "SIMD"
             mock_dispatcher._cache = None
@@ -1551,13 +1549,10 @@ class TestRunIntegrationAdvancedSubsystems:
         """run_integration should run hash chain audit when enabled."""
         mock_bridge_result = self._make_mock_integration_result()
 
-        with (
-            patch(
-                "fireai.bridges.integration_bridge.IntegrationBridge.run",
-                return_value=mock_bridge_result,
-            ),
-            patch("fireai.core.audit_blockchain_bridge.HashChainAuditStore") as MockHCStore,
-        ):
+        with patch(
+            "fireai.bridges.integration_bridge.IntegrationBridge.run",
+            return_value=mock_bridge_result,
+        ), patch("fireai.core.audit_blockchain_bridge.HashChainAuditStore") as MockHCStore:
             mock_hc = MagicMock()
             mock_hc.log = MagicMock()
             mock_hc.verify_chain.return_value = (True, [])
@@ -1605,13 +1600,10 @@ class TestRunIntegrationAdvancedSubsystems:
         """run_integration should run Monte Carlo when enabled."""
         mock_bridge_result = self._make_mock_integration_result()
 
-        with (
-            patch(
-                "fireai.bridges.integration_bridge.IntegrationBridge.run",
-                return_value=mock_bridge_result,
-            ),
-            patch("fireai.core.monte_carlo_pipeline.MCPipelineAdapter") as MockMC,
-        ):
+        with patch(
+            "fireai.bridges.integration_bridge.IntegrationBridge.run",
+            return_value=mock_bridge_result,
+        ), patch("fireai.core.monte_carlo_pipeline.MCPipelineAdapter") as MockMC:
             mock_mc = MagicMock()
             mock_sim = MagicMock()
             mock_sim.simulate_room_reliability.return_value = {
@@ -1680,17 +1672,15 @@ class TestRunIntegrationAdvancedSubsystems:
             assert result["advanced_subsystems"]["monte_carlo"]["status"] == "failed"
 
     @patch("fireai.core.fireai_core.AuditStore.add_event")
+    @patch("fireai.core.fireai_core.AuditStore.add_event")
     def test_bim_sync_subsystem_enabled(self, mock_audit, fireai_system) -> None:
         """run_integration should run BIM sync when enabled."""
         mock_bridge_result = self._make_mock_integration_result()
 
-        with (
-            patch(
-                "fireai.bridges.integration_bridge.IntegrationBridge.run",
-                return_value=mock_bridge_result,
-            ),
-            patch("fireai.bridges.revit_bim_sync.BIMSyncOrchestrator") as MockBIM,
-        ):
+        with patch(
+            "fireai.bridges.integration_bridge.IntegrationBridge.run",
+            return_value=mock_bridge_result,
+        ), patch("fireai.bridges.revit_bim_sync.BIMSyncOrchestrator") as MockBIM:
             mock_bim = MagicMock()
             mock_bim._bridge.mode = "mock"
             mock_bim._bridge.is_live = False
@@ -1712,15 +1702,12 @@ class TestRunIntegrationAdvancedSubsystems:
         """run_integration should handle BIM sync failure gracefully."""
         mock_bridge_result = self._make_mock_integration_result()
 
-        with (
-            patch(
-                "fireai.bridges.integration_bridge.IntegrationBridge.run",
-                return_value=mock_bridge_result,
-            ),
-            patch(
-                "fireai.bridges.revit_bim_sync.BIMSyncOrchestrator",
-                side_effect=ImportError("No BIM"),
-            ),
+        with patch(
+            "fireai.bridges.integration_bridge.IntegrationBridge.run",
+            return_value=mock_bridge_result,
+        ), patch(
+            "fireai.bridges.revit_bim_sync.BIMSyncOrchestrator",
+            side_effect=ImportError("No BIM"),
         ):
             result = fireai_system.run_integration(
                 building_id="BLDG-BIMFAIL",
@@ -1737,17 +1724,18 @@ class TestRunIntegrationAdvancedSubsystems:
         """run_integration should work with all subsystems enabled."""
         mock_bridge_result = self._make_mock_integration_result()
 
-        with (
-            patch(
-                "fireai.bridges.integration_bridge.IntegrationBridge.run",
-                return_value=mock_bridge_result,
-            ),
-            patch("fireai.core.kernel_v30_integration.KernelV30Dispatcher") as MockDispatcher,
-            patch("fireai.core.kernel_v30_integration.MPSCWorkerPool") as MockPool,
-            patch("fireai.core.audit_blockchain_bridge.HashChainAuditStore") as MockHC,
-            patch("fireai.core.monte_carlo_pipeline.MCPipelineAdapter") as MockMC,
-            patch("fireai.bridges.revit_bim_sync.BIMSyncOrchestrator") as MockBIM,
-        ):
+        with patch(
+            "fireai.bridges.integration_bridge.IntegrationBridge.run",
+            return_value=mock_bridge_result,
+        ), patch("fireai.core.kernel_v30_integration.KernelV30Dispatcher") as MockDispatcher, patch(
+            "fireai.core.kernel_v30_integration.MPSCWorkerPool"
+        ) as MockPool, patch(
+            "fireai.core.audit_blockchain_bridge.HashChainAuditStore"
+        ) as MockHC, patch(
+            "fireai.core.monte_carlo_pipeline.MCPipelineAdapter"
+        ) as MockMC, patch(
+            "fireai.bridges.revit_bim_sync.BIMSyncOrchestrator"
+        ) as MockBIM:
             # Setup mocks
             mock_d = MagicMock()
             mock_d._simd_mode = "SIMD"
@@ -1787,14 +1775,12 @@ class TestRunIntegrationAdvancedSubsystems:
         """run_integration should handle floor data with room_specs containing dicts."""
         mock_bridge_result = self._make_mock_integration_result()
 
-        with (
-            patch(
-                "fireai.bridges.integration_bridge.IntegrationBridge.run",
-                return_value=mock_bridge_result,
-            ),
-            patch("fireai.core.kernel_v30_integration.KernelV30Dispatcher") as MockDispatcher,
-            patch("fireai.core.kernel_v30_integration.MPSCWorkerPool") as MockPool,
-        ):
+        with patch(
+            "fireai.bridges.integration_bridge.IntegrationBridge.run",
+            return_value=mock_bridge_result,
+        ), patch("fireai.core.kernel_v30_integration.KernelV30Dispatcher") as MockDispatcher, patch(
+            "fireai.core.kernel_v30_integration.MPSCWorkerPool"
+        ) as MockPool:
             mock_d = MagicMock()
             mock_d._simd_mode = "SIMD"
             mock_d._cache = None

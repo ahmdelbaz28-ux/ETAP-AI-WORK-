@@ -20,7 +20,6 @@ def _compute_deterministic_voltages(  # NOSONAR
 ]:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     affected_assets: List[str]  # noqa: F842
     details: Dict[str, object]  # noqa: F842
-def _compute_deterministic_voltages(model: ElectricalModel) -> Dict[str, float]:
 def _compute_deterministic_voltages(model: ElectricalModel) -> dict[str, float]:
 
     """

@@ -14,7 +14,6 @@ class ImpedanceIssue:
     details: dict[str, object]
 
 
-def validate_impedance_consistency(model: ElectricalModel) -> Tuple[bool, List[ImpedanceIssue]]:
 def validate_impedance_consistency(model: ElectricalModel) -> tuple[bool, list[ImpedanceIssue]]:
 
     """

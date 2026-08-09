@@ -210,10 +210,7 @@ _STUDIES_REQUIRING_SYSTEM = {
 T = TypeVar("T")
 
 
-def _run_async(coro: Coroutine[Any, Any, T]) -> T:  # noqa: UP047
-def _run_async[T](coro: Coroutine[Any, Any, T]) -> T:
-
-def _run_async(coro: Coroutine[Any, Any, T]) -> T:  # noqa: UP047 — CI pins ruff 0.7.0 (pre-UP047); PEP 695 needs 3.12 syntax and local dev Python is 3.8
+def _run_async(coro: Coroutine[Any, Any, T]) -> T:
     """Run an async coroutine safely, whether or not an event loop is active."""
     try:
         loop = asyncio.get_running_loop()

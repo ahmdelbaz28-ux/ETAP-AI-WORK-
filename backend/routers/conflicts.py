@@ -134,9 +134,5 @@ async def resolve_conflict(
         raise HTTPException(status_code=422, detail="Conflict resolution failed — check server logs for details")  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
     except Exception as e:
         logger.exception("resolve_conflict failed: %s", e)
-        raise HTTPException(status_code=500, detail="Internal server error")  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
-        raise HTTPException(
-            status_code=422, detail="Conflict resolution failed — check server logs for details"
-        )  # NOSONAR — S8415: assignment kept for readability / debuggability
-            status_code=500, detail="Internal server error"
+        raise HTTPException(status_code=500, detail="Internal server error")
 

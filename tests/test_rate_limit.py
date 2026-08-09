@@ -172,43 +172,6 @@ class TestRateLimiter:
         assert limiter.is_allowed("3.3.3.3") is True, (
             "After window expiry, request should be allowed"
         )
-        assert (
-            limiter.is_allowed(
-                os.environ.get(
-                    "SERVICE_HOST",
-                    os.environ.get(
-                        "SERVICE_HOST",
-                        os.environ.get("SERVICE_HOST", os.environ.get("SERVICE_HOST", "3.3.3.3")),
-                    ),
-            is True
-        assert (
-            limiter.is_allowed(
-                os.environ.get(
-                    "SERVICE_HOST",
-                    os.environ.get(
-                        "SERVICE_HOST",
-                        os.environ.get("SERVICE_HOST", os.environ.get("SERVICE_HOST", "3.3.3.3")),
-                    ),
-            is True
-        assert (
-            limiter.is_allowed(
-                os.environ.get(
-                    "SERVICE_HOST",
-                    os.environ.get(
-                        "SERVICE_HOST",
-                        os.environ.get("SERVICE_HOST", os.environ.get("SERVICE_HOST", "3.3.3.3")),
-                    ),
-            is False
-        assert (
-            limiter.is_allowed(
-                os.environ.get(
-                    "SERVICE_HOST",
-                    os.environ.get(
-                        "SERVICE_HOST",
-                        os.environ.get("SERVICE_HOST", os.environ.get("SERVICE_HOST", "3.3.3.3")),
-                    ),
-            is True
-        ), "After window expiry, request should be allowed"
 
     def test_reset_clears_all_entries(self):
         """GIVEN a limiter at capacity
@@ -278,56 +241,6 @@ class TestRateLimiter:
         # New request should prune old entries
         limiter.is_allowed("5.5.5.5")
         assert len(limiter._store["5.5.5.5"]) == 1, "Old entries should be pruned"
-            limiter.is_allowed(
-                os.environ.get(
-                    "SERVICE_HOST",
-                    os.environ.get(
-                        "SERVICE_HOST",
-                        os.environ.get("SERVICE_HOST", os.environ.get("SERVICE_HOST", "5.5.5.5")),
-                    ),
-                )
-            )
-        assert (
-            len(
-                limiter._store[
-                    os.environ.get(
-                        "SERVICE_HOST",
-                        os.environ.get(
-                            "SERVICE_HOST",
-                            os.environ.get(
-                                "SERVICE_HOST", os.environ.get("SERVICE_HOST", "5.5.5.5")
-                            ),
-                        ),
-                    )
-                ]
-            )
-            == 5
-        )
-        limiter.is_allowed(
-            os.environ.get(
-                "SERVICE_HOST",
-                os.environ.get(
-                    "SERVICE_HOST",
-                    os.environ.get("SERVICE_HOST", os.environ.get("SERVICE_HOST", "5.5.5.5")),
-                ),
-            )
-        )
-        assert (
-            len(
-                limiter._store[
-                    os.environ.get(
-                        "SERVICE_HOST",
-                        os.environ.get(
-                            "SERVICE_HOST",
-                            os.environ.get(
-                                "SERVICE_HOST", os.environ.get("SERVICE_HOST", "5.5.5.5")
-                            ),
-                        ),
-                    )
-                ]
-            )
-            == 1
-        ), "Old entries should be pruned"
 
     def test_empty_key_is_handled(self):
         """GIVEN a limiter

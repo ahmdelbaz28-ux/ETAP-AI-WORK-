@@ -33,7 +33,7 @@ t = Transaction(doc, "Set Parameter by Name")
 selection = [doc.GetElement(x) for x in uidoc.Selection.GetElementIds()]
 
 def set_parameter_by_name(element, parameterName, value):  # NOSONAR - python:S117
-	element.LookupParameter(parameterName).Set(value)  # noqa: W191
+    element.LookupParameter(parameterName).Set(value)  # noqa: W191
 
 def set_parameter_by_name(element, parameterName, value):  # NOSONAR - python:S117
     element.LookupParameter(parameterName).Set(value)
@@ -44,7 +44,7 @@ t.Start()
 
 for s in selection:
     #Set a new Comment
-	set_parameter_by_name(s,"Comments", "Good Element")  # noqa: W191
+    set_parameter_by_name(s,"Comments", "Good Element")  # noqa: W191
     # Set a new Comment
     set_parameter_by_name(s, "Comments", "Good Element")
 

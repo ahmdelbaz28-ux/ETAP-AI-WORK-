@@ -1320,9 +1320,7 @@ class TestV127HmacKeySecurity(unittest.TestCase):
             os.environ["FIREAI_ENV"] = "production"
             os.environ.pop("QOMN_AUDIT_SECRET_KEY", None)
 
-            with (
-                pytest.raises(Exception) as ctx
-            ):  # NOSONAR — S5778: re-raise inside except is intentional (context-specific)  # NOSONAR — S5958: parameter name documents intent at call site
+            with pytest.raises(Exception) as ctx:
                 AsyncAuditLogger(
                     filepath=os.path.join(tempfile.gettempdir(), "v127_security_test.jsonl")
                 )

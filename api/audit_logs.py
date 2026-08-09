@@ -545,12 +545,6 @@ def _apply_filters(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                 detail=f"Invalid start_date format: {start_date!r}. Expected ISO-8601.",
             ) from None
-        result = [
-            e
-            for e in result
-            if datetime.fromisoformat(e["timestamp"]) >= start_dt
-        ]
-            )
         result = [e for e in result if datetime.fromisoformat(e["timestamp"]) >= start_dt]
 
     if end_date is not None:
@@ -561,12 +555,6 @@ def _apply_filters(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                 detail=f"Invalid end_date format: {end_date!r}. Expected ISO-8601.",
             ) from None
-        result = [
-            e
-            for e in result
-            if datetime.fromisoformat(e["timestamp"]) <= end_dt
-        ]
-            )
         result = [e for e in result if datetime.fromisoformat(e["timestamp"]) <= end_dt]
 
     if search is not None:

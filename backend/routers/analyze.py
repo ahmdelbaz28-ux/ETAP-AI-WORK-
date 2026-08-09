@@ -154,11 +154,7 @@ async def analyze_battery(req: BatteryRequest) -> dict[str, Any]:
         raise HTTPException(status_code=422, detail=_physics_guard_detail(e))  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
     except Exception:
         logger.exception("battery calculation failed")
-        raise HTTPException(status_code=500, detail="Internal calculation error")  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
-        raise HTTPException(
-            status_code=422, detail=_physics_guard_detail(e)
-        )  # NOSONAR — S8415: assignment kept for readability / debuggability
-            status_code=500, detail="Internal calculation error"
+        raise HTTPException(status_code=500, detail="Internal calculation error")
 
 
 
@@ -191,11 +187,7 @@ async def analyze_voltage(req: VoltageRequest) -> dict[str, Any]:
         raise HTTPException(status_code=422, detail=_physics_guard_detail(e))  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
     except Exception:
         logger.exception("voltage drop calculation failed")
-        raise HTTPException(status_code=500, detail="Internal calculation error")  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
-        raise HTTPException(
-            status_code=422, detail=_physics_guard_detail(e)
-        )  # NOSONAR — S8415: assignment kept for readability / debuggability
-            status_code=500, detail="Internal calculation error"
+        raise HTTPException(status_code=500, detail="Internal calculation error")
 
 
 
@@ -235,10 +227,5 @@ async def analyze_project_room(project_id: str, req: RoomAnalyzeRequest) -> dict
     except PhysicsGuardError as e:
         raise HTTPException(status_code=422, detail=_physics_guard_detail(e))  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
     except Exception:
-        logger.exception("room analysis failed for project %s", project_id)
-        raise HTTPException(status_code=500, detail="Internal pipeline error")  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
-        raise HTTPException(
-            status_code=422, detail=_physics_guard_detail(e)
-        )  # NOSONAR — S8415: assignment kept for readability / debuggability
-            status_code=500, detail="Internal pipeline error"
+        raise HTTPException(status_code=500, detail="Internal pipeline error")
 

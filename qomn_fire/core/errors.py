@@ -12,7 +12,6 @@ T = TypeVar("T")
 E = TypeVar("E")
 
 class Result(Generic[T, E]):  # noqa: UP046
-class Result[T, E]:
 
     def __init__(self, value: Optional[T] = None, error: Optional[E] = None):
         # BUG-43 FIX: Prevent constructing Result with neither value nor error.

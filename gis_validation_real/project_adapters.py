@@ -15,8 +15,6 @@ class ExtractedLayer:
 
 
 def extract_layers_as_features(
-    provider: GISProviderInterface, *, layer_ids: List[str] | None = None
-) -> List[ExtractedLayer]:
     provider: GISProviderInterface, *, layer_ids: list[str] | None = None
 ) -> list[ExtractedLayer]:
     """

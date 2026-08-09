@@ -198,10 +198,7 @@ def test_three_protocol_manager_lifecycle():
         # should have produced data.
         stats = mgr.bridge.stats.to_dict()
         protocol_sources = [
-            k for k in stats["by_protocol"]
-            if k.startswith(("modbus:", "opcua:", "iec104:"))
             k for k in stats["by_protocol"] if k.startswith(("modbus:", "opcua:", "iec104:"))
-
         ]
         assert len(protocol_sources) > 0
 

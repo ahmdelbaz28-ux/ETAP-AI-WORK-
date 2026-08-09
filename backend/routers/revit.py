@@ -668,8 +668,6 @@ async def write_rvt_file(request: WriteRvtRequest) -> Dict[str, Any]:
 @router.post(
     "/upload", tags=["revit"], dependencies=[Depends(require_permission(Permission.ELEMENT_CREATE))]
 )
-@limiter.limit("10/minute")
-async def upload_and_read_rvt(request: Request, file: UploadFile = File(...)) -> Dict[str, Any]:  # NOSONAR - python:S8410  # noqa: B008
 async def upload_and_read_rvt(
     request: Request, file: UploadFile = File(...)
 ) -> Dict[str, Any]:  # NOSONAR - python:S8410

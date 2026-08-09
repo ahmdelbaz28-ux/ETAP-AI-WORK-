@@ -308,7 +308,6 @@ async def get_audit_trail() -> dict[str, Any]:
 # Rate-limited endpoints
 @app.post("/projects/", tags=["Projects"], dependencies=[Depends(verify_api_key)])
 @limiter.limit("10/minute")
-async def upload_file(request: Request, file: UploadFile = File(...)) -> dict[str, Any]:  # NOSONAR - python:S8410  # noqa: B008
 async def upload_file(
     request: Request, file: UploadFile = File(...)
 ) -> dict[str, Any]:  # NOSONAR - python:S8410

@@ -474,11 +474,7 @@ def analyse_room(req: RoomRequest):
         raise HTTPException(status_code=422, detail=str(exc))  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
     except Exception as exc:
         logger.exception("Room analysis failed: %s", exc)
-        raise HTTPException(status_code=500, detail="Analysis failed")  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
-        raise HTTPException(
-            status_code=422, detail=str(exc)
-        )  # NOSONAR — S8415: assignment kept for readability / debuggability
-            status_code=500, detail="Analysis failed"
+        raise HTTPException(status_code=500, detail="Analysis failed")
 
 
 
@@ -600,12 +596,7 @@ def run_integration(req: IntegrationRequest):
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc))  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
     except Exception as exc:
-        logger.exception("Integration pipeline failed: %s", exc)
-        raise HTTPException(status_code=500, detail="Integration pipeline failed")  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
-        raise HTTPException(
-            status_code=422, detail=str(exc)
-        )  # NOSONAR — S8415: assignment kept for readability / debuggability
-            status_code=500, detail="Integration pipeline failed"
+        raise HTTPException(status_code=500, detail="Integration pipeline failed")
 
 
 

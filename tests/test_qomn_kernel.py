@@ -138,9 +138,7 @@ class TestGuardFinite:
             )  # NOSONAR — S5655: intentional wrong-type arg (test verifies rejection)
 
     def test_error_has_field_and_reason(self):
-        with (
-            pytest.raises(PhysicsGuardError) as exc_info
-        ):  # NOSONAR — S5778: re-raise inside except is intentional (context-specific)  # noqa: S5778
+        with pytest.raises(PhysicsGuardError) as exc_info:
             _guard_finite(float("nan"), "my_field")
         err = exc_info.value
         assert err.field == "my_field"

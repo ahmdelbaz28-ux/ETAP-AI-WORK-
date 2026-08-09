@@ -116,13 +116,7 @@ async def create_element(
         raise HTTPException(status_code=400, detail=safe_msg)  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
     except Exception as e:
         logger.exception("create_element failed: %s", e)
-        raise HTTPException(status_code=500, detail="Internal server error")  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
-        safe_msg = re.sub(r"/[\w./-]+", "[PATH]", safe_msg)
-        safe_msg = re.sub(r"<class \w+>", "[CLASS]", safe_msg)
-        raise HTTPException(
-            status_code=400, detail=safe_msg
-        )  # NOSONAR — S8415: assignment kept for readability / debuggability
-            status_code=500, detail="Internal server error"
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 

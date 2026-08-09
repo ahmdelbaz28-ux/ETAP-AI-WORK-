@@ -33,7 +33,6 @@ E = TypeVar("E")
 
 
 class Result(Generic[T, E]):  # noqa: UP046
-class Result[T, E]:
 
     """
     Explicit success/failure container.

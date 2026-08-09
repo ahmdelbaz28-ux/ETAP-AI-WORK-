@@ -643,7 +643,6 @@ _MAX_UPLOAD_SIZE = 50 * 1024 * 1024
     dependencies=[Depends(require_permission(Permission.ELEMENT_CREATE))],
 )  # NOSONAR - python:S8409
 @limiter.limit("10/minute")
-async def upload_and_read_dwg(request: Request, file: UploadFile = File(...)) -> ReadFileResponse:  # NOSONAR - python:S8410  # noqa: B008
 async def upload_and_read_dwg(
     request: Request, file: UploadFile = File(...)
 ) -> ReadFileResponse:  # NOSONAR - python:S8410
@@ -671,9 +670,7 @@ async def upload_and_read_dwg(
         temp_dir = tempfile.mkdtemp()
         temp_path = os.path.join(temp_dir, f"{uuid.uuid4().hex}_{safe_name}")
 
-        with (
-            open(temp_path, "wb") as buffer
-        ):  # NOSONAR: S7493 sync file I/O acceptable for small config reads  # NOSONAR — S7632: test function documented via class name / module path
+        with open(temp_path, "wb") as buffer:
             buffer.write(contents)
 
         # Read the file

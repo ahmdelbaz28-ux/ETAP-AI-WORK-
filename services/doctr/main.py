@@ -68,7 +68,6 @@ os.environ["USE_TF"] = "NO"
 
 # ─── Models ──────────────────────────────────────────────────────────────────
 
-class Detection(GenericModel, Generic[TypeVar("T")]):  # noqa: UP046
 class Detection(GenericModel, Generic[TypeVar("T")]):
 
     value: Optional[TypeVar("T")]

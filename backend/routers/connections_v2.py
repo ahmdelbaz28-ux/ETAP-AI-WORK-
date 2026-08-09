@@ -112,11 +112,7 @@ async def create_connection(
         raise HTTPException(status_code=400, detail="Invalid connection data. Please check the input parameters.")  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
     except Exception as e:
         logger.exception("create_connection failed: %s", e)
-        raise HTTPException(status_code=500, detail="Internal server error")  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
-        raise HTTPException(
-            status_code=400, detail="Invalid connection data. Please check the input parameters."
-        )  # NOSONAR — S8415: assignment kept for readability / debuggability
-            status_code=500, detail="Internal server error"
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 

@@ -31,7 +31,6 @@ def zbus_from_ybus(
     return z_reduced
 
 
-def zbus_full(Ybus):
 def zbus_full(ybus):
 
     """
