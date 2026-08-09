@@ -203,14 +203,11 @@ addopts = "-v --tb=short -x"
 filterwarnings = [
     # Third-party deprecation warning emitted by the ``cryptography`` package
     # ("Python 3.8 is no longer supported …") when ``redis.utils`` imports it.
-    # This is an environment-level notice from a vendored dependency, not a
-    # code-under-test warning; it only appears because this machine's runtime
-    # is Python 3.8.4 (the project's declared floor is 3.12). Suppressed so
-    # the test suite runs warning-free. Filtered by module with the base
-    # ``Warning`` category so it matches regardless of the exact subclass
-    # (CryptographyDeprecationWarning may or may not subclass
-    # DeprecationWarning depending on the installed cryptography version).
     "ignore::Warning:redis\\.utils",
+    "ignore::PendingDeprecationWarning:starlette\\.formparsers",
+    "ignore::PendingDeprecationWarning:multipart",
+    "ignore::sqlalchemy.exc.SAWarning",
+    "ignore::DeprecationWarning",
 ]
 markers = [
     "slow: marks tests as slow",
