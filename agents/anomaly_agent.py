@@ -22,13 +22,9 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime, timezone
-try:
-    from datetime import UTC
-except ImportError:
-    UTC = timezone.utc
-from typing import Any, Union
 
-UTC = UTC
+UTC = getattr(timezone, "utc", timezone.utc)
+from typing import Any, Union
 
 import numpy as np
 
