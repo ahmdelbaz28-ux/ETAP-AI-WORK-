@@ -1,0 +1,34 @@
+{
+  "system_name": "Zenon",
+  "total_files": 4,
+  "successful": 4,
+  "failed": 0,
+  "total_pages": 605,
+  "total_characters": 622266,
+  "files": [
+    {
+      "filename": "Basic_Training_Energy.pdf",
+      "pages": 374,
+      "chunks": 560,
+      "status": "success"
+    },
+    {
+      "filename": "Basic_Training_Fundamentals.pdf",
+      "pages": 175,
+      "chunks": 254,
+      "status": "success"
+    },
+    {
+      "filename": "zenon IEC 61850 Webinar - Module 1.pdf",
+      "pages": 28,
+      "chunks": 13,
+      "status": "success"
+    },
+    {
+      "filename": "zenon IEC 61850 Webinar - Module 2.pdf",
+      "pages": 28,
+      "chunks": 14,
+      "status": "success"
+    }
+  ]
+}

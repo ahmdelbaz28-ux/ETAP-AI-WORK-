@@ -1,0 +1,211 @@
+# File-level '# NOSONAR' removed per NOSONAR_AUDIT.md (V143 hardening).
+# Per-line justified suppressions (e.g., '# NOSONAR — S3776: ...') are preserved.
+"""
+FireAI Digital Twin - Elements Router.
+======================================
+CRUD endpoints for building elements.
+"""
+
+from __future__ import annotations
+
+import logging
+import math
+import re
+
+from fastapi import APIRouter, Depends, HTTPException, Query
+
+from backend.auth import require_permission
+from backend.db_service import DatabaseService, get_db_service
+from backend.rbac import Permission
+from backend.schemas import (
+    ApiResponse,
+    ElementCreate,
+    ElementResponse,
+    ElementUpdate,
+    PaginatedData,
+)
+
+logger = logging.getLogger(__name__)
+
+# V139 FIX: Changed prefix from "/api/v1/elements" (absolute) to "/elements"
+# (relative). The absolute prefix caused double-prefixing when
+# _safe_include_router added "/api/v1" via app.include_router(prefix="/api/v1"),
+# producing /api/v1/api/v1/elements which broke all tests.
+router = APIRouter(prefix="/elements", tags=["elements"])
+
+
+@router.get(
+    "",
+    response_model=ApiResponse[PaginatedData[ElementResponse]],
+    dependencies=[Depends(require_permission(Permission.ELEMENT_READ))],
+)
+async def list_elements(
+    element_type: str | None = Query(
+        None, description="Filter by element type"
+    ),  # NOSONAR - python:S8410
+    project_id: str | None = Query(
+        None, description="Filter by project ID"
+    ),  # NOSONAR - python:S8410
+    is_deleted: bool | None = Query(
+        None, description="Include deleted elements"
+    ),  # NOSONAR - python:S8410
+    page: int = Query(1, ge=1, description="Page number"),  # NOSONAR - python:S8410
+    page_size: int = Query(
+        20, ge=1, le=100, description="Items per page"
+    ),  # NOSONAR - python:S8410
+    sort_by: str = Query("created_timestamp", description="Sort field"),  # NOSONAR - python:S8410
+    sort_order: str = Query("desc", description="Sort order (asc/desc)"),  # NOSONAR - python:S8410
+    db: DatabaseService = Depends(get_db_service),  # NOSONAR - python:S8410  # noqa: B008
+):
+    """List elements with optional filtering and pagination."""
+    # V140 FIX: Validate sort_order to prevent injection
+    if sort_order not in ("asc", "desc"):
+        sort_order = "desc"
+    try:
+        elements, total = db.list_elements(
+            element_type=element_type,
+            project_id=project_id,
+            is_deleted=is_deleted,
+            page=page,
+            page_size=page_size,
+            sort_by=sort_by,
+            sort_order=sort_order,
+        )
+        total_pages = math.ceil(total / page_size) if total > 0 else 0
+
+        return ApiResponse(
+            success=True,
+            data=PaginatedData(
+                items=elements,
+                total=total,
+                page=page,
+                page_size=page_size,
+                total_pages=total_pages,
+            ),
+        )
+    except Exception as e:
+        logger.exception("list_elements failed: %s", e)
+        raise HTTPException(status_code=500, detail="Internal server error")  # NOSONAR — S1192: duplicated literal acceptable in this localized context  # noqa: B904
+        raise HTTPException(
+            status_code=500, detail="Internal server error"
+        )  # NOSONAR — S1192: duplicated literal acceptable in this localized context
+
+
+
+@router.post(
+    "",
+    response_model=ApiResponse[ElementResponse],
+    status_code=201,
+    dependencies=[Depends(require_permission(Permission.ELEMENT_CREATE))],
+)
+async def create_element(
+    element_data: ElementCreate,
+    db: DatabaseService = Depends(get_db_service),  # NOSONAR - python:S8410  # noqa: B008
+):
+    """Create a new element."""
+    try:
+        element = db.create_element(element_data)
+        return ApiResponse(success=True, data=element, message="Element created successfully")
+    except ValueError as e:
+        # V113 SECURITY: ValueError messages may contain internal paths
+        # or class details. Sanitize before exposing to client.
+        safe_msg = str(e)[:200]  # Truncate to prevent overflow
+        # Remove common path patterns that leak server structure
+        safe_msg = re.sub(r'/[\w./-]+', '[PATH]', safe_msg)
+        safe_msg = re.sub(r'<class \w+>', '[CLASS]', safe_msg)
+        raise HTTPException(status_code=400, detail=safe_msg)  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
+    except Exception as e:
+        logger.exception("create_element failed: %s", e)
+        raise HTTPException(status_code=500, detail="Internal server error")  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
+        safe_msg = re.sub(r"/[\w./-]+", "[PATH]", safe_msg)
+        safe_msg = re.sub(r"<class \w+>", "[CLASS]", safe_msg)
+        raise HTTPException(
+            status_code=400, detail=safe_msg
+        )  # NOSONAR — S8415: assignment kept for readability / debuggability
+            status_code=500, detail="Internal server error"
+
+
+
+@router.get(
+    "/{element_id}",
+    response_model=ApiResponse[ElementResponse],
+    dependencies=[Depends(require_permission(Permission.ELEMENT_READ))],
+)
+async def get_element(
+    element_id: str,
+    db: DatabaseService = Depends(get_db_service),  # NOSONAR - python:S8410  # noqa: B008
+):
+    """Get an element by ID."""
+    try:
+        element = db.get_element(element_id)
+        if element is None:
+            raise HTTPException(
+                status_code=404, detail=f"Element {element_id} not found"
+            )  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
+        return ApiResponse(success=True, data=element)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception("get_element failed: %s", e)
+        raise HTTPException(status_code=500, detail="Internal server error")  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
+        raise HTTPException(
+            status_code=500, detail="Internal server error"
+        )  # NOSONAR — S8415: assignment kept for readability / debuggability
+
+
+
+@router.put(
+    "/{element_id}",
+    response_model=ApiResponse[ElementResponse],
+    dependencies=[Depends(require_permission(Permission.ELEMENT_UPDATE))],
+)
+async def update_element(
+    element_id: str,
+    element_data: ElementUpdate,
+    db: DatabaseService = Depends(get_db_service),  # NOSONAR - python:S8410  # noqa: B008
+):
+    """Update an element."""
+    try:
+        element = db.update_element(element_id, element_data)
+        if element is None:
+            raise HTTPException(
+                status_code=404, detail=f"Element {element_id} not found"
+            )  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
+        return ApiResponse(success=True, data=element, message="Element updated successfully")
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception("update_element failed: %s", e)
+        raise HTTPException(status_code=500, detail="Internal server error")  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
+        raise HTTPException(
+            status_code=500, detail="Internal server error"
+        )  # NOSONAR — S8415: assignment kept for readability / debuggability
+
+
+
+@router.delete(
+    "/{element_id}",
+    response_model=ApiResponse[None],
+    dependencies=[Depends(require_permission(Permission.ELEMENT_DELETE))],
+)
+async def delete_element(
+    element_id: str,
+    db: DatabaseService = Depends(get_db_service),  # NOSONAR - python:S8410  # noqa: B008
+):
+    """Soft delete an element."""
+    try:
+        success = db.delete_element(element_id)
+        if not success:
+            raise HTTPException(
+                status_code=404, detail=f"Element {element_id} not found"
+            )  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
+        return ApiResponse(success=True, message="Element deleted successfully")
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception("delete_element failed: %s", e)
+        raise HTTPException(status_code=500, detail="Internal server error")  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
+        raise HTTPException(
+            status_code=500, detail="Internal server error"
+        )  # NOSONAR — S8415: assignment kept for readability / debuggability
+

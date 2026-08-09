@@ -1,0 +1,209 @@
+name: No Mock in Production Path
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'api/**'
+      - 'agents/**'
+      - 'engine/**'
+      - 'worker/**'
+      - 'integrations/**'
+      - 'etap_integration/**'
+      - 'gis_integration/**'
+      - 'services/**'
+      - 'core/**'
+      - '.github/workflows/no-mock-in-prod.yml'
+
+jobs:
+  check-mock:
+    name: Check for mock data in production code
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check for mock data in production path
+        run: |
+          set -e
+          echo "🔍 Scanning production code for mock data patterns..."
+          echo ""
+
+          # Patterns that indicate mock/fake/hardcoded data in production code.
+          # Each pattern is checked against all .py files in production directories.
+          #
+          # Exclusions:
+          #   - tests/ (mock data is expected in tests)
+          #   - scripts/ (utility scripts may have demo data)
+          #   - *_mock*.py files (explicitly mock modules)
+          #   - conftest.py (test fixtures)
+          #   - test_*.py (test files)
+          #
+          # If any pattern is found, the check FAILS (exit 1).
+
+          PATTERNS=(
+            # NumPy random seed (used by scada_agent.py mock)
+            'np\.random\.seed'
+            'np\.random\.randn'
+            'np\.random\.uniform'
+            'np\.random\.randint'
+            'np\.random\.choice'
+
+            # Mock data comments / strings
+            'Mock data'
+            'mock data simulating'
+            'fake_data'
+            'simulated data'
+
+            # Hardcoded SCADA devices (from etap_scada_bridge.py mock)
+            'ups_001'
+            'redundancy_001'
+            'transformer_001'
+            'breaker_001'
+
+            # Hardcoded Cairo coordinates (from qgis_scada_layer.py mock)
+            '31\.2357.*30\.0444'
+
+            # Hardcoded "demo" / "example" in production code
+            'DEMO_MODE'
+            'EXAMPLE_DATA'
+          )
+
+          FOUND_ISSUES=0
+
+          for pattern in "${PATTERNS[@]}"; do
+            echo "  Checking: $pattern"
+
+            matches=$(grep -rnE "$pattern" \
+              --include="*.py" \
+              --exclude-dir="tests" \
+              --exclude-dir="scripts" \
+              --exclude-dir=".venv" \
+              --exclude-dir="venv" \
+              --exclude-dir="__pycache__" \
+              --exclude="*_mock*" \
+              --exclude="conftest.py" \
+              --exclude="test_*" \
+              --exclude="*_test.py" \
+              api/ agents/ engine/ worker/ integrations/ etap_integration/ gis_integration/ services/ core/ \
+              2>/dev/null || true)
+
+            if [ -n "$matches" ]; then
+              echo "  ❌ FOUND: $pattern"
+              echo "$matches" | head -10
+              echo ""
+              FOUND_ISSUES=$((FOUND_ISSUES + 1))
+            fi
+          done
+
+          echo ""
+          echo "═══════════════════════════════════════════════════════════════"
+
+          if [ "$FOUND_ISSUES" -gt 0 ]; then
+            echo "❌ $FOUND_ISSUES mock pattern(s) found in production code"
+            echo ""
+            echo "Mock data is FORBIDDEN in production code paths."
+            echo "Either:"
+            echo "  1. Remove the mock data and use real data sources, OR"
+            echo "  2. Move the mock to tests/ or scripts/ (where mocks belong), OR"
+            echo "  3. Gate it behind a FeatureFlag.is_enabled('MOCK_MODE') check"
+            echo ""
+            echo "See: PRODUCTION_PLAN/04_MOCK_TO_REAL_PLAN.md"
+            exit 1
+          fi
+
+          echo "✅ No mock data found in production code paths"
+          echo "═══════════════════════════════════════════════════════════════"
+
+      - name: Check for MockEtapProvider in production path
+        run: |
+          set -e
+          echo ""
+          echo "🔍 Checking MockEtapProvider usage..."
+          echo ""
+
+          # MockEtapProvider is ALLOWED in:
+          #   - etap_integration/etap_provider.py (where it's defined)
+          #   - tests/
+          #   - scripts/
+          #
+          # MockEtapProvider is FORBIDDEN in:
+          #   - api/ (production endpoints)
+          #   - agents/ (production agents)
+          #   - worker/ (production workers)
+          #   - engine/ (production engines)
+
+          matches=$(grep -rn "MockEtapProvider" \
+            --include="*.py" \
+            --exclude-dir="tests" \
+            --exclude-dir="scripts" \
+            --exclude-dir="etap_integration" \
+            api/ agents/ worker/ engine/ services/ \
+            2>/dev/null || true)
+
+          if [ -n "$matches" ]; then
+            echo "❌ MockEtapProvider referenced in production code:"
+            echo "$matches"
+            echo ""
+            echo "MockEtapProvider must ONLY be used in tests/ and scripts/."
+            echo "In production, use get_etap_provider() which returns"
+            echo "LocalEtapProvider, RemoteEtapProvider, or NullEtapProvider."
+            exit 1
+          fi
+
+          echo "✅ No MockEtapProvider references in production code"
+
+      - name: Check for silent exception swallowing
+        run: |
+          set -e
+          echo ""
+          echo "🔍 Checking for silent exception swallowing..."
+          echo ""
+
+          # Pattern: "except Exception:" followed by "pass" or "return None"
+          # without any logging. This silently hides errors.
+          #
+          # We check for the most dangerous pattern:
+          #   except Exception:
+          #       pass
+          # or:
+          #   except Exception:
+          #       return None
+          # or:
+          #   except Exception:
+          #       return False
+          # or:
+          #   except Exception:
+          #       return []
+          #
+          # WITHOUT any logger.* call in the except block.
+
+          # This is a best-effort check — some exceptions are legitimately
+          # swallowed (e.g., in cleanup code). The check focuses on the
+          # most dangerous patterns.
+
+          SILENT_COUNT=0
+
+          # Check for "except Exception: pass" (no logging at all)
+          matches=$(grep -rnA1 "except Exception:" \
+            --include="*.py" \
+            --exclude-dir="tests" \
+            --exclude-dir="scripts" \
+            --exclude-dir=".venv" \
+            api/ agents/ engine/ worker/ integrations/ etap_integration/ gis_integration/ services/ core/ \
+            2>/dev/null | grep -B1 "pass$\|return None\|return False\|return \[\]" \
+            | grep "except Exception:" \
+            || true)
+
+          if [ -n "$matches" ]; then
+            SILENT_COUNT=$(echo "$matches" | wc -l)
+            echo "⚠️  Found $SILENT_COUNT potentially silent exception handler(s)"
+            echo "    (these may need logger.exception() calls)"
+            echo ""
+            echo "    Sample locations:"
+            echo "$matches" | head -5
+            echo ""
+            echo "    Note: This is a WARNING, not a failure."
+            echo "    Some of these may be intentional (e.g., cleanup code)."
+          else
+            echo "✅ No silent exception patterns detected"
+          fi

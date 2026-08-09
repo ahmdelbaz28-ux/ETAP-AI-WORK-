@@ -1,0 +1,121 @@
+{
+  "description": "Akamai Bot Manager configuration for AhmedETAP Platform. Defines bot detection policies, classification, and actions.",
+  "policy": {
+    "detection_mode": "DETECT_AND_BLOCK",
+    "sensitive_endpoints": [
+      {
+        "path": "/api/v1/auth/login",
+        "action": "CHALLENGE_SUSPICIOUS",
+        "block_malicious": true
+      },
+      {
+        "path": "/api/v1/auth/register",
+        "action": "CHALLENGE_SUSPICIOUS",
+        "block_malicious": true
+      },
+      {
+        "path": "/api/v1/auth/forgot-password",
+        "action": "CHALLENGE_ALL",
+        "block_malicious": true
+      },
+      {
+        "path": "/api/v1/auth/reset-password",
+        "action": "CHALLENGE_ALL",
+        "block_malicious": true
+      },
+      {
+        "path": "/api/v1/agents/*/chat",
+        "action": "CHALLENGE_SUSPICIOUS",
+        "block_malicious": true
+      }
+    ],
+    "classification": {
+      "human_threshold": 30,
+      "suspicious_threshold": 60,
+      "bot_threshold": 80,
+      "categories": {
+        "HUMAN": {
+          "score_range": [0, 29],
+          "action": "ALLOW"
+        },
+        "BROWSER_AUTOMATION": {
+          "score_range": [30, 49],
+          "action": "ALLOW_WITH_LOGGING",
+          "description": "Headless Chrome, Puppeteer, Selenium — allowed but logged for fraud analysis"
+        },
+        "SUSPICIOUS": {
+          "score_range": [50, 79],
+          "action": "CHALLENGE",
+          "challenge_type": "CAPTCHA_V2"
+        },
+        "BOT": {
+          "score_range": [80, 94],
+          "action": "CHALLENGE",
+          "challenge_type": "JS_CHALLENGE"
+        },
+        "MALICIOUS": {
+          "score_range": [95, 100],
+          "action": "BLOCK",
+          "response_code": 403
+        }
+      }
+    },
+    "allowed_bots": [
+      {
+        "name": "Googlebot",
+        "user_agent_pattern": "Googlebot",
+        "verify_by": "DNS_REVERSE_LOOKUP",
+        "allowed_paths": ["/", "/health", "/healthz"]
+      },
+      {
+        "name": "Bingbot",
+        "user_agent_pattern": "bingbot",
+        "verify_by": "DNS_REVERSE_LOOKUP",
+        "allowed_paths": ["/", "/health", "/healthz"]
+      },
+      {
+        "name": "Akamai Uptime Monitor",
+        "user_agent_pattern": "Akamai-HealthCheck",
+        "verify_by": "HEADER_SECRET",
+        "allowed_paths": ["/healthz", "/readyz"]
+      }
+    ],
+    "blocked_bots": [
+      {
+        "name": "SQLMap",
+        "user_agent_pattern": "sqlmap",
+        "action": "BLOCK"
+      },
+      {
+        "name": "Nikto",
+        "user_agent_pattern": "nikto",
+        "action": "BLOCK"
+      },
+      {
+        "name": "Nmap",
+        "user_agent_pattern": "nmap",
+        "action": "BLOCK"
+      },
+      {
+        "name": "Masscan",
+        "user_agent_pattern": "masscan",
+        "action": "BLOCK"
+      }
+    ],
+    "header_forwarding": {
+      "forward_bot_score": true,
+      "forward_bot_category": true,
+      "forward_client_reputation": true,
+      "forward_edgescape": true,
+      "forward_true_client_ip": true,
+      "headers": {
+        "bot_score": "X-Akamai-Bot-Score",
+        "bot_category": "X-Akamai-Bot-Category",
+        "client_reputation": "X-Akamai-Client-Reputation",
+        "edgescape": "X-Akamai-Edgescape",
+        "true_client_ip": "True-Client-IP",
+        "request_id": "X-Akamai-Request-ID"
+      }
+    }
+  }
+}

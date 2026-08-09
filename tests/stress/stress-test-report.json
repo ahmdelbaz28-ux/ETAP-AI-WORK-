@@ -1,0 +1,72 @@
+{
+  "timestamp": "2026-06-10T06:37:45.364Z",
+  "target": "https://ahmed-etap.ahmdelbaz28.workers.dev",
+  "results": [
+    {
+      "scenario": "API Spike (1000 req/s)",
+      "totalRequests": 1000,
+      "successCount": 643,
+      "errorCount": 357,
+      "rateLimitedCount": 0,
+      "avgLatencyMs": 27765,
+      "maxLatencyMs": 30426,
+      "totalDurationMs": 34978,
+      "errors": [
+        "This operation was aborted",
+        "This operation was aborted",
+        "This operation was aborted",
+        "This operation was aborted",
+        "This operation was aborted"
+      ],
+      "degradedGracefully": false
+    },
+    {
+      "scenario": "Agent Overload (200 concurrent)",
+      "totalRequests": 200,
+      "successCount": 200,
+      "errorCount": 0,
+      "rateLimitedCount": 0,
+      "avgLatencyMs": 3166,
+      "maxLatencyMs": 9757,
+      "totalDurationMs": 9841,
+      "errors": [],
+      "degradedGracefully": true
+    },
+    {
+      "scenario": "Queue Saturation (300 studies)",
+      "totalRequests": 300,
+      "successCount": 300,
+      "errorCount": 0,
+      "rateLimitedCount": 0,
+      "avgLatencyMs": 9573,
+      "maxLatencyMs": 15911,
+      "totalDurationMs": 16038,
+      "errors": [],
+      "degradedGracefully": true
+    },
+    {
+      "scenario": "Provider Outage (50 req)",
+      "totalRequests": 50,
+      "successCount": 50,
+      "errorCount": 0,
+      "rateLimitedCount": 0,
+      "avgLatencyMs": 2201,
+      "maxLatencyMs": 2366,
+      "totalDurationMs": 2433,
+      "errors": [],
+      "degradedGracefully": true
+    },
+    {
+      "scenario": "Sustained Load (500 req/10s)",
+      "totalRequests": 500,
+      "successCount": 500,
+      "errorCount": 0,
+      "rateLimitedCount": 0,
+      "avgLatencyMs": 62,
+      "maxLatencyMs": 197,
+      "totalDurationMs": 10055,
+      "errors": [],
+      "degradedGracefully": true
+    }
+  ]
+}

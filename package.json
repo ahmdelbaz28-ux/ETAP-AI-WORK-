@@ -1,0 +1,71 @@
+{
+  "name": "etap-ai-engineering-platform",
+  "version": "2.1.0",
+  "description": "Enterprise-grade AI engineering platform for validated power-system studies, ETAP automation, GIS enrichment, and autonomous technical workflows.",
+  "main": "index.js",
+  "scripts": {
+    "dev": "mastra dev",
+    "build": "mastra build",
+    "start": "mastra start",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "tsc --noEmit",
+    "lint:ci": "tsc --noEmit && vitest run",
+    "test:scenarios": "vitest run --config vitest.scenarios.config.ts"
+  },
+  "keywords": [
+    "power-systems",
+    "etap",
+    "arc-flash",
+    "load-flow",
+    "short-circuit",
+    "protection-coordination",
+    "mastra",
+    "ai-agent"
+  ],
+  "author": "Power Systems Engineering Team",
+  "license": "MIT",
+  "devEngines": {},
+  "type": "module",
+  "dependencies": {
+    "@ai-sdk/anthropic": "^1.2.12",
+    "@langwatch/scenario": "^0.4.15",
+    "@mastra/core": "^1.37.1",
+    "@mastra/duckdb": "^1.4.0",
+    "@mastra/libsql": "^1.4.0",
+    "@mastra/loggers": "^1.0.0",
+    "@mastra/memory": "^1.0.0",
+    "@mastra/observability": "^1.0.0",
+    "@opentelemetry/auto-instrumentations-node": "^0.79.0",
+    "ai": "^6.0.209",
+    "langwatch": "0.30.0",
+    "mastra": "^1.19.0",
+    "pino": "9.6.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@ai-sdk/openai": "^2.0.0",
+    "@modelcontextprotocol/server-filesystem": "^2026.1.14",
+    "@playwright/test": "^1.62.1",
+    "@testsprite/testsprite-mcp": "^0.0.39",
+    "@types/node": "22.10.2",
+    "@types/pino": "7.0.5",
+    "@vitest/coverage-v8": "3.2.6",
+    "commander": "12.1.0",
+    "dotenv": "16.4.7",
+    "playwright": "^1.62.0",
+    "tsx": "4.23.0",
+    "typescript": "^5.7.2",
+    "vitest": "3.2.6",
+    "zod-to-json-schema": "3.24.5"
+  },
+  "overrides": {
+    "@ai-sdk/provider-utils": "^4.0.42",
+    "undici": "^7.29.0",
+    "protobufjs": "^8.6.6",
+    "@opentelemetry/core": "^2.10.0",
+    "@opentelemetry/sdk-node": "^0.221.0",
+    "@opentelemetry/exporter-prometheus": "^0.221.0",
+    "@opentelemetry/propagator-jaeger": "^2.10.0"
+  }
+}

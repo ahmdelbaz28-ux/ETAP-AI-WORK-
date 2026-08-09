@@ -1,0 +1,1054 @@
+{
+  "title": "Complete QGIS Documentation Index",
+  "description": "Comprehensive index of all QGIS documentation including user manual, server manual, PyQGIS cookbook, API docs, and installation guides",
+  "base_url": "https://docs.qgis.org/3.44/en/",
+  "documentation_sections": [
+    {
+      "section_number": "1",
+      "title": "PyQGIS Developer Cookbook",
+      "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/",
+      "level": 1,
+      "parent": null,
+      "subsections": [
+        {
+          "section_number": "1.1",
+          "title": "Introduction",
+          "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/intro.html",
+          "level": 2,
+          "parent": "PyQGIS Developer Cookbook",
+          "sub_subsections": [
+            {
+              "title": "Scripting in the Python Console",
+              "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/intro.html#scripting-in-the-python-console",
+              "level": 3,
+              "parent": "Introduction"
+            },
+            {
+              "title": "Python Plugins",
+              "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/intro.html#python-plugins",
+              "level": 3,
+              "parent": "Introduction"
+            },
+            {
+              "title": "Running Python code when QGIS starts",
+              "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/intro.html#running-python-code-when-qgis-starts",
+              "level": 3,
+              "parent": "Introduction"
+            },
+            {
+              "title": "Python Applications",
+              "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/intro.html#python-applications",
+              "level": 3,
+              "parent": "Introduction"
+            },
+            {
+              "title": "Technical notes on PyQt and SIP",
+              "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/intro.html#technical-notes-on-pyqt-and-sip",
+              "level": 3,
+              "parent": "Introduction"
+            }
+          ]
+        },
+        {
+          "section_number": "2",
+          "title": "Loading Projects",
+          "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/projects.html",
+          "level": 2,
+          "parent": "PyQGIS Developer Cookbook",
+          "sub_subsections": [
+            {
+              "title": "Resolving bad paths",
+              "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/projects.html#resolving-bad-paths",
+              "level": 3,
+              "parent": "Loading Projects"
+            },
+            {
+              "title": "Using flags to speed up things",
+              "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/projects.html#using-flags-to-speed-up-things",
+              "level": 3,
+              "parent": "Loading Projects"
+            }
+          ]
+        },
+        {
+          "section_number": "3",
+          "title": "Loading Layers",
+          "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/loadlayer.html",
+          "level": 2,
+          "parent": "PyQGIS Developer Cookbook",
+          "sub_subsections": [
+            {
+              "title": "Vector Layers",
+              "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/loadlayer.html#vector-layers",
+              "level": 3,
+              "parent": "Loading Layers"
+            },
+            {
+              "title": "Raster Layers",
+              "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/loadlayer.html#raster-layers",
+              "level": 3,
+              "parent": "Loading Layers"
+            },
+            {
+              "title": "QgsProject instance",
+              "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/loadlayer.html#qgsproject-instance",
+              "level": 3,
+              "parent": "Loading Layers"
+            }
+          ]
+        },
+        {
+          "section_number": "4",
+          "title": "Accessing the Table Of Contents (TOC)",
+          "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/toc.html",
+          "level": 2,
+          "parent": "PyQGIS Developer Cookbook",
+          "sub_subsections": [
+            {
+              "title": "The QgsProject class",
+              "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/toc.html#the-qgsproject-class",
+              "level": 3,
+              "parent": "Accessing the Table Of Contents (TOC)"
+            },
+            {
+              "title": "QgsLayerTreeGroup class",
+              "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/toc.html#qgslayertreegroup-class",
+              "level": 3,
+              "parent": "Accessing the Table Of Contents (TOC)"
+            }
+          ]
+        },
+        {
+          "section_number": "5",
+          "title": "Using Raster Layers",
+          "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/raster.html",
+          "level": 2,
+          "parent": "PyQGIS Developer Cookbook",
+          "sub_subsections": [
+            {
+              "title": "Layer Details",
+              "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/raster.html#layer-details",
+              "level": 3,
+              "parent": "Using Raster Layers"
+            },
+            {
+              "title": "Renderer",
+              "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/raster.html#renderer",
+              "level": 3,
+              "parent": "Using Raster Layers"
+            },
+            {
+              "title": "Query Values",
+              "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/raster.html#query-values",
+              "level": 3,
+              "parent": "Using Raster Layers"
+            },
+            {
+              "title": "Editing raster data",
+              "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/raster.html#editing-raster-data",
+              "level": 3,
+              "parent": "Using Raster Layers"
+            }
+          ]
+        },
+        {
+          "section_number": "6",
+          "title": "Using Vector Layers",
+          "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/vector.html",
+          "level": 2,
+          "parent": "PyQGIS Developer Cookbook",
+          "sub_subsections": [
+            {
+              "title": "Retrieving information about attributes",
+              "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/vector.html#retrieving-information-about-attributes",
+              "level": 3,
+              "parent": "Using Vector Layers"
+            },
+            {
+              "title": "Iterating over Vector Layer",
+              "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/vector.html#iterating-over-vector-layer",
+              "level": 3,
+              "parent": "Using Vector Layers"
+            },
+            {
+              "title": "Selecting features",
+              "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/vector.html#selecting-features",
+              "level": 3,
+              "parent": "Using Vector Layers"
+            },
+            {
+              "title": "Modifying Vector Layers",
+              "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/vector.html#modifying-vector-layers",
+              "level": 3,
+              "parent": "Using Vector Layers"
+            },
+            {
+              "title": "Using Spatial Index",
+              "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/vector.html#using-spatial-index",
+              "level": 3,
+              "parent": "Using Vector Layers"
+            },
+            {
+              "title": "The QgsVectorLayerUtils class",
+              "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/vector.html#the-qgsvectorlayerutils-class",
+              "level": 3,
+              "parent": "Using Vector Layers"
+            },
+            {
+              "title": "Creating Vector Layers",
+              "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/vector.html#creating-vector-layers",
+              "level": 3,
+              "parent": "Using Vector Layers"
+            },
+            {
+              "title": "Appearance (Symbology) of Vector Layers",
+              "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/vector.html#appearance-symbology-of-vector-layers",
+              "level": 3,
+              "parent": "Using Vector Layers"
+            },
+            {
+              "title": "Further Topics",
+              "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/vector.html#further-topics",
+              "level": 3,
+              "parent": "Using Vector Layers"
+            }
+          ]
+        },
+        {
+          "section_number": "7",
+          "title": "Geometry Handling",
+          "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/geometry.html",
+          "level": 2,
+          "parent": "PyQGIS Developer Cookbook",
+          "sub_subsections": [
+            {
+              "title": "Geometry Construction",
+              "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/geometry.html#geometry-construction",
+              "level": 3,
+              "parent": "Geometry Handling"
+            },
+            {
+              "title": "Access to Geometry",
+              "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/geometry.html#access-to-geometry",
+              "level": 3,
+              "parent": "Geometry Handling"
+            },
+            {
+              "title": "Geometry Predicates and Operations",
+              "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/geometry.html#geometry-predicates-and-operations",
+              "level": 3,
+              "parent": "Geometry Handling"
+            }
+          ]
+        },
+        {
+          "section_number": "8",
+          "title": "Projections Support",
+          "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/projections.html",
+          "level": 2,
+          "parent": "PyQGIS Developer Cookbook",
+          "sub_subsections": [
+            {
+              "title": "Coordinate reference systems",
+              "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/projections.html#coordinate-reference-systems",
+              "level": 3,
+              "parent": "Projections Support"
+            },
+            {
+              "title": "CRS Transformation",
+              "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/projections.html#crs-transformation",
+              "level": 3,
+              "parent": "Projections Support"
+            }
+          ]
+        },
+        {
+          "section_number": "9",
+          "title": "Using the Map Canvas",
+          "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/canvas.html",
+          "level": 2,
+          "parent": "PyQGIS Developer Cookbook",
+          "sub_subsections": [
+            {
+              "title": "Embedding Map Canvas",
+              "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/canvas.html#embedding-map-canvas",
+              "level": 3,
+              "parent": "Using the Map Canvas"
+            },
+            {
+              "title": "Rubber Bands and Vertex Markers",
+              "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/canvas.html#rubber-bands-and-vertex-markers",
+              "level": 3,
+              "parent": "Using the Map Canvas"
+            },
+            {
+              "title": "Using Map Tools with Canvas",
+              "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/canvas.html#using-map-tools-with-canvas",
+              "level": 3,
+              "parent": "Using the Map Canvas"
+            },
+            {
+              "title": "Writing Custom Map Tools",
+              "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/canvas.html#writing-custom-map-tools",
+              "level": 3,
+              "parent": "Using the Map Canvas"
+            },
+            {
+              "title": "Writing Custom Map Canvas Items",
+              "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/canvas.html#writing-custom-map-canvas-items",
+              "level": 3,
+              "parent": "Using the Map Canvas"
+            }
+          ]
+        },
+        {
+          "section_number": "10",
+          "title": "Map Rendering and Printing",
+          "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/rendering.html",
+          "level": 2,
+          "parent": "PyQGIS Developer Cookbook",
+          "sub_subsections": [
+            {
+              "title": "Simple Rendering",
+              "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/rendering.html#simple-rendering",
+              "level": 3,
+              "parent": "Map Rendering and Printing"
+            },
+            {
+              "title": "Rendering layers with different CRS",
+              "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/rendering.html#rendering-layers-with-different-crs",
+              "level": 3,
+              "parent": "Map Rendering and Printing"
+            },
+            {
+              "title": "Output using print layout",
+              "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/rendering.html#output-using-print-layout",
+              "level": 3,
+              "parent": "Map Rendering and Printing"
+            }
+          ]
+        },
+        {
+          "section_number": "11",
+          "title": "Expressions, Filtering and Calculating Values",
+          "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/expressions.html",
+          "level": 2,
+          "parent": "PyQGIS Developer Cookbook",
+          "sub_subsections": [
+            {
+              "title": "Parsing Expressions",
+              "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/expressions.html#parsing-expressions",
+              "level": 3,
+              "parent": "Expressions, Filtering and Calculating Values"
+            },
+            {
+              "title": "Evaluating Expressions",
+              "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/expressions.html#evaluating-expressions",
+              "level": 3,
+              "parent": "Expressions, Filtering and Calculating Values"
+            },
+            {
+              "title": "Handling expression errors",
+              "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/expressions.html#handling-expression-errors",
+              "level": 3,
+              "parent": "Expressions, Filtering and Calculating Values"
+            }
+          ]
+        },
+        {
+          "section_number": "12",
+          "title": "Reading And Storing Settings",
+          "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/settings.html",
+          "level": 2,
+          "parent": "PyQGIS Developer Cookbook"
+        },
+        {
+          "section_number": "13",
+          "title": "Communicating with the user",
+          "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/user_interaction.html",
+          "level": 2,
+          "parent": "PyQGIS Developer Cookbook",
+          "sub_subsections": [
+            {
+              "title": "Showing messages. The QgsMessageBar class",
+              "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/user_interaction.html#showing-messages-the-qgsmessagebar-class",
+              "level": 3,
+              "parent": "Communicating with the user"
+            },
+            {
+              "title": "Showing progress",
+              "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/user_interaction.html#showing-progress",
+              "level": 3,
+              "parent": "Communicating with the user"
+            },
+            {
+              "title": "Logging",
+              "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/user_interaction.html#logging",
+              "level": 3,
+              "parent": "Communicating with the user"
+            }
+          ]
+        },
+        {
+          "section_number": "14",
+          "title": "Authentication infrastructure",
+          "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/auth_man.html",
+          "level": 2,
+          "parent": "PyQGIS Developer Cookbook",
+          "sub_subsections": [
+            {
+              "title": "Introduction",
+              "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/auth_man.html#introduction",
+              "level": 3,
+              "parent": "Authentication infrastructure"
+            },
+            {
+              "title": "Glossary",
+              "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/auth_man.html#glossary",
+              "level": 3,
+              "parent": "Authentication infrastructure"
+            },
+            {
+              "title": "QgsAuthManager the entry point",
+              "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/auth_man.html#qgsauthmanager-the-entry-point",
+              "level": 3,
+              "parent": "Authentication infrastructure"
+            },
+            {
+              "title": "Adapt plugins to use Authentication infrastructure",
+              "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/auth_man.html#adapt-plugins-to-use-authentication-infrastructure",
+              "level": 3,
+              "parent": "Authentication infrastructure"
+            },
+            {
+              "title": "Authentication GUIs",
+              "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/auth_man.html#authentication-guis",
+              "level": 3,
+              "parent": "Authentication infrastructure"
+            }
+          ]
+        },
+        {
+          "section_number": "15",
+          "title": "Tasks - doing heavy work in the background",
+          "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/tasks.html",
+          "level": 2,
+          "parent": "PyQGIS Developer Cookbook",
+          "sub_subsections": [
+            {
+              "title": "Introduction",
+              "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/tasks.html#introduction",
+              "level": 3,
+              "parent": "Tasks - doing heavy work in the background"
+            },
+            {
+              "title": "Examples",
+              "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/tasks.html#examples",
+              "level": 3,
+              "parent": "Tasks - doing heavy work in the background"
+            }
+          ]
+        },
+        {
+          "section_number": "16",
+          "title": "Developing Python Plugins",
+          "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/plugins.html",
+          "level": 2,
+          "parent": "PyQGIS Developer Cookbook",
+          "sub_subsections": [
+            {
+              "title": "Structuring Python Plugins",
+              "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/plugins.html#structuring-python-plugins",
+              "level": 3,
+              "parent": "Developing Python Plugins"
+            },
+            {
+              "title": "Code Snippets",
+              "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/plugins.html#code-snippets",
+              "level": 3,
+              "parent": "Developing Python Plugins"
+            },
+            {
+              "title": "IDE settings for writing and debugging plugins",
+              "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/plugins.html#ide-settings-for-writing-and-debugging-plugins",
+              "level": 3,
+              "parent": "Developing Python Plugins"
+            },
+            {
+              "title": "Releasing your plugin",
+              "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/plugins.html#releasing-your-plugin",
+              "level": 3,
+              "parent": "Developing Python Plugins"
+            }
+          ]
+        },
+        {
+          "section_number": "17",
+          "title": "Writing a Processing plugin",
+          "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/processing.html",
+          "level": 2,
+          "parent": "PyQGIS Developer Cookbook",
+          "sub_subsections": [
+            {
+              "title": "Updating a plugin",
+              "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/processing.html#updating-a-plugin",
+              "level": 3,
+              "parent": "Writing a Processing plugin"
+            }
+          ]
+        },
+        {
+          "section_number": "18",
+          "title": "Using Plugin Layers",
+          "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/plugin_layer.html",
+          "level": 2,
+          "parent": "PyQGIS Developer Cookbook",
+          "sub_subsections": [
+            {
+              "title": "Subclassing QgsPluginLayer",
+              "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/plugin_layer.html#subclassing-qgspluginlayer",
+              "level": 3,
+              "parent": "Using Plugin Layers"
+            }
+          ]
+        },
+        {
+          "section_number": "19",
+          "title": "Network analysis library",
+          "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/network_analysis.html",
+          "level": 2,
+          "parent": "PyQGIS Developer Cookbook",
+          "sub_subsections": [
+            {
+              "title": "Building a graph",
+              "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/network_analysis.html#building-a-graph",
+              "level": 3,
+              "parent": "Network analysis library"
+            },
+            {
+              "title": "Graph analysis",
+              "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/network_analysis.html#graph-analysis",
+              "level": 3,
+              "parent": "Network analysis library"
+            }
+          ]
+        },
+        {
+          "section_number": "20",
+          "title": "QGIS Server and Python",
+          "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/server_dev.html",
+          "level": 2,
+          "parent": "PyQGIS Developer Cookbook",
+          "sub_subsections": [
+            {
+              "title": "Introduction",
+              "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/server_dev.html#introduction",
+              "level": 3,
+              "parent": "QGIS Server and Python"
+            },
+            {
+              "title": "Server API basics",
+              "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/server_dev.html#server-api-basics",
+              "level": 3,
+              "parent": "QGIS Server and Python"
+            },
+            {
+              "title": "Standalone or embedding",
+              "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/server_dev.html#standalone-or-embedding",
+              "level": 3,
+              "parent": "QGIS Server and Python"
+            },
+            {
+              "title": "Server plugins",
+              "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/server_dev.html#server-plugins",
+              "level": 3,
+              "parent": "QGIS Server and Python"
+            }
+          ]
+        },
+        {
+          "section_number": "21",
+          "title": "Cheat sheet for PyQGIS",
+          "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/cheat_sheet.html",
+          "level": 2,
+          "parent": "PyQGIS Developer Cookbook",
+          "sub_subsections": [
+            {
+              "title": "User Interface",
+              "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/cheat_sheet.html#user-interface",
+              "level": 3,
+              "parent": "Cheat sheet for PyQGIS"
+            },
+            {
+              "title": "Settings",
+              "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/cheat_sheet.html#settings",
+              "level": 3,
+              "parent": "Cheat sheet for PyQGIS"
+            },
+            {
+              "title": "Toolbars",
+              "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/cheat_sheet.html#toolbars",
+              "level": 3,
+              "parent": "Cheat sheet for PyQGIS"
+            },
+            {
+              "title": "Menus",
+              "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/cheat_sheet.html#menus",
+              "level": 3,
+              "parent": "Cheat sheet for PyQGIS"
+            },
+            {
+              "title": "Canvas",
+              "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/cheat_sheet.html#canvas",
+              "level": 3,
+              "parent": "Cheat sheet for PyQGIS"
+            },
+            {
+              "title": "Layers",
+              "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/cheat_sheet.html#layers",
+              "level": 3,
+              "parent": "Cheat sheet for PyQGIS"
+            },
+            {
+              "title": "Table of contents",
+              "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/cheat_sheet.html#table-of-contents",
+              "level": 3,
+              "parent": "Cheat sheet for PyQGIS"
+            },
+            {
+              "title": "Advanced TOC",
+              "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/cheat_sheet.html#advanced-toc",
+              "level": 3,
+              "parent": "Cheat sheet for PyQGIS"
+            },
+            {
+              "title": "Processing algorithms",
+              "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/cheat_sheet.html#processing-algorithms",
+              "level": 3,
+              "parent": "Cheat sheet for PyQGIS"
+            },
+            {
+              "title": "Decorators",
+              "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/cheat_sheet.html#decorators",
+              "level": 3,
+              "parent": "Cheat sheet for PyQGIS"
+            },
+            {
+              "title": "Composer",
+              "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/cheat_sheet.html#composer",
+              "level": 3,
+              "parent": "Cheat sheet for PyQGIS"
+            },
+            {
+              "title": "Sources",
+              "url": "https://docs.qgis.org/3.44/en/docs/pyqgis_developer_cookbook/cheat_sheet.html#sources",
+              "level": 3,
+              "parent": "Cheat sheet for PyQGIS"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "section_number": "2",
+      "title": "PyQGIS API Documentation",
+      "url": "https://qgis.org/pyqgis/3.44/",
+      "level": 1,
+      "parent": null,
+      "subsections": [
+        {
+          "section_number": "2.1",
+          "title": "Core API",
+          "url": "https://qgis.org/pyqgis/3.44/core.html",
+          "level": 2,
+          "parent": "PyQGIS API Documentation",
+          "sub_subsections": [
+            {
+              "title": "3D",
+              "url": "https://qgis.org/pyqgis/3.44/core.html#module-qgis.core.Qgs3D",
+              "level": 3,
+              "parent": "Core API"
+            },
+            {
+              "title": "Annotations and Annotation Layers",
+              "url": "https://qgis.org/pyqgis/3.44/core.html#module-qgis.core.QgsAnnotation",
+              "level": 3,
+              "parent": "Core API"
+            },
+            {
+              "title": "Attribute Form Configuration",
+              "url": "https://qgis.org/pyqgis/3.44/core.html#module-qgis.core.QgsAttributeFormConfig",
+              "level": 3,
+              "parent": "Core API"
+            },
+            {
+              "title": "Authentication Framework",
+              "url": "https://qgis.org/pyqgis/3.44/core.html#module-qgis.core.QgsAuthManager",
+              "level": 3,
+              "parent": "Core API"
+            },
+            {
+              "title": "Browser",
+              "url": "https://qgis.org/pyqgis/3.44/core.html#module-qgis.core.QgsBrowserModel",
+              "level": 3,
+              "parent": "Core API"
+            },
+            {
+              "title": "Classification Methods",
+              "url": "https://qgis.org/pyqgis/3.44/core.html#module-qgis.core.QgsClassificationMethod",
+              "level": 3,
+              "parent": "Core API"
+            },
+            {
+              "title": "Coordinate Systems and Transformations",
+              "url": "https://qgis.org/pyqgis/3.44/core.html#module-qgis.core.QgsCoordinateReferenceSystem",
+              "level": 3,
+              "parent": "Core API"
+            },
+            {
+              "title": "Data Providers",
+              "url": "https://qgis.org/pyqgis/3.44/core.html#module-qgis.core.QgsDataProvider",
+              "level": 3,
+              "parent": "Core API"
+            },
+            {
+              "title": "Diagrams and Charts",
+              "url": "https://qgis.org/pyqgis/3.44/core.html#module-qgis.core.QgsDiagram",
+              "level": 3,
+              "parent": "Core API"
+            },
+            {
+              "title": "Expression Engine",
+              "url": "https://qgis.org/pyqgis/3.44/core.html#module-qgis.core.QgsExpression",
+              "level": 3,
+              "parent": "Core API"
+            },
+            {
+              "title": "Geometry",
+              "url": "https://qgis.org/pyqgis/3.44/core.html#module-qgis.core.QgsGeometry",
+              "level": 3,
+              "parent": "Core API"
+            },
+            {
+              "title": "Labeling",
+              "url": "https://qgis.org/pyqgis/3.44/core.html#module-qgis.core.QgsPalLayerSettings",
+              "level": 3,
+              "parent": "Core API"
+            },
+            {
+              "title": "Layer Tree and Legends",
+              "url": "https://qgis.org/pyqgis/3.44/core.html#module-qgis.core.QgsLayerTreeGroup",
+              "level": 3,
+              "parent": "Core API"
+            },
+            {
+              "title": "Map Rendering",
+              "url": "https://qgis.org/pyqgis/3.44/core.html#module-qgis.core.QgsMapRendererParallelJob",
+              "level": 3,
+              "parent": "Core API"
+            },
+            {
+              "title": "Raster Layers",
+              "url": "https://qgis.org/pyqgis/3.44/core.html#module-qgis.core.QgsRasterLayer",
+              "level": 3,
+              "parent": "Core API"
+            },
+            {
+              "title": "Vector Layers",
+              "url": "https://qgis.org/pyqgis/3.44/core.html#module-qgis.core.QgsVectorLayer",
+              "level": 3,
+              "parent": "Core API"
+            }
+          ]
+        },
+        {
+          "section_number": "2.2",
+          "title": "GUI API",
+          "url": "https://qgis.org/pyqgis/3.44/gui.html",
+          "level": 2,
+          "parent": "PyQGIS API Documentation",
+          "sub_subsections": [
+            {
+              "title": "Attribute Editor Widgets",
+              "url": "https://qgis.org/pyqgis/3.44/gui.html#module-qgis.gui.QgsEditorWidgetFactory",
+              "level": 3,
+              "parent": "GUI API"
+            },
+            {
+              "title": "Attribute Table and Forms",
+              "url": "https://qgis.org/pyqgis/3.44/gui.html#module-qgis.gui.QgsAttributeTableDialog",
+              "level": 3,
+              "parent": "GUI API"
+            },
+            {
+              "title": "Authentication Framework",
+              "url": "https://qgis.org/pyqgis/3.44/gui.html#module-qgis.gui.QgsAuthSettingsWidget",
+              "level": 3,
+              "parent": "GUI API"
+            },
+            {
+              "title": "Map Tools",
+              "url": "https://qgis.org/pyqgis/3.44/gui.html#module-qgis.gui.QgsMapTool",
+              "level": 3,
+              "parent": "GUI API"
+            },
+            {
+              "title": "Symbology and Vector Renderers",
+              "url": "https://qgis.org/pyqgis/3.44/gui.html#module-qgis.gui.QgsRendererWidget",
+              "level": 3,
+              "parent": "GUI API"
+            }
+          ]
+        },
+        {
+          "section_number": "2.3",
+          "title": "Analysis API",
+          "url": "https://qgis.org/pyqgis/3.44/analysis.html",
+          "level": 2,
+          "parent": "PyQGIS API Documentation",
+          "sub_subsections": [
+            {
+              "title": "Geometry Checker",
+              "url": "https://qgis.org/pyqgis/3.44/analysis.html#module-qgis.analysis.QgsGeometryChecker",
+              "level": 3,
+              "parent": "Analysis API"
+            },
+            {
+              "title": "Processing Framework",
+              "url": "https://qgis.org/pyqgis/3.44/analysis.html#module-qgis.analysis.QgsNativeAlgorithms",
+              "level": 3,
+              "parent": "Analysis API"
+            }
+          ]
+        },
+        {
+          "section_number": "2.4",
+          "title": "Server API",
+          "url": "https://qgis.org/pyqgis/3.44/server.html",
+          "level": 2,
+          "parent": "PyQGIS API Documentation",
+          "sub_subsections": [
+            {
+              "title": "QGIS Projects",
+              "url": "https://qgis.org/pyqgis/3.44/server.html#module-qgis.server.QgsProject",
+              "level": 3,
+              "parent": "Server API"
+            }
+          ]
+        },
+        {
+          "section_number": "2.5",
+          "title": "Processing API",
+          "url": "https://qgis.org/pyqgis/3.44/processing.html",
+          "level": 2,
+          "parent": "PyQGIS API Documentation"
+        }
+      ]
+    },
+    {
+      "section_number": "3",
+      "title": "QGIS Installation Guide",
+      "url": "https://github.com/qgis/QGIS/blob/release-3_44/INSTALL.md",
+      "level": 1,
+      "parent": null,
+      "subsections": [
+        {
+          "section_number": "3.1",
+          "title": "Building on GNU/Linux",
+          "url": "https://github.com/qgis/QGIS/blob/release-3_44/INSTALL.md#3-building-on-gnulinux",
+          "level": 2,
+          "parent": "QGIS Installation Guide",
+          "sub_subsections": [
+            {
+              "title": "Building QGIS with Qt 5.x",
+              "url": "https://github.com/qgis/QGIS/blob/release-3_44/INSTALL.md#31-building-qgis-with-qt-5x",
+              "level": 3,
+              "parent": "Building on GNU/Linux"
+            },
+            {
+              "title": "Prepare apt",
+              "url": "https://github.com/qgis/QGIS/blob/release-3_44/INSTALL.md#32-prepare-apt",
+              "level": 3,
+              "parent": "Building on GNU/Linux"
+            },
+            {
+              "title": "Install build dependencies",
+              "url": "https://github.com/qgis/QGIS/blob/release-3_44/INSTALL.md#33-install-build-dependencies",
+              "level": 3,
+              "parent": "Building on GNU/Linux"
+            },
+            {
+              "title": "Setup ccache",
+              "url": "https://github.com/qgis/QGIS/blob/release-3_44/INSTALL.md#34-setup-ccache-optional-but-recommended",
+              "level": 3,
+              "parent": "Building on GNU/Linux"
+            },
+            {
+              "title": "Prepare your development environment",
+              "url": "https://github.com/qgis/QGIS/blob/release-3_44/INSTALL.md#35-prepare-your-development-environment",
+              "level": 3,
+              "parent": "Building on GNU/Linux"
+            },
+            {
+              "title": "Check out the QGIS Source Code",
+              "url": "https://github.com/qgis/QGIS/blob/release-3_44/INSTALL.md#36-check-out-the-qgis-source-code",
+              "level": 3,
+              "parent": "Building on GNU/Linux"
+            },
+            {
+              "title": "Starting the compile",
+              "url": "https://github.com/qgis/QGIS/blob/release-3_44/INSTALL.md#37-starting-the-compile",
+              "level": 3,
+              "parent": "Building on GNU/Linux"
+            },
+            {
+              "title": "Available compilation flags",
+              "url": "https://github.com/qgis/QGIS/blob/release-3_44/INSTALL.md#371-available-compilation-flags",
+              "level": 4,
+              "parent": "Starting the compile"
+            },
+            {
+              "title": "Compiling with 3D",
+              "url": "https://github.com/qgis/QGIS/blob/release-3_44/INSTALL.md#38-compiling-with-3d",
+              "level": 3,
+              "parent": "Building on GNU/Linux"
+            },
+            {
+              "title": "Building different branches",
+              "url": "https://github.com/qgis/QGIS/blob/release-3_44/INSTALL.md#39-building-different-branches",
+              "level": 3,
+              "parent": "Building on GNU/Linux"
+            },
+            {
+              "title": "Building Debian packages",
+              "url": "https://github.com/qgis/QGIS/blob/release-3_44/INSTALL.md#310-building-debian-packages",
+              "level": 3,
+              "parent": "Building on GNU/Linux"
+            },
+            {
+              "title": "On Fedora Linux",
+              "url": "https://github.com/qgis/QGIS/blob/release-3_44/INSTALL.md#311-on-fedora-linux",
+              "level": 3,
+              "parent": "Building on GNU/Linux"
+            }
+          ]
+        },
+        {
+          "section_number": "3.2",
+          "title": "Building on Windows",
+          "url": "https://github.com/qgis/QGIS/blob/release-3_44/INSTALL.md#4-building-on-windows",
+          "level": 2,
+          "parent": "QGIS Installation Guide",
+          "sub_subsections": [
+            {
+              "title": "Building with Microsoft Visual Studio",
+              "url": "https://github.com/qgis/QGIS/blob/release-3_44/INSTALL.md#41-building-with-microsoft-visual-studio",
+              "level": 3,
+              "parent": "Building on Windows"
+            },
+            {
+              "title": "Building on Linux with mingw64",
+              "url": "https://github.com/qgis/QGIS/blob/release-3_44/INSTALL.md#42-building-on-linux-with-mingw64",
+              "level": 3,
+              "parent": "Building on Windows"
+            },
+            {
+              "title": "Building on Windows with vcpkg",
+              "url": "https://github.com/qgis/QGIS/blob/release-3_44/INSTALL.md#43-building-on-windows-with-vcpkg",
+              "level": 3,
+              "parent": "Building on Windows"
+            }
+          ]
+        },
+        {
+          "section_number": "3.3",
+          "title": "Building on MacOS X",
+          "url": "https://github.com/qgis/QGIS/blob/release-3_44/INSTALL.md#5-building-on-macos-x",
+          "level": 2,
+          "parent": "QGIS Installation Guide",
+          "sub_subsections": [
+            {
+              "title": "Building with Mac Packager",
+              "url": "https://github.com/qgis/QGIS/blob/release-3_44/INSTALL.md#51-building-with-mac-packager",
+              "level": 3,
+              "parent": "Building on MacOS X"
+            },
+            {
+              "title": "Building with vcpkg",
+              "url": "https://github.com/qgis/QGIS/blob/release-3_44/INSTALL.md#52-building-with-vcpkg",
+              "level": 3,
+              "parent": "Building on MacOS X"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "section_number": "4",
+      "title": "QGIS Documentation Repository",
+      "url": "https://github.com/qgis/QGIS-Documentation",
+      "level": 1,
+      "parent": null,
+      "subsections": [
+        {
+          "section_number": "4.1",
+          "title": "Building the documentation",
+          "url": "https://github.com/qgis/QGIS-Documentation#building-the-documentation",
+          "level": 2,
+          "parent": "QGIS Documentation Repository",
+          "sub_subsections": [
+            {
+              "title": "Build on Linux or macOS",
+              "url": "https://github.com/qgis/QGIS-Documentation#build-on-linux-or-macos",
+              "level": 3,
+              "parent": "Building the documentation"
+            },
+            {
+              "title": "Build on Windows",
+              "url": "https://github.com/qgis/QGIS-Documentation#build-on-windows",
+              "level": 3,
+              "parent": "Building the documentation"
+            },
+            {
+              "title": "Build PDFs",
+              "url": "https://github.com/qgis/QGIS-Documentation#build-pdfs",
+              "level": 3,
+              "parent": "Building the documentation"
+            }
+          ]
+        },
+        {
+          "section_number": "4.2",
+          "title": "Translating",
+          "url": "https://github.com/qgis/QGIS-Documentation#translating",
+          "level": 2,
+          "parent": "QGIS Documentation Repository",
+          "sub_subsections": [
+            {
+              "title": "GitHub workflow",
+              "url": "https://github.com/qgis/QGIS-Documentation#github-workflow",
+              "level": 3,
+              "parent": "Translating"
+            },
+            {
+              "title": "Managing translations locally",
+              "url": "https://github.com/qgis/QGIS-Documentation#managing-translations-locally",
+              "level": 3,
+              "parent": "Translating"
+            }
+          ]
+        },
+        {
+          "section_number": "4.3",
+          "title": "Testing Python snippets",
+          "url": "https://github.com/qgis/QGIS-Documentation#testing-python-snippets",
+          "level": 2,
+          "parent": "QGIS Documentation Repository"
+        }
+      ]
+    }
+  ],
+  "last_updated": "2026-06-18",
+  "qgis_version": "3.44",
+  "base_url": "https://docs.qgis.org/3.44/en/docs/"
+}

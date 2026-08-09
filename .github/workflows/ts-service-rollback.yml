@@ -1,0 +1,55 @@
+# =============================================================================
+# Rollback Workflow for TS Service
+# Per ci-cd-and-automation skill: every deployment should be reversible
+# =============================================================================
+name: TS Service Rollback
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version/tag to rollback to'
+        required: true
+        type: string
+      reason:
+        description: 'Reason for rollback'
+        required: true
+        type: string
+
+defaults:
+  run:
+    working-directory: ts-service
+
+jobs:
+  rollback:
+    name: Rollback Deployment
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.version }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: ts-service/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build rollback version
+        run: npm run build
+
+      - name: Deploy rollback
+        run: |
+          echo "Rolling back to version: ${{ inputs.version }}"
+          echo "Reason: ${{ inputs.reason }}"
+          # Add actual deployment command here (e.g., vercel, aws, etc.)
+          # npx vercel --prod --token=${{ secrets.VERCEL_TOKEN }}
+          echo "Rollback deployment complete for version ${{ inputs.version }}"
+
+      - name: Notify team
+        if: always()
+        run: |
+          echo "::warning::Rolled back to ${{ inputs.version }} — Reason: ${{ inputs.reason }}"

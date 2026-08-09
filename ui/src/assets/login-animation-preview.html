@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AhmedETAP Login Animation Preview</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: radial-gradient(ellipse at center, #0b1220 0%, #05080f 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, sans-serif;
+    overflow: hidden;
+    color: white;
+  }
+  .preview-container {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    max-width: 1440px;
+    max-height: 900px;
+  }
+  /* Subtle grid background */
+  .bg-grid {
+    position: absolute;
+    inset: 0;
+    opacity: 0.06;
+    background-image:
+      linear-gradient(#3b82f6 1px, transparent 1px),
+      linear-gradient(90deg, #3b82f6 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+  .bg-glow {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(140px);
+    pointer-events: none;
+  }
+  .bg-glow-1 { top: -100px; right: -100px; width: 600px; height: 600px; background: rgba(59,130,246,0.06); }
+  .bg-glow-2 { bottom: -120px; left: -80px; width: 560px; height: 560px; background: rgba(13,148,136,0.05); }
+
+  /* Main SVG layers */
+  .scene {
+    position: absolute;
+    inset: 0;
+  }
+  .brand {
+    position: absolute;
+    top: 24px;
+    left: 28px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    opacity: 0.9;
+  }
+  .brand span {
+    background: linear-gradient(180deg, #00d4ff 0%, #3b82f6 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .tagline {
+    position: absolute;
+    bottom: 24px;
+    left: 28px;
+    opacity: 0.6;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  /* Animation classes */
+  .float-hand {
+    animation: floatY 6s ease-in-out infinite;
+  }
+  .float-hand-reverse {
+    animation: floatY 7s ease-in-out infinite reverse;
+  }
+  @keyframes floatY {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-18px); }
+  }
+  .pulse-glow {
+    animation: pulse 3s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 0.4; transform: scale(1); }
+    50% { opacity: 0.7; transform: scale(1.08); }
+  }
+  .data-stream {
+    animation: stream 2.8s linear infinite;
+  }
+  @keyframes stream {
+    0% { stroke-dashoffset: 0; }
+    100% { stroke-dashoffset: -140; }
+  }
+  .spark {
+    animation: sparkle 1.6s ease-in-out infinite;
+  }
+  @keyframes sparkle {
+    0%, 100% { opacity: 0.2; transform: scale(0.8); }
+    50% { opacity: 0.9; transform: scale(1.2); }
+  }
+  .ai-ring {
+    animation: spin 12s linear infinite;
+    transform-origin: center;
+  }
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  .ui-panel {
+    position: absolute;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 18px 22px;
+    background: rgba(15, 23, 42, 0.45);
+    backdrop-filter: blur(18px);
+    border: 1px solid rgba(148,163,184,0.12);
+    border-radius: 20px;
+    min-width: 320px;
+    box-shadow: 0 30px 60px rgba(0,0,0,0.35);
+  }
+  .ui-panel h2 {
+    font-size: 22px;
+    margin-bottom: 6px;
+  }
+  .ui-panel p {
+    font-size: 12px;
+    opacity: 0.65;
+    margin-bottom: 14px;
+  }
+  .ui-input {
+    width: 100%;
+    padding: 12px 14px;
+    background: rgba(15,23,42,0.6);
+    border: 1px solid rgba(148,163,184,0.15);
+    border-radius: 12px;
+    color: white;
+    outline: none;
+    margin-bottom: 10px;
+  }
+  .ui-btn {
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(180deg,#2563eb,#1d4ed8);
+    color: white;
+    border: 0;
+    border-radius: 12px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+  <div class="preview-container">
+    <div class="bg-grid"></div>
+    <div class="bg-glow bg-glow-1"></div>
+    <div class="bg-glow bg-glow-2"></div>
+
+    <div class="brand">✨ <span>AhmedETAP</span></div>
+    <div class="tagline">AhmedETAP Login Animation Preview</div>
+
+    <svg class="scene" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="streamGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stop-color="#1e293b" stop-opacity="0.0"/>
+          <stop offset="50%" stop-color="#00d4ff" stop-opacity="0.7"/>
+          <stop offset="100%" stop-color="#1e293b" stop-opacity="0.0"/>
+        </linearGradient>
+        <radialGradient id="meetGlow" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#00d4ff" stop-opacity="0.35"/>
+          <stop offset="100%" stop-color="#00d4ff" stop-opacity="0"/>
+        </radialGradient>
+        <filter id="softGlow" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="18" result="blur"/>
+          <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <marker id="dot" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+          <circle cx="5" cy="5" r="2.5" fill="#00d4ff" opacity="0.9"/>
+        </marker>
+      </defs>
+
+      <!-- Connection aura at center -->
+      <circle cx="720" cy="920" r="90" fill="url(#meetGlow)" class="pulse-glow"/>
+
+      <!-- Data streams center to sides -->
+      <path d="M720,920 L320,620" stroke="url(#streamGrad)" stroke-width="2" stroke-dasharray="10 16" class="data-stream" opacity="0.6"/>
+      <path d="M720,920 L1120,620" stroke="url(#streamGrad)" stroke-width="2" stroke-dasharray="10 16" class="data-stream" style="animation-delay:0.9s" opacity="0.6"/>
+
+      <!-- Left human hand outline -->
+      <g class="float-hand">
+        <path d="M320,620 C340,610 400,600 460,590 C490,586 510,588 520,595 C525,600 524,608 518,615 C500,632 460,640 420,645 C380,650 340,648 320,640 C316,638 316,624 320,620 Z"
+              fill="#0b1220" stroke="#60a5fa" stroke-width="2.2" opacity="0.85"/>
+        <!-- Finger pointing -->
+        <path d="M460,590 C470,572 488,558 500,548 C508,541 516,538 520,545 C524,552 520,562 510,572 C498,584 478,590 460,590 Z"
+              fill="#0b1220" stroke="#60a5fa" stroke-width="2" opacity="0.95"/>
+        <!-- knuckle highlights -->
+        <circle cx="480" cy="576" r="3.5" fill="#00d4ff" opacity="0.9" class="spark"/>
+        <circle cx="496" cy="566" r="2.8" fill="#3b82f6" opacity="0.8" class="spark" style="animation-delay:0.4s"/>
+      </g>
+
+      <!-- Right robotic/AI hand -->
+      <g class="float-hand-reverse">
+        <path d="M1120,620 C1100,610 1040,600 980,590 C950,586 930,588 920,595 C915,600 916,608 922,615 C940,632 980,640 1020,645 C1060,650 1100,648 1120,640 C1124,638 1124,624 1120,620 Z"
+              fill="#0b1220" stroke="#22d3ee" stroke-width="2.2" opacity="0.85"/>
+        <!-- Robotic pointing finger with metallic segments -->
+        <path d="M980,590 C970,572 952,558 940,548 C932,541 924,538 920,545 C916,552 920,562 930,572 C942,584 962,590 980,590 Z"
+              fill="#0b1220" stroke="#22d3ee" stroke-width="2" opacity="0.95"/>
+        <!-- Tech seams / segments -->
+        <line x1="948" y1="570" x2="966" y2="560" stroke="#a5f3fc" stroke-width="3" opacity="0.7"/>
+        <line x1="935" y1="556" x2="952" y2="548" stroke="#a5f3fc" stroke-width="3" opacity="0.7"/>
+        <circle cx="940" cy="548" r="4" fill="#00d4ff" opacity="0.9" class="spark" style="animation-delay:0.7s"/>
+      </g>
+
+      <!-- Central AI core / touching point -->
+      <g filter="url(#softGlow)">
+        <circle cx="720" cy="760" r="22" fill="#0b1220" stroke="#00d4ff" stroke-width="2.2"/>
+        <circle cx="720" cy="760" r="9" fill="#00d4ff" opacity="0.9"/>
+      </g>
+      <circle cx="720" cy="760" r="34" fill="none" stroke="#00d4ff" stroke-width="1.2" opacity="0.35" class="ai-ring"/>
+
+      <!-- Floating AI network particles -->
+      <circle cx="720" cy="760" r="3.2" fill="#ffffff" opacity="0.85"/>
+      <circle cx="580" cy="860" r="2.4" fill="#00d4ff" opacity="0.7"/>
+      <circle cx="860" cy="860" r="2.4" fill="#00d4ff" opacity="0.7"/>
+      <circle cx="640" cy="920" r="2" fill="#60a5fa" opacity="0.6"/>
+      <circle cx="800" cy="920" r="2" fill="#60a5fa" opacity="0.6"/>
+
+      <!-- Connection arcs -->
+      <path d="M720,738 Q720,700 640,680" fill="none" stroke="#3b82f6" stroke-width="1.4" opacity="0.35" stroke-dasharray="4 5" class="data-stream"/>
+      <path d="M720,738 Q720,700 800,680" fill="none" stroke="#22d3ee" stroke-width="1.4" opacity="0.35" stroke-dasharray="4 5" class="data-stream" style="animation-delay:1s"/>
+    </svg>
+
+    <!-- UI preview overlay (optional, for context) -->
+    <div class="ui-panel">
+      <h2>تسجيل الدخول</h2>
+      <p>الوصول الآمن لمنصة تحليل النظم الكهربائية</p>
+      <input class="ui-input" placeholder="البريد الإلكتروني أو اسم المستخدم" />
+      <input class="ui-input" placeholder="كلمة المرور" type="password"/>
+      <button class="ui-btn">دخول</button>
+    </div>
+  </div>
+</body>
+</html>

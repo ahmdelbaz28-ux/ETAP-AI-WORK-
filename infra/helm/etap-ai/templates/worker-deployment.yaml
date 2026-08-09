@@ -1,0 +1,168 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "etap-ai.fullname" . }}-worker
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "etap-ai.labels" . | nindent 4 }}
+    app.kubernetes.io/component: worker
+spec:
+  {{- if not .Values.worker.autoscaling.enabled }}
+  replicas: {{ .Values.worker.replicaCount }}
+  {{- end }}
+  revisionHistoryLimit: {{ .Values.worker.revisionHistoryLimit }}
+  selector:
+    matchLabels:
+      {{- include "etap-ai.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: worker
+  strategy:
+    type: RollingUpdate
+    # Workers process long-running studies; rolling one at a time
+    # gives the HPA / replacement pod time to start consuming.
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        {{- with .Values.worker.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "etap-ai.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: worker
+    spec:
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "etap-ai.serviceAccountName" . }}
+      automountServiceAccountToken: false
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      {{- with .Values.worker.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.worker.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.worker.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.worker.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      terminationGracePeriodSeconds: {{ .Values.worker.terminationGracePeriodSeconds }}
+      # PreStop hook sends SIGTERM to the celery master process so it can
+      # finish in-flight tasks before the container is killed. Celery itself
+      # handles this natively, but the explicit hook guards against any
+      # ENTRYPOINT that swallows signals.
+      containers:
+        - name: worker
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: {{ include "etap-ai.image" (list . .Values.worker.image) }}
+          imagePullPolicy: {{ .Values.worker.image.pullPolicy | default .Values.image.pullPolicy }}
+          {{- with .Values.worker.command }}
+          command:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.worker.args }}
+          args:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          envFrom:
+            - configMapRef:
+                name: {{ include "etap-ai.fullname" . }}-config
+          env:
+            - name: ENGINEERING_SERVICE_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.engineeringServiceApiKey.name }}
+                  key: {{ .Values.secrets.engineeringServiceApiKey.key }}
+                  optional: false
+            {{- if .Values.redis.existingSecret }}
+            # MUST come before REDIS_URL / CELERY_BROKER_URL.
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.redis.existingSecret }}
+                  key: {{ .Values.redis.existingSecretPasswordKey }}
+            - name: REDIS_URL
+              value: {{ include "etap-ai.redisUrl" . | quote }}
+            - name: CELERY_BROKER_URL
+              value: {{ include "etap-ai.celeryBrokerUrl" . | quote }}
+            - name: CELERY_RESULT_BACKEND
+              value: {{ include "etap-ai.celeryResultBackend" . | quote }}
+            {{- end }}
+            {{- if .Values.database.existingSecret }}
+            - name: DATABASE_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.database.existingSecret }}
+                  key: {{ .Values.database.existingSecretUserKey }}
+            - name: DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.database.existingSecret }}
+                  key: {{ .Values.database.existingSecretPasswordKey }}
+            - name: DATABASE_URL
+              value: {{ include "etap-ai.databaseUrl" . | quote }}
+            {{- end }}
+            {{- with .Values.worker.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+            # Identify this worker pod uniquely for `celery inspect ping` probes.
+            - name: HOSTNAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+          {{- with .Values.worker.probes.startup }}
+          startupProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.worker.probes.liveness }}
+          livenessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.worker.probes.readiness }}
+          readinessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          lifecycle:
+            preStop:
+              exec:
+                command:
+                  - /bin/sh
+                  - -c
+                  - "celery -A worker.celery_app control shutdown || true"
+          resources:
+            {{- toYaml .Values.worker.resources | nindent 12 }}
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            - name: app-logs
+              mountPath: /app/logs
+            - name: app-reports
+              mountPath: /app/reports
+            {{- with .Values.worker.extraVolumeMounts }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+      volumes:
+        {{- if .Values.worker.tmpDir.enabled }}
+        - name: tmp
+          emptyDir:
+            sizeLimit: {{ .Values.worker.tmpDir.sizeLimit }}
+        {{- end }}
+        - name: app-logs
+          emptyDir: {}
+        - name: app-reports
+          emptyDir: {}
+        {{- with .Values.worker.extraVolumes }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}

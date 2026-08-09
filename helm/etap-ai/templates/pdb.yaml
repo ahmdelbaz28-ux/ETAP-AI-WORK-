@@ -1,0 +1,19 @@
+# SECURITY AUDIT 2026-07-26 — Phase 3: Added PodDisruptionBudget.
+# Ensures minimum availability during voluntary disruptions (node drains, upgrades).
+# Without PDB, a cluster autoscaler or node drain can evict all pods simultaneously,
+# causing downtime for the engineering API.
+{{- if .Values.api.pdb.enabled }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "etap-ai.fullname" . }}-api
+  labels:
+    {{- include "etap-ai.labels" . | nindent 4 }}
+    component: api
+spec:
+  minAvailable: {{ .Values.api.pdb.minAvailable }}
+  selector:
+    matchLabels:
+      {{- include "etap-ai.selectorLabels" . | nindent 6 }}
+      component: api
+{{- end }}

@@ -1,0 +1,480 @@
+"""
+services/memory_service.py — AI Memory Service (RAG & GraphRAG)
+================================================================
+Handles vector-based semantic retrieval (Qdrant) and
+graph-based relationship retrieval (Neo4j GraphRAG).
+"""
+
+from __future__ import annotations
+
+import hashlib
+import logging
+import os
+from typing import Any, List
+
+logger = logging.getLogger(__name__)
+
+__all__ = ["AIMemoryService", "DeterministicFallbackEmbeddings"]
+
+# Try importing LangChain + Qdrant + Neo4j components.
+try:
+    from langchain_qdrant import QdrantVectorStore
+    from qdrant_client import QdrantClient
+    from qdrant_client.http import models as qdrant_models
+
+    QDRANT_AVAILABLE = True
+except ImportError as err:
+    logger.warning("Qdrant dependencies not fully available: %s", err)
+    QDRANT_AVAILABLE = False
+
+    class QdrantClient:
+        pass
+
+    class QdrantVectorStore:
+        pass
+
+    qdrant_models = None  # type: ignore[assignment]
+
+try:
+    from langchain_core.embeddings import Embeddings
+except ImportError:
+
+    class Embeddings:
+        """Fallback empty class when langchain_core is not available."""
+
+        pass
+
+
+try:
+    from langchain_core.documents import Document
+    from langchain_experimental.graph_transformers import LLMGraphTransformer
+    from langchain_neo4j import GraphCypherQAChain, Neo4jGraph
+    from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+
+    LANGCHAIN_CORE_AVAILABLE = True
+except ImportError as err:
+    logger.warning("LangChain core/openai dependencies not fully available: %s", err)
+    LANGCHAIN_CORE_AVAILABLE = False
+
+    class Neo4jGraph:
+        pass
+
+    class LLMGraphTransformer:
+        pass
+
+    class ChatOpenAI:
+        pass
+
+    class OpenAIEmbeddings:
+        pass
+
+    class Document:
+        pass
+
+    class GraphCypherQAChain:
+        pass
+
+
+class DeterministicFallbackEmbeddings(Embeddings):
+    """Deterministic offline fallback embeddings — PRODUCTION UNSAFE.
+
+    ⚠️ ARCHITECTURE AUDIT FIX (F-02): These embeddings are semantically
+    meaningless (SHA-256 hash-based). RAG retrieval using these vectors
+    returns results based on hash proximity, NOT semantic similarity.
+
+    This class is now RETAINED for development/testing only.
+    In production, code must check `isinstance(embeddings, DeterministicFallbackEmbeddings)`
+    and REFUSE to serve RAG results from it.
+    """
+
+    # Sentinel flag so downstream code can detect unsafe embeddings
+    IS_UNSAFE_FALLBACK: bool = True
+
+    def __init__(self, dimension: int = 1536):
+        self.dimension = dimension
+
+    def embed_documents(self, texts: List[str]) -> List[List[float]]:
+        return [self._embed(text) for text in texts]
+
+    def embed_query(self, text: str) -> List[float]:
+        return self._embed(text)
+
+    def _embed(self, text: str) -> List[float]:
+        h = hashlib.sha256(text.encode("utf-8")).digest()
+        vector = []
+        for i in range(self.dimension):
+            val = (h[i % len(h)] + i) % 256
+            # Normalize to [-1.0, 1.0]
+            vector.append((val / 128.0) - 1.0)
+        # Normalize to unit length
+        norm = sum(x * x for x in vector) ** 0.5
+        if norm > 0:
+            vector = [x / norm for x in vector]
+        return vector
+
+
+class AIMemoryService:
+    """Service class for managing Qdrant Vector DB (RAG) and Neo4j Graph DB (Topology)."""
+
+    def __init__(self):
+        # Neo4j Settings
+        self.neo4j_uri = os.environ.get("NEO4J_URI", "bolt://localhost:7687")
+        self.neo4j_username = os.environ.get("NEO4J_USER", "neo4j")
+        self.neo4j_password = os.environ.get(
+            "NEO4J_PASSWORD", ""
+        )  # no S2068: default empty; required from env in production
+
+        # Qdrant Settings
+        self.qdrant_url = os.environ.get("QDRANT_URL", "")
+        self.qdrant_host = os.environ.get("QDRANT_HOST", "localhost")
+        self.qdrant_port = int(os.environ.get("QDRANT_PORT", "6333"))
+        self.qdrant_api_key = os.environ.get("QDRANT_API_KEY", "")
+
+        # LLM Provider settings (Modal custom endpoint by default if specified)
+        self.openai_base_url = os.environ.get("OPENAI_API_BASE", "https://api.openai.com/v1")
+        self.openai_api_key = os.environ.get("OPENAI_API_KEY", "")
+        self.llm_model = os.environ.get("LLM_MODEL", "gpt-4o")
+
+        # Embeddings provider settings
+        self.embedding_base_url = os.environ.get("EMBEDDING_API_BASE", self.openai_base_url)
+        self.embedding_api_key = os.environ.get("EMBEDDING_API_KEY", self.openai_api_key)
+        self.embedding_model = os.environ.get("EMBEDDING_MODEL", "text-embedding-3-small")
+
+        self._graph = None
+        self._qdrant_client = None
+        self._initialized_neo4j = False
+        self._initialized_qdrant = False
+
+    def initialize_neo4j(self) -> bool:
+        """Initialize connection to Neo4j graph database."""
+        if not LANGCHAIN_CORE_AVAILABLE:
+            logger.warning("Neo4j RAG integration is disabled (missing libraries).")
+            return False
+        try:
+            # Set credentials in environment for langchain_neo4j
+            os.environ["NEO4J_URI"] = self.neo4j_uri
+            os.environ["NEO4J_USERNAME"] = self.neo4j_username
+            os.environ["NEO4J_PASSWORD"] = self.neo4j_password
+            self._graph = Neo4jGraph()
+            logger.info("Successfully connected to Neo4j Graph DB.")
+            self._initialized_neo4j = True
+            return True
+        except Exception as exc:
+            logger.exception("Failed to connect to Neo4j Graph DB: %s", exc)
+            self._initialized_neo4j = False
+            return False
+
+    def initialize_qdrant(self) -> bool:
+        """Initialize connection to Qdrant vector database."""
+        if not QDRANT_AVAILABLE:
+            logger.warning("Qdrant RAG integration is disabled (missing libraries).")
+            return False
+        try:
+            if self.qdrant_url:
+                logger.info("Connecting to Qdrant Cloud at %s", self.qdrant_url)
+                self._qdrant_client = QdrantClient(
+                    url=self.qdrant_url,
+                    api_key=self.qdrant_api_key if self.qdrant_api_key else None,
+                )
+            else:
+                logger.info(
+                    "Connecting to local Qdrant at %s:%s", self.qdrant_host, self.qdrant_port
+                )
+                self._qdrant_client = QdrantClient(host=self.qdrant_host, port=self.qdrant_port)
+            self._initialized_qdrant = True
+            return True
+        except Exception as exc:
+            logger.exception("Failed to connect to Qdrant: %s", exc)
+            self._initialized_qdrant = False
+            return False
+
+    def _get_embeddings(self) -> Embeddings:
+        """Configure embeddings model — fails hard in production when unavailable.
+
+        ARCHITECTURE AUDIT FIX (F-02): In production (ETAP_ENV=production),
+        we raise RuntimeError instead of silently falling back to
+        DeterministicFallbackEmbeddings, which produces semantically
+        meaningless vectors. In dev/test, fallback is still allowed.
+        """
+        _is_production = os.environ.get("ETAP_ENV", "").lower() in ("production", "prod")
+
+        if not LANGCHAIN_CORE_AVAILABLE:
+            if _is_production:
+                raise RuntimeError(
+                    "LangChain core not available — cannot initialize embeddings in production. "
+                    "Install langchain-openai and set EMBEDDING_API_KEY."
+                )
+            return DeterministicFallbackEmbeddings()
+
+        # If no API key is specified and we're using default settings
+        if not self.embedding_api_key or "your-openai-key" in self.embedding_api_key.lower():
+            if _is_production:
+                raise RuntimeError(
+                    "No EMBEDDING_API_KEY configured in production. "
+                    "DeterministicFallbackEmbeddings produce semantically meaningless vectors "
+                    "and are disabled in production. Set EMBEDDING_API_KEY or OPENAI_API_KEY."
+                )
+            logger.info(
+                "No embedding API key provided. Using deterministic offline fallback embeddings (dev only).",
+            )
+            return DeterministicFallbackEmbeddings()
+
+        try:
+            return OpenAIEmbeddings(
+                model=self.embedding_model,
+                base_url=self.embedding_base_url,
+                api_key=self.embedding_api_key,
+            )
+        except Exception as exc:
+            if _is_production:
+                raise RuntimeError(
+                    f"Failed to initialize OpenAIEmbeddings in production: {exc}. "
+                    f"Check EMBEDDING_API_KEY and network connectivity."
+                ) from exc
+            logger.warning(
+                "Failed to initialize OpenAIEmbeddings (%s). Using offline fallback (dev only).",
+                exc,
+            )
+            return DeterministicFallbackEmbeddings()
+
+    def _get_llm(self) -> Any:
+        """Configure LLM model — fails hard in production when unavailable.
+
+        ARCHITECTURE AUDIT FIX (F-01): The previous DummyLLM silently returned
+        empty strings, allowing GraphRAG to appear functional while producing
+        empty/corrupt results. This is a hidden repair loop that violates
+        the agent-architecture-audit finding F-01.
+
+        In production (ETAP_ENV=production), we raise RuntimeError instead
+        of returning a dummy. In dev/test, DummyLLM is still allowed but
+        logs a CRITICAL warning so operators notice.
+        """
+        _is_production = os.environ.get("ETAP_ENV", "").lower() in ("production", "prod")
+
+        if not self.openai_api_key:
+            if _is_production:
+                raise RuntimeError(
+                    "OPENAI_API_KEY not configured in production. "
+                    "DummyLLM (which returns empty strings) is disabled in production — "
+                    "GraphRAG operations would silently produce empty/corrupt results. "
+                    "Set OPENAI_API_KEY to enable LLM-backed graph operations."
+                )
+            logger.critical(
+                "⚠️ No OPENAI_API_KEY configured — using DummyLLM that returns empty strings. "
+                "GraphRAG operations will silently produce empty results. "
+                "This is ONLY acceptable in development/testing."
+            )
+        else:
+            try:
+                return ChatOpenAI(
+                    model=self.llm_model,
+                    base_url=self.openai_base_url,
+                    api_key=self.openai_api_key,
+                    temperature=0,
+                )
+            except Exception as exc:
+                if _is_production:
+                    raise RuntimeError(
+                        f"Failed to initialize ChatOpenAI in production: {exc}. "
+                        f"Check OPENAI_API_KEY and network connectivity."
+                    ) from exc
+                logger.critical(
+                    "⚠️ ChatOpenAI init failed (%s) — using DummyLLM (returns empty). "
+                    "GraphRAG operations will be silently empty. Dev-only fallback.",
+                    exc,
+                )
+
+        # DummyLLM for dev/test only — explicitly NOT production-safe
+        class _DummyAIMessage:
+            """Mimics langchain_core.messages.AIMessage — EMPTY CONTENT."""
+
+            content: str = ""
+
+        class DummyLLM:
+            """Returns empty content — ONLY for dev/test, NEVER for production."""
+
+            IS_DUMMY: bool = True  # Sentinel for downstream checks
+
+            def invoke(self, _prompt: Any, **_kwargs: Any) -> _DummyAIMessage:
+                return _DummyAIMessage()
+
+            def predict(self, _prompt: str, **_kwargs: Any) -> str:
+                return ""
+
+        return DummyLLM()
+
+    def add_knowledge_to_graph(self, text: str, allowed_nodes: List[str] | None = None) -> bool:
+        """Parse text, extract entities and relationships, and save them to Neo4j graph.
+
+        ARCHITECTURE AUDIT FIX (F-01): Content-quality assertion added —
+        refuses to log 'Successfully loaded' if the graph documents are empty,
+        which would indicate DummyLLM produced no useful output.
+        """
+        if not self._initialized_neo4j and not self.initialize_neo4j():
+            logger.error("Neo4j not initialized.")
+            return False
+        try:
+            llm = self._get_llm()
+            # F-01: Reject DummyLLM at call site
+            if getattr(llm, "IS_DUMMY", False):
+                logger.error(
+                    "Refusing to populate Neo4j graph with DummyLLM — "
+                    "results would be silently empty. Set OPENAI_API_KEY."
+                )
+                return False
+            transformer = LLMGraphTransformer(llm=llm, allowed_nodes=allowed_nodes)
+            docs = [Document(page_content=text)]
+            graph_documents = transformer.convert_to_graph_documents(docs)
+            # F-01: Content-quality assertion
+            if not graph_documents or all(
+                not gd.nodes and not gd.relationships for gd in graph_documents
+            ):
+                logger.error(
+                    "Graph documents are empty — LLM produced no entities/relationships. "
+                    "Not saving empty graph to Neo4j."
+                )
+                return False
+            self._graph.add_graph_documents(graph_documents)
+            logger.info("Successfully loaded %d graph documents into Neo4j.", len(graph_documents))
+            return True
+        except Exception as exc:
+            logger.exception("Failed to populate graph: %s", exc)
+            return False
+
+    def query_graph(self, query: str) -> str:
+        """Run a Cypher query chain on Neo4j Graph DB.
+
+        ARCHITECTURE AUDIT FIX (F-01): Refuses to query with DummyLLM,
+        which would produce empty/meaningless Cypher results.
+        """
+        if not self._initialized_neo4j and not self.initialize_neo4j():
+            return "AI Memory Service is not connected to Neo4j."
+        try:
+            llm = self._get_llm()
+            # F-01: Reject DummyLLM at call site
+            if getattr(llm, "IS_DUMMY", False):
+                logger.error(
+                    "Refusing to query Neo4j graph with DummyLLM — "
+                    "results would be silently empty. Set OPENAI_API_KEY."
+                )
+                return "Graph query unavailable: LLM service is using a dummy fallback. Set OPENAI_API_KEY."
+            chain = GraphCypherQAChain.from_llm(llm=llm, graph=self._graph, verbose=True)
+            # LangChain 1.x: Chain.run() was removed; use invoke({"query": ...}).
+            # Returns a dict like {"query": "...", "result": "..."}.
+            result = chain.invoke({"query": query})
+            if isinstance(result, dict):
+                return str(result.get("result", result.get("query", "")))
+            return str(result)
+        except Exception as exc:
+            logger.exception("Cypher query execution failed: %s", exc)
+            return f"Error querying graph database: {exc}"
+
+    def save_to_vector_memory(self, fact_text: str, index_name: str = "ai_memory_index") -> bool:
+        """Convert a fact text into embeddings and save it to the Qdrant Vector index.
+
+        ARCHITECTURE AUDIT FIX (F-02): Refuses to save with
+        DeterministicFallbackEmbeddings, which would pollute the vector
+        index with semantically meaningless vectors.
+        """
+        if not self._initialized_qdrant and not self.initialize_qdrant():
+            logger.error("Qdrant not initialized.")
+            return False
+        try:
+            embeddings = self._get_embeddings()
+            # F-02: Reject unsafe fallback embeddings at save time
+            if getattr(embeddings, "IS_UNSAFE_FALLBACK", False):
+                logger.error(
+                    "Refusing to save to vector memory with DeterministicFallbackEmbeddings — "
+                    "would pollute index with semantically meaningless vectors. "
+                    "Set EMBEDDING_API_KEY or OPENAI_API_KEY."
+                )
+                return False
+
+            # Programmatically check and create collection if it doesn't exist
+            # Check dimension of the selected embedding model
+            dimension = 1536
+            if "large" in self.embedding_model:
+                dimension = 3072
+
+            if qdrant_models is None:
+                logger.error("qdrant_models is None — Qdrant SDK not fully installed.")
+                return False
+
+            if not self._qdrant_client.collection_exists(collection_name=index_name):
+                logger.info("Creating Qdrant collection: %s", index_name)
+                self._qdrant_client.create_collection(
+                    collection_name=index_name,
+                    vectors_config=qdrant_models.VectorParams(
+                        size=dimension,
+                        distance=qdrant_models.Distance.COSINE,
+                    ),
+                )
+
+            # Store using QdrantVectorStore wrapper
+            vector_db = QdrantVectorStore(
+                client=self._qdrant_client,
+                collection_name=index_name,
+                embedding=embeddings,
+            )
+            vector_db.add_texts([fact_text])
+            logger.info("Successfully added fact to Qdrant collection '%s'", index_name)
+            return True
+        except Exception as exc:
+            logger.exception("Failed to save fact to Qdrant vector memory: %s", exc)
+            return False
+
+    def query_vector_memory(self, question: str, index_name: str = "ai_memory_index") -> str:
+        """Search the Qdrant Vector store to retrieve relevant facts and formulate an answer.
+
+        ARCHITECTURE AUDIT FIX (F-02): Refuses to serve RAG results when
+        using DeterministicFallbackEmbeddings, which produces semantically
+        meaningless vectors.
+        """
+        if not self._initialized_qdrant and not self.initialize_qdrant():
+            return "AI Memory Service is not connected to Qdrant."
+        try:
+            embeddings = self._get_embeddings()
+            # F-02: Reject unsafe fallback embeddings at query time
+            if getattr(embeddings, "IS_UNSAFE_FALLBACK", False):
+                logger.error(
+                    "Refusing to query vector memory with DeterministicFallbackEmbeddings — "
+                    "results would be based on hash proximity, not semantic similarity. "
+                    "Set EMBEDDING_API_KEY or OPENAI_API_KEY."
+                )
+                return (
+                    "Vector search unavailable: embeddings service is using an unsafe "
+                    "fallback. Set EMBEDDING_API_KEY to enable semantic search."
+                )
+
+            if not self._qdrant_client.collection_exists(collection_name=index_name):
+                return "Vector memory collection does not exist."
+
+            vector_db = QdrantVectorStore(
+                client=self._qdrant_client,
+                collection_name=index_name,
+                embedding=embeddings,
+            )
+            retriever = vector_db.as_retriever()
+            # NOTE: get_relevant_documents is deprecated in LangChain >= 0.3;
+            # invoke() is the replacement. Keep get_relevant_documents for
+            # backward compat with older installed versions.
+            try:
+                docs = retriever.invoke(question)
+            except AttributeError:
+                docs = retriever.get_relevant_documents(question)
+
+            if not docs:
+                return "No relevant vector memory found."
+
+            context = "\n".join([doc.page_content for doc in docs])
+            llm = self._get_llm()
+            prompt = f"Answer the question based only on this context:\n{context}\n\nQuestion: {question}"
+            # LangChain 1.x: BaseChatModel.predict() was removed; use invoke().
+            # invoke() returns an AIMessage; .content extracts the text.
+            response = llm.invoke(prompt)
+            if hasattr(response, "content"):
+                return str(response.content)
+            return str(response)
+        except Exception as exc:
+            logger.exception("Vector retrieval query failed: %s", exc)
+            return f"Error searching vector memory: {exc}"

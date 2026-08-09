@@ -1,0 +1,76 @@
+name: HF Space Production Smoke Tests
+
+on:
+  workflow_run:
+    workflows: ["Sync to HuggingFace Space"]
+    types:
+      - completed
+  workflow_dispatch:
+  schedule:
+    # Run daily at 06:00 UTC to catch HF Space drift
+    - cron: '0 6 * * *'
+
+permissions:
+  contents: read  # Least privilege — only read repo contents
+
+jobs:
+  production-smoke:
+    name: Production Smoke Tests
+    runs-on: ubuntu-latest
+    # Only run if the sync workflow succeeded (or manual/schedule trigger)
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
+        with:
+          python-version: '3.12'
+
+      - name: Install pytest + pydantic + fastapi
+        run: 'pip install --only-binary :all: pytest==8.3.5 pydantic==2.10.6 fastapi==0.115.12'  # NOSONAR: test runner deps with pinned versions
+
+      - name: Wake HF Space (if sleeping) + wait for RUNNING stage
+        run: |
+          HF_SPACE_URL="https://ahmdelbaz28-ahmedetap-platform.hf.space"
+          HF_STATUS_URL="https://huggingface.co/api/spaces/ahmdelbaz28/AhmedETAP-Platform"
+
+          # 1. Proactive wake-up
+          # Free-tier HF Spaces go to SLEEPING after ~15 min of inactivity.
+          # The status API (hf.co/api/spaces) returns "SLEEPING" but it does
+          # NOT trigger a wake-up — only hitting the Space URL itself does.
+          # Without this pre-warm step, the polling loop below would time out.
+          echo "Waking HF Space ..."
+          curl -sf -m 30 "$HF_SPACE_URL/health" > /dev/null 2>&1 && \
+            echo "   Health probe succeeded" || \
+            echo "   Health probe returned non-200 (expected during cold-start)"
+
+          # 2. Wait for RUNNING stage (up to 10 min)
+          for i in $(seq 1 60); do
+            if curl -sf -m 15 -o /tmp/hf-status.json "$HF_STATUS_URL"; then
+              STAGE=$(python3 -c "import sys,json; data=json.load(open('/tmp/hf-status.json')); print(data.get('runtime',{}).get('stage','UNKNOWN'))" || echo "PARSE_ERROR")
+            else
+              STAGE="CURL_FAILED"
+            fi
+            echo "Attempt $i: HF Space stage = $STAGE"
+            if [ "$STAGE" = "RUNNING" ]; then
+              echo "HF Space is RUNNING — proceeding with smoke tests"
+              rm -f /tmp/hf-status.json
+              break
+            fi
+            sleep 10
+          done
+          if [ "$STAGE" != "RUNNING" ]; then
+            echo "HF Space did not reach RUNNING state in 10 minutes (final stage: $STAGE)"
+            rm -f /tmp/hf-status.json
+            exit 1
+          fi
+
+      - name: Run production smoke tests
+        env:
+          HF_SPACE_PRODUCTION_TESTS: 'true'
+        run: |
+          # Use --confcutdir to bypass tests/conftest.py which requires heavy deps.
+          # The production tests only need urllib + json (stdlib) + pytest.
+          python -m pytest tests/test_hf_space_production.py -v --tb=short --confcutdir=tests/test_hf_space_production.py

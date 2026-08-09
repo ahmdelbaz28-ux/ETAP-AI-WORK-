@@ -1,0 +1,58 @@
+# Deploy documentation with MkDocs to GitHub Pages
+name: Docs (MkDocs) Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      force:
+        description: "Force redeploy"
+        required: false
+        default: "false"
+        type: boolean
+
+# Required: allow github-actions[bot] to push the gh-pages branch back to the repo
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+# Avoid concurrent deploys racing on the gh-pages branch
+concurrency:
+  group: mkdocs-pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install MkDocs and theme
+        run: |
+          pip install --upgrade pip==25.0.1 --only-binary :all:
+          pip install --only-binary :all: mkdocs==1.6.1 mkdocs-material==9.6.11  # NOSONAR: docs tooling with pinned versions
+
+      - name: Deploy to GitHub Pages
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # mkdocs.yml lives at docs/mkdocs.yml (NOT at repo root) so Vercel
+          # doesn't auto-detect MkDocs and override the Vite framework build.
+          # See docs/archive/DEPLOYMENT_FIX.md and docs/archive/SECURITY_INCIDENT_2026-07-08.md for context.
+          #
+          # The commit message includes "[skip vercel]" so the Vercel GitHub app
+          # skips building the gh-pages branch (which has no ui/ folder and would
+          # fail with ENOENT on `npm --prefix ui install`). Belt-and-suspenders
+          # alongside the project-level commandForIgnoringBuildStep on Vercel.
+          mkdocs gh-deploy --force -f docs/mkdocs.yml \
+            --message "Deployed ${GITHUB_SHA::7} with MkDocs [skip vercel]"

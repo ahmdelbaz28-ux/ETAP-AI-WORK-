@@ -1,0 +1,775 @@
+{
+  "title": "QGIS User Manual Documentation Index",
+  "description": "Comprehensive index of QGIS User Manual documentation with titles and URLs for use as reference material",
+  "base_url": "https://docs.qgis.org/3.44/en/docs/user_manual/",
+  "documentation_sections": [
+    {
+      "section_number": "1",
+      "title": "Getting Started",
+      "url": "https://docs.qgis.org/3.44/en/docs/user_manual/introduction/getting_started.html",
+      "subsections": [
+        {
+          "subsection_number": "1.1",
+          "title": "Installing QGIS",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/introduction/getting_started.html#installing-qgis",
+          "sub_subsections": [
+            {
+              "sub_subsection_title": "Installing from binaries",
+              "url": "https://docs.qgis.org/3.44/en/docs/user_manual/introduction/getting_started.html#installing-from-binaries"
+            },
+            {
+              "sub_subsection_title": "Installing from source",
+              "url": "https://docs.qgis.org/3.44/en/docs/user_manual/introduction/getting_started.html#installing-from-source"
+            },
+            {
+              "sub_subsection_title": "Installing on external media",
+              "url": "https://docs.qgis.org/3.44/en/docs/user_manual/introduction/getting_started.html#installing-on-external-media"
+            },
+            {
+              "sub_subsection_title": "Downloading sample data",
+              "url": "https://docs.qgis.org/3.44/en/docs/user_manual/introduction/getting_started.html#downloading-sample-data"
+            }
+          ]
+        },
+        {
+          "subsection_number": "1.2",
+          "title": "Starting and stopping QGIS",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/introduction/getting_started.html#starting-and-stopping-qgis"
+        },
+        {
+          "subsection_number": "1.3",
+          "title": "Sample Session: Loading raster and vector layers",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/introduction/getting_started.html#sample-session-loading-raster-and-vector-layers"
+        }
+      ]
+    },
+    {
+      "section_number": "2",
+      "title": "Working with Project Files",
+      "url": "https://docs.qgis.org/3.44/en/docs/user_manual/working_with_project_files/",
+      "subsections": [
+        {
+          "subsection_number": "2.1",
+          "title": "Introducing QGIS projects",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/working_with_project_files/index.html#introducing-qgis-projects"
+        },
+        {
+          "subsection_number": "2.2",
+          "title": "Handling broken file paths",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/working_with_project_files/index.html#handling-broken-file-paths"
+        },
+        {
+          "subsection_number": "2.3",
+          "title": "Generating output",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/working_with_project_files/index.html#generating-output"
+        }
+      ]
+    },
+    {
+      "section_number": "3",
+      "title": "QGIS GUI",
+      "url": "https://docs.qgis.org/3.44/en/docs/user_manual/qgis_gui/",
+      "subsections": [
+        {
+          "subsection_number": "3.1",
+          "title": "Menu Bar",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/qgis_gui/index.html#menu-bar"
+        },
+        {
+          "subsection_number": "3.2",
+          "title": "Panels and Toolbars",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/qgis_gui/index.html#panels-and-toolbars"
+        },
+        {
+          "subsection_number": "3.3",
+          "title": "Status Bar",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/qgis_gui/index.html#status-bar"
+        }
+      ]
+    },
+    {
+      "section_number": "4",
+      "title": "The Browser panel",
+      "url": "https://docs.qgis.org/3.44/en/docs/user_manual/browser/",
+      "subsections": [
+        {
+          "subsection_number": "4.1",
+          "title": "Resources that can be opened / run from the Browser",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/browser/index.html#resources-that-can-be-opened-run-from-the-browser"
+        },
+        {
+          "subsection_number": "4.2",
+          "title": "Browser panel top-level entries",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/browser/index.html#browser-panel-top-level-entries"
+        }
+      ]
+    },
+    {
+      "section_number": "5",
+      "title": "QGIS Configuration",
+      "url": "https://docs.qgis.org/3.44/en/docs/user_manual/qgis_configuration/",
+      "subsections": [
+        {
+          "subsection_number": "5.1",
+          "title": "Options",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/qgis_configuration/index.html#options"
+        },
+        {
+          "subsection_number": "5.2",
+          "title": "Working with User Profiles",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/qgis_configuration/index.html#working-with-user-profiles"
+        },
+        {
+          "subsection_number": "5.3",
+          "title": "Project Properties",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/qgis_configuration/index.html#project-properties"
+        },
+        {
+          "subsection_number": "5.4",
+          "title": "Customization",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/qgis_configuration/index.html#customization"
+        },
+        {
+          "subsection_number": "5.5",
+          "title": "Keyboard shortcuts",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/qgis_configuration/index.html#keyboard-shortcuts"
+        },
+        {
+          "subsection_number": "5.6",
+          "title": "Running QGIS with advanced settings",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/qgis_configuration/index.html#running-qgis-with-advanced-settings"
+        }
+      ]
+    },
+    {
+      "section_number": "6",
+      "title": "Working with Projections",
+      "url": "https://docs.qgis.org/3.44/en/docs/user_manual/working_with_projections/",
+      "subsections": [
+        {
+          "subsection_number": "6.1",
+          "title": "Overview of Projection Support",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/working_with_projections/index.html#overview-of-projection-support"
+        },
+        {
+          "subsection_number": "6.2",
+          "title": "Layer Coordinate Reference Systems",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/working_with_projections/index.html#layer-coordinate-reference-systems"
+        },
+        {
+          "subsection_number": "6.3",
+          "title": "Project Coordinate Reference Systems",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/working_with_projections/index.html#project-coordinate-reference-systems"
+        },
+        {
+          "subsection_number": "6.4",
+          "title": "Coordinate Reference System Selector",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/working_with_projections/index.html#coordinate-reference-system-selector"
+        },
+        {
+          "subsection_number": "6.5",
+          "title": "Custom Coordinate Reference System",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/working_with_projections/index.html#custom-coordinate-reference-system"
+        },
+        {
+          "subsection_number": "6.6",
+          "title": "Datum Transformations",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/working_with_projections/index.html#datum-transformations"
+        }
+      ]
+    },
+    {
+      "section_number": "7",
+      "title": "Visualizing Maps",
+      "url": "https://docs.qgis.org/3.44/en/docs/user_manual/visualizing_data/",
+      "subsections": [
+        {
+          "subsection_number": "7.1",
+          "title": "2D Map View",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/visualizing_data/index.html#d-map-view"
+        },
+        {
+          "subsection_number": "7.2",
+          "title": "3D Map View",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/visualizing_data/index.html#d-map-view-1"
+        },
+        {
+          "subsection_number": "7.3",
+          "title": "Elevation Profile View",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/visualizing_data/index.html#elevation-profile-view"
+        }
+      ]
+    },
+    {
+      "section_number": "8",
+      "title": "General Tools",
+      "url": "https://docs.qgis.org/3.44/en/docs/user_manual/general_tools/",
+      "subsections": [
+        {
+          "subsection_number": "8.1",
+          "title": "Context help",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/general_tools/index.html#context-help"
+        },
+        {
+          "subsection_number": "8.2",
+          "title": "Panels",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/general_tools/index.html#panels"
+        },
+        {
+          "subsection_number": "8.3",
+          "title": "Embedding layers from external projects",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/general_tools/index.html#embedding-layers-from-external-projects"
+        },
+        {
+          "subsection_number": "8.4",
+          "title": "Interacting with features",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/general_tools/index.html#interacting-with-features"
+        },
+        {
+          "subsection_number": "8.5",
+          "title": "Save and Share Layer Properties",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/general_tools/index.html#save-and-share-layer-properties"
+        },
+        {
+          "subsection_number": "8.6",
+          "title": "Documenting your data",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/general_tools/index.html#documenting-your-data"
+        },
+        {
+          "subsection_number": "8.7",
+          "title": "Storing values in Variables",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/general_tools/index.html#storing-values-in-variables"
+        },
+        {
+          "subsection_number": "8.8",
+          "title": "Common widgets",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/general_tools/index.html#common-widgets"
+        }
+      ]
+    },
+    {
+      "section_number": "9",
+      "title": "Level up with Expressions",
+      "url": "https://docs.qgis.org/3.44/en/docs/user_manual/expressions/",
+      "subsections": [
+        {
+          "subsection_number": "9.1",
+          "title": "Expressions",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/expressions/index.html#expressions"
+        },
+        {
+          "subsection_number": "9.2",
+          "title": "List of functions",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/expressions/index.html#list-of-functions"
+        }
+      ]
+    },
+    {
+      "section_number": "10",
+      "title": "The Style Library",
+      "url": "https://docs.qgis.org/3.44/en/docs/user_manual/style_library/",
+      "subsections": [
+        {
+          "subsection_number": "10.1",
+          "title": "The Style Manager",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/style_library/index.html#the-style-manager"
+        },
+        {
+          "subsection_number": "10.2",
+          "title": "The Symbol Selector",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/style_library/index.html#the-symbol-selector"
+        },
+        {
+          "subsection_number": "10.3",
+          "title": "Setting a label",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/style_library/index.html#setting-a-label"
+        },
+        {
+          "subsection_number": "10.4",
+          "title": "Creating 3D Symbols",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/style_library/index.html#creating-d-symbols"
+        }
+      ]
+    },
+    {
+      "section_number": "11",
+      "title": "Managing Data Source",
+      "url": "https://docs.qgis.org/3.44/en/docs/user_manual/managing_data_source/",
+      "subsections": [
+        {
+          "subsection_number": "11.1",
+          "title": "Opening Data",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/managing_data_source/index.html#opening-data"
+        },
+        {
+          "subsection_number": "11.2",
+          "title": "Creating Layers",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/managing_data_source/index.html#creating-layers"
+        },
+        {
+          "subsection_number": "11.3",
+          "title": "Georeferencer",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/managing_data_source/index.html#georeferencer"
+        },
+        {
+          "subsection_number": "11.4",
+          "title": "Exploring Data Formats and Fields",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/managing_data_source/index.html#exploring-data-formats-and-fields"
+        }
+      ]
+    },
+    {
+      "section_number": "12",
+      "title": "Working with Vector Data",
+      "url": "https://docs.qgis.org/3.44/en/docs/user_manual/working_with_vector_layers/",
+      "subsections": [
+        {
+          "subsection_number": "12.1",
+          "title": "The Vector Properties Dialog",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/working_with_vector_layers/index.html#the-vector-properties-dialog"
+        },
+        {
+          "subsection_number": "12.2",
+          "title": "Working with the Attribute Table",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/working_with_vector_layers/index.html#working-with-the-attribute-table"
+        },
+        {
+          "subsection_number": "12.3",
+          "title": "Editing",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/working_with_vector_layers/index.html#editing"
+        },
+        {
+          "subsection_number": "12.4",
+          "title": "Connecting and Editing Data Across Layers",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/working_with_vector_layers/index.html#connecting-and-editing-data-across-layers"
+        }
+      ]
+    },
+    {
+      "section_number": "13",
+      "title": "Working with Raster Data",
+      "url": "https://docs.qgis.org/3.44/en/docs/user_manual/working_with_raster_layers/",
+      "subsections": [
+        {
+          "subsection_number": "13.1",
+          "title": "Raster Properties Dialog",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/working_with_raster_layers/index.html#raster-properties-dialog"
+        },
+        {
+          "subsection_number": "13.2",
+          "title": "Raster Analysis",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/working_with_raster_layers/index.html#raster-analysis"
+        }
+      ]
+    },
+    {
+      "section_number": "14",
+      "title": "Working with Mesh Data",
+      "url": "https://docs.qgis.org/3.44/en/docs/user_manual/working_with_mesh_layers/",
+      "subsections": [
+        {
+          "subsection_number": "14.1",
+          "title": "What's a mesh?",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/working_with_mesh_layers/index.html#what-s-a-mesh"
+        },
+        {
+          "subsection_number": "14.2",
+          "title": "Supported formats",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/working_with_mesh_layers/index.html#supported-formats"
+        },
+        {
+          "subsection_number": "14.3",
+          "title": "Mesh Dataset Properties",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/working_with_mesh_layers/index.html#mesh-dataset-properties"
+        },
+        {
+          "subsection_number": "14.4",
+          "title": "Exploring mesh datasets",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/working_with_mesh_layers/index.html#exploring-mesh-datasets"
+        },
+        {
+          "subsection_number": "14.5",
+          "title": "Editing a mesh layer",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/working_with_mesh_layers/index.html#editing-a-mesh-layer"
+        },
+        {
+          "subsection_number": "14.6",
+          "title": "Mesh Calculator",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/working_with_mesh_layers/index.html#mesh-calculator"
+        }
+      ]
+    },
+    {
+      "section_number": "15",
+      "title": "Working with Vector Tiles",
+      "url": "https://docs.qgis.org/3.44/en/docs/user_manual/working_with_vector_tiles/",
+      "subsections": [
+        {
+          "subsection_number": "15.1",
+          "title": "What are Vector Tiles?",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/working_with_vector_tiles/index.html#what-are-vector-tiles"
+        },
+        {
+          "subsection_number": "15.2",
+          "title": "Supported Formats",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/working_with_vector_tiles/index.html#supported-formats"
+        },
+        {
+          "subsection_number": "15.3",
+          "title": "Vector Tiles Dataset Properties",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/working_with_vector_tiles/index.html#vector-tiles-dataset-properties"
+        },
+        {
+          "subsection_number": "15.4",
+          "title": "QGIS Server Properties",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/working_with_vector_tiles/index.html#qgis-server-properties"
+        }
+      ]
+    },
+    {
+      "section_number": "16",
+      "title": "Working with Point Clouds",
+      "url": "https://docs.qgis.org/3.44/en/docs/user_manual/working_with_point_clouds/",
+      "subsections": [
+        {
+          "subsection_number": "16.1",
+          "title": "Introduction to Point Clouds",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/working_with_point_clouds/index.html#introduction-to-point-clouds"
+        },
+        {
+          "subsection_number": "16.2",
+          "title": "Point Clouds Properties",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/working_with_point_clouds/index.html#point-clouds-properties"
+        },
+        {
+          "subsection_number": "16.3",
+          "title": "Virtual point cloud",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/working_with_point_clouds/index.html#virtual-point-cloud"
+        }
+      ]
+    },
+    {
+      "section_number": "17",
+      "title": "Working with 3D Tiles",
+      "url": "https://docs.qgis.org/3.44/en/docs/user_manual/working_with_3d/",
+      "subsections": [
+        {
+          "subsection_number": "17.1",
+          "title": "What are 3D Tiles?",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/working_with_3d/index.html#what-are-d-tiles"
+        },
+        {
+          "subsection_number": "17.2",
+          "title": "3D Tiles Properties",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/working_with_3d/index.html#d-tiles-properties"
+        }
+      ]
+    },
+    {
+      "section_number": "18",
+      "title": "Laying out the maps",
+      "url": "https://docs.qgis.org/3.44/en/docs/user_manual/print_composer/",
+      "subsections": [
+        {
+          "subsection_number": "18.1",
+          "title": "Overview of the Print Layout",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/print_composer/index.html#overview-of-the-print-layout"
+        },
+        {
+          "subsection_number": "18.2",
+          "title": "Layout Items",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/print_composer/index.html#layout-items"
+        },
+        {
+          "subsection_number": "18.3",
+          "title": "Creating an Output",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/print_composer/index.html#creating-an-output"
+        },
+        {
+          "subsection_number": "18.4",
+          "title": "Creating a Report",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/print_composer/index.html#creating-a-report"
+        }
+      ]
+    },
+    {
+      "section_number": "19",
+      "title": "Working with OGC / ISO protocols",
+      "url": "https://docs.qgis.org/3.44/en/docs/user_manual/ogc/",
+      "subsections": [
+        {
+          "subsection_number": "19.1",
+          "title": "WMS/WMTS Client",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/ogc/index.html#wms-wmts-client"
+        },
+        {
+          "subsection_number": "19.2",
+          "title": "WCS Client",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/ogc/index.html#wcs-client"
+        },
+        {
+          "subsection_number": "19.3",
+          "title": "WFS and WFS-T Client",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/ogc/index.html#wfs-and-wfs-t-client"
+        },
+        {
+          "subsection_number": "19.4",
+          "title": "SensorThings",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/ogc/index.html#sensorthings"
+        },
+        {
+          "subsection_number": "19.5",
+          "title": "STAC (SpatioTemporal Asset Catalogs)",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/ogc/index.html#stac-spatiotemporal-asset-catalogs"
+        },
+        {
+          "subsection_number": "19.6",
+          "title": "ArcGIS REST Server",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/ogc/index.html#arcgis-rest-server"
+        }
+      ]
+    },
+    {
+      "section_number": "20",
+      "title": "Working with GPS Data",
+      "url": "https://docs.qgis.org/3.44/en/docs/user_manual/working_with_gps/",
+      "subsections": [
+        {
+          "subsection_number": "20.1",
+          "title": "Introducing GNSS/GPS Data",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/working_with_gps/index.html#introducing-gnss-gps-data"
+        },
+        {
+          "subsection_number": "20.2",
+          "title": "Live GPS tracking",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/working_with_gps/index.html#live-gps-tracking"
+        }
+      ]
+    },
+    {
+      "section_number": "21",
+      "title": "Authentication System",
+      "url": "https://docs.qgis.org/3.44/en/docs/user_manual/auth_system/",
+      "subsections": [
+        {
+          "subsection_number": "21.1",
+          "title": "Authentication System Overview",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/auth_system/index.html#authentication-system-overview"
+        },
+        {
+          "subsection_number": "21.2",
+          "title": "User Authentication Workflows",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/auth_system/index.html#user-authentication-workflows"
+        }
+      ]
+    },
+    {
+      "section_number": "22",
+      "title": "GRASS GIS Integration",
+      "url": "https://docs.qgis.org/3.44/en/docs/user_manual/grass/",
+      "subsections": [
+        {
+          "subsection_number": "22.1",
+          "title": "Demo dataset",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/grass/index.html#demo-dataset"
+        },
+        {
+          "subsection_number": "22.2",
+          "title": "Loading GRASS raster and vector layers",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/grass/index.html#loading-grass-raster-and-vector-layers"
+        },
+        {
+          "subsection_number": "22.3",
+          "title": "Importing data into a GRASS LOCATION via drag and drop",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/grass/index.html#importing-data-into-a-grass-location-via-drag-and-drop"
+        },
+        {
+          "subsection_number": "22.4",
+          "title": "Managing GRASS data in QGIS Browser",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/grass/index.html#managing-grass-data-in-qgis-browser"
+        },
+        {
+          "subsection_number": "22.5",
+          "title": "GRASS Options",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/grass/index.html#grass-options"
+        },
+        {
+          "subsection_number": "22.6",
+          "title": "Starting the GRASS plugin",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/grass/index.html#starting-the-grass-plugin"
+        },
+        {
+          "subsection_number": "22.7",
+          "title": "Opening GRASS mapset",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/grass/index.html#opening-grass-mapset"
+        },
+        {
+          "subsection_number": "22.8",
+          "title": "GRASS LOCATION and MAPSET",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/grass/index.html#grass-location-and-mapset"
+        },
+        {
+          "subsection_number": "22.9",
+          "title": "Importing data into a GRASS LOCATION",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/grass/index.html#importing-data-into-a-grass-location"
+        },
+        {
+          "subsection_number": "22.10",
+          "title": "The GRASS vector data model",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/grass/index.html#the-grass-vector-data-model"
+        },
+        {
+          "subsection_number": "22.11",
+          "title": "Creating a new GRASS vector layer",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/grass/index.html#creating-a-new-grass-vector-layer"
+        },
+        {
+          "subsection_number": "22.12",
+          "title": "Digitizing and editing a GRASS vector layer",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/grass/index.html#digitizing-and-editing-a-grass-vector-layer"
+        },
+        {
+          "subsection_number": "22.13",
+          "title": "The GRASS region tool",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/grass/index.html#the-grass-region-tool"
+        },
+        {
+          "subsection_number": "22.14",
+          "title": "The GRASS Toolbox",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/grass/index.html#the-grass-toolbox"
+        }
+      ]
+    },
+    {
+      "section_number": "23",
+      "title": "QGIS processing framework",
+      "url": "https://docs.qgis.org/3.44/en/docs/user_manual/processing/",
+      "subsections": [
+        {
+          "subsection_number": "23.1",
+          "title": "Introduction",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/processing/index.html#introduction"
+        },
+        {
+          "subsection_number": "23.2",
+          "title": "Configuring the Processing Framework",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/processing/index.html#configuring-the-processing-framework"
+        },
+        {
+          "subsection_number": "23.3",
+          "title": "The Toolbox",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/processing/index.html#the-toolbox"
+        },
+        {
+          "subsection_number": "23.4",
+          "title": "The history manager",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/processing/index.html#the-history-manager"
+        },
+        {
+          "subsection_number": "23.5",
+          "title": "The model designer",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/processing/index.html#the-model-designer"
+        },
+        {
+          "subsection_number": "23.6",
+          "title": "The batch processing interface",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/processing/index.html#the-batch-processing-interface"
+        },
+        {
+          "subsection_number": "23.7",
+          "title": "Using processing algorithms from the console",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/processing/index.html#using-processing-algorithms-from-the-console"
+        },
+        {
+          "subsection_number": "23.8",
+          "title": "Using processing from the command line",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/processing/index.html#using-processing-from-the-command-line"
+        },
+        {
+          "subsection_number": "23.9",
+          "title": "Writing new Processing algorithms as Python scripts",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/processing/index.html#writing-new-processing-algorithms-as-python-scripts"
+        },
+        {
+          "subsection_number": "23.10",
+          "title": "Input and output types for Processing Algorithms",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/processing/index.html#input-and-output-types-for-processing-algorithms"
+        },
+        {
+          "subsection_number": "23.11",
+          "title": "Configuring external applications",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/processing/index.html#configuring-external-applications"
+        }
+      ]
+    },
+    {
+      "section_number": "24",
+      "title": "Processing providers and algorithms",
+      "url": "https://docs.qgis.org/3.44/en/docs/user_manual/processing_algs/",
+      "subsections": [
+        {
+          "subsection_number": "24.1",
+          "title": "QGIS algorithm provider",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/processing_algs/index.html#qgis-algorithm-provider"
+        },
+        {
+          "subsection_number": "24.2",
+          "title": "GDAL algorithm provider",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/processing_algs/index.html#gdal-algorithm-provider"
+        }
+      ]
+    },
+    {
+      "section_number": "25",
+      "title": "Plugins",
+      "url": "https://docs.qgis.org/3.44/en/docs/user_manual/plugins/",
+      "subsections": [
+        {
+          "subsection_number": "25.1",
+          "title": "QGIS Plugins",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/plugins/index.html#qgis-plugins"
+        },
+        {
+          "subsection_number": "25.2",
+          "title": "Using QGIS Core Plugins",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/plugins/index.html#using-qgis-core-plugins"
+        },
+        {
+          "subsection_number": "25.3",
+          "title": "QGIS Python console",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/plugins/index.html#qgis-python-console"
+        }
+      ]
+    },
+    {
+      "section_number": "26",
+      "title": "Appendices",
+      "url": "https://docs.qgis.org/3.44/en/docs/user_manual/appendices/",
+      "subsections": [
+        {
+          "subsection_number": "26.1",
+          "title": "Appendix C: QGIS File Formats",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/appendices/index.html#appendix-c-qgis-file-formats"
+        },
+        {
+          "subsection_number": "26.2",
+          "title": "Appendix D: QGIS R script syntax",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/appendices/index.html#appendix-d-qgis-r-script-syntax"
+        },
+        {
+          "subsection_number": "26.3",
+          "title": "Appendix E: QGIS Application Network Connections",
+          "url": "https://docs.qgis.org/3.44/en/docs/user_manual/appendices/index.html#appendix-e-qgis-application-network-connections"
+        }
+      ]
+    },
+    {
+      "section_number": "27",
+      "title": "Literature and Web References",
+      "url": "https://docs.qgis.org/3.44/en/docs/user_manual/literature_web/"
+    }
+  ],
+  "last_updated": "2026-06-18",
+  "qgis_version": "3.44",
+  "base_url": "https://docs.qgis.org/3.44/en/docs/user_manual/"
+}

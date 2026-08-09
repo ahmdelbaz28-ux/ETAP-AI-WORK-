@@ -1,0 +1,182 @@
+{
+  "title": "ArcGIS Pro SDK Repositories Expert Analysis",
+  "description": "Expert analysis and guidance on how to effectively utilize the three main ArcGIS Pro SDK repositories for optimal development practices",
+  "repositories": [
+    {
+      "name": "arcgis-pro-sdk-snippets",
+      "full_name": "Esri/arcgis-pro-sdk-snippets",
+      "purpose": "Comprehensive set of ready-to-use code snippets for ArcGIS Pro SDK add-in development",
+      "structure": {
+        "organization": "Organized by functional areas (Editing, Map Authoring, Map Exploration, Geodatabase, Layouts, etc.)",
+        "content_type": "C# class files containing code snippets within #region...#endregion blocks",
+        "functionality": "Demonstrates common tasks and workflows for each specific category"
+      },
+      "best_practices": [
+        "Clone the repository locally using git clone command",
+        "Use Visual Studio's 'Find in Files' or GitHub Copilot's search to quickly locate relevant snippets",
+        "Copy and adapt snippets to fit your specific project needs",
+        "Pay attention to comments within each snippet for context, prerequisites, and threading requirements",
+        "Periodically pull updates from the repository to get new or improved snippets"
+      ],
+      "use_cases": [
+        "Learning ArcGIS Pro SDK patterns and best practices",
+        "Quickly implementing common functionality in add-ins",
+        "Reference for GitHub Copilot and other AI coding assistants",
+        "Experimenting with modifications to fit project requirements"
+      ],
+      "url": "https://github.com/Esri/arcgis-pro-sdk-snippets",
+      "requirements": {
+        "arcgis_pro_version": "3.7",
+        "platform": "Windows 11 Home, Pro, Enterprise (64 bit)",
+        "net_runtime": "Microsoft .NET Runtime 10.0.0 or better",
+        "ide": "Visual Studio 2026 (v18.4.1 or higher)"
+      }
+    },
+    {
+      "name": "arcgis-pro-sdk",
+      "full_name": "Esri/arcgis-pro-sdk",
+      "purpose": "Main documentation and conceptual guidance for ArcGIS Pro SDK for Microsoft .NET",
+      "structure": {
+        "organization": "Comprehensive documentation organized by functional areas and development topics",
+        "content_type": "Conceptual documentation, programming guides, API references, and tutorials",
+        "functionality": "Covers all aspects of ArcGIS Pro extensibility patterns"
+      },
+      "best_practices": [
+        "Use as the primary reference for understanding ArcGIS Pro SDK architecture",
+        "Follow migration guides when upgrading between versions",
+        "Reference DAML (Desktop Application Markup Language) documentation for UI customization",
+        "Study the four extensibility patterns: add-ins, managed configurations, plugin datasources, and CoreHost applications",
+        "Consult the API reference for detailed information about each assembly"
+      ],
+      "use_cases": [
+        "Understanding the fundamental concepts of ArcGIS Pro extensibility",
+        "Learning about advanced topics like asynchronous programming in ArcGIS Pro",
+        "Implementing complex customization scenarios",
+        "Understanding licensing and deployment considerations",
+        "Migration between different versions of ArcGIS Pro SDK"
+      ],
+      "url": "https://github.com/Esri/arcgis-pro-sdk",
+      "extensibility_patterns": [
+        {
+          "pattern": "Add-ins",
+          "description": "Custom tools and workflows that integrate directly into the ArcGIS Pro interface, providing new commands, buttons, panes, and dockable windows"
+        },
+        {
+          "pattern": "Managed Configurations",
+          "description": "Customize ArcGIS Pro's UI, startup, and user roles for tailored experiences"
+        },
+        {
+          "pattern": "Plugin Datasources",
+          "description": "Integrate custom data formats into ArcGIS Pro for querying, analysis, and mapping as tables or feature classes"
+        },
+        {
+          "pattern": "CoreHost Applications",
+          "description": "Build standalone console or WPF apps using ArcGIS Pro SDK for geometry and geodatabase operations, without ArcGIS Pro"
+        }
+      ],
+      "key_assemblies": {
+        "core_assemblies": [
+          {
+            "name": "ArcGIS.Core.dll",
+            "description": "Provides CIM, Geodatabase, Geometry and Utility Network APIs"
+          },
+          {
+            "name": "ArcGIS.CoreHost.dll",
+            "description": "Provides Host.Initialize to initialize ArcGIS.Core.dll for stand-alone use"
+          },
+          {
+            "name": "ArcGIS.Desktop.Framework.dll",
+            "description": "Provides the application framework to include add-in contracts, DAML support, and base classes. This assembly must be referenced by every add-in"
+          }
+        ]
+      }
+    },
+    {
+      "name": "arcgis-pro-sdk-community-samples",
+      "full_name": "Esri/arcgis-pro-sdk-community-samples",
+      "purpose": "Complete, working samples demonstrating key functionalities in various functional areas of ArcGIS Pro",
+      "structure": {
+        "organization": "325+ samples organized by functional areas (Content, Configuration, Framework, Editing, Geodatabase, etc.)",
+        "content_type": "Complete, runnable ArcGIS Pro add-in projects with full source code",
+        "functionality": "Real-world implementations showing how to use ArcGIS Pro SDK in practical scenarios"
+      },
+      "best_practices": [
+        "Download sample data from the releases page to run samples with actual data",
+        "Study complete implementations to understand how different components work together",
+        "Use samples as templates for creating your own add-ins",
+        "Examine project structures, configuration files (Config.daml), and resource management",
+        "Contribute back to the community by sharing your own samples following the contribution guidelines"
+      ],
+      "use_cases": [
+        "Learning from complete, working implementations",
+        "Using as templates for new add-in development",
+        "Understanding complex interactions between different ArcGIS Pro components",
+        "Validating your own implementations against proven examples",
+        "Contributing to the community by extending existing samples"
+      ],
+      "url": "https://github.com/Esri/arcgis-pro-sdk-community-samples",
+      "functional_areas": [
+        "Content",
+        "Configuration",
+        "Framework",
+        "Editing",
+        "Geodatabase",
+        "Geometry",
+        "Geoprocessing",
+        "Layouts",
+        "Reports",
+        "Map Authoring",
+        "Map Exploration",
+        "Utility Network",
+        "Network Diagram",
+        "Sharing",
+        "TaskAssistant",
+        "Workflow"
+      ],
+      "notable_samples": [
+        "AILayoutFunction",
+        "AddFeatureTest",
+        "CustomToolSketchSymbology",
+        "KnowledgeGraphConstructionTools",
+        "MyCopilotAddin",
+        "GeoprocessingExecuteAsync",
+        "Symbology",
+        "AnimationFromPath"
+      ]
+    }
+  ],
+  "integration_strategy": {
+    "learning_path": [
+      "Start with the main SDK documentation (arcgis-pro-sdk) to understand concepts and architecture",
+      "Browse the community samples (arcgis-pro-sdk-community-samples) to see complete implementations",
+      "Use the snippets repository (arcgis-pro-sdk-snippets) for quick reference and implementation of specific features",
+      "Combine knowledge from all three repositories to implement complex solutions"
+    ],
+    "development_workflow": [
+      "Use the documentation repository as a reference for architectural decisions",
+      "Refer to community samples when implementing complex functionality",
+      "Use code snippets for common tasks and rapid prototyping",
+      "Cross-reference between repositories to understand different aspects of implementation"
+    ],
+    "ai_assisted_development": {
+      "copilot_integration": "The snippets repository is specifically designed to be used as a reference for GitHub Copilot and other AI coding assistants. Structure your prompts to reference specific functional areas or tasks covered in these repositories.",
+      "prompt_examples": [
+        "How to implement feature selection in ArcGIS Pro using the framework approach demonstrated in the samples?",
+        "Show me a code snippet for asynchronous geoprocessing in ArcGIS Pro similar to the ones in the snippets repository?",
+        "Provide an example of DAML configuration for a custom dockpane based on the documentation and samples?"
+      ]
+    }
+  },
+  "recommendations_for_expert_developers": [
+    "Combine the conceptual knowledge from the main SDK repository with practical implementations from the community samples",
+    "Use the snippets repository for rapid prototyping and common functionality implementation",
+    "Understand the threading model and asynchronous programming patterns specific to ArcGIS Pro",
+    "Pay special attention to the different extensibility patterns and choose the appropriate one for your use case",
+    "Consider performance implications when working with large datasets or complex geometries",
+    "Follow the security and licensing guidelines when deploying add-ins in enterprise environments",
+    "Utilize the CoreHost pattern for standalone applications that need ArcGIS functionality without the full Pro interface"
+  ],
+  "last_updated": "2026-06-18",
+  "arcgis_pro_version": "3.7",
+  "developer_level": "Expert"
+}

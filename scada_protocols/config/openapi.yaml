@@ -1,0 +1,217 @@
+openapi: 3.1.0
+info:
+  title: AhmedETAP SCADA Protocols API
+  description: Real-time SCADA protocol management for the AhmedETAP Digital Twin
+    platform. Exposes Modbus TCP, OPC UA, and IEC 60870-5-104 adapters as a unified
+    REST API.
+  contact:
+    name: AhmedETAP
+    url: https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-
+  license:
+    name: MIT
+    url: https://opensource.org/license/mit/
+  version: 1.0.0
+paths:
+  /api/v1/scada/protocols/libraries:
+    get:
+      tags:
+      - scada-protocols
+      summary: List Libraries
+      description: Report which SCADA protocol libraries are importable in this runtime.
+      operationId: list_libraries_api_v1_scada_protocols_libraries_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+                title: Response List Libraries Api V1 Scada Protocols Libraries Get
+  /api/v1/scada/protocols/status:
+    get:
+      tags:
+      - scada-protocols
+      summary: Get Status
+      operationId: get_status_api_v1_scada_protocols_status_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+                title: Response Get Status Api V1 Scada Protocols Status Get
+  /api/v1/scada/protocols/adapters:
+    get:
+      tags:
+      - scada-protocols
+      summary: List Adapters
+      operationId: list_adapters_api_v1_scada_protocols_adapters_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                items:
+                  additionalProperties: true
+                  type: object
+                type: array
+                title: Response List Adapters Api V1 Scada Protocols Adapters Get
+  /api/v1/scada/protocols/start:
+    post:
+      tags:
+      - scada-protocols
+      summary: Start Manager
+      operationId: start_manager_api_v1_scada_protocols_start_post
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+                title: Response Start Manager Api V1 Scada Protocols Start Post
+  /api/v1/scada/protocols/stop:
+    post:
+      tags:
+      - scada-protocols
+      summary: Stop Manager
+      operationId: stop_manager_api_v1_scada_protocols_stop_post
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+                title: Response Stop Manager Api V1 Scada Protocols Stop Post
+  /api/v1/scada/protocols/{protocol}/status:
+    get:
+      tags:
+      - scada-protocols
+      summary: Protocol Status
+      operationId: protocol_status_api_v1_scada_protocols__protocol__status_get
+      parameters:
+      - name: protocol
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Protocol
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Protocol Status Api V1 Scada Protocols  Protocol  Status
+                  Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/scada/protocols/{protocol}/start:
+    post:
+      tags:
+      - scada-protocols
+      summary: Start Protocol
+      operationId: start_protocol_api_v1_scada_protocols__protocol__start_post
+      parameters:
+      - name: protocol
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Protocol
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Start Protocol Api V1 Scada Protocols  Protocol  Start
+                  Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/scada/protocols/{protocol}/stop:
+    post:
+      tags:
+      - scada-protocols
+      summary: Stop Protocol
+      operationId: stop_protocol_api_v1_scada_protocols__protocol__stop_post
+      parameters:
+      - name: protocol
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Protocol
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Stop Protocol Api V1 Scada Protocols  Protocol  Stop
+                  Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+components:
+  schemas:
+    HTTPValidationError:
+      properties:
+        detail:
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          type: array
+          title: Detail
+      type: object
+      title: HTTPValidationError
+    ValidationError:
+      properties:
+        loc:
+          items:
+            anyOf:
+            - type: string
+            - type: integer
+          type: array
+          title: Location
+        msg:
+          type: string
+          title: Message
+        type:
+          type: string
+          title: Error Type
+        input:
+          title: Input
+        ctx:
+          type: object
+          title: Context
+      type: object
+      required:
+      - loc
+      - msg
+      - type
+      title: ValidationError
+

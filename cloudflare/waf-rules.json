@@ -1,0 +1,115 @@
+{
+  "description": "Cloudflare WAF custom rules for AhmedETAP Platform. Deploy via Cloudflare Dashboard → Security → WAF → Custom Rules, or via API.",
+  "rules": [
+    {
+      "id": "CF-001",
+      "name": "Block SQL Injection",
+      "description": "Block SQL injection attempts in query parameters and POST body.",
+      "expression": "(http.request.uri.query contains \"union select\") or (http.request.uri.query contains \"' or '1'='1\") or (http.request.uri.query contains \"drop table\") or (http.request.uri.query contains \"insert into\") or (http.request.body contains \"union select\")",
+      "action": "block",
+      "priority": 1
+    },
+    {
+      "id": "CF-002",
+      "name": "Block XSS Attempts",
+      "description": "Block Cross-Site Scripting attempts in query parameters.",
+      "expression": "(http.request.uri.query contains \"<script\") or (http.request.uri.query contains \"javascript:\") or (http.request.uri.query contains \"onerror=\") or (http.request.uri.query contains \"<iframe\")",
+      "action": "block",
+      "priority": 2
+    },
+    {
+      "id": "CF-003",
+      "name": "Block Path Traversal",
+      "description": "Block path traversal attempts (../../../etc/passwd, etc.).",
+      "expression": "(http.request.uri.path contains \"../\") or (http.request.uri.path contains \"..\\\\\") or (http.request.uri.path contains \"%2e%2e\")",
+      "action": "block",
+      "priority": 3
+    },
+    {
+      "id": "CF-004",
+      "name": "Block Malicious User Agents",
+      "description": "Block known attack tools (sqlmap, nikto, nmap, etc.).",
+      "expression": "(http.user_agent contains \"sqlmap\") or (http.user_agent contains \"nikto\") or (http.user_agent contains \"nmap\") or (http.user_agent contains \"masscan\") or (http.user_agent contains \"dirb\") or (http.user_agent contains \"gobuster\") or (http.user_agent contains \"wpscan\") or (http.user_agent contains \"hydra\") or (http.user_agent contains \"burp\") or (http.user_agent contains \"acunetix\") or (http.user_agent contains \"nessus\") or (http.user_agent contains \"zgrab\")",
+      "action": "block",
+      "priority": 4
+    },
+    {
+      "id": "CF-005",
+      "name": "Rate Limit Auth Endpoints",
+      "description": "Limit auth endpoints to 10 requests/minute per IP to prevent credential stuffing.",
+      "expression": "(http.request.uri.path contains \"/api/v1/auth/login\") or (http.request.uri.path contains \"/api/v1/auth/register\") or (http.request.uri.path contains \"/api/v1/auth/forgot-password\")",
+      "action": "rate_limit",
+      "rate_limit": {
+        "requests_per_period": 10,
+        "period_seconds": 60,
+        "mitigation_timeout": 300
+      },
+      "priority": 5
+    },
+    {
+      "id": "CF-006",
+      "name": "Rate Limit API",
+      "description": "General API rate limit: 300 requests/minute per IP.",
+      "expression": "http.request.uri.path starts_with \"/api/\"",
+      "action": "rate_limit",
+      "rate_limit": {
+        "requests_per_period": 300,
+        "period_seconds": 60,
+        "mitigation_timeout": 60
+      },
+      "priority": 6
+    },
+    {
+      "id": "CF-007",
+      "name": "Block SSRF Patterns",
+      "description": "Block requests containing internal IP addresses or cloud metadata endpoints.",
+      "expression": "(http.request.body contains \"169.254.169.254\") or (http.request.body contains \"localhost\") or (http.request.body contains \"127.0.0.1\") or (http.request.body contains \"metadata.google.internal\") or (http.request.uri.query contains \"169.254.169.254\")",
+      "action": "block",
+      "priority": 7
+    },
+    {
+      "id": "CF-008",
+      "name": "Block HTTP Method Override",
+      "description": "Block requests that try to override HTTP method via headers.",
+      "expression": "(http.request.headers[\"x-http-method-override\"]) or (http.request.headers[\"x-method-override\"])",
+      "action": "block",
+      "priority": 8
+    },
+    {
+      "id": "CF-009",
+      "name": "Challenge Suspicious Bots",
+      "description": "Issue a JavaScript challenge to suspicious bots (Bot Score 1-29).",
+      "expression": "(cf.bot_management.score gt 0) and (cf.bot_management.score lt 30)",
+      "action": "challenge",
+      "priority": 9
+    },
+    {
+      "id": "CF-010",
+      "name": "Block Confirmed Bots",
+      "description": "Block confirmed bots (Bot Score >= 30) on API endpoints.",
+      "expression": "(cf.bot_management.score ge 30) and (http.request.uri.path starts_with \"/api/\")",
+      "action": "block",
+      "priority": 10
+    },
+    {
+      "id": "CF-011",
+      "name": "Block Non-HTTPS",
+      "description": "Redirect all HTTP requests to HTTPS.",
+      "expression": "(http.request.scheme eq \"http\")",
+      "action": "redirect",
+      "redirect": {
+        "target_url": "https://${host}${uri}",
+        "status_code": 301
+      },
+      "priority": 11
+    },
+    {
+      "id": "CF-012",
+      "name": "Block Direct Origin Access",
+      "description": "Block requests that arrive with the HF Space hostname in the Host header (bypassing Cloudflare).",
+      "expression": "(http.host eq \"ahmdelbaz28-ahmedetap-platform.hf.space\")",
+      "action": "block",
+      "priority": 12
+    }
+  ]
+}

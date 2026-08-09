@@ -1,0 +1,58 @@
+# Dev overlay — minimal resources, 1 replica, no HPA, no ingress.
+# Use: kustomize build 08-gitops/overlays/dev | kubectl apply -f -
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: etap
+
+resources:
+  - ../base
+
+# Patch the Helm chart values for dev
+helmCharts:
+  - name: etap-ai
+    repo: .
+    version: 2.0.0
+    releaseName: etap-ai
+    namespace: etap
+    valuesFile: ../../01-helm-chart/etap-ai/values.yaml
+    valuesInline:
+      image:
+        tag: "latest"
+      api:
+        replicaCount: 1
+        autoscaling:
+          enabled: false
+        ingress:
+          enabled: false
+        resources:
+          requests: { cpu: 100m, memory: 256Mi }
+          limits:   { cpu: 500m, memory: 1Gi }
+      worker:
+        replicaCount: 1
+        autoscaling:
+          enabled: false
+        resources:
+          requests: { cpu: 100m, memory: 256Mi }
+          limits:   { cpu: 500m, memory: 1Gi }
+      flower:
+        enabled: false
+      networkPolicy:
+        enabled: false
+      observability:
+        serviceMonitor:
+          enabled: false
+
+# Add dev-specific labels
+commonLabels:
+  environment: dev
+
+# Use a separate namespace for dev
+patches:
+  - target:
+      kind: Namespace
+      name: etap
+    patch: |-
+      - op: replace
+        path: /metadata/name
+        value: etap-dev

@@ -1,0 +1,89 @@
+# Gitleaks configuration for AhmedETAP
+# Docs: https://github.com/gitleaks/gitleaks#configuration
+
+title = "AhmedETAP Secret Scan"
+
+[extend]
+# Inherit the default ruleset (covers AWS, GCP, Azure, Stripe, Slack, etc.)
+# then add project-specific rules below.
+useDefault = true
+
+[[rules]]
+id = "github-pat-v2"
+description = "GitHub Personal Access Token (v2 format, github_pat_*)"
+regex = '''github_pat_[A-Za-z0-9_]{50,}'''
+tags = ["key", "github"]
+keywords = ["github_pat_"]
+
+[[rules]]
+id = "huggingface-token"
+description = "HuggingFace access token"
+regex = '''hf_[A-Za-z0-9]{30,}'''
+tags = ["key", "huggingface"]
+keywords = ["hf_"]
+
+[[rules]]
+id = "vercel-token"
+description = "Vercel access token"
+regex = '''vcp_[A-Za-z0-9]{40,}'''
+tags = ["key", "vercel"]
+keywords = ["vcp_"]
+
+[[rules]]
+id = "supabase-secret"
+description = "Supabase secret key (new format)"
+regex = '''sb_secret_[A-Za-z0-9_-]{30,}'''
+tags = ["key", "supabase"]
+keywords = ["sb_secret_"]
+
+[[rules]]
+id = "supabase-publishable"
+description = "Supabase publishable key (new format)"
+regex = '''sb_publishable_[A-Za-z0-9_-]{30,}'''
+tags = ["key", "supabase"]
+keywords = ["sb_publishable_"]
+
+[[rules]]
+id = "langfuse-secret"
+description = "Langfuse secret key"
+regex = '''sk-lf-[a-f0-9-]{30,}'''
+tags = ["key", "langfuse"]
+keywords = ["sk-lf-"]
+
+[[rules]]
+id = "langfuse-public"
+description = "Langfuse public key"
+regex = '''pk-lf-[a-f0-9-]{30,}'''
+tags = ["key", "langfuse"]
+keywords = ["pk-lf-"]
+
+[[rules]]
+id = "langwatch-key"
+description = "LangWatch API key"
+regex = '''sk-lw-[A-Za-z0-9]{30,}'''
+tags = ["key", "langwatch"]
+keywords = ["sk-lw-"]
+
+[allowlist]
+description = "Allowed paths / patterns (examples, tests, fixtures)"
+paths = [
+  '''\.env\.example$''',
+  '''docs/.*\.md$''',  # docs may discuss secret patterns in prose
+  '''README\.md$''',
+  '''SECURITY\.md$''',
+  '''SECURITY_INCIDENT.*\.md$''',
+  '''tests/.*''',
+  '''acp_runtime/tests/.*''',
+  '''scripts/security_scan\.py$''',  # the scanner itself mentions patterns
+  '''.gitleaks\.toml$''',  # this config file
+  '''\.github/workflows/secret-scan\.yml$''',
+]
+regexes = [
+  '''YOUR_[A-Z_]+_HERE''',
+  '''your-[a-z-]+-here''',
+  '''PLACEHOLDER''',
+  '''example\.com''',
+  # Allowlist inline marker — append to a line to skip it
+  '''# pragma: allowlist secret''',
+  '''# security: intentional''',
+]

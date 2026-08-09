@@ -1,0 +1,70 @@
+# Docker ignore file for HF Space build context
+# Excludes sensitive files and build artifacts from the Docker image
+# (SonarCloud S6470: ensures COPY . . does not inadvertently add secrets)
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# IDE / Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# CI / DevOps
+.github/
+.gitlab-ci.yml
+
+# Secrets / env files (NEVER bake into image)
+.env
+.env.*
+*.pem
+*.key
+*.crt
+secrets/
+.cred
+
+# Test / coverage artifacts
+tests/
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# Documentation (not needed at runtime)
+docs/
+*.md
+LICENSE
+
+# Docker files (avoid recursion)
+Dockerfile*
+docker-compose*
+.dockerignore
+
+# Node / Frontend (HF Space is Python-only)
+node_modules/
+ui/dist/
+ui/build/
+
+# Data / logs
+data/
+logs/
+*.log

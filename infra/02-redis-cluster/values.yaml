@@ -1,0 +1,118 @@
+# ==========================================================================
+# Redis Cluster — 6-node (3 masters + 3 replicas) HA setup.
+#
+# Uses the Bitnami redis-cluster chart. Install with:
+#
+#   helm repo add bitnami https://charts.bitnami.com/bitnami
+#   helm upgrade --install etap-redis-cluster bitnami/redis-cluster \
+#       -n etap -f 02-redis-cluster/values.yaml
+#
+# The chart creates:
+#   - 6 StatefulSet pods (etap-redis-cluster-0..5)
+#   - Headless service etap-redis-cluster  (for cluster-aware clients)
+#   - Standard service    etap-redis-cluster (for non-cluster clients)
+#   - Secret etap-redis-cluster with key 'redis-password'
+#
+# Your FastAPI / Celery code MUST use a cluster-aware client:
+#
+#   from redis.cluster import RedisCluster
+#   rc = RedisCluster(host="etap-redis-cluster", port=6379,
+#                     password=os.environ["REDIS_PASSWORD"],
+#                     decode_responses=True)
+#
+# For Celery, set:
+#   broker_url = "redis://:PASSWORD@etap-redis-cluster:6379/0"
+#   result_backend = "redis://:PASSWORD@etap-redis-cluster:6379/1"
+#
+# Celery >= 5.3 supports Redis Cluster natively via `redis-py>=4.3`.
+# ==========================================================================
+
+global:
+  imageRegistry: ""
+  imagePullSecrets: []
+  storageClass: ""    # set to a fast SSD class for production
+
+# 6 nodes = 3 master shards + 3 replicas (one per shard) = quorum-tolerant
+cluster:
+  nodes: 6
+  replicas: 1
+  minAvailable: 4    # PDB: keep at least 4 of 6 pods up during node drains
+
+# Enable authentication — REQUIRED for production
+usePassword: true
+usePasswordFile: false
+password: "REPLACE_ME_WITH_32_CHAR_RANDOM_STRING"
+existingSecret: "etap-redis-cluster"
+existingSecretPasswordKey: "redis-password"
+
+# Persistence — appendonly + RDB snapshot
+persistence:
+  enabled: true
+  storageClass: ""
+  accessModes: ["ReadWriteOnce"]
+  size: 8Gi
+  annotations:
+    "velero.io/backup": "true"   # Velero will snapshot this PVC
+
+# Resource limits — Redis is single-threaded, so a small CPU limit is fine.
+# Memory limit MUST be set lower than maxmemory to avoid OOM during RDB rewrite.
+resources:
+  requests:
+    cpu: 250m
+    memory: 512Mi
+  limits:
+    cpu: 1000m
+    memory: 2Gi
+
+# Pod-level anti-affinity across nodes / zones
+podAntiAffinityPreset: soft
+podAntiAffinityPresetKey: topology.kubernetes.io/zone   # spread across AZs
+
+# Disable non-essential sidecars for production simplicity
+metrics:
+  enabled: true
+  serviceMonitor:
+    enabled: true
+    namespace: etap
+    interval: 15s
+
+# TLS — recommended if you have cert-manager
+tls:
+  enabled: false
+  authClients: false
+  existingSecret: ""
+
+# Disable the default PodSecurityPolicy / etc. (deprecated in K8s 1.25+)
+rbac:
+  create: true
+
+# Sensible Redis config knobs for a Celery broker
+commonConfiguration: |-
+  maxmemory 1gb
+  maxmemory-policy noeviction
+  appendonly yes
+  appendfsync everysec
+  save 900 1
+  save 300 10
+  save 60 10000
+  timeout 300
+  tcp-keepalive 60
+  lazyfree-lazy-eviction yes
+  lazyfree-lazy-expire yes
+  lazyfree-lazy-server-del yes
+  repl-backlog-size 64mb
+  repl-diskless-sync yes
+
+# Update strategy — never take more than one shard down at a time
+updateStrategy:
+  type: RollingUpdate
+
+# Probes — Redis Cluster takes a while to stabilize on cold boot
+livenessProbe:
+  initialDelaySeconds: 60
+  periodSeconds: 10
+  timeoutSeconds: 5
+readinessProbe:
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5

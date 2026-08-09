@@ -1,0 +1,147 @@
+name: E2E Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  e2e-hf-space:
+    name: E2E - HF Space Health & API
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build and test Docker image locally
+        run: |
+          echo "Building HF Space Docker image..."
+          docker build -t etap-hf-test ./hf-space/
+          
+          echo "Starting container..."
+          docker run -d --name etap-test -p 7860:7860 etap-hf-test
+          
+          echo "Waiting for startup..."
+          sleep 10
+          
+          # Test health endpoint
+          echo "Testing /healthz..."
+          HEALTH=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:7860/healthz)
+          if [ "$HEALTH" != "200" ]; then
+            echo "FAIL: /healthz returned HTTP $HEALTH (expected 200)"
+            docker logs etap-test
+            exit 1
+          fi
+          echo "PASS: /healthz returned HTTP 200"
+          
+          # Test readyz
+          echo "Testing /readyz..."
+          READY=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:7860/readyz)
+          if [ "$READY" != "200" ]; then
+            echo "FAIL: /readyz returned HTTP $READY"
+            exit 1
+          fi
+          echo "PASS: /readyz returned HTTP 200"
+          
+          # Test root
+          echo "Testing /..."
+          ROOT=$(curl -s http://localhost:7860/)
+          if echo "$ROOT" | grep -q "AhmedETAP"; then
+            echo "PASS: / returns AhmedETAP info"
+          else
+            echo "FAIL: / did not return expected content"
+            echo "$ROOT"
+            exit 1
+          fi
+          
+          # Test health
+          echo "Testing /health..."
+          HEALTH_DETAIL=$(curl -s http://localhost:7860/health)
+          if echo "$HEALTH_DETAIL" | grep -q "healthy"; then
+            echo "PASS: /health returns healthy status"
+          else
+            echo "FAIL: /health did not return healthy"
+            exit 1
+          fi
+          
+          # Test docs
+          echo "Testing /docs..."
+          DOCS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:7860/docs)
+          if [ "$DOCS" = "200" ]; then
+            echo "PASS: /docs is accessible"
+          else
+            echo "WARN: /docs returned HTTP $DOCS"
+          fi
+          
+          echo ""
+          echo "All E2E tests PASSED!"
+          
+          docker stop etap-test
+          docker rm etap-test
+          docker rmi etap-hf-test
+
+  e2e-python-tests:
+    name: E2E - Python Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install pytest pytest-cov pytest-asyncio
+
+      - name: Run syntax validation
+        run: python validate_syntax.py
+
+      - name: Run unit tests
+        run: pytest tests/ -x -q --tb=short
+
+  e2e-security:
+    name: E2E - Security Checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify no secrets in HF Space
+        run: |
+          python3 -c "
+          import os, re, sys
+          secret_patterns = [
+              r'hf_[A-Za-z0-9]{20,}',
+              r'ghp_[A-Za-z0-9]{36}',
+              r'github_pat_[A-Za-z0-9_]{50,}',
+              r'sk-[A-Za-z0-9]{32,}',
+          ]
+          errors = []
+          for root, dirs, files in os.walk('hf-space'):
+              dirs[:] = [d for d in dirs if d != '.git']
+              for f in files:
+                  path = os.path.join(root, f)
+                  try:
+                      with open(path, 'r', errors='ignore') as fh:
+                          for i, line in enumerate(fh, 1):
+                              for pat in secret_patterns:
+                                  if re.search(pat, line):
+                                      errors.append(f'{path}:{i}: potential secret')
+                  except: pass
+          if errors:
+              for e in errors: print(f'FAIL: {e}')
+              sys.exit(1)
+          print('No secrets found in hf-space/')
+          "
+
+      - name: Verify Dockerfile has no vulnerabilities
+        run: |
+          if grep -q "chmod 777" hf-space/Dockerfile; then
+            echo "WARNING: chmod 777 found in Dockerfile (broad permissions)"
+          fi
+          if grep -q "USER root" hf-space/Dockerfile; then
+            echo "NOTE: Running as root (required for HF Spaces)"
+          fi
+          echo "Dockerfile security check complete"

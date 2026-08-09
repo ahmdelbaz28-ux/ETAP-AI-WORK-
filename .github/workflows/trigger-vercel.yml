@@ -1,0 +1,224 @@
+name: Trigger Vercel Deploy
+
+# V143 CORRECTED: This workflow IS the primary deployment trigger.
+#
+# INVESTIGATION UPDATE (2026-07-08, verified with real Vercel + GitHub tokens):
+#   The Vercel project has gitRepository=null — there is NO native GitHub
+#   integration configured. This workflow (via Vercel API) is the ONLY
+#   deployment trigger.
+#
+#   The previous "V143 FINAL" commit incorrectly disabled the push trigger
+#   based on a misreading of the deployment metadata. The deployments showed
+#   gitSourceType="github" and githubDeployment="1", but these are set by the
+#   API call's gitSource parameter — they do NOT indicate native integration.
+#   The project's gitRepository=null confirms no native integration exists.
+#
+# STATUS: This workflow MUST stay enabled on push. It is the only way
+# deployments happen. The API quota (100/day) is a known limitation of
+# the hobby plan — see VERCEL_FINAL_REPORT.md for details.
+#
+# REAL FIX: Connect the Vercel project to the GitHub repo natively:
+#   1. Go to https://vercel.com/ahmdelbaz28/revit/settings/git
+#   2. Click "Connect Git Repository"
+#   3. Select ahmdelbaz28-ux/revit
+#   4. Once connected, native deployments will work (no API quota used)
+#   5. THEN disable this workflow's push trigger
+#
+# See VERCEL_FINAL_REPORT.md (corrected) for full details.
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      # Trigger only when frontend or Vercel config changes
+      - 'frontend/**'
+      - 'vercel.json'
+      - '.vercelignore'
+      - 'public/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Cancel in-progress runs of this workflow when a new push lands.
+# This prevents burning the Vercel free quota on rapid successive pushes.
+concurrency:
+  group: vercel-deploy-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  trigger-vercel:
+    name: Trigger Vercel production deployment
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check required secrets
+        id: check-secrets
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_DEPLOY_TOKEN }}
+        run: |
+          if [ -z "$VERCEL_TOKEN" ]; then
+            echo "❌ ERROR: VERCEL_DEPLOY_TOKEN secret is not set"
+            echo "   Create it at: https://vercel.com/account/tokens"
+            echo "   Then add as GitHub secret: VERCEL_DEPLOY_TOKEN"
+            exit 1
+          fi
+          echo "✅ VERCEL_DEPLOY_TOKEN is set"
+
+      - name: Trigger Vercel deploy via API (with retry)
+        id: trigger
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_DEPLOY_TOKEN }}
+          PROJECT_ID: prj_Y6Qr828DXS83tWF1LntFakyofMrf
+          TEAM_ID: team_eeEYqzXI8zkrTo62cUOTMVmS
+          REPO: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+
+          DEPLOY_PAYLOAD=$(cat <<EOF
+          {"name":"revit","target":"production","gitSource":{"type":"github","org":"ahmdelbaz28-ux","repo":"revit","ref":"main","sha":"${SHA}"}}
+          EOF
+          )
+
+          MAX_ATTEMPTS=3
+          for attempt in $(seq 1 $MAX_ATTEMPTS); do
+            echo "::group::Attempt $attempt/$MAX_ATTEMPTS"
+            echo "Triggering Vercel deployment for $SHA..."
+
+            RESPONSE=$(curl -sS -w "\n%{http_code}" \
+              --max-time 30 \
+              --retry 2 \
+              --retry-delay 5 \
+              -X POST \
+              "https://api.vercel.com/v13/deployments?projectId=${PROJECT_ID}&teamId=${TEAM_ID}" \
+              -H "Authorization: Bearer ${VERCEL_TOKEN}" \
+              -H "Content-Type: application/json" \
+              -d "$DEPLOY_PAYLOAD" || echo "CURL_FAILED")
+
+            HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+            BODY=$(echo "$RESPONSE" | head -n -1)
+
+            echo "HTTP response: $HTTP_CODE"
+            echo "Body: $BODY"
+            echo "::endgroup::"
+
+            # Success cases
+            if [ "$HTTP_CODE" = "200" ] || [ "$HTTP_CODE" = "201" ]; then
+              DEPLOY_ID=$(echo "$BODY" | python3 -c "import sys,json; print(json.load(sys.stdin).get('id','unknown'))" 2>/dev/null || echo "unknown")
+              DEPLOY_URL=$(echo "$BODY" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('url',''))" 2>/dev/null || echo "")
+              INSPECTOR_URL="https://vercel.com/${TEAM_ID}/${REPO}/${DEPLOY_ID}"
+
+              echo "deploy_id=$DEPLOY_ID" >> "$GITHUB_OUTPUT"
+              echo "deploy_url=$DEPLOY_URL" >> "$GITHUB_OUTPUT"
+              echo "inspector_url=$INSPECTOR_URL" >> "$GITHUB_OUTPUT"
+              echo "http_code=$HTTP_CODE" >> "$GITHUB_OUTPUT"
+              echo "✅ SUCCESS: Deployment $DEPLOY_ID triggered"
+              exit 0
+            fi
+
+            # Daily limit hit — Vercel free plan caps at 100 deploys/day
+            if echo "$BODY" | grep -q "api-deployments-free-per-day"; then
+              # V143 FIX: Extract the reset timestamp and convert to human-readable
+              RESET_MS=$(echo "$BODY" | python3 -c "import sys,json; print(json.load(sys.stdin).get('error',{}).get('limit',{}).get('reset','?'))" 2>/dev/null || echo "?")
+              if [ "$RESET_MS" != "?" ]; then
+                RESET_HUMAN=$(python3 -c "from datetime import datetime, timezone; print(datetime.fromtimestamp($RESET_MS/1000, tz=timezone.utc).isoformat())" 2>/dev/null || echo "unknown")
+              else
+                RESET_HUMAN="unknown"
+              fi
+              echo "⚠️  WARNING: Vercel free plan daily limit reached (100 deploys/day)"
+              echo "   Limit resets at: $RESET_HUMAN"
+              echo "   The Vercel GitHub webhook should auto-deploy once the limit resets."
+              echo "   If this persists for >24h, escalate to Vercel Pro plan or fix the webhook."
+              echo "   See OPS_RUNBOOK.md Task 1 for instructions to re-link the webhook."
+              echo "daily_limit_hit=true" >> "$GITHUB_OUTPUT"
+              echo "http_code=$HTTP_CODE" >> "$GITHUB_OUTPUT"
+              echo "reset_time=$RESET_HUMAN" >> "$GITHUB_OUTPUT"
+              # V143 FIX: Exit 1 (not 0) — the deployment did NOT happen.
+              # The previous behavior (exit 0) masked the failure, making the
+              # workflow appear successful when no deployment occurred. This
+              # caused operators to miss the issue for weeks. Now the failure
+              # is visible in the GitHub Actions UI, prompting action.
+              # NOTE: This does NOT block the build — the workflow runs on
+              # push to main, so even if it fails, the commit is already pushed.
+              exit 1
+            fi
+
+            # Auth errors — don't retry, fail immediately
+            if [ "$HTTP_CODE" = "401" ] || [ "$HTTP_CODE" = "403" ]; then
+              echo "❌ ERROR: Vercel API auth failed ($HTTP_CODE)"
+              echo "   Check that VERCEL_DEPLOY_TOKEN is valid and not expired"
+              exit 1
+            fi
+
+            # Transient errors — retry with backoff
+            if [ "$attempt" -lt "$MAX_ATTEMPTS" ]; then
+              BACKOFF=$((attempt * 10))
+              echo "⚠️  Attempt $attempt failed (HTTP $HTTP_CODE). Retrying in ${BACKOFF}s..."
+              sleep "$BACKOFF"
+            else
+              echo "❌ ERROR: All $MAX_ATTEMPTS attempts failed (last HTTP $HTTP_CODE)"
+              echo "   Vercel API response: $BODY"
+              exit 1
+            fi
+          done
+
+      - name: Write job summary
+        if: always()
+        env:
+          DEPLOY_ID: ${{ steps.trigger.outputs.deploy_id }}
+          DEPLOY_URL: ${{ steps.trigger.outputs.deploy_url }}
+          INSPECTOR_URL: ${{ steps.trigger.outputs.inspector_url }}
+          DAILY_LIMIT_HIT: ${{ steps.trigger.outputs.daily_limit_hit }}
+          HTTP_CODE: ${{ steps.trigger.outputs.http_code }}
+          RESET_TIME: ${{ steps.trigger.outputs.reset_time }}
+          SHA: ${{ github.sha }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          {
+            echo "## Vercel Deploy Trigger"
+            echo ""
+            echo "| Field | Value |"
+            echo "|-------|-------|"
+            echo "| Commit | [\`${SHA:0:7}\`](https://github.com/${{ github.repository }}/commit/${SHA}) |"
+            echo "| HTTP Status | ${HTTP_CODE:-N/A} |"
+
+            if [ -n "$DAILY_LIMIT_HIT" ] && [ "$DAILY_LIMIT_HIT" = "true" ]; then
+              echo "| Outcome | ❌ Daily limit hit (no deployment) |"
+              if [ -n "$RESET_TIME" ] && [ "$RESET_TIME" != "unknown" ]; then
+                echo "| Limit resets at | ${RESET_TIME} |"
+              fi
+              echo ""
+              echo "> ❌ **Vercel free plan daily limit reached (100 deploys/day).**"
+              echo "> The deployment did NOT happen. Two options:"
+              echo "> "
+              echo "> 1. **Wait for reset** — the limit resets in ~24h"
+              echo "> 2. **Re-link the Vercel GitHub webhook** (recommended) — follow"
+              echo ">    \`OPS_RUNBOOK.md\` Task 1 to re-link the integration. Once the"
+              echo ">    webhook is active, native Vercel deployments do NOT count"
+              echo ">    against the API quota."
+              echo "> "
+              echo "> See workflow logs: [run ${RUN_ID}](https://github.com/${{ github.repository }}/actions/runs/${RUN_ID})"
+            elif [ -n "$DEPLOY_ID" ] && [ "$DEPLOY_ID" != "unknown" ]; then
+              echo "| Deploy ID | \`${DEPLOY_ID}\` |"
+              if [ -n "$DEPLOY_URL" ]; then
+                echo "| Deployment URL | https://${DEPLOY_URL} |"
+              fi
+              if [ -n "$INSPECTOR_URL" ]; then
+                echo "| Inspector | [${INSPECTOR_URL}](${INSPECTOR_URL}) |"
+              fi
+              echo "| Outcome | ✅ Triggered |"
+              echo ""
+              echo "> Vercel deployment triggered successfully. Build takes ~2-5 min."
+              echo "> Monitor at the Inspector URL above."
+            else
+              echo "| Outcome | ❌ Failed |"
+              echo ""
+              echo "> ❌ Vercel deployment trigger failed. See [workflow logs](https://github.com/${{ github.repository }}/actions/runs/${RUN_ID}) for details."
+            fi
+
+            echo ""
+            echo "---"
+            echo "_Triggered by [${{ github.actor }}](https://github.com/${{ github.actor }})_"
+          } >> "$GITHUB_STEP_SUMMARY"

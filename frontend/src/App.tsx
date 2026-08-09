@@ -1,0 +1,270 @@
+// NOSONAR
+import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { Navigate, Route, Routes, useLocation } from "react-router-dom";
+import { Toaster } from "sonner";
+import { AskAiButton } from "@/components/ai/AskAiButton";
+import { AskAiSheet } from "@/components/ai/AskAiSheet";
+import CommandPalette from "@/components/command/CommandPalette";
+import { RouteGuard } from "@/components/auth/RouteGuard";
+import AppShell from "@/components/layout/AppShell";
+import OnboardingTour from "@/components/onboarding/OnboardingTour";
+import { GlobalHelpDrawer } from "@/components/shared/GlobalHelpDrawer";
+import type { HelpTopicId } from "@/help/types";
+import { ROUTE_HELP_MAP } from "@/help/types";
+import { useHealth } from "@/hooks/useApi";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { FireAlarmDesigner } from "./components/mockups/engineering/FireAlarmDesigner";
+import { AutoCADDrawPage } from "./pages/AutoCADDrawPage";
+// V140 Phase 6: New pages for comprehensive API coverage
+import { AutoCADPage } from "./pages/AutoCADPage";
+import { CADSettingsPage } from "./pages/CADSettingsPage";
+import Conflicts from "./pages/Conflicts";
+import Connections from "./pages/Connections";
+import { DashboardPage } from "./pages/DashboardPage";
+import { DigitalTwinConfigPage } from "./pages/DigitalTwinConfigPage";
+import { EnvironmentPage } from "./pages/EnvironmentPage";
+import { DigitalTwinConvertPage } from "./pages/DigitalTwinConvertPage";
+import { DigitalTwinHistoryPage } from "./pages/DigitalTwinHistoryPage";
+import { DigitalTwinPage } from "./pages/DigitalTwinPage";
+import ElementDetail from "./pages/ElementDetail";
+import Elements from "./pages/Elements";
+import { EngineeringPage } from "./pages/EngineeringPage";
+import { FACPPage } from "./pages/FACPPage";
+import { FireAlarmPage } from "./pages/FireAlarmPage";
+import { LoginPage } from "./pages/LoginPage";
+import { MarinePage } from "./pages/MarinePage";
+import { MemoryPage } from "./pages/MemoryPage";
+import { MonitorPage } from "./pages/MonitorPage";
+import { GraphRAGPage } from "./pages/GraphRAGPage";
+import { NotFoundPage } from "./pages/NotFoundPage";
+import { ProjectsPage } from "./pages/ProjectsPage";
+import { ReportGeneratorPage } from "./pages/ReportGeneratorPage";
+import { ReportsPage } from "./pages/ReportsPage";
+import { RevitCreatePage } from "./pages/RevitCreatePage";
+import { RevitElementsPage } from "./pages/RevitElementsPage";
+import { RevitPage } from "./pages/RevitPage";
+import { SettingsPage } from "./pages/SettingsPage";
+import { WorkflowPage } from "./pages/WorkflowPage";
+// V214: New feature pages
+import { MiningPage } from "./pages/MiningPage";
+import { ApiKeysPage } from "./pages/ApiKeysPage";
+import { ExportsPage } from "./pages/ExportsPage";
+import { SelfHealingPage } from "./pages/SelfHealingPage";
+// V8.1: New pages per Stitch-Ready UI Prompt
+import { CableRoutingPage } from "./pages/CableRoutingPage";
+import { ConduitPage } from "./pages/ConduitPage";
+import { CircuitsPage } from "./pages/CircuitsPage";
+import { DetectorsPage } from "./pages/DetectorsPage";
+import { AiAgentPage } from "./pages/AiAgentPage";
+import { AuditLogPage } from "./pages/AuditLogPage";
+import { BimImportPage } from "./pages/BimImportPage";
+import "./i18n";
+import "./styles/globals.css";
+import "./styles/typography.css";
+
+/**
+ * V193 (R1): Wrap the entire app in AuthProvider so any component can read
+ * the authentication state via useAuth(). The provider performs an initial
+ * GET /auth/me check on mount and exposes login/logout actions.
+ *
+ * V193 (R1): Routes are split into two groups:
+ *   1. PUBLIC routes — /login (and future /signup, /forgot-key). These render
+ *      WITHOUT the AppShell (full-screen, no sidebar).
+ *   2. PROTECTED routes — everything else. Each is wrapped in <RouteGuard>
+ *      which redirects to /login?from=<path> if the user is not authenticated.
+ *
+ * V193 (R13): A catch-all "*" route renders <NotFoundPage/> for unknown paths
+ * (previously the SPA silently returned 200 with empty content).
+ */
+function App() {
+        const { t, i18n } = useTranslation(); // NOSONAR — acceptable in this context
+        const { connected } = useHealth();
+        const location = useLocation();
+        const [helpOpen, setHelpOpen] = useState(false);
+        const [magicHelpTopic, setMagicHelpTopic] = useState<HelpTopicId | null>(
+                null,
+        );
+        const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
+        const [aiOpen, setAiOpen] = useState(false);
+
+        useEffect(() => {
+                // Set document direction based on language for RTL support
+                if (i18n.language === "ar") {
+                        document.documentElement.dir = "rtl";
+                        document.documentElement.lang = "ar";
+                } else {
+                        document.documentElement.dir = "ltr";
+                        document.documentElement.lang = "en";
+                }
+        }, [i18n.language]);
+
+        // V140 Phase 7: Magic Help — F1 opens help for current page
+        // V207.3: Ctrl+J opens AI Copilot
+        useEffect(() => {
+                const handleKeyDown = (e: KeyboardEvent) => {
+                        if (e.key === "F1" || (e.ctrlKey && e.key === "h")) {
+                                e.preventDefault();
+                                // Find help topic for current route
+                                const routeTopic = ROUTE_HELP_MAP[location.pathname];
+                                setMagicHelpTopic(routeTopic || null);
+                                setHelpOpen(true);
+                        } else if (e.ctrlKey && e.key === "k") {
+                                e.preventDefault();
+                                setCommandPaletteOpen(true);
+                        } else if (e.ctrlKey && e.key === "j") {
+                                e.preventDefault();
+                                setAiOpen((prev) => !prev);
+                        }
+                };
+                globalThis.addEventListener("keydown", handleKeyDown);
+                return () => globalThis.removeEventListener("keydown", handleKeyDown);
+        }, [location.pathname]);
+
+        // V193 (R10): Skip-link for keyboard users to bypass the sidebar.
+        // First focusable element on every page. WCAG 2.4.1 (Level A) requirement.
+        const SkipLink = (
+                <a
+                        href="#main-content"
+                        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:bg-primary focus:text-white focus:px-4 focus:py-2 focus:rounded focus:shadow-lg focus:outline-none"
+                >
+                        Skip to main content
+                </a>
+        );
+
+        // PUBLIC routes — rendered without the AppShell (full-screen)
+        const publicRoutes = (
+                <Routes>
+                        <Route path="/login" element={<LoginPage />} />
+                </Routes>
+        );
+
+        // PROTECTED routes — wrapped in RouteGuard, rendered inside AppShell
+        const protectedRoutes = [
+                { path: "/", element: <Navigate to="/dashboard" /> },
+                { path: "/dashboard", element: <DashboardPage /> },
+                { path: "/projects", element: <ProjectsPage /> },
+                { path: "/engineering", element: <EngineeringPage /> },
+                { path: "/marine", element: <MarinePage /> },
+                { path: "/facp", element: <FACPPage /> },
+                { path: "/environment", element: <EnvironmentPage /> },
+                { path: "/monitor", element: <MonitorPage /> },
+                { path: "/memory", element: <MemoryPage /> },
+                { path: "/graphrag", element: <GraphRAGPage /> },
+                { path: "/workflow", element: <WorkflowPage /> },
+                { path: "/reports", element: <ReportsPage /> },
+                { path: "/reports/generate", element: <ReportGeneratorPage /> },
+                { path: "/settings", element: <SettingsPage /> },
+                { path: "/settings/cad", element: <CADSettingsPage /> },
+                { path: "/digital-twin", element: <DigitalTwinPage /> },
+                { path: "/fire-alarm", element: <FireAlarmPage /> },
+                { path: "/fire-alarm/designer", element: <FireAlarmDesigner /> },
+                // V214: New feature routes
+                { path: "/mining", element: <MiningPage /> },
+                { path: "/api-keys", element: <ApiKeysPage /> },
+                { path: "/exports", element: <ExportsPage /> },
+                { path: "/self-healing", element: <SelfHealingPage /> },
+                // V8.1: New routes per Stitch-Ready UI Prompt
+                { path: "/detectors", element: <DetectorsPage /> },
+                { path: "/cable-routing", element: <CableRoutingPage /> },
+                { path: "/conduit", element: <ConduitPage /> },
+                { path: "/circuits", element: <CircuitsPage /> },
+                { path: "/safety-rules", element: <EngineeringPage /> },
+                { path: "/ai-agent", element: <AiAgentPage /> },
+                { path: "/bim-import", element: <BimImportPage /> },
+                { path: "/audit-log", element: <AuditLogPage /> },
+                // V140 FIX: Add missing routes that Sidebar links to
+                {
+                        path: "/fire-alarm-designer",
+                        element: <Navigate to="/fire-alarm/designer" />,
+                },
+                { path: "/elements", element: <Elements /> },
+                { path: "/elements/:elementId", element: <ElementDetail /> },
+                { path: "/connections", element: <Connections /> },
+                { path: "/conflicts", element: <Conflicts /> },
+                // V140 Phase 6: New routes for comprehensive API coverage
+                { path: "/autocad", element: <AutoCADPage /> },
+                { path: "/autocad/draw", element: <AutoCADDrawPage /> },
+                { path: "/revit", element: <RevitPage /> },
+                { path: "/revit/create", element: <RevitCreatePage /> },
+                { path: "/revit/elements", element: <RevitElementsPage /> },
+                { path: "/digital-twin/convert", element: <DigitalTwinConvertPage /> },
+                { path: "/digital-twin/config", element: <DigitalTwinConfigPage /> },
+                { path: "/digital-twin/history", element: <DigitalTwinHistoryPage /> },
+        ];
+
+        // Determine if we're on a public route (no AppShell)
+        const isPublicRoute = location.pathname === "/login";
+
+        return (
+                <AuthProvider>
+                        <div className="h-screen bg-background text-foreground">
+                                {SkipLink}
+                                {isPublicRoute ? (
+                                        publicRoutes
+                                ) : (
+                                        <AppShell
+                                                isConnected={connected}
+                                                backendUrl={import.meta.env.VITE_API_URL || "/api/v1"}
+                                                environment={import.meta.env.MODE || "development"}
+                                                currentLanguage={i18n.language}
+                                                onLanguageChange={(lng: string) => i18n.changeLanguage(lng)}
+                                                onHelpOpen={() => {
+                                                        setMagicHelpTopic(null);
+                                                        setHelpOpen(true);
+                                                }}
+                                                onSearchOpen={() => setCommandPaletteOpen(true)}
+                                        >
+                                                <main
+                                                        id="main-content"
+                                                        className="flex-1 overflow-auto relative"
+                                                        tabIndex={-1}
+                                                >
+                                                        <Routes>
+                                                                {protectedRoutes.map((route) => (
+                                                                        <Route
+                                                                                key={route.path}
+                                                                                path={route.path}
+                                                                                element={
+                                                                                        <RouteGuard>{route.element}</RouteGuard>
+                                                                                }
+                                                                        />
+                                                                ))}
+                                                                {/* V193 (R13): 404 catch-all */}
+                                                                <Route
+                                                                        path="*"
+                                                                        element={
+                                                                                <RouteGuard>
+                                                                                        <NotFoundPage />
+                                                                                </RouteGuard>
+                                                                        }
+                                                                />
+                                                        </Routes>
+                                                </main>
+                                        </AppShell>
+                                )}
+                                {/* V140 Phase 7: Global Help Drawer with full tree + user guide */}
+                                <GlobalHelpDrawer
+                                        open={helpOpen}
+                                        onOpenChange={setHelpOpen}
+                                        initialTopicId={magicHelpTopic}
+                                />
+                                <CommandPalette
+                                        open={commandPaletteOpen}
+                                        onOpenChange={setCommandPaletteOpen}
+                                />
+                                {/* V207.3: Global AI Copilot — visible on all protected routes (Ctrl+J) */}
+                                {!isPublicRoute && (
+                                        <>
+                                                <AskAiButton onClick={() => setAiOpen(true)} />
+                                                <AskAiSheet open={aiOpen} onOpenChange={setAiOpen} />
+                                        </>
+                                )}
+                                <OnboardingTour />
+                                <Toaster position="bottom-right" />
+                        </div>
+                </AuthProvider>
+        );
+}
+
+export default App;

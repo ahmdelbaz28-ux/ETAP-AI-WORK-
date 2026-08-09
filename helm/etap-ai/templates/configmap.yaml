@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "etap-ai.fullname" . }}-config
+  labels:
+    {{- include "etap-ai.labels" . | nindent 4 }}
+data:
+  REDIS_URL: "redis://{{ include "etap-ai.fullname" . }}-redis-master:6379/0"
+  USE_ETAP: "{{ .Values.env.USE_ETAP }}"
+  PRIVACY_MODE: "{{ .Values.env.PRIVACY_MODE }}"
+  ENVIRONMENT: "{{ .Values.env.ENVIRONMENT }}"
+  LOG_LEVEL: "{{ .Values.env.LOG_LEVEL }}"
+  PORT: "{{ .Values.env.PORT }}"
+  ENGINEERING_SERVICE_MAX_BODY_SIZE: "10485760"  # 10MB
+  ENGINEERING_SERVICE_RATE_LIMIT_WINDOW: "60"
+  ENGINEERING_SERVICE_RATE_LIMIT_MAX: "100"
+  ENGINEERING_SERVICE_REQUEST_TIMEOUT: "300"  # 5 minutes for heavy calculations

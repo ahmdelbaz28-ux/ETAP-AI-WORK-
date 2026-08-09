@@ -1,0 +1,62 @@
+---
+# Standalone BackupSchedule manifests — apply these if you installed Velero
+# via the CLI (not via Helm). If you installed Velero with the Helm values
+# above, these schedules are created automatically and you do NOT need to
+# apply this file.
+apiVersion: velero.io/v1
+kind: Schedule
+metadata:
+  name: etap-daily-backup
+  namespace: velero
+  labels:
+    app.kubernetes.io/part-of: etap-ai-platform
+    component: backup
+spec:
+  schedule: "0 2 * * *"      # 02:00 daily
+  template:
+    includedNamespaces:
+      - etap
+    ttl: "720h"               # 30-day retention
+    snapshotVolumes: true
+    includeClusterResources: false
+    hooks:
+      resources:
+        - name: postgres-checkpoint-hook
+          includedNamespaces:
+            - etap
+          labelSelector:
+            matchLabels:
+              cnpg.io/cluster: etap-postgres
+          post:
+            - exec:
+                container: postgres
+                command:
+                  - /bin/sh
+                  - -c
+                  - "pg_ctl checkpoint -D /var/lib/postgresql/data/pgdata"
+                timeout: 60s
+                onError: Continue
+    labels:
+      schedule: daily
+      component: etap
+---
+apiVersion: velero.io/v1
+kind: Schedule
+metadata:
+  name: etap-weekly-full-backup
+  namespace: velero
+  labels:
+    app.kubernetes.io/part-of: etap-ai-platform
+    component: backup
+spec:
+  schedule: "0 1 * * 0"      # 01:00 every Sunday
+  template:
+    includedNamespaces:
+      - etap
+      - etap-infra
+    ttl: "8760h"              # 365-day retention
+    snapshotVolumes: true
+    includeClusterResources: true
+    labels:
+      schedule: weekly-full
+      component: etap

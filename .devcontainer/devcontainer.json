@@ -1,0 +1,80 @@
+{
+  "name": "AhmedETAP AI Engineering Platform",
+  "dockerComposeFile": "docker-compose.devcontainer.yml",
+  "service": "devcontainer",
+  "workspaceFolder": "/workspace",
+  "shutdownAction": "stopCompose",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "ms-python.black-formatter",
+        "astral-sh.ruff",
+        "dbaeumer.vscode-eslint",
+        "ms-vscode.vscode-typescript-next",
+        "vitest.explorer",
+        "github.copilot-chat",
+        "github.copilot",
+        "ms-azuretools.vscode-docker",
+        "eamodio.gitlens",
+        "yzhang.markdown-all-in-one",
+        "tamasfe.even-better-toml"
+      ],
+      "settings": {
+        "python.defaultInterpreterPath": "/usr/local/bin/python",
+        "python.testing.pytestEnabled": true,
+        "python.testing.pytestArgs": ["tests"],
+        "python.linting.ruffEnabled": true,
+        "python.linting.mypyEnabled": true,
+        "python.formatting.provider": "ruff",
+        "[python]": {
+          "editor.defaultFormatter": "astral-sh.ruff",
+          "editor.formatOnSave": true
+        },
+        "[typescript]": {
+          "editor.defaultFormatter": "dbaeumer.vscode-eslint"
+        },
+        "[json]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode"
+        },
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "files.eol": "\n",
+        "files.insertFinalNewline": true,
+        "files.trimFinalNewlines": true
+      }
+    }
+  },
+  "forwardPorts": [
+    3000,
+    7860,
+    8000,
+    6379,
+    5432,
+    6333,
+    6334,
+    7474,
+    7687,
+    3001,
+    9090,
+    16686,
+    9093
+  ],
+  "portsAttributes": {
+    "3000": { "label": "Grafana Dashboard" },
+    "7860": { "label": "HF Space / FastAPI" },
+    "8000": { "label": "Engineering Service API" },
+    "6379": { "label": "Redis" },
+    "5432": { "label": "PostgreSQL" },
+    "6333": { "label": "Qdrant" },
+    "7474": { "label": "Neo4j Browser" },
+    "9090": { "label": "Prometheus" },
+    "16686": { "label": "Jaeger" }
+  },
+  "postCreateCommand": "bash .devcontainer/scripts/setup-dev.sh",
+  "postStartCommand": "echo 'Devcontainer ready. Run: make help'",
+  "mounts": [
+    "source=pip-cache,target=/root/.cache/pip,type=volume",
+    "source=node-modules,target=/workspace/node_modules,type=volume"
+  ]
+}

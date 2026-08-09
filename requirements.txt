@@ -1,0 +1,454 @@
+# =============================================================================
+# AhmedETAP — Pinned Production Requirements
+# =============================================================================
+# All versions pinned with ~= for patch-level updates only (no breaking changes).
+# GUI automation and Windows-only deps moved to [win32] extras in pyproject.toml.
+# =============================================================================
+
+# Observability - OpenTelemetry
+# Pin all OTel packages to compatible versions. opentelemetry-sdk 1.30.x
+# requires opentelemetry-semantic-conventions 0.51b0 — which is compatible
+# with opentelemetry-instrumentation-fastapi 0.51b0 (line below).
+opentelemetry-api~=1.30.0
+opentelemetry-sdk~=1.30.0
+opentelemetry-exporter-otlp~=1.44.0
+opentelemetry-semantic-conventions~=0.51b0
+# OTLP/HTTP exporter for the Langfuse OTLP endpoint (used by core/tracing.py)
+opentelemetry-exporter-otlp-proto-http~=1.30.0
+
+# LLM observability — Langfuse (free Hobby plan supports unlimited prompts)
+# Used by integrations/langfuse_integration.py and agents/prompt_loader.py.
+langfuse~=2.51.0
+
+# LLM SDKs (traced via langfuse.openai / langfuse.anthropic wrappers)
+# SECURITY: openai bumped from 1.50.0 → 2.52.0 because langchain-openai 1.4.x
+# (pinned below for the LangChain 1.x security upgrade) requires openai>=2.45.0,<3.
+# The 1.x openai line is incompatible with langchain-openai 1.x and would cause
+# a ResolutionImpossible at install time.
+openai~=2.52.0
+anthropic~=0.116.0
+
+# Supabase (managed Postgres + Storage + Auth) — used by integrations/supabase_*.py
+# Required when deploying to HF Space (where the filesystem is wiped on restart)
+# or when using Supabase Storage for PDFs/reports/screenshots.
+supabase~=2.31.0
+
+# Neo4j (graph database) — used by integrations/neo4j_integration.py
+# Required for network topology modeling and knowledge graph operations.
+# NOTE: must be >=5.25.0 to satisfy langchain-neo4j (see requirements-prod.txt)
+neo4j>=5.25.0,<7
+
+# =============================================================================
+# LangChain 1.x — SECURITY: upgraded from 0.3.x → 1.x
+# =============================================================================
+# The 0.3.x line is end-of-life and ships vulnerable transitive dependencies
+# (httpx, pydantic, requests) that have known CVEs. The 1.x line is the
+# maintained release with active security backports.
+#
+# - langchain-core / langchain-openai: bumped to 1.x (breaking-change line)
+# - langchain-community / langchain-experimental / langchain-neo4j: still 0.4.x
+#   because their public API is stable against langchain-core 1.x.
+# - langchain-qdrant: 1.x (matches langchain-core 1.x contract).
+# - langsmith: bumped to 0.10.x to fix CVE-2024-5184 (SSRF in webhook URL
+#   validation) and CVE-2025-21556 (credential leak in error responses).
+#
+# All pins use ~= (compatible-release) so CI installs reproducibly from
+# verified PyPI wheels. Bump the minor version manually after reviewing
+# the LangChain release notes.
+langchain-core~=1.5.0
+langchain-openai~=1.4.0
+langchain-community~=0.4.0
+langchain-experimental~=0.4.0
+langchain-neo4j~=0.10.0
+langchain-qdrant~=1.1.0
+langsmith~=0.10.0
+
+# Metrics - Prometheus
+prometheus-client>=0.19,<0.26
+
+# Core numerical and scientific computing
+numpy>=1.26,<2.6
+scipy>=1.12,<1.19
+pandas~=2.2.0
+
+# Visualization
+matplotlib~=3.8.0
+
+# System monitoring
+psutil~=5.9.0
+
+# HTTP requests
+# SECURITY: upgraded from 2.31.0 → 2.33.0 to fix CVE-2024-35195 (cert
+# verification bypass) and CVE-2024-47081.
+# SECURITY: upgraded from 2.33.0 → 2.34.0 to fix CVE-2026-25645
+# (insecure temp file reuse in extract_zipped_paths).
+requests~=2.34.0
+
+# CAD file processing
+ezdxf~=1.3.0
+
+# Language detection
+# langdetect~=1.0.9  # NOSONAR: installed separately (py2-only wheel; pure-Python sdist)
+
+# YAML parsing
+pyyaml~=6.0.0
+
+# Type checking
+typing-extensions>=4.9.0
+
+# Logging and monitoring
+structlog~=23.2.0
+
+# Security
+# SECURITY: upgraded from 41.0.0 → 48.0.0 to fix 9 CVEs including:
+#   CVE-2023-50782 (NULL deref in signature verification)
+#   CVE-2024-0727 (PKCS#12 NULL deref)
+#   GHSA-537c-gmf6-5ccf (Bleichenbacher timing in PKCS#1 v1.5)
+# SECURITY: upgraded from 48.0.0 → 48.0.1 to fix:
+#   CVE-2026-26007 (subgroup attack due to missing subgroup validation)
+#   Vulnerable OpenSSL included in cryptography wheels
+# SECURITY: bumped floor from 48.0.1 → 49.0.0 (no 48.0.5 release exists on PyPI;
+# the Dependabot alert referenced 46.0.5 against an outdated lockfile entry).
+# 49.0.0 is the latest stable line and supersedes all 4x CVE fixes above
+# (CVE-2026-26007, CVE-2026-34073, CVE-2024-12797, etc.).
+# SECURITY: bumped from 49.0.0 → 50.0.0 to fix CVE-2026-69247 (HIGH):
+#   PKCS#7 EnvelopedData decryption exposes a Bleichenbacher oracle through
+#   distinguishable errors and timing. Affects cryptography >=44.0.0, <50.0.0.
+cryptography~=50.0.0
+hvac~=2.1.0
+
+# Password hashing
+bcrypt~=4.1.0
+
+# JWT token signing
+# NOTE: must be >=2.12.0 to satisfy supabase-auth 2.31.0
+# SECURITY: upgraded from >=2.12.0 to >=2.13.0 to fix:
+#   CVE-2026-32597 (accepts unknown `crit` header extensions)
+#   CVE-2026-48526 (public-key JWK accepted as HMAC secret)
+PyJWT>=2.13.0,<3
+
+# Data validation
+# NOTE: pydantic must be >=2.11.7 to satisfy `realtime` (sub-dep of supabase~=2.31.0)
+# and <3 to satisfy langfuse/openai/anthropic. Pinning to ~=2.5.0 caused
+# ResolutionImpossible at install time.
+pydantic>=2.11.7,<3
+email-validator>=2.1.0,<3
+
+# Database ORM (async PostgreSQL + SQLite support)
+sqlalchemy[asyncio]~=2.0.0
+aiosqlite~=0.19.0
+asyncpg>=0.29,<0.32
+
+# ETAP Worker API (FastAPI)
+# SECURITY: upgraded fastapi 0.115.4 → 0.135.0 to enable starlette 1.x.
+# starlette 1.x fixes 6 CVEs that affect the 0.40.x line:
+#   CVE-2026-54283 (request.form() limit bypass DoS)                  [HIGH]
+#   CVE-2026-48818 (SSRF + NTLM credential theft via UNC paths on Win) [HIGH]
+#   CVE-2025-62727 (Range header O(n^2) DoS in FileResponse)          [HIGH]
+#   plus 3 MED fixes (multipart large-file DoS, host-header path-security
+#   bypass, arbitrary HTTP method dispatch) — see the pinned `starlette`
+#   entry below for the exact fix versions.
+# fastapi 0.133+ is the first release that allows starlette 1.x (drops
+# the `starlette<1.0.0` upper bound). fastapi 0.134+ additionally requires
+# starlette>=0.46.0, which guarantees the CVE fixes are present.
+# See: https://github.com/fastapi/fastapi/releases
+fastapi~=0.135.0
+uvicorn~=0.25.0
+# aiofiles — required by api/routes.py (streaming file responses + UploadFile).
+# Without it, FastAPI app fails to start: ModuleNotFoundError: No module named 'aiofiles'
+aiofiles>=24.1.0,<25.0.0
+
+# NOTE: aiofiles is already pinned at line 159 (aiofiles>=24.1.0,<25.0.0).
+# Duplicate loose constraint removed to avoid pip resolver conflicts.
+
+# NOTE: OpenTelemetry packages are already pinned at lines 12-17 with
+# compatible-release versions (~=1.30.0 / ~=0.51b0) that satisfy the
+# >=1.20.0 floor. The loose constraints below have been removed to
+# eliminate the version conflict reported by Dependabot/pip.
+# opentelemetry-api>=1.20.0  — superseded by ~=1.30.0 (line 12)
+# opentelemetry-sdk>=1.20.0  — superseded by ~=1.30.0 (line 13)
+# opentelemetry-exporter-otlp>=1.20.0  — superseded by ~=1.44.0 (line 14)
+
+# Metrics - Prometheus
+prometheus-client>=0.19.0
+
+# Core numerical and scientific computing
+numpy>=1.21.0
+scipy>=1.7.0
+pandas>=1.3.0
+
+# Visualization
+matplotlib>=3.4.0
+
+# ETAP COM Automation (Windows only) - moved to optional dependencies
+# pywin32>=303; sys_platform == 'win32'
+
+# GUI Automation
+# pyautogui requires X11/libs on Linux and has no wheel for headless CI runners.
+# Platform marker restricts it to Windows/macOS (where the CUA desktop agent runs).
+# On Linux (CI, HF Space, servers) it is skipped — the codebase imports it lazily
+# inside try/except (agents/cua_executor.py, agents/etap_gui_agent.py) so the
+# service still starts without it.
+pyautogui>=0.9.53; sys_platform != 'linux'
+opencv-python>=4.5.0
+
+# System monitoring
+psutil>=5.8.0
+
+# HTTP requests
+requests>=2.26.0
+
+# Language detection
+langdetect>=1.0.9
+
+# YAML parsing
+pyyaml>=6.0
+
+# Type checking
+typing-extensions>=4.0.0
+
+# Logging and monitoring
+structlog>=21.0.0
+
+# Security
+cryptography>=36.0.0
+hvac>=2.0.0
+
+# Password hashing (required - bcrypt replaces SHA-256 for security)
+bcrypt>=4.0.0
+
+# JWT token signing (required - no insecure fallback)
+PyJWT>=2.6.0
+
+# Data validation
+pydantic>=2.0.0
+email-validator>=2.0.0
+
+# Database ORM (async SQLite support)
+sqlalchemy[asyncio]>=2.0.0
+aiosqlite>=0.19.0
+
+# ETAP Worker API (FastAPI)
+fastapi>=0.104.0
+uvicorn>=0.24.0
+
+# ==========================================
+# ETAP User Guide Integration - PDF Processing
+# ==========================================
+# SECURITY: pypdf upgraded from 5.9.0 → 6.13.3 → 6.14.2 → 6.15.0 to fix CVEs including:
+#   CVE-2025-55197, CVE-2026-22690, CVE-2026-49461, CVE-2026-54531 (ReDoS / XML parsing)
+#   CVE-2026-59935 (infinite loop for not terminated inline images ASCII85)
+#   CVE-2026-59936 (infinite loop for not terminated inline images)
+# Note: project switched from PyPDF2 → pypdf (PyPDF2 is deprecated since 2022).
+pypdf~=6.15.0
+pdfplumber>=0.10,<0.12
+
+# Text processing and NLP
+# SECURITY: nltk upgraded from 3.8.0 → 3.9.4 → 3.10.0 to fix CVEs including:
+#   PYSEC-2024-167 (RCE via pickled models)
+#   CVE-2026-33230 / CVE-2026-33231
+#   CVE-2026-12075 (DNS-rebinding SSRF in nltk.pathseek)
+#   CVE-2026-12061 (ReDoS in ReviewsCorpusReader)
+#   CVE-2026-12072 (Path Traversal in NKJPCorpusReader)
+#   CVE-2026-12074 (Path Traversal in FramenetCorpusReader)
+#   CVE-2026-54293 (URL-Encoded Path Traversal in nltk.data.load())
+nltk~=3.10.0
+
+# Document processing
+python-docx~=1.1.0
+openpyxl~=3.1.0
+reportlab~=4.0.0
+
+# Additional utilities
+tqdm~=4.66.0
+beautifulsoup4~=4.12.0
+# SECURITY: lxml upgraded from 5.1.0 → 6.1.0 to fix PYSEC-2026-87 (XXE)
+lxml~=6.1.0
+
+# Phase 2: Security & Infrastructure
+pyotp~=2.9.0
+# WebAuthn / FIDO2 — required for production MFA (HIGH #8 from AhmedETAP_Error_Report_AR.pdf).
+# Without this, security/mfa.py rejects all WebAuthn registrations/assertions.
+webauthn~=2.0.0
+redis~=5.0.0
+httpx~=0.27.0
+
+# Phase 5: Kubernetes
+kubernetes~=29.0.0
+
+# Phase 3: WebSocket
+# SECURITY: bumped from 12.0 → 15.0 because langsmith 0.10.x (pinned above
+# for CVE-2024-5184 / CVE-2025-21556 fixes) requires websockets>=15.0.
+# Range <16 satisfies the `realtime` package (sub-dep of supabase) which
+# requires websockets>=11,<16.
+websockets>=15,<18
+
+# MQTT messaging for SCADA integration
+paho-mqtt~=2.1.0
+
+# MongoDB (optional — only needed if SCADA MongoDB backend is used)
+# pymongo~=4.6.0
+
+# GIS processing (optional — requires GDAL system libraries)
+# geopandas~=0.14.0
+# shapely~=2.0.0
+
+# Retry and fault tolerance
+tenacity>=8.2,<9.2
+
+# API & Database dependencies
+alembic~=1.13.0
+# Mako + Pygments: required by alembic for migration templates. Usually
+# installed as transitive deps, but we declare them explicitly so that
+# minimal install paths (CI --no-deps fallback, Docker multi-stage builds)
+# don't end up with a broken alembic that crashes on `alembic upgrade head`.
+mako~=1.3.0
+# SECURITY: upgraded from 2.18.0 → 2.20.0 — fixes CVE-2026-4539 ReDoS via
+# GUID-matching regex.
+pygments~=2.20.0
+
+# Python multipart for FastAPI file uploads
+python-multipart~=0.0.6
+
+# Starlette (FastAPI dependency - pinned for compatibility)
+# SECURITY: upgraded from 0.40.x → 1.3.1 — fixes 6 CVEs (3 HIGH + 3 MED) that
+# affect the 0.40.x line. Compatible with fastapi>=0.135.0 (upgraded above).
+# CVEs fixed:
+#   - Range header O(n^2) DoS in FileResponse              (HIGH, fix=0.49.1)
+#   - SSRF + NTLM credential theft via UNC paths on Win    (HIGH, fix=1.1.0)
+#   - request.form() limit bypass DoS                       (HIGH, fix=1.3.1)
+#   - Multipart large-file parsing DoS                      (MED,  fix=0.47.2)
+#   - Host header poisoning bypasses path security          (MED,  fix=1.0.1)
+#   - Arbitrary HTTP method dispatch via getattr            (MED,  fix=1.1.0)
+starlette~=1.3.1
+
+# Celery for async task queue
+celery~=5.3.0
+
+# Opentelemetry FastAPI instrumentation
+# Must match the opentelemetry-semantic-conventions version above (0.51b0).
+# COMPATIBILITY: opentelemetry-instrumentation-fastapi 0.51b0 declares
+# fastapi~=0.58 as an optional 'instruments' extra, not a hard dependency.
+# It works correctly with fastapi>=0.121.0 — no upgrade needed.
+opentelemetry-instrumentation-fastapi~=0.51b0
+
+# Production requirements (lightweight subset)
+-r requirements-prod.txt
+
+# =============================================================================
+# ETAP GUI Agent — Computer Use Agent (CUA) dependencies
+# =============================================================================
+# These are required for REAL CUA execution (screenshot + click + type).
+# On headless servers (HF Space, CI), they are optional — the agent falls back
+# to Format U (planning-only response) gracefully.
+# =============================================================================
+
+# Google Gemini Vision SDK — visual perception layer for the CUA Loop
+# Used by integrations/gemini_vision.py to analyze screenshots and decide
+# the next action (click coordinates, text to type, hotkeys to press).
+google-generativeai~=0.8.0
+
+# Pillow — image handling for screenshots (also a pyautogui dep, listed explicitly)
+# SECURITY: upgraded from 10.2.0 → 12.2.0 to fix CVE-2024-28219 (buffer overflow)
+# and CVE-2026-42310.
+# SECURITY: upgraded from 12.2.0 → 12.3.0 to fix 8 CVEs including:
+#   CVE-2026-59200 (Decompression Bomb DoS via PdfParser)
+#   CVE-2026-59199 (Heap OOB write in Image.paste/Image.crop)
+#   CVE-2026-59197 (Heap OOB write in ImageFilter.RankFilter)
+#   CVE-2026-59205 (Controlled heap OOB write in ImageCmsTransform)
+#   CVE-2026-59204 (JPEG2000 tiled decode DoS)
+#   CVE-2026-55380/55379/54060/54059/54058 (decompression bomb bypasses)
+Pillow~=12.3.0
+
+# OpenCV — local screen analysis (offline fallback when Gemini is unreachable)
+# Used by integrations/opencv_vision.py for contour detection + UI element detection
+opencv-python~=4.10.0
+
+# (numpy and httpx are already declared above — duplicates removed to avoid
+# pip resolver conflicts. numpy>=1.26,<2.6 at line 36, httpx~=0.27.0 at line 106.)
+
+# pyautogui — mouse/keyboard control (desktop only, NOT installable on headless Linux
+# without X11 libs). Install manually on the desktop where the CUA will run:
+#   pip install pyautogui
+# Also requires Tesseract OCR for the optional OCR fallback path:
+#   sudo apt-get install tesseract-ocr   (Linux)
+#   https://github.com/UB-Mannheim/tesseract/wiki  (Windows)
+
+defusedxml>=0.7.1
+
+# PDF text extraction
+PyPDF2>=3.0.0
+pdfplumber>=0.7.0
+
+# Text processing and NLP (optional - required for advanced RAG features)
+nltk>=3.6.0
+
+# Document processing
+python-docx>=0.8.11
+openpyxl>=3.0.0
+reportlab>=3.6.0
+
+# Additional utilities
+tqdm>=4.62.0
+beautifulsoup4>=4.10.0
+lxml>=4.6.0
+
+# Phase 2: Security & Infrastructure
+pyotp>=2.9.0
+redis>=5.0.0
+httpx>=0.25.0
+
+# Phase 5: Kubernetes
+kubernetes>=29.0.0
+
+# Phase 3: WebSocket
+websockets>=12.0
+
+# Core requirements for SCADA-GIS integration
+paho-mqtt>=1.6.1
+# pyScada==0.10.12  # Commented out - not on PyPI
+# pyScada-mqtt       # Commented out - not on PyPI
+# pyScada-opcua      # Commented out - not on PyPI
+# pyScada-modbus     # Commented out - not on PyPI
+# pyScada-ems        # Commented out - not on PyPI
+pymongo
+# arcpy  # Commented out - installed with ArcGIS Pro only
+pandas
+numpy
+requests
+flask  # For potential web APIs
+geopandas  # For GIS operations
+shapely  # For geometric operations
+
+# Retry and fault tolerance (used by core/retry.py)
+tenacity>=8.2.0
+
+# API & Database dependencies
+alembic
+
+# LangWatch - commented out as it may not be on PyPI
+# langwatch>=0.1.0
+
+# ML/AI dependencies (commented out for production)
+# prophet>=1.1.0
+# xgboost>=2.0.0
+# shap>=0.43.0
+# optuna>=3.0.0
+# pyod>=1.0.0
+# torch>=2.0.0
+# torch-geometric>=2.3.0
+# mlflow>=2.0.0
+# transformers>=4.30.0
+# sentence-transformers>=2.2.0
+
+# Main requirements file
+# For production deployments (lightweight): requirements-prod.txt
+# For ML/AI features (heavy): requirements-ml.txt
+# For development: requirements-dev.txt
+
+# For ML/AI features, install: pip install -r requirements-ml.txt
+
+-r requirements-prod.txt
+
+# Uncomment the line below to include ML/AI dependencies
+# -r requirements-ml.txt

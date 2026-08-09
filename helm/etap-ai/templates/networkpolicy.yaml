@@ -1,0 +1,333 @@
+{{/*
+  Zero-Trust NetworkPolicy for AhmedETAP
+  ─────────────────────────────────────────
+  All pods default-deny ingress and egress.
+  Each policy below grants only the minimum required flows.
+
+  Traffic matrix:
+  ┌────────────┬──────────────────────────┬──────────────────────────────────────┐
+  │ Component  │ Ingress allowed from      │ Egress allowed to                    │
+  ├────────────┼──────────────────────────┼──────────────────────────────────────┤
+  │ API        │ Ingress controller        │ Redis, PostgreSQL, External (LLM)   │
+  │ Worker     │ API                      │ Redis, PostgreSQL, External (LLM)   │
+  │ Redis      │ API, Worker              │ None (internal only)                 │
+  │ PostgreSQL │ API, Worker              │ None (internal only)                 │
+  │ Grafana    │ Ingress controller       │ PostgreSQL                           │
+  └────────────┴──────────────────────────┴──────────────────────────────────────┘
+*/}}
+{{- if .Values.networkPolicy.enabled }}
+---
+# ╔══════════════════════════════════════════════════════════════╗
+# ║  DEFAULT-DENY — drop all ingress and egress in the namespace ║
+# ╚══════════════════════════════════════════════════════════════╝
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "etap-ai.fullname" . }}-default-deny-all
+  labels:
+    {{- include "etap-ai.labels" . | nindent 4 }}
+    policy: default-deny
+spec:
+  podSelector: {}            # matches every pod in the namespace
+  policyTypes:
+    - Ingress
+    - Egress
+
+---
+# ╔══════════════════════════════════════════════════════════════╗
+# ║  ALLOW DNS EGRESS — required by every pod for name resolution ║
+# ╚══════════════════════════════════════════════════════════════╝
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "etap-ai.fullname" . }}-allow-dns-egress
+  labels:
+    {{- include "etap-ai.labels" . | nindent 4 }}
+    policy: allow-dns
+spec:
+  podSelector: {}            # matches every pod in the namespace
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - namespaceSelector: {}
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+
+---
+# ╔══════════════════════════════════════════════════════════════╗
+# ║  API SERVICE NETWORK POLICY                                 ║
+# ║  Ingress: Ingress controller only                           ║
+# ║  Egress:  Redis, PostgreSQL, External (LLM APIs)            ║
+# ╚══════════════════════════════════════════════════════════════╝
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "etap-ai.fullname" . }}-api
+  labels:
+    {{- include "etap-ai.labels" . | nindent 4 }}
+    component: api
+    policy: zero-trust
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "etap-ai.selectorLabels" . | nindent 6 }}
+      component: api
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    # Allow traffic from the Ingress controller
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              {{- toYaml .Values.networkPolicy.ingressController.namespaceLabels | nindent 14 }}
+          podSelector:
+            matchLabels:
+              {{- toYaml .Values.networkPolicy.ingressController.podLabels | nindent 14 }}
+      ports:
+        - protocol: TCP
+          port: {{ .Values.api.service.port }}
+  egress:
+    # Egress to Redis (Bitnami sub-chart)
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: redis
+              app.kubernetes.io/instance: {{ include "etap-ai.fullname" . }}
+              app.kubernetes.io/component: master
+      ports:
+        - protocol: TCP
+          port: 6379
+    # Egress to PostgreSQL
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: postgresql
+              app.kubernetes.io/instance: {{ include "etap-ai.fullname" . }}
+              app.kubernetes.io/component: primary
+      ports:
+        - protocol: TCP
+          port: 5432
+    # Egress to external LLM APIs (HTTPS)
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+            except:
+              - 10.0.0.0/8
+              - 172.16.0.0/12
+              - 192.168.0.0/16
+      ports:
+        - protocol: TCP
+          port: 443
+        - protocol: TCP
+          port: 80
+
+---
+# ╔══════════════════════════════════════════════════════════════╗
+# ║  CELERY WORKER NETWORK POLICY                               ║
+# ║  Ingress: API service only                                  ║
+# ║  Egress:  Redis, PostgreSQL, External (LLM APIs)            ║
+# ╚══════════════════════════════════════════════════════════════╝
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "etap-ai.fullname" . }}-worker
+  labels:
+    {{- include "etap-ai.labels" . | nindent 4 }}
+    component: worker
+    policy: zero-trust
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "etap-ai.selectorLabels" . | nindent 6 }}
+      component: worker
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    # Allow traffic from the API service only
+    - from:
+        - podSelector:
+            matchLabels:
+              {{- include "etap-ai.selectorLabels" . | nindent 14 }}
+              component: api
+      ports:
+        - protocol: TCP
+          port: 5678
+  egress:
+    # Egress to Redis (Bitnami sub-chart)
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: redis
+              app.kubernetes.io/instance: {{ include "etap-ai.fullname" . }}
+              app.kubernetes.io/component: master
+      ports:
+        - protocol: TCP
+          port: 6379
+    # Egress to PostgreSQL
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: postgresql
+              app.kubernetes.io/instance: {{ include "etap-ai.fullname" . }}
+              app.kubernetes.io/component: primary
+      ports:
+        - protocol: TCP
+          port: 5432
+    # Egress to external LLM APIs (HTTPS)
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+            except:
+              - 10.0.0.0/8
+              - 172.16.0.0/12
+              - 192.168.0.0/16
+      ports:
+        - protocol: TCP
+          port: 443
+        - protocol: TCP
+          port: 80
+
+---
+# ╔══════════════════════════════════════════════════════════════╗
+# ║  REDIS NETWORK POLICY                                       ║
+# ║  Ingress: API and Worker only                               ║
+# ║  Egress:  None (internal datastore — no outbound needed)    ║
+# ╚══════════════════════════════════════════════════════════════╝
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "etap-ai.fullname" . }}-redis
+  labels:
+    {{- include "etap-ai.labels" . | nindent 4 }}
+    component: redis
+    policy: zero-trust
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: redis
+      app.kubernetes.io/instance: {{ include "etap-ai.fullname" . }}
+      app.kubernetes.io/component: master
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    # Allow traffic from the API service
+    - from:
+        - podSelector:
+            matchLabels:
+              {{- include "etap-ai.selectorLabels" . | nindent 14 }}
+              component: api
+      ports:
+        - protocol: TCP
+          port: 6379
+    # Allow traffic from the Celery Worker
+    - from:
+        - podSelector:
+            matchLabels:
+              {{- include "etap-ai.selectorLabels" . | nindent 14 }}
+              component: worker
+      ports:
+        - protocol: TCP
+          port: 6379
+  egress: []   # Redis is a passive datastore — no egress required
+
+---
+# ╔══════════════════════════════════════════════════════════════╗
+# ║  POSTGRESQL NETWORK POLICY                                  ║
+# ║  Ingress: API and Worker only                               ║
+# ║  Egress:  None (internal datastore — no outbound needed)    ║
+# ╚══════════════════════════════════════════════════════════════╝
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "etap-ai.fullname" . }}-postgresql
+  labels:
+    {{- include "etap-ai.labels" . | nindent 4 }}
+    component: postgresql
+    policy: zero-trust
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: postgresql
+      app.kubernetes.io/instance: {{ include "etap-ai.fullname" . }}
+      app.kubernetes.io/component: primary
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    # Allow traffic from the API service
+    - from:
+        - podSelector:
+            matchLabels:
+              {{- include "etap-ai.selectorLabels" . | nindent 14 }}
+              component: api
+      ports:
+        - protocol: TCP
+          port: 5432
+    # Allow traffic from the Celery Worker
+    - from:
+        - podSelector:
+            matchLabels:
+              {{- include "etap-ai.selectorLabels" . | nindent 14 }}
+              component: worker
+      ports:
+        - protocol: TCP
+          port: 5432
+  egress: []   # PostgreSQL is a passive datastore — no egress required
+
+---
+# ╔══════════════════════════════════════════════════════════════╗
+# ║  GRAFANA NETWORK POLICY                                     ║
+# ║  Ingress: Ingress controller only                           ║
+# ║  Egress:  PostgreSQL only                                   ║
+# ╚══════════════════════════════════════════════════════════════╝
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "etap-ai.fullname" . }}-grafana
+  labels:
+    {{- include "etap-ai.labels" . | nindent 4 }}
+    component: grafana
+    policy: zero-trust
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: grafana
+      app.kubernetes.io/instance: {{ include "etap-ai.fullname" . }}
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    # Allow traffic from the Ingress controller
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              {{- toYaml .Values.networkPolicy.ingressController.namespaceLabels | nindent 14 }}
+          podSelector:
+            matchLabels:
+              {{- toYaml .Values.networkPolicy.ingressController.podLabels | nindent 14 }}
+      ports:
+        - protocol: TCP
+          port: 3000
+  egress:
+    # Egress to PostgreSQL only (for dashboard data source)
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: postgresql
+              app.kubernetes.io/instance: {{ include "etap-ai.fullname" . }}
+              app.kubernetes.io/component: primary
+      ports:
+        - protocol: TCP
+          port: 5432
+
+{{- end }}

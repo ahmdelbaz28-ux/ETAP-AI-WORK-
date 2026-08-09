@@ -1,0 +1,18 @@
+# =============================================================================
+# Safety Policy — Known accepted vulnerabilities
+# =============================================================================
+# These are CVEs in transitive dependencies that are either:
+#   - Dev-only (not shipped to production)
+#   - Not exploitable in our deployment context
+#   - Awaiting upstream fix with no patch available
+#
+# Review quarterly — remove entries when the underlying package is upgraded.
+# =============================================================================
+
+security:
+  ignore-vulnerabilities:
+    # ─── numpy (transitive dep of scipy/pandas; not used for security-critical ops) ───
+    84393:
+      reason: "numpy transitive dep of scipy/pandas — not used for security-critical operations"
+
+  ignore-unpinned-requirements: true

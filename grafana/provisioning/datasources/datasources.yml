@@ -1,0 +1,38 @@
+apiVersion: 1
+
+datasources:
+  - name: Prometheus
+    type: prometheus
+    uid: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+    editable: true
+    jsonData:
+      httpMethod: POST
+      exemplarTraceIdDestinations:
+        - name: traceID
+          datasourceUid: jaeger
+
+  - name: Jaeger
+    type: jaeger
+    uid: jaeger
+    access: proxy
+    url: http://jaeger:16686
+    editable: true
+    jsonData:
+      tracesToLogs:
+        datasourceUid: prometheus
+        filterByTraceID: true
+        filterBySpanID: true
+      tracesToMetrics:
+        datasourceUid: prometheus
+        queries:
+          - name: "Request rate"
+            query: "sum(rate(http_server_request_duration_seconds_count{$$__tags}[5m]))"
+          - name: "Error rate"
+            query: "sum(rate(http_server_request_duration_seconds_count{$$__tags, http_response_status_code=~\"5..\"}[5m]))"
+          - name: "Duration P99"
+            query: "histogram_quantile(0.99, sum(rate(http_server_request_duration_seconds_bucket{$$__tags}[5m])) by (le))"
+      nodeGraph:
+        enabled: true

@@ -1,0 +1,8 @@
+- [x] Update `etap_integration/etap_worker_service.py`
+  - [x] Replace static `ETAP_WORKER_API_KEY` auth with JWT auth using `security/security_framework.py`
+  - [x] Enforce RBAC permission before executing studies
+- [x] Update `etap_integration/etap_com.py`
+  - [x] Add per-`ETAPStudyType` parameter schemas (allowed keys + type/range validation)
+  - [x] Reject unknown/unexpected parameters
+- [x] Wire ETAP schema validation into worker request handling (`StudyRequest.parameters`)
+- [x] Add unit tests (mock mode; no ETAP COM required) for schema validation + RBAC enforcement

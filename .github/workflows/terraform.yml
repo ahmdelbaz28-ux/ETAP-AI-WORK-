@@ -1,0 +1,339 @@
+# =============================================================================
+# AhmedETAP — Terraform CI/CD Pipeline
+# =============================================================================
+# Per CI/CD skill: "Shift Left" — catch infra problems BEFORE they reach production.
+# - On PRs: terraform fmt, init, validate, plan (comment results on the PR)
+# - On main merge: terraform apply (auto-approve for dev, manual for staging/prod)
+#
+# OIDC authentication: uses AzureAD federated identity (no stored secrets).
+# Set AZURE_SUBSCRIPTION_ID, AZURE_TENANT_ID as repo variables.
+# The federated identity credential is created by Terraform itself
+# (see: terraform/main.tf → azurerm_federated_identity_credential).
+# =============================================================================
+name: Terraform CI/CD
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "terraform/**"
+      - ".github/workflows/terraform.yml"
+  push:
+    branches: [main]
+    paths:
+      - "terraform/**"
+      - ".github/workflows/terraform.yml"
+  workflow_dispatch:  # Manual trigger for re-running after fixes
+
+concurrency:
+  group: terraform-${{ github.ref }}
+  cancel-in-progress: true
+
+# S8233: no workflow-level permissions — each job declares the minimal set below. NOSONAR
+
+env:
+  TF_VERSION: "1.9.0"
+  # These must be set as GitHub repository variables (not secrets — they're non-sensitive IDs)
+  AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+  AZURE_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+  AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
+
+jobs:
+  # ── 1. FORMAT & VALIDATE ────────────────────────────────────────────────────
+  tf-quality:
+    name: Terraform fmt + validate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd  # SECURITY R7-C2: pinned to commit SHA of tag v3 — resolves S7637
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+          terraform_wrapper: false
+
+      - name: Terraform Format Check
+        # Per CI/CD skill: "No gate can be skipped." Unformatted code = pipeline failure.
+        run: terraform fmt -check -recursive -diff terraform/
+
+      - name: Terraform Init (dev)
+        # Init with dev backend to validate module references.
+        # Uses local backend mock for CI — actual azurerm backend requires Azure auth.
+        id: init
+        run: |
+          cd terraform
+          # For CI validation: use a mock backend config that doesn't need real Azure storage.
+          # Production init is done in the plan/apply jobs with real OIDC auth.
+          terraform init -backend=false
+
+      - name: Terraform Validate
+        id: validate
+        run: |
+          cd terraform
+          terraform validate -no-color
+
+      - name: Validate Output
+        if: always()
+        run: |
+          echo "Terraform init: ${{ steps.init.outcome }}"
+          echo "Terraform validate: ${{ steps.validate.outcome }}"
+
+  # ── 2. PLAN ON PRs ──────────────────────────────────────────────────────────
+  tf-plan:
+    name: Terraform Plan
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    needs: tf-quality
+    environment: dev
+    permissions:
+      contents: read
+      pull-requests: write   # Required for commenting terraform plan on PRs
+      id-token: write        # Required for OIDC auth to Azure
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
+
+      - name: Azure OIDC Login
+        uses: azure/login@1384c340ab2dda50fed2bee3041d1d87018aa5e8  # SECURITY R7-C2: pinned to commit SHA of tag v2 — resolves S7637
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+          enable-AzurePipelines: false
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd  # SECURITY R7-C2: pinned to commit SHA of tag v3 — resolves S7637
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+          terraform_wrapper: false
+
+      - name: Terraform Init (dev backend)
+        id: init
+        run: |
+          cd terraform
+          terraform init \
+            -backend-config="environments/dev/backend.hcl" \
+            -no-color
+
+      - name: Terraform Plan
+        id: plan
+        run: |
+          cd terraform
+          terraform plan \
+            -var-file="environments/dev/terraform.tfvars" \
+            -no-color \
+            -input=false \
+            -out=tfplan
+          # Show the plan in a parseable format for the PR comment
+          # FIXED: Use ${{ github.workspace }} instead of $GITHUB_WORKSPACE for
+          # consistency with the github-script step below.
+          terraform show -no-color tfplan > ${{ github.workspace }}/tfplan.txt
+        continue-on-error: false  # Per CI/CD skill: no gate can be skipped
+
+      - name: Comment PR with Plan
+        if: always() && steps.plan.outcome != 'cancelled'
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3  # v9.0.0
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            // FIXED: Use github.workspace (workflow context) instead of env.GITHUB_WORKSPACE.
+            // env.GITHUB_WORKSPACE is undefined — it's a runner env var, not a workflow env.
+            const plan = fs.readFileSync('${{ github.workspace }}/tfplan.txt', 'utf8');
+            const maxLen = 65535;  // GitHub comment body limit
+            const truncated = plan.length > maxLen ? plan.substring(0, maxLen) + "\n\n⚠️ Plan truncated (too long for comment)" : plan;
+
+            // Find existing comment to update, or create new one
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            const botComment = comments.find(c => c.user.type === 'Bot' && c.body.startsWith('## Terraform Plan'));
+
+            const body = `## Terraform Plan Results\n\n${{ steps.plan.outcome == 'success' && '✅' || '❌' }} Plan status: **${{ steps.plan.outcome }}**\n\n<details><summary>Show Plan</summary>\n\n\`\`\`hcl\n${truncated}\n\`\`\`\n\n</details>\n\n---\n*Triggered by @${{ github.actor }} — [${{ github.sha }}](https://github.com/${{ github.repository }}/commit/${{ github.sha }})*`;
+
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: body,
+              });
+            }
+
+  # ── 3. APPLY ON MAIN MERGE ─────────────────────────────────────────────────
+  tf-apply-dev:
+    name: Terraform Apply (dev)
+    runs-on: ubuntu-latest
+    # Only run on push to main AND when Azure variables are configured
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push' && vars.AZURE_SUBSCRIPTION_ID != ''
+    needs: tf-quality
+    environment: dev
+    permissions:
+      contents: read
+      id-token: write        # Required for OIDC auth to Azure
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
+
+      - name: Azure OIDC Login
+        uses: azure/login@1384c340ab2dda50fed2bee3041d1d87018aa5e8  # SECURITY R7-C2: pinned to commit SHA of tag v2 — resolves S7637
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+          enable-AzurePipelines: false
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd  # SECURITY R7-C2: pinned to commit SHA of tag v3 — resolves S7637
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+          terraform_wrapper: false
+
+      - name: Terraform Init (dev backend)
+        id: init
+        run: |
+          cd terraform
+          terraform init \
+            -backend-config="environments/dev/backend.hcl" \
+            -no-color
+
+      - name: Terraform Plan (dev)
+        id: plan
+        run: |
+          cd terraform
+          terraform plan \
+            -var-file="environments/dev/terraform.tfvars" \
+            -no-color \
+            -input=false \
+            -out=tfplan
+
+      - name: Terraform Apply (dev)
+        id: apply
+        # Per CI/CD skill: "Smaller batches and more frequent releases reduce risk."
+        # Dev environment auto-applies; staging/prod require manual approval (environment protection rules).
+        run: |
+          cd terraform
+          terraform apply \
+            -auto-approve \
+            -input=false \
+            tfplan
+        continue-on-error: false  # No gate can be skipped — apply failure = pipeline failure
+
+  tf-apply-staging:
+    name: Terraform Apply (staging)
+    runs-on: ubuntu-latest
+    # Only run on push to main AND when Azure variables are configured
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push' && vars.AZURE_SUBSCRIPTION_ID != ''
+    needs: tf-quality
+    environment: staging  # Requires manual approval via GitHub environment protection rules
+    permissions:
+      contents: read
+      id-token: write        # Required for OIDC auth to Azure
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
+
+      - name: Azure OIDC Login
+        uses: azure/login@1384c340ab2dda50fed2bee3041d1d87018aa5e8  # SECURITY R7-C2: pinned to commit SHA of tag v2 — resolves S7637
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+          enable-AzurePipelines: false
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd  # SECURITY R7-C2: pinned to commit SHA of tag v3 — resolves S7637
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+          terraform_wrapper: false
+
+      - name: Terraform Init (staging backend)
+        id: init
+        run: |
+          cd terraform
+          terraform init \
+            -backend-config="environments/staging/backend.hcl" \
+            -no-color
+
+      - name: Terraform Plan (staging)
+        id: plan
+        run: |
+          cd terraform
+          terraform plan \
+            -var-file="environments/staging/terraform.tfvars" \
+            -no-color \
+            -input=false \
+            -out=tfplan
+
+      - name: Terraform Apply (staging)
+        id: apply
+        run: |
+          cd terraform
+          terraform apply \
+            -auto-approve \
+            -input=false \
+            tfplan
+        continue-on-error: false
+
+  tf-apply-prod:
+    name: Terraform Apply (prod)
+    runs-on: ubuntu-latest
+    # Only run on push to main AND when Azure variables are configured
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push' && vars.AZURE_SUBSCRIPTION_ID != ''
+    needs: tf-quality
+    environment: production  # Requires manual approval + restricted branch
+    permissions:
+      contents: read
+      id-token: write        # Required for OIDC auth to Azure
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
+
+      - name: Azure OIDC Login
+        uses: azure/login@1384c340ab2dda50fed2bee3041d1d87018aa5e8  # SECURITY R7-C2: pinned to commit SHA of tag v2 — resolves S7637
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+          enable-AzurePipelines: false
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd  # SECURITY R7-C2: pinned to commit SHA of tag v3 — resolves S7637
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+          terraform_wrapper: false
+
+      - name: Terraform Init (prod backend)
+        id: init
+        run: |
+          cd terraform
+          terraform init \
+            -backend-config="environments/prod/backend.hcl" \
+            -no-color
+
+      - name: Terraform Plan (prod)
+        id: plan
+        run: |
+          cd terraform
+          terraform plan \
+            -var-file="environments/prod/terraform.tfvars" \
+            -no-color \
+            -input=false \
+            -out=tfplan
+
+      - name: Terraform Apply (prod)
+        id: apply
+        run: |
+          cd terraform
+          terraform apply \
+            -auto-approve \
+            -input=false \
+            tfplan
+        continue-on-error: false
