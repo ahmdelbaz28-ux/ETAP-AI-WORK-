@@ -45,9 +45,13 @@ gh secret set GH_PAT              -b "github_pat_YOUR_PAT"
 gh secret set OPENAI_API_KEY      -b "sk-YOUR_OPENAI_KEY"
 gh secret set ANTHROPIC_API_KEY   -b "sk-ant-YOUR_ANTHROPIC_KEY"
 gh secret set GOOGLE_API_KEY      -b "YOUR_GOOGLE_AI_KEY"
+gh secret set LANGFUSE_BASE_URL   -b "https://cloud.langfuse.com"
 
 # ── Database & Infrastructure ──
 gh secret set DATABASE_URL        -b "postgresql+asyncpg://user:pass@host:5432/db"
+gh secret set NEO4J_URI           -b "bolt://host:7687"
+gh secret set NEO4J_USER          -b "neo4j"
+gh secret set NEO4J_PASSWORD      -b "YOUR_NEO4J_PASSWORD"
 gh secret set REDIS_PASSWORD      -b "YOUR_REDIS_PASSWORD"
 gh secret set JWT_SECRET_KEY      -b "YOUR_JWT_SECRET_KEY_MIN_32_BYTES"
 gh secret set ENCRYPTION_KEY      -b "YOUR_ENCRYPTION_KEY_MIN_32_BYTES"
@@ -95,6 +99,7 @@ These enable OIDC federated identity for Terraform (no stored secrets in GitHub)
 | `OPENAI_API_KEY` | https://platform.openai.com/api-keys | Application runtime |
 | `ANTHROPIC_API_KEY` | https://console.anthropic.com/ | Application runtime |
 | `GOOGLE_API_KEY` | https://aistudio.google.com/apikey | Application runtime |
+| `LANGFUSE_BASE_URL` | https://cloud.langfuse.com (pair with `LANGFUSE_PUBLIC_KEY` / `LANGFUSE_SECRET_KEY`) | `ci-cd.yml`, Application runtime |
 
 ### 5. Database & Infrastructure
 
@@ -104,6 +109,9 @@ These enable OIDC federated identity for Terraform (no stored secrets in GitHub)
 | `REDIS_PASSWORD` | Your Redis password | `docker-compose.yml`, `ci-cd.yml` |
 | `JWT_SECRET_KEY` | Generate: `openssl rand -hex 32` | Application runtime |
 | `ENCRYPTION_KEY` | Generate: `openssl rand -hex 32` | Application runtime |
+| `NEO4J_URI` | Neo4j → connection URI (e.g. `bolt://host:7687`) | `ci-cd.yml` |
+| `NEO4J_USER` | Neo4j database username | `ci-cd.yml` |
+| `NEO4J_PASSWORD` | Neo4j database password | `ci-cd.yml` |
 | `ENGINEERING_SERVICE_API_KEY` | Generate: `openssl rand -hex 32` | `docker-compose.yml`, `ci-cd.yml` |
 
 ### 6. CI/CD Tooling
