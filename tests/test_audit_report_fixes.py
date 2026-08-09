@@ -16,6 +16,8 @@ Finding 7: Centralized unit conversion safety
 Finding 8: Hazard override verification for AI classifications
 """
 
+from __future__ import annotations
+
 import os
 import sqlite3
 import tempfile

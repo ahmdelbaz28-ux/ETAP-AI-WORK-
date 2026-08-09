@@ -24,6 +24,8 @@ Standards:
   QOMN Specification §9 — Testing & Verification Protocol
 """
 
+from __future__ import annotations
+
 import os
 import sys
 

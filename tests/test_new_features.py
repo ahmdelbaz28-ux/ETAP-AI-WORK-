@@ -14,6 +14,8 @@ SECURITY NOTE (2026-07-21):
     set them in your local `.env` (gitignored) before running.
 """
 
+from __future__ import annotations
+
 import asyncio
 import json
 import os

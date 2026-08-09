@@ -17,6 +17,8 @@ Standards Referenced:
   - NEC (NFPA 70-2023): National Electrical Code
 """
 
+from __future__ import annotations
+
 import pytest
 
 from fireai.validation.compliance_engine import ComplianceEngine

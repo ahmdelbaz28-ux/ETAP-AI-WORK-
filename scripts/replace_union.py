@@ -5,7 +5,7 @@ root = pathlib.Path(r"C:/Users/EWS-01/Desktop/ETAP-WORK")
 
 
 def _find_typing_import_insertion_point(lines: list[str]) -> int:
-    """Find the line index where `from typing import ...` should be inserted."""
+    """Find the line index where `from typing import Optional, ...` should be inserted."""
     insert_idx = 0
     # skip shebang / encoding lines
     while insert_idx < len(lines) and lines[insert_idx].startswith(("#!", "#")):

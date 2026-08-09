@@ -17,7 +17,10 @@ from __future__ import annotations
 import math
 import os
 from dataclasses import asdict, dataclass, field
-from enum import StrEnum
+try:
+    from enum import StrEnum
+except ImportError:
+    from compat import StrEnum
 from typing import Any
 
 # ============================================================================

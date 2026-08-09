@@ -9,6 +9,8 @@ Tests verify that:
 - Helm secret.yaml does not hardcode secret values
 """
 
+from __future__ import annotations
+
 import ast
 import os
 import re

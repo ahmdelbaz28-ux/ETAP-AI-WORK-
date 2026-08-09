@@ -2,6 +2,8 @@
 Tests for network solver — Zbus computation and per-unit conversions.
 """
 
+from __future__ import annotations
+
 import cmath
 import math
 

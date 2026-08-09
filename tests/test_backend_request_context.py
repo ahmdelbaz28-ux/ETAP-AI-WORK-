@@ -1,5 +1,7 @@
 """Tests for backend/request_context.py — Correlation ID middleware."""
 
+from __future__ import annotations
+
 import uuid
 
 import pytest

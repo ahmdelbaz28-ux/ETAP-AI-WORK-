@@ -21,7 +21,7 @@ import time
 from collections import defaultdict
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
-from typing import Any, Awaitable, Callable
+from typing import Optional, Any, Awaitable, Callable
 
 from fireai.infrastructure.event_bus import Event
 

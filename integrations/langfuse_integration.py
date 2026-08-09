@@ -51,7 +51,7 @@ import logging
 import os
 import threading
 from collections.abc import Callable
-from typing import Any
+from typing import Optional, Any
 
 logger = logging.getLogger(__name__)
 

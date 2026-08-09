@@ -18,6 +18,8 @@ Tests verify that:
 - S-24 lock fix: mfa.py uses threading.Lock for shared state
 """
 
+from __future__ import annotations
+
 import os
 import re
 import unittest

@@ -5,6 +5,9 @@ Note: gis_integration has Python 3.8 type hint compatibility issues in some
 providers. Tests are skipped if the required imports are not available.
 """
 
+from __future__ import annotations
+from typing import Optional
+
 import pytest
 
 # Attempt import — gis_integration may fail on Python 3.8 due to Optional[X] syntax

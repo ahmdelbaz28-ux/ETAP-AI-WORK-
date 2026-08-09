@@ -3,6 +3,8 @@ Unit tests for the study service functionality.
 Tests the core study execution logic without external dependencies.
 """
 
+from __future__ import annotations
+
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest

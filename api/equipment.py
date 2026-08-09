@@ -32,7 +32,7 @@ import json
 import logging
 import uuid
 from datetime import UTC, datetime
-from typing import Any, Dict
+from typing import Optional, Any, Dict
 
 UTC = UTC
 
@@ -79,8 +79,8 @@ class EquipmentCategory(Base):
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     name: Mapped[str] = mapped_column(String(128), unique=True, index=True, nullable=False)
     slug: Mapped[str] = mapped_column(String(128), unique=True, index=True, nullable=False)
-    description: Mapped[str | None] = mapped_column(String(500), nullable=True)
-    icon: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    description: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
+    icon: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
     display_order: Mapped[int] = mapped_column(Integer, default=0)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
@@ -109,26 +109,26 @@ class Equipment(Base):
         index=True,
     )
     name: Mapped[str] = mapped_column(String(255), nullable=False)
-    manufacturer: Mapped[str | None] = mapped_column(String(255), nullable=True)
-    model_number: Mapped[str | None] = mapped_column(String(255), nullable=True)
-    serial_number: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    manufacturer: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    model_number: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    serial_number: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
 
     # Electrical specifications (JSON for flexibility)
-    specs: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    specs: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
 
     # Physical specifications
-    weight_kg: Mapped[float | None] = mapped_column(Float, nullable=True)
-    dimensions: Mapped[str | None] = mapped_column(String(255), nullable=True)  # "LxWxH"
+    weight_kg: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    dimensions: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)  # "LxWxH"
 
     # Standards compliance
-    standards: Mapped[dict | None] = mapped_column(
+    standards: Mapped[Optional[dict]] = mapped_column(
         JSON, nullable=True
     )  # {"IEEE": "C57.12.00", "IEC": "60076"}
 
     # Metadata
-    tags: Mapped[list | None] = mapped_column(JSON, nullable=True)
+    tags: Mapped[Optional[list]] = mapped_column(JSON, nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
-    notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     created_by: Mapped[str] = mapped_column(String(36), nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),

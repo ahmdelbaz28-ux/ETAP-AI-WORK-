@@ -6,6 +6,8 @@ Tests the security hardening components:
 - SIEM: Security event formatting for Loki/ELK
 """
 
+from __future__ import annotations
+
 import os
 import sys
 import time

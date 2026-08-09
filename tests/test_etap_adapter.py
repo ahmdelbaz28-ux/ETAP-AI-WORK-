@@ -3,6 +3,8 @@ Unit tests for etap_integration/etap_adapter.py.
 Covers: factory, MockETAPAdapter, ETAPProviderAdapter, disabled/enabled paths.
 """
 
+from __future__ import annotations
+
 import os
 from unittest.mock import MagicMock, patch
 

@@ -5,6 +5,8 @@ IEC 61850 data model mapping, real-time measurement processing, and
 bus data mapping.
 """
 
+from __future__ import annotations
+
 import os
 import sys
 

@@ -16,6 +16,8 @@ Standards:
   NFPA 72 (2022) Section 17.7.3.2.3.1 — Detector zone spacing
 """
 
+from __future__ import annotations
+
 import os
 import sys
 import unittest

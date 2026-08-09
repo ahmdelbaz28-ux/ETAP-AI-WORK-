@@ -5,6 +5,8 @@ Tests the SparseYBus class with realistic power system data including
 comparison between dense and sparse storage.
 """
 
+from __future__ import annotations
+
 import os
 import sys
 

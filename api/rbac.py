@@ -24,7 +24,7 @@ Exposes endpoints under the ``/api/v1/auth`` prefix:
 
 import uuid
 from datetime import UTC, datetime
-from typing import Any
+from typing import Optional, Any
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, ConfigDict, Field
@@ -65,14 +65,14 @@ class Role(Base):
     __tablename__ = "roles"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    tenant_id: Mapped[str | None] = mapped_column(
+    tenant_id: Mapped[Optional[str]] = mapped_column(
         String(36),
         ForeignKey(_TENANTS_ID_REF, ondelete=_SET_NULL_ACTION),
         nullable=True,
         index=True,
     )
     name: Mapped[str] = mapped_column(String(64), unique=True, index=True, nullable=False)
-    description: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    description: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
     is_system: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
@@ -95,7 +95,7 @@ class Permission(Base):
     __tablename__ = "permissions"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    tenant_id: Mapped[str | None] = mapped_column(
+    tenant_id: Mapped[Optional[str]] = mapped_column(
         String(36),
         ForeignKey(_TENANTS_ID_REF, ondelete=_SET_NULL_ACTION),
         nullable=True,
@@ -103,7 +103,7 @@ class Permission(Base):
     )
     resource: Mapped[str] = mapped_column(String(128), nullable=False, index=True)
     action: Mapped[str] = mapped_column(String(64), nullable=False)
-    description: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    description: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(UTC),
@@ -135,7 +135,7 @@ class UserRole(Base):
     __tablename__ = "user_roles"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    tenant_id: Mapped[str | None] = mapped_column(
+    tenant_id: Mapped[Optional[str]] = mapped_column(
         String(36),
         ForeignKey(_TENANTS_ID_REF, ondelete=_SET_NULL_ACTION),
         nullable=True,
@@ -147,7 +147,7 @@ class UserRole(Base):
     role_id: Mapped[str] = mapped_column(
         String(36), ForeignKey("roles.id", ondelete="CASCADE"), nullable=False, index=True
     )
-    assigned_by: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    assigned_by: Mapped[Optional[str]] = mapped_column(String(36), nullable=True)
     assigned_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(UTC),

@@ -11,9 +11,15 @@ These tests open the actual web UI in a headless Chrome browser and verify:
 
 Run: python3 tests/selenium/test_ui_real.py
 """
+from __future__ import annotations
+
 import os
 import sys
 import time
+
+import pytest
+
+pytest.importorskip("selenium")
 
 # Selenium imports
 from selenium import webdriver

@@ -64,8 +64,11 @@ from __future__ import annotations
 
 import logging
 import os
-from enum import StrEnum
-from typing import Any, Protocol, runtime_checkable
+try:
+    from enum import StrEnum
+except ImportError:
+    from compat import StrEnum
+from typing import Optional, Any, Protocol, runtime_checkable
 
 # Re-export BIMRoom from revit_bim_sync for backward compatibility.
 # Per agent.md Rule 2 (NO UNAUTHORIZED CHANGES): we do NOT move BIMRoom

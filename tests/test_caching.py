@@ -4,6 +4,8 @@ Tests the StudyCache class including cache miss, set/get, TTL expiry,
 invalidation, and in-memory fallback behavior.
 """
 
+from __future__ import annotations
+
 import asyncio
 import os
 import sys

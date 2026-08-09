@@ -1,5 +1,7 @@
 # File-level '# NOSONAR' removed per NOSONAR_AUDIT.md (V143 hardening).
 # Per-line justified suppressions (e.g., '# NOSONAR — S3776: ...') are preserved.
+from __future__ import annotations
+
 r"""
 QOMN-FIRE INPUT PARSING AND VALIDATION TEST SUITE
 

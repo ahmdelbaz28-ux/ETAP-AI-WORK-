@@ -28,7 +28,10 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime, timezone
-from enum import StrEnum
+try:
+    from enum import StrEnum
+except ImportError:
+    from compat import StrEnum
 from typing import Any, Generic, TypeVar
 from typing import Any, TypeVar
 

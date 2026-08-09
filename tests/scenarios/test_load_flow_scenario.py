@@ -5,6 +5,8 @@ Newton-Raphson convergence, voltage violation detection, and solver
 interaction with the orchestrator task framework.
 """
 
+from __future__ import annotations
+
 import os
 import sys
 

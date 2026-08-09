@@ -20,6 +20,8 @@ LIFE-SAFETY NOTE:
   every gate must be validated, and failures must stop the pipeline.
 """
 
+from __future__ import annotations
+
 import os
 import sys
 

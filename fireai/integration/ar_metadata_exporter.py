@@ -65,7 +65,10 @@ import struct
 import zipfile
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from enum import StrEnum
+try:
+    from enum import StrEnum
+except ImportError:
+    from compat import StrEnum
 from typing import Any
 
 logger = logging.getLogger(__name__)

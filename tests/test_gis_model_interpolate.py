@@ -7,6 +7,8 @@ out-of-range fractions to [0.0, 1.0] and returns the appropriate
 polyline endpoint.
 """
 
+from __future__ import annotations
+
 import sys
 from pathlib import Path
 

@@ -47,7 +47,10 @@ import math
 import os
 import time
 from datetime import datetime, timezone
-from enum import StrEnum
+try:
+    from enum import StrEnum
+except ImportError:
+    from compat import StrEnum
 from typing import Any, TypedDict
 
 from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver

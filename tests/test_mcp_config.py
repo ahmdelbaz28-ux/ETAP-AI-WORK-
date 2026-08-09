@@ -4,6 +4,8 @@ Test script to verify MCP (Multi-Capability Protocol) server configuration.
 This script validates the .mcp.json configuration and demonstrates how to interact with MCP servers.
 """
 
+from __future__ import annotations
+
 import json
 import sys
 from pathlib import Path

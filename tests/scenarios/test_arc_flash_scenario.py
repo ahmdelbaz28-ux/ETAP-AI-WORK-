@@ -4,6 +4,8 @@ Tests the arc flash analysis through multi-turn engineering scenarios covering
 IEEE 1584 incident energy calculation, arc flash boundary, and PPE category.
 """
 
+from __future__ import annotations
+
 import os
 import sys
 

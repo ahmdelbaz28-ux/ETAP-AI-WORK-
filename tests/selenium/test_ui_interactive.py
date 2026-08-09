@@ -7,11 +7,17 @@ testing form interactions on the Swagger UI.
 
 Run: python3 tests/selenium/test_ui_interactive.py
 """
+from __future__ import annotations
+
 import json
 import os
 import sys
 import time
 import urllib.request
+
+import pytest
+
+pytest.importorskip("selenium")
 
 from selenium import webdriver
 from selenium.common.exceptions import (

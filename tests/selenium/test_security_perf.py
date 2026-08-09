@@ -11,6 +11,8 @@ Tests:
 
 Run: python3 tests/selenium/test_security_perf.py
 """
+from __future__ import annotations
+
 import concurrent.futures
 import json
 import sys

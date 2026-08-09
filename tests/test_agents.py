@@ -6,6 +6,8 @@ This script tests each agent in the AhmedETAP system to ensure they
 are properly initialized and can execute basic operations.
 """
 
+from __future__ import annotations
+
 import asyncio
 import logging
 import os

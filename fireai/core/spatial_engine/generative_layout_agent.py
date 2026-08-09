@@ -92,7 +92,10 @@ import multiprocessing
 import os
 import time
 from dataclasses import dataclass, field
-from enum import StrEnum
+try:
+    from enum import StrEnum
+except ImportError:
+    from compat import StrEnum
 from typing import Any
 
 from fireai.core.boq_generator import UNIT_COSTS

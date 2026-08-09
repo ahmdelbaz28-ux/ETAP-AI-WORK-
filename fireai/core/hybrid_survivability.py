@@ -53,7 +53,10 @@ from __future__ import annotations
 import datetime
 import json
 import logging
-from enum import StrEnum
+try:
+    from enum import StrEnum
+except ImportError:
+    from compat import StrEnum
 
 from pydantic import BaseModel, ConfigDict, Field
 

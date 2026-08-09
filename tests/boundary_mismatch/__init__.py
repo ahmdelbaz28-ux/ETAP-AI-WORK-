@@ -9,3 +9,5 @@ These tests catch bugs that TypeScript generics and `npm run build` cannot:
 - Sync vs async response shapes
 - snake_case ↔ camelCase consistency
 """
+from __future__ import annotations
+

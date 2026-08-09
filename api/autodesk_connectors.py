@@ -25,11 +25,7 @@ from datetime import datetime, timezone
 try:
     from enum import StrEnum
 except ImportError:
-    from enum import Enum
-
-    class StrEnum(str, Enum):
-        """Fallback StrEnum for Python < 3.11."""
-        pass
+    from compat import StrEnum
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status

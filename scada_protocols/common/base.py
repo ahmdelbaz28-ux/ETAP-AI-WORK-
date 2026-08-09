@@ -19,7 +19,10 @@ import logging
 import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from enum import StrEnum
+try:
+    from enum import StrEnum
+except ImportError:
+    from compat import StrEnum
 from typing import Any, Callable, Dict, Optional, Tuple
 
 logger = logging.getLogger(__name__)

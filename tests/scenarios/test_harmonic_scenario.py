@@ -4,6 +4,8 @@ Tests the HarmonicAnalysisAgent through multi-turn engineering scenarios coverin
 IEEE 519 compliance, THD/TDD analysis, resonance detection, and filter design.
 """
 
+from __future__ import annotations
+
 import os
 import sys
 

@@ -3,6 +3,8 @@
 Catches field naming drift between DB columns, API responses, and TS types.
 """
 
+from __future__ import annotations
+
 import re
 from pathlib import Path
 

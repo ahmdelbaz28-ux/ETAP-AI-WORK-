@@ -35,7 +35,10 @@ from __future__ import annotations
 import logging
 import time
 from dataclasses import dataclass
-from enum import StrEnum
+try:
+    from enum import StrEnum
+except ImportError:
+    from compat import StrEnum
 
 import httpx
 from tenacity import retry, stop_after_attempt, wait_exponential

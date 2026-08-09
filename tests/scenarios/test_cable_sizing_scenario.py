@@ -5,6 +5,8 @@ IEC 60364 ampacity, voltage drop, short-circuit temperature, and cable
 recommendation.
 """
 
+from __future__ import annotations
+
 import os
 import sys
 

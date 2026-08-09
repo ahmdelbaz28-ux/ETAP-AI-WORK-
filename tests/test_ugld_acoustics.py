@@ -18,6 +18,8 @@ will actually detect a leak. Wrong physics = undetected leak = explosion.
 Reference: ISO 9613-1:1993, ISA-TR 84.00.07, IEC 60079-29-4
 """
 
+from __future__ import annotations
+
 import math
 
 import pytest

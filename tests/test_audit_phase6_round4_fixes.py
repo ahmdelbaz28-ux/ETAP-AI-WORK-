@@ -10,6 +10,8 @@ Tests verify that:
 - S-CURVE-1: curves.py handles I == Ip singularity with epsilon nudge
 """
 
+from __future__ import annotations
+
 import os
 import re
 import unittest

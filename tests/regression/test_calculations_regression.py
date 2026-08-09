@@ -3,6 +3,8 @@ Regression tests for calculation accuracy.
 Compares results against certified reference data to prevent regressions.
 """
 
+from __future__ import annotations
+
 from typing import Any, Dict
 
 import numpy as np

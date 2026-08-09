@@ -4,6 +4,8 @@ Tests the ReportGenerationAgent through multi-turn engineering scenarios coverin
 PDF/DOCX/XLSX export, report compilation, and recommendation generation.
 """
 
+from __future__ import annotations
+
 import os
 import sys
 import tempfile

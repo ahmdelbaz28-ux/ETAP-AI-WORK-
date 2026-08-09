@@ -39,7 +39,10 @@ import threading
 import time
 import uuid
 from dataclasses import dataclass, field
-from enum import StrEnum
+try:
+    from enum import StrEnum
+except ImportError:
+    from compat import StrEnum
 from typing import Any
 
 logger = logging.getLogger(__name__)

@@ -17,6 +17,8 @@ Standards Referenced:
   - CSFM, FDNY COA
 """
 
+from __future__ import annotations
+
 import pytest
 
 from facp_system.panel_database import (

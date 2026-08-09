@@ -23,7 +23,7 @@ import logging
 from datetime import datetime, timezone
 
 UTC = timezone.utc  # noqa: UP017
-from typing import Any
+from typing import Optional, Any
 
 from agents.orchestrator import AgentResult, AgentStatus, BaseAgent, EngineeringTask, StudyType
 

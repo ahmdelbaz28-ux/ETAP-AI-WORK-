@@ -3,6 +3,8 @@ Unit tests for the cache service.
 Tests Redis integration with fallback and retry mechanisms.
 """
 
+from __future__ import annotations
+
 import asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
 

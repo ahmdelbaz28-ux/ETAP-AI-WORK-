@@ -23,7 +23,10 @@ Standards Referenced:
 from __future__ import annotations
 
 import math
-from enum import StrEnum
+try:
+    from enum import StrEnum
+except ImportError:
+    from compat import StrEnum
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 

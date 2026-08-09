@@ -3,6 +3,8 @@ Test configuration and fixtures for the Engineering Service.
 Contains shared test utilities, mocks, and test network configurations.
 """
 
+from __future__ import annotations
+
 import contextlib
 import os
 import tempfile
@@ -715,6 +717,7 @@ async def db_engine() -> AsyncGenerator[AsyncEngine, None]:
     """
     import api.auth  # noqa: F401
     import api.projects  # noqa: F401
+    import api.tenants  # noqa: F401
 
     try:
         import api.mfa  # noqa: F401

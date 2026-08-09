@@ -5,6 +5,8 @@ These tests validate core CLI entry points and file presence without
 touching production data or external services.
 """
 
+from __future__ import annotations
+
 import os
 import subprocess
 import sys

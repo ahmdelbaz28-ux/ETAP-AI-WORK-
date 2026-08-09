@@ -23,6 +23,8 @@ Test Categories:
   10. Coverage Radius Consistency — R = 0.7*S must be consistent everywhere
 """
 
+from __future__ import annotations
+
 import os
 
 import pytest

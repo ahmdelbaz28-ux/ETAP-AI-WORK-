@@ -5,6 +5,8 @@ IEC 60909 fault analysis, sequence network construction, and fault current
 verification.
 """
 
+from __future__ import annotations
+
 import os
 import sys
 

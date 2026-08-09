@@ -20,6 +20,8 @@ Safety-critical edge cases (NaN, Inf, negative, zero) tested throughout.
 The ×2 DC return path factor in NAC loading is implicitly verified.
 """
 
+from __future__ import annotations
+
 import math
 
 import pytest

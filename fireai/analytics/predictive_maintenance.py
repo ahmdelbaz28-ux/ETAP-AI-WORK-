@@ -19,7 +19,10 @@ import logging
 import math
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from enum import StrEnum
+try:
+    from enum import StrEnum
+except ImportError:
+    from compat import StrEnum
 
 logger = logging.getLogger(__name__)
 

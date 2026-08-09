@@ -1,6 +1,8 @@
 # File-level '# NOSONAR' removed per NOSONAR_AUDIT.md (V143 hardening).
 # Per-line justified suppressions (e.g., '# NOSONAR — S3776: ...') are preserved.
 # test_self_healing_engine.py
+from __future__ import annotations
+
 import hashlib
 import hmac
 import json

@@ -2,6 +2,8 @@
 Tests for visualization module — Visualizer class.
 """
 
+from __future__ import annotations
+
 import matplotlib
 
 matplotlib.use("Agg")  # Must be set before importing pyplot

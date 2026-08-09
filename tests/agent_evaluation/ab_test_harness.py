@@ -7,6 +7,8 @@ Runs the same task twice:
 Compares outputs against quantitative assertions.
 """
 
+from __future__ import annotations
+
 import json
 import os
 from dataclasses import dataclass, field

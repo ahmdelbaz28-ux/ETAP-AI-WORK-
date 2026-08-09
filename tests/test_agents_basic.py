@@ -6,6 +6,8 @@ This script tests that each agent class can be imported and instantiated
 without running full execution which might require additional dependencies.
 """
 
+from __future__ import annotations
+
 import importlib.util
 import os
 import sys

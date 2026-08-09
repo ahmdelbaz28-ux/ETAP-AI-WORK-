@@ -18,6 +18,8 @@ Standards Referenced:
   - CSI MasterFormat 28 31 11
 """
 
+from __future__ import annotations
+
 import sys
 from pathlib import Path
 

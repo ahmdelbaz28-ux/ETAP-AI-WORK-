@@ -17,6 +17,8 @@ gas leaks are undetected — both can kill people.
 Reference: NFPA 72-2022 §18.4, ISO 9613-1:1993, ISA-TR 84.00.07
 """
 
+from __future__ import annotations
+
 import math
 
 import pytest

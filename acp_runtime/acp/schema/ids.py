@@ -12,7 +12,7 @@ is handled by making the field ``Optional[RequestId]``.
 from __future__ import annotations
 
 try:
-    from typing import Annotated, Union
+    from typing import Optional, Annotated, Union
 except ImportError:
     from typing_extensions import Annotated
 

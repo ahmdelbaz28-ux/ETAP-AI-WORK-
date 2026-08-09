@@ -2,6 +2,8 @@
 Basic application startup tests to ensure the modular components work together.
 """
 
+from __future__ import annotations
+
 import os
 from unittest.mock import patch
 

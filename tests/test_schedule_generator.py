@@ -12,6 +12,8 @@ Covers system requirement §4:
 References: NFPA 72 §23.6.2, NEC 760.24(A)
 """
 
+from __future__ import annotations
+
 import os
 import sys
 

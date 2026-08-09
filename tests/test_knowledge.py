@@ -6,6 +6,8 @@ which needs an embedding provider. Without sentence-transformers installed,
 set RAG_ALLOW_HASH_FALLBACK=1 to use deterministic SHA-256 fallback.
 """
 
+from __future__ import annotations
+
 import contextlib
 import os
 

@@ -1,5 +1,7 @@
 """Integration tests for authentication, RBAC, and API versioning."""
 
+from __future__ import annotations
+
 import pytest
 from fastapi.testclient import TestClient
 

@@ -39,6 +39,7 @@ SECRET_PATTERNS = [
 EXCLUDED_DIRS = {".git", "__pycache__", "node_modules", ".venv", "venv", "output", "dist", "skills"}
 EXCLUDED_FILES = {
     ".env.example",
+    ".gitleaks-baseline.json",
     "security_scan.py",
     "README.md",
     "SECURITY.md",

@@ -18,6 +18,8 @@ The ×2 DC return path factor in voltage drop is explicitly verified —
 this was a life-safety bug.
 """
 
+from __future__ import annotations
+
 import math
 
 import pytest

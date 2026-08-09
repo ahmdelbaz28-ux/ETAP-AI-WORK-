@@ -2,6 +2,8 @@
 Extended edge case tests for load flow, sparse solver, and power system models.
 """
 
+from __future__ import annotations
+
 import numpy as np
 import pytest
 

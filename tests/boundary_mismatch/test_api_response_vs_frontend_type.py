@@ -7,6 +7,8 @@ This test parses api/*.py for Pydantic response models and ui/src/lib/api.ts
 for TypeScript interfaces, then verifies field-name alignment.
 """
 
+from __future__ import annotations
+
 import re
 from pathlib import Path
 

@@ -24,9 +24,10 @@ from __future__ import annotations
 import logging
 import re
 import uuid
-from typing import Any, Optional
+from typing import Any, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.responses import Response
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from api.dependencies import get_api_key
@@ -368,7 +369,7 @@ async def list_zip_presets() -> Any:
 
 @router.get(
     "/zip-loads",
-    response_model=list[ZIPLoadConfigResponse],
+    response_model=List[ZIPLoadConfigResponse],
     summary="List all configured ZIP loads",
 )
 async def list_zip_loads() -> Any:
@@ -468,6 +469,8 @@ async def update_zip_load(load_id: str, body: ZIPLoadConfigUpdateRequest) -> Any
 @router.delete(
     "/zip-loads/{load_id}",
     status_code=status.HTTP_204_NO_CONTENT,
+    response_class=Response,
+    response_model=None,
     summary="Delete a ZIP load config",
 )
 async def delete_zip_load(load_id: str) -> None:
@@ -511,7 +514,7 @@ async def preview_zip_load(load_id: str, body: ZIPLoadPreviewRequest) -> Any:
 
 @router.get(
     "/generators",
-    response_model=list[GeneratorCapabilityResponse],
+    response_model=List[GeneratorCapabilityResponse],
     summary="List all generator capability configs",
 )
 async def list_generators() -> Any:
@@ -619,6 +622,8 @@ async def update_generator(gen_id: str, body: GeneratorCapabilityUpdateRequest) 
 @router.delete(
     "/generators/{gen_id}",
     status_code=status.HTTP_204_NO_CONTENT,
+    response_class=Response,
+    response_model=None,
     summary="Delete a generator capability config",
 )
 async def delete_generator(gen_id: str) -> None:

@@ -5,6 +5,8 @@ transient stability via swing equation, small-signal eigenvalue analysis,
 and critical clearing time computation per IEEE 399.
 """
 
+from __future__ import annotations
+
 import os
 import sys
 

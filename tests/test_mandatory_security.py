@@ -15,6 +15,8 @@ Test Categories:
   - Data Protection & Privacy
 """
 
+from __future__ import annotations
+
 import hashlib
 import hmac
 import os

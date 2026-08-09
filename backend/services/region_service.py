@@ -33,7 +33,10 @@ from __future__ import annotations
 import logging
 import os
 from dataclasses import dataclass
-from enum import StrEnum
+try:
+    from enum import StrEnum
+except ImportError:
+    from compat import StrEnum
 
 import httpx
 

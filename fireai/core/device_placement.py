@@ -29,7 +29,10 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass, field
-from enum import StrEnum
+try:
+    from enum import StrEnum
+except ImportError:
+    from compat import StrEnum
 from typing import Any
 
 from fireai.constants.nfpa72 import (

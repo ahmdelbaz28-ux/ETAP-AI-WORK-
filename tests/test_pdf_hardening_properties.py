@@ -17,6 +17,8 @@ This module verifies fundamental mathematical properties of:
   4. Convergence config validation
 """
 
+from __future__ import annotations
+
 import math
 
 import pytest

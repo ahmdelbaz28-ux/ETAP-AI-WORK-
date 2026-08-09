@@ -5,6 +5,8 @@ Tests cover activate_kill_switch, deactivate_kill_switch, and
 is_kill_switch_active — the public API of the kill-switch module.
 """
 
+from __future__ import annotations
+
 import json
 import os
 import sys

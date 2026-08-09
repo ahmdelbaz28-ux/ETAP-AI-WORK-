@@ -40,6 +40,8 @@ from datetime import UTC, datetime
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.responses import Response
+
 from pydantic import BaseModel, Field, field_validator
 
 from api.dependencies import get_api_key
@@ -520,6 +522,8 @@ async def create_webhook(
 @router.delete(
     "/webhooks/{webhook_id}",
     status_code=status.HTTP_204_NO_CONTENT,
+    response_class=Response,
+    response_model=None,
     summary="Remove a webhook",
 )
 async def delete_webhook(

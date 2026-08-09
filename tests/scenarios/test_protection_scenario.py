@@ -4,6 +4,8 @@ Tests the ProtectionCoordinationAgent through multi-turn engineering scenarios
 covering IEC 60255 relay coordination, time-current curves, and margin checks.
 """
 
+from __future__ import annotations
+
 import os
 import sys
 

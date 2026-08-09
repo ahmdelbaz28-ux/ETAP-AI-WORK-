@@ -4,6 +4,8 @@ Tests the ETAPExecutionAgent through multi-turn engineering scenarios covering
 ETAP provider interface, study execution, and cross-platform compatibility.
 """
 
+from __future__ import annotations
+
 import os
 import sys
 

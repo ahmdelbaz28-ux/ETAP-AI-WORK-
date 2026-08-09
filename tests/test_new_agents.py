@@ -4,6 +4,8 @@ Comprehensive unit tests for StabilityAgent, CableSizingAgent, EarthGridAgent,
 RenewableAgent, BatteryStorageAgent, and SCADAAgent.
 """
 
+from __future__ import annotations
+
 import os
 import sys
 

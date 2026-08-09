@@ -11,6 +11,8 @@ from typing import Dict
 from fastapi import APIRouter, Request
 from fastapi.responses import Response
 
+from pydantic import BaseModel
+
 from api._messages import ISO_8601_UTC_FMT
 from core.bootstrap import (
     _failed_count,

@@ -18,6 +18,8 @@ Test categories:
    9. WorkflowService — __init__, create_workflow, status, approve, reject, audit
 """
 
+from __future__ import annotations
+
 import os
 import sys
 

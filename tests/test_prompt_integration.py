@@ -10,6 +10,8 @@ Verifies:
 6. The /api/v1/agents/info endpoint would return valid data
 """
 
+from __future__ import annotations
+
 import logging
 import os
 from pathlib import Path

@@ -20,7 +20,7 @@ from __future__ import annotations
 import json
 import uuid
 from datetime import UTC, datetime
-from typing import Any
+from typing import Optional, Any
 
 UTC = UTC
 
@@ -57,15 +57,15 @@ class StudyVersion(Base):
     study_id: Mapped[str] = mapped_column(String(36), index=True, nullable=False)
     project_id: Mapped[str] = mapped_column(String(36), index=True, nullable=False)
     version_number: Mapped[int] = mapped_column(Integer, nullable=False)
-    label: Mapped[str | None] = mapped_column(String(255), nullable=True)
-    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    label: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     config_snapshot: Mapped[dict] = mapped_column(
         JSON, nullable=False
     )  # Full study config at this version
-    results_snapshot: Mapped[dict | None] = mapped_column(
+    results_snapshot: Mapped[Optional[dict]] = mapped_column(
         JSON, nullable=True
     )  # Results at this version
-    diff_summary: Mapped[str | None] = mapped_column(Text, nullable=True)  # What changed
+    diff_summary: Mapped[Optional[str]] = mapped_column(Text, nullable=True)  # What changed
     created_by: Mapped[str] = mapped_column(String(36), nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),

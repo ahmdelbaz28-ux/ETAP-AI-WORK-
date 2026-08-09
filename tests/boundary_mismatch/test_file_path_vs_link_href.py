@@ -4,6 +4,8 @@ Catches broken links: UI page links to /dashboard/studies but the actual
 page file is at /studies (or vice versa).
 """
 
+from __future__ import annotations
+
 import re
 from pathlib import Path
 

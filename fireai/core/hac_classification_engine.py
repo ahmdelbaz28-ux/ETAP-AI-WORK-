@@ -37,7 +37,10 @@ import logging
 import math
 import warnings as _warnings
 from dataclasses import dataclass
-from enum import StrEnum
+try:
+    from enum import StrEnum
+except ImportError:
+    from compat import StrEnum
 
 from fireai.core.international_reg_selector import (
     ATEXZone,

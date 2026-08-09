@@ -15,6 +15,8 @@ This test file:
 6. Verifies ownership checks (user A cannot access user B's data)
 """
 
+from __future__ import annotations
+
 import os
 import sys
 

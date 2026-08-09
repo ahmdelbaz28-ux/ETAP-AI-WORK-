@@ -4,6 +4,8 @@ Covers: happy path, failure paths, ETAP disabled, payload parsing.
 All tests mock the heavy backends (study engine, ETAP COM, Redis broker).
 """
 
+from __future__ import annotations
+
 import time
 import uuid
 from unittest.mock import MagicMock, patch

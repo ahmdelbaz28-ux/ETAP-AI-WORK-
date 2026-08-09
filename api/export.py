@@ -14,6 +14,7 @@ Exposes endpoints under ``/api/v1/export``:
 """
 
 from __future__ import annotations
+from typing import Optional
 
 import io
 import json
@@ -81,10 +82,10 @@ class ExportHistory(Base):
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     project_id: Mapped[str] = mapped_column(String(36), index=True, nullable=False)
-    study_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    study_id: Mapped[Optional[str]] = mapped_column(String(36), nullable=True)
     export_type: Mapped[str] = mapped_column(String(16), nullable=False)  # pdf, excel, csv
     file_name: Mapped[str] = mapped_column(String(255), nullable=False)
-    file_size_bytes: Mapped[int | None] = mapped_column(nullable=True)
+    file_size_bytes: Mapped[Optional[int]] = mapped_column(nullable=True)
     created_by: Mapped[str] = mapped_column(String(36), nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),

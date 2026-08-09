@@ -2,6 +2,8 @@
 Tests for reporting module — ReportSection, ReportMetadata, ChartGenerator, TableGenerator.
 """
 
+from __future__ import annotations
+
 import os
 import tempfile
 from datetime import datetime, timezone

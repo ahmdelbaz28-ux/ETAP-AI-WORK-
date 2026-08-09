@@ -2,6 +2,8 @@
 Tests for relays module — OvercurrentRelay, DistanceRelay, DifferentialRelay, DirectionalRelay.
 """
 
+from __future__ import annotations
+
 import math
 
 import numpy as np

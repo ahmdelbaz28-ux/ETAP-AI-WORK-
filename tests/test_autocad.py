@@ -8,6 +8,8 @@ Unit and integration tests for the AutoCAD service.
 Tests connection, file operations, and drawing functionality.
 """
 
+from __future__ import annotations
+
 import os
 import tempfile
 from unittest.mock import Mock, patch

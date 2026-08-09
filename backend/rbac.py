@@ -12,7 +12,10 @@ Three-role RBAC system:
 from __future__ import annotations
 
 from dataclasses import dataclass
-from enum import StrEnum
+try:
+    from enum import StrEnum
+except ImportError:
+    from compat import StrEnum
 
 
 class Role(StrEnum):

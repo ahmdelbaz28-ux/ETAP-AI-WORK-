@@ -12,6 +12,8 @@ Previous code incorrectly applied heat detector reduction to smoke detectors,
 causing up to 65% over-densification at high ceilings.
 """
 
+from __future__ import annotations
+
 import pytest
 
 # ============================================================================

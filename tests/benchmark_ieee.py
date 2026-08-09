@@ -3,6 +3,8 @@ Benchmark tests against IEEE standard test cases.
 Run: pytest tests/benchmark_ieee.py -v
 """
 
+from __future__ import annotations
+
 import numpy as np
 import pytest
 

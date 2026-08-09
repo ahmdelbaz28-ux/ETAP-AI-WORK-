@@ -14,6 +14,8 @@ Covers:
  11. Supported study types
 """
 
+from __future__ import annotations
+
 import os
 import uuid
 from unittest.mock import patch

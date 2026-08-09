@@ -28,7 +28,10 @@ Q3 (HIGH):         Unknown country raises UnknownCountryError (not silent warnin
 from __future__ import annotations
 
 import logging
-from enum import StrEnum
+try:
+    from enum import StrEnum
+except ImportError:
+    from compat import StrEnum
 
 from fireai.core.models_v21 import RegSelectorResult, RegulatoryFramework
 

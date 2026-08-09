@@ -2,6 +2,8 @@
 Tests for SCADA model and state estimation — SCADADatabase, SwitchDevice, WLSEstimator.
 """
 
+from __future__ import annotations
+
 import time
 
 import numpy as np

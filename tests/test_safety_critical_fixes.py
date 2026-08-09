@@ -23,6 +23,8 @@ P1 FIXES VERIFIED:
 Reference: NFPA 72-2022, AGENTS.md Rules 6 and 7
 """
 
+from __future__ import annotations
+
 import pytest
 
 from fireai.core.nfpa72_calculations import (

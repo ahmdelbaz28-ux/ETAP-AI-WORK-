@@ -47,7 +47,7 @@ import hmac
 import json
 import math
 from datetime import datetime, timezone
-from typing import Any
+from typing import Optional, Any
 
 
 def _float_round_default(obj: Any) -> Any:

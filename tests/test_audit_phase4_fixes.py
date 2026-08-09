@@ -9,6 +9,8 @@ Tests verify that:
 - Swallowed exceptions have SECURITY comments explaining intent
 """
 
+from __future__ import annotations
+
 import os
 import re
 import unittest

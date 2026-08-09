@@ -23,7 +23,7 @@ import os
 import uuid
 from datetime import UTC, datetime
 from enum import Enum
-from typing import Any, Dict
+from typing import Optional, Any, Dict
 
 from fastapi import APIRouter, Depends, HTTPException, Query, WebSocket, WebSocketDisconnect, status
 from pydantic import BaseModel, ConfigDict, Field
@@ -106,7 +106,7 @@ class Notification(Base):
     title: Mapped[str] = mapped_column(String(255), nullable=False)
     message: Mapped[str] = mapped_column(Text, nullable=False)
     priority: Mapped[str] = mapped_column(String(16), default=NotificationPriority.NORMAL.value)
-    data: Mapped[dict | None] = mapped_column(JSON, nullable=True)  # Additional payload
+    data: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)  # Additional payload
     is_read: Mapped[bool] = mapped_column(Boolean, default=False)
     is_archived: Mapped[bool] = mapped_column(Boolean, default=False)
     requires_email: Mapped[bool] = mapped_column(Boolean, default=False)
@@ -115,7 +115,7 @@ class Notification(Base):
         DateTime(timezone=True),
         default=lambda: datetime.now(UTC),
     )
-    read_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    read_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
 
 
 # ---------------------------------------------------------------------------

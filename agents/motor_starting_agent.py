@@ -35,7 +35,7 @@ try:
     from datetime import UTC
 except ImportError:
     UTC = timezone.utc
-from typing import Any
+from typing import Optional, Any
 
 import numpy as np
 

@@ -4,6 +4,8 @@ Tests the OptimalPowerFlowAgent through multi-turn engineering scenarios coverin
 DC-OPF, AC-OPF, economic dispatch, and power balance verification.
 """
 
+from __future__ import annotations
+
 import os
 import sys
 

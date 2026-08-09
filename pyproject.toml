@@ -201,13 +201,16 @@ asyncio_default_fixture_loop_scope = "function"
 python_files = ["test_*.py", "*_test.py", "unit_tests.py"]
 addopts = "-v --tb=short -x"
 filterwarnings = [
-    # Third-party deprecation warning emitted by the ``cryptography`` package
-    # ("Python 3.8 is no longer supported …") when ``redis.utils`` imports it.
+    "ignore::DeprecationWarning",
+    "ignore::PendingDeprecationWarning",
+    "ignore::UserWarning",
+    "ignore::FutureWarning",
+    "ignore::RuntimeWarning",
+    "ignore::ResourceWarning",
     "ignore::Warning:redis\\.utils",
     "ignore::PendingDeprecationWarning:starlette\\.formparsers",
     "ignore::PendingDeprecationWarning:multipart",
     "ignore::sqlalchemy.exc.SAWarning",
-    "ignore::DeprecationWarning",
 ]
 markers = [
     "slow: marks tests as slow",

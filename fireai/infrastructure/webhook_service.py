@@ -58,7 +58,7 @@ Usage
     sub = WebhookSubscription(
         id="sub-001",
         url="https://example.com/webhooks/fireai",
-        secret="my-hmac-secret",
+        secret="my-hmac-secret",  # pragma: allowlist secret
         event_types=["DESIGN_COMPLETED", "ROOM_ANALYSIS_COMPLETED"],
     )
     service.subscribe(sub)
@@ -91,7 +91,10 @@ import time
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from enum import StrEnum
+try:
+    from enum import StrEnum
+except ImportError:
+    from compat import StrEnum
 from typing import Any
 from urllib.parse import urlparse
 

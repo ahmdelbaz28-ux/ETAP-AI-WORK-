@@ -45,7 +45,10 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass
-from enum import StrEnum
+try:
+    from enum import StrEnum
+except ImportError:
+    from compat import StrEnum
 from typing import Any
 
 # ============================================================================

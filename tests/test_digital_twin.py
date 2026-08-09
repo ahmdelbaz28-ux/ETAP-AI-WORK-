@@ -8,6 +8,8 @@ Unit and integration tests for the Digital Twin service.
 Tests bidirectional conversion functionality and configuration management.
 """
 
+from __future__ import annotations
+
 import os
 import tempfile
 from unittest.mock import Mock, patch

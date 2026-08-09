@@ -4,6 +4,8 @@ Tests the EarthGridAgent through multi-turn engineering scenarios covering
 IEEE 80 mesh/step/touch voltage, allowable limits, and safety verification.
 """
 
+from __future__ import annotations
+
 import os
 import sys
 

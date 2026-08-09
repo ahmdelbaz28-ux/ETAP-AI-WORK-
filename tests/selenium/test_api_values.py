@@ -11,11 +11,13 @@ These tests check:
 Run: python3 tests/selenium/test_api_values.py
 """
 
+from __future__ import annotations
+
 import json
 import sys
 import urllib.error
 import urllib.request
-from typing import Any
+from typing import Any, Optional
 
 BASE_URL = "http://127.0.0.1:7860"
 
@@ -24,7 +26,7 @@ BASE_URL = "http://127.0.0.1:7860"
 # ---------------------------------------------------------------------------
 
 
-def request(method: str, path: str, body: dict | None = None) -> tuple[int, Any]:
+def request(method: str, path: str, body: Optional[dict] = None) -> tuple[int, Any]:
     """Make an HTTP request and return (status_code, parsed_json_or_text)."""
     url = BASE_URL + path
     data = json.dumps(body).encode() if body else None

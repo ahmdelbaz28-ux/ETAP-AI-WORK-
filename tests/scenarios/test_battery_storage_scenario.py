@@ -5,6 +5,8 @@ BESS sizing, dispatch optimization, ROI calculation, and cycle life analysis
 per IEC 62933.
 """
 
+from __future__ import annotations
+
 import os
 import sys
 

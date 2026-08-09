@@ -2,6 +2,8 @@
 Tests for ML predictive analytics — LoadForecaster, FaultPredictor, AnomalyDetector.
 """
 
+from __future__ import annotations
+
 import numpy as np
 import pytest
 

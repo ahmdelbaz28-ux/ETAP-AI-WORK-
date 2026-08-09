@@ -4,6 +4,8 @@ Tests the ValidationAgent through multi-turn engineering scenarios covering
 voltage limit checks, thermal verification, and standards compliance.
 """
 
+from __future__ import annotations
+
 import os
 import sys
 
