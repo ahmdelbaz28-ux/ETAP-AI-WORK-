@@ -9,7 +9,7 @@ tensorflow>=2.15.0; python_version >= '3.9' and python_version < '3.13'
 prophet>=1.1.0                      # Facebook Prophet - seasonal load forecasting
 xgboost>=2.0.0                      # Gradient boosting - fault prediction
 shap>=0.52.0                        # Model explainability - SHAP values
-optuna>=3.0.0                       # Hyperparameter optimization
+optuna>=4.9.0                       # Hyperparameter optimization
 pyod>=1.0.0                         # 30+ anomaly detection algorithms
 
 # Phase 6c: ML/AI - Deep Learning & GNN
