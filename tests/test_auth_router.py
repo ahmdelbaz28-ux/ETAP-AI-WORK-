@@ -23,11 +23,12 @@ import pytest
 from fastapi.testclient import TestClient
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture(scope="module", autouse=True)
 def _setup_env() -> Generator[None, None, None]:
     """Set test environment."""
     os.environ["FIREAI_ENV"] = "development"
     os.environ["FIREAI_API_KEY"] = "test_key_for_auth_123"
+    os.environ["FIREAI_SESSION_SECRET"] = "test_session_secret_0123456789012345678901234567890123456789_v143"
     return  # NOSONAR — acceptable in this context  # NOSONAR — acceptable in this context
 
 

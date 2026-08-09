@@ -59,7 +59,7 @@ class ContractSeverity(StrEnum):
 T = TypeVar("T", bound=BaseModel)
 
 
-class APIContract(Generic[T], BaseModel):
+class APIContract(BaseModel, Generic[T]):
 
     """
     Defines a typed API contract for an endpoint.

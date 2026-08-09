@@ -59,6 +59,7 @@ services:
       - USE_ETAP=${USE_ETAP:-false}
       - PRIVACY_MODE=${PRIVACY_MODE:-false}
       - ENGINEERING_SERVICE_API_KEY=${ENGINEERING_SERVICE_API_KEY:?ENGINEERING_SERVICE_API_KEY is required}
+      - DATABASE_URL=${DATABASE_URL:-postgresql://etap:etap@postgres:5432/etap_db}
       - ENVIRONMENT=${ENVIRONMENT:-development}
     # CRITICAL FIX: Added resource limits for Celery worker.
     deploy:

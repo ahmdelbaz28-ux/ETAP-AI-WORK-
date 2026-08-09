@@ -449,10 +449,16 @@ class ApiKeyMiddleware:
             env_key = _os.getenv("FIREAI_API_KEY")
             role = None
             if api_key and env_key and _hmac.compare_digest(api_key, env_key):
-                # Env var bypass — grant admin role (env key is the admin key)
+                # Env var bypass — configurable role (defaults to ADMIN, customizable via FIREAI_API_KEY_ROLE)
                 from backend.rbac import Role as _Role
 
-                role = _Role.ADMIN
+                configured_role = _os.getenv("FIREAI_API_KEY_ROLE", "admin").lower()
+                if configured_role == "engineer":
+                    role = _Role.ENGINEER
+                elif configured_role == "viewer":
+                    role = _Role.VIEWER
+                else:
+                    role = _Role.ADMIN
             elif api_key:
                 # Validate via RBAC key store
                 info = _validate_api_key(api_key)

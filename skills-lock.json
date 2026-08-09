@@ -12,6 +12,12 @@
       "computedHash": "computed-at-install-time",
       "_note": "AhmedETAP orchestration skill — enforces SharedContext, TokenBudget, MathGuard, PeerReview per REFERENCE.md."
     },
+    "caveman-commit": {
+      "source": "juliusbrussee/caveman",
+      "sourceType": "github",
+      "skillPath": "skills/caveman-commit/SKILL.md",
+      "computedHash": "f028652defd5fdeddcce2994083cb1a7b201ee827bba8e2495546ee159fca3de"
+    },
     "ci-cd-and-automation": {
       "source": "addyosmani/agent-skills",
       "sourceType": "github",

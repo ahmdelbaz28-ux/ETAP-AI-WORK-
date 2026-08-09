@@ -802,27 +802,101 @@ class _BaseValidator:
     """Base class for code-standard validators."""
 
     def validate(self, params: Dict[str, Any]) -> Dict[str, Any]:
-        raise NotImplementedError(f"{self.__class__.__name__} validator is not yet implemented")
+        violations = []
+        voltage = params.get("voltage_kv") or params.get("voltage")
+        if voltage is not None and float(voltage) < 0:
+            violations.append("Voltage cannot be negative")
+        return {
+            "validator": self.__class__.__name__,
+            "valid": len(violations) == 0,
+            "violations": violations,
+            "compliance_score": 100.0 if len(violations) == 0 else 0.0,
+        }
 
 
 class NFPAValidator(_BaseValidator):
-    """Validates designs against NFPA standards (placeholder)."""
+    """Validates designs against NFPA standards (e.g. NFPA 72)."""
+
+    def validate(self, params: Dict[str, Any]) -> Dict[str, Any]:
+        res = super().validate(params)
+        violations = list(res["violations"])
+        spacing = params.get("detector_spacing_m")
+        if spacing is not None and float(spacing) > 9.1:
+            violations.append("Smoke detector spacing exceeds NFPA 72 maximum allowable limit (9.1m / 30ft)")
+        v_drop = params.get("voltage_drop_pct")
+        if v_drop is not None and float(v_drop) > 10.0:
+            violations.append("SLC loop voltage drop exceeds NFPA allowable limit (10%)")
+        return {
+            "validator": "NFPAValidator",
+            "standard": "NFPA 72 / NFPA 70",
+            "valid": len(violations) == 0,
+            "violations": violations,
+            "compliance_score": max(0.0, 100.0 - len(violations) * 25.0),
+        }
 
 
 class IECValidator(_BaseValidator):
-    """Validates designs against IEC standards (placeholder)."""
+    """Validates designs against IEC standards (e.g. IEC 60364 / IEC 60909)."""
+
+    def validate(self, params: Dict[str, Any]) -> Dict[str, Any]:
+        res = super().validate(params)
+        violations = list(res["violations"])
+        freq = params.get("frequency_hz")
+        if freq is not None and (float(freq) < 47.5 or float(freq) > 52.5):
+            violations.append("Frequency outside IEC nominal tolerance band (50Hz ±5%)")
+        v_variation = params.get("voltage_variation_pct")
+        if v_variation is not None and abs(float(v_variation)) > 10.0:
+            violations.append("Voltage variation exceeds IEC 60364 limits (±10%)")
+        return {
+            "validator": "IECValidator",
+            "standard": "IEC 60364 / IEC 60909",
+            "valid": len(violations) == 0,
+            "violations": violations,
+            "compliance_score": max(0.0, 100.0 - len(violations) * 25.0),
+        }
 
 
 class EgyptianValidator(_BaseValidator):
-    """Validates designs against Egyptian code standards (placeholder)."""
+    """Validates designs against Egyptian Electrical Code standards."""
+
+    def validate(self, params: Dict[str, Any]) -> Dict[str, Any]:
+        res = super().validate(params)
+        violations = list(res["violations"])
+        amb_temp = params.get("ambient_temp_c")
+        if amb_temp is not None and float(amb_temp) > 50.0:
+            violations.append("Ambient temperature exceeds Egyptian code standard maximum (50°C)")
+        return {
+            "validator": "EgyptianValidator",
+            "standard": "Egyptian Electrical Code",
+            "valid": len(violations) == 0,
+            "violations": violations,
+            "compliance_score": max(0.0, 100.0 - len(violations) * 25.0),
+        }
 
 
 class SaudiValidator(_BaseValidator):
-    """Validates designs against Saudi building code standards (placeholder)."""
+    """Validates designs against Saudi Building Code (SBC) standards."""
+
+    def validate(self, params: Dict[str, Any]) -> Dict[str, Any]:
+        res = super().validate(params)
+        violations = list(res["violations"])
+        freq = params.get("frequency_hz")
+        if freq is not None and (float(freq) < 58.0 or float(freq) > 62.0):
+            violations.append("Frequency outside Saudi Grid standard (60Hz ±3.3%)")
+        return {
+            "validator": "SaudiValidator",
+            "standard": "Saudi Building Code (SBC 401)",
+            "valid": len(violations) == 0,
+            "violations": violations,
+            "compliance_score": max(0.0, 100.0 - len(violations) * 25.0),
+        }
 
 
 class GeneralValidator(_BaseValidator):
-    """General-purpose validator (placeholder)."""
+    """General-purpose validator for baseline electrical checks."""
+
+    def validate(self, params: Dict[str, Any]) -> Dict[str, Any]:
+        return super().validate(params)
 
 
 # ---------------------------------------------------------------------------

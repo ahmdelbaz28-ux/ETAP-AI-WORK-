@@ -58,7 +58,7 @@ Usage
     sub = WebhookSubscription(
         id="sub-001",
         url="https://example.com/webhooks/fireai",
-        secret="my-hmac-secret",  # pragma: allowlist secret
+        secret=os.getenv("FIREAI_WEBHOOK_HMAC_SECRET", "configured-secret-key"),
         event_types=["DESIGN_COMPLETED", "ROOM_ANALYSIS_COMPLETED"],
     )
     service.subscribe(sub)

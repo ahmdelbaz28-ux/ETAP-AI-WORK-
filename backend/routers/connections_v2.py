@@ -56,11 +56,6 @@ async def list_connections(
     page: int = Query(1, ge=1, description="Page number"),  # NOSONAR - python:S8410
     page_size: int = Query(20, ge=1, le=100, description="Items per page"),  # NOSONAR - python:S8410
     db: DatabaseService = Depends(get_db_service),  # NOSONAR - python:S8410  # noqa: B008
-    page_size: int = Query(
-        20, ge=1, le=100, description="Items per page"
-    ),  # NOSONAR - python:S8410
-    db: DatabaseService = Depends(get_db_service),  # NOSONAR - python:S8410
-
 ):
     """List connections (relationships) with optional filtering and pagination."""
     try:
