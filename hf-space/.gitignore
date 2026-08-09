@@ -1,9 +1,0 @@
-__pycache__
-*.pyc
-.env
-.git
-.github
-node_modules
-.pytest_cache
-.mypy_cache
-.ruff_cache

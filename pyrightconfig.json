@@ -1,9 +1,0 @@
-{
-  "include": ["."],
-  "exclude": ["src"],
-  "executionEnvironments": [
-    {
-      "root": "."
-    }
-  ]
-}
