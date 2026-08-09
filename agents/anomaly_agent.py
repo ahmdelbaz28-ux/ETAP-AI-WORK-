@@ -302,7 +302,7 @@ class AnomalyAgent(BaseAgent):
         """
         over_mask = data > upper_limit
         under_mask = data < lower_limit
-        violation_mask = Union[over_mask, under_mask]
+        violation_mask = over_mask | under_mask
 
         violation_indices = np.nonzero(violation_mask)[0].tolist()
         violation_values = data[violation_mask].tolist()
@@ -504,12 +504,12 @@ class AnomalyAgent(BaseAgent):
         if method not in ("threshold", "full"):
             return
         upper_limit = (
-            float(task.parameters.get("upper_limit", np.max(data) * 1.1))
+            float(task.parameters["upper_limit"])
             if "upper_limit" in task.parameters
             else None
         )
         lower_limit = (
-            float(task.parameters.get("lower_limit", np.min(data) * 0.9))
+            float(task.parameters["lower_limit"])
             if "lower_limit" in task.parameters
             else None
         )
@@ -636,12 +636,12 @@ class AnomalyAgent(BaseAgent):
             # --- Threshold violation detection ---
             if method in ("threshold", "full"):
                 upper_limit = (
-                    float(task.parameters.get("upper_limit", np.max(data) * 1.1))
+                    float(task.parameters["upper_limit"])
                     if "upper_limit" in task.parameters
                     else None
                 )
                 lower_limit = (
-                    float(task.parameters.get("lower_limit", np.min(data) * 0.9))
+                    float(task.parameters["lower_limit"])
                     if "lower_limit" in task.parameters
                     else None
                 )

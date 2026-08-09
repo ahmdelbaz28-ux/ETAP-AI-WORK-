@@ -266,5 +266,17 @@ include = ["."]
 extraPaths = ["."]
 
 [tool.pyrefly]
-include = ["."]
-extraPaths = ["."]
+# Pyrefly-native config keys. NOTE: pyright-style keys (`include`, `extraPaths`)
+# are silently ignored by pyrefly — without valid config it falls back to
+# layout heuristics and infers `src/` (the TypeScript service dir) as the
+# import root, causing false `missing-import` errors for the top-level
+# `api.*` / `backend.*` packages. `search_path` is the key pyrefly reads.
+project_includes = ["."]
+project_excludes = ["src"]
+search_path = ["."]
+# PEP 695 type parameter lists (`def f[T]`, Python 3.12+) fail to parse when
+# pyrefly autoconfigures python-version from the `python` on PATH (ETAP's
+# bundled 3.8). Pin the version pyrefly checks against; site-package
+# resolution still uses the queried interpreter, which resolves third-party
+# deps. See pyproject `requires-python` (>=3.12,<3.14).
+python-version = "3.12"
