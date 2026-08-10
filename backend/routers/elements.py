@@ -85,10 +85,7 @@ async def list_elements(
         )
     except Exception as e:
         logger.exception("list_elements failed: %s", e)
-        raise HTTPException(status_code=500, detail="Internal server error")  # NOSONAR — S1192: duplicated literal acceptable in this localized context  # noqa: B904
-        raise HTTPException(
-            status_code=500, detail="Internal server error"
-        )  # NOSONAR — S1192: duplicated literal acceptable in this localized context
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 

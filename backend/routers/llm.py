@@ -20,13 +20,12 @@ calculations. All responses include a ``source`` field and a ``disclaimer``
 reminding the engineer that AI output must be verified against the published code.
 """
 
-from __future__ import annotations
 
 import json
 import logging
 from typing import Any, AsyncGenerator, Dict
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Body, Depends, HTTPException, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
@@ -156,6 +155,12 @@ class LLMResponseModel(BaseModel):
     completion_tokens: int = 0
     total_tokens: int = 0
     disclaimer: str = _AI_DISCLAIMER
+
+
+ChatRequest.model_rebuild()
+ExplainRequest.model_rebuild()
+ComplianceNarrativeRequest.model_rebuild()
+LLMResponseModel.model_rebuild()
 
 
 # ── Endpoints ────────────────────────────────────────────────────────────────
@@ -327,7 +332,7 @@ async def llm_models(request: Request) -> Dict[str, Any]:
     responses={**_RES_502, **_RES_503},
 )
 @limiter.limit("30/minute")
-async def llm_chat_stream(request: Request, req: ChatRequest) -> StreamingResponse:
+async def llm_chat_stream(request: Request, req: ChatRequest = Body(...)) -> Any:
     """Stream a chat completion token-by-token via Server-Sent Events.
 
     Returns ``text/event-stream`` with SSE events:

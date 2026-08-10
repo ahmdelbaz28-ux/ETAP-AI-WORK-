@@ -56,6 +56,20 @@ if not _jwt_key:
 JWT_SECRET_KEY: str = _jwt_key
 JWT_ALGORITHM: str = "HS256"
 
+# SR-010/SR-011: known-insecure sample values (committed in docker-compose.yml
+# history / docs). Non-empty length checks alone are NOT enough — a sample
+# secret must never be accepted for token operations.
+_INSECURE_JWT_SAMPLES = {
+    "test-secret-32-bytes-long-aaaa-bbbb",
+    "super_secret_session_key_minimum_43_characters_long_entropy_12345",
+}
+if len(_jwt_key) < 32 or _jwt_key in _INSECURE_JWT_SAMPLES:
+    raise RuntimeError(
+        "JWT_SECRET_KEY is too weak (<32 bytes) or is a known-insecure sample "
+        "value. Refusing to start. "
+        'Generate with: python -c "import secrets; print(secrets.token_hex(32))"'
+    )
+
 # ---------------------------------------------------------------------------
 # API key configuration
 # ---------------------------------------------------------------------------
@@ -69,6 +83,12 @@ if not API_KEY:
             "Refusing to start with no API key.",
         )
     logger.warning("ENGINEERING_SERVICE_API_KEY not set — API key auth disabled in development")
+if API_KEY in _INSECURE_JWT_SAMPLES or API_KEY == "etap_dev_api_key_1234567890":
+    raise RuntimeError(
+        "ENGINEERING_SERVICE_API_KEY is a known-insecure sample value "
+        "(committed in docker-compose.yml history). Refusing to start. "
+        'Generate with: python -c "import secrets; print(secrets.token_urlsafe(32))"'
+    )
 
 
 # ---------------------------------------------------------------------------

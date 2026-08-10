@@ -181,6 +181,76 @@ class CorrelationIdMiddleware(BaseHTTPMiddleware):
         return response
 
 
+# ---------------------------------------------------------------------------
+# SQLAlchemy RLS event handlers — module-level so the logic is unit-testable
+# ---------------------------------------------------------------------------
+
+
+def _set_tenant_before_query(conn, cursor, statement, parameters, context, executemany) -> None:
+    """Set ``app.current_tenant_id`` before EVERY query on PostgreSQL.
+
+    SR-008 fix: the previous implementation tracked connections in a
+    process-wide WeakSet and skipped re-issuing the SET once a connection
+    had been tagged. Pooled connections outlive requests, so a tenant B
+    request reusing a connection already tagged for tenant A would run all
+    of its queries under tenant A's RLS policy — cross-tenant leak.
+
+    The SET is now re-issued before every cursor execution (guarded against
+    re-entrancy for the SET statement itself), so the session variable
+    always matches the current request's tenant.
+    """
+    tenant_id = get_tenant_id()
+    if not tenant_id:
+        return
+    if conn.dialect.name != "postgresql":
+        return
+    # Re-entrancy guard: the SET issued below would otherwise re-trigger
+    # this handler for its own execution.
+    if statement is not None and str(statement).lstrip().upper().startswith(
+        "SET APP.CURRENT_TENANT_ID"
+    ):
+        return
+    try:
+        from sqlalchemy import text
+
+        conn.execute(
+            text("SET app.current_tenant_id = :tid"),
+            {"tid": tenant_id},
+        )
+    except Exception:
+        # Non-PostgreSQL backends (SQLite) don't support SET
+        # — this is expected and safe to ignore.
+        logger.debug(
+            "Could not set app.current_tenant_id "
+            "(likely SQLite backend). "
+            "Application-layer isolation is active."
+        )
+
+
+def _reset_tenant_on_checkin(dbapi_connection, _connection_record) -> None:
+    """Clear the RLS session variable when a connection returns to the pool.
+
+    SR-008 fix: without a reset, a pooled connection checked out by tenant
+    B's request after tenant A's request would still carry tenant A's
+    ``app.current_tenant_id`` between requests.
+    """
+    try:
+        from api.database import engine
+
+        if engine.sync_engine.dialect.name != "postgresql":
+            return
+        cursor = dbapi_connection.cursor()
+        try:
+            cursor.execute("SET app.current_tenant_id = ''")
+        finally:
+            cursor.close()
+    except Exception:
+        logger.debug(
+            "Could not reset app.current_tenant_id on connection checkin "
+            "(likely SQLite backend)."
+        )
+
+
 class TenantMiddleware(BaseHTTPMiddleware):
     """Set the PostgreSQL session variable for Row-Level Security (RLS).
 
@@ -238,86 +308,39 @@ class TenantMiddleware(BaseHTTPMiddleware):
 
     @staticmethod
     def _register_connection_event() -> None:
-        """Register a SQLAlchemy engine event that sets the RLS session
-        variable on every connection before the first query.
+        """Register SQLAlchemy engine events for RLS tenant isolation.
 
-        This is the ONLY reliable way to set the PostgreSQL session
-        variable on the connection that will actually be used by the
-        route handler's queries. Opening a separate session (as the
-        original version did) sets the variable on a different
-        connection that is never used.
-
-        The ``before_cursor_execute`` event fires before every cursor
-        execution. We use a connection_info dict to track whether
-        the SET command has already been issued for this connection
-        (to avoid redundant SET on every query within the same request).
+        - ``before_cursor_execute``: re-issues ``SET app.current_tenant_id``
+          before EVERY query (SR-008 — no more process-wide WeakSet skip
+          that leaked tenant A's RLS policy into tenant B's pooled-
+          connection queries).
+        - ``reset_rollback``: clears the session variable when the
+          connection returns to the pool, so no tenant's RLS state survives
+          a request boundary.
         """
         try:
-            # Track which connections have already had the RLS variable set.
-            # SECURITY (self-critique C-2): Previous version used a plain
-            # set[int] with id(conn) for add but id(connection_record) for
-            # remove — these are different objects, so the set never shrank
-            # (memory leak). Fixed: use a WeakSet keyed by the connection's
-            # underlying dbapi_connection, which is the same object in both
-            # the before_cursor_execute and close events.
-            import weakref
-
-            from sqlalchemy import event, text
+            from sqlalchemy import event
 
             from api.database import engine
 
-            _rls_set_connections: weakref.WeakSet = weakref.WeakSet()
-
-            @event.listens_for(engine.sync_engine, "before_cursor_execute")
-            def _set_tenant_before_query(conn, cursor, statement, parameters, context, executemany):
-                """Set app.current_tenant_id before the first query on each connection.
-
-                This runs synchronously on the underlying DBAPI connection.
-                The ContextVar is read here to get the current tenant_id.
-                """
-                tenant_id = get_tenant_id()
-                if not tenant_id:
-                    return
-
-                # Use the DBAPI connection object for identity tracking.
-                # conn.connection is the underlying DBAPI connection object
-                # that is the same across both events.
-                dbapi_conn = (
-                    conn.connection.dbapi_connection
-                    if hasattr(conn.connection, "dbapi_connection")
-                    else conn.connection
-                )
-                if dbapi_conn in _rls_set_connections:
-                    # Already set on this connection for this request
-                    return
-
-                if conn.dialect.name != "postgresql":
-                    return
-                try:
-                    conn.execute(
-                        text("SET app.current_tenant_id = :tid"),
-                        {"tid": tenant_id},
-                    )
-                    _rls_set_connections.add(dbapi_conn)
-                except Exception:
-                    # Non-PostgreSQL backends (SQLite) don't support SET
-                    # — this is expected and safe to ignore.
-                    logger.debug(
-                        "Could not set app.current_tenant_id "
-                        "(likely SQLite backend). "
-                        "Application-layer isolation is active."
-                    )
-
-            # The WeakSet automatically removes entries when the DBAPI
-            # connection is garbage-collected (returned to pool / closed).
-            # No explicit close event listener is needed anymore.
+            event.listen(
+                engine.sync_engine,
+                "before_cursor_execute",
+                _set_tenant_before_query,
+            )
+            event.listen(
+                engine.sync_engine,
+                "reset_rollback",
+                _reset_tenant_on_checkin,
+            )
 
             logger.info(
-                "Registered SQLAlchemy before_cursor_execute event for RLS tenant isolation"
+                "Registered SQLAlchemy events for RLS tenant isolation "
+                "(per-query SET + checkin reset)"
             )
 
         except Exception:
             logger.warning(
-                "Could not register SQLAlchemy event for RLS. "
+                "Could not register SQLAlchemy events for RLS. "
                 "Tenant isolation will rely on application-layer filters only."
             )

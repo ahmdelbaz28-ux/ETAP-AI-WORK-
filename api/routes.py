@@ -145,6 +145,38 @@ if not _API_KEY_CONFIGURED and not _AUTH_DISABLED:
         )
         sys.exit(1)
 
+# SR-010: reject known-insecure SAMPLE secret values at startup, even when
+# they satisfy length checks. These values are public knowledge (committed
+# in docker-compose.yml history and docs) and must never be accepted.
+_INSECURE_SAMPLE_SECRETS = {
+    "test-secret-32-bytes-long-aaaa-bbbb",
+    "etap_dev_api_key_1234567890",
+    "etap_redis_pass_change_in_prod",
+    "etap_postgres_pass_change_in_prod",
+    "super_secret_session_key_minimum_43_characters_long_entropy_12345",
+    "gAAAAABk_sample_fernet_key_32bytes_base64_encoded=",
+}
+if _ENV in ("production", "prod", "staging"):
+    _insecure_env_vars = [
+        name
+        for name in (
+            "JWT_SECRET_KEY",
+            "ENGINEERING_SERVICE_API_KEY",
+            "FERNET_ENCRYPTION_KEY",
+            "FIREAI_SESSION_SECRET",
+            "REDIS_PASSWORD",
+            "POSTGRES_PASSWORD",
+        )
+        if os.environ.get(name, "") in _INSECURE_SAMPLE_SECRETS
+    ]
+    if _insecure_env_vars:
+        logger.critical(
+            "FATAL: known-insecure sample value configured for: %s. "
+            "Generate strong secrets and set them in the environment.",
+            ", ".join(_insecure_env_vars),
+        )
+        sys.exit(1)
+
 
 def _require_api_key(request: Request) -> None:
     """Validate API key when configured."""

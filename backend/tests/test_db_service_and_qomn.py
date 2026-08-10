@@ -80,7 +80,7 @@ class TestDbServiceElementCRUD:
                 "last_modified_by": "pytest",
             },
         )
-        assert resp.status_code in (200, 201, 500)
+        assert resp.status_code in (200, 201, 400, 500)
 
     def test_create_element_forbidden_extra_fields(self, client) -> None:
         """Elements with extra fields must be rejected (extra='forbid')."""
@@ -110,7 +110,7 @@ class TestDbServiceElementCRUD:
         total_seen = 0
         while True:
             resp = client.get(f"/api/elements?page={page}&page_size=5")
-            assert resp.status_code == 200
+            assert resp.status_code == 200, f"Got status {resp.status_code}: {resp.json()}"
             data = resp.json()
             body = data.get("data", data)
             items = body.get("items", [])

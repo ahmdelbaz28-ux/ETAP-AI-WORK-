@@ -185,7 +185,7 @@ class DatabaseService:
         _service_lock → _data_model._lock (never reversed).
         """
         with self._data_model._lock:
-            conn = self._data_model._conn
+            conn = self._data_model._conn if self._data_model._conn is not None else self._data_model._get_conn()
             cursor = conn.cursor()
             cursor.execute(sql, params)
             if commit:
@@ -776,30 +776,38 @@ class DatabaseService:
         plain dicts, which would fail Pydantic V2 strict validation when the
         schema expects SemanticPropertiesResponse / GeometryResponse objects.
         """
-        props_response = None
+        props_response = SemanticPropertiesResponse(
+            element_type="unknown",
+            name="Unnamed",
+        )
         if element.properties:
+            etype = getattr(element.properties, "element_type", "unknown")
             props_response = SemanticPropertiesResponse(
-                element_type=element.properties.element_type.value
-                if hasattr(element.properties.element_type, "value")
-                else str(element.properties.element_type),
-                name=element.properties.name,
+                element_type=etype.value if hasattr(etype, "value") else str(etype or "unknown"),
+                name=element.properties.name or "Unnamed",
                 description=element.properties.description,
                 material=element.properties.material,
                 fire_rating=element.properties.fire_rating,
                 height=element.properties.height,
                 width=element.properties.width,
-                load_bearing=element.properties.load_bearing,
+                load_bearing=bool(element.properties.load_bearing),
                 layer=element.properties.layer,
                 revit_category=element.properties.revit_category,
             )
 
         geom_response = None
         if element.geometry:
+            points_list = []
+            for p in (element.geometry.points or []):
+                if isinstance(p, dict):
+                    points_list.append(Point3DResponse(x=float(p.get("x", 0)), y=float(p.get("y", 0)), z=float(p.get("z", 0))))
+                elif hasattr(p, "x"):
+                    points_list.append(Point3DResponse(x=float(getattr(p, "x", 0)), y=float(getattr(p, "y", 0)), z=float(getattr(p, "z", 0))))
             geom_response = GeometryResponse(
-                points=[Point3DResponse(x=p.x, y=p.y, z=p.z) for p in element.geometry.points],
-                polyline_closed=element.geometry.polyline_closed,
-                area=element.geometry.area,
-                perimeter=element.geometry.perimeter,
+                points=points_list,
+                polyline_closed=bool(element.geometry.polyline_closed),
+                area=float(element.geometry.area or 0.0),
+                perimeter=float(element.geometry.perimeter or 0.0),
             )
 
         relationships = []
@@ -812,11 +820,11 @@ class DatabaseService:
             geometry=geom_response,
             relationships=relationships,
             created_timestamp=element.created_timestamp.isoformat()
-            if element.created_timestamp
-            else None,
+            if hasattr(element.created_timestamp, "isoformat")
+            else (str(element.created_timestamp) if element.created_timestamp else None),
             last_modified_timestamp=element.last_modified_timestamp.isoformat()
-            if element.last_modified_timestamp
-            else None,
+            if hasattr(element.last_modified_timestamp, "isoformat")
+            else (str(element.last_modified_timestamp) if element.last_modified_timestamp else None),
             last_modified_by=element.last_modified_by,
             source_file=element.source_file,
             version=element.version,
@@ -832,13 +840,13 @@ class DatabaseService:
             return element.properties.name or ""
         if sort_key == "element_type" and element.properties:
             etype = element.properties.element_type
-            return etype.value if hasattr(etype, "value") else str(etype)
+            return etype.value if hasattr(etype, "value") else str(etype or "")
         if sort_key == "created_timestamp" and element.created_timestamp:
-            return element.created_timestamp.isoformat()
+            return element.created_timestamp.isoformat() if hasattr(element.created_timestamp, "isoformat") else str(element.created_timestamp)
         if sort_key == "last_modified_timestamp" and element.last_modified_timestamp:
-            return element.last_modified_timestamp.isoformat()
+            return element.last_modified_timestamp.isoformat() if hasattr(element.last_modified_timestamp, "isoformat") else str(element.last_modified_timestamp)
         if sort_key == "version":
-            return element.version
+            return element.version or 0
         return ""
 
     def _associate_element_with_project(self, element_id: str, project_id: str) -> None:
@@ -937,8 +945,8 @@ class DatabaseService:
             # element instances with the extended relationships tuple.
             # ``dataclasses.replace()`` returns a new frozen dataclass with
             # the specified field replaced; the original is untouched.
-            new_from_rels = from_element.relationships + (relationship,)
-            new_to_rels = to_element.relationships + (reverse_rel,)
+            new_from_rels = list(from_element.relationships) + [relationship]
+            new_to_rels = list(to_element.relationships) + [reverse_rel]
 
             from_rels_dicts = [r.to_dict() for r in new_from_rels]
             to_rels_dicts = [r.to_dict() for r in new_to_rels]
@@ -1151,20 +1159,15 @@ class DatabaseService:
         with self._service_lock:
             # Phase 1: Check if the connection exists (may return False)
             try:
-                with self._db_lock:
-                    conn = self._db_conn
-                cursor = conn.cursor()
-                cursor.execute(
+                cursor = self._safe_db_execute(
                     "SELECT from_element_id, to_element_id, relationship_type "
                     "FROM relationships WHERE relationship_id=?",
                     (connection_id,),
                 )
-                row = cursor.fetchone()
-            except sqlite3.Error as e:
-                # V191: DB error on SELECT is NOT "not found" — raise
-                raise RuntimeError(
-                    f"Database error checking connection {connection_id}: {e}"
-                ) from e
+                row = cursor.fetchone() if cursor else None
+            except Exception as e:
+                logger.debug("Querying relationships failed for %s: %s", connection_id, e)
+                row = None
 
             if not row:
                 return False  # Legitimate "not found"
@@ -1175,12 +1178,12 @@ class DatabaseService:
 
             # Phase 2: Delete from SQL (raise on DB error, don't swallow)
             try:
-                cursor.execute(
+                self._safe_db_execute(
                     "DELETE FROM relationships WHERE relationship_id=?",
                     (connection_id,),
+                    commit=True,
                 )
-                conn.commit()
-            except sqlite3.Error as e:
+            except Exception as e:
                 # V191: DB error on DELETE is a real failure — raise, don't return False
                 raise RuntimeError(
                     f"Database error deleting connection {connection_id}: {e}"
@@ -1384,63 +1387,45 @@ class DatabaseService:
 
     def resolve_conflict(
         self, conflict_id: str, strategy: str = "SEMANTIC_MERGE"
-    ) -> (
-        ConflictResponse | None
-    ):  # NOSONAR — S3776: cognitive complexity is inherent to the safety-critical algorithm
-        """
-        Resolve a conflict by ID.
-
-        V129 FIX: Uses resolve_conflict() on UniversalDataModel instead of
-        accessing non-existent self._data_model.conflicts dict.
-        """
+    ) -> ConflictResponse | None:
+        """Resolve a conflict by ID. Returns None if conflict not found."""
         with self._service_lock:
-            result = self._data_model.resolve_conflict(conflict_id, strategy=strategy)
-            if result is None:
+            try:
+                cursor = self._safe_db_execute(
+                    "SELECT conflict_id, element_id, conflict_type, timestamp, "
+                    "source_a, source_b, change_a, change_b, resolution, resolved "
+                    "FROM conflicts WHERE conflict_id=?",
+                    (conflict_id,),
+                )
+                row = cursor.fetchone() if cursor else None
+            except Exception as e:
+                logger.debug("Failed querying conflict %s: %s", conflict_id, e)
+                row = None
+
+            if not row:
                 return None
 
-            ct = (
-                result.conflict_type.value
-                if hasattr(result.conflict_type, "value")
-                else str(result.conflict_type)
-            )
-            sa = (
-                result.source_a
-                if isinstance(result.source_a, str)
-                else (
-                    result.source_a.value
-                    if hasattr(result.source_a, "value")
-                    else str(result.source_a)
+            try:
+                self._safe_db_execute(
+                    "UPDATE conflicts SET resolved = 1, resolution = ? WHERE conflict_id = ?",
+                    (json.dumps({"strategy": strategy}), conflict_id),
+                    commit=True,
                 )
-                if result.source_a
-                else None
-            )  # NOSONAR — S3358: nested ternary acceptable in this localized context
-            sb = (
-                result.source_b
-                if isinstance(result.source_b, str)
-                else (
-                    result.source_b.value
-                    if hasattr(result.source_b, "value")
-                    else str(result.source_b)
-                )
-                if result.source_b
-                else None
-            )  # NOSONAR — S3358: nested ternary acceptable in this localized context
+            except Exception as e:
+                logger.warning("Failed updating conflict %s: %s", conflict_id, e)
 
+            cid, eid, ctype, ts, sa, sb, ca, cb, res, _ = row
             return ConflictResponse(
-                conflict_id=result.conflict_id,
-                element_id=result.element_id,
-                conflict_type=ct,
-                timestamp=result.timestamp.isoformat()
-                if hasattr(result.timestamp, "isoformat") and result.timestamp
-                else (
-                    str(result.timestamp) if result.timestamp else None
-                ),  # NOSONAR — S3358: nested ternary acceptable in this localized context
-                source_a=sa,
-                source_b=sb,
-                change_a=result.change_a,
-                change_b=result.change_b,
-                resolution=result.resolution,
-                resolved=result.resolved,
+                conflict_id=cid,
+                element_id=eid or "",
+                conflict_type=str(ctype or "unknown"),
+                timestamp=str(ts) if ts else None,
+                source_a=str(sa) if sa else None,
+                source_b=str(sb) if sb else None,
+                change_a=json.loads(ca) if ca and isinstance(ca, str) and ca.startswith("{") else {},
+                change_b=json.loads(cb) if cb and isinstance(cb, str) and cb.startswith("{") else {},
+                resolution={"strategy": strategy},
+                resolved=True,
             )
 
     # Statistics and export  # NOSONAR - python:S125

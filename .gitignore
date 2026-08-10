@@ -46,6 +46,9 @@ test.db-shm
 test.db-wal
 *.db-journal
 
+# Audit test-run artifacts (generated JSON dumps from audit tests — never shipped)
+audit/
+
 # OS
 .DS_Store
 Thumbs.db

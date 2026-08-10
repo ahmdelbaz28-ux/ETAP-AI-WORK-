@@ -27,6 +27,8 @@ SECURITY AUDIT 2026-08-02 (V-39, V-40, V-41, V-42, V-43, V-44 fixes):
   threads cannot be killed after timeout; subprocesses can
 """
 
+from __future__ import annotations  # PEP 563 — enables `str | None` on Python 3.8
+
 import contextlib
 import json
 import logging
@@ -119,6 +121,11 @@ def _sandbox_escape_pre_scan(code: str) -> Tuple[bool, str]:
         (r"\bsetattr\s*\(", "setattr() dynamic attribute modification"),
         (r"\bdelattr\s*\(", "delattr() dynamic attribute deletion"),
         (r"\bhasattr\s*\(", "hasattr() dynamic attribute check"),
+        # SR-001: __dict__ attribute access enables module-object subscripting
+        # escapes (numpy.__dict__['os'].system(...), scipy.__dict__['sys']).
+        # __getattribute__ is a dynamic-attribute bypass of the same class.
+        (r"__dict__", "Module __dict__ attribute access (sandbox escape)"),
+        (r"__getattribute__\s*\(", "getattribute() bypass of attribute restrictions"),
         # Code object manipulation
         (r"\bcompile\s*\(", "compile() code object creation"),
         (r"\beval\s*\(", "eval() code execution"),
@@ -451,6 +458,46 @@ for _mod_name in _allowed_import_names:
         except ImportError:
             pass
 
+# SR-001: Deep-freeze pre-imported modules INSIDE the executing subprocess.
+# The parent process freezes numpy/scipy, but that freeze is discarded when
+# this wrapper re-imports the modules fresh - previously the subprocess
+# executed with LIVE os/sys attributes reachable via module __dict__.
+_DANGEROUS_MODULE_ATTRS = {{
+    "os", "system", "popen", "spawn", "exec", "eval", "execfile",
+    "load", "loads", "__builtins__", "__import__", "subprocess",
+    "ctypes", "signal", "socket", "sys",
+}}
+
+def _freeze_module(_mod, _seen=None, _depth=0):
+    if _mod is None or _depth > 4:
+        return
+    if _seen is None:
+        _seen = set()
+    if id(_mod) in _seen:
+        return
+    _seen.add(id(_mod))
+    try:
+        _names = dir(_mod)
+    except Exception:
+        return
+    for _attr in _names:
+        if _attr in _DANGEROUS_MODULE_ATTRS:
+            try:
+                object.__setattr__(_mod, _attr, None)
+            except Exception:
+                pass
+        elif _depth < 2:
+            try:
+                _child = getattr(_mod, _attr, None)
+                if _child is not None and hasattr(_child, "__name__"):
+                    _freeze_module(_child, _seen, _depth + 1)
+            except Exception:
+                pass
+
+for _mod in list(_safe_globals.values()):
+    if hasattr(_mod, "__name__") and not isinstance(_mod, (dict, str)):
+        _freeze_module(_mod)
+
 # Read and execute the user code
 _code = sys.stdin.read()
 f = io.StringIO()
@@ -515,7 +562,10 @@ def _execute_in_subprocess(code: str, wrapper_code: str) -> None:
         # Write wrapper to temp file
         fd, wrapper_path = tempfile.mkstemp(suffix=".py", prefix="etap_exec_")
         os.close(fd)
-        with open(wrapper_path, "w") as f:
+        # UTF-8 explicit: the subprocess reads the wrapper as UTF-8 regardless
+        # of the host locale; default-encoding writes (cp1252 on Windows)
+        # would corrupt any non-ASCII byte.
+        with open(wrapper_path, "w", encoding="utf-8") as f:
             f.write(wrapper_code)
 
         # Run in subprocess with timeout

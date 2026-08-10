@@ -91,14 +91,46 @@ class Config:
     JWT_SECRET_KEY: str = os.environ.get("JWT_SECRET_KEY", "")
     FERNET_ENCRYPTION_KEY: Optional[str] = os.environ.get("FERNET_ENCRYPTION_KEY")
 
+    # SR-010/SR-011: known-insecure sample values. These are public knowledge
+    # (committed in docker-compose.yml history and shipped docs) and must
+    # never be accepted as real secrets — even when they pass length checks.
+    INSECURE_SECRET_VALUES = frozenset(
+        {
+            "test-secret-32-bytes-long-aaaa-bbbb",
+            "etap_dev_api_key_1234567890",
+            "etap_redis_pass_change_in_prod",
+            "etap_postgres_pass_change_in_prod",
+            "super_secret_session_key_minimum_43_characters_long_entropy_12345",
+            "gAAAAABk_sample_fernet_key_32bytes_base64_encoded=",
+            "neo4j_dev_pass_change_in_prod",
+            "qdrant_dev_key_1234567890",
+            "admin_grafana_pass_change_in_prod",
+        }
+    )
+
     # Additional settings
     ENVIRONMENT: str = os.environ.get("FIREAI_ENV", "development")
     DEBUG: bool = ENVIRONMENT.lower() == "development"
 
     @classmethod
     def validate_config(cls) -> list[str]:
-        """Validate configuration and return list of warnings/errors."""
+        """Validate configuration and return list of warnings/errors.
+
+        SR-011: in production/staging, an unset, weak (<32 bytes), or
+        known-insecure JWT_SECRET_KEY RAISES ValueError (hard fail) instead
+        of appending a warning.
+        """
         issues = []
+
+        if cls.ENVIRONMENT in ("production", "staging"):
+            if not cls.JWT_SECRET_KEY:
+                raise ValueError("JWT_SECRET_KEY is not set in production/staging environment")
+            if len(cls.JWT_SECRET_KEY) < 32:
+                raise ValueError(
+                    "JWT_SECRET_KEY must be at least 32 bytes in production/staging"
+                )
+            if cls.JWT_SECRET_KEY in cls.INSECURE_SECRET_VALUES:
+                raise ValueError("JWT_SECRET_KEY is a known-insecure sample value")
 
         # Check if PostgreSQL connection string format is valid (if using PostgreSQL)
         if cls.DATABASE_URL.startswith(("postgres://", "postgresql://")):
@@ -108,9 +140,6 @@ class Config:
         # Check if Neo4j has credentials when using remote server
         if not cls.NEO4J_URI.startswith("bolt://localhost") and not cls.NEO4J_PASSWORD:
             issues.append("Neo4j remote connection detected without password")
-
-        if not cls.JWT_SECRET_KEY and cls.ENVIRONMENT in ("production", "staging"):
-            issues.append("JWT_SECRET_KEY is not set in production/staging environment")
 
         return issues
 

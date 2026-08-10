@@ -9,16 +9,16 @@ services:
     ports:
       - "127.0.0.1:8000:8000"
     environment:
-      - REDIS_URL=redis://:${REDIS_PASSWORD:-etap_redis_pass_change_in_prod}@redis:6379/0
+      - REDIS_URL=redis://:${REDIS_PASSWORD:?REDIS_PASSWORD must be set (no default)}@redis:6379/0
       - USE_ETAP=${USE_ETAP:-false}
       - PRIVACY_MODE=${PRIVACY_MODE:-false}
-      - ENGINEERING_SERVICE_API_KEY=${ENGINEERING_SERVICE_API_KEY:-etap_dev_api_key_1234567890}
+      - ENGINEERING_SERVICE_API_KEY=${ENGINEERING_SERVICE_API_KEY:?ENGINEERING_SERVICE_API_KEY must be set (no default)}
       - ENVIRONMENT=${ENVIRONMENT:-development}
-      - DATABASE_URL=postgresql+asyncpg://etap:${POSTGRES_PASSWORD:-etap_postgres_pass_change_in_prod}@postgres:5432/etap_platform
-      - FIREAI_SESSION_SECRET=${FIREAI_SESSION_SECRET:-super_secret_session_key_minimum_43_characters_long_entropy_12345}
+      - DATABASE_URL=postgresql+asyncpg://etap:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set (no default)}@postgres:5432/etap_platform
+      - FIREAI_SESSION_SECRET=${FIREAI_SESSION_SECRET:?FIREAI_SESSION_SECRET must be set (no default)}
       - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS:-http://localhost:5173,http://localhost:3000,http://localhost:8000}
-      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-test-secret-32-bytes-long-aaaa-bbbb}
-      - FERNET_ENCRYPTION_KEY=${FERNET_ENCRYPTION_KEY:-gAAAAABk_sample_fernet_key_32bytes_base64_encoded=}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:?JWT_SECRET_KEY must be set (no default)}
+      - FERNET_ENCRYPTION_KEY=${FERNET_ENCRYPTION_KEY:?FERNET_ENCRYPTION_KEY must be set (no default)}
     # HEALTHCHECK: python urllib is used instead of curl because the
     # engineering-service image (python slim) does not bundle curl/wget.
     healthcheck:
@@ -59,14 +59,14 @@ services:
       dockerfile: Dockerfile.engineering-service
     command: celery -A worker.celery_app worker --loglevel=info
     environment:
-      - REDIS_URL=redis://:${REDIS_PASSWORD:-etap_redis_pass_change_in_prod}@redis:6379/0
+      - REDIS_URL=redis://:${REDIS_PASSWORD:?REDIS_PASSWORD must be set (no default)}@redis:6379/0
       - USE_ETAP=${USE_ETAP:-false}
       - PRIVACY_MODE=${PRIVACY_MODE:-false}
-      - ENGINEERING_SERVICE_API_KEY=${ENGINEERING_SERVICE_API_KEY:-etap_dev_api_key_1234567890}
-      - DATABASE_URL=${DATABASE_URL:-postgresql://etap:etap_postgres_pass_change_in_prod@postgres:5432/etap_db}
+      - ENGINEERING_SERVICE_API_KEY=${ENGINEERING_SERVICE_API_KEY:?ENGINEERING_SERVICE_API_KEY must be set (no default)}
+      - DATABASE_URL=${DATABASE_URL:-postgresql://etap:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set (no default)}@postgres:5432/etap_db}
       - ENVIRONMENT=${ENVIRONMENT:-development}
-      - FIREAI_SESSION_SECRET=${FIREAI_SESSION_SECRET:-super_secret_session_key_minimum_43_characters_long_entropy_12345}
-      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-test-secret-32-bytes-long-aaaa-bbbb}
+      - FIREAI_SESSION_SECRET=${FIREAI_SESSION_SECRET:?FIREAI_SESSION_SECRET must be set (no default)}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:?JWT_SECRET_KEY must be set (no default)}
     # CRITICAL FIX: Added resource limits for Celery worker.
     deploy:
       resources:
@@ -100,9 +100,9 @@ services:
       - "127.0.0.1:6379:6379"
     volumes:
       - redis_data:/data
-    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-etap_redis_pass_change_in_prod}
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:?REDIS_PASSWORD must be set (no default)}
     environment:
-      REDISCLI_AUTH: ${REDIS_PASSWORD:-etap_redis_pass_change_in_prod}
+      REDISCLI_AUTH: ${REDIS_PASSWORD:?REDIS_PASSWORD must be set (no default)}
     healthcheck:
       test: ["CMD-SHELL", "redis-cli ping"]
       interval: 10s
@@ -117,7 +117,7 @@ services:
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-etap_db}
       POSTGRES_USER: ${POSTGRES_USER:-etap}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-etap_postgres_pass_change_in_prod}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set (no default)}
     ports:
       - "127.0.0.1:5432:5432"
     volumes:

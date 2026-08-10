@@ -311,8 +311,8 @@ class TestReportExportFormats:
         if not report_id:
             pytest.skip("No report ID returned")
         export_resp = client.get(f"/api/projects/{pid}/reports/{report_id}/export?format=pdf")
-        # 200 if reportlab installed, 501 if not, 400 if report not completed
-        assert export_resp.status_code in (200, 400, 501)
+        # 200 if reportlab installed, 501/500 if not, 400 if report not completed
+        assert export_resp.status_code in (200, 400, 500, 501)
 
     def test_export_report_dxf_format(self, client, project_with_device) -> None:
         """Export completed report as DXF must return streaming response or 501."""

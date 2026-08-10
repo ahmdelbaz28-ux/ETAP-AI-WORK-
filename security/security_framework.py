@@ -480,7 +480,9 @@ class InputValidator:
 
     FORBIDDEN_CALLS = {"__import__", "eval", "exec", "compile"}
 
-    FORBIDDEN_ATTRS = {"__import__", "__builtins__"}
+    # SR-001: __dict__ / __getattribute__ attribute access enables module-object
+    # subscripting escapes such as numpy.__dict__['os'].system(...).
+    FORBIDDEN_ATTRS = {"__import__", "__builtins__", "__dict__", "__getattribute__"}
 
     @staticmethod
     def _check_forbidden_ast_node(node: ast.AST) -> bool:
