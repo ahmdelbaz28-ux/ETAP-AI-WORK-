@@ -103,7 +103,7 @@
     <text x="0" y="6" fill="#fbbf24" font-size="36" font-weight="900" text-anchor="middle" dominant-baseline="middle">🔥</text>
   </g>
 
-  <!-- Product Name - BAZSpark -->
+  <!-- Product Name - AHMED ETAP -->
   <text x="230" y="100" fill="url(#fireGrad)" font-size="62" font-weight="900" letter-spacing="-2" filter="url(#textGlow)">Baz</text>
   <text x="410" y="100" fill="url(#sparkGrad)" font-size="62" font-weight="900" letter-spacing="-2" filter="url(#textGlow)">Spark</text>
 

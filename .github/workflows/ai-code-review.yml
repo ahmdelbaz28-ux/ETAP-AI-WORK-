@@ -1,5 +1,5 @@
 # ═══════════════════════════════════════════════════════════════════════════
-# BAZSPARK FireAI — AI Agent Code Review via Daytona Sandbox
+# AHMED ETAP — AI Agent Code Review via Daytona Sandbox
 # ═══════════════════════════════════════════════════════════════════════════
 # Triggers on every PR to main. Spins up a Daytona sandbox (Python 3.12),
 # clones the PR head, installs deps, runs the full validation matrix
@@ -234,11 +234,11 @@ jobs:
               sys.exit(0)
 
           # 2. Ruff lint (V209: no tail — capture full output, tail in Python)
-          rc, so, se = run("cd /workspace && ruff check backend/ fireai/ core/ parsers/ --output-format=github 2>&1", timeout=180)
+          rc, so, se = run("cd /workspace && ruff check backend/ core/ parsers/ --output-format=github 2>&1", timeout=180)
           results["ruff"] = {"rc": rc, "out": so[-2000:], "err": se[-500:]}
 
           # 3. MyPy (backend only — skills excluded per V140 root-cause; V209: no tail)
-          rc, so, se = run("cd /workspace && mypy backend/ fireai/ core/ --ignore-missing-imports --no-error-summary 2>&1", timeout=240)
+          rc, so, se = run("cd /workspace && mypy backend/ core/ --ignore-missing-imports --no-error-summary 2>&1", timeout=240)
           results["mypy"] = {"rc": rc, "out": so[-2000:], "err": se[-500:]}
 
           # 4. Pytest (backend) — core + parsers + fireai only (fast subset; V209: no tail)

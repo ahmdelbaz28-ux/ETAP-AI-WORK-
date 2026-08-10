@@ -662,8 +662,6 @@ for _router_name in (
     "workflow",
     "environment",
     "dwg",
-    "qomn",
-    "facp",
     "api_keys",
     "analyze",
     "llm",  # V207: AI Copilot (Zenmux OpenAI-compatible LLM service)
@@ -678,14 +676,6 @@ try:
     app.include_router(_multi_db_module.router, prefix="/api/v1", tags=["multi-db"])
 except ImportError as e:
     logger.warning("Router 'multi_db' skipped (optional dependency missing): %s", e)
-
-# V130 MARINE MODULE: Mount the marine fire-safety router.
-# Provides endpoints for IMO SOLAS II-2, IEC 60092-502, ship zone division,
-# detector selection, extinguishing sizing, alarm-logic generation, and
-# SCADA/ETAP/Revit/AutoCAD integrations for marine projects.
-from backend.routers import marine as marine_router_module
-
-app.include_router(marine_router_module.router, prefix="/api/v1", tags=["Marine"])
 
 # V214: Mining fire protection router (NFPA 120/122 + MSHA 30 CFR Part 75)
 from backend.routers import mining as mining_router_module
@@ -1021,7 +1011,7 @@ if __name__ == "__main__":
 
 # ═══════════════════════════════════════════════════════════════════════════
 # V206 FIX: Serve the built frontend (Vite/React static assets) from FastAPI
-# when BAZSPARK_FRONTEND_DIST is set (HuggingFace Space deployment mode).
+# when ETAP_FRONTEND_DIST is set (HuggingFace Space deployment mode).
 #
 # WHY THIS EXISTS
 # ───────────────
@@ -1032,7 +1022,7 @@ if __name__ == "__main__":
 # blocks every non-public path), so users see a JSON error instead of the app.
 #
 # The Dockerfile builds the frontend (npm run build → /app/frontend_dist) and
-# sets BAZSPARK_FRONTEND_DIST=/app/frontend_dist. This mount serves those
+# sets ETAP_FRONTEND_DIST=/app/frontend_dist. This mount serves those
 # files at / and /assets/, with SPA fallback to index.html for client-side
 # routing.
 #
@@ -1046,14 +1036,14 @@ if __name__ == "__main__":
 import os as _os
 from pathlib import Path as _Path
 
-_FRONTEND_DIST = _os.environ.get("BAZSPARK_FRONTEND_DIST")
+_FRONTEND_DIST = _os.environ.get("ETAP_FRONTEND_DIST")
 if _FRONTEND_DIST and _Path(_FRONTEND_DIST).is_dir():
     from fastapi.responses import FileResponse as _FileResponse
     from fastapi.responses import JSONResponse as _JSONResponse
     from fastapi.staticfiles import StaticFiles as _StaticFiles
 
     _FRONTEND_INDEX = _Path(_FRONTEND_DIST) / "index.html"
-    logger.info("BAZSPARK_FRONTEND_DIST=%s — mounting frontend static files", _FRONTEND_DIST)
+    logger.info("ETAP_FRONTEND_DIST=%s — mounting frontend static files", _FRONTEND_DIST)
 
     # Mount /assets/ — Vite outputs all JS/CSS bundles here with content-hashed names
     _ASSETS_DIR = _Path(_FRONTEND_DIST) / "assets"
