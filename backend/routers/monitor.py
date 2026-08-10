@@ -30,7 +30,15 @@ from fastapi.responses import PlainTextResponse
 
 from backend.auth import require_permission
 from backend.rbac import Permission
-from fireai.version import __package_version__
+
+# fireai/ was removed (BAZSPARK contamination). Preserve the monitor endpoint's
+# version reporting with a graceful sentinel so `import backend.app` — which
+# imports monitor unconditionally — does not hard-depend on the deleted package.
+# (Same guard pattern applied to backend/routers/health.py.)
+try:
+    from fireai.version import __package_version__
+except ImportError:  # fireai package removed during BAZSPARK cleanup (SR-001)
+    __package_version__ = "ahmed-etap"
 
 logger = logging.getLogger(__name__)
 
