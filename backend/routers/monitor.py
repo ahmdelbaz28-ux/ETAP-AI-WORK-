@@ -180,8 +180,25 @@ class MonitorState:
     # ── Engine management ───────────────────────────────────────────────────
 
     def get_engines(self) -> list[dict[str, Any]]:
+        try:
+            import psutil
+
+            proc = psutil.Process()
+            current_cpu = proc.cpu_percent(interval=None)
+            mem_info = proc.memory_info()
+            current_mem_mb = round(mem_info.rss / (1024 * 1024), 2)
+        except Exception:
+            current_cpu = 0.0
+            current_mem_mb = 0.0
+
         with self._lock:
-            return [dict(e.items()) for e in self._engines.values()]
+            result = []
+            for e in self._engines.values():
+                eng_copy = dict(e)
+                eng_copy["cpu_percent"] = current_cpu
+                eng_copy["memory_mb"] = current_mem_mb
+                result.append(eng_copy)
+            return result
 
     def get_engine(self, engine_id: str) -> dict[str, Any] | None:
         with self._lock:

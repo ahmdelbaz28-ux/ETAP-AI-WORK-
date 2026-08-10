@@ -30,7 +30,4 @@ RequestId = Union[
     int,
 ]
 
-RequestId = (
-    Annotated[str, StringConstraints(pattern=ID_PATTERN, min_length=1, max_length=128)] | int
-)
 TraceId = Annotated[str, StringConstraints(pattern=ID_PATTERN, min_length=1, max_length=128)]

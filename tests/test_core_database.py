@@ -342,13 +342,6 @@ class TestThreadSafety:
         results = []
 
         def add_elements(start, count):
-            try:
-                for _i in range(start, start + count):
-                    el = UniversalElement(element_id=str(uuid.uuid4()))
-                    results.append(udm.add_element(el))
-            finally:
-                udm.close()
-
             for _i in range(start, start + count):
                 el = UniversalElement(element_id=str(uuid.uuid4()))
                 results.append(udm.add_element(el))

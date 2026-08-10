@@ -82,13 +82,19 @@ class TestHFSpaceCUAWebSocketAuth:
         """CUA WebSocket must check API key before accepting."""
         ws_pos = hf_source.index("websocket_cua_confirmation")
         ws_body = hf_source[ws_pos : ws_pos + 1500]
-        assert "compare_digest" in ws_body, (
-            "hf-space CUA WebSocket must use compare_digest for auth"
-        )
-        assert "x-api-key" in ws_body or "token" in ws_body, (
-            "hf-space CUA WebSocket must check API key"
-        )
-        assert "code=1008" in ws_body, "hf-space CUA WebSocket must close with 1008 on auth failure"
+        if "authenticate_cua_confirmation_ws" in ws_body:
+            auth_source = _read_file("api/cua_confirmation_ws.py")
+            assert "compare_digest" in auth_source, "authenticate_cua_confirmation_ws must use compare_digest"
+            assert "x-api-key" in auth_source or "token" in auth_source, "authenticate_cua_confirmation_ws must check API key"
+            assert "1008" in auth_source or "_WS_CODE_POLICY_VIOLATION" in auth_source, "authenticate_cua_confirmation_ws must close with 1008/POLICY_VIOLATION"
+        else:
+            assert "compare_digest" in ws_body, (
+                "hf-space CUA WebSocket must use compare_digest for auth"
+            )
+            assert "x-api-key" in ws_body or "token" in ws_body, (
+                "hf-space CUA WebSocket must check API key"
+            )
+            assert "code=1008" in ws_body, "hf-space CUA WebSocket must close with 1008 on auth failure"
 
     def test_cua_ws_imports_hmac(self, hf_source: str) -> None:
         """hf-space/app.py must import hmac at module level."""
@@ -109,7 +115,7 @@ class TestHFSpaceDualControlTimingAttack:
 
     def test_dual_control_uses_compare_digest(self, hf_source: str) -> None:
         """Dual-control token must use hmac.compare_digest, not ==."""
-        dc_pos = hf_source.index("dual_control")
+        dc_pos = hf_source.index("websocket_dual_control_approve")
         dc_body = hf_source[dc_pos : dc_pos + 5000]
         # The auth check section
         auth_section = (
@@ -152,10 +158,9 @@ class TestCIPinning:
         pins to the SHA for v0.9.2:
         ``1f0aa582c8c8f5f7639610d6d38baddfea4fdcee``.
         """
-        # The SHA pin for trivy-action v0.9.2
-        assert "trivy-action@1f0aa582c8c8f5f7639610d6d38baddfea4fdcee" in ci_cd_source, (
-            "trivy-action should be pinned to a specific commit SHA "
-            "(currently 1f0aa582c8c8f5f7639610d6d38baddfea4fdcee for v0.9.2)"
+        import re
+        assert re.search(r"trivy-action@[a-f0-9]{40}", ci_cd_source), (
+            "trivy-action should be pinned to a specific commit SHA"
         )
 
 

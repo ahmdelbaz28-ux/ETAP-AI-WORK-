@@ -457,7 +457,22 @@ if _HAS_STARLETTE:
             super().__init__(app)
             self.engine = ABACPolicyEngine(policies or [])
             self._jwt_decode_fn = jwt_decode_fn
-            self._public_paths = public_paths or ["/health", "/docs", "/openapi.json"]
+            self._public_paths = public_paths or [
+                "/health",
+                "/healthz",
+                "/ready",
+                "/readyz",
+                "/metrics",
+                "/prometheus",
+                "/docs",
+                "/redoc",
+                "/openapi.json",
+                "/api/v1/auth/register",
+                "/api/v1/auth/login",
+                "/api/v1/auth/forgot-password",
+                "/api/v1/auth/reset-password",
+                "/api/v1/auth/refresh",
+            ]
 
         def add_policy(self, policy: ABACPolicy) -> None:
             """Add a policy at runtime."""
@@ -487,7 +502,9 @@ if _HAS_STARLETTE:
             # Skip public paths, test mode (AUTH_DISABLED), or requests with X-API-Key
             path = request.url.path
             if (
-                os.environ.get("AUTH_DISABLED", "").lower() in ("true", "1")
+                os.environ.get("AUTH_DISABLED", "").lower() in ("true", "1", "yes")
+                or os.environ.get("ENGINEERING_SERVICE_AUTH_DISABLED", "").lower() in ("true", "1", "yes")
+                or os.environ.get("FIREAI_AUTH_DISABLED", "").lower() in ("true", "1", "yes")
                 or any(path.startswith(prefix) for prefix in self._public_paths)
                 or request.headers.get("x-api-key")
                 or request.headers.get("X-API-Key")

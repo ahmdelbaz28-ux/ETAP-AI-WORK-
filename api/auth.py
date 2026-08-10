@@ -132,16 +132,18 @@ try:
     import redis.asyncio as redis_async  # type: ignore
 
     REDIS_AVAILABLE = True
+    _RedisError: type[BaseException] = redis_async.RedisError
 except ImportError:
     redis_async = None
     REDIS_AVAILABLE = False
+    _RedisError = Exception
 
 _REDIS_URL = os.getenv("REDIS_URL", "").strip()
 _TOKEN_BLACKLIST_PREFIX = os.getenv("TOKEN_BLACKLIST_PREFIX", "auth:blacklist:")
 
 # In-memory token blacklist fallback (with TTL cleanup)
 _token_blacklist_memory: dict[str, float] = {}  # jti -> expiry timestamp
-_token_blacklist_lock = threading.Lock()
+_token_blacklist_lock = threading.RLock()
 
 # Redis async client singleton. NOTE: this client binds to the event loop
 # that is current when first created. In tests with TestClient, each test
@@ -149,23 +151,24 @@ _token_blacklist_lock = threading.Lock()
 # stale and raises 'RuntimeError: Event loop is closed' on the next use.
 # The client fixture in tests/conftest.py resets this to None before each
 # test to force a fresh client on the new event loop.
-_redis_client: Optional[redis_async.Redis] = None
+_redis_client: Any = None
 
 
-def _get_redis_client() -> Optional[redis_async.Redis]:
-    """Return the shared async Redis client, or None if Redis is unavailable.
-
-    Reads REDIS_URL at call time (not import time) so tests using
-    ``patch.dict(os.environ, ...)`` can override the URL. This matches
-    the fix applied to ``core/redis_state.get_redis_state_client()`` in
-    PR #168.
-    """
-    global _redis_client
-    redis_url = os.getenv("REDIS_URL", "").strip()
-    if not redis_url or not REDIS_AVAILABLE:
+def _get_redis_client() -> Any:
+    """Return the shared async Redis client, or None if Redis is unavailable."""
+    if os.getenv("ENGINEERING_SERVICE_CACHE_DISABLED", "").lower() in ("true", "1", "yes"):
         return None
+    redis_url = os.getenv("REDIS_URL", "").strip()
+    if not redis_url or not REDIS_AVAILABLE or redis_async is None or not redis_url.startswith(("redis://", "rediss://")):
+        return None
+    global _redis_client
     if _redis_client is None:
-        _redis_client = redis_async.from_url(redis_url, decode_responses=True)
+        _redis_client = redis_async.from_url(
+            redis_url,
+            decode_responses=True,
+            socket_connect_timeout=0.5,
+            socket_timeout=0.5,
+        )
     return _redis_client
 
 
@@ -185,11 +188,11 @@ async def _blacklist_token(jti: str, ttl_seconds: Optional[int] = None) -> None:
         key = f"{_TOKEN_BLACKLIST_PREFIX}{jti}"
         try:
             if ttl_seconds and ttl_seconds > 0:
-                await r.set(key, "1", ex=int(ttl_seconds))
+                await r.set(key, "1", ex=ttl_seconds)
             else:
                 await r.set(key, "1")
             return
-        except (OSError, redis_async.RedisError):
+        except (OSError, _RedisError):
             # Redis unreachable — fall through to in-memory fallback
             _logger.warning("Redis unavailable for token blacklist, using in-memory fallback")
 
@@ -212,7 +215,7 @@ async def _is_token_blacklisted(jti: str) -> bool:
             val = await r.get(key)
             if val is not None:
                 return True
-        except (OSError, redis_async.RedisError):
+        except (OSError, _RedisError):
             # Redis unreachable — fall through to in-memory check
             pass
 
@@ -727,7 +730,7 @@ async def _check_rate_limit(username: str) -> None:
                     detail="Too many login attempts. Please try again later.",
                 )
             return
-        except (OSError, redis_async.RedisError):
+        except (OSError, _RedisError):
             # Redis is configured but unreachable — fall through to
             # in-memory rate limiting so login still works.
             _logger.warning("Redis unavailable for rate limiting, using in-memory fallback")
@@ -797,7 +800,7 @@ async def _check_forgot_password_rate_limit(email: str) -> None:
                     detail="Too many password-reset requests for this email. Please try again later.",
                 )
             return
-        except (OSError, redis_async.RedisError):
+        except (OSError, _RedisError):
             # Redis configured but unreachable — fall through to in-memory.
             # (We only enter this branch when REDIS_AVAILABLE is True and
             # _REDIS_URL is set, so redis_async.RedisError is a valid class.)
@@ -902,7 +905,7 @@ async def _check_ip_rate_limit(ip: str) -> None:
                     detail="Too many login attempts from this IP. Please try again later.",
                 )
             return
-        except (OSError, redis_async.RedisError):
+        except (OSError, _RedisError):
             _logger.warning("Redis unavailable for IP rate limit, using in-memory fallback")
 
     # In-memory fallback
@@ -942,7 +945,7 @@ async def _reset_rate_limit(username: str) -> None:
     if r is not None:
         try:
             await r.delete(f"auth:ratelimit:{username}")
-        except (OSError, redis_async.RedisError):
+        except (OSError, _RedisError):
             pass
     with _LOGIN_ATTEMPTS_LOCK:
         _LOGIN_ATTEMPTS.pop(username, None)

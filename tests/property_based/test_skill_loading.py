@@ -49,25 +49,21 @@ safe_text = st.text(
 
 
 @given(
+    name=kebab_strategy,
     author=safe_text,
     version=semver_strategy,
-    requires=st.dictionaries(
-        keys=st.sampled_from(["python", "runtime", "permissions", "memory"]),
-        values=safe_text,
-        min_size=0,
-        max_size=5,
-    ),
 )
 @settings(max_examples=100, phases=[Phase.generate, Phase.shrink])
 def test_skill_metadata_roundtrip(
+    name: str,
     author: str,
     version: str,
-    requires: Dict[str, str],
 ) -> None:
-    """Property: valid semver + author always produce valid SkillMetadata."""
-    meta = SkillMetadata(author=author, version=version, requires=requires)
+    """Property: valid name + semver + author always produce valid SkillMetadata."""
+    meta = SkillMetadata(name=name, author=author, version=version)
     assert meta.version == version
     assert meta.author == author.strip()
+    assert meta.name == name
     restored = SkillMetadata.model_validate(meta.model_dump())
     assert restored == meta
 
@@ -113,7 +109,7 @@ multi_word_description = st.lists(
     name=kebab_strategy,
     description=multi_word_description,
     trigger_words=st.lists(
-        st.text(min_size=1, max_size=20),
+        st.text(min_size=1, max_size=20).filter(lambda w: bool(w.strip())),
         min_size=1,
         max_size=10,
         unique_by=lambda w: w.strip().lower(),
@@ -127,13 +123,12 @@ def test_skill_description_valid(
     description: str,
     trigger_words: List[str],
 ) -> None:
-    """Property: kebab name + multi-word description -> valid model."""
+    """Property: multi-word description -> valid model."""
     desc = SkillDescription(
-        name=name,
-        description=description,
+        short_description=description,
         trigger_words=trigger_words,
     )
-    assert desc.name == name
+    assert desc.short_description == description
     assert len(desc.trigger_words) >= 1
 
 
@@ -188,7 +183,7 @@ def test_failure_result_must_not_have_data(
     """Property: a failed result may contain error but never data."""
     result = ExecutionResult(
         success=False,
-        error={"code": error_code, "message": error_message},
+        error={"type": error_code, "message": error_message},
     )
     assert result.success is False
     assert result.error is not None
@@ -215,7 +210,7 @@ def test_mutually_exclusive_data_and_error(
         ExecutionResult(
             success=False,
             data=data,
-            error={"code": error_code, "message": error_message},
+            error={"type": error_code, "message": error_message},
         )
 
 
@@ -252,25 +247,17 @@ class SkillDescriptionStateMachine(RuleBasedStateMachine):
     def validate_uniqueness(self, words: List[str]) -> None:
         """Attempt to create a SkillDescription with potentially duplicate words."""
         try:
-            SkillDescription(
-                name="stateful-skill",
-                description="A sufficiently long description for stateful tests.",
+            desc = SkillDescription(
+                short_description="A sufficiently long description for stateful tests.",
                 trigger_words=words,
             )
-            # If it succeeded, there must be no duplicates
+            # Validator automatically deduplicates trigger words
             lowered = {w.strip().lower() for w in words if w.strip()}
-            assert len(lowered) == len([w for w in words if w.strip()]), (
-                f"Expected unique trigger words, got {words}"
-            )
-
-            assert len(lowered) == len([w for w in words if w.strip()]), (
-                f"Expected unique trigger words, got {words}"
-            )
+            assert len(desc.trigger_words) == len(lowered)
         except ValidationError:
-            # ValidationError is expected when duplicates exist
+            # ValidationError occurs if all words are whitespace-only
             non_empty = [w for w in words if w.strip()]
-            lowered = {w.strip().lower() for w in non_empty}
-            assert len(lowered) < len(non_empty), f"Expected duplicates in {words}"
+            assert len(non_empty) == 0, f"Expected empty non_empty list for ValidationError in {words}"
 
 
 TestSkillDescriptionStateMachine = SkillDescriptionStateMachine.TestCase

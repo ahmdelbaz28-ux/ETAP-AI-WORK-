@@ -87,6 +87,10 @@ class Config:
         "on",
     )
 
+    # Security Keys
+    JWT_SECRET_KEY: str = os.environ.get("JWT_SECRET_KEY", "")
+    FERNET_ENCRYPTION_KEY: Optional[str] = os.environ.get("FERNET_ENCRYPTION_KEY")
+
     # Additional settings
     ENVIRONMENT: str = os.environ.get("FIREAI_ENV", "development")
     DEBUG: bool = ENVIRONMENT.lower() == "development"
@@ -104,6 +108,9 @@ class Config:
         # Check if Neo4j has credentials when using remote server
         if not cls.NEO4J_URI.startswith("bolt://localhost") and not cls.NEO4J_PASSWORD:
             issues.append("Neo4j remote connection detected without password")
+
+        if not cls.JWT_SECRET_KEY and cls.ENVIRONMENT in ("production", "staging"):
+            issues.append("JWT_SECRET_KEY is not set in production/staging environment")
 
         return issues
 

@@ -129,6 +129,9 @@ class TestListFeatureFlags:
         ENV=production so the dev bypass is disabled.
         """
         monkeypatch.setenv("ENV", "production")
+        monkeypatch.setenv("ENVIRONMENT", "production")
+        monkeypatch.setenv("ENGINEERING_SERVICE_AUTH_DISABLED", "false")
+        monkeypatch.setattr("api.dependencies.API_KEY", "test-secret-key")
         resp = client.get("/api/v1/feature-flags")
         assert resp.status_code in (401, 403), (
             f"Expected 401/403 without auth in production, got {resp.status_code}. "
@@ -138,6 +141,9 @@ class TestListFeatureFlags:
     def test_invalid_api_key_rejected(self, client: TestClient, monkeypatch):
         """Wrong X-API-Key value → 401 in production."""
         monkeypatch.setenv("ENV", "production")
+        monkeypatch.setenv("ENVIRONMENT", "production")
+        monkeypatch.setenv("ENGINEERING_SERVICE_AUTH_DISABLED", "false")
+        monkeypatch.setattr("api.dependencies.API_KEY", "test-secret-key")
         resp = client.get(
             "/api/v1/feature-flags",
             headers={"X-API-Key": "wrong-key"},

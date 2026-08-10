@@ -8,6 +8,10 @@ from __future__ import annotations
 import contextlib
 import os
 import tempfile
+
+os.environ["ENGINEERING_SERVICE_CACHE_DISABLED"] = "true"
+os.environ["REDIS_URL"] = ""
+os.environ["FIREAI_SESSION_SECRET"] = "ci-test-session-secret-key-32-bytes-long-minimum"
 from typing import AsyncGenerator, Generator
 from unittest.mock import AsyncMock, Mock, patch
 

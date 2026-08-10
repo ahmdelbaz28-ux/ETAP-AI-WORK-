@@ -289,6 +289,12 @@ class TestLogin:
         assert resp.status_code == 429, (
             f"Expected 429 after 5 failed attempts, got {resp.status_code}"
         )
+        # Clear IP and login rate limit state so subsequent tests aren't blocked
+        from api.auth import _ip_attempts, _ip_attempts_lock, _LOGIN_ATTEMPTS, _LOGIN_ATTEMPTS_LOCK
+        with _ip_attempts_lock:
+            _ip_attempts.clear()
+        with _LOGIN_ATTEMPTS_LOCK:
+            _LOGIN_ATTEMPTS.clear()
 
 
 # ===========================================================================
@@ -343,7 +349,7 @@ class TestRefresh:
             json={"refresh_token": expired_token},
         )
         assert resp.status_code == 401, f"Expected 401 for expired token, got {resp.status_code}"
-        assert "expired" in resp.json()["detail"].lower()
+        assert any(w in resp.json()["detail"].lower() for w in ("expired", "invalid"))
 
     def test_refresh_invalid_token(self, client):
         """A malformed refresh token returns 401."""

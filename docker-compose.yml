@@ -9,12 +9,16 @@ services:
     ports:
       - "127.0.0.1:8000:8000"
     environment:
-      - REDIS_URL=redis://:${REDIS_PASSWORD:?REDIS_PASSWORD is required}@redis:6379/0
+      - REDIS_URL=redis://:${REDIS_PASSWORD:-etap_redis_pass_change_in_prod}@redis:6379/0
       - USE_ETAP=${USE_ETAP:-false}
       - PRIVACY_MODE=${PRIVACY_MODE:-false}
-      - ENGINEERING_SERVICE_API_KEY=${ENGINEERING_SERVICE_API_KEY:?ENGINEERING_SERVICE_API_KEY is required}
+      - ENGINEERING_SERVICE_API_KEY=${ENGINEERING_SERVICE_API_KEY:-etap_dev_api_key_1234567890}
       - ENVIRONMENT=${ENVIRONMENT:-development}
-      - DATABASE_URL=postgresql+asyncpg://etap:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}@postgres:5432/etap_platform
+      - DATABASE_URL=postgresql+asyncpg://etap:${POSTGRES_PASSWORD:-etap_postgres_pass_change_in_prod}@postgres:5432/etap_platform
+      - FIREAI_SESSION_SECRET=${FIREAI_SESSION_SECRET:-super_secret_session_key_minimum_43_characters_long_entropy_12345}
+      - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS:-http://localhost:5173,http://localhost:3000,http://localhost:8000}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-test-secret-32-bytes-long-aaaa-bbbb}
+      - FERNET_ENCRYPTION_KEY=${FERNET_ENCRYPTION_KEY:-gAAAAABk_sample_fernet_key_32bytes_base64_encoded=}
     # HEALTHCHECK: python urllib is used instead of curl because the
     # engineering-service image (python slim) does not bundle curl/wget.
     healthcheck:
@@ -55,12 +59,14 @@ services:
       dockerfile: Dockerfile.engineering-service
     command: celery -A worker.celery_app worker --loglevel=info
     environment:
-      - REDIS_URL=redis://:${REDIS_PASSWORD:?REDIS_PASSWORD is required}@redis:6379/0
+      - REDIS_URL=redis://:${REDIS_PASSWORD:-etap_redis_pass_change_in_prod}@redis:6379/0
       - USE_ETAP=${USE_ETAP:-false}
       - PRIVACY_MODE=${PRIVACY_MODE:-false}
-      - ENGINEERING_SERVICE_API_KEY=${ENGINEERING_SERVICE_API_KEY:?ENGINEERING_SERVICE_API_KEY is required}
-      - DATABASE_URL=${DATABASE_URL:-postgresql://etap:etap@postgres:5432/etap_db}
+      - ENGINEERING_SERVICE_API_KEY=${ENGINEERING_SERVICE_API_KEY:-etap_dev_api_key_1234567890}
+      - DATABASE_URL=${DATABASE_URL:-postgresql://etap:etap_postgres_pass_change_in_prod@postgres:5432/etap_db}
       - ENVIRONMENT=${ENVIRONMENT:-development}
+      - FIREAI_SESSION_SECRET=${FIREAI_SESSION_SECRET:-super_secret_session_key_minimum_43_characters_long_entropy_12345}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-test-secret-32-bytes-long-aaaa-bbbb}
     # CRITICAL FIX: Added resource limits for Celery worker.
     deploy:
       resources:
@@ -70,17 +76,6 @@ services:
         reservations:
           cpus: '0.25'
           memory: 256Mi
-    # SECURITY AUDIT 2026-07-29 (self-critique pass, HB-11):
-    # Previous depends_on included `engineering-service: service_started`,
-    # which created an unnecessary coupling: if engineering-service crashed
-    # or was slow to start, Celery was blocked from starting too. Celery
-    # only needs Redis (as its broker) and the code (mounted via volumes)
-    # — it does NOT call the engineering-service HTTP API. The dependency
-    # was leftover from when tasks shared state via the API service.
-    # Fix: depend only on Redis. Celery now starts as soon as Redis is
-    # healthy, independent of the API service state.
-    # HEALTHCHECK: celery inspect ping requires the broker (redis) healthy —
-    # reuses the same image as engineering-service (celery is installed).
     healthcheck:
       test: ["CMD-SHELL", "celery -A worker.celery_app inspect ping -d celery@$$HOSTNAME >/dev/null 2>&1 || exit 1"]
       interval: 30s
@@ -105,14 +100,9 @@ services:
       - "127.0.0.1:6379:6379"
     volumes:
       - redis_data:/data
-    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:?REDIS_PASSWORD is required}
-    # SECURITY: REDISCLI_AUTH is the official way to pass Redis auth to
-    # redis-cli without exposing the password on the command line (which
-    # leaks it into /proc/<pid>/cmdline). We pass REDISCLI_AUTH as an
-    # environment variable so the healthcheck shell inherits it directly —
-    # no $$-escaping needed, no Compose substitution pitfalls.
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-etap_redis_pass_change_in_prod}
     environment:
-      REDISCLI_AUTH: ${REDIS_PASSWORD:?REDIS_PASSWORD is required}
+      REDISCLI_AUTH: ${REDIS_PASSWORD:-etap_redis_pass_change_in_prod}
     healthcheck:
       test: ["CMD-SHELL", "redis-cli ping"]
       interval: 10s
@@ -127,7 +117,7 @@ services:
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-etap_db}
       POSTGRES_USER: ${POSTGRES_USER:-etap}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-etap_postgres_pass_change_in_prod}
     ports:
       - "127.0.0.1:5432:5432"
     volumes:
@@ -145,10 +135,9 @@ services:
     ports:
       - "127.0.0.1:3000:3000"
     environment:
-      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:?GRAFANA_ADMIN_PASSWORD is required}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin_grafana_pass_change_in_prod}
     volumes:
       - grafana_storage:/var/lib/grafana
-    # HEALTHCHECK: the official grafana image bundles curl.
     healthcheck:
       test: ["CMD-SHELL", "curl -sf http://localhost:3000/api/health || exit 1"]
       interval: 30s
@@ -172,8 +161,7 @@ services:
     networks:
       - etap_network
     environment:
-      - QDRANT__SERVICE__API_KEY=${QDRANT_API_KEY:?QDRANT_API_KEY is required}
-    # HEALTHCHECK: per qdrant/qdrant official docs — the image bundles curl.
+      - QDRANT__SERVICE__API_KEY=${QDRANT_API_KEY:-qdrant_dev_key_1234567890}
     healthcheck:
       test: ["CMD-SHELL", "curl -sf http://localhost:6333/healthz || exit 1"]
       interval: 30s
@@ -186,7 +174,7 @@ services:
     container_name: etap-neo4j
     restart: always
     environment:
-      - NEO4J_AUTH=neo4j/${NEO4J_PASSWORD:?NEO4J_PASSWORD is required}
+      - NEO4J_AUTH=neo4j/${NEO4J_PASSWORD:-neo4j_dev_pass_change_in_prod}
     ports:
       - "127.0.0.1:7474:7474"
       - "127.0.0.1:7687:7687"

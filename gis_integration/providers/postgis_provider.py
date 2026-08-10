@@ -25,7 +25,7 @@ import re
 import time
 from collections.abc import Generator
 from contextlib import contextmanager
-from dataclasses import field
+from dataclasses import dataclass, field
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -86,6 +86,7 @@ def _parse_properties(value) -> dict:
     return {}
 
 
+@dataclass
 class SpatialAsset:
     """A spatially-enabled asset in PostGIS."""
 

@@ -1286,7 +1286,7 @@ class KernelCore:
         all_detectors: list[dict] = []
         all_violations: list[str] = []
 
-        for room, prob, sol in zip(rooms, problems, solutions, strict=False):
+        for room, prob, sol in zip(rooms, problems, solutions):
             if not sol.placements:
                 all_violations.append(f"Room {room.name}: no detectors placed")
                 continue
@@ -1543,7 +1543,7 @@ class AdapterBridge:
         solutions = self._kernel._solver.solve_batch(problems)
 
         detectors: list[dict] = []
-        for room, prob, sol in zip(rooms, problems, solutions, strict=False):
+        for room, prob, sol in zip(rooms, problems, solutions):
             for i, (x, y) in enumerate(sol.placements):
                 detectors.append(
                     {

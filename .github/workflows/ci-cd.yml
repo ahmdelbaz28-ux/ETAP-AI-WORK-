@@ -829,7 +829,7 @@ jobs:
     needs: [python-tests, security-scan, build-ui]
     if: github.ref == 'refs/heads/main'
     environment:
-      name: production-vercel
+      name: production
       url: https://vercel.com/ahmdelbaz28-uxs-projects/etap-ai-work
 
     steps:
@@ -880,7 +880,7 @@ jobs:
     needs: [python-tests, security-scan]
     if: github.ref == 'refs/heads/main'
     environment:
-      name: production-hf
+      name: production
       url: https://huggingface.co/spaces/ahmdelbaz28/AhmedETAP-Platform
 
     steps:

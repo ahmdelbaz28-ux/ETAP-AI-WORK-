@@ -6,7 +6,7 @@ Separated from main engineering service for better modularity.
 """
 
 import time
-from typing import Dict
+from typing import Dict, Optional
 
 from fastapi import APIRouter, Request
 from fastapi.responses import Response
@@ -91,11 +91,14 @@ class ReadyResponse(BaseModel):
     ready: bool
     native_engine_available: bool
     etap_available: bool
+    timestamp: Optional[str] = None
+    trace_id: Optional[str] = None
 class MetricsResponse(BaseModel):
     requests_total: int
     requests_success: int
     requests_failed: int
     avg_execution_time_ms: float
+    trace_id: Optional[str] = None
 
 
 

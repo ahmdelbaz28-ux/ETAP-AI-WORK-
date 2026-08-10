@@ -19,6 +19,7 @@ from tenacity import (
     before_sleep_log,
     retry,
     retry_if_exception_type,
+    retry_if_result,
     stop_after_attempt,
     stop_after_delay,
     wait_exponential,
@@ -36,66 +37,74 @@ logger = logging.getLogger(__name__)
 def network_retry(
     max_attempts: int = 3,
     max_delay: int = 10,
+    multiplier: float = 1.0,
+    exceptions: type[Exception] | tuple[type[Exception], ...] = (ConnectionError, TimeoutError, OSError),
     reraise: bool = True,
 ) -> Callable:
-    """Retry decorator for network / I/O operations.
-
-    Uses exponential backoff + jitter with a cap on total attempts.
-
-    Parameters
-    ----------
-    max_attempts : int
-        Maximum number of retry attempts (default 3).
-    max_delay : int
-        Maximum wait time in seconds between retries (default 10).
-    reraise : bool
-        Whether to re-raise the last exception when exhausted (default True).
-
-    Examples
-    --------
-    >>> @network_retry(max_attempts=5)
-    ... async def fetch_data(url: str) -> bytes:
-    ...     ...
-    """
+    """Retry decorator for network / I/O operations."""
+    wait_strat = wait_fixed(0) if max_delay == 0 else wait_exponential(multiplier=multiplier or 1, min=1, max=max_delay)
     return retry(
         stop=stop_after_attempt(max_attempts),
-        wait=wait_exponential(multiplier=1, min=1, max=max_delay) + wait_random(0, 1),
-        retry=retry_if_exception_type((ConnectionError, TimeoutError, OSError)),
+        wait=wait_strat,
+        retry=retry_if_exception_type(exceptions),
         before_sleep=before_sleep_log(logger, logging.WARNING),
         after=after_log(logger, logging.INFO),
         reraise=reraise,
     )
 
 
-def skill_retry(
+def async_network_retry(
     max_attempts: int = 3,
+    max_delay: int = 10,
+    multiplier: float = 1.0,
+    exceptions: type[Exception] | tuple[type[Exception], ...] = (ConnectionError, TimeoutError, OSError),
     reraise: bool = True,
 ) -> Callable:
-    """Retry decorator for skill / module loading operations.
-
-    Uses shorter exponential backoff (0.5x multiplier) to avoid
-    blocking the agent for too long.
-
-    Parameters
-    ----------
-    max_attempts : int
-        Maximum number of retry attempts (default 3).
-    reraise : bool
-        Whether to re-raise the last exception when exhausted (default True).
-
-    Examples
-    --------
-    >>> @skill_retry(max_attempts=5)
-    ... def load_skill_module(skill_path: str) -> object:
-    ...     ...
-    """
+    """Async retry decorator for network / I/O operations."""
+    wait_strat = wait_fixed(0) if max_delay == 0 else wait_exponential(multiplier=multiplier or 1, min=1, max=max_delay)
     return retry(
         stop=stop_after_attempt(max_attempts),
-        wait=wait_exponential(multiplier=0.5, min=1, max=30),
-        retry=retry_if_exception_type((ImportError, ModuleNotFoundError)),
+        wait=wait_strat,
+        retry=retry_if_exception_type(exceptions),
         before_sleep=before_sleep_log(logger, logging.WARNING),
         reraise=reraise,
     )
+
+
+def conditional_retry(
+    condition_fn: Callable[[Any], bool],
+    max_attempts: int = 3,
+    max_delay: int = 10,
+    reraise: bool = True,
+) -> Callable:
+    """Retry decorator that retries when condition_fn(result) returns True."""
+    wait_strat = wait_fixed(0) if max_delay == 0 else wait_exponential(multiplier=1, min=1, max=max_delay)
+    return retry(
+        stop=stop_after_attempt(max_attempts),
+        wait=wait_strat,
+        retry=retry_if_result(condition_fn) | retry_if_exception_type(Exception),
+        before_sleep=before_sleep_log(logger, logging.WARNING),
+        reraise=reraise,
+    )
+
+
+def skill_retry(
+    max_attempts: int = 3,
+    max_delay: int = 30,
+    multiplier: float = 0.5,
+    exceptions: type[Exception] | tuple[type[Exception], ...] = (ImportError, ModuleNotFoundError),
+    reraise: bool = True,
+) -> Callable:
+    """Retry decorator for skill / module loading operations."""
+    wait_strat = wait_fixed(0) if max_delay == 0 else wait_exponential(multiplier=multiplier or 1, min=1, max=max_delay)
+    return retry(
+        stop=stop_after_attempt(max_attempts),
+        wait=wait_strat,
+        retry=retry_if_exception_type(exceptions),
+        before_sleep=before_sleep_log(logger, logging.WARNING),
+        reraise=reraise,
+    )
+
 
 
 def bounded_retry(
@@ -104,28 +113,7 @@ def bounded_retry(
     exceptions: type[Exception] | tuple[type[Exception], ...] = Exception,
     reraise: bool = True,
 ) -> Callable:
-    """General-purpose bounded retry decorator.
-
-    Stops after *either* the attempt limit is reached *or* the total
-    elapsed time exceeds *max_delay_seconds* — whichever comes first.
-
-    Parameters
-    ----------
-    max_attempts : int
-        Maximum number of retry attempts (default 3).
-    max_delay_seconds : float
-        Hard time limit across all retries (default 30).
-    exceptions : exception type or tuple
-        Which exceptions to retry on (default ``Exception``, i.e. all).
-    reraise : bool
-        Whether to re-raise the last exception when exhausted (default True).
-
-    Examples
-    --------
-    >>> @bounded_retry(max_attempts=5, max_delay_seconds=10.0)
-    ... def query_database(query: str) -> list:
-    ...     ...
-    """
+    """General-purpose bounded retry decorator."""
     return retry(
         stop=stop_after_attempt(max_attempts) | stop_after_delay(max_delay_seconds),
         wait=wait_fixed(1) + wait_random(0, 0.5),
@@ -134,3 +122,4 @@ def bounded_retry(
         after=after_log(logger, logging.INFO),
         reraise=reraise,
     )
+

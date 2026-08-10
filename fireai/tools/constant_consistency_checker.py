@@ -245,7 +245,7 @@ class ConstantCollector(ast.NodeVisitor):
         """
         if not isinstance(node.value, ast.Dict):
             return
-        for key_node, val_node in zip(node.value.keys, node.value.values, strict=False):
+        for key_node, val_node in zip(node.value.keys, node.value.values):
             if not isinstance(key_node, ast.Constant) or not isinstance(key_node.value, str):
                 continue
             key_str = key_node.value
@@ -266,7 +266,7 @@ class ConstantCollector(ast.NodeVisitor):
         """Scan annotated dict literal assignments (e.g., PHYSICAL_CONSTANTS: Dict = {...})."""
         if not isinstance(node.value, ast.Dict):
             return
-        for key_node, val_node in zip(node.value.keys, node.value.values, strict=False):
+        for key_node, val_node in zip(node.value.keys, node.value.values):
             if not isinstance(key_node, ast.Constant) or not isinstance(key_node.value, str):
                 continue
             key_str = key_node.value

@@ -588,8 +588,18 @@ async def list_audit_logs(
 
     Results are sorted by timestamp descending (newest first).
     """
+    source_logs = _SAMPLE_AUDIT_LOGS
+    try:
+        from fireai.core.audit_store import AuditStore
+
+        real_events = AuditStore.get_events()
+        if real_events:
+            source_logs = real_events
+    except Exception:
+        pass
+
     filtered = _apply_filters(
-        _SAMPLE_AUDIT_LOGS,
+        source_logs,
         severity=severity,
         action=action,
         user=user,
@@ -684,16 +694,26 @@ async def get_audit_log_stats() -> AuditLogStats:
         - **by_action**: Entry counts grouped by action type.
         - **recent_trends**: Daily entry counts for the last 7 days.
     """
+    source_logs = _SAMPLE_AUDIT_LOGS
+    try:
+        from fireai.core.audit_store import AuditStore
+
+        real_events = AuditStore.get_events()
+        if real_events:
+            source_logs = real_events
+    except Exception:
+        pass
+
     # Count by severity
     severity_counts: dict[str, int] = {}
-    for entry in _SAMPLE_AUDIT_LOGS:
-        sev = entry["severity"]
+    for entry in source_logs:
+        sev = entry.get("severity", "info")
         severity_counts[sev] = severity_counts.get(sev, 0) + 1
 
     # Count by action
     action_counts: dict[str, int] = {}
-    for entry in _SAMPLE_AUDIT_LOGS:
-        act = entry["action"]
+    for entry in source_logs:
+        act = entry.get("action", "unknown")
         action_counts[act] = action_counts.get(act, 0) + 1
 
     # Recent trends — last 7 days
@@ -703,7 +723,7 @@ async def get_audit_log_stats() -> AuditLogStats:
         day = (_NOW - timedelta(days=i)).strftime("%Y-%m-%d")
         trends[day] = 0
 
-    for entry in _SAMPLE_AUDIT_LOGS:
+    for entry in source_logs:
         try:
             day = datetime.fromisoformat(entry["timestamp"]).strftime("%Y-%m-%d")
         except (ValueError, KeyError):

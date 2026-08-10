@@ -27,7 +27,7 @@ from __future__ import annotations
 import enum
 import math
 from dataclasses import dataclass, field
-from typing import TypeVar
+from typing import Generic, TypeVar
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Result[T, E] — never raise in computation paths

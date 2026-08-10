@@ -414,7 +414,7 @@ class AuditLog:
             if row is None:
                 return None
             col_names = [desc[0] for desc in cur.description]
-            return self._row_to_entry(dict(zip(col_names, row, strict=False)))
+            return self._row_to_entry(dict(zip(col_names, row)))
 
     def get_analysis(self, analysis_id: str) -> list[AuditEntry]:
         """
@@ -434,7 +434,7 @@ class AuditLog:
             )
             col_names = [desc[0] for desc in cur.description]
             return [
-                self._row_to_entry(dict(zip(col_names, row, strict=False)))
+                self._row_to_entry(dict(zip(col_names, row)))
                 for row in cur.fetchall()
             ]
 

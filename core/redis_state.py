@@ -133,7 +133,12 @@ def get_redis_client_sync() -> Any | None:
     """
     global _sync_client
     redis_url = os.getenv("REDIS_URL", "").strip()
-    if not REDIS_AVAILABLE or not redis_url:
+    if (
+        not REDIS_AVAILABLE
+        or not redis_url
+        or not redis_url.startswith(("redis://", "rediss://"))
+        or os.getenv("ENGINEERING_SERVICE_CACHE_DISABLED", "").lower() in ("true", "1", "yes")
+    ):
         return None
     if _sync_client is None:
         try:

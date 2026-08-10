@@ -148,9 +148,12 @@ if not _API_KEY_CONFIGURED and not _AUTH_DISABLED:
 
 def _require_api_key(request: Request) -> None:
     """Validate API key when configured."""
+    auth_disabled = _AUTH_DISABLED or os.environ.get(
+        "ENGINEERING_SERVICE_AUTH_DISABLED", ""
+    ).lower() in ("true", "1", "yes")
+    if auth_disabled:
+        return
     if not _API_KEY_CONFIGURED:
-        if _AUTH_DISABLED:
-            return
         _ENV = os.environ.get("ENVIRONMENT", os.environ.get("ENV", "development")).lower()
         if _ENV in ("production", "prod", "staging"):
             raise HTTPException(  # NOSONAR HTTPException responses will be documented in API refactoring sprint
@@ -166,6 +169,7 @@ def _require_api_key(request: Request) -> None:
             status_code=401,
             detail=_INVALID_API_KEY_MSG,  # NOSONAR
         )  # NOSONAR HTTPException responses will be documented in API refactoring sprint
+
 
 
 # ---------------------------------------------------------------------------
@@ -238,10 +242,18 @@ _redis_client = None
 
 def _get_rate_limit_redis() -> Any | None:
     global _redis_client
-    if not _REDIS_URL or redis_async is None:
+    if os.getenv("ENGINEERING_SERVICE_CACHE_DISABLED", "").lower() in ("true", "1", "yes"):
+        return None
+    redis_url = os.getenv("REDIS_URL", _REDIS_URL).strip()
+    if not redis_url or redis_async is None or not redis_url.startswith(("redis://", "rediss://")):
         return None
     if _redis_client is None:
-        _redis_client = redis_async.from_url(_REDIS_URL, decode_responses=True)
+        _redis_client = redis_async.from_url(
+            redis_url,
+            decode_responses=True,
+            socket_connect_timeout=0.5,
+            socket_timeout=0.5,
+        )
     return _redis_client
 
 

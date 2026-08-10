@@ -277,7 +277,7 @@ class ProjectLearner:
             r = random.random() * total  # NOSONAR
             cum = 0.0
             chosen = pts[-1]
-            for p, d in zip(pts, d2, strict=False):
+            for p, d in zip(pts, d2):
                 cum += d
                 if cum >= r:
                     chosen = p

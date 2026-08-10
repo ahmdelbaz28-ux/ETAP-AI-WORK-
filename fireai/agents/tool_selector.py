@@ -236,7 +236,7 @@ class ToolSelector:
             self.AVAILABILITY_WEIGHT,
         ]
 
-        weighted = sum(s * w for s, w in zip(scores, weights, strict=False))
+        weighted = sum(s * w for s, w in zip(scores, weights))
         blended = 0.7 * weighted + 0.3 * custom_score
 
         complexity_factor = 1.0 - context.design_complexity * 0.2

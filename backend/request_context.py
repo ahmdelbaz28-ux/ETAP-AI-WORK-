@@ -291,10 +291,9 @@ class TenantMiddleware(BaseHTTPMiddleware):
                     # Already set on this connection for this request
                     return
 
-                # Only set on PostgreSQL connections
+                if conn.dialect.name != "postgresql":
+                    return
                 try:
-                    # Use the connection's execute method to set the variable
-                    # This works with both asyncpg and psycopg2 drivers
                     conn.execute(
                         text("SET app.current_tenant_id = :tid"),
                         {"tid": tenant_id},

@@ -287,7 +287,7 @@ class TestDockerComposeS12:
                 in_redis = True
             elif in_redis and line.strip().startswith(("postgres:", "celery", "engineering")):
                 in_redis = False
-            if in_redis and "6379" in line and "ports" not in line.lower():
+            if in_redis and "6379" in line and line.strip().startswith("-"):
                 # This is a port mapping line
                 assert "127.0.0.1" in line, (
                     f"S-12: Redis port must be bound to 127.0.0.1: {line.strip()}"
@@ -299,11 +299,12 @@ class TestDockerComposeS12:
         lines = src.splitlines()
         in_postgres = False
         for line in lines:
-            if line.strip().startswith("postgres:"):
+            if line.startswith("  postgres:"):
                 in_postgres = True
-            elif in_postgres and line.strip().startswith(("grafana:", "redis:", "  redis:")):
-                in_postgres = False
-            if in_postgres and "5432" in line and "ports" not in line.lower():
+            elif in_postgres and line.startswith("  ") and not line.startswith("    "):
+                if not line.startswith("  postgres:"):
+                    in_postgres = False
+            if in_postgres and "5432" in line and line.strip().startswith("-"):
                 assert "127.0.0.1" in line, (
                     f"S-12: Postgres port must be bound to 127.0.0.1: {line.strip()}"
                 )
@@ -330,7 +331,7 @@ class TestDockerComposeS12:
                 in_grafana = True
             elif in_grafana and line.strip().startswith(("qdrant:", "neo4j:")):
                 in_grafana = False
-            if in_grafana and "3000" in line and "ports" not in line.lower():
+            if in_grafana and "3000" in line and line.strip().startswith("-"):
                 assert "127.0.0.1" in line, (
                     f"S-12: Grafana port must be bound to 127.0.0.1: {line.strip()}"
                 )
@@ -345,7 +346,7 @@ class TestDockerComposeS12:
                 in_neo4j = True
             elif in_neo4j and line.strip().startswith(("volumes:", "networks:")):
                 in_neo4j = False
-            if in_neo4j and ("7474" in line or "7687" in line) and "ports" not in line.lower():
+            if in_neo4j and ("7474" in line or "7687" in line) and line.strip().startswith("-"):
                 assert "127.0.0.1" in line, (
                     f"S-12: Neo4j port must be bound to 127.0.0.1: {line.strip()}"
                 )

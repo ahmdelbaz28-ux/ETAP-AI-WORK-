@@ -298,6 +298,11 @@ _PUBLIC_PATHS_EXACT = frozenset(
         "/api/health/statistics",
         "/api/reports/statistics",
         "/health",
+        "/healthz",
+        "/ready",
+        "/readyz",
+        "/metrics",
+        "/api/v1/ready",
         # M-3: Auth endpoints must be public (login validates credentials itself)
         "/api/v1/auth/login",
         "/api/v1/auth/logout",
@@ -388,6 +393,15 @@ class ApiKeyMiddleware:
             return
 
         path = scope.get("path", "")
+        # Skip auth if authentication is explicitly disabled via env var (e.g. testing / local dev)
+        if _os.getenv("ENGINEERING_SERVICE_AUTH_DISABLED", "").lower() in ("true", "1", "yes") or _os.getenv("FIREAI_AUTH_DISABLED", "").lower() in ("true", "1", "yes"):
+            from backend.rbac import Role as _Role
+            scope.setdefault("state", {})
+            scope["state"]["fireai_role"] = _Role.ADMIN
+            scope["fireai_role"] = _Role.ADMIN
+            await self.app(scope, receive, send)
+            return
+
         # Skip auth for public endpoints (health, docs)
         # STRICT FIX B/E: Use exact-match, not startswith
         if not _is_public_path(path):

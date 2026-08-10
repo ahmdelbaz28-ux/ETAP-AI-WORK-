@@ -20,7 +20,12 @@ Reference: NFPA 72-2022 §12.2.2, NEC 760.154
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from enum import Enum, StrEnum
+from enum import Enum
+try:
+    from enum import StrEnum
+except ImportError:
+    from compat import StrEnum
+
 from unittest.mock import MagicMock, patch
 
 import pytest

@@ -27,6 +27,7 @@ import asyncio
 import hashlib
 import json
 import logging
+import os
 import threading
 import time
 from collections import OrderedDict
@@ -182,8 +183,14 @@ class StudyCache:
         self._invalidations = 0
         self._stats_lock: asyncio.Lock | None = None
 
-        # Attempt initial Redis connection
-        if HAS_REDIS:
+        # Attempt initial Redis connection only when:
+        # 1. redis.asyncio is installed
+        # 2. The URL is a real Redis URL (redis:// or rediss://), not a
+        #    "memory://" fallback URL used in tests and dev.
+        # 3. Cache is not explicitly disabled via env var.
+        _cache_disabled = os.environ.get("ENGINEERING_SERVICE_CACHE_DISABLED", "").lower() == "true"
+        _is_redis_scheme = self._redis_url.startswith(("redis://", "rediss://"))
+        if HAS_REDIS and _is_redis_scheme and not _cache_disabled:
             self._init_redis()
 
     async def _get_stats_lock(  # NOSONAR
@@ -201,7 +208,10 @@ class StudyCache:
                 decode_responses=True,
                 socket_connect_timeout=5,
                 socket_timeout=5,
-                retry_on_timeout=True,
+                # NOTE: retry_on_timeout is intentionally NOT set to True.
+                # Enabling it causes every failed Redis operation to retry,
+                # resulting in multi-second hangs when Redis is unreachable
+                # (e.g. in CI / test environments without a real Redis server).
             )
             # Actual connection verification happens on first operation
             self._using_fallback = False

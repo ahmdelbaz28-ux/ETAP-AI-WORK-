@@ -425,6 +425,8 @@ tenacity>=8.2.0
 
 # API & Database dependencies
 alembic
+slowapi>=0.1.9
+python-dotenv>=1.0.0
 
 # LangWatch - commented out as it may not be on PyPI
 # langwatch>=0.1.0

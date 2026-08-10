@@ -43,6 +43,12 @@
       "skillPath": "skills/engineering/resolving-merge-conflicts/SKILL.md",
       "computedHash": "6a005119c18c477c2122321a380a43d40242bae3cc7027125f13497d90875be2"
     },
+    "security-requirement-extraction": {
+      "source": "wshobson/agents",
+      "sourceType": "github",
+      "skillPath": "plugins/security-scanning/skills/security-requirement-extraction/SKILL.md",
+      "computedHash": "70e17a537800fc5fa01925317093a436edbb98986aaff090ec6ee0cfced9b9fc"
+    },
     "systematic-debugging": {
       "source": "obra/superpowers",
       "sourceType": "github",

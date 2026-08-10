@@ -51,8 +51,10 @@ def client() -> Generator[TestClient, None, None]:
 class TestSessionExpiry:
     """Tests for session expiration."""
 
-    def test_expired_session_returns_401(self, client: TestClient) -> None:
+    def test_expired_session_returns_401(self, client: TestClient, monkeypatch) -> None:
         """An expired session should return 401."""
+        monkeypatch.setenv("ENGINEERING_SERVICE_AUTH_DISABLED", "false")
+        monkeypatch.setenv("FIREAI_AUTH_DISABLED", "false")
         client.cookies.clear()
         from backend.routers import auth as auth_module
 
@@ -76,8 +78,10 @@ class TestSessionExpiry:
         resp = client.get("/api/v1/auth/me")
         assert resp.status_code == 401, "Expired session should be rejected"
 
-    def test_expired_session_removed_from_store(self, client: TestClient) -> None:
+    def test_expired_session_removed_from_store(self, client: TestClient, monkeypatch) -> None:
         """Expired sessions should be cleaned up from the store."""
+        monkeypatch.setenv("ENGINEERING_SERVICE_AUTH_DISABLED", "false")
+        monkeypatch.setenv("FIREAI_AUTH_DISABLED", "false")
         client.cookies.clear()
         from backend.routers import auth as auth_module
 

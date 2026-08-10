@@ -174,6 +174,21 @@ class SCADALiveFeed:
         red banner to operators. In a real deployment, this method would connect
         to actual SCADA systems (Zenon 7 / IEC 61850) and is_simulated would be `False`.
         """
+        try:
+            from etap_scada_bridge import ETAPScadaBridge
+
+            bridge = ETAPScadaBridge()
+            if hasattr(bridge, "is_connected") and bridge.is_connected():
+                telemetry = bridge.read_telemetry()
+                if telemetry:
+                    return {
+                        "is_simulated": False,
+                        "timestamp": datetime.now(UTC).isoformat(),
+                        "measurements": telemetry,
+                    }
+        except Exception:
+            pass
+
         import random
         import secrets
 

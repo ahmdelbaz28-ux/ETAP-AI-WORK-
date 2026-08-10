@@ -216,15 +216,11 @@ async def convert_files(  # NOSONAR — S3776: cognitive complexity is inherent 
             )
 
         source_filepath = request.source_filepath
-        if not source_filepath:
-            temp_dir = tempfile.gettempdir()
-            source_filepath = os.path.join(temp_dir, f"sample_source.{source_format.lower()}")
-            # Create the dummy source file if it doesn't exist
-            if not os.path.exists(source_filepath):
-                import anyio  # NOSONAR: S7493 sync file I/O acceptable for small config reads  # NOSONAR — S7632: test function documented via class name / module path
-
-                async with await anyio.open_file(source_filepath, "w", encoding="utf-8") as f:
-                    await f.write("MOCK SOURCE DATA")
+        if not source_filepath or not os.path.exists(source_filepath):
+            raise HTTPException(
+                status_code=400,
+                detail=f"source_filepath is required and must exist on disk: {source_filepath}",
+            )
 
         target_filepath = request.target_filepath
         if not target_filepath:
