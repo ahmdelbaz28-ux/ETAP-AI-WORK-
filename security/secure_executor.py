@@ -458,24 +458,29 @@ for _mod_name in _allowed_import_names:
         except ImportError:
             pass
 
-# SR-001: Deep-freeze pre-imported modules INSIDE the executing subprocess.
-# The parent process freezes numpy/scipy, but that freeze is discarded when
-# this wrapper re-imports the modules fresh - previously the subprocess
-# executed with LIVE os/sys attributes reachable via module __dict__.
+# SR-001: Deep-freeze numpy/scipy INSIDE the executing subprocess so their
+# direct dangerous attributes (numpy.os, scipy.sys, ...) are nullified at the
+# only layer where the parent-process freeze is otherwise discarded.
+#
+# Design constraints (learned the hard way):
+#   * Only freeze numpy/scipy - the actual escape surface. Freezing json/math
+#     recurses through their dependency graph into codecs -> the live builtins
+#     module, corrupting the exec() machinery itself.
+#   * Depth-0 only (no child recursion) - the regex pre-scan already blocks
+#     __dict__ subscripting and direct os. attribute access, so the freeze is
+#     purely defense-in-depth for the few surviving direct-attr paths;
+#     recursing into submodules re-introduces the builtins corruption.
 _DANGEROUS_MODULE_ATTRS = {{
     "os", "system", "popen", "spawn", "exec", "eval", "execfile",
     "load", "loads", "__builtins__", "__import__", "subprocess",
     "ctypes", "signal", "socket", "sys",
 }}
+_FREEZE_TARGETS = {{"numpy", "scipy"}}
 
-def _freeze_module(_mod, _seen=None, _depth=0):
-    if _mod is None or _depth > 4:
+
+def _freeze_module(_mod):
+    if _mod is None:
         return
-    if _seen is None:
-        _seen = set()
-    if id(_mod) in _seen:
-        return
-    _seen.add(id(_mod))
     try:
         _names = dir(_mod)
     except Exception:
@@ -486,16 +491,10 @@ def _freeze_module(_mod, _seen=None, _depth=0):
                 object.__setattr__(_mod, _attr, None)
             except Exception:
                 pass
-        elif _depth < 2:
-            try:
-                _child = getattr(_mod, _attr, None)
-                if _child is not None and hasattr(_child, "__name__"):
-                    _freeze_module(_child, _seen, _depth + 1)
-            except Exception:
-                pass
+
 
 for _mod in list(_safe_globals.values()):
-    if hasattr(_mod, "__name__") and not isinstance(_mod, (dict, str)):
+    if hasattr(_mod, "__name__") and getattr(_mod, "__name__", "") in _FREEZE_TARGETS:
         _freeze_module(_mod)
 
 # Read and execute the user code

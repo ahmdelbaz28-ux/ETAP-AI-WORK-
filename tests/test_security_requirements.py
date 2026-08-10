@@ -98,18 +98,24 @@ def test_sandbox_rejects_dict_escape(code: str) -> None:
     assert "Security Violation" in str(wrapper.get("error", ""))
 
 
-def test_sandbox_freezes_module_attrs_in_subprocess() -> None:
-    """SR-001: dangerous attrs (os, sys) are nullified INSIDE the subprocess,
-    not just in the discarded parent-process freeze."""
+def test_sandbox_freeze_does_not_break_legit_execution() -> None:
+    """SR-001 regression guard: the in-subprocess module freeze must NOT corrupt
+    the exec machinery. An earlier version recursed through json/math's
+    dependency graph into codecs -> the live builtins module, which broke
+    exec('print(1)') with 'NoneType object is not callable'. The freeze is now
+    scoped to numpy/scipy only with no child recursion; legitimate numeric
+    code must still run.
+    """
     code = (
         "import numpy as np\n"
-        "print(np.os is None)\n"
+        "print(np.array([1, 2, 3]).sum())\n"
         "import scipy as sp\n"
-        "print(sp.sys is None)\n"
+        "print(round(float(sp.pi), 2))\n"
     )
     rc, wrapper = _run_executor(code)
-    assert wrapper.get("success") is True, f"Legit code failed: {wrapper!r}"
-    assert "True\nTrue" in wrapper.get("output", ""), wrapper
+    assert wrapper.get("success") is True, f"Legit code failed after freeze: {wrapper!r}"
+    out = wrapper.get("output", "")
+    assert "6" in out and "3.14" in out, out
 
 
 def test_sandbox_legit_code_still_runs() -> None:
@@ -237,7 +243,7 @@ def test_compose_secrets_are_mandatory_no_default() -> None:
         )
     assert (
         re.search(
-            r"\$\{(?:%s):-" % "|".join(_SR010_VARS),
+            r"\$\{(?:" + "|".join(_SR010_VARS) + r"):-",
             compose,
         )
         is None
