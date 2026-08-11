@@ -360,10 +360,14 @@ def verify_api_key(
         401 if the key is configured but missing / incorrect.
     """
     expected_key = os.environ.get(env_var, "")
-    if not expected_key:
-        return  # No key configured → open access
-
     _skip = skip_paths if skip_paths is not None else PUBLIC_PATHS
+    if not expected_key:
+        # Fail CLOSED in production: an unconfigured key must not grant open
+        # access to engineering endpoints. Public/health paths stay exempt.
+        _env = os.environ.get("ENVIRONMENT", os.environ.get("ENV", "development")).lower()
+        if _env in ("production", "prod") and request.url.path not in _skip:
+            raise HTTPException(status_code=401, detail="API key not configured")
+        return  # No key configured → open access (dev/test only)
     if request.url.path in _skip:
         return
 
