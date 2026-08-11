@@ -17,8 +17,8 @@
 ## 1. Verified status matrix (live code, HEAD 8c920b00f)
 | ID | Location (verified) | Status | Evidence |
 |---|---|---|---|
-| A1 | `api/shared_handlers.py:362-364` | **OPEN** | `if not expected_key: return` → fail-open |
-| A2 | `backend/security_middleware.py:396-403` | **OPEN** | AUTH_DISABLED → role=ADMIN regardless of ENVIRONMENT |
+| A1 | `api/shared_handlers.py:362-370` | **FIXED** | `verify_api_key` now blocks in production when `HF_API_KEY` unconfigured; public paths exempt via `PUBLIC_PATHS`; dev remains backward-compatible |
+| A2 | `backend/security_middleware.py:396-406` | **FIXED** | `ENGINEERING_SERVICE_AUTH_DISABLED`/`FIREAI_AUTH_DISABLED` bypass now gated by `env not in (production, prod, staging)`; production/staging always enforced |
 | A3 | `api/routes.py` audit_verify(930), kill-switch(998/1028/1054), rollback(1076) | **OPEN** | Only `_require_api_key(request)`; no require_role |
 | A4 | `api/routes.py:449/492`; `src/routes/studies.ts:46/64/106` | **OPEN** | TS `taskId=traceId`, no ownerApiKeyId, no ownership check; Python no key-id on task |
 | A5 | `api/websocket.py:396-431`, `api/routes.py:547` | **OPEN** | No Origin check; token query-only; wrapper calls endpoint w/o token (always 4001); `cua_confirmation_ws.py:478-485` already has Origin check |

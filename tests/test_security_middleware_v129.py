@@ -387,3 +387,125 @@ class TestBackendAppAlsoHasSecurityHeaders:
             for mod_name in list(sys.modules):  # NOSONAR - python:S7504
                 if mod_name == "backend_app" or mod_name.startswith("backend_app."):
                     del sys.modules[mod_name]
+
+
+# ── API auth bypass security fix (A2) ─────────────────────────────────────────
+
+
+class TestProductionAuthDisabledBypass:
+    """
+    A2: ENGINEERING_SERVICE_AUTH_DISABLED / FIREAI_AUTH_DISABLED must NOT
+    bypass authentication in production/staging environments.
+
+    ONLY allow the disable-bypass in development/local environments where
+    it is intentional for testing or local debugging.
+
+    This prevents a critical misconfiguration where setting
+    ENGINEERING_SERVICE_AUTH_DISABLED=true in production would grant
+    open access to the entire system.
+    """
+
+    @pytest.fixture
+    def prod_app(self):
+        """Load backend.app in production mode."""
+        saved_env = os.environ.get("ENVIRONMENT")
+        saved_key = os.environ.get("ENGINEERING_SERVICE_API_KEY")
+        saved_dis = os.environ.get("ENGINEERING_SERVICE_AUTH_DISABLED")
+        os.environ["ENVIRONMENT"] = "production"
+        os.environ["ENGINEERING_SERVICE_API_KEY"] = ""  # no key configured -> fail-closed
+        os.environ["ENGINEERING_SERVICE_AUTH_DISABLED"] = "true"  # attempt bypass
+        try:
+            import importlib
+            for mod_name in list(sys.modules):
+                if mod_name == "backend.app" or mod_name.startswith("backend.app."):
+                    del sys.modules[mod_name]
+            backend_app = importlib.import_module("backend.app")
+            yield backend_app.app
+        finally:
+            if saved_env is not None:
+                os.environ["ENVIRONMENT"] = saved_env
+            else:
+                os.environ.pop("ENVIRONMENT", None)
+            if saved_key is not None:
+                os.environ["ENGINEERING_SERVICE_API_KEY"] = saved_key
+            else:
+                os.environ.pop("ENGINEERING_SERVICE_API_KEY", None)
+            if saved_dis is not None:
+                os.environ["ENGINEERING_SERVICE_AUTH_DISABLED"] = saved_dis
+            else:
+                os.environ.pop("ENGINEERING_SERVICE_AUTH_DISABLED", None)
+
+    def test_prod_auth_disabled_true_still_requires_api_key(self, prod_app):
+        """
+        In production, ENGINEERING_SERVICE_AUTH_DISABLED=true must NOT
+        grant open access. A request without a valid API key should get 401,
+        even when the env var is set to bypass.
+        """
+        with TestClient(prod_app) as client:
+            # Non-public endpoint without any auth header -> 401
+            response = client.get("/api/v1/agents")
+            assert response.status_code == 401, (
+                f"Production must return 401 when ENGINEERING_SERVICE_AUTH_DISABLED=true. "
+                f"Got {response.status_code}"
+            )
+
+    def test_dev_auth_disabled_bypass_works(self):
+        """
+        In development mode, ENGINEERING_SERVICE_AUTH_DISABLED=true SHOULD
+        grant open access (backward compatible for local testing).
+        """
+        saved_env = os.environ.get("ENVIRONMENT")
+        saved_dis = os.environ.get("ENGINEERING_SERVICE_AUTH_DISABLED")
+        os.environ["ENVIRONMENT"] = "development"
+        os.environ["ENGINEERING_SERVICE_AUTH_DISABLED"] = "true"
+        os.environ.pop("ENGINEERING_SERVICE_API_KEY", None)
+        try:
+            for mod_name in list(sys.modules):
+                if mod_name == "backend.app" or mod_name.startswith("backend.app."):
+                    del sys.modules[mod_name]
+            backend_app = importlib.import_module("backend.app")
+            with TestClient(backend_app.app) as client:
+                response = client.get("/api/v1/agents")
+                # In dev with bypass, non-public endpoints are accessible (role=ADMIN granted)
+                assert response.status_code in (200, 403), (
+                    f"Dev with bypass should allow request. Got {response.status_code}"
+                )
+        finally:
+            if saved_env is not None:
+                os.environ["ENVIRONMENT"] = saved_env
+            else:
+                os.environ.pop("ENVIRONMENT", None)
+            if saved_dis is not None:
+                os.environ["ENGINEERING_SERVICE_AUTH_DISABLED"] = saved_dis
+            else:
+                os.environ.pop("ENGINEERING_SERVICE_AUTH_DISABLED", None)
+
+    def test_staging_auth_disabled_also_rejected(self):
+        """
+        Staging environment is production-like: auth bypass must be blocked.
+        """
+        saved_env = os.environ.get("ENVIRONMENT")
+        saved_dis = os.environ.get("ENGINEERING_SERVICE_AUTH_DISABLED")
+        os.environ["ENVIRONMENT"] = "staging"
+        os.environ["ENGINEERING_SERVICE_AUTH_DISABLED"] = "true"
+        os.environ.pop("ENGINEERING_SERVICE_API_KEY", None)
+        try:
+            for mod_name in list(sys.modules):
+                if mod_name == "backend.app" or mod_name.startswith("backend.app."):
+                    del sys.modules[mod_name]
+            backend_app = importlib.import_module("backend.app")
+            with TestClient(backend_app.app) as client:
+                response = client.get("/api/v1/agents")
+                assert response.status_code == 401, (
+                    f"Staging must return 401 when ENGINEERING_SERVICE_AUTH_DISABLED=true. "
+                    f"Got {response.status_code}"
+                )
+        finally:
+            if saved_env is not None:
+                os.environ["ENVIRONMENT"] = saved_env
+            else:
+                os.environ.pop("ENVIRONMENT", None)
+            if saved_dis is not None:
+                os.environ["ENGINEERING_SERVICE_AUTH_DISABLED"] = saved_dis
+            else:
+                os.environ.pop("ENGINEERING_SERVICE_AUTH_DISABLED", None)
