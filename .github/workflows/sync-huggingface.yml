@@ -37,7 +37,7 @@ jobs:
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
-          git clone "https://ahmdelbaz28:${HF_TOKEN}@huggingface.co/spaces/ahmdelbaz28/ETAP-AI-Platform.git" /tmp/hf-space
+          git clone "https://ahmdelbaz28:${HF_TOKEN}@huggingface.co/spaces/ahmdelbaz28/AhmedETAP-Platform.git" /tmp/hf-space
 
       - name: Sync hf-space/ to HuggingFace
         run: |
@@ -72,7 +72,7 @@ jobs:
           echo "Waiting 120s for HF Space to rebuild..."
           sleep 120
 
-          HF_URL="https://ahmdelbaz28-etap-ai-platform.hf.space"
+          HF_URL="https://ahmdelbaz28-ahmedetap-platform.hf.space"
 
           for i in 1 2 3 4 5 6; do
             STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
@@ -87,7 +87,7 @@ jobs:
           done
 
           echo "⚠️  WARNING: Space not healthy after 6 attempts (may still be building)"
-          echo "🔗 Check: https://huggingface.co/spaces/ahmdelbaz28/ETAP-AI-Platform"
+          echo "🔗 Check: https://huggingface.co/spaces/ahmdelbaz28/AhmedETAP-Platform"
 
       - name: Summary
         if: always()
@@ -96,7 +96,7 @@ jobs:
           echo "  ⚡ AhmedETAP — HuggingFace Sync Complete"
           echo "================================================"
           echo "  GitHub SHA : ${{ github.sha }}"
-          echo "  HF Space   : https://huggingface.co/spaces/ahmdelbaz28/ETAP-AI-Platform"
-          echo "  Live URL   : https://ahmdelbaz28-etap-ai-platform.hf.space"
+          echo "  HF Space   : https://huggingface.co/spaces/ahmdelbaz28/AhmedETAP-Platform"
+          echo "  Live URL   : https://ahmdelbaz28-ahmedetap-platform.hf.space"
           echo "  Swagger    : https://ahmdelbaz28-etap-ai-platform.hf.space/docs"
           echo "================================================"

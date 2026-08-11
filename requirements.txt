@@ -6,15 +6,16 @@
 # =============================================================================
 
 # Observability - OpenTelemetry
-# Pin all OTel packages to compatible versions. opentelemetry-sdk 1.30.x
-# requires opentelemetry-semantic-conventions 0.51b0 — which is compatible
-# with opentelemetry-instrumentation-fastapi 0.51b0 (line below).
-opentelemetry-api~=1.30.0
-opentelemetry-sdk~=1.30.0
+# All OTel packages aligned on the 1.44.x line. Verified against PyPI:
+#   opentelemetry-sdk 1.44.0            requires semantic-conventions==0.65b0
+#   opentelemetry-exporter-otlp 1.44.0  requires proto-http==1.44.0
+#   opentelemetry-instrumentation-fastapi 0.65b0 requires semantic-conventions==0.65b0
+opentelemetry-api~=1.44.0
+opentelemetry-sdk~=1.44.0
 opentelemetry-exporter-otlp~=1.44.0
-opentelemetry-semantic-conventions~=0.51b0
+opentelemetry-semantic-conventions~=0.65b0
 # OTLP/HTTP exporter for the Langfuse OTLP endpoint (used by core/tracing.py)
-opentelemetry-exporter-otlp-proto-http~=1.30.0
+opentelemetry-exporter-otlp-proto-http~=1.44.0
 
 # LLM observability — Langfuse (free Hobby plan supports unlimited prompts)
 # Used by integrations/langfuse_integration.py and agents/prompt_loader.py.
@@ -326,11 +327,11 @@ starlette>=1.3.1,<1.5.0
 celery~=5.3.0
 
 # Opentelemetry FastAPI instrumentation
-# Must match the opentelemetry-semantic-conventions version above (0.51b0).
-# COMPATIBILITY: opentelemetry-instrumentation-fastapi 0.51b0 declares
-# fastapi~=0.58 as an optional 'instruments' extra, not a hard dependency.
+# Must match the opentelemetry-semantic-conventions version above (0.65b0).
+# COMPATIBILITY: opentelemetry-instrumentation-fastapi 0.65b0 declares
+# fastapi~=0.92 as an optional 'instruments' extra, not a hard dependency.
 # It works correctly with fastapi>=0.121.0 — no upgrade needed.
-opentelemetry-instrumentation-fastapi~=0.51b0
+opentelemetry-instrumentation-fastapi~=0.65b0
 
 # Production requirements (lightweight subset)
 -r requirements-prod.txt

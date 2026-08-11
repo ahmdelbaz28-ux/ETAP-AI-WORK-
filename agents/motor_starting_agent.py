@@ -278,9 +278,6 @@ class MotorStartingAgent(BaseAgent):
             "motor_starting_impedance_pu": round(z_motor_pu, 6),
             "motor_bus_voltage_pu": round(float(motor_voltage_pu), 4),
             "voltage_dip_percent": round(float(voltage_dip_pct), 2),
-            "source_impedance_r_pu": round(float(source_impedance_pu.real), 6),
-            "source_impedance_x_pu": round(float(source_impedance_pu.imag), 6),
-            "motor_starting_impedance_pu": round(float(z_motor_pu), 6),
             "assessment": self._assess_voltage_dip(motor_voltage_pu),
         }
 
@@ -462,7 +459,6 @@ class MotorStartingAgent(BaseAgent):
             "starting_torque_nm": round(float(starting_torque), 2),
             "torque_per_rated": round(float(torque_ratio), 4),
             "method_voltage_ratio": round(float(v_ratio), 4),
-            "voltage_factor": round(float(combined_voltage_factor), 4),
             "rated_torque_nm": rated_torque_nm,
         }
 
@@ -502,9 +498,6 @@ class MotorStartingAgent(BaseAgent):
             "j_total_kgm2": j_total_kgm2,
             "avg_accelerating_torque_nm": round(avg_accelerating_torque_nm, 2),
             "omega_rated_rad_s": round(omega_rated, 2),
-            "acceleration_time_s": round(float(t_acc), 2),
-            "avg_accelerating_torque_nm": round(float(avg_accelerating_torque_nm), 2),
-            "omega_rated_rad_s": round(float(omega_rated), 2),
         }
 
     # ------------------------------------------------------------------

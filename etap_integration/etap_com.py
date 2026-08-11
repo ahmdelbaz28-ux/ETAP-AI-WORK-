@@ -1323,7 +1323,7 @@ class ETAPAutomation:
             logger.warning(
                 "Invalid project path type or empty: %r", file_path
             )  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
-            logger.warning("Invalid project path type or empty: %r", file_path)  # noqa: S5145: repr-escaped (no CR/LF injection); path kept for debugging
+            logger.warning("Invalid project path type or empty: %r", file_path)  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
 
             return False
 
@@ -1339,7 +1339,7 @@ class ETAPAutomation:
             logger.warning(
                 "Invalid project file extension: %r", file_path
             )  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
-            logger.warning("Invalid project file extension: %r", file_path)  # noqa: S5145: repr-escaped (no CR/LF injection); path kept for debugging
+            logger.warning("Invalid project file extension: %r", file_path)  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
 
             return False
 
@@ -1358,7 +1358,7 @@ class ETAPAutomation:
             logger.warning(
                 "UNC path not allowed (SMB relay risk): %r", file_path
             )  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
-            logger.warning("UNC path not allowed (SMB relay risk): %r", file_path)  # noqa: S5145: repr-escaped (no CR/LF injection); path kept for debugging
+            logger.warning("UNC path not allowed (SMB relay risk): %r", file_path)  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
 
             return False
 
@@ -1387,8 +1387,8 @@ class ETAPAutomation:
             logger.warning(
                 "Invalid path format: %r", file_path
             )  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
-            resolved = normalised.resolve(strict=False)  # noqa: S6549: lexical normpath + containment checks mitigate path escape (see comment block above)
-            logger.warning("Invalid path format: %r", file_path)  # noqa: S5145: repr-escaped (no CR/LF injection); path kept for debugging
+            resolved = normalised.resolve(strict=False)  # NOSONAR S6549: lexical normpath + containment checks mitigate path escape (see comment block above)
+            logger.warning("Invalid path format: %r", file_path)  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
 
             return False
 
@@ -1402,7 +1402,7 @@ class ETAPAutomation:
                 logger.warning(
                     "Project path escapes CWD and HOME: %r", file_path
                 )  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
-                logger.warning("Project path escapes CWD and HOME: %r", file_path)  # noqa: S5145: repr-escaped (no CR/LF injection); path kept for debugging
+                logger.warning("Project path escapes CWD and HOME: %r", file_path)  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
 
                 return False
 
@@ -1414,7 +1414,7 @@ class ETAPAutomation:
                 logger.warning(
                     "Project path outside allowed directories: %r", file_path
                 )  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
-                logger.warning("Project path outside allowed directories: %r", file_path)  # noqa: S5145: repr-escaped (no CR/LF injection); path kept for debugging
+                logger.warning("Project path outside allowed directories: %r", file_path)  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
 
                 return False
 
@@ -1478,7 +1478,7 @@ class ETAPAutomation:
             logger.error(
                 "Project path validation failed: %r", file_path
             )  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
-            logger.error("Project path validation failed: %r", file_path)  # noqa: S5145: repr-escaped (no CR/LF injection); path kept for debugging
+            logger.error("Project path validation failed: %r", file_path)  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
 
             return None
 
@@ -1496,8 +1496,8 @@ class ETAPAutomation:
                 logger.error(
                     "Failed to open project: %r", file_path
                 )  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
-                logger.info("Opened project: %r", file_path)  # noqa: S5145: repr-escaped (no CR/LF injection); path kept for debugging
-                logger.error("Failed to open project: %r", file_path)  # noqa: S5145: repr-escaped (no CR/LF injection); path kept for debugging
+                logger.info("Opened project: %r", file_path)  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
+                logger.error("Failed to open project: %r", file_path)  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
 
                 return None
 

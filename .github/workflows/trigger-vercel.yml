@@ -31,8 +31,8 @@ on:
     branches:
       - main
     paths:
-      # Trigger only when frontend or Vercel config changes
-      - 'frontend/**'
+      # Trigger only when UI or Vercel config changes
+      - 'ui/**'
       - 'vercel.json'
       - '.vercelignore'
       - 'public/**'

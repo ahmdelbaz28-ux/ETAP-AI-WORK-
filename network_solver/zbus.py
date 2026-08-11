@@ -45,6 +45,6 @@ def zbus_full(ybus):
     numpy.ndarray: Complex impedance matrix (Zbus) of size (n x n) or pseudo-inverse.
     """
     try:
-        return np.linalg.inv(Ybus)
+        return np.linalg.inv(ybus)
     except np.linalg.LinAlgError:
-        return np.linalg.pinv(Ybus)
+        return np.linalg.pinv(ybus)
