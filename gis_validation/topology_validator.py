@@ -26,11 +26,6 @@ class ADMSGraphModel:
         self.assets = assets
         self.nodes: Set[str] = {a.asset_id for a in assets}
         self.edges: Dict[str, Set[str]] = {a.asset_id: set() for a in assets}
-
-    def __init__(self, assets: list[ADMSAsset]) -> None:
-        self.nodes: set[str] = {a.asset_id for a in assets}
-        self.edges: dict[str, set[str]] = {a.asset_id: set() for a in assets}
-
         self._build_deterministic_edges()
 
     @staticmethod
@@ -48,8 +43,9 @@ class ADMSGraphModel:
         return None
 
     def _build_deterministic_edges(self) -> None:
-        # Deterministic: connect LINE/FEEDER assets to nearest substations by matching endpoints exactly
-        # when possible (within exact equality). No tolerance to avoid nondeterminism.
+        # Deterministic: connect LINE/FEEDER assets to nearest substations by
+        # matching endpoints exactly when possible (within exact equality).
+        # No tolerance to avoid nondeterminism.
         substations = [a for a in self.assets if a.asset_type in (ADMSAssetType.SUBSTATION,)]
         lines = [
             a for a in self.assets if a.asset_type in (ADMSAssetType.LINE, ADMSAssetType.FEEDER)
@@ -79,10 +75,6 @@ class ADMSGraphModel:
         visited: Set[str] = set()
         comps: List[Set[str]] = []
 
-    def find_disconnected_components(self) -> list[set[str]]:
-        visited: set[str] = set()
-        comps: list[set[str]] = []
-
         for n in self.nodes:
             if n in visited:
                 continue
@@ -99,8 +91,6 @@ class ADMSGraphModel:
                         stack.append(nb)
             comps.append(comp)
         return comps
-
-
 def validate_adms_topology(assets: list[ADMSAsset]) -> tuple[bool, list[TopologyIssue]]:
     """
     Validate basic electrical consistency derived from geometry.

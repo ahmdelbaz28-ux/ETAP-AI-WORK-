@@ -351,16 +351,21 @@ async def auth_and_rate_limit(request: Request, call_next):
     # verify_api_key() returns early and auth is DISABLED — which is
     # acceptable only in development, NOT in production.
     #
-    # EXCEPTION: The email dashboard HTML page (/api/v1/email-dashboard/)
-    # is public — it's just an HTML shell with no sensitive data.
-    # Auth is enforced on the JavaScript API calls, not the HTML page.
-    _is_dashboard_html = _path == "/api/v1/email-dashboard" or _path == "/api/v1/email-dashboard/"
+    # EXCEPTIONS: These paths are public (no auth required):
+    # - /api/v1/email-dashboard — email dashboard HTML shell (JS API calls still need auth)
+    # - /api/v1/info — platform info endpoint (build metadata, no sensitive data)
+    _public_api_paths = {
+        "/api/v1/email-dashboard",
+        "/api/v1/email-dashboard/",
+        "/api/v1/info",
+    }
+    _is_public = _path in _public_api_paths
 
     _eng_key = os.environ.get("ENGINEERING_SERVICE_API_KEY", "")
     _hf_key = os.environ.get("HF_API_KEY", "")
     if _eng_key and not _hf_key:
         os.environ["HF_API_KEY"] = _eng_key
-    if not _is_dashboard_html:
+    if not _is_public:
         try:
             verify_api_key(request)
         except HTTPException as exc:

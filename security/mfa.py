@@ -111,19 +111,17 @@ def _sha1_for_otp(data: bytes = b"") -> _HashLike:
             return sha1_func(data, usedforsecurity=False)
     except (TypeError, ValueError):
         pass
-    # Fallback for runtimes without usedforsecurity: still call sha1 with
-    # the kwarg, catching TypeError as a last resort. We avoid the bare
-    # ``hashlib.sha1(data)`` form because it triggers static-analysis
-    # warnings (SonarCloud python:S4790).
+    # Fallback for runtimes without usedforsecurity: use bare hashlib.sha1.
+    # We avoid the bare ``hashlib.sha1(data)`` form because it triggers
+    # static-analysis warnings (SonarCloud python:S4790). But in Python 3.8,
+    # usedforsecurity doesn't exist, so we must use bare sha1.
     try:
-        return sha1_func(data, usedforsecurity=False)  # type: ignore[call-arg]
+        return sha1_func(data)  # type: ignore[call-arg]
     except TypeError:
-        # Truly ancient runtime: delegate to hmac.new with sha1 to keep
-        # the SHA-1 invocation inside an HMAC construction (RFC 2104),
-        # which is the recommended use of SHA-1 in security contexts.
+        # Even older runtime: try the HMAC wrapper for compatibility
         import hmac
 
-        return hmac.new(b"", data, hashlib.sha1)  # NOSONAR type: ignore[return-value]
+        return hmac.new(b"", data, hashlib.sha1)  # type: ignore[return-value]
 
 
 def _hotp(secret_bytes: bytes, counter: int, digits: int = 6) -> str:
