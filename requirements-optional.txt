@@ -12,7 +12,7 @@ nats-py>=2.0.0,<3.0.0
 # FACP Distributed System — Redis-backed event bus and task queue
 redis>=4.0.0
 celery>=5.1.0
-asyncio-mqtt>=0.10.0
+asyncio-mqtt>=0.16.2
 
 # Observability (fireai.infrastructure.metrics imports prometheus_client)
 prometheus_client>=0.16.0,<1.0.0
