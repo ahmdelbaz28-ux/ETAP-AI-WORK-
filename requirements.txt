@@ -324,11 +324,11 @@ starlette>=1.3.1,<1.5.0
 celery~=5.3.0
 
 # Opentelemetry FastAPI instrumentation
-# Must match the opentelemetry-semantic-conventions version above (0.51b0).
-# COMPATIBILITY: opentelemetry-instrumentation-fastapi 0.51b0 declares
-# fastapi~=0.58 as an optional 'instruments' extra, not a hard dependency.
+# Must match the opentelemetry-semantic-conventions version above (0.65b0).
+# COMPATIBILITY: opentelemetry-instrumentation-fastapi 0.65b0 declares
+# fastapi~=0.92 as an optional 'instruments' extra, not a hard dependency.
 # It works correctly with fastapi>=0.121.0 — no upgrade needed.
-opentelemetry-instrumentation-fastapi~=0.51b0
+opentelemetry-instrumentation-fastapi~=0.65b0
 
 # Production requirements (lightweight subset)
 -r requirements-prod.txt

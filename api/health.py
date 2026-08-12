@@ -5,11 +5,12 @@ Handles all health check endpoints with REAL dependency checks.
 Separated from main engineering service for better modularity.
 """
 
+import os
 import time
 from typing import Dict, Optional
 
 from fastapi import APIRouter, Request
-from fastapi.responses import Response
+from fastapi.responses import JSONResponse, Response
 
 from pydantic import BaseModel
 
@@ -48,46 +49,6 @@ def _get_redis_client_func():
 # generate a valid response_model schema. Plain Python classes cause
 # `fastapi.exceptions.FastAPIError: Invalid args for response field!` at
 # router decoration time, which crashes the entire app on import.
-class HealthResponse:
-    def __init__(self, status: str, version: str, timestamp: str, trace_id: str):
-        self.status = status
-        self.version = version
-        self.timestamp = timestamp
-        self.trace_id = trace_id
-
-
-class ReadyResponse:
-    def __init__(
-        self,
-        ready: bool,
-        native_engine_available: bool,
-        etap_available: bool,
-        timestamp: str,
-        trace_id: str,
-    ):
-        self.ready = ready
-        self.native_engine_available = native_engine_available
-        self.etap_available = etap_available
-        self.timestamp = timestamp
-        self.trace_id = trace_id
-
-
-class MetricsResponse:
-    def __init__(
-        self,
-        requests_total: int,
-        requests_success: int,
-        requests_failed: int,
-        avg_execution_time_ms: float,
-        trace_id: str,
-    ):
-        self.requests_total = requests_total
-        self.requests_success = requests_success
-        self.requests_failed = requests_failed
-        self.avg_execution_time_ms = avg_execution_time_ms
-        self.trace_id = trace_id
-
-
 class HealthResponse(BaseModel):
     status: str
     version: str
@@ -127,13 +88,6 @@ async def healthz() -> Dict[str, str]:
 
 @router.head("/readyz")
 @router.get("/readyz")
-async def readyz():
-    """Readiness probe — checks critical dependencies."""
-    checks = {"python": True, "imports": True}
-    all_ready = all(checks.values())
-    return {"ready": all_ready, "checks": checks}
-
-
 async def readyz() -> Dict[str, object]:
     """Readiness probe — checks critical dependencies.
     SECURITY/OPS (E-07): Previously this returned a hardcoded {"ready": True}
@@ -146,6 +100,8 @@ async def readyz() -> Dict[str, object]:
     try:
         get_db_context = _get_db_context()
         async with get_db_context() as db:
+            from sqlalchemy import text
+
             result = await db.execute(text("SELECT 1"))
             if result.scalar() == 1:
                 checks["db"] = "ok"
@@ -153,7 +109,8 @@ async def readyz() -> Dict[str, object]:
                 checks["db"] = "fail: unexpected scalar"
     except Exception as exc:
         checks["db"] = f"fail: {type(exc).__name__}: {exc}"
-        # Redis check
+    # Redis check
+    try:
         get_redis_client = _get_redis_client_func()
         r = get_redis_client()
         if r is None:
@@ -162,6 +119,7 @@ async def readyz() -> Dict[str, object]:
         else:
             await r.ping()
             checks["redis"] = "ok"
+    except Exception as exc:
         checks["redis"] = f"fail: {type(exc).__name__}: {exc}"
     # Critical dependencies: DB must be ok. Redis is optional in dev but
     # required in production (fail-closed if configured but unreachable).

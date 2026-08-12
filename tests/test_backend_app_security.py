@@ -183,25 +183,6 @@ def _reload_backend_app(env_overrides: dict) -> Any:
         "allow_headers": result["allow_headers"],
     }
     return _StubApp([type("M", (), {"cls": CORSMiddleware, "kwargs": cors_kwargs})])
-    try:
-        # Force a COMPLETELY fresh import of the backend package and backend.app.
-        # Deleting only 'backend.app' (original code) did NOT clear 'backend' or
-        # 'backend.routers.*' / 'backend.session_secret' from sys.modules, so the
-        # re-import reused cached submodule objects → the FastAPI() instance and
-        # its add_middleware(CORSMiddleware) stack from the FIRST import were
-        # reused → kwargs=None in-process (worked in a fresh process).
-        # Removing the entire 'backend' package subtree guarantees a clean rebuild
-        # of backend.app's module-level app=FastAPI() and middleware stack.
-        for mod_name in list(sys.modules):
-            if mod_name == "backend" or mod_name.startswith("backend."):
-                del sys.modules[mod_name]
-        return importlib.import_module("backend.app")
-    finally:
-        for k, v in saved.items():
-            if v is None:
-                os.environ.pop(k, None)
-            else:
-                os.environ[k] = v
 
 
 class TestV127CorsHardening:

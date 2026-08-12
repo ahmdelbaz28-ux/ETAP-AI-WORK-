@@ -95,7 +95,9 @@ def fix_file(path: Path) -> bool:
         safe_path.write_text(
             original, encoding="utf-8"
         )  # NOSONAR S2083: safe_path realpath-validated within script directory (see main())
-        safe_path.write_text(original, encoding="utf-8")  # noqa: S2083: safe_path realpath-validated within script directory (see main())
+        safe_path.write_text(
+            original, encoding="utf-8"
+        )  # NOSONAR S2083: safe_path realpath-validated within script directory (see main())
 
         print(f"REVERTED: {safe_path.name} - fix introduced a SyntaxError: {exc}")
         return False

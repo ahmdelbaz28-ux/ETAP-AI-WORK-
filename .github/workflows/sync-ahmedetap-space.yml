@@ -32,7 +32,7 @@ jobs:
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
-          git clone "https://ahmdelbaz28:${HF_TOKEN}@huggingface.co/spaces/ahmdelbaz28/AHMEDETAP.git" /tmp/hf-space
+          git clone "https://ahmdelbaz28:${HF_TOKEN}@huggingface.co/spaces/ahmdelbaz28/AhmedETAP-Platform.git" /tmp/hf-space
 
       - name: Prepare and Sync Files
         run: |

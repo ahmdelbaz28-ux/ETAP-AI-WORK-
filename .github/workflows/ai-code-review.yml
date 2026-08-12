@@ -251,7 +251,7 @@ jobs:
 
           # 5. Frontend: typecheck (V209: Node.js 20 now installed; no tail)
           rc, so, se = run(
-              "cd /workspace/frontend && "
+              "cd /workspace/ui && "
               "(npm ci --no-audit --no-fund 2>&1 || npm install --no-audit --no-fund 2>&1) && "
               "npx tsc -p tsconfig.json --noEmit 2>&1",
               timeout=600,

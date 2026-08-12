@@ -22,6 +22,8 @@ from __future__ import annotations
 
 import argparse
 import logging
+import os
+import re
 import sys
 
 _VALID_ARG_RE = re.compile(r"^[A-Za-z0-9_\-./]+( [A-Za-z0-9_\-./=]+)*$")

@@ -53,7 +53,7 @@ jobs:
             exit 0
           fi
           # Clone the HF Space repo (forces overwrite with GitHub content)
-          git clone https://user:$HF_TOKEN@huggingface.co/spaces/ahmdelbaz28/AHMEDETAP hf-space-repo
+          git clone https://user:$HF_TOKEN@huggingface.co/spaces/ahmdelbaz28/AhmedETAP-Platform hf-space-repo
           # Remove all existing files (except .git)
           cd hf-space-repo
           find . -mindepth 1 -maxdepth 1 -not -name '.git' -not -name '.gitattributes' -exec rm -rf {} +
@@ -71,5 +71,5 @@ jobs:
             echo "No changes to commit — HF Space is already up to date"
             exit 0
           }
-          git push https://user:$HF_TOKEN@huggingface.co/spaces/ahmdelbaz28/AHMEDETAP main
+          git push https://user:$HF_TOKEN@huggingface.co/spaces/ahmdelbaz28/AhmedETAP-Platform main
           echo "✅ HF Space synced successfully"
