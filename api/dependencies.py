@@ -24,6 +24,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from api._messages import MSG_USER_NOT_FOUND
 from api.database import get_db
+from api.environment import auth_disabled_allowed, is_production_environment
 
 logger = logging.getLogger(__name__)
 
@@ -342,7 +343,7 @@ async def get_api_key(  # NOSONAR async function uses sync I/O for compatibility
     header. The JWT is validated here to prevent bypass with arbitrary
     "Bearer <anything>" strings.
     """
-    if os.environ.get("ENGINEERING_SERVICE_AUTH_DISABLED", "").lower() in ("true", "1", "yes"):
+    if auth_disabled_allowed():
         return ""
 
     if not API_KEY:
@@ -352,8 +353,7 @@ async def get_api_key(  # NOSONAR async function uses sync I/O for compatibility
         # Depends(get_api_key) had ZERO authentication.
         # Fix: In production, this is a hard error (raised at startup above).
         # In development, we still allow it but log a prominent warning.
-        _env = os.getenv("ENVIRONMENT", os.getenv("ENV", "development")).lower()
-        if _env not in ("production", "prod", "staging"):
+        if not is_production_environment():
             logger.debug(
                 "API key auth disabled in development — no ENGINEERING_SERVICE_API_KEY set"
             )

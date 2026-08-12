@@ -23,6 +23,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse
 
 from api._messages import MSG_INTERNAL_ERROR
+from api.environment import auth_disabled_allowed
 
 logger = logging.getLogger(__name__)
 
@@ -61,13 +62,8 @@ def _get_api_key_or_user(request: Request) -> AuthPrincipal:
     """
     import os
 
-    # Allow bypass in development/test mode (ENGINEERING_SERVICE_AUTH_DISABLED)
-    _auth_disabled = os.getenv("ENGINEERING_SERVICE_AUTH_DISABLED", "").lower() in (
-        "1",
-        "true",
-        "yes",
-    )
-    if _auth_disabled:
+    # Allow bypass only in explicit dev/test environments (C-02 fail-closed)
+    if auth_disabled_allowed():
         return AuthPrincipal(auth_type="dev_bypass", identity="anonymous")
 
     # Check API key first — use constant-time comparison to prevent timing attacks

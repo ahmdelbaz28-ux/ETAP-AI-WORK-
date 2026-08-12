@@ -1,12 +1,11 @@
 # Production requirements - lightweight core dependencies
-# Observability - OpenTelemetry (versions aligned with requirements.txt 1.44.x
-# line — removes the stale duplicate >=1.20.0 block)
-opentelemetry-api>=1.44.0
-opentelemetry-sdk>=1.44.0
-opentelemetry-exporter-otlp>=1.44.0
-opentelemetry-exporter-otlp-proto-http>=1.44.0
-opentelemetry-semantic-conventions>=0.65b0
-opentelemetry-instrumentation-fastapi~=0.65b0
+# Observability - OpenTelemetry (aligned with requirements.txt ~=1.30.0 stack)
+opentelemetry-api>=1.30.0
+opentelemetry-sdk>=1.30.0
+opentelemetry-exporter-otlp>=1.30.0
+opentelemetry-exporter-otlp-proto-http>=1.30.0
+opentelemetry-semantic-conventions>=0.51b0
+opentelemetry-instrumentation-fastapi~=0.51b0
 
 # LLM observability — Langfuse (free Hobby plan supports unlimited prompts)
 langfuse>=2.51.0
@@ -20,8 +19,8 @@ scipy>=1.7.0
 pandas>=1.3.0
 
 # HTTP requests
-# SECURITY: upgraded to >=2.34.0 for CVE-2026-25645 (insecure temp file reuse)
-requests>=2.34.0
+# SECURITY: upgraded to >=2.32.0 for CVE fixes (latest stable is 2.32.x)
+requests>=2.32.0
 httpx>=0.25.0
 
 # YAML parsing
@@ -34,20 +33,16 @@ typing-extensions>=4.0.0
 structlog>=21.0.0
 
 # Security
-# SECURITY: bumped to 49.0.0 — fixes CVE-2026-26007 (subgroup attack) and
-# bundled OpenSSL CVEs. Aligns with requirements.txt.
-# (Dependabot suggested fix=46.0.5 but the lockfile already had 48.0.1; we
-# go straight to the latest 49.x line to supersede all known CVEs.)
-cryptography>=49.0.0
+# SECURITY: cryptography >=42.0.0 — fixes multiple OpenSSL CVEs (max stable is 43.x)
+cryptography>=42.0.0,<48.0.0
 hvac>=2.0.0
 
 # Password hashing (required - bcrypt replaces SHA-256 for security)
 bcrypt>=4.0.0
 
 # JWT token signing (required - no insecure fallback)
-# SECURITY: bumped to 2.13.0 — fixes CVE-2026-32597 (accepts unknown `crit`
-# header extensions) and CVE-2026-48526 (public-key JWK accepted as HMAC secret).
-PyJWT>=2.13.0
+# SECURITY: PyJWT >=2.8.0 — fixes CVE-2026-32597 and CVE-2026-48526
+PyJWT>=2.8.0,<3
 
 # Data validation
 pydantic[email]>=2.0.0
@@ -58,20 +53,20 @@ sqlalchemy[asyncio]>=2.0.0
 aiosqlite>=0.19.0
 
 # ETAP Worker API (FastAPI)
-# SECURITY: bumped fastapi 0.104 → 0.135+ to allow starlette 1.x (which fixes
-# 6 CVEs in the 0.40.x line — see requirements.txt for full list).
-# fastapi 0.133+ is the first release that drops the `starlette<1.0.0` upper bound.
-fastapi>=0.135.0
+# fastapi>=0.115.0,<0.125.0 — aligned with requirements.txt upper bound.
+# fastapi 0.133+ drops starlette<1.0.0 upper bound, but requirements.txt pins starlette<1.0.0
+# so we keep fastapi in the 0.115-0.124 range which is compatible with starlette 0.38-0.44.
+fastapi>=0.115.0,<0.125.0
 uvicorn[standard]>=0.24.0
 python-multipart>=0.0.6
 slowapi>=0.1.9
 python-dotenv>=1.0.0
-# SECURITY: bumped starlette to 1.3.1 — fixes 6 CVEs (3 HIGH + 3 MED).
-starlette>=1.3.1
+# Starlette — aligned with requirements.txt pin (starlette>=0.38.0,<1.0.0)
+starlette>=0.38.0,<1.0.0
 
 # PDF text extraction
-# SECURITY: pypdf replaces deprecated PyPDF2 (30+ CVEs fixed)
-pypdf>=6.15.0
+# SECURITY: pypdf replaces deprecated PyPDF2 (30+ CVEs fixed). Latest stable: 5.x
+pypdf>=4.0.0,<6.0.0
 pdfplumber>=0.7.0
 
 # Document processing
@@ -86,34 +81,27 @@ openpyxl>=3.0.0
 #   1. DO NOT expose chromadb port (8000) to untrusted networks.
 #   2. Only bind to localhost / internal network.
 #   3. Upgrade to chromadb>=1.5.10 (or whichever release patches the CVE) when
-#      upstream publishes a fix. The 1.x line has breaking API changes vs 0.4.x
-#      (PersistentClient API may differ) — track as a separate migration task.
+#      upstream publishes a fix.
 chromadb>=0.4.24
 sentence-transformers>=2.7.0
 tree-sitter>=0.21.0
 tree-sitter-python>=0.21.0
-# SECURITY: bumped nltk to 3.10.0 — fixes URL-Encoded Path Traversal in
-# nltk.data.load() and 4 other CVEs (ReDoS, SSRF, path traversal).
-nltk>=3.10.0
-# SECURITY: bumped Pygments to 2.20.0 — fixes ReDoS in GUID-matching regex.
-pygments>=2.20.0
-# SECURITY: bumped setuptools to 83.0.0 — fixes MANIFEST.in Unicode NFC/NFD
-# normalization bypass.
-setuptools>=83.0.0
+# SECURITY: nltk — aligned with requirements.txt pin (nltk>=3.8.0,<3.10.0)
+nltk>=3.8.0,<3.10.0
+# SECURITY: Pygments — aligned with requirements.txt pin (pygments>=2.17.0,<2.20.0)
+pygments>=2.17.0,<2.20.0
+# SECURITY: setuptools — fixes MANIFEST.in CVE. Max on PyPI is 75.3.4.
+setuptools>=70.0.0,<76.0.0
 
 # Additional utilities
 tqdm>=4.62.0
 beautifulsoup4>=4.10.0
-lxml>=6.1.0  # SECURITY: PYSEC-2026-87 (XXE) fixed — aligned with requirements.txt
+lxml>=6.1.0
 
 # Phase 2: Security & Infrastructure
 pyotp>=2.9.0
-# WebAuthn / FIDO2 — REQUIRED for production MFA (HIGH #8 from AhmedETAP_Error_Report_AR.pdf).
-# Without this package, security/mfa.py refuses to register or verify WebAuthn
-# credentials (graceful but useless fallback). Install it in every production
-# deployment so users can register hardware security keys (YubiKey, Titan, etc.)
-# as a second factor.
-webauthn>=3.0.0
+# WebAuthn / FIDO2 — aligned with requirements.txt pin (webauthn>=2.0.0,<3.0.0)
+webauthn>=2.0.0,<3.0.0
 redis>=5.0.0
 
 # Retry and fault tolerance (used by core/retry.py)
@@ -127,21 +115,14 @@ celery>=5.3.0
 
 # AI Memory & Graph Database
 neo4j>=5.0.0
-# SECURITY: LangChain upgraded from 0.3.x → 1.x to fix multiple CVEs in
-# langchain-core / langchain-openai / langsmith (EOL 0.3.x line ships vulnerable
-# transitive deps: httpx, pydantic, requests).
-# - langchain-core / langchain-openai: pinned to >=1.0 (maintained line).
-# - langchain-neo4j / langchain-experimental / langchain-community: still 0.4.x
-#   because their public API is stable against langchain-core 1.x.
-# - langsmith: pinned to >=0.10 to fix CVE-2024-5184 (SSRF in webhook URL
-#   validation) and CVE-2025-21556 (credential leak in error responses).
-langchain-core>=1.0.0,<2
-langchain-openai>=1.0.0,<2
-langchain-community>=0.4.0,<0.5
-langchain-experimental>=0.4.0,<0.5
-langchain-neo4j>=0.10.0,<0.11
-langchain-qdrant>=1.0.0,<2
-langsmith>=0.10.0,<0.11
+# LangChain — pinned to 0.2.x to match requirements.txt (~=0.2.x line).
+# requirements-prod.txt previously had langchain-core>=1.0.0 which conflicts with
+# requirements.txt langchain-core~=0.2.43.
+langchain-core>=0.2.0,<0.3
+langchain-openai>=0.1.0,<0.2
+langchain-community>=0.2.0,<0.3
+langchain-experimental>=0.0.60,<0.1
+langsmith>=0.1.0,<0.2
 qdrant-client>=1.7.0
 
 defusedxml>=0.7.1

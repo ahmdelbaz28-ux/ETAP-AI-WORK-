@@ -154,13 +154,6 @@ try:
                 name, failure_threshold=failure_threshold, recovery_timeout=recovery_timeout
             )
 
-    def __init__(self, failure_threshold: int = 5, reset_seconds: float = 60.0):
-        self.failure_threshold = failure_threshold
-        self.reset_seconds = reset_seconds
-        self._failures = 0
-        self._opened_at: float | None = None
-        self._lock = threading.Lock()
-
         @property
         def is_open(self) -> bool:
             return self._cb.get_state() in ("OPEN", "HALF_OPEN")
