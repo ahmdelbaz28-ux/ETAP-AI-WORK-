@@ -1,6 +1,6 @@
 # Multi-Database Dependencies
 # PostgreSQL
-psycopg2-binary>=2.9.0
+psycopg2-binary>=2.9.12
 
 # Vector Database
 qdrant-client>=1.9.0
