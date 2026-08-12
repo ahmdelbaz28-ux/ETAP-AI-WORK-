@@ -20,5 +20,5 @@ torch-geometric>=2.8.0.post1              # Graph Neural Networks for power grid
 mlflow>=3.15.1                       # Model tracking, versioning, registry
 
 # Phase 6e: ML/AI - NLP & RAG Enhancement
-transformers>=4.30.0                # HuggingFace Transformers
+transformers>=5.14.1                # HuggingFace Transformers
 sentence-transformers>=2.2.0        # Sentence embeddings for RAG
