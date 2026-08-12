@@ -63,7 +63,7 @@ lxml>=4.6.0
 pyotp>=2.9.0
 # WebAuthn / FIDO2 — required for production MFA (HIGH #8).
 # Without this, security/mfa.py rejects all WebAuthn registrations/assertions.
-webauthn>=2.0.0
+webauthn>=3.0.0
 redis>=5.0.0
 
 # WebSocket
