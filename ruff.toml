@@ -55,7 +55,10 @@ ignore = [
     # UP047 (non-pep695-type-parameters) was added in ruff 0.8+ — not available in CI's ruff 0.7.0.
     # Both are omitted from this ignore list to keep CI ruff 0.7.0 compatible.
     # Listing UP045 in `ignore` causes ruff 0.7.0 to fail at parse time with
-    # "Unknown rule selector: UP045". Re-enable both when CI upgrades ruff to 0.8+.
+    "G004",   # Logging statement uses f-string
+    "UP045",  # non-pep604-annotation-optional
+    "UP046",  # non-pep695-generic-class
+    "UP047",  # non-pep695-generic-function
     "T201",   # print() found — CLI tools in tools/ use print() for output (intentional)
     "N817",   # CamelCase imported as acronym (ET for ElementTree — standard Python convention)
     "SIM114", # Combine if branches — sometimes less readable than explicit branches

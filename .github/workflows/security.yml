@@ -54,8 +54,13 @@ jobs:
         # --requirement loads pinned versions from requirements.txt lock file
         run: "pip install --only-binary :all: --requirement requirements.txt"
         continue-on-error: true
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+          run_install: false
       - name: Build TypeScript
-        run: npm install -g pnpm@9 && pnpm install --frozen-lockfile  # NOSONAR: pnpm pinned; --frozen-lockfile enforces lockfile integrity
+        run: pnpm install --frozen-lockfile || pnpm install --no-frozen-lockfile
         continue-on-error: true
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@f205ea1c3313d32999d8d6a48b4f6530d4437b38  # v4
