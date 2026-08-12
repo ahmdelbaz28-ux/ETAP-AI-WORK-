@@ -16,6 +16,8 @@ import time
 import uuid
 from typing import Any
 
+from api.environment import DEV_ENVIRONMENTS, is_dev_environment, is_production_environment
+
 import aiofiles
 from fastapi import FastAPI, HTTPException, Request, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
@@ -115,35 +117,36 @@ _SMITHERY_API_KEY = os.environ.get("SMITHERY_API_KEY", "")
 
 _API_KEY_CONFIGURED = bool(_EXPECTED_API_KEY)
 
+_ENV = os.environ.get("ENVIRONMENT", os.environ.get("ENV", "development")).lower()
+
 _AUTH_DISABLED = os.environ.get("ENGINEERING_SERVICE_AUTH_DISABLED", "").lower() in (
     "1",
     "true",
     "yes",
 )
+if _AUTH_DISABLED and not is_dev_environment():
+    logger.critical(
+        "FATAL: ENGINEERING_SERVICE_AUTH_DISABLED=true is NOT allowed in %s environment. "
+        "It may only be used in: %s. Remove this environment variable or set "
+        "ENGINEERING_SERVICE_API_KEY.",
+        _ENV,
+        ", ".join(sorted(DEV_ENVIRONMENTS)),
+    )
+    sys.exit(1)
 if _AUTH_DISABLED:
-    _ENV = os.environ.get("ENVIRONMENT", os.environ.get("ENV", "development")).lower()
-    if _ENV in ("production", "prod", "staging"):
-        logger.critical(
-            "FATAL: ENGINEERING_SERVICE_AUTH_DISABLED=true is NOT allowed in %s environment. "
-            "Remove this environment variable or set ENGINEERING_SERVICE_API_KEY.",
-            _ENV,
-        )
-        sys.exit(1)
     logger.warning(
         "WARNING: Authentication is DISABLED. "
         "Set ENGINEERING_SERVICE_API_KEY to enable authentication. "
         "This is NOT recommended outside of local development.",
     )
-if not _API_KEY_CONFIGURED and not _AUTH_DISABLED:
-    _ENV = os.environ.get("ENVIRONMENT", os.environ.get("ENV", "development")).lower()
-    if _ENV in ("production", "prod", "staging"):
-        logger.critical(
-            "FATAL: ENGINEERING_SERVICE_API_KEY is not set in %s environment. "
-            "Set the API key, or set ENGINEERING_SERVICE_AUTH_DISABLED=true "
-            "(NOT recommended for production).",
-            _ENV,
-        )
-        sys.exit(1)
+if not _API_KEY_CONFIGURED and not _AUTH_DISABLED and is_production_environment():
+    logger.critical(
+        "FATAL: ENGINEERING_SERVICE_API_KEY is not set in %s environment. "
+        "Set the API key, or set ENGINEERING_SERVICE_AUTH_DISABLED=true "
+        "(NOT recommended for production).",
+        _ENV,
+    )
+    sys.exit(1)
 
 # SR-010: reject known-insecure SAMPLE secret values at startup, even when
 # they satisfy length checks. These values are public knowledge (committed
@@ -156,7 +159,7 @@ _INSECURE_SAMPLE_SECRETS = {
     "super_secret_session_key_minimum_43_characters_long_entropy_12345",
     "gAAAAABk_sample_fernet_key_32bytes_base64_encoded=",
 }
-if _ENV in ("production", "prod", "staging"):
+if is_production_environment():
     _insecure_env_vars = [
         name
         for name in (
@@ -184,10 +187,14 @@ def _require_api_key(request: Request) -> None:
         "ENGINEERING_SERVICE_AUTH_DISABLED", ""
     ).lower() in ("true", "1", "yes")
     if auth_disabled:
+        if not is_dev_environment():
+            raise HTTPException(
+                status_code=503,
+                detail="Authentication disabled is not permitted in this environment",
+            )
         return
     if not _API_KEY_CONFIGURED:
-        _ENV = os.environ.get("ENVIRONMENT", os.environ.get("ENV", "development")).lower()
-        if _ENV in ("production", "prod", "staging"):
+        if is_production_environment():
             raise HTTPException(  # NOSONAR HTTPException responses will be documented in API refactoring sprint
                 status_code=401,
                 detail="Authentication required but no API key configured. "

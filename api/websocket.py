@@ -26,6 +26,8 @@ UTC = timezone.utc  # noqa: UP017
 from fastapi import Query, WebSocket, WebSocketDisconnect
 from starlette.websockets import WebSocketState
 
+from api.environment import auth_disabled_allowed
+
 logger = logging.getLogger(__name__)
 
 # Global list to store active WebSocket connections
@@ -349,11 +351,9 @@ def _validate_ws_token(token: str) -> bool:
     """
     import os
 
-    # Skip in development if auth is disabled
-    if os.getenv("ENGINEERING_SERVICE_AUTH_DISABLED", "").lower() in ("1", "true", "yes"):
-        env = os.getenv("ENVIRONMENT", os.getenv("ENV", "development"))
-        if env.lower() in ("development", "dev", "testing"):
-            return True
+    # Skip only in explicit dev/test environments (C-02 fail-closed)
+    if auth_disabled_allowed():
+        return True
 
     # Check API key (server-to-server) — constant-time comparison
     api_key = os.getenv("ENGINEERING_SERVICE_API_KEY", "")

@@ -44,6 +44,8 @@ from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 
+from api.environment import auth_disabled_allowed
+
 logger = logging.getLogger("api.csrf")
 
 # ─── Constants ────────────────────────────────────────────────────────────────
@@ -198,11 +200,7 @@ class CSRFMiddleware(BaseHTTPMiddleware):
         super().__init__(app)
         self._tolerate_expired = tolerate_expired
         self._api_key = os.environ.get("ENGINEERING_SERVICE_API_KEY", "")
-        self._auth_disabled = os.environ.get("ENGINEERING_SERVICE_AUTH_DISABLED", "").lower() in (
-            "1",
-            "true",
-            "yes",
-        )
+        self._auth_disabled = auth_disabled_allowed()
 
     async def dispatch(
         self,
@@ -219,13 +217,10 @@ class CSRFMiddleware(BaseHTTPMiddleware):
             if hmac.compare_digest(provided_key, self._api_key):
                 return await call_next(request)
 
-        # Skip when auth is disabled (local development & test environments)
-        # In CI, ENVIRONMENT=testing with auth disabled — CSRF tokens are
-        # unnecessary because the test client does not use browser cookies.
+        # Skip when auth is disabled (local development & test environments only).
+        # auth_disabled_allowed() already fail-closes outside the dev allow-list.
         if self._auth_disabled:
-            _env = os.environ.get("ENVIRONMENT", os.environ.get("ENV", "development"))
-            if _env.lower() in ("development", "dev", "testing"):
-                return await call_next(request)
+            return await call_next(request)
 
         # Validate CSRF token
         token = request.headers.get(_CSRF_HEADER, "")

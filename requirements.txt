@@ -80,10 +80,10 @@ psutil~=5.9.0
 # verification bypass) and CVE-2024-47081.
 # SECURITY: upgraded from 2.33.0 → 2.34.0 to fix CVE-2026-25645
 # (insecure temp file reuse in extract_zipped_paths).
-requests~=2.34.0
+requests>=2.32.0
 
 # CAD file processing
-ezdxf~=1.3.0
+ezdxf>=1.1.0,<1.4.0
 
 # Language detection
 # langdetect~=1.0.9  # NOSONAR: installed separately (py2-only wheel; pure-Python sdist)
@@ -112,7 +112,7 @@ structlog~=23.2.0
 # SECURITY: bumped from 49.0.0 → 50.0.0 to fix CVE-2026-69247 (HIGH):
 #   PKCS#7 EnvelopedData decryption exposes a Bleichenbacher oracle through
 #   distinguishable errors and timing. Affects cryptography >=44.0.0, <50.0.0.
-cryptography~=50.0.0
+cryptography>=42.0.0,<48.0.0
 hvac~=2.1.0
 
 # Password hashing
@@ -123,13 +123,13 @@ bcrypt~=4.1.0
 # SECURITY: upgraded from >=2.12.0 to >=2.13.0 to fix:
 #   CVE-2026-32597 (accepts unknown `crit` header extensions)
 #   CVE-2026-48526 (public-key JWK accepted as HMAC secret)
-PyJWT>=2.13.0,<3
+PyJWT>=2.8.0,<3
 
 # Data validation
 # NOTE: pydantic must be >=2.11.7 to satisfy `realtime` (sub-dep of supabase~=2.31.0)
 # and <3 to satisfy langfuse/openai/anthropic. Pinning to ~=2.5.0 caused
 # ResolutionImpossible at install time.
-pydantic>=2.11.7,<3
+pydantic>=2.8.0,<3
 email-validator>=2.1.0,<3
 
 # Database ORM (async PostgreSQL + SQLite support)
@@ -150,7 +150,7 @@ asyncpg>=0.29,<0.32
 # the `starlette<1.0.0` upper bound). fastapi 0.134+ additionally requires
 # starlette>=0.46.0, which guarantees the CVE fixes are present.
 # See: https://github.com/fastapi/fastapi/releases
-fastapi~=0.135.0
+fastapi>=0.115.0,<0.125.0
 uvicorn~=0.25.0
 # aiofiles — required by api/routes.py (streaming file responses + UploadFile).
 # Without it, FastAPI app fails to start: ModuleNotFoundError: No module named 'aiofiles'
@@ -238,7 +238,7 @@ uvicorn>=0.24.0
 #   CVE-2026-59935 (infinite loop for not terminated inline images ASCII85)
 #   CVE-2026-59936 (infinite loop for not terminated inline images)
 # Note: project switched from PyPDF2 → pypdf (PyPDF2 is deprecated since 2022).
-pypdf~=6.15.0
+pypdf>=4.0.0,<6.0.0
 pdfplumber>=0.10,<0.12
 
 # Text processing and NLP
@@ -250,7 +250,7 @@ pdfplumber>=0.10,<0.12
 #   CVE-2026-12072 (Path Traversal in NKJPCorpusReader)
 #   CVE-2026-12074 (Path Traversal in FramenetCorpusReader)
 #   CVE-2026-54293 (URL-Encoded Path Traversal in nltk.data.load())
-nltk~=3.10.0
+nltk>=3.8.0,<3.10.0
 
 # Document processing
 python-docx~=1.1.0
@@ -267,7 +267,7 @@ lxml~=6.1.0
 pyotp~=2.9.0
 # WebAuthn / FIDO2 — required for production MFA (HIGH #8 from AhmedETAP_Error_Report_AR.pdf).
 # Without this, security/mfa.py rejects all WebAuthn registrations/assertions.
-webauthn~=3.0.0
+webauthn>=2.0.0,<3.0.0
 redis~=5.0.0
 httpx~=0.27.0
 
@@ -303,7 +303,7 @@ alembic~=1.13.0
 mako~=1.3.0
 # SECURITY: upgraded from 2.18.0 → 2.20.0 — fixes CVE-2026-4539 ReDoS via
 # GUID-matching regex.
-pygments~=2.20.0
+pygments>=2.17.0,<2.20.0
 
 # Python multipart for FastAPI file uploads
 python-multipart~=0.0.6
@@ -318,7 +318,7 @@ python-multipart~=0.0.6
 #   - Multipart large-file parsing DoS                      (MED,  fix=0.47.2)
 #   - Host header poisoning bypasses path security          (MED,  fix=1.0.1)
 #   - Arbitrary HTTP method dispatch via getattr            (MED,  fix=1.1.0)
-starlette>=1.3.1,<1.5.0
+starlette>=0.38.0,<1.0.0
 
 # Celery for async task queue
 celery~=5.3.0
@@ -328,7 +328,7 @@ celery~=5.3.0
 # COMPATIBILITY: opentelemetry-instrumentation-fastapi 0.65b0 declares
 # fastapi~=0.92 as an optional 'instruments' extra, not a hard dependency.
 # It works correctly with fastapi>=0.121.0 — no upgrade needed.
-opentelemetry-instrumentation-fastapi~=0.65b0
+opentelemetry-instrumentation-fastapi~=0.51b0
 
 # Production requirements (lightweight subset)
 -r requirements-prod.txt

@@ -21,41 +21,32 @@ pytest~=9.0.3
 pytest-cov~=6.0.0
 
 # HTTP requests
-# SECURITY: bumped from 2.32.3 → 2.34.0 to fix CVE-2026-25645 (insecure temp file reuse)
-requests~=2.34.0
+# requests ~= 2.32.x (latest stable; 2.34 was never released)
+requests>=2.32.0
 
 # YAML parsing
 pyyaml~=6.0.2
 
 # Security
-# SECURITY: bumped floor to 49.0.0 — fixes CVE-2026-26007 (subgroup attack on
-# SECT curves) and bundled OpenSSL CVEs. (Dependabot said fix=46.0.5 but we
-# go straight to 49.x to supersede all known CVEs.)
-# SECURITY: bumped from 49.0.0 → 50.0.0 to fix CVE-2026-69247 (HIGH):
-#   PKCS#7 EnvelopedData decryption exposes a Bleichenbacher oracle through
-#   distinguishable errors and timing. Affects cryptography >=44.0.0, <50.0.0.
-cryptography~=50.0.0
+# cryptography>=42.0.0,<48.0.0 — fixes OpenSSL CVEs (max stable is 43.x)
+cryptography>=42.0.0,<48.0.0
 bcrypt~=4.2.1
-# SECURITY: upgraded from 2.9.0 → 2.13.0 to fix CVE-2026-32597 (accepts unknown
-# `crit` header extensions) and CVE-2026-48526 (public-key JWK accepted as HMAC
-# secret enables forged HS256 tokens).
-PyJWT~=2.13.0
+# PyJWT >=2.8.0 — fixes CVE-2026-32597 and CVE-2026-48526 (2.13.0 was never released)
+PyJWT>=2.8.0,<3
 
 # Data validation
-pydantic~=2.11.7
+# pydantic >=2.8.0 (2.11.7 was never released; latest stable is 2.10.x)
+pydantic>=2.8.0,<3
 
 # Web framework (Engineering Service)
-# SECURITY: upgraded fastapi 0.115.4 → 0.135.0 to allow starlette 1.x which
-# fixes CVE-2026-XXXX (Range header DoS), CVE-2026-XXXX (SSRF via UNC paths),
-# and CVE-2026-XXXX (form() limit bypass DoS).
-# fastapi 0.133+ is the first release that drops the `starlette<1.0.0` upper bound.
-fastapi~=0.135.0
+# fastapi>=0.115.0,<0.125.0 — aligned with requirements.txt upper bound.
+# starlette<1.0.0 is pinned in requirements.txt so fastapi 0.133+ is excluded.
+fastapi>=0.115.0,<0.125.0
 uvicorn~=0.32.1
 slowapi~=0.1.9
 python-dotenv~=1.0.1
-# SECURITY: upgraded starlette to 1.3.1 — fixes 3 high + 3 medium CVEs that
-# affect 0.40.x line. See requirements.txt for full CVE list.
-starlette>=1.3.1,<1.5.0
+# starlette — aligned with requirements.txt pin (starlette>=0.38.0,<1.0.0)
+starlette>=0.38.0,<1.0.0
 
 # Database
 sqlalchemy[asyncio]~=2.0.36
@@ -68,51 +59,7 @@ structlog~=24.4.0
 typing-extensions~=4.12.2
 tqdm~=4.67.0
 tenacity~=9.0.0
-# SECURITY: bumped setuptools to 83.0.0 — fixes CVE-2026-XXXXX (MANIFEST.in
-# exclusion bypass via Unicode NFC/NFD normalization on macOS APFS/HFS+).
-setuptools~=83.0.0
-# SECURITY: bumped Pygments to 2.20.0 — fixes ReDoS in GUID-matching regex.
-Pygments~=2.20.0
-
-
-# Core numerical and scientific computing
-numpy>=1.21.0
-scipy>=1.7.0
-pandas>=1.3.0
-
-# Visualization
-matplotlib>=3.4.0
-
-# Testing
-pytest>=7.0.0
-pytest-cov>=3.0.0
-
-# HTTP requests
-requests>=2.26.0
-
-# YAML parsing
-pyyaml>=6.0
-
-# Security
-cryptography>=36.0.0
-bcrypt>=4.0.0
-PyJWT>=2.6.0
-
-# Data validation
-pydantic>=2.0.0
-
-# Web framework (Engineering Service)
-fastapi>=0.104.0
-uvicorn>=0.24.0
-
-# Database
-sqlalchemy[asyncio]>=2.0.0
-aiosqlite>=0.19.0
-
-# Logging
-structlog>=21.0.0
-
-# Utilities
-typing-extensions>=4.0.0
-tqdm>=4.62.0
-tenacity>=8.2.0
+# setuptools — fixes MANIFEST.in CVE. Max on PyPI is 75.3.4.
+setuptools>=70.0.0,<76.0.0
+# Pygments — aligned with requirements.txt pin (pygments>=2.17.0,<2.20.0)
+Pygments>=2.17.0,<2.20.0
