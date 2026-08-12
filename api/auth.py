@@ -159,7 +159,12 @@ def _get_redis_client() -> Any:
     if os.getenv("ENGINEERING_SERVICE_CACHE_DISABLED", "").lower() in ("true", "1", "yes"):
         return None
     redis_url = os.getenv("REDIS_URL", "").strip()
-    if not redis_url or not REDIS_AVAILABLE or redis_async is None or not redis_url.startswith(("redis://", "rediss://")):
+    if (
+        not redis_url
+        or not REDIS_AVAILABLE
+        or redis_async is None
+        or not redis_url.startswith(("redis://", "rediss://"))
+    ):
         return None
     global _redis_client
     if _redis_client is None:

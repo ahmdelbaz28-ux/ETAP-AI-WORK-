@@ -110,20 +110,23 @@ if _HAS_STARLETTE:
             if request.method in ("POST", "PUT", "PATCH"):
                 try:
                     body_bytes = await request.body()
-                    
+
                     # FIX: In Starlette, reading the body in BaseHTTPMiddleware consumes the
-                    # receive stream, causing TestClient tests to hang indefinitely when the 
+                    # receive stream, causing TestClient tests to hang indefinitely when the
                     # route handler tries to parse the JSON. We must restore it.
                     _sent = False
+
                     async def receive() -> dict[str, Any]:
                         nonlocal _sent
                         if not _sent:
                             _sent = True
                             return {"type": "http.request", "body": body_bytes, "more_body": False}
                         import asyncio
+
                         await asyncio.sleep(86400)
+
                     request._receive = receive
-                    
+
                     if body_bytes:
                         try:
                             inspect_data["body"] = json.loads(body_bytes)

@@ -35,6 +35,7 @@ from __future__ import annotations
 import logging
 import time
 from dataclasses import dataclass
+
 try:
     from enum import StrEnum
 except ImportError:

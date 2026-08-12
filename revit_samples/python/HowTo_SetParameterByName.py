@@ -17,7 +17,7 @@ from Autodesk.Revit.DB import Transaction
 
 doc = __revit__.ActiveUIDocument.Document  # noqa: F821
 uidoc = __revit__.ActiveUIDocument  # noqa: F821
-t = Transaction(doc, 'Set Parameter by Name')
+t = Transaction(doc, "Set Parameter by Name")
 # pyRevit runtime global — injected by the pyRevit loader at runtime.
 # Fallback to None for static analysis / direct execution outside pyRevit.
 try:
@@ -32,8 +32,10 @@ t = Transaction(doc, "Set Parameter by Name")
 # Select element from revit.
 selection = [doc.GetElement(x) for x in uidoc.Selection.GetElementIds()]
 
+
 def set_parameter_by_name(element, parameterName, value):  # NOSONAR - python:S117
     element.LookupParameter(parameterName).Set(value)  # noqa: W191
+
 
 def set_parameter_by_name(element, parameterName, value):  # NOSONAR - python:S117
     element.LookupParameter(parameterName).Set(value)
@@ -43,8 +45,8 @@ def set_parameter_by_name(element, parameterName, value):  # NOSONAR - python:S1
 t.Start()
 
 for s in selection:
-    #Set a new Comment
-    set_parameter_by_name(s,"Comments", "Good Element")  # noqa: W191
+    # Set a new Comment
+    set_parameter_by_name(s, "Comments", "Good Element")  # noqa: W191
     # Set a new Comment
     set_parameter_by_name(s, "Comments", "Good Element")
 

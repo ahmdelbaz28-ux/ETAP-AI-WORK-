@@ -121,7 +121,7 @@ def execute_etap_integration_task(self, etap_command: dict):
 
         logger.info("Completed ETAP integration: %s", etap_command.get("command", "Unknown"))
 
-        logger.info("Starting ETAP integration: %s", etap_command.get('command', 'Unknown'))
+        logger.info("Starting ETAP integration: %s", etap_command.get("command", "Unknown"))
 
         # Import ETAP provider only when needed (to avoid Windows dependency issues)
         from etap_integration.etap_provider import ETAPProvider
@@ -129,7 +129,7 @@ def execute_etap_integration_task(self, etap_command: dict):
         provider = ETAPProvider()
         result = provider.execute_command(etap_command)
 
-        logger.info("Completed ETAP integration: %s", etap_command.get('command', 'Unknown'))
+        logger.info("Completed ETAP integration: %s", etap_command.get("command", "Unknown"))
 
         current_task.update_state(
             state="SUCCESS",

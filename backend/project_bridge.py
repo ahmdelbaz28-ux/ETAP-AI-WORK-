@@ -133,7 +133,9 @@ def sync_project_to_udm(project_data: dict[str, Any]) -> bool:
             from backend.database import get_db
 
         except Exception as sync_err:
-            logger.warning("Failed to record sync error in database for project %s: %s", project_id, sync_err)
+            logger.warning(
+                "Failed to record sync error in database for project %s: %s", project_id, sync_err
+            )
         return False
 
 

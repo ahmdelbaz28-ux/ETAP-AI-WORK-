@@ -37,9 +37,20 @@ SECRET_PATTERNS = [
 ]
 
 EXCLUDED_DIRS = {
-    ".git", "__pycache__", "node_modules", ".venv", "venv",
-    "output", "dist", "skills", "tests", "test", "acp_runtime/tests",
-    ".pytest_cache", ".ruff_cache", ".mypy_cache"
+    ".git",
+    "__pycache__",
+    "node_modules",
+    ".venv",
+    "venv",
+    "output",
+    "dist",
+    "skills",
+    "tests",
+    "test",
+    "acp_runtime/tests",
+    ".pytest_cache",
+    ".ruff_cache",
+    ".mypy_cache",
 }
 EXCLUDED_FILES = {
     ".env.example",
@@ -121,7 +132,12 @@ def main():  # NOSONAR cognitive complexity; scheduled for refactoring sprint (e
     for root, dirs, files in os.walk("."):
         dirs[:] = [d for d in dirs if d not in EXCLUDED_DIRS]
         for f in files:
-            if f in EXCLUDED_FILES or f.startswith("test_") or f.endswith("_test.py") or f.startswith("test"):
+            if (
+                f in EXCLUDED_FILES
+                or f.startswith("test_")
+                or f.endswith("_test.py")
+                or f.startswith("test")
+            ):
                 continue
             if f.endswith((".py", ".yml", ".yaml", ".json", ".env", ".toml")):
                 full_path = os.path.join(root, f)

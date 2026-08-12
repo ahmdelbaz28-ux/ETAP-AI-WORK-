@@ -777,7 +777,9 @@ async def generate_report(project_id: str, input_data: GenerateReportInput):
         # file paths, variable names, and internal implementation details.
         # This data is retrievable via the API, creating an information
         # leakage vulnerability. Log the full error server-side instead.
-        logger.exception("Report generation failed for project %s", project_id, exc_info=True)  # NOSONAR  # noqa: G202
+        logger.exception(
+            "Report generation failed for project %s", project_id, exc_info=True
+        )  # NOSONAR  # noqa: G202
         logger.exception(
             "Report generation failed for project %s", project_id, exc_info=True
         )  # NOSONAR
@@ -1013,7 +1015,9 @@ async def export_report(  # NOSONAR — S3776: cognitive complexity is inherent 
             ) from None
         except Exception:
             # V113 SECURITY: Never expose str(e) to client
-            logger.exception("PDF generation failed", exc_info=True)  # Use exception instead of error  # noqa: G202
+            logger.exception(
+                "PDF generation failed", exc_info=True
+            )  # Use exception instead of error  # noqa: G202
             logger.exception(
                 "PDF generation failed", exc_info=True
             )  # Use exception instead of error

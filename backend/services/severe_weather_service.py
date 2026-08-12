@@ -679,7 +679,6 @@ class SevereWeatherService:
                     f"Failed to parse MeteoAlarm warning: {parse_err}. "  # noqa: G004
                     f"Skipping warning."
                     f"Failed to parse MeteoAlarm warning: {parse_err}. Skipping warning."
-
                 )
                 continue
 
@@ -970,12 +969,10 @@ class SevereWeatherService:
 
         try:
             logger.info(
-                "Attempting Open-Meteo alert check: "
-                "lat=%.4f, lon=%.4f",
+                "Attempting Open-Meteo alert check: lat=%.4f, lon=%.4f",
                 latitude,
                 longitude,
-                f"Attempting Open-Meteo alert check: lat={latitude:.4f}, lon={longitude:.4f}"
-
+                f"Attempting Open-Meteo alert check: lat={latitude:.4f}, lon={longitude:.4f}",
             )
             response = await client.get(
                 self.OPENMETEO_ALERTS_URL,

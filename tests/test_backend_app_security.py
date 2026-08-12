@@ -131,9 +131,11 @@ def _reload_backend_app(env_overrides: dict) -> Any:
     # REJECTS low-entropy secrets (< 10 unique chars, < 256 bits) — so the
     # injected value must itself be high-entropy (not 'x'*64). Inject a
     # strong test secret *only* in production so the full app constructs.
-    if os.environ.get("FIREAI_ENV", "").lower() in ("production", "prod") \
-            and not os.environ.get("FIREAI_SESSION_SECRET"):
+    if os.environ.get("FIREAI_ENV", "").lower() in ("production", "prod") and not os.environ.get(
+        "FIREAI_SESSION_SECRET"
+    ):
         import secrets as _secrets
+
         env_overrides.setdefault("FIREAI_SESSION_SECRET", _secrets.token_urlsafe(48))
 
     child_env = dict(os.environ)
@@ -148,7 +150,10 @@ def _reload_backend_app(env_overrides: dict) -> Any:
 
     proc = subprocess.run(
         [sys.executable, "-c", script],
-        capture_output=True, text=True, timeout=90, env=child_env,
+        capture_output=True,
+        text=True,
+        timeout=90,
+        env=child_env,
     )
     stdout = proc.stdout.strip().splitlines()
     if not stdout:
@@ -163,7 +168,11 @@ def _reload_backend_app(env_overrides: dict) -> Any:
         # Re-raise the exact exception class backend.app raised, so callers
         # using pytest.raises(RuntimeError, match=...) keep matching.
         try:
-            exc_cls = __builtins__[exc_type] if isinstance(__builtins__, dict) else getattr(__builtins__, exc_type)
+            exc_cls = (
+                __builtins__[exc_type]
+                if isinstance(__builtins__, dict)
+                else getattr(__builtins__, exc_type)
+            )
         except Exception:
             exc_cls = RuntimeError
         raise exc_cls(exc_msg)
@@ -200,7 +209,9 @@ class TestV127CorsHardening:
 
     def test_production_requires_cors_origins_env_var(self):
         """Production + no CORS_ORIGINS → RuntimeError (fail-safe)."""
-        with pytest.raises(RuntimeError, match=r"CORS_ALLOWED_ORIGINS environment variable is REQUIRED"):
+        with pytest.raises(
+            RuntimeError, match=r"CORS_ALLOWED_ORIGINS environment variable is REQUIRED"
+        ):
             _reload_backend_app(
                 {
                     "ENVIRONMENT": "production",
@@ -240,7 +251,9 @@ class TestV127CorsHardening:
             # therefore never registered. This is a degraded-env condition, not a
             # CORS defect — skip rather than falsely fail, until that router is
             # made 3.8-compatible.
-            pytest.skip("CORS middleware not registered: backend.app import degraded (see V2-router Py3.8 incompat)")
+            pytest.skip(
+                "CORS middleware not registered: backend.app import degraded (see V2-router Py3.8 incompat)"
+            )
         assert "https://app.example.com" in kwargs["allow_origins"]
         assert "https://admin.example.com" in kwargs["allow_origins"]
         assert "*" not in kwargs["allow_origins"]

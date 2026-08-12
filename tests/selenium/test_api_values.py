@@ -195,7 +195,12 @@ def test_agents_list():
 def test_agent_by_id():
     # First get the list to find a valid ID
     status, list_data = request("GET", "/api/v1/agents")
-    if status != 200 or not isinstance(list_data, dict) or "agents" not in list_data or not list_data["agents"]:
+    if (
+        status != 200
+        or not isinstance(list_data, dict)
+        or "agents" not in list_data
+        or not list_data["agents"]
+    ):
         print("  ✗ FAIL: no agents in list or server unreachable")
         return False
     valid_id = list_data["agents"][0]["id"]

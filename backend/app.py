@@ -742,7 +742,6 @@ async def root_metrics_check():
     }
 
 
-
 # Mount JWT Auth router for frontend compatibility
 try:
     from api.auth import router as jwt_auth_router

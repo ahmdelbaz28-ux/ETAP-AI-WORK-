@@ -151,11 +151,12 @@ async def analyze_battery(req: BatteryRequest) -> dict[str, Any]:
             "nfpa_section": "NFPA 72-2022 §10.6.7.2.1",
         }
     except PhysicsGuardError as e:
-        raise HTTPException(status_code=422, detail=_physics_guard_detail(e))  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
+        raise HTTPException(
+            status_code=422, detail=_physics_guard_detail(e)
+        )  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
     except Exception:
         logger.exception("battery calculation failed")
         raise HTTPException(status_code=500, detail="Internal calculation error")
-
 
 
 @router.post(
@@ -184,11 +185,12 @@ async def analyze_voltage(req: VoltageRequest) -> dict[str, Any]:
             "nfpa_section": "NEC 2023 Chapter 9 Table 8",
         }
     except PhysicsGuardError as e:
-        raise HTTPException(status_code=422, detail=_physics_guard_detail(e))  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
+        raise HTTPException(
+            status_code=422, detail=_physics_guard_detail(e)
+        )  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
     except Exception:
         logger.exception("voltage drop calculation failed")
         raise HTTPException(status_code=500, detail="Internal calculation error")
-
 
 
 @project_router.post(
@@ -225,7 +227,8 @@ async def analyze_project_room(project_id: str, req: RoomAnalyzeRequest) -> dict
         data["project_id"] = project_id
         return {"success": result.success, "data": data}
     except PhysicsGuardError as e:
-        raise HTTPException(status_code=422, detail=_physics_guard_detail(e))  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
+        raise HTTPException(
+            status_code=422, detail=_physics_guard_detail(e)
+        )  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
     except Exception:
         raise HTTPException(status_code=500, detail="Internal pipeline error")
-

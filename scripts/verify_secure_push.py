@@ -170,8 +170,7 @@ if os.path.exists(ui_lock):
         m = re.match(r"7\.(\d+)", undici_ver)
         if m:
             ok = int(m.group(1)) >= 29
-            check("ui: undici >= 7.29.0", ok,
-                  f"found {undici_ver}", blocking=True)
+            check("ui: undici >= 7.29.0", ok, f"found {undici_ver}", blocking=True)
             check("ui: undici >= 7.29.0", ok, f"found {undici_ver}", blocking=True)
 
 
@@ -193,11 +192,15 @@ try:
     )
     try:
         audit = json.loads(result.stdout)
-        total = audit.get('metadata', {}).get('vulnerabilities', {}).get('total', -1)
-        high = audit.get('metadata', {}).get('vulnerabilities', {}).get('high', 0)
-        critical = audit.get('metadata', {}).get('vulnerabilities', {}).get('critical', 0)
-        check("ui npm audit: 0 high/critical", high == 0 and critical == 0,
-              f"high={high}, critical={critical}", blocking=True)
+        total = audit.get("metadata", {}).get("vulnerabilities", {}).get("total", -1)
+        high = audit.get("metadata", {}).get("vulnerabilities", {}).get("high", 0)
+        critical = audit.get("metadata", {}).get("vulnerabilities", {}).get("critical", 0)
+        check(
+            "ui npm audit: 0 high/critical",
+            high == 0 and critical == 0,
+            f"high={high}, critical={critical}",
+            blocking=True,
+        )
         total = audit.get("metadata", {}).get("vulnerabilities", {}).get("total", -1)
         high = audit.get("metadata", {}).get("vulnerabilities", {}).get("high", 0)
         critical = audit.get("metadata", {}).get("vulnerabilities", {}).get("critical", 0)

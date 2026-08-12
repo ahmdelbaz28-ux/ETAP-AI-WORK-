@@ -170,7 +170,6 @@ class GeocodingService:
             f"Geocoding: '{address}' → lat={lat:.6f}, lon={lon:.6f}, "  # noqa: G004
             f"country={country_code}"
             f"Geocoding: '{address}' → lat={lat:.6f}, lon={lon:.6f}, country={country_code}"
-
         )
         return result
 

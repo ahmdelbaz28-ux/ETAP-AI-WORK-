@@ -397,8 +397,13 @@ class ApiKeyMiddleware:
         # when NOT in production/staging environments. In production, auth is ALWAYS enforced.
         env = (_os.getenv("ENVIRONMENT") or _os.getenv("FIREAI_ENV") or "").lower()
         if env not in ("production", "prod", "staging"):
-            if _os.getenv("ENGINEERING_SERVICE_AUTH_DISABLED", "").lower() in ("true", "1", "yes") or _os.getenv("FIREAI_AUTH_DISABLED", "").lower() in ("true", "1", "yes"):
+            if _os.getenv("ENGINEERING_SERVICE_AUTH_DISABLED", "").lower() in (
+                "true",
+                "1",
+                "yes",
+            ) or _os.getenv("FIREAI_AUTH_DISABLED", "").lower() in ("true", "1", "yes"):
                 from backend.rbac import Role as _Role
+
                 scope.setdefault("state", {})
                 scope["state"]["fireai_role"] = _Role.ADMIN
                 scope["fireai_role"] = _Role.ADMIN

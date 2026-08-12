@@ -68,8 +68,8 @@ os.environ["USE_TF"] = "NO"
 
 # ─── Models ──────────────────────────────────────────────────────────────────
 
-class Detection(GenericModel, Generic[TypeVar("T")]):
 
+class Detection(GenericModel, Generic[TypeVar("T")]):
     value: Optional[TypeVar("T")]
     confidence: Optional[float]
 

@@ -671,7 +671,9 @@ async def store_memory(req: VectorMemoryStoreRequest) -> Dict[str, Any]:
     try:
         mem_type = MemoryType(req.memory_type)
     except ValueError:
-        raise HTTPException(status_code=422, detail=f"Invalid memory_type: {req.memory_type}")  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
+        raise HTTPException(
+            status_code=422, detail=f"Invalid memory_type: {req.memory_type}"
+        )  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
         raise HTTPException(
             status_code=422, detail=f"Invalid memory_type: {req.memory_type}"
         )  # NOSONAR — S8415: assignment kept for readability / debuggability
@@ -696,7 +698,9 @@ async def search_memory(req: VectorMemorySearchRequest) -> Dict[str, Any]:
     try:
         mem_type = MemoryType(req.memory_type)
     except ValueError:
-        raise HTTPException(status_code=422, detail=f"Invalid memory_type: {req.memory_type}")  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
+        raise HTTPException(
+            status_code=422, detail=f"Invalid memory_type: {req.memory_type}"
+        )  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
         raise HTTPException(
             status_code=422, detail=f"Invalid memory_type: {req.memory_type}"
         )  # NOSONAR — S8415: assignment kept for readability / debuggability
@@ -733,7 +737,9 @@ async def add_topology_element(req: TopologyAddElementRequest) -> Dict[str, Any]
     try:
         et = ElementType(req.element_type)
     except ValueError:
-        raise HTTPException(status_code=422, detail=f"Invalid element_type: {req.element_type}")  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
+        raise HTTPException(
+            status_code=422, detail=f"Invalid element_type: {req.element_type}"
+        )  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
         raise HTTPException(
             status_code=422, detail=f"Invalid element_type: {req.element_type}"
         )  # NOSONAR — S8415: assignment kept for readability / debuggability
@@ -764,7 +770,9 @@ async def add_topology_connection(req: TopologyAddConnectionRequest) -> Dict[str
     try:
         rt = RelationshipType(req.relationship_type)
     except ValueError:
-        raise HTTPException(status_code=422, detail=f"Invalid relationship_type: {req.relationship_type}")  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
+        raise HTTPException(
+            status_code=422, detail=f"Invalid relationship_type: {req.relationship_type}"
+        )  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
         raise HTTPException(
             status_code=422, detail=f"Invalid relationship_type: {req.relationship_type}"
         )  # NOSONAR — S8415: assignment kept for readability / debuggability

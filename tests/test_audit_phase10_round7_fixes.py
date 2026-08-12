@@ -84,9 +84,15 @@ class TestHFSpaceCUAWebSocketAuth:
         ws_body = hf_source[ws_pos : ws_pos + 1500]
         if "authenticate_cua_confirmation_ws" in ws_body:
             auth_source = _read_file("api/cua_confirmation_ws.py")
-            assert "compare_digest" in auth_source, "authenticate_cua_confirmation_ws must use compare_digest"
-            assert "x-api-key" in auth_source or "token" in auth_source, "authenticate_cua_confirmation_ws must check API key"
-            assert "1008" in auth_source or "_WS_CODE_POLICY_VIOLATION" in auth_source, "authenticate_cua_confirmation_ws must close with 1008/POLICY_VIOLATION"
+            assert "compare_digest" in auth_source, (
+                "authenticate_cua_confirmation_ws must use compare_digest"
+            )
+            assert "x-api-key" in auth_source or "token" in auth_source, (
+                "authenticate_cua_confirmation_ws must check API key"
+            )
+            assert "1008" in auth_source or "_WS_CODE_POLICY_VIOLATION" in auth_source, (
+                "authenticate_cua_confirmation_ws must close with 1008/POLICY_VIOLATION"
+            )
         else:
             assert "compare_digest" in ws_body, (
                 "hf-space CUA WebSocket must use compare_digest for auth"
@@ -94,7 +100,9 @@ class TestHFSpaceCUAWebSocketAuth:
             assert "x-api-key" in ws_body or "token" in ws_body, (
                 "hf-space CUA WebSocket must check API key"
             )
-            assert "code=1008" in ws_body, "hf-space CUA WebSocket must close with 1008 on auth failure"
+            assert "code=1008" in ws_body, (
+                "hf-space CUA WebSocket must close with 1008 on auth failure"
+            )
 
     def test_cua_ws_imports_hmac(self, hf_source: str) -> None:
         """hf-space/app.py must import hmac at module level."""
@@ -159,6 +167,7 @@ class TestCIPinning:
         ``1f0aa582c8c8f5f7639610d6d38baddfea4fdcee``.
         """
         import re
+
         assert re.search(r"trivy-action@[a-f0-9]{40}", ci_cd_source), (
             "trivy-action should be pinned to a specific commit SHA"
         )

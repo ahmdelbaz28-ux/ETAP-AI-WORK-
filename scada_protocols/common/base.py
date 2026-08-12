@@ -19,6 +19,7 @@ import logging
 import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
+
 try:
     from enum import StrEnum
 except ImportError:

@@ -227,7 +227,7 @@ class DeterministicEngine:
                 result *= operand
         elif operation == "divide" and len(operands) == 2:
             divisor = Decimal(str(operands[1]))
-            result = Decimal(str(operands[0])) / divisor if divisor != 0 else float('inf')
+            result = Decimal(str(operands[0])) / divisor if divisor != 0 else float("inf")
             result = Decimal(str(operands[0])) / divisor if divisor != 0 else float("inf")
 
         elif operation == "subtract" and len(operands) >= 2:
@@ -695,9 +695,8 @@ class FluidCalculator:
         # Cross-sectional area: A = πd²/4
         area = math.pi * (float(diameter) ** 2) / 4
 
-        velocity = float(flow_rate) / area if area != 0 else float('inf')
         velocity = float(flow_rate) / area if area != 0 else float("inf")
-
+        velocity = float(flow_rate) / area if area != 0 else float("inf")
 
         return {
             "flow_rate_m3_per_s": float(flow_rate),
@@ -822,7 +821,9 @@ class NFPAValidator(_BaseValidator):
         violations = list(res["violations"])
         spacing = params.get("detector_spacing_m")
         if spacing is not None and float(spacing) > 9.1:
-            violations.append("Smoke detector spacing exceeds NFPA 72 maximum allowable limit (9.1m / 30ft)")
+            violations.append(
+                "Smoke detector spacing exceeds NFPA 72 maximum allowable limit (9.1m / 30ft)"
+            )
         v_drop = params.get("voltage_drop_pct")
         if v_drop is not None and float(v_drop) > 10.0:
             violations.append("SLC loop voltage drop exceeds NFPA allowable limit (10%)")

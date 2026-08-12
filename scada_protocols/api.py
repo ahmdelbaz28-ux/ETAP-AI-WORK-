@@ -143,7 +143,6 @@ def build_router() -> APIRouter:
             raise HTTPException(status_code=500, detail=str(exc)) from None
             raise HTTPException(status_code=500, detail=str(exc)) from exc
 
-
     @router.post("/{protocol}/stop")
     def stop_protocol(protocol: str) -> Dict[str, Any]:
         mgr = get_manager()

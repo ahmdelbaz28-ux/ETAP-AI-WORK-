@@ -363,9 +363,7 @@ async def websocket_endpoint(
     # ── Origin check ────────────────────────────────────────────────────
     if not _validate_ws_origin(websocket):
         logger.warning(
-            "WebSocket connection rejected: invalid origin "
-            "origin=%s "
-            "client=%s",
+            "WebSocket connection rejected: invalid origin origin=%s client=%s",
             websocket.headers.get("origin", "missing"),
             websocket.client.host if websocket.client else "unknown",
         )
@@ -474,11 +472,13 @@ async def websocket_endpoint(
                     await websocket.close(code=4003, reason="Authentication failed")
                     return
             except (TimeoutError, json.JSONDecodeError):
-                await websocket.send_json({
-                    "channel": "system",
-                    "type": "auth_timeout",
-                    "data": {"error": "Authentication required within 5 seconds"},
-                })
+                await websocket.send_json(
+                    {
+                        "channel": "system",
+                        "type": "auth_timeout",
+                        "data": {"error": "Authentication required within 5 seconds"},
+                    }
+                )
                 await websocket.send_json(
                     {
                         "channel": "system",

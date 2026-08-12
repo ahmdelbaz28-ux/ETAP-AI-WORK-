@@ -669,7 +669,11 @@ async def run_study(
         study_cache = None
         try:
             _cache_disabled = os.getenv("ENGINEERING_SERVICE_CACHE_DISABLED", "").lower() == "true"
-            _redis_url = "memory://fallback" if _cache_disabled else os.getenv("REDIS_URL", "redis://localhost:6379")
+            _redis_url = (
+                "memory://fallback"
+                if _cache_disabled
+                else os.getenv("REDIS_URL", "redis://localhost:6379")
+            )
             study_cache = StudyCache(redis_url=_redis_url, ttl=3600)
         except Exception:
             logger.debug("StudyCache init failed (non-fatal)")

@@ -26,6 +26,7 @@ class ADMSGraphModel:
         self.assets = assets
         self.nodes: Set[str] = {a.asset_id for a in assets}
         self.edges: Dict[str, Set[str]] = {a.asset_id: set() for a in assets}
+
     def __init__(self, assets: list[ADMSAsset]) -> None:
         self.nodes: set[str] = {a.asset_id for a in assets}
         self.edges: dict[str, set[str]] = {a.asset_id: set() for a in assets}
@@ -77,6 +78,7 @@ class ADMSGraphModel:
     def find_disconnected_components(self) -> List[Set[str]]:
         visited: Set[str] = set()
         comps: List[Set[str]] = []
+
     def find_disconnected_components(self) -> list[set[str]]:
         visited: set[str] = set()
         comps: list[set[str]] = []

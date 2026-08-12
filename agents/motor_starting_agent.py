@@ -31,6 +31,7 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime, timezone
+
 try:
     from datetime import UTC
 except ImportError:

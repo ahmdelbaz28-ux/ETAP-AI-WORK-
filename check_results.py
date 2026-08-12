@@ -10,4 +10,6 @@ for fname in sorted(os.listdir("templates/emails")):
     inline_styles = re.findall(r'style="[^"]*"', content)
     style_tags = len(re.findall(r"<style[^>]*>", content))
     style_in_head = "style" in content.split("</head>")[0] if "</head>" in content else False
-    print(f"{fname}: hex={len(hex_colors)} inline={len(inline_styles)} tags={style_tags} head={style_in_head}")
+    print(
+        f"{fname}: hex={len(hex_colors)} inline={len(inline_styles)} tags={style_tags} head={style_in_head}"
+    )

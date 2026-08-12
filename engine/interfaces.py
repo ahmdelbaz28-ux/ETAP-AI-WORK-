@@ -72,7 +72,6 @@ class FaultAnalyzerProtocol(Protocol):
     def double_line_to_ground_fault(self, bus_index: int) -> dict[str, Any]: ...
 
 
-
 # ============================================================================
 # Arc Flash Engine
 # ============================================================================

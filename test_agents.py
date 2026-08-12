@@ -84,7 +84,9 @@ async def test_individual_agents():
                 result = await asyncio.wait_for(agent.execute(task), timeout=10.0)
 
                 # Log the result status
-                logger.info("✓ %s executed successfully - Status: %s", agent_name, result.status.value)
+                logger.info(
+                    "✓ %s executed successfully - Status: %s", agent_name, result.status.value
+                )
 
                 results[agent_name] = {
                     "status": "SUCCESS",

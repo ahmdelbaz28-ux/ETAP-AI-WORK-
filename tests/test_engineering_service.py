@@ -360,11 +360,19 @@ class TestStudyRunAPIKey:
 
     async def test_study_run_missing_api_key(self, client):
         """When an API key is configured, a request without one returns 401."""
-        with patch.dict(os.environ, {"ENGINEERING_SERVICE_API_KEY": "test-secret-key", "ENGINEERING_SERVICE_AUTH_DISABLED": "false"}), \
-             patch("api.dependencies.API_KEY", "test-secret-key"), \
-             patch("api.routes._EXPECTED_API_KEY", "test-secret-key"), \
-             patch("api.routes._API_KEY_CONFIGURED", True), \
-             patch("api.routes._AUTH_DISABLED", False):
+        with (
+            patch.dict(
+                os.environ,
+                {
+                    "ENGINEERING_SERVICE_API_KEY": "test-secret-key",
+                    "ENGINEERING_SERVICE_AUTH_DISABLED": "false",
+                },
+            ),
+            patch("api.dependencies.API_KEY", "test-secret-key"),
+            patch("api.routes._EXPECTED_API_KEY", "test-secret-key"),
+            patch("api.routes._API_KEY_CONFIGURED", True),
+            patch("api.routes._AUTH_DISABLED", False),
+        ):
             resp = await client.post(
                 "/api/v1/studies/run",
                 json={"study_type": "load_flow", "system": _MINI_SYSTEM},
@@ -373,11 +381,19 @@ class TestStudyRunAPIKey:
 
     async def test_study_run_invalid_api_key(self, client):
         """When an API key is configured, a wrong key returns 401 or 403."""
-        with patch.dict(os.environ, {"ENGINEERING_SERVICE_API_KEY": "test-secret-key", "ENGINEERING_SERVICE_AUTH_DISABLED": "false"}), \
-             patch("api.dependencies.API_KEY", "test-secret-key"), \
-             patch("api.routes._EXPECTED_API_KEY", "test-secret-key"), \
-             patch("api.routes._API_KEY_CONFIGURED", True), \
-             patch("api.routes._AUTH_DISABLED", False):
+        with (
+            patch.dict(
+                os.environ,
+                {
+                    "ENGINEERING_SERVICE_API_KEY": "test-secret-key",
+                    "ENGINEERING_SERVICE_AUTH_DISABLED": "false",
+                },
+            ),
+            patch("api.dependencies.API_KEY", "test-secret-key"),
+            patch("api.routes._EXPECTED_API_KEY", "test-secret-key"),
+            patch("api.routes._API_KEY_CONFIGURED", True),
+            patch("api.routes._AUTH_DISABLED", False),
+        ):
             resp = await client.post(
                 "/api/v1/studies/run",
                 json={"study_type": "load_flow", "system": _MINI_SYSTEM},
@@ -387,11 +403,19 @@ class TestStudyRunAPIKey:
 
     async def test_study_run_valid_api_key_succeeds(self, client):
         """When an API key is configured, the correct key returns 200."""
-        with patch.dict(os.environ, {"ENGINEERING_SERVICE_API_KEY": "test-secret-key", "ENGINEERING_SERVICE_AUTH_DISABLED": "false"}), \
-             patch("api.dependencies.API_KEY", "test-secret-key"), \
-             patch("api.routes._EXPECTED_API_KEY", "test-secret-key"), \
-             patch("api.routes._API_KEY_CONFIGURED", True), \
-             patch("api.routes._AUTH_DISABLED", False):
+        with (
+            patch.dict(
+                os.environ,
+                {
+                    "ENGINEERING_SERVICE_API_KEY": "test-secret-key",
+                    "ENGINEERING_SERVICE_AUTH_DISABLED": "false",
+                },
+            ),
+            patch("api.dependencies.API_KEY", "test-secret-key"),
+            patch("api.routes._EXPECTED_API_KEY", "test-secret-key"),
+            patch("api.routes._API_KEY_CONFIGURED", True),
+            patch("api.routes._AUTH_DISABLED", False),
+        ):
             resp = await client.post(
                 "/api/v1/studies/run",
                 json={"study_type": "load_flow", "system": _MINI_SYSTEM},
@@ -401,11 +425,16 @@ class TestStudyRunAPIKey:
 
     async def test_study_run_no_api_key_configured_allows_access(self, client):
         """When no API key is configured and auth is disabled, requests are allowed."""
-        with patch.dict(os.environ, {"ENGINEERING_SERVICE_API_KEY": "", "ENGINEERING_SERVICE_AUTH_DISABLED": "true"}), \
-             patch("api.dependencies.API_KEY", ""), \
-             patch("api.routes._EXPECTED_API_KEY", ""), \
-             patch("api.routes._API_KEY_CONFIGURED", False), \
-             patch("api.routes._AUTH_DISABLED", True):
+        with (
+            patch.dict(
+                os.environ,
+                {"ENGINEERING_SERVICE_API_KEY": "", "ENGINEERING_SERVICE_AUTH_DISABLED": "true"},
+            ),
+            patch("api.dependencies.API_KEY", ""),
+            patch("api.routes._EXPECTED_API_KEY", ""),
+            patch("api.routes._API_KEY_CONFIGURED", False),
+            patch("api.routes._AUTH_DISABLED", True),
+        ):
             resp = await client.post(
                 "/api/v1/studies/run",
                 json={"study_type": "load_flow"},

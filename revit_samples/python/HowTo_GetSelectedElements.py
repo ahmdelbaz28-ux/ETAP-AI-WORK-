@@ -22,7 +22,6 @@ except NameError:
 uidoc = __revit__.ActiveUIDocument
 
 
-
 def get_selected_elements():
     """
     Return Selected Elements as a list[]. Returns empty list if no elements are selected.

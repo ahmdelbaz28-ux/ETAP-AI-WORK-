@@ -415,5 +415,4 @@ except Exception as e:
         f"Failed to initialize global ocr_service: {e}. "  # noqa: G004
         "OCR features will be unavailable."
         f"Failed to initialize global ocr_service: {e}. OCR features will be unavailable."
-
     )

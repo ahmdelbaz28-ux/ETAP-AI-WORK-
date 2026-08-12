@@ -501,7 +501,6 @@ async def connect_to_revit(request: ConnectRequest = None) -> ConnectResponse:
         raise _safe_error(503, "Failed to connect to Revit", e) from e
 
 
-
 @router.post(
     "/disconnect", response_model=ConnectResponse, tags=["revit"]
 )  # NOSONAR - python:S8409
@@ -543,7 +542,6 @@ async def get_revit_status() -> StatusResponse:
     except Exception as e:
         raise _safe_error(500, "Error getting Revit status", e) from None
         raise _safe_error(500, "Error getting Revit status", e) from e
-
 
 
 # =============================================================================
@@ -671,7 +669,6 @@ async def write_rvt_file(request: WriteRvtRequest) -> Dict[str, Any]:
 async def upload_and_read_rvt(
     request: Request, file: UploadFile = File(...)
 ) -> Dict[str, Any]:  # NOSONAR - python:S8410
-
     """
     Upload an RVT file and read its contents.
 

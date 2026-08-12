@@ -504,14 +504,10 @@ class AnomalyAgent(BaseAgent):
         if method not in ("threshold", "full"):
             return
         upper_limit = (
-            float(task.parameters["upper_limit"])
-            if "upper_limit" in task.parameters
-            else None
+            float(task.parameters["upper_limit"]) if "upper_limit" in task.parameters else None
         )
         lower_limit = (
-            float(task.parameters["lower_limit"])
-            if "lower_limit" in task.parameters
-            else None
+            float(task.parameters["lower_limit"]) if "lower_limit" in task.parameters else None
         )
         if upper_limit is None or lower_limit is None:
             # Skip threshold detection if limits not explicitly provided

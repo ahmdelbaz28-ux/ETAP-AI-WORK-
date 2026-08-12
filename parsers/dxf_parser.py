@@ -89,7 +89,9 @@ class DXFParser:
             logger.warning("DXF corrupt — attempting recovery")
             doc, auditor = recover.readfile(dxf_path)
             if auditor.has_errors:
-                raise RuntimeError(f"DXF '{dxf_path}' unrecoverable. Errors: {len(auditor.errors)}") from None
+                raise RuntimeError(
+                    f"DXF '{dxf_path}' unrecoverable. Errors: {len(auditor.errors)}"
+                ) from None
 
         units = self._detect_units(doc)
 

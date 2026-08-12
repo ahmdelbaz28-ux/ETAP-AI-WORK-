@@ -54,7 +54,9 @@ async def list_connections(
         None, description="Filter by relationship type"
     ),  # NOSONAR - python:S8410
     page: int = Query(1, ge=1, description="Page number"),  # NOSONAR - python:S8410
-    page_size: int = Query(20, ge=1, le=100, description="Items per page"),  # NOSONAR - python:S8410
+    page_size: int = Query(
+        20, ge=1, le=100, description="Items per page"
+    ),  # NOSONAR - python:S8410
     db: DatabaseService = Depends(get_db_service),  # NOSONAR - python:S8410  # noqa: B008
 ):
     """List connections (relationships) with optional filtering and pagination."""
@@ -80,11 +82,12 @@ async def list_connections(
         )
     except Exception as e:
         logger.exception("list_connections failed: %s", e)
-        raise HTTPException(status_code=500, detail="Internal server error")  # NOSONAR — S1192: duplicated literal acceptable in this localized context  # noqa: B904
+        raise HTTPException(
+            status_code=500, detail="Internal server error"
+        )  # NOSONAR — S1192: duplicated literal acceptable in this localized context  # noqa: B904
         raise HTTPException(
             status_code=500, detail="Internal server error"
         )  # NOSONAR — S1192: duplicated literal acceptable in this localized context
-
 
 
 @router.post(
@@ -104,11 +107,12 @@ async def create_connection(
     except ValueError as e:
         # Never expose str(e) from ValueError to the client.
         logger.warning("Connection creation ValueError: %s", e)
-        raise HTTPException(status_code=400, detail="Invalid connection data. Please check the input parameters.")  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
+        raise HTTPException(
+            status_code=400, detail="Invalid connection data. Please check the input parameters."
+        )  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
     except Exception as e:
         logger.exception("create_connection failed: %s", e)
         raise HTTPException(status_code=500, detail="Internal server error")  # NOSONAR — S8415
-
 
 
 @router.put(
@@ -160,8 +164,9 @@ async def delete_connection(
         raise
     except Exception as e:
         logger.exception("delete_connection failed: %s", e)
-        raise HTTPException(status_code=500, detail="Internal server error")  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
+        raise HTTPException(
+            status_code=500, detail="Internal server error"
+        )  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
         raise HTTPException(
             status_code=500, detail="Internal server error"
         )  # NOSONAR — S8415: assignment kept for readability / debuggability
-

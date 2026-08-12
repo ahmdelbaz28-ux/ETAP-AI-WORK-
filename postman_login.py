@@ -10,11 +10,10 @@ def run():
         page.goto("https://identity.getpostman.com/login")
 
         # Fill in the email and password
-        page.fill('input[id="username"]', 'a7medbaz16@gmail.com')
-        page.fill('input[id="password"]', 'jMXsne35urANvd04IrUUptD2wvAw8AGp')
         page.fill('input[id="username"]', "a7medbaz16@gmail.com")
         page.fill('input[id="password"]', "jMXsne35urANvd04IrUUptD2wvAw8AGp")
-
+        page.fill('input[id="username"]', "a7medbaz16@gmail.com")
+        page.fill('input[id="password"]', "jMXsne35urANvd04IrUUptD2wvAw8AGp")
 
         # Click the login button
         page.click('button[type="submit"]')
@@ -23,11 +22,12 @@ def run():
         page.wait_for_navigation()
 
         # Go to the Collections page
-        page.goto('https://web.postman.co/workspace/My-Workspace~56378131-5637-43b3-8e2b-08b2c463c3c7/collection')
         page.goto(
             "https://web.postman.co/workspace/My-Workspace~56378131-5637-43b3-8e2b-08b2c463c3c7/collection"
         )
-
+        page.goto(
+            "https://web.postman.co/workspace/My-Workspace~56378131-5637-43b3-8e2b-08b2c463c3c7/collection"
+        )
 
         # Close the browser
         # browser.close()

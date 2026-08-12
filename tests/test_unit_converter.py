@@ -193,6 +193,5 @@ class TestConversionConstants:
 
     def test_sqft_to_sqm_exact(self):
         """1 ft² = 0.09290304 m² (exact = 0.3048²)."""
-        assert pytest.approx(0.3048 ** 2, abs=1e-15) == SQFT_TO_SQM
         assert pytest.approx(0.3048**2, abs=1e-15) == SQFT_TO_SQM
-
+        assert pytest.approx(0.3048**2, abs=1e-15) == SQFT_TO_SQM

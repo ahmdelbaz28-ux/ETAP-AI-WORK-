@@ -34,6 +34,7 @@ try:
     import sys as _sys
 
     import pymupdf as _pymupdf  # NOSONAR — S2208: intentional module alias (not wildcard); used as `_pymupdf.Document` etc.  # type: ignore[import-untyped]
+
     # Re-export all symbols from pymupdf for backward compatibility
     Document = _pymupdf.Document
     open = _pymupdf.open

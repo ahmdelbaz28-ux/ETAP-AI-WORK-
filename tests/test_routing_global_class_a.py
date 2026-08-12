@@ -21,6 +21,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
+
 try:
     from enum import StrEnum
 except ImportError:
@@ -35,6 +36,7 @@ import fireai.core.routing_global_class_a as routing_mod
 # ═══════════════════════════════════════════════════════════════════════════════
 # Mock provenance classes that accept BOTH old and new field names
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 class _MockConfidenceLevel(StrEnum):
     HIGH = "HIGH"
