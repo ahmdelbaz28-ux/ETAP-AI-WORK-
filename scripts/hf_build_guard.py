@@ -117,7 +117,11 @@ def check_requirements():
     if not os.path.exists(path):
         raise FileNotFoundError("requirements.hf.txt not found in hf-space/")
 
-    forbidden_pkgs = ["pywin32", "pyautogui", "opencv-python", "cupy"]
+    # NOTE: "opencv-python-headless" is intentionally NOT forbidden — it is the
+    # server-safe (no GUI) fork of opencv-python used by integrations/opencv_vision.py
+    # on headless servers/HF Spaces. Only EXACT package names are rejected; the
+    # previous substring match wrongly flagged "...-headless" forks (RC-5).
+    forbidden_pkgs = ["pywin32", "pyautogui", "cupy"]
     with open(path) as f:
         for line in f:
             line = line.strip().lower()
@@ -133,10 +137,6 @@ def check_requirements():
             )
             if pkg_name in forbidden_pkgs:
                 raise ValueError(f"Windows/forbidden package found: {pkg_name}")
-
-            for pkg in forbidden_pkgs:
-                if pkg in line:
-                    raise ValueError(f"Windows/forbidden package found: {pkg}")
     return True
 
 

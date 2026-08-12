@@ -57,7 +57,7 @@ jobs:
 
             // Extract package name from Dependabot PR title or branch
             // Title format: "Bump <package> from X to Y" or "chore(deps): bump <package>"
-            // Branch format: "dependabot/npm_and_yarn/frontend/<package>-<version>"
+            // Branch format: "dependabot/npm_and_yarn/ui/<package>-<version>"
             //                "dependabot/pip/<package>-<version>"
             let packageName = '';
             const titleMatch = title.match(/bump\s+([^\s]+)/i);
@@ -65,7 +65,7 @@ jobs:
               packageName = titleMatch[1].replace(/[^a-zA-Z0-9@/_-]/g, '');
             }
             if (!packageName) {
-              const branchMatch = headRef.match(/dependabot\/[^/]+\/(?:frontend\/)?([^/-]+)/);
+              const branchMatch = headRef.match(/dependabot\/[^/]+\/(?:ui\/)?([^/-]+)/);
               if (branchMatch) packageName = branchMatch[1];
             }
 

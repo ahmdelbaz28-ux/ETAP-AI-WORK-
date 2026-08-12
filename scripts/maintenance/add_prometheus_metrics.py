@@ -98,7 +98,9 @@ def main() -> None:
     METRICS_FILE.write_text(
         "\n".join(new_content) + "\n", encoding="utf-8"
     )  # NOSONAR S2083: path derived from __file__ (maintainer-controlled) + realpath containment check above
-    METRICS_FILE.write_text("\n".join(new_content) + "\n", encoding="utf-8")  # noqa: S2083: path derived from __file__ (maintainer-controlled) + realpath containment check above
+    METRICS_FILE.write_text(
+        "\n".join(new_content) + "\n", encoding="utf-8"
+    )  # NOSONAR S2083: path derived from __file__ (maintainer-controlled) + realpath containment check above
 
     result = {"modified": True, "lines_added": 30}
     print(json.dumps(result))
