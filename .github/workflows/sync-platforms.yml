@@ -551,7 +551,10 @@ jobs:
           git config user.name "github-actions[bot]"
           git add README.hf.md
           git commit -m "🔄 back-sync: pull HF Space README drift into GitHub"
+          git config credential.helper "store --file=/tmp/.git-credentials-gh"
+          echo "https://x-access-token:${GH_TOKEN}@github.com" > /tmp/.git-credentials-gh
           git push origin "$BRANCH"
+          rm -f /tmp/.git-credentials-gh
           gh pr create \
             --title "🔄 Auto: back-sync HF Space README drift" \
             --body "Detected drift on the HuggingFace Space README frontmatter. This PR pulls the HF version back into GitHub to keep both platforms in sync." \
