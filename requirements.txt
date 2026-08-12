@@ -11,7 +11,7 @@
 # with opentelemetry-instrumentation-fastapi 0.51b0 (line below).
 opentelemetry-api~=1.30.0
 opentelemetry-sdk~=1.30.0
-opentelemetry-exporter-otlp~=1.44.0
+opentelemetry-exporter-otlp==1.30.0
 opentelemetry-semantic-conventions~=0.51b0
 # OTLP/HTTP exporter for the Langfuse OTLP endpoint (used by core/tracing.py)
 opentelemetry-exporter-otlp-proto-http~=1.30.0
@@ -25,13 +25,13 @@ langfuse~=2.51.0
 # (pinned below for the LangChain 1.x security upgrade) requires openai>=2.45.0,<3.
 # The 1.x openai line is incompatible with langchain-openai 1.x and would cause
 # a ResolutionImpossible at install time.
-openai~=2.53.0
-anthropic~=0.116.0
+openai~=2.7.0
+anthropic~=0.72.0
 
 # Supabase (managed Postgres + Storage + Auth) — used by integrations/supabase_*.py
 # Required when deploying to HF Space (where the filesystem is wiped on restart)
 # or when using Supabase Storage for PDFs/reports/screenshots.
-supabase~=2.31.0
+supabase~=2.6.0
 
 # Neo4j (graph database) — used by integrations/neo4j_integration.py
 # Required for network topology modeling and knowledge graph operations.
@@ -55,19 +55,17 @@ neo4j>=5.25.0,<7
 # All pins use ~= (compatible-release) so CI installs reproducibly from
 # verified PyPI wheels. Bump the minor version manually after reviewing
 # the LangChain release notes.
-langchain-core~=1.5.0
-langchain-openai~=1.4.0
-langchain-community~=0.4.0
-langchain-experimental~=0.4.0
-langchain-neo4j~=0.10.0
-langchain-qdrant~=1.1.0
-langsmith~=0.10.0
+langchain-core~=0.2.43
+langchain-openai~=0.1.25
+langchain-community~=0.2.19
+langchain-experimental~=0.0.65
+langsmith~=0.1.31
 
 # Metrics - Prometheus
 prometheus-client>=0.19,<0.26
 
 # Core numerical and scientific computing
-numpy>=1.26,<2.6
+numpy>=1.24,<2.6
 scipy>=1.12,<1.19
 pandas~=2.2.0
 
