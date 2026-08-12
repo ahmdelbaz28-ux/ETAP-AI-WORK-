@@ -117,7 +117,7 @@ pyotp>=2.9.0
 # credentials (graceful but useless fallback). Install it in every production
 # deployment so users can register hardware security keys (YubiKey, Titan, etc.)
 # as a second factor.
-webauthn>=2.0.0
+webauthn>=3.0.0
 redis>=5.0.0
 
 # Retry and fault tolerance (used by core/retry.py)
