@@ -328,7 +328,6 @@ class TestPromptHandleMapping:
             "arcflash_agent": "arcFlashAgent (TS) — alias for arcflash_agent_prompt",
             "weather_activity_planner": "Weather workflow (TS)",
             "coordination_agent": "CoordinationAgent (future relay)",
-
             "sample_prompt": "Template/sample only",
         }
 

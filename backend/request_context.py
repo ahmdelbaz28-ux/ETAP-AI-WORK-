@@ -246,8 +246,7 @@ def _reset_tenant_on_checkin(dbapi_connection, _connection_record) -> None:
             cursor.close()
     except Exception:
         logger.debug(
-            "Could not reset app.current_tenant_id on connection checkin "
-            "(likely SQLite backend)."
+            "Could not reset app.current_tenant_id on connection checkin (likely SQLite backend)."
         )
 
 

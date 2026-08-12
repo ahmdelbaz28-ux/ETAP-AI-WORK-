@@ -238,11 +238,7 @@ class WeatherService:
         )
 
         logger.info(
-            "Weather fetched from Open-Meteo: "
-            "lat=%.4f, lon=%.4f, "
-            "T=%.1f°C, "
-            "WS=%.1fm/s, "
-            "RH=%.0f%%",
+            "Weather fetched from Open-Meteo: lat=%.4f, lon=%.4f, T=%.1f°C, WS=%.1fm/s, RH=%.0f%%",
             latitude,
             longitude,
             weather.temperature_c,

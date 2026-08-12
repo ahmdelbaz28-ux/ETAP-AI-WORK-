@@ -572,7 +572,6 @@ class ProtectionRefreshHandler(PropagationHandler):
 
             fault_currents: list[float] = []
 
-
             ctx.dt_state.system.build_sequence_networks(for_fault=True)
             Ybus_pos = ctx.dt_state.system.get_ybus(seq="1")
             Ybus_neg = ctx.dt_state.system.get_ybus(seq="2")

@@ -63,6 +63,7 @@ from __future__ import annotations
 import logging
 import os
 from datetime import datetime, timezone
+
 try:
     from enum import StrEnum
 except ImportError:
@@ -441,7 +442,6 @@ class MemoryService:
             )
             logger.info(f"Memory added: user={request.user_id}, project={request.run_id}")
 
-
             return {
                 "success": True,
                 "result": result,
@@ -524,7 +524,6 @@ class MemoryService:
                 f"results={len(results)}"
             )
             logger.info(f"Memory search: query='{request.query[:50]}...', results={len(results)}")
-
 
             return MemorySearchResponse(
                 results=results,
@@ -648,7 +647,8 @@ class MemoryService:
 
             except Exception as e2:
                 logger.exception(
-                    "Memory get_all failed with BOTH v1 and v2 APIs: %s", e2,
+                    "Memory get_all failed with BOTH v1 and v2 APIs: %s",
+                    e2,
                 )
                 return {
                     "success": False,

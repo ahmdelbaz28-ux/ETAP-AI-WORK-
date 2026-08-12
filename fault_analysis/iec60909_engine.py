@@ -86,7 +86,6 @@ class ShortCircuitResult:
     ic: complex = complex(0, 0)  # noqa: S116 — standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
 
 
-
 # Default R/X ratio when the bus impedance is purely resistive (imaginary
 # part near zero). IEC 60909-0:2016 Section 4.3.1.2 recommends a high R/X
 # value (typically 10.0) for this edge case to avoid division by zero.

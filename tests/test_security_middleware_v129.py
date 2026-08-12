@@ -416,6 +416,7 @@ class TestProductionAuthDisabledBypass:
         os.environ["ENGINEERING_SERVICE_AUTH_DISABLED"] = "true"  # attempt bypass
         try:
             import importlib
+
             for mod_name in list(sys.modules):
                 if mod_name == "backend.app" or mod_name.startswith("backend.app."):
                     del sys.modules[mod_name]

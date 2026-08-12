@@ -203,7 +203,6 @@ def _require_api_key(request: Request) -> None:
         )  # NOSONAR HTTPException responses will be documented in API refactoring sprint
 
 
-
 # ---------------------------------------------------------------------------
 # Body size limit middleware
 # ---------------------------------------------------------------------------
@@ -779,8 +778,12 @@ app.include_router(email_webhooks_router)  # /api/v1/email/webhooks/*
 app.include_router(email_dashboard_router)  # /api/v1/email-dashboard/*
 app.include_router(copilot_config_router)  # /api/v1/copilot/config/*
 app.include_router(storage_management_router)  # /api/v1/storage/* — R2 storage management
-app.include_router(autodesk_connectors_router)  # /api/v1/connectors/autodesk/* — Autodesk connector health & test
-app.include_router(cad_simready_router)  # /api/v1/cad-simready/* — NVIDIA CAD to SimReady 3D OpenUSD converter
+app.include_router(
+    autodesk_connectors_router
+)  # /api/v1/connectors/autodesk/* — Autodesk connector health & test
+app.include_router(
+    cad_simready_router
+)  # /api/v1/cad-simready/* — NVIDIA CAD to SimReady 3D OpenUSD converter
 app.include_router(
     autodesk_connectors_router
 )  # /api/v1/connectors/autodesk/* — Autodesk connector health & test

@@ -7,6 +7,7 @@ testing form interactions on the Swagger UI.
 
 Run: python3 tests/selenium/test_ui_interactive.py
 """
+
 from __future__ import annotations
 
 import json

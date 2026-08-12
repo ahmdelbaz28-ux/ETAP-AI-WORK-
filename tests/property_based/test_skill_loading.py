@@ -257,7 +257,9 @@ class SkillDescriptionStateMachine(RuleBasedStateMachine):
         except ValidationError:
             # ValidationError occurs if all words are whitespace-only
             non_empty = [w for w in words if w.strip()]
-            assert len(non_empty) == 0, f"Expected empty non_empty list for ValidationError in {words}"
+            assert len(non_empty) == 0, (
+                f"Expected empty non_empty list for ValidationError in {words}"
+            )
 
 
 TestSkillDescriptionStateMachine = SkillDescriptionStateMachine.TestCase

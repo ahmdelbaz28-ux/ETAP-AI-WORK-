@@ -153,6 +153,7 @@ try:
             self._cb = _CanonicalCB(
                 name, failure_threshold=failure_threshold, recovery_timeout=recovery_timeout
             )
+
     def __init__(self, failure_threshold: int = 5, reset_seconds: float = 60.0):
         self.failure_threshold = failure_threshold
         self.reset_seconds = reset_seconds

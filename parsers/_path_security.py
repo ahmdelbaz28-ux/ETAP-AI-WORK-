@@ -323,9 +323,7 @@ def validate_file_size(
     try:
         size = safe_path.stat().st_size
     except OSError as e:
-        raise UnsafePathError(
-            f"{parser_name}: cannot stat '{safe_path}': {e}"
-        ) from None
+        raise UnsafePathError(f"{parser_name}: cannot stat '{safe_path}': {e}") from None
         raise UnsafePathError(f"{parser_name}: cannot stat '{safe_path}': {e}") from e
 
     if size > max_size_bytes:

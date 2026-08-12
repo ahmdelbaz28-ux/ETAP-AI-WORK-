@@ -38,7 +38,6 @@ class TestManagerConstruction:
         from scada_protocols.manager import SCADAProtocolManager as _M  # noqa: N814
         from scada_protocols.manager import SCADAProtocolManager as _M
 
-
         def _fake_probe():
             return {
                 "modbus_tcp": {"available": False, "info": "mocked unavailable"},

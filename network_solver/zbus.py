@@ -32,7 +32,6 @@ def zbus_from_ybus(
 
 
 def zbus_full(ybus):
-
     """
     Compute Zbus by inverting the full Ybus matrix.
     Note: This may fail if Ybus is singular (which it is if there is no reference).

@@ -291,6 +291,7 @@ class TestLogin:
         )
         # Clear IP and login rate limit state so subsequent tests aren't blocked
         from api.auth import _ip_attempts, _ip_attempts_lock, _LOGIN_ATTEMPTS, _LOGIN_ATTEMPTS_LOCK
+
         with _ip_attempts_lock:
             _ip_attempts.clear()
         with _LOGIN_ATTEMPTS_LOCK:

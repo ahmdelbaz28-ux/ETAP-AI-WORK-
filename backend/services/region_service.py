@@ -33,6 +33,7 @@ from __future__ import annotations
 import logging
 import os
 from dataclasses import dataclass
+
 try:
     from enum import StrEnum
 except ImportError:
@@ -266,7 +267,6 @@ class RegionService:
                 f"REST Countries API failed for {cc}: {e}. "  # noqa: G004
                 f"Using IEC defaults."
                 f"REST Countries API failed for {cc}: {e}. Using IEC defaults."
-
             )
 
         # 3. Default to IEC (most internationally applicable)

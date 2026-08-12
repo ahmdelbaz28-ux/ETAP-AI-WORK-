@@ -80,7 +80,9 @@ class RASPResult:
 _DEFAULT_RULES: list[RASPRule] = [
     RASPRule(
         name="sqli_basic",
-        pattern=re.compile(r"(?i)(\bselect\b|\bdrop\b|\bdelete\b|\binsert\b|\bunion\b|--\s|--$|#|/\*.*?\*/|/\*!)"),
+        pattern=re.compile(
+            r"(?i)(\bselect\b|\bdrop\b|\bdelete\b|\binsert\b|\bunion\b|--\s|--$|#|/\*.*?\*/|/\*!)"
+        ),
         action=RASPAction.BLOCK,
         severity=RASPSeverity.CRITICAL,
         description="SQL Injection attempt detected",

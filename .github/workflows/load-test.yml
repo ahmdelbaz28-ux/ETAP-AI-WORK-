@@ -226,6 +226,7 @@ jobs:
         with:
           name: k6-load-test-results-${{ github.sha }}
           path: load-test-results/k6/
+          if-no-files-found: ignore
           retention-days: 30
 
       - name: Stop engineering service

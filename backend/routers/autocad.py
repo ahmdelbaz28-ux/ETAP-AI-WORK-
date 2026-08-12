@@ -310,7 +310,6 @@ async def connect_to_autocad(request: ConnectRequest) -> ConnectResponse:
         raise _safe_error(503, "Failed to connect to AutoCAD", e) from e
 
 
-
 @router.post("/disconnect", response_model=ConnectResponse)  # NOSONAR - python:S8409
 async def disconnect_from_autocad() -> ConnectResponse:
     """Disconnect from AutoCAD application."""
@@ -365,7 +364,6 @@ async def list_autocad_documents() -> DocumentsResponse:
         raise _safe_error(500, "Error getting documents", e) from e
 
 
-
 @router.post(
     "/read_dwg",
     response_model=ReadFileResponse,
@@ -402,7 +400,6 @@ async def read_dwg_file(request: ReadDwgRequest) -> ReadFileResponse:
         raise _safe_error(500, "Error reading DWG file", e) from e
 
 
-
 @router.post(
     "/write_dwg",
     response_model=OperationResponse,
@@ -435,7 +432,6 @@ async def write_dwg_file(request: WriteDwgRequest) -> OperationResponse:
     except Exception as e:
         raise _safe_error(500, "Error writing DWG file", e) from None
         raise _safe_error(500, "Error writing DWG file", e) from e
-
 
 
 @router.post("/draw_line", response_model=OperationResponse)  # NOSONAR - python:S8409
@@ -472,7 +468,6 @@ async def draw_line(request: DrawLineRequest) -> OperationResponse:
         raise _safe_error(500, "Error drawing line", e) from e
 
 
-
 @router.post("/draw_polyline", response_model=OperationResponse)  # NOSONAR - python:S8409
 async def draw_polyline(request: DrawPolylineRequest) -> OperationResponse:
     """Draw a polyline in AutoCAD."""
@@ -507,7 +502,6 @@ async def draw_polyline(request: DrawPolylineRequest) -> OperationResponse:
         raise _safe_error(500, "Error drawing polyline", e) from e
 
 
-
 @router.post("/draw_circle", response_model=OperationResponse)  # NOSONAR - python:S8409
 async def draw_circle(request: DrawCircleRequest) -> OperationResponse:
     """Draw a circle in AutoCAD."""
@@ -537,7 +531,6 @@ async def draw_circle(request: DrawCircleRequest) -> OperationResponse:
     except Exception as e:
         raise _safe_error(500, "Error drawing circle", e) from None
         raise _safe_error(500, "Error drawing circle", e) from e
-
 
 
 @router.post("/draw_text", response_model=OperationResponse)  # NOSONAR - python:S8409
@@ -575,7 +568,6 @@ async def draw_text(request: DrawTextRequest) -> OperationResponse:
         raise _safe_error(500, "Error drawing text", e) from e
 
 
-
 @router.get("/status", response_model=StatusResponse)  # NOSONAR - python:S8409
 async def get_autocad_status() -> StatusResponse:
     """Get the current AutoCAD connection status."""
@@ -594,7 +586,6 @@ async def get_autocad_status() -> StatusResponse:
     except Exception as e:
         raise _safe_error(500, "Error getting AutoCAD status", e) from None
         raise _safe_error(500, "Error getting AutoCAD status", e) from e
-
 
 
 @router.post("/save", response_model=OperationResponse)  # NOSONAR - python:S8409
@@ -627,7 +618,6 @@ async def save_document(request: SaveRequest) -> OperationResponse:
         raise _safe_error(500, "Error saving document", e) from e
 
 
-
 # Maximum upload file size (50 MB)
 _MAX_UPLOAD_SIZE = 50 * 1024 * 1024
 
@@ -646,7 +636,6 @@ _MAX_UPLOAD_SIZE = 50 * 1024 * 1024
 async def upload_and_read_dwg(
     request: Request, file: UploadFile = File(...)
 ) -> ReadFileResponse:  # NOSONAR - python:S8410
-
     """
     Upload a DWG file and read its contents.
 
@@ -732,7 +721,6 @@ async def delete_entity(handle: str) -> DeleteEntityResponse:
         raise _safe_error(500, "Error deleting entity", e) from e
 
 
-
 @router.put("/entity/{handle}", response_model=OperationResponse)  # NOSONAR - python:S8409
 async def update_entity(handle: str, request: ModifyEntityRequest) -> OperationResponse:
     """Update an AutoCAD entity's properties."""
@@ -763,4 +751,3 @@ async def update_entity(handle: str, request: ModifyEntityRequest) -> OperationR
     except Exception as e:
         raise _safe_error(500, "Error modifying entity", e) from None
         raise _safe_error(500, "Error modifying entity", e) from e
-

@@ -489,7 +489,9 @@ class ScanToBIMService:
             with open(output_path, "w", encoding="utf-8") as f:
                 json.dump(ifc_data, f, indent=2, ensure_ascii=False)
 
-            self.logger.info("Exported %s rooms to IFC-compatible JSON: %s", len(rooms), output_path)
+            self.logger.info(
+                "Exported %s rooms to IFC-compatible JSON: %s", len(rooms), output_path
+            )
             return True
 
         except Exception:  # NOSONAR - python:S1481

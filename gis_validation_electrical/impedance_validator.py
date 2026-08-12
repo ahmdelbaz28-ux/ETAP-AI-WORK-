@@ -15,7 +15,6 @@ class ImpedanceIssue:
 
 
 def validate_impedance_consistency(model: ElectricalModel) -> tuple[bool, list[ImpedanceIssue]]:
-
     """
     Deterministic impedance consistency validation:
     - Impedance values must not exhibit unrealistic discontinuities along connected edges.

@@ -126,9 +126,7 @@ class Config:
             if not cls.JWT_SECRET_KEY:
                 raise ValueError("JWT_SECRET_KEY is not set in production/staging environment")
             if len(cls.JWT_SECRET_KEY) < 32:
-                raise ValueError(
-                    "JWT_SECRET_KEY must be at least 32 bytes in production/staging"
-                )
+                raise ValueError("JWT_SECRET_KEY must be at least 32 bytes in production/staging")
             if cls.JWT_SECRET_KEY in cls.INSECURE_SECRET_VALUES:
                 raise ValueError("JWT_SECRET_KEY is a known-insecure sample value")
 

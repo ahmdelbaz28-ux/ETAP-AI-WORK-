@@ -22,6 +22,7 @@ from __future__ import annotations
 import logging
 import time
 from datetime import datetime, timezone
+
 try:
     from enum import StrEnum
 except ImportError:

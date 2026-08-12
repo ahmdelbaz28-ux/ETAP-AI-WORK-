@@ -211,7 +211,6 @@ class LoadFlowSolver:
         #   needed:   V_i*V_j*(G_ij*cos + B_ij*sin)      ← d(ΔQ)/dθ = -d(Q_calc)/dθ  # noqa: S117 — domain notation
         J3_off = v_i_v_j * (GC + BS)  # noqa: S117 — domain notation
 
-
         # dQ_i/d|V|_k (Q-calc derivative)
         #   off-diag: V_i*(G_ij*sin - B_ij*cos)          ← d(Q_calc)/d|V|
         #   needed:   -V_i*(G_ij*sin - B_ij*cos)         ← d(ΔQ)/d|V| = -d(Q_calc)/d|V|

@@ -190,7 +190,9 @@ def _safe_error(status_code: int, log_msg: str, exc: Exception) -> HTTPException
 @router.post("/convert", response_model=ConvertResponse)  # NOSONAR - python:S8409
 async def convert_files(  # NOSONAR — S3776: cognitive complexity is inherent to the safety-critical algorithm
     request: ConvertRequest,
-    service: DigitalTwinService = Depends(get_digital_twin_service),  # NOSONAR - python:S8410  # noqa: B008
+    service: DigitalTwinService = Depends(
+        get_digital_twin_service
+    ),  # NOSONAR - python:S8410  # noqa: B008
 ) -> ConvertResponse:
     """Perform bidirectional CAD/BIM conversion."""
     try:
@@ -261,7 +263,6 @@ async def convert_files(  # NOSONAR — S3776: cognitive complexity is inherent 
     except Exception as e:
         raise _safe_error(500, "Error during conversion", e) from None
         raise _safe_error(500, "Error during conversion", e) from e
-
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -365,10 +366,11 @@ async def upload_and_convert(
         raise _safe_error(500, "Upload and convert failed", e) from e
 
 
-
 @router.get("/history", response_model=HistoryResponse)  # NOSONAR - python:S8409
 async def get_conversion_history(
-    service: DigitalTwinService = Depends(get_digital_twin_service),  # NOSONAR - python:S8410  # noqa: B008
+    service: DigitalTwinService = Depends(
+        get_digital_twin_service
+    ),  # NOSONAR - python:S8410  # noqa: B008
 ) -> HistoryResponse:
     """Get conversion history."""
     try:
@@ -379,11 +381,12 @@ async def get_conversion_history(
         raise _safe_error(500, "Error getting conversion history", e) from e
 
 
-
 @router.post("/configure", response_model=ConfigureResponse)  # NOSONAR - python:S8409
 async def configure_conversion(
     request: ConfigureRequest,
-    config_mgr: ConversionConfigManager = Depends(get_config_manager),  # NOSONAR - python:S8410  # noqa: B008
+    config_mgr: ConversionConfigManager = Depends(
+        get_config_manager
+    ),  # NOSONAR - python:S8410  # noqa: B008
 ) -> ConfigureResponse:
     """Update conversion configuration."""
     try:
@@ -405,7 +408,6 @@ async def configure_conversion(
         raise _safe_error(500, "Error updating configuration", e) from e
 
 
-
 @router.post(
     "/rollback/{version_id}",
     response_model=OperationResponse,  # NOSONAR - python:S8409
@@ -414,7 +416,9 @@ async def configure_conversion(
 async def rollback_to_version(
     version_id: str,
     request: RollbackRequest,
-    service: DigitalTwinService = Depends(get_digital_twin_service),  # NOSONAR - python:S8410  # noqa: B008
+    service: DigitalTwinService = Depends(
+        get_digital_twin_service
+    ),  # NOSONAR - python:S8410  # noqa: B008
 ) -> OperationResponse:
     """
     Rollback to a specific conversion version.
@@ -442,10 +446,11 @@ async def rollback_to_version(
         raise _safe_error(500, "Rollback failed", e) from e
 
 
-
 @router.get("/mappings", response_model=MappingsResponse)  # NOSONAR - python:S8409
 async def get_available_mappings(
-    config_mgr: ConversionConfigManager = Depends(get_config_manager),  # NOSONAR - python:S8410  # noqa: B008
+    config_mgr: ConversionConfigManager = Depends(
+        get_config_manager
+    ),  # NOSONAR - python:S8410  # noqa: B008
 ) -> MappingsResponse:
     """Get available mapping configurations."""
     try:
@@ -463,10 +468,11 @@ async def get_available_mappings(
         raise _safe_error(500, "Error getting mappings", e) from e
 
 
-
 @router.get("/status")
 async def get_digital_twin_status(
-    service: DigitalTwinService = Depends(get_digital_twin_service),  # NOSONAR - python:S8410  # noqa: B008
+    service: DigitalTwinService = Depends(
+        get_digital_twin_service
+    ),  # NOSONAR - python:S8410  # noqa: B008
 ) -> Dict[str, Any]:
     """
     Get Digital Twin service status.
@@ -488,11 +494,12 @@ async def get_digital_twin_status(
         raise _safe_error(500, "Error getting Digital Twin status", e) from e
 
 
-
 @router.post("/update_mapping")
 async def update_single_mapping(
     request: UpdateMappingRequest,
-    config_mgr: ConversionConfigManager = Depends(get_config_manager),  # NOSONAR - python:S8410  # noqa: B008
+    config_mgr: ConversionConfigManager = Depends(
+        get_config_manager
+    ),  # NOSONAR - python:S8410  # noqa: B008
 ) -> Dict[str, Any]:
     """
     Update a single mapping rule.
@@ -518,13 +525,14 @@ async def update_single_mapping(
         raise _safe_error(500, "Error updating mapping", e) from e
 
 
-
 @router.get(
     "/config",
     dependencies=[Depends(require_permission(Permission.EXPORT_READ))],
 )
 async def get_config(
-    config_mgr: ConversionConfigManager = Depends(get_config_manager),  # NOSONAR - python:S8410  # noqa: B008
+    config_mgr: ConversionConfigManager = Depends(
+        get_config_manager
+    ),  # NOSONAR - python:S8410  # noqa: B008
 ) -> Dict[str, Any]:
     """
     Get current conversion configuration.
@@ -545,7 +553,6 @@ async def get_config(
         raise _safe_error(500, "Error getting configuration", e) from e
 
 
-
 @router.put(
     "/config",
     response_model=OperationResponse,  # NOSONAR - python:S8409
@@ -553,7 +560,9 @@ async def get_config(
 )
 async def update_config(
     request: ConfigureRequest,
-    config_mgr: ConversionConfigManager = Depends(get_config_manager),  # NOSONAR - python:S8410  # noqa: B008
+    config_mgr: ConversionConfigManager = Depends(
+        get_config_manager
+    ),  # NOSONAR - python:S8410  # noqa: B008
 ) -> OperationResponse:
     """Update conversion configuration.
 
@@ -572,7 +581,6 @@ async def update_config(
     except Exception as e:
         raise _safe_error(500, "Configuration update failed", e) from None
         raise _safe_error(500, "Configuration update failed", e) from e
-
 
 
 @router.get(
@@ -605,4 +613,3 @@ async def download_file(filename: str) -> FileResponse:
     except Exception as e:
         raise _safe_error(500, "Download failed", e) from None
         raise _safe_error(500, "Download failed", e) from e
-

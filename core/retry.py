@@ -38,11 +38,19 @@ def network_retry(
     max_attempts: int = 3,
     max_delay: int = 10,
     multiplier: float = 1.0,
-    exceptions: type[Exception] | tuple[type[Exception], ...] = (ConnectionError, TimeoutError, OSError),
+    exceptions: type[Exception] | tuple[type[Exception], ...] = (
+        ConnectionError,
+        TimeoutError,
+        OSError,
+    ),
     reraise: bool = True,
 ) -> Callable:
     """Retry decorator for network / I/O operations."""
-    wait_strat = wait_fixed(0) if max_delay == 0 else wait_exponential(multiplier=multiplier or 1, min=1, max=max_delay)
+    wait_strat = (
+        wait_fixed(0)
+        if max_delay == 0
+        else wait_exponential(multiplier=multiplier or 1, min=1, max=max_delay)
+    )
     return retry(
         stop=stop_after_attempt(max_attempts),
         wait=wait_strat,
@@ -57,11 +65,19 @@ def async_network_retry(
     max_attempts: int = 3,
     max_delay: int = 10,
     multiplier: float = 1.0,
-    exceptions: type[Exception] | tuple[type[Exception], ...] = (ConnectionError, TimeoutError, OSError),
+    exceptions: type[Exception] | tuple[type[Exception], ...] = (
+        ConnectionError,
+        TimeoutError,
+        OSError,
+    ),
     reraise: bool = True,
 ) -> Callable:
     """Async retry decorator for network / I/O operations."""
-    wait_strat = wait_fixed(0) if max_delay == 0 else wait_exponential(multiplier=multiplier or 1, min=1, max=max_delay)
+    wait_strat = (
+        wait_fixed(0)
+        if max_delay == 0
+        else wait_exponential(multiplier=multiplier or 1, min=1, max=max_delay)
+    )
     return retry(
         stop=stop_after_attempt(max_attempts),
         wait=wait_strat,
@@ -78,7 +94,9 @@ def conditional_retry(
     reraise: bool = True,
 ) -> Callable:
     """Retry decorator that retries when condition_fn(result) returns True."""
-    wait_strat = wait_fixed(0) if max_delay == 0 else wait_exponential(multiplier=1, min=1, max=max_delay)
+    wait_strat = (
+        wait_fixed(0) if max_delay == 0 else wait_exponential(multiplier=1, min=1, max=max_delay)
+    )
     return retry(
         stop=stop_after_attempt(max_attempts),
         wait=wait_strat,
@@ -96,7 +114,11 @@ def skill_retry(
     reraise: bool = True,
 ) -> Callable:
     """Retry decorator for skill / module loading operations."""
-    wait_strat = wait_fixed(0) if max_delay == 0 else wait_exponential(multiplier=multiplier or 1, min=1, max=max_delay)
+    wait_strat = (
+        wait_fixed(0)
+        if max_delay == 0
+        else wait_exponential(multiplier=multiplier or 1, min=1, max=max_delay)
+    )
     return retry(
         stop=stop_after_attempt(max_attempts),
         wait=wait_strat,
@@ -104,7 +126,6 @@ def skill_retry(
         before_sleep=before_sleep_log(logger, logging.WARNING),
         reraise=reraise,
     )
-
 
 
 def bounded_retry(
@@ -122,4 +143,3 @@ def bounded_retry(
         after=after_log(logger, logging.INFO),
         reraise=reraise,
     )
-

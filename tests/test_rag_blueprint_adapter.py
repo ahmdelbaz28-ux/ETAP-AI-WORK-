@@ -71,7 +71,9 @@ def test_rag_blueprint_guardrails():
 
 def test_retrieve_blueprint_context_graceful_fallback():
     adapter = RAGBlueprintAdapter(index_dir="non_existent_dir")
-    result = adapter.retrieve_blueprint_context(query="transformer thermal limit", top_k=3, max_tokens=1000)
+    result = adapter.retrieve_blueprint_context(
+        query="transformer thermal limit", top_k=3, max_tokens=1000
+    )
 
     assert result["query"] == "transformer thermal limit"
     assert isinstance(result["chunks"], list)

@@ -89,6 +89,7 @@ class TestLoadSpecValidation:
         import math
 
         from core_model.specs import LoadSpec
+
         with pytest.raises(ValidationError, match="finite"):
             LoadSpec(load_id=1, bus_id=1, p_mw=math.nan)
 
@@ -106,6 +107,7 @@ class TestSystemSpecValidation:
     def test_too_many_buses_rejected(self):
         """> 10000 buses is likely malicious (OOM prevention)."""
         from core_model.specs import BusSpec, SystemSpec
+
         buses = [BusSpec(bus_id=i, voltage_kv=13.8) for i in range(10001)]
         with pytest.raises(ValidationError, match="10000"):
             SystemSpec(buses=buses)

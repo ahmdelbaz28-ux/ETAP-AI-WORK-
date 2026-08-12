@@ -23,7 +23,9 @@ class BM25Ranker:
         self.k1 = k1
         self.b = b
 
-    def score(self, query_tokens: list[str], doc_tokens: list[str], avg_doc_len: float = 100.0) -> float:
+    def score(
+        self, query_tokens: list[str], doc_tokens: list[str], avg_doc_len: float = 100.0
+    ) -> float:
         if not query_tokens or not doc_tokens:
             return 0.0
 
@@ -38,7 +40,9 @@ class BM25Ranker:
             if freq > 0:
                 idf = math.log((1.0 + 1.0) / (1.0 + 0.5))  # Simplified IDF weight
                 numerator = freq * (self.k1 + 1)
-                denominator = freq + self.k1 * (1 - self.b + self.b * (doc_len / max(avg_doc_len, 1.0)))
+                denominator = freq + self.k1 * (
+                    1 - self.b + self.b * (doc_len / max(avg_doc_len, 1.0))
+                )
                 score += idf * (numerator / denominator)
 
         return score
@@ -52,7 +56,9 @@ class RAGBlueprintAdapter:
     """
 
     def __init__(self, index_dir: str = "ai_context_engine/index", embedding_function: Any = None):
-        self.base_retriever = CodeRetriever(index_dir=index_dir, embedding_function=embedding_function)
+        self.base_retriever = CodeRetriever(
+            index_dir=index_dir, embedding_function=embedding_function
+        )
         self.bm25_ranker = BM25Ranker()
 
     def hybrid_rerank(self, chunks: list[dict], query: str, top_k: int = 5) -> list[dict]:
@@ -84,17 +90,21 @@ class RAGBlueprintAdapter:
             # Hybrid score formulation: 60% BM25 keyword match + 40% dense/jaccard overlap
             hybrid_score = (0.6 * bm25_score) + (0.4 * jaccard)
 
-            reranked.append({
-                **chunk,
-                "bm25_score": round(bm25_score, 4),
-                "jaccard_score": round(jaccard, 4),
-                "hybrid_score": round(hybrid_score, 4),
-            })
+            reranked.append(
+                {
+                    **chunk,
+                    "bm25_score": round(bm25_score, 4),
+                    "jaccard_score": round(jaccard, 4),
+                    "hybrid_score": round(hybrid_score, 4),
+                }
+            )
 
         reranked.sort(key=lambda x: x["hybrid_score"], reverse=True)
         return reranked[:top_k]
 
-    def apply_guardrails(self, query: str, chunks: list[dict], min_relevance_threshold: float = 0.01) -> dict:
+    def apply_guardrails(
+        self, query: str, chunks: list[dict], min_relevance_threshold: float = 0.01
+    ) -> dict:
         """
         Applies zero-hallucination compliance check as specified by NVIDIA NeMo Guardrails.
         Ensures retrieved reference facts meet minimum confidence threshold.
@@ -135,7 +145,7 @@ class RAGBlueprintAdapter:
         4. Validate against zero-hallucination guardrails
         """
         raw_chunks = self.base_retriever.retrieve(query, top_k=top_k * 2)
-        
+
         # If ChromaDB collection is empty, raw_chunks might be empty; provide graceful fallback
         if not raw_chunks:
             return {
@@ -150,9 +160,15 @@ class RAGBlueprintAdapter:
             }
 
         reranked_chunks = self.hybrid_rerank(raw_chunks, query, top_k=top_k)
-        compressed_chunks = CodeCompressor.compress_chunks(reranked_chunks, query, max_tokens=max_tokens)
-        
-        guardrail_result = self.apply_guardrails(query, compressed_chunks) if enforce_guardrails else {"compliant": True}
+        compressed_chunks = CodeCompressor.compress_chunks(
+            reranked_chunks, query, max_tokens=max_tokens
+        )
+
+        guardrail_result = (
+            self.apply_guardrails(query, compressed_chunks)
+            if enforce_guardrails
+            else {"compliant": True}
+        )
 
         total_tokens = sum(chunk.get("estimated_tokens", 0) for chunk in compressed_chunks)
 

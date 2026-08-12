@@ -166,9 +166,9 @@ def print_report(findings: List[DriftFinding], as_json: bool = False) -> None:
     warnings = [f for f in findings if f.severity == "WARNING"]
     infos = [f for f in findings if f.severity == "INFO"]
 
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print("  Agent Drift Audit Report")
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
     print(f"\n{'=' * 60}")
     print(f"{'=' * 60}")
 

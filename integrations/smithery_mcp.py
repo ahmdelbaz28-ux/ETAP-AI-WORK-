@@ -88,7 +88,6 @@ _SAFE_LOG_RE = _re_for_log.compile(r"[\x00-\x1f\x7f]")
 _SAFE_LOG_RE = re.compile(r"[\x00-\x1f\x7f]")
 
 
-
 def _sanitize_for_log(value: object, max_len: int = 200) -> str:
     """Sanitize user-controlled input before writing to logs."""
     if value is None:

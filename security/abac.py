@@ -503,7 +503,8 @@ if _HAS_STARLETTE:
             path = request.url.path
             if (
                 os.environ.get("AUTH_DISABLED", "").lower() in ("true", "1", "yes")
-                or os.environ.get("ENGINEERING_SERVICE_AUTH_DISABLED", "").lower() in ("true", "1", "yes")
+                or os.environ.get("ENGINEERING_SERVICE_AUTH_DISABLED", "").lower()
+                in ("true", "1", "yes")
                 or os.environ.get("FIREAI_AUTH_DISABLED", "").lower() in ("true", "1", "yes")
                 or any(path.startswith(prefix) for prefix in self._public_paths)
                 or request.headers.get("x-api-key")

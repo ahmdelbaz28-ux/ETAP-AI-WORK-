@@ -31,7 +31,6 @@ class GridConsistencyReport:
 def grid_consistency_engine(  # NOSONAR
     assets: list[ADMSAsset],
 ) -> GridConsistencyReport:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
-
     """
     Final electrical grid consistency validation layer.
 

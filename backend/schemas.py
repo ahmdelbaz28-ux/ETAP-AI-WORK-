@@ -84,6 +84,7 @@ class CamelModel(BaseModel):
 # ENUMERATIONS (mirroring core/models.py)
 # ════════════════════════════════════════════════════════════════════════════
 
+
 class ElementType(StrEnum):
     WALL = "wall"
     DOOR = "door"

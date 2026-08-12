@@ -285,7 +285,7 @@ def validate_agent_response(
     if agent_id == "fallback-agent":
         # Look for patterns like "X = 123.45 kA" or "result: 8.5 cal/cm²"
         # without a "REFUSE" or "cannot" disclaimer
-        numerical_pattern = r'\d+\.?\d*\s*(kA|MW|MVAr|cal/cm|pu|kV|mm|V|A|Ω|Hz)'
+        numerical_pattern = r"\d+\.?\d*\s*(kA|MW|MVAr|cal/cm|pu|kV|mm|V|A|Ω|Hz)"
         numerical_pattern = r"\d+(?:\.\d+)?\s*(kA|MW|MVAr|cal/cm|pu|kV|mm|V|A|Ω|Hz)"  # noqa: S8786 — atomic non-capturing group
 
         numerical_pattern = r"\d+\.?\d*\s*(kA|MW|MVAr|cal/cm|pu|kV|mm|V|A|Ω|Hz)"
@@ -294,19 +294,6 @@ def validate_agent_response(
             re.search(r"refuse|cannot|unable|not available|do not", response_text, re.IGNORECASE)
         )
         if has_numerical and not has_refusal:
-            violations.append(PromptRuleViolation(
-                rule_id="F03-FALL-numerical",
-                agent_id=agent_id,
-                rule_type="format_field",
-                description=(
-                    "Fallback agent returned numerical answers for what may be a "
-                    "life-safety calculation without a refusal disclaimer. The prompt "
-                    "states: 'You MUST REFUSE to give numerical answers for any "
-                    "life-safety calculation.'"
-                ),
-                severity=GuardSeverity.MUST_FIX,
-                evidence="response contains numerical values without refusal disclaimer",
-            ))
             violations.append(
                 PromptRuleViolation(
                     rule_id="F03-FALL-numerical",
@@ -322,7 +309,21 @@ def validate_agent_response(
                     evidence="response contains numerical values without refusal disclaimer",
                 )
             )
-
+            violations.append(
+                PromptRuleViolation(
+                    rule_id="F03-FALL-numerical",
+                    agent_id=agent_id,
+                    rule_type="format_field",
+                    description=(
+                        "Fallback agent returned numerical answers for what may be a "
+                        "life-safety calculation without a refusal disclaimer. The prompt "
+                        "states: 'You MUST REFUSE to give numerical answers for any "
+                        "life-safety calculation.'"
+                    ),
+                    severity=GuardSeverity.MUST_FIX,
+                    evidence="response contains numerical values without refusal disclaimer",
+                )
+            )
 
     return PromptRuleResult(agent_id=agent_id, violations=violations)
 

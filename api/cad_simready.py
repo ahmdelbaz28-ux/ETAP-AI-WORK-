@@ -25,13 +25,20 @@ router = APIRouter(
 # Models
 # ---------------------------------------------------------------------------
 
+
 class SimReadyConvertRequest(BaseModel):
     source_filename: str = Field(..., description="Name of the input CAD/DXF or Revit file")
     asset_name: str = Field(default="Substation_Unit_01", description="Target 3D asset name")
-    enable_physics: bool = Field(default=True, description="Attach UsdPhysics rigid body and collision mesh")
-    material_preset: str = Field(default="industrial_copper_steel", description="PBR MDL material preset")
+    enable_physics: bool = Field(
+        default=True, description="Attach UsdPhysics rigid body and collision mesh"
+    )
+    material_preset: str = Field(
+        default="industrial_copper_steel", description="PBR MDL material preset"
+    )
     lod_level: str = Field(default="high", description="Level of Detail: low, medium, high")
-    export_usdz: bool = Field(default=True, description="Also package output as USDZ for iOS/Web quicklook")
+    export_usdz: bool = Field(
+        default=True, description="Also package output as USDZ for iOS/Web quicklook"
+    )
 
 
 class SimReadyConvertResponse(BaseModel):
@@ -88,6 +95,7 @@ MATERIAL_PRESETS = [
 # Endpoints
 # ---------------------------------------------------------------------------
 
+
 @router.get("/status")
 async def get_simready_status(request: Request):
     """Return status of NVIDIA CAD to SimReady engine integration."""
@@ -121,7 +129,11 @@ async def convert_cad_to_simready(body: SimReadyConvertRequest, request: Request
     Applies semantic labeling, UsdPhysics rigid body bindings, and PBR materials.
     """
     trace_id = getattr(request.state, "trace_id", "unknown")
-    logger.info("Converting CAD asset %s to SimReady OpenUSD", body.source_filename, extra={"trace_id": trace_id})
+    logger.info(
+        "Converting CAD asset %s to SimReady OpenUSD",
+        body.source_filename,
+        extra={"trace_id": trace_id},
+    )
 
     # Generate deterministic mock 3D nodes simulating USD hierarchy
     asset_slug = body.asset_name.lower().replace(" ", "_")

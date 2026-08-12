@@ -54,6 +54,8 @@ class HealthResponse:
         self.version = version
         self.timestamp = timestamp
         self.trace_id = trace_id
+
+
 class ReadyResponse:
     def __init__(
         self,
@@ -68,6 +70,8 @@ class ReadyResponse:
         self.etap_available = etap_available
         self.timestamp = timestamp
         self.trace_id = trace_id
+
+
 class MetricsResponse:
     def __init__(
         self,
@@ -82,24 +86,29 @@ class MetricsResponse:
         self.requests_failed = requests_failed
         self.avg_execution_time_ms = avg_execution_time_ms
         self.trace_id = trace_id
+
+
 class HealthResponse(BaseModel):
     status: str
     version: str
     timestamp: str
     trace_id: str
+
+
 class ReadyResponse(BaseModel):
     ready: bool
     native_engine_available: bool
     etap_available: bool
     timestamp: Optional[str] = None
     trace_id: Optional[str] = None
+
+
 class MetricsResponse(BaseModel):
     requests_total: int
     requests_success: int
     requests_failed: int
     avg_execution_time_ms: float
     trace_id: Optional[str] = None
-
 
 
 @router.head("/")
@@ -123,6 +132,8 @@ async def readyz():
     checks = {"python": True, "imports": True}
     all_ready = all(checks.values())
     return {"ready": all_ready, "checks": checks}
+
+
 async def readyz() -> Dict[str, object]:
     """Readiness probe — checks critical dependencies.
     SECURITY/OPS (E-07): Previously this returned a hardcoded {"ready": True}
@@ -142,7 +153,7 @@ async def readyz() -> Dict[str, object]:
                 checks["db"] = "fail: unexpected scalar"
     except Exception as exc:
         checks["db"] = f"fail: {type(exc).__name__}: {exc}"
-    # Redis check
+        # Redis check
         get_redis_client = _get_redis_client_func()
         r = get_redis_client()
         if r is None:
@@ -169,7 +180,6 @@ async def readyz() -> Dict[str, object]:
         status_code=status_code,
         content={"ready": all_ready, "checks": checks},
     )
-
 
 
 @router.head("/health")

@@ -123,7 +123,6 @@ async def methane_check(request: MethaneCheckRequest):
         raise HTTPException(status_code=500, detail="Methane check failed") from e
 
 
-
 @router.post(
     "/ventilation-check", dependencies=[Depends(require_permission(Permission.ELEMENT_READ))]
 )
@@ -162,7 +161,6 @@ async def ventilation_check(request: VentilationCheckRequest):
         raise HTTPException(status_code=500, detail="Ventilation check failed") from e
 
 
-
 @router.post("/co-check", dependencies=[Depends(require_permission(Permission.ELEMENT_READ))])
 async def co_check(request: CoCheckRequest):
     """Classify CO concentration per MSHA 30 CFR §75.351."""
@@ -196,7 +194,6 @@ async def co_check(request: CoCheckRequest):
         raise HTTPException(status_code=500, detail="CO check failed") from None
         raise HTTPException(status_code=503, detail=f"Mining module not available: {e}") from e
         raise HTTPException(status_code=500, detail="CO check failed") from e
-
 
 
 @router.post(
@@ -238,7 +235,6 @@ async def conveyor_suppression(request: ConveyorSuppressionRequest):
         raise HTTPException(status_code=500, detail="Conveyor suppression design failed") from None
         raise HTTPException(status_code=503, detail=f"Mining module not available: {e}") from e
         raise HTTPException(status_code=500, detail="Conveyor suppression design failed") from e
-
 
 
 @router.post(
@@ -288,4 +284,3 @@ async def compliance_report(request: ComplianceReportRequest):
         raise HTTPException(status_code=500, detail="Compliance report generation failed") from None
         raise HTTPException(status_code=503, detail=f"Mining module not available: {e}") from e
         raise HTTPException(status_code=500, detail="Compliance report generation failed") from e
-

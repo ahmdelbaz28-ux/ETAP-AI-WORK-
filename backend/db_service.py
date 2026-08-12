@@ -185,7 +185,11 @@ class DatabaseService:
         _service_lock → _data_model._lock (never reversed).
         """
         with self._data_model._lock:
-            conn = self._data_model._conn if self._data_model._conn is not None else self._data_model._get_conn()
+            conn = (
+                self._data_model._conn
+                if self._data_model._conn is not None
+                else self._data_model._get_conn()
+            )
             cursor = conn.cursor()
             cursor.execute(sql, params)
             if commit:
@@ -798,11 +802,21 @@ class DatabaseService:
         geom_response = None
         if element.geometry:
             points_list = []
-            for p in (element.geometry.points or []):
+            for p in element.geometry.points or []:
                 if isinstance(p, dict):
-                    points_list.append(Point3DResponse(x=float(p.get("x", 0)), y=float(p.get("y", 0)), z=float(p.get("z", 0))))
+                    points_list.append(
+                        Point3DResponse(
+                            x=float(p.get("x", 0)), y=float(p.get("y", 0)), z=float(p.get("z", 0))
+                        )
+                    )
                 elif hasattr(p, "x"):
-                    points_list.append(Point3DResponse(x=float(getattr(p, "x", 0)), y=float(getattr(p, "y", 0)), z=float(getattr(p, "z", 0))))
+                    points_list.append(
+                        Point3DResponse(
+                            x=float(getattr(p, "x", 0)),
+                            y=float(getattr(p, "y", 0)),
+                            z=float(getattr(p, "z", 0)),
+                        )
+                    )
             geom_response = GeometryResponse(
                 points=points_list,
                 polyline_closed=bool(element.geometry.polyline_closed),
@@ -824,7 +838,9 @@ class DatabaseService:
             else (str(element.created_timestamp) if element.created_timestamp else None),
             last_modified_timestamp=element.last_modified_timestamp.isoformat()
             if hasattr(element.last_modified_timestamp, "isoformat")
-            else (str(element.last_modified_timestamp) if element.last_modified_timestamp else None),
+            else (
+                str(element.last_modified_timestamp) if element.last_modified_timestamp else None
+            ),
             last_modified_by=element.last_modified_by,
             source_file=element.source_file,
             version=element.version,
@@ -842,9 +858,17 @@ class DatabaseService:
             etype = element.properties.element_type
             return etype.value if hasattr(etype, "value") else str(etype or "")
         if sort_key == "created_timestamp" and element.created_timestamp:
-            return element.created_timestamp.isoformat() if hasattr(element.created_timestamp, "isoformat") else str(element.created_timestamp)
+            return (
+                element.created_timestamp.isoformat()
+                if hasattr(element.created_timestamp, "isoformat")
+                else str(element.created_timestamp)
+            )
         if sort_key == "last_modified_timestamp" and element.last_modified_timestamp:
-            return element.last_modified_timestamp.isoformat() if hasattr(element.last_modified_timestamp, "isoformat") else str(element.last_modified_timestamp)
+            return (
+                element.last_modified_timestamp.isoformat()
+                if hasattr(element.last_modified_timestamp, "isoformat")
+                else str(element.last_modified_timestamp)
+            )
         if sort_key == "version":
             return element.version or 0
         return ""
@@ -974,7 +998,6 @@ class DatabaseService:
                 logger.exception("Error persisting connection: %s", e)
                 raise RuntimeError(f"Failed to persist connection: {e}") from None
                 raise RuntimeError(f"Failed to persist connection: {e}") from e
-
 
             # V191 FIX: The V188 code put both update_element calls in ONE
             # try/except block. If the first raised, the second was SKIPPED —
@@ -1422,8 +1445,12 @@ class DatabaseService:
                 timestamp=str(ts) if ts else None,
                 source_a=str(sa) if sa else None,
                 source_b=str(sb) if sb else None,
-                change_a=json.loads(ca) if ca and isinstance(ca, str) and ca.startswith("{") else {},
-                change_b=json.loads(cb) if cb and isinstance(cb, str) and cb.startswith("{") else {},
+                change_a=json.loads(ca)
+                if ca and isinstance(ca, str) and ca.startswith("{")
+                else {},
+                change_b=json.loads(cb)
+                if cb and isinstance(cb, str) and cb.startswith("{")
+                else {},
                 resolution={"strategy": strategy},
                 resolved=True,
             )

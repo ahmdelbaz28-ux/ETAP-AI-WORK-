@@ -15,8 +15,17 @@ License: http://github.com/gtalarico/revitapidocs/blob/master/LICENSE.md
 from Autodesk.Revit.DB import BuiltInCategory, FilteredElementCollector
 
 doc = __revit__.ActiveUIDocument.Document  # noqa: F821
+
+
 def all_elements_of_category(category):
-	return FilteredElementCollector(doc).OfCategory(category).WhereElementIsNotElementType().ToElements()  # noqa: W191
+    return (
+        FilteredElementCollector(doc)
+        .OfCategory(category)
+        .WhereElementIsNotElementType()
+        .ToElements()
+    )  # noqa: W191
+
+
 # pyRevit runtime global — injected by the pyRevit loader at runtime.
 # Fallback to None for static analysis / direct execution outside pyRevit.
 try:

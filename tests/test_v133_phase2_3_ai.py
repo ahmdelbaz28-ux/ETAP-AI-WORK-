@@ -114,10 +114,10 @@ class TestLangWatchIntegration:
             NFPA72_MAX_HEAT_SPACING_M,
             NFPA72_MAX_SMOKE_SPACING_M,
         )
-        assert pytest.approx(9.1) == NFPA72_MAX_SMOKE_SPACING_M  # 30 ft
-        assert pytest.approx(6.1) == NFPA72_MAX_HEAT_SPACING_M   # 20 ft
-        assert pytest.approx(6.1) == NFPA72_MAX_HEAT_SPACING_M  # 20 ft
 
+        assert pytest.approx(9.1) == NFPA72_MAX_SMOKE_SPACING_M  # 30 ft
+        assert pytest.approx(6.1) == NFPA72_MAX_HEAT_SPACING_M  # 20 ft
+        assert pytest.approx(6.1) == NFPA72_MAX_HEAT_SPACING_M  # 20 ft
 
 
 # ---------------------------------------------------------------------------
