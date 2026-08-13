@@ -59,37 +59,36 @@ from langgraph.graph import END, StateGraph
 
 logger = logging.getLogger(__name__)
 
-try:
-    from fireai.infrastructure.stuck_detector import (  # noqa: F401
-        EscalationLevel,
-        NodeTimeoutConfig,
-        StuckDetector,
-        get_stuck_detector,
-        reset_stuck_detector,
-        with_stuck_detection,
-    )
+# ── Phase 3 cleanup: fireai package deleted ─────────────────────────────────
+# The previous module-level try/except imports of
+#   fireai.infrastructure.stuck_detector
+#   fireai.infrastructure.langfuse_setup
+# were removed because the fireai package was deleted (BAZSPARK contamination
+# cleanup). The graceful-degradation fallbacks (no-op decorator, *_AVAILABLE
+# flags set to False) are preserved so the workflow service still imports
+# cleanly. Call sites that gate on STUCK_DETECTION_AVAILABLE /
+# LANGFUSE_AVAILABLE already short-circuit when those flags are False.
+#
+# TODO(phase-3-migration): restore stuck detection via the new module path:
+#   from <new_module>.stuck_detector import (
+#       StuckDetector, get_stuck_detector, reset_stuck_detector,
+#       with_stuck_detection, NodeTimeoutConfig, EscalationLevel,
+#   )
+# TODO(phase-3-migration): restore Langfuse observability via the new path:
+#   from <new_module>.langfuse_setup import (
+#       flush_langfuse, get_langfuse_callback_handler,
+#       langfuse_health_check, log_workflow_scores,
+#   )
+STUCK_DETECTION_AVAILABLE = False
 
-    STUCK_DETECTION_AVAILABLE = True
-except ImportError:
-    STUCK_DETECTION_AVAILABLE = False
 
-    # Fallback: no-op decorator
-    def with_stuck_detection(func):
-        return func
+def with_stuck_detection(func):
+    """No-op decorator — stuck detection unavailable (fireai deleted)."""
+    return func
 
 
-try:
-    from fireai.infrastructure.langfuse_setup import (
-        flush_langfuse,
-        get_langfuse_callback_handler,
-        langfuse_health_check,  # noqa: F401
-        log_workflow_scores,
-    )
-
-    LANGFUSE_AVAILABLE = True
-except ImportError:
-    LANGFUSE_AVAILABLE = False
-    logger.info("Langfuse integration not available — observability layer DISABLED")
+LANGFUSE_AVAILABLE = False
+logger.info("Langfuse integration not available — observability layer DISABLED")
 
 
 # ── Workflow State Definition ────────────────────────────────────────────────
@@ -571,45 +570,19 @@ def node_memory_enrich(state: PipelineState) -> PipelineState:
     }
     enrichment_time_ms = 0.0
 
-    try:
-        from fireai.infrastructure.mem0_workflow_bridge import (
-            enrich_with_memory_context,
-        )
-
-        # V75: Now passes env_context for regional standards search
-        result = enrich_with_memory_context(
-            rooms=rooms,
-            workflow_id=workflow_id,
-            engineer_id=state.get("engineer_id", "engineer_default"),
-            env_context=env_context,
-        )
-
-        memory_context = {
-            "hints": [h.to_dict() for h in result.hints],
-            "source": "memory",
-            "enrichment_performed": True,
-            "total_memories_searched": result.total_memories_searched,
-            "hint_count": result.hint_count if hasattr(result, "hint_count") else len(result.hints),
-            "error": None,
-        }
-        enrichment_time_ms = result.enrichment_time_ms
-
-        logger.info(
-            f"Memory enrichment: {len(result.hints)} hints, "  # noqa: G004
-            f"{result.total_memories_searched} memories searched, "
-            f"{enrichment_time_ms:.1f}ms, "
-            f"env_context_passed={bool(env_context)}"
-        )
-
-    except ImportError:
-        logger.warning("mem0_workflow_bridge not available — proceeding without memory context")
-        memory_context["error"] = "bridge_not_available"
-    except Exception as e:
-        logger.warning(
-            f"Memory enrichment failed: {type(e).__name__}: {e}. "  # noqa: G004
-            "Proceeding without memory context (fail-safe)."
-        )
-        memory_context["error"] = str(e)
+    # Phase 3 cleanup: the ``fireai.infrastructure.mem0_workflow_bridge``
+    # import was removed because the fireai package was deleted (BAZSPARK
+    # contamination cleanup). The previous implementation already gracefully
+    # degraded to ``memory_context["error"] = "bridge_not_available"`` on
+    # ImportError — that same fail-safe behaviour is preserved here.
+    #
+    # TODO(phase-3-migration): restore memory enrichment via the new path:
+    #   from <new_module>.mem0_workflow_bridge import enrich_with_memory_context
+    logger.warning(
+        "mem0_workflow_bridge not available — proceeding without memory context "
+        "(fireai.infrastructure.mem0_workflow_bridge was removed during BAZSPARK cleanup)"
+    )
+    memory_context["error"] = "bridge_not_available"
 
     state = {
         **state,
@@ -1281,48 +1254,29 @@ def node_generate_report(state: PipelineState) -> PipelineState:
 
     # V73: Store analysis results in Mem0 for future reference
     # FAIL-SAFE: Storage failure NEVER blocks report generation
+    # Phase 3 cleanup: fireai.infrastructure.mem0_workflow_bridge was removed
+    # (BAZSPARK cleanup). The default ``memory_storage_result`` (skipped=True)
+    # is preserved — same behaviour as the previous ImportError branch.
+    #
+    # TODO(phase-3-migration): restore via the new module path:
+    #   from <new_module>.mem0_workflow_bridge import store_analysis_result
     memory_storage_result = {"stored": 0, "failed": 0, "skipped": True}
-    try:
-        from fireai.infrastructure.mem0_workflow_bridge import store_analysis_result
-
-        memory_storage_result = store_analysis_result(
-            workflow_id=workflow_id,
-            rooms=rooms,
-            nfpa_results=nfpa_results,
-            engineer_id=state.get("engineer_id", "engineer_default"),
-            env_context=env_ctx,
-        )
-        logger.info(
-            f"Memory storage: {memory_storage_result.get('stored', 0)} stored, "  # noqa: G004
-            f"{memory_storage_result.get('failed', 0)} failed"
-        )
-    except ImportError:
-        logger.warning("mem0_workflow_bridge not available — skipping result storage")
-    except Exception as e:
-        logger.warning(
-            f"Memory storage failed: {type(e).__name__}: {e}. "  # noqa: G004
-            "Report generated successfully without memory storage."
-        )
+    logger.warning(
+        "mem0_workflow_bridge not available — skipping result storage "
+        "(fireai.infrastructure.mem0_workflow_bridge was removed during BAZSPARK cleanup)"
+    )
 
     # V78: Store procedural trace in Mem0 (Pattern 6: Procedural Memory)
     # Records the execution path of the workflow for future reference.
     # FAIL-SAFE: Storage failure NEVER blocks report generation.
-    try:
-        from fireai.infrastructure.mem0_workflow_bridge import store_procedural_trace
-
-        procedural_result = store_procedural_trace(
-            workflow_id=workflow_id,
-            transition_log=state.get("transition_log", []),
-            engineer_id=state.get("engineer_id", "engineer_default"),
-        )
-        logger.info(
-            f"Procedural trace: {procedural_result.get('stored', 0)} steps stored"  # noqa: G004
-        )
-        logger.info(f"Procedural trace: {procedural_result.get('stored', 0)} steps stored")
-    except ImportError:
-        logger.warning("store_procedural_trace not available — skipping")
-    except Exception as e:
-        logger.warning("Procedural trace storage failed: %s", e)
+    # Phase 3 cleanup: same as above — fireai deleted, skipping gracefully.
+    #
+    # TODO(phase-3-migration): restore via the new module path:
+    #   from <new_module>.mem0_workflow_bridge import store_procedural_trace
+    logger.warning(
+        "store_procedural_trace not available — skipping "
+        "(fireai.infrastructure.mem0_workflow_bridge was removed during BAZSPARK cleanup)"
+    )
 
     updates = {
         "report": report,
@@ -1396,9 +1350,9 @@ def should_proceed_after_review(state: PipelineState) -> str:
 # ── Workflow Graph Builder ───────────────────────────────────────────────────
 
 
-def build_fireai_workflow() -> StateGraph:
+def build_etap_workflow() -> StateGraph:
     """
-    Build the FireAI analysis workflow as a LangGraph StateGraph.
+    Build the ETAP analysis workflow as a LangGraph StateGraph.
 
     Graph topology (V73 with Mem0 integration):
         START → initialize → parse → validate → memory_enrich
@@ -1496,6 +1450,11 @@ def build_fireai_workflow() -> StateGraph:
     return workflow
 
 
+# Phase 3 cleanup: backward-compat alias — Phase 3 Batch 3 will rename the
+# call sites in tests/test_workflow_service*.py to use build_etap_workflow.
+build_fireai_workflow = build_etap_workflow
+
+
 # ── Workflow Service ─────────────────────────────────────────────────────────
 
 
@@ -1534,7 +1493,7 @@ class WorkflowService:
         os.makedirs(checkpoint_dir, exist_ok=True)
         self._checkpoint_db_path = os.path.join(checkpoint_dir, "workflow_checkpoints.db")
         self._checkpointer = None  # Lazy-init in async context
-        self._graph = build_fireai_workflow()
+        self._graph = build_etap_workflow()
         # V88 FIX: Compile graph synchronously (without checkpointer) so that
         # _graph_compiled is not None after __init__. This fixes the test
         # contract that expects service._graph_compiled to be set immediately.

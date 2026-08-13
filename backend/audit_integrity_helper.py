@@ -116,39 +116,26 @@ def record_audit_write(
         Audit event hash (for chain verification), or None if recording failed.
 
     """
-    try:
-        from fireai.core.audit_store import AuditStore
-
-        correlation_id = get_correlation_id()
-
-        audit_details = {
-            "operation": operation,
-            "table": table,
-            "record_id": record_id or "UNKNOWN",
-            "correlation_id": correlation_id or "NOT_IN_REQUEST_CONTEXT",
-            "success": success,
-            "error": error,
-            "nfpa_reference": "NFPA 72-2022 §7.5 (Audit Trail)",
-            "source": "audit_integrity_helper",
-        }
-        if details:
-            audit_details["details"] = details
-
-        return AuditStore.add_event(
-            event_type=f"DB_WRITE_{operation.upper()}",
-            room_id=str(record_id or "DB_OPERATION"),
-            details_dict=audit_details,
-        )
-
-    except Exception as exc:
-        # Per fail-safe principle: audit failure MUST NOT block the operation
-        logger.exception(
-            "Failed to record audit write for %s on %s: %s",
-            operation,
-            table,
-            exc,
-        )
-        return None
+    # Phase 3 cleanup: the ``fireai.core.audit_store.AuditStore`` import was
+    # removed because the fireai package was deleted (BAZSPARK contamination
+    # cleanup). The previous implementation already returned ``None`` on any
+    # exception (including ImportError), so the fail-safe behaviour is
+    # preserved: audit recording is a no-op until the audit store is migrated
+    # to a new module path.
+    #
+    # TODO(phase-3-migration): restore signed audit entries via:
+    #   from <new_module>.audit_store import AuditStore
+    #   return AuditStore.add_event(
+    #       event_type=f"DB_WRITE_{operation.upper()}",
+    #       room_id=str(record_id or "DB_OPERATION"),
+    #       details_dict=audit_details,
+    #   )
+    logger.debug(
+        "audit_integrity_helper.record_audit_write(%s) skipped — fireai.core."
+        "audit_store was removed during BAZSPARK cleanup; returning None",
+        operation,
+    )
+    return None
 
 
 # ---------------------------------------------------------------------------

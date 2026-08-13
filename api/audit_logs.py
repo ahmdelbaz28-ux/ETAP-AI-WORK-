@@ -589,14 +589,18 @@ async def list_audit_logs(
     Results are sorted by timestamp descending (newest first).
     """
     source_logs = _SAMPLE_AUDIT_LOGS
-    try:
-        from fireai.core.audit_store import AuditStore
-
-        real_events = AuditStore.get_events()
-        if real_events:
-            source_logs = real_events
-    except Exception:
-        pass
+    # Phase 3 cleanup: the ``fireai.core.audit_store.AuditStore`` import was
+    # removed because the fireai package was deleted. Until the audit store
+    # is migrated to a new module path, the API serves the bundled sample
+    # audit logs (the previous ``except Exception: pass`` branch already did
+    # this whenever fireai was unavailable — same graceful-degradation
+    # behaviour is preserved here).
+    #
+    # TODO(phase-3-migration): restore real audit events via:
+    #   from <new_module>.audit_store import AuditStore
+    #   real_events = AuditStore.get_events()
+    #   if real_events:
+    #       source_logs = real_events
 
     filtered = _apply_filters(
         source_logs,
@@ -695,14 +699,8 @@ async def get_audit_log_stats() -> AuditLogStats:
         - **recent_trends**: Daily entry counts for the last 7 days.
     """
     source_logs = _SAMPLE_AUDIT_LOGS
-    try:
-        from fireai.core.audit_store import AuditStore
-
-        real_events = AuditStore.get_events()
-        if real_events:
-            source_logs = real_events
-    except Exception:
-        pass
+    # Phase 3 cleanup: see get_audit_logs() above — same fireai.audit_store
+    # removal. Sample logs are used until the audit store is migrated.
 
     # Count by severity
     severity_counts: dict[str, int] = {}

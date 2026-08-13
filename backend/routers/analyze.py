@@ -25,23 +25,42 @@ from pydantic import BaseModel, Field
 
 from backend.auth import require_permission
 from backend.rbac import Permission
-from fireai.core.pipeline import analyze_room
-from fireai.core.qomn_kernel import (
-    PhysicsGuardError,
-    QOMNKernel,
-)
+
+# ── Phase 3 cleanup: fireai package deleted ─────────────────────────────────
+# The top-level `from fireai.core.pipeline import analyze_room` and
+# `from fireai.core.qomn_kernel import PhysicsGuardError, QOMNKernel` were
+# removed because the `fireai` package was deleted from the codebase
+# (BAZSPARK contamination cleanup). Importing it at module top-level broke
+# `import backend.routers.analyze`, which caused `backend.app` to silently
+# skip the analyze router (logged as a WARNING at startup).
+#
+# The imports are now performed lazily inside each endpoint so the router
+# still mounts at app startup. Each endpoint returns HTTP 503 if the
+# (deleted) dependency is unavailable, mirroring the degradation strategy
+# used in backend/routers/qomn.py. When the fireai.* symbols are restored
+# under their new module paths (e.g. qomn_conduit / load_flow), update the
+# lazy import statements below to use the new path.
 
 logger = logging.getLogger(__name__)
 
 
-# ----------------------------------------------------------------------------
-# Safe error helper for PhysicsGuardError
-# ----------------------------------------------------------------------------
-# STRESS-TEST FIX #7: PhysicsGuardError messages interpolate user-supplied
-# values via {value!r}. While Pydantic should reject non-numeric inputs
-# before they reach the kernel, defense-in-depth requires that we never
-# trust str(exc) in an HTTP response. We extract the structured fields
-# (field, reason, code_ref) and return them as a JSON object instead.
+def _fireai_unavailable_503(missing_module: str) -> HTTPException:
+    """Build a 503 response describing the missing optional dependency."""
+    return HTTPException(
+        status_code=503,
+        detail={
+            "error": "ANALYZE_SERVICE_UNAVAILABLE",
+            "detail": (
+                "The analyze endpoint requires an optional dependency that was "
+                "removed during the fireai/BAZSPARK cleanup. It is being migrated "
+                "to a new module path."
+            ),
+            "missing_module": missing_module,
+            "action": "Check server logs for migration status.",
+        },
+    )
+
+
 def _physics_guard_detail(exc: Exception) -> dict:
     """Build a safe JSON-serializable detail dict from a PhysicsGuardError."""
     if hasattr(exc, "field") and hasattr(exc, "reason") and hasattr(exc, "code_ref"):
@@ -136,6 +155,10 @@ async def analyze_battery(req: BatteryRequest) -> dict[str, Any]:
 
     """
     try:
+        from fireai.core.qomn_kernel import PhysicsGuardError, QOMNKernel
+    except ImportError:
+        raise _fireai_unavailable_503("fireai.core.qomn_kernel") from None
+    try:
         kernel = QOMNKernel()
         result = kernel.battery_capacity(
             standby_load_a=req.standby_load_a,
@@ -171,6 +194,10 @@ async def analyze_voltage(req: VoltageRequest) -> dict[str, Any]:
         Dict with voltage_drop_v, actual_value, percentage_drop, compliant.
 
     """
+    try:
+        from fireai.core.qomn_kernel import PhysicsGuardError, QOMNKernel
+    except ImportError:
+        raise _fireai_unavailable_503("fireai.core.qomn_kernel") from None
     try:
         kernel = QOMNKernel()
         result = kernel.voltage_drop(
@@ -211,6 +238,11 @@ async def analyze_project_room(project_id: str, req: RoomAnalyzeRequest) -> dict
             "room_id %r does not match project_id %r", req.room_id, project_id
         )  # NOSONAR
 
+    try:
+        from fireai.core.pipeline import analyze_room
+        from fireai.core.qomn_kernel import PhysicsGuardError
+    except ImportError:
+        raise _fireai_unavailable_503("fireai.core.pipeline") from None
     try:
         result = analyze_room(
             {

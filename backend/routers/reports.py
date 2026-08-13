@@ -72,19 +72,20 @@ def _generate_voltage_drop_report(devices: list, connections: list, now: str) ->
     computed_count = 0
     skipped_count = 0
 
-    # Lazy import so the reports module still loads if qomn_kernel has a
-    # heavy dependency that is unavailable in some environments.
-    try:
-        from fireai.core.qomn_kernel import compute_voltage_drop
-
-        _qomn_available = True
-    except ImportError as ie:
-        logger.warning(
-            "fireai.core.qomn_kernel not available (%s) — voltage drop "
-            "will be listed without real NEC Table 8 calculations.",
-            ie,
-        )
-        _qomn_available = False
+    # Phase 3 cleanup: fireai.core.qomn_kernel was removed (BAZSPARK cleanup).
+    # The previous try/except ImportError gracefully degraded to listing
+    # circuits without NEC Table 8 calculations — same behaviour is preserved
+    # here. Until the qomn_kernel is migrated to a new module path, voltage
+    # drop is not computed.
+    #
+    # TODO(phase-3-migration): restore via:
+    #   from <new_module>.qomn_kernel import compute_voltage_drop
+    #   _qomn_available = True
+    _qomn_available = False
+    logger.debug(
+        "fireai.core.qomn_kernel not available — voltage drop will be listed "
+        "without real NEC Table 8 calculations (BAZSPARK cleanup)."
+    )
 
     for conn in connections:
         from_dev = device_map.get(conn["fromId"])
@@ -297,23 +298,22 @@ def _generate_nfpa72_coverage_report(devices: list, now: str) -> dict:
         not in (_SMOKE_TYPES | _HEAT_TYPES | _NOTIFICATION_TYPES | _MANUAL_TYPES)
     ]
 
-    # Lazy import of NFPA 72 spacing constants from qomn_kernel
-    try:
-        from fireai.core.qomn_kernel import (
-            NFPA72_HEAT_MAX_SPACING_M,
-            NFPA72_SMOKE_MAX_SPACING_M,
-        )
-
-        _spacing_available = True
-    except ImportError as ie:
-        logger.warning(
-            "fireai.core.qomn_kernel not available (%s) — NFPA 72 spacing "
-            "verification will use default values (smoke=9.1m, heat=6.1m).",
-            ie,
-        )
-        _spacing_available = False
-        NFPA72_SMOKE_MAX_SPACING_M = 9.1
-        NFPA72_HEAT_MAX_SPACING_M = 6.1
+    # Phase 3 cleanup: fireai.core.qomn_kernel was removed (BAZSPARK cleanup).
+    # NFPA 72 spacing verification now uses default values (smoke=9.1m,
+    # heat=6.1m) until the qomn_kernel is migrated to a new module path.
+    #
+    # TODO(phase-3-migration): restore via:
+    #   from <new_module>.qomn_kernel import (
+    #       NFPA72_HEAT_MAX_SPACING_M, NFPA72_SMOKE_MAX_SPACING_M,
+    #   )
+    #   _spacing_available = True
+    _spacing_available = False
+    NFPA72_SMOKE_MAX_SPACING_M = 9.1
+    NFPA72_HEAT_MAX_SPACING_M = 6.1
+    logger.debug(
+        "fireai.core.qomn_kernel not available — NFPA 72 spacing verification "
+        "will use default values (smoke=9.1m, heat=6.1m) (BAZSPARK cleanup)."
+    )
 
     # NFPA 72 §17.7.4.2.3.1: Coverage radius R = 0.7 × S
     _COVERAGE_RADIUS_FACTOR = 0.7
@@ -531,21 +531,19 @@ def _generate_cable_sizing_report(connections: list, devices: list, now: str) ->
     # Build device lookup to resolve load currents
     device_map = {d["id"]: d for d in devices}
 
-    # Lazy import of NEC ampacity table from qomn_kernel
-    try:
-        from fireai.core.qomn_kernel import NEC_AMPACITY_60C
-
-        _nec_available = True
-    except ImportError as ie:
-        import logging
-
-        logging.getLogger(__name__).warning(
-            "fireai.core.qomn_kernel not available (%s) — cable sizing "
-            "will be listed without NEC ampacity verification.",
-            ie,
-        )
-        _nec_available = False
-        NEC_AMPACITY_60C = {}
+    # Phase 3 cleanup: fireai.core.qomn_kernel was removed (BAZSPARK cleanup).
+    # Cable sizing report now lists connections without NEC ampacity
+    # verification until the qomn_kernel is migrated to a new module path.
+    #
+    # TODO(phase-3-migration): restore via:
+    #   from <new_module>.qomn_kernel import NEC_AMPACITY_60C
+    #   _nec_available = True
+    _nec_available = False
+    NEC_AMPACITY_60C = {}
+    logger.debug(
+        "fireai.core.qomn_kernel not available — cable sizing will be listed "
+        "without NEC ampacity verification (BAZSPARK cleanup)."
+    )
 
     # NEC §210.19(A): Continuous loads (3+ hours) require 125% ampacity.
     # Fire alarm circuits are considered continuous per NFPA 72 §27.4.
@@ -1146,153 +1144,45 @@ async def generate_ahj_submittal(project_id: str, request: AhjSubmittalRequest):
     project = db.get_project(project_id)
     devices = db.get_all_devices_for_project(project_id)
 
-    try:
-        from fireai.core.compliance_proof_document import ComplianceProofDocument
-        from fireai.core.spatial_engine.density_optimizer import (
-            DensityOptimizer,
-            DetectorLayout,
-            Room,
-        )
-    except ImportError as ie:
-        logger.exception("AHJ document dependencies not available: %s", ie)
-        raise HTTPException(  # NOSONAR — S8415: assignment kept for readability  # noqa: B904
-            status_code=503,
-            detail={
-                "success": False,
-                "error": f"AHJ submittal dependencies not available: {ie}",
-                "install": "pip install shapely (required by spatial_engine)",
-            },
-        )
-
-    # Build the document
-    doc = ComplianceProofDocument(
-        project_name=project.get("name", project_id),
-        designer=request.designer or "TBD",
-        nfpa_edition=request.nfpa_edition,
-        jurisdiction=request.jurisdiction or "TBD",
-    )
-
-    optimizer = DensityOptimizer()
-
-    # Determine rooms: either from the request body, or derive a single
-    # room from the device bounding box.
-    if request.rooms:
-        rooms = [
-            (
-                Room(name=r.name, width=r.width, length=r.length, ceiling_height=r.ceiling_height),
-                r.detector_type,
-            )
-            for r in request.rooms
-        ]
-    elif devices:
-        # Derive bounding box from device coordinates
-        xs = [float(d.get("x", 0) or 0) for d in devices]
-        ys = [float(d.get("y", 0) or 0) for d in devices]
-        if xs and ys:
-            width = max(max(xs) - min(xs), 1.0)
-            length = max(max(ys) - min(ys), 1.0)
-            rooms = [(Room(name="Project Bounding Box", width=width, length=length), "smoke")]
-        else:
-            rooms = []
-    else:
-        rooms = []
-
-    if not rooms:
-        raise HTTPException(  # NOSONAR — S8415: assignment kept for readability
-            status_code=400,
-            detail=(
-                "No rooms provided and no devices found in project. "
-                "Either add devices to the project or pass rooms in the "
-                "request body."
+    # Phase 3 cleanup: fireai.core.compliance_proof_document and
+    # fireai.core.spatial_engine.density_optimizer were removed (BAZSPARK
+    # cleanup). Until the AHJ-document generator and density optimizer are
+    # migrated to new module paths, this endpoint returns HTTP 503 — same
+    # graceful-degradation behaviour as the previous try/except ImportError
+    # branch.
+    #
+    # TODO(phase-3-migration): restore via:
+    #   from <new_module>.compliance_proof_document import ComplianceProofDocument
+    #   from <new_module>.density_optimizer import DensityOptimizer, DetectorLayout, Room
+    raise HTTPException(  # NOSONAR — S8415: assignment kept for readability  # noqa: B904
+        status_code=503,
+        detail={
+            "success": False,
+            "error": (
+                "AHJ submittal dependencies not available: "
+                "fireai.core.compliance_proof_document and "
+                "fireai.core.spatial_engine.density_optimizer were removed "
+                "during the BAZSPARK cleanup and are being migrated to new "
+                "module paths."
             ),
-        )
-
-    # For each room, run the density optimizer to compute detector coverage
-    # and add the result to the AHJ document.
-    for room, detector_type in rooms:
-        try:
-            layout: DetectorLayout = optimizer.optimize(
-                room=room,
-                detector_type=detector_type,
-            )
-            # V214 FIX: Run consensus engine with REAL verification.
-            # Previously ConsensusEngine() was called without the required
-            # coverage_radius argument → TypeError → caught → consensus=None.
-            # The AHJ document claimed "Triple Verification System" but the
-            # consensus column always showed "N/A". Now we pass the correct
-            # coverage_radius from the layout and call verify() with the
-            # room dimensions + detector positions.
-            consensus = None
-            try:
-                from fireai.core.spatial_engine.consensus_engine import ConsensusEngine
-
-                consensus_engine = ConsensusEngine(
-                    coverage_radius=layout.coverage_radius,
-                )
-                # Extract detector (x, y) positions from the layout
-                detector_positions = [(float(d[0]), float(d[1])) for d in layout.detectors]
-                consensus = consensus_engine.verify(
-                    width=room.width,
-                    length=room.length,
-                    detectors=detector_positions,
-                    grid_proof_valid=layout.proof_valid,
-                    grid_coverage_pct=layout.coverage_pct,
-                )
-                logger.info(
-                    "AHJ consensus for room '%s': confidence=%s, verdict=%s",
-                    room.name,
-                    getattr(consensus, "confidence", "N/A"),
-                    getattr(consensus, "verdict", "N/A"),
-                )
-            except ImportError:
-                logger.warning(
-                    "ConsensusEngine not available — consensus will be None for room '%s'.",
-                    room.name,
-                )
-            except Exception as cons_err:
-                logger.warning(
-                    "Consensus verification failed for room '%s': %s",
-                    room.name,
-                    cons_err,
-                )
-
-            doc.add_room_result(room, layout, consensus)
-        except Exception as room_err:
-            logger.warning(
-                "AHJ submittal: room '%s' optimization failed: %s",
-                room.name,
-                room_err,
-            )
-            # Add a stub record so the room appears in the document with an error note
-            stub_layout = DetectorLayout(
-                room=room,
-                detectors=[],
-                coverage_pct=0.0,
-                proof_valid=False,
-                nfpa_valid=False,
-                method="optimization_failed",
-                violations=[f"Optimization error: {room_err}"],
-            )
-            doc.add_room_result(room, stub_layout, None, notes=[str(room_err)])
-
-    try:
-        markdown_content = doc.generate()
-    except Exception as gen_err:
-        logger.exception("AHJ document generation failed: %s", gen_err)
-        raise HTTPException(  # NOSONAR — S8415: assignment kept for readability
-            status_code=500,
-            detail="AHJ document generation failed — see server logs.",
-        ) from None
-
-    # Return as markdown file download
-    safe_name = _safe_filename(project.get("name", project_id))
-    return StreamingResponse(
-        io.BytesIO(markdown_content.encode("utf-8")),
-        media_type="text/markdown",
-        headers={
-            "Content-Disposition": f'attachment; filename="{safe_name}_AHJ_submittal.md"',
-            "X-Project-Id": project_id,
-            "X-Rooms-Count": str(len(rooms)),
-            "X-Devices-Count": str(len(devices)),
+            "install": "Wait for the AHJ-document migration to complete.",
         },
-    )
+    ) from None
+
+    # ── Dead code preserved for Phase 3 migration reference ───────────────
+    # The block below was the original implementation that used
+    # ComplianceProofDocument, DensityOptimizer, DetectorLayout, Room, and
+    # ConsensusEngine. It is unreachable now that the endpoint returns 503
+    # above. Kept as a reference for the migration; remove once the
+    # dependencies are restored under their new module paths.
+    #
+    # Build the document
+    # doc = ComplianceProofDocument(
+    #     project_name=project.get("name", project_id),
+    #     designer=request.designer or "TBD",
+    #     nfpa_edition=request.nfpa_edition,
+    #     jurisdiction=request.jurisdiction or "TBD",
+    # )
+    # optimizer = DensityOptimizer()
+    # ... (room enumeration + consensus verification + markdown export) ...
+

@@ -105,26 +105,15 @@ _kernel_lock = threading.Lock()
 # propagated as an unhandled HTTP 500 with no useful information.
 # In a fire protection system, masking a real computation error is a
 # SAFETY HAZARD per agent.md Anti-Deception Directive.
+#
+# Phase 3 cleanup: the fireai package was deleted (BAZSPARK contamination
+# cleanup). The cached exception classes remain ``None`` and ``_handle_error``
+# falls through to generic error handling (safe degradation). When the
+# qomn_kernel is restored under a new module path, re-introduce the imports
+# here.
 _PhysicsGuardError = None
 _ComputationError = None
 _ValidationError = None
-
-try:
-    from fireai.core.qomn_kernel import ComputationError as _CE  # noqa: N814
-    from fireai.core.qomn_kernel import PhysicsGuardError as _PGE  # noqa: N814
-    from fireai.core.qomn_kernel import ValidationError as _VE  # noqa: N814
-    from fireai.core.qomn_kernel import ComputationError as _CE
-    from fireai.core.qomn_kernel import PhysicsGuardError as _PGE
-    from fireai.core.qomn_kernel import ValidationError as _VE
-
-    _PhysicsGuardError = _PGE
-    _ComputationError = _CE
-    _ValidationError = _VE
-except ImportError:
-    # Kernel not available — _get_kernel() will return 503 before any
-    # computation runs. These remain None and _handle_error falls through
-    # to generic error handling (safe degradation).
-    pass
 
 
 def _get_kernel():
@@ -141,37 +130,40 @@ def _get_kernel():
     a missing dependency, while 500 (Internal Server Error) could be
     misinterpreted as a computation error — which would be deceptive per
     agent.md Anti-Deception Directive.
+
+    Phase 3 cleanup: fireai.core.qomn_kernel was removed (BAZSPARK cleanup).
+    All /api/qomn endpoints that depend on the kernel return 503 until the
+    QOMN kernel is migrated to a new module path.
     """
     global _kernel
     if _kernel is None:
         with _kernel_lock:
             if _kernel is None:  # double-checked locking
-                try:
-                    from fireai.core.qomn_kernel import QOMNKernel
-
-                    _kernel = QOMNKernel()
-                except ImportError as e:
-                    logger.exception(
-                        "QOMNKernel import failed: %s. "
-                        "All /api/qomn endpoints will return 503. "
-                        "Ensure fireai.core.qomn_kernel is available in the Python path.",
-                        e,
-                    )
-                    raise HTTPException(  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
-                        status_code=503,  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
-                        detail={
-                            "error": "QOMN_SERVICE_UNAVAILABLE",
-                            "detail": (
-                                "The QOMN-FIRE engineering kernel is not available. "
-                                "The fireai.core.qomn_kernel module could not be imported."
-                            ),
-                            "missing_module": "fireai.core.qomn_kernel",  # NOSONAR — S1192: duplicated literal acceptable in this localized context
-                            "action": (
-                                "Install the fireai package with the QOMN kernel. "
-                                "Check server logs for detailed import error."
-                            ),
-                        },
-                    )
+                # TODO(phase-3-migration): restore the QOMNKernel import via:
+                #   from <new_module>.qomn_kernel import QOMNKernel
+                #   _kernel = QOMNKernel()
+                logger.warning(
+                    "QOMNKernel import skipped: fireai.core.qomn_kernel was "
+                    "removed during BAZSPARK cleanup. All /api/qomn endpoints "
+                    "will return 503."
+                )
+                raise HTTPException(  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
+                    status_code=503,  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
+                    detail={
+                        "error": "QOMN_SERVICE_UNAVAILABLE",
+                        "detail": (
+                            "The QOMN-FIRE engineering kernel is not available. "
+                            "The fireai.core.qomn_kernel module was removed during "
+                            "the BAZSPARK cleanup and is being migrated to a new "
+                            "module path."
+                        ),
+                        "missing_module": "fireai.core.qomn_kernel",  # NOSONAR — S1192: duplicated literal acceptable in this localized context
+                        "action": (
+                            "Wait for the QOMN kernel migration to complete. "
+                            "Check server logs for migration status."
+                        ),
+                    },
+                )
     return _kernel
 
 
@@ -390,137 +382,30 @@ async def place_detectors(req: RoomRequest):
 
     Returns placed devices, coverage %, NFPA violations, and audit hash.
     """
-    try:
-        try:
-            from fireai.core.device_placement import (
-                CeilingType,
-                DetectorPlacementEngine,
-                DetectorType,
-                ExitDoor,
-                OccupancyType,
-                RoomSpec,
-            )
-        except ImportError:
-            raise HTTPException(  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
-                status_code=503,  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
-                detail={
-                    "error": "QOMN_SERVICE_UNAVAILABLE",
-                    "detail": (
-                        "The device placement engine is not available. "
-                        "The fireai.core.device_placement module could not be imported."
-                    ),
-                    "missing_module": "fireai.core.device_placement",
-                    "action": "Install the fireai package. Check server logs for details.",  # NOSONAR — S1192: duplicated literal acceptable in this localized context
-                },
-            )
-
-        # Map string enums to Python enums
-        ceiling_map = {
-            "flat": CeilingType.FLAT,
-            "sloped": CeilingType.SLOPED,
-            "peaked": CeilingType.PEAKED,
-            "beam": CeilingType.BEAM,
-            "coffered": CeilingType.COFFERED,
-            "open_joist": CeilingType.OPEN_JOIST,
-        }
-        det_map = {
-            "smoke": DetectorType.SMOKE,
-            "heat": DetectorType.HEAT,
-            "duct": DetectorType.DUCT,
-            "beam": DetectorType.BEAM,
-            "aspirating": DetectorType.ASPIRATING,
-            "multi": DetectorType.MULTI,
-        }
-        occ_map = {
-            "assembly": OccupancyType.ASSEMBLY,
-            "business": OccupancyType.BUSINESS,
-            "educational": OccupancyType.EDUCATIONAL,
-            "health_care": OccupancyType.HEALTH_CARE,
-            "residential": OccupancyType.RESIDENTIAL,
-            "mercantile": OccupancyType.MERCANTILE,
-            "industrial": OccupancyType.INDUSTRIAL,
-            "storage": OccupancyType.STORAGE,
-            "high_hazard": OccupancyType.HIGH_HAZARD,
-        }
-
-        exit_doors = [
-            ExitDoor(
-                x_m=d.get("x_m", 0.0),
-                y_m=d.get("y_m", 0.0),
-                door_width_m=d.get("door_width_m", 0.914),
-            )
-            for d in req.exit_doors
-        ]
-
-        room = RoomSpec(
-            room_id=req.room_id,
-            width_m=req.width_m,
-            length_m=req.length_m,
-            ceiling_height_m=req.ceiling_height_m,
-            ceiling_type=ceiling_map.get(req.ceiling_type, CeilingType.FLAT),
-            occupancy_type=occ_map.get(req.occupancy_type, OccupancyType.BUSINESS),
-            detector_type=det_map.get(req.detector_type, DetectorType.SMOKE),
-            is_sleeping_area=req.is_sleeping_area,
-            slope_degrees=req.slope_degrees,
-            exit_doors=exit_doors,
-        )
-
-        engine = DetectorPlacementEngine(_get_kernel())
-        result = engine.place_detectors(room)
-
-        # Serialize to dict
-        return {
-            "success": True,
-            "data": {
-                "room_id": result.room_id,
-                "detector_count": len(result.detectors),
-                "pull_station_count": len(result.pull_stations),
-                "notification_count": len(result.notification_appliances),
-                "coverage_pct": result.coverage_pct,
-                "beam_sections": result.beam_sections,
-                "is_fully_compliant": result.is_fully_compliant,
-                "violations": result.violations,
-                "nfpa_references": result.nfpa_references,
-                "computation_hash": result.computation_hash,
-                "detectors": [
-                    {
-                        "device_id": d.device_id,
-                        "device_type": d.device_type,
-                        "x_m": d.x_m,
-                        "y_m": d.y_m,
-                        "z_m": d.z_m,
-                        "spacing_m": d.spacing_used_m,
-                        "radius_m": d.radius_m,
-                        "nfpa_section": d.nfpa_section,
-                    }
-                    for d in result.detectors
-                ],
-                "pull_stations": [
-                    {
-                        "device_id": p.device_id,
-                        "x_m": p.x_m,
-                        "y_m": p.y_m,
-                        "z_m": p.z_m,
-                        "nfpa_section": p.nfpa_section,
-                    }
-                    for p in result.pull_stations
-                ],
-                "notification_appliances": [
-                    {
-                        "device_id": n.device_id,
-                        "x_m": n.x_m,
-                        "y_m": n.y_m,
-                        "z_m": n.z_m,
-                        "candela": n.candela,
-                        "is_combo": n.is_combo,
-                        "nfpa_section": n.nfpa_section,
-                    }
-                    for n in result.notification_appliances
-                ],
-            },
-        }
-    except Exception as exc:
-        _handle_error(exc)
+    # Phase 3 cleanup: fireai.core.device_placement was removed (BAZSPARK
+    # cleanup). Until the device-placement engine is migrated to a new module
+    # path, this endpoint returns HTTP 503. The previous try/except ImportError
+    # branch already produced this same response — graceful degradation is
+    # preserved.
+    #
+    # TODO(phase-3-migration): restore via:
+    #   from <new_module>.device_placement import (
+    #       CeilingType, DetectorPlacementEngine, DetectorType, ExitDoor,
+    #       OccupancyType, RoomSpec,
+    #   )
+    raise HTTPException(  # NOSONAR — S8415: assignment kept for readability / debuggability
+        status_code=503,  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
+        detail={
+            "error": "QOMN_SERVICE_UNAVAILABLE",
+            "detail": (
+                "The device placement engine is not available. "
+                "The fireai.core.device_placement module was removed during "
+                "the BAZSPARK cleanup and is being migrated to a new module path."
+            ),
+            "missing_module": "fireai.core.device_placement",
+            "action": "Wait for the device-placement migration to complete.",
+        },
+    ) from None
 
 
 @router.post(
@@ -533,35 +418,26 @@ async def place_duct_detector(req: DuctDetectorRequest):
     Air velocity must be 0.305–15.24 m/s (60–3000 fpm).
     Number of detectors depends on duct width.
     """
-    try:
-        try:
-            from fireai.core.device_placement import (
-                DuctDetectorSpec,
-                place_duct_detector,
-            )
-        except ImportError:
-            raise HTTPException(  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
-                status_code=503,  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
-                detail={
-                    "error": "QOMN_SERVICE_UNAVAILABLE",
-                    "detail": (
-                        "The duct detector placement module is not available. "
-                        "The fireai.core.device_placement module could not be imported."
-                    ),
-                    "missing_module": "fireai.core.device_placement",
-                    "action": "Install the fireai package. Check server logs for details.",
-                },
-            )
-        spec = DuctDetectorSpec(
-            duct_id=req.duct_id,
-            width_m=req.width_m,
-            height_m=req.height_m,
-            velocity_m_s=req.velocity_m_s,
-        )
-        result = place_duct_detector(spec)
-        return {"success": True, "data": result}
-    except Exception as exc:
-        _handle_error(exc)
+    # Phase 3 cleanup: fireai.core.device_placement was removed (BAZSPARK
+    # cleanup). Until the duct-detector placement module is migrated to a
+    # new path, this endpoint returns HTTP 503 — same graceful-degradation
+    # behaviour as the previous try/except ImportError branch.
+    #
+    # TODO(phase-3-migration): restore via:
+    #   from <new_module>.device_placement import DuctDetectorSpec, place_duct_detector
+    raise HTTPException(  # NOSONAR — S8415: assignment kept for readability / debuggability
+        status_code=503,  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
+        detail={
+            "error": "QOMN_SERVICE_UNAVAILABLE",
+            "detail": (
+                "The duct detector placement module is not available. "
+                "The fireai.core.device_placement module was removed during "
+                "the BAZSPARK cleanup and is being migrated to a new module path."
+            ),
+            "missing_module": "fireai.core.device_placement",
+            "action": "Wait for the device-placement migration to complete.",
+        },
+    ) from None
 
 
 @router.get("/qomn/audit", dependencies=[Depends(require_permission(Permission.QOMN_READ))])
@@ -595,78 +471,30 @@ async def get_physics_guards():
 
     Per QOMN Specification §3 Layer 0.
     """
-    try:
-        from fireai.core.qomn_kernel import (
-            NFPA72_HEAT_MAX_SPACING_M,
-            NFPA72_NAC_MIN_CD,
-            NFPA72_NAC_SLEEPING_MIN_CD,
-            NFPA72_PULL_STATION_HEIGHT_M,
-            NFPA72_SMOKE_MAX_SPACING_M,
-        )
-    except ImportError:
-        raise HTTPException(  # NOSONAR — S8415: assignment kept for readability / debuggability
-            status_code=503,  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
-            detail={
-                "error": "QOMN_SERVICE_UNAVAILABLE",
-                "detail": "The QOMN-FIRE engineering kernel constants are not available.",
-                "missing_module": "fireai.core.qomn_kernel",
-                "action": "Install the fireai package. Check server logs for details.",
-            },
-        ) from None
-    return {
-        "success": True,
-        "data": {
-            "area_per_detector": {
-                "max_m2": 232.26,
-                "max_ft2": 2500,
-                "code_ref": "NFPA 72-2022 §17.7.3.2.1",
-            },
-            "ceiling_height": {
-                "min_m": 0.001,
-                "max_m": 18.288,
-                "max_ft": 60,
-                "code_ref": "NFPA 72-2022 §17.7.3.2.4",
-            },
-            "smoke_max_spacing": {
-                "max_m": NFPA72_SMOKE_MAX_SPACING_M,
-                "max_ft": 30,
-                "code_ref": "NFPA 72-2022 §17.7.3.2.1",
-            },
-            "heat_max_spacing": {
-                "max_m": NFPA72_HEAT_MAX_SPACING_M,
-                "max_ft": 50,
-                "code_ref": "NFPA 72-2022 §17.6.3.1",
-            },
-            "pull_station_height": {
-                "height_m": NFPA72_PULL_STATION_HEIGHT_M,
-                "height_in": 48,
-                "code_ref": "NFPA 72-2022 §17.15.7",
-            },
-            "nac_min_cd": {
-                "min_cd": NFPA72_NAC_MIN_CD,
-                "code_ref": "NFPA 72-2022 §18.5.3.1",
-            },
-            "nac_sleeping_min_cd": {
-                "min_cd": NFPA72_NAC_SLEEPING_MIN_CD,
-                "code_ref": "NFPA 72-2022 §18.5.5.7",
-            },
-            "efficiency_max": {
-                "max": 1.0,
-                "code_ref": "Physics (conservation of energy)",
-            },
-            "wire_current": {
-                "standard": "NEC 2023 §310.16",
-                "note": "Never exceed ampacity for selected AWG gauge",
-            },
-            "duct_velocity": {
-                "min_m_s": 0.305,
-                "max_m_s": 15.24,
-                "min_fpm": 60,
-                "max_fpm": 3000,
-                "code_ref": "NFPA 72-2022 §17.7.4.2.2",
-            },
+    # Phase 3 cleanup: fireai.core.qomn_kernel was removed (BAZSPARK cleanup).
+    # Until the QOMN kernel is migrated to a new module path, this endpoint
+    # returns HTTP 503 — same graceful-degradation behaviour as the previous
+    # try/except ImportError branch.
+    #
+    # TODO(phase-3-migration): restore via:
+    #   from <new_module>.qomn_kernel import (
+    #       NFPA72_HEAT_MAX_SPACING_M, NFPA72_NAC_MIN_CD,
+    #       NFPA72_NAC_SLEEPING_MIN_CD, NFPA72_PULL_STATION_HEIGHT_M,
+    #       NFPA72_SMOKE_MAX_SPACING_M,
+    #   )
+    raise HTTPException(  # NOSONAR — S8415: assignment kept for readability / debuggability
+        status_code=503,  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
+        detail={
+            "error": "QOMN_SERVICE_UNAVAILABLE",
+            "detail": (
+                "The QOMN-FIRE engineering kernel constants are not available. "
+                "The fireai.core.qomn_kernel module was removed during the "
+                "BAZSPARK cleanup and is being migrated to a new module path."
+            ),
+            "missing_module": "fireai.core.qomn_kernel",
+            "action": "Wait for the QOMN kernel migration to complete.",
         },
-    }
+    ) from None
 
 
 @router.get("/qomn/constants", dependencies=[Depends(require_permission(Permission.QOMN_READ))])
@@ -678,56 +506,34 @@ async def get_qomn_constants():
     used by the deterministic engineering kernel. Useful for client-side
     validation and display of engineering parameters.
     """
-    try:
-        from fireai.core.qomn_kernel import (
-            NEC_AMPACITY_60C,
-            NEC_TABLE8_RESISTANCE_OHM_PER_KM,
-            NFPA72_ALARM_MINUTES,
-            NFPA72_BATTERY_DISCHARGE_EFFICIENCY,
-            NFPA72_BATTERY_SAFETY_FACTOR,
-            NFPA72_COVERAGE_RADIUS_FACTOR,
-            NFPA72_HEAT_MAX_SPACING_M,
-            NFPA72_NAC_MIN_CD,
-            NFPA72_NAC_SLEEPING_MIN_CD,
-            NFPA72_PULL_STATION_FROM_EXIT_M,
-            NFPA72_PULL_STATION_HEIGHT_M,
-            NFPA72_SMOKE_MAX_SPACING_M,
-            NFPA72_STANDBY_HOURS,
-            NFPA72_WALL_MIN_DISTANCE_M,
-        )
-    except ImportError:
-        raise HTTPException(  # NOSONAR — S8415: assignment kept for readability / debuggability
-            status_code=503,  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
-            detail={
-                "error": "QOMN_SERVICE_UNAVAILABLE",
-                "detail": "The QOMN-FIRE engineering kernel constants are not available.",
-                "missing_module": "fireai.core.qomn_kernel",
-                "action": "Install the fireai package. Check server logs for details.",
-            },
-        ) from None
-    return {
-        "success": True,
-        "data": {
-            "nfpa72": {
-                "smoke_max_spacing_m": NFPA72_SMOKE_MAX_SPACING_M,
-                "heat_max_spacing_m": NFPA72_HEAT_MAX_SPACING_M,
-                "coverage_radius_factor": NFPA72_COVERAGE_RADIUS_FACTOR,
-                "pull_station_height_m": NFPA72_PULL_STATION_HEIGHT_M,
-                "pull_station_from_exit_m": NFPA72_PULL_STATION_FROM_EXIT_M,
-                "wall_min_distance_m": NFPA72_WALL_MIN_DISTANCE_M,
-                "standby_hours": NFPA72_STANDBY_HOURS,
-                "alarm_minutes": NFPA72_ALARM_MINUTES,
-                "battery_safety_factor": NFPA72_BATTERY_SAFETY_FACTOR,
-                "battery_discharge_efficiency": NFPA72_BATTERY_DISCHARGE_EFFICIENCY,
-                "nac_min_cd": NFPA72_NAC_MIN_CD,
-                "nac_sleeping_min_cd": NFPA72_NAC_SLEEPING_MIN_CD,
-            },
-            "nec": {
-                "table8_resistance_ohm_per_km": NEC_TABLE8_RESISTANCE_OHM_PER_KM,
-                "ampacity_60c": NEC_AMPACITY_60C,
-            },
+    # Phase 3 cleanup: fireai.core.qomn_kernel was removed (BAZSPARK cleanup).
+    # Until the QOMN kernel is migrated to a new module path, this endpoint
+    # returns HTTP 503 — same graceful-degradation behaviour as the previous
+    # try/except ImportError branch.
+    #
+    # TODO(phase-3-migration): restore via:
+    #   from <new_module>.qomn_kernel import (
+    #       NEC_AMPACITY_60C, NEC_TABLE8_RESISTANCE_OHM_PER_KM,
+    #       NFPA72_ALARM_MINUTES, NFPA72_BATTERY_DISCHARGE_EFFICIENCY,
+    #       NFPA72_BATTERY_SAFETY_FACTOR, NFPA72_COVERAGE_RADIUS_FACTOR,
+    #       NFPA72_HEAT_MAX_SPACING_M, NFPA72_NAC_MIN_CD,
+    #       NFPA72_NAC_SLEEPING_MIN_CD, NFPA72_PULL_STATION_FROM_EXIT_M,
+    #       NFPA72_PULL_STATION_HEIGHT_M, NFPA72_SMOKE_MAX_SPACING_M,
+    #       NFPA72_STANDBY_HOURS, NFPA72_WALL_MIN_DISTANCE_M,
+    #   )
+    raise HTTPException(  # NOSONAR — S8415: assignment kept for readability / debuggability
+        status_code=503,  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
+        detail={
+            "error": "QOMN_SERVICE_UNAVAILABLE",
+            "detail": (
+                "The QOMN-FIRE engineering kernel constants are not available. "
+                "The fireai.core.qomn_kernel module was removed during the "
+                "BAZSPARK cleanup and is being migrated to a new module path."
+            ),
+            "missing_module": "fireai.core.qomn_kernel",
+            "action": "Wait for the QOMN kernel migration to complete.",
         },
-    }
+    ) from None
 
 
 @router.post(
@@ -742,141 +548,30 @@ async def run_golden_tests():
 
     Returns pass/fail for each golden test case.
     """
-    try:
-        from fireai.core.qomn_kernel import (
-            compute_battery_capacity_ah,
-            compute_heat_detector_spacing,
-            compute_smoke_detector_spacing,
-            compute_voltage_drop,
-        )
-    except ImportError:
-        raise HTTPException(  # NOSONAR — S8415: assignment kept for readability / debuggability
-            status_code=503,  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
-            detail={
-                "error": "QOMN_SERVICE_UNAVAILABLE",
-                "detail": "The QOMN-FIRE engineering kernel functions are not available.",
-                "missing_module": "fireai.core.qomn_kernel",
-                "action": "Install the fireai package. Check server logs for details.",
-            },
-        ) from None
-
-    results = []
-    all_pass = True
-
-    def _test(name: str, actual: float, expected: float, tolerance: float, ref: str) -> None:
-        nonlocal all_pass
-        passed = abs(actual - expected) <= tolerance
-        if not passed:
-            all_pass = False
-        results.append(
-            {
-                "test": name,
-                "actual": actual,
-                "expected": expected,
-                "tolerance": tolerance,
-                "passed": passed,
-                "ref": ref,
-            }
-        )
-
-    # Golden Test 1: V130 — Smoke spacing at h=3.048m (10 ft) → 9.10m flat
-    # Per NFPA 72-2022 §17.7.3.2.3 (verbatim): "9.1 m" (NOT 9.144m conversion).
-    r1 = compute_smoke_detector_spacing(3.048)
-    _test(
-        "NFPA72_smoke_h10ft",
-        r1["listed_spacing_m"],
-        9.10,
-        0.001,
-        "NFPA 72-2022 §17.7.3.2.3 (flat 9.1m, NO height reduction)",
-    )
-
-    # Golden Test 2: Coverage radius = 0.7 × 9.10 = 6.37
-    _test(
-        "NFPA72_coverage_radius_factor",
-        r1["coverage_radius_m"],
-        0.7 * 9.10,
-        1e-9,
-        "NFPA 72-2022 §17.7.4.2.3.1",
-    )
-
-    # Golden Test 3: Heat spacing S = 0.7 × √A for A = 50 m²
-    r3 = compute_heat_detector_spacing(3.0, 50.0)
-    expected_heat = min(0.7 * (50.0**0.5), 15.24)
-    _test(
-        "NFPA72_heat_spacing_50m2", r3["spacing_m"], expected_heat, 1e-6, "NFPA 72-2022 §17.6.3.1"
-    )
-
-    # Golden Test 4: Battery — 0.5A standby 24h + 3.0A alarm 5min → check formula
-    # V130: tolerance relaxed to 1e-2 to handle round() in kernel output.
-    r4 = compute_battery_capacity_ah(0.5, 3.0)
-    ah_manual = ((0.5 * 24 + 3.0 * (5 / 60)) / 0.80) * 1.25
-    _test("NFPA72_battery_capacity", r4["required_ah"], ah_manual, 1e-2, "NFPA 72-2022 §10.6.7.2.1")
-
-    # Golden Test 5: Voltage drop 2.5A, 100m, AWG14, 24V
-    # V130: kernel uses stranded copper @ 20°C (R_20=4.263 ohm/km) + temp
-    # correction to 75°C. R_eff = 4.263 × (1 + 0.00393 × 55) = 5.184 ohm/km
-    # V_drop = 2 × 2.5 × 100 × (5.184/1000) = 2.592V
-    r5 = compute_voltage_drop(2.5, 100, "14", 24.0)
-    r_20 = 4.263  # NEC Table 8 stranded copper at 20°C
-    alpha = 0.00393
-    r_eff = r_20 * (1.0 + alpha * (75.0 - 20.0))
-    expected_vd = 2.0 * 2.5 * 100 * (r_eff / 1000.0)
-    _test(
-        "NEC_voltage_drop_AWG14_100m",
-        r5["voltage_drop_v"],
-        expected_vd,
-        1e-3,
-        "NEC 2023 Chapter 9, Table 8 (stranded @ 20°C + 75°C correction)",
-    )
-
-    # Golden Test 6: Physics guard — negative area MUST raise
-    guard_raised = False
-    try:
-        from fireai.core.qomn_kernel import guard_area_m2
-
-        guard_area_m2(-1.0)
-    except Exception:
-        guard_raised = True
-    results.append(
-        {
-            "test": "physics_guard_negative_area",
-            "actual": "raised" if guard_raised else "NOT_RAISED",
-            "expected": "raised",
-            "passed": guard_raised,
-            "ref": "QOMN Specification §3 Layer 0",
-        }
-    )
-    if not guard_raised:
-        all_pass = False
-
-    # Golden Test 7: Physics guard — efficiency > 1.0 MUST raise
-    eff_raised = False
-    try:
-        from fireai.core.qomn_kernel import guard_efficiency
-
-        guard_efficiency(1.01)
-    except Exception:
-        eff_raised = True
-    results.append(
-        {
-            "test": "physics_guard_efficiency_over_100pct",
-            "actual": "raised" if eff_raised else "NOT_RAISED",
-            "expected": "raised",
-            "passed": eff_raised,
-            "ref": "QOMN Specification §3 Layer 0 / Physics",
-        }
-    )
-    if not eff_raised:
-        all_pass = False
-
-    passed_count = sum(1 for r in results if r["passed"])
-    return {
-        "success": all_pass,
-        "all_passed": all_pass,
-        "passed_count": passed_count,
-        "total_count": len(results),
-        "results": results,
-    }
+    # Phase 3 cleanup: fireai.core.qomn_kernel was removed (BAZSPARK cleanup).
+    # Until the QOMN kernel is migrated to a new module path, this endpoint
+    # returns HTTP 503 — same graceful-degradation behaviour as the previous
+    # try/except ImportError branch.
+    #
+    # TODO(phase-3-migration): restore via:
+    #   from <new_module>.qomn_kernel import (
+    #       compute_battery_capacity_ah, compute_heat_detector_spacing,
+    #       compute_smoke_detector_spacing, compute_voltage_drop,
+    #       guard_area_m2, guard_efficiency,
+    #   )
+    raise HTTPException(  # NOSONAR — S8415: assignment kept for readability / debuggability
+        status_code=503,  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
+        detail={
+            "error": "QOMN_SERVICE_UNAVAILABLE",
+            "detail": (
+                "The QOMN-FIRE engineering kernel functions are not available. "
+                "The fireai.core.qomn_kernel module was removed during the "
+                "BAZSPARK cleanup and is being migrated to a new module path."
+            ),
+            "missing_module": "fireai.core.qomn_kernel",
+            "action": "Wait for the QOMN kernel migration to complete.",
+        },
+    ) from None
 
 
 # ── Error Handler ─────────────────────────────────────────────────────────────

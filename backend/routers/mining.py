@@ -1,13 +1,21 @@
 """
 backend/routers/mining.py — Mining fire protection API endpoints.
 
-V214: Exposes the fireai.mining module via HTTP endpoints:
+V214: Exposes the mining fire-protection module via HTTP endpoints:
   POST /api/v1/mining/methane-check        — Classify methane hazard
   POST /api/v1/mining/ventilation-check    — Check MSHA ventilation compliance
   POST /api/v1/mining/co-check             — Classify CO hazard
   POST /api/v1/mining/conveyor-suppression — Design suppression system
   POST /api/v1/mining/compliance-report    — Full MSHA compliance report
   GET  /api/v1/mining/standards            — List supported standards
+
+Phase 3 cleanup (BAZSPARK contamination):
+  The fireai.mining.* package was deleted from the codebase. Each endpoint
+  that previously lazy-imported from fireai.mining.* now returns HTTP 503
+  with a migration notice. The endpoint signatures are preserved so the
+  routes still register and clients see a structured error rather than a
+  404. When the underlying mining services are migrated to new module
+  paths, re-introduce the lazy imports inside each endpoint.
 """
 
 from __future__ import annotations
@@ -77,6 +85,26 @@ class ComplianceReportRequest(BaseModel):
     has_fire_resistant_belt: bool = True
 
 
+# ── Helpers ────────────────────────────────────────────────────────────────
+
+
+def _mining_unavailable_503(missing_module: str) -> HTTPException:
+    """Build a 503 response describing a fireai.mining dependency that was removed."""
+    return HTTPException(
+        status_code=503,
+        detail={
+            "error": "MINING_SERVICE_UNAVAILABLE",
+            "detail": (
+                f"The mining endpoint requires {missing_module} which was "
+                "removed during the BAZSPARK cleanup and is being migrated "
+                "to a new module path."
+            ),
+            "missing_module": missing_module,
+            "action": "Wait for the mining-module migration to complete.",
+        },
+    )
+
+
 # ── Endpoints ──────────────────────────────────────────────────────────────
 
 
@@ -97,30 +125,10 @@ async def list_standards():
 @router.post("/methane-check", dependencies=[Depends(require_permission(Permission.ELEMENT_READ))])
 async def methane_check(request: MethaneCheckRequest):
     """Classify methane concentration per MSHA 30 CFR §75.323."""
-    try:
-        from fireai.mining.core.methane_calculator import MSHA_THRESHOLDS, MethaneCalculator
-
-        hazard = MethaneCalculator.classify_hazard(request.concentration_pct)
-        is_explosive = MethaneCalculator.is_in_explosive_range(request.concentration_pct)
-        distance_to_lel = MethaneCalculator.distance_to_lel(request.concentration_pct)
-
-        return {
-            "success": True,
-            "concentration_pct": request.concentration_pct,
-            "hazard_level": hazard,
-            "is_in_explosive_range": is_explosive,
-            "distance_to_lel_pct": round(distance_to_lel, 3),
-            "location": request.location,
-            "standard": "MSHA 30 CFR §75.323",
-            "thresholds": MSHA_THRESHOLDS,
-        }
-    except ImportError as e:
-        raise HTTPException(status_code=503, detail=f"Mining module not available: {e}") from None
-    except Exception as e:
-        logger.exception("Methane check failed: %s", e)
-        raise HTTPException(status_code=500, detail="Methane check failed") from None
-        raise HTTPException(status_code=503, detail=f"Mining module not available: {e}") from e
-        raise HTTPException(status_code=500, detail="Methane check failed") from e
+    # Phase 3 cleanup: fireai.mining.core.methane_calculator was removed (BAZSPARK cleanup).
+    # TODO(phase-3-migration): restore via:
+    #   from <new_module>.methane_calculator import MSHA_THRESHOLDS, MethaneCalculator
+    raise _mining_unavailable_503("fireai.mining.core.methane_calculator") from None
 
 
 @router.post(
@@ -128,72 +136,22 @@ async def methane_check(request: MethaneCheckRequest):
 )
 async def ventilation_check(request: VentilationCheckRequest):
     """Check MSHA ventilation compliance per 30 CFR §75.326-327."""
-    try:
-        from fireai.mining.core.ventilation_calculator import VentilationCalculator
-
-        is_compliant, violations = VentilationCalculator.check_msha_compliance(
-            request.airflow_m3_s,
-            request.location_type,
-            request.cross_sectional_area_m2,
-        )
-
-        velocity = None
-        if request.cross_sectional_area_m2 and request.cross_sectional_area_m2 > 0:
-            velocity = VentilationCalculator.air_velocity(
-                request.airflow_m3_s, request.cross_sectional_area_m2
-            )
-
-        return {
-            "success": True,
-            "airflow_m3_s": request.airflow_m3_s,
-            "location_type": request.location_type,
-            "is_compliant": is_compliant,
-            "violations": violations,
-            "velocity_m_s": round(velocity, 3) if velocity else None,
-            "standard": "MSHA 30 CFR §75.326-327",
-        }
-    except ImportError as e:
-        raise HTTPException(status_code=503, detail=f"Mining module not available: {e}") from None
-    except Exception as e:
-        logger.exception("Ventilation check failed: %s", e)
-        raise HTTPException(status_code=500, detail="Ventilation check failed") from None
-        raise HTTPException(status_code=503, detail=f"Mining module not available: {e}") from e
-        raise HTTPException(status_code=500, detail="Ventilation check failed") from e
+    # Phase 3 cleanup: fireai.mining.core.ventilation_calculator was removed (BAZSPARK cleanup).
+    # TODO(phase-3-migration): restore via:
+    #   from <new_module>.ventilation_calculator import VentilationCalculator
+    raise _mining_unavailable_503("fireai.mining.core.ventilation_calculator") from None
 
 
 @router.post("/co-check", dependencies=[Depends(require_permission(Permission.ELEMENT_READ))])
 async def co_check(request: CoCheckRequest):
     """Classify CO concentration per MSHA 30 CFR §75.351."""
-    try:
-        from fireai.mining.core.conveyor_fire import (
-            CO_ALERT_PPM,
-            CO_EVACUATE_PPM,
-            CO_IMMINENT_PPM,
-            CO_WITHDRAW_PPM,
-            ConveyorFireAnalyzer,
-        )
-
-        hazard = ConveyorFireAnalyzer.classify_co_hazard(request.co_ppm)
-
-        return {
-            "success": True,
-            "co_ppm": request.co_ppm,
-            "hazard_level": hazard,
-            "thresholds": {
-                "alert_ppm": CO_ALERT_PPM,
-                "evacuate_ppm": CO_EVACUATE_PPM,
-                "withdraw_ppm": CO_WITHDRAW_PPM,
-                "imminent_ppm": CO_IMMINENT_PPM,
-            },
-            "standard": "MSHA 30 CFR §75.351",
-        }
-    except ImportError as e:
-        raise HTTPException(status_code=503, detail=f"Mining module not available: {e}") from None
-    except Exception as e:
-        logger.exception("CO check failed: %s", e)
-        raise HTTPException(status_code=500, detail="CO check failed") from None
-        raise HTTPException(status_code=503, detail=f"Mining module not available: {e}") from e
-        raise HTTPException(status_code=500, detail="CO check failed") from e
+    # Phase 3 cleanup: fireai.mining.core.conveyor_fire was removed (BAZSPARK cleanup).
+    # TODO(phase-3-migration): restore via:
+    #   from <new_module>.conveyor_fire import (
+    #       CO_ALERT_PPM, CO_EVACUATE_PPM, CO_IMMINENT_PPM, CO_WITHDRAW_PPM,
+    #       ConveyorFireAnalyzer,
+    #   )
+    raise _mining_unavailable_503("fireai.mining.core.conveyor_fire") from None
 
 
 @router.post(
@@ -201,40 +159,10 @@ async def co_check(request: CoCheckRequest):
 )
 async def conveyor_suppression(request: ConveyorSuppressionRequest):
     """Design conveyor belt fire suppression per NFPA 120 §8.4."""
-    try:
-        from fireai.mining.core.conveyor_fire import ConveyorFireAnalyzer, ConveyorSpec
-
-        spec = ConveyorSpec(
-            belt_length_m=request.belt_length_m,
-            belt_width_m=request.belt_width_m,
-            belt_speed_m_s=request.belt_speed_m_s,
-            has_fire_resistant_belt=request.has_fire_resistant_belt,
-            number_of_drives=request.number_of_drives,
-            number_of_tail_pieces=request.number_of_tail_pieces,
-            has_take_up=request.has_take_up,
-        )
-        design = ConveyorFireAnalyzer.design_suppression_system(spec)
-
-        return {
-            "success": True,
-            "design": {
-                "number_of_nozzle_groups": design.number_of_nozzle_groups,
-                "water_flow_rate_lpm": design.water_flow_rate_lpm,
-                "water_duration_min": design.water_duration_min,
-                "total_water_volume_l": design.total_water_volume_l,
-                "nozzle_locations": design.nozzle_locations,
-                "is_compliant": design.is_compliant,
-                "violations": design.violations,
-            },
-            "standard": "NFPA 120-2022 §8.4 + MSHA 30 CFR §75.1108",
-        }
-    except ImportError as e:
-        raise HTTPException(status_code=503, detail=f"Mining module not available: {e}") from None
-    except Exception as e:
-        logger.exception("Conveyor suppression design failed: %s", e)
-        raise HTTPException(status_code=500, detail="Conveyor suppression design failed") from None
-        raise HTTPException(status_code=503, detail=f"Mining module not available: {e}") from e
-        raise HTTPException(status_code=500, detail="Conveyor suppression design failed") from e
+    # Phase 3 cleanup: fireai.mining.core.conveyor_fire was removed (BAZSPARK cleanup).
+    # TODO(phase-3-migration): restore via:
+    #   from <new_module>.conveyor_fire import ConveyorFireAnalyzer, ConveyorSpec
+    raise _mining_unavailable_503("fireai.mining.core.conveyor_fire") from None
 
 
 @router.post(
@@ -242,45 +170,9 @@ async def conveyor_suppression(request: ConveyorSuppressionRequest):
 )
 async def compliance_report(request: ComplianceReportRequest):
     """Generate full MSHA + NFPA 120 compliance report."""
-    try:
-        from fireai.mining.output.msha_report import generate_msha_report
-
-        from fireai.mining.core.msha_compliance import MSHAComplianceChecker
-
-        report = MSHAComplianceChecker.full_compliance_report(
-            mine_name=request.mine_name,
-            section_name=request.section_name,
-            methane_pct=request.methane_pct,
-            co_ppm=request.co_ppm,
-            airflow_m3_s=request.airflow_m3_s,
-            ventilation_location=request.ventilation_location,
-            conveyor_length_m=request.conveyor_length_m,
-            conveyor_width_m=request.conveyor_width_m,
-            has_fire_resistant_belt=request.has_fire_resistant_belt,
-        )
-
-        markdown = generate_msha_report(report, "markdown")
-
-        return {
-            "success": True,
-            "overall_status": report.overall_status,
-            "checks": [
-                {
-                    "rule_id": c.rule_id,
-                    "standard": c.standard,
-                    "description": c.description,
-                    "status": c.status,
-                    "details": c.details,
-                    "remediation": c.remediation,
-                }
-                for c in report.checks
-            ],
-            "markdown_report": markdown,
-        }
-    except ImportError as e:
-        raise HTTPException(status_code=503, detail=f"Mining module not available: {e}") from None
-    except Exception as e:
-        logger.exception("Compliance report failed: %s", e)
-        raise HTTPException(status_code=500, detail="Compliance report generation failed") from None
-        raise HTTPException(status_code=503, detail=f"Mining module not available: {e}") from e
-        raise HTTPException(status_code=500, detail="Compliance report generation failed") from e
+    # Phase 3 cleanup: fireai.mining.output.msha_report and
+    # fireai.mining.core.msha_compliance were removed (BAZSPARK cleanup).
+    # TODO(phase-3-migration): restore via:
+    #   from <new_module>.msha_report import generate_msha_report
+    #   from <new_module>.msha_compliance import MSHAComplianceChecker
+    raise _mining_unavailable_503("fireai.mining.core.msha_compliance") from None

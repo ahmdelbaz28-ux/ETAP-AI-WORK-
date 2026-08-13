@@ -1,7 +1,7 @@
 # File-level suppression removed per audit (V143 hardening).
 # Per-line justified suppressions (e.g., '# noqa: S3776 ...') are preserved.
 """
-pdf_parser.py — FireAI PDF Floor Plan Parser
+pdf_parser.py — ETAP-AI-WORK PDF Floor Plan Parser
 Extracts fire alarm device locations from PDF drawings.
 
 SAFETY-CRITICAL: Parses PDF floor plans to detect:
@@ -21,7 +21,7 @@ import re
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional
 
-logger = logging.getLogger("fireai.pdf_parser")
+logger = logging.getLogger("parsers.pdf_parser")
 
 
 # ═══════════════════════════════════════════════════════
@@ -289,27 +289,21 @@ class PDFParser:
 
     def _ocr_page(self, page) -> str:
         """Extract text from page using OCR (Tesseract or DocTR)."""
-        # V140 Phase 10: Try DocTR OCR service first (more accurate), fall back to Tesseract
-        try:
-            from fireai.integration.document_intelligence import is_doctr_available, ocr_image
-
-            if is_doctr_available():
-                # Render page to image
-                img = page.to_image(resolution=200)
-                import io
-
-                buf = io.BytesIO()
-                img.original.save(buf, format="PNG")
-                image_bytes = buf.getvalue()
-
-                ocr_result = ocr_image(image_bytes)
-                if ocr_result and len(ocr_result) > 0:
-                    text = ocr_result[0].full_text
-                    if text and len(text.strip()) > 10:
-                        logger.info("DocTR OCR: extracted %d chars", len(text))
-                        return text
-        except Exception as e:
-            logger.debug("DocTR OCR unavailable, falling back to Tesseract: %s", e)
+        # V140 Phase 10: Try DocTR OCR service first (more accurate), fall back to Tesseract.
+        #
+        # Phase 3 cleanup: the DocTR path previously imported
+        # ``fireai.integration.document_intelligence`` which was deleted with
+        # the fireai package. The DocTR branch is now skipped until the
+        # document_intelligence service is migrated to a new module path.
+        # We go straight to the Tesseract fallback (preserving the original
+        # graceful-degradation behaviour).
+        #
+        # TODO(phase-3-migration): restore DocTR OCR via:
+        #   from <new_module>.document_intelligence import is_doctr_available, ocr_image
+        logger.debug(
+            "DocTR OCR unavailable: fireai.integration.document_intelligence was "
+            "removed during BAZSPARK cleanup — falling back to Tesseract"
+        )
 
         # Fall back to Tesseract
         try:

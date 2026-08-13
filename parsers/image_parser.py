@@ -1,7 +1,7 @@
 # File-level suppression removed per audit (V143 hardening).
 # Per-line justified suppressions (e.g., '# noqa: S3776 ...') are preserved.
 """
-image_parser.py — FireAI Image Floor Plan Parser
+image_parser.py — ETAP-AI-WORK Image Floor Plan Parser
 Parses floor plans from images (JPG, PNG, etc.) using Computer Vision.
 
 Features:
@@ -40,7 +40,7 @@ from typing import List, Optional, Tuple
 cv2 = None  # type: ignore[assignment]
 np = None  # type: ignore[assignment]
 
-logger = logging.getLogger("fireai.image_parser")
+logger = logging.getLogger("parsers.image_parser")
 
 
 def _lazy_import_cv2():
@@ -306,53 +306,24 @@ class ImageParser:
         """
         V140 Phase 10: Try YOLO segmentation service for layout analysis.
         Returns list of ImageRoom if successful, empty list if unavailable.
+
+        Phase 3 cleanup: the original implementation imported
+        ``fireai.integration.document_intelligence`` which was deleted with
+        the fireai package. Until the YOLO segmentation service is migrated
+        to a new module path, this method always returns an empty list
+        (graceful degradation — callers fall back to contour-based detection).
         """
-        try:
-            from fireai.integration.document_intelligence import is_yolo_available, segment_image
-
-            if not is_yolo_available():
-                return []
-
-            # Read image file as bytes
-            with open(image_path, "rb") as f:
-                image_bytes = f.read()
-
-            seg_results = segment_image(image_bytes)
-            if not seg_results or len(seg_results) == 0:
-                return []
-
-            # Convert YOLO segments to ImageRoom objects
-            rooms = []
-            for seg in seg_results:
-                for segment in seg.segments:
-                    # Only treat "figure" and "text" segments as potential rooms
-                    # (YOLO detects layout elements, not architectural rooms directly,
-                    # but figure/text blocks often correspond to room boundaries)
-                    if segment.segment_type in ("figure", "text", "abandon"):
-                        left, top, width, height = segment.bbox
-                        if width > 20 and height > 20:  # Min 20px
-                            x = left + width / 2
-                            y = top + height / 2
-                            area_px = width * height
-                            area_m2 = area_px * (self.scale_factor**2)
-                            rooms.append(
-                                ImageRoom(
-                                    name=f"YOLO_{segment.segment_type}_{len(rooms) + 1}",
-                                    x=int(x),
-                                    y=int(y),
-                                    width=int(width),
-                                    height=int(height),
-                                    width_m=width * self.scale_factor,
-                                    height_m=height * self.scale_factor,
-                                    floor_area=area_m2,
-                                    room_type=segment.segment_type,
-                                )
-                            )
-            return rooms
-
-        except Exception as e:
-            logger.debug("YOLO segmentation unavailable: %s", e)
-            return []
+        # TODO(phase-3-migration): restore YOLO segmentation once the
+        # document_intelligence service is migrated off the deleted fireai
+        # package. The previous implementation called:
+        #   from fireai.integration.document_intelligence import (
+        #       is_yolo_available, segment_image,
+        #   )
+        logger.debug(
+            "YOLO segmentation unavailable: fireai.integration.document_intelligence "
+            "was removed during BAZSPARK cleanup — returning empty list"
+        )
+        return []
 
     def _preprocess(self, img) -> Tuple[np.ndarray, np.ndarray]:
         """Preprocess image for contour detection."""

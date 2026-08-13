@@ -5,6 +5,22 @@ V214: Exposes the self-healing engine's internal state:
   GET /api/v1/self-healing/health   — Circuit breaker + LRU cache + audit stats
   GET /api/v1/self-healing/audit    — Recent audit log entries
   POST /api/v1/self-healing/reset   — Reset circuit breaker (admin only)
+
+Phase 3 cleanup: the previous implementation imported
+``fireai.core.qomn_self_healing_engine`` lazily inside each endpoint and
+returned HTTP 503 on ImportError. The fireai package was deleted during the
+BAZSPARK contamination cleanup, so every endpoint now returns HTTP 503 with
+a clear migration notice until the self-healing engine is restored under a
+new module path.
+
+TODO(phase-3-migration): restore the endpoints by replacing the
+``_self_healing_unavailable_503()`` calls below with lazy imports from the
+new module path, e.g.::
+
+    from <new_module>.qomn_self_healing_engine import (
+        global_audit_logger, global_circuit_breaker,
+        global_llm_breaker, global_lru_cache,
+    )
 """
 
 from __future__ import annotations
@@ -20,6 +36,20 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/self-healing", tags=["self-healing"])
 
+_MISSING_MODULE = "fireai.core.qomn_self_healing_engine"
+
+
+def _self_healing_unavailable_503() -> HTTPException:
+    """Build a 503 response describing the missing optional dependency."""
+    return HTTPException(
+        status_code=503,
+        detail=(
+            "Self-healing engine not available: the optional dependency "
+            f"{_MISSING_MODULE} was removed during the BAZSPARK cleanup and "
+            "is being migrated to a new module path."
+        ),
+    )
+
 
 @router.get("/health", dependencies=[Depends(require_permission(Permission.MONITOR_READ))])
 async def self_healing_health():
@@ -29,26 +59,7 @@ async def self_healing_health():
     Returns circuit breaker state, LRU cache stats, audit logger stats,
     and LLM circuit breaker stats.
     """
-    try:
-        from fireai.core.qomn_self_healing_engine import (
-            global_audit_logger,
-            global_circuit_breaker,
-            global_llm_breaker,
-            global_lru_cache,
-        )
-    except ImportError as e:
-        raise HTTPException(
-            status_code=503,
-            detail=f"Self-healing engine not available: {e}",
-        ) from None
-
-    return {
-        "success": True,
-        "circuit_breaker": global_circuit_breaker.health(),
-        "lru_cache": global_lru_cache.stats(),
-        "audit_logger": global_audit_logger.stats(),
-        "llm_breaker": global_llm_breaker.stats(),
-    }
+    raise _self_healing_unavailable_503() from None
 
 
 @router.get("/audit", dependencies=[Depends(require_permission(Permission.MONITOR_READ))])
@@ -59,29 +70,7 @@ async def self_healing_audit(limit: int = 20):
     Args:
         limit: Maximum number of entries to return (default 20, max 100).
     """
-    try:
-        from fireai.core.qomn_self_healing_engine import global_audit_logger
-    except ImportError as e:
-        raise HTTPException(
-            status_code=503,
-            detail=f"Self-healing engine not available: {e}",
-        ) from None
-
-    limit = min(limit, 100)
-    stats = global_audit_logger.stats()
-
-    # Verify chain integrity
-    try:
-        chain_result = global_audit_logger.verify_chain()
-    except Exception as e:
-        chain_result = {"valid": False, "error": str(e)}
-
-    return {
-        "success": True,
-        "stats": stats,
-        "chain_integrity": chain_result,
-        "limit": limit,
-    }
+    raise _self_healing_unavailable_503() from None
 
 
 @router.post("/reset", dependencies=[Depends(require_permission(Permission.SYSTEM_CONFIG))])
@@ -93,17 +82,4 @@ async def self_healing_reset():
     healing events. The circuit breaker will return to CLOSED state
     and allow normal operation.
     """
-    try:
-        from fireai.core.qomn_self_healing_engine import global_circuit_breaker
-    except ImportError as e:
-        raise HTTPException(
-            status_code=503,
-            detail=f"Self-healing engine not available: {e}",
-        ) from None
-
-    global_circuit_breaker.reset()
-    return {
-        "success": True,
-        "message": "Circuit breaker reset to CLOSED state",
-        "circuit_breaker": global_circuit_breaker.health(),
-    }
+    raise _self_healing_unavailable_503() from None
