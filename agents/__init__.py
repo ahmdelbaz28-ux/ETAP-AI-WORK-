@@ -32,19 +32,17 @@ Data Classes:
 """
 
 from agents.arc_flash_agent import ArcFlashAgent
+from agents.base import BaseAgent
 from agents.battery_storage_agent import BatteryStorageAgent
 from agents.cable_sizing_agent import CableSizingAgent
 from agents.digital_twin_agent import DigitalTwinAgent
 from agents.earth_grid_agent import EarthGridAgent
 from agents.etap_expert_agent import ETAPExpertAgent
 from agents.etap_gui_agent import ETAPGUIAgent
+from agents.models import AgentResult, AgentStatus, EngineeringTask, StudyType
 from agents.motor_starting_agent import MotorStartingAgent
 from agents.orchestrator import (
-    AgentResult,
-    AgentStatus,
-    BaseAgent,
     ChiefEngineeringOrchestrator,
-    EngineeringTask,
     ETAPExecutionAgent,
     HarmonicAnalysisAgent,
     LoadFlowAgent,
@@ -52,7 +50,6 @@ from agents.orchestrator import (
     ProtectionCoordinationAgent,
     ReportGenerationAgent,
     ShortCircuitAgent,
-    StudyType,
     ValidationAgent,
     get_orchestrator,
 )

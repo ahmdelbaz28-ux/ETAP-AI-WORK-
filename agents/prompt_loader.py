@@ -75,7 +75,7 @@ import os
 import threading
 import time
 from pathlib import Path
-from typing import Optional, Any
+from typing import Any, Optional
 
 import yaml
 

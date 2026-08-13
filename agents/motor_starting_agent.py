@@ -36,7 +36,7 @@ try:
     from datetime import UTC
 except ImportError:
     UTC = timezone.utc
-from typing import Optional, Any
+from typing import Any
 
 import numpy as np
 
@@ -47,7 +47,6 @@ from agents.orchestrator import (
     EngineeringTask,
     StudyType,
 )
-from agents.orchestrator import AgentResult, AgentStatus, BaseAgent, EngineeringTask, StudyType
 
 logger = logging.getLogger(__name__)
 

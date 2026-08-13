@@ -25,7 +25,7 @@ import logging
 from datetime import datetime, timezone
 
 UTC = timezone.utc  # noqa: UP017
-from typing import Optional, Any
+from typing import Any
 
 import numpy as np
 

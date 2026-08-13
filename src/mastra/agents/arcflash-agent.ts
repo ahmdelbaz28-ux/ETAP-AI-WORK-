@@ -1,20 +1,6 @@
-import { Agent } from '@mastra/core/agent';
-import { Memory } from '@mastra/memory';
-import { run_python } from '../tools/python-tool';
-import { getSystemPrompt } from '../prompts';
-import { getActiveModelConfig } from '../lib/model-config';
-
-const promptContent = await getSystemPrompt('arcflash_agent_prompt');
-
-export const arcFlashAgent = new Agent({
-  id: 'arcflash-agent',
-  name: 'Arc Flash Analysis Agent',
-  instructions: promptContent,
-  model: getActiveModelConfig() as any,
-  tools: { run_python },
-  // ARCHITECTURE AUDIT FIX (F-06): Memory configured with TTL and limits
-  memory: new Memory({
-    maxMessages: 30,
-    ttl: 3600, // 1 hour for engineering sessions
-  } as any),
-});
+/**
+ * Agent: arcflash-agent
+ * Prompt handle: arcflash_agent_prompt
+ * Type: native (IEEE 1584 arc flash analysis)
+ */
+export { arcFlashAgent } from './index';

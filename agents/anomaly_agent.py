@@ -24,7 +24,7 @@ import logging
 from datetime import datetime, timezone
 
 UTC = getattr(timezone, "utc", timezone.utc)
-from typing import Optional, Any, Union
+from typing import Any
 
 import numpy as np
 
