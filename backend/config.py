@@ -26,6 +26,53 @@ except ImportError:
     pass
 
 
+def _migrate_deprecated_env_vars() -> None:
+    """Migrate FIREAI_* env vars to ETAP_* (one-way, idempotent).
+
+    BACKWARD COMPATIBILITY (v2.x → v3.0 migration):
+    Old FIREAI_* env vars are accepted but deprecated.
+    They will be removed in v3.0. New code MUST use ETAP_* / ENVIRONMENT.
+
+    This runs at module-import time so all subsequent ``os.environ.get``
+    calls (in this module or downstream modules) see the migrated values.
+    """
+    import warnings
+
+    migrations = [
+        ("FIREAI_API_KEY", "ETAP_API_KEY"),
+        ("FIREAI_SESSION_SECRET", "ETAP_SESSION_SECRET"),
+        ("FIREAI_SESSION_SECRET_FILE", "ETAP_SESSION_SECRET_FILE"),
+        ("FIREAI_AUTH_DISABLED", "ENGINEERING_SERVICE_AUTH_DISABLED"),
+        ("FIREAI_API_KEY_ROLE", "ETAP_API_KEY_ROLE"),
+        ("FIREAI_ALLOWED_UPLOAD_DIRS", "ETAP_ALLOWED_UPLOAD_DIRS"),
+        ("FIREAI_EVIDENCE_HMAC_KEY", "ETAP_EVIDENCE_HMAC_KEY"),
+        ("FIREAI_MEMORY_LLM_PROVIDER", "ETAP_MEMORY_LLM_PROVIDER"),
+        ("FIREAI_MEMORY_LLM_MODEL", "ETAP_MEMORY_LLM_MODEL"),
+    ]
+    for old, new in migrations:
+        if old in os.environ and new not in os.environ:
+            warnings.warn(
+                f"{old} is deprecated, use {new} instead. "
+                f"Will be removed in v3.0.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            os.environ[new] = os.environ[old]
+
+    # Special: FIREAI_ENV → ENVIRONMENT
+    if "FIREAI_ENV" in os.environ and "ENVIRONMENT" not in os.environ:
+        warnings.warn(
+            "FIREAI_ENV is deprecated, use ENVIRONMENT instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        os.environ["ENVIRONMENT"] = os.environ["FIREAI_ENV"]
+
+
+# Run migration before any Config class attribute is read.
+_migrate_deprecated_env_vars()
+
+
 class Config:
     """Centralized configuration for all database connections."""
 
@@ -109,7 +156,13 @@ class Config:
     )
 
     # Additional settings
-    ENVIRONMENT: str = os.environ.get("FIREAI_ENV", "development")
+    # ENVIRONMENT is the canonical env var. FIREAI_ENV is accepted as a
+    # deprecated alias for backward compatibility (migrated by
+    # _migrate_deprecated_env_vars above).
+    ENVIRONMENT: str = os.environ.get(
+        "ENVIRONMENT",
+        os.environ.get("FIREAI_ENV", "development"),  # deprecated fallback
+    )
     DEBUG: bool = ENVIRONMENT.lower() == "development"
 
     @classmethod
