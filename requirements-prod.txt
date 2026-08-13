@@ -8,7 +8,7 @@ opentelemetry-semantic-conventions>=0.51b0
 opentelemetry-instrumentation-fastapi~=0.51b0
 
 # LLM observability — Langfuse (free Hobby plan supports unlimited prompts)
-langfuse>=2.51.0
+langfuse>=2.60.0,<3
 
 # Metrics - Prometheus
 prometheus-client>=0.19.0
