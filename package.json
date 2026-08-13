@@ -50,7 +50,7 @@
     "@playwright/test": "^1.62.1",
     "@testsprite/testsprite-mcp": "^0.0.39",
     "@types/js-yaml": "^4.0.9",
-    "@types/node": "22.10.2",
+    "@types/node": "^22.12.0",
     "@types/pino": "7.0.5",
     "@vitest/coverage-v8": "3.2.6",
     "commander": "12.1.0",
