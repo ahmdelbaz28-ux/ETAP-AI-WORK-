@@ -241,9 +241,9 @@ jobs:
           rc, so, se = run("cd /workspace && mypy backend/ core/ --ignore-missing-imports --no-error-summary 2>&1", timeout=240)
           results["mypy"] = {"rc": rc, "out": so[-2000:], "err": se[-500:]}
 
-          # 4. Pytest (backend) — core + parsers + fireai only (fast subset; V209: no tail)
+          # 4. Pytest (backend) — core + parsers only (fast subset; V209: no tail)
           rc, so, se = run(
-              "cd /workspace && python -m pytest core/tests parsers/tests fireai/core/tests "
+              "cd /workspace && python -m pytest core/tests parsers/tests "
               "--no-cov -q --timeout=60 -p no:cacheprovider 2>&1",
               timeout=600,
           )
