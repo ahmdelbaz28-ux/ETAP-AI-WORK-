@@ -14,23 +14,42 @@ Architecture:
 - ETAP Execution Agent: COM automation interface
 - Validation Agent: Results verification & compliance checking
 - Report Agent: Automated report generation (PDF/DOCX/XLSX)
+
+NOTE (C5 refactor): The data models (AgentStatus, StudyType, AgentResult,
+EngineeringTask) and the BaseAgent class were extracted into
+``agents/models.py`` and ``agents/base.py`` respectively. They are
+re-exported here for backward compatibility so that all existing imports
+(``from agents.orchestrator import StudyType``, etc.) continue to work.
 """
 
 from __future__ import annotations
 
-# Module-level string constants (extracted to satisfy S1192).
-_SYSTEM_DATA_NOT_PROVIDED_MSG = "System data not provided"  # NOSONAR
-_ENGINEERING_REPORT_TITLE = "Engineering Report"  # NOSONAR
-_ANALYSIS_RESULTS_TITLE = "Analysis Results"  # NOSONAR
-
 import asyncio
 import logging
 import time
-from dataclasses import dataclass, field
 from datetime import datetime, timezone
 
+# ---------------------------------------------------------------------------
+# Backward-compat re-exports — these symbols were moved to dedicated deep
+# modules but are re-exported here so all 34 existing call sites that import
+# from ``agents.orchestrator`` continue to work unchanged.
+#
+# New code should import directly from the source modules:
+#   from agents.models import StudyType, AgentResult, ...
+#   from agents.base import BaseAgent
+# ---------------------------------------------------------------------------
+from agents.base import BaseAgent  # noqa: F401
+from agents.models import (  # noqa: F401
+    _ANALYSIS_RESULTS_TITLE,
+    _ENGINEERING_REPORT_TITLE,
+    _SYSTEM_DATA_NOT_PROVIDED_MSG,
+    AgentResult,
+    AgentStatus,
+    EngineeringTask,
+    StudyType,
+)
+
 UTC = timezone.utc  # noqa: UP017
-from enum import Enum
 from typing import Any
 
 import numpy as np
@@ -38,239 +57,6 @@ import numpy as np
 from core.tracing import trace_operation
 
 logger = logging.getLogger(__name__)
-
-
-class AgentStatus(Enum):
-    """Agent execution status."""
-
-    IDLE = "idle"
-    RUNNING = "running"
-    COMPLETED = "completed"
-    FAILED = "failed"
-    VALIDATING = "validating"
-
-
-class StudyType(Enum):
-    """Power system study types (canonical snake_case values)."""
-
-    LOAD_FLOW = "load_flow"
-    SHORT_CIRCUIT = "short_circuit"
-    HARMONIC_ANALYSIS = "harmonic_analysis"
-    OPTIMAL_POWER_FLOW = "optimal_power_flow"
-    PROTECTION_COORDINATION = "protection_coordination"
-    MOTOR_STARTING = "motor_starting"
-    TRANSIENT_STABILITY = "transient_stability"
-    ARC_FLASH = "arc_flash"
-    CABLE_SIZING = "cable_sizing"
-    EARTH_GRID = "earth_grid"
-    RENEWABLE_INTEGRATION = "renewable_integration"
-    BATTERY_STORAGE = "battery_storage"
-    SCADA = "scada"
-    # Added 2026-07-26: referenced by PEER_REVIEW_MATRIX (scada <-> digital_twin)
-    # but was missing from the enum, causing StudyType("digital_twin") to fail
-    # and fall back to LOAD_FLOW in the AhmedETAP skill pipeline.
-    DIGITAL_TWIN = "digital_twin"
-    ETAP_EXPERT = "etap_expert"
-    ETAP_GUI = "etap_gui"
-
-
-@dataclass
-class AgentResult:
-    """Result from an agent execution."""
-
-    agent_name: str
-    study_type: StudyType
-    status: AgentStatus
-    data: dict[str, Any]
-    validation_status: bool = False
-    validation_errors: list[str] = field(default_factory=list)
-    execution_time: float = 0.0
-    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
-
-
-@dataclass
-class EngineeringTask:
-    """Complete engineering task specification."""
-
-    task_id: str
-    description: str
-    study_types: list[StudyType]
-    parameters: dict[str, Any]
-    priority: int = 1
-    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
-    status: AgentStatus = AgentStatus.IDLE
-    results: list[AgentResult] = field(default_factory=list)
-
-
-class BaseAgent:
-    """Base class for all engineering agents.
-
-    Integrates with the prompt management system so every agent can
-    access its prompt-driven description, standards references, and
-    execution guidance from ``prompts/`` YAML files (or LangWatch).
-
-    Subclasses must set ``prompt_handle`` to the handle that matches
-    their YAML prompt file (e.g. ``"load_flow_agent"``).  If not set,
-    a handle is derived from the class name by converting CamelCase
-    to snake_case and stripping the "Agent" suffix.
-    """
-
-    # Subclasses should override this to match their prompt YAML handle.
-    prompt_handle: str = ""
-
-    def __init__(self, agent_name: str):
-        self.agent_name = agent_name
-        self.status = AgentStatus.IDLE
-        self.logger = logging.getLogger(f"agent.{agent_name}")
-        self.execution_log: list[dict] = []
-
-        # Derive prompt handle from class name if not explicitly set
-        if not self.prompt_handle:
-            self.prompt_handle = self._derive_prompt_handle()
-
-        # Load prompt-driven metadata (description, standards, guidance)
-        self._system_prompt: str | None = None
-        self._prompt_metadata: dict[str, Any] = {}
-        self._load_prompt()
-
-    def _derive_prompt_handle(self) -> str:
-        """Derive a prompt handle from the class name.
-
-        Examples:
-            LoadFlowAgent       → load_flow_agent
-            ShortCircuitAgent   → short_circuit_agent
-            StabilityAgent      → stability_agent
-        """
-        name = self.__class__.__name__
-        # Remove 'Agent' suffix if present
-        if name.endswith("Agent"):
-            name = name[:-5]
-        # Convert CamelCase to snake_case
-        import re
-
-        name = re.sub(r"(?<=[a-z0-9])([A-Z])", r"_\1", name).lower()
-        return name
-
-    def _load_prompt(self) -> None:
-        """Load the prompt for this agent from the prompt management system.
-
-        Uses the 3-tier fallback:
-        1. LangWatch API (if configured)
-        2. Local YAML file in prompts/
-        3. Hardcoded default
-
-        Failures are non-fatal — the agent can still operate without
-        a prompt, using its hardcoded computational logic.
-        """
-        try:
-            from agents.prompt_loader import get_prompt_metadata, get_system_prompt
-
-            self._system_prompt = get_system_prompt(self.prompt_handle)
-            self._prompt_metadata = get_prompt_metadata(self.prompt_handle)
-            self.logger.info(
-                "Prompt loaded for handle '%s' (%d chars)",
-                self.prompt_handle,
-                len(self._system_prompt) if self._system_prompt else 0,
-            )
-        except Exception as exc:
-            self.logger.warning(
-                "Failed to load prompt for handle '%s': %s. Agent will use hardcoded logic.",
-                self.prompt_handle,
-                exc,
-            )
-            self._system_prompt = None
-            self._prompt_metadata = {}
-
-    @property
-    def system_prompt(self) -> str:
-        """Return the loaded system prompt, or a default if unavailable."""
-        if self._system_prompt:
-            return self._system_prompt
-        return f"{self.agent_name}: Computational agent for power system analysis."
-
-    @property
-    def prompt_model(self) -> str:
-        """Return the model name from the prompt metadata, if available."""
-        return self._prompt_metadata.get("model", "unknown")
-
-    @property
-    def prompt_temperature(self) -> float:
-        """Return the temperature from the prompt metadata, if available."""
-        # SECURITY AUDIT 2026-07-25 — Fix S-18: Default temperature changed from 0.2 to 0.0.
-        # Safety-critical engineering calculations require deterministic outputs.
-        # Use higher temperature (0.1-0.3) ONLY for creative tasks, not engineering.
-        return float(self._prompt_metadata.get("temperature", 0.0))
-
-    def get_agent_info(self) -> dict[str, Any]:
-        """Return agent metadata including prompt-derived information.
-
-        This is useful for API responses, logging, and debugging.
-        """
-        return {
-            "agent_name": self.agent_name,
-            "prompt_handle": self.prompt_handle,
-            "model": self.prompt_model,
-            "temperature": self.prompt_temperature,
-            "prompt_loaded": self._system_prompt is not None,
-            "status": self.status.value,
-        }
-
-    @trace_operation("BaseAgent.execute", attributes={"component": "orchestrator"})
-    async def execute(self, task: EngineeringTask) -> AgentResult:
-        """
-        Execute agent task. Override in subclasses.
-
-        Default implementation returns a FAILED AgentResult so that any
-        subclass that forgets to override ``execute`` is detected early
-        via the agent's own validation pipeline (rather than crashing
-        the workflow with a NotImplementedError at runtime).
-        """
-        self.status = AgentStatus.FAILED
-        self.log_execution(
-            f"BaseAgent.execute invoked on {self.agent_name} (no override). Task={task.task_id}",
-            level="ERROR",
-        )
-        return AgentResult(
-            agent_name=self.agent_name,
-            study_type=task.study_types[0] if task.study_types else StudyType.LOAD_FLOW,
-            status=AgentStatus.FAILED,
-            data={},
-            validation_errors=[
-                f"Agent '{self.agent_name}' does not implement execute(); "
-                "override BaseAgent.execute in the concrete subclass.",
-            ],
-        )
-
-    def validate_result(self, result: AgentResult) -> bool:
-        """
-        Validate agent result. Override in subclasses.
-
-        Default implementation performs the minimum sanity checks that
-        apply to every result (status == COMPLETED, non-empty data,
-        no pre-existing validation errors) and returns True if they
-        all pass. Subclasses are expected to add domain-specific
-        checks.
-        """
-        if result.status != AgentStatus.COMPLETED:
-            result.validation_errors.append(
-                f"Result status is {result.status.value}, expected completed",
-            )
-            return False
-        if not result.data:
-            result.validation_errors.append("Result data is empty")
-            return False
-        return not result.validation_errors
-
-    def log_execution(self, message: str, level: str = "INFO") -> None:
-        """Log execution details."""
-        entry = {
-            "timestamp": datetime.now(UTC).isoformat(),
-            "agent": self.agent_name,
-            "level": level,
-            "message": message,
-        }
-        self.execution_log.append(entry)
-        getattr(self.logger, level.lower())(message)
 
 
 class LoadFlowAgent(BaseAgent):
