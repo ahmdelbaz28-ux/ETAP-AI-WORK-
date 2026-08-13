@@ -31,14 +31,12 @@ from fastapi.responses import PlainTextResponse
 from backend.auth import require_permission
 from backend.rbac import Permission
 
-# fireai/ was removed (BAZSPARK contamination). Preserve the monitor endpoint's
-# version reporting with a graceful sentinel so `import backend.app` — which
-# imports monitor unconditionally — does not hard-depend on the deleted package.
-# (Same guard pattern applied to backend/routers/health.py.)
-try:
-    from fireai.version import __package_version__
-except ImportError:  # fireai package removed during BAZSPARK cleanup (SR-001)
-    __package_version__ = "ahmed-etap"
+# ETAP-AI-WORK version identifier.
+# (Previously this was a try/except guard around `from fireai.version import
+# __package_version__` because the fireai package was deleted during BAZSPARK
+# cleanup (SR-001). Now that fireai imports are fully removed from the codebase,
+# the guard is no longer needed — this is the canonical version string.)
+__package_version__ = "ahmed-etap"
 
 logger = logging.getLogger(__name__)
 
@@ -349,18 +347,11 @@ class MonitorState:
                             break
 
                 elif rule["rule_id"] == "compliance-drop":
-                    try:
-                        from fireai.validation.compliance_engine import ComplianceEngine
-
-                        engine = ComplianceEngine()
-                        result = engine.validate_and_report({})
-                        if result.get("compliance_percentage", 100) < 90:
-                            triggered = True
-                            alert_data["message"] = (
-                                f"Overall compliance at {result['compliance_percentage']}%"
-                            )
-                    except Exception:
-                        pass
+                    # FIREAI/BAZSPARK cleanup: the fireai.validation.compliance_engine
+                    # module was removed. This alert rule is currently a no-op until a
+                    # replacement compliance engine is wired in. Kept as a stub so
+                    # rule configuration in the database remains valid.
+                    pass
 
                 elif rule["rule_id"] == "high-failure-rate":
                     total = sum(
@@ -450,63 +441,63 @@ class MonitorState:
         """Collect system metrics in Prometheus text format."""
         with self._lock:
             lines: list[str] = []
-            lines.append("# HELP fireai_uptime_seconds System uptime in seconds")
-            lines.append("# TYPE fireai_uptime_seconds gauge")
+            lines.append("# HELP etap_uptime_seconds System uptime in seconds")
+            lines.append("# TYPE etap_uptime_seconds gauge")
             uptime = time.time() - self._start_time
-            lines.append(f"fireai_uptime_seconds {uptime}")
+            lines.append(f"etap_uptime_seconds {uptime}")
 
-            lines.append("# HELP fireai_engine_info Engine metadata")
-            lines.append("# TYPE fireai_engine_info gauge")
+            lines.append("# HELP etap_engine_info Engine metadata")
+            lines.append("# TYPE etap_engine_info gauge")
             for eid, eng in self._engines.items():
                 status = eng.get("status", "unknown")
                 lines.append(
-                    f'fireai_engine_info{{engine_id="{eid}",'
+                    f'etap_engine_info{{engine_id="{eid}",'
                     f'name="{eng.get("name", "unknown")}",'
                     f'status="{status}",'
                     f'version="{eng.get("version", "0")}"}} 1'
                 )
 
-            lines.append("# HELP fireai_engine_cpu_percent Engine CPU usage")
-            lines.append("# TYPE fireai_engine_cpu_percent gauge")
+            lines.append("# HELP etap_engine_cpu_percent Engine CPU usage")
+            lines.append("# TYPE etap_engine_cpu_percent gauge")
             for eid, eng in self._engines.items():
                 lines.append(
-                    f'fireai_engine_cpu_percent{{engine_id="{eid}"}} {eng.get("cpu_percent", 0)}'
+                    f'etap_engine_cpu_percent{{engine_id="{eid}"}} {eng.get("cpu_percent", 0)}'
                 )
 
-            lines.append("# HELP fireai_engine_memory_mb Engine memory usage")
-            lines.append("# TYPE fireai_engine_memory_mb gauge")
+            lines.append("# HELP etap_engine_memory_mb Engine memory usage")
+            lines.append("# TYPE etap_engine_memory_mb gauge")
             for eid, eng in self._engines.items():
                 lines.append(
-                    f'fireai_engine_memory_mb{{engine_id="{eid}"}} {eng.get("memory_mb", 0)}'
+                    f'etap_engine_memory_mb{{engine_id="{eid}"}} {eng.get("memory_mb", 0)}'
                 )
 
-            lines.append("# HELP fireai_engine_checks_passed Total passed checks")
-            lines.append("# TYPE fireai_engine_checks_passed counter")
+            lines.append("# HELP etap_engine_checks_passed Total passed checks")
+            lines.append("# TYPE etap_engine_checks_passed counter")
             for eid, eng in self._engines.items():
                 lines.append(
-                    f'fireai_engine_checks_passed{{engine_id="{eid}"}} '
+                    f'etap_engine_checks_passed{{engine_id="{eid}"}} '
                     f"{eng.get('checks_passed', 0)}"
                 )
 
-            lines.append("# HELP fireai_engine_checks_failed Total failed checks")
-            lines.append("# TYPE fireai_engine_checks_failed counter")
+            lines.append("# HELP etap_engine_checks_failed Total failed checks")
+            lines.append("# TYPE etap_engine_checks_failed counter")
             for eid, eng in self._engines.items():
                 lines.append(
-                    f'fireai_engine_checks_failed{{engine_id="{eid}"}} '
+                    f'etap_engine_checks_failed{{engine_id="{eid}"}} '
                     f"{eng.get('checks_failed', 0)}"
                 )
 
-            lines.append("# HELP fireai_security_alerts_total Total security alerts")
-            lines.append("# TYPE fireai_security_alerts_total counter")
-            lines.append(f"fireai_security_alerts_total {len(self._security_alerts)}")
+            lines.append("# HELP etap_security_alerts_total Total security alerts")
+            lines.append("# TYPE etap_security_alerts_total counter")
+            lines.append(f"etap_security_alerts_total {len(self._security_alerts)}")
 
-            lines.append("# HELP fireai_active_alerts Currently firing alerts")
-            lines.append("# TYPE fireai_active_alerts gauge")
-            lines.append(f"fireai_active_alerts {len(self._active_alerts)}")
+            lines.append("# HELP etap_active_alerts Currently firing alerts")
+            lines.append("# TYPE etap_active_alerts gauge")
+            lines.append(f"etap_active_alerts {len(self._active_alerts)}")
 
-            lines.append("# HELP fireai_agent_activity_count Agent activity log size")
-            lines.append("# TYPE fireai_agent_activity_count gauge")
-            lines.append(f"fireai_agent_activity_count {len(self._agent_activity)}")
+            lines.append("# HELP etap_agent_activity_count Agent activity log size")
+            lines.append("# TYPE etap_agent_activity_count gauge")
+            lines.append(f"etap_agent_activity_count {len(self._agent_activity)}")
 
             return "\n".join(lines) + "\n"
 
@@ -721,37 +712,12 @@ async def get_security_alerts(
     """
     _check_rate_limit(request)
 
-    # Try to load from security logging system
-    try:
-        from fireai.core.security_logging import security_audit
-
-        events = security_audit.get_events(limit=limit)
-        alerts = []
-        for event in events:
-            alerts.append(
-                {
-                    "alert_id": event.get("event_id", ""),
-                    "severity": event.get("severity", "medium"),
-                    "category": event.get("event_type", "unknown"),
-                    "message": event.get("message", ""),
-                    "source_ip": event.get("source_ip", ""),
-                    "timestamp": event.get("timestamp", ""),
-                    "resolved": False,
-                }
-            )
-        if alerts:
-            return {
-                "success": True,
-                "data": {
-                    "alerts": alerts[:limit],
-                    "total": len(alerts),
-                    "source": "security_logging",
-                    "timestamp": datetime.now(timezone.utc).isoformat(),
-                },
-            }
-    except Exception as e:
-        logger.debug("Security logging not available: %s", e)
-
+    # FIREAI/BAZSPARK cleanup: the fireai.core.security_logging module was
+    # removed. The previous try/except block attempted to import
+    # `security_audit` from there; it now silently fell through to the
+    # fallback (MonitorState.get_security_alerts). The dead branch has been
+    # removed for clarity. When a replacement security event store is wired
+    # in, re-introduce the integration here.
     alerts = _monitor.get_security_alerts(limit=limit, severity=severity, resolved=resolved)
     return {
         "success": True,

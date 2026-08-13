@@ -26,15 +26,12 @@ from backend.database import get_db
 from backend.db_service import DatabaseService, get_db_service
 from backend.rbac import Permission
 
-# fireai/ was removed (BAZSPARK contamination). Preserve the health endpoint's
-# version reporting with a graceful sentinel so `import backend.app` (and the
-# health router, imported unconditionally by app.py) does not hard-depend on the
-# deleted package. This is a startup-path guard, not a behavioral change to the
-# health endpoint itself.
-try:
-    from fireai.version import __package_version__
-except ImportError:  # fireai package removed during BAZSPARK cleanup (SR-001)
-    __package_version__ = "ahmed-etap"
+# ETAP-AI-WORK version identifier.
+# (Previously this was a try/except guard around `from fireai.version import
+# __package_version__` because the fireai package was deleted during BAZSPARK
+# cleanup (SR-001). Now that fireai imports are fully removed from the codebase,
+# the guard is no longer needed — this is the canonical version string.)
+__package_version__ = "ahmed-etap"
 
 logger = logging.getLogger(__name__)
 
