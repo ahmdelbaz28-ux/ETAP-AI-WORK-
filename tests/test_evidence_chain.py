@@ -25,7 +25,6 @@ import hashlib
 import hmac
 
 import pytest
-
 from fireai.core.evidence_chain import (
     EvidenceChain,
     EvidenceChainError,

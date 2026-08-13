@@ -19,7 +19,6 @@ Standards:
 from __future__ import annotations
 
 import pytest
-
 from fireai.core.models_v21 import (
     HazardType,
     WavelengthBand,

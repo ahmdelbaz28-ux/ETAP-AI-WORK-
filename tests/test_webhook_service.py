@@ -15,7 +15,6 @@ from __future__ import annotations
 import os
 
 import pytest
-
 from fireai.infrastructure.webhook_service import (
     WEBHOOK_EVENT_TYPES,
     DeliveryStatus,

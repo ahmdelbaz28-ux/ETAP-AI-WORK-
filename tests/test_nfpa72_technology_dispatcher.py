@@ -21,7 +21,6 @@ NFPA 72 References:
 from __future__ import annotations
 
 import pytest
-
 from fireai.core.nfpa72_technology_dispatcher import (
     _BEAM_MAX_CEILING_M,
     _BEAM_SPACING_M,

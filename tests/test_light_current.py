@@ -24,7 +24,6 @@ from __future__ import annotations
 import dataclasses
 
 import pytest
-
 from fireai.core.light_current import (
     CableType,
     ContractViolation,

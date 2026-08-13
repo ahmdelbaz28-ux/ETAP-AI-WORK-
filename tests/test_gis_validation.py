@@ -6,6 +6,7 @@ providers. Tests are skipped if the required imports are not available.
 """
 
 from __future__ import annotations
+
 from typing import Optional
 
 import pytest

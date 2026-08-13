@@ -79,9 +79,11 @@ jobs:
           os.environ['JWT_SECRET_KEY'] = 'schema-generation-test-key-not-for-production'
 
           try:
-              # Try importing the HF Space app (lighter than engineering_service)
-              sys.path.insert(0, '.')
-              from hf_space.app import app
+              # Try importing the HF Space app (lighter than engineering_service).
+              # The directory is `hf-space/` (hyphen, not a valid Python identifier),
+              # so we add it to sys.path and import the `app` module directly.
+              sys.path.insert(0, 'hf-space')
+              from app import app
 
               schema = app.openapi()
               with open('openapi.json', 'w') as f:

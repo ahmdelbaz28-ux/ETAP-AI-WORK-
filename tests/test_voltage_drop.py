@@ -24,7 +24,6 @@ from __future__ import annotations
 import warnings
 
 import pytest
-
 from fireai.core.voltage_drop import (
     FA_WIRE_GAUGES,
     MAX_VOLTAGE_DROP_PCT,

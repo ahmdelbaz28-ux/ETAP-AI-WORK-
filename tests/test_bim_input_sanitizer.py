@@ -23,7 +23,6 @@ parameters that flow from external sources into BIM models.
 from __future__ import annotations
 
 import pytest
-
 from fireai.core.bim_input_sanitizer import (
     sanitize_bim_parameter,
     sanitize_file_path,

@@ -23,7 +23,6 @@ import json
 import math
 
 import pytest
-
 from fireai.core.cable_router import (
     DIRECTIONS_6,
     CableRouter,

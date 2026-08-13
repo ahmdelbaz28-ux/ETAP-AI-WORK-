@@ -27,7 +27,6 @@ from __future__ import annotations
 import dataclasses
 
 import pytest
-
 from fireai.core.cable_routing_engine import (
     MAX_VOLTAGE_DROP_PCT,
     NOMINAL_VOLTAGE_FA,

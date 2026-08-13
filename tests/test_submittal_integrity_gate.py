@@ -21,7 +21,6 @@ import tempfile
 from pathlib import Path
 
 import pytest
-
 from fireai.core.submittal_integrity_gate import (
     HashRecord,
     IntegrityCheckResult,

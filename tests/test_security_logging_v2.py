@@ -32,7 +32,6 @@ import threading
 from unittest.mock import patch
 
 import pytest
-
 from fireai.core.security_logging import (
     _SECURITY_GENESIS,
     SecurityAuditLogger,

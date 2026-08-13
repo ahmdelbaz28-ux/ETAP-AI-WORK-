@@ -290,7 +290,7 @@ class TestLogin:
             f"Expected 429 after 5 failed attempts, got {resp.status_code}"
         )
         # Clear IP and login rate limit state so subsequent tests aren't blocked
-        from api.auth import _ip_attempts, _ip_attempts_lock, _LOGIN_ATTEMPTS, _LOGIN_ATTEMPTS_LOCK
+        from api.auth import _LOGIN_ATTEMPTS, _LOGIN_ATTEMPTS_LOCK, _ip_attempts, _ip_attempts_lock
 
         with _ip_attempts_lock:
             _ip_attempts.clear()

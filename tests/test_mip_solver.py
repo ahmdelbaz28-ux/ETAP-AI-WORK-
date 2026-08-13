@@ -15,7 +15,6 @@ Covers:
 from __future__ import annotations
 
 import pytest
-
 from fireai.core.spatial_engine.mip_solver import (
     PULP_AVAILABLE,
     MIPResult,

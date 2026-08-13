@@ -23,7 +23,6 @@ from __future__ import annotations
 import threading
 
 import pytest
-
 from fireai.core.safe_building_engine import SafeBuildingEngine
 
 # Initialization

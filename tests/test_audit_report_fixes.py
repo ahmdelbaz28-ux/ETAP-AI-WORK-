@@ -343,7 +343,6 @@ class TestBatterySizingSafetyFactor:
     def test_standby_below_24_hours_warns(self):
         """Standby < 24h must raise error per NFPA 72 §10.6.7.2 — V65 FIX."""
         import pytest as _pytest
-
         from fireai.core.voltage_drop import calculate_battery_backup
 
         with _pytest.raises(ValueError, match="24h"):

@@ -28,7 +28,6 @@ import time
 from pathlib import Path
 
 import pytest
-
 from fireai.core.secret_rotation import KeyRotator
 from fireai.core.security_logging import (
     SecurityAuditLogger,

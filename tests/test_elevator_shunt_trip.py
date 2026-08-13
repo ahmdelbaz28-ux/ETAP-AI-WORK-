@@ -19,12 +19,11 @@ Code References:
 
 from __future__ import annotations
 
-import pytest
-
 # NOTE: Provenance module's RuleApplied/Violation field names differ from what
 # elevator_shunt_trip expects. We mock provenance to None to test business logic
 # via the fallback dict path — same pattern as group 3/4 tests.
 import fireai.core.elevator_shunt_trip as _est_mod
+import pytest
 
 
 @pytest.fixture(autouse=True)

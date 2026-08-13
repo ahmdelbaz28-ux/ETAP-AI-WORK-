@@ -11,7 +11,6 @@ These tests verify the exact conversion factors against NIST SP 811.
 from __future__ import annotations
 
 import pytest
-
 from fireai.core.unit_converter import (
     FEET_TO_METRES,
     GPM_TO_LPM,

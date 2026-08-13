@@ -18,12 +18,11 @@ Code References:
 
 from __future__ import annotations
 
-import pytest
-
 # NOTE: Provenance module's RuleApplied/Violation field names differ from what
 # slc_capacitance expects. We mock provenance to None to test business logic
 # via the fallback dict path — same pattern as group 3/4 tests.
 import fireai.core.slc_capacitance as _sc_mod
+import pytest
 
 
 @pytest.fixture(autouse=True)

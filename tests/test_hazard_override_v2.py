@@ -18,7 +18,6 @@ SBC 801 Chapter 9: Saudi Building Code fire protection requirements
 from __future__ import annotations
 
 import pytest
-
 from fireai.core.hazard_override import (
     _HAZARD_SEVERITY,
     MANDATORY_HAZARD_OVERRIDES,

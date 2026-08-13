@@ -33,6 +33,7 @@ if str(_PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(_PROJECT_ROOT))
 
 import pytest
+from fireai.core.qomn_kernel import NEC_TABLE8_RESISTANCE_OHM_PER_KM
 from pydantic import ValidationError
 
 from backend.routers.qomn import (
@@ -40,7 +41,6 @@ from backend.routers.qomn import (
     VoltageDropRequest,
     _normalize_awg_gauge,
 )
-from fireai.core.qomn_kernel import NEC_TABLE8_RESISTANCE_OHM_PER_KM
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # V118 — AWG Normalization Tests (validator behavior)

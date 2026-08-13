@@ -25,7 +25,6 @@ import json
 import math
 
 import pytest
-
 from fireai.core.spatial_engine.density_optimizer import DETECTOR_RADIUS
 from fireai.core.spatial_engine.proof_certificate import (
     ProofCertificate,

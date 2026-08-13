@@ -21,17 +21,23 @@ opentelemetry-exporter-otlp-proto-http~=1.30.0
 langfuse~=2.51.0
 
 # LLM SDKs (traced via langfuse.openai / langfuse.anthropic wrappers)
-# SECURITY: openai bumped from 1.50.0 → 2.52.0 because langchain-openai 1.4.x
+# SECURITY: openai bumped from 1.50.0 → 2.52.x because langchain-openai 1.4.x
 # (pinned below for the LangChain 1.x security upgrade) requires openai>=2.45.0,<3.
 # The 1.x openai line is incompatible with langchain-openai 1.x and would cause
 # a ResolutionImpossible at install time.
-openai~=2.7.0
+# NOTE: ~=2.52.0 means >=2.52.0,<2.53.0. Earlier pin `~=2.7.0` was a typo —
+# 2.7.x < 2.45.0 in PEP 440 ordering, so it failed langchain-openai's lower bound.
+openai~=2.52.0
 anthropic~=0.72.0
 
 # Supabase (managed Postgres + Storage + Auth) — used by integrations/supabase_*.py
 # Required when deploying to HF Space (where the filesystem is wiped on restart)
 # or when using Supabase Storage for PDFs/reports/screenshots.
-supabase~=2.6.0
+# SECURITY: bumped 2.6.0 → 2.31.0 because supabase 2.6.x pulls realtime 1.x
+# which caps websockets<13, conflicting with langsmith 0.10.x (needs >=15).
+# supabase 2.13+ uses realtime 2.x which allows websockets<16.
+# Verified to resolve cleanly with langsmith 0.10.18 + websockets 15.x (2026-08-13).
+supabase~=2.31.0
 
 # Neo4j (graph database) — used by integrations/neo4j_integration.py
 # Required for network topology modeling and knowledge graph operations.
@@ -55,11 +61,19 @@ neo4j>=5.25.0,<7
 # All pins use ~= (compatible-release) so CI installs reproducibly from
 # verified PyPI wheels. Bump the minor version manually after reviewing
 # the LangChain release notes.
-langchain-core~=0.2.43
-langchain-openai~=0.1.25
-langchain-community~=0.2.19
-langchain-experimental~=0.0.65
-langsmith~=0.1.31
+# Verified to resolve cleanly together (pip 25.x, 2026-08-13):
+#   langchain-openai 1.4.3 → requires langchain-core>=1.5.0 and openai>=2.45.0,<3
+#   langchain-core    1.5.4
+#   langchain-community    0.4.2
+#   langchain-experimental 0.4.2
+#   langchain-qdrant 1.1.0
+#   langsmith        0.10.18
+langchain-core~=1.5.0
+langchain-openai~=1.4.0
+langchain-community~=0.4.0
+langchain-experimental~=0.4.0
+langchain-qdrant~=1.0
+langsmith~=0.10.0
 
 # Metrics - Prometheus
 prometheus-client>=0.19,<0.26
@@ -279,7 +293,7 @@ kubernetes~=29.0.0
 # for CVE-2024-5184 / CVE-2025-21556 fixes) requires websockets>=15.0.
 # Range <16 satisfies the `realtime` package (sub-dep of supabase) which
 # requires websockets>=11,<16.
-websockets>=15,<18
+websockets>=15,<16
 
 # MQTT messaging for SCADA integration
 paho-mqtt~=2.1.0
@@ -399,7 +413,8 @@ httpx>=0.25.0
 # Phase 5: Kubernetes
 kubernetes>=29.0.0
 
-# Phase 3: WebSocket
+# Phase 3: WebSocket (loose lower bound for SCADA-GIS; the strict pin above
+# on line ~292 governs the actual installed version to satisfy langsmith 0.10.x).
 websockets>=12.0
 
 # Core requirements for SCADA-GIS integration

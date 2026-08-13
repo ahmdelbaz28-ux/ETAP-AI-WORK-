@@ -25,9 +25,8 @@ from __future__ import annotations
 
 import dataclasses
 
-import pytest
-
 import fireai.core.sequence_of_operations as _soo_mod
+import pytest
 
 
 @pytest.fixture(autouse=True)

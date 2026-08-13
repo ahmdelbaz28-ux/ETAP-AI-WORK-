@@ -23,7 +23,6 @@ import json
 import os
 
 import pytest
-
 from fireai.core.contracts import (
     CONTRACT_VERSION,
     DEFAULT_FEATURE_FLAGS,

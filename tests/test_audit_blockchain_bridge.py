@@ -20,7 +20,6 @@ import json
 import threading
 
 import pytest
-
 from fireai.core.audit_blockchain_bridge import (
     AUDIT_SYSTEM_NAME,
     AUDIT_VERSION,

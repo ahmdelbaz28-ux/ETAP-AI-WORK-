@@ -26,7 +26,6 @@ Reference: NFPA 72-2022, AGENTS.md Rules 6 and 7
 from __future__ import annotations
 
 import pytest
-
 from fireai.core.nfpa72_calculations import (
     calculate_coverage_radius,
     calculate_coverage_radius_from_height,

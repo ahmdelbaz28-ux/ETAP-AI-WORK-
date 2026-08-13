@@ -24,7 +24,6 @@ import json
 import time
 
 import pytest
-
 from fireai.core.provenance import (
     ConfidenceLevel,
     ConfidenceScore,

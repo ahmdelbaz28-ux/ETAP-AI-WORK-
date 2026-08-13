@@ -23,7 +23,6 @@ from __future__ import annotations
 import math
 
 import pytest
-
 from fireai.core.nfpa72_engine import (
     _BATTERY_DERATING_FACTOR,
     _HEAT_SPACING_TABLE,

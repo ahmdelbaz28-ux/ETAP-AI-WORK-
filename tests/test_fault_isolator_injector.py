@@ -20,7 +20,6 @@ NFPA 72 References:
 from __future__ import annotations
 
 import pytest
-
 from fireai.core.fault_isolator_injector import (
     DEFAULT_MAX_DEVICES_BETWEEN_ISOLATORS,
     ISOLATOR_DEVICE_TYPE,

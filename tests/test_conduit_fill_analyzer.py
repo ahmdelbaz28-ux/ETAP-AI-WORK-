@@ -23,13 +23,12 @@ from __future__ import annotations
 
 import math
 
-import pytest
-
 # NOTE: The provenance module's RuleApplied/Violation classes have different
 # field names than what conduit_fill_analyzer expects, causing TypeError.
 # We mock provenance to None to test the actual business logic via the
 # fallback dict path — consistent with the pattern used in group 3/4 tests.
 import fireai.core.conduit_fill_analyzer as _cfa_mod
+import pytest
 
 
 @pytest.fixture(autouse=True)

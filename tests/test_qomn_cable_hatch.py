@@ -27,7 +27,6 @@ os.environ.setdefault("FIREAI_ENV", "testing")
 os.environ.setdefault("DIGITAL_TWIN_DB_PATH", ":memory:")
 
 import pytest
-
 from fireai.core.qomn_integration_engine import (
     CableHatchIntegrator,
     CableRouter,

@@ -20,7 +20,6 @@ Standards Referenced:
 from __future__ import annotations
 
 import pytest
-
 from fireai.validation.compliance_engine import ComplianceEngine
 
 # ============================================================================

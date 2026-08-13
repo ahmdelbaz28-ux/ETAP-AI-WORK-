@@ -29,9 +29,8 @@ except ImportError:
 
 from unittest.mock import MagicMock, patch
 
-import pytest
-
 import fireai.core.routing_global_class_a as routing_mod
+import pytest
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # Mock provenance classes that accept BOTH old and new field names
