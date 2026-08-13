@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from collections.abc import Iterator
-from typing import Dict, List, Optional
 
 from gis_integration.base import GISProviderInterface
 from gis_integration.exceptions import GISDataExtractionError, GISProviderUnavailableError
