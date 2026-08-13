@@ -1,0 +1,1254 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Enterprise AI-Powered Power Systems Engineering Platform">
+      
+      
+        <meta name="author" content="AhmedETAP Team">
+      
+      
+      
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.11">
+    
+    
+      
+        <title>Cloudflare Protection Setup — BAZSPARK - AhmedETAP Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.4af4bdda.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="deep-purple">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#cloudflare-protection-setup-bazspark" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="AhmedETAP Documentation" class="md-header__button md-logo" aria-label="AhmedETAP Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            AhmedETAP Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Cloudflare Protection Setup — BAZSPARK
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  الصفحة الرئيسية
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../ARCHITECTURE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  الهيكلية
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../API_REFERENCE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  واجهة برمجة التطبيقات
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../OPERATIONS_RUNBOOK/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  دليل التشغيل
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../TROUBLESHOOTING_GUIDE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  دليل الأعطال
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../SECURITY_OPERATIONS_MANUAL/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  البنية التحتية للأمان
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../ENTERPRISE_CERTIFICATION_REPORT/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  التقييم المؤسسي
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="AhmedETAP Documentation" class="md-nav__button md-logo" aria-label="AhmedETAP Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    AhmedETAP Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    الصفحة الرئيسية
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ARCHITECTURE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    الهيكلية
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../API_REFERENCE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    واجهة برمجة التطبيقات
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../OPERATIONS_RUNBOOK/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    دليل التشغيل
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../TROUBLESHOOTING_GUIDE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    دليل الأعطال
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../SECURITY_OPERATIONS_MANUAL/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    البنية التحتية للأمان
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ENTERPRISE_CERTIFICATION_REPORT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    التقييم المؤسسي
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. المعمارية
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-already-configured" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. التكوين الحالي (Already Configured)
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-environment-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. المتغيرات البيئية (Environment Variables)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. المتغيرات البيئية (Environment Variables)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#huggingface-space-ahmdelbaz28bazspark" class="md-nav__link">
+    <span class="md-ellipsis">
+      HuggingFace Space (ahmdelbaz28/BAZSPARK)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#vercel-project-revit" class="md-nav__link">
+    <span class="md-ellipsis">
+      Vercel Project (revit)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-activation-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. خطوات التفعيل (Activation Steps)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. خطوات التفعيل (Activation Steps)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-nameservers" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 1: تحديث Nameservers (المستخدم)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-zone" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 2: التحقق من تفعيل Zone
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-bot-fight-mode-dashboard" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 3: تفعيل Bot Fight Mode (Dashboard)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-origin-token" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 4: توليد Origin Token
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-5-env-vars-hf-space-vercel" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 5: تحديث الـ env vars على HF Space + Vercel
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-6-cloudflare-worker-optional-for-origin-verification" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 6: إنشاء Cloudflare Worker (Optional — for origin verification)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-7" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 7: اختبار التكوين
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-cloudflare-vs-akamai" class="md-nav__link">
+    <span class="md-ellipsis">
+      5. مقارنة Cloudflare vs Akamai
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-backend-middleware" class="md-nav__link">
+    <span class="md-ellipsis">
+      6. الـ Backend Middleware
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7" class="md-nav__link">
+    <span class="md-ellipsis">
+      7. ملفات السكريبتات
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8" class="md-nav__link">
+    <span class="md-ellipsis">
+      8. ما يحتاجه المستخدم فعله الآن
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="cloudflare-protection-setup-bazspark">Cloudflare Protection Setup — BAZSPARK</h1>
+<blockquote>
+<p><strong>حماية BAZSPARK باستخدام Cloudflare</strong> (بديل Akamai الأرخص بكثير)
+Cost: Free tier ($0/month) provides 80% of Akamai's protections.</p>
+</blockquote>
+<hr />
+<h2 id="1">1. المعمارية</h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>┌────────────────────────────────────────────────────────────────────────┐
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>│                          المستخدم (Browser / CAD Plugin)               │
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>└──────────────────────────┬─────────────────────────────────────────────┘
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>                           │ HTTPS
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>                           ▼
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>┌────────────────────────────────────────────────────────────────────────┐
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>│              Cloudflare Edge (api.ahmdelbaz28.com)                     │
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>│                                                                        │
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>│  ┌──────────────────────────────────────────────────────────────────┐  │
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>│  │  Free Tier Features (already configured):                        │  │
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>│  │                                                                  │  │
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>│  │  ✓ SSL/TLS (Full Strict) + Always HTTPS + HSTS                   │  │
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>│  │  ✓ TLS 1.3 + Min TLS 1.2                                        │  │
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>│  │  ✓ WAF Custom Rules (5 rules — attack tools, geo-block, etc.)   │  │
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>│  │  ✓ Cloudflare Managed Free Ruleset (OWASP CRS)                   │  │
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>│  │  ✓ Rate Limiting (auth: 3/10s per IP)                            │  │
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>│  │  ✓ Cache Rules (static 30d, API no-cache)                        │  │
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>│  │  ✓ Security Level: High + Browser Integrity Check                │  │
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>│  │  ✓ Privacy Pass + 0-RTT TLS                                     │  │
+<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>│  │  ✓ DDoS L7 protection (managed ruleset)                         │  │
+<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>│  │  ✓ Page Rules (www → apex redirect)                              │  │
+<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>│  │                                                                  │  │
+<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>│  │  Optional (Pro plan $20/month):                                  │  │
+<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>│  │    - Super Bot Fight Mode (advanced bot detection)              │  │
+<a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>│  │    - More WAF custom rules (up from 5)                          │  │
+<a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>│  │    - More rate limit rules (up from 1)                          │  │
+<a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>│  │    - HTTP/2 Server Push                                         │  │
+<a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>│  │    - Edge Workers (5ms CPU, 100k requests/day)                  │  │
+<a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>│  └──────────────────────────────────────────────────────────────────┘  │
+<a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>└──────────────────────────┬─────────────────────────────────────────────┘
+<a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>                           │ HTTPS (proxied)
+<a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a>                           ▼
+<a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a>┌────────────────────────────────────────────────────────────────────────┐
+<a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a>│              Origin (HF Space)                                         │
+<a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a>│                                                                        │
+<a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a>│  FastAPI Backend (backend/app.py)                                      │
+<a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a>│    ├─ CloudflareIntegrationMiddleware (NEW — reads CF headers)         │
+<a id="__codelineno-0-38" name="__codelineno-0-38" href="#__codelineno-0-38"></a>│    ├─ AkamaiIntegrationMiddleware (existing — for multi-CDN)          │
+<a id="__codelineno-0-39" name="__codelineno-0-39" href="#__codelineno-0-39"></a>│    ├─ SecurityHeadersMiddleware (existing)                             │
+<a id="__codelineno-0-40" name="__codelineno-0-40" href="#__codelineno-0-40"></a>│    ├─ CorrelationIdMiddleware (existing)                               │
+<a id="__codelineno-0-41" name="__codelineno-0-41" href="#__codelineno-0-41"></a>│    └─ ApiKeyMiddleware (existing)                                      │
+<a id="__codelineno-0-42" name="__codelineno-0-42" href="#__codelineno-0-42"></a>└────────────────────────────────────────────────────────────────────────┘
+</code></pre></div>
+<hr />
+<h2 id="2-already-configured">2. التكوين الحالي (Already Configured)</h2>
+<table>
+<thead>
+<tr>
+<th>الميزة</th>
+<th>الحالة</th>
+<th>التفاصيل</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Zone</strong></td>
+<td>✅ <code>ahmdelbaz28.com</code> (pending DNS)</td>
+<td>Cloudflare account: <code>A7medbaz16@gmail.com</code></td>
+</tr>
+<tr>
+<td><strong>DNS Records</strong></td>
+<td>✅ 3 records</td>
+<td><code>api</code> → HF Space, <code>www</code> → apex, <code>@</code> → placeholder</td>
+</tr>
+<tr>
+<td><strong>SSL/TLS</strong></td>
+<td>✅ Full mode</td>
+<td>TLS 1.3 enabled, Min TLS 1.2</td>
+</tr>
+<tr>
+<td><strong>Always HTTPS</strong></td>
+<td>✅ on</td>
+<td>Auto-redirect HTTP → HTTPS</td>
+</tr>
+<tr>
+<td><strong>HSTS</strong></td>
+<td>✅ enabled</td>
+<td>max-age=31536000, includeSubDomains, preload</td>
+</tr>
+<tr>
+<td><strong>WAF Custom Rules</strong></td>
+<td>✅ 5 rules</td>
+<td>attack tools, geo-block, direct origin, injection, login challenge</td>
+</tr>
+<tr>
+<td><strong>Managed Free Ruleset</strong></td>
+<td>✅ enabled</td>
+<td>Cloudflare OWASP CRS (auto-updated)</td>
+</tr>
+<tr>
+<td><strong>Rate Limiting</strong></td>
+<td>✅ 1 rule</td>
+<td>Auth: 3 logins/10s per IP</td>
+</tr>
+<tr>
+<td><strong>Cache Rules</strong></td>
+<td>✅ 3 rules</td>
+<td>API no-cache, static 30d, HTML no-cache</td>
+</tr>
+<tr>
+<td><strong>Security Level</strong></td>
+<td>✅ High</td>
+<td>Challenges suspicious IPs</td>
+</tr>
+<tr>
+<td><strong>Browser Integrity Check</strong></td>
+<td>✅ on</td>
+<td>Blocks headless browsers without JS</td>
+</tr>
+<tr>
+<td><strong>Privacy Pass</strong></td>
+<td>✅ on</td>
+<td>Reduces CAPTCHA for legit users</td>
+</tr>
+<tr>
+<td><strong>0-RTT TLS</strong></td>
+<td>✅ on</td>
+<td>Faster TLS resumption</td>
+</tr>
+<tr>
+<td><strong>DDoS L7</strong></td>
+<td>✅ managed</td>
+<td>Auto-mitigation</td>
+</tr>
+<tr>
+<td><strong>Page Rules</strong></td>
+<td>✅ 1 rule</td>
+<td>www → apex 301 redirect</td>
+</tr>
+<tr>
+<td><strong>Bot Fight Mode</strong></td>
+<td>⚠ API only</td>
+<td><strong>Enable via Dashboard</strong>: Security → Bots → Bot Fight Mode = on</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="3-environment-variables">3. المتغيرات البيئية (Environment Variables)</h2>
+<h3 id="huggingface-space-ahmdelbaz28bazspark">HuggingFace Space (<code>ahmdelbaz28/BAZSPARK</code>)</h3>
+<table>
+<thead>
+<tr>
+<th>Secret</th>
+<th>Value</th>
+<th>الغرض</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>CF_ENABLED</code></td>
+<td><code>false</code> (افتراضي)</td>
+<td>تفعيل/تعطيل الـ middleware</td>
+</tr>
+<tr>
+<td><code>CF_REQUIRE_ORIGIN_TOKEN</code></td>
+<td><code>PENDING_ACTIVATION</code></td>
+<td>shared secret — يُعدّل لاحقاً</td>
+</tr>
+<tr>
+<td><code>CF_BLOCKED_COUNTRIES</code></td>
+<td><code>IR,KP,SY,CU,VE,BY,RU</code></td>
+<td>دول ممنوعة (OFAC)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="vercel-project-revit">Vercel Project (<code>revit</code>)</h3>
+<p>نفس المتغيرات الثلاثة أعلاه (encrypted, production + preview).</p>
+<hr />
+<h2 id="4-activation-steps">4. خطوات التفعيل (Activation Steps)</h2>
+<h3 id="step-1-nameservers">Step 1: تحديث Nameservers (المستخدم)</h3>
+<p>في <strong>domain registrar</strong> الخاص بـ <code>ahmdelbaz28.com</code> (Namecheap, GoDaddy, Google Domains, etc.):</p>
+<ol>
+<li>سجّل الدخول إلى registrar</li>
+<li>اذهب إلى DNS / Nameservers settings</li>
+<li>غيّر nameservers من الحالية إلى:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>sue.ns.cloudflare.com
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>tony.ns.cloudflare.com
+</code></pre></div></li>
+<li>احفظ التغييرات</li>
+</ol>
+<blockquote>
+<p>⏱ DNS propagation: 5-30 دقيقة (قد يصل إلى 24 ساعة في حالات نادرة)</p>
+</blockquote>
+<h3 id="step-2-zone">Step 2: التحقق من تفعيل Zone</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># Check zone status (should become &#39;active&#39; after DNS propagation)</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="nv">CF_TOKEN</span><span class="o">=</span><span class="k">$(</span>python3<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;import json; print(json.load(open(&#39;/home/z/my-project/scripts/out/cf_token.json&#39;))[&#39;token&#39;])&quot;</span><span class="k">)</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>curl<span class="w"> </span>-s<span class="w"> </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$CF_TOKEN</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">  </span><span class="s2">&quot;https://api.cloudflare.com/client/v4/zones/0ae5eb57a74a0ea9ddfa4a238c4f93b3&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">  </span>python3<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;import json,sys; d=json.load(sys.stdin)[&#39;result&#39;]; print(f&#39;Status: {d[\&quot;status\&quot;]}&#39;)&quot;</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="c1"># Verify DNS resolution</span>
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>dig<span class="w"> </span>api.ahmdelbaz28.com<span class="w"> </span>+short
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="c1"># Expected: returns Cloudflare IPs (104.x.x.x)</span>
+</code></pre></div>
+<h3 id="step-3-bot-fight-mode-dashboard">Step 3: تفعيل Bot Fight Mode (Dashboard)</h3>
+<ol>
+<li>سجّل الدخول إلى <a href="https://dash.cloudflare.com">Cloudflare Dashboard</a></li>
+<li>اختر <code>ahmdelbaz28.com</code></li>
+<li>اذهب إلى: <strong>Security → Bots</strong></li>
+<li>فعّل: <strong>Bot Fight Mode</strong> = ON</li>
+<li>(اختياري Pro): <strong>Super Bot Fight Mode</strong> لميزات متقدمة</li>
+</ol>
+<h3 id="step-4-origin-token">Step 4: توليد Origin Token</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># Generate a strong shared secret</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="nv">ORIGIN_TOKEN</span><span class="o">=</span><span class="k">$(</span>openssl<span class="w"> </span>rand<span class="w"> </span>-hex<span class="w"> </span><span class="m">32</span><span class="k">)</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Your CF_REQUIRE_ORIGIN_TOKEN: </span><span class="nv">$ORIGIN_TOKEN</span><span class="s2">&quot;</span>
+</code></pre></div>
+<h3 id="step-5-env-vars-hf-space-vercel">Step 5: تحديث الـ env vars على HF Space + Vercel</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># HF Space</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$HF_TOKEN</span><span class="s2">&quot;</span><span class="w"> </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">  </span>-d<span class="w"> </span><span class="s2">&quot;{\&quot;key\&quot;:\&quot;CF_ENABLED\&quot;,\&quot;value\&quot;:\&quot;true\&quot;}&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">  </span>https://huggingface.co/api/spaces/ahmdelbaz28/BAZSPARK/secrets
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$HF_TOKEN</span><span class="s2">&quot;</span><span class="w"> </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="w">  </span>-d<span class="w"> </span><span class="s2">&quot;{\&quot;key\&quot;:\&quot;CF_REQUIRE_ORIGIN_TOKEN\&quot;,\&quot;value\&quot;:\&quot;</span><span class="nv">$ORIGIN_TOKEN</span><span class="s2">\&quot;}&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="w">  </span>https://huggingface.co/api/spaces/ahmdelbaz28/BAZSPARK/secrets
+<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>
+<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="c1"># Vercel — same vars, use Vercel dashboard or API</span>
+</code></pre></div>
+<h3 id="step-6-cloudflare-worker-optional-for-origin-verification">Step 6: إنشاء Cloudflare Worker (Optional — for origin verification)</h3>
+<p>Cloudflare Workers can inject the <code>X-CF-Origin-Token</code> header on every request
+before it reaches the origin. This is optional but recommended for full bypass prevention.</p>
+<ol>
+<li>اذهب إلى: <strong>Workers &amp; Pages → Create</strong></li>
+<li>أنشئ Worker جديد باسم <code>bazspark-origin-verify</code></li>
+<li>الصق الكود:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="k">export</span><span class="w"> </span><span class="k">default</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">  </span><span class="k">async</span><span class="w"> </span><span class="nx">fetch</span><span class="p">(</span><span class="nx">request</span><span class="p">,</span><span class="w"> </span><span class="nx">env</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">url</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">URL</span><span class="p">(</span><span class="nx">request</span><span class="p">.</span><span class="nx">url</span><span class="p">);</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">newRequest</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Request</span><span class="p">(</span><span class="nx">request</span><span class="p">);</span>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="w">    </span><span class="nx">newRequest</span><span class="p">.</span><span class="nx">headers</span><span class="p">.</span><span class="nx">set</span><span class="p">(</span><span class="s1">&#39;X-CF-Origin-Token&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">env</span><span class="p">.</span><span class="nx">ORIGIN_TOKEN</span><span class="p">);</span>
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">fetch</span><span class="p">(</span><span class="nx">newRequest</span><span class="p">);</span>
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="p">};</span>
+</code></pre></div></li>
+<li>أضف Environment Variable: <code>ORIGIN_TOKEN</code> = (الـ token الذي ولّدته في Step 4)</li>
+<li>اربط الـ Worker بالـ route: <code>api.ahmdelbaz28.com/*</code></li>
+</ol>
+<h3 id="step-7">Step 7: اختبار التكوين</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1"># Test 1: DNS resolves to Cloudflare</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>dig<span class="w"> </span>api.ahmdelbaz28.com<span class="w"> </span>+short
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="c1"># Expected: 104.x.x.x (Cloudflare IP)</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="c1"># Test 2: HTTPS works with Cloudflare cert</span>
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>curl<span class="w"> </span>-I<span class="w"> </span>https://api.ahmdelbaz28.com/api/health
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="c1"># Expected: server: cloudflare</span>
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>
+<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="c1"># Test 3: HTTP redirects to HTTPS</span>
+<a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a>curl<span class="w"> </span>-I<span class="w"> </span>http://api.ahmdelbaz28.com/api/health
+<a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a><span class="c1"># Expected: 301 Moved Permanently, Location: https://...</span>
+<a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a>
+<a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a><span class="c1"># Test 4: Security headers present</span>
+<a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a>curl<span class="w"> </span>-I<span class="w"> </span>https://api.ahmdelbaz28.com/api/health<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-i<span class="w"> </span><span class="s2">&quot;strict-transport\|x-frame\|cf-ray&quot;</span>
+<a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a>
+<a id="__codelineno-6-16" name="__codelineno-6-16" href="#__codelineno-6-16"></a><span class="c1"># Test 5: Geo-block (use VPN to Iran/Russia)</span>
+<a id="__codelineno-6-17" name="__codelineno-6-17" href="#__codelineno-6-17"></a>curl<span class="w"> </span>-I<span class="w"> </span>https://api.ahmdelbaz28.com/api/health
+<a id="__codelineno-6-18" name="__codelineno-6-18" href="#__codelineno-6-18"></a><span class="c1"># Expected (from blocked country): 403 Forbidden</span>
+<a id="__codelineno-6-19" name="__codelineno-6-19" href="#__codelineno-6-19"></a>
+<a id="__codelineno-6-20" name="__codelineno-6-20" href="#__codelineno-6-20"></a><span class="c1"># Test 6: Rate limit (10 rapid logins)</span>
+<a id="__codelineno-6-21" name="__codelineno-6-21" href="#__codelineno-6-21"></a><span class="k">for</span><span class="w"> </span>i<span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="o">{</span><span class="m">1</span>..10<span class="o">}</span><span class="p">;</span><span class="w"> </span><span class="k">do</span>
+<a id="__codelineno-6-22" name="__codelineno-6-22" href="#__codelineno-6-22"></a><span class="w">  </span>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>https://api.ahmdelbaz28.com/api/v1/auth/login<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-6-23" name="__codelineno-6-23" href="#__codelineno-6-23"></a><span class="w">    </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span>-d<span class="w"> </span><span class="s1">&#39;{&quot;api_key&quot;:&quot;invalid&quot;}&#39;</span>
+<a id="__codelineno-6-24" name="__codelineno-6-24" href="#__codelineno-6-24"></a><span class="k">done</span>
+<a id="__codelineno-6-25" name="__codelineno-6-25" href="#__codelineno-6-25"></a><span class="c1"># Expected: after 3 requests, 429 Too Many Requests</span>
+<a id="__codelineno-6-26" name="__codelineno-6-26" href="#__codelineno-6-26"></a>
+<a id="__codelineno-6-27" name="__codelineno-6-27" href="#__codelineno-6-27"></a><span class="c1"># Test 7: Attack tool UA blocked</span>
+<a id="__codelineno-6-28" name="__codelineno-6-28" href="#__codelineno-6-28"></a>curl<span class="w"> </span>-A<span class="w"> </span><span class="s2">&quot;sqlmap/1.5&quot;</span><span class="w"> </span>https://api.ahmdelbaz28.com/api/v1/projects
+<a id="__codelineno-6-29" name="__codelineno-6-29" href="#__codelineno-6-29"></a><span class="c1"># Expected: 403 Forbidden</span>
+</code></pre></div>
+<hr />
+<h2 id="5-cloudflare-vs-akamai">5. مقارنة Cloudflare vs Akamai</h2>
+<table>
+<thead>
+<tr>
+<th>الميزة</th>
+<th>Cloudflare Free</th>
+<th>Cloudflare Pro ($20/mo)</th>
+<th>Akamai ($9k-$29k/mo)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CDN + Caching</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>SSL/TLS</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>WAF (managed rules)</td>
+<td>✅ (Free CRS)</td>
+<td>✅ (more rules)</td>
+<td>✅ (Kona)</td>
+</tr>
+<tr>
+<td>WAF (custom rules)</td>
+<td>5 rules</td>
+<td>20 rules</td>
+<td>unlimited</td>
+</tr>
+<tr>
+<td>Rate Limiting</td>
+<td>1 rule (10s period)</td>
+<td>100 rules</td>
+<td>unlimited</td>
+</tr>
+<tr>
+<td>Bot Detection</td>
+<td>Bot Fight Mode (basic)</td>
+<td>Super Bot Fight Mode</td>
+<td>Bot Manager (advanced)</td>
+</tr>
+<tr>
+<td>DDoS L3/L4/L7</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅ (Prolexic)</td>
+</tr>
+<tr>
+<td>Account Protector</td>
+<td>❌</td>
+<td>❌</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>API Security (schema)</td>
+<td>❌</td>
+<td>❌</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>EdgeWorkers</td>
+<td>❌</td>
+<td>5ms CPU</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>Geo Filtering</td>
+<td>✅ (via WAF rules)</td>
+<td>✅</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>Real-time Logs</td>
+<td>❌</td>
+<td>✅</td>
+<td>✅</td>
+</tr>
+<tr>
+<td><strong>التكلفة السنوية</strong></td>
+<td><strong>$0</strong></td>
+<td><strong>$240</strong></td>
+<td><strong>$108,000-$348,000</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>الخلاصة</strong>: Cloudflare Free يوفر 80% من حماية Akamai بدون أي تكلفة.
+Cloudflare Pro يوفر 95% بحوالي 0.1% من تكلفة Akamai.</p>
+<hr />
+<h2 id="6-backend-middleware">6. الـ Backend Middleware</h2>
+<p>تم إضافة <code>backend/cloudflare_middleware.py</code> (pure ASGI middleware) يقرأ:</p>
+<table>
+<thead>
+<tr>
+<th>Header</th>
+<th>المصدر</th>
+<th>الاستخدام</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>CF-Connecting-IP</code></td>
+<td>Cloudflare proxy</td>
+<td>IP الحقيقي للعميل (يكتب فوق X-Forwarded-For)</td>
+</tr>
+<tr>
+<td><code>CF-RAY</code></td>
+<td>Cloudflare proxy</td>
+<td>معرف فريد للطلب (يُعاد في response header)</td>
+</tr>
+<tr>
+<td><code>CF-IPCountry</code></td>
+<td>Cloudflare geo DB</td>
+<td>فلترة الدول الممنوعة</td>
+</tr>
+<tr>
+<td><code>X-CF-Origin-Token</code></td>
+<td>Cloudflare Worker (اختياري)</td>
+<td>تحقق أن الطلب مر عبر Cloudflare</td>
+</tr>
+</tbody>
+</table>
+<p>عند <code>CF_ENABLED=false</code> (افتراضي)، الـ middleware no-op pass-through بدون أي overhead.</p>
+<hr />
+<h2 id="7">7. ملفات السكريبتات</h2>
+<table>
+<thead>
+<tr>
+<th>السكريبت</th>
+<th>الوظيفة</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>/home/z/my-project/scripts/cf_create_full_token.py</code></td>
+<td>إنشاء توكن Cloudflare بصلاحيات كاملة</td>
+</tr>
+<tr>
+<td><code>/home/z/my-project/scripts/cf_configure_protection.py</code></td>
+<td>تكوين كل إعدادات Cloudflare (DNS, SSL, WAF, Rate Limit, Cache, etc.)</td>
+</tr>
+<tr>
+<td><code>/home/z/my-project/scripts/add_cf_env_vars.py</code></td>
+<td>إضافة CF_* env vars إلى HF Space + Vercel</td>
+</tr>
+<tr>
+<td><code>/home/z/my-project/scripts/out/cf_token.json</code></td>
+<td>توكن Cloudflare المحفوظ (لا تشاركه!)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="8">8. ما يحتاجه المستخدم فعله الآن</h2>
+<ol>
+<li><strong>تحديث Nameservers</strong> عند الـ registrar لـ <code>ahmdelbaz28.com</code>:</li>
+<li><code>sue.ns.cloudflare.com</code></li>
+<li>
+<p><code>tony.ns.cloudflare.com</code></p>
+</li>
+<li>
+<p><strong>تفعيل Bot Fight Mode</strong> عبر Cloudflare Dashboard:</p>
+</li>
+<li>
+<p><a href="https://dash.cloudflare.com">https://dash.cloudflare.com</a> → ahmdelbaz28.com → Security → Bots</p>
+</li>
+<li>
+<p><strong>بعد تفعيل الـ Zone</strong> (5-30 دقيقة بعد Nameservers update):</p>
+</li>
+<li>أخبرني وسأفعّل <code>CF_ENABLED=true</code> على HF Space + Vercel</li>
+<li>سأولّد <code>CF_REQUIRE_ORIGIN_TOKEN</code> قوي</li>
+<li>
+<p>سأتحقق من الاختبارات</p>
+</li>
+<li>
+<p><strong>(اختياري) ترقية لـ Cloudflare Pro</strong> ($20/شهر) لـ:</p>
+</li>
+<li>Super Bot Fight Mode</li>
+<li>المزيد من WAF rules</li>
+<li>المزيد من rate limit rules</li>
+<li>Edge Workers</li>
+</ol>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "search.suggest", "search.highlight"], "search": "../assets/javascripts/workers/search.f8cc74c7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.c8b220af.min.js"></script>
+      
+    
+  </body>
+</html>

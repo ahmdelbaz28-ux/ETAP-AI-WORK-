@@ -1,0 +1,109 @@
+graph TB
+    %% ======================================================================
+    %% Engineering Copilot — System Architecture
+    %% ======================================================================
+
+    subgraph User["👤 User Interface"]
+        CLI["CLI / Terminal"]
+        UI["React UI"]
+        API["REST API / Swagger"]
+    end
+
+    subgraph Copilot["🤖 Engineering Copilot"]
+        AI_Engine["AI Drawing Engine"]
+        Intent["Intent Parser"]
+        Graph["Graph Builder"]
+        Model_Gen["Model Generator"]
+        Translator["CAD Translation Engine"]
+        MCP["MCP Server"]
+        Validator["Design Validator"]
+    end
+
+    subgraph Connectors["🔌 Connectors Layer"]
+        ETAP_C["ETAP Connector"]
+        ACAD_C["AutoCAD Connector"]
+        REVIT_C["Revit Connector"]
+    end
+
+    subgraph Applications["📐 Engineering Applications"]
+        ETAP["ETAP Power System"]
+        ACAD["AutoCAD Electrical"]
+        REVIT["Revit MEP"]
+    end
+
+    subgraph Storage["💾 Data Layer"]
+        UEM["Unified Engineering Model"]
+        PG["PostgreSQL"]
+        REDIS["Redis"]
+        VEC["Vector DB"]
+    end
+
+    subgraph Observability["📊 Observability"]
+        PROM["Prometheus"]
+        GRAF["Grafana"]
+        JAEGER["Jaeger Tracing"]
+    end
+
+    %% User → Copilot
+    CLI -->|"POST /copilot/process"| AI_Engine
+    UI -->|"HTTP"| API
+    API --> MCP
+
+    %% AI Pipeline
+    AI_Engine --> Intent
+    Intent --> Graph
+    Graph --> Model_Gen
+    Model_Gen --> UEM
+
+    %% MCP → Connectors
+    MCP --> ETAP_C
+    MCP --> ACAD_C
+    MCP --> REVIT_C
+
+    %% Translation
+    UEM <--> Translator
+    Translator --> ETAP_C
+    Translator --> ACAD_C
+    Translator --> REVIT_C
+
+    %% Connectors → Apps
+    ETAP_C <-->|"COM / REST"| ETAP
+    ACAD_C <-->|".NET API / HTTP"| ACAD
+    REVIT_C <-->|"Revit API / HTTP"| REVIT
+
+    %% Storage
+    UEM --> PG
+    UEM --> REDIS
+    UEM --> VEC
+
+    %% C# Plugins
+    subgraph Plugins["🖥️ C# Plugins (Inside CAD)"]
+        ACAD_Plugin["AutoCAD Plugin\n(Port 4820)"]
+        REVIT_Plugin["Revit Plugin\n(Port 4830)"]
+    end
+
+    ACAD_C <--> ACAD_Plugin
+    REVIT_C <--> REVIT_Plugin
+    ACAD_Plugin --> ACAD
+    REVIT_Plugin --> REVIT
+
+    %% Observability
+    Copilot --> PROM
+    Copilot --> JAEGER
+    PROM --> GRAF
+    JAEGER --> GRAF
+
+    %% Style
+    classDef copilot fill:#4A90D9,color:#fff,stroke:#2C5F8A
+    classDef connector fill:#50C878,color:#fff,stroke:#2E8B57
+    classDef app fill:#FF8C00,color:#fff,stroke:#CC7000
+    classDef storage fill:#8B5CF6,color:#fff,stroke:#6D28D9
+    classDef plugin fill:#EC4899,color:#fff,stroke:#BE185D
+    classDef obs fill:#6B7280,color:#fff,stroke:#4B5563
+
+    class AI_Engine,Intent,Graph,Model_Gen,Translator,MCP,Validator copilot
+    class ETAP_C,ACAD_C,REVIT_C connector
+    class ETAP,ACAD,REVIT app
+    class UEM,PG,REDIS,VEC storage
+    class ACAD_Plugin,REVIT_Plugin plugin
+    class PROM,GRAF,JAEGER obs

@@ -1,0 +1,950 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Enterprise AI-Powered Power Systems Engineering Platform">
+      
+      
+        <meta name="author" content="AhmedETAP Team">
+      
+      
+      
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.11">
+    
+    
+      
+        <title>02 — HIDDEN BUGS - AhmedETAP Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.4af4bdda.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="deep-purple">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#02-hidden-bugs" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="AhmedETAP Documentation" class="md-header__button md-logo" aria-label="AhmedETAP Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            AhmedETAP Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              02 — HIDDEN BUGS
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  الصفحة الرئيسية
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../ARCHITECTURE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  الهيكلية
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../API_REFERENCE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  واجهة برمجة التطبيقات
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../OPERATIONS_RUNBOOK/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  دليل التشغيل
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../TROUBLESHOOTING_GUIDE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  دليل الأعطال
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../SECURITY_OPERATIONS_MANUAL/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  البنية التحتية للأمان
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../ENTERPRISE_CERTIFICATION_REPORT/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  التقييم المؤسسي
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="AhmedETAP Documentation" class="md-nav__button md-logo" aria-label="AhmedETAP Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    AhmedETAP Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    الصفحة الرئيسية
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ARCHITECTURE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    الهيكلية
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../API_REFERENCE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    واجهة برمجة التطبيقات
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../OPERATIONS_RUNBOOK/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    دليل التشغيل
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../TROUBLESHOOTING_GUIDE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    دليل الأعطال
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../SECURITY_OPERATIONS_MANUAL/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    البنية التحتية للأمان
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ENTERPRISE_CERTIFICATION_REPORT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    التقييم المؤسسي
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#latent-defects-discovered-during-audit" class="md-nav__link">
+    <span class="md-ellipsis">
+      Latent Defects Discovered During Audit
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Latent Defects Discovered During Audit">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hb-01-login-rate-limit-users-in-memory-store-never-cleaned" class="md-nav__link">
+    <span class="md-ellipsis">
+      🐛 HB-01: LOGIN RATE LIMIT USERS IN-MEMORY STORE NEVER CLEANED
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hb-02-api-key-auth-grants-full-admin-access-master-backdoor" class="md-nav__link">
+    <span class="md-ellipsis">
+      🐛 HB-02: API KEY AUTH GRANTS FULL ADMIN ACCESS — MASTER BACKDOOR
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hb-03-api-key-configuration-logs-secret-in-cicd-output" class="md-nav__link">
+    <span class="md-ellipsis">
+      🐛 HB-03: API KEY CONFIGURATION LOGS SECRET IN CI/CD OUTPUT
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hb-04-forgot-password-endpoint-has-no-rate-limiting-per-email" class="md-nav__link">
+    <span class="md-ellipsis">
+      🐛 HB-04: FORGOT-PASSWORD ENDPOINT HAS NO RATE LIMITING PER EMAIL
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hb-05-engineering-service-api-key-is-a-plaintext-string-etap-platform-secret-2024" class="md-nav__link">
+    <span class="md-ellipsis">
+      🐛 HB-05: ENGINEERING SERVICE API KEY IS A PLAINTEXT STRING etap-platform-secret-2024
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hb-06-cors-allows-all-origins-on-hf-space" class="md-nav__link">
+    <span class="md-ellipsis">
+      🐛 HB-06: CORS ALLOWS ALL ORIGINS ON HF SPACE
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hb-07-csp-headers-use-unsafe-inline-and-unsafe-eval" class="md-nav__link">
+    <span class="md-ellipsis">
+      🐛 HB-07: CSP HEADERS USE unsafe-inline AND unsafe-eval
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hb-08-synthetic-scada-data-returned-in-production-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      🐛 HB-08: SYNTHETIC SCADA DATA RETURNED IN PRODUCTION MODE
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hb-09-dual-authentication-systems-configuration-risk" class="md-nav__link">
+    <span class="md-ellipsis">
+      🐛 HB-09: DUAL AUTHENTICATION SYSTEMS — CONFIGURATION RISK
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hb-10-docker-compose-exposes-grafana-without-auth-by-default" class="md-nav__link">
+    <span class="md-ellipsis">
+      🐛 HB-10: DOCKER-COMPOSE EXPOSES GRAFANA WITHOUT AUTH BY DEFAULT
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hb-11-celery-worker-depends-on-engineering-service-service-circular-logic" class="md-nav__link">
+    <span class="md-ellipsis">
+      🐛 HB-11: CELERY WORKER DEPENDS ON engineering-service SERVICE — CIRCULAR LOGIC
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hb-12-redis-password-leaked-in-docker-healthcheck" class="md-nav__link">
+    <span class="md-ellipsis">
+      🐛 HB-12: REDIS PASSWORD LEAKED IN DOCKER HEALTHCHECK
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="02-hidden-bugs">02 — HIDDEN BUGS</h1>
+<h2 id="latent-defects-discovered-during-audit">Latent Defects Discovered During Audit</h2>
+<h3 id="hb-01-login-rate-limit-users-in-memory-store-never-cleaned">🐛 HB-01: LOGIN RATE LIMIT USERS IN-MEMORY STORE NEVER CLEANED</h3>
+<p><strong>Severity: MEDIUM</strong> | <strong>Category: MEMORY LEAK</strong></p>
+<p><strong>Root Cause:</strong>
+In <code>api/auth.py</code> (line 510):
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">_LOGIN_ATTEMPTS</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">username</span><span class="p">,</span> <span class="p">[])</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">now</span><span class="p">)</span>
+</code></pre></div>
+The in-memory <code>_LOGIN_ATTEMPTS</code> dict grows unboundedly. Failed login attempts are appended but entries are never deleted — even successful logins leave stale entries. Over time, with many users attempting logins (or a distributed brute force), this dict will consume increasing memory.</p>
+<p><strong>Impact:</strong>
+- Memory grows without bound
+- On HF Space with limited memory (cpu-basic: 2GB), this can OOM the process
+- No mechanism to prune entries older than the rate-limit window</p>
+<p><strong>Fix:</strong>
+Implement periodic pruning of stale entries in <code>_LOGIN_ATTEMPTS</code> or switch to a TTL-based cache.</p>
+<hr />
+<h3 id="hb-02-api-key-auth-grants-full-admin-access-master-backdoor">🐛 HB-02: API KEY AUTH GRANTS FULL ADMIN ACCESS — MASTER BACKDOOR</h3>
+<p><strong>Severity: CRITICAL</strong> | <strong>Category: AUTHORIZATION BYPASS</strong></p>
+<p><strong>Root Cause:</strong>
+In <code>api/_test_mode.py</code> (lines 81-97):
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">get_api_key_auth</span><span class="p">(</span><span class="n">request</span><span class="p">:</span> <span class="n">Request</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>    <span class="k">if</span> <span class="n">is_test_mode</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>        <span class="k">return</span> <span class="p">{</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>            <span class="s2">&quot;user_id&quot;</span><span class="p">:</span> <span class="s2">&quot;service&quot;</span><span class="p">,</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>            <span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;admin&quot;</span><span class="p">,</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>            <span class="s2">&quot;auth_method&quot;</span><span class="p">:</span> <span class="s2">&quot;api_key&quot;</span><span class="p">,</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>        <span class="p">}</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>    <span class="k">return</span> <span class="kc">None</span>
+</code></pre></div>
+The API key (<code>etap-platform-secret-2024</code>) grants <strong>full admin access</strong> to any endpoint that uses <code>get_api_key_auth()</code>. This is used by dashboard endpoints as an alternative to JWT authentication.</p>
+<p><strong>Impact:</strong>
+- Anyone who knows the API key has full admin privileges
+- The key is predictable and documented in <code>.env</code>
+- Bypasses ALL JWT authentication and authorization
+- Effectively a hardcoded backdoor</p>
+<p><strong>Fix:</strong>
+- Remove this admin bypass mechanism entirely OR
+- Use API key only for service-to-service auth, NEVER grant admin role
+- Implement proper service account system with scoped permissions</p>
+<hr />
+<h3 id="hb-03-api-key-configuration-logs-secret-in-cicd-output">🐛 HB-03: API KEY CONFIGURATION LOGS SECRET IN CI/CD OUTPUT</h3>
+<p><strong>Severity: HIGH</strong> | <strong>Category: SECURITY / LOG LEAKAGE</strong></p>
+<p><strong>Root Cause:</strong>
+Not directly seen in code, but the <code>.env</code> contains <code>ENGINEERING_SERVICE_API_KEY=etap-platform-secret-2024</code>. If any CI/CD pipeline or startup script logs the environment, this key is exposed in build logs.</p>
+<p><strong>Impact:</strong>
+- CI/CD logs (GitHub Actions, Vercel builds) may capture environment variables
+- Engineering Service API key exposed
+- External systems can call internal APIs</p>
+<p><strong>Fix:</strong>
+Mask the API key in logs using the existing <code>security/log_redaction.py</code> module.</p>
+<hr />
+<h3 id="hb-04-forgot-password-endpoint-has-no-rate-limiting-per-email">🐛 HB-04: FORGOT-PASSWORD ENDPOINT HAS NO RATE LIMITING PER EMAIL</h3>
+<p><strong>Severity: MEDIUM</strong> | <strong>Category: ABUSE / SPAM</strong></p>
+<p><strong>Root Cause:</strong>
+In <code>api/auth.py</code> (lines 926-997), the <code>/forgot-password</code> endpoint generates a reset token and sends an email. There is no rate limiting per email address — an attacker can bombard a user's email inbox with password reset emails.</p>
+<p><strong>Impact:</strong>
+- Email spam attack against users
+- Possible SMTP rate limiting from Resend (leading to legitimate emails being blocked)
+- User annoyance and potential reputational damage</p>
+<p><strong>Fix:</strong>
+Add per-email rate limiting for forgot-password (e.g., 1 request per 60 seconds).</p>
+<hr />
+<h3 id="hb-05-engineering-service-api-key-is-a-plaintext-string-etap-platform-secret-2024">🐛 HB-05: ENGINEERING SERVICE API KEY IS A PLAINTEXT STRING <code>etap-platform-secret-2024</code></h3>
+<p><strong>Severity: HIGH</strong> | <strong>Category: WEAK SECRET</strong></p>
+<p><strong>Root Cause:</strong>
+The <code>.env</code> file defines <code>ENGINEERING_SERVICE_API_KEY=etap-platform-secret-2024</code>. This is a weak, predictable string with no entropy. If this is used in production, it provides trivial bypass of API authentication.</p>
+<p><strong>Impact:</strong>
+- Anyone who knows the pattern "etap-platform-secret-YYYY" can access internal APIs
+- The key is visible in the .env file which exists on disk
+- If this same pattern is used elsewhere, those systems are also vulnerable</p>
+<p><strong>Fix:</strong>
+Generate a cryptographically random API key using <code>openssl rand -hex 32</code>, rotate immediately.</p>
+<hr />
+<h3 id="hb-06-cors-allows-all-origins-on-hf-space">🐛 HB-06: CORS ALLOWS ALL ORIGINS ON HF SPACE</h3>
+<p><strong>Severity: MEDIUM</strong> | <strong>Category: MISCONFIGURATION</strong></p>
+<p><strong>Root Cause:</strong>
+In <code>hf-space/app.py</code> (lines 195-206):
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="n">app</span><span class="o">.</span><span class="n">add_middleware</span><span class="p">(</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>    <span class="n">CORSMiddleware</span><span class="p">,</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>    <span class="n">allow_origins</span><span class="o">=</span><span class="p">[</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>        <span class="s2">&quot;https://huggingface.co&quot;</span><span class="p">,</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>        <span class="s2">&quot;https://*.hf.space&quot;</span><span class="p">,</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>        <span class="s2">&quot;http://localhost:3000&quot;</span><span class="p">,</span>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>        <span class="s2">&quot;http://localhost:5173&quot;</span><span class="p">,</span>
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>    <span class="p">],</span>
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>    <span class="n">allow_credentials</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>    <span class="n">allow_methods</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;*&quot;</span><span class="p">],</span>
+<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>    <span class="n">allow_headers</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;*&quot;</span><span class="p">],</span>
+<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="p">)</span>
+</code></pre></div>
+The wildcard <code>*.hf.space</code> allows any HF Space (including attacker-controlled ones) to make CORS requests with credentials.</p>
+<p><strong>Impact:</strong>
+- Malicious HF Space can make authenticated API calls from victim's browser
+- Session hijacking possible if combined with XSS on any HF Space</p>
+<p><strong>Fix:</strong>
+Pin exact origins: <code>"https://ahmdelbaz28-ahmedetap-platform.hf.space"</code>.</p>
+<hr />
+<h3 id="hb-07-csp-headers-use-unsafe-inline-and-unsafe-eval">🐛 HB-07: CSP HEADERS USE <code>unsafe-inline</code> AND <code>unsafe-eval</code></h3>
+<p><strong>Severity: MEDIUM</strong> | <strong>Category: SECURITY / XSS</strong></p>
+<p><strong>Root Cause:</strong>
+In <code>hf-space/app.py</code> (lines 235-242):
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">response</span><span class="o">.</span><span class="n">headers</span><span class="p">[</span><span class="s2">&quot;Content-Security-Policy&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>    <span class="s2">&quot;default-src &#39;self&#39;; &quot;</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>    <span class="s2">&quot;script-src &#39;self&#39; &#39;unsafe-inline&#39; &#39;unsafe-eval&#39; https://cdn.jsdelivr.net; &quot;</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>    <span class="o">...</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="p">)</span>
+</code></pre></div>
+The CSP allows <code>unsafe-inline</code> and <code>unsafe-eval</code>, which defeats the purpose of CSP for XSS mitigation.</p>
+<p><strong>Impact:</strong>
+- Any XSS vulnerability in the app can execute arbitrary JavaScript
+- The CSP provides minimal protection against injection attacks</p>
+<p><strong>Fix:</strong>
+Implement nonce-based or hash-based CSP for inline scripts. Remove <code>unsafe-eval</code> if possible.</p>
+<hr />
+<h3 id="hb-08-synthetic-scada-data-returned-in-production-mode">🐛 HB-08: SYNTHETIC SCADA DATA RETURNED IN PRODUCTION MODE</h3>
+<p><strong>Severity: LOW</strong> | <strong>Category: DATA ACCURACY</strong></p>
+<p><strong>Root Cause:</strong>
+In <code>routes.py</code> (line 655):
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="s2">&quot;source&quot;</span><span class="p">:</span> <span class="s2">&quot;synthetic&quot;</span> <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ENVIRONMENT&quot;</span><span class="p">)</span> <span class="o">!=</span> <span class="s2">&quot;production&quot;</span> <span class="k">else</span> <span class="s2">&quot;zenon&quot;</span><span class="p">,</span>
+</code></pre></div>
+AND in <code>hf-space/app.py</code> (line 902):
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="s2">&quot;source&quot;</span><span class="p">:</span> <span class="s2">&quot;hf-space-synthetic&quot;</span><span class="p">,</span>
+</code></pre></div>
+On HF Space, the SCADA endpoint ALWAYS returns synthetic data. The production env check in routes.py may report "zenon" as source even when no real Zenon backend is connected.</p>
+<p><strong>Impact:</strong>
+- Users may believe they are viewing real SCADA data when it's synthetic
+- False confidence in system state
+- Incorrect operational decisions based on fake telemetry</p>
+<p><strong>Fix:</strong>
+Always report <code>"source": "synthetic"</code> unless the real Zenon backend is actually connected and verified via health check.</p>
+<hr />
+<h3 id="hb-09-dual-authentication-systems-configuration-risk">🐛 HB-09: DUAL AUTHENTICATION SYSTEMS — CONFIGURATION RISK</h3>
+<p><strong>Severity: HIGH</strong> | <strong>Category: AUTHORIZATION BYPASS</strong></p>
+<p><strong>Root Cause:</strong>
+There are TWO independent authentication systems:
+1. <code>api/auth.py</code> + <code>api/dependencies.py</code> — Used by FastAPI route handlers (JWT + bcrypt)
+2. <code>security/security_framework.py</code> (AuthenticationManager) — Standalone JWT system with SEPARATE secret key, token format, and user store</p>
+<p>These systems have:
+- Different JWT payload schemas (<code>api/auth.py</code> uses <code>sub</code>/<code>role</code>/<code>type</code>/<code>jti</code>, <code>security_framework.py</code> uses <code>user_id</code>/<code>username</code>/<code>role</code>)
+- Different secret key derivation logic
+- Different token expiration handling
+- Completely separate user stores (SQLAlchemy vs in-memory dict)</p>
+<p><strong>Impact:</strong>
+- A token issued by one system is NOT valid for the other
+- Confusion about which auth system protects which endpoint
+- If a developer adds a new endpoint using the wrong auth system, auth is bypassed
+- The <code>security/security_framework.py</code> <code>AuthenticationManager</code> stores users in memory → no persistence across restarts</p>
+<p><strong>Fix:</strong>
+Either:
+1. Remove <code>security/security_framework.py</code> AuthenticationManager entirely (it's unused by actual routes)
+2. Or refactor to use a single auth system throughout</p>
+<hr />
+<h3 id="hb-10-docker-compose-exposes-grafana-without-auth-by-default">🐛 HB-10: DOCKER-COMPOSE EXPOSES GRAFANA WITHOUT AUTH BY DEFAULT</h3>
+<p><strong>Severity: MEDIUM</strong> | <strong>Category: MISCONFIGURATION</strong></p>
+<p><strong>Root Cause:</strong>
+In <code>docker-compose.yml</code> (lines 90-101):
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="nt">grafana</span><span class="p">:</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">    </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">grafana/grafana-enterprise</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">    </span><span class="nt">ports</span><span class="p">:</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;3000:3000&quot;</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="w">    </span><span class="nt">environment</span><span class="p">:</span>
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:?GRAFANA_ADMIN_PASSWORD is required}</span>
+</code></pre></div>
+Grafana is exposed on port 3000 without any network restriction. The admin password is required but:
+- There's no documentation of what the default should be
+- The .env.example doesn't include GRAFANA_ADMIN_PASSWORD
+- If deployed without setting this env var, docker-compose fails with "GRAFANA_ADMIN_PASSWORD is required" error message that LEAKS the env var name</p>
+<p><strong>Fix:</strong>
+Add GRAFANA_ADMIN_PASSWORD to .env.example with a strong default + documentation.</p>
+<hr />
+<h3 id="hb-11-celery-worker-depends-on-engineering-service-service-circular-logic">🐛 HB-11: CELERY WORKER DEPENDS ON <code>engineering-service</code> SERVICE — CIRCULAR LOGIC</h3>
+<p><strong>Severity: LOW</strong> | <strong>Category: STARTUP ORDER</strong></p>
+<p><strong>Root Cause:</strong>
+In <code>docker-compose.yml</code> (lines 42-47):
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="nt">depends_on</span><span class="p">:</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">    </span><span class="nt">redis</span><span class="p">:</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">        </span><span class="nt">condition</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">service_healthy</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">    </span><span class="nt">engineering-service</span><span class="p">:</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="w">        </span><span class="nt">condition</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">service_started</span>
+</code></pre></div>
+Celery worker depends on <code>engineering-service: service_started</code>, but <code>engineering-service</code> doesn't need to be running for Celery to work. Celery only needs Redis (broker) and the code.</p>
+<p><strong>Impact:</strong>
+- Slower startup sequence (waits for engineering-service to start)
+- If engineering-service crashes, Celery is also stopped unnecessarily
+- Single point of failure for background task processing</p>
+<p><strong>Fix:</strong>
+Celery should only depend on Redis, not the API service.</p>
+<hr />
+<h3 id="hb-12-redis-password-leaked-in-docker-healthcheck">🐛 HB-12: REDIS PASSWORD LEAKED IN DOCKER HEALTHCHECK</h3>
+<p><strong>Severity: HIGH</strong> | <strong>Category: SECRET IN PROCESS LIST</strong></p>
+<p><strong>Root Cause:</strong>
+In <code>docker-compose.yml</code> (line 64):
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="n">healthcheck</span><span class="p">:</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>    <span class="n">test</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;CMD&quot;</span><span class="p">,</span> <span class="s2">&quot;redis-cli&quot;</span><span class="p">,</span> <span class="s2">&quot;-a&quot;</span><span class="p">,</span> <span class="s2">&quot;$</span><span class="si">{REDIS_PASSWORD}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;ping&quot;</span><span class="p">]</span>
+</code></pre></div>
+The Redis password is passed as a command-line argument to <code>redis-cli -a ${REDIS_PASSWORD}</code>. This makes the password visible in:
+- <code>docker ps</code> output (process list)
+- Container health check logs
+- Process monitoring tools</p>
+<p><strong>Fix:</strong>
+Use <code>redis-cli ping</code> without password (Redis checks auth automatically for locally-connected clients) or use the <code>REDISCLI_AUTH</code> environment variable.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "search.suggest", "search.highlight"], "search": "../../assets/javascripts/workers/search.f8cc74c7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.c8b220af.min.js"></script>
+      
+    
+  </body>
+</html>
