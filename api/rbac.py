@@ -24,7 +24,7 @@ Exposes endpoints under the ``/api/v1/auth`` prefix:
 
 import uuid
 from datetime import UTC, datetime
-from typing import Optional, Any
+from typing import Any, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, ConfigDict, Field

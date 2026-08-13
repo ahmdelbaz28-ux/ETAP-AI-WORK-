@@ -113,9 +113,6 @@ try:
     from fireai.core.qomn_kernel import ComputationError as _CE  # noqa: N814
     from fireai.core.qomn_kernel import PhysicsGuardError as _PGE  # noqa: N814
     from fireai.core.qomn_kernel import ValidationError as _VE  # noqa: N814
-    from fireai.core.qomn_kernel import ComputationError as _CE
-    from fireai.core.qomn_kernel import PhysicsGuardError as _PGE
-    from fireai.core.qomn_kernel import ValidationError as _VE
 
     _PhysicsGuardError = _PGE
     _ComputationError = _CE

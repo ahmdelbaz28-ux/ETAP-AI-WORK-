@@ -6,8 +6,8 @@ semantic reranking heuristics, token budget pruning, and zero-hallucination guar
 
 from __future__ import annotations
 
-import math
 import logging
+import math
 from typing import Any
 
 from ai_context_engine.retriever import CodeCompressor, CodeRetriever

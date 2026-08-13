@@ -31,12 +31,6 @@ Endpoints:
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Request
-from pydantic import BaseModel, Field
-
-from backend.auth import require_permission
-from backend.limiter import limiter
-from backend.rbac import Permission
-from backend.services.marine_service import get_marine_service
 from marine.core.types import (
     DetectorPlacement,  # V140: Fix F821 undefined-name
     DetectorType,
@@ -46,6 +40,12 @@ from marine.core.types import (
     ShipType,
     SpaceCategory,
 )
+from pydantic import BaseModel, Field
+
+from backend.auth import require_permission
+from backend.limiter import limiter
+from backend.rbac import Permission
+from backend.services.marine_service import get_marine_service
 
 router = APIRouter(prefix="/marine", tags=["Marine"])
 

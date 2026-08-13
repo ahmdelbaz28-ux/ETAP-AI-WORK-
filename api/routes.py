@@ -16,8 +16,6 @@ import time
 import uuid
 from typing import Any
 
-from api.environment import DEV_ENVIRONMENTS, is_dev_environment, is_production_environment
-
 import aiofiles
 from fastapi import FastAPI, HTTPException, Request, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
@@ -46,6 +44,7 @@ from api.email_dashboard import router as email_dashboard_router
 from api.email_digest import router as email_digest_router
 from api.email_otp import router as email_otp_router
 from api.email_webhooks import router as email_webhooks_router
+from api.environment import DEV_ENVIRONMENTS, is_dev_environment, is_production_environment
 from api.equipment import router as equipment_router
 from api.export import router as export_router
 from api.feature_flags import router as feature_flags_router

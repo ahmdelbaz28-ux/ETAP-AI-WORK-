@@ -21,15 +21,15 @@ import logging
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel, Field
-
-from backend.auth import require_permission
-from backend.rbac import Permission
 from fireai.core.pipeline import analyze_room
 from fireai.core.qomn_kernel import (
     PhysicsGuardError,
     QOMNKernel,
 )
+from pydantic import BaseModel, Field
+
+from backend.auth import require_permission
+from backend.rbac import Permission
 
 logger = logging.getLogger(__name__)
 

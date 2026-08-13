@@ -36,7 +36,6 @@ class TestManagerConstruction:
         # Monkey-patch probe_all to return all-unavailable before construction.
         from scada_protocols.common import base as _base
         from scada_protocols.manager import SCADAProtocolManager as _M  # noqa: N814
-        from scada_protocols.manager import SCADAProtocolManager as _M
 
         def _fake_probe():
             return {

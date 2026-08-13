@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import List, Tuple
 
 from gis_validation_electrical.electrical_model import ElectricalEdge, ElectricalModel
 

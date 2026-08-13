@@ -37,7 +37,7 @@ def set_parameter_by_name(element, parameterName, value):  # NOSONAR - python:S1
     element.LookupParameter(parameterName).Set(value)  # noqa: W191
 
 
-def set_parameter_by_name(element, parameterName, value):  # NOSONAR - python:S117
+def set_parameter_by_name(element, parameterName, value):  # noqa: F811  # NOSONAR - python:S117
     element.LookupParameter(parameterName).Set(value)
 
 

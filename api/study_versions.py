@@ -20,7 +20,7 @@ from __future__ import annotations
 import json
 import uuid
 from datetime import UTC, datetime
-from typing import Optional, Any
+from typing import Any, Optional
 
 UTC = UTC
 

@@ -19,7 +19,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime, timezone
-from typing import Optional, Any
+from typing import Any, Optional
 
 UTC = timezone.utc  # noqa: UP017
 

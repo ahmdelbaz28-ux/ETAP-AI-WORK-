@@ -61,9 +61,9 @@ import atexit
 import contextlib
 import json
 import logging
-import re
 import os
 import random
+import re
 import threading
 import time
 import uuid

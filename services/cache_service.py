@@ -14,7 +14,7 @@ import contextlib
 import json
 import logging
 import time
-from typing import Optional, Any
+from typing import Any
 
 logger = logging.getLogger(__name__)
 

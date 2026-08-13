@@ -392,8 +392,6 @@ def setup_fastapi_error_tracking(app: Any) -> None:
     from fastapi import Request
     from fastapi.responses import JSONResponse
 
-    from fastapi import Request
-    from fastapi.responses import JSONResponse
 
     @app.middleware("http")
     async def error_tracking_middleware(request: Request, call_next):

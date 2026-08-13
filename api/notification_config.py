@@ -41,7 +41,6 @@ from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import Response
-
 from pydantic import BaseModel, Field, field_validator
 
 from api.dependencies import get_api_key

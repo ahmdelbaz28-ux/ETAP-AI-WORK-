@@ -35,7 +35,7 @@ except NameError:
 doc = __revit__.ActiveUIDocument.Document
 
 
-def all_elements_of_category(category):
+def all_elements_of_category(category):  # noqa: F811
     return (
         FilteredElementCollector(doc)
         .OfCategory(category)

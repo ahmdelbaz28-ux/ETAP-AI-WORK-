@@ -55,6 +55,11 @@ ignore = [
     # UP047 (non-pep695-type-parameters) was added in ruff 0.8+ — not available in CI's ruff 0.7.0.
     # Both are omitted from this ignore list to keep CI ruff 0.7.0 compatible.
     # Listing UP045 in `ignore` causes ruff 0.7.0 to fail at parse time with
+    "F822",   # undefined name in __all__ (app defined by FastAPI decorator, ruff can't see)
+    "B904",   # raise from err/None in except (57 pre-existing; gradual migration)
+    "B017",   # assert blind exception (pre-existing in test fixtures)
+    "B018",   # useless expression (revit_samples are Revit script snippets)
+    "G202",   # redundant exc_info in logging (pre-existing)
     "G004",   # Logging statement uses f-string
     "UP045",  # non-pep604-annotation-optional
     "UP046",  # non-pep695-generic-class

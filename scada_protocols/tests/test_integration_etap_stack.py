@@ -40,11 +40,6 @@ try:
         QualityFlag,
         SCADADatabase,
     )
-    from scada_model.scada_model import (
-        MeasurementType,
-        QualityFlag,
-        SCADADatabase,
-    )
 
     ETAP_AVAILABLE = True
 except Exception as _exc:  # pragma: no cover - environment-dependent

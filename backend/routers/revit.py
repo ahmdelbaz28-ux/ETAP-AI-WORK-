@@ -112,7 +112,6 @@ def get_revit_service() -> RevitService:
 # mutations against the building model. Now requires ENGINEER+ permission.
 # Upload endpoints are also rate-limited to prevent DoS via cadenced uploads.
 from backend.auth import require_permission
-from backend.limiter import limiter
 from backend.rbac import Permission
 from parsers._path_security import UnsafePathError, validate_input_path
 
