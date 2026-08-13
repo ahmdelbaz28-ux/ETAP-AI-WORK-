@@ -63,7 +63,7 @@ COPY --chown=root:root --chmod=go-w prompts/ ./prompts/
 COPY --chown=root:root --chmod=go-w skills/ ./skills/
 COPY --chown=root:root --chmod=go-w prompts.json ./prompts.json
 COPY --chown=root:root --chmod=go-w schemas/ ./schemas/
-COPY --chown=root:root --chmod=go-w config/ ./config/
+# COPY --chown=root:root --chmod=go-w config/ ./config/  # config/ not in hf-space build context
 
 # Environment — runtime configuration (NOT secrets).
 # PORT is a publicly visible network port, not sensitive.
