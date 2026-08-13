@@ -465,5 +465,8 @@ python-dotenv>=1.0.0
 
 -r requirements-prod.txt
 
+# Property-based testing (used by tests/property_based/test_retry_behavior.py)
+hypothesis>=6.100.0
+
 # Uncomment the line below to include ML/AI dependencies
 # -r requirements-ml.txt
