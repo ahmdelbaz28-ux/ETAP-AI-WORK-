@@ -92,8 +92,18 @@ class TestLogin:
 class TestAuthMe:
     """GET /api/v1/auth/me tests."""
 
-    def test_me_without_cookie_returns_401(self, client: TestClient) -> None:
-        """Without any cookie, /me should return 401."""
+    def test_me_without_cookie_returns_401(
+        self, client: TestClient, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Without any cookie, /me should return 401.
+
+        SECURITY: The project-wide conftest autouse fixture sets
+        ENGINEERING_SERVICE_AUTH_DISABLED=true which bypasses all auth in
+        non-production environments. We must disable that bypass for this
+        specific test so the rejection path is actually exercised.
+        """
+        monkeypatch.setenv("ENGINEERING_SERVICE_AUTH_DISABLED", "false")
+        monkeypatch.setenv("FIREAI_AUTH_DISABLED", "false")
         # Clear any cookies from previous tests
         client.cookies.clear()
         resp = client.get("/api/v1/auth/me")

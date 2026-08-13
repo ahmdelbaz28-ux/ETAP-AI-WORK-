@@ -25,9 +25,22 @@ from fastapi.testclient import TestClient
 
 @pytest.fixture(autouse=True)
 def _setup_env() -> Generator[None, None, None]:
-    """Set test environment."""
+    """Set test environment.
+
+    SECURITY: This module verifies that tampered/invalid session cookies are
+    rejected. The project-wide conftest.py sets ENGINEERING_SERVICE_AUTH_DISABLED=true
+    (and FIREAI_AUTH_DISABLED alias) which causes the ApiKeyMiddleware to bypass
+    all authentication in non-production environments. For these security tests
+    to actually exercise the rejection path, we MUST disable that bypass here.
+    """
     os.environ["FIREAI_ENV"] = "development"
     os.environ["FIREAI_API_KEY"] = "test_key_for_security_audit"
+    os.environ["FIREAI_SESSION_SECRET"] = (
+        "ci-test-session-secret-key-32-bytes-long-minimum"
+    )
+    # Force auth to be ENFORCED — undo the conftest autouse bypass.
+    os.environ["ENGINEERING_SERVICE_AUTH_DISABLED"] = "false"
+    os.environ["FIREAI_AUTH_DISABLED"] = "false"
     # Clear session store between tests
     from backend.routers import auth as auth_module
 
@@ -36,6 +49,10 @@ def _setup_env() -> Generator[None, None, None]:
     yield
     auth_module._SESSION_STORE.clear()
     auth_module._FAILED_ATTEMPTS.clear()
+    # Restore the conftest default so subsequent test modules see the bypass again.
+    os.environ["ENGINEERING_SERVICE_AUTH_DISABLED"] = "true"
+    os.environ.pop("FIREAI_AUTH_DISABLED", None)
+    os.environ.pop("FIREAI_SESSION_SECRET", None)
 
 
 @pytest.fixture(scope="module")
