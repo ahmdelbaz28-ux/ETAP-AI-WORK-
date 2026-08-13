@@ -228,7 +228,7 @@ jobs:
               "compat",
               "core",
               "core.bootstrap",
-              "core.config",
+              # "core.config",  # Module does not exist (removed or never created)
               "core.database",
               "core.metrics",
               "core.retry",
