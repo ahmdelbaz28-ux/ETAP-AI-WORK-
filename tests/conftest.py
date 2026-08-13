@@ -26,38 +26,6 @@ except ImportError:
     logger = logging.getLogger("test")
 
 
-# ---------------------------------------------------------------------------
-# Phase 3 cleanup: skip test files that import from the deleted fireai/
-# facp_system packages. These tests will be migrated in Phase 3 Batch 3.
-# Without this, pytest collection errors (ModuleNotFoundError) abort the
-# entire test run after --maxfail=5 failures.
-# ---------------------------------------------------------------------------
-def _fireai_dependent_test_files():
-    """Return list of test files that import from fireai/facp_system."""
-    import pathlib
-
-    skip_files = []
-    tests_dir = pathlib.Path(__file__).parent
-    for test_file in tests_dir.rglob("test_*.py"):
-        try:
-            content = test_file.read_text(encoding="utf-8")
-        except Exception:
-            continue
-        if (
-            "from fireai" in content
-            or "import fireai" in content
-            or "from facp_system" in content
-            or "backend.routers.facp" in content
-        ):
-            # Return path relative to tests/ directory
-            rel = test_file.relative_to(tests_dir)
-            skip_files.append(str(rel))
-    return skip_files
-
-
-collect_ignore = [f for f in _fireai_dependent_test_files()]
-
-
 # Module-level test password constant — SonarCloud S2068 (hard-coded
 # credentials) accepts module constants because they are easy to audit
 # in one place. NOT a real secret; used only by the test fixtures below.
