@@ -37,7 +37,7 @@ Usage:
 
   # Production (Docker/K8s file-based, MORE secure):
   # Mount secret file, then:
-  export FIREAI_SESSION_SECRET_FILE=/run/secrets/fireai_session_secret
+  export FIREAI_SESSION_SECRET_FILE=/run/secrets/etap_session_secret
 
   # Rotation (zero-downtime):
   # 1. Set FIREAI_SESSION_SECRET_NEW to the new secret
@@ -241,7 +241,7 @@ class SessionSecretManager:
                     "Then set it as an environment variable:\n"
                     "  export FIREAI_SESSION_SECRET='<generated_secret>'\n\n"
                     "Or for Docker/K8s (more secure), use file-based:\n"
-                    "  export FIREAI_SESSION_SECRET_FILE=/run/secrets/fireai_session_secret\n\n"
+                    "  export FIREAI_SESSION_SECRET_FILE=/run/secrets/etap_session_secret\n\n"
                     "The secret signs all session cookies. Without it, users cannot log in."
                 )
             # Development: generate a random secret (sessions lost on restart)
@@ -402,8 +402,8 @@ def main() -> None:
         print("#   export FIREAI_SESSION_SECRET='<copy-secret-below>'")  # noqa: T201
         print("#")  # noqa: T201
         print("# Usage (Docker/K8s file-based, more secure):")  # noqa: T201
-        print("#   echo -n '<copy-secret-below>' > /run/secrets/fireai_session_secret")  # noqa: T201
-        print("#   export FIREAI_SESSION_SECRET_FILE=/run/secrets/fireai_session_secret")  # noqa: T201
+        print("#   echo -n '<copy-secret-below>' > /run/secrets/etap_session_secret")  # noqa: T201
+        print("#   export FIREAI_SESSION_SECRET_FILE=/run/secrets/etap_session_secret")  # noqa: T201
         print("#")  # noqa: T201
         print("# The secret below has 512 bits of entropy (86 URL-safe base64 chars):")  # noqa: T201
         print(secret)  # noqa: S105, T201 - intentional CLI output for user to copy

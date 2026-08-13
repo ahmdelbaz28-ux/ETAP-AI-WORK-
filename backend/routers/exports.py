@@ -70,7 +70,7 @@ async def export_dxf(project_id: str):
 
     # ── Project metadata as text ────────────────────────────────────────
     msp.add_text(
-        f"FireAI Digital Twin Export - {project['name']}",
+        f"ETAP-AI-WORK Digital Twin Export - {project['name']}",
         dxfattribs={"height": 1.0, "insert": (0, 50)},
     )
     msp.add_text(
@@ -158,7 +158,7 @@ async def export_revit(project_id: str):
 
     revit_data = {
         "version": "1.0.0",
-        "source": "FireAI Digital Twin",
+        "source": "ETAP-AI-WORK Digital Twin",
         "exportDate": datetime.now(timezone.utc).isoformat(),
         "project": {
             "name": project["name"],
@@ -234,7 +234,7 @@ async def export_ifc(
         ifc_fallback = {
             "note": "ifcopenshell not available. Returning IFC-structured JSON.",
             "version": version,
-            "source": "FireAI Digital Twin",
+            "source": "ETAP-AI-WORK Digital Twin",
             "exportDate": datetime.now(timezone.utc).isoformat(),
             "project": {
                 "name": project["name"],
@@ -316,7 +316,7 @@ async def export_ifc(
         import tempfile
 
         with tempfile.NamedTemporaryFile(
-            suffix=".ifc", delete=False, prefix="fireai_ifc_"
+            suffix=".ifc", delete=False, prefix="etap_ifc_"
         ) as tmp:  # NOSONAR — S7493: default mutable acceptable (frozen at module load)
             tmp_path = tmp.name
         try:
@@ -426,7 +426,7 @@ async def export_data_global(input_data: ExportDataInput):
             ("Project Name", project.get("name", "")),
             ("Author", project.get("author", "")),
             ("Exported At (UTC)", datetime.now(timezone.utc).isoformat()),
-            ("Software", "FireAI / BAZSPARK v1.55.0 (V213)"),
+            ("Software", "ETAP-AI-WORK v2.1.0"),
             ("Device Count", len(devices)),
             ("Connection Count", len(connections)),
             ("Standard", "NFPA 72-2022"),
@@ -574,7 +574,7 @@ async def export_data_global(input_data: ExportDataInput):
                 "/api/v1/exports (this endpoint, with exportType=excel)",
             ],
             "exportedAt": datetime.now(timezone.utc).isoformat(),
-            "software": "FireAI / BAZSPARK v1.55.0 (V213)",
+            "software": "ETAP-AI-WORK v2.1.0",
             "note": (
                 f"exportType='{export_type}' is not a binary format. Use the "
                 "availableEndpoints above to fetch a real DXF/Revit/IFC export, "

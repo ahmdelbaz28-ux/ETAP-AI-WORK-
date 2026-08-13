@@ -439,7 +439,7 @@ class ApiKeyMiddleware:
                         pair = pair.strip()
                         if "=" in pair:
                             k, v = pair.split("=", 1)
-                            if k.strip() == "fireai_session":
+                            if k.strip() == "etap_session":
                                 cookie_token = v.strip()
                                 # Validate the signed session token
                                 try:

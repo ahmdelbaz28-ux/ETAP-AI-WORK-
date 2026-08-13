@@ -62,7 +62,7 @@ class TestLogin:
 
         # Verify Set-Cookie header
         set_cookie = resp.headers.get("set-cookie", "")
-        assert "fireai_session=" in set_cookie
+        assert "etap_session=" in set_cookie
         assert "HttpOnly" in set_cookie
         assert "SameSite=Strict" in set_cookie
 

@@ -24,7 +24,7 @@ SECURITY DESIGN (CRITICAL FIX):
 Endpoints:
   POST /api/v1/auth/login
     Body: {"api_key": "..."}
-    Sets: Set-Cookie: fireai_session=<signed_token>; HttpOnly; SameSite=Strict; Secure
+    Sets: Set-Cookie: etap_session=<signed_token>; HttpOnly; SameSite=Strict; Secure
     Returns: {"success": true, "data": {"role": "ADMIN", "expires_at": "..."}}
 
   POST /api/v1/auth/logout
@@ -60,7 +60,7 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 # SESSION SECURITY CONFIGURATION
 # ═══════════════════════════════════════════════════════════════════════════════
 
-_COOKIE_NAME = "fireai_session"
+_COOKIE_NAME = "etap_session"
 _COOKIE_MAX_AGE_SECONDS = 8 * 3600  # 8 hours
 _SESSION_ID_BYTES = 32  # 256 bits of entropy
 
