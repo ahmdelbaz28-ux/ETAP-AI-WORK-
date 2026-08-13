@@ -8,7 +8,8 @@ WORKDIR /app
 
 # System dependencies + create non-root user in a single RUN
 # SonarCloud docker:S7031: merged consecutive RUN instructions to reduce layers
-RUN apt-get update && apt-get install -y --no-install-recommends \  # NOSONAR S7018: package order follows logical grouping (runtime deps first); alphanum sort would break grouping
+# NOSONAR S7018: package order follows logical grouping (runtime deps first)
+RUN apt-get update && apt-get install -y --no-install-recommends \
     curl gcc g++ \
     && rm -rf /var/lib/apt/lists/* \
     && useradd -m -u 1000 user \
