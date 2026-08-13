@@ -33,8 +33,8 @@ from backend.services.workflow_service import (
 
 
 def _get_fireai_api_key():
-    """Read FIREAI_API_KEY at runtime, not import time."""
-    return os.getenv("FIREAI_API_KEY", "")
+    """Read ETAP_API_KEY (FIREAI_API_KEY deprecated alias) at runtime, not import time."""
+    return os.getenv("ETAP_API_KEY", os.getenv("FIREAI_API_KEY", ""))
 
 
 def verify_api_key_dep(x_api_key: str | None = Header(None, alias="X-API-Key")) -> None:
@@ -58,8 +58,11 @@ logger = logging.getLogger(__name__)
 # fake compliance reports = catastrophic loss of life.
 
 ALLOWED_DATA_DIRS = os.environ.get(
-    "FIREAI_DATA_DIRS",
-    "/tmp/fireai_uploads:/data:/uploads",  # NOSONAR
+    "ETAP_DATA_DIRS",
+    os.environ.get(
+        "FIREAI_DATA_DIRS",
+        "/tmp/fireai_uploads:/data:/uploads",  # NOSONAR
+    ),
 ).split(":")
 
 ALLOWED_FILE_EXTENSIONS = frozenset({".dxf", ".dwg", ".pdf", ".ifc", ".rvt"})
@@ -213,14 +216,18 @@ async def start_workflow(
         # V114 FIX: Block skip_human_review in production environments.
         # NFPA 72 requires PE review for all fire alarm designs.
         # Allowing this in production is a direct violation of NFPA 72.
-        env = os.getenv("FIREAI_ENV", os.getenv("NODE_ENV", "production")).lower()
+        env = os.getenv(
+            "ENVIRONMENT",
+            os.getenv("FIREAI_ENV", os.getenv("NODE_ENV", "production")),
+        ).lower()
         if env not in ("development", "dev", "test", "testing"):
             raise HTTPException(  # NOSONAR — S8415: assignment kept for readability / debuggability
                 status_code=403,
                 detail=(
                     "skip_human_review=True is FORBIDDEN in production. "
                     "NFPA 72 requires Professional Engineer review for all "
-                    "fire alarm designs. Set FIREAI_ENV=development to enable."
+                    "fire alarm designs. Set ENVIRONMENT=development "
+                    "(FIREAI_ENV accepted as deprecated alias) to enable."
                 ),
             )
         logger.warning(  # NOSONAR

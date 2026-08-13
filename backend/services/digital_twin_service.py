@@ -1184,7 +1184,7 @@ class VersionManager:
         cwd = Path.cwd().resolve()
         allowed_roots = [
             cwd,
-            Path(os.environ.get("FIREAI_UPLOAD_DIR", str(cwd / "uploads"))),
+            Path(os.environ.get("ETAP_UPLOAD_DIR", os.environ.get("FIREAI_UPLOAD_DIR", str(cwd / "uploads")))),
             Path("/tmp"),  # NOSONAR
             Path("/var/tmp"),  # NOSONAR
             Path(tempfile.gettempdir()).resolve(),

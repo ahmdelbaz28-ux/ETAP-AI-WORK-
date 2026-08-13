@@ -330,22 +330,37 @@ class FaultInjector:
 
         Usage:
             injector.activate(db_fault="connection_lost", cache_fault="unavailable")
+
+        Sets ETAP_FAULT_<NAME> (canonical) and FIREAI_FAULT_<NAME>
+        (deprecated alias) env vars for backward compatibility with
+        any code or test that still reads the legacy name.
         """
         for fault_type, fault_value in faults.items():
-            key = f"FIREAI_FAULT_{fault_type.upper()}"
-            self._original_env[key] = os.environ.get(key)
-            os.environ[key] = fault_value
+            canonical_key = f"ETAP_FAULT_{fault_type.upper()}"
+            legacy_key = f"FIREAI_FAULT_{fault_type.upper()}"
+            self._original_env[canonical_key] = os.environ.get(canonical_key)
+            self._original_env[legacy_key] = os.environ.get(legacy_key)
+            os.environ[canonical_key] = fault_value
+            # Backward-compat mirror for legacy FIREAI_FAULT_* readers.
+            os.environ[legacy_key] = fault_value
             self._active_faults[fault_type] = fault_value
 
     def deactivate_all(self) -> None:
-        """Remove all active fault injections."""
+        """Remove all active fault injections.
+
+        Restores both ETAP_FAULT_<NAME> (canonical) and FIREAI_FAULT_<NAME>
+        (deprecated alias) env vars to their pre-activation values.
+        """
         for key in list(self._active_faults.keys()):  # NOSONAR - python:S7504
-            env_key = f"FIREAI_FAULT_{key.upper()}"
-            original = self._original_env.get(env_key)
-            if original is not None:
-                os.environ[env_key] = original
-            else:
-                os.environ.pop(env_key, None)
+            for env_key in (
+                f"ETAP_FAULT_{key.upper()}",
+                f"FIREAI_FAULT_{key.upper()}",
+            ):
+                original = self._original_env.get(env_key)
+                if original is not None:
+                    os.environ[env_key] = original
+                else:
+                    os.environ.pop(env_key, None)
         self._active_faults.clear()
         self._original_env.clear()
 

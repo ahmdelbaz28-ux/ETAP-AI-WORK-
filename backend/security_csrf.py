@@ -111,7 +111,10 @@ CSRF_EXEMPT_PATHS = frozenset(
 # Secure attribute to be omitted in production behind TLS-terminating proxies.
 import os as _os
 
-_DEV_ALLOW_HTTP_COOKIES = _os.environ.get("FIREAI_DEV_ALLOW_HTTP_COOKIES", "").lower() in (
+_DEV_ALLOW_HTTP_COOKIES = _os.environ.get(
+    "ETAP_DEV_ALLOW_HTTP_COOKIES",
+    _os.environ.get("FIREAI_DEV_ALLOW_HTTP_COOKIES", ""),
+).lower() in (
     "1",
     "true",
     "yes",
@@ -283,7 +286,9 @@ class CSRFMiddleware:
 
                     # Allow if origin host matches server host
                     # In dev mode, also allow localhost variants
-                    is_dev = _os.environ.get("FIREAI_ENV", "development").lower() == "development"
+                    is_dev = _os.environ.get(
+                        "ENVIRONMENT", _os.environ.get("FIREAI_ENV", "development")
+                    ).lower() == "development"
                     trusted_hosts = {host_name, "localhost", "127.0.0.1"} if is_dev else {host_name}
 
                     if origin_host not in trusted_hosts:

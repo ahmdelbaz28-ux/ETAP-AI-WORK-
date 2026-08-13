@@ -97,7 +97,8 @@ class WordParser:
 
         Args:
             file_path: Path to .docx file. MUST be under
-                FIREAI_ALLOWED_UPLOAD_DIRS (V124 security hardening).
+                ETAP_ALLOWED_UPLOAD_DIRS (FIREAI_ALLOWED_UPLOAD_DIRS accepted
+                as deprecated alias; V124 security hardening).
 
         Returns:
             WordParseResult with extracted info
@@ -112,7 +113,10 @@ class WordParser:
 
         _ALLOWED_EXTENSIONS = frozenset({".docx", ".doc"})
         _MAX_FILE_SIZE_BYTES = int(
-            os.getenv("FIREAI_WORD_MAX_FILE_SIZE_BYTES", 25 * 1024 * 1024)
+            os.getenv(
+                "ETAP_WORD_MAX_FILE_SIZE_BYTES",
+                os.getenv("FIREAI_WORD_MAX_FILE_SIZE_BYTES", 25 * 1024 * 1024),
+            )
         )  # 25 MB default
         try:
             safe_path = validate_input_path(

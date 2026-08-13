@@ -155,7 +155,9 @@ class AkamaiConfig:
         self.blocked_countries: frozenset[str] = _env_list("AKAMAI_BLOCKED_COUNTRIES")
         self.allowed_bot_score: int = _env_int("AKAMAI_ALLOWED_BOT_SCORE", default=30)
         self.rate_limit_passthrough: bool = _env_bool("AKAMAI_RATE_LIMIT_HEADER", default=True)
-        self.production_mode: bool = os.getenv("FIREAI_ENV", "production").lower() in (
+        self.production_mode: bool = os.getenv(
+            "ENVIRONMENT", os.getenv("FIREAI_ENV", "production")
+        ).lower() in (
             "production",
             "prod",
         )
@@ -276,7 +278,8 @@ class AkamaiIntegrationMiddleware:
         if akamai_internal == self.config.require_origin_token:
             return True
         # Fail-safe: log CRITICAL and block in production.
-        # In dev/test (FIREAI_ENV != production), allow passthrough.
+        # In dev/test (ENVIRONMENT/FIREAI_ENV != production), allow passthrough.
+        # NOTE: FIREAI_ENV is a deprecated alias for ENVIRONMENT (see backend/config.py).
         if self.config.production_mode:
             logger.critical(
                 "Direct origin access blocked (no/invalid Akamai-Internal token). "

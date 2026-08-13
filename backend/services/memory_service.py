@@ -239,7 +239,10 @@ class MemoryService:
         """
         try:
             # V76: Try OpenAI first (best engineering accuracy), then Gemini
-            openai_api_key = os.getenv("OPENAI_API_KEY") or os.getenv("FIREAI_OPENAI_API_KEY")
+            # ETAP_OPENAI_API_KEY is canonical; FIREAI_OPENAI_API_KEY is a deprecated alias.
+            openai_api_key = os.getenv("OPENAI_API_KEY") or os.getenv(
+                "ETAP_OPENAI_API_KEY", os.getenv("FIREAI_OPENAI_API_KEY")
+            )
             gemini_api_key = os.getenv("GEMINI_API_KEY")
 
             # ── Strategy 1: OpenAI (PRIMARY — best engineering accuracy) ──

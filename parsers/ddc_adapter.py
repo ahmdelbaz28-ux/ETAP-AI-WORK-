@@ -90,7 +90,9 @@ _ALLOWED_BINARIES: dict[str, list[str]] = {
 # dedicated safe directory, NOT an arbitrary user-supplied path.
 # Previously, cwd was set to output_dir (which could be user-controlled).
 # Now we use the resolved temp directory as cwd, which is a known safe path.
-_SAFE_CWD_BASE = Path(os.getenv("FIREAI_DDC_CWD_BASE", tempfile.gettempdir())).resolve()
+_SAFE_CWD_BASE = Path(
+    os.getenv("ETAP_DDC_CWD_BASE", os.getenv("FIREAI_DDC_CWD_BASE", tempfile.gettempdir()))
+).resolve()
 
 
 class DDCNotAvailableError(RuntimeError):
@@ -236,7 +238,10 @@ class DDCAdapter:
         # to the DDC subprocess. Without this, a multi-GB .rvt/.ifc would
         # exhaust memory and potentially hang the converter for hours.
         _DDC_MAX_FILE_SIZE_BYTES = int(
-            os.getenv("FIREAI_DDC_MAX_FILE_SIZE_BYTES", 500 * 1024 * 1024)  # 500 MB default
+            os.getenv(
+                "ETAP_DDC_MAX_FILE_SIZE_BYTES",
+                os.getenv("FIREAI_DDC_MAX_FILE_SIZE_BYTES", 500 * 1024 * 1024),  # 500 MB default
+            )
         )
         try:
             validate_file_size(

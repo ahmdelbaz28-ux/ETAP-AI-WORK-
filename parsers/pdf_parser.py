@@ -138,7 +138,8 @@ class PDFParser:
         Parse PDF file for fire alarm devices.
 
         Args:
-            pdf_path: Path to PDF file. MUST be under FIREAI_ALLOWED_UPLOAD_DIRS
+            pdf_path: Path to PDF file. MUST be under ETAP_ALLOWED_UPLOAD_DIRS
+                (FIREAI_ALLOWED_UPLOAD_DIRS accepted as deprecated alias)
                 and MUST have a .pdf extension (V124 security hardening).
 
         Returns:
@@ -154,7 +155,10 @@ class PDFParser:
 
         _ALLOWED_EXTENSIONS = frozenset({".pdf"})
         _MAX_FILE_SIZE_BYTES = int(
-            os.getenv("FIREAI_PDF_MAX_FILE_SIZE_BYTES", 200 * 1024 * 1024)
+            os.getenv(
+                "ETAP_PDF_MAX_FILE_SIZE_BYTES",
+                os.getenv("FIREAI_PDF_MAX_FILE_SIZE_BYTES", 200 * 1024 * 1024),
+            )
         )  # 200 MB default
         try:
             safe_path = validate_input_path(
@@ -183,7 +187,8 @@ class PDFParser:
         #   - Path traversal (../../etc/passwd)
         #   - Null byte truncation
         #   - Argument injection (leading '-')
-        #   - Files outside FIREAI_ALLOWED_UPLOAD_DIRS
+        #   - Files outside ETAP_ALLOWED_UPLOAD_DIRS (FIREAI_ALLOWED_UPLOAD_DIRS
+        #     accepted as deprecated alias)
         #   - DoS via oversized files (cap: 200 MB, env-configurable)
         # PDF files can be very large (multi-page architectural plans),
         # so the default cap is higher than DWG.
@@ -196,7 +201,10 @@ class PDFParser:
         )
 
         _PDF_MAX_BYTES = int(
-            _os.getenv("FIREAI_PDF_MAX_FILE_SIZE_BYTES", str(200 * 1024 * 1024))
+            _os.getenv(
+                "ETAP_PDF_MAX_FILE_SIZE_BYTES",
+                _os.getenv("FIREAI_PDF_MAX_FILE_SIZE_BYTES", str(200 * 1024 * 1024)),
+            )
         )  # 200 MB
 
         try:

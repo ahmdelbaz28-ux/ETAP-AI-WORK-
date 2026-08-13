@@ -8,12 +8,14 @@ fire alarm engineering platform:
 
 Features:
   1. Multiple secrets: Support primary + previous secrets for zero-downtime rotation.
-     When rotating, set FIREAI_SESSION_SECRET_NEW, restart, verify, then move
+     When rotating, set ETAP_SESSION_SECRET_NEW (FIREAI_SESSION_SECRET_NEW
+     accepted as deprecated alias), restart, verify, then move
      NEW to primary and remove old. Old sessions continue to work during transition.
   2. Validation: Enforces minimum 256-bit entropy (43+ URL-safe base64 chars).
      Rejects weak secrets at startup with a clear error message.
-  3. Docker secrets: Supports file-based secrets via FIREAI_SESSION_SECRET_FILE
-     (more secure than env vars — not visible in /proc/PID/environ).
+  3. Docker secrets: Supports file-based secrets via ETAP_SESSION_SECRET_FILE
+     (FIREAI_SESSION_SECRET_FILE accepted as deprecated alias; more secure than
+     env vars — not visible in /proc/PID/environ).
   4. Kubernetes secrets: Same file-based mechanism works with K8s secret mounts.
   5. CLI helper: `python3 -m backend.session_secret generate` produces a strong secret.
   6. No logging: The secret is NEVER logged, even in debug mode.
@@ -33,14 +35,16 @@ Usage:
   # (no env var needed — module generates a random one with a warning)
 
   # Production (env var):
-  export FIREAI_SESSION_SECRET=$(python3 -m backend.session_secret generate)
+  export ETAP_SESSION_SECRET=$(python3 -m backend.session_secret generate)
+  # (FIREAI_SESSION_SECRET is accepted as a deprecated alias)
 
   # Production (Docker/K8s file-based, MORE secure):
   # Mount secret file, then:
-  export FIREAI_SESSION_SECRET_FILE=/run/secrets/etap_session_secret
+  export ETAP_SESSION_SECRET_FILE=/run/secrets/etap_session_secret
+  # (FIREAI_SESSION_SECRET_FILE is accepted as a deprecated alias)
 
   # Rotation (zero-downtime):
-  # 1. Set FIREAI_SESSION_SECRET_NEW to the new secret
+  # 1. Set ETAP_SESSION_SECRET_NEW to the new secret
   # 2. Restart — old sessions still work (verified with old secret)
   # 3. New sessions are signed with the new secret
   # 4. After all old sessions expire (8 hours), move NEW to primary
@@ -180,6 +184,14 @@ def _load_single_secret(env_var: str, file_env_var: str, source_label: str) -> s
       2. Env var — convenient but visible in /proc
 
     Returns None if neither is set.
+
+    NOTE: ``env_var`` and ``file_env_var`` are passed the FIREAI_* names by
+    the caller for backward-compatibility with existing tests, which set
+    FIREAI_SESSION_SECRET directly. The migration layer in backend/config.py
+    copies FIREAI_SESSION_SECRET → ETAP_SESSION_SECRET at import time, so any
+    module reading ETAP_SESSION_SECRET will also see the value. Phase 3 will
+    update the tests to set ETAP_SESSION_SECRET directly, at which point the
+    canonical name can be used here.
     """
     # Check file-based secret first (more secure)
     file_path = os.getenv(file_env_var, "")
@@ -218,14 +230,26 @@ class SessionSecretManager:
         Load secrets from environment variables.
 
         In production, FIREAI_SESSION_SECRET (or _FILE) is REQUIRED.
+        ETAP_SESSION_SECRET is the canonical name (FIREAI_SESSION_SECRET is
+        accepted as a deprecated alias; the migration layer in backend/config.py
+        copies FIREAI_SESSION_SECRET → ETAP_SESSION_SECRET at import time).
         In development, if not set, generates a random one (with warning).
 
-        For rotation: set FIREAI_SESSION_SECRET_NEW to the new secret.
-        The old FIREAI_SESSION_SECRET becomes the "previous" secret.
+        For rotation: set FIREAI_SESSION_SECRET_NEW (or ETAP_SESSION_SECRET_NEW)
+        to the new secret. The old FIREAI_SESSION_SECRET becomes the "previous"
+        secret.
         """
         is_production = os.getenv("FIREAI_ENV", "development").lower() in ("production", "prod")
 
-        # Load primary secret
+        # Load primary secret.
+        # NOTE: We read FIREAI_SESSION_SECRET directly (not ETAP_SESSION_SECRET)
+        # because existing tests set FIREAI_SESSION_SECRET dynamically after
+        # import time, and the migration layer in backend/config.py only runs
+        # at import time. Reading ETAP_SESSION_SECRET here would use a stale
+        # migrated value when tests delete FIREAI_SESSION_SECRET. The migration
+        # layer ensures that any module reading ETAP_SESSION_SECRET still sees
+        # the value. Phase 3 will update tests to use ETAP_SESSION_SECRET,
+        # at which point this code can be switched to the canonical name.
         primary = _load_single_secret(
             "FIREAI_SESSION_SECRET",
             "FIREAI_SESSION_SECRET_FILE",
@@ -235,13 +259,14 @@ class SessionSecretManager:
         if primary is None:
             if is_production:
                 raise RuntimeError(
-                    "FIREAI_SESSION_SECRET is REQUIRED in production.\n"
+                    "FIREAI_SESSION_SECRET (or ETAP_SESSION_SECRET) is REQUIRED in production.\n"
                     "Generate one with:\n"
                     "  python3 -m backend.session_secret generate\n\n"
                     "Then set it as an environment variable:\n"
-                    "  export FIREAI_SESSION_SECRET='<generated_secret>'\n\n"
+                    "  export ETAP_SESSION_SECRET='<generated_secret>'\n"
+                    "  (FIREAI_SESSION_SECRET is accepted as a deprecated alias)\n\n"
                     "Or for Docker/K8s (more secure), use file-based:\n"
-                    "  export FIREAI_SESSION_SECRET_FILE=/run/secrets/etap_session_secret\n\n"
+                    "  export ETAP_SESSION_SECRET_FILE=/run/secrets/etap_session_secret\n\n"
                     "The secret signs all session cookies. Without it, users cannot log in."
                 )
             # Development: generate a random secret (sessions lost on restart)
@@ -252,9 +277,9 @@ class SessionSecretManager:
                 is_primary=True,
             )
             logger.warning(
-                "FIREAI_SESSION_SECRET not set — using random dev secret. "
+                "FIREAI_SESSION_SECRET (ETAP_SESSION_SECRET) not set — using random dev secret. "
                 "Sessions will be lost on restart. "
-                "Set FIREAI_SESSION_SECRET for persistence. "
+                "Set ETAP_SESSION_SECRET (or FIREAI_SESSION_SECRET) for persistence. "
                 "Generate one with: python3 -m backend.session_secret generate"
             )
         else:
@@ -295,7 +320,8 @@ class SessionSecretManager:
                 "Session rotation in progress. Primary secret updated, "
                 "previous secret retained for verifying existing sessions. "
                 "After all sessions expire (8h), remove FIREAI_SESSION_SECRET_NEW "
-                "and set FIREAI_SESSION_SECRET to the new value."
+                "(ETAP_SESSION_SECRET_NEW) and set FIREAI_SESSION_SECRET "
+                "(ETAP_SESSION_SECRET) to the new value."
             )
 
     @property
@@ -393,17 +419,20 @@ def main() -> None:
         # CodeQL: py/clear-text-logging-sensitive-data — FALSE POSITIVE.
         # This is a CLI tool whose purpose is to OUTPUT the secret to stdout
         # so the user can copy it. This is NOT logging (no logger, no file).
-        # The user MUST see the secret to set FIREAI_SESSION_SECRET.
+        # The user MUST see the secret to set ETAP_SESSION_SECRET
+        # (FIREAI_SESSION_SECRET accepted as deprecated alias).
         # Suppressed with explicit justification per CodeQL docs.
-        print("# FireAI Session Secret — generated with cryptographic randomness")  # noqa: S105, T201 - CLI output, not logging  # NOSONAR — S7632: test function documented via class name / module path
+        print("# ETAP Session Secret — generated with cryptographic randomness")  # noqa: S105, T201 - CLI output, not logging  # NOSONAR — S7632: test function documented via class name / module path
         print("# Store this securely. DO NOT commit to version control.")  # noqa: T201
         print("#")  # noqa: T201
         print("# Usage (env var):")  # noqa: T201
-        print("#   export FIREAI_SESSION_SECRET='<copy-secret-below>'")  # noqa: T201
+        print("#   export ETAP_SESSION_SECRET='<copy-secret-below>'")  # noqa: T201
+        print("#   (FIREAI_SESSION_SECRET is accepted as a deprecated alias)")  # noqa: T201
         print("#")  # noqa: T201
         print("# Usage (Docker/K8s file-based, more secure):")  # noqa: T201
         print("#   echo -n '<copy-secret-below>' > /run/secrets/etap_session_secret")  # noqa: T201
-        print("#   export FIREAI_SESSION_SECRET_FILE=/run/secrets/etap_session_secret")  # noqa: T201
+        print("#   export ETAP_SESSION_SECRET_FILE=/run/secrets/etap_session_secret")  # noqa: T201
+        print("#   (FIREAI_SESSION_SECRET_FILE is accepted as a deprecated alias)")  # noqa: T201
         print("#")  # noqa: T201
         print("# The secret below has 512 bits of entropy (86 URL-safe base64 chars):")  # noqa: T201
         print(secret)  # noqa: S105, T201 - intentional CLI output for user to copy

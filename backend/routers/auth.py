@@ -66,9 +66,11 @@ _SESSION_ID_BYTES = 32  # 256 bits of entropy
 
 # Session secret manager: handles loading, validation, and rotation.
 # Supports:
-#   - Env var: FIREAI_SESSION_SECRET
-#   - File-based (Docker/K8s): FIREAI_SESSION_SECRET_FILE
-#   - Rotation: FIREAI_SESSION_SECRET_NEW (new secret becomes primary, old retained)
+#   - Env var: ETAP_SESSION_SECRET (canonical; FIREAI_SESSION_SECRET accepted
+#     as deprecated alias — migrated by backend/config.py)
+#   - File-based (Docker/K8s): ETAP_SESSION_SECRET_FILE (FIREAI_SESSION_SECRET_FILE
+#     accepted as deprecated alias)
+#   - Rotation: ETAP_SESSION_SECRET_NEW (new secret becomes primary, old retained)
 #   - Validation: minimum 256-bit entropy, character set check
 #   - Constant-time comparison: all comparisons use hmac.compare_digest
 _SECRET_MANAGER = get_secret_manager()
@@ -76,9 +78,9 @@ _SECRET_MANAGER = get_secret_manager()
 # In-memory session store: {session_id_hash: {api_key_hash, role, expires_at}}
 # NOTE: This is LOST on restart. For production with rotation support:
 #   1. Use Redis with TTL=_COOKIE_MAX_AGE_SECONDS (sessions survive restarts)
-#   2. The rotation feature (FIREAI_SESSION_SECRET_NEW) only provides value
-#      when sessions persist across restarts — otherwise all users must
-#      re-login after restart anyway.
+#   2. The rotation feature (ETAP_SESSION_SECRET_NEW / FIREAI_SESSION_SECRET_NEW)
+#      only provides value when sessions persist across restarts — otherwise all
+#      users must re-login after restart anyway.
 #   3. See backend/session_secret.py for rotation instructions.
 _SESSION_STORE: dict[str, dict[str, Any]] = {}
 
@@ -259,7 +261,7 @@ async def login(
 
     # Validate the API key
     role: Role | None = None
-    env_key = os.getenv("FIREAI_API_KEY")
+    env_key = os.getenv("ETAP_API_KEY", os.getenv("FIREAI_API_KEY"))
     if env_key and _hmac.compare_digest(api_key, env_key):
         role = Role.ADMIN
     else:
@@ -299,7 +301,9 @@ async def login(
     token = _create_session_token(session_id)
 
     # Build Set-Cookie header
-    is_production = os.getenv("FIREAI_ENV", "development").lower() in ("production", "prod")
+    is_production = os.getenv(
+        "ENVIRONMENT", os.getenv("FIREAI_ENV", "development")
+    ).lower() in ("production", "prod")
     forwarded_proto = ""
     for name, value in request.scope.get("headers", []):
         if name == b"x-forwarded-proto":

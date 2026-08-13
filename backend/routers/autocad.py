@@ -340,7 +340,9 @@ async def list_autocad_documents() -> DocumentsResponse:
         service = get_autocad_service()
         # If not connected, return a simulated list in development mode
         if not service.connected:
-            if os.getenv("FIREAI_ENV", "development") == "development":
+            if os.getenv(
+                "ENVIRONMENT", os.getenv("FIREAI_ENV", "development")
+            ) == "development":
                 return DocumentsResponse(
                     success=True,
                     documents=[

@@ -194,7 +194,8 @@ class ImageParser:
 
         Args:
             image_path: Path to image file. MUST be under
-                FIREAI_ALLOWED_UPLOAD_DIRS and have a supported extension
+                ETAP_ALLOWED_UPLOAD_DIRS (FIREAI_ALLOWED_UPLOAD_DIRS accepted
+                as deprecated alias) and have a supported extension
                 (V124 security hardening).
 
         Returns:
@@ -210,7 +211,10 @@ class ImageParser:
 
         _ALLOWED_EXTENSIONS = frozenset({".png", ".jpg", ".jpeg", ".bmp", ".tiff", ".tif", ".webp"})
         _MAX_FILE_SIZE_BYTES = int(
-            os.getenv("FIREAI_IMAGE_MAX_FILE_SIZE_BYTES", 50 * 1024 * 1024)
+            os.getenv(
+                "ETAP_IMAGE_MAX_FILE_SIZE_BYTES",
+                os.getenv("FIREAI_IMAGE_MAX_FILE_SIZE_BYTES", 50 * 1024 * 1024),
+            )
         )  # 50 MB default
         try:
             safe_path = validate_input_path(

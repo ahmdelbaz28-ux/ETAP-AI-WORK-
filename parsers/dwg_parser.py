@@ -16,7 +16,8 @@ V122 SECURITY HARDENING (Finding #5):
       - Argument injection (paths starting with '-')
       - Path traversal (../, /etc/, etc.)
       - Null-byte truncation
-      - Files outside FIREAI_ALLOWED_UPLOAD_DIRS
+      - Files outside ETAP_ALLOWED_UPLOAD_DIRS (FIREAI_ALLOWED_UPLOAD_DIRS
+        accepted as deprecated alias)
       - DoS via oversized files (configurable cap)
     Same security contract as parsers/ddc_adapter.py.
 """
@@ -48,7 +49,10 @@ _DWG_ALLOWED_EXTENSIONS = frozenset({".dwg", ".dxf"})
 # system (a fire alarm floor plan does not need 500 MB of geometry).
 # Configurable via env var for legitimate edge cases.
 _DWG_MAX_FILE_SIZE_BYTES = int(
-    os.getenv("FIREAI_DWG_MAX_FILE_SIZE_BYTES", str(100 * 1024 * 1024))  # 100 MB
+    os.getenv(
+        "ETAP_DWG_MAX_FILE_SIZE_BYTES",
+        os.getenv("FIREAI_DWG_MAX_FILE_SIZE_BYTES", str(100 * 1024 * 1024)),  # 100 MB
+    )
 )
 
 
@@ -455,8 +459,9 @@ class DWGParser:
 
         Args:
             dwg_path: Path to .dwg or .dxf file. MUST be under one of
-                the directories listed in FIREAI_ALLOWED_UPLOAD_DIRS
-                (defaults: /tmp, /var/tmp, /var/fireai/uploads) and MUST
+                the directories listed in ETAP_ALLOWED_UPLOAD_DIRS
+                (FIREAI_ALLOWED_UPLOAD_DIRS accepted as deprecated alias;
+                defaults: /tmp, /var/tmp, /var/fireai/uploads) and MUST
                 have a .dwg or .dxf extension.
 
         Returns:
@@ -474,7 +479,8 @@ class DWGParser:
 
         # V122 SECURITY: Validate path BEFORE any file/subprocess access.
         # This catches argument injection, path traversal, null bytes,
-        # bad extensions, and paths outside FIREAI_ALLOWED_UPLOAD_DIRS.
+        # bad extensions, and paths outside ETAP_ALLOWED_UPLOAD_DIRS
+        # (FIREAI_ALLOWED_UPLOAD_DIRS accepted as deprecated alias).
         try:
             safe_path = validate_input_path(
                 dwg_path,

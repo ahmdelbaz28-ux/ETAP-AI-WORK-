@@ -39,13 +39,15 @@ def _resolve_allowed_bases() -> list[Path]:
     Compute the allow-list of directories from environment + temp dir.
 
     Returns a list of resolved Path objects. Allowed bases:
-      - $FIREAI_ALLOWED_UPLOAD_DIRS (comma-separated)
+      - $ETAP_ALLOWED_UPLOAD_DIRS (canonical; FIREAI_ALLOWED_UPLOAD_DIRS accepted
+        as deprecated alias — comma-separated)
       - tempfile.gettempdir() (always allowed — tests use this)
-      - Path.cwd() when FIREAI_ENV=development (NEVER in production)
+      - Path.cwd() when ENVIRONMENT=development (FIREAI_ENV accepted as
+        deprecated alias; NEVER in production)
     """
     raw = os.getenv(
-        "FIREAI_ALLOWED_UPLOAD_DIRS",
-        "/tmp,/var/tmp,/var/fireai/uploads",
+        "ETAP_ALLOWED_UPLOAD_DIRS",
+        os.getenv("FIREAI_ALLOWED_UPLOAD_DIRS", "/tmp,/var/tmp,/var/fireai/uploads"),
     )
     bases: list[Path] = []
     for entry in raw.split(","):
@@ -58,7 +60,8 @@ def _resolve_allowed_bases() -> list[Path]:
             # Resolve can fail on symlink loops, permission denied, etc.
             # Skip the malformed entry rather than crashing the whole list.
             logger.warning(
-                "Skipping malformed FIREAI_ALLOWED_UPLOAD_DIRS entry %r: %s",
+                "Skipping malformed ETAP_ALLOWED_UPLOAD_DIRS "
+                "(FIREAI_ALLOWED_UPLOAD_DIRS) entry %r: %s",
                 entry,
                 e,
             )
@@ -75,7 +78,7 @@ def _resolve_allowed_bases() -> list[Path]:
         raise  # NOSONAR - python:S2737
 
     # Development convenience: allow CWD. NEVER in production.
-    if os.getenv("FIREAI_ENV") == "development":
+    if os.getenv("ENVIRONMENT", os.getenv("FIREAI_ENV")) == "development":
         try:
             cwd = Path.cwd().resolve()
             if cwd not in bases:
@@ -98,7 +101,8 @@ def validate_input_path(
     Checks performed (in order):
       1. Path exists
       2. Resolve path (follows symlinks) and check the resolved path is
-         within FIREAI_ALLOWED_UPLOAD_DIRS or the system temp dir
+         within ETAP_ALLOWED_UPLOAD_DIRS (FIREAI_ALLOWED_UPLOAD_DIRS accepted
+         as deprecated alias) or the system temp dir
       3. If `allowed_extensions` is given, the suffix MUST be in the set
          (case-insensitive)
       4. The path string itself MUST NOT start with "-" or "--"

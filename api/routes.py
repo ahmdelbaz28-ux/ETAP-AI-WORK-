@@ -166,7 +166,8 @@ if is_production_environment():
             "JWT_SECRET_KEY",
             "ENGINEERING_SERVICE_API_KEY",
             "FERNET_ENCRYPTION_KEY",
-            "FIREAI_SESSION_SECRET",
+            "ETAP_SESSION_SECRET",  # canonical (FIREAI_SESSION_SECRET is a deprecated alias)
+            "FIREAI_SESSION_SECRET",  # deprecated alias — keep for backward-compat detection
             "REDIS_PASSWORD",
             "POSTGRES_PASSWORD",
         )

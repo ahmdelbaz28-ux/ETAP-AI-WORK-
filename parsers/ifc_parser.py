@@ -175,7 +175,10 @@ class IFCParser:
         )
 
         _IFC_MAX_BYTES = int(
-            _os.getenv("FIREAI_IFC_MAX_FILE_SIZE_BYTES", str(500 * 1024 * 1024))
+            _os.getenv(
+                "ETAP_IFC_MAX_FILE_SIZE_BYTES",
+                _os.getenv("FIREAI_IFC_MAX_FILE_SIZE_BYTES", str(500 * 1024 * 1024)),
+            )
         )  # 500 MB
         _ALLOWED_EXTENSIONS = frozenset({".ifc", ".ifcxml", ".json"})
         try:

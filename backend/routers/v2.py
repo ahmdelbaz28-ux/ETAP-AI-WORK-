@@ -222,7 +222,9 @@ async def list_bim_providers() -> dict[str, Any]:
     providers = BIMProviderRegistry.list_available()
     return {
         "providers": providers,
-        "active": __import__("os").environ.get("FIREAI_BIM_PROVIDER"),
+        "active": __import__("os").environ.get(
+            "ETAP_BIM_PROVIDER", __import__("os").environ.get("FIREAI_BIM_PROVIDER")
+        ),
         "count": len(providers),
     }
 
@@ -265,7 +267,7 @@ async def extract_rooms(
                 cwd,
                 Path("/tmp"),  # NOSONAR
                 Path("/var/tmp"),  # NOSONAR
-                Path(os.environ.get("FIREAI_UPLOAD_DIR", str(cwd / "uploads"))),
+                Path(os.environ.get("ETAP_UPLOAD_DIR", os.environ.get("FIREAI_UPLOAD_DIR", str(cwd / "uploads")))),
             ]
 
             # V138 F-7: Check if source_path is within any allowed root
@@ -307,7 +309,8 @@ async def extract_rooms(
     if provider is None:
         raise HTTPException(  # NOSONAR — S8415: assignment kept for readability / debuggability
             status_code=503,  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
-            detail=f"No BIM provider available. Set FIREAI_BIM_PROVIDER env var. "
+            detail=f"No BIM provider available. Set ETAP_BIM_PROVIDER env var "
+            f"(FIREAI_BIM_PROVIDER accepted as deprecated alias). "
             f"Registered: {__import__('fireai.bridges.bim_provider', fromlist=['BIMProviderRegistry']).BIMProviderRegistry.list_available()}",
         )
 
@@ -338,7 +341,7 @@ async def bim_health() -> dict[str, Any]:
         return {
             "healthy": False,
             "details": "No BIM provider configured",
-            "error": "Set FIREAI_BIM_PROVIDER env var",
+            "error": "Set ETAP_BIM_PROVIDER env var (FIREAI_BIM_PROVIDER accepted as deprecated alias)",
         }
     return provider.health_check()
 

@@ -145,8 +145,10 @@ _CSP_DEVELOPMENT = (
 
 
 def _is_production_env() -> bool:
-    """Check FIREAI_ENV for production mode."""
-    return os.getenv("FIREAI_ENV", "production").lower() in ("production", "prod")
+    """Check ENVIRONMENT (canonical) / FIREAI_ENV (deprecated alias) for production mode."""
+    return os.getenv(
+        "ENVIRONMENT", os.getenv("FIREAI_ENV", "production")
+    ).lower() in ("production", "prod")
 
 
 def _build_csp(_scope: Scope) -> str:  # NOSONAR — S1172: parameter retained for API stability
@@ -393,8 +395,9 @@ class ApiKeyMiddleware:
             return
 
         path = scope.get("path", "")
-        # SECURITY FIX A2: Only honor ENGINEERING_SERVICE_AUTH_DISABLED/FIREAI_AUTH_DISABLED
-        # when NOT in production/staging environments. In production, auth is ALWAYS enforced.
+        # SECURITY FIX A2: Only honor ENGINEERING_SERVICE_AUTH_DISABLED (canonical)
+        # / FIREAI_AUTH_DISABLED (deprecated alias) when NOT in production/staging
+        # environments. In production, auth is ALWAYS enforced.
         env = (_os.getenv("ENVIRONMENT") or _os.getenv("FIREAI_ENV") or "").lower()
         if env not in ("production", "prod", "staging"):
             if _os.getenv("ENGINEERING_SERVICE_AUTH_DISABLED", "").lower() in (
@@ -465,16 +468,20 @@ class ApiKeyMiddleware:
                                     pass  # auth module not available — fall through to 401
                                 break
 
-            # Also accept FIREAI_API_KEY env var bypass for server-side
-            # internal calls (e.g. sidecars, monitoring agents). Only honored
-            # if the env var is set — admin must explicitly opt in.
-            env_key = _os.getenv("FIREAI_API_KEY")
+            # Also accept ETAP_API_KEY (canonical; FIREAI_API_KEY accepted as
+            # deprecated alias) env var bypass for server-side internal calls
+            # (e.g. sidecars, monitoring agents). Only honored if the env var
+            # is set — admin must explicitly opt in.
+            env_key = _os.getenv("ETAP_API_KEY", _os.getenv("FIREAI_API_KEY"))
             role = None
             if api_key and env_key and _hmac.compare_digest(api_key, env_key):
-                # Env var bypass — configurable role (defaults to ADMIN, customizable via FIREAI_API_KEY_ROLE)
+                # Env var bypass — configurable role (defaults to ADMIN,
+                # customizable via ETAP_API_KEY_ROLE / FIREAI_API_KEY_ROLE)
                 from backend.rbac import Role as _Role
 
-                configured_role = _os.getenv("FIREAI_API_KEY_ROLE", "admin").lower()
+                configured_role = _os.getenv(
+                    "ETAP_API_KEY_ROLE", _os.getenv("FIREAI_API_KEY_ROLE", "admin")
+                ).lower()
                 if configured_role == "engineer":
                     role = _Role.ENGINEER
                 elif configured_role == "viewer":
