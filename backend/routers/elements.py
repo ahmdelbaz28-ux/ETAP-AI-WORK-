@@ -85,7 +85,7 @@ async def list_elements(
         )
     except Exception as e:
         logger.exception("list_elements failed: %s", e)
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.post(
@@ -111,10 +111,10 @@ async def create_element(
         safe_msg = re.sub(r"<class \w+>", "[CLASS]", safe_msg)
         raise HTTPException(
             status_code=400, detail=safe_msg
-        )  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
+        ) from e  # NOSONAR — S8415: assignment kept for readability / debuggability
     except Exception as e:
         logger.exception("create_element failed: %s", e)
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise HTTPException(status_code=500, detail="Internal server error") from e
 
 
 @router.get(
@@ -140,10 +140,10 @@ async def get_element(
         logger.exception("get_element failed: %s", e)
         raise HTTPException(
             status_code=500, detail="Internal server error"
-        )  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
+        ) from e  # NOSONAR — S8415: assignment kept for readability / debuggability
         raise HTTPException(
             status_code=500, detail="Internal server error"
-        )  # NOSONAR — S8415: assignment kept for readability / debuggability
+        ) from e  # NOSONAR — S8415: assignment kept for readability / debuggability
 
 
 @router.put(
@@ -170,10 +170,10 @@ async def update_element(
         logger.exception("update_element failed: %s", e)
         raise HTTPException(
             status_code=500, detail="Internal server error"
-        )  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
+        ) from e  # NOSONAR — S8415: assignment kept for readability / debuggability
         raise HTTPException(
             status_code=500, detail="Internal server error"
-        )  # NOSONAR — S8415: assignment kept for readability / debuggability
+        ) from e  # NOSONAR — S8415: assignment kept for readability / debuggability
 
 
 @router.delete(
@@ -199,7 +199,7 @@ async def delete_element(
         logger.exception("delete_element failed: %s", e)
         raise HTTPException(
             status_code=500, detail="Internal server error"
-        )  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
+        ) from e  # NOSONAR — S8415: assignment kept for readability / debuggability
         raise HTTPException(
             status_code=500, detail="Internal server error"
-        )  # NOSONAR — S8415: assignment kept for readability / debuggability
+        ) from e  # NOSONAR — S8415: assignment kept for readability / debuggability

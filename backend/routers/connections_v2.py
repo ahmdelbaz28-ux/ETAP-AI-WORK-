@@ -84,10 +84,10 @@ async def list_connections(
         logger.exception("list_connections failed: %s", e)
         raise HTTPException(
             status_code=500, detail="Internal server error"
-        )  # NOSONAR — S1192: duplicated literal acceptable in this localized context  # noqa: B904
+        ) from e  # NOSONAR — S1192: duplicated literal acceptable in this localized context
         raise HTTPException(
             status_code=500, detail="Internal server error"
-        )  # NOSONAR — S1192: duplicated literal acceptable in this localized context
+        ) from e  # NOSONAR — S1192: duplicated literal acceptable in this localized context
 
 
 @router.post(
@@ -109,10 +109,10 @@ async def create_connection(
         logger.warning("Connection creation ValueError: %s", e)
         raise HTTPException(
             status_code=400, detail="Invalid connection data. Please check the input parameters."
-        )  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
+        ) from e  # NOSONAR — S8415: assignment kept for readability / debuggability
     except Exception as e:
         logger.exception("create_connection failed: %s", e)
-        raise HTTPException(status_code=500, detail="Internal server error")  # NOSONAR — S8415
+        raise HTTPException(status_code=500, detail="Internal server error") from e  # NOSONAR — S8415
 
 
 @router.put(
@@ -166,7 +166,7 @@ async def delete_connection(
         logger.exception("delete_connection failed: %s", e)
         raise HTTPException(
             status_code=500, detail="Internal server error"
-        )  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
+        ) from e  # NOSONAR — S8415: assignment kept for readability / debuggability
         raise HTTPException(
             status_code=500, detail="Internal server error"
-        )  # NOSONAR — S8415: assignment kept for readability / debuggability
+        ) from e  # NOSONAR — S8415: assignment kept for readability / debuggability

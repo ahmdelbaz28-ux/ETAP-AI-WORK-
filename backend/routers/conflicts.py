@@ -75,10 +75,10 @@ async def list_conflicts(
         logger.exception("list_conflicts failed: %s", e)
         raise HTTPException(
             status_code=500, detail="Internal server error"
-        )  # NOSONAR — S1192: duplicated literal acceptable in this localized context  # noqa: B904
+        ) from e  # NOSONAR — S1192: duplicated literal acceptable in this localized context
         raise HTTPException(
             status_code=500, detail="Internal server error"
-        )  # NOSONAR — S1192: duplicated literal acceptable in this localized context
+        ) from e  # NOSONAR — S1192: duplicated literal acceptable in this localized context
 
 
 @router.post(
@@ -101,10 +101,10 @@ async def detect_conflicts(
         logger.exception("detect_conflicts failed: %s", e)
         raise HTTPException(
             status_code=500, detail="Internal server error"
-        )  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
+        ) from e  # NOSONAR — S8415: assignment kept for readability / debuggability
         raise HTTPException(
             status_code=500, detail="Internal server error"
-        )  # NOSONAR — S8415: assignment kept for readability / debuggability
+        ) from e  # NOSONAR — S8415: assignment kept for readability / debuggability
 
 
 @router.post(
@@ -132,7 +132,7 @@ async def resolve_conflict(
         logger.exception("resolve_conflict RuntimeError: %s", e)
         raise HTTPException(
             status_code=422, detail="Conflict resolution failed — check server logs for details"
-        )  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
+        ) from e  # NOSONAR — S8415: assignment kept for readability / debuggability
     except Exception as e:
         logger.exception("resolve_conflict failed: %s", e)
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise HTTPException(status_code=500, detail="Internal server error") from e

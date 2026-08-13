@@ -44,10 +44,10 @@ async def get_database_health():
         logger.exception("Database health check failed")
         raise HTTPException(
             status_code=500, detail="Database health check failed"
-        )  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
+        ) from None  # NOSONAR — S8415: assignment kept for readability / debuggability
         raise HTTPException(
             status_code=500, detail="Database health check failed"
-        )  # NOSONAR — S8415: assignment kept for readability / debuggability
+        ) from None  # NOSONAR — S8415: assignment kept for readability / debuggability
 
 
 @router.get(
@@ -72,10 +72,10 @@ async def get_from_redis(key: str):
         logger.exception("Redis get failed")
         raise HTTPException(
             status_code=500, detail="Redis operation failed"
-        )  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
+        ) from None  # NOSONAR — S8415: assignment kept for readability / debuggability
         raise HTTPException(
             status_code=500, detail="Redis operation failed"
-        )  # NOSONAR — S8415: assignment kept for readability / debuggability
+        ) from None  # NOSONAR — S8415: assignment kept for readability / debuggability
 
 
 @router.post("/redis/set", dependencies=[Depends(require_permission(Permission.SYSTEM_CONFIG))])
@@ -100,10 +100,10 @@ async def set_in_redis(
         logger.exception("Redis set failed")
         raise HTTPException(
             status_code=500, detail="Redis operation failed"
-        )  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
+        ) from None  # NOSONAR — S8415: assignment kept for readability / debuggability
         raise HTTPException(
             status_code=500, detail="Redis operation failed"
-        )  # NOSONAR — S8415: assignment kept for readability / debuggability
+        ) from None  # NOSONAR — S8415: assignment kept for readability / debuggability
 
 
 @router.post(
@@ -128,10 +128,10 @@ async def cache_bim_element(element_id: str, element_data: Dict):
         logger.exception("BIM element caching failed")
         raise HTTPException(
             status_code=500, detail="BIM element caching failed"
-        )  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
+        ) from None  # NOSONAR — S8415: assignment kept for readability / debuggability
         raise HTTPException(
             status_code=500, detail="BIM element caching failed"
-        )  # NOSONAR — S8415: assignment kept for readability / debuggability
+        ) from None  # NOSONAR — S8415: assignment kept for readability / debuggability
 
 
 @router.get(
@@ -157,10 +157,10 @@ async def get_cached_bim_element(element_id: str):
         logger.exception("Get cached BIM element failed")
         raise HTTPException(
             status_code=500, detail="Get cached BIM element failed"
-        )  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
+        ) from None  # NOSONAR — S8415: assignment kept for readability / debuggability
         raise HTTPException(
             status_code=500, detail="Get cached BIM element failed"
-        )  # NOSONAR — S8415: assignment kept for readability / debuggability
+        ) from None  # NOSONAR — S8415: assignment kept for readability / debuggability
 
 
 @router.post(
@@ -185,10 +185,10 @@ async def store_element_embeddings(element_id: str, embeddings: List[float]):
         logger.exception("Store element embeddings failed")
         raise HTTPException(
             status_code=500, detail="Store element embeddings failed"
-        )  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
+        ) from None  # NOSONAR — S8415: assignment kept for readability / debuggability
         raise HTTPException(
             status_code=500, detail="Store element embeddings failed"
-        )  # NOSONAR — S8415: assignment kept for readability / debuggability
+        ) from None  # NOSONAR — S8415: assignment kept for readability / debuggability
 
 
 @router.post(
@@ -210,10 +210,10 @@ async def find_similar_elements(
         logger.exception("Find similar elements failed")
         raise HTTPException(
             status_code=500, detail="Find similar elements failed"
-        )  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
+        ) from None  # NOSONAR — S8415: assignment kept for readability / debuggability
         raise HTTPException(
             status_code=500, detail="Find similar elements failed"
-        )  # NOSONAR — S8415: assignment kept for readability / debuggability
+        ) from None  # NOSONAR — S8415: assignment kept for readability / debuggability
 
 
 @router.post(
@@ -251,10 +251,10 @@ async def create_element_relationships(
         logger.exception("Create element relationships failed")
         raise HTTPException(
             status_code=500, detail="Create element relationships failed"
-        )  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
+        ) from None  # NOSONAR — S8415: assignment kept for readability / debuggability
         raise HTTPException(
             status_code=500, detail="Create element relationships failed"
-        )  # NOSONAR — S8415: assignment kept for readability / debuggability
+        ) from None  # NOSONAR — S8415: assignment kept for readability / debuggability
 
 
 @router.get(
@@ -284,10 +284,10 @@ async def find_related_elements(
         logger.exception("Find related elements failed")
         raise HTTPException(
             status_code=500, detail="Find related elements failed"
-        )  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
+        ) from None  # NOSONAR — S8415: assignment kept for readability / debuggability
         raise HTTPException(
             status_code=500, detail="Find related elements failed"
-        )  # NOSONAR — S8415: assignment kept for readability / debuggability
+        ) from None  # NOSONAR — S8415: assignment kept for readability / debuggability
 
 
 @router.get("/neo4j/query", dependencies=[Depends(require_permission(Permission.SYSTEM_CONFIG))])
@@ -311,10 +311,10 @@ async def execute_neo4j_query(
         logger.exception("Neo4j query failed")
         raise HTTPException(
             status_code=500, detail="Neo4j query failed"
-        )  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
+        ) from None  # NOSONAR — S8415: assignment kept for readability / debuggability
         raise HTTPException(
             status_code=500, detail="Neo4j query failed"
-        )  # NOSONAR — S8415: assignment kept for readability / debuggability
+        ) from None  # NOSONAR — S8415: assignment kept for readability / debuggability
 
 
 @router.get(
@@ -343,7 +343,7 @@ async def get_qdrant_collections():
         logger.exception("Get Qdrant collections failed")
         raise HTTPException(
             status_code=500, detail="Get Qdrant collections failed"
-        )  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
+        ) from None  # NOSONAR — S8415: assignment kept for readability / debuggability
         raise HTTPException(
             status_code=500, detail="Get Qdrant collections failed"
-        )  # NOSONAR — S8415: assignment kept for readability / debuggability
+        ) from None  # NOSONAR — S8415: assignment kept for readability / debuggability
