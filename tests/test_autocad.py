@@ -81,7 +81,7 @@ class TestAutoCADServiceInitialization:
         # reachable.
         service = AutoCADService()
 
-        with patch.dict(os.environ, {"FIREAI_ENV": "production"}):
+        with patch.dict(os.environ, {"FIREAI_ENV": "production", "ENVIRONMENT": "production"}):
             result = service.connect()
 
         assert result is False
@@ -582,6 +582,7 @@ class TestV213SimulationModeFlag:
         so clients can surface the truth.
         """
         monkeypatch.setenv("FIREAI_ENV", "development")
+        monkeypatch.setenv("ENVIRONMENT", "development")
         # Force HAS_AUTOCAD_API = False to simulate non-Windows
         import backend.services.autocad_service as mod
 
@@ -598,6 +599,7 @@ class TestV213SimulationModeFlag:
         simulation_mode flag must be False.
         """
         monkeypatch.setenv("FIREAI_ENV", "development")
+        monkeypatch.setenv("ENVIRONMENT", "development")
         import backend.services.autocad_service as mod
 
         # Force HAS_AUTOCAD_API = True to take the real COM path
@@ -626,6 +628,7 @@ class TestV213SimulationModeFlag:
     def test_disconnect_resets_simulation_mode(self, monkeypatch):
         """disconnect() must clear simulation_mode back to False."""
         monkeypatch.setenv("FIREAI_ENV", "development")
+        monkeypatch.setenv("ENVIRONMENT", "development")
         import backend.services.autocad_service as mod
 
         monkeypatch.setattr(mod, "HAS_AUTOCAD_API", False)
@@ -644,6 +647,7 @@ class TestV213SimulationModeFlag:
         not simulating — we are honestly failing).
         """
         monkeypatch.setenv("FIREAI_ENV", "production")
+        monkeypatch.setenv("ENVIRONMENT", "production")
         import backend.services.autocad_service as mod
 
         monkeypatch.setattr(mod, "HAS_AUTOCAD_API", False)

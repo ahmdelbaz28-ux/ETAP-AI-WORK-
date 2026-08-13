@@ -59,7 +59,13 @@ def dev_app():
     saved_env = os.environ.get("FIREAI_ENV")
     saved_key = os.environ.get("FIREAI_API_KEY")
     os.environ["FIREAI_ENV"] = "development"
+    os.environ["ENVIRONMENT"] = "development"
     os.environ["FIREAI_API_KEY"] = ""
+    # Enforce auth even in dev mode — the conftest autouse fixture sets
+    # ENGINEERING_SERVICE_AUTH_DISABLED=true globally, which would bypass
+    # all auth. For cache-endpoint auth tests, we need auth ENFORCED.
+    os.environ["ENGINEERING_SERVICE_AUTH_DISABLED"] = "false"
+    os.environ["FIREAI_AUTH_DISABLED"] = "false"
     # Clear cached module so __init__ runs again with new env
     for mod_name in list(sys.modules):  # NOSONAR - python:S7504
         if mod_name == "backend.app" or mod_name.startswith("backend.app."):
@@ -72,10 +78,14 @@ def dev_app():
             os.environ["FIREAI_ENV"] = saved_env
         else:
             os.environ.pop("FIREAI_ENV", None)
+            os.environ.pop("ENVIRONMENT", None)
         if saved_key is not None:
             os.environ["FIREAI_API_KEY"] = saved_key
         else:
             os.environ.pop("FIREAI_API_KEY", None)
+        # Restore conftest default (auth bypass enabled)
+        os.environ["ENGINEERING_SERVICE_AUTH_DISABLED"] = "true"
+        os.environ.pop("FIREAI_AUTH_DISABLED", None)
 
 
 @pytest.fixture
@@ -196,6 +206,7 @@ class TestCSPEnvironmentAwareness:
     def test_production_csp_no_unsafe_eval(self):
         """Production CSP must NOT include 'unsafe-eval'."""
         os.environ["FIREAI_ENV"] = "production"
+        os.environ["ENVIRONMENT"] = "production"
         os.environ["CORS_ALLOWED_ORIGINS"] = "https://app.example.com"
         try:
             from backend.security_middleware import _build_csp, _is_production_env
@@ -210,11 +221,13 @@ class TestCSPEnvironmentAwareness:
             )
         finally:
             os.environ["FIREAI_ENV"] = "development"
+            os.environ["ENVIRONMENT"] = "development"
             os.environ.pop("CORS_ALLOWED_ORIGINS", None)
 
     def test_development_csp_allows_unsafe_eval(self):
         """Development CSP MUST include 'unsafe-eval' (Vite HMR requirement)."""
         os.environ["FIREAI_ENV"] = "development"
+        os.environ["ENVIRONMENT"] = "development"
         from backend.security_middleware import _build_csp, _is_production_env
 
         assert not _is_production_env()
@@ -233,6 +246,7 @@ class TestBackendAppCorsHardening:
         with pytest.raises(RuntimeError, match="CORS_ALLOWED_ORIGINS.*REQUIRED"):
             _reload_backend_app(
                 {
+                    "ENVIRONMENT": "production",
                     "FIREAI_ENV": "production",
                     "CORS_ALLOWED_ORIGINS": None,
                     "FIREAI_API_KEY": "",
@@ -244,6 +258,7 @@ class TestBackendAppCorsHardening:
         with pytest.raises(RuntimeError, match=r"'\*'.*forbidden"):
             _reload_backend_app(
                 {
+                    "ENVIRONMENT": "production",
                     "FIREAI_ENV": "production",
                     "CORS_ALLOWED_ORIGINS": "*",
                     "FIREAI_API_KEY": "",
@@ -254,6 +269,7 @@ class TestBackendAppCorsHardening:
         """Production + explicit origins → CORS configured correctly."""
         backend_app = _reload_backend_app(
             {
+                "ENVIRONMENT": "production",
                 "FIREAI_ENV": "production",
                 "CORS_ALLOWED_ORIGINS": "https://app.example.com,https://admin.example.com",
                 "FIREAI_API_KEY": "",
@@ -367,6 +383,7 @@ class TestBackendAppAlsoHasSecurityHeaders:
     def test_backend_app_has_security_headers(self):
         """backend_app.py must emit X-Frame-Options on every response."""
         os.environ["FIREAI_ENV"] = "development"
+        os.environ["ENVIRONMENT"] = "development"
         os.environ["FIREAI_API_KEY"] = ""
         try:
             # Reload backend_app fresh
@@ -411,9 +428,13 @@ class TestProductionAuthDisabledBypass:
         saved_env = os.environ.get("ENVIRONMENT")
         saved_key = os.environ.get("ENGINEERING_SERVICE_API_KEY")
         saved_dis = os.environ.get("ENGINEERING_SERVICE_AUTH_DISABLED")
+        saved_cors = os.environ.get("CORS_ALLOWED_ORIGINS")
         os.environ["ENVIRONMENT"] = "production"
         os.environ["ENGINEERING_SERVICE_API_KEY"] = ""  # no key configured -> fail-closed
         os.environ["ENGINEERING_SERVICE_AUTH_DISABLED"] = "true"  # attempt bypass
+        # Production mode requires CORS_ALLOWED_ORIGINS (enforced by backend/app.py).
+        # Set a valid origin so the import succeeds; the test verifies auth behavior.
+        os.environ["CORS_ALLOWED_ORIGINS"] = "https://app.example.com"
         try:
             import importlib
 
@@ -435,6 +456,10 @@ class TestProductionAuthDisabledBypass:
                 os.environ["ENGINEERING_SERVICE_AUTH_DISABLED"] = saved_dis
             else:
                 os.environ.pop("ENGINEERING_SERVICE_AUTH_DISABLED", None)
+            if saved_cors is not None:
+                os.environ["CORS_ALLOWED_ORIGINS"] = saved_cors
+            else:
+                os.environ.pop("CORS_ALLOWED_ORIGINS", None)
 
     def test_prod_auth_disabled_true_still_requires_api_key(self, prod_app):
         """
@@ -444,7 +469,7 @@ class TestProductionAuthDisabledBypass:
         """
         with TestClient(prod_app) as client:
             # Non-public endpoint without any auth header -> 401
-            response = client.get("/api/v1/agents")
+            response = client.get("/api/v1/cache/stats")
             assert response.status_code == 401, (
                 f"Production must return 401 when ENGINEERING_SERVICE_AUTH_DISABLED=true. "
                 f"Got {response.status_code}"
@@ -466,7 +491,7 @@ class TestProductionAuthDisabledBypass:
                     del sys.modules[mod_name]
             backend_app = importlib.import_module("backend.app")
             with TestClient(backend_app.app) as client:
-                response = client.get("/api/v1/agents")
+                response = client.get("/api/v1/cache/stats")
                 # In dev with bypass, non-public endpoints are accessible (role=ADMIN granted)
                 assert response.status_code in (200, 403), (
                     f"Dev with bypass should allow request. Got {response.status_code}"
@@ -496,7 +521,7 @@ class TestProductionAuthDisabledBypass:
                     del sys.modules[mod_name]
             backend_app = importlib.import_module("backend.app")
             with TestClient(backend_app.app) as client:
-                response = client.get("/api/v1/agents")
+                response = client.get("/api/v1/cache/stats")
                 assert response.status_code == 401, (
                     f"Staging must return 401 when ENGINEERING_SERVICE_AUTH_DISABLED=true. "
                     f"Got {response.status_code}"
