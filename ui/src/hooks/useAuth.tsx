@@ -156,12 +156,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const validateTokenAndSetUser = async (token: string) => {
+    // Add a 5-second timeout so a stale token + unreachable API
+    // doesn't hang the app in a "Loading session…" black-screen state.
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
     try {
       const response = await fetch(`${API_BASE_URL}/api/v1/auth/me`, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
+        signal: controller.signal,
       });
 
       if (response.ok) {
@@ -174,9 +179,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     } catch (error) {
       console.error("Error validating token:", error);
+      // On timeout or network failure, treat as invalid session
       TOKEN_STORAGE.removeItem(AUTH_TOKEN_KEY);
       TOKEN_STORAGE.removeItem(REFRESH_TOKEN_KEY);
     } finally {
+      clearTimeout(timeoutId);
       setIsLoading(false);
     }
   };
