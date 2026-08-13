@@ -281,7 +281,6 @@ export function Sparkline({
 
   // After the `if (!data.length) return null` guard above, data has at least
   // one element, so data[length-1] is safe and defined.
-  const trend = data[data.length - 1] >= data[0];
   const trend = (data.at(-1) ?? 0) >= data[0];
   const trendColor = trend ? "var(--color-success, #22c55e)" : "var(--color-danger, #ef4444)";
   const lineColor = color || trendColor;

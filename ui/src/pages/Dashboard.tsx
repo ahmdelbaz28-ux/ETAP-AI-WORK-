@@ -267,8 +267,6 @@ function MiniGauge({
           aria-label={`${label} gauge: ${pct}%`}
         >
           <title>{`${label}: ${pct}%`}</title>
-        <svg className="w-12 h-12 -rotate-90" viewBox="0 0 36 36">
-          <title>Utilization progress ring</title>
           <path
             d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
             fill="none"

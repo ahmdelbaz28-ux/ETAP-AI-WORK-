@@ -546,10 +546,9 @@ export default function ScadaIntegration() {
 
             <div className="space-y-3.5 text-xs">
               <div>
-                <span className="block text-[var(--text-tertiary)] mb-1">
                 <label htmlFor="scada-url" className="block text-[var(--text-tertiary)] mb-1">
                   {isRtl ? "رابط خادم زينون (Zenon URL)" : "Zenon Server URL"}
-                </span>
+                </label>
                 <input
                   id="scada-url"
                   type="text"
@@ -560,10 +559,9 @@ export default function ScadaIntegration() {
               </div>
 
               <div>
-                <span className="block text-[var(--text-tertiary)] mb-1">
                 <label htmlFor="scada-api-key" className="block text-[var(--text-tertiary)] mb-1">
                   {isRtl ? "مفتاح واجهة برمجة التطبيقات (API Key)" : "SCADA API Key / Token"}
-                </span>
+                </label>
                 <input
                   id="scada-api-key"
                   type="password"
@@ -576,13 +574,12 @@ export default function ScadaIntegration() {
 
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <span className="block text-[var(--text-tertiary)] mb-1">
                   <label
                     htmlFor="scada-project-name"
                     className="block text-[var(--text-tertiary)] mb-1"
                   >
                     {isRtl ? "اسم مشروع زينون" : "Project Name"}
-                  </span>
+                  </label>
                   <input
                     id="scada-project-name"
                     type="text"
@@ -592,13 +589,12 @@ export default function ScadaIntegration() {
                   />
                 </div>
                 <div>
-                  <span className="block text-[var(--text-tertiary)] mb-1">
                   <label
                     htmlFor="scada-sync-interval"
                     className="block text-[var(--text-tertiary)] mb-1"
                   >
                     {isRtl ? "معدل التحديث (ثانية)" : "Sync Rate (sec)"}
-                  </span>
+                  </label>
                   <input
                     id="scada-sync-interval"
                     type="number"

@@ -60,7 +60,6 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           sizeStyles[size],
           className,
         )}
-        {...props}>
         {...props}
       >
         {loading ? (

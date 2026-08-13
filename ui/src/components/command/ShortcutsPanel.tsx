@@ -41,8 +41,7 @@ function KeySequence({ keys }: { readonly keys: readonly string[] }) {
   return (
     <div className="flex items-center gap-1">
       {keys.map((key, i) => (
-         <span key={key} className="flex items-center gap-1">
-      {keys.map((key) => (
+        <span key={i} className="flex items-center gap-1">
           <KeyCap>{key}</KeyCap>
           {key !== keys[keys.length - 1] && (
             <span className="text-[var(--text-muted)] text-xs">{key === "G" ? "→" : "+"}</span>

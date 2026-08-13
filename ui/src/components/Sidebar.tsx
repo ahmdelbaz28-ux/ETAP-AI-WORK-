@@ -319,7 +319,6 @@ function MobileSidebarDrawer({
            tabIndex={0}
            aria-hidden="true"
          />
-          aria-label="Close mobile sidebar"
       )}
 
       {/* Drawer */}

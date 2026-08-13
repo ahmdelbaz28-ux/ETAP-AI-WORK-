@@ -2120,14 +2120,13 @@ function ExternalServicesPanel({
                 <div className="space-y-2 mb-3">
                   {svc.fields.map((f) => (
                     <div key={f.key}>
-                      <span className="block text-[10px] font-medium text-[var(--text-tertiary)] mb-1">
                       <label
                         htmlFor={`svc-${svc.id}-${f.key}`}
                         className="block text-[10px] font-medium text-[var(--text-tertiary)] mb-1"
                       >
                         {f.label}
                         {f.required && <span className="text-red-400"> *</span>}
-                      </span>
+                      </label>
                       <input
                         id={`svc-${svc.id}-${f.key}`}
                         type={f.type === "password" ? "password" : "text"}
@@ -2146,10 +2145,6 @@ function ExternalServicesPanel({
 
                 {st.detail &&
                   (() => {
-                    let stateColor: string;
-                    if (st.state === "ok") stateColor = "bg-green-500/10 text-green-400";
-                    else if (st.state === "fail") stateColor = "bg-red-500/10 text-red-400";
-                    else stateColor = "bg-yellow-500/10 text-yellow-400";
                     const stateColor: string =
                       st.state === "ok"
                         ? "bg-green-500/10 text-green-400"
@@ -2215,10 +2210,6 @@ function SettingsField({
     field.includes("RATE") ||
     field.includes("THRESHOLD") ||
     field.includes("MAX_");
-  let inputType: string;
-  if (isSecret) inputType = "password";
-  else if (isNumber) inputType = "number";
-  else inputType = "text";
   const inputType = isSecret ? "password" : isNumber ? "number" : "text";
 
   if (isFeatureFlag) {

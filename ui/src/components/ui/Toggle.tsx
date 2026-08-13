@@ -29,8 +29,6 @@ export function Toggle({
   return (
     <div
       role="group"
-    <label
-      htmlFor={reactId}
       className={cn(
         "flex items-center gap-3 cursor-pointer group",
         disabled && "opacity-50 cursor-not-allowed",

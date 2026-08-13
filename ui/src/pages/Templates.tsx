@@ -1,6 +1,5 @@
 import { motion } from "framer-motion";
 import { Copy, FileText, Loader2, Pencil, Plus, Search, Trash2 } from "lucide-react";
-import { type ReactNode, useEffect, useState } from "react";
 import { type ReactNode, useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ContextHelpButton } from "../components/help/ContextHelpButton";

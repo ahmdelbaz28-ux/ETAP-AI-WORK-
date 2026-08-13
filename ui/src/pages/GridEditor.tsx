@@ -947,10 +947,9 @@ export default function GridEditor() {
             {selectedDetails ? (
               <div className="space-y-4 text-xs">
                 <div>
-                  <span className="block text-[var(--text-tertiary)] mb-1">
                   <label htmlFor="sel-name" className="block text-[var(--text-tertiary)] mb-1">
                     {isRtl ? "الاسم" : "Name"}
-                  </span>
+                  </label>
                   <input
                     id="sel-name"
                     type="text"
@@ -971,13 +970,12 @@ export default function GridEditor() {
                     return (
                       <>
                         <div>
-                          <span className="block text-[var(--text-tertiary)] mb-1">
                           <label
                             htmlFor="bus-type"
                             className="block text-[var(--text-tertiary)] mb-1"
                           >
                             {isRtl ? "نوع الناقل" : "Bus Type"}
-                          </span>
+                          </label>
                           <select
                             id="bus-type"
                             value={b.type}
@@ -990,13 +988,12 @@ export default function GridEditor() {
                           </select>
                         </div>
                         <div>
-                          <span className="block text-[var(--text-tertiary)] mb-1">
                           <label
                             htmlFor="bus-basekv"
                             className="block text-[var(--text-tertiary)] mb-1"
                           >
                             {isRtl ? "الجهد الاسمي (kV)" : "Nominal KV"}
-                          </span>
+                          </label>
                           <input
                             id="bus-basekv"
                             type="number"
@@ -1018,13 +1015,12 @@ export default function GridEditor() {
                     return (
                       <>
                         <div>
-                          <span className="block text-[var(--text-tertiary)] mb-1">
                           <label
                             htmlFor="line-r1"
                             className="block text-[var(--text-tertiary)] mb-1"
                           >
                             {isRtl ? "المقاومة R1 (pu)" : "Resistance R1 (pu)"}
-                          </span>
+                          </label>
                           <input
                             id="line-r1"
                             type="number"
@@ -1037,13 +1033,12 @@ export default function GridEditor() {
                           />
                         </div>
                         <div>
-                          <span className="block text-[var(--text-tertiary)] mb-1">
                           <label
                             htmlFor="line-x1"
                             className="block text-[var(--text-tertiary)] mb-1"
                           >
                             {isRtl ? "المفاعلة X1 (pu)" : "Reactance X1 (pu)"}
-                          </span>
+                          </label>
                           <input
                             id="line-x1"
                             type="number"
@@ -1066,13 +1061,12 @@ export default function GridEditor() {
                     return (
                       <>
                         <div>
-                          <span className="block text-[var(--text-tertiary)] mb-1">
                           <label
                             htmlFor="gen-pg"
                             className="block text-[var(--text-tertiary)] mb-1"
                           >
                             {isRtl ? "القدرة الحقيقية pg (MW)" : "Real Power pg (MW)"}
-                          </span>
+                          </label>
                           <input
                             id="gen-pg"
                             type="number"
@@ -1084,13 +1078,12 @@ export default function GridEditor() {
                           />
                         </div>
                         <div>
-                          <span className="block text-[var(--text-tertiary)] mb-1">
                           <label
                             htmlFor="gen-vset"
                             className="block text-[var(--text-tertiary)] mb-1"
                           >
                             {isRtl ? "قيمة تنظيم الجهد" : "Voltage Setpoint (pu)"}
-                          </span>
+                          </label>
                           <input
                             id="gen-vset"
                             type="number"
@@ -1113,13 +1106,12 @@ export default function GridEditor() {
                     return (
                       <>
                         <div>
-                          <span className="block text-[var(--text-tertiary)] mb-1">
                           <label
                             htmlFor="load-pmw"
                             className="block text-[var(--text-tertiary)] mb-1"
                           >
                             {isRtl ? "القدرة الفعالة P (MW)" : "Real Load P (MW)"}
-                          </span>
+                          </label>
                           <input
                             id="load-pmw"
                             type="number"
@@ -1131,13 +1123,12 @@ export default function GridEditor() {
                           />
                         </div>
                         <div>
-                          <span className="block text-[var(--text-tertiary)] mb-1">
                           <label
                             htmlFor="load-qmvar"
                             className="block text-[var(--text-tertiary)] mb-1"
                           >
                             {isRtl ? "القدرة غير الفعالة Q (MVAR)" : "Reactive Load Q (MVAR)"}
-                          </span>
+                          </label>
                           <input
                             id="load-qmvar"
                             type="number"
