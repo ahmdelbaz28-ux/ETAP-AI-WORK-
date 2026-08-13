@@ -52,8 +52,7 @@ def _migrate_deprecated_env_vars() -> None:
     for old, new in migrations:
         if old in os.environ and new not in os.environ:
             warnings.warn(
-                f"{old} is deprecated, use {new} instead. "
-                f"Will be removed in v3.0.",
+                f"{old} is deprecated, use {new} instead. Will be removed in v3.0.",
                 DeprecationWarning,
                 stacklevel=2,
             )

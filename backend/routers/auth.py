@@ -301,9 +301,10 @@ async def login(
     token = _create_session_token(session_id)
 
     # Build Set-Cookie header
-    is_production = os.getenv(
-        "ENVIRONMENT", os.getenv("FIREAI_ENV", "development")
-    ).lower() in ("production", "prod")
+    is_production = os.getenv("ENVIRONMENT", os.getenv("FIREAI_ENV", "development")).lower() in (
+        "production",
+        "prod",
+    )
     forwarded_proto = ""
     for name, value in request.scope.get("headers", []):
         if name == b"x-forwarded-proto":

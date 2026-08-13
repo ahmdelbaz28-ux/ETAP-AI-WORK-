@@ -146,9 +146,10 @@ _CSP_DEVELOPMENT = (
 
 def _is_production_env() -> bool:
     """Check ENVIRONMENT (canonical) / FIREAI_ENV (deprecated alias) for production mode."""
-    return os.getenv(
-        "ENVIRONMENT", os.getenv("FIREAI_ENV", "production")
-    ).lower() in ("production", "prod")
+    return os.getenv("ENVIRONMENT", os.getenv("FIREAI_ENV", "production")).lower() in (
+        "production",
+        "prod",
+    )
 
 
 def _build_csp(_scope: Scope) -> str:  # NOSONAR — S1172: parameter retained for API stability

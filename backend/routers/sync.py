@@ -290,9 +290,10 @@ def _validate_ws_origin(websocket: WebSocket) -> bool:
     origin = websocket.headers.get("origin", "")
     host = websocket.headers.get("host", "")
 
-    is_dev_mode = os.getenv(
-        "ENVIRONMENT", os.getenv("FIREAI_ENV", "development")
-    ).lower() not in ("production", "prod")
+    is_dev_mode = os.getenv("ENVIRONMENT", os.getenv("FIREAI_ENV", "development")).lower() not in (
+        "production",
+        "prod",
+    )
 
     # Missing Origin header
     if not origin:

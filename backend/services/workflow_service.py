@@ -87,6 +87,31 @@ def with_stuck_detection(func):
     return func
 
 
+# Phase 3 cleanup stubs — these no-op functions keep dead-code branches
+# (gated on STUCK_DETECTION_AVAILABLE / LANGFUSE_AVAILABLE) syntactically
+# valid so ruff F821 doesn't fire. They are NEVER called at runtime because
+# the guard flags are False. Remove these stubs when the real imports are
+# restored via the TODO(phase-3-migration) block above.
+def get_stuck_detector():  # noqa: ARG001, D401
+    """No-op stub — returns None. Real implementation removed during BAZSPARK cleanup."""
+    return None
+
+
+def get_langfuse_callback_handler(*_args, **_kwargs):  # noqa: ARG001, D401
+    """No-op stub — returns None. Real implementation removed during BAZSPARK cleanup."""
+    return None
+
+
+def flush_langfuse():  # noqa: D401
+    """No-op stub — does nothing. Real implementation removed during BAZSPARK cleanup."""
+    return None
+
+
+def log_workflow_scores(*_args, **_kwargs):  # noqa: ARG001, D401
+    """No-op stub — does nothing. Real implementation removed during BAZSPARK cleanup."""
+    return None
+
+
 LANGFUSE_AVAILABLE = False
 logger.info("Langfuse integration not available — observability layer DISABLED")
 
@@ -558,8 +583,6 @@ def node_memory_enrich(state: PipelineState) -> PipelineState:
     - Priority 7 (Traceability): All memory ops logged
     - Rule 1: Absolute truth — memory results clearly labeled
     """
-    rooms = state.get("rooms", [])
-    workflow_id = state.get("workflow_id", "")
     env_context = state.get("environmental_context", {})
 
     memory_context = {
@@ -1176,7 +1199,6 @@ def node_generate_report(state: PipelineState) -> PipelineState:
     conflicts = state.get("conflicts", [])
     env_ctx = state.get("environmental_context", {})
     memory_context = state.get("memory_context", {})
-    workflow_id = state.get("workflow_id", "")
 
     # Build report
     unknown_count = sum(1 for r in nfpa_results if r.get("occupancy_type") == "unknown")
@@ -1260,7 +1282,10 @@ def node_generate_report(state: PipelineState) -> PipelineState:
     #
     # TODO(phase-3-migration): restore via the new module path:
     #   from <new_module>.mem0_workflow_bridge import store_analysis_result
-    memory_storage_result = {"stored": 0, "failed": 0, "skipped": True}
+    # The previous assignment to ``memory_storage_result`` was removed during
+    # lint cleanup (F841) — the dict literal is preserved in the comment below
+    # for reference when the real import is restored:
+    #   memory_storage_result = {"stored": 0, "failed": 0, "skipped": True}
     logger.warning(
         "mem0_workflow_bridge not available — skipping result storage "
         "(fireai.infrastructure.mem0_workflow_bridge was removed during BAZSPARK cleanup)"

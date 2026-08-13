@@ -40,9 +40,7 @@ from backend.rbac import APIKeyInfo, Role
 
 logger = logging.getLogger(__name__)
 
-KEYS_FILE = os.getenv(
-    "ETAP_API_KEYS_FILE", os.getenv("FIREAI_API_KEYS_FILE", "db/api_keys.json")
-)
+KEYS_FILE = os.getenv("ETAP_API_KEYS_FILE", os.getenv("FIREAI_API_KEYS_FILE", "db/api_keys.json"))
 
 # Thread-safety lock for TOCTOU prevention on load-modify-save cycles
 _keys_lock = threading.Lock()
@@ -178,9 +176,7 @@ def _get_keys_file_path() -> str:
     module-level KEYS_FILE constant (which may be patched by tests using
     mock.patch('backend.api_keys.KEYS_FILE')).
     """
-    return os.getenv(
-        "ETAP_API_KEYS_FILE", os.getenv("FIREAI_API_KEYS_FILE", KEYS_FILE)
-    )
+    return os.getenv("ETAP_API_KEYS_FILE", os.getenv("FIREAI_API_KEYS_FILE", KEYS_FILE))
 
 
 def _get_server_secret_file_path() -> str:

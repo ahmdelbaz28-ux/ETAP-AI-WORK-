@@ -475,16 +475,14 @@ class MonitorState:
             lines.append("# TYPE etap_engine_checks_passed counter")
             for eid, eng in self._engines.items():
                 lines.append(
-                    f'etap_engine_checks_passed{{engine_id="{eid}"}} '
-                    f"{eng.get('checks_passed', 0)}"
+                    f'etap_engine_checks_passed{{engine_id="{eid}"}} {eng.get("checks_passed", 0)}'
                 )
 
             lines.append("# HELP etap_engine_checks_failed Total failed checks")
             lines.append("# TYPE etap_engine_checks_failed counter")
             for eid, eng in self._engines.items():
                 lines.append(
-                    f'etap_engine_checks_failed{{engine_id="{eid}"}} '
-                    f"{eng.get('checks_failed', 0)}"
+                    f'etap_engine_checks_failed{{engine_id="{eid}"}} {eng.get("checks_failed", 0)}'
                 )
 
             lines.append("# HELP etap_security_alerts_total Total security alerts")

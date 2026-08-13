@@ -35,9 +35,7 @@ def _setup_env() -> Generator[None, None, None]:
     """
     os.environ["FIREAI_ENV"] = "development"
     os.environ["FIREAI_API_KEY"] = "test_key_for_security_audit"
-    os.environ["FIREAI_SESSION_SECRET"] = (
-        "ci-test-session-secret-key-32-bytes-long-minimum"
-    )
+    os.environ["FIREAI_SESSION_SECRET"] = "ci-test-session-secret-key-32-bytes-long-minimum"
     # Force auth to be ENFORCED — undo the conftest autouse bypass.
     os.environ["ENGINEERING_SERVICE_AUTH_DISABLED"] = "false"
     os.environ["FIREAI_AUTH_DISABLED"] = "false"
