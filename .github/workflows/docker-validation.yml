@@ -41,7 +41,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  EXPECTED_PYTHON_VERSION: '3.12'
+  EXPECTED_PYTHON_VERSION: '3.13'
 
 jobs:
   # ── 1. LINT: hadolint on every Dockerfile ────────────────────────────────

@@ -28,6 +28,7 @@ ignoredRules:
   - DL3013  # Don't require pinning pip packages (requirements.txt handles it)
   - DL3059  # Allow multiple consecutive RUN instructions for readability
   - DL3007  # Don't warn about 'latest' tag (we never use it)
+  - DL3021  # False positive with --chown/--chmod flags on COPY
 
 # Trust specific registries (so hadolint doesn't warn about them)
 trustedRegistries:
