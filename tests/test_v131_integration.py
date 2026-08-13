@@ -14,7 +14,6 @@ import asyncio
 from pathlib import Path
 
 import pytest
-
 from fireai.core.fireai_kernel_v30 import KernelCore
 from fireai.core.v131_kernel_extensions import V131KernelExtension
 

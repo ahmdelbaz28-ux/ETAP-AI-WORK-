@@ -25,7 +25,6 @@ import os
 import tempfile
 
 import pytest
-
 from fireai.core.parameter_optimizer import (
     ParamConfig,
     ParameterOptimizationResult,

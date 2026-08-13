@@ -26,7 +26,6 @@ from __future__ import annotations
 import math
 
 import pytest
-
 from fireai.core.duct_detector import (
     NFPA_DUCT_MAX_SPACING_M,
     UL268A_MAX_VELOCITY_FPM,

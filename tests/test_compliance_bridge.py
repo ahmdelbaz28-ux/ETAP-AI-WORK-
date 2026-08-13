@@ -12,7 +12,6 @@ to the existing FireAI system.
 from __future__ import annotations
 
 import pytest
-
 from fireai.core.rules_engine.compliance_bridge import (
     ComplianceReport,
     NFPA72ComplianceChecker,

@@ -21,7 +21,6 @@ NFPA 72 References:
 from __future__ import annotations
 
 import pytest
-
 from fireai.core.detector_response import (
     _AMBIENT_TEMP_C,
     _G,

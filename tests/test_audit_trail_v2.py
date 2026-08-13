@@ -22,7 +22,6 @@ from __future__ import annotations
 import threading
 
 import pytest
-
 from fireai.core.audit_trail import AuditEntry, AuditTrail
 
 # ─────────────────────────────────────────────────────────────────────────────

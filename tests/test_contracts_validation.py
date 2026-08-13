@@ -20,7 +20,6 @@ from __future__ import annotations
 import math
 
 import pytest
-
 from fireai.core.contracts_validation import (
     ContractViolation,
     _compute_area_from_polygon,

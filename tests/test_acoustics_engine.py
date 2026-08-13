@@ -22,7 +22,6 @@ from __future__ import annotations
 import math
 
 import pytest
-
 from fireai.core.acoustic_calculator import (
     CheckPoint,
     Speaker,

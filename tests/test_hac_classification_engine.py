@@ -29,7 +29,6 @@ from __future__ import annotations
 import math
 
 import pytest
-
 from fireai.core.hac_classification_engine import (
     _RELEASE_GRADE_CK,
     _VENT_ACH,

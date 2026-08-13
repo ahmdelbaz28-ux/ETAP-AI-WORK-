@@ -23,7 +23,6 @@ NFPA 72 References:
 from __future__ import annotations
 
 import pytest
-
 from fireai.core.device_placement import (
     # Dataclasses
     BeamObstruction,
@@ -143,11 +142,11 @@ class TestCeilingTypeEnum:
         assert DPCeilingType.BEAM.value == "beam"
 
 
-# BeamObstruction
+# BeamObstruction (model unit tests — constructor & field access)
 # ─────────────────────────────────────────────────────────────────────────────
 
 
-class TestBeamObstruction:
+class TestBeamObstructionModel:
     def test_create_beam(self):
         beam = BeamObstruction(
             x_start_m=0.0,

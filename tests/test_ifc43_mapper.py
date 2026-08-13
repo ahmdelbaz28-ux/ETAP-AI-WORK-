@@ -13,7 +13,6 @@ Per agent.md Rule 1: no fabrication.
 from __future__ import annotations
 
 import pytest
-
 from fireai.bridges.ifc43_mapper import (
     FIREAI_TO_IFC43_MAP,
     IFC43_SCHEMA_VERSION,

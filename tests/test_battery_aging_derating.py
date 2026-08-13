@@ -23,7 +23,6 @@ IEEE References:
 from __future__ import annotations
 
 import pytest
-
 from fireai.core.battery_aging_derating import (
     AGING_DERATING_EOL,
     END_OF_DISCHARGE_VOLTAGE_PER_CELL,

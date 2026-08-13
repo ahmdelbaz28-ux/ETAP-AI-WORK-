@@ -25,7 +25,6 @@ from __future__ import annotations
 import dataclasses
 
 import pytest
-
 from fireai.core.circuit_topology import (
     MAX_DEVICES_BETWEEN_ISOLATORS,
     MAX_NAC_DEVICES_DEFAULT,

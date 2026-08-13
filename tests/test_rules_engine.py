@@ -22,8 +22,6 @@ Test Categories:
 from __future__ import annotations
 
 import pytest
-from pydantic import ValidationError
-
 from fireai.core.rules_engine.api_contract import (
     ContractSeverity,
     ContractValidator,
@@ -39,6 +37,7 @@ from fireai.core.rules_engine.nfpa72_rules import NFPA72RuleSet
 from fireai.core.rules_engine.truth_maintenance import (
     TruthMaintenanceSystem,
 )
+from pydantic import ValidationError
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # ENGINE BASICS

@@ -31,7 +31,6 @@ import json
 import time
 
 import pytest
-
 from fireai.mcp_server.revit_mcp_server import (
     MCP_PROTOCOL_VERSION,
     MCP_SERVER_NAME,

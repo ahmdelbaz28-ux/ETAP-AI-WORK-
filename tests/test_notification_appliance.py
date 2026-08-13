@@ -25,7 +25,6 @@ from __future__ import annotations
 import math
 
 import pytest
-
 from fireai.core.notification_appliance import (
     _HORN_REFERENCE_DISTANCE_M,
     _MAX_CORRIDOR_STROBE_SPACING_M,

@@ -17,7 +17,6 @@ NFPA 72 References:
 from __future__ import annotations
 
 import pytest
-
 from fireai.core.geometry_utils import (
     _ensure_closed,
     bounding_rect_dimensions,

@@ -24,7 +24,6 @@ import json
 import math
 
 import pytest
-
 from fireai.core.qomn_integration_engine import (
     CableHatchIntegrator,
     CableRouter,

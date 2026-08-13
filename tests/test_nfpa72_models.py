@@ -23,8 +23,6 @@ from __future__ import annotations
 import math
 
 import pytest
-from shapely.geometry import Polygon as ShapelyPolygon
-
 from fireai.core.nfpa72_models import (
     # Constants
     DISCLAIMER,
@@ -66,6 +64,7 @@ from fireai.core.nfpa72_models import (
     sanitize_string,
     validate_ceiling_height,
 )
+from shapely.geometry import Polygon as ShapelyPolygon
 
 # Constants
 # ─────────────────────────────────────────────────────────────────────────────

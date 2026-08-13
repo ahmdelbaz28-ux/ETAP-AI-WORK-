@@ -115,14 +115,15 @@ celery>=5.3.0
 
 # AI Memory & Graph Database
 neo4j>=5.0.0
-# LangChain — pinned to 0.2.x to match requirements.txt (~=0.2.x line).
-# requirements-prod.txt previously had langchain-core>=1.0.0 which conflicts with
-# requirements.txt langchain-core~=0.2.43.
-langchain-core>=0.2.0,<0.3
-langchain-openai>=0.1.0,<0.2
-langchain-community>=0.2.0,<0.3
-langchain-experimental>=0.0.60,<0.1
-langsmith>=0.1.0,<0.2
+# LangChain — pinned to match requirements.txt 1.x line (security upgrade).
+# Looser bounds than requirements.txt so production can absorb patch releases
+# without a re-pin, but still constrained to the 1.x contract.
+langchain-core>=1.5.0,<2
+langchain-openai>=1.4.0,<2
+langchain-community>=0.4.0,<0.5
+langchain-experimental>=0.4.0,<0.5
+langchain-qdrant>=1.0,<2
+langsmith>=0.10.0,<0.11
 qdrant-client>=1.7.0
 
 defusedxml>=0.7.1

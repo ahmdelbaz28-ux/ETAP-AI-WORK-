@@ -38,7 +38,6 @@ if str(_PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(_PROJECT_ROOT))
 
 import pytest
-
 from fireai.constants import SMOKE_MAX_SPACING_M
 from fireai.core.qomn_kernel import (
     NFPA72_SMOKE_MAX_SPACING_M,

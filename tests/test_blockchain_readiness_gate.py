@@ -24,7 +24,6 @@ from __future__ import annotations
 import dataclasses
 
 import pytest
-
 from fireai.core.blockchain_readiness_gate import (
     EMPTY_HASH,
     PRIORITY,

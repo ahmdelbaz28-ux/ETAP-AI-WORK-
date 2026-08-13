@@ -13,7 +13,6 @@ import struct
 import zipfile
 
 import pytest
-
 from fireai.integration.ar_metadata_exporter import (
     GLB_CHUNK_BIN,
     GLB_CHUNK_JSON,

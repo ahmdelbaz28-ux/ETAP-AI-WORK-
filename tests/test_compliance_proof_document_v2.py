@@ -30,7 +30,6 @@ from __future__ import annotations
 from unittest.mock import MagicMock
 
 import pytest
-
 from fireai.core.compliance_proof_document import (
     ComplianceProofDocument,
     RoomVerificationRecord,

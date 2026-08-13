@@ -28,7 +28,6 @@ from __future__ import annotations
 import json
 
 import pytest
-
 from fireai.core.pipeline import (
     PipelineResult,
     StageResult,

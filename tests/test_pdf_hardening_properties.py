@@ -22,10 +22,6 @@ from __future__ import annotations
 import math
 
 import pytest
-from hypothesis import HealthCheck, assume, given, settings
-from hypothesis import strategies as st
-from pydantic import ValidationError
-
 from fireai.constants import (
     COVERAGE_FACTOR_FLAT_CEILING,
     DC_RETURN_PATH_FACTOR,
@@ -44,6 +40,9 @@ from fireai.core.nfpa72_schemas import (
     NFPA72Input,
     VoltageDropInput,
 )
+from hypothesis import HealthCheck, assume, given, settings
+from hypothesis import strategies as st
+from pydantic import ValidationError
 
 # ============================================================================
 # Property-Based Tests — Coverage Radius

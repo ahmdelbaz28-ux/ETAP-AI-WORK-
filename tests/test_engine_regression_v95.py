@@ -31,7 +31,6 @@ from __future__ import annotations
 from collections import Counter
 
 import pytest
-
 from fireai.core.rules_engine.engine import (
     Fact,
     RulesEngine,

@@ -25,7 +25,6 @@ import os
 from unittest.mock import MagicMock, patch
 
 import pytest
-
 from fireai.core.floor_orchestrator import (
     FloorOrchestrator,
     FloorResult,
@@ -592,9 +591,8 @@ class TestFloorOrchestratorProcess:
 
     def test_process_single_room_pass(self):
         """Integration: process a valid room and verify result structure."""
-        from shapely.geometry import Polygon
-
         from fireai.core.nfpa72_models import CeilingSpec, DetectorType, RoomSpec
+        from shapely.geometry import Polygon
 
         fo = FloorOrchestrator(grid_res=0.5)
         spec = RoomSpec(
@@ -618,9 +616,8 @@ class TestFloorOrchestratorProcess:
         mock_audit = MagicMock()
         fo = FloorOrchestrator(audit_trail=mock_audit)
 
-        from shapely.geometry import Polygon
-
         from fireai.core.nfpa72_models import CeilingSpec, DetectorType, RoomSpec
+        from shapely.geometry import Polygon
 
         spec = RoomSpec(
             room_id="ROOM-1",
@@ -638,9 +635,8 @@ class TestFloorOrchestratorProcess:
         """Without audit_trail, no logging calls are made."""
         fo = FloorOrchestrator(audit_trail=None)
 
-        from shapely.geometry import Polygon
-
         from fireai.core.nfpa72_models import CeilingSpec, DetectorType, RoomSpec
+        from shapely.geometry import Polygon
 
         spec = RoomSpec(
             room_id="ROOM-1",
@@ -671,9 +667,8 @@ class TestV60CoverageRadiusFallback:
         """If coverage radius calculation fails, fallback is used with warning."""
         fo = FloorOrchestrator()
 
-        from shapely.geometry import Polygon
-
         from fireai.core.nfpa72_models import CeilingSpec, DetectorType, RoomSpec
+        from shapely.geometry import Polygon
 
         spec = RoomSpec(
             room_id="ROOM-1",
@@ -720,11 +715,10 @@ class TestV13AdaptiveReSolve:
         """
         fo = FloorOrchestrator()
 
-        from shapely.geometry import Polygon
-
         from fireai.core.nfpa72_models import CeilingSpec, DetectorType, RoomSpec
         from fireai.core.spatial_engine.constraint_solver import ConstraintSolverResult
         from fireai.core.spatial_engine.density_optimizer import DetectorLayout, Room
+        from shapely.geometry import Polygon
 
         spec = RoomSpec(
             room_id="ROOM-1",
@@ -791,11 +785,10 @@ class TestV13AdaptiveReSolve:
         """
         fo = FloorOrchestrator()
 
-        from shapely.geometry import Polygon
-
         from fireai.core.nfpa72_models import CeilingSpec, DetectorType, RoomSpec
         from fireai.core.spatial_engine.constraint_solver import ConstraintSolverResult
         from fireai.core.spatial_engine.density_optimizer import DetectorLayout, Room
+        from shapely.geometry import Polygon
 
         spec = RoomSpec(
             room_id="ROOM-1",

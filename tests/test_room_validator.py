@@ -21,13 +21,12 @@ NFPA 72 References:
 from __future__ import annotations
 
 import pytest
-from shapely.geometry import Polygon as ShapelyPolygon
-
 from fireai.core.nfpa72_models import RoomSpec
 from fireai.core.room_validator import (
     VALID_OCCUPANCY_TYPES,
     validate_room_spec,
 )
+from shapely.geometry import Polygon as ShapelyPolygon
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Helper — Create a valid RoomSpec for testing

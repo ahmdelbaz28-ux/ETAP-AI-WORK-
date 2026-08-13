@@ -26,8 +26,6 @@ from __future__ import annotations
 import math
 
 import pytest
-from shapely.geometry import Polygon, box
-
 from fireai.core.contracts import CeilingType
 from fireai.core.nfpa72_coverage import (
     NFPA_HVAC_EXCLUSION_RADIUS_M,
@@ -59,6 +57,7 @@ from fireai.core.nfpa72_models import (
     NFPAComplianceResult,
     RoomSpec,
 )
+from shapely.geometry import Polygon, box
 
 # =============================================================================
 # Fixtures

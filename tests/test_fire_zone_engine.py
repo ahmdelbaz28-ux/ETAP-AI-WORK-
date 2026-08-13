@@ -20,7 +20,6 @@ NFPA 72 References:
 from __future__ import annotations
 
 import pytest
-
 from fireai.core.fire_zone_engine import (
     FireZone,
     FireZoneEngine,

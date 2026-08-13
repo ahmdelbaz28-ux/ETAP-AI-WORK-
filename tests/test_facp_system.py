@@ -20,7 +20,6 @@ Standards Referenced:
 from __future__ import annotations
 
 import pytest
-
 from facp_system.panel_database import (
     MASTER_PANEL_DATABASE,
     NOTIFIER_PANELS,

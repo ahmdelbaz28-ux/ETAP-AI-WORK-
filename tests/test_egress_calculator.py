@@ -18,7 +18,6 @@ NFPA 101 References:
 from __future__ import annotations
 
 import pytest
-
 from fireai.core.egress_calculator import (
     _MIN_EGRESS_WIDTH_M,
     _SAFETY_FACTOR,

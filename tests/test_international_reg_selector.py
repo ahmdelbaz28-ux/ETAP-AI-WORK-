@@ -25,7 +25,6 @@ References:
 from __future__ import annotations
 
 import pytest
-
 from fireai.core.international_reg_selector import (
     COUNTRY_FRAMEWORK_MAP,
     DIVISION_TO_ZONE,

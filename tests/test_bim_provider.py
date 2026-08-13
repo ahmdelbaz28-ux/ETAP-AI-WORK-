@@ -14,7 +14,6 @@ real code with real assertions.
 from __future__ import annotations
 
 import pytest
-
 from fireai.bridges.bim_provider import (
     AutodeskForgeProvider,
     BIMProvider,

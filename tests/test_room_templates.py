@@ -16,7 +16,6 @@ NFPA 72 References:
 from __future__ import annotations
 
 import pytest
-
 from fireai.core.nfpa72_models import CeilingSpec, CeilingType, DetectorType, RoomSpec
 from fireai.core.room_templates import (
     TEMPLATES,

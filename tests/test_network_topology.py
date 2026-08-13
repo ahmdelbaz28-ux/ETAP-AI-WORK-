@@ -18,9 +18,8 @@ from __future__ import annotations
 
 import dataclasses
 
-import pytest
-
 import fireai.core.network_topology as _nt_mod
+import pytest
 
 
 # Force fallback dict path — provenance RuleApplied/Violation field names

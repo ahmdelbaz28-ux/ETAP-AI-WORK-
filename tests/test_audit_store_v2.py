@@ -28,7 +28,6 @@ import sqlite3
 from unittest.mock import patch
 
 import pytest
-
 from fireai.core.audit_store import (
     _MIN_HMAC_KEY_LENGTH,
     NFPA_VERSION,

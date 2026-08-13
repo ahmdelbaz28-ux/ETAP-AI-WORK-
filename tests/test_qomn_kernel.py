@@ -26,7 +26,6 @@ import math
 import os
 
 import pytest
-
 from fireai.core.qomn_kernel import (
     ACCESS_CONTROL_READER_HEIGHT_M,
     CCTV_LENS_FOV_DEG,

@@ -25,7 +25,6 @@ import os
 from unittest.mock import MagicMock, patch
 
 import pytest
-
 from fireai.core.hybrid_survivability import (
     AcousticCoverageDetail,
     HybridPointResult,

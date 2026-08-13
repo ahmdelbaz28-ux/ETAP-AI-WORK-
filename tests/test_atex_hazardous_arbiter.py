@@ -24,7 +24,6 @@ Standards:
 from __future__ import annotations
 
 import pytest
-
 from fireai.core.atex_hazardous_arbiter import (
     _EPL_DUST_HIERARCHY,
     _EPL_GAS_HIERARCHY,

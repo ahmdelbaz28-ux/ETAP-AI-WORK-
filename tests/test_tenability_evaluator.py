@@ -17,7 +17,6 @@ Covers:
 from __future__ import annotations
 
 import pytest
-
 from fireai.core.tenability_evaluator import (
     TenabilityResult,
     evaluate_tenability,

@@ -42,7 +42,6 @@ from __future__ import annotations
 import json
 
 import pytest
-
 from fireai.core.scenario_engine import (
     _ALPERT_DT_FAR,
     _ALPERT_DT_NEAR,

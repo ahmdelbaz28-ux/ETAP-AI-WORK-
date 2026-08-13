@@ -67,6 +67,17 @@ DEFAULT_FEATURE_FLAGS: dict[str, dict[str, Any]] = {
         "status": "alpha",
         "description": "OPF (economic dispatch) - experimental",
     },
+    # ── Infrastructure flags (not study types) ────────────────────────────
+    # MockGISProvider is a development/test fallback used when QGIS/ArcGIS
+    # SDKs are unavailable (e.g., Hugging Face Spaces, Docker without
+    # desktop GIS). In production it must be explicitly enabled, otherwise
+    # `get_gis_provider()` will fail loudly instead of silently serving
+    # mock spatial data. See `gis_integration/providers/__init__.py`.
+    "mock_gis_provider": {
+        "enabled": False,
+        "status": "internal",
+        "description": "Allow MockGISProvider as fallback in non-dev environments",
+    },
 }
 
 # Backwards-compat alias (other modules import FEATURE_FLAGS directly)

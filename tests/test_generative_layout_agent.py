@@ -16,7 +16,6 @@ from __future__ import annotations
 import math
 
 import pytest
-
 from fireai.core.spatial_engine.density_optimizer import Room
 from fireai.core.spatial_engine.generative_layout_agent import (
     COMPLIANCE_WEIGHT,

@@ -31,7 +31,6 @@ import threading
 import time
 
 import pytest
-
 from fireai.core.delta_cache import (
     _ALGORITHM_VERSION,
     CacheEntry,

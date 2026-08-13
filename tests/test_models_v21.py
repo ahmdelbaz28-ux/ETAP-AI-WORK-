@@ -23,8 +23,6 @@ from __future__ import annotations
 import math
 
 import pytest
-from pydantic import ValidationError
-
 from fireai.core.models_v21 import (
     _DEFAULT_MEDIUM_ALPHA,
     _MW_HIGH_THRESHOLD,
@@ -72,6 +70,7 @@ from fireai.core.models_v21 import (
     vapor_density_tier,
     volumetric_path_transmittance,
 )
+from pydantic import ValidationError
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # Enum Tests

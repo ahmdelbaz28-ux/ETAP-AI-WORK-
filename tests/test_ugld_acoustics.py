@@ -23,7 +23,6 @@ from __future__ import annotations
 import math
 
 import pytest
-
 from fireai.core.ugld_acoustics import (
     _DEFAULT_UGLD_FREQUENCY_HZ,
     _ISO_9613_ALPHA_20C_50RH,

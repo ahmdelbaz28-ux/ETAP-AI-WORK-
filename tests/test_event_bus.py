@@ -25,7 +25,6 @@ from __future__ import annotations
 import threading
 
 import pytest
-
 from fireai.core.event_bus import Event, EventBus, EventRecorder, Events
 
 # ─────────────────────────────────────────────────────────────────────────────

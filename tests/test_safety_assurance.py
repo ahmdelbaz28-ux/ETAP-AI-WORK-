@@ -20,7 +20,6 @@ from __future__ import annotations
 from datetime import datetime, timezone
 
 import pytest
-
 from fireai.core.safety_assurance import (
     ABSOLUTE_MINIMUM_COVERAGE,
     MINIMUM_COVERAGE_FOR_SUBMISSION,

@@ -29,7 +29,6 @@ import dataclasses
 import math
 
 import pytest
-
 from fireai.core.cable_routing_engine import WireGauge
 from fireai.core.constraint_engine import (
     _NAC_MAX_LENGTHS_M,

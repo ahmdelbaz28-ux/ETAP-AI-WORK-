@@ -11,7 +11,6 @@ from __future__ import annotations
 import time
 
 import pytest
-
 from fireai.mcp_server.thread_safe_queue import (
     ModelUpdateAction,
     ModelUpdateResult,
