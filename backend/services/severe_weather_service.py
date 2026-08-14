@@ -1,7 +1,7 @@
 # File-level '# NOSONAR' removed per NOSONAR_AUDIT.md (V143 hardening).
 # Per-line justified suppressions (e.g., '# NOSONAR — S3776: ...') are preserved.
 """
-backend/services/severe_weather_service.py — Severe weather alerts for FireAI.
+backend/services/severe_weather_service.py — Severe weather alerts for ETAP.
 
 Provides active weather alerts from multiple international sources:
   - US National Weather Service (NWS) API for US locations
@@ -346,7 +346,7 @@ class SevereWeatherService:
             self._client = httpx.AsyncClient(
                 timeout=httpx.Timeout(self._request_timeout),
                 headers={
-                    "User-Agent": "FireAI-DigitalTwin/1.0",  # NOSONAR — S1192: duplicated literal acceptable in this localized context
+                    "User-Agent": "ETAP-DigitalTwin/1.0",  # NOSONAR — S1192: duplicated literal acceptable in this localized context
                     "Accept": "application/ld+json",
                 },
                 follow_redirects=True,
@@ -635,7 +635,7 @@ class SevereWeatherService:
 
         # MeteoAlarm API may require a different Accept header
         headers = {
-            "User-Agent": "FireAI-DigitalTwin/1.0",
+            "User-Agent": "ETAP-DigitalTwin/1.0",
             "Accept": "application/json",
         }
 
@@ -783,7 +783,7 @@ class SevereWeatherService:
         client = await self._get_client()
 
         headers = {
-            "User-Agent": "FireAI-DigitalTwin/1.0",
+            "User-Agent": "ETAP-DigitalTwin/1.0",
             "Accept": "application/atom+xml, application/xml, text/xml",
         }
 

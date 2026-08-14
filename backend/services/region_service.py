@@ -1,7 +1,7 @@
 # File-level '# NOSONAR' removed per NOSONAR_AUDIT.md (V143 hardening).
 # Per-line justified suppressions (e.g., '# NOSONAR — S3776: ...') are preserved.
 """
-backend/services/region_service.py — Regulatory region detection for FireAI.
+backend/services/region_service.py — Regulatory region detection for ETAP.
 
 Determines applicable fire/electrical codes based on country/location.
 Uses REST Countries API (free, no auth) for country metadata.
@@ -45,7 +45,7 @@ logger = logging.getLogger(__name__)
 
 
 class RegulatoryFramework(StrEnum):
-    """International regulatory frameworks supported by FireAI."""
+    """International regulatory frameworks supported by ETAP."""
 
     NFPA = "nfpa"  # US: NFPA 72, NEC
     ATEX_IEC = "atex_iec"  # EU: ATEX 2014/34/EU, IEC 60079
@@ -101,7 +101,7 @@ class RegionContext:
 
 
 # ── Country → Regulatory Framework mapping ────────────────────────────────
-# Based on FireAI's international_reg_selector.py database
+# Based on ETAP's international_reg_selector.py database
 
 _COUNTRY_FRAMEWORK_MAP: dict[str, tuple[RegulatoryFramework, ElectricalCode]] = {
     # North America
@@ -184,7 +184,7 @@ class RegionService:
         if self._client is None or self._client.is_closed:
             self._client = httpx.AsyncClient(
                 timeout=httpx.Timeout(10.0),
-                headers={"User-Agent": "FireAI-DigitalTwin/1.0"},
+                headers={"User-Agent": "ETAP-DigitalTwin/1.0"},
                 follow_redirects=True,
             )
         return self._client

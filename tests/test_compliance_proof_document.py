@@ -3,7 +3,7 @@
 """
 tests/test_compliance_proof_document.py
 ========================================
-Comprehensive test suite for fireai/core/compliance_proof_document.py.
+Comprehensive test suite for etap/core/compliance_proof_document.py.
 
 SAFETY CRITICAL: Compliance proof documents are submitted to the AHJ
 (Authority Having Jurisdiction) for fire alarm system permitting. Errors
@@ -28,18 +28,15 @@ from __future__ import annotations
 from unittest.mock import MagicMock
 
 import pytest
-from fireai.core.compliance_proof_document import (
     ComplianceProofDocument,
     RoomVerificationRecord,
     _safe_fmt,
 )
-from fireai.core.spatial_engine.consensus_engine import (
     ConfidenceLevel,
     ConsensusResult,
     EngineName,
     EngineVerdict,
 )
-from fireai.core.spatial_engine.density_optimizer import (
     DETECTOR_RADIUS,
     DetectorLayout,
     Room,
@@ -143,7 +140,7 @@ class TestRoomVerificationRecord:
 class TestComplianceProofDocumentInit:
     def test_default_values(self):
         doc = ComplianceProofDocument()
-        assert doc.project_name == "FireAI V30 Project"
+        assert doc.project_name == "ETAP V30 Project"
         assert doc.designer == ""
         assert doc.nfpa_edition == "2022"
         assert doc.jurisdiction == ""
@@ -566,7 +563,7 @@ class TestCertificationSection:
         doc = ComplianceProofDocument(nfpa_edition="2022")
         md = doc.generate()
         assert "NFPA 72-2022" in md
-        assert "FireAI V30" in md
+        assert "ETAP V30" in md
 
     def test_certification_designer_name(self):
         doc = ComplianceProofDocument(designer="John Smith, PE")

@@ -4,7 +4,7 @@ backend/cloudflare_middleware.py — Cloudflare Edge Integration Middleware.
 
 PURPOSE
 -------
-Pure-ASGI middleware that integrates the FireAI backend with a Cloudflare
+Pure-ASGI middleware that integrates the ETAP backend with a Cloudflare
 Edge deployment (WAF + Bot Fight Mode + Rate Limiting + Cache Rules).
 
 Cloudflare injects the following headers on every proxied request:
@@ -111,7 +111,7 @@ class CloudflareConfig:
         self.enabled: bool = _env_bool("CF_ENABLED", default=False)
         self.require_origin_token: str = os.getenv("CF_REQUIRE_ORIGIN_TOKEN", "").strip()
         self.blocked_countries: frozenset[str] = _env_list("CF_BLOCKED_COUNTRIES")
-        self.production_mode: bool = os.getenv("FIREAI_ENV", "production").lower() in (
+        self.production_mode: bool = os.getenv("APP_ENV", "production").lower() in (
             "production",
             "prod",
         )

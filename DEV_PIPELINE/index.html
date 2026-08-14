@@ -20,7 +20,7 @@
     
     
       
-        <title>BAZSPARK FireAI — Development Pipeline - AhmedETAP Documentation</title>
+        <title>ETAP ETAP — Development Pipeline - AhmedETAP Documentation</title>
       
     
     
@@ -70,7 +70,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#bazspark-fireai-development-pipeline" class="md-skip">
+        <a href="#etap-etap-development-pipeline" class="md-skip">
           Skip to content
         </a>
       
@@ -104,7 +104,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              BAZSPARK FireAI — Development Pipeline
+              ETAP ETAP — Development Pipeline
             
           </span>
         </div>
@@ -751,11 +751,11 @@
   
 
 
-<h1 id="bazspark-fireai-development-pipeline">BAZSPARK FireAI — Development Pipeline</h1>
+<h1 id="etap-etap-development-pipeline">ETAP ETAP — Development Pipeline</h1>
 <blockquote>
 <p><strong>Integrated workflow</strong>: CodeSandbox (human dev) → GitHub → Daytona (AI review) → HF Spaces + Vercel (production).</p>
 </blockquote>
-<p>This document is the canonical reference for how the four environments in the BAZSPARK FireAI stack fit together. It is referenced by <code>agent.md</code> (V206) and should be updated whenever the pipeline topology changes.</p>
+<p>This document is the canonical reference for how the four environments in the ETAP ETAP stack fit together. It is referenced by <code>agent.md</code> (V206) and should be updated whenever the pipeline topology changes.</p>
 <hr />
 <h2 id="1-topology-at-a-glance">1. Topology at a glance</h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>┌─────────────────────────────────────────────────────────────────────────┐
@@ -829,7 +829,7 @@
 <li><code>pip install -e .</code> (backend)</li>
 <li><code>npm ci</code> in <code>frontend/</code></li>
 <li>Playwright Chromium install</li>
-<li>Generates a local <code>.env</code> with a random <code>FIREAI_SESSION_SECRET</code></li>
+<li>Generates a local <code>.env</code> with a random <code>SESSION_SECRET</code></li>
 <li><code>post-start.sh</code> runs on every session restart:</li>
 <li>Starts local Postgres + Redis (if installed)</li>
 <li>Prints a banner with the common dev commands</li>
@@ -900,8 +900,8 @@
 <li>Streams the PR source into the sandbox via the SDK filesystem API.</li>
 <li>Runs the validation matrix:</li>
 <li><code>ruff check</code> (lint)</li>
-<li><code>mypy</code> (type-check backend, fireai, core — skills excluded per V140 root-cause)</li>
-<li><code>pytest core/tests parsers/tests fireai/core/tests</code> (fast subset)</li>
+<li><code>mypy</code> (type-check backend, etap, core — skills excluded per V140 root-cause)</li>
+<li><code>pytest core/tests parsers/tests etap/core/tests</code> (fast subset)</li>
 <li><code>tsc --noEmit</code> on the frontend</li>
 <li>Posts a structured Markdown table + collapsible output tails as a PR comment.</li>
 <li>Tears down the sandbox in an <code>if: always()</code> step (so it cleans up even on failure).</li>
@@ -977,7 +977,7 @@
 </table>
 <h3 id="deployment-paths">Deployment paths</h3>
 <ul>
-<li><strong>HF Spaces</strong>: <code>.github/workflows/sync-to-hf.yml</code> mirrors runtime files to <code>huggingface.co/spaces/ahmdelbaz28/BAZSPARK</code> on every push to <code>main</code>.</li>
+<li><strong>HF Spaces</strong>: <code>.github/workflows/sync-to-hf.yml</code> mirrors runtime files to <code>huggingface.co/spaces/ahmdelbaz28/ETAP</code> on every push to <code>main</code>.</li>
 <li><strong>Vercel</strong>: <code>.github/workflows/trigger-vercel.yml</code> fires a deploy hook. The Vercel project overrides the build command to <code>cd frontend &amp;&amp; npm install &amp;&amp; npm run build</code> (see V161/V162 fix history in <code>agent.md</code>).</li>
 <li><strong>Supabase</strong>: schema migrations live in <code>alembic/</code>; run <code>alembic upgrade head</code> against the production DB after deploy.</li>
 </ul>
@@ -1114,7 +1114,7 @@
 <td>Set <code>NEON_DATABASE_URL</code> (IPv4) as fallback</td>
 </tr>
 <tr>
-<td><code>FIREAI_SESSION_SECRET</code> not set</td>
+<td><code>SESSION_SECRET</code> not set</td>
 <td><code>.env</code> not generated</td>
 <td><code>python3 -m backend.session_secret generate</code></td>
 </tr>

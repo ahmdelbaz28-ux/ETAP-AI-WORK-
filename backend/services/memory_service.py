@@ -1,11 +1,11 @@
 # File-level '# NOSONAR' removed per NOSONAR_AUDIT.md (V143 hardening).
 # Per-line justified suppressions (e.g., '# NOSONAR — S3776: ...') are preserved.
 """
-backend/services/memory_service.py — Mem0-based Memory Layer for FireAI (V76).
+backend/services/memory_service.py — Mem0-based Memory Layer for ETAP (V76).
 
 PROFESSIONAL NOTE:
-  This module provides a long-term memory layer for the FireAI platform,
-  enabling engineers and the FireAI agent to store and retrieve:
+  This module provides a long-term memory layer for the ETAP platform,
+  enabling engineers and the ETAP agent to store and retrieve:
     - Previous building layouts and detector placements
     - User preferences and engineering style
     - Preferred standards (NFPA, BS, IEC)
@@ -31,7 +31,7 @@ ARCHITECTURE (V76 — OpenAI Primary):
   - Qdrant (embedded) as vector store — persistent path, NOT /tmp/
   - SQLite history DB — persistent path, NOT /tmp/
   - Custom instructions specialized for fire protection engineering
-  - Multi-scoping: user_id (engineer), agent_id (fireai), run_id (project)
+  - Multi-scoping: user_id (engineer), agent_id (etap), run_id (project)
   - Fallback: Gemini 2.0 Flash + local embeddings (384d) if OpenAI unavailable
 
 CRITICAL FIXES from V72:
@@ -90,7 +90,7 @@ MEM0_QDRANT_PATH.mkdir(parents=True, exist_ok=True)
 
 # ── Configuration ──────────────────────────────────────────────────────────────
 
-FIREAI_CUSTOM_INSTRUCTIONS = """
+CUSTOM_INSTRUCTIONS = """
 Focus on extracting and storing fire protection engineering information:
 - Standard references and section numbers (NFPA 72, NFPA 13, NFPA 70/NEC, BS 5839, IEC 60079, EN 54)
 - Building type, occupancy classification, and hazard levels
@@ -114,7 +114,7 @@ class MemoryScope(StrEnum):
 
     USER = "user"  # Engineer's personal preferences and patterns
     PROJECT = "project"  # Project-specific context (run_id)
-    AGENT = "agent"  # FireAI agent's learned procedures
+    AGENT = "agent"  # ETAP agent's learned procedures
     GLOBAL = "global"  # Shared knowledge across all users/projects
 
 
@@ -139,7 +139,7 @@ class MemoryAddRequest(BaseModel):
         description="Message(s) to extract memories from. Can be a string or list of message dicts.",
     )
     user_id: str | None = Field(None, description="Engineer/user identifier")
-    agent_id: str | None = Field(None, description="FireAI agent identifier")
+    agent_id: str | None = Field(None, description="ETAP agent identifier")
     run_id: str | None = Field(None, description="Project/run identifier")
     metadata: dict[str, Any] | None = Field(
         None, description="Additional metadata (category, project_type, standard, etc.)"
@@ -203,7 +203,7 @@ class MemoryServiceStatus(BaseModel):
 
 class MemoryService:
     """
-    FireAI Memory Service — Long-term memory layer for engineering context.
+    ETAP Memory Service — Long-term memory layer for engineering context.
 
     This service wraps Mem0 (mem0ai) and provides:
     - Structured memory storage scoped by user/project/agent
@@ -214,7 +214,7 @@ class MemoryService:
 
     SAFETY CONSTRAINT:
       Memory is ADVISORY. It provides context that engineers and the
-      FireAI agent can use to inform decisions, but it MUST NEVER
+      ETAP agent can use to inform decisions, but it MUST NEVER
       override deterministic calculations or bypass verification gates.
     """
 
@@ -226,7 +226,7 @@ class MemoryService:
 
     def _initialize(self) -> None:
         """
-        Initialize the Mem0 memory instance with FireAI-specific configuration.
+        Initialize the Mem0 memory instance with ETAP-specific configuration.
 
         V76 Configuration (OpenAI Primary):
         - LLM: OpenAI gpt-4o (PRIMARY — best engineering accuracy)
@@ -239,7 +239,7 @@ class MemoryService:
         """
         try:
             # V76: Try OpenAI first (best engineering accuracy), then Gemini
-            openai_api_key = os.getenv("OPENAI_API_KEY") or os.getenv("FIREAI_OPENAI_API_KEY")
+            openai_api_key = os.getenv("OPENAI_API_KEY") or os.getenv("OPENAI_API_KEY")
             gemini_api_key = os.getenv("GEMINI_API_KEY")
 
             # ── Strategy 1: OpenAI (PRIMARY — best engineering accuracy) ──
@@ -270,13 +270,13 @@ class MemoryService:
                         "provider": "qdrant",
                         "config": {
                             "path": str(MEM0_QDRANT_PATH),
-                            "collection_name": "fireai_memories",
+                            "collection_name": "memories",
                             "embedding_model_dims": 1536,
                             "on_disk": True,
                         },
                     },
                     "history_db_path": str(MEM0_HISTORY_DB),
-                    "custom_instructions": FIREAI_CUSTOM_INSTRUCTIONS,
+                    "custom_instructions": CUSTOM_INSTRUCTIONS,
                 }
 
                 # Initialize Mem0 with OpenAI
@@ -334,13 +334,13 @@ class MemoryService:
                         "provider": "qdrant",
                         "config": {
                             "path": str(MEM0_QDRANT_PATH),
-                            "collection_name": "fireai_memories_gemini",
+                            "collection_name": "memories_gemini",
                             "embedding_model_dims": 384,
                             "on_disk": True,
                         },
                     },
                     "history_db_path": str(MEM0_HISTORY_DB),
-                    "custom_instructions": FIREAI_CUSTOM_INSTRUCTIONS,
+                    "custom_instructions": CUSTOM_INSTRUCTIONS,
                 }
 
                 try:
@@ -406,7 +406,7 @@ class MemoryService:
 
     def add_memory(self, request: MemoryAddRequest) -> dict[str, Any]:
         """
-        Add a memory to the FireAI memory store.
+        Add a memory to the ETAP memory store.
 
         SAFETY: Memory addition is non-blocking. Failure NEVER prevents calculations.
         """
@@ -423,7 +423,7 @@ class MemoryService:
 
         try:
             metadata = request.metadata or {}
-            metadata["source"] = "fireai"
+            metadata["source"] = "etap"
             metadata["added_at"] = datetime.now(timezone.utc).isoformat()
             if request.memory_type:
                 metadata["memory_type"] = request.memory_type

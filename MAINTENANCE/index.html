@@ -20,7 +20,7 @@
     
     
       
-        <title>FireAI Maintenance Guide - AhmedETAP Documentation</title>
+        <title>ETAP Maintenance Guide - AhmedETAP Documentation</title>
       
     
     
@@ -70,7 +70,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#fireai-maintenance-guide" class="md-skip">
+        <a href="#etap-maintenance-guide" class="md-skip">
           Skip to content
         </a>
       
@@ -104,7 +104,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              FireAI Maintenance Guide
+              ETAP Maintenance Guide
             
           </span>
         </div>
@@ -727,7 +727,7 @@
   
 
 
-<h1 id="fireai-maintenance-guide">FireAI Maintenance Guide</h1>
+<h1 id="etap-maintenance-guide">ETAP Maintenance Guide</h1>
 <h2 id="routine-maintenance-tasks">Routine Maintenance Tasks</h2>
 <h3 id="daily">Daily</h3>
 <ul>
@@ -737,7 +737,7 @@
 </ul>
 <h3 id="weekly">Weekly</h3>
 <ul>
-<li>[ ] Review audit log size (<code>data/fireai_audit.db</code>)</li>
+<li>[ ] Review audit log size (<code>data/audit.db</code>)</li>
 <li>[ ] Check for stale SQLite WAL files</li>
 <li>[ ] Review rate-limit logs for abuse patterns</li>
 <li>[ ] Verify HMAC key rotation schedule</li>
@@ -754,10 +754,10 @@
 <h3 id="audit-database-sqlite">Audit Database (SQLite)</h3>
 <p>The audit database stores tamper-evident hash chains for all engineering results.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># Check database size</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>ls<span class="w"> </span>-lh<span class="w"> </span>data/fireai_audit.db
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>ls<span class="w"> </span>-lh<span class="w"> </span>data/audit.db
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
 <a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="c1"># Vacuum to reclaim space (requires brief downtime)</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>sqlite3<span class="w"> </span>data/fireai_audit.db<span class="w"> </span><span class="s2">&quot;VACUUM;&quot;</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>sqlite3<span class="w"> </span>data/audit.db<span class="w"> </span><span class="s2">&quot;VACUUM;&quot;</span>
 </code></pre></div>
 <h3 id="udm-elements-database">UDM Elements Database</h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># Check database size</span>

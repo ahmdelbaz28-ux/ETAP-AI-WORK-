@@ -1,4 +1,4 @@
-# FireAI Digital Twin — Installation Guide
+# ETAP Digital Twin — Installation Guide
 
 ## Prerequisites
 
@@ -16,17 +16,17 @@ cd revit
 # 2. Create environment configuration
 cp .env.example .env
 # Edit .env and set:
-#   FIREAI_API_KEY=<your-api-key>
-#   FIREAI_EVIDENCE_HMAC_KEY=<your-hmac-key>
-#   FIREAI_ENV=development
+#   API_KEY=<your-api-key>
+#   EVIDENCE_HMAC_KEY=<your-hmac-key>
+#   APP_ENV=development
 
 # 3. Install Python dependencies
 pip install -r requirements.txt
 
 # 4. Install optional features (if needed)
-pip install fireai[workflow]   # LangGraph workflow engine
-pip install fireai[memory]     # Mem0 + Qdrant long-term memory
-pip install fireai[ifc]        # IFC (ifcopenshell) support
+pip install etap[workflow]   # LangGraph workflow engine
+pip install etap[memory]     # Mem0 + Qdrant long-term memory
+pip install etap[ifc]        # IFC (ifcopenshell) support
 
 # 5. Install dev tools (for testing/linting)
 pip install -e ".[dev]"
@@ -47,8 +47,8 @@ pytest tests/ -v
 
 ```bash
 # 1. Set required environment variables
-export FIREAI_API_KEY="your-production-api-key"
-export FIREAI_EVIDENCE_HMAC_KEY="$(python3 -c 'import secrets; print(secrets.token_hex(32))')"
+export API_KEY="your-production-api-key"
+export EVIDENCE_HMAC_KEY="$(python3 -c 'import secrets; print(secrets.token_hex(32))')"
 
 # 2. Build and run with Docker Compose
 docker compose up -d
@@ -61,10 +61,10 @@ curl http://localhost:8000/api/health
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `FIREAI_API_KEY` | Yes | API key for authentication. Mutating endpoints require `X-API-Key` header. |
-| `FIREAI_EVIDENCE_HMAC_KEY` | Yes | HMAC-SHA256 key for audit log integrity. Must be cryptographically generated for production. |
-| `FIREAI_ENV` | No | `development` or `production`. Defaults to `production`. |
-| `FIREAI_DB_PATH` | No | Override path for audit database. Defaults to `data/fireai_audit.db`. |
+| `API_KEY` | Yes | API key for authentication. Mutating endpoints require `X-API-Key` header. |
+| `EVIDENCE_HMAC_KEY` | Yes | HMAC-SHA256 key for audit log integrity. Must be cryptographically generated for production. |
+| `APP_ENV` | No | `development` or `production`. Defaults to `production`. |
+| `DB_PATH` | No | Override path for audit database. Defaults to `data/audit.db`. |
 | `LOG_LEVEL` | No | `DEBUG`, `INFO`, `WARNING`, `ERROR`. Defaults to `WARNING`. |
 | `CORS_ALLOWED_ORIGINS` | No | Comma-separated origins for CORS. Wildcards always rejected in production. |
 | `GEMINI_API_KEY` | No | Required only for workflow/memory optional features. |
@@ -86,4 +86,4 @@ curl http://localhost:8000/api/health
 - [ ] Health check returns 200: `curl http://localhost:8000/api/health`
 - [ ] All tests pass: `pytest tests/ -v`
 - [ ] Frontend builds: `cd frontend && npm run build`
-- [ ] Linting passes: `ruff check fireai/ backend/ parsers/`
+- [ ] Linting passes: `ruff check etap/ backend/ parsers/`

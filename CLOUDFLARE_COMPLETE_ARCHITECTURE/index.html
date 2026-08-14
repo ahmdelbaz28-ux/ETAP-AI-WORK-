@@ -20,7 +20,7 @@
     
     
       
-        <title>BAZSPARK — Complete Cloudflare Edge Architecture - AhmedETAP Documentation</title>
+        <title>ETAP — Complete Cloudflare Edge Architecture - AhmedETAP Documentation</title>
       
     
     
@@ -70,7 +70,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#bazspark-complete-cloudflare-edge-architecture" class="md-skip">
+        <a href="#etap-complete-cloudflare-edge-architecture" class="md-skip">
           Skip to content
         </a>
       
@@ -104,7 +104,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              BAZSPARK — Complete Cloudflare Edge Architecture
+              ETAP — Complete Cloudflare Edge Architecture
             
           </span>
         </div>
@@ -625,7 +625,7 @@
           <li class="md-nav__item">
   <a href="#hf-space-secrets-ahmdelbaz28bazspark" class="md-nav__link">
     <span class="md-ellipsis">
-      HF Space Secrets (ahmdelbaz28/BAZSPARK)
+      HF Space Secrets (ahmdelbaz28/ETAP)
     </span>
   </a>
   
@@ -823,9 +823,9 @@
   
 
 
-<h1 id="bazspark-complete-cloudflare-edge-architecture">BAZSPARK — Complete Cloudflare Edge Architecture</h1>
+<h1 id="etap-complete-cloudflare-edge-architecture">ETAP — Complete Cloudflare Edge Architecture</h1>
 <blockquote>
-<p><strong>الاستغلال الأمثل لـ Cloudflare لحماية وتسريع BAZSPARK</strong>
+<p><strong>الاستغلال الأمثل لـ Cloudflare لحماية وتسريع ETAP</strong>
 Status: Production-ready | Cost: $0/month (free tier)</p>
 </blockquote>
 <hr />
@@ -841,13 +841,13 @@ Status: Production-ready | Cost: $0/month (free tier)</p>
 <a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>│  ┌──────────────────────────────────────────────────────────────────┐  │
 <a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>│  │  TWO edge endpoints:                                             │  │
 <a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>│  │                                                                  │  │
-<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>│  │  1. bazspark-frontend.pages.dev  (Frontend — static assets)     │  │
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>│  │  1. etap-frontend.pages.dev  (Frontend — static assets)     │  │
 <a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>│  │     • React 18 + Vite + Tailwind 4 build                        │  │
 <a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>│  │     • Cloudflare Pages (global CDN, 30-day asset cache)        │  │
 <a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>│  │     • _headers file adds security headers                       │  │
 <a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>│  │     • _redirects file for SPA routing                           │  │
 <a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>│  │                                                                  │  │
-<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>│  │  2. bazspark-edge.bazspark.workers.dev  (API proxy)             │  │
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>│  │  2. etap-edge.etap.workers.dev  (API proxy)             │  │
 <a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>│  │     • Cloudflare Worker (smart reverse proxy)                   │  │
 <a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>│  │     • Edge caching for static assets                            │  │
 <a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>│  │     • Distributed rate limiting via KV (300 req/min/IP)         │  │
@@ -860,8 +860,8 @@ Status: Production-ready | Cost: $0/month (free tier)</p>
 <a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>│  └──────────────────────────────────────────────────────────────────┘  │
 <a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>│                                                                        │
 <a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>│  Storage &amp; State:                                                      │
-<a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>│    • KV namespace &quot;BAZSPARK_KV&quot; — rate limit counters, sessions       │
-<a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a>│    • R2 bucket &quot;bazspark-files&quot; — IFC/DXF/PDF reports (needs enable)   │
+<a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>│    • KV namespace &quot;ETAP_KV&quot; — rate limit counters, sessions       │
+<a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a>│    • R2 bucket &quot;etap-files&quot; — IFC/DXF/PDF reports (needs enable)   │
 <a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a>│                                                                        │
 <a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a>│  Security (account-level):                                             │
 <a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a>│    • Bot Fight Mode (free tier — basic bot detection)                  │
@@ -872,7 +872,7 @@ Status: Production-ready | Cost: $0/month (free tier)</p>
 <a id="__codelineno-0-40" name="__codelineno-0-40" href="#__codelineno-0-40"></a>                           │ HTTPS (with X-CF-Origin-Token)
 <a id="__codelineno-0-41" name="__codelineno-0-41" href="#__codelineno-0-41"></a>                           ▼
 <a id="__codelineno-0-42" name="__codelineno-0-42" href="#__codelineno-0-42"></a>┌────────────────────────────────────────────────────────────────────────┐
-<a id="__codelineno-0-43" name="__codelineno-0-43" href="#__codelineno-0-43"></a>│              Origin (HF Space — ahmdelbaz28-bazspark.hf.space)        │
+<a id="__codelineno-0-43" name="__codelineno-0-43" href="#__codelineno-0-43"></a>│              Origin (HF Space — ahmdelbaz28-etap.hf.space)        │
 <a id="__codelineno-0-44" name="__codelineno-0-44" href="#__codelineno-0-44"></a>│                                                                        │
 <a id="__codelineno-0-45" name="__codelineno-0-45" href="#__codelineno-0-45"></a>│  FastAPI Backend (backend/app.py)                                      │
 <a id="__codelineno-0-46" name="__codelineno-0-46" href="#__codelineno-0-46"></a>│    ├─ CloudflareIntegrationMiddleware (CF_ENABLED=true) ✅             │
@@ -900,27 +900,27 @@ Status: Production-ready | Cost: $0/month (free tier)</p>
 </thead>
 <tbody>
 <tr>
-<td><code>https://bazspark-frontend.pages.dev</code></td>
+<td><code>https://etap-frontend.pages.dev</code></td>
 <td>Frontend (React SPA)</td>
 <td>CDN + security headers + SPA routing</td>
 </tr>
 <tr>
-<td><code>https://bazspark-edge.bazspark.workers.dev</code></td>
+<td><code>https://etap-edge.etap.workers.dev</code></td>
 <td>API proxy</td>
 <td>Rate limit + WAF + caching</td>
 </tr>
 <tr>
-<td><code>https://bazspark-edge.bazspark.workers.dev/api/health</code></td>
+<td><code>https://etap-edge.etap.workers.dev/api/health</code></td>
 <td>Health check</td>
 <td>No rate limit (exception)</td>
 </tr>
 <tr>
-<td><code>https://bazspark-edge.bazspark.workers.dev/api/v1/*</code></td>
+<td><code>https://etap-edge.etap.workers.dev/api/v1/*</code></td>
 <td>API endpoints</td>
 <td>Full protection</td>
 </tr>
 <tr>
-<td><code>https://ahmdelbaz28-bazspark.hf.space</code></td>
+<td><code>https://ahmdelbaz28-etap.hf.space</code></td>
 <td>Direct origin</td>
 <td><strong>403 Forbidden</strong> (bypass prevention)</td>
 </tr>
@@ -944,27 +944,27 @@ Status: Production-ready | Cost: $0/month (free tier)</p>
 </tr>
 <tr>
 <td><strong>Workers.dev subdomain</strong></td>
-<td>bazspark</td>
-<td><code>bazspark.workers.dev</code></td>
+<td>etap</td>
+<td><code>etap.workers.dev</code></td>
 </tr>
 <tr>
 <td><strong>Worker</strong></td>
-<td>bazspark-edge</td>
+<td>etap-edge</td>
 <td>(script ID)</td>
 </tr>
 <tr>
 <td><strong>KV Namespace</strong></td>
-<td>BAZSPARK_KV</td>
+<td>ETAP_KV</td>
 <td><code>9c20a52c80854f0080b90183189b08ef</code></td>
 </tr>
 <tr>
 <td><strong>R2 Bucket</strong></td>
-<td>bazspark-files</td>
+<td>etap-files</td>
 <td>(needs R2 enablement)</td>
 </tr>
 <tr>
 <td><strong>Pages Project</strong></td>
-<td>bazspark-frontend</td>
+<td>etap-frontend</td>
 <td><code>cce2b9c9-a985-46...</code></td>
 </tr>
 <tr>
@@ -1071,7 +1071,7 @@ Status: Production-ready | Cost: $0/month (free tier)</p>
 </table>
 <hr />
 <h2 id="5-hf-space-vercel">5. التكوين على HF Space + Vercel</h2>
-<h3 id="hf-space-secrets-ahmdelbaz28bazspark">HF Space Secrets (ahmdelbaz28/BAZSPARK)</h3>
+<h3 id="hf-space-secrets-ahmdelbaz28bazspark">HF Space Secrets (ahmdelbaz28/ETAP)</h3>
 <table>
 <thead>
 <tr>
@@ -1141,7 +1141,7 @@ Status: Production-ready | Cost: $0/month (free tier)</p>
 </tr>
 <tr>
 <td>Pages frontend</td>
-<td>HTTP 200, <code>&lt;title&gt;BAZSPARK Digital Twin&lt;/title&gt;</code></td>
+<td>HTTP 200, <code>&lt;title&gt;ETAP Digital Twin&lt;/title&gt;</code></td>
 </tr>
 <tr>
 <td>Pages security headers</td>
@@ -1197,7 +1197,7 @@ Status: Production-ready | Cost: $0/month (free tier)</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nb">cd</span><span class="w"> </span>/home/z/my-project/repos/revit/frontend
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>npm<span class="w"> </span>run<span class="w"> </span>build
 <a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="nv">CLOUDFLARE_API_TOKEN</span><span class="o">=</span><span class="s2">&quot;...&quot;</span><span class="w"> </span><span class="nv">CLOUDFLARE_ACCOUNT_ID</span><span class="o">=</span><span class="s2">&quot;...&quot;</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span>npx<span class="w"> </span>wrangler<span class="w"> </span>pages<span class="w"> </span>deploy<span class="w"> </span>dist<span class="w"> </span>--project-name<span class="o">=</span>bazspark-frontend<span class="w"> </span>--branch<span class="o">=</span>main
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span>npx<span class="w"> </span>wrangler<span class="w"> </span>pages<span class="w"> </span>deploy<span class="w"> </span>dist<span class="w"> </span>--project-name<span class="o">=</span>etap-frontend<span class="w"> </span>--branch<span class="o">=</span>main
 </code></pre></div>
 <h3 id="worker">إعادة نشر الـ Worker</h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>python3<span class="w"> </span>/home/z/my-project/scripts/cf_complete_optimization.py
@@ -1208,15 +1208,15 @@ Status: Production-ready | Cost: $0/month (free tier)</p>
 <ol>
 <li>اذهب إلى: <a href="https://dash.cloudflare.com/b469a69b51f91ebc21ef3544c60f9361/r2">https://dash.cloudflare.com/b469a69b51f91ebc21ef3544c60f9361/r2</a></li>
 <li>اضغط "Enable R2" (يتطلب بطاقة ائتمان للتفعيل، لكن الاستخدام داخل free tier مجاني)</li>
-<li>بعد التفعيل، الـ bucket <code>bazspark-files</code> سيكون جاهزاً للاستخدام</li>
+<li>بعد التفعيل، الـ bucket <code>etap-files</code> سيكون جاهزاً للاستخدام</li>
 <li>استخدمه لتخزين ملفات IFC/DXF/PDF reports</li>
 </ol>
 <h3 id="82-custom-domain">8.2 إضافة Custom Domain (اختياري)</h3>
-<p>الـ Worker متاح على <code>bazspark-edge.bazspark.workers.dev</code>. لإضافة custom domain:</p>
+<p>الـ Worker متاح على <code>etap-edge.etap.workers.dev</code>. لإضافة custom domain:</p>
 <ol>
-<li>أضف zone في Cloudflare (مثل <code>bazspark.com</code>)</li>
+<li>أضف zone في Cloudflare (مثل <code>etap.com</code>)</li>
 <li>حدّث nameservers عند الـ registrar</li>
-<li>أضف Worker route: <code>api.bazspark.com/*</code> → <code>bazspark-edge</code></li>
+<li>أضف Worker route: <code>api.etap.com/*</code> → <code>etap-edge</code></li>
 </ol>
 <h3 id="83-bot-fight-mode-dashboard">8.3 تفعيل Bot Fight Mode (Dashboard)</h3>
 <ol>
@@ -1272,8 +1272,8 @@ Status: Production-ready | Cost: $0/month (free tier)</p>
 <tbody>
 <tr>
 <td><strong>DNS</strong></td>
-<td><code>ahmdelbaz28-bazspark.hf.space</code></td>
-<td><code>bazspark-edge.bazspark.workers.dev</code></td>
+<td><code>ahmdelbaz28-etap.hf.space</code></td>
+<td><code>etap-edge.etap.workers.dev</code></td>
 </tr>
 <tr>
 <td><strong>TLS</strong></td>
@@ -1346,20 +1346,20 @@ Status: Production-ready | Cost: $0/month (free tier)</p>
 <h2 id="10">10. المراقبة والصيانة</h2>
 <h3 id="101-cloudflare-analytics">10.1 Cloudflare Analytics</h3>
 <ul>
-<li><strong>Workers</strong>: <a href="https://dash.cloudflare.com/b469a69b51f91ebc21ef3544c60f9361/workers/services/bazspark-edge">https://dash.cloudflare.com/b469a69b51f91ebc21ef3544c60f9361/workers/services/bazspark-edge</a></li>
-<li><strong>Pages</strong>: <a href="https://dash.cloudflare.com/b469a69b51f91ebc21ef3544c60f9361/pages/view/bazspark-frontend">https://dash.cloudflare.com/b469a69b51f91ebc21ef3544c60f9361/pages/view/bazspark-frontend</a></li>
+<li><strong>Workers</strong>: <a href="https://dash.cloudflare.com/b469a69b51f91ebc21ef3544c60f9361/workers/services/etap-edge">https://dash.cloudflare.com/b469a69b51f91ebc21ef3544c60f9361/workers/services/etap-edge</a></li>
+<li><strong>Pages</strong>: <a href="https://dash.cloudflare.com/b469a69b51f91ebc21ef3544c60f9361/pages/view/etap-frontend">https://dash.cloudflare.com/b469a69b51f91ebc21ef3544c60f9361/pages/view/etap-frontend</a></li>
 <li><strong>KV</strong>: <a href="https://dash.cloudflare.com/b469a69b51f91ebc21ef3544c60f9361/workers/kv/namespaces">https://dash.cloudflare.com/b469a69b51f91ebc21ef3544c60f9361/workers/kv/namespaces</a></li>
 </ul>
 <h3 id="102">10.2 اختبارات دورية</h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># Daily health check</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>curl<span class="w"> </span>-s<span class="w"> </span>https://bazspark-edge.bazspark.workers.dev/api/health<span class="w"> </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span>.data.status
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>curl<span class="w"> </span>-s<span class="w"> </span>https://etap-edge.etap.workers.dev/api/health<span class="w"> </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span>.data.status
 <a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>
 <a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="c1"># Test direct origin is still blocked</span>
-<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>curl<span class="w"> </span>-s<span class="w"> </span>-o<span class="w"> </span>/dev/null<span class="w"> </span>-w<span class="w"> </span><span class="s2">&quot;%{http_code}&quot;</span><span class="w"> </span>https://ahmdelbaz28-bazspark.hf.space/api/health
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>curl<span class="w"> </span>-s<span class="w"> </span>-o<span class="w"> </span>/dev/null<span class="w"> </span>-w<span class="w"> </span><span class="s2">&quot;%{http_code}&quot;</span><span class="w"> </span>https://ahmdelbaz28-etap.hf.space/api/health
 <a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="c1"># Expected: 403</span>
 <a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>
 <a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="c1"># Test attack tool UA is blocked</span>
-<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>curl<span class="w"> </span>-s<span class="w"> </span>-o<span class="w"> </span>/dev/null<span class="w"> </span>-w<span class="w"> </span><span class="s2">&quot;%{http_code}&quot;</span><span class="w"> </span>-A<span class="w"> </span><span class="s2">&quot;sqlmap/1.5&quot;</span><span class="w"> </span>https://bazspark-edge.bazspark.workers.dev/api/health
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>curl<span class="w"> </span>-s<span class="w"> </span>-o<span class="w"> </span>/dev/null<span class="w"> </span>-w<span class="w"> </span><span class="s2">&quot;%{http_code}&quot;</span><span class="w"> </span>-A<span class="w"> </span><span class="s2">&quot;sqlmap/1.5&quot;</span><span class="w"> </span>https://etap-edge.etap.workers.dev/api/health
 <a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="c1"># Expected: 403</span>
 </code></pre></div>
 <h3 id="103-origin_token-3">10.3 تدوير ORIGIN_TOKEN (كل 3 أشهر)</h3>
@@ -1369,12 +1369,12 @@ Status: Production-ready | Cost: $0/month (free tier)</p>
 <a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="c1"># 2. Update Worker secret</span>
 <a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>curl<span class="w"> </span>-X<span class="w"> </span>PUT<span class="w"> </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$CF_TOKEN</span><span class="s2">&quot;</span><span class="w"> </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="w">  </span>-d<span class="w"> </span><span class="s2">&quot;{\&quot;name\&quot;:\&quot;ORIGIN_TOKEN\&quot;,\&quot;text\&quot;:\&quot;</span><span class="nv">$NEW_TOKEN</span><span class="s2">\&quot;,\&quot;type\&quot;:\&quot;secret_text\&quot;}&quot;</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="w">  </span><span class="s2">&quot;https://api.cloudflare.com/client/v4/accounts/</span><span class="nv">$ACCOUNT_ID</span><span class="s2">/workers/scripts/bazspark-edge/secrets&quot;</span>
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="w">  </span><span class="s2">&quot;https://api.cloudflare.com/client/v4/accounts/</span><span class="nv">$ACCOUNT_ID</span><span class="s2">/workers/scripts/etap-edge/secrets&quot;</span>
 <a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>
 <a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="c1"># 3. Update HF Space secret</span>
 <a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$HF_TOKEN</span><span class="s2">&quot;</span><span class="w"> </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="w">  </span>-d<span class="w"> </span><span class="s2">&quot;{\&quot;key\&quot;:\&quot;CF_REQUIRE_ORIGIN_TOKEN\&quot;,\&quot;value\&quot;:\&quot;</span><span class="nv">$NEW_TOKEN</span><span class="s2">\&quot;}&quot;</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a><span class="w">  </span><span class="s2">&quot;https://huggingface.co/api/spaces/ahmdelbaz28/BAZSPARK/secrets&quot;</span>
+<a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a><span class="w">  </span><span class="s2">&quot;https://huggingface.co/api/spaces/ahmdelbaz28/ETAP/secrets&quot;</span>
 <a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a>
 <a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a><span class="c1"># 4. Update Vercel env var (delete + recreate)</span>
 <a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a><span class="c1"># 5. Restart HF Space</span>

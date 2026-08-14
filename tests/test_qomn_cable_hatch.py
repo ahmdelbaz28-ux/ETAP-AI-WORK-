@@ -23,11 +23,10 @@ import sys
 import unittest
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
-os.environ.setdefault("FIREAI_ENV", "testing")
+os.environ.setdefault("APP_ENV", "testing")
 os.environ.setdefault("DIGITAL_TWIN_DB_PATH", ":memory:")
 
 import pytest
-from fireai.core.qomn_integration_engine import (
     CableHatchIntegrator,
     CableRouter,
     CableRoutingError,

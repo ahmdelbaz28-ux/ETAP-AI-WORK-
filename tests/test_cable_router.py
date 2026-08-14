@@ -23,12 +23,9 @@ import json
 import math
 
 import pytest
-from fireai.core.cable_router import (
     DIRECTIONS_6,
     CableRouter,
 )
-from fireai.core.cable_routing_engine import WireGauge
-from fireai.core.constraint_engine import (
     BEND_PENALTY_M,
     ELECTRICAL_PROXIMITY_PENALTY_M,
     ELEVATION_PENALTY_M,
@@ -39,10 +36,8 @@ from fireai.core.constraint_engine import (
     ConstraintEngine,
     ConstraintSource,
 )
-from fireai.core.contracts_validation import ContractViolation
 
 # ─── Module imports ──────────────────────────────────────────────────────────
-from fireai.core.ifc_parser import (
     BoundingBox3D,
     BuildingModel,
     CellState,
@@ -54,7 +49,6 @@ from fireai.core.ifc_parser import (
     grid_to_world,
     world_to_grid,
 )
-from fireai.core.revit_exporter import (
     FA_WORKSET,
     RevitExporter,
 )
@@ -1083,10 +1077,6 @@ class TestNoML:
 
     def test_no_random_imports(self):
         """No random, numpy.random, or similar in the modules."""
-        import fireai.core.cable_router as cr
-        import fireai.core.constraint_engine as ce
-        import fireai.core.ifc_parser as ip
-        import fireai.core.revit_exporter as re_mod
 
         for module in [cr, ce, ip, re_mod]:
             with open(module.__file__, encoding="utf-8") as f:
@@ -1338,7 +1328,6 @@ class TestIFCParserImportError:
 
     def test_parse_ifc_file_without_ifcopenshell(self, monkeypatch):
         """Should raise ImportError if IfcOpenShell is not available."""
-        import fireai.core.ifc_parser as ip
 
         monkeypatch.setattr(ip, "_get_ifcopenshell", lambda: None)
 
@@ -1346,7 +1335,6 @@ class TestIFCParserImportError:
             ip.parse_ifc_file("test.ifc")
 
     def test_parse_ifc_from_string_without_ifcopenshell(self, monkeypatch):
-        import fireai.core.ifc_parser as ip
 
         monkeypatch.setattr(ip, "_get_ifcopenshell", lambda: None)
 

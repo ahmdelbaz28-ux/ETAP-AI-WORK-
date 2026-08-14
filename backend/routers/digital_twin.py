@@ -68,7 +68,7 @@ def _safe_resolve_upload_path(filename: str) -> str:
     path never starts with an absolute path. Now both are resolved
     to absolute paths before comparison.
     """
-    upload_dir = os.getenv("FIREAI_UPLOAD_DIR", "uploads")
+    upload_dir = os.getenv("UPLOAD_DIR", "uploads")
     # Resolve BOTH to absolute paths
     abs_upload = os.path.abspath(upload_dir)
     resolved = os.path.abspath(os.path.join(upload_dir, filename))
@@ -314,7 +314,7 @@ async def upload_and_convert(
             )
 
         # Save uploaded file to uploads directory
-        upload_dir = os.getenv("FIREAI_UPLOAD_DIR", "uploads")
+        upload_dir = os.getenv("UPLOAD_DIR", "uploads")
         os.makedirs(upload_dir, exist_ok=True)
 
         # Sanitize filename

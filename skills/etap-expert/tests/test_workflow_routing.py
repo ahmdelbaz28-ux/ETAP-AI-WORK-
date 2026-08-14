@@ -4,7 +4,7 @@ Gate 3: Behavioral Validation Tests.
 ====================================
 Validates the 6-step workflow routing logic and the 4 response templates.
 
-Per FireAI agent.md VERIFICATION GATES:
+Per ETAP agent.md VERIFICATION GATES:
     [Gate 3] Behavioral Validation
     - expected outputs (templates trigger correctly)
     - edge-case handling (empty / malformed input)

@@ -57,16 +57,16 @@ they don't accept. These will cause `TypeError` at runtime:
 | `backend/routers/v2.py` | — | `is_https` arg unexpected |
 | `backend/services/workflow_service.py` | — | `pdf_path` arg unexpected |
 | `core/tests/test_database.py` | — | `source` arg unexpected |
-| `fireai/core/acoustic_calculator.py` | — | `room_volume_m3` arg unexpected |
-| `fireai/core/fault_isolator_injector.py` | — | `_make_isolator` missing 1 arg |
-| `fireai/core/pipeline.py` | — | `drift_records`, `aset_rset_result`, `stale_detector_ids`, `evidence_secret_key` args unexpected |
+| `etap/core/acoustic_calculator.py` | — | `room_volume_m3` arg unexpected |
+| `etap/core/fault_isolator_injector.py` | — | `_make_isolator` missing 1 arg |
+| `etap/core/pipeline.py` | — | `drift_records`, `aset_rset_result`, `stale_detector_ids`, `evidence_secret_key` args unexpected |
 | `integration/ifc_bridge.py` | — | `verify_truth` expects 2 args |
 | `parsers/image_parser.py` | — | `_process_contour` expects 2 args |
 | `skills/docx/scripts/document.py` | — | `_add_to_comments_xml` expects 4 args |
 
 ### 1.2 Test-Only Issues (S1244 — float equality)
 
-The 44 `S1244` issues are in `tests/test_fireai_kernel_v30.py` (9) and
+The 44 `S1244` issues are in `tests/test_kernel_v30.py` (9) and
 `tests/test_scenario_engine.py` (25) — both files I wrote. The rule
 fires on `==` comparisons with floats, even when `pytest.approx` is used.
 

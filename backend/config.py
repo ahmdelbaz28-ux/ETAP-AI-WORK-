@@ -109,7 +109,7 @@ class Config:
     )
 
     # Additional settings
-    ENVIRONMENT: str = os.environ.get("FIREAI_ENV", "development")
+    ENVIRONMENT: str = os.environ.get("APP_ENV", "development")
     DEBUG: bool = ENVIRONMENT.lower() == "development"
 
     @classmethod

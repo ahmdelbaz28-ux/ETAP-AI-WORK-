@@ -1,7 +1,7 @@
 # File-level '# NOSONAR' removed per NOSONAR_AUDIT.md (V143 hardening).
 # Per-line justified suppressions (e.g., '# NOSONAR — S3776: ...') are preserved.
 """
-backend/routers/workflow.py — Workflow API endpoints for FireAI.
+backend/routers/workflow.py — Workflow API endpoints for ETAP.
 
 Provides REST API for the LangGraph-based workflow engine:
   - POST /api/workflow/start     — Start a new analysis workflow
@@ -32,14 +32,14 @@ from backend.services.workflow_service import (
 )
 
 
-def _get_fireai_api_key():
-    """Read FIREAI_API_KEY at runtime, not import time."""
-    return os.getenv("FIREAI_API_KEY", "")
+def _get_api_key():
+    """Read API_KEY at runtime, not import time."""
+    return os.getenv("API_KEY", "")
 
 
 def verify_api_key_dep(x_api_key: str | None = Header(None, alias="X-API-Key")) -> None:
     """Verify API key from X-API-Key header."""
-    _api_key = _get_fireai_api_key()
+    _api_key = _get_api_key()
     if _api_key and (not x_api_key or not hmac.compare_digest(x_api_key, _api_key)):
         raise HTTPException(status_code=401, detail="Unauthorized: Invalid or missing API key")
 
@@ -54,12 +54,12 @@ logger = logging.getLogger(__name__)
 #   ?file_path=/etc/shadow
 # The service layer (workflow_service.py:node_initialize) also validates,
 # but defense-in-depth requires BOTH layers reject traversal.
-# Per agent.md Priority 1 (Safety): a compromised FireAI system produces
+# Per agent.md Priority 1 (Safety): a compromised ETAP system produces
 # fake compliance reports = catastrophic loss of life.
 
 ALLOWED_DATA_DIRS = os.environ.get(
-    "FIREAI_DATA_DIRS",
-    "/tmp/fireai_uploads:/data:/uploads",  # NOSONAR
+    "DATA_DIRS",
+    "/tmp/uploads:/data:/uploads",  # NOSONAR
 ).split(":")
 
 ALLOWED_FILE_EXTENSIONS = frozenset({".dxf", ".dwg", ".pdf", ".ifc", ".rvt"})
@@ -193,7 +193,7 @@ async def start_workflow(
     ),
 ):
     """
-    Start a new FireAI NFPA 72 analysis workflow.
+    Start a new ETAP NFPA 72 analysis workflow.
 
     The workflow follows this state machine:
       Upload → Parse → Validate → NFPA Analysis → Conflict Detection
@@ -213,14 +213,14 @@ async def start_workflow(
         # V114 FIX: Block skip_human_review in production environments.
         # NFPA 72 requires PE review for all fire alarm designs.
         # Allowing this in production is a direct violation of NFPA 72.
-        env = os.getenv("FIREAI_ENV", os.getenv("NODE_ENV", "production")).lower()
+        env = os.getenv("APP_ENV", os.getenv("NODE_ENV", "production")).lower()
         if env not in ("development", "dev", "test", "testing"):
             raise HTTPException(  # NOSONAR — S8415: assignment kept for readability / debuggability
                 status_code=403,
                 detail=(
                     "skip_human_review=True is FORBIDDEN in production. "
                     "NFPA 72 requires Professional Engineer review for all "
-                    "fire alarm designs. Set FIREAI_ENV=development to enable."
+                    "fire alarm designs. Set APP_ENV=development to enable."
                 ),
             )
         logger.warning(  # NOSONAR

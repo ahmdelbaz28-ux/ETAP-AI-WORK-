@@ -1,5 +1,5 @@
 """
-test_sanitized_handler.py — Tests for fireai/mcp_server/sanitized_handler.py.
+test_sanitized_handler.py — Tests for etap/mcp_server/sanitized_handler.py.
 
 Verifies input sanitization, tool whitelisting, parameter validation,
 and code injection detection.
@@ -7,7 +7,6 @@ and code injection detection.
 
 from __future__ import annotations
 
-from fireai.mcp_server.sanitized_handler import (
     MCPRequest,
     SanitizedMCPHandler,
 )

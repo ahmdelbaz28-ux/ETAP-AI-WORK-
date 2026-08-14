@@ -33,7 +33,6 @@ if str(_PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(_PROJECT_ROOT))
 
 import pytest
-from fireai.core.qomn_kernel import NEC_TABLE8_RESISTANCE_OHM_PER_KM
 from pydantic import ValidationError
 
 from backend.routers.qomn import (
@@ -172,7 +171,6 @@ class TestRouterKernelContract:
         Belt-and-braces: independently verify each accepted value
         actually returns a valid voltage drop computation.
         """
-        from fireai.core.qomn_kernel import compute_voltage_drop
 
         for awg in sorted(_NEC_TABLE8_VALID_AWG):
             r = VoltageDropRequest(current_a=1.0, length_m=100.0, awg_gauge=awg)

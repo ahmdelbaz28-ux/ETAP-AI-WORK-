@@ -86,9 +86,9 @@ bug introduced in these files will never be flagged.
 **Affected critical paths include:**
 
 ```
-fireai/core/fireai_kernel_v30.py         # The V30 kernel — critical path
-fireai/core/scenario_engine.py           # ASET/RSET calculations
-fireai/infrastructure/webhook_service.py # External integrations
+etap/core/kernel_v30.py         # The V30 kernel — critical path
+etap/core/scenario_engine.py           # ASET/RSET calculations
+etap/infrastructure/webhook_service.py # External integrations
 backend/routers/auth.py                  # Authentication
 backend/routers/analyze.py               # Main analysis endpoint
 parsers/dxf_parser.py                    # DWG/DXF ingestion
@@ -99,8 +99,8 @@ parsers/pdf_parser.py                    # PDF ingestion
 ### Proof-of-Concept Fix
 
 As a proof-of-concept, the file-level `# NOSONAR` was removed from
-`fireai/core/fireai_kernel_v30.py` (commit in this PR). All 79 tests in
-`tests/test_fireai_kernel_v30.py` continue to pass — confirming the
+`etap/core/kernel_v30.py` (commit in this PR). All 79 tests in
+`tests/test_kernel_v30.py` continue to pass — confirming the
 file-level suppression was **not** hiding any test-detectable defect.
 
 The remaining 246 file-level suppressions will be removed in subsequent
@@ -114,7 +114,7 @@ PRs, file-by-file, with each file's tests run as a safety gate.
 
 - [x] Audit and classify all 3,869 suppressions
 - [x] Document legitimate suppressions (test fixtures, API stability)
-- [x] Remove file-level `# NOSONAR` from `fireai_kernel_v30.py` (proof-of-concept)
+- [x] Remove file-level `# NOSONAR` from `kernel_v30.py` (proof-of-concept)
 - [x] Remove file-level `# NOSONAR` from `scenario_engine.py` (proof-of-concept)
 - [x] Create this audit document for PE/FPE review
 
@@ -130,11 +130,11 @@ codebase (245 production files + 185 test files). The removal was done in
 |-------|--------|-------|-----------|--------|
 | 1 | parsers/ | 18 | parsers/tests/ | 206 passed |
 | 2 | core/ + adapters/ | 6 | core/tests/ | 173 passed |
-| 3 | fireai/infrastructure/ | 11 | test_event_bus.py | 52 passed |
-| 4 | fireai/ subgroups | 41 | acoustics+compliance+mcp | 301 passed |
+| 3 | etap/infrastructure/ | 11 | test_event_bus.py | 52 passed |
+| 4 | etap/ subgroups | 41 | acoustics+compliance+mcp | 301 passed |
 | 5 | backend/ | 54 | auth+audit tests | 82 passed (9 pre-existing errors) |
-| 6A | fireai/core/ (first 60) | 59 | safety-critical suite | 612 passed |
-| 6B | fireai/core/ (remaining 75) | 75 | full fireai/core/tests/ | 1487 passed |
+| 6A | etap/core/ (first 60) | 59 | safety-critical suite | 612 passed |
+| 6B | etap/core/ (remaining 75) | 75 | full etap/core/tests/ | 1487 passed |
 | 7 | qomn_* + integration/ | 24 | qomn tests | 446 passed |
 | 8 | tests/ + root files | 142 | smoke test | 228 passed |
 | **Total** | | **430** | | **3587+ tests passed** |
@@ -146,11 +146,11 @@ production code returns **0 results** (excluding directories already in
 **Commit hashes**:
 - `7809b08d` — parsers/
 - `83a06c28` — core/ + adapters/
-- `dd7edbeb` — fireai/infrastructure/
-- `1094ec61` — fireai/ subgroups
+- `dd7edbeb` — etap/infrastructure/
+- `1094ec61` — etap/ subgroups
 - `8c6ff5a5` — backend/
-- `cc9a1599` — fireai/core/ batch A
-- `eb281d83` — fireai/core/ batch B
+- `cc9a1599` — etap/core/ batch A
+- `eb281d83` — etap/core/ batch B
 - `c6beae47` — qomn_* + integration/
 - `a92e289b` — tests/ + root files
 
@@ -233,7 +233,7 @@ echo "File-level NOSONAR (line 1):"
 grep -rln "^# NOSONAR$" --include="*.py" | wc -l
 
 echo "File-level NOSONAR in production code:"
-grep -rln "^# NOSONAR$" --include="*.py" | grep -E "^(fireai|backend|qomn|parsers|adapters|core)/" | grep -v "/tests/" | wc -l
+grep -rln "^# NOSONAR$" --include="*.py" | grep -E "^(etap|backend|qomn|parsers|adapters|core)/" | grep -v "/tests/" | wc -l
 
 echo "Bare NOSONAR (no rule, no justification):"
 grep -rn "NOSONAR\s*$" --include="*.py" | wc -l

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Simple SPA server for the FireAI frontend dist.
+"""Simple SPA server for the ETAP frontend dist.
 Serves index.html for all non-asset routes (SPA fallback).
 Also proxies /api/* to the backend on port 8000.
 """

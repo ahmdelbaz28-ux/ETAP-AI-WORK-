@@ -1,12 +1,12 @@
 {
-  "_comment": "Akamai Property Manager — main configuration template for BAZSPARK. Import via Property Manager API: POST /papi/v1/properties/{propertyId}/versions/{versionId}/rules. Replace placeholders: {EDGE_HOSTNAME}, {ORIGIN_HOSTNAME}, {ORIGIN_PROTOCOL}, {CERTIFICATE_ID}, {CONTRACT_ID}, {GROUP_ID}. See docs/AKAMAI_DEPLOYMENT_GUIDE.md.",
+  "_comment": "Akamai Property Manager — main configuration template for ETAP. Import via Property Manager API: POST /papi/v1/properties/{propertyId}/versions/{versionId}/rules. Replace placeholders: {EDGE_HOSTNAME}, {ORIGIN_HOSTNAME}, {ORIGIN_PROTOCOL}, {CERTIFICATE_ID}, {CONTRACT_ID}, {GROUP_ID}. See docs/AKAMAI_DEPLOYMENT_GUIDE.md.",
   "propertyVersion": 1,
   "etag": "",
   "productId": "prd_SPM",
   "ruleFormat": "latest",
   "rules": {
     "name": "default",
-    "comments": "BAZSPARK — Safety-Critical Fire Protection Platform. Top-level rule with global behaviors.",
+    "comments": "ETAP — Safety-Critical Fire Protection Platform. Top-level rule with global behaviors.",
     "behaviors": [
       {
         "name": "origin",
@@ -43,7 +43,7 @@
     ],
     "children": [
       {
-        "name": "Criteria: API routes (api.bazspark.com)",
+        "name": "Criteria: API routes (api.etap.com)",
         "comments": "Match /api/* paths — these go to the FastAPI backend with no caching.",
         "criteria": [
           {

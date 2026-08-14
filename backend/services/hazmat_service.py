@@ -1,7 +1,7 @@
 # File-level '# NOSONAR' removed per NOSONAR_AUDIT.md (V143 hardening).
 # Per-line justified suppressions (e.g., '# NOSONAR — S3776: ...') are preserved.
 """
-backend/services/hazmat_service.py — Hazardous materials data for FireAI.
+backend/services/hazmat_service.py — Hazardous materials data for ETAP.
 
 Provides hazardous material classification and properties from the
 US EPA and public chemical databases. Used for:
@@ -298,7 +298,7 @@ class HazmatService:
         if self._client is None or self._client.is_closed:
             self._client = httpx.AsyncClient(
                 timeout=httpx.Timeout(self._request_timeout),
-                headers={"User-Agent": "FireAI-DigitalTwin/1.0"},
+                headers={"User-Agent": "ETAP-DigitalTwin/1.0"},
                 follow_redirects=True,
             )
         return self._client

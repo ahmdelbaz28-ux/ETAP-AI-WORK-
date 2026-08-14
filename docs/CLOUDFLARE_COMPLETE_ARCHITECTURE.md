@@ -1,6 +1,6 @@
-# BAZSPARK — Complete Cloudflare Edge Architecture
+# ETAP — Complete Cloudflare Edge Architecture
 
-> **الاستغلال الأمثل لـ Cloudflare لحماية وتسريع BAZSPARK**
+> **الاستغلال الأمثل لـ Cloudflare لحماية وتسريع ETAP**
 > Status: Production-ready | Cost: $0/month (free tier)
 
 ---
@@ -19,13 +19,13 @@
 │  ┌──────────────────────────────────────────────────────────────────┐  │
 │  │  TWO edge endpoints:                                             │  │
 │  │                                                                  │  │
-│  │  1. bazspark-frontend.pages.dev  (Frontend — static assets)     │  │
+│  │  1. etap-frontend.pages.dev  (Frontend — static assets)     │  │
 │  │     • React 18 + Vite + Tailwind 4 build                        │  │
 │  │     • Cloudflare Pages (global CDN, 30-day asset cache)        │  │
 │  │     • _headers file adds security headers                       │  │
 │  │     • _redirects file for SPA routing                           │  │
 │  │                                                                  │  │
-│  │  2. bazspark-edge.bazspark.workers.dev  (API proxy)             │  │
+│  │  2. etap-edge.etap.workers.dev  (API proxy)             │  │
 │  │     • Cloudflare Worker (smart reverse proxy)                   │  │
 │  │     • Edge caching for static assets                            │  │
 │  │     • Distributed rate limiting via KV (300 req/min/IP)         │  │
@@ -38,8 +38,8 @@
 │  └──────────────────────────────────────────────────────────────────┘  │
 │                                                                        │
 │  Storage & State:                                                      │
-│    • KV namespace "BAZSPARK_KV" — rate limit counters, sessions       │
-│    • R2 bucket "bazspark-files" — IFC/DXF/PDF reports (needs enable)   │
+│    • KV namespace "ETAP_KV" — rate limit counters, sessions       │
+│    • R2 bucket "etap-files" — IFC/DXF/PDF reports (needs enable)   │
 │                                                                        │
 │  Security (account-level):                                             │
 │    • Bot Fight Mode (free tier — basic bot detection)                  │
@@ -50,7 +50,7 @@
                            │ HTTPS (with X-CF-Origin-Token)
                            ▼
 ┌────────────────────────────────────────────────────────────────────────┐
-│              Origin (HF Space — ahmdelbaz28-bazspark.hf.space)        │
+│              Origin (HF Space — ahmdelbaz28-etap.hf.space)        │
 │                                                                        │
 │  FastAPI Backend (backend/app.py)                                      │
 │    ├─ CloudflareIntegrationMiddleware (CF_ENABLED=true) ✅             │
@@ -73,11 +73,11 @@
 
 | النقطة | الغرض | الميزات |
 |--------|------|---------|
-| `https://bazspark-frontend.pages.dev` | Frontend (React SPA) | CDN + security headers + SPA routing |
-| `https://bazspark-edge.bazspark.workers.dev` | API proxy | Rate limit + WAF + caching |
-| `https://bazspark-edge.bazspark.workers.dev/api/health` | Health check | No rate limit (exception) |
-| `https://bazspark-edge.bazspark.workers.dev/api/v1/*` | API endpoints | Full protection |
-| `https://ahmdelbaz28-bazspark.hf.space` | Direct origin | **403 Forbidden** (bypass prevention) |
+| `https://etap-frontend.pages.dev` | Frontend (React SPA) | CDN + security headers + SPA routing |
+| `https://etap-edge.etap.workers.dev` | API proxy | Rate limit + WAF + caching |
+| `https://etap-edge.etap.workers.dev/api/health` | Health check | No rate limit (exception) |
+| `https://etap-edge.etap.workers.dev/api/v1/*` | API endpoints | Full protection |
+| `https://ahmdelbaz28-etap.hf.space` | Direct origin | **403 Forbidden** (bypass prevention) |
 
 ---
 
@@ -86,11 +86,11 @@
 | المورد | الاسم | ID |
 |--------|------|-----|
 | **Account** | 7our278@gmail.com | `b469a69b51f91ebc21ef3544c60f9361` |
-| **Workers.dev subdomain** | bazspark | `bazspark.workers.dev` |
-| **Worker** | bazspark-edge | (script ID) |
-| **KV Namespace** | BAZSPARK_KV | `9c20a52c80854f0080b90183189b08ef` |
-| **R2 Bucket** | bazspark-files | (needs R2 enablement) |
-| **Pages Project** | bazspark-frontend | `cce2b9c9-a985-46...` |
+| **Workers.dev subdomain** | etap | `etap.workers.dev` |
+| **Worker** | etap-edge | (script ID) |
+| **KV Namespace** | ETAP_KV | `9c20a52c80854f0080b90183189b08ef` |
+| **R2 Bucket** | etap-files | (needs R2 enablement) |
+| **Pages Project** | etap-frontend | `cce2b9c9-a985-46...` |
 | **Worker Secret** | ORIGIN_TOKEN | `c8b29ce4...` (32-byte hex) |
 
 ---
@@ -131,7 +131,7 @@
 
 ## 5. التكوين على HF Space + Vercel
 
-### HF Space Secrets (ahmdelbaz28/BAZSPARK)
+### HF Space Secrets (ahmdelbaz28/ETAP)
 
 | Secret | Value | الغرض |
 |--------|-------|------|
@@ -158,7 +158,7 @@
 | Missing UA blocking | HTTP 403 (`MISSING_UA`) |
 | Direct origin Referer blocking | HTTP 403 (`DIRECT_ORIGIN_BLOCKED`) |
 | Direct HF Space access | HTTP 403 (`CF_BLOCKED`) — backend middleware blocks |
-| Pages frontend | HTTP 200, `<title>BAZSPARK Digital Twin</title>` |
+| Pages frontend | HTTP 200, `<title>ETAP Digital Twin</title>` |
 | Pages security headers | All present (X-Frame-Options, CSP, HSTS, etc.) |
 | Pages SPA routing | `/dashboard` → HTTP 200 (index.html served) |
 | Pages static assets | HTTP 200, `Content-Type: application/javascript` |
@@ -182,7 +182,7 @@
 cd /home/z/my-project/repos/revit/frontend
 npm run build
 CLOUDFLARE_API_TOKEN="..." CLOUDFLARE_ACCOUNT_ID="..." \
-  npx wrangler pages deploy dist --project-name=bazspark-frontend --branch=main
+  npx wrangler pages deploy dist --project-name=etap-frontend --branch=main
 ```
 
 ### إعادة نشر الـ Worker
@@ -199,16 +199,16 @@ python3 /home/z/my-project/scripts/cf_complete_optimization.py
 
 1. اذهب إلى: <https://dash.cloudflare.com/b469a69b51f91ebc21ef3544c60f9361/r2>
 2. اضغط "Enable R2" (يتطلب بطاقة ائتمان للتفعيل، لكن الاستخدام داخل free tier مجاني)
-3. بعد التفعيل، الـ bucket `bazspark-files` سيكون جاهزاً للاستخدام
+3. بعد التفعيل، الـ bucket `etap-files` سيكون جاهزاً للاستخدام
 4. استخدمه لتخزين ملفات IFC/DXF/PDF reports
 
 ### 8.2 إضافة Custom Domain (اختياري)
 
-الـ Worker متاح على `bazspark-edge.bazspark.workers.dev`. لإضافة custom domain:
+الـ Worker متاح على `etap-edge.etap.workers.dev`. لإضافة custom domain:
 
-1. أضف zone في Cloudflare (مثل `bazspark.com`)
+1. أضف zone في Cloudflare (مثل `etap.com`)
 2. حدّث nameservers عند الـ registrar
-3. أضف Worker route: `api.bazspark.com/*` → `bazspark-edge`
+3. أضف Worker route: `api.etap.com/*` → `etap-edge`
 
 ### 8.3 تفعيل Bot Fight Mode (Dashboard)
 
@@ -233,7 +233,7 @@ python3 /home/z/my-project/scripts/cf_complete_optimization.py
 
 | المقياس | قبل (HF Space مباشرة) | بعد (Cloudflare Edge) |
 |---------|---------------------|---------------------|
-| **DNS** | `ahmdelbaz28-bazspark.hf.space` | `bazspark-edge.bazspark.workers.dev` |
+| **DNS** | `ahmdelbaz28-etap.hf.space` | `etap-edge.etap.workers.dev` |
 | **TLS** | HF Space cert | Cloudflare Universal SSL + TLS 1.3 |
 | **CDN** | ❌ لا يوجد | ✅ 300+ edge locations |
 | **WAF** | ❌ لا يوجد | ✅ 5 custom rules + managed ruleset |
@@ -254,22 +254,22 @@ python3 /home/z/my-project/scripts/cf_complete_optimization.py
 
 ### 10.1 Cloudflare Analytics
 
-- **Workers**: <https://dash.cloudflare.com/b469a69b51f91ebc21ef3544c60f9361/workers/services/bazspark-edge>
-- **Pages**: <https://dash.cloudflare.com/b469a69b51f91ebc21ef3544c60f9361/pages/view/bazspark-frontend>
+- **Workers**: <https://dash.cloudflare.com/b469a69b51f91ebc21ef3544c60f9361/workers/services/etap-edge>
+- **Pages**: <https://dash.cloudflare.com/b469a69b51f91ebc21ef3544c60f9361/pages/view/etap-frontend>
 - **KV**: <https://dash.cloudflare.com/b469a69b51f91ebc21ef3544c60f9361/workers/kv/namespaces>
 
 ### 10.2 اختبارات دورية
 
 ```bash
 # Daily health check
-curl -s https://bazspark-edge.bazspark.workers.dev/api/health | jq .data.status
+curl -s https://etap-edge.etap.workers.dev/api/health | jq .data.status
 
 # Test direct origin is still blocked
-curl -s -o /dev/null -w "%{http_code}" https://ahmdelbaz28-bazspark.hf.space/api/health
+curl -s -o /dev/null -w "%{http_code}" https://ahmdelbaz28-etap.hf.space/api/health
 # Expected: 403
 
 # Test attack tool UA is blocked
-curl -s -o /dev/null -w "%{http_code}" -A "sqlmap/1.5" https://bazspark-edge.bazspark.workers.dev/api/health
+curl -s -o /dev/null -w "%{http_code}" -A "sqlmap/1.5" https://etap-edge.etap.workers.dev/api/health
 # Expected: 403
 ```
 
@@ -282,12 +282,12 @@ NEW_TOKEN=$(openssl rand -hex 32)
 # 2. Update Worker secret
 curl -X PUT -H "Authorization: Bearer $CF_TOKEN" -H "Content-Type: application/json" \
   -d "{\"name\":\"ORIGIN_TOKEN\",\"text\":\"$NEW_TOKEN\",\"type\":\"secret_text\"}" \
-  "https://api.cloudflare.com/client/v4/accounts/$ACCOUNT_ID/workers/scripts/bazspark-edge/secrets"
+  "https://api.cloudflare.com/client/v4/accounts/$ACCOUNT_ID/workers/scripts/etap-edge/secrets"
 
 # 3. Update HF Space secret
 curl -X POST -H "Authorization: Bearer $HF_TOKEN" -H "Content-Type: application/json" \
   -d "{\"key\":\"CF_REQUIRE_ORIGIN_TOKEN\",\"value\":\"$NEW_TOKEN\"}" \
-  "https://huggingface.co/api/spaces/ahmdelbaz28/BAZSPARK/secrets"
+  "https://huggingface.co/api/spaces/ahmdelbaz28/ETAP/secrets"
 
 # 4. Update Vercel env var (delete + recreate)
 # 5. Restart HF Space

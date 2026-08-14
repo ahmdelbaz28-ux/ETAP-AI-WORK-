@@ -2,7 +2,7 @@
 tests/test_revit_exporter_v2.py
 ================================
 Comprehensive test suite for:
-  - fireai/core/revit_exporter.py
+  - etap/core/revit_exporter.py
 
 SAFETY CRITICAL: This module generates IFC and Revit output for fire alarm
 cable routing. Incorrect exports could result in wrong conduit sizes,
@@ -21,12 +21,10 @@ import json
 import math
 
 import pytest
-from fireai.core.cable_router import (
     CableRoute,
     RouteWaypoint,
     RoutingSchedule,
 )
-from fireai.core.revit_exporter import (
     BEND_FITTING,
     CONDUIT_DIAMETER_M,
     CONDUIT_TYPE,

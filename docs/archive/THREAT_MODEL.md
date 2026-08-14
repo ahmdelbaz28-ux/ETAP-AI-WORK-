@@ -1,12 +1,12 @@
-# Threat Model for FireAI Platform
+# Threat Model for ETAP Platform
 
 ## Executive Summary
 
-FireAI is a safety-critical engineering platform for fire protection systems. As such, the threat model must consider both cybersecurity threats and safety implications of potential system failures or compromises.
+ETAP is a safety-critical engineering platform for fire protection systems. As such, the threat model must consider both cybersecurity threats and safety implications of potential system failures or compromises.
 
 ## System Overview
 
-FireAI operates as a multi-layer architecture:
+ETAP operates as a multi-layer architecture:
 - **L1 Interface Layer**: CLI, Web Dashboard, API Gateway, Revit Plugin
 - **L2 Orchestration Layer**: Agent Orchestrator, Workflow Engine, Event Bus, Memory System  
 - **L3 Engine Layer**: Fire Detection Engine, Suppression Calculator, Compliance Checker, Physics Simulator
@@ -161,4 +161,4 @@ FireAI operates as a multi-layer architecture:
 
 ## Conclusion
 
-The FireAI platform must maintain the highest levels of both security and safety due to its role in protecting human life. All threats must be evaluated not only for their cybersecurity implications but also for their potential impact on safety-critical functions.
+The ETAP platform must maintain the highest levels of both security and safety due to its role in protecting human life. All threats must be evaluated not only for their cybersecurity implications but also for their potential impact on safety-critical functions.

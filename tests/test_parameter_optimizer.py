@@ -4,7 +4,7 @@
 tests/test_parameter_optimizer.py
 ==================================
 Comprehensive test suite for:
-  fireai/core/parameter_optimizer.py
+  etap/core/parameter_optimizer.py
 
 Grid-searches verify_step on benchmark rooms for DensityOptimizer.
 Results saved to JSON for manual engineer review.
@@ -25,12 +25,10 @@ import os
 import tempfile
 
 import pytest
-from fireai.core.parameter_optimizer import (
     ParamConfig,
     ParameterOptimizationResult,
     ParameterOptimizer,
 )
-from fireai.core.spatial_engine.density_optimizer import (
     DETECTOR_RADIUS,
     Room,
 )
@@ -238,7 +236,6 @@ class TestOptimise:
 
     def test_verify_step_restored_after_optimise(self, optimizer, small_benchmark):
         """VERIFY_STEP must be restored to original value after optimise()."""
-        import fireai.core.spatial_engine.density_optimizer as _dm
 
         original = _dm.VERIFY_STEP
         optimizer.optimise(small_benchmark, steps=[0.15, 0.25])

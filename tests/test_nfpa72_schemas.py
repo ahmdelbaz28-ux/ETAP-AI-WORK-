@@ -3,7 +3,7 @@
 """
 tests/test_nfpa72_schemas.py
 ==============================
-Comprehensive test suite for fireai/core/nfpa72_schemas.py
+Comprehensive test suite for etap/core/nfpa72_schemas.py
 
 SAFETY CRITICAL: Pydantic schemas validate all inputs to the NFPA 72
 calculation pipeline. Invalid data that bypasses validation could produce
@@ -26,7 +26,6 @@ NEC References:
 from __future__ import annotations
 
 import pytest
-from fireai.core.nfpa72_schemas import (
     CeilingTypePydantic,
     ConvergenceConfig,
     DetectorTypePydantic,

@@ -1,6 +1,6 @@
 {
   "_comment": "Akamai Account Protector — credential stuffing + account takeover (ATO) protection for /api/v1/auth/*. Uses Akamai's ML model trained on billions of auth events. See docs/AKAMAI_DEPLOYMENT_GUIDE.md.",
-  "configName": "BAZSPARK-ACCOUNT-PROTECTOR",
+  "configName": "ETAP-ACCOUNT-PROTECTOR",
   "protectedEndpoints": [
     {
       "path": "/api/v1/auth/login",

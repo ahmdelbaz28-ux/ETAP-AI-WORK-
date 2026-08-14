@@ -1,4 +1,4 @@
-# Installation Guide for FireAI Platform
+# Installation Guide for ETAP Platform
 
 ## System Requirements
 
@@ -92,13 +92,13 @@ cd revit
 
 ```bash
 # Create virtual environment
-python -m venv fireai-env
+python -m venv etap-env
 
 # Activate on Windows
-fireai-env\Scripts\activate
+etap-env\Scripts\activate
 
 # Activate on macOS/Linux
-source fireai-env/bin/activate
+source etap-env/bin/activate
 ```
 
 ### 3. Upgrade pip
@@ -115,7 +115,7 @@ pip install -r requirements.txt
 
 > **Note**: If you encounter compilation issues with certain packages (especially numpy, scipy), you may need to install Microsoft C++ Build Tools on Windows or Xcode Command Line Tools on macOS.
 
-### 5. Install FireAI Package
+### 5. Install ETAP Package
 
 ```bash
 # Install in development mode
@@ -135,19 +135,19 @@ pip install -e .
 
 3. **Create virtual environment**:
    ```cmd
-   python -m venv fireai-env
-   fireai-env\Scripts\activate
+   python -m venv etap-env
+   etap-env\Scripts\activate
    ```
 
-4. **Install FireAI**:
+4. **Install ETAP**:
    ```cmd
    pip install --upgrade pip
-   pip install fireai
+   pip install etap
    ```
 
 5. **Verify installation**:
    ```cmd
-   fireai --version
+   etap --version
    ```
 
 ### macOS Installation
@@ -163,19 +163,19 @@ pip install -e .
 
 3. **Create virtual environment**:
    ```bash
-   python3 -m venv fireai-env
-   source fireai-env/bin/activate
+   python3 -m venv etap-env
+   source etap-env/bin/activate
    ```
 
-4. **Install FireAI**:
+4. **Install ETAP**:
    ```bash
    pip install --upgrade pip
-   pip install fireai
+   pip install etap
    ```
 
 5. **Verify installation**:
    ```bash
-   fireai --version
+   etap --version
    ```
 
 ### Linux Installation
@@ -194,19 +194,19 @@ pip install -e .
 
 3. **Create virtual environment**:
    ```bash
-   python3 -m venv fireai-env
-   source fireai-env/bin/activate
+   python3 -m venv etap-env
+   source etap-env/bin/activate
    ```
 
-4. **Install FireAI**:
+4. **Install ETAP**:
    ```bash
    pip install --upgrade pip
-   pip install fireai
+   pip install etap
    ```
 
 5. **Verify installation**:
    ```bash
-   fireai --version
+   etap --version
    ```
 
 #### CentOS/RHEL/Fedora
@@ -221,19 +221,19 @@ pip install -e .
 
 2. **Create virtual environment**:
    ```bash
-   python3 -m venv fireai-env
-   source fireai-env/bin/activate
+   python3 -m venv etap-env
+   source etap-env/bin/activate
    ```
 
-3. **Install FireAI**:
+3. **Install ETAP**:
    ```bash
    pip install --upgrade pip
-   pip install fireai
+   pip install etap
    ```
 
 4. **Verify installation**:
    ```bash
-   fireai --version
+   etap --version
    ```
 
 ## Docker Installation (Alternative)
@@ -242,10 +242,10 @@ For containerized deployment:
 
 ```bash
 # Build Docker image
-docker build -t fireai .
+docker build -t etap .
 
 # Run in container
-docker run -it fireai
+docker run -it etap
 ```
    ```
 
@@ -266,17 +266,17 @@ pre-commit install
 
 1. **Install a specific version**:
    ```bash
-   pip install fireai==1.2.3
+   pip install etap==1.2.3
    ```
 
 2. **Install pre-release version**:
    ```bash
-   pip install --pre fireai
+   pip install --pre etap
    ```
 
 3. **Install from a specific branch/tag**:
    ```bash
-   pip install git+https://github.com/your-org/fireai.git@branch-name
+   pip install git+https://github.com/your-org/etap.git@branch-name
    ```
 
 ## Verification Steps
@@ -292,17 +292,17 @@ Expected: Python 3.8 or higher
 ### 2. Test Basic Import
 
 ```bash
-python -c "import fireai; print('FireAI imported successfully')"
+python -c "import etap; print('ETAP imported successfully')"
 ```
 
 ### 3. Run Basic Commands
 
 ```bash
 # Check available CLI commands
-python -m fireai.cli --help
+python -m etap.cli --help
 
 # Initialize a new project
-python -m fireai.cli init
+python -m etap.cli init
 ```
 
 ## Post-Installation Configuration
@@ -328,12 +328,12 @@ alembic upgrade head
 
 1. **Run first-time setup**:
    ```bash
-   fireai setup
+   etap setup
    ```
 
 2. **Create admin user** (if applicable):
    ```bash
-   fireai user create-admin --username admin --email admin@example.com
+   etap user create-admin --username admin --email admin@example.com
    ```
 
 ## Troubleshooting
@@ -374,7 +374,7 @@ python --version
 pip --version
 
 # Verify installed packages
-pip list | grep fireai
+pip list | grep etap
 ```
 
    ```
@@ -400,4 +400,4 @@ If you encounter issues during installation:
 
 ---
 
-**Important**: Remember that FireAI is a safety-critical system. Ensure your installation environment meets security requirements before using in production scenarios.
+**Important**: Remember that ETAP is a safety-critical system. Ensure your installation environment meets security requirements before using in production scenarios.

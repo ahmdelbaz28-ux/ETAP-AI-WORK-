@@ -8,11 +8,11 @@ fire alarm engineering platform:
 
 Features:
   1. Multiple secrets: Support primary + previous secrets for zero-downtime rotation.
-     When rotating, set FIREAI_SESSION_SECRET_NEW, restart, verify, then move
+     When rotating, set SESSION_SECRET_NEW, restart, verify, then move
      NEW to primary and remove old. Old sessions continue to work during transition.
   2. Validation: Enforces minimum 256-bit entropy (43+ URL-safe base64 chars).
      Rejects weak secrets at startup with a clear error message.
-  3. Docker secrets: Supports file-based secrets via FIREAI_SESSION_SECRET_FILE
+  3. Docker secrets: Supports file-based secrets via SESSION_SECRET_FILE
      (more secure than env vars — not visible in /proc/PID/environ).
   4. Kubernetes secrets: Same file-based mechanism works with K8s secret mounts.
   5. CLI helper: `python3 -m backend.session_secret generate` produces a strong secret.
@@ -33,14 +33,14 @@ Usage:
   # (no env var needed — module generates a random one with a warning)
 
   # Production (env var):
-  export FIREAI_SESSION_SECRET=$(python3 -m backend.session_secret generate)
+  export SESSION_SECRET=$(python3 -m backend.session_secret generate)
 
   # Production (Docker/K8s file-based, MORE secure):
   # Mount secret file, then:
-  export FIREAI_SESSION_SECRET_FILE=/run/secrets/fireai_session_secret
+  export SESSION_SECRET_FILE=/run/secrets/session_secret
 
   # Rotation (zero-downtime):
-  # 1. Set FIREAI_SESSION_SECRET_NEW to the new secret
+  # 1. Set SESSION_SECRET_NEW to the new secret
   # 2. Restart — old sessions still work (verified with old secret)
   # 3. New sessions are signed with the new secret
   # 4. After all old sessions expire (8 hours), move NEW to primary
@@ -217,31 +217,31 @@ class SessionSecretManager:
         """
         Load secrets from environment variables.
 
-        In production, FIREAI_SESSION_SECRET (or _FILE) is REQUIRED.
+        In production, SESSION_SECRET (or _FILE) is REQUIRED.
         In development, if not set, generates a random one (with warning).
 
-        For rotation: set FIREAI_SESSION_SECRET_NEW to the new secret.
-        The old FIREAI_SESSION_SECRET becomes the "previous" secret.
+        For rotation: set SESSION_SECRET_NEW to the new secret.
+        The old SESSION_SECRET becomes the "previous" secret.
         """
-        is_production = os.getenv("FIREAI_ENV", "development").lower() in ("production", "prod")
+        is_production = os.getenv("APP_ENV", "development").lower() in ("production", "prod")
 
         # Load primary secret
         primary = _load_single_secret(
-            "FIREAI_SESSION_SECRET",
-            "FIREAI_SESSION_SECRET_FILE",
+            "SESSION_SECRET",
+            "SESSION_SECRET_FILE",
             "primary secret",
         )
 
         if primary is None:
             if is_production:
                 raise RuntimeError(
-                    "FIREAI_SESSION_SECRET is REQUIRED in production.\n"
+                    "SESSION_SECRET is REQUIRED in production.\n"
                     "Generate one with:\n"
                     "  python3 -m backend.session_secret generate\n\n"
                     "Then set it as an environment variable:\n"
-                    "  export FIREAI_SESSION_SECRET='<generated_secret>'\n\n"
+                    "  export SESSION_SECRET='<generated_secret>'\n\n"
                     "Or for Docker/K8s (more secure), use file-based:\n"
-                    "  export FIREAI_SESSION_SECRET_FILE=/run/secrets/fireai_session_secret\n\n"
+                    "  export SESSION_SECRET_FILE=/run/secrets/session_secret\n\n"
                     "The secret signs all session cookies. Without it, users cannot log in."
                 )
             # Development: generate a random secret (sessions lost on restart)
@@ -252,13 +252,13 @@ class SessionSecretManager:
                 is_primary=True,
             )
             logger.warning(
-                "FIREAI_SESSION_SECRET not set — using random dev secret. "
+                "SESSION_SECRET not set — using random dev secret. "
                 "Sessions will be lost on restart. "
-                "Set FIREAI_SESSION_SECRET for persistence. "
+                "Set SESSION_SECRET for persistence. "
                 "Generate one with: python3 -m backend.session_secret generate"
             )
         else:
-            source = "file" if os.getenv("FIREAI_SESSION_SECRET_FILE") else "env"
+            source = "file" if os.getenv("SESSION_SECRET_FILE") else "env"
             self._primary_info = SecretInfo(
                 source=source,
                 length=len(primary),
@@ -274,28 +274,28 @@ class SessionSecretManager:
 
         # Load previous secret (for rotation) — optional
         previous = _load_single_secret(
-            "FIREAI_SESSION_SECRET_NEW",  # NEW becomes previous after rotation
-            "FIREAI_SESSION_SECRET_NEW_FILE",
+            "SESSION_SECRET_NEW",  # NEW becomes previous after rotation
+            "SESSION_SECRET_NEW_FILE",
             "rotation secret",
         )
 
         if previous is not None:
-            # During rotation: FIREAI_SESSION_SECRET is old, _NEW is the new one.
+            # During rotation: SESSION_SECRET is old, _NEW is the new one.
             # New sessions are signed with _NEW, old sessions verified with old.
             # After all old sessions expire, move _NEW to primary and remove old.
             self._previous = self._primary  # old primary becomes previous
             self._primary = previous  # NEW becomes primary
             self._previous_info = self._primary_info
             self._primary_info = SecretInfo(
-                source="file" if os.getenv("FIREAI_SESSION_SECRET_NEW_FILE") else "env",
+                source="file" if os.getenv("SESSION_SECRET_NEW_FILE") else "env",
                 length=len(previous),
                 is_primary=True,
             )
             logger.info(
                 "Session rotation in progress. Primary secret updated, "
                 "previous secret retained for verifying existing sessions. "
-                "After all sessions expire (8h), remove FIREAI_SESSION_SECRET_NEW "
-                "and set FIREAI_SESSION_SECRET to the new value."
+                "After all sessions expire (8h), remove SESSION_SECRET_NEW "
+                "and set SESSION_SECRET to the new value."
             )
 
     @property
@@ -393,17 +393,17 @@ def main() -> None:
         # CodeQL: py/clear-text-logging-sensitive-data — FALSE POSITIVE.
         # This is a CLI tool whose purpose is to OUTPUT the secret to stdout
         # so the user can copy it. This is NOT logging (no logger, no file).
-        # The user MUST see the secret to set FIREAI_SESSION_SECRET.
+        # The user MUST see the secret to set SESSION_SECRET.
         # Suppressed with explicit justification per CodeQL docs.
-        print("# FireAI Session Secret — generated with cryptographic randomness")  # noqa: S105, T201 - CLI output, not logging  # NOSONAR — S7632: test function documented via class name / module path
+        print("# ETAP Session Secret — generated with cryptographic randomness")  # noqa: S105, T201 - CLI output, not logging  # NOSONAR — S7632: test function documented via class name / module path
         print("# Store this securely. DO NOT commit to version control.")  # noqa: T201
         print("#")  # noqa: T201
         print("# Usage (env var):")  # noqa: T201
-        print("#   export FIREAI_SESSION_SECRET='<copy-secret-below>'")  # noqa: T201
+        print("#   export SESSION_SECRET='<copy-secret-below>'")  # noqa: T201
         print("#")  # noqa: T201
         print("# Usage (Docker/K8s file-based, more secure):")  # noqa: T201
-        print("#   echo -n '<copy-secret-below>' > /run/secrets/fireai_session_secret")  # noqa: T201
-        print("#   export FIREAI_SESSION_SECRET_FILE=/run/secrets/fireai_session_secret")  # noqa: T201
+        print("#   echo -n '<copy-secret-below>' > /run/secrets/session_secret")  # noqa: T201
+        print("#   export SESSION_SECRET_FILE=/run/secrets/session_secret")  # noqa: T201
         print("#")  # noqa: T201
         print("# The secret below has 512 bits of entropy (86 URL-safe base64 chars):")  # noqa: T201
         print(secret)  # noqa: S105, T201 - intentional CLI output for user to copy

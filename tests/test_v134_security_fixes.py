@@ -30,7 +30,6 @@ class TestSSRFPrevention:
 
     def test_webhook_subscription_is_frozen(self):
         """WebhookSubscription must be immutable (frozen=True)."""
-        from fireai.infrastructure.webhook_service import WebhookSubscription
 
         sub = WebhookSubscription(
             id="sub-1",
@@ -47,7 +46,6 @@ class TestSSRFPrevention:
 
     def test_ssrf_check_blocks_localhost(self):
         """_check_ssrf_url should block localhost."""
-        from fireai.infrastructure.webhook_service import WebhookDeliveryService
 
         service = WebhookDeliveryService(allow_http=True)
         # localhost resolves to 127.0.0.1 (loopback)
@@ -58,7 +56,6 @@ class TestSSRFPrevention:
 
     def test_ssrf_check_blocks_private_ip(self):
         """_check_ssrf_url should block private IP ranges."""
-        from fireai.infrastructure.webhook_service import WebhookDeliveryService
 
         service = WebhookDeliveryService(allow_http=True)
         # Direct IP URL — 10.0.0.1 is private
@@ -70,7 +67,6 @@ class TestSSRFPrevention:
 
     def test_ssrf_check_blocks_metadata_endpoint(self):
         """_check_ssrf_url should block cloud metadata endpoint."""
-        from fireai.infrastructure.webhook_service import WebhookDeliveryService
 
         service = WebhookDeliveryService(allow_http=True)
         error = service._check_ssrf_url(
@@ -83,7 +79,6 @@ class TestSSRFPrevention:
 
     def test_ssrf_check_blocks_loopback(self):
         """_check_ssrf_url should block 127.x.x.x."""
-        from fireai.infrastructure.webhook_service import WebhookDeliveryService
 
         service = WebhookDeliveryService(allow_http=True)
         error = service._check_ssrf_url("http://127.0.0.1/hook")
@@ -91,7 +86,6 @@ class TestSSRFPrevention:
 
     def test_ssrf_check_allows_public_ip(self):
         """_check_ssrf_url should allow public IPs."""
-        from fireai.infrastructure.webhook_service import WebhookDeliveryService
 
         service = WebhookDeliveryService(allow_http=True)
         # 8.8.8.8 is Google DNS (public)
@@ -102,7 +96,6 @@ class TestSSRFPrevention:
 
     def test_no_redirect_following_in_delivery(self):
         """Delivery must NOT follow HTTP redirects (SSRF mitigation)."""
-        from fireai.infrastructure.webhook_service import (
             WebhookDeliveryService,
             WebhookSubscription,
         )
@@ -144,7 +137,6 @@ class TestGLBConsistency:
         that every POSITION accessor referenced in a primitive EXISTS
         in the accessors array.
         """
-        from fireai.integration.ar_metadata_exporter import (
             ARMetadataExporter,
             ARSceneNode,
             ARSnapshot,
@@ -191,7 +183,6 @@ class TestGLBConsistency:
         non-existent data). V139 added real vertex data, so accessors
         now exist and are valid.
         """
-        from fireai.integration.ar_metadata_exporter import (
             ARMetadataExporter,
             ARSnapshot,
         )
@@ -219,7 +210,6 @@ class TestARExporterFieldNames:
 
     def test_detector_position_extracted_correctly(self):
         """Detector position must be read from x, y, z fields (not x_m, y_m, z_m)."""
-        from fireai.integration.ar_metadata_exporter import ARMetadataExporter
 
         class FakeDetectorState:
             x = 5.0
@@ -247,7 +237,6 @@ class TestARExporterFieldNames:
 
     def test_nan_position_handled_gracefully(self):
         """NaN position should default to 0.0 (not crash)."""
-        from fireai.integration.ar_metadata_exporter import ARMetadataExporter
 
         class FakeDetectorState:
             x = float("nan")
@@ -280,7 +269,6 @@ class TestARExporterFieldNames:
 
     def test_metadata_dict_read_for_behind_wall(self):
         """is_behind_wall should be read from metadata dict."""
-        from fireai.integration.ar_metadata_exporter import ARMetadataExporter
 
         class FakeDetectorState:
             x = 1.0
@@ -313,7 +301,6 @@ class TestSmitheryEnqueueTransparency:
 
     def test_proposed_action_has_enqueue_status_field(self):
         """ProposedAction must have enqueue_status field."""
-        from fireai.mcp_server.smithery_mcp_integration import ProposedAction
 
         action = ProposedAction(
             id="test-1",
@@ -326,7 +313,6 @@ class TestSmitheryEnqueueTransparency:
 
     def test_proposed_action_initial_enqueue_status_is_pending(self):
         """Initial enqueue_status should be 'pending'."""
-        from fireai.mcp_server.smithery_mcp_integration import ProposedAction
 
         action = ProposedAction(
             id="test-1",
@@ -338,7 +324,6 @@ class TestSmitheryEnqueueTransparency:
 
     def test_propose_create_sets_enqueue_status(self):
         """propose_create_detector should set enqueue_status (not leave pending)."""
-        from fireai.mcp_server.smithery_mcp_integration import SmitheryMCPClient
 
         client = SmitheryMCPClient()
         action = client.propose_create_detector(
@@ -353,7 +338,6 @@ class TestSmitheryEnqueueTransparency:
 
     def test_to_dict_includes_enqueue_status(self):
         """to_dict must include enqueue_status for API transparency."""
-        from fireai.mcp_server.smithery_mcp_integration import ActionType, ProposedAction
 
         action = ProposedAction(
             id="test-1",
@@ -371,7 +355,6 @@ class TestSmitheryEnqueueTransparency:
 
     def test_dropped_proposal_is_not_enqueued(self):
         """If enqueue fails, is_enqueued must be False."""
-        from fireai.mcp_server.smithery_mcp_integration import ActionType, ProposedAction
 
         action = ProposedAction(
             id="test-1",
@@ -383,7 +366,6 @@ class TestSmitheryEnqueueTransparency:
 
     def test_enqueued_proposal_is_enqueued(self):
         """If enqueue succeeds, is_enqueued must be True."""
-        from fireai.mcp_server.smithery_mcp_integration import ActionType, ProposedAction
 
         action = ProposedAction(
             id="test-1",
@@ -404,7 +386,6 @@ class TestBeamMixedOrientation:
 
     def test_mixed_beam_with_horizontal_still_subdivides(self):
         """If 1 horizontal + 1 diagonal, horizontal should still subdivide."""
-        from fireai.core.spatial_engine.beam_obstruction import (
             Beam,
             calculate_beam_obstruction,
         )
@@ -431,7 +412,6 @@ class TestBeamMixedOrientation:
 
     def test_all_mixed_beams_falls_back_with_warning(self):
         """If ALL beams are diagonal, fall back to single pocket with warning."""
-        from fireai.core.spatial_engine.beam_obstruction import (
             Beam,
             calculate_beam_obstruction,
         )
@@ -453,7 +433,6 @@ class TestBeamMixedOrientation:
 
     def test_only_horizontal_beams_subdivide_correctly(self):
         """Pure horizontal beams should subdivide (no regression)."""
-        from fireai.core.spatial_engine.beam_obstruction import (
             Beam,
             calculate_beam_obstruction,
         )
@@ -474,7 +453,6 @@ class TestBeamMixedOrientation:
 
     def test_only_vertical_beams_subdivide_correctly(self):
         """Pure vertical beams should subdivide (no regression)."""
-        from fireai.core.spatial_engine.beam_obstruction import (
             Beam,
             calculate_beam_obstruction,
         )

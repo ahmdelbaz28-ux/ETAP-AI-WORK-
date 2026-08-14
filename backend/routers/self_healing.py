@@ -30,7 +30,6 @@ async def self_healing_health():
     and LLM circuit breaker stats.
     """
     try:
-        from fireai.core.qomn_self_healing_engine import (
             global_audit_logger,
             global_circuit_breaker,
             global_llm_breaker,
@@ -59,9 +58,6 @@ async def self_healing_audit(limit: int = 20):
     Args:
         limit: Maximum number of entries to return (default 20, max 100).
     """
-    try:
-        from fireai.core.qomn_self_healing_engine import global_audit_logger
-    except ImportError as e:
         raise HTTPException(
             status_code=503,
             detail=f"Self-healing engine not available: {e}",
@@ -93,9 +89,6 @@ async def self_healing_reset():
     healing events. The circuit breaker will return to CLOSED state
     and allow normal operation.
     """
-    try:
-        from fireai.core.qomn_self_healing_engine import global_circuit_breaker
-    except ImportError as e:
         raise HTTPException(
             status_code=503,
             detail=f"Self-healing engine not available: {e}",

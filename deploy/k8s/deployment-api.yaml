@@ -2,15 +2,15 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: fireai-api
-  namespace: fireai
+  name: etap-api
+  namespace: etap
   labels:
-    app.kubernetes.io/name: fireai
+    app.kubernetes.io/name: etap
     app.kubernetes.io/component: api
     app.kubernetes.io/version: "1.0.0"
     app.kubernetes.io/managed-by: kustomize
-    app.kubernetes.io/part-of: fireai
-    security.fireai.com/tier: critical
+    app.kubernetes.io/part-of: etap
+    security.etap.com/tier: critical
 spec:
   replicas: 3
   strategy:
@@ -20,12 +20,12 @@ spec:
       maxUnavailable: 0
   selector:
     matchLabels:
-      app.kubernetes.io/name: fireai
+      app.kubernetes.io/name: etap
       app.kubernetes.io/component: api
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: fireai
+        app.kubernetes.io/name: etap
         app.kubernetes.io/component: api
         app.kubernetes.io/version: "1.0.0"
       annotations:
@@ -34,7 +34,7 @@ spec:
         prometheus.io/path: "/metrics"
         seccomp.security.alpha.kubernetes.io/pod: "runtime/default"
     spec:
-      serviceAccountName: fireai-sa  # NOSONAR - kubernetes:S6865
+      serviceAccountName: etap-sa  # NOSONAR - kubernetes:S6865
       securityContext:
         runAsNonRoot: true
         runAsUser: 1000
@@ -44,9 +44,9 @@ spec:
           type: RuntimeDefault
       containers:
         - name: api  # NOSONAR - kubernetes:S6897
-          # V141.1 FIX (B6 revised): k8s manifest used `fireai/api:1.0.0`
+          # V141.1 FIX (B6 revised): k8s manifest used `etap/api:1.0.0`
           # without registry prefix — kubectl would try to pull from Docker
-          # Hub org `fireai` which does not exist. Corrected to the GHCR
+          # Hub org `etap` which does not exist. Corrected to the GHCR
           # path produced by deploy.yml workflow.
           image: ghcr.io/ahmdelbaz28-ux/revit/api:latest  # NOSONAR - kubernetes:S6596
           imagePullPolicy: Always
@@ -56,9 +56,9 @@ spec:
               protocol: TCP
           envFrom:
             - configMapRef:
-                name: fireai-config
+                name: etap-config
             - secretRef:
-                name: fireai-secrets
+                name: etap-secrets
           env:
             - name: POD_NAME
               valueFrom:
@@ -119,7 +119,7 @@ spec:
       volumes:
         - name: data
           persistentVolumeClaim:
-            claimName: fireai-data-pvc
+            claimName: etap-data-pvc
         - name: logs
           emptyDir: {}
         - name: tmp
@@ -153,17 +153,17 @@ spec:
       tolerations:
         - key: "critical"
           operator: "Equal"
-          value: "fireai"
+          value: "etap"
           effect: "NoSchedule"
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: fireai-data-pvc
-  namespace: fireai
+  name: etap-data-pvc
+  namespace: etap
   labels:
-    app.kubernetes.io/name: fireai
-    app.kubernetes.io/part-of: fireai
+    app.kubernetes.io/name: etap
+    app.kubernetes.io/part-of: etap
 spec:
   accessModes:
     - ReadWriteOnce
@@ -175,8 +175,8 @@ spec:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: fireai-sa
-  namespace: fireai
+  name: etap-sa
+  namespace: etap
   labels:
-    app.kubernetes.io/name: fireai
-    app.kubernetes.io/part-of: fireai
+    app.kubernetes.io/name: etap
+    app.kubernetes.io/part-of: etap

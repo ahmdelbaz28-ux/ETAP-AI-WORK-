@@ -105,12 +105,12 @@ class TestAkamaiConfig:
         assert cfg.allowed_bot_score == 30  # default
 
     def test_production_mode_default_is_production(self, monkeypatch):
-        monkeypatch.delenv("FIREAI_ENV", raising=False)
+        monkeypatch.delenv("APP_ENV", raising=False)
         cfg = AkamaiConfig()
         assert cfg.production_mode is True  # safety-critical default
 
     def test_production_mode_dev(self, monkeypatch):
-        monkeypatch.setenv("FIREAI_ENV", "development")
+        monkeypatch.setenv("APP_ENV", "development")
         cfg = AkamaiConfig()
         assert cfg.production_mode is False
 
@@ -170,7 +170,7 @@ class TestOriginVerification:
     def test_production_blocks_missing_token(self, monkeypatch):
         monkeypatch.setenv("AKAMAI_ENABLED", "true")
         monkeypatch.setenv("AKAMAI_REQUIRE_ORIGIN_TOKEN", "secret-123")
-        monkeypatch.setenv("FIREAI_ENV", "production")
+        monkeypatch.setenv("APP_ENV", "production")
         client = TestClient(_build_app())
         resp = client.get("/api/health")
         assert resp.status_code == 403
@@ -179,7 +179,7 @@ class TestOriginVerification:
     def test_production_blocks_wrong_token(self, monkeypatch):
         monkeypatch.setenv("AKAMAI_ENABLED", "true")
         monkeypatch.setenv("AKAMAI_REQUIRE_ORIGIN_TOKEN", "secret-123")
-        monkeypatch.setenv("FIREAI_ENV", "production")
+        monkeypatch.setenv("APP_ENV", "production")
         client = TestClient(_build_app())
         resp = client.get("/api/health", headers={"Akamai-Internal": "wrong-secret"})
         assert resp.status_code == 403
@@ -187,7 +187,7 @@ class TestOriginVerification:
     def test_production_allows_correct_token(self, monkeypatch):
         monkeypatch.setenv("AKAMAI_ENABLED", "true")
         monkeypatch.setenv("AKAMAI_REQUIRE_ORIGIN_TOKEN", "secret-123")
-        monkeypatch.setenv("FIREAI_ENV", "production")
+        monkeypatch.setenv("APP_ENV", "production")
         client = TestClient(_build_app())
         resp = client.get("/api/health", headers={"Akamai-Internal": "secret-123"})
         assert resp.status_code == 200
@@ -195,7 +195,7 @@ class TestOriginVerification:
     def test_dev_allows_missing_token(self, monkeypatch):
         monkeypatch.setenv("AKAMAI_ENABLED", "true")
         monkeypatch.setenv("AKAMAI_REQUIRE_ORIGIN_TOKEN", "secret-123")
-        monkeypatch.setenv("FIREAI_ENV", "development")
+        monkeypatch.setenv("APP_ENV", "development")
         client = TestClient(_build_app())
         resp = client.get("/api/health")
         # In dev, missing token is logged but allowed
@@ -305,7 +305,7 @@ if __name__ == "__main__":
     # Manual smoke test
     os.environ["AKAMAI_ENABLED"] = "true"
     os.environ["AKAMAI_REQUIRE_ORIGIN_TOKEN"] = "test-secret"
-    os.environ["FIREAI_ENV"] = "production"
+    os.environ["APP_ENV"] = "production"
 
     app = _build_app()
     client = TestClient(app)

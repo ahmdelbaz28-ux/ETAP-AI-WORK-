@@ -1,7 +1,7 @@
 # File-level '# NOSONAR' removed per NOSONAR_AUDIT.md (V143 hardening).
 # Per-line justified suppressions (e.g., '# NOSONAR — S3776: ...') are preserved.
 """
-Tests for fireai.core.release_gates — Release Gate Evaluation
+Tests for etap.core.release_gates — Release Gate Evaluation
 ==============================================================
 
 Covers all 8 release gates, verify_and_evaluate(), and describe_blockers().
@@ -17,7 +17,6 @@ from __future__ import annotations
 import math
 from typing import Any
 
-from fireai.core.release_gates import (
     _gate_battery,
     _gate_coverage,
     _gate_fault_isolation,

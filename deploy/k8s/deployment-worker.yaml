@@ -2,15 +2,15 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: fireai-worker
-  namespace: fireai
+  name: etap-worker
+  namespace: etap
   labels:
-    app.kubernetes.io/name: fireai
+    app.kubernetes.io/name: etap
     app.kubernetes.io/component: worker
     app.kubernetes.io/version: "1.0.0"
     app.kubernetes.io/managed-by: kustomize
-    app.kubernetes.io/part-of: fireai
-    security.fireai.com/tier: standard
+    app.kubernetes.io/part-of: etap
+    security.etap.com/tier: standard
 spec:
   replicas: 1
   strategy:
@@ -20,18 +20,18 @@ spec:
       maxUnavailable: 0
   selector:
     matchLabels:
-      app.kubernetes.io/name: fireai
+      app.kubernetes.io/name: etap
       app.kubernetes.io/component: worker
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: fireai
+        app.kubernetes.io/name: etap
         app.kubernetes.io/component: worker
         app.kubernetes.io/version: "1.0.0"
       annotations:
         seccomp.security.alpha.kubernetes.io/pod: "runtime/default"
     spec:
-      serviceAccountName: fireai-sa  # NOSONAR - kubernetes:S6865
+      serviceAccountName: etap-sa  # NOSONAR - kubernetes:S6865
       securityContext:
         runAsNonRoot: true
         runAsUser: 1000
@@ -41,15 +41,15 @@ spec:
           type: RuntimeDefault
       containers:
         - name: worker  # NOSONAR - kubernetes:S6897
-          # V141.1 FIX (B6 revised): corrected from `fireai/worker:1.0.0`
+          # V141.1 FIX (B6 revised): corrected from `etap/worker:1.0.0`
           # (non-existent Docker Hub org) to GHCR path.
           image: ghcr.io/ahmdelbaz28-ux/revit/worker:latest  # NOSONAR - kubernetes:S6596
           imagePullPolicy: Always
           envFrom:
             - configMapRef:
-                name: fireai-config
+                name: etap-config
             - secretRef:
-                name: fireai-secrets
+                name: etap-secrets
           env:
             - name: POD_NAME
               valueFrom:
@@ -106,7 +106,7 @@ spec:
       volumes:
         - name: data
           persistentVolumeClaim:
-            claimName: fireai-data-pvc
+            claimName: etap-data-pvc
         - name: logs
           emptyDir: {}
         - name: tmp

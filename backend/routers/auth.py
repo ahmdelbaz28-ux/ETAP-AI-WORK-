@@ -24,7 +24,7 @@ SECURITY DESIGN (CRITICAL FIX):
 Endpoints:
   POST /api/v1/auth/login
     Body: {"api_key": "..."}
-    Sets: Set-Cookie: fireai_session=<signed_token>; HttpOnly; SameSite=Strict; Secure
+    Sets: Set-Cookie: session=<signed_token>; HttpOnly; SameSite=Strict; Secure
     Returns: {"success": true, "data": {"role": "ADMIN", "expires_at": "..."}}
 
   POST /api/v1/auth/logout
@@ -60,15 +60,15 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 # SESSION SECURITY CONFIGURATION
 # ═══════════════════════════════════════════════════════════════════════════════
 
-_COOKIE_NAME = "fireai_session"
+_COOKIE_NAME = "session"
 _COOKIE_MAX_AGE_SECONDS = 8 * 3600  # 8 hours
 _SESSION_ID_BYTES = 32  # 256 bits of entropy
 
 # Session secret manager: handles loading, validation, and rotation.
 # Supports:
-#   - Env var: FIREAI_SESSION_SECRET
-#   - File-based (Docker/K8s): FIREAI_SESSION_SECRET_FILE
-#   - Rotation: FIREAI_SESSION_SECRET_NEW (new secret becomes primary, old retained)
+#   - Env var: SESSION_SECRET
+#   - File-based (Docker/K8s): SESSION_SECRET_FILE
+#   - Rotation: SESSION_SECRET_NEW (new secret becomes primary, old retained)
 #   - Validation: minimum 256-bit entropy, character set check
 #   - Constant-time comparison: all comparisons use hmac.compare_digest
 _SECRET_MANAGER = get_secret_manager()
@@ -76,7 +76,7 @@ _SECRET_MANAGER = get_secret_manager()
 # In-memory session store: {session_id_hash: {api_key_hash, role, expires_at}}
 # NOTE: This is LOST on restart. For production with rotation support:
 #   1. Use Redis with TTL=_COOKIE_MAX_AGE_SECONDS (sessions survive restarts)
-#   2. The rotation feature (FIREAI_SESSION_SECRET_NEW) only provides value
+#   2. The rotation feature (SESSION_SECRET_NEW) only provides value
 #      when sessions persist across restarts — otherwise all users must
 #      re-login after restart anyway.
 #   3. See backend/session_secret.py for rotation instructions.
@@ -97,7 +97,7 @@ class LoginRequest(BaseModel):
     """Request body for POST /auth/login."""
 
     api_key: str | None = Field(
-        None, min_length=1, description="FireAI API key (must be non-empty if provided)"
+        None, min_length=1, description="ETAP API key (must be non-empty if provided)"
     )
     username: str | None = None
     password: str | None = None
@@ -259,7 +259,7 @@ async def login(
 
     # Validate the API key
     role: Role | None = None
-    env_key = os.getenv("FIREAI_API_KEY")
+    env_key = os.getenv("API_KEY")
     if env_key and _hmac.compare_digest(api_key, env_key):
         role = Role.ADMIN
     else:
@@ -299,7 +299,7 @@ async def login(
     token = _create_session_token(session_id)
 
     # Build Set-Cookie header
-    is_production = os.getenv("FIREAI_ENV", "development").lower() in ("production", "prod")
+    is_production = os.getenv("APP_ENV", "development").lower() in ("production", "prod")
     forwarded_proto = ""
     for name, value in request.scope.get("headers", []):
         if name == b"x-forwarded-proto":
@@ -375,7 +375,7 @@ async def logout(
 @router.get("/me")
 async def get_current_user(request: Request):
     """Return the current session's role (requires auth)."""
-    role = request.scope.get("fireai_role")
+    role = request.scope.get("role")
     if role is None:
         raise HTTPException(
             status_code=401, detail="Not authenticated"

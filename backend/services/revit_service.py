@@ -62,7 +62,7 @@ USAGE (write — DOES NOT WORK, will be silently ignored):
     service.create_wall([0,0,0], [5000,0,0])  # returns UUID, no wall created
 
 To get real Revit write operations, use the IFC pipeline
-(fireai.bridges.ifc_pipeline) to export an IFC file, then import it
+(etap.bridges.ifc_pipeline) to export an IFC file, then import it
 into Revit manually. This is the only supported write path.
 """
 
@@ -627,7 +627,7 @@ class RevitService:
           1. If connected to a real Revit instance (API mode, Windows):
              Use FilteredElementCollector to read actual elements.
           2. If the file is actually an IFC (Revit can export to IFC):
-             Use fireai.bridges.ifc_headless_bridge.HeadlessIFCBridge
+             Use etap.bridges.ifc_headless_bridge.HeadlessIFCBridge
              which is cross-platform and real (ifcopenshell).
           3. Otherwise: return success=False with an honest error.
 
@@ -694,7 +694,7 @@ class RevitService:
                 "will be fabricated. RVT is a closed proprietary format that "
                 "cannot be parsed without Revit API. Alternatives: "
                 "(1) export the RVT to IFC from Revit, then read the IFC via "
-                "fireai.bridges.ifc_headless_bridge; "
+                "etap.bridges.ifc_headless_bridge; "
                 "(2) connect to a real Revit instance on Windows with pythonnet.",
                 filepath,
             )
@@ -783,7 +783,7 @@ class RevitService:
                 try:
                     from Autodesk.Revit.DB import Transaction  # type: ignore[import-not-found]
 
-                    tx = Transaction(self._revit_doc, "FireAI: Write Elements")
+                    tx = Transaction(self._revit_doc, "ETAP: Write Elements")
                     tx.Start()
                     try:
                         # Create elements via Revit API
@@ -872,7 +872,7 @@ class RevitService:
 
             # Create project/site/building/storey hierarchy (required by IFC spec)
             project = ifcopenshell.api.run(
-                "root.create_entity", model, ifc_class="IfcProject", name="FireAI Export"
+                "root.create_entity", model, ifc_class="IfcProject", name="ETAP Export"
             )
             site = ifcopenshell.api.run(
                 "root.create_entity", model, ifc_class="IfcSite", name="Site"
@@ -916,7 +916,7 @@ class RevitService:
                         "pset.add_pset",
                         model,
                         product=proxy,
-                        name="Pset_FireAI_Element",
+                        name="Pset_ETAP_Element",
                     )
                     props = {}
                     if "id" in elem:
@@ -1071,7 +1071,7 @@ class RevitService:
                 return None
 
             # Create wall inside a transaction (Revit API requires this)
-            tx_name = "FireAI: Create Wall"
+            tx_name = "ETAP: Create Wall"
             tx = Transaction(self._revit_doc, tx_name)
             tx.Start()
 
@@ -1231,7 +1231,7 @@ class RevitService:
                 return None
 
             # Create floor inside a transaction
-            tx_name = "FireAI: Create Floor"
+            tx_name = "ETAP: Create Floor"
             tx = Transaction(self._revit_doc, tx_name)
             tx.Start()
 
@@ -1402,7 +1402,7 @@ class RevitService:
                 )
                 return None
 
-            tx = Transaction(self._revit_doc, "FireAI: Create Column")
+            tx = Transaction(self._revit_doc, "ETAP: Create Column")
             tx.Start()
             try:
                 if not target_symbol.IsActive:
@@ -1781,7 +1781,7 @@ class RevitService:
         try:
             from Autodesk.Revit.DB import XYZ, Level, Transaction
 
-            t = Transaction(self._revit_doc, "FireAI: Create Door")
+            t = Transaction(self._revit_doc, "ETAP: Create Door")
             t.Start()
 
             try:
@@ -1955,7 +1955,7 @@ class RevitService:
                 )
                 return None
 
-            tx = Transaction(self._revit_doc, "FireAI: Create Beam")
+            tx = Transaction(self._revit_doc, "ETAP: Create Beam")
             tx.Start()
             try:
                 if not target_symbol.IsActive:
@@ -2049,7 +2049,7 @@ class RevitService:
         try:
             from Autodesk.Revit.DB import XYZ, Transaction
 
-            t = Transaction(self._revit_doc, f"FireAI: Create {family_name}")
+            t = Transaction(self._revit_doc, f"ETAP: Create {family_name}")
             t.Start()
             try:
                 family_symbol = self._get_family_symbol(category, family_name)
@@ -2233,7 +2233,7 @@ class RevitService:
                 logger.error("create_view failed: Level '%s' not found.", level)
                 return None
 
-            tx = Transaction(self._revit_doc, "FireAI: Create View")
+            tx = Transaction(self._revit_doc, "ETAP: Create View")
             tx.Start()
             try:
                 # ViewPlan.Create for floor plans; falls back to View.Create
@@ -2330,7 +2330,7 @@ class RevitService:
             MM_TO_FEET = 1.0 / 304.8
             elevation_feet = elevation * MM_TO_FEET
 
-            tx = Transaction(self._revit_doc, "FireAI: Create Level")
+            tx = Transaction(self._revit_doc, "ETAP: Create Level")
             tx.Start()
             try:
                 new_level = Level.Create(self._revit_doc, elevation_feet)

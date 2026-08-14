@@ -9,8 +9,8 @@ from fastapi.testclient import TestClient
 @pytest.fixture
 def client(monkeypatch):
     """Create a test client with a known API key."""
-    monkeypatch.setenv("FIREAI_API_KEY", "test-admin-key")
-    monkeypatch.setenv("FIREAI_ENV", "development")
+    monkeypatch.setenv("API_KEY", "test-admin-key")
+    monkeypatch.setenv("APP_ENV", "development")
     from backend.app import app
 
     return TestClient(app)

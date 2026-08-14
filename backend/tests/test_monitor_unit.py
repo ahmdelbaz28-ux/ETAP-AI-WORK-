@@ -226,15 +226,15 @@ class TestMonitorState:
         """Test Prometheus metrics collection."""
         metrics = self.monitor.collect_metrics()
         assert "# HELP" in metrics
-        assert "fireai_engine_info" in metrics
-        assert "fireai_uptime_seconds" in metrics
-        assert "fireai_engine_cpu_percent" in metrics
-        assert "fireai_engine_memory_mb" in metrics
-        assert "fireai_engine_checks_passed" in metrics
-        assert "fireai_engine_checks_failed" in metrics
-        assert "fireai_security_alerts_total" in metrics
-        assert "fireai_active_alerts" in metrics
-        assert "fireai_agent_activity_count" in metrics
+        assert "engine_info" in metrics
+        assert "uptime_seconds" in metrics
+        assert "engine_cpu_percent" in metrics
+        assert "engine_memory_mb" in metrics
+        assert "engine_checks_passed" in metrics
+        assert "engine_checks_failed" in metrics
+        assert "security_alerts_total" in metrics
+        assert "active_alerts" in metrics
+        assert "agent_activity_count" in metrics
 
     def test_format_uptime(self) -> None:
         """Test uptime formatting helper."""
@@ -425,16 +425,16 @@ class TestSyncWSValidation:
 
     def test_validate_ws_origin_no_api_key(self) -> None:
         """Test WS origin validation when no API key is set (dev mode)."""
-        # V131 FIX: _FIREAI_API_KEY was removed from sync.py — the module
-        # now reads os.getenv("FIREAI_API_KEY") at runtime. Tests must
+        # V131 FIX: _API_KEY was removed from sync.py — the module
+        # now reads os.getenv("API_KEY") at runtime. Tests must
         # monkeypatch os.environ instead of the removed module attribute.
         import os
 
         from backend.routers.sync import _validate_ws_origin
 
-        original_key = os.environ.get("FIREAI_API_KEY")
+        original_key = os.environ.get("API_KEY")
         try:
-            os.environ.pop("FIREAI_API_KEY", None)  # No API key → dev mode
+            os.environ.pop("API_KEY", None)  # No API key → dev mode
 
             class MockWS:
                 client = None
@@ -450,20 +450,20 @@ class TestSyncWSValidation:
             assert result is True  # Dev mode allows
         finally:
             if original_key is not None:
-                os.environ["FIREAI_API_KEY"] = original_key
+                os.environ["API_KEY"] = original_key
             else:
-                os.environ.pop("FIREAI_API_KEY", None)
+                os.environ.pop("API_KEY", None)
 
     def test_validate_ws_api_key_no_key_configured(self) -> None:
         """Test WS API key validation when no key is configured."""
-        # V131 FIX: _FIREAI_API_KEY was removed — use os.environ
+        # V131 FIX: _API_KEY was removed — use os.environ
         import os
 
         from backend.routers.sync import _validate_ws_api_key
 
-        original_key = os.environ.get("FIREAI_API_KEY")
+        original_key = os.environ.get("API_KEY")
         try:
-            os.environ.pop("FIREAI_API_KEY", None)  # No API key configured
+            os.environ.pop("API_KEY", None)  # No API key configured
 
             class MockWS:
                 client = None
@@ -474,20 +474,20 @@ class TestSyncWSValidation:
             assert result is True  # No key configured → auth disabled
         finally:
             if original_key is not None:
-                os.environ["FIREAI_API_KEY"] = original_key
+                os.environ["API_KEY"] = original_key
             else:
-                os.environ.pop("FIREAI_API_KEY", None)
+                os.environ.pop("API_KEY", None)
 
     def test_validate_ws_api_key_with_key_configured(self) -> None:
         """Test WS API key validation when key is configured (query param rejected)."""
-        # V131 FIX: _FIREAI_API_KEY was removed — use os.environ
+        # V131 FIX: _API_KEY was removed — use os.environ
         import os
 
         from backend.routers.sync import _validate_ws_api_key
 
-        original_key = os.environ.get("FIREAI_API_KEY")
+        original_key = os.environ.get("API_KEY")
         try:
-            os.environ["FIREAI_API_KEY"] = "test-key-123"  # API key configured
+            os.environ["API_KEY"] = "test-key-123"  # API key configured
 
             class MockWS:
                 client = None
@@ -500,6 +500,6 @@ class TestSyncWSValidation:
             assert result is False
         finally:
             if original_key is not None:
-                os.environ["FIREAI_API_KEY"] = original_key
+                os.environ["API_KEY"] = original_key
             else:
-                os.environ.pop("FIREAI_API_KEY", None)
+                os.environ.pop("API_KEY", None)

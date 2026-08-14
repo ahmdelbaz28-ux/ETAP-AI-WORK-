@@ -1,7 +1,7 @@
 # File-level '# NOSONAR' removed per NOSONAR_AUDIT.md (V143 hardening).
 # Per-line justified suppressions (e.g., '# NOSONAR — S3776: ...') are preserved.
 """
-tests/test_workflow_service.py — LangGraph Workflow Service Tests for FireAI.
+tests/test_workflow_service.py — LangGraph Workflow Service Tests for ETAP.
 
 Tests the workflow engine that orchestrates the NFPA 72 analysis pipeline
 as a deterministic State Machine using LangGraph.
@@ -51,7 +51,7 @@ from backend.services.workflow_service import (
     WorkflowStatus,
     _compute_sha256,
     _log_transition,
-    build_fireai_workflow,
+    build_workflow,
     node_conflict_detection,
     node_generate_report,
     node_human_review_gate,
@@ -123,7 +123,7 @@ class TestServiceInit:
 
     def test_graph_has_all_nodes(self, service):
         """The StateGraph must contain all 8 required nodes."""
-        graph = build_fireai_workflow()
+        graph = build_workflow()
         expected_nodes = [
             "initialize",
             "parse",
@@ -402,7 +402,7 @@ class TestErrorHandling:
         # Allow test_data directory for path traversal check
         project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         monkeypatch.setenv(
-            "FIREAI_DATA_DIRS", f"/tmp/fireai_uploads:/data:/uploads:{project_root}"
+            "DATA_DIRS", f"/tmp/uploads:/data:/uploads:{project_root}"
         )  # NOSONAR: publicly writable dir in test  # NOSONAR — S5443: safe in test (uses tempfile + cleanup)
         # Use the actual test file that exists
         sample_state["file_path"] = "test_data/hybrid/single_office.pdf"
@@ -426,7 +426,7 @@ class TestWorkflowIntegration:
         """Allow test_data directory for path traversal security check."""
         project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         monkeypatch.setenv(
-            "FIREAI_DATA_DIRS", f"/tmp/fireai_uploads:/data:/uploads:{project_root}"
+            "DATA_DIRS", f"/tmp/uploads:/data:/uploads:{project_root}"
         )  # NOSONAR: publicly writable dir in test  # NOSONAR — S5443: safe in test (uses tempfile + cleanup)
 
     @pytest.mark.asyncio

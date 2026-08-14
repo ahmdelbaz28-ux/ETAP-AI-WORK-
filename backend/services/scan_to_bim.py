@@ -468,9 +468,9 @@ class ScanToBIMService:
             # Create a simple JSON representation as a placeholder
             ifc_data = {
                 "header": {
-                    "name": "FireAI ScanToBIM Export",
+                    "name": "ETAP ScanToBIM Export",
                     "timestamp": __import__("time").time(),
-                    "software": "FireAI ScanToBIM Service",
+                    "software": "ETAP ScanToBIM Service",
                     "version": "1.0.0",
                 },
                 "rooms": [

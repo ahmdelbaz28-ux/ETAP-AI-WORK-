@@ -21,7 +21,6 @@ class TestCacheKeyUnhashable:
 
     def test_get_provider_with_list_kwargs_does_not_crash(self):
         """Passing levels=["L1","L2"] should not raise TypeError."""
-        from fireai.bridges.bim_provider import BIMProviderRegistry
 
         # This should return None (ifc_file may not be available) but NOT raise
         result = BIMProviderRegistry.get("ifc_file", levels=["L1", "L2"])
@@ -30,7 +29,6 @@ class TestCacheKeyUnhashable:
 
     def test_get_provider_with_dict_kwargs_does_not_crash(self):
         """Passing options={"key":"val"} should not raise TypeError."""
-        from fireai.bridges.bim_provider import BIMProviderRegistry
 
         result = BIMProviderRegistry.get("ifc_file", options={"key": "val"})
         assert result is None or hasattr(result, "provider_name")
@@ -48,7 +46,6 @@ class TestForgeHealthCheck:
         """Even with credentials, stub should return healthy=False."""
         monkeypatch.setenv("APS_CLIENT_ID", "test_client")
         monkeypatch.setenv("APS_CLIENT_SECRET", "test_secret")
-        from fireai.bridges.bim_provider import AutodeskForgeProvider
 
         p = AutodeskForgeProvider()
         result = p.health_check()
@@ -98,7 +95,6 @@ class TestVerifyClassExact:
 
     def test_verify_wall_does_not_match_wall_type(self):
         """verify_class_exists('Wall') should NOT match 'WallType'."""
-        from fireai.mcp_server.smithery_mcp_integration import SmitheryMCPClient
 
         client = SmitheryMCPClient()
         # "Wall" should match the actual Wall class, not WallType/WallFoundation
@@ -118,7 +114,6 @@ class TestNegativePressureLoss:
 
     def test_negative_pressure_raises(self):
         """If calculation produces negative pressure, raise ValueError."""
-        from fireai.core.darcy_weisbach_solver import (
             FluidType,
             calculate_darcy_weisbach_friction_loss,
         )
@@ -143,7 +138,6 @@ class TestConvergedField:
 
     def test_result_has_converged_field(self):
         """DarcyWeisbachResult must have converged field."""
-        from fireai.core.darcy_weisbach_solver import (
             FluidType,
             calculate_darcy_weisbach_friction_loss,
         )
@@ -159,7 +153,6 @@ class TestConvergedField:
 
     def test_result_to_dict_includes_converged(self):
         """to_dict should include converged field."""
-        from fireai.core.darcy_weisbach_solver import (
             FluidType,
             calculate_darcy_weisbach_friction_loss,
         )
@@ -184,7 +177,6 @@ class TestCompareValidation:
 
     def test_negative_pipe_length_rejected(self):
         """Negative pipe length should raise ValueError."""
-        from fireai.core.darcy_weisbach_solver import compare_with_hazen_williams
 
         with pytest.raises(ValueError, match="pipe_length_m"):
             compare_with_hazen_williams(
@@ -195,7 +187,6 @@ class TestCompareValidation:
 
     def test_nan_pipe_length_rejected(self):
         """NaN pipe length should raise ValueError."""
-        from fireai.core.darcy_weisbach_solver import compare_with_hazen_williams
 
         with pytest.raises(
             ValueError, match="must be finite"
@@ -217,7 +208,6 @@ class TestFlowVelocityBound:
 
     def test_extreme_velocity_emits_warning(self):
         """Velocity > 100 m/s should add a warning."""
-        from fireai.core.darcy_weisbach_solver import (
             FluidType,
             calculate_darcy_weisbach_friction_loss,
         )
@@ -245,7 +235,6 @@ class TestBeamBoundaryInclusive:
 
     def test_beam_at_wall_y_max_included(self):
         """Beam at y_max (wall boundary) should still subdivide."""
-        from fireai.core.spatial_engine.beam_obstruction import (
             Beam,
             calculate_beam_obstruction,
         )
@@ -274,7 +263,6 @@ class TestWeightTolerance:
 
     def test_weights_summing_to_0_999_rejected(self):
         """Weights summing to 0.999 should be rejected (tolerance is 0.001)."""
-        from fireai.core.spatial_engine.generative_layout_agent import (
             GenerativeLayoutAgent,
         )
 
@@ -297,7 +285,6 @@ class TestClearForTesting:
 
     def test_clear_for_testing_exists(self):
         """_clear_for_testing should be a method on BIMProviderRegistry."""
-        from fireai.bridges.bim_provider import BIMProviderRegistry
 
         assert hasattr(BIMProviderRegistry, "_clear_for_testing")
         assert callable(BIMProviderRegistry._clear_for_testing)
@@ -313,7 +300,6 @@ class TestHMACSecretLength:
 
     def test_31_char_secret_rejected(self):
         """31-char secret should be rejected (below NIST minimum)."""
-        from fireai.infrastructure.webhook_service import (
             WebhookDeliveryService,
             WebhookSubscription,
         )
@@ -332,7 +318,6 @@ class TestHMACSecretLength:
 
     def test_32_char_secret_accepted(self):
         """32-char secret should be accepted."""
-        from fireai.infrastructure.webhook_service import (
             WebhookDeliveryService,
             WebhookSubscription,
         )
@@ -358,7 +343,6 @@ class TestWarningsDefaultFactory:
 
     def test_warnings_defaults_to_empty_list(self):
         """Warnings should default to empty list, not None."""
-        from fireai.core.darcy_weisbach_solver import DarcyWeisbachResult
 
         result = DarcyWeisbachResult(
             head_loss_m=1.0,
@@ -384,14 +368,12 @@ class TestBeamHorizontalTolerance:
 
     def test_exactly_horizontal_beam_is_horizontal(self):
         """Beam with identical Y coords should be horizontal."""
-        from fireai.core.spatial_engine.beam_obstruction import Beam
 
         beam = Beam(id="B1", start=(0, 4), end=(10, 4), depth_m=0.5)
         assert beam.is_horizontal is True
 
     def test_slightly_diagonal_beam_not_horizontal(self):
         """Beam with 0.001 Y difference should NOT be horizontal."""
-        from fireai.core.spatial_engine.beam_obstruction import Beam
 
         # V135 F-38: 0.0005 difference was accepted before, now rejected
         beam = Beam(id="B1", start=(0, 4), end=(10, 4.0005), depth_m=0.5)

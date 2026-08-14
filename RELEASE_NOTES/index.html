@@ -20,7 +20,7 @@
     
     
       
-        <title>FireAI Release Notes — v1.0.0 - AhmedETAP Documentation</title>
+        <title>ETAP Release Notes — v1.0.0 - AhmedETAP Documentation</title>
       
     
     
@@ -70,7 +70,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#fireai-release-notes-v100" class="md-skip">
+        <a href="#etap-release-notes-v100" class="md-skip">
           Skip to content
         </a>
       
@@ -104,7 +104,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              FireAI Release Notes — v1.0.0
+              ETAP Release Notes — v1.0.0
             
           </span>
         </div>
@@ -649,9 +649,9 @@
   
 
 
-<h1 id="fireai-release-notes-v100">FireAI Release Notes — v1.0.0</h1>
+<h1 id="etap-release-notes-v100">ETAP Release Notes — v1.0.0</h1>
 <h2 id="overview">Overview</h2>
-<p>FireAI Digital Twin v1.0.0 — Safety-critical fire alarm engineering platform for NFPA 72-2022 compliant fire detector placement, battery sizing, voltage drop calculations, and FACP selection.</p>
+<p>ETAP Digital Twin v1.0.0 — Safety-critical fire alarm engineering platform for NFPA 72-2022 compliant fire detector placement, battery sizing, voltage drop calculations, and FACP selection.</p>
 <h2 id="features">Features</h2>
 <ul>
 <li><strong>5-layer computation pipeline</strong>: Physics Guard → NFPA 72 Lookup → IEEE-754 Compute → Validation → Audit Log</li>
@@ -676,7 +676,7 @@
 <h2 id="security-hardening">Security Hardening</h2>
 <ul>
 <li>API key authentication required for all mutating endpoints</li>
-<li>Production fails closed without FIREAI_API_KEY</li>
+<li>Production fails closed without API_KEY</li>
 <li>Dev HMAC key fallback blocked in production</li>
 <li>CORS wildcards ALWAYS rejected in production</li>
 <li>Security headers on every response (X-Frame-Options, X-Content-Type-Options, CSP, Permissions-Policy)</li>
@@ -687,7 +687,7 @@
 </ul>
 <h2 id="test-results">Test Results</h2>
 <ul>
-<li><strong>5,194 tests passing</strong> (5,007 FireAI + 211 qomn_conduit + 58 qomn_fire)</li>
+<li><strong>5,194 tests passing</strong> (5,007 ETAP + 211 qomn_conduit + 58 qomn_fire)</li>
 <li><strong>1 skipped</strong> (requires optional dependency)</li>
 <li><strong>0 failures</strong></li>
 <li><strong>Bandit</strong>: 0 HIGH, 2 MEDIUM (test <code>/tmp</code> paths), 37 LOW (asserts in tests)</li>
@@ -695,9 +695,9 @@
 </ul>
 <h2 id="known-limitations">Known Limitations</h2>
 <ul>
-<li><code>/api/workflow</code> endpoints require langgraph (optional: <code>pip install fireai[workflow]</code>)</li>
-<li><code>/api/memory</code> endpoints require mem0 + qdrant-client (optional: <code>pip install fireai[memory]</code>)</li>
-<li>IFC export requires ifcopenshell (optional: <code>pip install fireai[ifc]</code>)</li>
+<li><code>/api/workflow</code> endpoints require langgraph (optional: <code>pip install etap[workflow]</code>)</li>
+<li><code>/api/memory</code> endpoints require mem0 + qdrant-client (optional: <code>pip install etap[memory]</code>)</li>
+<li>IFC export requires ifcopenshell (optional: <code>pip install etap[ifc]</code>)</li>
 <li>DWG/RVT conversion requires external converter binaries</li>
 <li>Windows: SQLite file locking requires proper connection cleanup</li>
 <li>Python 3.12+ required (Python 3.14 recommended for latest features)</li>

@@ -3,7 +3,7 @@
 """
 tests/test_schedule_generator.py
 ==================================
-Tests for fireai.core.schedule_generator (cable schedule output).
+Tests for etap.core.schedule_generator (cable schedule output).
 
 Covers system requirement §4:
   Schedule: Device_ID, From_Location, To_Location, Length, Type, Voltage_Drop
@@ -21,7 +21,6 @@ import pytest
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from fireai.core.schedule_generator import (
     _NFPA72_23_6_2_MAX_LEN_M,
     ScheduleGenerator,
     ScheduleRow,

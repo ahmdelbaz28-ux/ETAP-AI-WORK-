@@ -1225,7 +1225,7 @@
 <tr>
 <td><strong>Security Logging</strong></td>
 <td>✅ Implemented</td>
-<td><code>fireai/core/tests/test_security_logging.py</code> - mask_sensitive() function</td>
+<td><code>etap/core/tests/test_security_logging.py</code> - mask_sensitive() function</td>
 </tr>
 </tbody>
 </table>
@@ -1256,7 +1256,7 @@
 <h4 id="item-12-verify-no-hardcoded-secrets">Item 1.2: Verify No Hardcoded Secrets</h4>
 <p><strong>Risk Level:</strong> CRITICAL<br />
 <strong>Files to Audit:</strong>
-- <code>fireai/core/tests/test_security_logging.py</code>
+- <code>etap/core/tests/test_security_logging.py</code>
 - <code>tests/test_security.py</code>
 - <code>tests/test_security_logging_v2.py</code>
 - <code>backend/api_keys.py</code>
@@ -1276,8 +1276,8 @@ Create <code>docs/ENVIRONMENT_VARIABLES.md</code>:
 <div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="gu">## Required Environment Variables</span>
 <a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>
 <a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="gu">### Authentication</span>
-<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="k">-</span><span class="w"> </span><span class="sb">`FIREAI_API_KEY`</span> - Master API key for all requests (required in production)
-<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="k">-</span><span class="w"> </span><span class="sb">`FIREAI_ENV`</span> - Deployment environment: &quot;development&quot; or &quot;production&quot;
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="k">-</span><span class="w"> </span><span class="sb">`API_KEY`</span> - Master API key for all requests (required in production)
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="k">-</span><span class="w"> </span><span class="sb">`APP_ENV`</span> - Deployment environment: &quot;development&quot; or &quot;production&quot;
 <a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>
 <a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="gu">### Database</span>
 <a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="k">-</span><span class="w"> </span><span class="sb">`DATABASE_URL`</span> - PostgreSQL connection string
@@ -1540,7 +1540,7 @@ Create <code>docs/ENVIRONMENT_VARIABLES.md</code>:
 - <code>backend/rbac.py</code> - Permission matrix
 - <code>backend/db_service.py</code> - Database operations
 - <code>parsers/dxf_parser.py</code> - File parsing
-- <code>fireai/core/qomn_kernel.py</code> - Engineering calculations</p>
+- <code>etap/core/qomn_kernel.py</code> - Engineering calculations</p>
 <p><strong>Test Structure:</strong>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="c1"># tests/test_auth.py</span>
 <a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a><span class="kn">import</span><span class="w"> </span><span class="nn">pytest</span>
@@ -1551,7 +1551,7 @@ Create <code>docs/ENVIRONMENT_VARIABLES.md</code>:
 <a id="__codelineno-20-7" name="__codelineno-20-7" href="#__codelineno-20-7"></a><span class="k">class</span><span class="w"> </span><span class="nc">TestGetCurrentRole</span><span class="p">:</span>
 <a id="__codelineno-20-8" name="__codelineno-20-8" href="#__codelineno-20-8"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">test_returns_admin_from_state</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <a id="__codelineno-20-9" name="__codelineno-20-9" href="#__codelineno-20-9"></a>        <span class="n">request</span> <span class="o">=</span> <span class="n">Mock</span><span class="p">(</span><span class="n">spec</span><span class="o">=</span><span class="n">Request</span><span class="p">)</span>
-<a id="__codelineno-20-10" name="__codelineno-20-10" href="#__codelineno-20-10"></a>        <span class="n">request</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">fireai_role</span> <span class="o">=</span> <span class="n">Role</span><span class="o">.</span><span class="n">ADMIN</span>
+<a id="__codelineno-20-10" name="__codelineno-20-10" href="#__codelineno-20-10"></a>        <span class="n">request</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">role</span> <span class="o">=</span> <span class="n">Role</span><span class="o">.</span><span class="n">ADMIN</span>
 <a id="__codelineno-20-11" name="__codelineno-20-11" href="#__codelineno-20-11"></a>        <span class="k">assert</span> <span class="n">get_current_role</span><span class="p">(</span><span class="n">request</span><span class="p">)</span> <span class="o">==</span> <span class="n">Role</span><span class="o">.</span><span class="n">ADMIN</span>
 <a id="__codelineno-20-12" name="__codelineno-20-12" href="#__codelineno-20-12"></a>
 <a id="__codelineno-20-13" name="__codelineno-20-13" href="#__codelineno-20-13"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">test_defaults_to_viewer</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>

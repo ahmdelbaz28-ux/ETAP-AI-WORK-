@@ -3,7 +3,7 @@
 """
 tests/test_audit_trail_v2.py
 =============================
-Comprehensive test suite for fireai/core/audit_trail.py
+Comprehensive test suite for etap/core/audit_trail.py
 
 SAFETY CRITICAL: The audit trail provides immutable, hash-chained records
 of all fire alarm design decisions. Tampering or data loss could result in
@@ -22,7 +22,6 @@ from __future__ import annotations
 import threading
 
 import pytest
-from fireai.core.audit_trail import AuditEntry, AuditTrail
 
 # ─────────────────────────────────────────────────────────────────────────────
 # AuditEntry Tests

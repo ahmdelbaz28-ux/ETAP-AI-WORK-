@@ -16,7 +16,6 @@ import unittest
 import pytest
 
 # Import from the module
-from fireai.core.qomn_self_healing_engine import (
     ERROR_WEIGHTS,
     AsyncAuditLogger,
     AuditLogger,
@@ -1305,7 +1304,7 @@ class TestV127HmacKeySecurity(unittest.TestCase):
 
     def test_no_hardcoded_default_key_when_pytest_importable(self):
         """
-        When pytest is importable + FIREAI_ENV=production + no env var,
+        When pytest is importable + APP_ENV=production + no env var,
         AsyncAuditLogger MUST raise SecurityError, NOT use the hardcoded
         b"QOMN_SECRET_KEY".
         """
@@ -1316,10 +1315,10 @@ class TestV127HmacKeySecurity(unittest.TestCase):
         self.assertIn("pytest", sys.modules, "Test precondition: pytest must be in sys.modules")
 
         # Save env state
-        saved_env = os.environ.get("FIREAI_ENV")
+        saved_env = os.environ.get("APP_ENV")
         saved_key = os.environ.get("QOMN_AUDIT_SECRET_KEY")
         try:
-            os.environ["FIREAI_ENV"] = "production"
+            os.environ["APP_ENV"] = "production"
             os.environ.pop("QOMN_AUDIT_SECRET_KEY", None)
 
             with pytest.raises(Exception) as ctx:
@@ -1329,9 +1328,9 @@ class TestV127HmacKeySecurity(unittest.TestCase):
             self.assertIn("QOMN_AUDIT_SECRET_KEY", str(ctx.value))
         finally:
             if saved_env is not None:
-                os.environ["FIREAI_ENV"] = saved_env
+                os.environ["APP_ENV"] = saved_env
             else:
-                os.environ.pop("FIREAI_ENV", None)
+                os.environ.pop("APP_ENV", None)
             if saved_key is not None:
                 os.environ["QOMN_AUDIT_SECRET_KEY"] = saved_key
 
@@ -1339,10 +1338,10 @@ class TestV127HmacKeySecurity(unittest.TestCase):
         """In dev mode, the fallback key must be RANDOM, not b"QOMN_SECRET_KEY"."""
         import os
 
-        saved_env = os.environ.get("FIREAI_ENV")
+        saved_env = os.environ.get("APP_ENV")
         saved_key = os.environ.get("QOMN_AUDIT_SECRET_KEY")
         try:
-            os.environ["FIREAI_ENV"] = "development"
+            os.environ["APP_ENV"] = "development"
             os.environ.pop("QOMN_AUDIT_SECRET_KEY", None)
             logger = AsyncAuditLogger(
                 filepath=os.path.join(tempfile.gettempdir(), "v127_dev_test.jsonl")
@@ -1357,9 +1356,9 @@ class TestV127HmacKeySecurity(unittest.TestCase):
             )
         finally:
             if saved_env is not None:
-                os.environ["FIREAI_ENV"] = saved_env
+                os.environ["APP_ENV"] = saved_env
             else:
-                os.environ.pop("FIREAI_ENV", None)
+                os.environ.pop("APP_ENV", None)
             if saved_key is not None:
                 os.environ["QOMN_AUDIT_SECRET_KEY"] = saved_key
 
@@ -1376,10 +1375,10 @@ class TestV127HmacKeySecurity(unittest.TestCase):
         """In production, QOMN_AUDIT_SECRET_KEY env var must be honored."""
         import os
 
-        saved_env = os.environ.get("FIREAI_ENV")
+        saved_env = os.environ.get("APP_ENV")
         saved_key = os.environ.get("QOMN_AUDIT_SECRET_KEY")
         try:
-            os.environ["FIREAI_ENV"] = "production"
+            os.environ["APP_ENV"] = "production"
             os.environ["QOMN_AUDIT_SECRET_KEY"] = "production-stable-key-32-bytes-long"
             logger = AsyncAuditLogger(
                 filepath=os.path.join(tempfile.gettempdir(), "v127_prod_env.jsonl")
@@ -1387,9 +1386,9 @@ class TestV127HmacKeySecurity(unittest.TestCase):
             self.assertEqual(logger.secret_key, b"production-stable-key-32-bytes-long")
         finally:
             if saved_env is not None:
-                os.environ["FIREAI_ENV"] = saved_env
+                os.environ["APP_ENV"] = saved_env
             else:
-                os.environ.pop("FIREAI_ENV", None)
+                os.environ.pop("APP_ENV", None)
             if saved_key is not None:
                 os.environ["QOMN_AUDIT_SECRET_KEY"] = saved_key
             else:

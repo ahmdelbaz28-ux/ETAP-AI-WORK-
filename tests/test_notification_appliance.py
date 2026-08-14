@@ -1,7 +1,7 @@
 # File-level '# NOSONAR' removed per NOSONAR_AUDIT.md (V143 hardening).
 # Per-line justified suppressions (e.g., '# NOSONAR — S3776: ...') are preserved.
 """
-Tests for fireai.core.notification_appliance — NFPA 72 Notification Appliances
+Tests for etap.core.notification_appliance — NFPA 72 Notification Appliances
 
 Covers all public functions and data classes:
   - NotificationDevice dataclass
@@ -25,7 +25,6 @@ from __future__ import annotations
 import math
 
 import pytest
-from fireai.core.notification_appliance import (
     _HORN_REFERENCE_DISTANCE_M,
     _MAX_CORRIDOR_STROBE_SPACING_M,
     _NAC_LOAD_FACTOR,

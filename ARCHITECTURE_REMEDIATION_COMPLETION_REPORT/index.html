@@ -705,7 +705,7 @@
 
 <h1 id="architecture-remediation-completion-report">ARCHITECTURE REMEDIATION COMPLETION REPORT</h1>
 <h2 id="executive-summary">Executive Summary</h2>
-<p>This report documents the completion of critical architecture remediations required for the FireAI Digital Twin system. All identified architectural issues have been addressed to ensure a unified, canonical engineering pipeline with proper workflow orchestration.</p>
+<p>This report documents the completion of critical architecture remediations required for the ETAP Digital Twin system. All identified architectural issues have been addressed to ensure a unified, canonical engineering pipeline with proper workflow orchestration.</p>
 <h2 id="remediation-items-completed">Remediation Items Completed</h2>
 <h3 id="1-elimination-of-workflow-side-engineering-calculations">1. Elimination of Workflow-Side Engineering Calculations</h3>
 <p><strong>Before:</strong>
@@ -717,7 +717,7 @@
 - Centralized calculation engine ensures consistency</p>
 <p><strong>Modified Files:</strong>
 - <code>backend/services/workflow_service.py</code> - Removed inline calculation methods
-- <code>fireai/core/workflow_engine.py</code> - Refactored to call canonical pipeline</p>
+- <code>etap/core/workflow_engine.py</code> - Refactored to call canonical pipeline</p>
 <h3 id="2-replacement-of-heuristic-detector-calculations">2. Replacement of Heuristic Detector Calculations</h3>
 <p><strong>Before:</strong>
 - Multiple heuristic approaches for detector placement
@@ -727,7 +727,7 @@
 - Unified approach ensures consistent results across all modules
 - Proper integration with DensityOptimizer and BuildingEngine</p>
 <p><strong>Modified Files:</strong>
-- <code>fireai/core/detector_placement_engine.py</code> - Replaced heuristics with canonical calls
+- <code>etap/core/detector_placement_engine.py</code> - Replaced heuristics with canonical calls
 - <code>qomn_fire/engine/detector_engine.py</code> - Standardized calculation methodology</p>
 <h3 id="3-workflow-orchestration-role-clarification">3. Workflow Orchestration Role Clarification</h3>
 <p><strong>Before:</strong>
@@ -738,7 +738,7 @@
 - All calculations delegated to canonical pipeline
 - Clear separation of concerns established</p>
 <p><strong>Modified Files:</strong>
-- <code>fireai/core/workflow_engine.py</code> - Restricted to orchestration duties
+- <code>etap/core/workflow_engine.py</code> - Restricted to orchestration duties
 - <code>backend/routers/workflow.py</code> - Simplified to dispatch operations only</p>
 <h3 id="4-removal-of-hardcoded-coverage-percentages">4. Removal of Hardcoded Coverage Percentages</h3>
 <p><strong>Before:</strong>
@@ -749,8 +749,8 @@
 - All modules reference canonical compliance values
 - Configurable thresholds through settings</p>
 <p><strong>Modified Files:</strong>
-- <code>fireai/core/compliance_engine.py</code> - Centralized threshold management
-- <code>fireai/core/coverage_calculator.py</code> - Removed hardcoded values</p>
+- <code>etap/core/compliance_engine.py</code> - Centralized threshold management
+- <code>etap/core/coverage_calculator.py</code> - Removed hardcoded values</p>
 <h3 id="5-unification-of-compliance-thresholds">5. Unification of Compliance Thresholds</h3>
 <p><strong>Before:</strong>
 - Different compliance thresholds across different modules
@@ -760,8 +760,8 @@
 - Consistent safety factors and margins across all calculations
 - Single source of truth for compliance standards</p>
 <p><strong>Modified Files:</strong>
-- <code>fireai/core/nfpa_engine.py</code> - Standardized compliance checking
-- <code>fireai/core/safety_checker.py</code> - Unified validation approach</p>
+- <code>etap/core/nfpa_engine.py</code> - Standardized compliance checking
+- <code>etap/core/safety_checker.py</code> - Unified validation approach</p>
 <h3 id="6-authorization-workflow-implementation">6. Authorization Workflow Implementation</h3>
 <p><strong>Before:</strong>
 - Potential <code>force=True</code> bypass mechanisms
@@ -772,7 +772,7 @@
 - All operations subject to proper authorization checks</p>
 <p><strong>Modified Files:</strong>
 - <code>backend/middleware/auth.py</code> - Enhanced authorization checks
-- <code>fireai/core/access_control.py</code> - Centralized authorization logic</p>
+- <code>etap/core/access_control.py</code> - Centralized authorization logic</p>
 <h3 id="7-qomn-router-registration">7. QOMN Router Registration</h3>
 <p><strong>Before:</strong>
 - QOMN router may not have been properly exposed
@@ -822,7 +822,7 @@
 - Parallel processing paths creating inconsistencies
 - Hardcoded values scattered throughout codebase</p>
 <p><strong>After Remediation:</strong>
-- Single canonical pipeline: fireai/core/engine.py
+- Single canonical pipeline: etap/core/engine.py
 - All modules delegate to canonical engine
 - Centralized configuration management
 - Consistent results across all interfaces</p>

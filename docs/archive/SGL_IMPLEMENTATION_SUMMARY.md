@@ -2,7 +2,7 @@
 
 ## 📋 Overview
 
-The System Governance Layer (SGL) has been successfully implemented as a hard enforcement governance layer for the FireAI platform. This mandatory execution gate ensures that every request is validated, authorized, policy-checked, traceable, and safely executed with deterministic guarantees.
+The System Governance Layer (SGL) has been successfully implemented as a hard enforcement governance layer for the ETAP platform. This mandatory execution gate ensures that every request is validated, authorized, policy-checked, traceable, and safely executed with deterministic guarantees.
 
 ## 🏗️ Architecture
 
@@ -138,4 +138,4 @@ The System Governance Layer (SGL) has been successfully implemented as a hard en
 
 The implementation follows the principle: *"If a request cannot be validated, explained, and traced — it must never execute."*
 
-The SGL provides a robust, secure, and reliable governance framework that ensures the integrity and safety of the FireAI platform while maintaining high performance and scalability.
+The SGL provides a robust, secure, and reliable governance framework that ensures the integrity and safety of the ETAP platform while maintaining high performance and scalability.

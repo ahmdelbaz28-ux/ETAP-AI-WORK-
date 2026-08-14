@@ -3,7 +3,7 @@
 """
 tests/test_room_templates.py
 ================================
-Comprehensive test suite for fireai/core/room_templates.py
+Comprehensive test suite for etap/core/room_templates.py
 
 Tests ready-made RoomSpec template functions. Each template must produce
 a valid RoomSpec with correct dimensions, occupancy type, and ceiling spec.
@@ -16,8 +16,6 @@ NFPA 72 References:
 from __future__ import annotations
 
 import pytest
-from fireai.core.nfpa72_models import CeilingSpec, CeilingType, DetectorType, RoomSpec
-from fireai.core.room_templates import (
     TEMPLATES,
     bathroom,
     corridor,
@@ -94,7 +92,6 @@ class TestWarehouseTemplate:
 
     def test_warehouse_occupancy_type_is_storage(self):
         """To create a valid warehouse room, use occupancy_type='storage'."""
-        from fireai.core.nfpa72_models import RoomSpec as NfpaRoomSpec
 
         room = NfpaRoomSpec(
             room_id="warehouse_20x30",
@@ -109,7 +106,6 @@ class TestWarehouseTemplate:
         )  # NOSONAR — S1244: import retained for re-export / API surface
 
     def test_warehouse_area(self):
-        from fireai.core.nfpa72_models import RoomSpec as NfpaRoomSpec
 
         room = NfpaRoomSpec(
             room_id="warehouse_20x30",

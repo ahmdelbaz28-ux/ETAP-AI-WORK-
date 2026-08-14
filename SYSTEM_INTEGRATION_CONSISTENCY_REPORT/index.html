@@ -574,7 +574,7 @@
           <li class="md-nav__item">
   <a href="#12-fireaipluginapi-exists-not-used-by-routers-critical" class="md-nav__link">
     <span class="md-ellipsis">
-      1.2 FireAIPluginAPI — EXISTS, NOT USED BY ROUTERS [CRITICAL]
+      1.2 ETAPPluginAPI — EXISTS, NOT USED BY ROUTERS [CRITICAL]
     </span>
   </a>
   
@@ -953,13 +953,13 @@
 
 
 <h1 id="system-integration-consistency-report">System Integration Consistency Report</h1>
-<p><strong>Platform</strong>: FireAI Digital Twin — Safety-Critical NFPA 72 Fire Alarm Engineering
+<p><strong>Platform</strong>: ETAP Digital Twin — Safety-Critical NFPA 72 Fire Alarm Engineering
 <strong>Date</strong>: 2026-06-09
 <strong>Scope</strong>: Architectural consistency only — no cosmetic issues reported
 <strong>Method</strong>: Static analysis of all runtime registration paths, computation delegation chains, and authorization enforcement</p>
 <hr />
 <h2 id="executive-summary">Executive Summary</h2>
-<p>The FireAI platform has <strong>12 architectural inconsistencies</strong> that create execution bypass risks. Three are CRITICAL — they can produce different safety outcomes between the workflow path and the canonical engine path. The remaining are HIGH — they create audit inconsistencies or leave safety-relevant modules disconnected from the runtime.</p>
+<p>The ETAP platform has <strong>12 architectural inconsistencies</strong> that create execution bypass risks. Three are CRITICAL — they can produce different safety outcomes between the workflow path and the canonical engine path. The remaining are HIGH — they create audit inconsistencies or leave safety-relevant modules disconnected from the runtime.</p>
 <p>All findings share a root cause: <strong>the system has two parallel computation paths</strong> (LangGraph workflow vs pipeline/engine) that are not cross-validated, and multiple modules exist but are never wired into the runtime.</p>
 <hr />
 <h2 id="1-modules-not-registered-in-runtime-system">1. Modules Not Registered in Runtime System</h2>
@@ -990,14 +990,14 @@
 </tr>
 <tr>
 <td>Import violations</td>
-<td>Lines 91-93, 123, 519, 590, 667, 684 directly import from <code>fireai.core.qomn_kernel</code> bypassing <code>FireAIPluginAPI</code></td>
+<td>Lines 91-93, 123, 519, 590, 667, 684 directly import from <code>etap.core.qomn_kernel</code> bypassing <code>ETAPPluginAPI</code></td>
 </tr>
 </tbody>
 </table>
 <p><strong>Risk</strong>: The QOMN kernel's HTTP endpoints are unreachable. Any client calling <code>/api/qomn/*</code> receives 404. The kernel is accessible only via direct Python imports from <code>pipeline.py</code> and <code>device_placement.py</code> — these bypass the PluginAPI contract and the pipeline's contract validation (Stage 0).</p>
-<p><strong>Remediation</strong>: Either mount the router with <code>include_router(qomn.router, prefix="/api")</code> and refactor imports to go through <code>FireAIPluginAPI</code>, or remove the orphan file entirely.</p>
+<p><strong>Remediation</strong>: Either mount the router with <code>include_router(qomn.router, prefix="/api")</code> and refactor imports to go through <code>ETAPPluginAPI</code>, or remove the orphan file entirely.</p>
 <hr />
-<h3 id="12-fireaipluginapi-exists-not-used-by-routers-critical">1.2 FireAIPluginAPI — EXISTS, NOT USED BY ROUTERS [CRITICAL]</h3>
+<h3 id="12-fireaipluginapi-exists-not-used-by-routers-critical">1.2 ETAPPluginAPI — EXISTS, NOT USED BY ROUTERS [CRITICAL]</h3>
 <table>
 <thead>
 <tr>
@@ -1008,24 +1008,24 @@
 <tbody>
 <tr>
 <td>File</td>
-<td><code>fireai/core/api_stability.py</code> (385 lines)</td>
+<td><code>etap/core/api_stability.py</code> (385 lines)</td>
 </tr>
 <tr>
 <td>Provides</td>
-<td><code>FireAIPluginAPI</code> class, versioned dataclasses (<code>PluginRoom</code>, <code>PluginDetectorLayout</code>, <code>PluginBuildingResult</code>, <code>PluginCableRoute</code>), API_VERSION="29.0.0"</td>
+<td><code>ETAPPluginAPI</code> class, versioned dataclasses (<code>PluginRoom</code>, <code>PluginDetectorLayout</code>, <code>PluginBuildingResult</code>, <code>PluginCableRoute</code>), API_VERSION="29.0.0"</td>
 </tr>
 <tr>
 <td>Status</td>
-<td>Only self-referencing import exists (line 372: circular <code>from fireai.core.api_stability import check_api_compatibility</code> inside the same file)</td>
+<td>Only self-referencing import exists (line 372: circular <code>from etap.core.api_stability import check_api_compatibility</code> inside the same file)</td>
 </tr>
 <tr>
 <td>Zero production imports</td>
-<td>No router, service, or pipeline module imports <code>FireAIPluginAPI</code></td>
+<td>No router, service, or pipeline module imports <code>ETAPPluginAPI</code></td>
 </tr>
 </tbody>
 </table>
 <p><strong>Risk</strong>: The entire plugin stability contract — the module designed to prevent breaking changes — is an orphan. Routers import directly from <code>qomn_kernel.py</code>, <code>pipeline.py</code>, <code>models.py</code> etc., bypassing the versioned interface. Any internal refactor silently breaks the API.</p>
-<p><strong>Remediation</strong>: All routers must import from <code>FireAIPluginAPI</code> instead of direct kernel imports. The PluginAPI must be the sole entry point for any external-facing code.</p>
+<p><strong>Remediation</strong>: All routers must import from <code>ETAPPluginAPI</code> instead of direct kernel imports. The PluginAPI must be the sole entry point for any external-facing code.</p>
 <hr />
 <h3 id="13-twindb-exists-not-integrated-into-pipeline-high">1.3 TwinDB — EXISTS, NOT INTEGRATED INTO PIPELINE [HIGH]</h3>
 <table>
@@ -1038,7 +1038,7 @@
 <tbody>
 <tr>
 <td>File</td>
-<td><code>fireai/core/twin_db.py</code></td>
+<td><code>etap/core/twin_db.py</code></td>
 </tr>
 <tr>
 <td>Provides</td>
@@ -1068,28 +1068,28 @@
 </thead>
 <tbody>
 <tr>
-<td><code>fireai/core/audit_log.py</code></td>
+<td><code>etap/core/audit_log.py</code></td>
 <td>NOT in <code>__init__.py</code></td>
 <td><code>safety_assurance.py:42</code> (imports <code>compute_hmac</code> only)</td>
 </tr>
 <tr>
-<td><code>fireai/core/audit_store.py</code></td>
+<td><code>etap/core/audit_store.py</code></td>
 <td><code>__init__.py</code> line 25</td>
-<td><code>fireai_core.py:29,386,667</code></td>
+<td><code>core.py:29,386,667</code></td>
 </tr>
 <tr>
-<td><code>fireai/core/audit_trail.py</code></td>
+<td><code>etap/core/audit_trail.py</code></td>
 <td><code>__init__.py</code> line 28</td>
 <td><code>__init__.py</code> export only — zero production callers</td>
 </tr>
 <tr>
-<td><code>fireai/core/audit_blockchain_bridge.py</code></td>
+<td><code>etap/core/audit_blockchain_bridge.py</code></td>
 <td><code>__init__.py</code> lines 21-23</td>
-<td><code>fireai_core.py:386,667</code></td>
+<td><code>core.py:386,667</code></td>
 </tr>
 </tbody>
 </table>
-<p><strong>Risk</strong>: Three audit modules with overlapping functionality (<code>audit_log</code>, <code>audit_store</code>, <code>audit_trail</code>) plus a fourth (<code>audit_blockchain_bridge</code>) for hash-chain storage. <code>audit_trail.py</code> is exported from <code>__init__.py</code> but has zero production callers — it's an orphan. <code>audit_log.py</code> is only used for <code>compute_hmac</code> in <code>safety_assurance.py</code>. <code>audit_store.py</code> and <code>audit_blockchain_bridge.py</code> are both called by <code>fireai_core.py</code> for different purposes. No single canonical audit path exists.</p>
+<p><strong>Risk</strong>: Three audit modules with overlapping functionality (<code>audit_log</code>, <code>audit_store</code>, <code>audit_trail</code>) plus a fourth (<code>audit_blockchain_bridge</code>) for hash-chain storage. <code>audit_trail.py</code> is exported from <code>__init__.py</code> but has zero production callers — it's an orphan. <code>audit_log.py</code> is only used for <code>compute_hmac</code> in <code>safety_assurance.py</code>. <code>audit_store.py</code> and <code>audit_blockchain_bridge.py</code> are both called by <code>core.py</code> for different purposes. No single canonical audit path exists.</p>
 <p><strong>Remediation</strong>: Consolidate into one canonical audit module. <code>audit_blockchain_bridge.py</code> (HMAC-signed hash chain) should be the single audit mechanism. <code>audit_log.py</code> and <code>audit_trail.py</code> should be deprecated. <code>audit_store.py</code> should delegate to the bridge.</p>
 <hr />
 <h3 id="15-complianceengine-exists-not-called-from-pipeline-high">1.5 ComplianceEngine — EXISTS, NOT CALLED FROM PIPELINE [HIGH]</h3>
@@ -1103,7 +1103,7 @@
 <tbody>
 <tr>
 <td>File</td>
-<td><code>fireai/validation/compliance_engine.py</code> (216 lines)</td>
+<td><code>etap/validation/compliance_engine.py</code> (216 lines)</td>
 </tr>
 <tr>
 <td>Provides</td>
@@ -1341,11 +1341,11 @@
 </tr>
 </tbody>
 </table>
-<p>All imports bypass <code>FireAIPluginAPI</code> (the versioned stability contract). If the kernel's internal API changes, the router silently breaks with no version compatibility check.</p>
+<p>All imports bypass <code>ETAPPluginAPI</code> (the versioned stability contract). If the kernel's internal API changes, the router silently breaks with no version compatibility check.</p>
 <p>Although the router is not mounted (§1.1), these direct imports represent an architectural violation: the router exists as a file that would bypass the PluginAPI if ever mounted.</p>
 <hr />
 <h3 id="33-device-placement-direct-kernel-import-high">3.3 Device Placement Direct Kernel Import [HIGH]</h3>
-<p><code>fireai/core/device_placement.py:33-40</code> imports directly from <code>qomn_kernel.py</code>, bypassing both the pipeline contract validation (Stage 0) and the PluginAPI. Device placement is a safety-critical operation — detector positions determine whether fire is detected. No physics guard, no release gate, no audit chain.</p>
+<p><code>etap/core/device_placement.py:33-40</code> imports directly from <code>qomn_kernel.py</code>, bypassing both the pipeline contract validation (Stage 0) and the PluginAPI. Device placement is a safety-critical operation — detector positions determine whether fire is detected. No physics guard, no release gate, no audit chain.</p>
 <hr />
 <h3 id="34-workflow-parser-imports-direct-parser-coupling-medium">3.4 Workflow Parser Imports — DIRECT PARSER COUPLING [MEDIUM]</h3>
 <table>
@@ -1383,7 +1383,7 @@
 <tbody>
 <tr>
 <td>File</td>
-<td><code>fireai/core/digital_twin.py:994-1089</code></td>
+<td><code>etap/core/digital_twin.py:994-1089</code></td>
 </tr>
 <tr>
 <td>Method</td>
@@ -1425,7 +1425,7 @@
 </tr>
 <tr>
 <td>Guard</td>
-<td><code>FIREAI_ENV</code> check blocks in production (HTTP 403)</td>
+<td><code>APP_ENV</code> check blocks in production (HTTP 403)</td>
 </tr>
 <tr>
 <td>Authorization in dev/test</td>
@@ -1455,7 +1455,7 @@
 <tbody>
 <tr>
 <td>File</td>
-<td><code>fireai/core/safety_assurance.py:454-479</code></td>
+<td><code>etap/core/safety_assurance.py:454-479</code></td>
 </tr>
 <tr>
 <td>Class</td>
@@ -1531,7 +1531,7 @@
 </tr>
 <tr>
 <td>API contract</td>
-<td><code>api_stability.py:FireAIPluginAPI</code></td>
+<td><code>api_stability.py:ETAPPluginAPI</code></td>
 <td>Routers import directly from kernel</td>
 </tr>
 </tbody>
@@ -1592,7 +1592,7 @@
 </tr>
 <tr>
 <td>H-4</td>
-<td>All routers must import from <code>FireAIPluginAPI</code>, not kernel internals</td>
+<td>All routers must import from <code>ETAPPluginAPI</code>, not kernel internals</td>
 <td>HIGH</td>
 <td>Silent API breakage on internal refactors</td>
 </tr>
@@ -1934,7 +1934,7 @@
 </tr>
 <tr>
 <td>H-4</td>
-<td>FireAIPluginAPI unused by routers</td>
+<td>ETAPPluginAPI unused by routers</td>
 <td>HIGH</td>
 <td>Contract bypass</td>
 <td><code>api_stability.py</code>, all routers</td>
@@ -1971,7 +1971,7 @@
 <li><strong>H-1</strong> — Consolidate audit trail to <code>audit_blockchain_bridge.py</code>.</li>
 <li><strong>H-2</strong> — Merge IEC rules into pipeline compliance check.</li>
 <li><strong>H-3</strong> — Integrate TwinDB snapshots into pipeline stages.</li>
-<li><strong>H-4 + H-5</strong> — Route all external access through <code>FireAIPluginAPI</code>. Mount or remove QOMN router.</li>
+<li><strong>H-4 + H-5</strong> — Route all external access through <code>ETAPPluginAPI</code>. Mount or remove QOMN router.</li>
 <li><strong>H-6</strong> — Parse wall thickness from DXF, remove hardcoded constant.</li>
 <li><strong>M-1</strong> — Introduce parser gateway interface.</li>
 </ol>

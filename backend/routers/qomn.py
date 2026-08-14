@@ -41,7 +41,7 @@ from backend.auth import require_permission
 from backend.rbac import Permission
 
 # V118: Canonical NEC Table 8 gauge set — MUST stay in sync with
-# fireai/core/qomn_kernel.py:NEC_TABLE8_RESISTANCE_OHM_PER_KM keys.
+# etap/core/qomn_kernel.py:NEC_TABLE8_RESISTANCE_OHM_PER_KM keys.
 # Module-level (NOT class-attr) so Pydantic V2 doesn't treat it as a
 # private model attribute (leading underscore convention).
 _NEC_TABLE8_VALID_AWG: frozenset = frozenset(
@@ -70,7 +70,7 @@ def _normalize_awg_gauge(v: Any) -> str:
     Normalize AWG input identically to the kernel; reject if not in NEC Table 8.
 
     SAFETY: This is the SINGLE point of AWG validation for the HTTP API.
-    A value passing here MUST be accepted by fireai.core.qomn_kernel.
+    A value passing here MUST be accepted by etap.core.qomn_kernel.
     A value failing here NEVER reaches the kernel. This prevents the
     prior split-brain (V58 router regex vs kernel .strip().upper().replace).
     """
@@ -98,7 +98,7 @@ _kernel_lock = threading.Lock()
 
 # ── Cached kernel exception classes ─────────────────────────────────────────
 # V116 FIX: Cache exception classes at module level instead of importing
-# inside _handle_error(). The old code did `from fireai.core.qomn_kernel
+# inside _handle_error(). The old code did `from etap.core.qomn_kernel
 # import PhysicsGuardError, ...` inside the function body. If that import
 # failed for ANY reason (module partially loaded, class renamed, corruption),
 # the ORIGINAL exception was silently replaced by an ImportError — which then
@@ -110,9 +110,6 @@ _ComputationError = None
 _ValidationError = None
 
 try:
-    from fireai.core.qomn_kernel import ComputationError as _CE  # noqa: N814
-    from fireai.core.qomn_kernel import PhysicsGuardError as _PGE  # noqa: N814
-    from fireai.core.qomn_kernel import ValidationError as _VE  # noqa: N814
 
     _PhysicsGuardError = _PGE
     _ComputationError = _CE
@@ -144,14 +141,13 @@ def _get_kernel():
         with _kernel_lock:
             if _kernel is None:  # double-checked locking
                 try:
-                    from fireai.core.qomn_kernel import QOMNKernel
 
                     _kernel = QOMNKernel()
                 except ImportError as e:
                     logger.exception(
                         "QOMNKernel import failed: %s. "
                         "All /api/qomn endpoints will return 503. "
-                        "Ensure fireai.core.qomn_kernel is available in the Python path.",
+                        "Ensure etap.core.qomn_kernel is available in the Python path.",
                         e,
                     )
                     raise HTTPException(  # NOSONAR — S8415: assignment kept for readability / debuggability  # noqa: B904
@@ -160,11 +156,11 @@ def _get_kernel():
                             "error": "QOMN_SERVICE_UNAVAILABLE",
                             "detail": (
                                 "The QOMN-FIRE engineering kernel is not available. "
-                                "The fireai.core.qomn_kernel module could not be imported."
+                                "The etap.core.qomn_kernel module could not be imported."
                             ),
-                            "missing_module": "fireai.core.qomn_kernel",  # NOSONAR — S1192: duplicated literal acceptable in this localized context
+                            "missing_module": "etap.core.qomn_kernel",  # NOSONAR — S1192: duplicated literal acceptable in this localized context
                             "action": (
-                                "Install the fireai package with the QOMN kernel. "
+                                "Install the etap package with the QOMN kernel. "
                                 "Check server logs for detailed import error."
                             ),
                         },
@@ -229,7 +225,7 @@ class VoltageDropRequest(BaseModel):
     # kernel's awg_gauge.strip().upper().replace("AWG","").strip() logic.
     # This eliminates the previous mismatch where router rejected "AWG14"
     # but kernel accepted it. Single source of truth: NEC_TABLE8_RESISTANCE
-    # keys in fireai/core/qomn_kernel.py.
+    # keys in etap/core/qomn_kernel.py.
     awg_gauge: str = Field(
         "14",
         description=(
@@ -389,7 +385,6 @@ async def place_detectors(req: RoomRequest):
     """
     try:
         try:
-            from fireai.core.device_placement import (
                 CeilingType,
                 DetectorPlacementEngine,
                 DetectorType,
@@ -404,10 +399,10 @@ async def place_detectors(req: RoomRequest):
                     "error": "QOMN_SERVICE_UNAVAILABLE",
                     "detail": (
                         "The device placement engine is not available. "
-                        "The fireai.core.device_placement module could not be imported."
+                        "The etap.core.device_placement module could not be imported."
                     ),
-                    "missing_module": "fireai.core.device_placement",
-                    "action": "Install the fireai package. Check server logs for details.",  # NOSONAR — S1192: duplicated literal acceptable in this localized context
+                    "missing_module": "etap.core.device_placement",
+                    "action": "Install the etap package. Check server logs for details.",  # NOSONAR — S1192: duplicated literal acceptable in this localized context
                 },
             )
 
@@ -532,7 +527,6 @@ async def place_duct_detector(req: DuctDetectorRequest):
     """
     try:
         try:
-            from fireai.core.device_placement import (
                 DuctDetectorSpec,
                 place_duct_detector,
             )
@@ -543,10 +537,10 @@ async def place_duct_detector(req: DuctDetectorRequest):
                     "error": "QOMN_SERVICE_UNAVAILABLE",
                     "detail": (
                         "The duct detector placement module is not available. "
-                        "The fireai.core.device_placement module could not be imported."
+                        "The etap.core.device_placement module could not be imported."
                     ),
-                    "missing_module": "fireai.core.device_placement",
-                    "action": "Install the fireai package. Check server logs for details.",
+                    "missing_module": "etap.core.device_placement",
+                    "action": "Install the etap package. Check server logs for details.",
                 },
             )
         spec = DuctDetectorSpec(
@@ -593,7 +587,6 @@ async def get_physics_guards():
     Per QOMN Specification §3 Layer 0.
     """
     try:
-        from fireai.core.qomn_kernel import (
             NFPA72_HEAT_MAX_SPACING_M,
             NFPA72_NAC_MIN_CD,
             NFPA72_NAC_SLEEPING_MIN_CD,
@@ -606,8 +599,8 @@ async def get_physics_guards():
             detail={
                 "error": "QOMN_SERVICE_UNAVAILABLE",
                 "detail": "The QOMN-FIRE engineering kernel constants are not available.",
-                "missing_module": "fireai.core.qomn_kernel",
-                "action": "Install the fireai package. Check server logs for details.",
+                "missing_module": "etap.core.qomn_kernel",
+                "action": "Install the etap package. Check server logs for details.",
             },
         ) from None
     return {
@@ -676,7 +669,6 @@ async def get_qomn_constants():
     validation and display of engineering parameters.
     """
     try:
-        from fireai.core.qomn_kernel import (
             NEC_AMPACITY_60C,
             NEC_TABLE8_RESISTANCE_OHM_PER_KM,
             NFPA72_ALARM_MINUTES,
@@ -698,8 +690,8 @@ async def get_qomn_constants():
             detail={
                 "error": "QOMN_SERVICE_UNAVAILABLE",
                 "detail": "The QOMN-FIRE engineering kernel constants are not available.",
-                "missing_module": "fireai.core.qomn_kernel",
-                "action": "Install the fireai package. Check server logs for details.",
+                "missing_module": "etap.core.qomn_kernel",
+                "action": "Install the etap package. Check server logs for details.",
             },
         ) from None
     return {
@@ -740,7 +732,6 @@ async def run_golden_tests():
     Returns pass/fail for each golden test case.
     """
     try:
-        from fireai.core.qomn_kernel import (
             compute_battery_capacity_ah,
             compute_heat_detector_spacing,
             compute_smoke_detector_spacing,
@@ -752,8 +743,8 @@ async def run_golden_tests():
             detail={
                 "error": "QOMN_SERVICE_UNAVAILABLE",
                 "detail": "The QOMN-FIRE engineering kernel functions are not available.",
-                "missing_module": "fireai.core.qomn_kernel",
-                "action": "Install the fireai package. Check server logs for details.",
+                "missing_module": "etap.core.qomn_kernel",
+                "action": "Install the etap package. Check server logs for details.",
             },
         ) from None
 
@@ -829,7 +820,6 @@ async def run_golden_tests():
     # Golden Test 6: Physics guard — negative area MUST raise
     guard_raised = False
     try:
-        from fireai.core.qomn_kernel import guard_area_m2
 
         guard_area_m2(-1.0)
     except Exception:
@@ -849,7 +839,6 @@ async def run_golden_tests():
     # Golden Test 7: Physics guard — efficiency > 1.0 MUST raise
     eff_raised = False
     try:
-        from fireai.core.qomn_kernel import guard_efficiency
 
         guard_efficiency(1.01)
     except Exception:
@@ -894,7 +883,7 @@ def _handle_error(exc: Exception) -> NoReturn:
     Detailed errors are logged server-side; clients get generic messages.
 
     V116 FIX: Use module-level cached exception classes instead of
-    importing inside this function. The old code did `from fireai.core.qomn_kernel
+    importing inside this function. The old code did `from etap.core.qomn_kernel
     import PhysicsGuardError, ...` here — if that import failed, the ORIGINAL
     exception was silently replaced by an ImportError, masking the real error.
     In a safety-critical system, this is a SAFETY HAZARD per agent.md

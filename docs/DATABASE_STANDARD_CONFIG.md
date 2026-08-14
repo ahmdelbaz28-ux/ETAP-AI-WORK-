@@ -1,7 +1,7 @@
-# BAZSPARK — Standard Database Configuration
+# ETAP — Standard Database Configuration
 
 This document describes the **standard dual-database configuration** used in
-production (HuggingFace BAZSPARK Space + Vercel `revit` project).
+production (HuggingFace ETAP Space + Vercel `revit` project).
 
 ## Architecture
 
@@ -69,7 +69,7 @@ production (HuggingFace BAZSPARK Space + Vercel `revit` project).
 
 ## Environment variables
 
-### HuggingFace Space (`ahmdelbaz28/BAZSPARK`)
+### HuggingFace Space (`ahmdelbaz28/ETAP`)
 
 | Secret | Purpose |
 |--------|---------|
@@ -78,8 +78,8 @@ production (HuggingFace BAZSPARK Space + Vercel `revit` project).
 | `SUPABASE_URL` | `https://<ref>.supabase.co` (for REST API) |
 | `SUPABASE_ANON_KEY` | Supabase anon JWT (for client-side REST) |
 | `SUPABASE_SERVICE_ROLE_KEY` | Supabase service_role JWT (for server-side REST) |
-| `FIREAI_API_KEY` | FireAI platform API key |
-| `FIREAI_SESSION_SECRET` | Session cookie signing secret |
+| `API_KEY` | ETAP platform API key |
+| `SESSION_SECRET` | Session cookie signing secret |
 | `LANGFUSE_*` | Langfuse observability (3 vars) |
 | `DIGITAL_TWIN_DB_PATH` / `UDM_DB_PATH` | SQLite fallback paths |
 | `CORS_ALLOWED_ORIGINS` | CORS allowlist |
@@ -95,9 +95,9 @@ vars (all populated with Neon credentials since Neon has IPv4):
 | `POSTGRES_PRISMA_URL` | Neon connection URL (Prisma format) |
 | `POSTGRES_URL_NON_POOLING` | Neon direct URL (no PgBouncer) |
 | `POSTGRES_HOST` | `ep-restless-surf-atp743eu.c-9.us-east-1.aws.neon.tech` |
-| `POSTGRES_USER` | `bazspark_owner` |
+| `POSTGRES_USER` | `etap_owner` |
 | `POSTGRES_PASSWORD` | `npg_DxS8IsBMAg6Q` |
-| `POSTGRES_DATABASE` | `bazspark` |
+| `POSTGRES_DATABASE` | `etap` |
 | `NEXT_PUBLIC_SUPABASE_URL` | `https://<ref>.supabase.co` |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon JWT |
 
@@ -106,7 +106,7 @@ vars (all populated with Neon credentials since Neon has IPv4):
 ### HF Space health
 
 ```bash
-curl https://ahmdelbaz28-bazspark.hf.space/api/health
+curl https://ahmdelbaz28-etap.hf.space/api/health
 # Expected:
 #   "status": "ok"
 #   "database": "connected"   ← was "disconnected" before this fix
@@ -117,7 +117,7 @@ curl https://ahmdelbaz28-bazspark.hf.space/api/health
 
 ```bash
 export DATABASE_URL="postgresql://postgres:<PW>@db.<ref>.supabase.co:5432/postgres?sslmode=require"
-export NEON_DATABASE_URL="postgresql://bazspark_owner:<PW>@ep-xxx.c-9.us-east-1.aws.neon.tech/bazspark?sslmode=require"
+export NEON_DATABASE_URL="postgresql://etap_owner:<PW>@ep-xxx.c-9.us-east-1.aws.neon.tech/etap?sslmode=require"
 python -c "from backend.database import get_db; print(get_db().list_projects(page=1, limit=1))"
 # Expected log line:
 #   Primary DATABASE_URL failed (OperationalError); falling back to NEON_DATABASE_URL ...
@@ -147,8 +147,8 @@ python -c "from backend.database import get_db; print(get_db().list_projects(pag
 |-------|-------|
 | Project ID | `divine-bar-17848047` |
 | Branch | `br-round-mode-at9cfb4a` (primary, name=`production`) |
-| Database | `bazspark` |
-| Role | `bazspark_owner` |
+| Database | `etap` |
+| Role | `etap_owner` |
 | Region | `aws-us-east-1` |
 | Postgres version | 18.4 |
 | Direct host (IPv4) | `ep-restless-surf-atp743eu.c-9.us-east-1.aws.neon.tech` |

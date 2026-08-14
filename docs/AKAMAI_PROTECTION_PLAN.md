@@ -1,4 +1,4 @@
-# Akamai Protection Plan — FireAI / BAZSPARK
+# Akamai Protection Plan — ETAP / ETAP
 
 > **المعمارية الكاملة لحماية التطبيق بـ Akamai**
 > Status: Draft v1.0 — 2026-07-09
@@ -9,7 +9,7 @@
 
 ## 1. نظرة عامة (Executive Summary)
 
-الهدف هو حماية BAZSPARK (FireAI Safety-Critical Platform) باستخدام Akamai
+الهدف هو حماية ETAP (ETAP Safety-Critical Platform) باستخدام Akamai
 كمستوى أمامي (Edge) يعمل كـ:
 
 1. **CDN** — تسريع المحتوى الثابت (Frontend React assets)
@@ -31,10 +31,10 @@
                            │ HTTPS
                            ▼
 ┌────────────────────────────────────────────────────────────────────────┐
-│                    Akamai Edge (api.bazspark.com)                      │
+│                    Akamai Edge (api.etap.com)                      │
 │                                                                        │
 │  ┌──────────────────────────────────────────────────────────────────┐  │
-│  │  Property Manager (Property: prp_BAZSPARK)                       │  │
+│  │  Property Manager (Property: prp_ETAP)                       │  │
 │  │                                                                  │  │
 │  │  ┌────────────────┐  ┌──────────────┐  ┌──────────────────────┐ │  │
 │  │  │ Kona WAF       │  │ Bot Manager  │  │ API Security         │ │  │
@@ -89,8 +89,8 @@
 |---------|-------|
 | **Akamai account + contract** | Akamai خدمة enterprise مدفوعة، تحتاج توقيع contract |
 | **Akamai API credentials** (`{contract_id}`, `{group_id}`, `{property_id}`) | لاستدعاء Property Manager API |
-| **Edge hostname** (مثل `api.bazspark.com.edgeservices.net`) | يجب شراؤه عبر Akamai Control Center |
-| **DNS access** لـ `bazspark.com` | لتحويل CNAME إلى Akamai edge |
+| **Edge hostname** (مثل `api.etap.com.edgeservices.net`) | يجب شراؤه عبر Akamai Control Center |
+| **DNS access** لـ `etap.com` | لتحويل CNAME إلى Akamai edge |
 | **TLS certificate** على Akamai (Let's Encrypt أو Akamai-managed) | لـ HTTPS termination عند الـ edge |
 
 ### 3.2 ما سأنفذه بمفردي (لا يحتاج تدخلك)
@@ -131,7 +131,7 @@
 | المهمة | الملف |
 |--------|------|
 | Property Manager main config | `deploy/akamai/property-main.json` |
-| Hostname config (api.bazspark.com) | `deploy/akamai/hostnames.json` |
+| Hostname config (api.etap.com) | `deploy/akamai/hostnames.json` |
 | Origin config (HF Space + Vercel) | `deploy/akamai/origins.json` |
 | Behavior templates (caching, TLS, etc.) | `deploy/akamai/behaviors/` |
 | Activation workflow script | `deploy/akamai/activate.py` |
@@ -141,7 +141,7 @@
 | المملف | الوصف |
 |--------|------|
 | `deploy/akamai/waf/kona-config.json` | Kona Rule Set configuration |
-| `deploy/akamai/waf/custom-rules.json` | Custom rules لـ FireAI-specific threats |
+| `deploy/akamai/waf/custom-rules.json` | Custom rules لـ ETAP-specific threats |
 | `deploy/akamai/waf/api-security.json` | API Security schema-based protection |
 | `deploy/akamai/waf/bot-manager.json` | Bot Manager configuration |
 | `deploy/akamai/waf/account-protector.json` | Account Protector (credential stuffing) |
@@ -247,7 +247,7 @@ def get_remote_address(request):
 ### ما تحتاج فعله (بعد إكمالي):
 1. 📧 **التواصل مع Akamai sales** لإنشاء account + contract
 2. 🔑 **إنشاء Akamai API credentials** (EdgeGrid authentication)
-3. 🌐 **شراء/تكوين domain** `api.bazspark.com` (إذا لم يكن موجوداً)
+3. 🌐 **شراء/تكوين domain** `api.etap.com` (إذا لم يكن موجوداً)
 4. 📋 **استيراد قوالب JSON** في Akamai Control Center
 5. ✅ **تفعيل Property** على شبكة Akamai (staging → production)
 6. 🔄 **تغيير DNS** من HF Space مباشرة إلى Akamai edge hostname
@@ -257,7 +257,7 @@ def get_remote_address(request):
 
 ## 9. التوافق مع `agent.md`
 
-هذه الخطة متوافقة مع بروتوكول `agent.md` (FireAI Safety-Critical Engineering):
+هذه الخطة متوافقة مع بروتوكول `agent.md` (ETAP Safety-Critical Engineering):
 
 | القاعدة | الالتزام |
 |---------|---------|

@@ -1,4 +1,4 @@
-"""FireAI Backend API Routers."""
+"""ETAP Backend API Routers."""
 
 from __future__ import annotations
 

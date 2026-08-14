@@ -18,12 +18,12 @@ on:
   pull_request:
     branches: [main]
     paths:
-      - 'fireai/core/qomn_kernel.py'
-      - 'fireai/core/nfpa72_*.py'
-      - 'fireai/core/voltage_drop.py'
-      - 'fireai/core/battery_aging_derating.py'
-      - 'fireai/core/device_placement.py'
-      - 'fireai/constants/**'
+      - 'etap/core/qomn_kernel.py'
+      - 'etap/core/nfpa72_*.py'
+      - 'etap/core/voltage_drop.py'
+      - 'etap/core/battery_aging_derating.py'
+      - 'etap/core/device_placement.py'
+      - 'etap/constants/**'
       - 'qomn_fire/core/constants.py'
       - 'qomn_conduit/**'
       - 'facp_system/**'

@@ -3,7 +3,7 @@
 """
 tests/test_delta_cache.py
 ==========================
-Comprehensive test suite for fireai/core/delta_cache.py
+Comprehensive test suite for etap/core/delta_cache.py
 
 SAFETY CRITICAL: The delta cache ensures that changed rooms are ALWAYS
 re-analyzed. If cache invalidation fails, stale results could be used
@@ -31,7 +31,6 @@ import threading
 import time
 
 import pytest
-from fireai.core.delta_cache import (
     _ALGORITHM_VERSION,
     CacheEntry,
     DeltaCache,

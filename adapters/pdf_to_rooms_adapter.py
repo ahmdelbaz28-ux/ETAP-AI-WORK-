@@ -1,7 +1,7 @@
 # File-level suppression removed per audit (V143 hardening).
 # Per-line justified suppressions (e.g., '# noqa: S3776 ...') are preserved.
 """
-adapters/pdf_to_rooms_adapter — PDF wall extraction to FireAI Room adapter.
+adapters/pdf_to_rooms_adapter — PDF wall extraction to ETAP Room adapter.
 
 Bridges the GeometryExtractor (which returns raw wall geometry) to the
 workflow engine's Room model. This adapter extracts closed wall loops,

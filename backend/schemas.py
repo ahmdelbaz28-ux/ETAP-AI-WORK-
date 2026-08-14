@@ -1,5 +1,5 @@
 """
-FireAI Digital Twin - Pydantic V2 API Schemas.
+ETAP Digital Twin - Pydantic V2 API Schemas.
 =============================================
 Maps to core/models.py dataclasses for REST API request/response validation.
 """

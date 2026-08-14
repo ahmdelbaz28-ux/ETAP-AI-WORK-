@@ -1,7 +1,7 @@
 # File-level suppression removed per audit (V143 hardening).
 # Per-line justified suppressions (e.g., '# noqa: S3776 ...') are preserved.
 """
-word_parser.py — FireAI Word Specification Parser
+word_parser.py — ETAP Word Specification Parser
 Parses project specifications from Word documents.
 
 Extracts:
@@ -17,7 +17,7 @@ import re
 from dataclasses import dataclass, field
 from typing import Dict, List
 
-logger = logging.getLogger("fireai.word_parser")
+logger = logging.getLogger("etap.word_parser")
 
 
 # ═══════════════════════════════════════════════════════
@@ -97,7 +97,7 @@ class WordParser:
 
         Args:
             file_path: Path to .docx file. MUST be under
-                FIREAI_ALLOWED_UPLOAD_DIRS (V124 security hardening).
+                ALLOWED_UPLOAD_DIRS (V124 security hardening).
 
         Returns:
             WordParseResult with extracted info
@@ -112,7 +112,7 @@ class WordParser:
 
         _ALLOWED_EXTENSIONS = frozenset({".docx", ".doc"})
         _MAX_FILE_SIZE_BYTES = int(
-            os.getenv("FIREAI_WORD_MAX_FILE_SIZE_BYTES", 25 * 1024 * 1024)
+            os.getenv("WORD_MAX_FILE_SIZE_BYTES", 25 * 1024 * 1024)
         )  # 25 MB default
         try:
             safe_path = validate_input_path(

@@ -4,7 +4,7 @@
 tests/test_international_reg_selector.py
 ============================================
 Comprehensive test suite for:
-  - fireai/core/international_reg_selector.py
+  - etap/core/international_reg_selector.py
 
 SAFETY CRITICAL: Regulatory jurisdiction selection is a LEGAL GATE.
 Wrong jurisdiction = illegal design = potential criminal liability.
@@ -25,7 +25,6 @@ References:
 from __future__ import annotations
 
 import pytest
-from fireai.core.international_reg_selector import (
     COUNTRY_FRAMEWORK_MAP,
     DIVISION_TO_ZONE,
     ZONE_TO_DIVISION,
@@ -41,7 +40,6 @@ from fireai.core.international_reg_selector import (
     convert_division_to_zone,
     resolve,
 )
-from fireai.core.models_v21 import RegSelectorResult, RegulatoryFramework
 
 # Enums
 # ─────────────────────────────────────────────────────────────────────────────

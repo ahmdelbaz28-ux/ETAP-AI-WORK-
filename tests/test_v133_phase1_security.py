@@ -83,7 +83,7 @@ class TestCSRFMiddleware:
         from backend.security_csrf import build_csrf_cookie_header
 
         header = build_csrf_cookie_header("test_token", is_https=True)  # NOSONAR - python:S930
-        assert "fireai_csrf_token=test_token" in header
+        assert "csrf_token=test_token" in header
         assert "SameSite=Strict" in header
         assert "Secure" in header
 
@@ -91,7 +91,7 @@ class TestCSRFMiddleware:
         from backend.security_csrf import build_csrf_cookie_header
 
         header = build_csrf_cookie_header("test_token", is_https=False)  # NOSONAR - python:S930
-        assert "fireai_csrf_token=test_token" in header
+        assert "csrf_token=test_token" in header
         assert "SameSite=Strict" in header
 
 

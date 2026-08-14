@@ -20,7 +20,7 @@
     
     
       
-        <title>FireAI Digital Twin — Production Readiness Report V131 - AhmedETAP Documentation</title>
+        <title>ETAP Digital Twin — Production Readiness Report V131 - AhmedETAP Documentation</title>
       
     
     
@@ -70,7 +70,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#fireai-digital-twin-production-readiness-report-v131" class="md-skip">
+        <a href="#etap-digital-twin-production-readiness-report-v131" class="md-skip">
           Skip to content
         </a>
       
@@ -104,7 +104,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              FireAI Digital Twin — Production Readiness Report V131
+              ETAP Digital Twin — Production Readiness Report V131
             
           </span>
         </div>
@@ -802,7 +802,7 @@
   
 
 
-<h1 id="fireai-digital-twin-production-readiness-report-v131">FireAI Digital Twin — Production Readiness Report V131</h1>
+<h1 id="etap-digital-twin-production-readiness-report-v131">ETAP Digital Twin — Production Readiness Report V131</h1>
 <p><strong>Date</strong>: June 9, 2026
 <strong>Version</strong>: 1.0.0 (Internal dev cycle V55/V131)
 <strong>Auditor</strong>: Qwen Code — Chief Architect, QA, DevOps, Security, Tech Writer, Release Manager</p>
@@ -823,7 +823,7 @@
 <td>1</td>
 <td>Windows path assertion failures</td>
 <td>Made <code>_resolve_db_path</code> tests cross-platform using <code>os.path.abspath</code> checks</td>
-<td><code>tests/test_fireai_core_v2.py</code></td>
+<td><code>tests/test_core_v2.py</code></td>
 </tr>
 <tr>
 <td>2</td>
@@ -841,7 +841,7 @@
 <td>4</td>
 <td>DeltaCache connection leak on exception</td>
 <td><code>_load_from_db()</code> and <code>persist()</code> now use <code>try/finally</code> with <code>conn.close()</code> in finally block</td>
-<td><code>fireai/core/delta_cache.py</code></td>
+<td><code>etap/core/delta_cache.py</code></td>
 </tr>
 <tr>
 <td>5</td>
@@ -968,7 +968,7 @@
 <h3 id="docker">Docker</h3>
 <ul>
 <li>✅ Dockerfile present (multi-stage, non-root user, health check)</li>
-<li>✅ docker-compose.yml validated (requires FIREAI_API_KEY and FIREAI_EVIDENCE_HMAC_KEY)</li>
+<li>✅ docker-compose.yml validated (requires API_KEY and EVIDENCE_HMAC_KEY)</li>
 <li>✅ Container runs with read-only filesystem, no-new-privileges, tmpfs for /tmp</li>
 </ul>
 <hr />
@@ -1272,7 +1272,7 @@
 </tr>
 <tr>
 <td>Non-root user</td>
-<td>✅ fireai user (UID 1000)</td>
+<td>✅ etap user (UID 1000)</td>
 </tr>
 <tr>
 <td>Read-only filesystem</td>
@@ -1380,10 +1380,10 @@
 <hr />
 <h2 id="changes-made-files-modified">Changes Made (files modified)</h2>
 <ol>
-<li><code>tests/test_fireai_core_v2.py</code> — Cross-platform path assertions</li>
+<li><code>tests/test_core_v2.py</code> — Cross-platform path assertions</li>
 <li><code>tests/test_audit_log.py</code> — Added <code>log.close()</code> for Windows cleanup</li>
 <li><code>tests/test_delta_cache.py</code> — PermissionError-safe cleanup</li>
-<li><code>fireai/core/delta_cache.py</code> — <code>try/finally</code> connection cleanup in <code>_load_from_db()</code> and <code>persist()</code></li>
+<li><code>etap/core/delta_cache.py</code> — <code>try/finally</code> connection cleanup in <code>_load_from_db()</code> and <code>persist()</code></li>
 <li><code>backend/services/severe_weather_service.py</code> — defusedxml import</li>
 <li><code>backend/services/__init__.py</code> — Conditional workflow/memory imports</li>
 <li><code>backend/app.py</code> — Conditional router mounting, conditional shutdown handlers</li>

@@ -3,7 +3,7 @@
 """
 tests/test_contracts_v2.py
 ===========================
-Comprehensive test suite for fireai/core/contracts.py
+Comprehensive test suite for etap/core/contracts.py
 
 SAFETY CRITICAL: Contract validation prevents injection of forged
 compliance data (area, spacing, is_compliant) through API payloads.
@@ -23,7 +23,6 @@ import json
 import os
 
 import pytest
-from fireai.core.contracts import (
     CONTRACT_VERSION,
     DEFAULT_FEATURE_FLAGS,
     FORBIDDEN_DERIVED_FIELDS,
@@ -257,31 +256,31 @@ class TestFeatureFlags:
         assert is_feature_enabled("NONEXISTENT_FLAG") is False
 
     def test_env_override(self):
-        """FIREAI_FEATURE_FLAGS env var should override defaults."""
-        original = os.environ.get("FIREAI_FEATURE_FLAGS")
+        """FEATURE_FLAGS env var should override defaults."""
+        original = os.environ.get("FEATURE_FLAGS")
         try:
-            os.environ["FIREAI_FEATURE_FLAGS"] = json.dumps({"SMOKE_SIMULATION": True})
+            os.environ["FEATURE_FLAGS"] = json.dumps({"SMOKE_SIMULATION": True})
             flags = get_feature_flags()
             assert flags[FeatureFlag.SMOKE_SIMULATION] is True
         finally:
             if original is not None:
-                os.environ["FIREAI_FEATURE_FLAGS"] = original
+                os.environ["FEATURE_FLAGS"] = original
             else:
-                os.environ.pop("FIREAI_FEATURE_FLAGS", None)
+                os.environ.pop("FEATURE_FLAGS", None)
 
     def test_env_invalid_json_ignored(self):
         """Invalid JSON in env var should be silently ignored."""
-        original = os.environ.get("FIREAI_FEATURE_FLAGS")
+        original = os.environ.get("FEATURE_FLAGS")
         try:
-            os.environ["FIREAI_FEATURE_FLAGS"] = "not-json"
+            os.environ["FEATURE_FLAGS"] = "not-json"
             flags = get_feature_flags()
             # Should still return defaults
             assert isinstance(flags, dict)
         finally:
             if original is not None:
-                os.environ["FIREAI_FEATURE_FLAGS"] = original
+                os.environ["FEATURE_FLAGS"] = original
             else:
-                os.environ.pop("FIREAI_FEATURE_FLAGS", None)
+                os.environ.pop("FEATURE_FLAGS", None)
 
 
 # ─────────────────────────────────────────────────────────────────────────────

@@ -10,7 +10,7 @@
 ## Executive Summary
 
 This document describes code changes made to safety-critical fire protection
-calculations in the BAZSPARK platform. These changes were made by an AI
+calculations in the ETAP platform. These changes were made by an AI
 assistant to fix bugs, but they affect calculations that directly impact
 life-safety decisions per NFPA 72, NFPA 101, and IEC 60079-10-1.
 
@@ -23,7 +23,7 @@ system design.**
 ## Change 1: `q_max_from_fire_load` — Peak HRR Calculation
 
 ### File
-`fireai/core/scenario_engine.py`, function `FirePhysics.q_max_from_fire_load()`
+`etap/core/scenario_engine.py`, function `FirePhysics.q_max_from_fire_load()`
 
 ### What Changed
 **Before (BUGGY):** The function computed `_t_burn` and `_total_mj` but had
@@ -84,7 +84,7 @@ The formula implements the steady-state HRR cap from the fuel-limited phase:
 ## Change 2: `ProofCertificate` — Missing `effective_radius_m` Field
 
 ### File
-`fireai/core/spatial_engine/proof_certificate.py`, class `ProofCertificate`
+`etap/core/spatial_engine/proof_certificate.py`, class `ProofCertificate`
 
 ### What Changed
 **Before (BUGGY):** The `ProofCertificate` dataclass was missing the
@@ -141,7 +141,7 @@ point is within R of a detector. QED.
    addition to mathematical proofs.
 3. **Should the hash computation include more fields?** The current
    `compute_hash()` includes effective_radius_m, but should it also include
-   the timestamp and fireai_version for audit trail completeness?
+   the timestamp and version for audit trail completeness?
 4. **NFPA 72 §17.7.4.2.3.1 says R = 0.7 × S.** Is this the correct reference
    for all detector types (smoke, heat, flame), or are there exceptions?
 
@@ -155,7 +155,7 @@ point is within R of a detector. QED.
 ## Change 3: `check_voltage_drop` — DC Return Path Factor (×2)
 
 ### File
-`fireai/core/nfpa72_calculations.py`, function `check_voltage_drop()`
+`etap/core/nfpa72_calculations.py`, function `check_voltage_drop()`
 
 ### What Changed
 **Before (BUGGY):** The standalone `check_voltage_drop()` function computed
@@ -164,7 +164,7 @@ the ×2 factor for the DC return path. This understated voltage drop by 50%.
 
 **After (FIXED):**
 ```python
-from fireai.constants.nfpa72 import DC_RETURN_PATH_FACTOR  # = 2.0
+from etap.constants.nfpa72 import DC_RETURN_PATH_FACTOR  # = 2.0
 
 total_resistance = cable_resistance_ohm_per_m * cable_length_m * DC_RETURN_PATH_FACTOR
 ```
@@ -203,7 +203,7 @@ this factor — this fix aligns the standalone function.
 ## Change 4: HAC Classification Engine — `Vz_diluted_m3` Formula
 
 ### File
-`fireai/core/hac_classification_engine.py`, function `hazardous_zone_extent()`
+`etap/core/hac_classification_engine.py`, function `hazardous_zone_extent()`
 
 ### What Changed
 The function now computes `Vz_diluted_m3` (volume of hazardous atmosphere
@@ -391,22 +391,22 @@ Until ALL checkboxes above are ticked and dated, this platform is
 
 ```bash
 # Run all safety-critical tests (must pass before engineer review)
-export FIREAI_SESSION_SECRET="$(python -c 'import secrets; print(secrets.token_urlsafe(64))')"
-export FIREAI_API_KEY="ci-test-admin-key"
+export SESSION_SECRET="$(python -c 'import secrets; print(secrets.token_urlsafe(64))')"
+export API_KEY="ci-test-admin-key"
 export CORS_ALLOWED_ORIGINS="http://localhost:3000"
 export DATABASE_URL="sqlite:////tmp/test.db"
 export DIGITAL_TWIN_DB_PATH="/tmp/test.db"
 export UDM_DB_PATH="/tmp/udm.db"
 export SECRET_KEY="ci-test-hmac-secret-key-32-chars-minimum!!"
-export FIREAI_HMAC_SECRET_KEY="ci-test-hmac-key-for-audit-trail"
+export HMAC_SECRET_KEY="ci-test-hmac-key-for-audit-trail"
 
 # Safety-critical modules (must all pass)
 python -m pytest \
     tests/test_proof_certificate.py \
     tests/test_hac_classification_engine.py \
-    fireai/core/tests/test_analysis_pipeline.py \
-    fireai/core/tests/test_nfpa72_calculations.py \
-    tests/test_fireai_kernel_v30.py \
+    etap/core/tests/test_analysis_pipeline.py \
+    etap/core/tests/test_nfpa72_calculations.py \
+    tests/test_kernel_v30.py \
     tests/test_scenario_engine.py \
     -v --tb=short --no-cov
 

@@ -1,4 +1,4 @@
-# Akamai Testing Checklist — BAZSPARK
+# Akamai Testing Checklist — ETAP
 
 > **قائمة اختبار ما بعد نشر Akamai**
 > Run every test in this checklist after each Akamai Property activation
@@ -9,17 +9,17 @@
 ## 1. اختبارات الاتصال الأساسية (Basic Connectivity)
 
 ### 1.1 DNS Resolution
-- [ ] `dig api.bazspark.com` يعيد IPs تابعة لـ Akamai (23.x.x.x أو أي نطاق Akamai)
-- [ ] `dig api.bazspark.com +short` يعيد CNAME إلى `*.edgeservices.net`
-- [ ] `dig bazspark.com` يعيد Akamai apex IPs
+- [ ] `dig api.etap.com` يعيد IPs تابعة لـ Akamai (23.x.x.x أو أي نطاق Akamai)
+- [ ] `dig api.etap.com +short` يعيد CNAME إلى `*.edgeservices.net`
+- [ ] `dig etap.com` يعيد Akamai apex IPs
 
 ### 1.2 HTTPS Connection
-- [ ] `curl -I https://api.bazspark.com` يعود `200 OK` أو `401 Unauthorized` (لكن ليس 5xx)
-- [ ] TLS 1.3 مُفعّل: `openssl s_client -connect api.bazspark.com:443 -tls1_3`
-- [ ] شهادة TLS صالحة: `echo | openssl s_client -connect api.bazspark.com:443 2>/dev/null | openssl x509 -noout -dates`
+- [ ] `curl -I https://api.etap.com` يعود `200 OK` أو `401 Unauthorized` (لكن ليس 5xx)
+- [ ] TLS 1.3 مُفعّل: `openssl s_client -connect api.etap.com:443 -tls1_3`
+- [ ] شهادة TLS صالحة: `echo | openssl s_client -connect api.etap.com:443 2>/dev/null | openssl x509 -noout -dates`
 
 ### 1.3 Health Endpoint
-- [ ] `curl https://api.bazspark.com/api/health` يعود JSON صالح
+- [ ] `curl https://api.etap.com/api/health` يعود JSON صالح
 - [ ] الحالة: `"status": "ok"`
 - [ ] قاعدة البيانات: `"database": "connected"`
 - [ ] Uptime: `> 60` seconds
@@ -29,7 +29,7 @@
 ## 2. اختبارات Akamai Edge (Edge Headers)
 
 ### 2.1 EdgeWorker: inject-headers
-- [ ] `curl -I https://api.bazspark.com/api/health` يحتوي على:
+- [ ] `curl -I https://api.etap.com/api/health` يحتوي على:
   ```
   X-Frame-Options: DENY
   X-Content-Type-Options: nosniff
@@ -40,11 +40,11 @@
   ```
 
 ### 2.2 EdgeWorker: verify-origin
-- [ ] `curl -I https://api.bazspark.com/api/health` يحتوي على:
+- [ ] `curl -I https://api.etap.com/api/health` يحتوي على:
   ```
   X-Akamai-Translated-Request: true
   ```
-- [ ] `curl -I https://api.bazspark.com/api/health` يحتوي على:
+- [ ] `curl -I https://api.etap.com/api/health` يحتوي على:
   ```
   X-Akamai-GRN: <request_id>
   ```
@@ -59,33 +59,33 @@
 ## 3. اختبارات WAF / Kona Rules
 
 ### 3.1 SQL Injection Blocking
-- [ ] **DENY**: `curl "https://api.bazspark.com/api/v1/projects?id=1' OR '1'='1"`
+- [ ] **DENY**: `curl "https://api.etap.com/api/v1/projects?id=1' OR '1'='1"`
   - متوقع: `403 Forbidden` مع `X-Akamai-WAF: DENY`
-- [ ] **DENY**: `curl "https://api.bazspark.com/api/v1/projects?id=1; DROP TABLE projects;--"`
-- [ ] **DENY**: `curl -X POST https://api.bazspark.com/api/v1/projects -d '{"name":"test\"; DROP TABLE users;--"}'`
+- [ ] **DENY**: `curl "https://api.etap.com/api/v1/projects?id=1; DROP TABLE projects;--"`
+- [ ] **DENY**: `curl -X POST https://api.etap.com/api/v1/projects -d '{"name":"test\"; DROP TABLE users;--"}'`
 
 ### 3.2 XSS Blocking
-- [ ] **DENY**: `curl "https://api.bazspark.com/api/v1/projects?name=<script>alert(1)</script>"`
-- [ ] **DENY**: `curl "https://api.bazspark.com/api/v1/projects?name=<img src=x onerror=alert(1)>"`
+- [ ] **DENY**: `curl "https://api.etap.com/api/v1/projects?name=<script>alert(1)</script>"`
+- [ ] **DENY**: `curl "https://api.etap.com/api/v1/projects?name=<img src=x onerror=alert(1)>"`
 
 ### 3.3 Path Traversal Blocking
-- [ ] **DENY**: `curl "https://api.bazspark.com/api/v1/projects/../../../etc/passwd"`
-- [ ] **DENY**: `curl "https://api.bazspark.com/api/v1/projects/..%2F..%2Fetc%2Fpasswd"`
+- [ ] **DENY**: `curl "https://api.etap.com/api/v1/projects/../../../etc/passwd"`
+- [ ] **DENY**: `curl "https://api.etap.com/api/v1/projects/..%2F..%2Fetc%2Fpasswd"`
 
 ### 3.4 Command Injection Blocking
-- [ ] **DENY**: `curl "https://api.bazspark.com/api/v1/projects?id=1;cat /etc/passwd"`
-- [ ] **DENY**: `curl "https://api.bazspark.com/api/v1/projects?id=1|whoami"`
+- [ ] **DENY**: `curl "https://api.etap.com/api/v1/projects?id=1;cat /etc/passwd"`
+- [ ] **DENY**: `curl "https://api.etap.com/api/v1/projects?id=1|whoami"`
 
 ### 3.5 Attack Tool User-Agent Blocking
-- [ ] **DENY**: `curl -A "sqlmap/1.5" https://api.bazspark.com/api/v1/projects`
-- [ ] **DENY**: `curl -A "nikto/2.1" https://api.bazspark.com/api/v1/projects`
-- [ ] **DENY**: `curl -A "masscan" https://api.bazspark.com/api/v1/projects`
+- [ ] **DENY**: `curl -A "sqlmap/1.5" https://api.etap.com/api/v1/projects`
+- [ ] **DENY**: `curl -A "nikto/2.1" https://api.etap.com/api/v1/projects`
+- [ ] **DENY**: `curl -A "masscan" https://api.etap.com/api/v1/projects`
 
 ### 3.6 HTTP Method Restriction
-- [ ] **DENY**: `curl -X TRACE https://api.bazspark.com/`
-- [ ] **DENY**: `curl -X CONNECT https://api.bazspark.com/`
-- [ ] **ALLOW**: `curl -X GET https://api.bazspark.com/api/health`
-- [ ] **ALLOW**: `curl -X POST https://api.bazspark.com/api/v1/auth/login -H "Content-Type: application/json" -d '{}'`
+- [ ] **DENY**: `curl -X TRACE https://api.etap.com/`
+- [ ] **DENY**: `curl -X CONNECT https://api.etap.com/`
+- [ ] **ALLOW**: `curl -X GET https://api.etap.com/api/health`
+- [ ] **ALLOW**: `curl -X POST https://api.etap.com/api/v1/auth/login -H "Content-Type: application/json" -d '{}'`
 
 ---
 
@@ -97,7 +97,7 @@
   for i in {1..350}; do
     curl -s -o /dev/null -w "%{http_code}\n" \
       -H "X-API-Key: $API_KEY" \
-      https://api.bazspark.com/api/v1/projects
+      https://api.etap.com/api/v1/projects
   done | sort | uniq -c
   ```
   - متوقع: 300×`200` + 50×`429`
@@ -108,7 +108,7 @@
   ```bash
   for i in {1..15}; do
     curl -s -o /dev/null -w "%{http_code}\n" \
-      -X POST https://api.bazspark.com/api/v1/auth/login \
+      -X POST https://api.etap.com/api/v1/auth/login \
       -H "Content-Type: application/json" \
       -d '{"api_key":"invalid"}'
   done | sort | uniq -c
@@ -118,7 +118,7 @@
 ### 4.3 Captcha After Failed Logins
 - [ ] بعد 3 failed logins، الطلب التالي يحتوي على CAPTCHA challenge:
   ```bash
-  curl -v -X POST https://api.bazspark.com/api/v1/auth/login \
+  curl -v -X POST https://api.etap.com/api/v1/auth/login \
     -H "Content-Type: application/json" \
     -d '{"api_key":"invalid"}'
   # Look for: 200 OK with HTML body containing "captcha"
@@ -134,7 +134,7 @@
   - `Akamai-Bot-Category` = `HUMAN`
 
 ### 5.2 Scripted Bot Detection
-- [ ] `curl -A "Python/3.9 requests/2.28" https://api.bazspark.com/api/v1/projects` → تحقق من:
+- [ ] `curl -A "Python/3.9 requests/2.28" https://api.etap.com/api/v1/projects` → تحقق من:
   - `Akamai-Bot-Score` header (60-100 = bot)
   - أو `403 Forbidden` على endpoints حساسة
 
@@ -154,17 +154,17 @@
 
 ### 6.1 Sanctioned Country Block
 - [ ] استخدم VPN (مثل NordVPN) بـ server في إيران:
-  - `curl https://api.bazspark.com/api/v1/projects` → `403 Forbidden`
+  - `curl https://api.etap.com/api/v1/projects` → `403 Forbidden`
   - الـ body: `{"code": "GEO_BLOCKED", "message": "Access from IR is not permitted"}`
 - [ ] كرر لبقية الدول: RU, KP, SY, CU, VE, BY
 
 ### 6.2 Allowed Country Access
 - [ ] بدون VPN (من مصر مثلاً):
-  - `curl https://api.bazspark.com/api/health` → `200 OK`
+  - `curl https://api.etap.com/api/health` → `200 OK`
   - `Akamai-Geo-Country: EG` header موجود
 
 ### 6.3 Health Endpoint Exception
-- [ ] من دولة ممنوعة، `curl https://api.bazspark.com/api/health` → `200 OK`
+- [ ] من دولة ممنوعة، `curl https://api.etap.com/api/health` → `200 OK`
   - (الاستثناء مسموح)
 
 ---
@@ -175,7 +175,7 @@
 - [ ] شغّل 50 login attempts بأسماء مستخدمين مختلفة في 5 دقائق:
   ```bash
   for i in {1..50}; do
-    curl -X POST https://api.bazspark.com/api/v1/auth/login \
+    curl -X POST https://api.etap.com/api/v1/auth/login \
       -H "Content-Type: application/json" \
       -d "{\"api_key\":\"fake_key_$i\"}"
   done
@@ -187,7 +187,7 @@
 - [ ] شغّل 11 login attempts لنفس الـ API key:
   ```bash
   for i in {1..11}; do
-    curl -X POST https://api.bazspark.com/api/v1/auth/login \
+    curl -X POST https://api.etap.com/api/v1/auth/login \
       -H "Content-Type: application/json" \
       -d '{"api_key":"known_invalid_key"}'
   done
@@ -203,7 +203,7 @@
 ## 8. اختبارات Direct Origin Bypass Prevention
 
 ### 8.1 Direct HF Space Access
-- [ ] `curl -H "X-Forwarded-For: 1.2.3.4" https://ahmdelbaz28-bazspark.hf.space/api/health`
+- [ ] `curl -H "X-Forwarded-For: 1.2.3.4" https://ahmdelbaz28-etap.hf.space/api/health`
   - متوقع: `403 Forbidden` مع `X-Akamai-Translated-Request: absent` (لأن الـ middleware رفض)
   - **في الإنتاج**: رفض مباشر
   - **في التطوير**: السماح مع log warning
@@ -221,7 +221,7 @@
 ## 9. اختبارات الأداء (Performance)
 
 ### 9.1 Latency
-- [ ] `curl -w "@curl-format.txt" -o /dev/null -s https://api.bazspark.com/api/health`
+- [ ] `curl -w "@curl-format.txt" -o /dev/null -s https://api.etap.com/api/health`
   - `curl-format.txt`:
     ```
     time_namelookup:  %{time_namelookup}\n
@@ -234,14 +234,14 @@
   - متوقع: `time_total < 500ms` للـ API endpoints
 
 ### 9.2 Cache Hit Ratio (Static Assets)
-- [ ] `curl -I https://api.bazspark.com/assets/index-xxxx.js` مرتين
+- [ ] `curl -I https://api.etap.com/assets/index-xxxx.js` مرتين
   - متوقع: الطلب الثاني يحتوي على `X-Cache: HIT` من Akamai
 - [ ] راجع `X-Cache-Key`, `X-Cache-Action`, `X-Cache-Origin` headers
 
 ### 9.3 Concurrent Connections
 - [ ] شغّل 100 طلب متزامن:
   ```bash
-  ab -n 100 -c 10 https://api.bazspark.com/api/health
+  ab -n 100 -c 10 https://api.etap.com/api/health
   ```
   - متوقع: `100% success rate`, `mean latency < 200ms`
 
@@ -250,7 +250,7 @@
 ## 10. اختبارات الأمان المتقدمة (Advanced Security)
 
 ### 10.1 SSL Labs Test
-- [ ] افتح <https://www.ssllabs.com/ssltest/analyze.html?d=api.bazspark.com>
+- [ ] افتح <https://www.ssllabs.com/ssltest/analyze.html?d=api.etap.com>
 - [ ] متوقع: **A+ grade** مع:
   - TLS 1.3 مُفعّل
   - TLS 1.0 / 1.1 مُعطّل
@@ -259,7 +259,7 @@
   - No weak ciphers
 
 ### 10.2 SecurityHeaders.com
-- [ ] افتح <https://securityheaders.com/?q=api.bazspark.com>
+- [ ] افتح <https://securityheaders.com/?q=api.etap.com>
 - [ ] متوقع: **A grade** على الأقل
 
 ### 10.3 CSP Evaluation
@@ -268,9 +268,9 @@
 - [ ] متوقع: لا توجد warnings حرجة
 
 ### 10.4 External Penetration Test
-- [ ] شغّل OWASP ZAP ضد `https://api.bazspark.com`:
+- [ ] شغّل OWASP ZAP ضد `https://api.etap.com`:
   ```bash
-  docker run -t owasp/zap2docker-stable zap-baseline.py -t https://api.bazspark.com
+  docker run -t owasp/zap2docker-stable zap-baseline.py -t https://api.etap.com
   ```
 - [ ] راجع النتائج، يجب ألا يكون هناك high-severity findings
 
@@ -299,11 +299,11 @@
 ### 12.1 Complete Smoke Test
 - [ ] شغّل سكريبت الاختبار الشامل:
   ```bash
-  python tests/akamai_smoke_test.py --base-url https://api.bazspark.com --api-key $API_KEY
+  python tests/akamai_smoke_test.py --base-url https://api.etap.com --api-key $API_KEY
   ```
 
 ### 12.2 Real User Monitoring
-- [ ] افتح `https://api.bazspark.com` في المتصفح
+- [ ] افتح `https://api.etap.com` في المتصفح
 - [ ] سجّل دخول بـ API key صالح
 - [ ] تنقّل في Dashboard → Room Design → Marine → AI Agent → Reports
 - [ ] كل صفحة تحمل بدون أخطاء

@@ -16,17 +16,17 @@ def get_current_role(request: Request) -> Role:
     """
     Extract the current user's role from the request.
 
-    The role is set by the ApiKeyMiddleware on request.state.fireai_role
-    and also stored in request.scope["fireai_role"] as a fallback.
+    The role is set by the ApiKeyMiddleware on request.state.role
+    and also stored in request.scope["role"] as a fallback.
 
     If no role is found (e.g., whitelisted paths or development mode),
     defaults to VIEWER for safety (least privilege).
     """
-    role = getattr(request.state, "fireai_role", None)
+    role = getattr(request.state, "role", None)
     if role is not None:
         return role
     # Fallback: check for role in request scope (set by ASGI middleware)
-    role = request.scope.get("fireai_role")
+    role = request.scope.get("role")
     if role is not None:
         return role
     # Default to VIEWER (least privilege) when no role is set

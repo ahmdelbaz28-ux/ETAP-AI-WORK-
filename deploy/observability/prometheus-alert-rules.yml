@@ -1,4 +1,4 @@
-# Prometheus Alerting Rules — FireAI Platform
+# Prometheus Alerting Rules — ETAP Platform
 # =============================================
 # V130 FIX (2026-06-18 audit): Extracted from the old alertmanager.yml file,
 # which incorrectly mixed Alertmanager routing config with Prometheus alert
@@ -6,11 +6,11 @@
 # prometheus.yml; Alertmanager loads deploy/observability/alertmanager.yml.
 
 groups:
-  - name: fireai-engine-alerts
+  - name: etap-engine-alerts
     interval: 30s
     rules:
       - alert: EngineHighErrorRate
-        expr: rate(fireai_errors_total{component="engine"}[5m]) > 0.1
+        expr: rate(errors_total{component="engine"}[5m]) > 0.1
         for: 2m
         labels:
           severity: critical
@@ -22,7 +22,7 @@ groups:
             This may indicate a systemic failure in fire protection computations.
 
       - alert: EngineRunFailures
-        expr: rate(fireai_engine_runs_total{status="error"}[5m]) > 0
+        expr: rate(engine_runs_total{status="error"}[5m]) > 0
         for: 1m
         labels:
           severity: critical
@@ -33,7 +33,7 @@ groups:
             Engine runs with status=error detected. Immediate investigation required.
 
       - alert: EngineSlowComputation
-        expr: histogram_quantile(0.95, rate(fireai_computation_seconds_bucket[5m])) > 30
+        expr: histogram_quantile(0.95, rate(computation_seconds_bucket[5m])) > 30
         for: 5m
         labels:
           severity: warning
@@ -45,7 +45,7 @@ groups:
             This may cause workflow timeouts.
 
       - alert: CoverageDegraded
-        expr: fireai_coverage_percent{status="failing"} > 0
+        expr: coverage_percent{status="failing"} > 0
         for: 5m
         labels:
           severity: warning
@@ -57,7 +57,7 @@ groups:
             Check detector placement and NFPA compliance.
 
       - alert: LowCoverage
-        expr: avg(fireai_coverage_percent{status="passing"}) < 80
+        expr: avg(coverage_percent{status="passing"}) < 80
         for: 10m
         labels:
           severity: critical
@@ -68,11 +68,11 @@ groups:
             Average coverage is {{ $value | humanize }}%.
             Below the 80% minimum threshold.
 
-  - name: fireai-system-alerts
+  - name: etap-system-alerts
     interval: 30s
     rules:
       - alert: HighMemoryUsage
-        expr: fireai_memory_bytes / 1e9 > 4
+        expr: memory_bytes / 1e9 > 4
         for: 5m
         labels:
           severity: warning
@@ -83,7 +83,7 @@ groups:
             Component {{ $labels.component }} is using {{ $value | humanize }} GB.
 
       - alert: QueueBacklog
-        expr: fireai_queue_depth > 100
+        expr: queue_depth > 100
         for: 2m
         labels:
           severity: warning
@@ -95,7 +95,7 @@ groups:
             Workers may be unable to keep up.
 
       - alert: HighAPILatency
-        expr: histogram_quantile(0.99, rate(fireai_api_latency_seconds_bucket[5m])) > 5
+        expr: histogram_quantile(0.99, rate(api_latency_seconds_bucket[5m])) > 5
         for: 2m
         labels:
           severity: warning
@@ -106,7 +106,7 @@ groups:
             P99 latency for endpoint {{ $labels.endpoint }} is {{ $value | humanize }}s.
 
       - alert: NoActiveWorkflows
-        expr: fireai_active_workflows == 0
+        expr: active_workflows == 0
         for: 10m
         labels:
           severity: info
@@ -117,7 +117,7 @@ groups:
             No active workflows detected for 10 minutes.
             System may be idle or stalled.
 
-  - name: fireai-infrastructure-alerts
+  - name: etap-infrastructure-alerts
     interval: 30s
     rules:
       - alert: HighDiskUsage

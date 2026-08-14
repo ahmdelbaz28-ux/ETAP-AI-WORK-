@@ -1,7 +1,7 @@
 # File-level '# NOSONAR' removed per NOSONAR_AUDIT.md (V143 hardening).
 # Per-line justified suppressions (e.g., '# NOSONAR — S3776: ...') are preserved.
 """
-backend/services/geocoding_service.py — Geocoding service for FireAI.
+backend/services/geocoding_service.py — Geocoding service for ETAP.
 
 Provides forward geocoding (address → lat/lon) using Nominatim
 (OpenStreetMap) — a free, no-auth API.
@@ -87,7 +87,7 @@ class GeocodingService:
         if self._client is None or self._client.is_closed:
             self._client = httpx.AsyncClient(
                 timeout=httpx.Timeout(10.0),
-                headers={"User-Agent": "FireAI-DigitalTwin/1.0"},
+                headers={"User-Agent": "ETAP-DigitalTwin/1.0"},
                 follow_redirects=True,
             )
         return self._client

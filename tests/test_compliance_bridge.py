@@ -1,18 +1,17 @@
 # File-level '# NOSONAR' removed per NOSONAR_AUDIT.md (V143 hardening).
 # Per-line justified suppressions (e.g., '# NOSONAR — S3776: ...') are preserved.
 """
-FireAI Rules Engine — Integration Bridge Tests
+ETAP Rules Engine — Integration Bridge Tests
 =================================================
 
 Tests the high-level NFPA72ComplianceChecker API and the
 compliance_bridge module that connects the rules engine
-to the existing FireAI system.
+to the existing ETAP system.
 """
 
 from __future__ import annotations
 
 import pytest
-from fireai.core.rules_engine.compliance_bridge import (
     ComplianceReport,
     NFPA72ComplianceChecker,
     detector_to_fact,
@@ -21,11 +20,9 @@ from fireai.core.rules_engine.compliance_bridge import (
     results_to_report,
     room_to_facts,
 )
-from fireai.core.rules_engine.engine import (
     Fact,
     RulesEngine,
 )
-from fireai.core.rules_engine.nfpa72_rules import NFPA72RuleSet
 
 
 class TestNFPA72ComplianceChecker:

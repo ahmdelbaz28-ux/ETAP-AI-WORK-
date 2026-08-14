@@ -1,27 +1,27 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: fireai-config
-  namespace: fireai
+  name: etap-config
+  namespace: etap
   labels:
-    app.kubernetes.io/name: fireai
-    app.kubernetes.io/part-of: fireai
+    app.kubernetes.io/name: etap
+    app.kubernetes.io/part-of: etap
 data:
-  FIREAI_ENV: "production"
+  APP_ENV: "production"
   LOG_LEVEL: "WARNING"
-  FIREAI_MEMORY_LLM_PROVIDER: "gemini"
-  FIREAI_MEMORY_LLM_MODEL: "gemini-2.0-flash"
-  DATABASE_URL: "postgresql+asyncpg://fireai:$(DB_PASSWORD)@fireai-db:5432/fireai"
-  REDIS_URL: "redis://:$(REDIS_PASSWORD)@fireai-redis:6379/0"
+  MEMORY_LLM_PROVIDER: "gemini"
+  MEMORY_LLM_MODEL: "gemini-2.0-flash"
+  DATABASE_URL: "postgresql+asyncpg://etap:$(DB_PASSWORD)@etap-db:5432/etap"
+  REDIS_URL: "redis://:$(REDIS_PASSWORD)@etap-redis:6379/0"
   WORKER_MODE: "default"
   API_HOST: "0.0.0.0"
   API_PORT: "8000"
   API_WORKERS: "4"
-  CORS_ORIGINS: "https://fireai.example.com"
-  DB_HOST: "fireai-db"
+  CORS_ORIGINS: "https://etap.example.com"
+  DB_HOST: "etap-db"
   DB_PORT: "5432"
-  DB_NAME: "fireai"
-  DB_USER: "fireai"
-  REDIS_HOST: "fireai-redis"
+  DB_NAME: "etap"
+  DB_USER: "etap"
+  REDIS_HOST: "etap-redis"
   REDIS_PORT: "6379"
   TZ: "UTC"

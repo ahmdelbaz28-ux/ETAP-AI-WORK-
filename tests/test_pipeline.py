@@ -1,10 +1,10 @@
 # File-level '# NOSONAR' removed per NOSONAR_AUDIT.md (V143 hardening).
 # Per-line justified suppressions (e.g., '# NOSONAR — S3776: ...') are preserved.
 """
-FireAI Pipeline — End-to-End Integration Tests
+ETAP Pipeline — End-to-End Integration Tests
 ================================================
 
-Tests the complete FireAI analysis pipeline from input payload
+Tests the complete ETAP analysis pipeline from input payload
 through all 7 stages to final PipelineResult output.
 
 COVERED:
@@ -28,7 +28,6 @@ from __future__ import annotations
 import json
 
 import pytest
-from fireai.core.pipeline import (
     PipelineResult,
     StageResult,
     analyze_building,

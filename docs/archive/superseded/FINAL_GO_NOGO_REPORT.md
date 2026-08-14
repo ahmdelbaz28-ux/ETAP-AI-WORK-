@@ -1,4 +1,4 @@
-# FireAI Digital Twin — FINAL GO/NO-GO Production Release Report
+# ETAP Digital Twin — FINAL GO/NO-GO Production Release Report
 
 **Date**: 2026-06-09  
 **Version**: 1.0.0  
@@ -12,7 +12,7 @@
 ### Claim: Package installs and FastAPI app loads successfully
 
 **Command**: `python3 -m pip install -e ".[dev]"`  
-**Output**: `Successfully built fireai` / `Successfully installed fireai-1.0.0`  
+**Output**: `Successfully built etap` / `Successfully installed etap-1.0.0`  
 
 **Command**: `python3 -c "from backend.app import app; print(f'Routes: {len(app.routes)}')" 2>&1`  
 **Output**:
@@ -38,7 +38,7 @@ Routes: 63
 5194 passed, 1 skipped, 12 warnings in 106.43s (0:01:46)
 ```
 
-**Test file paths**: `tests/test_acoustic_calculator.py`, `tests/test_nfpa72_engine.py`, `tests/test_qomn_kernel.py`, `tests/test_voltage_drop.py`, `tests/test_security.py`, `tests/test_audit_log.py`, `tests/test_delta_cache.py`, `tests/test_fireai_core_v2.py`, `tests/test_parsers_security_v125.py` (95 test files total)
+**Test file paths**: `tests/test_acoustic_calculator.py`, `tests/test_nfpa72_engine.py`, `tests/test_qomn_kernel.py`, `tests/test_voltage_drop.py`, `tests/test_security.py`, `tests/test_audit_log.py`, `tests/test_delta_cache.py`, `tests/test_core_v2.py`, `tests/test_parsers_security_v125.py` (95 test files total)
 
 **1 skipped**: requires optional langgraph dependency (intentional)
 
@@ -52,7 +52,7 @@ Routes: 63
 
 ### Claim: 0 HIGH severity vulnerabilities (bandit)
 
-**Command**: `python3 -m bandit -r fireai backend parsers facp_system qomn_fire qomn_conduit integration -f txt --severity-level all`  
+**Command**: `python3 -m bandit -r etap backend parsers facp_system qomn_fire qomn_conduit integration -f txt --severity-level all`  
 **Output**:
 ```
 Total issues (by severity):
@@ -78,10 +78,10 @@ Total issues (by severity):
 
 ### Claim: Ruff lint clean on CI-scanned directories
 
-**Command**: `python3 -m ruff check fireai/ qomn_conduit/ --statistics`  
+**Command**: `python3 -m ruff check etap/ qomn_conduit/ --statistics`  
 **Output**: `(empty)` / `Error: (none)` / Exit Code: 0
 
-**Full scan** (`fireai/ backend/ parsers/ facp_system/ qomn_fire/ qomn_conduit/ integration/`):
+**Full scan** (`etap/ backend/ parsers/ facp_system/ qomn_fire/ qomn_conduit/ integration/`):
 - 3 remaining non-CI errors: S603 (2 subprocess in DWG/RVT converters), SIM116 (1 readability)
 - S314 fixed: `ET.fromstring()` at `backend/services/severe_weather_service.py:765` now has `# noqa: S314` with defusedxml import at line 42-44
 
@@ -165,11 +165,11 @@ TROUBLESHOOTING.md  2,234 bytes
 **Evidence**:
 ```dockerfile
 # Line 30: Non-root user creation
-RUN groupadd -r fireai && \
-    useradd -r -g fireai -d /app -s /sbin/nologin -c "FireAI Service" fireai
+RUN groupadd -r etap && \
+    useradd -r -g etap -d /app -s /sbin/nologin -c "ETAP Service" etap
 
 # Line 51: Switch to non-root
-USER fireai
+USER etap
 
 # Line 55: Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
@@ -188,8 +188,8 @@ read_only: true
 tmpfs:
   - /tmp:size=100M
 environment:
-  - FIREAI_API_KEY=${FIREAI_API_KEY:?ERROR: FIREAI_API_KEY must be set}
-  - FIREAI_EVIDENCE_HMAC_KEY=${FIREAI_EVIDENCE_HMAC_KEY:?ERROR: HMAC key must be set}
+  - API_KEY=${API_KEY:?ERROR: API_KEY must be set}
+  - EVIDENCE_HMAC_KEY=${EVIDENCE_HMAC_KEY:?ERROR: HMAC key must be set}
 ```
 
 **Result**: ✅ PASS — Non-root, health check, no-new-privileges, read-only filesystem, required env vars
@@ -218,24 +218,24 @@ environment:
 **File**: `backend/app.py`, lines 555-672  
 **Code**:
 ```python
-_FIREAI_API_KEY = os.getenv("FIREAI_API_KEY")
+_API_KEY = os.getenv("API_KEY")
 # Skip auth for read-only methods
 if method in ("GET", "HEAD", "OPTIONS"): ...
 # Production: fail closed without API key
-if not _FIREAI_API_KEY:
-    if os.getenv("FIREAI_ENV") != "development":
+if not _API_KEY:
+    if os.getenv("APP_ENV") != "development":
         ...return 503...
 # Constant-time comparison (timing attack prevention)
-if not hmac.compare_digest(api_key, _FIREAI_API_KEY):
+if not hmac.compare_digest(api_key, _API_KEY):
     ...return 401...
 ```
 ✅ VERIFIED
 
 ### A02 — Cryptographic Failures
-**File**: `fireai/core/audit_store.py`, lines 113-144  
+**File**: `etap/core/audit_store.py`, lines 113-144  
 **Code**:
 ```python
-is_production = (os.environ.get("FIREAI_ENV","").lower()=="production" ...)
+is_production = (os.environ.get("APP_ENV","").lower()=="production" ...)
 if is_production:
     raise SecurityError("AUDIT_HMAC_KEY is not set in production environment. ...")
 ```
@@ -249,7 +249,7 @@ if is_production:
 ✅ VERIFIED — Sort whitelists, null byte rejection, path traversal protection
 
 ### A04 — Insecure Design
-**File**: `fireai/core/qomn_kernel.py` — 5-layer deterministic computation pipeline  
+**File**: `etap/core/qomn_kernel.py` — 5-layer deterministic computation pipeline  
 **File**: `README.md` — "This is a DETERMINISTIC calculator, NOT an AI agent"  
 ✅ VERIFIED — No AI generation, deterministic computation, safety guards
 
@@ -278,13 +278,13 @@ def _get_cors_origins():
 ✅ VERIFIED — Per-path rate limiting, 429 on exceeded
 
 ### A08 — Data Integrity Failures
-**File**: `fireai/core/audit_store.py` — HMAC-SHA256 signed hash chain on every engineering result  
-**File**: `fireai/core/audit_log.py`, lines 198-543 — `AuditLog` class with append-only, tamper-evident design  
+**File**: `etap/core/audit_store.py` — HMAC-SHA256 signed hash chain on every engineering result  
+**File**: `etap/core/audit_log.py`, lines 198-543 — `AuditLog` class with append-only, tamper-evident design  
 ✅ VERIFIED
 
 ### A09 — Logging Failures
 **File**: `backend/app.py` — loguru integration, structured logging  
-**File**: `fireai/core/audit_log.py` — every operation logged with evidence hash  
+**File**: `etap/core/audit_log.py` — every operation logged with evidence hash  
 ✅ VERIFIED
 
 ### A10 — SSRF
@@ -298,7 +298,7 @@ def _get_cors_origins():
 
 **File**: `.github/workflows/ci.yml` (5 gates)  
 **Evidence**:
-- Gate 1: `ruff check fireai/ qomn_conduit/ --exit-non-zero-on-fix` + `mypy` + `bandit` severity gate (HIGH only)
+- Gate 1: `ruff check etap/ qomn_conduit/ --exit-non-zero-on-fix` + `mypy` + `bandit` severity gate (HIGH only)
 - Gate 2: `pytest --cov-fail-under=50`
 - Gate 3: `pytest tests/test_pdf_hardening_properties.py` (hypothesis)
 - Gate 4: NFPA 72 + qomn_conduit regression tests

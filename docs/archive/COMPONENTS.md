@@ -1,4 +1,4 @@
-# FireAI Components Documentation
+# ETAP Components Documentation
 
 ## Table of Contents
 1. [Overview](#overview)
@@ -16,7 +16,7 @@
 
 ## Overview
 
-This document provides a comprehensive overview of all components within the FireAI platform. Each component is designed with safety, security, and reliability as primary concerns, following a modular architecture that enables independent development, testing, and deployment.
+This document provides a comprehensive overview of all components within the ETAP platform. Each component is designed with safety, security, and reliability as primary concerns, following a modular architecture that enables independent development, testing, and deployment.
 
 ### Component Classification
 Components are classified into three primary layers:
@@ -35,7 +35,7 @@ Components are classified into three primary layers:
 
 ### Core Architecture Components
 
-#### FireAI Engine (`fireai.core.engine`)
+#### ETAP Engine (`etap.core.engine`)
 The central orchestration component that coordinates all system activities and ensures safety protocols are followed.
 
 **Responsibilities:**
@@ -56,7 +56,7 @@ The central orchestration component that coordinates all system activities and e
 - `validate_configuration(config)` - Validate study configuration
 - `get_system_status()` - Retrieve system health and status
 
-#### Safety Validator (`fireai.security.validator`)
+#### Safety Validator (`etap.security.validator`)
 Comprehensive safety validation system that enforces multiple layers of safety checks.
 
 **Responsibilities:**
@@ -75,7 +75,7 @@ Comprehensive safety validation system that enforces multiple layers of safety c
 - `assess_risk(operation)` - Evaluate risk level of operation
 - `generate_safety_report()` - Create safety compliance report
 
-#### Study Manager (`fireai.studies.manager`)
+#### Study Manager (`etap.studies.manager`)
 Manages the lifecycle of studies from creation to completion.
 
 **Responsibilities:**
@@ -97,8 +97,8 @@ Manages the lifecycle of studies from creation to completion.
 
 ## Interface Layer Components
 
-### Web Interface (`fireai.interface.web`)
-The primary web-based user interface for the FireAI platform.
+### Web Interface (`etap.interface.web`)
+The primary web-based user interface for the ETAP platform.
 
 **Responsibilities:**
 - Provides responsive web interface for users
@@ -118,7 +118,7 @@ The primary web-based user interface for the FireAI platform.
 - Authentication endpoints
 - File upload/download endpoints
 
-### API Layer (`fireai.interface.api`)
+### API Layer (`etap.interface.api`)
 Programmatic interface for external system integration.
 
 **Responsibilities:**
@@ -139,7 +139,7 @@ Programmatic interface for external system integration.
 - `/api/integrations` - External system integration endpoints
 - `/api/auth` - Authentication endpoints
 
-### CLI Tools (`fireai.interface.cli`)
+### CLI Tools (`etap.interface.cli`)
 Command-line interface for automation and scripting.
 
 **Responsibilities:**
@@ -154,19 +154,19 @@ Command-line interface for automation and scripting.
 - Result Exporter
 
 **Interfaces:**
-- `fireai study create` - Create new study
-- `fireai study execute` - Execute study
-- `fireai study status` - Check study status
-- `fireai config export/import` - Manage configurations
+- `etap study create` - Create new study
+- `etap study execute` - Execute study
+- `etap study status` - Check study status
+- `etap config export/import` - Manage configurations
 
 ## Orchestration Layer Components
 
-### ETAP Integration Hub (`fireai.integration.etap_hub`)
+### ETAP Integration Hub (`etap.integration.etap_hub`)
 Central component for managing all ETAP-related operations.
 
 **Responsibilities:**
 - Manages connections to ETAP systems
-- Transforms data between FireAI and ETAP formats
+- Transforms data between ETAP and ETAP formats
 - Validates ETAP-specific safety requirements
 - Handles ETAP session management
 
@@ -181,7 +181,7 @@ Central component for managing all ETAP-related operations.
 - `validate_etap_data(data)` - Validate data for ETAP compatibility
 - `disconnect()` - Safely disconnect from ETAP
 
-### GIS Processing Engine (`fireai.integration.gis_engine`)
+### GIS Processing Engine (`etap.integration.gis_engine`)
 Handles all geographic information system operations.
 
 **Responsibilities:**
@@ -201,7 +201,7 @@ Handles all geographic information system operations.
 - `transform_coordinates(coords, from_system, to_system)` - Convert coordinate systems
 - `calculate_geographic_metrics(data)` - Calculate geographic measurements
 
-### ML Inference Engine (`fireai.ml.engine`)
+### ML Inference Engine (`etap.ml.engine`)
 Machine learning model execution and management component.
 
 **Responsibilities:**
@@ -221,7 +221,7 @@ Machine learning model execution and management component.
 - `evaluate_model_performance()` - Assess model performance
 - `deploy_model(model_package)` - Deploy new model version
 
-### Resource Scheduler (`fireai.resources.scheduler`)
+### Resource Scheduler (`etap.resources.scheduler`)
 Manages system resources and job scheduling.
 
 **Responsibilities:**
@@ -243,7 +243,7 @@ Manages system resources and job scheduling.
 
 ## Engine Layer Components
 
-### ETAP Connector (`fireai.connectors.etap`)
+### ETAP Connector (`etap.connectors.etap`)
 Direct connector component for interfacing with ETAP electrical analysis software.
 
 **Responsibilities:**
@@ -263,7 +263,7 @@ Direct connector component for interfacing with ETAP electrical analysis softwar
 - `import_project(file_path)` - Import ETAP project
 - `export_results(format)` - Export analysis results
 
-### Data Transformer (`fireai.transformers.data`)
+### Data Transformer (`etap.transformers.data`)
 Handles data format conversions and transformations between systems.
 
 **Responsibilities:**
@@ -283,7 +283,7 @@ Handles data format conversions and transformations between systems.
 - `validate_transformation(result)` - Validate transformation result
 - `optimize_format(data, target_system)` - Optimize data for target system
 
-### Result Assembler (`fireai.results.assembler`)
+### Result Assembler (`etap.results.assembler`)
 Combines and formats results from multiple processing components.
 
 **Responsibilities:**
@@ -305,7 +305,7 @@ Combines and formats results from multiple processing components.
 
 ## Integration Components
 
-### ETAP Data Validator (`fireai.validators.etap_data`)
+### ETAP Data Validator (`etap.validators.etap_data`)
 Specialized validator for ETAP-specific data requirements.
 
 **Responsibilities:**
@@ -325,7 +325,7 @@ Specialized validator for ETAP-specific data requirements.
 - `verify_standard_compliance(data)` - Verify compliance with electrical standards
 - `identify_potential_issues(data)` - Identify potential problems with data
 
-### GIS Data Processor (`fireai.processors.gis`)
+### GIS Data Processor (`etap.processors.gis`)
 Processes and validates geographic information data.
 
 **Responsibilities:**
@@ -345,7 +345,7 @@ Processes and validates geographic information data.
 - `transform_coordinate_system(data, from_system, to_system)` - Transform coordinates
 - `calculate_spatial_metrics(data)` - Calculate spatial analysis metrics
 
-### Security Gateway (`fireai.security.gateway`)
+### Security Gateway (`etap.security.gateway`)
 Central security component managing all security-related operations.
 
 **Responsibilities:**
@@ -368,7 +368,7 @@ Central security component managing all security-related operations.
 
 ## Security Components
 
-### Access Control Manager (`fireai.security.access_control`)
+### Access Control Manager (`etap.security.access_control`)
 Manages user permissions and access rights throughout the system.
 
 **Responsibilities:**
@@ -388,7 +388,7 @@ Manages user permissions and access rights throughout the system.
 - `generate_access_token(user)` - Create access token for user
 - `revoke_access(user)` - Revoke user access
 
-### Risk Assessment Engine (`fireai.security.risk_engine`)
+### Risk Assessment Engine (`etap.security.risk_engine`)
 Evaluates potential risks associated with system operations.
 
 **Responsibilities:**
@@ -408,7 +408,7 @@ Evaluates potential risks associated with system operations.
 - `recommend_mitigation(strategies)` - Recommend risk mitigation approaches
 - `update_risk_models(new_data)` - Update risk assessment models
 
-### Audit Logger (`fireai.security.audit_logger`)
+### Audit Logger (`etap.security.audit_logger`)
 Maintains comprehensive logs of all system activities.
 
 **Responsibilities:**
@@ -430,7 +430,7 @@ Maintains comprehensive logs of all system activities.
 
 ## Data Components
 
-### Database Manager (`fireai.data.database_manager`)
+### Database Manager (`etap.data.database_manager`)
 Manages all database operations and connections.
 
 **Responsibilities:**
@@ -450,7 +450,7 @@ Manages all database operations and connections.
 - `migrate_database(version)` - Apply database migration
 - `optimize_queries()` - Optimize database performance
 
-### Cache Manager (`fireai.data.cache_manager`)
+### Cache Manager (`etap.data.cache_manager`)
 Manages system caching for improved performance.
 
 **Responsibilities:**
@@ -470,7 +470,7 @@ Manages system caching for improved performance.
 - `invalidate_cache(key)` - Remove item from cache
 - `clear_cache(namespace)` - Clear cache entries
 
-### File Manager (`fireai.data.file_manager`)
+### File Manager (`etap.data.file_manager`)
 Handles file operations and storage management.
 
 **Responsibilities:**
@@ -492,7 +492,7 @@ Handles file operations and storage management.
 
 ## Monitoring Components
 
-### Health Monitor (`fireai.monitoring.health`)
+### Health Monitor (`etap.monitoring.health`)
 Monitors system health and performance metrics.
 
 **Responsibilities:**
@@ -512,7 +512,7 @@ Monitors system health and performance metrics.
 - `trigger_alert(alert_data)` - Generate system alert
 - `generate_health_report()` - Create health status report
 
-### Performance Tracker (`fireai.monitoring.performance`)
+### Performance Tracker (`etap.monitoring.performance`)
 Tracks and analyzes system performance characteristics.
 
 **Responsibilities:**
@@ -532,7 +532,7 @@ Tracks and analyzes system performance characteristics.
 - `report_utilization(resource)` - Report resource utilization
 - `suggest_optimizations()` - Recommend performance improvements
 
-### Log Aggregator (`fireai.monitoring.log_aggregator`)
+### Log Aggregator (`etap.monitoring.log_aggregator`)
 Collects and processes logs from all system components.
 
 **Responsibilities:**
@@ -557,7 +557,7 @@ Collects and processes logs from all system components.
 ### Dependency Graph
 ```
 ┌─────────────────┐
-│   FireAI Engine │
+│   ETAP Engine │
 └─────────────────┘
          │
          ▼
@@ -593,7 +593,7 @@ All components follow consistent interface patterns:
 
 ```python
 class BaseComponent:
-    """Base class for all FireAI components"""
+    """Base class for all ETAP components"""
     
     def initialize(self):
         """Initialize the component and its dependencies"""

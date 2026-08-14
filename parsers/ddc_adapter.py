@@ -6,15 +6,15 @@ parsers/ddc_adapter.py — DataDrivenConstruction (DDC) Converter CLI Adapter
 INTEGRATION: cad2data-Revit-IFC-DWG-DGN (https://github.com/datadrivenconstruction/cad2data-Revit-IFC-DWG-DGN)
 
 PURPOSE:
-    Bridge between FireAI's parser layer and the DDC CLI converters:
+    Bridge between ETAP's parser layer and the DDC CLI converters:
     - ddc-rvtconverter  → Revit .rvt → XLSX + DAE
     - ddc-dwgconverter  → AutoCAD .dwg → XLSX + DAE
     - ddc-ifcconverter  → IFC → XLSX + DAE
     - ddc-dgnconverter  → MicroStation .dgn → XLSX + DAE
 
 ARCHITECTURE:
-    FireAI Workflow → DDCAdapter.convert() → subprocess(ddc-*converter) → XLSX
-    FireAI Workflow → DDCAdapter.to_rooms() → IFC/rooms list for device placement
+    ETAP Workflow → DDCAdapter.convert() → subprocess(ddc-*converter) → XLSX
+    ETAP Workflow → DDCAdapter.to_rooms() → IFC/rooms list for device placement
 
 LICENSING NOTE:
     DDC converter binaries are proprietary (DDC EULA + ODA Sustaining Member license).
@@ -90,7 +90,7 @@ _ALLOWED_BINARIES: dict[str, list[str]] = {
 # dedicated safe directory, NOT an arbitrary user-supplied path.
 # Previously, cwd was set to output_dir (which could be user-controlled).
 # Now we use the resolved temp directory as cwd, which is a known safe path.
-_SAFE_CWD_BASE = Path(os.getenv("FIREAI_DDC_CWD_BASE", tempfile.gettempdir())).resolve()
+_SAFE_CWD_BASE = Path(os.getenv("DDC_CWD_BASE", tempfile.gettempdir())).resolve()
 
 
 class DDCNotAvailableError(RuntimeError):
@@ -118,7 +118,7 @@ class DDCAdapter:
     """
     Adapter for DDC (DataDrivenConstruction) CLI converters.
 
-    Converts proprietary BIM/CAD formats to open XLSX/DAE for FireAI analysis.
+    Converts proprietary BIM/CAD formats to open XLSX/DAE for ETAP analysis.
 
     THREAD SAFETY: Each convert() call uses a separate temp directory.
     SAFETY: Output is advisory geometry — validated before use in calculations.
@@ -236,7 +236,7 @@ class DDCAdapter:
         # to the DDC subprocess. Without this, a multi-GB .rvt/.ifc would
         # exhaust memory and potentially hang the converter for hours.
         _DDC_MAX_FILE_SIZE_BYTES = int(
-            os.getenv("FIREAI_DDC_MAX_FILE_SIZE_BYTES", 500 * 1024 * 1024)  # 500 MB default
+            os.getenv("DDC_MAX_FILE_SIZE_BYTES", 500 * 1024 * 1024)  # 500 MB default
         )
         try:
             validate_file_size(
@@ -260,7 +260,7 @@ class DDCAdapter:
         # Use temp dir if no output specified
         _temp = None
         if output_dir is None:
-            _temp = tempfile.mkdtemp(prefix="fireai_ddc_")
+            _temp = tempfile.mkdtemp(prefix="ddc_")
             output_dir = _temp
 
         # SECURITY FIX (V103): Resolve the binary path and verify it is
@@ -336,7 +336,7 @@ class DDCAdapter:
             # is passed as an argument to the binary (if supported) rather
             # than used as cwd. This prevents the subprocess from writing to
             # or reading from arbitrary directories.
-            _safe_cwd = _SAFE_CWD_BASE / f"fireai_ddc_cwd_{os.getpid()}"
+            _safe_cwd = _SAFE_CWD_BASE / f"ddc_cwd_{os.getpid()}"
             _safe_cwd.mkdir(parents=True, exist_ok=True)
 
             logger.info("DDC convert: %s → %s", " ".join(cmd), output_dir)

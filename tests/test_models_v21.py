@@ -3,7 +3,7 @@
 """
 tests/test_models_v21.py
 =========================
-Comprehensive test suite for fireai/core/models_v21.py
+Comprehensive test suite for etap/core/models_v21.py
 
 SAFETY CRITICAL: V21 Pydantic models enforce fail-fast validation for
 hazardous area classification per IEC 60079 / NFPA standards. Invalid
@@ -23,7 +23,6 @@ from __future__ import annotations
 import math
 
 import pytest
-from fireai.core.models_v21 import (
     _DEFAULT_MEDIUM_ALPHA,
     _MW_HIGH_THRESHOLD,
     _MW_LOW_THRESHOLD,

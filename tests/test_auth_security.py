@@ -26,8 +26,8 @@ from fastapi.testclient import TestClient
 @pytest.fixture(autouse=True)
 def _setup_env() -> Generator[None, None, None]:
     """Set test environment."""
-    os.environ["FIREAI_ENV"] = "development"
-    os.environ["FIREAI_API_KEY"] = "test_key_for_security_audit"
+    os.environ["APP_ENV"] = "development"
+    os.environ["API_KEY"] = "test_key_for_security_audit"
     # Clear session store between tests
     from backend.routers import auth as auth_module
 
@@ -102,10 +102,10 @@ class TestCookieSecurity:
 
         # Extract cookie value
         set_cookie = resp.headers.get("set-cookie", "")
-        assert "fireai_session=" in set_cookie
+        assert "session=" in set_cookie
 
         # Extract the token part
-        token_part = set_cookie.split("fireai_session=")[1].split(";")[0]
+        token_part = set_cookie.split("session=")[1].split(";")[0]
 
         # CRITICAL: token must NOT equal the API key
         assert token_part != "test_key_for_security_audit", (
@@ -164,14 +164,14 @@ class TestTamperedCookie:
 
         # Clear ALL cookies then set tampered one
         client.cookies.clear()
-        client.cookies.set("fireai_session", "fake_token.invalid_signature")
+        client.cookies.set("session", "fake_token.invalid_signature")
 
         resp = client.get("/api/v1/auth/me")
         assert resp.status_code == 401, "Tampered cookie should be rejected"
 
     def test_malformed_cookie_no_dot_rejected(self, client: TestClient) -> None:
         """Cookie without dot separator should be rejected."""
-        client.cookies.set("fireai_session", "nodotincookie")
+        client.cookies.set("session", "nodotincookie")
 
         resp = client.get("/api/v1/auth/me")
         assert resp.status_code == 401
@@ -179,7 +179,7 @@ class TestTamperedCookie:
     def test_empty_cookie_rejected(self, client: TestClient) -> None:
         """Empty cookie value should result in 401."""
         client.cookies.clear()
-        client.cookies.set("fireai_session", "")
+        client.cookies.set("session", "")
 
         resp = client.get("/api/v1/auth/me")
         assert resp.status_code == 401
@@ -225,7 +225,7 @@ class TestSessionRevocation:
                 "api_key": "test_key_for_security_audit"
             },  # NOSONAR: hard-coded secret in test fixture  # NOSONAR — S7632: test function documented via class name / module path
         )
-        token1 = resp1.headers.get("set-cookie", "").split("fireai_session=")[1].split(";")[0]
+        token1 = resp1.headers.get("set-cookie", "").split("session=")[1].split(";")[0]
 
         # Second login (should create new session, not reuse)
         resp2 = client.post(
@@ -234,7 +234,7 @@ class TestSessionRevocation:
                 "api_key": "test_key_for_security_audit"
             },  # NOSONAR: hard-coded secret in test fixture  # NOSONAR — S7632: test function documented via class name / module path
         )
-        token2 = resp2.headers.get("set-cookie", "").split("fireai_session=")[1].split(";")[0]
+        token2 = resp2.headers.get("set-cookie", "").split("session=")[1].split(";")[0]
 
         # Tokens should be different (random session IDs)
         assert token1 != token2, "Each login should create a unique session"
@@ -244,15 +244,15 @@ class TestProductionSecret:
     """Verify production requires a session secret."""
 
     def test_production_requires_session_secret(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        """In production, FIREAI_SESSION_SECRET must be set."""
+        """In production, SESSION_SECRET must be set."""
         import importlib
 
         # Clear ALL session secret env vars
-        monkeypatch.setenv("FIREAI_ENV", "production")
-        monkeypatch.delenv("FIREAI_SESSION_SECRET", raising=False)
-        monkeypatch.delenv("FIREAI_SESSION_SECRET_FILE", raising=False)
-        monkeypatch.delenv("FIREAI_SESSION_SECRET_NEW", raising=False)
-        monkeypatch.delenv("FIREAI_SESSION_SECRET_NEW_FILE", raising=False)
+        monkeypatch.setenv("APP_ENV", "production")
+        monkeypatch.delenv("SESSION_SECRET", raising=False)
+        monkeypatch.delenv("SESSION_SECRET_FILE", raising=False)
+        monkeypatch.delenv("SESSION_SECRET_NEW", raising=False)
+        monkeypatch.delenv("SESSION_SECRET_NEW_FILE", raising=False)
 
         # Reset the global secret manager singleton
         import backend.session_secret as secret_mod
@@ -265,7 +265,7 @@ class TestProductionSecret:
 
         try:
             mgr = secret_mod.SessionSecretManager()
-            with pytest.raises(RuntimeError, match="FIREAI_SESSION_SECRET.*REQUIRED"):
+            with pytest.raises(RuntimeError, match="SESSION_SECRET.*REQUIRED"):
                 mgr.load()
         finally:
             # Restore original module state

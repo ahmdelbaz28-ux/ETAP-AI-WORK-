@@ -18,8 +18,8 @@ from fastapi.testclient import TestClient
 @pytest.fixture(scope="module")
 def client():
     """Create a test client for the FastAPI app."""
-    os.environ.setdefault("FIREAI_ENV", "development")
-    os.environ.setdefault("FIREAI_API_KEY", "")
+    os.environ.setdefault("APP_ENV", "development")
+    os.environ.setdefault("API_KEY", "")
 
     from backend.app import app
 

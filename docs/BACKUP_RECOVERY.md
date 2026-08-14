@@ -1,11 +1,11 @@
-# FireAI Backup & Recovery Guide
+# ETAP Backup & Recovery Guide
 
 ## Backup Strategy
 
 ### Critical Data
 | Data | Location | Frequency | Method |
 |------|----------|-----------|--------|
-| Audit database | `data/fireai_audit.db` | Daily | File copy + WAL checkpoint |
+| Audit database | `data/audit.db` | Daily | File copy + WAL checkpoint |
 | UDM elements | `data/udm_elements.db` | Daily | File copy |
 | Project data | `data/digital_twin.db` | Daily | File copy |
 | Configuration | `.env` | On change | Secure secrets manager |
@@ -14,12 +14,12 @@
 ### Backup Commands
 ```bash
 # Create backup directory
-BACKUP_DIR=/backups/fireai/$(date +%Y%m%d)
+BACKUP_DIR=/backups/etap/$(date +%Y%m%d)
 mkdir -p $BACKUP_DIR
 
 # Backup databases (with WAL checkpoint first)
-sqlite3 data/fireai_audit.db "PRAGMA wal_checkpoint(TRUNCATE);"
-cp data/fireai_audit.db $BACKUP_DIR/
+sqlite3 data/audit.db "PRAGMA wal_checkpoint(TRUNCATE);"
+cp data/audit.db $BACKUP_DIR/
 cp data/udm_elements.db $BACKUP_DIR/
 cp data/digital_twin.db $BACKUP_DIR/
 ```
@@ -27,8 +27,8 @@ cp data/digital_twin.db $BACKUP_DIR/
 ### Docker Volume Backup
 ```bash
 # Backup named volumes
-docker run --rm -v fireai-data:/data -v $(pwd)/backups:/backup alpine \
-  cp -a /data/. /backup/fireai-data-$(date +%Y%m%d)/
+docker run --rm -v etap-data:/data -v $(pwd)/backups:/backup alpine \
+  cp -a /data/. /backup/etap-data-$(date +%Y%m%d)/
 ```
 
 ## Recovery Procedures
@@ -39,13 +39,13 @@ docker run --rm -v fireai-data:/data -v $(pwd)/backups:/backup alpine \
 docker compose down
 
 # 2. Attempt recovery
-sqlite3 data/fireai_audit.db ".recover"
+sqlite3 data/audit.db ".recover"
 
 # 3. If unrecoverable, restore from backup
-cp /backups/fireai/YYYYMMDD/fireai_audit.db data/fireai_audit.db
+cp /backups/etap/YYYYMMDD/audit.db data/audit.db
 
 # 4. Verify integrity
-sqlite3 data/fireai_audit.db "PRAGMA integrity_check;"
+sqlite3 data/audit.db "PRAGMA integrity_check;"
 
 # 5. Restart
 docker compose up -d

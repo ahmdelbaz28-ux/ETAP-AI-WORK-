@@ -1,7 +1,7 @@
 # File-level '# NOSONAR' removed per NOSONAR_AUDIT.md (V143 hardening).
 # Per-line justified suppressions (e.g., '# NOSONAR — S3776: ...') are preserved.
 """
-backend/services/air_quality_service.py — Air quality data for FireAI.
+backend/services/air_quality_service.py — Air quality data for ETAP.
 
 Provides real-time Air Quality Index (AQI) data from the World Air Quality
 Index (WAQI) project (https://waqi.info/) — a free API for global air quality.
@@ -153,7 +153,7 @@ class AirQualityService:
         if self._client is None or self._client.is_closed:
             self._client = httpx.AsyncClient(
                 timeout=httpx.Timeout(self._request_timeout),
-                headers={"User-Agent": "FireAI-DigitalTwin/1.0"},
+                headers={"User-Agent": "ETAP-DigitalTwin/1.0"},
                 follow_redirects=True,
             )
         return self._client

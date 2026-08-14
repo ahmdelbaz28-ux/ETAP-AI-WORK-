@@ -30,17 +30,17 @@ BANDIT = "/home/z/.local/bin/bandit"
 
 # Production code directories (exclude tests, venv, node_modules, etc.)
 PRODUCTION_DIRS = [
-    "fireai/core",
-    "fireai/infrastructure",
-    "fireai/validation",
-    "fireai/analytics",
-    "fireai/agents",
-    "fireai/mcp_server",
-    "fireai/bridges",
-    "fireai/integration",
-    "fireai/conduit",
-    "fireai/tools",
-    "fireai/v17_core",
+    "etap/core",
+    "etap/infrastructure",
+    "etap/validation",
+    "etap/analytics",
+    "etap/agents",
+    "etap/mcp_server",
+    "etap/bridges",
+    "etap/integration",
+    "etap/conduit",
+    "etap/tools",
+    "etap/v17_core",
     "backend/routers",
     "backend/services",
     "qomn_fire",
@@ -52,14 +52,14 @@ PRODUCTION_DIRS = [
 
 # Files most critical after NOSONAR removal — must be clean
 CRITICAL_FILES = [
-    "fireai/core/fireai_kernel_v30.py",
-    "fireai/core/scenario_engine.py",
-    "fireai/core/proof_certificate.py"
-    if Path("fireai/core/proof_certificate.py").exists()
+    "etap/core/kernel_v30.py",
+    "etap/core/scenario_engine.py",
+    "etap/core/proof_certificate.py"
+    if Path("etap/core/proof_certificate.py").exists()
     else None,
-    "fireai/core/hac_classification_engine.py",
-    "fireai/core/nfpa72_calculations.py"
-    if Path("fireai/core/nfpa72_calculations.py").exists()
+    "etap/core/hac_classification_engine.py",
+    "etap/core/nfpa72_calculations.py"
+    if Path("etap/core/nfpa72_calculations.py").exists()
     else None,
 ]
 

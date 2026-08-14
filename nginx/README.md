@@ -4,7 +4,7 @@ This directory contains Nginx configuration for TLS termination and reverse prox
 
 ## Files
 - `nginx.conf` - Main Nginx configuration
-- `sites-available/fireai` - FireAI site configuration
+- `sites-available/etap` - ETAP site configuration
 - `ssl/` - TLS certificates (production)
 
 ## Usage
@@ -12,7 +12,7 @@ For production deployment with TLS:
 ```bash
 # Generate self-signed certificate (development only)
 openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
-  -keyout ssl/fireai.key -out ssl/fireai.crt
+  -keyout ssl/etap.key -out ssl/etap.crt
 
 # Start Nginx
 nginx -c /path/to/nginx.conf

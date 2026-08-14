@@ -4,7 +4,7 @@ Gate 4: Regression Validation Tests.
 =====================================
 Validates numerical correctness of the 5 internal simulation examples.
 
-Per FireAI agent.md VERIFICATION GATES:
+Per ETAP agent.md VERIFICATION GATES:
     [Gate 4] Regression Validation
     - no broken existing functionality
     - compatibility preserved

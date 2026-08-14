@@ -1,9 +1,9 @@
 # NOSONAR
 """
-services/yolo/main.py — YOLO Layout Segmentation Service for FireAI
+services/yolo/main.py — YOLO Layout Segmentation Service for ETAP
 
 Standalone FastAPI service that detects layout segments in floor plan images.
-Called by fireai.integration.document_intelligence via HTTP.
+Called by etap.integration.document_intelligence via HTTP.
 
 V140 Phase 10: Adapted from Chunkr's YOLO service but standalone —
 no Chunkr dependencies, no AGPL contamination.
@@ -63,7 +63,7 @@ async def lifespan(app: FastAPI):
         torch.cuda.empty_cache()
 
 
-app = FastAPI(lifespan=lifespan, title="FireAI YOLO Segmentation Service")
+app = FastAPI(lifespan=lifespan, title="ETAP YOLO Segmentation Service")
 
 
 # ─── Models ──────────────────────────────────────────────────────────────────
@@ -217,7 +217,7 @@ async def batch_segment(
 
 @app.get("/")
 async def root():
-    return {"message": "FireAI YOLO Segmentation Service", "status": "ok"}
+    return {"message": "ETAP YOLO Segmentation Service", "status": "ok"}
 
 
 @app.get("/health")

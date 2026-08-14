@@ -20,7 +20,7 @@
     
     
       
-        <title>Akamai Protection Plan — FireAI / BAZSPARK - AhmedETAP Documentation</title>
+        <title>Akamai Protection Plan — ETAP / ETAP - AhmedETAP Documentation</title>
       
     
     
@@ -70,7 +70,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#akamai-protection-plan-fireai-bazspark" class="md-skip">
+        <a href="#akamai-protection-plan-etap-etap" class="md-skip">
           Skip to content
         </a>
       
@@ -104,7 +104,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Akamai Protection Plan — FireAI / BAZSPARK
+              Akamai Protection Plan — ETAP / ETAP
             
           </span>
         </div>
@@ -775,7 +775,7 @@
   
 
 
-<h1 id="akamai-protection-plan-fireai-bazspark">Akamai Protection Plan — FireAI / BAZSPARK</h1>
+<h1 id="akamai-protection-plan-etap-etap">Akamai Protection Plan — ETAP / ETAP</h1>
 <blockquote>
 <p><strong>المعمارية الكاملة لحماية التطبيق بـ Akamai</strong>
 Status: Draft v1.0 — 2026-07-09
@@ -784,7 +784,7 @@ Document type: Implementation Plan + Code Configuration</p>
 </blockquote>
 <hr />
 <h2 id="1-executive-summary">1. نظرة عامة (Executive Summary)</h2>
-<p>الهدف هو حماية BAZSPARK (FireAI Safety-Critical Platform) باستخدام Akamai
+<p>الهدف هو حماية ETAP (ETAP Safety-Critical Platform) باستخدام Akamai
 كمستوى أمامي (Edge) يعمل كـ:</p>
 <ol>
 <li><strong>CDN</strong> — تسريع المحتوى الثابت (Frontend React assets)</li>
@@ -803,10 +803,10 @@ Document type: Implementation Plan + Code Configuration</p>
 <a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>                           │ HTTPS
 <a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>                           ▼
 <a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>┌────────────────────────────────────────────────────────────────────────┐
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>│                    Akamai Edge (api.bazspark.com)                      │
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>│                    Akamai Edge (api.etap.com)                      │
 <a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>│                                                                        │
 <a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>│  ┌──────────────────────────────────────────────────────────────────┐  │
-<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>│  │  Property Manager (Property: prp_BAZSPARK)                       │  │
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>│  │  Property Manager (Property: prp_ETAP)                       │  │
 <a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>│  │                                                                  │  │
 <a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>│  │  ┌────────────────┐  ┌──────────────┐  ┌──────────────────────┐ │  │
 <a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>│  │  │ Kona WAF       │  │ Bot Manager  │  │ API Security         │ │  │
@@ -870,11 +870,11 @@ Document type: Implementation Plan + Code Configuration</p>
 <td>لاستدعاء Property Manager API</td>
 </tr>
 <tr>
-<td><strong>Edge hostname</strong> (مثل <code>api.bazspark.com.edgeservices.net</code>)</td>
+<td><strong>Edge hostname</strong> (مثل <code>api.etap.com.edgeservices.net</code>)</td>
 <td>يجب شراؤه عبر Akamai Control Center</td>
 </tr>
 <tr>
-<td><strong>DNS access</strong> لـ <code>bazspark.com</code></td>
+<td><strong>DNS access</strong> لـ <code>etap.com</code></td>
 <td>لتحويل CNAME إلى Akamai edge</td>
 </tr>
 <tr>
@@ -980,7 +980,7 @@ Document type: Implementation Plan + Code Configuration</p>
 <td><code>deploy/akamai/property-main.json</code></td>
 </tr>
 <tr>
-<td>Hostname config (api.bazspark.com)</td>
+<td>Hostname config (api.etap.com)</td>
 <td><code>deploy/akamai/hostnames.json</code></td>
 </tr>
 <tr>
@@ -1012,7 +1012,7 @@ Document type: Implementation Plan + Code Configuration</p>
 </tr>
 <tr>
 <td><code>deploy/akamai/waf/custom-rules.json</code></td>
-<td>Custom rules لـ FireAI-specific threats</td>
+<td>Custom rules لـ ETAP-specific threats</td>
 </tr>
 <tr>
 <td><code>deploy/akamai/waf/api-security.json</code></td>
@@ -1229,7 +1229,7 @@ Document type: Implementation Plan + Code Configuration</p>
 <ol>
 <li>📧 <strong>التواصل مع Akamai sales</strong> لإنشاء account + contract</li>
 <li>🔑 <strong>إنشاء Akamai API credentials</strong> (EdgeGrid authentication)</li>
-<li>🌐 <strong>شراء/تكوين domain</strong> <code>api.bazspark.com</code> (إذا لم يكن موجوداً)</li>
+<li>🌐 <strong>شراء/تكوين domain</strong> <code>api.etap.com</code> (إذا لم يكن موجوداً)</li>
 <li>📋 <strong>استيراد قوالب JSON</strong> في Akamai Control Center</li>
 <li>✅ <strong>تفعيل Property</strong> على شبكة Akamai (staging → production)</li>
 <li>🔄 <strong>تغيير DNS</strong> من HF Space مباشرة إلى Akamai edge hostname</li>
@@ -1237,7 +1237,7 @@ Document type: Implementation Plan + Code Configuration</p>
 </ol>
 <hr />
 <h2 id="9-agentmd">9. التوافق مع <code>agent.md</code></h2>
-<p>هذه الخطة متوافقة مع بروتوكول <code>agent.md</code> (FireAI Safety-Critical Engineering):</p>
+<p>هذه الخطة متوافقة مع بروتوكول <code>agent.md</code> (ETAP Safety-Critical Engineering):</p>
 <table>
 <thead>
 <tr>

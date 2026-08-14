@@ -3,7 +3,7 @@
 """
 tests/test_security_logging_v2.py
 =================================
-Comprehensive test suite for fireai/core/security_logging.py.
+Comprehensive test suite for etap/core/security_logging.py.
 
 SAFETY CRITICAL: Security logging provides tamper-evident audit trails
 for security events. Chain hash corruption or sensitive data leaks could
@@ -32,7 +32,6 @@ import threading
 from unittest.mock import patch
 
 import pytest
-from fireai.core.security_logging import (
     _SECURITY_GENESIS,
     SecurityAuditLogger,
     SecurityEventType,
@@ -135,14 +134,14 @@ class TestMaskSensitive:
 
     def test_env_var_masking(self):
         """Values from sensitive env vars should be masked."""
-        os.environ["FIREAI_TEST_SECRET_VAR"] = "test_secret_value_12345"
+        os.environ["TEST_SECRET_VAR"] = "test_secret_value_12345"
         try:
             # Force-refresh to pick up the new env var
             # Note: This var isn't in _SENSITIVE_ENV_VARS, so it won't be masked
             # But if we set a listed one...
             pass
         finally:
-            os.environ.pop("FIREAI_TEST_SECRET_VAR", None)
+            os.environ.pop("TEST_SECRET_VAR", None)
 
     def test_short_api_key_not_masked(self):
         """API keys shorter than 8 chars should NOT be masked by the key pattern."""
@@ -525,9 +524,9 @@ class TestConfigureLogRotation:
 
     def test_normal_log_file_accepted(self, tmp_path):
         """Non-security-audit log files should be configured."""
-        with patch("fireai.core.security_logging._LOG_DIR", tmp_path):
+        with patch("etap.core.security_logging._LOG_DIR", tmp_path):
             logger = logging.getLogger("test_rotation_normal")
-            configure_log_rotation(logger, log_file="fireai.log")
+            configure_log_rotation(logger, log_file="etap.log")
             # A handler should be added (either loguru bridge or RotatingFileHandler)
             assert len(logger.handlers) > 0
             # Cleanup
@@ -547,9 +546,9 @@ class TestConfigureTimedRotation:
         assert len(logger.handlers) == initial_handlers
 
     def test_normal_log_file_accepted(self, tmp_path):
-        with patch("fireai.core.security_logging._LOG_DIR", tmp_path):
+        with patch("etap.core.security_logging._LOG_DIR", tmp_path):
             logger = logging.getLogger("test_timed_rotation_normal")
-            configure_timed_rotation(logger, log_file="fireai.log")
+            configure_timed_rotation(logger, log_file="etap.log")
             assert len(logger.handlers) > 0
             logger.handlers.clear()
 

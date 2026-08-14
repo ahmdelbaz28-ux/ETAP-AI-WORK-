@@ -3,7 +3,7 @@
 """
 tests/test_network_topology.py
 ================================
-Comprehensive test suite for fireai/core/network_topology.py
+Comprehensive test suite for etap/core/network_topology.py
 
 SAFETY CRITICAL: Network topology audit verifies Class X (redundant path)
 compliance per NFPA 72 §23.8.
@@ -18,7 +18,6 @@ from __future__ import annotations
 
 import dataclasses
 
-import fireai.core.network_topology as _nt_mod
 import pytest
 
 
@@ -41,7 +40,6 @@ def _disable_provenance():
         setattr(_nt_mod, attr, val)
 
 
-from fireai.core.network_topology import (
     REQUIRED_TOPOLOGY,
     NetworkLink,
     NetworkTopologyAuditor,

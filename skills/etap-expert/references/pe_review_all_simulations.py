@@ -3,7 +3,7 @@
 # ========================================================
 # Independent Professional Engineer (PE) review of the 10 numerical
 # simulations implemented in the ETAP Expert Skill.
-# Reviewer: FireAI Agent (acting as second PE reviewer per Operator request)
+# Reviewer: ETAP Agent (acting as second PE reviewer per Operator request)
 # Date: 2026-06-24
 # Standards: NFPA 70E-2024, IEEE 1584-2018, IEEE 80-2013, IEEE 519-2014,
 #            IEEE 399, IEEE 835, NEC 2023 (NFPA 70), IEC 60909, IEC 60079,
@@ -625,7 +625,7 @@ def run_full_pe_review() -> PEReviewReport:
     return PEReviewReport(
         pe_seal_id="V131-PE-002",
         date="2026-06-24",
-        reviewer="FireAI Agent (PE Reviewer)",
+        reviewer="ETAP Agent (PE Reviewer)",
         simulations_reviewed=len(reviews),
         approved_count=approved,
         needs_attention_count=needs_attention,

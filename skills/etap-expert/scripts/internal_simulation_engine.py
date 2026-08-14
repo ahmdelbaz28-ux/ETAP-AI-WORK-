@@ -19,7 +19,7 @@ Simulations implemented:
     4. Arc Flash Calculation (IEEE 1584-2018, 480V MCC, 50kA)
     5. ADMS FLISR Simulation (impedance-based fault location)
 
-Author: FireAI Project
+Author: ETAP Project
 Version: 1.0.0
 """
 

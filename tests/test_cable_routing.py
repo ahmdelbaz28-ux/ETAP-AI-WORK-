@@ -4,8 +4,8 @@
 tests/test_cable_routing.py
 ===========================
 Comprehensive test suite for:
-  - fireai/core/cable_routing_engine.py
-  - fireai/core/circuit_topology.py
+  - etap/core/cable_routing_engine.py
+  - etap/core/circuit_topology.py
 
 SAFETY CRITICAL: These modules are used to verify fire alarm circuit
 wiring compliance per NFPA 72-2022 and NEC Chapter 9, Table 8.
@@ -27,7 +27,6 @@ from __future__ import annotations
 import dataclasses
 
 import pytest
-from fireai.core.cable_routing_engine import (
     MAX_VOLTAGE_DROP_PCT,
     NOMINAL_VOLTAGE_FA,
     CableRoutingEngine,
@@ -35,7 +34,6 @@ from fireai.core.cable_routing_engine import (
     RoutingObstacle3D,
     WireGauge,
 )
-from fireai.core.circuit_topology import (
     MAX_DEVICES_BETWEEN_ISOLATORS,
     CircuitClass,
     CircuitDevice,

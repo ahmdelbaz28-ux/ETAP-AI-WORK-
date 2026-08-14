@@ -1,7 +1,7 @@
 # File-level '# NOSONAR' removed per NOSONAR_AUDIT.md (V143 hardening).
 # Per-line justified suppressions (e.g., '# NOSONAR — S3776: ...') are preserved.
 """
-Comprehensive security tests for the FireAI safety-critical fire protection system.
+Comprehensive security tests for the ETAP safety-critical fire protection system.
 
 Tests cover:
   1. KeyRotator timing-attack resistance (hmac.compare_digest usage)
@@ -28,8 +28,6 @@ import time
 from pathlib import Path
 
 import pytest
-from fireai.core.secret_rotation import KeyRotator
-from fireai.core.security_logging import (
     SecurityAuditLogger,
     SecurityEventType,
     mask_sensitive,
@@ -130,7 +128,7 @@ def _get_cors_origins() -> list:
     Resolve CORS origins based on deployment environment.
     Mirrors backend_app._get_cors_origins.
     """
-    env = os.getenv("FIREAI_ENV", "production")
+    env = os.getenv("APP_ENV", "production")
 
     if env == "development":
         origins = list(_DEVELOPMENT_ORIGINS)
@@ -482,7 +480,6 @@ class TestHmacUnification:
 
     def test_safety_assurance_imports_audit_hmac(self):
         """safety_assurance should import compute_hmac from audit_log."""
-        from fireai.core import safety_assurance
 
         assert hasattr(safety_assurance, "_audit_compute_hmac"), (
             "safety_assurance must import compute_hmac from audit_log for HMAC unification"
@@ -490,7 +487,6 @@ class TestHmacUnification:
 
     def test_audit_compute_hmac_is_not_none(self):
         """The imported compute_hmac should be available (not None)."""
-        from fireai.core.safety_assurance import _audit_compute_hmac
 
         assert _audit_compute_hmac is not None, (
             "safety_assurance._audit_compute_hmac is None — audit_log import failed. "
@@ -499,7 +495,6 @@ class TestHmacUnification:
 
     def test_both_functions_produce_same_result(self):
         """compute_hmac from audit_log and inline HMAC must produce identical output."""
-        from fireai.core.safety_assurance import _audit_compute_hmac
 
         test_key = b"test_hmac_key_for_unification_check"
         test_data = "some_hash_value_to_sign"
@@ -514,10 +509,9 @@ class TestHmacUnification:
 
     def test_evidence_package_uses_audit_hmac(self, env_cleanup):
         """EngineeringEvidencePackage should use the shared audit_log HMAC function."""
-        from fireai.core.safety_assurance import EngineeringEvidencePackage
 
-        os.environ.pop("FIREAI_ENV", None)
-        os.environ.pop("FIREAI_EVIDENCE_HMAC_KEY", None)
+        os.environ.pop("APP_ENV", None)
+        os.environ.pop("EVIDENCE_HMAC_KEY", None)
 
         pkg = EngineeringEvidencePackage(
             package_id="PKG-HMAC-TEST",
@@ -670,7 +664,6 @@ class TestSecurityAuditLoggerChainIntegrity:
 
     def test_initial_chain_hash_is_genesis(self, audit_logger):
         """The initial chain hash should be the security genesis sentinel."""
-        from fireai.core.security_logging import _SECURITY_GENESIS
 
         assert audit_logger._chain_hash == _SECURITY_GENESIS, (
             f"Initial chain hash should be _SECURITY_GENESIS, got '{audit_logger._chain_hash}'"
@@ -737,7 +730,6 @@ class TestSecurityAuditLoggerChainIntegrity:
         detection by directly comparing the JSON structure. If any field is
         changed, the chain hash recomputed from the original JSON won't match.
         """
-        from fireai.core.security_logging import _SECURITY_GENESIS
 
         logger = SecurityAuditLogger(log_dir=temp_log_dir)
 
@@ -928,8 +920,8 @@ class TestCorsWildcardRejection:
     """
 
     def test_get_cors_origins_rejects_wildcard_in_production(self, env_cleanup):
-        """_get_cors_origins should reject '*' wildcard when FIREAI_ENV=production."""
-        os.environ["FIREAI_ENV"] = "production"
+        """_get_cors_origins should reject '*' wildcard when APP_ENV=production."""
+        os.environ["APP_ENV"] = "production"
         os.environ["CORS_ORIGINS"] = "*,https://example.com"
 
         origins = _get_cors_origins()
@@ -943,7 +935,7 @@ class TestCorsWildcardRejection:
 
     def test_get_cors_origins_no_wildcard_in_development(self, env_cleanup):
         """In development mode, wildcards should still be filtered out."""
-        os.environ["FIREAI_ENV"] = "development"
+        os.environ["APP_ENV"] = "development"
         os.environ["CORS_ORIGINS"] = "*,http://localhost:9999"
 
         origins = _get_cors_origins()
@@ -953,7 +945,7 @@ class TestCorsWildcardRejection:
 
     def test_production_empty_cors_origins_fails_closed(self, env_cleanup):
         """Production with no CORS_ORIGINS and no hardcoded whitelist should fail closed."""
-        os.environ["FIREAI_ENV"] = "production"
+        os.environ["APP_ENV"] = "production"
         os.environ.pop("CORS_ORIGINS", None)
 
         origins = _get_cors_origins()
@@ -963,7 +955,7 @@ class TestCorsWildcardRejection:
 
     def test_development_has_localhost_defaults(self, env_cleanup):
         """Development mode should include localhost defaults."""
-        os.environ["FIREAI_ENV"] = "development"
+        os.environ["APP_ENV"] = "development"
         os.environ.pop("CORS_ORIGINS", None)
 
         origins = _get_cors_origins()
@@ -989,7 +981,7 @@ class TestCorsWildcardRejection:
 
     def test_production_with_valid_origins(self, env_cleanup):
         """Production with explicit non-wildcard origins should work."""
-        os.environ["FIREAI_ENV"] = "production"
+        os.environ["APP_ENV"] = "production"
         os.environ["CORS_ORIGINS"] = "https://app.example.com,https://admin.example.com"
 
         origins = _get_cors_origins()
@@ -1000,7 +992,7 @@ class TestCorsWildcardRejection:
 
     def test_development_extra_origins_added(self, env_cleanup):
         """Development mode should add extra origins from CORS_ORIGINS."""
-        os.environ["FIREAI_ENV"] = "development"
+        os.environ["APP_ENV"] = "development"
         os.environ["CORS_ORIGINS"] = "http://test-server.local:4000"  # NOSONAR - python:S5332
 
         origins = _get_cors_origins()
@@ -1078,9 +1070,8 @@ class TestSensitiveDataMasking:
     def test_mask_env_var_value(self, env_cleanup):
         """Values from sensitive environment variables should be masked."""
         test_value = "sk-test-api-key-value-1234567890abcdef"
-        os.environ["FIREAI_API_KEY"] = test_value
+        os.environ["API_KEY"] = test_value
         # Force refresh cache since env vars changed at runtime
-        from fireai.core.security_logging import _force_refresh_env_cache
 
         _force_refresh_env_cache()
 
@@ -1090,10 +1081,9 @@ class TestSensitiveDataMasking:
         assert "REDACTED" in masked
 
     def test_mask_hmac_key_env_var(self, env_cleanup):
-        """FIREAI_EVIDENCE_HMAC_KEY values should be masked."""
+        """EVIDENCE_HMAC_KEY values should be masked."""
         test_value = "hmac-secret-key-abcdef1234567890"
-        os.environ["FIREAI_EVIDENCE_HMAC_KEY"] = test_value
-        from fireai.core.security_logging import _force_refresh_env_cache
+        os.environ["EVIDENCE_HMAC_KEY"] = test_value
 
         _force_refresh_env_cache()
 
@@ -1131,7 +1121,7 @@ class TestSensitiveDataMasking:
 
     def test_short_values_not_masked_by_env(self, env_cleanup):
         """Environment variable values shorter than 4 chars should not be masked."""
-        os.environ["FIREAI_API_KEY"] = "abc"
+        os.environ["API_KEY"] = "abc"
         text = "The value abc appears here"
         masked = mask_sensitive(text)
         # Values < 4 chars are not masked per the implementation
@@ -1147,13 +1137,11 @@ class TestSensitiveDataMasking:
 
     def test_mask_sensitive_filter_class_exists(self):
         """Verify SensitiveDataFilter class exists and is a logging Filter."""
-        from fireai.core.security_logging import SensitiveDataFilter
 
         assert issubclass(SensitiveDataFilter, logging.Filter)
 
     def test_mask_sensitive_filter_masks_record(self):
         """SensitiveDataFilter should mask sensitive data in log records."""
-        from fireai.core.security_logging import SensitiveDataFilter
 
         filt = SensitiveDataFilter()
         record = logging.LogRecord(

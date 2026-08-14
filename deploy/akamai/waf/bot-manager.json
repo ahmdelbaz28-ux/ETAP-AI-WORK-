@@ -1,6 +1,6 @@
 {
   "_comment": "Akamai Bot Manager configuration. Detects and categorizes bots into: HUMAN, BROWSER_BOT, GOOD_BOT, BAD_BOT. The backend reads Akamai-Bot-Score (0-100) via backend/akamai_middleware.py and rejects high scores on /api/v1/auth/*. See docs/AKAMAI_DEPLOYMENT_GUIDE.md.",
-  "configName": "BAZSPARK-BOT-MANAGER",
+  "configName": "ETAP-BOT-MANAGER",
   "mode": "DETECTION_AND_BLOCKING",
   "detectionMechanisms": [
     {
@@ -54,7 +54,7 @@
           "name": "Googlebot",
           "header": "User-Agent contains \"Googlebot\"",
           "verifyBy": "DNS reverse lookup to googlebot.com",
-          "comments": "If bazspark.com has marketing pages — currently no SEO content, can disable."
+          "comments": "If etap.com has marketing pages — currently no SEO content, can disable."
         },
         {
           "name": "Bingbot",

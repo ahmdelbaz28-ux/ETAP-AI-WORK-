@@ -4,7 +4,7 @@
 tests/test_fault_isolator_injector.py
 ======================================
 Comprehensive test suite for:
-  - fireai/core/fault_isolator_injector.py
+  - etap/core/fault_isolator_injector.py
 
 SAFETY CRITICAL: Without fault isolators, a single short circuit on an SLC
 loop can disable ALL 250 devices — leaving an entire building without fire
@@ -20,7 +20,6 @@ NFPA 72 References:
 from __future__ import annotations
 
 import pytest
-from fireai.core.fault_isolator_injector import (
     DEFAULT_MAX_DEVICES_BETWEEN_ISOLATORS,
     ISOLATOR_DEVICE_TYPE,
     NFPA_CITATION_ISOLATION,

@@ -758,7 +758,7 @@
 <h2 id="2-test-results-reconciliation">2. Test Results Reconciliation</h2>
 <p>Coverage data from <code>/tmp/revit_audit/coverage.json</code> (timestamp: <code>2026-05-31T20:44:11</code>):</p>
 <p><strong>Coverage.json summary:</strong>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>fireai: 11618/29714 = 39.1% across 161 files
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>etap: 11618/29714 = 39.1% across 161 files
 </code></pre></div></p>
 <p><strong>Key module-level coverage from coverage.json:</strong></p>
 <table>
@@ -923,7 +923,7 @@
 <h2 id="5-forcetrue-authorization-bypass-verification">5. <code>force=True</code> Authorization Bypass Verification</h2>
 <p><strong>Claim:</strong> <code>force=True</code> paths may bypass authorization.</p>
 <p><strong>Evidence:</strong>
-- <strong>Only <code>force=True</code> found:</strong> <code>fireai/core/security_logging.py:129</code> — <code>_refresh_env_cache()</code> docstring: "Call with force=True to bypass TTL." This is a <strong>cache TTL parameter</strong> for environment variable masking, NOT an authorization mechanism.
+- <strong>Only <code>force=True</code> found:</strong> <code>etap/core/security_logging.py:129</code> — <code>_refresh_env_cache()</code> docstring: "Call with force=True to bypass TTL." This is a <strong>cache TTL parameter</strong> for environment variable masking, NOT an authorization mechanism.
 - <strong>Authorization enforcement:</strong> <code>ApiKeyMiddleware</code> at <code>backend/app.py:555-669</code> — ALL mutating requests (POST, PUT, DELETE, PATCH) require valid <code>X-API-Key</code> header. Read-only (GET, HEAD, OPTIONS) are allowed without auth.
 - <strong>No <code>force=True</code> in any auth path found</strong> — grep for <code>force.*True</code> across all Python files returned only the security_logging.py cache refresh reference.</p>
 <p><strong>Conclusion: VERIFIED — no authorization bypass via <code>force=True</code> exists.</strong></p>

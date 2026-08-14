@@ -46,8 +46,8 @@ re-occurrence.
 > modify the regulatory data values themselves without satisfying
 > (a) or (b).
 >
-> Scope: applies to `fireai/core/qomn_kernel.py`, `fireai/constants/`,
-> `fireai/core/nfpa72_*.py`, `qomn_fire/core/constants.py`, and any
+> Scope: applies to `etap/core/qomn_kernel.py`, `etap/constants/`,
+> `etap/core/nfpa72_*.py`, `qomn_fire/core/constants.py`, and any
 > file containing constants matching the regex `^(NFPA|NEC|IEC|ISO|ASHRAE)_`.
 
 **Owner action required:** Adopt / modify / reject.
@@ -59,9 +59,9 @@ re-occurrence.
 **Status:** Proposed in V121 (`d70c010`), removed by owner in `686d478`.
 **Reason agent originally added it:** V120 audit discovered three
 parallel implementations of the smoke detector spacing table:
-- `fireai/core/qomn_kernel.py:NFPA72_SMOKE_SPACING_TABLE`
-- `fireai/core/nfpa72_technology_dispatcher.py:_NFPA72_SMOKE_SPACING_TABLE`
-- `fireai/core/nfpa72_calculations.py:_NFPA72_TABLE_17_6_3_1_1`
+- `etap/core/qomn_kernel.py:NFPA72_SMOKE_SPACING_TABLE`
+- `etap/core/nfpa72_technology_dispatcher.py:_NFPA72_SMOKE_SPACING_TABLE`
+- `etap/core/nfpa72_calculations.py:_NFPA72_TABLE_17_6_3_1_1`
 
 Each had **different values** for the same NFPA section, meaning
 different code paths returned different "compliant" answers for the

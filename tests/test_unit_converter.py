@@ -1,7 +1,7 @@
 # File-level '# NOSONAR' removed per NOSONAR_AUDIT.md (V143 hardening).
 # Per-line justified suppressions (e.g., '# NOSONAR — S3776: ...') are preserved.
 """
-test_unit_converter.py — Tests for fireai/core/unit_converter.py
+test_unit_converter.py — Tests for etap/core/unit_converter.py
 
 SAFETY-CRITICAL: Unit conversion errors can cause catastrophic engineering
 failures (undersized fire suppression, wrong detector spacing, etc.).
@@ -11,7 +11,6 @@ These tests verify the exact conversion factors against NIST SP 811.
 from __future__ import annotations
 
 import pytest
-from fireai.core.unit_converter import (
     FEET_TO_METRES,
     GPM_TO_LPM,
     INCHES_TO_MM,

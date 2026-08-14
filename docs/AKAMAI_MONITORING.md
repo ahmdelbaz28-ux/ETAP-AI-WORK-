@@ -1,6 +1,6 @@
-# Akamai Monitoring Guide — BAZSPARK
+# Akamai Monitoring Guide — ETAP
 
-> **دليل مراقبة BAZSPARK على Akamai**
+> **دليل مراقبة ETAP على Akamai**
 
 ---
 
@@ -87,21 +87,21 @@
 
 ```bash
 # Warning: Missing Akamai-Internal token (potential bypass attempt)
-grep "Missing Akamai-Internal token" /var/log/fireai/app.log
+grep "Missing Akamai-Internal token" /var/log/etap/app.log
 
 # Warning: Geo-blocked request
-grep "Geo-blocked request" /var/log/fireai/app.log
+grep "Geo-blocked request" /var/log/etap/app.log
 
 # Warning: Bot score exceeded
-grep "Bot score.*exceeds threshold" /var/log/fireai/app.log
+grep "Bot score.*exceeds threshold" /var/log/etap/app.log
 
 # Critical: Direct origin access blocked
-grep "Direct origin access blocked" /var/log/fireai/app.log
+grep "Direct origin access blocked" /var/log/etap/app.log
 ```
 
 ### 3.3 Webhook Integration
 
-عيّن webhook URL (مثل `/api/v1/admin/security/alerts` على BAZSPARK) لاستقبال:
+عيّن webhook URL (مثل `/api/v1/admin/security/alerts` على ETAP) لاستقبال:
 
 ```json
 {
@@ -133,14 +133,14 @@ grep "Direct origin access blocked" /var/log/fireai/app.log
 ```bash
 # Watch HF Space logs in real-time
 curl -N -H "Authorization: Bearer $HF_TOKEN" \
-  "https://huggingface.co/api/spaces/ahmdelbaz28/BAZSPARK/logs/build?stream=true" | \
+  "https://huggingface.co/api/spaces/ahmdelbaz28/ETAP/logs/build?stream=true" | \
   grep -E "WARNING|ERROR|CRITICAL"
 
 # Poll health endpoint
-watch -n 5 'curl -s https://ahmdelbaz28-bazspark.hf.space/api/health | jq ".data.status"'
+watch -n 5 'curl -s https://ahmdelbaz28-etap.hf.space/api/health | jq ".data.status"'
 
 # Watch DB connection
-watch -n 30 'curl -s https://ahmdelbaz28-bazspark.hf.space/api/health | jq ".data.database"'
+watch -n 30 'curl -s https://ahmdelbaz28-etap.hf.space/api/health | jq ".data.database"'
 ```
 
 ---

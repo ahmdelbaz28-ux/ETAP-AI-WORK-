@@ -2,7 +2,7 @@
 tests/test_room_validator.py
 ==============================
 Comprehensive test suite for:
-  - fireai/core/room_validator.py
+  - etap/core/room_validator.py
 
 SAFETY CRITICAL: Room validation prevents crashes and ensures data integrity
 before NFPA 72 analysis. Invalid room data could lead to incorrect detector
@@ -21,8 +21,6 @@ NFPA 72 References:
 from __future__ import annotations
 
 import pytest
-from fireai.core.nfpa72_models import RoomSpec
-from fireai.core.room_validator import (
     VALID_OCCUPANCY_TYPES,
     validate_room_spec,
 )

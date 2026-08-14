@@ -23,7 +23,6 @@ class TestVectorMemoryService:
 
     def test_service_initializes_without_qdrant(self):
         """Service should initialize gracefully when Qdrant is unavailable."""
-        from fireai.infrastructure.vector_memory_service import VectorMemoryService
 
         service = VectorMemoryService(
             qdrant_url="http://nonexistent:6333"
@@ -34,7 +33,6 @@ class TestVectorMemoryService:
 
     def test_store_returns_none_when_qdrant_unavailable(self):
         """Store should return None when Qdrant is unavailable."""
-        from fireai.infrastructure.vector_memory_service import (
             MemoryType,
             VectorMemoryService,
         )
@@ -50,7 +48,6 @@ class TestVectorMemoryService:
 
     def test_search_returns_empty_when_qdrant_unavailable(self):
         """Search should return empty results when Qdrant is unavailable."""
-        from fireai.infrastructure.vector_memory_service import (
             MemoryType,
             VectorMemoryService,
         )
@@ -67,7 +64,6 @@ class TestVectorMemoryService:
 
     def test_health_check_returns_dict(self):
         """Health check should return a dict with healthy status."""
-        from fireai.infrastructure.vector_memory_service import VectorMemoryService
 
         service = VectorMemoryService(
             qdrant_url="http://nonexistent:6333"
@@ -78,7 +74,6 @@ class TestVectorMemoryService:
 
     def test_memory_type_enum_has_all_types(self):
         """MemoryType should have all expected types."""
-        from fireai.infrastructure.vector_memory_service import MemoryType
 
         assert MemoryType.CONVERSATION.value == "conversation"
         assert MemoryType.STUDY_RESULT.value == "study_result"
@@ -87,7 +82,6 @@ class TestVectorMemoryService:
 
     def test_memory_entry_to_dict(self):
         """MemoryEntry should serialize to dict correctly."""
-        from fireai.infrastructure.vector_memory_service import (
             MemoryEntry,
             MemoryType,
         )
@@ -107,7 +101,6 @@ class TestVectorMemoryService:
 
     def test_get_vector_memory_singleton(self):
         """get_vector_memory should return the same instance."""
-        from fireai.infrastructure.vector_memory_service import (
             VectorMemoryService,
             get_vector_memory,
         )
@@ -128,7 +121,6 @@ class TestTopologyGraphService:
 
     def test_service_initializes_without_neo4j(self):
         """Service should initialize gracefully when Neo4j is unavailable."""
-        from fireai.infrastructure.topology_graph_service import TopologyGraphService
 
         service = TopologyGraphService(uri="bolt://nonexistent:7687")
         service._initialize()
@@ -136,7 +128,6 @@ class TestTopologyGraphService:
 
     def test_add_element_in_memory_fallback(self):
         """Add element should work with in-memory fallback."""
-        from fireai.infrastructure.topology_graph_service import (
             ElementType,
             NetworkElement,
             TopologyGraphService,
@@ -154,7 +145,6 @@ class TestTopologyGraphService:
 
     def test_add_connection_in_memory_fallback(self):
         """Add connection should work with in-memory fallback."""
-        from fireai.infrastructure.topology_graph_service import (
             ElementType,
             NetworkConnection,
             NetworkElement,
@@ -182,7 +172,6 @@ class TestTopologyGraphService:
 
     def test_impact_analysis_in_memory(self):
         """Impact analysis should work with in-memory fallback."""
-        from fireai.infrastructure.topology_graph_service import (
             ElementType,
             NetworkConnection,
             NetworkElement,
@@ -231,7 +220,6 @@ class TestTopologyGraphService:
 
     def test_health_check_returns_dict(self):
         """Health check should return a dict."""
-        from fireai.infrastructure.topology_graph_service import TopologyGraphService
 
         service = TopologyGraphService(uri="bolt://nonexistent:7687")
         result = service.health_check()
@@ -240,7 +228,6 @@ class TestTopologyGraphService:
 
     def test_element_type_enum_has_all_types(self):
         """ElementType should have all expected types."""
-        from fireai.infrastructure.topology_graph_service import ElementType
 
         assert ElementType.BUS.value == "Bus"
         assert ElementType.LINE.value == "Line"
@@ -251,7 +238,6 @@ class TestTopologyGraphService:
 
     def test_get_topology_service_singleton(self):
         """get_topology_service should return the same instance."""
-        from fireai.infrastructure.topology_graph_service import (
             TopologyGraphService,
             get_topology_service,
         )
@@ -263,7 +249,6 @@ class TestTopologyGraphService:
 
     def test_impact_analysis_result_to_dict(self):
         """ImpactAnalysisResult should serialize correctly."""
-        from fireai.infrastructure.topology_graph_service import ImpactAnalysisResult
 
         result = ImpactAnalysisResult(
             breaker_id="BRK-001",
@@ -288,7 +273,7 @@ class TestV2MemoryTopologyEndpoints:
 
     @pytest.fixture
     def client(self, monkeypatch):
-        monkeypatch.setenv("FIREAI_API_KEY", "test-key-for-v141-1234567890")
+        monkeypatch.setenv("API_KEY", "test-key-for-v141-1234567890")
         from backend.app import app
 
         return TestClient(app)

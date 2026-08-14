@@ -2,7 +2,7 @@
 """
 Akamai Property deployment script.
 
-Automates the deployment of BAZSPARK's Akamai configuration:
+Automates the deployment of ETAP's Akamai configuration:
   1. Creates a new Property (or reuses existing one)
   2. Imports the rules from deploy/akamai/property-main.json
   3. Adds the hostnames
@@ -24,7 +24,7 @@ USAGE:
   python deploy/akamai/activate.py --contract-id ctr_X-123 --group-id grp_456 --property-id prp_123 --update-only
 
 NOTE: This script does NOT modify DNS. After activation, you must point
-      api.bazspark.com CNAME → {edge_hostname}.edgeservices.net at your DNS provider.
+      api.etap.com CNAME → {edge_hostname}.edgeservices.net at your DNS provider.
 """
 
 from __future__ import annotations
@@ -72,13 +72,13 @@ _ORIGIN_TOKEN_PLACEHOLDER = "{AKAMAI_ORIGIN_TOKEN}"
 
 
 def _edge_hostname() -> str:
-    """Resolve the edge hostname from env, defaulting to 'bazspark'."""
-    return os.getenv("AKAMAI_EDGE_HOSTNAME", "bazspark")
+    """Resolve the edge hostname from env, defaulting to 'etap'."""
+    return os.getenv("AKAMAI_EDGE_HOSTNAME", "etap")
 
 
 def _origin_hostname() -> str:
     """Resolve the origin hostname from env, defaulting to the HF Space."""
-    return os.getenv("AKAMAI_ORIGIN_HOSTNAME", "ahmdelbaz28-bazspark.hf.space")
+    return os.getenv("AKAMAI_ORIGIN_HOSTNAME", "ahmdelbaz28-etap.hf.space")
 
 
 def _origin_token() -> str:
@@ -143,7 +143,7 @@ def find_or_create_property(
     session: requests.Session,
     contract_id: str,
     group_id: str,
-    property_name: str = "BAZSPARK",
+    property_name: str = "ETAP",
 ) -> tuple[str, int]:
     """Find an existing property by name, or create a new one. Returns (property_id, latest_version)."""
     # List existing properties
@@ -275,7 +275,7 @@ def activate(
     body = {
         "propertyVersion": version,
         "network": network,
-        "note": f"BAZSPARK deployment via deploy/akamai/activate.py — {network}",
+        "note": f"ETAP deployment via deploy/akamai/activate.py — {network}",
         "notifyEmails": notify_emails,
         "useFastRules": False,
         "acknowledgeAllWarnings": True,
@@ -313,12 +313,12 @@ def activate(
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Deploy BAZSPARK Akamai configuration")
+    parser = argparse.ArgumentParser(description="Deploy ETAP Akamai configuration")
     parser.add_argument("--contract-id", required=True, help="Akamai contract ID (ctr_X-...)")
     parser.add_argument("--group-id", required=True, help="Akamai group ID (grp_...)")
     parser.add_argument("--property-id", help="Existing property ID (skip creation)")
     parser.add_argument(
-        "--property-name", default="BAZSPARK", help="Property name (default: BAZSPARK)"
+        "--property-name", default="ETAP", help="Property name (default: ETAP)"
     )
     parser.add_argument(
         "--activate-staging", action="store_true", help="Activate on STAGING network"
@@ -400,7 +400,7 @@ def main() -> None:
         )
 
     # Step 5: Output DNS instructions
-    edge_hostname = os.getenv("AKAMAI_EDGE_HOSTNAME", "bazspark") + ".edgeservices.net"
+    edge_hostname = os.getenv("AKAMAI_EDGE_HOSTNAME", "etap") + ".edgeservices.net"
     print()
     print("=" * 70)
     print("AKAMAI DEPLOYMENT COMPLETE")
@@ -411,10 +411,10 @@ def main() -> None:
     print(f"Production  : {'activated' if args.activate_production else 'NOT activated'}")
     print()
     print("DNS CONFIGURATION REQUIRED:")
-    print(f"  api.bazspark.com  CNAME  {edge_hostname}")
+    print(f"  api.etap.com  CNAME  {edge_hostname}")
     print()
     print("Verification:")
-    print("  curl -I https://api.bazspark.com/api/health")
+    print("  curl -I https://api.etap.com/api/health")
     print("  # Should return 200 with X-Akamai-EdgeWorker: inject-headers")
 
 

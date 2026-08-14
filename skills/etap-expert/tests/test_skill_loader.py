@@ -3,7 +3,7 @@ Gate 2: Runtime Validation Tests.
 =================================
 Validates that the skill loads and executes cleanly at runtime.
 
-Per FireAI agent.md VERIFICATION GATES:
+Per ETAP agent.md VERIFICATION GATES:
     [Gate 2] Runtime Validation
     - startup success (imports clean)
     - execution stability (no crashes)

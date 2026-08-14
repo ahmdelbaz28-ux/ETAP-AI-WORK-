@@ -8,8 +8,8 @@ The previous code defaulted to allow_origins=["*"] which allows any website
 to read API responses. In production, CORS_ORIGINS must be explicitly set to
 a comma-separated list of trusted origins.
 
-NOTE: backend_app.py (legacy FireAI QOMN entry point) was removed as part of
-the BAZSpark/FireAI purge. These tests now target backend.app which is the
+NOTE: backend_app.py (legacy ETAP QOMN entry point) was removed as part of
+the ETAP purge. These tests now target backend.app which is the
 actual production entry point for the AhmedETAP backend.
 
 Tests:
@@ -125,18 +125,18 @@ def _reload_backend_app(env_overrides: dict) -> Any:
     env_overrides = dict(env_overrides)
     if "CORS_ORIGINS" in env_overrides and "CORS_ALLOWED_ORIGINS" not in env_overrides:
         env_overrides["CORS_ALLOWED_ORIGINS"] = env_overrides.pop("CORS_ORIGINS")
-    # Production auth requires FIREAI_SESSION_SECRET (see session_secret.py:235).
+    # Production auth requires SESSION_SECRET (see session_secret.py:235).
     # Without it the auth router raises RuntimeError, the app import aborts, and
     # CORS middleware is never registered. session_secret.py additionally
     # REJECTS low-entropy secrets (< 10 unique chars, < 256 bits) — so the
     # injected value must itself be high-entropy (not 'x'*64). Inject a
     # strong test secret *only* in production so the full app constructs.
-    if os.environ.get("FIREAI_ENV", "").lower() in ("production", "prod") and not os.environ.get(
-        "FIREAI_SESSION_SECRET"
+    if os.environ.get("APP_ENV", "").lower() in ("production", "prod") and not os.environ.get(
+        "SESSION_SECRET"
     ):
         import secrets as _secrets
 
-        env_overrides.setdefault("FIREAI_SESSION_SECRET", _secrets.token_urlsafe(48))
+        env_overrides.setdefault("SESSION_SECRET", _secrets.token_urlsafe(48))
 
     child_env = dict(os.environ)
     for k, v in env_overrides.items():
@@ -196,7 +196,7 @@ class TestV127CorsHardening:
             _reload_backend_app(
                 {
                     "ENVIRONMENT": "production",
-                    "FIREAI_ENV": "production",
+                    "APP_ENV": "production",
                     "CORS_ALLOWED_ORIGINS": None,
                     "DIGITAL_TWIN_DB_PATH": ":memory:",
                 }
@@ -208,7 +208,7 @@ class TestV127CorsHardening:
             _reload_backend_app(
                 {
                     "ENVIRONMENT": "production",
-                    "FIREAI_ENV": "production",
+                    "APP_ENV": "production",
                     "CORS_ALLOWED_ORIGINS": "*",
                     "DIGITAL_TWIN_DB_PATH": ":memory:",
                 }
@@ -219,7 +219,7 @@ class TestV127CorsHardening:
         backend_app = _reload_backend_app(
             {
                 "ENVIRONMENT": "production",
-                "FIREAI_ENV": "production",
+                "APP_ENV": "production",
                 "CORS_ALLOWED_ORIGINS": "https://app.example.com,https://admin.example.com",
                 "DIGITAL_TWIN_DB_PATH": ":memory:",
             }
@@ -244,7 +244,7 @@ class TestV127CorsHardening:
         backend_app = _reload_backend_app(
             {
                 "ENVIRONMENT": "development",
-                "FIREAI_ENV": "development",
+                "APP_ENV": "development",
                 "CORS_ALLOWED_ORIGINS": None,
                 "DIGITAL_TWIN_DB_PATH": ":memory:",
             }
@@ -267,7 +267,7 @@ class TestV127CorsHardening:
             backend_app = _reload_backend_app(
                 {
                     "ENVIRONMENT": env,
-                    "FIREAI_ENV": env,
+                    "APP_ENV": env,
                     "CORS_ORIGINS": None,
                     "DIGITAL_TWIN_DB_PATH": ":memory:",
                 }
@@ -286,7 +286,7 @@ class TestV127CorsHardening:
             _reload_backend_app(
                 {
                     "ENVIRONMENT": "production",
-                    "FIREAI_ENV": "production",
+                    "APP_ENV": "production",
                     "CORS_ORIGINS": "https://a.com,*,https://b.com",
                     "DIGITAL_TWIN_DB_PATH": ":memory:",
                 }

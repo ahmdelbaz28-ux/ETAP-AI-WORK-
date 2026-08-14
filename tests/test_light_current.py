@@ -4,7 +4,7 @@
 tests/test_light_current.py
 ===========================
 Comprehensive test suite for:
-  - fireai/core/light_current.py
+  - etap/core/light_current.py
 
 SAFETY CRITICAL: This module handles light current system design for
 telecommunications, fiber optics, CCTV, and access control. Errors
@@ -24,7 +24,6 @@ from __future__ import annotations
 import dataclasses
 
 import pytest
-from fireai.core.light_current import (
     CableType,
     ContractViolation,
     EgressType,

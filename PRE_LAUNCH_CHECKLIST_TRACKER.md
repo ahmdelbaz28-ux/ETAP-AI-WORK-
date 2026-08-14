@@ -2,7 +2,7 @@
 ## OWASP + Best Practices - Implementation Tracker
 
 **Generated:** 2026-06-16  
-**Project:** FireAI REVIT - Fire Protection Engineering System  
+**Project:** ETAP REVIT - Fire Protection Engineering System  
 **Environment Status:** ⚠️ **BLOCKED** - Python 3.8.4 (Requires 3.12+)  
 
 ---

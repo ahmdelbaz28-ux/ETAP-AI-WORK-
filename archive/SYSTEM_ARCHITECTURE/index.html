@@ -20,7 +20,7 @@
     
     
       
-        <title>FireAI Production System Architecture - AhmedETAP Documentation</title>
+        <title>ETAP Production System Architecture - AhmedETAP Documentation</title>
       
     
     
@@ -70,7 +70,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#fireai-production-system-architecture" class="md-skip">
+        <a href="#etap-production-system-architecture" class="md-skip">
           Skip to content
         </a>
       
@@ -104,7 +104,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              FireAI Production System Architecture
+              ETAP Production System Architecture
             
           </span>
         </div>
@@ -554,9 +554,9 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#1-fireaisystem-fireai_corepy" class="md-nav__link">
+  <a href="#1-fireaisystem-corepy" class="md-nav__link">
     <span class="md-ellipsis">
-      1. FireAISystem (fireai_core.py)
+      1. ETAPSystem (core.py)
     </span>
   </a>
   
@@ -739,13 +739,13 @@
   
 
 
-<h1 id="fireai-production-system-architecture">FireAI Production System Architecture</h1>
+<h1 id="etap-production-system-architecture">ETAP Production System Architecture</h1>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>┌─────────────────────────────────────────────────────────────────────┐
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>│                    FIREAI PRODUCTION SYSTEM                        │
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>│                    ETAP PRODUCTION SYSTEM                        │
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>└─────────────────────────────────────────────────────────────────────┘
 <a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
 <a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>                                ┌─────────────────┐
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>                                │  FireAISystem    │
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>                                │  ETAPSystem    │
 <a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>                                │  (Orchestrator) │
 <a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>                                └────────┬────────┘
 <a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>                                         │
@@ -770,7 +770,7 @@
 <a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>   │  - used_mip         - mip_proof                         │
 <a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>   └───────────────────────────────────────────────────────────────────┘
 <a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>
-<a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>API Endpoints (fireai_api.py):
+<a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>API Endpoints (api.py):
 <a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a>  POST  /analyse/room     → Single room analysis
 <a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a>  POST  /analyse/floor    → Multi-room floor analysis  
 <a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a>  GET   /audit/trail      → Audit trail
@@ -779,7 +779,7 @@
 <a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a>  GET   /version           → Version info
 </code></pre></div>
 <h2 id="components">Components</h2>
-<h3 id="1-fireaisystem-fireai_corepy">1. FireAISystem (fireai_core.py)</h3>
+<h3 id="1-fireaisystem-corepy">1. ETAPSystem (core.py)</h3>
 <p><strong>Responsibility</strong>: Central orchestrator that integrates all components
 - Combines V12 engine with audit logging
 - Provides single entry point for analysis
@@ -816,7 +816,7 @@
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>1. User Request
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>       │
 <a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>       ▼
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>2. FireAISystem.analyse_room()
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>2. ETAPSystem.analyse_room()
 <a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>       │
 <a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>       ├──────────────────────┐
 <a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>       │                      │
@@ -834,7 +834,7 @@
 </code></pre></div>
 <h2 id="operation-modes">Operation Modes</h2>
 <h3 id="single-room-analysis">Single Room Analysis</h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>FireAISystem.analyse_room(room_spec, user_id=&quot;user123&quot;)
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>ETAPSystem.analyse_room(room_spec, user_id=&quot;user123&quot;)
 <a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>    │
 <a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>    ├─→ ExpertSystemV12.analyse_room()
 <a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>    │       │
@@ -846,7 +846,7 @@
 <a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>    └─→ AuditStore.add_event(&quot;room_analysis&quot;, ...)
 </code></pre></div>
 <h3 id="floor-analysis">Floor Analysis</h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>FireAISystem.analyse_floor(rooms, user_id=&quot;user123&quot;)
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>ETAPSystem.analyse_floor(rooms, user_id=&quot;user123&quot;)
 <a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>    │
 <a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>    ├─→ ExpertSystemV12.analyse_floor()
 <a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>    │       │
@@ -873,11 +873,11 @@
 <div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>pip<span class="w"> </span>install<span class="w"> </span>ezdxf<span class="w"> </span>shapely
 </code></pre></div>
 <h3 id="basic-usage">Basic Usage</h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">fireai.core.fireai_core</span><span class="w"> </span><span class="kn">import</span> <span class="n">FireAISystem</span>
-<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">fireai.core.nfpa72_models</span><span class="w"> </span><span class="kn">import</span> <span class="n">CeilingSpec</span><span class="p">,</span> <span class="n">CeilingType</span><span class="p">,</span> <span class="n">RoomSpec</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">etap.core.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">ETAPSystem</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">etap.core.nfpa72_models</span><span class="w"> </span><span class="kn">import</span> <span class="n">CeilingSpec</span><span class="p">,</span> <span class="n">CeilingType</span><span class="p">,</span> <span class="n">RoomSpec</span>
 <a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>
 <a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="c1"># Create system</span>
-<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="n">system</span> <span class="o">=</span> <span class="n">FireAISystem</span><span class="p">(</span><span class="n">db_path</span><span class="o">=</span><span class="s2">&quot;audit.db&quot;</span><span class="p">,</span> <span class="n">memory_max</span><span class="o">=</span><span class="mi">2048</span><span class="p">)</span>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="n">system</span> <span class="o">=</span> <span class="n">ETAPSystem</span><span class="p">(</span><span class="n">db_path</span><span class="o">=</span><span class="s2">&quot;audit.db&quot;</span><span class="p">,</span> <span class="n">memory_max</span><span class="o">=</span><span class="mi">2048</span><span class="p">)</span>
 <a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>
 <a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="c1"># Create room spec</span>
 <a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="n">ceiling</span> <span class="o">=</span> <span class="n">CeilingSpec</span><span class="p">(</span><span class="mf">3.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">,</span> <span class="n">CeilingType</span><span class="o">.</span><span class="n">FLAT</span><span class="p">)</span>
@@ -897,11 +897,11 @@
 <a id="__codelineno-5-22" name="__codelineno-5-22" href="#__codelineno-5-22"></a><span class="n">is_valid</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">verify_audit_integrity</span><span class="p">()</span>
 </code></pre></div>
 <h3 id="running-tests">Running Tests</h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>python<span class="w"> </span>fireai/core/test_integration.py
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>python<span class="w"> </span>etap/core/test_integration.py
 </code></pre></div>
 <h2 id="version-information">Version Information</h2>
 <ul>
-<li>FireAISystem: 1.0.0</li>
+<li>ETAPSystem: 1.0.0</li>
 <li>ExpertSystemV12: 12.0.0</li>
 <li>AuditStore: Hash-chain based</li>
 <li>
@@ -911,7 +911,7 @@
 </ul>
 <h2 id="running-the-api">Running the API</h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="nb">cd</span><span class="w"> </span>/workspace/project/revit
-<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>uvicorn<span class="w"> </span>fireai.core.fireai_api:app<span class="w"> </span>--host<span class="w"> </span><span class="m">0</span>.0.0.0<span class="w"> </span>--port<span class="w"> </span><span class="m">8000</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>uvicorn<span class="w"> </span>etap.core.api:app<span class="w"> </span>--host<span class="w"> </span><span class="m">0</span>.0.0.0<span class="w"> </span>--port<span class="w"> </span><span class="m">8000</span>
 </code></pre></div>
 <h2 id="api-example-with-curl">API Example with curl</h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1"># Health check</span>
@@ -951,7 +951,7 @@ ENVIRONMENT VARIABLES
 <td>dev-key-change-in-production</td>
 </tr>
 <tr>
-<td>FIREAI_API_KEY</td>
+<td>API_KEY</td>
 <td>API key for authentication</td>
 <td>change-me-in-production</td>
 </tr>

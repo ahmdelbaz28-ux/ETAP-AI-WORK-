@@ -20,7 +20,7 @@ import os
 import tempfile
 from pathlib import Path
 
-logger = logging.getLogger("fireai.parsers.security")
+logger = logging.getLogger("etap.parsers.security")
 
 
 class UnsafePathError(ValueError):
@@ -39,13 +39,13 @@ def _resolve_allowed_bases() -> list[Path]:
     Compute the allow-list of directories from environment + temp dir.
 
     Returns a list of resolved Path objects. Allowed bases:
-      - $FIREAI_ALLOWED_UPLOAD_DIRS (comma-separated)
+      - $ALLOWED_UPLOAD_DIRS (comma-separated)
       - tempfile.gettempdir() (always allowed — tests use this)
-      - Path.cwd() when FIREAI_ENV=development (NEVER in production)
+      - Path.cwd() when APP_ENV=development (NEVER in production)
     """
     raw = os.getenv(
-        "FIREAI_ALLOWED_UPLOAD_DIRS",
-        "/tmp,/var/tmp,/var/fireai/uploads",
+        "ALLOWED_UPLOAD_DIRS",
+        "/tmp,/var/tmp,/var/etap/uploads",
     )
     bases: list[Path] = []
     for entry in raw.split(","):
@@ -58,7 +58,7 @@ def _resolve_allowed_bases() -> list[Path]:
             # Resolve can fail on symlink loops, permission denied, etc.
             # Skip the malformed entry rather than crashing the whole list.
             logger.warning(
-                "Skipping malformed FIREAI_ALLOWED_UPLOAD_DIRS entry %r: %s",
+                "Skipping malformed ALLOWED_UPLOAD_DIRS entry %r: %s",
                 entry,
                 e,
             )
@@ -75,7 +75,7 @@ def _resolve_allowed_bases() -> list[Path]:
         raise  # NOSONAR - python:S2737
 
     # Development convenience: allow CWD. NEVER in production.
-    if os.getenv("FIREAI_ENV") == "development":
+    if os.getenv("APP_ENV") == "development":
         try:
             cwd = Path.cwd().resolve()
             if cwd not in bases:
@@ -98,7 +98,7 @@ def validate_input_path(
     Checks performed (in order):
       1. Path exists
       2. Resolve path (follows symlinks) and check the resolved path is
-         within FIREAI_ALLOWED_UPLOAD_DIRS or the system temp dir
+         within ALLOWED_UPLOAD_DIRS or the system temp dir
       3. If `allowed_extensions` is given, the suffix MUST be in the set
          (case-insensitive)
       4. The path string itself MUST NOT start with "-" or "--"

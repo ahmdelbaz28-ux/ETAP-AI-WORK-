@@ -4,7 +4,7 @@
 tests/test_safe_building_engine.py
 =====================================
 Comprehensive test suite for:
-  - fireai/core/safe_building_engine.py
+  - etap/core/safe_building_engine.py
 
 SAFETY CRITICAL: Multi-floor building analysis must be thread-safe.
 CBC solver deadlocks with ProcessPoolExecutor. SafeBuildingEngine
@@ -23,7 +23,6 @@ from __future__ import annotations
 import threading
 
 import pytest
-from fireai.core.safe_building_engine import SafeBuildingEngine
 
 # Initialization
 # ─────────────────────────────────────────────────────────────────────────────

@@ -3,7 +3,7 @@
 **Audit ID:** V120
 **Date:** 2026-06-03
 **Auditor:** Arena Agent (Principal Engineer mode)
-**Scope:** `compute_smoke_detector_spacing()` in `fireai/core/qomn_kernel.py` and 2 parallel implementations
+**Scope:** `compute_smoke_detector_spacing()` in `etap/core/qomn_kernel.py` and 2 parallel implementations
 **Severity:** 🟠 MEDIUM-HIGH — Correctness defect with cost-impact, but FAIL-SAFE direction (no life-safety regression)
 **Status:** **NEEDS PROFESSIONAL ENGINEER (FPE) REVIEW BEFORE CODE FIX**
 
@@ -36,7 +36,7 @@ underlying issue to system operators.
 
 ## 1. Defect Description
 
-`fireai/core/qomn_kernel.py:compute_smoke_detector_spacing()` (lines
+`etap/core/qomn_kernel.py:compute_smoke_detector_spacing()` (lines
 338–390 before V120) applies a **"1% per foot reduction above 10 ft"**
 to smoke detector spacing values. The comment cites
 `§17.7.3.2.3` of NFPA 72.
@@ -67,7 +67,7 @@ that contradict the kernel:
 No mention of any per-foot reduction. This is the project's own
 documentation of its NFPA implementation.
 
-#### (b) `fireai/constants/__init__.py:43`
+#### (b) `etap/constants/__init__.py:43`
 ```python
 SMOKE_MAX_SPACING_M: float = 9.10
 """Maximum listed spacing for smoke detectors on smooth flat ceilings
@@ -149,10 +149,10 @@ of NFPA 72 smoke detector spacing:
 
 | # | File | Table name | Rows | h≤3m → S | h=4.6m → S | Method |
 |---|------|------------|------|----------|------------|--------|
-| 1 | `fireai/core/qomn_kernel.py` | `NFPA72_SMOKE_SPACING_TABLE` | 10 | 9.144 | 7.620 | Table lookup + 1%/ft reduction |
-| 2 | `fireai/core/nfpa72_technology_dispatcher.py` | `_NFPA72_SMOKE_SPACING_TABLE` | 9 | 9.10 | 8.20 | Pre-reduced table, no scalar adjust |
-| 3 | `fireai/core/nfpa72_calculations.py` | `_NFPA72_TABLE_17_6_3_1_1` | 9 | 9.10 | 8.20 | Same as #2 but bundled with heat |
-| 4 | `fireai/constants/__init__.py` | `SMOKE_MAX_SPACING_M` | scalar | 9.10 | 9.10 | **No reduction** |
+| 1 | `etap/core/qomn_kernel.py` | `NFPA72_SMOKE_SPACING_TABLE` | 10 | 9.144 | 7.620 | Table lookup + 1%/ft reduction |
+| 2 | `etap/core/nfpa72_technology_dispatcher.py` | `_NFPA72_SMOKE_SPACING_TABLE` | 9 | 9.10 | 8.20 | Pre-reduced table, no scalar adjust |
+| 3 | `etap/core/nfpa72_calculations.py` | `_NFPA72_TABLE_17_6_3_1_1` | 9 | 9.10 | 8.20 | Same as #2 but bundled with heat |
+| 4 | `etap/constants/__init__.py` | `SMOKE_MAX_SPACING_M` | scalar | 9.10 | 9.10 | **No reduction** |
 | 5 | `wiki/standards/nfpa72.md` | Documentation | n/a | 9.1 | 9.1 | **No reduction** |
 
 **Tables #2 and #3 also implement reduction (likely from the same
@@ -183,14 +183,14 @@ authored the project.
    unnecessary equipment, installation, and maintenance cost.
 3. **Misleads engineers**: Junior engineers using this kernel as a
    reference will internalize the wrong rule, propagating the defect
-   to designs not produced by FireAI.
+   to designs not produced by ETAP.
 4. **False precision**: Returning values for 60ft ceilings implies
    the system supports such designs prescriptively. Per ECMAG/SFPE,
    spot smoke detection is unsuitable above 20ft and requires a
    technology change or performance-based design.
 
 ### 4.3 Cannot-Verify-Currently
-- Whether existing FireAI-produced designs in the field rely on these
+- Whether existing ETAP-produced designs in the field rely on these
   numbers
 - Whether any AHJ has already accepted designs based on this output
 - Whether the original FPE who authored this project intended this as
@@ -216,7 +216,7 @@ projects.
 
 Operator must engage a licensed Fire Protection Engineer to:
 1. Review this audit report against NFPA 72-2022 §17.7.3 verbatim text
-2. Determine the canonical spacing table for FireAI
+2. Determine the canonical spacing table for ETAP
 3. Decide whether tables #2 and #3 should be removed, modified, or
    unified into a single source of truth
 4. Sign off on the chosen approach with their PE number recorded
@@ -226,7 +226,7 @@ Operator must engage a licensed Fire Protection Engineer to:
 
 Likely changes (subject to FPE direction):
 1. Replace 3 tables with 1 canonical source (likely
-   `fireai/constants/__init__.py`)
+   `etap/constants/__init__.py`)
 2. Remove or replace the 1%/ft reduction in `qomn_kernel.py`
 3. Add high-ceiling rejection or technology dispatch
 4. Update tests for new expected values (anti-pattern tests in
@@ -295,4 +295,4 @@ a simplified model without checking the underlying physics."
    Spaces Phase II*, August 2023
 5. NFPA 72-2022 §17.7.1.11 (Stratification effects)
 6. Repository internal: `wiki/standards/nfpa72.md`,
-   `fireai/constants/__init__.py`
+   `etap/constants/__init__.py`

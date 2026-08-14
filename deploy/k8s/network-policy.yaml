@@ -2,10 +2,10 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: deny-all
-  namespace: fireai
+  namespace: etap
   labels:
-    app.kubernetes.io/name: fireai
-    app.kubernetes.io/part-of: fireai
+    app.kubernetes.io/name: etap
+    app.kubernetes.io/part-of: etap
 spec:
   podSelector: {}
   policyTypes:
@@ -16,10 +16,10 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: allow-api-ingress
-  namespace: fireai
+  namespace: etap
   labels:
-    app.kubernetes.io/name: fireai
-    app.kubernetes.io/part-of: fireai
+    app.kubernetes.io/name: etap
+    app.kubernetes.io/part-of: etap
 spec:
   podSelector:
     matchLabels:
@@ -46,10 +46,10 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: allow-api-egress
-  namespace: fireai
+  namespace: etap
   labels:
-    app.kubernetes.io/name: fireai
-    app.kubernetes.io/part-of: fireai
+    app.kubernetes.io/name: etap
+    app.kubernetes.io/part-of: etap
 spec:
   podSelector:
     matchLabels:
@@ -96,10 +96,10 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: allow-worker-egress
-  namespace: fireai
+  namespace: etap
   labels:
-    app.kubernetes.io/name: fireai
-    app.kubernetes.io/part-of: fireai
+    app.kubernetes.io/name: etap
+    app.kubernetes.io/part-of: etap
 spec:
   podSelector:
     matchLabels:
@@ -153,10 +153,10 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: allow-db-ingress
-  namespace: fireai
+  namespace: etap
   labels:
-    app.kubernetes.io/name: fireai
-    app.kubernetes.io/part-of: fireai
+    app.kubernetes.io/name: etap
+    app.kubernetes.io/part-of: etap
 spec:
   podSelector:
     matchLabels:
@@ -183,10 +183,10 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: allow-redis-ingress
-  namespace: fireai
+  namespace: etap
   labels:
-    app.kubernetes.io/name: fireai
-    app.kubernetes.io/part-of: fireai
+    app.kubernetes.io/name: etap
+    app.kubernetes.io/part-of: etap
 spec:
   podSelector:
     matchLabels:

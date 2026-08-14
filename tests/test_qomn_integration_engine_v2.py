@@ -4,7 +4,7 @@
 tests/test_qomn_integration_engine_v2.py
 ===========================================
 Comprehensive test suite for:
-  - fireai/core/qomn_integration_engine.py
+  - etap/core/qomn_integration_engine.py
 
 SAFETY CRITICAL: This module integrates cable routing and hatch placement
 for fire alarm conduit systems. Routing errors could cause NEC violations
@@ -24,7 +24,6 @@ import json
 import math
 
 import pytest
-from fireai.core.qomn_integration_engine import (
     CableHatchIntegrator,
     CableRouter,
     CableRoutingError,

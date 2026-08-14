@@ -20,7 +20,7 @@
     
     
       
-        <title>FireAI Deployment Guide - AhmedETAP Documentation</title>
+        <title>ETAP Deployment Guide - AhmedETAP Documentation</title>
       
     
     
@@ -70,7 +70,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#fireai-deployment-guide" class="md-skip">
+        <a href="#etap-deployment-guide" class="md-skip">
           Skip to content
         </a>
       
@@ -104,7 +104,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              FireAI Deployment Guide
+              ETAP Deployment Guide
             
           </span>
         </div>
@@ -655,7 +655,7 @@
   
 
 
-<h1 id="fireai-deployment-guide">FireAI Deployment Guide</h1>
+<h1 id="etap-deployment-guide">ETAP Deployment Guide</h1>
 <h2 id="docker-deployment-recommended">Docker Deployment (Recommended)</h2>
 <h3 id="prerequisites">Prerequisites</h3>
 <ul>
@@ -666,8 +666,8 @@
 <ol>
 <li>
 <p>Generate secrets:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">FIREAI_API_KEY</span><span class="o">=</span><span class="k">$(</span>openssl<span class="w"> </span>rand<span class="w"> </span>-hex<span class="w"> </span><span class="m">32</span><span class="k">)</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nb">export</span><span class="w"> </span><span class="nv">FIREAI_EVIDENCE_HMAC_KEY</span><span class="o">=</span><span class="k">$(</span>openssl<span class="w"> </span>rand<span class="w"> </span>-hex<span class="w"> </span><span class="m">32</span><span class="k">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">API_KEY</span><span class="o">=</span><span class="k">$(</span>openssl<span class="w"> </span>rand<span class="w"> </span>-hex<span class="w"> </span><span class="m">32</span><span class="k">)</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nb">export</span><span class="w"> </span><span class="nv">EVIDENCE_HMAC_KEY</span><span class="o">=</span><span class="k">$(</span>openssl<span class="w"> </span>rand<span class="w"> </span>-hex<span class="w"> </span><span class="m">32</span><span class="k">)</span>
 </code></pre></div></p>
 </li>
 <li>
@@ -684,7 +684,7 @@
 </ol>
 <h3 id="container-security">Container Security</h3>
 <ul>
-<li>Runs as non-root <code>fireai</code> user</li>
+<li>Runs as non-root <code>etap</code> user</li>
 <li>Read-only filesystem (except <code>/data</code> and <code>/logs</code> volumes)</li>
 <li>tmpfs for <code>/tmp</code> (100MB, ephemeral)</li>
 <li><code>no-new-privileges:true</code> security option</li>
@@ -701,8 +701,8 @@
 <li>
 <p>Install:
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>pip<span class="w"> </span>install<span class="w"> </span>fireai<span class="o">[</span>workflow<span class="o">]</span><span class="w">  </span><span class="c1"># optional</span>
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>pip<span class="w"> </span>install<span class="w"> </span>fireai<span class="o">[</span>memory<span class="o">]</span><span class="w">    </span><span class="c1"># optional</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>pip<span class="w"> </span>install<span class="w"> </span>etap<span class="o">[</span>workflow<span class="o">]</span><span class="w">  </span><span class="c1"># optional</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>pip<span class="w"> </span>install<span class="w"> </span>etap<span class="o">[</span>memory<span class="o">]</span><span class="w">    </span><span class="c1"># optional</span>
 </code></pre></div></p>
 </li>
 <li>
@@ -729,9 +729,9 @@
 </ol>
 <h2 id="production-checklist">Production Checklist</h2>
 <ul>
-<li>[ ] <code>FIREAI_ENV=production</code> set</li>
-<li>[ ] <code>FIREAI_API_KEY</code> is cryptographically generated (not <code>dev-test-key</code>)</li>
-<li>[ ] <code>FIREAI_EVIDENCE_HMAC_KEY</code> is cryptographically generated</li>
+<li>[ ] <code>APP_ENV=production</code> set</li>
+<li>[ ] <code>API_KEY</code> is cryptographically generated (not <code>dev-test-key</code>)</li>
+<li>[ ] <code>EVIDENCE_HMAC_KEY</code> is cryptographically generated</li>
 <li>[ ] CORS origins explicitly configured (no wildcards)</li>
 <li>[ ] Secrets managed by secrets manager (not <code>.env</code> file)</li>
 <li>[ ] Frontend build served via FastAPI static mount</li>

@@ -1,5 +1,5 @@
 ---
-title: BAZSPARK
+title: ETAP
 emoji: 🔥
 colorFrom: red
 colorTo: blue
@@ -16,7 +16,7 @@ tags:
   - revit
 ---
 
-# BAZSPARK — Safety-Critical Fire Alarm Engineering Platform
+# ETAP — Safety-Critical Fire Alarm Engineering Platform
 
 Full-stack deployment: **React 18 + Vite + Tailwind 4** frontend served alongside a **FastAPI** backend on a single origin (no CORS issues).
 
@@ -29,13 +29,13 @@ Full-stack deployment: **React 18 + Vite + Tailwind 4** frontend served alongsid
 This Space is **automatically synced** from GitHub on every push to `main`:
 - Source of truth: [github.com/ahmdelbaz28-ux/revit](https://github.com/ahmdelbaz28-ux/revit)
 - Sync workflow: `.github/workflows/sync-to-hf.yml`
-- Only runtime files are mirrored (backend/, fireai/, frontend/, parsers/, etc.)
+- Only runtime files are mirrored (backend/, etap/, frontend/, parsers/, etc.)
 - Docs, tests, skills/, deploy/ configs are excluded (not needed at runtime)
 
 ## Endpoints
-- `/` — BAZspark React frontend (Login → Dashboard → Room Design → Marine → AI Agent → Reports)
+- `/` — ETAP React frontend (Login → Dashboard → Room Design → Marine → AI Agent → Reports)
 - `/api/health` — Backend health check (public)
-- `/api/v1/auth/login` — Authenticate with FireAI API key
+- `/api/v1/auth/login` — Authenticate with ETAP API key
 - `/api/v1/projects` — Project CRUD (X-API-Key required)
 - `/api/v1/qomn/*` — NFPA 72 engineering calculations (smoke/heat spacing, battery, voltage drop, detector placement)
 - `/api/v1/facp/*` — FACP selection and compliance (NFPA 72 §10.6.10, UL 864)
@@ -44,4 +44,4 @@ This Space is **automatically synced** from GitHub on every push to `main`:
 - `/api/v1/projects/:id/reports/*` — Compliance reports (PDF/DXF/Excel)
 
 ## Maintainer
-Eng. Ahmed Elbaz — [bazspark.com](https://bazspark.com)
+Eng. Ahmed Elbaz — [etap.com](https://etap.com)

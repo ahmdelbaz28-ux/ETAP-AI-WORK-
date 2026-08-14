@@ -1,7 +1,7 @@
 # File-level '# NOSONAR' removed per NOSONAR_AUDIT.md (V143 hardening).
 # Per-line justified suppressions (e.g., '# NOSONAR — S3776: ...') are preserved.
 """
-Comprehensive tests for fireai.core.safety_assurance.
+Comprehensive tests for etap.core.safety_assurance.
 
 Covers all public functions, classes, and constants:
   - Constants
@@ -20,7 +20,6 @@ from __future__ import annotations
 from datetime import datetime, timezone
 
 import pytest
-from fireai.core.safety_assurance import (
     ABSOLUTE_MINIMUM_COVERAGE,
     MINIMUM_COVERAGE_FOR_SUBMISSION,
     PROOF_VERIFIED_THRESHOLD,

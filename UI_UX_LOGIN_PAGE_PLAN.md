@@ -2,8 +2,8 @@
 # Comprehensive UI/UX and Login Page Enhancement Plan
 
 ## الملخص / Summary
-هذه الوثيقة تحدد الخطة الكاملة لتحسين واجهة المستخدم وتجربة المستخدم (UI/UX) وصفحة تسجيل الدخول في مشروع Revit-FireAI.
-This document outlines the comprehensive plan for improving the User Interface/User Experience (UI/UX) and login page in the Revit-FireAI project.
+هذه الوثيقة تحدد الخطة الكاملة لتحسين واجهة المستخدم وتجربة المستخدم (UI/UX) وصفحة تسجيل الدخول في مشروع Revit-ETAP.
+This document outlines the comprehensive plan for improving the User Interface/User Experience (UI/UX) and login page in the Revit-ETAP project.
 
 ---
 

@@ -1,7 +1,7 @@
 # File-level '# NOSONAR' removed per NOSONAR_AUDIT.md (V143 hardening).
 # Per-line justified suppressions (e.g., '# NOSONAR — S3776: ...') are preserved.
 """
-backend/routers/environment.py — Environmental data endpoints for FireAI.
+backend/routers/environment.py — Environmental data endpoints for ETAP.
 
 Provides real-time weather, geocoding, regulatory region, elevation,
 air quality, severe weather alerts, and hazardous material data
@@ -70,7 +70,7 @@ async def get_countries():
     """
     List supported countries and their regulatory frameworks.
 
-    Returns the full country → regulatory framework mapping used by FireAI
+    Returns the full country → regulatory framework mapping used by ETAP
     to determine applicable fire/electrical codes for each jurisdiction.
     """
     from backend.services.region_service import (

@@ -3,7 +3,7 @@
 """
 tests/test_audit_store_v2.py
 =============================
-Comprehensive test suite for fireai/core/audit_store.py.
+Comprehensive test suite for etap/core/audit_store.py.
 
 SAFETY CRITICAL: Audit store provides tamper-evident hash chain logging
 for NFPA 72 compliance. Chain corruption could compromise legal evidence
@@ -28,7 +28,6 @@ import sqlite3
 from unittest.mock import patch
 
 import pytest
-from fireai.core.audit_store import (
     _MIN_HMAC_KEY_LENGTH,
     NFPA_VERSION,
     AuditStore,
@@ -52,7 +51,6 @@ def reset_database():
 
     Uses :memory: database for isolation between tests.
     """
-    import fireai.core.audit_store as _as
 
     # Save original state
     orig_db_path = _as.DATABASE_PATH
@@ -110,7 +108,6 @@ class TestGetHmacKey:
         """When AUDIT_HMAC_KEY is not set, a dev key is auto-generated."""
         with patch.dict(os.environ, {}, clear=False):
             os.environ.pop("AUDIT_HMAC_KEY", None)
-            import fireai.core.audit_store as _as
 
             _as._DEV_HMAC_KEY = None
             _as._DEV_KEY_WARNED = False
@@ -266,7 +263,6 @@ class TestVerifyChain:
         add_event("EVENT_2", "R1", {"step": 2})
 
         # Tamper with the database directly
-        import fireai.core.audit_store as _as
 
         conn = _as._get_connection()
         cursor = conn.cursor()
@@ -281,7 +277,6 @@ class TestVerifyChain:
         add_event("TEST", "R1", {"key": "value"})
 
         # Get the last hash to chain correctly
-        import fireai.core.audit_store as _as
 
         prev_hash = _as._get_last_hash()
 
@@ -309,7 +304,6 @@ class TestVerifyChain:
         """Wrong HMAC signature must be detected."""
         add_event("TEST", "R1", {"key": "value"})
 
-        import fireai.core.audit_store as _as
 
         conn = _as._get_connection()
         cursor = conn.cursor()
@@ -409,7 +403,6 @@ class TestSQLiteImmutability:
     def test_update_prevented(self):
         """UPDATE trigger must prevent modification of audit records."""
         add_event("TEST", "R1", {"key": "value"})
-        import fireai.core.audit_store as _as
 
         conn = _as._get_connection()
         cursor = conn.cursor()
@@ -420,7 +413,6 @@ class TestSQLiteImmutability:
     def test_delete_prevented(self):
         """DELETE trigger must prevent removal of audit records."""
         add_event("TEST", "R1", {"key": "value"})
-        import fireai.core.audit_store as _as
 
         conn = _as._get_connection()
         cursor = conn.cursor()
@@ -437,7 +429,6 @@ class TestSQLiteImmutability:
 class TestECDSALayer:
     def test_ecdsa_not_configured_by_default(self):
         """ECDSA signing is disabled when AUDIT_ECDSA_KEY_PEM is not set."""
-        import fireai.core.audit_store as _as
 
         signer = _as._get_ecdsa_signer()
         assert signer is None

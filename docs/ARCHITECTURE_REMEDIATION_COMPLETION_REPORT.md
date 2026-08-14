@@ -2,7 +2,7 @@
 
 ## Executive Summary
 
-This report documents the completion of critical architecture remediations required for the FireAI Digital Twin system. All identified architectural issues have been addressed to ensure a unified, canonical engineering pipeline with proper workflow orchestration.
+This report documents the completion of critical architecture remediations required for the ETAP Digital Twin system. All identified architectural issues have been addressed to ensure a unified, canonical engineering pipeline with proper workflow orchestration.
 
 ## Remediation Items Completed
 
@@ -19,7 +19,7 @@ This report documents the completion of critical architecture remediations requi
 
 **Modified Files:**
 - `backend/services/workflow_service.py` - Removed inline calculation methods
-- `fireai/core/workflow_engine.py` - Refactored to call canonical pipeline
+- `etap/core/workflow_engine.py` - Refactored to call canonical pipeline
 
 ### 2. Replacement of Heuristic Detector Calculations
 
@@ -33,7 +33,7 @@ This report documents the completion of critical architecture remediations requi
 - Proper integration with DensityOptimizer and BuildingEngine
 
 **Modified Files:**
-- `fireai/core/detector_placement_engine.py` - Replaced heuristics with canonical calls
+- `etap/core/detector_placement_engine.py` - Replaced heuristics with canonical calls
 - `qomn_fire/engine/detector_engine.py` - Standardized calculation methodology
 
 ### 3. Workflow Orchestration Role Clarification
@@ -48,7 +48,7 @@ This report documents the completion of critical architecture remediations requi
 - Clear separation of concerns established
 
 **Modified Files:**
-- `fireai/core/workflow_engine.py` - Restricted to orchestration duties
+- `etap/core/workflow_engine.py` - Restricted to orchestration duties
 - `backend/routers/workflow.py` - Simplified to dispatch operations only
 
 ### 4. Removal of Hardcoded Coverage Percentages
@@ -63,8 +63,8 @@ This report documents the completion of critical architecture remediations requi
 - Configurable thresholds through settings
 
 **Modified Files:**
-- `fireai/core/compliance_engine.py` - Centralized threshold management
-- `fireai/core/coverage_calculator.py` - Removed hardcoded values
+- `etap/core/compliance_engine.py` - Centralized threshold management
+- `etap/core/coverage_calculator.py` - Removed hardcoded values
 
 ### 5. Unification of Compliance Thresholds
 
@@ -78,8 +78,8 @@ This report documents the completion of critical architecture remediations requi
 - Single source of truth for compliance standards
 
 **Modified Files:**
-- `fireai/core/nfpa_engine.py` - Standardized compliance checking
-- `fireai/core/safety_checker.py` - Unified validation approach
+- `etap/core/nfpa_engine.py` - Standardized compliance checking
+- `etap/core/safety_checker.py` - Unified validation approach
 
 ### 6. Authorization Workflow Implementation
 
@@ -94,7 +94,7 @@ This report documents the completion of critical architecture remediations requi
 
 **Modified Files:**
 - `backend/middleware/auth.py` - Enhanced authorization checks
-- `fireai/core/access_control.py` - Centralized authorization logic
+- `etap/core/access_control.py` - Centralized authorization logic
 
 ### 7. QOMN Router Registration
 
@@ -161,7 +161,7 @@ tests/test_workflow_pipeline_equivalence.py::test_workflow_matches_pipeline_batt
 - Hardcoded values scattered throughout codebase
 
 **After Remediation:**
-- Single canonical pipeline: fireai/core/engine.py
+- Single canonical pipeline: etap/core/engine.py
 - All modules delegate to canonical engine
 - Centralized configuration management
 - Consistent results across all interfaces

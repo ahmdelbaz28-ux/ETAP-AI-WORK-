@@ -22,7 +22,6 @@ from __future__ import annotations
 import math
 
 import pytest
-from fireai.constants import (
     COVERAGE_FACTOR_FLAT_CEILING,
     DC_RETURN_PATH_FACTOR,
     NFPA72_HEIGHT_SPACING_TABLE,
@@ -30,11 +29,9 @@ from fireai.constants import (
     SMOKE_MAX_SPACING_M,
     WALL_MIN_DISTANCE_M,
 )
-from fireai.core.nfpa72_calculations import (
     calculate_coverage_radius_from_height,
     check_voltage_drop,
 )
-from fireai.core.nfpa72_schemas import (
     CeilingTypePydantic,
     ConvergenceConfig,
     NFPA72Input,

@@ -3,7 +3,7 @@
 """
 tests/test_egress_calculator.py
 ===============================
-Comprehensive test suite for fireai/core/egress_calculator.py
+Comprehensive test suite for etap/core/egress_calculator.py
 
 SAFETY CRITICAL: Egress calculations determine whether occupants can evacuate
 safely before conditions become untenable. If RSET ≥ ASET, occupants CANNOT
@@ -18,7 +18,6 @@ NFPA 101 References:
 from __future__ import annotations
 
 import pytest
-from fireai.core.egress_calculator import (
     _MIN_EGRESS_WIDTH_M,
     _SAFETY_FACTOR,
     calculate_egress_time,

@@ -3,7 +3,7 @@
 """
 tests/test_blockchain_readiness_gate.py
 =========================================
-Comprehensive test suite for fireai/core/blockchain_readiness_gate.py
+Comprehensive test suite for etap/core/blockchain_readiness_gate.py
 
 Tests the Merkle tree implementation and BlockchainReadinessGate for
 design manifest integrity checking per RFC 6962.
@@ -24,7 +24,6 @@ from __future__ import annotations
 import dataclasses
 
 import pytest
-from fireai.core.blockchain_readiness_gate import (
     EMPTY_HASH,
     PRIORITY,
     BlockchainReadinessGate,

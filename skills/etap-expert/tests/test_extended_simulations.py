@@ -8,7 +8,7 @@ Validates the 3 new simulations + LLM classifier added in V131 Phase 3:
     10. Ground Grid (IEEE 80-2013)
     + LLM-based classifier with pattern fallback
 
-Per FireAI agent.md Rule 10 (TEST-AND-FIX LOOP):
+Per ETAP agent.md Rule 10 (TEST-AND-FIX LOOP):
     After ANY code modification, tests MUST be run immediately.
 """
 

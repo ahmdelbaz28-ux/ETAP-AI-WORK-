@@ -1,7 +1,7 @@
 # File-level '# NOSONAR' removed per NOSONAR_AUDIT.md (V143 hardening).
 # Per-line justified suppressions (e.g., '# NOSONAR — S3776: ...') are preserved.
 """
-Mandatory Security Tests for FireAI Platform
+Mandatory Security Tests for ETAP Platform
 
 These tests are MANDATORY for all CI/CD pipelines and must pass before any deployment.
 They cover critical security requirements for mission-critical fire protection systems.
@@ -24,9 +24,6 @@ import secrets
 import string
 import threading
 import time
-
-from fireai.core.secret_rotation import KeyRotator
-from fireai.core.security_logging import mask_sensitive
 
 
 # MANDATORY SECURITY TEST 1: Authentication & Authorization
@@ -159,19 +156,19 @@ class TestMandatoryCryptographicSecurity:
         rotator = KeyRotator(default_grace_period_s=0.1)
         initial_key = secrets.token_hex(32)
         new_key = secrets.token_hex(32)
-        rotator.register("FIREAI_API_KEY", initial_key)
+        rotator.register("API_KEY", initial_key)
         # After rotation, old key should still work during grace period
-        rotator.rotate("FIREAI_API_KEY", initial_key, new_key)
-        assert rotator.validate("FIREAI_API_KEY", initial_key), (
+        rotator.rotate("API_KEY", initial_key, new_key)
+        assert rotator.validate("API_KEY", initial_key), (
             "Old key should be valid during grace period"
         )
         # After grace period, old key should no longer be valid
         time.sleep(0.2)
-        assert not rotator.validate("FIREAI_API_KEY", initial_key), (
+        assert not rotator.validate("API_KEY", initial_key), (
             "Old key should be invalid after grace period"
         )
         # New key should always be valid
-        assert rotator.validate("FIREAI_API_KEY", new_key), "New key should always be valid"
+        assert rotator.validate("API_KEY", new_key), "New key should always be valid"
 
     def test_key_fingerprint_truncation(self):
         """CRITICAL: Key fingerprints must be properly truncated to 128 bits (32 hex chars)."""

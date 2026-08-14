@@ -37,7 +37,7 @@ class TestValidateInputPathNone:
     def test_empty_string_rejected(self, monkeypatch):
         """Test that empty string is rejected as unsafe."""
         # Ensure development mode doesn't add CWD which makes empty path valid
-        monkeypatch.delenv("FIREAI_ENV", raising=False)
+        monkeypatch.delenv("APP_ENV", raising=False)
         with pytest.raises(UnsafePathError):
             validate_input_path("")
 
@@ -194,23 +194,23 @@ class TestResolveAllowedBases:
         assert len(bases) >= 1
 
     def test_custom_env_var(self, monkeypatch):
-        """Test that FIREAI_ALLOWED_UPLOAD_DIRS env var is respected."""
+        """Test that ALLOWED_UPLOAD_DIRS env var is respected."""
         with tempfile.TemporaryDirectory() as td:
             resolved_td = str(Path(td).resolve())
-            monkeypatch.setenv("FIREAI_ALLOWED_UPLOAD_DIRS", td)
+            monkeypatch.setenv("ALLOWED_UPLOAD_DIRS", td)
             bases = _resolve_allowed_bases()
             assert any(resolved_td in str(b.resolve()) for b in bases)
 
     def test_empty_entries_skipped(self, monkeypatch):
         """Test that empty entries in env var are skipped."""
-        monkeypatch.setenv("FIREAI_ALLOWED_UPLOAD_DIRS", ":/tmp:")
+        monkeypatch.setenv("ALLOWED_UPLOAD_DIRS", ":/tmp:")
         bases = _resolve_allowed_bases()
         # Should not crash from empty entries
         assert len(bases) >= 1
 
     def test_development_env_adds_cwd(self, monkeypatch):
-        """Test that FIREAI_ENV=development adds CWD to allowed bases."""
-        monkeypatch.setenv("FIREAI_ENV", "development")
+        """Test that APP_ENV=development adds CWD to allowed bases."""
+        monkeypatch.setenv("APP_ENV", "development")
         bases = _resolve_allowed_bases()
         cwd = os.path.realpath(os.getcwd())
         assert any(str(b) == cwd for b in bases)

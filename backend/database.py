@@ -37,7 +37,7 @@ from backend.config import config
 
 logger = logging.getLogger(__name__)
 
-# Database file location — sibling to the core fireai_universal.db
+# Database file location — sibling to the core universal.db
 _DB_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "db")
 _DB_PATH = config.DIGITAL_TWIN_DB_PATH
 

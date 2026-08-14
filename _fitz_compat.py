@@ -13,7 +13,7 @@ GRACEFUL DEGRADATION:
   path security, and other non-PDF features still work.
 
 SAFETY RATIONALE:
-  PDF parsing is optional in the FireAI pipeline. DXF parsing via ezdxf
+  PDF parsing is optional in the ETAP pipeline. DXF parsing via ezdxf
   does NOT require PyMuPDF. A missing optional dependency should not
   prevent the core safety-critical functions from operating.
 

@@ -3,7 +3,7 @@
 """
 tests/test_firestop_annotator.py
 ================================
-Comprehensive test suite for fireai/core/firestop_annotator.py
+Comprehensive test suite for etap/core/firestop_annotator.py
 
 SAFETY CRITICAL: Missing firestopping callouts can lead to unsealed
 penetrations in fire-rated walls, compromising compartmentation and
@@ -22,7 +22,6 @@ from __future__ import annotations
 from unittest.mock import MagicMock
 
 import pytest
-from fireai.core.firestop_annotator import (
     SHAPELY_AVAILABLE,
     FirestoppingAnnotator,
 )

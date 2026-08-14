@@ -25,10 +25,10 @@ import os
 import pytest
 
 # Set dev env + audit key before importing
-os.environ.setdefault("FIREAI_ENV", "development")
+os.environ.setdefault("APP_ENV", "development")
 os.environ.setdefault("QOMN_AUDIT_SECRET_KEY", "test_secret_key_for_v215_tests_32bytes")
 # Use a non-default API key so we can test both authenticated and unauthenticated paths
-os.environ.setdefault("FIREAI_API_KEYS", "v215_test_key_admin,v215_test_key_viewer")
+os.environ.setdefault("API_KEYS", "v215_test_key_admin,v215_test_key_viewer")
 
 
 @pytest.fixture(scope="module")

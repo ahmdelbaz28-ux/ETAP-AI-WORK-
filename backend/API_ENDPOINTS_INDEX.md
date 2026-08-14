@@ -1,4 +1,4 @@
-# FireAI — API Endpoints Index
+# ETAP — API Endpoints Index
 
 **Generated:** 2026-06-13  
 **Total Endpoints:** 69  

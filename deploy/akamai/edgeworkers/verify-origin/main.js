@@ -81,7 +81,7 @@ function detectSuspiciousHeaders(request) {
 
     // Suspicious Referer
     const referer = request.getHeader('Referer') || '';
-    if (referer && (referer.includes('ahmdelbaz28-bazspark.hf.space') || referer.includes('vercel.app'))) {
+    if (referer && (referer.includes('ahmdelbaz28-etap.hf.space') || referer.includes('vercel.app'))) {
         suspicious.push('direct-origin-referer');
     }
 

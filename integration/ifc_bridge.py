@@ -33,17 +33,14 @@ from shapely.geometry import Point, Polygon
 logger = logging.getLogger(__name__)
 
 # V109 FIX: Conditional imports with fallback to inline stubs.
-# Try to import from fireai.core equivalents first; fall back to inline
-# dataclasses when the fireai package is not on the Python path.
+# Try to import from etap.core equivalents first; fall back to inline
+# dataclasses when the etap package is not on the Python path.
 
 try:
-    from fireai.core.ifc_parser import (
         BoundingBox3D as _CoreBoundingBox3D,  # noqa: F401
     )
-    from fireai.core.ifc_parser import (
         BuildingModel as _CoreBuildingModel,  # noqa: F401
     )
-    from fireai.core.ifc_parser import (
         SpaceInfo as _CoreSpaceInfo,  # noqa: F401
     )
 
@@ -52,24 +49,22 @@ except ImportError:
     _HAS_CORE_IFC_PARSER = False
 
 # Room, Device, Obstruction — these are integration-layer concepts that
-# bridge BIM data to the compliance kernel. Try fireai.core first, then
+# bridge BIM data to the compliance kernel. Try etap.core first, then
 # fall back to inline stubs.
 
 try:
-    from fireai.core.models_v21 import Obstruction as _CoreObstruction  # noqa: F401
 
     _HAS_CORE_OBSTRUCTION = True
 except ImportError:
     _HAS_CORE_OBSTRUCTION = False
 
 try:
-    from fireai.core.floor_analyser import Room as _CoreRoom  # noqa: F401
 
     _HAS_CORE_ROOM = True
 except ImportError:
     _HAS_CORE_ROOM = False
 
-# Always define inline stubs — these are used when fireai.core is not
+# Always define inline stubs — these are used when etap.core is not
 # available (e.g. standalone deployment, testing without full package).
 
 
@@ -106,7 +101,7 @@ class Obstruction:
     height: float = 2.4
 
 
-# SpatialNormalizer — try fireai.validation first, then inline stub
+# SpatialNormalizer — try etap.validation first, then inline stub
 
 try:
     from validation.spatial_normalizer import (

@@ -21,8 +21,6 @@ import logging
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException
-from fireai.core.pipeline import analyze_room
-from fireai.core.qomn_kernel import (
     PhysicsGuardError,
     QOMNKernel,
 )
@@ -199,7 +197,7 @@ async def analyze_voltage(req: VoltageRequest) -> dict[str, Any]:
 )
 async def analyze_project_room(project_id: str, req: RoomAnalyzeRequest) -> dict[str, Any]:
     """
-    Run the full FireAI pipeline for a room in a project.
+    Run the full ETAP pipeline for a room in a project.
 
     Returns the full PipelineResult.to_dict() output, augmented with
     project_id scoping.

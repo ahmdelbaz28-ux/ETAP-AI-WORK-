@@ -15,7 +15,7 @@ This classifier uses pattern matching (not LLM) — it's a deterministic
 reference implementation. The skill itself recommends LLM-based understanding
 for production use, but this gives a testable baseline.
 
-Author: FireAI Project
+Author: ETAP Project
 """
 
 from __future__ import annotations

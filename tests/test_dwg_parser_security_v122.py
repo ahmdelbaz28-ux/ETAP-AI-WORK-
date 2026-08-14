@@ -12,7 +12,7 @@ These tests verify:
   2. Argument injection (leading '-') blocked
   3. Null bytes blocked
   4. Disallowed extensions blocked
-  5. Files outside FIREAI_ALLOWED_UPLOAD_DIRS blocked
+  5. Files outside ALLOWED_UPLOAD_DIRS blocked
   6. Oversized files blocked (DoS prevention)
   7. Backward compat: valid files still work
   8. The _path_security helper is reusable from other parsers
@@ -86,10 +86,10 @@ class TestValidateInputPath:
             validate_input_path("-rf", parser_name="test")
 
     def test_path_outside_allowed_dirs_rejected(self, monkeypatch):
-        """Path resolving outside FIREAI_ALLOWED_UPLOAD_DIRS → rejected."""
+        """Path resolving outside ALLOWED_UPLOAD_DIRS → rejected."""
         # Clear env so only the default+tmp bases apply
-        monkeypatch.delenv("FIREAI_ALLOWED_UPLOAD_DIRS", raising=False)
-        monkeypatch.delenv("FIREAI_ENV", raising=False)
+        monkeypatch.delenv("ALLOWED_UPLOAD_DIRS", raising=False)
+        monkeypatch.delenv("APP_ENV", raising=False)
         # /etc/hostname exists on Linux test boxes and is outside allowed dirs
         if Path("/etc/hostname").exists():
             with pytest.raises(UnsafePathError, match="outside allowed"):
@@ -202,12 +202,12 @@ class TestDWGParserSecurity:
             os.unlink(path)
 
     def test_parse_rejects_path_outside_allowed_dirs(self, monkeypatch, tmp_path):
-        """A .dwg file outside FIREAI_ALLOWED_UPLOAD_DIRS is rejected."""
-        # Set allowed dirs to ONLY /var/fireai/uploads (which doesn't exist on
+        """A .dwg file outside ALLOWED_UPLOAD_DIRS is rejected."""
+        # Set allowed dirs to ONLY /var/etap/uploads (which doesn't exist on
         # the test box → effectively just system temp dir from the helper).
         # Place the file in a fresh tmp_path (pytest fixture, NOT under /tmp).
-        monkeypatch.setenv("FIREAI_ALLOWED_UPLOAD_DIRS", "/var/fireai/uploads")
-        monkeypatch.delenv("FIREAI_ENV", raising=False)
+        monkeypatch.setenv("ALLOWED_UPLOAD_DIRS", "/var/etap/uploads")
+        monkeypatch.delenv("APP_ENV", raising=False)
 
         # tmp_path is typically under /tmp (which the helper always allows)
         # so to actually test "outside allowed dirs", we need a path that

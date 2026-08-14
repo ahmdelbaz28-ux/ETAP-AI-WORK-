@@ -19,14 +19,12 @@ import os
 import pytest
 
 # Set dev env + audit key before importing
-os.environ.setdefault("FIREAI_ENV", "development")
+os.environ.setdefault("APP_ENV", "development")
 os.environ.setdefault("QOMN_AUDIT_SECRET_KEY", "test_secret_key_for_v214_tests_32bytes")
 # V214: Do NOT override QOMN_AUDIT_LOG_PATH — the old test_self_healing_engine.py
 # expects the default path "qomn_fire_healing_audit.jsonl" in the CWD.
 # Overriding it breaks the old test's file existence check.
 # The fixture below truncates the file between tests for isolation.
-
-from fireai.core.qomn_kernel import SelfHealingQOMNKernel
 
 
 @pytest.fixture(autouse=True)
@@ -41,7 +39,6 @@ def _reset_healing_state():
     tests to prevent this.
     """
     try:
-        from fireai.core.qomn_self_healing_engine import (
             global_audit_logger,
             global_circuit_breaker,
         )
@@ -62,7 +59,6 @@ def _reset_healing_state():
         pass
     yield
     try:
-        from fireai.core.qomn_self_healing_engine import global_circuit_breaker
 
         global_circuit_breaker.reset()
         # Truncate again after test
@@ -155,7 +151,6 @@ class TestV214SelfHealingAuditTrail:
 
     def test_healing_event_logged(self):
         """When healing activates, an audit event should be logged."""
-        from fireai.core.qomn_self_healing_engine import global_audit_logger
 
         kernel = SelfHealingQOMNKernel()
         # Trigger a healing event
@@ -167,7 +162,6 @@ class TestV214SelfHealingAuditTrail:
 
     def test_circuit_breaker_registers_event(self):
         """When healing activates, the circuit breaker should register it."""
-        from fireai.core.qomn_self_healing_engine import global_circuit_breaker
 
         global_circuit_breaker.reset()
 
@@ -187,7 +181,6 @@ class TestV214SelfHealingCircuitBreaker:
 
     def test_repeated_errors_trip_circuit_breaker(self):
         """After enough errors, the circuit breaker should open."""
-        from fireai.core.qomn_self_healing_engine import (
             global_circuit_breaker,
         )
 
@@ -226,7 +219,7 @@ class TestV214SelfHealingEndpoint:
         client = TestClient(app)
         resp = client.get(
             "/api/v1/self-healing/health",
-            headers={"X-API-Key": os.environ.get("FIREAI_API_KEY", "")},
+            headers={"X-API-Key": os.environ.get("API_KEY", "")},
         )
         # Should return 200 or 401 (if no valid key)
         assert resp.status_code in (200, 401)

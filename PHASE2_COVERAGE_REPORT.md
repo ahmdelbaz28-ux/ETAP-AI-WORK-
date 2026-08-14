@@ -1,4 +1,4 @@
-# Phase 2 Coverage Report — FireAI Test Coverage Improvements
+# Phase 2 Coverage Report — ETAP Test Coverage Improvements
 # Generated: 2026-06-13
 
 ## Module Coverage Summary
@@ -6,16 +6,16 @@
 | Module | Before | After | Improvement |
 |--------|--------|-------|-------------|
 | core/ (database + models) | 81% | 81% | Maintained |
-| fireai/core/nfpa72_calculations | 22% | 95% | +73% |
-| fireai/core/floor_analyser | 17% | 54%* | +37% |
-| fireai/core/routing_engine_v10 | 13% | 81% | +68% |
-| fireai/core/analysis_pipeline | 14% | 92% | +78% |
-| fireai/core/multi_floor_orchestrator | 22% | 94% | +72% |
-| fireai/core/monte_carlo_pipeline | 23% | 98% | +75% |
-| fireai/core/audit_store | 69% | 80% | +11% |
-| fireai/core/fireai_core | 52% | 87% | +35% |
-| fireai/core/pipeline | 71% | 84% | +13% |
-| fireai/core/security_logging | 91% | 95%+ | +4% |
+| etap/core/nfpa72_calculations | 22% | 95% | +73% |
+| etap/core/floor_analyser | 17% | 54%* | +37% |
+| etap/core/routing_engine_v10 | 13% | 81% | +68% |
+| etap/core/analysis_pipeline | 14% | 92% | +78% |
+| etap/core/multi_floor_orchestrator | 22% | 94% | +72% |
+| etap/core/monte_carlo_pipeline | 23% | 98% | +75% |
+| etap/core/audit_store | 69% | 80% | +11% |
+| etap/core/core | 52% | 87% | +35% |
+| etap/core/pipeline | 71% | 84% | +13% |
+| etap/core/security_logging | 91% | 95%+ | +4% |
 | backend/ (core routers) | 59% | 63% (82% core)** | +4%+ |
 | parsers/ | 19% | 50%+ | +31%+ |
 
@@ -30,7 +30,7 @@
 
 ## New Test Files Created
 
-### fireai/core/tests/ (18 files)
+### etap/core/tests/ (18 files)
 1. test_nfpa72_calculations.py (113 tests)
 2. test_floor_analyser.py (30 tests)
 3. test_routing_engine_v10.py (150 tests)
@@ -38,7 +38,7 @@
 5. test_multi_floor_orchestrator.py (192 tests)
 6. test_monte_carlo_pipeline.py (83 tests)
 7. test_audit_store.py (81+9 skipped tests)
-8. test_fireai_core.py (124 tests)
+8. test_core.py (124 tests)
 9. test_pipeline_v2.py (124 tests)
 10. test_security_logging.py (57 tests)
 11. test_performance.py (18 tests)

@@ -1,6 +1,6 @@
 {
-  "_comment": "Kona Site Defender WAF configuration for BAZSPARK. This template defines attack groups, rule actions, and custom rules. Apply via /papi/v1/wafconfigs POST. See docs/AKAMAI_DEPLOYMENT_GUIDE.md.",
-  "configName": "BAZSPARK-PRODUCTION-WAF",
+  "_comment": "Kona Site Defender WAF configuration for ETAP. This template defines attack groups, rule actions, and custom rules. Apply via /papi/v1/wafconfigs POST. See docs/AKAMAI_DEPLOYMENT_GUIDE.md.",
+  "configName": "ETAP-PRODUCTION-WAF",
   "configDescription": "Safety-critical Fire Protection platform — strict WAF policy for engineering API.",
   "mode": "KRS_FULL_PROTECTION",
   "attackGroups": [
@@ -9,7 +9,7 @@
       "action": "DENY",
       "threshold": 5,
       "window": "1m",
-      "comments": "Block SQL injection — FireAI uses psycopg2 with parameterized queries, but WAF is defense-in-depth."
+      "comments": "Block SQL injection — ETAP uses psycopg2 with parameterized queries, but WAF is defense-in-depth."
     },
     {
       "group": "XSS",
@@ -78,8 +78,8 @@
   "customRules": [
     {
       "name": "Block direct origin access (HF Space URL leak)",
-      "description": "If someone discovers the HF Space direct URL (ahmdelbaz28-bazspark.hf.space) and tries to bypass Akamai, block them. The HF Space URL should never appear in a Referer or Host header from a legitimate client.",
-      "condition": "OR(http.header.referer contains \"ahmdelbaz28-bazspark.hf.space\", http.header.host contains \"ahmdelbaz28-bazspark.hf.space\")",
+      "description": "If someone discovers the HF Space direct URL (ahmdelbaz28-etap.hf.space) and tries to bypass Akamai, block them. The HF Space URL should never appear in a Referer or Host header from a legitimate client.",
+      "condition": "OR(http.header.referer contains \"ahmdelbaz28-etap.hf.space\", http.header.host contains \"ahmdelbaz28-etap.hf.space\")",
       "action": "DENY",
       "rateLimit": {
         "threshold": 1,
@@ -140,7 +140,7 @@
     },
     {
       "name": "Block oversized request bodies (>50MB)",
-      "description": "FireAI largest legitimate upload is IFC files (~10-20MB). 50MB gives headroom while blocking DoS.",
+      "description": "ETAP largest legitimate upload is IFC files (~10-20MB). 50MB gives headroom while blocking DoS.",
       "condition": "http.request.body.length > 52428800",
       "action": "DENY"
     },

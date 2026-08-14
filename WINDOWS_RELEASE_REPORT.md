@@ -34,7 +34,7 @@ The **application code** is cross-platform. The following were verified on Linux
 
 | Component | Status | Details |
 |-----------|--------|---------|
-| AppImage build | ✅ PASS | 157 MB ARM64 AppImage at release/FireAI-DigitalTwin-1.0.0-arm64.AppImage |
+| AppImage build | ✅ PASS | 157 MB ARM64 AppImage at release/ETAP-DigitalTwin-1.0.0-arm64.AppImage |
 | Electron startup | ✅ PASS | Launches successfully under xvfb |
 | Backend launch | ✅ PASS | FastAPI starts, health check returns 200 |
 | IPC communication | ✅ PASS | 5 secure IPC channels verified |

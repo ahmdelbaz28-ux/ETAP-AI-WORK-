@@ -3,7 +3,7 @@
 """
 tests/test_circuit_topology_v2.py
 =================================
-Comprehensive test suite for fireai/core/circuit_topology.py —
+Comprehensive test suite for etap/core/circuit_topology.py —
 ADDITIONAL coverage beyond test_cable_routing.py.
 
 SAFETY CRITICAL: Circuit topology validates NFPA 72 requirements for
@@ -25,7 +25,6 @@ from __future__ import annotations
 import dataclasses
 
 import pytest
-from fireai.core.circuit_topology import (
     MAX_DEVICES_BETWEEN_ISOLATORS,
     MAX_NAC_DEVICES_DEFAULT,
     MAX_SLC_DEVICES_DEFAULT,

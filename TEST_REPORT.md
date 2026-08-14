@@ -1,5 +1,5 @@
-# تقرير الاختبارات الشامل — FireAI Safety-Critical System
-# Comprehensive Test Report — FireAI Safety-Critical System
+# تقرير الاختبارات الشامل — ETAP Safety-Critical System
+# Comprehensive Test Report — ETAP Safety-Critical System
 
 ---
 
@@ -9,7 +9,7 @@
 | **التاريخ / Date** | 2026-06-30 |
 | **الجمهور / Audience** | مراجعو الأمان (AHJ) / Authority Having Jurisdiction |
 | **اللغة / Language** | ثنائي (عربي/إنجليزي) / Bilingual (Arabic/English) |
-| **النظام / System** | FireAI / CAD-BIM Integration Platform (cad-bim-integration-platform v1.2.2.dev112) |
+| **النظام / System** | ETAP / CAD-BIM Integration Platform (cad-bim-integration-platform v1.2.2.dev112) |
 | **Python** | 3.12.13 |
 | **commit على main** | `eb5838ef0e4c4c676c02e94b993a988946e0db56` |
 | **المؤلف / Author** | Super Z (Main Agent) |
@@ -23,7 +23,7 @@
 
 **الحكم النهائي: ✅ GO مع تحفظات / GO with caveats**
 
-تم إجراء اختبار شامل لنظام FireAI لحماية من الحريق — وهو نظام safety-critical حيث أن أي خطأ في الكود قد يهدد أرواحاً بشرية. شمل الاختبار **8,897 اختبار** موزعة على 9 مجموعات رئيسية، بالإضافة إلى فحص ثابت (Ruff + Bandit) وفحص أمان (CodeQL) وفحص التبعيات (Dependabot).
+تم إجراء اختبار شامل لنظام ETAP لحماية من الحريق — وهو نظام safety-critical حيث أن أي خطأ في الكود قد يهدد أرواحاً بشرية. شمل الاختبار **8,897 اختبار** موزعة على 9 مجموعات رئيسية، بالإضافة إلى فحص ثابت (Ruff + Bandit) وفحص أمان (CodeQL) وفحص التبعيات (Dependabot).
 
 **النتائج الرئيسية:**
 
@@ -35,7 +35,7 @@
 | **متخطّى / Skipped** | 36 (0.4%) — اعتماديات اختيارية (ecdsa, PuLP, cloud credentials) |
 | **CodeQL alerts (error)** | 65 |
 | **CodeQL alerts (warning)** | 26 |
-| **Dependabot alerts** | 4 (في todo-app فقط، ليست في FireAI core) |
+| **Dependabot alerts** | 4 (في todo-app فقط، ليست في ETAP core) |
 | **CI Gates Passed** | Gate 1/4/5 + CodeQL (4 languages) ✅ |
 
 **الخلاصة:** النظام يجتاز جميع الاختبارات الوظيفية والثابتة. 91 CodeQL alert مفتوح (65 error + 26 warning) — معظمها موروث من إصدارات سابقة (V138/V140)، و3 منها تم إصلاحها في V141.4. لا توجد تعارضات في الكود (merge conflicts) بعد دمج V141.4 في main.
@@ -44,7 +44,7 @@
 
 **Final Verdict: ✅ GO with caveats**
 
-A comprehensive test was conducted on the FireAI fire protection system — a safety-critical system where any code error can threaten human lives. The testing covered **8,897 tests** across 9 main suites, plus static analysis (Ruff + Bandit), security scanning (CodeQL), and dependency auditing (Dependabot).
+A comprehensive test was conducted on the ETAP fire protection system — a safety-critical system where any code error can threaten human lives. The testing covered **8,897 tests** across 9 main suites, plus static analysis (Ruff + Bandit), security scanning (CodeQL), and dependency auditing (Dependabot).
 
 **Key Results:**
 
@@ -56,7 +56,7 @@ A comprehensive test was conducted on the FireAI fire protection system — a sa
 | **Skipped** | 36 (0.4%) — optional deps (ecdsa, PuLP, cloud credentials) |
 | **CodeQL alerts (error)** | 65 |
 | **CodeQL alerts (warning)** | 26 |
-| **Dependabot alerts** | 4 (in todo-app only, NOT in FireAI core) |
+| **Dependabot alerts** | 4 (in todo-app only, NOT in ETAP core) |
 | **CI Gates Passed** | Gate 1/4/5 + CodeQL (4 languages) ✅ |
 
 **Conclusion:** The system passes all functional and static tests. 91 CodeQL alerts remain open (65 error + 26 warning) — most are inherited from prior versions (V138/V140), and 3 were fixed in V141.4. No merge conflicts exist after merging V141.4 into main.
@@ -67,7 +67,7 @@ A comprehensive test was conducted on the FireAI fire protection system — a sa
 
 ### العربية
 
-**النظام الخاضع للاختبار:** FireAI / CAD-BIM Integration Platform — منصة هندسية لحماية من الحريق تشمل:
+**النظام الخاضع للاختبار:** ETAP / CAD-BIM Integration Platform — منصة هندسية لحماية من الحريق تشمل:
 - محرك حسابات NFPA 72 (توزيع كاشفات الدخان، التغطية، مسافات التباعد)
 - وحدة السفن البحرية (SOLAS II-2, NFPA 302, IEC 60092, ISO 15370)
 - خدمة سير العمل (Workflow Service) مع استرداد بعد الانهيار (crash recovery)
@@ -89,7 +89,7 @@ A comprehensive test was conducted on the FireAI fire protection system — a sa
 
 ### English
 
-**System Under Test:** FireAI / CAD-BIM Integration Platform — an engineering fire protection platform including:
+**System Under Test:** ETAP / CAD-BIM Integration Platform — an engineering fire protection platform including:
 - NFPA 72 calculation engine (smoke detector placement, coverage, spacing)
 - Marine module (SOLAS II-2, NFPA 302, IEC 60092, ISO 15370)
 - Workflow Service with crash recovery (AsyncSqliteSaver checkpointing)
@@ -121,18 +121,18 @@ A comprehensive test was conducted on the FireAI fire protection system — a sa
 | 2 | `tests/` (شريحة 2: n-z) | 4,761 | 4,750 | 0 | 11 (cloud) | 92.2s |
 | 3 | `tests/property_based/` | 26 | 26 | 0 | 0 | 9.8s |
 | 4 | `backend/tests/` | 485 | 485 | 0 | 0 | 69.7s |
-| 5 | `fireai/core/tests/` | 1,241 | 1,232 | 0 | 9 (ecdsa) | 32.5s |
+| 5 | `etap/core/tests/` | 1,241 | 1,232 | 0 | 9 (ecdsa) | 32.5s |
 | 6 | `marine/tests/` | 83 | 83 | 0 | 0 | 1.1s |
 | 7 | `qomn_fire/tests/` | 58 | 58 | 0 | 0 | 0.6s |
 | 8 | `qomn_conduit/tests/` | 211 | 211 | 0 | 0 | 0.6s |
 | 9 | `parsers/tests/` | 206 | 206 | 0 | 0 | 1.1s |
-| 10 | `fireai/conduit/tests/` | 0 | — | — | — | — (no tests) |
+| 10 | `etap/conduit/tests/` | 0 | — | — | — | — (no tests) |
 | 11 | safety-critical subset | 450 | 450 | 0 | 0 | 7.3s |
 | **الإجمالي / Total** | **9 مجموعات** | **8,897** | **8,861** | **0** | **36** | **~280s** |
 
 **ملاحظات:**
 - `tests/` (6,587) تم تقسيمها لشريحتين (a-m و n-z) بسبب timeout الأدوات
-- `fireai/conduit/tests/` = 0 لأنها تحتوي على `__init__.py` فقط
+- `etap/conduit/tests/` = 0 لأنها تحتوي على `__init__.py` فقط
 - `safety-critical subset` يتداخل مع مجموعات أخرى (revit + autocad + workflow + security + path_security)
 - Skipped (36): `ecdsa` (9 tests, optional digital signatures)، `PuLP` (6 tests, optional MIP solver)، cloud credentials (16 tests, Neo4j Aura + Qdrant Cloud + Modal/OpenAI)، `langgraph` (2 tests, optional)، `facp_distributed` (3 tests, optional)
 
@@ -156,7 +156,7 @@ A comprehensive test was conducted on the FireAI fire protection system — a sa
 python -m pytest tests/test_nfpa72_engine.py tests/test_nfpa72_models.py \
   tests/test_nfpa72_schemas.py tests/test_nfpa72_coverage_v2.py \
   tests/test_nfpa72_coverage_v3.py tests/test_nfpa72_technology_dispatcher.py \
-  fireai/core/tests/test_nfpa72_calculations.py
+  etap/core/tests/test_nfpa72_calculations.py
 ```
 
 **النتيجة الفعلية / Actual Output:**
@@ -298,13 +298,13 @@ python -m pytest backend/tests/
 
 ---
 
-### 4.7 FireAI Core Tests — اختبارات النواة
+### 4.7 ETAP Core Tests — اختبارات النواة
 
-**الوصف:** اختبارات النواة (kernel) لنظام FireAI — يشمل محرك الحسابات الهندسية، التدقيق، الـ digital twin، NFPA 72 calculations.
+**الوصف:** اختبارات النواة (kernel) لنظام ETAP — يشمل محرك الحسابات الهندسية، التدقيق، الـ digital twin، NFPA 72 calculations.
 
 **الأوامر المنفذة:**
 ```bash
-python -m pytest fireai/core/tests/
+python -m pytest etap/core/tests/
 ```
 
 **النتيجة الفعلية:**
@@ -313,7 +313,7 @@ python -m pytest fireai/core/tests/
 ```
 
 **التحليل:** 1,241 اختبار، 9 skipped (ecdsa optional for digital signatures):
-- `test_fireai_core.py` — النواة الأساسية
+- `test_core.py` — النواة الأساسية
 - `test_audit_store.py` — سلسلة التدقيق SHA-256 + HMAC
 - `test_nfpa72_calculations.py` — حسابات NFPA 72
 - `test_analysis_pipeline.py` — pipeline التحليل
@@ -397,7 +397,7 @@ python -m pytest tests/property_based/
 
 **الأمر:**
 ```bash
-ruff check backend/ fireai/ core/ skills/ backend_app.py --exit-non-zero-on-fix
+ruff check backend/ etap/ core/ skills/ backend_app.py --exit-non-zero-on-fix
 ```
 
 **النتيجة:**
@@ -412,7 +412,7 @@ All checks passed!
 
 **الأمر:**
 ```bash
-bandit -r backend/ fireai/ core/ skills/ backend_app.py -f json -o reports/bandit.json -ll
+bandit -r backend/ etap/ core/ skills/ backend_app.py -f json -o reports/bandit.json -ll
 ```
 
 **النتيجة:**
@@ -452,7 +452,7 @@ Successfully built cad_bim_integration_platform-1.2.2.dev112-py3-none-any.whl
 | **Total files** | 1,015 |
 | **Python files** | 573 |
 | **الحجم / Size** | ~4.5 MB |
-| **الحزم / Packages** | 13 (backend, fireai, core, parsers, facp_system, facp_distributed, qomn_fire, qomn_conduit, integration, marine, adapters, services, skills) |
+| **الحزم / Packages** | 13 (backend, etap, core, parsers, facp_system, facp_distributed, qomn_fire, qomn_conduit, integration, marine, adapters, services, skills) |
 
 **V141.2 Fix:** تم إضافة `[tool.setuptools.packages.find]` لـ `pyproject.toml` (كان فارغاً، ينتج wheel فارغ 6.8KB). تم حذف `setup.py` (مكسور، يشير لـ `facp/` غير الموجود).
 
@@ -464,7 +464,7 @@ Successfully built cad_bim_integration_platform-1.2.2.dev112-py3-none-any.whl
 
 | الإصدار | التاريخ | نوع الإصلاح | العدد | التفاصيل |
 |---|---|---|---|---|
-| **V141** | 2026-06-30 | Launch Blockers | 6 | B1: aiosqlite is_alive() • B2: Dockerfile facp/ • B3: requirements.txt stale • B4: setup.py + wheel empty • B5: deploy.yml --ignore • B6: Helm ghcr.io/fireai/* |
+| **V141** | 2026-06-30 | Launch Blockers | 6 | B1: aiosqlite is_alive() • B2: Dockerfile facp/ • B3: requirements.txt stale • B4: setup.py + wheel empty • B5: deploy.yml --ignore • B6: Helm ghcr.io/etap/* |
 | **V141.1** | 2026-06-30 | Adversarial Self-Critique | 5 | B1 revised: langgraph<2.0.6 + aiosqlite<0.21.0 • B2: missing 5 packages (marine, adapters, qomn_fire, qomn_conduit, integration) • B3: editable install dangling .pth • Rate limiter test pollution • k8s manifests wrong image |
 | **V141.2** | 2026-06-30 | Phantom → Real | 9 | P1: 6 missing deps (ifcopenshell, mem0ai, google-generativeai, asyncio-mqtt, opcua, langfuse) • P2.1-P2.3: honest docs (Revit, Bentley, Marine Revit Exporter) • P3.1: MCP server real (JSON-RPC over stdio) • P3.2: langfuse_setup.py created • P4.1: create_wall/create_floor real Revit API |
 | **V141.3** | 2026-06-30 | Merge + langgraph 1.x | 3 | Merge conflict resolution • Adopted main's langgraph 1.x (resolves is_alive() upstream) • Ruff F401/D205/D213 fixes |
@@ -530,7 +530,7 @@ Successfully built cad_bim_integration_platform-1.2.2.dev112-py3-none-any.whl
 |---|---|---|
 | `backend/services/` | 38 | موروث (V138/V140) + V141.4 (3 fixed) |
 | `backend/routers/` | 16 | موروث (V138/V140) |
-| `fireai/core/` | 5 | موروث |
+| `etap/core/` | 5 | موروث |
 | `parsers/_path_security.py` | 4 | False positives (دالة الأمان نفسها) |
 | `backend/api_keys.py` | 4 | موروث |
 | `tests/test_security.py` | 4 | موروث (test code) |
@@ -540,9 +540,9 @@ Successfully built cad_bim_integration_platform-1.2.2.dev112-py3-none-any.whl
 | `tests/test_backend_app_security.py` | 2 | موروث (test code) |
 | `facp_distributed/` | 2 | موروث |
 | `backend/session_secret.py` | 1 | موروث |
-| `fireai/infrastructure/` | 1 | V141.4 (langfuse_setup.py — fixed) |
+| `etap/infrastructure/` | 1 | V141.4 (langfuse_setup.py — fixed) |
 | `tests/stress_test_suite.py` | 1 | موروث (test code) |
-| `fireai/integration/` | 1 | موروث |
+| `etap/integration/` | 1 | موروث |
 | `tests/test_csp_security.py` | 1 | موروث (test code) |
 | `frontend/mockupPreviewPlugin.ts` | 1 | موروث |
 
@@ -575,7 +575,7 @@ Successfully built cad_bim_integration_platform-1.2.2.dev112-py3-none-any.whl
 | 🟡 medium | js-yaml | `todo-app/package-lock.json` | Quadratic-complexity DoS in merge key handling |
 | 🟡 medium | tar | `todo-app/package-lock.json` | PAX size override to intermediary GNU long-name headers |
 
-**ملاحظة مهمة:** جميع الـ 4 alerts في `todo-app/package-lock.json` — هذا تطبيق منفصل (todo-app) وليس FireAI core. لا تؤثر على نظام الحماية من الحريق.
+**ملاحظة مهمة:** جميع الـ 4 alerts في `todo-app/package-lock.json` — هذا تطبيق منفصل (todo-app) وليس ETAP core. لا تؤثر على نظام الحماية من الحريق.
 
 ---
 
@@ -731,7 +731,7 @@ Successfully built cad_bim_integration_platform-1.2.2.dev112-py3-none-any.whl
 **المؤلف / Author:** Super Z (Main Agent)
 **التاريخ / Date:** 2026-06-30
 **الإصدار / Version:** V141.4 (Post-Merge, commit `eb5838ef`)
-**النظام / System:** FireAI / CAD-BIM Integration Platform
+**النظام / System:** ETAP / CAD-BIM Integration Platform
 
 ---
 
@@ -757,8 +757,8 @@ python -m pytest tests/ --ignore=tests/property_based \
 python -m pytest backend/tests/
 # النتيجة: 485 passed in 69.70s
 
-# 4. fireai/core/tests/
-python -m pytest fireai/core/tests/
+# 4. etap/core/tests/
+python -m pytest etap/core/tests/
 # النتيجة: 1232 passed, 9 skipped in 32.47s
 
 # 5. marine/tests/
@@ -782,11 +782,11 @@ python -m pytest tests/property_based/
 
 ```bash
 # Ruff lint
-ruff check backend/ fireai/ core/ skills/ backend_app.py --exit-non-zero-on-fix
+ruff check backend/ etap/ core/ skills/ backend_app.py --exit-non-zero-on-fix
 # النتيجة: All checks passed!
 
 # Bandit security scan
-bandit -r backend/ fireai/ core/ skills/ backend_app.py -f json -o reports/bandit.json -ll
+bandit -r backend/ etap/ core/ skills/ backend_app.py -f json -o reports/bandit.json -ll
 # النتيجة: HIGH severity: 0
 ```
 

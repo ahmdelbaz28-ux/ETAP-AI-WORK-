@@ -69,10 +69,10 @@ class TestAutoCADServiceInitialization:
     def test_connect_without_api(self):
         """Test connecting when AutoCAD API is not available."""
         # V142 FIX: The production connect() implementation falls back to a
-        # SIMULATION mode when HAS_AUTOCAD_API is False AND FIREAI_ENV is
+        # SIMULATION mode when HAS_AUTOCAD_API is False AND APP_ENV is
         # "development" (the default). The simulation mode returns True and
         # sets self.connected=True — useful for local dev, but it would mask
-        # the real "no API" behavior this test is verifying. Patch FIREAI_ENV
+        # the real "no API" behavior this test is verifying. Patch APP_ENV
         # to a non-development value so the simulation branch is bypassed
         # and the genuine "API unavailable → connect() returns False" path
         # is exercised. This is the safety-critical behavior: callers MUST
@@ -81,7 +81,7 @@ class TestAutoCADServiceInitialization:
         # reachable.
         service = AutoCADService()
 
-        with patch.dict(os.environ, {"FIREAI_ENV": "production"}):
+        with patch.dict(os.environ, {"APP_ENV": "production"}):
             result = service.connect()
 
         assert result is False
@@ -178,7 +178,7 @@ class TestAutoCADFileOperations:
         service = AutoCADService()
 
         # Use a path inside /tmp (allowed base) that doesn't exist
-        nonexistent = os.path.join(tempfile.gettempdir(), "nonexistent_fireai_autocad_test.dwg")
+        nonexistent = os.path.join(tempfile.gettempdir(), "nonexistent_autocad_test.dwg")
         if os.path.exists(nonexistent):
             os.unlink(nonexistent)
 
@@ -578,10 +578,10 @@ class TestV213SimulationModeFlag:
 
     def test_simulation_mode_engaged_on_non_windows_dev_env(self, monkeypatch):
         """On non-Windows (or when HAS_AUTOCAD_API is False) and
-        FIREAI_ENV=development, connect() must set simulation_mode=True
+        APP_ENV=development, connect() must set simulation_mode=True
         so clients can surface the truth.
         """
-        monkeypatch.setenv("FIREAI_ENV", "development")
+        monkeypatch.setenv("APP_ENV", "development")
         # Force HAS_AUTOCAD_API = False to simulate non-Windows
         import backend.services.autocad_service as mod
 
@@ -597,7 +597,7 @@ class TestV213SimulationModeFlag:
         """When a real AutoCAD COM handle is acquired (via mocks), the
         simulation_mode flag must be False.
         """
-        monkeypatch.setenv("FIREAI_ENV", "development")
+        monkeypatch.setenv("APP_ENV", "development")
         import backend.services.autocad_service as mod
 
         # Force HAS_AUTOCAD_API = True to take the real COM path
@@ -625,7 +625,7 @@ class TestV213SimulationModeFlag:
 
     def test_disconnect_resets_simulation_mode(self, monkeypatch):
         """disconnect() must clear simulation_mode back to False."""
-        monkeypatch.setenv("FIREAI_ENV", "development")
+        monkeypatch.setenv("APP_ENV", "development")
         import backend.services.autocad_service as mod
 
         monkeypatch.setattr(mod, "HAS_AUTOCAD_API", False)
@@ -639,11 +639,11 @@ class TestV213SimulationModeFlag:
         assert service.connected is False
 
     def test_simulation_mode_false_in_production_when_no_api(self, monkeypatch):
-        """In production (FIREAI_ENV != development) without AutoCAD API,
+        """In production (APP_ENV != development) without AutoCAD API,
         connect() must return False AND set simulation_mode=False (we are
         not simulating — we are honestly failing).
         """
-        monkeypatch.setenv("FIREAI_ENV", "production")
+        monkeypatch.setenv("APP_ENV", "production")
         import backend.services.autocad_service as mod
 
         monkeypatch.setattr(mod, "HAS_AUTOCAD_API", False)

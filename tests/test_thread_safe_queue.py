@@ -1,7 +1,7 @@
 # File-level '# NOSONAR' removed per NOSONAR_AUDIT.md (V143 hardening).
 # Per-line justified suppressions (e.g., '# NOSONAR — S3776: ...') are preserved.
 """
-test_thread_safe_queue.py — Tests for fireai/mcp_server/thread_safe_queue.py.
+test_thread_safe_queue.py — Tests for etap/mcp_server/thread_safe_queue.py.
 
 Verifies thread-safety, enqueue/dequeue, result reporting, stats, and cleanup.
 """
@@ -11,7 +11,6 @@ from __future__ import annotations
 import time
 
 import pytest
-from fireai.mcp_server.thread_safe_queue import (
     ModelUpdateAction,
     ModelUpdateResult,
     ModelUpdateStatus,

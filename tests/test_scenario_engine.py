@@ -1,10 +1,10 @@
 # File-level '# NOSONAR' removed per NOSONAR_AUDIT.md (V143 hardening).
 # Per-line justified suppressions (e.g., '# NOSONAR — S3776: ...') are preserved.
 """
-test_scenario_engine.py — Tests for the FireAI Scenario Engine.
+test_scenario_engine.py — Tests for the ETAP Scenario Engine.
 
 This test file closes a critical gap identified in the production-readiness
-review: the module `fireai/core/scenario_engine.py` had ZERO tests, even
+review: the module `etap/core/scenario_engine.py` had ZERO tests, even
 though it implements the fire physics that determines ASET (Available Safe
 Egress Time) and RSET (Required Safe Egress Time) per NFPA 72 / NFPA 101.
 The function `q_max_from_fire_load` is explicitly flagged as
@@ -42,7 +42,6 @@ from __future__ import annotations
 import json
 
 import pytest
-from fireai.core.scenario_engine import (
     _ALPERT_DT_FAR,
     _ALPERT_DT_NEAR,
     _ALPERT_V_FAR,
@@ -857,7 +856,6 @@ class TestScenarioReporter:
     def test_to_csv_escapes_commas_in_scenario_id(self, battery):  # NOSONAR
         """Commas in scenario_id must be replaced with semicolons."""
         # Force a scenario with a comma in ID
-        from fireai.core.scenario_engine import ScenarioResult
 
         result_with_comma = ScenarioResult(
             scenario_id="scenario,with,commas",

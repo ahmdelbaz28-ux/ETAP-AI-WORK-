@@ -6,7 +6,7 @@ Validates the 2 new simulations added in V131 Phase 2:
     6. Harmonic Analysis (IEEE 519-2014)
     7. Transient Stability (Equal Area Criterion)
 
-Per FireAI agent.md Rule 10 (TEST-AND-FIX LOOP):
+Per ETAP agent.md Rule 10 (TEST-AND-FIX LOOP):
     After ANY code modification, tests MUST be run immediately.
 """
 

@@ -4,7 +4,7 @@
 tests/test_atex_hazardous_arbiter.py
 ========================================
 Comprehensive test suite for:
-  - fireai/core/atex_hazardous_arbiter.py
+  - etap/core/atex_hazardous_arbiter.py
 
 SAFETY CRITICAL: ATEX equipment selection in explosive atmospheres.
 Wrong EPL or temperature class could result in ignition source in
@@ -24,7 +24,6 @@ Standards:
 from __future__ import annotations
 
 import pytest
-from fireai.core.atex_hazardous_arbiter import (
     _EPL_DUST_HIERARCHY,
     _EPL_GAS_HIERARCHY,
     _EPL_HIERARCHY,
@@ -40,11 +39,9 @@ from fireai.core.atex_hazardous_arbiter import (
     ProtectionType,
     _validate_zone_hazard_consistency,
 )
-from fireai.core.international_reg_selector import (
     ATEXZone,
     HazardSystem,
 )
-from fireai.core.models_v21 import (
     HazardType,
     TemperatureClass,
     ZoneType,

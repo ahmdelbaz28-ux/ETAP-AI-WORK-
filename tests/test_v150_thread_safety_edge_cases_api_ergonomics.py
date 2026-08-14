@@ -43,9 +43,6 @@ import pytest
 # Ensure project root is on path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from fireai.core.delta_cache import CacheEntry, DeltaCache, _LRUCache
-from fireai.core.digital_twin import DetectorStatus, DigitalTwin
-from fireai.core.event_bus import EventBus, Events
 
 # ============================================================================
 # THREAD SAFETY: EventBus._error_count race condition
@@ -656,11 +653,10 @@ class TestAuditStoreLazyInitThreadSafety:
         but records signed during the race window with the discarded key
         would fail HMAC verification forever.
         """
-        from fireai.core import audit_store
 
-        # Force dev mode (no AUDIT_HMAC_KEY env, no FIREAI_ENV=production)
+        # Force dev mode (no AUDIT_HMAC_KEY env, no APP_ENV=production)
         old_key = os.environ.pop("AUDIT_HMAC_KEY", None)
-        old_env = os.environ.pop("FIREAI_ENV", None)
+        old_env = os.environ.pop("APP_ENV", None)
         old_prod = os.environ.pop("PRODUCTION", None)
         old_env2 = os.environ.pop("ENV", None)
 
@@ -697,7 +693,7 @@ class TestAuditStoreLazyInitThreadSafety:
             if old_key is not None:
                 os.environ["AUDIT_HMAC_KEY"] = old_key
             if old_env is not None:
-                os.environ["FIREAI_ENV"] = old_env
+                os.environ["APP_ENV"] = old_env
             if old_prod is not None:
                 os.environ["PRODUCTION"] = old_prod
             if old_env2 is not None:
@@ -714,7 +710,6 @@ class TestAuditStoreLazyInitThreadSafety:
         and both call SigningKey.from_pem(). The fix uses double-checked
         locking so init happens exactly once.
         """
-        from fireai.core import audit_store
 
         # Reset state
         audit_store._ecdsa_signing_key = None

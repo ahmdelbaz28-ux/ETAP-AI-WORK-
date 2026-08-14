@@ -24,8 +24,6 @@ class TestSafetyMaximizedCap:
 
     def test_safety_maximized_does_not_truncate_arbitrarily(self):
         """SAFETY_MAXIMIZED should preserve coverage when capping."""
-        from fireai.core.spatial_engine.density_optimizer import Room
-        from fireai.core.spatial_engine.generative_layout_agent import (
             GenerativeLayoutAgent,
             LayoutVariant,
         )
@@ -51,7 +49,6 @@ class TestScoringFormula:
 
     def test_score_does_not_dominate_by_cost(self):
         """Cost should not disproportionately dominate the score."""
-        from fireai.core.spatial_engine.generative_layout_agent import (
             GenerativeLayoutAgent,
         )
 
@@ -83,7 +80,6 @@ class TestScoringFormula:
 
     def test_nan_inputs_return_zero(self):
         """NaN inputs should return score 0 (fail-safe)."""
-        from fireai.core.spatial_engine.generative_layout_agent import (
             GenerativeLayoutAgent,
         )
 
@@ -107,8 +103,6 @@ class TestRecommendationLogic:
 
     def test_low_hazard_can_get_cost_minimized(self):
         """Storage occupancy should be eligible for COST_MINIMIZED."""
-        from fireai.core.spatial_engine.density_optimizer import Room
-        from fireai.core.spatial_engine.generative_layout_agent import (
             GenerativeLayoutAgent,
             LayoutVariant,
         )
@@ -126,8 +120,6 @@ class TestRecommendationLogic:
 
     def test_high_hazard_never_gets_cost_minimized(self):
         """Healthcare must NEVER get COST_MINIMIZED."""
-        from fireai.core.spatial_engine.density_optimizer import Room
-        from fireai.core.spatial_engine.generative_layout_agent import (
             GenerativeLayoutAgent,
             LayoutVariant,
         )
@@ -151,7 +143,6 @@ class TestIfcFileProviderCapabilities:
 
     def test_device_write_not_in_capabilities(self):
         """IfcFileProvider must NOT declare DEVICE_WRITE capability."""
-        from fireai.bridges.bim_provider import (
             BIMProviderCapability,
             IfcFileProvider,
         )
@@ -161,7 +152,6 @@ class TestIfcFileProviderCapabilities:
 
     def test_write_devices_raises_not_implemented(self):
         """write_devices must raise NotImplementedError (not return 0)."""
-        from fireai.bridges.bim_provider import IfcFileProvider
 
         p = IfcFileProvider()
         with pytest.raises(NotImplementedError, match="not yet implemented"):
@@ -180,7 +170,6 @@ class TestAsyncWebhookDelivery:
         """publish_event should not block for 31s on a failing subscriber."""
         import time
 
-        from fireai.infrastructure.webhook_service import (
             WebhookDeliveryService,
             WebhookSubscription,
         )
@@ -218,7 +207,6 @@ class TestDeadLetterReplay:
 
     def test_dead_letter_entry_has_payload_field(self):
         """DeadLetterEntry must have payload field for replay."""
-        from fireai.infrastructure.webhook_service import DeadLetterEntry
 
         entry = DeadLetterEntry(
             subscription_id="sub-1",
@@ -235,7 +223,6 @@ class TestDeadLetterReplay:
 
     def test_replay_with_invalid_index_returns_false(self):
         """Replay with invalid index should return False."""
-        from fireai.infrastructure.webhook_service import (
             WebhookDeliveryService,
         )
 
@@ -254,7 +241,7 @@ class TestCSRFDevAllowHttp:
 
     def test_dev_allow_http_defaults_false_in_production(self, monkeypatch):
         """Without env var, _DEV_ALLOW_HTTP_COOKIES should be False."""
-        monkeypatch.delenv("FIREAI_DEV_ALLOW_HTTP_COOKIES", raising=False)
+        monkeypatch.delenv("DEV_ALLOW_HTTP_COOKIES", raising=False)
         # Need to reimport to pick up env change
         import importlib
 
@@ -267,7 +254,7 @@ class TestCSRFDevAllowHttp:
 
     def test_dev_allow_http_true_when_env_set(self, monkeypatch):
         """With env var set to true, _DEV_ALLOW_HTTP_COOKIES should be True."""
-        monkeypatch.setenv("FIREAI_DEV_ALLOW_HTTP_COOKIES", "true")
+        monkeypatch.setenv("DEV_ALLOW_HTTP_COOKIES", "true")
         import importlib
 
         import backend.security_csrf
@@ -306,7 +293,6 @@ class TestDarcyWeisbachNaNGuard:
 
     def test_extreme_reynolds_does_not_return_nan(self):
         """Very high Reynolds should not produce NaN."""
-        from fireai.core.darcy_weisbach_solver import (
             FluidType,
             calculate_darcy_weisbach_friction_loss,
         )
@@ -326,7 +312,6 @@ class TestDarcyWeisbachNaNGuard:
 
     def test_very_low_reynolds_does_not_return_nan(self):
         """Very low Reynolds (near laminar transition) should not produce NaN."""
-        from fireai.core.darcy_weisbach_solver import (
             FluidType,
             calculate_darcy_weisbach_friction_loss,
         )
@@ -350,7 +335,6 @@ class TestBeamPocketRectangular:
 
     def test_rectangular_room_no_warning(self):
         """Rectangular room should not emit non-rectangular warning."""
-        from fireai.core.spatial_engine.beam_obstruction import (
             Beam,
             calculate_beam_obstruction,
         )
@@ -378,7 +362,6 @@ class TestBeamPocketCeilingHeight:
 
     def test_pocket_ceiling_reduced_by_beam_depth(self):
         """Pocket ceiling height should be (room_ceiling - max_beam_depth)."""
-        from fireai.core.spatial_engine.beam_obstruction import (
             Beam,
             calculate_beam_obstruction,
         )
@@ -400,7 +383,6 @@ class TestBeamPocketCeilingHeight:
 
     def test_pocket_ceiling_never_negative(self):
         """Pocket ceiling height should never go negative."""
-        from fireai.core.spatial_engine.beam_obstruction import (
             Beam,
             calculate_beam_obstruction,
         )

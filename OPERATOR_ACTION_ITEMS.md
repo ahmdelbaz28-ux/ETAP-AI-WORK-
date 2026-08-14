@@ -92,9 +92,9 @@ sequence).
 
 `.github/CODEOWNERS`:
 ```
-fireai/core/qomn_kernel.py        @ahmdelbaz28-ux
-fireai/core/nfpa72_*              @ahmdelbaz28-ux
-fireai/constants/                 @ahmdelbaz28-ux
+etap/core/qomn_kernel.py        @ahmdelbaz28-ux
+etap/core/nfpa72_*              @ahmdelbaz28-ux
+etap/constants/                 @ahmdelbaz28-ux
 qomn_fire/core/constants.py       @ahmdelbaz28-ux
 agent.md                          @ahmdelbaz28-ux
 parsers/_path_security.py         @ahmdelbaz28-ux
@@ -119,7 +119,7 @@ agent change to regulated code.
 
 **V117 and V119 carry actual behavior changes.** Before production
 deploy, validate:
-- V117: any existing project using FireAI to design heat coverage for
+- V117: any existing project using ETAP to design heat coverage for
   rooms >232 m² (warehouses, parking, atria) will get more dense
   detector grids than before
 - V119: frontend `dist/` build still works with strict CSP. Test
@@ -129,11 +129,11 @@ deploy, validate:
 ### 9. V125 file-size caps may reject legitimate large files
 
 Defaults are conservative. If your users upload:
-- Large PDFs (>200MB) — set `FIREAI_PDF_MAX_FILE_SIZE_BYTES`
-- Large IFC files (>500MB) — set `FIREAI_IFC_MAX_FILE_SIZE_BYTES`
-- Large images (>50MB) — set `FIREAI_IMAGE_MAX_FILE_SIZE_BYTES`
-- Large Excel/Word (>25MB) — set `FIREAI_EXCEL_MAX_FILE_SIZE_BYTES` /
-  `FIREAI_WORD_MAX_FILE_SIZE_BYTES`
+- Large PDFs (>200MB) — set `PDF_MAX_FILE_SIZE_BYTES`
+- Large IFC files (>500MB) — set `IFC_MAX_FILE_SIZE_BYTES`
+- Large images (>50MB) — set `IMAGE_MAX_FILE_SIZE_BYTES`
+- Large Excel/Word (>25MB) — set `EXCEL_MAX_FILE_SIZE_BYTES` /
+  `WORD_MAX_FILE_SIZE_BYTES`
 
 Document the chosen caps in your operator runbook.
 

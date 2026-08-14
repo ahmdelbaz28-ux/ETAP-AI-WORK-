@@ -20,7 +20,7 @@ language understanding beyond simple pattern matching. It can handle:
     - Requests with implicit context
     - Non-English requests (Arabic, etc.)
 
-Author: FireAI Project
+Author: ETAP Project
 """
 
 from __future__ import annotations

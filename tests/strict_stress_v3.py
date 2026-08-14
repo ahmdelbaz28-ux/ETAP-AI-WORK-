@@ -47,15 +47,15 @@ PROJECT_ROOT = "/home/z/my-project/revit"
 sys.path.insert(0, PROJECT_ROOT)
 
 TEST_DIR = tempfile.mkdtemp(prefix="strict_stress_v3_")
-os.environ["FIREAI_API_KEYS_FILE"] = os.path.join(TEST_DIR, "api_keys.json")
-os.environ["FIREAI_API_KEYS_SECRET_FILE"] = os.path.join(TEST_DIR, "api_keys.secret")
+os.environ["API_KEYS_FILE"] = os.path.join(TEST_DIR, "api_keys.json")
+os.environ["API_KEYS_SECRET_FILE"] = os.path.join(TEST_DIR, "api_keys.secret")
 os.environ["DIGITAL_TWIN_DB_PATH"] = os.path.join(TEST_DIR, "digital_twin.db")
-os.environ["FIREAI_ENV"] = "development"
-os.environ["FIREAI_API_KEY"] = "strict_test_admin_key"
-os.environ["FIREAI_CACHE_MAX_ENTRIES"] = "100"
+os.environ["APP_ENV"] = "development"
+os.environ["API_KEY"] = "strict_test_admin_key"
+os.environ["CACHE_MAX_ENTRIES"] = "100"
 
 for mod in list(sys.modules.keys()):  # NOSONAR - python:S7504
-    if mod.startswith(("backend", "fireai")):
+    if mod.startswith(("backend", "etap")):
         del sys.modules[mod]
 
 RESULTS: list[tuple[str, str, str]] = []
@@ -81,7 +81,7 @@ def test_timing_attack_validate() -> None:
         from backend.rbac import Role
 
         # Add a real key
-        real_key = "fireai_realkey_xyz123_abc_def_ghi_jkl_mno_pqr"
+        real_key = "realkey_xyz123_abc_def_ghi_jkl_mno_pqr"
         add_api_key(real_key, Role.ADMIN, "timing test")
 
         # Time validate with correct key (HMAC matches, bcrypt runs)
@@ -96,7 +96,7 @@ def test_timing_attack_validate() -> None:
         times_invalid = []
         for _ in range(5):
             t0 = time.perf_counter()
-            validate_api_key("fireai_wrongkey_xyz123_abc_def_ghi_jkl_mno_pqr")
+            validate_api_key("wrongkey_xyz123_abc_def_ghi_jkl_mno_pqr")
             times_invalid.append(time.perf_counter() - t0)
 
         avg_valid_ms = statistics.mean(times_valid) * 1000
@@ -231,7 +231,7 @@ def test_cache_expired_cleanup_gap() -> None:
             if "backend.app" in mod:
                 del sys.modules[mod]
         # Set short reaper interval for testing
-        os.environ["FIREAI_CACHE_REAPER_INTERVAL"] = "1"
+        os.environ["CACHE_REAPER_INTERVAL"] = "1"
         from backend.app import _cache, cache_set
 
         # Set 50 entries with 1-second expiry
@@ -265,7 +265,7 @@ def test_cache_expired_cleanup_gap() -> None:
                 "FAIL",
                 f"{remaining}/50 expired entries still in cache. Reaper did not clean them.",
             )
-        os.environ.pop("FIREAI_CACHE_REAPER_INTERVAL", None)
+        os.environ.pop("CACHE_REAPER_INTERVAL", None)
     except Exception as e:
         record("cache_cleanup_test", "FAIL", f"Exception: {e}")
 
@@ -484,7 +484,7 @@ def test_edge_case_keys() -> (
 # ============================================================================
 def test_middleware_state_on_request() -> None:
     """
-    The middleware sets scope["state"]["fireai_role"], but does
+    The middleware sets scope["state"]["role"], but does
     require_permission() read from request.state (which FastAPI builds
     from scope["state"])?
     """
@@ -502,7 +502,7 @@ def test_middleware_state_on_request() -> None:
             record(
                 "state_visible_to_dep",
                 "PASS",
-                "require_permission() sees fireai_role set by middleware",
+                "require_permission() sees role set by middleware",
             )
         else:
             record(

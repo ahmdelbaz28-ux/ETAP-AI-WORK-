@@ -28,8 +28,8 @@ from fastapi.testclient import TestClient
 @pytest.fixture(scope="module", autouse=True)
 def _setup_env() -> None:
     """Set development environment for testing."""
-    os.environ["FIREAI_ENV"] = "development"
-    os.environ["FIREAI_API_KEY"] = ""
+    os.environ["APP_ENV"] = "development"
+    os.environ["API_KEY"] = ""
 
 
 @pytest.fixture(scope="module")
@@ -101,7 +101,7 @@ class TestMonitorMetrics:
         # Should be text/plain for Prometheus exposition format
         assert "text" in content_type or response.status_code == 200
 
-    def test_monitor_metrics_contains_fireai_metrics(self, client) -> None:
+    def test_monitor_metrics_contains_metrics(self, client) -> None:
         """Metrics output must contain fireai_ prefixed metrics."""
         response = client.get("/api/monitor/metrics")
         text = response.text

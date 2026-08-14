@@ -2,11 +2,11 @@
 
 **Date:** 2026-06-18
 **Tester:** Automated Stress Test Suite (unit + HTTP level)
-**Scope:** Revit/FireAI Platform backend
+**Scope:** Revit/ETAP Platform backend
 
 ## Executive Summary
 
-A comprehensive stress test campaign was executed against the Revit/FireAI
+A comprehensive stress test campaign was executed against the Revit/ETAP
 Platform. **15 critical and high-severity vulnerabilities** were discovered,
 diagnosed, and remediated. The final test run shows **95 PASS / 0 FAIL /
 3 WARN** (all warnings are documented acceptable risks).
@@ -59,9 +59,9 @@ With 100 keys, a single validation = 25 seconds of CPU. An attacker sending
 **File:** `backend/security_middleware.py`, `backend/app.py`
 
 **Bug:** `backend/auth.py` documented that `ApiKeyMiddleware` sets
-`request.state.fireai_role` for downstream `require_permission()` checks.
+`request.state.role` for downstream `require_permission()` checks.
 But no such middleware existed anywhere in the codebase. As a result,
-`fireai_role` was ALWAYS `None`, every `require_permission()` check fell
+`role` was ALWAYS `None`, every `require_permission()` check fell
 through to `Role.VIEWER` default.
 
 **Impact:**
@@ -73,7 +73,7 @@ through to `Role.VIEWER` default.
 **Fix:**
 - Created `ApiKeyMiddleware` class (pure ASGI, no body buffering).
 - Reads `X-API-Key` header, validates via the (now-fixed)
-  `validate_api_key()`, sets `scope["fireai_role"]`.
+  `validate_api_key()`, sets `scope["role"]`.
 - For non-public endpoints: missing/invalid key → 401 (must authenticate).
 - For public endpoints (health, docs): no auth required, role remains None.
 - 401 responses include all security headers (X-Frame-Options, CSP, HSTS, etc.)

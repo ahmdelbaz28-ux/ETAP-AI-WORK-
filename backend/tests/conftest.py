@@ -7,7 +7,7 @@ V138 FIX (HIGH-1 from adversarial audit):
 ==========================================
 The ApiKeyMiddleware in backend/security_middleware.py correctly enforces
 X-API-Key on all non-public endpoints. However, the per-module _setup_env
-fixtures in backend/tests/test_*.py set FIREAI_API_KEY="" (empty string),
+fixtures in backend/tests/test_*.py set API_KEY="" (empty string),
 which the middleware treats as "no bypass configured" (because `if api_key
 and env_key` short-circuits on the falsy empty string). Combined with the
 test client not sending an X-API-Key header, ~330 backend tests fail at
@@ -20,7 +20,7 @@ modify the test files. Instead, this conftest provides two autouse
 fixtures that supply valid credentials without touching test code:
 
 1. _enforce_test_api_key (function-scoped, autouse):
-   Re-sets FIREAI_API_KEY to a real test value before each test function.
+   Re-sets API_KEY to a real test value before each test function.
    This is necessary because per-module _setup_env fixtures set it to ""
    at module setup, and would otherwise persist for every test in the
    module.
@@ -62,24 +62,24 @@ TEST_API_KEY = "test-api-key-for-testing-only"
 
 # Set the env var at import time, before any test module's _setup_env runs.
 # This ensures the very first test in the very first module sees a real key.
-os.environ["FIREAI_API_KEY"] = TEST_API_KEY
+os.environ["API_KEY"] = TEST_API_KEY
 
-# V212 FIX: FIREAI_SESSION_SECRET is required by backend/app.py::lifespan().
+# V212 FIX: SESSION_SECRET is required by backend/app.py::lifespan().
 # Without it, every TestClient test fails at startup with:
-#   RuntimeError: FIREAI_SESSION_SECRET environment variable is not set.
+#   RuntimeError: SESSION_SECRET environment variable is not set.
 # The CI sets this via `secrets.token_urlsafe(64)` — we do the same here
 # at import time so all backend tests can start the FastAPI app.
 # The value is deterministic per-process (generated once at import) and
 # safe to commit (it's a test-only secret with no production access).
-if not os.environ.get("FIREAI_SESSION_SECRET"):
+if not os.environ.get("SESSION_SECRET"):
     import secrets as _secrets
 
-    os.environ["FIREAI_SESSION_SECRET"] = _secrets.token_urlsafe(64)
+    os.environ["SESSION_SECRET"] = _secrets.token_urlsafe(64)
 
 # V212 FIX: backend/app.py::lifespan also requires DATABASE_URL and
 # CORS_ALLOWED_ORIGINS to start. Set safe test defaults if not already set.
-os.environ.setdefault("DATABASE_URL", "sqlite:////tmp/fireai_test_conftest.db")
-os.environ.setdefault("DIGITAL_TWIN_DB_PATH", "/tmp/fireai_test_conftest.db")
+os.environ.setdefault("DATABASE_URL", "sqlite:////tmp/test_conftest.db")
+os.environ.setdefault("DIGITAL_TWIN_DB_PATH", "/tmp/test_conftest.db")
 os.environ.setdefault("UDM_DB_PATH", "/tmp/udm_test_conftest.db")
 os.environ.setdefault("CORS_ALLOWED_ORIGINS", "http://localhost:3000,http://localhost:5173")
 
@@ -96,9 +96,9 @@ for _stale in ["db/api_keys.secret", "db/digital_twin.db", "db/udm_elements.db"]
             pass
 # Also clean /tmp test DBs
 for _tmp_db in [
-    "/tmp/fireai_test_conftest.db",
+    "/tmp/test_conftest.db",
     "/tmp/udm_test_conftest.db",
-    "/tmp/fireai_deploy_test.db",
+    "/tmp/deploy_test.db",
 ]:
     _p = _pathlib.Path(_tmp_db)
     if _p.exists():
@@ -140,7 +140,7 @@ try:
         """
         Inject X-API-Key header by default into every TestClient — but ONLY
         when called from a test under backend/tests/. Other test directories
-        (tests/, fireai/core/tests/, etc.) get an unpatched TestClient so they
+        (tests/, etap/core/tests/, etc.) get an unpatched TestClient so they
         can test unauthenticated request paths.
         """
         # V140: walk the call stack to find the calling test file
@@ -171,7 +171,7 @@ try:
         # starlette's testclient.py filename contains "test_" and confuses the
         # frame walker). This is the root-cause fix for the URL rewriting bug
         # that was breaking tests/test_dwg_router.py.
-        self._fireai_backend_test = is_backend_test
+        self._backend_test = is_backend_test
 
     _StarletteTestClient.__init__ = _patched_testclient_init
 
@@ -199,7 +199,7 @@ try:
     try:
         import os as _os
 
-        _os.environ.setdefault("FIREAI_API_KEY", TEST_API_KEY)
+        _os.environ.setdefault("API_KEY", TEST_API_KEY)
         import logging as _logging
 
         _logging.disable(_logging.CRITICAL)
@@ -254,7 +254,7 @@ try:
                 # V140 FIX: Use instance flag instead of call-stack inspection.
                 # The flag is set in _patched_testclient_init based on whether
                 # the TestClient was created from a test under backend/tests/.
-                if getattr(self, "_fireai_backend_test", False):
+                if getattr(self, "_backend_test", False):
                     return orig(self, _rewrite_legacy_url(url), *args, **kwargs)
                 return orig(self, url, *args, **kwargs)
 
@@ -271,7 +271,7 @@ try:
 
         def _patched_request(self, method, url, *args, **kwargs):
             # V140 FIX: Same instance-flag check as _patched_method
-            if getattr(self, "_fireai_backend_test", False):
+            if getattr(self, "_backend_test", False):
                 return _original_request(self, method, _rewrite_legacy_url(url), *args, **kwargs)
             return _original_request(self, method, url, *args, **kwargs)
 
@@ -282,8 +282,8 @@ except ImportError:
     pass
 
 
-# ─── Autouse fixture: re-set FIREAI_API_KEY before each test ─────────────────
-# Per-module _setup_env fixtures set FIREAI_API_KEY="" at module scope.
+# ─── Autouse fixture: re-set API_KEY before each test ─────────────────
+# Per-module _setup_env fixtures set API_KEY="" at module scope.
 # A function-scoped autouse fixture runs AFTER module setup but BEFORE
 # each test function, so we can safely re-set the env var here.
 import pytest  # noqa: E402
@@ -292,7 +292,7 @@ import pytest  # noqa: E402
 @pytest.fixture(autouse=True)
 def _enforce_test_api_key(monkeypatch):
     """
-    Ensure FIREAI_API_KEY is set to the test value before every test.
+    Ensure API_KEY is set to the test value before every test.
 
     Per-module _setup_env fixtures overwrite it to "" — this fixture
     restores the real test value so the middleware's env-bypass branch
@@ -301,8 +301,8 @@ def _enforce_test_api_key(monkeypatch):
     Using monkeypatch.setenv ensures automatic restoration after the test,
     preventing env pollution across test boundaries.
     """
-    monkeypatch.setenv("FIREAI_API_KEY", TEST_API_KEY)
-    # Also clear FIREAI_EVIDENCE_HMAC_KEY / AUDIT_HMAC_KEY if empty —
+    monkeypatch.setenv("API_KEY", TEST_API_KEY)
+    # Also clear EVIDENCE_HMAC_KEY / AUDIT_HMAC_KEY if empty —
     # the audit store may complain about missing HMAC keys in tests.
     # Don't set them; let tests that need them set their own values.
     return  # NOSONAR - python:S3626

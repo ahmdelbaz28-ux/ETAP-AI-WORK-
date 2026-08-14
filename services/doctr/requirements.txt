@@ -1,5 +1,5 @@
 # DocTR OCR Service requirements
-# V140 Phase 10: Standalone OCR service for FireAI
+# V140 Phase 10: Standalone OCR service for ETAP
 doctr>=0.8.0
 fastapi>=0.100.0
 uvicorn[standard]>=0.20.0

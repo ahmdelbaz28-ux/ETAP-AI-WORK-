@@ -3,7 +3,7 @@
 """
 tests/test_sequence_of_operations_v2.py
 ==========================================
-Comprehensive v2 test suite for fireai/core/sequence_of_operations.py
+Comprehensive v2 test suite for etap/core/sequence_of_operations.py
 
 SAFETY CRITICAL: The Cause & Effect matrix is the MOST CRITICAL document
 for FACP programming. Each test verifies life-safety logic that prevents:
@@ -25,7 +25,6 @@ from __future__ import annotations
 
 import dataclasses
 
-import fireai.core.sequence_of_operations as _soo_mod
 import pytest
 
 
@@ -46,7 +45,6 @@ def _disable_provenance():
         setattr(_soo_mod, attr, val)
 
 
-from fireai.core.sequence_of_operations import (
     CAUSE_EFFECT_RULES,
     NFPA_REFERENCES,
     DeviceInput,

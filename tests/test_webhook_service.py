@@ -15,7 +15,6 @@ from __future__ import annotations
 import os
 
 import pytest
-from fireai.infrastructure.webhook_service import (
     WEBHOOK_EVENT_TYPES,
     DeliveryStatus,
     WebhookDeliveryAttempt,
@@ -469,14 +468,12 @@ class TestSecurity:
 
 class TestSingleton:
     def test_get_webhook_service_returns_instance(self):
-        from fireai.infrastructure.webhook_service import get_webhook_service
 
         service = get_webhook_service()
         assert service is not None
         assert isinstance(service, WebhookDeliveryService)
 
     def test_get_webhook_service_returns_same_instance(self):
-        from fireai.infrastructure.webhook_service import get_webhook_service
 
         s1 = get_webhook_service()
         s2 = get_webhook_service()

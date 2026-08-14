@@ -19,7 +19,7 @@ from fastapi.testclient import TestClient
 @pytest.fixture
 def client(monkeypatch):
     """TestClient with API key auth enabled."""
-    monkeypatch.setenv("FIREAI_API_KEY", "test-key-for-v2-api-testing-1234567890")
+    monkeypatch.setenv("API_KEY", "test-key-for-v2-api-testing-1234567890")
     from backend.app import app
 
     return TestClient(app)
@@ -100,7 +100,7 @@ class TestBIMProviderEndpoints:
 
     def test_bim_health_without_provider_returns_warning(self, client, auth_headers, monkeypatch):
         """When no provider configured, health should indicate this."""
-        monkeypatch.delenv("FIREAI_BIM_PROVIDER", raising=False)
+        monkeypatch.delenv("BIM_PROVIDER", raising=False)
         r = client.get("/api/v2/bim/health", headers=auth_headers)
         assert r.status_code == 200
         data = r.json()

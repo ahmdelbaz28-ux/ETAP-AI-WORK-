@@ -1,7 +1,7 @@
 # File-level '# NOSONAR' removed per NOSONAR_AUDIT.md (V143 hardening).
 # Per-line justified suppressions (e.g., '# NOSONAR — S3776: ...') are preserved.
 """
-FireAI Digital Twin - Database Service.
+ETAP Digital Twin - Database Service.
 ======================================
 Thread-safe singleton wrapping UniversalDataModel (core/database.py)
 and adding project management with its own SQLite table.

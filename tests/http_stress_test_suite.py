@@ -1,7 +1,7 @@
 # File-level '# NOSONAR' removed per NOSONAR_AUDIT.md (V143 hardening).
 # Per-line justified suppressions (e.g., '# NOSONAR — S3776: ...') are preserved.
 """
-HTTP-Level Stress Test Suite for the Revit/FireAI Platform
+HTTP-Level Stress Test Suite for the Revit/ETAP Platform
 ============================================================
 
 Tests the actual FastAPI application end-to-end via TestClient.
@@ -35,16 +35,16 @@ PROJECT_ROOT = "/home/z/my-project/revit"
 sys.path.insert(0, PROJECT_ROOT)
 
 TEST_DIR = tempfile.mkdtemp(prefix="http_stress_")
-os.environ["FIREAI_ENV"] = "development"
-os.environ["FIREAI_API_KEYS_FILE"] = os.path.join(TEST_DIR, "api_keys.json")
-os.environ["FIREAI_API_KEYS_SECRET_FILE"] = os.path.join(TEST_DIR, "api_keys.secret")
+os.environ["APP_ENV"] = "development"
+os.environ["API_KEYS_FILE"] = os.path.join(TEST_DIR, "api_keys.json")
+os.environ["API_KEYS_SECRET_FILE"] = os.path.join(TEST_DIR, "api_keys.secret")
 os.environ["DIGITAL_TWIN_DB_PATH"] = os.path.join(TEST_DIR, "digital_twin.db")
-os.environ["FIREAI_API_KEY"] = "http_test_admin_key_v2"
-os.environ["FIREAI_CACHE_MAX_ENTRIES"] = "100"
+os.environ["API_KEY"] = "http_test_admin_key_v2"
+os.environ["CACHE_MAX_ENTRIES"] = "100"
 
 # Clear cached modules
 for mod in list(sys.modules.keys()):  # NOSONAR - python:S7504
-    if mod.startswith(("backend", "fireai")):
+    if mod.startswith(("backend", "etap")):
         del sys.modules[mod]
 
 RESULTS: list[tuple[str, str, str]] = []
@@ -564,7 +564,7 @@ def test_api_key_perf_http() -> None:
 # ============================================================================
 def main() -> int:
     print("=" * 78)
-    print("  HTTP-LEVEL STRESS TEST SUITE — Revit/FireAI Platform")
+    print("  HTTP-LEVEL STRESS TEST SUITE — Revit/ETAP Platform")
     print("=" * 78)
     print(f"  Test artifacts dir: {TEST_DIR}")
     print(f"  Python: {sys.version.split()[0]}")

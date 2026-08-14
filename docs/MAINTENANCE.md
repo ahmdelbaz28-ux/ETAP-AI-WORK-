@@ -1,4 +1,4 @@
-# FireAI Maintenance Guide
+# ETAP Maintenance Guide
 
 ## Routine Maintenance Tasks
 
@@ -8,7 +8,7 @@
 - [ ] Verify disk space for data/ and logs/ volumes
 
 ### Weekly
-- [ ] Review audit log size (`data/fireai_audit.db`)
+- [ ] Review audit log size (`data/audit.db`)
 - [ ] Check for stale SQLite WAL files
 - [ ] Review rate-limit logs for abuse patterns
 - [ ] Verify HMAC key rotation schedule
@@ -27,10 +27,10 @@ The audit database stores tamper-evident hash chains for all engineering results
 
 ```bash
 # Check database size
-ls -lh data/fireai_audit.db
+ls -lh data/audit.db
 
 # Vacuum to reclaim space (requires brief downtime)
-sqlite3 data/fireai_audit.db "VACUUM;"
+sqlite3 data/audit.db "VACUUM;"
 ```
 
 ### UDM Elements Database

@@ -19,7 +19,6 @@ class TestGraphRAGEngine:
 
     def test_engine_initializes_without_credentials(self):
         """Engine should initialize gracefully without Neo4j/OpenAI."""
-        from fireai.infrastructure.graphrag_engine import GraphRAGEngine
 
         engine = GraphRAGEngine(neo4j_uri="", openai_api_key="")
         engine._initialize()
@@ -29,7 +28,6 @@ class TestGraphRAGEngine:
 
     def test_save_to_memory_returns_false_without_config(self):
         """save_to_memory should return False when not configured."""
-        from fireai.infrastructure.graphrag_engine import GraphRAGEngine
 
         engine = GraphRAGEngine(neo4j_uri="", openai_api_key="")
         result = engine.save_to_memory("test text")
@@ -37,7 +35,6 @@ class TestGraphRAGEngine:
 
     def test_add_knowledge_returns_false_without_config(self):
         """add_knowledge should return False when not configured."""
-        from fireai.infrastructure.graphrag_engine import GraphRAGEngine
 
         engine = GraphRAGEngine(neo4j_uri="", openai_api_key="")
         result = engine.add_knowledge("test knowledge")
@@ -45,7 +42,6 @@ class TestGraphRAGEngine:
 
     def test_ask_returns_message_without_config(self):
         """ask should return error message when not configured."""
-        from fireai.infrastructure.graphrag_engine import GraphRAGEngine
 
         engine = GraphRAGEngine(neo4j_uri="", openai_api_key="")
         result = engine.ask("test question")
@@ -53,7 +49,6 @@ class TestGraphRAGEngine:
 
     def test_search_similar_returns_empty_without_config(self):
         """search_similar should return empty list when not configured."""
-        from fireai.infrastructure.graphrag_engine import GraphRAGEngine
 
         engine = GraphRAGEngine(neo4j_uri="", openai_api_key="")
         result = engine.search_similar("test query")
@@ -61,7 +56,6 @@ class TestGraphRAGEngine:
 
     def test_health_check_returns_dict(self):
         """Health check should return a dict with status."""
-        from fireai.infrastructure.graphrag_engine import GraphRAGEngine
 
         engine = GraphRAGEngine(neo4j_uri="", openai_api_key="")
         result = engine.health_check()
@@ -73,7 +67,6 @@ class TestGraphRAGEngine:
 
     def test_get_graphrag_engine_singleton(self):
         """get_graphrag_engine should return the same instance."""
-        from fireai.infrastructure.graphrag_engine import (
             GraphRAGEngine,
             get_graphrag_engine,
         )
@@ -85,14 +78,12 @@ class TestGraphRAGEngine:
 
     def test_embedding_dimensions_is_1536(self):
         """OpenAI text-embedding-3-small should use 1536 dimensions."""
-        from fireai.infrastructure.graphrag_engine import GraphRAGEngine
 
         engine = GraphRAGEngine()
         assert engine._embedding_dimensions == 1536
 
     def test_llm_model_is_gpt4o(self):
         """Default LLM model should be gpt-4o."""
-        from fireai.infrastructure.graphrag_engine import GraphRAGEngine
 
         engine = GraphRAGEngine()
         assert engine._llm_model == "gpt-4o"
@@ -108,7 +99,7 @@ class TestV2GraphRAGEndpoints:
 
     @pytest.fixture
     def client(self, monkeypatch):
-        monkeypatch.setenv("FIREAI_API_KEY", "test-key-for-v142-1234567890")
+        monkeypatch.setenv("API_KEY", "test-key-for-v142-1234567890")
         from backend.app import app
 
         return TestClient(app)

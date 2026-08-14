@@ -4,7 +4,7 @@
 tests/test_duct_detector.py
 ============================
 Comprehensive test suite for:
-  fireai/core/duct_detector.py
+  etap/core/duct_detector.py
 
 NFPA 72-2022 §17.7.5 Duct Detector Placement.
 
@@ -26,7 +26,6 @@ from __future__ import annotations
 import math
 
 import pytest
-from fireai.core.duct_detector import (
     NFPA_DUCT_MAX_SPACING_M,
     UL268A_MAX_VELOCITY_FPM,
     UL268A_MIN_VELOCITY_FPM,

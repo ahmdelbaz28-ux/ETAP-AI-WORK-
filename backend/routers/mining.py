@@ -1,7 +1,7 @@
 """
 backend/routers/mining.py — Mining fire protection API endpoints.
 
-V214: Exposes the fireai.mining module via HTTP endpoints:
+V214: Exposes the etap.mining module via HTTP endpoints:
   POST /api/v1/mining/methane-check        — Classify methane hazard
   POST /api/v1/mining/ventilation-check    — Check MSHA ventilation compliance
   POST /api/v1/mining/co-check             — Classify CO hazard
@@ -98,7 +98,6 @@ async def list_standards():
 async def methane_check(request: MethaneCheckRequest):
     """Classify methane concentration per MSHA 30 CFR §75.323."""
     try:
-        from fireai.mining.core.methane_calculator import MSHA_THRESHOLDS, MethaneCalculator
 
         hazard = MethaneCalculator.classify_hazard(request.concentration_pct)
         is_explosive = MethaneCalculator.is_in_explosive_range(request.concentration_pct)
@@ -129,7 +128,6 @@ async def methane_check(request: MethaneCheckRequest):
 async def ventilation_check(request: VentilationCheckRequest):
     """Check MSHA ventilation compliance per 30 CFR §75.326-327."""
     try:
-        from fireai.mining.core.ventilation_calculator import VentilationCalculator
 
         is_compliant, violations = VentilationCalculator.check_msha_compliance(
             request.airflow_m3_s,
@@ -165,7 +163,6 @@ async def ventilation_check(request: VentilationCheckRequest):
 async def co_check(request: CoCheckRequest):
     """Classify CO concentration per MSHA 30 CFR §75.351."""
     try:
-        from fireai.mining.core.conveyor_fire import (
             CO_ALERT_PPM,
             CO_EVACUATE_PPM,
             CO_IMMINENT_PPM,
@@ -202,7 +199,6 @@ async def co_check(request: CoCheckRequest):
 async def conveyor_suppression(request: ConveyorSuppressionRequest):
     """Design conveyor belt fire suppression per NFPA 120 §8.4."""
     try:
-        from fireai.mining.core.conveyor_fire import ConveyorFireAnalyzer, ConveyorSpec
 
         spec = ConveyorSpec(
             belt_length_m=request.belt_length_m,
@@ -243,8 +239,6 @@ async def conveyor_suppression(request: ConveyorSuppressionRequest):
 async def compliance_report(request: ComplianceReportRequest):
     """Generate full MSHA + NFPA 120 compliance report."""
     try:
-        from fireai.mining.core.msha_compliance import MSHAComplianceChecker
-        from fireai.mining.output.msha_report import generate_msha_report
 
         report = MSHAComplianceChecker.full_compliance_report(
             mine_name=request.mine_name,

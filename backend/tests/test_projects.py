@@ -14,8 +14,8 @@ def client():
     """Create a test client for the FastAPI app."""
     import os
 
-    os.environ.setdefault("FIREAI_ENV", "development")
-    os.environ.setdefault("FIREAI_API_KEY", "")
+    os.environ.setdefault("APP_ENV", "development")
+    os.environ.setdefault("API_KEY", "")
 
     from backend.app import app
 

@@ -19,8 +19,6 @@ class TestGenerationMsNotStale:
 
     def test_generation_ms_differs_per_variant(self):
         """Each variant should have its own generation_ms (not all same)."""
-        from fireai.core.spatial_engine.density_optimizer import Room
-        from fireai.core.spatial_engine.generative_layout_agent import (
             GenerativeLayoutAgent,
         )
 
@@ -43,7 +41,6 @@ class TestDLQReplayTOCTOU:
 
     def test_replay_invalid_index_returns_false(self):
         """Invalid index should return False."""
-        from fireai.infrastructure.webhook_service import WebhookDeliveryService
 
         service = WebhookDeliveryService(allow_http=True)
         assert service.replay_dead_letter(999) is False
@@ -57,7 +54,6 @@ class TestSSRFFailClosed:
         """_check_ssrf_url should return error string (not None) on exception."""
         import inspect
 
-        from fireai.infrastructure.webhook_service import WebhookDeliveryService
 
         source = inspect.getsource(WebhookDeliveryService._check_ssrf_url)
         assert "BLOCKING request" in source, "SSRF check must fail CLOSED (was fail-open in V137)"
@@ -68,7 +64,6 @@ class TestConvergedField:
 
     def test_normal_calculation_converged_true(self):
         """Normal water flow should report converged=True."""
-        from fireai.core.darcy_weisbach_solver import (
             FluidType,
             calculate_darcy_weisbach_friction_loss,
         )
@@ -83,7 +78,6 @@ class TestConvergedField:
 
     def test_converged_in_to_dict(self):
         """to_dict should include converged field."""
-        from fireai.core.darcy_weisbach_solver import (
             FluidType,
             calculate_darcy_weisbach_friction_loss,
         )
@@ -175,7 +169,6 @@ class TestDoubleCheckedLocking:
         """_init_database should have _db_initialized=True inside the lock block."""
         import inspect
 
-        from fireai.core.audit_store import _init_database
 
         source = inspect.getsource(_init_database)
         # The _db_initialized = True should be inside the with _init_lock block
@@ -199,7 +192,6 @@ class TestViolationsRestore:
         """_remove_redundant should save and restore violations."""
         import inspect
 
-        from fireai.core.spatial_engine.density_optimizer import DensityOptimizer
 
         source = inspect.getsource(DensityOptimizer._remove_redundant)
         assert "old_violations" in source, (
@@ -212,7 +204,6 @@ class TestAuditSafeDict:
 
     def test_failed_state_returns_minimal_dict(self):
         """FAILED state should not persist full data."""
-        from fireai.core.smoke_simulation_state import (
             SimulationStatus,
             SmokeDensityPoint,
             SmokeSimulationState,
@@ -231,7 +222,6 @@ class TestAuditSafeDict:
 
     def test_validated_state_persists_full_data(self):
         """VALIDATED state should persist full data."""
-        from fireai.core.smoke_simulation_state import (
             SmokeDensityPoint,
             SmokeSimulationState,
         )

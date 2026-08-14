@@ -3,7 +3,7 @@
 """
 tests/test_voltage_drop.py
 ==========================
-Comprehensive test suite for fireai/core/voltage_drop.py
+Comprehensive test suite for etap/core/voltage_drop.py
 
 SAFETY CRITICAL: Voltage drop calculations directly affect whether fire alarm
 notification appliances (horns/strobes) receive sufficient voltage to operate.
@@ -24,7 +24,6 @@ from __future__ import annotations
 import warnings
 
 import pytest
-from fireai.core.voltage_drop import (
     FA_WIRE_GAUGES,
     MAX_VOLTAGE_DROP_PCT,
     _next_standard_ah,

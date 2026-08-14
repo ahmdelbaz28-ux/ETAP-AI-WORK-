@@ -28,8 +28,8 @@ from fastapi.testclient import TestClient
 @pytest.fixture(autouse=True)
 def _setup_env() -> Generator[None, None, None]:
     """Set test environment."""
-    os.environ["FIREAI_ENV"] = "development"
-    os.environ["FIREAI_API_KEY"] = "test_key_edge_cases"
+    os.environ["APP_ENV"] = "development"
+    os.environ["API_KEY"] = "test_key_edge_cases"
     from backend.routers import auth as auth_module
 
     auth_module._SESSION_STORE.clear()
@@ -54,7 +54,7 @@ class TestSessionExpiry:
     def test_expired_session_returns_401(self, client: TestClient, monkeypatch) -> None:
         """An expired session should return 401."""
         monkeypatch.setenv("ENGINEERING_SERVICE_AUTH_DISABLED", "false")
-        monkeypatch.setenv("FIREAI_AUTH_DISABLED", "false")
+        monkeypatch.setenv("AUTH_DISABLED", "false")
         client.cookies.clear()
         from backend.routers import auth as auth_module
 
@@ -81,7 +81,7 @@ class TestSessionExpiry:
     def test_expired_session_removed_from_store(self, client: TestClient, monkeypatch) -> None:
         """Expired sessions should be cleaned up from the store."""
         monkeypatch.setenv("ENGINEERING_SERVICE_AUTH_DISABLED", "false")
-        monkeypatch.setenv("FIREAI_AUTH_DISABLED", "false")
+        monkeypatch.setenv("AUTH_DISABLED", "false")
         client.cookies.clear()
         from backend.routers import auth as auth_module
 
@@ -122,7 +122,7 @@ class TestConcurrentSessions:
                 "api_key": "test_key_edge_cases"
             },  # NOSONAR: hard-coded secret in test fixture  # NOSONAR — S7632: test function documented via class name / module path
         )
-        token1 = resp1.headers.get("set-cookie", "").split("fireai_session=")[1].split(";")[0]
+        token1 = resp1.headers.get("set-cookie", "").split("session=")[1].split(";")[0]
 
         # Clear cookie, second login
         client.cookies.clear()
@@ -132,7 +132,7 @@ class TestConcurrentSessions:
                 "api_key": "test_key_edge_cases"
             },  # NOSONAR: hard-coded secret in test fixture  # NOSONAR — S7632: test function documented via class name / module path
         )
-        token2 = resp2.headers.get("set-cookie", "").split("fireai_session=")[1].split(";")[0]
+        token2 = resp2.headers.get("set-cookie", "").split("session=")[1].split(";")[0]
 
         # Tokens must be different (random session IDs)
         assert token1 != token2, "Each login should create a unique session"
@@ -148,7 +148,7 @@ class TestConcurrentSessions:
                 "api_key": "test_key_edge_cases"
             },  # NOSONAR: hard-coded secret in test fixture  # NOSONAR — S7632: test function documented via class name / module path
         )
-        resp1.headers.get("set-cookie", "").split("fireai_session=")[1].split(";")[0]
+        resp1.headers.get("set-cookie", "").split("session=")[1].split(";")[0]
 
         client.cookies.clear()
         client.post(
@@ -361,7 +361,7 @@ class TestSessionTokenFormat:
                 "api_key": "test_key_edge_cases"
             },  # NOSONAR: hard-coded secret in test fixture  # NOSONAR — S7632: test function documented via class name / module path
         )
-        token = resp.headers.get("set-cookie", "").split("fireai_session=")[1].split(";")[0]
+        token = resp.headers.get("set-cookie", "").split("session=")[1].split(";")[0]
 
         # Should have exactly one dot separating session_id and signature
         parts = token.split(".")
@@ -377,7 +377,7 @@ class TestSessionTokenFormat:
                 "api_key": "test_key_edge_cases"
             },  # NOSONAR: hard-coded secret in test fixture  # NOSONAR — S7632: test function documented via class name / module path
         )
-        token = resp.headers.get("set-cookie", "").split("fireai_session=")[1].split(";")[0]
+        token = resp.headers.get("set-cookie", "").split("session=")[1].split(";")[0]
         session_id = token.split(".")[0]
 
         # 32 bytes = 256 bits = 43 URL-safe base64 chars

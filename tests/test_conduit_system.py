@@ -3,7 +3,7 @@
 """
 tests/test_conduit_system.py
 ============================
-Comprehensive test suite for fireai.conduit — the NFPA 72 conduit
+Comprehensive test suite for etap.conduit — the NFPA 72 conduit
 fitting engine. Covers catalog, fill, bend, routing, fitting placement,
 output generation, pipeline integration, and determinism.
 
@@ -21,7 +21,6 @@ import threading
 import pytest
 
 # ── Import the public API ────────────────────────────────────────────────────
-from fireai.conduit import (
     BoundingBox,
     CatalogError,
     CodeViolationError,
@@ -862,7 +861,7 @@ class TestOutput:
     def test_schema_version_present(self):
         run = self._make_run()
         j = generate_revit_conduit(run)
-        assert j.get("schema_version") == "fireai-conduit-v1"
+        assert j.get("schema_version") == "etap-conduit-v1"
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -877,7 +876,6 @@ class TestPipelineIntegration:
     """
 
     def test_stage8_registered_in_pipeline(self):
-        import fireai.core.pipeline as pip
 
         assert hasattr(pip, "_stage8_conduit_fittings"), (
             "Stage 8 (_stage8_conduit_fittings) not found in pipeline.py. "
@@ -885,7 +883,6 @@ class TestPipelineIntegration:
         )
 
     def test_stage8_returns_dict(self):
-        import fireai.core.pipeline as pip
 
         fn = pip._stage8_conduit_fittings
         result = fn(
@@ -897,7 +894,6 @@ class TestPipelineIntegration:
         assert "status" in result
 
     def test_stage8_skips_with_fewer_than_2_positions(self):
-        import fireai.core.pipeline as pip
 
         result = pip._stage8_conduit_fittings(
             validated={}, positions=[(1.0, 1.0)], cable_routing_data={}
@@ -905,7 +901,6 @@ class TestPipelineIntegration:
         assert result["status"] == "skipped"
 
     def test_stage8_completes_with_valid_positions(self):
-        import fireai.core.pipeline as pip
 
         result = pip._stage8_conduit_fittings(
             validated={"ceiling_height_m": 3.0},
@@ -919,7 +914,6 @@ class TestPipelineIntegration:
             assert "nfpa_reference" in result
 
     def test_stage8_references_nec_and_nfpa(self):
-        import fireai.core.pipeline as pip
 
         result = pip._stage8_conduit_fittings(
             validated={"ceiling_height_m": 3.0},
@@ -933,7 +927,6 @@ class TestPipelineIntegration:
 
     def test_public_api_importable(self):
         """All public API names importable in one line."""
-        from fireai.conduit import (
             ConduitType,
         )
 

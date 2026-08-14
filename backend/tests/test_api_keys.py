@@ -16,8 +16,8 @@ import pytest
 def _isolated_keys_file(tmp_path, monkeypatch):
     """Redirect the keys file to a temp directory for each test."""
     keys_file = str(tmp_path / "api_keys.json")
-    monkeypatch.setenv("FIREAI_API_KEYS_FILE", keys_file)
-    monkeypatch.setenv("FIREAI_API_KEYS_SECRET_FILE", str(tmp_path / "api_keys.secret"))
+    monkeypatch.setenv("API_KEYS_FILE", keys_file)
+    monkeypatch.setenv("API_KEYS_SECRET_FILE", str(tmp_path / "api_keys.secret"))
     # Clear any cached server secret and validation cache
     import backend.api_keys as ak
 

@@ -27,8 +27,8 @@ from fastapi.testclient import TestClient
 @pytest.fixture(scope="module", autouse=True)
 def _setup_env() -> None:
     """Set development environment for testing."""
-    os.environ["FIREAI_ENV"] = "development"
-    os.environ["FIREAI_API_KEY"] = ""
+    os.environ["APP_ENV"] = "development"
+    os.environ["API_KEY"] = ""
 
 
 @pytest.fixture(scope="module")
@@ -361,7 +361,7 @@ class TestReportGetById:
 
 class TestV213VoltageDropRealCalculations:
     """V213 regression tests: the voltage_drop report must call the real
-    ``fireai.core.qomn_kernel.compute_voltage_drop`` (NEC Ch. 9 Table 8)
+    ``etap.core.qomn_kernel.compute_voltage_drop`` (NEC Ch. 9 Table 8)
     for each circuit where the cable size can be mapped to an AWG gauge —
     not just list circuits as before.
     """

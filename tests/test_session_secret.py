@@ -35,11 +35,11 @@ def _reset_manager() -> Generator[None, None, None]:
     # Save original env vars
     saved_env = {}
     for key in [
-        "FIREAI_SESSION_SECRET",
-        "FIREAI_SESSION_SECRET_FILE",
-        "FIREAI_SESSION_SECRET_NEW",
-        "FIREAI_SESSION_SECRET_NEW_FILE",
-        "FIREAI_ENV",
+        "SESSION_SECRET",
+        "SESSION_SECRET_FILE",
+        "SESSION_SECRET_NEW",
+        "SESSION_SECRET_NEW_FILE",
+        "APP_ENV",
     ]:
         if key in os.environ:
             saved_env[key] = os.environ[key]
@@ -103,10 +103,10 @@ class TestSecretLoading:
     """Tests for loading secrets from env vars and files."""
 
     def test_load_from_env_var(self) -> None:
-        """Secret should be loadable from FIREAI_SESSION_SECRET env var."""
+        """Secret should be loadable from SESSION_SECRET env var."""
         secret = secrets.token_urlsafe(64)
-        os.environ["FIREAI_SESSION_SECRET"] = secret
-        os.environ["FIREAI_ENV"] = "production"
+        os.environ["SESSION_SECRET"] = secret
+        os.environ["APP_ENV"] = "production"
 
         mgr = SessionSecretManager()
         mgr.load()
@@ -119,8 +119,8 @@ class TestSecretLoading:
         secret_file = tmp_path / "session_secret"
         secret_file.write_text(secret)
 
-        os.environ["FIREAI_SESSION_SECRET_FILE"] = str(secret_file)
-        os.environ["FIREAI_ENV"] = "production"
+        os.environ["SESSION_SECRET_FILE"] = str(secret_file)
+        os.environ["APP_ENV"] = "production"
 
         mgr = SessionSecretManager()
         mgr.load()
@@ -134,9 +134,9 @@ class TestSecretLoading:
         secret_file = tmp_path / "session_secret"
         secret_file.write_text(file_secret)
 
-        os.environ["FIREAI_SESSION_SECRET"] = env_secret
-        os.environ["FIREAI_SESSION_SECRET_FILE"] = str(secret_file)
-        os.environ["FIREAI_ENV"] = "production"
+        os.environ["SESSION_SECRET"] = env_secret
+        os.environ["SESSION_SECRET_FILE"] = str(secret_file)
+        os.environ["APP_ENV"] = "production"
 
         mgr = SessionSecretManager()
         mgr.load()
@@ -149,8 +149,8 @@ class TestSecretLoading:
         secret_file = tmp_path / "session_secret"
         secret_file.write_text(secret + "\n")  # Trailing newline
 
-        os.environ["FIREAI_SESSION_SECRET_FILE"] = str(secret_file)
-        os.environ["FIREAI_ENV"] = "production"
+        os.environ["SESSION_SECRET_FILE"] = str(secret_file)
+        os.environ["APP_ENV"] = "production"
 
         mgr = SessionSecretManager()
         mgr.load()
@@ -159,7 +159,7 @@ class TestSecretLoading:
 
     def test_production_requires_secret(self) -> None:
         """Production should refuse to start without a secret."""
-        os.environ["FIREAI_ENV"] = "production"
+        os.environ["APP_ENV"] = "production"
         # No secret set
 
         mgr = SessionSecretManager()
@@ -168,7 +168,7 @@ class TestSecretLoading:
 
     def test_development_generates_random_secret(self) -> None:
         """Development should generate a random secret if not set."""
-        os.environ["FIREAI_ENV"] = "development"
+        os.environ["APP_ENV"] = "development"
         # No secret set
 
         mgr = SessionSecretManager()
@@ -180,8 +180,8 @@ class TestSecretLoading:
 
     def test_missing_secret_file_raises_error(self) -> None:
         """Missing secret file should raise a clear error."""
-        os.environ["FIREAI_SESSION_SECRET_FILE"] = "/nonexistent/secret"
-        os.environ["FIREAI_ENV"] = "production"
+        os.environ["SESSION_SECRET_FILE"] = "/nonexistent/secret"
+        os.environ["APP_ENV"] = "production"
 
         mgr = SessionSecretManager()
         with pytest.raises(ValueError, match="not found"):
@@ -192,13 +192,13 @@ class TestSecretRotation:
     """Tests for zero-downtime secret rotation."""
 
     def test_rotation_retains_previous_secret(self) -> None:
-        """When FIREAI_SESSION_SECRET_NEW is set, old secret becomes 'previous'."""
+        """When SESSION_SECRET_NEW is set, old secret becomes 'previous'."""
         old_secret = secrets.token_urlsafe(64)
         new_secret = secrets.token_urlsafe(64)
 
-        os.environ["FIREAI_SESSION_SECRET"] = old_secret
-        os.environ["FIREAI_SESSION_SECRET_NEW"] = new_secret
-        os.environ["FIREAI_ENV"] = "production"
+        os.environ["SESSION_SECRET"] = old_secret
+        os.environ["SESSION_SECRET_NEW"] = new_secret
+        os.environ["APP_ENV"] = "production"
 
         mgr = SessionSecretManager()
         mgr.load()
@@ -216,8 +216,8 @@ class TestSecretRotation:
         old_secret = secrets.token_urlsafe(64)
         new_secret = secrets.token_urlsafe(64)
 
-        os.environ["FIREAI_SESSION_SECRET"] = old_secret
-        os.environ["FIREAI_ENV"] = "production"
+        os.environ["SESSION_SECRET"] = old_secret
+        os.environ["APP_ENV"] = "production"
 
         mgr1 = SessionSecretManager()
         mgr1.load()
@@ -227,7 +227,7 @@ class TestSecretRotation:
         old_signature = mgr1.sign(data)
 
         # Now rotate: add NEW secret
-        os.environ["FIREAI_SESSION_SECRET_NEW"] = new_secret
+        os.environ["SESSION_SECRET_NEW"] = new_secret
 
         mgr2 = SessionSecretManager()
         mgr2.load()
@@ -244,10 +244,10 @@ class TestSecretRotation:
         )
 
     def test_no_rotation_when_new_not_set(self) -> None:
-        """Without FIREAI_SESSION_SECRET_NEW, no rotation should occur."""
+        """Without SESSION_SECRET_NEW, no rotation should occur."""
         secret = secrets.token_urlsafe(64)
-        os.environ["FIREAI_SESSION_SECRET"] = secret
-        os.environ["FIREAI_ENV"] = "production"
+        os.environ["SESSION_SECRET"] = secret
+        os.environ["APP_ENV"] = "production"
 
         mgr = SessionSecretManager()
         mgr.load()
@@ -263,8 +263,8 @@ class TestSigningAndVerification:
     def test_sign_and_verify_roundtrip(self) -> None:
         """A signed token should verify successfully."""
         secret = secrets.token_urlsafe(64)
-        os.environ["FIREAI_SESSION_SECRET"] = secret
-        os.environ["FIREAI_ENV"] = "production"
+        os.environ["SESSION_SECRET"] = secret
+        os.environ["APP_ENV"] = "production"
 
         mgr = SessionSecretManager()
         mgr.load()
@@ -277,8 +277,8 @@ class TestSigningAndVerification:
     def test_tampered_signature_rejected(self) -> None:
         """A tampered signature should be rejected."""
         secret = secrets.token_urlsafe(64)
-        os.environ["FIREAI_SESSION_SECRET"] = secret
-        os.environ["FIREAI_ENV"] = "production"
+        os.environ["SESSION_SECRET"] = secret
+        os.environ["APP_ENV"] = "production"
 
         mgr = SessionSecretManager()
         mgr.load()
@@ -293,8 +293,8 @@ class TestSigningAndVerification:
     def test_different_data_rejected(self) -> None:
         """Signature for one data should not verify for different data."""
         secret = secrets.token_urlsafe(64)
-        os.environ["FIREAI_SESSION_SECRET"] = secret
-        os.environ["FIREAI_ENV"] = "production"
+        os.environ["SESSION_SECRET"] = secret
+        os.environ["APP_ENV"] = "production"
 
         mgr = SessionSecretManager()
         mgr.load()
@@ -307,12 +307,12 @@ class TestSigningAndVerification:
         secret1 = secrets.token_urlsafe(64)
         secret2 = secrets.token_urlsafe(64)
 
-        os.environ["FIREAI_SESSION_SECRET"] = secret1
-        os.environ["FIREAI_ENV"] = "production"
+        os.environ["SESSION_SECRET"] = secret1
+        os.environ["APP_ENV"] = "production"
         mgr1 = SessionSecretManager()
         mgr1.load()
 
-        os.environ["FIREAI_SESSION_SECRET"] = secret2
+        os.environ["SESSION_SECRET"] = secret2
         mgr2 = SessionSecretManager()
         mgr2.load()
 
@@ -329,8 +329,8 @@ class TestSecretInfo:
     def test_get_info_does_not_expose_secret(self) -> None:
         """get_info() should never include the actual secret value."""
         secret = secrets.token_urlsafe(64)
-        os.environ["FIREAI_SESSION_SECRET"] = secret
-        os.environ["FIREAI_ENV"] = "production"
+        os.environ["SESSION_SECRET"] = secret
+        os.environ["APP_ENV"] = "production"
 
         mgr = SessionSecretManager()
         mgr.load()
@@ -344,8 +344,8 @@ class TestSecretInfo:
     def test_get_info_shows_source_and_length(self) -> None:
         """get_info() should show source and length (not the value)."""
         secret = secrets.token_urlsafe(64)
-        os.environ["FIREAI_SESSION_SECRET"] = secret
-        os.environ["FIREAI_ENV"] = "production"
+        os.environ["SESSION_SECRET"] = secret
+        os.environ["APP_ENV"] = "production"
 
         mgr = SessionSecretManager()
         mgr.load()

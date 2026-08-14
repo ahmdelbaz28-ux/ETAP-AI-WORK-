@@ -21,7 +21,6 @@ class TestAuditChainThreadSafety:
         # V137 F-1: Set a FIXED HMAC key so verify_chain works across test runs
         monkeypatch.setenv("AUDIT_HMAC_KEY", "test-hmac-key-for-concurrent-testing-32chars")
 
-        from fireai.core import audit_store
 
         # Force re-initialization with the fixed key
         audit_store._DEV_HMAC_KEY = None
@@ -30,7 +29,6 @@ class TestAuditChainThreadSafety:
 
         import threading
 
-        from fireai.core.audit_store import AuditStore
 
         errors = []
 
@@ -88,7 +86,6 @@ class TestWebhookAsyncTimeout:
         """publish_event should use as_completed for proper timeout."""
         import inspect
 
-        from fireai.infrastructure.webhook_service import WebhookDeliveryService
 
         source = inspect.getsource(WebhookDeliveryService.publish_event)
         # V137 F-3: Must use as_completed (not concurrent.futures.wait)
@@ -106,7 +103,6 @@ class TestFailedResultAudit:
         """_failed_result should call AuditStore.add_event."""
         import inspect
 
-        from fireai.core.pipeline import _failed_result
 
         source = inspect.getsource(_failed_result)
         assert "ROOM_ANALYSIS_FAILED" in source, (
@@ -142,7 +138,6 @@ class TestIFCGlobalIdAlphabet:
 
     def test_global_id_no_plus_or_slash(self):
         """GlobalId should never contain + or / (invalid in IFC)."""
-        from fireai.bridges.ifc43_mapper import IFC43Mapper
 
         mapper = IFC43Mapper()
         # Generate multiple GlobalIds and check none contain + or /
@@ -153,7 +148,6 @@ class TestIFCGlobalIdAlphabet:
 
     def test_global_id_is_22_chars(self):
         """GlobalId must be exactly 22 characters."""
-        from fireai.bridges.ifc43_mapper import IFC43Mapper
 
         mapper = IFC43Mapper()
         gid = mapper._generate_global_id("test")
@@ -168,10 +162,9 @@ class TestUnknownDetectorType:
 
     def test_unknown_type_raises(self):
         """map_detector with unknown type should raise ValueError."""
-        from fireai.bridges.ifc43_mapper import IFC43Mapper
 
         mapper = IFC43Mapper()
-        with pytest.raises(ValueError, match="Unknown FireAI detector type"):
+        with pytest.raises(ValueError, match="Unknown ETAP detector type"):
             mapper.map_detector(
                 {
                     "device_id": "X-01",

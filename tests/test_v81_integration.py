@@ -24,11 +24,11 @@ import pytest
 from fastapi.testclient import TestClient
 
 # Set test environment BEFORE importing the app
-os.environ.setdefault("FIREAI_ENV", "development")
-os.environ.setdefault("FIREAI_API_KEY", "v81_integration_test_key")
-os.environ.setdefault("FIREAI_API_KEYS", "v81_integration_test_key")
+os.environ.setdefault("APP_ENV", "development")
+os.environ.setdefault("API_KEY", "v81_integration_test_key")
+os.environ.setdefault("API_KEYS", "v81_integration_test_key")
 os.environ.setdefault(
-    "FIREAI_SESSION_SECRET",
+    "SESSION_SECRET",
     "test_session_secret_for_v81_integration_tests_minimum_43_chars_long",
 )
 os.environ.setdefault(
@@ -250,7 +250,7 @@ class TestMonitor:
         assert resp.status_code == 200
         # Prometheus format starts with # HELP or # TYPE
         text = resp.text
-        assert "# HELP" in text or "# TYPE" in text or "fireai" in text
+        assert "# HELP" in text or "# TYPE" in text or "etap" in text
 
 
 # ===========================================================================

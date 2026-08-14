@@ -1,7 +1,7 @@
 name: Sync to HuggingFace Space
 
 # ═══════════════════════════════════════════════════════════════════════════
-# Auto-sync GitHub → HuggingFace Space (ahmdelbaz28/BAZSPARK)
+# Auto-sync GitHub → HuggingFace Space (ahmdelbaz28/ETAP)
 #
 # ARCHITECTURE
 # ─────────────
@@ -14,7 +14,7 @@ name: Sync to HuggingFace Space
 #
 # WHAT GETS SYNCED (runtime-only, matches HF Dockerfile COPY statements):
 #   Dockerfile, README.md, pyproject.toml, requirements.txt, .dockerignore
-#   adapters/ backend/ core/ facp_system/ fireai/ ui/ integration/
+#   adapters/ backend/ core/ facp_system/ etap/ ui/ integration/
 #   marine/ parsers/ qomn_conduit/ qomn_fire/
 #
 # WHAT IS EXCLUDED (repo-only): .github/ skills/ deploy/ docs/ tests/ *.md
@@ -82,7 +82,7 @@ jobs:
             "backend"
             "core"
             "facp_system"
-            "fireai"
+            "etap"
             "ui"
             "integration"
             "marine"
@@ -239,8 +239,8 @@ jobs:
 
           echo ""
           echo "── Verifying file count matches ──"
-          GH_COUNT=$(find ${{ github.workspace }}/{adapters,backend,core,facp_system,fireai,ui,integration,marine,parsers,qomn_conduit,qomn_fire} -type f 2>/dev/null | wc -l)
-          HF_COUNT=$(cd hf_space && find {adapters,backend,core,facp_system,fireai,ui,integration,marine,parsers,qomn_conduit,qomn_fire} -type f 2>/dev/null | wc -l)
+          GH_COUNT=$(find ${{ github.workspace }}/{adapters,backend,core,facp_system,etap,ui,integration,marine,parsers,qomn_conduit,qomn_fire} -type f 2>/dev/null | wc -l)
+          HF_COUNT=$(cd hf_space && find {adapters,backend,core,facp_system,etap,ui,integration,marine,parsers,qomn_conduit,qomn_fire} -type f 2>/dev/null | wc -l)
           echo "  GitHub runtime files: $GH_COUNT"
           echo "  HF Space runtime files: $HF_COUNT"
           if [ "$GH_COUNT" = "$HF_COUNT" ]; then

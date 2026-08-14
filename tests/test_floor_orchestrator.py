@@ -3,7 +3,7 @@
 """
 tests/test_floor_orchestrator.py
 ================================
-Comprehensive test suite for fireai/core/floor_orchestrator.py.
+Comprehensive test suite for etap/core/floor_orchestrator.py.
 
 SAFETY CRITICAL: FloorOrchestrator processes rooms through DensityOptimizer
 and NFPA 72 coverage verification. Incorrect status reporting could lead to
@@ -25,7 +25,6 @@ import os
 from unittest.mock import MagicMock, patch
 
 import pytest
-from fireai.core.floor_orchestrator import (
     FloorOrchestrator,
     FloorResult,
     InvalidInputError,
@@ -274,7 +273,7 @@ class TestFloorResultCompute:
             source_dxf="test.dxf",
             total_rooms=0,
         )
-        assert "FireAI V20.2" in fr.disclaimer
+        assert "ETAP V20.2" in fr.disclaimer
         assert "NFPA 72" in fr.disclaimer
         assert "licensed fire protection engineer" in fr.disclaimer
 
@@ -326,7 +325,7 @@ class TestFloorResultSaveAudit:
             data = json.load(f)
         assert data["project_name"] == "TestProject"
         assert data["source_dxf"] == "test.dxf"
-        assert data["version"] == "FireAI V20.2"
+        assert data["version"] == "ETAP V20.2"
 
     def test_save_audit_room_details(self, passing_room_result, tmp_audit_dir):
         fr = FloorResult(
@@ -441,7 +440,6 @@ class TestProcessOneRoomUnresolvedGeometry:
 
     def _make_unresolved_spec(self):
         """Create a RoomSpec with geometry_unresolved=True."""
-        from fireai.core.nfpa72_models import RoomSpec
 
         spec = RoomSpec.__new__(RoomSpec)
         spec.room_id = "UNRESOLVED-001"
@@ -495,7 +493,6 @@ class TestProcessOneRoomUnresolvedGeometry:
 class TestProcessOneRoomErrors:
     def test_nfpa_compliance_error_produces_error_status(self):
         """NFPAComplianceError in room processing → ERROR status."""
-        from fireai.core.nfpa72_models import RoomSpec
 
         fo = FloorOrchestrator()
         spec = RoomSpec.__new__(RoomSpec)
@@ -523,7 +520,6 @@ class TestProcessOneRoomErrors:
         fo = FloorOrchestrator()
 
         # Create a spec that will trigger ValueError
-        from fireai.core.nfpa72_models import CeilingSpec, RoomSpec
 
         spec = RoomSpec.__new__(RoomSpec)
         spec.room_id = "VAL-001"
@@ -540,7 +536,7 @@ class TestProcessOneRoomErrors:
         spec.geometry_unresolved = False
 
         with patch(
-            "fireai.core.floor_orchestrator.DensityOptimizer.optimize",
+            "etap.core.floor_orchestrator.DensityOptimizer.optimize",
             side_effect=ValueError("test value error"),
         ):
             result = fo._process_one_room(spec)
@@ -551,7 +547,6 @@ class TestProcessOneRoomErrors:
         """RuntimeError MUST propagate (FAIL FAST — corrupted environment)."""
         fo = FloorOrchestrator()
 
-        from fireai.core.nfpa72_models import CeilingSpec, RoomSpec
 
         spec = RoomSpec.__new__(RoomSpec)
         spec.room_id = "RT-001"
@@ -568,7 +563,7 @@ class TestProcessOneRoomErrors:
         spec.geometry_unresolved = False
 
         with patch(
-            "fireai.core.floor_orchestrator.DensityOptimizer.optimize",
+            "etap.core.floor_orchestrator.DensityOptimizer.optimize",
             side_effect=RuntimeError("corrupted environment"),
         ):
             with pytest.raises(RuntimeError, match="corrupted environment"):
@@ -591,7 +586,6 @@ class TestFloorOrchestratorProcess:
 
     def test_process_single_room_pass(self):
         """Integration: process a valid room and verify result structure."""
-        from fireai.core.nfpa72_models import CeilingSpec, DetectorType, RoomSpec
         from shapely.geometry import Polygon
 
         fo = FloorOrchestrator(grid_res=0.5)
@@ -616,7 +610,6 @@ class TestFloorOrchestratorProcess:
         mock_audit = MagicMock()
         fo = FloorOrchestrator(audit_trail=mock_audit)
 
-        from fireai.core.nfpa72_models import CeilingSpec, DetectorType, RoomSpec
         from shapely.geometry import Polygon
 
         spec = RoomSpec(
@@ -635,7 +628,6 @@ class TestFloorOrchestratorProcess:
         """Without audit_trail, no logging calls are made."""
         fo = FloorOrchestrator(audit_trail=None)
 
-        from fireai.core.nfpa72_models import CeilingSpec, DetectorType, RoomSpec
         from shapely.geometry import Polygon
 
         spec = RoomSpec(
@@ -667,7 +659,6 @@ class TestV60CoverageRadiusFallback:
         """If coverage radius calculation fails, fallback is used with warning."""
         fo = FloorOrchestrator()
 
-        from fireai.core.nfpa72_models import CeilingSpec, DetectorType, RoomSpec
         from shapely.geometry import Polygon
 
         spec = RoomSpec(
@@ -683,7 +674,7 @@ class TestV60CoverageRadiusFallback:
         # calculate_coverage_radius_from_height is imported inside the method,
         # so we must patch it at the source module
         with patch(
-            "fireai.core.nfpa72_calculations.calculate_coverage_radius_from_height",
+            "etap.core.nfpa72_calculations.calculate_coverage_radius_from_height",
             side_effect=Exception("test failure"),
         ):
             # Should not crash — falls back to MAX_SPACING_M/DETECTOR_RADIUS
@@ -715,9 +706,6 @@ class TestV13AdaptiveReSolve:
         """
         fo = FloorOrchestrator()
 
-        from fireai.core.nfpa72_models import CeilingSpec, DetectorType, RoomSpec
-        from fireai.core.spatial_engine.constraint_solver import ConstraintSolverResult
-        from fireai.core.spatial_engine.density_optimizer import DetectorLayout, Room
         from shapely.geometry import Polygon
 
         spec = RoomSpec(
@@ -748,11 +736,11 @@ class TestV13AdaptiveReSolve:
         )
 
         with patch(
-            "fireai.core.floor_orchestrator.DensityOptimizer.optimize",
+            "etap.core.floor_orchestrator.DensityOptimizer.optimize",
             return_value=failing_layout,
         ):
             with patch(
-                "fireai.core.floor_orchestrator.verify_full_coverage",
+                "etap.core.floor_orchestrator.verify_full_coverage",
                 return_value={
                     "compliance_status": "FAIL",
                     "coverage_percentage": 50.0,
@@ -760,13 +748,13 @@ class TestV13AdaptiveReSolve:
                 },
             ):
                 with patch(
-                    "fireai.core.floor_orchestrator.ConstraintSolver",
+                    "etap.core.floor_orchestrator.ConstraintSolver",
                     create=True,
                 ) as MockCS:
                     MockCS.return_value.find_optimal_placement.return_value = recovery_result
                     # Need to patch the import inside the try block
                     with patch(
-                        "fireai.core.spatial_engine.constraint_solver.ConstraintSolver",
+                        "etap.core.spatial_engine.constraint_solver.ConstraintSolver",
                         return_value=MockCS.return_value,
                     ):
                         result = fo._process_one_room(spec)
@@ -785,9 +773,6 @@ class TestV13AdaptiveReSolve:
         """
         fo = FloorOrchestrator()
 
-        from fireai.core.nfpa72_models import CeilingSpec, DetectorType, RoomSpec
-        from fireai.core.spatial_engine.constraint_solver import ConstraintSolverResult
-        from fireai.core.spatial_engine.density_optimizer import DetectorLayout, Room
         from shapely.geometry import Polygon
 
         spec = RoomSpec(
@@ -818,11 +803,11 @@ class TestV13AdaptiveReSolve:
         )
 
         with patch(
-            "fireai.core.floor_orchestrator.DensityOptimizer.optimize",
+            "etap.core.floor_orchestrator.DensityOptimizer.optimize",
             return_value=failing_layout,
         ):
             with patch(
-                "fireai.core.floor_orchestrator.verify_full_coverage",
+                "etap.core.floor_orchestrator.verify_full_coverage",
                 return_value={
                     "compliance_status": "FAIL",
                     "coverage_percentage": 50.0,
@@ -830,7 +815,7 @@ class TestV13AdaptiveReSolve:
                 },
             ):
                 with patch(
-                    "fireai.core.spatial_engine.constraint_solver.ConstraintSolver"
+                    "etap.core.spatial_engine.constraint_solver.ConstraintSolver"
                 ) as MockCS:
                     MockCS.return_value.find_optimal_placement.return_value = double_fail_result
                     result = fo._process_one_room(spec)

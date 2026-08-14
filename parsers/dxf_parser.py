@@ -1,7 +1,7 @@
 # File-level suppression removed per audit (V143 hardening).
 # Per-line justified suppressions (e.g., '# noqa: S3776 ...') are preserved.
 """
-dxf_parser.py — FireAI V5.1.0
+dxf_parser.py — ETAP V5.1.0
 CRITICAL SAFETY: Reads real DXF and produces valid Polygons only.
 Any invalid geometry is rejected, never guessed.
 """
@@ -17,7 +17,7 @@ from shapely.geometry import MultiPolygon, Point, Polygon
 from shapely.ops import polygonize, unary_union
 from shapely.validation import make_valid
 
-logger = logging.getLogger("fireai.dxf_parser")
+logger = logging.getLogger("etap.dxf_parser")
 
 
 @dataclass

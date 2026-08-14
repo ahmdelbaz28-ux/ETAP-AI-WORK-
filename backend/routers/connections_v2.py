@@ -1,7 +1,7 @@
 # File-level '# NOSONAR' removed per NOSONAR_AUDIT.md (V143 hardening).
 # Per-line justified suppressions (e.g., '# NOSONAR — S3776: ...') are preserved.
 """
-FireAI Digital Twin - Connections V2 Router.
+ETAP Digital Twin - Connections V2 Router.
 ============================================
 Relationship-based connections for the UniversalDataModel.
 Separate from the project-scoped cable connections router.

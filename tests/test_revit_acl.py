@@ -4,7 +4,7 @@
 tests/test_revit_acl.py
 ===========================
 Comprehensive test suite for:
-  - fireai/core/revit_acl.py
+  - etap/core/revit_acl.py
 
 SAFETY CRITICAL: This is the Anti-Corruption Layer that protects strict
 domain models from corrupted BIM/Revit data. Failures here could allow
@@ -19,11 +19,9 @@ Standards:
 from __future__ import annotations
 
 import pytest
-from fireai.core.models_v21 import (
     HazardType,
     WavelengthBand,
 )
-from fireai.core.revit_acl import (
     _HAZARD_TYPE_ALIASES,
     _WAVELENGTH_BAND_ALIASES,
     ImportError,

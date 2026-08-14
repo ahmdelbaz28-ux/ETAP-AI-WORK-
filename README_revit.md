@@ -1,4 +1,4 @@
-# FireAI v8.0 — Multi-Layer Fire Alarm Design Engine
+# ETAP v8.0 — Multi-Layer Fire Alarm Design Engine
 
 > A comprehensive fire alarm system design engine for compliance with NFPA 72 standards.
 
@@ -119,8 +119,8 @@ See [`backend_app.py`](../backend_app.py) for the main application entry point.
 ### Integration
 
 ```python
-from fireai.core.spatial_engine.density_optimizer import DensityOptimizer
-from fireai.core.building_engine import BuildingEngine
+from etap.core.spatial_engine.density_optimizer import DensityOptimizer
+from etap.core.building_engine import BuildingEngine
 
 opt = DensityOptimizer()
 engine = BuildingEngine("BLDG-001", opt)

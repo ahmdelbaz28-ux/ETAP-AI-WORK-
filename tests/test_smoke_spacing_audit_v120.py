@@ -29,7 +29,6 @@ if str(_PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(_PROJECT_ROOT))
 
 import pytest
-from fireai.core.qomn_kernel import compute_smoke_detector_spacing
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # V130 — Flat Spacing at ALL heights per §17.7.3.2.3
@@ -162,7 +161,7 @@ class TestV130WarningLog:
     """
 
     def test_warning_emitted_above_threshold(self, caplog):
-        with caplog.at_level(logging.WARNING, logger="fireai.core.qomn_kernel"):
+        with caplog.at_level(logging.WARNING, logger="etap.core.qomn_kernel"):
             compute_smoke_detector_spacing(10.0)
         warning_messages = [r.message for r in caplog.records if r.levelno == logging.WARNING]
         assert any("V130" in m or "stratification" in m.lower() for m in warning_messages), (
@@ -170,7 +169,7 @@ class TestV130WarningLog:
         )
 
     def test_no_warning_below_threshold(self, caplog):
-        with caplog.at_level(logging.WARNING, logger="fireai.core.qomn_kernel"):
+        with caplog.at_level(logging.WARNING, logger="etap.core.qomn_kernel"):
             compute_smoke_detector_spacing(3.0)
         warning_messages = [
             r.message
@@ -213,7 +212,6 @@ class TestV120ExistingGuardsPreserved:
     """V120 must not weaken any pre-existing physics guards."""
 
     def test_nan_still_rejected(self):
-        from fireai.core.qomn_kernel import PhysicsGuardError
 
         with pytest.raises(
             PhysicsGuardError
@@ -221,7 +219,6 @@ class TestV120ExistingGuardsPreserved:
             compute_smoke_detector_spacing(float("nan"))
 
     def test_inf_still_rejected(self):
-        from fireai.core.qomn_kernel import PhysicsGuardError
 
         with pytest.raises(
             PhysicsGuardError
@@ -229,20 +226,17 @@ class TestV120ExistingGuardsPreserved:
             compute_smoke_detector_spacing(float("inf"))
 
     def test_negative_still_rejected(self):
-        from fireai.core.qomn_kernel import PhysicsGuardError
 
         with pytest.raises(PhysicsGuardError):
             compute_smoke_detector_spacing(-1.0)
 
     def test_zero_still_rejected(self):
-        from fireai.core.qomn_kernel import PhysicsGuardError
 
         with pytest.raises(PhysicsGuardError):
             compute_smoke_detector_spacing(0.0)
 
     def test_above_18288m_still_rejected(self):
         """NFPA global scope ceiling unchanged at 18.288 m."""
-        from fireai.core.qomn_kernel import PhysicsGuardError
 
         with pytest.raises(PhysicsGuardError):
             compute_smoke_detector_spacing(18.5)

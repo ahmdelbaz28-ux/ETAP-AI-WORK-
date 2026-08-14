@@ -1,7 +1,7 @@
 # File-level suppression removed per audit (V143 hardening).
 # Per-line justified suppressions (e.g., '# noqa: S3776 ...') are preserved.
 """
-excel_parser.py — FireAI Excel Room Data Parser
+excel_parser.py — ETAP Excel Room Data Parser
 Parses room specifications from Excel files.
 
 Expected columns:
@@ -31,7 +31,7 @@ from typing import Dict, List
 #   pip install -e ".[parsing]"
 pd = None  # type: ignore[assignment]
 
-logger = logging.getLogger("fireai.excel_parser")
+logger = logging.getLogger("etap.excel_parser")
 
 
 def _lazy_import_pandas():
@@ -148,7 +148,7 @@ class ExcelParser:
 
         Args:
             file_path: Path to .xlsx or .xls file. MUST be under
-                FIREAI_ALLOWED_UPLOAD_DIRS (V124 security hardening).
+                ALLOWED_UPLOAD_DIRS (V124 security hardening).
 
         Returns:
             ExcelParseResult with room list
@@ -163,7 +163,7 @@ class ExcelParser:
 
         _ALLOWED_EXTENSIONS = frozenset({".xlsx", ".xls", ".csv"})
         _MAX_FILE_SIZE_BYTES = int(
-            os.getenv("FIREAI_EXCEL_MAX_FILE_SIZE_BYTES", 25 * 1024 * 1024)
+            os.getenv("EXCEL_MAX_FILE_SIZE_BYTES", 25 * 1024 * 1024)
         )  # 25 MB default
         try:
             safe_path = validate_input_path(

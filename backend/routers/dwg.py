@@ -92,7 +92,7 @@ async def _parse_dwg_impl(
     # Stream chunks DIRECTLY to disk — never accumulate in memory.
     temp_path = ""
     try:
-        fd, temp_path = tempfile.mkstemp(suffix=ext, prefix="fireai_dwg_upload_")
+        fd, temp_path = tempfile.mkstemp(suffix=ext, prefix="dwg_upload_")
         # Wrap the os-level fd in a Python file object for buffered writes
         with os.fdopen(fd, "wb") as out_f:
             _CHUNK_SIZE = 1024 * 1024  # 1 MB per read

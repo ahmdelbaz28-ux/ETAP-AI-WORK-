@@ -1,6 +1,6 @@
 # File-level suppression removed per audit (V143 hardening).
 # Per-line justified suppressions (e.g., '# noqa: S3776 ...') are preserved.
-"""FireAI RVT Parser - Revit RVT file parser"""
+"""ETAP RVT Parser - Revit RVT file parser"""
 
 import logging
 from typing import List, Optional

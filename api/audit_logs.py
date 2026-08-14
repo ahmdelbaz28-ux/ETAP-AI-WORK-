@@ -590,7 +590,6 @@ async def list_audit_logs(
     """
     source_logs = _SAMPLE_AUDIT_LOGS
     try:
-        from fireai.core.audit_store import AuditStore
 
         real_events = AuditStore.get_events()
         if real_events:
@@ -696,7 +695,6 @@ async def get_audit_log_stats() -> AuditLogStats:
     """
     source_logs = _SAMPLE_AUDIT_LOGS
     try:
-        from fireai.core.audit_store import AuditStore
 
         real_events = AuditStore.get_events()
         if real_events:

@@ -1,7 +1,7 @@
 # FACP Implementation Summary
 
 ## Overview
-This document summarizes the implementation of the FireAI Agent Communication Protocol (FACP) v1.0, a runtime-independent communication protocol designed for secure, deterministic communication between engineering AI agents and core computational engines.
+This document summarizes the implementation of the ETAP Agent Communication Protocol (FACP) v1.0, a runtime-independent communication protocol designed for secure, deterministic communication between engineering AI agents and core computational engines.
 
 ## Architecture Implementation
 

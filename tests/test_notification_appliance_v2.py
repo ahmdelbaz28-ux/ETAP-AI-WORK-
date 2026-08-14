@@ -3,7 +3,7 @@
 """
 tests/test_notification_appliance_v2.py
 ========================================
-Extended test suite for fireai.core.notification_appliance.
+Extended test suite for etap.core.notification_appliance.
 
 Supplements test_notification_appliance.py with additional edge cases,
 boundary conditions, round-trip consistency, and deeper NFPA compliance
@@ -21,7 +21,6 @@ from __future__ import annotations
 import math
 
 import pytest
-from fireai.core.notification_appliance import (
     _HORN_REFERENCE_DISTANCE_M,
     _MAX_CORRIDOR_STROBE_SPACING_M,
     _MAX_END_OF_CORRIDOR_DISTANCE_M,

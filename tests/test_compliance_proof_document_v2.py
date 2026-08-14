@@ -3,7 +3,7 @@
 """
 tests/test_compliance_proof_document_v2.py
 ============================================
-Comprehensive test suite for fireai/core/compliance_proof_document.py.
+Comprehensive test suite for etap/core/compliance_proof_document.py.
 
 SAFETY CRITICAL: Compliance proof documents are submitted to the AHJ
 (Authority Having Jurisdiction) for fire alarm system permitting. Errors
@@ -30,18 +30,15 @@ from __future__ import annotations
 from unittest.mock import MagicMock
 
 import pytest
-from fireai.core.compliance_proof_document import (
     ComplianceProofDocument,
     RoomVerificationRecord,
     _safe_fmt,
 )
-from fireai.core.spatial_engine.consensus_engine import (
     ConfidenceLevel,
     ConsensusResult,
     EngineName,
     EngineVerdict,
 )
-from fireai.core.spatial_engine.density_optimizer import (
     DETECTOR_RADIUS,
     MAX_SPACING_M,
     DetectorLayout,
@@ -203,7 +200,7 @@ class TestComplianceProofDocumentInit:
 
     def test_default_values(self):
         doc = ComplianceProofDocument()
-        assert doc.project_name == "FireAI V30 Project"
+        assert doc.project_name == "ETAP V30 Project"
         assert doc.designer == ""
         assert doc.nfpa_edition == "2022"
         assert doc.jurisdiction == ""
@@ -401,10 +398,10 @@ class TestHeader:
         header = doc._header()
         assert "Chicago" in header
 
-    def test_header_contains_fireai_version(self):
+    def test_header_contains_version(self):
         doc = ComplianceProofDocument()
         header = doc._header()
-        assert "FireAI Version:** V30" in header
+        assert "ETAP Version:** V30" in header
 
     def test_header_total_rooms_zero(self):
         doc = ComplianceProofDocument()
@@ -1213,10 +1210,10 @@ class TestCertification:
         cert = doc._certification()
         assert "NFPA 72-2019" in cert
 
-    def test_fireai_version(self):
+    def test_version(self):
         doc = ComplianceProofDocument()
         cert = doc._certification()
-        assert "FireAI V30" in cert
+        assert "ETAP V30" in cert
 
     def test_verification_methodology(self):
         doc = ComplianceProofDocument()
@@ -1545,7 +1542,7 @@ class TestEdgeCases:
     def test_default_constructor_empty_document(self):
         doc = ComplianceProofDocument()
         md = doc.generate()
-        assert "FireAI V30 Project" in md
+        assert "ETAP V30 Project" in md
         assert "TBD" in md  # designer TBD, jurisdiction TBD
 
 

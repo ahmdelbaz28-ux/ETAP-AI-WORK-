@@ -40,7 +40,7 @@ if [ -z "$SONAR_TOKEN" ]; then  # NOSONAR
     echo "To generate a token:"
     echo "  1. Go to https://sonarcloud.io/account/security/"
     echo "  2. Click 'Generate Token'"
-    echo "  3. Name it 'fireai-local-scan'"
+    echo "  3. Name it 'etap-local-scan'"
     echo "  4. Select scope: 'Execute Analysis'"
     echo "  5. Copy the token"
     echo "  6. Run this script with the token:"

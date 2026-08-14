@@ -24,7 +24,7 @@ These tests verify:
   3. The runtime WARNING log fires at the correct threshold
   4. The audit notice text correctly cites NFPA sections and alternatives
   5. Pre-existing physics guards are preserved
-  6. Consistency with fireai/constants/nfpa72.py (single source of truth)
+  6. Consistency with etap/constants/nfpa72.py (single source of truth)
 """
 
 from __future__ import annotations
@@ -38,8 +38,6 @@ if str(_PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(_PROJECT_ROOT))
 
 import pytest
-from fireai.constants import SMOKE_MAX_SPACING_M
-from fireai.core.qomn_kernel import (
     NFPA72_SMOKE_MAX_SPACING_M,
     compute_smoke_detector_spacing,
 )
@@ -150,7 +148,7 @@ class TestV130AuditNotice:
 
     def test_runtime_warning_fires(self, caplog):
         """Runtime WARNING log must fire for h > 6.096m."""
-        with caplog.at_level(logging.WARNING, logger="fireai.core.qomn_kernel"):
+        with caplog.at_level(logging.WARNING, logger="etap.core.qomn_kernel"):
             compute_smoke_detector_spacing(10.0)
         assert any("V130" in rec.message for rec in caplog.records), (
             f"Expected V130 WARNING log, got: {[r.message for r in caplog.records]}"
@@ -203,7 +201,7 @@ class TestPhysicsGuards:
 
 
 class TestSSoTConsistency:
-    """Verify consistency with fireai/constants (single source of truth)."""
+    """Verify consistency with etap/constants (single source of truth)."""
 
     def test_max_spacing_matches_constants(self):
         """Kernel SMOKE_MAX_SPACING_M must match constants."""

@@ -1,6 +1,6 @@
 # File-level '# NOSONAR' removed per NOSONAR_AUDIT.md (V143 hardening).
 """
-backend_app.py - FireAI QOMN + Analyze API Application Entry Point
+backend_app.py - ETAP QOMN + Analyze API Application Entry Point
 ====================================================================
 FastAPI application exposing:
   - QOMN-FIRE engineering kernel endpoints (under /api/qomn/...)
@@ -14,7 +14,7 @@ DESIGN:
     backend.routers.analyze (created in Phase 10)
   - Mounts all routers under /api prefix
   - Adds a RoleDevMiddleware that grants ADMIN role when
-    FIREAI_ENV in {development, testing} so endpoints with
+    APP_ENV in {development, testing} so endpoints with
     require_permission(Permission.QOMN_EXECUTE) are callable
     in tests / dev. In production the middleware is a no-op and
     the real API-key middleware (deployed separately) sets the role.
@@ -72,15 +72,15 @@ class _RoleDevMiddleware(BaseHTTPMiddleware):
 
     In production this middleware is a no-op -- the real API-key
     middleware (deployed by the platform) is responsible for setting
-    request.state.fireai_role based on the validated API key.
+    request.state.role based on the validated API key.
     """
 
     async def dispatch(self, request: Request, call_next: Callable[[Request], Awaitable[Any]]):  # noqa: ANN401
-        env = os.getenv("FIREAI_ENV", "production").lower()
+        env = os.getenv("APP_ENV", "production").lower()
         if env in ("development", "testing"):
             # Only set if not already set by an upstream middleware.
-            if getattr(request.state, "fireai_role", None) is None:
-                request.state.fireai_role = Role.ADMIN
+            if getattr(request.state, "role", None) is None:
+                request.state.role = Role.ADMIN
         return await call_next(request)
 
 
@@ -88,7 +88,7 @@ class _RoleDevMiddleware(BaseHTTPMiddleware):
 # FastAPI app
 # ----------------------------------------------------------------------------
 app = FastAPI(
-    title="FireAI QOMN-FIRE API",
+    title="ETAP QOMN-FIRE API",
     description=(
         "QOMN-FIRE deterministic engineering kernel + project-level "
         "analyze endpoints. All calculations are NFPA 72-2022 / NEC 2023 "
@@ -111,7 +111,7 @@ app = FastAPI(
 #     ANY website to read API responses (data exfiltration vector).
 #   - The default below is restricted to localhost dev ports; production
 #     deployments MUST set CORS_ORIGINS explicitly.
-_env = os.getenv("FIREAI_ENV", "development").lower()
+_env = os.getenv("APP_ENV", "development").lower()
 if _env in ("production", "prod"):
     _cors_raw = os.getenv("CORS_ORIGINS", "")
     if not _cors_raw:
@@ -174,7 +174,7 @@ app.include_router(analyze_project_router, prefix="/api")
 @app.get("/", include_in_schema=False)
 async def root():
     return {
-        "name": "FireAI QOMN-FIRE API",
+        "name": "ETAP QOMN-FIRE API",
         "version": "1.0.0",
         "docs": "/docs",
         "health": "/api/health",
@@ -206,11 +206,11 @@ if __name__ == "__main__":
     # forward to this loopback address. Binding to 0.0.0.0 exposes the API
     # directly to the network, bypassing the proxy's rate limiting, TLS,
     # and request filtering.
-    _bind_host = os.getenv("FIREAI_BIND_HOST", "127.0.0.1")
+    _bind_host = os.getenv("BIND_HOST", "127.0.0.1")
     if _bind_host == "0.0.0.0":
         logger.warning(
             "Binding to 0.0.0.0 — API will be reachable from the network. "  # noqa: ISC001
             "Use a reverse proxy (nginx/traefik) in production. "
-            "Set FIREAI_BIND_HOST=127.0.0.1 to restore loopback-only binding."
+            "Set BIND_HOST=127.0.0.1 to restore loopback-only binding."
         )
     uvicorn.run(app, host=_bind_host, port=8000)

@@ -20,7 +20,7 @@
     
     
       
-        <title>FireAI Configuration Guide - AhmedETAP Documentation</title>
+        <title>ETAP Configuration Guide - AhmedETAP Documentation</title>
       
     
     
@@ -70,7 +70,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#fireai-configuration-guide" class="md-skip">
+        <a href="#etap-configuration-guide" class="md-skip">
           Skip to content
         </a>
       
@@ -104,7 +104,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              FireAI Configuration Guide
+              ETAP Configuration Guide
             
           </span>
         </div>
@@ -637,7 +637,7 @@
   
 
 
-<h1 id="fireai-configuration-guide">FireAI Configuration Guide</h1>
+<h1 id="etap-configuration-guide">ETAP Configuration Guide</h1>
 <h2 id="environment-variables">Environment Variables</h2>
 <p>All configuration is handled through environment variables. Copy <code>.env.example</code> to <code>.env</code> and customize.</p>
 <h3 id="required-variables">Required Variables</h3>
@@ -651,17 +651,17 @@
 </thead>
 <tbody>
 <tr>
-<td><code>FIREAI_API_KEY</code></td>
+<td><code>API_KEY</code></td>
 <td>API key for authentication. Required in production.</td>
 <td><code>sk-...your-key...</code></td>
 </tr>
 <tr>
-<td><code>FIREAI_EVIDENCE_HMAC_KEY</code></td>
+<td><code>EVIDENCE_HMAC_KEY</code></td>
 <td>HMAC-SHA256 key for audit log integrity. Must be cryptographically generated.</td>
 <td><code>openssl rand -hex 32</code></td>
 </tr>
 <tr>
-<td><code>FIREAI_ENV</code></td>
+<td><code>APP_ENV</code></td>
 <td>Environment mode. <code>production</code> or <code>development</code>.</td>
 <td><code>production</code></td>
 </tr>
@@ -678,9 +678,9 @@
 </thead>
 <tbody>
 <tr>
-<td><code>FIREAI_DB_PATH</code></td>
+<td><code>DB_PATH</code></td>
 <td>Override audit database path</td>
-<td><code>data/fireai_audit.db</code></td>
+<td><code>data/audit.db</code></td>
 </tr>
 <tr>
 <td><code>LOG_LEVEL</code></td>
@@ -693,12 +693,12 @@
 <td>—</td>
 </tr>
 <tr>
-<td><code>FIREAI_MEMORY_LLM_PROVIDER</code></td>
+<td><code>MEMORY_LLM_PROVIDER</code></td>
 <td>LLM provider for memory service</td>
 <td><code>gemini</code></td>
 </tr>
 <tr>
-<td><code>FIREAI_MEMORY_LLM_MODEL</code></td>
+<td><code>MEMORY_LLM_MODEL</code></td>
 <td>LLM model for memory service</td>
 <td><code>gemini-2.0-flash</code></td>
 </tr>
@@ -708,17 +708,17 @@
 <td>—</td>
 </tr>
 <tr>
-<td><code>FIREAI_PDF_MAX_FILE_SIZE_BYTES</code></td>
+<td><code>PDF_MAX_FILE_SIZE_BYTES</code></td>
 <td>Max PDF file size</td>
 <td><code>52428800</code></td>
 </tr>
 <tr>
-<td><code>FIREAI_DWG_MAX_FILE_SIZE_BYTES</code></td>
+<td><code>DWG_MAX_FILE_SIZE_BYTES</code></td>
 <td>Max DWG file size</td>
 <td><code>52428800</code></td>
 </tr>
 <tr>
-<td><code>FIREAI_IMAGE_MAX_FILE_SIZE_BYTES</code></td>
+<td><code>IMAGE_MAX_FILE_SIZE_BYTES</code></td>
 <td>Max image file size</td>
 <td><code>10485760</code></td>
 </tr>
@@ -734,12 +734,12 @@
 </ol>
 <h3 id="docker-configuration">Docker Configuration</h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># docker-compose.yml requires:</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nt">FIREAI_API_KEY</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${FIREAI_API_KEY:?ERROR</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">must be set}</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="nt">FIREAI_EVIDENCE_HMAC_KEY</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${FIREAI_EVIDENCE_HMAC_KEY:?ERROR</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">must be set}</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nt">API_KEY</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${API_KEY:?ERROR</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">must be set}</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="nt">EVIDENCE_HMAC_KEY</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${EVIDENCE_HMAC_KEY:?ERROR</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">must be set}</span>
 </code></pre></div>
-<p>The container runs as non-root <code>fireai</code> user with read-only filesystem and tmpfs for <code>/tmp</code>.</p>
+<p>The container runs as non-root <code>etap</code> user with read-only filesystem and tmpfs for <code>/tmp</code>.</p>
 <h2 id="development-configuration">Development Configuration</h2>
-<p>Set <code>FIREAI_ENV=development</code> to relax certain security checks:
+<p>Set <code>APP_ENV=development</code> to relax certain security checks:
 - CORS wildcards allowed (for local development only)
 - HMAC key defaults to dev key (WARNING: not for production)
 - Debug logging enabled</p>

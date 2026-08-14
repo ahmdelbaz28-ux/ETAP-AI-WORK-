@@ -3,7 +3,7 @@
 """
 tests/test_fire_zone_engine.py
 ================================
-Comprehensive test suite for fireai/core/fire_zone_engine.py
+Comprehensive test suite for etap/core/fire_zone_engine.py
 
 SAFETY CRITICAL: Fire zone clustering groups rooms into fire alarm zones
 per NFPA 72 §21.3.3. Incorrect zone assignments could lead to wrong
@@ -20,7 +20,6 @@ NFPA 72 References:
 from __future__ import annotations
 
 import pytest
-from fireai.core.fire_zone_engine import (
     FireZone,
     FireZoneEngine,
     ZoneConstraints,

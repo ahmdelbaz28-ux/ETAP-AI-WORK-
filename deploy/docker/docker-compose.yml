@@ -1,4 +1,4 @@
-name: fireai
+name: etap
 
 x-logging: &default-logging
   driver: "json-file"
@@ -19,7 +19,7 @@ x-security: &default-security
 services:
   redis:
     image: redis:7.4-alpine
-    container_name: fireai-redis
+    container_name: etap-redis
     command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:?REDIS_PASSWORD required}
     volumes:
       - redis-data:/data
@@ -41,7 +41,7 @@ services:
       retries: 3
     restart: unless-stopped
     networks:
-      - fireai-net
+      - etap-net
     deploy:
       resources:
         limits:
@@ -53,11 +53,11 @@ services:
 
   db:
     image: postgres:16-alpine
-    container_name: fireai-db
+    container_name: etap-db
     environment:
-      POSTGRES_USER: ${DB_USER:-fireai}
+      POSTGRES_USER: ${DB_USER:-etap}
       POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD required}
-      POSTGRES_DB: ${DB_NAME:-fireai}
+      POSTGRES_DB: ${DB_NAME:-etap}
     volumes:
       - postgres-data:/var/lib/postgresql/data
     logging: *default-logging
@@ -71,14 +71,14 @@ services:
       - SETGID
       - SETUID
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-fireai} -d ${DB_NAME:-fireai}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-etap} -d ${DB_NAME:-etap}"]
       interval: 15s
       timeout: 5s
       retries: 5
       start_period: 30s
     restart: unless-stopped
     networks:
-      - fireai-net
+      - etap-net
     deploy:
       resources:
         limits:
@@ -92,21 +92,21 @@ services:
     build:
       context: ../..
       dockerfile: deploy/docker/Dockerfile.api
-    image: fireai/api:${FIREAI_VERSION:-latest}
-    container_name: fireai-api
+    image: etap/api:${APP_VERSION:-latest}
+    container_name: etap-api
     environment:
-      FIREAI_ENV: production
-      FIREAI_API_KEY: ${FIREAI_API_KEY:?FIREAI_API_KEY required}
-      FIREAI_EVIDENCE_HMAC_KEY: ${FIREAI_EVIDENCE_HMAC_KEY:?HMAC_KEY required}
-      DATABASE_URL: postgresql+asyncpg://${DB_USER:-fireai}:${DB_PASSWORD:?DB_PASSWORD required}@db:5432/${DB_NAME:-fireai}
+      APP_ENV: production
+      API_KEY: ${API_KEY:?API_KEY required}
+      EVIDENCE_HMAC_KEY: ${EVIDENCE_HMAC_KEY:?HMAC_KEY required}
+      DATABASE_URL: postgresql+asyncpg://${DB_USER:-etap}:${DB_PASSWORD:?DB_PASSWORD required}@db:5432/${DB_NAME:-etap}
       REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379/0
       LOG_LEVEL: ${LOG_LEVEL:-WARNING}
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
-      FIREAI_MEMORY_LLM_PROVIDER: ${FIREAI_MEMORY_LLM_PROVIDER:-gemini}
-      FIREAI_MEMORY_LLM_MODEL: ${FIREAI_MEMORY_LLM_MODEL:-gemini-2.0-flash}
+      MEMORY_LLM_PROVIDER: ${MEMORY_LLM_PROVIDER:-gemini}
+      MEMORY_LLM_MODEL: ${MEMORY_LLM_MODEL:-gemini-2.0-flash}
     volumes:
-      - fireai-data:/app/data
-      - fireai-logs:/app/logs
+      - etap-data:/app/data
+      - etap-logs:/app/logs
     <<: *default-security
     logging: *default-logging
     healthcheck:
@@ -122,7 +122,7 @@ services:
       db:
         condition: service_healthy
     networks:
-      - fireai-net
+      - etap-net
     deploy:
       mode: replicated
       replicas: 2
@@ -146,18 +146,18 @@ services:
     build:
       context: ../..
       dockerfile: deploy/docker/Dockerfile.worker
-    image: fireai/worker:${FIREAI_VERSION:-latest}
-    container_name: fireai-worker
+    image: etap/worker:${APP_VERSION:-latest}
+    container_name: etap-worker
     environment:
-      FIREAI_ENV: production
-      FIREAI_API_KEY: ${FIREAI_API_KEY:?FIREAI_API_KEY required}
-      DATABASE_URL: postgresql+asyncpg://${DB_USER:-fireai}:${DB_PASSWORD:?DB_PASSWORD required}@db:5432/${DB_NAME:-fireai}
+      APP_ENV: production
+      API_KEY: ${API_KEY:?API_KEY required}
+      DATABASE_URL: postgresql+asyncpg://${DB_USER:-etap}:${DB_PASSWORD:?DB_PASSWORD required}@db:5432/${DB_NAME:-etap}
       REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379/0
       LOG_LEVEL: ${LOG_LEVEL:-WARNING}
       WORKER_MODE: ${WORKER_MODE:-default}
     volumes:
-      - fireai-data:/app/data
-      - fireai-logs:/app/logs
+      - etap-data:/app/data
+      - etap-logs:/app/logs
     <<: *default-security
     logging: *default-logging
     healthcheck:
@@ -173,7 +173,7 @@ services:
       db:
         condition: service_healthy
     networks:
-      - fireai-net
+      - etap-net
     deploy:
       mode: replicated
       replicas: 1
@@ -193,8 +193,8 @@ services:
     build:
       context: ../..
       dockerfile: deploy/docker/Dockerfile.nginx
-    image: fireai/nginx:${FIREAI_VERSION:-latest}
-    container_name: fireai-nginx
+    image: etap/nginx:${APP_VERSION:-latest}
+    container_name: etap-nginx
     ports:
       - "80:8080"
       - "443:8080"
@@ -211,7 +211,7 @@ services:
       api:
         condition: service_healthy
     networks:
-      - fireai-net
+      - etap-net
     deploy:
       resources:
         limits:
@@ -226,13 +226,13 @@ volumes:
     driver: local
   postgres-data:
     driver: local
-  fireai-data:
+  etap-data:
     driver: local
-  fireai-logs:
+  etap-logs:
     driver: local
 
 networks:
-  fireai-net:
+  etap-net:
     driver: bridge
     ipam:
       config:

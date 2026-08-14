@@ -1,16 +1,16 @@
-# FireAI Development Guidelines
+# ETAP Development Guidelines
 
 ## Overview
 
-This document provides comprehensive guidelines for developing on the FireAI platform. The development practices and standards have been established by **Eng. Ahmed Elbaz** to ensure code quality, safety, and maintainability.
+This document provides comprehensive guidelines for developing on the ETAP platform. The development practices and standards have been established by **Eng. Ahmed Elbaz** to ensure code quality, safety, and maintainability.
 
-Welcome to the FireAI development community! This document provides guidelines and best practices for contributing to the FireAI platform.
+Welcome to the ETAP development community! This document provides guidelines and best practices for contributing to the ETAP platform.
 
 ## 🛡️ Safety-First Development
 
 *Development principles by Eng. Ahmed Elbaz*
 
-FireAI is a safety-critical system where errors can have life-threatening consequences. All development must prioritize safety above all other considerations.
+ETAP is a safety-critical system where errors can have life-threatening consequences. All development must prioritize safety above all other considerations.
 
 ### Safety Principles
 1. **Defensive Programming**: Assume all inputs are potentially malicious
@@ -38,8 +38,8 @@ FireAI is a safety-critical system where errors can have life-threatening conseq
 ### Setup
 ```bash
 # Clone the repository
-git clone https://github.com/fireai/platform.git
-cd fireai-platform
+git clone https://github.com/etap/platform.git
+cd etap-platform
 
 # Create virtual environment
 python -m venv venv
@@ -63,7 +63,7 @@ pre-commit install
 *Architecture patterns by Eng. Ahmed Elbaz*
 
 ```
-fireai/
+etap/
 ├── core/                 # Core computational engine
 │   ├── engine/          # Main calculation engine
 │   ├── safety/          # Safety validation layers
@@ -93,7 +93,7 @@ fireai/
 pytest
 
 # Run with coverage
-pytest --cov=fireai --cov-report=html
+pytest --cov=etap --cov-report=html
 
 # Run specific test suite
 pytest tests/unit/
@@ -201,7 +201,7 @@ Every operation should pass through multiple validation layers:
 *Workflow defined by Eng. Ahmed Elbaz*
 
 ### Versioning
-FireAI uses semantic versioning with safety considerations:
+ETAP uses semantic versioning with safety considerations:
 - MAJOR: Breaking changes or major safety improvements
 - MINOR: New features or safety enhancements
 - PATCH: Bug fixes or minor safety improvements
@@ -303,4 +303,4 @@ FireAI uses semantic versioning with safety considerations:
 
 ---
 
-**Remember: In FireAI, code quality directly impacts human safety. Every line of code you write could be the difference between life and death. Code accordingly.**
+**Remember: In ETAP, code quality directly impacts human safety. Every line of code you write could be the difference between life and death. Code accordingly.**

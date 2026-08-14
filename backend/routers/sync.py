@@ -12,7 +12,7 @@ The sync mechanism tracks pending changes and their status.
 WebSocket broadcasts project updates to subscribed clients.
 
 SECURITY: WebSocket connections validate origin headers to prevent
-unauthorized access. In production with FIREAI_API_KEY set, the
+unauthorized access. In production with API_KEY set, the
 client must send a valid API key in the first message or as a
 query parameter.
 """
@@ -37,7 +37,7 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/projects/{project_id}/sync", tags=["sync"])
 
-# _FIREAI_API_KEY removed — now read at runtime for lazy loading
+# _API_KEY removed — now read at runtime for lazy loading
 # and validated against RBAC key store via backend.api_keys.validate_api_key
 
 # ── WebSocket connection manager ────────────────────────────────────────────
@@ -270,14 +270,14 @@ def _validate_ws_origin(websocket: WebSocket) -> bool:
     request is same-origin (from the SPA served by this app).
 
     V140 FIX (Rule 17 — Root-Cause Analysis): The old logic conflated
-    `FIREAI_API_KEY is set` with `production mode`. But the backend/tests/
-    conftest.py sets FIREAI_API_KEY even in dev mode (to test the auth path).
+    `API_KEY is set` with `production mode`. But the backend/tests/
+    conftest.py sets API_KEY even in dev mode (to test the auth path).
     This caused every WebSocket test to fail with "invalid origin" because
     the TestClient doesn't send an Origin header for ws:// connections and
     the old logic rejected missing-origin when API key was set.
 
     Root-cause fix: separate the two concerns.
-      - Production mode (FIREAI_ENV=production): missing Origin is rejected
+      - Production mode (APP_ENV=production): missing Origin is rejected
         (external clients must send Origin header).
       - Development mode (default): missing Origin is allowed for convenience
         (local tools like curl, TestClient don't send Origin).
@@ -287,7 +287,7 @@ def _validate_ws_origin(websocket: WebSocket) -> bool:
     origin = websocket.headers.get("origin", "")
     host = websocket.headers.get("host", "")
 
-    is_dev_mode = os.getenv("FIREAI_ENV", "development").lower() not in ("production", "prod")
+    is_dev_mode = os.getenv("APP_ENV", "development").lower() not in ("production", "prod")
 
     # Missing Origin header
     if not origin:
@@ -332,7 +332,7 @@ def _validate_ws_api_key(
     - Referrer headers
     - Proxy logs
     """
-    if not os.getenv("FIREAI_API_KEY"):  # noqa: SIM103
+    if not os.getenv("API_KEY"):  # noqa: SIM103
         return True  # No API key configured → auth disabled
 
     # Query parameter auth is DEPRECATED for security — query params
@@ -350,7 +350,7 @@ async def websocket_endpoint(
 
     SECURITY:
     - Origin validation: Rejects cross-origin connections when API key is set
-    - API key validation: Required when FIREAI_API_KEY is configured
+    - API key validation: Required when API_KEY is configured
       - MUST be provided as FIRST message after connect:
         {"action": "auth", "apiKey": "YOUR_KEY"}
       - Query parameter auth (ws?api_key=...) is REJECTED — query params
@@ -405,7 +405,7 @@ async def websocket_endpoint(
     #      Python websockets, TestClient).
     #   2. {"action": "auth", "apiKey": "..."} as first message (kept for
     #      browser clients which cannot set custom headers on WebSocket).
-    needs_auth = bool(os.getenv("FIREAI_API_KEY"))
+    needs_auth = bool(os.getenv("API_KEY"))
 
     # SECURITY FIX: Do NOT add to connection manager until authenticated.
     # Previously, manager.connect() was called BEFORE auth check, giving
@@ -419,7 +419,7 @@ async def websocket_endpoint(
         header_api_key = websocket.headers.get("x-api-key", "") or websocket.headers.get(
             "X-API-Key", ""
         )
-        env_key = os.getenv("FIREAI_API_KEY")
+        env_key = os.getenv("API_KEY")
         if header_api_key:
             # Validate header key against RBAC store and env var
             rbac_info = validate_api_key(header_api_key)

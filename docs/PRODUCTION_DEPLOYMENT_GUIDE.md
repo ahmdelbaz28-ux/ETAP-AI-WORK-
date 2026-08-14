@@ -1,8 +1,8 @@
-# PRODUCTION DEPLOYMENT GUIDE - FIREAI DIGITAL TWIN
+# PRODUCTION DEPLOYMENT GUIDE - ETAP DIGITAL TWIN
 
 ## OVERVIEW
 
-This guide provides step-by-step instructions for deploying the FireAI Digital Twin platform in a production environment. The system is designed for high availability, security, and performance in mission-critical fire safety engineering applications.
+This guide provides step-by-step instructions for deploying the ETAP Digital Twin platform in a production environment. The system is designed for high availability, security, and performance in mission-critical fire safety engineering applications.
 
 ## PREREQUISITES
 
@@ -66,8 +66,8 @@ sudo apt install -y python3-dev python3-pip postgresql-client redis-tools
 
 3. Set up virtual environment:
 ```bash
-python3 -m venv fireai_env
-source fireai_env/bin/activate
+python3 -m venv app_env
+source app_env/bin/activate
 pip install --upgrade pip setuptools wheel
 ```
 
@@ -75,19 +75,19 @@ pip install --upgrade pip setuptools wheel
 
 1. Create production configuration directory:
 ```bash
-mkdir -p /opt/fireai/config
+mkdir -p /opt/etap/config
 ```
 
 2. Copy configuration templates:
 ```bash
-cp config/templates/production.env /opt/fireai/config/.env
-cp config/templates/nginx.conf /opt/fireai/config/nginx.conf
-cp config/templates/prometheus.yml /opt/fireai/config/prometheus.yml
+cp config/templates/production.env /opt/etap/config/.env
+cp config/templates/nginx.conf /opt/etap/config/nginx.conf
+cp config/templates/prometheus.yml /opt/etap/config/prometheus.yml
 ```
 
 3. Configure environment variables:
 ```bash
-# Edit /opt/fireai/config/.env with appropriate values
+# Edit /opt/etap/config/.env with appropriate values
 # Database connection strings
 # API keys and secrets
 # Feature flags
@@ -98,26 +98,26 @@ cp config/templates/prometheus.yml /opt/fireai/config/prometheus.yml
 
 1. Initialize database schema:
 ```bash
-cd /opt/fireai/
-source fireai_env/bin/activate
-python -m fireai.db.migrate --production
+cd /opt/etap/
+source app_env/bin/activate
+python -m etap.db.migrate --production
 ```
 
 2. Create initial admin user:
 ```bash
-python -c "from fireai.admin import create_admin_user; create_admin_user()"
+python -c "from etap.admin import create_admin_user; create_admin_user()"
 ```
 
 ### Step 4: Service Installation
 
-1. Install the FireAI Digital Twin:
+1. Install the ETAP Digital Twin:
 ```bash
 pip install -e .
 ```
 
 2. Install systemd services:
 ```bash
-sudo cp deploy/systemd/fireai.service /etc/systemd/system/
+sudo cp deploy/systemd/etap.service /etc/systemd/system/
 sudo systemctl daemon-reload
 ```
 
@@ -139,13 +139,13 @@ sudo crontab -e
 
 1. Deploy application services:
 ```bash
-sudo systemctl enable fireai
-sudo systemctl start fireai
+sudo systemctl enable etap
+sudo systemctl start etap
 ```
 
 2. Verify service status:
 ```bash
-sudo systemctl status fireai
+sudo systemctl status etap
 ```
 
 ### Step 7: Monitoring Configuration
@@ -159,7 +159,7 @@ docker-compose -f deploy/monitoring/docker-compose.yml up -d  # If using Docker
 
 2. Configure alerting rules:
 ```bash
-cp deploy/monitoring/alerts.yml /opt/fireai/config/
+cp deploy/monitoring/alerts.yml /opt/etap/config/
 ```
 
 ## SECURITY CONFIGURATION
@@ -188,24 +188,24 @@ cp deploy/monitoring/alerts.yml /opt/fireai/config/
 # Daily backup script
 #!/bin/bash
 DATE=$(date +%Y%m%d_%H%M%S)
-BACKUP_DIR="/opt/fireai/backups/$DATE"
+BACKUP_DIR="/opt/etap/backups/$DATE"
 
 mkdir -p $BACKUP_DIR
 
 # Database backup
-pg_dump --clean --no-owner --no-privileges fireai_db > $BACKUP_DIR/db_backup.sql
+pg_dump --clean --no-owner --no-privileges db > $BACKUP_DIR/db_backup.sql
 
 # Configuration backup
-tar -czf $BACKUP_DIR/config.tar.gz /opt/fireai/config/
+tar -czf $BACKUP_DIR/config.tar.gz /opt/etap/config/
 
 # Logs backup (last 7 days)
-find /var/log/fireai/ -name "*.log" -mtime -7 -exec tar -rf $BACKUP_DIR/logs.tar {} \;
+find /var/log/etap/ -name "*.log" -mtime -7 -exec tar -rf $BACKUP_DIR/logs.tar {} \;
 
 # Encrypt backup
 gpg --symmetric --cipher-algo AES256 $BACKUP_DIR/*.tar $BACKUP_DIR/*.sql
 
 # Cleanup old backups (older than 30 days)
-find /opt/fireai/backups/ -type d -mtime +30 -exec rm -rf {} +
+find /opt/etap/backups/ -type d -mtime +30 -exec rm -rf {} +
 ```
 
 ### Recovery Procedures
@@ -222,13 +222,13 @@ gpg --decrypt $BACKUP_FILE > decrypted_backup.tar
 tar -xzf decrypted_backup.tar -C /tmp/restore/
 
 # Restore database
-psql fireai_db < /tmp/restore/db_backup.sql
+psql db < /tmp/restore/db_backup.sql
 
 # Restore configuration
-tar -xzf /tmp/restore/config.tar.gz -C /opt/fireai/config/
+tar -xzf /tmp/restore/config.tar.gz -C /opt/etap/config/
 
 # Restore logs
-tar -xzf /tmp/restore/logs.tar -C /var/log/fireai/
+tar -xzf /tmp/restore/logs.tar -C /var/log/etap/
 
 # Clean up
 rm -rf /tmp/restore/
@@ -266,13 +266,13 @@ rm -rf /tmp/restore/
 #!/bin/bash
 
 # Log rotation
-logrotate -f /etc/logrotate.d/fireai
+logrotate -f /etc/logrotate.d/etap
 
 # Database maintenance
-psql fireai_db -c "VACUUM ANALYZE; REINDEX DATABASE fireai_db;"
+psql db -c "VACUUM ANALYZE; REINDEX DATABASE db;"
 
 # Clean temporary files
-find /tmp/ -name "fireai_*" -mtime +1 -delete
+find /tmp/ -name "etap_*" -mtime +1 -delete
 
 # Update security patches
 apt update && apt upgrade -y
@@ -281,11 +281,11 @@ apt update && apt upgrade -y
 ### Update Procedures
 ```bash
 # Staged update procedure
-systemctl stop fireai
+systemctl stop etap
 git pull origin main
 pip install -e .
-python -m fireai.db.migrate --upgrade
-systemctl start fireai
+python -m etap.db.migrate --upgrade
+systemctl start etap
 ```
 
 ## TROUBLESHOOTING
@@ -315,9 +315,9 @@ systemctl start fireai
 ### Diagnostic Commands
 ```bash
 # System diagnostics
-journalctl -u fireai -f  # View service logs
+journalctl -u etap -f  # View service logs
 curl http://localhost:8000/health/ready  # Check readiness
-ps aux | grep fireai  # Check running processes
+ps aux | grep etap  # Check running processes
 df -h  # Check disk space
 free -h  # Check memory usage
 ```
@@ -365,10 +365,10 @@ free -h  # Check memory usage
 
 ## SUPPORT CONTACTS
 
-- **Technical Operations**: ops@fireai-digital-twin.com
-- **Engineering Support**: eng-support@fireai-digital-twin.com
-- **Emergency Response**: emergency@fireai-digital-twin.com
-- **Documentation**: docs.fireai-digital-twin.com
+- **Technical Operations**: ops@etap-digital-twin.com
+- **Engineering Support**: eng-support@etap-digital-twin.com
+- **Emergency Response**: emergency@etap-digital-twin.com
+- **Documentation**: docs.etap-digital-twin.com
 
 ## APPENDICES
 

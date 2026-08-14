@@ -14,8 +14,6 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
 
-from fireai.bridges.bim_provider import AutodeskForgeProvider
-
 
 class TestV214AutodeskForgeProviderRealImplementation:
     """V214: AutodeskForgeProvider must have real APS API implementation,
@@ -199,8 +197,8 @@ class TestV214AutodeskForgeProviderRealImplementation:
                 result = provider.write_devices(
                     devices=[{"id": "d1", "name": "Smoke Detector"}],
                     target="oss://bucket/output.rvt",
-                    app_bundle="FireAI_Revit_Plugin",
-                    activity_id="FireAI_CreateDevices",
+                    app_bundle="ETAP_Revit_Plugin",
+                    activity_id="ETAP_CreateDevices",
                     input_rvt_urn="oss://bucket/input.rvt",
                 )
 
@@ -249,7 +247,7 @@ class TestV214AutodeskForgeProviderRealImplementation:
         """
         import re
 
-        src_path = "fireai/bridges/bim_provider.py"
+        src_path = "etap/bridges/bim_provider.py"
         with open(src_path, encoding="utf-8") as f:
             content = f.read()
 

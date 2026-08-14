@@ -1,7 +1,7 @@
 # File-level suppression removed per audit (V143 hardening).
 # Per-line justified suppressions (e.g., '# noqa: S3776 ...') are preserved.
 """
-image_parser.py — FireAI Image Floor Plan Parser
+image_parser.py — ETAP Image Floor Plan Parser
 Parses floor plans from images (JPG, PNG, etc.) using Computer Vision.
 
 Features:
@@ -40,7 +40,7 @@ from typing import List, Optional, Tuple
 cv2 = None  # type: ignore[assignment]
 np = None  # type: ignore[assignment]
 
-logger = logging.getLogger("fireai.image_parser")
+logger = logging.getLogger("etap.image_parser")
 
 
 def _lazy_import_cv2():
@@ -194,7 +194,7 @@ class ImageParser:
 
         Args:
             image_path: Path to image file. MUST be under
-                FIREAI_ALLOWED_UPLOAD_DIRS and have a supported extension
+                ALLOWED_UPLOAD_DIRS and have a supported extension
                 (V124 security hardening).
 
         Returns:
@@ -210,7 +210,7 @@ class ImageParser:
 
         _ALLOWED_EXTENSIONS = frozenset({".png", ".jpg", ".jpeg", ".bmp", ".tiff", ".tif", ".webp"})
         _MAX_FILE_SIZE_BYTES = int(
-            os.getenv("FIREAI_IMAGE_MAX_FILE_SIZE_BYTES", 50 * 1024 * 1024)
+            os.getenv("IMAGE_MAX_FILE_SIZE_BYTES", 50 * 1024 * 1024)
         )  # 50 MB default
         try:
             safe_path = validate_input_path(
@@ -304,7 +304,6 @@ class ImageParser:
         Returns list of ImageRoom if successful, empty list if unavailable.
         """
         try:
-            from fireai.integration.document_intelligence import is_yolo_available, segment_image
 
             if not is_yolo_available():
                 return []

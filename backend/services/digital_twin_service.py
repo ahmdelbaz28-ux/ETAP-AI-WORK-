@@ -825,7 +825,7 @@ class DigitalTwinEngine:
                 "root.create_entity",
                 model,
                 ifc_class="IfcProject",
-                name="FireAI DWG→IFC Conversion",
+                name="ETAP DWG→IFC Conversion",
             )
             site = ifcopenshell.api.run(
                 "root.create_entity", model, ifc_class="IfcSite", name="Site"
@@ -861,7 +861,7 @@ class DigitalTwinEngine:
                         relating_structure=storey,
                     )
                     pset = ifcopenshell.api.run(
-                        "pset.add_pset", model, product=proxy, name="Pset_FireAI_Source"
+                        "pset.add_pset", model, product=proxy, name="Pset_ETAP_Source"
                     )
                     props = {
                         "EntityType": ent.get("entity_type", ""),
@@ -1184,7 +1184,7 @@ class VersionManager:
         cwd = Path.cwd().resolve()
         allowed_roots = [
             cwd,
-            Path(os.environ.get("FIREAI_UPLOAD_DIR", str(cwd / "uploads"))),
+            Path(os.environ.get("UPLOAD_DIR", str(cwd / "uploads"))),
             Path("/tmp"),  # NOSONAR
             Path("/var/tmp"),  # NOSONAR
             Path(tempfile.gettempdir()).resolve(),

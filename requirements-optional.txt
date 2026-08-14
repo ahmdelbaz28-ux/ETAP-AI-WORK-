@@ -4,7 +4,7 @@
 
 # V140 FIX: aiohttp + nats-py are MANDATORY if importing facp_distributed.transport
 # The transport layer does `import aiohttp` at module top-level. Without it,
-# `import fireai.bridges.enterprise_pipeline` (which transitively touches
+# `import etap.bridges.enterprise_pipeline` (which transitively touches
 # facp_distributed) crashes the entire process.
 aiohttp>=3.8.0,<4.0.0
 nats-py>=2.0.0,<3.0.0
@@ -14,7 +14,7 @@ redis>=4.0.0
 celery>=5.1.0
 asyncio-mqtt>=0.16.2
 
-# Observability (fireai.infrastructure.metrics imports prometheus_client)
+# Observability (etap.infrastructure.metrics imports prometheus_client)
 prometheus_client>=0.16.0,<1.0.0
 
 # Load testing (dev)

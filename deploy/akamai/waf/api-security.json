@@ -1,6 +1,6 @@
 {
-  "_comment": "Akamai API Security configuration — schema-based protection for BAZSPARK's 30+ API routers. Upload the OpenAPI spec (from /api/v1/openapi.json) and Akamai auto-discovers endpoints + enforces schema conformance. See docs/AKAMAI_DEPLOYMENT_GUIDE.md.",
-  "configName": "BAZSPARK-API-SECURITY",
+  "_comment": "Akamai API Security configuration — schema-based protection for ETAP's 30+ API routers. Upload the OpenAPI spec (from /api/v1/openapi.json) and Akamai auto-discovers endpoints + enforces schema conformance. See docs/AKAMAI_DEPLOYMENT_GUIDE.md.",
+  "configName": "ETAP-API-SECURITY",
   "openApiSpecSource": "/api/v1/openapi.json",
   "discoveryMode": "AUTO_DISCOVER_AND_ENFORCE",
   "endpoints": [

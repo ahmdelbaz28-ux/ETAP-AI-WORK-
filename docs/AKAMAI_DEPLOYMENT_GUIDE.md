@@ -1,6 +1,6 @@
-# Akamai Deployment Guide — BAZSPARK
+# Akamai Deployment Guide — ETAP
 
-> **دليل النشر الكامل لحماية BAZSPARK بـ Akamai**
+> **دليل النشر الكامل لحماية ETAP بـ Akamai**
 > Prerequisites: Akamai account + contract + API credentials.
 
 ---
@@ -53,12 +53,12 @@
 
 ### 1.3 Domain + DNS
 
-1. امتلك `bazspark.com` (أو domain آخر)
+1. امتلك `etap.com` (أو domain آخر)
 2. صلاحية تعديل DNS records (Cloudflare DNS, Route53, GoDaddy, إلخ)
 
 ### 1.4 Origin جاهز
 
-- ✅ HF Space: <https://ahmdelbaz28-bazspark.hf.space> (يعمل)
+- ✅ HF Space: <https://ahmdelbaz28-etap.hf.space> (يعمل)
 - ✅ Vercel project: <https://revit-xxxx.vercel.app> (يعمل)
 - ✅ Backend health: `/api/health` يعود `status: ok, database: connected`
 
@@ -82,8 +82,8 @@ export AKAMAI_CLIENT_SECRET="xxxx..."
 export AKAMAI_ACCESS_TOKEN="akab-xxxx..."
 
 # Akamai Property config
-export AKAMAI_EDGE_HOSTNAME="bazspark"           # → bazspark.edgeservices.net
-export AKAMAI_ORIGIN_HOSTNAME="ahmdelbaz28-bazspark.hf.space"  # HF Space
+export AKAMAI_EDGE_HOSTNAME="etap"           # → etap.edgeservices.net
+export AKAMAI_ORIGIN_HOSTNAME="ahmdelbaz28-etap.hf.space"  # HF Space
 # OR: export AKAMAI_ORIGIN_HOSTNAME="revit-xxxx.vercel.app"     # Vercel
 
 # Origin verification token (generate a strong random secret)
@@ -108,7 +108,7 @@ python deploy/akamai/activate.py \
 ```
 
 السكريبت سيقوم بـ:
-1. ✅ إنشاء Property جديد باسم `BAZSPARK`
+1. ✅ إنشاء Property جديد باسم `ETAP`
 2. ✅ استيراد القواعد من `deploy/akamai/property-main.json`
 3. ✅ إضافة hostnames من `deploy/akamai/hostnames.json`
 4. ✅ تفعيل على شبكة **staging**
@@ -126,7 +126,7 @@ https://{edge_hostname}.edgeservices.net/api/health
 ```bash
 curl -H "Pragma: akamai-x-get-extracted-values" \
      -H "X-Akamai-Debug: true" \
-     https://bazspark.edgeservices.net.staging.akamaihd.net/api/health
+     https://etap.edgeservices.net.staging.akamaihd.net/api/health
 ```
 
 تحقق من:
@@ -174,10 +174,10 @@ zip -r inject-headers.zip . -x "*.DS_Store"
 
 ```
 Type    Name                   Value                                  TTL
-CNAME   api.bazspark.com       bazspark.edgeservices.net              3600
-CNAME   www.bazspark.com       bazspark.edgeservices.net              3600
-A       bazspark.com           23.x.x.x (from Akamai API)             3600
-TXT     _dnsauth.bazspark.com  (Akamai-provided validation token)     300
+CNAME   api.etap.com       etap.edgeservices.net              3600
+CNAME   www.etap.com       etap.edgeservices.net              3600
+A       etap.com           23.x.x.x (from Akamai API)             3600
+TXT     _dnsauth.etap.com  (Akamai-provided validation token)     300
 ```
 
 انتظر 5-30 دقيقة لـ DNS propagation.
@@ -192,19 +192,19 @@ curl -X POST \
   -H "Authorization: Bearer $HF_TOKEN" \
   -H "Content-Type: application/json" \
   -d "{\"key\":\"AKAMAI_ENABLED\",\"value\":\"true\"}" \
-  https://huggingface.co/api/spaces/ahmdelbaz28/BAZSPARK/secrets
+  https://huggingface.co/api/spaces/ahmdelbaz28/ETAP/secrets
 
 curl -X POST \
   -H "Authorization: Bearer $HF_TOKEN" \
   -H "Content-Type: application/json" \
   -d "{\"key\":\"AKAMAI_REQUIRE_ORIGIN_TOKEN\",\"value\":\"$AKAMAI_REQUIRE_ORIGIN_TOKEN\"}" \
-  https://huggingface.co/api/spaces/ahmdelbaz28/BAZSPARK/secrets
+  https://huggingface.co/api/spaces/ahmdelbaz28/ETAP/secrets
 
 curl -X POST \
   -H "Authorization: Bearer $HF_TOKEN" \
   -H "Content-Type: application/json" \
   -d "{\"key\":\"AKAMAI_BLOCKED_COUNTRIES\",\"value\":\"IR,KP,SY,CU,VE,BY,RU\"}" \
-  https://huggingface.co/api/spaces/ahmdelbaz28/BAZSPARK/secrets
+  https://huggingface.co/api/spaces/ahmdelbaz28/ETAP/secrets
 
 # Vercel (same vars, via Vercel API)
 # Use scripts/restore_standard_db_config.py pattern with these new vars
@@ -276,7 +276,7 @@ python deploy/akamai/activate.py \
 ### المشكلة: 403 Forbidden (بدون `X-Akamai-Translated-Request`)
 
 **السبب**: الطلب لم يصل عبر Akamai (direct origin access)
-- تحقق من DNS: هل `bazspark.com` يشير إلى Akamai؟
+- تحقق من DNS: هل `etap.com` يشير إلى Akamai؟
 - تحقق من `AKAMAI_REQUIRE_ORIGIN_TOKEN`: هل هو متطابق بين Akamai والـ backend؟
 
 ### المشكلة: `X-Forwarded-For` يظهر IP خاطئ في الـ logs
@@ -292,7 +292,7 @@ python deploy/akamai/activate.py \
 - **Akamai Documentation**: <https://techdocs.akamai.com/>
 - **Akamai Community**: <https://community.akamai.com/>
 
-للأسئلة الداخلية عن تكامل BAZSPARK، راجع:
+للأسئلة الداخلية عن تكامل ETAP، راجع:
 - `backend/akamai_middleware.py` (تكامل التطبيق)
 - `docs/AKAMAI_PROTECTION_PLAN.md` (الخطة الكاملة)
 - `docs/AKAMAI_TESTING_CHECKLIST.md` (قائمة الاختبار)

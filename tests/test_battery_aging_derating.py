@@ -4,7 +4,7 @@
 tests/test_battery_aging_derating.py
 =====================================
 Comprehensive test suite for:
-  - fireai/core/battery_aging_derating.py
+  - etap/core/battery_aging_derating.py
 
 SAFETY CRITICAL: Battery capacity calculations ensure fire alarm systems
 remain operational during AC power failure. A battery that passes on paper
@@ -23,7 +23,6 @@ IEEE References:
 from __future__ import annotations
 
 import pytest
-from fireai.core.battery_aging_derating import (
     AGING_DERATING_EOL,
     END_OF_DISCHARGE_VOLTAGE_PER_CELL,
     NFPA72_MINIMUM_SAFETY_FACTOR,

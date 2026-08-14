@@ -19,7 +19,7 @@ from typing import List, Optional, Tuple
 # Local imports
 from parsers.parser_confidence import ConfidenceResult, GateDecision, ParserConfidence
 
-logger = logging.getLogger("fireai.input_layer")
+logger = logging.getLogger("etap.input_layer")
 
 
 # ═══════════════════════════════════════════════════════
@@ -260,7 +260,7 @@ class PDFInputLayer:
 
         _ALLOWED_EXTENSIONS = frozenset({".pdf"})
         _MAX_FILE_SIZE_BYTES = int(
-            os.getenv("FIREAI_PDF_MAX_FILE_SIZE_BYTES", 200 * 1024 * 1024)
+            os.getenv("PDF_MAX_FILE_SIZE_BYTES", 200 * 1024 * 1024)
         )  # 200 MB default
         try:
             safe_path = validate_input_path(

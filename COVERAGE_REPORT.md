@@ -2,7 +2,7 @@
 
 ## Date: 2026-06-12
 ## Tool: pytest-cov 5.0.0 + coverage.py
-## Source: fireai, backend, parsers, core, qomn_fire, qomn_conduit
+## Source: etap, backend, parsers, core, qomn_fire, qomn_conduit
 
 ---
 
@@ -10,7 +10,7 @@
 
 | Package | Coverage | Status |
 |---------|----------|--------|
-| fireai/ (full) | 43% | ⚠️ Below threshold |
+| etap/ (full) | 43% | ⚠️ Below threshold |
 | backend/ | 7% | ❌ Low (API tested via E2E, not unit-tested) |
 | parsers/ | 19% | ❌ Low |
 | core/ | 24% | ❌ Low |
@@ -84,7 +84,7 @@
 | floor_orchestrator | 160 | 9 | **94%** | ✅ PASS |
 | safe_building_engine | 52 | 6 | **90%** | ✅ PASS |
 | release_gates | 132 | 1 | **99%** | ✅ PASS |
-| fireai_core | 294 | 127 | **52%** | ❌ FAIL |
+| core | 294 | 127 | **52%** | ❌ FAIL |
 | pipeline | 602 | 167 | **71%** | ❌ FAIL |
 | monte_carlo_pipeline | 96 | 69 | **23%** | ❌ FAIL |
 | multi_floor_orchestrator | 591 | 416 | **22%** | ❌ FAIL |

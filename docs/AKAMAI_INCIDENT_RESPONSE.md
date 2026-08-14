@@ -1,4 +1,4 @@
-# Akamai Incident Response — BAZSPARK
+# Akamai Incident Response — ETAP
 
 > **خطة الاستجابة للحوادث الأمنية على Akamai**
 > Follow this runbook when an Akamai-related security incident is detected.
@@ -123,7 +123,7 @@
 3. **Identify compromised data**:
    ```bash
    # Check if data was exfiltrated
-   grep "API_KEY_VALID" /var/log/fireai/audit.log | grep "<attacker_ip>"
+   grep "API_KEY_VALID" /var/log/etap/audit.log | grep "<attacker_ip>"
    ```
 4. **Rotate all API keys**:
    ```bash
@@ -151,7 +151,7 @@
 
 ### 5.1 Indicators
 - Backend logs show: `Direct origin access blocked`
-- Multiple requests to HF Space direct URL (`ahmdelbaz28-bazspark.hf.space`)
+- Multiple requests to HF Space direct URL (`ahmdelbaz28-etap.hf.space`)
 - The `Akamai-Internal` header is missing
 
 ### 5.2 Immediate Actions
@@ -199,7 +199,7 @@
    ```bash
    curl -H "Pragma: akamai-x-get-extracted-values" \
         -H "X-Akamai-Debug: true" \
-        https://bazspark.edgeservices.net.staging.akamaihd.net/<path> \
+        https://etap.edgeservices.net.staging.akamaihd.net/<path> \
         -d '<body>'
    ```
 5. **Deploy to production**

@@ -92,7 +92,7 @@
 	{
 		"test": "state_visible_to_dep",
 		"status": "PASS",
-		"details": "require_permission() sees fireai_role set by middleware"
+		"details": "require_permission() sees role set by middleware"
 	},
 	{
 		"test": "dwg_no_auth_rejected",

@@ -1,6 +1,6 @@
-# Cloudflare Protection Setup — BAZSPARK
+# Cloudflare Protection Setup — ETAP
 
-> **حماية BAZSPARK باستخدام Cloudflare** (بديل Akamai الأرخص بكثير)
+> **حماية ETAP باستخدام Cloudflare** (بديل Akamai الأرخص بكثير)
 > Cost: Free tier ($0/month) provides 80% of Akamai's protections.
 
 ---
@@ -79,7 +79,7 @@
 
 ## 3. المتغيرات البيئية (Environment Variables)
 
-### HuggingFace Space (`ahmdelbaz28/BAZSPARK`)
+### HuggingFace Space (`ahmdelbaz28/ETAP`)
 | Secret | Value | الغرض |
 |--------|-------|------|
 | `CF_ENABLED` | `false` (افتراضي) | تفعيل/تعطيل الـ middleware |
@@ -144,11 +144,11 @@ echo "Your CF_REQUIRE_ORIGIN_TOKEN: $ORIGIN_TOKEN"
 # HF Space
 curl -X POST -H "Authorization: Bearer $HF_TOKEN" -H "Content-Type: application/json" \
   -d "{\"key\":\"CF_ENABLED\",\"value\":\"true\"}" \
-  https://huggingface.co/api/spaces/ahmdelbaz28/BAZSPARK/secrets
+  https://huggingface.co/api/spaces/ahmdelbaz28/ETAP/secrets
 
 curl -X POST -H "Authorization: Bearer $HF_TOKEN" -H "Content-Type: application/json" \
   -d "{\"key\":\"CF_REQUIRE_ORIGIN_TOKEN\",\"value\":\"$ORIGIN_TOKEN\"}" \
-  https://huggingface.co/api/spaces/ahmdelbaz28/BAZSPARK/secrets
+  https://huggingface.co/api/spaces/ahmdelbaz28/ETAP/secrets
 
 # Vercel — same vars, use Vercel dashboard or API
 ```
@@ -159,7 +159,7 @@ Cloudflare Workers can inject the `X-CF-Origin-Token` header on every request
 before it reaches the origin. This is optional but recommended for full bypass prevention.
 
 1. اذهب إلى: **Workers & Pages → Create**
-2. أنشئ Worker جديد باسم `bazspark-origin-verify`
+2. أنشئ Worker جديد باسم `etap-origin-verify`
 3. الصق الكود:
    ```javascript
    export default {

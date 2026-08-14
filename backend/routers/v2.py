@@ -1,13 +1,13 @@
 # File-level '# NOSONAR' removed per NOSONAR_AUDIT.md (V143 hardening).
 # Per-line justified suppressions (e.g., '# NOSONAR — S3776: ...') are preserved.
 """
-v2.py — API v2 Routers for FireAI Cloud-Native Endpoints.
+v2.py — API v2 Routers for ETAP Cloud-Native Endpoints.
 ============================================================
 
 MISSION TASK 3.1 — API Versioning with /api/v2/ structure
 ==========================================================
 
-This module exposes the new FireAI capabilities (Generative Design,
+This module exposes the new ETAP capabilities (Generative Design,
 BIM Provider abstraction, IFC 4.3 mapping, AR export, Webhooks,
 Smoke Simulation state) under a versioned ``/api/v2/`` prefix.
 
@@ -177,8 +177,6 @@ async def generate_design_variants(req: GenerativeDesignRequest) -> dict[str, An
     Returns scored variants with recommendation based on occupancy.
     """
     try:
-        from fireai.core.spatial_engine.density_optimizer import Room
-        from fireai.core.spatial_engine.generative_layout_agent import (
             GenerativeLayoutAgent,
         )
 
@@ -217,12 +215,11 @@ async def generate_design_variants(req: GenerativeDesignRequest) -> dict[str, An
 @router.get("/bim/providers")
 async def list_bim_providers() -> dict[str, Any]:
     """List all registered BIM providers."""
-    from fireai.bridges.bim_provider import BIMProviderRegistry
 
     providers = BIMProviderRegistry.list_available()
     return {
         "providers": providers,
-        "active": __import__("os").environ.get("FIREAI_BIM_PROVIDER"),
+        "active": __import__("os").environ.get("BIM_PROVIDER"),
         "count": len(providers),
     }
 
@@ -242,7 +239,6 @@ async def extract_rooms(
     The OLD code passed ``req.source`` directly to ``provider.extract_rooms()``
     which calls ``ifcopenshell.open(source)`` — allowing arbitrary file reads.
     """
-    from fireai.bridges.bim_provider import get_provider
 
     # V137 F-5 / V138 F-7: Validate source path if provided
     # CodeQL: py/path-injection — source is validated below with Path.resolve()
@@ -265,7 +261,7 @@ async def extract_rooms(
                 cwd,
                 Path("/tmp"),  # NOSONAR
                 Path("/var/tmp"),  # NOSONAR
-                Path(os.environ.get("FIREAI_UPLOAD_DIR", str(cwd / "uploads"))),
+                Path(os.environ.get("UPLOAD_DIR", str(cwd / "uploads"))),
             ]
 
             # V138 F-7: Check if source_path is within any allowed root
@@ -307,8 +303,8 @@ async def extract_rooms(
     if provider is None:
         raise HTTPException(  # NOSONAR — S8415: assignment kept for readability / debuggability
             status_code=503,  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
-            detail=f"No BIM provider available. Set FIREAI_BIM_PROVIDER env var. "
-            f"Registered: {__import__('fireai.bridges.bim_provider', fromlist=['BIMProviderRegistry']).BIMProviderRegistry.list_available()}",
+            detail=f"No BIM provider available. Set BIM_PROVIDER env var. "
+            f"Registered: {__import__('etap.bridges.bim_provider', fromlist=['BIMProviderRegistry']).BIMProviderRegistry.list_available()}",
         )
 
     rooms = provider.extract_rooms(source=req.source)
@@ -331,14 +327,13 @@ async def extract_rooms(
 @router.get("/bim/health")
 async def bim_health() -> dict[str, Any]:
     """Health check for active BIM provider."""
-    from fireai.bridges.bim_provider import get_provider
 
     provider = get_provider()
     if provider is None:
         return {
             "healthy": False,
             "details": "No BIM provider configured",
-            "error": "Set FIREAI_BIM_PROVIDER env var",
+            "error": "Set BIM_PROVIDER env var",
         }
     return provider.health_check()
 
@@ -352,8 +347,7 @@ async def bim_health() -> dict[str, Any]:
     "/ifc43/map-detector", dependencies=[Depends(require_permission(Permission.EXPORT_EXECUTE))]
 )
 async def map_detector_to_ifc43(req: IFC43MapDetectorRequest) -> dict[str, Any]:
-    """Map a FireAI detector to IFC 4.3 ADD2 representation."""
-    from fireai.bridges.ifc43_mapper import IFC43Mapper
+    """Map a ETAP detector to IFC 4.3 ADD2 representation."""
 
     mapper = IFC43Mapper()
     mapped = mapper.map_detector(req.model_dump())
@@ -373,8 +367,7 @@ async def map_detector_to_ifc43(req: IFC43MapDetectorRequest) -> dict[str, Any]:
     "/ifc43/map-project", dependencies=[Depends(require_permission(Permission.EXPORT_EXECUTE))]
 )
 async def map_project_to_ifc43(req: dict[str, Any]) -> dict[str, Any]:
-    """Map an entire FireAI project to IFC 4.3 ADD2."""
-    from fireai.bridges.ifc43_mapper import IFC43Mapper
+    """Map an entire ETAP project to IFC 4.3 ADD2."""
 
     mapper = IFC43Mapper()
     result = mapper.map_project(req)
@@ -402,7 +395,6 @@ async def export_ar_snapshot(req: ARExportRequest) -> dict[str, Any]:
     """
     import base64
 
-    from fireai.integration.ar_metadata_exporter import (
         ARExportFormat,
         ARMetadataExporter,
         ARSceneNode,
@@ -457,7 +449,6 @@ async def export_ar_snapshot(req: ARExportRequest) -> dict[str, Any]:
 )
 async def subscribe_webhook(req: WebhookSubscribeRequest) -> dict[str, Any]:
     """Subscribe to webhook events."""
-    from fireai.infrastructure.webhook_service import (
         WebhookSubscription,
         get_webhook_service,
     )
@@ -488,7 +479,6 @@ async def subscribe_webhook(req: WebhookSubscribeRequest) -> dict[str, Any]:
 @router.get("/webhooks/subscriptions")
 async def list_webhook_subscriptions() -> dict[str, Any]:
     """List all webhook subscriptions."""
-    from fireai.infrastructure.webhook_service import get_webhook_service
 
     service = get_webhook_service()
     subs = service.list_subscriptions()
@@ -512,7 +502,6 @@ async def list_webhook_subscriptions() -> dict[str, Any]:
 )
 async def unsubscribe_webhook(sub_id: str) -> dict[str, Any]:
     """Remove a webhook subscription."""
-    from fireai.infrastructure.webhook_service import get_webhook_service
 
     service = get_webhook_service()
     removed = service.unsubscribe(sub_id)
@@ -528,7 +517,6 @@ async def unsubscribe_webhook(sub_id: str) -> dict[str, Any]:
 )
 async def publish_webhook_event(req: WebhookPublishRequest) -> dict[str, Any]:
     """Publish an event to all matching webhook subscribers."""
-    from fireai.infrastructure.webhook_service import get_webhook_service
 
     service = get_webhook_service()
     event_id = service.publish_event(
@@ -560,7 +548,6 @@ async def create_smoke_state(req: SmokeSimulationStateRequest) -> dict[str, Any]
     If FDS data is provided (fds_run_id), creates a validated state.
     Otherwise, creates a placeholder state with safety warnings.
     """
-    from fireai.core.smoke_simulation_state import (
         SmokeDensityPoint,
         SmokeSimulationState,
     )
@@ -662,7 +649,6 @@ class TopologyImpactRequest(BaseModel):
 @router.post("/memory/store", dependencies=[Depends(require_permission(Permission.SYSTEM_CONFIG))])
 async def store_memory(req: VectorMemoryStoreRequest) -> Dict[str, Any]:
     """Store a memory entry in Qdrant vector database."""
-    from fireai.infrastructure.vector_memory_service import (
         MemoryType,
         get_vector_memory,
     )
@@ -689,7 +675,6 @@ async def store_memory(req: VectorMemoryStoreRequest) -> Dict[str, Any]:
 @router.post("/memory/search")
 async def search_memory(req: VectorMemorySearchRequest) -> Dict[str, Any]:
     """Search for similar memories in Qdrant."""
-    from fireai.infrastructure.vector_memory_service import (
         MemoryType,
         get_vector_memory,
     )
@@ -717,7 +702,6 @@ async def search_memory(req: VectorMemorySearchRequest) -> Dict[str, Any]:
 @router.get("/memory/health")
 async def memory_health() -> Dict[str, Any]:
     """Check Qdrant vector database health."""
-    from fireai.infrastructure.vector_memory_service import get_vector_memory
 
     return get_vector_memory().health_check()
 
@@ -727,7 +711,6 @@ async def memory_health() -> Dict[str, Any]:
 )
 async def add_topology_element(req: TopologyAddElementRequest) -> Dict[str, Any]:
     """Add a network element to the Neo4j topology graph."""
-    from fireai.infrastructure.topology_graph_service import (
         ElementType,
         NetworkElement,
         get_topology_service,
@@ -760,7 +743,6 @@ async def add_topology_element(req: TopologyAddElementRequest) -> Dict[str, Any]
 )
 async def add_topology_connection(req: TopologyAddConnectionRequest) -> Dict[str, Any]:
     """Add a connection between two network elements."""
-    from fireai.infrastructure.topology_graph_service import (
         NetworkConnection,
         RelationshipType,
         get_topology_service,
@@ -796,7 +778,6 @@ async def analyze_impact(req: TopologyImpactRequest) -> Dict[str, Any]:
 
     Answers: "If I trip this breaker, which loads and buses are affected?"
     """
-    from fireai.infrastructure.topology_graph_service import get_topology_service
 
     service = get_topology_service()
     result = service.analyze_breaker_impact(req.breaker_id)
@@ -806,7 +787,6 @@ async def analyze_impact(req: TopologyImpactRequest) -> Dict[str, Any]:
 @router.get("/topology/health")
 async def topology_health() -> Dict[str, Any]:
     """Check Neo4j topology graph health."""
-    from fireai.infrastructure.topology_graph_service import get_topology_service
 
     return get_topology_service().health_check()
 
@@ -848,7 +828,6 @@ async def add_graphrag_knowledge(req: GraphRAGAddKnowledgeRequest) -> Dict[str, 
     from text, stores them in Neo4j as a knowledge graph. Also stores
     the original text as a vector for semantic search.
     """
-    from fireai.infrastructure.graphrag_engine import get_graphrag_engine
 
     engine = get_graphrag_engine()
     if req.extract_entities:
@@ -876,7 +855,6 @@ async def ask_graphrag(req: GraphRAGAskRequest) -> Dict[str, Any]:
     2. Execute on Neo4j (graph traversal)
     3. Formulate a natural language answer
     """
-    from fireai.infrastructure.graphrag_engine import get_graphrag_engine
 
     engine = get_graphrag_engine()
     answer = engine.ask(req.question)
@@ -888,7 +866,6 @@ async def ask_graphrag(req: GraphRAGAskRequest) -> Dict[str, Any]:
 )
 async def search_graphrag(req: GraphRAGSearchRequest) -> Dict[str, Any]:
     """Semantic search in GraphRAG vector store (no LLM, fast)."""
-    from fireai.infrastructure.graphrag_engine import get_graphrag_engine
 
     engine = get_graphrag_engine()
     results = engine.search_similar(req.query, limit=req.limit)
@@ -898,7 +875,6 @@ async def search_graphrag(req: GraphRAGSearchRequest) -> Dict[str, Any]:
 @router.get("/graphrag/health")
 async def graphrag_health() -> Dict[str, Any]:
     """Check GraphRAG engine health."""
-    from fireai.infrastructure.graphrag_engine import get_graphrag_engine
 
     return get_graphrag_engine().health_check()
 
@@ -952,7 +928,7 @@ async def get_csrf_token(request: Request) -> dict[str, Any]:
     Issue a CSRF token via Double Submit Cookie pattern.
 
     Sets the CSRF token in:
-    1. A cookie (fireai_csrf_token, SameSite=Strict)
+    1. A cookie (csrf_token, SameSite=Strict)
     2. The response body (for the frontend to extract and send in X-CSRF-Token header)
 
     The frontend MUST call this endpoint once per session, then include the

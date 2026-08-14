@@ -1,6 +1,6 @@
 #!/bin/bash
 # ═══════════════════════════════════════════════════════════════════════════
-# FireAI — Local Validation Matrix Execution Script
+# ETAP — Local Validation Matrix Execution Script
 # ═══════════════════════════════════════════════════════════════════════════
 # PDF Audit Phase 4: Evidence Capture and Reporting
 # Per "From Prototype to Production-Grade" §Phase 4, Appendix D:
@@ -58,8 +58,8 @@ capture_output() {
 log_status "=== Gate 1: Static Analysis ==="
 
 if command -v ruff &>/dev/null; then
-    capture_output "ruff_check" ruff check fireai/ --format=json || RUFF_EXIT=$?
-    capture_output "ruff_format" ruff format --check fireai/ || RUFF_EXIT=$?
+    capture_output "ruff_check" ruff check etap/ --format=json || RUFF_EXIT=$?
+    capture_output "ruff_format" ruff format --check etap/ || RUFF_EXIT=$?
 else
     log_status "ruff not installed — skipping lint check"
 fi
@@ -68,7 +68,7 @@ fi
 log_status "=== Gate 2: Test Suite ==="
 
 if command -v pytest &>/dev/null; then
-    if pytest tests/ -v --tb=short --cov=fireai --cov-report=term-missing \
+    if pytest tests/ -v --tb=short --cov=etap --cov-report=term-missing \
         -o "addopts=" \
         --junitxml="${EVIDENCE_BASE_DIR}/pytest_results.xml" \
         > "${EVIDENCE_BASE_DIR}/pytest.log" 2>&1; then

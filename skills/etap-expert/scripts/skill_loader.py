@@ -3,7 +3,7 @@
 ETAP Expert Skill Loader.
 =========================
 Validates and loads the etap-expert skill, enforcing structural integrity
-per FireAI agent.md Rule 14 (NO MODIFICATION WITHOUT VERIFICATION).
+per ETAP agent.md Rule 14 (NO MODIFICATION WITHOUT VERIFICATION).
 
 This loader performs Gate 1 (Static) and Gate 2 (Runtime) verification:
 - Parses YAML front-matter from SKILL.md
@@ -14,7 +14,7 @@ This loader performs Gate 1 (Static) and Gate 2 (Runtime) verification:
 - Validates the 6-step workflow structure
 - Validates the 6 mistake categories
 
-Author: FireAI Project
+Author: ETAP Project
 Version: 1.0.0
 """
 

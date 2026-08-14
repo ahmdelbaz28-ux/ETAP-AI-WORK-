@@ -1,6 +1,6 @@
-# FireAI Troubleshooting Guide
+# ETAP Troubleshooting Guide
 
-This guide provides solutions to common issues encountered when using FireAI. Since FireAI is a safety-critical system, pay special attention to any issues that could affect safety calculations.
+This guide provides solutions to common issues encountered when using ETAP. Since ETAP is a safety-critical system, pay special attention to any issues that could affect safety calculations.
 
 ## 🚨 Emergency Procedures
 
@@ -9,7 +9,7 @@ If you encounter any behavior that could compromise fire protection safety:
 
 1. **Stop using the system immediately**
 2. **Verify all calculations manually**
-3. **Contact the FireAI team at [emergency@fireai.org](mailto:emergency@fireai.org)**
+3. **Contact the ETAP team at [emergency@etap.org](mailto:emergency@etap.org)**
 4. **Do not rely on potentially compromised results**
 
 ## 🔧 Common Installation Issues
@@ -19,9 +19,9 @@ If you encounter any behavior that could compromise fire protection safety:
 **Solution**: 
 ```bash
 # Ensure you're using a virtual environment
-python -m venv fireai_env
-source fireai_env/bin/activate  # On Windows: fireai_env\Scripts\activate
-pip install fireai
+python -m venv app_env
+source app_env/bin/activate  # On Windows: app_env\Scripts\activate
+pip install etap
 ```
 
 ### Missing Dependencies
@@ -32,7 +32,7 @@ pip install fireai
 pip install --upgrade pip
 
 # Install with all dependencies
-pip install fireai[all]
+pip install etap[all]
 
 # Or install missing packages individually
 pip install shapely numpy scipy
@@ -52,18 +52,18 @@ pip install shapely numpy scipy
 **Problem**: Configuration errors or missing settings
 **Solution**: Create a `.env` file in your project root:
 ```env
-FIREAI_DEBUG=false
-FIREAI_LOG_LEVEL=INFO
-FIREAI_DATA_DIR=./data
-FIREAI_CACHE_DIR=./cache
-FIREAI_MAX_MEMORY_GB=8
-FIREAI_TIMEOUT_SECONDS=300
+DEBUG=false
+LOG_LEVEL=INFO
+DATA_DIR=./data
+CACHE_DIR=./cache
+MAX_MEMORY_GB=8
+TIMEOUT_SECONDS=300
 ```
 
 ### API Connection Issues
-**Problem**: Cannot connect to FireAI API
+**Problem**: Cannot connect to ETAP API
 **Solution**:
-1. Check that the server is running: `fireai-server --host 0.0.0.0 --port 8000`
+1. Check that the server is running: `etap-server --host 0.0.0.0 --port 8000`
 2. Verify the correct endpoint URL
 3. Check firewall settings
 4. Ensure authentication tokens are valid
@@ -110,7 +110,7 @@ FIREAI_TIMEOUT_SECONDS=300
 **Solution**:
 1. **Immediately stop relying on automated reports**
 2. Perform manual compliance verification
-3. Report the issue to the FireAI team immediately
+3. Report the issue to the ETAP team immediately
 4. Document the specific violation that wasn't caught
 
 ### Missing Safety Checks
@@ -126,32 +126,32 @@ FIREAI_TIMEOUT_SECONDS=300
 ### Enable Detailed Logging
 ```bash
 # Set log level to DEBUG for detailed output
-export FIREAI_LOG_LEVEL=DEBUG
-fireai-cli --verbose analyze building.dxf
+export LOG_LEVEL=DEBUG
+etap-cli --verbose analyze building.dxf
 ```
 
 ### Diagnostic Commands
 ```bash
 # Check system health
-fireai-cli diagnose
+etap-cli diagnose
 
 # Validate CAD file
-fireai-cli validate-cad building.dxf
+etap-cli validate-cad building.dxf
 
 # Check compliance rules
-fireai-cli list-rules
+etap-cli list-rules
 
 # Test calculations
-fireai-cli test-calculations
+etap-cli test-calculations
 ```
 
 ### Safety Verification
 ```bash
 # Run safety audit on results
-fireai-cli safety-audit results.json
+etap-cli safety-audit results.json
 
 # Verify compliance independently
-fireai-cli verify-compliance results.json
+etap-cli verify-compliance results.json
 ```
 
 ## 📋 Error Reference
@@ -179,14 +179,14 @@ fireai-cli verify-compliance results.json
 - Performance issues with safety-critical systems
 
 ### Support Channels
-- **Emergency (Safety)**: [emergency@fireai.org](mailto:emergency@fireai.org) (24/7)
-- **Technical Issues**: [support@fireai.org](mailto:support@fireai.org) (Business hours)
-- **Feature Requests**: [features@fireai.org](mailto:features@fireai.org)
-- **Security Issues**: [security@fireai.org](mailto:security@fireai.org)
+- **Emergency (Safety)**: [emergency@etap.org](mailto:emergency@etap.org) (24/7)
+- **Technical Issues**: [support@etap.org](mailto:support@etap.org) (Business hours)
+- **Feature Requests**: [features@etap.org](mailto:features@etap.org)
+- **Security Issues**: [security@etap.org](mailto:security@etap.org)
 
 ### Information to Include
 When contacting support, include:
-- FireAI version
+- ETAP version
 - Python version
 - Operating system
 - Detailed error message
@@ -199,27 +199,27 @@ When contacting support, include:
 ### Basic Functionality Test
 ```bash
 # Verify installation
-python -c "import fireai; print(fireai.__version__)"
+python -c "import etap; print(etap.__version__)"
 
 # Run basic test
-fireai-cli test
+etap-cli test
 
 # Validate environment
-fireai-cli check-env
+etap-cli check-env
 ```
 
 ### Safety System Test
 ```bash
 # Run safety validation
-fireai-cli safety-check
+etap-cli safety-check
 
 # Verify compliance engine
-fireai-cli test-compliance
+etap-cli test-compliance
 ```
 
 ## ⚠️ Important Safety Reminders
 
-1. **FireAI is a tool to assist professional engineers, not replace them**
+1. **ETAP is a tool to assist professional engineers, not replace them**
 2. **Always have designs reviewed by licensed professionals**
 3. **Verify critical calculations independently**
 4. **Stay updated with the latest safety patches**
@@ -229,4 +229,4 @@ fireai-cli test-compliance
 
 **If you encounter any issue that might affect safety, do not continue using the system until the issue is resolved. When in doubt, consult with a licensed fire protection engineer.**
 
-For urgent safety concerns, contact emergency services and the FireAI team immediately.
+For urgent safety concerns, contact emergency services and the ETAP team immediately.

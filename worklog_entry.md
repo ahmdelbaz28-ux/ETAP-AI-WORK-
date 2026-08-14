@@ -7,11 +7,11 @@ Work Log:
 - Read all affected source files line by line (Rule 6 verification)
 - Discovered BATTERY_SAFETY_FACTOR inconsistency: 1.20 in __init__.py vs 1.25 in nfpa72.py
 - Fixed BATTERY_SAFETY_FACTOR to 1.25 (more conservative, Safety First per Rule #12)
-- Made fireai/constants/__init__.py re-export from canonical fireai/constants/nfpa72.py
+- Made etap/constants/__init__.py re-export from canonical etap/constants/nfpa72.py
 - Removed duplicate NFPA72_HEIGHT_SPACING_TABLE from __init__.py (now imported from nfpa72.py)
 - Updated compute_smoke_detector_spacing() in qomn_kernel.py for V127 Phase C:
   - Replaced flat 9.1m spacing (V121) with height-adjusted table lookup
-  - Uses canonical table from fireai/constants/nfpa72.py (SSoT)
+  - Uses canonical table from etap/constants/nfpa72.py (SSoT)
   - No additional 1%/ft reduction on top of table values (fixes V120 double-reduction bug)
 - Updated nfpa72_technology_dispatcher.py to import from canonical nfpa72.py
 - Updated nfpa72_calculations.py to import from canonical nfpa72.py
@@ -24,7 +24,7 @@ Work Log:
 
 Stage Summary:
 - Critical Finding #1 (5 parallel NFPA 72 implementations): RESOLVED
-  - All modules now import from fireai/constants/nfpa72.py (single source of truth)
+  - All modules now import from etap/constants/nfpa72.py (single source of truth)
   - __init__.py re-exports from canonical source
 - Critical Finding #2 (Regulatory data without PE sign-off): ADDRESSED
   - PE_SIGNOFF_NOTICE added to nfpa72.py

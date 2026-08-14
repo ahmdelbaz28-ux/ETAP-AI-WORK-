@@ -9,7 +9,7 @@ Three additional simulations added per Operator request:
 These complement the existing 7 simulations in internal_simulation_engine.py.
 Kept in a separate module to avoid bloating the main engine file.
 
-Author: FireAI Project
+Author: ETAP Project
 Version: 1.0.0
 """
 

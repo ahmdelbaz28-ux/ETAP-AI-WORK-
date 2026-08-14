@@ -9,7 +9,7 @@
 ## 0. Pre-verified "DO NOT TOUCH" (already fixed in HEAD) → SKIP
 | ID | Check result |
 |---|---|
-| S-CRIT-1 | `docker-compose.yml` uses `${VAR:?}` for ENGINEERING_SERVICE_API_KEY, JWT_SECRET_KEY, FERNET_ENCRYPTION_KEY, FIREAI_SESSION_SECRET, POSTGRES_PASSWORD, REDIS_PASSWORD → **SKIP** |
+| S-CRIT-1 | `docker-compose.yml` uses `${VAR:?}` for ENGINEERING_SERVICE_API_KEY, JWT_SECRET_KEY, FERNET_ENCRYPTION_KEY, SESSION_SECRET, POSTGRES_PASSWORD, REDIS_PASSWORD → **SKIP** |
 | S-CRIT-4 | `security/secure_executor.py` → subprocess-based exec + MRO escape pre-scan + module freeze (commit 030cad1b9) → **SKIP** |
 | S-HIGH-6 | `backend/request_context.py` → `_reset_tenant_on_checkin` registered on `reset_rollback` (line 334) → **SKIP** |
 | frontend/.env.example | `frontend/` does not exist → **SKIP** (never create) |
@@ -18,7 +18,7 @@
 | ID | Location (verified) | Status | Evidence |
 |---|---|---|---|
 | A1 | `api/shared_handlers.py:362-370` | **FIXED** | `verify_api_key` now blocks in production when `HF_API_KEY` unconfigured; public paths exempt via `PUBLIC_PATHS`; dev remains backward-compatible |
-| A2 | `backend/security_middleware.py:396-406` | **FIXED** | `ENGINEERING_SERVICE_AUTH_DISABLED`/`FIREAI_AUTH_DISABLED` bypass now gated by `env not in (production, prod, staging)`; production/staging always enforced |
+| A2 | `backend/security_middleware.py:396-406` | **FIXED** | `ENGINEERING_SERVICE_AUTH_DISABLED`/`AUTH_DISABLED` bypass now gated by `env not in (production, prod, staging)`; production/staging always enforced |
 | A3 | `api/routes.py` audit_verify(930), kill-switch(998/1028/1054), rollback(1076) | **OPEN** | Only `_require_api_key(request)`; no require_role |
 | A4 | `api/routes.py:449/492`; `src/routes/studies.ts:46/64/106` | **OPEN** | TS `taskId=traceId`, no ownerApiKeyId, no ownership check; Python no key-id on task |
 | A5 | `api/websocket.py:396-431`, `api/routes.py:547` | **OPEN** | No Origin check; token query-only; wrapper calls endpoint w/o token (always 4001); `cua_confirmation_ws.py:478-485` already has Origin check |
@@ -45,7 +45,7 @@
 | D8 | `src/mastra/prompts.ts:45-188` | **OPEN** | Hand-rolled YAML parser; js-yaml NOT in package.json |
 | E1 | root `Dockerfile` 1-162 vs 164-310 | **PARTIAL** | Two build pipelines concatenated; verify HF uses other Dockerfile before removal |
 | E2 | `terraform/backend.tf:24-49` | **OPEN** | azurerm block unclosed + extra `backend "local"` block |
-| E3 | `deploy/k8s/*.yaml` (all 9) | **OPEN** | ALL files (incl. namespace/deployments) still `fireai`; prompt's "already-correct 3" claim is stale |
+| E3 | `deploy/k8s/*.yaml` (all 9) | **OPEN** | ALL files (incl. namespace/deployments) still `etap`; prompt's "already-correct 3" claim is stale |
 | E4 | `deploy/observability/alertmanager.yml` | **PARTIAL** | Still `${VAR:default}` (lines 18-21,57-75); `monitoring/alertmanager.yml` already fixed → consolidate to ONE |
 | E5 | `.github/workflows/deploy.yml` | **OPEN** | echo-placeholders for staging/prod/smoke/monitor |
 | E6 | root `.gitignore` | **OPEN** | No `*.tfstate*`, `*.tfplan`, `crash.*`, `.terraform.tfstate.lock.info` |
@@ -55,8 +55,8 @@
 
 ## 2. Execution Plan — WP-A (Authentication & Authorization, HIGHEST)
 **A1** `api/shared_handlers.py::verify_api_key` — after `expected_key = os.environ.get(env_var, "")`, if empty AND `ENVIRONMENT`/`ENV` in {production, prod}: `raise HTTPException(401, "API key not configured")`. Keep current open behavior only for non-prod. *(verify callers first: routes.py middleware / hf-space usage)*
-**A2** `backend/security_middleware.py::ApiKeyMiddleware.__call__` — compute `env = (_os.getenv("ENVIRONMENT") or _os.getenv("FIREAI_ENV") or "").lower()`; only honor `ENGINEERING_SERVICE_AUTH_DISABLED`/`FIREAI_AUTH_DISABLED` when env NOT in {production, prod, staging}; otherwise fall through to normal auth (lines 396-403 become conditional).
-**A3** `api/routes.py` — add `require_role("admin")`-style guard ON TOP of `_require_api_key` for: `audit_verify`(~930), `cua_kill_switch_status`(998), `cua_kill_switch_activate`(1028), `cua_kill_switch_deactivate`(1054), `cua_rollback`(1076). Mirror the file's existing admin pattern (RBAC via `api/rbac.py:require_permission` or `request.state.fireai_role`/`backend.rbac.Role`) → 403 on non-admin. Re-run `tests/test_p0_backend_auth_patch.py` + `tests/test_audit_phase7_round5_fixes.py`.
+**A2** `backend/security_middleware.py::ApiKeyMiddleware.__call__` — compute `env = (_os.getenv("ENVIRONMENT") or _os.getenv("APP_ENV") or "").lower()`; only honor `ENGINEERING_SERVICE_AUTH_DISABLED`/`AUTH_DISABLED` when env NOT in {production, prod, staging}; otherwise fall through to normal auth (lines 396-403 become conditional).
+**A3** `api/routes.py` — add `require_role("admin")`-style guard ON TOP of `_require_api_key` for: `audit_verify`(~930), `cua_kill_switch_status`(998), `cua_kill_switch_activate`(1028), `cua_kill_switch_deactivate`(1054), `cua_rollback`(1076). Mirror the file's existing admin pattern (RBAC via `api/rbac.py:require_permission` or `request.state.role`/`backend.rbac.Role`) → 403 on non-admin. Re-run `tests/test_p0_backend_auth_patch.py` + `tests/test_audit_phase7_round5_fixes.py`.
 **A4** (TS primary, Python defensive)
 - `src/routes/studies.ts`: add `ownerApiKeyId?: string` to `TaskRecord`; in `handleStudyRun` set `ownerApiKeyId = apiKeyId` and `const taskId = crypto.randomUUID()` (replace `traceId` at line 64); in `handleStudyStatus` after `getTask` → `404/403` if `task.ownerApiKeyId && task.ownerApiKeyId !== apiKeyId`.
 - `api/routes.py`: `run_study_async` embeds `api_key_id` (= sha256 of presented `x-api-key` header) in celery kwargs; `get_task_status` recomputes and returns 404/403 on mismatch.
@@ -93,7 +93,7 @@
 ## 5. Execution Plan — WP-E (Infra/Deploy) & WP-F (Hygiene)
 **E1** root `Dockerfile` — before deleting lines 1-162, check `docker-compose*.yml`/`vercel.json`/HF workflows for `dockerfile:` references. Line 123 comment says use `hf-space/app.py`; HF already ships `Dockerfile.hf`. After confirming, strip lines 1-162 (old HF Space pipeline), keep the 164-310 multi-stage build. Validate `docker compose config -q`.
 **E2** `terraform/backend.tf` — close the `azurerm` block (`}` after `use_azuread_auth = true`), delete trailing `backend "local"` block (lines 34-49). Then `terraform fmt -check -recursive terraform/ && terraform validate` (and `terraform init -backend-config=environments/<env>/backend.hcl` if terraform present).
-**E3** `deploy/k8s/` — rewrite ALL 9 manifests (configmap, ingress, network-policy, pdb, secret, service-api AND namespace, deployment-api, deployment-worker) `fireai` → `etap-ai` with correct env keys (FIREAI_* → ETAP/ENGINEERING_*). *Prompt's "3 already-correct" premise is STALE — all 9 are fireai today.*
+**E3** `deploy/k8s/` — rewrite ALL 9 manifests (configmap, ingress, network-policy, pdb, secret, service-api AND namespace, deployment-api, deployment-worker) `etap` → `etap-ai` with correct env keys (ETAP_* → ENGINEERING_*). *Prompt's "3 already-correct" premise is STALE — all 9 are etap today.*
 **E4** Alertmanager — consolidate to ONE config (keep `monitoring/alertmanager.yml`), delete `deploy/observability/alertmanager.yml`. Remove ALL `${VAR:default}` syntax (still present in deploy/observability lines 18-21, 57-75). Document envsubst/Helm templating at deploy.
 **E5** `.github/workflows/deploy.yml` — replace echo-placeholders (staging/prod/smoke/monitor, lines ~98-159) with real steps (build → push → `kubectl set image`/`vercel --prod`) OR delete. Never echo-only success.
 **E6** `.gitignore` — add `*.tfstate`, `*.tfstate.*`, `*.tfplan`, `crash.log`, `crash.json`, `.terraform.tfstate.lock.info` (and check `terraform/.gitignore`).
@@ -125,7 +125,7 @@
 - **Deliverable:** per-finding `FIXED / SKIPPED (already fixed) / BLOCKED (<reason>)` + files changed + verification evidence (no fix claimed without evidence).
 
 **Risks / code-drift disclosures:**
-1. **E3 scope** exceeds the prompt's premise — all 9 `deploy/k8s` files use `fireai`, not just the 6 "stale" ones.
+1. **E3 scope** exceeds the prompt's premise — all 9 `deploy/k8s` files use `etap`, not just the 6 "stale" ones.
 2. **D4 site count** is 1 (`model-config.ts:65`), not 22 — most casts were already removed.
 3. **B2** requires careful sync→async alignment (`_is_token_blacklisted` / `_validate_ws_token`).
 4. **C1** deleting `alembic/` is safe (alembic.ini→`migrations`); confirm no `env.py`-in-`alembic` dependency first.

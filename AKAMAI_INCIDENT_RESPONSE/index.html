@@ -20,7 +20,7 @@
     
     
       
-        <title>Akamai Incident Response — BAZSPARK - AhmedETAP Documentation</title>
+        <title>Akamai Incident Response — ETAP - AhmedETAP Documentation</title>
       
     
     
@@ -70,7 +70,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#akamai-incident-response-bazspark" class="md-skip">
+        <a href="#akamai-incident-response-etap" class="md-skip">
           Skip to content
         </a>
       
@@ -104,7 +104,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Akamai Incident Response — BAZSPARK
+              Akamai Incident Response — ETAP
             
           </span>
         </div>
@@ -808,7 +808,7 @@
   
 
 
-<h1 id="akamai-incident-response-bazspark">Akamai Incident Response — BAZSPARK</h1>
+<h1 id="akamai-incident-response-etap">Akamai Incident Response — ETAP</h1>
 <blockquote>
 <p><strong>خطة الاستجابة للحوادث الأمنية على Akamai</strong>
 Follow this runbook when an Akamai-related security incident is detected.</p>
@@ -962,7 +962,7 @@ Follow this runbook when an Akamai-related security incident is detected.</p>
 <li>Activate immediately on production</li>
 <li><strong>Identify compromised data</strong>:
    <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># Check if data was exfiltrated</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>grep<span class="w"> </span><span class="s2">&quot;API_KEY_VALID&quot;</span><span class="w"> </span>/var/log/fireai/audit.log<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span><span class="s2">&quot;&lt;attacker_ip&gt;&quot;</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>grep<span class="w"> </span><span class="s2">&quot;API_KEY_VALID&quot;</span><span class="w"> </span>/var/log/etap/audit.log<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span><span class="s2">&quot;&lt;attacker_ip&gt;&quot;</span>
 </code></pre></div></li>
 <li><strong>Rotate all API keys</strong>:
    <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># Force-rotate ALL API keys (nuclear option)</span>
@@ -988,7 +988,7 @@ Follow this runbook when an Akamai-related security incident is detected.</p>
 <h3 id="51-indicators">5.1 Indicators</h3>
 <ul>
 <li>Backend logs show: <code>Direct origin access blocked</code></li>
-<li>Multiple requests to HF Space direct URL (<code>ahmdelbaz28-bazspark.hf.space</code>)</li>
+<li>Multiple requests to HF Space direct URL (<code>ahmdelbaz28-etap.hf.space</code>)</li>
 <li>The <code>Akamai-Internal</code> header is missing</li>
 </ul>
 <h3 id="52-immediate-actions">5.2 Immediate Actions</h3>
@@ -1034,7 +1034,7 @@ Follow this runbook when an Akamai-related security incident is detected.</p>
 <li><strong>Test on staging</strong>:
    <div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>curl<span class="w"> </span>-H<span class="w"> </span><span class="s2">&quot;Pragma: akamai-x-get-extracted-values&quot;</span><span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">     </span>-H<span class="w"> </span><span class="s2">&quot;X-Akamai-Debug: true&quot;</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">     </span>https://bazspark.edgeservices.net.staging.akamaihd.net/&lt;path&gt;<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">     </span>https://etap.edgeservices.net.staging.akamaihd.net/&lt;path&gt;<span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">     </span>-d<span class="w"> </span><span class="s1">&#39;&lt;body&gt;&#39;</span>
 </code></pre></div></li>
 <li><strong>Deploy to production</strong></li>

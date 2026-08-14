@@ -1,7 +1,7 @@
 """
 tests/test_hac_classification_engine.py
 =======================================
-Comprehensive test suite for fireai/core/hac_classification_engine.py
+Comprehensive test suite for etap/core/hac_classification_engine.py
 
 SAFETY CRITICAL: The HAC (Hazardous Area Classification) engine determines
 zone extents per IEC 60079-10-1:2015 Annex B. Incorrect zone extents could
@@ -29,7 +29,6 @@ from __future__ import annotations
 import math
 
 import pytest
-from fireai.core.hac_classification_engine import (
     _RELEASE_GRADE_CK,
     _VENT_ACH,
     _VENT_EFFECTIVENESS,
@@ -37,7 +36,6 @@ from fireai.core.hac_classification_engine import (
     ReleaseGrade,
     _iec_annex_b_extent,
 )
-from fireai.core.models_v21 import (
     EnvironmentalContext,
     HazardType,
     SubstanceProperties,

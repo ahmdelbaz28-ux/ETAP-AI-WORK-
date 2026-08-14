@@ -4,7 +4,7 @@
 tests/test_nfpa72_coverage_v2.py
 ================================
 Comprehensive test suite for:
-  - fireai/core/nfpa72_coverage.py
+  - etap/core/nfpa72_coverage.py
 
 SAFETY CRITICAL: Coverage calculations determine if fire detectors
 protect every point in a room. Incorrect coverage could leave blind
@@ -20,8 +20,6 @@ NFPA 72 References:
 from __future__ import annotations
 
 import pytest
-from fireai.core.contracts import CeilingType
-from fireai.core.nfpa72_coverage import (
     NFPA_HVAC_EXCLUSION_RADIUS_M,
     NFPA_MIN_WALL_DISTANCE_M,
     DuctDevice,
@@ -43,7 +41,6 @@ from fireai.core.nfpa72_coverage import (
     validate_wall_distances,
     verify_full_coverage,
 )
-from fireai.core.nfpa72_models import (
     CeilingSpec,
     CoverageResult,
     DetectorType,
@@ -318,7 +315,6 @@ class TestSuggestDuctDetectors:
 
     def test_with_hvac_ducts(self):
         """Room with HVAC ducts should suggest duct detectors."""
-        from fireai.core.nfpa72_models import HVACDuct
 
         room = RoomSpec(
             room_id="DUCT-001",
@@ -338,7 +334,6 @@ class TestSuggestDuctDetectors:
         assert devices[1].device_id == "DUCT_2"
 
     def test_heat_type_parameter(self):
-        from fireai.core.nfpa72_models import HVACDuct
 
         room = RoomSpec(
             room_id="DUCT-002",

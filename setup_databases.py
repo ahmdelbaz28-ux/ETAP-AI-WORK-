@@ -134,8 +134,8 @@ def generate_env_file(configs: dict):
     env_content.append(
         "# Generate with: python -c 'import secrets; print(secrets.token_urlsafe(32))'"
     )
-    env_content.append("FIREAI_API_KEY=")
-    env_content.append("FIREAI_ENV=development")
+    env_content.append("API_KEY=")
+    env_content.append("APP_ENV=development")
 
     # Write to .env file
     env_path = Path(".env")
@@ -183,7 +183,7 @@ def main():
         generate_env_file(configs)
         print("\n🎉 Database setup complete!")
         print("\nNext steps:")
-        print("1. Fill in the FIREAI_API_KEY in the .env file")
+        print("1. Fill in the API_KEY in the .env file")
         print("2. Review the .env file for accuracy")
         print("3. Run your application with: source .env && python -m backend.app")
     else:

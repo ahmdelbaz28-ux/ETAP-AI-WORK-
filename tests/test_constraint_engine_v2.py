@@ -3,7 +3,7 @@
 """
 tests/test_constraint_engine_v2.py
 ===================================
-Comprehensive test suite for fireai/core/constraint_engine.py
+Comprehensive test suite for etap/core/constraint_engine.py
 
 SAFETY CRITICAL: The constraint engine verifies every routing decision
 against published code sections (NEC, NFPA 72, Project Spec). Errors
@@ -29,8 +29,6 @@ import dataclasses
 import math
 
 import pytest
-from fireai.core.cable_routing_engine import WireGauge
-from fireai.core.constraint_engine import (
     _NAC_MAX_LENGTHS_M,
     BEND_PENALTY_M,
     BEND_RADIUS_FACTOR,
@@ -358,7 +356,6 @@ class TestVoltageDrop:
         result = engine.check_voltage_drop(1.0, 100.0, WireGauge.AWG_14, ps_voltage=24.0)
         # AWG14 at 20C: 10.07 ohm/km
         # V_drop = 1.0 × 2 × 10.07 × 0.1 = 2.014V
-        from fireai.core.nfpa72_engine import temperature_corrected_resistance
 
         r = temperature_corrected_resistance(10.07, 20.0)
         expected = 1.0 * 2.0 * r * 0.1

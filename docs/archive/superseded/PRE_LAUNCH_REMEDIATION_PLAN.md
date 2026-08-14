@@ -48,7 +48,7 @@ The following protections are **already implemented**:
 | **Input Validation** | ✅ Partially | Pydantic models in routers (e.g., `backend/routers/qomn.py`) |
 | **Correlation IDs** | ✅ Implemented | `backend/request_context.py` - X-Correlation-ID middleware |
 | **Request Body Size Limits** | ✅ Implemented | RequestBodySizeMiddleware (10MB JSON, 100MB multipart) |
-| **Security Logging** | ✅ Implemented | `fireai/core/tests/test_security_logging.py` - mask_sensitive() function |
+| **Security Logging** | ✅ Implemented | `etap/core/tests/test_security_logging.py` - mask_sensitive() function |
 
 ### ⚠️ REMEDIATION REQUIRED
 
@@ -85,7 +85,7 @@ python -c "from backend.app import CSRFMiddleware; print('CSRFMiddleware importa
 #### Item 1.2: Verify No Hardcoded Secrets
 **Risk Level:** CRITICAL  
 **Files to Audit:**
-- `fireai/core/tests/test_security_logging.py`
+- `etap/core/tests/test_security_logging.py`
 - `tests/test_security.py`
 - `tests/test_security_logging_v2.py`
 - `backend/api_keys.py`
@@ -111,8 +111,8 @@ Create `docs/ENVIRONMENT_VARIABLES.md`:
 ## Required Environment Variables
 
 ### Authentication
-- `FIREAI_API_KEY` - Master API key for all requests (required in production)
-- `FIREAI_ENV` - Deployment environment: "development" or "production"
+- `API_KEY` - Master API key for all requests (required in production)
+- `APP_ENV` - Deployment environment: "development" or "production"
 
 ### Database
 - `DATABASE_URL` - PostgreSQL connection string
@@ -431,7 +431,7 @@ python -c "import logging; handler = logging.StreamHandler(); logger = logging.g
 - `backend/rbac.py` - Permission matrix
 - `backend/db_service.py` - Database operations
 - `parsers/dxf_parser.py` - File parsing
-- `fireai/core/qomn_kernel.py` - Engineering calculations
+- `etap/core/qomn_kernel.py` - Engineering calculations
 
 **Test Structure:**
 ```python
@@ -444,7 +444,7 @@ from backend.rbac import Role, Permission
 class TestGetCurrentRole:
     def test_returns_admin_from_state(self):
         request = Mock(spec=Request)
-        request.state.fireai_role = Role.ADMIN
+        request.state.role = Role.ADMIN
         assert get_current_role(request) == Role.ADMIN
 
     def test_defaults_to_viewer(self):

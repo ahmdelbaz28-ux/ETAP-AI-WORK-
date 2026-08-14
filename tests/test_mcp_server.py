@@ -5,7 +5,7 @@ Tests for the V142 MCP server (RevitMCPServer).
 
 TEST PHILOSOPHY (agent.md Rule 12 — Safety-First):
   The MCP server is the SINGLE ENTRY POINT for AI assistant (Claude,
-  GPT) communication with the FireAI BIM model. A broken MCP server
+  GPT) communication with the ETAP BIM model. A broken MCP server
   means Claude Desktop cannot place detectors, query coverage, or
   validate sprinkler compliance — direct safety impact.
 
@@ -31,7 +31,6 @@ import json
 import time
 
 import pytest
-from fireai.mcp_server.revit_mcp_server import (
     MCP_PROTOCOL_VERSION,
     MCP_SERVER_NAME,
     MCP_SERVER_VERSION,
@@ -54,11 +53,11 @@ def _no_stdin_in_tests(monkeypatch):
     """
     V142 SAFETY: Prevent any MCP test from hanging on stdin read in CI.
 
-    Sets FIREAI_MCP_NO_STDIN=1 for every test in this module. This makes
+    Sets MCP_NO_STDIN=1 for every test in this module. This makes
     _stdin_loop() a no-op wait on _running instead of a blocking read on
     sys.stdin (which has no EOF in CI and would hang Gate 2 forever).
     """
-    monkeypatch.setenv("FIREAI_MCP_NO_STDIN", "1")
+    monkeypatch.setenv("MCP_NO_STDIN", "1")
 
 
 def _jsonrpc(method: str, params: dict | None = None, *, req_id: int | None = 1) -> str:
@@ -305,10 +304,10 @@ class TestServerLifecycle:
         start(block=False) starts a daemon thread and returns immediately.
 
         V142 FIX (Rule 17 root-cause): In CI, sys.stdin may block forever.
-        Set FIREAI_MCP_NO_STDIN=1 so _stdin_loop becomes a no-op wait on
+        Set MCP_NO_STDIN=1 so _stdin_loop becomes a no-op wait on
         _running instead of reading stdin. This makes the test deterministic.
         """
-        monkeypatch.setenv("FIREAI_MCP_NO_STDIN", "1")
+        monkeypatch.setenv("MCP_NO_STDIN", "1")
 
         server.start(block=False)
         assert server._running is True
@@ -357,7 +356,6 @@ class TestProcessRequestInProcess:
 
     def test_process_request_unknown_tool_returns_failure(self, server):
         """process_request() with unknown tool → success=False."""
-        from fireai.mcp_server.sanitized_handler import MCPRequest
 
         req = MCPRequest(
             request_id="test-1",

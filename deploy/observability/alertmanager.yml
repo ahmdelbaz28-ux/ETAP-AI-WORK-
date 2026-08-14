@@ -1,4 +1,4 @@
-# Alertmanager Configuration — FireAI Platform
+# Alertmanager Configuration — ETAP Platform
 # =============================================
 # V130 FIX (2026-06-18 audit): This file was previously a Prometheus alerting
 # *rules* file (groups/rules/expr) which belongs in a separate file loaded by
@@ -16,7 +16,7 @@ global:
   resolve_timeout: 5m
   # SMTP settings for email receiver — set via environment vars in production.
   smtp_smarthost: "${SMTP_SMARTHOST:localhost:587}"
-  smtp_from: "${SMTP_FROM:fireai-alerts@fireai.org}"
+  smtp_from: "${SMTP_FROM:etap-alerts@etap.org}"
   smtp_auth_username: "${SMTP_USER:}"
   smtp_auth_password: "${SMTP_PASSWORD:}"
 
@@ -65,7 +65,7 @@ receivers:
   - name: slack-warnings
     slack_configs:
       - api_url: "${SLACK_WEBHOOK_URL:https://hooks.slack.com/services/REPLACE_ME}"
-        channel: "#fireai-alerts"
+        channel: "#etap-alerts"
         send_resolved: true
         title: "[{{ .Status | toUpper }}] {{ .CommonLabels.alertname }}"
         text: "{{ range .Alerts }}{{ .Annotations.summary }}\n{{ .Annotations.description }}\n{{ end }}"
@@ -73,7 +73,7 @@ receivers:
   - name: slack-info
     slack_configs:
       - api_url: "${SLACK_WEBHOOK_URL:https://hooks.slack.com/services/REPLACE_ME}"
-        channel: "#fireai-info"
+        channel: "#etap-info"
         send_resolved: true
         title: "[{{ .Status | toUpper }}] {{ .CommonLabels.alertname }}"
         text: "{{ range .Alerts }}{{ .Annotations.summary }}\n{{ end }}"

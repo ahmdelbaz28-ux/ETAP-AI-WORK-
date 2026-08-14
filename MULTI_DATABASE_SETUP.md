@@ -54,8 +54,8 @@ REDIS_URL=redis://your-upstash-url.upstash.io:37463
 # REDIS_DB=0
 
 # Application
-FIREAI_API_KEY=your-api-key
-FIREAI_ENV=development
+API_KEY=your-api-key
+APP_ENV=development
 ```
 
 ## Database Providers
@@ -138,7 +138,7 @@ result = db_service.postgres_execute("SELECT * FROM projects LIMIT 10")
 | `REDIS_PORT` | Redis port | 6379 |
 | `REDIS_PASSWORD` | Redis password | - |
 | `REDIS_DB` | Redis database number | 0 |
-| `FIREAI_ENV` | Environment (development/production) | development |
+| `APP_ENV` | Environment (development/production) | development |
 
 ## Dependencies
 

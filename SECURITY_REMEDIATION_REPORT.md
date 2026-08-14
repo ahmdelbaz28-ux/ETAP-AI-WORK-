@@ -8,7 +8,7 @@
 
 ## Summary
 
-| Severity | Count | Exploitable in FireAI |
+| Severity | Count | Exploitable in ETAP |
 |----------|-------|----------------------|
 | Critical | 0 | — |
 | High     | 10 | 0 |
@@ -28,10 +28,10 @@ Used only during build via electron-builder. The runtime Electron version is bun
 | Advisory | Description | Exploitable? | Reason |
 |----------|------------|-------------|--------|
 | GHSA-vmqv-hx8q-j7mg | ASAR Integrity Bypass via resource modification | NO | Requires attacker to modify app resources after installation |
-| GHSA-5rqw-r77c-jp79 | AppleScript injection in app.moveToApplicationsFolder | NO | macOS-only, FireAI target is Linux/Windows |
+| GHSA-5rqw-r77c-jp79 | AppleScript injection in app.moveToApplicationsFolder | NO | macOS-only, ETAP target is Linux/Windows |
 | GHSA-xj5x-m3f3-5x3h | Service worker spoof executeJavaScript IPC | NO | contextIsolation=true prevents renderer compromise |
 | GHSA-r5p7-gp4j-qhrx | Incorrect origin in permission handler | NO | No permission handlers registered |
-| GHSA-3c8v-cfp5-9885 | OOB read in second-instance IPC (macOS/Linux) | NO | Requires second-instance IPC which FireAI does not use |
+| GHSA-3c8v-cfp5-9885 | OOB read in second-instance IPC (macOS/Linux) | NO | Requires second-instance IPC which ETAP does not use |
 | GHSA-xwr5-m59h-vwqr | nodeIntegrationInWorker not scoped | NO | nodeIntegration=false, sandbox=true |
 | GHSA-532v-xpq5-8h95 | Use-after-free in offscreen child window | NO | No offscreen windows used |
 | GHSA-mwmh-mq4g-g6gr | Registry key path injection on Windows | NO | app.setAsDefaultProtocolClient not used |
@@ -62,7 +62,7 @@ Used only during build via electron-builder. The runtime Electron version is bun
 
 ### Completed
 1. **No critical vulnerabilities** exist in the dependency tree.
-2. **All 10 high-severity vulnerabilities classified as NOT exploitable** in the FireAI runtime context.
+2. **All 10 high-severity vulnerabilities classified as NOT exploitable** in the ETAP runtime context.
 3. **Context-based mitigations verified**:
    - contextIsolation=true
    - nodeIntegration=false

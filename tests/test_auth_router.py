@@ -26,9 +26,9 @@ from fastapi.testclient import TestClient
 @pytest.fixture(scope="module", autouse=True)
 def _setup_env() -> Generator[None, None, None]:
     """Set test environment."""
-    os.environ["FIREAI_ENV"] = "development"
-    os.environ["FIREAI_API_KEY"] = "test_key_for_auth_123"
-    os.environ["FIREAI_SESSION_SECRET"] = (
+    os.environ["APP_ENV"] = "development"
+    os.environ["API_KEY"] = "test_key_for_auth_123"
+    os.environ["SESSION_SECRET"] = (
         "test_session_secret_0123456789012345678901234567890123456789_v143"
     )
     return  # NOSONAR — acceptable in this context  # NOSONAR — acceptable in this context
@@ -62,7 +62,7 @@ class TestLogin:
 
         # Verify Set-Cookie header
         set_cookie = resp.headers.get("set-cookie", "")
-        assert "fireai_session=" in set_cookie
+        assert "session=" in set_cookie
         assert "HttpOnly" in set_cookie
         assert "SameSite=Strict" in set_cookie
 

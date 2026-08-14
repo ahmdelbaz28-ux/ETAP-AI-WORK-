@@ -8,14 +8,14 @@ MISSION PHASE 1.1 — Cybersecurity Hardening (The Shield)
 =========================================================
 
 Implements the **Double Submit Cookie** CSRF protection pattern (OWASP
-recommended) for the FireAI backend.
+recommended) for the ETAP backend.
 
 How Double Submit Cookie Works
 ------------------------------
 1. On any GET request to a "token-issuing" endpoint (e.g., /api/v2/auth/csrf-token),
    the server generates a cryptographically random CSRF token.
 2. The server sets this token in TWO places:
-   a) A cookie: ``fireai_csrf_token`` (HttpOnly=false, SameSite=Strict)
+   a) A cookie: ``csrf_token`` (HttpOnly=false, SameSite=Strict)
    b) The response body (for the frontend to read and include in subsequent requests)
 3. On any state-changing request (POST/PUT/DELETE/PATCH), the client MUST include:
    a) The cookie (sent automatically by the browser)
@@ -25,7 +25,7 @@ How Double Submit Cookie Works
 
 Why Double Submit Cookie (not Synchronizer Token)?
 --------------------------------------------------
-- FireAI is a stateless REST API. Synchronizer Token requires server-side
+- ETAP is a stateless REST API. Synchronizer Token requires server-side
   session storage, which conflicts with the multi-worker uvicorn deployment
   (each worker would need to share session state via Redis).
 - Double Submit Cookie is stateless — perfect for cloud-native deployment.
@@ -72,9 +72,9 @@ logger = logging.getLogger(__name__)
 #   - Path=/ (root only)
 #   - No Domain attribute (host-only)
 # This prevents subdomain cookie injection attacks where an attacker with
-# XSS on blog.fireai.com could set fireai_csrf_token on the victim's browser.
+# XSS on blog.etap.com could set csrf_token on the victim's browser.
 # Browsers REJECT __Host- cookies that don't meet these requirements.
-CSRF_COOKIE_NAME = "__Host-fireai_csrf_token"
+CSRF_COOKIE_NAME = "__Host-csrf_token"
 CSRF_HEADER_NAME = "x-csrf-token"
 CSRF_TOKEN_LENGTH = 32  # bytes → 43 chars in urlsafe base64
 
@@ -111,7 +111,7 @@ CSRF_EXEMPT_PATHS = frozenset(
 # Secure attribute to be omitted in production behind TLS-terminating proxies.
 import os as _os
 
-_DEV_ALLOW_HTTP_COOKIES = _os.environ.get("FIREAI_DEV_ALLOW_HTTP_COOKIES", "").lower() in (
+_DEV_ALLOW_HTTP_COOKIES = _os.environ.get("DEV_ALLOW_HTTP_COOKIES", "").lower() in (
     "1",
     "true",
     "yes",
@@ -283,7 +283,7 @@ class CSRFMiddleware:
 
                     # Allow if origin host matches server host
                     # In dev mode, also allow localhost variants
-                    is_dev = _os.environ.get("FIREAI_ENV", "development").lower() == "development"
+                    is_dev = _os.environ.get("APP_ENV", "development").lower() == "development"
                     trusted_hosts = {host_name, "localhost", "127.0.0.1"} if is_dev else {host_name}
 
                     if origin_host not in trusted_hosts:

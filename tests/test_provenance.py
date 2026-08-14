@@ -4,7 +4,7 @@
 tests/test_provenance.py
 ============================
 Comprehensive test suite for:
-  - fireai/core/provenance.py
+  - etap/core/provenance.py
 
 SAFETY CRITICAL: Provenance tracking provides audit trail for all
 engineering decisions. Tampered or missing provenance could allow
@@ -24,7 +24,6 @@ import json
 import time
 
 import pytest
-from fireai.core.provenance import (
     ConfidenceLevel,
     ConfidenceScore,
     DecisionProvenance,

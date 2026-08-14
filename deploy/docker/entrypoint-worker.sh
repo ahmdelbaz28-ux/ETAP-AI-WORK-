@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 
-echo "Starting FireAI Background Worker..."
+echo "Starting ETAP Background Worker..."
 echo "Worker ID: $(hostname)"
 echo "Mode: ${WORKER_MODE:-default}"
 

@@ -58,7 +58,7 @@ def _generate_voltage_drop_report(devices: list, connections: list, now: str) ->
     V213 FIX (Rule 1 — Truthfulness): Previously this function only listed
     circuits with their cableSize/length/load/voltage as-is — it did NOT
     actually compute the voltage drop. Now it calls the real
-    ``fireai.core.qomn_kernel.compute_voltage_drop`` (NEC Ch. 9 Table 8)
+    ``etap.core.qomn_kernel.compute_voltage_drop`` (NEC Ch. 9 Table 8)
     for each circuit where the cable size can be mapped to an AWG gauge,
     and reports ``voltage_drop_v``, ``drop_pct``, ``is_compliant`` per
     circuit plus a summary of non-compliant circuits.
@@ -75,12 +75,11 @@ def _generate_voltage_drop_report(devices: list, connections: list, now: str) ->
     # Lazy import so the reports module still loads if qomn_kernel has a
     # heavy dependency that is unavailable in some environments.
     try:
-        from fireai.core.qomn_kernel import compute_voltage_drop
 
         _qomn_available = True
     except ImportError as ie:
         logger.warning(
-            "fireai.core.qomn_kernel not available (%s) — voltage drop "
+            "etap.core.qomn_kernel not available (%s) — voltage drop "
             "will be listed without real NEC Table 8 calculations.",
             ie,
         )
@@ -299,7 +298,6 @@ def _generate_nfpa72_coverage_report(devices: list, now: str) -> dict:
 
     # Lazy import of NFPA 72 spacing constants from qomn_kernel
     try:
-        from fireai.core.qomn_kernel import (
             NFPA72_HEAT_MAX_SPACING_M,
             NFPA72_SMOKE_MAX_SPACING_M,
         )
@@ -307,7 +305,7 @@ def _generate_nfpa72_coverage_report(devices: list, now: str) -> dict:
         _spacing_available = True
     except ImportError as ie:
         logger.warning(
-            "fireai.core.qomn_kernel not available (%s) — NFPA 72 spacing "
+            "etap.core.qomn_kernel not available (%s) — NFPA 72 spacing "
             "verification will use default values (smoke=9.1m, heat=6.1m).",
             ie,
         )
@@ -412,7 +410,7 @@ def _generate_nfpa72_coverage_report(devices: list, now: str) -> dict:
             "smokeMaxSpacingM": NFPA72_SMOKE_MAX_SPACING_M,
             "heatMaxSpacingM": NFPA72_HEAT_MAX_SPACING_M,
             "coverageRadiusFactor": _COVERAGE_RADIUS_FACTOR,
-            "source": "fireai.core.qomn_kernel"
+            "source": "etap.core.qomn_kernel"
             if _spacing_available
             else "default fallback values",
         },
@@ -533,14 +531,13 @@ def _generate_cable_sizing_report(connections: list, devices: list, now: str) ->
 
     # Lazy import of NEC ampacity table from qomn_kernel
     try:
-        from fireai.core.qomn_kernel import NEC_AMPACITY_60C
 
         _nec_available = True
     except ImportError as ie:
         import logging
 
         logging.getLogger(__name__).warning(
-            "fireai.core.qomn_kernel not available (%s) — cable sizing "
+            "etap.core.qomn_kernel not available (%s) — cable sizing "
             "will be listed without NEC ampacity verification.",
             ie,
         )
@@ -929,7 +926,7 @@ async def export_report(  # NOSONAR — S3776: cognitive complexity is inherent 
             story = []
 
             # Header
-            story.append(Paragraph(f"FireAI Report: {report['name']}", styles["Title"]))
+            story.append(Paragraph(f"ETAP Report: {report['name']}", styles["Title"]))
             story.append(
                 Paragraph(f"Type: {report['type']} | Status: {report['status']}", styles["Normal"])
             )
@@ -993,7 +990,7 @@ async def export_report(  # NOSONAR — S3776: cognitive complexity is inherent 
             story.append(Spacer(1, 15 * mm))
             story.append(
                 Paragraph(
-                    "FireAI Digital Twin — NFPA 72-2022 Compliant Engineering Report",
+                    "ETAP Digital Twin — NFPA 72-2022 Compliant Engineering Report",
                     styles["Normal"],
                 )
             )
@@ -1119,7 +1116,7 @@ async def generate_ahj_submittal(project_id: str, request: AhjSubmittalRequest):
     Generate an AHJ-ready NFPA 72 compliance proof document.
 
     V213 FIX: The ``ComplianceProofDocument`` class in
-    ``fireai/core/compliance_proof_document.py`` is a real, 562-line
+    ``etap/core/compliance_proof_document.py`` is a real, 562-line
     generator that produces a 6-section markdown document with:
       - Project header + design criteria
       - Room-by-room detector placement details
@@ -1147,8 +1144,6 @@ async def generate_ahj_submittal(project_id: str, request: AhjSubmittalRequest):
     devices = db.get_all_devices_for_project(project_id)
 
     try:
-        from fireai.core.compliance_proof_document import ComplianceProofDocument
-        from fireai.core.spatial_engine.density_optimizer import (
             DensityOptimizer,
             DetectorLayout,
             Room,
@@ -1224,7 +1219,6 @@ async def generate_ahj_submittal(project_id: str, request: AhjSubmittalRequest):
             # room dimensions + detector positions.
             consensus = None
             try:
-                from fireai.core.spatial_engine.consensus_engine import ConsensusEngine
 
                 consensus_engine = ConsensusEngine(
                     coverage_radius=layout.coverage_radius,

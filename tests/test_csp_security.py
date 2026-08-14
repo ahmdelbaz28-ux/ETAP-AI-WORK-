@@ -78,21 +78,21 @@ _build_csp = _load_build_csp_in_isolation()
 
 
 class TestCSPEnvironmentAwareDefaults:
-    """V119 FIX: CSP_UNSAFE_EVAL default depends on FIREAI_ENV."""
+    """V119 FIX: CSP_UNSAFE_EVAL default depends on APP_ENV."""
 
     @pytest.fixture(autouse=True)
     def _clean_env(self, monkeypatch):
         """Each test starts with NO CSP_UNSAFE_EVAL env var set."""
         monkeypatch.delenv("CSP_UNSAFE_EVAL", raising=False)
-        # Also reset FIREAI_ENV between tests
+        # Also reset APP_ENV between tests
         return  # NOSONAR - python:S3626
 
     def test_production_defaults_to_no_unsafe_eval(self, monkeypatch):
         """
-        V119 FIX: With FIREAI_ENV=production and CSP_UNSAFE_EVAL unset,
+        V119 FIX: With APP_ENV=production and CSP_UNSAFE_EVAL unset,
         the CSP must NOT include 'unsafe-eval' (secure-by-default).
         """
-        monkeypatch.setenv("FIREAI_ENV", "production")
+        monkeypatch.setenv("APP_ENV", "production")
         csp = _build_csp()
         assert "'unsafe-eval'" not in csp, (
             f"V119 REGRESSION: production CSP contains 'unsafe-eval' by default! CSP: {csp}"
@@ -104,18 +104,18 @@ class TestCSPEnvironmentAwareDefaults:
         assert "'unsafe-inline'" not in csp.split("style-src")[0]  # not in script-src
 
     def test_production_unset_env_var_also_secure(self, monkeypatch):
-        """Same as above but using FIREAI_ENV default fallback."""
-        monkeypatch.delenv("FIREAI_ENV", raising=False)
-        # _build_csp uses os.getenv("FIREAI_ENV", "production") so unset → production
+        """Same as above but using APP_ENV default fallback."""
+        monkeypatch.delenv("APP_ENV", raising=False)
+        # _build_csp uses os.getenv("APP_ENV", "production") so unset → production
         csp = _build_csp()
         assert "'unsafe-eval'" not in csp
 
     def test_development_defaults_to_unsafe_eval_allowed(self, monkeypatch):
         """
         V119: Development environment preserves DX (Vite/HMR needs eval).
-        With FIREAI_ENV=development and CSP_UNSAFE_EVAL unset, eval IS allowed.
+        With APP_ENV=development and CSP_UNSAFE_EVAL unset, eval IS allowed.
         """
-        monkeypatch.setenv("FIREAI_ENV", "development")
+        monkeypatch.setenv("APP_ENV", "development")
         csp = _build_csp()
         assert "'unsafe-eval'" in csp, (
             f"V119: development CSP must allow unsafe-eval by default for HMR. CSP: {csp}"
@@ -135,7 +135,7 @@ class TestCSPExplicitOverrides:
         V119: Operator may explicitly enable unsafe-eval in production
         (accepting the documented risk).
         """
-        monkeypatch.setenv("FIREAI_ENV", "production")
+        monkeypatch.setenv("APP_ENV", "production")
         monkeypatch.setenv("CSP_UNSAFE_EVAL", "true")
         csp = _build_csp()
         assert "'unsafe-eval'" in csp
@@ -145,7 +145,7 @@ class TestCSPExplicitOverrides:
         V119: Operator may explicitly disable unsafe-eval even in dev
         (for testing production CSP locally).
         """
-        monkeypatch.setenv("FIREAI_ENV", "development")
+        monkeypatch.setenv("APP_ENV", "development")
         monkeypatch.setenv("CSP_UNSAFE_EVAL", "false")
         csp = _build_csp()
         assert "'unsafe-eval'" not in csp
@@ -153,7 +153,7 @@ class TestCSPExplicitOverrides:
     @pytest.mark.parametrize("truthy", ["true", "TRUE", "True", "1", "yes", "YES", "Yes"])
     def test_truthy_values_enable_unsafe_eval(self, monkeypatch, truthy):
         """Backward compat: same truthy parsing as pre-V119."""
-        monkeypatch.setenv("FIREAI_ENV", "production")
+        monkeypatch.setenv("APP_ENV", "production")
         monkeypatch.setenv("CSP_UNSAFE_EVAL", truthy)
         csp = _build_csp()
         assert "'unsafe-eval'" in csp, f"truthy value {truthy!r} should enable"
@@ -161,7 +161,7 @@ class TestCSPExplicitOverrides:
     @pytest.mark.parametrize("falsy", ["false", "FALSE", "0", "no", "", "anything-else"])
     def test_falsy_values_disable_unsafe_eval(self, monkeypatch, falsy):
         """Anything not in the truthy set disables eval (fail-safe parsing)."""
-        monkeypatch.setenv("FIREAI_ENV", "production")
+        monkeypatch.setenv("APP_ENV", "production")
         monkeypatch.setenv("CSP_UNSAFE_EVAL", falsy)
         csp = _build_csp()
         assert "'unsafe-eval'" not in csp, f"falsy value {falsy!r} should disable"
@@ -180,7 +180,7 @@ class TestCSPLoggingEscalation:
         V119 FIX: Escalated from WARNING → ERROR.
         Misconfiguration must not hide in log noise.
         """
-        monkeypatch.setenv("FIREAI_ENV", "production")
+        monkeypatch.setenv("APP_ENV", "production")
         monkeypatch.setenv("CSP_UNSAFE_EVAL", "true")
         with caplog.at_level(logging.ERROR, logger="backend.app"):
             _build_csp()
@@ -191,7 +191,7 @@ class TestCSPLoggingEscalation:
 
     def test_development_no_error_log(self, monkeypatch, caplog):
         """Development unsafe-eval is expected behavior — no ERROR log."""
-        monkeypatch.setenv("FIREAI_ENV", "development")
+        monkeypatch.setenv("APP_ENV", "development")
         monkeypatch.setenv("CSP_UNSAFE_EVAL", "true")
         with caplog.at_level(logging.ERROR, logger="backend.app"):
             _build_csp()
@@ -206,7 +206,7 @@ class TestCSPLoggingEscalation:
 
     def test_secure_default_no_log_noise(self, monkeypatch, caplog):
         """When secure default applies (no env var, production), no error."""
-        monkeypatch.setenv("FIREAI_ENV", "production")
+        monkeypatch.setenv("APP_ENV", "production")
         # CSP_UNSAFE_EVAL deliberately unset
         with caplog.at_level(logging.ERROR, logger="backend.app"):
             _build_csp()
@@ -228,39 +228,39 @@ class TestCSPStructuralIntegrity:
         return  # NOSONAR - python:S3626
 
     def test_csp_has_default_src(self, monkeypatch):
-        monkeypatch.setenv("FIREAI_ENV", "production")
+        monkeypatch.setenv("APP_ENV", "production")
         csp = _build_csp()
         assert "default-src 'self'" in csp
 
     def test_csp_has_script_src(self, monkeypatch):
-        monkeypatch.setenv("FIREAI_ENV", "production")
+        monkeypatch.setenv("APP_ENV", "production")
         csp = _build_csp()
         assert "script-src 'self'" in csp
 
     def test_csp_has_style_src(self, monkeypatch):
-        monkeypatch.setenv("FIREAI_ENV", "production")
+        monkeypatch.setenv("APP_ENV", "production")
         csp = _build_csp()
         assert "style-src 'self' 'unsafe-inline'" in csp
 
     def test_csp_has_img_src(self, monkeypatch):
-        monkeypatch.setenv("FIREAI_ENV", "production")
+        monkeypatch.setenv("APP_ENV", "production")
         csp = _build_csp()
         assert "img-src 'self' data: blob:" in csp
 
     def test_csp_has_connect_src_self(self, monkeypatch):
-        monkeypatch.setenv("FIREAI_ENV", "production")
+        monkeypatch.setenv("APP_ENV", "production")
         csp = _build_csp()
         assert "connect-src 'self'" in csp
 
     def test_csp_development_allows_localhost_connect(self, monkeypatch):
         """Pre-existing behavior preserved: dev allows localhost websockets."""
-        monkeypatch.setenv("FIREAI_ENV", "development")
+        monkeypatch.setenv("APP_ENV", "development")
         csp = _build_csp()
         assert "http://localhost" in csp or "ws://localhost" in csp
 
     def test_csp_production_connect_src_custom(self, monkeypatch):
         """Pre-existing behavior preserved: prod uses CSP_CONNECT_SRC."""
-        monkeypatch.setenv("FIREAI_ENV", "production")
+        monkeypatch.setenv("APP_ENV", "production")
         monkeypatch.setenv("CSP_CONNECT_SRC", "https://api.example.com")
         csp = _build_csp()
         assert "https://api.example.com" in csp

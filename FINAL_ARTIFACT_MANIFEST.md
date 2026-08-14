@@ -1,6 +1,6 @@
 # Final Artifact Manifest
 
-## Application: FireAI Digital Twin v1.0.0
+## Application: ETAP Digital Twin v1.0.0
 ## Build ID: 2e1cb39a-982c103f
 ## Date: 2026-06-12
 
@@ -10,7 +10,7 @@
 
 | # | Artifact | Path | Size | SHA-256 |
 |---|---------|------|------|---------|
-| 1 | AppImage (ARM64) | `frontend/release/FireAI-DigitalTwin-1.0.0-arm64.AppImage` | 157 MB | (verify with `sha256sum`) |
+| 1 | AppImage (ARM64) | `frontend/release/ETAP-DigitalTwin-1.0.0-arm64.AppImage` | 157 MB | (verify with `sha256sum`) |
 | 2 | Unpacked build | `frontend/release/linux-arm64-unpacked/` | — | — |
 | 3 | Build debug log | `frontend/release/builder-debug.yml` | 1.2 KB | — |
 

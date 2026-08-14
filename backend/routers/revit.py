@@ -94,7 +94,7 @@ def get_revit_service() -> RevitService:
 
 # ── Path validation helper (FIX V130: Path Traversal prevention) ────────
 # V130 SECURITY FIX (2026-06-18 audit): Replaced broken str.startswith()
-# check (bypassable: "/tmp/fireai-data-evil/payload.rvt" matched "/tmp/fireai-data")
+# check (bypassable: "/tmp/etap-data-evil/payload.rvt" matched "/tmp/etap-data")
 # with the centralised parsers._path_security.validate_input_path() helper.
 # This is the same hardened implementation already used by every parser in
 # parsers/ and qomn_fire/parsers/ — single source of truth, no drift.

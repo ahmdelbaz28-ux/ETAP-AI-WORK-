@@ -3,7 +3,7 @@
 """
 tests/test_routing_global_class_a.py
 =====================================
-Comprehensive test suite for fireai/core/routing_global_class_a.py
+Comprehensive test suite for etap/core/routing_global_class_a.py
 
 SAFETY CRITICAL: Class A fire alarm circuits require separate outgoing and
 return paths per NFPA 72 §12.2.2. A single cable fault must NOT disable
@@ -29,7 +29,6 @@ except ImportError:
 
 from unittest.mock import MagicMock, patch
 
-import fireai.core.routing_global_class_a as routing_mod
 import pytest
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -118,25 +117,23 @@ def _patch_provenance_in_module():
     routing_mod.DecisionProvenance = originals["DecisionProvenance"]
 
 
-from fireai.core.routing_global_class_a import EliteGlobalRouter
-
 # ═══════════════════════════════════════════════════════════════════════════════
 # EliteGlobalRouter Initialization Tests
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
 class TestEliteGlobalRouterInit:
-    @patch("fireai.core.routing_global_class_a.EliteClassARouter")
+    @patch("etap.core.routing_global_class_a.EliteClassARouter")
     def test_init_with_bounds(self, MockRouter):  # NOSONAR - python:S117
         EliteGlobalRouter(global_bounds=(0, 0, 100, 50))
         MockRouter.assert_called_once_with(width=100, length=50, resolution=0.25)
 
-    @patch("fireai.core.routing_global_class_a.EliteClassARouter")
+    @patch("etap.core.routing_global_class_a.EliteClassARouter")
     def test_init_with_custom_resolution(self, MockRouter):  # NOSONAR - python:S117
         EliteGlobalRouter(global_bounds=(0, 0, 50, 50), resolution=0.5)
         MockRouter.assert_called_once_with(width=50, length=50, resolution=0.5)
 
-    @patch("fireai.core.routing_global_class_a.EliteClassARouter")
+    @patch("etap.core.routing_global_class_a.EliteClassARouter")
     def test_stores_min_xy(self, MockRouter):  # NOSONAR - python:S117
         router = EliteGlobalRouter(global_bounds=(10, 20, 100, 200))
         assert router._min_x == 10
@@ -149,7 +146,7 @@ class TestEliteGlobalRouterInit:
 
 
 class TestApplyClassASeparation:
-    @patch("fireai.core.routing_global_class_a.EliteClassARouter")
+    @patch("etap.core.routing_global_class_a.EliteClassARouter")
     def test_is_noop(self, MockRouter):  # NOSONAR - python:S117
         """apply_class_a_separation is a no-op — delegated to EliteClassARouter."""
         router = EliteGlobalRouter(global_bounds=(0, 0, 100, 100))
@@ -162,7 +159,7 @@ class TestApplyClassASeparation:
 
 
 class TestRouteClassALoop:
-    @patch("fireai.core.routing_global_class_a.EliteClassARouter")
+    @patch("etap.core.routing_global_class_a.EliteClassARouter")
     def test_successful_route(self, MockRouter):  # NOSONAR - python:S117
         """Successful Class A loop returns DecisionProvenance with paths."""
         mock_router_instance = MockRouter.return_value
@@ -186,7 +183,7 @@ class TestRouteClassALoop:
         assert "return_path" in result.value
         assert len(result.violations) == 0
 
-    @patch("fireai.core.routing_global_class_a.EliteClassARouter")
+    @patch("etap.core.routing_global_class_a.EliteClassARouter")
     def test_successful_route_with_firestops(self, MockRouter):  # NOSONAR - python:S117
         """Route with fire-rated wall penetrations includes firestop note."""
         mock_router_instance = MockRouter.return_value
@@ -207,7 +204,7 @@ class TestRouteClassALoop:
         assert "fire-rated wall penetration" in result.selected_because
         assert "2" in result.selected_because
 
-    @patch("fireai.core.routing_global_class_a.EliteClassARouter")
+    @patch("etap.core.routing_global_class_a.EliteClassARouter")
     def test_failed_route_returns_violation(self, MockRouter):  # NOSONAR - python:S117
         """When routing fails, DecisionProvenance has CRITICAL violation."""
         mock_router_instance = MockRouter.return_value
@@ -222,7 +219,7 @@ class TestRouteClassALoop:
         assert len(result.violations) == 1
         assert result.violations[0].severity == "CRITICAL"
 
-    @patch("fireai.core.routing_global_class_a.EliteClassARouter")
+    @patch("etap.core.routing_global_class_a.EliteClassARouter")
     def test_route_has_rules_applied(self, MockRouter):  # NOSONAR - python:S117
         """All routes have at least one RuleApplied."""
         mock_router_instance = MockRouter.return_value
@@ -242,7 +239,7 @@ class TestRouteClassALoop:
 
         assert len(result.rules_applied) >= 1
 
-    @patch("fireai.core.routing_global_class_a.EliteClassARouter")
+    @patch("etap.core.routing_global_class_a.EliteClassARouter")
     def test_route_class_a_sep_constant(self, MockRouter):  # NOSONAR - python:S117
         """CLASS_A_SEP constant is 1.0m per NFPA 72 §12.2.2."""
         mock_router_instance = MockRouter.return_value
@@ -267,7 +264,7 @@ class TestRouteClassALoop:
         )  # NOSONAR — S1244: import retained for re-export / API surface
         assert rule.unit == "m"
 
-    @patch("fireai.core.routing_global_class_a.EliteClassARouter")
+    @patch("etap.core.routing_global_class_a.EliteClassARouter")
     def test_failed_route_confidence_refuse(self, MockRouter):  # NOSONAR - python:S117
         """Failed route has REFUSE confidence level."""
         mock_router_instance = MockRouter.return_value
@@ -280,7 +277,7 @@ class TestRouteClassALoop:
         # which maps to: level=1.0, value=1.0, reason=1.0, standard_reference=REFUSE
         assert result.confidence.standard_reference == _MockConfidenceLevel.REFUSE
 
-    @patch("fireai.core.routing_global_class_a.EliteClassARouter")
+    @patch("etap.core.routing_global_class_a.EliteClassARouter")
     def test_successful_route_confidence_high(self, MockRouter):  # NOSONAR - python:S117
         """Successful route has HIGH confidence."""
         mock_router_instance = MockRouter.return_value
@@ -302,7 +299,7 @@ class TestRouteClassALoop:
         # which maps to: level=1.0, value=1.0, reason=1.0, standard_reference=HIGH
         assert result.confidence.standard_reference == _MockConfidenceLevel.HIGH
 
-    @patch("fireai.core.routing_global_class_a.EliteClassARouter")
+    @patch("etap.core.routing_global_class_a.EliteClassARouter")
     def test_no_firestops_no_note(self, MockRouter):  # NOSONAR - python:S117
         """Route without firestop penetrations has no IBC §714 note."""
         mock_router_instance = MockRouter.return_value
@@ -322,7 +319,7 @@ class TestRouteClassALoop:
 
         assert "fire-rated wall penetration" not in result.selected_because
 
-    @patch("fireai.core.routing_global_class_a.EliteClassARouter")
+    @patch("etap.core.routing_global_class_a.EliteClassARouter")
     def test_inputs_recorded(self, MockRouter):  # NOSONAR - python:S117
         """Inputs (panel, terminal_node) are recorded in DecisionProvenance."""
         mock_router_instance = MockRouter.return_value
@@ -343,7 +340,7 @@ class TestRouteClassALoop:
         assert result.inputs["panel"] == (5, 10)
         assert result.inputs["terminal_node"] == (15, 20)
 
-    @patch("fireai.core.routing_global_class_a.EliteClassARouter")
+    @patch("etap.core.routing_global_class_a.EliteClassARouter")
     def test_algorithm_version(self, MockRouter):  # NOSONAR - python:S117
         """Algorithm version is v13_unified."""
         mock_router_instance = MockRouter.return_value
@@ -364,7 +361,7 @@ class TestRouteClassALoop:
         assert result.algorithm["name"] == "astar_matrix_masking"
         assert result.algorithm["version"] == "v13_unified"
 
-    @patch("fireai.core.routing_global_class_a.EliteClassARouter")
+    @patch("etap.core.routing_global_class_a.EliteClassARouter")
     def test_failed_route_selected_because(self, MockRouter):  # NOSONAR - python:S117
         """Failed route explains return path blocked."""
         mock_router_instance = MockRouter.return_value

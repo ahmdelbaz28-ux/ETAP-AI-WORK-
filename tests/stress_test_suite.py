@@ -1,7 +1,7 @@
 # File-level '# NOSONAR' removed per NOSONAR_AUDIT.md (V143 hardening).
 # Per-line justified suppressions (e.g., '# NOSONAR — S3776: ...') are preserved.
 """
-Comprehensive Stress Test Suite v2 for the Revit/FireAI Platform
+Comprehensive Stress Test Suite v2 for the Revit/ETAP Platform
 ================================================================
 
 Identifies weak points by exercising:
@@ -47,16 +47,16 @@ sys.path.insert(0, PROJECT_ROOT)
 
 # Isolate test artifacts
 TEST_DIR = tempfile.mkdtemp(prefix="stress_test_v2_")
-os.environ.setdefault("FIREAI_API_KEYS_FILE", os.path.join(TEST_DIR, "api_keys.json"))
-os.environ.setdefault("FIREAI_API_KEYS_SECRET_FILE", os.path.join(TEST_DIR, "api_keys.secret"))
+os.environ.setdefault("API_KEYS_FILE", os.path.join(TEST_DIR, "api_keys.json"))
+os.environ.setdefault("API_KEYS_SECRET_FILE", os.path.join(TEST_DIR, "api_keys.secret"))
 os.environ.setdefault("DIGITAL_TWIN_DB_PATH", os.path.join(TEST_DIR, "digital_twin.db"))
-os.environ.setdefault("FIREAI_ENV", "development")
-os.environ.setdefault("FIREAI_API_KEY", "stress_test_admin_key")
-os.environ.setdefault("FIREAI_CACHE_MAX_ENTRIES", "1000")  # smaller for faster tests
+os.environ.setdefault("APP_ENV", "development")
+os.environ.setdefault("API_KEY", "stress_test_admin_key")
+os.environ.setdefault("CACHE_MAX_ENTRIES", "1000")  # smaller for faster tests
 
 # Pre-import clean
 for mod in list(sys.modules.keys()):  # NOSONAR - python:S7504
-    if mod.startswith(("backend", "fireai")):
+    if mod.startswith(("backend", "etap")):
         del sys.modules[mod]
 
 
@@ -183,8 +183,8 @@ def test_api_key_middleware_wired() -> None:
             }
 
             async def _inner_app(scope, receive, send):  # NOSONAR - python:S7503
-                # The middleware should have set scope["fireai_role"]
-                captured["role"] = scope.get("fireai_role")
+                # The middleware should have set scope["role"]
+                captured["role"] = scope.get("role")
 
             mw = ApiKeyMiddleware(_inner_app)
             await mw(scope, _receive, _send)
@@ -193,13 +193,13 @@ def test_api_key_middleware_wired() -> None:
         captured = asyncio.run(_run())
         if captured.get("role") == Role.ADMIN:
             record(
-                "middleware_sets_role", "PASS", "ApiKeyMiddleware correctly sets fireai_role=ADMIN"
+                "middleware_sets_role", "PASS", "ApiKeyMiddleware correctly sets role=ADMIN"
             )
         else:
             record(
                 "middleware_sets_role",
                 "FAIL",
-                f"fireai_role was {captured.get('role')} (expected ADMIN)",
+                f"role was {captured.get('role')} (expected ADMIN)",
             )
 
         # Test that missing API key leaves role unset
@@ -227,7 +227,7 @@ def test_api_key_middleware_wired() -> None:
             }
 
             async def _inner_app(scope, receive, send):  # NOSONAR - python:S7503
-                captured["role"] = scope.get("fireai_role")
+                captured["role"] = scope.get("role")
 
             mw = ApiKeyMiddleware(_inner_app)
             await mw(scope, _receive, _send)
@@ -238,7 +238,7 @@ def test_api_key_middleware_wired() -> None:
             record(
                 "no_auth_leaves_unset",
                 "PASS",
-                "Missing API key leaves fireai_role=None (will default to VIEWER)",
+                "Missing API key leaves role=None (will default to VIEWER)",
             )
         else:
             record(
@@ -696,8 +696,8 @@ def test_sql_injection_defense() -> None:
 def test_csp_unsafe_inline_prod() -> None:
     print("\n[TEST 12] CSP 'unsafe-inline' in Production")
     try:
-        old_env = os.environ.get("FIREAI_ENV")
-        os.environ["FIREAI_ENV"] = "production"
+        old_env = os.environ.get("APP_ENV")
+        os.environ["APP_ENV"] = "production"
         for mod in list(sys.modules.keys()):  # NOSONAR - python:S7504
             if "security_middleware" in mod:
                 del sys.modules[mod]
@@ -728,9 +728,9 @@ def test_csp_unsafe_inline_prod() -> None:
             record("csp_unsafe_inline_prod", "PASS", "Production CSP is strict (no unsafe-inline)")
 
         if old_env is not None:
-            os.environ["FIREAI_ENV"] = old_env
+            os.environ["APP_ENV"] = old_env
         else:
-            os.environ.pop("FIREAI_ENV", None)
+            os.environ.pop("APP_ENV", None)
     except Exception as e:
         record("csp_test", "FAIL", f"Exception: {e}")
 
@@ -744,8 +744,8 @@ def test_hsts_conditional() -> None:
         # Per project policy (test_hsts_always_present in test_security_middleware_v129.py):
         # HSTS is ALWAYS emitted, even on plain HTTP. This is the safer default
         # for a safety-critical system. Modern browsers ignore HSTS on localhost.
-        old_env = os.environ.get("FIREAI_ENV")
-        os.environ["FIREAI_ENV"] = "development"
+        old_env = os.environ.get("APP_ENV")
+        os.environ["APP_ENV"] = "development"
         for mod in list(sys.modules.keys()):  # NOSONAR - python:S7504
             if "security_middleware" in mod:
                 del sys.modules[mod]
@@ -782,7 +782,7 @@ def test_hsts_conditional() -> None:
             record("hsts_emit_https_proxy", "FAIL", "HSTS not emitted behind HTTPS proxy")
 
         # Production mode → always emit
-        os.environ["FIREAI_ENV"] = "production"
+        os.environ["APP_ENV"] = "production"
         for mod in list(sys.modules.keys()):  # NOSONAR - python:S7504
             if "security_middleware" in mod:
                 del sys.modules[mod]
@@ -794,9 +794,9 @@ def test_hsts_conditional() -> None:
             record("hsts_always_prod", "FAIL", "HSTS not emitted in production")
 
         if old_env is not None:
-            os.environ["FIREAI_ENV"] = old_env
+            os.environ["APP_ENV"] = old_env
         else:
-            os.environ.pop("FIREAI_ENV", None)
+            os.environ.pop("APP_ENV", None)
     except Exception as e:
         record("hsts_test", "FAIL", f"Exception: {e}")
 
@@ -986,8 +986,8 @@ def test_sync_websocket_auth() -> None:
 def test_production_mode_safety() -> None:  # NOSONAR - python:S3776
     print("\n[TEST 18] Production Mode Safety")
     try:
-        old_env = os.environ.get("FIREAI_ENV")
-        os.environ["FIREAI_ENV"] = "production"
+        old_env = os.environ.get("APP_ENV")
+        os.environ["APP_ENV"] = "production"
         os.environ["CORS_ALLOWED_ORIGINS"] = "https://app.example.com"
         for mod in list(sys.modules.keys()):  # NOSONAR - python:S7504
             if "backend.app" in mod or "backend.security_middleware" in mod:
@@ -1028,9 +1028,9 @@ def test_production_mode_safety() -> None:  # NOSONAR - python:S3776
                 record("prod_cors_fail_safe", "FAIL", f"RuntimeError: {e}")
 
         if old_env is not None:
-            os.environ["FIREAI_ENV"] = old_env
+            os.environ["APP_ENV"] = old_env
         else:
-            os.environ.pop("FIREAI_ENV", None)
+            os.environ.pop("APP_ENV", None)
         os.environ.pop("CORS_ALLOWED_ORIGINS", None)
     except Exception as e:
         record("prod_mode_test", "FAIL", f"Exception: {e}")
@@ -1222,7 +1222,7 @@ def test_bcrypt_fallback() -> None:
 # ============================================================================
 def main() -> int:
     print("=" * 78)
-    print("  COMPREHENSIVE STRESS TEST SUITE v2 — Revit/FireAI Platform")
+    print("  COMPREHENSIVE STRESS TEST SUITE v2 — Revit/ETAP Platform")
     print("=" * 78)
     print(f"  Test artifacts dir: {TEST_DIR}")
     print(f"  Python: {sys.version.split()[0]}")

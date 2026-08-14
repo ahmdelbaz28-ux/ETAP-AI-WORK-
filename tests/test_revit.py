@@ -181,7 +181,7 @@ class TestRevitFileOperations:
         service = RevitService()
 
         # Use a path inside /tmp (allowed base) that doesn't exist
-        nonexistent = os.path.join(tempfile.gettempdir(), "nonexistent_fireai_test.rvt")
+        nonexistent = os.path.join(tempfile.gettempdir(), "nonexistent_test.rvt")
         # Clean up if it somehow exists from a previous run
         if os.path.exists(nonexistent):
             os.unlink(nonexistent)

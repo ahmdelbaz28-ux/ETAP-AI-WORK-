@@ -1,10 +1,10 @@
 # File-level '# NOSONAR' removed per NOSONAR_AUDIT.md (V143 hardening).
 # Per-line justified suppressions (e.g., '# NOSONAR — S3776: ...') are preserved.
 """
-backend/services/workflow_service.py — LangGraph-based Workflow Engine for FireAI.
+backend/services/workflow_service.py — LangGraph-based Workflow Engine for ETAP.
 
 PROFESSIONAL NOTE:
-  This module implements a deterministic State Machine for the FireAI pipeline
+  This module implements a deterministic State Machine for the ETAP pipeline
   using LangGraph, transforming the existing linear pipeline into an auditable,
   resumable, and safety-gated workflow.
 
@@ -60,7 +60,6 @@ from langgraph.graph import END, StateGraph
 logger = logging.getLogger(__name__)
 
 try:
-    from fireai.infrastructure.stuck_detector import (  # noqa: F401
         EscalationLevel,
         NodeTimeoutConfig,
         StuckDetector,
@@ -79,7 +78,6 @@ except ImportError:
 
 
 try:
-    from fireai.infrastructure.langfuse_setup import (
         flush_langfuse,
         get_langfuse_callback_handler,
         langfuse_health_check,  # noqa: F401
@@ -111,7 +109,7 @@ class WorkflowStatus(StrEnum):
 
 class PipelineState(TypedDict, total=False):
     """
-    State for the FireAI analysis pipeline.
+    State for the ETAP analysis pipeline.
 
     This TypedDict represents ALL data that flows through the pipeline.
     Each LangGraph node reads from and writes to this state.
@@ -246,8 +244,8 @@ def node_initialize(state: PipelineState) -> PipelineState:
     # allowed directories. Path traversal can leak secrets, configs,
     # or audit logs to unauthorized users.
     ALLOWED_DATA_DIRS = os.environ.get(
-        "FIREAI_DATA_DIRS",
-        "/tmp/fireai_uploads:/data:/uploads",  # NOSONAR
+        "DATA_DIRS",
+        "/tmp/uploads:/data:/uploads",  # NOSONAR
     ).split(":")
 
     if file_path:
@@ -569,7 +567,6 @@ def node_memory_enrich(state: PipelineState) -> PipelineState:
     enrichment_time_ms = 0.0
 
     try:
-        from fireai.infrastructure.mem0_workflow_bridge import (
             enrich_with_memory_context,
         )
 
@@ -1280,7 +1277,6 @@ def node_generate_report(state: PipelineState) -> PipelineState:
     # FAIL-SAFE: Storage failure NEVER blocks report generation
     memory_storage_result = {"stored": 0, "failed": 0, "skipped": True}
     try:
-        from fireai.infrastructure.mem0_workflow_bridge import store_analysis_result
 
         memory_storage_result = store_analysis_result(
             workflow_id=workflow_id,
@@ -1305,7 +1301,6 @@ def node_generate_report(state: PipelineState) -> PipelineState:
     # Records the execution path of the workflow for future reference.
     # FAIL-SAFE: Storage failure NEVER blocks report generation.
     try:
-        from fireai.infrastructure.mem0_workflow_bridge import store_procedural_trace
 
         procedural_result = store_procedural_trace(
             workflow_id=workflow_id,
@@ -1393,9 +1388,9 @@ def should_proceed_after_review(state: PipelineState) -> str:
 # ── Workflow Graph Builder ───────────────────────────────────────────────────
 
 
-def build_fireai_workflow() -> StateGraph:
+def build_workflow() -> StateGraph:
     """
-    Build the FireAI analysis workflow as a LangGraph StateGraph.
+    Build the ETAP analysis workflow as a LangGraph StateGraph.
 
     Graph topology (V73 with Mem0 integration):
         START → initialize → parse → validate → memory_enrich
@@ -1498,7 +1493,7 @@ def build_fireai_workflow() -> StateGraph:
 
 class WorkflowService:
     """
-    Service for managing FireAI analysis workflows.
+    Service for managing ETAP analysis workflows.
 
     Provides:
     - Start new workflows (with or without human review)
@@ -1531,7 +1526,7 @@ class WorkflowService:
         os.makedirs(checkpoint_dir, exist_ok=True)
         self._checkpoint_db_path = os.path.join(checkpoint_dir, "workflow_checkpoints.db")
         self._checkpointer = None  # Lazy-init in async context
-        self._graph = build_fireai_workflow()
+        self._graph = build_workflow()
         # V88 FIX: Compile graph synchronously (without checkpointer) so that
         # _graph_compiled is not None after __init__. This fixes the test
         # contract that expects service._graph_compiled to be set immediately.
@@ -1594,7 +1589,7 @@ class WorkflowService:
         engineer_id: str = "engineer_default",
     ) -> dict[str, Any]:
         """
-        Start a new FireAI analysis workflow.
+        Start a new ETAP analysis workflow.
 
         Args:
             file_path: Path to DWG/PDF/DXF file

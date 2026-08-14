@@ -14,7 +14,6 @@ from __future__ import annotations
 import math
 
 import pytest
-from fireai.core.smoke_simulation_state import (
     DEFAULT_VISIBILITY_HEIGHTS_M,
     EYE_LEVEL_ADULT_M,
     SMOKE_DENSITY_TENABILITY_THRESHOLD_KG_M3,

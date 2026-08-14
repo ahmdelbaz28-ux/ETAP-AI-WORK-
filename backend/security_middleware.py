@@ -4,7 +4,7 @@
 backend/security_middleware.py — Security Headers & Correlation Middleware.
 ==========================================================================
 
-Centralizes security-critical HTTP middleware for the FireAI backend:
+Centralizes security-critical HTTP middleware for the ETAP backend:
 
 1. **SecurityHeadersMiddleware** — Adds defense-in-depth security headers
    to EVERY HTTP response:
@@ -145,8 +145,8 @@ _CSP_DEVELOPMENT = (
 
 
 def _is_production_env() -> bool:
-    """Check FIREAI_ENV for production mode."""
-    return os.getenv("FIREAI_ENV", "production").lower() in ("production", "prod")
+    """Check APP_ENV for production mode."""
+    return os.getenv("APP_ENV", "production").lower() in ("production", "prod")
 
 
 def _build_csp(_scope: Scope) -> str:  # NOSONAR — S1172: parameter retained for API stability
@@ -254,8 +254,8 @@ class SecurityHeadersMiddleware:
 
 # ── ApiKeyMiddleware ────────────────────────────────────────────────────────
 # STRESS-TEST FIX #2: The original auth.py docstring claims "The role is set
-# by the ApiKeyMiddleware on request.state.fireai_role" — but no such
-# middleware existed in the codebase. As a result, request.state.fireai_role
+# by the ApiKeyMiddleware on request.state.role" — but no such
+# middleware existed in the codebase. As a result, request.state.role
 # was ALWAYS None, every require_permission() check fell through to the
 # Role.VIEWER default, admin endpoints were always 403 (legitimate admins
 # locked out) AND viewer-level endpoints were effectively public (no auth).
@@ -264,7 +264,7 @@ class SecurityHeadersMiddleware:
 #   1. Reads X-API-Key header from the request.
 #   2. Validates it via backend.api_keys.validate_api_key (now fixed to use
 #      deterministic HMAC lookup + bcrypt verification).
-#   3. Sets request.state.fireai_role and scope["fireai_role"] for downstream
+#   3. Sets request.state.role and scope["role"] for downstream
 #      require_permission() checks.
 #   4. Public paths (health, docs) are allowed through without auth, and the
 #      role remains None — require_permission() will default to VIEWER for
@@ -360,7 +360,7 @@ def _is_public_path(path: str) -> bool:
 
 class ApiKeyMiddleware:
     """
-    Pure ASGI middleware that validates X-API-Key and sets fireai_role.
+    Pure ASGI middleware that validates X-API-Key and sets role.
 
     DESIGN NOTES:
       - Pure ASGI (not BaseHTTPMiddleware) — no body buffering, safe for
@@ -369,7 +369,7 @@ class ApiKeyMiddleware:
       - On missing/invalid key for NON-public endpoints: returns 401 directly
         (does NOT default to VIEWER — that would give anonymous users read
         access to engineering data, which is unsafe for a life-safety system).
-      - On valid key: sets scope["fireai_role"] and scope["state"]["fireai_role"]
+      - On valid key: sets scope["role"] and scope["state"]["role"]
         to the validated Role enum value. Downstream require_permission()
         checks enforce role-based access (403 if insufficient).
       - Public endpoints (health, docs): no auth required, role remains None.
@@ -393,20 +393,20 @@ class ApiKeyMiddleware:
             return
 
         path = scope.get("path", "")
-        # SECURITY FIX A2: Only honor ENGINEERING_SERVICE_AUTH_DISABLED/FIREAI_AUTH_DISABLED
+        # SECURITY FIX A2: Only honor ENGINEERING_SERVICE_AUTH_DISABLED/AUTH_DISABLED
         # when NOT in production/staging environments. In production, auth is ALWAYS enforced.
-        env = (_os.getenv("ENVIRONMENT") or _os.getenv("FIREAI_ENV") or "").lower()
+        env = (_os.getenv("ENVIRONMENT") or _os.getenv("APP_ENV") or "").lower()
         if env not in ("production", "prod", "staging"):
             if _os.getenv("ENGINEERING_SERVICE_AUTH_DISABLED", "").lower() in (
                 "true",
                 "1",
                 "yes",
-            ) or _os.getenv("FIREAI_AUTH_DISABLED", "").lower() in ("true", "1", "yes"):
+            ) or _os.getenv("AUTH_DISABLED", "").lower() in ("true", "1", "yes"):
                 from backend.rbac import Role as _Role
 
                 scope.setdefault("state", {})
-                scope["state"]["fireai_role"] = _Role.ADMIN
-                scope["fireai_role"] = _Role.ADMIN
+                scope["state"]["role"] = _Role.ADMIN
+                scope["role"] = _Role.ADMIN
                 await self.app(scope, receive, send)
                 return
 
@@ -439,7 +439,7 @@ class ApiKeyMiddleware:
                         pair = pair.strip()
                         if "=" in pair:
                             k, v = pair.split("=", 1)
-                            if k.strip() == "fireai_session":
+                            if k.strip() == "session":
                                 cookie_token = v.strip()
                                 # Validate the signed session token
                                 try:
@@ -456,8 +456,8 @@ class ApiKeyMiddleware:
                                             role = None
                                         if role is not None:
                                             scope.setdefault("state", {})
-                                            scope["state"]["fireai_role"] = role
-                                            scope["fireai_role"] = role
+                                            scope["state"]["role"] = role
+                                            scope["role"] = role
                                             # Skip the API key validation below — session is authenticated
                                             await self.app(scope, receive, send)
                                             return
@@ -465,16 +465,16 @@ class ApiKeyMiddleware:
                                     pass  # auth module not available — fall through to 401
                                 break
 
-            # Also accept FIREAI_API_KEY env var bypass for server-side
+            # Also accept API_KEY env var bypass for server-side
             # internal calls (e.g. sidecars, monitoring agents). Only honored
             # if the env var is set — admin must explicitly opt in.
-            env_key = _os.getenv("FIREAI_API_KEY")
+            env_key = _os.getenv("API_KEY")
             role = None
             if api_key and env_key and _hmac.compare_digest(api_key, env_key):
-                # Env var bypass — configurable role (defaults to ADMIN, customizable via FIREAI_API_KEY_ROLE)
+                # Env var bypass — configurable role (defaults to ADMIN, customizable via API_KEY_ROLE)
                 from backend.rbac import Role as _Role
 
-                configured_role = _os.getenv("FIREAI_API_KEY_ROLE", "admin").lower()
+                configured_role = _os.getenv("API_KEY_ROLE", "admin").lower()
                 if configured_role == "engineer":
                     role = _Role.ENGINEER
                 elif configured_role == "viewer":
@@ -498,8 +498,8 @@ class ApiKeyMiddleware:
 
             if role is not None:
                 scope.setdefault("state", {})
-                scope["state"]["fireai_role"] = role
-                scope["fireai_role"] = role
+                scope["state"]["role"] = role
+                scope["role"] = role
 
         await self.app(scope, receive, send)
 
@@ -517,7 +517,7 @@ class ApiKeyMiddleware:
         # Start with WWW-Authenticate and content headers
         headers = [
             (b"content-type", b"application/json"),
-            (b"www-authenticate", b'X-API-Key realm="fireai"'),
+            (b"www-authenticate", b'X-API-Key realm="etap"'),
             (b"content-length", str(len(body)).encode("ascii")),
         ]
         # Add all static security headers (X-Frame-Options, etc.)

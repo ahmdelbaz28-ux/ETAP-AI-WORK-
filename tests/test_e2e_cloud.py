@@ -69,7 +69,6 @@ class TestNeo4jAuraE2E:
     @skip_neo4j
     def test_neo4j_connection_real(self):
         """Connect to REAL Neo4j Aura Cloud and verify health."""
-        from fireai.infrastructure.topology_graph_service import TopologyGraphService
 
         service = TopologyGraphService()
         service._initialize()
@@ -84,7 +83,6 @@ class TestNeo4jAuraE2E:
     @skip_neo4j
     def test_neo4j_add_element_real(self):
         """Add a REAL element to Neo4j Aura and verify it's stored."""
-        from fireai.infrastructure.topology_graph_service import (
             ElementType,
             NetworkElement,
             TopologyGraphService,
@@ -105,7 +103,6 @@ class TestNeo4jAuraE2E:
     @skip_neo4j
     def test_neo4j_add_connection_real(self):
         """Add REAL connections to Neo4j Aura and verify."""
-        from fireai.infrastructure.topology_graph_service import (
             ElementType,
             NetworkConnection,
             NetworkElement,
@@ -138,7 +135,6 @@ class TestNeo4jAuraE2E:
     @skip_neo4j
     def test_neo4j_impact_analysis_real(self):
         """Run REAL impact analysis on Neo4j Aura Cloud."""
-        from fireai.infrastructure.topology_graph_service import TopologyGraphService
 
         service = TopologyGraphService()
         service._initialize()
@@ -159,7 +155,6 @@ class TestNeo4jAuraE2E:
     @skip_neo4j
     def test_neo4j_health_check_real(self):
         """Verify Neo4j health check returns real node/edge counts."""
-        from fireai.infrastructure.topology_graph_service import TopologyGraphService
 
         service = TopologyGraphService()
         service._initialize()
@@ -181,7 +176,6 @@ class TestQdrantCloudE2E:
     @skip_qdrant
     def test_qdrant_connection_real(self):
         """Connect to REAL Qdrant Cloud and verify health."""
-        from fireai.infrastructure.vector_memory_service import VectorMemoryService
 
         service = VectorMemoryService()
         service._initialize()
@@ -195,7 +189,6 @@ class TestQdrantCloudE2E:
     @skip_qdrant
     def test_qdrant_store_real(self):
         """Store a REAL memory in Qdrant Cloud."""
-        from fireai.infrastructure.vector_memory_service import (
             MemoryType,
             VectorMemoryService,
         )
@@ -214,7 +207,6 @@ class TestQdrantCloudE2E:
     @skip_qdrant
     def test_qdrant_search_exact_match_real(self):
         """Search Qdrant Cloud with exact text — should find it."""
-        from fireai.infrastructure.vector_memory_service import (
             MemoryType,
             VectorMemoryService,
         )
@@ -243,7 +235,6 @@ class TestQdrantCloudE2E:
     @skip_qdrant
     def test_qdrant_store_multiple_collections_real(self):
         """Store in multiple Qdrant collections — verify stores succeed."""
-        from fireai.infrastructure.vector_memory_service import (
             MemoryType,
             VectorMemoryService,
         )
@@ -281,7 +272,6 @@ class TestGraphRAGE2E:
     @skip_neo4j
     def test_graphrag_engine_initializes_real(self):
         """Initialize GraphRAG with REAL Neo4j + REAL Modal API."""
-        from fireai.infrastructure.graphrag_engine import GraphRAGEngine
 
         engine = GraphRAGEngine()
         engine._initialize()
@@ -296,7 +286,6 @@ class TestGraphRAGE2E:
     @skip_neo4j
     def test_graphrag_llm_model_is_glm(self):
         """Verify GraphRAG auto-selected GLM-5.1-FP8 (not gpt-4o)."""
-        from fireai.infrastructure.graphrag_engine import GraphRAGEngine
 
         engine = GraphRAGEngine()
         # If MODAL_API_KEY is set, model should be GLM-5.1-FP8
@@ -310,7 +299,6 @@ class TestGraphRAGE2E:
     @skip_neo4j
     def test_graphrag_ask_real(self):
         """Ask GraphRAG a question against REAL Neo4j + Modal."""
-        from fireai.infrastructure.graphrag_engine import GraphRAGEngine
 
         engine = GraphRAGEngine()
         engine._initialize()
@@ -328,7 +316,6 @@ class TestGraphRAGE2E:
     @skip_neo4j
     def test_graphrag_provider_detected(self):
         """Verify GraphRAG detected the correct provider (Modal or OpenAI)."""
-        from fireai.infrastructure.graphrag_engine import GraphRAGEngine
 
         engine = GraphRAGEngine()
         assert engine._openai_key, "Should have API key detected"
@@ -353,21 +340,18 @@ class TestFullStackE2E:
     def test_all_cloud_services_connected(self):
         """Verify ALL cloud services are simultaneously connected."""
         # Neo4j
-        from fireai.infrastructure.topology_graph_service import TopologyGraphService
 
         neo4j = TopologyGraphService()
         neo4j._initialize()
         assert neo4j.health_check()["healthy"] is True, "Neo4j should be healthy"
 
         # Qdrant
-        from fireai.infrastructure.vector_memory_service import VectorMemoryService
 
         qdrant = VectorMemoryService()
         qdrant._initialize()
         assert qdrant.health_check()["healthy"] is True, "Qdrant should be healthy"
 
         # GraphRAG
-        from fireai.infrastructure.graphrag_engine import GraphRAGEngine
 
         graphrag = GraphRAGEngine()
         graphrag._initialize()
@@ -378,7 +362,7 @@ class TestFullStackE2E:
     @skip_neo4j
     def test_v2_api_topology_endpoint_e2e(self):
         """V2 API /api/v2/topology/health should report Neo4j connected."""
-        os.environ["FIREAI_API_KEY"] = "e2e-test-key-1234567890"
+        os.environ["API_KEY"] = "e2e-test-key-1234567890"
         from fastapi.testclient import TestClient
 
         from backend.app import app
@@ -398,7 +382,7 @@ class TestFullStackE2E:
     @skip_qdrant
     def test_v2_api_memory_endpoint_e2e(self):
         """V2 API /api/v2/memory/health should report Qdrant connected."""
-        os.environ["FIREAI_API_KEY"] = "e2e-test-key-1234567890"
+        os.environ["API_KEY"] = "e2e-test-key-1234567890"
         from fastapi.testclient import TestClient
 
         from backend.app import app

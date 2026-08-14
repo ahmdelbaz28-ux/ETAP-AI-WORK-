@@ -1,5 +1,5 @@
 """
-FireAI Rules Engine — V95 Regression Tests
+ETAP Rules Engine — V95 Regression Tests
 ===========================================
 
 Regression tests for two bugs fixed in engine.py commit c32f651:
@@ -31,11 +31,9 @@ from __future__ import annotations
 from collections import Counter
 
 import pytest
-from fireai.core.rules_engine.engine import (
     Fact,
     RulesEngine,
 )
-from fireai.core.rules_engine.nfpa72_rules import NFPA72RuleSet
 
 # ---------------------------------------------------------------------------
 # BUG-V95-ENGINE-02 — Iteration reset between evaluate() calls

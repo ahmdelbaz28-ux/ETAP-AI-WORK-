@@ -3,7 +3,7 @@
 """
 tests/test_geometry_utils.py
 =============================
-Comprehensive test suite for fireai/core/geometry_utils.py
+Comprehensive test suite for etap/core/geometry_utils.py
 
 SAFETY CRITICAL: Geometry calculations determine detector spacing, coverage
 areas, and egress paths. Incorrect point-in-polygon or area calculations can
@@ -17,7 +17,6 @@ NFPA 72 References:
 from __future__ import annotations
 
 import pytest
-from fireai.core.geometry_utils import (
     _ensure_closed,
     bounding_rect_dimensions,
     convex_hull_2d,

@@ -14,7 +14,7 @@ Test categories:
    5. node_initialize() — path traversal, file not found, normal init
    6. node_parse() — basic parsing structure
    7. Conditional edges — all routing functions
-   8. build_fireai_workflow() — graph construction
+   8. build_workflow() — graph construction
    9. WorkflowService — __init__, create_workflow, status, approve, reject, audit
 """
 
@@ -50,7 +50,7 @@ from backend.services.workflow_service import (
     WorkflowStatus,
     _compute_sha256,
     _log_transition,
-    build_fireai_workflow,
+    build_workflow,
     node_initialize,
     node_parse,
     should_proceed_after_parse,
@@ -76,7 +76,7 @@ def service():
 @pytest.fixture
 def sample_state() -> PipelineState:
     return {
-        "file_path": "/tmp/fireai_uploads/test.pdf",  # NOSONAR — S5443: safe in test (uses tempfile + cleanup)
+        "file_path": "/tmp/uploads/test.pdf",  # NOSONAR — S5443: safe in test (uses tempfile + cleanup)
         "file_sha256": "",
         "file_type": "",
         "rooms": [],
@@ -354,9 +354,9 @@ class TestNodeInitialize:
     @patch("os.path.realpath")
     def test_file_not_found(self, mock_realpath, mock_env_get, sample_state):
         mock_env_get.return_value = (
-            "/tmp/fireai_uploads"  # NOSONAR — S5443: safe in test (uses tempfile + cleanup)
+            "/tmp/uploads"  # NOSONAR — S5443: safe in test (uses tempfile + cleanup)
         )
-        mock_realpath.return_value = "/tmp/fireai_uploads/nonexistent.pdf"  # NOSONAR — S5443: safe in test (uses tempfile + cleanup)
+        mock_realpath.return_value = "/tmp/uploads/nonexistent.pdf"  # NOSONAR — S5443: safe in test (uses tempfile + cleanup)
         with patch("os.path.exists", return_value=False):
             result = node_initialize(sample_state)
         assert result["status"] == WorkflowStatus.FAILED.value
@@ -366,7 +366,7 @@ class TestNodeInitialize:
     @patch("os.path.realpath")
     def test_empty_file_path_returns_failed(self, mock_realpath, mock_env_get, sample_state):
         mock_env_get.return_value = (
-            "/tmp/fireai_uploads"  # NOSONAR — S5443: safe in test (uses tempfile + cleanup)
+            "/tmp/uploads"  # NOSONAR — S5443: safe in test (uses tempfile + cleanup)
         )
         mock_realpath.return_value = ""
         sample_state["file_path"] = ""
@@ -378,9 +378,9 @@ class TestNodeInitialize:
     @patch("os.path.realpath")
     def test_normal_initialization(self, mock_realpath, mock_env_get, sample_state):
         mock_env_get.return_value = (
-            "/tmp/fireai_uploads"  # NOSONAR — S5443: safe in test (uses tempfile + cleanup)
+            "/tmp/uploads"  # NOSONAR — S5443: safe in test (uses tempfile + cleanup)
         )
-        mock_realpath.return_value = "/tmp/fireai_uploads/test.pdf"  # NOSONAR — S5443: safe in test (uses tempfile + cleanup)
+        mock_realpath.return_value = "/tmp/uploads/test.pdf"  # NOSONAR — S5443: safe in test (uses tempfile + cleanup)
         file_content = b"fake pdf content"
         m_open = mock_open(read_data=file_content)
 
@@ -398,9 +398,9 @@ class TestNodeInitialize:
     @patch("os.path.realpath")
     def test_sha256_computation(self, mock_realpath, mock_env_get, sample_state):
         mock_env_get.return_value = (
-            "/tmp/fireai_uploads"  # NOSONAR — S5443: safe in test (uses tempfile + cleanup)
+            "/tmp/uploads"  # NOSONAR — S5443: safe in test (uses tempfile + cleanup)
         )
-        mock_realpath.return_value = "/tmp/fireai_uploads/test.pdf"  # NOSONAR — S5443: safe in test (uses tempfile + cleanup)
+        mock_realpath.return_value = "/tmp/uploads/test.pdf"  # NOSONAR — S5443: safe in test (uses tempfile + cleanup)
         m_open = mock_open(read_data=b"deterministic content")
 
         with patch("os.path.exists", return_value=True), patch("builtins.open", m_open):
@@ -427,10 +427,10 @@ class TestNodeInitialize:
         self, mock_realpath, mock_env_get, sample_state, ext, expected_type
     ):
         mock_env_get.return_value = (
-            "/tmp/fireai_uploads"  # NOSONAR — S5443: safe in test (uses tempfile + cleanup)
+            "/tmp/uploads"  # NOSONAR — S5443: safe in test (uses tempfile + cleanup)
         )
         full_path = (
-            f"/tmp/fireai_uploads/{ext}"  # NOSONAR — S5443: safe in test (uses tempfile + cleanup)
+            f"/tmp/uploads/{ext}"  # NOSONAR — S5443: safe in test (uses tempfile + cleanup)
         )
         mock_realpath.return_value = full_path
         sample_state["file_path"] = full_path
@@ -447,9 +447,9 @@ class TestNodeInitialize:
     @patch("os.path.realpath")
     def test_transition_logged_on_success(self, mock_realpath, mock_env_get, sample_state):
         mock_env_get.return_value = (
-            "/tmp/fireai_uploads"  # NOSONAR — S5443: safe in test (uses tempfile + cleanup)
+            "/tmp/uploads"  # NOSONAR — S5443: safe in test (uses tempfile + cleanup)
         )
-        mock_realpath.return_value = "/tmp/fireai_uploads/test.pdf"  # NOSONAR — S5443: safe in test (uses tempfile + cleanup)
+        mock_realpath.return_value = "/tmp/uploads/test.pdf"  # NOSONAR — S5443: safe in test (uses tempfile + cleanup)
 
         with (
             patch("os.path.exists", return_value=True),
@@ -576,16 +576,16 @@ class TestShouldProceedAfterReview:
         assert should_proceed_after_review(sample_state) == END
 
 
-# ── 8. build_fireai_workflow() ────────────────────────────────────────────────
+# ── 8. build_workflow() ────────────────────────────────────────────────
 
 
 class TestBuildFireaiWorkflow:
     def test_returns_stategraph(self):
-        graph = build_fireai_workflow()
+        graph = build_workflow()
         assert graph is not None
 
     def test_all_nodes_registered(self, service):
-        graph = build_fireai_workflow()
+        graph = build_workflow()
         expected_nodes = {
             "initialize",
             "parse",
@@ -601,19 +601,19 @@ class TestBuildFireaiWorkflow:
             assert node in graph.nodes, f"Missing node: {node}"
 
     def test_entry_point_is_initialize(self):
-        graph = build_fireai_workflow()
+        graph = build_workflow()
         # LangGraph uses different internal structure depending on version
         # Verify initialize is the first node in the graph
         assert "initialize" in graph.nodes
 
     def test_direct_edges_exist(self):
-        graph = build_fireai_workflow()
+        graph = build_workflow()
         # LangGraph edges are in graph.edges (public attribute)
         edges = getattr(graph, "edges", [])
         assert any("initialize" in str(e) for e in edges) or "initialize" in graph.nodes
 
     def test_conditional_edges_exist(self):
-        graph = build_fireai_workflow()
+        graph = build_workflow()
         # LangGraph conditional edges stored differently across versions
         # The graph has conditional edges by design — verify nodes exist
         assert "human_review_gate" in graph.nodes

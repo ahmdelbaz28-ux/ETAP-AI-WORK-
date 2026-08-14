@@ -1,9 +1,9 @@
 # NOSONAR
 """
-services/doctr/main.py — DocTR OCR Service for FireAI
+services/doctr/main.py — DocTR OCR Service for ETAP
 
 Standalone FastAPI service that provides OCR with bounding boxes.
-Called by fireai.integration.document_intelligence via HTTP.
+Called by etap.integration.document_intelligence via HTTP.
 
 V140 Phase 10: Adapted from Chunkr's DocTR service but standalone —
 no Chunkr dependencies, no AGPL contamination.
@@ -188,7 +188,7 @@ async def lifespan(app: FastAPI):
         torch.cuda.empty_cache()
 
 
-app = FastAPI(lifespan=lifespan, title="FireAI DocTR OCR Service")
+app = FastAPI(lifespan=lifespan, title="ETAP DocTR OCR Service")
 
 
 @app.post("/batch")
@@ -210,7 +210,7 @@ async def batch_ocr(files: List[UploadFile] = File(...)):  # NOSONAR - python:S8
 
 @app.get("/")
 async def root():
-    return {"message": "FireAI DocTR OCR Service", "status": "ok"}
+    return {"message": "ETAP DocTR OCR Service", "status": "ok"}
 
 
 @app.get("/health")

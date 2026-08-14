@@ -4,7 +4,7 @@
 tests/test_bim_input_sanitizer.py
 ==================================
 Comprehensive test suite for:
-  fireai/core/bim_input_sanitizer.py
+  etap/core/bim_input_sanitizer.py
 
 SAFETY CRITICAL: Unsanitized inputs to BIM parameters can cause:
   1. Remote Code Execution (RCE) via eval()/exec()
@@ -23,7 +23,6 @@ parameters that flow from external sources into BIM models.
 from __future__ import annotations
 
 import pytest
-from fireai.core.bim_input_sanitizer import (
     sanitize_bim_parameter,
     sanitize_file_path,
     sanitize_room_name,

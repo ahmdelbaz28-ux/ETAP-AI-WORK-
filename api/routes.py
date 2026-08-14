@@ -165,7 +165,7 @@ if is_production_environment():
             "JWT_SECRET_KEY",
             "ENGINEERING_SERVICE_API_KEY",
             "FERNET_ENCRYPTION_KEY",
-            "FIREAI_SESSION_SECRET",
+            "SESSION_SECRET",
             "REDIS_PASSWORD",
             "POSTGRES_PASSWORD",
         )

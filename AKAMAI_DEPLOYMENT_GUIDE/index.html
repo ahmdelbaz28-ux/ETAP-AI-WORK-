@@ -20,7 +20,7 @@
     
     
       
-        <title>Akamai Deployment Guide — BAZSPARK - AhmedETAP Documentation</title>
+        <title>Akamai Deployment Guide — ETAP - AhmedETAP Documentation</title>
       
     
     
@@ -70,7 +70,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#akamai-deployment-guide-bazspark" class="md-skip">
+        <a href="#akamai-deployment-guide-etap" class="md-skip">
           Skip to content
         </a>
       
@@ -104,7 +104,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Akamai Deployment Guide — BAZSPARK
+              Akamai Deployment Guide — ETAP
             
           </span>
         </div>
@@ -829,9 +829,9 @@
   
 
 
-<h1 id="akamai-deployment-guide-bazspark">Akamai Deployment Guide — BAZSPARK</h1>
+<h1 id="akamai-deployment-guide-etap">Akamai Deployment Guide — ETAP</h1>
 <blockquote>
-<p><strong>دليل النشر الكامل لحماية BAZSPARK بـ Akamai</strong>
+<p><strong>دليل النشر الكامل لحماية ETAP بـ Akamai</strong>
 Prerequisites: Akamai account + contract + API credentials.</p>
 </blockquote>
 <hr />
@@ -882,12 +882,12 @@ Prerequisites: Akamai account + contract + API credentials.</p>
 </code></pre></div></p>
 <h3 id="13-domain-dns">1.3 Domain + DNS</h3>
 <ol>
-<li>امتلك <code>bazspark.com</code> (أو domain آخر)</li>
+<li>امتلك <code>etap.com</code> (أو domain آخر)</li>
 <li>صلاحية تعديل DNS records (Cloudflare DNS, Route53, GoDaddy, إلخ)</li>
 </ol>
 <h3 id="14-origin">1.4 Origin جاهز</h3>
 <ul>
-<li>✅ HF Space: <a href="https://ahmdelbaz28-bazspark.hf.space">https://ahmdelbaz28-bazspark.hf.space</a> (يعمل)</li>
+<li>✅ HF Space: <a href="https://ahmdelbaz28-etap.hf.space">https://ahmdelbaz28-etap.hf.space</a> (يعمل)</li>
 <li>✅ Vercel project: <a href="https://revit-xxxx.vercel.app">https://revit-xxxx.vercel.app</a> (يعمل)</li>
 <li>✅ Backend health: <code>/api/health</code> يعود <code>status: ok, database: connected</code></li>
 </ul>
@@ -904,8 +904,8 @@ Prerequisites: Akamai account + contract + API credentials.</p>
 <a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="nb">export</span><span class="w"> </span><span class="nv">AKAMAI_ACCESS_TOKEN</span><span class="o">=</span><span class="s2">&quot;akab-xxxx...&quot;</span>
 <a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>
 <a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="c1"># Akamai Property config</span>
-<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="nb">export</span><span class="w"> </span><span class="nv">AKAMAI_EDGE_HOSTNAME</span><span class="o">=</span><span class="s2">&quot;bazspark&quot;</span><span class="w">           </span><span class="c1"># → bazspark.edgeservices.net</span>
-<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="nb">export</span><span class="w"> </span><span class="nv">AKAMAI_ORIGIN_HOSTNAME</span><span class="o">=</span><span class="s2">&quot;ahmdelbaz28-bazspark.hf.space&quot;</span><span class="w">  </span><span class="c1"># HF Space</span>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="nb">export</span><span class="w"> </span><span class="nv">AKAMAI_EDGE_HOSTNAME</span><span class="o">=</span><span class="s2">&quot;etap&quot;</span><span class="w">           </span><span class="c1"># → etap.edgeservices.net</span>
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="nb">export</span><span class="w"> </span><span class="nv">AKAMAI_ORIGIN_HOSTNAME</span><span class="o">=</span><span class="s2">&quot;ahmdelbaz28-etap.hf.space&quot;</span><span class="w">  </span><span class="c1"># HF Space</span>
 <a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="c1"># OR: export AKAMAI_ORIGIN_HOSTNAME=&quot;revit-xxxx.vercel.app&quot;     # Vercel</span>
 <a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>
 <a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="c1"># Origin verification token (generate a strong random secret)</span>
@@ -927,7 +927,7 @@ Prerequisites: Akamai account + contract + API credentials.</p>
 <a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="w">  </span>--notify-email<span class="w"> </span>eng.ahmed.elbaz@gmail.com
 </code></pre></div>
 <p>السكريبت سيقوم بـ:
-1. ✅ إنشاء Property جديد باسم <code>BAZSPARK</code>
+1. ✅ إنشاء Property جديد باسم <code>ETAP</code>
 2. ✅ استيراد القواعد من <code>deploy/akamai/property-main.json</code>
 3. ✅ إضافة hostnames من <code>deploy/akamai/hostnames.json</code>
 4. ✅ تفعيل على شبكة <strong>staging</strong>
@@ -940,7 +940,7 @@ Prerequisites: Akamai account + contract + API credentials.</p>
 <p>أو استخدم header:
 <div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>curl<span class="w"> </span>-H<span class="w"> </span><span class="s2">&quot;Pragma: akamai-x-get-extracted-values&quot;</span><span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">     </span>-H<span class="w"> </span><span class="s2">&quot;X-Akamai-Debug: true&quot;</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">     </span>https://bazspark.edgeservices.net.staging.akamaihd.net/api/health
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">     </span>https://etap.edgeservices.net.staging.akamaihd.net/api/health
 </code></pre></div></p>
 <p>تحقق من:
 - ✅ Response header <code>X-Akamai-EdgeWorker: inject-headers</code> موجود
@@ -976,10 +976,10 @@ Prerequisites: Akamai account + contract + API credentials.</p>
 <h3 id="step-7-dns">Step 7: تحديث DNS</h3>
 <p>في DNS provider الخاص بك:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>Type    Name                   Value                                  TTL
-<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>CNAME   api.bazspark.com       bazspark.edgeservices.net              3600
-<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>CNAME   www.bazspark.com       bazspark.edgeservices.net              3600
-<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>A       bazspark.com           23.x.x.x (from Akamai API)             3600
-<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>TXT     _dnsauth.bazspark.com  (Akamai-provided validation token)     300
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>CNAME   api.etap.com       etap.edgeservices.net              3600
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>CNAME   www.etap.com       etap.edgeservices.net              3600
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>A       etap.com           23.x.x.x (from Akamai API)             3600
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>TXT     _dnsauth.etap.com  (Akamai-provided validation token)     300
 </code></pre></div>
 <p>انتظر 5-30 دقيقة لـ DNS propagation.</p>
 <h3 id="step-8-backend-akamai">Step 8: تحديث backend لتفعيل Akamai</h3>
@@ -989,19 +989,19 @@ Prerequisites: Akamai account + contract + API credentials.</p>
 <a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$HF_TOKEN</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="w">  </span>-d<span class="w"> </span><span class="s2">&quot;{\&quot;key\&quot;:\&quot;AKAMAI_ENABLED\&quot;,\&quot;value\&quot;:\&quot;true\&quot;}&quot;</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="w">  </span>https://huggingface.co/api/spaces/ahmdelbaz28/BAZSPARK/secrets
+<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="w">  </span>https://huggingface.co/api/spaces/ahmdelbaz28/ETAP/secrets
 <a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a>
 <a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$HF_TOKEN</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a><span class="w">  </span>-d<span class="w"> </span><span class="s2">&quot;{\&quot;key\&quot;:\&quot;AKAMAI_REQUIRE_ORIGIN_TOKEN\&quot;,\&quot;value\&quot;:\&quot;</span><span class="nv">$AKAMAI_REQUIRE_ORIGIN_TOKEN</span><span class="s2">\&quot;}&quot;</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-10-12" name="__codelineno-10-12" href="#__codelineno-10-12"></a><span class="w">  </span>https://huggingface.co/api/spaces/ahmdelbaz28/BAZSPARK/secrets
+<a id="__codelineno-10-12" name="__codelineno-10-12" href="#__codelineno-10-12"></a><span class="w">  </span>https://huggingface.co/api/spaces/ahmdelbaz28/ETAP/secrets
 <a id="__codelineno-10-13" name="__codelineno-10-13" href="#__codelineno-10-13"></a>
 <a id="__codelineno-10-14" name="__codelineno-10-14" href="#__codelineno-10-14"></a>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-10-15" name="__codelineno-10-15" href="#__codelineno-10-15"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$HF_TOKEN</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-10-16" name="__codelineno-10-16" href="#__codelineno-10-16"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-10-17" name="__codelineno-10-17" href="#__codelineno-10-17"></a><span class="w">  </span>-d<span class="w"> </span><span class="s2">&quot;{\&quot;key\&quot;:\&quot;AKAMAI_BLOCKED_COUNTRIES\&quot;,\&quot;value\&quot;:\&quot;IR,KP,SY,CU,VE,BY,RU\&quot;}&quot;</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-10-18" name="__codelineno-10-18" href="#__codelineno-10-18"></a><span class="w">  </span>https://huggingface.co/api/spaces/ahmdelbaz28/BAZSPARK/secrets
+<a id="__codelineno-10-18" name="__codelineno-10-18" href="#__codelineno-10-18"></a><span class="w">  </span>https://huggingface.co/api/spaces/ahmdelbaz28/ETAP/secrets
 <a id="__codelineno-10-19" name="__codelineno-10-19" href="#__codelineno-10-19"></a>
 <a id="__codelineno-10-20" name="__codelineno-10-20" href="#__codelineno-10-20"></a><span class="c1"># Vercel (same vars, via Vercel API)</span>
 <a id="__codelineno-10-21" name="__codelineno-10-21" href="#__codelineno-10-21"></a><span class="c1"># Use scripts/restore_standard_db_config.py pattern with these new vars</span>
@@ -1061,7 +1061,7 @@ Prerequisites: Akamai account + contract + API credentials.</p>
 - Geo-blocked → تحقق من <code>Akamai-Geo-Country</code> header</p>
 <h3 id="403-forbidden-x-akamai-translated-request">المشكلة: 403 Forbidden (بدون <code>X-Akamai-Translated-Request</code>)</h3>
 <p><strong>السبب</strong>: الطلب لم يصل عبر Akamai (direct origin access)
-- تحقق من DNS: هل <code>bazspark.com</code> يشير إلى Akamai؟
+- تحقق من DNS: هل <code>etap.com</code> يشير إلى Akamai؟
 - تحقق من <code>AKAMAI_REQUIRE_ORIGIN_TOKEN</code>: هل هو متطابق بين Akamai والـ backend؟</p>
 <h3 id="x-forwarded-for-ip-logs">المشكلة: <code>X-Forwarded-For</code> يظهر IP خاطئ في الـ logs</h3>
 <p><strong>السبب</strong>: <code>AKAMAI_ENABLED=false</code> على الـ backend
@@ -1073,7 +1073,7 @@ Prerequisites: Akamai account + contract + API credentials.</p>
 <li><strong>Akamai Documentation</strong>: <a href="https://techdocs.akamai.com/">https://techdocs.akamai.com/</a></li>
 <li><strong>Akamai Community</strong>: <a href="https://community.akamai.com/">https://community.akamai.com/</a></li>
 </ul>
-<p>للأسئلة الداخلية عن تكامل BAZSPARK، راجع:
+<p>للأسئلة الداخلية عن تكامل ETAP، راجع:
 - <code>backend/akamai_middleware.py</code> (تكامل التطبيق)
 - <code>docs/AKAMAI_PROTECTION_PLAN.md</code> (الخطة الكاملة)
 - <code>docs/AKAMAI_TESTING_CHECKLIST.md</code> (قائمة الاختبار)

@@ -3,7 +3,7 @@
 """
 tests/test_building_engine.py
 ================================
-Comprehensive test suite for fireai/core/building_engine.py
+Comprehensive test suite for etap/core/building_engine.py
 
 SAFETY CRITICAL: BuildingEngine aggregates per-floor analysis and makes
 the final safe_to_submit decision. A single unsafe room in ANY floor
@@ -27,12 +27,9 @@ from __future__ import annotations
 from unittest.mock import MagicMock
 
 import pytest
-from fireai.core.building_engine import (
     BuildingEngine,
     BuildingReport,
 )
-from fireai.core.fire_zone_engine import ZoneConstraints
-from fireai.core.spatial_engine.density_optimizer import DensityOptimizer
 
 # Fixtures
 # ─────────────────────────────────────────────────────────────────────────────

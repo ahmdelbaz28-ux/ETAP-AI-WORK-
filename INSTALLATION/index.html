@@ -20,7 +20,7 @@
     
     
       
-        <title>FireAI Digital Twin — Installation Guide - AhmedETAP Documentation</title>
+        <title>ETAP Digital Twin — Installation Guide - AhmedETAP Documentation</title>
       
     
     
@@ -70,7 +70,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#fireai-digital-twin-installation-guide" class="md-skip">
+        <a href="#etap-digital-twin-installation-guide" class="md-skip">
           Skip to content
         </a>
       
@@ -104,7 +104,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              FireAI Digital Twin — Installation Guide
+              ETAP Digital Twin — Installation Guide
             
           </span>
         </div>
@@ -640,7 +640,7 @@
   
 
 
-<h1 id="fireai-digital-twin-installation-guide">FireAI Digital Twin — Installation Guide</h1>
+<h1 id="etap-digital-twin-installation-guide">ETAP Digital Twin — Installation Guide</h1>
 <h2 id="prerequisites">Prerequisites</h2>
 <ul>
 <li><strong>Python 3.12+</strong> (3.14 supported)</li>
@@ -655,17 +655,17 @@
 <a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="c1"># 2. Create environment configuration</span>
 <a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>cp<span class="w"> </span>.env.example<span class="w"> </span>.env
 <a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="c1"># Edit .env and set:</span>
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="c1">#   FIREAI_API_KEY=&lt;your-api-key&gt;</span>
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="c1">#   FIREAI_EVIDENCE_HMAC_KEY=&lt;your-hmac-key&gt;</span>
-<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="c1">#   FIREAI_ENV=development</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="c1">#   API_KEY=&lt;your-api-key&gt;</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="c1">#   EVIDENCE_HMAC_KEY=&lt;your-hmac-key&gt;</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="c1">#   APP_ENV=development</span>
 <a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>
 <a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="c1"># 3. Install Python dependencies</span>
 <a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt
 <a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>
 <a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="c1"># 4. Install optional features (if needed)</span>
-<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>pip<span class="w"> </span>install<span class="w"> </span>fireai<span class="o">[</span>workflow<span class="o">]</span><span class="w">   </span><span class="c1"># LangGraph workflow engine</span>
-<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>pip<span class="w"> </span>install<span class="w"> </span>fireai<span class="o">[</span>memory<span class="o">]</span><span class="w">     </span><span class="c1"># Mem0 + Qdrant long-term memory</span>
-<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>pip<span class="w"> </span>install<span class="w"> </span>fireai<span class="o">[</span>ifc<span class="o">]</span><span class="w">        </span><span class="c1"># IFC (ifcopenshell) support</span>
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>pip<span class="w"> </span>install<span class="w"> </span>etap<span class="o">[</span>workflow<span class="o">]</span><span class="w">   </span><span class="c1"># LangGraph workflow engine</span>
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>pip<span class="w"> </span>install<span class="w"> </span>etap<span class="o">[</span>memory<span class="o">]</span><span class="w">     </span><span class="c1"># Mem0 + Qdrant long-term memory</span>
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>pip<span class="w"> </span>install<span class="w"> </span>etap<span class="o">[</span>ifc<span class="o">]</span><span class="w">        </span><span class="c1"># IFC (ifcopenshell) support</span>
 <a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>
 <a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a><span class="c1"># 5. Install dev tools (for testing/linting)</span>
 <a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">&quot;.[dev]&quot;</span>
@@ -683,8 +683,8 @@
 </code></pre></div>
 <h2 id="docker-deployment-production">Docker Deployment (Production)</h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># 1. Set required environment variables</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="nb">export</span><span class="w"> </span><span class="nv">FIREAI_API_KEY</span><span class="o">=</span><span class="s2">&quot;your-production-api-key&quot;</span>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="nb">export</span><span class="w"> </span><span class="nv">FIREAI_EVIDENCE_HMAC_KEY</span><span class="o">=</span><span class="s2">&quot;</span><span class="k">$(</span>python3<span class="w"> </span>-c<span class="w"> </span><span class="s1">&#39;import secrets; print(secrets.token_hex(32))&#39;</span><span class="k">)</span><span class="s2">&quot;</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="nb">export</span><span class="w"> </span><span class="nv">API_KEY</span><span class="o">=</span><span class="s2">&quot;your-production-api-key&quot;</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="nb">export</span><span class="w"> </span><span class="nv">EVIDENCE_HMAC_KEY</span><span class="o">=</span><span class="s2">&quot;</span><span class="k">$(</span>python3<span class="w"> </span>-c<span class="w"> </span><span class="s1">&#39;import secrets; print(secrets.token_hex(32))&#39;</span><span class="k">)</span><span class="s2">&quot;</span>
 <a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>
 <a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="c1"># 2. Build and run with Docker Compose</span>
 <a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>docker<span class="w"> </span>compose<span class="w"> </span>up<span class="w"> </span>-d
@@ -703,24 +703,24 @@
 </thead>
 <tbody>
 <tr>
-<td><code>FIREAI_API_KEY</code></td>
+<td><code>API_KEY</code></td>
 <td>Yes</td>
 <td>API key for authentication. Mutating endpoints require <code>X-API-Key</code> header.</td>
 </tr>
 <tr>
-<td><code>FIREAI_EVIDENCE_HMAC_KEY</code></td>
+<td><code>EVIDENCE_HMAC_KEY</code></td>
 <td>Yes</td>
 <td>HMAC-SHA256 key for audit log integrity. Must be cryptographically generated for production.</td>
 </tr>
 <tr>
-<td><code>FIREAI_ENV</code></td>
+<td><code>APP_ENV</code></td>
 <td>No</td>
 <td><code>development</code> or <code>production</code>. Defaults to <code>production</code>.</td>
 </tr>
 <tr>
-<td><code>FIREAI_DB_PATH</code></td>
+<td><code>DB_PATH</code></td>
 <td>No</td>
-<td>Override path for audit database. Defaults to <code>data/fireai_audit.db</code>.</td>
+<td>Override path for audit database. Defaults to <code>data/audit.db</code>.</td>
 </tr>
 <tr>
 <td><code>LOG_LEVEL</code></td>
@@ -757,7 +757,7 @@
 <li>[ ] Health check returns 200: <code>curl http://localhost:8000/api/health</code></li>
 <li>[ ] All tests pass: <code>pytest tests/ -v</code></li>
 <li>[ ] Frontend builds: <code>cd frontend &amp;&amp; npm run build</code></li>
-<li>[ ] Linting passes: <code>ruff check fireai/ backend/ parsers/</code></li>
+<li>[ ] Linting passes: <code>ruff check etap/ backend/ parsers/</code></li>
 </ul>
 
 

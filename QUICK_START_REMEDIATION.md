@@ -93,15 +93,15 @@ notepad .env
 
 **Required Fields to Fill:**
 ```ini
-FIREAI_API_KEY=<generate-new-key>
+API_KEY=<generate-new-key>
 DATABASE_URL=postgresql://user:pass@localhost:5432/revit_db
-FIREAI_ENV=development
+APP_ENV=development
 ```
 
 **Generate Secure API Key:**
 ```powershell
 python -c "import secrets; print(secrets.token_urlsafe(32))"
-# Copy output to FIREAI_API_KEY in .env
+# Copy output to API_KEY in .env
 ```
 
 ---

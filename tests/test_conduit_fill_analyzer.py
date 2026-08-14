@@ -4,7 +4,7 @@
 tests/test_conduit_fill_analyzer.py
 ====================================
 Comprehensive test suite for:
-  - fireai/core/conduit_fill_analyzer.py
+  - etap/core/conduit_fill_analyzer.py
 
 SAFETY CRITICAL: This module verifies conduit fill compliance per
 NEC Chapter 9 Table 1 and Table 4. Overfilled conduits cause thermal
@@ -27,7 +27,6 @@ import math
 # field names than what conduit_fill_analyzer expects, causing TypeError.
 # We mock provenance to None to test the actual business logic via the
 # fallback dict path — consistent with the pattern used in group 3/4 tests.
-import fireai.core.conduit_fill_analyzer as _cfa_mod
 import pytest
 
 
@@ -49,7 +48,6 @@ def _disable_provenance():
         setattr(_cfa_mod, attr, val)
 
 
-from fireai.core.conduit_fill_analyzer import (
     CONDUCTOR_DERATING,
     CONDUIT_SPECS,
     DEFAULT_FILL_LIMIT,

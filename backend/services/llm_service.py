@@ -5,7 +5,7 @@ PURPOSE
 -------
 Provides an async LLM chat completion service backed by any OpenAI-compatible
 API (Zenmux, OpenAI, Modal, NVIDIA build.nvidia.com, etc.). Designed for the
-FireAI AI Copilot — an engineering assistant that helps fire-protection
+ETAP AI Copilot — an engineering assistant that helps fire-protection
 engineers interpret NFPA 72 / NEC calculation results, draft compliance
 narratives, and answer code questions.
 

@@ -1,4 +1,4 @@
-# FireAI System Design Document
+# ETAP System Design Document
 
 ## Table of Contents
 1. [Overview](#overview)
@@ -13,13 +13,13 @@
 
 ## Overview
 
-FireAI is an advanced artificial intelligence platform designed for engineering analysis and simulation, with particular focus on electrical power systems analysis through integration with ETAP and GIS mapping capabilities. The system provides a comprehensive solution for engineers to perform complex studies, simulations, and safety analyses with built-in safety protocols and validation mechanisms.
+ETAP is an advanced artificial intelligence platform designed for engineering analysis and simulation, with particular focus on electrical power systems analysis through integration with ETAP and GIS mapping capabilities. The system provides a comprehensive solution for engineers to perform complex studies, simulations, and safety analyses with built-in safety protocols and validation mechanisms.
 
 ### Purpose
-This document outlines the system architecture, design principles, and technical implementation details of the FireAI platform. It serves as a reference for developers, architects, and stakeholders involved in the development and maintenance of the platform.
+This document outlines the system architecture, design principles, and technical implementation details of the ETAP platform. It serves as a reference for developers, architects, and stakeholders involved in the development and maintenance of the platform.
 
 ### Scope
-The FireAI system encompasses:
+The ETAP system encompasses:
 - Multi-layer AI architecture (L1 Interface, L2 Orchestrator, L3 Engine)
 - ETAP integration for electrical power system analysis
 - GIS mapping and visualization capabilities
@@ -72,7 +72,7 @@ The FireAI system encompasses:
 │                     L2 Orchestration Layer              │
 ├─────────────────────────────────────────────────────────┤
 │  ┌─────────────────────────────────────────────────────┐│
-│  │         FireAI Orchestrator                       ││
+│  │         ETAP Orchestrator                       ││
 │  │  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐  ││
 │  │  │ Study       │ │ Safety      │ │ Validation  │  ││
 │  │  │ Management  │ │ Protocols   │ │ Engine      │  ││
@@ -122,11 +122,11 @@ The FireAI system encompasses:
 
 ### Core Components
 
-#### FireAI Core Engine
+#### ETAP Core Engine
 ```python
-class FireAIEngine:
+class ETAPEngine:
     """
-    Main orchestrator for FireAI system operations.
+    Main orchestrator for ETAP system operations.
     Manages the interaction between different layers and ensures
     safety protocols are enforced throughout the execution pipeline.
     """
@@ -179,7 +179,7 @@ class SafetyValidator:
 class ETAPConnector:
     """
     Handles integration with ETAP electrical power system analysis software.
-    Ensures safe and validated communication between FireAI and ETAP.
+    Ensures safe and validated communication between ETAP and ETAP.
     """
     
     def __init__(self):

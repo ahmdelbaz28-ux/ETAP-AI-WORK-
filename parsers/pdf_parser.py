@@ -1,7 +1,7 @@
 # File-level suppression removed per audit (V143 hardening).
 # Per-line justified suppressions (e.g., '# noqa: S3776 ...') are preserved.
 """
-pdf_parser.py — FireAI PDF Floor Plan Parser
+pdf_parser.py — ETAP PDF Floor Plan Parser
 Extracts fire alarm device locations from PDF drawings.
 
 SAFETY-CRITICAL: Parses PDF floor plans to detect:
@@ -21,7 +21,7 @@ import re
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional
 
-logger = logging.getLogger("fireai.pdf_parser")
+logger = logging.getLogger("etap.pdf_parser")
 
 
 # ═══════════════════════════════════════════════════════
@@ -138,7 +138,7 @@ class PDFParser:
         Parse PDF file for fire alarm devices.
 
         Args:
-            pdf_path: Path to PDF file. MUST be under FIREAI_ALLOWED_UPLOAD_DIRS
+            pdf_path: Path to PDF file. MUST be under ALLOWED_UPLOAD_DIRS
                 and MUST have a .pdf extension (V124 security hardening).
 
         Returns:
@@ -154,7 +154,7 @@ class PDFParser:
 
         _ALLOWED_EXTENSIONS = frozenset({".pdf"})
         _MAX_FILE_SIZE_BYTES = int(
-            os.getenv("FIREAI_PDF_MAX_FILE_SIZE_BYTES", 200 * 1024 * 1024)
+            os.getenv("PDF_MAX_FILE_SIZE_BYTES", 200 * 1024 * 1024)
         )  # 200 MB default
         try:
             safe_path = validate_input_path(
@@ -183,7 +183,7 @@ class PDFParser:
         #   - Path traversal (../../etc/passwd)
         #   - Null byte truncation
         #   - Argument injection (leading '-')
-        #   - Files outside FIREAI_ALLOWED_UPLOAD_DIRS
+        #   - Files outside ALLOWED_UPLOAD_DIRS
         #   - DoS via oversized files (cap: 200 MB, env-configurable)
         # PDF files can be very large (multi-page architectural plans),
         # so the default cap is higher than DWG.
@@ -196,7 +196,7 @@ class PDFParser:
         )
 
         _PDF_MAX_BYTES = int(
-            _os.getenv("FIREAI_PDF_MAX_FILE_SIZE_BYTES", str(200 * 1024 * 1024))
+            _os.getenv("PDF_MAX_FILE_SIZE_BYTES", str(200 * 1024 * 1024))
         )  # 200 MB
 
         try:
@@ -283,7 +283,6 @@ class PDFParser:
         """Extract text from page using OCR (Tesseract or DocTR)."""
         # V140 Phase 10: Try DocTR OCR service first (more accurate), fall back to Tesseract
         try:
-            from fireai.integration.document_intelligence import is_doctr_available, ocr_image
 
             if is_doctr_available():
                 # Render page to image

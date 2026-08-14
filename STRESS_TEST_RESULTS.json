@@ -27,12 +27,12 @@
 	{
 		"test": "middleware_sets_role",
 		"status": "PASS",
-		"details": "ApiKeyMiddleware correctly sets fireai_role=ADMIN"
+		"details": "ApiKeyMiddleware correctly sets role=ADMIN"
 	},
 	{
 		"test": "no_auth_leaves_unset",
 		"status": "PASS",
-		"details": "Missing API key leaves fireai_role=None (will default to VIEWER)"
+		"details": "Missing API key leaves role=None (will default to VIEWER)"
 	},
 	{
 		"test": "cache_cap_set",

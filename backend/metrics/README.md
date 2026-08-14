@@ -1,6 +1,6 @@
 # Backend Metrics Directory
 
-This directory contains Prometheus metrics configuration for monitoring the FireAI platform.
+This directory contains Prometheus metrics configuration for monitoring the ETAP platform.
 
 ## Files
 - `prometheus.yml` - Prometheus scrape configuration
@@ -16,10 +16,10 @@ metrics:
 ```
 
 ## Available Metrics
-- `fireai_http_requests_total` - HTTP request counter
-- `fireai_http_request_duration_seconds` - Request latency histogram
-- `fireai_active_projects` - Number of active projects
-- `fireai_nfpa72_validations_total` - NFPA 72 validation count
+- `http_requests_total` - HTTP request counter
+- `http_request_duration_seconds` - Request latency histogram
+- `active_projects` - Number of active projects
+- `nfpa72_validations_total` - NFPA 72 validation count
 
 ## Note
 This is a placeholder directory. Full metrics implementation coming in v1.1.0

@@ -3,7 +3,7 @@
 """
 tests/test_qomn_kernel.py
 Comprehensive test suite for:
-  - fireai/core/qomn_kernel.py
+  - etap/core/qomn_kernel.py
 
 SAFETY CRITICAL: This module is the QOMN-FIRE Deterministic Engineering
 Kernel. Errors in physics guards, computation, or audit logging could
@@ -26,7 +26,6 @@ import math
 import os
 
 import pytest
-from fireai.core.qomn_kernel import (
     ACCESS_CONTROL_READER_HEIGHT_M,
     CCTV_LENS_FOV_DEG,
     NEC_AMPACITY_60C,
@@ -361,7 +360,7 @@ class TestNFPA72Constants:
     """Verify NFPA 72 reference constants match published standard."""
 
     # V121 FIX: Smoke spacing table updated to canonical values from
-    # fireai/constants/nfpa72.py. Old values applied heat detector
+    # etap/constants/nfpa72.py. Old values applied heat detector
     # reduction (1%/ft) to smoke detectors — a known misapplication.
     # New table has 9 rows (conservative height-adjusted values).
     def test_smoke_spacing_table_entries(self):
@@ -397,7 +396,7 @@ class TestNFPA72Constants:
     # V121 FIX: HEAT_MAX_SPACING_M corrected from 15.240 to 6.1
     # (6.1m = 20ft is the standard spacing at h≤3.0m per Table 17.6.3.5.1;
     # 15.24m = 50ft is the ABSOLUTE max listed spacing, now in
-    # fireai/constants/nfpa72.py as HEAT_ABSOLUTE_MAX_SPACING_M)
+    # etap/constants/nfpa72.py as HEAT_ABSOLUTE_MAX_SPACING_M)
     def test_heat_max_spacing(self):
         """
         NFPA 72 Table 17.6.2.1: max 6.1m (20ft) for fixed-temperature heat.
@@ -451,7 +450,7 @@ class TestNECConstants:
     """Verify NEC Table 8 and ampacity constants."""
 
     def test_resistance_table_keys(self):
-        # C-3 FIX: Table now uses 20°C stranded values from fireai/constants/nec.py
+        # C-3 FIX: Table now uses 20°C stranded values from etap/constants/nec.py
         # Includes AWG 3 which is in the stranded conductor table
         expected = {
             "18",
@@ -574,7 +573,7 @@ class TestComputeSmokeDetectorSpacing:
 
     # V127 PHASE C: Height-adjusted spacing per Table 17.6.3.1.1 restored.
     # The V121 flat-only override was removed in favor of the canonical
-    # height-adjusted spacing table from fireai/constants/__init__.py.
+    # height-adjusted spacing table from etap/constants/__init__.py.
     def test_medium_ceiling(self):
         """V130 FIX: h=4.0m → FLAT 9.1m spacing per §17.7.3.2.3."""
         result = compute_smoke_detector_spacing(4.0)
@@ -939,23 +938,23 @@ class TestQOMNAuditLog:
         assert len(exported["entries"]) == 1
 
     def test_hmac_key_used_when_set(self):
-        """V114 FIX: When FIREAI_QOMN_HMAC_KEY is set, use HMAC-SHA256."""
-        os.environ["FIREAI_QOMN_HMAC_KEY"] = "test-secret-key-12345"
+        """V114 FIX: When QOMN_HMAC_KEY is set, use HMAC-SHA256."""
+        os.environ["QOMN_HMAC_KEY"] = "test-secret-key-12345"
         try:
             log = QOMNAuditLog()
             log.record("test", {"x": 1}, "§1", {"y": 1})
             assert log.verify_chain_integrity() is True
         finally:
-            del os.environ["FIREAI_QOMN_HMAC_KEY"]
+            del os.environ["QOMN_HMAC_KEY"]
 
     def test_hmac_key_produces_different_hash_than_sha256(self):
-        os.environ["FIREAI_QOMN_HMAC_KEY"] = "test-secret-key-12345"
+        os.environ["QOMN_HMAC_KEY"] = "test-secret-key-12345"
         try:
             log_hmac = QOMNAuditLog()
             log_hmac.record("test", {"x": 1}, "§1", {"y": 1})
             hmac_hash = log_hmac._chain_hash
         finally:
-            del os.environ["FIREAI_QOMN_HMAC_KEY"]
+            del os.environ["QOMN_HMAC_KEY"]
 
         log_plain = QOMNAuditLog()
         log_plain.record("test", {"x": 1}, "§1", {"y": 1})

@@ -1,4 +1,4 @@
-# FireAI Digital Twin — Production Readiness Report V131
+# ETAP Digital Twin — Production Readiness Report V131
 
 **Date**: June 9, 2026
 **Version**: 1.0.0 (Internal dev cycle V55/V131)
@@ -11,10 +11,10 @@
 ### Critical Fixes (5)
 | # | Issue | Fix | Files Changed |
 |---|-------|-----|---------------|
-| 1 | Windows path assertion failures | Made `_resolve_db_path` tests cross-platform using `os.path.abspath` checks | `tests/test_fireai_core_v2.py` |
+| 1 | Windows path assertion failures | Made `_resolve_db_path` tests cross-platform using `os.path.abspath` checks | `tests/test_core_v2.py` |
 | 2 | SQLite file lock on cleanup (Windows) | Added `log.close()` in `test_custom_db_path` test | `tests/test_audit_log.py` |
 | 3 | SQLite file lock in DeltaCache tests (Windows) | Changed cleanup to `try/except PermissionError` and added `persist()` calls before cleanup | `tests/test_delta_cache.py` |
-| 4 | DeltaCache connection leak on exception | `_load_from_db()` and `persist()` now use `try/finally` with `conn.close()` in finally block | `fireai/core/delta_cache.py` |
+| 4 | DeltaCache connection leak on exception | `_load_from_db()` and `persist()` now use `try/finally` with `conn.close()` in finally block | `etap/core/delta_cache.py` |
 | 5 | Missing parser dependencies (cv2, pandas) blocking tests | Added pymupdf, opencv-python, pandas to requirements.txt and pyproject.toml | `requirements.txt`, `pyproject.toml` |
 
 ### Security Fixes (2)
@@ -65,7 +65,7 @@
 
 ### Docker
 - ✅ Dockerfile present (multi-stage, non-root user, health check)
-- ✅ docker-compose.yml validated (requires FIREAI_API_KEY and FIREAI_EVIDENCE_HMAC_KEY)
+- ✅ docker-compose.yml validated (requires API_KEY and EVIDENCE_HMAC_KEY)
 - ✅ Container runs with read-only filesystem, no-new-privileges, tmpfs for /tmp
 
 ---
@@ -167,7 +167,7 @@ Pre-commit hooks configured: detect-secrets, gitleaks, bandit, ruff, trailing-wh
 | Dockerfile | ✅ Present and validated |
 | docker-compose.yml | ✅ Present with required env vars |
 | Health check | ✅ Returns 200 OK |
-| Non-root user | ✅ fireai user (UID 1000) |
+| Non-root user | ✅ etap user (UID 1000) |
 | Read-only filesystem | ✅ Except /data and /logs volumes |
 | Graceful shutdown | ✅ Services close on shutdown event |
 | Frontend static mount | ✅ Auto-detected when dist/ exists |
@@ -208,10 +208,10 @@ The project has been fully audited, fixed, tested, built, documented, and verifi
 
 ## Changes Made (files modified)
 
-1. `tests/test_fireai_core_v2.py` — Cross-platform path assertions
+1. `tests/test_core_v2.py` — Cross-platform path assertions
 2. `tests/test_audit_log.py` — Added `log.close()` for Windows cleanup
 3. `tests/test_delta_cache.py` — PermissionError-safe cleanup
-4. `fireai/core/delta_cache.py` — `try/finally` connection cleanup in `_load_from_db()` and `persist()`
+4. `etap/core/delta_cache.py` — `try/finally` connection cleanup in `_load_from_db()` and `persist()`
 5. `backend/services/severe_weather_service.py` — defusedxml import
 6. `backend/services/__init__.py` — Conditional workflow/memory imports
 7. `backend/app.py` — Conditional router mounting, conditional shutdown handlers

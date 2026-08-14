@@ -1,8 +1,8 @@
-# BAZSPARK FireAI — Development Pipeline
+# ETAP ETAP — Development Pipeline
 
 > **Integrated workflow**: CodeSandbox (human dev) → GitHub → Daytona (AI review) → HF Spaces + Vercel (production).
 
-This document is the canonical reference for how the four environments in the BAZSPARK FireAI stack fit together. It is referenced by `agent.md` (V206) and should be updated whenever the pipeline topology changes.
+This document is the canonical reference for how the four environments in the ETAP ETAP stack fit together. It is referenced by `agent.md` (V206) and should be updated whenever the pipeline topology changes.
 
 ---
 
@@ -57,7 +57,7 @@ This document is the canonical reference for how the four environments in the BA
    - `pip install -e .` (backend)
    - `npm ci` in `frontend/`
    - Playwright Chromium install
-   - Generates a local `.env` with a random `FIREAI_SESSION_SECRET`
+   - Generates a local `.env` with a random `SESSION_SECRET`
 5. `post-start.sh` runs on every session restart:
    - Starts local Postgres + Redis (if installed)
    - Prints a banner with the common dev commands
@@ -109,8 +109,8 @@ cd frontend && npm run lint
 4. Streams the PR source into the sandbox via the SDK filesystem API.
 5. Runs the validation matrix:
    - `ruff check` (lint)
-   - `mypy` (type-check backend, fireai, core — skills excluded per V140 root-cause)
-   - `pytest core/tests parsers/tests fireai/core/tests` (fast subset)
+   - `mypy` (type-check backend, etap, core — skills excluded per V140 root-cause)
+   - `pytest core/tests parsers/tests etap/core/tests` (fast subset)
    - `tsc --noEmit` on the frontend
 6. Posts a structured Markdown table + collapsible output tails as a PR comment.
 7. Tears down the sandbox in an `if: always()` step (so it cleans up even on failure).
@@ -141,7 +141,7 @@ cd frontend && npm run lint
 | Vector store | **Qdrant Cloud** | Optional — only for GraphRAG features |
 
 ### Deployment paths
-- **HF Spaces**: `.github/workflows/sync-to-hf.yml` mirrors runtime files to `huggingface.co/spaces/ahmdelbaz28/BAZSPARK` on every push to `main`.
+- **HF Spaces**: `.github/workflows/sync-to-hf.yml` mirrors runtime files to `huggingface.co/spaces/ahmdelbaz28/ETAP` on every push to `main`.
 - **Vercel**: `.github/workflows/trigger-vercel.yml` fires a deploy hook. The Vercel project overrides the build command to `cd frontend && npm install && npm run build` (see V161/V162 fix history in `agent.md`).
 - **Supabase**: schema migrations live in `alembic/`; run `alembic upgrade head` against the production DB after deploy.
 
@@ -221,7 +221,7 @@ ETAP (Electrical Transient Analyzer Program) integration requires a Windows runt
 | HF Spaces 404 on `/` | Frontend build missing in image (V206 regression) | Verify Stage 1 of `Dockerfile` ran and `dist/index.html` exists |
 | Vercel build fails on Python auto-detect | `vercel.json` not overriding build command | See V161/V162 fix history in `agent.md` |
 | `psycopg2.OperationalError` on HF | IPv6-only Supabase unreachable | Set `NEON_DATABASE_URL` (IPv4) as fallback |
-| `FIREAI_SESSION_SECRET` not set | `.env` not generated | `python3 -m backend.session_secret generate` |
+| `SESSION_SECRET` not set | `.env` not generated | `python3 -m backend.session_secret generate` |
 
 ---
 

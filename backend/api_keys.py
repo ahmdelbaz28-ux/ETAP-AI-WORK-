@@ -5,7 +5,7 @@ API Key management with role-based access control.
 
 Each API key is associated with a role (admin, engineer, viewer).
 Keys are stored as SHA-256 hashes (never plaintext).
-On first startup, creates an admin key from FIREAI_API_KEY env var.
+On first startup, creates an admin key from API_KEY env var.
 """
 
 from __future__ import annotations
@@ -39,7 +39,7 @@ from backend.rbac import APIKeyInfo, Role
 
 logger = logging.getLogger(__name__)
 
-KEYS_FILE = os.getenv("FIREAI_API_KEYS_FILE", "db/api_keys.json")
+KEYS_FILE = os.getenv("API_KEYS_FILE", "db/api_keys.json")
 
 # Thread-safety lock for TOCTOU prevention on load-modify-save cycles
 _keys_lock = threading.Lock()
@@ -139,7 +139,7 @@ def _timing_safe_dummy_verify(key: str) -> None:
 # so that restarts preserve lookup determinism. If the secret file is lost,
 # all keys become invalid (fail-closed — admin must re-issue keys).
 _SERVER_SECRET_FILE = os.getenv(
-    "FIREAI_API_KEYS_SECRET_FILE",
+    "API_KEYS_SECRET_FILE",
     os.path.join(os.path.dirname(KEYS_FILE) or ".", "api_keys.secret"),
 )
 _SERVER_SECRET: bytes = b""
@@ -166,23 +166,23 @@ def _get_keys_file_path() -> str:
     """
     Return the current API keys file path.
 
-    Reads FIREAI_API_KEYS_FILE at call time to support runtime configuration
+    Reads API_KEYS_FILE at call time to support runtime configuration
     changes and test isolation via monkeypatch.setenv. Falls back to the
     module-level KEYS_FILE constant (which may be patched by tests using
     mock.patch('backend.api_keys.KEYS_FILE')).
     """
-    return os.getenv("FIREAI_API_KEYS_FILE", KEYS_FILE)
+    return os.getenv("API_KEYS_FILE", KEYS_FILE)
 
 
 def _get_server_secret_file_path() -> str:
     """
     Return the current server-secret file path.
 
-    Reads FIREAI_API_KEYS_SECRET_FILE at call time to support runtime
+    Reads API_KEYS_SECRET_FILE at call time to support runtime
     configuration changes and test isolation via monkeypatch.setenv. Falls
     back to the module-level _SERVER_SECRET_FILE constant.
     """
-    return os.getenv("FIREAI_API_KEYS_SECRET_FILE", _SERVER_SECRET_FILE)
+    return os.getenv("API_KEYS_SECRET_FILE", _SERVER_SECRET_FILE)
 
 
 # ── POSITIVE VALIDATION CACHE ───────────────────────────────────────────────
@@ -205,7 +205,7 @@ def _get_server_secret_file_path() -> str:
 # changes and revocations take effect immediately (no stale auth).
 _VALIDATED_KEY_CACHE: dict[str, tuple[APIKeyInfo, float]] = {}
 _VALIDATED_KEY_CACHE_LOCK = threading.Lock()
-_VALIDATED_KEY_CACHE_TTL = float(os.getenv("FIREAI_KEY_CACHE_TTL", "300"))
+_VALIDATED_KEY_CACHE_TTL = float(os.getenv("KEY_CACHE_TTL", "300"))
 
 
 def _load_server_secret() -> bytes:
@@ -385,7 +385,7 @@ def _ensure_default_admin_key() -> None:
     with _keys_lock:
         keys = _load_keys()
         if not keys:
-            env_key = os.getenv("FIREAI_API_KEY")
+            env_key = os.getenv("API_KEY")
             if env_key:
                 # Release the lock and call add_api_key (which re-acquires it)
                 pass
@@ -394,10 +394,10 @@ def _ensure_default_admin_key() -> None:
         else:
             return
     # Outside the lock — add_api_key will take the lock itself
-    env_key = os.getenv("FIREAI_API_KEY")
+    env_key = os.getenv("API_KEY")
     if env_key:
-        add_api_key(env_key, Role.ADMIN, "Default admin key (from FIREAI_API_KEY)")
-        logger.info("Created default admin API key from FIREAI_API_KEY env var")
+        add_api_key(env_key, Role.ADMIN, "Default admin key (from API_KEY)")
+        logger.info("Created default admin API key from API_KEY env var")
 
 
 def add_api_key(key: str, role: Role, description: str = "") -> str:

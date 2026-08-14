@@ -1,31 +1,31 @@
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
-  name: fireai-api-pdb
-  namespace: fireai
+  name: etap-api-pdb
+  namespace: etap
   labels:
-    app.kubernetes.io/name: fireai
+    app.kubernetes.io/name: etap
     app.kubernetes.io/component: api
-    app.kubernetes.io/part-of: fireai
+    app.kubernetes.io/part-of: etap
 spec:
   minAvailable: 2
   selector:
     matchLabels:
-      app.kubernetes.io/name: fireai
+      app.kubernetes.io/name: etap
       app.kubernetes.io/component: api
 ---
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
-  name: fireai-worker-pdb
-  namespace: fireai
+  name: etap-worker-pdb
+  namespace: etap
   labels:
-    app.kubernetes.io/name: fireai
+    app.kubernetes.io/name: etap
     app.kubernetes.io/component: worker
-    app.kubernetes.io/part-of: fireai
+    app.kubernetes.io/part-of: etap
 spec:
   minAvailable: 1
   selector:
     matchLabels:
-      app.kubernetes.io/name: fireai
+      app.kubernetes.io/name: etap
       app.kubernetes.io/component: worker

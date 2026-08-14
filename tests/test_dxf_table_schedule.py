@@ -1,7 +1,7 @@
 """
 tests/test_dxf_table_schedule.py
 =================================
-Comprehensive test suite for fireai/core/dxf_table_schedule.py
+Comprehensive test suite for etap/core/dxf_table_schedule.py
 
 Tests DXF TABLE entity generation for fire alarm device schedules.
 TrueAECDraftingTable creates proper DXF TABLE entities (queryable in
@@ -13,7 +13,6 @@ from __future__ import annotations
 from unittest.mock import MagicMock, patch
 
 import pytest
-from fireai.core.dxf_table_schedule import Table, TrueAECDraftingTable
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # TrueAECDraftingTable Tests
@@ -33,7 +32,7 @@ class TestTrueAECDraftingTable:
         """If ezdxf Table addon not available, returns False."""
         msp = MagicMock()
         t = TrueAECDraftingTable()
-        with patch("fireai.core.dxf_table_schedule.Table", None):
+        with patch("etap.core.dxf_table_schedule.Table", None):
             result = t.draft_device_boq_table(msp, [])
             assert result is False
 
@@ -44,7 +43,7 @@ class TestTrueAECDraftingTable:
 
         msp = MagicMock()
         tbl_mock = MagicMock()
-        with patch("fireai.core.dxf_table_schedule.Table", return_value=tbl_mock):
+        with patch("etap.core.dxf_table_schedule.Table", return_value=tbl_mock):
             t = TrueAECDraftingTable()
             devices = [
                 {
@@ -84,7 +83,7 @@ class TestTrueAECDraftingTable:
             x = 5.0
             y = 10.0
 
-        with patch("fireai.core.dxf_table_schedule.Table", return_value=tbl_mock):
+        with patch("etap.core.dxf_table_schedule.Table", return_value=tbl_mock):
             t = TrueAECDraftingTable()
             result = t.draft_device_boq_table(msp, [DevObj()])
             assert result is True
@@ -104,7 +103,7 @@ class TestTrueAECDraftingTable:
             zone_id = "Z4"
             # No x, y attributes
 
-        with patch("fireai.core.dxf_table_schedule.Table", return_value=tbl_mock):
+        with patch("etap.core.dxf_table_schedule.Table", return_value=tbl_mock):
             t = TrueAECDraftingTable()
             result = t.draft_device_boq_table(msp, [DevObjNoXY()])
             assert result is True
@@ -117,7 +116,7 @@ class TestTrueAECDraftingTable:
         msp = MagicMock()
         tbl_mock = MagicMock()
 
-        with patch("fireai.core.dxf_table_schedule.Table", return_value=tbl_mock):
+        with patch("etap.core.dxf_table_schedule.Table", return_value=tbl_mock):
             t = TrueAECDraftingTable()
             devices = [{}]  # All defaults
             result = t.draft_device_boq_table(msp, devices)
@@ -132,7 +131,7 @@ class TestTrueAECDraftingTable:
         tbl_mock = MagicMock()
         tbl_mock.render.side_effect = RuntimeError("Render failed")
 
-        with patch("fireai.core.dxf_table_schedule.Table", return_value=tbl_mock):
+        with patch("etap.core.dxf_table_schedule.Table", return_value=tbl_mock):
             t = TrueAECDraftingTable()
             result = t.draft_device_boq_table(msp, [])
             assert result is False
@@ -145,7 +144,7 @@ class TestTrueAECDraftingTable:
         msp = MagicMock()
         tbl_mock = MagicMock()
 
-        with patch("fireai.core.dxf_table_schedule.Table", return_value=tbl_mock):
+        with patch("etap.core.dxf_table_schedule.Table", return_value=tbl_mock):
             t = TrueAECDraftingTable()
             result = t.draft_device_boq_table(msp, [], "Empty Schedule")
             assert result is True
@@ -159,7 +158,7 @@ class TestTrueAECDraftingTable:
         pos = (5.0, 10.0, 0.0)
         tbl_mock = MagicMock()
 
-        with patch("fireai.core.dxf_table_schedule.Table", return_value=tbl_mock) as MockTable:
+        with patch("etap.core.dxf_table_schedule.Table", return_value=tbl_mock) as MockTable:
             t = TrueAECDraftingTable(table_position_xyz=pos)
             t.draft_device_boq_table(msp, [])
             MockTable.assert_called_once()

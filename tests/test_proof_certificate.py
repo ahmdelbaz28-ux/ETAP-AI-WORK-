@@ -3,7 +3,7 @@
 """
 tests/test_proof_certificate.py
 ================================
-Comprehensive test suite for fireai/core/spatial_engine/proof_certificate.py
+Comprehensive test suite for etap/core/spatial_engine/proof_certificate.py
 
 SAFETY CRITICAL: The proof certificate provides mathematical proof that
 detector coverage meets NFPA 72 requirements. A faulty certificate could
@@ -25,8 +25,6 @@ import json
 import math
 
 import pytest
-from fireai.core.spatial_engine.density_optimizer import DETECTOR_RADIUS
-from fireai.core.spatial_engine.proof_certificate import (
     ProofCertificate,
     ProofCertificateGenerator,
 )
@@ -149,7 +147,7 @@ class TestProofCertificate:
         assert (
             cert.wall_min_m == 0.10
         )  # NOSONAR — S1244: import retained for re-export / API surface
-        assert cert.fireai_version == "1.0.0"
+        assert cert.version == "1.0.0"
 
     def test_warnings_default_empty(self):
         cert = ProofCertificate(

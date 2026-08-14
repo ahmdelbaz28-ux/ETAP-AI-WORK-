@@ -4,7 +4,7 @@
 tests/test_pathway_survivability_engine.py
 ===========================================
 Comprehensive test suite for:
-  fireai/core/pathway_survivability_engine.py
+  etap/core/pathway_survivability_engine.py
 
 NFPA 72-2022 §12.4 Pathway Survivability Classification.
 
@@ -22,12 +22,10 @@ NFPA 72 References:
 from __future__ import annotations
 
 import pytest
-from fireai.core.contracts import (
     CableType,
     OccupancyCategory,
     PathwaySurvivabilityLevel,
 )
-from fireai.core.pathway_survivability_engine import (
     BuildingSpec,
     PathwaySurvivabilityEngine,
     SurvivabilityResult,

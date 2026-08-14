@@ -3,7 +3,7 @@
 """
 tests/test_monte_carlo.py
 ==========================
-Comprehensive test suite for fireai/core/monte_carlo.py
+Comprehensive test suite for etap/core/monte_carlo.py
 
 SAFETY CRITICAL: Monte Carlo resilience check determines whether detector
 placement survives single-detector failure. Errors could approve non-resilient
@@ -15,7 +15,6 @@ Reference: NFPA 72-2022 §17.8.3.4 (redundancy), §14.4 (reliability)
 from __future__ import annotations
 
 import pytest
-from fireai.core.monte_carlo import (
     _MC_ITERATIONS,
     _MC_RESILIENCE_FLOOR,
     _run_resilience_check_original,

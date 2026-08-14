@@ -1,6 +1,6 @@
 ## Quick Start
 
-**FireAI Digital Twin Platform v1.0.0**
+**ETAP Digital Twin Platform v1.0.0**
 
 ### Table of Contents
 1. [Prerequisites](#prerequisites)
@@ -13,7 +13,7 @@
 
 ## Prerequisites
 
-Before installing FireAI, ensure your system meets the following requirements:
+Before installing ETAP, ensure your system meets the following requirements:
 
 ### System Requirements
 - **Operating System**: Windows 10/11, macOS 10.15+, or Linux (Ubuntu 18.04+, CentOS 7+)
@@ -41,7 +41,7 @@ Before installing FireAI, ensure your system meets the following requirements:
 2. **Configure environment**
    ```bash
    cp .env.example .env
-   # Edit .env and set FIREAI_API_KEY and FIREAI_EVIDENCE_HMAC_KEY
+   # Edit .env and set API_KEY and EVIDENCE_HMAC_KEY
    ```
 
 3. **Build and run with Docker Compose**
@@ -78,8 +78,8 @@ Before installing FireAI, ensure your system meets the following requirements:
 
 5. **Run the application**
    ```bash
-   export FIREAI_ENV=development
-   export FIREAI_API_KEY=$(python3 -c "import secrets; print(secrets.token_hex(32))")
+   export APP_ENV=development
+   export API_KEY=$(python3 -c "import secrets; print(secrets.token_hex(32))")
    python -m backend.app
    ```
 
@@ -99,14 +99,14 @@ Before installing FireAI, ensure your system meets the following requirements:
    Open `.env` and set the following required parameters:
 
    ```bash
-   # FireAI Configuration
-   FIREAI_ENV=production
+   # ETAP Configuration
+   APP_ENV=production
    PORT=8000
 
    # Security - generate keys using:
    # python3 -c "import secrets; print(secrets.token_hex(32))"
-   FIREAI_API_KEY=your-secret-key-here
-   FIREAI_EVIDENCE_HMAC_KEY=your-hmac-key-here
+   API_KEY=your-secret-key-here
+   EVIDENCE_HMAC_KEY=your-hmac-key-here
 
    # CORS - allowed origins (comma-separated)
    CORS_ORIGINS=http://localhost:5173,http://localhost:8000
@@ -119,8 +119,8 @@ Before installing FireAI, ensure your system meets the following requirements:
    You can also set configuration via environment variables:
 
    ```bash
-   export FIREAI_API_KEY="your-api-key"
-   export FIREAI_ENV="production"
+   export API_KEY="your-api-key"
+   export APP_ENV="production"
    export LOG_LEVEL="INFO"
    ```
 
@@ -147,8 +147,8 @@ Before installing FireAI, ensure your system meets the following requirements:
 1. **Start the web server**
    ```bash
    cd /workspace/project/revit
-   export FIREAI_ENV=development
-   export FIREAI_API_KEY=$(python3 -c "import secrets; print(secrets.token_hex(32))")
+   export APP_ENV=development
+   export API_KEY=$(python3 -c "import secrets; print(secrets.token_hex(32))")
    python -m backend.app
    ```
 
@@ -272,7 +272,7 @@ pip install --force-reinstall -r requirements.txt
 **Problem**: Application fails to start due to configuration errors
 **Solution**:
 1. Check that `.env` file exists
-2. Ensure FIREAI_API_KEY is set
+2. Ensure API_KEY is set
 3. Verify that referenced files and directories are accessible
 4. Check that ports are not in use
 
@@ -323,7 +323,7 @@ pip install --force-reinstall -r requirements.txt
 
 3. **Community support**
    - Check the [GitHub Issues](https://github.com/ahmdelbaz28-ux/revit/issues) page
-   - Email support: engineering@fireai.org
+   - Email support: engineering@etap.org
 
 ## Next Steps
 
@@ -368,8 +368,8 @@ When ready for production deployment:
 - **Official Documentation**: [README.md](./README.md)
 - **API Reference**: [docs/API.md](./docs/API.md)
 - **GitHub Repository**: [https://github.com/ahmdelbaz28-ux/revit](https://github.com/ahmdelbaz28-ux/revit)
-- **Commercial Support**: engineering@fireai.org
+- **Commercial Support**: engineering@etap.org
 
 ---
 
-*FireAI Digital Twin Platform v1.0.0 - Safety-Critical Fire Protection Engineering*
+*ETAP Digital Twin Platform v1.0.0 - Safety-Critical Fire Protection Engineering*

@@ -1,5 +1,5 @@
 """
-test_version.py — Tests for fireai/version.py.
+test_version.py — Tests for etap/version.py.
 
 Verifies version constants, header generation, and consistency checks.
 """
@@ -9,10 +9,9 @@ from __future__ import annotations
 import platform
 import sys
 
-from fireai.version import (
     ATEX_EDITION,
-    FIREAI_VERSION,
-    FIREAI_VERSION_FULL,
+    APP_VERSION,
+    APP_VERSION_FULL,
     IEC_HAC_EDITION,
     MAJOR,
     MINOR,
@@ -36,13 +35,13 @@ class TestVersionConstants:
         assert MINOR >= 0
         assert PATCH >= 0
 
-    def test_fireai_version_format(self):
-        assert FIREAI_VERSION.startswith("V")
-        assert f"{MAJOR}.{MINOR}.{PATCH}" in FIREAI_VERSION
+    def test_version_format(self):
+        assert APP_VERSION.startswith("V")
+        assert f"{MAJOR}.{MINOR}.{PATCH}" in APP_VERSION
 
-    def test_fireai_version_full_format(self):
-        assert FIREAI_VERSION_FULL.startswith("FireAI ")
-        assert FIREAI_VERSION in FIREAI_VERSION_FULL
+    def test_version_full_format(self):
+        assert APP_VERSION_FULL.startswith("ETAP ")
+        assert APP_VERSION in APP_VERSION_FULL
 
     def test_package_version_string(self):
         assert __package_version__ == "1.0.0"
@@ -59,7 +58,7 @@ class TestBuildVersionHeader:
 
     def test_header_contains_version(self):
         header = build_version_header()
-        assert header["fireai_version"] == FIREAI_VERSION_FULL
+        assert header["version"] == APP_VERSION_FULL
 
     def test_header_contains_standards(self):
         header = build_version_header()

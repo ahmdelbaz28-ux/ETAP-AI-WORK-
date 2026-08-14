@@ -24,8 +24,6 @@ from pathlib import Path
 REPO_ROOT = Path("/home/z/my-project/work/revit")
 sys.path.insert(0, str(REPO_ROOT))
 
-from fireai.core.spatial_engine.density_optimizer import DETECTOR_RADIUS  # noqa: E402
-from fireai.core.spatial_engine.proof_certificate import (  # noqa: E402
     ProofCertificate,
     ProofCertificateGenerator,
 )

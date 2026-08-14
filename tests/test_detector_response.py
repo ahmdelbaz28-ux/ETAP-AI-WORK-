@@ -3,7 +3,7 @@
 """
 tests/test_detector_response.py
 ================================
-Comprehensive test suite for fireai/core/detector_response.py
+Comprehensive test suite for etap/core/detector_response.py
 
 SAFETY CRITICAL: Detector response time estimates are used in ASET/RSET
 analysis. Overestimated response times make the design appear safer than it
@@ -21,7 +21,6 @@ NFPA 72 References:
 from __future__ import annotations
 
 import pytest
-from fireai.core.detector_response import (
     _AMBIENT_TEMP_C,
     _G,
     _RESPONSE_TIME_SAFETY_MARGIN,

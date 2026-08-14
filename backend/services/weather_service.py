@@ -1,7 +1,7 @@
 # File-level '# NOSONAR' removed per NOSONAR_AUDIT.md (V143 hardening).
 # Per-line justified suppressions (e.g., '# NOSONAR — S3776: ...') are preserved.
 """
-backend/services/weather_service.py — Real-time weather data for FireAI.
+backend/services/weather_service.py — Real-time weather data for ETAP.
 
 Provides ambient temperature, wind speed, and relative humidity from
 Open-Meteo (https://open-meteo.com) — a free, no-auth, CORS-enabled API.
@@ -135,7 +135,7 @@ class WeatherService:
         if self._client is None or self._client.is_closed:
             self._client = httpx.AsyncClient(
                 timeout=httpx.Timeout(self._request_timeout),
-                headers={"User-Agent": "FireAI-DigitalTwin/1.0"},
+                headers={"User-Agent": "ETAP-DigitalTwin/1.0"},
                 follow_redirects=True,
             )
         return self._client
@@ -339,7 +339,7 @@ class WeatherService:
         """
         Get EnvironmentalContext for core calculations.
 
-        Bridges weather data → fireai.core.models_v21.EnvironmentalContext
+        Bridges weather data → etap.core.models_v21.EnvironmentalContext
 
         Args:
             latitude: Building latitude

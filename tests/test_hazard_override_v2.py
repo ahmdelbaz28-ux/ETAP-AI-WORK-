@@ -4,7 +4,7 @@
 tests/test_hazard_override_v2.py
 ================================
 Comprehensive test suite for:
-  fireai/core/hazard_override.py
+  etap/core/hazard_override.py
 
 SAFETY CRITICAL: The hazard override system is a NON-BYPASSABLE safety
 gate that prevents AI/ML models from under-classifying hazard levels.
@@ -18,7 +18,6 @@ SBC 801 Chapter 9: Saudi Building Code fire protection requirements
 from __future__ import annotations
 
 import pytest
-from fireai.core.hazard_override import (
     _HAZARD_SEVERITY,
     MANDATORY_HAZARD_OVERRIDES,
     HazardClassification,

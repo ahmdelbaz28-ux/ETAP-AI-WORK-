@@ -15,7 +15,7 @@ set -euo pipefail
 SEP="═══════════════════════════════════════════════════════════════════════"
 
 GH_REPO="/home/z/my-project/repos/revit"
-HF_SPACE="/home/z/my-project/repos/BAZSPARK"
+HF_SPACE="/home/z/my-project/repos/ETAP"
 
 # Runtime paths that MUST be in sync (matches sync-to-hf.yml RUNTIME_PATHS)
 RUNTIME_PATHS=(
@@ -27,7 +27,7 @@ RUNTIME_PATHS=(
   "backend"
   "core"
   "facp_system"
-  "fireai"
+  "etap"
   "frontend"
   "integration"
   "marine"

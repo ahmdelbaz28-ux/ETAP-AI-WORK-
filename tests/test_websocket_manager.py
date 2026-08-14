@@ -1,5 +1,5 @@
 """
-test_websocket_manager.py — Tests for fireai/core/websocket_manager.py
+test_websocket_manager.py — Tests for etap/core/websocket_manager.py
 
 Verifies WebSocket connection management, API key authentication, and
 message broadcasting.
@@ -11,7 +11,6 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 from fastapi import HTTPException
-from fireai.core.websocket_manager import (
     ConnectionManager,
     _init_api_keys,
     verify_api_key_ws,
@@ -23,7 +22,7 @@ class TestApiKeyVerification:
 
     def test_verify_valid_key(self, monkeypatch):
         """Valid API key should be accepted."""
-        monkeypatch.setenv("FIREAI_API_KEY", "test-secret-key-123")
+        monkeypatch.setenv("API_KEY", "test-secret-key-123")
         _init_api_keys()
         result = verify_api_key_ws("test-secret-key-123")
         assert result == "test-secret-key-123"
@@ -42,7 +41,7 @@ class TestApiKeyVerification:
 
     def test_verify_wrong_key_raises_401(self, monkeypatch):
         """Wrong API key should raise HTTPException 401."""
-        monkeypatch.setenv("FIREAI_API_KEY", "correct-key")
+        monkeypatch.setenv("API_KEY", "correct-key")
         _init_api_keys()
         with pytest.raises(HTTPException) as exc_info:
             verify_api_key_ws("wrong-key")
@@ -68,7 +67,7 @@ class TestConnectionManager:
     @pytest.fixture(autouse=True)
     def setup_api_key(self, monkeypatch):
         """Set up a known API key for all tests."""
-        monkeypatch.setenv("FIREAI_API_KEY", "test-key-for-manager")
+        monkeypatch.setenv("API_KEY", "test-key-for-manager")
         _init_api_keys()
 
     def test_manager_starts_empty(self, manager):

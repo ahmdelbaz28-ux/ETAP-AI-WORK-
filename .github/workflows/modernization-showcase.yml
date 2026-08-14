@@ -30,7 +30,7 @@ jobs:
 
     - name: Display repository structure
       run: |
-        echo "=== FireAI Repository Structure ==="
+        echo "=== ETAP Repository Structure ==="
         find . -type f -not -path "./.*" -not -path "./.git/*" -not -path "./__pycache__/*" -not -name "*.pyc" | head -50
         echo "=== Documentation Files ==="
         find . -name "*.md" -type f | head -20

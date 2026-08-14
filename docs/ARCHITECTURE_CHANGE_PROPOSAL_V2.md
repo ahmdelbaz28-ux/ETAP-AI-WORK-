@@ -1,4 +1,4 @@
-# FireAI Digital Twin — Architecture Change Proposal V2.0
+# ETAP Digital Twin — Architecture Change Proposal V2.0
 
 **Date**: 2026-06-09  
 **Role**: System Architect — BIM + CAD + Electrical Engineering AI Platform  
@@ -23,36 +23,36 @@ This document proposes a phased architectural evolution from the current monolit
 
 | Source Module | Target Module | Import Type | Violation |
 |---|---|---|---|
-| `backend/routers/qomn.py` | `fireai/core/qomn_kernel.py` | Direct class import (`QOMNKernel`, `PhysicsGuardError`, `ComputationError`, `ValidationError`, guard functions) | **CRITICAL** — router directly instantiates kernel. Should use plugin interface. |
-| `backend/routers/qomn.py` | `fireai/core/pipeline.py` | Direct function import (`analyze_room`) via lazy import | **HIGH** — router calls pipeline directly. No adapter layer. |
+| `backend/routers/qomn.py` | `etap/core/qomn_kernel.py` | Direct class import (`QOMNKernel`, `PhysicsGuardError`, `ComputationError`, `ValidationError`, guard functions) | **CRITICAL** — router directly instantiates kernel. Should use plugin interface. |
+| `backend/routers/qomn.py` | `etap/core/pipeline.py` | Direct function import (`analyze_room`) via lazy import | **HIGH** — router calls pipeline directly. No adapter layer. |
 | `backend/services/workflow_service.py` | `parsers/dwg_parser.py`, `parsers/geometry_extractor.py` | Direct import inside LangGraph nodes | **HIGH** — AI workflow directly couples to parser internals. |
 | `backend/db_service.py` | `core/database.py` | Direct import (`UniversalDataModel`) | **MEDIUM** — two database systems coupled through Python import. |
 | `core/models.py` | `backend/schemas.py` | Conditional import (`ChangeSource`, `ConflictType`, `ElementType`) | **CRITICAL** — bidirectional coupling between `core/` and `backend/`. `core/` should not know about `backend/`. |
 | `qomn_fire/parsers/*.py` | `parsers/_path_security.py` | Direct import of shared security module | **MEDIUM** — two separate parser packages share one security module. |
-| `fireai/core/pipeline.py` | `fireai/core/qomn_kernel.py` | Direct import (`PhysicsGuardError`, `QOMNKernel`, guard functions) | **ACCEPTABLE** — same package, internal coupling. But should use abstract interface for testability. |
+| `etap/core/pipeline.py` | `etap/core/qomn_kernel.py` | Direct import (`PhysicsGuardError`, `QOMNKernel`, guard functions) | **ACCEPTABLE** — same package, internal coupling. But should use abstract interface for testability. |
 
-**Good news**: `fireai/` does NOT import from `backend/` (verified: zero matches). `backend/` imports from `fireai/core/` heavily — this is the primary coupling direction.
+**Good news**: `etap/` does NOT import from `backend/` (verified: zero matches). `backend/` imports from `etap/core/` heavily — this is the primary coupling direction.
 
 ### 1.2 Singleton/Global State Coupling
 
 | Singleton | Location | Risk |
 |---|---|---|
-| `_default_kernel = QOMNKernel()` | `fireai/core/qomn_kernel.py:1000` | Module-level singleton. Not injectable. Tests must use module-level object. |
+| `_default_kernel = QOMNKernel()` | `etap/core/qomn_kernel.py:1000` | Module-level singleton. Not injectable. Tests must use module-level object. |
 | `_db = Database()` | `backend/database.py:976` (`get_db()` function) | Module-level singleton with `check_same_thread=False`. Hot-reload keeps stale connection. |
 | `DatabaseService._instance` | `backend/db_service.py:49` | Double-checked locking singleton. Not injectable for testing. |
-| `_FIREAI_API_KEY = os.getenv(...)` | `backend/database.py:35`, `backend/app.py` | Global mutable env read at module level. Cannot change after import. |
-| `global_audit_logger` | `fireai/core/qomn_self_healing_engine.py:1022` | Module-level global. Not injectable. |
-| `global_lru_cache` | `fireai/core/qomn_self_healing_engine.py:1028` | Module-level global. Not injectable. |
-| `global_circuit_breaker` | `fireai/core/qomn_self_healing_engine.py` | Module-level global. Not injectable. |
+| `_API_KEY = os.getenv(...)` | `backend/database.py:35`, `backend/app.py` | Global mutable env read at module level. Cannot change after import. |
+| `global_audit_logger` | `etap/core/qomn_self_healing_engine.py:1022` | Module-level global. Not injectable. |
+| `global_lru_cache` | `etap/core/qomn_self_healing_engine.py:1028` | Module-level global. Not injectable. |
+| `global_circuit_breaker` | `etap/core/qomn_self_healing_engine.py` | Module-level global. Not injectable. |
 
 ### 1.3 AI↔Kernel Coupling Analysis
 
-**Current separation**: GOOD. The `FireAIPluginAPI` (`fireai/core/api_stability.py`) provides a versioned adapter layer between external code and the kernel. The `hazard_override.py` module provides a **NON-BYPASSABLE** deterministic safety override that intercepts ALL AI hazard classifications and enforces mandatory minimums.
+**Current separation**: GOOD. The `ETAPPluginAPI` (`etap/core/api_stability.py`) provides a versioned adapter layer between external code and the kernel. The `hazard_override.py` module provides a **NON-BYPASSABLE** deterministic safety override that intercepts ALL AI hazard classifications and enforces mandatory minimums.
 
 **Remaining violations**:
-- `backend/routers/qomn.py` bypasses `FireAIPluginAPI` and calls `qomn_kernel.py` directly (7 imports)
+- `backend/routers/qomn.py` bypasses `ETAPPluginAPI` and calls `qomn_kernel.py` directly (7 imports)
 - `backend/services/workflow_service.py` directly imports parsers without going through a plugin interface
-- The MCP server (`fireai/mcp_server/sanitized_handler.py:381`) has `verify_and_override()` which applies overrides — but the override result flows back into `sanitized_params` with `_override_rationale`, meaning AI outputs are modified but not fully replaced. This is correct behavior (override only raises classification, never lowers it).
+- The MCP server (`etap/mcp_server/sanitized_handler.py:381`) has `verify_and_override()` which applies overrides — but the override result flows back into `sanitized_params` with `_override_rationale`, meaning AI outputs are modified but not fully replaced. This is correct behavior (override only raises classification, never lowers it).
 
 **No validation bypass found**: AI workflow results go through the same 5-layer pipeline (L0-L4). The workflow service does NOT skip NFPA validation. However, there is a development-only human review gate bypass at `backend/routers/workflow.py:156` that must be environment-gated (it is — only available in development).
 
@@ -85,19 +85,19 @@ Neither system has a `schema_version` field. Project data created in v1.0.0 has 
 
 ### Proposal 1: Dependency Inversion Layer (DIL)
 
-**Objective**: Eliminate all direct imports between `backend/` and `fireai/core/`.
+**Objective**: Eliminate all direct imports between `backend/` and `etap/core/`.
 
 **Design**:
 
 ```
-fireai/core/interfaces.py  ←  Abstract interfaces (ABC)
+etap/core/interfaces.py  ←  Abstract interfaces (ABC)
   ├── ComputationKernel      (abstract: compute, validate, audit)
   ├── ParserGateway           (abstract: parse, detect_format, validate_path)
   ├── ProjectRepository       (abstract: create, read, update, delete, list)
   ├── AuditChain              (abstract: append, verify, export)
   └── ValidationEngine        (abstract: validate_nfpa72, validate_iec)
 
-fireai/core/qomn_kernel.py   →  implements ComputationKernel
+etap/core/qomn_kernel.py   →  implements ComputationKernel
 backend/database.py           →  implements ProjectRepository (System A)
 backend/db_service.py         →  implements ProjectRepository (System B)
 
@@ -106,10 +106,10 @@ backend/app.py                →  registers implementations via DI container
 ```
 
 **Migration plan**:
-- Phase 1 (v1.1.0): Create `fireai/core/interfaces.py` with ABC definitions
+- Phase 1 (v1.1.0): Create `etap/core/interfaces.py` with ABC definitions
 - Phase 2 (v1.1.0): Make `QOMNKernel` implement `ComputationKernel`
 - Phase 3 (v1.2.0): Refactor `backend/routers/qomn.py` to use interface
-- Phase 4 (v1.2.0): Remove direct `from fireai.core.qomn_kernel import` from routers
+- Phase 4 (v1.2.0): Remove direct `from etap.core.qomn_kernel import` from routers
 
 **Backward compatibility**: `QOMNKernel` still works directly. Interface is optional. No existing project breaks.
 
@@ -122,11 +122,11 @@ backend/app.py                →  registers implementations via DI container
 **Design**:
 
 ```python
-# fireai/core/plugin_registry.py
+# etap/core/plugin_registry.py
 
 
 class PluginRegistry:
-    """Central registry for all FireAI plugins.
+    """Central registry for all ETAP plugins.
 
     Plugins register themselves on startup. The app.py initialization
     calls registry.discover() to load all registered plugins.
@@ -162,7 +162,7 @@ class PluginRegistry:
 ```python
 # Each plugin module contains a register() function:
 
-# fireai/core/qomn_kernel.py
+# etap/core/qomn_kernel.py
 def register():
     PluginRegistry.register("computation", "qomn", QOMNKernel)
 
@@ -202,7 +202,7 @@ kernel = kernel_cls()
 **Design**:
 
 ```python
-# fireai/core/project_schema.py
+# etap/core/project_schema.py
 
 PROJECT_SCHEMA_VERSION = "1.0.0"
 
@@ -273,7 +273,7 @@ def upss_to_system_b(state: ProjectState) -> dict:
 **Design**:
 
 ```python
-# fireai/core/cad_sandbox.py
+# etap/core/cad_sandbox.py
 
 
 class CADOperationSandbox:
@@ -359,7 +359,7 @@ class CADOperationSandbox:
 DWG/DXF ──parse──→ Room[] ──compute──→ DetectorLayout[] ──export──→ IFC/Revit/DXF
 ```
 
-**Loss analysis** (from `fireai/core/revit_exporter.py`):
+**Loss analysis** (from `etap/core/revit_exporter.py`):
 
 | Property | DXF Input | Room[] | IFC/Revit Output | Loss |
 |---|---|---|---|---|
@@ -378,7 +378,7 @@ DWG/DXF ──parse──→ Room[] ──compute──→ DetectorLayout[] ─�
 **Design**:
 
 ```python
-# fireai/core/cad_transform_verifier.py
+# etap/core/cad_transform_verifier.py
 
 
 class CADTransformVerifier:
@@ -421,12 +421,12 @@ class CADTransformVerifier:
 
 **Objective**: Validation engine as non-bypassable gate in the computation pipeline.
 
-**Current state**: The 5-layer pipeline (L0 guards → L1 constants → L2 compute → L3 validate → L4 audit) already provides this. The `ComplianceEngine` (`fireai/validation/compliance_engine.py`) and `NFPA72ComplianceChecker` (`fireai/core/rules_engine/compliance_bridge.py`) are separate, post-pipeline validators.
+**Current state**: The 5-layer pipeline (L0 guards → L1 constants → L2 compute → L3 validate → L4 audit) already provides this. The `ComplianceEngine` (`etap/validation/compliance_engine.py`) and `NFPA72ComplianceChecker` (`etap/core/rules_engine/compliance_bridge.py`) are separate, post-pipeline validators.
 
 **Design**: Merge compliance checking into the pipeline as a mandatory Stage 3.5 (already exists!):
 
 ```python
-# fireai/core/pipeline.py — Stage 3.5 already calls NFPA72ComplianceChecker
+# etap/core/pipeline.py — Stage 3.5 already calls NFPA72ComplianceChecker
 
 # Enhancement: Make compliance engine pluggable via PluginRegistry
 def _stage35_rules_compliance(self, room, result, validated):
@@ -456,7 +456,7 @@ def _stage35_rules_compliance(self, room, result, validated):
 ### Plugin Interface Specification
 
 ```python
-# fireai/core/interfaces.py — All plugin interfaces
+# etap/core/interfaces.py — All plugin interfaces
 
 from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional
@@ -593,11 +593,11 @@ The app startup calls:
 def _discover_plugins():
     """Discover and register all plugins."""
     # Core plugins (always available)
-    from fireai.core.qomn_kernel import register as qomn_register
+    from etap.core.qomn_kernel import register as qomn_register
 
     qomn_register()
 
-    from fireai.core.pipeline import register as pipeline_register
+    from etap.core.pipeline import register as pipeline_register
 
     pipeline_register()
 
@@ -658,9 +658,9 @@ def _discover_plugins():
 
 | Step | Task | Effort |
 |---|---|---|
-| 1.1 | Create `fireai/core/interfaces.py` with ABC definitions | 1 day |
+| 1.1 | Create `etap/core/interfaces.py` with ABC definitions | 1 day |
 | 1.2 | Make `QOMNKernel` implement `ComputationKernel` | 1 day |
-| 1.3 | Create `fireai/core/plugin_registry.py` | 1 day |
+| 1.3 | Create `etap/core/plugin_registry.py` | 1 day |
 | 1.4 | Add `register()` functions to 7 existing modules | 1 day |
 | 1.5 | Define `ProjectState` dataclass with `schema_version` | 0.5 day |
 | 1.6 | Create `CADTransformVerifier` skeleton | 0.5 day |
@@ -694,7 +694,7 @@ def _discover_plugins():
 
 | Step | Task | Effort |
 |---|---|---|
-| 4.1 | Remove all direct `fireai.core.*` imports from `backend/` routers | 2 days |
+| 4.1 | Remove all direct `etap.core.*` imports from `backend/` routers | 2 days |
 | 4.2 | Audit trail consolidation (3→1 implementation) | 1 day |
 
 **This phase REMOVES direct import paths. All access through interfaces/registry.**
@@ -785,9 +785,9 @@ Proposer:       System Architect
 Affected Files: [list of files changed]
 
 ┌─ MODULE COUPLING CHANGES ──────────────────────────────────────────────┐
-│ REMOVED: backend/routers/qomn.py → fireai/core/qomn_kernel.py (7 imports) │
-│ ADDED:   backend/routers/qomn.py → fireai/core/interfaces.py (1 import)   │
-│ KEPT:    fireai/core/qomn_kernel.py implements ComputationKernel           │
+│ REMOVED: backend/routers/qomn.py → etap/core/qomn_kernel.py (7 imports) │
+│ ADDED:   backend/routers/qomn.py → etap/core/interfaces.py (1 import)   │
+│ KEPT:    etap/core/qomn_kernel.py implements ComputationKernel           │
 └──────────────────────────────────────────────────────────────────────────┘
 
 ┌─ SINGLETON CHANGES ────────────────────────────────────────────────────┐

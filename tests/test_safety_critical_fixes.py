@@ -4,7 +4,7 @@
 Safety-Critical Fix Verification Tests
 ========================================
 
-These tests verify the P0/P1 safety-critical fixes applied to the FireAI
+These tests verify the P0/P1 safety-critical fixes applied to the ETAP
 fire alarm compliance system. Each test validates that a specific fix is
 working correctly and that the system will catch life-safety violations.
 
@@ -26,17 +26,14 @@ Reference: NFPA 72-2022, AGENTS.md Rules 6 and 7
 from __future__ import annotations
 
 import pytest
-from fireai.core.nfpa72_calculations import (
     calculate_coverage_radius,
     calculate_coverage_radius_from_height,
     calculate_max_spacing,
     calculate_max_wall_distance,
 )
-from fireai.core.nfpa72_coverage import (
     check_coverage_polygon,
     create_room_polygon,
 )
-from fireai.core.nfpa72_models import (
     CeilingSpec,
     DetectorType,
     HeatDetectorSpec,
@@ -44,7 +41,6 @@ from fireai.core.nfpa72_models import (
     get_smoke_detector_radius,
     get_smoke_detector_radius_safe,
 )
-from fireai.core.qomn_kernel import (
     NFPA72_COVERAGE_RADIUS_FACTOR,
     NFPA72_HEAT_MAX_SPACING_M,
     NFPA72_SMOKE_MAX_SPACING_M,
@@ -54,11 +50,9 @@ from fireai.core.qomn_kernel import (
     compute_heat_detector_spacing,
     compute_smoke_detector_spacing,
 )
-from fireai.core.rules_engine.compliance_bridge import (
     DualComplianceResult,
     dual_compliance_check,
 )
-from fireai.validation.compliance_engine import ComplianceEngine
 
 # ============================================================================
 # P0-1: Heat Detector Spacing Verification

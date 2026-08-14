@@ -20,7 +20,7 @@
     
     
       
-        <title>FireAI Troubleshooting Guide - AhmedETAP Documentation</title>
+        <title>ETAP Troubleshooting Guide - AhmedETAP Documentation</title>
       
     
     
@@ -70,7 +70,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#fireai-troubleshooting-guide" class="md-skip">
+        <a href="#etap-troubleshooting-guide" class="md-skip">
           Skip to content
         </a>
       
@@ -104,7 +104,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              FireAI Troubleshooting Guide
+              ETAP Troubleshooting Guide
             
           </span>
         </div>
@@ -649,21 +649,21 @@
   
 
 
-<h1 id="fireai-troubleshooting-guide">FireAI Troubleshooting Guide</h1>
+<h1 id="etap-troubleshooting-guide">ETAP Troubleshooting Guide</h1>
 <h2 id="common-issues">Common Issues</h2>
 <h3 id="backend-wont-start">Backend Won't Start</h3>
 <p><strong>Symptom</strong>: <code>ModuleNotFoundError: No module named 'X'</code></p>
 <p><strong>Fix</strong>:
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="c1"># For optional features:</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>pip<span class="w"> </span>install<span class="w"> </span>fireai<span class="o">[</span>workflow<span class="o">]</span><span class="w">  </span><span class="c1"># if you need /api/workflow</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>pip<span class="w"> </span>install<span class="w"> </span>fireai<span class="o">[</span>memory<span class="o">]</span><span class="w">    </span><span class="c1"># if you need /api/memory</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>pip<span class="w"> </span>install<span class="w"> </span>fireai<span class="o">[</span>ifc<span class="o">]</span><span class="w">       </span><span class="c1"># if you need IFC export</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>pip<span class="w"> </span>install<span class="w"> </span>etap<span class="o">[</span>workflow<span class="o">]</span><span class="w">  </span><span class="c1"># if you need /api/workflow</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>pip<span class="w"> </span>install<span class="w"> </span>etap<span class="o">[</span>memory<span class="o">]</span><span class="w">    </span><span class="c1"># if you need /api/memory</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>pip<span class="w"> </span>install<span class="w"> </span>etap<span class="o">[</span>ifc<span class="o">]</span><span class="w">       </span><span class="c1"># if you need IFC export</span>
 </code></pre></div></p>
-<p><strong>Symptom</strong>: <code>FIREAI_API_KEY must be set</code></p>
+<p><strong>Symptom</strong>: <code>API_KEY must be set</code></p>
 <p><strong>Fix</strong>: Set environment variable:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">FIREAI_API_KEY</span><span class="o">=</span><span class="k">$(</span>openssl<span class="w"> </span>rand<span class="w"> </span>-hex<span class="w"> </span><span class="m">32</span><span class="k">)</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="nb">export</span><span class="w"> </span><span class="nv">FIREAI_EVIDENCE_HMAC_KEY</span><span class="o">=</span><span class="k">$(</span>openssl<span class="w"> </span>rand<span class="w"> </span>-hex<span class="w"> </span><span class="m">32</span><span class="k">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">API_KEY</span><span class="o">=</span><span class="k">$(</span>openssl<span class="w"> </span>rand<span class="w"> </span>-hex<span class="w"> </span><span class="m">32</span><span class="k">)</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="nb">export</span><span class="w"> </span><span class="nv">EVIDENCE_HMAC_KEY</span><span class="o">=</span><span class="k">$(</span>openssl<span class="w"> </span>rand<span class="w"> </span>-hex<span class="w"> </span><span class="m">32</span><span class="k">)</span>
 </code></pre></div></p>
 <h3 id="cors-errors">CORS Errors</h3>
 <p><strong>Symptom</strong>: Browser shows CORS policy errors</p>
@@ -676,14 +676,14 @@
 <h3 id="503-service-unavailable-on-apiworkflow-or-apimemory">503 Service Unavailable on /api/workflow or /api/memory</h3>
 <p><strong>Symptom</strong>: Optional endpoints return 503</p>
 <p><strong>Fix</strong>: Install optional dependencies:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>pip<span class="w"> </span>install<span class="w"> </span>fireai<span class="o">[</span>workflow<span class="o">]</span><span class="w">  </span><span class="c1"># requires langgraph</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>pip<span class="w"> </span>install<span class="w"> </span>fireai<span class="o">[</span>memory<span class="o">]</span><span class="w">    </span><span class="c1"># requires mem0 + qdrant-client</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>pip<span class="w"> </span>install<span class="w"> </span>etap<span class="o">[</span>workflow<span class="o">]</span><span class="w">  </span><span class="c1"># requires langgraph</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>pip<span class="w"> </span>install<span class="w"> </span>etap<span class="o">[</span>memory<span class="o">]</span><span class="w">    </span><span class="c1"># requires mem0 + qdrant-client</span>
 </code></pre></div></p>
 <h3 id="health-check-failing">Health Check Failing</h3>
 <p><strong>Symptom</strong>: <code>/api/health</code> returns non-200</p>
 <p><strong>Fix</strong>: Check:
 1. Database path is accessible and writable
-2. Core modules can be imported: <code>python -c "from fireai.core.qomn_kernel import QOMNKernel"</code>
+2. Core modules can be imported: <code>python -c "from etap.core.qomn_kernel import QOMNKernel"</code>
 3. Environment variables are set correctly</p>
 <h3 id="frontend-not-loading">Frontend Not Loading</h3>
 <p><strong>Symptom</strong>: Blank page or API-only mode</p>

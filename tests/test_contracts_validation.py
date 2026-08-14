@@ -1,7 +1,7 @@
 # File-level '# NOSONAR' removed per NOSONAR_AUDIT.md (V143 hardening).
 # Per-line justified suppressions (e.g., '# NOSONAR — S3776: ...') are preserved.
 """
-FireAI Contracts Validation — Comprehensive Tests
+ETAP Contracts Validation — Comprehensive Tests
 ===================================================
 
 Tests the input contract validation module (Stage 0 — the gatekeeper).
@@ -20,7 +20,6 @@ from __future__ import annotations
 import math
 
 import pytest
-from fireai.core.contracts_validation import (
     ContractViolation,
     _compute_area_from_polygon,
     _has_nan_inf,

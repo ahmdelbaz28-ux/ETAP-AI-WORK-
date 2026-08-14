@@ -47,8 +47,8 @@ TEST_API_KEY = "test-api-key-for-testing-only"
 @pytest.fixture(scope="module", autouse=True)
 def _setup_env() -> None:
     """Set development environment for testing."""
-    os.environ["FIREAI_ENV"] = "development"
-    os.environ["FIREAI_API_KEY"] = TEST_API_KEY
+    os.environ["APP_ENV"] = "development"
+    os.environ["API_KEY"] = TEST_API_KEY
 
 
 @pytest.fixture(scope="module")
@@ -67,7 +67,7 @@ def auth_client():
     """
     Create a test client that always sends the test API key.
 
-    The FIREAI_API_KEY env var bypass in ApiKeyMiddleware checks
+    The API_KEY env var bypass in ApiKeyMiddleware checks
     `hmac.compare_digest(api_key, env_key)`. Setting the env var
     to a known value and sending that same value as X-API-Key
     grants ADMIN role. This is the established pattern from
@@ -79,7 +79,7 @@ def auth_client():
 
     # Ensure the env var is set (conftest sets it at module level,
     # but we set it again here to be safe)
-    os.environ.setdefault("FIREAI_API_KEY", TEST_API_KEY)
+    os.environ.setdefault("API_KEY", TEST_API_KEY)
 
     with TestClient(app, headers={"X-API-Key": TEST_API_KEY}) as c:
         yield c
@@ -112,7 +112,7 @@ def mock_response():
         "permissions-policy": "accelerometer=()",
         "x-correlation-id": "test-correlation-id",
         "content-type": "application/json",
-        "www-authenticate": 'X-API-Key realm="fireai"',
+        "www-authenticate": 'X-API-Key realm="etap"',
     }
     resp.json.return_value = {"success": True, "data": {"id": "test-id"}}
     resp.text = '{"success": true, "data": {"id": "test-id"}}'
@@ -217,7 +217,7 @@ class TestFaultInjector:
         """Activate must set the corresponding env var."""
         injector = FaultInjector()
         injector.activate(db_fault="connection_lost")
-        assert os.environ.get("FIREAI_FAULT_DB_FAULT") == "connection_lost"
+        assert os.environ.get("FAULT_DB_FAULT") == "connection_lost"
         assert injector.is_active
         injector.deactivate_all()
 
@@ -225,9 +225,9 @@ class TestFaultInjector:
         """Deactivate must clear the env var."""
         injector = FaultInjector()
         injector.activate(db_fault="timeout")
-        assert os.environ.get("FIREAI_FAULT_DB_FAULT") == "timeout"
+        assert os.environ.get("FAULT_DB_FAULT") == "timeout"
         injector.deactivate_all()
-        assert "FIREAI_FAULT_DB_FAULT" not in os.environ
+        assert "FAULT_DB_FAULT" not in os.environ
         assert not injector.is_active
 
     def test_multiple_faults(self) -> None:
@@ -243,13 +243,13 @@ class TestFaultInjector:
 
     def test_restores_original_value(self) -> None:
         """Deactivate must restore the original env var value."""
-        os.environ["FIREAI_FAULT_DB_FAULT"] = "original_value"
+        os.environ["FAULT_DB_FAULT"] = "original_value"
         injector = FaultInjector()
         injector.activate(db_fault="new_value")
-        assert os.environ["FIREAI_FAULT_DB_FAULT"] == "new_value"
+        assert os.environ["FAULT_DB_FAULT"] == "new_value"
         injector.deactivate_all()
-        assert os.environ["FIREAI_FAULT_DB_FAULT"] == "original_value"
-        os.environ.pop("FIREAI_FAULT_DB_FAULT", None)
+        assert os.environ["FAULT_DB_FAULT"] == "original_value"
+        os.environ.pop("FAULT_DB_FAULT", None)
 
     def test_fault_catalog_has_descriptions(self) -> None:
         """Every fault type must have a description."""
@@ -542,7 +542,7 @@ class TestBaseByRightSecurityAssertions:
         """401 with WWW-Authenticate must pass."""
         resp = MagicMock()
         resp.status_code = 401
-        resp.headers = {"www-authenticate": 'X-API-Key realm="fireai"'}
+        resp.headers = {"www-authenticate": 'X-API-Key realm="etap"'}
         bbr.assert_www_authenticate_on_401(resp)
 
     def test_assert_www_authenticate_on_401_missing(self) -> None:
@@ -642,10 +642,10 @@ class TestBaseByRightContextManagers:
         """fault_injector must activate and deactivate faults."""
         with bbr.fault_injector(db_fault="connection_lost"):
             assert bbr.faults.is_active
-            assert "FIREAI_FAULT_DB_FAULT" in os.environ
+            assert "FAULT_DB_FAULT" in os.environ
 
         assert not bbr.faults.is_active
-        assert "FIREAI_FAULT_DB_FAULT" not in os.environ
+        assert "FAULT_DB_FAULT" not in os.environ
 
 
 class TestBaseByRightReport:

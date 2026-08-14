@@ -1,7 +1,7 @@
 """
 tests/test_audit_blockchain_bridge.py
 ======================================
-Comprehensive test suite for fireai/core/audit_blockchain_bridge.py
+Comprehensive test suite for etap/core/audit_blockchain_bridge.py
 
 SAFETY CRITICAL: The hash chain audit trail provides tamper-evident logging
 for fire alarm system analysis results per NFPA 72-2022 §10.6.
@@ -20,7 +20,6 @@ import json
 import threading
 
 import pytest
-from fireai.core.audit_blockchain_bridge import (
     AUDIT_SYSTEM_NAME,
     AUDIT_VERSION,
     NOT_A_BLOCKCHAIN_NOTE,

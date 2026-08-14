@@ -57,7 +57,7 @@ Electron BrowserWindow.capturePage() captured each route at 1439×872 resolution
 
 | Path | Reason |
 |------|--------|
-| `fireai-v1/` | V1 legacy — not part of current codebase |
+| `etap-v1/` | V1 legacy — not part of current codebase |
 | `facp/` | Duplicate FACP protocol implementation |
 | `sgov/` | Duplicate governance layer |
 | `wiki/` | Unmaintained wiki docs |
@@ -73,7 +73,7 @@ Electron BrowserWindow.capturePage() captured each route at 1439×872 resolution
 - ✅ All placeholder screenshots replaced
 - ✅ Duplicate FACP/SGOV directories removed
 - ✅ V1 legacy code removed
-- ✅ FireAI-version-specific engineering references (V20.2, V21, etc.) normalized
+- ✅ ETAP-version-specific engineering references (V20.2, V21, etc.) normalized
 - ✅ Old README hero section replaced
 
 ## Marketing Improvements Applied

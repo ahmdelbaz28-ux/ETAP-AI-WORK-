@@ -13,7 +13,7 @@
 | **Version** | 1.0.0 |
 | **Skill File Size** | 4,417 lines (SKILL.md) |
 | **Sections** | 33 (Core Identity → DER/PV comprehensive guide) |
-| **Author** | FireAI Project |
+| **Author** | ETAP Project |
 | **Last Updated** | 2026-06-23 |
 | **License** | MIT (inherits from project) |
 
@@ -106,7 +106,7 @@ skills/etap-expert/
 
 ## Validation & Testing
 
-This skill is validated through a **5-gate verification protocol** (per FireAI agent.md):
+This skill is validated through a **5-gate verification protocol** (per ETAP agent.md):
 
 | Gate | Purpose | Test File |
 |---|---|---|
@@ -129,22 +129,22 @@ python -m pytest skills/etap-expert/tests/ -v --tb=short
 python skills/etap-expert/scripts/stress_test_runner.py
 ```
 
-## Integration with FireAI
+## Integration with ETAP
 
-This skill complements the FireAI platform in the **electrical power domain**:
+This skill complements the ETAP platform in the **electrical power domain**:
 
-| FireAI Module | ETAP Skill Section | Intersection |
+| ETAP Module | ETAP Skill Section | Intersection |
 |---|---|---|
-| `fireai/core/atex_hazardous_arbiter.py` | Section 9 (Arc Flash IEEE 1584-2018) | Incident energy calculations |
-| `fireai/core/voltage_drop.py` | Section 7.1 (Load Flow) + Section 15.2 Example 1 | Cable voltage drop formulas |
-| `fireai/core/bps_allocator.py` | Section 8 (Protection Coordination) | Battery/relay coordination |
-| `fireai/core/conduit_fill_analyzer.py` | Section 7 (Cable Sizing NEC Table 310.16) | Ampacity tables |
+| `etap/core/atex_hazardous_arbiter.py` | Section 9 (Arc Flash IEEE 1584-2018) | Incident energy calculations |
+| `etap/core/voltage_drop.py` | Section 7.1 (Load Flow) + Section 15.2 Example 1 | Cable voltage drop formulas |
+| `etap/core/bps_allocator.py` | Section 8 (Protection Coordination) | Battery/relay coordination |
+| `etap/core/conduit_fill_analyzer.py` | Section 7 (Cable Sizing NEC Table 310.16) | Ampacity tables |
 | `backend/services/marine_service.py` (V130) | Section 25 (Marine IEC 60092/61363) | Shipboard power systems |
-| `fireai/core/battery_aging_derating.py` | Section 10 (Battery Sizing IEEE 485) | Battery sizing methodology |
+| `etap/core/battery_aging_derating.py` | Section 10 (Battery Sizing IEEE 485) | Battery sizing methodology |
 
 ## Critical Rules Enforced
 
-Per Section 17 of the skill (and FireAI agent.md Rule 1 — ABSOLUTE TRUTH):
+Per Section 17 of the skill (and ETAP agent.md Rule 1 — ABSOLUTE TRUTH):
 
 1. **NEVER guess critical values** — Ask or state assumptions CLEARLY
 2. **ALWAYS validate physically** — If result seems wrong, RECALCULATE

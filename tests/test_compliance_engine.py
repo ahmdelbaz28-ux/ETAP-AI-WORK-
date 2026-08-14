@@ -4,7 +4,7 @@ tests/test_compliance_engine.py — ComplianceEngine Unit Tests
 PDF Audit Phase 3: Domain Verification
 
 Tests the clause-mapped compliance engine from
-fireai/validation/compliance_engine.py against the rules specified
+etap/validation/compliance_engine.py against the rules specified
 in PDF Appendix B: NFPA 72 / NEC Clause-by-Clause Compliance Matrix.
 
 Each rule must:
@@ -20,7 +20,6 @@ Standards Referenced:
 from __future__ import annotations
 
 import pytest
-from fireai.validation.compliance_engine import ComplianceEngine
 
 # ============================================================================
 # Fixtures

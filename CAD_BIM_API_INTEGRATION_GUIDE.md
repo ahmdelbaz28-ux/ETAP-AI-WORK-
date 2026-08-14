@@ -8,7 +8,7 @@
 
 ## 📋 OVERVIEW
 
-This document provides complete instructions for integrating the new AutoCAD, Revit, and Digital Twin API endpoints into the FireAI backend system.
+This document provides complete instructions for integrating the new AutoCAD, Revit, and Digital Twin API endpoints into the ETAP backend system.
 
 **New Routers Created:**
 1. ✅ `backend/routers/autocad.py` — AutoCAD operations
@@ -80,9 +80,9 @@ except ImportError as e:
 
 ```python
 app = FastAPI(
-    title="FireAI Digital Twin API",
+    title="ETAP Digital Twin API",
     description=(
-        "REST API for the FireAI Digital Twin — a life-safety critical "
+        "REST API for the ETAP Digital Twin — a life-safety critical "
         "fire alarm engineering platform. Supports project management, "
         "device and connection CRUD, engineering reports, and BIM/CAD exports.\n\n"
         "## CAD/BIM Integration\n\n"

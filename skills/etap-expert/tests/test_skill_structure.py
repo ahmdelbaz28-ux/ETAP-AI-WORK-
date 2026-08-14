@@ -4,7 +4,7 @@ Gate 1: Static Validation Tests.
 ================================
 Validates the structural integrity of the etap-expert SKILL.md file.
 
-Per FireAI agent.md VERIFICATION GATES:
+Per ETAP agent.md VERIFICATION GATES:
     [Gate 1] Static Validation
     - syntax (YAML front-matter)
     - lint (section structure)

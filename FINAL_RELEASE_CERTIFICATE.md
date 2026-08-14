@@ -1,6 +1,6 @@
 # Final Release Certificate
 
-## Application: FireAI Digital Twin
+## Application: ETAP Digital Twin
 ## Version: 1.0.0
 ## Date: 2026-06-12
 ## Authority: Final Release Closure Authority
@@ -59,7 +59,7 @@
 
 | Artifact | Path | Size |
 |----------|------|------|
-| AppImage (ARM64) | frontend/release/FireAI-DigitalTwin-1.0.0-arm64.AppImage | 157 MB |
+| AppImage (ARM64) | frontend/release/ETAP-DigitalTwin-1.0.0-arm64.AppImage | 157 MB |
 | Build debug log | frontend/release/builder-debug.yml | 1.2 KB |
 | Unpacked build | frontend/release/linux-arm64-unpacked/ | — |
 
@@ -67,7 +67,7 @@
 
 ## Certification Statement
 
-I certify that the FireAI Digital Twin v1.0.0 has undergone:
+I certify that the ETAP Digital Twin v1.0.0 has undergone:
 - Comprehensive security audit (npm audit, Electron security, CSP, headers)
 - Backend validation (54 API routes, health check, database)
 - Electron validation (preload, IPC, contextIsolation, sandbox)

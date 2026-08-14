@@ -4,7 +4,7 @@ Gate 5: Adversarial Audit — Property-Based Tests.
 Fuzz-tests the skill loader and simulation engine with random inputs
 to find hidden defects, edge cases, and unsafe assumptions.
 
-Per FireAI agent.md VERIFICATION GATES:
+Per ETAP agent.md VERIFICATION GATES:
     [Gate 5] Adversarial Audit
     - search for hidden defects
     - search for unsafe assumptions

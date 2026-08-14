@@ -1,4 +1,4 @@
-# FireAI Data Flow Documentation
+# ETAP Data Flow Documentation
 
 ## Table of Contents
 1. [Overview](#overview)
@@ -14,7 +14,7 @@
 
 ## Overview
 
-This document describes the comprehensive data flow architecture of the FireAI platform, detailing how data moves through the system, transformations that occur, and the various integration points with external systems like ETAP and GIS platforms. The data flow is designed with safety, security, and reliability as primary concerns.
+This document describes the comprehensive data flow architecture of the ETAP platform, detailing how data moves through the system, transformations that occur, and the various integration points with external systems like ETAP and GIS platforms. The data flow is designed with safety, security, and reliability as primary concerns.
 
 ### Purpose
 The data flow documentation serves as a reference for:

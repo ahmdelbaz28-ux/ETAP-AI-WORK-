@@ -2,7 +2,7 @@
 tests/test_slc_capacitance.py
 ==============================
 Comprehensive test suite for:
-  - fireai/core/slc_capacitance.py
+  - etap/core/slc_capacitance.py
 
 SAFETY CRITICAL: SLC capacitance affects digital data signalling integrity.
 When total loop capacitance exceeds the manufacturer's limit, the FACP
@@ -21,7 +21,6 @@ from __future__ import annotations
 # NOTE: Provenance module's RuleApplied/Violation field names differ from what
 # slc_capacitance expects. We mock provenance to None to test business logic
 # via the fallback dict path — same pattern as group 3/4 tests.
-import fireai.core.slc_capacitance as _sc_mod
 import pytest
 
 
@@ -43,7 +42,6 @@ def _disable_provenance():
         setattr(_sc_mod, attr, val)
 
 
-from fireai.core.slc_capacitance import (
     CABLE_CAPACITANCE_PF_PER_M,
     DEFAULT_MAX_CAP_UF,
     DEVICE_CAPACITANCE_PF,

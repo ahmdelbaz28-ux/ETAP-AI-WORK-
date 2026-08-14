@@ -1,5 +1,5 @@
 """
-Role-Based Access Control for FireAI Digital Twin Platform.
+Role-Based Access Control for ETAP Digital Twin Platform.
 
 Three-role RBAC system:
   - admin:    Full access to everything (CRUD all resources, manage users, system config)
@@ -20,7 +20,7 @@ except ImportError:
 
 
 class Role(StrEnum):
-    """User roles in the FireAI platform."""
+    """User roles in the ETAP platform."""
 
     ADMIN = "admin"
     ENGINEER = "engineer"
@@ -29,7 +29,7 @@ class Role(StrEnum):
 
 # Permission definitions
 class Permission(StrEnum):
-    """Granular permissions for the FireAI platform."""
+    """Granular permissions for the ETAP platform."""
 
     # Project permissions
     PROJECT_READ = "project:read"

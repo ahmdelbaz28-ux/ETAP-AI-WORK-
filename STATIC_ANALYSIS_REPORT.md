@@ -16,26 +16,26 @@
 
 | File | Total Issues | Real Bugs (F-series) | Status |
 |------|-------------|---------------------|--------|
-| `fireai/core/fireai_kernel_v30.py` | 18 | 0 | ✅ CLEAN |
-| `fireai/core/scenario_engine.py` | 13 | 0 | ✅ CLEAN |
-| `fireai/core/hac_classification_engine.py` | 36 | 0 | ✅ CLEAN |
-| `fireai/core/nfpa72_calculations.py` | 8 | 0 | ✅ CLEAN |
+| `etap/core/kernel_v30.py` | 18 | 0 | ✅ CLEAN |
+| `etap/core/scenario_engine.py` | 13 | 0 | ✅ CLEAN |
+| `etap/core/hac_classification_engine.py` | 36 | 0 | ✅ CLEAN |
+| `etap/core/nfpa72_calculations.py` | 8 | 0 | ✅ CLEAN |
 
 ## 2. Production-Wide Summary
 
 | Module | Files | Total Issues | Real Bugs | Status |
 |--------|-------|-------------|-----------|--------|
-| `fireai/core/` | 161 | 1593 | 0 | ✅ |
-| `fireai/infrastructure/` | 14 | 43 | 0 | ✅ |
-| `fireai/validation/` | 4 | 23 | 0 | ✅ |
-| `fireai/analytics/` | 4 | 31 | 0 | ✅ |
-| `fireai/agents/` | 5 | 29 | 0 | ✅ |
-| `fireai/mcp_server/` | 5 | 10 | 0 | ✅ |
-| `fireai/bridges/` | 9 | 46 | 0 | ✅ |
-| `fireai/integration/` | 9 | 63 | 0 | ✅ |
-| `fireai/conduit/` | 10 | 14 | 0 | ✅ |
-| `fireai/tools/` | 7 | 29 | 0 | ✅ |
-| `fireai/v17_core/` | 4 | 3 | 0 | ✅ |
+| `etap/core/` | 161 | 1593 | 0 | ✅ |
+| `etap/infrastructure/` | 14 | 43 | 0 | ✅ |
+| `etap/validation/` | 4 | 23 | 0 | ✅ |
+| `etap/analytics/` | 4 | 31 | 0 | ✅ |
+| `etap/agents/` | 5 | 29 | 0 | ✅ |
+| `etap/mcp_server/` | 5 | 10 | 0 | ✅ |
+| `etap/bridges/` | 9 | 46 | 0 | ✅ |
+| `etap/integration/` | 9 | 63 | 0 | ✅ |
+| `etap/conduit/` | 10 | 14 | 0 | ✅ |
+| `etap/tools/` | 7 | 29 | 0 | ✅ |
+| `etap/v17_core/` | 4 | 3 | 0 | ✅ |
 | `backend/routers/` | 27 | 371 | 0 | ✅ |
 | `backend/services/` | 16 | 113 | 0 | ✅ |
 | `qomn_fire/` | 31 | 108 | 0 | ✅ |

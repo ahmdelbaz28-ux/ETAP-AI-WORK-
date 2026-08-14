@@ -3,7 +3,7 @@
 """
 test_ugld_acoustics.py — UGLD Acoustic Physics Engine Tests
 ===========================================================
-V65 — Comprehensive tests for fireai.core.ugld_acoustics
+V65 — Comprehensive tests for etap.core.ugld_acoustics
 
 Tests all public functions and Pydantic models in the UGLD module:
   - atmospheric_attenuation_db_per_m()
@@ -23,7 +23,6 @@ from __future__ import annotations
 import math
 
 import pytest
-from fireai.core.ugld_acoustics import (
     _DEFAULT_UGLD_FREQUENCY_HZ,
     _ISO_9613_ALPHA_20C_50RH,
     _MIN_SNR_DB,

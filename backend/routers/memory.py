@@ -1,7 +1,7 @@
 # File-level '# NOSONAR' removed per NOSONAR_AUDIT.md (V143 hardening).
 # Per-line justified suppressions (e.g., '# NOSONAR — S3776: ...') are preserved.
 """
-backend/routers/memory.py — REST API Router for FireAI Memory Service.
+backend/routers/memory.py — REST API Router for ETAP Memory Service.
 
 Provides HTTP endpoints for the Mem0-based memory layer:
   POST /api/memory/add          → Add a memory
@@ -107,7 +107,7 @@ async def get_status():
 )
 async def add_memory(request: MemoryAddRequest):
     """
-    Add a memory to the FireAI memory store.
+    Add a memory to the ETAP memory store.
 
     The memory service extracts facts from the provided messages and
     stores them with the specified scoping (user, project, agent).

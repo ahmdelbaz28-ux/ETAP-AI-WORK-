@@ -1,4 +1,4 @@
-# FireAI API Documentation
+# ETAP API Documentation
 
 ## Base URL
 
@@ -42,7 +42,7 @@ Per-path rate limits with longest-prefix match algorithm. Configurable via envir
 | workflow* | `/api/workflow` | 5 | LangGraph workflow engine |
 | memory* | `/api/memory` | 4 | Mem0 long-term memory |
 
-*Optional — requires separate dependencies (`pip install fireai[workflow]` or `pip install fireai[memory]`). Returns 503 if not installed.
+*Optional — requires separate dependencies (`pip install etap[workflow]` or `pip install etap[memory]`). Returns 503 if not installed.
 
 ## Common Response Format
 

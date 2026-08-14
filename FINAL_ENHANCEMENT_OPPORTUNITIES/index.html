@@ -20,7 +20,7 @@
     
     
       
-        <title>FireAI Digital Twin — Final Enhancement Opportunities Report - AhmedETAP Documentation</title>
+        <title>ETAP Digital Twin — Final Enhancement Opportunities Report - AhmedETAP Documentation</title>
       
     
     
@@ -70,7 +70,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#fireai-digital-twin-final-enhancement-opportunities-report" class="md-skip">
+        <a href="#etap-digital-twin-final-enhancement-opportunities-report" class="md-skip">
           Skip to content
         </a>
       
@@ -104,7 +104,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              FireAI Digital Twin — Final Enhancement Opportunities Report
+              ETAP Digital Twin — Final Enhancement Opportunities Report
             
           </span>
         </div>
@@ -1180,7 +1180,7 @@
   
 
 
-<h1 id="fireai-digital-twin-final-enhancement-opportunities-report">FireAI Digital Twin — Final Enhancement Opportunities Report</h1>
+<h1 id="etap-digital-twin-final-enhancement-opportunities-report">ETAP Digital Twin — Final Enhancement Opportunities Report</h1>
 <p><strong>Date</strong>: 2026-06-09<br />
 <strong>Version</strong>: 1.0.0<br />
 <strong>Scope</strong>: Post-production-readiness engineering review — identifies high-value improvements that materially increase product quality.</p>
@@ -1192,14 +1192,14 @@
 <strong>Benefit</strong>: Controlled schema evolution without production downtime or data loss<br />
 <strong>Risk of not implementing</strong>: Any future schema change currently requires manual <code>CREATE TABLE IF NOT EXISTS</code> and <code>ALTER TABLE ADD COLUMN</code> in <code>_init_schema()</code> — no rollback, no version tracking, no CI validation of migrations. Schema conflicts between the 3 independent SQLite databases (digital_twin.db, udm_elements.db, audit_store.db) are uncoordinated.<br />
 <strong>When</strong>: After release (no schema changes needed for v1.0.0)<br />
-<strong>Evidence</strong>: <code>backend/database.py:_init_schema()</code> (line ~88), <code>fireai/core/audit_store.py:_init_database()</code> (line ~173), <code>backend/db_service.py:_init_projects_table()</code> — all use <code>CREATE TABLE IF NOT EXISTS</code> without migration tracking. No <code>alembic/</code> directory exists. No <code>schema_version</code> table in any database.</p>
+<strong>Evidence</strong>: <code>backend/database.py:_init_schema()</code> (line ~88), <code>etap/core/audit_store.py:_init_database()</code> (line ~173), <code>backend/db_service.py:_init_projects_table()</code> — all use <code>CREATE TABLE IF NOT EXISTS</code> without migration tracking. No <code>alembic/</code> directory exists. No <code>schema_version</code> table in any database.</p>
 <h3 id="12-role-based-access-control-rbac">1.2 Role-Based Access Control (RBAC)</h3>
 <p><strong>Priority</strong>: High<br />
 <strong>Effort</strong>: 3-5 days<br />
 <strong>Benefit</strong>: Differentiated permissions for engineers, reviewers, admins — critical for multi-user deployments<br />
 <strong>Risk of not implementing</strong>: Currently all authenticated users have identical access (single API key). No way to restrict destructive operations (delete project, override compliance) to authorized roles. For enterprise deployments with multiple engineers, this is a hard blocker.<br />
 <strong>When</strong>: After release (single-user deployments work with current API key auth)<br />
-<strong>Evidence</strong>: <code>backend/app.py</code> lines 555-672 — <code>ApiKeyMiddleware</code> uses single <code>_FIREAI_API_KEY</code> with <code>hmac.compare_digest()</code>. No role field, no permission matrix. <code>fireai/core/safety_assurance.py:OVERRIDE_PERMISSIONS</code> (line ~433) defines override categories but no user-role binding.</p>
+<strong>Evidence</strong>: <code>backend/app.py</code> lines 555-672 — <code>ApiKeyMiddleware</code> uses single <code>_API_KEY</code> with <code>hmac.compare_digest()</code>. No role field, no permission matrix. <code>etap/core/safety_assurance.py:OVERRIDE_PERMISSIONS</code> (line ~433) defines override categories but no user-role binding.</p>
 <h3 id="12-openapiswagger-ui-disabled-in-production">1.2 OpenAPI/Swagger UI Disabled in Production</h3>
 <p><strong>Priority</strong>: Medium<br />
 <strong>Effort</strong>: 1 hour<br />
@@ -1220,7 +1220,7 @@
 <strong>Benefit</strong>: Point-in-time recovery for safety-critical engineering data<br />
 <strong>Risk of not implementing</strong>: 3 SQLite databases with no backup mechanism. A disk failure, accidental deletion, or corruption means total loss of engineering projects, audit chains, and element data. For a safety-critical system storing fire alarm designs, this is unacceptable.<br />
 <strong>When</strong>: Before release<br />
-<strong>Evidence</strong>: No backup scripts, no VACUUM INTO commands, no cron/scheduler. <code>docker-compose.yml</code> uses <code>fireai-data</code> volume but no backup sidecar. <code>docs/BACKUP_RECOVERY.md</code> describes manual <code>sqlite3 .dump</code> — not automated.</p>
+<strong>Evidence</strong>: No backup scripts, no VACUUM INTO commands, no cron/scheduler. <code>docker-compose.yml</code> uses <code>etap-data</code> volume but no backup sidecar. <code>docs/BACKUP_RECOVERY.md</code> describes manual <code>sqlite3 .dump</code> — not automated.</p>
 <hr />
 <h2 id="2-architectural-improvements-for-long-term-value">2. Architectural Improvements for Long-Term Value</h2>
 <h3 id="21-database-unification-3-1">2.1 Database Unification (3 → 1)</h3>
@@ -1241,7 +1241,7 @@
 <strong>Benefit</strong>: Decouple computation completion from notification; enable extensibility without modifying core<br />
 <strong>Risk of not implementing</strong>: Currently, WebSocket broadcasts are called inline in <code>sync.py</code> after database operations. If a future module needs to react to device creation (e.g., auto-trigger analysis), it must modify the router code. An event bus decouples this.<br />
 <strong>When</strong>: After release (current inline approach works for v1.0.0 scope)<br />
-<strong>Evidence</strong>: <code>backend/routers/sync.py</code> lines 71-91 — <code>ConnectionManager.broadcast()</code> called directly. <code>fireai/core/event_bus.py</code> exists but is not used by routers.</p>
+<strong>Evidence</strong>: <code>backend/routers/sync.py</code> lines 71-91 — <code>ConnectionManager.broadcast()</code> called directly. <code>etap/core/event_bus.py</code> exists but is not used by routers.</p>
 <h3 id="24-api-versioning-strategy">2.4 API Versioning Strategy</h3>
 <p><strong>Priority</strong>: Low<br />
 <strong>Effort</strong>: 1 day<br />
@@ -1413,7 +1413,7 @@
 <p><strong>Priority</strong>: Medium<br />
 <strong>Effort</strong>: 1 day<br />
 <strong>Benefit</strong>: Quantitative reference for future performance regression detection<br />
-<strong>Risk of not implementing</strong>: <code>fireai/core/ci_benchmark.py</code> exists but isn't in CI pipeline. No baseline file. No documented expected latency per endpoint.<br />
+<strong>Risk of not implementing</strong>: <code>etap/core/ci_benchmark.py</code> exists but isn't in CI pipeline. No baseline file. No documented expected latency per endpoint.<br />
 <strong>When</strong>: After release (CI benchmark is ready but not yet gating)</p>
 <hr />
 <h2 id="11-enterprise-grade-features-missing">11. Enterprise-Grade Features Missing</h2>
@@ -1427,7 +1427,7 @@
 <p><strong>Priority</strong>: Medium<br />
 <strong>Effort</strong>: 2-3 days<br />
 <strong>Benefit</strong>: Stream security events to enterprise SIEM (Splunk, Datadog, Azure Sentinel)<br />
-<strong>Risk of not implementing</strong>: Audit events stay in local SQLite. No syslog, no JSON stream, no webhook. Enterprise security teams cannot integrate FireAI events into their monitoring infrastructure.<br />
+<strong>Risk of not implementing</strong>: Audit events stay in local SQLite. No syslog, no JSON stream, no webhook. Enterprise security teams cannot integrate ETAP events into their monitoring infrastructure.<br />
 <strong>When</strong>: After release</p>
 <h3 id="113-compliance-report-generation-nfpa-72-documentation">11.3 Compliance Report Generation (NFPA 72 Documentation)</h3>
 <p><strong>Priority</strong>: Medium<br />
@@ -1448,26 +1448,26 @@
 <strong>Effort</strong>: 3-5 days
 <strong>Benefit</strong>: Unified tamper-evident audit chain; consistent HMAC verification; reduced maintenance burden
 <strong>Risk of not implementing</strong>: Three separate audit implementations exist with different schemas, different hash chain algorithms, and different HMAC approaches:
-- <code>fireai/core/audit_log.py</code> (QOMN Layer 4): canonical JSON hashing + <code>entry_hash</code> chain
-- <code>fireai/core/audit_store.py</code> (standalone): pipe-delimited string hashing + <code>previous_hash/current_hash</code> chain + ECDSA layer
-- <code>fireai/core/audit_trail.py</code> (simplified): independent SHA-256 per entry, <strong>no chain linking between entries</strong> — entries can be reordered undetected</p>
+- <code>etap/core/audit_log.py</code> (QOMN Layer 4): canonical JSON hashing + <code>entry_hash</code> chain
+- <code>etap/core/audit_store.py</code> (standalone): pipe-delimited string hashing + <code>previous_hash/current_hash</code> chain + ECDSA layer
+- <code>etap/core/audit_trail.py</code> (simplified): independent SHA-256 per entry, <strong>no chain linking between entries</strong> — entries can be reordered undetected</p>
 <p>If <code>audit_log.py</code> and <code>audit_store.py</code> are both used in the same analysis, there is no mechanism to verify their combined chain integrity. <code>audit_trail.py</code> is weakest — tampering could reorder entries without detection.
 <strong>When</strong>: Before release (life-safety audit integrity)<br />
-<strong>Evidence</strong>: <code>fireai/core/audit_log.py:compute_entry_hash()</code> (line ~73) uses canonical JSON. <code>fireai/core/audit_store.py:_compute_hash()</code> (line ~229) uses pipe-delimited string. <code>fireai/core/audit_trail.py</code> has no <code>prev_hash</code> field — each entry is independently hashed.</p>
+<strong>Evidence</strong>: <code>etap/core/audit_log.py:compute_entry_hash()</code> (line ~73) uses canonical JSON. <code>etap/core/audit_store.py:_compute_hash()</code> (line ~229) uses pipe-delimited string. <code>etap/core/audit_trail.py</code> has no <code>prev_hash</code> field — each entry is independently hashed.</p>
 <h3 id="1201-deltacache-content-hash-truncation-64-bit-128-bit">12.0.1 DeltaCache Content Hash Truncation (64-bit → 128-bit)</h3>
 <p><strong>Priority</strong>: High
 <strong>Effort</strong>: 1 hour
 <strong>Benefit</strong>: Eliminate birthday collision vulnerability in cache key hashing
 <strong>Risk of not implementing</strong>: <code>delta_cache.py:_content_hash()</code> truncates SHA-256 to <strong>16 hex chars (64 bits)</strong>. V114/V99 fixes upgraded <code>audit_trail.py</code> and <code>nfpa72_models.py</code> hash truncations to 32 chars (128 bits) for collision resistance. The DeltaCache still uses the old 64-bit truncation. With 50,000 cached entries, the birthday collision probability at 64 bits is ~1.4% — a cache collision means a wrong computation result is returned for a different room's query.
 <strong>When</strong>: Before release (1-hour fix, directly affects computation correctness)
-<strong>Evidence</strong>: <code>fireai/core/delta_cache.py:53</code> — <code>_content_hash()</code> truncates to 16 hex chars. V114 upgraded <code>audit_trail.py</code> to 32 chars but this file was missed.</p>
+<strong>Evidence</strong>: <code>etap/core/delta_cache.py:53</code> — <code>_content_hash()</code> truncates to 16 hex chars. V114 upgraded <code>audit_trail.py</code> to 32 chars but this file was missed.</p>
 <h3 id="1202-placeholder-ridge-line-for-sloped-ceilings">12.0.2 Placeholder Ridge Line for Sloped Ceilings</h3>
 <p><strong>Priority</strong>: Medium
 <strong>Effort</strong>: 2-3 days
 <strong>Benefit</strong>: Correct NFPA 72 Section 17.6.3.4 detector placement for gable/shed ceilings
 <strong>Risk of not implementing</strong>: <code>nfpa72_models.py:291</code> — <code>ridge_line</code> property returns hardcoded <code>(0, 0, 10, 0)</code>, explicitly marked "Placeholder". Sloped/gable ceiling detector placement uses this ridge to determine spacing zones. The placeholder produces incorrect placement for all non-flat ceilings.
 <strong>When</strong>: After release (placeholder is documented; flat ceilings work correctly which covers most cases)
-<strong>Evidence</strong>: <code>fireai/core/nfpa72_models.py:291</code> — <code>ridge_line</code> returns <code>(0, 0, 10, 0)</code>. NFPA 72 §17.6.3.4 requires ridge detection for sloped ceilings.</p>
+<strong>Evidence</strong>: <code>etap/core/nfpa72_models.py:291</code> — <code>ridge_line</code> returns <code>(0, 0, 10, 0)</code>. NFPA 72 §17.6.3.4 requires ridge detection for sloped ceilings.</p>
 <h3 id="121-calculate_battery_backup-deprecation-migration">12.1 <code>calculate_battery_backup()</code> Deprecation Migration</h3>
 <p><strong>Priority</strong>: Medium<br />
 <strong>Effort</strong>: 1-2 days<br />

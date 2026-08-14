@@ -1,7 +1,7 @@
 # File-level '# NOSONAR' removed per NOSONAR_AUDIT.md (V143 hardening).
 # Per-line justified suppressions (e.g., '# NOSONAR — S3776: ...') are preserved.
 """
-BASEBYRIGHT — Safe, Correct & Comprehensive Testing Framework for FireAI Backend.
+BASEBYRIGHT — Safe, Correct & Comprehensive Testing Framework for ETAP Backend.
 =================================================================================
 
 BASEBYRIGHT is a zero-trust testing infrastructure that enforces:
@@ -332,7 +332,7 @@ class FaultInjector:
             injector.activate(db_fault="connection_lost", cache_fault="unavailable")
         """
         for fault_type, fault_value in faults.items():
-            key = f"FIREAI_FAULT_{fault_type.upper()}"
+            key = f"FAULT_{fault_type.upper()}"
             self._original_env[key] = os.environ.get(key)
             os.environ[key] = fault_value
             self._active_faults[fault_type] = fault_value
@@ -340,7 +340,7 @@ class FaultInjector:
     def deactivate_all(self) -> None:
         """Remove all active fault injections."""
         for key in list(self._active_faults.keys()):  # NOSONAR - python:S7504
-            env_key = f"FIREAI_FAULT_{key.upper()}"
+            env_key = f"FAULT_{key.upper()}"
             original = self._original_env.get(env_key)
             if original is not None:
                 os.environ[env_key] = original

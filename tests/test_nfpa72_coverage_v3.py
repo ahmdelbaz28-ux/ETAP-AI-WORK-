@@ -3,7 +3,7 @@
 """
 tests/test_nfpa72_coverage_v3.py
 ================================
-Comprehensive test suite for fireai/core/nfpa72_coverage.py.
+Comprehensive test suite for etap/core/nfpa72_coverage.py.
 
 Covers ALL 16 public functions with normal cases, edge cases,
 and safety-critical edge cases (NaN, Inf, negative, zero,
@@ -26,8 +26,6 @@ from __future__ import annotations
 import math
 
 import pytest
-from fireai.core.contracts import CeilingType
-from fireai.core.nfpa72_coverage import (
     NFPA_HVAC_EXCLUSION_RADIUS_M,
     NFPA_MIN_WALL_DISTANCE_M,
     DuctDevice,
@@ -49,7 +47,6 @@ from fireai.core.nfpa72_coverage import (
     validate_wall_distances,
     verify_full_coverage,
 )
-from fireai.core.nfpa72_models import (
     CeilingSpec,
     CoverageResult,
     DetectorType,

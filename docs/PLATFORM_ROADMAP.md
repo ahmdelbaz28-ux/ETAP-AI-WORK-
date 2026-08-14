@@ -1,8 +1,8 @@
-# PLATFORM ROADMAP - FIREAI DIGITAL TWIN
+# PLATFORM ROADMAP - ETAP DIGITAL TWIN
 
 ## VISION STATEMENT
 
-To establish the FireAI Digital Twin as the world's premier AI-powered fire safety engineering platform, enabling rapid, accurate, and compliant fire detection and alarm system design for critical infrastructure projects globally.
+To establish the ETAP Digital Twin as the world's premier AI-powered fire safety engineering platform, enabling rapid, accurate, and compliant fire detection and alarm system design for critical infrastructure projects globally.
 
 ## STRATEGIC PRIORITIES
 

@@ -1,7 +1,7 @@
-# FireAI Documentation Summary
+# ETAP Documentation Summary
 
 ## Overview
-This document provides a comprehensive summary of all documentation included in the FireAI repository. The documentation suite is designed to support engineers, developers, operators, and safety auditors working with the FireAI platform.
+This document provides a comprehensive summary of all documentation included in the ETAP repository. The documentation suite is designed to support engineers, developers, operators, and safety auditors working with the ETAP platform.
 
 ## Documentation Catalog
 
@@ -40,7 +40,7 @@ This document provides a comprehensive summary of all documentation included in 
 - **DOCUMENTATION_SUMMARY.md** - This document
 
 ### Safety and Compliance
-- **FACP_IMPLEMENTATION_SUMMARY.md** - FireAI Agent Communication Protocol details
+- **FACP_IMPLEMENTATION_SUMMARY.md** - ETAP Agent Communication Protocol details
 - **DISTIBUTED_FACP_IMPLEMENTATION_COMPLETE.md** - Distributed FACP implementation
 - **SGL_IMPLEMENTATION_SUMMARY.md** - Safety Gate Language implementation
 - **SGL_FINAL_SUMMARY.md** - Final SGL summary and validation
@@ -64,7 +64,7 @@ All documentation follows these standards:
 
 ## Maintenance
 
-Documentation is maintained by the FireAI engineering team with input from:
+Documentation is maintained by the ETAP engineering team with input from:
 - Principal Software Architects
 - Fire Protection Engineers
 - Safety Auditors

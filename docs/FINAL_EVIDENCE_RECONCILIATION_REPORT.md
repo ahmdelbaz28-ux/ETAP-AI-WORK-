@@ -28,7 +28,7 @@ Coverage data from `/tmp/revit_audit/coverage.json` (timestamp: `2026-05-31T20:4
 
 **Coverage.json summary:**
 ```
-fireai: 11618/29714 = 39.1% across 161 files
+etap: 11618/29714 = 39.1% across 161 files
 ```
 
 **Key module-level coverage from coverage.json:**
@@ -99,7 +99,7 @@ Average across all NFPA modules: ~40%. Wide variance: `nfpa72_engine.py` at 84% 
 **Claim:** `force=True` paths may bypass authorization.
 
 **Evidence:**
-- **Only `force=True` found:** `fireai/core/security_logging.py:129` — `_refresh_env_cache()` docstring: "Call with force=True to bypass TTL." This is a **cache TTL parameter** for environment variable masking, NOT an authorization mechanism.
+- **Only `force=True` found:** `etap/core/security_logging.py:129` — `_refresh_env_cache()` docstring: "Call with force=True to bypass TTL." This is a **cache TTL parameter** for environment variable masking, NOT an authorization mechanism.
 - **Authorization enforcement:** `ApiKeyMiddleware` at `backend/app.py:555-669` — ALL mutating requests (POST, PUT, DELETE, PATCH) require valid `X-API-Key` header. Read-only (GET, HEAD, OPTIONS) are allowed without auth.
 - **No `force=True` in any auth path found** — grep for `force.*True` across all Python files returned only the security_logging.py cache refresh reference.
 

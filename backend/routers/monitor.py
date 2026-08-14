@@ -31,13 +31,10 @@ from fastapi.responses import PlainTextResponse
 from backend.auth import require_permission
 from backend.rbac import Permission
 
-# fireai/ was removed (BAZSPARK contamination). Preserve the monitor endpoint's
+# etap/ was removed (ETAP contamination). Preserve the monitor endpoint's
 # version reporting with a graceful sentinel so `import backend.app` — which
 # imports monitor unconditionally — does not hard-depend on the deleted package.
 # (Same guard pattern applied to backend/routers/health.py.)
-try:
-    from fireai.version import __package_version__
-except ImportError:  # fireai package removed during BAZSPARK cleanup (SR-001)
     __package_version__ = "ahmed-etap"
 
 logger = logging.getLogger(__name__)
@@ -350,7 +347,6 @@ class MonitorState:
 
                 elif rule["rule_id"] == "compliance-drop":
                     try:
-                        from fireai.validation.compliance_engine import ComplianceEngine
 
                         engine = ComplianceEngine()
                         result = engine.validate_and_report({})
@@ -450,63 +446,63 @@ class MonitorState:
         """Collect system metrics in Prometheus text format."""
         with self._lock:
             lines: list[str] = []
-            lines.append("# HELP fireai_uptime_seconds System uptime in seconds")
-            lines.append("# TYPE fireai_uptime_seconds gauge")
+            lines.append("# HELP uptime_seconds System uptime in seconds")
+            lines.append("# TYPE uptime_seconds gauge")
             uptime = time.time() - self._start_time
-            lines.append(f"fireai_uptime_seconds {uptime}")
+            lines.append(f"uptime_seconds {uptime}")
 
-            lines.append("# HELP fireai_engine_info Engine metadata")
-            lines.append("# TYPE fireai_engine_info gauge")
+            lines.append("# HELP engine_info Engine metadata")
+            lines.append("# TYPE engine_info gauge")
             for eid, eng in self._engines.items():
                 status = eng.get("status", "unknown")
                 lines.append(
-                    f'fireai_engine_info{{engine_id="{eid}",'
+                    f'engine_info{{engine_id="{eid}",'
                     f'name="{eng.get("name", "unknown")}",'
                     f'status="{status}",'
                     f'version="{eng.get("version", "0")}"}} 1'
                 )
 
-            lines.append("# HELP fireai_engine_cpu_percent Engine CPU usage")
-            lines.append("# TYPE fireai_engine_cpu_percent gauge")
+            lines.append("# HELP engine_cpu_percent Engine CPU usage")
+            lines.append("# TYPE engine_cpu_percent gauge")
             for eid, eng in self._engines.items():
                 lines.append(
-                    f'fireai_engine_cpu_percent{{engine_id="{eid}"}} {eng.get("cpu_percent", 0)}'
+                    f'engine_cpu_percent{{engine_id="{eid}"}} {eng.get("cpu_percent", 0)}'
                 )
 
-            lines.append("# HELP fireai_engine_memory_mb Engine memory usage")
-            lines.append("# TYPE fireai_engine_memory_mb gauge")
+            lines.append("# HELP engine_memory_mb Engine memory usage")
+            lines.append("# TYPE engine_memory_mb gauge")
             for eid, eng in self._engines.items():
                 lines.append(
-                    f'fireai_engine_memory_mb{{engine_id="{eid}"}} {eng.get("memory_mb", 0)}'
+                    f'engine_memory_mb{{engine_id="{eid}"}} {eng.get("memory_mb", 0)}'
                 )
 
-            lines.append("# HELP fireai_engine_checks_passed Total passed checks")
-            lines.append("# TYPE fireai_engine_checks_passed counter")
+            lines.append("# HELP engine_checks_passed Total passed checks")
+            lines.append("# TYPE engine_checks_passed counter")
             for eid, eng in self._engines.items():
                 lines.append(
-                    f'fireai_engine_checks_passed{{engine_id="{eid}"}} '
+                    f'engine_checks_passed{{engine_id="{eid}"}} '
                     f"{eng.get('checks_passed', 0)}"
                 )
 
-            lines.append("# HELP fireai_engine_checks_failed Total failed checks")
-            lines.append("# TYPE fireai_engine_checks_failed counter")
+            lines.append("# HELP engine_checks_failed Total failed checks")
+            lines.append("# TYPE engine_checks_failed counter")
             for eid, eng in self._engines.items():
                 lines.append(
-                    f'fireai_engine_checks_failed{{engine_id="{eid}"}} '
+                    f'engine_checks_failed{{engine_id="{eid}"}} '
                     f"{eng.get('checks_failed', 0)}"
                 )
 
-            lines.append("# HELP fireai_security_alerts_total Total security alerts")
-            lines.append("# TYPE fireai_security_alerts_total counter")
-            lines.append(f"fireai_security_alerts_total {len(self._security_alerts)}")
+            lines.append("# HELP security_alerts_total Total security alerts")
+            lines.append("# TYPE security_alerts_total counter")
+            lines.append(f"security_alerts_total {len(self._security_alerts)}")
 
-            lines.append("# HELP fireai_active_alerts Currently firing alerts")
-            lines.append("# TYPE fireai_active_alerts gauge")
-            lines.append(f"fireai_active_alerts {len(self._active_alerts)}")
+            lines.append("# HELP active_alerts Currently firing alerts")
+            lines.append("# TYPE active_alerts gauge")
+            lines.append(f"active_alerts {len(self._active_alerts)}")
 
-            lines.append("# HELP fireai_agent_activity_count Agent activity log size")
-            lines.append("# TYPE fireai_agent_activity_count gauge")
-            lines.append(f"fireai_agent_activity_count {len(self._agent_activity)}")
+            lines.append("# HELP agent_activity_count Agent activity log size")
+            lines.append("# TYPE agent_activity_count gauge")
+            lines.append(f"agent_activity_count {len(self._agent_activity)}")
 
             return "\n".join(lines) + "\n"
 
@@ -723,7 +719,6 @@ async def get_security_alerts(
 
     # Try to load from security logging system
     try:
-        from fireai.core.security_logging import security_audit
 
         events = security_audit.get_events(limit=limit)
         alerts = []

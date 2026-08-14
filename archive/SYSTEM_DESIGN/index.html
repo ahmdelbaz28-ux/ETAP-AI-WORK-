@@ -20,7 +20,7 @@
     
     
       
-        <title>FireAI System Design Document - AhmedETAP Documentation</title>
+        <title>ETAP System Design Document - AhmedETAP Documentation</title>
       
     
     
@@ -70,7 +70,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#fireai-system-design-document" class="md-skip">
+        <a href="#etap-system-design-document" class="md-skip">
           Skip to content
         </a>
       
@@ -104,7 +104,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              FireAI System Design Document
+              ETAP System Design Document
             
           </span>
         </div>
@@ -723,9 +723,9 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#fireai-core-engine" class="md-nav__link">
+  <a href="#etap-core-engine" class="md-nav__link">
     <span class="md-ellipsis">
-      FireAI Core Engine
+      ETAP Core Engine
     </span>
   </a>
   
@@ -961,7 +961,7 @@
   
 
 
-<h1 id="fireai-system-design-document">FireAI System Design Document</h1>
+<h1 id="etap-system-design-document">ETAP System Design Document</h1>
 <h2 id="table-of-contents">Table of Contents</h2>
 <ol>
 <li><a href="#overview">Overview</a></li>
@@ -975,11 +975,11 @@
 <li><a href="#monitoring-and-observability">Monitoring and Observability</a></li>
 </ol>
 <h2 id="overview">Overview</h2>
-<p>FireAI is an advanced artificial intelligence platform designed for engineering analysis and simulation, with particular focus on electrical power systems analysis through integration with ETAP and GIS mapping capabilities. The system provides a comprehensive solution for engineers to perform complex studies, simulations, and safety analyses with built-in safety protocols and validation mechanisms.</p>
+<p>ETAP is an advanced artificial intelligence platform designed for engineering analysis and simulation, with particular focus on electrical power systems analysis through integration with ETAP and GIS mapping capabilities. The system provides a comprehensive solution for engineers to perform complex studies, simulations, and safety analyses with built-in safety protocols and validation mechanisms.</p>
 <h3 id="purpose">Purpose</h3>
-<p>This document outlines the system architecture, design principles, and technical implementation details of the FireAI platform. It serves as a reference for developers, architects, and stakeholders involved in the development and maintenance of the platform.</p>
+<p>This document outlines the system architecture, design principles, and technical implementation details of the ETAP platform. It serves as a reference for developers, architects, and stakeholders involved in the development and maintenance of the platform.</p>
 <h3 id="scope">Scope</h3>
-<p>The FireAI system encompasses:
+<p>The ETAP system encompasses:
 - Multi-layer AI architecture (L1 Interface, L2 Orchestrator, L3 Engine)
 - ETAP integration for electrical power system analysis
 - GIS mapping and visualization capabilities
@@ -1031,7 +1031,7 @@
 <a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>│                     L2 Orchestration Layer              │
 <a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>├─────────────────────────────────────────────────────────┤
 <a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>│  ┌─────────────────────────────────────────────────────┐│
-<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>│  │         FireAI Orchestrator                       ││
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>│  │         ETAP Orchestrator                       ││
 <a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>│  │  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐  ││
 <a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>│  │  │ Study       │ │ Safety      │ │ Validation  │  ││
 <a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>│  │  │ Management  │ │ Protocols   │ │ Engine      │  ││
@@ -1080,10 +1080,10 @@
 </ul>
 <h2 id="component-design">Component Design</h2>
 <h3 id="core-components">Core Components</h3>
-<h4 id="fireai-core-engine">FireAI Core Engine</h4>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">FireAIEngine</span><span class="p">:</span>
+<h4 id="etap-core-engine">ETAP Core Engine</h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">ETAPEngine</span><span class="p">:</span>
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="sd">    Main orchestrator for FireAI system operations.</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="sd">    Main orchestrator for ETAP system operations.</span>
 <a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="sd">    Manages the interaction between different layers and ensures</span>
 <a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="sd">    safety protocols are enforced throughout the execution pipeline.</span>
 <a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="sd">    &quot;&quot;&quot;</span>
@@ -1132,7 +1132,7 @@
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">ETAPConnector</span><span class="p">:</span>
 <a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="sd">    Handles integration with ETAP electrical power system analysis software.</span>
-<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="sd">    Ensures safe and validated communication between FireAI and ETAP.</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="sd">    Ensures safe and validated communication between ETAP and ETAP.</span>
 <a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="sd">    &quot;&quot;&quot;</span>
 <a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>
 <a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>

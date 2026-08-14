@@ -20,7 +20,7 @@
     
     
       
-        <title>FireAI Digital Twin — FINAL GO/NO-GO Production Release Report - AhmedETAP Documentation</title>
+        <title>ETAP Digital Twin — FINAL GO/NO-GO Production Release Report - AhmedETAP Documentation</title>
       
     
     
@@ -70,7 +70,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#fireai-digital-twin-final-gono-go-production-release-report" class="md-skip">
+        <a href="#etap-digital-twin-final-gono-go-production-release-report" class="md-skip">
           Skip to content
         </a>
       
@@ -104,7 +104,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              FireAI Digital Twin — FINAL GO/NO-GO Production Release Report
+              ETAP Digital Twin — FINAL GO/NO-GO Production Release Report
             
           </span>
         </div>
@@ -895,7 +895,7 @@
   
 
 
-<h1 id="fireai-digital-twin-final-gono-go-production-release-report">FireAI Digital Twin — FINAL GO/NO-GO Production Release Report</h1>
+<h1 id="etap-digital-twin-final-gono-go-production-release-report">ETAP Digital Twin — FINAL GO/NO-GO Production Release Report</h1>
 <p><strong>Date</strong>: 2026-06-09<br />
 <strong>Version</strong>: 1.0.0<br />
 <strong>Report Type</strong>: Evidence-based production release validation<br />
@@ -904,7 +904,7 @@
 <h2 id="criterion-1-build-passes">CRITERION 1: BUILD PASSES</h2>
 <h3 id="claim-package-installs-and-fastapi-app-loads-successfully">Claim: Package installs and FastAPI app loads successfully</h3>
 <p><strong>Command</strong>: <code>python3 -m pip install -e ".[dev]"</code><br />
-<strong>Output</strong>: <code>Successfully built fireai</code> / <code>Successfully installed fireai-1.0.0</code>  </p>
+<strong>Output</strong>: <code>Successfully built etap</code> / <code>Successfully installed etap-1.0.0</code>  </p>
 <p><strong>Command</strong>: <code>python3 -c "from backend.app import app; print(f'Routes: {len(app.routes)}')" 2&gt;&amp;1</code><br />
 <strong>Output</strong>:
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>2026-06-09 12:16:17,478 [INFO] backend.app: Frontend build served from C:\Users\EWS-01\revit\frontend\dist
@@ -920,14 +920,14 @@
 <strong>Output</strong>:
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>5194 passed, 1 skipped, 12 warnings in 106.43s (0:01:46)
 </code></pre></div></p>
-<p><strong>Test file paths</strong>: <code>tests/test_acoustic_calculator.py</code>, <code>tests/test_nfpa72_engine.py</code>, <code>tests/test_qomn_kernel.py</code>, <code>tests/test_voltage_drop.py</code>, <code>tests/test_security.py</code>, <code>tests/test_audit_log.py</code>, <code>tests/test_delta_cache.py</code>, <code>tests/test_fireai_core_v2.py</code>, <code>tests/test_parsers_security_v125.py</code> (95 test files total)</p>
+<p><strong>Test file paths</strong>: <code>tests/test_acoustic_calculator.py</code>, <code>tests/test_nfpa72_engine.py</code>, <code>tests/test_qomn_kernel.py</code>, <code>tests/test_voltage_drop.py</code>, <code>tests/test_security.py</code>, <code>tests/test_audit_log.py</code>, <code>tests/test_delta_cache.py</code>, <code>tests/test_core_v2.py</code>, <code>tests/test_parsers_security_v125.py</code> (95 test files total)</p>
 <p><strong>1 skipped</strong>: requires optional langgraph dependency (intentional)</p>
 <p><strong>12 warnings</strong>: FutureWarning for deprecated <code>calculate_battery_backup()</code> — tracked, non-blocking</p>
 <p><strong>Result</strong>: ✅ PASS — 5,194/5,194 tests pass, exit code 0</p>
 <hr />
 <h2 id="criterion-3-no-critical-vulnerabilities-remain">CRITERION 3: NO CRITICAL VULNERABILITIES REMAIN</h2>
 <h3 id="claim-0-high-severity-vulnerabilities-bandit">Claim: 0 HIGH severity vulnerabilities (bandit)</h3>
-<p><strong>Command</strong>: <code>python3 -m bandit -r fireai backend parsers facp_system qomn_fire qomn_conduit integration -f txt --severity-level all</code><br />
+<p><strong>Command</strong>: <code>python3 -m bandit -r etap backend parsers facp_system qomn_fire qomn_conduit integration -f txt --severity-level all</code><br />
 <strong>Output</strong>:
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>Total issues (by severity):
 <a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>    Undefined: 0
@@ -945,9 +945,9 @@
 <hr />
 <h2 id="criterion-4-static-analysis-passes-ci-scope">CRITERION 4: STATIC ANALYSIS PASSES (CI scope)</h2>
 <h3 id="claim-ruff-lint-clean-on-ci-scanned-directories">Claim: Ruff lint clean on CI-scanned directories</h3>
-<p><strong>Command</strong>: <code>python3 -m ruff check fireai/ qomn_conduit/ --statistics</code><br />
+<p><strong>Command</strong>: <code>python3 -m ruff check etap/ qomn_conduit/ --statistics</code><br />
 <strong>Output</strong>: <code>(empty)</code> / <code>Error: (none)</code> / Exit Code: 0</p>
-<p><strong>Full scan</strong> (<code>fireai/ backend/ parsers/ facp_system/ qomn_fire/ qomn_conduit/ integration/</code>):
+<p><strong>Full scan</strong> (<code>etap/ backend/ parsers/ facp_system/ qomn_fire/ qomn_conduit/ integration/</code>):
 - 3 remaining non-CI errors: S603 (2 subprocess in DWG/RVT converters), SIM116 (1 readability)
 - S314 fixed: <code>ET.fromstring()</code> at <code>backend/services/severe_weather_service.py:765</code> now has <code># noqa: S314</code> with defusedxml import at line 42-44</p>
 <p><strong>Evidence file</strong>: <code>backend/services/severe_weather_service.py</code>
@@ -1007,11 +1007,11 @@ HTTP status: 200</p>
 <p><strong>File</strong>: <code>Dockerfile</code><br />
 <strong>Evidence</strong>:
 <div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c"># Line 30: Non-root user creation</span>
-<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="k">RUN</span><span class="w"> </span>groupadd<span class="w"> </span>-r<span class="w"> </span>fireai<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">    </span>useradd<span class="w"> </span>-r<span class="w"> </span>-g<span class="w"> </span>fireai<span class="w"> </span>-d<span class="w"> </span>/app<span class="w"> </span>-s<span class="w"> </span>/sbin/nologin<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;FireAI Service&quot;</span><span class="w"> </span>fireai
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="k">RUN</span><span class="w"> </span>groupadd<span class="w"> </span>-r<span class="w"> </span>etap<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">    </span>useradd<span class="w"> </span>-r<span class="w"> </span>-g<span class="w"> </span>etap<span class="w"> </span>-d<span class="w"> </span>/app<span class="w"> </span>-s<span class="w"> </span>/sbin/nologin<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;ETAP Service&quot;</span><span class="w"> </span>etap
 <a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>
 <a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="c"># Line 51: Switch to non-root</span>
-<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="k">USER</span><span class="w"> </span><span class="s">fireai</span>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="k">USER</span><span class="w"> </span><span class="s">etap</span>
 <a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>
 <a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="c"># Line 55: Health check</span>
 <a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="k">HEALTHCHECK</span><span class="w"> </span>--interval<span class="o">=</span>30s<span class="w"> </span>--timeout<span class="o">=</span>10s<span class="w"> </span>--start-period<span class="o">=</span>30s<span class="w"> </span>--retries<span class="o">=</span><span class="m">3</span><span class="w"> </span><span class="se">\</span>
@@ -1028,8 +1028,8 @@ HTTP status: 200</p>
 <a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="nt">tmpfs</span><span class="p">:</span>
 <a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/tmp:size=100M</span>
 <a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="nt">environment</span><span class="p">:</span>
-<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">FIREAI_API_KEY=${FIREAI_API_KEY:?ERROR</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">FIREAI_API_KEY must be set}</span>
-<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">FIREAI_EVIDENCE_HMAC_KEY=${FIREAI_EVIDENCE_HMAC_KEY:?ERROR</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">HMAC key must be set}</span>
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">API_KEY=${API_KEY:?ERROR</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">API_KEY must be set}</span>
+<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">EVIDENCE_HMAC_KEY=${EVIDENCE_HMAC_KEY:?ERROR</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">HMAC key must be set}</span>
 </code></pre></div></p>
 <p><strong>Result</strong>: ✅ PASS — Non-root, health check, no-new-privileges, read-only filesystem, required env vars</p>
 <hr />
@@ -1046,22 +1046,22 @@ HTTP status: 200</p>
 <h3 id="a01-broken-access-control">A01 — Broken Access Control</h3>
 <p><strong>File</strong>: <code>backend/app.py</code>, lines 555-672<br />
 <strong>Code</strong>:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="n">_FIREAI_API_KEY</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;FIREAI_API_KEY&quot;</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="n">_API_KEY</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;API_KEY&quot;</span><span class="p">)</span>
 <a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="c1"># Skip auth for read-only methods</span>
 <a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="k">if</span> <span class="n">method</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;GET&quot;</span><span class="p">,</span> <span class="s2">&quot;HEAD&quot;</span><span class="p">,</span> <span class="s2">&quot;OPTIONS&quot;</span><span class="p">):</span> <span class="o">...</span>
 <a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="c1"># Production: fail closed without API key</span>
-<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="k">if</span> <span class="ow">not</span> <span class="n">_FIREAI_API_KEY</span><span class="p">:</span>
-<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;FIREAI_ENV&quot;</span><span class="p">)</span> <span class="o">!=</span> <span class="s2">&quot;development&quot;</span><span class="p">:</span>
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="k">if</span> <span class="ow">not</span> <span class="n">_API_KEY</span><span class="p">:</span>
+<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;APP_ENV&quot;</span><span class="p">)</span> <span class="o">!=</span> <span class="s2">&quot;development&quot;</span><span class="p">:</span>
 <a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a>        <span class="o">...</span><span class="k">return</span> <span class="mf">503.</span><span class="o">..</span>
 <a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="c1"># Constant-time comparison (timing attack prevention)</span>
-<a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a><span class="k">if</span> <span class="ow">not</span> <span class="n">hmac</span><span class="o">.</span><span class="n">compare_digest</span><span class="p">(</span><span class="n">api_key</span><span class="p">,</span> <span class="n">_FIREAI_API_KEY</span><span class="p">):</span>
+<a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a><span class="k">if</span> <span class="ow">not</span> <span class="n">hmac</span><span class="o">.</span><span class="n">compare_digest</span><span class="p">(</span><span class="n">api_key</span><span class="p">,</span> <span class="n">_API_KEY</span><span class="p">):</span>
 <a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a>    <span class="o">...</span><span class="k">return</span> <span class="mf">401.</span><span class="o">..</span>
 </code></pre></div>
 ✅ VERIFIED</p>
 <h3 id="a02-cryptographic-failures">A02 — Cryptographic Failures</h3>
-<p><strong>File</strong>: <code>fireai/core/audit_store.py</code>, lines 113-144<br />
+<p><strong>File</strong>: <code>etap/core/audit_store.py</code>, lines 113-144<br />
 <strong>Code</strong>:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="n">is_production</span> <span class="o">=</span> <span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;FIREAI_ENV&quot;</span><span class="p">,</span><span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">==</span><span class="s2">&quot;production&quot;</span> <span class="o">...</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="n">is_production</span> <span class="o">=</span> <span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;APP_ENV&quot;</span><span class="p">,</span><span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">==</span><span class="s2">&quot;production&quot;</span> <span class="o">...</span><span class="p">)</span>
 <a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="k">if</span> <span class="n">is_production</span><span class="p">:</span>
 <a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>    <span class="k">raise</span> <span class="n">SecurityError</span><span class="p">(</span><span class="s2">&quot;AUDIT_HMAC_KEY is not set in production environment. ...&quot;</span><span class="p">)</span>
 </code></pre></div>
@@ -1073,7 +1073,7 @@ HTTP status: 200</p>
 <strong>Code</strong>: <code>if "\x00" in file_path: raise HTTPException(status_code=400)</code><br />
 ✅ VERIFIED — Sort whitelists, null byte rejection, path traversal protection</p>
 <h3 id="a04-insecure-design">A04 — Insecure Design</h3>
-<p><strong>File</strong>: <code>fireai/core/qomn_kernel.py</code> — 5-layer deterministic computation pipeline<br />
+<p><strong>File</strong>: <code>etap/core/qomn_kernel.py</code> — 5-layer deterministic computation pipeline<br />
 <strong>File</strong>: <code>README.md</code> — "This is a DETERMINISTIC calculator, NOT an AI agent"<br />
 ✅ VERIFIED — No AI generation, deterministic computation, safety guards</p>
 <h3 id="a05-security-misconfiguration">A05 — Security Misconfiguration</h3>
@@ -1097,12 +1097,12 @@ HTTP status: 200</p>
 <strong>Code</strong>: <code>PerPathRateLimitMiddleware</code> with <code>_PER_PATH_LIMITS</code> (15 path configs, longest-prefix match)<br />
 ✅ VERIFIED — Per-path rate limiting, 429 on exceeded</p>
 <h3 id="a08-data-integrity-failures">A08 — Data Integrity Failures</h3>
-<p><strong>File</strong>: <code>fireai/core/audit_store.py</code> — HMAC-SHA256 signed hash chain on every engineering result<br />
-<strong>File</strong>: <code>fireai/core/audit_log.py</code>, lines 198-543 — <code>AuditLog</code> class with append-only, tamper-evident design<br />
+<p><strong>File</strong>: <code>etap/core/audit_store.py</code> — HMAC-SHA256 signed hash chain on every engineering result<br />
+<strong>File</strong>: <code>etap/core/audit_log.py</code>, lines 198-543 — <code>AuditLog</code> class with append-only, tamper-evident design<br />
 ✅ VERIFIED</p>
 <h3 id="a09-logging-failures">A09 — Logging Failures</h3>
 <p><strong>File</strong>: <code>backend/app.py</code> — loguru integration, structured logging<br />
-<strong>File</strong>: <code>fireai/core/audit_log.py</code> — every operation logged with evidence hash<br />
+<strong>File</strong>: <code>etap/core/audit_log.py</code> — every operation logged with evidence hash<br />
 ✅ VERIFIED</p>
 <h3 id="a10-ssrf">A10 — SSRF</h3>
 <p><strong>File</strong>: <code>backend/services/severe_weather_service.py</code> — validated URLs for NWS/MeteoAlarm APIs<br />
@@ -1112,7 +1112,7 @@ HTTP status: 200</p>
 <h2 id="criterion-10-cicd-pipeline-verified">CRITERION 10: CI/CD PIPELINE VERIFIED</h2>
 <p><strong>File</strong>: <code>.github/workflows/ci.yml</code> (5 gates)<br />
 <strong>Evidence</strong>:
-- Gate 1: <code>ruff check fireai/ qomn_conduit/ --exit-non-zero-on-fix</code> + <code>mypy</code> + <code>bandit</code> severity gate (HIGH only)
+- Gate 1: <code>ruff check etap/ qomn_conduit/ --exit-non-zero-on-fix</code> + <code>mypy</code> + <code>bandit</code> severity gate (HIGH only)
 - Gate 2: <code>pytest --cov-fail-under=50</code>
 - Gate 3: <code>pytest tests/test_pdf_hardening_properties.py</code> (hypothesis)
 - Gate 4: NFPA 72 + qomn_conduit regression tests

@@ -3,7 +3,7 @@
 """
 tests/test_device_placement.py
 ================================
-Comprehensive test suite for fireai/core/device_placement.py
+Comprehensive test suite for etap/core/device_placement.py
 
 SAFETY CRITICAL: Device placement engine produces detector positions that
 must achieve zero coverage gaps per NFPA 72 §17.5. Errors in spacing,
@@ -23,7 +23,6 @@ NFPA 72 References:
 from __future__ import annotations
 
 import pytest
-from fireai.core.device_placement import (
     # Dataclasses
     BeamObstruction,
     # Engine
@@ -35,17 +34,13 @@ from fireai.core.device_placement import (
     PlacementResult,
     place_duct_detector,
 )
-from fireai.core.device_placement import (
     CeilingType as DPCeilingType,
 )
-from fireai.core.device_placement import (
     # Enums
     DetectorType as DPDetectorType,
 )
-from fireai.core.device_placement import (
     RoomSpec as DPRoomSpec,
 )
-from fireai.core.qomn_kernel import PhysicsGuardError
 
 # Fixtures
 # ─────────────────────────────────────────────────────────────────────────────

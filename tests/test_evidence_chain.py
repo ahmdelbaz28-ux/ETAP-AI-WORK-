@@ -3,7 +3,7 @@
 """
 tests/test_evidence_chain.py
 ==============================
-Comprehensive test suite for fireai/core/evidence_chain.py
+Comprehensive test suite for etap/core/evidence_chain.py
 
 SAFETY CRITICAL: The evidence chain provides cryptographic proof that a
 specific analysis was produced from a specific building snapshot. Forged
@@ -25,7 +25,6 @@ import hashlib
 import hmac
 
 import pytest
-from fireai.core.evidence_chain import (
     EvidenceChain,
     EvidenceChainError,
     _canonical_dumps,
@@ -155,9 +154,9 @@ class TestEvidenceChainInit:
         with pytest.raises(ValueError, match="known-weak key"):
             EvidenceChain(secret_key="changeme", signer_id="test")
 
-    def test_weak_key_fireai_rejected(self):
+    def test_weak_key_rejected(self):
         with pytest.raises(ValueError, match="known-weak key"):
-            EvidenceChain(secret_key="fireai", signer_id="test")
+            EvidenceChain(secret_key="etap", signer_id="test")
 
     def test_weak_key_123456_rejected(self):
         with pytest.raises(ValueError, match="known-weak key"):
@@ -175,7 +174,7 @@ class TestEvidenceChainInit:
 
     def test_namespace_default(self):
         ec = EvidenceChain(secret_key=_SECRET, signer_id="test")
-        assert ec._namespace == "fireai"
+        assert ec._namespace == "etap"
 
     def test_namespace_custom(self):
         ec = EvidenceChain(secret_key=_SECRET, signer_id="test", namespace="project-42")
@@ -231,7 +230,7 @@ class TestBuildEnvelope:
 
     def test_namespace_in_envelope(self, chain, snapshot, analysis):
         env = chain.build_envelope(snapshot, analysis)
-        assert env["namespace"] == "fireai"
+        assert env["namespace"] == "etap"
 
 
 # ─────────────────────────────────────────────────────────────────────────────

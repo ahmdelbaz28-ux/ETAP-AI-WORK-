@@ -20,7 +20,7 @@
     
     
       
-        <title>Cloudflare Protection Setup — BAZSPARK - AhmedETAP Documentation</title>
+        <title>Cloudflare Protection Setup — ETAP - AhmedETAP Documentation</title>
       
     
     
@@ -70,7 +70,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#cloudflare-protection-setup-bazspark" class="md-skip">
+        <a href="#cloudflare-protection-setup-etap" class="md-skip">
           Skip to content
         </a>
       
@@ -104,7 +104,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Cloudflare Protection Setup — BAZSPARK
+              Cloudflare Protection Setup — ETAP
             
           </span>
         </div>
@@ -574,7 +574,7 @@
           <li class="md-nav__item">
   <a href="#huggingface-space-ahmdelbaz28bazspark" class="md-nav__link">
     <span class="md-ellipsis">
-      HuggingFace Space (ahmdelbaz28/BAZSPARK)
+      HuggingFace Space (ahmdelbaz28/ETAP)
     </span>
   </a>
   
@@ -727,9 +727,9 @@
   
 
 
-<h1 id="cloudflare-protection-setup-bazspark">Cloudflare Protection Setup — BAZSPARK</h1>
+<h1 id="cloudflare-protection-setup-etap">Cloudflare Protection Setup — ETAP</h1>
 <blockquote>
-<p><strong>حماية BAZSPARK باستخدام Cloudflare</strong> (بديل Akamai الأرخص بكثير)
+<p><strong>حماية ETAP باستخدام Cloudflare</strong> (بديل Akamai الأرخص بكثير)
 Cost: Free tier ($0/month) provides 80% of Akamai's protections.</p>
 </blockquote>
 <hr />
@@ -872,7 +872,7 @@ Cost: Free tier ($0/month) provides 80% of Akamai's protections.</p>
 </table>
 <hr />
 <h2 id="3-environment-variables">3. المتغيرات البيئية (Environment Variables)</h2>
-<h3 id="huggingface-space-ahmdelbaz28bazspark">HuggingFace Space (<code>ahmdelbaz28/BAZSPARK</code>)</h3>
+<h3 id="huggingface-space-ahmdelbaz28bazspark">HuggingFace Space (<code>ahmdelbaz28/ETAP</code>)</h3>
 <table>
 <thead>
 <tr>
@@ -945,11 +945,11 @@ Cost: Free tier ($0/month) provides 80% of Akamai's protections.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># HF Space</span>
 <a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$HF_TOKEN</span><span class="s2">&quot;</span><span class="w"> </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">  </span>-d<span class="w"> </span><span class="s2">&quot;{\&quot;key\&quot;:\&quot;CF_ENABLED\&quot;,\&quot;value\&quot;:\&quot;true\&quot;}&quot;</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">  </span>https://huggingface.co/api/spaces/ahmdelbaz28/BAZSPARK/secrets
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">  </span>https://huggingface.co/api/spaces/ahmdelbaz28/ETAP/secrets
 <a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>
 <a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$HF_TOKEN</span><span class="s2">&quot;</span><span class="w"> </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="w">  </span>-d<span class="w"> </span><span class="s2">&quot;{\&quot;key\&quot;:\&quot;CF_REQUIRE_ORIGIN_TOKEN\&quot;,\&quot;value\&quot;:\&quot;</span><span class="nv">$ORIGIN_TOKEN</span><span class="s2">\&quot;}&quot;</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="w">  </span>https://huggingface.co/api/spaces/ahmdelbaz28/BAZSPARK/secrets
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="w">  </span>https://huggingface.co/api/spaces/ahmdelbaz28/ETAP/secrets
 <a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>
 <a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="c1"># Vercel — same vars, use Vercel dashboard or API</span>
 </code></pre></div>
@@ -958,7 +958,7 @@ Cost: Free tier ($0/month) provides 80% of Akamai's protections.</p>
 before it reaches the origin. This is optional but recommended for full bypass prevention.</p>
 <ol>
 <li>اذهب إلى: <strong>Workers &amp; Pages → Create</strong></li>
-<li>أنشئ Worker جديد باسم <code>bazspark-origin-verify</code></li>
+<li>أنشئ Worker جديد باسم <code>etap-origin-verify</code></li>
 <li>الصق الكود:
    <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="k">export</span><span class="w"> </span><span class="k">default</span><span class="w"> </span><span class="p">{</span>
 <a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">  </span><span class="k">async</span><span class="w"> </span><span class="nx">fetch</span><span class="p">(</span><span class="nx">request</span><span class="p">,</span><span class="w"> </span><span class="nx">env</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>

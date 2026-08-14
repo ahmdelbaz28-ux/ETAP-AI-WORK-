@@ -2,7 +2,7 @@
   "_comment": "Hostname configuration for Akamai Property. POST to /papi/v1/edgehostnames?contractId={CONTRACT_ID}&groupId={GROUP_ID}. Each hostname must be verified via DNS CNAME to {EDGE_HOSTNAME}.edgeservices.net.",
   "hostnames": [
     {
-      "cnameFrom": "api.bazspark.com",
+      "cnameFrom": "api.etap.com",
       "cnameTo": "{EDGE_HOSTNAME}.edgeservices.net",
       "certProvisioningType": "CPS_MANAGED",
       "certCertificateId": "{CERTIFICATE_ID}",
@@ -10,7 +10,7 @@
       "comments": "Primary API + frontend hostname — TLS terminated at Akamai edge via CPS-managed cert."
     },
     {
-      "cnameFrom": "www.bazspark.com",
+      "cnameFrom": "www.etap.com",
       "cnameTo": "{EDGE_HOSTNAME}.edgeservices.net",
       "certProvisioningType": "CPS_MANAGED",
       "certCertificateId": "{CERTIFICATE_ID}",
@@ -20,14 +20,14 @@
   ],
   "dnsInstructions": [
     {
-      "record": "api.bazspark.com",
+      "record": "api.etap.com",
       "type": "CNAME",
       "target": "{EDGE_HOSTNAME}.edgeservices.net",
       "ttl": "3600",
       "notes": "Apex/naked domain requires ANAME/ALIAS record at DNS provider (not standard CNAME)."
     },
     {
-      "record": "bazspark.com",
+      "record": "etap.com",
       "type": "A",
       "target": "23.x.x.x (Akamai-provided VIP)",
       "ttl": "3600",

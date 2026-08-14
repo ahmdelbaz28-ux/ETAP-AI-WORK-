@@ -1,7 +1,7 @@
-# FireAI Release Notes — v1.0.0
+# ETAP Release Notes — v1.0.0
 
 ## Overview
-FireAI Digital Twin v1.0.0 — Safety-critical fire alarm engineering platform for NFPA 72-2022 compliant fire detector placement, battery sizing, voltage drop calculations, and FACP selection.
+ETAP Digital Twin v1.0.0 — Safety-critical fire alarm engineering platform for NFPA 72-2022 compliant fire detector placement, battery sizing, voltage drop calculations, and FACP selection.
 
 ## Features
 - **5-layer computation pipeline**: Physics Guard → NFPA 72 Lookup → IEEE-754 Compute → Validation → Audit Log
@@ -24,7 +24,7 @@ FireAI Digital Twin v1.0.0 — Safety-critical fire alarm engineering platform f
 
 ## Security Hardening
 - API key authentication required for all mutating endpoints
-- Production fails closed without FIREAI_API_KEY
+- Production fails closed without API_KEY
 - Dev HMAC key fallback blocked in production
 - CORS wildcards ALWAYS rejected in production
 - Security headers on every response (X-Frame-Options, X-Content-Type-Options, CSP, Permissions-Policy)
@@ -34,16 +34,16 @@ FireAI Digital Twin v1.0.0 — Safety-critical fire alarm engineering platform f
 - Parser path security validation (all 7 parsers)
 
 ## Test Results
-- **5,194 tests passing** (5,007 FireAI + 211 qomn_conduit + 58 qomn_fire)
+- **5,194 tests passing** (5,007 ETAP + 211 qomn_conduit + 58 qomn_fire)
 - **1 skipped** (requires optional dependency)
 - **0 failures**
 - **Bandit**: 0 HIGH, 2 MEDIUM (test `/tmp` paths), 37 LOW (asserts in tests)
 - **Ruff**: 4 remaining style warnings (S603 subprocess, S314 XML, SIM116 dict lookup)
 
 ## Known Limitations
-- `/api/workflow` endpoints require langgraph (optional: `pip install fireai[workflow]`)
-- `/api/memory` endpoints require mem0 + qdrant-client (optional: `pip install fireai[memory]`)
-- IFC export requires ifcopenshell (optional: `pip install fireai[ifc]`)
+- `/api/workflow` endpoints require langgraph (optional: `pip install etap[workflow]`)
+- `/api/memory` endpoints require mem0 + qdrant-client (optional: `pip install etap[memory]`)
+- IFC export requires ifcopenshell (optional: `pip install etap[ifc]`)
 - DWG/RVT conversion requires external converter binaries
 - Windows: SQLite file locking requires proper connection cleanup
 - Python 3.12+ required (Python 3.14 recommended for latest features)

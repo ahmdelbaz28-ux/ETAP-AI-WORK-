@@ -1,6 +1,6 @@
 # 📋 PRE-LAUNCH SECURITY COMPLIANCE - START HERE
 
-**Project:** FireAI REVIT  
+**Project:** ETAP REVIT  
 **Date:** 2026-06-16  
 **Status:** 14% Compliant (Blocker: Python 3.8.4 → 3.12+)  
 

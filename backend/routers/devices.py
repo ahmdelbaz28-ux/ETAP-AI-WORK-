@@ -278,7 +278,7 @@ async def delete_device(project_id: str, device_id: str):
         raise HTTPException(
             status_code=404, detail="Device not found"
         )  # NOSONAR: S8415 — endpoint error handling is intentional  # NOSONAR — S7632: test function documented via class name / module path
-    logging.getLogger("fireai.audit").critical(  # NOSONAR
+    logging.getLogger("etap.audit").critical(  # NOSONAR
         "SAFETY-CRITICAL: Device DELETED — project=%s device_id=%s "
         "device_type=%s name=%s — NFPA 72 requires traceability for all "
         "fire alarm device changes. Deletion affects coverage calculations.",

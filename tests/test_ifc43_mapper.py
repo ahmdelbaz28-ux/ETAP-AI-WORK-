@@ -4,7 +4,7 @@
 test_ifc43_mapper.py — Tests for IFC 4.3 Schema Mapper.
 
 MISSION TASK 1.3 — Validates the IFC 4.3 ADD2 schema mapper that
-transforms FireAI internal elements to standard IFC 4.3 representation.
+transforms ETAP internal elements to standard IFC 4.3 representation.
 
 Per agent.md Rule 10: tests run after every modification.
 Per agent.md Rule 1: no fabrication.
@@ -13,12 +13,11 @@ Per agent.md Rule 1: no fabrication.
 from __future__ import annotations
 
 import pytest
-from fireai.bridges.ifc43_mapper import (
-    FIREAI_TO_IFC43_MAP,
+    TO_IFC43_MAP,
     IFC43_SCHEMA_VERSION,
-    PSET_FIREAI_AUDIT,
-    PSET_FIREAI_DESIGN,
-    PSET_FIREAI_SAFETY,
+    PSET_AUDIT,
+    PSET_DESIGN,
+    PSET_SAFETY,
     PSET_FIREALARM_COMMON,
     IFC43ElementType,
     IFC43Mapper,
@@ -38,12 +37,12 @@ class TestConstants:
 
     def test_type_mapping_covers_smoke_detector(self):
         """Smoke detector type must be mapped."""
-        assert "smoke" in FIREAI_TO_IFC43_MAP
-        assert FIREAI_TO_IFC43_MAP["smoke"] == IFC43ElementType.SMOKE_DETECTOR
+        assert "smoke" in TO_IFC43_MAP
+        assert TO_IFC43_MAP["smoke"] == IFC43ElementType.SMOKE_DETECTOR
 
     def test_type_mapping_covers_heat_detector(self):
-        assert "heat" in FIREAI_TO_IFC43_MAP
-        assert FIREAI_TO_IFC43_MAP["heat"] == IFC43ElementType.HEAT_DETECTOR
+        assert "heat" in TO_IFC43_MAP
+        assert TO_IFC43_MAP["heat"] == IFC43ElementType.HEAT_DETECTOR
 
     def test_type_mapping_covers_all_major_types(self):
         """At minimum, smoke/heat/flame/duct/beam/aspirating must be mapped."""
@@ -61,7 +60,7 @@ class TestConstants:
             "facp",
         ]
         for t in required:
-            assert t in FIREAI_TO_IFC43_MAP, f"Missing mapping for: {t}"
+            assert t in TO_IFC43_MAP, f"Missing mapping for: {t}"
 
     def test_ifc43_element_type_includes_marine_facilities(self):
         """IFC 4.3 adds IfcMarineFacility — must be in enum."""
@@ -71,9 +70,9 @@ class TestConstants:
         """Property set names must start with 'Pset_' per IFC convention."""
         for pset in (
             PSET_FIREALARM_COMMON,
-            PSET_FIREAI_DESIGN,
-            PSET_FIREAI_AUDIT,
-            PSET_FIREAI_SAFETY,
+            PSET_DESIGN,
+            PSET_AUDIT,
+            PSET_SAFETY,
         ):
             assert pset.startswith("Pset_"), f"Pset name must start with 'Pset_': {pset}"
 
@@ -162,8 +161,8 @@ class TestIFC43Mapper:
     def test_map_detector_includes_audit_pset(self, mapper, sample_detector):
         """Audit property set must be included for NFPA 72 §7.5 compliance."""
         result = mapper.map_detector(sample_detector)
-        assert PSET_FIREAI_AUDIT in result.property_sets
-        audit_pset = result.property_sets[PSET_FIREAI_AUDIT]
+        assert PSET_AUDIT in result.property_sets
+        audit_pset = result.property_sets[PSET_AUDIT]
         assert "RunId" in audit_pset
         assert "EvidenceHash" in audit_pset
         assert "NFPAReference" in audit_pset
@@ -171,15 +170,15 @@ class TestIFC43Mapper:
     def test_map_detector_includes_safety_pset(self, mapper, sample_detector):
         """Safety classification property set must be included."""
         result = mapper.map_detector(sample_detector)
-        assert PSET_FIREAI_SAFETY in result.property_sets
-        safety_pset = result.property_sets[PSET_FIREAI_SAFETY]
+        assert PSET_SAFETY in result.property_sets
+        safety_pset = result.property_sets[PSET_SAFETY]
         assert "SafetyTier" in safety_pset
         assert "IsCodeCompliant" in safety_pset
 
     def test_map_detector_unknown_type_defaults_to_smoke(self, mapper, sample_detector):
         """V137 F-8: Unknown detector type raises ValueError (was silent default)."""
         d_unknown = {**sample_detector, "type": "unknown_type"}
-        with pytest.raises(ValueError, match="Unknown FireAI detector type"):
+        with pytest.raises(ValueError, match="Unknown ETAP detector type"):
             mapper.map_detector(d_unknown)
 
     def test_map_detector_heat_type(self, mapper, sample_detector):
@@ -195,10 +194,10 @@ class TestIFC43Mapper:
         assert result.name == "Office 101"
 
     def test_map_room_includes_design_pset(self, mapper, sample_room):
-        """Room must include FireAI design parameters."""
+        """Room must include ETAP design parameters."""
         result = mapper.map_room(sample_room)
-        assert PSET_FIREAI_DESIGN in result.property_sets
-        assert result.property_sets[PSET_FIREAI_DESIGN]["Area"] == pytest.approx(25.0)
+        assert PSET_DESIGN in result.property_sets
+        assert result.property_sets[PSET_DESIGN]["Area"] == pytest.approx(25.0)
 
     def test_map_building_returns_ifc_building(self, mapper):
         """map_building must return IfcBuilding."""

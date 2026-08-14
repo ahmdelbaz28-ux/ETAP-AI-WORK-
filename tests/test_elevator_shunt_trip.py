@@ -2,7 +2,7 @@
 tests/test_elevator_shunt_trip.py
 ===================================
 Comprehensive test suite for:
-  - fireai/core/elevator_shunt_trip.py
+  - etap/core/elevator_shunt_trip.py
 
 SAFETY CRITICAL: Elevator shunt-trip ensures power is severed BEFORE
 sprinkler water contacts 480V motor windings. A failure means electrified
@@ -22,7 +22,6 @@ from __future__ import annotations
 # NOTE: Provenance module's RuleApplied/Violation field names differ from what
 # elevator_shunt_trip expects. We mock provenance to None to test business logic
 # via the fallback dict path — same pattern as group 3/4 tests.
-import fireai.core.elevator_shunt_trip as _est_mod
 import pytest
 
 
@@ -44,7 +43,6 @@ def _disable_provenance():
         setattr(_est_mod, attr, val)
 
 
-from fireai.core.elevator_shunt_trip import (
     DEFAULT_HD_RTI,
     DEFAULT_SPRINKLER_RTI,
     MAX_HD_SPRINKLER_DISTANCE_M,

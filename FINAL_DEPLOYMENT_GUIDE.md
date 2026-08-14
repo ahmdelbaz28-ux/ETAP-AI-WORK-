@@ -1,6 +1,6 @@
 # Final Deployment Guide
 
-## Application: FireAI Digital Twin v1.0.0
+## Application: ETAP Digital Twin v1.0.0
 ## Platform: Linux ARM64 (aarch64)
 
 ---
@@ -29,20 +29,20 @@
 
 ```bash
 # Make executable
-chmod +x FireAI-DigitalTwin-1.0.0-arm64.AppImage
+chmod +x ETAP-DigitalTwin-1.0.0-arm64.AppImage
 
 # Run directly
-./FireAI-DigitalTwin-1.0.0-arm64.AppImage
+./ETAP-DigitalTwin-1.0.0-arm64.AppImage
 
 # If FUSE is not available, use:
-./FireAI-DigitalTwin-1.0.0-arm64.AppImage --appimage-extract-and-run
+./ETAP-DigitalTwin-1.0.0-arm64.AppImage --appimage-extract-and-run
 ```
 
 ### Option 2: Unpacked Build
 
 ```bash
 # Extract and run from unpacked directory
-./linux-arm64-unpacked/fireai-digital-twin
+./linux-arm64-unpacked/etap-digital-twin
 ```
 
 ---
@@ -51,12 +51,12 @@ chmod +x FireAI-DigitalTwin-1.0.0-arm64.AppImage
 
 1. **Start the application**
    ```bash
-   ./FireAI-DigitalTwin-1.0.0-arm64.AppImage
+   ./ETAP-DigitalTwin-1.0.0-arm64.AppImage
    ```
 
 2. **Backend auto-start**
    - The Electron main process launches the Python backend automatically
-   - Backend startup takes ~19 seconds (first-time import of fireai.core modules)
+   - Backend startup takes ~19 seconds (first-time import of etap.core modules)
    - Health check polls every 1 second for up to 30 seconds
    - Status indicator in the UI shows backend connectivity
 
@@ -73,9 +73,9 @@ chmod +x FireAI-DigitalTwin-1.0.0-arm64.AppImage
 ### Environment Variables
 | Variable | Default | Description |
 |----------|---------|-------------|
-| FIREAI_ENV | production | Environment mode (development/production) |
-| FIREAI_BACKEND_PORT | 8000 | Backend API port |
-| FIREAI_DB_DIR | ./db | Database directory |
+| APP_ENV | production | Environment mode (development/production) |
+| BACKEND_PORT | 8000 | Backend API port |
+| DB_DIR | ./db | Database directory |
 | OPENAI_API_KEY | (none) | OpenAI API key (for memory features) |
 | GEMINI_API_KEY | (none) | Gemini API key (for memory features) |
 
@@ -84,7 +84,7 @@ The backend auto-configures from the project root directory structure:
 - `backend/` — FastAPI application
 - `core/` — Core data models and database
 - `parsers/` — File parsers (DWG, DXF, IFC, PDF)
-- `fireai/` — Engineering kernel and ML pipeline
+- `etap/` — Engineering kernel and ML pipeline
 - `db/` — SQLite database (auto-created at first launch)
 
 ---
@@ -93,13 +93,13 @@ The backend auto-configures from the project root directory structure:
 
 ### Standalone Desktop (Default)
 - Electron window + embedded Python backend
-- SQLite database in `~/.fireai/db/`
+- SQLite database in `~/.etap/db/`
 - No network dependencies for basic operations
 
 ### Client-Server (Advanced)
 - Run backend on a server:
   ```bash
-  cd /opt/fireai && python3 -m uvicorn backend.app:app --host 0.0.0.0 --port 8000
+  cd /opt/etap && python3 -m uvicorn backend.app:app --host 0.0.0.0 --port 8000
   ```
 - Frontend connects to remote backend
 - Configure via environment or build-time settings
@@ -161,7 +161,7 @@ Returns: `{"success":true,"data":{"status":"ok","database":"connected","core_mod
 
 ### Logs
 - Backend logs: stdout (can be redirected to file)
-- Electron logs: `~/.config/fireai-digital-twin/logs/`
+- Electron logs: `~/.config/etap-digital-twin/logs/`
 
 ---
 
@@ -173,16 +173,16 @@ Returns: `{"success":true,"data":{"status":"ok","database":"connected","core_mod
 python3 --version
 
 # Try importing the app manually
-cd /opt/fireai && python3 -c "from backend.app import app; print('OK')"
+cd /opt/etap && python3 -c "from backend.app import app; print('OK')"
 ```
 
 ### AppImage won't run
 ```bash
 # Try with --no-sandbox
-./FireAI-DigitalTwin-1.0.0-arm64.AppImage --no-sandbox
+./ETAP-DigitalTwin-1.0.0-arm64.AppImage --no-sandbox
 
 # Or extract and run
-./FireAI-DigitalTwin-1.0.0-arm64.AppImage --appimage-extract
+./ETAP-DigitalTwin-1.0.0-arm64.AppImage --appimage-extract
 ./squashfs-root/AppRun
 ```
 

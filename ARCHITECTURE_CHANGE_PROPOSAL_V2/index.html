@@ -20,7 +20,7 @@
     
     
       
-        <title>FireAI Digital Twin — Architecture Change Proposal V2.0 - AhmedETAP Documentation</title>
+        <title>ETAP Digital Twin — Architecture Change Proposal V2.0 - AhmedETAP Documentation</title>
       
     
     
@@ -70,7 +70,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#fireai-digital-twin-architecture-change-proposal-v20" class="md-skip">
+        <a href="#etap-digital-twin-architecture-change-proposal-v20" class="md-skip">
           Skip to content
         </a>
       
@@ -104,7 +104,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              FireAI Digital Twin — Architecture Change Proposal V2.0
+              ETAP Digital Twin — Architecture Change Proposal V2.0
             
           </span>
         </div>
@@ -937,7 +937,7 @@
   
 
 
-<h1 id="fireai-digital-twin-architecture-change-proposal-v20">FireAI Digital Twin — Architecture Change Proposal V2.0</h1>
+<h1 id="etap-digital-twin-architecture-change-proposal-v20">ETAP Digital Twin — Architecture Change Proposal V2.0</h1>
 <p><strong>Date</strong>: 2026-06-09<br />
 <strong>Role</strong>: System Architect — BIM + CAD + Electrical Engineering AI Platform<br />
 <strong>Classification</strong>: Mission-Critical Engineering Platform<br />
@@ -962,13 +962,13 @@
 <tbody>
 <tr>
 <td><code>backend/routers/qomn.py</code></td>
-<td><code>fireai/core/qomn_kernel.py</code></td>
+<td><code>etap/core/qomn_kernel.py</code></td>
 <td>Direct class import (<code>QOMNKernel</code>, <code>PhysicsGuardError</code>, <code>ComputationError</code>, <code>ValidationError</code>, guard functions)</td>
 <td><strong>CRITICAL</strong> — router directly instantiates kernel. Should use plugin interface.</td>
 </tr>
 <tr>
 <td><code>backend/routers/qomn.py</code></td>
-<td><code>fireai/core/pipeline.py</code></td>
+<td><code>etap/core/pipeline.py</code></td>
 <td>Direct function import (<code>analyze_room</code>) via lazy import</td>
 <td><strong>HIGH</strong> — router calls pipeline directly. No adapter layer.</td>
 </tr>
@@ -997,14 +997,14 @@
 <td><strong>MEDIUM</strong> — two separate parser packages share one security module.</td>
 </tr>
 <tr>
-<td><code>fireai/core/pipeline.py</code></td>
-<td><code>fireai/core/qomn_kernel.py</code></td>
+<td><code>etap/core/pipeline.py</code></td>
+<td><code>etap/core/qomn_kernel.py</code></td>
 <td>Direct import (<code>PhysicsGuardError</code>, <code>QOMNKernel</code>, guard functions)</td>
 <td><strong>ACCEPTABLE</strong> — same package, internal coupling. But should use abstract interface for testability.</td>
 </tr>
 </tbody>
 </table>
-<p><strong>Good news</strong>: <code>fireai/</code> does NOT import from <code>backend/</code> (verified: zero matches). <code>backend/</code> imports from <code>fireai/core/</code> heavily — this is the primary coupling direction.</p>
+<p><strong>Good news</strong>: <code>etap/</code> does NOT import from <code>backend/</code> (verified: zero matches). <code>backend/</code> imports from <code>etap/core/</code> heavily — this is the primary coupling direction.</p>
 <h3 id="12-singletonglobal-state-coupling">1.2 Singleton/Global State Coupling</h3>
 <table>
 <thead>
@@ -1017,7 +1017,7 @@
 <tbody>
 <tr>
 <td><code>_default_kernel = QOMNKernel()</code></td>
-<td><code>fireai/core/qomn_kernel.py:1000</code></td>
+<td><code>etap/core/qomn_kernel.py:1000</code></td>
 <td>Module-level singleton. Not injectable. Tests must use module-level object.</td>
 </tr>
 <tr>
@@ -1031,33 +1031,33 @@
 <td>Double-checked locking singleton. Not injectable for testing.</td>
 </tr>
 <tr>
-<td><code>_FIREAI_API_KEY = os.getenv(...)</code></td>
+<td><code>_API_KEY = os.getenv(...)</code></td>
 <td><code>backend/database.py:35</code>, <code>backend/app.py</code></td>
 <td>Global mutable env read at module level. Cannot change after import.</td>
 </tr>
 <tr>
 <td><code>global_audit_logger</code></td>
-<td><code>fireai/core/qomn_self_healing_engine.py:1022</code></td>
+<td><code>etap/core/qomn_self_healing_engine.py:1022</code></td>
 <td>Module-level global. Not injectable.</td>
 </tr>
 <tr>
 <td><code>global_lru_cache</code></td>
-<td><code>fireai/core/qomn_self_healing_engine.py:1028</code></td>
+<td><code>etap/core/qomn_self_healing_engine.py:1028</code></td>
 <td>Module-level global. Not injectable.</td>
 </tr>
 <tr>
 <td><code>global_circuit_breaker</code></td>
-<td><code>fireai/core/qomn_self_healing_engine.py</code></td>
+<td><code>etap/core/qomn_self_healing_engine.py</code></td>
 <td>Module-level global. Not injectable.</td>
 </tr>
 </tbody>
 </table>
 <h3 id="13-aikernel-coupling-analysis">1.3 AI↔Kernel Coupling Analysis</h3>
-<p><strong>Current separation</strong>: GOOD. The <code>FireAIPluginAPI</code> (<code>fireai/core/api_stability.py</code>) provides a versioned adapter layer between external code and the kernel. The <code>hazard_override.py</code> module provides a <strong>NON-BYPASSABLE</strong> deterministic safety override that intercepts ALL AI hazard classifications and enforces mandatory minimums.</p>
+<p><strong>Current separation</strong>: GOOD. The <code>ETAPPluginAPI</code> (<code>etap/core/api_stability.py</code>) provides a versioned adapter layer between external code and the kernel. The <code>hazard_override.py</code> module provides a <strong>NON-BYPASSABLE</strong> deterministic safety override that intercepts ALL AI hazard classifications and enforces mandatory minimums.</p>
 <p><strong>Remaining violations</strong>:
-- <code>backend/routers/qomn.py</code> bypasses <code>FireAIPluginAPI</code> and calls <code>qomn_kernel.py</code> directly (7 imports)
+- <code>backend/routers/qomn.py</code> bypasses <code>ETAPPluginAPI</code> and calls <code>qomn_kernel.py</code> directly (7 imports)
 - <code>backend/services/workflow_service.py</code> directly imports parsers without going through a plugin interface
-- The MCP server (<code>fireai/mcp_server/sanitized_handler.py:381</code>) has <code>verify_and_override()</code> which applies overrides — but the override result flows back into <code>sanitized_params</code> with <code>_override_rationale</code>, meaning AI outputs are modified but not fully replaced. This is correct behavior (override only raises classification, never lowers it).</p>
+- The MCP server (<code>etap/mcp_server/sanitized_handler.py:381</code>) has <code>verify_and_override()</code> which applies overrides — but the override result flows back into <code>sanitized_params</code> with <code>_override_rationale</code>, meaning AI outputs are modified but not fully replaced. This is correct behavior (override only raises classification, never lowers it).</p>
 <p><strong>No validation bypass found</strong>: AI workflow results go through the same 5-layer pipeline (L0-L4). The workflow service does NOT skip NFPA validation. However, there is a development-only human review gate bypass at <code>backend/routers/workflow.py:156</code> that must be environment-gated (it is — only available in development).</p>
 <h3 id="14-cad-operation-reversibility-gap">1.4 CAD Operation Reversibility Gap</h3>
 <p><strong>Current state</strong>: NO undo/rollback mechanism for CAD operations.</p>
@@ -1104,16 +1104,16 @@
 <hr />
 <h2 id="2-architecture-change-proposals">2. ARCHITECTURE CHANGE PROPOSALS</h2>
 <h3 id="proposal-1-dependency-inversion-layer-dil">Proposal 1: Dependency Inversion Layer (DIL)</h3>
-<p><strong>Objective</strong>: Eliminate all direct imports between <code>backend/</code> and <code>fireai/core/</code>.</p>
+<p><strong>Objective</strong>: Eliminate all direct imports between <code>backend/</code> and <code>etap/core/</code>.</p>
 <p><strong>Design</strong>:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>fireai/core/interfaces.py  ←  Abstract interfaces (ABC)
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>etap/core/interfaces.py  ←  Abstract interfaces (ABC)
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>  ├── ComputationKernel      (abstract: compute, validate, audit)
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>  ├── ParserGateway           (abstract: parse, detect_format, validate_path)
 <a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>  ├── ProjectRepository       (abstract: create, read, update, delete, list)
 <a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>  ├── AuditChain              (abstract: append, verify, export)
 <a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>  └── ValidationEngine        (abstract: validate_nfpa72, validate_iec)
 <a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>fireai/core/qomn_kernel.py   →  implements ComputationKernel
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>etap/core/qomn_kernel.py   →  implements ComputationKernel
 <a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>backend/database.py           →  implements ProjectRepository (System A)
 <a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>backend/db_service.py         →  implements ProjectRepository (System B)
 <a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>
@@ -1121,20 +1121,20 @@
 <a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>backend/app.py                →  registers implementations via DI container
 </code></pre></div>
 <p><strong>Migration plan</strong>:
-- Phase 1 (v1.1.0): Create <code>fireai/core/interfaces.py</code> with ABC definitions
+- Phase 1 (v1.1.0): Create <code>etap/core/interfaces.py</code> with ABC definitions
 - Phase 2 (v1.1.0): Make <code>QOMNKernel</code> implement <code>ComputationKernel</code>
 - Phase 3 (v1.2.0): Refactor <code>backend/routers/qomn.py</code> to use interface
-- Phase 4 (v1.2.0): Remove direct <code>from fireai.core.qomn_kernel import</code> from routers</p>
+- Phase 4 (v1.2.0): Remove direct <code>from etap.core.qomn_kernel import</code> from routers</p>
 <p><strong>Backward compatibility</strong>: <code>QOMNKernel</code> still works directly. Interface is optional. No existing project breaks.</p>
 <p><strong>Risk</strong>: LOW. Interface layer is additive. Existing imports continue working during transition.</p>
 <h3 id="proposal-2-plugin-registry">Proposal 2: Plugin Registry</h3>
 <p><strong>Objective</strong>: Enable feature registration without modifying core code.</p>
 <p><strong>Design</strong>:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># fireai/core/plugin_registry.py</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># etap/core/plugin_registry.py</span>
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
 <a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
 <a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="k">class</span><span class="w"> </span><span class="nc">PluginRegistry</span><span class="p">:</span>
-<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Central registry for all FireAI plugins.</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Central registry for all ETAP plugins.</span>
 <a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>
 <a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="sd">    Plugins register themselves on startup. The app.py initialization</span>
 <a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="sd">    calls registry.discover() to load all registered plugins.</span>
@@ -1167,7 +1167,7 @@
 <p><strong>Registration pattern</strong>:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># Each plugin module contains a register() function:</span>
 <a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="c1"># fireai/core/qomn_kernel.py</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="c1"># etap/core/qomn_kernel.py</span>
 <a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="k">def</span><span class="w"> </span><span class="nf">register</span><span class="p">():</span>
 <a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>    <span class="n">PluginRegistry</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;computation&quot;</span><span class="p">,</span> <span class="s2">&quot;qomn&quot;</span><span class="p">,</span> <span class="n">QOMNKernel</span><span class="p">)</span>
 <a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>
@@ -1196,7 +1196,7 @@
 <h3 id="proposal-3-unified-project-state-schema-upss">Proposal 3: Unified Project State Schema (UPSS)</h3>
 <p><strong>Objective</strong>: Canonical, versioned project representation that both System A and System B can read.</p>
 <p><strong>Design</strong>:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># fireai/core/project_schema.py</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># etap/core/project_schema.py</span>
 <a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>
 <a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="n">PROJECT_SCHEMA_VERSION</span> <span class="o">=</span> <span class="s2">&quot;1.0.0&quot;</span>
 <a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>
@@ -1256,7 +1256,7 @@
 <h3 id="proposal-4-cad-operation-sandbox-with-undo">Proposal 4: CAD Operation Sandbox with Undo</h3>
 <p><strong>Objective</strong>: All CAD operations reversible; project state protected from malformed parses.</p>
 <p><strong>Design</strong>:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1"># fireai/core/cad_sandbox.py</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1"># etap/core/cad_sandbox.py</span>
 <a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>
 <a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>
 <a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="k">class</span><span class="w"> </span><span class="nc">CADOperationSandbox</span><span class="p">:</span>
@@ -1332,7 +1332,7 @@
 <p><strong>Current transformation chain</strong>:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>DWG/DXF ──parse──→ Room[] ──compute──→ DetectorLayout[] ──export──→ IFC/Revit/DXF
 </code></pre></div>
-<p><strong>Loss analysis</strong> (from <code>fireai/core/revit_exporter.py</code>):</p>
+<p><strong>Loss analysis</strong> (from <code>etap/core/revit_exporter.py</code>):</p>
 <table>
 <thead>
 <tr>
@@ -1393,7 +1393,7 @@
 - Cable routing wall clearance (uses hardcoded 0.2m instead of real thickness)
 - Multi-floor building model (Z coordinates lost)</p>
 <p><strong>Design</strong>:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1"># fireai/core/cad_transform_verifier.py</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1"># etap/core/cad_transform_verifier.py</span>
 <a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>
 <a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>
 <a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="k">class</span><span class="w"> </span><span class="nc">CADTransformVerifier</span><span class="p">:</span>
@@ -1430,9 +1430,9 @@
 <p><strong>Risk</strong>: MEDIUM. Parsing wall thickness and doors from DXF requires geometry analysis that could be imprecise. Must validate against known test files.</p>
 <h3 id="proposal-6-nfpaiec-validation-as-pipeline-gate">Proposal 6: NFPA/IEC Validation as Pipeline Gate</h3>
 <p><strong>Objective</strong>: Validation engine as non-bypassable gate in the computation pipeline.</p>
-<p><strong>Current state</strong>: The 5-layer pipeline (L0 guards → L1 constants → L2 compute → L3 validate → L4 audit) already provides this. The <code>ComplianceEngine</code> (<code>fireai/validation/compliance_engine.py</code>) and <code>NFPA72ComplianceChecker</code> (<code>fireai/core/rules_engine/compliance_bridge.py</code>) are separate, post-pipeline validators.</p>
+<p><strong>Current state</strong>: The 5-layer pipeline (L0 guards → L1 constants → L2 compute → L3 validate → L4 audit) already provides this. The <code>ComplianceEngine</code> (<code>etap/validation/compliance_engine.py</code>) and <code>NFPA72ComplianceChecker</code> (<code>etap/core/rules_engine/compliance_bridge.py</code>) are separate, post-pipeline validators.</p>
 <p><strong>Design</strong>: Merge compliance checking into the pipeline as a mandatory Stage 3.5 (already exists!):</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c1"># fireai/core/pipeline.py — Stage 3.5 already calls NFPA72ComplianceChecker</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c1"># etap/core/pipeline.py — Stage 3.5 already calls NFPA72ComplianceChecker</span>
 <a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>
 <a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="c1"># Enhancement: Make compliance engine pluggable via PluginRegistry</span>
 <a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="k">def</span><span class="w"> </span><span class="nf">_stage35_rules_compliance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">room</span><span class="p">,</span> <span class="n">result</span><span class="p">,</span> <span class="n">validated</span><span class="p">):</span>
@@ -1453,7 +1453,7 @@
 <hr />
 <h2 id="3-plugin-design">3. PLUGIN DESIGN</h2>
 <h3 id="plugin-interface-specification">Plugin Interface Specification</h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="c1"># fireai/core/interfaces.py — All plugin interfaces</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="c1"># etap/core/interfaces.py — All plugin interfaces</span>
 <a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>
 <a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">ABC</span><span class="p">,</span> <span class="n">abstractmethod</span>
 <a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span>
@@ -1583,11 +1583,11 @@
 <a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="k">def</span><span class="w"> </span><span class="nf">_discover_plugins</span><span class="p">():</span>
 <a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Discover and register all plugins.&quot;&quot;&quot;</span>
 <a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a>    <span class="c1"># Core plugins (always available)</span>
-<a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a>    <span class="kn">from</span><span class="w"> </span><span class="nn">fireai.core.qomn_kernel</span><span class="w"> </span><span class="kn">import</span> <span class="n">register</span> <span class="k">as</span> <span class="n">qomn_register</span>
+<a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a>    <span class="kn">from</span><span class="w"> </span><span class="nn">etap.core.qomn_kernel</span><span class="w"> </span><span class="kn">import</span> <span class="n">register</span> <span class="k">as</span> <span class="n">qomn_register</span>
 <a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a>
 <a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a>    <span class="n">qomn_register</span><span class="p">()</span>
 <a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a>
-<a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a>    <span class="kn">from</span><span class="w"> </span><span class="nn">fireai.core.pipeline</span><span class="w"> </span><span class="kn">import</span> <span class="n">register</span> <span class="k">as</span> <span class="n">pipeline_register</span>
+<a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a>    <span class="kn">from</span><span class="w"> </span><span class="nn">etap.core.pipeline</span><span class="w"> </span><span class="kn">import</span> <span class="n">register</span> <span class="k">as</span> <span class="n">pipeline_register</span>
 <a id="__codelineno-12-10" name="__codelineno-12-10" href="#__codelineno-12-10"></a>
 <a id="__codelineno-12-11" name="__codelineno-12-11" href="#__codelineno-12-11"></a>    <span class="n">pipeline_register</span><span class="p">()</span>
 <a id="__codelineno-12-12" name="__codelineno-12-12" href="#__codelineno-12-12"></a>
@@ -1712,7 +1712,7 @@
 <tbody>
 <tr>
 <td>1.1</td>
-<td>Create <code>fireai/core/interfaces.py</code> with ABC definitions</td>
+<td>Create <code>etap/core/interfaces.py</code> with ABC definitions</td>
 <td>1 day</td>
 </tr>
 <tr>
@@ -1722,7 +1722,7 @@
 </tr>
 <tr>
 <td>1.3</td>
-<td>Create <code>fireai/core/plugin_registry.py</code></td>
+<td>Create <code>etap/core/plugin_registry.py</code></td>
 <td>1 day</td>
 </tr>
 <tr>
@@ -1826,7 +1826,7 @@
 <tbody>
 <tr>
 <td>4.1</td>
-<td>Remove all direct <code>fireai.core.*</code> imports from <code>backend/</code> routers</td>
+<td>Remove all direct <code>etap.core.*</code> imports from <code>backend/</code> routers</td>
 <td>2 days</td>
 </tr>
 <tr>
@@ -1901,9 +1901,9 @@
 <a id="__codelineno-15-7" name="__codelineno-15-7" href="#__codelineno-15-7"></a>Affected Files: [list of files changed]
 <a id="__codelineno-15-8" name="__codelineno-15-8" href="#__codelineno-15-8"></a>
 <a id="__codelineno-15-9" name="__codelineno-15-9" href="#__codelineno-15-9"></a>┌─ MODULE COUPLING CHANGES ──────────────────────────────────────────────┐
-<a id="__codelineno-15-10" name="__codelineno-15-10" href="#__codelineno-15-10"></a>│ REMOVED: backend/routers/qomn.py → fireai/core/qomn_kernel.py (7 imports) │
-<a id="__codelineno-15-11" name="__codelineno-15-11" href="#__codelineno-15-11"></a>│ ADDED:   backend/routers/qomn.py → fireai/core/interfaces.py (1 import)   │
-<a id="__codelineno-15-12" name="__codelineno-15-12" href="#__codelineno-15-12"></a>│ KEPT:    fireai/core/qomn_kernel.py implements ComputationKernel           │
+<a id="__codelineno-15-10" name="__codelineno-15-10" href="#__codelineno-15-10"></a>│ REMOVED: backend/routers/qomn.py → etap/core/qomn_kernel.py (7 imports) │
+<a id="__codelineno-15-11" name="__codelineno-15-11" href="#__codelineno-15-11"></a>│ ADDED:   backend/routers/qomn.py → etap/core/interfaces.py (1 import)   │
+<a id="__codelineno-15-12" name="__codelineno-15-12" href="#__codelineno-15-12"></a>│ KEPT:    etap/core/qomn_kernel.py implements ComputationKernel           │
 <a id="__codelineno-15-13" name="__codelineno-15-13" href="#__codelineno-15-13"></a>└──────────────────────────────────────────────────────────────────────────┘
 <a id="__codelineno-15-14" name="__codelineno-15-14" href="#__codelineno-15-14"></a>
 <a id="__codelineno-15-15" name="__codelineno-15-15" href="#__codelineno-15-15"></a>┌─ SINGLETON CHANGES ────────────────────────────────────────────────────┐

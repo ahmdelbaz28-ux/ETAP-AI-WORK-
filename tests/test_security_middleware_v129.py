@@ -56,10 +56,10 @@ if str(_PROJECT_ROOT) not in sys.path:
 @pytest.fixture
 def dev_app():
     """Load backend.app in development mode."""
-    saved_env = os.environ.get("FIREAI_ENV")
-    saved_key = os.environ.get("FIREAI_API_KEY")
-    os.environ["FIREAI_ENV"] = "development"
-    os.environ["FIREAI_API_KEY"] = ""
+    saved_env = os.environ.get("APP_ENV")
+    saved_key = os.environ.get("API_KEY")
+    os.environ["APP_ENV"] = "development"
+    os.environ["API_KEY"] = ""
     # Clear cached module so __init__ runs again with new env
     for mod_name in list(sys.modules):  # NOSONAR - python:S7504
         if mod_name == "backend.app" or mod_name.startswith("backend.app."):
@@ -69,13 +69,13 @@ def dev_app():
         yield backend_app.app
     finally:
         if saved_env is not None:
-            os.environ["FIREAI_ENV"] = saved_env
+            os.environ["APP_ENV"] = saved_env
         else:
-            os.environ.pop("FIREAI_ENV", None)
+            os.environ.pop("APP_ENV", None)
         if saved_key is not None:
-            os.environ["FIREAI_API_KEY"] = saved_key
+            os.environ["API_KEY"] = saved_key
         else:
-            os.environ.pop("FIREAI_API_KEY", None)
+            os.environ.pop("API_KEY", None)
 
 
 @pytest.fixture
@@ -195,7 +195,7 @@ class TestCSPEnvironmentAwareness:
 
     def test_production_csp_no_unsafe_eval(self):
         """Production CSP must NOT include 'unsafe-eval'."""
-        os.environ["FIREAI_ENV"] = "production"
+        os.environ["APP_ENV"] = "production"
         os.environ["CORS_ALLOWED_ORIGINS"] = "https://app.example.com"
         try:
             from backend.security_middleware import _build_csp, _is_production_env
@@ -209,12 +209,12 @@ class TestCSPEnvironmentAwareness:
                 "Production CSP must NOT allow localhost connect-src"
             )
         finally:
-            os.environ["FIREAI_ENV"] = "development"
+            os.environ["APP_ENV"] = "development"
             os.environ.pop("CORS_ALLOWED_ORIGINS", None)
 
     def test_development_csp_allows_unsafe_eval(self):
         """Development CSP MUST include 'unsafe-eval' (Vite HMR requirement)."""
-        os.environ["FIREAI_ENV"] = "development"
+        os.environ["APP_ENV"] = "development"
         from backend.security_middleware import _build_csp, _is_production_env
 
         assert not _is_production_env()
@@ -233,9 +233,9 @@ class TestBackendAppCorsHardening:
         with pytest.raises(RuntimeError, match="CORS_ALLOWED_ORIGINS.*REQUIRED"):
             _reload_backend_app(
                 {
-                    "FIREAI_ENV": "production",
+                    "APP_ENV": "production",
                     "CORS_ALLOWED_ORIGINS": None,
-                    "FIREAI_API_KEY": "",
+                    "API_KEY": "",
                 }
             )
 
@@ -244,9 +244,9 @@ class TestBackendAppCorsHardening:
         with pytest.raises(RuntimeError, match=r"'\*'.*forbidden"):
             _reload_backend_app(
                 {
-                    "FIREAI_ENV": "production",
+                    "APP_ENV": "production",
                     "CORS_ALLOWED_ORIGINS": "*",
-                    "FIREAI_API_KEY": "",
+                    "API_KEY": "",
                 }
             )
 
@@ -254,9 +254,9 @@ class TestBackendAppCorsHardening:
         """Production + explicit origins → CORS configured correctly."""
         backend_app = _reload_backend_app(
             {
-                "FIREAI_ENV": "production",
+                "APP_ENV": "production",
                 "CORS_ALLOWED_ORIGINS": "https://app.example.com,https://admin.example.com",
-                "FIREAI_API_KEY": "",
+                "API_KEY": "",
             }
         )
         from starlette.middleware.cors import CORSMiddleware
@@ -366,8 +366,8 @@ class TestBackendAppAlsoHasSecurityHeaders:
 
     def test_backend_app_has_security_headers(self):
         """backend_app.py must emit X-Frame-Options on every response."""
-        os.environ["FIREAI_ENV"] = "development"
-        os.environ["FIREAI_API_KEY"] = ""
+        os.environ["APP_ENV"] = "development"
+        os.environ["API_KEY"] = ""
         try:
             # Reload backend_app fresh
             for mod_name in list(sys.modules):  # NOSONAR - python:S7504
@@ -394,7 +394,7 @@ class TestBackendAppAlsoHasSecurityHeaders:
 
 class TestProductionAuthDisabledBypass:
     """
-    A2: ENGINEERING_SERVICE_AUTH_DISABLED / FIREAI_AUTH_DISABLED must NOT
+    A2: ENGINEERING_SERVICE_AUTH_DISABLED / AUTH_DISABLED must NOT
     bypass authentication in production/staging environments.
 
     ONLY allow the disable-bypass in development/local environments where

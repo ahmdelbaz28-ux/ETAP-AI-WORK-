@@ -309,12 +309,12 @@ class TestV125DoSCapConsistency:
     @pytest.mark.parametrize(
         ("parser_file", "env_var"),
         [
-            ("parsers/pdf_parser.py", "FIREAI_PDF_MAX_FILE_SIZE_BYTES"),
-            ("parsers/image_parser.py", "FIREAI_IMAGE_MAX_FILE_SIZE_BYTES"),
-            ("parsers/excel_parser.py", "FIREAI_EXCEL_MAX_FILE_SIZE_BYTES"),
-            ("parsers/word_parser.py", "FIREAI_WORD_MAX_FILE_SIZE_BYTES"),
-            ("parsers/ifc_parser.py", "FIREAI_IFC_MAX_FILE_SIZE_BYTES"),
-            ("parsers/dwg_parser.py", "FIREAI_DWG_MAX_FILE_SIZE_BYTES"),
+            ("parsers/pdf_parser.py", "PDF_MAX_FILE_SIZE_BYTES"),
+            ("parsers/image_parser.py", "IMAGE_MAX_FILE_SIZE_BYTES"),
+            ("parsers/excel_parser.py", "EXCEL_MAX_FILE_SIZE_BYTES"),
+            ("parsers/word_parser.py", "WORD_MAX_FILE_SIZE_BYTES"),
+            ("parsers/ifc_parser.py", "IFC_MAX_FILE_SIZE_BYTES"),
+            ("parsers/dwg_parser.py", "DWG_MAX_FILE_SIZE_BYTES"),
         ],
     )
     def test_parser_advertises_env_configurable_cap(self, parser_file, env_var):

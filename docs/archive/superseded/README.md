@@ -15,7 +15,7 @@ ANTI-DECEPTION DIRECTIVE in `agent.md`.
 | `FINAL_GO_NOGO_REPORT.md` | 63 routes loaded | **196 routes** / **190 OpenAPI endpoints** (3x understated) |
 | `FINAL_GO_NOGO_REPORT.md` | 20 Bandit MEDIUM | **61 MEDIUM** (3x understated) |
 | `FINAL_PRE_RELEASE_AUDIT.md` | Architecture Score 62/100, "Missing source files" | Source files exist; actual score 58/100 after evidence-based re-audit |
-| `EXHAUSTIVE_AUDIT_REPORT.md` | Backend Complete 95%, "UI Deferred" | Backend has 784 mypy errors, 25% coverage on fireai/core; UI builds in 3.03s |
+| `EXHAUSTIVE_AUDIT_REPORT.md` | Backend Complete 95%, "UI Deferred" | Backend has 784 mypy errors, 25% coverage on etap/core; UI builds in 3.03s |
 | `PRE_LAUNCH_REMEDIATION_PLAN.md` | "CSRF skeleton" (CRITICAL) | CSRF **fully implemented** (493 lines, secrets.token_urlsafe + hmac.compare_digest) |
 | `PRE_LAUNCH_REMEDIATION_PLAN.md` | "Python 3.8.4 detected" | CI uses 3.12, Dockerfile uses 3.12-slim, only .pre-commit-config says 3.8 |
 

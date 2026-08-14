@@ -1,12 +1,12 @@
-# FireAI Production System Architecture
+# ETAP Production System Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
-│                    FIREAI PRODUCTION SYSTEM                        │
+│                    ETAP PRODUCTION SYSTEM                        │
 └─────────────────────────────────────────────────────────────────────┘
 
                                 ┌─────────────────┐
-                                │  FireAISystem    │
+                                │  ETAPSystem    │
                                 │  (Orchestrator) │
                                 └────────┬────────┘
                                          │
@@ -31,7 +31,7 @@
    │  - used_mip         - mip_proof                         │
    └───────────────────────────────────────────────────────────────────┘
 
-API Endpoints (fireai_api.py):
+API Endpoints (api.py):
   POST  /analyse/room     → Single room analysis
   POST  /analyse/floor    → Multi-room floor analysis  
   GET   /audit/trail      → Audit trail
@@ -42,7 +42,7 @@ API Endpoints (fireai_api.py):
 
 ## Components
 
-### 1. FireAISystem (fireai_core.py)
+### 1. ETAPSystem (core.py)
 **Responsibility**: Central orchestrator that integrates all components
 - Combines V12 engine with audit logging
 - Provides single entry point for analysis
@@ -88,7 +88,7 @@ API Endpoints (fireai_api.py):
 1. User Request
        │
        ▼
-2. FireAISystem.analyse_room()
+2. ETAPSystem.analyse_room()
        │
        ├──────────────────────┐
        │                      │
@@ -109,7 +109,7 @@ API Endpoints (fireai_api.py):
 
 ### Single Room Analysis
 ```
-FireAISystem.analyse_room(room_spec, user_id="user123")
+ETAPSystem.analyse_room(room_spec, user_id="user123")
     │
     ├─→ ExpertSystemV12.analyse_room()
     │       │
@@ -123,7 +123,7 @@ FireAISystem.analyse_room(room_spec, user_id="user123")
 
 ### Floor Analysis
 ```
-FireAISystem.analyse_floor(rooms, user_id="user123")
+ETAPSystem.analyse_floor(rooms, user_id="user123")
     │
     ├─→ ExpertSystemV12.analyse_floor()
     │       │
@@ -154,11 +154,11 @@ pip install ezdxf shapely
 
 ### Basic Usage
 ```python
-from fireai.core.fireai_core import FireAISystem
-from fireai.core.nfpa72_models import CeilingSpec, CeilingType, RoomSpec
+from etap.core.core import ETAPSystem
+from etap.core.nfpa72_models import CeilingSpec, CeilingType, RoomSpec
 
 # Create system
-system = FireAISystem(db_path="audit.db", memory_max=2048)
+system = ETAPSystem(db_path="audit.db", memory_max=2048)
 
 # Create room spec
 ceiling = CeilingSpec(3.0, 3.0, CeilingType.FLAT)
@@ -180,12 +180,12 @@ is_valid = system.verify_audit_integrity()
 
 ### Running Tests
 ```bash
-python fireai/core/test_integration.py
+python etap/core/test_integration.py
 ```
 
 ## Version Information
 
-- FireAISystem: 1.0.0
+- ETAPSystem: 1.0.0
 - ExpertSystemV12: 12.0.0
 - AuditStore: Hash-chain based
 - NFPA Compliance: NFPA 72-2022
@@ -197,7 +197,7 @@ QUICK START
 
 ```bash
 cd /workspace/project/revit
-uvicorn fireai.core.fireai_api:app --host 0.0.0.0 --port 8000
+uvicorn etap.core.api:app --host 0.0.0.0 --port 8000
 ```
 
 ## API Example with curl
@@ -230,7 +230,7 @@ ENVIRONMENT VARIABLES
 | Variable | Description | Default |
 |----------|-------------|---------|
 | AUDIT_HMAC_KEY | HMAC key for audit signing | dev-key-change-in-production |
-| FIREAI_API_KEY | API key for authentication | change-me-in-production |
+| API_KEY | API key for authentication | change-me-in-production |
 | LOG_LEVEL | Logging level | INFO |
 
 ================================================================================

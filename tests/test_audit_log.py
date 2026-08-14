@@ -1,7 +1,7 @@
 """
 tests/test_audit_log.py
 =======================
-Tests for fireai.core.audit_log — QOMN-FIRE Layer 4: Audit Log
+Tests for etap.core.audit_log — QOMN-FIRE Layer 4: Audit Log
 
 Covers all public functions and data classes:
   - GENESIS_PREV_HASH constant
@@ -31,7 +31,6 @@ import pytest
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from fireai.core.audit_log import (
     GENESIS_PREV_HASH,
     AuditLog,
     compute_entry_hash,

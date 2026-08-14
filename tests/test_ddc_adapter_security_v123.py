@@ -54,9 +54,9 @@ class TestV123BackwardCompatibility:
     """
 
     def test_path_traversal_still_raises_ValueError(self, monkeypatch):  # NOSONAR - python:S100
-        """File outside FIREAI_ALLOWED_UPLOAD_DIRS → ValueError (not UnsafePathError)."""
-        monkeypatch.setenv("FIREAI_ALLOWED_UPLOAD_DIRS", "/var/fireai/uploads")
-        monkeypatch.delenv("FIREAI_ENV", raising=False)
+        """File outside ALLOWED_UPLOAD_DIRS → ValueError (not UnsafePathError)."""
+        monkeypatch.setenv("ALLOWED_UPLOAD_DIRS", "/var/etap/uploads")
+        monkeypatch.delenv("APP_ENV", raising=False)
         home = Path.home()
         if not home.exists():
             pytest.skip("No HOME for outside-allowed-dirs test")

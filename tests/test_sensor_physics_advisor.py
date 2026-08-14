@@ -4,7 +4,7 @@
 tests/test_sensor_physics_advisor.py
 ======================================
 Comprehensive test suite for:
-  - fireai/core/sensor_physics_advisor.py
+  - etap/core/sensor_physics_advisor.py
 
 SAFETY CRITICAL: This advisory module flags conditions where point-type
 detectors may be insufficient. Missing warnings could result in
@@ -20,7 +20,6 @@ NFPA 72 References:
 
 from __future__ import annotations
 
-from fireai.core.sensor_physics_advisor import (
     SensorAdvisory,
     SensorPhysicsAdvisor,
 )

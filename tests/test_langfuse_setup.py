@@ -32,7 +32,6 @@ TEST PHILOSOPHY (agent.md Rule 12 — Safety-First):
 from __future__ import annotations
 
 # Force fresh import to reset module-level globals between tests
-import fireai.infrastructure.langfuse_setup as langfuse_setup
 
 # ===========================================================================
 # Module existence test (V141.2 critical fix)
@@ -247,7 +246,6 @@ class TestWorkflowServiceIntegration:
     def test_workflow_service_can_import_langfuse(self):
         """workflow_service.py must be able to import from langfuse_setup."""
         # This is the exact import that workflow_service.py does
-        from fireai.infrastructure.langfuse_setup import (
             flush_langfuse,
             get_langfuse_callback_handler,
             langfuse_health_check,
@@ -263,7 +261,6 @@ class TestWorkflowServiceIntegration:
     def test_langfuse_available_flag_works(self):
         """The LANGFUSE_AVAILABLE flag pattern in workflow_service.py works."""
         try:
-            from fireai.infrastructure.langfuse_setup import (  # noqa: F401
                 flush_langfuse,
                 get_langfuse_callback_handler,
                 langfuse_health_check,

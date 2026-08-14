@@ -1,4 +1,4 @@
-# FireAI Deployment Guide
+# ETAP Deployment Guide
 
 ## Docker Deployment (Recommended)
 
@@ -10,8 +10,8 @@
 
 1. Generate secrets:
 ```bash
-export FIREAI_API_KEY=$(openssl rand -hex 32)
-export FIREAI_EVIDENCE_HMAC_KEY=$(openssl rand -hex 32)
+export API_KEY=$(openssl rand -hex 32)
+export EVIDENCE_HMAC_KEY=$(openssl rand -hex 32)
 ```
 
 2. Deploy:
@@ -26,7 +26,7 @@ curl http://localhost:8000/api/health
 ```
 
 ### Container Security
-- Runs as non-root `fireai` user
+- Runs as non-root `etap` user
 - Read-only filesystem (except `/data` and `/logs` volumes)
 - tmpfs for `/tmp` (100MB, ephemeral)
 - `no-new-privileges:true` security option
@@ -43,8 +43,8 @@ curl http://localhost:8000/api/health
 1. Install:
 ```bash
 pip install -r requirements.txt
-pip install fireai[workflow]  # optional
-pip install fireai[memory]    # optional
+pip install etap[workflow]  # optional
+pip install etap[memory]    # optional
 ```
 
 2. Configure:
@@ -70,9 +70,9 @@ curl http://localhost:8000/api/health
 
 ## Production Checklist
 
-- [ ] `FIREAI_ENV=production` set
-- [ ] `FIREAI_API_KEY` is cryptographically generated (not `dev-test-key`)
-- [ ] `FIREAI_EVIDENCE_HMAC_KEY` is cryptographically generated
+- [ ] `APP_ENV=production` set
+- [ ] `API_KEY` is cryptographically generated (not `dev-test-key`)
+- [ ] `EVIDENCE_HMAC_KEY` is cryptographically generated
 - [ ] CORS origins explicitly configured (no wildcards)
 - [ ] Secrets managed by secrets manager (not `.env` file)
 - [ ] Frontend build served via FastAPI static mount

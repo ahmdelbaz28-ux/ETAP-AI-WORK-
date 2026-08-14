@@ -1,7 +1,7 @@
 # File-level '# NOSONAR' removed per NOSONAR_AUDIT.md (V143 hardening).
 # Per-line justified suppressions (e.g., '# NOSONAR — S3776: ...') are preserved.
 """
-FireAI Rules Engine — Comprehensive Test Suite
+ETAP Rules Engine — Comprehensive Test Suite
 =================================================
 
 Tests the NFPA 72 Rules Engine, Truth Maintenance System,
@@ -22,19 +22,15 @@ Test Categories:
 from __future__ import annotations
 
 import pytest
-from fireai.core.rules_engine.api_contract import (
     ContractSeverity,
     ContractValidator,
 )
-from fireai.core.rules_engine.engine import (
     Fact,
     Rule,
     RulePriority,
     RuleResult,
     RulesEngine,
 )
-from fireai.core.rules_engine.nfpa72_rules import NFPA72RuleSet
-from fireai.core.rules_engine.truth_maintenance import (
     TruthMaintenanceSystem,
 )
 from pydantic import ValidationError

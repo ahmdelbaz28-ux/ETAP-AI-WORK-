@@ -3,7 +3,7 @@
 """
 tests/test_acoustic_calculator.py
 =================================
-Comprehensive test suite for fireai/core/acoustic_calculator.py
+Comprehensive test suite for etap/core/acoustic_calculator.py
 
 SAFETY CRITICAL: This module calculates audible notification coverage
 per NFPA 72 §18.4. Incorrect calculations could result in inaudible
@@ -21,7 +21,6 @@ from __future__ import annotations
 import math
 
 import pytest
-from fireai.core.acoustic_calculator import (
     AMBIENT_NOISE_LEVELS,
     AUDIBLE_REQUIREMENTS,
     BARRIER_ATTENUATION_DB,

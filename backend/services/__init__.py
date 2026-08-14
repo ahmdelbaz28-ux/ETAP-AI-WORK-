@@ -1,9 +1,9 @@
 """
-backend/services/ — External API integration services for FireAI.
+backend/services/ — External API integration services for ETAP.
 
 These services provide real-world environmental data (weather, geolocation,
 regulatory context, elevation, air quality, severe weather, hazardous materials)
-to the FireAI calculation engine.
+to the ETAP calculation engine.
 
 LIFE-SAFETY DESIGN PRINCIPLE:
   All services follow a FAIL-SAFE pattern:
@@ -51,7 +51,7 @@ from backend.services.severe_weather_service import (
 )
 from backend.services.weather_service import WeatherData, WeatherService
 
-# Optional: Workflow Engine — requires langgraph (pip install fireai[workflow])
+# Optional: Workflow Engine — requires langgraph (pip install etap[workflow])
 try:
     from backend.services.workflow_service import (
         PipelineState,
@@ -70,7 +70,7 @@ except ImportError:
     get_workflow_service = None
     close_workflow_service = None
 
-# Optional: Memory Layer — requires mem0 + qdrant-client (pip install fireai[memory])
+# Optional: Memory Layer — requires mem0 + qdrant-client (pip install etap[memory])
 try:
     from backend.services.memory_service import (
         MemoryAddRequest,

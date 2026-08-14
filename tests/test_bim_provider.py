@@ -14,7 +14,6 @@ real code with real assertions.
 from __future__ import annotations
 
 import pytest
-from fireai.bridges.bim_provider import (
     AutodeskForgeProvider,
     BIMProvider,
     BIMProviderCapability,
@@ -114,8 +113,8 @@ class TestRegistry:
         assert "autodesk_forge" in available
 
     def test_get_provider_returns_none_when_no_env_var(self, monkeypatch):
-        """Without FIREAI_BIM_PROVIDER env var, get_provider returns None."""
-        monkeypatch.delenv("FIREAI_BIM_PROVIDER", raising=False)
+        """Without BIM_PROVIDER env var, get_provider returns None."""
+        monkeypatch.delenv("BIM_PROVIDER", raising=False)
         assert get_provider() is None
 
     def test_get_provider_with_explicit_name(self):
@@ -125,15 +124,15 @@ class TestRegistry:
         assert provider.provider_name == "ifc_file"
 
     def test_get_provider_with_env_var(self, monkeypatch):
-        """FIREAI_BIM_PROVIDER env var selects the active provider."""
-        monkeypatch.setenv("FIREAI_BIM_PROVIDER", "local_revit")
+        """BIM_PROVIDER env var selects the active provider."""
+        monkeypatch.setenv("BIM_PROVIDER", "local_revit")
         provider = get_provider()
         assert provider is not None
         assert provider.provider_name == "local_revit"
 
     def test_get_provider_unknown_returns_none(self, monkeypatch):
         """Unknown provider name returns None (not raise)."""
-        monkeypatch.setenv("FIREAI_BIM_PROVIDER", "nonexistent_provider")
+        monkeypatch.setenv("BIM_PROVIDER", "nonexistent_provider")
         assert get_provider() is None
 
     def test_register_rejects_non_protocol_class(self):
@@ -400,8 +399,8 @@ class TestBIMRoom:
         assert room.width == pytest.approx(10.0)
         assert room.length == pytest.approx(5.0)
 
-    def test_bim_room_to_fireai_room_dict(self):
-        """to_fireai_room_dict produces a dict usable by FireAI pipeline."""
+    def test_bim_room_to_room_dict(self):
+        """to_room_dict produces a dict usable by ETAP pipeline."""
         room = BIMRoom(
             room_id="TEST-004",
             name="Office",
@@ -411,7 +410,7 @@ class TestBIMRoom:
             polygon=[(0, 0), (5, 0), (5, 5), (0, 5)],
             source="local_revit",
         )
-        d = room.to_fireai_room_dict()
+        d = room.to_room_dict()
         assert d["room_id"] == "TEST-004"
         assert d["ceiling_height"] == pytest.approx(3.0)
         assert d["source"] == "local_revit"

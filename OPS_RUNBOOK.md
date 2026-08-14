@@ -254,7 +254,7 @@ Add `SONAR_TOKEN` as a GitHub secret first.
 
 ### Problem
 
-The `ProofCertificate` (in `fireai/core/spatial_engine/proof_certificate.py`)
+The `ProofCertificate` (in `etap/core/spatial_engine/proof_certificate.py`)
 generates a mathematical proof that every point in a room is within NFPA 72
 coverage radius R of a detector, using the δ-conservative grid method. This
 proof is generated automatically by the platform.
@@ -302,7 +302,7 @@ Compile the following for the AHJ:
    ```bash
    cd /home/z/my-project/work/revit
    python -c "
-   from fireai.core.spatial_engine.proof_certificate import ProofCertificateGenerator
+   from etap.core.spatial_engine.proof_certificate import ProofCertificateGenerator
    # Generate a sample certificate for a 10×10 m room
    # (see tests/test_proof_certificate.py for usage example)
    "
@@ -363,7 +363,7 @@ Once accepted, document in the project file:
 #### Step 5: Update the ProofCertificate generator
 
 If the AHJ imposed conditions (Step 4.5), update
-`fireai/core/spatial_engine/proof_certificate.py` to enforce them:
+`etap/core/spatial_engine/proof_certificate.py` to enforce them:
 
 - If "smoke detectors only" → add a `detector_type` parameter and reject
   heat detector certificates

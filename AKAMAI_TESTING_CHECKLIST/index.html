@@ -20,7 +20,7 @@
     
     
       
-        <title>Akamai Testing Checklist — BAZSPARK - AhmedETAP Documentation</title>
+        <title>Akamai Testing Checklist — ETAP - AhmedETAP Documentation</title>
       
     
     
@@ -70,7 +70,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#akamai-testing-checklist-bazspark" class="md-skip">
+        <a href="#akamai-testing-checklist-etap" class="md-skip">
           Skip to content
         </a>
       
@@ -104,7 +104,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Akamai Testing Checklist — BAZSPARK
+              Akamai Testing Checklist — ETAP
             
           </span>
         </div>
@@ -1120,7 +1120,7 @@
   
 
 
-<h1 id="akamai-testing-checklist-bazspark">Akamai Testing Checklist — BAZSPARK</h1>
+<h1 id="akamai-testing-checklist-etap">Akamai Testing Checklist — ETAP</h1>
 <blockquote>
 <p><strong>قائمة اختبار ما بعد نشر Akamai</strong>
 Run every test in this checklist after each Akamai Property activation
@@ -1130,19 +1130,19 @@ Run every test in this checklist after each Akamai Property activation
 <h2 id="1-basic-connectivity">1. اختبارات الاتصال الأساسية (Basic Connectivity)</h2>
 <h3 id="11-dns-resolution">1.1 DNS Resolution</h3>
 <ul>
-<li>[ ] <code>dig api.bazspark.com</code> يعيد IPs تابعة لـ Akamai (23.x.x.x أو أي نطاق Akamai)</li>
-<li>[ ] <code>dig api.bazspark.com +short</code> يعيد CNAME إلى <code>*.edgeservices.net</code></li>
-<li>[ ] <code>dig bazspark.com</code> يعيد Akamai apex IPs</li>
+<li>[ ] <code>dig api.etap.com</code> يعيد IPs تابعة لـ Akamai (23.x.x.x أو أي نطاق Akamai)</li>
+<li>[ ] <code>dig api.etap.com +short</code> يعيد CNAME إلى <code>*.edgeservices.net</code></li>
+<li>[ ] <code>dig etap.com</code> يعيد Akamai apex IPs</li>
 </ul>
 <h3 id="12-https-connection">1.2 HTTPS Connection</h3>
 <ul>
-<li>[ ] <code>curl -I https://api.bazspark.com</code> يعود <code>200 OK</code> أو <code>401 Unauthorized</code> (لكن ليس 5xx)</li>
-<li>[ ] TLS 1.3 مُفعّل: <code>openssl s_client -connect api.bazspark.com:443 -tls1_3</code></li>
-<li>[ ] شهادة TLS صالحة: <code>echo | openssl s_client -connect api.bazspark.com:443 2&gt;/dev/null | openssl x509 -noout -dates</code></li>
+<li>[ ] <code>curl -I https://api.etap.com</code> يعود <code>200 OK</code> أو <code>401 Unauthorized</code> (لكن ليس 5xx)</li>
+<li>[ ] TLS 1.3 مُفعّل: <code>openssl s_client -connect api.etap.com:443 -tls1_3</code></li>
+<li>[ ] شهادة TLS صالحة: <code>echo | openssl s_client -connect api.etap.com:443 2&gt;/dev/null | openssl x509 -noout -dates</code></li>
 </ul>
 <h3 id="13-health-endpoint">1.3 Health Endpoint</h3>
 <ul>
-<li>[ ] <code>curl https://api.bazspark.com/api/health</code> يعود JSON صالح</li>
+<li>[ ] <code>curl https://api.etap.com/api/health</code> يعود JSON صالح</li>
 <li>[ ] الحالة: <code>"status": "ok"</code></li>
 <li>[ ] قاعدة البيانات: <code>"database": "connected"</code></li>
 <li>[ ] Uptime: <code>&gt; 60</code> seconds</li>
@@ -1151,7 +1151,7 @@ Run every test in this checklist after each Akamai Property activation
 <h2 id="2-akamai-edge-edge-headers">2. اختبارات Akamai Edge (Edge Headers)</h2>
 <h3 id="21-edgeworker-inject-headers">2.1 EdgeWorker: inject-headers</h3>
 <ul>
-<li>[ ] <code>curl -I https://api.bazspark.com/api/health</code> يحتوي على:
+<li>[ ] <code>curl -I https://api.etap.com/api/health</code> يحتوي على:
   <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>X-Frame-Options: DENY
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>X-Content-Type-Options: nosniff
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
@@ -1162,10 +1162,10 @@ Run every test in this checklist after each Akamai Property activation
 </ul>
 <h3 id="22-edgeworker-verify-origin">2.2 EdgeWorker: verify-origin</h3>
 <ul>
-<li>[ ] <code>curl -I https://api.bazspark.com/api/health</code> يحتوي على:
+<li>[ ] <code>curl -I https://api.etap.com/api/health</code> يحتوي على:
   <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>X-Akamai-Translated-Request: true
 </code></pre></div></li>
-<li>[ ] <code>curl -I https://api.bazspark.com/api/health</code> يحتوي على:
+<li>[ ] <code>curl -I https://api.etap.com/api/health</code> يحتوي على:
   <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>X-Akamai-GRN: &lt;request_id&gt;
 </code></pre></div></li>
 </ul>
@@ -1179,38 +1179,38 @@ Run every test in this checklist after each Akamai Property activation
 <h2 id="3-waf-kona-rules">3. اختبارات WAF / Kona Rules</h2>
 <h3 id="31-sql-injection-blocking">3.1 SQL Injection Blocking</h3>
 <ul>
-<li>[ ] <strong>DENY</strong>: <code>curl "https://api.bazspark.com/api/v1/projects?id=1' OR '1'='1"</code></li>
+<li>[ ] <strong>DENY</strong>: <code>curl "https://api.etap.com/api/v1/projects?id=1' OR '1'='1"</code></li>
 <li>متوقع: <code>403 Forbidden</code> مع <code>X-Akamai-WAF: DENY</code></li>
-<li>[ ] <strong>DENY</strong>: <code>curl "https://api.bazspark.com/api/v1/projects?id=1; DROP TABLE projects;--"</code></li>
-<li>[ ] <strong>DENY</strong>: <code>curl -X POST https://api.bazspark.com/api/v1/projects -d '{"name":"test\"; DROP TABLE users;--"}'</code></li>
+<li>[ ] <strong>DENY</strong>: <code>curl "https://api.etap.com/api/v1/projects?id=1; DROP TABLE projects;--"</code></li>
+<li>[ ] <strong>DENY</strong>: <code>curl -X POST https://api.etap.com/api/v1/projects -d '{"name":"test\"; DROP TABLE users;--"}'</code></li>
 </ul>
 <h3 id="32-xss-blocking">3.2 XSS Blocking</h3>
 <ul>
-<li>[ ] <strong>DENY</strong>: <code>curl "https://api.bazspark.com/api/v1/projects?name=&lt;script&gt;alert(1)&lt;/script&gt;"</code></li>
-<li>[ ] <strong>DENY</strong>: <code>curl "https://api.bazspark.com/api/v1/projects?name=&lt;img src=x onerror=alert(1)&gt;"</code></li>
+<li>[ ] <strong>DENY</strong>: <code>curl "https://api.etap.com/api/v1/projects?name=&lt;script&gt;alert(1)&lt;/script&gt;"</code></li>
+<li>[ ] <strong>DENY</strong>: <code>curl "https://api.etap.com/api/v1/projects?name=&lt;img src=x onerror=alert(1)&gt;"</code></li>
 </ul>
 <h3 id="33-path-traversal-blocking">3.3 Path Traversal Blocking</h3>
 <ul>
-<li>[ ] <strong>DENY</strong>: <code>curl "https://api.bazspark.com/api/v1/projects/../../../etc/passwd"</code></li>
-<li>[ ] <strong>DENY</strong>: <code>curl "https://api.bazspark.com/api/v1/projects/..%2F..%2Fetc%2Fpasswd"</code></li>
+<li>[ ] <strong>DENY</strong>: <code>curl "https://api.etap.com/api/v1/projects/../../../etc/passwd"</code></li>
+<li>[ ] <strong>DENY</strong>: <code>curl "https://api.etap.com/api/v1/projects/..%2F..%2Fetc%2Fpasswd"</code></li>
 </ul>
 <h3 id="34-command-injection-blocking">3.4 Command Injection Blocking</h3>
 <ul>
-<li>[ ] <strong>DENY</strong>: <code>curl "https://api.bazspark.com/api/v1/projects?id=1;cat /etc/passwd"</code></li>
-<li>[ ] <strong>DENY</strong>: <code>curl "https://api.bazspark.com/api/v1/projects?id=1|whoami"</code></li>
+<li>[ ] <strong>DENY</strong>: <code>curl "https://api.etap.com/api/v1/projects?id=1;cat /etc/passwd"</code></li>
+<li>[ ] <strong>DENY</strong>: <code>curl "https://api.etap.com/api/v1/projects?id=1|whoami"</code></li>
 </ul>
 <h3 id="35-attack-tool-user-agent-blocking">3.5 Attack Tool User-Agent Blocking</h3>
 <ul>
-<li>[ ] <strong>DENY</strong>: <code>curl -A "sqlmap/1.5" https://api.bazspark.com/api/v1/projects</code></li>
-<li>[ ] <strong>DENY</strong>: <code>curl -A "nikto/2.1" https://api.bazspark.com/api/v1/projects</code></li>
-<li>[ ] <strong>DENY</strong>: <code>curl -A "masscan" https://api.bazspark.com/api/v1/projects</code></li>
+<li>[ ] <strong>DENY</strong>: <code>curl -A "sqlmap/1.5" https://api.etap.com/api/v1/projects</code></li>
+<li>[ ] <strong>DENY</strong>: <code>curl -A "nikto/2.1" https://api.etap.com/api/v1/projects</code></li>
+<li>[ ] <strong>DENY</strong>: <code>curl -A "masscan" https://api.etap.com/api/v1/projects</code></li>
 </ul>
 <h3 id="36-http-method-restriction">3.6 HTTP Method Restriction</h3>
 <ul>
-<li>[ ] <strong>DENY</strong>: <code>curl -X TRACE https://api.bazspark.com/</code></li>
-<li>[ ] <strong>DENY</strong>: <code>curl -X CONNECT https://api.bazspark.com/</code></li>
-<li>[ ] <strong>ALLOW</strong>: <code>curl -X GET https://api.bazspark.com/api/health</code></li>
-<li>[ ] <strong>ALLOW</strong>: <code>curl -X POST https://api.bazspark.com/api/v1/auth/login -H "Content-Type: application/json" -d '{}'</code></li>
+<li>[ ] <strong>DENY</strong>: <code>curl -X TRACE https://api.etap.com/</code></li>
+<li>[ ] <strong>DENY</strong>: <code>curl -X CONNECT https://api.etap.com/</code></li>
+<li>[ ] <strong>ALLOW</strong>: <code>curl -X GET https://api.etap.com/api/health</code></li>
+<li>[ ] <strong>ALLOW</strong>: <code>curl -X POST https://api.etap.com/api/v1/auth/login -H "Content-Type: application/json" -d '{}'</code></li>
 </ul>
 <hr />
 <h2 id="4-rate-limiting">4. اختبارات Rate Limiting</h2>
@@ -1220,7 +1220,7 @@ Run every test in this checklist after each Akamai Property activation
   <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="k">for</span><span class="w"> </span>i<span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="o">{</span><span class="m">1</span>..350<span class="o">}</span><span class="p">;</span><span class="w"> </span><span class="k">do</span>
 <a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span>curl<span class="w"> </span>-s<span class="w"> </span>-o<span class="w"> </span>/dev/null<span class="w"> </span>-w<span class="w"> </span><span class="s2">&quot;%{http_code}\n&quot;</span><span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">    </span>-H<span class="w"> </span><span class="s2">&quot;X-API-Key: </span><span class="nv">$API_KEY</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">    </span>https://api.bazspark.com/api/v1/projects
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">    </span>https://api.etap.com/api/v1/projects
 <a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="k">done</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>sort<span class="w"> </span><span class="p">|</span><span class="w"> </span>uniq<span class="w"> </span>-c
 </code></pre></div></li>
 <li>متوقع: 300×<code>200</code> + 50×<code>429</code></li>
@@ -1231,7 +1231,7 @@ Run every test in this checklist after each Akamai Property activation
 <li>[ ] شغّل 15 محاولة login فاشلة في دقيقة:
   <div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="k">for</span><span class="w"> </span>i<span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="o">{</span><span class="m">1</span>..15<span class="o">}</span><span class="p">;</span><span class="w"> </span><span class="k">do</span>
 <a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span>curl<span class="w"> </span>-s<span class="w"> </span>-o<span class="w"> </span>/dev/null<span class="w"> </span>-w<span class="w"> </span><span class="s2">&quot;%{http_code}\n&quot;</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">    </span>-X<span class="w"> </span>POST<span class="w"> </span>https://api.bazspark.com/api/v1/auth/login<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">    </span>-X<span class="w"> </span>POST<span class="w"> </span>https://api.etap.com/api/v1/auth/login<span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">    </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">    </span>-d<span class="w"> </span><span class="s1">&#39;{&quot;api_key&quot;:&quot;invalid&quot;}&#39;</span>
 <a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="k">done</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>sort<span class="w"> </span><span class="p">|</span><span class="w"> </span>uniq<span class="w"> </span>-c
@@ -1241,7 +1241,7 @@ Run every test in this checklist after each Akamai Property activation
 <h3 id="43-captcha-after-failed-logins">4.3 Captcha After Failed Logins</h3>
 <ul>
 <li>[ ] بعد 3 failed logins، الطلب التالي يحتوي على CAPTCHA challenge:
-  <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>curl<span class="w"> </span>-v<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>https://api.bazspark.com/api/v1/auth/login<span class="w"> </span><span class="se">\</span>
+  <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>curl<span class="w"> </span>-v<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>https://api.etap.com/api/v1/auth/login<span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{&quot;api_key&quot;:&quot;invalid&quot;}&#39;</span>
 <a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="c1"># Look for: 200 OK with HTML body containing &quot;captcha&quot;</span>
@@ -1257,7 +1257,7 @@ Run every test in this checklist after each Akamai Property activation
 </ul>
 <h3 id="52-scripted-bot-detection">5.2 Scripted Bot Detection</h3>
 <ul>
-<li>[ ] <code>curl -A "Python/3.9 requests/2.28" https://api.bazspark.com/api/v1/projects</code> → تحقق من:</li>
+<li>[ ] <code>curl -A "Python/3.9 requests/2.28" https://api.etap.com/api/v1/projects</code> → تحقق من:</li>
 <li><code>Akamai-Bot-Score</code> header (60-100 = bot)</li>
 <li>أو <code>403 Forbidden</code> على endpoints حساسة</li>
 </ul>
@@ -1278,19 +1278,19 @@ Run every test in this checklist after each Akamai Property activation
 <h3 id="61-sanctioned-country-block">6.1 Sanctioned Country Block</h3>
 <ul>
 <li>[ ] استخدم VPN (مثل NordVPN) بـ server في إيران:</li>
-<li><code>curl https://api.bazspark.com/api/v1/projects</code> → <code>403 Forbidden</code></li>
+<li><code>curl https://api.etap.com/api/v1/projects</code> → <code>403 Forbidden</code></li>
 <li>الـ body: <code>{"code": "GEO_BLOCKED", "message": "Access from IR is not permitted"}</code></li>
 <li>[ ] كرر لبقية الدول: RU, KP, SY, CU, VE, BY</li>
 </ul>
 <h3 id="62-allowed-country-access">6.2 Allowed Country Access</h3>
 <ul>
 <li>[ ] بدون VPN (من مصر مثلاً):</li>
-<li><code>curl https://api.bazspark.com/api/health</code> → <code>200 OK</code></li>
+<li><code>curl https://api.etap.com/api/health</code> → <code>200 OK</code></li>
 <li><code>Akamai-Geo-Country: EG</code> header موجود</li>
 </ul>
 <h3 id="63-health-endpoint-exception">6.3 Health Endpoint Exception</h3>
 <ul>
-<li>[ ] من دولة ممنوعة، <code>curl https://api.bazspark.com/api/health</code> → <code>200 OK</code></li>
+<li>[ ] من دولة ممنوعة، <code>curl https://api.etap.com/api/health</code> → <code>200 OK</code></li>
 <li>(الاستثناء مسموح)</li>
 </ul>
 <hr />
@@ -1299,7 +1299,7 @@ Run every test in this checklist after each Akamai Property activation
 <ul>
 <li>[ ] شغّل 50 login attempts بأسماء مستخدمين مختلفة في 5 دقائق:
   <div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="k">for</span><span class="w"> </span>i<span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="o">{</span><span class="m">1</span>..50<span class="o">}</span><span class="p">;</span><span class="w"> </span><span class="k">do</span>
-<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">  </span>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>https://api.bazspark.com/api/v1/auth/login<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">  </span>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>https://api.etap.com/api/v1/auth/login<span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">    </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">    </span>-d<span class="w"> </span><span class="s2">&quot;{\&quot;api_key\&quot;:\&quot;fake_key_</span><span class="nv">$i</span><span class="s2">\&quot;}&quot;</span>
 <a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="k">done</span>
@@ -1311,7 +1311,7 @@ Run every test in this checklist after each Akamai Property activation
 <ul>
 <li>[ ] شغّل 11 login attempts لنفس الـ API key:
   <div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="k">for</span><span class="w"> </span>i<span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="o">{</span><span class="m">1</span>..11<span class="o">}</span><span class="p">;</span><span class="w"> </span><span class="k">do</span>
-<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">  </span>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>https://api.bazspark.com/api/v1/auth/login<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">  </span>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>https://api.etap.com/api/v1/auth/login<span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">    </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">    </span>-d<span class="w"> </span><span class="s1">&#39;{&quot;api_key&quot;:&quot;known_invalid_key&quot;}&#39;</span>
 <a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="k">done</span>
@@ -1327,7 +1327,7 @@ Run every test in this checklist after each Akamai Property activation
 <h2 id="8-direct-origin-bypass-prevention">8. اختبارات Direct Origin Bypass Prevention</h2>
 <h3 id="81-direct-hf-space-access">8.1 Direct HF Space Access</h3>
 <ul>
-<li>[ ] <code>curl -H "X-Forwarded-For: 1.2.3.4" https://ahmdelbaz28-bazspark.hf.space/api/health</code></li>
+<li>[ ] <code>curl -H "X-Forwarded-For: 1.2.3.4" https://ahmdelbaz28-etap.hf.space/api/health</code></li>
 <li>متوقع: <code>403 Forbidden</code> مع <code>X-Akamai-Translated-Request: absent</code> (لأن الـ middleware رفض)</li>
 <li><strong>في الإنتاج</strong>: رفض مباشر</li>
 <li><strong>في التطوير</strong>: السماح مع log warning</li>
@@ -1346,7 +1346,7 @@ Run every test in this checklist after each Akamai Property activation
 <h2 id="9-performance">9. اختبارات الأداء (Performance)</h2>
 <h3 id="91-latency">9.1 Latency</h3>
 <ul>
-<li>[ ] <code>curl -w "@curl-format.txt" -o /dev/null -s https://api.bazspark.com/api/health</code></li>
+<li>[ ] <code>curl -w "@curl-format.txt" -o /dev/null -s https://api.etap.com/api/health</code></li>
 <li><code>curl-format.txt</code>:
     <div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>time_namelookup:  %{time_namelookup}\n
 <a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>time_connect:     %{time_connect}\n
@@ -1359,14 +1359,14 @@ Run every test in this checklist after each Akamai Property activation
 </ul>
 <h3 id="92-cache-hit-ratio-static-assets">9.2 Cache Hit Ratio (Static Assets)</h3>
 <ul>
-<li>[ ] <code>curl -I https://api.bazspark.com/assets/index-xxxx.js</code> مرتين</li>
+<li>[ ] <code>curl -I https://api.etap.com/assets/index-xxxx.js</code> مرتين</li>
 <li>متوقع: الطلب الثاني يحتوي على <code>X-Cache: HIT</code> من Akamai</li>
 <li>[ ] راجع <code>X-Cache-Key</code>, <code>X-Cache-Action</code>, <code>X-Cache-Origin</code> headers</li>
 </ul>
 <h3 id="93-concurrent-connections">9.3 Concurrent Connections</h3>
 <ul>
 <li>[ ] شغّل 100 طلب متزامن:
-  <div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>ab<span class="w"> </span>-n<span class="w"> </span><span class="m">100</span><span class="w"> </span>-c<span class="w"> </span><span class="m">10</span><span class="w"> </span>https://api.bazspark.com/api/health
+  <div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>ab<span class="w"> </span>-n<span class="w"> </span><span class="m">100</span><span class="w"> </span>-c<span class="w"> </span><span class="m">10</span><span class="w"> </span>https://api.etap.com/api/health
 </code></pre></div></li>
 <li>متوقع: <code>100% success rate</code>, <code>mean latency &lt; 200ms</code></li>
 </ul>
@@ -1374,7 +1374,7 @@ Run every test in this checklist after each Akamai Property activation
 <h2 id="10-advanced-security">10. اختبارات الأمان المتقدمة (Advanced Security)</h2>
 <h3 id="101-ssl-labs-test">10.1 SSL Labs Test</h3>
 <ul>
-<li>[ ] افتح <a href="https://www.ssllabs.com/ssltest/analyze.html?d=api.bazspark.com">https://www.ssllabs.com/ssltest/analyze.html?d=api.bazspark.com</a></li>
+<li>[ ] افتح <a href="https://www.ssllabs.com/ssltest/analyze.html?d=api.etap.com">https://www.ssllabs.com/ssltest/analyze.html?d=api.etap.com</a></li>
 <li>[ ] متوقع: <strong>A+ grade</strong> مع:</li>
 <li>TLS 1.3 مُفعّل</li>
 <li>TLS 1.0 / 1.1 مُعطّل</li>
@@ -1384,7 +1384,7 @@ Run every test in this checklist after each Akamai Property activation
 </ul>
 <h3 id="102-securityheaderscom">10.2 SecurityHeaders.com</h3>
 <ul>
-<li>[ ] افتح <a href="https://securityheaders.com/?q=api.bazspark.com">https://securityheaders.com/?q=api.bazspark.com</a></li>
+<li>[ ] افتح <a href="https://securityheaders.com/?q=api.etap.com">https://securityheaders.com/?q=api.etap.com</a></li>
 <li>[ ] متوقع: <strong>A grade</strong> على الأقل</li>
 </ul>
 <h3 id="103-csp-evaluation">10.3 CSP Evaluation</h3>
@@ -1395,8 +1395,8 @@ Run every test in this checklist after each Akamai Property activation
 </ul>
 <h3 id="104-external-penetration-test">10.4 External Penetration Test</h3>
 <ul>
-<li>[ ] شغّل OWASP ZAP ضد <code>https://api.bazspark.com</code>:
-  <div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>docker<span class="w"> </span>run<span class="w"> </span>-t<span class="w"> </span>owasp/zap2docker-stable<span class="w"> </span>zap-baseline.py<span class="w"> </span>-t<span class="w"> </span>https://api.bazspark.com
+<li>[ ] شغّل OWASP ZAP ضد <code>https://api.etap.com</code>:
+  <div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>docker<span class="w"> </span>run<span class="w"> </span>-t<span class="w"> </span>owasp/zap2docker-stable<span class="w"> </span>zap-baseline.py<span class="w"> </span>-t<span class="w"> </span>https://api.etap.com
 </code></pre></div></li>
 <li>[ ] راجع النتائج، يجب ألا يكون هناك high-severity findings</li>
 </ul>
@@ -1424,12 +1424,12 @@ Run every test in this checklist after each Akamai Property activation
 <h3 id="121-complete-smoke-test">12.1 Complete Smoke Test</h3>
 <ul>
 <li>[ ] شغّل سكريبت الاختبار الشامل:
-  <div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>python<span class="w"> </span>tests/akamai_smoke_test.py<span class="w"> </span>--base-url<span class="w"> </span>https://api.bazspark.com<span class="w"> </span>--api-key<span class="w"> </span><span class="nv">$API_KEY</span>
+  <div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>python<span class="w"> </span>tests/akamai_smoke_test.py<span class="w"> </span>--base-url<span class="w"> </span>https://api.etap.com<span class="w"> </span>--api-key<span class="w"> </span><span class="nv">$API_KEY</span>
 </code></pre></div></li>
 </ul>
 <h3 id="122-real-user-monitoring">12.2 Real User Monitoring</h3>
 <ul>
-<li>[ ] افتح <code>https://api.bazspark.com</code> في المتصفح</li>
+<li>[ ] افتح <code>https://api.etap.com</code> في المتصفح</li>
 <li>[ ] سجّل دخول بـ API key صالح</li>
 <li>[ ] تنقّل في Dashboard → Room Design → Marine → AI Agent → Reports</li>
 <li>[ ] كل صفحة تحمل بدون أخطاء</li>

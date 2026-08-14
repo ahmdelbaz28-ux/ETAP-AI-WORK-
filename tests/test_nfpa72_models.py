@@ -3,7 +3,7 @@
 """
 tests/test_nfpa72_models.py
 ============================
-Comprehensive test suite for fireai/core/nfpa72_models.py
+Comprehensive test suite for etap/core/nfpa72_models.py
 
 SAFETY CRITICAL: NFPA 72 data models form the backbone of all detector
 placement and compliance calculations. Errors in radius lookups, ceiling
@@ -23,7 +23,6 @@ from __future__ import annotations
 import math
 
 import pytest
-from fireai.core.nfpa72_models import (
     # Constants
     DISCLAIMER,
     MAX_DIMENSION_M,

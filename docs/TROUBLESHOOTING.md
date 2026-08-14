@@ -1,4 +1,4 @@
-# FireAI Troubleshooting Guide
+# ETAP Troubleshooting Guide
 
 ## Common Issues
 
@@ -10,17 +10,17 @@
 ```bash
 pip install -r requirements.txt
 # For optional features:
-pip install fireai[workflow]  # if you need /api/workflow
-pip install fireai[memory]    # if you need /api/memory
-pip install fireai[ifc]       # if you need IFC export
+pip install etap[workflow]  # if you need /api/workflow
+pip install etap[memory]    # if you need /api/memory
+pip install etap[ifc]       # if you need IFC export
 ```
 
-**Symptom**: `FIREAI_API_KEY must be set`
+**Symptom**: `API_KEY must be set`
 
 **Fix**: Set environment variable:
 ```bash
-export FIREAI_API_KEY=$(openssl rand -hex 32)
-export FIREAI_EVIDENCE_HMAC_KEY=$(openssl rand -hex 32)
+export API_KEY=$(openssl rand -hex 32)
+export EVIDENCE_HMAC_KEY=$(openssl rand -hex 32)
 ```
 
 ### CORS Errors
@@ -43,8 +43,8 @@ export FIREAI_EVIDENCE_HMAC_KEY=$(openssl rand -hex 32)
 
 **Fix**: Install optional dependencies:
 ```bash
-pip install fireai[workflow]  # requires langgraph
-pip install fireai[memory]    # requires mem0 + qdrant-client
+pip install etap[workflow]  # requires langgraph
+pip install etap[memory]    # requires mem0 + qdrant-client
 ```
 
 ### Health Check Failing
@@ -53,7 +53,7 @@ pip install fireai[memory]    # requires mem0 + qdrant-client
 
 **Fix**: Check:
 1. Database path is accessible and writable
-2. Core modules can be imported: `python -c "from fireai.core.qomn_kernel import QOMNKernel"`
+2. Core modules can be imported: `python -c "from etap.core.qomn_kernel import QOMNKernel"`
 3. Environment variables are set correctly
 
 ### Frontend Not Loading

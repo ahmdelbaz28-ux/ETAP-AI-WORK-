@@ -1,8 +1,8 @@
-# GitHub Labels Strategy for FireAI
+# GitHub Labels Strategy for ETAP
 
 ## Overview
 
-This document outlines the comprehensive labeling strategy for the FireAI repository to ensure consistent issue and pull request management, improve triage efficiency, and enhance contributor experience.
+This document outlines the comprehensive labeling strategy for the ETAP repository to ensure consistent issue and pull request management, improve triage efficiency, and enhance contributor experience.
 
 ## Label Categories
 
@@ -41,7 +41,7 @@ These labels indicate the current state of the issue:
 ### Component Labels
 These labels indicate which part of the system is affected:
 
-- `component-core` - Core FireAI engine
+- `component-core` - Core ETAP engine
 - `component-ui` - User interface components
 - `component-api` - API layer
 - `component-security` - Security components

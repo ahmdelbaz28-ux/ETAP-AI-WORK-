@@ -117,8 +117,8 @@ def _build_csp() -> (
     Build a Content-Security-Policy header value.
 
     Environment-aware:
-      - FIREAI_ENV=production (default): 'unsafe-eval' is OFF unless explicitly enabled.
-      - FIREAI_ENV=development:           'unsafe-eval' is ON  unless explicitly disabled.
+      - APP_ENV=production (default): 'unsafe-eval' is OFF unless explicitly enabled.
+      - APP_ENV=development:           'unsafe-eval' is ON  unless explicitly disabled.
 
     Operators may override either default by setting CSP_UNSAFE_EVAL=true|false.
 
@@ -130,7 +130,7 @@ def _build_csp() -> (
     # can be exec'd in isolation by tests/test_csp_security.py.
     _truthy = {"true", "1", "yes"}
 
-    env = os.getenv("FIREAI_ENV", "production").lower()
+    env = os.getenv("APP_ENV", "production").lower()
     is_dev = env == "development"
 
     # Resolve CSP_UNSAFE_EVAL with environment-aware default.
@@ -143,7 +143,7 @@ def _build_csp() -> (
     # V119: escalate to ERROR when production keeps unsafe-eval on.
     if unsafe_eval and not is_dev:
         logger.error(
-            "CSP 'unsafe-eval' ENABLED in production (FIREAI_ENV=%s). "
+            "CSP 'unsafe-eval' ENABLED in production (APP_ENV=%s). "
             "This is a security risk for a safety-critical UI - "
             "set CSP_UNSAFE_EVAL=false to disable.",
             env,
@@ -209,15 +209,15 @@ def _build_csp() -> (
 #              even if cache_stats is never called.
 from collections import OrderedDict as _OrderedDict
 
-_CACHE_MAX_ENTRIES = int(os.getenv("FIREAI_CACHE_MAX_ENTRIES", "10000"))
+_CACHE_MAX_ENTRIES = int(os.getenv("CACHE_MAX_ENTRIES", "10000"))
 # STRICT FIX C: Max size of a single cached value (1 MB default).
 # Prevents a single entry from consuming excessive memory.
-_CACHE_MAX_VALUE_SIZE = int(os.getenv("FIREAI_CACHE_MAX_VALUE_SIZE", str(1024 * 1024)))
+_CACHE_MAX_VALUE_SIZE = int(os.getenv("CACHE_MAX_VALUE_SIZE", str(1024 * 1024)))
 _cache: _OrderedDict[str, dict] = _OrderedDict()
 _cache_lock = threading.Lock()
 
 # STRICT FIX H: Background reaper configuration
-_CACHE_REAPER_INTERVAL = int(os.getenv("FIREAI_CACHE_REAPER_INTERVAL", "60"))
+_CACHE_REAPER_INTERVAL = int(os.getenv("CACHE_REAPER_INTERVAL", "60"))
 _cache_reaper_started = False
 _cache_reaper_lock = threading.Lock()
 
@@ -363,7 +363,7 @@ async def lifespan(app: FastAPI):
     Previously set_core_modules_loaded() was defined but never invoked —
     health status was always "degraded" even when everything was working.
 
-    V193 (R2) FIX: Validate FIREAI_SESSION_SECRET at startup. If missing or
+    V193 (R2) FIX: Validate SESSION_SECRET at startup. If missing or
     too short (<43 chars = 256 bits), hard-fail with a clear error message.
     Previously, the secret was only validated lazily when the auth router
     tried to register — and the auth router's failure was swallowed by
@@ -376,23 +376,23 @@ async def lifespan(app: FastAPI):
     # allowed the app to start in a broken state.
     import os as _os
 
-    _secret = _os.environ.get("FIREAI_SESSION_SECRET", "")
+    _secret = _os.environ.get("SESSION_SECRET", "")
     if not _secret:
         raise RuntimeError(
-            "FIREAI_SESSION_SECRET environment variable is not set. "
+            "SESSION_SECRET environment variable is not set. "
             "The session secret is REQUIRED for authentication. "
             "Generate one with: python3 -m backend.session_secret generate "
-            "and set it via FIREAI_SESSION_SECRET env var (or "
-            "FIREAI_SESSION_SECRET_FILE for Docker/K8s)."
+            "and set it via SESSION_SECRET env var (or "
+            "SESSION_SECRET_FILE for Docker/K8s)."
         )
     if len(_secret) < 43:
         raise RuntimeError(
-            f"FIREAI_SESSION_SECRET is too short: {len(_secret)} chars. "
+            f"SESSION_SECRET is too short: {len(_secret)} chars. "
             f"Minimum is 43 chars (256 bits of entropy). "
             f"Current value appears to be a placeholder or truncated. "
             f"Generate a strong one with: "
             f'python3 -c "import secrets; print(secrets.token_urlsafe(64))" '
-            f"and set it as FIREAI_SESSION_SECRET."
+            f"and set it as SESSION_SECRET."
         )
 
     logger.info("Starting CAD/BIM Integration Platform...")
@@ -409,11 +409,11 @@ async def lifespan(app: FastAPI):
 
 
 # Create FastAPI app with lifespan
-# V130 SECURITY FIX: docs/redoc/openapi are now gated by FIREAI_ENV.
+# V130 SECURITY FIX: docs/redoc/openapi are now gated by APP_ENV.
 # In production, the entire API surface (including internal RBAC permission
 # names) MUST NOT be exposed to anonymous attackers. Set docs_url=None to
 # fully disable. Development keeps the docs available for DX.
-_is_prod = os.getenv("FIREAI_ENV", "development").lower() in ("production", "prod")
+_is_prod = os.getenv("APP_ENV", "development").lower() in ("production", "prod")
 _docs_url = None if _is_prod else "/docs"
 _redoc_url = None if _is_prod else "/redoc"
 _openapi_url = None if _is_prod else "/openapi.json"
@@ -471,7 +471,7 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 # SECURITY: This is a safety-critical fire protection engineering API.
 # Allowing arbitrary origins to read API responses would permit any website
 # to exfiltrate engineering data (building layouts, fire alarm designs).
-_env_mode = os.getenv("FIREAI_ENV", "development").lower()
+_env_mode = os.getenv("APP_ENV", "development").lower()
 if _env_mode in ("production", "prod"):
     _cors_raw = os.getenv("CORS_ALLOWED_ORIGINS", "")
     if not _cors_raw:
@@ -526,7 +526,7 @@ app.add_middleware(CloudflareIntegrationMiddleware)
 app.add_middleware(CorrelationIdMiddleware)
 
 # STRESS-TEST FIX #2: ApiKeyMiddleware validates X-API-Key on every request
-# and sets request.state.fireai_role / scope["fireai_role"] for downstream
+# and sets request.state.role / scope["role"] for downstream
 # require_permission() checks. Without this, all RBAC checks fell through
 # to Role.VIEWER, making admin endpoints unreachable and viewer-level
 # endpoints effectively public. Added AFTER CORS so CORS preflight requests
@@ -577,7 +577,7 @@ def _safe_include_router(module_name: str, prefix: str = "/api/v1", tag: str = "
     V193 (R2) FIX — ROOT CAUSE of silent auth-router failure:
       Previously this function swallowed ALL exceptions (including
       ValueError from session-secret validation) and only logged a
-      WARNING. When FIREAI_SESSION_SECRET was < 43 chars, the auth
+      WARNING. When SESSION_SECRET was < 43 chars, the auth
       router raised ValueError, was silently dropped, and all /auth/*
       endpoints returned 404. The frontend couldn't authenticate and
       the entire app was unusable — with NO visible error.
@@ -636,7 +636,7 @@ def _safe_include_router(module_name: str, prefix: str = "/api/v1", tag: str = "
             logger.exception(
                 "CRITICAL router '%s' failed to register: %s — aborting startup. "
                 "This router is mission-critical; the app cannot function safely without it. "
-                "Fix the underlying issue (likely FIREAI_SESSION_SECRET is missing or too short — "
+                "Fix the underlying issue (likely SESSION_SECRET is missing or too short — "
                 "minimum 43 chars / 256 bits).",
                 module_name,
                 e,
@@ -811,14 +811,14 @@ _register_v2_router()
 # ── V133 (PHASE 1.1): CSRF Protection (Double Submit Cookie) ────────────
 # Per OWASP CSRF Prevention Cheat Sheet. Protects state-changing requests
 # (POST/PUT/DELETE/PATCH) from cross-origin attacks.
-# Enabled by default in production; can be disabled via FIREAI_CSRF_DISABLED=1
+# Enabled by default in production; can be disabled via CSRF_DISABLED=1
 # for testing or API-only clients (no browser).
 def _register_csrf_middleware() -> None:
     """Register CSRF middleware if not explicitly disabled."""
     import os
 
-    if os.environ.get("FIREAI_CSRF_DISABLED", "").lower() in ("1", "true", "yes"):
-        logger.info("CSRF middleware DISABLED via FIREAI_CSRF_DISABLED env var")
+    if os.environ.get("CSRF_DISABLED", "").lower() in ("1", "true", "yes"):
+        logger.info("CSRF middleware DISABLED via CSRF_DISABLED env var")
         return
     try:
         from backend.security_csrf import CSRFMiddleware

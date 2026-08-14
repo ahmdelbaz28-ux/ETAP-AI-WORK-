@@ -19,7 +19,7 @@ Generated with the `security-requirement-extraction` skill (Template 1: Security
 | T-03 | Information Disclosure / Elevation | **CRITICAL** | Cross-tenant RLS isolation broken. `before_cursor_execute` marks each pooled DBAPI connection in a process-wide `WeakSet` after the first `SET app.current_tenant_id` and never re-sets it (and never resets to empty). Connection reuse across requests/tenants executes tenant B's queries under tenant A's RLS variable. **Verified — no reset exists.** | `backend/request_context.py:290-301` |
 | T-04 | Elevation of Privilege | HIGH | Life-safety admin endpoints (`/admin/cua/kill-switch/*`, `/admin/cua/rollback`, `/admin/cua/audit-log`, `/api/v1/audit/verify`) gated only by the single shared API key — no role/admin separation. | `api/routes.py:906,1003,1027,1074,1100` |
 | T-05 | Spoofing / Info Disclosure | HIGH | ACP runtime unauthenticated by default (`auth_validator=None` unless `ACP_AUTH_SECRET` set) and the HMAC bearer token rides in `trace_id`, which is written verbatim into logs/spans/audit files. | `acp_runtime/acp/cli.py:211-226`, `acp_runtime/router/router.py:192-195`, `acp_runtime/observability/*` |
-| T-06 | Elevation / Spoofing | HIGH | `ENGINEERING_SERVICE_AUTH_DISABLED` / `FIREAI_AUTH_DISABLED` grants **anonymous ADMIN** (`fireai_role=_Role.ADMIN`) per-request with no environment guard; the FireAI app has no startup fail-safe equivalent to `api/routes.py:123-146`. | `backend/security_middleware.py:397-403` |
+| T-06 | Elevation / Spoofing | HIGH | `ENGINEERING_SERVICE_AUTH_DISABLED` / `AUTH_DISABLED` grants **anonymous ADMIN** (`role=_Role.ADMIN`) per-request with no environment guard; the ETAP app has no startup fail-safe equivalent to `api/routes.py:123-146`. | `backend/security_middleware.py:397-403` |
 | T-07 | Tampering / Elevation | HIGH | PowerShell executor newline statement-injection bypass: `Get-Service\r\nnet user attacker P@ssw0rd /add` — newlines are flattened by normalization before scanning, cmdlet regex only matches `Verb-Noun`, and the command is written verbatim to the `.ps1`. | `security/secure_powershell_executor.py:173-246,304`, `security/security_framework.py:595-634` |
 | T-08 | Information Disclosure | HIGH | Raw exception strings echoed to clients (`detail=f"System spec error: {ve}"`, `errors.append(str(e))`) leak file paths and engine internals; FastAPI `debug=(_ENV == "development")` defaults to dev when `ENVIRONMENT` is unset. | `services/study_service.py:434,475`, `api/routes.py:84-93` |
 | T-09 | Information Disclosure (IDOR) | HIGH | `GET /api/v1/studies/task_status/{task_id}` returns full study results for any task ID to any key holder — no ownership/tenant scoping; fallback IDs are predictable (`task_{int(time.time())}`). | `api/routes.py:460-493` |
@@ -136,7 +136,7 @@ As a security-conscious system, I need to reject cross-origin WebSocket handshak
 - **Compliance refs:** OWASP ASVS V3.1/V12; NIST CSF PR.AC-5
 
 **SR-006 — Auth-disable switches fail closed in production (C, HIGH)**
-As a security-conscious system, I need `ENGINEERING_SERVICE_AUTH_DISABLED` / `FIREAI_AUTH_DISABLED` to be inert in production, so that a misconfigured environment can never grant anonymous admin access.
+As a security-conscious system, I need `ENGINEERING_SERVICE_AUTH_DISABLED` / `AUTH_DISABLED` to be inert in production, so that a misconfigured environment can never grant anonymous admin access.
 
 - **Threat refs:** T-06, T-12
 - **Acceptance criteria:**
@@ -144,7 +144,7 @@ As a security-conscious system, I need `ENGINEERING_SERVICE_AUTH_DISABLED` / `FI
   - [ ] No code path assigns `_Role.ADMIN` to an unauthenticated request
   - [ ] `verify_api_key` fails closed when the expected key is unset (no `if not expected_key: return`)
 - **Test cases:**
-  1. Test: `FIREAI_AUTH_DISABLED=true` + `ENVIRONMENT=production` → startup failure
+  1. Test: `AUTH_DISABLED=true` + `ENVIRONMENT=production` → startup failure
   2. Test: anonymous request with `ENGINEERING_SERVICE_AUTH_DISABLED=true` in prod → 401
   3. Test: unset `HF_API_KEY` → 401, not open
 - **Compliance refs:** OWASP ASVS V2.1; NIST CSF PR.AC-1

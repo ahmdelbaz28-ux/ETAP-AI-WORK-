@@ -7,7 +7,7 @@ audit_integrity_helper.py — Signed Audit Trail for DB Writes.
 MISSION PHASE 1.3 — Audit Integrity with Correlation-ID
 ========================================================
 
-This module ensures that EVERY write operation to the FireAI database
+This module ensures that EVERY write operation to the ETAP database
 triggers a signed entry in the AuditStore, including the Correlation-ID
 for end-to-end request tracing.
 
@@ -117,7 +117,6 @@ def record_audit_write(
 
     """
     try:
-        from fireai.core.audit_store import AuditStore
 
         correlation_id = get_correlation_id()
 

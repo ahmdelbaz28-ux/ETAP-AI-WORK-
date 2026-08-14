@@ -1,9 +1,9 @@
 """
 tests/test_event_bus.py
 ========================
-Comprehensive test suite for fireai/core/event_bus.py
+Comprehensive test suite for etap/core/event_bus.py
 
-SAFETY CRITICAL: The event bus is the nerve system of FireAI. All modules
+SAFETY CRITICAL: The event bus is the nerve system of ETAP. All modules
 communicate through it. If it crashes, the ENTIRE system fails. Therefore:
   - Thread-safety must be guaranteed
   - Exceptions in callbacks must NEVER crash the bus
@@ -25,7 +25,6 @@ from __future__ import annotations
 import threading
 
 import pytest
-from fireai.core.event_bus import Event, EventBus, EventRecorder, Events
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Event Data Model Tests

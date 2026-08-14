@@ -4,7 +4,7 @@
 tests/test_nfpa72_technology_dispatcher.py
 ============================================
 Comprehensive test suite for:
-  - fireai/core/nfpa72_technology_dispatcher.py
+  - etap/core/nfpa72_technology_dispatcher.py
 
 SAFETY CRITICAL: Technology selection determines which detector type
 is used. Wrong selection (e.g., point detector at 20m ceiling where
@@ -21,7 +21,6 @@ NFPA 72 References:
 from __future__ import annotations
 
 import pytest
-from fireai.core.nfpa72_technology_dispatcher import (
     _BEAM_MAX_CEILING_M,
     _BEAM_SPACING_M,
     _NFPA72_SMOKE_SPACING_TABLE,

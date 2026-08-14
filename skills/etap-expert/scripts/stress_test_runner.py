@@ -3,7 +3,7 @@
 """
 ETAP Expert Skill — Stress Test Runner (Orchestrator).
 =======================================================
-Runs all 5 gates of verification per FireAI agent.md VERIFICATION GATES:
+Runs all 5 gates of verification per ETAP agent.md VERIFICATION GATES:
 
     [Gate 1] Static Validation      — test_skill_structure.py
     [Gate 2] Runtime Validation     — test_skill_loader.py
@@ -20,7 +20,7 @@ Exit code:
     0 = all gates passed
     1 = one or more gates failed
 
-Author: FireAI Project
+Author: ETAP Project
 """
 
 from __future__ import annotations

@@ -20,7 +20,7 @@
     
     
       
-        <title>Neon Postgres — BAZSPARK Production Database - AhmedETAP Documentation</title>
+        <title>Neon Postgres — ETAP Production Database - AhmedETAP Documentation</title>
       
     
     
@@ -70,7 +70,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#neon-postgres-bazspark-production-database" class="md-skip">
+        <a href="#neon-postgres-etap-production-database" class="md-skip">
           Skip to content
         </a>
       
@@ -104,7 +104,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Neon Postgres — BAZSPARK Production Database
+              Neon Postgres — ETAP Production Database
             
           </span>
         </div>
@@ -563,9 +563,9 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#production-used-by-huggingface-bazspark-space" class="md-nav__link">
+  <a href="#production-used-by-huggingface-etap-space" class="md-nav__link">
     <span class="md-ellipsis">
-      Production (used by HuggingFace BAZSPARK Space)
+      Production (used by HuggingFace ETAP Space)
     </span>
   </a>
   
@@ -673,7 +673,7 @@
   
 
 
-<h1 id="neon-postgres-bazspark-production-database">Neon Postgres — BAZSPARK Production Database</h1>
+<h1 id="neon-postgres-etap-production-database">Neon Postgres — ETAP Production Database</h1>
 <h2 id="connection-details">Connection Details</h2>
 <table>
 <thead>
@@ -701,11 +701,11 @@
 </tr>
 <tr>
 <td><strong>Database</strong></td>
-<td><code>bazspark</code></td>
+<td><code>etap</code></td>
 </tr>
 <tr>
 <td><strong>Role</strong></td>
-<td><code>bazspark_owner</code></td>
+<td><code>etap_owner</code></td>
 </tr>
 <tr>
 <td><strong>Region</strong></td>
@@ -755,21 +755,21 @@
 committed to the repository. If you need to rotate it, see
 <a href="#rotation">Rotation</a> below.</p>
 </blockquote>
-<h3 id="production-used-by-huggingface-bazspark-space">Production (used by HuggingFace BAZSPARK Space)</h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>postgresql://bazspark_owner:&lt;PASSWORD&gt;@ep-restless-surf-atp743eu.c-9.us-east-1.aws.neon.tech/bazspark?sslmode=require
+<h3 id="production-used-by-huggingface-etap-space">Production (used by HuggingFace ETAP Space)</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>postgresql://etap_owner:&lt;PASSWORD&gt;@ep-restless-surf-atp743eu.c-9.us-east-1.aws.neon.tech/etap?sslmode=require
 </code></pre></div>
 <p>This is the <strong>direct</strong> (non-pooled) endpoint — chosen because:
 1. It resolves to IPv4 (<code>52.45.105.76</code>) — required by the deployment target.
-2. The BAZSPARK Docker container runs a single uvicorn worker, so connection
+2. The ETAP Docker container runs a single uvicorn worker, so connection
    pooling is handled by SQLAlchemy's queue pool, not PgBouncer.
 3. Lower latency than the pooled variant (no extra hop).</p>
 <h3 id="serverless-alternative-pooled">Serverless / Alternative (pooled)</h3>
 <p>Use this variant only if deploying to a serverless platform that rapidly
 recycles connections (e.g. Vercel Functions, AWS Lambda):</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>postgresql://bazspark_owner:&lt;PASSWORD&gt;@ep-restless-surf-atp743eu-pooler.c-9.us-east-1.aws.neon.tech/bazspark?sslmode=require
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>postgresql://etap_owner:&lt;PASSWORD&gt;@ep-restless-surf-atp743eu-pooler.c-9.us-east-1.aws.neon.tech/etap?sslmode=require
 </code></pre></div>
 <h2 id="schemas">Schemas</h2>
-<p>After <code>alembic upgrade head</code> (revision <code>001</code>), the <code>bazspark</code> database contains:</p>
+<p>After <code>alembic upgrade head</code> (revision <code>001</code>), the <code>etap</code> database contains:</p>
 <table>
 <thead>
 <tr>
@@ -784,7 +784,7 @@ recycles connections (e.g. Vercel Functions, AWS Lambda):</p>
 </tr>
 <tr>
 <td><code>projects</code></td>
-<td>FireAI engineering projects</td>
+<td>ETAP engineering projects</td>
 </tr>
 <tr>
 <td><code>devices</code></td>
@@ -811,7 +811,7 @@ recycles connections (e.g. Vercel Functions, AWS Lambda):</p>
 <h2 id="deployment-wiring">Deployment Wiring</h2>
 <h3 id="huggingface-space-production">HuggingFace Space (production)</h3>
 <p><code>DATABASE_URL</code> is registered as a <strong>Space secret</strong> (not a variable) on
-<code>ahmdelbaz28/BAZSPARK</code>. The Dockerfile intentionally does NOT set
+<code>ahmdelbaz28/ETAP</code>. The Dockerfile intentionally does NOT set
 <code>DATABASE_URL</code> — it reads it from the HF secret at runtime.</p>
 <p>To update the secret:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># Use the HF API (requires a token with write scope on the Space)</span>
@@ -819,23 +819,23 @@ recycles connections (e.g. Vercel Functions, AWS Lambda):</p>
 <a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$HF_TOKEN</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{&quot;key&quot;:&quot;DATABASE_URL&quot;,&quot;value&quot;:&quot;postgresql://...&quot;}&#39;</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">  </span>https://huggingface.co/api/spaces/ahmdelbaz28/BAZSPARK/secrets
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">  </span>https://huggingface.co/api/spaces/ahmdelbaz28/ETAP/secrets
 </code></pre></div>
 <p>Or via the web UI:
-<a href="https://huggingface.co/spaces/ahmdelbaz28/BAZSPARK/settings">https://huggingface.co/spaces/ahmdelbaz28/BAZSPARK/settings</a></p>
+<a href="https://huggingface.co/spaces/ahmdelbaz28/ETAP/settings">https://huggingface.co/spaces/ahmdelbaz28/ETAP/settings</a></p>
 <h3 id="local-development">Local Development</h3>
 <p>Local dev defaults to SQLite (see <code>env.example.txt</code>):</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>DATABASE_URL=sqlite:///./db/digital_twin.db
 </code></pre></div>
 <p>To test against Neon locally, override <code>DATABASE_URL</code> in your shell:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">DATABASE_URL</span><span class="o">=</span><span class="s2">&quot;postgresql://bazspark_owner:&lt;PASSWORD&gt;@ep-restless-surf-atp743eu.c-9.us-east-1.aws.neon.tech/bazspark?sslmode=require&quot;</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">DATABASE_URL</span><span class="o">=</span><span class="s2">&quot;postgresql://etap_owner:&lt;PASSWORD&gt;@ep-restless-surf-atp743eu.c-9.us-east-1.aws.neon.tech/etap?sslmode=require&quot;</span>
 <a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>alembic<span class="w"> </span>upgrade<span class="w"> </span>head<span class="w">      </span><span class="c1"># apply migrations</span>
 <a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>uvicorn<span class="w"> </span>backend.app:app<span class="w"> </span>--reload<span class="w">   </span><span class="c1"># start backend</span>
 </code></pre></div>
 <h2 id="migrations">Migrations</h2>
 <p>The repo uses Alembic. Migration scripts live under <code>alembic/versions/</code>. To
 apply migrations to the Neon database:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">DATABASE_URL</span><span class="o">=</span><span class="s2">&quot;postgresql://bazspark_owner:&lt;PASSWORD&gt;@ep-restless-surf-atp743eu.c-9.us-east-1.aws.neon.tech/bazspark?sslmode=require&quot;</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">DATABASE_URL</span><span class="o">=</span><span class="s2">&quot;postgresql://etap_owner:&lt;PASSWORD&gt;@ep-restless-surf-atp743eu.c-9.us-east-1.aws.neon.tech/etap?sslmode=require&quot;</span>
 <a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="nb">cd</span><span class="w"> </span>/path/to/revit
 <a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>alembic<span class="w"> </span>upgrade<span class="w"> </span>head
 </code></pre></div>
@@ -843,13 +843,13 @@ apply migrations to the Neon database:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>alembic<span class="w"> </span>current
 </code></pre></div>
 <h2 id="rotation">Rotation</h2>
-<p>If the <code>bazspark_owner</code> password is compromised:</p>
+<p>If the <code>etap_owner</code> password is compromised:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1"># 1. Rotate via Neon API (returns the new password)</span>
 <a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>curl<span class="w"> </span>-X<span class="w"> </span>PUT<span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$NEON_API_TOKEN</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{&quot;role&quot;:{&quot;name&quot;:&quot;bazspark_owner&quot;}}&#39;</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="w">  </span>https://console.neon.tech/api/v2/projects/divine-bar-17848047/branches/br-round-mode-at9cfb4a/roles/bazspark_owner
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{&quot;role&quot;:{&quot;name&quot;:&quot;etap_owner&quot;}}&#39;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="w">  </span>https://console.neon.tech/api/v2/projects/divine-bar-17848047/branches/br-round-mode-at9cfb4a/roles/etap_owner
 <a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>
 <a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="c1"># 2. Build the new DATABASE_URL with the new password.</span>
 <a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>
@@ -858,19 +858,19 @@ apply migrations to the Neon database:</p>
 <a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$HF_TOKEN</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a><span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{&quot;key&quot;:&quot;DATABASE_URL&quot;,&quot;value&quot;:&quot;postgresql://...new_password...&quot;}&#39;</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a><span class="w">  </span>https://huggingface.co/api/spaces/ahmdelbaz28/BAZSPARK/secrets
+<a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a><span class="w">  </span>https://huggingface.co/api/spaces/ahmdelbaz28/ETAP/secrets
 <a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a>
 <a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a><span class="c1"># 4. The HF Space rebuilds automatically.</span>
 </code></pre></div>
 <h2 id="verification">Verification</h2>
 <p>To verify the connection works:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>psql<span class="w"> </span><span class="s2">&quot;postgresql://bazspark_owner:&lt;PASSWORD&gt;@ep-restless-surf-atp743eu.c-9.us-east-1.aws.neon.tech/bazspark?sslmode=require&quot;</span><span class="w"> </span><span class="se">\</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>psql<span class="w"> </span><span class="s2">&quot;postgresql://etap_owner:&lt;PASSWORD&gt;@ep-restless-surf-atp743eu.c-9.us-east-1.aws.neon.tech/etap?sslmode=require&quot;</span><span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">  </span>-c<span class="w"> </span><span class="s2">&quot;SELECT version(), current_database(), inet_server_addr()::text;&quot;</span>
 </code></pre></div>
 <p>Expected output:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>                              version                               | current_database | inet_server_addr
 <a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>--------------------------------------------------------------------+------------------+------------------
-<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a> PostgreSQL 18.4 on aarch64-unknown-linux-gnu ...                  | bazspark         | 169.254.254.254
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a> PostgreSQL 18.4 on aarch64-unknown-linux-gnu ...                  | etap         | 169.254.254.254
 </code></pre></div>
 <p>The <code>169.254.254.254</code> link-local address is Neon's internal proxy IP — it
 confirms the connection is being routed through Neon's IPv4 proxy.</p>

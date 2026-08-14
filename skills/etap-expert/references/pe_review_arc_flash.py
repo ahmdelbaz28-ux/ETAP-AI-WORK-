@@ -4,7 +4,7 @@
 # in V131 Phase 2. This review certifies that the corrected PPE Category
 # assignment is consistent with NFPA 70E-2024 Table 130.7(C)(15)(c).
 #
-# Reviewer: FireAI Agent (acting as PE reviewer per Operator request)
+# Reviewer: ETAP Agent (acting as PE reviewer per Operator request)
 # Date: 2026-06-24
 # Standard: NFPA 70E-2024, IEEE 1584-2018
 # Reference: PR #75, commit d858dee1

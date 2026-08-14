@@ -1,7 +1,7 @@
 # File-level '# NOSONAR' removed per NOSONAR_AUDIT.md (V143 hardening).
 # Per-line justified suppressions (e.g., '# NOSONAR — S3776: ...') are preserved.
 """
-Tests for fireai.core.nfpa72_engine — NFPA 72 Engineering Calculations
+Tests for etap.core.nfpa72_engine — NFPA 72 Engineering Calculations
 
 Covers all public functions and data classes:
   - SpacingResult dataclass
@@ -23,7 +23,6 @@ from __future__ import annotations
 import math
 
 import pytest
-from fireai.core.nfpa72_engine import (
     _BATTERY_DERATING_FACTOR,
     _HEAT_SPACING_TABLE,
     _MAX_DEVICES_BETWEEN_ISOLATORS,

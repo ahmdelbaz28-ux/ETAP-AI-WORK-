@@ -1,12 +1,12 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: fireai
+  name: etap
   labels:
-    name: fireai
+    name: etap
     environment: production
     security-tier: critical
     compliance: nfpa72-2022
   annotations:
-    description: "FireAI Safety-Critical Fire Protection Platform"
-    security.fireai.com/zero-trust: "enforced"
+    description: "ETAP Safety-Critical Fire Protection Platform"
+    security.etap.com/zero-trust: "enforced"

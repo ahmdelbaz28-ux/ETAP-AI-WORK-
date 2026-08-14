@@ -3,7 +3,7 @@
 """
 tests/test_hybrid_survivability.py
 ==================================
-Comprehensive test suite for fireai/core/hybrid_survivability.py.
+Comprehensive test suite for etap/core/hybrid_survivability.py.
 
 SAFETY CRITICAL: Hybrid survivability analysis intersects optical (Layer 5)
 and acoustic (V23) coverage to classify each grid point. Misclassification
@@ -25,7 +25,6 @@ import os
 from unittest.mock import MagicMock, patch
 
 import pytest
-from fireai.core.hybrid_survivability import (
     AcousticCoverageDetail,
     HybridPointResult,
     HybridSurvivabilityEngine,
@@ -531,7 +530,7 @@ class TestHybridSurvivabilityEngineClassification:
         sensor.sensor_id = "UGLD-1"
         sensor_positions = {"UGLD-1": (0.0, 0.0, 3.0)}
 
-        with patch("fireai.core.hybrid_survivability.trace_acoustic_ray") as mock_trace:
+        with patch("etap.core.hybrid_survivability.trace_acoustic_ray") as mock_trace:
             mock_trace.return_value = self._make_ray_result(triggered=True)
             result = engine.analyse(optical, grid, [sensor], sensor_positions)
 
@@ -549,7 +548,7 @@ class TestHybridSurvivabilityEngineClassification:
         sensor.sensor_id = "UGLD-1"
         sensor_positions = {"UGLD-1": (0.0, 0.0, 3.0)}
 
-        with patch("fireai.core.hybrid_survivability.trace_acoustic_ray") as mock_trace:
+        with patch("etap.core.hybrid_survivability.trace_acoustic_ray") as mock_trace:
             mock_trace.return_value = self._make_ray_result(
                 triggered=False, snr_db=-5.0, margin_db=-15.0
             )
@@ -570,7 +569,7 @@ class TestHybridSurvivabilityEngineClassification:
         sensor.sensor_id = "UGLD-1"
         sensor_positions = {"UGLD-1": (0.0, 0.0, 3.0)}
 
-        with patch("fireai.core.hybrid_survivability.trace_acoustic_ray") as mock_trace:
+        with patch("etap.core.hybrid_survivability.trace_acoustic_ray") as mock_trace:
             mock_trace.return_value = self._make_ray_result(triggered=True)
             result = engine.analyse(optical, grid, [sensor], sensor_positions)
 
@@ -587,7 +586,7 @@ class TestHybridSurvivabilityEngineClassification:
         sensor.sensor_id = "UGLD-1"
         sensor_positions = {"UGLD-1": (0.0, 0.0, 3.0)}
 
-        with patch("fireai.core.hybrid_survivability.trace_acoustic_ray") as mock_trace:
+        with patch("etap.core.hybrid_survivability.trace_acoustic_ray") as mock_trace:
             mock_trace.return_value = self._make_ray_result(
                 triggered=False, snr_db=-10.0, margin_db=-20.0
             )
@@ -635,7 +634,7 @@ class TestHybridSurvivabilityEngineClassification:
             # Point 3: neither
             return self._make_ray_result(triggered=False, snr_db=-10.0)
 
-        with patch("fireai.core.hybrid_survivability.trace_acoustic_ray") as mock_trace:
+        with patch("etap.core.hybrid_survivability.trace_acoustic_ray") as mock_trace:
             mock_trace.side_effect = mock_trace_side_effect
             result = engine.analyse(optical, grid, [sensor], sensor_positions)
 
@@ -654,7 +653,7 @@ class TestHybridSurvivabilityEngineClassification:
         sensor.sensor_id = "UGLD-1"
         sensor_positions = {"UGLD-1": (0.0, 0.0, 3.0)}
 
-        with patch("fireai.core.hybrid_survivability.trace_acoustic_ray") as mock_trace:
+        with patch("etap.core.hybrid_survivability.trace_acoustic_ray") as mock_trace:
             mock_trace.return_value = self._make_ray_result(triggered=False, snr_db=-10.0)
             result = engine.analyse(optical, grid, [sensor], sensor_positions)
 
@@ -684,7 +683,7 @@ class TestHybridSurvivabilityEngineClassification:
                 return self._make_ray_result(triggered=True)
             return self._make_ray_result(triggered=False, snr_db=-5.0)
 
-        with patch("fireai.core.hybrid_survivability.trace_acoustic_ray") as mock_trace:
+        with patch("etap.core.hybrid_survivability.trace_acoustic_ray") as mock_trace:
             mock_trace.side_effect = mock_trace_side_effect
             result = engine.analyse(optical, grid, [sensor], sensor_positions)
 
@@ -713,7 +712,7 @@ class TestHybridSurvivabilityEngineClassification:
                 return self._make_ray_result(triggered=True, snr_db=20.0)
             return self._make_ray_result(triggered=True, snr_db=30.0)
 
-        with patch("fireai.core.hybrid_survivability.trace_acoustic_ray") as mock_trace:
+        with patch("etap.core.hybrid_survivability.trace_acoustic_ray") as mock_trace:
             mock_trace.side_effect = mock_trace_side_effect
             result = engine.analyse(optical, grid, [sensor1, sensor2], sensor_positions)
 
@@ -734,7 +733,7 @@ class TestHybridSurvivabilityEngineClassification:
         sensor.sensor_id = "UGLD-1"
         sensor_positions = {"UGLD-1": (0.0, 0.0, 3.0)}
 
-        with patch("fireai.core.hybrid_survivability.trace_acoustic_ray") as mock_trace:
+        with patch("etap.core.hybrid_survivability.trace_acoustic_ray") as mock_trace:
             mock_trace.return_value = self._make_ray_result(triggered=False, snr_db=-5.0)
             result = engine.analyse(optical, grid, [sensor], sensor_positions)
 

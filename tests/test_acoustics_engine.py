@@ -3,7 +3,7 @@
 """
 test_acoustics_engine.py — Unified Acoustics Engine Tests
 =========================================================
-V65 — Tests for fireai.core.acoustics_engine
+V65 — Tests for etap.core.acoustics_engine
 
 Tests the AcousticsEngine integration layer that unifies:
   - NFPA 72 §18.4 audible notification (acoustic_calculator)
@@ -22,11 +22,9 @@ from __future__ import annotations
 import math
 
 import pytest
-from fireai.core.acoustic_calculator import (
     CheckPoint,
     Speaker,
 )
-from fireai.core.acoustics_engine import (
     DEFAULT_CEILING_ABSORPTION_COEFF,
     NFPA72_MAX_DBA,
     NFPA72_PRIVATE_MODE_ABOVE_AMBIENT_DB,
@@ -42,10 +40,8 @@ from fireai.core.acoustics_engine import (
     _evaluate_ugld_trigger,
     _image_source_reflection_spl,
 )
-from fireai.core.ugld_acoustics import (
     UltrasonicSensor,
 )
-from fireai.core.ugld_raytrace import (
     AcousticObstacle,
 )
 
