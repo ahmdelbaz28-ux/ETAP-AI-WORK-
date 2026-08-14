@@ -20,7 +20,9 @@ Used by:
   - daily snapshot jobs (cron)
   - admin dashboard "recent Notion pages" widget
 
-The Notion API version pinned here is 2022-06-28 (stable as of 2025).
+API version pinned here is 2026-03-11 (Notion's latest stable as of the
+PAT release). See https://developers.notion.com/llms.txt for the full
+docs index.
 """
 from __future__ import annotations
 
@@ -33,18 +35,32 @@ import urllib.error
 from dataclasses import dataclass
 from typing import Any
 
-NOTION_VERSION = "2022-06-28"
+NOTION_VERSION = "2026-03-11"  # Latest stable API version per Notion docs (2026-03)
 NOTION_BASE = "https://api.notion.com/v1"
 
 
 @dataclass
 class NotionConfig:
-    """Resolved Notion configuration loaded from environment."""
-    api_key: str | None = None           # internal integration token (ntn_xxx or secret_xxx)
+    """Resolved Notion configuration loaded from environment.
+
+    Notion supports three token types (all using `ntn_` prefix as of 2025+):
+      1. Internal Connection token (NOTION_API_KEY) — bot user, scoped to
+         pages shared with the integration.
+      2. Personal Access Token / PAT (NOTION_PAT) — acts as the user who
+         created it; can access any page that user can access.
+         Capabilities: Notion API, Workers, or both.
+         Has expiration (7d–1y); expires return `unauthorized`.
+      3. OAuth access token from a Public Integration (exchange_oauth_code)
+         — per-user token obtained via the OAuth flow.
+
+    Precedence when multiple are set: PAT > Internal > OAuth.
+    """
+    api_key: str | None = None           # internal integration token (ntn_xxx)
+    pat: str | None = None                # personal access token (ntn_xxx)
     database_id: str | None = None       # target database for sync
     parent_page_id: str | None = None    # optional parent for new pages
     enabled: bool = False
-    # OAuth (public integration) — used when api_key is empty
+    # OAuth (public integration) — used when no api_key/pat is set
     oauth_client_id: str | None = None
     oauth_client_secret: str | None = None
     oauth_redirect_uri: str | None = None
@@ -53,6 +69,7 @@ class NotionConfig:
     def from_env(cls) -> "NotionConfig":
         return cls(
             api_key=os.getenv("NOTION_API_KEY") or None,
+            pat=os.getenv("NOTION_PAT") or None,
             database_id=os.getenv("NOTION_DATABASE_ID") or None,
             parent_page_id=os.getenv("NOTION_PARENT_PAGE_ID") or None,
             enabled=os.getenv("NOTION_ENABLED", "false").lower() in ("1", "true", "yes"),
@@ -63,11 +80,23 @@ class NotionConfig:
 
     @property
     def auth_mode(self) -> str:
+        """Return the active authentication mode based on configured credentials.
+
+        PAT takes precedence over Internal because PATs have broader
+        access (user-level), which is usually the intent when set.
+        """
+        if self.pat:
+            return "pat"
         if self.api_key:
             return "internal"
         if self.oauth_client_id and self.oauth_client_secret:
             return "oauth"
         return "none"
+
+    @property
+    def active_token(self) -> str | None:
+        """The token to use for authenticated requests (PAT > Internal)."""
+        return self.pat or self.api_key
 
 
 class NotionError(Exception):
@@ -95,10 +124,11 @@ class NotionClient:
     # HTTP helpers
     # ------------------------------------------------------------------
     def _headers(self, access_token: str | None = None) -> dict[str, str]:
-        token = access_token or self.config.api_key
+        token = access_token or self.config.active_token
         if not token:
             raise NotionError(401, "no_token",
-                              "No Notion token configured. Set NOTION_API_KEY or perform OAuth flow.")
+                              "No Notion token configured. Set NOTION_PAT, NOTION_API_KEY, "
+                              "or perform OAuth flow.")
         return {
             "Authorization": f"Bearer {token}",
             "Notion-Version": NOTION_VERSION,
