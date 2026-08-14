@@ -135,7 +135,7 @@ services:
     ports:
       - "127.0.0.1:3000:3000"
     environment:
-      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin_grafana_pass_change_in_prod}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:?GRAFANA_ADMIN_PASSWORD must be set (no default)}
     volumes:
       - grafana_storage:/var/lib/grafana
     healthcheck:
@@ -161,7 +161,7 @@ services:
     networks:
       - etap_network
     environment:
-      - QDRANT__SERVICE__API_KEY=${QDRANT_API_KEY:-qdrant_dev_key_1234567890}
+      - QDRANT__SERVICE__API_KEY=${QDRANT_API_KEY:?QDRANT_API_KEY must be set (no default)}
     healthcheck:
       test: ["CMD-SHELL", "curl -sf http://localhost:6333/healthz || exit 1"]
       interval: 30s
@@ -174,7 +174,7 @@ services:
     container_name: etap-neo4j
     restart: always
     environment:
-      - NEO4J_AUTH=neo4j/${NEO4J_PASSWORD:-neo4j_dev_pass_change_in_prod}
+      - NEO4J_AUTH=neo4j/${NEO4J_PASSWORD:?NEO4J_PASSWORD must be set (no default)}
     ports:
       - "127.0.0.1:7474:7474"
       - "127.0.0.1:7687:7687"
