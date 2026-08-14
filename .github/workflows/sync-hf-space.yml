@@ -23,6 +23,12 @@ on:
       - 'api/**'
       - 'utils/**'
       - 'VERSION'
+      - 'compat.py'
+      - 'ai_context_engine/**'
+      - 'integrations/**'
+      - 'ml/**'
+      - 'ui-dist/**'
+      - '.dockerignore'
       - '.github/workflows/sync-hf-space.yml'
   workflow_dispatch:
 
@@ -60,9 +66,11 @@ jobs:
           # Copy fresh content from GitHub
           cp -r ../Dockerfile ../README.md ../VERSION ../prompts.json ./
           cp -r ../hf-space ./
+          cp -r ../compat.py ../.dockerignore ./
           cp -r ../agents ../skills ../prompts ../core_model ../core ../engine ./
           cp -r ../load_flow ../fault_analysis ../coordination ../relays ./
           cp -r ../network_solver ../services ../api ../utils ./
+          cp -r ../ai_context_engine ../integrations ../ml ../ui-dist ./
           # Commit and push
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git config user.name "github-actions[bot]"
