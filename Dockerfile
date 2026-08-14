@@ -17,6 +17,7 @@ FROM python:3.13-slim
 LABEL maintainer="Eng. Ahmed Elbaz <ahmdelbaz28@gmail.com>"
 LABEL description="AhmedETAP — Enterprise Engineering Intelligence Platform (HF Space)"
 LABEL version="2.1.0"
+LABEL build.rebuild="full"
 
 WORKDIR /app
 
