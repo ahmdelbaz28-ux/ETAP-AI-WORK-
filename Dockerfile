@@ -77,6 +77,8 @@ COPY --chown=user:user VERSION /app/VERSION
 
 # UI static files (Vite-built React app, served at root / by app.py)
 # Build the UI first: cd ui && npm run build && cp -r dist ../ui-dist/
+# If ui-dist/ is not available, create empty placeholder (UI served from HF Space URL instead)
+RUN mkdir -p /app/ui-dist
 COPY --chown=user:user ui-dist/ /app/ui-dist/
 
 # Environment — runtime configuration (NOT secrets).
