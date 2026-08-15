@@ -211,7 +211,9 @@ psutil>=5.8.0
 requests>=2.26.0
 
 # Language detection
-langdetect>=1.0.9
+# langdetect has no binary wheel on PyPI (pure-Python sdist only).
+# Excluded from --only-binary :all: pip install; installed separately in CI.
+# langdetect>=1.0.9  # NOSONAR: installed separately (no binary wheel; pure-Python sdist)
 
 # YAML parsing
 pyyaml>=6.0

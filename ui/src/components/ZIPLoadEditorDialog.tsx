@@ -79,7 +79,7 @@ function ZIPLoadPreviewChart({ coefficients }: { readonly coefficients: ZIPLoadC
 
     const x = padX + (i / nPoints) * plotW;
     const yActive = padY + plotH - ((pActive - 0.4) / 1.0) * plotH;
-    const yReactive = padY + plotH - ((pReactive - 0.4) / 1.0) * plotH;
+    const _yReactive = padY + plotH - ((pReactive - 0.4) / 1.0) * plotH;
 
     points.push(`${x},${Math.max(padY, Math.min(padY + plotH, yActive))}`);
     // We'll store reactive points separately

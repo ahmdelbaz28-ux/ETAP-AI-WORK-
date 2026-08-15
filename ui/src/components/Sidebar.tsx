@@ -187,6 +187,9 @@ const navItems: NavItem[] = [
     to: "/admin/ai-playground",
     icon: Sparkles,
     labelKey: "sidebar.aiPlayground",
+    section: "system",
+  },
+  {
     to: "/admin/cua-monitor",
     icon: ShieldAlert,
     labelKey: "sidebar.cuaMonitor",

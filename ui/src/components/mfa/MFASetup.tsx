@@ -17,7 +17,7 @@ import {
   CheckCircle,
   ChevronDown,
   ChevronUp,
-  ClipboardCopy,
+  Clipboard,
   Key,
   Loader2,
   QrCode,
@@ -42,7 +42,7 @@ interface MFASetupProps {
   readonly authToken: string;
 }
 
-interface TOTPSetupData {
+interface _TOTPSetupData {
   qr_code_uri: string;
 }
 
@@ -141,7 +141,7 @@ function QRCodeDisplay({
                   className="p-1.5 rounded hover:bg-slate-800 text-slate-400 hover:text-white transition-colors shrink-0"
                   aria-label="Copy secret key to clipboard"
                 >
-                  <ClipboardCopy className="w-3.5 h-3.5" />
+                  <Clipboard className="w-3.5 h-3.5" />
                 </button>
               </div>
             </motion.div>

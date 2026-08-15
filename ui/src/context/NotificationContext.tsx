@@ -72,8 +72,6 @@ interface NotificationContextType {
   dismiss: (id: string) => void;
   /** True when the backend notification feed is reachable; false when degraded. */
   backendReachable: boolean;
-  notify: (type: ToastNotification["type"], message: string) => void;
-  dismiss: (id: string) => void;
 }
 
 const NotificationContext = createContext<NotificationContextType>({
@@ -81,7 +79,6 @@ const NotificationContext = createContext<NotificationContextType>({
   backendReachable: true,
   notify: () => {},
   dismiss: () => {},
-  backendReachable: true,
 });
 
 const iconMap = {

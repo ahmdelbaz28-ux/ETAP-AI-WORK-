@@ -344,6 +344,8 @@ jobs:
         run: |
           pip install --upgrade pip==25.0.1 --only-binary :all:
           pip install --only-binary :all: --requirement requirements.txt  # S8541/S8544: --only-binary prevents source-build setup.py execution; --requirement loads pinned versions from requirements.txt lock file
+          # langdetect has no binary wheel (pure-Python sdist only); install without --only-binary
+          pip install --no-deps langdetect>=1.0.9 || echo "::warning::langdetect sdist install failed — language detection will be unavailable"
           pip install --only-binary :all: pytest==8.3.5 pytest-asyncio==0.25.3 pytest-cov==6.0.0 pytest-timeout==2.3.1 pytest-xdist==3.6.1
 
       - name: Validate Python syntax

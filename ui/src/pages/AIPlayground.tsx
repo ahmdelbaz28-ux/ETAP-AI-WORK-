@@ -243,7 +243,7 @@ export default function AIPlayground() {
             input, schema validation, and a structured result viewer.
           </p>
         </div>
-        <ContextHelpButton helpId="ai-playground" />
+        <ContextHelpButton contextId="ai-playground" />
       </div>
 
       <Card padding="lg">
@@ -313,7 +313,7 @@ export default function AIPlayground() {
                   <Button variant="ghost" size="sm" onClick={loadSample} disabled={running}>
                     <RotateCcw className="w-3 h-3" /> Sample
                   </Button>
-                  <Button variant="brand" size="sm" onClick={run} disabled={running}>
+                  <Button variant="primary" size="sm" onClick={run} disabled={running}>
                     <Play className="w-3 h-3" /> {running ? "Running…" : "Run"}
                   </Button>
                 </div>

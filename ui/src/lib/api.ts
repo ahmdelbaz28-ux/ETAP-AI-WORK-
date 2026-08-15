@@ -862,4 +862,27 @@ export async function previewZIPLoad(
   });
 }
 
+// ============ Demo mode ============
+
+/** Check if the API client is running in demo mode (no real backend). */
+export function isDemoMode(): boolean {
+  return !API_BASE_URL || API_BASE_URL === "";
+}
+
+// ============ Dual Control ============
+
+export type DualControlAction = "approve" | "reject";
+
+export interface DualControlRequest {
+  id: string;
+  action_type: string;
+  target: string;
+  description: string;
+  requested_by: string;
+  status: "pending" | "approved" | "rejected" | "expired";
+  created_at: string;
+  expires_at?: string;
+  reason?: string;
+}
+
 // ============ End of API client ============
