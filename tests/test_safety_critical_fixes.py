@@ -26,6 +26,7 @@ Reference: NFPA 72-2022, AGENTS.md Rules 6 and 7
 from __future__ import annotations
 
 import pytest
+
 # fixed syntax error
 # fixed syntax error
 # fixed syntax error

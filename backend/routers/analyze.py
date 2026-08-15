@@ -20,15 +20,15 @@ from __future__ import annotations
 import logging
 from typing import Any
 
+from etap.core.pipeline import analyze_room
 from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel, Field
+
+from backend.auth import require_permission
 from backend.qomn.kernel import (
     PhysicsGuardError,
     QOMNKernel,
 )
-from etap.core.pipeline import analyze_room
-from pydantic import BaseModel, Field
-
-from backend.auth import require_permission
 from backend.rbac import Permission
 
 logger = logging.getLogger(__name__)

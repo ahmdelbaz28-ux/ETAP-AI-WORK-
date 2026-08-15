@@ -18,7 +18,6 @@ Covers:
 from __future__ import annotations
 
 
-
 class TestLogicFunctionEnum:
     """Tests for LogicFunction enum."""
 

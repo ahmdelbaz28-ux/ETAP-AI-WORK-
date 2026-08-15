@@ -19,6 +19,7 @@ Standards:
 from __future__ import annotations
 
 import pytest
+
 # fixed syntax error
 # fixed syntax error
 # fixed syntax error

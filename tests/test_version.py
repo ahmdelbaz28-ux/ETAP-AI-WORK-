@@ -10,7 +10,6 @@ import platform
 import sys
 
 
-
 class TestVersionConstants:
     """Package version metadata."""
 

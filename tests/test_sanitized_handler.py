@@ -7,7 +7,6 @@ and code injection detection.
 
 from __future__ import annotations
 
-
 ALLOWED_TOOLS = SanitizedMCPHandler.ALLOWED_TOOLS
 
 

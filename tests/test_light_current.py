@@ -24,6 +24,7 @@ from __future__ import annotations
 import dataclasses
 
 import pytest
+
     # Result dataclasses
     # Main functions
 

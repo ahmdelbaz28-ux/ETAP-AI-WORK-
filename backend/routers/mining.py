@@ -99,8 +99,8 @@ async def methane_check(request: MethaneCheckRequest):
     """Classify methane concentration per MSHA 30 CFR §75.323."""
     try:
         from etap.mining import (
-            MethaneCalculator,
             MSHA_THRESHOLDS,
+            MethaneCalculator,
         )
 
         hazard = MethaneCalculator.classify_hazard(request.concentration_pct)
@@ -202,8 +202,8 @@ async def conveyor_suppression(request: ConveyorSuppressionRequest):
     """Design conveyor belt fire suppression per NFPA 120 §8.4."""
     try:
         from etap.mining import (
-            ConveyorSpec,
             ConveyorFireAnalyzer,
+            ConveyorSpec,
         )
 
         spec = ConveyorSpec(

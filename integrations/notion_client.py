@@ -26,12 +26,12 @@ docs index.
 """
 from __future__ import annotations
 
-import os
-import json
 import base64
-import urllib.request
-import urllib.parse
+import json
+import os
 import urllib.error
+import urllib.parse
+import urllib.request
 from dataclasses import dataclass
 from typing import Any
 
@@ -66,7 +66,7 @@ class NotionConfig:
     oauth_redirect_uri: str | None = None
 
     @classmethod
-    def from_env(cls) -> "NotionConfig":
+    def from_env(cls) -> NotionConfig:
         return cls(
             api_key=os.getenv("NOTION_API_KEY") or None,
             pat=os.getenv("NOTION_PAT") or None,

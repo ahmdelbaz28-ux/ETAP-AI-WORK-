@@ -23,6 +23,7 @@ NFPA 72 References:
 from __future__ import annotations
 
 import pytest
+
     # Dataclasses
     # Engine
     # Enums

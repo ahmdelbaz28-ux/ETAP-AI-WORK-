@@ -177,10 +177,10 @@ async def generate_design_variants(req: GenerativeDesignRequest) -> dict[str, An
     Returns scored variants with recommendation based on occupancy.
     """
     try:
+        from etap.core.device_placement import Room
         from etap.core.generative import (
             GenerativeLayoutAgent,
         )
-        from etap.core.device_placement import Room
 
         agent = GenerativeLayoutAgent(use_multiprocessing=req.use_multiprocessing)
         room = Room(
