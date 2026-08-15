@@ -246,11 +246,6 @@ class TestWorkflowServiceIntegration:
     def test_workflow_service_can_import_langfuse(self):
         """workflow_service.py must be able to import from langfuse_setup."""
         # This is the exact import that workflow_service.py does
-            flush_langfuse,
-            get_langfuse_callback_handler,
-            langfuse_health_check,
-            log_workflow_scores,
-        )
 
         # All four must be callable
         assert callable(flush_langfuse)
@@ -265,9 +260,7 @@ class TestWorkflowServiceIntegration:
                 get_langfuse_callback_handler,
                 langfuse_health_check,
                 log_workflow_scores,
-            )
 
-            langfuse_available = True
         except ImportError:
             langfuse_available = False
 

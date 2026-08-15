@@ -20,12 +20,6 @@ from __future__ import annotations
 import math
 
 import pytest
-    ContractViolation,
-    _compute_area_from_polygon,
-    _has_nan_inf,
-    _validate_polygon,
-    validate_room_input,
-)
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # ContractViolation Exception

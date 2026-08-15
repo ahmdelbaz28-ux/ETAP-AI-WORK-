@@ -40,11 +40,6 @@ def _disable_provenance():
         setattr(_nt_mod, attr, val)
 
 
-    REQUIRED_TOPOLOGY,
-    NetworkLink,
-    NetworkTopologyAuditor,
-    PanelNode,
-)
 
 # Fixtures / Helpers  # NOSONAR - python:S125
 # ─────────────────────────────────────────────────────────────────────────────

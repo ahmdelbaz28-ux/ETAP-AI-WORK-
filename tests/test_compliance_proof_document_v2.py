@@ -30,20 +30,6 @@ from __future__ import annotations
 from unittest.mock import MagicMock
 
 import pytest
-    ComplianceProofDocument,
-    RoomVerificationRecord,
-    _safe_fmt,
-)
-    ConfidenceLevel,
-    ConsensusResult,
-    EngineName,
-    EngineVerdict,
-)
-    DETECTOR_RADIUS,
-    MAX_SPACING_M,
-    DetectorLayout,
-    Room,
-)
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # 1. _safe_fmt

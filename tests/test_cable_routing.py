@@ -27,19 +27,6 @@ from __future__ import annotations
 import dataclasses
 
 import pytest
-    MAX_VOLTAGE_DROP_PCT,
-    NOMINAL_VOLTAGE_FA,
-    CableRoutingEngine,
-    ObstacleType,
-    RoutingObstacle3D,
-    WireGauge,
-)
-    MAX_DEVICES_BETWEEN_ISOLATORS,
-    CircuitClass,
-    CircuitDevice,
-    CircuitTopology,
-    CircuitType,
-)
 
 # Fixtures
 # ─────────────────────────────────────────────────────────────────────────────

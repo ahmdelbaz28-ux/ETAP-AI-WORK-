@@ -20,15 +20,6 @@ NFPA 72 References:
 from __future__ import annotations
 
 import pytest
-    DEFAULT_MAX_DEVICES_BETWEEN_ISOLATORS,
-    ISOLATOR_DEVICE_TYPE,
-    NFPA_CITATION_ISOLATION,
-    NFPA_CITATION_ZONE_LIMIT,
-    IsolatorInjectionResult,
-    IsolatorPlacement,
-    inject_fault_isolators,
-    verify_isolator_compliance,
-)
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Constants Verification

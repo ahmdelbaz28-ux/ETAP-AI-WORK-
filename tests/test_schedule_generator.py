@@ -21,10 +21,6 @@ import pytest
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-    _NFPA72_23_6_2_MAX_LEN_M,
-    ScheduleGenerator,
-    ScheduleRow,
-)
 
 
 @pytest.fixture

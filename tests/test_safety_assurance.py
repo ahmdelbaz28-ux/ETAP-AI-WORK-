@@ -20,19 +20,6 @@ from __future__ import annotations
 from datetime import datetime, timezone
 
 import pytest
-    ABSOLUTE_MINIMUM_COVERAGE,
-    MINIMUM_COVERAGE_FOR_SUBMISSION,
-    PROOF_VERIFIED_THRESHOLD,
-    STANDARD_COVERAGE_THRESHOLD,
-    EngineeringEvidencePackage,
-    OverrideRecord,
-    OverrideRole,
-    SafetyTier,
-    apply_fail_safe,
-    classify_safety_tier,
-    tier_can_submit,
-    tier_requires_fpe_review,
-)
 
 # CONSTANTS
 # ═══════════════════════════════════════════════════════════════════════════════

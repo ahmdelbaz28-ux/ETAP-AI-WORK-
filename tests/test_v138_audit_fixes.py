@@ -19,8 +19,6 @@ class TestGenerationMsNotStale:
 
     def test_generation_ms_differs_per_variant(self):
         """Each variant should have its own generation_ms (not all same)."""
-            GenerativeLayoutAgent,
-        )
 
         agent = GenerativeLayoutAgent(use_multiprocessing=False)
         room = Room(name="TestStale", width=10.0, length=8.0, ceiling_height=3.0)
@@ -64,9 +62,6 @@ class TestConvergedField:
 
     def test_normal_calculation_converged_true(self):
         """Normal water flow should report converged=True."""
-            FluidType,
-            calculate_darcy_weisbach_friction_loss,
-        )
 
         result = calculate_darcy_weisbach_friction_loss(
             pipe_length_m=100.0,
@@ -78,9 +73,6 @@ class TestConvergedField:
 
     def test_converged_in_to_dict(self):
         """to_dict should include converged field."""
-            FluidType,
-            calculate_darcy_weisbach_friction_loss,
-        )
 
         result = calculate_darcy_weisbach_friction_loss(
             pipe_length_m=10.0,
@@ -204,10 +196,6 @@ class TestAuditSafeDict:
 
     def test_failed_state_returns_minimal_dict(self):
         """FAILED state should not persist full data."""
-            SimulationStatus,
-            SmokeDensityPoint,
-            SmokeSimulationState,
-        )
 
         state = SmokeSimulationState(
             room_id="R-001",
@@ -222,9 +210,6 @@ class TestAuditSafeDict:
 
     def test_validated_state_persists_full_data(self):
         """VALIDATED state should persist full data."""
-            SmokeDensityPoint,
-            SmokeSimulationState,
-        )
 
         state = SmokeSimulationState.create_from_fds(
             room_id="R-001",

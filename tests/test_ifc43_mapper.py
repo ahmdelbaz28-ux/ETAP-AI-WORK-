@@ -13,15 +13,6 @@ Per agent.md Rule 1: no fabrication.
 from __future__ import annotations
 
 import pytest
-    TO_IFC43_MAP,
-    IFC43_SCHEMA_VERSION,
-    PSET_AUDIT,
-    PSET_DESIGN,
-    PSET_SAFETY,
-    PSET_FIREALARM_COMMON,
-    IFC43ElementType,
-    IFC43Mapper,
-)
 
 # ---------------------------------------------------------------------------
 # Constants Tests

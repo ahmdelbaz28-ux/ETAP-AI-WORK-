@@ -9,19 +9,6 @@ from __future__ import annotations
 import platform
 import sys
 
-    ATEX_EDITION,
-    APP_VERSION,
-    APP_VERSION_FULL,
-    IEC_HAC_EDITION,
-    MAJOR,
-    MINOR,
-    NEC_EDITION,
-    NFPA_EDITION,
-    PATCH,
-    __package_version__,
-    assert_version_consistency,
-    build_version_header,
-)
 
 
 class TestVersionConstants:

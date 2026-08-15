@@ -31,9 +31,6 @@ from __future__ import annotations
 from collections import Counter
 
 import pytest
-    Fact,
-    RulesEngine,
-)
 
 # ---------------------------------------------------------------------------
 # BUG-V95-ENGINE-02 — Iteration reset between evaluate() calls

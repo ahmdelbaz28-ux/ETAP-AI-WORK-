@@ -25,9 +25,6 @@ import json
 import math
 
 import pytest
-    ProofCertificate,
-    ProofCertificateGenerator,
-)
 
 # ─────────────────────────────────────────────────────────────────────────────
 # ProofCertificate Dataclass Tests

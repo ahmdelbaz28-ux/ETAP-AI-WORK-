@@ -11,12 +11,6 @@ from __future__ import annotations
 import time
 
 import pytest
-    ModelUpdateAction,
-    ModelUpdateResult,
-    ModelUpdateStatus,
-    ModelUpdateType,
-    ThreadSafeModelUpdateQueue,
-)
 
 
 class TestModelUpdateAction:

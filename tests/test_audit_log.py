@@ -31,12 +31,6 @@ import pytest
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-    GENESIS_PREV_HASH,
-    AuditLog,
-    compute_entry_hash,
-    compute_hmac,
-    create_audit_entry,
-)
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # CONSTANT TESTS

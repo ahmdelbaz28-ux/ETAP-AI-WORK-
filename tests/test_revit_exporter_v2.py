@@ -21,19 +21,6 @@ import json
 import math
 
 import pytest
-    CableRoute,
-    RouteWaypoint,
-    RoutingSchedule,
-)
-    BEND_FITTING,
-    CONDUIT_DIAMETER_M,
-    CONDUIT_TYPE,
-    FA_WORKSET,
-    IFCElement,
-    ReportSummary,
-    RevitExporter,
-    ScheduleRow,
-)
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Helpers: Construct test fixtures without full BuildingModel/A*

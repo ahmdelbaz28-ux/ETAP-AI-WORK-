@@ -11,22 +11,6 @@ These tests verify the exact conversion factors against NIST SP 811.
 from __future__ import annotations
 
 import pytest
-    FEET_TO_METRES,
-    GPM_TO_LPM,
-    INCHES_TO_MM,
-    SQFT_TO_SQM,
-    bar_to_psi,
-    celsius_to_fahrenheit,
-    fahrenheit_to_celsius,
-    gpm_to_lpm,
-    inches_to_mm,
-    metres_to_revit_internal,
-    mm_to_revit_internal,
-    psi_to_bar,
-    revit_internal_to_metres,
-    revit_internal_to_mm,
-    sqft_to_sqm,
-)
 
 
 class TestRevitInternalConversions:

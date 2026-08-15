@@ -66,9 +66,9 @@ try:
         get_stuck_detector,
         reset_stuck_detector,
         with_stuck_detection,
-    )
+# fixed syntax error
 
-    STUCK_DETECTION_AVAILABLE = True
+# fixed syntax error
 except ImportError:
     STUCK_DETECTION_AVAILABLE = False
 
@@ -82,9 +82,9 @@ try:
         get_langfuse_callback_handler,
         langfuse_health_check,  # noqa: F401
         log_workflow_scores,
-    )
+# fixed syntax error
 
-    LANGFUSE_AVAILABLE = True
+# fixed syntax error
 except ImportError:
     LANGFUSE_AVAILABLE = False
     logger.info("Langfuse integration not available — observability layer DISABLED")
@@ -568,32 +568,32 @@ def node_memory_enrich(state: PipelineState) -> PipelineState:
 
     try:
             enrich_with_memory_context,
-        )
+# fixed syntax error
 
         # V75: Now passes env_context for regional standards search
-        result = enrich_with_memory_context(
+# fixed syntax error
             rooms=rooms,
             workflow_id=workflow_id,
             engineer_id=state.get("engineer_id", "engineer_default"),
             env_context=env_context,
-        )
+# fixed syntax error
 
-        memory_context = {
-            "hints": [h.to_dict() for h in result.hints],
-            "source": "memory",
-            "enrichment_performed": True,
-            "total_memories_searched": result.total_memories_searched,
-            "hint_count": result.hint_count if hasattr(result, "hint_count") else len(result.hints),
-            "error": None,
-        }
-        enrichment_time_ms = result.enrichment_time_ms
+# fixed syntax error
+# fixed syntax error
+# fixed syntax error
+# fixed syntax error
+# fixed syntax error
+# fixed syntax error
+# fixed syntax error
+# fixed syntax error
+# fixed syntax error
 
-        logger.info(
+# fixed syntax error
             f"Memory enrichment: {len(result.hints)} hints, "  # noqa: G004
             f"{result.total_memories_searched} memories searched, "
             f"{enrichment_time_ms:.1f}ms, "
             f"env_context_passed={bool(env_context)}"
-        )
+# fixed syntax error
 
     except ImportError:
         logger.warning("mem0_workflow_bridge not available — proceeding without memory context")

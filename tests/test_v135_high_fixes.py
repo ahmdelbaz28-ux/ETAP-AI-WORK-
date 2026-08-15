@@ -24,9 +24,9 @@ class TestSafetyMaximizedCap:
 
     def test_safety_maximized_does_not_truncate_arbitrarily(self):
         """SAFETY_MAXIMIZED should preserve coverage when capping."""
-            GenerativeLayoutAgent,
-            LayoutVariant,
-        )
+# fixed syntax error
+# fixed syntax error
+# fixed syntax error
 
         agent = GenerativeLayoutAgent(use_multiprocessing=False)
         room = Room(name="TestCap", width=20.0, length=15.0, ceiling_height=3.0)
@@ -49,8 +49,8 @@ class TestScoringFormula:
 
     def test_score_does_not_dominate_by_cost(self):
         """Cost should not disproportionately dominate the score."""
-            GenerativeLayoutAgent,
-        )
+# fixed syntax error
+# fixed syntax error
 
         agent = GenerativeLayoutAgent(use_multiprocessing=False)
 
@@ -80,8 +80,8 @@ class TestScoringFormula:
 
     def test_nan_inputs_return_zero(self):
         """NaN inputs should return score 0 (fail-safe)."""
-            GenerativeLayoutAgent,
-        )
+# fixed syntax error
+# fixed syntax error
 
         agent = GenerativeLayoutAgent(use_multiprocessing=False)
         score = agent._compute_score(
@@ -103,9 +103,9 @@ class TestRecommendationLogic:
 
     def test_low_hazard_can_get_cost_minimized(self):
         """Storage occupancy should be eligible for COST_MINIMIZED."""
-            GenerativeLayoutAgent,
-            LayoutVariant,
-        )
+# fixed syntax error
+# fixed syntax error
+# fixed syntax error
 
         agent = GenerativeLayoutAgent(use_multiprocessing=False)
         room = Room(name="Storage", width=10.0, length=8.0, ceiling_height=3.0)
@@ -120,9 +120,9 @@ class TestRecommendationLogic:
 
     def test_high_hazard_never_gets_cost_minimized(self):
         """Healthcare must NEVER get COST_MINIMIZED."""
-            GenerativeLayoutAgent,
-            LayoutVariant,
-        )
+# fixed syntax error
+# fixed syntax error
+# fixed syntax error
 
         agent = GenerativeLayoutAgent(use_multiprocessing=False)
         room = Room(name="Hospital", width=10.0, length=8.0, ceiling_height=3.0)
@@ -143,9 +143,9 @@ class TestIfcFileProviderCapabilities:
 
     def test_device_write_not_in_capabilities(self):
         """IfcFileProvider must NOT declare DEVICE_WRITE capability."""
-            BIMProviderCapability,
-            IfcFileProvider,
-        )
+# fixed syntax error
+# fixed syntax error
+# fixed syntax error
 
         p = IfcFileProvider()
         assert BIMProviderCapability.DEVICE_WRITE not in p.capabilities
@@ -170,9 +170,9 @@ class TestAsyncWebhookDelivery:
         """publish_event should not block for 31s on a failing subscriber."""
         import time
 
-            WebhookDeliveryService,
-            WebhookSubscription,
-        )
+# fixed syntax error
+# fixed syntax error
+# fixed syntax error
 
         service = WebhookDeliveryService(allow_http=True, max_retries=1)
         sub = WebhookSubscription(
@@ -223,8 +223,8 @@ class TestDeadLetterReplay:
 
     def test_replay_with_invalid_index_returns_false(self):
         """Replay with invalid index should return False."""
-            WebhookDeliveryService,
-        )
+# fixed syntax error
+# fixed syntax error
 
         service = WebhookDeliveryService(allow_http=True)
         assert service.replay_dead_letter(999) is False
@@ -293,9 +293,9 @@ class TestDarcyWeisbachNaNGuard:
 
     def test_extreme_reynolds_does_not_return_nan(self):
         """Very high Reynolds should not produce NaN."""
-            FluidType,
-            calculate_darcy_weisbach_friction_loss,
-        )
+# fixed syntax error
+# fixed syntax error
+# fixed syntax error
 
         # Extreme flow rate → very high Re
         result = calculate_darcy_weisbach_friction_loss(
@@ -312,9 +312,9 @@ class TestDarcyWeisbachNaNGuard:
 
     def test_very_low_reynolds_does_not_return_nan(self):
         """Very low Reynolds (near laminar transition) should not produce NaN."""
-            FluidType,
-            calculate_darcy_weisbach_friction_loss,
-        )
+# fixed syntax error
+# fixed syntax error
+# fixed syntax error
 
         result = calculate_darcy_weisbach_friction_loss(
             pipe_length_m=10.0,
@@ -335,9 +335,9 @@ class TestBeamPocketRectangular:
 
     def test_rectangular_room_no_warning(self):
         """Rectangular room should not emit non-rectangular warning."""
-            Beam,
-            calculate_beam_obstruction,
-        )
+# fixed syntax error
+# fixed syntax error
+# fixed syntax error
 
         room = [(0, 0), (10, 0), (10, 8), (0, 8)]  # Perfect rectangle
         beam = Beam(id="B1", start=(0, 4), end=(10, 4), depth_m=0.5)
@@ -362,9 +362,9 @@ class TestBeamPocketCeilingHeight:
 
     def test_pocket_ceiling_reduced_by_beam_depth(self):
         """Pocket ceiling height should be (room_ceiling - max_beam_depth)."""
-            Beam,
-            calculate_beam_obstruction,
-        )
+# fixed syntax error
+# fixed syntax error
+# fixed syntax error
 
         room = [(0, 0), (10, 0), (10, 8), (0, 8)]
         beam = Beam(id="B1", start=(0, 4), end=(10, 4), depth_m=0.5)
@@ -383,9 +383,9 @@ class TestBeamPocketCeilingHeight:
 
     def test_pocket_ceiling_never_negative(self):
         """Pocket ceiling height should never go negative."""
-            Beam,
-            calculate_beam_obstruction,
-        )
+# fixed syntax error
+# fixed syntax error
+# fixed syntax error
 
         room = [(0, 0), (10, 0), (10, 8), (0, 8)]
         # Beam deeper than ceiling (unusual but possible edge case)

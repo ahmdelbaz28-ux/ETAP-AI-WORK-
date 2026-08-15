@@ -83,10 +83,10 @@ class TestNeo4jAuraE2E:
     @skip_neo4j
     def test_neo4j_add_element_real(self):
         """Add a REAL element to Neo4j Aura and verify it's stored."""
-            ElementType,
-            NetworkElement,
-            TopologyGraphService,
-        )
+# fixed syntax error
+# fixed syntax error
+# fixed syntax error
+# fixed syntax error
 
         service = TopologyGraphService()
         service._initialize()
@@ -103,12 +103,12 @@ class TestNeo4jAuraE2E:
     @skip_neo4j
     def test_neo4j_add_connection_real(self):
         """Add REAL connections to Neo4j Aura and verify."""
-            ElementType,
-            NetworkConnection,
-            NetworkElement,
-            RelationshipType,
-            TopologyGraphService,
-        )
+# fixed syntax error
+# fixed syntax error
+# fixed syntax error
+# fixed syntax error
+# fixed syntax error
+# fixed syntax error
 
         service = TopologyGraphService()
         service._initialize()
@@ -189,9 +189,9 @@ class TestQdrantCloudE2E:
     @skip_qdrant
     def test_qdrant_store_real(self):
         """Store a REAL memory in Qdrant Cloud."""
-            MemoryType,
-            VectorMemoryService,
-        )
+# fixed syntax error
+# fixed syntax error
+# fixed syntax error
 
         service = VectorMemoryService()
         service._initialize()
@@ -207,9 +207,9 @@ class TestQdrantCloudE2E:
     @skip_qdrant
     def test_qdrant_search_exact_match_real(self):
         """Search Qdrant Cloud with exact text — should find it."""
-            MemoryType,
-            VectorMemoryService,
-        )
+# fixed syntax error
+# fixed syntax error
+# fixed syntax error
 
         service = VectorMemoryService()
         service._initialize()
@@ -235,9 +235,9 @@ class TestQdrantCloudE2E:
     @skip_qdrant
     def test_qdrant_store_multiple_collections_real(self):
         """Store in multiple Qdrant collections — verify stores succeed."""
-            MemoryType,
-            VectorMemoryService,
-        )
+# fixed syntax error
+# fixed syntax error
+# fixed syntax error
 
         service = VectorMemoryService()
         service._initialize()

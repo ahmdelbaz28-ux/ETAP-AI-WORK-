@@ -16,17 +16,6 @@ NFPA 72 References:
 from __future__ import annotations
 
 import pytest
-    TEMPLATES,
-    bathroom,
-    corridor,
-    get_template,
-    high_ceiling_office,
-    kitchen,
-    meeting,
-    office,
-    storage,
-    warehouse,
-)
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Office Template

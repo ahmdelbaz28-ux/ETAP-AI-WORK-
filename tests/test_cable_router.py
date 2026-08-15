@@ -23,35 +23,8 @@ import json
 import math
 
 import pytest
-    DIRECTIONS_6,
-    CableRouter,
-)
-    BEND_PENALTY_M,
-    ELECTRICAL_PROXIMITY_PENALTY_M,
-    ELEVATION_PENALTY_M,
-    EMT_3_4_OUTER_DIAMETER_MM,
-    MAX_CABLE_FASTENING_INTERVAL_MM,
-    MIN_CONDUIT_INCHES,
-    MIN_ELECTRICAL_SEPARATION_MM,
-    ConstraintEngine,
-    ConstraintSource,
-)
 
 # ─── Module imports ──────────────────────────────────────────────────────────
-    BoundingBox3D,
-    BuildingModel,
-    CellState,
-    IfcElementType,
-    SpaceInfo,
-    _classify_ifc_element,
-    build_abstract_model,
-    get_cell_state,
-    grid_to_world,
-    world_to_grid,
-)
-    FA_WORKSET,
-    RevitExporter,
-)
 
 # FIXTURES
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -715,14 +688,6 @@ class TestCableRouterBasic:
             ),
             BoundingBox3D(
                 element_id="electrical-panel-1",  # "electrical" keyword
-                element_type=IfcElementType.UNKNOWN,
-                ifc_class="IfcElectricDistributionBoard",
-                min_x=4.0,
-                min_y=4.0,
-                min_z=1.0,
-                max_x=4.5,
-                max_y=4.5,
-                max_z=2.0,
             ),
         ]
         model = build_abstract_model(obstacles, building_name="Electrical Test")

@@ -25,17 +25,6 @@ from __future__ import annotations
 import math
 
 import pytest
-    _HORN_REFERENCE_DISTANCE_M,
-    _MAX_CORRIDOR_STROBE_SPACING_M,
-    _NAC_LOAD_FACTOR,
-    NotificationAssessment,
-    NotificationDevice,
-    calculate_corridor_strobes,
-    calculate_nac_load,
-    calculate_spl,
-    calculate_strobe_candela,
-    min_horn_rating_for_room,
-)
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # 1. NOTIFICATION DEVICE DATACLASS
@@ -583,9 +572,6 @@ class TestNotificationAssessment:
         """
         No results provided → fail-closed (non-compliant).
 
-        V78 FIX: Previously returned True when no results were evaluated,
-        which is a fail-open design — a room with no notification appliance
-        evaluation should NOT claim compliance. Now correctly returns False.
         """
         assessment = NotificationAssessment(room_id="R1")
         assessment.evaluate()

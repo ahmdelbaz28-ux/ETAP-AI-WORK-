@@ -41,20 +41,13 @@ def _reset_healing_state():
     try:
             global_audit_logger,
             global_circuit_breaker,
-        )
 
-        global_circuit_breaker.reset()
         # Truncate the audit log file to prevent chain verification failures
         # in other test files that expect a fresh log.
-        audit_path = os.environ.get("QOMN_AUDIT_LOG_PATH", "qomn_fire_healing_audit.jsonl")
-        try:
             with open(audit_path, "w") as f:
                 f.truncate(0)
-        except (OSError, FileNotFoundError):
             pass
         # Reset the audit logger's internal state (previous_hash)
-        global_audit_logger._previous_hash = None
-        global_audit_logger._event_count = 0
     except ImportError:
         pass
     yield
@@ -181,8 +174,6 @@ class TestV214SelfHealingCircuitBreaker:
 
     def test_repeated_errors_trip_circuit_breaker(self):
         """After enough errors, the circuit breaker should open."""
-            global_circuit_breaker,
-        )
 
         global_circuit_breaker.reset()
 
