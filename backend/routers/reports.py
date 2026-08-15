@@ -76,7 +76,6 @@ def _generate_voltage_drop_report(devices: list, connections: list, now: str) ->
     # heavy dependency that is unavailable in some environments.
     try:
         from etap.core.qomn_kernel import (
-            PhysicsGuardError,
             compute_voltage_drop,
         )
 
