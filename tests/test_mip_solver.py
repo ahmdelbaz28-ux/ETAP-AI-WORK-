@@ -15,10 +15,6 @@ Covers:
 from __future__ import annotations
 
 import pytest
-    PULP_AVAILABLE,
-    MIPResult,
-    solve_set_covering_mip,
-)
 
 
 class TestMIPResultStructure:

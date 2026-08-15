@@ -52,7 +52,6 @@ def _disable_provenance():
     LogicFunction,
     MatrixRow,
     SequenceOfOperationsMatrix,
-)
 
 
 @pytest.fixture

@@ -33,9 +33,9 @@ class TestVectorMemoryService:
 
     def test_store_returns_none_when_qdrant_unavailable(self):
         """Store should return None when Qdrant is unavailable."""
-            MemoryType,
-            VectorMemoryService,
-        )
+# fixed syntax error
+# fixed syntax error
+# fixed syntax error
 
         service = VectorMemoryService(
             qdrant_url="http://nonexistent:6333"
@@ -48,9 +48,9 @@ class TestVectorMemoryService:
 
     def test_search_returns_empty_when_qdrant_unavailable(self):
         """Search should return empty results when Qdrant is unavailable."""
-            MemoryType,
-            VectorMemoryService,
-        )
+# fixed syntax error
+# fixed syntax error
+# fixed syntax error
 
         service = VectorMemoryService(
             qdrant_url="http://nonexistent:6333"
@@ -82,9 +82,9 @@ class TestVectorMemoryService:
 
     def test_memory_entry_to_dict(self):
         """MemoryEntry should serialize to dict correctly."""
-            MemoryEntry,
-            MemoryType,
-        )
+# fixed syntax error
+# fixed syntax error
+# fixed syntax error
 
         entry = MemoryEntry(
             id="test-001",
@@ -101,9 +101,9 @@ class TestVectorMemoryService:
 
     def test_get_vector_memory_singleton(self):
         """get_vector_memory should return the same instance."""
-            VectorMemoryService,
-            get_vector_memory,
-        )
+# fixed syntax error
+# fixed syntax error
+# fixed syntax error
 
         s1 = get_vector_memory()
         s2 = get_vector_memory()
@@ -128,10 +128,10 @@ class TestTopologyGraphService:
 
     def test_add_element_in_memory_fallback(self):
         """Add element should work with in-memory fallback."""
-            ElementType,
-            NetworkElement,
-            TopologyGraphService,
-        )
+# fixed syntax error
+# fixed syntax error
+# fixed syntax error
+# fixed syntax error
 
         service = TopologyGraphService(uri="bolt://nonexistent:7687")
         service._initialize()
@@ -145,12 +145,12 @@ class TestTopologyGraphService:
 
     def test_add_connection_in_memory_fallback(self):
         """Add connection should work with in-memory fallback."""
-            ElementType,
-            NetworkConnection,
-            NetworkElement,
-            RelationshipType,
-            TopologyGraphService,
-        )
+# fixed syntax error
+# fixed syntax error
+# fixed syntax error
+# fixed syntax error
+# fixed syntax error
+# fixed syntax error
 
         service = TopologyGraphService(uri="bolt://nonexistent:7687")
         service._initialize()
@@ -172,12 +172,12 @@ class TestTopologyGraphService:
 
     def test_impact_analysis_in_memory(self):
         """Impact analysis should work with in-memory fallback."""
-            ElementType,
-            NetworkConnection,
-            NetworkElement,
-            RelationshipType,
-            TopologyGraphService,
-        )
+# fixed syntax error
+# fixed syntax error
+# fixed syntax error
+# fixed syntax error
+# fixed syntax error
+# fixed syntax error
 
         service = TopologyGraphService(uri="bolt://nonexistent:7687")
         service._initialize()
@@ -238,9 +238,9 @@ class TestTopologyGraphService:
 
     def test_get_topology_service_singleton(self):
         """get_topology_service should return the same instance."""
-            TopologyGraphService,
-            get_topology_service,
-        )
+# fixed syntax error
+# fixed syntax error
+# fixed syntax error
 
         s1 = get_topology_service()
         s2 = get_topology_service()

@@ -25,13 +25,6 @@ import os
 import tempfile
 
 import pytest
-    ParamConfig,
-    ParameterOptimizationResult,
-    ParameterOptimizer,
-)
-    DETECTOR_RADIUS,
-    Room,
-)
 
 # Fixtures
 # ─────────────────────────────────────────────────────────────────────────────

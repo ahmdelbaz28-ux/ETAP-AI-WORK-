@@ -20,9 +20,6 @@ NFPA 72 References:
 
 from __future__ import annotations
 
-    SensorAdvisory,
-    SensorPhysicsAdvisor,
-)
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # SensorAdvisory Dataclass Tests

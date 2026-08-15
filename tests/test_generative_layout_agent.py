@@ -16,15 +16,6 @@ from __future__ import annotations
 import math
 
 import pytest
-    COMPLIANCE_WEIGHT,
-    COST_WEIGHT,
-    COVERAGE_WEIGHT,
-    HIGH_HAZARD_OCCUPANCIES,
-    REDUNDANCY_WEIGHT,
-    SAFETY_MAXIMIZED_SPACING_FACTOR,
-    GenerativeLayoutAgent,
-    LayoutVariant,
-)
 
 # ---------------------------------------------------------------------------
 # Fixtures

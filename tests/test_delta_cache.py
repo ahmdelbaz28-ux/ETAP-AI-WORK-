@@ -31,14 +31,6 @@ import threading
 import time
 
 import pytest
-    _ALGORITHM_VERSION,
-    CacheEntry,
-    DeltaCache,
-    DependencyEdge,
-    _content_hash,
-    _DependencyGraph,
-    _LRUCache,
-)
 
 # ─────────────────────────────────────────────────────────────────────────────
 # _content_hash Helper Tests

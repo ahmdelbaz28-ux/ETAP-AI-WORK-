@@ -13,15 +13,6 @@ import struct
 import zipfile
 
 import pytest
-    GLB_CHUNK_BIN,
-    GLB_CHUNK_JSON,
-    GLTF_MAGIC,
-    GLTF_VERSION,
-    ARExportFormat,
-    ARMetadataExporter,
-    ARSceneNode,
-    ARSnapshot,
-)
 
 # ---------------------------------------------------------------------------
 # Fixtures

@@ -67,9 +67,6 @@ class TestGraphRAGEngine:
 
     def test_get_graphrag_engine_singleton(self):
         """get_graphrag_engine should return the same instance."""
-            GraphRAGEngine,
-            get_graphrag_engine,
-        )
 
         e1 = get_graphrag_engine()
         e2 = get_graphrag_engine()

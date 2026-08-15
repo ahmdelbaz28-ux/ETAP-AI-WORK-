@@ -17,25 +17,6 @@ NFPA 72 References:
 from __future__ import annotations
 
 import pytest
-    _ensure_closed,
-    bounding_rect_dimensions,
-    convex_hull_2d,
-    ensure_ccw,
-    grid_points_in_polygon,
-    is_clockwise,
-    is_rectangular,
-    l_shape_polygon,
-    point_in_polygon,
-    points_in_polygon,
-    polygon_area,
-    polygon_bounds,
-    polygon_centroid,
-    polygon_perimeter,
-    rect_polygon,
-    sanitize_room_geometry,
-    shoelace_area,
-    validate_polygon,
-)
 
 # _ensure_closed
 # ─────────────────────────────────────────────────────────────────────────────

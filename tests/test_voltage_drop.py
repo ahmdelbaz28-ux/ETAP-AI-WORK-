@@ -24,15 +24,6 @@ from __future__ import annotations
 import warnings
 
 import pytest
-    FA_WIRE_GAUGES,
-    MAX_VOLTAGE_DROP_PCT,
-    _next_standard_ah,
-    calculate_battery_backup,
-    calculate_max_circuit_length,
-    calculate_voltage_drop,
-    get_wire_resistance_ohm_per_m,
-    recommend_wire_gauge,
-)
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Wire Resistance Lookup (BUG-12 FIX: keyed by AWG string)

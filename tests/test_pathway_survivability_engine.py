@@ -22,14 +22,6 @@ NFPA 72 References:
 from __future__ import annotations
 
 import pytest
-    CableType,
-    OccupancyCategory,
-    PathwaySurvivabilityLevel,
-)
-    BuildingSpec,
-    PathwaySurvivabilityEngine,
-    SurvivabilityResult,
-)
 
 # Fixtures
 # ─────────────────────────────────────────────────────────────────────────────

@@ -416,9 +416,6 @@ class TestUnitConversion:
 
     def test_metres_to_feet_round_trip(self):
         """Round-trip conversion must be identity."""
-            metres_to_revit_internal,
-            revit_internal_to_metres,
-        )
 
         assert metres_to_revit_internal(revit_internal_to_metres(100.0)) == pytest.approx(100.0)
 

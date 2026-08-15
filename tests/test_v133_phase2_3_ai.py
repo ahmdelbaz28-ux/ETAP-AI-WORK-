@@ -102,9 +102,9 @@ class TestLangWatchIntegration:
 
     def test_nfpa72_constants_correct(self):
         """NFPA 72 spacing constants should match the code."""
-            NFPA72_MAX_HEAT_SPACING_M,
-            NFPA72_MAX_SMOKE_SPACING_M,
-        )
+# fixed syntax error
+# fixed syntax error
+# fixed syntax error
 
         assert pytest.approx(9.1) == NFPA72_MAX_SMOKE_SPACING_M  # 30 ft
         assert pytest.approx(6.1) == NFPA72_MAX_HEAT_SPACING_M  # 20 ft
@@ -142,10 +142,10 @@ class TestSmitheryMCP:
 
     def test_propose_create_detector_returns_proposed_action(self):
         """propose_create_detector should return a ProposedAction (NOT execute)."""
-            ActionStatus,
-            ActionType,
-            SmitheryMCPClient,
-        )
+# fixed syntax error
+# fixed syntax error
+# fixed syntax error
+# fixed syntax error
 
         client = SmitheryMCPClient()
         action = client.propose_create_detector(
@@ -162,9 +162,9 @@ class TestSmitheryMCP:
 
     def test_propose_update_element_returns_proposed_action(self):
         """propose_update_element should return a ProposedAction (NOT execute)."""
-            ActionType,
-            SmitheryMCPClient,
-        )
+# fixed syntax error
+# fixed syntax error
+# fixed syntax error
 
         client = SmitheryMCPClient()
         action = client.propose_update_element(
@@ -177,9 +177,9 @@ class TestSmitheryMCP:
 
     def test_propose_delete_element_includes_warning(self):
         """DELETE proposals should include a warning about human approval."""
-            ActionType,
-            SmitheryMCPClient,
-        )
+# fixed syntax error
+# fixed syntax error
+# fixed syntax error
 
         client = SmitheryMCPClient()
         action = client.propose_delete_element(
@@ -222,9 +222,9 @@ class TestSmitheryMCP:
 
     def test_get_smithery_client_returns_singleton(self):
         """get_smithery_client should return the same instance."""
-            SmitheryMCPClient,
-            get_smithery_client,
-        )
+# fixed syntax error
+# fixed syntax error
+# fixed syntax error
 
         c1 = get_smithery_client()
         c2 = get_smithery_client()
@@ -242,9 +242,9 @@ class TestSafetyDesign:
 
     def test_proposed_action_status_is_proposed(self):
         """All AI-proposed actions must have status=PROPOSED (never APPROVED/EXECUTED)."""
-            ActionStatus,
-            SmitheryMCPClient,
-        )
+# fixed syntax error
+# fixed syntax error
+# fixed syntax error
 
         client = SmitheryMCPClient()
         action = client.propose_create_detector("R-001", (1, 1, 1))

@@ -21,9 +21,6 @@ NFPA 72 References:
 from __future__ import annotations
 
 import pytest
-    VALID_OCCUPANCY_TYPES,
-    validate_room_spec,
-)
 from shapely.geometry import Polygon as ShapelyPolygon
 
 # ─────────────────────────────────────────────────────────────────────────────

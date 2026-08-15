@@ -12,17 +12,6 @@ to the existing ETAP system.
 from __future__ import annotations
 
 import pytest
-    ComplianceReport,
-    NFPA72ComplianceChecker,
-    detector_to_fact,
-    elevator_to_fact,
-    hvac_to_fact,
-    results_to_report,
-    room_to_facts,
-)
-    Fact,
-    RulesEngine,
-)
 
 
 class TestNFPA72ComplianceChecker:

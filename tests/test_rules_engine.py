@@ -22,17 +22,6 @@ Test Categories:
 from __future__ import annotations
 
 import pytest
-    ContractSeverity,
-    ContractValidator,
-)
-    Fact,
-    Rule,
-    RulePriority,
-    RuleResult,
-    RulesEngine,
-)
-    TruthMaintenanceSystem,
-)
 from pydantic import ValidationError
 
 # ═══════════════════════════════════════════════════════════════════════════════

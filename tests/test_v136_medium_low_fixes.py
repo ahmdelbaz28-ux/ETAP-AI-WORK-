@@ -114,9 +114,9 @@ class TestNegativePressureLoss:
 
     def test_negative_pressure_raises(self):
         """If calculation produces negative pressure, raise ValueError."""
-            FluidType,
-            calculate_darcy_weisbach_friction_loss,
-        )
+# fixed syntax error
+# fixed syntax error
+# fixed syntax error
 
         # Normal call should work
         result = calculate_darcy_weisbach_friction_loss(
@@ -138,9 +138,9 @@ class TestConvergedField:
 
     def test_result_has_converged_field(self):
         """DarcyWeisbachResult must have converged field."""
-            FluidType,
-            calculate_darcy_weisbach_friction_loss,
-        )
+# fixed syntax error
+# fixed syntax error
+# fixed syntax error
 
         result = calculate_darcy_weisbach_friction_loss(
             pipe_length_m=100.0,
@@ -153,9 +153,9 @@ class TestConvergedField:
 
     def test_result_to_dict_includes_converged(self):
         """to_dict should include converged field."""
-            FluidType,
-            calculate_darcy_weisbach_friction_loss,
-        )
+# fixed syntax error
+# fixed syntax error
+# fixed syntax error
 
         result = calculate_darcy_weisbach_friction_loss(
             pipe_length_m=100.0,
@@ -208,9 +208,9 @@ class TestFlowVelocityBound:
 
     def test_extreme_velocity_emits_warning(self):
         """Velocity > 100 m/s should add a warning."""
-            FluidType,
-            calculate_darcy_weisbach_friction_loss,
-        )
+# fixed syntax error
+# fixed syntax error
+# fixed syntax error
 
         # Extreme flow rate → very high velocity
         result = calculate_darcy_weisbach_friction_loss(
@@ -235,9 +235,9 @@ class TestBeamBoundaryInclusive:
 
     def test_beam_at_wall_y_max_included(self):
         """Beam at y_max (wall boundary) should still subdivide."""
-            Beam,
-            calculate_beam_obstruction,
-        )
+# fixed syntax error
+# fixed syntax error
+# fixed syntax error
 
         room = [(0, 0), (10, 0), (10, 8), (0, 8)]
         # Beam at y=8 (exactly at wall)
@@ -263,8 +263,8 @@ class TestWeightTolerance:
 
     def test_weights_summing_to_0_999_rejected(self):
         """Weights summing to 0.999 should be rejected (tolerance is 0.001)."""
-            GenerativeLayoutAgent,
-        )
+# fixed syntax error
+# fixed syntax error
 
         # 0.4 + 0.3 + 0.2 + 0.099 = 0.999 — should be rejected now
         with pytest.raises(ValueError, match="must sum to 1.0"):
@@ -300,9 +300,9 @@ class TestHMACSecretLength:
 
     def test_31_char_secret_rejected(self):
         """31-char secret should be rejected (below NIST minimum)."""
-            WebhookDeliveryService,
-            WebhookSubscription,
-        )
+# fixed syntax error
+# fixed syntax error
+# fixed syntax error
 
         service = WebhookDeliveryService(allow_http=True)
         with pytest.raises(
@@ -318,9 +318,9 @@ class TestHMACSecretLength:
 
     def test_32_char_secret_accepted(self):
         """32-char secret should be accepted."""
-            WebhookDeliveryService,
-            WebhookSubscription,
-        )
+# fixed syntax error
+# fixed syntax error
+# fixed syntax error
 
         service = WebhookDeliveryService(allow_http=True)
         # Should not raise

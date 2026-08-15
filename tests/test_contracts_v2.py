@@ -23,29 +23,6 @@ import json
 import os
 
 import pytest
-    CONTRACT_VERSION,
-    DEFAULT_FEATURE_FLAGS,
-    FORBIDDEN_DERIVED_FIELDS,
-    FORBIDDEN_LOOP_DERIVED_FIELDS,
-    AuditEventContract,
-    CableType,
-    CeilingSpecContract,
-    CeilingType,
-    ComplianceReportContract,
-    ConfidenceLevel,
-    ContractViolation,
-    DetectorPlacementContract,
-    DetectorType,
-    FeatureFlag,
-    OccupancyCategory,
-    ParsedDrawingContract,
-    PathwaySurvivabilityLevel,
-    RoomSpecificationContract,
-    get_feature_flags,
-    is_feature_enabled,
-    validate_loop_input,
-    validate_room_input,
-)
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Enum Tests

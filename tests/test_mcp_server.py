@@ -31,11 +31,6 @@ import json
 import time
 
 import pytest
-    MCP_PROTOCOL_VERSION,
-    MCP_SERVER_NAME,
-    MCP_SERVER_VERSION,
-    RevitMCPServer,
-)
 
 # ===========================================================================
 # Test fixtures

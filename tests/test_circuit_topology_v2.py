@@ -25,14 +25,6 @@ from __future__ import annotations
 import dataclasses
 
 import pytest
-    MAX_DEVICES_BETWEEN_ISOLATORS,
-    MAX_NAC_DEVICES_DEFAULT,
-    MAX_SLC_DEVICES_DEFAULT,
-    CircuitClass,
-    CircuitDevice,
-    CircuitTopology,
-    CircuitType,
-)
 
 # Constants
 # ─────────────────────────────────────────────────────────────────────────────

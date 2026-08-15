@@ -24,19 +24,8 @@ from __future__ import annotations
 import dataclasses
 
 import pytest
-    CableType,
-    ContractViolation,
-    EgressType,
-    FiberType,
     # Result dataclasses
-    _validate_finite,
-    _validate_positive,
-    calculate_cctv_coverage,
-    validate_access_control,
-    validate_fiber_link,
     # Main functions
-    validate_horizontal_cable,
-)
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # Enum Tests

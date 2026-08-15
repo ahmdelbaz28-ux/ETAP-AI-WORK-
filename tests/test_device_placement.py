@@ -24,23 +24,8 @@ from __future__ import annotations
 
 import pytest
     # Dataclasses
-    BeamObstruction,
     # Engine
-    DetectorPlacementEngine,
-    DuctDetectorSpec,
-    ExitDoor,
-    OccupancyType,
-    PlacedDevice,
-    PlacementResult,
-    place_duct_detector,
-)
-    CeilingType as DPCeilingType,
-)
     # Enums
-    DetectorType as DPDetectorType,
-)
-    RoomSpec as DPRoomSpec,
-)
 
 # Fixtures
 # ─────────────────────────────────────────────────────────────────────────────

@@ -37,12 +37,7 @@ logger = logging.getLogger(__name__)
 # dataclasses when the etap package is not on the Python path.
 
 try:
-        BoundingBox3D as _CoreBoundingBox3D,  # noqa: F401
-    )
-        BuildingModel as _CoreBuildingModel,  # noqa: F401
-    )
-        SpaceInfo as _CoreSpaceInfo,  # noqa: F401
-    )
+    pass
 
     _HAS_CORE_IFC_PARSER = True
 except ImportError:

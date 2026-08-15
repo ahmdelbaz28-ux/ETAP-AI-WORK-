@@ -17,14 +17,6 @@ Covers:
 
 from __future__ import annotations
 
-    CAUSE_EFFECT_RULES,
-    NFPA_REFERENCES,
-    DeviceInput,
-    DeviceInputType,
-    LogicFunction,
-    MatrixRow,
-    SequenceOfOperationsMatrix,
-)
 
 
 class TestLogicFunctionEnum:

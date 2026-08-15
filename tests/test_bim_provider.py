@@ -14,15 +14,6 @@ real code with real assertions.
 from __future__ import annotations
 
 import pytest
-    AutodeskForgeProvider,
-    BIMProvider,
-    BIMProviderCapability,
-    BIMProviderRegistry,
-    BIMRoom,
-    IfcFileProvider,
-    LocalRevitProvider,
-    get_provider,
-)
 
 # ---------------------------------------------------------------------------
 # Protocol Conformance Tests

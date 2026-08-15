@@ -28,11 +28,6 @@ from __future__ import annotations
 import json
 
 import pytest
-    PipelineResult,
-    StageResult,
-    analyze_building,
-    analyze_room,
-)
 
 # ─── Shared Fixtures ──────────────────────────────────────────────────────────
 

@@ -21,15 +21,6 @@ NFPA 72 References:
 from __future__ import annotations
 
 import pytest
-    _AMBIENT_TEMP_C,
-    _G,
-    _RESPONSE_TIME_SAFETY_MARGIN,
-    _RTI_SPOT_HEAT_HIGH,
-    _RTI_SPOT_HEAT_LOW,
-    _RTI_SPOT_HEAT_MED,
-    calculate_heat_detector_response,
-    calculate_smoke_detector_response,
-)
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Heat Detector Response (Alpert + RTI Model)

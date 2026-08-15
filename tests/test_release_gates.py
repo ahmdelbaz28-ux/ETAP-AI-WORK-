@@ -17,17 +17,6 @@ from __future__ import annotations
 import math
 from typing import Any
 
-    _gate_battery,
-    _gate_coverage,
-    _gate_fault_isolation,
-    _gate_input_validation,
-    _gate_nfpa_spacing,
-    _gate_safety_tier,
-    _gate_voltage_drop,
-    _gate_wall_distance,
-    describe_blockers,
-    verify_and_evaluate,
-)
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # FIXTURES — reusable inputs for a fully-passing scenario

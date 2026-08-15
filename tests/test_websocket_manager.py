@@ -11,10 +11,6 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 from fastapi import HTTPException
-    ConnectionManager,
-    _init_api_keys,
-    verify_api_key_ws,
-)
 
 
 class TestApiKeyVerification:

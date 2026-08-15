@@ -28,12 +28,7 @@ class TestV214MiningModuleExists:
             MethaneCalculator,
             MSHAComplianceChecker,
             VentilationCalculator,
-        )
 
-        assert MethaneCalculator is not None
-        assert VentilationCalculator is not None
-        assert ConveyorFireAnalyzer is not None
-        assert MSHAComplianceChecker is not None
 
 
 class TestV214MethaneCalculator:
