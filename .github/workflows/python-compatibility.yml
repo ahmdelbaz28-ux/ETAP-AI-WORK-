@@ -59,7 +59,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ['3.12', '3.13']
+        python-version: ['3.13']
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
@@ -68,6 +68,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
+          # No pip cache — we use uv for installation (pip cache dir won't exist)
 
       - name: ⚡ Install uv
         run: |
@@ -106,7 +107,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ['3.12', '3.13']
+        python-version: ['3.13']
 
     steps:
       - name: 📥 Checkout code
@@ -116,7 +117,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-          cache: 'pip'
+          # No pip cache — we use uv for installation (pip cache dir won't exist)
 
       - name: ⚡ Install uv
         run: |
@@ -308,10 +309,10 @@ jobs:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
 
-      - name: 🐍 Set up Python 3.12
+      - name: 🐍 Set up Python 3.13
         uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: '3.13'
 
       - name: 🔍 Validate pyproject.toml structure
         run: |
@@ -338,8 +339,8 @@ jobs:
 
           # Python version constraint
           rp = project.get('requires-python', '')
-          if '3.12' not in rp:
-              errors.append(f"requires-python should include 3.12 (got: {rp})")
+          if '3.13' not in rp:
+              errors.append(f"requires-python should include 3.13 (got: {rp})")
 
           # Version format check (basic)
           version = project.get('version', '')

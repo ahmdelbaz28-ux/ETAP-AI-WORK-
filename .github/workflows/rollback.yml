@@ -207,8 +207,8 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
-          python-version: '3.12'
-          cache: 'pip'
+          python-version: '3.13'
+          # No pip cache — using uv for installation
 
       - name: Install huggingface_hub
         # Pin to the same version used by ci-cd.yml's deploy-hf job.

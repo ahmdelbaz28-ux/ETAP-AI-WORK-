@@ -211,7 +211,9 @@ psutil>=5.8.0
 requests>=2.26.0
 
 # Language detection
-langdetect>=1.0.9
+# langdetect>=1.0.9  # DISABLED: no compatible distribution for Python 3.13 (py2-only wheel)
+# Re-enable when a Python 3.13-compatible release is available.
+# The codebase imports langdetect lazily with try/except fallback (utils/language_detection.py).
 
 # YAML parsing
 pyyaml>=6.0

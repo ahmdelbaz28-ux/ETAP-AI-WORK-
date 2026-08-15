@@ -3,7 +3,7 @@
 # services/doctr/Dockerfile — DocTR OCR Service for FireAI
 # Provides OCR with bounding boxes for scanned floor plans.
 # Runs as a separate Docker container — no AGPL contamination.
-FROM python:3.12-slim
+FROM python:3.13-slim
 
 WORKDIR /app
 

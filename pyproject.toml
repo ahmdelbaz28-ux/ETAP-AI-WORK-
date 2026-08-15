@@ -9,7 +9,7 @@ name = "etap-ai-platform"
 version = "2.1.0"
 description = "Enterprise-grade autonomous engineering intelligence for validated power-system studies, ETAP automation, GIS enrichment, AI workflows, and production operations."
 readme = "README.md"
-requires-python = ">=3.12,<3.14"
+requires-python = ">=3.13,<3.14"
 license = { text = "MIT" }
 keywords = ["power-system", "etap", "gis", "engineering", "ai", "load-flow", "short-circuit", "arc-flash"]
 
@@ -22,7 +22,6 @@ classifiers = [
     "Intended Audience :: Science/Research",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Topic :: Scientific/Engineering",
 ]
@@ -278,5 +277,5 @@ search_path = ["."]
 # pyrefly autoconfigures python-version from the `python` on PATH (ETAP's
 # bundled 3.8). Pin the version pyrefly checks against; site-package
 # resolution still uses the queried interpreter, which resolves third-party
-# deps. See pyproject `requires-python` (>=3.12,<3.14).
-python-version = "3.12"
+# deps. See pyproject `requires-python` (>=3.13,<3.14).
+python-version = "3.13"
