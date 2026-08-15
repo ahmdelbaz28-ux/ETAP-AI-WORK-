@@ -43,6 +43,7 @@ export default function StorageManagement() {
   const [error, setError] = useState<string | null>(null);
   const [purging, setPurging] = useState(false);
   const [showPurgeModal, setShowPurgeModal] = useState(false);
+  const [backingUp, setBackingUp] = useState(false);
 
   // Fetch storage metrics
   const fetchMetrics = useCallback(async () => {

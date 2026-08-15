@@ -320,7 +320,6 @@ export function Sparkline({
       {/* End dot */}
       <circle
         cx={(data.length - 1) * xStep}
-        cy={height - ((data[data.length - 1] - min) / range) * (height - 4) - 2}
         cy={height - (((data.at(-1) ?? 0) - min) / range) * (height - 4) - 2}
         r={2.5}
         fill={lineColor}

@@ -135,7 +135,6 @@ export function ShortcutsPanel({ open, onClose }: ShortcutsPanelProps) {
                           {catShortcuts.map((shortcut) => (
                             <div
                               key={shortcut.description} // Unique per entry in SHORTCUT_DEFINITIONS
-                              key={shortcut.description}
                               className="flex items-center justify-between gap-3 py-1.5 px-2 rounded-lg hover:bg-[var(--bg-elevated)] transition-colors group"
                             >
                               <span className="text-xs text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] transition-colors">

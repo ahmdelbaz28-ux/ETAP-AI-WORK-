@@ -219,10 +219,6 @@ async function callOpenAICompatible(
     });
     const redactedText = text.slice(0, 200).replace(/sk-[a-zA-Z0-9]+/g, "[REDACTED]");
     throw new Error(`${provider.name} API error ${res.status}: ${redactedText}`);
-    const sanitizedText = text
-      .replace(/(sk-[A-Za-z0-9_-]{4})[A-Za-z0-9_-]+/g, "$1...****")
-      .slice(0, 200);
-    throw new Error(`${provider.name} API error ${res.status}: ${sanitizedText}`);
   }
 
   const data = await res.json();

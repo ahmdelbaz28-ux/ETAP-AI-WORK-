@@ -229,7 +229,6 @@ export function ErrorRecovery({ error, onDismiss, onRetry }: ErrorRecoveryProps)
         {help.actions?.map((a) => (
           <button
             type="button"
-             key={a.action} // Use a stable ID instead of array index
             key={a.label}
             onClick={() => handleAction(a.action)}
             className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium bg-[var(--bg-elevated)] text-[var(--text-secondary)] rounded-lg hover:bg-[var(--border-primary)] transition-colors"

@@ -3,7 +3,7 @@ import {
   CheckCircle2,
   Cpu,
   Download,
-  FileCode,
+  FileText as FileCode,
   Layers,
   Loader2,
   Sparkles,
@@ -168,28 +168,15 @@ export function CadSimReadyCard() {
             <Select
               value={materialPreset}
               onChange={(e) => setMaterialPreset(e.target.value)}
-            >
-              {presets.length > 0 ? (
-                presets.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name}
-                  </option>
-                ))
-              ) : (
-                <option value="industrial_copper_steel">Industrial Electrical (Copper & Steel)</option>
-              )}
-            </Select>
+              options={presets.length > 0 ? presets.map((p) => ({ value: p.id, label: p.name })) : [{ value: "industrial_copper_steel", label: "Industrial Electrical (Copper & Steel)" }]}
+            />
           </div>
 
           <div>
             <label className="text-xs font-medium text-[var(--text-secondary)] mb-1.5 block">
               Level of Detail (LOD)
             </label>
-            <Select value={lodLevel} onChange={(e) => setLodLevel(e.target.value)}>
-              <option value="high">High (Full Geometry & Sub-assemblies)</option>
-              <option value="medium">Medium (Standard Interactive Presentation)</option>
-              <option value="low">Low (Lightweight Web Viewer)</option>
-            </Select>
+            <Select value={lodLevel} onChange={(e) => setLodLevel(e.target.value)} options={[{ value: "high", label: "High (Full Geometry & Sub-assemblies)" }, { value: "medium", label: "Medium (Standard Interactive Presentation)" }, { value: "low", label: "Low (Lightweight Web Viewer)" }]} />
           </div>
         </div>
 
