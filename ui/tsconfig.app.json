@@ -40,6 +40,8 @@
     "src/**/*.test.ts",
     "src/**/*.test.tsx",
     "src/**/__tests__/**",
-    "src/test-setup.ts"
+    "src/test-setup.ts",
+    "src/utils/animation/**",
+    "src/components/GSAPPageTransition.tsx"
   ]
 }
