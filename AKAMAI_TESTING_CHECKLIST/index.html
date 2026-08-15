@@ -1,0 +1,1544 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Enterprise AI-Powered Power Systems Engineering Platform">
+      
+      
+        <meta name="author" content="AhmedETAP Team">
+      
+      
+      
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.11">
+    
+    
+      
+        <title>Akamai Testing Checklist — ETAP - AhmedETAP Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.4af4bdda.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="deep-purple">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#akamai-testing-checklist-etap" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="AhmedETAP Documentation" class="md-header__button md-logo" aria-label="AhmedETAP Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            AhmedETAP Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Akamai Testing Checklist — ETAP
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  الصفحة الرئيسية
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../ARCHITECTURE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  الهيكلية
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../API_REFERENCE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  واجهة برمجة التطبيقات
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../OPERATIONS_RUNBOOK/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  دليل التشغيل
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../TROUBLESHOOTING_GUIDE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  دليل الأعطال
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../SECURITY_OPERATIONS_MANUAL/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  البنية التحتية للأمان
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../ENTERPRISE_CERTIFICATION_REPORT/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  التقييم المؤسسي
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="AhmedETAP Documentation" class="md-nav__button md-logo" aria-label="AhmedETAP Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    AhmedETAP Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    الصفحة الرئيسية
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ARCHITECTURE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    الهيكلية
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../API_REFERENCE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    واجهة برمجة التطبيقات
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../OPERATIONS_RUNBOOK/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    دليل التشغيل
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../TROUBLESHOOTING_GUIDE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    دليل الأعطال
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../SECURITY_OPERATIONS_MANUAL/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    البنية التحتية للأمان
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ENTERPRISE_CERTIFICATION_REPORT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    التقييم المؤسسي
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-basic-connectivity" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. اختبارات الاتصال الأساسية (Basic Connectivity)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. اختبارات الاتصال الأساسية (Basic Connectivity)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#11-dns-resolution" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.1 DNS Resolution
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#12-https-connection" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.2 HTTPS Connection
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#13-health-endpoint" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.3 Health Endpoint
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-akamai-edge-edge-headers" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. اختبارات Akamai Edge (Edge Headers)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. اختبارات Akamai Edge (Edge Headers)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#21-edgeworker-inject-headers" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.1 EdgeWorker: inject-headers
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22-edgeworker-verify-origin" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.2 EdgeWorker: verify-origin
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#23-true-client-ip-injection" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.3 True-Client-IP injection
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-waf-kona-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. اختبارات WAF / Kona Rules
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. اختبارات WAF / Kona Rules">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31-sql-injection-blocking" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.1 SQL Injection Blocking
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32-xss-blocking" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.2 XSS Blocking
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#33-path-traversal-blocking" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.3 Path Traversal Blocking
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#34-command-injection-blocking" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.4 Command Injection Blocking
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#35-attack-tool-user-agent-blocking" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.5 Attack Tool User-Agent Blocking
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#36-http-method-restriction" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.6 HTTP Method Restriction
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-rate-limiting" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. اختبارات Rate Limiting
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. اختبارات Rate Limiting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-api-rate-limit-300minute-per-ip" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.1 API Rate Limit (300/minute per IP)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-auth-rate-limit-10minute-per-ip" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.2 Auth Rate Limit (10/minute per IP)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#43-captcha-after-failed-logins" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.3 Captcha After Failed Logins
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-bot-manager" class="md-nav__link">
+    <span class="md-ellipsis">
+      5. اختبارات Bot Manager
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. اختبارات Bot Manager">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#51-browser-bot-detection" class="md-nav__link">
+    <span class="md-ellipsis">
+      5.1 Browser Bot Detection
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#52-scripted-bot-detection" class="md-nav__link">
+    <span class="md-ellipsis">
+      5.2 Scripted Bot Detection
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#53-browser-bot-seleniumpuppeteer" class="md-nav__link">
+    <span class="md-ellipsis">
+      5.3 Browser Bot (Selenium/Puppeteer)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#54-js-challenge-on-login" class="md-nav__link">
+    <span class="md-ellipsis">
+      5.4 JS Challenge on Login
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-geo-blocking" class="md-nav__link">
+    <span class="md-ellipsis">
+      6. اختبارات Geo Blocking
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. اختبارات Geo Blocking">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#61-sanctioned-country-block" class="md-nav__link">
+    <span class="md-ellipsis">
+      6.1 Sanctioned Country Block
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#62-allowed-country-access" class="md-nav__link">
+    <span class="md-ellipsis">
+      6.2 Allowed Country Access
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#63-health-endpoint-exception" class="md-nav__link">
+    <span class="md-ellipsis">
+      6.3 Health Endpoint Exception
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-account-protector" class="md-nav__link">
+    <span class="md-ellipsis">
+      7. اختبارات Account Protector
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. اختبارات Account Protector">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#71-credential-stuffing-detection" class="md-nav__link">
+    <span class="md-ellipsis">
+      7.1 Credential Stuffing Detection
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#72-brute-force-detection" class="md-nav__link">
+    <span class="md-ellipsis">
+      7.2 Brute Force Detection
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#73-ato-account-takeover-detection" class="md-nav__link">
+    <span class="md-ellipsis">
+      7.3 ATO (Account Takeover) Detection
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-direct-origin-bypass-prevention" class="md-nav__link">
+    <span class="md-ellipsis">
+      8. اختبارات Direct Origin Bypass Prevention
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8. اختبارات Direct Origin Bypass Prevention">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#81-direct-hf-space-access" class="md-nav__link">
+    <span class="md-ellipsis">
+      8.1 Direct HF Space Access
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#82-direct-vercel-access" class="md-nav__link">
+    <span class="md-ellipsis">
+      8.2 Direct Vercel Access
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#83-missing-origin-token" class="md-nav__link">
+    <span class="md-ellipsis">
+      8.3 Missing Origin Token
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-performance" class="md-nav__link">
+    <span class="md-ellipsis">
+      9. اختبارات الأداء (Performance)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="9. اختبارات الأداء (Performance)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#91-latency" class="md-nav__link">
+    <span class="md-ellipsis">
+      9.1 Latency
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#92-cache-hit-ratio-static-assets" class="md-nav__link">
+    <span class="md-ellipsis">
+      9.2 Cache Hit Ratio (Static Assets)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#93-concurrent-connections" class="md-nav__link">
+    <span class="md-ellipsis">
+      9.3 Concurrent Connections
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-advanced-security" class="md-nav__link">
+    <span class="md-ellipsis">
+      10. اختبارات الأمان المتقدمة (Advanced Security)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10. اختبارات الأمان المتقدمة (Advanced Security)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#101-ssl-labs-test" class="md-nav__link">
+    <span class="md-ellipsis">
+      10.1 SSL Labs Test
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#102-securityheaderscom" class="md-nav__link">
+    <span class="md-ellipsis">
+      10.2 SecurityHeaders.com
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#103-csp-evaluation" class="md-nav__link">
+    <span class="md-ellipsis">
+      10.3 CSP Evaluation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#104-external-penetration-test" class="md-nav__link">
+    <span class="md-ellipsis">
+      10.4 External Penetration Test
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-failover-failover-testing" class="md-nav__link">
+    <span class="md-ellipsis">
+      11. اختبارات الـ Failover (Failover Testing)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="11. اختبارات الـ Failover (Failover Testing)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#111-origin-failure" class="md-nav__link">
+    <span class="md-ellipsis">
+      11.1 Origin Failure
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#112-stale-content-serving" class="md-nav__link">
+    <span class="md-ellipsis">
+      11.2 Stale Content Serving
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#113-recovery" class="md-nav__link">
+    <span class="md-ellipsis">
+      11.3 Recovery
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-final-verification" class="md-nav__link">
+    <span class="md-ellipsis">
+      12. التحقق النهائي (Final Verification)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="12. التحقق النهائي (Final Verification)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#121-complete-smoke-test" class="md-nav__link">
+    <span class="md-ellipsis">
+      12.1 Complete Smoke Test
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#122-real-user-monitoring" class="md-nav__link">
+    <span class="md-ellipsis">
+      12.2 Real User Monitoring
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#123-sign-off" class="md-nav__link">
+    <span class="md-ellipsis">
+      12.3 Sign-off
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13-test-results-report" class="md-nav__link">
+    <span class="md-ellipsis">
+      13. تقرير النتائج (Test Results Report)
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="akamai-testing-checklist-etap">Akamai Testing Checklist — ETAP</h1>
+<blockquote>
+<p><strong>قائمة اختبار ما بعد نشر Akamai</strong>
+Run every test in this checklist after each Akamai Property activation
+(staging AND production). Document the results in <code>docs/akamai-test-results.md</code>.</p>
+</blockquote>
+<hr />
+<h2 id="1-basic-connectivity">1. اختبارات الاتصال الأساسية (Basic Connectivity)</h2>
+<h3 id="11-dns-resolution">1.1 DNS Resolution</h3>
+<ul>
+<li>[ ] <code>dig api.etap.com</code> يعيد IPs تابعة لـ Akamai (23.x.x.x أو أي نطاق Akamai)</li>
+<li>[ ] <code>dig api.etap.com +short</code> يعيد CNAME إلى <code>*.edgeservices.net</code></li>
+<li>[ ] <code>dig etap.com</code> يعيد Akamai apex IPs</li>
+</ul>
+<h3 id="12-https-connection">1.2 HTTPS Connection</h3>
+<ul>
+<li>[ ] <code>curl -I https://api.etap.com</code> يعود <code>200 OK</code> أو <code>401 Unauthorized</code> (لكن ليس 5xx)</li>
+<li>[ ] TLS 1.3 مُفعّل: <code>openssl s_client -connect api.etap.com:443 -tls1_3</code></li>
+<li>[ ] شهادة TLS صالحة: <code>echo | openssl s_client -connect api.etap.com:443 2&gt;/dev/null | openssl x509 -noout -dates</code></li>
+</ul>
+<h3 id="13-health-endpoint">1.3 Health Endpoint</h3>
+<ul>
+<li>[ ] <code>curl https://api.etap.com/api/health</code> يعود JSON صالح</li>
+<li>[ ] الحالة: <code>"status": "ok"</code></li>
+<li>[ ] قاعدة البيانات: <code>"database": "connected"</code></li>
+<li>[ ] Uptime: <code>&gt; 60</code> seconds</li>
+</ul>
+<hr />
+<h2 id="2-akamai-edge-edge-headers">2. اختبارات Akamai Edge (Edge Headers)</h2>
+<h3 id="21-edgeworker-inject-headers">2.1 EdgeWorker: inject-headers</h3>
+<ul>
+<li>[ ] <code>curl -I https://api.etap.com/api/health</code> يحتوي على:
+  <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>X-Frame-Options: DENY
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>X-Content-Type-Options: nosniff
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>Referrer-Policy: no-referrer
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>X-Akamai-EdgeWorker: inject-headers
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>X-Akamai-EdgeWorker-Processed: true
+</code></pre></div></li>
+</ul>
+<h3 id="22-edgeworker-verify-origin">2.2 EdgeWorker: verify-origin</h3>
+<ul>
+<li>[ ] <code>curl -I https://api.etap.com/api/health</code> يحتوي على:
+  <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>X-Akamai-Translated-Request: true
+</code></pre></div></li>
+<li>[ ] <code>curl -I https://api.etap.com/api/health</code> يحتوي على:
+  <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>X-Akamai-GRN: &lt;request_id&gt;
+</code></pre></div></li>
+</ul>
+<h3 id="23-true-client-ip-injection">2.3 True-Client-IP injection</h3>
+<ul>
+<li>[ ] استخدم endpoint يطبع IP الطلب (مثل <code>/api/v1/whoami</code> إن وجد، أو راجع logs)</li>
+<li>[ ] IP العميل الحقيقي يظهر في الـ logs (وليس Akamai edge IP مثل <code>23.32.x.x</code>)</li>
+<li>[ ] تحقق من audit trail: <code>SELECT * FROM audit_logs ORDER BY timestamp DESC LIMIT 5;</code></li>
+</ul>
+<hr />
+<h2 id="3-waf-kona-rules">3. اختبارات WAF / Kona Rules</h2>
+<h3 id="31-sql-injection-blocking">3.1 SQL Injection Blocking</h3>
+<ul>
+<li>[ ] <strong>DENY</strong>: <code>curl "https://api.etap.com/api/v1/projects?id=1' OR '1'='1"</code></li>
+<li>متوقع: <code>403 Forbidden</code> مع <code>X-Akamai-WAF: DENY</code></li>
+<li>[ ] <strong>DENY</strong>: <code>curl "https://api.etap.com/api/v1/projects?id=1; DROP TABLE projects;--"</code></li>
+<li>[ ] <strong>DENY</strong>: <code>curl -X POST https://api.etap.com/api/v1/projects -d '{"name":"test\"; DROP TABLE users;--"}'</code></li>
+</ul>
+<h3 id="32-xss-blocking">3.2 XSS Blocking</h3>
+<ul>
+<li>[ ] <strong>DENY</strong>: <code>curl "https://api.etap.com/api/v1/projects?name=&lt;script&gt;alert(1)&lt;/script&gt;"</code></li>
+<li>[ ] <strong>DENY</strong>: <code>curl "https://api.etap.com/api/v1/projects?name=&lt;img src=x onerror=alert(1)&gt;"</code></li>
+</ul>
+<h3 id="33-path-traversal-blocking">3.3 Path Traversal Blocking</h3>
+<ul>
+<li>[ ] <strong>DENY</strong>: <code>curl "https://api.etap.com/api/v1/projects/../../../etc/passwd"</code></li>
+<li>[ ] <strong>DENY</strong>: <code>curl "https://api.etap.com/api/v1/projects/..%2F..%2Fetc%2Fpasswd"</code></li>
+</ul>
+<h3 id="34-command-injection-blocking">3.4 Command Injection Blocking</h3>
+<ul>
+<li>[ ] <strong>DENY</strong>: <code>curl "https://api.etap.com/api/v1/projects?id=1;cat /etc/passwd"</code></li>
+<li>[ ] <strong>DENY</strong>: <code>curl "https://api.etap.com/api/v1/projects?id=1|whoami"</code></li>
+</ul>
+<h3 id="35-attack-tool-user-agent-blocking">3.5 Attack Tool User-Agent Blocking</h3>
+<ul>
+<li>[ ] <strong>DENY</strong>: <code>curl -A "sqlmap/1.5" https://api.etap.com/api/v1/projects</code></li>
+<li>[ ] <strong>DENY</strong>: <code>curl -A "nikto/2.1" https://api.etap.com/api/v1/projects</code></li>
+<li>[ ] <strong>DENY</strong>: <code>curl -A "masscan" https://api.etap.com/api/v1/projects</code></li>
+</ul>
+<h3 id="36-http-method-restriction">3.6 HTTP Method Restriction</h3>
+<ul>
+<li>[ ] <strong>DENY</strong>: <code>curl -X TRACE https://api.etap.com/</code></li>
+<li>[ ] <strong>DENY</strong>: <code>curl -X CONNECT https://api.etap.com/</code></li>
+<li>[ ] <strong>ALLOW</strong>: <code>curl -X GET https://api.etap.com/api/health</code></li>
+<li>[ ] <strong>ALLOW</strong>: <code>curl -X POST https://api.etap.com/api/v1/auth/login -H "Content-Type: application/json" -d '{}'</code></li>
+</ul>
+<hr />
+<h2 id="4-rate-limiting">4. اختبارات Rate Limiting</h2>
+<h3 id="41-api-rate-limit-300minute-per-ip">4.1 API Rate Limit (300/minute per IP)</h3>
+<ul>
+<li>[ ] شغّل 350 طلب في دقيقة:
+  <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="k">for</span><span class="w"> </span>i<span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="o">{</span><span class="m">1</span>..350<span class="o">}</span><span class="p">;</span><span class="w"> </span><span class="k">do</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span>curl<span class="w"> </span>-s<span class="w"> </span>-o<span class="w"> </span>/dev/null<span class="w"> </span>-w<span class="w"> </span><span class="s2">&quot;%{http_code}\n&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">    </span>-H<span class="w"> </span><span class="s2">&quot;X-API-Key: </span><span class="nv">$API_KEY</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">    </span>https://api.etap.com/api/v1/projects
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="k">done</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>sort<span class="w"> </span><span class="p">|</span><span class="w"> </span>uniq<span class="w"> </span>-c
+</code></pre></div></li>
+<li>متوقع: 300×<code>200</code> + 50×<code>429</code></li>
+<li>[ ] تحقق من header <code>X-RateLimit-Remaining</code> و <code>X-RateLimit-Reset</code></li>
+</ul>
+<h3 id="42-auth-rate-limit-10minute-per-ip">4.2 Auth Rate Limit (10/minute per IP)</h3>
+<ul>
+<li>[ ] شغّل 15 محاولة login فاشلة في دقيقة:
+  <div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="k">for</span><span class="w"> </span>i<span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="o">{</span><span class="m">1</span>..15<span class="o">}</span><span class="p">;</span><span class="w"> </span><span class="k">do</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span>curl<span class="w"> </span>-s<span class="w"> </span>-o<span class="w"> </span>/dev/null<span class="w"> </span>-w<span class="w"> </span><span class="s2">&quot;%{http_code}\n&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">    </span>-X<span class="w"> </span>POST<span class="w"> </span>https://api.etap.com/api/v1/auth/login<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">    </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">    </span>-d<span class="w"> </span><span class="s1">&#39;{&quot;api_key&quot;:&quot;invalid&quot;}&#39;</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="k">done</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>sort<span class="w"> </span><span class="p">|</span><span class="w"> </span>uniq<span class="w"> </span>-c
+</code></pre></div></li>
+<li>متوقع: 10×<code>401</code> + 5×<code>429</code></li>
+</ul>
+<h3 id="43-captcha-after-failed-logins">4.3 Captcha After Failed Logins</h3>
+<ul>
+<li>[ ] بعد 3 failed logins، الطلب التالي يحتوي على CAPTCHA challenge:
+  <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>curl<span class="w"> </span>-v<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>https://api.etap.com/api/v1/auth/login<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{&quot;api_key&quot;:&quot;invalid&quot;}&#39;</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="c1"># Look for: 200 OK with HTML body containing &quot;captcha&quot;</span>
+</code></pre></div></li>
+</ul>
+<hr />
+<h2 id="5-bot-manager">5. اختبارات Bot Manager</h2>
+<h3 id="51-browser-bot-detection">5.1 Browser Bot Detection</h3>
+<ul>
+<li>[ ] استخدم Chrome DevTools Network tab، أرسل طلب، تحقق من:</li>
+<li><code>Akamai-Bot-Score</code> header (0-30 = human)</li>
+<li><code>Akamai-Bot-Category</code> = <code>HUMAN</code></li>
+</ul>
+<h3 id="52-scripted-bot-detection">5.2 Scripted Bot Detection</h3>
+<ul>
+<li>[ ] <code>curl -A "Python/3.9 requests/2.28" https://api.etap.com/api/v1/projects</code> → تحقق من:</li>
+<li><code>Akamai-Bot-Score</code> header (60-100 = bot)</li>
+<li>أو <code>403 Forbidden</code> على endpoints حساسة</li>
+</ul>
+<h3 id="53-browser-bot-seleniumpuppeteer">5.3 Browser Bot (Selenium/Puppeteer)</h3>
+<ul>
+<li>[ ] شغّل Selenium script بسيط، تحقق من:</li>
+<li><code>Akamai-Bot-Score</code> header (21-40 = browser bot)</li>
+<li>الطلب يمر بدون مشاكل</li>
+</ul>
+<h3 id="54-js-challenge-on-login">5.4 JS Challenge on Login</h3>
+<ul>
+<li>[ ] في المتصفح، افتح DevTools، ادخل <code>/api/v1/auth/login</code>:</li>
+<li>تحقق من وجود challenge request (301/302 redirect أو 200 with JS challenge)</li>
+<li>بعد حل الـ challenge، الـ login request ينجح</li>
+</ul>
+<hr />
+<h2 id="6-geo-blocking">6. اختبارات Geo Blocking</h2>
+<h3 id="61-sanctioned-country-block">6.1 Sanctioned Country Block</h3>
+<ul>
+<li>[ ] استخدم VPN (مثل NordVPN) بـ server في إيران:</li>
+<li><code>curl https://api.etap.com/api/v1/projects</code> → <code>403 Forbidden</code></li>
+<li>الـ body: <code>{"code": "GEO_BLOCKED", "message": "Access from IR is not permitted"}</code></li>
+<li>[ ] كرر لبقية الدول: RU, KP, SY, CU, VE, BY</li>
+</ul>
+<h3 id="62-allowed-country-access">6.2 Allowed Country Access</h3>
+<ul>
+<li>[ ] بدون VPN (من مصر مثلاً):</li>
+<li><code>curl https://api.etap.com/api/health</code> → <code>200 OK</code></li>
+<li><code>Akamai-Geo-Country: EG</code> header موجود</li>
+</ul>
+<h3 id="63-health-endpoint-exception">6.3 Health Endpoint Exception</h3>
+<ul>
+<li>[ ] من دولة ممنوعة، <code>curl https://api.etap.com/api/health</code> → <code>200 OK</code></li>
+<li>(الاستثناء مسموح)</li>
+</ul>
+<hr />
+<h2 id="7-account-protector">7. اختبارات Account Protector</h2>
+<h3 id="71-credential-stuffing-detection">7.1 Credential Stuffing Detection</h3>
+<ul>
+<li>[ ] شغّل 50 login attempts بأسماء مستخدمين مختلفة في 5 دقائق:
+  <div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="k">for</span><span class="w"> </span>i<span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="o">{</span><span class="m">1</span>..50<span class="o">}</span><span class="p">;</span><span class="w"> </span><span class="k">do</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">  </span>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>https://api.etap.com/api/v1/auth/login<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">    </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">    </span>-d<span class="w"> </span><span class="s2">&quot;{\&quot;api_key\&quot;:\&quot;fake_key_</span><span class="nv">$i</span><span class="s2">\&quot;}&quot;</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="k">done</span>
+</code></pre></div></li>
+<li>[ ] بعد 50 محاولة، IP محظور لمدة ساعة</li>
+<li>[ ] تحقق من الـ webhook (إذا تم تكوينه): استلم alert JSON</li>
+</ul>
+<h3 id="72-brute-force-detection">7.2 Brute Force Detection</h3>
+<ul>
+<li>[ ] شغّل 11 login attempts لنفس الـ API key:
+  <div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="k">for</span><span class="w"> </span>i<span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="o">{</span><span class="m">1</span>..11<span class="o">}</span><span class="p">;</span><span class="w"> </span><span class="k">do</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">  </span>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>https://api.etap.com/api/v1/auth/login<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">    </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">    </span>-d<span class="w"> </span><span class="s1">&#39;{&quot;api_key&quot;:&quot;known_invalid_key&quot;}&#39;</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="k">done</span>
+</code></pre></div></li>
+<li>[ ] بعد 10 محاولات، الحساب محظور لمدة 30 دقيقة</li>
+</ul>
+<h3 id="73-ato-account-takeover-detection">7.3 ATO (Account Takeover) Detection</h3>
+<ul>
+<li>[ ] سجّل دخول من IP جغرافي مختلف (VPN بمسافة &gt; 500km):</li>
+<li>متوقع: طلب step-up authentication (2FA أو email verification)</li>
+</ul>
+<hr />
+<h2 id="8-direct-origin-bypass-prevention">8. اختبارات Direct Origin Bypass Prevention</h2>
+<h3 id="81-direct-hf-space-access">8.1 Direct HF Space Access</h3>
+<ul>
+<li>[ ] <code>curl -H "X-Forwarded-For: 1.2.3.4" https://ahmdelbaz28-etap.hf.space/api/health</code></li>
+<li>متوقع: <code>403 Forbidden</code> مع <code>X-Akamai-Translated-Request: absent</code> (لأن الـ middleware رفض)</li>
+<li><strong>في الإنتاج</strong>: رفض مباشر</li>
+<li><strong>في التطوير</strong>: السماح مع log warning</li>
+</ul>
+<h3 id="82-direct-vercel-access">8.2 Direct Vercel Access</h3>
+<ul>
+<li>[ ] <code>curl https://revit-xxxx.vercel.app/api/health</code></li>
+<li>متوقع: <code>403 Forbidden</code> (إذا Vercel خلف Akamai) أو <code>200 OK</code> (إذا Vercel يستخدم مباشرة)</li>
+</ul>
+<h3 id="83-missing-origin-token">8.3 Missing Origin Token</h3>
+<ul>
+<li>[ ] على الـ origin مباشرة، أرسل طلب بدون header <code>Akamai-Internal</code>:</li>
+<li>متوقع في الإنتاج: <code>403 Forbidden</code></li>
+</ul>
+<hr />
+<h2 id="9-performance">9. اختبارات الأداء (Performance)</h2>
+<h3 id="91-latency">9.1 Latency</h3>
+<ul>
+<li>[ ] <code>curl -w "@curl-format.txt" -o /dev/null -s https://api.etap.com/api/health</code></li>
+<li><code>curl-format.txt</code>:
+    <div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>time_namelookup:  %{time_namelookup}\n
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>time_connect:     %{time_connect}\n
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>time_appconnect:  %{time_appconnect}\n
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>time_pretransfer: %{time_pretransfer}\n
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>time_starttransfer: %{time_starttransfer}\n
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>time_total:       %{time_total}\n
+</code></pre></div></li>
+<li>متوقع: <code>time_total &lt; 500ms</code> للـ API endpoints</li>
+</ul>
+<h3 id="92-cache-hit-ratio-static-assets">9.2 Cache Hit Ratio (Static Assets)</h3>
+<ul>
+<li>[ ] <code>curl -I https://api.etap.com/assets/index-xxxx.js</code> مرتين</li>
+<li>متوقع: الطلب الثاني يحتوي على <code>X-Cache: HIT</code> من Akamai</li>
+<li>[ ] راجع <code>X-Cache-Key</code>, <code>X-Cache-Action</code>, <code>X-Cache-Origin</code> headers</li>
+</ul>
+<h3 id="93-concurrent-connections">9.3 Concurrent Connections</h3>
+<ul>
+<li>[ ] شغّل 100 طلب متزامن:
+  <div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>ab<span class="w"> </span>-n<span class="w"> </span><span class="m">100</span><span class="w"> </span>-c<span class="w"> </span><span class="m">10</span><span class="w"> </span>https://api.etap.com/api/health
+</code></pre></div></li>
+<li>متوقع: <code>100% success rate</code>, <code>mean latency &lt; 200ms</code></li>
+</ul>
+<hr />
+<h2 id="10-advanced-security">10. اختبارات الأمان المتقدمة (Advanced Security)</h2>
+<h3 id="101-ssl-labs-test">10.1 SSL Labs Test</h3>
+<ul>
+<li>[ ] افتح <a href="https://www.ssllabs.com/ssltest/analyze.html?d=api.etap.com">https://www.ssllabs.com/ssltest/analyze.html?d=api.etap.com</a></li>
+<li>[ ] متوقع: <strong>A+ grade</strong> مع:</li>
+<li>TLS 1.3 مُفعّل</li>
+<li>TLS 1.0 / 1.1 مُعطّل</li>
+<li>HSTS مُفعّل</li>
+<li>Certificate valid + chain complete</li>
+<li>No weak ciphers</li>
+</ul>
+<h3 id="102-securityheaderscom">10.2 SecurityHeaders.com</h3>
+<ul>
+<li>[ ] افتح <a href="https://securityheaders.com/?q=api.etap.com">https://securityheaders.com/?q=api.etap.com</a></li>
+<li>[ ] متوقع: <strong>A grade</strong> على الأقل</li>
+</ul>
+<h3 id="103-csp-evaluation">10.3 CSP Evaluation</h3>
+<ul>
+<li>[ ] افتح <a href="https://csp-evaluator.withgoogle.com/">https://csp-evaluator.withgoogle.com/</a></li>
+<li>[ ] الصق CSP header من response</li>
+<li>[ ] متوقع: لا توجد warnings حرجة</li>
+</ul>
+<h3 id="104-external-penetration-test">10.4 External Penetration Test</h3>
+<ul>
+<li>[ ] شغّل OWASP ZAP ضد <code>https://api.etap.com</code>:
+  <div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>docker<span class="w"> </span>run<span class="w"> </span>-t<span class="w"> </span>owasp/zap2docker-stable<span class="w"> </span>zap-baseline.py<span class="w"> </span>-t<span class="w"> </span>https://api.etap.com
+</code></pre></div></li>
+<li>[ ] راجع النتائج، يجب ألا يكون هناك high-severity findings</li>
+</ul>
+<hr />
+<h2 id="11-failover-failover-testing">11. اختبارات الـ Failover (Failover Testing)</h2>
+<h3 id="111-origin-failure">11.1 Origin Failure</h3>
+<ul>
+<li>[ ] أوقف HF Space مؤقتاً (pause the Space)</li>
+<li>[ ] تحقق من استجابة Akamai:</li>
+<li>متوقع: <code>503 Service Unavailable</code> بعد <code>timeoutResponse: 300s</code> (إذا كان في property-main.json)</li>
+<li>أو: <code>200 OK</code> من cached response (إذا كان static asset)</li>
+</ul>
+<h3 id="112-stale-content-serving">11.2 Stale Content Serving</h3>
+<ul>
+<li>[ ] أوقف الـ origin، اطلب صفحة static قديمة</li>
+<li>[ ] متوقع: <code>200 OK</code> من Akamai cache مع <code>X-Cache: HIT</code> و warning header</li>
+</ul>
+<h3 id="113-recovery">11.3 Recovery</h3>
+<ul>
+<li>[ ] أعد تشغيل HF Space</li>
+<li>[ ] تحقق من <code>/api/health</code> يعود <code>200 OK</code></li>
+</ul>
+<hr />
+<h2 id="12-final-verification">12. التحقق النهائي (Final Verification)</h2>
+<h3 id="121-complete-smoke-test">12.1 Complete Smoke Test</h3>
+<ul>
+<li>[ ] شغّل سكريبت الاختبار الشامل:
+  <div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>python<span class="w"> </span>tests/akamai_smoke_test.py<span class="w"> </span>--base-url<span class="w"> </span>https://api.etap.com<span class="w"> </span>--api-key<span class="w"> </span><span class="nv">$API_KEY</span>
+</code></pre></div></li>
+</ul>
+<h3 id="122-real-user-monitoring">12.2 Real User Monitoring</h3>
+<ul>
+<li>[ ] افتح <code>https://api.etap.com</code> في المتصفح</li>
+<li>[ ] سجّل دخول بـ API key صالح</li>
+<li>[ ] تنقّل في Dashboard → Room Design → Marine → AI Agent → Reports</li>
+<li>[ ] كل صفحة تحمل بدون أخطاء</li>
+<li>[ ] Network tab لا يظهر أخطاء 5xx أو CORS</li>
+</ul>
+<h3 id="123-sign-off">12.3 Sign-off</h3>
+<ul>
+<li>[ ] كل الاختبارات السابقة نجحت</li>
+<li>[ ] لا يوجد أخطاء في Akamai Security Events (خلال آخر 24 ساعة)</li>
+<li>[ ] لا يوجد أخطاء في HF Space logs (خلال آخر 24 ساعة)</li>
+<li>[ ] الـ backend health يعود <code>status: ok</code></li>
+</ul>
+<hr />
+<h2 id="13-test-results-report">13. تقرير النتائج (Test Results Report)</h2>
+<p>بعد إكمال الاختبارات، اكتب تقريراً في <code>docs/akamai-test-results.md</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="gh"># Akamai Deployment Test Results — YYYY-MM-DD</span>
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="gu">## Environment</span>
+<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="k">-</span><span class="w"> </span>Property ID: prp_XXXXXX
+<a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="k">-</span><span class="w"> </span>Version: vX
+<a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a><span class="k">-</span><span class="w"> </span>Network: PRODUCTION
+<a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a><span class="k">-</span><span class="w"> </span>Tested by: Ahmed Elbaz
+<a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a>
+<a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a><span class="gu">## Summary</span>
+<a id="__codelineno-12-10" name="__codelineno-12-10" href="#__codelineno-12-10"></a><span class="k">-</span><span class="w"> </span>Total tests: 80
+<a id="__codelineno-12-11" name="__codelineno-12-11" href="#__codelineno-12-11"></a><span class="k">-</span><span class="w"> </span>Passed: 78
+<a id="__codelineno-12-12" name="__codelineno-12-12" href="#__codelineno-12-12"></a><span class="k">-</span><span class="w"> </span>Failed: 2
+<a id="__codelineno-12-13" name="__codelineno-12-13" href="#__codelineno-12-13"></a><span class="k">-</span><span class="w"> </span>Blocked: 0
+<a id="__codelineno-12-14" name="__codelineno-12-14" href="#__codelineno-12-14"></a>
+<a id="__codelineno-12-15" name="__codelineno-12-15" href="#__codelineno-12-15"></a><span class="gu">## Failed Tests</span>
+<a id="__codelineno-12-16" name="__codelineno-12-16" href="#__codelineno-12-16"></a><span class="gu">### Test 4.2 — Auth Rate Limit</span>
+<a id="__codelineno-12-17" name="__codelineno-12-17" href="#__codelineno-12-17"></a><span class="k">-</span><span class="w"> </span>Expected: 10×401 + 5×429
+<a id="__codelineno-12-18" name="__codelineno-12-18" href="#__codelineno-12-18"></a><span class="k">-</span><span class="w"> </span>Actual: 15×401
+<a id="__codelineno-12-19" name="__codelineno-12-19" href="#__codelineno-12-19"></a><span class="k">-</span><span class="w"> </span>Root cause: AKAMAI_ENABLED=false on HF Space (forgot to set)
+<a id="__codelineno-12-20" name="__codelineno-12-20" href="#__codelineno-12-20"></a><span class="k">-</span><span class="w"> </span>Fix: Set AKAMAI_ENABLED=true, restart Space, retest.
+<a id="__codelineno-12-21" name="__codelineno-12-21" href="#__codelineno-12-21"></a>
+<a id="__codelineno-12-22" name="__codelineno-12-22" href="#__codelineno-12-22"></a><span class="gu">### Test 7.1 — Credential Stuffing</span>
+<a id="__codelineno-12-23" name="__codelineno-12-23" href="#__codelineno-12-23"></a><span class="k">-</span><span class="w"> </span>Expected: IP blocked after 50 attempts
+<a id="__codelineno-12-24" name="__codelineno-12-24" href="#__codelineno-12-24"></a><span class="k">-</span><span class="w"> </span>Actual: No block observed
+<a id="__codelineno-12-25" name="__codelineno-12-25" href="#__codelineno-12-25"></a><span class="k">-</span><span class="w"> </span>Root cause: Account Protector not activated in Akamai Control Center
+<a id="__codelineno-12-26" name="__codelineno-12-26" href="#__codelineno-12-26"></a><span class="k">-</span><span class="w"> </span>Fix: Activate Account Protector policy in Security Configurations.
+<a id="__codelineno-12-27" name="__codelineno-12-27" href="#__codelineno-12-27"></a>
+<a id="__codelineno-12-28" name="__codelineno-12-28" href="#__codelineno-12-28"></a><span class="gu">## Sign-off</span>
+<a id="__codelineno-12-29" name="__codelineno-12-29" href="#__codelineno-12-29"></a><span class="k">- [ ]</span> All critical tests pass
+<a id="__codelineno-12-30" name="__codelineno-12-30" href="#__codelineno-12-30"></a><span class="k">- [ ]</span> Failed tests have remediation plan
+<a id="__codelineno-12-31" name="__codelineno-12-31" href="#__codelineno-12-31"></a><span class="k">- [x]</span> Ready for production traffic
+<a id="__codelineno-12-32" name="__codelineno-12-32" href="#__codelineno-12-32"></a>
+<a id="__codelineno-12-33" name="__codelineno-12-33" href="#__codelineno-12-33"></a>Signed: Ahmed Elbaz
+<a id="__codelineno-12-34" name="__codelineno-12-34" href="#__codelineno-12-34"></a>Date: YYYY-MM-DD
+</code></pre></div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "search.suggest", "search.highlight"], "search": "../assets/javascripts/workers/search.f8cc74c7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.c8b220af.min.js"></script>
+      
+    
+  </body>
+</html>

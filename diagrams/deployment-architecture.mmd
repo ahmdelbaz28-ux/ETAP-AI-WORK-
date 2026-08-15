@@ -1,0 +1,8 @@
+flowchart TD
+  DEV[Local Dev] --> DOCKER[Docker Compose]
+  DOCKER --> API[API Services]
+  DOCKER --> WORKER[Windows ETAP Worker]
+  DOCKER --> REDIS[Redis Cache]
+  API --> K8S[Kubernetes]
+  K8S --> MON[Prometheus and Grafana]
+  K8S --> SEC[Security Boundary]
