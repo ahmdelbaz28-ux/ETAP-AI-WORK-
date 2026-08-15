@@ -71,3 +71,4 @@ async def get_scada_live_data(request: Request):
             status_code=500,
             content={"success": False, "errors": [MSG_INTERNAL_ERROR], "trace_id": trace_id},
         )
+

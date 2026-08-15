@@ -66,3 +66,4 @@ warnings.warn(
 
 # Explicit __all__ so `from api.refactored_service import *` only exposes `app`.
 __all__ = ["app"]
+

@@ -397,3 +397,4 @@ async def init_db() -> None:
             exc,
         )
         raise
+

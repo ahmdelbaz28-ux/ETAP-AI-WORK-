@@ -201,3 +201,4 @@ async def get_study_types(request: Request):
         "study_types": [t for t in STUDY_TYPES if t not in disabled],
         "disabled_studies": get_disabled_studies(),
     }
+

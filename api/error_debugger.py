@@ -1132,3 +1132,4 @@ def setup_structured_logging(
     logger.addHandler(handler)
 
     return logger
+

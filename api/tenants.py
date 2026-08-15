@@ -159,3 +159,4 @@ async def get_tenant(
             detail=f"Tenant not found: {tenant_id}",
         )
     return TenantResponse.model_validate(tenant)
+

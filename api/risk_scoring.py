@@ -157,3 +157,4 @@ def compute_risk(study_type: str, result: dict[str, Any]) -> dict[str, Any]:
     if scorer is None:
         return {"risk_score": "low", "risk_violations": []}
     return scorer(result)
+

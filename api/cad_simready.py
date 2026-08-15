@@ -180,3 +180,4 @@ async def convert_cad_to_simready(body: SimReadyConvertRequest, request: Request
         nodes=mock_nodes,
         message=f"Successfully generated SimReady OpenUSD 3D asset for '{body.asset_name}'.",
     )
+

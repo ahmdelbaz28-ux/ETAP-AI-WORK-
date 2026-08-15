@@ -1095,3 +1095,4 @@ def handle_impact_analysis(component: str, max_depth: int = 2) -> dict[str, Any]
     except Exception:
         logger.exception("Failed to run impact analysis")
         return {"success": False, "errors": [MSG_INTERNAL_ERROR], "_status": 500}
+

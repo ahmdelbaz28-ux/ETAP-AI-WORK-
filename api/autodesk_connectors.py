@@ -437,3 +437,4 @@ async def update_timeouts(config: ConnectorTimeoutConfig) -> ConnectorTimeoutCon
     )
 
     return ConnectorTimeoutConfig(**_timeout_config)
+

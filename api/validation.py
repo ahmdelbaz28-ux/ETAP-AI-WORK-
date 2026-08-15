@@ -101,3 +101,4 @@ async def validate_system(  # NOSONAR
         raise HTTPException(
             status_code=500, detail="Internal validation error"
         ) from e  # NOSONAR HTTPException responses will be documented in API refactoring sprint
+

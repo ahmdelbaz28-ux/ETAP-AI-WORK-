@@ -542,3 +542,4 @@ def ensure_bucket_exists() -> bool:
             logger.info("R2 bucket created: %s", R2_BUCKET_NAME)
             return True
         raise
+

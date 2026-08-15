@@ -274,3 +274,4 @@ async def check_scada_rate_limit(request: Request) -> None:
             status_code=429,
             detail="SCADA rate limit exceeded. Internal SCADA systems are exempt.",
         )
+

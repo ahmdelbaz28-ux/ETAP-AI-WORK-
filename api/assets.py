@@ -374,3 +374,4 @@ async def delete_asset(
 
     await db.delete(asset)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+

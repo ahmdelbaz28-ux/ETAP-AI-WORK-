@@ -266,3 +266,4 @@ async def get_csrf_token() -> dict[str, str]:
     (default: 1 hour).
     """
     return {"token": generate_csrf_token()}
+

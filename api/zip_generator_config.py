@@ -631,3 +631,4 @@ async def delete_generator(gen_id: str) -> None:
     _get_generator_cap_or_404(gen_id)
     del _generator_caps[gen_id]
     logger.info("generator_capability_deleted id=%s", gen_id)
+

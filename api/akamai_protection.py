@@ -369,3 +369,4 @@ def log_security_event(
         metadata_attr="akamai",
         extra_log_fields=extra,
     )
+

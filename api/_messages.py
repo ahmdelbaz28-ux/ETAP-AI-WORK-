@@ -60,3 +60,4 @@ between the HTTP status code and the error message text."""
 ISO_8601_UTC_FMT: str = "%Y-%m-%dT%H:%M:%SZ"
 """Used by routes.py, hf-space/app.py, api/health.py (2), siem_syslog.py (1).
 routes.py and app.py already had local constants; this is the canonical one."""
+

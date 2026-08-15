@@ -43,3 +43,4 @@ async def analyze_impact(request: SharedImpactAnalysisRequest):
     if status:
         return JSONResponse(status_code=status, content=result)
     return JSONResponse(content=result)
+

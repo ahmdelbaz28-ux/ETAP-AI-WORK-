@@ -746,3 +746,4 @@ async def upload_file(  # NOSONAR - already uses Annotated type hints for FastAP
         warnings=warnings,
         errors=errors,
     )
+

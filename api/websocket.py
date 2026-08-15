@@ -428,3 +428,4 @@ async def scada_websocket_endpoint(
     except Exception:
         logger.exception("WebSocket error: ")
         await scada_feed.disconnect(websocket)
+

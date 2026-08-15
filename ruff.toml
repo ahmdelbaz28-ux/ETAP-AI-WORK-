@@ -130,9 +130,10 @@ unfixable = []
 "tests/**" = ["F401", "F841", "E741", "S101", "B017", "T201", "SIM103", "SIM118"]  # T201: tests use print() for debug output
 "tests/property_based/**" = ["S101", "N802", "N803"]
 "validation_*.py" = ["F401", "F841"]
-"docs/demos/**" = ["E501", "F821", "T201"]  # T201: notebook demos use print() for output display
+"docs/demos/**" = ["E501", "F821", "T201"]  # T201: notebook demos use print() for output
 "testsprite_tests/**" = ["T201", "S101"]
 "acp_runtime/acp_tests/**" = ["T201", "S101"]
+"compat.py" = ["UP042"]  # StrEnum fallback intentionally inherits from str and Enum
 
 # FastAPI uses Body(...), Depends(...), Query(...) etc. as default argument
 # values — this is the idiomatic dependency-injection pattern, not a bug.

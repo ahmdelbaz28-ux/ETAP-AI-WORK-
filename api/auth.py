@@ -1811,3 +1811,4 @@ async def delete_user(
     await db.flush()
 
     return {"message": "User has been deactivated"}
+

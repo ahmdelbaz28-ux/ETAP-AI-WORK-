@@ -344,3 +344,4 @@ async def invalidate_otp_endpoint(
 
 
 __all__ = ["router"]
+

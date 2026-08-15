@@ -781,3 +781,4 @@ async def get_audit_log(log_id: str) -> AuditLogEntry:
         status_code=status.HTTP_404_NOT_FOUND,
         detail=f"Audit log entry '{log_id}' not found.",
     )
+

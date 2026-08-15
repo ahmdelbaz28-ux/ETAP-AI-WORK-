@@ -578,3 +578,4 @@ async def notification_websocket_endpoint(
         await notification_manager.disconnect(user.user_id, websocket)
     except Exception:
         await notification_manager.disconnect(user.user_id, websocket)
+
