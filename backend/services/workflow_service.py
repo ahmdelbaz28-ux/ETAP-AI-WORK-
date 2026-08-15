@@ -162,6 +162,7 @@ class PipelineState(TypedDict, total=False):
     reviewer_timestamp: (
         str | None
     )  # ISO 8601 timestamp (V82: also stored as review_timestamp in audit trail)
+    review_timestamp: str | None  # Alias for audit trail compatibility
 
     # ── Report Output ────────────────────────────────────────────────
     report: dict[str, Any]  # Final design report

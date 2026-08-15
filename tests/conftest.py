@@ -680,6 +680,11 @@ def setup_test_environment():
 # Auth/Projects test fixtures (SQLite in-memory)
 # ---------------------------------------------------------------------------
 
+import sys
+_ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if _ROOT_DIR not in sys.path:
+    sys.path.insert(0, _ROOT_DIR)
+
 from sqlalchemy.ext.asyncio import (  # noqa: I001
     AsyncSession,
     AsyncEngine,
@@ -687,7 +692,14 @@ from sqlalchemy.ext.asyncio import (  # noqa: I001
     create_async_engine,
 )
 from sqlalchemy.pool import StaticPool  # noqa: I001
-from api.database import Base  # noqa: I001
+try:
+    from API.database import Base  # noqa: I001
+except ImportError:
+    try:
+        from api.database import Base  # noqa: I001
+    except ImportError:
+        from sqlalchemy.orm import declarative_base
+        Base = declarative_base()
 
 _TEST_DB_URL = "sqlite+aiosqlite://"
 

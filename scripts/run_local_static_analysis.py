@@ -24,42 +24,34 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-REPO_ROOT = Path("/home/z/my-project/work/revit")
-RUFF = "/home/z/.local/bin/ruff"
-BANDIT = "/home/z/.local/bin/bandit"
+REPO_ROOT = Path(__file__).resolve().parent.parent
+RUFF = "ruff"
+BANDIT = "bandit"
 
 # Production code directories (exclude tests, venv, node_modules, etc.)
 PRODUCTION_DIRS = [
-    "etap/core",
-    "etap/infrastructure",
-    "etap/validation",
-    "etap/analytics",
-    "etap/agents",
-    "etap/mcp_server",
-    "etap/bridges",
-    "etap/integration",
-    "etap/conduit",
-    "etap/tools",
-    "etap/v17_core",
+    "agents",
+    "api",
     "backend/routers",
     "backend/services",
-    "qomn_fire",
     "parsers",
     "core",
     "adapters",
+    "load_flow",
+    "fault_analysis",
+    "coordination",
+    "etap_integration",
+    "security",
+    "scada_protocols",
 ]
 
 # Files most critical after NOSONAR removal — must be clean
 CRITICAL_FILES = [
-    "etap/core/kernel_v30.py",
-    "etap/core/scenario_engine.py",
-    "etap/core/proof_certificate.py"
-    if Path("etap/core/proof_certificate.py").exists()
-    else None,
-    "etap/core/hac_classification_engine.py",
-    "etap/core/nfpa72_calculations.py"
-    if Path("etap/core/nfpa72_calculations.py").exists()
-    else None,
+    f for f in [
+        "core/kernel.py" if Path("core/kernel.py").exists() else None,
+        "agents/orchestrator.py" if Path("agents/orchestrator.py").exists() else None,
+        "backend/services/workflow_service.py" if Path("backend/services/workflow_service.py").exists() else None,
+    ] if f is not None
 ]
 
 
