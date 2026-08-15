@@ -110,7 +110,7 @@ function formatTimeRemaining(expiresAt: number, now: number): string {
 }
 
 function isExpired(req: DualControlRequest, now: number = Date.now()): boolean {
-  return req.status === "expired" || (req.status === "pending" && now / 1000 > req.expires_at);
+  return req.status === "expired" || (req.status === "pending" && req.expires_at != null && now / 1000 > Number(req.expires_at));
 }
 
 export default function DualControl() {
@@ -150,10 +150,10 @@ export default function DualControl() {
 
   const fetchPending = useCallback(async () => {
     try {
-      const data = await listPendingDualControlRequests();
-      const requests = data.data ?? [];
+      const result = await listPendingDualControlRequests();
+      const requests = result.data ?? [];
       // Mark expired ones locally (server may not have swept them yet).
-      const normalized = requests.map((r) =>
+      const normalized = requests.map((r: DualControlRequest) =>
         isExpired(r) ? { ...r, status: "expired" as const } : r,
       );
       setPending(normalized);
@@ -187,15 +187,14 @@ export default function DualControl() {
     }
     setSubmitting(true);
     try {
-      const action: DualControlAction = {
-        type: form.actionType.trim(),
-        target: form.target.trim() || undefined,
-        description: form.description.trim() || undefined,
-      };
-      const result = await createDualControlRequest({ action });
+      const action: DualControlAction = form.actionType.trim() as DualControlAction;
+      const target = form.target.trim();
+      const description = form.description.trim();
+      const result = await createDualControlRequest(action, target, description);
+      const requestId = result.data?.request_id ?? "unknown";
       notify(
         "success",
-        `Dual-control request ${result.data.request_id} created. A second engineer must approve within 5 minutes.`,
+        `Dual-control request ${requestId} created. A second engineer must approve within 5 minutes.`,
       );
       setShowCreateModal(false);
       setForm(EMPTY_FORM);
@@ -278,12 +277,12 @@ export default function DualControl() {
       setShowQrSecret(false);
       setQrLoading(true);
       try {
-        const result = await getDualControlQrSecret(req.request_id);
+        const qrResult = await getDualControlQrSecret(req.request_id);
         // Guard: if the user closed the modal while the fetch was in-flight,
         // don't update state (prevents a stale secret from leaking into the
         // next time the modal opens).
         if (qrForRequestIdRef.current !== req.request_id) return;
-        setQrSecret(result.data.qr_secret);
+        setQrSecret(qrResult.data.qr_secret);
       } catch (e) {
         if (qrForRequestIdRef.current !== req.request_id) return;
         const msg = e instanceof Error ? e.message : "Unknown error";
@@ -445,7 +444,7 @@ export default function DualControl() {
                       <div>
                         <h3 className="text-sm font-semibold text-[var(--text-primary)]">
                           {req.action.type}
-                          {req.action.target ? ` → ${req.action.target}` : ""}
+                          {req.action.target ? ` \u2192 ${req.action.target}` : ""}
                         </h3>
                         <p className="text-xs text-[var(--text-muted)] font-mono">
                           {req.request_id}
@@ -508,7 +507,7 @@ export default function DualControl() {
                     {req.status === "pending" && !expired && (
                       <div className="flex items-center gap-2 text-xs text-amber-300 mb-3 font-mono">
                         <Timer className="w-3.5 h-3.5" />
-                        <span>Auto-reject in {formatTimeRemaining(req.expires_at, now)}</span>
+                        <span>Auto-reject in {formatTimeRemaining(Number(req.expires_at), now)}</span>
                       </div>
                     )}
 

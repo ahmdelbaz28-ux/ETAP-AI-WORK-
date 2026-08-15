@@ -33,8 +33,8 @@ typing-extensions>=4.0.0
 structlog>=21.0.0
 
 # Security
-# SECURITY: cryptography >=42.0.0 — fixes multiple OpenSSL CVEs (max stable is 43.x)
-cryptography>=42.0.0,<48.0.0
+# SECURITY: cryptography >=50.0.0 — fixes CVE-2026-69247 (Bleichenbacher oracle) + earlier CVEs
+cryptography>=50.0.0
 hvac>=2.0.0
 
 # Password hashing (required - bcrypt replaces SHA-256 for security)
@@ -53,16 +53,14 @@ sqlalchemy[asyncio]>=2.0.0
 aiosqlite>=0.19.0
 
 # ETAP Worker API (FastAPI)
-# fastapi>=0.115.0,<0.125.0 — aligned with requirements.txt upper bound.
-# fastapi 0.133+ drops starlette<1.0.0 upper bound, but requirements.txt pins starlette<1.0.0
-# so we keep fastapi in the 0.115-0.124 range which is compatible with starlette 0.38-0.44.
-fastapi>=0.115.0,<0.125.0
+# fastapi>=0.135.0 — aligned with requirements.txt (enables starlette 1.x for CVE fixes)
+fastapi>=0.135.0
 uvicorn[standard]>=0.24.0
 python-multipart>=0.0.6
 slowapi>=0.1.9
 python-dotenv>=1.0.0
-# Starlette — aligned with requirements.txt pin (starlette>=0.38.0,<1.0.0)
-starlette>=0.38.0,<1.0.0
+# Starlette — aligned with requirements.txt (starlette>=1.3.1 for CVE fixes)
+starlette>=1.3.1
 
 # PDF text extraction
 # SECURITY: pypdf replaces deprecated PyPDF2 (30+ CVEs fixed). Latest stable: 5.x
