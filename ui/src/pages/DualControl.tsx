@@ -110,7 +110,7 @@ function formatTimeRemaining(expiresAt: number, now: number): string {
 }
 
 function isExpired(req: DualControlRequest, now: number = Date.now()): boolean {
-  return req.status === "expired" || (req.status === "pending" && now / 1000 > req.expires_at);
+  return req.status === "expired" || (req.status === "pending" && req.expires_at != null && now / 1000 > Number(req.expires_at));
 }
 
 export default function DualControl() {
@@ -153,7 +153,7 @@ export default function DualControl() {
       const data = await listPendingDualControlRequests();
       const requests = data.data ?? [];
       // Mark expired ones locally (server may not have swept them yet).
-      const normalized = requests.map((r) =>
+      const normalized = requests.map((r: DualControlRequest) =>
         isExpired(r) ? { ...r, status: "expired" as const } : r,
       );
       setPending(normalized);
@@ -187,12 +187,10 @@ export default function DualControl() {
     }
     setSubmitting(true);
     try {
-      const action: DualControlAction = {
-        type: form.actionType.trim(),
-        target: form.target.trim() || undefined,
-        description: form.description.trim() || undefined,
-      };
-      const result = await createDualControlRequest({ action });
+      const action: DualControlAction = form.actionType.trim() as DualControlAction;
+      const target = form.target.trim();
+      const description = form.description.trim();
+      const result = await createDualControlRequest(action, target, description);
       notify(
         "success",
         `Dual-control request ${result.data.request_id} created. A second engineer must approve within 5 minutes.`,

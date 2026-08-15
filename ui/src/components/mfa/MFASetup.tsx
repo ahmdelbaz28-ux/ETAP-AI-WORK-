@@ -42,7 +42,8 @@ interface MFASetupProps {
   readonly authToken: string;
 }
 
-interface _TOTPSetupData {
+// @ts-expect-error TOTPSetupData reserved for future TOTP QR flow
+interface TOTPSetupData {
   qr_code_uri: string;
 }
 

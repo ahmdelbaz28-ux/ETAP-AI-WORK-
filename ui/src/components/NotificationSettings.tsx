@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { AlertTriangle, Bell, Globe, LinkIcon, Mail, Save } from "lucide-react";
+import { AlertTriangle, Bell, Globe, Link2, Mail, Save } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { Button, Card, CardHeader, Toggle } from "../components/ui";
 import { ContextHelpButton } from "../components/help/ContextHelpButton";
@@ -408,7 +408,7 @@ export default function NotificationSettings() {
                   className="flex-1 px-3 py-2 rounded-lg bg-[var(--bg-primary)] border border-[var(--border-primary)] text-sm text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
                   onKeyDown={(e) => { if (e.key === "Enter") addWebhook(); }}
                 />
-                <Button variant="secondary" size="sm" icon={LinkIcon} onClick={addWebhook}>
+                <Button variant="secondary" size="sm" icon={Link2} onClick={addWebhook}>
                   Add
                 </Button>
               </div>

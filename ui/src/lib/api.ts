@@ -883,6 +883,65 @@ export interface DualControlRequest {
   created_at: string;
   expires_at?: string;
   reason?: string;
+  request_id: string;
+  expires_at: string;
+}
+
+/** Approve a pending dual-control request. */
+export async function approveDualControlRequest(
+  requestId: string,
+  secret?: string,
+): Promise<void> {
+  await fetch(`${API_BASE_URL}/dual-control/approve/${requestId}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...authHeaders() },
+    body: JSON.stringify({ secret }),
+  });
+}
+
+/** Reject a pending dual-control request. */
+export async function rejectDualControlRequest(
+  requestId: string,
+  reason: string,
+): Promise<void> {
+  await fetch(`${API_BASE_URL}/dual-control/reject/${requestId}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...authHeaders() },
+    body: JSON.stringify({ reason }),
+  });
+}
+
+/** Create a new dual-control approval request. */
+export async function createDualControlRequest(
+  action: DualControlAction,
+  target: string,
+  description: string,
+): Promise<DualControlRequest> {
+  const res = await fetch(`${API_BASE_URL}/dual-control/request`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...authHeaders() },
+    body: JSON.stringify({ action, target, description }),
+  });
+  return res.json();
+}
+
+/** List pending dual-control requests. */
+export async function listPendingDualControlRequests(): Promise<DualControlRequest[]> {
+  const res = await fetch(`${API_BASE_URL}/dual-control/pending`, {
+    headers: authHeaders(),
+  });
+  return res.json();
+}
+
+/** Get QR secret for a dual-control request. */
+export async function getDualControlQrSecret(
+  requestId: string,
+): Promise<string> {
+  const res = await fetch(`${API_BASE_URL}/dual-control/qr/${requestId}`, {
+    headers: authHeaders(),
+  });
+  const data = await res.json();
+  return data.secret;
 }
 
 // ============ End of API client ============
