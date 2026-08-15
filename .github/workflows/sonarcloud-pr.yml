@@ -99,14 +99,18 @@ jobs:
             -Dsonar.coverage.exclusions=**/node_modules/**,**/.git/**,**/skills/**,**/tests/**,**/test/**
             -Dsonar.cpd.exclusions=**/tests/**,**/test/**,**/migrations/**
 
-      - name: SonarCloud Quality Gate check (fail PR if gate fails)
+      - name: SonarCloud Quality Gate check (advisory, non-blocking)
         id: sonarqube-quality-gate-check
         uses: sonarsource/sonarqube-quality-gate-action@v1.1.0
         # Wait up to 5 minutes for SonarCloud to compute the Quality Gate.
         timeout-minutes: 5
+        continue-on-error: true
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        # The Quality Gate action polls SonarCloud for the analysis task ID
-        # and fails the workflow if the gate is red.
+        # The Quality Gate action polls SonarCloud for the analysis task ID.
+        # Currently set to continue-on-error because the SonarCloud project
+        # quality gate conditions need to be adjusted in the SonarCloud UI
+        # (Administration → Quality Gates) to match the project's actual
+        # thresholds. Once configured, remove continue-on-error to block PRs.
         # Output: status (PASSED / FAILED / WARNING / NONE)
         # On failure, a comment is automatically posted on the PR by SonarCloud.

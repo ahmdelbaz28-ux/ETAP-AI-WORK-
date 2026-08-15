@@ -9,6 +9,7 @@
  */
 
 import { API_BASE_URL, getCachedSettings } from "./api-config";
+import { authHeaders } from "./admin-fetch";
 import { getAuthToken } from "./tokenStorage";
 
 // Forward user's active provider key/model to backend dynamically.
@@ -873,42 +874,56 @@ export function isDemoMode(): boolean {
 
 export type DualControlAction = "approve" | "reject";
 
+export interface DualControlActionDetail {
+  type: string;
+  target?: string;
+  description?: string;
+}
+
 export interface DualControlRequest {
-  id: string;
-  action_type: string;
-  target: string;
-  description: string;
+  request_id: string;
+  action: DualControlActionDetail;
   requested_by: string;
   status: "pending" | "approved" | "rejected" | "expired";
   created_at: string;
-  expires_at?: string;
-  reason?: string;
-  request_id: string;
-  expires_at: string;
+  expires_at: number;
+  approved_by: string | null;
+  approved_at: string | null;
+  rejected_by: string | null;
+  rejected_reason: string | null;
+  qr_secret: string;
+}
+
+export interface DualControlResponse {
+  success: boolean;
+  error?: string;
+  request?: DualControlRequest;
 }
 
 /** Approve a pending dual-control request. */
 export async function approveDualControlRequest(
   requestId: string,
   secret?: string,
-): Promise<void> {
-  await fetch(`${API_BASE_URL}/dual-control/approve/${requestId}`, {
+): Promise<DualControlResponse> {
+  const res = await fetch(`${API_BASE_URL}/dual-control/approve/${requestId}`, {
     method: "POST",
     headers: { "Content-Type": "application/json", ...authHeaders() },
     body: JSON.stringify({ secret }),
   });
+  return res.json();
 }
 
 /** Reject a pending dual-control request. */
 export async function rejectDualControlRequest(
   requestId: string,
   reason: string,
-): Promise<void> {
-  await fetch(`${API_BASE_URL}/dual-control/reject/${requestId}`, {
+): Promise<DualControlResponse> {
+  const res = await fetch(`${API_BASE_URL}/dual-control/reject/${requestId}`, {
     method: "POST",
     headers: { "Content-Type": "application/json", ...authHeaders() },
     body: JSON.stringify({ reason }),
   });
+  return res.json();
 }
 
 /** Create a new dual-control approval request. */
@@ -916,17 +931,17 @@ export async function createDualControlRequest(
   action: DualControlAction,
   target: string,
   description: string,
-): Promise<DualControlRequest> {
+): Promise<{ success: boolean; data: DualControlRequest }> {
   const res = await fetch(`${API_BASE_URL}/dual-control/request`, {
     method: "POST",
     headers: { "Content-Type": "application/json", ...authHeaders() },
-    body: JSON.stringify({ action, target, description }),
+    body: JSON.stringify({ action: { type: action, target, description } }),
   });
   return res.json();
 }
 
 /** List pending dual-control requests. */
-export async function listPendingDualControlRequests(): Promise<DualControlRequest[]> {
+export async function listPendingDualControlRequests(): Promise<{ success: boolean; data: DualControlRequest[] }> {
   const res = await fetch(`${API_BASE_URL}/dual-control/pending`, {
     headers: authHeaders(),
   });
@@ -936,12 +951,11 @@ export async function listPendingDualControlRequests(): Promise<DualControlReque
 /** Get QR secret for a dual-control request. */
 export async function getDualControlQrSecret(
   requestId: string,
-): Promise<string> {
+): Promise<{ success: boolean; data: { request_id: string; qr_secret: string } }> {
   const res = await fetch(`${API_BASE_URL}/dual-control/qr/${requestId}`, {
     headers: authHeaders(),
   });
-  const data = await res.json();
-  return data.secret;
+  return res.json();
 }
 
 // ============ End of API client ============
