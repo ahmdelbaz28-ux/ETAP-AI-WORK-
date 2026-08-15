@@ -177,8 +177,10 @@ async def generate_design_variants(req: GenerativeDesignRequest) -> dict[str, An
     Returns scored variants with recommendation based on occupancy.
     """
     try:
+        from etap.core.generative import (
             GenerativeLayoutAgent,
         )
+        from etap.core.device_placement import Room
 
         agent = GenerativeLayoutAgent(use_multiprocessing=req.use_multiprocessing)
         room = Room(
@@ -395,6 +397,7 @@ async def export_ar_snapshot(req: ARExportRequest) -> dict[str, Any]:
     """
     import base64
 
+    from etap.ar.export import (
         ARExportFormat,
         ARMetadataExporter,
         ARSceneNode,
@@ -449,6 +452,7 @@ async def export_ar_snapshot(req: ARExportRequest) -> dict[str, Any]:
 )
 async def subscribe_webhook(req: WebhookSubscribeRequest) -> dict[str, Any]:
     """Subscribe to webhook events."""
+    from etap.webhooks import (
         WebhookSubscription,
         get_webhook_service,
     )
@@ -548,6 +552,7 @@ async def create_smoke_state(req: SmokeSimulationStateRequest) -> dict[str, Any]
     If FDS data is provided (fds_run_id), creates a validated state.
     Otherwise, creates a placeholder state with safety warnings.
     """
+    from etap.smoke_simulation import (
         SmokeDensityPoint,
         SmokeSimulationState,
     )
@@ -649,6 +654,7 @@ class TopologyImpactRequest(BaseModel):
 @router.post("/memory/store", dependencies=[Depends(require_permission(Permission.SYSTEM_CONFIG))])
 async def store_memory(req: VectorMemoryStoreRequest) -> Dict[str, Any]:
     """Store a memory entry in Qdrant vector database."""
+    from etap.vector_memory import (
         MemoryType,
         get_vector_memory,
     )
@@ -657,9 +663,6 @@ async def store_memory(req: VectorMemoryStoreRequest) -> Dict[str, Any]:
     try:
         mem_type = MemoryType(req.memory_type)
     except ValueError:
-        raise HTTPException(
-            status_code=422, detail=f"Invalid memory_type: {req.memory_type}"
-        ) from None  # NOSONAR — S8415: assignment kept for readability / debuggability
         raise HTTPException(
             status_code=422, detail=f"Invalid memory_type: {req.memory_type}"
         ) from None  # NOSONAR — S8415: assignment kept for readability / debuggability
@@ -675,6 +678,7 @@ async def store_memory(req: VectorMemoryStoreRequest) -> Dict[str, Any]:
 @router.post("/memory/search")
 async def search_memory(req: VectorMemorySearchRequest) -> Dict[str, Any]:
     """Search for similar memories in Qdrant."""
+    from etap.vector_memory import (
         MemoryType,
         get_vector_memory,
     )
@@ -683,9 +687,6 @@ async def search_memory(req: VectorMemorySearchRequest) -> Dict[str, Any]:
     try:
         mem_type = MemoryType(req.memory_type)
     except ValueError:
-        raise HTTPException(
-            status_code=422, detail=f"Invalid memory_type: {req.memory_type}"
-        ) from None  # NOSONAR — S8415: assignment kept for readability / debuggability
         raise HTTPException(
             status_code=422, detail=f"Invalid memory_type: {req.memory_type}"
         ) from None  # NOSONAR — S8415: assignment kept for readability / debuggability
@@ -711,6 +712,7 @@ async def memory_health() -> Dict[str, Any]:
 )
 async def add_topology_element(req: TopologyAddElementRequest) -> Dict[str, Any]:
     """Add a network element to the Neo4j topology graph."""
+    from etap.topology import (
         ElementType,
         NetworkElement,
         get_topology_service,
@@ -720,9 +722,6 @@ async def add_topology_element(req: TopologyAddElementRequest) -> Dict[str, Any]
     try:
         et = ElementType(req.element_type)
     except ValueError:
-        raise HTTPException(
-            status_code=422, detail=f"Invalid element_type: {req.element_type}"
-        ) from None  # NOSONAR — S8415: assignment kept for readability / debuggability
         raise HTTPException(
             status_code=422, detail=f"Invalid element_type: {req.element_type}"
         ) from None  # NOSONAR — S8415: assignment kept for readability / debuggability
@@ -743,6 +742,7 @@ async def add_topology_element(req: TopologyAddElementRequest) -> Dict[str, Any]
 )
 async def add_topology_connection(req: TopologyAddConnectionRequest) -> Dict[str, Any]:
     """Add a connection between two network elements."""
+    from etap.topology import (
         NetworkConnection,
         RelationshipType,
         get_topology_service,
@@ -752,9 +752,6 @@ async def add_topology_connection(req: TopologyAddConnectionRequest) -> Dict[str
     try:
         rt = RelationshipType(req.relationship_type)
     except ValueError:
-        raise HTTPException(
-            status_code=422, detail=f"Invalid relationship_type: {req.relationship_type}"
-        ) from None  # NOSONAR — S8415: assignment kept for readability / debuggability
         raise HTTPException(
             status_code=422, detail=f"Invalid relationship_type: {req.relationship_type}"
         ) from None  # NOSONAR — S8415: assignment kept for readability / debuggability

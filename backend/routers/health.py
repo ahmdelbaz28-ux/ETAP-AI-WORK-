@@ -31,7 +31,7 @@ from backend.rbac import Permission
 # health router, imported unconditionally by app.py) does not hard-depend on the
 # deleted package. This is a startup-path guard, not a behavioral change to the
 # health endpoint itself.
-    __package_version__ = "ahmed-etap"
+__package_version__ = "ahmed-etap"
 
 logger = logging.getLogger(__name__)
 

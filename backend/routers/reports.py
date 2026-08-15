@@ -75,6 +75,10 @@ def _generate_voltage_drop_report(devices: list, connections: list, now: str) ->
     # Lazy import so the reports module still loads if qomn_kernel has a
     # heavy dependency that is unavailable in some environments.
     try:
+        from etap.core.qomn_kernel import (
+            compute_voltage_drop,
+            PhysicsGuardError,
+        )
 
         _qomn_available = True
     except ImportError as ie:
@@ -298,6 +302,7 @@ def _generate_nfpa72_coverage_report(devices: list, now: str) -> dict:
 
     # Lazy import of NFPA 72 spacing constants from qomn_kernel
     try:
+        from etap.core.qomn_kernel import (
             NFPA72_HEAT_MAX_SPACING_M,
             NFPA72_SMOKE_MAX_SPACING_M,
         )
@@ -531,6 +536,9 @@ def _generate_cable_sizing_report(connections: list, devices: list, now: str) ->
 
     # Lazy import of NEC ampacity table from qomn_kernel
     try:
+        from etap.core.qomn_kernel import (
+            NEC_AMPACITY_60C,
+        )
 
         _nec_available = True
     except ImportError as ie:
@@ -1144,6 +1152,7 @@ async def generate_ahj_submittal(project_id: str, request: AhjSubmittalRequest):
     devices = db.get_all_devices_for_project(project_id)
 
     try:
+        from etap.core.device_placement import (
             DensityOptimizer,
             DetectorLayout,
             Room,

@@ -35,7 +35,7 @@ from backend.rbac import Permission
 # version reporting with a graceful sentinel so `import backend.app` — which
 # imports monitor unconditionally — does not hard-depend on the deleted package.
 # (Same guard pattern applied to backend/routers/health.py.)
-    __package_version__ = "ahmed-etap"
+__package_version__ = "ahmed-etap"
 
 logger = logging.getLogger(__name__)
 

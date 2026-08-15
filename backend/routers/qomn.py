@@ -110,6 +110,11 @@ _ComputationError = None
 _ValidationError = None
 
 try:
+    from etap.core.qomn_kernel import (
+        PhysicsGuardError as _PGE,
+        ComputationError as _CE,
+        ValidationError as _VE,
+    )
 
     _PhysicsGuardError = _PGE
     _ComputationError = _CE
@@ -141,6 +146,7 @@ def _get_kernel():
         with _kernel_lock:
             if _kernel is None:  # double-checked locking
                 try:
+                    from etap.core.qomn_kernel import QOMNKernel
 
                     _kernel = QOMNKernel()
                 except ImportError as e:
@@ -385,6 +391,7 @@ async def place_detectors(req: RoomRequest):
     """
     try:
         try:
+            from etap.core.device_placement import (
                 CeilingType,
                 DetectorPlacementEngine,
                 DetectorType,
@@ -527,6 +534,7 @@ async def place_duct_detector(req: DuctDetectorRequest):
     """
     try:
         try:
+            from etap.core.device_placement import (
                 DuctDetectorSpec,
                 place_duct_detector,
             )
@@ -587,6 +595,7 @@ async def get_physics_guards():
     Per QOMN Specification §3 Layer 0.
     """
     try:
+        from etap.core.qomn_kernel import (
             NFPA72_HEAT_MAX_SPACING_M,
             NFPA72_NAC_MIN_CD,
             NFPA72_NAC_SLEEPING_MIN_CD,
@@ -669,6 +678,7 @@ async def get_qomn_constants():
     validation and display of engineering parameters.
     """
     try:
+        from etap.core.qomn_kernel import (
             NEC_AMPACITY_60C,
             NEC_TABLE8_RESISTANCE_OHM_PER_KM,
             NFPA72_ALARM_MINUTES,
@@ -732,6 +742,7 @@ async def run_golden_tests():
     Returns pass/fail for each golden test case.
     """
     try:
+        from etap.core.qomn_kernel import (
             compute_battery_capacity_ah,
             compute_heat_detector_spacing,
             compute_smoke_detector_spacing,

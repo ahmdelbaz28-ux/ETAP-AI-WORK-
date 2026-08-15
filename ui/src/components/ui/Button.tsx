@@ -49,7 +49,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     return (
       <button
         ref={ref}
-        type="button"
+        type={type}
         disabled={disabled || loading}
         className={cn(
           "inline-flex items-center justify-center font-medium rounded-lg transition-all duration-150 select-none",

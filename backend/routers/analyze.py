@@ -21,9 +21,11 @@ import logging
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException
+from backend.qomn.kernel import (
     PhysicsGuardError,
     QOMNKernel,
 )
+from etap.core.pipeline import analyze_room
 from pydantic import BaseModel, Field
 
 from backend.auth import require_permission

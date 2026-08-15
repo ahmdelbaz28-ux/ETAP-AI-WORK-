@@ -98,6 +98,10 @@ async def list_standards():
 async def methane_check(request: MethaneCheckRequest):
     """Classify methane concentration per MSHA 30 CFR §75.323."""
     try:
+        from etap.mining import (
+            MethaneCalculator,
+            MSHA_THRESHOLDS,
+        )
 
         hazard = MethaneCalculator.classify_hazard(request.concentration_pct)
         is_explosive = MethaneCalculator.is_in_explosive_range(request.concentration_pct)
@@ -118,8 +122,6 @@ async def methane_check(request: MethaneCheckRequest):
     except Exception as e:
         logger.exception("Methane check failed: %s", e)
         raise HTTPException(status_code=500, detail="Methane check failed") from None
-        raise HTTPException(status_code=503, detail=f"Mining module not available: {e}") from e
-        raise HTTPException(status_code=500, detail="Methane check failed") from e
 
 
 @router.post(
@@ -128,6 +130,9 @@ async def methane_check(request: MethaneCheckRequest):
 async def ventilation_check(request: VentilationCheckRequest):
     """Check MSHA ventilation compliance per 30 CFR §75.326-327."""
     try:
+        from etap.mining import (
+            VentilationCalculator,
+        )
 
         is_compliant, violations = VentilationCalculator.check_msha_compliance(
             request.airflow_m3_s,
@@ -155,14 +160,13 @@ async def ventilation_check(request: VentilationCheckRequest):
     except Exception as e:
         logger.exception("Ventilation check failed: %s", e)
         raise HTTPException(status_code=500, detail="Ventilation check failed") from None
-        raise HTTPException(status_code=503, detail=f"Mining module not available: {e}") from e
-        raise HTTPException(status_code=500, detail="Ventilation check failed") from e
 
 
 @router.post("/co-check", dependencies=[Depends(require_permission(Permission.ELEMENT_READ))])
 async def co_check(request: CoCheckRequest):
     """Classify CO concentration per MSHA 30 CFR §75.351."""
     try:
+        from etap.mining import (
             CO_ALERT_PPM,
             CO_EVACUATE_PPM,
             CO_IMMINENT_PPM,
@@ -189,8 +193,6 @@ async def co_check(request: CoCheckRequest):
     except Exception as e:
         logger.exception("CO check failed: %s", e)
         raise HTTPException(status_code=500, detail="CO check failed") from None
-        raise HTTPException(status_code=503, detail=f"Mining module not available: {e}") from e
-        raise HTTPException(status_code=500, detail="CO check failed") from e
 
 
 @router.post(
@@ -199,6 +201,10 @@ async def co_check(request: CoCheckRequest):
 async def conveyor_suppression(request: ConveyorSuppressionRequest):
     """Design conveyor belt fire suppression per NFPA 120 §8.4."""
     try:
+        from etap.mining import (
+            ConveyorSpec,
+            ConveyorFireAnalyzer,
+        )
 
         spec = ConveyorSpec(
             belt_length_m=request.belt_length_m,
@@ -229,8 +235,6 @@ async def conveyor_suppression(request: ConveyorSuppressionRequest):
     except Exception as e:
         logger.exception("Conveyor suppression design failed: %s", e)
         raise HTTPException(status_code=500, detail="Conveyor suppression design failed") from None
-        raise HTTPException(status_code=503, detail=f"Mining module not available: {e}") from e
-        raise HTTPException(status_code=500, detail="Conveyor suppression design failed") from e
 
 
 @router.post(
@@ -239,6 +243,10 @@ async def conveyor_suppression(request: ConveyorSuppressionRequest):
 async def compliance_report(request: ComplianceReportRequest):
     """Generate full MSHA + NFPA 120 compliance report."""
     try:
+        from etap.mining import (
+            MSHAComplianceChecker,
+            generate_msha_report,
+        )
 
         report = MSHAComplianceChecker.full_compliance_report(
             mine_name=request.mine_name,
@@ -275,5 +283,3 @@ async def compliance_report(request: ComplianceReportRequest):
     except Exception as e:
         logger.exception("Compliance report failed: %s", e)
         raise HTTPException(status_code=500, detail="Compliance report generation failed") from None
-        raise HTTPException(status_code=503, detail=f"Mining module not available: {e}") from e
-        raise HTTPException(status_code=500, detail="Compliance report generation failed") from e
