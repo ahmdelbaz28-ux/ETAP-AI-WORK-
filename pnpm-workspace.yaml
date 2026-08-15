@@ -85,19 +85,13 @@ overrides:
 allowBuilds:
   '@biomejs/biome': true
   '@tailwindcss/oxide': true
-  electron: true
+  electron: set this to true or false
   electron-winstaller: true
   esbuild: true
   ffmpeg-static: false
   protobufjs: true
 
-onlyBuiltDependencies:
-  - '@biomejs/biome'
-  - '@tailwindcss/oxide'
-  - electron
-  - electron-winstaller
-  - esbuild
-  - protobufjs
+onlyBuiltDependencies: ''
 
 minimumReleaseAgeExclude:
   - '@ai-sdk/provider-utils@4.0.42'
