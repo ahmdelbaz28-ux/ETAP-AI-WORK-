@@ -84,7 +84,8 @@ scipy>=1.12,<1.19
 pandas~=2.2.0
 
 # Visualization
-matplotlib~=3.8.0
+# matplotlib~=3.8.0  # DISABLED: no 3.8.x wheel for Python 3.13 (oldest is 3.9.2)
+matplotlib>=3.9.0
 
 # System monitoring
 psutil~=5.9.0
@@ -190,7 +191,7 @@ scipy>=1.7.0
 pandas>=1.3.0
 
 # Visualization
-matplotlib>=3.4.0
+matplotlib>=3.9.0
 
 # ETAP COM Automation (Windows only) - moved to optional dependencies
 # pywin32>=303; sys_platform == 'win32'
