@@ -1,11 +1,21 @@
-"""Python version compatibility shims.
+import asyncio
+from enum import Enum
 
-Project target: Python 3.12+ (declared in pyproject.toml).
-All backports have been removed since the minimum Python version
-guarantees availability of StrEnum (3.11+) and asyncio.to_thread (3.9+).
-"""
+try:
+    from asyncio import to_thread  # noqa: F401
+except ImportError:
+    import functools
+    async def to_thread(func, /, *args, **kwargs):
+        loop = asyncio.get_event_loop()
+        return await loop.run_in_executor(None, functools.partial(func, *args, **kwargs))
 
-from asyncio import to_thread  # noqa: F401
-from enum import StrEnum  # noqa: F401
+try:
+    from enum import StrEnum  # noqa: F401
+except ImportError:
+    class StrEnum(str, Enum):
+        """Fallback StrEnum for Python < 3.11."""
+        def __str__(self) -> str:
+            return str(self.value)
 
 __all__ = ["StrEnum", "to_thread"]
+
