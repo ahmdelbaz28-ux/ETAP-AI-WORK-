@@ -136,7 +136,7 @@ class OpcUaClientAdapter(ProtocolAdapter):
                     scan_ms = int(cli_cfg.get("publish_interval_ms", self._cfg.publish_interval_ms))
 
                     # Throttle reconnect attempts to once every 2s per client.
-                    now = asyncio.get_event_loop().time()
+                    now = asyncio.get_running_loop().time()
                     last = last_connect_attempt.get(name, 0.0)
 
                     client = clients.get(name)

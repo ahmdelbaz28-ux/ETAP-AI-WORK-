@@ -114,7 +114,7 @@ class OCRResponse(BaseModel):
 async def process_ocr_batch(image_bytes_list: List[bytes]) -> List[OCRResponse]:
     from doctr.io import DocumentFile
 
-    doc = await asyncio.get_event_loop().run_in_executor(
+    doc = await asyncio.get_running_loop().run_in_executor(
         None, DocumentFile.from_images, image_bytes_list
     )
 

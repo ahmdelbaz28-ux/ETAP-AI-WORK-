@@ -127,6 +127,9 @@ async def run_consumer() -> None:
         client.tls_set(cert_reqs=ssl.CERT_REQUIRED)
 
     stats = {"messages_received": 0, "db_inserts": 0, "anomalies": 0}
+    # Capture the running loop so the MQTT callback (which runs in the
+    # MQTT library's own thread) can safely schedule coroutines.
+    _loop = asyncio.get_running_loop()
 
     def on_message(mqtt_client, userdata, msg):
         try:
@@ -174,7 +177,7 @@ async def run_consumer() -> None:
                                 logger.warning("ANOMALY: %s - %s", tag_id, anomaly)
 
                 try:
-                    asyncio.get_event_loop().create_task(store())
+                    _loop.call_soon_threadsafe(lambda: asyncio.create_task(store()))
                 except RuntimeError:
                     pass
 
