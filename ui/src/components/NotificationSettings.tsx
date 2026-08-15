@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { AlertTriangle, Bell, Globe, Link2, Mail, Save } from "lucide-react";
+import { AlertTriangle, Bell, Globe, Mail, Save, Link2 as Webhook } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { Button, Card, CardHeader, Toggle } from "../components/ui";
 import { ContextHelpButton } from "../components/help/ContextHelpButton";

@@ -29,11 +29,11 @@ jobs:
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
 
-      - name: Set up Python '3.12'
+      - name: Set up Python '3.13'
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
         with:
-          python-version: '3.12'
-          cache: 'pip'
+          python-version: '3.13'
+          # No pip cache — using uv for installation
 
       - name: Install linting tools
         # ruff >=0.7.0 added UP045/UP047 rule selectors referenced in ruff.toml;
@@ -152,8 +152,8 @@ jobs:
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
         if: steps.has_token.outputs.has_token == 'true'
         with:
-          python-version: '3.12'
-          cache: 'pip'
+          python-version: '3.13'
+          # No pip cache — using uv for installation
 
       - name: Set up Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v7.0.0
@@ -334,11 +334,11 @@ jobs:
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
 
-      - name: Set up Python '3.12'
+      - name: Set up Python '3.13'
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
         with:
-          python-version: '3.12'
-          cache: 'pip'
+          python-version: '3.13'
+          # No pip cache — using uv for installation
 
       - name: Install dependencies
         run: |
@@ -425,10 +425,10 @@ jobs:
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
 
-      - name: Set up Python '3.12'
+      - name: Set up Python '3.13'
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
         with:
-          python-version: '3.12'
+          python-version: '3.13'
 
       - name: Install security tools
         # safety 3.2.7 crashes on Python 3.12+ with TypeError in typer/click
@@ -556,11 +556,11 @@ jobs:
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
 
-      - name: Set up Python '3.12'
+      - name: Set up Python '3.13'
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
         with:
-          python-version: '3.12'
-          cache: 'pip'
+          python-version: '3.13'
+          # No pip cache — using uv for installation
 
       - name: Install Python dependencies
         run: |
@@ -898,7 +898,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
         with:
-          python-version: '3.12'
+          python-version: '3.13'
 
       - name: Install huggingface_hub
         run: 'pip install --only-binary :all: huggingface_hub==0.26.5'
@@ -1022,7 +1022,7 @@ jobs:
 
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
         with:
-          python-version: '3.12'
+          python-version: '3.13'
 
       - name: Regenerate project index
         run: python indexer.py

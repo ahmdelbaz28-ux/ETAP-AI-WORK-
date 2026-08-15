@@ -42,11 +42,6 @@ interface MFASetupProps {
   readonly authToken: string;
 }
 
-// @ts-expect-error TOTPSetupData reserved for future TOTP QR flow
-interface TOTPSetupData {
-  qr_code_uri: string;
-}
-
 // ---------------------------------------------------------------------------
 // Simple QR code SVG renderer (inline, no external dependency)
 // ---------------------------------------------------------------------------

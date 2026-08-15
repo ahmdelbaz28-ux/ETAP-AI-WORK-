@@ -404,7 +404,7 @@ async def execute_browser_cua_loop_async(
     Playwright's sync API blocks the event loop, so we offload to a thread.
     """
     executor = BrowserCUAExecutor(audit_dir=audit_dir)
-    loop = asyncio.get_event_loop()
+    loop = asyncio.get_running_loop()
     return await loop.run_in_executor(
         None,
         lambda: executor.execute_loop(

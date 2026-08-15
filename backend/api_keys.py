@@ -576,7 +576,7 @@ def generate_api_key(role: Role, description: str = "") -> str:
 
     Returns the plaintext key (show once!).
     """
-    key = f"fireai_{secrets.token_urlsafe(32)}"
+    key = f"etap_{secrets.token_urlsafe(32)}"
     add_api_key(key, role, description)
     return key
 

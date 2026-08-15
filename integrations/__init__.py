@@ -18,88 +18,184 @@ logger = logging.getLogger(__name__)
 
 __version__ = "2.1.0"
 
-# Supabase (managed Postgres + Storage + optional Auth)
-# Primary observability — Langfuse (unlimited prompts on free Hobby plan)
-from integrations.langfuse_evals import (
-    ci_gate_block_unsafe_prompts,
-    ensure_safety_dataset,
-    eval_helpfulness,
-    eval_safety,
-    eval_standards_compliance,
-    run_safety_eval,
-    score_trace,
-    seed_safety_datasets,
-)
-from integrations.langfuse_integration import (
-    LangfuseTracker,
-    get_prompt_from_langfuse,
-    langfuse_tracker,
-    track_llm_call,
-)
-from integrations.langfuse_llm import (
-    SafetyValidationError,
-    anthropic,
-    estimate_cost_usd,
-    openai,
-    safe_anthropic_message,
-    safe_openai_chat,
-)
-from integrations.langfuse_llm import (
-    health_check as llm_health_check,
-)
-from integrations.langfuse_middleware import (
-    LangfuseMiddleware,
-    install_langfuse_middleware,
-)
-from integrations.langfuse_sessions import (
-    EngineeringSession,
-    add_trace_comment,
-    alert_on_unsafe_trace,
-    end_engineering_session,
-    get_trace_share_url,
-    record_user_feedback,
-    start_engineering_session,
-)
+# ─── Lazy-import surface ────────────────────────────────────────────────────
+# Eager imports are wrapped in try/except so that a missing optional dependency
+# (e.g., a C extension without a Python 3.13 wheel) does not break the entire
+# integrations package.  Down-stream code that actually *calls* these objects
+# will get a NameError/AttributeError at call-time, which is easier to debug
+# than an ImportError that prevents the whole package from loading.
+
+# Langfuse core
+try:
+    from integrations.langfuse_integration import (
+        LangfuseTracker,
+        get_prompt_from_langfuse,
+        langfuse_tracker,
+        track_llm_call,
+    )
+except ImportError as _exc:
+    logger.warning("langfuse_integration import failed: %s", _exc)
+    LangfuseTracker = None  # type: ignore[assignment]
+    langfuse_tracker = None  # type: ignore[assignment]
+    track_llm_call = None  # type: ignore[assignment]
+    get_prompt_from_langfuse = None  # type: ignore[assignment]
+
+# Langfuse LLM wrappers
+try:
+    from integrations.langfuse_llm import (
+        SafetyValidationError,
+        anthropic,
+        estimate_cost_usd,
+        openai,
+        safe_anthropic_message,
+        safe_openai_chat,
+    )
+    from integrations.langfuse_llm import (
+        health_check as llm_health_check,
+    )
+except ImportError as _exc:
+    logger.warning("langfuse_llm import failed: %s", _exc)
+    openai = None  # type: ignore[assignment]
+    anthropic = None  # type: ignore[assignment]
+    safe_openai_chat = None  # type: ignore[assignment]
+    safe_anthropic_message = None  # type: ignore[assignment]
+    estimate_cost_usd = None  # type: ignore[assignment]
+    llm_health_check = None  # type: ignore[assignment]
+    SafetyValidationError = None  # type: ignore[assignment]
+
+# Langfuse evals
+try:
+    from integrations.langfuse_evals import (
+        ci_gate_block_unsafe_prompts,
+        ensure_safety_dataset,
+        eval_helpfulness,
+        eval_safety,
+        eval_standards_compliance,
+        run_safety_eval,
+        score_trace,
+        seed_safety_datasets,
+    )
+except ImportError as _exc:
+    logger.warning("langfuse_evals import failed: %s", _exc)
+    ci_gate_block_unsafe_prompts = None  # type: ignore[assignment]
+    ensure_safety_dataset = None  # type: ignore[assignment]
+    eval_safety = None  # type: ignore[assignment]
+    eval_standards_compliance = None  # type: ignore[assignment]
+    eval_helpfulness = None  # type: ignore[assignment]
+    run_safety_eval = None  # type: ignore[assignment]
+    score_trace = None  # type: ignore[assignment]
+    seed_safety_datasets = None  # type: ignore[assignment]
+
+# Langfuse sessions/feedback/alerts
+try:
+    from integrations.langfuse_sessions import (
+        EngineeringSession,
+        add_trace_comment,
+        alert_on_unsafe_trace,
+        end_engineering_session,
+        get_trace_share_url,
+        record_user_feedback,
+        start_engineering_session,
+    )
+except ImportError as _exc:
+    logger.warning("langfuse_sessions import failed: %s", _exc)
+    EngineeringSession = None  # type: ignore[assignment]
+    start_engineering_session = None  # type: ignore[assignment]
+    end_engineering_session = None  # type: ignore[assignment]
+    record_user_feedback = None  # type: ignore[assignment]
+    get_trace_share_url = None  # type: ignore[assignment]
+    alert_on_unsafe_trace = None  # type: ignore[assignment]
+    add_trace_comment = None  # type: ignore[assignment]
+
+# Langfuse middleware
+try:
+    from integrations.langfuse_middleware import (
+        LangfuseMiddleware,
+        install_langfuse_middleware,
+    )
+except ImportError as _exc:
+    logger.warning("langfuse_middleware import failed: %s", _exc)
+    LangfuseMiddleware = None  # type: ignore[assignment]
+    install_langfuse_middleware = None  # type: ignore[assignment]
 
 # Legacy fallback — LangWatch (free plan capped at 3 prompts)
-from integrations.langwatch_integration import (
-    langwatch_tracker,
-)
-from integrations.langwatch_integration import (
-    track_llm_call as track_llm_call_langwatch,
-)
+try:
+    from integrations.langwatch_integration import (
+        langwatch_tracker,
+    )
+    from integrations.langwatch_integration import (
+        track_llm_call as track_llm_call_langwatch,
+    )
+except ImportError as _exc:
+    logger.warning("langwatch_integration import failed: %s", _exc)
+    langwatch_tracker = None  # type: ignore[assignment]
+    track_llm_call_langwatch = None  # type: ignore[assignment]
 
 # Smithery MCP
-from integrations.smithery_mcp import mcp_registry, smithery_client
-from integrations.supabase_auth import (
-    SupabaseAuthError,
-    link_or_create_local_user,
-    send_magic_link,
-    verify_supabase_token,
-)
-from integrations.supabase_auth import (
-    get_oauth_url as supabase_get_oauth_url,
-)
-from integrations.supabase_auth import (
-    health_check as supabase_auth_health_check,
-)
-from integrations.supabase_integration import (
-    PRIVATE_BUCKET_REPORTS,
-    PRIVATE_BUCKET_SCREENSHOTS,
-    PRIVATE_BUCKET_UPLOADS,
-    PUBLIC_BUCKET_MANUALS,
-    SupabaseUploadError,
-    delete_file,
-    ensure_buckets_exist,
-    get_public_url,
-    get_signed_url,
-    list_files,
-    upload_bytes,
-    upload_file,
-)
-from integrations.supabase_integration import (
-    health_check as supabase_health_check,
-)
+try:
+    from integrations.smithery_mcp import mcp_registry, smithery_client
+except ImportError as _exc:
+    logger.warning("smithery_mcp import failed: %s", _exc)
+    smithery_client = None  # type: ignore[assignment]
+    mcp_registry = None  # type: ignore[assignment]
+
+# Supabase Auth
+try:
+    from integrations.supabase_auth import (
+        SupabaseAuthError,
+        link_or_create_local_user,
+        send_magic_link,
+        verify_supabase_token,
+    )
+    from integrations.supabase_auth import (
+        get_oauth_url as supabase_get_oauth_url,
+    )
+    from integrations.supabase_auth import (
+        health_check as supabase_auth_health_check,
+    )
+except ImportError as _exc:
+    logger.warning("supabase_auth import failed: %s", _exc)
+    SupabaseAuthError = None  # type: ignore[assignment]
+    verify_supabase_token = None  # type: ignore[assignment]
+    supabase_get_oauth_url = None  # type: ignore[assignment]
+    send_magic_link = None  # type: ignore[assignment]
+    link_or_create_local_user = None  # type: ignore[assignment]
+    supabase_auth_health_check = None  # type: ignore[assignment]
+
+# Supabase Storage
+try:
+    from integrations.supabase_integration import (
+        PRIVATE_BUCKET_REPORTS,
+        PRIVATE_BUCKET_SCREENSHOTS,
+        PRIVATE_BUCKET_UPLOADS,
+        PUBLIC_BUCKET_MANUALS,
+        SupabaseUploadError,
+        delete_file,
+        ensure_buckets_exist,
+        get_public_url,
+        get_signed_url,
+        list_files,
+        upload_bytes,
+        upload_file,
+    )
+    from integrations.supabase_integration import (
+        health_check as supabase_health_check,
+    )
+except ImportError as _exc:
+    logger.warning("supabase_integration import failed: %s", _exc)
+    PUBLIC_BUCKET_MANUALS = "manuals"  # type: ignore[assignment]
+    PRIVATE_BUCKET_REPORTS = "reports"  # type: ignore[assignment]
+    PRIVATE_BUCKET_SCREENSHOTS = "screenshots"  # type: ignore[assignment]
+    PRIVATE_BUCKET_UPLOADS = "uploads"  # type: ignore[assignment]
+    SupabaseUploadError = None  # type: ignore[assignment]
+    upload_bytes = None  # type: ignore[assignment]
+    upload_file = None  # type: ignore[assignment]
+    get_public_url = None  # type: ignore[assignment]
+    get_signed_url = None  # type: ignore[assignment]
+    delete_file = None  # type: ignore[assignment]
+    list_files = None  # type: ignore[assignment]
+    ensure_buckets_exist = None  # type: ignore[assignment]
+    supabase_health_check = None  # type: ignore[assignment]
 
 __all__ = [
     # Langfuse core (integration.py)

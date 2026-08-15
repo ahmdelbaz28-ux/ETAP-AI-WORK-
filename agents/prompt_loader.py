@@ -334,7 +334,7 @@ async def _load_from_langfuse_async(handle: str) -> str | None:
         # Run the (sync) SDK call in a thread with a hard timeout. This
         # prevents the event loop from being blocked.
         result = await asyncio.wait_for(
-            asyncio.get_event_loop().run_in_executor(
+            asyncio.get_running_loop().run_in_executor(
                 None,
                 lambda: langfuse_tracker.get_prompt(name=handle, label="production", fallback=None),
             ),

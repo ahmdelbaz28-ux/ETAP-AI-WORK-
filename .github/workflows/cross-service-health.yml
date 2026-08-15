@@ -50,7 +50,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  PYTHON_VERSION: '3.12'
+  PYTHON_VERSION: '3.13'
   HF_SPACE_URL: https://ahmdelbaz28-ahmedetap.hf.space
   HF_SPACE_ID: ahmdelbaz28/AHMEDETAP
 

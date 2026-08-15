@@ -259,7 +259,7 @@ class ConfirmationBroker:
 
         # Broadcast to all connected clients (async, but we're sync here)
         try:
-            loop = asyncio.get_event_loop()
+            loop = asyncio.get_running_loop()
             loop.create_task(
                 self._broadcast({"type": "confirmation_request", "data": req.to_dict()}),
             )
@@ -284,34 +284,31 @@ class ConfirmationBroker:
         try:
             # Run the async wait in a sync context
             try:
-                loop = asyncio.get_event_loop()
-                if loop.is_running():
-                    # We're in an async context — but request() is sync.
-                    # This is a design limitation: the CUA executors are sync.
-                    # Workaround: use a thread to wait for the event.
-                    import threading
+                loop = asyncio.get_running_loop()
+                # A running loop exists — but request() is sync.
+                # This is a design limitation: the CUA executors are sync.
+                # Workaround: use a thread to wait for the event.
+                import threading
 
-                    result_holder: dict[str, bool | None] = {"result": None}
+                result_holder: dict[str, bool | None] = {"result": None}
 
-                    def wait_in_thread():
-                        try:
-                            asyncio.run(
-                                asyncio.wait_for(req._event.wait(), timeout=timeout_seconds),
-                            )
-                            result_holder["result"] = req._result
-                        except TimeoutError:
-                            result_holder["result"] = False
-                        except Exception:  # noqa: BLE001
-                            result_holder["result"] = False
+                def wait_in_thread():
+                    try:
+                        asyncio.run(
+                            asyncio.wait_for(req._event.wait(), timeout=timeout_seconds),
+                        )
+                        result_holder["result"] = req._result
+                    except TimeoutError:
+                        result_holder["result"] = False
+                    except Exception:  # noqa: BLE001
+                        result_holder["result"] = False
 
-                    t = threading.Thread(target=wait_in_thread, daemon=True)
-                    t.start()
-                    t.join(timeout=timeout_seconds + 5)
-                    result = result_holder["result"]
-                else:
-                    asyncio.run(asyncio.wait_for(req._event.wait(), timeout=timeout_seconds))
-                    result = req._result
+                t = threading.Thread(target=wait_in_thread, daemon=True)
+                t.start()
+                t.join(timeout=timeout_seconds + 5)
+                result = result_holder["result"]
             except RuntimeError:
+                # No running loop — safe to use asyncio.run() directly.
                 asyncio.run(asyncio.wait_for(req._event.wait(), timeout=timeout_seconds))
                 result = req._result
         except TimeoutError:

@@ -3,7 +3,7 @@ import {
   CheckCircle2,
   Cpu,
   Download,
-  FileJson,
+  FileText as FileCode,
   Layers,
   Loader2,
   Sparkles,

@@ -75,13 +75,9 @@ function ZIPLoadPreviewChart({ coefficients }: { readonly coefficients: ZIPLoadC
   for (let i = 0; i <= nPoints; i++) {
     const v = 0.8 + (i / nPoints) * 0.4; // V/V0 from 0.8 to 1.2
     const pActive = coefficients.aZ * v * v + coefficients.aI * v + coefficients.aP;
-    const pReactive = coefficients.bZ * v * v + coefficients.bI * v + coefficients.bP;
 
     const x = padX + (i / nPoints) * plotW;
     const yActive = padY + plotH - ((pActive - 0.4) / 1.0) * plotH;
-    // @ts-expect-error yReactive reserved for future reactive power curve
-    const yReactive = padY + plotH - ((pReactive - 0.4) / 1.0) * plotH;
-
     points.push(`${x},${Math.max(padY, Math.min(padY + plotH, yActive))}`);
     // We'll store reactive points separately
   }
