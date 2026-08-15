@@ -579,7 +579,7 @@ class TestShouldProceedAfterReview:
 # ── 8. build_workflow() ────────────────────────────────────────────────
 
 
-class TestBuildFireaiWorkflow:
+class TestBuildEtapWorkflow:
     def test_returns_stategraph(self):
         graph = build_workflow()
         assert graph is not None

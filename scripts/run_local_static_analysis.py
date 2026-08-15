@@ -44,7 +44,6 @@ PRODUCTION_DIRS = [
     "backend/routers",
     "backend/services",
     "qomn_fire",
-    "qomn_conduit",
     "parsers",
     "core",
     "adapters",

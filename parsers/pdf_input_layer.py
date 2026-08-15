@@ -1,8 +1,8 @@
 # File-level suppression removed per audit (V143 hardening).
 # Per-line justified suppressions (e.g., '# noqa: S3776 ...') are preserved.
 """
-FIREAI PDF INPUT LAYER — Real Drawing Parser
-=====================================
+ETAP PDF INPUT LAYER — Real Drawing Parser
+==========================================
 الطبقة التي تربط البوابة بالمحرك.
 تفتح PDF. تستخرج البيانات الحقيقية. تُمرر للمحرك فقط إن كان جديراً.
 

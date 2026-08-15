@@ -95,7 +95,7 @@ class TestCRUDOperations:
         from backend.rbac import Role
 
         key = generate_api_key(Role.ENGINEER, "generated")
-        assert key.startswith("fireai_")
+        assert key.startswith("etap_")
         assert len(key) > 10
         info = validate_api_key(key)
         assert info is not None

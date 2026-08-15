@@ -62,7 +62,7 @@ ENDSEC
 EOF
 """
     with tempfile.NamedTemporaryFile(
-        mode="w", suffix=".dxf", delete=False, prefix="test_fireai_"
+        mode="w", suffix=".dxf", delete=False, prefix="test_etap_"
     ) as f:
         f.write(dxf_content)
         filepath = f.name
@@ -123,7 +123,7 @@ class TestDWGPathSecurity:
         from parsers._path_security import validate_input_path
 
         # Create a real temp file — validate_input_path checks existence
-        with tempfile.NamedTemporaryFile(suffix=".dxf", delete=False, prefix="test_fireai_") as f:
+        with tempfile.NamedTemporaryFile(suffix=".dxf", delete=False, prefix="test_etap_") as f:
             f.write(b"0\nSECTION\n0\nENDSEC\n0\nEOF\n")
             filepath = f.name
 

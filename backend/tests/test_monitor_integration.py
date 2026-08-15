@@ -101,11 +101,12 @@ class TestMonitorMetrics:
         # Should be text/plain for Prometheus exposition format
         assert "text" in content_type or response.status_code == 200
 
-    def test_monitor_metrics_contains_metrics(self, client) -> None:
-        """Metrics output must contain fireai_ prefixed metrics."""
-        response = client.get("/api/monitor/metrics")
+    def test_metrics_content(self, client):
+        """Metrics output must contain etap_ prefixed metrics."""
+        response = client.get("/api/metrics")
+        assert response.status_code == 200
         text = response.text
-        assert "fireai_" in text or "HELP" in text or len(text) > 0
+        assert "etap_" in text or "HELP" in text or len(text) > 0
 
 
 # ══════════════════════════════════════════════════════════════════════════════
