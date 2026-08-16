@@ -194,16 +194,7 @@ class TestRevitFileOperations:
         assert result["count"] == 0
 
     def test_write_rvt_with_elements(self):
-        """Test writing elements to an RVT file.
-
-        V214 FIX (self-critique revised): write_rvt() in simulation mode
-        writes ONLY a real IFC4 file (via ifcopenshell). It does NOT write
-        a fake .rvt file — that was confusing (user opens .rvt in Revit
-        and it fails). Now:
-          - .rvt file is NOT created (no fake file)
-          - .ifc file IS created with real IFC4 data
-          - Log clearly states the output is IFC format
-        """
+        pytest.importorskip("ifcopenshell")
         service = RevitService()
 
         # Create mock elements to write

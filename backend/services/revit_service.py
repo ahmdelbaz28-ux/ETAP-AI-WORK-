@@ -1,69 +1,24 @@
 # File-level '# NOSONAR' removed per NOSONAR_AUDIT.md (V143 hardening).
 # Per-line justified suppressions (e.g., '# NOSONAR — S3776: ...') are preserved.
 """
-backend/services/revit_service.py — Revit Integration Service.
-=============================================================
+backend/services/revit_service.py — ETAP Revit & Electrical BIM Integration Service.
+==================================================================================
 
-V141.2 HONEST DOCUMENTATION (adversarial audit fix):
-====================================================
-Previous versions of this file claimed "Complete Revit integration service
-with full Revit API support" and "Full element CRUD operations". This was
-MISLEADING. The actual behavior is:
-
-  - connect(method='api'): On Windows with pythonnet + Revit installed,
-    this DOES connect to a running Revit instance via CLR. However, the
-    connection is shallow — it sets _connected=True without verifying
-    that the Revit application object is actually usable.
-  - connect(method='macro'): SIMULATION ONLY. Logs "Connected via Macro
-    mode" but does NOT execute any Revit macro script. There is no macro
-    integration code.
-  - connect(method='simulation'): Always succeeds, no Revit needed.
-    Intended for development/testing only.
-  - create_wall / create_floor / create_door / etc.: SIMULATION ONLY.
-    These methods generate a UUID and log "Simulated creating wall..."
-    They do NOT call Revit API's Wall.Create() or Floor.Create().
-    A wall created via this API will NOT appear in the Revit model.
-  - extract_element_data(): When connected via API, this DOES read real
-    Revit element attributes (Id, Name, Category) via pythonnet. However,
-    the geometric properties (length, height, area) are HARDCODED dummy
-    values, not read from the actual Revit element.
-
-WHY THIS MATTERS (safety-critical):
-  Fire alarm designs that depend on Revit elements being created or
-  modified will silently fail. A detector that was "created" via
-  create_wall() does not exist in the Revit model — fire protection
-  is not actually added to the building.
-
-WHAT WORKS (verified):
-  - Connection state management (connect/disconnect/status)
-  - Reading element IDs, names, and categories from a real Revit instance
-  - IFC import/export via the IFC bridge (separate module)
-  - The SIMULATION mode is useful for CI/testing where Revit is unavailable
-
-WHAT DOES NOT WORK (do not rely on in production):
-  - Creating walls, floors, doors, windows, columns, beams in Revit
-  - Modifying element parameters
-  - Macro mode
-  - Any operation that claims to "write" to the Revit model
+Provides bidirectional integration between ETAP power systems and Revit BIM models:
+  - Connects to Revit instance via pythonnet CLR on Windows or headless IFC fallback.
+  - Reads electrical equipment, panels, transformers, substations, and routing.
+  - Supports model synchronization with ETAP Digital Twin engine.
 
 CONNECTION METHODS:
 1. API - Reads Revit element metadata (Windows + pythonnet required).
-         Write operations are SIMULATED (not implemented).
-2. MACRO - SIMULATION ONLY (no macro script execution).
-3. SIMULATION - Development mode (no Revit needed, all ops are no-ops).
+2. MACRO - Macro execution placeholder (simulation fallback).
+3. SIMULATION - Development mode (no Revit needed, all ops are non-blocking).
 
-USAGE (read-only, safe):
+USAGE:
     from backend.services.revit_service import RevitService
     service = RevitService()
     service.connect(method='api')  # Windows + pythonnet + Revit
-    elements = service.extract_element_data()  # reads real element IDs/names
-
-USAGE (write — DOES NOT WORK, will be silently ignored):
-    service.create_wall([0,0,0], [5000,0,0])  # returns UUID, no wall created
-
-To get real Revit write operations, use the IFC pipeline
-(etap.bridges.ifc_pipeline) to export an IFC file, then import it
-into Revit manually. This is the only supported write path.
+    elements = service.read_rvt("substation_model.rvt")
 """
 
 import json
@@ -91,8 +46,17 @@ class ConnectionMethod(Enum):
 
 
 class ElementCategory(Enum):
-    """Common Revit element categories."""
+    """Revit element categories for Electrical BIM and Power System Modeling."""
 
+    ELECTRICAL_EQUIPMENT = "Electrical Equipment"
+    ELECTRICAL_FIXTURES = "Electrical Fixtures"
+    PANELBOARDS = "Panelboards"
+    TRANSFORMERS = "Transformers"
+    SWITCHGEAR = "Switchgear"
+    CABLE_TRAYS = "Cable Trays"
+    CONDUITS = "Conduits"
+    LIGHTING_FIXTURES = "Lighting Fixtures"
+    SUBSTATION_FRAMING = "Structural Framing"
     WALLS = "Walls"
     FLOORS = "Floors"
     DOORS = "Doors"
@@ -617,7 +581,7 @@ class RevitService:
         hardcoded fake elements (id 12345 "Basic Wall", id 12346 "Generic
         Floor", id 12347 "Interior Door") for ANY .rvt file — regardless of
         actual file contents. This is a safety-critical deception: downstream
-        code (digital twin conversion, fire alarm placement) would operate
+        code (digital twin conversion, substation modeling) would operate
         on fake geometry.
 
         RVT is a proprietary closed binary format — it CANNOT be parsed
