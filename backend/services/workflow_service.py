@@ -508,7 +508,6 @@ def node_validate(state: PipelineState) -> PipelineState:
     )
 
     validation_result["all_passed"] = validation_passed
-
     updates = {
         "validation_result": validation_result,
         "validation_passed": validation_passed,
@@ -528,25 +527,13 @@ def node_validate(state: PipelineState) -> PipelineState:
 @with_stuck_detection
 def node_memory_enrich(state: PipelineState) -> PipelineState:
     """
-    Enrich the workflow state with advisory context from Mem0 memory.
+    Search Mem0 memory layer for advisory engineering context.
 
-    V75 ENHANCEMENT: Now passes environmental context to the bridge
-    for regional standards search (Strategy 3). This enables:
-    - Gulf Civil Defense code suggestions when is_gulf_state=True
-    - Country-specific fire safety standard recommendations
-    - Regional equipment approval requirements
-
-    MEMORY IS ADVISORY — NOT AUTHORITATIVE:
-    - Memory hints are tagged source="memory" (distinguish from source="nfpa_engine")
-    - Memory NEVER overrides deterministic NFPA calculations
-    - Memory failure NEVER blocks the pipeline — empty context on failure
-    - All hints include confidence scores for engineer evaluation
-
-    SEARCH STRATEGY:
-    1. Per-room occupancy: detector patterns, code references
-    2. Kitchen-specific: NFPA 72 §17.6.4 heat detector requirement
-    3. Regional standards: if Gulf state, search for Civil Defense codes
-    4. Hazardous area: if electrical/mechanical rooms, search for IEC 60079
+    Queries:
+    1. Room-specific requirements (e.g., "clean agent server room")
+    2. Regional standards: state["environmental_context"]["region"]
+    3. Historical conflicts from previous projects
+    4. Elevation-specific derating hints
     5. Seismic: if severe weather alerts, search for seismic bracing requirements
 
     Per agent.md:
@@ -555,6 +542,7 @@ def node_memory_enrich(state: PipelineState) -> PipelineState:
     - Priority 7 (Traceability): All memory ops logged
     - Rule 1: Absolute truth — memory results clearly labeled
     """
+    import time
     rooms = state.get("rooms", [])
     workflow_id = state.get("workflow_id", "")
     env_context = state.get("environmental_context", {})
@@ -568,33 +556,29 @@ def node_memory_enrich(state: PipelineState) -> PipelineState:
     enrichment_time_ms = 0.0
 
     try:
-            enrich_with_memory_context,
-# fixed syntax error
+        from integrations.mem0_workflow_bridge import enrich_with_memory_context  # type: ignore
 
-        # V75: Now passes env_context for regional standards search
-# fixed syntax error
+        t0 = time.perf_counter()
+        result = enrich_with_memory_context(
             rooms=rooms,
             workflow_id=workflow_id,
             engineer_id=state.get("engineer_id", "engineer_default"),
             env_context=env_context,
-# fixed syntax error
-
-# fixed syntax error
-# fixed syntax error
-# fixed syntax error
-# fixed syntax error
-# fixed syntax error
-# fixed syntax error
-# fixed syntax error
-# fixed syntax error
-# fixed syntax error
-
-# fixed syntax error
-            f"Memory enrichment: {len(result.hints)} hints, "  # noqa: G004
-            f"{result.total_memories_searched} memories searched, "
-            f"{enrichment_time_ms:.1f}ms, "
-            f"env_context_passed={bool(env_context)}"
-# fixed syntax error
+        )
+        enrichment_time_ms = (time.perf_counter() - t0) * 1000.0
+        memory_context = {
+            "hints": getattr(result, "hints", []),
+            "source": "memory",
+            "enrichment_performed": True,
+            "error": None,
+        }
+        logger.info(
+            "Memory enrichment: %d hints, %d memories searched, %.1fms, env_context_passed=%s",
+            len(getattr(result, "hints", [])),
+            getattr(result, "total_memories_searched", 0),
+            enrichment_time_ms,
+            bool(env_context),
+        )
 
     except ImportError:
         logger.warning("mem0_workflow_bridge not available — proceeding without memory context")

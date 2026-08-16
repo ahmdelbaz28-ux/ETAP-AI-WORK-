@@ -346,17 +346,18 @@ class MonitorState:
                             break
 
                 elif rule["rule_id"] == "compliance-drop":
-                    try:
-
-                        engine = ComplianceEngine()
-                        result = engine.validate_and_report({})
-                        if result.get("compliance_percentage", 100) < 90:
-                            triggered = True
-                            alert_data["message"] = (
-                                f"Overall compliance at {result['compliance_percentage']}%"
-                            )
-                    except Exception:
-                        pass
+                    comp_engine_cls = globals().get("ComplianceEngine")
+                    if comp_engine_cls:
+                        try:
+                            engine = comp_engine_cls()
+                            result = engine.validate_and_report({})
+                            if result.get("compliance_percentage", 100) < 90:
+                                triggered = True
+                                alert_data["message"] = (
+                                    f"Overall compliance at {result['compliance_percentage']}%"
+                                )
+                        except Exception:
+                            pass
 
                 elif rule["rule_id"] == "high-failure-rate":
                     total = sum(
@@ -718,34 +719,35 @@ async def get_security_alerts(
     _check_rate_limit(request)
 
     # Try to load from security logging system
-    try:
-
-        events = security_audit.get_events(limit=limit)
-        alerts = []
-        for event in events:
-            alerts.append(
-                {
-                    "alert_id": event.get("event_id", ""),
-                    "severity": event.get("severity", "medium"),
-                    "category": event.get("event_type", "unknown"),
-                    "message": event.get("message", ""),
-                    "source_ip": event.get("source_ip", ""),
-                    "timestamp": event.get("timestamp", ""),
-                    "resolved": False,
+    sec_audit_mod = globals().get("security_audit")
+    if sec_audit_mod:
+        try:
+            events = sec_audit_mod.get_events(limit=limit)
+            alerts = []
+            for event in events:
+                alerts.append(
+                    {
+                        "alert_id": event.get("event_id", ""),
+                        "severity": event.get("severity", "medium"),
+                        "category": event.get("event_type", "unknown"),
+                        "message": event.get("message", ""),
+                        "source_ip": event.get("source_ip", ""),
+                        "timestamp": event.get("timestamp", ""),
+                        "resolved": False,
+                    }
+                )
+            if alerts:
+                return {
+                    "success": True,
+                    "data": {
+                        "alerts": alerts[:limit],
+                        "total": len(alerts),
+                        "source": "security_audit_log",
+                        "timestamp": datetime.now(timezone.utc).isoformat(),
+                    },
                 }
-            )
-        if alerts:
-            return {
-                "success": True,
-                "data": {
-                    "alerts": alerts[:limit],
-                    "total": len(alerts),
-                    "source": "security_logging",
-                    "timestamp": datetime.now(timezone.utc).isoformat(),
-                },
-            }
-    except Exception as e:
-        logger.debug("Security logging not available: %s", e)
+        except Exception as e:
+            logger.debug("Security logging not available: %s", e)
 
     alerts = _monitor.get_security_alerts(limit=limit, severity=severity, resolved=resolved)
     return {

@@ -589,13 +589,14 @@ async def list_audit_logs(
     Results are sorted by timestamp descending (newest first).
     """
     source_logs = _SAMPLE_AUDIT_LOGS
-    try:
-
-        real_events = AuditStore.get_events()
-        if real_events:
-            source_logs = real_events
-    except Exception:
-        pass
+    audit_store_cls = globals().get("AuditStore")
+    if audit_store_cls:
+        try:
+            real_events = audit_store_cls.get_events()
+            if real_events:
+                source_logs = real_events
+        except Exception:
+            pass
 
     filtered = _apply_filters(
         source_logs,
@@ -694,13 +695,14 @@ async def get_audit_log_stats() -> AuditLogStats:
         - **recent_trends**: Daily entry counts for the last 7 days.
     """
     source_logs = _SAMPLE_AUDIT_LOGS
-    try:
-
-        real_events = AuditStore.get_events()
-        if real_events:
-            source_logs = real_events
-    except Exception:
-        pass
+    audit_store_cls = globals().get("AuditStore")
+    if audit_store_cls:
+        try:
+            real_events = audit_store_cls.get_events()
+            if real_events:
+                source_logs = real_events
+        except Exception:
+            pass
 
     # Count by severity
     severity_counts: dict[str, int] = {}

@@ -133,11 +133,14 @@ def record_audit_write(
         if details:
             audit_details["details"] = details
 
-        return AuditStore.add_event(
-            event_type=f"DB_WRITE_{operation.upper()}",
-            room_id=str(record_id or "DB_OPERATION"),
-            details_dict=audit_details,
-        )
+        audit_store_cls = globals().get("AuditStore")
+        if audit_store_cls:
+            return audit_store_cls.add_event(
+                event_type=f"DB_WRITE_{operation.upper()}",
+                room_id=str(record_id or "DB_OPERATION"),
+                details_dict=audit_details,
+            )
+        return None
 
     except Exception as exc:
         # Per fail-safe principle: audit failure MUST NOT block the operation

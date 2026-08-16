@@ -204,12 +204,13 @@ export default function AuditLogViewer() {
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
         <Card padding="md">
           <div className="flex flex-wrap items-end gap-4">
-            {/* Search */}
+             {/* Search */}
             <div className="flex-1 min-w-[200px]">
-              <label className="block text-xs font-medium text-[var(--text-tertiary)] mb-1.5">Search</label>
+              <label htmlFor="audit-log-search" className="block text-xs font-medium text-[var(--text-tertiary)] mb-1.5">Search</label>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
                 <input
+                  id="audit-log-search"
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
@@ -220,10 +221,11 @@ export default function AuditLogViewer() {
               </div>
             </div>
 
-            {/* Severity filter */}
+             {/* Severity filter */}
             <div className="min-w-[140px]">
-              <label className="block text-xs font-medium text-[var(--text-tertiary)] mb-1.5">Severity</label>
+              <label htmlFor="audit-log-severity" className="block text-xs font-medium text-[var(--text-tertiary)] mb-1.5">Severity</label>
               <select
+                id="audit-log-severity"
                 value={severityFilter}
                 onChange={(e) => { setSeverityFilter(e.target.value as Severity | "all"); setPage(1); }}
                 className="w-full px-3 py-2 rounded-lg bg-[var(--bg-primary)] border border-[var(--border-primary)] text-sm text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
@@ -236,10 +238,11 @@ export default function AuditLogViewer() {
               </select>
             </div>
 
-            {/* Action filter */}
+             {/* Action filter */}
             <div className="min-w-[140px]">
-              <label className="block text-xs font-medium text-[var(--text-tertiary)] mb-1.5">Action</label>
+              <label htmlFor="audit-log-action" className="block text-xs font-medium text-[var(--text-tertiary)] mb-1.5">Action</label>
               <input
+                id="audit-log-action"
                 type="text"
                 value={actionFilter}
                 onChange={(e) => setActionFilter(e.target.value)}
@@ -249,10 +252,11 @@ export default function AuditLogViewer() {
               />
             </div>
 
-            {/* User filter */}
+             {/* User filter */}
             <div className="min-w-[140px]">
-              <label className="block text-xs font-medium text-[var(--text-tertiary)] mb-1.5">User</label>
+              <label htmlFor="audit-log-user" className="block text-xs font-medium text-[var(--text-tertiary)] mb-1.5">User</label>
               <input
+                id="audit-log-user"
                 type="text"
                 value={userFilter}
                 onChange={(e) => setUserFilter(e.target.value)}
