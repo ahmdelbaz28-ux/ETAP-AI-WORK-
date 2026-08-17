@@ -820,14 +820,14 @@
 <a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>
 <a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="c1"># Verify connection from engineering-service</span>
 <a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>kubectl<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>-it<span class="w"> </span>deploy/engineering-service<span class="w"> </span>-n<span class="w"> </span>etap<span class="w"> </span>--<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="w">  </span>python<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;import asyncio; from api.database import check_db_health; print(asyncio.run(check_db_health()))&quot;</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="w">  </span>python<span class="w"> </span>-c<span class="w"> </span><span class="s2">"import asyncio; from api.database import check_db_health; print(asyncio.run(check_db_health()))"</span>
 </code></pre></div>
 <h3 id="2b-scenario-data-loss-restore-from-backup">2b. Scenario: Data loss — restore from backup</h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># 1. Identify latest backup</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>aws<span class="w"> </span>s3<span class="w"> </span>ls<span class="w"> </span>s3://YOUR-BUCKET/etap-backups/<span class="w"> </span>--recursive<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span><span class="s2">&quot;.sql.gz&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>sort<span class="w"> </span><span class="p">|</span><span class="w"> </span>tail<span class="w"> </span>-5
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>aws<span class="w"> </span>s3<span class="w"> </span>ls<span class="w"> </span>s3://YOUR-BUCKET/etap-backups/<span class="w"> </span>--recursive<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span><span class="s2">".sql.gz"</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>sort<span class="w"> </span><span class="p">|</span><span class="w"> </span>tail<span class="w"> </span>-5
 <a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
 <a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="c1"># 2. Download the latest backup</span>
-<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="nv">BACKUP_FILE</span><span class="o">=</span><span class="s2">&quot;etap_db_20260625_143000.sql.gz&quot;</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="nv">BACKUP_FILE</span><span class="o">=</span><span class="s2">"etap_db_20260625_143000.sql.gz"</span>
 <a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>aws<span class="w"> </span>s3<span class="w"> </span>cp<span class="w"> </span>s3://YOUR-BUCKET/etap-backups/<span class="si">${</span><span class="nv">BACKUP_FILE</span><span class="si">}</span><span class="w"> </span>/tmp/
 <a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>
 <a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="c1"># 3. Verify checksum</span>
@@ -866,7 +866,7 @@
 <a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>kubectl<span class="w"> </span>rollout<span class="w"> </span>status<span class="w"> </span>deployment/redis<span class="w"> </span>-n<span class="w"> </span>etap
 <a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
 <a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="c1"># Confirm Celery worker can reconnect</span>
-<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>kubectl<span class="w"> </span>logs<span class="w"> </span>-l<span class="w"> </span><span class="nv">app</span><span class="o">=</span>celery-worker<span class="w"> </span>-n<span class="w"> </span>etap<span class="w"> </span>--tail<span class="o">=</span><span class="m">50</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-E<span class="w"> </span><span class="s2">&quot;connected|error&quot;</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>kubectl<span class="w"> </span>logs<span class="w"> </span>-l<span class="w"> </span><span class="nv">app</span><span class="o">=</span>celery-worker<span class="w"> </span>-n<span class="w"> </span>etap<span class="w"> </span>--tail<span class="o">=</span><span class="m">50</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-E<span class="w"> </span><span class="s2">"connected|error"</span>
 </code></pre></div>
 <h3 id="3b-redis-data-corruption">3b. Redis data corruption</h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># Flush all Redis data (safe — all Celery tasks will need resubmission)</span>
@@ -903,7 +903,7 @@
 <hr />
 <h2 id="5-celery-worker-recovery">5. Celery Worker Recovery</h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1"># Check worker health in Redis</span>
-<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>redis-cli<span class="w"> </span>-u<span class="w"> </span><span class="nv">$REDIS_URL</span><span class="w"> </span>keys<span class="w"> </span><span class="s2">&quot;etap:worker:heartbeat:*&quot;</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>redis-cli<span class="w"> </span>-u<span class="w"> </span><span class="nv">$REDIS_URL</span><span class="w"> </span>keys<span class="w"> </span><span class="s2">"etap:worker:heartbeat:*"</span>
 <a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>
 <a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="c1"># Restart worker fleet</span>
 <a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>kubectl<span class="w"> </span>rollout<span class="w"> </span>restart<span class="w"> </span>deployment/celery-worker<span class="w"> </span>-n<span class="w"> </span>etap
@@ -921,13 +921,13 @@
 <a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>
 <a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="c1"># SSH to Windows host and restart the worker service</span>
 <a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="c1"># (execute on Windows host)</span>
-<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>Restart-Service<span class="w"> </span>-Name<span class="w"> </span><span class="s2">&quot;ETAPWorker&quot;</span><span class="w"> </span>-Force
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>Restart-Service<span class="w"> </span>-Name<span class="w"> </span><span class="s2">"ETAPWorker"</span><span class="w"> </span>-Force
 <a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>
 <a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="c1"># Verify worker re-registers (watch Redis)</span>
-<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>watch<span class="w"> </span>-n<span class="w"> </span><span class="m">5</span><span class="w"> </span><span class="s1">&#39;redis-cli -u $REDIS_URL keys &quot;etap:worker:registry:*&quot;&#39;</span>
+<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>watch<span class="w"> </span>-n<span class="w"> </span><span class="m">5</span><span class="w"> </span><span class="s1">'redis-cli -u $REDIS_URL keys "etap:worker:registry:*"'</span>
 <a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a>
 <a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="c1"># If worker cannot reach Redis, use HTTP heartbeat via the Linux gateway</span>
-<a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span><span class="s2">&quot;https://your-api-endpoint/etap-worker/register?worker_id=etap-win-01&amp;host=192.168.1.100&amp;port=8081&quot;</span>
+<a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span><span class="s2">"https://your-api-endpoint/etap-worker/register?worker_id=etap-win-01&amp;host=192.168.1.100&amp;port=8081"</span>
 </code></pre></div>
 <hr />
 <h2 id="7-full-environment-recovery-worst-case">7. Full Environment Recovery (Worst Case)</h2>
@@ -956,7 +956,7 @@
 <a id="__codelineno-8-20" name="__codelineno-8-20" href="#__codelineno-8-20"></a>curl<span class="w"> </span>-sf<span class="w"> </span>https://your-api-endpoint/etap-worker/workers/health
 <a id="__codelineno-8-21" name="__codelineno-8-21" href="#__codelineno-8-21"></a>
 <a id="__codelineno-8-22" name="__codelineno-8-22" href="#__codelineno-8-22"></a><span class="c1"># 5. Notify stakeholders</span>
-<a id="__codelineno-8-23" name="__codelineno-8-23" href="#__codelineno-8-23"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Recovery complete. RTO achieved: </span><span class="k">$(</span>date<span class="k">)</span><span class="s2">&quot;</span>
+<a id="__codelineno-8-23" name="__codelineno-8-23" href="#__codelineno-8-23"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">"Recovery complete. RTO achieved: </span><span class="k">$(</span>date<span class="k">)</span><span class="s2">"</span>
 </code></pre></div>
 <p><strong>Estimated Total RTO</strong>: 25–30 minutes.</p>
 <hr />

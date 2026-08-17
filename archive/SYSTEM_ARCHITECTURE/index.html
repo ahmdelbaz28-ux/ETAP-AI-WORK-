@@ -834,7 +834,7 @@
 </code></pre></div>
 <h2 id="operation-modes">Operation Modes</h2>
 <h3 id="single-room-analysis">Single Room Analysis</h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>ETAPSystem.analyse_room(room_spec, user_id=&quot;user123&quot;)
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>ETAPSystem.analyse_room(room_spec, user_id="user123")
 <a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>    │
 <a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>    ├─→ ExpertSystemV12.analyse_room()
 <a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>    │       │
@@ -843,16 +843,16 @@
 <a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>    │       ├─→ Resilience check
 <a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>    │       └─→ Generate regulatory_proof
 <a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>    │
-<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>    └─→ AuditStore.add_event(&quot;room_analysis&quot;, ...)
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>    └─→ AuditStore.add_event("room_analysis", ...)
 </code></pre></div>
 <h3 id="floor-analysis">Floor Analysis</h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>ETAPSystem.analyse_floor(rooms, user_id=&quot;user123&quot;)
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>ETAPSystem.analyse_floor(rooms, user_id="user123")
 <a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>    │
 <a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>    ├─→ ExpertSystemV12.analyse_floor()
 <a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>    │       │
 <a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>    │       └─→ Process each room
 <a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>    │
-<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>    └─→ AuditStore.add_event(&quot;floor_analysis&quot;, ...)
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>    └─→ AuditStore.add_event("floor_analysis", ...)
 </code></pre></div>
 <h2 id="known-issues">Known Issues</h2>
 <h3 id="roomspec-compatibility-blocking">RoomSpec Compatibility (BLOCKING)</h3>
@@ -877,20 +877,20 @@
 <a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">etap.core.nfpa72_models</span><span class="w"> </span><span class="kn">import</span> <span class="n">CeilingSpec</span><span class="p">,</span> <span class="n">CeilingType</span><span class="p">,</span> <span class="n">RoomSpec</span>
 <a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>
 <a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="c1"># Create system</span>
-<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="n">system</span> <span class="o">=</span> <span class="n">ETAPSystem</span><span class="p">(</span><span class="n">db_path</span><span class="o">=</span><span class="s2">&quot;audit.db&quot;</span><span class="p">,</span> <span class="n">memory_max</span><span class="o">=</span><span class="mi">2048</span><span class="p">)</span>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="n">system</span> <span class="o">=</span> <span class="n">ETAPSystem</span><span class="p">(</span><span class="n">db_path</span><span class="o">=</span><span class="s2">"audit.db"</span><span class="p">,</span> <span class="n">memory_max</span><span class="o">=</span><span class="mi">2048</span><span class="p">)</span>
 <a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>
 <a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="c1"># Create room spec</span>
 <a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="n">ceiling</span> <span class="o">=</span> <span class="n">CeilingSpec</span><span class="p">(</span><span class="mf">3.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">,</span> <span class="n">CeilingType</span><span class="o">.</span><span class="n">FLAT</span><span class="p">)</span>
 <a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="n">room_spec</span> <span class="o">=</span> <span class="n">RoomSpec</span><span class="p">(</span>
-<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>    <span class="n">room_id</span><span class="o">=</span><span class="s2">&quot;room_1&quot;</span><span class="p">,</span>
+<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>    <span class="n">room_id</span><span class="o">=</span><span class="s2">"room_1"</span><span class="p">,</span>
 <a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a>    <span class="n">width_m</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span>
 <a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a>    <span class="n">depth_m</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span>
 <a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a>    <span class="n">ceiling_spec</span><span class="o">=</span><span class="n">ceiling</span><span class="p">,</span>
-<a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a>    <span class="n">occupancy_type</span><span class="o">=</span><span class="s2">&quot;office&quot;</span><span class="p">,</span>
+<a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a>    <span class="n">occupancy_type</span><span class="o">=</span><span class="s2">"office"</span><span class="p">,</span>
 <a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a><span class="p">)</span>
 <a id="__codelineno-5-16" name="__codelineno-5-16" href="#__codelineno-5-16"></a>
 <a id="__codelineno-5-17" name="__codelineno-5-17" href="#__codelineno-5-17"></a><span class="c1"># Analyze</span>
-<a id="__codelineno-5-18" name="__codelineno-5-18" href="#__codelineno-5-18"></a><span class="n">result</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">analyse_room</span><span class="p">(</span><span class="n">room_spec</span><span class="p">,</span> <span class="n">user_id</span><span class="o">=</span><span class="s2">&quot;user&quot;</span><span class="p">)</span>
+<a id="__codelineno-5-18" name="__codelineno-5-18" href="#__codelineno-5-18"></a><span class="n">result</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">analyse_room</span><span class="p">(</span><span class="n">room_spec</span><span class="p">,</span> <span class="n">user_id</span><span class="o">=</span><span class="s2">"user"</span><span class="p">)</span>
 <a id="__codelineno-5-19" name="__codelineno-5-19" href="#__codelineno-5-19"></a>
 <a id="__codelineno-5-20" name="__codelineno-5-20" href="#__codelineno-5-20"></a><span class="c1"># Check audit</span>
 <a id="__codelineno-5-21" name="__codelineno-5-21" href="#__codelineno-5-21"></a><span class="n">trail</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">get_audit_trail</span><span class="p">()</span>
@@ -922,16 +922,16 @@
 <a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>
 <a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="c1"># Analyze room (requires API key)</span>
 <a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://localhost:8000/analyse/room/v10<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;X-API-Key: your-api-key&quot;</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a><span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{</span>
-<a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a><span class="s1">    &quot;room&quot;: {</span>
-<a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a><span class="s1">      &quot;room_id&quot;: &quot;room_001&quot;,</span>
-<a id="__codelineno-8-14" name="__codelineno-8-14" href="#__codelineno-8-14"></a><span class="s1">      &quot;width_m&quot;: 10,</span>
-<a id="__codelineno-8-15" name="__codelineno-8-15" href="#__codelineno-8-15"></a><span class="s1">      &quot;depth_m&quot;: 10,</span>
-<a id="__codelineno-8-16" name="__codelineno-8-16" href="#__codelineno-8-16"></a><span class="s1">      &quot;ceiling&quot;: {&quot;height_at_low_point_m&quot;: 3.0}</span>
+<a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">"Content-Type: application/json"</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">"X-API-Key: your-api-key"</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a><span class="w">  </span>-d<span class="w"> </span><span class="s1">'{</span>
+<a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a><span class="s1">    "room": {</span>
+<a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a><span class="s1">      "room_id": "room_001",</span>
+<a id="__codelineno-8-14" name="__codelineno-8-14" href="#__codelineno-8-14"></a><span class="s1">      "width_m": 10,</span>
+<a id="__codelineno-8-15" name="__codelineno-8-15" href="#__codelineno-8-15"></a><span class="s1">      "depth_m": 10,</span>
+<a id="__codelineno-8-16" name="__codelineno-8-16" href="#__codelineno-8-16"></a><span class="s1">      "ceiling": {"height_at_low_point_m": 3.0}</span>
 <a id="__codelineno-8-17" name="__codelineno-8-17" href="#__codelineno-8-17"></a><span class="s1">    }</span>
-<a id="__codelineno-8-18" name="__codelineno-8-18" href="#__codelineno-8-18"></a><span class="s1">  }&#39;</span>
+<a id="__codelineno-8-18" name="__codelineno-8-18" href="#__codelineno-8-18"></a><span class="s1">  }'</span>
 </code></pre></div>
 <p>================================================================================
 ENVIRONMENT VARIABLES

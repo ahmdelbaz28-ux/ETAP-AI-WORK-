@@ -1238,9 +1238,9 @@
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># Current placeholder at line ~507</span>
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="k">if</span> <span class="ow">not</span> <span class="n">csrf_token</span><span class="p">:</span>
 <a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>    <span class="n">response</span> <span class="o">=</span> <span class="n">Response</span><span class="p">(</span>
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>        <span class="n">content</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">({</span><span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="s2">&quot;Missing CSRF token&quot;</span><span class="p">}),</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>        <span class="n">content</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">({</span><span class="s2">"success"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">"error"</span><span class="p">:</span> <span class="s2">"Missing CSRF token"</span><span class="p">}),</span>
 <a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>        <span class="n">status_code</span><span class="o">=</span><span class="mi">403</span><span class="p">,</span>
-<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>        <span class="n">media_type</span><span class="o">=</span><span class="s2">&quot;application/json&quot;</span><span class="p">,</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>        <span class="n">media_type</span><span class="o">=</span><span class="s2">"application/json"</span><span class="p">,</span>
 <a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>    <span class="p">)</span>
 </code></pre></div></p>
 <p><strong>Action Plan:</strong>
@@ -1250,7 +1250,7 @@
 4. Rotate tokens on state-changing operations
 5. Document CSRF protection in API documentation</p>
 <p><strong>Verification Command:</strong>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>python<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;from backend.app import CSRFMiddleware; print(&#39;CSRFMiddleware importable&#39;)&quot;</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>python<span class="w"> </span>-c<span class="w"> </span><span class="s2">"from backend.app import CSRFMiddleware; print('CSRFMiddleware importable')"</span>
 </code></pre></div></p>
 <hr />
 <h4 id="item-12-verify-no-hardcoded-secrets">Item 1.2: Verify No Hardcoded Secrets</h4>
@@ -1262,7 +1262,7 @@
 - <code>backend/api_keys.py</code>
 - <code>blackbox_mcp_settings.json</code></p>
 <p><strong>Detection Command:</strong>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">grep</span> <span class="n">-rni</span> <span class="s2">&quot;(?i)(password|secret|api_key|token)\s*=\s*[&#39;\&quot;</span><span class="p">][^</span><span class="s1">&#39;\&quot;]+[&#39;</span><span class="p">\</span><span class="s2">&quot;]&quot;</span> <span class="p">-</span><span class="n">-include</span><span class="p">=</span><span class="s2">&quot;*.py&quot;</span> <span class="p">-</span><span class="n">-exclude-dir</span><span class="p">=</span><span class="n">tests</span> <span class="p">.</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">grep</span> <span class="n">-rni</span> <span class="s2">"(?i)(password|secret|api_key|token)\s*=\s*['\"</span><span class="p">][^</span><span class="s1">'\"]+['</span><span class="p">\</span><span class="s2">"]"</span> <span class="p">-</span><span class="n">-include</span><span class="p">=</span><span class="s2">"*.py"</span> <span class="p">-</span><span class="n">-exclude-dir</span><span class="p">=</span><span class="n">tests</span> <span class="p">.</span>
 </code></pre></div></p>
 <p><strong>Current Findings:</strong>
 - Test files contain example secrets (acceptable if clearly marked as test data)
@@ -1277,7 +1277,7 @@ Create <code>docs/ENVIRONMENT_VARIABLES.md</code>:
 <a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>
 <a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="gu">### Authentication</span>
 <a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="k">-</span><span class="w"> </span><span class="sb">`API_KEY`</span> - Master API key for all requests (required in production)
-<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="k">-</span><span class="w"> </span><span class="sb">`APP_ENV`</span> - Deployment environment: &quot;development&quot; or &quot;production&quot;
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="k">-</span><span class="w"> </span><span class="sb">`APP_ENV`</span> - Deployment environment: "development" or "production"
 <a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>
 <a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="gu">### Database</span>
 <a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="k">-</span><span class="w"> </span><span class="sb">`DATABASE_URL`</span> - PostgreSQL connection string
@@ -1305,17 +1305,17 @@ Create <code>docs/ENVIRONMENT_VARIABLES.md</code>:
 <a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span><span class="n">status_code</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">detail</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
 <a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>
 <a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="c1"># Use:</span>
-<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Internal error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">extra</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;path&quot;</span><span class="p">:</span> <span class="n">scope</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;path&quot;</span><span class="p">)})</span>
-<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span><span class="n">status_code</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">detail</span><span class="o">=</span><span class="s2">&quot;An unexpected error occurred. Please contact support.&quot;</span><span class="p">)</span>
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Internal error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">extra</span><span class="o">=</span><span class="p">{</span><span class="s2">"path"</span><span class="p">:</span> <span class="n">scope</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"path"</span><span class="p">)})</span>
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span><span class="n">status_code</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">detail</span><span class="o">=</span><span class="s2">"An unexpected error occurred. Please contact support."</span><span class="p">)</span>
 </code></pre></div></p>
 <p><strong>Verification Test:</strong>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">test_error_sanitization</span><span class="p">(</span><span class="n">client</span><span class="p">):</span>
-<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Ensure errors don&#39;t leak internal details.&quot;&quot;&quot;</span>
-<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>    <span class="n">resp</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s2">&quot;/api/v1/nonexistent-endpoint&quot;</span><span class="p">,</span> <span class="n">json</span><span class="o">=</span><span class="p">{})</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">    </span><span class="sd">"""Ensure errors don't leak internal details."""</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>    <span class="n">resp</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s2">"/api/v1/nonexistent-endpoint"</span><span class="p">,</span> <span class="n">json</span><span class="o">=</span><span class="p">{})</span>
 <a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>    <span class="k">assert</span> <span class="mi">500</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">200</span><span class="p">,</span> <span class="mi">201</span><span class="p">,</span> <span class="mi">204</span><span class="p">]</span>  <span class="c1"># Triggers error path</span>
 <a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>    <span class="n">body</span> <span class="o">=</span> <span class="n">resp</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
-<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>    <span class="k">assert</span> <span class="s2">&quot;traceback&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">body</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
-<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>    <span class="k">assert</span> <span class="s2">&quot;stack&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">body</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>    <span class="k">assert</span> <span class="s2">"traceback"</span> <span class="ow">not</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">body</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>    <span class="k">assert</span> <span class="s2">"stack"</span> <span class="ow">not</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">body</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
 </code></pre></div></p>
 <hr />
 <h4 id="item-14-https-everywhere-production">Item 1.4: HTTPS Everywhere (Production)</h4>
@@ -1324,7 +1324,7 @@ Create <code>docs/ENVIRONMENT_VARIABLES.md</code>:
 <p><strong>Fix Required:</strong>
 1. Configure TLS termination at reverse proxy level (nginx/Traefik)
 2. Enable HSTS header (already present in <code>backend/app.py</code>):
-   <div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="n">headers</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="sa">b</span><span class="s2">&quot;strict-transport-security&quot;</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&quot;max-age=31536000; includeSubDomains&quot;</span><span class="p">])</span>
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="n">headers</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="sa">b</span><span class="s2">"strict-transport-security"</span><span class="p">,</span> <span class="sa">b</span><span class="s2">"max-age=31536000; includeSubDomains"</span><span class="p">])</span>
 </code></pre></div>
 3. Redirect all HTTP → HTTPS in load balancer
 4. Set secure flag on all cookies (frontend)</p>
@@ -1394,11 +1394,11 @@ Create <code>docs/ENVIRONMENT_VARIABLES.md</code>:
 <p><strong>Redis Cache</strong> (L2): For API responses, user sessions
    <div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">redis</span>
 <a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>
-<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="n">r</span> <span class="o">=</span> <span class="n">redis</span><span class="o">.</span><span class="n">Redis</span><span class="p">(</span><span class="n">host</span><span class="o">=</span><span class="s2">&quot;localhost&quot;</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="mi">6379</span><span class="p">,</span> <span class="n">db</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="n">r</span> <span class="o">=</span> <span class="n">redis</span><span class="o">.</span><span class="n">Redis</span><span class="p">(</span><span class="n">host</span><span class="o">=</span><span class="s2">"localhost"</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="mi">6379</span><span class="p">,</span> <span class="n">db</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 <a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a>
 <a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a>
 <a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a><span class="k">def</span><span class="w"> </span><span class="nf">cached_get</span><span class="p">(</span><span class="n">endpoint</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
-<a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a>    <span class="n">key</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;cache:</span><span class="si">{</span><span class="n">endpoint</span><span class="si">}</span><span class="s2">&quot;</span>
+<a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a>    <span class="n">key</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"cache:</span><span class="si">{</span><span class="n">endpoint</span><span class="si">}</span><span class="s2">"</span>
 <a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a>    <span class="n">data</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
 <a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a>    <span class="k">if</span> <span class="n">data</span><span class="p">:</span>
 <a id="__codelineno-12-10" name="__codelineno-12-10" href="#__codelineno-12-10"></a>        <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
@@ -1437,7 +1437,7 @@ Create <code>docs/ENVIRONMENT_VARIABLES.md</code>:
 <a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a>
 <a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a>    <span class="nd">@task</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
 <a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_health</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/api/v1/health&quot;</span><span class="p">)</span>
+<a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"/api/v1/health"</span><span class="p">)</span>
 <a id="__codelineno-14-10" name="__codelineno-14-10" href="#__codelineno-14-10"></a>
 <a id="__codelineno-14-11" name="__codelineno-14-11" href="#__codelineno-14-11"></a>    <span class="nd">@task</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
 <a id="__codelineno-14-12" name="__codelineno-14-12" href="#__codelineno-14-12"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">parse_drawing</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1472,7 +1472,7 @@ Create <code>docs/ENVIRONMENT_VARIABLES.md</code>:
 <a id="__codelineno-16-8" name="__codelineno-16-8" href="#__codelineno-16-8"></a><span class="p">)</span>
 <a id="__codelineno-16-9" name="__codelineno-16-9" href="#__codelineno-16-9"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">fetch_weather_data</span><span class="p">(</span><span class="n">lat</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">lon</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
 <a id="__codelineno-16-10" name="__codelineno-16-10" href="#__codelineno-16-10"></a>    <span class="k">async</span> <span class="k">with</span> <span class="n">httpx</span><span class="o">.</span><span class="n">AsyncClient</span><span class="p">(</span><span class="n">timeout</span><span class="o">=</span><span class="mf">10.0</span><span class="p">)</span> <span class="k">as</span> <span class="n">client</span><span class="p">:</span>
-<a id="__codelineno-16-11" name="__codelineno-16-11" href="#__codelineno-16-11"></a>        <span class="n">resp</span> <span class="o">=</span> <span class="k">await</span> <span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;https://api.weather.com/...&quot;</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;lat&quot;</span><span class="p">:</span> <span class="n">lat</span><span class="p">,</span> <span class="s2">&quot;lon&quot;</span><span class="p">:</span> <span class="n">lon</span><span class="p">})</span>
+<a id="__codelineno-16-11" name="__codelineno-16-11" href="#__codelineno-16-11"></a>        <span class="n">resp</span> <span class="o">=</span> <span class="k">await</span> <span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="sa">f</span><span class="s2">"https://api.weather.com/..."</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">"lat"</span><span class="p">:</span> <span class="n">lat</span><span class="p">,</span> <span class="s2">"lon"</span><span class="p">:</span> <span class="n">lon</span><span class="p">})</span>
 <a id="__codelineno-16-12" name="__codelineno-16-12" href="#__codelineno-16-12"></a>        <span class="n">resp</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span>
 <a id="__codelineno-16-13" name="__codelineno-16-13" href="#__codelineno-16-13"></a>        <span class="k">return</span> <span class="n">resp</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
 </code></pre></div></p>
@@ -1489,7 +1489,7 @@ Create <code>docs/ENVIRONMENT_VARIABLES.md</code>:
 <a id="__codelineno-17-7" name="__codelineno-17-7" href="#__codelineno-17-7"></a>
 <a id="__codelineno-17-8" name="__codelineno-17-8" href="#__codelineno-17-8"></a>    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <a id="__codelineno-17-9" name="__codelineno-17-9" href="#__codelineno-17-9"></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">should_fail</span><span class="p">():</span>
-<a id="__codelineno-17-10" name="__codelineno-17-10" href="#__codelineno-17-10"></a>            <span class="k">raise</span> <span class="n">CircuitOpenError</span><span class="p">(</span><span class="s2">&quot;Service temporarily unavailable&quot;</span><span class="p">)</span>
+<a id="__codelineno-17-10" name="__codelineno-17-10" href="#__codelineno-17-10"></a>            <span class="k">raise</span> <span class="n">CircuitOpenError</span><span class="p">(</span><span class="s2">"Service temporarily unavailable"</span><span class="p">)</span>
 <a id="__codelineno-17-11" name="__codelineno-17-11" href="#__codelineno-17-11"></a>
 <a id="__codelineno-17-12" name="__codelineno-17-12" href="#__codelineno-17-12"></a>        <span class="k">try</span><span class="p">:</span>
 <a id="__codelineno-17-13" name="__codelineno-17-13" href="#__codelineno-17-13"></a>            <span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
@@ -1522,14 +1522,14 @@ Create <code>docs/ENVIRONMENT_VARIABLES.md</code>:
 <a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a>
 <a id="__codelineno-18-6" name="__codelineno-18-6" href="#__codelineno-18-6"></a><span class="c1"># In middleware</span>
 <a id="__codelineno-18-7" name="__codelineno-18-7" href="#__codelineno-18-7"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scope</span><span class="p">,</span> <span class="n">receive</span><span class="p">,</span> <span class="n">send</span><span class="p">):</span>
-<a id="__codelineno-18-8" name="__codelineno-18-8" href="#__codelineno-18-8"></a>    <span class="n">correlation_id</span> <span class="o">=</span> <span class="n">scope</span><span class="p">[</span><span class="s2">&quot;state&quot;</span><span class="p">][</span><span class="s2">&quot;correlation_id&quot;</span><span class="p">]</span>
+<a id="__codelineno-18-8" name="__codelineno-18-8" href="#__codelineno-18-8"></a>    <span class="n">correlation_id</span> <span class="o">=</span> <span class="n">scope</span><span class="p">[</span><span class="s2">"state"</span><span class="p">][</span><span class="s2">"correlation_id"</span><span class="p">]</span>
 <a id="__codelineno-18-9" name="__codelineno-18-9" href="#__codelineno-18-9"></a>
 <a id="__codelineno-18-10" name="__codelineno-18-10" href="#__codelineno-18-10"></a>    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-<a id="__codelineno-18-11" name="__codelineno-18-11" href="#__codelineno-18-11"></a>        <span class="s2">&quot;request_started&quot;</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="n">scope</span><span class="p">[</span><span class="s2">&quot;method&quot;</span><span class="p">],</span> <span class="n">path</span><span class="o">=</span><span class="n">scope</span><span class="p">[</span><span class="s2">&quot;path&quot;</span><span class="p">],</span> <span class="n">correlation_id</span><span class="o">=</span><span class="n">correlation_id</span>
+<a id="__codelineno-18-11" name="__codelineno-18-11" href="#__codelineno-18-11"></a>        <span class="s2">"request_started"</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="n">scope</span><span class="p">[</span><span class="s2">"method"</span><span class="p">],</span> <span class="n">path</span><span class="o">=</span><span class="n">scope</span><span class="p">[</span><span class="s2">"path"</span><span class="p">],</span> <span class="n">correlation_id</span><span class="o">=</span><span class="n">correlation_id</span>
 <a id="__codelineno-18-12" name="__codelineno-18-12" href="#__codelineno-18-12"></a>    <span class="p">)</span>
 </code></pre></div></p>
 <p><strong>Verification:</strong>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>python<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;import logging; handler = logging.StreamHandler(); logger = logging.getLogger(); logger.addHandler(handler); logger.setLevel(logging.INFO)&quot;</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>python<span class="w"> </span>-c<span class="w"> </span><span class="s2">"import logging; handler = logging.StreamHandler(); logger = logging.getLogger(); logger.addHandler(handler); logger.setLevel(logging.INFO)"</span>
 </code></pre></div></p>
 <hr />
 <h2 id="4-testing">🧪 4. TESTING</h2>
@@ -1565,14 +1565,14 @@ Create <code>docs/ENVIRONMENT_VARIABLES.md</code>:
 <div class="highlight"><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a><span class="c1"># tests/test_api_endpoints.py</span>
 <a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a><span class="k">class</span><span class="w"> </span><span class="nc">TestHealthEndpoint</span><span class="p">:</span>
 <a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">test_health_returns_200</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">client</span><span class="p">):</span>
-<a id="__codelineno-21-4" name="__codelineno-21-4" href="#__codelineno-21-4"></a>        <span class="n">resp</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/api/v1/health&quot;</span><span class="p">)</span>
+<a id="__codelineno-21-4" name="__codelineno-21-4" href="#__codelineno-21-4"></a>        <span class="n">resp</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"/api/v1/health"</span><span class="p">)</span>
 <a id="__codelineno-21-5" name="__codelineno-21-5" href="#__codelineno-21-5"></a>        <span class="k">assert</span> <span class="n">resp</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">200</span>
-<a id="__codelineno-21-6" name="__codelineno-21-6" href="#__codelineno-21-6"></a>        <span class="k">assert</span> <span class="s2">&quot;uptime_seconds&quot;</span> <span class="ow">in</span> <span class="n">resp</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+<a id="__codelineno-21-6" name="__codelineno-21-6" href="#__codelineno-21-6"></a>        <span class="k">assert</span> <span class="s2">"uptime_seconds"</span> <span class="ow">in</span> <span class="n">resp</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
 <a id="__codelineno-21-7" name="__codelineno-21-7" href="#__codelineno-21-7"></a>
 <a id="__codelineno-21-8" name="__codelineno-21-8" href="#__codelineno-21-8"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">test_health_security_headers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">client</span><span class="p">):</span>
-<a id="__codelineno-21-9" name="__codelineno-21-9" href="#__codelineno-21-9"></a>        <span class="n">resp</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/api/v1/health&quot;</span><span class="p">)</span>
-<a id="__codelineno-21-10" name="__codelineno-21-10" href="#__codelineno-21-10"></a>        <span class="k">assert</span> <span class="s2">&quot;x-frame-options&quot;</span> <span class="ow">in</span> <span class="n">resp</span><span class="o">.</span><span class="n">headers</span>
-<a id="__codelineno-21-11" name="__codelineno-21-11" href="#__codelineno-21-11"></a>        <span class="k">assert</span> <span class="s2">&quot;content-security-policy&quot;</span> <span class="ow">in</span> <span class="n">resp</span><span class="o">.</span><span class="n">headers</span>
+<a id="__codelineno-21-9" name="__codelineno-21-9" href="#__codelineno-21-9"></a>        <span class="n">resp</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"/api/v1/health"</span><span class="p">)</span>
+<a id="__codelineno-21-10" name="__codelineno-21-10" href="#__codelineno-21-10"></a>        <span class="k">assert</span> <span class="s2">"x-frame-options"</span> <span class="ow">in</span> <span class="n">resp</span><span class="o">.</span><span class="n">headers</span>
+<a id="__codelineno-21-11" name="__codelineno-21-11" href="#__codelineno-21-11"></a>        <span class="k">assert</span> <span class="s2">"content-security-policy"</span> <span class="ow">in</span> <span class="n">resp</span><span class="o">.</span><span class="n">headers</span>
 </code></pre></div></p>
 <p><strong>Run Tests:</strong>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>pip<span class="w"> </span>install<span class="w"> </span>pytest<span class="w"> </span>pytest-cov
@@ -1664,24 +1664,24 @@ Create <code>docs/ENVIRONMENT_VARIABLES.md</code>:
 <a id="__codelineno-25-12" name="__codelineno-25-12" href="#__codelineno-25-12"></a>**Implementation:**
 <a id="__codelineno-25-13" name="__codelineno-25-13" href="#__codelineno-25-13"></a>```python
 <a id="__codelineno-25-14" name="__codelineno-25-14" href="#__codelineno-25-14"></a>@router.get(
-<a id="__codelineno-25-15" name="__codelineno-25-15" href="#__codelineno-25-15"></a>    &quot;/api/v1/health&quot;,
-<a id="__codelineno-25-16" name="__codelineno-25-16" href="#__codelineno-25-16"></a>    summary=&quot;Health check endpoint&quot;,
-<a id="__codelineno-25-17" name="__codelineno-25-17" href="#__codelineno-25-17"></a>    description=&quot;Returns system health status and uptime&quot;,
+<a id="__codelineno-25-15" name="__codelineno-25-15" href="#__codelineno-25-15"></a>    "/api/v1/health",
+<a id="__codelineno-25-16" name="__codelineno-25-16" href="#__codelineno-25-16"></a>    summary="Health check endpoint",
+<a id="__codelineno-25-17" name="__codelineno-25-17" href="#__codelineno-25-17"></a>    description="Returns system health status and uptime",
 <a id="__codelineno-25-18" name="__codelineno-25-18" href="#__codelineno-25-18"></a>    responses={
 <a id="__codelineno-25-19" name="__codelineno-25-19" href="#__codelineno-25-19"></a>        200: {
-<a id="__codelineno-25-20" name="__codelineno-25-20" href="#__codelineno-25-20"></a>            &quot;description&quot;: &quot;System healthy&quot;,
-<a id="__codelineno-25-21" name="__codelineno-25-21" href="#__codelineno-25-21"></a>            &quot;content&quot;: {
-<a id="__codelineno-25-22" name="__codelineno-25-22" href="#__codelineno-25-22"></a>                &quot;application/json&quot;: {
-<a id="__codelineno-25-23" name="__codelineno-25-23" href="#__codelineno-25-23"></a>                    &quot;example&quot;: {
-<a id="__codelineno-25-24" name="__codelineno-25-24" href="#__codelineno-25-24"></a>                        &quot;status&quot;: &quot;healthy&quot;,
-<a id="__codelineno-25-25" name="__codelineno-25-25" href="#__codelineno-25-25"></a>                        &quot;uptime_seconds&quot;: 3600,
-<a id="__codelineno-25-26" name="__codelineno-25-26" href="#__codelineno-25-26"></a>                        &quot;version&quot;: &quot;1.0.0&quot;
+<a id="__codelineno-25-20" name="__codelineno-25-20" href="#__codelineno-25-20"></a>            "description": "System healthy",
+<a id="__codelineno-25-21" name="__codelineno-25-21" href="#__codelineno-25-21"></a>            "content": {
+<a id="__codelineno-25-22" name="__codelineno-25-22" href="#__codelineno-25-22"></a>                "application/json": {
+<a id="__codelineno-25-23" name="__codelineno-25-23" href="#__codelineno-25-23"></a>                    "example": {
+<a id="__codelineno-25-24" name="__codelineno-25-24" href="#__codelineno-25-24"></a>                        "status": "healthy",
+<a id="__codelineno-25-25" name="__codelineno-25-25" href="#__codelineno-25-25"></a>                        "uptime_seconds": 3600,
+<a id="__codelineno-25-26" name="__codelineno-25-26" href="#__codelineno-25-26"></a>                        "version": "1.0.0"
 <a id="__codelineno-25-27" name="__codelineno-25-27" href="#__codelineno-25-27"></a>                    }
 <a id="__codelineno-25-28" name="__codelineno-25-28" href="#__codelineno-25-28"></a>                }
 <a id="__codelineno-25-29" name="__codelineno-25-29" href="#__codelineno-25-29"></a>            }
 <a id="__codelineno-25-30" name="__codelineno-25-30" href="#__codelineno-25-30"></a>        },
 <a id="__codelineno-25-31" name="__codelineno-25-31" href="#__codelineno-25-31"></a>        503: {
-<a id="__codelineno-25-32" name="__codelineno-25-32" href="#__codelineno-25-32"></a>            &quot;description&quot;: &quot;Database connection failed&quot;
+<a id="__codelineno-25-32" name="__codelineno-25-32" href="#__codelineno-25-32"></a>            "description": "Database connection failed"
 <a id="__codelineno-25-33" name="__codelineno-25-33" href="#__codelineno-25-33"></a>        }
 <a id="__codelineno-25-34" name="__codelineno-25-34" href="#__codelineno-25-34"></a>    }
 <a id="__codelineno-25-35" name="__codelineno-25-35" href="#__codelineno-25-35"></a>)
@@ -1772,7 +1772,7 @@ Create <code>docs/ENVIRONMENT_VARIABLES.md</code>:
 <h3 id="item-73-git-history-security">Item 7.3: Git History Security</h3>
 <p><strong>Check for leaked secrets:</strong>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-29-1" name="__codelineno-29-1" href="#__codelineno-29-1"></a><span class="c"># Search git history</span>
-<a id="__codelineno-29-2" name="__codelineno-29-2" href="#__codelineno-29-2"></a><span class="n">git</span> <span class="n">log</span> <span class="n">-p</span> <span class="p">-</span><span class="n">-all</span> <span class="n">-S</span> <span class="s2">&quot;your-suspicious-string-here&quot;</span>
+<a id="__codelineno-29-2" name="__codelineno-29-2" href="#__codelineno-29-2"></a><span class="n">git</span> <span class="n">log</span> <span class="n">-p</span> <span class="p">-</span><span class="n">-all</span> <span class="n">-S</span> <span class="s2">"your-suspicious-string-here"</span>
 <a id="__codelineno-29-3" name="__codelineno-29-3" href="#__codelineno-29-3"></a>
 <a id="__codelineno-29-4" name="__codelineno-29-4" href="#__codelineno-29-4"></a><span class="c"># Use git-secrets</span>
 <a id="__codelineno-29-5" name="__codelineno-29-5" href="#__codelineno-29-5"></a><span class="n">git</span> <span class="n">secrets</span> <span class="p">-</span><span class="n">-register-aws</span>

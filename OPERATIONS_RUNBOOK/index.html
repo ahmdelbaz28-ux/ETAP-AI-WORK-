@@ -2762,7 +2762,7 @@
 <a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a>
 <a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a># Step 4: Run health check
 <a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a>curl http://localhost:3000/health
-<a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a># Expected: {&quot;status&quot;:&quot;healthy&quot;,&quot;timestamp&quot;:&quot;...&quot;,&quot;version&quot;:&quot;1.0.0&quot;}
+<a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a># Expected: {"status":"healthy","timestamp":"...","version":"1.0.0"}
 </code></pre></div>
 <h4 id="option-b-standalone-development">Option B: Standalone (Development)</h4>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a># Step 1: Activate Python virtual environment
@@ -2781,7 +2781,7 @@
 </code></pre></div>
 <h4 id="option-c-windows-service">Option C: Windows Service</h4>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a># Install as Windows service
-<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>sc create &quot;ETAPPlatform&quot; binPath=&quot;C:\Python311\python.exe C:\app\main.py --service&quot; start=auto
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>sc create "ETAPPlatform" binPath="C:\Python311\python.exe C:\app\main.py --service" start=auto
 <a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>
 <a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a># Start the service
 <a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>net start ETAPPlatform
@@ -2807,12 +2807,12 @@
 <h4 id="emergency-shutdown-system-unresponsive">Emergency Shutdown (System Unresponsive)</h4>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a># Force kill all platform processes
 <a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>docker-compose down --timeout 0
-<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>taskkill /F /FI &quot;IMAGENAME eq python.exe&quot;
-<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>taskkill /F /FI &quot;IMAGENAME eq node.exe&quot;
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>taskkill /F /FI "IMAGENAME eq python.exe"
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>taskkill /F /FI "IMAGENAME eq node.exe"
 <a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>taskkill /F /IM etap.exe  # If ETAP is stuck
 <a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>
 <a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a># Verify no orphaned processes
-<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>tasklist | findstr /I &quot;python node etap&quot;
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>tasklist | findstr /I "python node etap"
 </code></pre></div>
 <h3 id="23-restarting-services">2.3 Restarting Services</h3>
 <h4 id="restart-all-services">Restart All Services</h4>
@@ -2854,15 +2854,15 @@
 <a id="__codelineno-10-15" name="__codelineno-10-15" href="#__codelineno-10-15"></a>copy .env %BACKUP_DIR%\env_%TIMESTAMP%.txt
 <a id="__codelineno-10-16" name="__codelineno-10-16" href="#__codelineno-10-16"></a>
 <a id="__codelineno-10-17" name="__codelineno-10-17" href="#__codelineno-10-17"></a># Remove backups older than 30 days
-<a id="__codelineno-10-18" name="__codelineno-10-18" href="#__codelineno-10-18"></a>forfiles -p %BACKUP_DIR% -m *.db -d -30 -c &quot;cmd /c del @path&quot;
-<a id="__codelineno-10-19" name="__codelineno-10-19" href="#__codelineno-10-19"></a>forfiles -p %BACKUP_DIR% -m *.tar.gz -d -30 -c &quot;cmd /c del @path&quot;
+<a id="__codelineno-10-18" name="__codelineno-10-18" href="#__codelineno-10-18"></a>forfiles -p %BACKUP_DIR% -m *.db -d -30 -c "cmd /c del @path"
+<a id="__codelineno-10-19" name="__codelineno-10-19" href="#__codelineno-10-19"></a>forfiles -p %BACKUP_DIR% -m *.tar.gz -d -30 -c "cmd /c del @path"
 </code></pre></div>
 <h4 id="full-system-backup">Full System Backup</h4>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a># Backup script: backup.sh / backup.ps1
 <a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a># This should be run daily via Windows Task Scheduler
 <a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>
-<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>$backupRoot = &quot;.\backups&quot;
-<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>$timestamp = Get-Date -Format &quot;yyyyMMdd_HHmmss&quot;
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>$backupRoot = ".\backups"
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>$timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
 <a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>$backupDir = Join-Path $backupRoot $timestamp
 <a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a>
 <a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a>New-Item -ItemType Directory -Path $backupDir -Force
@@ -2871,17 +2871,17 @@
 <a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a>docker-compose pause
 <a id="__codelineno-11-12" name="__codelineno-11-12" href="#__codelineno-11-12"></a>
 <a id="__codelineno-11-13" name="__codelineno-11-13" href="#__codelineno-11-13"></a># Backup databases
-<a id="__codelineno-11-14" name="__codelineno-11-14" href="#__codelineno-11-14"></a>Copy-Item &quot;mastra.db&quot; (Join-Path $backupDir &quot;mastra.db&quot;)
-<a id="__codelineno-11-15" name="__codelineno-11-15" href="#__codelineno-11-15"></a>Copy-Item &quot;mastra.duckdb&quot; (Join-Path $backupDir &quot;mastra.duckdb&quot;)
+<a id="__codelineno-11-14" name="__codelineno-11-14" href="#__codelineno-11-14"></a>Copy-Item "mastra.db" (Join-Path $backupDir "mastra.db")
+<a id="__codelineno-11-15" name="__codelineno-11-15" href="#__codelineno-11-15"></a>Copy-Item "mastra.duckdb" (Join-Path $backupDir "mastra.duckdb")
 <a id="__codelineno-11-16" name="__codelineno-11-16" href="#__codelineno-11-16"></a>
 <a id="__codelineno-11-17" name="__codelineno-11-17" href="#__codelineno-11-17"></a># Backup knowledge base
-<a id="__codelineno-11-18" name="__codelineno-11-18" href="#__codelineno-11-18"></a>Compress-Archive -Path &quot;knowledge_db\*&quot; -DestinationPath (Join-Path $backupDir &quot;knowledge_db.zip&quot;)
+<a id="__codelineno-11-18" name="__codelineno-11-18" href="#__codelineno-11-18"></a>Compress-Archive -Path "knowledge_db\*" -DestinationPath (Join-Path $backupDir "knowledge_db.zip")
 <a id="__codelineno-11-19" name="__codelineno-11-19" href="#__codelineno-11-19"></a>
 <a id="__codelineno-11-20" name="__codelineno-11-20" href="#__codelineno-11-20"></a># Backup reports
-<a id="__codelineno-11-21" name="__codelineno-11-21" href="#__codelineno-11-21"></a>Compress-Archive -Path &quot;reports\*&quot; -DestinationPath (Join-Path $backupDir &quot;reports.zip&quot;)
+<a id="__codelineno-11-21" name="__codelineno-11-21" href="#__codelineno-11-21"></a>Compress-Archive -Path "reports\*" -DestinationPath (Join-Path $backupDir "reports.zip")
 <a id="__codelineno-11-22" name="__codelineno-11-22" href="#__codelineno-11-22"></a>
 <a id="__codelineno-11-23" name="__codelineno-11-23" href="#__codelineno-11-23"></a># Backup environment (redact secrets)
-<a id="__codelineno-11-24" name="__codelineno-11-24" href="#__codelineno-11-24"></a>Get-Content &quot;.env.example&quot; | Set-Content (Join-Path $backupDir &quot;.env.example&quot;)
+<a id="__codelineno-11-24" name="__codelineno-11-24" href="#__codelineno-11-24"></a>Get-Content ".env.example" | Set-Content (Join-Path $backupDir ".env.example")
 <a id="__codelineno-11-25" name="__codelineno-11-25" href="#__codelineno-11-25"></a>
 <a id="__codelineno-11-26" name="__codelineno-11-26" href="#__codelineno-11-26"></a># Resume services
 <a id="__codelineno-11-27" name="__codelineno-11-27" href="#__codelineno-11-27"></a>docker-compose unpause
@@ -2889,7 +2889,7 @@
 <a id="__codelineno-11-29" name="__codelineno-11-29" href="#__codelineno-11-29"></a># Retention: keep 30 daily backups, 12 monthly
 <a id="__codelineno-11-30" name="__codelineno-11-30" href="#__codelineno-11-30"></a>Get-ChildItem $backupRoot | Where-Object { $_.PSIsContainer -and $_.CreationTime -lt (Get-Date).AddDays(-30) } | Remove-Item -Recurse -Force
 <a id="__codelineno-11-31" name="__codelineno-11-31" href="#__codelineno-11-31"></a>
-<a id="__codelineno-11-32" name="__codelineno-11-32" href="#__codelineno-11-32"></a>Write-Host &quot;Backup completed: $timestamp&quot;
+<a id="__codelineno-11-32" name="__codelineno-11-32" href="#__codelineno-11-32"></a>Write-Host "Backup completed: $timestamp"
 </code></pre></div>
 <h3 id="25-restore-procedures">2.5 Restore Procedures</h3>
 <h4 id="database-restore">Database Restore</h4>
@@ -2903,14 +2903,14 @@
 <a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a>copy /Y backups\mastra_20260607_020000.db mastra.db
 <a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a>
 <a id="__codelineno-12-10" name="__codelineno-12-10" href="#__codelineno-12-10"></a># Step 4: Verify database integrity
-<a id="__codelineno-12-11" name="__codelineno-12-11" href="#__codelineno-12-11"></a>python -c &quot;
+<a id="__codelineno-12-11" name="__codelineno-12-11" href="#__codelineno-12-11"></a>python -c "
 <a id="__codelineno-12-12" name="__codelineno-12-12" href="#__codelineno-12-12"></a>import sqlite3
-<a id="__codelineno-12-13" name="__codelineno-12-13" href="#__codelineno-12-13"></a>conn = sqlite3.connect(&#39;mastra.db&#39;)
-<a id="__codelineno-12-14" name="__codelineno-12-14" href="#__codelineno-12-14"></a>cursor = conn.execute(&#39;PRAGMA integrity_check&#39;)
+<a id="__codelineno-12-13" name="__codelineno-12-13" href="#__codelineno-12-13"></a>conn = sqlite3.connect('mastra.db')
+<a id="__codelineno-12-14" name="__codelineno-12-14" href="#__codelineno-12-14"></a>cursor = conn.execute('PRAGMA integrity_check')
 <a id="__codelineno-12-15" name="__codelineno-12-15" href="#__codelineno-12-15"></a>result = cursor.fetchone()
-<a id="__codelineno-12-16" name="__codelineno-12-16" href="#__codelineno-12-16"></a>print(f&#39;Integrity check: {result[0]}&#39;)
+<a id="__codelineno-12-16" name="__codelineno-12-16" href="#__codelineno-12-16"></a>print(f'Integrity check: {result[0]}')
 <a id="__codelineno-12-17" name="__codelineno-12-17" href="#__codelineno-12-17"></a>conn.close()
-<a id="__codelineno-12-18" name="__codelineno-12-18" href="#__codelineno-12-18"></a>&quot;
+<a id="__codelineno-12-18" name="__codelineno-12-18" href="#__codelineno-12-18"></a>"
 <a id="__codelineno-12-19" name="__codelineno-12-19" href="#__codelineno-12-19"></a>
 <a id="__codelineno-12-20" name="__codelineno-12-20" href="#__codelineno-12-20"></a># Step 5: Restart services
 <a id="__codelineno-12-21" name="__codelineno-12-21" href="#__codelineno-12-21"></a>docker-compose up -d
@@ -2933,26 +2933,26 @@
 <a id="__codelineno-13-12" name="__codelineno-13-12" href="#__codelineno-13-12"></a>Expand-Archive -Path backups\20260607_020000\reports.zip -DestinationPath .\ -Force
 <a id="__codelineno-13-13" name="__codelineno-13-13" href="#__codelineno-13-13"></a>
 <a id="__codelineno-13-14" name="__codelineno-13-14" href="#__codelineno-13-14"></a># Step 5: Verify database integrity
-<a id="__codelineno-13-15" name="__codelineno-13-15" href="#__codelineno-13-15"></a>python -c &quot;
+<a id="__codelineno-13-15" name="__codelineno-13-15" href="#__codelineno-13-15"></a>python -c "
 <a id="__codelineno-13-16" name="__codelineno-13-16" href="#__codelineno-13-16"></a>import sqlite3
-<a id="__codelineno-13-17" name="__codelineno-13-17" href="#__codelineno-13-17"></a>conn = sqlite3.connect(&#39;mastra.db&#39;)
-<a id="__codelineno-13-18" name="__codelineno-13-18" href="#__codelineno-13-18"></a>assert conn.execute(&#39;PRAGMA integrity_check&#39;).fetchone()[0] == &#39;ok&#39;
-<a id="__codelineno-13-19" name="__codelineno-13-19" href="#__codelineno-13-19"></a>print(&#39;Database integrity: OK&#39;)
+<a id="__codelineno-13-17" name="__codelineno-13-17" href="#__codelineno-13-17"></a>conn = sqlite3.connect('mastra.db')
+<a id="__codelineno-13-18" name="__codelineno-13-18" href="#__codelineno-13-18"></a>assert conn.execute('PRAGMA integrity_check').fetchone()[0] == 'ok'
+<a id="__codelineno-13-19" name="__codelineno-13-19" href="#__codelineno-13-19"></a>print('Database integrity: OK')
 <a id="__codelineno-13-20" name="__codelineno-13-20" href="#__codelineno-13-20"></a>conn.close()
-<a id="__codelineno-13-21" name="__codelineno-13-21" href="#__codelineno-13-21"></a>&quot;
+<a id="__codelineno-13-21" name="__codelineno-13-21" href="#__codelineno-13-21"></a>"
 <a id="__codelineno-13-22" name="__codelineno-13-22" href="#__codelineno-13-22"></a>
 <a id="__codelineno-13-23" name="__codelineno-13-23" href="#__codelineno-13-23"></a># Step 6: Start services
 <a id="__codelineno-13-24" name="__codelineno-13-24" href="#__codelineno-13-24"></a>docker-compose up -d
 <a id="__codelineno-13-25" name="__codelineno-13-25" href="#__codelineno-13-25"></a>
 <a id="__codelineno-13-26" name="__codelineno-13-26" href="#__codelineno-13-26"></a># Step 7: Verify
-<a id="__codelineno-13-27" name="__codelineno-13-27" href="#__codelineno-13-27"></a>python -c &quot;
+<a id="__codelineno-13-27" name="__codelineno-13-27" href="#__codelineno-13-27"></a>python -c "
 <a id="__codelineno-13-28" name="__codelineno-13-28" href="#__codelineno-13-28"></a>import sqlite3
-<a id="__codelineno-13-29" name="__codelineno-13-29" href="#__codelineno-13-29"></a>conn = sqlite3.connect(&#39;mastra.db&#39;)
+<a id="__codelineno-13-29" name="__codelineno-13-29" href="#__codelineno-13-29"></a>conn = sqlite3.connect('mastra.db')
 <a id="__codelineno-13-30" name="__codelineno-13-30" href="#__codelineno-13-30"></a># Check that key tables have data
-<a id="__codelineno-13-31" name="__codelineno-13-31" href="#__codelineno-13-31"></a>tables = conn.execute(\&quot;SELECT name FROM sqlite_master WHERE type=&#39;table&#39;\&quot;).fetchall()
-<a id="__codelineno-13-32" name="__codelineno-13-32" href="#__codelineno-13-32"></a>print(f&#39;Tables restored: {len(tables)}&#39;)
+<a id="__codelineno-13-31" name="__codelineno-13-31" href="#__codelineno-13-31"></a>tables = conn.execute(\"SELECT name FROM sqlite_master WHERE type='table'\").fetchall()
+<a id="__codelineno-13-32" name="__codelineno-13-32" href="#__codelineno-13-32"></a>print(f'Tables restored: {len(tables)}')
 <a id="__codelineno-13-33" name="__codelineno-13-33" href="#__codelineno-13-33"></a>conn.close()
-<a id="__codelineno-13-34" name="__codelineno-13-34" href="#__codelineno-13-34"></a>&quot;
+<a id="__codelineno-13-34" name="__codelineno-13-34" href="#__codelineno-13-34"></a>"
 </code></pre></div>
 <hr />
 <h2 id="3-monitoring">3. Monitoring</h2>
@@ -3166,8 +3166,8 @@
 <h4 id="prometheus-metrics-endpoint">Prometheus Metrics Endpoint</h4>
 <p>The Python backend exposes metrics at <code>http://localhost:8000/metrics</code>:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a># Example Prometheus metrics
-<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>http_requests_total{method=&quot;POST&quot;,endpoint=&quot;/api/v1/analyze&quot;,status=&quot;200&quot;} 1254
-<a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a>http_request_duration_seconds{endpoint=&quot;/api/v1/analyze&quot;,quantile=&quot;0.95&quot;} 2.3
+<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>http_requests_total{method="POST",endpoint="/api/v1/analyze",status="200"} 1254
+<a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a>http_request_duration_seconds{endpoint="/api/v1/analyze",quantile="0.95"} 2.3
 <a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a>active_workflows 3
 <a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a>etap_connection_status 1
 <a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a>load_flow_convergence_rate 0.97
@@ -3269,34 +3269,34 @@
 </table>
 <h4 id="log-format-json">Log Format (JSON)</h4>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="p">{</span>
-<a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a><span class="w">  </span><span class="nt">&quot;timestamp&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2026-06-08T12:00:00.000Z&quot;</span><span class="p">,</span>
-<a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a><span class="w">  </span><span class="nt">&quot;level&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ERROR&quot;</span><span class="p">,</span>
-<a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a><span class="w">  </span><span class="nt">&quot;module&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;etap_integration.etap_com&quot;</span><span class="p">,</span>
-<a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a><span class="w">  </span><span class="nt">&quot;message&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ETAP COM connection failed&quot;</span><span class="p">,</span>
-<a id="__codelineno-17-6" name="__codelineno-17-6" href="#__codelineno-17-6"></a><span class="w">  </span><span class="nt">&quot;error_code&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ERR-001&quot;</span><span class="p">,</span>
-<a id="__codelineno-17-7" name="__codelineno-17-7" href="#__codelineno-17-7"></a><span class="w">  </span><span class="nt">&quot;task_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;wf_20260608_120000&quot;</span><span class="p">,</span>
-<a id="__codelineno-17-8" name="__codelineno-17-8" href="#__codelineno-17-8"></a><span class="w">  </span><span class="nt">&quot;user&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;engineer@example.com&quot;</span><span class="p">,</span>
-<a id="__codelineno-17-9" name="__codelineno-17-9" href="#__codelineno-17-9"></a><span class="w">  </span><span class="nt">&quot;duration_ms&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">15342</span><span class="p">,</span>
-<a id="__codelineno-17-10" name="__codelineno-17-10" href="#__codelineno-17-10"></a><span class="w">  </span><span class="nt">&quot;details&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-17-11" name="__codelineno-17-11" href="#__codelineno-17-11"></a><span class="w">    </span><span class="nt">&quot;reason&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ETAP not installed&quot;</span><span class="p">,</span>
-<a id="__codelineno-17-12" name="__codelineno-17-12" href="#__codelineno-17-12"></a><span class="w">    </span><span class="nt">&quot;attempt&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span>
-<a id="__codelineno-17-13" name="__codelineno-17-13" href="#__codelineno-17-13"></a><span class="w">    </span><span class="nt">&quot;last_error&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;pythoncom.com_error: (-2147221164, &#39;Class not registered&#39;, None, None)&quot;</span>
+<a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a><span class="w">  </span><span class="nt">"timestamp"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2026-06-08T12:00:00.000Z"</span><span class="p">,</span>
+<a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a><span class="w">  </span><span class="nt">"level"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ERROR"</span><span class="p">,</span>
+<a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a><span class="w">  </span><span class="nt">"module"</span><span class="p">:</span><span class="w"> </span><span class="s2">"etap_integration.etap_com"</span><span class="p">,</span>
+<a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a><span class="w">  </span><span class="nt">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ETAP COM connection failed"</span><span class="p">,</span>
+<a id="__codelineno-17-6" name="__codelineno-17-6" href="#__codelineno-17-6"></a><span class="w">  </span><span class="nt">"error_code"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ERR-001"</span><span class="p">,</span>
+<a id="__codelineno-17-7" name="__codelineno-17-7" href="#__codelineno-17-7"></a><span class="w">  </span><span class="nt">"task_id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"wf_20260608_120000"</span><span class="p">,</span>
+<a id="__codelineno-17-8" name="__codelineno-17-8" href="#__codelineno-17-8"></a><span class="w">  </span><span class="nt">"user"</span><span class="p">:</span><span class="w"> </span><span class="s2">"engineer@example.com"</span><span class="p">,</span>
+<a id="__codelineno-17-9" name="__codelineno-17-9" href="#__codelineno-17-9"></a><span class="w">  </span><span class="nt">"duration_ms"</span><span class="p">:</span><span class="w"> </span><span class="mi">15342</span><span class="p">,</span>
+<a id="__codelineno-17-10" name="__codelineno-17-10" href="#__codelineno-17-10"></a><span class="w">  </span><span class="nt">"details"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-17-11" name="__codelineno-17-11" href="#__codelineno-17-11"></a><span class="w">    </span><span class="nt">"reason"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ETAP not installed"</span><span class="p">,</span>
+<a id="__codelineno-17-12" name="__codelineno-17-12" href="#__codelineno-17-12"></a><span class="w">    </span><span class="nt">"attempt"</span><span class="p">:</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span>
+<a id="__codelineno-17-13" name="__codelineno-17-13" href="#__codelineno-17-13"></a><span class="w">    </span><span class="nt">"last_error"</span><span class="p">:</span><span class="w"> </span><span class="s2">"pythoncom.com_error: (-2147221164, 'Class not registered', None, None)"</span>
 <a id="__codelineno-17-14" name="__codelineno-17-14" href="#__codelineno-17-14"></a><span class="w">  </span><span class="p">},</span>
-<a id="__codelineno-17-15" name="__codelineno-17-15" href="#__codelineno-17-15"></a><span class="w">  </span><span class="nt">&quot;stack_trace&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Traceback (most recent call last):\n  ...&quot;</span>
+<a id="__codelineno-17-15" name="__codelineno-17-15" href="#__codelineno-17-15"></a><span class="w">  </span><span class="nt">"stack_trace"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Traceback (most recent call last):\n  ..."</span>
 <a id="__codelineno-17-16" name="__codelineno-17-16" href="#__codelineno-17-16"></a><span class="p">}</span>
 </code></pre></div>
 <h4 id="log-query-examples">Log Query Examples</h4>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a># Find all ERROR level logs in the last hour
-<a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a>Get-Content logs\python-backend.log | Select-String &#39;&quot;level&quot;:&quot;ERROR&quot;&#39; | Select-String &quot;2026-06-08T1[2-3]&quot;
+<a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a>Get-Content logs\python-backend.log | Select-String '"level":"ERROR"' | Select-String "2026-06-08T1[2-3]"
 <a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a>
 <a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a># Find all ERR-001 occurrences
-<a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a>Get-Content logs\etap-com.log | Select-String &quot;ERR-001&quot;
+<a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a>Get-Content logs\etap-com.log | Select-String "ERR-001"
 <a id="__codelineno-18-6" name="__codelineno-18-6" href="#__codelineno-18-6"></a>
 <a id="__codelineno-18-7" name="__codelineno-18-7" href="#__codelineno-18-7"></a># Find logs for a specific task
-<a id="__codelineno-18-8" name="__codelineno-18-8" href="#__codelineno-18-8"></a>Get-Content logs\*.log | Select-String &quot;wf_20260608_120000&quot;
+<a id="__codelineno-18-8" name="__codelineno-18-8" href="#__codelineno-18-8"></a>Get-Content logs\*.log | Select-String "wf_20260608_120000"
 <a id="__codelineno-18-9" name="__codelineno-18-9" href="#__codelineno-18-9"></a>
 <a id="__codelineno-18-10" name="__codelineno-18-10" href="#__codelineno-18-10"></a># Calculate error rate per minute
-<a id="__codelineno-18-11" name="__codelineno-18-11" href="#__codelineno-18-11"></a>Get-Content logs\python-backend.log | Select-String &quot;ERROR&quot; | Group-Object { $_.substring(0, 16) } | Format-Table Count, Name
+<a id="__codelineno-18-11" name="__codelineno-18-11" href="#__codelineno-18-11"></a>Get-Content logs\python-backend.log | Select-String "ERROR" | Group-Object { $_.substring(0, 16) } | Format-Table Count, Name
 <a id="__codelineno-18-12" name="__codelineno-18-12" href="#__codelineno-18-12"></a>
 <a id="__codelineno-18-13" name="__codelineno-18-13" href="#__codelineno-18-13"></a># Top 10 slowest operations
 <a id="__codelineno-18-14" name="__codelineno-18-14" href="#__codelineno-18-14"></a>Get-Content logs\etap-com.log | ConvertFrom-Json | Where-Object { $_.duration_ms -gt 10000 } | Sort-Object duration_ms -Descending | Select-Object -First 10
@@ -3455,9 +3455,9 @@
    <div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>docker-compose restart
 </code></pre></div>
 4. <strong>Check host system:</strong>
-   <div class="highlight"><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>systeminfo | findstr &quot;Total Physical Memory&quot;
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>systeminfo | findstr "Total Physical Memory"
 <a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a>dir C:\  # Check disk space
-<a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a>netstat -ano | findstr &quot;:3000 :8000&quot;
+<a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a>netstat -ano | findstr ":3000 :8000"
 </code></pre></div>
 5. <strong>If restart fails, try rebuild:</strong>
    <div class="highlight"><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>docker-compose down --timeout 0
@@ -3540,25 +3540,25 @@
    <div class="highlight"><pre><span></span><code><a id="__codelineno-31-1" name="__codelineno-31-1" href="#__codelineno-31-1"></a>copy mastra.db mastra.db.corrupted_$(date +%Y%m%d)
 </code></pre></div>
 3. <strong>Check what's affected:</strong>
-   <div class="highlight"><pre><span></span><code><a id="__codelineno-32-1" name="__codelineno-32-1" href="#__codelineno-32-1"></a>python -c &quot;
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-32-1" name="__codelineno-32-1" href="#__codelineno-32-1"></a>python -c "
 <a id="__codelineno-32-2" name="__codelineno-32-2" href="#__codelineno-32-2"></a>import sqlite3
-<a id="__codelineno-32-3" name="__codelineno-32-3" href="#__codelineno-32-3"></a>conn = sqlite3.connect(&#39;mastra.db&#39;)
-<a id="__codelineno-32-4" name="__codelineno-32-4" href="#__codelineno-32-4"></a>cursor = conn.execute(&#39;PRAGMA integrity_check&#39;)
+<a id="__codelineno-32-3" name="__codelineno-32-3" href="#__codelineno-32-3"></a>conn = sqlite3.connect('mastra.db')
+<a id="__codelineno-32-4" name="__codelineno-32-4" href="#__codelineno-32-4"></a>cursor = conn.execute('PRAGMA integrity_check')
 <a id="__codelineno-32-5" name="__codelineno-32-5" href="#__codelineno-32-5"></a>result = cursor.fetchall()
-<a id="__codelineno-32-6" name="__codelineno-32-6" href="#__codelineno-32-6"></a>print(f&#39;Integrity check: {result}&#39;)
+<a id="__codelineno-32-6" name="__codelineno-32-6" href="#__codelineno-32-6"></a>print(f'Integrity check: {result}')
 <a id="__codelineno-32-7" name="__codelineno-32-7" href="#__codelineno-32-7"></a>conn.close()
-<a id="__codelineno-32-8" name="__codelineno-32-8" href="#__codelineno-32-8"></a>&quot;
+<a id="__codelineno-32-8" name="__codelineno-32-8" href="#__codelineno-32-8"></a>"
 </code></pre></div></p>
 <p><strong>Restoration Actions:</strong>
 1. Identify the latest uncorrupted backup
 2. Restore database from backup (see Section 2.5)
 3. If RAG vector DB is corrupted, rebuild from source documents:
-   <div class="highlight"><pre><span></span><code><a id="__codelineno-33-1" name="__codelineno-33-1" href="#__codelineno-33-1"></a>python -c &quot;
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-33-1" name="__codelineno-33-1" href="#__codelineno-33-1"></a>python -c "
 <a id="__codelineno-33-2" name="__codelineno-33-2" href="#__codelineno-33-2"></a>from knowledge.rag_engine import RAGEngine
 <a id="__codelineno-33-3" name="__codelineno-33-3" href="#__codelineno-33-3"></a>engine = RAGEngine()
-<a id="__codelineno-33-4" name="__codelineno-33-4" href="#__codelineno-33-4"></a>engine.rebuild_index(source_documents=&#39;knowledge/&#39;)
-<a id="__codelineno-33-5" name="__codelineno-33-5" href="#__codelineno-33-5"></a>print(&#39;Vector DB rebuilt&#39;)
-<a id="__codelineno-33-6" name="__codelineno-33-6" href="#__codelineno-33-6"></a>&quot;
+<a id="__codelineno-33-4" name="__codelineno-33-4" href="#__codelineno-33-4"></a>engine.rebuild_index(source_documents='knowledge/')
+<a id="__codelineno-33-5" name="__codelineno-33-5" href="#__codelineno-33-5"></a>print('Vector DB rebuilt')
+<a id="__codelineno-33-6" name="__codelineno-33-6" href="#__codelineno-33-6"></a>"
 </code></pre></div>
 4. Verify data integrity after restore
 5. Resume services</p>
@@ -3582,22 +3582,22 @@
 <a id="__codelineno-34-2" name="__codelineno-34-2" href="#__codelineno-34-2"></a>docker stats --no-stream
 <a id="__codelineno-34-3" name="__codelineno-34-3" href="#__codelineno-34-3"></a>
 <a id="__codelineno-34-4" name="__codelineno-34-4" href="#__codelineno-34-4"></a># Check calculation engine performance
-<a id="__codelineno-34-5" name="__codelineno-34-5" href="#__codelineno-34-5"></a>python -c &quot;
+<a id="__codelineno-34-5" name="__codelineno-34-5" href="#__codelineno-34-5"></a>python -c "
 <a id="__codelineno-34-6" name="__codelineno-34-6" href="#__codelineno-34-6"></a>from load_flow.load_flow import LoadFlowEngine
 <a id="__codelineno-34-7" name="__codelineno-34-7" href="#__codelineno-34-7"></a>engine = LoadFlowEngine()
 <a id="__codelineno-34-8" name="__codelineno-34-8" href="#__codelineno-34-8"></a>engine.benchmark()
 <a id="__codelineno-34-9" name="__codelineno-34-9" href="#__codelineno-34-9"></a># Compare against known baselines
-<a id="__codelineno-34-10" name="__codelineno-34-10" href="#__codelineno-34-10"></a>&quot;
+<a id="__codelineno-34-10" name="__codelineno-34-10" href="#__codelineno-34-10"></a>"
 <a id="__codelineno-34-11" name="__codelineno-34-11" href="#__codelineno-34-11"></a>
 <a id="__codelineno-34-12" name="__codelineno-34-12" href="#__codelineno-34-12"></a># Check database query performance
-<a id="__codelineno-34-13" name="__codelineno-34-13" href="#__codelineno-34-13"></a>python -c &quot;
+<a id="__codelineno-34-13" name="__codelineno-34-13" href="#__codelineno-34-13"></a>python -c "
 <a id="__codelineno-34-14" name="__codelineno-34-14" href="#__codelineno-34-14"></a>import sqlite3
-<a id="__codelineno-34-15" name="__codelineno-34-15" href="#__codelineno-34-15"></a>conn = sqlite3.connect(&#39;mastra.db&#39;)
+<a id="__codelineno-34-15" name="__codelineno-34-15" href="#__codelineno-34-15"></a>conn = sqlite3.connect('mastra.db')
 <a id="__codelineno-34-16" name="__codelineno-34-16" href="#__codelineno-34-16"></a>import time
 <a id="__codelineno-34-17" name="__codelineno-34-17" href="#__codelineno-34-17"></a>start = time.time()
-<a id="__codelineno-34-18" name="__codelineno-34-18" href="#__codelineno-34-18"></a>conn.execute(&#39;SELECT COUNT(*) FROM tasks&#39;).fetchone()
-<a id="__codelineno-34-19" name="__codelineno-34-19" href="#__codelineno-34-19"></a>print(f&#39;Query time: {(time.time()-start)*1000:.1f}ms&#39;)
-<a id="__codelineno-34-20" name="__codelineno-34-20" href="#__codelineno-34-20"></a>&quot;
+<a id="__codelineno-34-18" name="__codelineno-34-18" href="#__codelineno-34-18"></a>conn.execute('SELECT COUNT(*) FROM tasks').fetchone()
+<a id="__codelineno-34-19" name="__codelineno-34-19" href="#__codelineno-34-19"></a>print(f'Query time: {(time.time()-start)*1000:.1f}ms')
+<a id="__codelineno-34-20" name="__codelineno-34-20" href="#__codelineno-34-20"></a>"
 </code></pre></div></p>
 </li>
 <li>
@@ -3670,17 +3670,17 @@
 <ol>
 <li>
 <p><strong>Check Windows Event Viewer for ETAP errors:</strong>
-   <div class="highlight"><pre><span></span><code><a id="__codelineno-38-1" name="__codelineno-38-1" href="#__codelineno-38-1"></a>Get-WinEvent -LogName Application | Where-Object { $_.ProviderName -like &quot;*ETAP*&quot; } | Select-Object -First 5
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-38-1" name="__codelineno-38-1" href="#__codelineno-38-1"></a>Get-WinEvent -LogName Application | Where-Object { $_.ProviderName -like "*ETAP*" } | Select-Object -First 5
 </code></pre></div></p>
 </li>
 <li>
 <p><strong>Restart ETAP:</strong>
-   <div class="highlight"><pre><span></span><code><a id="__codelineno-39-1" name="__codelineno-39-1" href="#__codelineno-39-1"></a>python -c &quot;
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-39-1" name="__codelineno-39-1" href="#__codelineno-39-1"></a>python -c "
 <a id="__codelineno-39-2" name="__codelineno-39-2" href="#__codelineno-39-2"></a>from etap_integration.etap_com import ETAPAutomation
 <a id="__codelineno-39-3" name="__codelineno-39-3" href="#__codelineno-39-3"></a># This will launch a new ETAP instance
 <a id="__codelineno-39-4" name="__codelineno-39-4" href="#__codelineno-39-4"></a>with ETAPAutomation(visible=False) as etap:
-<a id="__codelineno-39-5" name="__codelineno-39-5" href="#__codelineno-39-5"></a>    print(f&#39;ETAP restarted: v{etap.get_version()}&#39;)
-<a id="__codelineno-39-6" name="__codelineno-39-6" href="#__codelineno-39-6"></a>&quot;
+<a id="__codelineno-39-5" name="__codelineno-39-5" href="#__codelineno-39-5"></a>    print(f'ETAP restarted: v{etap.get_version()}')
+<a id="__codelineno-39-6" name="__codelineno-39-6" href="#__codelineno-39-6"></a>"
 </code></pre></div></p>
 </li>
 <li>
@@ -3802,62 +3802,62 @@
 <h3 id="52-database-maintenance">5.2 Database Maintenance</h3>
 <h4 id="sqlite-maintenance">SQLite Maintenance</h4>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-40-1" name="__codelineno-40-1" href="#__codelineno-40-1"></a># Reclaim disk space after deletions
-<a id="__codelineno-40-2" name="__codelineno-40-2" href="#__codelineno-40-2"></a>python -c &quot;
+<a id="__codelineno-40-2" name="__codelineno-40-2" href="#__codelineno-40-2"></a>python -c "
 <a id="__codelineno-40-3" name="__codelineno-40-3" href="#__codelineno-40-3"></a>import sqlite3
-<a id="__codelineno-40-4" name="__codelineno-40-4" href="#__codelineno-40-4"></a>conn = sqlite3.connect(&#39;mastra.db&#39;)
-<a id="__codelineno-40-5" name="__codelineno-40-5" href="#__codelineno-40-5"></a>conn.execute(&#39;VACUUM&#39;)
-<a id="__codelineno-40-6" name="__codelineno-40-6" href="#__codelineno-40-6"></a>print(&#39;Database vacuum completed&#39;)
+<a id="__codelineno-40-4" name="__codelineno-40-4" href="#__codelineno-40-4"></a>conn = sqlite3.connect('mastra.db')
+<a id="__codelineno-40-5" name="__codelineno-40-5" href="#__codelineno-40-5"></a>conn.execute('VACUUM')
+<a id="__codelineno-40-6" name="__codelineno-40-6" href="#__codelineno-40-6"></a>print('Database vacuum completed')
 <a id="__codelineno-40-7" name="__codelineno-40-7" href="#__codelineno-40-7"></a>conn.close()
-<a id="__codelineno-40-8" name="__codelineno-40-8" href="#__codelineno-40-8"></a>&quot;
+<a id="__codelineno-40-8" name="__codelineno-40-8" href="#__codelineno-40-8"></a>"
 <a id="__codelineno-40-9" name="__codelineno-40-9" href="#__codelineno-40-9"></a>
 <a id="__codelineno-40-10" name="__codelineno-40-10" href="#__codelineno-40-10"></a># Rebuild indexes for better performance
-<a id="__codelineno-40-11" name="__codelineno-40-11" href="#__codelineno-40-11"></a>python -c &quot;
+<a id="__codelineno-40-11" name="__codelineno-40-11" href="#__codelineno-40-11"></a>python -c "
 <a id="__codelineno-40-12" name="__codelineno-40-12" href="#__codelineno-40-12"></a>import sqlite3
-<a id="__codelineno-40-13" name="__codelineno-40-13" href="#__codelineno-40-13"></a>conn = sqlite3.connect(&#39;mastra.db&#39;)
-<a id="__codelineno-40-14" name="__codelineno-40-14" href="#__codelineno-40-14"></a>conn.execute(&#39;REINDEX&#39;)
-<a id="__codelineno-40-15" name="__codelineno-40-15" href="#__codelineno-40-15"></a>print(&#39;Indexes rebuilt&#39;)
+<a id="__codelineno-40-13" name="__codelineno-40-13" href="#__codelineno-40-13"></a>conn = sqlite3.connect('mastra.db')
+<a id="__codelineno-40-14" name="__codelineno-40-14" href="#__codelineno-40-14"></a>conn.execute('REINDEX')
+<a id="__codelineno-40-15" name="__codelineno-40-15" href="#__codelineno-40-15"></a>print('Indexes rebuilt')
 <a id="__codelineno-40-16" name="__codelineno-40-16" href="#__codelineno-40-16"></a>conn.close()
-<a id="__codelineno-40-17" name="__codelineno-40-17" href="#__codelineno-40-17"></a>&quot;
+<a id="__codelineno-40-17" name="__codelineno-40-17" href="#__codelineno-40-17"></a>"
 <a id="__codelineno-40-18" name="__codelineno-40-18" href="#__codelineno-40-18"></a>
 <a id="__codelineno-40-19" name="__codelineno-40-19" href="#__codelineno-40-19"></a># Analyze query optimizer statistics
-<a id="__codelineno-40-20" name="__codelineno-40-20" href="#__codelineno-40-20"></a>python -c &quot;
+<a id="__codelineno-40-20" name="__codelineno-40-20" href="#__codelineno-40-20"></a>python -c "
 <a id="__codelineno-40-21" name="__codelineno-40-21" href="#__codelineno-40-21"></a>import sqlite3
-<a id="__codelineno-40-22" name="__codelineno-40-22" href="#__codelineno-40-22"></a>conn = sqlite3.connect(&#39;mastra.db&#39;)
-<a id="__codelineno-40-23" name="__codelineno-40-23" href="#__codelineno-40-23"></a>conn.execute(&#39;ANALYZE&#39;)
-<a id="__codelineno-40-24" name="__codelineno-40-24" href="#__codelineno-40-24"></a>print(&#39;Query statistics updated&#39;)
+<a id="__codelineno-40-22" name="__codelineno-40-22" href="#__codelineno-40-22"></a>conn = sqlite3.connect('mastra.db')
+<a id="__codelineno-40-23" name="__codelineno-40-23" href="#__codelineno-40-23"></a>conn.execute('ANALYZE')
+<a id="__codelineno-40-24" name="__codelineno-40-24" href="#__codelineno-40-24"></a>print('Query statistics updated')
 <a id="__codelineno-40-25" name="__codelineno-40-25" href="#__codelineno-40-25"></a>conn.close()
-<a id="__codelineno-40-26" name="__codelineno-40-26" href="#__codelineno-40-26"></a>&quot;
+<a id="__codelineno-40-26" name="__codelineno-40-26" href="#__codelineno-40-26"></a>"
 </code></pre></div>
 <h4 id="scheduled-maintenance-script">Scheduled Maintenance Script</h4>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-41-1" name="__codelineno-41-1" href="#__codelineno-41-1"></a># Create: maintenance.ps1 (run weekly via Task Scheduler)
-<a id="__codelineno-41-2" name="__codelineno-41-2" href="#__codelineno-41-2"></a>Write-Host &quot;=== ETAP Platform Weekly Maintenance ===&quot; -ForegroundColor Cyan
+<a id="__codelineno-41-2" name="__codelineno-41-2" href="#__codelineno-41-2"></a>Write-Host "=== ETAP Platform Weekly Maintenance ===" -ForegroundColor Cyan
 <a id="__codelineno-41-3" name="__codelineno-41-3" href="#__codelineno-41-3"></a>
-<a id="__codelineno-41-4" name="__codelineno-41-4" href="#__codelineno-41-4"></a>Write-Host &quot;[1/6] Checking disk space...&quot;
+<a id="__codelineno-41-4" name="__codelineno-41-4" href="#__codelineno-41-4"></a>Write-Host "[1/6] Checking disk space..."
 <a id="__codelineno-41-5" name="__codelineno-41-5" href="#__codelineno-41-5"></a>$disk = Get-PSDrive C | Select-Object Free, Used
 <a id="__codelineno-41-6" name="__codelineno-41-6" href="#__codelineno-41-6"></a>$freeGB = [math]::Round($disk.Free / 1GB, 2)
-<a id="__codelineno-41-7" name="__codelineno-41-7" href="#__codelineno-41-7"></a>Write-Host &quot;  Free space: $freeGB GB&quot;
-<a id="__codelineno-41-8" name="__codelineno-41-8" href="#__codelineno-41-8"></a>if ($freeGB -lt 10) { Write-Warning &quot;Low disk space!&quot; }
+<a id="__codelineno-41-7" name="__codelineno-41-7" href="#__codelineno-41-7"></a>Write-Host "  Free space: $freeGB GB"
+<a id="__codelineno-41-8" name="__codelineno-41-8" href="#__codelineno-41-8"></a>if ($freeGB -lt 10) { Write-Warning "Low disk space!" }
 <a id="__codelineno-41-9" name="__codelineno-41-9" href="#__codelineno-41-9"></a>
-<a id="__codelineno-41-10" name="__codelineno-41-10" href="#__codelineno-41-10"></a>Write-Host &quot;[2/6] Vacuuming database...&quot;
-<a id="__codelineno-41-11" name="__codelineno-41-11" href="#__codelineno-41-11"></a>python -c &quot;import sqlite3; sqlite3.connect(&#39;mastra.db&#39;).execute(&#39;VACUUM&#39;)&quot;
-<a id="__codelineno-41-12" name="__codelineno-41-12" href="#__codelineno-41-12"></a>if ($LASTEXITCODE -eq 0) { Write-Host &quot;  Database vacuum: OK&quot; }
+<a id="__codelineno-41-10" name="__codelineno-41-10" href="#__codelineno-41-10"></a>Write-Host "[2/6] Vacuuming database..."
+<a id="__codelineno-41-11" name="__codelineno-41-11" href="#__codelineno-41-11"></a>python -c "import sqlite3; sqlite3.connect('mastra.db').execute('VACUUM')"
+<a id="__codelineno-41-12" name="__codelineno-41-12" href="#__codelineno-41-12"></a>if ($LASTEXITCODE -eq 0) { Write-Host "  Database vacuum: OK" }
 <a id="__codelineno-41-13" name="__codelineno-41-13" href="#__codelineno-41-13"></a>
-<a id="__codelineno-41-14" name="__codelineno-41-14" href="#__codelineno-41-14"></a>Write-Host &quot;[3/6] Rotating logs...&quot;
-<a id="__codelineno-41-15" name="__codelineno-41-15" href="#__codelineno-41-15"></a>Get-ChildItem &quot;logs\*.log&quot; | Where-Object { $_.LastWriteTime -lt (Get-Date).AddDays(-30) } | Remove-Item
-<a id="__codelineno-41-16" name="__codelineno-41-16" href="#__codelineno-41-16"></a>Write-Host &quot;  Old logs cleaned&quot;
+<a id="__codelineno-41-14" name="__codelineno-41-14" href="#__codelineno-41-14"></a>Write-Host "[3/6] Rotating logs..."
+<a id="__codelineno-41-15" name="__codelineno-41-15" href="#__codelineno-41-15"></a>Get-ChildItem "logs\*.log" | Where-Object { $_.LastWriteTime -lt (Get-Date).AddDays(-30) } | Remove-Item
+<a id="__codelineno-41-16" name="__codelineno-41-16" href="#__codelineno-41-16"></a>Write-Host "  Old logs cleaned"
 <a id="__codelineno-41-17" name="__codelineno-41-17" href="#__codelineno-41-17"></a>
-<a id="__codelineno-41-18" name="__codelineno-41-18" href="#__codelineno-41-18"></a>Write-Host &quot;[4/6] Cleaning old reports...&quot;
-<a id="__codelineno-41-19" name="__codelineno-41-19" href="#__codelineno-41-19"></a>Get-ChildItem &quot;reports\*&quot; -Directory | Where-Object { $_.LastWriteTime -lt (Get-Date).AddDays(-90) } | Remove-Item -Recurse -Force
-<a id="__codelineno-41-20" name="__codelineno-41-20" href="#__codelineno-41-20"></a>Get-ChildItem &quot;reports\*.pdf&quot;,&quot;reports\*.docx&quot;,&quot;reports\*.xlsx&quot; | Where-Object { $_.LastWriteTime -lt (Get-Date).AddDays(-30) } | Remove-Item
-<a id="__codelineno-41-21" name="__codelineno-41-21" href="#__codelineno-41-21"></a>Write-Host &quot;  Old reports cleaned&quot;
+<a id="__codelineno-41-18" name="__codelineno-41-18" href="#__codelineno-41-18"></a>Write-Host "[4/6] Cleaning old reports..."
+<a id="__codelineno-41-19" name="__codelineno-41-19" href="#__codelineno-41-19"></a>Get-ChildItem "reports\*" -Directory | Where-Object { $_.LastWriteTime -lt (Get-Date).AddDays(-90) } | Remove-Item -Recurse -Force
+<a id="__codelineno-41-20" name="__codelineno-41-20" href="#__codelineno-41-20"></a>Get-ChildItem "reports\*.pdf","reports\*.docx","reports\*.xlsx" | Where-Object { $_.LastWriteTime -lt (Get-Date).AddDays(-30) } | Remove-Item
+<a id="__codelineno-41-21" name="__codelineno-41-21" href="#__codelineno-41-21"></a>Write-Host "  Old reports cleaned"
 <a id="__codelineno-41-22" name="__codelineno-41-22" href="#__codelineno-41-22"></a>
-<a id="__codelineno-41-23" name="__codelineno-41-23" href="#__codelineno-41-23"></a>Write-Host &quot;[5/6] Verifying database integrity...&quot;
-<a id="__codelineno-41-24" name="__codelineno-41-24" href="#__codelineno-41-24"></a>python -c &quot;import sqlite3; c=sqlite3.connect(&#39;mastra.db&#39;); assert c.execute(&#39;PRAGMA integrity_check&#39;).fetchone()[0]==&#39;ok&#39;; print(&#39;  Integrity: OK&#39;)&quot;
+<a id="__codelineno-41-23" name="__codelineno-41-23" href="#__codelineno-41-23"></a>Write-Host "[5/6] Verifying database integrity..."
+<a id="__codelineno-41-24" name="__codelineno-41-24" href="#__codelineno-41-24"></a>python -c "import sqlite3; c=sqlite3.connect('mastra.db'); assert c.execute('PRAGMA integrity_check').fetchone()[0]=='ok'; print('  Integrity: OK')"
 <a id="__codelineno-41-25" name="__codelineno-41-25" href="#__codelineno-41-25"></a>
-<a id="__codelineno-41-26" name="__codelineno-41-26" href="#__codelineno-41-26"></a>Write-Host &quot;[6/6] Taking weekly backup...&quot;
-<a id="__codelineno-41-27" name="__codelineno-41-27" href="#__codelineno-41-27"></a>&amp; &quot;.\backup.ps1&quot;
+<a id="__codelineno-41-26" name="__codelineno-41-26" href="#__codelineno-41-26"></a>Write-Host "[6/6] Taking weekly backup..."
+<a id="__codelineno-41-27" name="__codelineno-41-27" href="#__codelineno-41-27"></a>&amp; ".\backup.ps1"
 <a id="__codelineno-41-28" name="__codelineno-41-28" href="#__codelineno-41-28"></a>
-<a id="__codelineno-41-29" name="__codelineno-41-29" href="#__codelineno-41-29"></a>Write-Host &quot;=== Maintenance Complete ===&quot; -ForegroundColor Green
+<a id="__codelineno-41-29" name="__codelineno-41-29" href="#__codelineno-41-29"></a>Write-Host "=== Maintenance Complete ===" -ForegroundColor Green
 </code></pre></div>
 <h3 id="53-log-rotation">5.3 Log Rotation</h3>
 <h4 id="configuration-loggingconf-or-environment-variables">Configuration (logging.conf or environment variables)</h4>
@@ -3871,22 +3871,22 @@
 <a id="__codelineno-43-2" name="__codelineno-43-2" href="#__codelineno-43-2"></a><span class="nt">services</span><span class="p">:</span>
 <a id="__codelineno-43-3" name="__codelineno-43-3" href="#__codelineno-43-3"></a><span class="w">  </span><span class="nt">etap-platform</span><span class="p">:</span>
 <a id="__codelineno-43-4" name="__codelineno-43-4" href="#__codelineno-43-4"></a><span class="w">    </span><span class="nt">logging</span><span class="p">:</span>
-<a id="__codelineno-43-5" name="__codelineno-43-5" href="#__codelineno-43-5"></a><span class="w">      </span><span class="nt">driver</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;json-file&quot;</span>
+<a id="__codelineno-43-5" name="__codelineno-43-5" href="#__codelineno-43-5"></a><span class="w">      </span><span class="nt">driver</span><span class="p">:</span><span class="w"> </span><span class="s">"json-file"</span>
 <a id="__codelineno-43-6" name="__codelineno-43-6" href="#__codelineno-43-6"></a><span class="w">      </span><span class="nt">options</span><span class="p">:</span>
-<a id="__codelineno-43-7" name="__codelineno-43-7" href="#__codelineno-43-7"></a><span class="w">        </span><span class="nt">max-size</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;10m&quot;</span>
-<a id="__codelineno-43-8" name="__codelineno-43-8" href="#__codelineno-43-8"></a><span class="w">        </span><span class="nt">max-file</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;5&quot;</span>
+<a id="__codelineno-43-7" name="__codelineno-43-7" href="#__codelineno-43-7"></a><span class="w">        </span><span class="nt">max-size</span><span class="p">:</span><span class="w"> </span><span class="s">"10m"</span>
+<a id="__codelineno-43-8" name="__codelineno-43-8" href="#__codelineno-43-8"></a><span class="w">        </span><span class="nt">max-file</span><span class="p">:</span><span class="w"> </span><span class="s">"5"</span>
 </code></pre></div>
 <h4 id="manual-log-rotation">Manual Log Rotation</h4>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-44-1" name="__codelineno-44-1" href="#__codelineno-44-1"></a># Compress and archive logs older than 7 days
-<a id="__codelineno-44-2" name="__codelineno-44-2" href="#__codelineno-44-2"></a>Compress-Archive -Path &quot;logs\*.log&quot; -DestinationPath &quot;logs\archive_$(Get-Date -Format yyyyMMdd).zip&quot;
-<a id="__codelineno-44-3" name="__codelineno-44-3" href="#__codelineno-44-3"></a>Remove-Item &quot;logs\*.log&quot; -Exclude &quot;python-backend.log&quot;  # Keep current
+<a id="__codelineno-44-2" name="__codelineno-44-2" href="#__codelineno-44-2"></a>Compress-Archive -Path "logs\*.log" -DestinationPath "logs\archive_$(Get-Date -Format yyyyMMdd).zip"
+<a id="__codelineno-44-3" name="__codelineno-44-3" href="#__codelineno-44-3"></a>Remove-Item "logs\*.log" -Exclude "python-backend.log"  # Keep current
 <a id="__codelineno-44-4" name="__codelineno-44-4" href="#__codelineno-44-4"></a>
 <a id="__codelineno-44-5" name="__codelineno-44-5" href="#__codelineno-44-5"></a># Remove archives older than 90 days
-<a id="__codelineno-44-6" name="__codelineno-44-6" href="#__codelineno-44-6"></a>Get-ChildItem &quot;logs\archive_*.zip&quot; | Where-Object { $_.LastWriteTime -lt (Get-Date).AddDays(-90) } | Remove-Item
+<a id="__codelineno-44-6" name="__codelineno-44-6" href="#__codelineno-44-6"></a>Get-ChildItem "logs\archive_*.zip" | Where-Object { $_.LastWriteTime -lt (Get-Date).AddDays(-90) } | Remove-Item
 </code></pre></div>
 <h3 id="54-certificate-renewal">5.4 Certificate Renewal</h3>
 <h4 id="ssltls-certificate-renewal-nginx">SSL/TLS Certificate Renewal (Nginx)</h4>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-45-1" name="__codelineno-45-1" href="#__codelineno-45-1"></a># Step 1: Obtain new certificate (Let&#39;s Encrypt)
+<div class="highlight"><pre><span></span><code><a id="__codelineno-45-1" name="__codelineno-45-1" href="#__codelineno-45-1"></a># Step 1: Obtain new certificate (Let's Encrypt)
 <a id="__codelineno-45-2" name="__codelineno-45-2" href="#__codelineno-45-2"></a>certbot renew --nginx
 <a id="__codelineno-45-3" name="__codelineno-45-3" href="#__codelineno-45-3"></a>
 <a id="__codelineno-45-4" name="__codelineno-45-4" href="#__codelineno-45-4"></a># Step 2: Verify certificate
@@ -3903,13 +3903,13 @@
 <a id="__codelineno-46-2" name="__codelineno-46-2" href="#__codelineno-46-2"></a>openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
 <a id="__codelineno-46-3" name="__codelineno-46-3" href="#__codelineno-46-3"></a>    -keyout nginx/ssl/etap-platform.key \
 <a id="__codelineno-46-4" name="__codelineno-46-4" href="#__codelineno-46-4"></a>    -out nginx/ssl/etap-platform.crt \
-<a id="__codelineno-46-5" name="__codelineno-46-5" href="#__codelineno-46-5"></a>    -subj &quot;/C=US/ST=State/L=City/O=Organization/CN=etap-platform.local&quot;
+<a id="__codelineno-46-5" name="__codelineno-46-5" href="#__codelineno-46-5"></a>    -subj "/C=US/ST=State/L=City/O=Organization/CN=etap-platform.local"
 <a id="__codelineno-46-6" name="__codelineno-46-6" href="#__codelineno-46-6"></a>
 <a id="__codelineno-46-7" name="__codelineno-46-7" href="#__codelineno-46-7"></a># Step 2: Reload Nginx
 <a id="__codelineno-46-8" name="__codelineno-46-8" href="#__codelineno-46-8"></a>docker exec etap-nginx nginx -s reload
 <a id="__codelineno-46-9" name="__codelineno-46-9" href="#__codelineno-46-9"></a>
 <a id="__codelineno-46-10" name="__codelineno-46-10" href="#__codelineno-46-10"></a># Step 3: Verify
-<a id="__codelineno-46-11" name="__codelineno-46-11" href="#__codelineno-46-11"></a>openssl x509 -in nginx/ssl/etap-platform.crt -text -noout | grep &quot;Not After&quot;
+<a id="__codelineno-46-11" name="__codelineno-46-11" href="#__codelineno-46-11"></a>openssl x509 -in nginx/ssl/etap-platform.crt -text -noout | grep "Not After"
 </code></pre></div>
 <h3 id="55-dependency-updates">5.5 Dependency Updates</h3>
 <h4 id="python-dependencies">Python Dependencies</h4>
@@ -4030,18 +4030,18 @@
 <li>
 <p><strong>Verify recovery (15 min):</strong>
    <div class="highlight"><pre><span></span><code><a id="__codelineno-54-1" name="__codelineno-54-1" href="#__codelineno-54-1"></a>curl http://localhost:3000/health
-<a id="__codelineno-54-2" name="__codelineno-54-2" href="#__codelineno-54-2"></a>python -c &quot;
+<a id="__codelineno-54-2" name="__codelineno-54-2" href="#__codelineno-54-2"></a>python -c "
 <a id="__codelineno-54-3" name="__codelineno-54-3" href="#__codelineno-54-3"></a>import sqlite3
-<a id="__codelineno-54-4" name="__codelineno-54-4" href="#__codelineno-54-4"></a>conn = sqlite3.connect(&#39;mastra.db&#39;)
-<a id="__codelineno-54-5" name="__codelineno-54-5" href="#__codelineno-54-5"></a>count = conn.execute(&#39;SELECT COUNT(*) FROM tasks&#39;).fetchone()[0]
-<a id="__codelineno-54-6" name="__codelineno-54-6" href="#__codelineno-54-6"></a>print(f&#39;Recovered {count} tasks&#39;)
-<a id="__codelineno-54-7" name="__codelineno-54-7" href="#__codelineno-54-7"></a>&quot;
-<a id="__codelineno-54-8" name="__codelineno-54-8" href="#__codelineno-54-8"></a>python -c &quot;
+<a id="__codelineno-54-4" name="__codelineno-54-4" href="#__codelineno-54-4"></a>conn = sqlite3.connect('mastra.db')
+<a id="__codelineno-54-5" name="__codelineno-54-5" href="#__codelineno-54-5"></a>count = conn.execute('SELECT COUNT(*) FROM tasks').fetchone()[0]
+<a id="__codelineno-54-6" name="__codelineno-54-6" href="#__codelineno-54-6"></a>print(f'Recovered {count} tasks')
+<a id="__codelineno-54-7" name="__codelineno-54-7" href="#__codelineno-54-7"></a>"
+<a id="__codelineno-54-8" name="__codelineno-54-8" href="#__codelineno-54-8"></a>python -c "
 <a id="__codelineno-54-9" name="__codelineno-54-9" href="#__codelineno-54-9"></a>from knowledge.rag_engine import RAGEngine
 <a id="__codelineno-54-10" name="__codelineno-54-10" href="#__codelineno-54-10"></a>rag = RAGEngine()
-<a id="__codelineno-54-11" name="__codelineno-54-11" href="#__codelineno-54-11"></a>result = rag.query(&#39;test query&#39;, use_llm=False)
-<a id="__codelineno-54-12" name="__codelineno-54-12" href="#__codelineno-54-12"></a>print(f&#39;RAG restored: {len(result[\&quot;sources\&quot;])} sources&#39;)
-<a id="__codelineno-54-13" name="__codelineno-54-13" href="#__codelineno-54-13"></a>&quot;
+<a id="__codelineno-54-11" name="__codelineno-54-11" href="#__codelineno-54-11"></a>result = rag.query('test query', use_llm=False)
+<a id="__codelineno-54-12" name="__codelineno-54-12" href="#__codelineno-54-12"></a>print(f'RAG restored: {len(result[\"sources\"])} sources')
+<a id="__codelineno-54-13" name="__codelineno-54-13" href="#__codelineno-54-13"></a>"
 </code></pre></div></p>
 </li>
 <li>
@@ -4064,14 +4064,14 @@
 </li>
 <li>
 <p><strong>Verify integrity:</strong>
-   <div class="highlight"><pre><span></span><code><a id="__codelineno-57-1" name="__codelineno-57-1" href="#__codelineno-57-1"></a>python -c &quot;
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-57-1" name="__codelineno-57-1" href="#__codelineno-57-1"></a>python -c "
 <a id="__codelineno-57-2" name="__codelineno-57-2" href="#__codelineno-57-2"></a>import sqlite3
-<a id="__codelineno-57-3" name="__codelineno-57-3" href="#__codelineno-57-3"></a>conn = sqlite3.connect(&#39;mastra.db&#39;)
-<a id="__codelineno-57-4" name="__codelineno-57-4" href="#__codelineno-57-4"></a>result = conn.execute(&#39;PRAGMA integrity_check&#39;).fetchone()
-<a id="__codelineno-57-5" name="__codelineno-57-5" href="#__codelineno-57-5"></a>assert result[0] == &#39;ok&#39;, f&#39;Corrupted: {result}&#39;
-<a id="__codelineno-57-6" name="__codelineno-57-6" href="#__codelineno-57-6"></a>tables = conn.execute(\&quot;SELECT name FROM sqlite_master WHERE type=&#39;table&#39;\&quot;).fetchall()
-<a id="__codelineno-57-7" name="__codelineno-57-7" href="#__codelineno-57-7"></a>print(f&#39;Database restored with {len(tables)} tables&#39;)
-<a id="__codelineno-57-8" name="__codelineno-57-8" href="#__codelineno-57-8"></a>&quot;
+<a id="__codelineno-57-3" name="__codelineno-57-3" href="#__codelineno-57-3"></a>conn = sqlite3.connect('mastra.db')
+<a id="__codelineno-57-4" name="__codelineno-57-4" href="#__codelineno-57-4"></a>result = conn.execute('PRAGMA integrity_check').fetchone()
+<a id="__codelineno-57-5" name="__codelineno-57-5" href="#__codelineno-57-5"></a>assert result[0] == 'ok', f'Corrupted: {result}'
+<a id="__codelineno-57-6" name="__codelineno-57-6" href="#__codelineno-57-6"></a>tables = conn.execute(\"SELECT name FROM sqlite_master WHERE type='table'\").fetchall()
+<a id="__codelineno-57-7" name="__codelineno-57-7" href="#__codelineno-57-7"></a>print(f'Database restored with {len(tables)} tables')
+<a id="__codelineno-57-8" name="__codelineno-57-8" href="#__codelineno-57-8"></a>"
 </code></pre></div></p>
 </li>
 <li>
@@ -4095,7 +4095,7 @@
 </li>
 <li>
 <p><strong>Copy ETAP project files:</strong>
-   <div class="highlight"><pre><span></span><code><a id="__codelineno-59-1" name="__codelineno-59-1" href="#__codelineno-59-1"></a>copy /Y \\backup-server\etap-projects\* &quot;C:\Projects\&quot;
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-59-1" name="__codelineno-59-1" href="#__codelineno-59-1"></a>copy /Y \\backup-server\etap-projects\* "C:\Projects\"
 </code></pre></div></p>
 </li>
 <li>
@@ -4106,11 +4106,11 @@
 </li>
 <li>
 <p><strong>Test ETAP connection:</strong>
-   <div class="highlight"><pre><span></span><code><a id="__codelineno-61-1" name="__codelineno-61-1" href="#__codelineno-61-1"></a>python -c &quot;
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-61-1" name="__codelineno-61-1" href="#__codelineno-61-1"></a>python -c "
 <a id="__codelineno-61-2" name="__codelineno-61-2" href="#__codelineno-61-2"></a>from etap_integration.etap_com import ETAPAutomation
 <a id="__codelineno-61-3" name="__codelineno-61-3" href="#__codelineno-61-3"></a>with ETAPAutomation(visible=False) as etap:
-<a id="__codelineno-61-4" name="__codelineno-61-4" href="#__codelineno-61-4"></a>    print(f&#39;ETAP reconnected: v{etap.get_version()}&#39;)
-<a id="__codelineno-61-5" name="__codelineno-61-5" href="#__codelineno-61-5"></a>&quot;
+<a id="__codelineno-61-4" name="__codelineno-61-4" href="#__codelineno-61-4"></a>    print(f'ETAP reconnected: v{etap.get_version()}')
+<a id="__codelineno-61-5" name="__codelineno-61-5" href="#__codelineno-61-5"></a>"
 </code></pre></div></p>
 </li>
 <li>
@@ -4162,12 +4162,12 @@
 </table>
 <h4 id="dr-test-procedure">DR Test Procedure</h4>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-62-1" name="__codelineno-62-1" href="#__codelineno-62-1"></a># Pre-test: Document current state
-<a id="__codelineno-62-2" name="__codelineno-62-2" href="#__codelineno-62-2"></a>echo &quot;Pre-test state captured at $(Get-Date)&quot; &gt; dr-test-log.txt
-<a id="__codelineno-62-3" name="__codelineno-62-3" href="#__codelineno-62-3"></a>python -c &quot;
+<a id="__codelineno-62-2" name="__codelineno-62-2" href="#__codelineno-62-2"></a>echo "Pre-test state captured at $(Get-Date)" &gt; dr-test-log.txt
+<a id="__codelineno-62-3" name="__codelineno-62-3" href="#__codelineno-62-3"></a>python -c "
 <a id="__codelineno-62-4" name="__codelineno-62-4" href="#__codelineno-62-4"></a>import sqlite3
-<a id="__codelineno-62-5" name="__codelineno-62-5" href="#__codelineno-62-5"></a>conn = sqlite3.connect(&#39;mastra.db&#39;)
-<a id="__codelineno-62-6" name="__codelineno-62-6" href="#__codelineno-62-6"></a>count = conn.execute(&#39;SELECT COUNT(*) FROM tasks&#39;).fetchone()[0]
-<a id="__codelineno-62-7" name="__codelineno-62-7" href="#__codelineno-62-7"></a>print(f&#39;Tasks in production: {count}&#39;)&quot; &gt;&gt; dr-test-log.txt
+<a id="__codelineno-62-5" name="__codelineno-62-5" href="#__codelineno-62-5"></a>conn = sqlite3.connect('mastra.db')
+<a id="__codelineno-62-6" name="__codelineno-62-6" href="#__codelineno-62-6"></a>count = conn.execute('SELECT COUNT(*) FROM tasks').fetchone()[0]
+<a id="__codelineno-62-7" name="__codelineno-62-7" href="#__codelineno-62-7"></a>print(f'Tasks in production: {count}')" &gt;&gt; dr-test-log.txt
 <a id="__codelineno-62-8" name="__codelineno-62-8" href="#__codelineno-62-8"></a>
 <a id="__codelineno-62-9" name="__codelineno-62-9" href="#__codelineno-62-9"></a># Test 1: Backup restore (in test environment)
 <a id="__codelineno-62-10" name="__codelineno-62-10" href="#__codelineno-62-10"></a># - Take a backup
@@ -4187,16 +4187,16 @@
 <a id="__codelineno-62-24" name="__codelineno-62-24" href="#__codelineno-62-24"></a># [Execute DR procedure]
 <a id="__codelineno-62-25" name="__codelineno-62-25" href="#__codelineno-62-25"></a>$endTime = Get-Date
 <a id="__codelineno-62-26" name="__codelineno-62-26" href="#__codelineno-62-26"></a>$rto = ($endTime - $startTime).TotalMinutes
-<a id="__codelineno-62-27" name="__codelineno-62-27" href="#__codelineno-62-27"></a>Write-Host &quot;Measured RTO: $rto minutes&quot;
-<a id="__codelineno-62-28" name="__codelineno-62-28" href="#__codelineno-62-28"></a>if ($rto -gt 240) { Write-Warning &quot;RTO exceeds 4 hour target!&quot; }
+<a id="__codelineno-62-27" name="__codelineno-62-27" href="#__codelineno-62-27"></a>Write-Host "Measured RTO: $rto minutes"
+<a id="__codelineno-62-28" name="__codelineno-62-28" href="#__codelineno-62-28"></a>if ($rto -gt 240) { Write-Warning "RTO exceeds 4 hour target!" }
 <a id="__codelineno-62-29" name="__codelineno-62-29" href="#__codelineno-62-29"></a>
 <a id="__codelineno-62-30" name="__codelineno-62-30" href="#__codelineno-62-30"></a># Test 4: Measure RPO
 <a id="__codelineno-62-31" name="__codelineno-62-31" href="#__codelineno-62-31"></a># Compare backup timestamp with last data change
 <a id="__codelineno-62-32" name="__codelineno-62-32" href="#__codelineno-62-32"></a># Verify data loss is within 1 hour window
 <a id="__codelineno-62-33" name="__codelineno-62-33" href="#__codelineno-62-33"></a>
 <a id="__codelineno-62-34" name="__codelineno-62-34" href="#__codelineno-62-34"></a># Post-test: Document results
-<a id="__codelineno-62-35" name="__codelineno-62-35" href="#__codelineno-62-35"></a>echo &quot;DR test completed at $(Get-Date)&quot; &gt;&gt; dr-test-log.txt
-<a id="__codelineno-62-36" name="__codelineno-62-36" href="#__codelineno-62-36"></a>echo &quot;RTO: $rto minutes&quot; &gt;&gt; dr-test-log.txt
+<a id="__codelineno-62-35" name="__codelineno-62-35" href="#__codelineno-62-35"></a>echo "DR test completed at $(Get-Date)" &gt;&gt; dr-test-log.txt
+<a id="__codelineno-62-36" name="__codelineno-62-36" href="#__codelineno-62-36"></a>echo "RTO: $rto minutes" &gt;&gt; dr-test-log.txt
 </code></pre></div>
 <hr />
 <h2 id="7-capacity-planning">7. Capacity Planning</h2>
@@ -4385,7 +4385,7 @@
 <a id="__codelineno-63-11" name="__codelineno-63-11" href="#__codelineno-63-11"></a>      resources:
 <a id="__codelineno-63-12" name="__codelineno-63-12" href="#__codelineno-63-12"></a>        limits:
 <a id="__codelineno-63-13" name="__codelineno-63-13" href="#__codelineno-63-13"></a>          memory: 8g
-<a id="__codelineno-63-14" name="__codelineno-63-14" href="#__codelineno-63-14"></a>          cpus: &#39;4&#39;
+<a id="__codelineno-63-14" name="__codelineno-63-14" href="#__codelineno-63-14"></a>          cpus: '4'
 <a id="__codelineno-63-15" name="__codelineno-63-15" href="#__codelineno-63-15"></a>
 <a id="__codelineno-63-16" name="__codelineno-63-16" href="#__codelineno-63-16"></a># Add database read replicas (if using PostgreSQL)
 <a id="__codelineno-63-17" name="__codelineno-63-17" href="#__codelineno-63-17"></a># Configure in .env:
@@ -4604,7 +4604,7 @@
 <a id="__codelineno-67-3" name="__codelineno-67-3" href="#__codelineno-67-3"></a>Description: [TECHNICAL DESCRIPTION IN PLAIN ENGLISH]
 <a id="__codelineno-67-4" name="__codelineno-67-4" href="#__codelineno-67-4"></a>Impact: [USER-FACING IMPACT]
 <a id="__codelineno-67-5" name="__codelineno-67-5" href="#__codelineno-67-5"></a>Start Time: [START TIME]
-<a id="__codelineno-67-6" name="__codelineno-67-6" href="#__codelineno-67-6"></a>Estimated Resolution: [ESTIMATE OR &quot;N/A&quot;]
+<a id="__codelineno-67-6" name="__codelineno-67-6" href="#__codelineno-67-6"></a>Estimated Resolution: [ESTIMATE OR "N/A"]
 <a id="__codelineno-67-7" name="__codelineno-67-7" href="#__codelineno-67-7"></a>Components: [LIST OF AFFECTED COMPONENTS]
 </code></pre></div>
 <hr />
@@ -4625,12 +4625,12 @@
 <a id="__codelineno-70-2" name="__codelineno-70-2" href="#__codelineno-70-2"></a>copy backups\latest\mastra.db .         # Restore database
 </code></pre></div>
 <h3 id="diagnostics">Diagnostics</h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-71-1" name="__codelineno-71-1" href="#__codelineno-71-1"></a>Get-Content logs\*.log | Select-String &quot;ERROR&quot;  # Find errors
+<div class="highlight"><pre><span></span><code><a id="__codelineno-71-1" name="__codelineno-71-1" href="#__codelineno-71-1"></a>Get-Content logs\*.log | Select-String "ERROR"  # Find errors
 <a id="__codelineno-71-2" name="__codelineno-71-2" href="#__codelineno-71-2"></a>docker stats --no-stream                         # Resource usage
 <a id="__codelineno-71-3" name="__codelineno-71-3" href="#__codelineno-71-3"></a>docker-compose logs etap-platform --tail 100     # Last 100 lines
 </code></pre></div>
 <h3 id="maintenance">Maintenance</h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-72-1" name="__codelineno-72-1" href="#__codelineno-72-1"></a>python -c &quot;import sqlite3; sqlite3.connect(&#39;mastra.db&#39;).execute(&#39;VACUUM&#39;)&quot;  # DB maintenance
+<div class="highlight"><pre><span></span><code><a id="__codelineno-72-1" name="__codelineno-72-1" href="#__codelineno-72-1"></a>python -c "import sqlite3; sqlite3.connect('mastra.db').execute('VACUUM')"  # DB maintenance
 <a id="__codelineno-72-2" name="__codelineno-72-2" href="#__codelineno-72-2"></a>pip list --outdated                                                         # Check updates
 <a id="__codelineno-72-3" name="__codelineno-72-3" href="#__codelineno-72-3"></a>pnpm outdated                                                                 # Check updates
 </code></pre></div>

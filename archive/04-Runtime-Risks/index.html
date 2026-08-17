@@ -673,7 +673,7 @@
 <p><strong>Severity: MEDIUM</strong> | <strong>Category: RESOURCE LEAK / SECURITY</strong></p>
 <p><strong>Root Cause:</strong>
 In <code>engineering_service.py</code> (line 76):
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">reload</span> <span class="o">=</span> <span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ENVIRONMENT&quot;</span><span class="p">,</span> <span class="s2">&quot;development&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;development&quot;</span><span class="p">,)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">reload</span> <span class="o">=</span> <span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"ENVIRONMENT"</span><span class="p">,</span> <span class="s2">"development"</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">"development"</span><span class="p">,)</span>
 </code></pre></div>
 When <code>ENVIRONMENT=development</code>, uvicorn runs with auto-reload enabled. If someone accidentally sets <code>ENVIRONMENT=development</code> in production:
 - File watchers consume additional CPU/memory
@@ -684,7 +684,7 @@ When <code>ENVIRONMENT=development</code>, uvicorn runs with auto-reload enabled
 <h3 id="rr-02-exception-handler-leaks-exception-type-via-header">🔥 RR-02: EXCEPTION HANDLER LEAKS EXCEPTION TYPE VIA HEADER</h3>
 <p><strong>Severity: LOW</strong> | <strong>Category: INFORMATION DISCLOSURE</strong></p>
 <p>In <code>hf-space/app.py</code> (line 191):
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">headers</span> <span class="o">=</span> <span class="p">({</span><span class="s2">&quot;X-Error-Type&quot;</span><span class="p">:</span> <span class="nb">type</span><span class="p">(</span><span class="n">exc</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">},)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">headers</span> <span class="o">=</span> <span class="p">({</span><span class="s2">"X-Error-Type"</span><span class="p">:</span> <span class="nb">type</span><span class="p">(</span><span class="n">exc</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">},)</span>
 </code></pre></div>
 The global exception handler returns the exception class name in a response header. While the body message is sanitized, the header leaks information about the internal error type (e.g., <code>IntegrityError</code>, <code>OperationalError</code>, <code>ValueError</code>).</p>
 <p><strong>Impact:</strong>
@@ -696,9 +696,9 @@ Remove the <code>X-Error-Type</code> header in production.</p>
 <h3 id="rr-03-health-check-doesnt-verify-database-connectivity">🔥 RR-03: HEALTH CHECK DOESN'T VERIFY DATABASE CONNECTIVITY</h3>
 <p><strong>Severity: MEDIUM</strong> | <strong>Category: FALSE POSITIVE HEALTH</strong></p>
 <p>In <code>hf-space/app.py</code> (lines 431-433):
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nd">@app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/healthz&quot;</span><span class="p">,</span> <span class="n">tags</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Health&quot;</span><span class="p">])</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nd">@app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"/healthz"</span><span class="p">,</span> <span class="n">tags</span><span class="o">=</span><span class="p">[</span><span class="s2">"Health"</span><span class="p">])</span>
 <a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">healthz</span><span class="p">():</span>
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>    <span class="k">return</span> <span class="n">JSONResponse</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="s2">&quot;ok&quot;</span><span class="p">},</span> <span class="n">status_code</span><span class="o">=</span><span class="mi">200</span><span class="p">)</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>    <span class="k">return</span> <span class="n">JSONResponse</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="p">{</span><span class="s2">"status"</span><span class="p">:</span> <span class="s2">"ok"</span><span class="p">},</span> <span class="n">status_code</span><span class="o">=</span><span class="mi">200</span><span class="p">)</span>
 </code></pre></div>
 The <code>/healthz</code> endpoint always returns <code>200 OK</code> without checking:
 - Database connectivity
@@ -720,7 +720,7 @@ Make <code>/healthz</code> perform a lightweight database ping check (similar to
 <a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>
 <a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>    <span class="k">await</span> <span class="n">init_db</span><span class="p">()</span>
 <a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>    <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&quot;Database init failed: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">)</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>    <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">"Database init failed: </span><span class="si">%s</span><span class="s2">"</span><span class="p">)</span>
 </code></pre></div>
 The format string <code>"Database init failed: %s"</code> uses <code>%s</code> but no exception variable is being formatted into it. The actual exception IS logged via <code>logger.exception()</code> (which includes the traceback), but the message <code>"Database init failed: %s"</code> has a dangling format specifier.</p>
 <p><strong>Fix:</strong>
@@ -758,7 +758,7 @@ Wrap in <code>asyncio.wait_for()</code> with a reasonable timeout (e.g., 300 sec
 <h3 id="rr-07-sqlite-thread-safety-configuration">🔥 RR-07: SQLITE THREAD SAFETY CONFIGURATION</h3>
 <p><strong>Severity: MEDIUM</strong> | <strong>Category: DATABASE CORRUPTION</strong></p>
 <p>In <code>api/database.py</code> (line 131):
-<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="n">connect_args</span> <span class="o">=</span> <span class="p">({</span><span class="s2">&quot;check_same_thread&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">},)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="n">connect_args</span> <span class="o">=</span> <span class="p">({</span><span class="s2">"check_same_thread"</span><span class="p">:</span> <span class="kc">False</span><span class="p">},)</span>
 </code></pre></div>
 SQLite is configured with <code>check_same_thread=False</code>, allowing multiple threads to use the same connection. SQLite is NOT thread-safe for writes — concurrent writes can cause <code>database is locked</code> errors or data corruption.</p>
 <p><strong>Risk:</strong> Low with async app (single-threaded event loop), but if Celery workers or background threads also use the SQLite database, corruption is possible.</p>
@@ -766,7 +766,7 @@ SQLite is configured with <code>check_same_thread=False</code>, allowing multipl
 <h3 id="rr-08-smithery_api_key-logged-at-startup">🔥 RR-08: <code>SMITHERY_API_KEY</code> LOGGED AT STARTUP</h3>
 <p><strong>Severity: LOW</strong> | <strong>Category: SECRET IN LOGS</strong></p>
 <p>In <code>routes.py</code> (line 90):
-<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;smithery_api_key_available&quot;</span><span class="p">,</span> <span class="n">extra</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;trace_id&quot;</span><span class="p">:</span> <span class="s2">&quot;startup&quot;</span><span class="p">})</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"smithery_api_key_available"</span><span class="p">,</span> <span class="n">extra</span><span class="o">=</span><span class="p">{</span><span class="s2">"trace_id"</span><span class="p">:</span> <span class="s2">"startup"</span><span class="p">})</span>
 </code></pre></div>
 While this doesn't log the actual key value, it does log that a Smithery API key is configured. Combined with other information, this can aid an attacker in understanding the infrastructure.</p>
 <hr />

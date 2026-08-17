@@ -804,28 +804,28 @@
 <strong>Script:</strong> <code>scripts/backup-mastra-db.sh</code></p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="ch">#!/bin/bash</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="c1"># scripts/backup-mastra-db.sh</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="nv">BACKUP_DIR</span><span class="o">=</span><span class="s2">&quot;./backups/mastra.db&quot;</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="nv">BACKUP_DIR</span><span class="o">=</span><span class="s2">"./backups/mastra.db"</span>
 <a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="nv">TIMESTAMP</span><span class="o">=</span><span class="k">$(</span>date<span class="w"> </span>+%Y-%m-%d-%H-%M-%S<span class="k">)</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>mkdir<span class="w"> </span>-p<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$BACKUP_DIR</span><span class="s2">&quot;</span>
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>cp<span class="w"> </span><span class="s2">&quot;./mastra.db&quot;</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$BACKUP_DIR</span><span class="s2">/mastra.db.</span><span class="nv">$TIMESTAMP</span><span class="s2">.bak&quot;</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>mkdir<span class="w"> </span>-p<span class="w"> </span><span class="s2">"</span><span class="nv">$BACKUP_DIR</span><span class="s2">"</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>cp<span class="w"> </span><span class="s2">"./mastra.db"</span><span class="w"> </span><span class="s2">"</span><span class="nv">$BACKUP_DIR</span><span class="s2">/mastra.db.</span><span class="nv">$TIMESTAMP</span><span class="s2">.bak"</span>
 <a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="c1"># Retain only last 168 backups (7 days × 24 hours)</span>
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>ls<span class="w"> </span>-t<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$BACKUP_DIR</span><span class="s2">&quot;</span>/*.bak<span class="w"> </span><span class="p">|</span><span class="w"> </span>tail<span class="w"> </span>-n<span class="w"> </span>+169<span class="w"> </span><span class="p">|</span><span class="w"> </span>xargs<span class="w"> </span>-r<span class="w"> </span>rm
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>ls<span class="w"> </span>-t<span class="w"> </span><span class="s2">"</span><span class="nv">$BACKUP_DIR</span><span class="s2">"</span>/*.bak<span class="w"> </span><span class="p">|</span><span class="w"> </span>tail<span class="w"> </span>-n<span class="w"> </span>+169<span class="w"> </span><span class="p">|</span><span class="w"> </span>xargs<span class="w"> </span>-r<span class="w"> </span>rm
 </code></pre></div>
 <p><strong>Windows equivalent:</strong> <code>scripts/backup-mastra-db.ps1</code></p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c"># scripts/backup-mastra-db.ps1</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="nv">$BackupDir</span> <span class="p">=</span> <span class="s2">&quot;./backups/mastra.db&quot;</span>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="nv">$Timestamp</span> <span class="p">=</span> <span class="nb">Get-Date</span> <span class="n">-Format</span> <span class="s2">&quot;yyyy-MM-dd-HH-mm-ss&quot;</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="nv">$BackupDir</span> <span class="p">=</span> <span class="s2">"./backups/mastra.db"</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="nv">$Timestamp</span> <span class="p">=</span> <span class="nb">Get-Date</span> <span class="n">-Format</span> <span class="s2">"yyyy-MM-dd-HH-mm-ss"</span>
 <a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="nb">New-Item</span> <span class="n">-ItemType</span> <span class="n">Directory</span> <span class="n">-Force</span> <span class="n">-Path</span> <span class="nv">$BackupDir</span>
-<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="nb">Copy-Item</span> <span class="s2">&quot;./mastra.db&quot;</span> <span class="s2">&quot;$BackupDir/mastra.db.$Timestamp.bak&quot;</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="nb">Copy-Item</span> <span class="s2">"./mastra.db"</span> <span class="s2">"$BackupDir/mastra.db.$Timestamp.bak"</span>
 <a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="c"># Retain only last 168 backups</span>
-<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="nb">Get-ChildItem</span> <span class="s2">&quot;$BackupDir\*.bak&quot;</span> <span class="p">|</span> <span class="nb">Sort-Object</span> <span class="n">LastWriteTime</span> <span class="n">-Descending</span> <span class="p">|</span> <span class="nb">Select-Object</span> <span class="n">-Skip</span> <span class="n">168</span> <span class="p">|</span> <span class="nb">Remove-Item</span> <span class="n">-Force</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="nb">Get-ChildItem</span> <span class="s2">"$BackupDir\*.bak"</span> <span class="p">|</span> <span class="nb">Sort-Object</span> <span class="n">LastWriteTime</span> <span class="n">-Descending</span> <span class="p">|</span> <span class="nb">Select-Object</span> <span class="n">-Skip</span> <span class="n">168</span> <span class="p">|</span> <span class="nb">Remove-Item</span> <span class="n">-Force</span>
 </code></pre></div>
 <h3 id="22-prompt-backup">2.2 Prompt Backup</h3>
 <p><strong>Frequency:</strong> Every commit<br />
 <strong>Retention:</strong> Infinite (Git history)<br />
 <strong>Method:</strong> Standard Git workflow</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>git<span class="w"> </span>add<span class="w"> </span>prompts/
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;backup: prompts </span><span class="k">$(</span>date<span class="w"> </span>+%Y-%m-%d<span class="k">)</span><span class="s2">&quot;</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">"backup: prompts </span><span class="k">$(</span>date<span class="w"> </span>+%Y-%m-%d<span class="k">)</span><span class="s2">"</span>
 </code></pre></div>
 <h3 id="23-configuration-backup">2.3 Configuration Backup</h3>
 <p><strong>Frequency:</strong> Every commit<br />
@@ -837,12 +837,12 @@
 <strong>Script:</strong> <code>scripts/backup-kv.sh</code></p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="ch">#!/bin/bash</span>
 <a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="c1"># scripts/backup-kv.sh</span>
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="nv">BACKUP_DIR</span><span class="o">=</span><span class="s2">&quot;./backups/kv&quot;</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="nv">BACKUP_DIR</span><span class="o">=</span><span class="s2">"./backups/kv"</span>
 <a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="nv">TIMESTAMP</span><span class="o">=</span><span class="k">$(</span>date<span class="w"> </span>+%Y-%m-%d-%H-%M-%S<span class="k">)</span>
-<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>mkdir<span class="w"> </span>-p<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$BACKUP_DIR</span><span class="s2">&quot;</span>
-<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>npx<span class="w"> </span>wrangler<span class="w"> </span>kv<span class="w"> </span>key<span class="w"> </span>list<span class="w"> </span>--namespace-id<span class="o">=</span><span class="s2">&quot;205574effbc2491f904b768b9f6db7cc&quot;</span><span class="w"> </span>&gt;<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$BACKUP_DIR</span><span class="s2">/kv-keys.</span><span class="nv">$TIMESTAMP</span><span class="s2">.json&quot;</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>mkdir<span class="w"> </span>-p<span class="w"> </span><span class="s2">"</span><span class="nv">$BACKUP_DIR</span><span class="s2">"</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>npx<span class="w"> </span>wrangler<span class="w"> </span>kv<span class="w"> </span>key<span class="w"> </span>list<span class="w"> </span>--namespace-id<span class="o">=</span><span class="s2">"205574effbc2491f904b768b9f6db7cc"</span><span class="w"> </span>&gt;<span class="w"> </span><span class="s2">"</span><span class="nv">$BACKUP_DIR</span><span class="s2">/kv-keys.</span><span class="nv">$TIMESTAMP</span><span class="s2">.json"</span>
 <a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="c1"># Retain only last 4 backups</span>
-<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>ls<span class="w"> </span>-t<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$BACKUP_DIR</span><span class="s2">&quot;</span>/*.json<span class="w"> </span><span class="p">|</span><span class="w"> </span>tail<span class="w"> </span>-n<span class="w"> </span>+5<span class="w"> </span><span class="p">|</span><span class="w"> </span>xargs<span class="w"> </span>-r<span class="w"> </span>rm
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>ls<span class="w"> </span>-t<span class="w"> </span><span class="s2">"</span><span class="nv">$BACKUP_DIR</span><span class="s2">"</span>/*.json<span class="w"> </span><span class="p">|</span><span class="w"> </span>tail<span class="w"> </span>-n<span class="w"> </span>+5<span class="w"> </span><span class="p">|</span><span class="w"> </span>xargs<span class="w"> </span>-r<span class="w"> </span>rm
 </code></pre></div>
 <h3 id="25-secrets-backup">2.5 Secrets Backup</h3>
 <p><strong>Frequency:</strong> On change<br />
@@ -857,30 +857,30 @@
 <strong>Script:</strong> <code>scripts/backup-volumes.sh</code></p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="ch">#!/bin/bash</span>
 <a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="c1"># scripts/backup-volumes.sh</span>
-<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="nv">BACKUP_DIR</span><span class="o">=</span><span class="s2">&quot;./backups/volumes&quot;</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="nv">BACKUP_DIR</span><span class="o">=</span><span class="s2">"./backups/volumes"</span>
 <a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="nv">TIMESTAMP</span><span class="o">=</span><span class="k">$(</span>date<span class="w"> </span>+%Y-%m-%d-%H-%M-%S<span class="k">)</span>
-<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>mkdir<span class="w"> </span>-p<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$BACKUP_DIR</span><span class="s2">&quot;</span>
-<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>docker<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>-v<span class="w"> </span>etap_data:/data<span class="w"> </span>-v<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$BACKUP_DIR</span><span class="s2">:/backup&quot;</span><span class="w"> </span>alpine<span class="w"> </span>tar<span class="w"> </span>czf<span class="w"> </span><span class="s2">&quot;/backup/etap_data.</span><span class="nv">$TIMESTAMP</span><span class="s2">.tar.gz&quot;</span><span class="w"> </span>-C<span class="w"> </span>/data<span class="w"> </span>.
-<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>docker<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>-v<span class="w"> </span>etap_reports:/data<span class="w"> </span>-v<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$BACKUP_DIR</span><span class="s2">:/backup&quot;</span><span class="w"> </span>alpine<span class="w"> </span>tar<span class="w"> </span>czf<span class="w"> </span><span class="s2">&quot;/backup/etap_reports.</span><span class="nv">$TIMESTAMP</span><span class="s2">.tar.gz&quot;</span><span class="w"> </span>-C<span class="w"> </span>/data<span class="w"> </span>.
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>mkdir<span class="w"> </span>-p<span class="w"> </span><span class="s2">"</span><span class="nv">$BACKUP_DIR</span><span class="s2">"</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>docker<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>-v<span class="w"> </span>etap_data:/data<span class="w"> </span>-v<span class="w"> </span><span class="s2">"</span><span class="nv">$BACKUP_DIR</span><span class="s2">:/backup"</span><span class="w"> </span>alpine<span class="w"> </span>tar<span class="w"> </span>czf<span class="w"> </span><span class="s2">"/backup/etap_data.</span><span class="nv">$TIMESTAMP</span><span class="s2">.tar.gz"</span><span class="w"> </span>-C<span class="w"> </span>/data<span class="w"> </span>.
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>docker<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>-v<span class="w"> </span>etap_reports:/data<span class="w"> </span>-v<span class="w"> </span><span class="s2">"</span><span class="nv">$BACKUP_DIR</span><span class="s2">:/backup"</span><span class="w"> </span>alpine<span class="w"> </span>tar<span class="w"> </span>czf<span class="w"> </span><span class="s2">"/backup/etap_reports.</span><span class="nv">$TIMESTAMP</span><span class="s2">.tar.gz"</span><span class="w"> </span>-C<span class="w"> </span>/data<span class="w"> </span>.
 <a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="c1"># Retain only last 7 days</span>
-<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>find<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$BACKUP_DIR</span><span class="s2">&quot;</span><span class="w"> </span>-name<span class="w"> </span><span class="s2">&quot;*.tar.gz&quot;</span><span class="w"> </span>-mtime<span class="w"> </span>+7<span class="w"> </span>-delete
+<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>find<span class="w"> </span><span class="s2">"</span><span class="nv">$BACKUP_DIR</span><span class="s2">"</span><span class="w"> </span>-name<span class="w"> </span><span class="s2">"*.tar.gz"</span><span class="w"> </span>-mtime<span class="w"> </span>+7<span class="w"> </span>-delete
 </code></pre></div>
 <hr />
 <h2 id="3-restore-procedures">3. Restore Procedures</h2>
 <h3 id="31-database-restore">3.1 Database Restore</h3>
 <p><strong>Scenario:</strong> <code>mastra.db</code> corrupted or deleted.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1"># 1. Stop the application</span>
-<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>pkill<span class="w"> </span>-f<span class="w"> </span><span class="s2">&quot;mastra dev&quot;</span><span class="w"> </span><span class="o">||</span><span class="w"> </span>docker-compose<span class="w"> </span>stop<span class="w"> </span>etap-platform
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>pkill<span class="w"> </span>-f<span class="w"> </span><span class="s2">"mastra dev"</span><span class="w"> </span><span class="o">||</span><span class="w"> </span>docker-compose<span class="w"> </span>stop<span class="w"> </span>etap-platform
 <a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>
 <a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="c1"># 2. List available backups</span>
 <a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>ls<span class="w"> </span>-lt<span class="w"> </span>./backups/mastra.db/*.bak
 <a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>
 <a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="c1"># 3. Restore the latest backup</span>
 <a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="nv">LATEST</span><span class="o">=</span><span class="k">$(</span>ls<span class="w"> </span>-t<span class="w"> </span>./backups/mastra.db/*.bak<span class="w"> </span><span class="p">|</span><span class="w"> </span>head<span class="w"> </span>-1<span class="k">)</span>
-<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>cp<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$LATEST</span><span class="s2">&quot;</span><span class="w"> </span>./mastra.db
+<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>cp<span class="w"> </span><span class="s2">"</span><span class="nv">$LATEST</span><span class="s2">"</span><span class="w"> </span>./mastra.db
 <a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>
 <a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="c1"># 4. Verify the database</span>
-<a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a>sqlite3<span class="w"> </span>./mastra.db<span class="w"> </span><span class="s2">&quot;SELECT name FROM sqlite_master WHERE type=&#39;table&#39;;&quot;</span>
+<a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a>sqlite3<span class="w"> </span>./mastra.db<span class="w"> </span><span class="s2">"SELECT name FROM sqlite_master WHERE type='table';"</span>
 <a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a>
 <a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a><span class="c1"># 5. Restart the application</span>
 <a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a>npx<span class="w"> </span>mastra<span class="w"> </span>dev
@@ -888,17 +888,17 @@
 <a id="__codelineno-5-17" name="__codelineno-5-17" href="#__codelineno-5-17"></a>docker-compose<span class="w"> </span>up<span class="w"> </span>-d<span class="w"> </span>etap-platform
 </code></pre></div>
 <p><strong>Verification:</strong>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>npx<span class="w"> </span>tsx<span class="w"> </span>-e<span class="w"> </span><span class="s2">&quot;</span>
-<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="s2">import { mastra } from &#39;./src/mastra/index.js&#39;;</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>npx<span class="w"> </span>tsx<span class="w"> </span>-e<span class="w"> </span><span class="s2">"</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="s2">import { mastra } from './src/mastra/index.js';</span>
 <a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="s2">const agents = mastra.getAgents();</span>
-<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="s2">console.log(&#39;Agents loaded:&#39;, Object.keys(agents).length);</span>
-<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="s2">console.log(&#39;DB restore verified:&#39;, Object.keys(agents).length === 9 ? &#39;PASS&#39; : &#39;FAIL&#39;);</span>
-<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="s2">&quot;</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="s2">console.log('Agents loaded:', Object.keys(agents).length);</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="s2">console.log('DB restore verified:', Object.keys(agents).length === 9 ? 'PASS' : 'FAIL');</span>
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="s2">"</span>
 </code></pre></div></p>
 <h3 id="32-kv-restore">3.2 KV Restore</h3>
 <p><strong>Scenario:</strong> KV namespace deleted or corrupted.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1"># 1. Create new KV namespace</span>
-<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>npx<span class="w"> </span>wrangler<span class="w"> </span>kv<span class="w"> </span>namespace<span class="w"> </span>create<span class="w"> </span><span class="s2">&quot;rate-limit-kv&quot;</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>npx<span class="w"> </span>wrangler<span class="w"> </span>kv<span class="w"> </span>namespace<span class="w"> </span>create<span class="w"> </span><span class="s2">"rate-limit-kv"</span>
 <a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>
 <a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="c1"># 2. Update wrangler.jsonc with new ID</span>
 <a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="c1"># (manual edit)</span>
@@ -908,7 +908,7 @@
 <a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>
 <a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="c1"># 4. Verify rate limiting</span>
 <a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="k">for</span><span class="w"> </span>i<span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="o">{</span><span class="m">1</span>..5<span class="o">}</span><span class="p">;</span><span class="w"> </span><span class="k">do</span>
-<a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a><span class="w">  </span>curl<span class="w"> </span>-s<span class="w"> </span>-o<span class="w"> </span>/dev/null<span class="w"> </span>-w<span class="w"> </span><span class="s2">&quot;%{http_code}&quot;</span><span class="w"> </span>https://ahmed-etap.ahmdelbaz28.workers.dev/health
+<a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a><span class="w">  </span>curl<span class="w"> </span>-s<span class="w"> </span>-o<span class="w"> </span>/dev/null<span class="w"> </span>-w<span class="w"> </span><span class="s2">"%{http_code}"</span><span class="w"> </span>https://ahmed-etap.ahmdelbaz28.workers.dev/health
 <a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a><span class="k">done</span>
 </code></pre></div>
 <h3 id="33-full-environment-restore">3.3 Full Environment Restore</h3>
@@ -922,7 +922,7 @@
 <a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a>
 <a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="c1"># 3. Restore database</span>
 <a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a><span class="nv">LATEST</span><span class="o">=</span><span class="k">$(</span>ls<span class="w"> </span>-t<span class="w"> </span>./backups/mastra.db/*.bak<span class="w"> </span><span class="p">|</span><span class="w"> </span>head<span class="w"> </span>-1<span class="k">)</span>
-<a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a>cp<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$LATEST</span><span class="s2">&quot;</span><span class="w"> </span>./mastra.db
+<a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a>cp<span class="w"> </span><span class="s2">"</span><span class="nv">$LATEST</span><span class="s2">"</span><span class="w"> </span>./mastra.db
 <a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a>
 <a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a><span class="c1"># 4. Re-configure secrets</span>
 <a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a><span class="c1"># (from password manager)</span>

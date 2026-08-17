@@ -996,7 +996,7 @@ to make the system's coordination structure explicit.</p>
 <a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>User receives report
 </code></pre></div>
 <h3 id="2-fan-outfan-in-multi-study-comprehensive-analysis">2. Fan-out/Fan-in: Multi-Study Comprehensive Analysis</h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>User: &quot;Analyze this system comprehensively&quot;
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>User: "Analyze this system comprehensively"
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>    ↓
 <a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>[GoalPlannerAgent] — decomposes into 3 parallel studies
 <a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>    ↓
@@ -1005,14 +1005,14 @@ to make the system's coordination structure explicit.</p>
 <a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>    └── [ArcFlashAgent] ──────────┘
 </code></pre></div>
 <h3 id="3-expert-pool-single-study-dispatch">3. Expert Pool: Single Study Dispatch</h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>User: &quot;Run load flow on this system&quot;
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>User: "Run load flow on this system"
 <a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>    ↓
 <a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>[Orchestrator] — routes to LoadFlowAgent (expert pool member)
 <a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>    ↓
 <a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>[LoadFlowAgent] — executes
 </code></pre></div>
 <h3 id="4-producer-reviewer-code-guard">4. Producer-Reviewer: Code Guard</h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>User: &quot;Generate Python code for X&quot;
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>User: "Generate Python code for X"
 <a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>    ↓
 <a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>[LLM] — produces code
 <a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>    ↓
@@ -1021,15 +1021,15 @@ to make the system's coordination structure explicit.</p>
 <a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>Approved or rejected
 </code></pre></div>
 <h3 id="5-supervisor-goal-planner">5. Supervisor: Goal Planner</h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>User: &quot;Optimize this power system for cost&quot;
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>User: "Optimize this power system for cost"
 <a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>    ↓
 <a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>[GoalPlannerAgent] — decomposes into sub-goals
-<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>    ├── &quot;Run OPF&quot; → [OptimalPowerFlowAgent]
-<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>    ├── &quot;Check constraints&quot; → [ValidationAgent]
-<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>    └── &quot;Generate report&quot; → [ReportGenerationAgent]
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>    ├── "Run OPF" → [OptimalPowerFlowAgent]
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>    ├── "Check constraints" → [ValidationAgent]
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>    └── "Generate report" → [ReportGenerationAgent]
 </code></pre></div>
 <h3 id="6-hierarchical-delegation-power-system-coordinator">6. Hierarchical Delegation: Power System Coordinator</h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>User: &quot;Full system analysis&quot;
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>User: "Full system analysis"
 <a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>    ↓
 <a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>[PowerSystemCoordinatorAgent] — top-level coordinator
 <a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>    ├── [LoadFlowAgent] — may delegate to sub-tasks

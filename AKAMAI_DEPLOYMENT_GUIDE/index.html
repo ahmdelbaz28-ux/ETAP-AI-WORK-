@@ -875,10 +875,10 @@ Prerequisites: Akamai account + contract + API credentials.</p>
 </li>
 </ol>
 <p><strong>أو</strong> عيّن متغيرات البيئة:
-   <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">AKAMAI_HOST</span><span class="o">=</span><span class="s2">&quot;akab-abc123.luna.akamaiapis.net&quot;</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="nb">export</span><span class="w"> </span><span class="nv">AKAMAI_CLIENT_TOKEN</span><span class="o">=</span><span class="s2">&quot;akab-xxxx...&quot;</span>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="nb">export</span><span class="w"> </span><span class="nv">AKAMAI_CLIENT_SECRET</span><span class="o">=</span><span class="s2">&quot;xxxx...&quot;</span>
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="nb">export</span><span class="w"> </span><span class="nv">AKAMAI_ACCESS_TOKEN</span><span class="o">=</span><span class="s2">&quot;akab-xxxx...&quot;</span>
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">AKAMAI_HOST</span><span class="o">=</span><span class="s2">"akab-abc123.luna.akamaiapis.net"</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="nb">export</span><span class="w"> </span><span class="nv">AKAMAI_CLIENT_TOKEN</span><span class="o">=</span><span class="s2">"akab-xxxx..."</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="nb">export</span><span class="w"> </span><span class="nv">AKAMAI_CLIENT_SECRET</span><span class="o">=</span><span class="s2">"xxxx..."</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="nb">export</span><span class="w"> </span><span class="nv">AKAMAI_ACCESS_TOKEN</span><span class="o">=</span><span class="s2">"akab-xxxx..."</span>
 </code></pre></div></p>
 <h3 id="13-domain-dns">1.3 Domain + DNS</h3>
 <ol>
@@ -898,21 +898,21 @@ Prerequisites: Akamai account + contract + API credentials.</p>
 </code></pre></div>
 <h3 id="step-2">Step 2: تعيين متغيرات البيئة</h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># Akamai API (from ~/.edgerc OR env vars)</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="nb">export</span><span class="w"> </span><span class="nv">AKAMAI_HOST</span><span class="o">=</span><span class="s2">&quot;akab-abc123.luna.akamaiapis.net&quot;</span>
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="nb">export</span><span class="w"> </span><span class="nv">AKAMAI_CLIENT_TOKEN</span><span class="o">=</span><span class="s2">&quot;akab-xxxx...&quot;</span>
-<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="nb">export</span><span class="w"> </span><span class="nv">AKAMAI_CLIENT_SECRET</span><span class="o">=</span><span class="s2">&quot;xxxx...&quot;</span>
-<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="nb">export</span><span class="w"> </span><span class="nv">AKAMAI_ACCESS_TOKEN</span><span class="o">=</span><span class="s2">&quot;akab-xxxx...&quot;</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="nb">export</span><span class="w"> </span><span class="nv">AKAMAI_HOST</span><span class="o">=</span><span class="s2">"akab-abc123.luna.akamaiapis.net"</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="nb">export</span><span class="w"> </span><span class="nv">AKAMAI_CLIENT_TOKEN</span><span class="o">=</span><span class="s2">"akab-xxxx..."</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="nb">export</span><span class="w"> </span><span class="nv">AKAMAI_CLIENT_SECRET</span><span class="o">=</span><span class="s2">"xxxx..."</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="nb">export</span><span class="w"> </span><span class="nv">AKAMAI_ACCESS_TOKEN</span><span class="o">=</span><span class="s2">"akab-xxxx..."</span>
 <a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>
 <a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="c1"># Akamai Property config</span>
-<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="nb">export</span><span class="w"> </span><span class="nv">AKAMAI_EDGE_HOSTNAME</span><span class="o">=</span><span class="s2">&quot;etap&quot;</span><span class="w">           </span><span class="c1"># → etap.edgeservices.net</span>
-<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="nb">export</span><span class="w"> </span><span class="nv">AKAMAI_ORIGIN_HOSTNAME</span><span class="o">=</span><span class="s2">&quot;ahmdelbaz28-etap.hf.space&quot;</span><span class="w">  </span><span class="c1"># HF Space</span>
-<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="c1"># OR: export AKAMAI_ORIGIN_HOSTNAME=&quot;revit-xxxx.vercel.app&quot;     # Vercel</span>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="nb">export</span><span class="w"> </span><span class="nv">AKAMAI_EDGE_HOSTNAME</span><span class="o">=</span><span class="s2">"etap"</span><span class="w">           </span><span class="c1"># → etap.edgeservices.net</span>
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="nb">export</span><span class="w"> </span><span class="nv">AKAMAI_ORIGIN_HOSTNAME</span><span class="o">=</span><span class="s2">"ahmdelbaz28-etap.hf.space"</span><span class="w">  </span><span class="c1"># HF Space</span>
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="c1"># OR: export AKAMAI_ORIGIN_HOSTNAME="revit-xxxx.vercel.app"     # Vercel</span>
 <a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>
 <a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="c1"># Origin verification token (generate a strong random secret)</span>
-<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="nb">export</span><span class="w"> </span><span class="nv">AKAMAI_REQUIRE_ORIGIN_TOKEN</span><span class="o">=</span><span class="s2">&quot;</span><span class="k">$(</span>openssl<span class="w"> </span>rand<span class="w"> </span>-hex<span class="w"> </span><span class="m">32</span><span class="k">)</span><span class="s2">&quot;</span>
+<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="nb">export</span><span class="w"> </span><span class="nv">AKAMAI_REQUIRE_ORIGIN_TOKEN</span><span class="o">=</span><span class="s2">"</span><span class="k">$(</span>openssl<span class="w"> </span>rand<span class="w"> </span>-hex<span class="w"> </span><span class="m">32</span><span class="k">)</span><span class="s2">"</span>
 <a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a>
 <a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a><span class="c1"># Admin IP allowlist (comma-separated CIDRs)</span>
-<a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a><span class="nb">export</span><span class="w"> </span><span class="nv">AKAMAI_ADMIN_IP_ALLOWLIST</span><span class="o">=</span><span class="s2">&quot;203.0.113.0/24,198.51.100.10/32&quot;</span>
+<a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a><span class="nb">export</span><span class="w"> </span><span class="nv">AKAMAI_ADMIN_IP_ALLOWLIST</span><span class="o">=</span><span class="s2">"203.0.113.0/24,198.51.100.10/32"</span>
 </code></pre></div>
 <blockquote>
 <p>⚠️ <strong>احفظ <code>AKAMAI_REQUIRE_ORIGIN_TOKEN</code> في مكان آمن</strong> — يجب أن يكون متطابقاً بين Akamai والـ backend.</p>
@@ -938,8 +938,8 @@ Prerequisites: Akamai account + contract + API credentials.</p>
 <a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>?akamai-staging=1
 </code></pre></div></p>
 <p>أو استخدم header:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>curl<span class="w"> </span>-H<span class="w"> </span><span class="s2">&quot;Pragma: akamai-x-get-extracted-values&quot;</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">     </span>-H<span class="w"> </span><span class="s2">&quot;X-Akamai-Debug: true&quot;</span><span class="w"> </span><span class="se">\</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>curl<span class="w"> </span>-H<span class="w"> </span><span class="s2">"Pragma: akamai-x-get-extracted-values"</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">     </span>-H<span class="w"> </span><span class="s2">"X-Akamai-Debug: true"</span><span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">     </span>https://etap.edgeservices.net.staging.akamaihd.net/api/health
 </code></pre></div></p>
 <p>تحقق من:
@@ -960,14 +960,14 @@ Prerequisites: Akamai account + contract + API credentials.</p>
 <h3 id="step-6-edgeworkers">Step 6: نشر EdgeWorkers</h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1"># Bundle كل EdgeWorker</span>
 <a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="nb">cd</span><span class="w"> </span>deploy/akamai/edgeworkers/verify-origin
-<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>zip<span class="w"> </span>-r<span class="w"> </span>verify-origin.zip<span class="w"> </span>.<span class="w"> </span>-x<span class="w"> </span><span class="s2">&quot;*.DS_Store&quot;</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>zip<span class="w"> </span>-r<span class="w"> </span>verify-origin.zip<span class="w"> </span>.<span class="w"> </span>-x<span class="w"> </span><span class="s2">"*.DS_Store"</span>
 <a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="c1"># ارفع عبر: Akamai Control Center → EdgeWorkers → Create → Upload bundle</span>
 <a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>
 <a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="nb">cd</span><span class="w"> </span>../geo-block
-<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a>zip<span class="w"> </span>-r<span class="w"> </span>geo-block.zip<span class="w"> </span>.<span class="w"> </span>-x<span class="w"> </span><span class="s2">&quot;*.DS_Store&quot;</span>
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a>zip<span class="w"> </span>-r<span class="w"> </span>geo-block.zip<span class="w"> </span>.<span class="w"> </span>-x<span class="w"> </span><span class="s2">"*.DS_Store"</span>
 <a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a>
 <a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a><span class="nb">cd</span><span class="w"> </span>../inject-headers
-<a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a>zip<span class="w"> </span>-r<span class="w"> </span>inject-headers.zip<span class="w"> </span>.<span class="w"> </span>-x<span class="w"> </span><span class="s2">&quot;*.DS_Store&quot;</span>
+<a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a>zip<span class="w"> </span>-r<span class="w"> </span>inject-headers.zip<span class="w"> </span>.<span class="w"> </span>-x<span class="w"> </span><span class="s2">"*.DS_Store"</span>
 </code></pre></div>
 <p>ثم اربط كل EdgeWorker بالـ property:
 - <strong>verify-origin</strong>: على <code>onClientRequest</code> لكل المسارات
@@ -986,21 +986,21 @@ Prerequisites: Akamai account + contract + API credentials.</p>
 <p>على HF Space + Vercel، عيّن هذه الـ secrets/env vars:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="c1"># HF Space</span>
 <a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$HF_TOKEN</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="w">  </span>-d<span class="w"> </span><span class="s2">&quot;{\&quot;key\&quot;:\&quot;AKAMAI_ENABLED\&quot;,\&quot;value\&quot;:\&quot;true\&quot;}&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">"Authorization: Bearer </span><span class="nv">$HF_TOKEN</span><span class="s2">"</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">"Content-Type: application/json"</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="w">  </span>-d<span class="w"> </span><span class="s2">"{\"key\":\"AKAMAI_ENABLED\",\"value\":\"true\"}"</span><span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="w">  </span>https://huggingface.co/api/spaces/ahmdelbaz28/ETAP/secrets
 <a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a>
 <a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$HF_TOKEN</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a><span class="w">  </span>-d<span class="w"> </span><span class="s2">&quot;{\&quot;key\&quot;:\&quot;AKAMAI_REQUIRE_ORIGIN_TOKEN\&quot;,\&quot;value\&quot;:\&quot;</span><span class="nv">$AKAMAI_REQUIRE_ORIGIN_TOKEN</span><span class="s2">\&quot;}&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">"Authorization: Bearer </span><span class="nv">$HF_TOKEN</span><span class="s2">"</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">"Content-Type: application/json"</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a><span class="w">  </span>-d<span class="w"> </span><span class="s2">"{\"key\":\"AKAMAI_REQUIRE_ORIGIN_TOKEN\",\"value\":\"</span><span class="nv">$AKAMAI_REQUIRE_ORIGIN_TOKEN</span><span class="s2">\"}"</span><span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-10-12" name="__codelineno-10-12" href="#__codelineno-10-12"></a><span class="w">  </span>https://huggingface.co/api/spaces/ahmdelbaz28/ETAP/secrets
 <a id="__codelineno-10-13" name="__codelineno-10-13" href="#__codelineno-10-13"></a>
 <a id="__codelineno-10-14" name="__codelineno-10-14" href="#__codelineno-10-14"></a>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-10-15" name="__codelineno-10-15" href="#__codelineno-10-15"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$HF_TOKEN</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-10-16" name="__codelineno-10-16" href="#__codelineno-10-16"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-10-17" name="__codelineno-10-17" href="#__codelineno-10-17"></a><span class="w">  </span>-d<span class="w"> </span><span class="s2">&quot;{\&quot;key\&quot;:\&quot;AKAMAI_BLOCKED_COUNTRIES\&quot;,\&quot;value\&quot;:\&quot;IR,KP,SY,CU,VE,BY,RU\&quot;}&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-10-15" name="__codelineno-10-15" href="#__codelineno-10-15"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">"Authorization: Bearer </span><span class="nv">$HF_TOKEN</span><span class="s2">"</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-10-16" name="__codelineno-10-16" href="#__codelineno-10-16"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">"Content-Type: application/json"</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-10-17" name="__codelineno-10-17" href="#__codelineno-10-17"></a><span class="w">  </span>-d<span class="w"> </span><span class="s2">"{\"key\":\"AKAMAI_BLOCKED_COUNTRIES\",\"value\":\"IR,KP,SY,CU,VE,BY,RU\"}"</span><span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-10-18" name="__codelineno-10-18" href="#__codelineno-10-18"></a><span class="w">  </span>https://huggingface.co/api/spaces/ahmdelbaz28/ETAP/secrets
 <a id="__codelineno-10-19" name="__codelineno-10-19" href="#__codelineno-10-19"></a>
 <a id="__codelineno-10-20" name="__codelineno-10-20" href="#__codelineno-10-20"></a><span class="c1"># Vercel (same vars, via Vercel API)</span>

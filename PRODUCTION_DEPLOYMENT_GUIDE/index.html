@@ -1131,7 +1131,7 @@
 </li>
 <li>
 <p>Create initial admin user:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>python<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;from etap.admin import create_admin_user; create_admin_user()&quot;</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>python<span class="w"> </span>-c<span class="w"> </span><span class="s2">"from etap.admin import create_admin_user; create_admin_user()"</span>
 </code></pre></div></p>
 </li>
 </ol>
@@ -1219,7 +1219,7 @@
 <div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="c1"># Daily backup script</span>
 <a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a><span class="c1">#!/bin/bash</span>
 <a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a><span class="nv">DATE</span><span class="o">=</span><span class="k">$(</span>date<span class="w"> </span>+%Y%m%d_%H%M%S<span class="k">)</span>
-<a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a><span class="nv">BACKUP_DIR</span><span class="o">=</span><span class="s2">&quot;/opt/etap/backups/</span><span class="nv">$DATE</span><span class="s2">&quot;</span>
+<a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a><span class="nv">BACKUP_DIR</span><span class="o">=</span><span class="s2">"/opt/etap/backups/</span><span class="nv">$DATE</span><span class="s2">"</span>
 <a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a>
 <a id="__codelineno-17-6" name="__codelineno-17-6" href="#__codelineno-17-6"></a>mkdir<span class="w"> </span>-p<span class="w"> </span><span class="nv">$BACKUP_DIR</span>
 <a id="__codelineno-17-7" name="__codelineno-17-7" href="#__codelineno-17-7"></a>
@@ -1230,7 +1230,7 @@
 <a id="__codelineno-17-12" name="__codelineno-17-12" href="#__codelineno-17-12"></a>tar<span class="w"> </span>-czf<span class="w"> </span><span class="nv">$BACKUP_DIR</span>/config.tar.gz<span class="w"> </span>/opt/etap/config/
 <a id="__codelineno-17-13" name="__codelineno-17-13" href="#__codelineno-17-13"></a>
 <a id="__codelineno-17-14" name="__codelineno-17-14" href="#__codelineno-17-14"></a><span class="c1"># Logs backup (last 7 days)</span>
-<a id="__codelineno-17-15" name="__codelineno-17-15" href="#__codelineno-17-15"></a>find<span class="w"> </span>/var/log/etap/<span class="w"> </span>-name<span class="w"> </span><span class="s2">&quot;*.log&quot;</span><span class="w"> </span>-mtime<span class="w"> </span>-7<span class="w"> </span>-exec<span class="w"> </span>tar<span class="w"> </span>-rf<span class="w"> </span><span class="nv">$BACKUP_DIR</span>/logs.tar<span class="w"> </span><span class="o">{}</span><span class="w"> </span><span class="se">\;</span>
+<a id="__codelineno-17-15" name="__codelineno-17-15" href="#__codelineno-17-15"></a>find<span class="w"> </span>/var/log/etap/<span class="w"> </span>-name<span class="w"> </span><span class="s2">"*.log"</span><span class="w"> </span>-mtime<span class="w"> </span>-7<span class="w"> </span>-exec<span class="w"> </span>tar<span class="w"> </span>-rf<span class="w"> </span><span class="nv">$BACKUP_DIR</span>/logs.tar<span class="w"> </span><span class="o">{}</span><span class="w"> </span><span class="se">\;</span>
 <a id="__codelineno-17-16" name="__codelineno-17-16" href="#__codelineno-17-16"></a>
 <a id="__codelineno-17-17" name="__codelineno-17-17" href="#__codelineno-17-17"></a><span class="c1"># Encrypt backup</span>
 <a id="__codelineno-17-18" name="__codelineno-17-18" href="#__codelineno-17-18"></a>gpg<span class="w"> </span>--symmetric<span class="w"> </span>--cipher-algo<span class="w"> </span>AES256<span class="w"> </span><span class="nv">$BACKUP_DIR</span>/*.tar<span class="w"> </span><span class="nv">$BACKUP_DIR</span>/*.sql
@@ -1297,10 +1297,10 @@
 <a id="__codelineno-19-5" name="__codelineno-19-5" href="#__codelineno-19-5"></a>logrotate<span class="w"> </span>-f<span class="w"> </span>/etc/logrotate.d/etap
 <a id="__codelineno-19-6" name="__codelineno-19-6" href="#__codelineno-19-6"></a>
 <a id="__codelineno-19-7" name="__codelineno-19-7" href="#__codelineno-19-7"></a><span class="c1"># Database maintenance</span>
-<a id="__codelineno-19-8" name="__codelineno-19-8" href="#__codelineno-19-8"></a>psql<span class="w"> </span>db<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;VACUUM ANALYZE; REINDEX DATABASE db;&quot;</span>
+<a id="__codelineno-19-8" name="__codelineno-19-8" href="#__codelineno-19-8"></a>psql<span class="w"> </span>db<span class="w"> </span>-c<span class="w"> </span><span class="s2">"VACUUM ANALYZE; REINDEX DATABASE db;"</span>
 <a id="__codelineno-19-9" name="__codelineno-19-9" href="#__codelineno-19-9"></a>
 <a id="__codelineno-19-10" name="__codelineno-19-10" href="#__codelineno-19-10"></a><span class="c1"># Clean temporary files</span>
-<a id="__codelineno-19-11" name="__codelineno-19-11" href="#__codelineno-19-11"></a>find<span class="w"> </span>/tmp/<span class="w"> </span>-name<span class="w"> </span><span class="s2">&quot;etap_*&quot;</span><span class="w"> </span>-mtime<span class="w"> </span>+1<span class="w"> </span>-delete
+<a id="__codelineno-19-11" name="__codelineno-19-11" href="#__codelineno-19-11"></a>find<span class="w"> </span>/tmp/<span class="w"> </span>-name<span class="w"> </span><span class="s2">"etap_*"</span><span class="w"> </span>-mtime<span class="w"> </span>+1<span class="w"> </span>-delete
 <a id="__codelineno-19-12" name="__codelineno-19-12" href="#__codelineno-19-12"></a>
 <a id="__codelineno-19-13" name="__codelineno-19-13" href="#__codelineno-19-13"></a><span class="c1"># Update security patches</span>
 <a id="__codelineno-19-14" name="__codelineno-19-14" href="#__codelineno-19-14"></a>apt<span class="w"> </span>update<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>apt<span class="w"> </span>upgrade<span class="w"> </span>-y

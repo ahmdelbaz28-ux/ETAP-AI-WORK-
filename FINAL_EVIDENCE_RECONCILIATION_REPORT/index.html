@@ -936,8 +936,8 @@
 - <strong>BUT QOMN router is NOT imported in <code>app.py</code>:</strong> The imports block at lines 770-783 (<code>from backend.routers import (projects, devices, ...)</code>) does NOT include <code>qomn</code>
 - <strong>QOMN router is NOT mounted via <code>app.include_router()</code>:</strong> Lines 798-843 show all mounted routers — <code>qomn</code> is absent
 - <strong>QOMN grep in app.py:</strong> Only 1 match on line 287 (rate limit) — no import, no mount</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>$ grep -n &quot;qomn&quot; backend/app.py
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>Line 287:     (&quot;/api/qomn&quot;, 10, 60),    ← rate limit ONLY
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>$ grep -n "qomn" backend/app.py
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>Line 287:     ("/api/qomn", 10, 60),    ← rate limit ONLY
 </code></pre></div>
 <p><strong>Conclusion: QOMN router is DEFINED but NOT MOUNTED.</strong> The rate limit at line 287 (<code>("/api/qomn", 10, 60)</code>) is dead code — it would never fire because no router is listening at <code>/api/qomn/*</code>. Requests to <code>/api/qomn/*</code> would return HTTP 404. This is a <strong>CRITICAL finding</strong>: the router file has 15 fully implemented endpoints that exist in source but are unreachable.</p>
 <hr />

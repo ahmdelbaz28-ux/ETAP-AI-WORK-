@@ -13611,7 +13611,7 @@ design engine, preventing corrupted geometry from producing unsafe designs.</p>
 <a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>→ etap/core/acoustics_engine.py:103
 <a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a>→ etap/core/ugld_acoustics.py:88
 <a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a>→ from pydantic import BaseModel, ConfigDict, Field, model_validator
-<a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a>→ ModuleNotFoundError: No module named &#39;pydantic&#39;
+<a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a>→ ModuleNotFoundError: No module named 'pydantic'
 </code></pre></div></p>
 <p><strong>Secondary Issue:</strong> <code>asyncio_mode = "auto"</code> in <code>pyproject.toml</code> requires <code>pytest-asyncio</code>, which was not installed in CI.</p>
 <h3 id="fix-applied">Fix Applied</h3>
@@ -18142,10 +18142,10 @@ not stub). Same for TransportRouter and RequestNormalizer.</p>
 <a id="__codelineno-29-16" name="__codelineno-29-16" href="#__codelineno-29-16"></a>#  3 are test-ordering/performance issues. None caused by V139.)
 <a id="__codelineno-29-17" name="__codelineno-29-17" href="#__codelineno-29-17"></a>
 <a id="__codelineno-29-18" name="__codelineno-29-18" href="#__codelineno-29-18"></a># Stub elimination verified:
-<a id="__codelineno-29-19" name="__codelineno-29-19" href="#__codelineno-29-19"></a>$ python -c &quot;from facp_distributed.transport import TransportLayer; print(TransportLayer)&quot;
-<a id="__codelineno-29-20" name="__codelineno-29-20" href="#__codelineno-29-20"></a>&lt;class &#39;facp_distributed.transport.http_transport.TransportLayer&#39;&gt;
-<a id="__codelineno-29-21" name="__codelineno-29-21" href="#__codelineno-29-21"></a>$ python -c &quot;from facp_distributed.l1_gateway import RequestNormalizer; print(RequestNormalizer)&quot;
-<a id="__codelineno-29-22" name="__codelineno-29-22" href="#__codelineno-29-22"></a>&lt;class &#39;facp_distributed.l1_gateway.client_interface.RequestNormalizer&#39;&gt;
+<a id="__codelineno-29-19" name="__codelineno-29-19" href="#__codelineno-29-19"></a>$ python -c "from facp_distributed.transport import TransportLayer; print(TransportLayer)"
+<a id="__codelineno-29-20" name="__codelineno-29-20" href="#__codelineno-29-20"></a>&lt;class 'facp_distributed.transport.http_transport.TransportLayer'&gt;
+<a id="__codelineno-29-21" name="__codelineno-29-21" href="#__codelineno-29-21"></a>$ python -c "from facp_distributed.l1_gateway import RequestNormalizer; print(RequestNormalizer)"
+<a id="__codelineno-29-22" name="__codelineno-29-22" href="#__codelineno-29-22"></a>&lt;class 'facp_distributed.l1_gateway.client_interface.RequestNormalizer'&gt;
 </code></pre></div>
 <h3 id="honest-status-report-rule-11_1">Honest Status Report (Rule 11)</h3>
 <p><strong>(a) Current status:</strong> V139 fixes applied on branch
@@ -19159,9 +19159,9 @@ honest behavior.</p>
 </tbody>
 </table>
 <p>MCP server real protocol test (manual):
-<div class="highlight"><pre><span></span><code><a id="__codelineno-31-1" name="__codelineno-31-1" href="#__codelineno-31-1"></a>$ echo &#39;{&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;id&quot;:1,&quot;method&quot;:&quot;initialize&quot;,&quot;params&quot;:{...}}&#39; | \
+<div class="highlight"><pre><span></span><code><a id="__codelineno-31-1" name="__codelineno-31-1" href="#__codelineno-31-1"></a>$ echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{...}}' | \
 <a id="__codelineno-31-2" name="__codelineno-31-2" href="#__codelineno-31-2"></a>  python -m etap.mcp_server.revit_mcp_server
-<a id="__codelineno-31-3" name="__codelineno-31-3" href="#__codelineno-31-3"></a>{&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;id&quot;:1,&quot;result&quot;:{&quot;protocolVersion&quot;:&quot;2024-11-05&quot;,...}}
+<a id="__codelineno-31-3" name="__codelineno-31-3" href="#__codelineno-31-3"></a>{"jsonrpc":"2.0","id":1,"result":{"protocolVersion":"2024-11-05",...}}
 </code></pre></div>
 3/3 JSON-RPC requests answered correctly.</p>
 <h3 id="files-modifiedcreated-in-v1412-10-files">Files Modified/Created in V141.2 (10 files)</h3>
@@ -19395,7 +19395,7 @@ confirmation.</p>
 <strong>Root Cause:</strong> In V141.2, I created this file and logged <code>trace_id</code> and
 <code>project_id</code> at DEBUG level:
 <div class="highlight"><pre><span></span><code><a id="__codelineno-32-1" name="__codelineno-32-1" href="#__codelineno-32-1"></a><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
-<a id="__codelineno-32-2" name="__codelineno-32-2" href="#__codelineno-32-2"></a>    <span class="s2">&quot;Langfuse CallbackHandler created (trace_name=</span><span class="si">%s</span><span class="s2">, trace_id=</span><span class="si">%s</span><span class="s2">, project_id=</span><span class="si">%s</span><span class="s2">)&quot;</span><span class="p">,</span>
+<a id="__codelineno-32-2" name="__codelineno-32-2" href="#__codelineno-32-2"></a>    <span class="s2">"Langfuse CallbackHandler created (trace_name=</span><span class="si">%s</span><span class="s2">, trace_id=</span><span class="si">%s</span><span class="s2">, project_id=</span><span class="si">%s</span><span class="s2">)"</span><span class="p">,</span>
 <a id="__codelineno-32-3" name="__codelineno-32-3" href="#__codelineno-32-3"></a>    <span class="n">name</span><span class="p">,</span>
 <a id="__codelineno-32-4" name="__codelineno-32-4" href="#__codelineno-32-4"></a>    <span class="n">effective_trace_id</span><span class="p">,</span>
 <a id="__codelineno-32-5" name="__codelineno-32-5" href="#__codelineno-32-5"></a>    <span class="n">project_id</span><span class="p">,</span>
@@ -19406,7 +19406,7 @@ project identifiers. Logging it (even at DEBUG) leaks data to anyone
 with log access.
 <strong>Fix:</strong> Removed <code>trace_id</code> and <code>project_id</code> from the log message. Now
 logs only the static <code>trace_name</code> label:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-33-1" name="__codelineno-33-1" href="#__codelineno-33-1"></a><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Langfuse CallbackHandler created (trace_name=</span><span class="si">%s</span><span class="s2">)&quot;</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-33-1" name="__codelineno-33-1" href="#__codelineno-33-1"></a><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">"Langfuse CallbackHandler created (trace_name=</span><span class="si">%s</span><span class="s2">)"</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
 </code></pre></div>
 <strong>Lesson:</strong> I ran <code>ruff</code> and <code>bandit</code> locally but NOT CodeQL. CodeQL is
 stricter than bandit — it catches <code>clear-text-logging-sensitive-data</code>
@@ -19415,11 +19415,11 @@ that bandit misses. Future cycles must run CodeQL locally before push.</p>
 <p><strong>File:</strong> <code>backend/services/workflow_service.py:1668</code>
 <strong>Rule:</strong> <code>py/clear-text-logging-sensitive-data</code> (error)
 <strong>Root Cause:</strong> In V141.2, I logged <code>workflow_id</code>:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-34-1" name="__codelineno-34-1" href="#__codelineno-34-1"></a><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Langfuse tracing ACTIVE for workflow </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">initial_state</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;workflow_id&quot;</span><span class="p">,</span> <span class="s2">&quot;?&quot;</span><span class="p">))</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-34-1" name="__codelineno-34-1" href="#__codelineno-34-1"></a><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"Langfuse tracing ACTIVE for workflow </span><span class="si">%s</span><span class="s2">"</span><span class="p">,</span> <span class="n">initial_state</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"workflow_id"</span><span class="p">,</span> <span class="s2">"?"</span><span class="p">))</span>
 </code></pre></div>
 CodeQL flagged <code>workflow_id</code> as potentially containing project identifiers.
 <strong>Fix:</strong> Removed <code>workflow_id</code> from the log:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-35-1" name="__codelineno-35-1" href="#__codelineno-35-1"></a><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Langfuse tracing ACTIVE for workflow&quot;</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-35-1" name="__codelineno-35-1" href="#__codelineno-35-1"></a><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"Langfuse tracing ACTIVE for workflow"</span><span class="p">)</span>
 </code></pre></div></p>
 <h4 id="finding-3-codeql-path-injection-in-revit_servicepy-high-pre-existing-but-in-file-i-modified">Finding 3: CodeQL path-injection in revit_service.py (HIGH — pre-existing but in file I modified)</h4>
 <p><strong>File:</strong> <code>backend/services/revit_service.py</code> (lines 461, 463, 468, 561, 569, 1508, 1512)
@@ -19433,8 +19433,8 @@ The root cause: the code had a fallback path that bypassed
 <a id="__codelineno-36-2" name="__codelineno-36-2" href="#__codelineno-36-2"></a>    <span class="n">filepath</span> <span class="o">=</span> <span class="n">validate_input_path</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">must_exist</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <a id="__codelineno-36-3" name="__codelineno-36-3" href="#__codelineno-36-3"></a><span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
 <a id="__codelineno-36-4" name="__codelineno-36-4" href="#__codelineno-36-4"></a>    <span class="n">filepath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>  <span class="c1"># UNSAFE FALLBACK</span>
-<a id="__codelineno-36-5" name="__codelineno-36-5" href="#__codelineno-36-5"></a>    <span class="k">if</span> <span class="s2">&quot;..&quot;</span> <span class="ow">in</span> <span class="n">filepath</span><span class="p">:</span>
-<a id="__codelineno-36-6" name="__codelineno-36-6" href="#__codelineno-36-6"></a>        <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="s2">&quot;Path traversal detected&quot;</span><span class="p">)</span>
+<a id="__codelineno-36-5" name="__codelineno-36-5" href="#__codelineno-36-5"></a>    <span class="k">if</span> <span class="s2">".."</span> <span class="ow">in</span> <span class="n">filepath</span><span class="p">:</span>
+<a id="__codelineno-36-6" name="__codelineno-36-6" href="#__codelineno-36-6"></a>        <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="s2">"Path traversal detected"</span><span class="p">)</span>
 </code></pre></div>
 The fallback only checks for ".." — it doesn't verify the path is inside
 an allowed base directory. Symlinks can bypass this.

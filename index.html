@@ -1374,18 +1374,18 @@
 <hr />
 <h2 id="enterprise-architecture">🏛️ معمارية النظام — Enterprise Architecture</h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>graph TB
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>    subgraph UI[&quot;🖥️ User Interface Layer&quot;]
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>    subgraph UI["🖥️ User Interface Layer"]
 <a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>        WEB[React 19 Web App]
 <a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>        CLI[CLI Tool]
 <a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>    end
 <a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>
-<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>    subgraph GATEWAY[&quot;🔐 API Gateway — FastAPI + Security&quot;]
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>    subgraph GATEWAY["🔐 API Gateway — FastAPI + Security"]
 <a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>        AUTH[JWT Auth + ABAC]
 <a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>        RATE[Redis Rate Limiting]
 <a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>        RASP[RASP Runtime Protection]
 <a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>    end
 <a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>
-<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>    subgraph AGENTS[&quot;🤖 24 AI Agent Orchestration Layer&quot;]
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>    subgraph AGENTS["🤖 24 AI Agent Orchestration Layer"]
 <a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>        ORCH[Chief Orchestrator]
 <a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>        LF[Load Flow Agent]
 <a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a>        SC[Short Circuit Agent]
@@ -1398,21 +1398,21 @@
 <a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a>        CABLE[Cable Sizing Agent]
 <a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a>    end
 <a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a>
-<a id="__codelineno-1-26" name="__codelineno-1-26" href="#__codelineno-1-26"></a>    subgraph ENGINES[&quot;⚙️ Computation Engines (IEC/IEEE)&quot;]
+<a id="__codelineno-1-26" name="__codelineno-1-26" href="#__codelineno-1-26"></a>    subgraph ENGINES["⚙️ Computation Engines (IEC/IEEE)"]
 <a id="__codelineno-1-27" name="__codelineno-1-27" href="#__codelineno-1-27"></a>        LF_ENG[Newton-Raphson\nLoad Flow]
 <a id="__codelineno-1-28" name="__codelineno-1-28" href="#__codelineno-1-28"></a>        SC_ENG[IEC 60909\nShort Circuit]
 <a id="__codelineno-1-29" name="__codelineno-1-29" href="#__codelineno-1-29"></a>        AF_ENG[IEEE 1584\nArc Flash]
 <a id="__codelineno-1-30" name="__codelineno-1-30" href="#__codelineno-1-30"></a>        OPF_ENG[DC+AC OPF]
 <a id="__codelineno-1-31" name="__codelineno-1-31" href="#__codelineno-1-31"></a>    end
 <a id="__codelineno-1-32" name="__codelineno-1-32" href="#__codelineno-1-32"></a>
-<a id="__codelineno-1-33" name="__codelineno-1-33" href="#__codelineno-1-33"></a>    subgraph WORKERS[&quot;🔄 Celery Worker Pool&quot;]
+<a id="__codelineno-1-33" name="__codelineno-1-33" href="#__codelineno-1-33"></a>    subgraph WORKERS["🔄 Celery Worker Pool"]
 <a id="__codelineno-1-34" name="__codelineno-1-34" href="#__codelineno-1-34"></a>        CW1[Worker 1]
 <a id="__codelineno-1-35" name="__codelineno-1-35" href="#__codelineno-1-35"></a>        CW2[Worker 2]
 <a id="__codelineno-1-36" name="__codelineno-1-36" href="#__codelineno-1-36"></a>        CWN[Worker N — Autoscaling]
 <a id="__codelineno-1-37" name="__codelineno-1-37" href="#__codelineno-1-37"></a>        WIN[🪟 ETAP Windows Worker\n+ Heartbeat Registry]
 <a id="__codelineno-1-38" name="__codelineno-1-38" href="#__codelineno-1-38"></a>    end
 <a id="__codelineno-1-39" name="__codelineno-1-39" href="#__codelineno-1-39"></a>
-<a id="__codelineno-1-40" name="__codelineno-1-40" href="#__codelineno-1-40"></a>    subgraph DATA[&quot;💾 Enterprise Data Layer&quot;]
+<a id="__codelineno-1-40" name="__codelineno-1-40" href="#__codelineno-1-40"></a>    subgraph DATA["💾 Enterprise Data Layer"]
 <a id="__codelineno-1-41" name="__codelineno-1-41" href="#__codelineno-1-41"></a>        PG[(PostgreSQL\nStudy Jobs + Results)]
 <a id="__codelineno-1-42" name="__codelineno-1-42" href="#__codelineno-1-42"></a>        REDIS[(Redis\nState + Locks + Queue)]
 <a id="__codelineno-1-43" name="__codelineno-1-43" href="#__codelineno-1-43"></a>        JOB[(study_jobs Table\nPersistent Task Queue)]
@@ -1456,7 +1456,7 @@
 <a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>
 <a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="c1"># 4. التحقق من نجاح التشغيل</span>
 <a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a>curl<span class="w"> </span>http://localhost:8000/health
-<a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a><span class="c1"># {&quot;status&quot;: &quot;healthy&quot;, &quot;version&quot;: &quot;2.1.0&quot;}</span>
+<a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a><span class="c1"># {"status": "healthy", "version": "2.1.0"}</span>
 </code></pre></div>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>🌐 الواجهة:     http://localhost:3000
 <a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>🔌 API:         http://localhost:8000
@@ -1508,52 +1508,52 @@
 <div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">requests</span>
 <a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>
 <a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span>
-<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>    <span class="s2">&quot;http://localhost:8000/api/v1/studies/run&quot;</span><span class="p">,</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>    <span class="s2">"http://localhost:8000/api/v1/studies/run"</span><span class="p">,</span>
 <a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>    <span class="n">json</span><span class="o">=</span><span class="p">{</span>
-<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>        <span class="s2">&quot;study_type&quot;</span><span class="p">:</span> <span class="s2">&quot;load_flow&quot;</span><span class="p">,</span>
-<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>        <span class="s2">&quot;system&quot;</span><span class="p">:</span> <span class="p">{</span>
-<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>            <span class="s2">&quot;buses&quot;</span><span class="p">:</span> <span class="p">[</span>
-<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a>                <span class="p">{</span><span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="s2">&quot;BUS-1&quot;</span><span class="p">,</span> <span class="s2">&quot;base_kv&quot;</span><span class="p">:</span> <span class="mf">11.0</span><span class="p">,</span> <span class="s2">&quot;bus_type&quot;</span><span class="p">:</span> <span class="s2">&quot;slack&quot;</span><span class="p">},</span>
-<a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a>                <span class="p">{</span><span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="s2">&quot;BUS-2&quot;</span><span class="p">,</span> <span class="s2">&quot;base_kv&quot;</span><span class="p">:</span> <span class="mf">11.0</span><span class="p">,</span> <span class="s2">&quot;bus_type&quot;</span><span class="p">:</span> <span class="s2">&quot;load&quot;</span><span class="p">},</span>
-<a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a>                <span class="p">{</span><span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="s2">&quot;BUS-3&quot;</span><span class="p">,</span> <span class="s2">&quot;base_kv&quot;</span><span class="p">:</span> <span class="mf">0.4</span><span class="p">,</span> <span class="s2">&quot;bus_type&quot;</span><span class="p">:</span> <span class="s2">&quot;load&quot;</span><span class="p">},</span>
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>        <span class="s2">"study_type"</span><span class="p">:</span> <span class="s2">"load_flow"</span><span class="p">,</span>
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>        <span class="s2">"system"</span><span class="p">:</span> <span class="p">{</span>
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>            <span class="s2">"buses"</span><span class="p">:</span> <span class="p">[</span>
+<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a>                <span class="p">{</span><span class="s2">"id"</span><span class="p">:</span> <span class="s2">"BUS-1"</span><span class="p">,</span> <span class="s2">"base_kv"</span><span class="p">:</span> <span class="mf">11.0</span><span class="p">,</span> <span class="s2">"bus_type"</span><span class="p">:</span> <span class="s2">"slack"</span><span class="p">},</span>
+<a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a>                <span class="p">{</span><span class="s2">"id"</span><span class="p">:</span> <span class="s2">"BUS-2"</span><span class="p">,</span> <span class="s2">"base_kv"</span><span class="p">:</span> <span class="mf">11.0</span><span class="p">,</span> <span class="s2">"bus_type"</span><span class="p">:</span> <span class="s2">"load"</span><span class="p">},</span>
+<a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a>                <span class="p">{</span><span class="s2">"id"</span><span class="p">:</span> <span class="s2">"BUS-3"</span><span class="p">,</span> <span class="s2">"base_kv"</span><span class="p">:</span> <span class="mf">0.4</span><span class="p">,</span> <span class="s2">"bus_type"</span><span class="p">:</span> <span class="s2">"load"</span><span class="p">},</span>
 <a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a>            <span class="p">],</span>
-<a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a>            <span class="s2">&quot;lines&quot;</span><span class="p">:</span> <span class="p">[</span>
-<a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a>                <span class="p">{</span><span class="s2">&quot;from_bus&quot;</span><span class="p">:</span> <span class="s2">&quot;BUS-1&quot;</span><span class="p">,</span> <span class="s2">&quot;to_bus&quot;</span><span class="p">:</span> <span class="s2">&quot;BUS-2&quot;</span><span class="p">,</span> <span class="s2">&quot;r_pu&quot;</span><span class="p">:</span> <span class="mf">0.01</span><span class="p">,</span> <span class="s2">&quot;x_pu&quot;</span><span class="p">:</span> <span class="mf">0.05</span><span class="p">},</span>
-<a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a>                <span class="p">{</span><span class="s2">&quot;from_bus&quot;</span><span class="p">:</span> <span class="s2">&quot;BUS-2&quot;</span><span class="p">,</span> <span class="s2">&quot;to_bus&quot;</span><span class="p">:</span> <span class="s2">&quot;BUS-3&quot;</span><span class="p">,</span> <span class="s2">&quot;r_pu&quot;</span><span class="p">:</span> <span class="mf">0.02</span><span class="p">,</span> <span class="s2">&quot;x_pu&quot;</span><span class="p">:</span> <span class="mf">0.08</span><span class="p">},</span>
+<a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a>            <span class="s2">"lines"</span><span class="p">:</span> <span class="p">[</span>
+<a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a>                <span class="p">{</span><span class="s2">"from_bus"</span><span class="p">:</span> <span class="s2">"BUS-1"</span><span class="p">,</span> <span class="s2">"to_bus"</span><span class="p">:</span> <span class="s2">"BUS-2"</span><span class="p">,</span> <span class="s2">"r_pu"</span><span class="p">:</span> <span class="mf">0.01</span><span class="p">,</span> <span class="s2">"x_pu"</span><span class="p">:</span> <span class="mf">0.05</span><span class="p">},</span>
+<a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a>                <span class="p">{</span><span class="s2">"from_bus"</span><span class="p">:</span> <span class="s2">"BUS-2"</span><span class="p">,</span> <span class="s2">"to_bus"</span><span class="p">:</span> <span class="s2">"BUS-3"</span><span class="p">,</span> <span class="s2">"r_pu"</span><span class="p">:</span> <span class="mf">0.02</span><span class="p">,</span> <span class="s2">"x_pu"</span><span class="p">:</span> <span class="mf">0.08</span><span class="p">},</span>
 <a id="__codelineno-6-16" name="__codelineno-6-16" href="#__codelineno-6-16"></a>            <span class="p">],</span>
-<a id="__codelineno-6-17" name="__codelineno-6-17" href="#__codelineno-6-17"></a>            <span class="s2">&quot;loads&quot;</span><span class="p">:</span> <span class="p">[</span>
-<a id="__codelineno-6-18" name="__codelineno-6-18" href="#__codelineno-6-18"></a>                <span class="p">{</span><span class="s2">&quot;bus&quot;</span><span class="p">:</span> <span class="s2">&quot;BUS-2&quot;</span><span class="p">,</span> <span class="s2">&quot;p_mw&quot;</span><span class="p">:</span> <span class="mf">10.0</span><span class="p">,</span> <span class="s2">&quot;q_mvar&quot;</span><span class="p">:</span> <span class="mf">3.0</span><span class="p">},</span>
-<a id="__codelineno-6-19" name="__codelineno-6-19" href="#__codelineno-6-19"></a>                <span class="p">{</span><span class="s2">&quot;bus&quot;</span><span class="p">:</span> <span class="s2">&quot;BUS-3&quot;</span><span class="p">,</span> <span class="s2">&quot;p_mw&quot;</span><span class="p">:</span> <span class="mf">5.0</span><span class="p">,</span> <span class="s2">&quot;q_mvar&quot;</span><span class="p">:</span> <span class="mf">1.5</span><span class="p">},</span>
+<a id="__codelineno-6-17" name="__codelineno-6-17" href="#__codelineno-6-17"></a>            <span class="s2">"loads"</span><span class="p">:</span> <span class="p">[</span>
+<a id="__codelineno-6-18" name="__codelineno-6-18" href="#__codelineno-6-18"></a>                <span class="p">{</span><span class="s2">"bus"</span><span class="p">:</span> <span class="s2">"BUS-2"</span><span class="p">,</span> <span class="s2">"p_mw"</span><span class="p">:</span> <span class="mf">10.0</span><span class="p">,</span> <span class="s2">"q_mvar"</span><span class="p">:</span> <span class="mf">3.0</span><span class="p">},</span>
+<a id="__codelineno-6-19" name="__codelineno-6-19" href="#__codelineno-6-19"></a>                <span class="p">{</span><span class="s2">"bus"</span><span class="p">:</span> <span class="s2">"BUS-3"</span><span class="p">,</span> <span class="s2">"p_mw"</span><span class="p">:</span> <span class="mf">5.0</span><span class="p">,</span> <span class="s2">"q_mvar"</span><span class="p">:</span> <span class="mf">1.5</span><span class="p">},</span>
 <a id="__codelineno-6-20" name="__codelineno-6-20" href="#__codelineno-6-20"></a>            <span class="p">],</span>
 <a id="__codelineno-6-21" name="__codelineno-6-21" href="#__codelineno-6-21"></a>        <span class="p">},</span>
 <a id="__codelineno-6-22" name="__codelineno-6-22" href="#__codelineno-6-22"></a>    <span class="p">},</span>
 <a id="__codelineno-6-23" name="__codelineno-6-23" href="#__codelineno-6-23"></a><span class="p">)</span>
 <a id="__codelineno-6-24" name="__codelineno-6-24" href="#__codelineno-6-24"></a><span class="nb">print</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">())</span>
-<a id="__codelineno-6-25" name="__codelineno-6-25" href="#__codelineno-6-25"></a><span class="c1"># {&quot;status&quot;: &quot;success&quot;, &quot;voltage_pu&quot;: {&quot;BUS-1&quot;: 1.0, &quot;BUS-2&quot;: 0.983, &quot;BUS-3&quot;: 0.971}, ...}</span>
+<a id="__codelineno-6-25" name="__codelineno-6-25" href="#__codelineno-6-25"></a><span class="c1"># {"status": "success", "voltage_pu": {"BUS-1": 1.0, "BUS-2": 0.983, "BUS-3": 0.971}, ...}</span>
 </code></pre></div>
 <h3 id="etap-expert-ai">محادثة مع ETAP Expert AI</h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1"># سؤال باللغة العربية أو الإنجليزية</span>
 <a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span>
-<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>    <span class="s2">&quot;http://localhost:8000/etap-expert/chat&quot;</span><span class="p">,</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>    <span class="s2">"http://localhost:8000/etap-expert/chat"</span><span class="p">,</span>
 <a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>    <span class="n">json</span><span class="o">=</span><span class="p">{</span>
-<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>        <span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="s2">&quot;ما هي قيمة تيار القصر الثلاثي الأطوار على Bus-4 وما هي توصيات PPE؟&quot;</span><span class="p">,</span>
-<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>        <span class="s2">&quot;session_id&quot;</span><span class="p">:</span> <span class="s2">&quot;engineer-001&quot;</span><span class="p">,</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>        <span class="s2">"message"</span><span class="p">:</span> <span class="s2">"ما هي قيمة تيار القصر الثلاثي الأطوار على Bus-4 وما هي توصيات PPE؟"</span><span class="p">,</span>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>        <span class="s2">"session_id"</span><span class="p">:</span> <span class="s2">"engineer-001"</span><span class="p">,</span>
 <a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>    <span class="p">},</span>
 <a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="p">)</span>
-<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="nb">print</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">()[</span><span class="s2">&quot;reply&quot;</span><span class="p">])</span>
+<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="nb">print</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">()[</span><span class="s2">"reply"</span><span class="p">])</span>
 </code></pre></div>
 <h3 id="etap-windows-workers">تحقق من حالة ETAP Windows Workers</h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1"># اكتشاف العمال الأحياء في الـ pool</span>
-<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="n">workers</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;http://localhost:8000/etap-worker/workers&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
-<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Active workers: </span><span class="si">{</span><span class="n">workers</span><span class="p">[</span><span class="s1">&#39;count&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Healthy: </span><span class="si">{</span><span class="n">workers</span><span class="p">[</span><span class="s1">&#39;healthy&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="n">workers</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"http://localhost:8000/etap-worker/workers"</span><span class="p">)</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Active workers: </span><span class="si">{</span><span class="n">workers</span><span class="p">[</span><span class="s1">'count'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Healthy: </span><span class="si">{</span><span class="n">workers</span><span class="p">[</span><span class="s1">'healthy'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 </code></pre></div>
 <hr />
 <h2 id="ai-agent-fleet">🤖 وكلاء الذكاء الاصطناعي — AI Agent Fleet</h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>flowchart LR
 <a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>    USER([👤 المهندس]) --&gt; ORCH
 <a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>
-<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>    subgraph ORCH[&quot;🧠 Chief Orchestrator&quot;]
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>    subgraph ORCH["🧠 Chief Orchestrator"]
 <a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>        direction TB
 <a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>        PARSE[تحليل الطلب]
 <a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a>        ROUTE[توزيع المهام]
@@ -1695,19 +1695,19 @@
 <div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>graph LR
 <a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>    PUSH[git push] --&gt; LINT
 <a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>
-<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>    subgraph CI[&quot;🔄 CI/CD — GitHub Actions&quot;]
-<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>        LINT[&quot;🔍 Lint\nruff + mypy&quot;]
-<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>        TEST[&quot;🧪 Tests\npytest + cov ≥80%&quot;]
-<a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a>        SEC[&quot;🔒 Security\nBandit + Safety&quot;]
-<a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a>        HELM[&quot;⎈ Helm\nChart Validation&quot;]
-<a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a>        BUILD[&quot;🐳 Docker\nBuild + Push GHCR&quot;]
-<a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a>        SCAN[&quot;🔬 Container Scan\nTrivy SARIF + SBOM&quot;]
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>    subgraph CI["🔄 CI/CD — GitHub Actions"]
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>        LINT["🔍 Lint\nruff + mypy"]
+<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>        TEST["🧪 Tests\npytest + cov ≥80%"]
+<a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a>        SEC["🔒 Security\nBandit + Safety"]
+<a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a>        HELM["⎈ Helm\nChart Validation"]
+<a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a>        BUILD["🐳 Docker\nBuild + Push GHCR"]
+<a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a>        SCAN["🔬 Container Scan\nTrivy SARIF + SBOM"]
 <a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a>    end
 <a id="__codelineno-11-12" name="__codelineno-11-12" href="#__codelineno-11-12"></a>
 <a id="__codelineno-11-13" name="__codelineno-11-13" href="#__codelineno-11-13"></a>    LINT --&gt; TEST --&gt; SEC --&gt; HELM --&gt; BUILD --&gt; SCAN
-<a id="__codelineno-11-14" name="__codelineno-11-14" href="#__codelineno-11-14"></a>    SCAN --&gt; HF[&quot;🤗 Sync\nHugging Face&quot;]
-<a id="__codelineno-11-15" name="__codelineno-11-15" href="#__codelineno-11-15"></a>    HF --&gt; HEALTH[&quot;🩺 Health Check\n/health + /ready&quot;]
-<a id="__codelineno-11-16" name="__codelineno-11-16" href="#__codelineno-11-16"></a>    HEALTH --&gt; INDEX[&quot;📋 Auto-Update\nProject Index&quot;]
+<a id="__codelineno-11-14" name="__codelineno-11-14" href="#__codelineno-11-14"></a>    SCAN --&gt; HF["🤗 Sync\nHugging Face"]
+<a id="__codelineno-11-15" name="__codelineno-11-15" href="#__codelineno-11-15"></a>    HF --&gt; HEALTH["🩺 Health Check\n/health + /ready"]
+<a id="__codelineno-11-16" name="__codelineno-11-16" href="#__codelineno-11-16"></a>    HEALTH --&gt; INDEX["📋 Auto-Update\nProject Index"]
 <a id="__codelineno-11-17" name="__codelineno-11-17" href="#__codelineno-11-17"></a>
 <a id="__codelineno-11-18" name="__codelineno-11-18" href="#__codelineno-11-18"></a>    style CI fill:#0f3460,color:#fff
 <a id="__codelineno-11-19" name="__codelineno-11-19" href="#__codelineno-11-19"></a>    style HF fill:#ff9a00,color:#000
@@ -2101,7 +2101,7 @@
 <a id="__codelineno-17-9" name="__codelineno-17-9" href="#__codelineno-17-9"></a>ruff<span class="w"> </span>check<span class="w"> </span>.<span class="w"> </span>--fix<span class="w">                     </span><span class="c1"># إصلاح الـ Linting</span>
 <a id="__codelineno-17-10" name="__codelineno-17-10" href="#__codelineno-17-10"></a>
 <a id="__codelineno-17-11" name="__codelineno-17-11" href="#__codelineno-17-11"></a><span class="c1"># 4. Commit وصفي</span>
-<a id="__codelineno-17-12" name="__codelineno-17-12" href="#__codelineno-17-12"></a>git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;feat(load-flow): add Newton-Raphson convergence option&quot;</span>
+<a id="__codelineno-17-12" name="__codelineno-17-12" href="#__codelineno-17-12"></a>git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">"feat(load-flow): add Newton-Raphson convergence option"</span>
 <a id="__codelineno-17-13" name="__codelineno-17-13" href="#__codelineno-17-13"></a>
 <a id="__codelineno-17-14" name="__codelineno-17-14" href="#__codelineno-17-14"></a><span class="c1"># 5. Push وفتح Pull Request</span>
 <a id="__codelineno-17-15" name="__codelineno-17-15" href="#__codelineno-17-15"></a>git<span class="w"> </span>push<span class="w"> </span>origin<span class="w"> </span>feat/your-feature-name

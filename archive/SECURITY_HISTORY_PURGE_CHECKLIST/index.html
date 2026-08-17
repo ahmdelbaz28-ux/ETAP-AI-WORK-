@@ -636,10 +636,10 @@ is now in <code>.gitignore</code> and removed from <code>HEAD</code>.</p>
 <h2 id="1-identify-the-leaked-secret">1. Identify the leaked secret</h2>
 <p>A TestSprite MCP API key was committed in <code>.mcp.json</code> and is recoverable
 from git history in these commits:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>git<span class="w"> </span>log<span class="w"> </span>--all<span class="w"> </span>-p<span class="w"> </span>--<span class="w"> </span>.mcp.json<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-E<span class="w"> </span><span class="s2">&quot;^\+.*API_KEY&quot;</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>git<span class="w"> </span>log<span class="w"> </span>--all<span class="w"> </span>-p<span class="w"> </span>--<span class="w"> </span>.mcp.json<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-E<span class="w"> </span><span class="s2">"^\+.*API_KEY"</span>
 </code></pre></div>
 <p>Output (redacted):</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>+        &quot;API_KEY&quot;: &quot;sk-user-***REDACTED***&quot;
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>+        "API_KEY": "sk-user-***REDACTED***"
 </code></pre></div>
 <p>The key is <strong>already rotated</strong> at TestSprite (the <code>.mcp.json.example</code>
 placeholder uses <code>${TESTSPRITE_API_KEY}</code> env var), but the <strong>literal string
@@ -664,7 +664,7 @@ practice.</p>
 <a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
 <a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="c1"># 2. Create a secrets.txt file with the literal strings to remove</span>
 <a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="c1">#    (one per line; BFG replaces them with `***REMOVED***`)</span>
-<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>cat<span class="w"> </span>&gt;<span class="w"> </span>secrets.txt<span class="w"> </span><span class="s">&lt;&lt;&#39;EOF&#39;</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>cat<span class="w"> </span>&gt;<span class="w"> </span>secrets.txt<span class="w"> </span><span class="s">&lt;&lt;'EOF'</span>
 <a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="s">sk-user-***REDACTED-FULL-SECRET-REMOVED***</span>
 <a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="s">EOF</span>
 <a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>
@@ -705,7 +705,7 @@ practice.</p>
 <li>[ ] <strong>Update HuggingFace Space</strong> by triggering a redeploy (the
       <code>sync-platforms.yml</code> workflow will do this automatically on push).</li>
 <li>[ ] <strong>Audit other secret patterns</strong> in git history:
-      <div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>git<span class="w"> </span>log<span class="w"> </span>--all<span class="w"> </span>-p<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-E<span class="w"> </span><span class="s2">&quot;(ghp_[a-zA-Z0-9]{36}|hf_[a-zA-Z0-9]{30,}|sk-[a-zA-Z0-9]{20,})&quot;</span>
+      <div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>git<span class="w"> </span>log<span class="w"> </span>--all<span class="w"> </span>-p<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-E<span class="w"> </span><span class="s2">"(ghp_[a-zA-Z0-9]{36}|hf_[a-zA-Z0-9]{30,}|sk-[a-zA-Z0-9]{20,})"</span>
 </code></pre></div>
       If anything shows up, repeat the purge for those secrets.</li>
 </ul>
@@ -717,12 +717,12 @@ practice.</p>
 <a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">  </span><span class="nt">rev</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">v1.5.0</span>
 <a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">  </span><span class="nt">hooks</span><span class="p">:</span>
 <a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">detect-secrets</span>
-<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="w">      </span><span class="nt">args</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&#39;--baseline&#39;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&#39;.secrets.baseline&#39;</span><span class="p p-Indicator">]</span>
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="w">      </span><span class="nt">args</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">'--baseline'</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">'.secrets.baseline'</span><span class="p p-Indicator">]</span>
 </code></pre></div>
 <p>If <code>.secrets.baseline</code> doesn't exist yet, generate it:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>detect-secrets<span class="w"> </span>scan<span class="w"> </span>&gt;<span class="w"> </span>.secrets.baseline
 <a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>git<span class="w"> </span>add<span class="w"> </span>.secrets.baseline
-<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;chore: add detect-secrets baseline&quot;</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">"chore: add detect-secrets baseline"</span>
 </code></pre></div>
 <h2 id="7-status-tracking">7. Status tracking</h2>
 <table>
