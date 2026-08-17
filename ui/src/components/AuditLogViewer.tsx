@@ -1,8 +1,8 @@
 import { motion } from "framer-motion";
 import { AlertTriangle, Download, FileText, Filter, RefreshCw, Search, Shield } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
-import { Badge, Button, Card, CardHeader } from "../components/ui";
 import { ContextHelpButton } from "../components/help/ContextHelpButton";
+import { Badge, Button, Card, CardHeader } from "../components/ui";
 import { useNotify } from "../context/NotificationContext";
 import { API_BASE_URL } from "../lib/api-config";
 import { getAuthToken } from "../lib/tokenStorage";
@@ -30,7 +30,10 @@ interface AuditLogResponse {
   page_size: number;
 }
 
-const SEVERITY_CONFIG: Record<Severity, { variant: "info" | "warning" | "danger" | "default"; label: string }> = {
+const SEVERITY_CONFIG: Record<
+  Severity,
+  { variant: "info" | "warning" | "danger" | "default"; label: string }
+> = {
   info: { variant: "info", label: "Info" },
   warning: { variant: "warning", label: "Warning" },
   error: { variant: "danger", label: "Error" },
@@ -114,7 +117,15 @@ export default function AuditLogViewer() {
 
   // CSV export
   const handleExportCSV = () => {
-    const headers = ["Timestamp", "User", "Action", "Resource", "Severity", "Details", "IP Address"];
+    const headers = [
+      "Timestamp",
+      "User",
+      "Action",
+      "Resource",
+      "Severity",
+      "Details",
+      "IP Address",
+    ];
     const rows = logs.map((log) => [
       log.timestamp,
       log.user,
@@ -185,28 +196,51 @@ export default function AuditLogViewer() {
           <div>
             <h2 className="text-2xl font-bold text-[var(--text-primary)]">Audit Logs</h2>
             <div className="flex items-center gap-2">
-              <p className="text-sm text-[var(--text-tertiary)]">Security audit trail & compliance records</p>
+              <p className="text-sm text-[var(--text-tertiary)]">
+                Security audit trail & compliance records
+              </p>
               <ContextHelpButton contextId="security.audit-logs" />
             </div>
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="secondary" size="sm" icon={Download} onClick={handleExportCSV} disabled={logs.length === 0}>
+          <Button
+            variant="secondary"
+            size="sm"
+            icon={Download}
+            onClick={handleExportCSV}
+            disabled={logs.length === 0}
+          >
             Export CSV
           </Button>
-          <Button variant="secondary" size="sm" icon={RefreshCw} onClick={fetchLogs} loading={loading}>
+          <Button
+            variant="secondary"
+            size="sm"
+            icon={RefreshCw}
+            onClick={fetchLogs}
+            loading={loading}
+          >
             Refresh
           </Button>
         </div>
       </motion.div>
 
       {/* Filters */}
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+      >
         <Card padding="md">
           <div className="flex flex-wrap items-end gap-4">
-             {/* Search */}
+            {/* Search */}
             <div className="flex-1 min-w-[200px]">
-              <label htmlFor="audit-log-search" className="block text-xs font-medium text-[var(--text-tertiary)] mb-1.5">Search</label>
+              <label
+                htmlFor="audit-log-search"
+                className="block text-xs font-medium text-[var(--text-tertiary)] mb-1.5"
+              >
+                Search
+              </label>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
                 <input
@@ -214,20 +248,30 @@ export default function AuditLogViewer() {
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === "Enter") applyFilters(); }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") applyFilters();
+                  }}
                   placeholder="Search logs..."
                   className="w-full pl-9 pr-3 py-2 rounded-lg bg-[var(--bg-primary)] border border-[var(--border-primary)] text-sm text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
                 />
               </div>
             </div>
 
-             {/* Severity filter */}
+            {/* Severity filter */}
             <div className="min-w-[140px]">
-              <label htmlFor="audit-log-severity" className="block text-xs font-medium text-[var(--text-tertiary)] mb-1.5">Severity</label>
+              <label
+                htmlFor="audit-log-severity"
+                className="block text-xs font-medium text-[var(--text-tertiary)] mb-1.5"
+              >
+                Severity
+              </label>
               <select
                 id="audit-log-severity"
                 value={severityFilter}
-                onChange={(e) => { setSeverityFilter(e.target.value as Severity | "all"); setPage(1); }}
+                onChange={(e) => {
+                  setSeverityFilter(e.target.value as Severity | "all");
+                  setPage(1);
+                }}
                 className="w-full px-3 py-2 rounded-lg bg-[var(--bg-primary)] border border-[var(--border-primary)] text-sm text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
               >
                 <option value="all">All Severities</option>
@@ -238,29 +282,43 @@ export default function AuditLogViewer() {
               </select>
             </div>
 
-             {/* Action filter */}
+            {/* Action filter */}
             <div className="min-w-[140px]">
-              <label htmlFor="audit-log-action" className="block text-xs font-medium text-[var(--text-tertiary)] mb-1.5">Action</label>
+              <label
+                htmlFor="audit-log-action"
+                className="block text-xs font-medium text-[var(--text-tertiary)] mb-1.5"
+              >
+                Action
+              </label>
               <input
                 id="audit-log-action"
                 type="text"
                 value={actionFilter}
                 onChange={(e) => setActionFilter(e.target.value)}
-                onKeyDown={(e) => { if (e.key === "Enter") applyFilters(); }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") applyFilters();
+                }}
                 placeholder="e.g. login, update"
                 className="w-full px-3 py-2 rounded-lg bg-[var(--bg-primary)] border border-[var(--border-primary)] text-sm text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
               />
             </div>
 
-             {/* User filter */}
+            {/* User filter */}
             <div className="min-w-[140px]">
-              <label htmlFor="audit-log-user" className="block text-xs font-medium text-[var(--text-tertiary)] mb-1.5">User</label>
+              <label
+                htmlFor="audit-log-user"
+                className="block text-xs font-medium text-[var(--text-tertiary)] mb-1.5"
+              >
+                User
+              </label>
               <input
                 id="audit-log-user"
                 type="text"
                 value={userFilter}
                 onChange={(e) => setUserFilter(e.target.value)}
-                onKeyDown={(e) => { if (e.key === "Enter") applyFilters(); }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") applyFilters();
+                }}
                 placeholder="Username"
                 className="w-full px-3 py-2 rounded-lg bg-[var(--bg-primary)] border border-[var(--border-primary)] text-sm text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
               />
@@ -274,7 +332,11 @@ export default function AuditLogViewer() {
       </motion.div>
 
       {/* Log table */}
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+      >
         <Card padding="none">
           <CardHeader
             title="Log Entries"
@@ -323,16 +385,11 @@ export default function AuditLogViewer() {
                   logs.map((log) => {
                     const sevConfig = SEVERITY_CONFIG[log.severity] ?? SEVERITY_CONFIG.info;
                     return (
-                      <tr
-                        key={log.id}
-                        className="hover:bg-[var(--bg-elevated)] transition-colors"
-                      >
+                      <tr key={log.id} className="hover:bg-[var(--bg-elevated)] transition-colors">
                         <td className="px-4 py-3 text-xs text-[var(--text-muted)] font-mono whitespace-nowrap">
                           {formatDate(log.timestamp)}
                         </td>
-                        <td className="px-4 py-3 text-sm text-[var(--text-primary)]">
-                          {log.user}
-                        </td>
+                        <td className="px-4 py-3 text-sm text-[var(--text-primary)]">{log.user}</td>
                         <td className="px-4 py-3 text-sm text-[var(--text-secondary)]">
                           {log.action}
                         </td>
@@ -359,7 +416,8 @@ export default function AuditLogViewer() {
           {totalPages > 1 && (
             <div className="flex items-center justify-between px-4 py-3 border-t border-[var(--border-primary)]">
               <p className="text-xs text-[var(--text-muted)]">
-                Showing {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, total)} of {total.toLocaleString()}
+                Showing {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, total)} of{" "}
+                {total.toLocaleString()}
               </p>
               <div className="flex items-center gap-1">
                 <Button

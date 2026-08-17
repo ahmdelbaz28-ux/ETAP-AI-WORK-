@@ -5,8 +5,12 @@
 
 declare module "gsap" {
   namespace gsap {
-    interface Tween { kill(): void; }
-    interface Timeline { kill(): void; }
+    interface Tween {
+      kill(): void;
+    }
+    interface Timeline {
+      kill(): void;
+    }
     interface ScrollTriggerPlugin {
       create(vars?: any): any;
       getAll(): any[];
@@ -23,7 +27,9 @@ declare module "gsap/ScrollTrigger" {
   export const ScrollTrigger: any;
   export default ScrollTrigger;
   namespace ScrollTrigger {
-    interface ScrollTriggerInstance { kill(): void; }
+    interface ScrollTriggerInstance {
+      kill(): void;
+    }
   }
 }
 

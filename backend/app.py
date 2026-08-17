@@ -793,16 +793,10 @@ async def websocket_notifications_handler_backend(websocket: WebSocket) -> None:
 # IFC 4.3, AR Export, Webhooks, Smoke Simulation state).
 # The v2 router exposes the new capabilities under /api/v2/ prefix.
 def _register_v2_router() -> None:
-    """Mount the v2 router with all new cloud-native endpoints."""
-    try:
-        from backend.routers.v2 import router as v2_router
-
-        app.include_router(v2_router, prefix="/api/v2", tags=["v2"])
-        logger.info("V2 API router mounted at /api/v2/")
-    except ImportError as e:
-        logger.warning("V2 router skipped (optional dependency missing): %s", e)
-    except Exception as e:
-        logger.warning("V2 router registration failed: %s", e)
+    """V2 API router (FireAI/BazSpark contamination) removed in v144 purge.
+    All /api/v2/ endpoints were contamination and have been deleted."""
+    # Contamination removed per user directive.
+    logger.info("V2 API router (contamination) removed in v144 purge")
 
 
 _register_v2_router()
@@ -849,9 +843,8 @@ async def add_deprecation_headers(request: Request, call_next):
         response.headers["Deprecation"] = "true"
         # Sunset date: 1 year from V132 release (2026-06-25)
         response.headers["Sunset"] = "Wed, 25 Jun 2027 00:00:00 GMT"
-        # Link to v2 successor (replace /api/v1/ with /api/v2/)
-        v2_url = request.url.path.replace("/api/v1/", "/api/v2/", 1)
-        response.headers["Link"] = f'<{v2_url}>; rel="successor-version"'
+        # V2 API (FireAI/BazSpark contamination) removed in v144 purge.
+        # No successor version for deleted endpoints.
 
     return response
 
@@ -886,26 +879,7 @@ async def health_check_legacy_alias() -> dict[str, Any]:
     return await health_check()
 
 
-@app.get("/api/v2/health", tags=["Health-v2"])
-async def health_check_v2() -> dict[str, object]:
-    """Health check endpoint for API v2."""
-    return {
-        "status": "healthy",
-        "service": "CAD/BIM Integration Platform",
-        "version": "1.0.0",
-        "api_version": "v2",
-        "features": [
-            "rate_limiting",
-            "enhanced_caching",
-            "streaming",
-            "generative_design",
-            "bim_provider_abstraction",
-            "ifc43_mapping",
-            "ar_metadata_export",
-            "webhook_delivery",
-            "smoke_simulation_state",
-        ],
-    }
+
 
 
 # ── Error handlers ──────────────────────────────────────────────────────────

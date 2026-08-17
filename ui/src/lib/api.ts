@@ -8,8 +8,8 @@
  * See that file for configuration options (VITE_API_URL env var).
  */
 
-import { API_BASE_URL, getCachedSettings } from "./api-config";
 import { authHeaders } from "./admin-fetch";
+import { API_BASE_URL, getCachedSettings } from "./api-config";
 import { getAuthToken } from "./tokenStorage";
 
 // Forward user's active provider key/model to backend dynamically.
@@ -683,9 +683,7 @@ export async function fetchCopilotConfig(): Promise<CopilotConfig> {
   return request<CopilotConfig>("/api/v1/copilot/config");
 }
 
-export async function updateCopilotConfig(
-  config: Partial<CopilotConfig>,
-): Promise<CopilotConfig> {
+export async function updateCopilotConfig(config: Partial<CopilotConfig>): Promise<CopilotConfig> {
   return request<CopilotConfig>("/api/v1/copilot/config", {
     method: "PUT",
     body: JSON.stringify(config),
@@ -828,9 +826,7 @@ export async function fetchZIPPrests(): Promise<{ presets: ZIPPreset[] }> {
   return request("/api/v1/equipment/zip-generators/zip-presets");
 }
 
-export async function createZIPLoad(
-  load: Omit<ZIPLoadConfig, "id">,
-): Promise<ZIPLoadConfig> {
+export async function createZIPLoad(load: Omit<ZIPLoadConfig, "id">): Promise<ZIPLoadConfig> {
   return request("/api/v1/equipment/zip-generators/zip-loads", {
     method: "POST",
     body: JSON.stringify(load),
@@ -857,10 +853,13 @@ export async function previewZIPLoad(
   loadId: string,
   voltage: number,
 ): Promise<{ P: number; Q: number; voltage: number }> {
-  return request(`/api/v1/equipment/zip-generators/zip-loads/${encodeURIComponent(loadId)}/preview`, {
-    method: "POST",
-    body: JSON.stringify({ voltage }),
-  });
+  return request(
+    `/api/v1/equipment/zip-generators/zip-loads/${encodeURIComponent(loadId)}/preview`,
+    {
+      method: "POST",
+      body: JSON.stringify({ voltage }),
+    },
+  );
 }
 
 // ============ Demo mode ============
@@ -941,7 +940,10 @@ export async function createDualControlRequest(
 }
 
 /** List pending dual-control requests. */
-export async function listPendingDualControlRequests(): Promise<{ success: boolean; data: DualControlRequest[] }> {
+export async function listPendingDualControlRequests(): Promise<{
+  success: boolean;
+  data: DualControlRequest[];
+}> {
   const res = await fetch(`${API_BASE_URL}/dual-control/pending`, {
     headers: authHeaders(),
   });

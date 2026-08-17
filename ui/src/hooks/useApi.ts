@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { API_BASE_URL } from '../lib/api-config';
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { API_BASE_URL } from "../lib/api-config";
 
 // Define types for API responses
 interface ApiResponse<T> {
@@ -18,9 +18,9 @@ interface ApiError {
 // Generic API client with error handling and retries
 const apiClient = {
   get: async <T>(endpoint: string): Promise<T> => {
-    const token = localStorage.getItem('authToken');
+    const token = localStorage.getItem("authToken");
     const headers: HeadersInit = {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     };
 
     if (token) {
@@ -33,7 +33,7 @@ const apiClient = {
     });
 
     if (!response.ok) {
-      const errorText = await response.text().catch(() => 'Unknown error');
+      const errorText = await response.text().catch(() => "Unknown error");
       const error: ApiError = {
         status: response.status,
         message: `API ${response.status}: ${errorText}`,
@@ -45,9 +45,9 @@ const apiClient = {
   },
 
   post: async <T, U = unknown>(endpoint: string, data?: U): Promise<T> => {
-    const token = localStorage.getItem('authToken');
+    const token = localStorage.getItem("authToken");
     const headers: HeadersInit = {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     };
 
     if (token) {
@@ -55,14 +55,14 @@ const apiClient = {
     }
 
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      method: 'POST',
+      method: "POST",
       headers,
       body: data ? JSON.stringify(data) : undefined,
       signal: AbortSignal.timeout(60000), // Longer timeout for POST requests
     });
 
     if (!response.ok) {
-      const errorText = await response.text().catch(() => 'Unknown error');
+      const errorText = await response.text().catch(() => "Unknown error");
       const error: ApiError = {
         status: response.status,
         message: `API ${response.status}: ${errorText}`,
@@ -74,9 +74,9 @@ const apiClient = {
   },
 
   put: async <T, U = unknown>(endpoint: string, data?: U): Promise<T> => {
-    const token = localStorage.getItem('authToken');
+    const token = localStorage.getItem("authToken");
     const headers: HeadersInit = {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     };
 
     if (token) {
@@ -84,14 +84,14 @@ const apiClient = {
     }
 
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      method: 'PUT',
+      method: "PUT",
       headers,
       body: data ? JSON.stringify(data) : undefined,
       signal: AbortSignal.timeout(30000),
     });
 
     if (!response.ok) {
-      const errorText = await response.text().catch(() => 'Unknown error');
+      const errorText = await response.text().catch(() => "Unknown error");
       const error: ApiError = {
         status: response.status,
         message: `API ${response.status}: ${errorText}`,
@@ -103,9 +103,9 @@ const apiClient = {
   },
 
   delete: async <T>(endpoint: string): Promise<T> => {
-    const token = localStorage.getItem('authToken');
+    const token = localStorage.getItem("authToken");
     const headers: HeadersInit = {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     };
 
     if (token) {
@@ -113,13 +113,13 @@ const apiClient = {
     }
 
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      method: 'DELETE',
+      method: "DELETE",
       headers,
       signal: AbortSignal.timeout(30000),
     });
 
     if (!response.ok) {
-      const errorText = await response.text().catch(() => 'Unknown error');
+      const errorText = await response.text().catch(() => "Unknown error");
       const error: ApiError = {
         status: response.status,
         message: `API ${response.status}: ${errorText}`,
@@ -185,54 +185,54 @@ export const useApi = () => {
 
   // Specific hooks for common API endpoints
   const useHealth = (options: any = {}) => {
-    return useGet<any>(['health'], '/health', {
+    return useGet<any>(["health"], "/health", {
       refetchInterval: 30000, // Refetch every 30 seconds
       ...options,
     });
   };
 
   const useAgents = (options: any = {}) => {
-    return useGet<any[]>(['agents'], '/api/v1/agents', {
+    return useGet<any[]>(["agents"], "/api/v1/agents", {
       staleTime: 2 * 60 * 1000, // 2 minutes
       ...options,
     });
   };
 
   const useStudies = (options: any = {}) => {
-    return useGet<any[]>(['studies'], '/api/v1/studies', {
+    return useGet<any[]>(["studies"], "/api/v1/studies", {
       staleTime: 1 * 60 * 1000, // 1 minute
       ...options,
     });
   };
 
   const useRunStudy = (options: any = {}) => {
-    return usePost<any, any>(['run-study'], '/api/v1/studies/run', {
+    return usePost<any, any>(["run-study"], "/api/v1/studies/run", {
       retry: 1,
       ...options,
     });
   };
 
   const useValidateSystem = (options: any = {}) => {
-    return usePost<any, any>(['validate-system'], '/api/v1/system/validate', {
+    return usePost<any, any>(["validate-system"], "/api/v1/system/validate", {
       ...options,
     });
   };
 
   const useChatWithAgent = (options: any = {}) => {
-    return usePost<any, { agentId: string; message: string }>(['chat'], '/api/v1/agents/chat', {
+    return usePost<any, { agentId: string; message: string }>(["chat"], "/api/v1/agents/chat", {
       ...options,
     });
   };
 
   const useMetrics = (options: any = {}) => {
-    return useGet<any>(['metrics'], '/metrics', {
+    return useGet<any>(["metrics"], "/metrics", {
       staleTime: 10000, // 10 seconds
       ...options,
     });
   };
 
   const useAuditLogs = (options: any = {}) => {
-    return useGet<any[]>(['audit-logs'], '/api/v1/audit', {
+    return useGet<any[]>(["audit-logs"], "/api/v1/audit", {
       staleTime: 30000, // 30 seconds
       ...options,
     });
@@ -241,8 +241,8 @@ export const useApi = () => {
   // Guard-specific hooks
   const useGuardReview = (options: any = {}) => {
     return usePost<any, { source: string; guard_type: string; language: string }>(
-      ['guard-review'],
-      '/api/v1/guards/review',
+      ["guard-review"],
+      "/api/v1/guards/review",
       {
         retry: 0, // Don't retry guard reviews as they can be expensive
         ...options,
@@ -251,7 +251,7 @@ export const useApi = () => {
   };
 
   const useGuardInfo = (options: any = {}) => {
-    return useGet<any>(['guard-info'], '/api/v1/guards/info', {
+    return useGet<any>(["guard-info"], "/api/v1/guards/info", {
       staleTime: 5 * 60 * 1000, // 5 minutes
       ...options,
     });

@@ -110,7 +110,10 @@ function formatTimeRemaining(expiresAt: number, now: number): string {
 }
 
 function isExpired(req: DualControlRequest, now: number = Date.now()): boolean {
-  return req.status === "expired" || (req.status === "pending" && req.expires_at != null && now / 1000 > Number(req.expires_at));
+  return (
+    req.status === "expired" ||
+    (req.status === "pending" && req.expires_at != null && now / 1000 > Number(req.expires_at))
+  );
 }
 
 export default function DualControl() {
@@ -507,7 +510,9 @@ export default function DualControl() {
                     {req.status === "pending" && !expired && (
                       <div className="flex items-center gap-2 text-xs text-amber-300 mb-3 font-mono">
                         <Timer className="w-3.5 h-3.5" />
-                        <span>Auto-reject in {formatTimeRemaining(Number(req.expires_at), now)}</span>
+                        <span>
+                          Auto-reject in {formatTimeRemaining(Number(req.expires_at), now)}
+                        </span>
                       </div>
                     )}
 

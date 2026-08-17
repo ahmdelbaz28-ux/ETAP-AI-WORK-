@@ -1,6 +1,6 @@
-import { useState, useRef, useCallback, useEffect, type ReactNode } from 'react';
-import { cn } from '../../utils/helpers';
-import { GripVertical, PanelLeftClose, PanelRightClose } from 'lucide-react';
+import { GripVertical, PanelLeftClose, PanelRightClose } from "lucide-react";
+import { type ReactNode, useCallback, useEffect, useRef, useState } from "react";
+import { cn } from "../../utils/helpers";
 
 interface EngineeringWorkspaceProps {
   leftPanel?: ReactNode;
@@ -18,8 +18,8 @@ export function EngineeringWorkspace({
   leftPanel,
   centerPanel,
   rightPanel,
-  leftTitle = 'Navigator',
-  rightTitle = 'Properties',
+  leftTitle = "Navigator",
+  rightTitle = "Properties",
   defaultLeftWidth = 260,
   defaultRightWidth = 300,
   minPanelWidth = 180,
@@ -28,11 +28,11 @@ export function EngineeringWorkspace({
   const [rightWidth, setRightWidth] = useState(defaultRightWidth);
   const [leftCollapsed, setLeftCollapsed] = useState(false);
   const [rightCollapsed, setRightCollapsed] = useState(!rightPanel);
-  const [dragging, setDragging] = useState<'left' | 'right' | null>(null);
+  const [dragging, setDragging] = useState<"left" | "right" | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const handleMouseDown = useCallback(
-    (panel: 'left' | 'right') => (e: React.MouseEvent) => {
+    (panel: "left" | "right") => (e: React.MouseEvent) => {
       e.preventDefault();
       setDragging(panel);
     },
@@ -46,13 +46,13 @@ export function EngineeringWorkspace({
       if (!containerRef.current) return;
       const rect = containerRef.current.getBoundingClientRect();
 
-      if (dragging === 'left') {
+      if (dragging === "left") {
         const newWidth = Math.max(
           minPanelWidth,
           Math.min(e.clientX - rect.left, rect.width - rightWidth - 100),
         );
         setLeftWidth(newWidth);
-      } else if (dragging === 'right') {
+      } else if (dragging === "right") {
         const newWidth = Math.max(
           minPanelWidth,
           Math.min(rect.right - e.clientX, rect.width - leftWidth - 100),
@@ -63,16 +63,16 @@ export function EngineeringWorkspace({
 
     const handleMouseUp = () => setDragging(null);
 
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
-    document.body.style.cursor = 'col-resize';
-    document.body.style.userSelect = 'none';
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
+    document.body.style.cursor = "col-resize";
+    document.body.style.userSelect = "none";
 
     return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-      document.body.style.cursor = '';
-      document.body.style.userSelect = '';
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
     };
   }, [dragging, leftWidth, rightWidth, minPanelWidth]);
 
@@ -83,8 +83,8 @@ export function EngineeringWorkspace({
         <>
           <div
             className={cn(
-              'shrink-0 flex flex-col bg-[var(--bg-secondary)] border-r border-[var(--border-primary)] overflow-hidden transition-all duration-200',
-              leftCollapsed ? 'w-10' : '',
+              "shrink-0 flex flex-col bg-[var(--bg-secondary)] border-r border-[var(--border-primary)] overflow-hidden transition-all duration-200",
+              leftCollapsed ? "w-10" : "",
             )}
             style={leftCollapsed ? {} : { width: leftWidth }}
           >
@@ -120,10 +120,10 @@ export function EngineeringWorkspace({
           {/* Left Resize Handle */}
           {!leftCollapsed && (
             <div // NOSONAR — S6848: non-interactive DOM role; intentional
-              onMouseDown={handleMouseDown('left')}
+              onMouseDown={handleMouseDown("left")}
               className={cn(
-                'w-1 shrink-0 cursor-col-resize group flex items-center justify-center hover:bg-[var(--accent-primary)]/30 transition-colors',
-                dragging === 'left' && 'bg-[var(--accent-primary)]/30',
+                "w-1 shrink-0 cursor-col-resize group flex items-center justify-center hover:bg-[var(--accent-primary)]/30 transition-colors",
+                dragging === "left" && "bg-[var(--accent-primary)]/30",
               )}
             >
               <GripVertical className="w-3 h-3 text-[var(--text-muted)] opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -141,10 +141,10 @@ export function EngineeringWorkspace({
           {/* Right Resize Handle */}
           {!rightCollapsed && (
             <div // NOSONAR — S6848: non-interactive DOM role; intentional
-              onMouseDown={handleMouseDown('right')}
+              onMouseDown={handleMouseDown("right")}
               className={cn(
-                'w-1 shrink-0 cursor-col-resize group flex items-center justify-center hover:bg-[var(--accent-primary)]/30 transition-colors',
-                dragging === 'right' && 'bg-[var(--accent-primary)]/30',
+                "w-1 shrink-0 cursor-col-resize group flex items-center justify-center hover:bg-[var(--accent-primary)]/30 transition-colors",
+                dragging === "right" && "bg-[var(--accent-primary)]/30",
               )}
             >
               <GripVertical className="w-3 h-3 text-[var(--text-muted)] opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -153,8 +153,8 @@ export function EngineeringWorkspace({
 
           <div
             className={cn(
-              'shrink-0 flex flex-col bg-[var(--bg-secondary)] border-l border-[var(--border-primary)] overflow-hidden transition-all duration-200',
-              rightCollapsed ? 'w-10' : '',
+              "shrink-0 flex flex-col bg-[var(--bg-secondary)] border-l border-[var(--border-primary)] overflow-hidden transition-all duration-200",
+              rightCollapsed ? "w-10" : "",
             )}
             style={rightCollapsed ? {} : { width: rightWidth }}
           >

@@ -1,12 +1,12 @@
-import { useEffect, useState } from 'react';
-import { useTranslation } from 'react-i18next';
-import { fetchHealth, type HealthResponse } from '../../lib/api';
-import { StatusIndicator } from '../ui/Visual';
+import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { type HealthResponse, fetchHealth } from "../../lib/api";
+import { StatusIndicator } from "../ui/Visual";
 
 export function StatusBar() {
   const { i18n } = useTranslation();
-  const lang = (i18n.language === 'ar' ? 'ar' : 'en') as 'en' | 'ar';
-  const [status, setStatus] = useState<'online' | 'offline' | 'checking'>('checking');
+  const lang = (i18n.language === "ar" ? "ar" : "en") as "en" | "ar";
+  const [status, setStatus] = useState<"online" | "offline" | "checking">("checking");
   const [latency, setLatency] = useState<number | null>(null);
   const [time, setTime] = useState(new Date());
 
@@ -16,9 +16,9 @@ export function StatusBar() {
       try {
         const h: HealthResponse = await fetchHealth();
         setLatency(Date.now() - start);
-        setStatus(h.ok ? 'online' : 'offline');
+        setStatus(h.ok ? "online" : "offline");
       } catch {
-        setStatus('offline');
+        setStatus("offline");
         setLatency(null);
       }
     };
@@ -37,21 +37,21 @@ export function StatusBar() {
       <div className="flex items-center gap-4">
         <div className="flex items-center gap-1.5">
           <StatusIndicator
-            status={status === 'checking' ? 'loading' : status === 'online' ? 'online' : 'offline'} // NOSONAR — S3358: nested ternary; refactor to named variable (tech debt)
+            status={status === "checking" ? "loading" : status === "online" ? "online" : "offline"} // NOSONAR — S3358: nested ternary; refactor to named variable (tech debt)
             size="sm"
             showLabel={false}
           />
-          <span>{lang === 'ar' ? 'الخدمة' : 'Service'}</span>
+          <span>{lang === "ar" ? "الخدمة" : "Service"}</span>
           {latency !== null && <span className="text-[var(--text-muted)]">({latency}ms)</span>}
         </div>
       </div>
 
       <div className="flex items-center gap-4">
         <span className="mono-engineering">
-          {time.toLocaleTimeString(lang === 'ar' ? 'ar-EG' : 'en-US', {
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit',
+          {time.toLocaleTimeString(lang === "ar" ? "ar-EG" : "en-US", {
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
           })}
         </span>
         <span>Ahmed etap v1.0.0</span>

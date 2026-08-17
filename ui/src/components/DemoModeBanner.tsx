@@ -6,8 +6,8 @@
  * users don't mistake demo data for live production data.
  */
 
-import { useEffect, useState } from 'react';
-import { isDemoMode } from '../lib/api';
+import { useEffect, useState } from "react";
+import { isDemoMode } from "../lib/api";
 
 export function DemoModeBanner() {
   const [demo, setDemo] = useState<boolean>(isDemoMode());
@@ -17,8 +17,8 @@ export function DemoModeBanner() {
   useEffect(() => {
     const check = () => setDemo(isDemoMode());
     check();
-    window.addEventListener('focus', check);
-    return () => window.removeEventListener('focus', check);
+    window.addEventListener("focus", check);
+    return () => window.removeEventListener("focus", check);
   }, []);
 
   if (!demo) return null;
@@ -28,23 +28,23 @@ export function DemoModeBanner() {
       role="alert"
       aria-live="polite"
       style={{
-        position: 'sticky',
+        position: "sticky",
         top: 0,
         zIndex: 1000,
-        width: '100%',
-        background: 'linear-gradient(90deg, #f59e0b 0%, #dc2626 100%)',
-        color: '#fff',
-        padding: '8px 16px',
-        fontSize: '13px',
+        width: "100%",
+        background: "linear-gradient(90deg, #f59e0b 0%, #dc2626 100%)",
+        color: "#fff",
+        padding: "8px 16px",
+        fontSize: "13px",
         fontWeight: 600,
-        textAlign: 'center',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
-        letterSpacing: '0.2px',
+        textAlign: "center",
+        boxShadow: "0 2px 8px rgba(0,0,0,0.18)",
+        letterSpacing: "0.2px",
       }}
     >
       ⚠ DEMO MODE — Backend غير متصل. البيانات المعروضة تجريبية ولن تُحفظ.
-      <span style={{ opacity: 0.85, marginRight: '8px', fontWeight: 400 }}>
-        {' '}
+      <span style={{ opacity: 0.85, marginRight: "8px", fontWeight: 400 }}>
+        {" "}
         .Configure VITE_API_URL to enable the live backend.
       </span>
     </div>

@@ -1,8 +1,8 @@
 import { motion } from "framer-motion";
 import { AlertTriangle, Plus, Trash2, Zap } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Badge, Button, Card, CardHeader, Modal } from "../components/ui";
 import { ContextHelpButton } from "../components/help/ContextHelpButton";
+import { Badge, Button, Card, CardHeader, Modal } from "../components/ui";
 import { useNotify } from "../context/NotificationContext";
 import { API_BASE_URL } from "../lib/api-config";
 import { getAuthToken } from "../lib/tokenStorage";
@@ -53,7 +53,7 @@ const ZIP_PRESETS: Record<string, { label: string; coefficients: ZIPLoadCoeffici
   },
   mixed_load: {
     label: "Mixed Load",
-    coefficients: { aZ: 0.15, aI: 0.30, aP: 0.55, bZ: 0.20, bI: 0.25, bP: 0.55 },
+    coefficients: { aZ: 0.15, aI: 0.3, aP: 0.55, bZ: 0.2, bI: 0.25, bP: 0.55 },
   },
 };
 
@@ -92,39 +92,157 @@ function ZIPLoadPreviewChart({ coefficients }: { readonly coefficients: ZIPLoadC
   }
 
   return (
-    <svg viewBox={`0 0 ${width} ${height}`} className="w-full" style={{ minHeight: 120 }}>
+    <svg
+      viewBox={`0 0 ${width} ${height}`}
+      className="w-full"
+      style={{ minHeight: 120 }}
+      role="img"
+      aria-label="ZIP load characteristic curve showing voltage-dependent power consumption"
+    >
+      <title>ZIP Load Characteristic Curve</title>
       {/* Grid lines */}
-      <line x1={padX} y1={padY} x2={padX} y2={padY + plotH} stroke="var(--border-primary)" strokeWidth="0.5" />
-      <line x1={padX} y1={padY + plotH} x2={padX + plotW} y2={padY + plotH} stroke="var(--border-primary)" strokeWidth="0.5" />
+      <line
+        x1={padX}
+        y1={padY}
+        x2={padX}
+        y2={padY + plotH}
+        stroke="var(--border-primary)"
+        strokeWidth="0.5"
+      />
+      <line
+        x1={padX}
+        y1={padY + plotH}
+        x2={padX + plotW}
+        y2={padY + plotH}
+        stroke="var(--border-primary)"
+        strokeWidth="0.5"
+      />
 
       {/* Y-axis labels */}
-      <text x={padX - 5} y={padY + 4} textAnchor="end" fill="var(--text-muted)" fontSize="8">1.4</text>
-      <text x={padX - 5} y={padY + plotH / 2 + 3} textAnchor="end" fill="var(--text-muted)" fontSize="8">0.9</text>
-      <text x={padX - 5} y={padY + plotH + 3} textAnchor="end" fill="var(--text-muted)" fontSize="8">0.4</text>
+      <text x={padX - 5} y={padY + 4} textAnchor="end" fill="var(--text-muted)" fontSize="8">
+        1.4
+      </text>
+      <text
+        x={padX - 5}
+        y={padY + plotH / 2 + 3}
+        textAnchor="end"
+        fill="var(--text-muted)"
+        fontSize="8"
+      >
+        0.9
+      </text>
+      <text
+        x={padX - 5}
+        y={padY + plotH + 3}
+        textAnchor="end"
+        fill="var(--text-muted)"
+        fontSize="8"
+      >
+        0.4
+      </text>
 
       {/* X-axis labels */}
-      <text x={padX} y={padY + plotH + 12} textAnchor="middle" fill="var(--text-muted)" fontSize="8">0.8</text>
-      <text x={padX + plotW / 2} y={padY + plotH + 12} textAnchor="middle" fill="var(--text-muted)" fontSize="8">1.0</text>
-      <text x={padX + plotW} y={padY + plotH + 12} textAnchor="middle" fill="var(--text-muted)" fontSize="8">1.2</text>
+      <text
+        x={padX}
+        y={padY + plotH + 12}
+        textAnchor="middle"
+        fill="var(--text-muted)"
+        fontSize="8"
+      >
+        0.8
+      </text>
+      <text
+        x={padX + plotW / 2}
+        y={padY + plotH + 12}
+        textAnchor="middle"
+        fill="var(--text-muted)"
+        fontSize="8"
+      >
+        1.0
+      </text>
+      <text
+        x={padX + plotW}
+        y={padY + plotH + 12}
+        textAnchor="middle"
+        fill="var(--text-muted)"
+        fontSize="8"
+      >
+        1.2
+      </text>
 
       {/* Reference line at P/P0 = 1.0, V/V0 = 1.0 */}
-      <line x1={padX + plotW / 2} y1={padY} x2={padX + plotW / 2} y2={padY + plotH} stroke="var(--border-primary)" strokeWidth="0.5" strokeDasharray="4,3" />
+      <line
+        x1={padX + plotW / 2}
+        y1={padY}
+        x2={padX + plotW / 2}
+        y2={padY + plotH}
+        stroke="var(--border-primary)"
+        strokeWidth="0.5"
+        strokeDasharray="4,3"
+      />
 
       {/* Active power curve */}
-      <polyline points={points.join(" ")} fill="none" stroke="var(--color-engine-power)" strokeWidth="2" />
+      <polyline
+        points={points.join(" ")}
+        fill="none"
+        stroke="var(--color-engine-power)"
+        strokeWidth="2"
+      />
 
       {/* Reactive power curve */}
-      <polyline points={reactivePoints.join(" ")} fill="none" stroke="var(--color-engine-voltage)" strokeWidth="2" strokeDasharray="6,3" />
+      <polyline
+        points={reactivePoints.join(" ")}
+        fill="none"
+        stroke="var(--color-engine-voltage)"
+        strokeWidth="2"
+        strokeDasharray="6,3"
+      />
 
       {/* Legend */}
-      <line x1={padX + 10} y1={padY + 8} x2={padX + 25} y2={padY + 8} stroke="var(--color-engine-power)" strokeWidth="2" />
-      <text x={padX + 28} y={padY + 11} fill="var(--text-muted)" fontSize="8">P (active)</text>
-      <line x1={padX + 80} y1={padY + 8} x2={padX + 95} y2={padY + 8} stroke="var(--color-engine-voltage)" strokeWidth="2" strokeDasharray="6,3" />
-      <text x={padX + 98} y={padY + 11} fill="var(--text-muted)" fontSize="8">Q (reactive)</text>
+      <line
+        x1={padX + 10}
+        y1={padY + 8}
+        x2={padX + 25}
+        y2={padY + 8}
+        stroke="var(--color-engine-power)"
+        strokeWidth="2"
+      />
+      <text x={padX + 28} y={padY + 11} fill="var(--text-muted)" fontSize="8">
+        P (active)
+      </text>
+      <line
+        x1={padX + 80}
+        y1={padY + 8}
+        x2={padX + 95}
+        y2={padY + 8}
+        stroke="var(--color-engine-voltage)"
+        strokeWidth="2"
+        strokeDasharray="6,3"
+      />
+      <text x={padX + 98} y={padY + 11} fill="var(--text-muted)" fontSize="8">
+        Q (reactive)
+      </text>
 
       {/* Axis titles */}
-      <text x={padX + plotW / 2} y={height - 2} textAnchor="middle" fill="var(--text-tertiary)" fontSize="9">V / V₀</text>
-      <text x={8} y={padY + plotH / 2} textAnchor="middle" fill="var(--text-tertiary)" fontSize="9" transform={`rotate(-90, 8, ${padY + plotH / 2})`}>P / P₀</text>
+      <text
+        x={padX + plotW / 2}
+        y={height - 2}
+        textAnchor="middle"
+        fill="var(--text-tertiary)"
+        fontSize="9"
+      >
+        V / V₀
+      </text>
+      <text
+        x={8}
+        y={padY + plotH / 2}
+        textAnchor="middle"
+        fill="var(--text-tertiary)"
+        fontSize="9"
+        transform={`rotate(-90, 8, ${padY + plotH / 2})`}
+      >
+        P / P₀
+      </text>
     </svg>
   );
 }
@@ -142,8 +260,14 @@ function CoefficientInput({
 }) {
   return (
     <div className="flex items-center gap-2">
-      <label className="text-xs font-medium text-[var(--text-tertiary)] min-w-[24px]">{label}</label>
+      <label
+        htmlFor={`zip-prop-${label.toLowerCase().replace(/\s+/g, "-").replace(/:/g, "")}`}
+        className="text-xs font-medium text-[var(--text-tertiary)] min-w-[24px]"
+      >
+        {label}
+      </label>
       <input
+        id={`zip-prop-${label.toLowerCase().replace(/\s+/g, "-").replace(/:/g, "")}`}
         type="number"
         min={0}
         max={1}
@@ -167,11 +291,17 @@ interface ZIPLoadEditorDialogProps {
   readonly onLoadSaved?: () => void;
 }
 
-export default function ZIPLoadEditorDialog({ open, onClose, onLoadSaved }: ZIPLoadEditorDialogProps) {
+export default function ZIPLoadEditorDialog({
+  open,
+  onClose,
+  onLoadSaved,
+}: ZIPLoadEditorDialogProps) {
   const { notify } = useNotify();
   const [loads, setLoads] = useState<ZIPLoad[]>([]);
   const [loading, setLoading] = useState(false);
-  const [editingCoeffs, setEditingCoeffs] = useState<ZIPLoadCoefficients>(ZIP_PRESETS.constant_power.coefficients);
+  const [editingCoeffs, setEditingCoeffs] = useState<ZIPLoadCoefficients>(
+    ZIP_PRESETS.constant_power.coefficients,
+  );
   const [selectedPreset, setSelectedPreset] = useState<string>("custom");
   const [activeLoadId, setActiveLoadId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -279,15 +409,18 @@ export default function ZIPLoadEditorDialog({ open, onClose, onLoadSaved }: ZIPL
     setSaving(true);
     try {
       const token = getAuthToken();
-      const r = await fetch(`${API_BASE_URL}/api/v1/equipment/zip-generators/zip-loads/${activeLoadId}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      const r = await fetch(
+        `${API_BASE_URL}/api/v1/equipment/zip-generators/zip-loads/${activeLoadId}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify({ coefficients: editingCoeffs, preset: selectedPreset }),
+          signal: AbortSignal.timeout(8000),
         },
-        body: JSON.stringify({ coefficients: editingCoeffs, preset: selectedPreset }),
-        signal: AbortSignal.timeout(8000),
-      });
+      );
       if (!r.ok) {
         const text = await r.text().catch(() => "Unknown error");
         throw new Error(`API ${r.status}: ${text.substring(0, 100)}`);
@@ -334,10 +467,18 @@ export default function ZIPLoadEditorDialog({ open, onClose, onLoadSaved }: ZIPL
   };
 
   return (
-    <Modal open={open} onClose={onClose} title="ZIP Load Editor" subtitle="Edit ZIP load model coefficients" size="xl">
+    <Modal
+      open={open}
+      onClose={onClose}
+      title="ZIP Load Editor"
+      subtitle="Edit ZIP load model coefficients"
+      size="xl"
+    >
       <div className="flex items-center gap-2 mb-4">
         <ContextHelpButton contextId="equipment.zip-load-editor" />
-        <span className="text-xs text-[var(--text-muted)]">ZIP load models define how load varies with voltage</span>
+        <span className="text-xs text-[var(--text-muted)]">
+          ZIP load models define how load varies with voltage
+        </span>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -345,8 +486,14 @@ export default function ZIPLoadEditorDialog({ open, onClose, onLoadSaved }: ZIPL
         <div className="space-y-4">
           {/* Preset selection */}
           <div>
-            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">Preset</label>
+            <label
+              htmlFor="zip-preset"
+              className="block text-sm font-medium text-[var(--text-secondary)] mb-2"
+            >
+              Preset
+            </label>
             <select
+              id="zip-preset"
               value={selectedPreset}
               onChange={(e) => handlePresetChange(e.target.value)}
               className="w-full px-3 py-2 rounded-lg bg-[var(--bg-primary)] border border-[var(--border-primary)] text-sm text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
@@ -362,11 +509,25 @@ export default function ZIPLoadEditorDialog({ open, onClose, onLoadSaved }: ZIPL
 
           {/* Active power coefficients */}
           <div>
-            <p className="text-sm font-medium text-[var(--text-secondary)] mb-2">Active Power (P)</p>
+            <p className="text-sm font-medium text-[var(--text-secondary)] mb-2">
+              Active Power (P)
+            </p>
             <div className="flex items-center gap-3 flex-wrap">
-              <CoefficientInput label="aZ" value={editingCoeffs.aZ} onChange={(v) => setEditingCoeffs({ ...editingCoeffs, aZ: v })} />
-              <CoefficientInput label="aI" value={editingCoeffs.aI} onChange={(v) => setEditingCoeffs({ ...editingCoeffs, aI: v })} />
-              <CoefficientInput label="aP" value={editingCoeffs.aP} onChange={(v) => setEditingCoeffs({ ...editingCoeffs, aP: v })} />
+              <CoefficientInput
+                label="aZ"
+                value={editingCoeffs.aZ}
+                onChange={(v) => setEditingCoeffs({ ...editingCoeffs, aZ: v })}
+              />
+              <CoefficientInput
+                label="aI"
+                value={editingCoeffs.aI}
+                onChange={(v) => setEditingCoeffs({ ...editingCoeffs, aI: v })}
+              />
+              <CoefficientInput
+                label="aP"
+                value={editingCoeffs.aP}
+                onChange={(v) => setEditingCoeffs({ ...editingCoeffs, aP: v })}
+              />
               <Badge variant={Math.abs(activeSum - 1.0) < 0.01 ? "success" : "danger"} size="sm">
                 Σ = {activeSum.toFixed(2)}
               </Badge>
@@ -375,11 +536,25 @@ export default function ZIPLoadEditorDialog({ open, onClose, onLoadSaved }: ZIPL
 
           {/* Reactive power coefficients */}
           <div>
-            <p className="text-sm font-medium text-[var(--text-secondary)] mb-2">Reactive Power (Q)</p>
+            <p className="text-sm font-medium text-[var(--text-secondary)] mb-2">
+              Reactive Power (Q)
+            </p>
             <div className="flex items-center gap-3 flex-wrap">
-              <CoefficientInput label="bZ" value={editingCoeffs.bZ} onChange={(v) => setEditingCoeffs({ ...editingCoeffs, bZ: v })} />
-              <CoefficientInput label="bI" value={editingCoeffs.bI} onChange={(v) => setEditingCoeffs({ ...editingCoeffs, bI: v })} />
-              <CoefficientInput label="bP" value={editingCoeffs.bP} onChange={(v) => setEditingCoeffs({ ...editingCoeffs, bP: v })} />
+              <CoefficientInput
+                label="bZ"
+                value={editingCoeffs.bZ}
+                onChange={(v) => setEditingCoeffs({ ...editingCoeffs, bZ: v })}
+              />
+              <CoefficientInput
+                label="bI"
+                value={editingCoeffs.bI}
+                onChange={(v) => setEditingCoeffs({ ...editingCoeffs, bI: v })}
+              />
+              <CoefficientInput
+                label="bP"
+                value={editingCoeffs.bP}
+                onChange={(v) => setEditingCoeffs({ ...editingCoeffs, bP: v })}
+              />
               <Badge variant={Math.abs(reactiveSum - 1.0) < 0.01 ? "success" : "danger"} size="sm">
                 Σ = {reactiveSum.toFixed(2)}
               </Badge>
@@ -394,17 +569,34 @@ export default function ZIPLoadEditorDialog({ open, onClose, onLoadSaved }: ZIPL
               className="flex items-center gap-2 p-2 rounded-lg bg-amber-500/10 border border-amber-500/20"
             >
               <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
-              <span className="text-xs text-amber-400">Both active and reactive coefficients must sum to 1.0</span>
+              <span className="text-xs text-amber-400">
+                Both active and reactive coefficients must sum to 1.0
+              </span>
             </motion.div>
           )}
 
           {/* Action buttons */}
           <div className="flex items-center gap-2">
-            <Button variant="primary" size="sm" icon={Plus} loading={saving} onClick={activeLoadId ? handleUpdate : handleCreate} disabled={!isValid}>
+            <Button
+              variant="primary"
+              size="sm"
+              icon={Plus}
+              loading={saving}
+              onClick={activeLoadId ? handleUpdate : handleCreate}
+              disabled={!isValid}
+            >
               {activeLoadId ? "Update Load" : "Create Load"}
             </Button>
             {activeLoadId && (
-              <Button variant="ghost" size="sm" onClick={() => { setActiveLoadId(null); setEditingCoeffs(ZIP_PRESETS.constant_power.coefficients); setSelectedPreset("custom"); }}>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setActiveLoadId(null);
+                  setEditingCoeffs(ZIP_PRESETS.constant_power.coefficients);
+                  setSelectedPreset("custom");
+                }}
+              >
                 Cancel Edit
               </Button>
             )}
@@ -415,19 +607,27 @@ export default function ZIPLoadEditorDialog({ open, onClose, onLoadSaved }: ZIPL
         <div className="space-y-4">
           {/* Preview chart */}
           <Card padding="md">
-            <CardHeader title="Load Response Preview" subtitle="P/P₀ vs V/V₀" icon={<Zap className="w-4 h-4" />} />
+            <CardHeader
+              title="Load Response Preview"
+              subtitle="P/P₀ vs V/V₀"
+              icon={<Zap className="w-4 h-4" />}
+            />
             <ZIPLoadPreviewChart coefficients={editingCoeffs} />
           </Card>
 
           {/* Existing loads list */}
           <div>
-            <p className="text-sm font-medium text-[var(--text-secondary)] mb-2">Existing ZIP Loads</p>
+            <p className="text-sm font-medium text-[var(--text-secondary)] mb-2">
+              Existing ZIP Loads
+            </p>
             {loading ? (
               <div className="flex items-center justify-center py-6">
                 <div className="w-6 h-6 border-2 border-[var(--accent-primary)] border-t-transparent rounded-full animate-spin" />
               </div>
             ) : loads.length === 0 ? (
-              <p className="text-xs text-[var(--text-muted)] py-4 text-center">No ZIP loads configured</p>
+              <p className="text-xs text-[var(--text-muted)] py-4 text-center">
+                No ZIP loads configured
+              </p>
             ) : (
               <div className="max-h-48 overflow-y-auto space-y-2 pr-1">
                 {loads.map((load) => (
@@ -444,12 +644,16 @@ export default function ZIPLoadEditorDialog({ open, onClose, onLoadSaved }: ZIPL
                     <div>
                       <p className="text-sm font-medium text-[var(--text-primary)]">{load.name}</p>
                       <p className="text-xs text-[var(--text-muted)] font-mono">
-                        aZ={load.coefficients.aZ.toFixed(2)} aI={load.coefficients.aI.toFixed(2)} aP={load.coefficients.aP.toFixed(2)}
+                        aZ={load.coefficients.aZ.toFixed(2)} aI={load.coefficients.aI.toFixed(2)}{" "}
+                        aP={load.coefficients.aP.toFixed(2)}
                       </p>
                     </div>
                     <button
                       type="button"
-                      onClick={(e) => { e.stopPropagation(); handleDelete(load.id); }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDelete(load.id);
+                      }}
                       className="p-1.5 rounded-lg hover:bg-red-500/10 text-[var(--text-muted)] hover:text-red-400 transition-colors"
                     >
                       <Trash2 className="w-3.5 h-3.5" />

@@ -18,8 +18,8 @@ import { API_BASE_URL } from "../lib/api-config";
 import { getAuthToken } from "../lib/tokenStorage";
 import { cn } from "../utils/helpers";
 
-import { ContextHelpButton } from "../components/help/ContextHelpButton";
 import { CadSimReadyCard } from "../components/digital-twin/CadSimReadyCard";
+import { ContextHelpButton } from "../components/help/ContextHelpButton";
 interface SyncSource {
   name: string;
   status: "online" | "offline" | "warning";

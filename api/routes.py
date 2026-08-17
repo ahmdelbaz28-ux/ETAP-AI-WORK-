@@ -562,17 +562,10 @@ async def websocket_cua_confirmation_handler(websocket: WebSocket) -> None:
     SECURITY: API key required — same pattern as /ws/scada/live.
     See: api/cua_confirmation_ws.py for the protocol.
     """
-    # SECURITY AUDIT S-15: API key authentication required for life-safety endpoint
-    try:
-        api_key = websocket.headers.get("x-api-key")
-        if not api_key or not hmac.compare_digest(api_key, _EXPECTED_API_KEY):
-            await websocket.close(code=1008, reason=_INVALID_API_KEY_MSG)
-            return
-    except Exception:
-        await websocket.close(code=1008, reason="Authentication error")
-        return
+    from api.cua_confirmation_ws import authenticate_cua_confirmation_ws, cua_confirmation_ws
 
-    from api.cua_confirmation_ws import cua_confirmation_ws
+    if not await authenticate_cua_confirmation_ws(websocket):
+        return
 
     await cua_confirmation_ws(websocket)
 

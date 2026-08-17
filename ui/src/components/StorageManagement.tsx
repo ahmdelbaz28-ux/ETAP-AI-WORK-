@@ -1,8 +1,8 @@
 import { motion } from "framer-motion";
 import { AlertTriangle, Database, HardDrive, RefreshCw, Save, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
-import { Badge, Button, Card, CardHeader, Modal } from "../components/ui";
 import { ContextHelpButton } from "../components/help/ContextHelpButton";
+import { Badge, Button, Card, CardHeader, Modal } from "../components/ui";
 import { useNotify } from "../context/NotificationContext";
 import { API_BASE_URL } from "../lib/api-config";
 import { getAuthToken } from "../lib/tokenStorage";
@@ -31,7 +31,7 @@ function formatBytes(bytes: number): string {
   const k = 1024;
   const sizes = ["B", "KB", "MB", "GB", "TB"];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
+  return `${Number.parseFloat((bytes / k ** i).toFixed(1))} ${sizes[i]}`;
 }
 
 // ─── Component ───────────────────────────────────────────────────────
@@ -162,7 +162,9 @@ export default function StorageManagement() {
       <div className="flex items-center justify-center h-64">
         <div className="text-center max-w-md">
           <AlertTriangle className="w-8 h-8 text-red-400 mx-auto mb-3" />
-          <p className="text-sm text-[var(--text-secondary)] mb-2">Failed to load storage metrics</p>
+          <p className="text-sm text-[var(--text-secondary)] mb-2">
+            Failed to load storage metrics
+          </p>
           <p className="text-xs text-[var(--text-muted)] mb-4 font-mono">{error}</p>
           <Button variant="secondary" size="sm" icon={RefreshCw} onClick={fetchMetrics}>
             Retry
@@ -178,7 +180,9 @@ export default function StorageManagement() {
   const retention = metrics?.retention_policy;
 
   // Find the temp CAD category for the purge button
-  const tempCadCategory = categories.find((c) => c.name.toLowerCase().includes("temp") || c.name.toLowerCase().includes("cad"));
+  const tempCadCategory = categories.find(
+    (c) => c.name.toLowerCase().includes("temp") || c.name.toLowerCase().includes("cad"),
+  );
 
   return (
     <div className="space-y-6">
@@ -195,19 +199,31 @@ export default function StorageManagement() {
           <div>
             <h2 className="text-2xl font-bold text-[var(--text-primary)]">Storage Management</h2>
             <div className="flex items-center gap-2">
-              <p className="text-sm text-[var(--text-tertiary)]">Object storage usage & retention policies</p>
+              <p className="text-sm text-[var(--text-tertiary)]">
+                Object storage usage & retention policies
+              </p>
               <ContextHelpButton contextId="storage.management" />
             </div>
           </div>
         </div>
-        <Button variant="secondary" size="sm" icon={RefreshCw} onClick={fetchMetrics} loading={loading}>
+        <Button
+          variant="secondary"
+          size="sm"
+          icon={RefreshCw}
+          onClick={fetchMetrics}
+          loading={loading}
+        >
           Refresh
         </Button>
       </motion.div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Overview stats */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+        >
           <Card padding="md">
             <CardHeader
               title="Storage Overview"
@@ -231,7 +247,9 @@ export default function StorageManagement() {
               {/* Usage bar visualization */}
               {categories.length > 0 && (
                 <div>
-                  <p className="text-xs text-[var(--text-muted)] mb-2 font-medium">Storage by Category</p>
+                  <p className="text-xs text-[var(--text-muted)] mb-2 font-medium">
+                    Storage by Category
+                  </p>
                   <div className="h-3 rounded-full overflow-hidden bg-[var(--border-primary)] flex">
                     {categories.map((cat, idx) => {
                       const pct = totalSize > 0 ? (cat.size_bytes / totalSize) * 100 : 0;
@@ -266,7 +284,9 @@ export default function StorageManagement() {
                       ];
                       return (
                         <div key={cat.name} className="flex items-center gap-1.5">
-                          <span className={cn("w-2 h-2 rounded-full", colors[idx % colors.length])} />
+                          <span
+                            className={cn("w-2 h-2 rounded-full", colors[idx % colors.length])}
+                          />
                           <span className="text-xs text-[var(--text-muted)]">{cat.name}</span>
                         </div>
                       );
@@ -279,7 +299,11 @@ export default function StorageManagement() {
         </motion.div>
 
         {/* Category breakdown */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
           <Card padding="md">
             <CardHeader
               title="Category Breakdown"
@@ -338,7 +362,8 @@ export default function StorageManagement() {
               </Button>
               {tempCadCategory && (
                 <p className="text-xs text-[var(--text-muted)] mt-1.5">
-                  {formatBytes(tempCadCategory.size_bytes)} in {tempCadCategory.count} temporary files
+                  {formatBytes(tempCadCategory.size_bytes)} in {tempCadCategory.count} temporary
+                  files
                 </p>
               )}
             </div>
@@ -346,7 +371,11 @@ export default function StorageManagement() {
         </motion.div>
 
         {/* Retention policy */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+        >
           <Card padding="md">
             <CardHeader
               title="Retention Policy"
@@ -358,21 +387,29 @@ export default function StorageManagement() {
                 <>
                   <div className="p-3 bg-[var(--bg-primary)] rounded-lg border border-[var(--border-primary)]">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-[var(--text-secondary)]">Default Retention</span>
+                      <span className="text-sm text-[var(--text-secondary)]">
+                        Default Retention
+                      </span>
                       <span className="text-sm font-mono text-[var(--text-primary)]">
                         {formatDuration(retention.default_days * 86400)}
                       </span>
                     </div>
-                    <p className="text-xs text-[var(--text-muted)] mt-0.5">{retention.default_days} days</p>
+                    <p className="text-xs text-[var(--text-muted)] mt-0.5">
+                      {retention.default_days} days
+                    </p>
                   </div>
                   <div className="p-3 bg-[var(--bg-primary)] rounded-lg border border-[var(--border-primary)]">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-[var(--text-secondary)]">Temp CAD Artifacts</span>
+                      <span className="text-sm text-[var(--text-secondary)]">
+                        Temp CAD Artifacts
+                      </span>
                       <span className="text-sm font-mono text-[var(--text-primary)]">
                         {formatDuration(retention.temp_artifacts_days * 86400)}
                       </span>
                     </div>
-                    <p className="text-xs text-[var(--text-muted)] mt-0.5">{retention.temp_artifacts_days} days</p>
+                    <p className="text-xs text-[var(--text-muted)] mt-0.5">
+                      {retention.temp_artifacts_days} days
+                    </p>
                   </div>
                   <div className="p-3 bg-[var(--bg-primary)] rounded-lg border border-[var(--border-primary)]">
                     <div className="flex items-center justify-between">
@@ -381,7 +418,9 @@ export default function StorageManagement() {
                         {formatDuration(retention.audit_logs_days * 86400)}
                       </span>
                     </div>
-                    <p className="text-xs text-[var(--text-muted)] mt-0.5">{retention.audit_logs_days} days</p>
+                    <p className="text-xs text-[var(--text-muted)] mt-0.5">
+                      {retention.audit_logs_days} days
+                    </p>
                   </div>
                 </>
               )}
@@ -402,7 +441,13 @@ export default function StorageManagement() {
             <Button variant="ghost" size="sm" onClick={() => setShowPurgeModal(false)}>
               Cancel
             </Button>
-            <Button variant="danger" size="sm" icon={Trash2} loading={purging} onClick={handlePurge}>
+            <Button
+              variant="danger"
+              size="sm"
+              icon={Trash2}
+              loading={purging}
+              onClick={handlePurge}
+            >
               Purge Artifacts
             </Button>
           </>
@@ -416,7 +461,8 @@ export default function StorageManagement() {
             </p>
             {tempCadCategory && (
               <p className="text-xs text-[var(--text-muted)] mt-1">
-                {formatBytes(tempCadCategory.size_bytes)} across {tempCadCategory.count} files will be removed.
+                {formatBytes(tempCadCategory.size_bytes)} across {tempCadCategory.count} files will
+                be removed.
               </p>
             )}
           </div>

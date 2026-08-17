@@ -104,7 +104,7 @@ class HarmonicAnalysisEngine:
 
     def set_system_data(
         self,
-        ybus_fundamental: np.ndarray,
+        Ybus_fundamental: np.ndarray,
         bus_ids: list[str],
         branch_data: dict = None,  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
     ):
@@ -116,7 +116,7 @@ class HarmonicAnalysisEngine:
         bus_ids: List of bus IDs
         branch_data: Optional branch impedance data
         """
-        self.Ybus_fundamental = ybus_fundamental
+        self.Ybus_fundamental = Ybus_fundamental
         self.bus_ids = bus_ids
         self.branch_data = branch_data or {}
 

@@ -1383,7 +1383,7 @@ class TestNumericalSafety:
         arr = guard.safe_division(np.array([10.0, 10.0]), np.array([2.0, 0.0]), default=-1.0)
         assert arr[0] == pytest.approx(5.0)
 
-        assert result == 0.0
+        assert arr[1] == pytest.approx(-1.0)
         result = guard.safe_division(10.0, 2.0)
         assert result == 5.0
         arr = guard.safe_division(np.array([10.0, 10.0]), np.array([2.0, 0.0]), default=-1.0)
@@ -1399,7 +1399,7 @@ class TestNumericalSafety:
         clamped = guard.clamp_to_bounds(5.0, 0.0, 10.0)
         assert clamped == pytest.approx(5.0)
 
-        assert clamped == 10.0
+        assert clamped == pytest.approx(5.0)
         clamped = guard.clamp_to_bounds(-5.0, 0.0, 10.0)
         assert clamped == 0.0
         clamped = guard.clamp_to_bounds(5.0, 0.0, 10.0)
@@ -1776,11 +1776,11 @@ class TestShortCircuitExpansion:
         )
         engine = IEC60909Engine(Ybus, Ybus, Ybus, base_mva=100.0, base_kv=115.0)
         result = engine.calculate_three_phase_fault(0, bus_kv=115.0)
-        mags = [abs(result.Ia), abs(result.Ib), abs(result.Ic)]
+        mags = [abs(result.ia), abs(result.ib), abs(result.ic)]
         assert abs(mags[0] - mags[1]) < 1e-6, "Phase A and B magnitudes should be equal"
         assert abs(mags[0] - mags[2]) < 1e-6, "Phase A and C magnitudes should be equal"
-        assert abs(result.I_negative) < 1e-10, "Negative sequence should be zero for balanced fault"
-        assert abs(result.I_zero) < 1e-10, "Zero sequence should be zero for balanced fault"
+        assert abs(result.i_negative) < 1e-10, "Negative sequence should be zero for balanced fault"
+        assert abs(result.i_zero) < 1e-10, "Zero sequence should be zero for balanced fault"
 
 
 # ============================================================================

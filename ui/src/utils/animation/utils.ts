@@ -9,12 +9,15 @@ import { gsap } from "gsap";
  * @param element - Target element
  * @param options - Animation options
  */
-export function createPowerSurgeAnimation(element: HTMLElement | string, options: {
-  duration?: number;
-  intensity?: number;
-  color?: string;
-  delay?: number;
-} = {}) {
+export function createPowerSurgeAnimation(
+  element: HTMLElement | string,
+  options: {
+    duration?: number;
+    intensity?: number;
+    color?: string;
+    delay?: number;
+  } = {},
+) {
   const duration = options.duration || 1.5;
   const intensity = options.intensity || 1;
   const color = options.color || "#00d4ff";
@@ -28,7 +31,7 @@ export function createPowerSurgeAnimation(element: HTMLElement | string, options
     backgroundColor: `color-mix(in srgb, ${color} 10%, transparent)`,
     repeat: -1,
     yoyo: true,
-    ease: "sine.inOut"
+    ease: "sine.inOut",
   });
 }
 
@@ -37,13 +40,16 @@ export function createPowerSurgeAnimation(element: HTMLElement | string, options
  * @param element - Target element
  * @param options - Animation options
  */
-export function createEngineeringEntrance(element: HTMLElement | string, options: {
-  duration?: number;
-  delay?: number;
-  yStart?: number;
-  opacityStart?: number;
-  ease?: string;
-} = {}) {
+export function createEngineeringEntrance(
+  element: HTMLElement | string,
+  options: {
+    duration?: number;
+    delay?: number;
+    yStart?: number;
+    opacityStart?: number;
+    ease?: string;
+  } = {},
+) {
   const duration = options.duration || 0.8;
   const delay = options.delay || 0;
   const yStart = options.yStart || 30;
@@ -56,7 +62,7 @@ export function createEngineeringEntrance(element: HTMLElement | string, options
     duration,
     delay,
     ease,
-    clearProps: "transform,opacity"
+    clearProps: "transform,opacity",
   });
 }
 
@@ -66,14 +72,18 @@ export function createEngineeringEntrance(element: HTMLElement | string, options
  * @param targetValue - Target number
  * @param options - Animation options
  */
-export function createNumberCounter(element: HTMLElement | string, targetValue: number, options: {
-  duration?: number;
-  delay?: number;
-  ease?: string;
-  decimals?: number;
-  prefix?: string;
-  suffix?: string;
-} = {}) {
+export function createNumberCounter(
+  element: HTMLElement | string,
+  targetValue: number,
+  options: {
+    duration?: number;
+    delay?: number;
+    ease?: string;
+    decimals?: number;
+    prefix?: string;
+    suffix?: string;
+  } = {},
+) {
   const duration = options.duration || 2;
   const delay = options.delay || 0;
   const ease = options.ease || "power3.out";
@@ -85,10 +95,10 @@ export function createNumberCounter(element: HTMLElement | string, targetValue: 
     delay,
     ease,
     snap: { innerText: 1 },
-    onUpdate: function() {
+    onUpdate: function () {
       const currentValue = Number.parseFloat(this.targets()[0].innerText);
       this.targets()[0].innerText = `${options.prefix || ""}${currentValue.toFixed(decimals)}${options.suffix || ""}`;
-    }
+    },
   });
 }
 
@@ -97,13 +107,16 @@ export function createNumberCounter(element: HTMLElement | string, targetValue: 
  * @param element - Target element (SVG path or group)
  * @param options - Animation options
  */
-export function createPowerFlowAnimation(element: HTMLElement | string, options: {
-  duration?: number;
-  delay?: number;
-  color?: string;
-  width?: number;
-  repeat?: number;
-} = {}) {
+export function createPowerFlowAnimation(
+  element: HTMLElement | string,
+  options: {
+    duration?: number;
+    delay?: number;
+    color?: string;
+    width?: number;
+    repeat?: number;
+  } = {},
+) {
   const duration = options.duration || 3;
   const delay = options.delay || 0;
   const color = options.color || "#00d4ff";
@@ -121,8 +134,8 @@ export function createPowerFlowAnimation(element: HTMLElement | string, options:
       stroke: color,
       "stroke-width": width,
       "stroke-dasharray": "5, 5",
-      "stroke-dashoffset": 10
-    }
+      "stroke-dashoffset": 10,
+    },
   });
 }
 
@@ -131,12 +144,15 @@ export function createPowerFlowAnimation(element: HTMLElement | string, options:
  * @param element - Target element
  * @param options - Animation options
  */
-export function createGlassMorphismEffect(element: HTMLElement | string, options: {
-  duration?: number;
-  blur?: number;
-  opacity?: number;
-  delay?: number;
-} = {}) {
+export function createGlassMorphismEffect(
+  element: HTMLElement | string,
+  options: {
+    duration?: number;
+    blur?: number;
+    opacity?: number;
+    delay?: number;
+  } = {},
+) {
   const duration = options.duration || 1;
   const blur = options.blur || 12;
   const opacity = options.opacity || 0.7;
@@ -148,7 +164,7 @@ export function createGlassMorphismEffect(element: HTMLElement | string, options
     backdropFilter: `blur(${blur}px) saturate(180%)`,
     backgroundColor: `rgba(15, 21, 37, ${opacity})`,
     borderColor: `rgba(255, 255, 255, ${opacity * 0.1})`,
-    ease: "power2.out"
+    ease: "power2.out",
   });
 }
 
@@ -157,13 +173,16 @@ export function createGlassMorphismEffect(element: HTMLElement | string, options
  * @param element - Target element
  * @param options - Animation options
  */
-export function createEngineeringPulse(element: HTMLElement | string, options: {
-  duration?: number;
-  scale?: number;
-  opacity?: number;
-  color?: string;
-  delay?: number;
-} = {}) {
+export function createEngineeringPulse(
+  element: HTMLElement | string,
+  options: {
+    duration?: number;
+    scale?: number;
+    opacity?: number;
+    color?: string;
+    delay?: number;
+  } = {},
+) {
   const duration = options.duration || 2;
   const scale = options.scale || 1.2;
   const opacity = options.opacity || 0.8;
@@ -178,7 +197,7 @@ export function createEngineeringPulse(element: HTMLElement | string, options: {
     backgroundColor: color,
     repeat: -1,
     yoyo: true,
-    ease: "sine.inOut"
+    ease: "sine.inOut",
   });
 }
 
@@ -190,8 +209,8 @@ export function createTimeline(options: gsap.TimelineVars = {}) {
   return gsap.timeline({
     defaults: {
       ease: "power3.out",
-      duration: 0.5
+      duration: 0.5,
     },
-    ...options
+    ...options,
   });
 }

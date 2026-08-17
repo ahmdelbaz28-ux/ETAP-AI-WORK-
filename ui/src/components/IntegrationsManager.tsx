@@ -1,15 +1,8 @@
 import { motion } from "framer-motion";
-import {
-  AlertTriangle,
-  CheckCircle2,
-  Cable,
-  RefreshCw,
-  XCircle,
-  Zap,
-} from "lucide-react";
+import { AlertTriangle, Cable, CheckCircle2, RefreshCw, XCircle, Zap } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
-import { Badge, Button, Card, CardHeader } from "../components/ui";
 import { ContextHelpButton } from "../components/help/ContextHelpButton";
+import { Badge, Button, Card, CardHeader } from "../components/ui";
 import { useNotify } from "../context/NotificationContext";
 import { API_BASE_URL } from "../lib/api-config";
 import { getAuthToken } from "../lib/tokenStorage";
@@ -147,7 +140,9 @@ export default function IntegrationsManager() {
       <div className="flex items-center justify-center h-64">
         <div className="text-center max-w-md">
           <AlertTriangle className="w-8 h-8 text-red-400 mx-auto mb-3" />
-          <p className="text-sm text-[var(--text-secondary)] mb-2">Failed to load connector status</p>
+          <p className="text-sm text-[var(--text-secondary)] mb-2">
+            Failed to load connector status
+          </p>
           <p className="text-xs text-[var(--text-muted)] mb-4 font-mono">{error}</p>
           <Button variant="secondary" size="sm" icon={RefreshCw} onClick={fetchStatus}>
             Retry
@@ -194,23 +189,41 @@ export default function IntegrationsManager() {
           <div>
             <h2 className="text-2xl font-bold text-[var(--text-primary)]">Integrations</h2>
             <div className="flex items-center gap-2">
-              <p className="text-sm text-[var(--text-tertiary)]">Autodesk connector health & pipe management</p>
+              <p className="text-sm text-[var(--text-tertiary)]">
+                Autodesk connector health & pipe management
+              </p>
               <ContextHelpButton contextId="integrations.autodesk" />
             </div>
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="secondary" size="sm" icon={RefreshCw} onClick={fetchStatus} loading={loading}>
+          <Button
+            variant="secondary"
+            size="sm"
+            icon={RefreshCw}
+            onClick={fetchStatus}
+            loading={loading}
+          >
             Refresh
           </Button>
-          <Button variant="primary" size="sm" icon={Zap} loading={testing} onClick={handleTestConnection}>
+          <Button
+            variant="primary"
+            size="sm"
+            icon={Zap}
+            loading={testing}
+            onClick={handleTestConnection}
+          >
             Test Pipe Connection
           </Button>
         </div>
       </motion.div>
 
       {/* Pipe status banner */}
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+      >
         <div
           className={cn(
             "flex items-center justify-between p-4 rounded-xl border",
@@ -242,7 +255,11 @@ export default function IntegrationsManager() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* AutoCAD Plugin Card */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
           <Card padding="md">
             <CardHeader
               title="AutoCAD Plugin"
@@ -253,9 +270,15 @@ export default function IntegrationsManager() {
               {/* Status badge */}
               <div className="flex items-center justify-between p-3 bg-[var(--bg-primary)] rounded-lg border border-[var(--border-primary)]">
                 <div className="flex items-center gap-2.5">
-                  {autocadPlugin ? statusConfig[autocadPlugin.status].icon : <XCircle className="w-4 h-4" />}
+                  {autocadPlugin ? (
+                    statusConfig[autocadPlugin.status].icon
+                  ) : (
+                    <XCircle className="w-4 h-4" />
+                  )}
                   <div>
-                    <p className="text-sm font-medium text-[var(--text-primary)]">Connection Status</p>
+                    <p className="text-sm font-medium text-[var(--text-primary)]">
+                      Connection Status
+                    </p>
                     <p className="text-xs text-[var(--text-muted)]">
                       Last heartbeat: {autocadPlugin?.last_heartbeat ?? "—"}
                     </p>
@@ -274,16 +297,22 @@ export default function IntegrationsManager() {
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-[var(--text-tertiary)]">Version</span>
-                  <span className="text-[var(--text-primary)] font-mono">{autocadPlugin?.version ?? "—"}</span>
+                  <span className="text-[var(--text-primary)] font-mono">
+                    {autocadPlugin?.version ?? "—"}
+                  </span>
                 </div>
               </div>
 
               {/* Timeout input */}
               <div>
-                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                <label
+                  htmlFor="autocad-timeout"
+                  className="block text-sm font-medium text-[var(--text-secondary)] mb-2"
+                >
                   Connection Timeout (seconds)
                 </label>
                 <input
+                  id="autocad-timeout"
                   type="number"
                   min={5}
                   max={120}
@@ -302,7 +331,11 @@ export default function IntegrationsManager() {
         </motion.div>
 
         {/* Revit Plugin Card */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+        >
           <Card padding="md">
             <CardHeader
               title="Revit Plugin"
@@ -313,9 +346,15 @@ export default function IntegrationsManager() {
               {/* Status badge */}
               <div className="flex items-center justify-between p-3 bg-[var(--bg-primary)] rounded-lg border border-[var(--border-primary)]">
                 <div className="flex items-center gap-2.5">
-                  {revitPlugin ? statusConfig[revitPlugin.status].icon : <XCircle className="w-4 h-4" />}
+                  {revitPlugin ? (
+                    statusConfig[revitPlugin.status].icon
+                  ) : (
+                    <XCircle className="w-4 h-4" />
+                  )}
                   <div>
-                    <p className="text-sm font-medium text-[var(--text-primary)]">Connection Status</p>
+                    <p className="text-sm font-medium text-[var(--text-primary)]">
+                      Connection Status
+                    </p>
                     <p className="text-xs text-[var(--text-muted)]">
                       Last heartbeat: {revitPlugin?.last_heartbeat ?? "—"}
                     </p>
@@ -334,16 +373,22 @@ export default function IntegrationsManager() {
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-[var(--text-tertiary)]">Version</span>
-                  <span className="text-[var(--text-primary)] font-mono">{revitPlugin?.version ?? "—"}</span>
+                  <span className="text-[var(--text-primary)] font-mono">
+                    {revitPlugin?.version ?? "—"}
+                  </span>
                 </div>
               </div>
 
               {/* Timeout input */}
               <div>
-                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                <label
+                  htmlFor="revit-timeout"
+                  className="block text-sm font-medium text-[var(--text-secondary)] mb-2"
+                >
                   Connection Timeout (seconds)
                 </label>
                 <input
+                  id="revit-timeout"
                   type="number"
                   min={5}
                   max={120}

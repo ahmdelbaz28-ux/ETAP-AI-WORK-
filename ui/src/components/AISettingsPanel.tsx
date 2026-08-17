@@ -1,8 +1,8 @@
 import { motion } from "framer-motion";
 import { AlertTriangle, Bot, Save, SlidersHorizontal } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
-import { Button, Card, CardHeader, Toggle } from "../components/ui";
 import { ContextHelpButton } from "../components/help/ContextHelpButton";
+import { Button, Card, CardHeader, Toggle } from "../components/ui";
 import { useNotify } from "../context/NotificationContext";
 import { API_BASE_URL } from "../lib/api-config";
 import { getAuthToken } from "../lib/tokenStorage";
@@ -18,11 +18,31 @@ interface AIConfig {
 }
 
 const MODEL_CASCADES = [
-  { id: "fast-cheap", label: "Fast & Cheap (GPT-4o-mini → Haiku)", description: "Optimized for speed and cost" },
-  { id: "balanced", label: "Balanced (GPT-4o → Sonnet)", description: "Best trade-off of quality and speed" },
-  { id: "premium", label: "Premium (GPT-4o → Claude Opus)", description: "Highest quality, highest cost" },
-  { id: "open-source", label: "Open Source (Llama 3.1 → Qwen 3)", description: "Self-hosted, no vendor lock-in" },
-  { id: "code-focused", label: "Code Focused (DeepSeek V4 → Qwen Coder)", description: "Optimized for engineering code" },
+  {
+    id: "fast-cheap",
+    label: "Fast & Cheap (GPT-4o-mini → Haiku)",
+    description: "Optimized for speed and cost",
+  },
+  {
+    id: "balanced",
+    label: "Balanced (GPT-4o → Sonnet)",
+    description: "Best trade-off of quality and speed",
+  },
+  {
+    id: "premium",
+    label: "Premium (GPT-4o → Claude Opus)",
+    description: "Highest quality, highest cost",
+  },
+  {
+    id: "open-source",
+    label: "Open Source (Llama 3.1 → Qwen 3)",
+    description: "Self-hosted, no vendor lock-in",
+  },
+  {
+    id: "code-focused",
+    label: "Code Focused (DeepSeek V4 → Qwen Coder)",
+    description: "Optimized for engineering code",
+  },
 ];
 
 const DEFAULT_CONFIG: AIConfig = {
@@ -61,7 +81,8 @@ export default function AISettingsPanel() {
         model_cascade: data.model_cascade ?? DEFAULT_CONFIG.model_cascade,
         temperature: data.temperature ?? DEFAULT_CONFIG.temperature,
         max_tokens: data.max_tokens ?? DEFAULT_CONFIG.max_tokens,
-        fallback_notifications: data.fallback_notifications ?? DEFAULT_CONFIG.fallback_notifications,
+        fallback_notifications:
+          data.fallback_notifications ?? DEFAULT_CONFIG.fallback_notifications,
       };
       setConfig(fetched);
       setOriginal(fetched);
@@ -125,7 +146,9 @@ export default function AISettingsPanel() {
       <div className="flex items-center justify-center h-64">
         <div className="text-center max-w-md">
           <AlertTriangle className="w-8 h-8 text-red-400 mx-auto mb-3" />
-          <p className="text-sm text-[var(--text-secondary)] mb-2">Failed to load AI configuration</p>
+          <p className="text-sm text-[var(--text-secondary)] mb-2">
+            Failed to load AI configuration
+          </p>
           <p className="text-xs text-[var(--text-muted)] mb-4 font-mono">{error}</p>
           <Button variant="secondary" size="sm" onClick={fetchConfig}>
             Retry
@@ -150,19 +173,32 @@ export default function AISettingsPanel() {
           <div>
             <h2 className="text-2xl font-bold text-[var(--text-primary)]">AI Copilot Settings</h2>
             <div className="flex items-center gap-2">
-              <p className="text-sm text-[var(--text-tertiary)]">Model selection, temperature & token limits</p>
+              <p className="text-sm text-[var(--text-tertiary)]">
+                Model selection, temperature & token limits
+              </p>
               <ContextHelpButton contextId="ai.copilot-settings" />
             </div>
           </div>
         </div>
-        <Button variant="primary" size="sm" icon={Save} loading={saving} onClick={handleSave} disabled={!hasChanges}>
+        <Button
+          variant="primary"
+          size="sm"
+          icon={Save}
+          loading={saving}
+          onClick={handleSave}
+          disabled={!hasChanges}
+        >
           Save Changes
         </Button>
       </motion.div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Model Cascade */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+        >
           <Card padding="md">
             <CardHeader
               title="Model Cascade"
@@ -189,7 +225,9 @@ export default function AISettingsPanel() {
                     className="mt-0.5 accent-brand-500"
                   />
                   <div>
-                    <p className="text-sm font-medium text-[var(--text-primary)]">{cascade.label}</p>
+                    <p className="text-sm font-medium text-[var(--text-primary)]">
+                      {cascade.label}
+                    </p>
                     <p className="text-xs text-[var(--text-muted)] mt-0.5">{cascade.description}</p>
                   </div>
                 </label>
@@ -199,7 +237,11 @@ export default function AISettingsPanel() {
         </motion.div>
 
         {/* Temperature & Tokens */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
           <Card padding="md">
             <CardHeader
               title="Generation Parameters"
@@ -210,8 +252,12 @@ export default function AISettingsPanel() {
               {/* Temperature slider */}
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <label className="text-sm font-medium text-[var(--text-secondary)]">Temperature</label>
-                  <span className="text-sm font-mono text-[var(--text-primary)]">{config.temperature.toFixed(2)}</span>
+                  <span className="text-sm font-medium text-[var(--text-secondary)]">
+                    Temperature
+                  </span>
+                  <span className="text-sm font-mono text-[var(--text-primary)]">
+                    {config.temperature.toFixed(2)}
+                  </span>
                 </div>
                 <input
                   type="range"
@@ -219,7 +265,9 @@ export default function AISettingsPanel() {
                   max={100}
                   step={1}
                   value={config.temperature * 100}
-                  onChange={(e) => setConfig({ ...config, temperature: Number(e.target.value) / 100 })}
+                  onChange={(e) =>
+                    setConfig({ ...config, temperature: Number(e.target.value) / 100 })
+                  }
                   className="w-full h-2 rounded-full appearance-none bg-[var(--border-primary)] cursor-pointer accent-brand-500"
                 />
                 <div className="flex justify-between mt-1">
@@ -231,8 +279,12 @@ export default function AISettingsPanel() {
               {/* Max Tokens slider */}
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <label className="text-sm font-medium text-[var(--text-secondary)]">Max Tokens</label>
-                  <span className="text-sm font-mono text-[var(--text-primary)]">{config.max_tokens.toLocaleString()}</span>
+                  <span className="text-sm font-medium text-[var(--text-secondary)]">
+                    Max Tokens
+                  </span>
+                  <span className="text-sm font-mono text-[var(--text-primary)]">
+                    {config.max_tokens.toLocaleString()}
+                  </span>
                 </div>
                 <input
                   type="range"
@@ -243,7 +295,7 @@ export default function AISettingsPanel() {
                   onChange={(e) => {
                     const val = Math.round(256 + (Number(e.target.value) / 100) * (16384 - 256));
                     // Snap to nearest power of 2 for clean values
-                    const snapped = Math.pow(2, Math.round(Math.log2(val)));
+                    const snapped = 2 ** Math.round(Math.log2(val));
                     setConfig({ ...config, max_tokens: Math.min(16384, Math.max(256, snapped)) });
                   }}
                   className="w-full h-2 rounded-full appearance-none bg-[var(--border-primary)] cursor-pointer accent-brand-500"
@@ -266,25 +318,39 @@ export default function AISettingsPanel() {
 
               {/* Config summary */}
               <div className="p-3 bg-[var(--bg-elevated)] rounded-lg border border-[var(--border-primary)]">
-                <p className="text-xs text-[var(--text-muted)] mb-2 font-medium">Active Configuration</p>
+                <p className="text-xs text-[var(--text-muted)] mb-2 font-medium">
+                  Active Configuration
+                </p>
                 <div className="space-y-1.5 text-xs">
                   <div className="flex justify-between">
                     <span className="text-[var(--text-tertiary)]">Cascade</span>
                     <span className="text-[var(--text-primary)]">
-                      {MODEL_CASCADES.find((c) => c.id === config.model_cascade)?.label ?? config.model_cascade}
+                      {MODEL_CASCADES.find((c) => c.id === config.model_cascade)?.label ??
+                        config.model_cascade}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-[var(--text-tertiary)]">Temperature</span>
-                    <span className="text-[var(--text-primary)] font-mono">{config.temperature.toFixed(2)}</span>
+                    <span className="text-[var(--text-primary)] font-mono">
+                      {config.temperature.toFixed(2)}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-[var(--text-tertiary)]">Max Tokens</span>
-                    <span className="text-[var(--text-primary)] font-mono">{config.max_tokens.toLocaleString()}</span>
+                    <span className="text-[var(--text-primary)] font-mono">
+                      {config.max_tokens.toLocaleString()}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-[var(--text-tertiary)]">Fallback Alerts</span>
-                    <span className={cn("font-mono", config.fallback_notifications ? "text-green-400" : "text-[var(--text-muted)]")}>
+                    <span
+                      className={cn(
+                        "font-mono",
+                        config.fallback_notifications
+                          ? "text-green-400"
+                          : "text-[var(--text-muted)]",
+                      )}
+                    >
                       {config.fallback_notifications ? "On" : "Off"}
                     </span>
                   </div>

@@ -1,7 +1,7 @@
-import { useTranslation } from 'react-i18next';
+import { ChevronDown, HelpCircle, Search, Settings, Sparkles, Zap } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
-import { Search, HelpCircle, Settings, Zap, ChevronDown, Sparkles } from 'lucide-react';
-import { useAppStore } from '../../store';
+import { useAppStore } from "../../store";
 
 interface TopBarProps {
   onHelpOpen?: () => void;
@@ -43,9 +43,9 @@ export function TopBar({ onHelpOpen }: TopBarProps) {
           role="button"
           tabIndex={0}
           aria-label="Go to dashboard"
-          onClick={() => navigate('/dashboard')}
+          onClick={() => navigate("/dashboard")}
           onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') navigate('/dashboard');
+            if (e.key === "Enter" || e.key === " ") navigate("/dashboard");
           }}
         >
           <div className="w-7 h-7 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center shadow-lg shadow-orange-500/20">
@@ -81,7 +81,7 @@ export function TopBar({ onHelpOpen }: TopBarProps) {
           className="p-2 rounded-lg text-brand-400 hover:bg-brand-500/10 hover:text-brand-300 transition-colors relative"
           title="Magic Help Inspector / فاحص المساعدة الذكي"
           onClick={() => {
-            globalThis.dispatchEvent(new CustomEvent('start-magic-help-inspect'));
+            globalThis.dispatchEvent(new CustomEvent("start-magic-help-inspect"));
           }}
         >
           <Sparkles className="w-4 h-4" />
@@ -89,15 +89,15 @@ export function TopBar({ onHelpOpen }: TopBarProps) {
         </button>
         <button
           className="p-2 rounded-lg text-[var(--text-muted)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text-primary)] transition-colors"
-          title={t('help.title') || 'Help'}
+          title={t("help.title") || "Help"}
           onClick={handleHelp}
         >
           <HelpCircle className="w-4 h-4" />
         </button>
         <button
           className="p-2 rounded-lg text-[var(--text-muted)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text-primary)] transition-colors relative"
-          title={t('settings.title') || 'Settings'}
-          onClick={() => navigate('/settings')}
+          title={t("settings.title") || "Settings"}
+          onClick={() => navigate("/settings")}
         >
           <Settings className="w-4 h-4" />
         </button>

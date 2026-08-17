@@ -67,6 +67,12 @@
       "computedHash": "e890b21a37c98b671a4f08920194bc028fa160912185c60205847b2c58908321",
       "_note": "NVIDIA RAG Blueprint skill for enterprise multimodal RAG, hybrid search, and guardrails."
     },
+    "refactor": {
+      "source": "github/awesome-copilot",
+      "sourceType": "github",
+      "skillPath": "skills/refactor/SKILL.md",
+      "computedHash": "87789a786b96f99ba0680e89345a975106e10e7db1071c7cdc2e76d507c449d6"
+    },
     "resolving-merge-conflicts": {
       "source": "mattpocock/skills",
       "sourceType": "github",

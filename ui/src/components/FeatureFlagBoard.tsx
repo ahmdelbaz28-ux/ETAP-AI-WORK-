@@ -1,8 +1,8 @@
 import { motion } from "framer-motion";
 import { AlertTriangle, FlaskConical, RefreshCw, Save } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
-import { Badge, Button, Card, CardHeader, Toggle } from "../components/ui";
 import { ContextHelpButton } from "../components/help/ContextHelpButton";
+import { Badge, Button, Card, CardHeader, Toggle } from "../components/ui";
 import { useNotify } from "../context/NotificationContext";
 import { API_BASE_URL } from "../lib/api-config";
 import { getAuthToken } from "../lib/tokenStorage";
@@ -22,7 +22,10 @@ interface FeatureFlag {
   category: string;
 }
 
-const STATUS_CONFIG: Record<FeatureFlagStatus, { variant: "info" | "warning" | "success"; label: string }> = {
+const STATUS_CONFIG: Record<
+  FeatureFlagStatus,
+  { variant: "info" | "warning" | "success"; label: string }
+> = {
   alpha: { variant: "info", label: "Alpha" },
   beta: { variant: "warning", label: "Beta" },
   stable: { variant: "success", label: "Stable" },
@@ -168,7 +171,9 @@ export default function FeatureFlagBoard() {
           <div>
             <h2 className="text-2xl font-bold text-[var(--text-primary)]">Feature Flags</h2>
             <div className="flex items-center gap-2">
-              <p className="text-sm text-[var(--text-tertiary)]">Manage beta capabilities & experimental features</p>
+              <p className="text-sm text-[var(--text-tertiary)]">
+                Manage beta capabilities & experimental features
+              </p>
               <ContextHelpButton contextId="admin.feature-flags" />
             </div>
           </div>
@@ -177,29 +182,46 @@ export default function FeatureFlagBoard() {
           <Badge variant="neutral" size="md">
             {enabledCount}/{totalCount} enabled
           </Badge>
-          <Button variant="primary" size="sm" icon={Save} loading={saving} onClick={handleSave} disabled={!hasChanges}>
+          <Button
+            variant="primary"
+            size="sm"
+            icon={Save}
+            loading={saving}
+            onClick={handleSave}
+            disabled={!hasChanges}
+          >
             Save Changes
           </Button>
         </div>
       </motion.div>
 
       {/* Summary bar */}
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+      >
         <div className="flex items-center gap-4 p-3 bg-[var(--bg-card)] rounded-xl border border-[var(--border-primary)]">
           <div className="flex items-center gap-2">
-            <Badge variant="info" size="sm" dot>Alpha</Badge>
+            <Badge variant="info" size="sm" dot>
+              Alpha
+            </Badge>
             <span className="text-xs text-[var(--text-muted)]">
               {flags.filter((f) => f.status === "alpha").length} flags
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <Badge variant="warning" size="sm" dot>Beta</Badge>
+            <Badge variant="warning" size="sm" dot>
+              Beta
+            </Badge>
             <span className="text-xs text-[var(--text-muted)]">
               {flags.filter((f) => f.status === "beta").length} flags
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <Badge variant="success" size="sm" dot>Stable</Badge>
+            <Badge variant="success" size="sm" dot>
+              Stable
+            </Badge>
             <span className="text-xs text-[var(--text-muted)]">
               {flags.filter((f) => f.status === "stable").length} flags
             </span>
@@ -231,7 +253,8 @@ export default function FeatureFlagBoard() {
               <div className="space-y-3">
                 {categoryFlags.map((flag) => {
                   const statusConfig = STATUS_CONFIG[flag.status] ?? STATUS_CONFIG.beta;
-                  const isChanged = original.find((o) => o.id === flag.id)?.enabled !== flag.enabled;
+                  const isChanged =
+                    original.find((o) => o.id === flag.id)?.enabled !== flag.enabled;
                   return (
                     <div
                       key={flag.id}
@@ -245,16 +268,22 @@ export default function FeatureFlagBoard() {
                     >
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-0.5">
-                          <p className="text-sm font-medium text-[var(--text-primary)]">{flag.name}</p>
+                          <p className="text-sm font-medium text-[var(--text-primary)]">
+                            {flag.name}
+                          </p>
                           <Badge variant={statusConfig.variant} size="sm">
                             {statusConfig.label}
                           </Badge>
                           {isChanged && (
-                            <Badge variant="brand" size="sm">Modified</Badge>
+                            <Badge variant="brand" size="sm">
+                              Modified
+                            </Badge>
                           )}
                         </div>
                         <p className="text-xs text-[var(--text-muted)]">{flag.description}</p>
-                        <p className="text-xs text-[var(--text-muted)] font-mono mt-0.5">{flag.key}</p>
+                        <p className="text-xs text-[var(--text-muted)] font-mono mt-0.5">
+                          {flag.key}
+                        </p>
                       </div>
                       <Toggle
                         checked={flag.enabled}
@@ -278,7 +307,11 @@ export default function FeatureFlagBoard() {
           className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-4 py-2.5 rounded-xl bg-[var(--bg-card)] border border-[var(--border-primary)] shadow-lg"
         >
           <span className="text-sm text-[var(--text-secondary)]">Unsaved changes</span>
-          <Button variant="ghost" size="sm" onClick={() => setFlags(original.map((f) => ({ ...f })))}>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setFlags(original.map((f) => ({ ...f })))}
+          >
             Discard
           </Button>
           <Button variant="primary" size="sm" icon={Save} loading={saving} onClick={handleSave}>

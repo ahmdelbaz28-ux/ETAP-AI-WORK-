@@ -258,7 +258,7 @@ class OptimalPowerFlowEngine:
 
         # Solve LP
         try:
-            result = linprog(c, A_ub=A_ub, b_ub=b_ub, a_eq=a_eq, b_eq=b_eq, method="highs")
+            result = linprog(c, A_ub=A_ub, b_ub=b_ub, A_eq=a_eq, b_eq=b_eq, method="highs")
 
             if result.success:
                 # Extract solution

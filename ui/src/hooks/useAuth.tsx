@@ -59,7 +59,8 @@ function extractArrayDetailMessage(detail: unknown[]): string | null {
 
 // Try to extract a human-readable error message from a JSON response body.
 // Returns null if the body is not JSON or no recognized message field is found.
-function parseJsonErrorMessage(text: string): string | null {  // NOSONAR(S3776): JSON error message parser — 4 nested try/catch branches are intrinsic to the parsing logic
+function parseJsonErrorMessage(text: string): string | null {
+  // NOSONAR(S3776): JSON error message parser — 4 nested try/catch branches are intrinsic to the parsing logic
   let data: unknown;
   try {
     data = JSON.parse(text);

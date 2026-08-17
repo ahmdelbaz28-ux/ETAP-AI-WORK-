@@ -1,18 +1,10 @@
 import { motion } from "framer-motion";
-import {
-  CheckCircle2,
-  Cpu,
-  Download,
-  FileText as FileCode,
-  Layers,
-  Loader2,
-  Sparkles,
-} from "lucide-react";
+import { CheckCircle2, Cpu, Download, FileJson, Layers, Loader2, Sparkles } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Badge, Button, Card, CardHeader, Input, Select, Toggle } from "../ui";
 import { useNotify } from "../../context/NotificationContext";
 import { API_BASE_URL } from "../../lib/api-config";
 import { getAuthToken } from "../../lib/tokenStorage";
+import { Badge, Button, Card, CardHeader, Input, Select, Toggle } from "../ui";
 
 interface SimReadyNode {
   prim_path: string;
@@ -140,10 +132,14 @@ export function CadSimReadyCard() {
         {/* Controls Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="text-xs font-medium text-[var(--text-secondary)] mb-1.5 block">
+            <label
+              htmlFor="cad-source-file"
+              className="text-xs font-medium text-[var(--text-secondary)] mb-1.5 block"
+            >
               CAD/BIM Source File
             </label>
             <Input
+              id="cad-source-file"
               value={sourceFile}
               onChange={(e) => setSourceFile(e.target.value)}
               placeholder="e.g. substation_layout.dxf"
@@ -151,10 +147,14 @@ export function CadSimReadyCard() {
           </div>
 
           <div>
-            <label className="text-xs font-medium text-[var(--text-secondary)] mb-1.5 block">
+            <label
+              htmlFor="target-asset-name"
+              className="text-xs font-medium text-[var(--text-secondary)] mb-1.5 block"
+            >
               Target 3D Asset Name
             </label>
             <Input
+              id="target-asset-name"
               value={assetName}
               onChange={(e) => setAssetName(e.target.value)}
               placeholder="e.g. Main_Substation_138kV"
@@ -162,21 +162,46 @@ export function CadSimReadyCard() {
           </div>
 
           <div>
-            <label className="text-xs font-medium text-[var(--text-secondary)] mb-1.5 block">
+            <label
+              htmlFor="material-preset"
+              className="text-xs font-medium text-[var(--text-secondary)] mb-1.5 block"
+            >
               PBR Material Preset (MDL)
             </label>
             <Select
+              id="material-preset"
               value={materialPreset}
               onChange={(e) => setMaterialPreset(e.target.value)}
-              options={presets.length > 0 ? presets.map((p) => ({ value: p.id, label: p.name })) : [{ value: "industrial_copper_steel", label: "Industrial Electrical (Copper & Steel)" }]}
+              options={
+                presets.length > 0
+                  ? presets.map((p) => ({ value: p.id, label: p.name }))
+                  : [
+                      {
+                        value: "industrial_copper_steel",
+                        label: "Industrial Electrical (Copper & Steel)",
+                      },
+                    ]
+              }
             />
           </div>
 
           <div>
-            <label className="text-xs font-medium text-[var(--text-secondary)] mb-1.5 block">
+            <label
+              htmlFor="lod-level"
+              className="text-xs font-medium text-[var(--text-secondary)] mb-1.5 block"
+            >
               Level of Detail (LOD)
             </label>
-            <Select value={lodLevel} onChange={(e) => setLodLevel(e.target.value)} options={[{ value: "high", label: "High (Full Geometry & Sub-assemblies)" }, { value: "medium", label: "Medium (Standard Interactive Presentation)" }, { value: "low", label: "Low (Lightweight Web Viewer)" }]} />
+            <Select
+              id="lod-level"
+              value={lodLevel}
+              onChange={(e) => setLodLevel(e.target.value)}
+              options={[
+                { value: "high", label: "High (Full Geometry & Sub-assemblies)" },
+                { value: "medium", label: "Medium (Standard Interactive Presentation)" },
+                { value: "low", label: "Low (Lightweight Web Viewer)" },
+              ]}
+            />
           </div>
         </div>
 
@@ -242,11 +267,19 @@ export function CadSimReadyCard() {
                 <span>3D SimReady OpenUSD Generated Successfully</span>
               </div>
               <div className="flex items-center space-x-2 gap-2">
-                <Button variant="secondary" size="sm" onClick={() => notify("info", `Downloading ${result.output_usd_path}`)}>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => notify("info", `Downloading ${result.output_usd_path}`)}
+                >
                   <Download className="w-3.5 h-3.5 mr-1" /> OpenUSD (.usda)
                 </Button>
                 {result.output_usdz_path && (
-                  <Button variant="outline" size="sm" onClick={() => notify("info", `Downloading ${result.output_usdz_path}`)}>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => notify("info", `Downloading ${result.output_usdz_path}`)}
+                  >
                     <Download className="w-3.5 h-3.5 mr-1" /> USDZ (AR)
                   </Button>
                 )}
@@ -256,19 +289,33 @@ export function CadSimReadyCard() {
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
               <div className="p-2 bg-[var(--bg-card)] rounded border border-[var(--border-primary)]">
                 <span className="text-[var(--text-secondary)] block text-[10px]">Asset ID</span>
-                <span className="font-mono font-semibold text-[var(--text-primary)]">{result.asset_id}</span>
+                <span className="font-mono font-semibold text-[var(--text-primary)]">
+                  {result.asset_id}
+                </span>
               </div>
               <div className="p-2 bg-[var(--bg-card)] rounded border border-[var(--border-primary)]">
-                <span className="text-[var(--text-secondary)] block text-[10px]">Elements Processed</span>
-                <span className="font-semibold text-[var(--text-primary)]">{result.elements_processed} Prim Nodes</span>
+                <span className="text-[var(--text-secondary)] block text-[10px]">
+                  Elements Processed
+                </span>
+                <span className="font-semibold text-[var(--text-primary)]">
+                  {result.elements_processed} Prim Nodes
+                </span>
               </div>
               <div className="p-2 bg-[var(--bg-card)] rounded border border-[var(--border-primary)]">
-                <span className="text-[var(--text-secondary)] block text-[10px]">Physics Bound</span>
-                <span className="font-semibold text-emerald-400">{result.physics_bound ? "Enabled (PhysX)" : "Disabled"}</span>
+                <span className="text-[var(--text-secondary)] block text-[10px]">
+                  Physics Bound
+                </span>
+                <span className="font-semibold text-emerald-400">
+                  {result.physics_bound ? "Enabled (PhysX)" : "Disabled"}
+                </span>
               </div>
               <div className="p-2 bg-[var(--bg-card)] rounded border border-[var(--border-primary)]">
-                <span className="text-[var(--text-secondary)] block text-[10px]">Material Preset</span>
-                <span className="font-semibold text-[var(--text-primary)]">{result.material_preset}</span>
+                <span className="text-[var(--text-secondary)] block text-[10px]">
+                  Material Preset
+                </span>
+                <span className="font-semibold text-[var(--text-primary)]">
+                  {result.material_preset}
+                </span>
               </div>
             </div>
 

@@ -1,8 +1,8 @@
 import { motion } from "framer-motion";
 import { AlertTriangle, RotateCcw, Save, Settings, SlidersHorizontal } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
-import { Button, Card, CardHeader } from "../components/ui";
 import { ContextHelpButton } from "../components/help/ContextHelpButton";
+import { Button, Card, CardHeader } from "../components/ui";
 import { useNotify } from "../context/NotificationContext";
 import { API_BASE_URL } from "../lib/api-config";
 import { getAuthToken } from "../lib/tokenStorage";
@@ -71,12 +71,14 @@ export default function EngineeringEngineSettings() {
       }
       const data = await r.json();
       const fetched: SolverParameters = {
-        convergence_tolerance: data.convergence_tolerance ?? DEFAULT_PARAMETERS.convergence_tolerance,
+        convergence_tolerance:
+          data.convergence_tolerance ?? DEFAULT_PARAMETERS.convergence_tolerance,
         max_iterations: data.max_iterations ?? DEFAULT_PARAMETERS.max_iterations,
         acceleration_factor: data.acceleration_factor ?? DEFAULT_PARAMETERS.acceleration_factor,
         zbus_enabled: data.zbus_enabled ?? DEFAULT_PARAMETERS.zbus_enabled,
         zbus_iteration_limit: data.zbus_iteration_limit ?? DEFAULT_PARAMETERS.zbus_iteration_limit,
-        zbus_voltage_threshold: data.zbus_voltage_threshold ?? DEFAULT_PARAMETERS.zbus_voltage_threshold,
+        zbus_voltage_threshold:
+          data.zbus_voltage_threshold ?? DEFAULT_PARAMETERS.zbus_voltage_threshold,
       };
       setParams(fetched);
       setOriginal(fetched);
@@ -146,7 +148,9 @@ export default function EngineeringEngineSettings() {
       <div className="flex items-center justify-center h-64">
         <div className="text-center max-w-md">
           <AlertTriangle className="w-8 h-8 text-red-400 mx-auto mb-3" />
-          <p className="text-sm text-[var(--text-secondary)] mb-2">Failed to load solver parameters</p>
+          <p className="text-sm text-[var(--text-secondary)] mb-2">
+            Failed to load solver parameters
+          </p>
           <p className="text-xs text-[var(--text-muted)] mb-4 font-mono">{error}</p>
           <Button variant="secondary" size="sm" onClick={fetchParams}>
             Retry
@@ -171,7 +175,9 @@ export default function EngineeringEngineSettings() {
           <div>
             <h2 className="text-2xl font-bold text-[var(--text-primary)]">Engine Settings</h2>
             <div className="flex items-center gap-2">
-              <p className="text-sm text-[var(--text-tertiary)]">Solver parameters & convergence configuration</p>
+              <p className="text-sm text-[var(--text-tertiary)]">
+                Solver parameters & convergence configuration
+              </p>
               <ContextHelpButton contextId="engineering.engine-settings" />
             </div>
           </div>
@@ -180,7 +186,14 @@ export default function EngineeringEngineSettings() {
           <Button variant="ghost" size="sm" icon={RotateCcw} onClick={handleReset}>
             Reset Defaults
           </Button>
-          <Button variant="primary" size="sm" icon={Save} loading={saving} onClick={handleSave} disabled={!hasChanges}>
+          <Button
+            variant="primary"
+            size="sm"
+            icon={Save}
+            loading={saving}
+            onClick={handleSave}
+            disabled={!hasChanges}
+          >
             Save Changes
           </Button>
         </div>
@@ -188,7 +201,11 @@ export default function EngineeringEngineSettings() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Convergence Settings */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+        >
           <Card padding="md">
             <CardHeader
               title="Convergence Settings"
@@ -198,11 +215,15 @@ export default function EngineeringEngineSettings() {
             <div className="space-y-6">
               {/* Convergence Tolerance — logarithmic slider */}
               <div>
-                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                <label
+                  htmlFor="convergence-tolerance"
+                  className="block text-sm font-medium text-[var(--text-secondary)] mb-2"
+                >
                   Convergence Tolerance
                 </label>
                 <div className="flex items-center gap-4">
                   <input
+                    id="convergence-tolerance"
                     type="range"
                     min={0}
                     max={100}
@@ -210,7 +231,7 @@ export default function EngineeringEngineSettings() {
                     value={logToSlider(Math.log10(params.convergence_tolerance))}
                     onChange={(e) => {
                       const logVal = sliderToLog(Number(e.target.value));
-                      setParams({ ...params, convergence_tolerance: Math.pow(10, logVal) });
+                      setParams({ ...params, convergence_tolerance: 10 ** logVal });
                     }}
                     className="flex-1 h-2 rounded-full appearance-none bg-[var(--border-primary)] cursor-pointer accent-brand-500"
                   />
@@ -226,11 +247,15 @@ export default function EngineeringEngineSettings() {
 
               {/* Max Iterations */}
               <div>
-                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                <label
+                  htmlFor="max-iterations"
+                  className="block text-sm font-medium text-[var(--text-secondary)] mb-2"
+                >
                   Max Iterations
                 </label>
                 <div className="flex items-center gap-3">
                   <input
+                    id="max-iterations"
                     type="number"
                     min={10}
                     max={200}
@@ -248,11 +273,15 @@ export default function EngineeringEngineSettings() {
 
               {/* Acceleration Factor */}
               <div>
-                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                <label
+                  htmlFor="acceleration-factor"
+                  className="block text-sm font-medium text-[var(--text-secondary)] mb-2"
+                >
                   Acceleration Factor
                 </label>
                 <div className="flex items-center gap-3">
                   <input
+                    id="acceleration-factor"
                     type="number"
                     min={1.0}
                     max={2.0}
@@ -272,7 +301,11 @@ export default function EngineeringEngineSettings() {
         </motion.div>
 
         {/* ZBus Parameters */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
           <Card padding="md">
             <CardHeader
               title="ZBus Parameters"
@@ -283,8 +316,12 @@ export default function EngineeringEngineSettings() {
               {/* ZBus Enabled */}
               <div className="flex items-center justify-between p-3 bg-[var(--bg-primary)] rounded-lg border border-[var(--border-primary)]">
                 <div>
-                  <p className="text-sm font-medium text-[var(--text-primary)]">ZBus Solver Enabled</p>
-                  <p className="text-xs text-[var(--text-muted)] mt-0.5">Use impedance matrix method for fault analysis</p>
+                  <p className="text-sm font-medium text-[var(--text-primary)]">
+                    ZBus Solver Enabled
+                  </p>
+                  <p className="text-xs text-[var(--text-muted)] mt-0.5">
+                    Use impedance matrix method for fault analysis
+                  </p>
                 </div>
                 <button
                   type="button"
@@ -307,11 +344,15 @@ export default function EngineeringEngineSettings() {
 
               {/* ZBus Iteration Limit */}
               <div>
-                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                <label
+                  htmlFor="zbus-iteration-limit"
+                  className="block text-sm font-medium text-[var(--text-secondary)] mb-2"
+                >
                   ZBus Iteration Limit
                 </label>
                 <div className="flex items-center gap-3">
                   <input
+                    id="zbus-iteration-limit"
                     type="number"
                     min={10}
                     max={500}
@@ -329,11 +370,15 @@ export default function EngineeringEngineSettings() {
 
               {/* ZBus Voltage Threshold */}
               <div>
-                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                <label
+                  htmlFor="zbus-voltage-threshold"
+                  className="block text-sm font-medium text-[var(--text-secondary)] mb-2"
+                >
                   Voltage Threshold (pu)
                 </label>
                 <div className="flex items-center gap-3">
                   <input
+                    id="zbus-voltage-threshold"
                     type="number"
                     min={0.0001}
                     max={0.1}
@@ -351,23 +396,36 @@ export default function EngineeringEngineSettings() {
 
               {/* Current values summary */}
               <div className="p-3 bg-[var(--bg-elevated)] rounded-lg border border-[var(--border-primary)]">
-                <p className="text-xs text-[var(--text-muted)] mb-2 font-medium">Current Configuration</p>
+                <p className="text-xs text-[var(--text-muted)] mb-2 font-medium">
+                  Current Configuration
+                </p>
                 <div className="space-y-1.5 text-xs">
                   <div className="flex justify-between">
                     <span className="text-[var(--text-tertiary)]">Tolerance</span>
-                    <span className="text-[var(--text-primary)] font-mono">{formatTolerance(params.convergence_tolerance)}</span>
+                    <span className="text-[var(--text-primary)] font-mono">
+                      {formatTolerance(params.convergence_tolerance)}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-[var(--text-tertiary)]">Max Iterations</span>
-                    <span className="text-[var(--text-primary)] font-mono">{params.max_iterations}</span>
+                    <span className="text-[var(--text-primary)] font-mono">
+                      {params.max_iterations}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-[var(--text-tertiary)]">Acceleration</span>
-                    <span className="text-[var(--text-primary)] font-mono">{params.acceleration_factor.toFixed(2)}</span>
+                    <span className="text-[var(--text-primary)] font-mono">
+                      {params.acceleration_factor.toFixed(2)}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-[var(--text-tertiary)]">ZBus</span>
-                    <span className={cn("font-mono", params.zbus_enabled ? "text-green-400" : "text-[var(--text-muted)]")}>
+                    <span
+                      className={cn(
+                        "font-mono",
+                        params.zbus_enabled ? "text-green-400" : "text-[var(--text-muted)]",
+                      )}
+                    >
                       {params.zbus_enabled ? "Enabled" : "Disabled"}
                     </span>
                   </div>

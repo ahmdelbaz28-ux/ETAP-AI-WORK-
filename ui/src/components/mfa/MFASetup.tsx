@@ -12,7 +12,7 @@
  * an `otpauth://` URI link if the library is unavailable.
  */
 
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import {
   CheckCircle,
   ChevronDown,
@@ -87,15 +87,15 @@ function QRCodeDisplay({
         <div className="text-center p-4">
           <QrCode className="w-16 h-16 text-slate-400 mx-auto mb-2" />
           <p className="text-[10px] text-slate-500 font-mono break-all leading-tight">
-            {uri.length > 60 ? uri.substring(0, 60) + "…" : uri}
+            {uri.length > 60 ? `${uri.substring(0, 60)}…` : uri}
           </p>
         </div>
       </div>
 
       {/* Screen-reader announcement — hidden visually, announced by AT */}
       <p className="sr-only" aria-live="polite">
-        A QR code is displayed above. Scan it with your authenticator app, or
-        manually enter the secret key shown below.
+        A QR code is displayed above. Scan it with your authenticator app, or manually enter the
+        secret key shown below.
       </p>
 
       {/* Manual secret key entry — fallback for users who can't scan QR */}
@@ -126,6 +126,7 @@ function QRCodeDisplay({
                   ref={secretRef}
                   className="flex-1 text-xs font-mono text-green-400 select-all break-all"
                   role="textbox"
+                  tabIndex={0}
                   aria-label="TOTP secret key — select and copy to enter in your authenticator app"
                   aria-readonly="true"
                 >
@@ -191,7 +192,6 @@ function TOTPCodeInput({
           onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
           placeholder="000000"
           autoComplete="one-time-code"
-          autoFocus
           className="flex-1 px-4 py-2.5 bg-slate-950/40 border border-slate-800/80 rounded-xl text-center text-lg font-mono text-white placeholder-slate-700 tracking-[0.3em] focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/10 transition-all"
           aria-describedby={error ? "totp-verify-error" : undefined}
           disabled={loading}
@@ -355,9 +355,7 @@ export function MFASetup({ onComplete, onDismiss, authToken }: MFASetupProps) {
             <ShieldCheck className="w-5 h-5 text-blue-400" />
           </div>
           <div>
-            <h3 className="text-lg font-bold text-white">
-              {t("mfa.setupTitle", "Set Up 2FA")}
-            </h3>
+            <h3 className="text-lg font-bold text-white">{t("mfa.setupTitle", "Set Up 2FA")}</h3>
             <p className="text-xs text-slate-500">
               {t("mfa.setupSubtitle", "Secure your account with TOTP")}
             </p>
@@ -435,9 +433,7 @@ export function MFASetup({ onComplete, onDismiss, authToken }: MFASetupProps) {
             <p className="text-sm font-semibold text-green-400">
               {t("mfa.setupComplete", "Two-factor authentication enabled!")}
             </p>
-            <p className="text-xs text-slate-500">
-              Your account is now protected with 2FA.
-            </p>
+            <p className="text-xs text-slate-500">Your account is now protected with 2FA.</p>
           </motion.div>
         )}
       </AnimatePresence>
@@ -445,7 +441,8 @@ export function MFASetup({ onComplete, onDismiss, authToken }: MFASetupProps) {
       {/* SR-only live region for state announcements */}
       <div aria-live="polite" className="sr-only">
         {step === "loading" && "Loading two-factor authentication setup."}
-        {step === "setup" && "QR code displayed. Scan with your authenticator app or enter the secret key manually."}
+        {step === "setup" &&
+          "QR code displayed. Scan with your authenticator app or enter the secret key manually."}
         {step === "verifying" && "Verifying authentication code."}
         {step === "done" && "Two-factor authentication has been successfully enabled."}
       </div>

@@ -5,12 +5,12 @@
 // Core GSAP
 import { gsap } from "gsap";
 
+import { EasePack } from "gsap/EasePack";
+import { Flip } from "gsap/Flip";
+import { MotionPathPlugin } from "gsap/MotionPathPlugin";
 // GSAP Plugins
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { TextPlugin } from "gsap/TextPlugin";
-import { MotionPathPlugin } from "gsap/MotionPathPlugin";
-import { Flip } from "gsap/Flip";
-import { EasePack } from "gsap/EasePack";
 
 // Register plugins
 if (typeof window !== "undefined") {

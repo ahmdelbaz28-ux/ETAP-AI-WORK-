@@ -29,11 +29,11 @@ import { useNotify } from "../context/NotificationContext";
 import { testProviderConnection } from "../lib/llm-chat";
 import { cn } from "../utils/helpers";
 
-import { ContextHelpButton } from "../components/help/ContextHelpButton";
-import EngineeringEngineSettings from "../components/EngineeringEngineSettings";
 import AISettingsPanel from "../components/AISettingsPanel";
-import StorageManagement from "../components/StorageManagement";
+import EngineeringEngineSettings from "../components/EngineeringEngineSettings";
 import NotificationSettings from "../components/NotificationSettings";
+import StorageManagement from "../components/StorageManagement";
+import { ContextHelpButton } from "../components/help/ContextHelpButton";
 import {
   type VisionKeyConfig,
   deleteVisionKey,
@@ -1123,8 +1123,8 @@ function MCPSettingsPanel() {
             </p>
             {error && (
               <div className="mt-3 px-3 py-2 rounded-md bg-red-500/10 border border-red-500/20 text-red-300 text-xs">
-                Backend unreachable: {error}. Showing documented fallback list. Configure
-                .mcp.json or set MCP_CONFIG_PATH to enable server-side discovery.
+                Backend unreachable: {error}. Showing documented fallback list. Configure .mcp.json
+                or set MCP_CONFIG_PATH to enable server-side discovery.
               </div>
             )}
             {!error && usingFallback && (
@@ -1135,8 +1135,8 @@ function MCPSettingsPanel() {
             )}
             {!error && !usingFallback && (
               <div className="mt-3 px-3 py-2 rounded-md bg-green-500/10 border border-green-500/20 text-green-300 text-xs">
-                Loaded from <code className="font-mono">/api/v1/agents/mcp-servers</code>.
-                Env values are redacted server-side for security.
+                Loaded from <code className="font-mono">/api/v1/agents/mcp-servers</code>. Env
+                values are redacted server-side for security.
               </div>
             )}
           </div>
@@ -2858,7 +2858,11 @@ export default function Settings() {
           {(() => {
             if (activeTab === "ai")
               return (
-                <AISettingsPanelInline settings={settings} setSettings={setSettings} notify={notify} />
+                <AISettingsPanelInline
+                  settings={settings}
+                  setSettings={setSettings}
+                  notify={notify}
+                />
               );
             if (activeTab === "mcp") return <MCPSettingsPanel />;
             if (activeTab === "external")

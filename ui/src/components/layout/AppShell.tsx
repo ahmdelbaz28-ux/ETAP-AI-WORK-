@@ -1,8 +1,8 @@
-import type { ReactNode } from 'react';
-import { TopBar } from './TopBar';
-import { Sidebar } from './Sidebar';
-import { StatusBar } from './StatusBar';
-import { cn } from '../../utils/helpers';
+import type { ReactNode } from "react";
+import { cn } from "../../utils/helpers";
+import { Sidebar } from "./Sidebar";
+import { StatusBar } from "./StatusBar";
+import { TopBar } from "./TopBar";
 
 interface AppShellProps {
   children: ReactNode;
@@ -16,7 +16,7 @@ export function AppShell({ children }: AppShellProps) {
       <div className="flex flex-1 overflow-hidden">
         <Sidebar />
         <main
-          className={cn('flex-1 flex flex-col overflow-hidden min-w-0 transition-all duration-300')}
+          className={cn("flex-1 flex flex-col overflow-hidden min-w-0 transition-all duration-300")}
         >
           <div className="flex-1 overflow-y-auto">{children}</div>
           <StatusBar />

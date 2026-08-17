@@ -10,8 +10,8 @@ export function secureRandom(): number {
 // Custom React hooks for seamless GSAP integration with React components
 
 import { gsap } from "gsap";
-import { useEffect, useRef, useState } from "react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useEffect, useRef, useState } from "react";
 
 // Type helpers for GSAP - avoid self-referencing type annotation issues
 type GSAPAnimation = gsap.core.Animation | gsap.core.Animation[];
@@ -23,16 +23,16 @@ type GSAPAnimation = gsap.core.Animation | gsap.core.Animation[];
  */
 export function useGSAPAnimation<T extends HTMLElement = HTMLElement>(
   animationFn: (element: T, gsapInstance: typeof gsap, context: gsap.Context) => GSAPAnimation,
-  deps: React.DependencyList = []
+  deps: React.DependencyList = [],
 ) {
   const elementRef = useRef<T>(null);
   const ctxRef = useRef<gsap.Context | null>(null);
 
   useEffect(() => {
     // Create GSAP context for cleanup
-    ctxRef.current = gsap.context(() => {
+    ctxRef.current = gsap.context((context) => {
       if (elementRef.current) {
-        animationFn(elementRef.current, gsap, ctxRef.current!);
+        animationFn(elementRef.current, gsap, context);
       }
     });
 
@@ -54,7 +54,7 @@ export function useGSAPAnimation<T extends HTMLElement = HTMLElement>(
 export function useGSAPScrollTrigger<T extends HTMLElement = HTMLElement>(
   triggerSelector: string | HTMLElement,
   animationFn: (element: T, gsapInstance: typeof gsap, st: typeof ScrollTrigger) => GSAPAnimation,
-  options: ScrollTrigger.Vars = {}
+  options: ScrollTrigger.Vars = {},
 ) {
   const elementRef = useRef<T>(null);
   const ctxRef = useRef<gsap.Context | null>(null);
@@ -93,7 +93,7 @@ export function useGSAPScrollTrigger<T extends HTMLElement = HTMLElement>(
 
     return () => {
       ctxRef.current?.revert();
-      ScrollTrigger.getAll().forEach(trigger => trigger.kill());
+      ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [triggerSelector, options]);
@@ -106,14 +106,17 @@ export function useGSAPScrollTrigger<T extends HTMLElement = HTMLElement>(
  * @param targetValue - Target number to animate to
  * @param options - Animation options
  */
-export function useGSAPNumberCounter(targetValue: number, options: {
-  duration?: number;
-  delay?: number;
-  ease?: string;
-  decimals?: number;
-  prefix?: string;
-  suffix?: string;
-} = {}) {
+export function useGSAPNumberCounter(
+  targetValue: number,
+  options: {
+    duration?: number;
+    delay?: number;
+    ease?: string;
+    decimals?: number;
+    prefix?: string;
+    suffix?: string;
+  } = {},
+) {
   const [displayValue, setDisplayValue] = useState("0");
   const elementRef = useRef<HTMLSpanElement>(null);
 
@@ -121,23 +124,26 @@ export function useGSAPNumberCounter(targetValue: number, options: {
     if (!elementRef.current) return;
 
     const ctx = gsap.context(() => {
-      gsap.to({}, {
-        duration: options.duration || 2,
-        delay: options.delay || 0,
-        onUpdate: function() {
-          if (!elementRef.current) return;
+      gsap.to(
+        {},
+        {
+          duration: options.duration || 2,
+          delay: options.delay || 0,
+          onUpdate: function () {
+            if (!elementRef.current) return;
 
-          const progress = this.progress();
-          const currentValue = progress * targetValue;
+            const progress = this.progress();
+            const currentValue = progress * targetValue;
 
-          // Format with engineering precision
-          const decimals = options.decimals ?? (targetValue < 100 ? 1 : 0);
-          const formattedValue = currentValue.toFixed(decimals);
+            // Format with engineering precision
+            const decimals = options.decimals ?? (targetValue < 100 ? 1 : 0);
+            const formattedValue = currentValue.toFixed(decimals);
 
-          setDisplayValue(`${options.prefix || ""}${formattedValue}${options.suffix || ""}`);
+            setDisplayValue(`${options.prefix || ""}${formattedValue}${options.suffix || ""}`);
+          },
+          ease: options.ease || "power3.out",
         },
-        ease: options.ease || "power3.out"
-      });
+      );
     });
 
     return () => ctx.revert();
@@ -150,19 +156,23 @@ export function useGSAPNumberCounter(targetValue: number, options: {
  * useGSAPHoverEffect - Hover animation for engineering cards
  * @param options - Hover animation options
  */
-export function useGSAPHoverEffect<T extends HTMLElement = HTMLElement>(options: {
-  scale?: number;
-  rotation?: number;
-  glowIntensity?: number;
-  duration?: number;
-} = {}) {
+export function useGSAPHoverEffect<T extends HTMLElement = HTMLElement>(
+  options: {
+    scale?: number;
+    rotation?: number;
+    glowIntensity?: number;
+    duration?: number;
+  } = {},
+) {
   const elementRef = useRef<T>(null);
 
   useEffect(() => {
     if (!elementRef.current) return;
 
     const ctx = gsap.context(() => {
-      const element = elementRef.current!;
+      if (!elementRef.current) return;
+
+      const element = elementRef.current;
       const scale = options.scale || 1.03;
       const rotation = options.rotation || 0.5;
       const duration = options.duration || 0.3;
@@ -175,16 +185,20 @@ export function useGSAPHoverEffect<T extends HTMLElement = HTMLElement>(options:
         scale,
         rotationY: rotation,
         duration,
-        ease: "back.out(1.7)"
+        ease: "back.out(1.7)",
       });
 
       // Glow effect
       if (options.glowIntensity) {
-        hoverTL.to(element, {
-          boxShadow: `0 0 ${options.glowIntensity * 20}px rgba(0, 212, 255, ${options.glowIntensity * 0.3})`,
-          duration: duration * 0.5,
-          ease: "power2.out"
-        }, "<0.1");
+        hoverTL.to(
+          element,
+          {
+            boxShadow: `0 0 ${options.glowIntensity * 20}px rgba(0, 212, 255, ${options.glowIntensity * 0.3})`,
+            duration: duration * 0.5,
+            ease: "power2.out",
+          },
+          "<0.1",
+        );
       }
 
       // Mouse enter/exit events
@@ -209,11 +223,13 @@ export function useGSAPHoverEffect<T extends HTMLElement = HTMLElement>(options:
  * useGSAPPageTransition - Page transition animations
  * @param options - Transition options
  */
-export function useGSAPPageTransition(options: {
-  duration?: number;
-  ease?: string;
-  delay?: number;
-} = {}) {
+export function useGSAPPageTransition(
+  options: {
+    duration?: number;
+    ease?: string;
+    delay?: number;
+  } = {},
+) {
   const [isTransitioning] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -230,7 +246,7 @@ export function useGSAPPageTransition(options: {
         y: 0,
         duration: options.duration || 0.8,
         delay: options.delay || 0.2,
-        ease: options.ease || "expo.out"
+        ease: options.ease || "expo.out",
       });
     });
 
@@ -244,16 +260,19 @@ export function useGSAPPageTransition(options: {
  * useGSAPParticleSystem - Engineering particle system for backgrounds
  * @param options - Particle system options
  */
-export function useGSAPParticleSystem(canvasRef: React.RefObject<HTMLCanvasElement>, options: {
-  particleCount?: number;
-  particleSize?: number;
-  particleColor?: string;
-  particleSpeed?: number;
-  particleOpacity?: number;
-  connectParticles?: boolean;
-  connectionDistance?: number;
-  connectionColor?: string;
-} = {}) {
+export function useGSAPParticleSystem(
+  canvasRef: React.RefObject<HTMLCanvasElement>,
+  options: {
+    particleCount?: number;
+    particleSize?: number;
+    particleColor?: string;
+    particleSpeed?: number;
+    particleOpacity?: number;
+    connectParticles?: boolean;
+    connectionDistance?: number;
+    connectionColor?: string;
+  } = {},
+) {
   useEffect(() => {
     if (!canvasRef.current) return;
 
@@ -292,8 +311,8 @@ export function useGSAPParticleSystem(canvasRef: React.RefObject<HTMLCanvasEleme
         directionAngle: secureRandom() * Math.PI * 2,
         velocity: {
           x: Math.cos(secureRandom() * Math.PI * 2) * particleSpeed,
-          y: Math.sin(secureRandom() * Math.PI * 2) * particleSpeed
-        }
+          y: Math.sin(secureRandom() * Math.PI * 2) * particleSpeed,
+        },
       });
     }
 
@@ -303,7 +322,7 @@ export function useGSAPParticleSystem(canvasRef: React.RefObject<HTMLCanvasEleme
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       // Update and draw particles
-      particles.forEach(particle => {
+      particles.forEach((particle) => {
         // Update position
         particle.x += particle.velocity.x;
         particle.y += particle.velocity.y;
@@ -359,15 +378,15 @@ export function useGSAPParticleSystem(canvasRef: React.RefObject<HTMLCanvasEleme
         stagger: {
           amount: 2,
           grid: "auto",
-          from: "random"
+          from: "random",
         },
-        onUpdate: function() {
+        onUpdate: function () {
           // Update particle properties
           particles.forEach((_particle, i) => {
             _particle.size = this.targets()[i].size;
             _particle.opacity = this.targets()[i].opacity;
           });
-        }
+        },
       });
     });
 
