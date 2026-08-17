@@ -293,7 +293,6 @@ _PUBLIC_PATHS_EXACT = frozenset(
         "/redoc",
         "/openapi.json",
         "/api/v1/health",
-        "/api/v2/health",
         "/api/health",
         "/api/health/statistics",
         "/api/reports/statistics",

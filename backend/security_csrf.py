@@ -89,7 +89,6 @@ SAFE_METHODS = frozenset({"GET", "HEAD", "OPTIONS"})
 # Per Rule 12: be conservative — only exempt what's truly safe
 CSRF_EXEMPT_PATHS = frozenset(
     {
-        "/api/v2/health",
         "/api/v1/health",
         "/api/health",
         "/health",
