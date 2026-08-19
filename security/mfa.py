@@ -398,8 +398,20 @@ class TOTPProvider:
             ``True`` if the code was valid (and has been consumed).
         """
         entry = self._secrets.get(user_id)
-        if entry and code in entry.backup_codes:
-            entry.backup_codes.remove(code)
+        if not entry or not entry.backup_codes:
+            return False
+
+        # Support both pre-hashed code and plaintext code (hashed with SHA-256)
+        target_match = None
+        if code in entry.backup_codes:
+            target_match = code
+        else:
+            code_hash = hashlib.sha256(code.encode()).hexdigest()
+            if code_hash in entry.backup_codes:
+                target_match = code_hash
+
+        if target_match:
+            entry.backup_codes.remove(target_match)
             logger.info(
                 "Backup code used for user %s (%d remaining)",
                 user_id,

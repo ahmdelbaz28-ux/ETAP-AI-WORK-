@@ -36,6 +36,12 @@ import os
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 
+try:
+    import matplotlib
+    matplotlib.use("Agg")
+except Exception:
+    pass
+
 UTC = timezone.utc  # noqa: UP017 — datetime.UTC requires Python 3.11+
 
 logger = logging.getLogger(__name__)

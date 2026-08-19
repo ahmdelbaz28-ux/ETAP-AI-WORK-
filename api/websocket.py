@@ -52,6 +52,7 @@ class SCADALiveFeed:
         self.is_broadcasting = False
         self.broadcast_task = None
         # V-01: Track connection metadata for lifecycle management
+        self._connection_meta: dict[int, dict[str, Any]] = {}
         self._heartbeat_task: asyncio.Task | None = None
         self._async_cleanup_lock: asyncio.Lock | None = None
 

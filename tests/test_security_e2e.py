@@ -57,41 +57,36 @@ TEST_USER_PASSWORD = "S3cureP@ss!"  # NOSONAR test credential constant, not a re
 class TestAPIKeyBypass:
     """Test that endpoints requiring an API key reject requests without one."""
 
-    def test_project_list_without_api_key_when_configured(self, client, auth_headers):
+    def test_project_list_without_api_key_when_configured(self, client, monkeypatch):
         """When ENGINEERING_SERVICE_API_KEY is configured, requests without
         the X-API-Key header are rejected.
-
-        Since the test environment has no API key configured by default,
-        we simulate the check by patching the config.
         """
-        from api.dependencies import get_api_key
-
-        # The current test setup has no API key configured (empty string),
-        # so get_api_key always passes.  We test the logic by verifying
-        # that when an API key IS required, missing keys are rejected.
-        with patch("api.dependencies.API_KEY", "test-secret-key"):
-            # Send request WITHOUT Authorization header to ensure the
-            # API-key check is evaluated (JWT bypass would otherwise skip it).
-            resp = client.get("/api/v1/projects/")
-            # Should fail because no X-API-Key header was provided
+        monkeypatch.setenv("ENGINEERING_SERVICE_AUTH_DISABLED", "false")
+        monkeypatch.setenv("ENGINEERING_SERVICE_API_KEY", "test-secret-key")
+        with patch("api.environment.auth_disabled_allowed", return_value=False):
+            resp = client.get("/api/v1/ml/capabilities")
             assert resp.status_code == 401, f"Expected 401 without API key, got {resp.status_code}"
 
-    def test_project_list_with_correct_api_key(self, client, auth_headers):
+    def test_project_list_with_correct_api_key(self, client, monkeypatch):
         """When the correct API key is provided, the request succeeds."""
-        with patch("api.dependencies.API_KEY", "test-secret-key"):
+        monkeypatch.setenv("ENGINEERING_SERVICE_AUTH_DISABLED", "false")
+        monkeypatch.setenv("ENGINEERING_SERVICE_API_KEY", "test-secret-key")
+        with patch("api.environment.auth_disabled_allowed", return_value=False):
             resp = client.get(
-                "/api/v1/projects/",
+                "/api/v1/ml/capabilities",
                 headers={"X-API-Key": "test-secret-key"},
             )
             assert resp.status_code == 200, (
                 f"Expected 200 with correct API key, got {resp.status_code}"
             )
 
-    def test_project_list_with_wrong_api_key(self, client, auth_headers):
+    def test_project_list_with_wrong_api_key(self, client, monkeypatch):
         """When an incorrect API key is provided, the request is rejected."""
-        with patch("api.dependencies.API_KEY", "test-secret-key"):
+        monkeypatch.setenv("ENGINEERING_SERVICE_AUTH_DISABLED", "false")
+        monkeypatch.setenv("ENGINEERING_SERVICE_API_KEY", "test-secret-key")
+        with patch("api.environment.auth_disabled_allowed", return_value=False):
             resp = client.get(
-                "/api/v1/projects/",
+                "/api/v1/ml/capabilities",
                 headers={"X-API-Key": "wrong-key"},
             )
             assert resp.status_code == 401, (
@@ -622,11 +617,11 @@ class TestMFATOTPFlow:
         assert resp.status_code == 200, f"Expected 200, got {resp.status_code}: {resp.text}"
         assert resp.json()["mfa_enabled"] is True
 
-        # Toggle back off
+        # Toggle back off (requires current_password per V-7 security rule)
         resp = client.put(
             "/api/v1/auth/me",
             headers=auth_headers,
-            json={"mfa_enabled": False},
+            json={"mfa_enabled": False, "current_password": "Str0ngP@ss!"},
         )
         assert resp.status_code == 200
         assert resp.json()["mfa_enabled"] is False

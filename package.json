@@ -62,7 +62,6 @@
     "zod-to-json-schema": "3.24.5"
   },
   "overrides": {
-    "@ai-sdk/provider-utils": "^4.0.42",
     "undici": "^7.29.0",
     "protobufjs": "^8.6.6",
     "@opentelemetry/core": "^2.10.0",

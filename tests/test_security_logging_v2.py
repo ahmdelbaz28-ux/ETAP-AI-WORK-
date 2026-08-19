@@ -28,10 +28,25 @@ from __future__ import annotations
 import json
 import logging
 import os
+import sys
 import threading
 from unittest.mock import patch
 
 import pytest
+
+import core.security_logging
+from core.security_logging import (
+    SecurityAuditLogger,
+    SecurityEventType,
+    SensitiveDataFilter,
+    _SECURITY_GENESIS,
+    _compute_chain_hash,
+    configure_log_rotation,
+    configure_timed_rotation,
+    mask_sensitive,
+)
+
+sys.modules.setdefault("etap.core.security_logging", core.security_logging)
 
 # Fixtures
 # ─────────────────────────────────────────────────────────────────────────────
@@ -515,7 +530,7 @@ class TestConfigureLogRotation:
 
     def test_normal_log_file_accepted(self, tmp_path):
         """Non-security-audit log files should be configured."""
-        with patch("etap.core.security_logging._LOG_DIR", tmp_path):
+        with patch("core.security_logging._LOG_DIR", tmp_path):
             logger = logging.getLogger("test_rotation_normal")
             configure_log_rotation(logger, log_file="etap.log")
             # A handler should be added (either loguru bridge or RotatingFileHandler)
@@ -537,7 +552,7 @@ class TestConfigureTimedRotation:
         assert len(logger.handlers) == initial_handlers
 
     def test_normal_log_file_accepted(self, tmp_path):
-        with patch("etap.core.security_logging._LOG_DIR", tmp_path):
+        with patch("core.security_logging._LOG_DIR", tmp_path):
             logger = logging.getLogger("test_timed_rotation_normal")
             configure_timed_rotation(logger, log_file="etap.log")
             assert len(logger.handlers) > 0

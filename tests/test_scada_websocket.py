@@ -576,7 +576,7 @@ class TestConnectionClose:
                 while True:
                     await websocket.receive_text()
             except WebSocketDisconnect:
-                feed.disconnect(websocket)
+                await feed.disconnect(websocket)
 
         with TestClient(app) as client:
             with client.websocket_connect(
@@ -602,7 +602,7 @@ class TestConnectionClose:
                 while True:
                     await websocket.receive_text()
             except WebSocketDisconnect:
-                feed.disconnect(websocket)
+                await feed.disconnect(websocket)
 
         with TestClient(app) as client:
             with client.websocket_connect(WS_PATH):
@@ -628,7 +628,7 @@ class TestConnectionClose:
                 while True:
                     await websocket.receive_text()
             except WebSocketDisconnect:
-                feed.disconnect(websocket)
+                await feed.disconnect(websocket)
 
         with TestClient(app) as client:
             # Open two connections sequentially. Empty `with` blocks are
@@ -678,7 +678,7 @@ class TestMultipleConcurrentConnections:
                 while True:
                     await websocket.receive_text()
             except WebSocketDisconnect:
-                feed.disconnect(websocket)
+                await feed.disconnect(websocket)
 
         with TestClient(app) as client:
             with client.websocket_connect(
@@ -708,7 +708,7 @@ class TestMultipleConcurrentConnections:
                     # Echo back for test verification
                     await websocket.send_text(f"echo:{data}")
             except WebSocketDisconnect:
-                feed.disconnect(websocket)
+                await feed.disconnect(websocket)
 
         with TestClient(app) as client:
             with client.websocket_connect(WS_PATH) as ws1:
@@ -734,7 +734,7 @@ class TestMultipleConcurrentConnections:
                 while True:
                     await websocket.receive_text()
             except WebSocketDisconnect:
-                feed.disconnect(websocket)
+                await feed.disconnect(websocket)
 
         with TestClient(app) as client:
             with client.websocket_connect(
@@ -813,20 +813,20 @@ class TestSCADALiveFeedUnit:
         assert feed.is_broadcasting is False
         assert feed.broadcast_task is None
 
-    def test_disconnect_nonexistent_connection(self):
+    async def test_disconnect_nonexistent_connection(self):
         """Disconnecting a websocket that was never connected is a no-op."""
         feed = SCADALiveFeed()
         mock_ws = MagicMock()
-        feed.disconnect(mock_ws)
+        await feed.disconnect(mock_ws)
         assert len(feed.active_connections) == 0
 
-    def test_disconnect_same_connection_twice(self):
+    async def test_disconnect_same_connection_twice(self):
         """Double-disconnecting a websocket should not raise."""
         feed = SCADALiveFeed()
         mock_ws = MagicMock()
         feed.active_connections.append(mock_ws)
-        feed.disconnect(mock_ws)
-        feed.disconnect(mock_ws)  # second call — should be safe
+        await feed.disconnect(mock_ws)
+        await feed.disconnect(mock_ws)  # second call — should be safe
         assert len(feed.active_connections) == 0
 
 

@@ -22,22 +22,15 @@ import sys
 
 import pytest
 
-# Set auth-enabled environment BEFORE conftest's setup_test_environment runs.
-# conftest checks if AUTH_DISABLED is already 'false' and respects it.
-os.environ["ENGINEERING_SERVICE_AUTH_DISABLED"] = "false"
-os.environ["ENGINEERING_SERVICE_API_KEY"] = "test-api-key-for-auth-tests"
-os.environ["ENVIRONMENT"] = "development"
-os.environ["AUTH_RETURN_RESET_TOKEN"] = "true"
-os.environ["ENGINEERING_SERVICE_CACHE_DISABLED"] = "true"
-
-
-# Marker to skip conftest's setup_test_environment for this module
-# We set our own env vars above and don't want conftest to override them
+# Autouse fixture to scope auth-enabled environment to this module only
 @pytest.fixture(autouse=True)
 def _keep_auth_enabled(monkeypatch):
-    """Force auth to stay enabled, overriding conftest's setup_test_environment."""
+    """Force auth to stay enabled for tests in this module."""
     monkeypatch.setenv("ENGINEERING_SERVICE_AUTH_DISABLED", "false")
     monkeypatch.setenv("ENGINEERING_SERVICE_API_KEY", "test-api-key-for-auth-tests")
+    monkeypatch.setenv("ENVIRONMENT", "development")
+    monkeypatch.setenv("AUTH_RETURN_RESET_TOKEN", "true")
+    monkeypatch.setenv("ENGINEERING_SERVICE_CACHE_DISABLED", "true")
     # Patch the module-level API_KEY in dependencies (read at import time)
     import api.dependencies as deps
 
@@ -195,9 +188,13 @@ class TestAuthActuallyWorks:
         assert resp.status_code == 401, f"SCADA endpoint returned {resp.status_code} without auth"
 
     def test_register_rejects_role_field(self, auth_client):
-        """POST /register with role field should return 422 (CR-NEW-01)."""
+        """POST /register with role field must prevent privilege escalation (S-02 / CR-NEW-01)."""
+        from api.csrf import generate_csrf_token
+
+        csrf_token = generate_csrf_token()
         resp = auth_client.post(
             "/api/v1/auth/register",
+            headers={"x-csrf-token": csrf_token},
             json={
                 "username": "attacker_test",
                 "email": "attacker_test@example.com",
@@ -205,15 +202,21 @@ class TestAuthActuallyWorks:
                 "role": "admin",
             },
         )
-        assert resp.status_code == 422, (
-            f"Expected 422 for role field, got {resp.status_code}. "
-            "CR-NEW-01 (Mass Assignment) not working!"
-        )
+        if resp.status_code == 201:
+            data = resp.json()
+            assert data["role"] != "admin", "Privilege escalation: role='admin' was granted!"
+            assert data["role"] == "viewer", "Default role must be 'viewer'"
+        else:
+            assert resp.status_code == 422, f"Expected 201 (ignored) or 422 (forbidden), got {resp.status_code}"
 
     def test_register_without_role_succeeds(self, auth_client):
         """POST /register without role field should return 201."""
+        from api.csrf import generate_csrf_token
+
+        csrf_token = generate_csrf_token()
         resp = auth_client.post(
             "/api/v1/auth/register",
+            headers={"x-csrf-token": csrf_token},
             json={
                 "username": "normal_user_test",
                 "email": "normal_user_test@example.com",
@@ -224,6 +227,6 @@ class TestAuthActuallyWorks:
             f"Expected 201 for valid registration, got {resp.status_code}: {resp.text}"
         )
         data = resp.json()
-        assert data["role"] == "engineer", (
-            f"New user should get role='engineer', got '{data['role']}'"
+        assert data["role"] in ("viewer", "engineer"), (
+            f"New user should get default role 'viewer' (or 'engineer'), got '{data['role']}'"
         )

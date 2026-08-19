@@ -89,7 +89,7 @@ _DEFAULT_RULES: list[RASPRule] = [
     ),
     RASPRule(
         name="xss_basic",
-        pattern=re.compile(r"(?i)<script[^>]*>"),
+        pattern=re.compile(r"(?i)(<script[^>]*>|\bon[a-z]+\s*=|javascript:)"),
         action=RASPAction.BLOCK,
         severity=RASPSeverity.HIGH,
         description="Cross-Site Scripting (XSS) attempt detected",

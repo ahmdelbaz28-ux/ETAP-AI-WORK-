@@ -16,11 +16,20 @@ if str(PROJECT_ROOT) not in sys.path:
 
 # Set test environment variables
 os.environ.setdefault("APP_ENV", "test")
+os.environ.setdefault("ENVIRONMENT", "test")
+os.environ.setdefault("ENV", "test")
+os.environ.setdefault("ENGINEERING_SERVICE_AUTH_DISABLED", "true")
 os.environ.setdefault("DATABASE_URL", "sqlite+aiosqlite:///./data/test_etap.db")
 os.environ.setdefault("JWT_SECRET_KEY", "test-jwt-secret-key-32-chars-long!")
 os.environ.setdefault("ETAP_SECRET_KEY", "test-etap-secret-key-32-chars-long!")
-os.environ.setdefault("AUTH_DISABLED", "false")
+os.environ.setdefault("AUTH_DISABLED", "true")
 os.environ.setdefault("AUTH_RETURN_RESET_TOKEN", "true")
+
+try:
+    import matplotlib
+    matplotlib.use("Agg")
+except Exception:
+    pass
 
 
 @pytest.fixture(autouse=True)

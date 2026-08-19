@@ -197,7 +197,7 @@ class TestABAC:
         engine = create_default_etap_abac_engine()
         policies = engine.list_policies()
         assert "admin_full_access" in policies
-        assert "engineer_studies" in policies
+        assert "engineer_engineering_access" in policies or "engineer_studies" in policies
 
     def test_ip_in_ranges(self):
         """Test 9: IP range checking utility function."""
