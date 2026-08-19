@@ -416,20 +416,102 @@ confirmation_broker = ConfirmationBroker()
 # ─── WebSocket endpoint handler ────────────────────────────────────────────
 
 
+_DEFAULT_DEV_ORIGINS = {
+    "http://localhost",
+    "http://127.0.0.1",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+    "http://localhost:7860",
+    "http://127.0.0.1:7860",
+    "http://testserver",
+    "https://testserver",
+}
+
+
+def _is_local_dev_origin(origin: str) -> bool:
+    """Check if an origin is a standard local development/testing origin."""
+    if origin in _DEFAULT_DEV_ORIGINS:
+        return True
+    from urllib.parse import urlparse
+
+    try:
+        parsed = urlparse(origin)
+        if parsed.scheme in ("http", "https") and parsed.hostname in (
+            "localhost",
+            "127.0.0.1",
+            "testserver",
+        ):
+            return True
+    except Exception:
+        pass
+    return False
+
+
+def _validate_origin(websocket: WebSocket) -> bool:
+    """Validate WebSocket Origin header against configured CORS origins.
+
+    Security properties:
+    - Exact match only against configured ENGINEERING_SERVICE_CORS_ORIGINS.
+    - Wildcard '*' is NEVER treated as a trusted origin.
+    - Fail-closed: in production/staging, missing Origin or empty allowlist rejects.
+    - Development/test: permits documented local development/testing origins
+      (localhost, 127.0.0.1, testserver), but arbitrary third-party origins
+      remain rejected.
+    """
+    from api.environment import is_dev_environment, is_production_environment
+
+    origin = websocket.headers.get("origin")
+    allowed_origins_env = os.environ.get("ENGINEERING_SERVICE_CORS_ORIGINS", "").strip()
+    # Exact matches only; discard any wildcard '*' or whitespace-only entries
+    allowed = [o.strip() for o in allowed_origins_env.split(",") if o.strip() and o.strip() != "*"]
+
+    if origin:
+        if allowed:
+            if origin in allowed:
+                return True
+            logger.warning("CUA confirmation WS origin rejected: %s not in allowed origins", origin)
+            return False
+
+        # No explicit allowlist configured
+        if is_production_environment():
+            logger.warning(
+                "CUA confirmation WS origin rejected: origin %s provided but CORS origins not configured in production",
+                origin,
+            )
+            return False
+
+        # In dev/test without explicit allowlist: permit ONLY documented local dev/test origins
+        if is_dev_environment() and _is_local_dev_origin(origin):
+            return True
+
+        logger.warning(
+            "CUA confirmation WS origin rejected in dev: untrusted non-local origin %s", origin
+        )
+        return False
+
+    # Missing Origin header
+    if is_production_environment():
+        logger.warning(
+            "CUA confirmation WS origin rejected: missing Origin header in production environment"
+        )
+        return False
+
+    # In dev/test, permit missing Origin for non-browser/test clients
+    return bool(is_dev_environment())
+
+
 async def cua_confirmation_ws(websocket: WebSocket) -> None:
     """WebSocket endpoint handler for /ws/cua/confirmation.
 
-    SECURITY (CR-NEW-02): Previously this endpoint had NO authentication
-    and accepted client-supplied session_id values. A single attacker
-    could send two messages with different session_ids to bypass the
-    "two-person confirmation" rule for critical breaker/relay operations
-    — a life-safety bypass.
-
-    Now:
-    1. Requires a valid JWT in the 'token' query param or Authorization header
-    2. session_id is derived from the JWT user_id, NOT from the client
-    3. Each confirmation is tied to a real authenticated user
-    4. Origin validation prevents cross-site WebSocket hijacking
+    SECURITY (CR-NEW-02 & RSK-02):
+    1. Origin validation: reject untrusted browser origins before acceptance (code 1008)
+    2. Authentication: requires valid JWT in the 'token' query param or Authorization header
+    3. Session ID: derived strictly from the JWT user_id (user:{user_id}), NOT from client
+    4. Each confirmation is tied to a real authenticated user (two-person rule)
 
     Message protocol (JSON):
 
@@ -443,9 +525,12 @@ async def cua_confirmation_ws(websocket: WebSocket) -> None:
         {"type": "pending_request", "data": {...}}  (on connect)
         {"type": "error", "message": "..."}
     """
-    # SECURITY: Authentication required
-    import os
+    # SECURITY (RSK-02): Origin validation first (prevent CSWSH)
+    if not _validate_origin(websocket):
+        await websocket.close(code=_WS_CODE_POLICY_VIOLATION, reason="Origin not allowed")
+        return
 
+    # SECURITY: Authentication required
     import jwt as _jwt
 
     from api.dependencies import JWT_ALGORITHM, JWT_SECRET_KEY
@@ -458,7 +543,7 @@ async def cua_confirmation_ws(websocket: WebSocket) -> None:
             token = auth_header.split(" ", 1)[1].strip()
 
     if not token:
-        await websocket.close(code=1008, reason="Authentication required")
+        await websocket.close(code=_WS_CODE_POLICY_VIOLATION, reason="Authentication required")
         return
 
     # Validate JWT
@@ -470,32 +555,23 @@ async def cua_confirmation_ws(websocket: WebSocket) -> None:
             options={"require": ["exp", "sub", "type"]},
         )
         if payload.get("type") != "access":
-            await websocket.close(code=1008, reason="Invalid token type")
+            await websocket.close(code=_WS_CODE_POLICY_VIOLATION, reason="Invalid token type")
             return
         user_id = payload.get("sub")
         if not user_id:
-            await websocket.close(code=1008, reason="Invalid token payload")
+            await websocket.close(code=_WS_CODE_POLICY_VIOLATION, reason="Invalid token payload")
             return
         # SECURITY: Validate user_id format before deriving session_id.
         # A non-alphanumeric (attacker-controlled) sub could be spoofed to
         # collide with or impersonate another user and bypass the
         # dual-confirmation requirement.
         if not isinstance(user_id, str) or not user_id.isalnum():
-            logger.error(f"Invalid user_id in JWT: {user_id!r}")
-            await websocket.close(code=1008, reason="Invalid user_id")
+            logger.error("Invalid user_id in JWT: %r", user_id)
+            await websocket.close(code=_WS_CODE_POLICY_VIOLATION, reason="Invalid user_id")
             return
     except _jwt.PyJWTError:
-        await websocket.close(code=1008, reason="Invalid or expired token")
+        await websocket.close(code=_WS_CODE_POLICY_VIOLATION, reason="Invalid or expired token")
         return
-
-    # Origin validation (prevent CSWSH)
-    origin = websocket.headers.get("origin", "")
-    allowed_origins_env = os.getenv("ENGINEERING_SERVICE_CORS_ORIGINS", "")
-    if allowed_origins_env:
-        allowed = [o.strip() for o in allowed_origins_env.split(",") if o.strip()]
-        if origin and origin not in allowed:
-            await websocket.close(code=1008, reason="Origin not allowed")
-            return
 
     await confirmation_broker.connect(websocket)
     try:

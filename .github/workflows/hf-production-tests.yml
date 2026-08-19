@@ -71,6 +71,6 @@ jobs:
         env:
           HF_SPACE_PRODUCTION_TESTS: 'true'
         run: |
-          # Use --confcutdir to bypass tests/conftest.py which requires heavy deps.
+          # Use --noconftest to bypass tests/conftest.py which requires heavy deps.
           # The production tests only need urllib + json (stdlib) + pytest.
-          python -m pytest tests/test_hf_space_production.py -v --tb=short --confcutdir=tests/test_hf_space_production.py
+          python -m pytest tests/test_hf_space_production.py -v --tb=short --noconftest

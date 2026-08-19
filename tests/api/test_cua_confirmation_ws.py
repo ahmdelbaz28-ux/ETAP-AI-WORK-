@@ -11,7 +11,7 @@ import jwt
 import pytest
 from fastapi import WebSocketDisconnect
 
-from api.cua_confirmation_ws import cua_confirmation_ws
+import api.cua_confirmation_ws as cua_mod
 
 
 def _make_websocket(token: str):
@@ -31,7 +31,7 @@ async def test_invalid_user_id_rejected():
     with patch.object(jwt, "decode", return_value=payload), patch(
         "api.dependencies.JWT_SECRET_KEY", "secret"
     ), patch("api.dependencies.JWT_ALGORITHM", "HS256"):
-        await cua_confirmation_ws(ws)
+        await cua_mod.cua_confirmation_ws(ws)
 
     ws.close.assert_called_once_with(code=1008, reason="Invalid user_id")
 
@@ -47,12 +47,12 @@ async def test_valid_user_id_accepted():
 
     with patch.object(jwt, "decode", return_value=payload), patch(
         "api.dependencies.JWT_SECRET_KEY", "secret"
-    ), patch("api.dependencies.JWT_ALGORITHM", "HS256"), patch(
-        "api.cua_confirmation_ws.confirmation_broker"
+    ), patch("api.dependencies.JWT_ALGORITHM", "HS256"), patch.object(
+        cua_mod, "confirmation_broker"
     ) as broker:
         broker.connect = AsyncMock()
         broker.disconnect = AsyncMock()
-        await cua_confirmation_ws(ws)
+        await cua_mod.cua_confirmation_ws(ws)
 
     # Session id derived from a valid user_id; never closed with Invalid user_id.
     close_calls = [c.kwargs for c in ws.close.call_args_list]
