@@ -26,7 +26,7 @@ async def cancellable(
 
         async with cancellable(deadline_ms=5000) as scope:
             await long_running()
-            if scope.cancelled_caught:
+            if getattr(scope, "cancelled_caught", False) or scope.cancel_called:
                 # we either ran out of time or someone cancelled us
                 ...
 

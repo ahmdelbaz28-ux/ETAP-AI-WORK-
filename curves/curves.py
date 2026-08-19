@@ -145,9 +145,8 @@ def calculate_iec_operating_time(
     M = i_fault / i_setting
 
     Ip = i_setting
-    I = i_fault
-    # --- No-trip: fault current below pickup (Ip > I) ---
-    if Ip > I:
+    # --- No-trip: fault current at or below pickup (I <= Ip or M <= 1.0) ---
+    if i_fault <= i_setting or math.isclose(M, 1.0) or M <= 1.0:
         return {
             "operating_time_s": float("inf"),
             "curve_type": curve_type_lower,

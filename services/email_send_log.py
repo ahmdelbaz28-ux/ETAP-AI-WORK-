@@ -30,12 +30,14 @@ from datetime import datetime, timezone
 
 UTC = timezone.utc  # noqa: UP017
 
+import threading
+
 logger = logging.getLogger("etap.email_send_log")
 
 # In-memory ring buffer (per-instance)
 _BUFFER_MAX = int(os.getenv("EMAIL_LOG_BUFFER_MAX", "5000"))
 _buffer: deque = deque(maxlen=_BUFFER_MAX)
-_lock = asyncio.Lock()
+_lock = threading.Lock()
 
 # Optional Redis client for persistence
 

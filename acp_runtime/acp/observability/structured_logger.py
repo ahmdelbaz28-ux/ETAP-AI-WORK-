@@ -27,10 +27,21 @@ import sys
 import time
 from dataclasses import dataclass, field
 from typing import Any
-
 import anyio
 
-from compat import StrEnum
+try:
+    from enum import StrEnum  # Python 3.11+
+except ImportError:
+    try:
+        from compat import StrEnum  # Repo root fallback
+    except ImportError:
+        from enum import Enum
+
+        class StrEnum(str, Enum):  # type: ignore[no-redef]
+            """Fallback StrEnum for Python < 3.11."""
+
+            def __str__(self) -> str:
+                return str(self.value)
 
 __all__ = [
     "LogLevel",

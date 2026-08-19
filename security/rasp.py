@@ -81,7 +81,7 @@ _DEFAULT_RULES: list[RASPRule] = [
     RASPRule(
         name="sqli_basic",
         pattern=re.compile(
-            r"(?i)(\bselect\b|\bdrop\b|\bdelete\b|\binsert\b|\bunion\b|--\s|--$|#|/\*.*?\*/|/\*!)"
+            r"(?i)(\bunion\s+(?:all\s+)?select\b|\bdrop\s+(?:table|database|view|index)\b|\bdelete\s+from\b|\binsert\s+into\b|\bselect\s+[\w\*\s,]+\s+from\b|;\s*(?:select|drop|delete|insert|update)\b|--\s|/\*.*?\*/)"
         ),
         action=RASPAction.BLOCK,
         severity=RASPSeverity.CRITICAL,

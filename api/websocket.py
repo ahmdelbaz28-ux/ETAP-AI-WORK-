@@ -52,9 +52,14 @@ class SCADALiveFeed:
         self.is_broadcasting = False
         self.broadcast_task = None
         # V-01: Track connection metadata for lifecycle management
-        self._connection_meta: Dict[int, dict] = {}  # id(ws) -> meta
         self._heartbeat_task: asyncio.Task | None = None
-        self._cleanup_lock = asyncio.Lock()
+        self._async_cleanup_lock: asyncio.Lock | None = None
+
+    @property
+    def _cleanup_lock(self) -> asyncio.Lock:
+        if self._async_cleanup_lock is None:
+            self._async_cleanup_lock = asyncio.Lock()
+        return self._async_cleanup_lock
 
     async def connect(self, websocket: WebSocket) -> None:
         """Add a new WebSocket connection to the active connections list.

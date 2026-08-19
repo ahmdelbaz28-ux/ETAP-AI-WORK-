@@ -61,11 +61,15 @@ class _InMemoryStore:
     """
 
     def __init__(self, max_entries: int = 10_000) -> None:
-        self._data: OrderedDict[str, tuple[str, float]] = (
-            OrderedDict()
-        )  # key → (json_value, expires_at)
+        self._data: OrderedDict[str, tuple[str, float]] = OrderedDict()
         self._max = max_entries
-        self._lock = asyncio.Lock()
+        self._async_lock: asyncio.Lock | None = None
+
+    @property
+    def _lock(self) -> asyncio.Lock:
+        if self._async_lock is None:
+            self._async_lock = asyncio.Lock()
+        return self._async_lock
 
     async def get(self, key: str) -> str | None:
         """Get a value by key.  Returns ``None`` if missing or expired."""

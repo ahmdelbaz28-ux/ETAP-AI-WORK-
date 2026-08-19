@@ -162,7 +162,7 @@ class TestParser:
 class TestLoadHandlers:
     def test_load_this_module(self):
         # Load the test module itself
-        handlers = _load_handlers("tests.test_cli")
+        handlers = _load_handlers(__name__)
         assert len(handlers) >= 1
         assert any(isinstance(h, FakeHandler) for h in handlers)
 
@@ -172,8 +172,10 @@ class TestLoadHandlers:
 
     def test_handler_with_required_args(self):
         # _cli_bad_handler.BadHandler requires a constructor argument
+        pkg = __name__.rsplit(".", 1)[0] if "." in __name__ else ""
+        mod_name = f"{pkg}._cli_bad_handler" if pkg else "_cli_bad_handler"
         with pytest.raises(SystemExit) as exc_info:
-            _load_handlers("tests._cli_bad_handler")
+            _load_handlers(mod_name)
         assert "BadHandler" in str(exc_info.value)
 
     def test_no_capabilities(self):

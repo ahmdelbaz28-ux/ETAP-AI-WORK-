@@ -473,7 +473,7 @@ class TestUpdateMe:
         assert resp.status_code == 200, f"Expected 200, got {resp.status_code}: {resp.text}"
         assert resp.json()["mfa_enabled"] is True
 
-    def test_update_duplicate_email(self, client, registered_user, auth_headers):
+    def test_update_duplicate_email(self, client, auth_headers):
         """Updating to an email already used by another user returns 409."""
         # Register a second user
         client.post(

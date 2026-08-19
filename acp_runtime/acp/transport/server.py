@@ -111,39 +111,16 @@ class Server:
                 # Observability: record message received
                 self._record_received(raw)
 
-                if self._metrics is not None:
-                    self._metrics.get_or_create_counter(
-                        "acp.transport.messages.received", "Messages received"
-                    ).inc()
-                    self._metrics.get_or_create_counter(
-                        "acp.transport.bytes.received", "Bytes received"
-                    ).inc(len(raw.encode("utf-8")))
-
                 try:
                     envelope = json.loads(raw)
                 except json.JSONDecodeError as exc:
                     self._record_parse_error()
-
-                    if self._metrics is not None:
-                        self._metrics.get_or_create_counter(
-                            "acp.transport.messages.parse_errors", "Parse errors"
-                        ).inc()
                     await self._send_parse_error(exc)
                     continue
 
                 response = await self._router.handle(envelope)
                 if response is not None:
                     await self._send_response(response)
-
-                    resp_json = json.dumps(response)
-                    await self._transport.write_message(resp_json)
-                    if self._metrics is not None:
-                        self._metrics.get_or_create_counter(
-                            "acp.transport.messages.sent", "Messages sent"
-                        ).inc()
-                        self._metrics.get_or_create_counter(
-                            "acp.transport.bytes.sent", "Bytes sent"
-                        ).inc(len(resp_json.encode("utf-8")))
         except Exception as e:
             self._log.exception("server error: %s", e)
         finally:

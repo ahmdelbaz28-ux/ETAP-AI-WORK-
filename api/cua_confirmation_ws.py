@@ -191,9 +191,15 @@ class ConfirmationBroker:
     def __init__(self) -> None:
         self._pending: dict[str, ConfirmationRequest] = {}
         self._connected_clients: set[WebSocket] = set()
-        self._lock = asyncio.Lock()
+        self._async_lock: asyncio.Lock | None = None
         # Default: 2 humans required for dual-confirmation actions
         self.required_confirmations = 2
+
+    @property
+    def _lock(self) -> asyncio.Lock:
+        if self._async_lock is None:
+            self._async_lock = asyncio.Lock()
+        return self._async_lock
 
     # ─── WebSocket client management ──────────────────────────────────────
 

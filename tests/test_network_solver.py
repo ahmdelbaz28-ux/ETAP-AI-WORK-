@@ -129,7 +129,6 @@ class TestZbus:
                 [-5 + 10j, -5 + 10j, 10 - 20j],
             ]
         )
-        Ybus = np.array([])
         Z = zbus_from_ybus(Ybus, reference_bus=0)
         assert Z.shape == (2, 2)
         # Should be symmetric
@@ -137,14 +136,6 @@ class TestZbus:
 
     def test_zbus_full_3bus(self):
         # Non-singular Ybus (diagonally dominant, each row != 0)
-        Ybus = np.array(  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-            [
-                [10 - 20j, -3 + 6j, -2 + 5j],
-                [-3 + 6j, 8 - 15j, 0],
-                [-2 + 5j, 0, 6 - 12j],
-            ]
-        )
-
         Ybus = np.array(
             [
                 [10 - 20j, -3 + 6j, -2 + 5j],
@@ -158,18 +149,6 @@ class TestZbus:
         assert np.allclose(Z @ Ybus, np.eye(3), atol=1e-10)
 
     def test_zbus_invertibility(self):
-        Ybus = np.array(  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-            [
-                [10 - 20j, -2 + 5j, 0],
-                [-2 + 5j, 8 - 15j, -3 + 6j],
-                [0, -3 + 6j, 5 - 10j],
-            ]
-        )
-        Z = zbus_from_ybus(Ybus, reference_bus=0)
-        Z_full = zbus_full(
-            Ybus
-        )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-
         Ybus = np.array(
             [
                 [10 - 20j, -2 + 5j, 0],
@@ -184,13 +163,6 @@ class TestZbus:
 
     def test_zbus_singular_fallback(self):
         # Singular Ybus (all rows identical)
-        Ybus = np.array(  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-            [
-                [1 + 1j, 2 + 2j],
-                [1 + 1j, 2 + 2j],
-            ]
-        )
-
         Ybus = np.array(
             [
                 [1 + 1j, 2 + 2j],

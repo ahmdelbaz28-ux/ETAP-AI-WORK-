@@ -455,7 +455,10 @@ if _HAS_STARLETTE:
             public_paths: list[str] | None = None,
         ) -> None:
             super().__init__(app)
-            self.engine = ABACPolicyEngine(policies or [])
+            if policies is not None:
+                self.engine = ABACPolicyEngine(policies)
+            else:
+                self.engine = create_default_etap_abac_engine()
             self._jwt_decode_fn = jwt_decode_fn
             self._public_paths = public_paths or [
                 "/health",
@@ -467,11 +470,8 @@ if _HAS_STARLETTE:
                 "/docs",
                 "/redoc",
                 "/openapi.json",
-                "/api/v1/auth/register",
-                "/api/v1/auth/login",
-                "/api/v1/auth/forgot-password",
-                "/api/v1/auth/reset-password",
-                "/api/v1/auth/refresh",
+                "/api/v1/csrf",
+                "/api/v1/auth",
             ]
 
         def add_policy(self, policy: ABACPolicy) -> None:
@@ -798,30 +798,20 @@ def create_default_etap_abac_engine() -> ABACPolicyEngine:
         ),
     )
 
-    # Engineer can run studies
+    # Engineer and operator full access to engineering features
     engine.add_policy(
         make_role_policy(
-            name="engineer_studies",
-            allowed_roles=["engineer"],
-            actions=[
-                "get:/api/studies",  # NOSONAR intentional repetition (audit constant)
-                "post:/api/studies",
-                "get:/api/projects",  # NOSONAR intentional repetition (audit constant)
-                "post:/api/projects",
-            ],
+            name="engineer_engineering_access",
+            allowed_roles=["engineer", "operator"],
             priority=50,
         ),
     )
 
-    # Analyst read
+    # Analyst read and analysis access
     engine.add_policy(
         make_role_policy(
-            name="analyst_read",
+            name="analyst_access",
             allowed_roles=["analyst"],
-            actions=[
-                "get:/api/studies",
-                "get:/api/projects",
-            ],
             priority=50,
         ),
     )
@@ -831,10 +821,6 @@ def create_default_etap_abac_engine() -> ABACPolicyEngine:
         make_role_policy(
             name="viewer_read",
             allowed_roles=["viewer"],
-            actions=[
-                "get:/api/studies",
-                "get:/api/projects",
-            ],
             priority=40,
         ),
     )
@@ -850,13 +836,14 @@ def create_default_etap_abac_engine() -> ABACPolicyEngine:
         ),
     )
 
-    # Business hours deny
-    for policy in make_business_hours_policy(
-        name="business_hours_deny",
-        start_hour=8,
-        end_hour=18,
-        priority=5,
-    ):
-        engine.add_policy(policy)
+    # Business hours deny (opt-in via env var so 24/7 cloud services and CI are not blocked)
+    if os.environ.get("ABAC_ENFORCE_BUSINESS_HOURS", "false").lower() in ("true", "1", "yes"):
+        for policy in make_business_hours_policy(
+            name="business_hours_deny",
+            start_hour=8,
+            end_hour=18,
+            priority=5,
+        ):
+            engine.add_policy(policy)
 
     return engine

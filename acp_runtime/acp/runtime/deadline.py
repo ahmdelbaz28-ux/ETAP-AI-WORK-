@@ -45,7 +45,7 @@ async def enforce_deadline_ms(coro: Any, deadline_ms: int) -> Any:
         if not scope.cancel_called:
             return result
 
-    if scope.cancelled_caught:
+    if getattr(scope, "cancelled_caught", False) or scope.cancel_called:
         raise DeadlineExceeded(
             f"Execution exceeded deadline of {deadline_ms}ms",
             data={"deadline_ms": deadline_ms, "elapsed_seconds": seconds},
