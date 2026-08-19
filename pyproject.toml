@@ -210,7 +210,7 @@ filterwarnings = [
     "ignore::Warning:redis\\.utils",
     "ignore::PendingDeprecationWarning:starlette\\.formparsers",
     "ignore::PendingDeprecationWarning:multipart",
-    "ignore::sqlalchemy.exc.SAWarning",
+    "ignore:.*SAWarning.*:Warning",
 ]
 markers = [
     "slow: marks tests as slow",
