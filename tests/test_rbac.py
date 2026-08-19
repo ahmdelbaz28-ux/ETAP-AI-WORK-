@@ -15,7 +15,9 @@ from __future__ import annotations
 import os
 import sys
 import uuid
-from datetime import UTC, datetime, timezone
+from datetime import datetime, timezone
+
+UTC = timezone.utc  # noqa: UP017
 from typing import Any, AsyncGenerator
 
 import pytest

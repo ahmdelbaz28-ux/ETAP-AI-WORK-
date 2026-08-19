@@ -260,7 +260,7 @@ async def get_current_user(
     # and the middleware sets the wrong RLS session variable.
     # The middleware runs BEFORE this dependency, so the RLS variable was
     # initially set from the JWT. Now we correct it from the DB source.
-    from backend.request_context import set_tenant_id as _set_ctx_tenant_id
+    from api.request_context import set_tenant_id as _set_ctx_tenant_id
 
     db_tenant_id = str(user.tenant_id) if user.tenant_id else ""
     _set_ctx_tenant_id(db_tenant_id)

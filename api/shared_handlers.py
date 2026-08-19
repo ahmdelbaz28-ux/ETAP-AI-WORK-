@@ -23,7 +23,9 @@ import logging
 import os
 import threading
 import time
-from datetime import UTC, datetime
+from datetime import datetime, timezone
+
+UTC = timezone.utc  # noqa: UP017
 from typing import Any
 
 from fastapi import HTTPException, Request

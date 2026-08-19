@@ -19,10 +19,10 @@ import io
 import json
 import re
 import uuid
-from datetime import UTC, datetime
-from typing import Optional
+from datetime import datetime, timezone
 
-UTC = UTC
+UTC = timezone.utc  # noqa: UP017
+from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse

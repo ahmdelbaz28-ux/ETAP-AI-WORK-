@@ -30,7 +30,11 @@ from __future__ import annotations
 
 import hashlib
 import logging
-from typing import Annotated
+
+try:
+    from typing import Annotated
+except ImportError:
+    from typing_extensions import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import JSONResponse

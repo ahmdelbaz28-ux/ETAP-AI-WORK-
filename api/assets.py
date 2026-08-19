@@ -26,9 +26,9 @@ assets belonging to other users.
 from __future__ import annotations
 
 import uuid
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 
-UTC = UTC
+UTC = timezone.utc  # noqa: UP017
 from typing import Any, Optional
 
 try:

@@ -190,16 +190,10 @@ unfixable = []
 "api/templates.py" = ["E712"]
 "api/studies.py" = ["E712"]
 
-# These files use lazy imports or service locators (e.g., get_webhook_service, get_provider).
+# These files use lazy imports or service locators.
 # Ruff can't resolve these at static analysis time, but they are valid at runtime.
-"backend/routers/reports.py" = ["F821"]
-"backend/routers/v2.py" = ["F821"]
-"backend/routers/monitor.py" = ["F821"]            # service-locator resolves ComplianceEngine / security_audit at runtime
-"backend/services/workflow_service.py" = ["F821"]  # Uses try/except imports for optional dependencies
-"backend/audit_integrity_helper.py" = ["F821"]    # AuditStore resolved via service locator
 "api/audit_logs.py" = ["F821"]                     # AuditStore resolved via service locator
-"parsers/image_parser.py" = ["F821"]  # Uses lazy imports for optional YOLO
-"parsers/pdf_parser.py" = ["F821"]  # Uses lazy imports for optional DocTR
+
 
 [lint.isort]
 known-first-party = ["skills", "core", "scripts", "agents"]

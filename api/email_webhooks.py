@@ -40,8 +40,15 @@ import threading
 import time
 import uuid
 from dataclasses import dataclass
-from datetime import UTC, datetime
-from typing import Annotated, Any
+from datetime import datetime, timezone
+
+UTC = timezone.utc  # noqa: UP017
+from typing import Any
+
+try:
+    from typing import Annotated
+except ImportError:
+    from typing_extensions import Annotated
 
 from fastapi import APIRouter, Depends, Header, Request, status
 from fastapi.responses import JSONResponse

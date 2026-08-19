@@ -939,11 +939,11 @@ async def etap_gui_activate_kill_switch(reason: str = "manual_api_call"):
     Once activated, the CUA Loop will abort on the next action check.
     The kill switch is file-based (/tmp/cua_kill_switch) so it works
     even if the API server is unresponsive.
-    """
+    from datetime import datetime, timezone
     from agents.life_safety import activate_kill_switch
 
     activate_kill_switch(reason=reason)
-    from datetime import UTC, datetime
+    UTC = timezone.utc  # noqa: UP017
 
     return {
         "success": True,

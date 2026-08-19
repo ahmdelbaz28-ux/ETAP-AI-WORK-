@@ -18,10 +18,10 @@ Exposes endpoints under ``/api/v1/templates``:
 from __future__ import annotations
 
 import uuid
-from datetime import UTC, datetime
-from typing import Any, Optional
+from datetime import datetime, timezone
 
-UTC = UTC
+UTC = timezone.utc  # noqa: UP017
+from typing import Any, Optional
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, ConfigDict, Field

@@ -33,8 +33,13 @@ import secrets
 import threading
 import time
 from dataclasses import dataclass
-from datetime import UTC
-from typing import Annotated
+from datetime import timezone
+
+UTC = timezone.utc  # noqa: UP017
+try:
+    from typing import Annotated
+except ImportError:
+    from typing_extensions import Annotated
 
 from fastapi import APIRouter, Depends, Request, status
 from fastapi.responses import JSONResponse

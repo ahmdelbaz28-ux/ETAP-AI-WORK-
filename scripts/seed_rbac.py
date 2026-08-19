@@ -29,9 +29,9 @@ import asyncio
 import os
 import sys
 import uuid
-from datetime import UTC
+from datetime import timezone
 
-UTC = UTC
+UTC = timezone.utc  # noqa: UP017
 
 # Add parent directory to path so we can import api modules
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))

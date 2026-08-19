@@ -31,8 +31,15 @@ from __future__ import annotations
 
 import logging
 import os
-from datetime import UTC, datetime, timedelta
-from typing import Annotated, Any
+from datetime import datetime, timedelta, timezone
+
+UTC = timezone.utc  # noqa: UP017
+from typing import Any
+
+try:
+    from typing import Annotated
+except ImportError:
+    from typing_extensions import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import HTMLResponse, JSONResponse

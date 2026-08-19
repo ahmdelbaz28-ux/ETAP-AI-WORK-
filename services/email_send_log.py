@@ -26,7 +26,9 @@ import logging
 import os
 from collections import deque
 from dataclasses import asdict, dataclass, field
-from datetime import UTC, datetime
+from datetime import datetime, timezone
+
+UTC = timezone.utc  # noqa: UP017
 
 logger = logging.getLogger("etap.email_send_log")
 

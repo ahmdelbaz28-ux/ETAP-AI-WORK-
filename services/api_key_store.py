@@ -50,7 +50,9 @@ import os
 import sqlite3
 import threading
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import datetime, timezone
+
+UTC = timezone.utc  # noqa: UP017
 from pathlib import Path
 
 logger = logging.getLogger(__name__)

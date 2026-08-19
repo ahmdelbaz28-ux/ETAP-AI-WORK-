@@ -45,7 +45,9 @@ import os
 import time
 import uuid
 from collections.abc import Callable
-from datetime import UTC, datetime
+from datetime import datetime, timezone
+
+UTC = timezone.utc  # noqa: UP017
 from pathlib import Path
 from typing import Any
 

@@ -251,14 +251,14 @@ class OptimalPowerFlowEngine:
         for gid, _bus_id in self.gen_buses.items():
             gen_col = gen_col_map[gid]
             a_eq_row[gen_col] = 1.0
-        a_eq = a_eq_row.reshape(
+        A_eq = a_eq_row.reshape(
             1, -1
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         b_eq = np.array([b_eq_val])
 
         # Solve LP
         try:
-            result = linprog(c, A_ub=A_ub, b_ub=b_ub, A_eq=a_eq, b_eq=b_eq, method="highs")
+            result = linprog(c, A_ub=A_ub, b_ub=b_ub, A_eq=A_eq, b_eq=b_eq, method="highs")
 
             if result.success:
                 # Extract solution

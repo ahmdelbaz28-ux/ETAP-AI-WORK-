@@ -27,7 +27,9 @@ import logging
 import os
 import re
 import threading
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta, timezone
+
+UTC = timezone.utc  # noqa: UP017
 from typing import Any, Optional
 
 try:

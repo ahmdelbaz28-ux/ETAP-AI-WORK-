@@ -26,11 +26,11 @@ if config.config_file_name is not None:
 # add your model's MetaData object here
 # for 'autogenerate' support
 try:
-    from backend.db_models import Base  # noqa: F401
+    from api.database import Base  # noqa: F401
 
     target_metadata = Base.metadata
 except ImportError:
-    # Fallback if db_models not available (e.g., during initial setup)
+    # Fallback if api.database not available
     target_metadata = None
 
 

@@ -54,14 +54,15 @@ REFERENCES:
 
 from __future__ import annotations
 
-import datetime
 import json
 import logging
 import os
 import socket
 import ssl
 import threading
-from datetime import UTC
+from datetime import datetime, timezone
+
+UTC = timezone.utc  # noqa: UP017
 from typing import Any
 
 from api._messages import ISO_8601_UTC_FMT

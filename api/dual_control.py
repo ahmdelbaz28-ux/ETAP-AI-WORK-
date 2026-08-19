@@ -23,7 +23,9 @@ import re
 import secrets
 import threading
 import time
-from datetime import UTC, datetime
+from datetime import datetime, timezone
+
+UTC = timezone.utc  # noqa: UP017
 from typing import Any
 
 logger = logging.getLogger("api.dual_control")

@@ -21,7 +21,10 @@ const MOCK_PREDICT_LOAD_RESPONSE = {
   data: {
     predictions: [125, 138, 142, 150, 148, 155],
     method_used: "prophet",
-    confidence_interval: { lower: [120, 130, 135, 142, 140, 148], upper: [130, 146, 149, 158, 156, 162] },
+    confidence_interval: {
+      lower: [120, 130, 135, 142, 140, 148],
+      upper: [130, 146, 149, 158, 156, 162],
+    },
     metrics: { mape: 0.034, rmse: 2.1 },
   },
   trace_id: "test-trace-1",
@@ -30,7 +33,24 @@ const MOCK_PREDICT_LOAD_RESPONSE = {
 const MOCK_PREDICT_ANOMALY_RESPONSE = {
   success: true,
   data: {
-    anomalies: [false, false, false, false, false, false, false, true, false, false, false, false, true, false, false, false],
+    anomalies: [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      false,
+      false,
+      false,
+      false,
+      true,
+      false,
+      false,
+      false,
+    ],
     anomaly_count: 2,
     method: "iforest",
     contamination: 0.1,

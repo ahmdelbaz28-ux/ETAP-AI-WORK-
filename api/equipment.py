@@ -31,10 +31,10 @@ import io
 import json
 import logging
 import uuid
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, Optional
 
-UTC = UTC
+UTC = timezone.utc  # noqa: UP017
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
 from pydantic import BaseModel, ConfigDict, Field

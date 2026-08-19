@@ -17,7 +17,9 @@ This is the foundation for multi-tenant isolation:
 from __future__ import annotations
 
 import uuid
-from datetime import UTC, datetime
+from datetime import datetime, timezone
+
+UTC = timezone.utc  # noqa: UP017
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, status

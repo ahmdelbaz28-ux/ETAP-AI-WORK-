@@ -12,7 +12,9 @@ from __future__ import annotations
 
 import hashlib
 import logging
-from datetime import UTC, datetime
+from datetime import datetime, timezone
+
+UTC = timezone.utc  # noqa: UP017
 from typing import Any
 
 logger = logging.getLogger("api.pe_stamp")

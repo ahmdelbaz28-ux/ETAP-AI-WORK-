@@ -23,7 +23,9 @@ Exposes endpoints under the ``/api/v1/auth`` prefix:
 """
 
 import uuid
-from datetime import UTC, datetime
+from datetime import datetime, timezone
+
+UTC = timezone.utc  # noqa: UP017
 from typing import Any, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status

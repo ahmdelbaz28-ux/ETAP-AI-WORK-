@@ -54,7 +54,9 @@ import logging
 import os
 import uuid
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
+from datetime import datetime, timezone
+
+UTC = timezone.utc  # noqa: UP017
 from typing import Any
 
 from fastapi import WebSocket, WebSocketDisconnect
@@ -468,6 +470,14 @@ async def cua_confirmation_ws(websocket: WebSocket) -> None:
         if not user_id:
             await websocket.close(code=1008, reason="Invalid token payload")
             return
+        # SECURITY: Validate user_id format before deriving session_id.
+        # A non-alphanumeric (attacker-controlled) sub could be spoofed to
+        # collide with or impersonate another user and bypass the
+        # dual-confirmation requirement.
+        if not isinstance(user_id, str) or not user_id.isalnum():
+            logger.error(f"Invalid user_id in JWT: {user_id!r}")
+            await websocket.close(code=1008, reason="Invalid user_id")
+            return
     except _jwt.PyJWTError:
         await websocket.close(code=1008, reason="Invalid or expired token")
         return
@@ -493,8 +503,6 @@ async def cua_confirmation_ws(websocket: WebSocket) -> None:
 
             action = data.get("action")
             request_id = data.get("request_id", "")
-            # SECURITY: session_id is derived from the JWT user_id, NOT client-supplied
-            # This prevents a single attacker from impersonating two confirmers
             session_id = f"user:{user_id}"
 
             if action == "confirm":

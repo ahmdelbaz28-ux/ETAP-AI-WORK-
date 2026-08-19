@@ -35,8 +35,15 @@ except ImportError:
     # billion-laughs attacks. If defusedxml is not installed, the XML
     # parser is disabled entirely.
     ET = None
-from datetime import UTC, datetime
-from typing import Annotated, Any
+from datetime import datetime, timezone
+
+UTC = timezone.utc  # noqa: UP017
+from typing import Any
+
+try:
+    from typing import Annotated
+except ImportError:
+    from typing_extensions import Annotated
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from pydantic import BaseModel, Field

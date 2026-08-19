@@ -65,7 +65,7 @@ from api.tenants import router as tenants_router
 from api.validation import router as validation_router
 from api.websocket import scada_websocket_endpoint
 from api.zip_generator_config import router as zip_generator_config_router
-from backend.request_context import CorrelationIdMiddleware, TenantMiddleware
+from api.request_context import CorrelationIdMiddleware, TenantMiddleware
 from core.bootstrap import lifespan, logger
 from core.tracing import get_tracer
 from services.study_service import (
@@ -1044,7 +1044,8 @@ async def cua_kill_switch_activate(request: Request):
         reason = "manual_from_dashboard"
 
     activate_kill_switch(reason=reason)
-    from datetime import UTC, datetime
+    from datetime import datetime, timezone
+    UTC = timezone.utc  # noqa: UP017
 
     return {
         "active": True,

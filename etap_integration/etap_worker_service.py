@@ -9,7 +9,12 @@ from __future__ import annotations
 
 import os
 import sys
-from typing import Annotated, Any
+from typing import Any
+
+try:
+    from typing import Annotated
+except ImportError:
+    from typing_extensions import Annotated
 
 import uvicorn
 from fastapi import Depends, FastAPI, HTTPException, Security

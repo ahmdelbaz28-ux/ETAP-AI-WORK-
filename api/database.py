@@ -49,13 +49,15 @@ _DEFAULT_DB_URL = "sqlite+aiosqlite:///./data/etap_platform.db"
 _raw_db_url: str = os.getenv("DATABASE_URL", _DEFAULT_DB_URL)
 
 
-# Normalise plain postgres:// / postgresql:// → asyncpg driver
+# Normalise plain postgres:// / postgresql:// → asyncpg driver, sqlite:// → aiosqlite
 def _normalise_url(raw: str) -> str:
-    """Convert bare postgres URLs to the correct async driver string."""
+    """Convert bare database URLs to the correct async driver string."""
     if raw.startswith("postgres://"):
         raw = "postgresql+asyncpg://" + raw[len("postgres://") :]
     elif raw.startswith("postgresql://") and "+asyncpg" not in raw:
         raw = "postgresql+asyncpg://" + raw[len("postgresql://") :]
+    elif raw.startswith("sqlite://") and "+aiosqlite" not in raw:
+        raw = "sqlite+aiosqlite://" + raw[len("sqlite://") :]
     return raw
 
 
