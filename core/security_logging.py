@@ -4,6 +4,8 @@ core/security_logging.py — Tamper-evident Security Audit Logging System.
 
 from __future__ import annotations
 
+from datetime import datetime, timezone
+from enum import Enum
 import hashlib
 import hmac
 import json
@@ -15,7 +17,6 @@ import re
 import threading
 from typing import Any
 import uuid
-from datetime import datetime, timezone
 
 UTC = timezone.utc
 
@@ -23,7 +24,7 @@ _LOG_DIR = Path("logs")
 _SECURITY_GENESIS = "0" * 64
 
 
-class SecurityEventType:
+class SecurityEventType(str, Enum):
     AUTH_SUCCESS = "AUTH_SUCCESS"
     AUTH_FAILURE = "AUTH_FAILURE"
     AUTH_KEY_ROTATION = "AUTH_KEY_ROTATION"
@@ -99,21 +100,46 @@ def mask_sensitive(text: Any, mask: str = "***REDACTED***") -> str:
     return result
 
 
+def _sanitize_value(val: Any, mask: str = "***REDACTED***") -> Any:
+    """Recursively mask sensitive keys and patterns in nested data structures."""
+    if isinstance(val, dict):
+        sanitized_dict: dict[str, Any] = {}
+        for k, v in val.items():
+            key_str = str(k)
+            if key_str.lower() in _SENSITIVE_KEY_NAMES:
+                sanitized_dict[key_str] = mask
+            else:
+                sanitized_dict[key_str] = _sanitize_value(v, mask)
+        return sanitized_dict
+    if isinstance(val, list):
+        return [_sanitize_value(item, mask) for item in val]
+    if isinstance(val, tuple):
+        return tuple(_sanitize_value(item, mask) for item in val)
+    if isinstance(val, set):
+        return {_sanitize_value(item, mask) for item in val}
+    if isinstance(val, str):
+        return mask_sensitive(val, mask)
+    return val
+
+
 class SensitiveDataFilter(logging.Filter):
     """Logging filter that masks sensitive credentials in log records."""
 
     def filter(self, record: logging.LogRecord) -> bool:
         if isinstance(record.msg, str):
             record.msg = mask_sensitive(record.msg)
+        elif isinstance(record.msg, (dict, list, tuple, set)):
+            record.msg = _sanitize_value(record.msg)
+
         if record.args:
             if isinstance(record.args, dict):
                 record.args = {
-                    k: mask_sensitive(v) if isinstance(v, str) else v
+                    k: _sanitize_value(v)
                     for k, v in record.args.items()
                 }
             elif isinstance(record.args, tuple):
                 record.args = tuple(
-                    mask_sensitive(v) if isinstance(v, str) else v for v in record.args
+                    _sanitize_value(v) for v in record.args
                 )
         return True
 
@@ -146,40 +172,41 @@ class SecurityAuditLogger:
         self._chain_hash = self._recover_chain_hash()
 
     def _recover_chain_hash(self) -> str:
-        """Recover last chain hash from log file or return genesis."""
+        """Recover last chain hash from log file or return genesis in O(1) memory."""
         if not self._log_path.exists():
             return _SECURITY_GENESIS
         try:
+            last_line = ""
             with open(self._log_path, "r", encoding="utf-8") as f:
-                lines = [line.strip() for line in f if line.strip()]
-            if not lines:
+                for line in f:
+                    stripped = line.strip()
+                    if stripped:
+                        last_line = stripped
+            if not last_line:
                 return _SECURITY_GENESIS
-            last_line = lines[-1]
             json.loads(last_line)
-            # Recompute chain hash for the last line
             return _compute_chain_hash(last_line)
         except Exception:
             return _SECURITY_GENESIS
 
-    def log_event(self, event_type: str, **kwargs: Any) -> str:
+    def log_event(self, event_type: str | SecurityEventType, **kwargs: Any) -> str:
         """Log a security event to the audit log."""
+        event_type_str = str(event_type.value if isinstance(event_type, Enum) else event_type)
         with self._lock:
             event_id = str(uuid.uuid4())
             timestamp = datetime.now(UTC).isoformat()
-            # Mask sensitive values in details
-            masked_details = {}
+            # Recursively mask sensitive values in details
+            masked_details: dict[str, Any] = {}
             for k, v in kwargs.items():
                 if k.lower() in _SENSITIVE_KEY_NAMES:
                     masked_details[k] = "***REDACTED***"
-                elif isinstance(v, str):
-                    masked_details[k] = mask_sensitive(v)
                 else:
-                    masked_details[k] = v
+                    masked_details[k] = _sanitize_value(v)
 
             event_record = {
                 "event_id": event_id,
                 "timestamp": timestamp,
-                "event_type": event_type,
+                "event_type": event_type_str,
                 "chain_hash": self._chain_hash,
                 "details": masked_details,
             }
@@ -192,26 +219,28 @@ class SecurityAuditLogger:
             return event_id
 
     def verify_chain(self) -> dict[str, Any]:
-        """Verify the cryptographic integrity of the audit log chain."""
+        """Verify the cryptographic integrity of the audit log chain via streaming."""
         with self._lock:
             if not self._log_path.exists():
                 return {"valid": True, "entries_checked": 0, "first_break": None}
-            with open(self._log_path, "r", encoding="utf-8") as f:
-                lines = [line.strip() for line in f if line.strip()]
-            if not lines:
-                return {"valid": True, "entries_checked": 0, "first_break": None}
 
+            entries_count = 0
             expected_chain_hash = _SECURITY_GENESIS
-            for idx, line in enumerate(lines):
-                try:
-                    data = json.loads(line)
-                    if data.get("chain_hash") != expected_chain_hash:
-                        return {"valid": False, "entries_checked": idx + 1, "first_break": idx}
-                    expected_chain_hash = _compute_chain_hash(line)
-                except Exception:
-                    return {"valid": False, "entries_checked": idx + 1, "first_break": idx}
+            with open(self._log_path, "r", encoding="utf-8") as f:
+                for idx, raw_line in enumerate(f):
+                    line = raw_line.strip()
+                    if not line:
+                        continue
+                    entries_count += 1
+                    try:
+                        data = json.loads(line)
+                        if data.get("chain_hash") != expected_chain_hash:
+                            return {"valid": False, "entries_checked": entries_count, "first_break": idx}
+                        expected_chain_hash = _compute_chain_hash(line)
+                    except Exception:
+                        return {"valid": False, "entries_checked": entries_count, "first_break": idx}
 
-            return {"valid": True, "entries_checked": len(lines), "first_break": None}
+            return {"valid": True, "entries_checked": entries_count, "first_break": None}
 
 
 def configure_log_rotation(logger: logging.Logger, log_file: str = "etap.log") -> None:
@@ -220,7 +249,10 @@ def configure_log_rotation(logger: logging.Logger, log_file: str = "etap.log") -
         return
     log_path = Path(_LOG_DIR) / log_file
     log_path.parent.mkdir(parents=True, exist_ok=True)
-    handler = RotatingFileHandler(log_path, maxBytes=500 * 1024 * 1024, backupCount=10)
+    for existing_handler in logger.handlers:
+        if isinstance(existing_handler, RotatingFileHandler) and getattr(existing_handler, "baseFilename", None) == str(log_path.resolve()):
+            return
+    handler = RotatingFileHandler(log_path, maxBytes=500 * 1024 * 1024, backupCount=10, encoding="utf-8")
     logger.addHandler(handler)
 
 
@@ -230,5 +262,8 @@ def configure_timed_rotation(logger: logging.Logger, log_file: str = "etap.log")
         return
     log_path = Path(_LOG_DIR) / log_file
     log_path.parent.mkdir(parents=True, exist_ok=True)
-    handler = TimedRotatingFileHandler(log_path, when="D", interval=1, backupCount=30)
+    for existing_handler in logger.handlers:
+        if isinstance(existing_handler, TimedRotatingFileHandler) and getattr(existing_handler, "baseFilename", None) == str(log_path.resolve()):
+            return
+    handler = TimedRotatingFileHandler(log_path, when="D", interval=1, backupCount=30, encoding="utf-8")
     logger.addHandler(handler)

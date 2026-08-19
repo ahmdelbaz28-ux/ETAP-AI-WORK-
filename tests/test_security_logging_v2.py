@@ -559,5 +559,82 @@ class TestConfigureTimedRotation:
             logger.handlers.clear()
 
 
+class TestRecursiveSanitization:
+    """Verify recursive redaction on nested data structures."""
+
+    def test_nested_dict_masked(self, security_logger, temp_log_dir):
+        nested_payload = {
+            "user": "alice",
+            "session": {
+                "token": "secret_jwt_token_12345",
+                "nested_profile": {
+                    "password": "my_super_password_12345"
+                }
+            }
+        }
+        security_logger.log_event("AUTH_SUCCESS", payload=nested_payload)
+        log_path = temp_log_dir / "security_audit.log"
+        content = log_path.read_text(encoding="utf-8")
+        assert "secret_jwt_token_12345" not in content
+        assert "my_super_password_12345" not in content
+        assert "***REDACTED***" in content
+
+    def test_nested_list_of_dicts_masked(self, security_logger, temp_log_dir):
+        items = [
+            {"service": "etap", "api_key": "sk-secret-key-12345678"},
+            {"status": "ok"}
+        ]
+        security_logger.log_event("AUTH_SUCCESS", services=items)
+        log_path = temp_log_dir / "security_audit.log"
+        content = log_path.read_text(encoding="utf-8")
+        assert "sk-secret-key-12345678" not in content
+        assert "***REDACTED***" in content
+
+    def test_filter_nested_record_args(self):
+        f = SensitiveDataFilter()
+        record = logging.LogRecord("test", logging.INFO, "", 0, "msg", (), None)
+        record.args = {"config": {"secret": "confidential_value_12345"}}
+        f.filter(record)
+        assert "confidential_value_12345" not in str(record.args)
+        assert "***REDACTED***" in str(record.args)
+
+
+class TestEnumSecurityEventType:
+    """Verify enum integration with log_event."""
+
+    def test_enum_usage_in_log_event(self, security_logger, temp_log_dir):
+        security_logger.log_event(SecurityEventType.AUTH_SUCCESS, user="admin")
+        log_path = temp_log_dir / "security_audit.log"
+        content = log_path.read_text(encoding="utf-8")
+        assert "AUTH_SUCCESS" in content
+
+    def test_enum_is_str(self):
+        assert isinstance(SecurityEventType.AUTH_SUCCESS, str)
+        assert SecurityEventType.AUTH_SUCCESS == "AUTH_SUCCESS"
+
+
+class TestLogRotationEncodingAndDeduplication:
+    """Verify UTF-8 encoding and deduplication in log rotation."""
+
+    def test_rotation_handler_utf8_encoding(self, tmp_path):
+        with patch("core.security_logging._LOG_DIR", tmp_path):
+            logger = logging.getLogger("test_encoding_check")
+            configure_log_rotation(logger, log_file="etap_utf8.log")
+            handler = logger.handlers[-1]
+            assert getattr(handler, "encoding", None) == "utf-8"
+            logger.handlers.clear()
+
+    def test_rotation_handler_no_duplicates(self, tmp_path):
+        with patch("core.security_logging._LOG_DIR", tmp_path):
+            logger = logging.getLogger("test_dedup_check")
+            configure_log_rotation(logger, log_file="etap_dedup.log")
+            count_1 = len(logger.handlers)
+            configure_log_rotation(logger, log_file="etap_dedup.log")
+            count_2 = len(logger.handlers)
+            assert count_1 == count_2
+            logger.handlers.clear()
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
+
