@@ -310,8 +310,11 @@ jobs:
           # the error-rate threshold (>1%) to fail the test.
           # These are throwaway credentials only used in CI; ENGINEERING_SERVICE_AUTH_DISABLED=true
           # is also set so the API-key middleware is bypassed.
+          # LOCUST_TEST_PASSWORD: optional secret. Falls back to a deterministic CI-only
+          # value when not set — safe because ENGINEERING_SERVICE_AUTH_DISABLED=true
+          # means the auth middleware is bypassed entirely in this job.
           LOCUST_TEST_USERNAME: loadtest_user
-          LOCUST_TEST_PASSWORD: ${{ secrets.LOCUST_TEST_PASSWORD }}
+          LOCUST_TEST_PASSWORD: ${{ secrets.LOCUST_TEST_PASSWORD || 'CI-loadtest-2025!' }}
         run: |
           mkdir -p load-test-results/locust
 

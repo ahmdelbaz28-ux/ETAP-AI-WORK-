@@ -1,14 +1,21 @@
 """
-Unit tests for api/_rate_limit.py — shared sliding-window rate limiter.
+Unit tests for api/_rate_limit.py -- shared sliding-window rate limiter.
 
 These tests exercise the RateLimiter class extracted from
 api/akamai_protection.py and api/cloudflare_protection.py to eliminate
 code duplication (SonarCloud new_duplicated_lines_density).
+
+Isolation guarantee: each test method creates its own RateLimiter instance
+and uses unique IP-key strings so tests are safe for parallel execution
+(-n auto with pytest-xdist).  The previous version had deeply-nested
+``os.environ.get("SERVICE_HOST", os.environ.get("SERVICE_HOST", ...))``
+chains that were semantically identical to the bare fallback literal
+(same key, same result) and caused state bleed between parallel workers
+when SERVICE_HOST resolved to a shared IP  (fixes issue #176).
 """
 
 from __future__ import annotations
 
-import os
 import time
 
 import pytest
@@ -27,13 +34,10 @@ class TestRateLimiter:
         limiter = RateLimiter(max_requests=5, window_seconds=60)
         for i in range(3):
             assert limiter.is_allowed("192.168.1.1") is True, f"Request {i + 1} should be allowed"
-            assert limiter.is_allowed(os.environ.get("SERVICE_HOST", "192.168.1.1")) is True, (
-                f"Request {i + 1} should be allowed"
-            )
 
     def test_blocks_requests_over_limit(self):
         """GIVEN a limiter with max=3
-        WHEN 4 requests are made
+        WHEN 4 requests are made from the same IP
         THEN the 4th is blocked.
         """
         limiter = RateLimiter(max_requests=3, window_seconds=60)
@@ -41,54 +45,6 @@ class TestRateLimiter:
         assert limiter.is_allowed("10.0.0.1") is True
         assert limiter.is_allowed("10.0.0.1") is True
         assert limiter.is_allowed("10.0.0.1") is False, "4th request should be blocked"
-        assert (
-            limiter.is_allowed(
-                os.environ.get(
-                    "SERVICE_HOST",
-                    os.environ.get(
-                        "SERVICE_HOST",
-                        os.environ.get("SERVICE_HOST", os.environ.get("SERVICE_HOST", "10.0.0.1")),
-                    ),
-                )
-            )
-            is True
-        )
-        assert (
-            limiter.is_allowed(
-                os.environ.get(
-                    "SERVICE_HOST",
-                    os.environ.get(
-                        "SERVICE_HOST",
-                        os.environ.get("SERVICE_HOST", os.environ.get("SERVICE_HOST", "10.0.0.1")),
-                    ),
-                )
-            )
-            is True
-        )
-        assert (
-            limiter.is_allowed(
-                os.environ.get(
-                    "SERVICE_HOST",
-                    os.environ.get(
-                        "SERVICE_HOST",
-                        os.environ.get("SERVICE_HOST", os.environ.get("SERVICE_HOST", "10.0.0.1")),
-                    ),
-                )
-            )
-            is True
-        )
-        assert (
-            limiter.is_allowed(
-                os.environ.get(
-                    "SERVICE_HOST",
-                    os.environ.get(
-                        "SERVICE_HOST",
-                        os.environ.get("SERVICE_HOST", os.environ.get("SERVICE_HOST", "10.0.0.1")),
-                    ),
-                )
-            )
-            is False
-        ), "4th request should be blocked"
 
     def test_separate_keys_are_independent(self):
         """GIVEN a limiter with max=2
@@ -103,60 +59,6 @@ class TestRateLimiter:
         # Both IPs are now at limit
         assert limiter.is_allowed("1.1.1.1") is False
         assert limiter.is_allowed("2.2.2.2") is False
-        assert (
-            limiter.is_allowed(
-                os.environ.get(
-                    "SERVICE_HOST",
-                    os.environ.get("SERVICE_HOST", os.environ.get("SERVICE_HOST", "1.1.1.1")),
-                )
-            )
-            is True
-        )
-        assert (
-            limiter.is_allowed(
-                os.environ.get(
-                    "SERVICE_HOST",
-                    os.environ.get("SERVICE_HOST", os.environ.get("SERVICE_HOST", "1.1.1.1")),
-                )
-            )
-            is True
-        )
-        assert (
-            limiter.is_allowed(
-                os.environ.get(
-                    "SERVICE_HOST",
-                    os.environ.get("SERVICE_HOST", os.environ.get("SERVICE_HOST", "2.2.2.2")),
-                )
-            )
-            is True
-        )
-        assert (
-            limiter.is_allowed(
-                os.environ.get(
-                    "SERVICE_HOST",
-                    os.environ.get("SERVICE_HOST", os.environ.get("SERVICE_HOST", "2.2.2.2")),
-                )
-            )
-            is True
-        )
-        assert (
-            limiter.is_allowed(
-                os.environ.get(
-                    "SERVICE_HOST",
-                    os.environ.get("SERVICE_HOST", os.environ.get("SERVICE_HOST", "1.1.1.1")),
-                )
-            )
-            is False
-        )
-        assert (
-            limiter.is_allowed(
-                os.environ.get(
-                    "SERVICE_HOST",
-                    os.environ.get("SERVICE_HOST", os.environ.get("SERVICE_HOST", "2.2.2.2")),
-                )
-            )
-            is False
-        )
 
     def test_window_expiry_allows_new_requests(self):
         """GIVEN a limiter with max=2, window=1s
@@ -183,33 +85,7 @@ class TestRateLimiter:
         assert limiter.is_allowed("4.4.4.4") is False
         limiter.reset()
         assert limiter.is_allowed("4.4.4.4") is True, "After reset, request should be allowed"
-        assert (
-            limiter.is_allowed(
-                os.environ.get(
-                    "SERVICE_HOST",
-                    os.environ.get("SERVICE_HOST", os.environ.get("SERVICE_HOST", "4.4.4.4")),
-                )
-            )
-            is True
-        )
-        assert (
-            limiter.is_allowed(
-                os.environ.get(
-                    "SERVICE_HOST",
-                    os.environ.get("SERVICE_HOST", os.environ.get("SERVICE_HOST", "4.4.4.4")),
-                )
-            )
-            is False
-        )
-        assert (
-            limiter.is_allowed(
-                os.environ.get(
-                    "SERVICE_HOST",
-                    os.environ.get("SERVICE_HOST", os.environ.get("SERVICE_HOST", "4.4.4.4")),
-                )
-            )
-            is True
-        ), "After reset, request should be allowed"
+        assert limiter.is_allowed("4.4.4.4") is False, "After 2nd request post-reset, blocked again"
 
     def test_default_window_is_60_seconds(self):
         """GIVEN a limiter created without window_seconds
@@ -258,6 +134,8 @@ class TestRateLimiter:
         """
         limiter = RateLimiter(max_requests=1, window_seconds=60)
         for i in range(100):
-            ip = f"6.6.6.{i}"
-            assert limiter.is_allowed(ip) is True, f"First request from {ip} should be allowed"
-            assert limiter.is_allowed(ip) is False, f"Second request from {ip} should be blocked"
+            ip = f"6.6.6.{i % 255}"
+            # Use unique per-iteration key to avoid cross-iteration bleed
+            key = f"key-concurrent-{i}"
+            assert limiter.is_allowed(key) is True, f"First request from {key} should be allowed"
+            assert limiter.is_allowed(key) is False, f"Second request from {key} should be blocked"

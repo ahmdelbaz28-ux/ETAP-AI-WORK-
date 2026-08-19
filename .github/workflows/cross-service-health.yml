@@ -289,15 +289,15 @@ jobs:
       # ─────────────────────────────────────────────────────────────────────
       # 7. Smithery — MCP registry
       # ─────────────────────────────────────────────────────────────────────
-      - name: 🔧 Test 7 — Smithery registry
+      - name: Test 7 -- Smithery registry
         env:
           SMITHERY_API_KEY: ${{ secrets.SMITHERY_API_KEY }}
         run: |
           set -e
-          echo "── Test 7: Smithery ──"
+          echo "-- Test 7: Smithery --"
 
           if [ -z "$SMITHERY_API_KEY" ]; then
-            echo "  ⚠️ SMITHERY_API_KEY not set — skipping"
+            echo "  SMITHERY_API_KEY not set -- skipping"
             exit 0
           fi
 
@@ -307,9 +307,9 @@ jobs:
           echo "  /servers: HTTP $STATUS"
           if [ "$STATUS" = "200" ]; then
             COUNT=$(python3 -c "import json; print(len(json.load(open('/tmp/sm.json')).get('servers',[])))" 2>/dev/null || echo "?")
-            echo "  ✅ Smithery reachable — $COUNT servers listed"
+            echo "  Smithery reachable -- $COUNT servers listed"
           else
-            echo "  ⚠️ Smithery returned HTTP $STATUS — non-blocking (integration retries at runtime)"
+            echo "  Smithery returned HTTP $STATUS -- non-blocking (integration retries at runtime)"
           fi
 
       # ─────────────────────────────────────────────────────────────────────
@@ -351,7 +351,7 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const title = '🚨 Cross-Service Integration Failure';
+            const title = '🔴 Cross-Service Integration Failure';
             const body = [
               `**Workflow:** [${context.workflow}](${context.payload.repository.html_url}/actions/runs/${context.runId})`,
               `**Trigger:** ${context.eventName}`,
