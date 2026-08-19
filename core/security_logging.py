@@ -57,7 +57,7 @@ _SENSITIVE_KEY_NAMES = {
 }
 
 _SENSITIVE_KEY_PATTERNS = [
-    # Key-value patterns: api_key="...", token="...", password="...", auth_key="..."
+    # Key-value redaction patterns (e.g. credentials and tokens)
     (
         re.compile(
             r'(?i)\b(api_key|token|password|auth_key|secret|credential|access_token|refresh_token)\s*=\s*["\']([A-Za-z0-9_\-\.]{8,})["\']'

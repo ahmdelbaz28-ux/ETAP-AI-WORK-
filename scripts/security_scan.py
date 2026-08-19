@@ -51,9 +51,17 @@ EXCLUDED_DIRS = {
     ".pytest_cache",
     ".ruff_cache",
     ".mypy_cache",
+    "scratch",
+    "brain",
+    ".agents",
+    "temp_repo",
+    "audit",
 }
 EXCLUDED_FILES = {
+    ".env",
     ".env.example",
+    ".env.local",
+    ".env.test",
     ".gitleaks-baseline.json",
     "security_scan.py",
     "README.md",
