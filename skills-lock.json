@@ -1,6 +1,12 @@
 {
   "version": 1,
   "skills": {
+    "agent-architecture-audit": {
+      "source": "./.agents/skills",
+      "sourceType": "local",
+      "skillPath": ".agents/skills/agent-architecture-audit/SKILL.md",
+      "status": "active"
+    },
     "ahmed-etap": {
       "source": "./local",
       "sourceType": "local",
@@ -11,6 +17,24 @@
       "studyType": "ahmed_etap_orchestration",
       "computedHash": "computed-at-install-time",
       "_note": "AhmedETAP orchestration skill — enforces SharedContext, TokenBudget, MathGuard, PeerReview per REFERENCE.md."
+    },
+    "backend-code-review": {
+      "source": "./.agents/skills",
+      "sourceType": "local",
+      "skillPath": ".agents/skills/backend-code-review/SKILL.md",
+      "status": "active"
+    },
+    "better-auth-security-best-practices": {
+      "source": "./.agents/skills",
+      "sourceType": "local",
+      "skillPath": ".agents/skills/better-auth-security-best-practices/SKILL.md",
+      "status": "active"
+    },
+    "brainstorming": {
+      "source": "./.agents/skills",
+      "sourceType": "local",
+      "skillPath": ".agents/skills/brainstorming/SKILL.md",
+      "status": "active"
     },
     "caveman": {
       "source": "juliusbrussee/caveman",
@@ -36,6 +60,42 @@
       "skillPath": "skills/engineering/code-review/SKILL.md",
       "computedHash": "591a274f7be02c24da6628b464b66be44c351adfccd7e8c12f550715c695e3fe"
     },
+    "code-review-and-quality": {
+      "source": "./.agents/skills",
+      "sourceType": "local",
+      "skillPath": ".agents/skills/code-review-and-quality/SKILL.md",
+      "status": "active"
+    },
+    "context-focus-guard": {
+      "source": "./.agents/skills",
+      "sourceType": "local",
+      "skillPath": ".agents/skills/context-focus-guard/SKILL.md",
+      "status": "active"
+    },
+    "create-readme": {
+      "source": "./.agents/skills",
+      "sourceType": "local",
+      "skillPath": ".agents/skills/create-readme/SKILL.md",
+      "status": "active"
+    },
+    "debugging-wizard": {
+      "source": "./.agents/skills",
+      "sourceType": "local",
+      "skillPath": ".agents/skills/debugging-wizard/SKILL.md",
+      "status": "active"
+    },
+    "documentation-and-adrs": {
+      "source": "./.agents/skills",
+      "sourceType": "local",
+      "skillPath": ".agents/skills/documentation-and-adrs/SKILL.md",
+      "status": "active"
+    },
+    "domain-modeling": {
+      "source": "./.agents/skills",
+      "sourceType": "local",
+      "skillPath": ".agents/skills/domain-modeling/SKILL.md",
+      "status": "active"
+    },
     "e2e-testing": {
       "source": "affaan-m/ECC",
       "sourceType": "github",
@@ -48,11 +108,95 @@
       "skillPath": "plugins/stitch-utilities/skills/enhance-prompt/SKILL.md",
       "computedHash": "28c47bcbc0e8d81f48fbbbe41d227efe4018a32c5d4674b0d052a70d215072d3"
     },
+    "etap-expert": {
+      "source": "./.agents/skills",
+      "sourceType": "local",
+      "skillPath": ".agents/skills/etap-expert/SKILL.md",
+      "status": "active"
+    },
+    "experiment-suite": {
+      "source": "./.agents/skills",
+      "sourceType": "local",
+      "skillPath": ".agents/skills/experiment-suite/SKILL.md",
+      "status": "active"
+    },
+    "finance": {
+      "source": "./.agents/skills",
+      "sourceType": "local",
+      "skillPath": ".agents/skills/finance/SKILL.md",
+      "status": "active"
+    },
+    "finding-duplicate-functions": {
+      "source": "./.agents/skills",
+      "sourceType": "local",
+      "skillPath": ".agents/skills/finding-duplicate-functions/SKILL.md",
+      "status": "active"
+    },
+    "fix-dependabot": {
+      "source": "./.agents/skills",
+      "sourceType": "local",
+      "skillPath": ".agents/skills/fix-dependabot/SKILL.md",
+      "status": "active"
+    },
+    "git-commit": {
+      "source": "./.agents/skills",
+      "sourceType": "local",
+      "skillPath": ".agents/skills/git-commit/SKILL.md",
+      "status": "active"
+    },
+    "grilling": {
+      "source": "./.agents/skills",
+      "sourceType": "local",
+      "skillPath": ".agents/skills/grilling/SKILL.md",
+      "status": "active"
+    },
+    "improve-codebase-architecture": {
+      "source": "./.agents/skills",
+      "sourceType": "local",
+      "skillPath": ".agents/skills/improve-codebase-architecture/SKILL.md",
+      "status": "active"
+    },
+    "lint": {
+      "source": "./.agents/skills",
+      "sourceType": "local",
+      "skillPath": ".agents/skills/lint/SKILL.md",
+      "status": "active"
+    },
     "lint-all": {
       "source": "denoland/deno",
       "sourceType": "github",
       "skillPath": ".claude/skills/lint-all/SKILL.md",
       "computedHash": "626bae6c185e24e6eb297fabd568e5206535c50797244f7ce624cbe1751d2722"
+    },
+    "literature-survey": {
+      "source": "./.agents/skills",
+      "sourceType": "local",
+      "skillPath": ".agents/skills/literature-survey/SKILL.md",
+      "status": "active"
+    },
+    "omniverse-cad-to-simready": {
+      "source": "./.agents/skills",
+      "sourceType": "local",
+      "skillPath": ".agents/skills/omniverse-cad-to-simready/SKILL.md",
+      "status": "active"
+    },
+    "performance": {
+      "source": "./.agents/skills",
+      "sourceType": "local",
+      "skillPath": ".agents/skills/performance/SKILL.md",
+      "status": "active"
+    },
+    "playwright-best-practices": {
+      "source": "./.agents/skills",
+      "sourceType": "local",
+      "skillPath": ".agents/skills/playwright-best-practices/SKILL.md",
+      "status": "active"
+    },
+    "ppt": {
+      "source": "./.agents/skills",
+      "sourceType": "local",
+      "skillPath": ".agents/skills/ppt/SKILL.md",
+      "status": "active"
     },
     "production-audit": {
       "source": "affaan-m/ECC",
@@ -67,11 +211,41 @@
       "computedHash": "e890b21a37c98b671a4f08920194bc028fa160912185c60205847b2c58908321",
       "_note": "NVIDIA RAG Blueprint skill for enterprise multimodal RAG, hybrid search, and guardrails."
     },
+    "rag-eval": {
+      "source": "./.agents/skills",
+      "sourceType": "local",
+      "skillPath": ".agents/skills/rag-eval/SKILL.md",
+      "status": "active"
+    },
+    "readme-wizard": {
+      "source": "./.agents/skills",
+      "sourceType": "local",
+      "skillPath": ".agents/skills/readme-wizard/SKILL.md",
+      "status": "active"
+    },
+    "receiving-code-review": {
+      "source": "./.agents/skills",
+      "sourceType": "local",
+      "skillPath": ".agents/skills/receiving-code-review/SKILL.md",
+      "status": "active"
+    },
     "refactor": {
       "source": "github/awesome-copilot",
       "sourceType": "github",
       "skillPath": "skills/refactor/SKILL.md",
       "computedHash": "87789a786b96f99ba0680e89345a975106e10e7db1071c7cdc2e76d507c449d6"
+    },
+    "research-explorer": {
+      "source": "./.agents/skills",
+      "sourceType": "local",
+      "skillPath": ".agents/skills/research-explorer/SKILL.md",
+      "status": "active"
+    },
+    "resolve-merge-conflicts": {
+      "source": "./.agents/skills",
+      "sourceType": "local",
+      "skillPath": ".agents/skills/resolve-merge-conflicts/SKILL.md",
+      "status": "active"
     },
     "resolving-merge-conflicts": {
       "source": "mattpocock/skills",
@@ -79,17 +253,47 @@
       "skillPath": "skills/engineering/resolving-merge-conflicts/SKILL.md",
       "computedHash": "6a005119c18c477c2122321a380a43d40242bae3cc7027125f13497d90875be2"
     },
+    "security-audit": {
+      "source": "./.agents/skills",
+      "sourceType": "local",
+      "skillPath": ".agents/skills/security-audit/SKILL.md",
+      "status": "active"
+    },
     "security-requirement-extraction": {
       "source": "wshobson/agents",
       "sourceType": "github",
       "skillPath": "plugins/security-scanning/skills/security-requirement-extraction/SKILL.md",
       "computedHash": "70e17a537800fc5fa01925317093a436edbb98986aaff090ec6ee0cfced9b9fc"
     },
+    "setup-pre-commit": {
+      "source": "./.agents/skills",
+      "sourceType": "local",
+      "skillPath": ".agents/skills/setup-pre-commit/SKILL.md",
+      "status": "active"
+    },
+    "setup-ts-deep-modules": {
+      "source": "./.agents/skills",
+      "sourceType": "local",
+      "skillPath": ".agents/skills/setup-ts-deep-modules/SKILL.md",
+      "status": "active"
+    },
+    "shipping-and-launch": {
+      "source": "./.agents/skills",
+      "sourceType": "local",
+      "skillPath": ".agents/skills/shipping-and-launch/SKILL.md",
+      "status": "active"
+    },
     "systematic-debugging": {
       "source": "obra/superpowers",
       "sourceType": "github",
       "skillPath": "skills/systematic-debugging/SKILL.md",
       "computedHash": "a2750dfbaed1690da73b120254892c4f926b4576cb82eb16fc877783941fe39b"
+    },
+    "test-engineer": {
+      "source": "./.agents/skills",
+      "sourceType": "local",
+      "skillPath": ".agents/skills/test-engineer/SKILL.md",
+      "status": "active"
     },
     "ui-ux-pro-max": {
       "source": "nextlevelbuilder/ui-ux-pro-max-skill",
@@ -102,6 +306,18 @@
       "sourceType": "github",
       "skillPath": "skills/using-superpowers/SKILL.md",
       "computedHash": "c7abe8bdc2099bbe4f245454d32c7563ccd2bb41dcc218b02b461c2acc3c6ae6"
+    },
+    "verification-loop": {
+      "source": "./.agents/skills",
+      "sourceType": "local",
+      "skillPath": ".agents/skills/verification-loop/SKILL.md",
+      "status": "active"
+    },
+    "web-design-guidelines": {
+      "source": "./.agents/skills",
+      "sourceType": "local",
+      "skillPath": ".agents/skills/web-design-guidelines/SKILL.md",
+      "status": "active"
     },
     "wizard": {
       "source": "mattpocock/skills",
