@@ -30,7 +30,7 @@ jobs:
   # Test: Python Unit Tests
   # =========================================================================
   test:
-    name: Test (Python ${{ env.PYTHON_VERSION }})
+    name: Test (Python 3.13)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
