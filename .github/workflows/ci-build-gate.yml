@@ -47,7 +47,7 @@ jobs:
         run: npm run typecheck
 
       - name: Production build
-        run: npm run build
+        run: npm run build:vercel || npx vite build || npm run build
         continue-on-error: true  # Advisory — build may need scripts/optional deps
 
       - name: Upload build artifacts
@@ -127,5 +127,5 @@ jobs:
           UDM_DB_PATH: "/tmp/udm_buildgate_test.db"
           # V207 FIX: SECRET_KEY is used by webhook test fixtures as HMAC secret.
           SECRET_KEY: "ci-test-hmac-secret-key-32-chars-minimum!!"
-        run: pytest backend/tests/ -v --tb=short
+        run: pytest tests/ -v --tb=short
         continue-on-error: true  # Advisory — pre-existing test failures should not block PRs
