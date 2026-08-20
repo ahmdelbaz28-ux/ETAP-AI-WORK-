@@ -254,7 +254,7 @@ jobs:
 
       - name: Build for production (Vite)
         working-directory: ${{ env.UI_DIR }}
-        run: npm run build
+        run: npm run build:vercel || npx vite build || npm run build
         continue-on-error: true  # Advisory — build may fail with --ignore-scripts/--no-optional
 
       - name: Verify dist output

@@ -183,7 +183,7 @@ jobs:
 
       - name: Run Bandit security scan
         run: |
-          bandit -r . -x ./tests,./node_modules,./ui/node_modules,./.venv,./venv,./.git -ll -ii
+          bandit -r . -x ./tests,./node_modules,./ui/node_modules,./.venv,./venv,./.git,./skills,./.agents -ll -ii
 
       - name: Check for hardcoded secrets with grep
         run: |

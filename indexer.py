@@ -171,7 +171,7 @@ def file_hash(path: Path) -> str:
     """
     try:
         content = path.read_bytes()
-        return hashlib.md5(content).hexdigest()[:12]  # nosec B324 — non-security cache key
+        return hashlib.sha256(content).hexdigest()[:12]
     except Exception:
         return "error"
 

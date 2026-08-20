@@ -26,7 +26,11 @@ UTC = timezone.utc  # noqa: UP017
 from fastapi import Query, WebSocket, WebSocketDisconnect
 from starlette.websockets import WebSocketState
 
-from api.environment import auth_disabled_allowed
+from api.environment import (
+    auth_disabled_allowed,
+    is_dev_environment,
+    is_production_environment,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -399,15 +403,108 @@ def _validate_ws_token(token: str) -> bool:
         return False
 
 
+
+_DEFAULT_DEV_ORIGINS = {
+    "http://localhost",
+    "http://127.0.0.1",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+    "http://localhost:7860",
+    "http://127.0.0.1:7860",
+    "http://testserver",
+    "https://testserver",
+}
+
+
+def _is_local_dev_origin(origin: str) -> bool:
+    """Check if an origin is a standard local development/testing origin."""
+    if origin in _DEFAULT_DEV_ORIGINS:
+        return True
+    from urllib.parse import urlparse
+
+    try:
+        parsed = urlparse(origin)
+        if parsed.scheme in ("http", "https") and parsed.hostname in (
+            "localhost",
+            "127.0.0.1",
+            "testserver",
+        ):
+            return True
+    except Exception:
+        pass
+    return False
+
+
+def _validate_origin(websocket: WebSocket) -> bool:
+    """Validate WebSocket Origin header against configured CORS origins.
+
+    Security properties:
+    - Exact match only against configured ENGINEERING_SERVICE_CORS_ORIGINS.
+    - Wildcard '*' is NEVER treated as a trusted origin.
+    - Fail-closed: in production/staging, missing Origin or empty allowlist rejects.
+    - Development/test: permits documented local development/testing origins
+      (localhost, 127.0.0.1, testserver), but arbitrary third-party origins
+      remain rejected.
+    """
+    import os
+
+    origin = websocket.headers.get("origin")
+    allowed_origins_env = os.environ.get("ENGINEERING_SERVICE_CORS_ORIGINS", "").strip()
+    # Exact matches only; discard any wildcard '*' or whitespace-only entries
+    allowed = [o.strip() for o in allowed_origins_env.split(",") if o.strip() and o.strip() != "*"]
+
+    if origin:
+        if allowed:
+            if origin in allowed:
+                return True
+            logger.warning("WS origin rejected: %s not in allowed origins", origin)
+            return False
+
+        # No explicit allowlist configured
+        if is_production_environment():
+            logger.warning(
+                "WS origin rejected: origin %s provided but CORS origins not configured in production",
+                origin,
+            )
+            return False
+
+        # In dev/test without explicit allowlist: permit ONLY documented local dev/test origins
+        if is_dev_environment() and _is_local_dev_origin(origin):
+            return True
+
+        logger.warning("WS origin rejected in dev: untrusted non-local origin %s", origin)
+        return False
+
+    # Missing Origin header
+    if is_production_environment():
+        logger.warning("WS origin rejected: missing Origin header in production environment")
+        return False
+
+    # In dev/test, permit missing Origin for non-browser/test clients
+    return bool(is_dev_environment())
+
+
 async def scada_websocket_endpoint(
     websocket: WebSocket,
     token: str = Query(default="", description="JWT access token or API key for authentication"),
 ) -> None:
     """WebSocket endpoint for real-time SCADA data.
 
-    SECURITY (S-03): Requires authentication via query parameter:
-      ws://host/ws/scada?token=<jwt_access_token>
+    SECURITY (RSK-02 & S-03):
+      1. Origin validation: reject untrusted browser origins with code 1008
+      2. Authentication: requires valid JWT access token or API key
+         ws://host/ws/scada?token=<jwt_access_token>
     """
+    # SECURITY (RSK-02): Validate Origin before authentication or connection acceptance
+    if not _validate_origin(websocket):
+        await websocket.close(code=1008, reason="Origin not allowed")
+        logger.warning("WebSocket connection rejected: unauthorized origin")
+        return
+
     # SECURITY: Validate token before accepting connection
     if not _validate_ws_token(token):
         await websocket.close(

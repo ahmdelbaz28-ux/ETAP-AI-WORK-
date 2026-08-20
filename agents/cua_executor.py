@@ -27,6 +27,7 @@ from __future__ import annotations
 
 import logging
 import os
+import sys
 import time
 import uuid
 from datetime import datetime, timezone
@@ -38,6 +39,7 @@ except ImportError:
 
 from agents.cua_base_executor import (
     DEFAULT_ACTION_TIMEOUT,
+    DEFAULT_MAX_STEPS,
     BaseCUAExecutor,
     CUAAction,
     CUAExecutionResult,
@@ -53,7 +55,9 @@ logger = logging.getLogger("agent.cua_executor")
 
 
 def _import_pyautogui():
-    """Lazily import pyautogui; return None on headless / missing."""
+    """Lazily import pyautogui; return None on non-Windows / headless / missing."""
+    if sys.platform != "win32":
+        return None
     try:
         import pyautogui
 
@@ -104,6 +108,18 @@ class CUAExecutor(BaseCUAExecutor):
 
     def check_dependencies(self) -> dict:
         """Check all deps required for real CUA execution."""
+        if sys.platform != "win32":
+            return {
+                "all_available": False,
+                "error": "UNSUPPORTED_PLATFORM",
+                "message": "CUA desktop automation requires a Windows worker node.",
+                "missing": ["windows_platform"],
+                "pyautogui": False,
+                "pytesseract": False,
+                "tesseract_binary": False,
+                "gemini_vision": False,
+            }
+
         self._pyautogui = self._pyautogui or _import_pyautogui()
         self._pytesseract = self._pytesseract or _import_pytesseract()
 
@@ -139,11 +155,46 @@ class CUAExecutor(BaseCUAExecutor):
             ],
         }
 
+    # ─── Loop execution with platform preflight ───────────────────────────
+
+    def execute_loop(
+        self,
+        objective: str,
+        max_steps: int = DEFAULT_MAX_STEPS,
+        require_confirmation: bool = True,
+        on_confirmation_request=None,
+        context: str | None = None,
+        mode: str = "control",
+    ) -> CUAExecutionResult:
+        """Run the desktop CUA loop on Windows.
+
+        On non-Windows platforms, immediately fails with a structured
+        UNSUPPORTED_PLATFORM result without attempting any desktop automation.
+        """
+        if sys.platform != "win32":
+            logger.warning(
+                "CUA desktop automation invoked on unsupported platform: %s (Windows required)",
+                sys.platform,
+            )
+            return CUAExecutionResult(
+                success=False,
+                aborted_reason="UNSUPPORTED_PLATFORM: CUA desktop automation requires a Windows worker node.",
+            )
+
+        return super().execute_loop(
+            objective=objective,
+            max_steps=max_steps,
+            require_confirmation=require_confirmation,
+            on_confirmation_request=on_confirmation_request,
+            context=context,
+            mode=mode,
+        )
+
     # ─── Platform-specific hooks ──────────────────────────────────────────
 
     def _capture_screenshot_hook(self, step_num: int, phase: str, **kwargs) -> str | None:
         """Capture a screenshot via pyautogui and save to audit dir."""
-        if not self._pyautogui:
+        if sys.platform != "win32" or not self._pyautogui:
             return None
         try:
             filename = f"step{step_num:03d}_{phase}_{uuid.uuid4().hex[:8]}.png"
@@ -218,6 +269,8 @@ class CUAExecutor(BaseCUAExecutor):
 
     def _execute_action_hook(self, action: CUAAction, **kwargs) -> str | None:
         """Execute a single pyautogui action. Returns error string or None."""
+        if sys.platform != "win32":
+            return "UNSUPPORTED_PLATFORM: CUA desktop automation requires a Windows worker node."
         if not self._pyautogui:
             return "pyautogui not available"
         try:
@@ -282,6 +335,8 @@ def ocr_screenshot(image_path: str) -> str:
 
     Used as a fallback when Gemini Vision is unavailable.
     """
+    if sys.platform != "win32":
+        return ""
     pytesseract = _import_pytesseract()
     if not pytesseract:
         return ""
