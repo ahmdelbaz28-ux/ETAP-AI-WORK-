@@ -246,15 +246,21 @@ To run ETAP-dependent studies, deploy on **Windows with pywin32 and ETAP 2021+**
 
 **Never set `ETAP_PROVIDER=mock` in production** — this returns hardcoded demo values (Bus1=1.05 pu, Bus2=0.98 pu) that do **not** represent your system.
 
----
-
 ## 🚀 Quick Start
 
-### Prerequisites
+### 🧙 Interactive Setup Wizard (Recommended)
 
-- **Node.js 22+** (for the UI) — see `.nvmrc`
-- **Python 3.12+** (for the backend) — see `.python-version`
-- **Docker 24+** (optional, for full-stack local dev) — see `docker-compose.yml`
+To configure, verify, and generate your `.env` file with live cloud credentials (Neo4j Aura, Supabase, Langfuse, GitHub, Hugging Face, Resend) in under 2 minutes:
+
+```bash
+# Run the interactive bash setup wizard
+bash scripts/setup_wizard.sh
+
+# Or run the live automated service verification check directly
+python scripts/verify_services.py
+```
+
+---
 
 ### Run the UI locally
 
