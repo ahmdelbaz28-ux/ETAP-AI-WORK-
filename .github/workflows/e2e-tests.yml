@@ -16,13 +16,19 @@ jobs:
       - name: Build and test Docker image locally
         run: |
           echo "Building HF Space Docker image..."
-          docker build -t etap-hf-test ./hf-space/
+          docker build -t etap-hf-test -f Dockerfile .
           
           echo "Starting container..."
           docker run -d --name etap-test -p 7860:7860 etap-hf-test
           
           echo "Waiting for startup..."
-          sleep 10
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:7860/healthz > /dev/null 2>&1; then
+              echo "Container ready after ${i}s"
+              break
+            fi
+            sleep 2
+          done
           
           # Test health endpoint
           echo "Testing /healthz..."
