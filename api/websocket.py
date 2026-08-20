@@ -19,7 +19,7 @@ import json
 import logging
 import time
 from datetime import datetime, timezone
-from typing import Dict, List
+from typing import Any, List
 
 UTC = timezone.utc  # noqa: UP017
 
