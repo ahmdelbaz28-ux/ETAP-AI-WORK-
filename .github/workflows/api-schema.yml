@@ -62,8 +62,8 @@ jobs:
       - name: Install minimal dependencies
         run: |
           pip install --upgrade pip
-          # Install only what's needed to import the app
-          pip install fastapi uvicorn pydantic starlette
+          # Install dependencies required to import hf-space/app.py
+          pip install -r hf-space/requirements.hf.txt
 
       - name: Generate OpenAPI schema from hf-space/app.py
         run: |
