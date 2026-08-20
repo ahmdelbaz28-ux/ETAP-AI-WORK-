@@ -36,10 +36,8 @@ jobs:
           # No pip cache — using uv for installation
 
       - name: Install linting tools
-        # ruff >=0.7.0 added UP045/UP047 rule selectors referenced in ruff.toml;
-        # ruff 0.6.9 doesn't recognize them and fails at config parse time.
-        # Use specific version of ruff which supports all selectors in ruff.toml.
-        run: "pip install --only-binary :all: ruff==0.7.0 mypy==1.11.0"
+        # ruff >=0.8.0 added full support for [lint] table and all rule selectors in ruff.toml.
+        run: "pip install --only-binary :all: ruff>=0.8.4 mypy==1.11.0"
 
       - name: Install pre-commit hooks
         run: "pip install --only-binary :all: pre-commit==4.0.1 && pre-commit install --hook-type pre-commit --hook-type pre-push"

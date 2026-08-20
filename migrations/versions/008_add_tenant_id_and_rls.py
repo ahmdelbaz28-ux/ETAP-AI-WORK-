@@ -42,8 +42,8 @@ from alembic import op
 # Revision identifiers
 # ---------------------------------------------------------------------------
 
-revision = "006"
-down_revision = "005"
+revision = "008_add_tenant_id_and_rls"
+down_revision = "007_fix_study_results_and_orm_tables"
 branch_labels = None
 depends_on = None
 

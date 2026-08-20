@@ -8,7 +8,7 @@
 # CPython 3.12 manylinux wheels.
 
 # Core numerical and scientific computing
-numpy~=1.26.4
+numpy>=1.26.0,<2.3.0
 scipy~=1.14.1
 pandas~=2.2.3
 

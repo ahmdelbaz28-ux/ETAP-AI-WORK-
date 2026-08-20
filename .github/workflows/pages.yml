@@ -21,6 +21,8 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    outputs:
+      pages_enabled: ${{ steps.pages-check.outputs.pages_enabled }}
     steps:
       - uses: actions/checkout@v4
       - name: Check if Pages is enabled
@@ -52,7 +54,7 @@ jobs:
           path: _site
 
   deploy:
-    if: needs.build.result == 'success'
+    if: needs.build.outputs.pages_enabled == 'true'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
