@@ -11,6 +11,7 @@
     "test:watch": "vitest",
     "lint": "tsc --noEmit",
     "lint:ci": "tsc --noEmit && vitest run",
+    "skills:install": "pwsh -File ./scripts/install_skills.ps1",
     "test:scenarios": "vitest run --config vitest.scenarios.config.ts"
   },
   "keywords": [

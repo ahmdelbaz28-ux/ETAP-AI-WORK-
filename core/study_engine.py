@@ -29,12 +29,13 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Optional
+
 import numpy as np
 
 logger = logging.getLogger(__name__)
 
 
-class StudyStatus(str, Enum):
+class StudyStatus(str, Enum):  # noqa: UP042
     COMPLETED = "completed"
     FAILED = "failed"
     DRY_RUN = "dry_run"
@@ -44,6 +45,7 @@ class StudyStatus(str, Enum):
 @dataclass
 class StudyResult:
     """Standardized result returned by StudyEngine."""
+
     study_type: str
     status: StudyStatus
     success: bool
@@ -173,12 +175,15 @@ class StudyEngine:
     async def _run_load_flow(self, parameters: dict[str, Any]) -> tuple[dict[str, Any], list[str]]:
         """Execute Newton-Raphson Load Flow."""
         from load_flow.load_flow import LoadFlowSolver
+
         system_data = parameters.get("system")
         if not system_data:
             raise ValueError("Parameter 'system' is required for load flow analysis")
 
         if isinstance(system_data, dict):
-            raise TypeError("Parameter 'system' must be a valid System instance, not a raw dictionary.")
+            raise TypeError(
+                "Parameter 'system' must be a valid System instance, not a raw dictionary."
+            )
 
         solver = LoadFlowSolver(system_data)
         max_iter = int(parameters.get("max_iterations", 100))
@@ -202,7 +207,9 @@ class StudyEngine:
             "bus_results": bus_results,
         }, warnings
 
-    async def _run_short_circuit(self, parameters: dict[str, Any]) -> tuple[dict[str, Any], list[str]]:
+    async def _run_short_circuit(
+        self, parameters: dict[str, Any]
+    ) -> tuple[dict[str, Any], list[str]]:
         """Execute IEC 60909 Fault Analysis."""
         fault_type = parameters.get("fault_type", "3phase")
         fault_bus = parameters.get("fault_bus", "BUS_1")
@@ -211,6 +218,7 @@ class StudyEngine:
 
         if system_data and hasattr(system_data, "ybus_pos"):
             from fault_analysis.fault import FaultAnalyzer
+
             analyzer = FaultAnalyzer(
                 ybus_pos=system_data.ybus_pos,
                 ybus_neg=getattr(system_data, "ybus_neg", None),
@@ -250,8 +258,10 @@ class StudyEngine:
         working_distance_mm = float(parameters.get("working_distance_mm", 457.2))  # 18 inches
 
         # Simplified IEEE 1584 formulation
-        incident_energy_cal_cm2 = (4.184 * fault_current_ka * clearing_time_s * 1000) / (working_distance_mm ** 1.2)
-        
+        incident_energy_cal_cm2 = (4.184 * fault_current_ka * clearing_time_s * 1000) / (
+            working_distance_mm**1.2
+        )
+
         if incident_energy_cal_cm2 <= 1.2:
             ppe_category = "Category 1"
         elif incident_energy_cal_cm2 <= 8.0:
@@ -273,21 +283,26 @@ class StudyEngine:
             "standard": "IEEE 1584-2018",
         }, []
 
-    async def _run_cable_sizing(self, parameters: dict[str, Any]) -> tuple[dict[str, Any], list[str]]:
+    async def _run_cable_sizing(
+        self, parameters: dict[str, Any]
+    ) -> tuple[dict[str, Any], list[str]]:
         """Calculate IEC 60364 ampacity and voltage drop sizing."""
         load_current_a = float(parameters.get("load_current_a", 100.0))
         length_m = float(parameters.get("length_m", 50.0))
         voltage_v = float(parameters.get("voltage_v", 400.0))
-        power_factor = float(parameters.get("power_factor", 0.85))
 
         # Size selection
         sizes = [16, 25, 35, 50, 70, 95, 120, 150, 185, 240, 300]
         selected_size = next((s for s in sizes if s * 3.2 > load_current_a * 1.25), 300)
-        voltage_drop_pct = (load_current_a * length_m * 0.018) / (selected_size * (voltage_v / 1.732)) * 100
+        voltage_drop_pct = (
+            (load_current_a * length_m * 0.018) / (selected_size * (voltage_v / 1.732)) * 100
+        )
 
         warnings = []
         if voltage_drop_pct > 3.0:
-            warnings.append(f"Voltage drop {voltage_drop_pct:.2f}% exceeds standard 3.0% limit for lighting/power")
+            warnings.append(
+                f"Voltage drop {voltage_drop_pct:.2f}% exceeds standard 3.0% limit for lighting/power"
+            )
 
         return {
             "selected_cross_section_mm2": selected_size,
@@ -296,15 +311,20 @@ class StudyEngine:
             "compliance_iec60364": voltage_drop_pct <= 4.0,
         }, warnings
 
-    async def _run_etap_expert(self, parameters: dict[str, Any]) -> tuple[dict[str, Any], list[str]]:
+    async def _run_etap_expert(
+        self, parameters: dict[str, Any]
+    ) -> tuple[dict[str, Any], list[str]]:
         """Execute ETAP Expert Skill Engine."""
         from agents.etap_expert_agent import ETAPExpertAgent
+
         agent = ETAPExpertAgent()
         query = parameters.get("query", parameters.get("input", ""))
         response = agent.run(query)
         return {"response": response, "format": getattr(agent, "last_format", "A")}, []
 
-    async def _run_generic_study(self, study_type: str, parameters: dict[str, Any]) -> tuple[dict[str, Any], list[str]]:
+    async def _run_generic_study(
+        self, study_type: str, parameters: dict[str, Any]
+    ) -> tuple[dict[str, Any], list[str]]:
         """Generic study handler for auxiliary analyses."""
         return {
             "study_type": study_type,

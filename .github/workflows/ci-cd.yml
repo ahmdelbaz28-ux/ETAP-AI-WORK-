@@ -173,7 +173,7 @@ jobs:
         # (which runs the full test suite with --cov). If the artifact is not
         # available (e.g. python-tests was skipped), fall back to generating a
         # lightweight coverage report locally.
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093  # v4
+        uses: actions/download-artifact@v4
         with:
           name: coverage-report
           path: .
@@ -277,11 +277,11 @@ jobs:
       - name: Start Vite dev server
         working-directory: ui
         run: |
-          # Local vite devDependency (6.4.3)  no npx download (SonarCloud S6505)
-          ./node_modules/.bin/vite --port 5173 &
+          # Local vite devDependency (6.4.3) — no npx download (SonarCloud S6505)
+          ./node_modules/.bin/vite --port 5173 --host 127.0.0.1 &
           echo "PID=$!"
           for i in $(seq 1 30); do
-            if curl -s http://localhost:5173 > /dev/null 2>&1; then
+            if curl -s http://127.0.0.1:5173 > /dev/null 2>&1; then
               echo " Vite ready after ${i}s"
               break
             fi
@@ -290,10 +290,12 @@ jobs:
 
       - name: Run Playwright E2E tests
         working-directory: ui
+        env:
+          PLAYWRIGHT_DEV_HOST: '127.0.0.1'
         run: ./node_modules/.bin/playwright test --config=playwright.config.ts
 
       - name: Upload Playwright screenshots (on failure)
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
+        uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: playwright-screenshots-${{ github.sha }}
@@ -406,7 +408,7 @@ jobs:
           fail_ci_if_error: false
 
       - name: Upload coverage artifact for SonarCloud
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: coverage-report
@@ -630,7 +632,7 @@ jobs:
             --summary-export=load-test-results/k6/ci-summary.json
 
       - name: Upload k6 results
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: k6-load-test-results-${{ github.sha }}
@@ -670,7 +672,7 @@ jobs:
         run: npm run build
 
       - name: Upload UI build artifacts
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
+        uses: actions/upload-artifact@v4
         with:
           name: ui-dist-${{ github.sha }}
           path: ui/dist/
@@ -694,7 +696,7 @@ jobs:
         # `COPY ui-dist/ /app/ui-dist/`). The build-ui job produces this as
         # an artifact (ui/dist/ uploaded as ui-dist-<sha>). We must download
         # it into ui-dist/ at the repo root so Docker can find it.
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093  # v4
+        uses: actions/download-artifact@v4
         with:
           name: ui-dist-${{ github.sha }}
           path: ui-dist
@@ -820,7 +822,7 @@ jobs:
           output: 'sbom.json'
 
       - name: Upload SBOM artifact
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
+        uses: actions/upload-artifact@v4
         with:
           name: sbom-${{ github.sha }}
           path: sbom.json

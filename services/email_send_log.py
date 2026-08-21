@@ -21,16 +21,14 @@ Author: ETAP Integration Team
 
 from __future__ import annotations
 
-import asyncio
 import logging
 import os
+import threading
 from collections import deque
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 
 UTC = timezone.utc  # noqa: UP017
-
-import threading
 
 logger = logging.getLogger("etap.email_send_log")
 

@@ -7,6 +7,12 @@
       "skillPath": ".agents/skills/agent-architecture-audit/SKILL.md",
       "status": "active"
     },
+    "agent-browser": {
+      "source": "vercel-labs/agent-browser",
+      "sourceType": "github",
+      "skillPath": "skills/agent-browser/SKILL.md",
+      "computedHash": "a674b7d81066e3cc471a7512ddb4ae724418cbfefa75cbb050b0dc430e4d57a0"
+    },
     "ahmed-etap": {
       "source": "./local",
       "sourceType": "local",
@@ -31,10 +37,10 @@
       "status": "active"
     },
     "brainstorming": {
-      "source": "./.agents/skills",
-      "sourceType": "local",
-      "skillPath": ".agents/skills/brainstorming/SKILL.md",
-      "status": "active"
+      "source": "obra/superpowers",
+      "sourceType": "github",
+      "skillPath": "skills/brainstorming/SKILL.md",
+      "computedHash": "0eb8e9ba100985eb4da20c46807268cafd72ec1c4ea58132edf9be6c469867fe"
     },
     "caveman": {
       "source": "juliusbrussee/caveman",
@@ -83,6 +89,12 @@
       "sourceType": "local",
       "skillPath": ".agents/skills/debugging-wizard/SKILL.md",
       "status": "active"
+    },
+    "diagnosing-bugs": {
+      "source": "mattpocock/skills",
+      "sourceType": "github",
+      "skillPath": "skills/engineering/diagnosing-bugs/SKILL.md",
+      "computedHash": "dcaaa3eb81195329f65f27574d9a67dc776160dd2e4d7798d1afb1e4a5f3695a"
     },
     "documentation-and-adrs": {
       "source": "./.agents/skills",
@@ -144,6 +156,12 @@
       "skillPath": ".agents/skills/fix-dependabot/SKILL.md",
       "status": "active"
     },
+    "frontend-design": {
+      "source": "anthropics/skills",
+      "sourceType": "github",
+      "skillPath": "skills/frontend-design/SKILL.md",
+      "computedHash": "93f53fd1c0352d3d7ec17b8f73d7351bf76f4821e55d123c9d2abc2c53ba48e4"
+    },
     "git-commit": {
       "source": "github/awesome-copilot",
       "sourceType": "github",
@@ -156,11 +174,17 @@
       "skillPath": ".agents/skills/grilling/SKILL.md",
       "status": "active"
     },
+    "handoff": {
+      "source": "mattpocock/skills",
+      "sourceType": "github",
+      "skillPath": "skills/productivity/handoff/SKILL.md",
+      "computedHash": "9ea2a5de5ca2d717f913356de982fdc4fe27d28a300c16598cd43a4865491008"
+    },
     "improve-codebase-architecture": {
-      "source": "./.agents/skills",
-      "sourceType": "local",
-      "skillPath": ".agents/skills/improve-codebase-architecture/SKILL.md",
-      "status": "active"
+      "source": "mattpocock/skills",
+      "sourceType": "github",
+      "skillPath": "skills/engineering/improve-codebase-architecture/SKILL.md",
+      "computedHash": "016f12709bff30a27419e8add978a9be70f5ca1fb6738b3be6793038e0aba631"
     },
     "lint": {
       "source": "./.agents/skills",
@@ -209,6 +233,12 @@
       "sourceType": "github",
       "skillPath": "skills/production-audit/SKILL.md",
       "computedHash": "3c38cf12fdb504f6ce53fa9d33f4f0fff1aee3df8e96fbb4fdb76831b5fd51ce"
+    },
+    "prototype": {
+      "source": "mattpocock/skills",
+      "sourceType": "github",
+      "skillPath": "skills/engineering/prototype/SKILL.md",
+      "computedHash": "62979fe039ef64407b258f8824db41b9185f788638747df803032df4153c2aae"
     },
     "rag-blueprint": {
       "source": "NVIDIA/skills",
@@ -271,6 +301,12 @@
       "skillPath": "plugins/security-scanning/skills/security-requirement-extraction/SKILL.md",
       "computedHash": "70e17a537800fc5fa01925317093a436edbb98986aaff090ec6ee0cfced9b9fc"
     },
+    "setup-matt-pocock-skills": {
+      "source": "mattpocock/skills",
+      "sourceType": "github",
+      "skillPath": "skills/engineering/setup-matt-pocock-skills/SKILL.md",
+      "computedHash": "a45163cba56f72f5f224c46557c047d51547147a29e383e5a769ec39eecd1188"
+    },
     "setup-pre-commit": {
       "source": "./.agents/skills",
       "sourceType": "local",
@@ -295,11 +331,23 @@
       "skillPath": "skills/systematic-debugging/SKILL.md",
       "computedHash": "a2750dfbaed1690da73b120254892c4f926b4576cb82eb16fc877783941fe39b"
     },
+    "tdd": {
+      "source": "mattpocock/skills",
+      "sourceType": "github",
+      "skillPath": "skills/engineering/tdd/SKILL.md",
+      "computedHash": "c1ed8cd854c64d4d226097255d3fa662dae4a758a1462fadd63cc10e413d88d7"
+    },
     "test-engineer": {
       "source": "./.agents/skills",
       "sourceType": "local",
       "skillPath": ".agents/skills/test-engineer/SKILL.md",
       "status": "active"
+    },
+    "triage": {
+      "source": "mattpocock/skills",
+      "sourceType": "github",
+      "skillPath": "skills/engineering/triage/SKILL.md",
+      "computedHash": "363ca4f1b97ca5227d41d3973178ab301d7c498ba41b466dfe30b6163f6d72b5"
     },
     "ui-ux-pro-max": {
       "source": "nextlevelbuilder/ui-ux-pro-max-skill",
@@ -312,6 +360,12 @@
       "sourceType": "github",
       "skillPath": "skills/using-superpowers/SKILL.md",
       "computedHash": "c7abe8bdc2099bbe4f245454d32c7563ccd2bb41dcc218b02b461c2acc3c6ae6"
+    },
+    "vercel-react-best-practices": {
+      "source": "vercel-labs/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/react-best-practices/SKILL.md",
+      "computedHash": "ca7b0c0c6e5f2750043f7f0cd72d16ac4e2abc48f9b5500d047a4b77a2506212"
     },
     "verification-loop": {
       "source": "./.agents/skills",

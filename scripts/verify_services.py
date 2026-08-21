@@ -160,7 +160,9 @@ def _check_supabase() -> None:
         if r.status_code in (200, 404):
             ok(f"REST endpoint: {r.status_code}")
             # Check users table
-            r_users = httpx.get(f"{sb_url}/rest/v1/users?select=*&limit=10", headers=sb_headers, timeout=10)
+            r_users = httpx.get(
+                f"{sb_url}/rest/v1/users?select=*&limit=10", headers=sb_headers, timeout=10
+            )
             if r_users.status_code == 200:
                 users = r_users.json()
                 ok(f"users table: {len(users)} row(s)")
@@ -171,7 +173,7 @@ def _check_supabase() -> None:
     except Exception as e:
         err = str(e)
         if "getaddrinfo" in err or "Name or service not known" in err:
-            warn(f"Supabase project DNS inactive/paused — restore at https://supabase.com/dashboard")
+            warn("Supabase project DNS inactive/paused — restore at https://supabase.com/dashboard")
         else:
             fail(f"REST failed: {err[:150]}")
 
@@ -190,9 +192,7 @@ def _check_neo4j() -> None:
     try:
         from neo4j import GraphDatabase
 
-        driver = GraphDatabase.driver(
-            neo4j_uri, auth=(neo4j_user, neo4j_pwd), connection_timeout=5
-        )
+        driver = GraphDatabase.driver(neo4j_uri, auth=(neo4j_user, neo4j_pwd), connection_timeout=5)
         with driver.session() as session:
             result = session.run("RETURN 1 AS ok").single()
             if result and result["ok"] == 1:
@@ -205,7 +205,7 @@ def _check_neo4j() -> None:
     except Exception as e:
         err = str(e)
         if "Connection refused" in err or "10061" in err or "localhost" in neo4j_uri:
-            warn(f"Local Neo4j daemon not running (optional — in-memory NetworkX active)")
+            warn("Local Neo4j daemon not running (optional — in-memory NetworkX active)")
         elif "DNS" in err or "Name or service not known" in err:
             warn(f"Neo4j cloud URI pending configuration: {neo4j_uri[:60]}")
         else:
@@ -286,7 +286,6 @@ def _check_hf_space() -> None:
         fail(f"/api/v1/agents failed: {e}")
 
 
-
 def _check_github_repo() -> None:
     """Verify GitHub repo access and CI runs."""
     print(f"\n{R.BOLD}--- GitHub Repo ---{R.END}")
@@ -352,9 +351,7 @@ def _check_sonarcloud() -> None:
     """Verify SonarCloud project status."""
     print(f"\n{R.BOLD}--- SonarCloud ---{R.END}")
     sonar_token = os.environ.get("SONAR_TOKEN", "")
-    sonar_org = os.environ.get("SONAR_ORGANIZATION", "ahmdelbaz28-ux")
     sonar_proj = os.environ.get("SONAR_PROJECT_KEY", "ahmdelbaz28-ux_ETAP-AI-WORK-")
-
 
     if not sonar_token:
         warn("SONAR_TOKEN not set")
@@ -374,7 +371,9 @@ def _check_sonarcloud() -> None:
             main_branch = next((b for b in branches if b.get("isMain")), None)
             if main_branch:
                 status = main_branch.get("status", {})
-                ok(f"SonarCloud connected: QualityGate={status.get('qualityGateStatus')}, Bugs={status.get('bugs')}, Vulnerabilities={status.get('vulnerabilities')}")
+                ok(
+                    f"SonarCloud connected: QualityGate={status.get('qualityGateStatus')}, Bugs={status.get('bugs')}, Vulnerabilities={status.get('vulnerabilities')}"
+                )
             else:
                 ok(f"SonarCloud connected ({len(branches)} branches)")
         else:
@@ -478,4 +477,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
