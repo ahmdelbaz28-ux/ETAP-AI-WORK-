@@ -250,12 +250,11 @@ jobs:
 
       - name: Install UI dependencies
         working-directory: ${{ env.UI_DIR }}
-        run: npm install --ignore-scripts --no-optional --no-audit --no-fund
+        run: npm ci --ignore-scripts --include=optional
 
       - name: Build for production (Vite)
         working-directory: ${{ env.UI_DIR }}
-        run: npm run build:vercel || npx vite build || npm run build
-        continue-on-error: true  # Advisory — build may fail with --ignore-scripts/--no-optional
+        run: npm run build:vercel || npm run build
 
       - name: Verify dist output
         working-directory: ${{ env.UI_DIR }}

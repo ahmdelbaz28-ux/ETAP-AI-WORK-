@@ -114,7 +114,7 @@ jobs:
         run: |
           pip install --upgrade pip==25.0.1 --only-binary :all:
           pip install --only-binary :all: --requirement requirements.txt  # S8541/S8544: --only-binary prevents source-build setup.py execution; --requirement loads pinned versions from requirements.txt lock file
-          pip install --only-binary :all: pytest==8.3.5 pytest-asyncio==0.25.3 pytest-timeout==2.3.1 httpx==0.28.1
+          pip install --only-binary :all: pytest==8.3.5 pytest-asyncio==0.25.3 pytest-timeout==2.3.1 httpx==0.28.1 aiosqlite>=0.19.0 asyncpg>=0.29.0 "sqlalchemy[asyncio]>=2.0.0" alembic>=1.13.0
 
       - name: Apply database migrations
         run: |
@@ -194,7 +194,7 @@ jobs:
         run: |
           pip install --upgrade pip==25.0.1 --only-binary :all:
           pip install --only-binary :all: --requirement requirements.txt  # S8541/S8544: --only-binary prevents source-build setup.py execution; --requirement loads pinned versions from requirements.txt lock file
-          pip install --only-binary :all: pytest==8.3.5 pytest-asyncio==0.25.3 pytest-timeout==2.3.1 httpx==0.28.1
+          pip install --only-binary :all: pytest==8.3.5 pytest-asyncio==0.25.3 pytest-timeout==2.3.1 httpx==0.28.1 aiosqlite>=0.19.0 asyncpg>=0.29.0 "sqlalchemy[asyncio]>=2.0.0" alembic>=1.13.0
 
       - name: Apply migrations
         run: alembic upgrade head || echo "Migrations skipped (may not be configured for SQLite)"
@@ -302,7 +302,7 @@ jobs:
         run: |
           pip install --upgrade pip==25.0.1 --only-binary :all:
           pip install --only-binary :all: --requirement requirements.txt  # S8541/S8544: --only-binary prevents source-build setup.py execution; --requirement loads pinned versions from requirements.txt lock file
-          pip install --only-binary :all: pytest==8.3.5 pytest-asyncio==0.25.3 pytest-timeout==2.3.1 httpx==0.28.1
+          pip install --only-binary :all: pytest==8.3.5 pytest-asyncio==0.25.3 pytest-timeout==2.3.1 httpx==0.28.1 aiosqlite>=0.19.0 asyncpg>=0.29.0 "sqlalchemy[asyncio]>=2.0.0" alembic>=1.13.0
 
       - name: Run agent integration tests
         run: |
