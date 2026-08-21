@@ -27,10 +27,9 @@ export function Toggle({
   // outer element to a <div role="group"> preserves grouping semantics
   // without an a11y regression.
   return (
-    <div
-      role="group"
+    <fieldset
       className={cn(
-        "flex items-center gap-3 cursor-pointer group",
+        "flex items-center gap-3 cursor-pointer group border-0 p-0 m-0",
         disabled && "opacity-50 cursor-not-allowed",
       )}
     >
@@ -65,6 +64,6 @@ export function Toggle({
           {description && <p className="text-xs text-[var(--text-muted)] mt-0.5">{description}</p>}
         </div>
       )}
-    </div>
+    </fieldset>
   );
 }

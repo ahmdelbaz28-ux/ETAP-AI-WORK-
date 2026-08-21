@@ -183,7 +183,7 @@ export default function Login() {
         setLoading(false);
       }
     },
-    [email, password, login, notify, t, i18n, searchParams, navigate, appendLog],
+    [email, password, login, notify, t, i18n, searchParams, navigate, appendLog, forgotOpen],
   );
 
   const handleForgotPassword = useCallback(

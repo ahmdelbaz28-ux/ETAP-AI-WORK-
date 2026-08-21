@@ -631,6 +631,8 @@ export default function ZIPLoadEditorDialog({
             ) : (
               <div className="max-h-48 overflow-y-auto space-y-2 pr-1">
                 {loads.map((load) => (
+                  // Intentional div with role=button: contains a nested <button> for delete.
+                  // HTML forbids <button> inside <button>, so we use div+role+keyboard handler.
                   <div
                     key={load.id}
                     className={cn(
@@ -640,6 +642,14 @@ export default function ZIPLoadEditorDialog({
                         : "bg-[var(--bg-primary)] border-[var(--border-primary)] hover:border-brand-500/30",
                     )}
                     onClick={() => handleSelectLoad(load)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        handleSelectLoad(load);
+                      }
+                    }}
+                    role="button"
+                    tabIndex={0}
                   >
                     <div>
                       <p className="text-sm font-medium text-[var(--text-primary)]">{load.name}</p>

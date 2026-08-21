@@ -91,6 +91,7 @@ export function EngineeringWorkspace({
             {leftCollapsed ? (
               <div className="flex flex-col items-center py-2 gap-2">
                 <button
+                  type="button"
                   onClick={() => setLeftCollapsed(false)}
                   className="p-1.5 rounded-lg hover:bg-[var(--bg-elevated)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
                   title="Expand panel"
@@ -105,6 +106,7 @@ export function EngineeringWorkspace({
                     {leftTitle}
                   </span>
                   <button
+                    type="button"
                     onClick={() => setLeftCollapsed(true)}
                     className="p-1 rounded hover:bg-[var(--bg-elevated)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
                     title="Collapse panel"
@@ -161,6 +163,7 @@ export function EngineeringWorkspace({
             {rightCollapsed ? (
               <div className="flex flex-col items-center py-2 gap-2">
                 <button
+                  type="button"
                   onClick={() => setRightCollapsed(false)}
                   className="p-1.5 rounded-lg hover:bg-[var(--bg-elevated)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
                   title="Expand panel"
@@ -175,6 +178,7 @@ export function EngineeringWorkspace({
                     {rightTitle}
                   </span>
                   <button
+                    type="button"
                     onClick={() => setRightCollapsed(true)}
                     className="p-1 rounded hover:bg-[var(--bg-elevated)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
                     title="Collapse panel"

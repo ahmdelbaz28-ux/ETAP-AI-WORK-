@@ -1,13 +1,5 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { API_BASE_URL } from "../lib/api-config";
-
-// Define types for API responses
-interface ApiResponse<T> {
-  data: T;
-  error?: string;
-  success: boolean;
-}
 
 // Custom error type
 interface ApiError {
@@ -136,7 +128,11 @@ export const useApi = () => {
   const queryClient = useQueryClient();
 
   // Generic GET query hook
-  const useGet = <T>(queryKey: string[], endpoint: string, options: any = {}) => {
+  const useGet = <T>(
+    queryKey: string[],
+    endpoint: string,
+    options: Record<string, unknown> = {},
+  ) => {
     return useQuery<T, Error>({
       queryKey,
       queryFn: () => apiClient.get<T>(endpoint),
@@ -147,8 +143,12 @@ export const useApi = () => {
   };
 
   // Generic POST mutation hook
-  const usePost = <T, U = unknown>(mutationKey: string[], endpoint: string, options: any = {}) => {
-    return useMutation<ApiResponse<T>, { status: number; message: string }, U>({
+  const usePost = <T, U = unknown>(
+    mutationKey: string[],
+    endpoint: string,
+    options: Record<string, unknown> = {},
+  ) => {
+    return useMutation<T, { status: number; message: string }, U>({
       mutationKey,
       mutationFn: (data: U) => apiClient.post<T, U>(endpoint, data),
       onSuccess: () => {
@@ -160,8 +160,12 @@ export const useApi = () => {
   };
 
   // Generic PUT mutation hook
-  const usePut = <T, U = unknown>(mutationKey: string[], endpoint: string, options: any = {}) => {
-    return useMutation<ApiResponse<T>, { status: number; message: string }, U>({
+  const usePut = <T, U = unknown>(
+    mutationKey: string[],
+    endpoint: string,
+    options: Record<string, unknown> = {},
+  ) => {
+    return useMutation<T, { status: number; message: string }, U>({
       mutationKey,
       mutationFn: (data: U) => apiClient.put<T, U>(endpoint, data),
       onSuccess: () => {
@@ -172,8 +176,12 @@ export const useApi = () => {
   };
 
   // Generic DELETE mutation hook
-  const useDelete = <T>(mutationKey: string[], endpoint: string, options: any = {}) => {
-    return useMutation<ApiResponse<T>, { status: number; message: string }, void>({
+  const useDelete = <T>(
+    mutationKey: string[],
+    endpoint: string,
+    options: Record<string, unknown> = {},
+  ) => {
+    return useMutation<T, { status: number; message: string }, void>({
       mutationKey,
       mutationFn: () => apiClient.delete<T>(endpoint),
       onSuccess: () => {
@@ -184,63 +192,63 @@ export const useApi = () => {
   };
 
   // Specific hooks for common API endpoints
-  const useHealth = (options: any = {}) => {
-    return useGet<any>(["health"], "/health", {
+  const useHealth = (options: Record<string, unknown> = {}) => {
+    return useGet<unknown>(["health"], "/health", {
       refetchInterval: 30000, // Refetch every 30 seconds
       ...options,
     });
   };
 
-  const useAgents = (options: any = {}) => {
-    return useGet<any[]>(["agents"], "/api/v1/agents", {
+  const useAgents = (options: Record<string, unknown> = {}) => {
+    return useGet<unknown[]>(["agents"], "/api/v1/agents", {
       staleTime: 2 * 60 * 1000, // 2 minutes
       ...options,
     });
   };
 
-  const useStudies = (options: any = {}) => {
-    return useGet<any[]>(["studies"], "/api/v1/studies", {
+  const useStudies = (options: Record<string, unknown> = {}) => {
+    return useGet<unknown[]>(["studies"], "/api/v1/studies", {
       staleTime: 1 * 60 * 1000, // 1 minute
       ...options,
     });
   };
 
-  const useRunStudy = (options: any = {}) => {
-    return usePost<any, any>(["run-study"], "/api/v1/studies/run", {
+  const useRunStudy = (options: Record<string, unknown> = {}) => {
+    return usePost<unknown, unknown>(["run-study"], "/api/v1/studies/run", {
       retry: 1,
       ...options,
     });
   };
 
-  const useValidateSystem = (options: any = {}) => {
-    return usePost<any, any>(["validate-system"], "/api/v1/system/validate", {
+  const useValidateSystem = (options: Record<string, unknown> = {}) => {
+    return usePost<unknown, unknown>(["validate-system"], "/api/v1/system/validate", {
       ...options,
     });
   };
 
-  const useChatWithAgent = (options: any = {}) => {
-    return usePost<any, { agentId: string; message: string }>(["chat"], "/api/v1/agents/chat", {
+  const useChatWithAgent = (options: Record<string, unknown> = {}) => {
+    return usePost<unknown, { agentId: string; message: string }>(["chat"], "/api/v1/agents/chat", {
       ...options,
     });
   };
 
-  const useMetrics = (options: any = {}) => {
-    return useGet<any>(["metrics"], "/metrics", {
+  const useMetrics = (options: Record<string, unknown> = {}) => {
+    return useGet<unknown>(["metrics"], "/metrics", {
       staleTime: 10000, // 10 seconds
       ...options,
     });
   };
 
-  const useAuditLogs = (options: any = {}) => {
-    return useGet<any[]>(["audit-logs"], "/api/v1/audit", {
+  const useAuditLogs = (options: Record<string, unknown> = {}) => {
+    return useGet<unknown[]>(["audit-logs"], "/api/v1/audit", {
       staleTime: 30000, // 30 seconds
       ...options,
     });
   };
 
   // Guard-specific hooks
-  const useGuardReview = (options: any = {}) => {
-    return usePost<any, { source: string; guard_type: string; language: string }>(
+  const useGuardReview = (options: Record<string, unknown> = {}) => {
+    return usePost<unknown, { source: string; guard_type: string; language: string }>(
       ["guard-review"],
       "/api/v1/guards/review",
       {
@@ -250,8 +258,8 @@ export const useApi = () => {
     );
   };
 
-  const useGuardInfo = (options: any = {}) => {
-    return useGet<any>(["guard-info"], "/api/v1/guards/info", {
+  const useGuardInfo = (options: Record<string, unknown> = {}) => {
+    return useGet<unknown>(["guard-info"], "/api/v1/guards/info", {
       staleTime: 5 * 60 * 1000, // 5 minutes
       ...options,
     });

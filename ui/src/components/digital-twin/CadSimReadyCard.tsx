@@ -327,7 +327,7 @@ export function CadSimReadyCard() {
               <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
                 {result.nodes.map((node, i) => (
                   <div
-                    key={i}
+                    key={node.prim_path ?? `node-${i}`}
                     className="flex items-center justify-between p-2 rounded bg-[var(--bg-card)] border border-[var(--border-primary)] text-xs font-mono"
                   >
                     <div className="flex items-center space-x-2 gap-2 truncate">

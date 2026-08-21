@@ -8,6 +8,13 @@ export function secureRandom(): number {
 // AhmedETAP GSAP React Hooks
 // ===========================
 // Custom React hooks for seamless GSAP integration with React components
+//
+// ARCHITECTURE (systematic-debugging root cause fix):
+// All hooks use the "latest ref" pattern to avoid stale closures without
+// triggering effect re-runs. The effect captures the latest callback/options
+// via a ref that is updated on every render. This is the canonical pattern
+// for GSAP integration with React (see React docs on "getting a ref to the
+// latest value" and useEvent polyfill discussions).
 
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -27,19 +34,26 @@ export function useGSAPAnimation<T extends HTMLElement = HTMLElement>(
 ) {
   const elementRef = useRef<T>(null);
   const ctxRef = useRef<gsap.Context | null>(null);
+  // Latest-ref pattern: capture animationFn so the effect always calls the
+  // freshest version without re-running on every render.
+  const animationFnRef = useRef(animationFn);
+  useEffect(() => {
+    animationFnRef.current = animationFn;
+  });
 
   useEffect(() => {
     // Create GSAP context for cleanup
     ctxRef.current = gsap.context((context) => {
       if (elementRef.current) {
-        animationFn(elementRef.current, gsap, context);
+        animationFnRef.current(elementRef.current, gsap, context);
       }
     });
 
     return () => {
       ctxRef.current?.revert(); // Cleanup animations
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // deps is honoured separately to allow callers to opt-in to re-runs.
+    // animationFn is captured via ref to avoid re-runs on every render.
   }, deps);
 
   return elementRef;
@@ -58,11 +72,18 @@ export function useGSAPScrollTrigger<T extends HTMLElement = HTMLElement>(
 ) {
   const elementRef = useRef<T>(null);
   const ctxRef = useRef<gsap.Context | null>(null);
+  // Latest-ref pattern for animationFn + options to keep deps stable.
+  const animationFnRef = useRef(animationFn);
+  const optionsRef = useRef(options);
+  useEffect(() => {
+    animationFnRef.current = animationFn;
+    optionsRef.current = options;
+  });
 
   useEffect(() => {
     ctxRef.current = gsap.context(() => {
       if (elementRef.current) {
-        const animation = animationFn(elementRef.current, gsap, ScrollTrigger);
+        const animation = animationFnRef.current(elementRef.current, gsap, ScrollTrigger);
 
         // Handle both single and array animations
         const anim = Array.isArray(animation) ? animation[0] : animation;
@@ -73,7 +94,7 @@ export function useGSAPScrollTrigger<T extends HTMLElement = HTMLElement>(
           animation: anim,
           start: "top 80%",
           toggleActions: "play none none none",
-          ...options,
+          ...optionsRef.current,
         });
 
         // Handle remaining animations in array
@@ -84,7 +105,7 @@ export function useGSAPScrollTrigger<T extends HTMLElement = HTMLElement>(
               animation: animation[i],
               start: "top 80%",
               toggleActions: "play none none none",
-              ...options,
+              ...optionsRef.current,
             });
           }
         }
@@ -93,10 +114,14 @@ export function useGSAPScrollTrigger<T extends HTMLElement = HTMLElement>(
 
     return () => {
       ctxRef.current?.revert();
-      ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
+      // use for...of instead of forEach (biome/complexity/noForEach)
+      for (const trigger of ScrollTrigger.getAll()) {
+        trigger.kill();
+      }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [triggerSelector, options]);
+    // Only re-run when triggerSelector identity changes. animationFn and
+    // options are kept fresh via refs above.
+  }, [triggerSelector]);
 
   return elementRef;
 }
@@ -119,6 +144,11 @@ export function useGSAPNumberCounter(
 ) {
   const [displayValue, setDisplayValue] = useState("0");
   const elementRef = useRef<HTMLSpanElement>(null);
+  // Latest-ref pattern: keep options fresh without forcing effect re-runs.
+  const optionsRef = useRef(options);
+  useEffect(() => {
+    optionsRef.current = options;
+  });
 
   useEffect(() => {
     if (!elementRef.current) return;
@@ -127,8 +157,8 @@ export function useGSAPNumberCounter(
       gsap.to(
         {},
         {
-          duration: options.duration || 2,
-          delay: options.delay || 0,
+          duration: optionsRef.current.duration || 2,
+          delay: optionsRef.current.delay || 0,
           onUpdate: function () {
             if (!elementRef.current) return;
 
@@ -136,18 +166,21 @@ export function useGSAPNumberCounter(
             const currentValue = progress * targetValue;
 
             // Format with engineering precision
-            const decimals = options.decimals ?? (targetValue < 100 ? 1 : 0);
+            const decimals = optionsRef.current.decimals ?? (targetValue < 100 ? 1 : 0);
             const formattedValue = currentValue.toFixed(decimals);
 
-            setDisplayValue(`${options.prefix || ""}${formattedValue}${options.suffix || ""}`);
+            setDisplayValue(
+              `${optionsRef.current.prefix || ""}${formattedValue}${optionsRef.current.suffix || ""}`,
+            );
           },
-          ease: options.ease || "power3.out",
+          ease: optionsRef.current.ease || "power3.out",
         },
       );
     });
 
     return () => ctx.revert();
-  }, [targetValue]); // eslint-disable-line react-hooks/exhaustive-deps
+    // Only re-run when targetValue identity changes.
+  }, [targetValue]);
 
   return { displayValue, elementRef };
 }
@@ -165,6 +198,11 @@ export function useGSAPHoverEffect<T extends HTMLElement = HTMLElement>(
   } = {},
 ) {
   const elementRef = useRef<T>(null);
+  // Latest-ref pattern: options captured via ref.
+  const optionsRef = useRef(options);
+  useEffect(() => {
+    optionsRef.current = options;
+  });
 
   useEffect(() => {
     if (!elementRef.current) return;
@@ -173,9 +211,9 @@ export function useGSAPHoverEffect<T extends HTMLElement = HTMLElement>(
       if (!elementRef.current) return;
 
       const element = elementRef.current;
-      const scale = options.scale || 1.03;
-      const rotation = options.rotation || 0.5;
-      const duration = options.duration || 0.3;
+      const scale = optionsRef.current.scale || 1.03;
+      const rotation = optionsRef.current.rotation || 0.5;
+      const duration = optionsRef.current.duration || 0.3;
 
       // Create hover timeline
       const hoverTL = gsap.timeline({ paused: true });
@@ -189,11 +227,11 @@ export function useGSAPHoverEffect<T extends HTMLElement = HTMLElement>(
       });
 
       // Glow effect
-      if (options.glowIntensity) {
+      if (optionsRef.current.glowIntensity) {
         hoverTL.to(
           element,
           {
-            boxShadow: `0 0 ${options.glowIntensity * 20}px rgba(0, 212, 255, ${options.glowIntensity * 0.3})`,
+            boxShadow: `0 0 ${optionsRef.current.glowIntensity * 20}px rgba(0, 212, 255, ${optionsRef.current.glowIntensity * 0.3})`,
             duration: duration * 0.5,
             ease: "power2.out",
           },
@@ -214,7 +252,9 @@ export function useGSAPHoverEffect<T extends HTMLElement = HTMLElement>(
     });
 
     return () => ctx.revert();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    // Intentionally empty: this hook should only set up the hover listener
+    // once. Options are kept fresh via the ref above.
+  }, []);
 
   return elementRef;
 }
@@ -232,6 +272,11 @@ export function useGSAPPageTransition(
 ) {
   const [isTransitioning] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  // Latest-ref pattern: options captured via ref.
+  const optionsRef = useRef(options);
+  useEffect(() => {
+    optionsRef.current = options;
+  });
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -244,14 +289,15 @@ export function useGSAPPageTransition(
       gsap.to(containerRef.current, {
         opacity: 1,
         y: 0,
-        duration: options.duration || 0.8,
-        delay: options.delay || 0.2,
-        ease: options.ease || "expo.out",
+        duration: optionsRef.current.duration || 0.8,
+        delay: optionsRef.current.delay || 0.2,
+        ease: optionsRef.current.ease || "expo.out",
       });
     });
 
     return () => ctx.revert();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    // Intentionally empty: page transition runs once on mount.
+  }, []);
 
   return { containerRef, isTransitioning };
 }
@@ -273,6 +319,14 @@ export function useGSAPParticleSystem(
     connectionColor?: string;
   } = {},
 ) {
+  // Latest-ref pattern: options captured via ref so the effect does not
+  // re-run when callers pass a fresh object literal on each render.
+  const optionsRef = useRef(options);
+  useEffect(() => {
+    optionsRef.current = options;
+  });
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: canvasRef is a ref (stable); options captured via optionsRef
   useEffect(() => {
     if (!canvasRef.current) return;
 
@@ -288,15 +342,17 @@ export function useGSAPParticleSystem(
     resizeCanvas();
     window.addEventListener("resize", resizeCanvas);
 
-    // Particle configuration
-    const particleCount = options.particleCount || 100;
-    const particleSize = options.particleSize || 2;
-    const particleColor = options.particleColor || "#00d4ff";
-    const particleSpeed = options.particleSpeed || 0.5;
-    const particleOpacity = options.particleOpacity || 0.6;
-    const connectParticles = options.connectParticles ?? true;
-    const connectionDistance = options.connectionDistance || 120;
-    const connectionColor = options.connectionColor || "rgba(0, 212, 255, 0.1)";
+    // Particle configuration — snapshot once on mount; subsequent
+    // option changes are picked up on the NEXT mount.
+    const o = optionsRef.current;
+    const particleCount = o.particleCount || 100;
+    const particleSize = o.particleSize || 2;
+    const particleColor = o.particleColor || "#00d4ff";
+    const particleSpeed = o.particleSpeed || 0.5;
+    const particleOpacity = o.particleOpacity || 0.6;
+    const connectParticles = o.connectParticles ?? true;
+    const connectionDistance = o.connectionDistance || 120;
+    const connectionColor = o.connectionColor || "rgba(0, 212, 255, 0.1)";
 
     // Create particles
     const particles: Particle[] = [];
@@ -321,8 +377,9 @@ export function useGSAPParticleSystem(
     const animate = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+      // use for...of instead of forEach (biome/complexity/noForEach)
       // Update and draw particles
-      particles.forEach((particle) => {
+      for (const particle of particles) {
         // Update position
         particle.x += particle.velocity.x;
         particle.y += particle.velocity.y;
@@ -338,7 +395,7 @@ export function useGSAPParticleSystem(
         ctx.globalAlpha = particleOpacity;
         ctx.fill();
         ctx.globalAlpha = 1;
-      });
+      }
 
       // Connect particles
       if (connectParticles) {
@@ -381,11 +438,12 @@ export function useGSAPParticleSystem(
           from: "random",
         },
         onUpdate: function () {
-          // Update particle properties
-          particles.forEach((_particle, i) => {
-            _particle.size = this.targets()[i].size;
-            _particle.opacity = this.targets()[i].opacity;
-          });
+          // use for loop with index instead of forEach (biome/complexity/noForEach)
+          const targets = this.targets() as Particle[];
+          for (let i = 0; i < particles.length; i++) {
+            particles[i].size = targets[i].size;
+            particles[i].opacity = targets[i].opacity;
+          }
         },
       });
     });
@@ -395,7 +453,8 @@ export function useGSAPParticleSystem(
       cancelAnimationFrame(animationId);
       ctxGSAP.revert();
     };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    // Intentionally empty: particle system is set up once on mount.
+  }, []);
 }
 
 // Particle interface

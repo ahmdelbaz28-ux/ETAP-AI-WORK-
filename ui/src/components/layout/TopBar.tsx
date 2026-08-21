@@ -38,10 +38,9 @@ export function TopBar({ onHelpOpen }: TopBarProps) {
        * below with an orange-red gradient tile. See PR #85 review thread.
        */}
       <div className="flex items-center gap-3">
-        <div
-          className="flex items-center gap-2 cursor-pointer"
-          role="button"
-          tabIndex={0}
+        <button
+          type="button"
+          className="flex items-center gap-2 cursor-pointer bg-transparent border-0 p-0"
           aria-label="Go to dashboard"
           onClick={() => navigate("/dashboard")}
           onKeyDown={(e) => {
@@ -54,7 +53,7 @@ export function TopBar({ onHelpOpen }: TopBarProps) {
           <span className="text-sm font-bold text-[var(--text-primary)] tracking-tight hidden sm:block">
             Ahmed etap
           </span>
-        </div>
+        </button>
 
         {/* Project context placeholder */}
         <div className="hidden md:flex items-center gap-1.5 ml-3 px-2.5 py-1 rounded-md bg-[var(--bg-primary)] border border-[var(--border-primary)] text-xs text-[var(--text-muted)]">
@@ -78,6 +77,7 @@ export function TopBar({ onHelpOpen }: TopBarProps) {
       {/* Right: Actions */}
       <div className="flex items-center gap-1">
         <button
+          type="button"
           className="p-2 rounded-lg text-brand-400 hover:bg-brand-500/10 hover:text-brand-300 transition-colors relative"
           title="Magic Help Inspector / فاحص المساعدة الذكي"
           onClick={() => {
@@ -88,6 +88,7 @@ export function TopBar({ onHelpOpen }: TopBarProps) {
           <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-brand-500 animate-ping" />
         </button>
         <button
+          type="button"
           className="p-2 rounded-lg text-[var(--text-muted)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text-primary)] transition-colors"
           title={t("help.title") || "Help"}
           onClick={handleHelp}
@@ -95,6 +96,7 @@ export function TopBar({ onHelpOpen }: TopBarProps) {
           <HelpCircle className="w-4 h-4" />
         </button>
         <button
+          type="button"
           className="p-2 rounded-lg text-[var(--text-muted)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text-primary)] transition-colors relative"
           title={t("settings.title") || "Settings"}
           onClick={() => navigate("/settings")}

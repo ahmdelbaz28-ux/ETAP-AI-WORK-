@@ -10,7 +10,7 @@ import {
   FolderKanban,
   Layers,
   LayoutDashboard,
-  Map,
+  Map as MapIcon,
   Moon,
   Network,
   Plug,
@@ -50,7 +50,7 @@ const navItems: NavItem[] = [
     section: "engineering",
   },
   { to: "/etap", icon: Plug, labelKey: "sidebar.etapIntegration", section: "integration" },
-  { to: "/gis", icon: Map, labelKey: "sidebar.gisIntegration", section: "integration" },
+  { to: "/gis", icon: MapIcon, labelKey: "sidebar.gisIntegration", section: "integration" },
   { to: "/digital-twin", icon: Layers, labelKey: "sidebar.digitalTwin", section: "integration" },
   { to: "/reports", icon: FileText, labelKey: "sidebar.reports" },
   { to: "/data-import", icon: Upload, labelKey: "sidebar.dataImport", section: "system" },
@@ -98,14 +98,14 @@ export function Sidebar() {
 
   const groupedItems: Record<string, NavItem[]> = {};
   const topLevel: NavItem[] = [];
-  navItems.forEach((item) => {
+  for (const item of navItems) {
     if (item.section) {
       if (!groupedItems[item.section]) groupedItems[item.section] = [];
       groupedItems[item.section].push(item);
     } else {
       topLevel.push(item);
     }
-  });
+  }
 
   return (
     <aside
@@ -206,6 +206,7 @@ export function Sidebar() {
         </div>
 
         <button
+          type="button"
           onClick={toggleTheme}
           className={cn(
             "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text-primary)] transition-colors",
@@ -223,6 +224,7 @@ export function Sidebar() {
         </button>
 
         <button
+          type="button"
           onClick={toggleSidebar}
           className={cn(
             "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-[var(--text-muted)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text-secondary)] transition-colors",

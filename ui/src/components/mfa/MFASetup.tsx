@@ -122,16 +122,16 @@ function QRCodeDisplay({
               className="overflow-hidden"
             >
               <div className="flex items-center gap-2 p-3 rounded-lg bg-slate-950/50 border border-slate-800">
-                <span
-                  ref={secretRef}
-                  className="flex-1 text-xs font-mono text-green-400 select-all break-all"
-                  role="textbox"
+                <textarea
+                  ref={secretRef as React.RefObject<HTMLTextAreaElement>}
+                  className="flex-1 text-xs font-mono text-green-400 select-all break-all bg-transparent border-0 p-0 resize-none"
+                  readOnly
                   tabIndex={0}
                   aria-label="TOTP secret key — select and copy to enter in your authenticator app"
                   aria-readonly="true"
                 >
                   {secretKey}
-                </span>
+                </textarea>
                 <button
                   type="button"
                   onClick={copySecret}
@@ -343,9 +343,8 @@ export function MFASetup({ onComplete, onDismiss, authToken }: MFASetupProps) {
   });
 
   return (
-    <div
+    <section
       className="w-full max-w-md mx-auto p-6 bg-slate-900/30 backdrop-blur-md border border-slate-800/40 rounded-2xl shadow-2xl"
-      role="region"
       aria-label="Two-factor authentication setup"
     >
       {/* Header */}
@@ -446,6 +445,6 @@ export function MFASetup({ onComplete, onDismiss, authToken }: MFASetupProps) {
         {step === "verifying" && "Verifying authentication code."}
         {step === "done" && "Two-factor authentication has been successfully enabled."}
       </div>
-    </div>
+    </section>
   );
 }
