@@ -44,8 +44,13 @@ for k in (
 ):
     _saved[k] = os.environ.get(k)
     os.environ.pop("ENGINEERING_SERVICE_AUTH_DISABLED", None)
-    os.environ.setdefault("ENGINEERING_SERVICE_API_KEY", "test-hf-secret-key-12345")
-    os.environ.setdefault("JWT_SECRET_KEY", "test-jwt-secret-key-minimum-32-characters-long")
+    # FORCE-set (not setdefault) to override conftest.py's JWT_SECRET_KEY
+    # which uses a different test secret. Without this override, the JWT
+    # created in test_valid_jwt_grants_access would be signed with a different
+    # secret than the server expects, causing 401 (root cause found via
+    # systematic-debugging skill).
+    os.environ["ENGINEERING_SERVICE_API_KEY"] = "test-hf-secret-key-12345"
+    os.environ["JWT_SECRET_KEY"] = "test-jwt-secret-key-minimum-32-characters-long"
     os.environ.setdefault("ENVIRONMENT", "development")
     # Use a SEPARATE database for HF Space tests to avoid conflicts
     # with test_auth_api.py which uses the default ./data/etap_platform.db
