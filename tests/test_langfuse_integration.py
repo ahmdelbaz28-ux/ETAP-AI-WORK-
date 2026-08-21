@@ -286,13 +286,48 @@ class TestCircuitBreaker:
         assert prompt_loader._langfuse_cb.is_open
 
     def test_circuit_breaker_resets_after_timeout(self, monkeypatch):
-        """Breaker auto-resets after reset_seconds."""
+        """Breaker auto-resets after reset_seconds.
+
+        Root cause analysis (systematic-debugging skill):
+        The test previously set _failures and _opened_at on the adapter, but
+        _CircuitBreakerAdapter wraps engine.resilience.CircuitBreaker and does
+        NOT expose those legacy attributes. Setting them created new dynamic
+        attrs on the adapter that had no effect on the canonical breaker.
+
+        Fix: use the canonical breaker's public API (record_failure) to drive
+        it into OPEN, then backdate _last_failure_time to simulate elapsed
+        recovery_timeout. The is_open property now calls _check_state_transition()
+        which transitions OPEN → HALF_OPEN.
+        """
         from agents import prompt_loader
 
-        # Force open
-        prompt_loader._langfuse_cb._failures = 10
-        prompt_loader._langfuse_cb._opened_at = time.monotonic() - 999
-        assert not prompt_loader._langfuse_cb.is_open  # auto-reset
+        cb_adapter = prompt_loader._langfuse_cb
+        canonical = cb_adapter._cb
+
+        # Drive the breaker into OPEN using the public API
+        for _ in range(canonical.failure_threshold + 1):
+            cb_adapter.record_failure()
+        # Sanity: breaker should be OPEN now
+        assert cb_adapter.is_open, "Breaker should be OPEN after threshold failures"
+
+        # Backdate the last failure so recovery_timeout has elapsed
+        canonical._last_failure_time = time.monotonic() - (canonical.recovery_timeout + 1)
+
+        # Accessing is_open on the ADAPTER triggers _check_state_transition()
+        # (added in the fix) which should move OPEN → HALF_OPEN.
+        # We must call is_open on the adapter (not canonical.get_state() directly)
+        # because the transition check is in the adapter's is_open property.
+        still_open = cb_adapter.is_open  # This triggers the transition
+        state_after_timeout = canonical.get_state()
+
+        # HALF_OPEN is still considered "open" for fast-fail purposes (allows
+        # only one probe call), so is_open returns True. But the state must
+        # have transitioned away from OPEN, proving the timeout-based reset fired.
+        assert state_after_timeout == "HALF_OPEN", (
+            f"Expected breaker to transition OPEN → HALF_OPEN after recovery_timeout, "
+            f"but state is {state_after_timeout!r}. is_open returned {still_open!r}."
+        )
+        assert still_open is True, "HALF_OPEN should still report is_open=True (allows one probe)"
 
 
 # ---------------------------------------------------------------------------

@@ -156,6 +156,14 @@ try:
 
         @property
         def is_open(self) -> bool:
+            # Trigger state transition check (OPEN → HALF_OPEN) before reading state.
+            # The canonical CircuitBreaker.get_state() does NOT auto-transition;
+            # only call()/async_call() invoke _check_state_transition(). Since
+            # prompt_loader uses record_failure()/record_success() directly
+            # (not call()), we must trigger the transition check here, otherwise
+            # a breaker that should have auto-reset after recovery_timeout would
+            # stay OPEN forever (bug found by systematic-debugging skill).
+            self._cb._check_state_transition()
             return self._cb.get_state() in ("OPEN", "HALF_OPEN")
 
         def record_success(self) -> None:
