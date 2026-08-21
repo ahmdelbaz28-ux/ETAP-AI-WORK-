@@ -54,6 +54,12 @@
       "skillPath": "skills/caveman-commit/SKILL.md",
       "computedHash": "f028652defd5fdeddcce2994083cb1a7b201ee827bba8e2495546ee159fca3de"
     },
+    "ce-commit-push-pr": {
+      "source": "everyinc/compound-engineering-plugin",
+      "sourceType": "github",
+      "skillPath": "skills/ce-commit-push-pr/SKILL.md",
+      "computedHash": "a5b24cb881c579e32e3f644703cd78a258bd306bacf15bfc69007a2625097b13"
+    },
     "ci-cd-and-automation": {
       "source": "addyosmani/agent-skills",
       "sourceType": "github",
