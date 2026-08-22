@@ -571,4 +571,3 @@ async def list_project_studies(
         page=pagination.page,
         page_size=pagination.page_size,
     )
-

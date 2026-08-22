@@ -799,4 +799,3 @@ async def remove_user_role(
 
     await db.flush()
     return {"message": "Role removed from user successfully"}
-

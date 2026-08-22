@@ -210,12 +210,12 @@ test.describe("Magic Links page (TASK-9a)", () => {
     await page.getByTestId("req-submit").click();
 
     // POST should have fired with the expected body
-    await expect.poll(() => requestCalled, { timeout: 5_000 }).toBe(true);
-    await expect.poll(() => requestBody, { timeout: 5_000 }).toEqual({ email: "user@example.com" });
+    await expect.poll(() => requestCalled, { timeout: 15_000 }).toBe(true);
+    await expect.poll(() => requestBody, { timeout: 15_000 }).toEqual({ email: "user@example.com" });
 
     // Result card
     const result = page.getByTestId("req-result");
-    await expect(result).toBeVisible({ timeout: 5_000 });
+    await expect(result).toBeVisible({ timeout: 15_000 });
     await expect(result.getByText("Success", { exact: true })).toBeVisible();
     await expect(result.getByText("900s")).toBeVisible();
     // expires_in_seconds + trace_id both rendered as StatRows
@@ -223,7 +223,7 @@ test.describe("Magic Links page (TASK-9a)", () => {
 
     // Success toast (scope to last to disambiguate from any in-card text).
     await expect(page.getByText(/Magic link requested for user@example\.com/).last()).toBeVisible({
-      timeout: 5_000,
+      timeout: 15_000,
     });
   });
 
@@ -238,21 +238,24 @@ test.describe("Magic Links page (TASK-9a)", () => {
     await page.getByTestId("req-submit").click();
 
     // POST fired
-    await expect.poll(() => requestCalled, { timeout: 5_000 }).toBe(true);
+    await expect.poll(() => requestCalled, { timeout: 15_000 }).toBe(true);
 
     // Error banner (role=alert) should mention HTTP 429 + the backend
     // message text (the JSON `error: rate_limited` is rendered as the
     // thrown Error message `HTTP 429: Too many magic-link requests…`).
     await expect(
-      page.getByRole("alert").getByText(/429.*Too many magic-link|Too many magic-link.*429/),
-    ).toBeVisible({ timeout: 5_000 });
+      page
+        .getByRole("alert")
+        .getByText(/429.*Too many magic-link|Too many magic-link.*429/)
+        .first(),
+    ).toBeVisible({ timeout: 15_000 });
 
     // Note: when fetch throws on a non-2xx response, the catch block sets
     // `reqError` (rendered as the alert above) but leaves `reqResult`
     // null — so the result card stays in its EmptyState. We assert the
     // error toast as the second signal.
     await expect(page.getByText(/Request failed: HTTP 429/).last()).toBeVisible({
-      timeout: 5_000,
+      timeout: 15_000,
     });
   });
 
@@ -274,12 +277,12 @@ test.describe("Magic Links page (TASK-9a)", () => {
     await page.getByTestId("verify-submit").click();
 
     // POST should have fired with the expected body
-    await expect.poll(() => verifyCalled, { timeout: 5_000 }).toBe(true);
-    await expect.poll(() => verifyBody, { timeout: 5_000 }).toEqual({ token });
+    await expect.poll(() => verifyCalled, { timeout: 15_000 }).toBe(true);
+    await expect.poll(() => verifyBody, { timeout: 15_000 }).toEqual({ token });
 
     // Result card
     const result = page.getByTestId("verify-result");
-    await expect(result).toBeVisible({ timeout: 5_000 });
+    await expect(result).toBeVisible({ timeout: 15_000 });
     await expect(result.getByText("Verified", { exact: true })).toBeVisible();
     await expect(result.getByText("bearer")).toBeVisible(); // token_type badge
     await expect(result.getByText("user-001")).toBeVisible();
@@ -290,7 +293,7 @@ test.describe("Magic Links page (TASK-9a)", () => {
 
     // Success toast (scope to last to disambiguate from any in-card text).
     await expect(page.getByText(/Magic link verified for user@example\.com/).last()).toBeVisible({
-      timeout: 5_000,
+      timeout: 15_000,
     });
   });
 
@@ -311,18 +314,21 @@ test.describe("Magic Links page (TASK-9a)", () => {
     await page.getByTestId("verify-submit").click();
 
     // POST fired
-    await expect.poll(() => verifyCalled, { timeout: 5_000 }).toBe(true);
+    await expect.poll(() => verifyCalled, { timeout: 15_000 }).toBe(true);
 
     // Error banner (role=alert) should mention HTTP 401 + the backend
     // message text (the JSON `error: token_not_found` is rendered as
     // the thrown Error message `HTTP 401: Magic link is invalid…`).
     await expect(
-      page.getByRole("alert").getByText(/401.*Magic link is invalid|Magic link is invalid.*401/),
-    ).toBeVisible({ timeout: 5_000 });
+      page
+        .getByRole("alert")
+        .getByText(/401.*Magic link is invalid|Magic link is invalid.*401/)
+        .first(),
+    ).toBeVisible({ timeout: 15_000 });
 
     // Error toast
     await expect(page.getByText(/Verify failed: HTTP 401/).last()).toBeVisible({
-      timeout: 5_000,
+      timeout: 15_000,
     });
   });
 
@@ -345,21 +351,21 @@ test.describe("Magic Links page (TASK-9a)", () => {
     await page.getByTestId("inv-submit").click();
 
     // POST should have fired with the right body
-    await expect.poll(() => invalidateCalled, { timeout: 5_000 }).toBe(true);
+    await expect.poll(() => invalidateCalled, { timeout: 15_000 }).toBe(true);
     await expect
-      .poll(() => invalidateBody, { timeout: 5_000 })
+      .poll(() => invalidateBody, { timeout: 15_000 })
       .toEqual({ email: "user@example.com" });
 
     // Result card
     const result = page.getByTestId("inv-result");
-    await expect(result).toBeVisible({ timeout: 5_000 });
+    await expect(result).toBeVisible({ timeout: 15_000 });
     await expect(result.getByText("Success", { exact: true })).toBeVisible();
     await expect(result.getByText("2")).toBeVisible(); // invalidated count
     await expect(result.getByText("trace-inv-001")).toBeVisible();
 
     // Success toast (scope to last to disambiguate from any in-card text).
     await expect(page.getByText(/Invalidated 2 pending magic link\(s\)/).last()).toBeVisible({
-      timeout: 5_000,
+      timeout: 15_000,
     });
   });
 });

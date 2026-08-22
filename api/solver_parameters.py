@@ -228,4 +228,3 @@ async def update_solver_parameters(
     _solver_parameters.update(updates)
     logger.info("Solver parameters updated: %s", updates)
     return SolverParametersResponse(**_solver_parameters)
-

@@ -36,21 +36,24 @@ from typing import Any, Optional
 
 try:
     import networkx as nx
+
     NETWORKX_AVAILABLE = True
 except ImportError:
     nx = None  # type: ignore
     NETWORKX_AVAILABLE = False
 
-from integrations.neo4j_integration import neo4j_client, Neo4jClient
+from integrations.neo4j_integration import Neo4jClient, neo4j_client
 
 logger = logging.getLogger(__name__)
 
 
 # ─── Domain Data Structures ──────────────────────────────────────────────────
 
+
 @dataclass
 class BusNode:
     """Represents an electrical bus in the power system topology."""
+
     id: str
     voltage_kv: float = 13.8
     bus_type: str = "bus"  # "slack", "generator", "load", "substation", "bus"
@@ -72,6 +75,7 @@ class BusNode:
 @dataclass
 class BranchEdge:
     """Represents a transmission line, cable, or transformer branch."""
+
     id: str
     from_bus: str
     to_bus: str
@@ -101,6 +105,7 @@ class BranchEdge:
 @dataclass
 class IsolationZone:
     """Represents the protective boundary and isolated components around a fault."""
+
     target_bus: str
     isolated_buses: list[str]
     boundary_branches: list[str]
@@ -111,6 +116,7 @@ class IsolationZone:
 @dataclass
 class FeederTree:
     """Represents a radial or meshed feeder tree traced from a substation."""
+
     root_substation: str
     buses: list[str]
     branches: list[str]
@@ -119,6 +125,7 @@ class FeederTree:
 
 
 # ─── Deep Domain Module: NetworkTopology ──────────────────────────────────────
+
 
 class NetworkTopology:
     """
@@ -130,18 +137,24 @@ class NetworkTopology:
         self._neo4j = neo4j or neo4j_client
         self._buses: dict[str, BusNode] = {}
         self._branches: dict[str, BranchEdge] = {}
-        
+
         # In-memory graph representation
         if NETWORKX_AVAILABLE:
             self._graph = nx.Graph()
         else:
             self._graph = None
-            logger.warning("networkx is not installed. Graph topology analysis will use simplified fallbacks.")
+            logger.warning(
+                "networkx is not installed. Graph topology analysis will use simplified fallbacks."
+            )
 
     @property
     def is_cloud_connected(self) -> bool:
         """Return True if Neo4j cloud graph is active and reachable."""
-        return bool(self._neo4j and getattr(self._neo4j, "enabled", False) and getattr(self._neo4j, "driver", None))
+        return bool(
+            self._neo4j
+            and getattr(self._neo4j, "enabled", False)
+            and getattr(self._neo4j, "driver", None)
+        )
 
     def clear(self) -> None:
         """Clear all in-memory topology nodes and branches."""
@@ -264,7 +277,7 @@ class NetworkTopology:
         """Get all directly connected bus IDs."""
         if self._graph is not None and bus_id in self._graph:
             return list(self._graph.neighbors(bus_id))
-        
+
         # Fallback manual scan
         neighbors = set()
         for b in self._branches.values():
@@ -281,13 +294,19 @@ class NetworkTopology:
         Handles same-node edge case natively ([bus_id]).
         """
         if from_bus == to_bus:
-            return [from_bus] if from_bus in self._buses or (self._graph and from_bus in self._graph) else None
+            return (
+                [from_bus]
+                if from_bus in self._buses or (self._graph and from_bus in self._graph)
+                else None
+            )
 
         # Try fast in-memory graph
         if self._graph is not None and from_bus in self._graph and to_bus in self._graph:
             try:
                 # Calculate shortest path weighted by impedance
-                return list(nx.shortest_path(self._graph, source=from_bus, target=to_bus, weight="weight"))
+                return list(
+                    nx.shortest_path(self._graph, source=from_bus, target=to_bus, weight="weight")
+                )
             except nx.NetworkXNoPath:
                 return None
             except Exception as e:
@@ -315,7 +334,12 @@ class NetworkTopology:
         Determine the protection boundary and isolated buses surrounding a fault.
         """
         if fault_bus not in self._buses and (self._graph is None or fault_bus not in self._graph):
-            return IsolationZone(target_bus=fault_bus, isolated_buses=[], boundary_branches=[], is_fully_isolated=False)
+            return IsolationZone(
+                target_bus=fault_bus,
+                isolated_buses=[],
+                boundary_branches=[],
+                is_fully_isolated=False,
+            )
 
         boundary_branches = []
         isolated_buses = [fault_bus]
@@ -339,7 +363,12 @@ class NetworkTopology:
         Trace all downstream feeder branches and leaf buses starting from a substation.
         """
         if self._graph is None or root_substation not in self._graph:
-            return FeederTree(root_substation=root_substation, buses=[root_substation], branches=[], leaf_buses=[root_substation])
+            return FeederTree(
+                root_substation=root_substation,
+                buses=[root_substation],
+                branches=[],
+                leaf_buses=[root_substation],
+            )
 
         visited_buses = set()
         visited_branches = set()
@@ -354,7 +383,7 @@ class NetworkTopology:
             current_bus, depth = queue.pop(0)
             max_depth = max(max_depth, depth)
             neighbors = list(self._graph.neighbors(current_bus))
-            
+
             is_leaf = True
             for neighbor in neighbors:
                 if neighbor not in visited_buses:
@@ -365,7 +394,7 @@ class NetworkTopology:
                     if edge_data and "id" in edge_data:
                         visited_branches.add(edge_data["id"])
                     queue.append((neighbor, depth + 1))
-            
+
             if is_leaf and current_bus != root_substation:
                 leaf_buses.append(current_bus)
 

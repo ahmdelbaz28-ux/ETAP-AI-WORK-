@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 
 test.describe("Login Page", () => {
   test.beforeEach(async ({ page }) => {
-    const resp = await page.goto("/login", { waitUntil: "networkidle", timeout: 15000 });
+    const resp = await page.goto("/login", { waitUntil: "networkidle", timeout: 30000 });
     expect(resp?.status()).toBe(200);
   });
 
@@ -30,7 +30,7 @@ test.describe("Login Page", () => {
     await expect(link).toBeVisible();
     await expect(link).toHaveText(/Create Engineer Account/i);
     await link.click();
-    await page.waitForLoadState("networkidle", { timeout: 10000 });
+    await page.waitForLoadState("networkidle", { timeout: 20000 });
     await expect(page).toHaveURL(/\/register/);
   });
 

@@ -3,6 +3,7 @@
 Regression test asserting the DC-OPF solver passes the equality-constraint
 matrix using scipy's correct keyword ``A_eq`` (not the typo ``a_eq``).
 """
+
 from unittest.mock import patch
 
 import numpy as np

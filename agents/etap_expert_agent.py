@@ -59,7 +59,9 @@ logger = logging.getLogger("agent.etap_expert")
 # ---------------------------------------------------------------------------
 
 _SKILL_PATH = Path(__file__).resolve().parent.parent / "skills" / "etap-expert.md"
-_SYSTEM_PROMPT_PATH = Path(__file__).resolve().parent.parent / "skills" / "etap-ai-agent-system-prompt.md"
+_SYSTEM_PROMPT_PATH = (
+    Path(__file__).resolve().parent.parent / "skills" / "etap-ai-agent-system-prompt.md"
+)
 
 _skill_cache: str | None = None
 _system_prompt_cache: str | None = None
@@ -92,6 +94,7 @@ def _load_system_prompt() -> str:
 # ---------------------------------------------------------------------------
 # Backward-compat aliases for the old private functions (tests may call these).
 # ---------------------------------------------------------------------------
+
 
 def _try_cable_sizing_simulation(question: str) -> dict[str, Any] | None:
     return try_cable_sizing_simulation(question)

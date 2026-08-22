@@ -63,4 +63,3 @@ def create_pe_stamp(
 def requires_stamp(study_type: str) -> bool:
     """Check if a study type requires PE stamp."""
     return study_type in REQUIRES_PE_STAMP
-

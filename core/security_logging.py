@@ -4,19 +4,19 @@ core/security_logging.py — Tamper-evident Security Audit Logging System.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
-from enum import Enum
 import hashlib
 import hmac
 import json
 import logging
-from logging.handlers import RotatingFileHandler, TimedRotatingFileHandler
 import os
-from pathlib import Path
 import re
 import threading
-from typing import Any
 import uuid
+from datetime import datetime, timezone
+from enum import Enum
+from logging.handlers import RotatingFileHandler, TimedRotatingFileHandler
+from pathlib import Path
+from typing import Any
 
 UTC = timezone.utc
 
@@ -24,7 +24,9 @@ _LOG_DIR = Path("logs")
 _SECURITY_GENESIS = "0" * 64
 
 
-class SecurityEventType(str, Enum):
+# Intentionally (str, Enum) rather than enum.StrEnum: this module must keep
+# working on Python < 3.11 (see compat.py); member semantics are identical.
+class SecurityEventType(str, Enum):  # noqa: UP042
     AUTH_SUCCESS = "AUTH_SUCCESS"
     AUTH_FAILURE = "AUTH_FAILURE"
     AUTH_KEY_ROTATION = "AUTH_KEY_ROTATION"
@@ -133,14 +135,9 @@ class SensitiveDataFilter(logging.Filter):
 
         if record.args:
             if isinstance(record.args, dict):
-                record.args = {
-                    k: _sanitize_value(v)
-                    for k, v in record.args.items()
-                }
+                record.args = {k: _sanitize_value(v) for k, v in record.args.items()}
             elif isinstance(record.args, tuple):
-                record.args = tuple(
-                    _sanitize_value(v) for v in record.args
-                )
+                record.args = tuple(_sanitize_value(v) for v in record.args)
         return True
 
 
@@ -177,7 +174,7 @@ class SecurityAuditLogger:
             return _SECURITY_GENESIS
         try:
             last_line = ""
-            with open(self._log_path, "r", encoding="utf-8") as f:
+            with open(self._log_path, encoding="utf-8") as f:
                 for line in f:
                     stripped = line.strip()
                     if stripped:
@@ -226,7 +223,7 @@ class SecurityAuditLogger:
 
             entries_count = 0
             expected_chain_hash = _SECURITY_GENESIS
-            with open(self._log_path, "r", encoding="utf-8") as f:
+            with open(self._log_path, encoding="utf-8") as f:
                 for idx, raw_line in enumerate(f):
                     line = raw_line.strip()
                     if not line:
@@ -235,10 +232,18 @@ class SecurityAuditLogger:
                     try:
                         data = json.loads(line)
                         if data.get("chain_hash") != expected_chain_hash:
-                            return {"valid": False, "entries_checked": entries_count, "first_break": idx}
+                            return {
+                                "valid": False,
+                                "entries_checked": entries_count,
+                                "first_break": idx,
+                            }
                         expected_chain_hash = _compute_chain_hash(line)
                     except Exception:
-                        return {"valid": False, "entries_checked": entries_count, "first_break": idx}
+                        return {
+                            "valid": False,
+                            "entries_checked": entries_count,
+                            "first_break": idx,
+                        }
 
             return {"valid": True, "entries_checked": entries_count, "first_break": None}
 
@@ -250,9 +255,13 @@ def configure_log_rotation(logger: logging.Logger, log_file: str = "etap.log") -
     log_path = Path(_LOG_DIR) / log_file
     log_path.parent.mkdir(parents=True, exist_ok=True)
     for existing_handler in logger.handlers:
-        if isinstance(existing_handler, RotatingFileHandler) and getattr(existing_handler, "baseFilename", None) == str(log_path.resolve()):
+        if isinstance(existing_handler, RotatingFileHandler) and getattr(
+            existing_handler, "baseFilename", None
+        ) == str(log_path.resolve()):
             return
-    handler = RotatingFileHandler(log_path, maxBytes=500 * 1024 * 1024, backupCount=10, encoding="utf-8")
+    handler = RotatingFileHandler(
+        log_path, maxBytes=500 * 1024 * 1024, backupCount=10, encoding="utf-8"
+    )
     logger.addHandler(handler)
 
 
@@ -263,7 +272,11 @@ def configure_timed_rotation(logger: logging.Logger, log_file: str = "etap.log")
     log_path = Path(_LOG_DIR) / log_file
     log_path.parent.mkdir(parents=True, exist_ok=True)
     for existing_handler in logger.handlers:
-        if isinstance(existing_handler, TimedRotatingFileHandler) and getattr(existing_handler, "baseFilename", None) == str(log_path.resolve()):
+        if isinstance(existing_handler, TimedRotatingFileHandler) and getattr(
+            existing_handler, "baseFilename", None
+        ) == str(log_path.resolve()):
             return
-    handler = TimedRotatingFileHandler(log_path, when="D", interval=1, backupCount=30, encoding="utf-8")
+    handler = TimedRotatingFileHandler(
+        log_path, when="D", interval=1, backupCount=30, encoding="utf-8"
+    )
     logger.addHandler(handler)

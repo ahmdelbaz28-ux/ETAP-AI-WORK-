@@ -321,4 +321,3 @@ def log_security_event(
         metadata_attr="cloudflare",
         extra_log_fields=extra,
     )
-

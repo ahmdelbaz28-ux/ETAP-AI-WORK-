@@ -403,7 +403,6 @@ def _validate_ws_token(token: str) -> bool:
         return False
 
 
-
 _DEFAULT_DEV_ORIGINS = {
     "http://localhost",
     "http://127.0.0.1",
@@ -531,4 +530,3 @@ async def scada_websocket_endpoint(
     except Exception:
         logger.exception("WebSocket error: ")
         await scada_feed.disconnect(websocket)
-

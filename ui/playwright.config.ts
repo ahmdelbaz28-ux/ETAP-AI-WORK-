@@ -7,9 +7,18 @@ const ROOT_DIR = import.meta.dirname;
 
 export default defineConfig({
   testDir: "./tests",
-  timeout: 60000,
+  // Generous per-test budget: lazy-loaded route chunks are transformed
+  // on-demand by the Vite dev server, and the first navigation to a route can
+  // take >5s on CI runners (measured ~10s locally on a cold server).
+  timeout: 90_000,
   retries: 0,
   fullyParallel: false,
+  expect: {
+    // Auto-waiting assertions (toBeVisible, poll, etc.). Must exceed the
+    // cold-transform time of lazily imported pages or the first test that
+    // visits each route fails spuriously.
+    timeout: 15_000,
+  },
   use: {
     // Allow overriding the dev-server host/port via env vars (useful in
     // sandboxed environments where Playwright's chromium cannot resolve
@@ -18,7 +27,8 @@ export default defineConfig({
     baseURL: DEV_URL,
     headless: true,
     viewport: { width: 1920, height: 1080 },
-    actionTimeout: 10000,
+    actionTimeout: 20_000,
+    navigationTimeout: 30_000,
     screenshot: "only-on-failure",
   },
   // Spawn the Vite dev server automatically (unless PLAYWRIGHT_NO_WEBSERVER=1,

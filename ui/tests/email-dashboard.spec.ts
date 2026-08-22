@@ -247,7 +247,7 @@ test.describe("Email Dashboard page (TASK-4)", () => {
     await expect(page.getByRole("heading", { name: /Email Dashboard/i })).toBeVisible();
 
     // Stat cards — check the key numbers from MOCK_STATS
-    await expect(page.getByText("42").first()).toBeVisible({ timeout: 10_000 }); // Total Sends
+    await expect(page.getByText("42").first()).toBeVisible({ timeout: 20_000 }); // Total Sends
     await expect(page.getByText("90.48%")).toBeVisible(); // Success Rate
     await expect(page.getByText("1234.5 ms")).toBeVisible(); // Avg Latency
 
@@ -268,7 +268,7 @@ test.describe("Email Dashboard page (TASK-4)", () => {
     await page.goto("/admin/email-dashboard");
 
     // Wait for initial load
-    await expect(page.getByText("90.48%")).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByText("90.48%")).toBeVisible({ timeout: 20_000 });
 
     // Change the window selector
     const windowSelect = page.locator("#window-hours");
@@ -291,7 +291,7 @@ test.describe("Email Dashboard page (TASK-4)", () => {
 
     // Both mock records should appear in the table
     const recentTable = page.locator("table").first();
-    await expect(recentTable.getByText("user1@example.com")).toBeVisible({ timeout: 10_000 });
+    await expect(recentTable.getByText("user1@example.com")).toBeVisible({ timeout: 20_000 });
     await expect(recentTable.getByText("user2@example.com")).toBeVisible();
     await expect(recentTable.getByText("Your OTP code")).toBeVisible();
     await expect(recentTable.getByText("Password reset request")).toBeVisible();
@@ -319,7 +319,7 @@ test.describe("Email Dashboard page (TASK-4)", () => {
     // Go to Recent tab
     await page.getByRole("button", { name: /Recent Sends/i }).click();
     const recentTable = page.locator("table").first();
-    await expect(recentTable.getByText("user1@example.com")).toBeVisible({ timeout: 10_000 });
+    await expect(recentTable.getByText("user1@example.com")).toBeVisible({ timeout: 20_000 });
 
     // Click the first eye button (View detail)
     const eyeButton = page.getByRole("button", { name: /View detail/i }).first();
@@ -329,7 +329,7 @@ test.describe("Email Dashboard page (TASK-4)", () => {
     // a fixed-position overlay; scope to it via the fixed backdrop container.
     // The heading "Email Send Record" only appears in the modal.
     await expect(page.getByText("Email Send Record").first()).toBeVisible({
-      timeout: 5_000,
+      timeout: 15_000,
     });
     // message_id "msg-001" only appears in the modal (not in the table)
     await expect(page.getByText("msg-001")).toBeVisible();
@@ -345,7 +345,7 @@ test.describe("Email Dashboard page (TASK-4)", () => {
     await page.getByRole("button", { name: /^Config$/i }).click();
 
     // Config keys from MOCK_CONFIG should appear
-    await expect(page.getByText("RESEND_ENABLED").first()).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByText("RESEND_ENABLED").first()).toBeVisible({ timeout: 20_000 });
     await expect(page.getByText("RESEND_FROM_EMAIL").first()).toBeVisible();
     await expect(page.getByText("onboarding@resend.dev").first()).toBeVisible();
     await expect(page.getByText("RESEND_API_KEY_SET").first()).toBeVisible();
@@ -357,14 +357,14 @@ test.describe("Email Dashboard page (TASK-4)", () => {
     await page.goto("/admin/email-dashboard");
 
     // Wait for initial load
-    await expect(page.getByText("90.48%")).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByText("90.48%")).toBeVisible({ timeout: 20_000 });
 
     // Click "Clear Old" button
     await page.getByRole("button", { name: /Clear Old/i }).click();
 
     // Modal should open
     await expect(page.getByRole("heading", { name: /Clear Old Log Records/i })).toBeVisible({
-      timeout: 5_000,
+      timeout: 15_000,
     });
 
     // Change the max-age value
@@ -375,12 +375,12 @@ test.describe("Email Dashboard page (TASK-4)", () => {
     await page.getByRole("button", { name: /Clear Records/i }).click();
 
     // The POST should have fired with max_age_hours=168
-    await expect.poll(() => clearCalled, { timeout: 5_000 }).toBe(true);
-    await expect.poll(() => clearMaxAge, { timeout: 5_000 }).toBe(168);
+    await expect.poll(() => clearCalled, { timeout: 15_000 }).toBe(true);
+    await expect.poll(() => clearMaxAge, { timeout: 15_000 }).toBe(168);
 
     // A success toast should appear
     await expect(page.getByText(/Cleared 5 records older than 168h/)).toBeVisible({
-      timeout: 5_000,
+      timeout: 15_000,
     });
   });
 });

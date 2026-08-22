@@ -24,6 +24,7 @@ API version pinned here is 2026-03-11 (Notion's latest stable as of the
 PAT release). See https://developers.notion.com/llms.txt for the full
 docs index.
 """
+
 from __future__ import annotations
 
 import base64
@@ -55,10 +56,11 @@ class NotionConfig:
 
     Precedence when multiple are set: PAT > Internal > OAuth.
     """
-    api_key: str | None = None           # internal integration token (ntn_xxx)
-    pat: str | None = None                # personal access token (ntn_xxx)
-    database_id: str | None = None       # target database for sync
-    parent_page_id: str | None = None    # optional parent for new pages
+
+    api_key: str | None = None  # internal integration token (ntn_xxx)
+    pat: str | None = None  # personal access token (ntn_xxx)
+    database_id: str | None = None  # target database for sync
+    parent_page_id: str | None = None  # optional parent for new pages
     enabled: bool = False
     # OAuth (public integration) — used when no api_key/pat is set
     oauth_client_id: str | None = None
@@ -101,6 +103,7 @@ class NotionConfig:
 
 class NotionError(Exception):
     """Raised when Notion API returns an error."""
+
     def __init__(self, status: int, code: str, message: str):
         self.status = status
         self.code = code
@@ -126,9 +129,12 @@ class NotionClient:
     def _headers(self, access_token: str | None = None) -> dict[str, str]:
         token = access_token or self.config.active_token
         if not token:
-            raise NotionError(401, "no_token",
-                              "No Notion token configured. Set NOTION_PAT, NOTION_API_KEY, "
-                              "or perform OAuth flow.")
+            raise NotionError(
+                401,
+                "no_token",
+                "No Notion token configured. Set NOTION_PAT, NOTION_API_KEY, "
+                "or perform OAuth flow.",
+            )
         return {
             "Authorization": f"Bearer {token}",
             "Notion-Version": NOTION_VERSION,
@@ -136,17 +142,23 @@ class NotionClient:
             "Accept": "application/json",
         }
 
-    def _request(self, method: str, path: str, *,
-                 body: dict | None = None,
-                 params: dict | None = None,
-                 access_token: str | None = None) -> dict:
+    def _request(
+        self,
+        method: str,
+        path: str,
+        *,
+        body: dict | None = None,
+        params: dict | None = None,
+        access_token: str | None = None,
+    ) -> dict:
         url = f"{NOTION_BASE}/{path.lstrip('/')}"
         if params:
             url += "?" + urllib.parse.urlencode(params)
 
         data = json.dumps(body).encode() if body is not None else None
-        req = urllib.request.Request(url, data=data, headers=self._headers(access_token),
-                                     method=method)
+        req = urllib.request.Request(
+            url, data=data, headers=self._headers(access_token), method=method
+        )
         try:
             with urllib.request.urlopen(req, timeout=30) as resp:
                 raw = resp.read().decode()
@@ -178,20 +190,26 @@ class NotionClient:
         """GET /v1/databases/{id} — retrieve database schema."""
         db_id = database_id or self.config.database_id
         if not db_id:
-            raise NotionError(400, "no_database",
-                              "No database_id provided and NOTION_DATABASE_ID is empty.")
+            raise NotionError(
+                400, "no_database", "No database_id provided and NOTION_DATABASE_ID is empty."
+            )
         return self._request("GET", f"databases/{db_id}")
 
-    def query_database(self, database_id: str | None = None, *,
-                       filter: dict | None = None,
-                       sorts: list | None = None,
-                       start_cursor: str | None = None,
-                       page_size: int = 100) -> dict:
+    def query_database(
+        self,
+        database_id: str | None = None,
+        *,
+        filter: dict | None = None,
+        sorts: list | None = None,
+        start_cursor: str | None = None,
+        page_size: int = 100,
+    ) -> dict:
         """POST /v1/databases/{id}/query — list pages matching filter."""
         db_id = database_id or self.config.database_id
         if not db_id:
-            raise NotionError(400, "no_database",
-                              "No database_id provided and NOTION_DATABASE_ID is empty.")
+            raise NotionError(
+                400, "no_database", "No database_id provided and NOTION_DATABASE_ID is empty."
+            )
         body: dict[str, Any] = {"page_size": min(page_size, 100)}
         if filter:
             body["filter"] = filter
@@ -201,14 +219,17 @@ class NotionClient:
             body["start_cursor"] = start_cursor
         return self._request("POST", f"databases/{db_id}/query", body=body)
 
-    def create_page(self, parent_id: str | None = None, *,
-                    properties: dict,
-                    children: list | None = None) -> dict:
+    def create_page(
+        self, parent_id: str | None = None, *, properties: dict, children: list | None = None
+    ) -> dict:
         """POST /v1/pages — create a new page in a database or under a parent page."""
         parent_id = parent_id or self.config.parent_page_id or self.config.database_id
         if not parent_id:
-            raise NotionError(400, "no_parent",
-                              "No parent_id provided and NOTION_PARENT_PAGE_ID/NOTION_DATABASE_ID empty.")
+            raise NotionError(
+                400,
+                "no_parent",
+                "No parent_id provided and NOTION_PARENT_PAGE_ID/NOTION_DATABASE_ID empty.",
+            )
         # If parent_id matches a 32-char UUID with hyphens, it's a page; otherwise database.
         if self.config.database_id and parent_id == self.config.database_id:
             parent = {"database_id": parent_id}
@@ -219,8 +240,9 @@ class NotionClient:
             body["children"] = children
         return self._request("POST", "pages", body=body)
 
-    def update_page(self, page_id: str, *, properties: dict | None = None,
-                    archived: bool | None = None) -> dict:
+    def update_page(
+        self, page_id: str, *, properties: dict | None = None, archived: bool | None = None
+    ) -> dict:
         """PATCH /v1/pages/{id} — update page properties or archive it."""
         body: dict[str, Any] = {}
         if properties is not None:
@@ -232,10 +254,14 @@ class NotionClient:
     # ------------------------------------------------------------------
     # OAuth flow (public integration)
     # ------------------------------------------------------------------
-    def get_oauth_authorize_url(self, state: str, *,
-                                 scope: str = "admin read write",
-                                 code_challenge: str | None = None,
-                                 code_challenge_method: str = "S256") -> str:
+    def get_oauth_authorize_url(
+        self,
+        state: str,
+        *,
+        scope: str = "admin read write",
+        code_challenge: str | None = None,
+        code_challenge_method: str = "S256",
+    ) -> str:
         """Build the authorization URL for redirecting users to Notion."""
         params = {
             "client_id": self.config.oauth_client_id,
@@ -258,14 +284,19 @@ class NotionClient:
         Returns: {"access_token": ..., "bot_id": ..., "workspace_name": ...}
         """
         if not (self.config.oauth_client_id and self.config.oauth_client_secret):
-            raise NotionError(400, "no_oauth_config",
-                              "OAUTH_CLIENT_ID and OAUTH_CLIENT_SECRET must be set.")
+            raise NotionError(
+                400, "no_oauth_config", "OAUTH_CLIENT_ID and OAUTH_CLIENT_SECRET must be set."
+            )
         auth_basic = base64.b64encode(
             f"{self.config.oauth_client_id}:{self.config.oauth_client_secret}".encode()
         ).decode()
-        body = urllib.parse.urlencode({"grant_type": "authorization_code",
-                                        "code": code,
-                                        "redirect_uri": self.config.oauth_redirect_uri}).encode()
+        body = urllib.parse.urlencode(
+            {
+                "grant_type": "authorization_code",
+                "code": code,
+                "redirect_uri": self.config.oauth_redirect_uri,
+            }
+        ).encode()
         req = urllib.request.Request(
             f"{NOTION_BASE}/oauth/token",
             data=body,
@@ -285,14 +316,14 @@ class NotionClient:
                 err = json.loads(raw)
             except json.JSONDecodeError:
                 err = {"error": raw}
-            raise NotionError(e.code, err.get("error", "http_error"),
-                              err.get("error_description", raw)) from None
+            raise NotionError(
+                e.code, err.get("error", "http_error"), err.get("error_description", raw)
+            ) from None
 
     # ------------------------------------------------------------------
     # Convenience: full sync (dump database to flat dict)
     # ------------------------------------------------------------------
-    def dump_database(self, database_id: str | None = None, *,
-                      max_pages: int = 500) -> list[dict]:
+    def dump_database(self, database_id: str | None = None, *, max_pages: int = 500) -> list[dict]:
         """Read all pages from a database, paginating until exhausted.
 
         Returns a list of page dicts (each with id, url, properties).
@@ -301,8 +332,7 @@ class NotionClient:
         pages: list[dict] = []
         cursor = None
         while len(pages) < max_pages:
-            resp = self.query_database(database_id, start_cursor=cursor,
-                                       page_size=100)
+            resp = self.query_database(database_id, start_cursor=cursor, page_size=100)
             pages.extend(resp.get("results", []))
             if not resp.get("has_more"):
                 break
@@ -329,6 +359,7 @@ def get_client() -> NotionClient | None:
 if __name__ == "__main__":
     # Self-test: validate token + show bot identity
     import sys
+
     client = get_client()
     if client is None:
         print("Notion is disabled (NOTION_ENABLED != true).")
@@ -340,7 +371,9 @@ if __name__ == "__main__":
             print(f"✓ Internal token valid — bot name: {me.get('name')}")
             if client.config.database_id:
                 db = client.get_database()
-                print(f"✓ Database accessible — title: {db.get('title', [{}])[0].get('plain_text', '?')}")
+                print(
+                    f"✓ Database accessible — title: {db.get('title', [{}])[0].get('plain_text', '?')}"
+                )
         except NotionError as e:
             print(f"✗ Notion error: {e}")
             sys.exit(1)

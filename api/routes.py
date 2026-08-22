@@ -55,6 +55,7 @@ from api.notifications import notification_websocket_endpoint
 from api.notifications import router as notifications_router
 from api.projects import router as projects_router
 from api.rbac import router as rbac_router
+from api.request_context import CorrelationIdMiddleware, TenantMiddleware
 from api.settings import router as settings_router
 from api.solver_parameters import router as solver_parameters_router
 from api.storage_management import router as storage_management_router
@@ -65,7 +66,6 @@ from api.tenants import router as tenants_router
 from api.validation import router as validation_router
 from api.websocket import scada_websocket_endpoint
 from api.zip_generator_config import router as zip_generator_config_router
-from api.request_context import CorrelationIdMiddleware, TenantMiddleware
 from core.bootstrap import lifespan, logger
 from core.tracing import get_tracer
 from services.study_service import (
@@ -1045,6 +1045,7 @@ async def cua_kill_switch_activate(request: Request):
 
     activate_kill_switch(reason=reason)
     from datetime import datetime, timezone
+
     UTC = timezone.utc  # noqa: UP017
 
     return {
@@ -1207,4 +1208,3 @@ async def benchmark(request: Request):
     if not numpy_ok:
         result["data"]["numpy_error"] = "numpy unavailable" if numpy_err is not None else None
     return result
-

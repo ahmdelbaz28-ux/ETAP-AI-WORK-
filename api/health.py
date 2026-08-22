@@ -266,4 +266,3 @@ async def prometheus_metrics() -> Response:
         content=generate_metrics(),
         media_type=get_metrics_content_type(),
     )
-

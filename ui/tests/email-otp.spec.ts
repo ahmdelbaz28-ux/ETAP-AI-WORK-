@@ -206,9 +206,9 @@ test.describe("Email OTP page (TASK-8)", () => {
     await page.getByTestId("send-submit").click();
 
     // POST should have fired with the expected body
-    await expect.poll(() => sendCalled, { timeout: 5_000 }).toBe(true);
+    await expect.poll(() => sendCalled, { timeout: 15_000 }).toBe(true);
     await expect
-      .poll(() => sendBody, { timeout: 5_000 })
+      .poll(() => sendBody, { timeout: 15_000 })
       .toEqual({
         email: "user@example.com",
         purpose: "signup",
@@ -217,7 +217,7 @@ test.describe("Email OTP page (TASK-8)", () => {
 
     // Result card
     const result = page.getByTestId("send-result");
-    await expect(result).toBeVisible({ timeout: 5_000 });
+    await expect(result).toBeVisible({ timeout: 15_000 });
     await expect(result.getByText("Success")).toBeVisible();
     // "test mode" appears both as a badge and inside the success message;
     // use exact match on the badge.
@@ -230,7 +230,7 @@ test.describe("Email OTP page (TASK-8)", () => {
     // Success toast (the result block also contains the same message text —
     // scope to the toast which is rendered last in a fixed-position container).
     await expect(page.getByText(/OTP sent to user@example\.com/).last()).toBeVisible({
-      timeout: 5_000,
+      timeout: 15_000,
     });
   });
 
@@ -246,7 +246,7 @@ test.describe("Email OTP page (TASK-8)", () => {
     await page.getByTestId("send-submit").click();
 
     // POST fired
-    await expect.poll(() => sendCalled, { timeout: 5_000 }).toBe(true);
+    await expect.poll(() => sendCalled, { timeout: 15_000 }).toBe(true);
 
     // Error banner (role=alert) inside the form should mention HTTP 429.
     // The backend returns a JSON body with `error: rate_limited` but the
@@ -254,15 +254,18 @@ test.describe("Email OTP page (TASK-8)", () => {
     // (`HTTP 429: <message>`), so we match the HTTP status + the message
     // text rather than the JSON `error` field.
     await expect(
-      page.getByRole("alert").getByText(/429.*Please wait|Please wait.*429/),
-    ).toBeVisible({ timeout: 5_000 });
+      page
+        .getByRole("alert")
+        .getByText(/429.*Please wait|Please wait.*429/)
+        .first(),
+    ).toBeVisible({ timeout: 15_000 });
 
     // Note: when fetch throws on a non-2xx response, the catch block sets
     // `sendError` (rendered as the alert above) but leaves `sendResult`
     // null — so the result card stays in its EmptyState. We assert the
     // error toast (also fired from the catch block) as the second signal.
     await expect(page.getByText(/Send failed: HTTP 429/).last()).toBeVisible({
-      timeout: 5_000,
+      timeout: 15_000,
     });
   });
 
@@ -285,9 +288,9 @@ test.describe("Email OTP page (TASK-8)", () => {
     await page.getByTestId("verify-submit").click();
 
     // POST should have fired with the expected body
-    await expect.poll(() => verifyCalled, { timeout: 5_000 }).toBe(true);
+    await expect.poll(() => verifyCalled, { timeout: 15_000 }).toBe(true);
     await expect
-      .poll(() => verifyBody, { timeout: 5_000 })
+      .poll(() => verifyBody, { timeout: 15_000 })
       .toEqual({
         email: "user@example.com",
         purpose: "login",
@@ -296,7 +299,7 @@ test.describe("Email OTP page (TASK-8)", () => {
 
     // Result card
     const result = page.getByTestId("verify-result");
-    await expect(result).toBeVisible({ timeout: 5_000 });
+    await expect(result).toBeVisible({ timeout: 15_000 });
     // Use exact match on the status span — "Verified" also appears as
     // "Verified email" label and inside the success message text.
     await expect(result.getByText("Verified", { exact: true })).toBeVisible();
@@ -309,7 +312,7 @@ test.describe("Email OTP page (TASK-8)", () => {
 
     // Success toast (scope to last to disambiguate from any in-card text).
     await expect(page.getByText(/OTP verified for user@example\.com/).last()).toBeVisible({
-      timeout: 5_000,
+      timeout: 15_000,
     });
   });
 
@@ -332,7 +335,7 @@ test.describe("Email OTP page (TASK-8)", () => {
     await page.getByTestId("verify-submit").click();
 
     // POST fired
-    await expect.poll(() => verifyCalled, { timeout: 5_000 }).toBe(true);
+    await expect.poll(() => verifyCalled, { timeout: 15_000 }).toBe(true);
 
     // Error banner (role=alert) should mention HTTP 400 + the backend
     // message text (the JSON `error: invalid_code` is rendered as the
@@ -340,15 +343,16 @@ test.describe("Email OTP page (TASK-8)", () => {
     await expect(
       page
         .getByRole("alert")
-        .getByText(/400.*OTP verification failed|OTP verification failed.*400/),
-    ).toBeVisible({ timeout: 5_000 });
+        .getByText(/400.*OTP verification failed|OTP verification failed.*400/)
+        .first(),
+    ).toBeVisible({ timeout: 15_000 });
 
     // Note: when fetch throws on a non-2xx response, the catch block sets
     // `verifyError` (rendered as the alert above) but leaves `verifyResult`
     // null — so the result card stays in its EmptyState. We assert the
     // error toast as the second signal.
     await expect(page.getByText(/Verify failed: HTTP 400/).last()).toBeVisible({
-      timeout: 5_000,
+      timeout: 15_000,
     });
   });
 
@@ -370,13 +374,13 @@ test.describe("Email OTP page (TASK-8)", () => {
     await page.getByTestId("inv-submit").click();
 
     // POST should have fired with the right query params
-    await expect.poll(() => invalidateCalled, { timeout: 5_000 }).toBe(true);
-    await expect.poll(() => invalidateEmail, { timeout: 5_000 }).toBe("user@example.com");
-    await expect.poll(() => invalidatePurpose, { timeout: 5_000 }).toBe("mfa");
+    await expect.poll(() => invalidateCalled, { timeout: 15_000 }).toBe(true);
+    await expect.poll(() => invalidateEmail, { timeout: 15_000 }).toBe("user@example.com");
+    await expect.poll(() => invalidatePurpose, { timeout: 15_000 }).toBe("mfa");
 
     // Result card
     const result = page.getByTestId("inv-result");
-    await expect(result).toBeVisible({ timeout: 5_000 });
+    await expect(result).toBeVisible({ timeout: 15_000 });
     await expect(result.getByText("Success")).toBeVisible();
     await expect(result.getByText("OTP invalidated.")).toBeVisible();
     await expect(result.getByText("trace-inv-001")).toBeVisible(); // trace_id
@@ -384,6 +388,6 @@ test.describe("Email OTP page (TASK-8)", () => {
     // Success toast (scope to last to disambiguate from any in-card text).
     await expect(
       page.getByText(/OTP invalidated for user@example\.com \(mfa\)/).last(),
-    ).toBeVisible({ timeout: 5_000 });
+    ).toBeVisible({ timeout: 15_000 });
   });
 });

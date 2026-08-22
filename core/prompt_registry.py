@@ -17,7 +17,6 @@ from __future__ import annotations
 import base64
 import logging
 import os
-import re
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -25,6 +24,7 @@ from typing import Any, Optional
 
 try:
     import yaml
+
     YAML_AVAILABLE = True
 except ImportError:
     yaml = None  # type: ignore
@@ -36,6 +36,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class PromptTemplate:
     """Represents a resolved, versioned prompt template."""
+
     name: str
     system_prompt: str
     user_template: str = "{{input}}"
@@ -53,8 +54,12 @@ class PromptTemplate:
         for key, val in kwargs.items():
             str_val = str(val)
             # Support {{key}} and {key}
-            rendered_user = rendered_user.replace(f"{{{{{key}}}}}", str_val).replace(f"{{{key}}}", str_val)
-            rendered_system = rendered_system.replace(f"{{{{{key}}}}}", str_val).replace(f"{{{key}}}", str_val)
+            rendered_user = rendered_user.replace(f"{{{{{key}}}}}", str_val).replace(
+                f"{{{key}}}", str_val
+            )
+            rendered_system = rendered_system.replace(f"{{{{{key}}}}}", str_val).replace(
+                f"{{{key}}}", str_val
+            )
 
         return rendered_system, rendered_user
 
@@ -97,7 +102,7 @@ class PromptRegistry:
         Retrieve a prompt template using 3-tier fallback resolution.
         """
         now = time.time()
-        
+
         # Check in-memory cache
         if not force_refresh and prompt_name in self._cache:
             template, cached_at = self._cache[prompt_name]
@@ -129,6 +134,7 @@ class PromptRegistry:
         if lf_public and lf_secret:
             try:
                 import httpx
+
                 b64 = base64.b64encode(f"{lf_public}:{lf_secret}".encode()).decode()
                 r = httpx.get(
                     f"https://cloud.langfuse.com/api/public/v2/prompts/{prompt_name}",
@@ -139,8 +145,13 @@ class PromptRegistry:
                     data = r.json()
                     prompt_data = data.get("prompt", "")
                     if isinstance(prompt_data, list):
-                        sys_prompt = next((m.get("content") for m in prompt_data if m.get("role") == "system"), "")
-                        user_prompt = next((m.get("content") for m in prompt_data if m.get("role") == "user"), "{{input}}")
+                        sys_prompt = next(
+                            (m.get("content") for m in prompt_data if m.get("role") == "system"), ""
+                        )
+                        user_prompt = next(
+                            (m.get("content") for m in prompt_data if m.get("role") == "user"),
+                            "{{input}}",
+                        )
                     else:
                         sys_prompt = str(prompt_data)
                         user_prompt = "{{input}}"
@@ -171,12 +182,18 @@ class PromptRegistry:
         for filepath in candidates:
             if filepath.exists():
                 try:
-                    with open(filepath, "r", encoding="utf-8") as f:
+                    with open(filepath, encoding="utf-8") as f:
                         data = yaml.safe_load(f)
                     if isinstance(data, dict):
                         messages = data.get("messages", [])
-                        sys_msg = next((m.get("content", "") for m in messages if m.get("role") == "system"), "")
-                        user_msg = next((m.get("content", "") for m in messages if m.get("role") == "user"), "{{input}}")
+                        sys_msg = next(
+                            (m.get("content", "") for m in messages if m.get("role") == "system"),
+                            "",
+                        )
+                        user_msg = next(
+                            (m.get("content", "") for m in messages if m.get("role") == "user"),
+                            "{{input}}",
+                        )
                         return PromptTemplate(
                             name=prompt_name,
                             system_prompt=sys_msg or data.get("prompt", ""),

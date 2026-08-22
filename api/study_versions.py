@@ -306,4 +306,3 @@ async def compare_versions(
         config_diff=compute_diff(va.config_snapshot, vb.config_snapshot),
         results_diff=compute_diff(va.results_snapshot or {}, vb.results_snapshot or {}),
     )
-

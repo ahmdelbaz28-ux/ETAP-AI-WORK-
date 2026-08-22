@@ -1099,4 +1099,3 @@ async def ahmed_etap_info(
             },
         },
     )
-
