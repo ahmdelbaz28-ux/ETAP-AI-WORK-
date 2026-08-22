@@ -175,3 +175,214 @@ def viewer_headers():
         "Authorization": f"Bearer {token}",
         "X-CSRF-Token": generate_csrf_token(),
     }
+
+
+@pytest.fixture
+def api_client(client):
+    """Return a synchronous TestClient (alias of ``client``).
+
+    Integration tests under tests/integration/ use this name to make the
+    API-under-test explicit; it is the same client with CSRF pre-set.
+    """
+    return client
+
+
+@pytest.fixture
+def sample_3bus_network():
+    """Return a minimal 3-bus system as a SystemSpec-compatible mapping.
+
+    Values are dictionaries compatible with SystemSpec validation.
+    """
+    from core_model.specs import BusSpec, GeneratorSpec, LineSpec, LoadSpec
+
+    return {
+        "base_mva": 100.0,
+        "buses": [
+            BusSpec(
+                bus_id=1,
+                bus_type="slack",
+                base_kv=20.0,
+                voltage_magnitude=1.0,
+                voltage_angle=0.0,
+            ).model_dump(),
+            BusSpec(bus_id=2, bus_type="pq", base_kv=20.0).model_dump(),
+            BusSpec(bus_id=3, bus_type="pv", base_kv=20.0).model_dump(),
+        ],
+        "lines": [
+            LineSpec(
+                line_id=1, from_bus_id=1, to_bus_id=2, r1=0.02, x1=0.08, bshunt1=0.0
+            ).model_dump(),
+            LineSpec(
+                line_id=2, from_bus_id=2, to_bus_id=3, r1=0.02, x1=0.08, bshunt1=0.0
+            ).model_dump(),
+        ],
+        "generators": [
+            GeneratorSpec(generator_id=1, bus_id=1, internal_voltage_mag=1.0).model_dump(),
+        ],
+        "loads": [
+            LoadSpec(load_id=1, bus_id=2, p_mw=40.0, q_mvar=10.0).model_dump(),
+        ],
+    }
+
+
+@pytest.fixture
+def sample_ieee14_network():
+    """Return a standard IEEE-14 bus test system.
+
+    This is the classic IEEE 14-bus benchmark system used for testing
+    load flow, fault analysis, and other power system studies.
+    Bus 1 is slack, buses 2,3,6,7,8,9 are PV, buses 4,5 are PQ loads.
+    """
+    from core_model.specs import BusSpec, GeneratorSpec, LineSpec, LoadSpec, TransformerSpec
+
+    return {
+        "base_mva": 100.0,
+        "buses": [
+            BusSpec(
+                bus_id=1, bus_type="slack", base_kv=230.0, voltage_magnitude=1.0, voltage_angle=0.0
+            ).model_dump(),
+            BusSpec(
+                bus_id=2,
+                bus_type="pv",
+                base_kv=230.0,
+                voltage_magnitude=1.0,
+                generation_power_real=40.0,
+                generation_power_imag=-10.0,
+            ).model_dump(),
+            BusSpec(
+                bus_id=3, bus_type="pq", base_kv=230.0, load_power_real=100.0, load_power_imag=50.0
+            ).model_dump(),
+            BusSpec(
+                bus_id=4, bus_type="pq", base_kv=230.0, load_power_real=40.0, load_power_imag=5.0
+            ).model_dump(),
+            BusSpec(
+                bus_id=5, bus_type="pq", base_kv=230.0, load_power_real=10.0, load_power_imag=6.0
+            ).model_dump(),
+            BusSpec(
+                bus_id=6,
+                bus_type="pv",
+                base_kv=230.0,
+                voltage_magnitude=1.0,
+                generation_power_real=21.0,
+                generation_power_imag=-7.0,
+            ).model_dump(),
+            BusSpec(
+                bus_id=7,
+                bus_type="pv",
+                base_kv=230.0,
+                voltage_magnitude=1.0,
+                generation_power_real=16.0,
+                generation_power_imag=-6.0,
+            ).model_dump(),
+            BusSpec(
+                bus_id=8, bus_type="pq", base_kv=230.0, load_power_real=50.0, load_power_imag=4.0
+            ).model_dump(),
+            BusSpec(
+                bus_id=9,
+                bus_type="pv",
+                base_kv=230.0,
+                voltage_magnitude=1.0,
+                generation_power_real=12.0,
+                generation_power_imag=-5.0,
+            ).model_dump(),
+            BusSpec(
+                bus_id=10, bus_type="pq", base_kv=230.0, load_power_real=5.0, load_power_imag=3.0
+            ).model_dump(),
+            BusSpec(
+                bus_id=11, bus_type="pq", base_kv=230.0, load_power_real=5.0, load_power_imag=3.0
+            ).model_dump(),
+        ],
+        "lines": [
+            LineSpec(
+                line_id=1, from_bus_id=1, to_bus_id=2, r1=0.0172, x1=0.0476, bshunt1=0.0
+            ).model_dump(),
+            LineSpec(
+                line_id=2, from_bus_id=1, to_bus_id=3, r1=0.0162, x1=0.0434, bshunt1=0.0
+            ).model_dump(),
+            LineSpec(
+                line_id=3, from_bus_id=2, to_bus_id=4, r1=0.0072, x1=0.0192, bshunt1=0.0
+            ).model_dump(),
+            LineSpec(
+                line_id=4, from_bus_id=3, to_bus_id=4, r1=0.0054, x1=0.0158, bshunt1=0.0
+            ).model_dump(),
+            LineSpec(
+                line_id=5, from_bus_id=2, to_bus_id=5, r1=0.0142, x1=0.0386, bshunt1=0.0
+            ).model_dump(),
+            LineSpec(
+                line_id=6, from_bus_id=3, to_bus_id=5, r1=0.0099, x1=0.0265, bshunt1=0.0
+            ).model_dump(),
+            LineSpec(
+                line_id=7, from_bus_id=4, to_bus_id=5, r1=0.0129, x1=0.0351, bshunt1=0.0
+            ).model_dump(),
+            LineSpec(
+                line_id=8, from_bus_id=5, to_bus_id=6, r1=0.0131, x1=0.0358, bshunt1=0.0
+            ).model_dump(),
+            LineSpec(
+                line_id=9, from_bus_id=5, to_bus_id=7, r1=0.0099, x1=0.0266, bshunt1=0.0
+            ).model_dump(),
+            LineSpec(
+                line_id=10, from_bus_id=6, to_bus_id=7, r1=0.0243, x1=0.0658, bshunt1=0.0
+            ).model_dump(),
+            LineSpec(
+                line_id=11, from_bus_id=6, to_bus_id=8, r1=0.0089, x1=0.0240, bshunt1=0.0
+            ).model_dump(),
+            LineSpec(
+                line_id=12, from_bus_id=7, to_bus_id=8, r1=0.0178, x1=0.0481, bshunt1=0.0
+            ).model_dump(),
+            LineSpec(
+                line_id=13, from_bus_id=7, to_bus_id=9, r1=0.0165, x1=0.0445, bshunt1=0.0
+            ).model_dump(),
+            LineSpec(
+                line_id=14, from_bus_id=8, to_bus_id=9, r1=0.0135, x1=0.0365, bshunt1=0.0
+            ).model_dump(),
+            LineSpec(
+                line_id=15, from_bus_id=8, to_bus_id=10, r1=0.0073, x1=0.0199, bshunt1=0.0
+            ).model_dump(),
+            LineSpec(
+                line_id=16, from_bus_id=9, to_bus_id=10, r1=0.0067, x1=0.0182, bshunt1=0.0
+            ).model_dump(),
+            LineSpec(
+                line_id=17, from_bus_id=6, to_bus_id=11, r1=0.0255, x1=0.0686, bshunt1=0.0
+            ).model_dump(),
+            LineSpec(
+                line_id=18, from_bus_id=7, to_bus_id=11, r1=0.0187, x1=0.0502, bshunt1=0.0
+            ).model_dump(),
+            LineSpec(
+                line_id=19, from_bus_id=10, to_bus_id=11, r1=0.0080, x1=0.0217, bshunt1=0.0
+            ).model_dump(),
+            LineSpec(
+                line_id=20, from_bus_id=11, to_bus_id=12, r1=0.0135, x1=0.0365, bshunt1=0.0
+            ).model_dump(),
+        ],
+        "generators": [
+            GeneratorSpec(generator_id=1, bus_id=1, internal_voltage_mag=1.0).model_dump(),
+            GeneratorSpec(generator_id=2, bus_id=2, internal_voltage_mag=1.0).model_dump(),
+            GeneratorSpec(generator_id=3, bus_id=6, internal_voltage_mag=1.03).model_dump(),
+            GeneratorSpec(generator_id=4, bus_id=7, internal_voltage_mag=1.07).model_dump(),
+            GeneratorSpec(generator_id=5, bus_id=9, internal_voltage_mag=1.03).model_dump(),
+        ],
+        "loads": [
+            LoadSpec(load_id=1, bus_id=3, p_mw=100.0, q_mvar=50.0).model_dump(),
+            LoadSpec(load_id=2, bus_id=4, p_mw=40.0, q_mvar=5.0).model_dump(),
+            LoadSpec(load_id=3, bus_id=5, p_mw=10.0, q_mvar=6.0).model_dump(),
+            LoadSpec(load_id=4, bus_id=8, p_mw=50.0, q_mvar=4.0).model_dump(),
+            LoadSpec(load_id=5, bus_id=10, p_mw=5.0, q_mvar=3.0).model_dump(),
+            LoadSpec(load_id=6, bus_id=11, p_mw=5.0, q_mvar=3.0).model_dump(),
+        ],
+        "transformers": [],
+    }
+
+
+@pytest.fixture
+def sample_study_request(sample_3bus_network):
+    """Return a StudyRequest with a simple 3-bus network for basic testing.
+
+    Values are dictionaries compatible with StudyRequest validation.
+    """
+    from core_model.specs import StudyRequest
+
+    return StudyRequest(
+        study_type="load_flow",
+        system=sample_3bus_network,
+        parameters={"tolerance": 1e-6, "max_iterations": 50},
+    )

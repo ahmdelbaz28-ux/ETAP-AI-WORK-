@@ -29,7 +29,10 @@ def test_execute_study_logic_invalid_network(sample_3bus_network):
     """Test study execution with an invalid network (missing slack bus)."""
     # Create an invalid network without a slack bus
     invalid_network = sample_3bus_network.copy()
-    invalid_network["buses"] = [bus for bus in invalid_network["buses"] if bus.bus_type != "slack"]
+    # Access bus_type via dict key since sample_3bus_network returns dicts
+    invalid_network["buses"] = [
+        bus for bus in invalid_network["buses"] if bus.get("bus_type", "pq") != "slack"
+    ]
 
     # Create a study request with the invalid network
     invalid_request = StudyRequest(
