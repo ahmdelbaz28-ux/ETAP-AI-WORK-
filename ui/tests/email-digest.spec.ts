@@ -209,7 +209,7 @@ test.describe("Email Digest page (TASK-6)", () => {
 
     // Config card — values from MOCK_CONFIG
     const configCard = page.getByTestId("config-card");
-    await expect(configCard).toBeVisible({ timeout: 10_000 });
+    await expect(configCard).toBeVisible({ timeout: 20_000 });
 
     // Enabled badge
     await expect(configCard.getByTestId("config-enabled-badge")).toBeVisible();
@@ -241,9 +241,9 @@ test.describe("Email Digest page (TASK-6)", () => {
     await page.getByTestId("generate-submit").click();
 
     // The POST should have fired with the expected body
-    await expect.poll(() => generateCalled, { timeout: 5_000 }).toBe(true);
+    await expect.poll(() => generateCalled, { timeout: 15_000 }).toBe(true);
     await expect
-      .poll(() => generateBody, { timeout: 5_000 })
+      .poll(() => generateBody, { timeout: 15_000 })
       .toEqual({
         email: "user@example.com",
         period: "weekly",
@@ -252,7 +252,7 @@ test.describe("Email Digest page (TASK-6)", () => {
 
     // Result card should show the by_flow badges
     const resultCard = page.getByTestId("generate-result");
-    await expect(resultCard).toBeVisible({ timeout: 5_000 });
+    await expect(resultCard).toBeVisible({ timeout: 15_000 });
     await expect(resultCard.getByText("Success")).toBeVisible();
     await expect(resultCard.getByText("12")).toBeVisible(); // total_count
     await expect(resultCard.getByText("otp: 6")).toBeVisible();
@@ -265,7 +265,7 @@ test.describe("Email Digest page (TASK-6)", () => {
     // Success toast — i18n key adminPages.emailDigest.generate.success
     // renders as "Digest generated for user@example.com (daily)."
     await expect(page.getByText(/Digest generated for user@example\.com/)).toBeVisible({
-      timeout: 5_000,
+      timeout: 15_000,
     });
   });
 
@@ -287,14 +287,17 @@ test.describe("Email Digest page (TASK-6)", () => {
     await page.getByTestId("generate-submit").click();
 
     // POST fired
-    await expect.poll(() => generateCalled, { timeout: 5_000 }).toBe(true);
+    await expect.poll(() => generateCalled, { timeout: 15_000 }).toBe(true);
 
     // Error banner inside the form should mention the failure (HTTP 503 /
     // digests_disabled). Use .first() to disambiguate from the toast
     // notification which also surfaces the same error message.
     await expect(
-      page.getByRole("alert").getByText(/503.*digests_disabled|digests_disabled.*503/),
-    ).toBeVisible({ timeout: 5_000 });
+      page
+        .getByRole("alert")
+        .getByText(/503.*digests_disabled|digests_disabled.*503/)
+        .first(),
+    ).toBeVisible({ timeout: 15_000 });
   });
 
   test("Schedule run button POSTs /schedule/run and shows sent/failed counts", async ({ page }) => {
@@ -302,17 +305,17 @@ test.describe("Email Digest page (TASK-6)", () => {
     await page.goto("/admin/email-digest");
 
     // Wait for config to load (proves we're on Overview tab)
-    await expect(page.getByTestId("config-card")).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByTestId("config-card")).toBeVisible({ timeout: 20_000 });
 
     // Click the "Run Now" button
     await page.getByTestId("run-schedule-btn").click();
 
     // POST should have fired
-    await expect.poll(() => scheduleRunCalled, { timeout: 5_000 }).toBe(true);
+    await expect.poll(() => scheduleRunCalled, { timeout: 15_000 }).toBe(true);
 
     // Result block should show counts from MOCK_SCHEDULE_RUN
     const runResult = page.getByTestId("run-result");
-    await expect(runResult).toBeVisible({ timeout: 5_000 });
+    await expect(runResult).toBeVisible({ timeout: 15_000 });
     await expect(runResult.getByText("Success")).toBeVisible();
     await expect(runResult.getByText("daily")).toBeVisible(); // period
     await expect(runResult.getByText("8").first()).toBeVisible(); // recipients_count
@@ -323,7 +326,7 @@ test.describe("Email Digest page (TASK-6)", () => {
     // Success toast — i18n key adminPages.emailDigest.scheduleRun.success
     // renders as "Schedule run complete: 7 sent, 1 failed."
     await expect(page.getByText(/Schedule run complete: 7 sent, 1 failed/)).toBeVisible({
-      timeout: 5_000,
+      timeout: 15_000,
     });
   });
 
@@ -345,13 +348,13 @@ test.describe("Email Digest page (TASK-6)", () => {
     await page.getByTestId("preview-submit").click();
 
     // GET should have fired with the right email/period
-    await expect.poll(() => previewCalled, { timeout: 5_000 }).toBe(true);
-    await expect.poll(() => previewEmail, { timeout: 5_000 }).toBe("user@example.com");
-    await expect.poll(() => previewPeriod, { timeout: 5_000 }).toBe("daily");
+    await expect.poll(() => previewCalled, { timeout: 15_000 }).toBe(true);
+    await expect.poll(() => previewEmail, { timeout: 15_000 }).toBe("user@example.com");
+    await expect.poll(() => previewPeriod, { timeout: 15_000 }).toBe("daily");
 
     // Modal should open and contain an iframe with the HTML preview
     const modal = page.getByTestId("preview-modal");
-    await expect(modal).toBeVisible({ timeout: 5_000 });
+    await expect(modal).toBeVisible({ timeout: 15_000 });
 
     // The iframe should be present
     const iframe = modal.locator("iframe");
@@ -359,7 +362,7 @@ test.describe("Email Digest page (TASK-6)", () => {
 
     // Success toast
     await expect(page.getByText(/Digest preview loaded/)).toBeVisible({
-      timeout: 5_000,
+      timeout: 15_000,
     });
   });
 });

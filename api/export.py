@@ -355,4 +355,3 @@ async def export_history(
         ],
         total=total,
     )
-

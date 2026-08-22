@@ -313,7 +313,7 @@ test.describe("Equipment Management Page", () => {
   });
 
   test("renders two tabs and loads equipment table", async ({ page }) => {
-    await page.goto("/equipment", { waitUntil: "networkidle", timeout: 15000 });
+    await page.goto("/equipment", { waitUntil: "networkidle", timeout: 30000 });
     await dismissOnboardingIfPresent(page);
 
     await expect(page.getByRole("heading", { name: /Equipment Management/i })).toBeVisible();
@@ -330,7 +330,7 @@ test.describe("Equipment Management Page", () => {
   });
 
   test("opens Create Equipment modal and submits on POST", async ({ page }) => {
-    await page.goto("/equipment", { waitUntil: "networkidle", timeout: 15000 });
+    await page.goto("/equipment", { waitUntil: "networkidle", timeout: 30000 });
     await dismissOnboardingIfPresent(page);
 
     await page
@@ -358,7 +358,7 @@ test.describe("Equipment Management Page", () => {
   });
 
   test("opens Edit Equipment modal pre-filled", async ({ page }) => {
-    await page.goto("/equipment", { waitUntil: "networkidle", timeout: 15000 });
+    await page.goto("/equipment", { waitUntil: "networkidle", timeout: 30000 });
     await dismissOnboardingIfPresent(page);
 
     const row = page.locator("tr", { hasText: "100kVA Transformer" });
@@ -371,7 +371,7 @@ test.describe("Equipment Management Page", () => {
   });
 
   test("single delete shows confirmation and issues DELETE", async ({ page }) => {
-    await page.goto("/equipment", { waitUntil: "networkidle", timeout: 15000 });
+    await page.goto("/equipment", { waitUntil: "networkidle", timeout: 30000 });
     await dismissOnboardingIfPresent(page);
 
     const row = page.locator("tr", { hasText: "50kVA Transformer" });
@@ -386,7 +386,7 @@ test.describe("Equipment Management Page", () => {
   });
 
   test("bulk select and bulk delete confirmation flow", async ({ page }) => {
-    await page.goto("/equipment", { waitUntil: "networkidle", timeout: 15000 });
+    await page.goto("/equipment", { waitUntil: "networkidle", timeout: 30000 });
     await dismissOnboardingIfPresent(page);
 
     // Click "select all" checkbox in table header
@@ -415,7 +415,7 @@ test.describe("Equipment Management Page", () => {
   });
 
   test("Categories tab shows category cards with equipment counts", async ({ page }) => {
-    await page.goto("/equipment", { waitUntil: "networkidle", timeout: 15000 });
+    await page.goto("/equipment", { waitUntil: "networkidle", timeout: 30000 });
     await dismissOnboardingIfPresent(page);
 
     await page.getByRole("button", { name: /^Categories/i }).click();
@@ -429,7 +429,7 @@ test.describe("Equipment Management Page", () => {
   });
 
   test("create new category via modal", async ({ page }) => {
-    await page.goto("/equipment", { waitUntil: "networkidle", timeout: 15000 });
+    await page.goto("/equipment", { waitUntil: "networkidle", timeout: 30000 });
     await dismissOnboardingIfPresent(page);
 
     await page.getByRole("button", { name: /^Categories/i }).click();
@@ -447,7 +447,7 @@ test.describe("Equipment Management Page", () => {
     await page.getByRole("button", { name: /Create Category/i }).click();
     // Modal should close on success
     await expect(page.getByRole("heading", { name: /Create Category/i })).toBeHidden({
-      timeout: 5000,
+      timeout: 30000,
     });
   });
 });

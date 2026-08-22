@@ -67,6 +67,18 @@ overrides:
   # (4.0.42 satisfies > 3.0.97 and is API-compatible with the 4.x line).
   # LOW severity — code path only reachable from streaming LLM responses.
   '@ai-sdk/provider-utils': ^5.0.0
+  # EXCEPTIONS: several @ai-sdk provider packages declare EXACT provider-utils
+  # pins and break under the global ^5.0.0 redirect (ESM link errors — 5.0.x
+  # removed the tool-factory exports those versions import):
+  #   - @ai-sdk/gateway@3.x / @ai-sdk/openai@3.x declare exactly 4.0.45
+  #     ('createProviderToolFactoryWithOutputSchema').
+  #   - @ai-sdk/openai@2.x declares exactly 3.0.32
+  #     ('createProviderDefinedToolFactoryWithOutputSchema').
+  # Pin each to its declared version (4.0.45 > the 4.0.42 used for the
+  # @mastra/core aliases above, so the same CVE coverage applies).
+  '@ai-sdk/gateway>@ai-sdk/provider-utils': npm:@ai-sdk/provider-utils@4.0.45
+  '@ai-sdk/openai@3>@ai-sdk/provider-utils': npm:@ai-sdk/provider-utils@4.0.45
+  '@ai-sdk/openai@2>@ai-sdk/provider-utils': npm:@ai-sdk/provider-utils@3.0.32
   '@mastra/core>@ai-sdk/provider-utils-v5': npm:@ai-sdk/provider-utils@4.0.42
   '@mastra/core>@ai-sdk/provider-utils-v6': npm:@ai-sdk/provider-utils@4.0.42
   '@mastra/core>@ai-sdk/provider-utils-v4': npm:@ai-sdk/provider-utils@4.0.42

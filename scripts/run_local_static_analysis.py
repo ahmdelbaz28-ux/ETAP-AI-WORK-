@@ -47,11 +47,15 @@ PRODUCTION_DIRS = [
 
 # Files most critical after NOSONAR removal — must be clean
 CRITICAL_FILES = [
-    f for f in [
+    f
+    for f in [
         "core/kernel.py" if Path("core/kernel.py").exists() else None,
         "agents/orchestrator.py" if Path("agents/orchestrator.py").exists() else None,
-        "backend/services/workflow_service.py" if Path("backend/services/workflow_service.py").exists() else None,
-    ] if f is not None
+        "backend/services/workflow_service.py"
+        if Path("backend/services/workflow_service.py").exists()
+        else None,
+    ]
+    if f is not None
 ]
 
 

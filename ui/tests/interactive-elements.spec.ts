@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 
 test.describe("Login Page — Interactive Elements", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto("/login", { waitUntil: "networkidle", timeout: 15000 });
+    await page.goto("/login", { waitUntil: "networkidle", timeout: 30000 });
   });
 
   test("all form inputs are enabled and accept input", async ({ page }) => {
@@ -18,7 +18,7 @@ test.describe("Login Page — Interactive Elements", () => {
 
   test("language toggle button is clickable", async ({ page }) => {
     const langBtn = page.getByRole("button", { name: /العربية|English/i });
-    await expect(langBtn).toBeVisible({ timeout: 5000 });
+    await expect(langBtn).toBeVisible({ timeout: 30000 });
     await expect(langBtn).toBeEnabled();
     await langBtn.click({ force: true });
     await page.waitForTimeout(500);

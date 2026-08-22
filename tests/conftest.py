@@ -7,6 +7,7 @@ from __future__ import annotations
 import os
 import sys
 from pathlib import Path
+
 import pytest
 
 # Ensure project root is at the front of sys.path
@@ -27,6 +28,7 @@ os.environ.setdefault("AUTH_RETURN_RESET_TOKEN", "true")
 
 try:
     import matplotlib
+
     matplotlib.use("Agg")
 except Exception:
     pass
@@ -35,9 +37,10 @@ except Exception:
 @pytest.fixture(autouse=True)
 async def _init_test_database():
     """Ensure database tables exist and test users are seeded for all tests."""
-    from api.database import init_db, async_session
-    from api.auth import User, _hash_password
     from sqlalchemy import select
+
+    from api.auth import User, _hash_password
+    from api.database import async_session, init_db
 
     await init_db()
 
@@ -114,6 +117,7 @@ def app():
 def client(app):
     """Return standard TestClient for synchronous API testing."""
     from starlette.testclient import TestClient
+
     from api.csrf import generate_csrf_token
 
     c = TestClient(app)

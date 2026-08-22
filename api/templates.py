@@ -311,4 +311,3 @@ async def apply_template(
         "parameters": template.parameters,
         "system_config": template.system_config,
     }
-

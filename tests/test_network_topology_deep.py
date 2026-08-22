@@ -3,12 +3,13 @@ Comprehensive Unit & Integration Test Suite for deep NetworkTopology module.
 """
 
 import pytest
+
 from core.network_topology import (
-    NetworkTopology,
-    BusNode,
     BranchEdge,
-    IsolationZone,
+    BusNode,
     FeederTree,
+    IsolationZone,
+    NetworkTopology,
 )
 
 
@@ -42,7 +43,9 @@ class TestNetworkTopologyBasics:
         topology.add_bus(BusNode(id="BUS_B", voltage_kv=132.0))
 
         branch1 = topology.add_branch(
-            BranchEdge(id="LINE_AB", from_bus="BUS_A", to_bus="BUS_B", impedance=0.02, rating_mva=150.0)
+            BranchEdge(
+                id="LINE_AB", from_bus="BUS_A", to_bus="BUS_B", impedance=0.02, rating_mva=150.0
+            )
         )
         assert branch1.id == "LINE_AB"
         assert len(topology.get_all_branches()) == 1
@@ -75,8 +78,12 @@ class TestNetworkTopologyAlgorithms:
         assert topology.find_shortest_path("ISOLATED_1", "ISOLATED_2") is None
 
     def test_find_isolation_zone(self, topology):
-        topology.add_branch(BranchEdge(id="BR_1", from_bus="BUS_FAULT", to_bus="BUS_NORTH", rating_mva=50.0))
-        topology.add_branch(BranchEdge(id="BR_2", from_bus="BUS_FAULT", to_bus="BUS_SOUTH", rating_mva=50.0))
+        topology.add_branch(
+            BranchEdge(id="BR_1", from_bus="BUS_FAULT", to_bus="BUS_NORTH", rating_mva=50.0)
+        )
+        topology.add_branch(
+            BranchEdge(id="BR_2", from_bus="BUS_FAULT", to_bus="BUS_SOUTH", rating_mva=50.0)
+        )
 
         zone = topology.find_isolation_zone("BUS_FAULT")
         assert isinstance(zone, IsolationZone)

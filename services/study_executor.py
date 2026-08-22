@@ -315,9 +315,7 @@ class StudyExecutor:
     # Dispatch (uses STUDY_DISPATCH table from engine/dispatch.py)
     # ------------------------------------------------------------------
 
-    def _dispatch(
-        self, study_type: str, system: Any, parameters: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def _dispatch(self, study_type: str, system: Any, parameters: Dict[str, Any]) -> Dict[str, Any]:
         """Dispatch a study using the unified STUDY_DISPATCH table.
 
         Delegates to ``PowerSystemEngine`` for native types, ``BaseAgent``
@@ -338,9 +336,7 @@ class StudyExecutor:
         registration = STUDY_DISPATCH[canonical]
 
         if registration.requires_system and system is None:
-            raise ValueError(
-                f"study_type '{canonical}' requires a 'system' to be provided"
-            )
+            raise ValueError(f"study_type '{canonical}' requires a 'system' to be provided")
 
         if registration.handler_type == "native":
             return self._dispatch_native(registration, system, parameters)
@@ -358,9 +354,7 @@ class StudyExecutor:
 
         engine = PowerSystemEngine(system)
         method = getattr(engine, registration.handler)
-        missing = [
-            p for p in registration.required_params if parameters.get(p) is None
-        ]
+        missing = [p for p in registration.required_params if parameters.get(p) is None]
 
         if registration.handler == "run_load_flow":
             return method()
@@ -522,7 +516,9 @@ class StudyExecutor:
             cache_params["system_hash"] = hashlib.sha256(system_json.encode()).hexdigest()
         return cache_params
 
-    async def _lookup_cache(self, study_cache: Optional[StudyCache], payload: StudyRequest, trace_id: str) -> tuple[dict, bool]:
+    async def _lookup_cache(
+        self, study_cache: Optional[StudyCache], payload: StudyRequest, trace_id: str
+    ) -> tuple[dict, bool]:
         if not study_cache or payload.use_etap:
             return {}, False
         try:
@@ -616,9 +612,13 @@ class StudyExecutor:
             if line.get("r1", 0) <= 0 and line.get("x1", 0) <= 0:
                 return {"error": f"Line {line.get('line_id')} has zero/negative impedance"}
             if line.get("from_bus_id") not in bus_ids:
-                return {"error": f"Line {line.get('line_id')} references unknown from_bus {line.get('from_bus_id')}"}
+                return {
+                    "error": f"Line {line.get('line_id')} references unknown from_bus {line.get('from_bus_id')}"
+                }
             if line.get("to_bus_id") not in bus_ids:
-                return {"error": f"Line {line.get('line_id')} references unknown to_bus {line.get('to_bus_id')}"}
+                return {
+                    "error": f"Line {line.get('line_id')} references unknown to_bus {line.get('to_bus_id')}"
+                }
         return None
 
     def _pre_flight_isolated_buses(self, bus_ids: set, lines: list) -> Optional[dict]:
@@ -635,7 +635,9 @@ class StudyExecutor:
         for bus in buses:
             v = bus.get("voltage_magnitude")
             if v is not None and (v < 0.01 or v > 1.5):
-                return {"error": f"Bus {bus.get('bus_id')} voltage {v} pu out of realistic range (0.01-1.5)"}
+                return {
+                    "error": f"Bus {bus.get('bus_id')} voltage {v} pu out of realistic range (0.01-1.5)"
+                }
         return None
 
     def _pre_flight_check(self, system: dict) -> Optional[dict]:
@@ -678,11 +680,13 @@ class StudyExecutor:
             result = detector.scan(data_str, language="python")
             violations = []
             for v in result.violations:
-                violations.append({
-                    "rule_id": v.rule_id,
-                    "severity": v.severity.value,
-                    "description": v.description[:200],
-                })
+                violations.append(
+                    {
+                        "rule_id": v.rule_id,
+                        "severity": v.severity.value,
+                        "description": v.description[:200],
+                    }
+                )
             if violations:
                 must_fix_count = sum(1 for v in violations if v["severity"] == "must_fix")
                 if must_fix_count:

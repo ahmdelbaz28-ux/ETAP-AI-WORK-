@@ -50,9 +50,7 @@ def _mock_gis_allowed() -> bool:
         # If the feature-flag subsystem is unavailable (e.g., during early
         # bootstrap or in an isolated test), fall back to the legacy
         # USE_MOCK_GIS env var so we never hard-break existing dev flows.
-        logger.warning(
-            "feature_flags subsystem unavailable; falling back to USE_MOCK_GIS env var"
-        )
+        logger.warning("feature_flags subsystem unavailable; falling back to USE_MOCK_GIS env var")
         return os.getenv("USE_MOCK_GIS", "false").lower() == "true"
 
 

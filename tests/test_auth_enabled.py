@@ -22,6 +22,7 @@ import sys
 
 import pytest
 
+
 # Autouse fixture to scope auth-enabled environment to this module only
 @pytest.fixture(autouse=True)
 def _keep_auth_enabled(monkeypatch):
@@ -207,7 +208,9 @@ class TestAuthActuallyWorks:
             assert data["role"] != "admin", "Privilege escalation: role='admin' was granted!"
             assert data["role"] == "viewer", "Default role must be 'viewer'"
         else:
-            assert resp.status_code == 422, f"Expected 201 (ignored) or 422 (forbidden), got {resp.status_code}"
+            assert resp.status_code == 422, (
+                f"Expected 201 (ignored) or 422 (forbidden), got {resp.status_code}"
+            )
 
     def test_register_without_role_succeeds(self, auth_client):
         """POST /register without role field should return 201."""

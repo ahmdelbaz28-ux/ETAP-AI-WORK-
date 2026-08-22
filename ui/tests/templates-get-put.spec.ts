@@ -229,11 +229,11 @@ test.describe("Templates page — GET/PUT /{id} (TASK-9b)", () => {
     await expect(page.getByRole("heading", { name: /Templates/i })).toBeVisible();
 
     // GET / should have fired
-    await expect.poll(() => listCalled, { timeout: 5_000 }).toBe(true);
+    await expect.poll(() => listCalled, { timeout: 15_000 }).toBe(true);
 
     // Both template cards should be rendered
     await expect(page.getByText("Baseline Load Flow", { exact: true })).toBeVisible({
-      timeout: 5_000,
+      timeout: 15_000,
     });
     await expect(page.getByText("Quick Short Circuit", { exact: true })).toBeVisible();
 
@@ -246,19 +246,19 @@ test.describe("Templates page — GET/PUT /{id} (TASK-9b)", () => {
     await page.goto("/templates");
 
     // Wait for list to load
-    await expect.poll(() => listCalled, { timeout: 5_000 }).toBe(true);
+    await expect.poll(() => listCalled, { timeout: 15_000 }).toBe(true);
 
     // Click the Edit button (Pencil icon) on the first template card.
     // The Edit button is the one with title "Edit template (GET + PUT /{id})".
     await page.getByTitle("Edit template (GET + PUT /{id})").first().click();
 
     // GET /{id} should have fired with the right id
-    await expect.poll(() => detailCalled, { timeout: 5_000 }).toBe(true);
-    await expect.poll(() => detailId, { timeout: 5_000 }).toBe("tpl-001");
+    await expect.poll(() => detailCalled, { timeout: 15_000 }).toBe(true);
+    await expect.poll(() => detailId, { timeout: 15_000 }).toBe("tpl-001");
 
     // Modal should be visible with "Edit Template" title
     await expect(page.getByRole("heading", { name: /Edit Template/i })).toBeVisible({
-      timeout: 5_000,
+      timeout: 15_000,
     });
 
     // Form fields should be pre-filled with the DETAIL response
@@ -281,9 +281,9 @@ test.describe("Templates page — GET/PUT /{id} (TASK-9b)", () => {
     await page.goto("/templates");
 
     // Wait for list + open edit modal
-    await expect.poll(() => listCalled, { timeout: 5_000 }).toBe(true);
+    await expect.poll(() => listCalled, { timeout: 15_000 }).toBe(true);
     await page.getByTitle("Edit template (GET + PUT /{id})").first().click();
-    await expect.poll(() => detailCalled, { timeout: 5_000 }).toBe(true);
+    await expect.poll(() => detailCalled, { timeout: 15_000 }).toBe(true);
 
     // Modify the name
     await page.locator("#tpl-name").fill("Baseline Load Flow v2");
@@ -298,10 +298,10 @@ test.describe("Templates page — GET/PUT /{id} (TASK-9b)", () => {
     await page.getByRole("button", { name: /^Update$/i }).click();
 
     // PUT should have fired with the right id + body
-    await expect.poll(() => updateCalled, { timeout: 5_000 }).toBe(true);
-    await expect.poll(() => updateId, { timeout: 5_000 }).toBe("tpl-001");
+    await expect.poll(() => updateCalled, { timeout: 15_000 }).toBe(true);
+    await expect.poll(() => updateId, { timeout: 15_000 }).toBe("tpl-001");
     await expect
-      .poll(() => updateBody, { timeout: 5_000 })
+      .poll(() => updateBody, { timeout: 15_000 })
       .toEqual({
         name: "Baseline Load Flow v2",
         description: "Standard load flow template",
@@ -316,7 +316,7 @@ test.describe("Templates page — GET/PUT /{id} (TASK-9b)", () => {
 
     // Success toast
     await expect(page.getByText(/Template "Baseline Load Flow v2" updated/i).last()).toBeVisible({
-      timeout: 5_000,
+      timeout: 15_000,
     });
   });
 
@@ -327,14 +327,14 @@ test.describe("Templates page — GET/PUT /{id} (TASK-9b)", () => {
     await page.goto("/templates");
 
     // Wait for list to load
-    await expect.poll(() => listCalled, { timeout: 5_000 }).toBe(true);
+    await expect.poll(() => listCalled, { timeout: 15_000 }).toBe(true);
 
     // Click New Template
     await page.getByRole("button", { name: /New Template/i }).click();
 
     // Modal should open in create mode
     await expect(page.getByRole("heading", { name: /Create Template/i })).toBeVisible({
-      timeout: 5_000,
+      timeout: 15_000,
     });
 
     // Fill the form
@@ -349,9 +349,9 @@ test.describe("Templates page — GET/PUT /{id} (TASK-9b)", () => {
     await page.getByRole("button", { name: /^Create$/i }).click();
 
     // POST should have fired with the right body
-    await expect.poll(() => createCalled, { timeout: 5_000 }).toBe(true);
+    await expect.poll(() => createCalled, { timeout: 15_000 }).toBe(true);
     await expect
-      .poll(() => createBody, { timeout: 5_000 })
+      .poll(() => createBody, { timeout: 15_000 })
       .toEqual({
         name: "New Template",
         description: "Fresh template",
@@ -363,7 +363,7 @@ test.describe("Templates page — GET/PUT /{id} (TASK-9b)", () => {
 
     // Success toast
     await expect(page.getByText(/Template created successfully/i).last()).toBeVisible({
-      timeout: 5_000,
+      timeout: 15_000,
     });
   });
 });

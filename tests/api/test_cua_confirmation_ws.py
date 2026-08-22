@@ -4,6 +4,7 @@ Regression tests for the JWT ``user_id`` (sub) validation that prevents an
 attacker-controlled / spoofed ``sub`` from bypassing the dual-confirmation
 requirement on the life-safety CUA confirmation endpoint.
 """
+
 import os
 from unittest.mock import AsyncMock, patch
 
@@ -28,9 +29,11 @@ async def test_invalid_user_id_rejected():
     ws = _make_websocket("fake.jwt.token")
     payload = {"type": "access", "sub": "user@123", "exp": 9999999999}
 
-    with patch.object(jwt, "decode", return_value=payload), patch(
-        "api.dependencies.JWT_SECRET_KEY", "secret"
-    ), patch("api.dependencies.JWT_ALGORITHM", "HS256"):
+    with (
+        patch.object(jwt, "decode", return_value=payload),
+        patch("api.dependencies.JWT_SECRET_KEY", "secret"),
+        patch("api.dependencies.JWT_ALGORITHM", "HS256"),
+    ):
         await cua_mod.cua_confirmation_ws(ws)
 
     ws.close.assert_called_once_with(code=1008, reason="Invalid user_id")
@@ -45,11 +48,12 @@ async def test_valid_user_id_accepted():
     # Break the message loop immediately after connect via WebSocketDisconnect.
     ws.receive_text.side_effect = WebSocketDisconnect()
 
-    with patch.object(jwt, "decode", return_value=payload), patch(
-        "api.dependencies.JWT_SECRET_KEY", "secret"
-    ), patch("api.dependencies.JWT_ALGORITHM", "HS256"), patch.object(
-        cua_mod, "confirmation_broker"
-    ) as broker:
+    with (
+        patch.object(jwt, "decode", return_value=payload),
+        patch("api.dependencies.JWT_SECRET_KEY", "secret"),
+        patch("api.dependencies.JWT_ALGORITHM", "HS256"),
+        patch.object(cua_mod, "confirmation_broker") as broker,
+    ):
         broker.connect = AsyncMock()
         broker.disconnect = AsyncMock()
         await cua_mod.cua_confirmation_ws(ws)

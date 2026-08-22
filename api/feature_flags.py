@@ -336,4 +336,3 @@ async def update_feature_flag(
             "trace_id": trace_id,
         }
     )
-

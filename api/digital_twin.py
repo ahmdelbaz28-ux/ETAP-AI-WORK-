@@ -78,4 +78,3 @@ async def get_digital_twin_status(request: Request):
             status_code=500,
             content={"success": False, "errors": [MSG_INTERNAL_ERROR], "trace_id": trace_id},
         )
-

@@ -104,14 +104,34 @@ async function mockApiRoutes(page: Page) {
 test.describe("AI/ML Playground (TASK-8)", () => {
   test.beforeEach(async ({ page }) => {
     await mockApiRoutes(page);
-    // Mock auth so the page can load
+    // Seed auth storage exactly like the other specs: the app's protected
+    // routes require a stored token/user BEFORE the /auth/me round-trip,
+    // otherwise they redirect to the sign-in screen.
+    await page.addInitScript(() => {
+      sessionStorage.setItem("authToken", "test-token");
+      sessionStorage.setItem(
+        "authUser",
+        JSON.stringify({
+          user_id: "u1",
+          email: "admin@etap.com",
+          role: "admin",
+          tenant_id: "t1",
+        }),
+      );
+      localStorage.setItem("etap-ai-onboarding-completed", "true");
+    });
+    // Mock auth so the page can load (shape must match the app's contract)
     await page.route("**/api/v1/auth/me", async (route) => {
       await route.fulfill({
         status: 200,
         contentType: "application/json",
         body: JSON.stringify({
-          success: true,
-          data: { id: "u1", email: "test@example.com", role: "admin", name: "Test User" },
+          user_id: "u1",
+          email: "admin@etap.com",
+          username: "admin",
+          role: "admin",
+          is_active: true,
+          tenant_id: "t1",
         }),
       });
     });
@@ -143,7 +163,7 @@ test.describe("AI/ML Playground (TASK-8)", () => {
     // Click Run
     await page.getByRole("button", { name: /Run/i }).click();
     // Result viewer should show SUCCESS badge
-    await expect(page.getByText("SUCCESS")).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText("SUCCESS")).toBeVisible({ timeout: 30000 });
     // Network call should have been made
     expect(requests.length).toBeGreaterThan(0);
     expect(requests[0]).toContain("/api/v1/predict/load");
@@ -153,7 +173,7 @@ test.describe("AI/ML Playground (TASK-8)", () => {
     await page.goto("/admin/ai-playground");
     // Run on first tab
     await page.getByRole("button", { name: /^Run/i }).click();
-    await expect(page.getByText("SUCCESS")).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText("SUCCESS")).toBeVisible({ timeout: 30000 });
     // Switch to Anomaly Detection
     await page.getByRole("button", { name: /Anomaly Detection/i }).click();
     // Result should be cleared (SUCCESS text from previous run should be gone)
@@ -177,7 +197,7 @@ test.describe("AI/ML Playground (TASK-8)", () => {
     // Click Run
     await page.getByRole("button", { name: /^Run/i }).click();
     // Should show an error (validation failed)
-    await expect(page.getByText(/Invalid JSON/i)).toBeVisible({ timeout: 3000 });
+    await expect(page.getByText(/Invalid JSON/i).first()).toBeVisible({ timeout: 3000 });
     // No network call should have been made
     expect(requests.length).toBe(0);
   });

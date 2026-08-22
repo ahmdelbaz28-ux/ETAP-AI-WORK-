@@ -941,6 +941,7 @@ async def etap_gui_activate_kill_switch(reason: str = "manual_api_call"):
     even if the API server is unresponsive.
     """
     from datetime import datetime, timezone
+
     from agents.life_safety import activate_kill_switch
 
     activate_kill_switch(reason=reason)

@@ -36,10 +36,10 @@ import pytest
 
 import core.security_logging
 from core.security_logging import (
+    _SECURITY_GENESIS,
     SecurityAuditLogger,
     SecurityEventType,
     SensitiveDataFilter,
-    _SECURITY_GENESIS,
     _compute_chain_hash,
     configure_log_rotation,
     configure_timed_rotation,
@@ -567,10 +567,8 @@ class TestRecursiveSanitization:
             "user": "alice",
             "session": {
                 "token": "secret_jwt_token_12345",
-                "nested_profile": {
-                    "password": "my_super_password_12345"
-                }
-            }
+                "nested_profile": {"password": "my_super_password_12345"},
+            },
         }
         security_logger.log_event("AUTH_SUCCESS", payload=nested_payload)
         log_path = temp_log_dir / "security_audit.log"
@@ -580,10 +578,7 @@ class TestRecursiveSanitization:
         assert "***REDACTED***" in content
 
     def test_nested_list_of_dicts_masked(self, security_logger, temp_log_dir):
-        items = [
-            {"service": "etap", "api_key": "sk-secret-key-12345678"},
-            {"status": "ok"}
-        ]
+        items = [{"service": "etap", "api_key": "sk-secret-key-12345678"}, {"status": "ok"}]
         security_logger.log_event("AUTH_SUCCESS", services=items)
         log_path = temp_log_dir / "security_audit.log"
         content = log_path.read_text(encoding="utf-8")
@@ -637,4 +632,3 @@ class TestLogRotationEncodingAndDeduplication:
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
-

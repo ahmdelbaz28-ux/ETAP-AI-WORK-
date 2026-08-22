@@ -512,4 +512,3 @@ async def invalidate_magic_links(
 
 
 __all__ = ["router"]
-

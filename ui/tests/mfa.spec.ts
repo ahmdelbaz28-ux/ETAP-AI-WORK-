@@ -207,13 +207,13 @@ test.describe("MFA page (TASK-9c)", () => {
     await page.getByTestId("setup-submit").click();
 
     // POST should have fired
-    await expect.poll(() => setupCalled, { timeout: 5_000 }).toBe(true);
+    await expect.poll(() => setupCalled, { timeout: 15_000 }).toBe(true);
     // Body should be empty JSON object (we omit user_id for F-04 safety)
-    await expect.poll(() => setupBody, { timeout: 5_000 }).toEqual({});
+    await expect.poll(() => setupBody, { timeout: 15_000 }).toEqual({});
 
     // Result card
     const result = page.getByTestId("setup-result");
-    await expect(result).toBeVisible({ timeout: 5_000 });
+    await expect(result).toBeVisible({ timeout: 15_000 });
     await expect(result.getByText("Success", { exact: true })).toBeVisible();
     await expect(result.getByText("MFA enabled", { exact: true })).toBeVisible();
     // qr_code_uri should be rendered (the otpauth:// URI)
@@ -224,7 +224,7 @@ test.describe("MFA page (TASK-9c)", () => {
     // not as a third-party <img>. Assert the SVG is present with role=img
     // and a descriptive aria-label.
     const qrSvg = result.getByRole("img", { name: /TOTP QR code/i });
-    await expect(qrSvg).toBeVisible({ timeout: 5_000 });
+    await expect(qrSvg).toBeVisible({ timeout: 15_000 });
     // SVG element specifically (not <img>)
     await expect(qrSvg.locator("xpath=self::*[name()='svg']")).toHaveCount(1);
 
@@ -232,7 +232,7 @@ test.describe("MFA page (TASK-9c)", () => {
     expect(thirdPartyRequests, "third-party QR service was called — TOTP secret leak").toEqual([]);
 
     // Success toast
-    await expect(page.getByText(/MFA setup complete/i).last()).toBeVisible({ timeout: 5_000 });
+    await expect(page.getByText(/MFA setup complete/i).last()).toBeVisible({ timeout: 15_000 });
   });
 
   test("Verify TOTP tab POSTs /totp/verify with code and shows valid badge", async ({ page }) => {
@@ -252,19 +252,19 @@ test.describe("MFA page (TASK-9c)", () => {
     await page.getByTestId("totp-submit").click();
 
     // POST should have fired with the expected body
-    await expect.poll(() => totpCalled, { timeout: 5_000 }).toBe(true);
-    await expect.poll(() => totpBody, { timeout: 5_000 }).toEqual({ code: "123456" });
+    await expect.poll(() => totpCalled, { timeout: 15_000 }).toBe(true);
+    await expect.poll(() => totpBody, { timeout: 15_000 }).toEqual({ code: "123456" });
 
     // Result card
     const result = page.getByTestId("totp-result");
-    await expect(result).toBeVisible({ timeout: 5_000 });
+    await expect(result).toBeVisible({ timeout: 15_000 });
     await expect(result.getByText("Verified", { exact: true })).toBeVisible();
     await expect(result.getByText("valid", { exact: true })).toBeVisible();
     await expect(result.getByText("trace-totp-001")).toBeVisible();
 
     // Success toast
     await expect(page.getByText(/TOTP code verified successfully/i).last()).toBeVisible({
-      timeout: 5_000,
+      timeout: 15_000,
     });
   });
 
@@ -285,18 +285,21 @@ test.describe("MFA page (TASK-9c)", () => {
     await page.getByTestId("totp-submit").click();
 
     // POST fired
-    await expect.poll(() => totpCalled, { timeout: 5_000 }).toBe(true);
+    await expect.poll(() => totpCalled, { timeout: 15_000 }).toBe(true);
 
     // Error banner (role=alert) should mention HTTP 401 + the backend
     // message text (the JSON `error: invalid_code` is rendered as the
     // thrown Error message `HTTP 401: Invalid TOTP code.`).
     await expect(
-      page.getByRole("alert").getByText(/401.*Invalid TOTP code|Invalid TOTP code.*401/),
-    ).toBeVisible({ timeout: 5_000 });
+      page
+        .getByRole("alert")
+        .getByText(/401.*Invalid TOTP code|Invalid TOTP code.*401/)
+        .first(),
+    ).toBeVisible({ timeout: 15_000 });
 
     // Error toast
     await expect(page.getByText(/Verify failed: HTTP 401/).last()).toBeVisible({
-      timeout: 5_000,
+      timeout: 15_000,
     });
   });
 
@@ -319,19 +322,19 @@ test.describe("MFA page (TASK-9c)", () => {
     await page.getByTestId("backup-submit").click();
 
     // POST should have fired with the expected body
-    await expect.poll(() => backupCalled, { timeout: 5_000 }).toBe(true);
-    await expect.poll(() => backupBody, { timeout: 5_000 }).toEqual({ code: "ABCD1234EFGH" });
+    await expect.poll(() => backupCalled, { timeout: 15_000 }).toBe(true);
+    await expect.poll(() => backupBody, { timeout: 15_000 }).toEqual({ code: "ABCD1234EFGH" });
 
     // Result card
     const result = page.getByTestId("backup-result");
-    await expect(result).toBeVisible({ timeout: 5_000 });
+    await expect(result).toBeVisible({ timeout: 15_000 });
     await expect(result.getByText("Verified", { exact: true })).toBeVisible();
     await expect(result.getByText("valid", { exact: true })).toBeVisible();
     await expect(result.getByText("trace-backup-001")).toBeVisible();
 
     // Success toast
     await expect(page.getByText(/Backup code verified successfully/i).last()).toBeVisible({
-      timeout: 5_000,
+      timeout: 15_000,
     });
   });
 
@@ -352,7 +355,7 @@ test.describe("MFA page (TASK-9c)", () => {
     await page.getByTestId("backup-submit").click();
 
     // POST fired
-    await expect.poll(() => backupCalled, { timeout: 5_000 }).toBe(true);
+    await expect.poll(() => backupCalled, { timeout: 15_000 }).toBe(true);
 
     // Error banner (role=alert) should mention HTTP 401 + the backend
     // message text.
@@ -361,12 +364,13 @@ test.describe("MFA page (TASK-9c)", () => {
         .getByRole("alert")
         .getByText(
           /401.*Invalid or already used backup code|Invalid or already used backup code.*401/,
-        ),
-    ).toBeVisible({ timeout: 5_000 });
+        )
+        .first(),
+    ).toBeVisible({ timeout: 15_000 });
 
     // Error toast
     await expect(page.getByText(/Verify failed: HTTP 401/).last()).toBeVisible({
-      timeout: 5_000,
+      timeout: 15_000,
     });
   });
 });

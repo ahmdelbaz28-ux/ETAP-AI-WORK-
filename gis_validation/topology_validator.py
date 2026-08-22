@@ -91,6 +91,8 @@ class ADMSGraphModel:
                         stack.append(nb)
             comps.append(comp)
         return comps
+
+
 def validate_adms_topology(assets: list[ADMSAsset]) -> tuple[bool, list[TopologyIssue]]:
     """
     Validate basic electrical consistency derived from geometry.
