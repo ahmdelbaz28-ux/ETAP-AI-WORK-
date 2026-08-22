@@ -19,7 +19,15 @@ jobs:
           docker build -t etap-hf-test -f Dockerfile .
           
           echo "Starting container..."
-          docker run -d --name etap-test -p 7860:7860 etap-hf-test
+          # The image defaults to ENVIRONMENT=production, which fail-closes at
+          # startup without JWT_SECRET_KEY (RuntimeError: "Refusing to start
+          # with a default secret"). That guard is correct for real HF deploys,
+          # but this smoke job must boot WITHOUT production secrets — so run
+          # the container in the testing environment with a CI-only JWT key.
+          docker run -d --name etap-test -p 7860:7860 \
+            -e ENVIRONMENT=testing \
+            -e JWT_SECRET_KEY=ci-test-jwt-secret-key-for-github-actions-32-bytes-min \
+            etap-hf-test
           
           echo "Waiting for startup..."
           for i in $(seq 1 30); do
@@ -31,8 +39,10 @@ jobs:
           done
           
           # Test health endpoint
+          # NOTE: "|| echo 000" keeps curl connection-refused (exit 7) from
+          # tripping bash -e BEFORE the diagnostic docker-logs lines run.
           echo "Testing /healthz..."
-          HEALTH=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:7860/healthz)
+          HEALTH=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:7860/healthz || echo 000)
           if [ "$HEALTH" != "200" ]; then
             echo "FAIL: /healthz returned HTTP $HEALTH (expected 200)"
             docker logs etap-test
@@ -42,9 +52,10 @@ jobs:
           
           # Test readyz
           echo "Testing /readyz..."
-          READY=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:7860/readyz)
+          READY=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:7860/readyz || echo 000)
           if [ "$READY" != "200" ]; then
             echo "FAIL: /readyz returned HTTP $READY"
+            docker logs etap-test
             exit 1
           fi
           echo "PASS: /readyz returned HTTP 200"
@@ -72,7 +83,7 @@ jobs:
           
           # Test docs
           echo "Testing /docs..."
-          DOCS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:7860/docs)
+          DOCS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:7860/docs || echo 000)
           if [ "$DOCS" = "200" ]; then
             echo "PASS: /docs is accessible"
           else

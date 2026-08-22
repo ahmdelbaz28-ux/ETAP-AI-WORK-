@@ -196,13 +196,17 @@ class TestContextRetrievalAPI:
         # secret scanners (detect-secrets, gitleaks, SonarCloud S6418) don't
         # flag it.
 
+        # Prefer the API key actually configured for the service under test
+        # (CI sets ENGINEERING_SERVICE_API_KEY). With a matching key, both
+        # _require_api_key and the CSRF middleware server-to-server bypass
+        # accept the request. Without it (local dev), fall back to a dummy
+        # key and expect 401 — still within the asserted status set.
         _TEST_API_KEY = os.environ.get(
-            "TEST_CI_API_KEY",
-            "ci-test-api-key-not-a-real-secret",
+            "ENGINEERING_SERVICE_API_KEY",
+            os.environ.get("TEST_CI_API_KEY", "ci-test-api-key-not-a-real-secret"),
         )
 
         client = TestClient(app)
-        # Use dummy key bypass or auth disabled in test
         r = client.post(
             "/api/v1/context/retrieve",
             json={"query": "test_search", "top_k": 3, "max_tokens": 100},
@@ -336,9 +340,11 @@ class TestImpactAnalysisAPI:
         # HIGH #11 (AhmedETAP_Error_Report_AR.pdf): use env-var-backed key
         # instead of a hardcoded literal so secret scanners don't flag it.
 
+        # Prefer the API key actually configured for the service under test
+        # (see test_main_routes_endpoint_via_client note above).
         _TEST_API_KEY = os.environ.get(
-            "TEST_CI_API_KEY",
-            "ci-test-api-key-not-a-real-secret",
+            "ENGINEERING_SERVICE_API_KEY",
+            os.environ.get("TEST_CI_API_KEY", "ci-test-api-key-not-a-real-secret"),
         )
 
         client = TestClient(app)

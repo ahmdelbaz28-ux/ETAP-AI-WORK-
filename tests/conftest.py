@@ -35,6 +35,23 @@ except Exception:
 
 
 @pytest.fixture(autouse=True)
+def _reset_redis_singleton():
+    """Reset the module-level async Redis client around every test.
+
+    Documented contract (api/auth.py, _get_redis_client): the singleton binds
+    to the event loop current at creation; TestClient spins a fresh loop per
+    test, so a carried-over client raises 'RuntimeError: Event loop is closed'.
+    """
+    from api import auth as auth_module
+
+    auth_module._redis_client = None
+    auth_module._redis_client_loop = None
+    yield
+    auth_module._redis_client = None
+    auth_module._redis_client_loop = None
+
+
+@pytest.fixture(autouse=True)
 async def _init_test_database():
     """Ensure database tables exist and test users are seeded for all tests."""
     from sqlalchemy import select
@@ -122,6 +139,13 @@ def client(app):
 
     c = TestClient(app)
     c.headers.update({"x-csrf-token": generate_csrf_token()})
+    # When the service under test enforces API-key auth (e.g. CI sets
+    # ENGINEERING_SERVICE_API_KEY), attach the same key so requests pass
+    # _require_api_key instead of failing with 401 before exercising the
+    # endpoint logic. No-op when the variable is unset (local dev).
+    api_key = os.environ.get("ENGINEERING_SERVICE_API_KEY", "")
+    if api_key:
+        c.headers.update({"x-api-key": api_key})
     return c
 
 

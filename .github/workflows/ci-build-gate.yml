@@ -41,7 +41,10 @@ jobs:
           cache-dependency-path: ui/package-lock.json
 
       - name: Install dependencies
-        run: npm install --ignore-scripts --no-optional --no-audit --no-fund
+        # NOTE: --no-optional removed — it excludes platform-specific optional
+        # deps like @rollup/rollup-linux-x64-gnu, breaking vite/vitest on Linux
+        # with "Cannot find module @rollup/rollup-linux-x64-gnu".
+        run: npm install --ignore-scripts --no-audit --no-fund
 
       - name: TypeScript type-check
         run: npm run typecheck
@@ -75,7 +78,10 @@ jobs:
           cache-dependency-path: ui/package-lock.json
 
       - name: Install dependencies
-        run: npm install --ignore-scripts --no-optional --no-audit --no-fund
+        # NOTE: --no-optional removed — it excludes platform-specific optional
+        # deps like @rollup/rollup-linux-x64-gnu, breaking vite/vitest on Linux
+        # with "Cannot find module @rollup/rollup-linux-x64-gnu".
+        run: npm install --ignore-scripts --no-audit --no-fund
 
       - name: Run Vitest
         run: npm run test
