@@ -354,3 +354,11 @@ autoscaling:
   maxReplicas: 20
   targetCPUUtilizationPercentage: 70
   targetMemoryUtilizationPercentage: 80
+
+# ---------- Redis ----------
+redis:
+  enabled: true
+  existingSecret: "etap-redis-secret"
+  password: ""
+  host: "etap-redis"
+  port: 6379

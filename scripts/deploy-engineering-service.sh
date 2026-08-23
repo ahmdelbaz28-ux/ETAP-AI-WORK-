@@ -50,14 +50,7 @@ die()   { echo "${RED}[ ✗ ]${RST} $*" >&2; exit 1; }
 # Resolve GHCR_REPOSITORY (owner/repo) the same way docker_build.sh does
 # ---------------------------------------------------------------------------
 resolve_repo() {
-  if [[ -n "${REPO}" ]]; then echo "${REPO}"; return 0; fi
-  if [[ -n "${GHCR_REPOSITORY:-}" ]]; then echo "${GHCR_REPOSITORY}"; return 0; fi
-  if [[ -n "${GITHUB_REPOSITORY:-}" ]]; then echo "${GITHUB_REPOSITORY}"; return 0; fi
-  local remote
-  remote="$(git -C "${PROJECT_DIR}" remote get-url origin 2>/dev/null || true)"
-  if [[ -n "${remote}" ]]; then
-
-  if [ -n "${REPO}" ]; then echo "${REPO}"; return 0; fi
+  if [ -n "${REPO:-}" ]; then echo "${REPO}"; return 0; fi
   if [ -n "${GHCR_REPOSITORY:-}" ]; then echo "${GHCR_REPOSITORY}"; return 0; fi
   if [ -n "${GITHUB_REPOSITORY:-}" ]; then echo "${GITHUB_REPOSITORY}"; return 0; fi
   local remote
