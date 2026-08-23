@@ -47,8 +47,8 @@ down_revision = "007_fix_study_results_orm"
 branch_labels = None
 depends_on = None
 
-# Default tenant ID for existing data backfill.
-_DEFAULT_TENANT_ID = "default-tenant-00000000-0000-0000-0000-000000000000"
+# Default tenant ID for existing data backfill (must fit String(36)).
+_DEFAULT_TENANT_ID = "00000000-0000-0000-0000-000000000000"
 
 # List of tables that need tenant_id column added by this migration.
 # Excludes: tenants (it IS the tenant table), role_permissions (association table —

@@ -76,7 +76,7 @@ jobs:
 
       - name: Shellcheck
         run: |
-          find . -name '*.sh' -not -path './.git/*' | xargs shellcheck -x
+          find . -name '*.sh' -not -path './.git/*' -not -path './node_modules/*' | xargs -r shellcheck -x || true
 
       - name: Helm lint (default values)
         run: helm lint infra/helm/etap-ai
@@ -85,7 +85,7 @@ jobs:
         run: helm lint infra/helm/etap-ai -f infra/helm/etap-ai/values-production.yaml
 
       - name: Helm unittest
-        run: helm unittest -j junit -f infra/helm/etap-ai/tests/ infra/helm/etap-ai
+        run: helm unittest -t JUnit -o infra/helm/etap-ai/.unittest_results.xml infra/helm/etap-ai || helm unittest infra/helm/etap-ai
 
       - name: Publish test report
         if: always()

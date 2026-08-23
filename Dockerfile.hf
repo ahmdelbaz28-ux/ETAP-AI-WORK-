@@ -18,9 +18,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy deps and install
-COPY requirements.txt ./
-RUN pip install --no-cache-dir --user -r requirements.txt 2>&1 || \
-    pip install --no-cache-dir --user $(grep -v "pywin32" requirements.txt | grep -v "^#" | grep -v "^$" | tr '\n' ' ')
+COPY requirements*.txt ./
+RUN grep -v "^#" requirements.txt | grep -v "^$" | grep -v "pywin32" > req.txt \
+    && pip install --no-cache-dir --upgrade pip \
+    && pip install --no-cache-dir --user -r req.txt
 
 # Copy source
 COPY . .
