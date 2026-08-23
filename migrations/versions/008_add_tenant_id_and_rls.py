@@ -303,22 +303,21 @@ def downgrade() -> None:
 
     def _table_exists(bind, dialect, tn):
         """Check if a table exists in the database."""
-        if dialect == "postgresql":
-            return (
-                bind.execute(
-                    sa.text("SELECT 1 FROM information_schema.tables WHERE table_name = :tn")
-                )
-                .bindparams(tn=tn)
-                .scalar()
-            )
-        else:
-            return (
-                bind.execute(
-                    sa.text("SELECT 1 FROM sqlite_master WHERE type='table' AND name = :tn")
-                )
-                .bindparams(tn=tn)
-                .scalar()
-            )
+        try:
+            return sa.inspect(bind).has_table(tn)
+        except Exception:
+            if dialect == "postgresql":
+                res = bind.execute(
+                    sa.text("SELECT 1 FROM information_schema.tables WHERE table_name = :tn"),
+                    {"tn": tn},
+                ).scalar()
+                return bool(res)
+            else:
+                res = bind.execute(
+                    sa.text("SELECT 1 FROM sqlite_master WHERE type='table' AND name = :tn"),
+                    {"tn": tn},
+                ).scalar()
+                return bool(res)
 
     # 1. Drop RLS policies (PostgreSQL only)
     if _dialect == "postgresql":

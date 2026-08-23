@@ -273,21 +273,32 @@ def main() -> int:
         print(f"!! daytona-sdk not installed: {exc}", file=sys.stderr)
         return 3
 
-    print(f"→ Creating Daytona sandbox for PR #{os.environ['PR_NUMBER']}")
-
-    daytona = Daytona(
-        api_key=os.environ["DAYTONA_API_KEY"],
-        api_url=os.environ.get("DAYTONA_API_URL", "https://app.daytona.io"),
-    )
+    api_key = os.environ.get("DAYTONA_API_KEY") or os.environ.get("DAYTONA_API_TOKEN", "")
+    api_url = os.environ.get("DAYTONA_API_URL") or os.environ.get("DAYTONA_SERVER_URL", "https://app.daytona.io")
     target_name = os.environ.get("DAYTONA_TARGET", "local")
-    try:
-        target = Target(target_name)
-    except Exception:
-        # Newer SDK versions accept a plain string
-        target = target_name  # type: ignore
+
+    if not api_key:
+        print("!! Missing DAYTONA_API_KEY or DAYTONA_API_TOKEN", file=sys.stderr)
+        return 2
 
     try:
-        sandbox: Sandbox = daytona.create(target=target, language="python")
+        try:
+            daytona = Daytona(api_key=api_key, api_url=api_url)
+        except TypeError:
+            daytona = Daytona(api_key=api_key, server_url=api_url)
+    except Exception as exc:
+        print(f"!! Failed to initialize Daytona client: {exc}", file=sys.stderr)
+        return 3
+
+    try:
+        try:
+            target = Target(target_name)
+        except Exception:
+            target = target_name  # type: ignore
+        try:
+            sandbox: Sandbox = daytona.create(target=target, language="python")
+        except TypeError:
+            sandbox = daytona.create(language="python")
         print(f"✓ Sandbox created: {getattr(sandbox, 'id', 'unknown')}")
     except Exception as exc:
         print(f"!! Failed to create sandbox: {exc}", file=sys.stderr)
