@@ -39,9 +39,17 @@ def app():
 @pytest.fixture
 async def client(app):
     transport = ASGITransport(app=app)
-    async with AsyncClient(
-        transport=transport, base_url="http://test"
-    ) as ac:  # NOSONAR clear-text http:// for internal service; TLS terminated at ingress
+    # Attach the same auth material as the conftest TestClient so requests
+    # pass CSRF/API-key gates when the service enforces them (CI sets
+    # ENGINEERING_SERVICE_API_KEY). Tests that patch auth state explicitly
+    # (TestStudyRunAPIKey) override or intentionally mismatch these defaults.
+    from api.csrf import generate_csrf_token
+
+    headers = {"x-csrf-token": generate_csrf_token()}
+    api_key = os.environ.get("ENGINEERING_SERVICE_API_KEY", "")
+    if api_key:
+        headers["x-api-key"] = api_key
+    async with AsyncClient(transport=transport, base_url="http://test", headers=headers) as ac:
         yield ac
 
 

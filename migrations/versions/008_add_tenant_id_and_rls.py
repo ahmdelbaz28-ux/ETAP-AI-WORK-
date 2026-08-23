@@ -43,7 +43,7 @@ from alembic import op
 # ---------------------------------------------------------------------------
 
 revision = "008_add_tenant_id_and_rls"
-down_revision = "007_fix_study_results_and_orm_tables"
+down_revision = "007_fix_study_results_orm"
 branch_labels = None
 depends_on = None
 

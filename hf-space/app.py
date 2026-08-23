@@ -366,6 +366,20 @@ async def auth_and_rate_limit(request: Request, call_next):
     if _eng_key and not _hf_key:
         os.environ["HF_API_KEY"] = _eng_key
     if not _is_public:
+        # C-02 symmetry: honour ENGINEERING_SERVICE_AUTH_DISABLED only via the
+        # fail-closed gate (dev allow-list), mirroring api/routes.py.
+        try:
+            from api.environment import auth_disabled_allowed
+        except Exception:
+
+            def _auth_disabled_fallback():
+                return False
+
+            auth_disabled_allowed = _auth_disabled_fallback
+
+        if auth_disabled_allowed():
+            return await call_next(request)
+
         try:
             verify_api_key(request)
         except HTTPException as exc:
