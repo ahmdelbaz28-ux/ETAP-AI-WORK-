@@ -293,8 +293,8 @@ class RenewableAgent(BaseAgent):
         poa = np.clip(poa, 0.0, 1.2)  # NOSONAR
 
         # Add some cloud randomness
-        np.random.seed(42)
-        cloud_factor = 0.7 + 0.3 * np.random.random(  # NOSONAR
+        _local_rng = np.random.default_rng(42)
+        cloud_factor = 0.7 + 0.3 * _local_rng.random(  # NOSONAR
             hours
         )  # NOSONAR
         poa = poa * cloud_factor

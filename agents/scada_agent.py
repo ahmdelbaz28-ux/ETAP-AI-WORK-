@@ -343,10 +343,10 @@ class SCADAAgent(BaseAgent):
 
         # Update values with slight random variation (simulate real-time)
         # NOSONAR
-        np.random.seed(int(now.timestamp()) % 2**31)
+        local_rng = np.random.default_rng(int(now.timestamp()) % 2**31)
         result_measurements = []
         for m in filtered:
-            noise = _RNG.normal(  # NOSONAR
+            noise = local_rng.normal(  # NOSONAR
                 0, 0.005
             )  # NOSONAR
             new_value = m.value * (1.0 + noise)
@@ -722,14 +722,14 @@ class SCADAAgent(BaseAgent):
         timestamp: datetime,
     ) -> list[SCADAMeasurement]:
         """Generate a set of simulated SCADA measurements for a substation."""
-        np.random.seed(42)
+        local_rng = np.random.default_rng(42)
         measurements = []
 
         # NOSONAR
         for bus_id in ["BUS1", "BUS2", "BUS3"]:
             v_nom = 13.8  # kV
             v_kv = v_nom * (
-                1.0 + _RNG.normal(0, 0.02)  # NOSONAR
+                1.0 + local_rng.normal(0, 0.02)  # NOSONAR
             )  # NOSONAR
 
             measurements.append(

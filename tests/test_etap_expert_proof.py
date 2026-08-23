@@ -89,6 +89,7 @@ def fastapi_client():
     os.environ.setdefault("ENVIRONMENT", "development")
     os.environ.setdefault("USE_ETAP", "false")
     os.environ.setdefault("DEPLOYMENT_VERIFICATION", "true")
+    os.environ.setdefault("ENGINEERING_SERVICE_AUTH_DISABLED", "true")
 
     # Bypass Redis (no Redis in test env)
     import services.cache_service as cs
@@ -102,9 +103,19 @@ def fastapi_client():
 
     from fastapi.testclient import TestClient
 
+    from api.csrf import generate_csrf_token
     from api.routes import app
 
-    return TestClient(app)
+    c = TestClient(app)
+    c.headers.update({"x-csrf-token": generate_csrf_token()})
+    # When the service under test enforces API-key auth (e.g. CI sets
+    # ENGINEERING_SERVICE_API_KEY), attach the same key so requests pass
+    # _require_api_key instead of failing with 401 before exercising the
+    # endpoint logic. No-op when the variable is unset (local dev).
+    api_key = os.environ.get("ENGINEERING_SERVICE_API_KEY", "")
+    if api_key:
+        c.headers.update({"x-api-key": api_key})
+    return c
 
 
 def _chat(client, question: str) -> dict:

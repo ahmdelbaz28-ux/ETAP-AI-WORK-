@@ -9,7 +9,7 @@ This migration adds multi-tenant isolation at the database level:
 1. Creates a ``tenants`` table to store tenant (organization) metadata.
 2. Adds ``tenant_id`` column (String 36, FK → tenants.id) to all
    tenant-scoped tables: users, projects, study_results, sessions,
-   audit_log, security_events, assets, roles, permissions, user_roles,
+   audit_log, security_events, roles, permissions, user_roles,
    study_jobs, mfa_credentials.
 3. Creates indexes on ``tenant_id`` for fast tenant-scoped queries.
 4. On PostgreSQL, enables Row-Level Security (RLS) with policies that
@@ -50,9 +50,13 @@ depends_on = None
 # Default tenant ID for existing data backfill.
 _DEFAULT_TENANT_ID = "default-tenant-00000000-0000-0000-0000-000000000000"
 
-# List of tables that need tenant_id column.
+# List of tables that need tenant_id column added by this migration.
 # Excludes: tenants (it IS the tenant table), role_permissions (association table —
 # tenant isolation is inherited via the role_id FK).
+# 
+# Note: "assets" is excluded because the Asset model (api/assets.py) already
+# defines tenant_id — it is created by Base.metadata.create_all() at app startup.
+# Existing deployments without tenant_id should add it via a separate migration.
 # SECURITY (self-critique): Table names are constants defined here, not
 # user-supplied. They are used in DDL statements via Alembic's op API
 # which validates identifiers. The UPDATE statements use sa.text() with
@@ -64,7 +68,6 @@ _TENANT_SCOPED_TABLES = [
     "sessions",
     "audit_log",
     "security_events",
-    "assets",
     "roles",
     "permissions",
     "user_roles",

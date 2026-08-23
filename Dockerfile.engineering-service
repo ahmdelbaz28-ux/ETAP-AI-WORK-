@@ -28,10 +28,10 @@ WORKDIR /build
 
 # Install Python deps into a prefix we can copy across stages
 # (Windows-only pywin32 is filtered out for the Linux target)
-COPY requirements.txt .
-RUN grep -v "^#" requirements.txt | grep -v "^$" | grep -v "pywin32" > /tmp/req.txt \
+COPY requirements*.txt ./
+RUN grep -v "^#" requirements.txt | grep -v "^$" | grep -v "pywin32" > req.txt \
     && pip install --no-cache-dir --upgrade pip \
-    && pip install --no-cache-dir --prefix=/install -r /tmp/req.txt
+    && pip install --no-cache-dir --prefix=/install -r req.txt
 
 # ---------- Stage 2: runtime ----------
 FROM python:3.13-slim

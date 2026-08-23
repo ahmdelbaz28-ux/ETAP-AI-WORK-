@@ -362,24 +362,33 @@ class TestLLMS18:
 
     def test_s18_default_temperature_zero(self):
         """S-18: Default temperature must be 0.0 for deterministic engineering."""
-        src = Path("agents/orchestrator.py").read_text(encoding="utf-8")
+        target = Path("agents/base.py") if Path("agents/base.py").exists() else Path("agents/orchestrator.py")
+        src = target.read_text(encoding="utf-8")
         section = src[src.find("prompt_temperature") :]
         assert "0.0" in section[:400], "S-18: Default temperature must be 0.0, not 0.2"
 
     def test_s18_old_temperature_removed(self):
         """S-18: Old 0.2 default must be removed."""
-        src = Path("agents/orchestrator.py").read_text(encoding="utf-8")
+        target = Path("agents/base.py") if Path("agents/base.py").exists() else Path("agents/orchestrator.py")
+        src = target.read_text(encoding="utf-8")
+        orch_src = Path("agents/orchestrator.py").read_text(encoding="utf-8")
         # Should not have: get("temperature", 0.2)
-        assert 'get("temperature", 0.2)' not in src, (
+        assert 'get("temperature", 0.2)' not in src and 'get("temperature", 0.2)' not in orch_src, (
             "S-18: Old 0.2 default temperature must be removed"
         )
 
     def test_s18_safety_critical_comment(self):
         """S-18: Must document why temperature is 0.0."""
-        src = Path("agents/orchestrator.py").read_text(encoding="utf-8")
-        assert "safety" in src.lower() or "deterministic" in src.lower(), (
-            "S-18: Must document safety-critical reasoning for temperature=0.0"
-        )
+        target = Path("agents/base.py") if Path("agents/base.py").exists() else Path("agents/orchestrator.py")
+        src = target.read_text(encoding="utf-8")
+        orch_src = Path("agents/orchestrator.py").read_text(encoding="utf-8")
+        assert (
+            "safety" in src.lower()
+            or "deterministic" in src.lower()
+            or "safety" in orch_src.lower()
+            or "deterministic" in orch_src.lower()
+        ), "S-18: Must document safety-critical reasoning for temperature=0.0"
+
 
 
 # ---------------------------------------------------------------------------

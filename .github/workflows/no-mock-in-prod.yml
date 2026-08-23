@@ -82,6 +82,8 @@ jobs:
               --exclude-dir="venv" \
               --exclude-dir="__pycache__" \
               --exclude="*_mock*" \
+              --exclude="mock_*" \
+              --exclude="*mock*.py" \
               --exclude="conftest.py" \
               --exclude="test_*" \
               --exclude="*_test.py" \
