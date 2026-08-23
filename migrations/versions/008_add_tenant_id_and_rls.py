@@ -183,7 +183,27 @@ def upgrade() -> None:
     # the tenant_id value. Table names come from the constant list above
     # (not user input), so they are safe for DDL. The UPDATE value uses
     # a parameterized query.
+    _bind = op.get_bind()
+    _dialect = _bind.dialect.name
     for table_name in _TENANT_SCOPED_TABLES:
+        # Skip tables that don't exist (e.g. assets may not be created yet)
+        if _dialect == "postgresql":
+            exists = _bind.execute(
+                sa.text(
+                    "SELECT 1 FROM information_schema.tables WHERE table_name = :tn"
+                ).bindparams(tn=table_name)
+            ).scalar()
+            if not exists:
+                continue
+        else:
+            # SQLite: check sqlite_master
+            exists = _bind.execute(
+                sa.text("SELECT 1 FROM sqlite_master WHERE type='table' AND name = :tn").bindparams(
+                    tn=table_name
+                )
+            ).scalar()
+            if not exists:
+                continue
         try:
             op.execute(
                 sa.text(
@@ -205,8 +225,29 @@ def upgrade() -> None:
     _bind = op.get_bind()
     _dialect = _bind.dialect.name
 
+    def _table_exists(bind, dialect, tn):
+        """Check if a table exists in the database."""
+        if dialect == "postgresql":
+            return (
+                bind.execute(
+                    sa.text("SELECT 1 FROM information_schema.tables WHERE table_name = :tn")
+                )
+                .bindparams(tn=tn)
+                .scalar()
+            )
+        else:
+            return (
+                bind.execute(
+                    sa.text("SELECT 1 FROM sqlite_master WHERE type='table' AND name = :tn")
+                )
+                .bindparams(tn=tn)
+                .scalar()
+            )
+
     if _dialect == "postgresql":
         for table_name in _TENANT_SCOPED_TABLES:
+            if not _table_exists(_bind, _dialect, table_name):
+                continue
             try:
                 op.alter_column(
                     table_name,
@@ -226,6 +267,8 @@ def upgrade() -> None:
 
     if _dialect == "postgresql":
         for table_name in _TENANT_SCOPED_TABLES:
+            if not _table_exists(_bind, _dialect, table_name):
+                continue
             # Enable RLS
             op.execute(f"ALTER TABLE {table_name} ENABLE ROW LEVEL SECURITY")
 
@@ -256,9 +299,30 @@ def downgrade() -> None:
     _bind = op.get_bind()
     _dialect = _bind.dialect.name
 
+    def _table_exists(bind, dialect, tn):
+        """Check if a table exists in the database."""
+        if dialect == "postgresql":
+            return (
+                bind.execute(
+                    sa.text("SELECT 1 FROM information_schema.tables WHERE table_name = :tn")
+                )
+                .bindparams(tn=tn)
+                .scalar()
+            )
+        else:
+            return (
+                bind.execute(
+                    sa.text("SELECT 1 FROM sqlite_master WHERE type='table' AND name = :tn")
+                )
+                .bindparams(tn=tn)
+                .scalar()
+            )
+
     # 1. Drop RLS policies (PostgreSQL only)
     if _dialect == "postgresql":
         for table_name in _TENANT_SCOPED_TABLES:
+            if not _table_exists(_bind, _dialect, table_name):
+                continue
             try:
                 op.execute(f"DROP POLICY IF EXISTS tenant_isolation_{table_name} ON {table_name}")
                 op.execute(f"ALTER TABLE {table_name} DISABLE ROW LEVEL SECURITY")
@@ -267,6 +331,8 @@ def downgrade() -> None:
 
     # 2. Drop tenant_id columns
     for table_name in _TENANT_SCOPED_TABLES:
+        if not _table_exists(_bind, _dialect, table_name):
+            continue
         try:
             op.drop_column(table_name, "tenant_id")
         except Exception:
