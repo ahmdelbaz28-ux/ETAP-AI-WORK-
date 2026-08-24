@@ -11,6 +11,17 @@ updates:
       - dependencies
       - automated
 
+  # Python uv lockfile updater
+  - package-ecosystem: uv
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+      - automated
+
   # npm dependencies (new TS service)
   - package-ecosystem: npm
     directory: /ts-service
