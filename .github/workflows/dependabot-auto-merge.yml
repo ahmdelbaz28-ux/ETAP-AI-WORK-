@@ -74,15 +74,19 @@ jobs:
               pkgLower === p || pkgLower === p.replace('/', '-') || pkgLower.endsWith('/' + p)
             );
 
+            const isMajor = title.match(/from\s+(\d+)\.[^\s]+\s+to\s+(\d+)\./i);
+            const isMajorBump = isMajor && parseInt(isMajor[1], 10) < parseInt(isMajor[2], 10);
+
             console.log(`PR title: ${title}`);
             console.log(`Package: ${packageName}`);
             console.log(`Is critical: ${isCritical}`);
+            console.log(`Is major bump: ${isMajorBump}`);
 
             core.setOutput('package', packageName);
             core.setOutput('is_critical', isCritical.toString());
 
-            if (isCritical) {
-              console.log(`::warning::Critical package "${packageName}" requires manual review. Auto-merge SKIPPED.`);
+            if (isCritical || isMajorBump) {
+              console.log(`::warning::Package "${packageName}" (critical=${isCritical}, major=${isMajorBump}) requires manual review. Auto-merge SKIPPED.`);
               core.setOutput('safe', 'false');
             } else {
               console.log(`Dev dependency "${packageName}" is safe for auto-merge.`);
