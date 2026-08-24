@@ -92,7 +92,7 @@ pytesseract~=0.3.13
 # Uses stdlib HTTP client — no resend SDK needed
 
 # ─── LLM Observability (Langfuse) ──────────────────────────────────────────
-langfuse~=4.14.2
+langfuse~=4.14.4
 
 # ─── Graph Database (Neo4j) ────────────────────────────────────────────────
 neo4j~=6.2.0

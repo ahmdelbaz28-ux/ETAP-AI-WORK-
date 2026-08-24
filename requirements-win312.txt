@@ -18,7 +18,7 @@ opentelemetry-exporter-otlp-proto-http~=1.30.0
 
 # LLM observability — Langfuse (free Hobby plan supports unlimited prompts)
 # Used by integrations/langfuse_integration.py and agents/prompt_loader.py.
-langfuse~=2.60.0
+langfuse~=4.14.4
 
 # LLM SDKs (traced via langfuse.openai / langfuse.anthropic wrappers)
 # SECURITY: openai bumped from 1.50.0 → 2.52.x because langchain-openai 1.4.x
