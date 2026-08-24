@@ -358,6 +358,7 @@ autoscaling:
 # ---------- Redis ----------
 redis:
   enabled: true
+  url: "redis://etap-redis:6379/0"
   existingSecret: "etap-redis-secret"
   password: ""
   host: "etap-redis"
