@@ -98,7 +98,7 @@ psutil~=5.9.0
 requests>=2.32.0
 
 # CAD file processing
-ezdxf>=1.1.0,<1.4.0
+ezdxf>=1.1.0,<1.5.0
 
 # Language detection
 # langdetect~=1.0.9  # NOSONAR: installed separately (py2-only wheel; pure-Python sdist)

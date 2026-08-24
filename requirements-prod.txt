@@ -94,7 +94,7 @@ setuptools>=83.0.0
 tqdm~=4.66.0
 beautifulsoup4~=4.12.0
 lxml~=6.1.0
-ezdxf>=1.1.0,<1.4.0
+ezdxf>=1.1.0,<1.5.0
 
 # Security & Infrastructure
 pyotp~=2.9.0
