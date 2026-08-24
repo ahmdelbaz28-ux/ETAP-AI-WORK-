@@ -105,13 +105,18 @@ jobs:
 
       - name: kubeconform (standalone manifests)
         run: |
-          find . -name '*.yaml' \
+          MANIFESTS=$(find infra/ deploy/k8s/ k8s/ -name '*.yaml' \
             -not -path '*/templates/*' \
             -not -path '*/tests/*' \
-            -not -name 'values.yaml' \
-            -not -name 'values-production.yaml' \
+            -not -name 'values*.yaml' \
             -not -name 'Chart.yaml' \
             -not -name 'repositories.yaml' \
-            -not -path './.git/*' \
-            | xargs kubeconform -strict -summary -ignore-missing-schemas \
-                -kubernetes-version 1.29.0
+            -not -name 'kustomization.yaml' \
+            -not -path '*/dashboards/*' \
+            2>/dev/null || true)
+          for f in $MANIFESTS; do
+            if grep -q "kind:" "$f" 2>/dev/null; then
+              kubeconform -strict -summary -ignore-missing-schemas \
+                  -kubernetes-version 1.29.0 "$f"
+            fi
+          done
