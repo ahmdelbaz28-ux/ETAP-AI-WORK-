@@ -4,19 +4,19 @@ core/security_logging.py — Tamper-evident Security Audit Logging System.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
-from enum import Enum
 import hashlib
 import hmac
 import json
 import logging
-from logging.handlers import RotatingFileHandler, TimedRotatingFileHandler
 import os
-from pathlib import Path
 import re
 import threading
-from typing import Any
 import uuid
+from datetime import datetime, timezone
+from enum import Enum
+from logging.handlers import RotatingFileHandler, TimedRotatingFileHandler
+from pathlib import Path
+from typing import Any
 
 UTC = timezone.utc
 
@@ -24,7 +24,9 @@ _LOG_DIR = Path("logs")
 _SECURITY_GENESIS = "0" * 64
 
 
-class SecurityEventType(str, Enum):
+# Intentionally (str, Enum) rather than enum.StrEnum: this module must keep
+# working on Python < 3.11 (see compat.py); member semantics are identical.
+class SecurityEventType(str, Enum):  # noqa: UP042
     AUTH_SUCCESS = "AUTH_SUCCESS"
     AUTH_FAILURE = "AUTH_FAILURE"
     AUTH_KEY_ROTATION = "AUTH_KEY_ROTATION"
@@ -56,27 +58,30 @@ _SENSITIVE_KEY_NAMES = {
     "private_key",
 }
 
+DEFAULT_MASK = "***REDACTED***"
+SECURITY_AUDIT_LOG_FILENAME = "security_audit.log"
+
 _SENSITIVE_KEY_PATTERNS = [
     # Key-value redaction patterns (e.g. credentials and tokens)
     (
         re.compile(
-            r'(?i)\b(api_key|token|password|auth_key|secret|credential|access_token|refresh_token)\s*=\s*["\']([A-Za-z0-9_\-\.]{8,})["\']'
+            r'(?i)\b(api_key|token|password|auth_key|secret|credential|access_token|refresh_token)\s*=\s*["\']([\w.-]{8,})["\']'
         ),
         r'\1="***REDACTED***"',
     ),
     # Bearer token
     (
-        re.compile(r"(?i)\bBearer\s+([A-Za-z0-9_\-\.]{8,})"),
+        re.compile(r"(?i)\bBearer\s+([\w.-]{8,})"),
         r"Bearer ***REDACTED***",
     ),
 ]
 
 _SENSITIVE_VALUE_PATTERNS = [
-    re.compile(r"\bsk-[A-Za-z0-9_\-\.]{8,}\b"),
+    re.compile(r"\bsk-[\w.-]{8,}\b"),
 ]
 
 
-def mask_sensitive(text: Any, mask: str = "***REDACTED***") -> str:
+def mask_sensitive(text: Any, mask: str = DEFAULT_MASK) -> str:
     """Mask sensitive credentials in text while preserving non-sensitive hashes and fields."""
     if text is None:
         return ""
@@ -91,7 +96,7 @@ def mask_sensitive(text: Any, mask: str = "***REDACTED***") -> str:
 
     result = text
     for pattern, repl in _SENSITIVE_KEY_PATTERNS:
-        custom_repl = repl.replace("***REDACTED***", mask)
+        custom_repl = repl.replace(DEFAULT_MASK, mask)
         result = pattern.sub(custom_repl, result)
 
     for val_pattern in _SENSITIVE_VALUE_PATTERNS:
@@ -100,7 +105,7 @@ def mask_sensitive(text: Any, mask: str = "***REDACTED***") -> str:
     return result
 
 
-def _sanitize_value(val: Any, mask: str = "***REDACTED***") -> Any:
+def _sanitize_value(val: Any, mask: str = DEFAULT_MASK) -> Any:
     """Recursively mask sensitive keys and patterns in nested data structures."""
     if isinstance(val, dict):
         sanitized_dict: dict[str, Any] = {}
@@ -133,14 +138,9 @@ class SensitiveDataFilter(logging.Filter):
 
         if record.args:
             if isinstance(record.args, dict):
-                record.args = {
-                    k: _sanitize_value(v)
-                    for k, v in record.args.items()
-                }
+                record.args = {k: _sanitize_value(v) for k, v in record.args.items()}
             elif isinstance(record.args, tuple):
-                record.args = tuple(
-                    _sanitize_value(v) for v in record.args
-                )
+                record.args = tuple(_sanitize_value(v) for v in record.args)
         return True
 
 
@@ -168,7 +168,7 @@ class SecurityAuditLogger:
         else:
             self._log_dir = Path(log_dir)
         self._log_dir.mkdir(parents=True, exist_ok=True)
-        self._log_path = self._log_dir / "security_audit.log"
+        self._log_path = self._log_dir / SECURITY_AUDIT_LOG_FILENAME
         self._chain_hash = self._recover_chain_hash()
 
     def _recover_chain_hash(self) -> str:
@@ -177,7 +177,7 @@ class SecurityAuditLogger:
             return _SECURITY_GENESIS
         try:
             last_line = ""
-            with open(self._log_path, "r", encoding="utf-8") as f:
+            with open(self._log_path, encoding="utf-8") as f:
                 for line in f:
                     stripped = line.strip()
                     if stripped:
@@ -226,7 +226,7 @@ class SecurityAuditLogger:
 
             entries_count = 0
             expected_chain_hash = _SECURITY_GENESIS
-            with open(self._log_path, "r", encoding="utf-8") as f:
+            with open(self._log_path, encoding="utf-8") as f:
                 for idx, raw_line in enumerate(f):
                     line = raw_line.strip()
                     if not line:
@@ -235,10 +235,18 @@ class SecurityAuditLogger:
                     try:
                         data = json.loads(line)
                         if data.get("chain_hash") != expected_chain_hash:
-                            return {"valid": False, "entries_checked": entries_count, "first_break": idx}
+                            return {
+                                "valid": False,
+                                "entries_checked": entries_count,
+                                "first_break": idx,
+                            }
                         expected_chain_hash = _compute_chain_hash(line)
                     except Exception:
-                        return {"valid": False, "entries_checked": entries_count, "first_break": idx}
+                        return {
+                            "valid": False,
+                            "entries_checked": entries_count,
+                            "first_break": idx,
+                        }
 
             return {"valid": True, "entries_checked": entries_count, "first_break": None}
 
@@ -250,9 +258,13 @@ def configure_log_rotation(logger: logging.Logger, log_file: str = "etap.log") -
     log_path = Path(_LOG_DIR) / log_file
     log_path.parent.mkdir(parents=True, exist_ok=True)
     for existing_handler in logger.handlers:
-        if isinstance(existing_handler, RotatingFileHandler) and getattr(existing_handler, "baseFilename", None) == str(log_path.resolve()):
+        if isinstance(existing_handler, RotatingFileHandler) and getattr(
+            existing_handler, "baseFilename", None
+        ) == str(log_path.resolve()):
             return
-    handler = RotatingFileHandler(log_path, maxBytes=500 * 1024 * 1024, backupCount=10, encoding="utf-8")
+    handler = RotatingFileHandler(
+        log_path, maxBytes=500 * 1024 * 1024, backupCount=10, encoding="utf-8"
+    )
     logger.addHandler(handler)
 
 
@@ -263,7 +275,11 @@ def configure_timed_rotation(logger: logging.Logger, log_file: str = "etap.log")
     log_path = Path(_LOG_DIR) / log_file
     log_path.parent.mkdir(parents=True, exist_ok=True)
     for existing_handler in logger.handlers:
-        if isinstance(existing_handler, TimedRotatingFileHandler) and getattr(existing_handler, "baseFilename", None) == str(log_path.resolve()):
+        if isinstance(existing_handler, TimedRotatingFileHandler) and getattr(
+            existing_handler, "baseFilename", None
+        ) == str(log_path.resolve()):
             return
-    handler = TimedRotatingFileHandler(log_path, when="D", interval=1, backupCount=30, encoding="utf-8")
+    handler = TimedRotatingFileHandler(
+        log_path, when="D", interval=1, backupCount=30, encoding="utf-8"
+    )
     logger.addHandler(handler)

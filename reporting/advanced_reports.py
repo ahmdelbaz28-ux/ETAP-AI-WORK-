@@ -38,6 +38,7 @@ from datetime import datetime, timezone
 
 try:
     import matplotlib
+
     matplotlib.use("Agg")
 except Exception:
     pass

@@ -29,11 +29,11 @@ router = APIRouter(prefix="", tags=["health"])
 # Lazy imports for optional dependencies (DB + Redis). These are imported
 # lazily inside the readiness check so that a missing or unreachable DB/Redis
 # does not crash the /healthz liveness probe or import-time of this module.
-def _get_db_context():
-    """Lazy import of the DB session context manager."""
-    from api.database import get_db_context
+def _check_db_health():
+    """Lazy import of the async DB health check helper."""
+    from api.database import check_db_health
 
-    return get_db_context
+    return check_db_health
 
 
 def _get_redis_client_func():
@@ -97,15 +97,13 @@ async def readyz() -> Dict[str, object]:
     checks: Dict[str, object] = {"python": True, "imports": True}
     # DB check
     try:
-        get_db_context = _get_db_context()
-        async with get_db_context() as db:
-            from sqlalchemy import text
-
-            result = await db.execute(text("SELECT 1"))
-            if result.scalar() == 1:
-                checks["db"] = "ok"
-            else:
-                checks["db"] = "fail: unexpected scalar"
+        check_db_health = _check_db_health()
+        db_health = await check_db_health()
+        status = str(db_health.get("status", "unhealthy"))
+        if status in ("healthy", "degraded"):
+            checks["db"] = f"ok ({db_health.get('backend', 'unknown')})"
+        else:
+            checks["db"] = f"fail: {status}"
     except Exception as exc:
         checks["db"] = f"fail: {type(exc).__name__}: {exc}"
     # Redis check
@@ -122,9 +120,11 @@ async def readyz() -> Dict[str, object]:
         checks["redis"] = f"fail: {type(exc).__name__}: {exc}"
     # Critical dependencies: DB must be ok. Redis is optional in dev but
     # required in production (fail-closed if configured but unreachable).
+    # NOTE: checks["db"] may carry a backend suffix ("ok (sqlite)") so the
+    # readiness decision must not rely on exact string equality.
     _env = os.getenv("ENVIRONMENT", "development").lower()
     is_prod = _env in ("production", "prod", "staging")
-    db_ok = checks["db"] == "ok"
+    db_ok = str(checks["db"]).startswith("ok")
     redis_ok = checks["redis"] == "ok"
     redis_required = is_prod
     all_ready = db_ok and (redis_ok or not redis_required)
@@ -266,4 +266,3 @@ async def prometheus_metrics() -> Response:
         content=generate_metrics(),
         media_type=get_metrics_content_type(),
     )
-

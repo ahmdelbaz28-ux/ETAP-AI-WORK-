@@ -26,6 +26,7 @@ Security features
 
 from __future__ import annotations
 
+import asyncio
 import hashlib
 import logging as _logging
 import os
@@ -105,8 +106,8 @@ REFRESH_TOKEN_EXPIRE_DAYS: int = int(os.getenv("JWT_REFRESH_EXPIRE_DAYS", "7"))
 RESET_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("RESET_TOKEN_EXPIRE_MINUTES", "30"))
 
 # V-07 (Phase 2): Default tenant ID for new user registrations.
-# This must match the value in migrations/versions/006_add_tenant_id_and_rls.py.
-_DEFAULT_TENANT_ID = "default-tenant-00000000-0000-0000-0000-000000000000"
+# This must match the value in migrations/versions/008_add_tenant_id_and_rls.py (fits String(36)).
+_DEFAULT_TENANT_ID = "00000000-0000-0000-0000-000000000000"
 
 # ---------------------------------------------------------------------------
 # Rate-limiting (Redis-backed, per username, with in-memory fallback)
@@ -150,8 +151,10 @@ _token_blacklist_lock = threading.RLock()
 # gets a new event loop — so the singleton from a previous test becomes
 # stale and raises 'RuntimeError: Event loop is closed' on the next use.
 # The client fixture in tests/conftest.py resets this to None before each
-# test to force a fresh client on the new event loop.
+# test to force a fresh client on the new event loop. As defense-in-depth,
+# _get_redis_client also detects a loop change at call time and recreates.
 _redis_client: Any = None
+_redis_client_loop: Any = None
 
 
 def _get_redis_client() -> Any:
@@ -166,7 +169,18 @@ def _get_redis_client() -> Any:
         or not redis_url.startswith(("redis://", "rediss://"))
     ):
         return None
-    global _redis_client
+    global _redis_client, _redis_client_loop
+    try:
+        current_loop: Any = asyncio.get_running_loop()
+    except RuntimeError:
+        current_loop = None  # called outside an async context — keep prior behavior
+    if (
+        _redis_client is not None
+        and current_loop is not None
+        and _redis_client_loop is not current_loop
+    ):
+        _logger.debug("Redis client bound to a different event loop — recreating")
+        _redis_client = None
     if _redis_client is None:
         _redis_client = redis_async.from_url(
             redis_url,
@@ -174,6 +188,7 @@ def _get_redis_client() -> Any:
             socket_connect_timeout=0.5,
             socket_timeout=0.5,
         )
+        _redis_client_loop = current_loop
     return _redis_client
 
 
@@ -910,7 +925,10 @@ async def _check_ip_rate_limit(ip: str) -> None:
                     detail="Too many login attempts from this IP. Please try again later.",
                 )
             return
-        except (OSError, _RedisError):
+        except (OSError, RuntimeError, _RedisError):
+            # RuntimeError covers cross-event-loop staleness ("Event loop is
+            # closed") that can survive the loop check above when a pooled
+            # connection was created on a since-closed loop.
             _logger.warning("Redis unavailable for IP rate limit, using in-memory fallback")
 
     # In-memory fallback
@@ -1811,4 +1829,3 @@ async def delete_user(
     await db.flush()
 
     return {"message": "User has been deactivated"}
-

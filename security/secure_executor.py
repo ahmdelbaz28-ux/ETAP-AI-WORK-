@@ -62,7 +62,10 @@ logger = logging.getLogger(__name__)
 
 MAX_EXECUTION_TIME_SECONDS = 30
 MAX_OUTPUT_LENGTH = 10000
-MAX_MEMORY_MB = 512  # V-42: Memory limit
+MAX_MEMORY_MB = 2048  # V-42: Memory limit. Raised from 512: legitimate
+# scientific workloads (scipy + HiGHS via arc-flash/OPF studies) need >512MB
+# of address space on Python 3.13 — the old cap made .so segment mapping fail
+# ("failed to map segment") inside the sandbox.
 MAX_CODE_LENGTH = 50000
 ALLOWED_IMPORT_NAMES = [
     "numpy",

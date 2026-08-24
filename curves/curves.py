@@ -234,11 +234,10 @@ class IEC60255Curves:
         i,
         ip,
     ):  # NOSONAR physics/engineering notation
-        """
-        Standard inverse curve.
-        t = TMS * (0.14 / ((I/Ip)^0.02 - 1))
-        # M = I / Ip if I != Ip else _IEC_CURVE_EPSILON
-        """
+        """Standard inverse curve."""
+        Ip, I = ip, i
+        if Ip > I:
+            return float("inf")
         result = calculate_iec_operating_time(
             i_fault=i,
             i_setting=ip,
@@ -249,11 +248,10 @@ class IEC60255Curves:
 
     @staticmethod
     def very_inverse(tms, i, ip):  # NOSONAR physics/engineering notation
-        """
-        Very inverse curve.
-        t = TMS * (13.5 / ((I/Ip) - 1))
-        # M = I / Ip if I != Ip else _IEC_CURVE_EPSILON
-        """
+        """Very inverse curve."""
+        Ip, I = ip, i
+        if Ip > I:
+            return float("inf")
         result = calculate_iec_operating_time(
             i_fault=i,
             i_setting=ip,
@@ -264,11 +262,10 @@ class IEC60255Curves:
 
     @staticmethod
     def extremely_inverse(tms, i, ip):  # NOSONAR physics/engineering notation
-        """
-        Extremely inverse curve.
-        t = TMS * (80 / ((I/Ip)^2 - 1))
-        # M = I / Ip if I != Ip else _IEC_CURVE_EPSILON
-        """
+        """Extremely inverse curve."""
+        Ip, I = ip, i
+        if Ip > I:
+            return float("inf")
         result = calculate_iec_operating_time(
             i_fault=i,
             i_setting=ip,
@@ -279,11 +276,10 @@ class IEC60255Curves:
 
     @staticmethod
     def long_inverse(tms, i, ip):  # NOSONAR physics/engineering notation
-        """
-        Long inverse curve (UK).
-        t = TMS * (120 / ((I/Ip) - 1))
-        # M = I / Ip if I != Ip else _IEC_CURVE_EPSILON
-        """
+        """Long inverse curve (UK)."""
+        Ip, I = ip, i
+        if Ip > I:
+            return float("inf")
         result = calculate_iec_operating_time(
             i_fault=i,
             i_setting=ip,

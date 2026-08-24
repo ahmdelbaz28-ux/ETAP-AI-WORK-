@@ -27,6 +27,7 @@ import sys
 import time
 from dataclasses import dataclass, field
 from typing import Any
+
 import anyio
 
 try:
@@ -37,11 +38,12 @@ except ImportError:
     except ImportError:
         from enum import Enum
 
-        class StrEnum(str, Enum):  # type: ignore[no-redef]
+        class StrEnum(str, Enum):  # type: ignore[no-redef] # noqa: UP042 — intentional Python <3.11 compat shim; __str__ already mirrors StrEnum semantics
             """Fallback StrEnum for Python < 3.11."""
 
             def __str__(self) -> str:
                 return str(self.value)
+
 
 __all__ = [
     "LogLevel",

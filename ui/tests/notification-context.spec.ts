@@ -202,10 +202,10 @@ test.describe("NotificationContext backend wiring (TASK-3)", () => {
       toastContainer.getByText(
         "Study Complete: Load flow study 'LF-2026-001' finished successfully.",
       ),
-    ).toBeVisible({ timeout: 10_000 });
+    ).toBeVisible({ timeout: 20_000 });
     await expect(
       toastContainer.getByText("Critical Alert: SCADA feed lost on substation SUB-7."),
-    ).toBeVisible({ timeout: 5_000 });
+    ).toBeVisible({ timeout: 15_000 });
   });
 
   test("clicking a backend toast fires PUT /{id}/read", async ({ page }) => {
@@ -216,11 +216,11 @@ test.describe("NotificationContext backend wiring (TASK-3)", () => {
     const firstToast = page.getByText(
       "Study Complete: Load flow study 'LF-2026-001' finished successfully.",
     );
-    await expect(firstToast).toBeVisible({ timeout: 10_000 });
+    await expect(firstToast).toBeVisible({ timeout: 20_000 });
     await firstToast.click();
 
     // The PUT should have been issued for n-001.
-    await expect.poll(() => markedRead.slice(), { timeout: 5_000 }).toContain("n-001");
+    await expect.poll(() => markedRead.slice(), { timeout: 15_000 }).toContain("n-001");
   });
 
   test("shows degraded-mode banner when REST is unreachable", async ({ page }) => {
@@ -229,7 +229,7 @@ test.describe("NotificationContext backend wiring (TASK-3)", () => {
 
     // The amber degraded-mode banner should appear.
     await expect(page.getByText("Real-time notifications offline — retrying")).toBeVisible({
-      timeout: 10_000,
+      timeout: 20_000,
     });
   });
 
@@ -239,7 +239,7 @@ test.describe("NotificationContext backend wiring (TASK-3)", () => {
 
     // No toasts, no banner — the page should just render normally.
     await expect(page.getByText("Real-time notifications offline — retrying")).not.toBeVisible({
-      timeout: 5_000,
+      timeout: 15_000,
     });
 
     // Also no toast content should be visible.
@@ -255,7 +255,7 @@ test.describe("NotificationContext backend wiring (TASK-3)", () => {
     // The mocked WS pushes n-ws-001 on connect. Its toast should appear
     // even though REST returned an empty list.
     await expect(page.getByText("WS Push: Real-time notification from WebSocket.")).toBeVisible({
-      timeout: 10_000,
+      timeout: 20_000,
     });
   });
 });

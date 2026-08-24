@@ -51,4 +51,3 @@ def auth_disabled_allowed() -> bool:
     if not env:
         return False
     return env.lower() in DEV_ENVIRONMENTS
-

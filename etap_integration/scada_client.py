@@ -3,13 +3,13 @@ AhmedETAP Platform — SCADA Client (IEC 61850)
 =============================================
 
 Provides real-time SCADA data ingestion via IEC 61850 protocol.
-Falls back to a simulated/mock data source when no real IEC 61850
+Falls back to a synthetic telemetry source when no real IEC 61850
 server is available (e.g., in development or CI environments).
 
 Features:
 - IEC 61850 MMS client for real SCADA data (via iec61850datamodel or py61850)
 - Configurable polling interval (default 5 seconds)
-- Automatic fallback to simulated data when no server is reachable
+- Automatic fallback to synthetic telemetry when no server is reachable
 - Structured telemetry: voltages, currents, frequencies, power values
 - Timestamps on every reading for audit trail
 
@@ -98,7 +98,7 @@ except ImportError:
         logger.info("py61850 library loaded — real SCADA available via py61850")
     except ImportError:
         logger.info(
-            "No IEC 61850 library installed — SCADA client will use simulated data. "
+            "No IEC 61850 library installed — SCADA client will use synthetic telemetry. "
             "Install iec61850datamodel or py61850 for real SCADA integration.",
         )
 
@@ -112,7 +112,7 @@ import random
 
 
 class SimulatedSCADA:
-    """Generate realistic simulated SCADA data for development and testing.
+    """Generate realistic synthetic telemetry for development and testing.
 
     Produces sinusoidal voltage/current waveforms with realistic noise
     and load variation patterns.
@@ -196,7 +196,7 @@ class SCADAClient:
     """Real-time SCADA data client with IEC 61850 support.
 
     Attempts to connect to a real IEC 61850 server. If unavailable,
-    falls back to simulated data for development and testing.
+    falls back to synthetic telemetry for development and testing.
 
     Parameters
     ----------
@@ -230,7 +230,7 @@ class SCADAClient:
         elif self._host:
             logger.warning(
                 "SCADA host '%s' configured but no IEC 61850 library available. "
-                "Falling back to simulated data.",
+                "Falling back to synthetic telemetry.",
                 self._host,
             )
 

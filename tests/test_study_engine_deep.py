@@ -3,10 +3,11 @@ Unit & Integration Test Suite for StudyEngine.
 """
 
 import pytest
+
 from core.study_engine import (
     StudyEngine,
-    StudyStatus,
     StudyResult,
+    StudyStatus,
     study_engine,
 )
 

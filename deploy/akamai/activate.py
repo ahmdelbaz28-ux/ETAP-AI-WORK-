@@ -317,9 +317,7 @@ def main() -> None:
     parser.add_argument("--contract-id", required=True, help="Akamai contract ID (ctr_X-...)")
     parser.add_argument("--group-id", required=True, help="Akamai group ID (grp_...)")
     parser.add_argument("--property-id", help="Existing property ID (skip creation)")
-    parser.add_argument(
-        "--property-name", default="ETAP", help="Property name (default: ETAP)"
-    )
+    parser.add_argument("--property-name", default="ETAP", help="Property name (default: ETAP)")
     parser.add_argument(
         "--activate-staging", action="store_true", help="Activate on STAGING network"
     )

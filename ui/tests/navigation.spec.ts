@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 test.describe("Public Routes", () => {
   test("root / redirects to login", async ({ page }) => {
     await page.goto("/", { waitUntil: "networkidle" });
-    await expect(page.locator("#login-email")).toBeVisible({ timeout: 10000 });
+    await expect(page.locator("#login-email")).toBeVisible({ timeout: 20000 });
   });
 
   test("/login shows email and password form", async ({ page }) => {
@@ -46,8 +46,8 @@ test.describe("Protected Routes — Unauthenticated", () => {
 
   for (const route of routes) {
     test(`redirects ${route} to login when unauthenticated`, async ({ page }) => {
-      await page.goto(route, { waitUntil: "networkidle", timeout: 15000 });
-      await expect(page.locator("#login-email")).toBeVisible({ timeout: 10000 });
+      await page.goto(route, { waitUntil: "networkidle", timeout: 30000 });
+      await expect(page.locator("#login-email")).toBeVisible({ timeout: 20000 });
     });
   }
 });

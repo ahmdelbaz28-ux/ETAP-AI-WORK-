@@ -106,27 +106,37 @@ class TestCUAWebSocketAuthentication:
     def routes_source(self) -> str:
         return _read_file("api/routes.py")
 
-    def test_cua_websocket_has_api_key_check(self, routes_source: str) -> None:
+    @pytest.fixture(scope="class")
+    def cua_ws_source(self) -> str:
+        # The auth logic for /ws/cua/confirmation was extracted into the
+        # dedicated delegate module. Audit the security surface where the
+        # properties are actually enforced (hmac.compare_digest, 1008 close,
+        # exception handling all live there now).
+        return _read_file("api/cua_confirmation_ws.py")
+
+    def test_cua_websocket_has_api_key_check(self, routes_source: str, cua_ws_source: str) -> None:
         """CUA confirmation WebSocket must validate x-api-key header."""
-        assert 'websocket.headers.get("x-api-key")' in routes_source
-        # Check hmac.compare_digest is used
-        ws_section = routes_source[routes_source.index('@app.websocket("/ws/cua/confirmation")') :]
-        assert "hmac.compare_digest" in ws_section[:1000], (
+        assert 'websocket.headers.get("x-api-key")' in routes_source or (
+            'websocket.headers.get("x-api-key")' in cua_ws_source
+        )
+        # Route must exist and must delegate to the dedicated auth module
+        assert '@app.websocket("/ws/cua/confirmation")' in routes_source
+        assert "authenticate_cua_confirmation_ws" in routes_source, (
+            "CUA WebSocket route must delegate to authenticate_cua_confirmation_ws"
+        )
+        # Delegate must use hmac.compare_digest for constant-time comparison
+        assert "hmac.compare_digest" in cua_ws_source, (
             "CUA WebSocket must use hmac.compare_digest for constant-time comparison"
         )
-        assert "code=1008" in ws_section[:1000], (
-            "CUA WebSocket must close with code 1008 on auth failure"
-        )
+        assert "1008" in cua_ws_source, "CUA WebSocket must close with code 1008 on auth failure"
 
-    def test_cua_websocket_closes_on_missing_key(self, routes_source: str) -> None:
+    def test_cua_websocket_closes_on_missing_key(self, cua_ws_source: str) -> None:
         """CUA WebSocket must close connection if API key is missing."""
-        ws_section = routes_source[routes_source.index('@app.websocket("/ws/cua/confirmation")') :]
-        assert "await websocket.close(" in ws_section[:1500]
+        assert "await websocket.close(" in cua_ws_source
 
-    def test_cua_websocket_closes_on_exception(self, routes_source: str) -> None:
+    def test_cua_websocket_closes_on_exception(self, cua_ws_source: str) -> None:
         """CUA WebSocket must close on any auth exception."""
-        ws_section = routes_source[routes_source.index('@app.websocket("/ws/cua/confirmation")') :]
-        assert "except Exception:" in ws_section[:1500]
+        assert "except Exception:" in cua_ws_source
 
 
 # ---------------------------------------------------------------------------

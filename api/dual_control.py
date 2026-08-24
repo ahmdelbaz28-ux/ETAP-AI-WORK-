@@ -446,4 +446,3 @@ def _serialisable_request(request: dict) -> dict:
         except (TypeError, ValueError):
             out[k] = str(v)
     return out
-

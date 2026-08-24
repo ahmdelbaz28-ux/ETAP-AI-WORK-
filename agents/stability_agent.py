@@ -519,12 +519,12 @@ class StabilityAgent(BaseAgent):
                     )  # NOSONAR
                 else:
                     # Default 3-machine test system
-                    np.random.seed(42)
-                    G = _RNG.uniform(  # NOSONAR
+                    _local_rng = np.random.default_rng(42)
+                    G = _local_rng.uniform(  # NOSONAR
                         2.0, 8.0, (n_gen, n_gen)
                     )  # NOSONAR
                     G = (G + G.T) / 2.0
-                    B = _RNG.uniform(  # NOSONAR
+                    B = _local_rng.uniform(  # NOSONAR
                         -12.0, -3.0, (n_gen, n_gen)
                     )  # NOSONAR
                     B = (B + B.T) / 2.0
@@ -585,12 +585,12 @@ class StabilityAgent(BaseAgent):
                 ):  # NOSONAR S6711: numpy.random legacy function used for non-crypto simulation; np.random.Generator migration is tracked separately
                     ybus_red = np.array(y_data, dtype=complex)
                 else:
-                    np.random.seed(42)
-                    G = _RNG.uniform(  # NOSONAR
+                    _local_rng = np.random.default_rng(42)
+                    G = _local_rng.uniform(  # NOSONAR
                         2.0, 8.0, (n_gen, n_gen)
                     )  # NOSONAR
                     G = (G + G.T) / 2.0
-                    B = _RNG.uniform(  # NOSONAR
+                    B = _local_rng.uniform(  # NOSONAR
                         -12.0, -3.0, (n_gen, n_gen)
                     )  # NOSONAR
                     B = (B + B.T) / 2.0

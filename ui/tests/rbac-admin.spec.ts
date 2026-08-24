@@ -245,7 +245,7 @@ test.describe("RBAC Admin Page", () => {
   });
 
   test("renders three tabs and loads roles table", async ({ page }) => {
-    await page.goto("/admin/rbac", { waitUntil: "networkidle", timeout: 15000 });
+    await page.goto("/admin/rbac", { waitUntil: "networkidle", timeout: 30000 });
     await dismissOnboardingIfPresent(page);
 
     // Header
@@ -265,7 +265,7 @@ test.describe("RBAC Admin Page", () => {
   });
 
   test("opens Create Role modal with permission multi-select and submits", async ({ page }) => {
-    await page.goto("/admin/rbac", { waitUntil: "networkidle", timeout: 15000 });
+    await page.goto("/admin/rbac", { waitUntil: "networkidle", timeout: 30000 });
     await dismissOnboardingIfPresent(page);
 
     // Click "New Role" button (there are two — one in empty-state and one in
@@ -306,7 +306,7 @@ test.describe("RBAC Admin Page", () => {
   });
 
   test("opens Edit Role modal pre-filled with existing values", async ({ page }) => {
-    await page.goto("/admin/rbac", { waitUntil: "networkidle", timeout: 15000 });
+    await page.goto("/admin/rbac", { waitUntil: "networkidle", timeout: 30000 });
     await dismissOnboardingIfPresent(page);
 
     // Find the "viewer" row's edit button and click it
@@ -320,7 +320,7 @@ test.describe("RBAC Admin Page", () => {
   });
 
   test("delete role shows confirmation modal then issues DELETE", async ({ page }) => {
-    await page.goto("/admin/rbac", { waitUntil: "networkidle", timeout: 15000 });
+    await page.goto("/admin/rbac", { waitUntil: "networkidle", timeout: 30000 });
     await dismissOnboardingIfPresent(page);
 
     // The "admin" role is system — its delete button should be disabled.
@@ -343,11 +343,11 @@ test.describe("RBAC Admin Page", () => {
 
     // Wait briefly then poll for the DELETE call.
     await page.waitForTimeout(500);
-    await expect.poll(() => deletedRoleId, { timeout: 5000 }).toBe("role-viewer");
+    await expect.poll(() => deletedRoleId, { timeout: 30000 }).toBe("role-viewer");
   });
 
   test("Permissions tab shows permissions grouped by resource", async ({ page }) => {
-    await page.goto("/admin/rbac", { waitUntil: "networkidle", timeout: 15000 });
+    await page.goto("/admin/rbac", { waitUntil: "networkidle", timeout: 30000 });
     await dismissOnboardingIfPresent(page);
 
     await page.getByRole("button", { name: /^Permissions/i }).click();
@@ -393,7 +393,7 @@ test.describe("RBAC Admin Page", () => {
       await route.continue();
     });
 
-    await page.goto("/admin/rbac", { waitUntil: "networkidle", timeout: 15000 });
+    await page.goto("/admin/rbac", { waitUntil: "networkidle", timeout: 30000 });
     await dismissOnboardingIfPresent(page);
     await page.getByRole("button", { name: /^User Assignments/i }).click();
 

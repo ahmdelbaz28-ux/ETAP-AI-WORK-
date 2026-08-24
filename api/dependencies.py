@@ -442,4 +442,3 @@ def _extract_bearer_token(authorization: str) -> str:
             detail="Invalid Authorization header format. Expected: Bearer <token>",
         )
     return parts[1]
-

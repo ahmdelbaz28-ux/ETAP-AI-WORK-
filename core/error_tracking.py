@@ -43,16 +43,16 @@ logger = logging.getLogger(__name__)
 # is replaced with '[REDACTED]' before being sent to Sentry or logged.
 _SENSITIVE_PATTERNS = [
     # API keys
-    re.compile(r"sk-[a-zA-Z0-9]{20,}", re.IGNORECASE),
-    re.compile(r"ghp_[a-zA-Z0-9]{36}", re.IGNORECASE),
-    re.compile(r"github_pat_[a-zA-Z0-9_]{20,}", re.IGNORECASE),
-    re.compile(r"hf_[a-zA-Z0-9]{30,}", re.IGNORECASE),
-    re.compile(r"sb_secret_[a-zA-Z0-9_-]+", re.IGNORECASE),
-    re.compile(r"sb_publishable_[a-zA-Z0-9_-]+", re.IGNORECASE),
+    re.compile(r"sk-[a-z0-9]{20,}", re.IGNORECASE),
+    re.compile(r"ghp_[a-z0-9]{36}", re.IGNORECASE),
+    re.compile(r"github_pat_\w{20,}", re.IGNORECASE),
+    re.compile(r"hf_[a-z0-9]{30,}", re.IGNORECASE),
+    re.compile(r"sb_secret_[\w-]+", re.IGNORECASE),
+    re.compile(r"sb_publishable_[\w-]+", re.IGNORECASE),
     # JWT tokens (eyJ... header.payload.signature)
-    re.compile(r"eyJ[a-zA-Z0-9_-]{10,}\.[a-zA-Z0-9_-]{10,}\.[a-zA-Z0-9_-]{10,}"),
+    re.compile(r"eyJ[\w-]{10,}\.[\w-]{10,}\.[\w-]{10,}"),
     # Bearer tokens
-    re.compile(r"Bearer\s+[a-zA-Z0-9_.-]{20,}", re.IGNORECASE),
+    re.compile(r"Bearer\s+[\w.-]{20,}", re.IGNORECASE),
     # Generic API key patterns in JSON
     re.compile(
         r'["\'](?:api[_-]?key|apikey|secret|password|token|jwt)["\']\s*:\s*["\'][^"\']{8,}["\']',
@@ -391,7 +391,6 @@ def setup_fastapi_error_tracking(app: Any) -> None:
 
     from fastapi import Request
     from fastapi.responses import JSONResponse
-
 
     @app.middleware("http")
     async def error_tracking_middleware(request: Request, call_next):

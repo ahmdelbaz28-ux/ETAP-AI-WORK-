@@ -119,4 +119,3 @@ def log_security_event(
     if extra_log_fields:
         base_msg += f" {extra_log_fields}"
     logger.log(log_level, base_msg)
-

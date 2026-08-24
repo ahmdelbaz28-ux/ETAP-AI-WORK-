@@ -39,9 +39,17 @@ def app():
 @pytest.fixture
 async def client(app):
     transport = ASGITransport(app=app)
-    async with AsyncClient(
-        transport=transport, base_url="http://test"
-    ) as ac:  # NOSONAR clear-text http:// for internal service; TLS terminated at ingress
+    # Attach the same auth material as the conftest TestClient so requests
+    # pass CSRF/API-key gates when the service enforces them (CI sets
+    # ENGINEERING_SERVICE_API_KEY). Tests that patch auth state explicitly
+    # (TestStudyRunAPIKey) override or intentionally mismatch these defaults.
+    from api.csrf import generate_csrf_token
+
+    headers = {"x-csrf-token": generate_csrf_token()}
+    api_key = os.environ.get("ENGINEERING_SERVICE_API_KEY", "")
+    if api_key:
+        headers["x-api-key"] = api_key
+    async with AsyncClient(transport=transport, base_url="http://test", headers=headers) as ac:
         yield ac
 
 
@@ -362,13 +370,15 @@ class TestStudyRunAPIKey:
     async def test_study_run_missing_api_key(self, client):
         """When an API key is configured, a request without one returns 401."""
         with contextlib.ExitStack() as stack:
-            stack.enter_context(patch.dict(
-                os.environ,
-                {
-                    "ENGINEERING_SERVICE_API_KEY": "test-secret-key",
-                    "ENGINEERING_SERVICE_AUTH_DISABLED": "false",
-                },
-            ))
+            stack.enter_context(
+                patch.dict(
+                    os.environ,
+                    {
+                        "ENGINEERING_SERVICE_API_KEY": "test-secret-key",
+                        "ENGINEERING_SERVICE_AUTH_DISABLED": "false",
+                    },
+                )
+            )
             stack.enter_context(patch("api.dependencies.API_KEY", "test-secret-key"))
             stack.enter_context(patch("api.routes._EXPECTED_API_KEY", "test-secret-key"))
             stack.enter_context(patch("api.routes._API_KEY_CONFIGURED", True))
@@ -382,13 +392,15 @@ class TestStudyRunAPIKey:
     async def test_study_run_invalid_api_key(self, client):
         """When an API key is configured, a wrong key returns 401 or 403."""
         with contextlib.ExitStack() as stack:
-            stack.enter_context(patch.dict(
-                os.environ,
-                {
-                    "ENGINEERING_SERVICE_API_KEY": "test-secret-key",
-                    "ENGINEERING_SERVICE_AUTH_DISABLED": "false",
-                },
-            ))
+            stack.enter_context(
+                patch.dict(
+                    os.environ,
+                    {
+                        "ENGINEERING_SERVICE_API_KEY": "test-secret-key",
+                        "ENGINEERING_SERVICE_AUTH_DISABLED": "false",
+                    },
+                )
+            )
             stack.enter_context(patch("api.dependencies.API_KEY", "test-secret-key"))
             stack.enter_context(patch("api.routes._EXPECTED_API_KEY", "test-secret-key"))
             stack.enter_context(patch("api.routes._API_KEY_CONFIGURED", True))
@@ -403,13 +415,15 @@ class TestStudyRunAPIKey:
     async def test_study_run_valid_api_key_succeeds(self, client):
         """When an API key is configured, the correct key returns 200."""
         with contextlib.ExitStack() as stack:
-            stack.enter_context(patch.dict(
-                os.environ,
-                {
-                    "ENGINEERING_SERVICE_API_KEY": "test-secret-key",
-                    "ENGINEERING_SERVICE_AUTH_DISABLED": "false",
-                },
-            ))
+            stack.enter_context(
+                patch.dict(
+                    os.environ,
+                    {
+                        "ENGINEERING_SERVICE_API_KEY": "test-secret-key",
+                        "ENGINEERING_SERVICE_AUTH_DISABLED": "false",
+                    },
+                )
+            )
             stack.enter_context(patch("api.dependencies.API_KEY", "test-secret-key"))
             stack.enter_context(patch("api.routes._EXPECTED_API_KEY", "test-secret-key"))
             stack.enter_context(patch("api.routes._API_KEY_CONFIGURED", True))
@@ -424,10 +438,15 @@ class TestStudyRunAPIKey:
     async def test_study_run_no_api_key_configured_allows_access(self, client):
         """When no API key is configured and auth is disabled, requests are allowed."""
         with contextlib.ExitStack() as stack:
-            stack.enter_context(patch.dict(
-                os.environ,
-                {"ENGINEERING_SERVICE_API_KEY": "", "ENGINEERING_SERVICE_AUTH_DISABLED": "true"},
-            ))
+            stack.enter_context(
+                patch.dict(
+                    os.environ,
+                    {
+                        "ENGINEERING_SERVICE_API_KEY": "",
+                        "ENGINEERING_SERVICE_AUTH_DISABLED": "true",
+                    },
+                )
+            )
             stack.enter_context(patch("api.dependencies.API_KEY", ""))
             stack.enter_context(patch("api.routes._EXPECTED_API_KEY", ""))
             stack.enter_context(patch("api.routes._API_KEY_CONFIGURED", False))

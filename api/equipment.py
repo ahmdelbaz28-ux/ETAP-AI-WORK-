@@ -940,4 +940,3 @@ async def export_equipment(
         "equipment": export_data,
         "exported_at": datetime.now(UTC).isoformat(),
     }
-

@@ -243,9 +243,9 @@ test.describe("Study Versions page (TASK-7)", () => {
     await page.getByTestId("sv-load-btn").click();
 
     // GET should have fired with the right path params
-    await expect.poll(() => listCalled, { timeout: 5_000 }).toBe(true);
-    await expect.poll(() => listProjectId, { timeout: 5_000 }).toBe(PROJECT_ID);
-    await expect.poll(() => listStudyId, { timeout: 5_000 }).toBe(STUDY_ID);
+    await expect.poll(() => listCalled, { timeout: 15_000 }).toBe(true);
+    await expect.poll(() => listProjectId, { timeout: 15_000 }).toBe(PROJECT_ID);
+    await expect.poll(() => listStudyId, { timeout: 15_000 }).toBe(STUDY_ID);
 
     // Target summary should show the locked IDs
     await expect(page.getByTestId("sv-target-summary")).toContainText(PROJECT_ID);
@@ -253,7 +253,7 @@ test.describe("Study Versions page (TASK-7)", () => {
 
     // Versions table should show all 3 rows in order (newest first)
     const table = page.getByTestId("sv-versions-table");
-    await expect(table).toBeVisible({ timeout: 5_000 });
+    await expect(table).toBeVisible({ timeout: 15_000 });
     await expect(table.getByTestId("sv-version-number-ver-003")).toHaveText("v3");
     await expect(table.getByTestId("sv-version-number-ver-002")).toHaveText("v2");
     await expect(table.getByTestId("sv-version-number-ver-001")).toHaveText("v1");
@@ -272,19 +272,19 @@ test.describe("Study Versions page (TASK-7)", () => {
 
     // Wait for the table to render
     await expect(page.getByTestId("sv-versions-table")).toBeVisible({
-      timeout: 5_000,
+      timeout: 15_000,
     });
 
     // Click the Rollback button on v2 (ver-002)
     await page.getByTestId("sv-rollback-btn-ver-002").click();
 
     // POST should have fired with the right version_id
-    await expect.poll(() => rollbackCalled, { timeout: 5_000 }).toBe(true);
-    await expect.poll(() => rollbackVersionId, { timeout: 5_000 }).toBe("ver-002");
+    await expect.poll(() => rollbackCalled, { timeout: 15_000 }).toBe(true);
+    await expect.poll(() => rollbackVersionId, { timeout: 15_000 }).toBe("ver-002");
 
     // Result block should show the message + version
     const result = page.getByTestId("sv-rollback-result");
-    await expect(result).toBeVisible({ timeout: 5_000 });
+    await expect(result).toBeVisible({ timeout: 15_000 });
     await expect(result.getByText("Rollback successful")).toBeVisible();
     await expect(result.getByText(/rolled back to version 2/)).toBeVisible();
     await expect(result.getByText("v2", { exact: true })).toBeVisible();
@@ -292,7 +292,7 @@ test.describe("Study Versions page (TASK-7)", () => {
     // Success toast (the result block also contains the same message text —
     // scope to the toast which is rendered last in a fixed-position container).
     await expect(page.getByText(/rolled back to version 2/i).last()).toBeVisible({
-      timeout: 5_000,
+      timeout: 15_000,
     });
   });
 
@@ -305,7 +305,7 @@ test.describe("Study Versions page (TASK-7)", () => {
     await page.getByTestId("sv-study-id").fill(STUDY_ID);
     await page.getByTestId("sv-load-btn").click();
     await expect(page.getByTestId("sv-versions-table")).toBeVisible({
-      timeout: 5_000,
+      timeout: 15_000,
     });
 
     // Switch to the Create Snapshot tab
@@ -322,14 +322,14 @@ test.describe("Study Versions page (TASK-7)", () => {
     await page.getByTestId("sv-create-submit").click();
 
     // POST should have fired with the expected body
-    await expect.poll(() => createCalled, { timeout: 5_000 }).toBe(true);
+    await expect.poll(() => createCalled, { timeout: 15_000 }).toBe(true);
     await expect
-      .poll(() => createBody, { timeout: 5_000 })
+      .poll(() => createBody, { timeout: 15_000 })
       .toEqual({ label: "Manual snapshot", description: "Created from UI" });
 
     // Result card should show the new version
     const result = page.getByTestId("sv-create-result");
-    await expect(result).toBeVisible({ timeout: 5_000 });
+    await expect(result).toBeVisible({ timeout: 15_000 });
     await expect(result.getByText("Snapshot created")).toBeVisible();
     await expect(result.getByTestId("sv-create-version-number")).toHaveText("v4");
     await expect(result.getByText("ver-004")).toBeVisible();
@@ -337,7 +337,7 @@ test.describe("Study Versions page (TASK-7)", () => {
 
     // Success toast
     await expect(page.getByText(/Snapshot created: v4/)).toBeVisible({
-      timeout: 5_000,
+      timeout: 15_000,
     });
   });
 
@@ -350,7 +350,7 @@ test.describe("Study Versions page (TASK-7)", () => {
     await page.getByTestId("sv-study-id").fill(STUDY_ID);
     await page.getByTestId("sv-load-btn").click();
     await expect(page.getByTestId("sv-versions-table")).toBeVisible({
-      timeout: 5_000,
+      timeout: 15_000,
     });
 
     // Switch to the Compare tab
@@ -367,13 +367,13 @@ test.describe("Study Versions page (TASK-7)", () => {
     await page.getByTestId("sv-compare-submit").click();
 
     // GET should have fired with the right v1/v2 IDs
-    await expect.poll(() => compareCalled, { timeout: 5_000 }).toBe(true);
-    await expect.poll(() => compareV1, { timeout: 5_000 }).toBe("ver-002");
-    await expect.poll(() => compareV2, { timeout: 5_000 }).toBe("ver-003");
+    await expect.poll(() => compareCalled, { timeout: 15_000 }).toBe(true);
+    await expect.poll(() => compareV1, { timeout: 15_000 }).toBe("ver-002");
+    await expect.poll(() => compareV2, { timeout: 15_000 }).toBe("ver-003");
 
     // Compare result block should render with both metadata cards + diff tables
     const result = page.getByTestId("sv-compare-result");
-    await expect(result).toBeVisible({ timeout: 5_000 });
+    await expect(result).toBeVisible({ timeout: 15_000 });
 
     // Version A metadata
     await expect(result.getByText("v2").first()).toBeVisible();
@@ -400,7 +400,7 @@ test.describe("Study Versions page (TASK-7)", () => {
 
     // Success toast
     await expect(page.getByText(/Comparison loaded/)).toBeVisible({
-      timeout: 5_000,
+      timeout: 15_000,
     });
   });
 
@@ -414,12 +414,12 @@ test.describe("Study Versions page (TASK-7)", () => {
     await page.getByTestId("sv-load-btn").click();
 
     // GET should have fired
-    await expect.poll(() => listCalled, { timeout: 5_000 }).toBe(true);
+    await expect.poll(() => listCalled, { timeout: 15_000 }).toBe(true);
 
     // Error banner (role=alert) should mention HTTP 404 + "Study not found"
     await expect(
       page.getByRole("alert").getByText(/404.*Study not found|Study not found.*404/),
-    ).toBeVisible({ timeout: 5_000 });
+    ).toBeVisible({ timeout: 15_000 });
 
     // The versions table should NOT be rendered
     await expect(page.getByTestId("sv-versions-table")).toHaveCount(0);

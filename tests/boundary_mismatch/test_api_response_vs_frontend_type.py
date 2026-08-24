@@ -23,8 +23,8 @@ def test_study_result_shape_alignment():
 
         pytest.skip("api/studies.py or ui/src/lib/api.ts not found")
 
-    py_content = api_studies.read_text()
-    ts_content = api_ts.read_text()
+    py_content = api_studies.read_text(encoding="utf-8")
+    ts_content = api_ts.read_text(encoding="utf-8")
 
     # Backend uses 'success: bool' and 'execution_time_sec'
     # Frontend uses 'status: ...' and 'duration_ms'
@@ -72,8 +72,8 @@ def test_agents_endpoint_path_alignment():
 
         pytest.skip("Required files not found")
 
-    ts_content = api_ts.read_text()
-    py_content = api_agents.read_text()
+    ts_content = api_ts.read_text(encoding="utf-8")
+    py_content = api_agents.read_text(encoding="utf-8")
 
     # Frontend calls
     frontend_calls = re.findall(r"request[<\w>]*\(['\"]([^'\"]+)['\"]", ts_content)

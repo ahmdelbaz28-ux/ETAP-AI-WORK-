@@ -295,7 +295,9 @@ class TestCUAConfirmationWebSocketSecurity:
                 assert init_msg.get("data", {}).get("request_id") == "req123"
 
                 # Client tries to send a confirmation with a spoofed session_id
-                ws.send_json({"action": "confirm", "request_id": "req123", "session_id": "spoofed_admin"})
+                ws.send_json(
+                    {"action": "confirm", "request_id": "req123", "session_id": "spoofed_admin"}
+                )
                 resp = ws.receive_json()
                 assert resp.get("type") == "confirm_result"
                 assert "user:alice99" in broker._pending["req123"].confirmations

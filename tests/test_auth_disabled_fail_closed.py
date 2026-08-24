@@ -63,7 +63,9 @@ def test_startup_exits_nonzero_when_auth_disabled_in_qa() -> None:
         text=True,
         timeout=300,
     )
-    assert result.returncode != 0, f"expected non-zero exit, got {result.returncode}: {result.stderr}"
+    assert result.returncode != 0, (
+        f"expected non-zero exit, got {result.returncode}: {result.stderr}"
+    )
     assert "NOT allowed" in result.stderr
 
 

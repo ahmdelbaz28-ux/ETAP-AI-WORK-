@@ -53,7 +53,11 @@ def upgrade() -> None:
         sa.Column("id", sa.Integer(), primary_key=True, autoincrement=True),
         sa.Column(
             "project_id",
-            sa.Integer(),
+            # String(36) matches projects.id (UUID string) — an Integer here
+            # made the FK scada_tags_project_id_fkey impossible to create
+            # ("column project_id is of type integer but referenced column
+            # projects.id is of type character varying").
+            sa.String(36),
             sa.ForeignKey("projects.id", ondelete="CASCADE"),
             nullable=False,
         ),
@@ -93,7 +97,8 @@ def upgrade() -> None:
         sa.Column("id", sa.Integer(), primary_key=True, autoincrement=True),
         sa.Column(
             "project_id",
-            sa.Integer(),
+            # String(36) matches projects.id (UUID string) — see scada_tags note.
+            sa.String(36),
             sa.ForeignKey("projects.id", ondelete="CASCADE"),
             nullable=False,
         ),

@@ -250,8 +250,29 @@ def post_review(results: list[StepResult], artifacts: dict[str, str]) -> None:
 # ─────────────────────────────────────────────────────────────────────────────
 
 
+def _init_daytona(api_key: str, api_url: str):
+    """Initialize Daytona client supporting multiple constructor signatures."""
+    from daytona_sdk import Daytona  # type: ignore
+    try:
+        return Daytona(api_key=api_key, api_url=api_url)
+    except TypeError:
+        return Daytona(api_key=api_key, server_url=api_url)
+
+
+def _create_sandbox(daytona, target_name: str):
+    """Create Daytona sandbox supporting multiple target types."""
+    from daytona_sdk import Target  # type: ignore
+    try:
+        target = Target(target_name)
+    except Exception:
+        target = target_name
+    try:
+        return daytona.create(target=target, language="python")
+    except TypeError:
+        return daytona.create(language="python")
+
+
 def main() -> int:
-    # Validate env
     required = [
         "DAYTONA_API_KEY",
         "GITHUB_TOKEN",
@@ -266,28 +287,18 @@ def main() -> int:
         print(f"!! Missing env vars: {missing}", file=sys.stderr)
         return 2
 
+    api_key = os.environ.get("DAYTONA_API_KEY") or os.environ.get("DAYTONA_API_TOKEN", "")
+    api_url = os.environ.get("DAYTONA_API_URL") or os.environ.get("DAYTONA_SERVER_URL", "https://app.daytona.io")
+    target_name = os.environ.get("DAYTONA_TARGET", "local")
+
     try:
-        # Import lazily so the script can still be loaded even if SDK is missing
-        from daytona_sdk import Daytona, Sandbox, Target  # type: ignore
-    except ImportError as exc:
-        print(f"!! daytona-sdk not installed: {exc}", file=sys.stderr)
+        daytona = _init_daytona(api_key, api_url)
+    except Exception as exc:
+        print(f"!! Failed to initialize Daytona client: {exc}", file=sys.stderr)
         return 3
 
-    print(f"→ Creating Daytona sandbox for PR #{os.environ['PR_NUMBER']}")
-
-    daytona = Daytona(
-        api_key=os.environ["DAYTONA_API_KEY"],
-        api_url=os.environ.get("DAYTONA_API_URL", "https://app.daytona.io"),
-    )
-    target_name = os.environ.get("DAYTONA_TARGET", "local")
     try:
-        target = Target(target_name)
-    except Exception:
-        # Newer SDK versions accept a plain string
-        target = target_name  # type: ignore
-
-    try:
-        sandbox: Sandbox = daytona.create(target=target, language="python")
+        sandbox = _create_sandbox(daytona, target_name)
         print(f"✓ Sandbox created: {getattr(sandbox, 'id', 'unknown')}")
     except Exception as exc:
         print(f"!! Failed to create sandbox: {exc}", file=sys.stderr)

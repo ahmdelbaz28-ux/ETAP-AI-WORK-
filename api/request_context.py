@@ -76,6 +76,7 @@ def set_user_id(user_id: str) -> None:
 def _extract_tenant_id_from_jwt(request: Request) -> str:
     """Extract tenant_id from the JWT ``Authorization: Bearer`` token."""
     import os
+
     import jwt as pyjwt
 
     auth_header = request.headers.get("authorization", "")
@@ -205,6 +206,7 @@ class TenantMiddleware(BaseHTTPMiddleware):
         """Register SQLAlchemy engine events for RLS tenant isolation."""
         try:
             from sqlalchemy import event
+
             from api.database import engine
 
             event.listen(

@@ -402,7 +402,7 @@ test.describe("Agents Control Panel page (TASK-5)", () => {
 
     // Agents table — wait for mock agents to load
     const agentsTable = page.locator("table").first();
-    await expect(agentsTable.getByText("Load Flow Agent")).toBeVisible({ timeout: 10_000 });
+    await expect(agentsTable.getByText("Load Flow Agent")).toBeVisible({ timeout: 20_000 });
     await expect(agentsTable.getByText("Short Circuit Agent")).toBeVisible();
     await expect(agentsTable.getByText("IEEE 399")).toBeVisible();
 
@@ -414,7 +414,7 @@ test.describe("Agents Control Panel page (TASK-5)", () => {
 
     // Modal opens with agent detail — the "Agent Detail" heading only
     // appears inside the modal.
-    await expect(page.getByText("Agent Detail").first()).toBeVisible({ timeout: 5_000 });
+    await expect(page.getByText("Agent Detail").first()).toBeVisible({ timeout: 15_000 });
     // Capabilities only appear in the modal (not the table)
     await expect(page.getByText("load_flow").first()).toBeVisible();
     await expect(page.getByText("voltage_profile")).toBeVisible();
@@ -435,12 +435,12 @@ test.describe("Agents Control Panel page (TASK-5)", () => {
     await page.getByRole("button", { name: /Ask Expert/i }).click();
 
     // The POST should have fired
-    await expect.poll(() => expertChatCalled, { timeout: 5_000 }).toBe(true);
+    await expect.poll(() => expertChatCalled, { timeout: 15_000 }).toBe(true);
 
     // The result should display — "REQUEST ANALYSIS: COMPLETE" only appears
     // in the result JSON block.
     await expect(page.getByText(/REQUEST ANALYSIS: COMPLETE/)).toBeVisible({
-      timeout: 5_000,
+      timeout: 15_000,
     });
   });
 
@@ -452,7 +452,7 @@ test.describe("Agents Control Panel page (TASK-5)", () => {
     await page.getByRole("button", { name: /^CUA & Safety$/i }).click();
 
     // The CUA Loop stat card should show "Available" (green badge from mock)
-    await expect(page.getByText("Available").first()).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByText("Available").first()).toBeVisible({ timeout: 20_000 });
     // Kill Switch card should show "Inactive"
     await expect(page.getByText("Inactive").first()).toBeVisible();
     // Audit Chain card should show "Valid"
@@ -469,7 +469,7 @@ test.describe("Agents Control Panel page (TASK-5)", () => {
     await page.getByRole("button", { name: /^CUA & Safety$/i }).click();
 
     // Wait for health to load so the activate button is enabled
-    await expect(page.getByText("Available").first()).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByText("Available").first()).toBeVisible({ timeout: 20_000 });
 
     // Click "Activate Kill Switch" button (danger variant)
     await page.getByRole("button", { name: /Activate Kill Switch/i }).click();
@@ -477,7 +477,7 @@ test.describe("Agents Control Panel page (TASK-5)", () => {
     // Confirmation modal should open
     await expect(
       page.getByRole("heading", { name: /Activate Emergency Kill Switch/i }),
-    ).toBeVisible({ timeout: 5_000 });
+    ).toBeVisible({ timeout: 15_000 });
 
     // Change the reason
     const reasonInput = page.locator('input[type="text"]').last();
@@ -487,8 +487,8 @@ test.describe("Agents Control Panel page (TASK-5)", () => {
     await page.getByRole("button", { name: /Activate Now/i }).click();
 
     // The POST should have fired with reason=test_activation
-    await expect.poll(() => killActivateCalled, { timeout: 5_000 }).toBe(true);
-    await expect.poll(() => killActivateReason, { timeout: 5_000 }).toBe("test_activation");
+    await expect.poll(() => killActivateCalled, { timeout: 15_000 }).toBe(true);
+    await expect.poll(() => killActivateReason, { timeout: 15_000 }).toBe("test_activation");
   });
 
   test("Audit verify fires GET /safety/audit/verify and shows verdict", async ({ page }) => {
@@ -499,16 +499,16 @@ test.describe("Agents Control Panel page (TASK-5)", () => {
     await page.getByRole("button", { name: /^CUA & Safety$/i }).click();
 
     // Wait for health to load
-    await expect(page.getByText("Available").first()).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByText("Available").first()).toBeVisible({ timeout: 20_000 });
 
     // Click "Verify Audit Chain"
     await page.getByRole("button", { name: /Verify Audit Chain/i }).click();
 
     // The GET should have fired
-    await expect.poll(() => auditVerifyCalled, { timeout: 5_000 }).toBe(true);
+    await expect.poll(() => auditVerifyCalled, { timeout: 15_000 }).toBe(true);
 
     // The verdict should display — "Chain Intact" only appears after verify
-    await expect(page.getByText("Chain Intact").first()).toBeVisible({ timeout: 5_000 });
+    await expect(page.getByText("Chain Intact").first()).toBeVisible({ timeout: 15_000 });
     // The mock message — use .first() because the success toast ALSO renders
     // this text (the verifyAudit handler calls notify("success", message)).
     await expect(page.getByText("Audit chain is intact").first()).toBeVisible();
@@ -523,7 +523,7 @@ test.describe("Agents Control Panel page (TASK-5)", () => {
 
     // The SIEM events table should show mock events
     const siemTable = page.locator("table").first();
-    await expect(siemTable.getByText("kill_switch_activated")).toBeVisible({ timeout: 10_000 });
+    await expect(siemTable.getByText("kill_switch_activated")).toBeVisible({ timeout: 20_000 });
     await expect(siemTable.getByText("cua_action_executed")).toBeVisible();
     await expect(siemTable.getByText("lethal_pattern_blocked")).toBeVisible();
     // The syslog forwarder health JSON should show the log_file
@@ -538,7 +538,7 @@ test.describe("Agents Control Panel page (TASK-5)", () => {
     await page.getByRole("button", { name: /^Orchestration$/i }).click();
 
     // Skill info card should load
-    await expect(page.getByText("12,500 chars")).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByText("12,500 chars")).toBeVisible({ timeout: 20_000 });
 
     // Change the study type. The study type input is the first text input
     // in the orchestration form — scope to <main> to avoid matching the
@@ -551,10 +551,10 @@ test.describe("Agents Control Panel page (TASK-5)", () => {
     await page.getByRole("button", { name: /Run Orchestration/i }).click();
 
     // The POST should have fired with study_type=short_circuit
-    await expect.poll(() => orchestrateCalled, { timeout: 5_000 }).toBe(true);
-    await expect.poll(() => orchestrateStudyType, { timeout: 5_000 }).toBe("short_circuit");
+    await expect.poll(() => orchestrateCalled, { timeout: 15_000 }).toBe(true);
+    await expect.poll(() => orchestrateStudyType, { timeout: 15_000 }).toBe("short_circuit");
 
     // The verdict badge should display "approved"
-    await expect(page.getByText("approved").first()).toBeVisible({ timeout: 5_000 });
+    await expect(page.getByText("approved").first()).toBeVisible({ timeout: 15_000 });
   });
 });

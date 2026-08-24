@@ -354,3 +354,12 @@ autoscaling:
   maxReplicas: 20
   targetCPUUtilizationPercentage: 70
   targetMemoryUtilizationPercentage: 80
+
+# ---------- Redis ----------
+redis:
+  enabled: true
+  url: "redis://etap-redis-cluster:6379/0"
+  existingSecret: "etap-redis-cluster"
+  password: ""
+  host: "etap-redis-cluster"
+  port: 6379

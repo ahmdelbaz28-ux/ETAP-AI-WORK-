@@ -256,10 +256,10 @@ class TestWorkflowServiceIntegration:
     def test_langfuse_available_flag_works(self):
         """The LANGFUSE_AVAILABLE flag pattern in workflow_service.py works."""
         try:
-                flush_langfuse,
-                get_langfuse_callback_handler,
-                langfuse_health_check,
-                log_workflow_scores,
+            (flush_langfuse,)
+            (get_langfuse_callback_handler,)
+            (langfuse_health_check,)
+            (log_workflow_scores,)
 
         except ImportError:
             langfuse_available = False

@@ -36,7 +36,7 @@ import sqlalchemy as sa
 
 from alembic import op
 
-revision = "007_fix_study_results_and_orm_tables"
+revision = "007_fix_study_results_orm"
 down_revision = "006_scada_gis_email"
 branch_labels = None
 depends_on = None
