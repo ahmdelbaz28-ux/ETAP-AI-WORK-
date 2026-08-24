@@ -358,8 +358,8 @@ autoscaling:
 # ---------- Redis ----------
 redis:
   enabled: true
-  url: "redis://etap-redis:6379/0"
-  existingSecret: "etap-redis-secret"
+  url: "redis://etap-redis-cluster:6379/0"
+  existingSecret: "etap-redis-cluster"
   password: ""
-  host: "etap-redis"
+  host: "etap-redis-cluster"
   port: 6379

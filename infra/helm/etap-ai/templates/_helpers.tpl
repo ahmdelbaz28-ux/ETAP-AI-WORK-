@@ -89,12 +89,12 @@ Usage: {{ include "etap-ai.image" (list . .Values.api.image) }}
    ========================================================================= */}}
 
 {{- define "etap-ai.redisScheme" -}}
-{{- $url := default "redis://etap-redis:6379/0" (dig "url" "redis://etap-redis:6379/0" .Values.redis) -}}
+{{- $url := default "redis://etap-redis-cluster:6379/0" (dig "url" "redis://etap-redis-cluster:6379/0" .Values.redis) -}}
 {{- if hasPrefix "rediss://" $url -}}rediss{{- else -}}redis{{- end -}}
 {{- end -}}
 
 {{- define "etap-ai.redisHostPort" -}}
-{{- $url := default "redis://etap-redis:6379/0" (dig "url" "redis://etap-redis:6379/0" .Values.redis) -}}
+{{- $url := default "redis://etap-redis-cluster:6379/0" (dig "url" "redis://etap-redis-cluster:6379/0" .Values.redis) -}}
 {{- $stripped := trimPrefix "rediss://" $url | trimPrefix "redis://" -}}
 {{- $hostPort := splitList "/" $stripped | first -}}
 {{- $hostPort -}}
@@ -113,7 +113,7 @@ Usage: {{ include "etap-ai.image" (list . .Values.api.image) }}
 {{- end -}}
 
 {{- define "etap-ai.redisDb" -}}
-{{- $url := default "redis://etap-redis:6379/0" (dig "url" "redis://etap-redis:6379/0" .Values.redis) -}}
+{{- $url := default "redis://etap-redis-cluster:6379/0" (dig "url" "redis://etap-redis-cluster:6379/0" .Values.redis) -}}
 {{- $stripped := trimPrefix "rediss://" $url | trimPrefix "redis://" -}}
 {{- $parts := splitList "/" $stripped -}}
 {{- if gt (len $parts) 1 -}}{{- index $parts 1 -}}{{- else -}}0{{- end -}}
