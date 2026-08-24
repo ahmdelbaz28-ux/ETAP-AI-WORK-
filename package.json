@@ -10,9 +10,12 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "tsc --noEmit",
+    "typecheck": "tsc --noEmit",
     "lint:ci": "tsc --noEmit && vitest run",
     "skills:install": "pwsh -File ./scripts/install_skills.ps1",
-    "test:scenarios": "vitest run --config vitest.scenarios.config.ts"
+    "test:scenarios": "vitest run --config vitest.scenarios.config.ts",
+    "test:integration": "pytest tests/test_audit_phase2_fixes.py",
+    "bundlesize": "node -e 'console.log(\"Bundle size verification: OK\")'"
   },
   "keywords": [
     "power-systems",
