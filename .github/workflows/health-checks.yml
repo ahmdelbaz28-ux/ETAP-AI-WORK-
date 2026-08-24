@@ -155,7 +155,7 @@ jobs:
       - name: Notify on failure
         if: failure()
         continue-on-error: true
-        uses: slackapi/slack-github-action@v1
+        uses: slackapi/slack-github-action@v4
         with:
           payload: |
             {
@@ -206,7 +206,7 @@ jobs:
 
       - name: Notify on failure
         if: failure()
-        uses: slackapi/slack-github-action@v1
+        uses: slackapi/slack-github-action@v4
         with:
           payload: |
             {
@@ -257,7 +257,7 @@ jobs:
 
       - name: Notify on failure
         if: failure()
-        uses: slackapi/slack-github-action@v1
+        uses: slackapi/slack-github-action@v4
         with:
           payload: |
             {
@@ -315,7 +315,7 @@ jobs:
       - name: Notify summary
         if: always()
         continue-on-error: true
-        uses: slackapi/slack-github-action@v1
+        uses: slackapi/slack-github-action@v4
         with:
           payload: |
             {
