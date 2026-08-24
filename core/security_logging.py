@@ -58,27 +58,30 @@ _SENSITIVE_KEY_NAMES = {
     "private_key",
 }
 
+DEFAULT_MASK = "***REDACTED***"
+SECURITY_AUDIT_LOG_FILENAME = "security_audit.log"
+
 _SENSITIVE_KEY_PATTERNS = [
     # Key-value redaction patterns (e.g. credentials and tokens)
     (
         re.compile(
-            r'(?i)\b(api_key|token|password|auth_key|secret|credential|access_token|refresh_token)\s*=\s*["\']([A-Za-z0-9_\-\.]{8,})["\']'
+            r'(?i)\b(api_key|token|password|auth_key|secret|credential|access_token|refresh_token)\s*=\s*["\']([\w.-]{8,})["\']'
         ),
         r'\1="***REDACTED***"',
     ),
     # Bearer token
     (
-        re.compile(r"(?i)\bBearer\s+([A-Za-z0-9_\-\.]{8,})"),
+        re.compile(r"(?i)\bBearer\s+([\w.-]{8,})"),
         r"Bearer ***REDACTED***",
     ),
 ]
 
 _SENSITIVE_VALUE_PATTERNS = [
-    re.compile(r"\bsk-[A-Za-z0-9_\-\.]{8,}\b"),
+    re.compile(r"\bsk-[\w.-]{8,}\b"),
 ]
 
 
-def mask_sensitive(text: Any, mask: str = "***REDACTED***") -> str:
+def mask_sensitive(text: Any, mask: str = DEFAULT_MASK) -> str:
     """Mask sensitive credentials in text while preserving non-sensitive hashes and fields."""
     if text is None:
         return ""
@@ -93,7 +96,7 @@ def mask_sensitive(text: Any, mask: str = "***REDACTED***") -> str:
 
     result = text
     for pattern, repl in _SENSITIVE_KEY_PATTERNS:
-        custom_repl = repl.replace("***REDACTED***", mask)
+        custom_repl = repl.replace(DEFAULT_MASK, mask)
         result = pattern.sub(custom_repl, result)
 
     for val_pattern in _SENSITIVE_VALUE_PATTERNS:
@@ -102,7 +105,7 @@ def mask_sensitive(text: Any, mask: str = "***REDACTED***") -> str:
     return result
 
 
-def _sanitize_value(val: Any, mask: str = "***REDACTED***") -> Any:
+def _sanitize_value(val: Any, mask: str = DEFAULT_MASK) -> Any:
     """Recursively mask sensitive keys and patterns in nested data structures."""
     if isinstance(val, dict):
         sanitized_dict: dict[str, Any] = {}
@@ -165,7 +168,7 @@ class SecurityAuditLogger:
         else:
             self._log_dir = Path(log_dir)
         self._log_dir.mkdir(parents=True, exist_ok=True)
-        self._log_path = self._log_dir / "security_audit.log"
+        self._log_path = self._log_dir / SECURITY_AUDIT_LOG_FILENAME
         self._chain_hash = self._recover_chain_hash()
 
     def _recover_chain_hash(self) -> str:

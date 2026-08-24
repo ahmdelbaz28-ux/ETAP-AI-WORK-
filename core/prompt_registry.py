@@ -33,13 +33,16 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
+DEFAULT_USER_TEMPLATE = "{{input}}"
+
+
 @dataclass
 class PromptTemplate:
     """Represents a resolved, versioned prompt template."""
 
     name: str
     system_prompt: str
-    user_template: str = "{{input}}"
+    user_template: str = DEFAULT_USER_TEMPLATE
     model: str = "gpt-4o"
     temperature: float = 0.2
     version: str = "1.0.0"
@@ -72,23 +75,23 @@ class PromptRegistry:
     DEFAULT_PROMPTS = {
         "load_flow_agent": (
             "You are the Load Flow Specialist for AhmedETAP. You perform Newton-Raphson power flow analysis per IEEE 3002.7.",
-            "{{input}}",
+            DEFAULT_USER_TEMPLATE,
         ),
         "short_circuit_agent": (
             "You are the Short Circuit Specialist for AhmedETAP. You calculate fault currents and equipment ratings per IEC 60909.",
-            "{{input}}",
+            DEFAULT_USER_TEMPLATE,
         ),
         "arcflash_agent": (
             "You are the Arc Flash Hazard Specialist for AhmedETAP. You calculate incident energy and PPE category per IEEE 1584.",
-            "{{input}}",
+            DEFAULT_USER_TEMPLATE,
         ),
         "protection_agent": (
             "You are the Protection Coordination Specialist for AhmedETAP. You analyze relay coordination and time-current curves per IEC 60255.",
-            "{{input}}",
+            DEFAULT_USER_TEMPLATE,
         ),
         "etap_expert_agent": (
             "You are the senior ETAP Expert Engineer for AhmedETAP. You provide deterministic, standards-validated power systems advice.",
-            "{{input}}",
+            DEFAULT_USER_TEMPLATE,
         ),
     }
 
@@ -150,11 +153,11 @@ class PromptRegistry:
                         )
                         user_prompt = next(
                             (m.get("content") for m in prompt_data if m.get("role") == "user"),
-                            "{{input}}",
+                            DEFAULT_USER_TEMPLATE,
                         )
                     else:
                         sys_prompt = str(prompt_data)
-                        user_prompt = "{{input}}"
+                        user_prompt = DEFAULT_USER_TEMPLATE
 
                     return PromptTemplate(
                         name=prompt_name,
@@ -192,12 +195,12 @@ class PromptRegistry:
                         )
                         user_msg = next(
                             (m.get("content", "") for m in messages if m.get("role") == "user"),
-                            "{{input}}",
+                            DEFAULT_USER_TEMPLATE,
                         )
                         return PromptTemplate(
                             name=prompt_name,
                             system_prompt=sys_msg or data.get("prompt", ""),
-                            user_template=user_msg or "{{input}}",
+                            user_template=user_msg or DEFAULT_USER_TEMPLATE,
                             model=data.get("model", "gpt-4o"),
                             temperature=float(data.get("temperature", 0.2)),
                             version="local_yaml",
@@ -214,7 +217,7 @@ class PromptRegistry:
             sys_p, user_p = self.DEFAULT_PROMPTS[prompt_name]
         else:
             sys_p = f"You are the {prompt_name} specialist for AhmedETAP power system engineering platform."
-            user_p = "{{input}}"
+            user_p = DEFAULT_USER_TEMPLATE
 
         return PromptTemplate(
             name=prompt_name,

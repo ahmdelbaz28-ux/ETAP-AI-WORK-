@@ -372,10 +372,8 @@ class TestLLMS18:
         target = Path("agents/base.py") if Path("agents/base.py").exists() else Path("agents/orchestrator.py")
         src = target.read_text(encoding="utf-8")
         orch_src = Path("agents/orchestrator.py").read_text(encoding="utf-8")
-        # Should not have: get("temperature", 0.2)
-        assert 'get("temperature", 0.2)' not in src and 'get("temperature", 0.2)' not in orch_src, (
-            "S-18: Old 0.2 default temperature must be removed"
-        )
+        assert 'get("temperature", 0.2)' not in src, "S-18: Old 0.2 default temperature must be removed from base"
+        assert 'get("temperature", 0.2)' not in orch_src, "S-18: Old 0.2 default temperature must be removed from orchestrator"
 
     def test_s18_safety_critical_comment(self):
         """S-18: Must document why temperature is 0.0."""
