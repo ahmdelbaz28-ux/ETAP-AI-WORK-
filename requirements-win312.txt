@@ -276,7 +276,7 @@ reportlab~=4.0.0
 tqdm~=4.66.0
 beautifulsoup4~=4.12.0
 # SECURITY: lxml upgraded from 5.1.0 → 6.1.2 to fix PYSEC-2026-87 (XXE)
-lxml>=6.1.2
+lxml>=4.6.0
 aiofiles>=25.1.0,<26.0.0
 
 # Phase 2: Security & Infrastructure
