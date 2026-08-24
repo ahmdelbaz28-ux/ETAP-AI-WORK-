@@ -239,8 +239,28 @@ async def unhandled_exception_handler(request: Request, exc: Exception):
 # on inbound requests and handles OPTIONS preflight before any other
 # middleware touches the request). In Starlette, the LAST middleware
 # added via add_middleware() wraps all previous middleware — i.e. it is
-# the outermost layer and is the first to see inbound requests.
 app.add_middleware(CSRFMiddleware)
+
+
+@app.on_event("startup")
+async def _startup_auth_fail_closed_check() -> None:
+    """Ensure production/staging environments fail closed if API key is unconfigured."""
+    env = os.environ.get("ENVIRONMENT", os.environ.get("ENV", "development")).lower()
+    eng_key = os.environ.get("ENGINEERING_SERVICE_API_KEY", "") or os.environ.get("HF_API_KEY", "")
+    if env in ("production", "staging", "prod") and not eng_key:
+        logger.critical(
+            "FATAL: Running in %s mode without ENGINEERING_SERVICE_API_KEY or HF_API_KEY! "
+            "Startup aborted to prevent open-by-default security vulnerability.",
+            env,
+        )
+        raise RuntimeError(
+            f"ENGINEERING_SERVICE_API_KEY or HF_API_KEY must be configured in {env} mode (Fail-Closed Security Guard)."
+        )
+    if not eng_key:
+        logger.warning(
+            "⚠️ WARNING: Running in %s mode without API key. Unauthenticated access permitted ONLY in development.",
+            env,
+        )
 
 app.add_middleware(
     CORSMiddleware,

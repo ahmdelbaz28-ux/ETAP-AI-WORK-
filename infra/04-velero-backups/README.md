@@ -43,8 +43,8 @@ aws s3api create-bucket --bucket etap-velero-backups --region us-east-1
 #    (see credentials-velero.example below)
 cat > credentials-velero <<EOF
 [default]
-aws_access_key_id = AKIAIOSFODNN7EXAMPLE
-aws_secret_access_key = wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+aws_access_key_id = <AWS_EXAMPLE_KEY_ID>
+aws_secret_access_key = <AWS_EXAMPLE_SECRET_KEY>
 EOF
 
 # 4. Install Velero via Helm
