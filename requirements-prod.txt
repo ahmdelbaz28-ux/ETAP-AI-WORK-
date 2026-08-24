@@ -1,62 +1,68 @@
-# Production requirements - lightweight core dependencies
-# Observability - OpenTelemetry (aligned with requirements.txt ~=1.30.0 stack)
-opentelemetry-api>=1.30.0
-opentelemetry-sdk>=1.30.0
-opentelemetry-exporter-otlp>=1.30.0
-opentelemetry-exporter-otlp-proto-http>=1.30.0
-opentelemetry-semantic-conventions>=0.51b0
+# =============================================================================
+# AhmedETAP — Production Requirements (Lightweight Core)
+# =============================================================================
+# Aligned with requirements.txt and pyproject.toml
+# =============================================================================
+
+# Observability - OpenTelemetry (~=1.30.0 stack)
+opentelemetry-api~=1.30.0
+opentelemetry-sdk~=1.30.0
+opentelemetry-exporter-otlp==1.30.0
+opentelemetry-exporter-otlp-proto-http~=1.30.0
+opentelemetry-semantic-conventions~=0.51b0
 opentelemetry-instrumentation-fastapi~=0.51b0
 
-# LLM observability — Langfuse (free Hobby plan supports unlimited prompts)
-langfuse>=2.60.0,<3
+# LLM observability — Langfuse
+langfuse~=2.60.0
 
 # Metrics - Prometheus
-prometheus-client>=0.19.0
+prometheus-client>=0.19,<0.26
 
 # Core numerical and scientific computing
-numpy>=1.21.0
-scipy>=1.7.0
-pandas>=1.3.0
+numpy>=1.24,<2.6
+scipy>=1.12,<1.19
+pandas~=2.2.0
 
 # HTTP requests
-# SECURITY: upgraded to >=2.32.0 for CVE fixes (latest stable is 2.32.x)
+# SECURITY: upgraded to >=2.32.0 for CVE fixes
 requests>=2.32.0
-httpx>=0.25.0
+httpx~=0.27.0
 
 # YAML parsing
-pyyaml>=6.0
+pyyaml~=6.0.0
 
 # Type checking
-typing-extensions>=4.0.0
+typing-extensions>=4.9.0
 
 # Logging and monitoring
-structlog>=21.0.0
+structlog~=23.2.0
 
 # Security
 # SECURITY: cryptography >=50.0.0 — fixes CVE-2026-69247 (Bleichenbacher oracle) + earlier CVEs
 cryptography>=50.0.0
-hvac>=2.0.0
+hvac~=2.1.0
 
-# Password hashing (required - bcrypt replaces SHA-256 for security)
-bcrypt>=4.0.0
+# Password hashing
+bcrypt~=4.1.0
 
-# JWT token signing (required - no insecure fallback)
+# JWT token signing
 # SECURITY: PyJWT >=2.8.0 — fixes CVE-2026-32597 and CVE-2026-48526
 PyJWT>=2.8.0,<3
 
 # Data validation
-pydantic[email]>=2.0.0
-email-validator>=2.0.0
+pydantic[email]>=2.8.0,<3
+email-validator>=2.1.0,<3
 
-# Database ORM (async SQLite support)
-sqlalchemy[asyncio]>=2.0.0
-aiosqlite>=0.19.0
+# Database ORM (async SQLite and Postgres support)
+sqlalchemy[asyncio]~=2.0.0
+aiosqlite~=0.19.0
+asyncpg>=0.29,<0.32
 
 # ETAP Worker API (FastAPI)
-# fastapi>=0.135.0 — aligned with requirements.txt (enables starlette 1.x for CVE fixes)
+# fastapi>=0.135.0 — enables starlette 1.x for CVE fixes
 fastapi>=0.135.0
-uvicorn[standard]>=0.24.0
-python-multipart>=0.0.6
+uvicorn[standard]~=0.25.0
+python-multipart~=0.0.6
 slowapi>=0.1.9
 python-dotenv>=1.0.0
 # Starlette — aligned with requirements.txt (starlette>=1.3.1 for CVE fixes)
@@ -65,22 +71,15 @@ starlette>=1.3.1
 # PDF text extraction
 # SECURITY: pypdf upgraded to >=6.15.0 to fix all CVEs (CVE-2026-59935, CVE-2026-59936, etc.)
 pypdf>=6.15.0
-pdfplumber>=0.7.0
+pdfplumber>=0.10,<0.12
 
 # Document processing
-python-docx>=0.8.11
-openpyxl>=3.0.0
+python-docx~=1.1.0
+openpyxl~=3.1.0
+reportlab~=4.0.0
 
 # AI Context Engine (Code RAG)
-# SECURITY: chromadb is vulnerable to CVE-2026-45829 (CVSS 9.3, pre-auth RCE /
-# code injection). Affects all versions <= 1.5.9. No fix release available yet
-# as of 2026-08-03. Monitor: https://github.com/chroma-core/chroma/issues/6717
-# Mitigation:
-#   1. DO NOT expose chromadb port (8000) to untrusted networks.
-#   2. Only bind to localhost / internal network.
-#   3. Upgrade to chromadb>=1.5.10 (or whichever release patches the CVE) when
-#      upstream publishes a fix.
-chromadb>=0.4.24
+chromadb>=0.4.24,<1.0.0
 sentence-transformers>=2.7.0
 tree-sitter>=0.21.0
 tree-sitter-python>=0.21.0
@@ -90,39 +89,39 @@ nltk>=3.10.0
 pygments>=2.20.0
 # SECURITY: setuptools — fixes MANIFEST.in CVE (setuptools>=83.0.0)
 setuptools>=83.0.0
-python-dotenv>=1.0.0
 
 # Additional utilities
-tqdm>=4.62.0
-beautifulsoup4>=4.10.0
-lxml>=6.1.0
+tqdm~=4.66.0
+beautifulsoup4~=4.12.0
+lxml~=6.1.0
+ezdxf>=1.1.0,<1.4.0
 
-# Phase 2: Security & Infrastructure
-pyotp>=2.9.0
+# Security & Infrastructure
+pyotp~=2.9.0
 # WebAuthn / FIDO2 — aligned with requirements.txt pin (webauthn>=2.0.0,<3.0.0)
 webauthn>=2.0.0,<3.0.0
-redis>=5.0.0
+redis~=5.0.0
+websockets>=15,<16
 
-# Retry and fault tolerance (used by core/retry.py)
-tenacity>=8.2.0
+# Retry and fault tolerance
+tenacity>=8.2,<9.2
 
 # API & Database dependencies
-alembic>=1.13.0
+alembic~=1.13.0
+mako~=1.3.0
 
-# Task queue (used by worker/celery_app.py)
-celery>=5.3.0
+# Task queue
+celery~=5.3.0
 
 # AI Memory & Graph Database
-neo4j>=5.0.0
-# LangChain — pinned to match requirements.txt 1.x line (security upgrade).
-# Looser bounds than requirements.txt so production can absorb patch releases
-# without a re-pin, but still constrained to the 1.x contract.
-langchain-core>=1.5.0,<2
-langchain-openai>=1.4.0,<2
-langchain-community>=0.4.0,<0.5
-langchain-experimental>=0.4.0,<0.5
-langchain-qdrant>=1.0,<2
-langsmith>=0.10.0,<0.11
+neo4j>=5.25.0,<7
+# LangChain 1.x line
+langchain-core~=1.5.0
+langchain-openai~=1.4.0
+langchain-community~=0.4.0
+langchain-experimental~=0.4.0
+langchain-qdrant~=1.0
+langsmith~=0.10.0
 qdrant-client>=1.7.0
 
 defusedxml>=0.7.1
