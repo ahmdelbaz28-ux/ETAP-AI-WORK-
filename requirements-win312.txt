@@ -169,9 +169,9 @@ fastapi>=0.135.0
 uvicorn~=0.25.0
 # aiofiles — required by api/routes.py (streaming file responses + UploadFile).
 # Without it, FastAPI app fails to start: ModuleNotFoundError: No module named 'aiofiles'
-aiofiles>=24.1.0,<25.0.0
+aiofiles>=25.1.0,<26.0.0
 
-# NOTE: aiofiles is already pinned at line 159 (aiofiles>=24.1.0,<25.0.0).
+# NOTE: aiofiles is already pinned at line 159 (aiofiles>=25.1.0,<26.0.0).
 # Duplicate loose constraint removed to avoid pip resolver conflicts.
 
 # NOTE: OpenTelemetry packages are already pinned at lines 12-17 with
