@@ -45,6 +45,7 @@ app_port: 7860
 
 <br/>
 
+**[🟢 Launch Status (10/10)](docs/STATUS.md)** &nbsp;•&nbsp;
 **[🚀 Live UI — Vercel](https://etap-ai-work.vercel.app)** &nbsp;•&nbsp;
 **[🧠 Live API — HF Space](https://ahmdelbaz28-ahmedetap-platform.hf.space/docs)** &nbsp;•&nbsp;
 **[📚 Docs](docs/)** &nbsp;•&nbsp;
