@@ -69,7 +69,7 @@ neo4j>=5.25.0,<7
 #   langchain-qdrant 1.1.0
 #   langsmith        0.10.18
 langchain-core~=1.5.0
-langchain-openai~=1.4.0
+langchain-openai~=1.6.0
 langchain-community~=0.4.0
 langchain-experimental~=0.4.0
 langchain-qdrant~=1.0
@@ -85,7 +85,7 @@ pandas~=2.2.0
 
 # Visualization
 # matplotlib~=3.8.0  # DISABLED: no 3.8.x wheel for Python 3.13 (oldest is 3.9.2)
-matplotlib>=3.9.0
+matplotlib>=3.9.4,<3.12.0
 
 # System monitoring
 psutil~=5.9.0
@@ -98,7 +98,7 @@ psutil~=5.9.0
 requests>=2.32.0
 
 # CAD file processing
-ezdxf>=1.1.0,<1.4.0
+ezdxf>=1.1.0,<1.5.0
 
 # Language detection
 # langdetect~=1.0.9  # NOSONAR: installed separately (py2-only wheel; pure-Python sdist)
@@ -275,8 +275,9 @@ reportlab~=4.0.0
 # Additional utilities
 tqdm~=4.66.0
 beautifulsoup4~=4.12.0
-# SECURITY: lxml upgraded from 5.1.0 → 6.1.0 to fix PYSEC-2026-87 (XXE)
-lxml~=6.1.0
+# SECURITY: lxml upgraded from 5.1.0 → 6.1.2 to fix PYSEC-2026-87 (XXE)
+lxml>=6.1.2
+aiofiles>=25.1.0,<26.0.0
 
 # Phase 2: Security & Infrastructure
 pyotp~=2.9.0
