@@ -297,3 +297,87 @@ class TestHelpers:
         flags = _load_flags()
         # Should fall back to defaults, not raise
         assert set(flags.keys()) == set(DEFAULT_FEATURE_FLAGS.keys())
+# ---------------------------------------------------------------------------
+# evaluate_flag_with_rollout
+# ---------------------------------------------------------------------------
+
+
+class TestEvaluateFlagWithRollout:
+    """Unit tests for per-user gradual rollout evaluation (chat_first_ui)."""
+
+    def _flags(self, **cfg) -> dict:
+        return {"chat_first_ui": cfg}
+
+    def _patch(self, monkeypatch, **cfg):
+        """Point _load_flags at a synthetic chat_first_ui flag + import fcn."""
+        import api.feature_flags as ff
+
+        monkeypatch.setattr(ff, "_load_flags", lambda: self._flags(**cfg))
+        from api.feature_flags import evaluate_flag_with_rollout
+
+        return evaluate_flag_with_rollout
+
+    def test_enabled_true_returns_true_regardless_of_rollout(self, monkeypatch):
+        evaluate = self._patch(
+            monkeypatch, enabled=True, rollout_percentage=0, allow_list=[]
+        )
+        assert evaluate("chat_first_ui", user_id="alice") is True
+        assert evaluate("chat_first_ui", user_id="anyone", roles=["user"]) is True
+        assert evaluate("chat_first_ui") is True
+
+    def test_enabled_false_no_rollout_returns_false(self, monkeypatch):
+        evaluate = self._patch(monkeypatch, enabled=False)
+        assert evaluate("chat_first_ui", user_id="alice") is False
+        assert evaluate("chat_first_ui") is False
+
+    def test_allow_list_user_id_returns_true_even_when_disabled(self, monkeypatch):
+        evaluate = self._patch(
+            monkeypatch, enabled=False, allow_list=["alice", "bob"]
+        )
+        assert evaluate("chat_first_ui", user_id="bob") is True
+        # Same config, user NOT in allow_list, no rollout → False
+        assert evaluate("chat_first_ui", user_id="carol") is False
+
+    def test_allow_list_role_returns_true(self, monkeypatch):
+        evaluate = self._patch(
+            monkeypatch, enabled=False, allow_list=["admin", "ops"]
+        )
+        assert evaluate("chat_first_ui", user_id="nobody", roles=["user", "ops"]) is True
+        # No intersecting role → False
+        assert evaluate("chat_first_ui", user_id="nobody", roles=["user"]) is False
+
+    def test_rollout_100_true_for_any_user(self, monkeypatch):
+        evaluate = self._patch(monkeypatch, enabled=False, rollout_percentage=100)
+        for uid in ["a", "b", "c", "user_1", "admin", "some@example.com"]:
+            assert evaluate("chat_first_ui", user_id=uid) is True, uid
+
+    def test_rollout_0_false(self, monkeypatch):
+        evaluate = self._patch(monkeypatch, enabled=False, rollout_percentage=0)
+        for uid in ["a", "b", "c", "user_1"]:
+            assert evaluate("chat_first_ui", user_id=uid) is False, uid
+
+    def test_rollout_50_deterministic_and_distributed(self, monkeypatch):
+        evaluate = self._patch(monkeypatch, enabled=False, rollout_percentage=50)
+        uids = [f"user_{i}" for i in range(200)]
+        first = [evaluate("chat_first_ui", user_id=uid) for uid in uids]
+        second = [evaluate("chat_first_ui", user_id=uid) for uid in uids]
+        assert first == second, "rollout bucket must be stable for the same user_id"
+        enabled_count = sum(first)
+        assert 0 < enabled_count < len(uids), "rollout=50 must be a real split"
+        fraction = enabled_count / len(uids)
+        # MD5 buckets distribute near-uniformly; allow generous band.
+        assert 0.25 <= fraction <= 0.75, f"unexpected split: {fraction:.1%}"
+
+    def test_rollout_without_user_id_returns_false(self, monkeypatch):
+        evaluate = self._patch(monkeypatch, enabled=False, rollout_percentage=50)
+        assert evaluate("chat_first_ui") is False
+        assert evaluate("chat_first_ui", user_id="") is False
+
+    def test_unknown_flag_returns_false(self, monkeypatch):
+        evaluate = self._patch(monkeypatch)
+        assert evaluate("chat_first_ui") is False
+        assert evaluate("chat_first_ui", user_id="alice") is False
+
+    def test_invalid_rollout_percentage_returns_false(self, monkeypatch):
+        evaluate = self._patch(monkeypatch, enabled=False, rollout_percentage="oops")
+        assert evaluate("chat_first_ui", user_id="alice") is False
