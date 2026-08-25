@@ -236,7 +236,7 @@ class RemoteEtapProvider(IEtapProvider):
             )
 
         payload = {"project_path": project_path, "study_type": study_type.name, "visible": visible}
-        headers = {"X-ETAP-Worker-Key": self.api_key}
+        headers = {"Authorization": f"Bearer {self.api_key}"}
 
         last_error = None
         for attempt in range(self.MAX_RETRIES):
