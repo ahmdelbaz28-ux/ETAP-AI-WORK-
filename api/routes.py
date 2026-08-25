@@ -63,6 +63,7 @@ from api.studies import router as studies_router
 from api.study_versions import router as study_versions_router
 from api.templates import router as templates_router
 from api.tenants import router as tenants_router
+from api.tool_policy import router as tool_policy_router
 from api.validation import router as validation_router
 from api.websocket import scada_websocket_endpoint
 from api.zip_generator_config import router as zip_generator_config_router
@@ -788,6 +789,7 @@ app.include_router(solver_parameters_router)  # /api/v1/studies/parameters/* —
 app.include_router(
     notification_config_router
 )  # /api/v1/notifications/digest/config/* — Notification preferences
+app.include_router(tool_policy_router)  # /api/v1/tool-policy/* — Tool Policy Engine
 
 
 # WebSocket endpoint for real-time notifications
