@@ -238,7 +238,7 @@ async def execute_study(
 
 if __name__ == "__main__":
     # Load configuration
-    port = int(os.environ.get("ETAP_WORKER_PORT", 8080))
+    port = int(os.environ.get("ETAP_WORKER_PORT", 8081))
     # Default to 127.0.0.1 (safer for local dev). Override with HOST=0.0.0.0
     # for Docker/HF Spaces where port-mapping requires binding to all interfaces.
     # SonarCloud S8392: 0.0.0.0 is NOT the default — it's only used when
