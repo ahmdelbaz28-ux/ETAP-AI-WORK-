@@ -1329,7 +1329,7 @@ class ETAPAutomation:
         if len(file_path) > MAX_PROJECT_PATH_LENGTH:
             logger.warning(
                 "Project path length %d exceeds maximum %d",
-                _sanitize_for_log(len(file_path)),
+                len(file_path),
                 MAX_PROJECT_PATH_LENGTH,
             )
             return False
