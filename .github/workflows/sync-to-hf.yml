@@ -18,7 +18,7 @@ name: Sync to HuggingFace Space
 #   marine/ parsers/ qomn_conduit/ qomn_fire/
 #
 # WHAT IS EXCLUDED (repo-only): .github/ skills/ deploy/ docs/ tests/ *.md
-#   (except README.md), alembic/, services/, templates/, vercel.json,
+#   (except README.md), services/, templates/, vercel.json,
 #   revit_data/ (has >10 MiB files HF rejects), todo-app/, etc.
 #
 # AUTH
