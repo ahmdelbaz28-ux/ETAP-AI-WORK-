@@ -446,3 +446,70 @@ def _serialisable_request(request: dict) -> dict:
         except (TypeError, ValueError):
             out[k] = str(v)
     return out
+
+
+# ─── Approval Gateway audit bridge (P2) ────────────────────────────────────
+# Event types emitted by the Approval Gateway (api/approvals.py). Kept here so
+# every approval-related audit event flows through the same V-19 persistent
+# trail (and the tamper-evident chain log when available).
+APPROVAL_EVENT_PROPOSED = "PROPOSED"
+APPROVAL_EVENT_PENDING = "PENDING"
+APPROVAL_EVENT_APPROVED = "APPROVED"
+APPROVAL_EVENT_REJECTED = "REJECTED"
+APPROVAL_EVENT_EXPIRED = "EXPIRED"
+APPROVAL_EVENT_AUTO_APPROVED = "AUTO_APPROVED"
+APPROVAL_EVENT_MAKER_CHECKER_VIOLATION = "MAKER_CHECKER_VIOLATION"
+
+# Reason code returned when a critical action's approver equals its maker.
+MAKER_CHECKER_VIOLATION = "MAKER_CHECKER_VIOLATION"
+
+_security_audit_logger: Any = None
+_security_audit_lock = threading.Lock()
+
+
+def _get_security_audit_logger() -> Any:
+    """Lazily build the tamper-evident ``SecurityAuditLogger`` singleton.
+
+    Returns ``None`` when the module is unavailable (e.g. stripped install);
+    callers must treat the return as optional and keep working without it.
+    """
+    global _security_audit_logger
+    if _security_audit_logger is not None:
+        return _security_audit_logger
+    with _security_audit_lock:
+        if _security_audit_logger is None:
+            try:
+                from core.security_logging import SecurityAuditLogger
+
+                _security_audit_logger = SecurityAuditLogger()
+            except Exception as exc:  # noqa: BLE001 — optional dependency
+                logger.debug("security_audit_logger_unavailable err=%s", exc)
+                return None
+    return _security_audit_logger
+
+
+def record_approval_event(
+    event_type: str,
+    action_id: str,
+    user_id: str,
+    details: dict[str, Any] | None = None,
+) -> None:
+    """Record an Approval Gateway event into the persistent audit trail.
+
+    Writes to the in-memory V-19 trail (queryable, bounded) and,
+    best-effort, to the tamper-evident ``security_audit.log`` chain so
+    approval decisions survive process restarts and cannot be rewritten.
+    """
+    safe_details = {k: v for k, v in (details or {}).items()}
+    _add_audit_entry(event_type, action_id, user_id, safe_details)
+    chain = _get_security_audit_logger()
+    if chain is not None:
+        try:
+            chain.log_event(
+                event_type,
+                action_id=_sanitize_for_log(action_id),
+                user_id=_sanitize_for_log(user_id),
+                details=safe_details,
+            )
+        except Exception as exc:  # noqa: BLE001 — audit must never break flow
+            logger.warning("approval_audit_chain_write_failed err=%s", exc)
