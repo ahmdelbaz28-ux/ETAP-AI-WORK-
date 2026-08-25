@@ -224,7 +224,6 @@ export default function App() {
                 <Route path="/admin/ai-playground" element={<AIPlaygroundPage />} />
                 <Route path="/equipment" element={<EquipmentManagementPage />} />
                 <Route path="/admin/email/webhooks" element={<EmailWebhooksPage />} />
-                <Route path="/admin/email-digest" element={<EmailDigestPage />} />
                 <Route path="*" element={<Navigate to="/dashboard" replace />} />
               </Route>
             </Routes>
