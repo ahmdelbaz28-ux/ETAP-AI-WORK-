@@ -91,6 +91,7 @@ _NO_STANDARDS_EXCEPTIONS = frozenset(
         "goal_planner_agent.yaml",
         "etap_gui_agent.prompt.yaml",
         "code_guard_agent.prompt.yaml",
+        "qgis_agent.prompt.yaml",
     }
 )
 
