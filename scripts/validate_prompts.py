@@ -86,7 +86,6 @@ ENGINEERING_STANDARDS = {
 
 _NO_STANDARDS_EXCEPTIONS = frozenset(
     {
-        "sample_prompt.yaml",
         "fallback_agent.prompt.yaml",
         "weather_activity_planner.prompt.yaml",
         "goal_planner_agent.yaml",

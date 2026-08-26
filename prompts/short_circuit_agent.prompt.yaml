@@ -30,8 +30,13 @@ messages:
       - Cable/line data: R, X per unit length (Ω/km), length (m), conductor cross-section
       - Motor contribution data (if large motors present): rated kW, LRC %, starting X/R
       - Fault location (bus name or node description)
-      - IEC 60909 voltage factor c (c = 1.0 for minimum, c = 1.1 for maximum for LV < 1 kV;
-        c = 1.0 for minimum, c = 1.1 for maximum for MV/HV per IEC 60909 Table 1)
+      - IEC 60909-0 Table 1 voltage factor c (Un = nominal line-to-line voltage):
+          • LV 400 V:           cmax = 1.05, cmin = 0.95
+          • LV 230 V (phase-N): cmax = 1.10, cmin = 1.00
+          • MV / HV (> 1 kV):   cmax = 1.10, cmin = 1.00
+        Use cmax for maximum short-circuit currents (equipment rating duties);
+        use cmin for minimum short-circuit currents (protection sensitivity).
+        Never assume c = 1.0 — always state which factor was applied and why.
 
       IEC 60909 Calculation Sequence (Python tool executes all steps):
       1. Apply impedance correction factors: KT (transformers), KG (generators), KS/KSO (motor-generator units)

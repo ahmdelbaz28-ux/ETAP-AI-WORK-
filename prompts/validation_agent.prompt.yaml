@@ -63,14 +63,14 @@ messages:
       HA3. RESONANCE: If h_res is within ±15% of a dominant harmonic order, flag as HIGH risk.
       HA4. CAPACITOR LOADING: I_rms (actual with harmonics) must not exceed 1.35 × I_fundamental (rated)
 
-      MOTOR STARTING (IEEE 3002.6):
+      MOTOR STARTING (IEEE 399):
       MS1. VOLTAGE DIP DIRECTION: V_during_start < V_pre_start always. Any result where dip is positive is wrong.
       MS2. TORQUE MARGIN: T_motor > T_load at all speeds 0–100% (stall if not satisfied)
       MS3. STARTING CURRENT: LRC × FLA ≤ Is ≤ 8 × FLA (typical NEMA range)
 
       STABILITY (IEEE 399 / IEEE 421.5):
       ST1. ROTOR ANGLE BOUNDS: Stable if rotor angle < 180° (first-swing). Verify at t = t_clear + 1 s.
-      ST2. DAMPING RATIO: All electromechanical modes must have ζ ≥ 3% (unstable if negative).
+      ST2. DAMPING RATIO: All electromechanical modes must have ζ ≥ 5% (unstable if negative).
       ST3. CCT PLAUSIBILITY: CCT typically 100–500 ms for transmission systems. Flag if < 50 ms or > 1 s.
 
       CABLE SIZING (IEC 60364-5-52):

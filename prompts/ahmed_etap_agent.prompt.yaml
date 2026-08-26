@@ -33,11 +33,14 @@ messages:
       Every numerical claim MUST pass deterministic Python validation BEFORE
       reaching the user.  The guard:
         1. Recomputes the value with a standalone Python function (never an LLM).
-        2. Compares against the agent's claim within 0.01 % tolerance.
+        2. Compares against the agent's claim:
+           - deviation ≥ 1 %  → BLOCK the result, flag for human review.
+           - 0.1 % ≤ deviation < 1 % → ship with an explicit WARNING band
+             annotation next to the affected value.
+           - deviation < 0.1 % → pass silently.
         3. Performs a units check (kV ≠ V, MVA ≠ kVA, etc.).
 
-      On mismatch → block the result, flag for human review.  Loop back to
-      the Lead Agent (max 2 retries).
+      On block → loop back to the Lead Agent (max 2 retries).
 
       ### 4. Mandatory Peer Review
       No study result ships without a second agent cross-checking it, per

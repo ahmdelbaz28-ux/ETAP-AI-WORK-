@@ -289,8 +289,19 @@ def _load_from_yaml(
 ) -> str | None:
     """Load a prompt from a local YAML file in the prompts/ directory.
 
-    Tries several filename patterns to locate the file.
+    Manifest-first: prompts.json binds each handle to its canonical file
+    (e.g. ``etap_engineer_agent`` → v2), so it is consulted BEFORE the
+    filename-pattern fallback, which can silently resolve to a stale
+    same-named file.
     """
+    # 1. prompts.json manifest (authoritative handle → file mapping)
+    full_path = _resolve_prompts_json_path(handle)
+    if full_path:
+        system_msg = _read_yaml_system_message(full_path)
+        if system_msg:
+            return system_msg
+
+    # 2. Filename-pattern fallback
     possible_files = [
         f"{handle}.yaml",
         f"{handle}.prompt.yaml",
@@ -302,13 +313,6 @@ def _load_from_yaml(
             system_msg = _read_yaml_system_message(filepath)
             if system_msg:
                 return system_msg
-
-    # Try prompts.json mapping for exact path resolution
-    full_path = _resolve_prompts_json_path(handle)
-    if full_path:
-        system_msg = _read_yaml_system_message(full_path)
-        if system_msg:
-            return system_msg
 
     return None
 

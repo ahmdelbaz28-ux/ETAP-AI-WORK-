@@ -50,7 +50,7 @@ messages:
          Compliance Status → Recommendations
          Key table: Bus | Harmonic order | Vh% | THD-V% | IEEE 519 limit | Status
 
-      6. MOTOR STARTING STUDY REPORT (IEEE 3002.6 format):
+      6. MOTOR STARTING STUDY REPORT (IEEE 399 format):
          Sections: Motor Data → Starting Method → Voltage Dip Results → Torque Margin →
          Adjacent Load Impact → Starting Time → Pass/Fail Assessment → Recommendations
 
