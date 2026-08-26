@@ -131,23 +131,28 @@ class ModbusClientAdapter(ProtocolAdapter):
                 clients[name] = cli
             return cli
 
-        # pymodbus 3.13 changed read_holding_registers signature:
-        #   old: read_holding_registers(address, count, slave=unit_id)
-        #   new: read_holding_registers(address, *, count=1, device_id=1)
-        # Detect which form to use on first call.
-        async def _read_holding(cli: Any, address: int, count: int, unit_id: int) -> Any:
+        # pymodbus read signature variants across 3.x:
+        #   >=3.13: read_holding_registers(address, *, count=1, device_id=1)
+        #   3.9-3.12: read_holding_registers(address, *, count=1, slave=unit_id)
+        #   <3.9:  read_holding_registers(address, count, slave=unit_id)
+        async def _read_registers(
+            method_name: str, cli: Any, address: int, count: int, unit_id: int
+        ) -> Any:
+            read = getattr(cli, method_name)
             try:
-                # Try new API first.
-                return await cli.read_holding_registers(address, count=count, device_id=unit_id)
+                return await read(address, count=count, device_id=unit_id)
             except TypeError:
-                # Fall back to old API.
-                return await cli.read_holding_registers(address, count, slave=unit_id)
+                pass
+            try:
+                return await read(address, count=count, slave=unit_id)
+            except TypeError:
+                return await read(address, count, slave=unit_id)
+
+        async def _read_holding(cli: Any, address: int, count: int, unit_id: int) -> Any:
+            return await _read_registers("read_holding_registers", cli, address, count, unit_id)
 
         async def _read_input(cli: Any, address: int, count: int, unit_id: int) -> Any:
-            try:
-                return await cli.read_input_registers(address, count=count, device_id=unit_id)
-            except TypeError:
-                return await cli.read_input_registers(address, count, slave=unit_id)
+            return await _read_registers("read_input_registers", cli, address, count, unit_id)
 
         try:
             while self._stop_event is None or not self._stop_event.is_set():

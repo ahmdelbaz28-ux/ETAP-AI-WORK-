@@ -132,6 +132,7 @@ class SCADAProtocolBridge:
         self._Measurement: Any = None
         self._SCADAUpdateReceived: Any = None
         self._initialised = False
+        self._ensure_imports()
 
     # -- lazy resolution ----------------------------------------------------
 
@@ -200,8 +201,6 @@ class SCADAProtocolBridge:
         False otherwise (e.g. when no SCADADatabase is available — the bridge
         still logs the point and updates its stats).
         """
-        self._ensure_imports()
-
         q_str = (quality or self._default_quality or "good").strip().lower()
         q_enum_name = _QUALITY_ALIASES.get(q_str, "GOOD")
         t_str = (measurement_type or "").strip().lower()
@@ -216,6 +215,7 @@ class SCADAProtocolBridge:
         self._stats.last_ts = time.time()
 
         # Try to push into the SCADADatabase.
+        self._ensure_imports()
         pushed = False
         db = self._resolve_scada_db()
         if db is not None and self._Measurement is not None:
