@@ -59,6 +59,61 @@ from core.tracing import trace_operation
 logger = logging.getLogger(__name__)
 
 
+# ---------------------------------------------------------------------------
+# JobProgress bridge (P3) — best-effort streaming of study progress to the
+# SessionStreamHub (api/session_stream.py). Every emit is wrapped in
+# try/except: progress broadcasting must NEVER break study execution.
+# A task participates in streaming only when its parameters carry a
+# "session_id" (set by callers that own a live session stream).
+# ---------------------------------------------------------------------------
+
+
+def _emit_session_progress(
+    task: EngineeringTask,
+    phase: str,
+    pct: float,
+    message: str | None = None,
+) -> None:
+    """Emit a ``job_progress`` event for the task's session (best effort)."""
+    try:
+        params = getattr(task, "parameters", None) or {}
+        session_id = params.get("session_id")
+        if not session_id:
+            return
+        from api.session_stream import get_hub
+
+        get_hub().publish(
+            str(session_id),
+            "job_progress",
+            {
+                "task_id": getattr(task, "task_id", None),
+                "phase": phase,
+                "pct": max(0.0, min(100.0, float(pct))),
+                "message": message,
+            },
+        )
+    except Exception:  # noqa: BLE001 - streaming is strictly additive
+        logger.debug("job_progress emit skipped", exc_info=True)
+
+
+def _emit_session_event(
+    task: EngineeringTask,
+    event_type: str,
+    payload: dict | None = None,
+) -> None:
+    """Emit an arbitrary stream event (e.g. ``result_ready``) best effort."""
+    try:
+        params = getattr(task, "parameters", None) or {}
+        session_id = params.get("session_id")
+        if not session_id:
+            return
+        from api.session_stream import get_hub
+
+        get_hub().publish(str(session_id), event_type, payload)
+    except Exception:  # noqa: BLE001 - streaming is strictly additive
+        logger.debug("%s emit skipped", event_type, exc_info=True)
+
+
 class LoadFlowAgent(BaseAgent):
     """Load Flow Analysis Agent.
 
@@ -1547,6 +1602,9 @@ class ChiefEngineeringOrchestrator:
             parameters={"system": system_data, **(parameters or {})},
         )
 
+        # P3 JobProgress bridge: announce the parsing phase
+        _emit_session_progress(task, "parsing", 5, "Parsed goal into study plan")
+
         # Execute workflow
         results = await self._execute_workflow(task)
 
@@ -1556,6 +1614,19 @@ class ChiefEngineeringOrchestrator:
         self.completed_tasks[task.task_id] = task
 
         self.logger.info("Workflow completed: %s", task.task_id)
+
+        # P3 JobProgress bridge: completion + result_ready
+        all_validated = all(r.validation_status for r in results)
+        _emit_session_progress(task, "validating", 100, "Workflow completed")
+        _emit_session_event(
+            task,
+            "result_ready",
+            {
+                "task_id": task.task_id,
+                "studies_performed": [r.study_type.value for r in results],
+                "all_validated": all_validated,
+            },
+        )
 
         return {
             "task_id": task.task_id,
@@ -1604,6 +1675,12 @@ class ChiefEngineeringOrchestrator:
         dependent_studies = [s for s in execution_order if s == StudyType.LOAD_FLOW]
         independent_studies = [s for s in execution_order if s != StudyType.LOAD_FLOW]
 
+        # P3 JobProgress bridge: entering the solving phase
+        _emit_session_progress(
+            task, "solving", 10,
+            f"Executing {len(dependent_studies + independent_studies)} studies",
+        )
+
         # Phase 1: Run load flow first (dependency for others)
         await self._run_dependent_studies(task, dependent_studies, results)
 
@@ -1618,6 +1695,7 @@ class ChiefEngineeringOrchestrator:
         await self._run_engineering_assertions(task, results)
 
         # Phase 3: Final validation pass
+        _emit_session_progress(task, "validating", 85, "Final validation pass")
         validation_result = await self._run_final_validation(task, results)
         results.append(validation_result)
 
@@ -1638,10 +1716,17 @@ class ChiefEngineeringOrchestrator:
         results: list[AgentResult],
     ) -> None:
         """Phase 1: run load flow studies sequentially (dependency for others)."""
-        for study_type in study_types:
+        total = len(study_types)
+        for idx, study_type in enumerate(study_types):
             agent = self._get_agent_for_study(study_type)
             if not agent:
                 continue
+            # P3 JobProgress bridge: per-study solving progress (10%→70%)
+            _emit_session_progress(
+                task, "solving",
+                10 + 60.0 * idx / max(total, 1),
+                f"Solving {study_type.value}",
+            )
             self.logger.info("Executing %s via %s", study_type.value, agent.agent_name)
             result = await agent.execute(task)
             results.append(result)
@@ -1662,11 +1747,18 @@ class ChiefEngineeringOrchestrator:
         if not study_types:
             return
 
+        total = len(study_types)
         parallel_tasks = []
-        for study_type in study_types:
+        for idx, study_type in enumerate(study_types):
             agent = self._get_agent_for_study(study_type)
             if not agent:
                 continue
+            # P3 JobProgress bridge: per-study solving progress (40%→70%)
+            _emit_session_progress(
+                task, "solving",
+                40 + 30.0 * idx / max(total, 1),
+                f"Solving {study_type.value}",
+            )
             self.logger.info("Executing %s via %s", study_type.value, agent.agent_name)
             parallel_tasks.append(agent.execute(task))
 

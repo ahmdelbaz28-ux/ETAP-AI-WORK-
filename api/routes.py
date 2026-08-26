@@ -56,6 +56,8 @@ from api.notifications import router as notifications_router
 from api.projects import router as projects_router
 from api.rbac import router as rbac_router
 from api.request_context import CorrelationIdMiddleware, TenantMiddleware
+from api.session_stream import router as session_stream_router
+from api.session_stream import session_stream_ws
 from api.settings import router as settings_router
 from api.solver_parameters import router as solver_parameters_router
 from api.storage_management import router as storage_management_router
@@ -793,6 +795,17 @@ app.include_router(
 app.include_router(tool_policy_router)  # /api/v1/tool-policy/* — Tool Policy Engine
 app.include_router(approvals_router)  # /api/v1/approvals/* — Approval Gateway
 app.include_router(approvals_session_router)  # /api/v1/session/auto-approve — Session auto-approve toggle
+app.include_router(session_stream_router)  # /api/v1/ws-ticket — short-lived single-use WS tickets (P3)
+
+
+# WebSocket endpoint for per-session event streaming (P3 SessionStreamHub).
+# Auth: ?ticket=<single-use 60s ticket from POST /api/v1/ws-ticket>
+#   or  ?token=<jwt_access_token> (same checks as /ws/notifications).
+@app.websocket("/ws/sessions/{session_id}")
+async def websocket_session_stream_handler(websocket: WebSocket, session_id: str) -> None:
+    """Stream session events: token, action_proposed, approval_result,
+    job_progress, result_ready, decision_request."""
+    await session_stream_ws(websocket, session_id)
 
 
 # WebSocket endpoint for real-time notifications
