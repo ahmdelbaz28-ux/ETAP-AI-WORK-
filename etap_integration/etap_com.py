@@ -397,8 +397,15 @@ class ETAPProject:
                         "current": getattr(branch, "Current", 0.0),
                     }
 
+                converged, conv_src = ETAPAutomation._read_convergence(lf_module)
+                if converged is None:
+                    logger.warning(
+                        "Load flow convergence state unreadable from ETAP COM; "
+                        "reporting convergence_source=unavailable",
+                    )
                 result = {
-                    "converged": True,
+                    "converged": bool(converged) if converged is not None else False,
+                    "convergence_source": conv_src,
                     "buses": buses,
                     "branches": branches,
                     "iterations": getattr(lf_module, "Iterations", 0),
@@ -542,8 +549,15 @@ class ETAPProject:
         if not buses:
             raise RuntimeError("Harmonic analysis returned no bus results from ETAP")
 
+        converged, conv_src = ETAPAutomation._read_convergence(harm_module)
+        if converged is None:
+            logger.warning(
+                "Harmonic analysis convergence state unreadable from ETAP COM; "
+                "reporting convergence_source=unavailable",
+            )
         result = {
-            "converged": True,
+            "converged": bool(converged) if converged is not None else False,
+            "convergence_source": conv_src,
             "buses": buses,
             "standard": "IEEE 519-2014",
             "total_harmonic_distortion_limit_percent": 5.0,
@@ -584,8 +598,15 @@ class ETAPProject:
         total_cost = sum(g["cost_per_hour"] for g in generators.values())
         total_loss = float(getattr(opf_module, "TotalLosses", 0.0))
 
+        converged, conv_src = ETAPAutomation._read_convergence(opf_module)
+        if converged is None:
+            logger.warning(
+                "OPF convergence state unreadable from ETAP COM; "
+                "reporting convergence_source=unavailable",
+            )
         result = {
-            "converged": True,
+            "converged": bool(converged) if converged is not None else False,
+            "convergence_source": conv_src,
             "generators": generators,
             "total_system_loss_mw": total_loss,
             "total_generation_cost_per_hour": total_cost,
@@ -632,8 +653,15 @@ class ETAPProject:
         max_dip = min(m["min_voltage_during_start_pu"] for m in motors.values()) if motors else 1.0
         max_recovery = max(m["acceleration_time_sec"] for m in motors.values()) if motors else 0.0
 
+        converged, conv_src = ETAPAutomation._read_convergence(ms_module)
+        if converged is None:
+            logger.warning(
+                "Motor starting convergence state unreadable from ETAP COM; "
+                "reporting convergence_source=unavailable",
+            )
         result = {
-            "converged": True,
+            "converged": bool(converged) if converged is not None else False,
+            "convergence_source": conv_src,
             "motors": motors,
             "voltage_dip_profile": {
                 "max_dip_percent": round((1.0 - max_dip) * 100.0, 1),
@@ -702,8 +730,15 @@ class ETAPProject:
         if not generators:
             raise RuntimeError("Transient stability returned no generator results from ETAP")
 
+        converged, conv_src = ETAPAutomation._read_convergence(ts_module)
+        if converged is None:
+            logger.warning(
+                "Transient stability convergence state unreadable from ETAP COM; "
+                "reporting convergence_source=unavailable",
+            )
         result = {
-            "converged": True,
+            "converged": bool(converged) if converged is not None else False,
+            "convergence_source": conv_src,
             "generators": generators,
             "simulation_duration_sec": duration,
             "time_step_sec": time_step,
@@ -749,8 +784,15 @@ class ETAPProject:
         if not cables:
             raise RuntimeError("Cable ampacity returned no cable results from ETAP")
 
+        converged, conv_src = ETAPAutomation._read_convergence(cable_module)
+        if converged is None:
+            logger.warning(
+                "Cable ampacity convergence state unreadable from ETAP COM; "
+                "reporting convergence_source=unavailable",
+            )
         result = {
-            "converged": True,
+            "converged": bool(converged) if converged is not None else False,
+            "convergence_source": conv_src,
             "cables": cables,
             "standard": "IEC 60287 / NEC Article 310",
             "installation_method": installation,
@@ -773,8 +815,15 @@ class ETAPProject:
                 raise RuntimeError("GroundGrid module not available in ETAP project")
             gg_module.Calculate()
 
+            converged, conv_src = ETAPAutomation._read_convergence(gg_module)
+            if converged is None:
+                logger.warning(
+                    "Ground grid convergence state unreadable from ETAP COM; "
+                    "reporting convergence_source=unavailable",
+                )
             result = {
-                "converged": True,
+                "converged": bool(converged) if converged is not None else False,
+                "convergence_source": conv_src,
                 "soil_resistivity_ohm_m": float(getattr(gg_module, "SoilResistivity", 0.0)),
                 "surface_layer_thickness_m": float(getattr(gg_module, "SurfaceThickness", 0.0)),
                 "grid_resistance_ohm": float(getattr(gg_module, "GridResistance", 0.0)),
@@ -836,8 +885,15 @@ class ETAPProject:
         except Exception as e:
             raise RuntimeError(f"Reliability analysis execution failed: {e}") from e
 
+        converged, conv_src = ETAPAutomation._read_convergence(rel_module)
+        if converged is None:
+            logger.warning(
+                "Reliability convergence state unreadable from ETAP COM; "
+                "reporting convergence_source=unavailable",
+            )
         result = {
-            "converged": True,
+            "converged": bool(converged) if converged is not None else False,
+            "convergence_source": conv_src,
             "analysis_type": analysis_type,
             "time_period_years": period_years,
             "customers_served": customers_served,
@@ -916,8 +972,15 @@ class ETAPProject:
         if not pairs:
             raise RuntimeError("Protection coordination returned no relay results from ETAP")
 
+        converged, conv_src = ETAPAutomation._read_convergence(prot_module)
+        if converged is None:
+            logger.warning(
+                "Protection coordination convergence state unreadable from ETAP COM; "
+                "reporting convergence_source=unavailable",
+            )
         result = {
-            "converged": True,
+            "converged": bool(converged) if converged is not None else False,
+            "convergence_source": conv_src,
             "relay_pairs": pairs,
             "standard": "IEC 60255-151",
             "curve_type": curve_type,
@@ -1249,6 +1312,32 @@ class ETAPAutomation:
         return sanitized
 
     @staticmethod
+    def _read_convergence(module: Any) -> tuple[bool | None, str]:
+        """
+        Read the solver convergence state from an ETAP COM module.
+
+        Uses a protected getattr chain across the attribute shapes observed
+        in ETAP COM APIs (direct flag, nested Solution object, predicate).
+        Returns ``(value, "etap")`` when ETAP reports a state, or
+        ``(None, "unavailable")`` when it cannot be read — callers MUST NOT
+        substitute a hardcoded value.
+        """
+        for attrs in (("Converged",), ("Solution", "Converged"), ("IsConverged",)):
+            obj: Any = module
+            try:
+                for attr in attrs:
+                    if not hasattr(obj, attr):
+                        obj = None
+                        break
+                    obj = getattr(obj, attr)
+            except Exception:  # NOSONAR S1166 - probe of optional COM surface
+                obj = None
+            if obj is None:
+                continue
+            return bool(obj), "etap"
+        return None, "unavailable"
+
+    @staticmethod
     def _validate_bus_id(bus_id: str) -> str:
         """
         Validate bus ID format.
@@ -1489,9 +1578,6 @@ class ETAPAutomation:
             logger.error(
                 "Project path validation failed: %r", file_path
             )  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
-            logger.error(
-                "Project path validation failed: %r", file_path
-            )  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
 
             return None
 
@@ -1506,12 +1592,6 @@ class ETAPAutomation:
                 )  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
                 return project
             else:
-                logger.error(
-                    "Failed to open project: %r", file_path
-                )  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
-                logger.info(
-                    "Opened project: %r", file_path
-                )  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
                 logger.error(
                     "Failed to open project: %r", file_path
                 )  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging

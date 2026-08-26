@@ -120,14 +120,16 @@ async def health_check():
     is_windows = sys.platform == "win32"
     etap_available = False
 
-    # Check if ETAP COM is actually available (Windows only)
+    # Check if ETAP COM is actually registered (Windows only). A real ProgID
+    # registry probe — not merely "pywin32 imported" — so /health reflects
+    # whether ETAP.Application could actually be dispatched on this host.
     if is_windows:
         try:
-            import pythoncom  # noqa: F401
-            import win32com.client  # noqa: F401
+            import winreg
 
-            etap_available = True
-        except ImportError:
+            with winreg.OpenKey(winreg.HKEY_CLASSES_ROOT, r"ETAP.Application\CLSID"):
+                etap_available = True
+        except OSError:
             etap_available = False
 
     # Determine actual health status
@@ -135,7 +137,7 @@ async def health_check():
     issues = []
     if is_windows and not etap_available:
         is_healthy = False
-        issues.append("ETAP COM not available (pywin32 not installed)")
+        issues.append("ETAP COM not available (ETAP.Application ProgID not registered)")
 
     return {
         "status": "healthy" if is_healthy else "degraded",

@@ -410,3 +410,7 @@ def sample_study_request(sample_3bus_network):
         system=sample_3bus_network,
         parameters={"tolerance": 1e-6, "max_iterations": 50},
     )
+
+# Re-export fake-COM fixtures from the WP0 harness so any ETAP test module
+# can request them without re-importing (avoids F811 shadowing).
+from tests.test_etap_com_mocked import fake_app, project_file  # noqa: E402,F401
