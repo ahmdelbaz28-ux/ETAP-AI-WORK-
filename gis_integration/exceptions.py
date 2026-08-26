@@ -15,3 +15,7 @@ class GISDataExtractionError(GISIntegrationError):
 
 class GISTransformationError(GISIntegrationError):
     """Raised when transforming GIS data into ADMS-compatible structures fails."""
+
+
+class NotImplementedFeature(GISIntegrationError):
+    """Raised when a GIS provider feature (e.g., ArcGIS) is not implemented."""
