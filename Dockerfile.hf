@@ -42,8 +42,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # (owner-only access), so hfuser cannot access /root/.local Python packages.
 # Copying to /home/hfuser/.local ensures the non-root user can import them.
 COPY --from=builder /root/.local /home/hfuser/.local
+ENV PYTHONUSERBASE=/home/hfuser/.local
 ENV PATH=/home/hfuser/.local/bin:$PATH
-ENV PYTHONPATH=/app
+ENV PYTHONPATH=/app:/home/hfuser/.local/lib/python3.13/site-packages
 
 # Copy app code
 COPY --from=builder /build /app

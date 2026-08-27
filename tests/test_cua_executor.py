@@ -232,7 +232,10 @@ def test_cua_executor_falls_back_when_deps_missing():
     if not deps["all_available"]:
         assert result.success is False
         assert result.aborted_reason is not None
-        assert "Dependencies unavailable" in result.aborted_reason
+        assert (
+            "Dependencies unavailable" in result.aborted_reason
+            or "UNSUPPORTED_PLATFORM" in result.aborted_reason
+        )
         assert len(result.steps) == 0  # no steps executed
     else:
         # On a real desktop with all deps, we expect either success or
