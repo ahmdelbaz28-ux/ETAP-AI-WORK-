@@ -136,8 +136,13 @@ jobs:
         with:
           python-version: '3.13'
 
+      - name: Install dependencies
+        run: "pip install --only-binary :all: --requirement requirements.txt"
+        continue-on-error: true
+
       - name: Install test runner
-        run: pip install pytest pytest-asyncio sqlalchemy aiosqlite pydantic email-validator httpx pyyaml cryptography pypdf
+        run: "pip install --only-binary :all: pytest==8.3.5 pytest-asyncio==0.25.3"
+        continue-on-error: true
 
       - name: Run Integration Tests
         run: pytest tests/test_audit_phase2_fixes.py tests/test_hf_space_fail_closed.py
