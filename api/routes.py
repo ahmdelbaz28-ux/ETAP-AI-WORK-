@@ -68,6 +68,7 @@ from api.tenants import router as tenants_router
 from api.tool_policy import router as tool_policy_router
 from api.agent_executor import router as agent_executor_router
 from api.approvals import router as approvals_router, session_router as approvals_session_router
+from api.chat_stream import router as chat_stream_router
 from api.validation import router as validation_router
 from api.websocket import scada_websocket_endpoint
 from api.zip_generator_config import router as zip_generator_config_router
@@ -798,6 +799,7 @@ app.include_router(approvals_router)  # /api/v1/approvals/* — Approval Gateway
 app.include_router(approvals_session_router)  # /api/v1/session/auto-approve — Session auto-approve toggle
 app.include_router(session_stream_router)  # /api/v1/ws-ticket — short-lived single-use WS tickets (P3)
 app.include_router(agent_executor_router)  # /api/v1/agent-exec/* — secure agent plan & execute path (P4a)
+app.include_router(chat_stream_router)  # /api/v1/chat/stream — server-side LLM chat SSE, keys stay server-side (P4b)
 
 
 # WebSocket endpoint for per-session event streaming (P3 SessionStreamHub).
