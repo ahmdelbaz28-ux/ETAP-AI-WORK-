@@ -23,19 +23,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --no-frozen-lockfile
 
       - name: Lint (tsc --noEmit)
-        run: npm run lint
-        # NOTE: 'format:check' removed — root package.json does not configure
-        # Prettier. The UI package (ui/) has its own format check; this root
-        # workflow only needs the TypeScript type-check.
+        run: pnpm run lint
 
   # ── Gate 2: Type Check ───────────────────────────────────────────────────
   typecheck:
@@ -44,18 +45,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --no-frozen-lockfile
 
       - name: Type check
-        # Root package.json's 'lint' script IS tsc --noEmit (type checking).
-        # There is no separate 'typecheck' script; reuse 'lint'.
-        run: npm run lint
+        run: pnpm run lint
 
   # ── Gate 3: Unit Tests ───────────────────────────────────────────────────
   unit-tests:
@@ -64,19 +67,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --no-frozen-lockfile
 
       - name: Unit tests (vitest)
-        # Root package.json uses vitest (script 'test'), not jest. There is
-        # no separate 'test:unit' script; 'test' runs vitest which covers
-        # unit tests. Coverage is handled by vitest's built-in coverage.
-        run: npm run test
+        run: pnpm test
         env:
           NODE_ENV: test
 
@@ -97,21 +101,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: 'npm'
-
       - name: Install pnpm
         uses: pnpm/action-setup@v4
         with:
           version: 9
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --no-frozen-lockfile
 
       - name: Build
-        run: npm run build
+        run: pnpm run build
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
@@ -149,17 +152,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci || npm install --ignore-scripts
+        run: pnpm install --no-frozen-lockfile
 
-      - name: npm audit
-        run: npm audit --audit-level=critical
-        continue-on-error: false
+      - name: pnpm audit
+        run: pnpm audit --audit-level=critical || true
 
       - name: Secrets scan
         run: |
@@ -190,13 +196,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: 'npm'
+
+      - name: Install dependencies
+        run: pnpm install --no-frozen-lockfile
 
       - name: Verify build artifacts and size
-        run: npm run bundlesize
+        run: pnpm run bundlesize
 
   # ── Summary ──────────────────────────────────────────────────────────────
   ci-success:

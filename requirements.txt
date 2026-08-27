@@ -164,9 +164,6 @@ asyncpg>=0.29,<0.32
 # See: https://github.com/fastapi/fastapi/releases
 fastapi>=0.135.0
 uvicorn~=0.25.0
-# aiofiles — required by api/routes.py (streaming file responses + UploadFile).
-# Without it, FastAPI app fails to start: ModuleNotFoundError: No module named 'aiofiles'
-aiofiles>=24.1.0,<25.0.0
 
 # GUI Automation
 # pyautogui requires X11/libs on Linux and has no wheel for headless CI runners.
