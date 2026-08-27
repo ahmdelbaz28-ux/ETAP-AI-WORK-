@@ -23,6 +23,12 @@ locust>=2.46.3
 # HTTP test client (required by backend/tests/conftest.py)
 httpx>=0.24.0,<1.0.0
 
+# AI Context Engine (Code RAG) - optional ML extensions
+chromadb>=0.4.24,<1.0.0
+sentence-transformers>=2.7.0
+tree-sitter>=0.21.0
+tree-sitter-python>=0.21.0
+
 # ═══════════════════════════════════════════════════════════════════════════
 # V214: DWG file conversion — system binaries (NOT pip packages)
 # ═══════════════════════════════════════════════════════════════════════════

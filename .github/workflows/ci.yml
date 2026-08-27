@@ -137,7 +137,7 @@ jobs:
           python-version: '3.13'
 
       - name: Install test runner
-        run: pip install pytest pytest-asyncio
+        run: pip install pytest pytest-asyncio sqlalchemy aiosqlite pydantic email-validator httpx pyyaml cryptography pypdf
 
       - name: Run Integration Tests
         run: pytest tests/test_audit_phase2_fixes.py tests/test_hf_space_fail_closed.py
