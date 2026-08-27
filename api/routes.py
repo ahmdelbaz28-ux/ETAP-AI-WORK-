@@ -66,6 +66,7 @@ from api.study_versions import router as study_versions_router
 from api.templates import router as templates_router
 from api.tenants import router as tenants_router
 from api.tool_policy import router as tool_policy_router
+from api.agent_executor import router as agent_executor_router
 from api.approvals import router as approvals_router, session_router as approvals_session_router
 from api.validation import router as validation_router
 from api.websocket import scada_websocket_endpoint
@@ -796,6 +797,7 @@ app.include_router(tool_policy_router)  # /api/v1/tool-policy/* — Tool Policy 
 app.include_router(approvals_router)  # /api/v1/approvals/* — Approval Gateway
 app.include_router(approvals_session_router)  # /api/v1/session/auto-approve — Session auto-approve toggle
 app.include_router(session_stream_router)  # /api/v1/ws-ticket — short-lived single-use WS tickets (P3)
+app.include_router(agent_executor_router)  # /api/v1/agent-exec/* — secure agent plan & execute path (P4a)
 
 
 # WebSocket endpoint for per-session event streaming (P3 SessionStreamHub).
