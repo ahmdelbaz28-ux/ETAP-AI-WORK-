@@ -177,7 +177,7 @@ jobs:
       # (RFC 7518 §3.2) instead of the short 'integration-test-jwt-secret'.
       JWT_SECRET_KEY: ci-test-jwt-secret-key-for-github-actions-32-bytes-min
       ENCRYPTION_KEY: integration-test-encryption-key-not-for-production-32b
-      ENGINEERING_SERVICE_API_KEY: test-api-key-for-integration
+      ENGINEERING_SERVICE_API_KEY: test-key
       ENGINEERING_SERVICE_AUTH_DISABLED: 'false'
       PORT: 8000
 
@@ -254,7 +254,7 @@ jobs:
           [ "$STATUS" = "401" ] || [ "$STATUS" = "403" ] || exit 1
 
           STATUS=$(curl -sf -o /dev/null -w "%{http_code}" \
-            -H "x-api-key: test-api-key-for-integration" \
+            -H "x-api-key: test-key" \
             http://localhost:8000/api/v1/agents)
           echo "  /api/v1/agents (with key): $STATUS"
           [ "$STATUS" = "200" ] || exit 1
