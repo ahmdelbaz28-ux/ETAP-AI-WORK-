@@ -281,6 +281,10 @@ def _get_rate_limit_redis() -> Any | None:
     global _redis_client
     if os.getenv("ENGINEERING_SERVICE_CACHE_DISABLED", "").lower() in ("true", "1", "yes"):
         return None
+    if os.getenv("ENGINEERING_SERVICE_RATE_LIMIT_DISABLED", "").lower() in ("true", "1", "yes"):
+        return None
+    if os.getenv("ENVIRONMENT", "").lower() in ("test", "testing") or os.getenv("APP_ENV", "").lower() == "test":
+        return None
     redis_url = os.getenv("REDIS_URL", _REDIS_URL).strip()
     if not redis_url or redis_async is None or not redis_url.startswith(("redis://", "rediss://")):
         return None
@@ -296,6 +300,13 @@ def _get_rate_limit_redis() -> Any | None:
 
 async def _check_rate_limit(client_id: str) -> bool:
     """Return True if allowed; False if rate limit exceeded."""
+    if (
+        os.getenv("ENGINEERING_SERVICE_RATE_LIMIT_DISABLED", "").lower() in ("true", "1", "yes")
+        or os.getenv("ENVIRONMENT", "").lower() in ("test", "testing")
+        or os.getenv("APP_ENV", "").lower() == "test"
+    ):
+        return True
+
     r = _get_rate_limit_redis()
     now = time.time()
 
