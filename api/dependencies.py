@@ -415,7 +415,8 @@ async def get_api_key(  # NOSONAR async function uses sync I/O for compatibility
             detail="Missing X-API-Key header",
         )
 
-    if not hmac.compare_digest(x_api_key, API_KEY):
+    expected_key = os.getenv("ENGINEERING_SERVICE_API_KEY", API_KEY)
+    if not hmac.compare_digest(x_api_key, expected_key):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid API key",
