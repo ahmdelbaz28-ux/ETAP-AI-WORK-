@@ -39,7 +39,7 @@ from typing import Any, Dict, Optional
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Query, status
 from pydantic import BaseModel, ConfigDict, Field
-from sqlalchemy import JSON, DateTime, Index, String, select
+from sqlalchemy import JSON, DateTime, Index, String, func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
@@ -58,6 +58,16 @@ from api.dual_control import (
     record_approval_event,
 )
 from api.tool_policy import TOOL_ALIASES, TOOL_POLICIES, evaluate_tool_policy
+
+# Reason code raised when the authenticated user's tenant does not match the
+# tenant stamped on a pending action (Security Gate — P2 tenant isolation).
+CROSS_TENANT_FORBIDDEN = "CROSS_TENANT_FORBIDDEN"
+
+
+def _norm_tenant(tenant_id: Optional[str]) -> str:
+    """Normalise a tenant id for equality checks ('' for unscoped/None)."""
+    return tenant_id or ""
+
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -241,14 +251,23 @@ async def _replay_idempotent(
 ) -> Optional[Dict[str, Any]]:
     """Return the stored response for *key*, or ``None`` on miss/no key.
 
-    Expired keys are ignored (treated as a miss) so the replay window is
-    bounded by ``IDEMPOTENCY_TTL_SECONDS``.
+    A stored key only replays for the SAME endpoint AND the SAME tenant it
+    was minted under (Security Gate — P2 tenant isolation). Expired keys are
+    ignored (treated as a miss) so the replay window is bounded by
+    ``IDEMPOTENCY_TTL_SECONDS``.
     """
     if not key:
         return None
     result = await db.execute(select(IdempotencyKey).where(IdempotencyKey.key == key))
     record = result.scalar_one_or_none()
     if record is None:
+        return None
+    # Tenant isolation: a key minted by one tenant must never replay into
+    # another tenant's context, and an endpoint-scoped key must never replay
+    # across endpoints (e.g. propose-key replaying a resolve call).
+    if _norm_tenant(record.tenant_id) != _norm_tenant(tenant_id):
+        return None
+    if record.endpoint != endpoint:
         return None
     expires_at = record.expires_at
     if expires_at is not None and expires_at.tzinfo is None:
@@ -267,8 +286,19 @@ async def _store_idempotent(
     tenant_id: Optional[str],
     response_data: Dict[str, Any],
 ) -> None:
-    """Persist a response under *key*. Best-effort: races collapse to a no-op."""
+    """Persist a response under *key*. Best-effort: races collapse to a no-op.
+
+    A key owned by another endpoint/tenant is left untouched (its owner keeps
+    it) — this handler simply skips storing, keeping the current operation's
+    own side effects intact.
+    """
     if not key:
+        return
+    # Sequential guard: if the key is already claimed (same or different
+    # endpoint/tenant), do not attempt an insert that would only end in an
+    # IntegrityError whose rollback would discard the caller's work.
+    existing = await db.execute(select(IdempotencyKey).where(IdempotencyKey.key == key))
+    if existing.scalar_one_or_none() is not None:
         return
     now = _utc_now()
     record = IdempotencyKey(
@@ -381,7 +411,7 @@ async def create_approval(
     from a *different* user (maker-checker enforced at resolve time).
     """
     replay = await _replay_idempotent(
-        db, idempotency_key, "POST /api/v1/approvals", user.tenant_id or body.tenant_id
+        db, idempotency_key, "POST /api/v1/approvals", user.tenant_id
     )
     if replay is not None:
         return replay
@@ -414,7 +444,10 @@ async def create_approval(
 
     action = PendingAction(
         id=action_id,
-        tenant_id=user.tenant_id or body.tenant_id,
+        # Security Gate (P2): the tenant stamped on the action ALWAYS comes
+        # from the authenticated user, never from the request body. A caller
+        # without a tenant cannot stamp an arbitrary tenant onto the record.
+        tenant_id=user.tenant_id or None,
         session_id=body.session_id,
         tool=body.tool,
         args_hash=args_hash,
@@ -443,9 +476,7 @@ async def create_approval(
     )
 
     payload = {"success": True, "data": _action_to_response(action)}
-    await _store_idempotent(
-        db, idempotency_key, "POST /api/v1/approvals", user.tenant_id or body.tenant_id, payload
-    )
+    await _store_idempotent(db, idempotency_key, "POST /api/v1/approvals", user.tenant_id, payload)
     return payload
 
 
@@ -455,12 +486,19 @@ async def list_pending(
     db: AsyncSession = Depends(get_db),  # noqa: B008
     user: CurrentUser = Depends(get_current_user_from_header),  # noqa: B008
 ) -> Dict[str, Any]:
-    """Return all still-valid pending actions for *session_id* (TTL applied)."""
+    """Return all still-valid pending actions for *session_id* (TTL applied).
+
+    Security Gate (P2 tenant isolation): the query is scoped by
+    ``session_id AND tenant_id == authenticated_user.tenant_id`` — a user in
+    one tenant can never enumerate another tenant's pending actions even
+    when the session id is shared.
+    """
     await expire_stale_actions(db)
     result = await db.execute(
         select(PendingAction).where(
             PendingAction.session_id == session_id,
             PendingAction.status == _STATUS_PENDING,
+            func.coalesce(PendingAction.tenant_id, "") == _norm_tenant(user.tenant_id),
         )
     )
     pending = result.scalars().all()
@@ -484,6 +522,10 @@ async def resolve_action(
     For ``critical`` actions the deciding user MUST differ from the requesting
     user; self-approval is rejected with ``MAKER_CHECKER_VIOLATION`` (HTTP 403)
     and audited.
+
+    Security Gate (P2 tenant isolation): the action must belong to the
+    authenticated user's tenant before any decision (or state disclosure)
+    happens — the lookup/authorization is always tenant-scoped.
     """
     resolve_endpoint = f"POST /api/v1/approvals/{action_id}/resolve"
     replay = await _replay_idempotent(db, idempotency_key, resolve_endpoint, user.tenant_id)
@@ -496,6 +538,25 @@ async def resolve_action(
     action = result.scalar_one_or_none()
     if action is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Approval not found")
+
+    # ── Tenant isolation gate (before ANY state disclosure/decision) ──────
+    if _norm_tenant(action.tenant_id) != _norm_tenant(user.tenant_id):
+        record_approval_event(
+            "CROSS_TENANT_RESOLVE_DENIED",
+            action.id,
+            user.user_id,
+            {"tool": action.tool, "action_tenant_id": action.tenant_id},
+        )
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail={
+                "code": CROSS_TENANT_FORBIDDEN,
+                "message": (
+                    "This approval belongs to a different tenant and cannot "
+                    "be resolved by the requesting user."
+                ),
+            },
+        )
 
     if action.status != _STATUS_PENDING:
         return {

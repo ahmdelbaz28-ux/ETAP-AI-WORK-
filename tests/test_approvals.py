@@ -263,3 +263,160 @@ class TestAuditIntegration:
         assert "PROPOSED" in events
         assert "PENDING" in events
         assert "REJECTED" in events
+
+
+# ---------------------------------------------------------------------------
+# Security Gate (P2): tenant isolation on the Approval Gateway
+#
+# Users A and B belong to different tenants. The tenant travels ONLY with
+# the authenticated user (server-stamped), never from the request body.
+# ---------------------------------------------------------------------------
+
+TENANT_A_USER = CurrentUser(
+    user_id="maker-a",
+    username="maker_a",
+    email="maker_a@example.com",
+    role="engineer",
+    tenant_id="tenant-A",
+)
+TENANT_B_INTRUDER = CurrentUser(
+    user_id="intruder-b",
+    username="intruder_b",
+    email="intruder_b@example.com",
+    role="engineer",
+    tenant_id="tenant-B",
+)
+
+
+class TestTenantIsolation:
+    def test_cross_tenant_pending_isolation(self, client):
+        """GET /pending must never disclose another tenant's actions."""
+        # Propose as tenant-A...
+        client.app.dependency_overrides[get_current_user_from_header] = lambda: TENANT_A_USER
+        resp = _propose(client, tool="run_python", session_id="iso")
+        assert resp.status_code == 200
+        action_id = resp.json()["data"]["id"]
+
+        # ...owner sees it in their pending list...
+        listing_a = client.get("/api/v1/approvals/pending", params={"session_id": "iso"})
+        assert listing_a.status_code == 200
+        assert listing_a.json()["total"] == 1
+        assert [a["id"] for a in listing_a.json()["data"]] == [action_id]
+
+        # ...while tenant-B sees NOTHING for the very same session id.
+        client.app.dependency_overrides[get_current_user_from_header] = lambda: TENANT_B_INTRUDER
+        listing_b = client.get("/api/v1/approvals/pending", params={"session_id": "iso"})
+        assert listing_b.status_code == 200
+        assert listing_b.json()["total"] == 0
+        assert listing_b.json()["data"] == []
+
+    def test_cross_tenant_resolve_denied(self, client):
+        """POST /resolve from another tenant -> 403 CROSS_TENANT_FORBIDDEN,
+        audited, and the action stays pending for its rightful owner."""
+        client.app.dependency_overrides[get_current_user_from_header] = lambda: TENANT_A_USER
+        resp = _propose(client, tool="provider-settings-tool", session_id="xres")
+        action_id = resp.json()["data"]["id"]
+
+        from api.dual_control import _audit_trail
+
+        marker = len(_audit_trail)
+
+        client.app.dependency_overrides[get_current_user_from_header] = lambda: TENANT_B_INTRUDER
+        denied = client.post(f"/api/v1/approvals/{action_id}/resolve", json={"decision": "approve"})
+        assert denied.status_code == 403
+        detail = denied.json()["detail"]
+        assert detail["code"] == approvals_mod.CROSS_TENANT_FORBIDDEN == "CROSS_TENANT_FORBIDDEN"
+
+        events = [e["event_type"] for e in _audit_trail[marker:]]
+        assert "CROSS_TENANT_RESOLVE_DENIED" in events
+
+        # No partial state was disclosed or written: owner still sees 'pending'.
+        client.app.dependency_overrides[get_current_user_from_header] = lambda: TENANT_A_USER
+        back = client.get("/api/v1/approvals/pending", params={"session_id": "xres"})
+        assert back.json()["total"] == 1
+        assert back.json()["data"][0]["status"] == "pending"
+
+    def test_create_is_tenant_scoped_against_body_spoofing(self, client):
+        """A caller cannot forge another tenant onto a proposed action."""
+        client.app.dependency_overrides[get_current_user_from_header] = lambda: TENANT_A_USER
+        resp = client.post(
+            "/api/v1/approvals",
+            json={
+                "session_id": "spoof",
+                "tool": "run_python",
+                "args": {"code": "x=1"},
+                "tenant_id": "tenant-B",  # spoofed — must be ignored
+            },
+        )
+        assert resp.status_code == 200
+        # Tenant is stamped exclusively from the authenticated caller.
+        assert resp.json()["data"]["tenant_id"] == TENANT_A_USER.tenant_id
+
+    def test_idempotent_resolve_replay_is_tenant_scoped(self, client):
+        """A stored resolve-response may only be replayed within the SAME
+        tenant; another tenant reusing the key gets 403, not the payload."""
+        client.app.dependency_overrides[get_current_user_from_header] = lambda: TENANT_A_USER
+        # mutating tool -> action stays 'pending' until the explicit resolve
+        action_id = _propose(client, tool="run_python", session_id="treplay").json()["data"]["id"]
+        key = "resolve-key-TS"
+        first = client.post(
+            f"/api/v1/approvals/{action_id}/resolve",
+            json={"decision": "approve"},
+            headers={"Idempotency-Key": key},
+        )
+        assert first.status_code == 200
+        assert first.json()["success"] is True
+        assert first.json()["data"]["status"] == "approved"
+
+        # Same tenant: legitimate replay.
+        replay = client.post(
+            f"/api/v1/approvals/{action_id}/resolve",
+            json={"decision": "approve"},
+            headers={"Idempotency-Key": key},
+        )
+        assert replay.json().get("idempotent_replay") is True
+
+        # Different tenant: NEVER replays across the boundary.
+        client.app.dependency_overrides[get_current_user_from_header] = lambda: TENANT_B_INTRUDER
+        foreign = client.post(
+            f"/api/v1/approvals/{action_id}/resolve",
+            json={"decision": "approve"},
+            headers={"Idempotency-Key": key},
+        )
+        assert foreign.status_code == 403
+        assert foreign.json()["detail"]["code"] == approvals_mod.CROSS_TENANT_FORBIDDEN
+        assert "idempotent_replay" not in foreign.json()
+
+    @pytest.mark.asyncio
+    async def test_same_key_creates_two_tenant_separate_actions(self, client):
+        """Create-replay is tenant-scoped: the same key reused by tenant B
+        results in a NEW action under B, not a replay of A's action."""
+        client.app.dependency_overrides[get_current_user_from_header] = lambda: TENANT_A_USER
+        key = "create-key-TS"
+        a_resp = client.post(
+            "/api/v1/approvals",
+            json={
+                "session_id": "ts-create",
+                "tool": "weather-tool",
+                "args": {"city": "Riyadh"},
+            },
+            headers={"Idempotency-Key": key},
+        )
+        assert a_resp.status_code == 200
+        a_id = a_resp.json()["data"]["id"]
+
+        client.app.dependency_overrides[get_current_user_from_header] = lambda: TENANT_B_INTRUDER
+        b_resp = client.post(
+            "/api/v1/approvals",
+            json={
+                "session_id": "ts-create",
+                "tool": "weather-tool",
+                "args": {"city": "Riyadh"},
+            },
+            headers={"Idempotency-Key": key},
+        )
+        assert b_resp.status_code == 200
+        b_body = b_resp.json()
+        assert b_body.get("idempotent_replay") is not True  # no cross-tenant replay
+        assert b_body["data"]["id"] != a_id
+        assert b_body["data"]["tenant_id"] == TENANT_B_INTRUDER.tenant_id

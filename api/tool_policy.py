@@ -140,15 +140,40 @@ def validate_engineering_source(args: dict, source: dict | None) -> bool:
     or when a ``source`` dict with an allowed ``kind`` is supplied. Returns
     ``False`` (→ ``UNSOURCED_ENGINEERING_VALUE``) when an engineering
     parameter is present without a valid source.
+
+    Security Gate: detection recurses into nested containers
+    (dicts / lists, bounded depth) so an LLM cannot dodge provenance by
+    wrapping a value as ``{"parameters": {"ct_ratio": 100}}`` instead of
+    passing it top-level. The provenance ``source`` envelope itself remains
+    a top-level sibling of the arguments it covers.
     """
     if not isinstance(args, dict):
         return True
-    has_engineering_value = any(key in ENGINEERING_PARAMS for key in args)
-    if not has_engineering_value:
+    if not _contains_engineering_param(args):
         return True
     if not isinstance(source, dict):
         return False
     return source.get("kind") in ALLOWED_SOURCE_KINDS
+
+
+# Bound the recursive scan so deeply-nested payloads cannot DoS the check.
+_ENGINEERING_SCAN_MAX_DEPTH = 6
+
+
+def _contains_engineering_param(value: Any, depth: int = 0) -> bool:
+    """Recursively detect an ENGINEERING_PARAMS key inside *value*."""
+    if depth > _ENGINEERING_SCAN_MAX_DEPTH:
+        return False
+    if isinstance(value, dict):
+        for key, sub_value in value.items():
+            if isinstance(key, str) and key in ENGINEERING_PARAMS:
+                return True
+            if _contains_engineering_param(sub_value, depth + 1):
+                return True
+        return False
+    if isinstance(value, (list, tuple)):
+        return any(_contains_engineering_param(item, depth + 1) for item in value)
+    return False
 
 
 def evaluate_tool_policy(

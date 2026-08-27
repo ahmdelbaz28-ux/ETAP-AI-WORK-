@@ -24,8 +24,12 @@ Security invariants (all enforced server-side, per request):
    Agents/LLMs may never invent engineering numbers.
 3. Plans are ephemeral (TTL ``PLAN_TTL_SECONDS = 300 s``); executing an
    expired plan is refused with 410 ``PLAN_EXPIRED``.
-4. Only ``auto_approved`` plans reach execution; ``pending`` plans must go
-   through the Approval Gateway first (409 ``APPROVAL_REQUIRED``).
+4. Only ``auto_approved`` plans reach execution directly. ``pending`` plans
+   become executable ONLY when the Approval Gateway proves an APPROVED
+   :class:`api.approvals.PendingAction` bound to this exact plan identity
+   (tool + ``args_hash`` + session + tenant, still inside its TTL) —
+   otherwise 409 ``APPROVAL_REQUIRED``. Executing a plan across tenant
+   boundaries is refused with 403 ``CROSS_TENANT_DENIED``.
 5. Every endpoint requires a Bearer access token
    (:func:`api.dependencies.get_current_user_from_header`).
 
@@ -47,20 +51,23 @@ import asyncio
 import logging
 import time
 import uuid
+from datetime import timezone
 from dataclasses import dataclass, field
 from typing import Any, Awaitable, Callable, Dict, Optional
 
 from fastapi import APIRouter, Depends, Header, HTTPException, status
 from pydantic import BaseModel, Field
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from api.database import get_db
 from api.dependencies import CurrentUser, get_current_user_from_header
 
 from api.tool_policy import (
     ALLOWED_SOURCE_KINDS,
-    ENGINEERING_PARAMS,
     TOOL_ALIASES,
     TOOL_DENIED_IN_AGENT_EXEC,
     UNSOURCED_ENGINEERING_VALUE,
+    _contains_engineering_param,
     _resolve_policy,
     evaluate_tool_policy,
 )
@@ -88,6 +95,12 @@ PLAN_EXPIRED = "PLAN_EXPIRED"
 APPROVAL_REQUIRED = "APPROVAL_REQUIRED"
 IDEMPOTENCY_KEY_CONFLICT = "IDEMPOTENCY_KEY_CONFLICT"
 NO_EXECUTOR_REGISTERED = "NO_EXECUTOR_REGISTERED"
+CROSS_TENANT_DENIED = "CROSS_TENANT_DENIED"
+
+
+def _norm_tenant(tenant_id: Optional[str]) -> str:
+    """Normalise a tenant id for equality checks ('' for unscoped/None)."""
+    return tenant_id or ""
 
 
 def _utc_ts() -> float:
@@ -225,11 +238,15 @@ async def _emit(session_id: Optional[str], etype: str, payload: Dict[str, Any]) 
 # ─── /plan ─────────────────────────────────────────────────────────────────
 
 
-def _source_enforcement_required(policy: Dict[str, Any], args_keys: set) -> bool:
-    """True when this invocation MUST carry a provenance source object."""
+def _source_enforcement_required(policy: Dict[str, Any], raw_args: Dict[str, Any]) -> bool:
+    """True when this invocation MUST carry a provenance source object.
+
+    Security Gate: uses the recursive engineering-value detector so nesting
+    an unsourced parameter (e.g. under ``parameters``) cannot bypass Gate 2.
+    """
     if policy.get("requires_engineering_source"):
         return True
-    return any(key in ENGINEERING_PARAMS for key in args_keys)
+    return _contains_engineering_param(raw_args)
 
 
 @router.post("/plan", summary="Vet an agent tool plan")
@@ -278,7 +295,7 @@ async def submit_plan(
         )
 
     # ── Gate 2: engineering-source enforcement ───────────────────────────
-    if _source_enforcement_required(policy, set(raw_args.keys())):
+    if _source_enforcement_required(policy, raw_args):
         kinds_ok = bool(src_dict) and src_dict.get("kind") in ALLOWED_SOURCE_KINDS
         if not kinds_ok:
             decision = "rejected"
@@ -325,7 +342,9 @@ async def submit_plan(
         args=raw_args,
         source=src_dict,
         session_id=plan.session_id,
-        tenant_id=plan.tenant_id or user.tenant_id,
+        # Security Gate: tenant identity always comes from the authenticated
+        # caller, never from the request body (no arbitrary tenant stamping).
+        tenant_id=user.tenant_id or None,
         user_id=user.user_id,
         decision=decision,
         reason=reason,
@@ -417,10 +436,72 @@ def _finish_idempotent(key: str, payload: Dict[str, Any]) -> None:
         done.set()
 
 
+# ─── Approval Gateway binding (Security Gate — P4a) ────────────────────────
+
+
+async def _find_gateway_binding(
+    db: AsyncSession,
+    plan_rec: "PlanRecord",
+    caller_tenant_id: Optional[str],
+) -> bool:
+    """Prove that THIS plan was approved through the Approval Gateway.
+
+    A ``pending``-decision plan is only executable when an APPROVED
+    :class:`api.approvals.PendingAction` exists whose identity binds it to
+    this exact plan:
+
+    * ``tool``       — same tool (canonical name or the exact alias sent)
+    * ``args_hash``  — SHA-256 over canonical JSON of identical arguments
+    * ``session_id`` — same session (fail-closed when the plan has none)
+    * ``tenant``     — same tenant as the executing caller (tenant-scoped)
+    * TTL            — approval still inside its 300 s window; an expired
+                       approval can never authorise execution
+
+    This prevents substitution: approving action A never enables executing a
+    different plan B (different args → different args_hash), reusing another
+    session's approval, or consuming a cross-tenant approval.
+    """
+    if not plan_rec.session_id:
+        # Fail-closed: gateway rows always carry a session; a sessionless
+        # plan cannot be provably bound to one.
+        return False
+
+    from api.approvals import PendingAction, compute_args_hash  # noqa: PLC0415
+    from sqlalchemy import func, select  # noqa: PLC0415
+
+    args_hash = compute_args_hash(plan_rec.args)
+    candidate_tools = {plan_rec.tool}
+    if plan_rec.requested_tool:
+        candidate_tools.add(plan_rec.requested_tool)
+
+    result = await db.execute(
+        select(PendingAction.expires_at).where(
+            PendingAction.status == "approved",
+            PendingAction.tool.in_(sorted(candidate_tools)),
+            PendingAction.args_hash == args_hash,
+            PendingAction.session_id == plan_rec.session_id,
+            func.coalesce(PendingAction.tenant_id, "") == _norm_tenant(caller_tenant_id),
+        )
+    )
+    rows = result.all()
+    now = _utc_ts()
+    for (expires_at,) in rows:
+        if expires_at is None:
+            # Defensive: cannot happen through the gateway path (NOT NULL).
+            continue
+        if getattr(expires_at, "tzinfo", None) is None:
+            expires_at = expires_at.replace(tzinfo=timezone.utc)
+        if expires_at.timestamp() > now:
+            return True
+    return False
+
+
+
 @router.post("/execute", summary="Execute a vetted agent tool plan")
 async def execute_plan(
     body: ExecuteRequest,
     idempotency_key: str = Header(default="", alias="Idempotency-Key"),  # noqa: B008
+    db: AsyncSession = Depends(get_db),  # noqa: B008
     user: CurrentUser = Depends(get_current_user_from_header),  # noqa: B008
 ) -> Dict[str, Any]:
     """Execute a previously vetted plan exactly once per Idempotency-Key."""
@@ -449,24 +530,61 @@ async def execute_plan(
             status.HTTP_404_NOT_FOUND,
         )
 
-    # ── Decision gate: only auto-approved plans may execute ───────────────
-    if plan_rec.decision != "auto_approved":
+    # ── Tenant gate (Security Gate): the executing caller must belong to the
+    #    same tenant scope the plan was created under.
+    if _norm_tenant(plan_rec.tenant_id) != _norm_tenant(user.tenant_id):
         await _emit(
             plan_rec.session_id,
             "approval_result",
             {
                 "tool": plan_rec.tool,
                 "decision": plan_rec.decision,
-                "reason": plan_rec.reason,
+                "reason": CROSS_TENANT_DENIED,
                 "plan_id": plan_rec.plan_id,
                 "execution_blocked": True,
             },
         )
         raise _http_error(
-            APPROVAL_REQUIRED,
-            f"Plan decision is '{plan_rec.decision}'; execution requires an "
-            "approved plan (Approval Gateway).",
-            status.HTTP_409_CONFLICT,
+            CROSS_TENANT_DENIED,
+            "The executing user belongs to a different tenant than the plan.",
+            status.HTTP_403_FORBIDDEN,
+        )
+
+    # ── Decision gate: auto-approved plans execute directly; pending plans
+    #    become executable ONLY when the Approval Gateway proves that THIS
+    #    exact plan identity (tool + args_hash + session + tenant) was
+    #    approved and is still inside its TTL.
+    if plan_rec.decision != "auto_approved":
+        gateway_bound = await _find_gateway_binding(db, plan_rec, user.tenant_id)
+        if not gateway_bound:
+            await _emit(
+                plan_rec.session_id,
+                "approval_result",
+                {
+                    "tool": plan_rec.tool,
+                    "decision": plan_rec.decision,
+                    "reason": plan_rec.reason,
+                    "plan_id": plan_rec.plan_id,
+                    "execution_blocked": True,
+                },
+            )
+            raise _http_error(
+                APPROVAL_REQUIRED,
+                f"Plan decision is '{plan_rec.decision}'; execution requires an "
+                "approved plan (Approval Gateway).",
+                status.HTTP_409_CONFLICT,
+            )
+        # Auditable proof-of-binding event on the session stream.
+        await _emit(
+            plan_rec.session_id,
+            "approval_result",
+            {
+                "tool": plan_rec.tool,
+                "decision": "approved",
+                "reason": "gateway_approved_plan_bound_to_execution",
+                "plan_id": plan_rec.plan_id,
+                "execution_blocked": False,
+            },
         )
 
     # ── Belt-and-braces: hard-denied tools never execute, even if a plan
