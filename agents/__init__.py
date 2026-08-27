@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """AI Agents - Multi-agent engineering orchestration system.
 
 Provides 15 specialized engineering agents and a ChiefEngineeringOrchestrator
