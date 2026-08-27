@@ -123,7 +123,7 @@ def _validate_study_request(payload: StudyRequest) -> None:
     except ValueError as ve:
         raise HTTPException(
             status_code=400,
-            detail=str(ve),
+            detail="Invalid study request parameters",
         ) from ve
 
 
