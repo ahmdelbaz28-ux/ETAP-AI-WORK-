@@ -140,6 +140,49 @@ def pre_flight_check(system: dict) -> Optional[dict]:
 # ---------------------------------------------------------------------------
 
 
+async def _persist_study_result(
+    req: Request,
+    payload: StudyRequest,
+    result: StudyResult,
+    trace_id: str,
+) -> None:
+    """Persist a successful study summary into the P5 ResultStore.
+
+    The tenant_id is derived from the authenticated request context only
+    (``request.state.tenant_id``, set by the JWT TenantMiddleware) — never
+    from the request body. Failures are logged and swallowed so study
+    execution semantics are never altered by result persistence.
+    """
+    tenant_id = (getattr(req.state, "tenant_id", "") or "").strip()
+    created_by = (getattr(req.state, "user_id", "") or "").strip() or None
+    try:
+        from api.results_store import persist_study_result
+
+        result_id = await persist_study_result(
+            tenant_id=tenant_id or "default",
+            project_id=None,
+            created_by=created_by,
+            summary_json={
+                "study_type": payload.study_type,
+                "status": "success",
+                "provider": result.provider or "native",
+                "data": result.data,
+                "warnings": result.warnings,
+                "errors": result.errors,
+                "execution_time_sec": result.execution_time_sec,
+                "trace_id": trace_id,
+            },
+        )
+        if result_id:
+            result.result_id = result_id
+    except Exception:  # pragma: no cover - resilience guard
+        logger.warning(
+            "study_result_persist_failed study_type=%s — result_id omitted",
+            payload.study_type,
+            extra={"trace_id": trace_id},
+        )
+
+
 @router.post(
     "/run",
     response_model=StudyResult,
@@ -165,6 +208,13 @@ async def run_study(
     try:
         executor = StudyExecutor()
         result = await executor.execute(payload, trace_id=trace_id)
+        # P5 ResultStore: persist the successful study summary and surface the
+        # new result_id on the response. The tenant comes ONLY from the
+        # authenticated request context (JWT TenantMiddleware) — never from the
+        # request body. A persistence failure degrades gracefully: the study
+        # result is not failed, the field is simply left unset.
+        if result and getattr(result, "success", False):
+            await _persist_study_result(req, payload, result, trace_id)
         return result
     except HTTPException:
         raise

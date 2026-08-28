@@ -56,6 +56,7 @@ from api.notifications import router as notifications_router
 from api.projects import router as projects_router
 from api.rbac import router as rbac_router
 from api.request_context import CorrelationIdMiddleware, TenantMiddleware
+from api.results_store import router as results_router
 from api.session_stream import router as session_stream_router
 from api.session_stream import session_stream_ws
 from api.settings import router as settings_router
@@ -757,6 +758,7 @@ async def global_exception_handler(request: Request, exc: Exception) -> JSONResp
 app.include_router(csrf_router)  # /api/v1/csrf/token — CSRF token endpoint
 app.include_router(health_router)
 app.include_router(studies_router)
+app.include_router(results_router)  # /api/v1/results/* — P5 ResultStore
 app.include_router(agents_router)
 app.include_router(validation_router)
 app.include_router(ai_ml_router)

@@ -25,6 +25,8 @@ export interface EngineeringServiceResult {
   taskId: string | null;
   studyType: string;
   provider: string;
+  /** P5 ResultStore id — present when the engineering service persisted the result. */
+  resultId?: string | null;
 }
 
 export interface EngineeringServiceRequest {
