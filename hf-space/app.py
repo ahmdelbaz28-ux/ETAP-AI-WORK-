@@ -125,6 +125,14 @@ async def lifespan(_app: FastAPI):
         # to apply but never actually did. Verified by reading line 112.
         logger.exception("Database init failed")
 
+    await _startup_auth_fail_closed_check()
+
+    yield
+    logger.info("AhmedETAP shutting down")
+
+
+async def _startup_auth_fail_closed_check() -> None:
+    """Ensure production/staging environments fail closed if API key is unconfigured."""
     env = os.environ.get("ENVIRONMENT", os.environ.get("ENV", "development")).lower()
     eng_key = os.environ.get("ENGINEERING_SERVICE_API_KEY", "") or os.environ.get("HF_API_KEY", "")
     if env in ("production", "staging", "prod") and not eng_key:
@@ -141,9 +149,6 @@ async def lifespan(_app: FastAPI):
             "⚠️ WARNING: Running in %s mode without API key. Unauthenticated access permitted ONLY in development.",
             env,
         )
-
-    yield
-    logger.info("AhmedETAP shutting down")
 
 
 # -- App Init -----------------------------------------------------------------
