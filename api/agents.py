@@ -109,6 +109,7 @@ class AgentMetaResponse(BaseModel):
 
 
 @router.get("")
+@router.get("/", include_in_schema=False)
 async def get_agents_list(request: Request):
     """Return the full list of all 25 agents for frontend administration.
 
@@ -164,7 +165,15 @@ async def get_agents_list(request: Request):
                 }
             )
 
-        return JSONResponse(content={"success": True, "agents": agents_list, "trace_id": trace_id})
+        return JSONResponse(
+            content={
+                "success": True,
+                "count": len(agents_list),
+                "total": len(agents_list),
+                "agents": agents_list,
+                "trace_id": trace_id,
+            }
+        )
     except Exception as e:
         from logging import getLogger
 
@@ -172,7 +181,7 @@ async def get_agents_list(request: Request):
         logger.exception("agents_list_failed error=%s", str(e), extra={"trace_id": trace_id})
         # Return an empty list as fallback
         return JSONResponse(
-            content={"success": False, "agents": [], "trace_id": trace_id},
+            content={"success": False, "count": 0, "total": 0, "agents": [], "trace_id": trace_id},
             status_code=500,
         )
 
