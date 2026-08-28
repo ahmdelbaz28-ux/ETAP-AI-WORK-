@@ -17,13 +17,16 @@ The **Engineering Service API** bridges both runtimes: Mastra agents call `POST 
 
 ## Prompt Management System
 
-All agent prompts are managed through a **3-tier fallback system**:
+All agent prompts are managed through a **manifest-first fallback system**:
 
 | Priority | Source | Configuration |
 |----------|--------|---------------|
-| 1 (highest) | **LangWatch API** | `LANGWATCH_API_KEY` env var, remote prompt versioning |
-| 2 | **Local YAML files** | `prompts/*.yaml` — offline fallback |
+| 1 (highest) | **`prompts.json` manifest** | binds each handle to its canonical file (e.g. `etap_engineer_agent` → v2); consulted before filename patterns |
+| 2 | **Local YAML files** | `prompts/*.yaml` filename-pattern fallback |
 | 3 (lowest) | **Default prompt** | Generic engineering assistant prompt in `src/mastra/prompts.ts` |
+
+Remote prompt overrides (Langfuse) apply only in the async loading path;
+`get_system_prompt` is sync and YAML-only by design.
 
 ### Prompt File Structure
 
@@ -43,25 +46,18 @@ messages:
 
 | File | Agent | Temperature |
 |------|-------|-------------|
-| `etap_engineer_agent_v2.yaml` | ETAP Engineer | 0.2 |
+| `etap_engineer_agent_v2.yaml` | ETAP Engineer (canonical; `prompts.json` binds the `etap_engineer_agent` handle here) | 0.2 |
+| `etap_engineer_agent.yaml` | ETAP Engineer (v1 — local-only legacy, not in manifest, never synced) | 0.2 |
 | `etap_expert_agent.prompt.yaml` | ETAP Expert Skill | 0.2 |
 | `etap_gui_agent.prompt.yaml` | ETAP GUI (CUA) | 0.2 |
 | `load_flow_agent.prompt.yaml` | Load Flow | 0.2 |
 | `short_circuit_agent.prompt.yaml` | Short Circuit | 0.2 |
-| `arcflash_agent.prompt.yaml` | Arc Flash | 0.7 |
+| `arcflash_agent.prompt.yaml` | Arc Flash | 0.2 |
 | `protection_agent.prompt.yaml` | Protection Coordination (primary) | 0.2 |
-| `coordination_agent.prompt.yaml` | Protection Coordination (legacy alias handle — same content) | 0.2 |
+| `coordination_agent.prompt.yaml` | Protection Coordination (legacy alias handle — literal byte-copy) | 0.2 |
 | `motor_starting_agent.prompt.yaml` | Motor Starting | 0.2 |
 | `power_system_coordinator_agent.prompt.yaml` | Coordinator (router) | 0.2 |
 
-| `etap_engineer_agent.yaml` | ETAP Engineer | 0.2 |
-| `etap_engineer_agent_v2.yaml` | ETAP Engineer v2 | 0.2 |
-| `load_flow_agent.prompt.yaml` | Load Flow | 0.2 |
-| `short_circuit_agent.prompt.yaml` | Short Circuit | 0.2 |
-| `arcflash_agent_prompt.prompt.yaml` | Arc Flash | 0.7 |
-| `protection_agent.prompt.yaml` | Protection | 0.2 |
-| `motor_starting_agent.prompt.yaml` | Motor Starting | 0.2 |
-| `power_system_coordinator_agent.prompt.yaml` | Coordinator | 0.2 |
 | `goal_planner_agent.yaml` | Goal Planner | 0.7 |
 | `weather_agent.prompt.yaml` | Weather | 0.2 |
 | `stability_agent.prompt.yaml` | Stability | 0.2 |
@@ -87,14 +83,14 @@ messages:
 
 ### 1. ETAP Engineer Agent (`etap-engineer-agent`)
 - **File**: `src/mastra/agents/etap-engineer-agent.ts`
-- **Prompt**: `etap_engineer_agent` (LangWatch) / `etap_engineer_agent.yaml` (local)
+- **Prompt**: `etap_engineer_agent` (manifest → `etap_engineer_agent_v2.yaml` local)
 - **Tools**: `run_python`
 - **Purpose**: General-purpose ETAP study assistant. Handles MV network analysis, protection coordination, arc flash queries.
 - **Key Constraint**: MUST NOT guess values — all parameters must be provided by the user or extracted from ETAP project data.
 
 ### 2. Power System Coordinator Agent (`power-system-coordinator-agent`)
 - **File**: `src/mastra/agents/power-system-coordinator-agent.ts`
-- **Prompt**: `power_system_coordinator_agent` (LangWatch) / `power_system_coordinator_agent.prompt.yaml` (local)
+- **Prompt**: `power_system_coordinator_agent` (manifest) / `power_system_coordinator_agent.prompt.yaml` (local)
 - **Tools**: None (network agent — routes to sub-agents)
 - **Sub-agents**: loadFlowAgent, shortCircuitAgent, protectionAgent, motorStartingAgent, arcFlashAgent, etapEngineerAgent, goalPlannerAgent
 - **Purpose**: Triage and routing. Analyzes user requests and delegates to the appropriate specialist agent.
@@ -102,7 +98,7 @@ messages:
 
 ### 3. Load Flow Agent (`load-flow-agent`)
 - **File**: `src/mastra/agents/loadflow-agent.ts`
-- **Prompt**: `load_flow_agent` (LangWatch) / `load_flow_agent.prompt.yaml` (local)
+- **Prompt**: `load_flow_agent` (manifest) / `load_flow_agent.prompt.yaml` (local)
 - **Tools**: `run_python`
 - **Standard**: IEEE 3002.7
 - **Purpose**: Newton-Raphson load flow analysis, voltage profile assessment, power loss calculation.
@@ -110,7 +106,7 @@ messages:
 
 ### 4. Short Circuit Agent (`short-circuit-agent`)
 - **File**: `src/mastra/agents/shortcircuit-agent.ts`
-- **Prompt**: `short_circuit_agent` (LangWatch) / `short_circuit_agent.prompt.yaml` (local)
+- **Prompt**: `short_circuit_agent` (manifest) / `short_circuit_agent.prompt.yaml` (local)
 - **Tools**: `run_python`
 - **Standard**: IEC 60909
 - **Purpose**: Fault current analysis (3-phase, SLG, LL, LLG), equipment rating verification.
@@ -118,7 +114,7 @@ messages:
 
 ### 5. Arc Flash Agent (`arcflash-agent`)
 - **File**: `src/mastra/agents/arcflash-agent.ts`
-- **Prompt**: `arcflash_agent` (LangWatch) / `arcflash_agent_prompt.prompt.yaml` (local)
+- **Prompt**: `arcflash_agent` (manifest → `arcflash_agent.prompt.yaml` local)
 - **Tools**: `run_python`
 - **Standard**: IEEE 1584
 - **Purpose**: Incident energy calculation, arc flash boundary, PPE category determination.
@@ -126,7 +122,7 @@ messages:
 
 ### 6. Protection Agent (`protection-agent`)
 - **File**: `src/mastra/agents/protection-agent.ts`
-- **Prompt**: `protection_agent` (LangWatch) / `protection_agent.prompt.yaml` (local)
+- **Prompt**: `protection_agent` (manifest) / `protection_agent.prompt.yaml` (local)
 - **Tools**: `run_python`
 - **Standard**: IEC 60255
 - **Purpose**: Relay coordination, time-current curve analysis, protection selectivity verification.
@@ -134,7 +130,7 @@ messages:
 
 ### 7. Motor Starting Agent (`motorstarting-agent`)
 - **File**: `src/mastra/agents/motorstarting-agent.ts`
-- **Prompt**: `motor_starting_agent` (LangWatch) / `motor_starting_agent.prompt.yaml` (local)
+- **Prompt**: `motor_starting_agent` (manifest) / `motor_starting_agent.prompt.yaml` (local)
 - **Tools**: `run_python`
 - **Standard**: IEEE 399
 - **Purpose**: Motor starting current analysis, voltage dip assessment, acceleration risk evaluation.
@@ -142,13 +138,13 @@ messages:
 
 ### 8. Goal Planner Agent (`goal-planner-agent`)
 - **File**: `src/mastra/agents/goal-planner-agent.ts`
-- **Prompt**: `goal_planner_agent` (LangWatch) / `goal_planner_agent.yaml` (local)
+- **Prompt**: `goal_planner_agent` (manifest) / `goal_planner_agent.yaml` (local)
 - **Tools**: None (structured output via Zod schema)
 - **Purpose**: Converts free-form user objectives into structured, prioritized task lists for specialist agents.
 
 ### 9. Weather Agent (`weather-agent`)
 - **File**: `src/mastra/agents/weather-agent.ts`
-- **Prompt**: `weather_agent` (LangWatch) / `weather_agent.prompt.yaml` (local)
+- **Prompt**: `weather_agent` (manifest) / `weather_agent.prompt.yaml` (local)
 - **Tools**: `weatherTool`
 - **Purpose**: Weather data retrieval for renewable energy planning and outdoor work scheduling.
 
@@ -266,7 +262,7 @@ All Python agents inherit from `BaseAgent` in `agents/orchestrator.py`.
 ## Adding a New Agent
 
 1. **Create prompt YAML**: Add `prompts/<agent_name>.prompt.yaml` with system instructions, standard references, and constraints
-2. **Register in LangWatch**: Upload prompt to LangWatch with matching handle
+2. **Register in LangWatch**: ensure the handle exists in prompts.json; remote versioning is served by Langfuse
 3. **Create Mastra agent**: Add `src/mastra/agents/<name>-agent.ts` following existing patterns
 4. **Create Python agent**: Add class in `agents/` inheriting from `BaseAgent`
 5. **Add to coordinator**: Register in `power-system-coordinator-agent.ts` (if LLM-routed) or in `ChiefEngineeringOrchestrator` (if computation-only)
@@ -277,8 +273,12 @@ All Python agents inherit from `BaseAgent` in `agents/orchestrator.py`.
 
 ## Observability
 
-All agent interactions are traced through **LangWatch**:
-- **API Key**: `LANGWATCH_API_KEY` environment variable
-- **Endpoint**: `LANGWATCH_ENDPOINT` (default: `https://app.langwatch.ai`)
-- **Integration**: `engineering_service.py` initializes LangWatch at startup
-- **Prompt Versioning**: LangWatch manages prompt versions with rollback capability
+LLM tracing is provided by **Langfuse** via `integrations/langfuse_integration.py`:
+- **API Keys**: `LANGFUSE_PUBLIC_KEY` / `LANGFUSE_SECRET_KEY` environment variables
+- **Endpoint**: `LANGFUSE_BASE_URL` (default: `https://cloud.langfuse.com`)
+- A legacy fallback tracker (`integrations/n_integration.py`) is used when
+  Langfuse keys are absent.
+- `engineering_service.py` does NOT initialize any tracing provider at startup;
+  instrumentation happens inside the integration modules on first use.
+- **Prompt Versioning**: Langfuse manages remote prompt versions with rollback;
+  local canonical versions are pinned by `prompts.json`.

@@ -13,6 +13,7 @@ FROM python:3.13-slim AS builder
 WORKDIR /build
 
 # Install build deps
+# hadolint ignore=DL3008
 RUN apt-get update && apt-get install -y --no-install-recommends \
     g++ gcc libgomp1 libopenblas-dev \
     && rm -rf /var/lib/apt/lists/*
@@ -33,6 +34,7 @@ FROM python:3.13-slim AS runtime
 WORKDIR /app
 
 # Install runtime deps only
+# hadolint ignore=DL3008
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl nginx supervisor \
     && rm -rf /var/lib/apt/lists/*
@@ -51,7 +53,7 @@ COPY --from=builder /build /app
 
 # V-54: Create non-root user for HF Spaces runtime and set up directories
 RUN groupadd -r hfuser && \
-    useradd -r -g hfuser -d /app -s /sbin/nologin hfuser && \
+    useradd -r -u 1000 -g hfuser -d /app -s /sbin/nologin hfuser && \
     mkdir -p /tmp/cache /tmp/logs /tmp/data /tmp/numba_cache /tmp/matplotlib_cache /tmp/hf_cache /etc/supervisor/conf.d && \
     chmod -R 775 /tmp && \
     chown -R hfuser:hfuser /app /tmp /home/hfuser
@@ -92,9 +94,9 @@ EXPOSE 7860
 
 # V-54: Health check for HF Spaces
 HEALTHCHECK --interval=30s --timeout=10s --start-period=20s --retries=3 \
-    CMD curl -fsS http://localhost:7860/healthz || exit 1
+    CMD ["curl", "-fsS", "http://localhost:7860/healthz"]
 
 # V-54: Run as non-root user (security best practice)
-USER hfuser
+USER 1000
 
 CMD ["supervisord", "-c", "/etc/supervisor/conf.d/app.conf"]

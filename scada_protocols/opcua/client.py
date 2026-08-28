@@ -21,6 +21,7 @@ from scada_protocols.common.base import (
     MeasurementCallback,
     ProtocolAdapter,
     ProtocolType,
+    probe_opcua,
 )
 from scada_protocols.common.config import OpcUaConfig
 
@@ -71,10 +72,9 @@ class OpcUaClientAdapter(ProtocolAdapter):
     def start_client(self) -> None:
         if self._thread is not None:
             return
-        try:
-            pass  # type: ignore
-        except Exception as exc:
-            raise ImportError(f"asyncua not available: {exc}") from exc
+        available, info = probe_opcua()
+        if not available:
+            raise ImportError(f"asyncua not available: {info}")
 
         self._stop_event = threading.Event()
 

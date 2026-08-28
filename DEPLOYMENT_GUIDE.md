@@ -764,6 +764,23 @@ ETAP_WORKER_URL=http://<windows-host-ip>:8081
 ETAP_WORKER_API_KEY=your-secure-shared-key
 ```
 
+#### Worker Authentication (unified Bearer):
+The worker accepts a single header shape on all endpoints:
+`Authorization: Bearer <credential>`. Any previous dedicated API-key header
+scheme is removed on both worker and provider sides; only the unified Bearer
+shape is accepted.
+
+1. **JWT Bearer (target steady state):** a JWT access token validated by the
+   worker's RBAC authorization manager; permissions are mapped from the
+   requested study type.
+2. **Static shared bearer (TRANSITIONAL):** when `ETAP_WORKER_STATIC_KEY` is
+   set on the Windows worker host, a Bearer credential exactly matching it is
+   accepted and acts as this worker's service principal for study execution.
+   This exists only so the cloud-to-worker loop can run before full JWT
+   issuance ships — set it to a long random secret, keep it identical to the
+   platform-side `ETAP_WORKER_API_KEY`, and remove both once JWT issuance
+   is available.
+
 ---
 
 ### 2. GIS Integration & QGIS Setup

@@ -22,31 +22,33 @@ messages:
       - Flag impossible or conflicting goals (e.g., requesting arc flash without protective device data).
       - Output a structured plan conforming exactly to the GoalPlannerOutput schema.
 
-      Output format (must conform exactly):
+      Output format (must conform exactly to the GoalPlannerOutput schema —
+      use these field names verbatim):
 
-      **Problem Understanding:**
-      [Restate the user's goals clearly in 2–4 sentences. Identify any ambiguity.]
+      {
+        "problem_understanding": "Restate the user's goals clearly in 2–4
+          sentences. Identify any ambiguity.",
+        "tasks": [
+          {
+            "name": "Clear task description",
+            "estimated_duration_hours": 4,
+            "priority": "P1",
+            "dependencies": ["names of prerequisite tasks, empty if none"],
+            "notes": "Required resources / missing data"
+          }
+        ],
+        "prioritization_logic": "Why tasks are ordered this way — safety-critical
+          first, dependency chains second",
+        "daily_plan": ["Task name 1", "Task name 2"],
+        "risks": ["assumptions made about missing data", "risks that could derail
+          the plan — e.g., missing network data, no ETAP license"],
+        "recommendations": ["1–3 concrete next steps to begin execution"]
+      }
 
-      **Task Extraction:**
-      | # | Task Name | Agent | Duration (hrs) | Priority | Dependencies | Notes |
-      |---|-----------|-------|----------------|----------|--------------|-------|
-      | 1 | ...       | ...   | ...            | P1       | None         | ...   |
-
-      **Dependency Graph:**
-      [Describe the execution order and parallel opportunities in plain text or a simple ASCII diagram]
-
-      **Prioritization Rationale:**
-      [Explain why tasks are ordered as they are — safety-critical first, dependency chains second]
-
-      **Structured Daily Plan:**
-      [Final ordered task list with agent assignments and time blocks]
-
-      **Risks & Assumptions:**
-      - [List assumptions made about missing data]
-      - [List risks that could derail the plan — e.g., missing network data, no ETAP license]
-
-      **Recommendations:**
-      [1–3 concrete next steps to begin execution]
+      Schema notes:
+      - tasks[].priority is one of: P1 (CRITICAL), P2 (HIGH), P3 (MEDIUM).
+      - daily_plan is an ordered array of task NAMES only — no time blocks.
+      - dependencies reference task names from tasks[].
 
       Priority definitions:
       - P1 (CRITICAL): Life-safety calculations, blocking dependencies, regulatory deadlines

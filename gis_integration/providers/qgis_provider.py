@@ -1,11 +1,15 @@
 from __future__ import annotations
 
+import logging
+import os
 from collections.abc import Iterator
 
 from gis_integration.base import GISProviderInterface
 from gis_integration.exceptions import GISDataExtractionError, GISProviderUnavailableError
 from gis_integration.models import GeoCRSInfo, GISFeature
 from gis_integration.utils import safe_parse_geojson, validate_geometry_dict
+
+logger = logging.getLogger(__name__)
 
 
 class QGISProvider(GISProviderInterface):
@@ -15,6 +19,7 @@ class QGISProvider(GISProviderInterface):
     Notes:
     - This implementation is dependency-safe: it does NOT import QGIS on module import.
     - If QGIS bindings are unavailable at runtime, it raises GISProviderUnavailableError.
+    - health_check() probes actual QgsApplication availability.
     """
 
     def __init__(self) -> None:
@@ -24,21 +29,32 @@ class QGISProvider(GISProviderInterface):
         self._layers: list[str] = []
         self._layer_index: dict[str, str] = {}
 
-        self._project_path: str | None = None
-        self._crs: GeoCRSInfo = GeoCRSInfo()
+    def _init_qgs(self, prefix_path: str | None = None) -> None:
+        """Initialize QgsApplication if not already initialized.
+
+        Args:
+            prefix_path: Optional QGIS prefix path (from QGIS_PREFIX_PATH env var).
+
+        Raises:
+            GISProviderUnavailableError: If QGIS cannot be initialized.
+        """
+        try:
+            from qgis.core import QgsApplication  # type: ignore
+
+            if QgsApplication.instance() is None:
+                prefix = prefix_path or os.getenv("QGIS_PREFIX_PATH", "")
+                QgsApplication.setPrefixPath(prefix if prefix else "/usr", True)
+                QgsApplication.initQgis()
+        except Exception as exc:
+            raise GISProviderUnavailableError(f"Failed to initialize QGIS: {exc}") from exc
 
     def load_project(self, path: str) -> None:
         try:
-            from qgis.core import (
-                QgsApplication,  # type: ignore
-                QgsProject,  # type: ignore
-            )
+            from qgis.core import QgsProject  # type: ignore
         except Exception as exc:
             raise GISProviderUnavailableError(f"QGIS is unavailable: {exc}") from exc
 
-        # Minimal lazy init: create application if not already.
-        # If callers already initialized QGIS, this should be safe.
-        _ = QgsApplication  # appease linters
+        self._init_qgs()
 
         self._project_path = path
         try:
@@ -47,7 +63,6 @@ class QGISProvider(GISProviderInterface):
         except Exception as exc:
             raise GISDataExtractionError(f"Failed to load QGIS project: {exc}") from exc
 
-        # Best-effort layer listing (provider-specific IDs)
         try:
             self._layers = [lyr.name() for lyr in self._project.mapLayers().values()]  # type: ignore
         except Exception:
@@ -141,6 +156,8 @@ class QGISProvider(GISProviderInterface):
 
     def health_check(self) -> bool:
         try:
-            return True
+            from qgis.core import QgsApplication  # type: ignore
+
+            return QgsApplication.instance() is not None
         except Exception:
             return False

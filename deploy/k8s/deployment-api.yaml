@@ -44,11 +44,11 @@ spec:
           type: RuntimeDefault
       containers:
         - name: api  # NOSONAR - kubernetes:S6897
-          # V141.1 FIX (B6 revised): k8s manifest used `etap/api:1.0.0`
-          # without registry prefix — kubectl would try to pull from Docker
-          # Hub org `etap` which does not exist. Corrected to the GHCR
-          # path produced by deploy.yml workflow.
-          image: ghcr.io/ahmdelbaz28-ux/revit/api:latest  # NOSONAR - kubernetes:S6596
+          # Image must match the name actually published by ci-cd.yml:
+          # repo "ahmdelbaz28-ux/ETAP-AI-WORK-" is sanitized (lowercase,
+          # trailing hyphen stripped) to ghcr.io/ahmdelbaz28-ux/etap-ai-work;
+          # branch builds publish the tag of the branch name.
+          image: ghcr.io/ahmdelbaz28-ux/etap-ai-work:main  # NOSONAR - kubernetes:S6596
           imagePullPolicy: Always
           ports:
             - containerPort: 8000

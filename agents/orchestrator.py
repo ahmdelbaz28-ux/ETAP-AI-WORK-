@@ -709,11 +709,16 @@ class ETAPExecutionAgent(BaseAgent):
             project_path = task.parameters.get("project_path", "")
             study_type_str = task.parameters.get("study_type", "LOAD_FLOW")
 
-            # Map string to ETAPStudyType enum
+            # Map string to ETAPStudyType — unsupported types are an explicit
+            # error, never a silent fallback to LOAD_FLOW.
             try:
                 study_type = ETAPStudyType[study_type_str.upper()]
-            except KeyError:
-                study_type = ETAPStudyType.LOAD_FLOW
+            except KeyError as err:
+                supported = sorted(m.name for m in ETAPStudyType)
+                raise ValueError(
+                    f"Unsupported study type '{study_type_str}' for the ETAP "
+                    f"execution path; supported types: {supported}",
+                ) from err
 
             # Execute via provider
             # Note: In a production async environment, this would be offloaded to a thread pool if blocking
@@ -721,11 +726,12 @@ class ETAPExecutionAgent(BaseAgent):
                 project_path=project_path,
                 study_type=study_type,
                 visible=task.parameters.get("visible", False),
+                parameters=task.parameters.get("parameters") or None,
             )
 
             agent_result = AgentResult(
                 agent_name=self.agent_name,
-                study_type=StudyType.LOAD_FLOW,
+                study_type=StudyType[study_type.name],
                 status=AgentStatus.COMPLETED if result.success else AgentStatus.FAILED,
                 data={
                     "success": result.success,

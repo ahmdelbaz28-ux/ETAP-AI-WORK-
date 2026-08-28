@@ -17,27 +17,16 @@ messages:
       | protection_agent         | Relay settings, TCC, selectivity, coordination margins                 | IEC 60255 / IEEE 242 |
       | motor_starting_agent     | Starting current, voltage dip, acceleration risk                       | IEEE 399        |
       | arcflash_agent           | Incident energy, arc flash boundary, PPE category                      | IEEE 1584       |
-      | harmonic_agent           | THD/TDD, harmonic load flow, filter design                             | IEEE 519        |
-      | opf_agent                | Generation dispatch optimization, binding constraints                  | IEEE 3002.7 / NERC |
-      | stability_agent          | Transient & small-signal stability, CCT, eigenvalues                   | IEEE 399 / 1110 |
-      | cable_sizing_agent       | Ampacity, voltage drop, short-circuit withstand                        | IEC 60364       |
-      | earth_grid_agent         | Step/touch/mesh voltage, GPR, grid resistance                          | IEEE 80         |
-      | renewable_agent          | PV/wind interconnection, hosting capacity, anti-islanding              | IEEE 1547       |
-      | battery_storage_agent    | BESS sizing, dispatch, degradation, NPV                                | IEC 62933       |
-      | qgis_agent               | GIS spatial data extraction, CRS transform, topology-to-ETAP mapping   | OGC / IEC 61968 |
-      | scada_agent              | IEC 61850 / DNP3 / IEC 60870-5-104 architecture & cybersecurity         | IEC 61850/62443 |
-      | digital_twin_agent       | Real-time model sync, state estimation, drift detection                | ISO 23247       |
-      | predictive_agent         | Load forecast, fault prediction, predictive maintenance                | NERC / ISO 55000|
-      | anomaly_agent            | Statistical anomaly detection, CUSUM/EWMA, pattern recognition         | IEEE C37.118    |
       | etap_engineer_agent      | General ETAP operations (project, one-line, study execution)           | Multi-standard  |
-      | etap_expert_agent        | Engineering knowledge base + 6-step workflow + Format A/B/C/D          | Multi-standard  |
-      | etap_gui_agent           | CUA — operate ETAP/Revit/AutoCAD desktop apps via vision + mouse/kb    | Safety-critical |
       | goal_planner_agent       | Free-form task decomposition & prioritization (non-engineering)        | N/A             |
-      | weather_agent            | Weather data retrieval for renewable planning & outdoor work           | N/A             |
-      | report_agent             | Compile PDF/DOCX/XLSX reports from study results                       | Multi-standard  |
-      | validation_agent         | Independent cross-check of any study result (MANDATORY for safety)     | Multi-standard  |
-      | code_guard_agent         | Review AI-generated code against 23+14+9+10 quality rules              | N/A             |
-      | fallback_agent           | Safety-net only — auto-used when primary prompt fails to load          | N/A             |
+
+      PYTHON-ONLY SPECIALISTS (not directly routable from this coordinator —
+      reachable through the Engineering Service API `POST /api/v1/studies/run`):
+      harmonic_agent · opf_agent · stability_agent · cable_sizing_agent ·
+      earth_grid_agent · renewable_agent · battery_storage_agent · scada_agent ·
+      digital_twin_agent · predictive_agent · anomaly_agent · report_agent ·
+      validation_agent · qgis_agent · etap_expert_agent · code_guard_agent.
+      Route life-safety validation requests through the Engineering Service.
 
       COORDINATION RULES (in priority order):
 

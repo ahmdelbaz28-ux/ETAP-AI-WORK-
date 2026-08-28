@@ -25,6 +25,7 @@ Usage:
 """
 
 import base64
+import json
 import os
 import sys
 from pathlib import Path
@@ -53,9 +54,21 @@ HEADERS = {
 }
 
 # ─── Collect unique prompt handles ────────────────────────────────────────
-# `.prompt.yaml` files take priority over plain `.yaml` files when both
-# exist for the same handle.
+# Manifest-first: prompts.json binds each handle to its canonical file.
+# Iterating the manifest (instead of globbing filenames) stops stale v1 /
+# ghost duplicates from being pushed to Langfuse. Handles missing from the
+# manifest fall back to filename discovery (.prompt.yaml wins over .yaml).
 handles: dict[str, Path] = {}
+manifest_path = ROOT / "prompts.json"
+if manifest_path.is_file():
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    for handle, rel_path in manifest.get("prompts", {}).items():
+        p = Path(rel_path)
+        full = ROOT / p
+        if p.is_absolute() or str(p).startswith("file:"):
+            continue
+        if full.is_file():
+            handles[handle] = full
 for yaml_file in sorted(PROMPTS_DIR.glob("*.yaml")) + sorted(PROMPTS_DIR.glob("*.prompt.yaml")):
     handle = yaml_file.stem
     if handle.endswith(".prompt"):
