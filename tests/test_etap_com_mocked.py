@@ -469,6 +469,7 @@ class TestParameterSchemas:
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.usefixtures("fake_app")
 class TestPathGuards:
     def _automation(self) -> ETAPAutomation:
         return ETAPAutomation(visible=False)
