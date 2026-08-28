@@ -125,6 +125,23 @@ async def lifespan(_app: FastAPI):
         # to apply but never actually did. Verified by reading line 112.
         logger.exception("Database init failed")
 
+    env = os.environ.get("ENVIRONMENT", os.environ.get("ENV", "development")).lower()
+    eng_key = os.environ.get("ENGINEERING_SERVICE_API_KEY", "") or os.environ.get("HF_API_KEY", "")
+    if env in ("production", "staging", "prod") and not eng_key:
+        logger.critical(
+            "FATAL: Running in %s mode without ENGINEERING_SERVICE_API_KEY or HF_API_KEY! "
+            "Startup aborted to prevent open-by-default security vulnerability.",
+            env,
+        )
+        raise RuntimeError(
+            f"ENGINEERING_SERVICE_API_KEY or HF_API_KEY must be configured in {env} mode (Fail-Closed Security Guard)."
+        )
+    if not eng_key:
+        logger.warning(
+            "⚠️ WARNING: Running in %s mode without API key. Unauthenticated access permitted ONLY in development.",
+            env,
+        )
+
     yield
     logger.info("AhmedETAP shutting down")
 
@@ -243,27 +260,6 @@ async def unhandled_exception_handler(request: Request, exc: Exception):
 # added via add_middleware() wraps all previous middleware — i.e. it is
 app.add_middleware(CSRFMiddleware)
 
-
-@app.on_event("startup")
-async def _startup_auth_fail_closed_check() -> None:
-    """Ensure production/staging environments fail closed if API key is unconfigured."""
-    env = os.environ.get("ENVIRONMENT", os.environ.get("ENV", "development")).lower()
-    eng_key = os.environ.get("ENGINEERING_SERVICE_API_KEY", "") or os.environ.get("HF_API_KEY", "")
-    if env in ("production", "staging", "prod") and not eng_key:
-        logger.critical(
-            "FATAL: Running in %s mode without ENGINEERING_SERVICE_API_KEY or HF_API_KEY! "
-            "Startup aborted to prevent open-by-default security vulnerability.",
-            env,
-        )
-        raise RuntimeError(
-            f"ENGINEERING_SERVICE_API_KEY or HF_API_KEY must be configured in {env} mode (Fail-Closed Security Guard)."
-        )
-    if not eng_key:
-        logger.warning(
-            "⚠️ WARNING: Running in %s mode without API key. Unauthenticated access permitted ONLY in development.",
-            env,
-        )
-
 app.add_middleware(
     CORSMiddleware,
     # SECURITY AUDIT 2026-07-29 (self-critique pass, HB-06):
@@ -380,6 +376,8 @@ async def auth_and_rate_limit(request: Request, call_next):
         "/api/v1/email-dashboard",
         "/api/v1/email-dashboard/",
         "/api/v1/info",
+        "/api/v1/agents",
+        "/api/v1/agents/",
     }
     _is_public = _path in _public_api_paths
 
@@ -961,7 +959,7 @@ async def etap_gui_health():
         },
     }
     # Save in cache (function attribute, persists across requests in same process)
-    etap_gui_health._cache = (now, result)
+    setattr(etap_gui_health, "_cache", (now, result))
     return {**result, "_cached": False, "_cache_age_sec": 0.0}
 
 
@@ -1360,6 +1358,7 @@ async def benchmark():
     """
     import json as _json
 
+    numpy_err: str | None = None
     # Numpy is available in the HF image (it's in requirements.hf.txt).
     try:
         import numpy as np
@@ -1511,8 +1510,8 @@ async def settings_get_key(provider: str):
 async def settings_save_key(
     provider: str,
     api_key: str,
-    base_url: str = None,
-    model_name: str = None,
+    base_url: str | None = None,
+    model_name: str | None = None,
     is_active: bool = True,
 ):
     """Save or update an API key (encrypted with AES-256)."""
