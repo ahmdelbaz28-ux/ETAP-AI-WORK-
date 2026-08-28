@@ -57,7 +57,11 @@ from sqlalchemy import JSON, BigInteger, DateTime, ForeignKey, String, select
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from api.database import Base, async_session
-from api.dependencies import CurrentUser, get_current_user_from_header
+from api.dependencies import (
+    CurrentUser,
+    get_api_key,
+    get_current_user_from_header,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -666,3 +670,36 @@ async def delete_result_endpoint(
     if not deleted:
         raise HTTPException(status_code=404, detail="Result not found")
     return {"deleted": True, "result_id": result_id}
+
+
+@router.post(
+    "/cleanup/expired",
+    summary="Remove expired results (cron call)",
+    dependencies=[Depends(get_api_key)],
+)
+async def run_cleanup_expired_endpoint() -> dict:
+    """Production invocation point for automatic ResultStore cleanup.
+
+    Cron entry point — same external-scheduler pattern as
+    ``POST /api/v1/email-digest/schedule/run``: the deployment's scheduler
+    calls this endpoint periodically and every call runs
+    :func:`cleanup_expired_results` to completion, removing every EXPIRED
+    result (DB record + ``result_files`` metadata + physical files).
+
+    Safety properties (H1):
+
+    * **Idempotent** — safe to run repeatedly; a repeated call only ever
+      sees rows whose ``expires_at`` is already past, so the second run
+      removes nothing and leaves state untouched.
+    * **Live results are never touched** — only ``expires_at <= now`` rows
+      are deleted, in every tenant.
+    * **Tenant-boundary safe** — each expired record is deleted and
+      committed individually with its own tenant-scoped directory; one
+      failing tenant never blocks the others, and concurrent invocations
+      cannot corrupt state (each row is removed exactly once; a lost race
+      is rolled back and skipped).
+    * **Non-blocking** — a dedicated maintenance endpoint; it is never on
+      the study-execution request path.
+    """
+    removed = await cleanup_expired_results()
+    return {"success": True, "removed": removed}

@@ -39,7 +39,12 @@ from sqlalchemy import select
 
 import api.results_store as results_store
 from api.database import async_session
-from api.dependencies import CurrentUser, get_current_user_from_header
+from api.dependencies import (
+    CurrentUser,
+    get_api_key,
+    get_current_user_from_header,
+    get_optional_current_user_from_header,
+)
 from api.results_store import (
     RESULT_FILE_MAX_BYTES,
     ResultFileRecord,
@@ -528,3 +533,216 @@ class TestWriteAtomicity:
 
         data = await get_result(TENANT_A, rid)
         assert data["files"] == []  # DB never pointed at a missing file
+
+
+# ---------------------------------------------------------------------------
+# 10. H1 — automatic cleanup: production cron entry point invokes cleanup
+# ---------------------------------------------------------------------------
+
+
+class TestAutomaticCleanupEndpoint:
+    """H1: cleanup must be *invoked* automatically, not merely defined.
+
+    The production entry point is ``POST /api/v1/results/cleanup/expired``
+    (same external-cron-call pattern as
+    ``POST /api/v1/email-digest/schedule/run``).
+    """
+
+    async def test_cron_cleanup_removes_expired_and_keeps_live(
+        self, api, client, result_store_dir
+    ):
+        expired_id = await create_result(tenant_id=TENANT_A, summary_json={})
+        live_id_a = await create_result(tenant_id=TENANT_A, summary_json={})
+        live_id_b = await create_result(tenant_id=TENANT_B, summary_json={})
+        await _force_expire(expired_id)
+
+        resp = await client.post("/api/v1/results/cleanup/expired")
+        assert resp.status_code == 200
+        body = resp.json()
+        assert body["success"] is True
+        assert body["removed"] == 1
+
+        # expired result is gone (DB + files) …
+        assert await get_result(TENANT_A, expired_id) is None
+        # … while live results remain, in every tenant
+        assert await get_result(TENANT_A, live_id_a) is not None
+        assert await get_result(TENANT_B, live_id_b) is not None
+
+    async def test_cron_cleanup_is_idempotent(self, api, client, result_store_dir):
+        rid = await create_result(tenant_id=TENANT_A, summary_json={})
+        await _force_expire(rid)
+
+        first = await client.post("/api/v1/results/cleanup/expired")
+        assert first.status_code == 200
+        assert first.json()["removed"] == 1
+
+        # run again — nothing left to remove, no error, state untouched
+        second = await client.post("/api/v1/results/cleanup/expired")
+        assert second.status_code == 200
+        assert second.json()["removed"] == 0
+        assert await get_result(TENANT_A, rid) is None
+
+    async def test_cron_entry_point_registered_on_results_router(self):
+        """The scheduler-facing endpoint exists on the production router."""
+        paths = {getattr(route, "path", "") for route in results_store.router.routes}
+        assert "/api/v1/results/cleanup/expired" in paths
+
+
+# ---------------------------------------------------------------------------
+# 11. M1 — created_by == authenticated user id (never fabricated/spoofed)
+# ---------------------------------------------------------------------------
+
+
+async def _all_result_rows() -> list:
+    async with async_session() as session:
+        return (await session.execute(select(ResultRecord))).scalars().all()
+
+
+@pytest.fixture
+def study_api(result_store_dir):
+    """Minimal app with only the studies router (same isolation pattern)."""
+    from api.studies import router as studies_router
+
+    app = FastAPI()
+    app.include_router(studies_router)
+    holder = {"user": USER_A}
+
+    async def _current_user():
+        return holder["user"]
+
+    async def _api_key():
+        return ""
+
+    app.dependency_overrides[get_optional_current_user_from_header] = _current_user
+    app.dependency_overrides[get_api_key] = _api_key
+    return {"app": app, "holder": holder}
+
+
+@pytest.fixture
+async def study_client(study_api):
+    async with AsyncClient(
+        transport=ASGITransport(app=study_api["app"]), base_url="http://test"
+    ) as ac:
+        yield ac
+
+
+@pytest.fixture
+def fake_study_executor(monkeypatch):
+    """Replace the real study pipeline with a successful no-op result."""
+    from core_model.specs import StudyResult
+
+    async def fake_execute(self, payload, trace_id="unknown"):  # noqa: ARG001
+        return StudyResult(
+            success=True,
+            data={"ok": True},
+            study_type=payload.study_type,
+            trace_id=trace_id,
+        )
+
+    monkeypatch.setattr(
+        "services.study_executor.StudyExecutor.execute", fake_execute
+    )
+
+
+class TestStudyRunCreatedBy:
+    async def test_created_by_is_authenticated_user(
+        self, study_api, study_client, fake_study_executor
+    ):
+        before = {r.id for r in await _all_result_rows()}
+
+        resp = await study_client.post(
+            "/api/v1/studies/run", json={"study_type": "load_flow"}
+        )
+        assert resp.status_code == 200
+        body = resp.json()
+        # M2 contract on the same response: the wire carries resultId
+        assert body["resultId"]
+        result_id = body["resultId"]
+
+        new_rows = [r for r in await _all_result_rows() if r.id not in before]
+        assert len(new_rows) == 1
+        assert new_rows[0].id == result_id
+        assert new_rows[0].created_by == USER_A.user_id
+
+        # readable through the API with the same attribution. The minimal
+        # app has no tenant middleware, so persist_study_result assigns the
+        # default tenant — same lookup rule as the production call path.
+        data = await get_result("default", result_id)
+        assert data is not None
+        assert data["created_by"] == USER_A.user_id
+
+    async def test_user_b_cannot_forge_created_by_of_user_a(
+        self, study_api, study_client, fake_study_executor
+    ):
+        study_api["holder"]["user"] = USER_B
+        before = {r.id for r in await _all_result_rows()}
+
+        resp = await study_client.post(
+            "/api/v1/studies/run",
+            json={"study_type": "load_flow", "created_by": "user-a"},
+        )
+        assert resp.status_code == 200
+
+        new_rows = [r for r in await _all_result_rows() if r.id not in before]
+        assert len(new_rows) == 1
+        # spoofed body field ignored — identity comes from the JWT context only
+        assert new_rows[0].created_by == USER_B.user_id
+
+    async def test_api_key_only_call_has_no_fabricated_identity(
+        self, study_api, study_client, fake_study_executor
+    ):
+        study_api["holder"]["user"] = None
+        before = {r.id for r in await _all_result_rows()}
+
+        resp = await study_client.post(
+            "/api/v1/studies/run",
+            json={"study_type": "load_flow", "created_by": "user-a"},
+        )
+        assert resp.status_code == 200
+
+        new_rows = [r for r in await _all_result_rows() if r.id not in before]
+        assert len(new_rows) == 1
+        # no user identity exists — created_by stays None (never "system")
+        assert new_rows[0].created_by is None
+
+
+# ---------------------------------------------------------------------------
+# 12. M2 — resultId serialization contract (Python → JSON → TS)
+# ---------------------------------------------------------------------------
+
+
+class TestResultIdContract:
+    async def test_http_json_exposes_resultid_camelcase(self):
+        """StudyResult(result_id='abc') → HTTP JSON contains resultId='abc'."""
+        from core_model.specs import StudyResult
+
+        app = FastAPI()
+
+        @app.get("/probe", response_model=StudyResult)
+        async def probe():
+            return StudyResult(success=True, result_id="abc")
+
+        async with AsyncClient(
+            transport=ASGITransport(app=app), base_url="http://test"
+        ) as ac:
+            resp = await ac.get("/probe")
+
+        assert resp.status_code == 200
+        payload = resp.json()
+        assert payload["resultId"] == "abc"
+        # the snake_case key must NOT leak on the wire
+        assert "result_id" not in payload
+
+    async def test_internal_model_and_plain_dump_keep_snake_case(self):
+        """Internal Python code keeps using result_id (backward compatible)."""
+        from core_model.specs import StudyResult
+
+        result = StudyResult(success=True, result_id="abc")
+        assert result.result_id == "abc"
+        assert result.model_dump()["result_id"] == "abc"
+
+    async def test_by_alias_dump_uses_resultid(self):
+        from core_model.specs import StudyResult
+
+        result = StudyResult(success=True, result_id="abc")
+        assert result.model_dump(by_alias=True)["resultId"] == "abc"
