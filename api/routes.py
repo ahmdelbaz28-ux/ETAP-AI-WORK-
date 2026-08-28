@@ -300,11 +300,7 @@ def _get_rate_limit_redis() -> Any | None:
 
 async def _check_rate_limit(client_id: str) -> bool:
     """Return True if allowed; False if rate limit exceeded."""
-    if (
-        os.getenv("ENGINEERING_SERVICE_RATE_LIMIT_DISABLED", "").lower() in ("true", "1", "yes")
-        or os.getenv("ENVIRONMENT", "").lower() in ("test", "testing")
-        or os.getenv("APP_ENV", "").lower() == "test"
-    ):
+    if os.getenv("ENGINEERING_SERVICE_RATE_LIMIT_DISABLED", "").lower() in ("true", "1", "yes"):
         return True
 
     r = _get_rate_limit_redis()

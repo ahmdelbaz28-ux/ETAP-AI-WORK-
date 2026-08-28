@@ -151,6 +151,7 @@ app = FastAPI(
 # Register the auth router so /api/v1/auth/register, /login, /refresh, /me
 # are available on the HF Space. Without this, users cannot register or
 # log in — the endpoints returned 404.
+from api.agents import router as agents_router  # noqa: E402
 from api.assets import router as assets_router  # noqa: E402
 from api.auth import router as auth_router  # noqa: E402
 
@@ -174,6 +175,7 @@ from api.projects import router as projects_router  # noqa: E402
 
 app.include_router(csrf_router)  # /api/v1/csrf/token
 app.include_router(auth_router)
+app.include_router(agents_router)
 app.include_router(projects_router)
 app.include_router(data_import_router)
 app.include_router(assets_router)
