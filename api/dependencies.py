@@ -15,6 +15,7 @@ import hmac
 import logging
 import os
 import secrets
+from typing import Optional
 
 import jwt
 from fastapi import Depends, Header, HTTPException, Query, Request, status
@@ -286,6 +287,35 @@ async def get_current_user_from_header(
             detail="Missing Authorization header",
         )
     return await get_current_user(db=db, authorization=authorization)
+
+
+async def get_optional_current_user_from_header(
+    db: AsyncSession = Depends(get_db),  # noqa: B008
+    authorization: str = Header(default="", alias="Authorization"),
+) -> Optional[CurrentUser]:
+    """Best-effort :class:`CurrentUser` resolution — ``None`` instead of 401.
+
+    Used by endpoints that accept BOTH service-to-service API-key clients
+    (no user identity exists) and JWT-authenticated user clients. When a
+    ``Authorization: Bearer`` header is present AND valid, the authenticated
+    :class:`CurrentUser` is returned; otherwise ``None`` is returned.
+
+    This NEVER fabricates an identity (no ``"system"``/``"default"`` user)
+    and NEVER reads identity from a request body — audit attribution fields
+    such as ``ResultStore.created_by`` must originate from the validated JWT
+    context only. Auth enforcement itself stays with ``get_api_key``: an
+    invalid Bearer plus a valid API key keeps working exactly as before
+    (the endpoint is still gated), the caller simply has no user identity.
+    """
+    if not authorization:
+        return None
+    try:
+        return await get_current_user(db=db, authorization=authorization)
+    except HTTPException:
+        # Invalid/expired/revoked token — the request may still be authorized
+        # via X-API-Key (validated by get_api_key); it just has no user
+        # identity, so no audit attribution is recorded.
+        return None
 
 
 # ---------------------------------------------------------------------------
