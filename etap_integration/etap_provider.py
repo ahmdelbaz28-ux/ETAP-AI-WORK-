@@ -224,13 +224,15 @@ class RemoteEtapProvider(IEtapProvider):
 
         # Circuit breaker check — use shared CircuitBreaker from engine.resilience
         if self.circuit_breaker.get_state() == "OPEN":
+            last_fail = self.circuit_breaker._last_failure_time or time.time()
+            retry_secs = max(0, int(last_fail + self.circuit_breaker.recovery_timeout - time.time()))
             return ETAPResult(
                 False,
                 {},
                 [],
                 [
                     f"ETAP Worker circuit breaker is OPEN after {self.circuit_breaker._failure_count} consecutive failures. "
-                    f"Retry after {int(self.circuit_breaker._last_failure_time + self.circuit_breaker.recovery_timeout - time.time())}s.",
+                    f"Retry after {retry_secs}s.",
                 ],
                 0.0,
             )
@@ -483,7 +485,7 @@ class MockEtapProvider(IEtapProvider):
 
         start_time = time.time()
 
-        mock_data = self.MOCK_RESULTS.get(study_type, {})
+        mock_data: dict[str, Any] = dict(self.MOCK_RESULTS.get(study_type, {}))
         # Mark all mock results as simulated — warnings field alone may not be
         # surfaced in the UI. The is_simulated flag allows the frontend to show
         # a prominent red banner (see MockEtapProvider result handling).
@@ -524,15 +526,16 @@ class NullEtapProvider(IEtapProvider):
         visible: bool = False,
     ) -> ETAPResult:
         # F-05: Sentinel markers in result data
+        _study_type_str = (
+            study_type.value if hasattr(study_type, "value") else str(study_type)
+        )
         _null_sentinel = {
             "_null_provider": True,
             "_warning": (
                 "ETAP COM is not available on this platform. "
                 "Results are synthetic/empty — do NOT use for engineering decisions."
             ),
-            "_study_type": str(study_type.value)
-            if hasattr(study_type, "value")
-            else str(study_type),
+            "_study_type": _study_type_str,
         }
 
         # F-05: CRITICAL alert in production — NullEtapProvider means no real
@@ -599,3 +602,8 @@ def get_etap_provider() -> IEtapProvider:
             return provider
 
     return NullEtapProvider()
+
+
+# Backward-compatibility alias
+ETAPProvider = get_etap_provider
+

@@ -94,7 +94,7 @@ def _create_test_app() -> FastAPI:
     @_app.websocket(WS_PATH)
     async def _scada_ws(websocket: WebSocket):
         """Thin wrapper that delegates to the real endpoint handler."""
-        await scada_websocket_endpoint(websocket)
+        await scada_websocket_endpoint(websocket, token="test-key")
 
     return _app
 
@@ -151,7 +151,7 @@ def _create_auth_gated_app(expected_key: str) -> FastAPI:
         if not expected_key or not hmac.compare_digest(api_key, expected_key):
             await websocket.close(code=1008, reason="Invalid or missing API key")
             return
-        await scada_websocket_endpoint(websocket)
+        await scada_websocket_endpoint(websocket, token=expected_key)
 
     return _app
 

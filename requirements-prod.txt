@@ -78,11 +78,7 @@ python-docx~=1.1.0
 openpyxl~=3.1.0
 reportlab~=4.0.0
 
-# AI Context Engine (Code RAG)
-chromadb>=0.4.24,<1.0.0
-sentence-transformers>=2.7.0
-tree-sitter>=0.21.0
-tree-sitter-python>=0.21.0
+# Security-patched utility dependencies
 # SECURITY: nltk upgraded to >=3.10.0 to fix CVE-2026-54293 and path traversal CVEs
 nltk>=3.10.0
 # SECURITY: Pygments — aligned with pyproject.toml pin (pygments>=2.20.0)
@@ -118,7 +114,7 @@ celery~=5.3.0
 neo4j>=5.25.0,<7
 # LangChain 1.x line
 langchain-core~=1.5.0
-langchain-openai~=1.6.0
+langchain-openai~=1.4.0
 langchain-community~=0.4.0
 langchain-experimental~=0.4.0
 langchain-qdrant~=1.0

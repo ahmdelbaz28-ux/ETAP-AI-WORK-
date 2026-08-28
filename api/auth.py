@@ -876,7 +876,7 @@ def _record_failed_attempt(username: str) -> None:
 # F-11: On a successful login, the per-username rate-limit counter was NOT
 #   reset. A user who failed 4 times then succeeded, then failed once more
 #   within 15 minutes, was locked out. Reset the counter on success.
-_IP_RATE_LIMIT_MAX_ATTEMPTS: int = int(os.getenv("LOGIN_IP_RATE_LIMIT_MAX", "20"))
+_IP_RATE_LIMIT_MAX_ATTEMPTS: int = int(os.getenv("LOGIN_IP_RATE_LIMIT_MAX", "50"))
 _IP_RATE_LIMIT_WINDOW_SEC: int = int(os.getenv("LOGIN_IP_RATE_LIMIT_WINDOW_SEC", "900"))
 _ip_attempts: OrderedDict[str, list[float]] = OrderedDict()
 _ip_attempts_lock = threading.Lock()
