@@ -23,6 +23,7 @@ WORKDIR /app
 
 # System dependencies + create non-root user in a single RUN
 # SonarCloud docker:S7031: merged consecutive RUN instructions to reduce layers
+# hadolint ignore=DL3008
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl g++ gcc \
     libasound2 libatk-bridge2.0-0 libatk1.0-0 libatspi2.0-0 \
@@ -96,14 +97,14 @@ ENV NUMBA_CACHE_DIR=/tmp/cache
 ENV DATABASE_URL=sqlite+aiosqlite:////tmp/data/etap_platform.db
 
 # Environment mode (not a secret)
-ENV ENVIRONMENT=${ENVIRONMENT:-production}
+ENV ENVIRONMENT=production
 
 # Redis URL — empty default means in-memory fallback (development mode).
 ENV REDIS_URL=
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=20s --retries=3 \
-    CMD curl -f http://localhost:7860/healthz || exit 1
+    CMD ["curl", "-f", "http://localhost:7860/healthz"]
 
 EXPOSE 7860
 

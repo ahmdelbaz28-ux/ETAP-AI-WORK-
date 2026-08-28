@@ -31,11 +31,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 UTC = UTC
 
 # ── Test database ────────────────────────────────────────────────────────────
-TEST_DB_URL = "sqlite+aiosqlite:///./data/test_rbac.db"
-
-# Remove test db if exists
-if os.path.exists("./data/test_rbac.db"):
-    os.remove("./data/test_rbac.db")
+TEST_DB_URL = "sqlite+aiosqlite:///:memory:"
 
 
 @pytest.fixture  # NOSONAR S9083: intentional; see prior batch commits for context

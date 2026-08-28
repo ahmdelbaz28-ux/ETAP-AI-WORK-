@@ -386,6 +386,7 @@ class TestStudyRunAPIKey:
             resp = await client.post(
                 "/api/v1/studies/run",
                 json={"study_type": "load_flow", "system": _MINI_SYSTEM},
+                headers={"x-api-key": ""},
             )
             assert resp.status_code == 401
 
@@ -428,6 +429,12 @@ class TestStudyRunAPIKey:
             stack.enter_context(patch("api.routes._EXPECTED_API_KEY", "test-secret-key"))
             stack.enter_context(patch("api.routes._API_KEY_CONFIGURED", True))
             stack.enter_context(patch("api.routes._AUTH_DISABLED", False))
+            resp = await client.post(
+                "/api/v1/studies/run",
+                json={"study_type": "load_flow", "system": _MINI_SYSTEM},
+                headers={"X-API-Key": "test-secret-key"},
+            )
+            assert resp.status_code == 200
             resp = await client.post(
                 "/api/v1/studies/run",
                 json={"study_type": "load_flow", "system": _MINI_SYSTEM},
@@ -567,12 +574,18 @@ class TestRateLimiting:
         """Helper: lower the rate limit threshold for testing."""
         routes_mod._RATE_LIMIT_MAX_REQUESTS = max_requests
         routes_mod._rate_limit_fallback_store.clear()
+        self._orig_disabled = os.environ.get("ENGINEERING_SERVICE_RATE_LIMIT_DISABLED")
+        os.environ["ENGINEERING_SERVICE_RATE_LIMIT_DISABLED"] = "false"
 
     def _restore_rate_limit(self, routes_mod, original_max, original_store):
         """Helper: restore original rate-limit state."""
         routes_mod._RATE_LIMIT_MAX_REQUESTS = original_max
         routes_mod._rate_limit_fallback_store.clear()
         routes_mod._rate_limit_fallback_store.update(original_store)
+        if getattr(self, "_orig_disabled", None) is not None:
+            os.environ["ENGINEERING_SERVICE_RATE_LIMIT_DISABLED"] = self._orig_disabled
+        else:
+            os.environ.pop("ENGINEERING_SERVICE_RATE_LIMIT_DISABLED", None)
 
     async def test_rate_limit_returns_429_after_threshold(self, client):
         """Sending many requests quickly should eventually return 429."""

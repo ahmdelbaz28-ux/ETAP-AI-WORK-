@@ -19,6 +19,7 @@ FROM python:3.13-slim AS builder
 LABEL stage="engineering-service-builder"
 
 # Build deps for numpy/scipy wheels
+# hadolint ignore=DL3008
 RUN apt-get update && apt-get install -y --no-install-recommends \
     g++ \
     gcc \
@@ -41,6 +42,7 @@ LABEL maintainer="ETAP AI Platform Team" \
       version="2.1.0"
 
 # Runtime libs only (no compilers)
+# hadolint ignore=DL3008
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     tini \
@@ -51,7 +53,7 @@ COPY --from=builder /install /usr/local
 
 # Create non-root user
 RUN groupadd -r engsvc && \
-    useradd -r -g engsvc -d /app -s /sbin/nologin engsvc && \
+    useradd -r -u 1000 -g engsvc -d /app -s /sbin/nologin engsvc && \
     mkdir -p /app /app/logs /app/reports /tmp/data && \
     chown -R engsvc:engsvc /app /tmp
 
@@ -103,7 +105,7 @@ ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     ENGINEERING_SERVICE_HOST=0.0.0.0 \
     ENGINEERING_SERVICE_PORT=8000 \
-    ENGINEERING_SERVICE_CORS_ORIGINS=${ENGINEERING_SERVICE_CORS_ORIGINS:-http://localhost:3000} \
+    ENGINEERING_SERVICE_CORS_ORIGINS=http://localhost:3000 \
     DATABASE_URL=sqlite+aiosqlite:////tmp/data/etap_platform.db
 
 EXPOSE 8000
@@ -111,9 +113,9 @@ EXPOSE 8000
 VOLUME ["/app/logs", "/app/reports"]
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
-    CMD curl -fsS http://localhost:8000/health || exit 1
+    CMD ["curl", "-fsS", "http://localhost:8000/health"]
 
-USER engsvc
+USER 1000
 
 ENTRYPOINT ["/usr/bin/tini", "--"]
 
