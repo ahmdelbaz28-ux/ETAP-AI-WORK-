@@ -182,6 +182,7 @@ class ReorderModelsRequest(BaseModel):
 # ---------------------------------------------------------------------------
 
 
+@router.get("", include_in_schema=False)
 @router.get("/", summary="Retrieve current copilot configuration")
 async def get_copilot_config() -> JSONResponse:
     """Return the current copilot AI model configuration.
@@ -189,14 +190,17 @@ async def get_copilot_config() -> JSONResponse:
     Returns all configuration fields including the fallback chain,
     temperature, token limits, and notification settings.
     """
+    dumped = CopilotConfigResponse(**_copilot_config).model_dump()
     return JSONResponse(
         content={
             "success": True,
-            "config": CopilotConfigResponse(**_copilot_config).model_dump(),
+            "config": dumped,
+            **dumped,
         }
     )
 
 
+@router.put("", include_in_schema=False)
 @router.put("/", summary="Update copilot configuration")
 async def update_copilot_config(
     body: CopilotConfigUpdateRequest,
@@ -261,10 +265,12 @@ async def update_copilot_config(
         trace_id,
     )
 
+    dumped = CopilotConfigResponse(**_copilot_config).model_dump()
     return JSONResponse(
         content={
             "success": True,
-            "config": CopilotConfigResponse(**_copilot_config).model_dump(),
+            "config": dumped,
+            **dumped,
             "updated_fields": list(updates.keys()),
             "trace_id": trace_id,
         }
