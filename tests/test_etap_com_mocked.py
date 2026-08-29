@@ -231,14 +231,13 @@ def fake_app(monkeypatch: pytest.MonkeyPatch) -> FakeApp:
     def _dispatch(_prog_id: str, *args: Any, **kwargs: Any) -> FakeApp:
         return app
 
-    if hasattr(etap_com, "win32com"):
+    if getattr(etap_com, "win32com", None) is not None:
         monkeypatch.setattr(etap_com.win32com.client, "Dispatch", _dispatch)
     else:
-        fake_win32 = type(
-            "win32com", (), {"client": type("client", (), {"Dispatch": staticmethod(_dispatch)})}
-        )
+        fake_client = type("client", (), {"Dispatch": staticmethod(_dispatch)})
+        fake_win32 = type("win32com", (), {"client": fake_client})
         monkeypatch.setattr(etap_com, "win32com", fake_win32, raising=False)
-    if hasattr(etap_com, "pythoncom"):
+    if getattr(etap_com, "pythoncom", None) is not None:
         monkeypatch.setattr(etap_com.pythoncom, "CoInitialize", lambda: None)
     else:
         fake_pythoncom = type(
@@ -246,6 +245,7 @@ def fake_app(monkeypatch: pytest.MonkeyPatch) -> FakeApp:
         )
         monkeypatch.setattr(etap_com, "pythoncom", fake_pythoncom, raising=False)
     monkeypatch.setattr(etap_com, "WIN32_AVAILABLE", True)
+    monkeypatch.setattr(etap_com, "COM_ERROR", RuntimeError)
     return app
 
 
