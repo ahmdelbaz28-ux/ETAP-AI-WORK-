@@ -17,6 +17,7 @@ These tests must stay green BEFORE any behavior change (regression baseline).
 
 from __future__ import annotations
 
+from collections.abc import Iterator
 from pathlib import Path
 from typing import Any
 
@@ -249,7 +250,7 @@ def fake_app(monkeypatch: pytest.MonkeyPatch) -> FakeApp:
 
 
 @pytest.fixture
-def project_file(tmp_path_factory: pytest.TempPathFactory) -> Path:
+def project_file(tmp_path_factory: pytest.TempPathFactory) -> Iterator[Path]:
     """Create a contained .edb placeholder inside the working directory."""
     target = Path.cwd() / "__wp0_fake_project__.edb"
     target.write_text("fake-edb", encoding="utf-8")
@@ -445,12 +446,14 @@ class TestParameterSchemas:
             )
 
     def test_non_dict_params_rejected(self) -> None:
+        invalid_params: Any = ["x"]
         with pytest.raises(ValueError, match="must be a dict"):
-            ETAPAutomation._validate_study_parameters(ETAPStudyType.LOAD_FLOW, ["x"])
+            ETAPAutomation._validate_study_parameters(ETAPStudyType.LOAD_FLOW, invalid_params)
 
     def test_non_enum_study_type_rejected(self) -> None:
+        invalid_study_type: Any = "LOAD_FLOW"
         with pytest.raises(ValueError, match="must be ETAPStudyType"):
-            ETAPAutomation._validate_study_parameters("LOAD_FLOW", {})
+            ETAPAutomation._validate_study_parameters(invalid_study_type, {})
 
     def test_valid_parameters_pass_through(self) -> None:
         params = {
@@ -495,6 +498,9 @@ class TestPathGuards:
 
     def test_traversal_escape_rejected(self) -> None:
         assert self._automation()._validate_project_path(r"..\..\..\evil.edb") is False
+        assert self._automation()._validate_project_path("../../../evil.edb") is False
+        assert self._automation()._validate_project_path(r"subdir\..\..\evil.edb") is False
+        assert self._automation()._validate_project_path("subdir/../../evil.edb") is False
 
     def test_overlong_path_rejected(self) -> None:
         auto = self._automation()

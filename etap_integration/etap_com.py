@@ -71,18 +71,30 @@ def _sanitize_for_log(value: str, max_len: int = 200) -> str:
     return sanitized
 
 
+class _FallbackCOMError(Exception):
+    """Fallback COM error when pythoncom is not available."""
+
+    pass
+
+
 # Only import on Windows
 if sys.platform == "win32":
     try:
-        import pythoncom
-        import win32com.client
+        import pythoncom  # type: ignore[import-not-found,import-untyped] # pyright: ignore[reportMissingImports]
+        import win32com.client  # type: ignore[import-not-found,import-untyped] # pyright: ignore[reportMissingImports]
 
         WIN32_AVAILABLE = True
-    except ImportError:
+        COM_ERROR: type[BaseException] = getattr(pythoncom, "com_error", _FallbackCOMError)
+    except (ImportError, ModuleNotFoundError):
+        pythoncom = None  # type: ignore[assignment]
+        win32com = None  # type: ignore[assignment]
         WIN32_AVAILABLE = False
-        logger.warning("pywin32 not available. ETAP COM automation disabled.")
+        COM_ERROR = _FallbackCOMError
 else:
+    pythoncom = None  # type: ignore[assignment]
+    win32com = None  # type: ignore[assignment]
     WIN32_AVAILABLE = False
+    COM_ERROR = _FallbackCOMError
 
 # =============================================================================
 # Module-level size and range limits
@@ -404,7 +416,7 @@ class ETAPProject:
                         "reporting convergence_source=unavailable",
                     )
                 result = {
-                    "converged": bool(converged) if converged is not None else False,
+                    "converged": converged if converged is not None else False,
                     "convergence_source": conv_src,
                     "buses": buses,
                     "branches": branches,
@@ -415,7 +427,7 @@ class ETAPProject:
             else:
                 raise RuntimeError("Load Flow module not available")
 
-        except pythoncom.com_error as e:
+        except COM_ERROR as e:
             raise RuntimeError(
                 f"COM error during load flow execution (timeout={self._com_timeout}s): {e}",
             ) from e
@@ -460,7 +472,7 @@ class ETAPProject:
             else:
                 raise RuntimeError("Short Circuit module not available")
 
-        except pythoncom.com_error as e:
+        except COM_ERROR as e:
             raise RuntimeError(
                 f"COM error during short circuit execution (timeout={self._com_timeout}s): {e}",
             ) from e
@@ -479,7 +491,8 @@ class ETAPProject:
         try:
             af_module = self._com_project.ArcFlash
             if af_module:
-                af_module.WorkingDistance = working_distance / 1000
+                working_distance_val = float(working_distance)
+                af_module.WorkingDistance = working_distance_val / 1000
 
                 af_module.Calculate()
 
@@ -499,7 +512,7 @@ class ETAPProject:
             else:
                 raise RuntimeError("Arc Flash module not available")
 
-        except pythoncom.com_error as e:
+        except COM_ERROR as e:
             raise RuntimeError(
                 f"COM error during arc flash execution (timeout={self._com_timeout}s): {e}",
             ) from e
@@ -539,7 +552,7 @@ class ETAPProject:
                         "fundamental_voltage_mag": float(getattr(bus, "VoltageMag", 1.0)),
                         "dominant_harmonic_order": int(getattr(bus, "DominantHarmonic", 5)),
                     }
-        except (pythoncom.com_error, AttributeError) as e:
+        except (COM_ERROR, AttributeError) as e:
             raise RuntimeError(f"COM error during harmonic analysis: {e}") from e
         except RuntimeError:
             raise
@@ -556,7 +569,7 @@ class ETAPProject:
                 "reporting convergence_source=unavailable",
             )
         result = {
-            "converged": bool(converged) if converged is not None else False,
+            "converged": converged if converged is not None else False,
             "convergence_source": conv_src,
             "buses": buses,
             "standard": "IEEE 519-2014",
@@ -584,7 +597,7 @@ class ETAPProject:
                         "reactive_power_mvar": float(getattr(gen, "QMVAR", 0.0)),
                         "cost_per_hour": float(getattr(gen, "Cost", 0.0)),
                     }
-        except (pythoncom.com_error, AttributeError) as e:
+        except (COM_ERROR, AttributeError) as e:
             raise RuntimeError(f"COM error during optimal power flow: {e}") from e
         except RuntimeError:
             raise
@@ -605,7 +618,7 @@ class ETAPProject:
                 "reporting convergence_source=unavailable",
             )
         result = {
-            "converged": bool(converged) if converged is not None else False,
+            "converged": converged if converged is not None else False,
             "convergence_source": conv_src,
             "generators": generators,
             "total_system_loss_mw": total_loss,
@@ -640,7 +653,7 @@ class ETAPProject:
                         "min_voltage_during_start_pu": float(getattr(motor, "MinVoltagePU", 0.0)),
                         "speed_at_end_of_start_percent": float(getattr(motor, "SpeedPercent", 0.0)),
                     }
-        except (pythoncom.com_error, AttributeError) as e:
+        except (COM_ERROR, AttributeError) as e:
             raise RuntimeError(f"COM error during motor starting analysis: {e}") from e
         except RuntimeError:
             raise
@@ -660,7 +673,7 @@ class ETAPProject:
                 "reporting convergence_source=unavailable",
             )
         result = {
-            "converged": bool(converged) if converged is not None else False,
+            "converged": converged if converged is not None else False,
             "convergence_source": conv_src,
             "motors": motors,
             "voltage_dip_profile": {
@@ -720,7 +733,7 @@ class ETAPProject:
                     "max_angle_deg": max(angles) if angles else 0.0,
                     "critical_clearing_time_sec": float(getattr(gen, "CriticalClearingTime", 0.0)),
                 }
-        except (pythoncom.com_error, AttributeError) as e:
+        except (COM_ERROR, AttributeError) as e:
             raise RuntimeError(f"COM error during transient stability: {e}") from e
         except RuntimeError:
             raise
@@ -737,7 +750,7 @@ class ETAPProject:
                 "reporting convergence_source=unavailable",
             )
         result = {
-            "converged": bool(converged) if converged is not None else False,
+            "converged": converged if converged is not None else False,
             "convergence_source": conv_src,
             "generators": generators,
             "simulation_duration_sec": duration,
@@ -774,7 +787,7 @@ class ETAPProject:
                         "derated_ampacity_a": round(derated, 2),
                         "voltage_kv": float(getattr(cable, "KV", 0.0)),
                     }
-        except (pythoncom.com_error, AttributeError) as e:
+        except (COM_ERROR, AttributeError) as e:
             raise RuntimeError(f"COM error during cable ampacity study: {e}") from e
         except RuntimeError:
             raise
@@ -791,7 +804,7 @@ class ETAPProject:
                 "reporting convergence_source=unavailable",
             )
         result = {
-            "converged": bool(converged) if converged is not None else False,
+            "converged": converged if converged is not None else False,
             "convergence_source": conv_src,
             "cables": cables,
             "standard": "IEC 60287 / NEC Article 310",
@@ -822,7 +835,7 @@ class ETAPProject:
                     "reporting convergence_source=unavailable",
                 )
             result = {
-                "converged": bool(converged) if converged is not None else False,
+                "converged": converged if converged is not None else False,
                 "convergence_source": conv_src,
                 "soil_resistivity_ohm_m": float(getattr(gg_module, "SoilResistivity", 0.0)),
                 "surface_layer_thickness_m": float(getattr(gg_module, "SurfaceThickness", 0.0)),
@@ -839,7 +852,7 @@ class ETAPProject:
                     "step_ok": bool(getattr(gg_module, "StepCompliant", False)),
                 },
             }
-        except (pythoncom.com_error, AttributeError) as e:
+        except (COM_ERROR, AttributeError) as e:
             raise RuntimeError(f"COM error during ground grid analysis: {e}") from e
         except RuntimeError:
             raise
@@ -878,7 +891,7 @@ class ETAPProject:
             asai = 1.0 - (total_outage_hours / (period_years * 8760.0))
             maifi = momentary_outages / customers_served
 
-        except (pythoncom.com_error, AttributeError) as e:
+        except (COM_ERROR, AttributeError) as e:
             raise RuntimeError(f"COM error during reliability analysis: {e}") from e
         except RuntimeError:
             raise
@@ -892,7 +905,7 @@ class ETAPProject:
                 "reporting convergence_source=unavailable",
             )
         result = {
-            "converged": bool(converged) if converged is not None else False,
+            "converged": converged if converged is not None else False,
             "convergence_source": conv_src,
             "analysis_type": analysis_type,
             "time_period_years": period_years,
@@ -962,7 +975,7 @@ class ETAPProject:
                     if relay_results
                     else False,
                 }
-        except (pythoncom.com_error, AttributeError) as e:
+        except (COM_ERROR, AttributeError) as e:
             raise RuntimeError(f"COM error during protection coordination: {e}") from e
         except RuntimeError:
             raise
@@ -979,7 +992,7 @@ class ETAPProject:
                 "reporting convergence_source=unavailable",
             )
         result = {
-            "converged": bool(converged) if converged is not None else False,
+            "converged": converged if converged is not None else False,
             "convergence_source": conv_src,
             "relay_pairs": pairs,
             "standard": "IEC 60255-151",
@@ -1004,7 +1017,7 @@ class ETAPProject:
                     "voltage_ang_deg": bus.VoltageAng,
                     "type": bus.BusType,
                 }
-        except pythoncom.com_error as e:
+        except COM_ERROR as e:
             logger.warning(
                 "COM error retrieving bus %s (timeout=%ss): %s", bus_id, self._com_timeout, e
             )
@@ -1022,7 +1035,7 @@ class ETAPProject:
                     data = self.get_bus_data(bus_id)
                     if data:
                         buses.append(data)
-        except pythoncom.com_error as e:
+        except COM_ERROR as e:
             logger.exception("COM error retrieving buses (timeout=%ss): %s", self._com_timeout, e)
         except Exception as e:
             logger.exception("Error retrieving buses: %s", e)
@@ -1032,9 +1045,9 @@ class ETAPProject:
         """Save the project."""
         try:
             path = file_path or self.file_path
-            if path is not None and len(str(path)) > MAX_PROJECT_PATH_LENGTH:
+            if path is not None and len(path) > MAX_PROJECT_PATH_LENGTH:
                 raise ValueError(
-                    f"File path length {len(str(path))} exceeds maximum {MAX_PROJECT_PATH_LENGTH}",
+                    f"File path length {len(path)} exceeds maximum {MAX_PROJECT_PATH_LENGTH}",
                 )
             self._com_project.SaveAs(path)
             self.file_path = path
@@ -1398,7 +1411,7 @@ class ETAPAutomation:
         resolved = pathlib.Path(directory).resolve()
         self._allowed_project_dirs.append(str(resolved))
 
-    def _validate_project_path(self, file_path: str) -> bool:
+    def _validate_project_path(self, file_path: Any) -> bool:
         """
         Validate that a project path is within allowed directories.
 
@@ -1443,49 +1456,35 @@ class ETAPAutomation:
         cwd = pathlib.Path.cwd().resolve()
         home = pathlib.Path.home().resolve()
 
+        # Reject traversal markers in raw string regardless of OS separator
+        clean_path = file_path.replace("\\", "/")
+        if "/../" in clean_path or clean_path.startswith("../") or clean_path.endswith("/..") or clean_path == "..":
+            logger.warning(
+                "Path traversal sequence detected in project path: %r", file_path
+            )  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
+            return False
+
         # Detect UNC paths cross-platform (Windows \\server\share or //server/share)
         if file_path.startswith(("\\\\", "//")):
             logger.warning(
                 "UNC path not allowed (SMB relay risk): %r", file_path
             )  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
-            logger.warning(
-                "UNC path not allowed (SMB relay risk): %r", file_path
-            )  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
-
             return False
 
         # Lexical normalisation only — no filesystem access, no symlink resolution.
-        normalised = pathlib.Path(os.path.normpath(file_path))
+        normalised = pathlib.Path(os.path.normpath(clean_path))
         # Reject any ".." components that would escape the input's root.
         try:
             # Convert to absolute (still lexical) for the containment check.
             if not normalised.is_absolute():
                 normalised = cwd / normalised
-            # Compute a purely-lexical "resolved" form by collapsing ".." / "."
-            # without following symlinks. Python ≥ 3.6 Path.resolve(strict=False)
-            # does this safely on non-existent paths.
-            # NOSONAR file_path IS user-controlled, but
-            # we LEXICALLY normalise via os.path.normpath BEFORE this resolve()
-            # call, AND we enforce a strict containment check (resolved must be
-            # inside cwd or home) AFTER it. The resolve() itself is non-strict
-            # and does NOT follow symlinks on non-existent paths. The actual
-            # filesystem write happens only inside the ETAP COM process which
-            # validates the path again. Removing resolve() would break relative
-            # path handling for legitimate ETAP project files.
             resolved = normalised.resolve(
                 strict=False
-            )  # NOSONAR S6549: lexical normpath + containment checks mitigate path escape (see comment block above)
+            )  # NOSONAR S6549: lexical normpath + containment checks mitigate path escape
         except (ValueError, RuntimeError):
             logger.warning(
                 "Invalid path format: %r", file_path
             )  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
-            resolved = normalised.resolve(
-                strict=False
-            )  # NOSONAR S6549: lexical normpath + containment checks mitigate path escape (see comment block above)
-            logger.warning(
-                "Invalid path format: %r", file_path
-            )  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
-
             return False
 
         # Containment check: resolved path must be inside CWD or HOME.
@@ -1498,10 +1497,6 @@ class ETAPAutomation:
                 logger.warning(
                     "Project path escapes CWD and HOME: %r", file_path
                 )  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
-                logger.warning(
-                    "Project path escapes CWD and HOME: %r", file_path
-                )  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
-
                 return False
 
         if self._allowed_project_dirs:
@@ -1512,10 +1507,6 @@ class ETAPAutomation:
                 logger.warning(
                     "Project path outside allowed directories: %r", file_path
                 )  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
-                logger.warning(
-                    "Project path outside allowed directories: %r", file_path
-                )  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
-
                 return False
 
         return True
@@ -1540,11 +1531,11 @@ class ETAPAutomation:
             # SECURITY (LAUNCH-BLOCKER): Initialize COM for this thread
             import sys as _sys
 
-            if _sys.platform == "win32":
-                import pythoncom
-
+            if _sys.platform == "win32" and pythoncom is not None:
                 pythoncom.CoInitialize()
 
+            if win32com is None:
+                raise RuntimeError("win32com is not available on this platform")
             self._com_app = win32com.client.Dispatch("ETAP.Application")
 
             if hasattr(self._com_app, "Visible"):
@@ -1581,6 +1572,9 @@ class ETAPAutomation:
 
             return None
 
+        if self._com_app is None:
+            raise RuntimeError("ETAP COM application is not initialized")
+
         try:
             com_project = self._com_app.OpenProject(file_path)
 
@@ -1598,7 +1592,7 @@ class ETAPAutomation:
 
                 return None
 
-        except pythoncom.com_error as e:
+        except COM_ERROR as e:
             logger.exception(
                 "COM error opening project %s (timeout=%ds): %s",
                 file_path,
@@ -1625,6 +1619,9 @@ class ETAPAutomation:
 
         safe_name = self._sanitize_project_name(project_name)
 
+        if self._com_app is None:
+            raise RuntimeError("ETAP COM application is not initialized")
+
         try:
             com_project = self._com_app.NewProject()
 
@@ -1642,7 +1639,7 @@ class ETAPAutomation:
                 logger.error("Failed to create new project")
                 return None
 
-        except pythoncom.com_error as e:
+        except COM_ERROR as e:
             logger.exception(
                 "COM error creating project (timeout=%ss): %s", self.com_timeout_seconds, e
             )
@@ -1653,7 +1650,7 @@ class ETAPAutomation:
 
     def get_active_project(self) -> ETAPProject | None:
         """Get the currently active project."""
-        if not self.is_running:
+        if not self.is_running or self._com_app is None:
             return None
 
         try:
@@ -1669,7 +1666,7 @@ class ETAPAutomation:
                     com_timeout=self.com_timeout_seconds,
                 )
                 return project
-        except pythoncom.com_error as e:
+        except COM_ERROR as e:
             logger.exception(
                 "COM error getting active project (timeout=%ds): %s",
                 self.com_timeout_seconds,
@@ -1720,7 +1717,7 @@ class ETAPAutomation:
             logger.info("ETAP shutdown complete")
             return True
 
-        except pythoncom.com_error as e:
+        except COM_ERROR as e:
             logger.exception(
                 "COM error shutting down ETAP (timeout=%ss): %s", self.com_timeout_seconds, e
             )
