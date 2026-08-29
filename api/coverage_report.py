@@ -790,59 +790,9 @@ class CoverageAnalyzer:
 # ---------------------------------------------------------------------------
 
 
-# NOSONAR S3776: cognitive complexity intentional; logic validated by tests
-async def _main() -> (  # NOSONAR
-    None
-):  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
-    """CLI entrypoint for running the coverage analyzer."""
-    import argparse
-
-    parser = argparse.ArgumentParser(
-        description="AhmedETAP — Test Coverage Analyzer",
-    )
-    parser.add_argument(
-        "--project-root",
-        type=str,
-        default=None,
-        help="Path to the project root (defaults to this repo)",
-    )
-    parser.add_argument(
-        "--output",
-        type=str,
-        default="-",
-        help="Output file path ('-' for stdout)",
-    )
-    parser.add_argument(
-        "--json-only",
-        action="store_true",
-        help="Output only the JSON report (no summary text)",
-    )
-    args = parser.parse_args()
-
-    analyzer = CoverageAnalyzer(project_root=args.project_root)
-    report = await analyzer.run()
-
-    # NOSONAR
-    if args.output != "-":
-        if "\x00" in args.output:
-            parser.error("Invalid output path: contains NUL byte")
-        # Validate path is within allowed directories
-        _output_path = os.path.abspath(args.output)
-        if not os.path.dirname(_output_path):
-            parser.error("Invalid output path: no parent directory")
-        if "\x00" in args.output:
-            parser.error("Invalid output path: contains NUL byte")
-        out_dir = os.path.dirname(os.path.abspath(args.output))
-        if out_dir and not os.path.isdir(out_dir):
-            parser.error(f"Output directory does not exist: {out_dir}")
-        # S8707: Verify the resolved path does not escape allowed directories
-        _resolved_output = os.path.realpath(args.output)
-        if ".." in _resolved_output:
-            parser.error("Invalid output path: path traversal detected")
-
+def _write_report_output(report: CoverageReport, args: Any) -> None:
     # Use ExitStack so the output file (when not stdout) is always closed
-    # via a context manager, even on exception. This replaces the previous
-    # try/finally + manual out.close() pattern.
+    # via a context manager, even on exception.
     with contextlib.ExitStack() as stack:
         out = (
             sys.stdout
@@ -909,7 +859,53 @@ async def _main() -> (  # NOSONAR
 
         json.dump(report_dict, out, indent=2, default=str)
         print(file=out)
-    # ExitStack closes the file automatically when leaving the `with` block.
+
+
+async def _main() -> (
+    None
+):
+    """CLI entrypoint for running the coverage analyzer."""
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        description="AhmedETAP — Test Coverage Analyzer",
+    )
+    parser.add_argument(
+        "--project-root",
+        type=str,
+        default=None,
+        help="Path to the project root (defaults to this repo)",
+    )
+    parser.add_argument(
+        "--output",
+        type=str,
+        default="-",
+        help="Output file path ('-' for stdout)",
+    )
+    parser.add_argument(
+        "--json-only",
+        action="store_true",
+        help="Output only the JSON report (no summary text)",
+    )
+    args = parser.parse_args()
+
+    analyzer = CoverageAnalyzer(project_root=args.project_root)
+    report = await analyzer.run()
+
+    if args.output != "-":
+        if "\x00" in args.output:
+            parser.error("Invalid output path: contains NUL byte")
+        _output_path = os.path.abspath(args.output)
+        if not os.path.dirname(_output_path):
+            parser.error("Invalid output path: no parent directory")
+        out_dir = os.path.dirname(os.path.abspath(args.output))
+        if out_dir and not os.path.isdir(out_dir):
+            parser.error(f"Output directory does not exist: {out_dir}")
+        _resolved_output = os.path.realpath(args.output)
+        if ".." in _resolved_output:
+            parser.error("Invalid output path: path traversal detected")
+
+    _write_report_output(report, args)
 
 
 if __name__ == "__main__":

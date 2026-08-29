@@ -1218,48 +1218,9 @@ class SecurityAuditor:
 # ---------------------------------------------------------------------------
 
 
-async def _main() -> (  # NOSONAR
-    None
-):  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
-    """CLI entrypoint for running the security auditor."""
-    import argparse
-
-    parser = argparse.ArgumentParser(
-        description="AhmedETAP — Security Auditor",
-    )
-    parser.add_argument(
-        "--project-root",
-        type=str,
-        default=None,
-        help="Path to the project root",
-    )
-    parser.add_argument(
-        "--output",
-        type=str,
-        default="-",
-        help="Output file path ('-' for stdout)",
-    )
-    parser.add_argument(
-        "--json-only",
-        action="store_true",
-        help="Output only JSON (no summary text)",
-    )
-    args = parser.parse_args()
-
-    auditor = SecurityAuditor(project_root=args.project_root)
-    report = await auditor.run()
-
-    # NOSONAR
-    if args.output != "-":
-        if "\x00" in args.output:
-            parser.error("Invalid output path: contains NUL byte")
-        out_dir = os.path.dirname(os.path.abspath(args.output))
-        if out_dir and not os.path.isdir(out_dir):
-            parser.error(f"Output directory does not exist: {out_dir}")
-
+def _write_security_report(report: Any, args: Any) -> None:
     # Use ExitStack so the output file (when not stdout) is always closed
-    # via a context manager, even on exception. Replaces the previous
-    # try/finally + manual out.close() pattern.
+    # via a context manager, even on exception.
     with contextlib.ExitStack() as stack:
         out = (
             sys.stdout
@@ -1327,7 +1288,45 @@ async def _main() -> (  # NOSONAR
 
         json.dump(report.to_dict(), out, indent=2, default=str)
         print(file=out)
-    # ExitStack closes the file automatically when leaving the `with` block.
+
+
+async def _main() -> None:
+    """CLI entrypoint for running the security auditor."""
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        description="AhmedETAP — Static Security Auditor",
+    )
+    parser.add_argument(
+        "--project-root",
+        type=str,
+        default=None,
+        help="Path to the project root (defaults to this repo)",
+    )
+    parser.add_argument(
+        "--output",
+        type=str,
+        default="-",
+        help="Output file path ('-' for stdout)",
+    )
+    parser.add_argument(
+        "--json-only",
+        action="store_true",
+        help="Output only JSON (no summary text)",
+    )
+    args = parser.parse_args()
+
+    auditor = SecurityAuditor(project_root=args.project_root)
+    report = await auditor.run()
+
+    if args.output != "-":
+        if "\x00" in args.output:
+            parser.error("Invalid output path: contains NUL byte")
+        out_dir = os.path.dirname(os.path.abspath(args.output))
+        if out_dir and not os.path.isdir(out_dir):
+            parser.error(f"Output directory does not exist: {out_dir}")
+
+    _write_security_report(report, args)
 
 
 if __name__ == "__main__":

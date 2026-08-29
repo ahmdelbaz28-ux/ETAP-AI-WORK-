@@ -419,15 +419,13 @@ async def run_scenario(
 
         for filename, filepath, mime in files_to_upload:
             try:
-                with open(filepath, "rb") as f:
-                    storage_path = f"scenarios/{trace_id}/{filename}"
-                    upload_file(
-                        bucket="reports",
-                        file_path=storage_path,
-                        content=f.read(),
-                        content_type=mime,
-                        user_id="scenario-runner",
-                    )
+                storage_path = f"scenarios/{trace_id}/{filename}"
+                upload_file(
+                    bucket="reports",
+                    file_path=filepath,
+                    content_type=mime,
+                    user_id="scenario-runner",
+                )
                 uploaded_urls[filename] = get_signed_url(
                     bucket="reports",
                     path=storage_path,

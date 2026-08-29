@@ -1026,11 +1026,8 @@ async def list_mcp_servers(
         for sid, scfg in servers_raw.items():
             env = scfg.get("env", {}) or {}
             redacted_env: dict[str, str] = {}
-            for k, _v in env.items():
-                if any(h in k.lower() for h in SECRET_KEY_HINTS):
-                    redacted_env[k] = "***REDACTED***"
-                else:
-                    redacted_env[k] = "***REDACTED***"  # mask all env values by default
+            for k in env:
+                redacted_env[k] = "***REDACTED***"  # mask all env values by default
 
             servers.append(
                 {

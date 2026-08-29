@@ -1,5 +1,5 @@
 import { ChevronDown } from "lucide-react";
-import { type SelectHTMLAttributes, forwardRef } from "react";
+import { type SelectHTMLAttributes, forwardRef, useId } from "react";
 import { cn } from "../../utils/helpers";
 
 interface SelectOption {
@@ -18,9 +18,10 @@ interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
 
 export const Select = forwardRef<HTMLSelectElement, SelectProps>(
   ({ label, description, error, options, placeholder, className, id, ...props }, ref) => {
+    const generatedId = useId();
     const selectId =
       id ||
-      `select-${label?.toLowerCase().replace(/\s+/g, "-") || Math.random().toString(36).slice(2, 9)}`;
+      (label ? `select-${label.toLowerCase().replace(/\s+/g, "-")}` : generatedId);
     return (
       <div className="w-full">
         {label && (

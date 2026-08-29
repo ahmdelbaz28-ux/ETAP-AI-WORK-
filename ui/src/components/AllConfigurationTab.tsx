@@ -682,7 +682,7 @@ export function AllConfigurationTab() {
   const categories: readonly (ConfigCategory | "all")[] = useMemo(() => {
     const present = new Set<ConfigCategory>();
     for (const e of CONFIG_CATALOG) present.add(e.category);
-    return ["all", ...Array.from(present).sort()] as const;
+    return ["all", ...Array.from(present).sort((a, b) => a.localeCompare(b))] as const;
   }, []);
 
   return (

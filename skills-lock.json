@@ -373,6 +373,12 @@
       "skillPath": "skills/engineering/triage/SKILL.md",
       "computedHash": "363ca4f1b97ca5227d41d3973178ab301d7c498ba41b466dfe30b6163f6d72b5"
     },
+    "triage-vulnerabilities": {
+      "source": "brenthaertlein/universal-skills",
+      "sourceType": "github",
+      "skillPath": "plugins/infra/skills/triage-vulnerabilities/SKILL.md",
+      "computedHash": "a57a909735297cc530f415458d60a5ce9d02bd8ce3afe96e2828872d37ceee7c"
+    },
     "ui-ux-pro-max": {
       "source": "nextlevelbuilder/ui-ux-pro-max-skill",
       "sourceType": "github",

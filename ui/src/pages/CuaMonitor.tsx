@@ -503,9 +503,9 @@ export default function CuaMonitor() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-800">
-                    {siemEvents.map((ev) => (
+                    {siemEvents.map((ev, idx) => (
                       <tr
-                        key={ev.id || Math.random()}
+                        key={ev.id || `siem-ev-${idx}-${ev.timestamp || ""}`}
                         className="hover:bg-slate-800/40 transition-colors"
                       >
                         <td className="py-2 px-3 font-mono text-[11px] text-slate-400">

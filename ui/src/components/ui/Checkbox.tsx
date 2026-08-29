@@ -1,5 +1,5 @@
 import { Check } from "lucide-react";
-import { type InputHTMLAttributes, forwardRef } from "react";
+import { type InputHTMLAttributes, forwardRef, useId } from "react";
 import { cn } from "../../utils/helpers";
 
 interface CheckboxProps extends Omit<InputHTMLAttributes<HTMLInputElement>, "type"> {
@@ -9,9 +9,10 @@ interface CheckboxProps extends Omit<InputHTMLAttributes<HTMLInputElement>, "typ
 
 export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
   ({ label, description, className, id, ...props }, ref) => {
+    const generatedId = useId();
     const checkboxId =
       id ||
-      `checkbox-${label?.toLowerCase().replace(/\s+/g, "-") || Math.random().toString(36).slice(2, 9)}`;
+      (label ? `checkbox-${label.toLowerCase().replace(/\s+/g, "-")}` : generatedId);
     return (
       <div className="flex items-start gap-2.5">
         <div className="relative flex items-center pt-0.5">
