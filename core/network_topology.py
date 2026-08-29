@@ -222,13 +222,13 @@ class NetworkTopology:
 
         self._branches[branch_obj.id] = branch_obj
 
-        if self._graph is not None:
-            # Ensure endpoints exist
-            if branch_obj.from_bus not in self._buses:
-                self.add_bus(BusNode(id=branch_obj.from_bus))
-            if branch_obj.to_bus not in self._buses:
-                self.add_bus(BusNode(id=branch_obj.to_bus))
+        # Ensure endpoints exist
+        if branch_obj.from_bus not in self._buses:
+            self.add_bus(BusNode(id=branch_obj.from_bus))
+        if branch_obj.to_bus not in self._buses:
+            self.add_bus(BusNode(id=branch_obj.to_bus))
 
+        if self._graph is not None:
             self._graph.add_edge(
                 branch_obj.from_bus,
                 branch_obj.to_bus,
@@ -288,6 +288,49 @@ class NetworkTopology:
                     neighbors.add(b.from_bus)
         return list(neighbors)
 
+    def _dijkstra_shortest_path(self, from_bus: str, to_bus: str) -> list[str] | None:
+        """Pure-Python Dijkstra shortest path weighted by branch impedance."""
+        import heapq
+
+        adj: dict[str, list[tuple[str, float]]] = {}
+        for b in self._branches.values():
+            if b.status == "closed":
+                u, v, w = b.from_bus, b.to_bus, max(float(b.impedance), 1e-9)
+                adj.setdefault(u, []).append((v, w))
+                adj.setdefault(v, []).append((u, w))
+
+        if from_bus not in adj and from_bus not in self._buses:
+            return None
+        if to_bus not in adj and to_bus not in self._buses:
+            return None
+
+        dist: dict[str, float] = {from_bus: 0.0}
+        prev: dict[str, Optional[str]] = {from_bus: None}
+        pq = [(0.0, from_bus)]
+        visited: set[str] = set()
+
+        while pq:
+            d, u = heapq.heappop(pq)
+            if u in visited:
+                continue
+            visited.add(u)
+
+            if u == to_bus:
+                path: list[str] = []
+                curr: Optional[str] = to_bus
+                while curr is not None:
+                    path.append(curr)
+                    curr = prev[curr]
+                return path[::-1]
+
+            for v, w in adj.get(u, []):
+                if d + w < dist.get(v, float("inf")):
+                    dist[v] = d + w
+                    prev[v] = u
+                    heapq.heappush(pq, (dist[v], v))
+
+        return None
+
     def find_shortest_path(self, from_bus: str, to_bus: str) -> list[str] | None:
         """
         Find the shortest electrical path between two buses.
@@ -311,6 +354,11 @@ class NetworkTopology:
                 return None
             except Exception as e:
                 logger.debug("NetworkX shortest path calculation error: %s", e)
+
+        # Try pure-Python Dijkstra fallback
+        dijkstra_path = self._dijkstra_shortest_path(from_bus, to_bus)
+        if dijkstra_path is not None:
+            return dijkstra_path
 
         # Try Neo4j if available
         if self.is_cloud_connected:
@@ -358,11 +406,24 @@ class NetworkTopology:
             is_fully_isolated=len(boundary_branches) > 0,
         )
 
+    def _get_branch_between(self, bus_a: str, bus_b: str) -> Optional[BranchEdge]:
+        """Find the branch connecting two buses."""
+        if self._graph is not None and bus_a in self._graph and bus_b in self._graph:
+            edge_data = self._graph.get_edge_data(bus_a, bus_b)
+            if edge_data and "id" in edge_data:
+                return self._branches.get(edge_data["id"])
+
+        for b in self._branches.values():
+            if b.status == "closed":
+                if (b.from_bus == bus_a and b.to_bus == bus_b) or (b.from_bus == bus_b and b.to_bus == bus_a):
+                    return b
+        return None
+
     def trace_feeders(self, root_substation: str) -> FeederTree:
         """
         Trace all downstream feeder branches and leaf buses starting from a substation.
         """
-        if self._graph is None or root_substation not in self._graph:
+        if root_substation not in self._buses and (self._graph is None or root_substation not in self._graph):
             return FeederTree(
                 root_substation=root_substation,
                 buses=[root_substation],
@@ -370,29 +431,28 @@ class NetworkTopology:
                 leaf_buses=[root_substation],
             )
 
-        visited_buses = set()
-        visited_branches = set()
-        leaf_buses = []
+        visited_buses: set[str] = set()
+        visited_branches: set[str] = set()
+        leaf_buses: list[str] = []
         max_depth = 0
 
         # BFS traversal
-        queue = [(root_substation, 0)]
+        queue: list[tuple[str, int]] = [(root_substation, 0)]
         visited_buses.add(root_substation)
 
         while queue:
             current_bus, depth = queue.pop(0)
             max_depth = max(max_depth, depth)
-            neighbors = list(self._graph.neighbors(current_bus))
+            neighbors = self.get_adjacent_buses(current_bus)
 
             is_leaf = True
             for neighbor in neighbors:
                 if neighbor not in visited_buses:
                     is_leaf = False
                     visited_buses.add(neighbor)
-                    # Find branch id
-                    edge_data = self._graph.get_edge_data(current_bus, neighbor)
-                    if edge_data and "id" in edge_data:
-                        visited_branches.add(edge_data["id"])
+                    branch = self._get_branch_between(current_bus, neighbor)
+                    if branch is not None:
+                        visited_branches.add(branch.id)
                     queue.append((neighbor, depth + 1))
 
             if is_leaf and current_bus != root_substation:
