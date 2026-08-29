@@ -152,3 +152,5 @@ export function ChatWorkspace({ onExitToLegacy }: ChatWorkspaceProps) {
     </div>
   );
 }
+
+export default ChatWorkspace;

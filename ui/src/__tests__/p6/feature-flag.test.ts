@@ -12,7 +12,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const fetchFeatureFlagsMock = vi.fn();
-vi.mock("../../../lib/api", () => ({
+vi.mock("../../lib/api", () => ({
   fetchFeatureFlags: () => fetchFeatureFlagsMock(),
 }));
 

@@ -375,10 +375,13 @@ export const useChatStore = create<ChatWorkspaceState>()((set, get) => ({
           plan_id: typeof payload.plan_id === "string" ? payload.plan_id : undefined,
           ts,
           summary: (payload.summary as Record<string, unknown> | undefined) ?? null,
+          // result_ready announces a result whose ResultStore payload is still
+          // pending enrichment via loadResult — the entry starts in-flight.
+          loading: true,
         };
         const existing = get().results.find((r) => r.resultId === resultId);
         const results = existing
-          ? get().results.map((r) => (r.resultId === resultId ? { ...r, ...entry, loading: true } : r))
+          ? get().results.map((r) => (r.resultId === resultId ? { ...r, ...entry, loading: !r.loaded } : r))
           : [entry, ...get().results].slice(0, MAX_LIST_ITEMS);
         set({ results, selectedResultId: get().selectedResultId ?? resultId });
         return;

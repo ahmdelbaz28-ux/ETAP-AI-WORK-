@@ -8,7 +8,7 @@
  * It never claims a client-side cancellation stopped anything — success is
  * only reported after the backend acknowledges activation.
  */
-import { AlarmOctagon, CheckCircle2, Loader2, OctagonX } from "lucide-react";
+import { AlertOctagon, CheckCircle2, Loader2, OctagonX } from "lucide-react";
 import { useEffect } from "react";
 import { useChatStore } from "../../store/chatStore";
 import { Badge } from "../ui/Badge";
@@ -33,7 +33,7 @@ export function EmergencyStopButton() {
           size="sm"
           loading={activating}
           disabled={active}
-          icon={active ? OctagonX : AlarmOctagon}
+          icon={active ? OctagonX : AlertOctagon}
           onClick={() => void activate("chat_workspace_ui")}
           data-testid="emergency-stop-button"
         >

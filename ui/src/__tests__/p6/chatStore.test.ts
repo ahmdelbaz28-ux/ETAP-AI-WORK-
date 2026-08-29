@@ -13,11 +13,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const requestMock = vi.fn();
-vi.mock("../../../lib/api", () => ({
+vi.mock("../../lib/api", () => ({
   request: (...args: unknown[]) => requestMock(...args),
 }));
 
-vi.mock("../../../lib/llm-chat", () => ({
+vi.mock("../../lib/llm-chat", () => ({
   getChatSessionId: () => "test-session-id",
   streamFromServerChat: vi.fn(),
 }));

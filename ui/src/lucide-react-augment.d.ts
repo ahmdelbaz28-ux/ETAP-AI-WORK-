@@ -77,4 +77,35 @@ declare module "lucide-react" {
       ref?: React.Ref<SVGSVGElement>;
     }
   >;
+  // P6 ChatWorkspace icons (verified present in lucide-react@0.468.0 runtime CJS)
+  export const ShieldX: React.ForwardRefExoticComponent<
+    Omit<React.SVGProps<SVGSVGElement>, "ref"> & {
+      ref?: React.Ref<SVGSVGElement>;
+    }
+  >;
+  export const GitPullRequest: React.ForwardRefExoticComponent<
+    Omit<React.SVGProps<SVGSVGElement>, "ref"> & {
+      ref?: React.Ref<SVGSVGElement>;
+    }
+  >;
+  export const FileBarChart: React.ForwardRefExoticComponent<
+    Omit<React.SVGProps<SVGSVGElement>, "ref"> & {
+      ref?: React.Ref<SVGSVGElement>;
+    }
+  >;
+  export const CircleDot: React.ForwardRefExoticComponent<
+    Omit<React.SVGProps<SVGSVGElement>, "ref"> & {
+      ref?: React.Ref<SVGSVGElement>;
+    }
+  >;
+  export const AlertOctagon: React.ForwardRefExoticComponent<
+    Omit<React.SVGProps<SVGSVGElement>, "ref"> & {
+      ref?: React.Ref<SVGSVGElement>;
+    }
+  >;
+  export const OctagonX: React.ForwardRefExoticComponent<
+    Omit<React.SVGProps<SVGSVGElement>, "ref"> & {
+      ref?: React.Ref<SVGSVGElement>;
+    }
+  >;
 }

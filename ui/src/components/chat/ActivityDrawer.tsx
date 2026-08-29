@@ -13,6 +13,7 @@ import {
   RefreshCw,
   XCircle,
 } from "lucide-react";
+import type { ComponentType, SVGProps } from "react";
 import { useChatStore, type WsConnectionStatus } from "../../store/chatStore";
 import { Badge } from "../ui/Badge";
 import { Card, CardHeader, CardSection } from "../ui/Card";
@@ -20,7 +21,7 @@ import { Progress } from "../ui/Progress";
 
 const WS_META: Record<
   WsConnectionStatus,
-  { label: string; variant: "success" | "warning" | "danger" | "info" | "neutral"; icon: typeof CircleDot }
+  { label: string; variant: "success" | "warning" | "danger" | "info" | "neutral"; icon: ComponentType<SVGProps<SVGSVGElement>> }
 > = {
   connecting: { label: "Connecting", variant: "info", icon: CircleDot },
   connected: { label: "Connected", variant: "success", icon: CheckCircle2 },

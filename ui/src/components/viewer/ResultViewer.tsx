@@ -63,7 +63,10 @@ export function ResultViewer({ result, onClose }: ResultViewerProps) {
 
   useEffect(() => {
     if (!result) return;
-    if (result.loaded || result.loading || result.error) return;
+    // result_ready marks new entries loading=true (announcement pending
+    // enrichment) — the guard must not check `loading` or the lazy load
+    // could never start and the viewer would stay on its skeleton forever.
+    if (result.loaded || result.error) return;
     void loadResult(result.resultId);
   }, [result, loadResult]);
 
@@ -92,9 +95,7 @@ export function ResultViewer({ result, onClose }: ResultViewerProps) {
       open={true}
       onClose={onClose}
       title={result.tool ?? "Study result"}
-      subtitle={
-        <span className="font-mono text-xs text-[var(--text-tertiary)]">{result.resultId}</span>
-      }
+      subtitle={result.resultId}
       size="xl"
       footer={
         <>
