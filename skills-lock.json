@@ -90,6 +90,12 @@
       "skillPath": ".agents/skills/create-readme/SKILL.md",
       "status": "active"
     },
+    "daytona-chrome-cdp": {
+      "source": "different-ai/openwork",
+      "sourceType": "github",
+      "skillPath": ".opencode/skills/daytona-chrome-cdp/SKILL.md",
+      "computedHash": "8ea2eaabb5a3689af9beb0a4c46556f5e7812ef3c5b3fc6f8971cae0cb5df958"
+    },
     "debugging-wizard": {
       "source": "./.agents/skills",
       "sourceType": "local",
