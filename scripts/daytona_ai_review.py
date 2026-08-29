@@ -251,25 +251,61 @@ def post_review(results: list[StepResult], artifacts: dict[str, str]) -> None:
 
 
 def _init_daytona(api_key: str, api_url: str):
-    """Initialize Daytona client supporting multiple constructor signatures."""
+    """Initialize Daytona client supporting multiple constructor signatures and DaytonaConfig."""
+    import daytona_sdk
     from daytona_sdk import Daytona  # type: ignore
-    try:
-        return Daytona(api_key=api_key, api_url=api_url)
-    except TypeError:
-        return Daytona(api_key=api_key, server_url=api_url)
+
+    DaytonaConfig = getattr(daytona_sdk, "DaytonaConfig", None)
+    if DaytonaConfig is not None:
+        for config_kwargs in [
+            {"api_key": api_key, "server_url": api_url},
+            {"api_key": api_key, "api_url": api_url},
+            {"api_key": api_key},
+        ]:
+            try:
+                cfg = DaytonaConfig(**config_kwargs)
+                return Daytona(config=cfg)
+            except Exception:
+                pass
+
+    for kwargs in [
+        {"api_key": api_key, "server_url": api_url},
+        {"api_key": api_key, "api_url": api_url},
+        {"server_url": api_url, "api_key": api_key},
+        {"api_key": api_key},
+    ]:
+        try:
+            return Daytona(**kwargs)
+        except Exception:
+            pass
+
+    return Daytona()
 
 
 def _create_sandbox(daytona, target_name: str):
     """Create Daytona sandbox supporting multiple target types."""
-    from daytona_sdk import Target  # type: ignore
-    try:
-        target = Target(target_name)
-    except Exception:
-        target = target_name
-    try:
-        return daytona.create(target=target, language="python")
-    except TypeError:
-        return daytona.create(language="python")
+    import daytona_sdk
+
+    Target = getattr(daytona_sdk, "Target", None)
+    target = target_name
+    if Target is not None:
+        try:
+            target = Target(target_name)
+        except Exception:
+            pass
+
+    for create_call in [
+        lambda: daytona.create(target=target, language="python"),
+        lambda: daytona.create(language="python"),
+        lambda: daytona.create(target=target),
+        lambda: daytona.create(),
+    ]:
+        try:
+            return create_call()
+        except Exception:
+            pass
+
+    raise RuntimeError("Failed to create Daytona sandbox with available SDK methods")
 
 
 def main() -> int:
