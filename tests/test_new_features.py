@@ -206,7 +206,7 @@ async def test_5_webhooks():
 
     # Register
     body = RegisterEndpointRequest(
-        url="https://hooks.example.com/etap",
+        url="http://localhost:8080/webhook",
         events=["email.sent", "email.delivered", "email.bounced"],
         secret="test_secret_at_least_16_chars",
     )
@@ -246,7 +246,7 @@ async def test_6_digest():
             success=True,
         )
 
-    ctx = _build_digest_context(
+    ctx = await _build_digest_context(
         email="digest-user@example.com",
         period="daily",
         user_name="Digest User",

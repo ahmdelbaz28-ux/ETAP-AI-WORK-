@@ -107,7 +107,7 @@ async def log_email_send(
         tags=tags or [],
     )
 
-    async with _lock:
+    with _lock:
         _buffer.append(record)
 
     # Persist to Redis (best-effort)
