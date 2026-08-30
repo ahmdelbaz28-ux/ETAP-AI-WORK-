@@ -12,10 +12,14 @@ SECURITY AUDIT 2026-08-02 (V-49 fix):
 
 from __future__ import annotations
 
+import ipaddress
 import json
 import logging
 import os
 import re
+import shutil
+import socket
+import urllib.parse
 from datetime import datetime, timezone
 
 UTC = timezone.utc  # noqa: UP017
@@ -1063,6 +1067,278 @@ async def list_mcp_servers(
             status_code=500,
             content={"success": False, "errors": [MSG_INTERNAL_ERROR], "trace_id": trace_id},
         )
+
+
+# ---------------------------------------------------------------------------
+# MCP server health probe (P7c)
+# ---------------------------------------------------------------------------
+
+
+_RESTRICTED_IP_MSG = (
+    "Target resolves to a restricted network destination (SSRF guard)."
+)
+_HTTP_BLOCKED_MSG = "Remote MCP endpoints must use HTTPS (HTTP transport is disabled)."
+
+
+def _is_restricted_ip(ip: str) -> bool:
+    """True for loopback/private/link-local/multicast/reserved/unspecified IPs."""
+    try:
+        addr = ipaddress.ip_address(ip.strip())
+    except ValueError:
+        return True
+    return (
+        addr.is_loopback
+        or addr.is_private
+        or addr.is_link_local
+        or addr.is_multicast
+        or addr.is_reserved
+        or addr.is_unspecified
+    )
+
+
+def _probe_headers() -> dict[str, str]:
+    """Minimal headers — NO auth, NO cookies, NO secrets."""
+    return {
+        "User-Agent": "ETAP-AI-mcp-health-probe/1.0",
+        "Accept": "application/json",
+    }
+
+
+def _resolve_mcp_config_path() -> str:
+    """Resolve the configured MCP config path (same source as list_mcp_servers)."""
+    from pathlib import Path as _Path
+
+    return os.getenv(
+        "MCP_CONFIG_PATH",
+        str(_Path(__file__).resolve().parent.parent / ".mcp.json"),
+    )
+
+
+def _probe_stdio_mcp(server_id: str, server_config: dict) -> dict[str, Any]:
+    """Resolve a stdio launch command WITHOUT executing it."""
+    command = str(server_config.get("command", "") or "").strip()
+    if not command:
+        return {
+            "id": server_id,
+            "transport": "stdio",
+            "connected": False,
+            "status": "invalid",
+            "message": "MCP server has no launch command configured.",
+        }
+    resolvable = shutil.which(command) is not None
+    return {
+        "id": server_id,
+        "transport": "stdio",
+        "connected": False,
+        "command_resolvable": resolvable,
+        "status": "ready" if resolvable else "unreachable",
+        "message": (
+            "Local command is resolvable; the server is NOT spawned by this probe."
+            if resolvable
+            else "Local command is not resolvable on this host."
+        ),
+    }
+
+
+def _probe_remote_mcp(
+    server_id: str, server_config: dict, transport: str
+) -> dict[str, Any]:
+    """SSRF-guarded bare-GET health probe for remote MCP endpoints."""
+    url = str(server_config.get("url") or server_config.get("endpoint") or "").strip()
+    if not url:
+        return {
+            "id": server_id,
+            "transport": transport,
+            "connected": False,
+            "status": "invalid",
+            "message": "Remote MCP server has no url/endpoint configured.",
+        }
+
+    try:
+        parsed = urllib.parse.urlparse(url)
+        port = parsed.port
+    except ValueError:
+        return {
+            "id": server_id,
+            "transport": transport,
+            "connected": False,
+            "status": "invalid",
+            "message": "Remote MCP endpoint URL is not parseable.",
+        }
+
+    if parsed.scheme not in ("http", "https"):
+        return {
+            "id": server_id,
+            "transport": transport,
+            "connected": False,
+            "status": "invalid",
+            "message": "Remote MCP endpoint URL scheme must be http/https.",
+        }
+
+    allow_http = os.getenv("MCP_HEALTH_ALLOW_HTTP", "").lower() in (
+        "1", "true", "yes", "on",
+    )
+    if parsed.scheme == "http" and not allow_http:
+        return {
+            "id": server_id,
+            "transport": transport,
+            "connected": False,
+            "status": "blocked",
+            "message": _HTTP_BLOCKED_MSG,
+        }
+
+    host = parsed.hostname or ""
+    if not host:
+        return {
+            "id": server_id,
+            "transport": transport,
+            "connected": False,
+            "status": "invalid",
+            "message": "Remote MCP endpoint URL has no host.",
+        }
+
+    fallback_port = 443 if parsed.scheme == "https" else 80
+    try:
+        addrinfos = socket.getaddrinfo(
+            host, port if port else fallback_port, proto=socket.IPPROTO_TCP
+        )
+    except socket.gaierror:
+        return {
+            "id": server_id,
+            "transport": transport,
+            "connected": False,
+            "status": "unreachable",
+            "message": "Remote MCP endpoint host could not be resolved.",
+        }
+
+    for addr_info in addrinfos:
+        if _is_restricted_ip(addr_info[4][0]):
+            return {
+                "id": server_id,
+                "transport": transport,
+                "connected": False,
+                "status": "blocked",
+                "message": _RESTRICTED_IP_MSG,
+            }
+
+    try:
+        import httpx
+
+        with httpx.Client(timeout=5.0, follow_redirects=False) as client:
+            resp = client.get(url, headers=_probe_headers())
+        status = "ok" if 200 <= resp.status_code < 400 else "degraded"
+        return {
+            "id": server_id,
+            "transport": transport,
+            "connected": 200 <= resp.status_code < 400,
+            "reachable": True,
+            "status": status,
+            "http_status": resp.status_code,
+            "message": f"Remote MCP endpoint responded with HTTP {resp.status_code}.",
+        }
+    except Exception:  # noqa: BLE001
+        return {
+            "id": server_id,
+            "transport": transport,
+            "connected": False,
+            "reachable": False,
+            "status": "unreachable",
+            "message": "Remote MCP endpoint did not respond.",
+        }
+
+
+def _probe_mcp_server(server_id: str, server_config: dict) -> dict[str, Any]:
+    """Probe a single configured MCP server (never spawns it)."""
+    transport = str(server_config.get("type", "stdio")).lower()
+    if transport in ("http", "https", "sse", "websocket", "ws", "wss"):
+        return _probe_remote_mcp(server_id, server_config, transport)
+    return _probe_stdio_mcp(server_id, server_config)
+
+
+@router.post("/mcp-servers/{server_id}/health")
+async def check_mcp_server_health(
+    server_id: str,
+    request: Request,
+    _: str = Depends(
+        get_api_key
+    ),  # NOSONAR Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+):
+    """Backend-authoritative health probe for ONE configured MCP server.
+
+    Security (P7c):
+      * stdio servers are resolved on PATH but NEVER spawned.
+      * Remote endpoints are SSRF-validated (HTTPS-only unless
+        MCP_HEALTH_ALLOW_HTTP=1; loopback/RFC1918/link-local blocked).
+      * No credentials are sent or echoed back.
+      * Statuses: ok | degraded | unreachable | blocked | invalid.
+      * ``connected`` is only True after a verified 2xx HTTP/S probe.
+    """
+    trace_id = getattr(request.state, "trace_id", "unknown")
+    from pathlib import Path as _Path
+
+    path = _Path(_resolve_mcp_config_path())
+    if not path.exists():
+        return JSONResponse(
+            status_code=404,
+            content={
+                "success": False,
+                "errors": ["MCP config not found"],
+                "trace_id": trace_id,
+            },
+        )
+
+    try:
+        raw = json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as e:
+        logger.exception("mcp_health_config_invalid error=%s", str(e))
+        return JSONResponse(
+            status_code=500,
+            content={
+                "success": False,
+                "errors": ["MCP config is not valid JSON"],
+                "trace_id": trace_id,
+            },
+        )
+
+    servers_raw = raw.get("mcpServers", raw.get("servers", {}))
+    server_config = servers_raw.get(server_id)
+    if server_config is None:
+        return JSONResponse(
+            status_code=404,
+            content={
+                "success": False,
+                "errors": ["MCP server not found"],
+                "trace_id": trace_id,
+            },
+        )
+
+    try:
+        data = _probe_mcp_server(server_id, server_config)
+    except Exception as e:  # noqa: BLE001
+        logger.exception(
+            "mcp_health_probe_failed server=%s error=%s", server_id, str(e)
+        )
+        return JSONResponse(
+            status_code=500,
+            content={
+                "success": False,
+                "errors": [MSG_INTERNAL_ERROR],
+                "trace_id": trace_id,
+            },
+        )
+
+    data["checked_at"] = datetime.now(timezone.utc).isoformat()
+    logger.info(
+        "mcp_health_checked server=%s transport=%s status=%s trace_id=%s",
+        server_id,
+        data.get("transport"),
+        data.get("status"),
+        trace_id,
+    )
+    return JSONResponse(
+        status_code=200,
+        content={"success": True, "data": data, "trace_id": trace_id},
+    )
 
 
 @router.get("/ahmed-etap/info")

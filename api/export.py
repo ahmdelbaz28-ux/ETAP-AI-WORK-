@@ -65,7 +65,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
 from api._messages import MSG_PROJECT_NOT_FOUND
-from api.database import Base
+from api.database import Base, get_db
 from api.dependencies import (
     CurrentUser,
     PaginationParams,
@@ -125,6 +125,26 @@ async def _get_project_studies(project_id: str, db: AsyncSession) -> list:
         .order_by(desc(StudyResult.created_at))
     )
     return result.scalars().all()
+
+
+async def _load_owned_project(project_id: str, user: CurrentUser, db: AsyncSession):
+    """Load a project owned by *user*, returning 404 on any mismatch.
+
+    Combines not-found and ownership checks into a single 404 so that a
+    user cannot distinguish *missing* vs. *forbidden* resources — the ID is
+    always compared inside the DB filter.
+    """
+    from api.projects import Project
+
+    result = await db.execute(select(Project).where(Project.id == project_id))
+    project = result.scalar_one_or_none()
+    if project is None:
+        raise HTTPException(status_code=404, detail=MSG_PROJECT_NOT_FOUND)
+    # Ownership guard: only the owning user (or an admin) may export. A uniform
+    # 404 prevents users from distinguishing *missing* vs. *forbidden* resources.
+    if user.role != "admin" and project.created_by != str(user.user_id):
+        raise HTTPException(status_code=404, detail=MSG_PROJECT_NOT_FOUND)
+    return project
 
 
 def _generate_pdf(project_name: str, studies: list) -> bytes:
@@ -247,17 +267,13 @@ def _generate_excel(project_name: str, studies: list) -> bytes:
 @router.post("/{project_id}/pdf", responses={404: {"description": MSG_PROJECT_NOT_FOUND}})
 async def export_pdf(
     project_id: str,
-    db,
-    user: CurrentUser = Depends(require_permission("export", "create")),
+    db: AsyncSession = Depends(get_db),  # noqa: B008
+    auth=Depends(require_permission("export", "create")),  # noqa: B008
 ):
     """Export study results as PDF."""
-    from api.projects import Project
+    user: CurrentUser = auth[0]  # require_permission returns (user, granted)
 
-    project_result = await db.execute(select(Project).where(Project.id == project_id))
-    project = project_result.scalar_one_or_none()
-    if project is None:
-        raise HTTPException(status_code=404, detail=MSG_PROJECT_NOT_FOUND)
-
+    project = await _load_owned_project(project_id, user, db)
     studies = await _get_project_studies(project_id, db)
     pdf_bytes = _generate_pdf(project.name, studies)
 
@@ -285,17 +301,13 @@ async def export_pdf(
 @router.post("/{project_id}/excel", responses={404: {"description": MSG_PROJECT_NOT_FOUND}})
 async def export_excel(
     project_id: str,
-    db,
-    user: CurrentUser = Depends(require_permission("export", "create")),
+    db: AsyncSession = Depends(get_db),  # noqa: B008
+    auth=Depends(require_permission("export", "create")),  # noqa: B008
 ):
     """Export study results as Excel."""
-    from api.projects import Project
+    user: CurrentUser = auth[0]  # require_permission returns (user, granted)
 
-    project_result = await db.execute(select(Project).where(Project.id == project_id))
-    project = project_result.scalar_one_or_none()
-    if project is None:
-        raise HTTPException(status_code=404, detail=MSG_PROJECT_NOT_FOUND)
-
+    project = await _load_owned_project(project_id, user, db)
     studies = await _get_project_studies(project_id, db)
     excel_bytes = _generate_excel(project.name, studies)
 
@@ -321,10 +333,12 @@ async def export_excel(
 
 @router.get("/history", response_model=ExportHistoryResponse)
 async def export_history(
-    db,
-    user: CurrentUser = Depends(require_permission("export", "list")),
-    pagination: PaginationParams = Depends(pagination_params),
+    db: AsyncSession = Depends(get_db),  # noqa: B008
+    auth=Depends(require_permission("export", "list")),  # noqa: B008
+    pagination: PaginationParams = Depends(pagination_params),  # noqa: B008
 ):
+    """List export history scoped to the authenticated user (tenant/ownership guard)."""
+    user: CurrentUser = auth[0]  # require_permission returns (user, granted)
     result = await db.execute(
         select(ExportHistory)
         .where(ExportHistory.created_by == user.user_id)
