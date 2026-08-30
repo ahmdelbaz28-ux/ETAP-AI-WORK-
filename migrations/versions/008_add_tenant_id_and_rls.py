@@ -53,7 +53,7 @@ _DEFAULT_TENANT_ID = "00000000-0000-0000-0000-000000000000"
 # List of tables that need tenant_id column added by this migration.
 # Excludes: tenants (it IS the tenant table), role_permissions (association table —
 # tenant isolation is inherited via the role_id FK).
-# 
+#
 # Note: "assets" is excluded because the Asset model (api/assets.py) already
 # defines tenant_id — it is created by Base.metadata.create_all() at app startup.
 # Existing deployments without tenant_id should add it via a separate migration.

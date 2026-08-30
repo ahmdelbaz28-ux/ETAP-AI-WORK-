@@ -3,6 +3,7 @@ tests/test_daytona_chrome_helper.py — Tests for Daytona standalone Chrome CDP 
 """
 
 from unittest.mock import MagicMock, patch
+
 import pytest
 
 from scripts.daytona_chrome_helper import (

@@ -238,8 +238,8 @@ class IEC60255Curves:
         Ip, I = ip, i
         if Ip > I:
             return float("inf")
-        M = I / Ip if I != Ip else _IEC_CURVE_EPSILON  # NOSONAR
-        if I == Ip:
+        M = I / Ip if Ip != I else _IEC_CURVE_EPSILON  # noqa: F841
+        if Ip == I:
             return tms * 0.14 / (_IEC_CURVE_EPSILON**0.02 - 1)
         result = calculate_iec_operating_time(
             i_fault=i,
@@ -255,8 +255,8 @@ class IEC60255Curves:
         Ip, I = ip, i
         if Ip > I:
             return float("inf")
-        M = I / Ip if I != Ip else _IEC_CURVE_EPSILON  # NOSONAR
-        if I == Ip:
+        M = I / Ip if Ip != I else _IEC_CURVE_EPSILON  # noqa: F841
+        if Ip == I:
             return tms * 13.5 / (_IEC_CURVE_EPSILON**1.0 - 1)
         result = calculate_iec_operating_time(
             i_fault=i,
@@ -272,8 +272,8 @@ class IEC60255Curves:
         Ip, I = ip, i
         if Ip > I:
             return float("inf")
-        M = I / Ip if I != Ip else _IEC_CURVE_EPSILON  # NOSONAR
-        if I == Ip:
+        M = I / Ip if Ip != I else _IEC_CURVE_EPSILON  # noqa: F841
+        if Ip == I:
             return tms * 80.0 / (_IEC_CURVE_EPSILON**2.0 - 1)
         result = calculate_iec_operating_time(
             i_fault=i,
@@ -289,8 +289,8 @@ class IEC60255Curves:
         Ip, I = ip, i
         if Ip > I:
             return float("inf")
-        M = I / Ip if I != Ip else _IEC_CURVE_EPSILON  # NOSONAR
-        if I == Ip:
+        M = I / Ip if Ip != I else _IEC_CURVE_EPSILON  # noqa: F841
+        if Ip == I:
             return tms * 120.0 / (_IEC_CURVE_EPSILON**1.0 - 1)
         result = calculate_iec_operating_time(
             i_fault=i,

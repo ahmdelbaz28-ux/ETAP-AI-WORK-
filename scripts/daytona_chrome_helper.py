@@ -9,9 +9,6 @@ from __future__ import annotations
 
 import json
 import logging
-import os
-import subprocess
-import time
 from typing import Any
 
 logger = logging.getLogger("daytona_chrome")

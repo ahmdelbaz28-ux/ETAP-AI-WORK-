@@ -25,11 +25,10 @@ import pytest
 
 import etap_integration.etap_com as etap_com
 from etap_integration.etap_com import (
+    STUDY_TYPE_PARAMETER_SCHEMAS,
     ETAPAutomation,
     ETAPStudyType,
-    STUDY_TYPE_PARAMETER_SCHEMAS,
 )
-
 
 # ---------------------------------------------------------------------------
 # Fake ETAP COM object tree

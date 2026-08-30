@@ -964,7 +964,7 @@ async def etap_gui_health():
         },
     }
     # Save in cache (function attribute, persists across requests in same process)
-    setattr(etap_gui_health, "_cache", (now, result))
+    etap_gui_health._cache = now, result
     return {**result, "_cached": False, "_cache_age_sec": 0.0}
 
 

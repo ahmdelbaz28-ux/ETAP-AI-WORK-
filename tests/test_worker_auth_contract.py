@@ -107,7 +107,7 @@ class _FakeAutomation:
     def __init__(self, visible: bool = False) -> None:
         self.visible = visible
 
-    def __enter__(self) -> "_FakeAutomation":
+    def __enter__(self) -> _FakeAutomation:
         return self
 
     def __exit__(self, *exc: Any) -> None:

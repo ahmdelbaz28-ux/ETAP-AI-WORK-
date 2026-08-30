@@ -219,8 +219,8 @@ class ModbusServerAdapter(ProtocolAdapter):
                             if key in ctx_store2:
                                 ctx_store2[key] = new_block
                     else:
-                        setattr(device, "ir", new_block)
-                        setattr(device, "hr", new_block)
+                        device.ir = new_block
+                        device.hr = new_block
                 except Exception as exc:
                     self._mirror_degraded = True
                     logger.warning("Modbus datastore mirroring degraded: %s", exc)
