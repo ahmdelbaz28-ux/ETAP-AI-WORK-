@@ -1021,7 +1021,6 @@ async def list_mcp_servers(
         raw = json.loads(path.read_text(encoding="utf-8"))
         servers_raw = raw.get("mcpServers", raw.get("servers", {}))
 
-        SECRET_KEY_HINTS = ("key", "token", "secret", "password", "credential")
         servers: list[dict[str, Any]] = []
         for sid, scfg in servers_raw.items():
             env = scfg.get("env", {}) or {}

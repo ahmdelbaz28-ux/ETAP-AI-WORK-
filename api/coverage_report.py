@@ -790,6 +790,71 @@ class CoverageAnalyzer:
 # ---------------------------------------------------------------------------
 
 
+def _print_critical_gaps(critical_gaps: list[dict[str, Any]], out: Any) -> None:
+    """Print critical gaps section to output stream."""
+    if not critical_gaps:
+        return
+    print("-" * 72, file=out)
+    print("CRITICAL GAPS (Known Low-Coverage Watch List):", file=out)
+    print("-" * 72, file=out)
+    for gap in critical_gaps:
+        severity = gap.get("severity", "unknown").upper()
+        module = gap.get("module", "?")
+        func = gap.get("function", gap.get("function_or_class", "?"))
+        issue = gap.get("issue", "?")
+        rec = gap.get("recommendation", "")
+        print(f"  [{severity}] {module}::{func} — {issue}", file=out)
+        if rec:
+            print(f"         → {rec}", file=out)
+    print(file=out)
+
+
+def _print_suggestions(suggestions: list[dict[str, Any]], out: Any) -> None:
+    """Print suggestions section to output stream."""
+    if not suggestions:
+        return
+    print("-" * 72, file=out)
+    print("TOP PRIORITY SUGGESTIONS:", file=out)
+    print("-" * 72, file=out)
+    for sug in suggestions:
+        priority = sug.get("priority", "?").upper()
+        module = sug.get("module", "?")
+        coverage = sug.get("current_coverage", 0)
+        count = sug.get("untested_count", 0)
+        top_funcs = sug.get("top_untested", [])
+        print(
+            f"  [{priority}] {module} ({coverage:.1f}% covered, {count} untested)",
+            file=out,
+        )
+        for fn in top_funcs:
+            print(f"         - {fn}", file=out)
+    print(file=out)
+
+
+def _print_human_summary(report: CoverageReport, out: Any) -> None:
+    """Print human-readable summary of coverage report."""
+    print("=" * 72, file=out)
+    print("AhmedETAP — Test Coverage Report", file=out)
+    print("=" * 72, file=out)
+    print(f"Project Root:      {report.project_root}", file=out)
+    print(f"Total Modules:     {report.total_modules}", file=out)
+    print(f"Total Functions:   {report.total_functions}", file=out)
+    print(f"Tested:            {report.tested_functions}", file=out)
+    print(f"Untested:          {report.untested_functions}", file=out)
+    print(
+        f"Overall Coverage:  {report.overall_coverage_percent:.1f}% ({report.overall_level.value})",
+        file=out,
+    )
+    print(file=out)
+
+    _print_critical_gaps(report.critical_gaps, out)
+    _print_suggestions(report.suggestions, out)
+
+    print("=" * 72, file=out)
+    print("Full JSON report follows:", file=out)
+    print("=" * 72, file=out)
+
+
 def _write_report_output(report: CoverageReport, args: Any) -> None:
     # Use ExitStack so the output file (when not stdout) is always closed
     # via a context manager, even on exception.
@@ -803,59 +868,7 @@ def _write_report_output(report: CoverageReport, args: Any) -> None:
         report_dict = report.to_dict()
 
         if not args.json_only:
-            # Print human-readable summary
-            print("=" * 72, file=out)
-            print("AhmedETAP — Test Coverage Report", file=out)
-            print("=" * 72, file=out)
-            print(f"Project Root:      {report.project_root}", file=out)
-            print(f"Total Modules:     {report.total_modules}", file=out)
-            print(f"Total Functions:   {report.total_functions}", file=out)
-            print(f"Tested:            {report.tested_functions}", file=out)
-            print(f"Untested:          {report.untested_functions}", file=out)
-            print(
-                f"Overall Coverage:  {report.overall_coverage_percent:.1f}% ({report.overall_level.value})",
-                file=out,
-            )
-            print(file=out)
-
-            # Critical gaps
-            if report.critical_gaps:
-                print("-" * 72, file=out)
-                print("CRITICAL GAPS (Known Low-Coverage Watch List):", file=out)
-                print("-" * 72, file=out)
-                for gap in report.critical_gaps:
-                    severity = gap.get("severity", "unknown").upper()
-                    module = gap.get("module", "?")
-                    func = gap.get("function", gap.get("function_or_class", "?"))
-                    issue = gap.get("issue", "?")
-                    rec = gap.get("recommendation", "")
-                    print(f"  [{severity}] {module}::{func} — {issue}", file=out)
-                    if rec:
-                        print(f"         → {rec}", file=out)
-                print(file=out)
-
-            # Top suggestions
-            if report.suggestions:
-                print("-" * 72, file=out)
-                print("TOP PRIORITY SUGGESTIONS:", file=out)
-                print("-" * 72, file=out)
-                for sug in report.suggestions:
-                    priority = sug.get("priority", "?").upper()
-                    module = sug.get("module", "?")
-                    coverage = sug.get("current_coverage", 0)
-                    count = sug.get("untested_count", 0)
-                    top_funcs = sug.get("top_untested", [])
-                    print(
-                        f"  [{priority}] {module} ({coverage:.1f}% covered, {count} untested)",
-                        file=out,
-                    )
-                    for fn in top_funcs:
-                        print(f"         - {fn}", file=out)
-                print(file=out)
-
-            print("=" * 72, file=out)
-            print("Full JSON report follows:", file=out)
-            print("=" * 72, file=out)
+            _print_human_summary(report, out)
 
         json.dump(report_dict, out, indent=2, default=str)
         print(file=out)

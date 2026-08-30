@@ -1218,6 +1218,77 @@ class SecurityAuditor:
 # ---------------------------------------------------------------------------
 
 
+def _print_security_findings(findings: list[Any], out: Any) -> None:
+    """Print findings section to output stream."""
+    if not findings:
+        return
+    print("-" * 72, file=out)
+    print("FINDINGS (sorted by severity):", file=out)
+    print("-" * 72, file=out)
+    for f in findings:
+        severity_str = f.severity.value.upper()
+        print(
+            f"  [{severity_str}] {f.id}: {f.title}",
+            file=out,
+        )
+        if f.file_path:
+            loc = f"at {f.file_path}"
+            if f.line_number:
+                loc += f":{f.line_number}"
+            print(f"         Location: {loc}", file=out)
+        if f.remediation:
+            print(f"         Fix: {f.remediation}", file=out)
+        print(file=out)
+
+
+def _print_remediation_priority(remediation_priority: list[dict[str, Any]], out: Any) -> None:
+    """Print remediation priority section to output stream."""
+    if not remediation_priority:
+        return
+    print("-" * 72, file=out)
+    print("REMEDIATION PRIORITY:", file=out)
+    print("-" * 72, file=out)
+    for item in remediation_priority:
+        cat = item.get("category", "?")
+        total = item.get("total_findings", 0)
+        crit = item.get("critical", 0)
+        high = item.get("high", 0)
+        med = item.get("medium", 0)
+        print(
+            f"  {cat}: {total} findings ({crit} critical, {high} high, {med} medium)",
+            file=out,
+        )
+        if item.get("top_remediation"):
+            print(f"    → {item['top_remediation']}", file=out)
+    print(file=out)
+
+
+def _print_security_summary(report: Any, out: Any) -> None:
+    """Print human-readable summary of security audit report."""
+    print("=" * 72, file=out)
+    print("AhmedETAP — Security Audit Report", file=out)
+    print("=" * 72, file=out)
+    print(f"Project Root:       {report.project_root}", file=out)
+    print(
+        f"Security Score:     {report.security_score}/100 (Grade: {report.grade})",
+        file=out,
+    )
+    print(f"Total Findings:     {report.total_findings}", file=out)
+    print(f"  Critical:         {report.critical_count}", file=out)
+    print(f"  High:             {report.high_count}", file=out)
+    print(f"  Medium:           {report.medium_count}", file=out)
+    print(f"  Low:              {report.low_count}", file=out)
+    print(f"  Info:             {report.info_count}", file=out)
+    print(file=out)
+
+    _print_security_findings(report.findings, out)
+    _print_remediation_priority(report.remediation_priority, out)
+
+    print("=" * 72, file=out)
+    print("Full JSON report follows:", file=out)
+    print("=" * 72, file=out)
+
+
 def _write_security_report(report: Any, args: Any) -> None:
     # Use ExitStack so the output file (when not stdout) is always closed
     # via a context manager, even on exception.
@@ -1229,62 +1300,7 @@ def _write_security_report(report: Any, args: Any) -> None:
         )
 
         if not args.json_only:
-            print("=" * 72, file=out)
-            print("AhmedETAP — Security Audit Report", file=out)
-            print("=" * 72, file=out)
-            print(f"Project Root:       {report.project_root}", file=out)
-            print(
-                f"Security Score:     {report.security_score}/100 (Grade: {report.grade})",
-                file=out,
-            )
-            print(f"Total Findings:     {report.total_findings}", file=out)
-            print(f"  Critical:         {report.critical_count}", file=out)
-            print(f"  High:             {report.high_count}", file=out)
-            print(f"  Medium:           {report.medium_count}", file=out)
-            print(f"  Low:              {report.low_count}", file=out)
-            print(f"  Info:             {report.info_count}", file=out)
-            print(file=out)
-
-            if report.findings:
-                print("-" * 72, file=out)
-                print("FINDINGS (sorted by severity):", file=out)
-                print("-" * 72, file=out)
-                for f in report.findings:
-                    severity_str = f.severity.value.upper()
-                    print(
-                        f"  [{severity_str}] {f.id}: {f.title}",
-                        file=out,
-                    )
-                    if f.file_path:
-                        loc = f"at {f.file_path}"
-                        if f.line_number:
-                            loc += f":{f.line_number}"
-                        print(f"         Location: {loc}", file=out)
-                    if f.remediation:
-                        print(f"         Fix: {f.remediation}", file=out)
-                    print(file=out)
-
-            if report.remediation_priority:
-                print("-" * 72, file=out)
-                print("REMEDIATION PRIORITY:", file=out)
-                print("-" * 72, file=out)
-                for item in report.remediation_priority:
-                    cat = item.get("category", "?")
-                    total = item.get("total_findings", 0)
-                    crit = item.get("critical", 0)
-                    high = item.get("high", 0)
-                    med = item.get("medium", 0)
-                    print(
-                        f"  {cat}: {total} findings ({crit} critical, {high} high, {med} medium)",
-                        file=out,
-                    )
-                    if item.get("top_remediation"):
-                        print(f"    → {item['top_remediation']}", file=out)
-                print(file=out)
-
-            print("=" * 72, file=out)
-            print("Full JSON report follows:", file=out)
-            print("=" * 72, file=out)
+            _print_security_summary(report, out)
 
         json.dump(report.to_dict(), out, indent=2, default=str)
         print(file=out)

@@ -85,7 +85,7 @@ if sys.platform == "win32":
 
         WIN32_AVAILABLE = True
         COM_ERROR: type[BaseException] = getattr(pythoncom, "com_error", _FallbackCOMError)
-    except (ImportError, ModuleNotFoundError):
+    except ImportError:
         pythoncom = None  # type: ignore[assignment]
         win32com = None  # type: ignore[assignment]
         WIN32_AVAILABLE = False

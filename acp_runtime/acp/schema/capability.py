@@ -38,14 +38,13 @@ class CapabilityDescriptor(BaseModel):
     @model_validator(mode="before")
     @classmethod
     def _coerce_and_validate_scopes(cls, data: object) -> object:
-        if isinstance(data, dict):
-            if "scopes" in data:
-                scopes = data["scopes"]
-                if isinstance(scopes, (list, tuple)):
-                    data["scopes"] = tuple(scopes)
-                    for s in data["scopes"]:
-                        if not is_valid_scope(s):
-                            raise ValueError(f"Invalid scope: {s!r}")
+        if isinstance(data, dict) and "scopes" in data:
+            scopes = data["scopes"]
+            if isinstance(scopes, (list, tuple)):
+                data["scopes"] = tuple(scopes)
+                for s in data["scopes"]:
+                    if not is_valid_scope(s):
+                        raise ValueError(f"Invalid scope: {s!r}")
         return data
 
     @model_validator(mode="after")

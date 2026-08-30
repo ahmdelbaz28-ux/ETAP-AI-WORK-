@@ -19,19 +19,19 @@ logger = logging.getLogger("daytona_chrome")
 
 def get_chrome_launch_command(
     port: int = 9222,
-    profile_dir: str = "/tmp/daytona-chrome-profile",
+    profile_dir: str = "~/.daytona-chrome/profile",
     display: str = ":99",
 ) -> str:
     """Generate the shell command to launch Chromium with CDP in a Daytona sandbox."""
     return (
-        f"mkdir -p {profile_dir} && "
+        f"mkdir -p {profile_dir} ~/.daytona-chrome && "
         f"DISPLAY={display} nohup chromium "
         f"--no-sandbox "
         f"--disable-dev-shm-usage "
         f"--remote-debugging-address=0.0.0.0 "
         f"--remote-debugging-port={port} "
         f"--user-data-dir={profile_dir} "
-        f"about:blank >/tmp/daytona-chrome.log 2>&1 &"
+        f"about:blank >~/.daytona-chrome/chrome.log 2>&1 &"
     )
 
 
@@ -54,7 +54,7 @@ def launch_chrome_in_sandbox(sandbox: Any, port: int = 9222) -> bool:
         logger.warning("Sandbox object lacks .exec() method")
         return False
     except Exception as exc:
-        logger.error("Failed to launch Chrome in Daytona sandbox: %s", exc)
+        logger.exception("Failed to launch Chrome in Daytona sandbox: %s", exc)
         return False
 
 
@@ -68,7 +68,7 @@ def stop_chrome_in_sandbox(sandbox: Any, port: int = 9222) -> bool:
             return True
         return False
     except Exception as exc:
-        logger.error("Failed to stop Chrome in Daytona sandbox: %s", exc)
+        logger.exception("Failed to stop Chrome in Daytona sandbox: %s", exc)
         return False
 
 

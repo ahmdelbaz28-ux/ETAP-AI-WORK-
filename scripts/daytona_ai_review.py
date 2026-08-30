@@ -255,15 +255,15 @@ def _init_daytona(api_key: str, api_url: str):
     import daytona_sdk
     from daytona_sdk import Daytona  # type: ignore
 
-    DaytonaConfig = getattr(daytona_sdk, "DaytonaConfig", None)
-    if DaytonaConfig is not None:
+    daytona_config_cls = getattr(daytona_sdk, "DaytonaConfig", None)
+    if daytona_config_cls is not None:
         for config_kwargs in [
             {"api_key": api_key, "server_url": api_url},
             {"api_key": api_key, "api_url": api_url},
             {"api_key": api_key},
         ]:
             try:
-                cfg = DaytonaConfig(**config_kwargs)
+                cfg = daytona_config_cls(**config_kwargs)
                 return Daytona(config=cfg)
             except Exception:
                 pass
@@ -286,13 +286,12 @@ def _create_sandbox(daytona, target_name: str):
     """Create Daytona sandbox supporting multiple target types and SDK versions."""
     import daytona_sdk
 
-    Target = getattr(daytona_sdk, "Target", None)
-    CreateWorkspaceParams = getattr(daytona_sdk, "CreateWorkspaceParams", None)
+    create_workspace_params_cls = getattr(daytona_sdk, "CreateWorkspaceParams", None)
 
     errors: list[str] = []
 
     # 1. Try with CreateWorkspaceParams if defined in SDK
-    if CreateWorkspaceParams is not None:
+    if create_workspace_params_cls is not None:
         for p_kwargs in [
             {"language": "python", "target": target_name},
             {"language": "python"},
@@ -300,7 +299,7 @@ def _create_sandbox(daytona, target_name: str):
             {},
         ]:
             try:
-                params = CreateWorkspaceParams(**p_kwargs)
+                params = create_workspace_params_cls(**p_kwargs)
                 return daytona.create(params)
             except Exception as e:
                 errors.append(f"CreateWorkspaceParams({p_kwargs}) -> {e}")
