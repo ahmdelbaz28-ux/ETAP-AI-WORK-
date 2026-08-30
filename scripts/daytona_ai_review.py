@@ -283,29 +283,44 @@ def _init_daytona(api_key: str, api_url: str):
 
 
 def _create_sandbox(daytona, target_name: str):
-    """Create Daytona sandbox supporting multiple target types."""
+    """Create Daytona sandbox supporting multiple target types and SDK versions."""
     import daytona_sdk
 
     Target = getattr(daytona_sdk, "Target", None)
-    target = target_name
-    if Target is not None:
-        try:
-            target = Target(target_name)
-        except Exception:
-            pass
+    CreateWorkspaceParams = getattr(daytona_sdk, "CreateWorkspaceParams", None)
 
-    for create_call in [
-        lambda: daytona.create(target=target, language="python"),
+    errors: list[str] = []
+
+    # 1. Try with CreateWorkspaceParams if defined in SDK
+    if CreateWorkspaceParams is not None:
+        for p_kwargs in [
+            {"language": "python", "target": target_name},
+            {"language": "python"},
+            {"target": target_name},
+            {},
+        ]:
+            try:
+                params = CreateWorkspaceParams(**p_kwargs)
+                return daytona.create(params)
+            except Exception as e:
+                errors.append(f"CreateWorkspaceParams({p_kwargs}) -> {e}")
+
+    # 2. Try direct kwargs and methods on Daytona client
+    for fn in [
+        lambda: daytona.create(target=target_name, language="python"),
         lambda: daytona.create(language="python"),
-        lambda: daytona.create(target=target),
+        lambda: daytona.create(target=target_name),
         lambda: daytona.create(),
+        lambda: daytona.create_workspace(language="python"),
+        lambda: daytona.create_sandbox(language="python"),
     ]:
         try:
-            return create_call()
-        except Exception:
-            pass
+            return fn()
+        except Exception as e:
+            errors.append(f"direct_call -> {e}")
 
-    raise RuntimeError("Failed to create Daytona sandbox with available SDK methods")
+    error_summary = "; ".join(errors)
+    raise RuntimeError(f"Failed to create Daytona sandbox with available SDK methods: {error_summary}")
 
 
 def main() -> int:
