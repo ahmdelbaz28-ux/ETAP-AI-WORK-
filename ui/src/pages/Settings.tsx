@@ -33,6 +33,7 @@ import AISettingsPanel from "../components/AISettingsPanel";
 import EngineeringEngineSettings from "../components/EngineeringEngineSettings";
 import NotificationSettings from "../components/NotificationSettings";
 import StorageManagement from "../components/StorageManagement";
+import { ProviderKeysPanel } from "../components/settings/ProviderKeysPanel";
 import { ContextHelpButton } from "../components/help/ContextHelpButton";
 import {
   type VisionKeyConfig,
@@ -825,6 +826,11 @@ const TAB_SECTIONS: Record<
     label: "AI Providers",
     icon: <Bot className="w-4 h-4" />,
     sections: [], // Custom-rendered panel
+  },
+  providers: {
+    label: "Providers & API Keys",
+    icon: <Key className="w-4 h-4" />,
+    sections: [], // Custom-rendered panel — ProviderKeysPanel (P7a)
   },
   mcp: {
     label: "MCP Servers",
@@ -2864,6 +2870,7 @@ export default function Settings() {
                   notify={notify}
                 />
               );
+            if (activeTab === "providers") return <ProviderKeysPanel notify={notify} />;
             if (activeTab === "mcp") return <MCPSettingsPanel />;
             if (activeTab === "external")
               return (
