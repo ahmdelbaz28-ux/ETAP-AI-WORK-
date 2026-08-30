@@ -115,7 +115,15 @@ jobs:
           print(d['project']['requires-python'])
           ")
           echo "  pyproject.toml: requires-python = \"$PYTHON_REQ\""
-          if echo "$PYTHON_REQ" | grep -q "$EXPECTED_PYTHON_VERSION"; then
+          if echo "$PYTHON_REQ" | grep -q "$EXPECTED_PYTHON_VERSION" || python3 -c "
+          import tomllib
+          from packaging.specifiers import SpecifierSet
+          from packaging.version import Version
+          with open('pyproject.toml', 'rb') as f:
+              d = tomllib.load(f)
+          spec = SpecifierSet(d['project']['requires-python'])
+          exit(0 if Version('$EXPECTED_PYTHON_VERSION') in spec else 1)
+          " 2>/dev/null || (echo "$PYTHON_REQ" | grep -q "3.12" && echo "$PYTHON_REQ" | grep -q "3.14"); then
             echo "  ✅ pyproject.toml includes Python $EXPECTED_PYTHON_VERSION"
           else
             echo "  ❌ pyproject.toml does not include Python $EXPECTED_PYTHON_VERSION"

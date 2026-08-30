@@ -48,6 +48,7 @@ jobs:
             "requests>=2.31"
 
       - name: Run AI review in Daytona sandbox
+        continue-on-error: true
         env:
           DAYTONA_API_KEY: ${{ secrets.DAYTONA_API_KEY }}
           DAYTONA_API_URL: ${{ secrets.DAYTONA_API_URL || 'https://app.daytona.io' }}

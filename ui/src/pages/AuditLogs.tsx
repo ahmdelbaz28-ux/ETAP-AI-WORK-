@@ -48,7 +48,7 @@ export default function AuditLogs() {
 
   const methods = useMemo(() => {
     const set = new Set(logs.map((l) => l.method));
-    return Array.from(set).sort();
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
   }, [logs]);
 
   const filtered = useMemo(() => {

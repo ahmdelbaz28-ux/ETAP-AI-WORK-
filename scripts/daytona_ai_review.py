@@ -251,25 +251,75 @@ def post_review(results: list[StepResult], artifacts: dict[str, str]) -> None:
 
 
 def _init_daytona(api_key: str, api_url: str):
-    """Initialize Daytona client supporting multiple constructor signatures."""
+    """Initialize Daytona client supporting multiple constructor signatures and DaytonaConfig."""
+    import daytona_sdk
     from daytona_sdk import Daytona  # type: ignore
-    try:
-        return Daytona(api_key=api_key, api_url=api_url)
-    except TypeError:
-        return Daytona(api_key=api_key, server_url=api_url)
+
+    daytona_config_cls = getattr(daytona_sdk, "DaytonaConfig", None)
+    if daytona_config_cls is not None:
+        for config_kwargs in [
+            {"api_key": api_key, "server_url": api_url},
+            {"api_key": api_key, "api_url": api_url},
+            {"api_key": api_key},
+        ]:
+            try:
+                cfg = daytona_config_cls(**config_kwargs)
+                return Daytona(config=cfg)
+            except Exception:
+                pass
+
+    for kwargs in [
+        {"api_key": api_key, "server_url": api_url},
+        {"api_key": api_key, "api_url": api_url},
+        {"server_url": api_url, "api_key": api_key},
+        {"api_key": api_key},
+    ]:
+        try:
+            return Daytona(**kwargs)
+        except Exception:
+            pass
+
+    return Daytona()
 
 
 def _create_sandbox(daytona, target_name: str):
-    """Create Daytona sandbox supporting multiple target types."""
-    from daytona_sdk import Target  # type: ignore
-    try:
-        target = Target(target_name)
-    except Exception:
-        target = target_name
-    try:
-        return daytona.create(target=target, language="python")
-    except TypeError:
-        return daytona.create(language="python")
+    """Create Daytona sandbox supporting multiple target types and SDK versions."""
+    import daytona_sdk
+
+    create_workspace_params_cls = getattr(daytona_sdk, "CreateWorkspaceParams", None)
+
+    errors: list[str] = []
+
+    # 1. Try with CreateWorkspaceParams if defined in SDK
+    if create_workspace_params_cls is not None:
+        for p_kwargs in [
+            {"language": "python", "target": target_name},
+            {"language": "python"},
+            {"target": target_name},
+            {},
+        ]:
+            try:
+                params = create_workspace_params_cls(**p_kwargs)
+                return daytona.create(params)
+            except Exception as e:
+                errors.append(f"CreateWorkspaceParams({p_kwargs}) -> {e}")
+
+    # 2. Try direct kwargs and methods on Daytona client
+    for fn in [
+        lambda: daytona.create(target=target_name, language="python"),
+        lambda: daytona.create(language="python"),
+        lambda: daytona.create(target=target_name),
+        lambda: daytona.create(),
+        lambda: daytona.create_workspace(language="python"),
+        lambda: daytona.create_sandbox(language="python"),
+    ]:
+        try:
+            return fn()
+        except Exception as e:
+            errors.append(f"direct_call -> {e}")
+
+    error_summary = "; ".join(errors)
+    raise RuntimeError(f"Failed to create Daytona sandbox with available SDK methods: {error_summary}")
 
 
 def main() -> int:

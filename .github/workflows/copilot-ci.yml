@@ -126,17 +126,23 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Sanitize image name
+        id: image
+        run: |
+          IMAGE_LOWER=$(echo "${{ github.repository }}/copilot-api" | tr '[:upper:]' '[:lower:]' | tr '_' '-')
+          echo "name=${IMAGE_LOWER}" >> "$GITHUB_OUTPUT"
+
       - name: Build and tag image
         run: |
           docker build -f Dockerfile.engineering-service \
-            -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest \
-            -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} \
+            -t ${{ env.REGISTRY }}/${{ steps.image.outputs.name }}:latest \
+            -t ${{ env.REGISTRY }}/${{ steps.image.outputs.name }}:${{ github.sha }} \
             .
 
       - name: Push image
         run: |
-          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
-          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          docker push ${{ env.REGISTRY }}/${{ steps.image.outputs.name }}:latest
+          docker push ${{ env.REGISTRY }}/${{ steps.image.outputs.name }}:${{ github.sha }}
 
   # =========================================================================
   # Summary

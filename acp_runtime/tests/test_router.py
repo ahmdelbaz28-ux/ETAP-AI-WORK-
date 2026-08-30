@@ -284,7 +284,7 @@ async def test_notification_callback():
             "params": {"percent": 75},
         }
     )
-    assert called_with is not None
+    assert isinstance(called_with, dict)
     assert called_with["method"] == "progress.update"
     assert called_with["params"]["percent"] == 75
 

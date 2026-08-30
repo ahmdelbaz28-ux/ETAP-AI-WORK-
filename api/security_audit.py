@@ -1218,20 +1218,106 @@ class SecurityAuditor:
 # ---------------------------------------------------------------------------
 
 
-async def _main() -> (  # NOSONAR
-    None
-):  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+def _print_security_findings(findings: list[Any], out: Any) -> None:
+    """Print findings section to output stream."""
+    if not findings:
+        return
+    print("-" * 72, file=out)
+    print("FINDINGS (sorted by severity):", file=out)
+    print("-" * 72, file=out)
+    for f in findings:
+        severity_str = f.severity.value.upper()
+        print(
+            f"  [{severity_str}] {f.id}: {f.title}",
+            file=out,
+        )
+        if f.file_path:
+            loc = f"at {f.file_path}"
+            if f.line_number:
+                loc += f":{f.line_number}"
+            print(f"         Location: {loc}", file=out)
+        if f.remediation:
+            print(f"         Fix: {f.remediation}", file=out)
+        print(file=out)
+
+
+def _print_remediation_priority(remediation_priority: list[dict[str, Any]], out: Any) -> None:
+    """Print remediation priority section to output stream."""
+    if not remediation_priority:
+        return
+    print("-" * 72, file=out)
+    print("REMEDIATION PRIORITY:", file=out)
+    print("-" * 72, file=out)
+    for item in remediation_priority:
+        cat = item.get("category", "?")
+        total = item.get("total_findings", 0)
+        crit = item.get("critical", 0)
+        high = item.get("high", 0)
+        med = item.get("medium", 0)
+        print(
+            f"  {cat}: {total} findings ({crit} critical, {high} high, {med} medium)",
+            file=out,
+        )
+        if item.get("top_remediation"):
+            print(f"    → {item['top_remediation']}", file=out)
+    print(file=out)
+
+
+def _print_security_summary(report: Any, out: Any) -> None:
+    """Print human-readable summary of security audit report."""
+    print("=" * 72, file=out)
+    print("AhmedETAP — Security Audit Report", file=out)
+    print("=" * 72, file=out)
+    print(f"Project Root:       {report.project_root}", file=out)
+    print(
+        f"Security Score:     {report.security_score}/100 (Grade: {report.grade})",
+        file=out,
+    )
+    print(f"Total Findings:     {report.total_findings}", file=out)
+    print(f"  Critical:         {report.critical_count}", file=out)
+    print(f"  High:             {report.high_count}", file=out)
+    print(f"  Medium:           {report.medium_count}", file=out)
+    print(f"  Low:              {report.low_count}", file=out)
+    print(f"  Info:             {report.info_count}", file=out)
+    print(file=out)
+
+    _print_security_findings(report.findings, out)
+    _print_remediation_priority(report.remediation_priority, out)
+
+    print("=" * 72, file=out)
+    print("Full JSON report follows:", file=out)
+    print("=" * 72, file=out)
+
+
+def _write_security_report(report: Any, args: Any) -> None:
+    # Use ExitStack so the output file (when not stdout) is always closed
+    # via a context manager, even on exception.
+    with contextlib.ExitStack() as stack:
+        out = (
+            sys.stdout
+            if args.output == "-"
+            else stack.enter_context(open(args.output, "w", encoding="utf-8"))
+        )
+
+        if not args.json_only:
+            _print_security_summary(report, out)
+
+        json.dump(report.to_dict(), out, indent=2, default=str)
+        print(file=out)
+
+
+async def _main() -> None:
     """CLI entrypoint for running the security auditor."""
     import argparse
 
     parser = argparse.ArgumentParser(
-        description="AhmedETAP — Security Auditor",
+        description="AhmedETAP — Static Security Auditor",
     )
     parser.add_argument(
         "--project-root",
         type=str,
         default=None,
-        help="Path to the project root",
+        help="Path to the project root (defaults to this repo)",
     )
     parser.add_argument(
         "--output",
@@ -1249,7 +1335,6 @@ async def _main() -> (  # NOSONAR
     auditor = SecurityAuditor(project_root=args.project_root)
     report = await auditor.run()
 
-    # NOSONAR
     if args.output != "-":
         if "\x00" in args.output:
             parser.error("Invalid output path: contains NUL byte")
@@ -1257,77 +1342,7 @@ async def _main() -> (  # NOSONAR
         if out_dir and not os.path.isdir(out_dir):
             parser.error(f"Output directory does not exist: {out_dir}")
 
-    # Use ExitStack so the output file (when not stdout) is always closed
-    # via a context manager, even on exception. Replaces the previous
-    # try/finally + manual out.close() pattern.
-    with contextlib.ExitStack() as stack:
-        out = (
-            sys.stdout
-            if args.output == "-"
-            else stack.enter_context(open(args.output, "w", encoding="utf-8"))
-        )
-
-        if not args.json_only:
-            print("=" * 72, file=out)
-            print("AhmedETAP — Security Audit Report", file=out)
-            print("=" * 72, file=out)
-            print(f"Project Root:       {report.project_root}", file=out)
-            print(
-                f"Security Score:     {report.security_score}/100 (Grade: {report.grade})",
-                file=out,
-            )
-            print(f"Total Findings:     {report.total_findings}", file=out)
-            print(f"  Critical:         {report.critical_count}", file=out)
-            print(f"  High:             {report.high_count}", file=out)
-            print(f"  Medium:           {report.medium_count}", file=out)
-            print(f"  Low:              {report.low_count}", file=out)
-            print(f"  Info:             {report.info_count}", file=out)
-            print(file=out)
-
-            if report.findings:
-                print("-" * 72, file=out)
-                print("FINDINGS (sorted by severity):", file=out)
-                print("-" * 72, file=out)
-                for f in report.findings:
-                    severity_str = f.severity.value.upper()
-                    print(
-                        f"  [{severity_str}] {f.id}: {f.title}",
-                        file=out,
-                    )
-                    if f.file_path:
-                        loc = f"at {f.file_path}"
-                        if f.line_number:
-                            loc += f":{f.line_number}"
-                        print(f"         Location: {loc}", file=out)
-                    if f.remediation:
-                        print(f"         Fix: {f.remediation}", file=out)
-                    print(file=out)
-
-            if report.remediation_priority:
-                print("-" * 72, file=out)
-                print("REMEDIATION PRIORITY:", file=out)
-                print("-" * 72, file=out)
-                for item in report.remediation_priority:
-                    cat = item.get("category", "?")
-                    total = item.get("total_findings", 0)
-                    crit = item.get("critical", 0)
-                    high = item.get("high", 0)
-                    med = item.get("medium", 0)
-                    print(
-                        f"  {cat}: {total} findings ({crit} critical, {high} high, {med} medium)",
-                        file=out,
-                    )
-                    if item.get("top_remediation"):
-                        print(f"    → {item['top_remediation']}", file=out)
-                print(file=out)
-
-            print("=" * 72, file=out)
-            print("Full JSON report follows:", file=out)
-            print("=" * 72, file=out)
-
-        json.dump(report.to_dict(), out, indent=2, default=str)
-        print(file=out)
-    # ExitStack closes the file automatically when leaving the `with` block.
+    _write_security_report(report, args)
 
 
 if __name__ == "__main__":

@@ -1065,32 +1065,12 @@ class TestProviderErrorHandling:
     """Test error handling resilience across all GIS providers."""
 
     def test_arcgis_invalid_geometry_in_cursor(self):
-        """ArcGIS provider should raise on invalid geometry from cursor."""
+        """ArcGIS provider is archived and raises NotImplementedFeature."""
         from gis_integration.providers.arcgis_provider import ArcGISProvider
 
         provider = ArcGISProvider()
-        provider._loaded = True
-
-        mock_geom = Mock()
-        mock_geom.JSON = '{"type": "InvalidType", "coordinates": []}'
-
-        mock_cursor = iter([(1, mock_geom)])
-        mock_arcpy = Mock()
-        mock_arcpy.da.SearchCursor.return_value = mock_cursor
-
-        with patch.dict("sys.modules", {"arcpy": mock_arcpy, "arcpy.da": mock_arcpy.da}):
-            with patch(
-                "gis_integration.providers.arcgis_provider.safe_parse_geojson"
-            ) as mock_parse:
-                mock_parse.return_value = {"type": "InvalidType", "coordinates": []}
-                with patch(
-                    "gis_integration.providers.arcgis_provider.validate_geometry_dict"
-                ) as mock_val:
-                    mock_val.return_value = (False, "unsupported geometry type: InvalidType")
-                    with pytest.raises(
-                        GISDataExtractionError, match="Invalid geometry"
-                    ):  # NOSONAR multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
-                        list(provider.extract_features("bad_layer"))
+        with pytest.raises(NotImplementedFeature, match="archived"):
+            list(provider.extract_features("bad_layer"))
 
     def test_qgis_export_geojson_failure(self):
         """QGIS export_geojson should raise GISDataExtractionError on failure."""

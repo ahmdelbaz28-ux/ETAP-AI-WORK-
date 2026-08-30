@@ -1,5 +1,5 @@
 import { Calendar } from "lucide-react";
-import { type InputHTMLAttributes, forwardRef } from "react";
+import { type InputHTMLAttributes, forwardRef, useId } from "react";
 import { cn } from "../../utils/helpers";
 
 interface DatePickerProps extends Omit<InputHTMLAttributes<HTMLInputElement>, "type" | "onChange"> {
@@ -11,9 +11,10 @@ interface DatePickerProps extends Omit<InputHTMLAttributes<HTMLInputElement>, "t
 
 export const DatePicker = forwardRef<HTMLInputElement, DatePickerProps>(
   ({ label, description, error, className, id, onChange, ...props }, ref) => {
+    const generatedId = useId();
     const pickerId =
       id ||
-      `date-${label?.toLowerCase().replace(/\s+/g, "-") || Math.random().toString(36).slice(2, 9)}`;
+      (label ? `date-${label.toLowerCase().replace(/\s+/g, "-")}` : generatedId);
     return (
       <div className="w-full">
         {label && (

@@ -247,12 +247,7 @@ async def run_all(duration_sec: int) -> None:
     finally:
         bridge_task.cancel()
         consumer_task.cancel()
-
-        for task in (bridge_task, consumer_task):
-            try:
-                await task
-            except asyncio.CancelledError:
-                pass
+        await asyncio.gather(bridge_task, consumer_task, return_exceptions=True)
 
 
 def main() -> None:

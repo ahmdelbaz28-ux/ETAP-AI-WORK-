@@ -1021,16 +1021,12 @@ async def list_mcp_servers(
         raw = json.loads(path.read_text(encoding="utf-8"))
         servers_raw = raw.get("mcpServers", raw.get("servers", {}))
 
-        SECRET_KEY_HINTS = ("key", "token", "secret", "password", "credential")
         servers: list[dict[str, Any]] = []
         for sid, scfg in servers_raw.items():
             env = scfg.get("env", {}) or {}
             redacted_env: dict[str, str] = {}
-            for k, _v in env.items():
-                if any(h in k.lower() for h in SECRET_KEY_HINTS):
-                    redacted_env[k] = "***REDACTED***"
-                else:
-                    redacted_env[k] = "***REDACTED***"  # mask all env values by default
+            for k in env:
+                redacted_env[k] = "***REDACTED***"  # mask all env values by default
 
             servers.append(
                 {

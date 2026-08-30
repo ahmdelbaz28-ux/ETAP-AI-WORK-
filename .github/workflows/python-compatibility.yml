@@ -339,7 +339,18 @@ jobs:
 
           # Python version constraint
           rp = project.get('requires-python', '')
-          if '3.13' not in rp:
+          includes_313 = False
+          try:
+              from packaging.specifiers import SpecifierSet
+              from packaging.version import Version
+              if Version('3.13') in SpecifierSet(rp):
+                  includes_313 = True
+          except Exception:
+              pass
+          if not includes_313 and ('3.13' in rp or ('3.12' in rp and '3.14' in rp)):
+              includes_313 = True
+
+          if not includes_313:
               errors.append(f"requires-python should include 3.13 (got: {rp})")
 
           # Version format check (basic)

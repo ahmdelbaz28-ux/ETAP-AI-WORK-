@@ -204,15 +204,20 @@ class TestQdrantIntegrationMocked:
         assert svc._initialized_qdrant is False
 
     @pytest.mark.skipif(not QDRANT_AVAILABLE, reason="qdrant-client not installed")
-    def test_save_creates_collection_if_missing(self):
+    def test_save_creates_collection_if_missing(self, monkeypatch):
         """save_to_vector_memory() must create a Qdrant collection if it doesn't exist."""
+        monkeypatch.setenv("OPENAI_API_KEY", "test-openai-key")
         mock_client = MagicMock()
         mock_client.collection_exists.return_value = False
+
+        mock_embeddings = MagicMock()
+        mock_embeddings.IS_UNSAFE_FALLBACK = False
 
         with patch("services.memory_service.QdrantClient", return_value=mock_client):
             with patch("services.memory_service.QdrantVectorStore") as MockVS:
                 MockVS.return_value = MagicMock()
                 svc = AIMemoryService()
+                svc._get_embeddings = MagicMock(return_value=mock_embeddings)
                 svc.initialize_qdrant()
                 result = svc.save_to_vector_memory(
                     "T1 transformer rated 50MVA", index_name="test_col"
@@ -223,15 +228,20 @@ class TestQdrantIntegrationMocked:
         mock_client.create_collection.assert_called_once()
 
     @pytest.mark.skipif(not QDRANT_AVAILABLE, reason="qdrant-client not installed")
-    def test_save_skips_collection_creation_if_exists(self):
+    def test_save_skips_collection_creation_if_exists(self, monkeypatch):
         """save_to_vector_memory() must NOT re-create an existing collection."""
+        monkeypatch.setenv("OPENAI_API_KEY", "test-openai-key")
         mock_client = MagicMock()
         mock_client.collection_exists.return_value = True
+
+        mock_embeddings = MagicMock()
+        mock_embeddings.IS_UNSAFE_FALLBACK = False
 
         with patch("services.memory_service.QdrantClient", return_value=mock_client):
             with patch("services.memory_service.QdrantVectorStore") as MockVS:
                 MockVS.return_value = MagicMock()
                 svc = AIMemoryService()
+                svc._get_embeddings = MagicMock(return_value=mock_embeddings)
                 svc.initialize_qdrant()
                 svc.save_to_vector_memory("Line 1 impedance 0.07+j0.28 Ω/km", index_name="test_col")
 
@@ -266,10 +276,14 @@ class TestQdrantIntegrationMocked:
         mock_response.content = "T1 transformer rating is 50MVA."
         mock_llm.invoke.return_value = mock_response
 
+        mock_embeddings = MagicMock()
+        mock_embeddings.IS_UNSAFE_FALLBACK = False
+
         with patch("services.memory_service.QdrantClient", return_value=mock_client):
             with patch("services.memory_service.QdrantVectorStore", return_value=mock_vs):
                 with patch("services.memory_service.ChatOpenAI", return_value=mock_llm):
                     svc = AIMemoryService()
+                    svc._get_embeddings = MagicMock(return_value=mock_embeddings)
                     svc.initialize_qdrant()
                     answer = svc.query_vector_memory("What is T1 rating?", index_name="test_col")
 
@@ -280,13 +294,18 @@ class TestQdrantIntegrationMocked:
         mock_llm.invoke.assert_called_once()
 
     @pytest.mark.skipif(not QDRANT_AVAILABLE, reason="qdrant-client not installed")
-    def test_query_returns_message_if_collection_missing(self):
+    def test_query_returns_message_if_collection_missing(self, monkeypatch):
         """query_vector_memory() must return message if collection doesn't exist."""
+        monkeypatch.setenv("OPENAI_API_KEY", "test-openai-key")
         mock_client = MagicMock()
         mock_client.collection_exists.return_value = False
 
+        mock_embeddings = MagicMock()
+        mock_embeddings.IS_UNSAFE_FALLBACK = False
+
         with patch("services.memory_service.QdrantClient", return_value=mock_client):
             svc = AIMemoryService()
+            svc._get_embeddings = MagicMock(return_value=mock_embeddings)
             svc.initialize_qdrant()
             result = svc.query_vector_memory("Any question", index_name="empty_col")
 
