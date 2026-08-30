@@ -59,15 +59,16 @@ jobs:
           VERCEL_TOKEN: ${{ secrets.VERCEL_DEPLOY_TOKEN }}
         run: |
           if [ -z "$VERCEL_TOKEN" ]; then
-            echo "❌ ERROR: VERCEL_DEPLOY_TOKEN secret is not set"
-            echo "   Create it at: https://vercel.com/account/tokens"
-            echo "   Then add as GitHub secret: VERCEL_DEPLOY_TOKEN"
-            exit 1
+            echo "::warning::VERCEL_DEPLOY_TOKEN secret is not set — skipping Vercel deployment trigger"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
           fi
           echo "✅ VERCEL_DEPLOY_TOKEN is set"
+          echo "skip=false" >> "$GITHUB_OUTPUT"
 
       - name: Trigger Vercel deploy via API (with retry)
         id: trigger
+        if: steps.check-secrets.outputs.skip != 'true'
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_DEPLOY_TOKEN }}
           PROJECT_ID: prj_Y6Qr828DXS83tWF1LntFakyofMrf
