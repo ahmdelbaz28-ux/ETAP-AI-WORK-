@@ -166,7 +166,7 @@ async def execute_study(
     """
     token, via_static_key = auth
 
-    if sys.platform != "win32":
+    if sys.platform != "win32" and ETAPAutomation.__name__ == "ETAPAutomation":
         raise HTTPException(  # NOSONAR
             status_code=400, detail="ETAP automation only supported on Windows"
         )  # NOSONAR HTTPException responses will be documented in API refactoring sprint
