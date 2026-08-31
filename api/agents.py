@@ -1081,11 +1081,19 @@ _HTTP_BLOCKED_MSG = "Remote MCP endpoints must use HTTPS (HTTP transport is disa
 
 
 def _is_restricted_ip(ip: str) -> bool:
-    """True for loopback/private/link-local/multicast/reserved/unspecified IPs."""
+    """True for loopback/private/link-local/multicast/reserved/unspecified IPs.
+
+    IPv4-mapped IPv6 addresses (e.g. ``::ffff:127.0.0.1``) are unwrapped to
+    their IPv4 form first so mapped restricted addresses cannot slip through
+    on Python versions whose ``ipaddress`` properties do not account for
+    IPv4-mapped IPv6.
+    """
     try:
         addr = ipaddress.ip_address(ip.strip())
     except ValueError:
         return True
+    if isinstance(addr, ipaddress.IPv6Address) and addr.ipv4_mapped is not None:
+        addr = addr.ipv4_mapped
     return (
         addr.is_loopback
         or addr.is_private
@@ -1102,6 +1110,74 @@ def _probe_headers() -> dict[str, str]:
         "User-Agent": "ETAP-AI-mcp-health-probe/1.0",
         "Accept": "application/json",
     }
+
+
+class _PinnedAddressBackend:
+    """httpcore network-backend adapter that pins TCP connections to
+    pre-validated IP addresses (SSRF anti-DNS-rebinding guard).
+
+    ``socket.getaddrinfo()`` in :func:`_probe_remote_mcp` decides WHERE the
+    probe is allowed to go, but a plain ``httpx.Client().get(url)`` would let
+    the HTTP client resolve the hostname a second time when it opens the
+    socket — a TOCTOU / DNS-rebinding gap (first resolution -> public IP,
+    second resolution -> private IP). This adapter closes that gap: every TCP
+    connection is opened to one of the already-validated IP addresses, while
+    the request URL keeps the original hostname so the ``Host`` header, TLS
+    SNI, and certificate-verification semantics are preserved exactly.
+
+    Duck-types the ``httpcore.NetworkBackend`` interface (only
+    ``connect_tcp`` is needed for sync TCP connections).
+    """
+
+    def __init__(
+        self,
+        pinned_ips: list,
+        delegate: Any = None,
+    ) -> None:
+        self._pinned_ips = [ip for ip in pinned_ips if ip]
+        self._delegate = delegate  # None -> real httpcore.SyncBackend
+
+    def connect_tcp(
+        self,
+        host: str,
+        port: int,
+        timeout: Any = None,
+        local_address: Any = None,
+        socket_options: Any = None,
+    ) -> Any:
+        # ``host`` is deliberately IGNORED: connections must be made to the
+        # validated destination, never to a fresh (re)resolution of it.
+        if not self._pinned_ips:
+            raise OSError("No validated IP address available for connection")
+        import httpcore
+
+        delegate = self._delegate
+        if delegate is None:
+            delegate = httpcore.SyncBackend()
+        last_exc: Any = None
+        for pinned_ip in self._pinned_ips:
+            try:
+                return delegate.connect_tcp(
+                    pinned_ip, port, timeout, local_address, socket_options
+                )
+            except Exception as exc:  # noqa: BLE001 — try the next validated IP
+                last_exc = exc
+        if last_exc is not None:
+            raise last_exc
+        raise OSError("Connection to validated destination failed")
+
+
+def _open_pinned_connection_pool(pinned_ips: list) -> Any:
+    """Create an httpcore connection pool pinned to the validated IPs.
+
+    httpcore (the engine under httpx) never follows redirects, performs full
+    TLS verification against the request hostname, and lets us inject the
+    destination-pinning backend above. ``pinned_ips`` must already have been
+    SSRF-validated by the caller.
+    """
+    import httpcore
+
+    return httpcore.ConnectionPool(network_backend=_PinnedAddressBackend(pinned_ips))
 
 
 def _resolve_mcp_config_path() -> str:
@@ -1143,7 +1219,17 @@ def _probe_stdio_mcp(server_id: str, server_config: dict) -> dict[str, Any]:
 def _probe_remote_mcp(
     server_id: str, server_config: dict, transport: str
 ) -> dict[str, Any]:
-    """SSRF-guarded bare-GET health probe for remote MCP endpoints."""
+    """SSRF-guarded bare-GET health probe for remote MCP endpoints.
+
+    Security properties:
+      * Every address the hostname resolves to is validated; the connection is
+        then PINNED to the validated IP addresses (no second DNS resolution).
+      * The request URL keeps the original hostname, so Host/TLS SNI and
+        certificate verification are unaffected by the pinning.
+      * Redirects are never followed (httpcore has no redirect following).
+      * HTTP is blocked unless MCP_HEALTH_ALLOW_HTTP is explicitly enabled.
+      * Only bare probe headers are sent — no credentials of any kind.
+    """
     url = str(server_config.get("url") or server_config.get("endpoint") or "").strip()
     if not url:
         return {
@@ -1211,8 +1297,13 @@ def _probe_remote_mcp(
             "message": "Remote MCP endpoint host could not be resolved.",
         }
 
+    # Validate EVERY resolved address and keep the validated set for the
+    # actual connection. The HTTP client must never re-resolve the hostname
+    # (DNS-rebinding / TOCTOU SSRF guard) — see _PinnedAddressBackend.
+    pinned_ips: list[str] = []
     for addr_info in addrinfos:
-        if _is_restricted_ip(addr_info[4][0]):
+        candidate_ip = str(addr_info[4][0])
+        if _is_restricted_ip(candidate_ip):
             return {
                 "id": server_id,
                 "transport": transport,
@@ -1220,21 +1311,52 @@ def _probe_remote_mcp(
                 "status": "blocked",
                 "message": _RESTRICTED_IP_MSG,
             }
+        if candidate_ip not in pinned_ips:
+            pinned_ips.append(candidate_ip)
 
     try:
-        import httpx
-
-        with httpx.Client(timeout=5.0, follow_redirects=False) as client:
-            resp = client.get(url, headers=_probe_headers())
-        status = "ok" if 200 <= resp.status_code < 400 else "degraded"
+        pool = _open_pinned_connection_pool(pinned_ips)
+        try:
+            core_resp = pool.request(
+                "GET",
+                url,
+                headers=_probe_headers(),
+                extensions={
+                    "timeout": {
+                        "connect": 5.0,
+                        "read": 5.0,
+                        "write": 5.0,
+                        "pool": 5.0,
+                    }
+                },
+            )
+            core_resp.read()
+            status_code = int(core_resp.status)
+        finally:
+            pool.close()
+        if 200 <= status_code < 300:
+            status = "ok"
+            message = f"Remote MCP endpoint responded with HTTP {status_code}."
+        elif 300 <= status_code < 400:
+            # Redirects are NEVER followed: the destination actually connected
+            # to was SSRF-validated, but a redirect target would not have been.
+            # ``connected`` stays False — only a verified 2xx counts.
+            status = "degraded"
+            message = (
+                f"Remote MCP endpoint responded with HTTP {status_code} "
+                "(redirect NOT followed)."
+            )
+        else:
+            status = "degraded"
+            message = f"Remote MCP endpoint responded with HTTP {status_code}."
         return {
             "id": server_id,
             "transport": transport,
-            "connected": 200 <= resp.status_code < 400,
+            "connected": 200 <= status_code < 300,
             "reachable": True,
             "status": status,
-            "http_status": resp.status_code,
-            "message": f"Remote MCP endpoint responded with HTTP {resp.status_code}.",
+            "http_status": status_code,
+            "message": message,
         }
     except Exception:  # noqa: BLE001
         return {
@@ -1268,10 +1390,15 @@ async def check_mcp_server_health(
     Security (P7c):
       * stdio servers are resolved on PATH but NEVER spawned.
       * Remote endpoints are SSRF-validated (HTTPS-only unless
-        MCP_HEALTH_ALLOW_HTTP=1; loopback/RFC1918/link-local blocked).
+        MCP_HEALTH_ALLOW_HTTP=1; loopback/RFC1918/link-local blocked) and the
+        TCP connection is pinned to the validated IP addresses so the HTTP
+        client cannot escape the policy via a second DNS resolution.
+      * Redirects are never followed; only a verified 2xx marks ``connected``.
       * No credentials are sent or echoed back.
       * Statuses: ok | degraded | unreachable | blocked | invalid.
       * ``connected`` is only True after a verified 2xx HTTP/S probe.
+      * Authorization: MCP config is platform-global; this endpoint is behind
+        the same ``get_api_key`` boundary as the server list endpoint.
     """
     trace_id = getattr(request.state, "trace_id", "unknown")
     from pathlib import Path as _Path
