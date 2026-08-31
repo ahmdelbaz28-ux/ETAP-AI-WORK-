@@ -23,7 +23,15 @@ import {
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
+import { advancedTargetOf } from "../../lib/advanced-routes";
 import { cn } from "../../utils/helpers";
+
+// P8: resolve a command's navigation target — /advanced when the page was
+// migrated (single source of truth: lib/advanced-routes), legacy path otherwise
+// (legacy routes SPA-redirect to /advanced, so old paths keep working).
+function navTarget(legacy: string): string {
+  return advancedTargetOf(legacy) ?? legacy;
+}
 
 interface CommandItem {
   id: string;
@@ -70,7 +78,7 @@ const COMMAND_DEFS: ReadonlyArray<CommandDef> = [
     icon: LayoutDashboard,
     shortcut: "G D",
     section: NAV_SECTION,
-    buildAction: (navigate) => () => navigate("/dashboard"),
+    buildAction: (navigate) => () => navigate(navTarget("/dashboard")),
   },
   {
     id: "nav-studies",
@@ -79,7 +87,7 @@ const COMMAND_DEFS: ReadonlyArray<CommandDef> = [
     icon: FlaskConical,
     shortcut: "G S",
     section: NAV_SECTION,
-    buildAction: (navigate) => () => navigate("/studies"),
+    buildAction: (navigate) => () => navigate(navTarget("/studies")),
   },
   {
     id: "nav-assistant",
@@ -97,7 +105,7 @@ const COMMAND_DEFS: ReadonlyArray<CommandDef> = [
     icon: FolderPlus,
     shortcut: "G P",
     section: NAV_SECTION,
-    buildAction: (navigate) => () => navigate("/projects"),
+    buildAction: (navigate) => () => navigate(navTarget("/projects")),
   },
   {
     id: "nav-asset-management",
@@ -105,7 +113,7 @@ const COMMAND_DEFS: ReadonlyArray<CommandDef> = [
     description: { en: "Power system assets", ar: "أصول النظام" },
     icon: Activity,
     section: NAV_SECTION,
-    buildAction: (navigate) => () => navigate("/asset-management"),
+    buildAction: (navigate) => () => navigate(navTarget("/asset-management")),
   },
   {
     id: "nav-reports",
@@ -113,7 +121,7 @@ const COMMAND_DEFS: ReadonlyArray<CommandDef> = [
     description: { en: "View reports", ar: "عرض التقارير" },
     icon: FileText,
     section: NAV_SECTION,
-    buildAction: (navigate) => () => navigate("/reports"),
+    buildAction: (navigate) => () => navigate(navTarget("/reports")),
   },
   {
     id: "nav-settings",
@@ -122,7 +130,7 @@ const COMMAND_DEFS: ReadonlyArray<CommandDef> = [
     icon: Settings,
     shortcut: "G ,",
     section: NAV_SECTION,
-    buildAction: (navigate) => () => navigate("/settings"),
+    buildAction: (navigate) => () => navigate(navTarget("/settings")),
   },
   {
     id: "nav-diagnostics",
@@ -130,7 +138,7 @@ const COMMAND_DEFS: ReadonlyArray<CommandDef> = [
     description: { en: "System checks", ar: "فحوصات النظام" },
     icon: Bug,
     section: NAV_SECTION,
-    buildAction: (navigate) => () => navigate("/diagnostics"),
+    buildAction: (navigate) => () => navigate(navTarget("/diagnostics")),
   },
   {
     id: "nav-logs",
@@ -138,7 +146,7 @@ const COMMAND_DEFS: ReadonlyArray<CommandDef> = [
     description: { en: "Audit log", ar: "سجل التدقيق" },
     icon: ScrollText,
     section: NAV_SECTION,
-    buildAction: (navigate) => () => navigate("/logs"),
+    buildAction: (navigate) => () => navigate(navTarget("/logs")),
   },
   {
     id: "nav-admin",
@@ -154,28 +162,28 @@ const COMMAND_DEFS: ReadonlyArray<CommandDef> = [
     label: { en: "ETAP Integration", ar: "تكامل ETAP" },
     icon: Zap,
     section: ENG_SECTION,
-    buildAction: (navigate) => () => navigate("/etap"),
+    buildAction: (navigate) => () => navigate(navTarget("/etap")),
   },
   {
     id: "nav-gis",
     label: { en: "GIS Integration", ar: "تكامل GIS" },
     icon: MapIcon,
     section: ENG_SECTION,
-    buildAction: (navigate) => () => navigate("/gis"),
+    buildAction: (navigate) => () => navigate(navTarget("/gis")),
   },
   {
     id: "nav-digital-twin",
     label: { en: "Digital Twin", ar: "التوأم الرقمي" },
     icon: Layers,
     section: ENG_SECTION,
-    buildAction: (navigate) => () => navigate("/digital-twin"),
+    buildAction: (navigate) => () => navigate(navTarget("/digital-twin")),
   },
   {
     id: "nav-code-guard",
     label: { en: "Code Guard", ar: "حارس الكود" },
     icon: ShieldCheck,
     section: ENG_SECTION,
-    buildAction: (navigate) => () => navigate("/code-guard"),
+    buildAction: (navigate) => () => navigate(navTarget("/code-guard")),
   },
   // Actions
   {
@@ -183,14 +191,14 @@ const COMMAND_DEFS: ReadonlyArray<CommandDef> = [
     label: { en: "Import Data", ar: "استيراد البيانات" },
     icon: Upload,
     section: ACTION_SECTION,
-    buildAction: (navigate) => () => navigate("/data-import"),
+    buildAction: (navigate) => () => navigate(navTarget("/data-import")),
   },
   {
     id: "act-export",
     label: { en: "Export Data", ar: "تصدير البيانات" },
     icon: Download,
     section: ACTION_SECTION,
-    buildAction: (navigate) => () => navigate("/data-export"),
+    buildAction: (navigate) => () => navigate(navTarget("/data-export")),
   },
   {
     id: "act-help",
