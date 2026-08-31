@@ -1,4 +1,4 @@
-import { type TextareaHTMLAttributes, forwardRef } from "react";
+import { type TextareaHTMLAttributes, forwardRef, useId } from "react";
 import { cn } from "../../utils/helpers";
 
 interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
@@ -10,9 +10,10 @@ interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
 
 export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
   ({ label, description, error, maxRows = 12, className, id, ...props }, ref) => {
+    const generatedId = useId();
     const textareaId =
       id ||
-      `textarea-${label?.toLowerCase().replace(/\s+/g, "-") || Math.random().toString(36).slice(2, 9)}`;
+      (label ? `textarea-${label.toLowerCase().replace(/\s+/g, "-")}` : generatedId);
     return (
       <div className="w-full">
         {label && (

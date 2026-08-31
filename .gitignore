@@ -10,6 +10,7 @@ build/
 venv/
 env/
 scratch/
+.local/
 
 # Scan / temp files
 dead_code_report.json

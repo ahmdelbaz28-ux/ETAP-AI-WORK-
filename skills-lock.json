@@ -90,6 +90,12 @@
       "skillPath": ".agents/skills/create-readme/SKILL.md",
       "status": "active"
     },
+    "daytona-chrome-cdp": {
+      "source": "different-ai/openwork",
+      "sourceType": "github",
+      "skillPath": ".opencode/skills/daytona-chrome-cdp/SKILL.md",
+      "computedHash": "8ea2eaabb5a3689af9beb0a4c46556f5e7812ef3c5b3fc6f8971cae0cb5df958"
+    },
     "debugging-wizard": {
       "source": "./.agents/skills",
       "sourceType": "local",
@@ -101,6 +107,12 @@
       "sourceType": "github",
       "skillPath": "skills/engineering/diagnosing-bugs/SKILL.md",
       "computedHash": "dcaaa3eb81195329f65f27574d9a67dc776160dd2e4d7798d1afb1e4a5f3695a"
+    },
+    "docker-patterns": {
+      "source": "affaan-m/ECC",
+      "sourceType": "github",
+      "skillPath": "skills/docker-patterns/SKILL.md",
+      "computedHash": "af6deba271429bcb5198a7e56a4f71f948509e06037e6a3210d0ad5f516eeb29"
     },
     "documentation-and-adrs": {
       "source": "./.agents/skills",
@@ -223,10 +235,16 @@
       "status": "active"
     },
     "playwright-best-practices": {
-      "source": "./.agents/skills",
-      "sourceType": "local",
-      "skillPath": ".agents/skills/playwright-best-practices/SKILL.md",
-      "status": "active"
+      "source": "currents-dev/playwright-best-practices-skill",
+      "sourceType": "github",
+      "skillPath": "playwright-best-practices/SKILL.md",
+      "computedHash": "88623575c97314e115f0e361a7d942e31d3b7a4e8925832257e1ad33f52096e4"
+    },
+    "postgres-patterns": {
+      "source": "affaan-m/ECC",
+      "sourceType": "github",
+      "skillPath": "skills/postgres-patterns/SKILL.md",
+      "computedHash": "5ec6a4f0504f15fe9464ccaed3ab51afcb52345b9456f36b65afc4e5af1fc6aa"
     },
     "ppt": {
       "source": "./.agents/skills",
@@ -343,6 +361,12 @@
       "skillPath": "skills/engineering/tdd/SKILL.md",
       "computedHash": "c1ed8cd854c64d4d226097255d3fa662dae4a758a1462fadd63cc10e413d88d7"
     },
+    "test-driven-development": {
+      "source": "obra/superpowers",
+      "sourceType": "github",
+      "skillPath": "skills/test-driven-development/SKILL.md",
+      "computedHash": "a4126a9c5f17be3c228aa9e5755898ade283448b86099f56f40852e8c14532be"
+    },
     "test-engineer": {
       "source": "./.agents/skills",
       "sourceType": "local",
@@ -354,6 +378,12 @@
       "sourceType": "github",
       "skillPath": "skills/engineering/triage/SKILL.md",
       "computedHash": "363ca4f1b97ca5227d41d3973178ab301d7c498ba41b466dfe30b6163f6d72b5"
+    },
+    "triage-vulnerabilities": {
+      "source": "brenthaertlein/universal-skills",
+      "sourceType": "github",
+      "skillPath": "plugins/infra/skills/triage-vulnerabilities/SKILL.md",
+      "computedHash": "a57a909735297cc530f415458d60a5ce9d02bd8ce3afe96e2828872d37ceee7c"
     },
     "ui-ux-pro-max": {
       "source": "nextlevelbuilder/ui-ux-pro-max-skill",

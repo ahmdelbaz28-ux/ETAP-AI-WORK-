@@ -109,6 +109,7 @@ class AgentMetaResponse(BaseModel):
 
 
 @router.get("")
+@router.get("/", include_in_schema=False)
 async def get_agents_list(request: Request):
     """Return the full list of all 25 agents for frontend administration.
 
@@ -164,7 +165,15 @@ async def get_agents_list(request: Request):
                 }
             )
 
-        return JSONResponse(content={"success": True, "agents": agents_list, "trace_id": trace_id})
+        return JSONResponse(
+            content={
+                "success": True,
+                "count": len(agents_list),
+                "total": len(agents_list),
+                "agents": agents_list,
+                "trace_id": trace_id,
+            }
+        )
     except Exception as e:
         from logging import getLogger
 
@@ -172,7 +181,7 @@ async def get_agents_list(request: Request):
         logger.exception("agents_list_failed error=%s", str(e), extra={"trace_id": trace_id})
         # Return an empty list as fallback
         return JSONResponse(
-            content={"success": False, "agents": [], "trace_id": trace_id},
+            content={"success": False, "count": 0, "total": 0, "agents": [], "trace_id": trace_id},
             status_code=500,
         )
 
@@ -1012,16 +1021,12 @@ async def list_mcp_servers(
         raw = json.loads(path.read_text(encoding="utf-8"))
         servers_raw = raw.get("mcpServers", raw.get("servers", {}))
 
-        SECRET_KEY_HINTS = ("key", "token", "secret", "password", "credential")
         servers: list[dict[str, Any]] = []
         for sid, scfg in servers_raw.items():
             env = scfg.get("env", {}) or {}
             redacted_env: dict[str, str] = {}
-            for k, _v in env.items():
-                if any(h in k.lower() for h in SECRET_KEY_HINTS):
-                    redacted_env[k] = "***REDACTED***"
-                else:
-                    redacted_env[k] = "***REDACTED***"  # mask all env values by default
+            for k in env:
+                redacted_env[k] = "***REDACTED***"  # mask all env values by default
 
             servers.append(
                 {

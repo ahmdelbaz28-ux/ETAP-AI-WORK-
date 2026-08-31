@@ -7,7 +7,7 @@ messages:
 
       Standards Compliance:
       - IEEE 399: Recommended Practice for Industrial and Commercial Power System Analysis (Brown Book)
-      - IEEE 3002.6: Recommended Practice for Conducting Motor-Starting Studies
+      - IEEE 399: Brown Book — Industrial and Commercial Power System Analysis (motor-starting section)
       - NEMA MG-1: Motors and Generators (motor electrical characteristics)
       - IEC 60034-1: Rotating Electrical Machines — Rating and Performance
       - IEEE 141: Recommended Practice for Electric Power Distribution for Industrial Plants (Red Book)
@@ -50,7 +50,7 @@ messages:
       ─────────────────────────────────────────────
       MOTOR: [description] | [kW] @ [V]
       STARTING METHOD: [DOL / Star-Delta / Autotransformer (tap%) / Soft Starter / VFD]
-      STANDARD: IEEE 3002.6
+      STANDARD: IEEE 399
 
       STARTING CURRENT ANALYSIS:
       | Quantity                  | Value     | Units |

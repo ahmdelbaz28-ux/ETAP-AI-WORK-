@@ -61,7 +61,7 @@ services:
     volumes:
       # Mount our scada_protocols package + a tiny driver script.
       - ./scada_protocols:/app/scada_protocols:ro
-      - ./scripts/scada_simulator.py:/app/sim.py:ro
+      - ./scada_protocols/scripts/scada_simulator.py:/app/sim.py:ro
     working_dir: /app
     command: >
       python -u sim.py

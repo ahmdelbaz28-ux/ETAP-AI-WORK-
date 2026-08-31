@@ -20,6 +20,8 @@ os.environ.setdefault("APP_ENV", "test")
 os.environ.setdefault("ENVIRONMENT", "test")
 os.environ.setdefault("ENV", "test")
 os.environ.setdefault("ENGINEERING_SERVICE_AUTH_DISABLED", "true")
+os.environ.setdefault("ENGINEERING_SERVICE_API_KEY", "test-key")
+os.environ.setdefault("ENGINEERING_SERVICE_RATE_LIMIT_DISABLED", "true")
 os.environ.setdefault("DATABASE_URL", "sqlite+aiosqlite:///./data/test_etap.db")
 os.environ.setdefault("JWT_SECRET_KEY", "test-jwt-secret-key-32-chars-long!")
 os.environ.setdefault("ETAP_SECRET_KEY", "test-etap-secret-key-32-chars-long!")
@@ -46,9 +48,23 @@ def _reset_redis_singleton():
 
     auth_module._redis_client = None
     auth_module._redis_client_loop = None
+    try:
+        from api import routes as routes_module
+
+        routes_module._redis_client = None
+        routes_module._rate_limit_fallback_store.clear()
+    except Exception:
+        pass
     yield
     auth_module._redis_client = None
     auth_module._redis_client_loop = None
+    try:
+        from api import routes as routes_module
+
+        routes_module._redis_client = None
+        routes_module._rate_limit_fallback_store.clear()
+    except Exception:
+        pass
 
 
 @pytest.fixture(autouse=True)
@@ -410,3 +426,8 @@ def sample_study_request(sample_3bus_network):
         system=sample_3bus_network,
         parameters={"tolerance": 1e-6, "max_iterations": 50},
     )
+
+
+# Re-export fake-COM fixtures from the WP0 harness so any ETAP test module
+# can request them without re-importing (avoids F811 shadowing).
+from tests.test_etap_com_mocked import fake_app, project_file  # noqa: E402,F401

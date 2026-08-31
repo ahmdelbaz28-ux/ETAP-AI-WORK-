@@ -7,6 +7,7 @@ Abstracts the ETAP execution layer to support both local COM (Windows)
 and remote API-based (Linux) execution.
 """
 
+import copy
 import logging
 import os
 import sys
@@ -53,6 +54,7 @@ class ETAPStudyType(Enum):
     OPTIMAL_POWER_FLOW = "OPTIMAL_POWER_FLOW"
     MOTOR_STARTING = "MOTOR_STARTING"
     PROTECTION_COORDINATION = "PROTECTION_COORDINATION"
+    TRANSIENT_STABILITY = "TRANSIENT_STABILITY"
 
 
 class ETAPResult:
@@ -80,11 +82,14 @@ class IEtapProvider(ABC):
         project_path: str,
         study_type: ETAPStudyType,
         visible: bool = False,
+        parameters: dict[str, Any] | None = None,
     ) -> ETAPResult:
         """
         Execute a study on the configured ETAP backend.
 
         Concrete providers (Local, Remote, Mock, Null) must override.
+        ``parameters`` carries study-specific inputs validated downstream
+        against the per-study schema (see etap_com.STUDY_TYPE_PARAMETER_SCHEMAS).
         """
         ...
 
@@ -125,6 +130,7 @@ class LocalEtapProvider(IEtapProvider):
         project_path: str,
         study_type: ETAPStudyType,
         visible: bool = False,
+        parameters: dict[str, Any] | None = None,
     ) -> ETAPResult:
         if not self._available:
             return ETAPResult(
@@ -156,7 +162,7 @@ class LocalEtapProvider(IEtapProvider):
                         time.time() - start_time,
                     )
 
-                result = project.run_study(com_study_type)
+                result = project.run_study(com_study_type, **(parameters or {}))
                 return ETAPResult(
                     result.success,
                     result.data,
@@ -212,6 +218,7 @@ class RemoteEtapProvider(IEtapProvider):
         project_path: str,
         study_type: ETAPStudyType,
         visible: bool = False,
+        parameters: dict[str, Any] | None = None,
     ) -> ETAPResult:
         if not self.use_etap:
             return ETAPResult(
@@ -224,19 +231,28 @@ class RemoteEtapProvider(IEtapProvider):
 
         # Circuit breaker check — use shared CircuitBreaker from engine.resilience
         if self.circuit_breaker.get_state() == "OPEN":
+            last_fail = self.circuit_breaker._last_failure_time or time.time()
+            retry_secs = max(
+                0, int(last_fail + self.circuit_breaker.recovery_timeout - time.time())
+            )
             return ETAPResult(
                 False,
                 {},
                 [],
                 [
                     f"ETAP Worker circuit breaker is OPEN after {self.circuit_breaker._failure_count} consecutive failures. "
-                    f"Retry after {int(self.circuit_breaker._last_failure_time + self.circuit_breaker.recovery_timeout - time.time())}s.",
+                    f"Retry after {retry_secs}s.",
                 ],
                 0.0,
             )
 
-        payload = {"project_path": project_path, "study_type": study_type.name, "visible": visible}
-        headers = {"X-ETAP-Worker-Key": self.api_key}
+        payload = {
+            "project_path": project_path,
+            "study_type": study_type.name,
+            "visible": visible,
+            "parameters": parameters or {},
+        }
+        headers = {"Authorization": f"Bearer {self.api_key}"}
 
         last_error = None
         for attempt in range(self.MAX_RETRIES):
@@ -453,6 +469,7 @@ class MockEtapProvider(IEtapProvider):
         project_path: str,
         study_type: ETAPStudyType,
         visible: bool = False,
+        parameters: dict[str, Any] | None = None,
     ) -> ETAPResult:
         if not self.use_etap:
             return ETAPResult(
@@ -483,7 +500,7 @@ class MockEtapProvider(IEtapProvider):
 
         start_time = time.time()
 
-        mock_data = self.MOCK_RESULTS.get(study_type, {})
+        mock_data: dict[str, Any] = copy.deepcopy(self.MOCK_RESULTS.get(study_type, {}))
         # Mark all mock results as simulated — warnings field alone may not be
         # surfaced in the UI. The is_simulated flag allows the frontend to show
         # a prominent red banner (see MockEtapProvider result handling).
@@ -522,17 +539,17 @@ class NullEtapProvider(IEtapProvider):
         project_path: str,
         study_type: ETAPStudyType,
         visible: bool = False,
+        parameters: dict[str, Any] | None = None,
     ) -> ETAPResult:
         # F-05: Sentinel markers in result data
+        _study_type_str = study_type.value if hasattr(study_type, "value") else str(study_type)
         _null_sentinel = {
             "_null_provider": True,
             "_warning": (
                 "ETAP COM is not available on this platform. "
                 "Results are synthetic/empty — do NOT use for engineering decisions."
             ),
-            "_study_type": str(study_type.value)
-            if hasattr(study_type, "value")
-            else str(study_type),
+            "_study_type": _study_type_str,
         }
 
         # F-05: CRITICAL alert in production — NullEtapProvider means no real
@@ -599,3 +616,7 @@ def get_etap_provider() -> IEtapProvider:
             return provider
 
     return NullEtapProvider()
+
+
+# Backward-compatibility alias
+ETAPProvider = get_etap_provider

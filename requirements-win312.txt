@@ -69,7 +69,7 @@ neo4j>=5.25.0,<7
 #   langchain-qdrant 1.1.0
 #   langsmith        0.10.18
 langchain-core~=1.5.0
-langchain-openai~=1.6.0
+langchain-openai~=1.4.0
 langchain-community~=0.4.0
 langchain-experimental~=0.4.0
 langchain-qdrant~=1.0
@@ -167,12 +167,6 @@ asyncpg>=0.29,<0.32
 # See: https://github.com/fastapi/fastapi/releases
 fastapi>=0.135.0
 uvicorn~=0.25.0
-# aiofiles — required by api/routes.py (streaming file responses + UploadFile).
-# Without it, FastAPI app fails to start: ModuleNotFoundError: No module named 'aiofiles'
-aiofiles>=24.1.0,<25.0.0
-
-# NOTE: aiofiles is already pinned at line 159 (aiofiles>=24.1.0,<25.0.0).
-# Duplicate loose constraint removed to avoid pip resolver conflicts.
 
 # NOTE: OpenTelemetry packages are already pinned at lines 12-17 with
 # compatible-release versions (~=1.30.0 / ~=0.51b0) that satisfy the
@@ -277,7 +271,6 @@ tqdm~=4.66.0
 beautifulsoup4~=4.12.0
 # SECURITY: lxml upgraded from 5.1.0 → 6.1.2 to fix PYSEC-2026-87 (XXE)
 lxml>=6.1.2
-aiofiles>=25.1.0,<26.0.0
 
 # Phase 2: Security & Infrastructure
 pyotp~=2.9.0

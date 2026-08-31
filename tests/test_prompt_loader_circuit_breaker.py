@@ -13,6 +13,7 @@ from agents.prompt_loader import _CircuitBreakerAdapter, _langfuse_cb
 
 
 def test_module_level_circuit_breaker_is_open_accessible() -> None:
+    _langfuse_cb.record_success()
     assert _langfuse_cb.is_open is False
 
 
@@ -40,4 +41,5 @@ def test_record_success_resets_breaker() -> None:
 def test_langwatch_cb_also_functional() -> None:
     from agents.prompt_loader import _langwatch_cb
 
+    _langwatch_cb.record_success()
     assert _langwatch_cb.is_open is False

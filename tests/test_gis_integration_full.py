@@ -2,7 +2,7 @@
 Full-stack integration tests for the GIS integration subsystem.
 
 Covers:
-- ArcGIS provider (mocked arcpy)
+- GIS Provider Factory (mock/QGIS selection, NotImplementedFeature for ArcGIS)
 - PostGIS provider (fallback + mocked psycopg2)
 - QGIS provider (mocked qgis.core)
 - GIS models: GISFeature, ADMSAsset, GeoCRSInfo
@@ -29,6 +29,7 @@ from gis_integration.exceptions import (
     GISIntegrationError,
     GISProviderUnavailableError,
     GISTransformationError,
+    NotImplementedFeature,
 )
 from gis_integration.models import ADMSAsset, ADMSAssetType, GeoCRSInfo, GISFeature
 from gis_integration.transformer import GIS_TO_ADMS_Transformer
@@ -97,89 +98,55 @@ def _make_asset(
 
 
 class TestArcGISProvider:
-    """Test ArcGIS provider with mocked arcpy SDK."""
+    """Test ArcGIS provider is properly archived (raises NotImplementedFeature)."""
 
-    def test_load_project_raises_when_arcpy_unavailable(self):
-        """load_project should raise GISProviderUnavailableError if arcpy missing."""
+    def test_health_check_raises_not_implemented(self):
+        """health_check should raise NotImplementedFeature (archived)."""
         from gis_integration.providers.arcgis_provider import ArcGISProvider
 
         provider = ArcGISProvider()
-        with patch.dict("sys.modules", {"arcpy": None}):
-            # Force the import to fail
-            with patch("builtins.__import__", side_effect=ImportError("no arcpy")):
-                with pytest.raises(GISProviderUnavailableError, match="unavailable"):
-                    provider.load_project("/tmp/test.gdb")
+        with pytest.raises(NotImplementedFeature, match="archived"):
+            provider.health_check()
 
-    def test_list_layers_returns_empty_when_not_loaded(self):
-        """list_layers should return [] if provider not loaded."""
+    def test_load_project_raises_not_implemented(self):
+        """load_project should raise NotImplementedFeature (archived)."""
         from gis_integration.providers.arcgis_provider import ArcGISProvider
 
         provider = ArcGISProvider()
-        assert provider.list_layers() == []
+        with pytest.raises(NotImplementedFeature, match="archived"):
+            provider.load_project("/tmp/test.gdb")
 
-    def test_extract_features_raises_when_not_loaded(self):
-        """extract_features should raise GISDataExtractionError if not loaded."""
+    def test_list_layers_raises_not_implemented(self):
+        """list_layers should raise NotImplementedFeature (archived)."""
         from gis_integration.providers.arcgis_provider import ArcGISProvider
 
         provider = ArcGISProvider()
-        with pytest.raises(
-            GISDataExtractionError, match="not loaded"
-        ):  # NOSONAR multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
+        with pytest.raises(NotImplementedFeature, match="archived"):
+            provider.list_layers()
+
+    def test_extract_features_raises_not_implemented(self):
+        """extract_features should raise NotImplementedFeature (archived)."""
+        from gis_integration.providers.arcgis_provider import ArcGISProvider
+
+        provider = ArcGISProvider()
+        with pytest.raises(NotImplementedFeature, match="archived"):
             list(provider.extract_features("layer-1"))
 
-    def test_export_geojson_raises_on_failure(self):
-        """export_geojson should raise GISDataExtractionError on failure."""
+    def test_export_geojson_raises_not_implemented(self):
+        """export_geojson should raise NotImplementedFeature (archived)."""
         from gis_integration.providers.arcgis_provider import ArcGISProvider
 
         provider = ArcGISProvider()
-        with pytest.raises(GISDataExtractionError):
+        with pytest.raises(NotImplementedFeature, match="archived"):
             provider.export_geojson("nonexistent-layer")
 
-    def test_get_crs_returns_default(self):
-        """get_crs should return default GeoCRSInfo (EPSG:4326)."""
+    def test_get_crs_raises_not_implemented(self):
+        """get_crs should raise NotImplementedFeature (archived)."""
         from gis_integration.providers.arcgis_provider import ArcGISProvider
 
         provider = ArcGISProvider()
-        crs_info = provider.get_crs()
-        assert crs_info.crs == "EPSG:4326"
-
-    def test_health_check_returns_true(self):
-        """health_check should return True."""
-        from gis_integration.providers.arcgis_provider import ArcGISProvider
-
-        provider = ArcGISProvider()
-        assert provider.health_check() is True
-
-    def test_extract_features_with_mocked_arcpy(self):
-        """extract_features should yield GISFeatures when arcpy is available."""
-        from gis_integration.providers.arcgis_provider import ArcGISProvider
-
-        provider = ArcGISProvider()
-        provider._loaded = True  # Pretend loaded
-
-        # Mock the arcpy module and SearchCursor
-        mock_geom = Mock()
-        mock_geom.JSON = '{"type": "Point", "coordinates": [31.5, 30.5]}'
-
-        mock_cursor = iter([(1, mock_geom), (2, mock_geom)])
-
-        mock_arcpy = Mock()
-        mock_arcpy.da.SearchCursor.return_value = mock_cursor
-
-        with patch.dict("sys.modules", {"arcpy": mock_arcpy, "arcpy.da": mock_arcpy.da}):
-            with patch(
-                "gis_integration.providers.arcgis_provider.safe_parse_geojson"
-            ) as mock_parse:
-                mock_parse.return_value = {"type": "Point", "coordinates": [31.5, 30.5]}
-                with patch(
-                    "gis_integration.providers.arcgis_provider.validate_geometry_dict"
-                ) as mock_validate:
-                    mock_validate.return_value = (True, "ok")
-                    features = list(provider.extract_features("test_layer"))
-
-        assert len(features) == 2
-        assert isinstance(features[0], GISFeature)
-        assert features[0].id == "1"
+        with pytest.raises(NotImplementedFeature, match="archived"):
+            provider.get_crs()
 
 
 # ===========================================================================
@@ -350,12 +317,29 @@ class TestQGISProvider:
         crs = provider.get_crs()
         assert crs.crs == "EPSG:4326"
 
-    def test_health_check_returns_true(self):
-        """health_check should return True."""
+    def test_health_check_returns_false_without_qgs_app(self):
+        """health_check should return False when QgsApplication.instance() is None."""
         from gis_integration.providers.qgis_provider import QGISProvider
 
         provider = QGISProvider()
-        assert provider.health_check() is True
+        # Without QGIS installed, importing qgis.core raises, so health_check returns False
+        assert provider.health_check() is False
+
+    def test_health_check_returns_true_with_injected_qgs_app(self):
+        """health_check should return True when QgsApplication.instance() is not None."""
+        from gis_integration.providers.qgis_provider import QGISProvider
+
+        mock_qgs_app = Mock()
+        mock_qgs_app.instance.return_value = Mock()  # Not None
+
+        mock_qgis_core = Mock()
+        mock_qgis_core.QgsApplication = mock_qgs_app
+
+        with patch.dict(
+            "sys.modules", {"qgis": Mock(core=mock_qgis_core), "qgis.core": mock_qgis_core}
+        ):
+            provider = QGISProvider()
+            assert provider.health_check() is True
 
     def test_extract_features_with_mocked_qgis(self):
         """extract_features should yield GISFeatures with mocked QGIS."""
@@ -411,6 +395,42 @@ class TestQGISProvider:
 
         assert len(features) == 1
         assert features[0].id == "42"
+
+
+class TestGISProviderFactory:
+    """Test the get_gis_provider factory with mocked providers."""
+
+    def test_factory_returns_mock_when_allowed(self):
+        """get_gis_provider should return MockGISProvider when mock_gis_provider flag is True."""
+        with patch("gis_integration.providers._mock_gis_allowed", return_value=True):
+            from gis_integration.providers import get_gis_provider
+
+            provider = get_gis_provider("mock")
+            assert provider.__class__.__name__ == "MockGISProvider"
+
+    def test_factory_returns_qgis_when_available(self):
+        """get_gis_provider should return QGISProvider when healthy."""
+        from gis_integration.providers import get_gis_provider
+
+        mock_qgs_app = Mock()
+        mock_qgs_app.instance.return_value = Mock()  # Not None
+        mock_qgis_core = Mock()
+        mock_qgis_core.QgsApplication = mock_qgs_app
+
+        with patch.dict(
+            "sys.modules", {"qgis": Mock(core=mock_qgis_core), "qgis.core": mock_qgis_core}
+        ):
+            with patch("gis_integration.providers._mock_gis_allowed", return_value=False):
+                provider = get_gis_provider("qgis")
+                assert provider.__class__.__name__ == "QGISProvider"
+
+    def test_factory_raises_not_implemented_for_arcgis(self):
+        """get_gis_provider should raise NotImplementedFeature for 'arcgis'."""
+        with patch("gis_integration.providers._mock_gis_allowed", return_value=True):
+            from gis_integration.providers import get_gis_provider
+
+            with pytest.raises(NotImplementedFeature, match="archived"):
+                get_gis_provider("arcgis")
 
 
 # ===========================================================================
@@ -1041,32 +1061,12 @@ class TestProviderErrorHandling:
     """Test error handling resilience across all GIS providers."""
 
     def test_arcgis_invalid_geometry_in_cursor(self):
-        """ArcGIS provider should raise on invalid geometry from cursor."""
+        """ArcGIS provider is archived and raises NotImplementedFeature."""
         from gis_integration.providers.arcgis_provider import ArcGISProvider
 
         provider = ArcGISProvider()
-        provider._loaded = True
-
-        mock_geom = Mock()
-        mock_geom.JSON = '{"type": "InvalidType", "coordinates": []}'
-
-        mock_cursor = iter([(1, mock_geom)])
-        mock_arcpy = Mock()
-        mock_arcpy.da.SearchCursor.return_value = mock_cursor
-
-        with patch.dict("sys.modules", {"arcpy": mock_arcpy, "arcpy.da": mock_arcpy.da}):
-            with patch(
-                "gis_integration.providers.arcgis_provider.safe_parse_geojson"
-            ) as mock_parse:
-                mock_parse.return_value = {"type": "InvalidType", "coordinates": []}
-                with patch(
-                    "gis_integration.providers.arcgis_provider.validate_geometry_dict"
-                ) as mock_val:
-                    mock_val.return_value = (False, "unsupported geometry type: InvalidType")
-                    with pytest.raises(
-                        GISDataExtractionError, match="Invalid geometry"
-                    ):  # NOSONAR multi-call pytest.raises; refactor to extract setup outside raises block (tech debt)
-                        list(provider.extract_features("bad_layer"))
+        with pytest.raises(NotImplementedFeature, match="archived"):
+            list(provider.extract_features("bad_layer"))
 
     def test_qgis_export_geojson_failure(self):
         """QGIS export_geojson should raise GISDataExtractionError on failure."""

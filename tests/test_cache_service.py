@@ -13,6 +13,12 @@ import pytest
 from services.cache_service import StudyCache, get_study_cache
 
 
+@pytest.fixture
+def mock_redis():
+    """Mock Redis fixture for unit tests."""
+    return MagicMock()
+
+
 @pytest.mark.asyncio
 async def test_get_study_cache_redis_backend():
     """Test that get_study_cache returns proper Redis backend."""

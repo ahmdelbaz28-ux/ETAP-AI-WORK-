@@ -151,6 +151,15 @@ class LineSpec(_BaseSpecModel):
             raise ValueError(f"rating_mva must be positive, got {v}")
         return v
 
+    @model_validator(mode="after")
+    def validate_no_self_loop(self) -> LineSpec:
+        """Line cannot connect a bus to itself (self-loop matrix singularity)."""
+        if self.from_bus_id == self.to_bus_id:
+            raise ValueError(
+                f"Line {self.line_id} cannot have self-loop (from_bus_id == to_bus_id == {self.from_bus_id})"
+            )
+        return self
+
 
 # ─── TransformerSpec ─────────────────────────────────────────────────────────
 
@@ -169,6 +178,14 @@ class TransformerSpec(_BaseSpecModel):
         validation_alias=AliasChoices("phase_shift_deg", "phase_shift"),
     )
 
+    @field_validator("x1")
+    @classmethod
+    def validate_reactance_positive(cls, v: float) -> float:
+        """Transformer reactance must be strictly positive."""
+        if v <= 0:
+            raise ValueError(f"x1 must be positive, got {v}")
+        return v
+
     @field_validator("tap_ratio")
     @classmethod
     def validate_tap_ratio(cls, v: float) -> float:
@@ -184,6 +201,15 @@ class TransformerSpec(_BaseSpecModel):
         if v < -180.0 or v > 180.0:
             raise ValueError(f"phase_shift_deg must be between -180 and 180, got {v}")
         return v
+
+    @model_validator(mode="after")
+    def validate_no_self_loop(self) -> TransformerSpec:
+        """Transformer cannot connect a bus to itself."""
+        if self.from_bus_id == self.to_bus_id:
+            raise ValueError(
+                f"from_bus_id and to_bus_id cannot be the same (got {self.from_bus_id})"
+            )
+        return self
 
 
 # ─── GeneratorSpec ───────────────────────────────────────────────────────────
@@ -225,6 +251,22 @@ class GeneratorSpec(_BaseSpecModel):
         validation_alias=AliasChoices("min_power_reactive", "q_min"),
     )
 
+    @field_validator("x1")
+    @classmethod
+    def validate_reactance_positive(cls, v: float) -> float:
+        """Generator reactance must be strictly positive."""
+        if v <= 0:
+            raise ValueError(f"x1 must be positive, got {v}")
+        return v
+
+    @field_validator("internal_voltage_mag")
+    @classmethod
+    def validate_voltage_magnitude(cls, v: float) -> float:
+        """Voltage magnitude must be within physical bounds (0.5–1.5 pu)."""
+        if v < 0.5 or v > 1.5:
+            raise ValueError(f"internal_voltage_mag must be between 0.5 and 1.5 pu, got {v}")
+        return v
+
 
 # ─── LoadSpec ────────────────────────────────────────────────────────────────
 
@@ -243,6 +285,18 @@ class LoadSpec(_BaseSpecModel):
         validation_alias=AliasChoices("q_mvar", "power_reactive", "load_power_reactive"),
     )
     constant_impedance: bool = False
+
+    @field_validator("p_mw", "q_mvar")
+    @classmethod
+    def validate_power_finite_and_bounded(cls, v: float, info: Any) -> float:
+        """Load power must be finite and within reasonable physical bounds."""
+        import math
+
+        if math.isnan(v) or math.isinf(v):
+            raise ValueError(f"{info.field_name} must be a finite number, got {v}")
+        if abs(v) > 1e6:
+            raise ValueError(f"{info.field_name} is unreasonably large ({v}), max is 1e6 MW/MVAR")
+        return v
 
 
 # ─── SystemSpec ──────────────────────────────────────────────────────────────
@@ -263,6 +317,14 @@ class SystemSpec(_BaseSpecModel):
     transformers: list[TransformerSpec] = Field(default_factory=list)
     generators: list[GeneratorSpec] = Field(default_factory=list)
     loads: list[LoadSpec] = Field(default_factory=list)
+
+    @field_validator("buses")
+    @classmethod
+    def validate_buses_count(cls, v: list[BusSpec]) -> list[BusSpec]:
+        """Limit maximum number of buses to prevent memory exhaustion."""
+        if len(v) > 10000:
+            raise ValueError(f"Too many buses ({len(v)}), maximum allowed is 10000")
+        return v
 
     @field_validator("base_mva")
     @classmethod
@@ -325,6 +387,28 @@ class StudyRequest(_BaseSpecModel):
         default=None,
         description="Professional Engineer (PE) stamp for regulated studies",
     )
+
+    @field_validator("parameters")
+    @classmethod
+    def validate_parameters_count(cls, v: dict[str, Any]) -> dict[str, Any]:
+        """Limit parameter keys count to prevent OOM."""
+        if len(v) > 100:
+            raise ValueError(f"Too many parameter keys ({len(v)}), maximum is 100")
+        return v
+
+    @field_validator("etap_project_path")
+    @classmethod
+    def validate_etap_project_path(cls, v: str | None) -> str | None:
+        """Validate ETAP project path to prevent directory traversal or invalid paths."""
+        if v is None:
+            return v
+        if ".." in v:
+            raise ValueError("etap_project_path cannot contain path traversal ('..')")
+        if v.startswith("/"):
+            raise ValueError(
+                "etap_project_path cannot start with '/' (must be Windows path or relative)"
+            )
+        return v
 
     @field_validator("study_type")
     @classmethod

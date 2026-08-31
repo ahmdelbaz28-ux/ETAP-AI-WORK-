@@ -362,22 +362,38 @@ class TestLLMS18:
 
     def test_s18_default_temperature_zero(self):
         """S-18: Default temperature must be 0.0 for deterministic engineering."""
-        target = Path("agents/base.py") if Path("agents/base.py").exists() else Path("agents/orchestrator.py")
+        target = (
+            Path("agents/base.py")
+            if Path("agents/base.py").exists()
+            else Path("agents/orchestrator.py")
+        )
         src = target.read_text(encoding="utf-8")
         section = src[src.find("prompt_temperature") :]
         assert "0.0" in section[:400], "S-18: Default temperature must be 0.0, not 0.2"
 
     def test_s18_old_temperature_removed(self):
         """S-18: Old 0.2 default must be removed."""
-        target = Path("agents/base.py") if Path("agents/base.py").exists() else Path("agents/orchestrator.py")
+        target = (
+            Path("agents/base.py")
+            if Path("agents/base.py").exists()
+            else Path("agents/orchestrator.py")
+        )
         src = target.read_text(encoding="utf-8")
         orch_src = Path("agents/orchestrator.py").read_text(encoding="utf-8")
-        assert 'get("temperature", 0.2)' not in src, "S-18: Old 0.2 default temperature must be removed from base"
-        assert 'get("temperature", 0.2)' not in orch_src, "S-18: Old 0.2 default temperature must be removed from orchestrator"
+        assert 'get("temperature", 0.2)' not in src, (
+            "S-18: Old 0.2 default temperature must be removed from base"
+        )
+        assert 'get("temperature", 0.2)' not in orch_src, (
+            "S-18: Old 0.2 default temperature must be removed from orchestrator"
+        )
 
     def test_s18_safety_critical_comment(self):
         """S-18: Must document why temperature is 0.0."""
-        target = Path("agents/base.py") if Path("agents/base.py").exists() else Path("agents/orchestrator.py")
+        target = (
+            Path("agents/base.py")
+            if Path("agents/base.py").exists()
+            else Path("agents/orchestrator.py")
+        )
         src = target.read_text(encoding="utf-8")
         orch_src = Path("agents/orchestrator.py").read_text(encoding="utf-8")
         assert (
@@ -386,7 +402,6 @@ class TestLLMS18:
             or "safety" in orch_src.lower()
             or "deterministic" in orch_src.lower()
         ), "S-18: Must document safety-critical reasoning for temperature=0.0"
-
 
 
 # ---------------------------------------------------------------------------

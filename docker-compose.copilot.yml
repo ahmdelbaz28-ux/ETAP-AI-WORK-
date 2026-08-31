@@ -40,7 +40,7 @@ services:
       - COPILOT_HOST=0.0.0.0
       - AUTOCAD_PLUGIN_URL=http://host.docker.internal:4820
       - REVIT_PLUGIN_URL=http://host.docker.internal:4830
-      - ETAP_WORKER_URL=http://etap-worker:8001
+      - ETAP_WORKER_URL=http://etap-worker:8081
       - ETAP_WORKER_API_KEY=${ETAP_WORKER_API_KEY:-}
       # Tracing & Metrics
       - OTEL_SERVICE_NAME=etap-copilot-api
@@ -79,7 +79,7 @@ services:
       - DATABASE_URL=${DATABASE_URL:?DATABASE_URL is required — must point to Postgres, not SQLite}
       - REDIS_URL=${REDIS_URL:-redis://redis:6379/0}
       - ETAP_PROVIDER=${ETAP_PROVIDER:-mock}
-      - ETAP_WORKER_URL=http://etap-worker:8001
+      - ETAP_WORKER_URL=http://etap-worker:8081
       - ETAP_WORKER_API_KEY=${ETAP_WORKER_API_KEY:-}
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
       - OTEL_SERVICE_NAME=etap-engineering-service
@@ -111,12 +111,12 @@ services:
     container_name: etap-worker
     profiles: ["copilot", "full"]
     ports:
-      - "8001:8001"
+      - "8081:8081"
     environment:
-      - PORT=8001
+      - PORT=8081
       - ETAP_PROVIDER=mock
       - WORKER_MODE=etap
-    command: ["uvicorn", "etap_integration.etap_worker_service:app", "--host", "0.0.0.0", "--port", "8001"]
+    command: ["uvicorn", "etap_integration.etap_worker_service:app", "--host", "0.0.0.0", "--port", "8081"]
     logging: *default-logging
     networks:
       - etap-network

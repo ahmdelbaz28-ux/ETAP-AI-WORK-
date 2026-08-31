@@ -124,20 +124,26 @@ class ModbusServerAdapter(ProtocolAdapter):
             default=100,
         )
 
+        # Authoritative address->word store maintained by the refresh loop.
+        # Seeding goes through the block constructor because pymodbus >=3.9
+        # removed the legacy mutators (setValues) and newer 3.x releases made
+        # sparse blocks immutable after construction.
+        store: Dict[int, int] = {}
         if _USE_SPARSE:
-            # Sparse block keyed by address. Initialize all addresses to 0.
             initial = dict.fromkeys(range(0, max_addr + 10), 0)
-            block = ModbusSparseDataBlock(initial)
-            # Seed the block with encoded current values.
             for entry in self._register_map.entries:
                 words = self._register_map.encode_value(entry, 0.0)
                 for i, w in enumerate(words):
-                    block.setValues(entry.address + i, [w])
+                    store[entry.address + i] = w
+                    initial[entry.address + i] = w
+            block = ModbusSparseDataBlock(initial)
         else:  # pragma: no cover - legacy API
             block = ModbusSequentialDataBlock(1, [0] * (max_addr + 10))
             for entry in self._register_map.entries:
                 words = self._register_map.encode_value(entry, 0.0)
                 for i, w in enumerate(words):
+                    store[entry.address + i + 1] = w
+                    # Legacy blocks are mutable lists; seed via setValues.
                     block.setValues(entry.address + i + 1, [w])  # +1 offset
 
         if _NEW_API:
@@ -159,6 +165,65 @@ class ModbusServerAdapter(ProtocolAdapter):
                 ir=block,
             )
             context = ModbusServerContext(slaves={self._cfg.server_unit_id: device}, single=False)
+
+        def _mirror_words(entry_addr: int, words: list[int]) -> None:
+            """Mirror refreshed words into the datastore so external
+            Modbus readers observe provider updates.
+
+            Strategy (most canonical first):
+            1. Device-level ``set_values``/``setValues(func_code, addr,
+               values)`` — the context applies fx decoding and any internal
+               address shifting itself. This is the only path whose
+               addressing is guaranteed correct across pymodbus 3.x.
+            2. Direct block mutators on the device's store blocks.
+            3. Last resort: swap the store blocks with freshly constructed
+               sparse blocks (pymodbus >=3.13 immutable-block builds).
+            """
+            for i, w in enumerate(words):
+                store[entry_addr + i] = w
+
+            dev_set = getattr(device, "set_values", None)
+            if dev_set is None:
+                dev_set = getattr(device, "setValues", None)
+            if callable(dev_set):
+                try:
+                    # Function code 3 == holding registers.
+                    dev_set(3, entry_addr, list(words))
+                    return
+                except Exception:
+                    pass
+
+            candidates: list[Any] = []
+            ctx_store = getattr(device, "store", None)
+            if isinstance(ctx_store, dict):
+                candidates.extend(ctx_store[k] for k in ("h", "i") if k in ctx_store)
+            for attr in ("hr", "ir"):
+                blk = getattr(device, attr, None)
+                if blk is not None:
+                    candidates.append(blk)
+            for blk in candidates:
+                blk_set = getattr(blk, "set_values", None) or getattr(blk, "setValues", None)
+                if callable(blk_set):
+                    try:
+                        blk_set(entry_addr, list(words))
+                        return
+                    except Exception:
+                        continue
+
+            if _USE_SPARSE and not getattr(self, "_mirror_degraded", False):
+                try:
+                    new_block = ModbusSparseDataBlock(dict(store))
+                    ctx_store2 = getattr(device, "store", None)
+                    if isinstance(ctx_store2, dict):
+                        for key in ("h", "i"):
+                            if key in ctx_store2:
+                                ctx_store2[key] = new_block
+                    else:
+                        device.ir = new_block
+                        device.hr = new_block
+                except Exception as exc:
+                    self._mirror_degraded = True
+                    logger.warning("Modbus datastore mirroring degraded: %s", exc)
 
         async def _run() -> None:
             logger.info(
@@ -192,9 +257,7 @@ class ModbusServerAdapter(ProtocolAdapter):
                             self._register_map.write_registers(entry.address + i, [w])
                         # Mirror into the datastore so external readers see it.
                         try:
-                            device = context[self._cfg.server_unit_id]
-                            # In 3.13 the function code for holding registers is 3.
-                            device.setValues(3, entry.address, words)
+                            _mirror_words(entry.address, words)
                         except Exception:
                             pass
                         self._mark_served()
@@ -233,7 +296,8 @@ class ModbusServerAdapter(ProtocolAdapter):
 
     def stop_server(self) -> None:
         """Stop the server and the refresh task."""
-        if self._loop is not None and self._loop.is_running():
+        loop = self._loop
+        if loop is not None and loop.is_running():
             try:
                 # Schedule shutdown on the loop.
                 async def _shutdown() -> None:
@@ -241,13 +305,15 @@ class ModbusServerAdapter(ProtocolAdapter):
                         self._refresh_task.cancel()
                     # pymodbus 3.x StartAsyncTcpServer exposes no clean stop,
                     # so we cancel the loop's tasks; the thread exits.
-                    tasks = [
-                        t for t in asyncio.all_tasks(self._loop) if t is not asyncio.current_task()
-                    ]
+                    tasks = [t for t in asyncio.all_tasks(loop) if t is not asyncio.current_task()]
                     for t in tasks:
                         t.cancel()
 
-                self._loop.call_soon_threadsafe(lambda: self._loop.create_task(_shutdown()))
+                def _schedule(current_loop: asyncio.AbstractEventLoop = loop) -> None:
+                    if not current_loop.is_closed():
+                        current_loop.create_task(_shutdown())
+
+                loop.call_soon_threadsafe(_schedule)
             except Exception as exc:
                 self._mark_error(f"stop_server: {exc}")
         self._thread = None

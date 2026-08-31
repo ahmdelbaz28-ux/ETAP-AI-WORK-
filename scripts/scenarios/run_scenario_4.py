@@ -315,18 +315,15 @@ async def run_scenario(
     finally:
         if bridge:
             bridge.stop()
+        cleanup_tasks = []
         if bridge_task:
             bridge_task.cancel()
-            try:
-                await bridge_task
-            except asyncio.CancelledError:
-                pass
+            cleanup_tasks.append(bridge_task)
         if consumer_task:
             consumer_task.cancel()
-            try:
-                await consumer_task
-            except asyncio.CancelledError:
-                pass
+            cleanup_tasks.append(consumer_task)
+        if cleanup_tasks:
+            await asyncio.gather(*cleanup_tasks, return_exceptions=True)
 
     # ─── STEP 6: Impact analysis ──────────────────────────────────
     logger.info("")

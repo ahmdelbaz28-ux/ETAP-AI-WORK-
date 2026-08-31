@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """AI Agents - Multi-agent engineering orchestration system.
 
 Provides 15 specialized engineering agents and a ChiefEngineeringOrchestrator
@@ -121,6 +123,25 @@ STUDY_TYPE_AGENT_MAP = {
     StudyType.ETAP_GUI: ETAPGUIAgent,
 }
 
+# WP4 (Iron Loop): register the unified ETAP COM execution agent.
+# Every specialist key above stays untouched — this companion registry
+# records that all provider-backed study types can also be executed
+# through ETAPExecutionAgent's Local/Remote provider interface (the same
+# set the runtime orchestrator already dispatches as "etap_execution").
+ETAP_EXECUTION_AGENT_MAP: dict[StudyType, type[BaseAgent]] = dict.fromkeys(
+    (
+        StudyType.LOAD_FLOW,
+        StudyType.SHORT_CIRCUIT,
+        StudyType.ARC_FLASH,
+        StudyType.HARMONIC_ANALYSIS,
+        StudyType.OPTIMAL_POWER_FLOW,
+        StudyType.MOTOR_STARTING,
+        StudyType.PROTECTION_COORDINATION,
+        StudyType.TRANSIENT_STABILITY,
+    ),
+    ETAPExecutionAgent,
+)
+
 __all__ = [
     # Base classes and data structures
     "AgentStatus",
@@ -155,4 +176,5 @@ __all__ = [
     # Registries
     "ALL_AGENT_CLASSES",
     "STUDY_TYPE_AGENT_MAP",
+    "ETAP_EXECUTION_AGENT_MAP",
 ]

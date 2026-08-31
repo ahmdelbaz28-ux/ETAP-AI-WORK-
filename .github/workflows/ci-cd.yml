@@ -847,7 +847,8 @@ jobs:
           node-version: '24'
 
       - name: Install Vercel CLI
-        run: npm install -g --ignore-scripts vercel@37.2.3
+        continue-on-error: true
+        run: npm install -g --ignore-scripts vercel
 
       - name: Deploy to Vercel Production
         # Non-blocking: Vercel free tier limits deployments to 100/day.

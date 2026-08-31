@@ -129,9 +129,7 @@ jobs:
           node-version: '24'
 
       - name: Install Vercel CLI
-        # Pin Vercel CLI to the same version used by ci-cd.yml's deploy-vercel
-        # job to avoid version-skew bugs in the rollback API.
-        run: npm install -g --ignore-scripts vercel@37.2.3
+        run: npm install -g --ignore-scripts vercel
 
       - name: Verify target deployment exists
         env:

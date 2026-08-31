@@ -1,5 +1,5 @@
 import { Minus, Plus } from "lucide-react";
-import { type InputHTMLAttributes, forwardRef } from "react";
+import { type InputHTMLAttributes, forwardRef, useId } from "react";
 import { cn } from "../../utils/helpers";
 
 interface NumberInputProps
@@ -19,9 +19,10 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
     { label, description, error, onChange, min, max, step = 1, precision, className, id, ...props },
     ref,
   ) => {
+    const generatedId = useId();
     const inputId =
       id ||
-      `number-${label?.toLowerCase().replace(/\s+/g, "-") || Math.random().toString(36).slice(2, 9)}`;
+      (label ? `number-${label.toLowerCase().replace(/\s+/g, "-")}` : generatedId);
 
     const clamp = (val: number): number => {
       let v = val;

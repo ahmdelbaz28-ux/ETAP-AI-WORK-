@@ -376,6 +376,18 @@ async def lifespan(_app: Any) -> AsyncIterator[None]:
     global _study_cache
     _study_cache = await _initialize_cache_with_retry()
 
+    # SCADA protocols wiring (additive, opt-in via env flag; default off).
+    # Wrapped so a missing/broken protocol stack can never break app startup
+    # (e.g. Linux builds without pymodbus/asyncua/c104 installed).
+    if os.environ.get("SCADA_PROTOCOLS_ENABLED", "").lower() == "true":
+        try:
+            from scada_protocols.wiring import wire_into_app
+
+            wire_into_app(_app)
+            logger.info("scada_protocols wired into app")
+        except Exception as e:
+            logger.warning("scada_protocols wiring skipped: %s", e)
+
     try:
         yield
     finally:

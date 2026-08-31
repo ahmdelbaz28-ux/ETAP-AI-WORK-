@@ -8,6 +8,7 @@ FROM python:3.13-slim
 WORKDIR /app
 
 # Install system dependencies for OpenCV + DocTR
+# hadolint ignore=DL3008
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libgl1-mesa-glx libglib2.0-0 git && \
     rm -rf /var/lib/apt/lists/*
@@ -24,7 +25,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 # Create non-root user for security (S6471)
 RUN useradd -m -u 1000 appuser
-USER appuser
+USER 1000
 
 EXPOSE 8000
 

@@ -419,15 +419,13 @@ async def run_scenario(
 
         for filename, filepath, mime in files_to_upload:
             try:
-                with open(filepath, "rb") as f:
-                    storage_path = f"scenarios/{trace_id}/{filename}"
-                    upload_file(
-                        bucket="reports",
-                        file_path=storage_path,
-                        content=f.read(),
-                        content_type=mime,
-                        user_id="scenario-runner",
-                    )
+                storage_path = f"scenarios/{trace_id}/{filename}"
+                upload_file(
+                    bucket="reports",
+                    file_path=filepath,
+                    content_type=mime,
+                    user_id="scenario-runner",
+                )
                 uploaded_urls[filename] = get_signed_url(
                     bucket="reports",
                     path=storage_path,
@@ -561,10 +559,12 @@ def _generate_qgis_project(geojson_path: str, output_dir: str, trace_id: str) ->
     output_path = os.path.join(output_dir, "load_flow_qgis.qgz")
     provider = QGISProvider()
 
-    # Use the provider's GISProject to create a new project from GeoJSON
-    # The QGISProvider.load_project() opens an existing project, but we
-    # need to CREATE a new one. We'll use QgsProject directly.
-    provider._ensure_qgs_application()
+    # Initialize QGIS application (prefix from QGIS_PREFIX_PATH env if set)
+    prefix_path = os.getenv("QGIS_PREFIX_PATH")
+    try:
+        provider._init_qgs(prefix_path)
+    except Exception as exc:
+        logger.warning("Failed to initialize QGIS app: %s; project generation may fail", exc)
 
     from PyQt5.QtGui import QColor  # type: ignore
     from qgis.core import (  # type: ignore

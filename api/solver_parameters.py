@@ -31,6 +31,7 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 _DEFAULTS: dict[str, float | int] = {
+    "convergence_tolerance": 1e-5,
     "solver_convergence_tolerance": 1e-5,
     "max_iterations": 50,
     "acceleration_factor": 1.6,
@@ -46,13 +47,11 @@ _solver_parameters: dict[str, float | int] = dict(_DEFAULTS)
 
 
 class SolverParametersBase(BaseModel):
-    """Base model with shared solver-parameter field definitions.
+    """Base model with shared solver-parameter field definitions."""
 
-    Each field declares its default value and validation constraints so
-    that both the full-create and partial-update models can reuse them.
-    """
+    model_config = ConfigDict(populate_by_name=True)
 
-    solver_convergence_tolerance: float = Field(
+    convergence_tolerance: float = Field(
         default=1e-5,
         ge=1e-6,
         le=1e-3,
@@ -83,28 +82,28 @@ class SolverParametersBase(BaseModel):
     )
 
 
-class SolverParametersCreate(SolverParametersBase):
-    """Request body for creating/overwriting all solver parameters.
+class SolverParametersCreate(BaseModel):
+    """Request body for creating/overwriting all solver parameters."""
 
-    All fields are required when performing a full replacement (POST).
-    """
+    model_config = ConfigDict(populate_by_name=True, extra="ignore")
 
-    solver_convergence_tolerance: float = SolverParametersBase.model_fields[
-        "solver_convergence_tolerance"
-    ].default  # type: ignore[assignment]
-    max_iterations: int = SolverParametersBase.model_fields["max_iterations"].default  # type: ignore[assignment]
-    acceleration_factor: float = SolverParametersBase.model_fields["acceleration_factor"].default  # type: ignore[assignment]
+    convergence_tolerance: Optional[float] = Field(default=None, ge=1e-6, le=1e-3)
+    solver_convergence_tolerance: Optional[float] = Field(default=None, ge=1e-6, le=1e-3)
+    max_iterations: int = Field(default=50, ge=10, le=200)
+    acceleration_factor: float = Field(default=1.6, ge=1.0, le=2.0)
 
 
 class SolverParametersUpdate(BaseModel):
-    """Request body for partially updating solver parameters.
+    """Request body for partially updating solver parameters."""
 
-    Only fields that are explicitly provided will be updated; omitted
-    fields retain their current values.
-    """
+    model_config = ConfigDict(extra="forbid", populate_by_name=True)
 
-    model_config = ConfigDict(extra="forbid")
-
+    convergence_tolerance: Optional[float] = Field(
+        default=None,
+        ge=1e-6,
+        le=1e-3,
+        description="Updated convergence tolerance (1e-6 to 1e-3).",
+    )
     solver_convergence_tolerance: Optional[float] = Field(
         default=None,
         ge=1e-6,
@@ -125,10 +124,15 @@ class SolverParametersUpdate(BaseModel):
     )
 
 
-class SolverParametersResponse(SolverParametersBase):
+class SolverParametersResponse(BaseModel):
     """Response model returned by all solver-parameter endpoints."""
 
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+
+    convergence_tolerance: float = Field(default=1e-5, ge=1e-6, le=1e-3)
+    solver_convergence_tolerance: float = Field(default=1e-5, ge=1e-6, le=1e-3)
+    max_iterations: int = Field(default=50, ge=10, le=200)
+    acceleration_factor: float = Field(default=1.6, ge=1.0, le=2.0)
 
 
 # ---------------------------------------------------------------------------
@@ -147,6 +151,7 @@ router = APIRouter(
 # ---------------------------------------------------------------------------
 
 
+@router.get("", response_model=SolverParametersResponse, include_in_schema=False)
 @router.get(
     "/",
     response_model=SolverParametersResponse,
@@ -154,45 +159,44 @@ router = APIRouter(
     description="Returns the current solver parameters stored in memory.",
 )
 async def get_solver_parameters() -> SolverParametersResponse:
-    """Retrieve the current solver parameters.
-
-    Returns:
-        SolverParametersResponse: The active solver parameter values.
-    """
+    """Retrieve the current solver parameters."""
     return SolverParametersResponse(**_solver_parameters)
 
 
+@router.post("", response_model=SolverParametersResponse, include_in_schema=False)
 @router.post(
     "/",
     response_model=SolverParametersResponse,
-    status_code=status.HTTP_201_CREATED,
+    status_code=status.HTTP_200_OK,
     summary="Create / overwrite solver parameters",
-    description=(
-        "Creates or completely replaces all solver parameters. Every field must be provided."
-    ),
+    description="Creates or completely replaces all solver parameters.",
 )
 async def create_solver_parameters(
     body: SolverParametersCreate,
 ) -> SolverParametersResponse:
-    """Create or overwrite all solver parameters at once.
+    """Create or overwrite all solver parameters at once."""
+    tol = (
+        body.convergence_tolerance
+        if body.convergence_tolerance is not None
+        else body.solver_convergence_tolerance
+    )
+    if tol is not None:
+        _solver_parameters["convergence_tolerance"] = tol
+        _solver_parameters["solver_convergence_tolerance"] = tol
+    _solver_parameters["max_iterations"] = body.max_iterations
+    _solver_parameters["acceleration_factor"] = body.acceleration_factor
 
-    Args:
-        body: Full set of solver parameters to store.
-
-    Returns:
-        SolverParametersResponse: The newly stored parameter values.
-    """
-    _solver_parameters.update(body.model_dump())
     logger.info(
         "Solver parameters overwritten: convergence_tolerance=%s, "
         "max_iterations=%s, acceleration_factor=%s",
-        _solver_parameters["solver_convergence_tolerance"],
+        _solver_parameters["convergence_tolerance"],
         _solver_parameters["max_iterations"],
         _solver_parameters["acceleration_factor"],
     )
     return SolverParametersResponse(**_solver_parameters)
 
 
+@router.put("", response_model=SolverParametersResponse, include_in_schema=False)
 @router.put(
     "/",
     response_model=SolverParametersResponse,
@@ -205,26 +209,21 @@ async def create_solver_parameters(
 async def update_solver_parameters(
     body: SolverParametersUpdate,
 ) -> SolverParametersResponse:
-    """Partially update individual solver parameters.
-
-    Only fields that are explicitly set (non-None) in the request body
-    will be applied; all other fields remain unchanged.
-
-    Args:
-        body: Partial set of solver parameters to update.
-
-    Returns:
-        SolverParametersResponse: The updated parameter values.
-
-    Raises:
-        HTTPException 422: If no fields are provided for update.
-    """
+    """Partially update individual solver parameters."""
     updates = body.model_dump(exclude_none=True)
     if not updates:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail="At least one parameter must be provided for update.",
         )
-    _solver_parameters.update(updates)
-    logger.info("Solver parameters updated: %s", updates)
+    tol = updates.get("convergence_tolerance") or updates.get("solver_convergence_tolerance")
+    if tol is not None:
+        _solver_parameters["convergence_tolerance"] = tol
+        _solver_parameters["solver_convergence_tolerance"] = tol
+    if "max_iterations" in updates:
+        _solver_parameters["max_iterations"] = updates["max_iterations"]
+    if "acceleration_factor" in updates:
+        _solver_parameters["acceleration_factor"] = updates["acceleration_factor"]
+
+    logger.info("Solver parameters updated: %s", _solver_parameters)
     return SolverParametersResponse(**_solver_parameters)

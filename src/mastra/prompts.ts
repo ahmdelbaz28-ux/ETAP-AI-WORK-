@@ -83,6 +83,36 @@ function extractSystemMessage(parsed: Record<string, unknown>): string | null {
 function loadLocalPrompt(handle: string): string | null {
   try {
     const promptsDir = path.join(process.cwd(), 'prompts');
+
+    // Manifest-first: prompts.json binds each handle to its canonical file
+    // (e.g. etap_engineer_agent -> v2), so consult it BEFORE the filename-
+    // pattern fallback, which can silently resolve to a stale same-named file.
+    const manifestPath = path.join(process.cwd(), 'prompts.json');
+    if (fs.existsSync(manifestPath)) {
+      try {
+        const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf-8')) as {
+          prompts?: Record<string, string>;
+        };
+        let mapped: string | undefined = manifest.prompts?.[handle];
+        if (mapped && mapped.startsWith('file:')) {
+          mapped = mapped.slice(5);
+        }
+        if (mapped) {
+          const manifestFilePath = path.join(process.cwd(), mapped);
+          if (fs.existsSync(manifestFilePath)) {
+            const content = fs.readFileSync(manifestFilePath, 'utf-8');
+            const parsed = parseYaml(content);
+            const systemMsg = extractSystemMessage(parsed);
+            if (systemMsg) {
+              return systemMsg;
+            }
+          }
+        }
+      } catch {
+        // Malformed manifest — fall through to filename patterns.
+      }
+    }
+
     const possibleFiles = [`${handle}.yaml`, `${handle}.prompt.yaml`];
 
     for (const filename of possibleFiles) {

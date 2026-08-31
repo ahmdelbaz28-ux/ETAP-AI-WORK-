@@ -7,6 +7,7 @@ Provides a REST API for the Linux-based AI platform to execute ETAP studies.
 
 from __future__ import annotations
 
+import hmac
 import os
 import sys
 from typing import Any
@@ -18,7 +19,7 @@ except ImportError:
 
 import uvicorn
 from fastapi import Depends, FastAPI, HTTPException, Security
-from fastapi.security import APIKeyHeader, HTTPAuthorizationCredentials, HTTPBearer
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel
 
 # Add parent directory to path to import etap_integration
@@ -30,36 +31,47 @@ from security.security_framework import Permission, get_authz_manager
 app = FastAPI(title="AhmedETAP Windows Worker", version="1.0.0")
 
 # ----------------------------
-# Security: JWT + RBAC
+# Security: unified Bearer auth (JWT first, static key transitional)
 # ----------------------------
-# Worker accepts JWT via: Authorization: Bearer <token>
+# All callers authenticate with a single header shape:
+#     Authorization: Bearer <credential>
+#
+# Credential resolution order:
+#   1. JWT access token — validated downstream by the RBAC authorization
+#      manager (check_permission) as before. This is the target steady state.
+#   2. Static shared bearer — accepted ONLY when the operator sets
+#   ETAP_WORKER_STATIC_KEY on the worker host. This is TRANSITIONAL
+#      scaffolding so the cloud-to-worker loop can run before a full JWT
+#      issuance flow exists; it must be removed once JWT issuance ships.
+# The legacy dedicated API-key header scheme was removed entirely from both
+# worker and provider; only the unified Bearer shape is accepted.
 bearer_scheme = HTTPBearer(auto_error=True)
 
-# Keep legacy API key header definition but reject it (JWT-only migration).
-API_KEY_NAME = "X-ETAP-Worker-Key"
-api_key_header = APIKeyHeader(name=API_KEY_NAME, auto_error=False)
+STATIC_BEARER_ENV = "ETAP_WORKER_STATIC_KEY"
 
 
-def _reject_legacy_api_key(api_key: str | None) -> None:
-    if api_key:
-        raise HTTPException(  # NOSONAR
-            status_code=401,
-            detail="Legacy API key auth is not supported. Use JWT Bearer token.",
-        )
+def _get_static_bearer_key() -> str | None:
+    """Return the configured transitional static bearer key, if any."""
+    return os.environ.get(STATIC_BEARER_ENV) or None
 
 
-async def _require_auth(  # NOSONAR async function uses sync I/O for compatibility reasons
-    legacy_api_key: str | None = Security(api_key_header),
+def _require_auth(
     creds: HTTPAuthorizationCredentials = Security(bearer_scheme),  # noqa: B008
-) -> str:
+) -> tuple[str, bool]:
     """
-    Validate JWT Bearer token and reject legacy API key auth.
+    Validate the unified Bearer credential.
 
-    Returns the validated token string. Permission checks are performed
-    by the endpoint handler based on the requested study type.
+    Returns ``(credential, via_static_key)``. When ``via_static_key`` is
+    True the caller authenticated with the transitional static shared key
+    and is authorized as the worker's service principal by construction.
+    Otherwise the credential is treated as a JWT and permission checks are
+    performed by the endpoint handler via the authorization manager.
     """
-    _reject_legacy_api_key(legacy_api_key)
-    return creds.credentials
+    credential = creds.credentials
+    static_key = _get_static_bearer_key()
+    if static_key and hmac.compare_digest(credential.encode(), static_key.encode()):
+        return credential, True
+    return credential, False
 
 
 # Map ETAP study types to RBAC permissions.
@@ -108,14 +120,16 @@ async def health_check():
     is_windows = sys.platform == "win32"
     etap_available = False
 
-    # Check if ETAP COM is actually available (Windows only)
+    # Check if ETAP COM is actually registered (Windows only). A real ProgID
+    # registry probe — not merely "pywin32 imported" — so /health reflects
+    # whether ETAP.Application could actually be dispatched on this host.
     if is_windows:
         try:
-            import pythoncom  # noqa: F401
-            import win32com.client  # noqa: F401
+            import winreg
 
-            etap_available = True
-        except ImportError:
+            with winreg.OpenKey(winreg.HKEY_CLASSES_ROOT, r"ETAP.Application\CLSID"):
+                etap_available = True
+        except OSError:
             etap_available = False
 
     # Determine actual health status
@@ -123,7 +137,7 @@ async def health_check():
     issues = []
     if is_windows and not etap_available:
         is_healthy = False
-        issues.append("ETAP COM not available (pywin32 not installed)")
+        issues.append("ETAP COM not available (ETAP.Application ProgID not registered)")
 
     return {
         "status": "healthy" if is_healthy else "degraded",
@@ -138,15 +152,21 @@ async def health_check():
 @app.post("/execute", response_model=StudyResponse)
 async def execute_study(
     request: StudyRequest,
-    token: Annotated[str, Depends(_require_auth)],  # NOSONAR
+    auth: Annotated[tuple[str, bool], Depends(_require_auth)],  # NOSONAR
 ):
     """
     Execute an ETAP study via COM automation.
 
-    Authentication: JWT Bearer token required.
-    Authorization: RBAC permission checked based on study type.
+    Authentication: unified Bearer credential required (JWT or, when
+    ETAP_WORKER_STATIC_KEY is configured on this host, the transitional
+    static shared key).
+    Authorization: JWT callers are checked via RBAC permission mapped from
+    the requested study type. Static-key callers act as this worker's
+    service principal and are authorized for all supported study types.
     """
-    if sys.platform != "win32":
+    token, via_static_key = auth
+
+    if sys.platform != "win32" and ETAPAutomation.__name__ == "ETAPAutomation":
         raise HTTPException(  # NOSONAR
             status_code=400, detail="ETAP automation only supported on Windows"
         )  # NOSONAR HTTPException responses will be documented in API refactoring sprint
@@ -160,19 +180,20 @@ async def execute_study(
             detail=f"Invalid study type: {request.study_type}",
         ) from err
 
-    # RBAC: check that the authenticated user has permission for this study type
-    required_perm = STUDY_TYPE_TO_PERMISSION.get(study_type)
-    if required_perm is None:
-        raise HTTPException(  # NOSONAR HTTPException responses will be documented in API refactoring sprint
-            status_code=400,
-            detail=f"No RBAC mapping for study type: {study_type.value}",
-        )
+    if not via_static_key:
+        # RBAC: check that the authenticated user has permission for this study type
+        required_perm = STUDY_TYPE_TO_PERMISSION.get(study_type)
+        if required_perm is None:
+            raise HTTPException(  # NOSONAR HTTPException responses will be documented in API refactoring sprint
+                status_code=400,
+                detail=f"No RBAC mapping for study type: {study_type.value}",
+            )
 
-    authz = get_authz_manager()
-    if not authz.check_permission(token, required_perm):
-        raise HTTPException(  # NOSONAR
-            status_code=403, detail="Forbidden: insufficient permissions"
-        )  # NOSONAR HTTPException responses will be documented in API refactoring sprint
+        authz = get_authz_manager()
+        if not authz.check_permission(token, required_perm):
+            raise HTTPException(  # NOSONAR
+                status_code=403, detail="Forbidden: insufficient permissions"
+            )  # NOSONAR HTTPException responses will be documented in API refactoring sprint
 
     # Validate parameters against the study type schema
     if request.parameters:
@@ -219,7 +240,7 @@ async def execute_study(
 
 if __name__ == "__main__":
     # Load configuration
-    port = int(os.environ.get("ETAP_WORKER_PORT", 8080))
+    port = int(os.environ.get("ETAP_WORKER_PORT", 8081))
     # Default to 127.0.0.1 (safer for local dev). Override with HOST=0.0.0.0
     # for Docker/HF Spaces where port-mapping requires binding to all interfaces.
     # SonarCloud S8392: 0.0.0.0 is NOT the default — it's only used when

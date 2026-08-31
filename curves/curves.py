@@ -144,8 +144,8 @@ def calculate_iec_operating_time(
     # --- Compute M = I_fault / I_setting ---
     M = i_fault / i_setting
 
-    # --- No-trip: fault current at or below pickup (I <= I_setting or M <= 1.0) ---
-    if i_fault <= i_setting or math.isclose(M, 1.0) or M <= 1.0:
+    # --- No-trip: fault current at or below pickup (I <= I_setting) ---
+    if i_fault <= i_setting or math.isclose(M, 1.0) or M < 1.0:
         return {
             "operating_time_s": float("inf"),
             "curve_type": curve_type_lower,
@@ -238,6 +238,9 @@ class IEC60255Curves:
         Ip, I = ip, i
         if Ip > I:
             return float("inf")
+        M = I / Ip if Ip != I else _IEC_CURVE_EPSILON  # noqa: F841
+        if Ip == I:
+            return tms * 0.14 / (_IEC_CURVE_EPSILON**0.02 - 1)
         result = calculate_iec_operating_time(
             i_fault=i,
             i_setting=ip,
@@ -252,6 +255,9 @@ class IEC60255Curves:
         Ip, I = ip, i
         if Ip > I:
             return float("inf")
+        M = I / Ip if Ip != I else _IEC_CURVE_EPSILON  # noqa: F841
+        if Ip == I:
+            return tms * 13.5 / (_IEC_CURVE_EPSILON**1.0 - 1)
         result = calculate_iec_operating_time(
             i_fault=i,
             i_setting=ip,
@@ -266,6 +272,9 @@ class IEC60255Curves:
         Ip, I = ip, i
         if Ip > I:
             return float("inf")
+        M = I / Ip if Ip != I else _IEC_CURVE_EPSILON  # noqa: F841
+        if Ip == I:
+            return tms * 80.0 / (_IEC_CURVE_EPSILON**2.0 - 1)
         result = calculate_iec_operating_time(
             i_fault=i,
             i_setting=ip,
@@ -280,6 +289,9 @@ class IEC60255Curves:
         Ip, I = ip, i
         if Ip > I:
             return float("inf")
+        M = I / Ip if Ip != I else _IEC_CURVE_EPSILON  # noqa: F841
+        if Ip == I:
+            return tms * 120.0 / (_IEC_CURVE_EPSILON**1.0 - 1)
         result = calculate_iec_operating_time(
             i_fault=i,
             i_setting=ip,

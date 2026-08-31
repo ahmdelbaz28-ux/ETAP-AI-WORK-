@@ -790,10 +790,91 @@ class CoverageAnalyzer:
 # ---------------------------------------------------------------------------
 
 
-# NOSONAR S3776: cognitive complexity intentional; logic validated by tests
-async def _main() -> (  # NOSONAR
-    None
-):  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+def _print_critical_gaps(critical_gaps: list[dict[str, Any]], out: Any) -> None:
+    """Print critical gaps section to output stream."""
+    if not critical_gaps:
+        return
+    print("-" * 72, file=out)
+    print("CRITICAL GAPS (Known Low-Coverage Watch List):", file=out)
+    print("-" * 72, file=out)
+    for gap in critical_gaps:
+        severity = gap.get("severity", "unknown").upper()
+        module = gap.get("module", "?")
+        func = gap.get("function", gap.get("function_or_class", "?"))
+        issue = gap.get("issue", "?")
+        rec = gap.get("recommendation", "")
+        print(f"  [{severity}] {module}::{func} — {issue}", file=out)
+        if rec:
+            print(f"         → {rec}", file=out)
+    print(file=out)
+
+
+def _print_suggestions(suggestions: list[dict[str, Any]], out: Any) -> None:
+    """Print suggestions section to output stream."""
+    if not suggestions:
+        return
+    print("-" * 72, file=out)
+    print("TOP PRIORITY SUGGESTIONS:", file=out)
+    print("-" * 72, file=out)
+    for sug in suggestions:
+        priority = sug.get("priority", "?").upper()
+        module = sug.get("module", "?")
+        coverage = sug.get("current_coverage", 0)
+        count = sug.get("untested_count", 0)
+        top_funcs = sug.get("top_untested", [])
+        print(
+            f"  [{priority}] {module} ({coverage:.1f}% covered, {count} untested)",
+            file=out,
+        )
+        for fn in top_funcs:
+            print(f"         - {fn}", file=out)
+    print(file=out)
+
+
+def _print_human_summary(report: CoverageReport, out: Any) -> None:
+    """Print human-readable summary of coverage report."""
+    print("=" * 72, file=out)
+    print("AhmedETAP — Test Coverage Report", file=out)
+    print("=" * 72, file=out)
+    print(f"Project Root:      {report.project_root}", file=out)
+    print(f"Total Modules:     {report.total_modules}", file=out)
+    print(f"Total Functions:   {report.total_functions}", file=out)
+    print(f"Tested:            {report.tested_functions}", file=out)
+    print(f"Untested:          {report.untested_functions}", file=out)
+    print(
+        f"Overall Coverage:  {report.overall_coverage_percent:.1f}% ({report.overall_level.value})",
+        file=out,
+    )
+    print(file=out)
+
+    _print_critical_gaps(report.critical_gaps, out)
+    _print_suggestions(report.suggestions, out)
+
+    print("=" * 72, file=out)
+    print("Full JSON report follows:", file=out)
+    print("=" * 72, file=out)
+
+
+def _write_report_output(report: CoverageReport, args: Any) -> None:
+    # Use ExitStack so the output file (when not stdout) is always closed
+    # via a context manager, even on exception.
+    with contextlib.ExitStack() as stack:
+        out = (
+            sys.stdout
+            if args.output == "-"
+            else stack.enter_context(open(args.output, "w", encoding="utf-8"))
+        )
+
+        report_dict = report.to_dict()
+
+        if not args.json_only:
+            _print_human_summary(report, out)
+
+        json.dump(report_dict, out, indent=2, default=str)
+        print(file=out)
+
+
+async def _main() -> None:
     """CLI entrypoint for running the coverage analyzer."""
     import argparse
 
@@ -822,94 +903,20 @@ async def _main() -> (  # NOSONAR
     analyzer = CoverageAnalyzer(project_root=args.project_root)
     report = await analyzer.run()
 
-    # NOSONAR
     if args.output != "-":
         if "\x00" in args.output:
             parser.error("Invalid output path: contains NUL byte")
-        # Validate path is within allowed directories
         _output_path = os.path.abspath(args.output)
         if not os.path.dirname(_output_path):
             parser.error("Invalid output path: no parent directory")
-        if "\x00" in args.output:
-            parser.error("Invalid output path: contains NUL byte")
         out_dir = os.path.dirname(os.path.abspath(args.output))
         if out_dir and not os.path.isdir(out_dir):
             parser.error(f"Output directory does not exist: {out_dir}")
-        # S8707: Verify the resolved path does not escape allowed directories
         _resolved_output = os.path.realpath(args.output)
         if ".." in _resolved_output:
             parser.error("Invalid output path: path traversal detected")
 
-    # Use ExitStack so the output file (when not stdout) is always closed
-    # via a context manager, even on exception. This replaces the previous
-    # try/finally + manual out.close() pattern.
-    with contextlib.ExitStack() as stack:
-        out = (
-            sys.stdout
-            if args.output == "-"
-            else stack.enter_context(open(args.output, "w", encoding="utf-8"))
-        )
-
-        report_dict = report.to_dict()
-
-        if not args.json_only:
-            # Print human-readable summary
-            print("=" * 72, file=out)
-            print("AhmedETAP — Test Coverage Report", file=out)
-            print("=" * 72, file=out)
-            print(f"Project Root:      {report.project_root}", file=out)
-            print(f"Total Modules:     {report.total_modules}", file=out)
-            print(f"Total Functions:   {report.total_functions}", file=out)
-            print(f"Tested:            {report.tested_functions}", file=out)
-            print(f"Untested:          {report.untested_functions}", file=out)
-            print(
-                f"Overall Coverage:  {report.overall_coverage_percent:.1f}% ({report.overall_level.value})",
-                file=out,
-            )
-            print(file=out)
-
-            # Critical gaps
-            if report.critical_gaps:
-                print("-" * 72, file=out)
-                print("CRITICAL GAPS (Known Low-Coverage Watch List):", file=out)
-                print("-" * 72, file=out)
-                for gap in report.critical_gaps:
-                    severity = gap.get("severity", "unknown").upper()
-                    module = gap.get("module", "?")
-                    func = gap.get("function", gap.get("function_or_class", "?"))
-                    issue = gap.get("issue", "?")
-                    rec = gap.get("recommendation", "")
-                    print(f"  [{severity}] {module}::{func} — {issue}", file=out)
-                    if rec:
-                        print(f"         → {rec}", file=out)
-                print(file=out)
-
-            # Top suggestions
-            if report.suggestions:
-                print("-" * 72, file=out)
-                print("TOP PRIORITY SUGGESTIONS:", file=out)
-                print("-" * 72, file=out)
-                for sug in report.suggestions:
-                    priority = sug.get("priority", "?").upper()
-                    module = sug.get("module", "?")
-                    coverage = sug.get("current_coverage", 0)
-                    count = sug.get("untested_count", 0)
-                    top_funcs = sug.get("top_untested", [])
-                    print(
-                        f"  [{priority}] {module} ({coverage:.1f}% covered, {count} untested)",
-                        file=out,
-                    )
-                    for fn in top_funcs:
-                        print(f"         - {fn}", file=out)
-                print(file=out)
-
-            print("=" * 72, file=out)
-            print("Full JSON report follows:", file=out)
-            print("=" * 72, file=out)
-
-        json.dump(report_dict, out, indent=2, default=str)
-        print(file=out)
-    # ExitStack closes the file automatically when leaving the `with` block.
+    _write_report_output(report, args)
 
 
 if __name__ == "__main__":
