@@ -33,7 +33,6 @@ This migration creates the missing tables:
 from __future__ import annotations
 
 import sqlalchemy as sa
-
 from alembic import op
 
 revision = "007_fix_study_results_orm"
