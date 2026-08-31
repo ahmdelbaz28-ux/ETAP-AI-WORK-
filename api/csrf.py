@@ -209,7 +209,11 @@ class CSRFMiddleware(_PureASGIMiddleware):
         self.app = app
         self._tolerate_expired = tolerate_expired
         self._api_key = os.environ.get("ENGINEERING_SERVICE_API_KEY", "")
-        self._auth_disabled = auth_disabled_allowed()
+        # NOTE: auth_disabled_allowed() is evaluated PER REQUEST in __call__,
+        # not cached here. The middleware instance is created once at app
+        # startup (first lifespan), while tests (and operators) may change the
+        # env afterwards; caching made the CSRF behaviour depend on which test
+        # happened to start the app first (order-dependent 403s under xdist).
 
     async def __call__(self, scope: Any, receive: Any, send: Any) -> None:
         """Validate mutating requests without buffering the response body."""
@@ -232,7 +236,7 @@ class CSRFMiddleware(_PureASGIMiddleware):
 
         # Skip when auth is disabled (local development & test environments only).
         # auth_disabled_allowed() already fail-closes outside the dev allow-list.
-        if self._auth_disabled:
+        if auth_disabled_allowed():
             await self.app(scope, receive, send)
             return
 

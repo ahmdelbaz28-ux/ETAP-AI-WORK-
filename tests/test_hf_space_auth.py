@@ -33,50 +33,22 @@ sys.path.insert(0, HF_SPACE_DIR)
 _HF_APP = None
 _HF_APP_ERROR = None
 
-# Temporarily set env for the import ONLY, then restore
-_saved = {}
-for k in (
-    "ENGINEERING_SERVICE_AUTH_DISABLED",
-    "ENGINEERING_SERVICE_API_KEY",
-    "JWT_SECRET_KEY",
-    "ENVIRONMENT",
-    "DATABASE_URL",
-):
-    _saved[k] = os.environ.get(k)
-    os.environ.pop("ENGINEERING_SERVICE_AUTH_DISABLED", None)
-    # FORCE-set (not setdefault) to override conftest.py's JWT_SECRET_KEY
-    # which uses a different test secret. Without this override, the JWT
-    # created in test_valid_jwt_grants_access would be signed with a different
-    # secret than the server expects, causing 401 (root cause found via
-    # systematic-debugging skill).
-    os.environ["ENGINEERING_SERVICE_API_KEY"] = "test-hf-secret-key-12345"
-    os.environ["JWT_SECRET_KEY"] = "test-jwt-secret-key-minimum-32-characters-long"
-    os.environ.setdefault("ENVIRONMENT", "development")
-    # Use a SEPARATE database for HF Space tests to avoid conflicts
-    # with test_auth_api.py which uses the default ./data/etap_platform.db
-    import tempfile as _tf
-
-    _hf_db = _tf.mktemp(suffix=".db")
-    os.environ["DATABASE_URL"] = f"sqlite+aiosqlite:///{_hf_db}"
-
-# Clean cached modules
-for mod in list(sys.modules.keys()):
-    if mod.startswith("api.") or mod.startswith("core") or mod == "app":
-        del sys.modules[mod]
-
+# Import the hf-space app under the AMBIENT (conftest-provided) test env so
+# it shares ONE set of api.* module instances with the rest of the suite.
+# Earlier revisions force-poisoned os.environ, purged sys.modules and
+# re-imported api.* under the poisoned values; that split the process into
+# two api.dependencies instances with different JWT secrets, causing
+# spurious 401s and un-mocked upstream calls across the chat/approval
+# suites (monkeypatched test doubles landed on a different module instance
+# than the one the running app used). Per-test auth behaviour is controlled
+# by the hf_client fixture (monkeypatch on env + the
+# api.dependencies.JWT_SECRET_KEY constant), not by import-time poisoning.
 try:
     import app as hf_app_module
 
     _HF_APP = hf_app_module.app
 except Exception as e:
     _HF_APP_ERROR = str(e)
-
-# Restore env immediately after import
-for k, v in _saved.items():
-    if v is not None:
-        os.environ[k] = v
-    else:
-        os.environ.pop(k, None)
 
 pytestmark = pytest.mark.skipif(
     _HF_APP is None,
@@ -91,10 +63,19 @@ def hf_client(monkeypatch):
     CRITICAL: The conftest.py autouse fixture sets AUTH_DISABLED=true.
     We override it here with monkeypatch to test actual auth behavior.
     monkeypatch automatically restores the original value after the test.
+
+    The hf app verifies JWTs through shared handlers that lazily import
+    ``api.dependencies.JWT_SECRET_KEY`` — i.e. they read the module-level
+    constant of whichever instance is in ``sys.modules``. We patch THAT
+    constant (monkeypatch restores it after the test) so the hf-signed
+    tokens validate while every other test keeps using the SAME module
+    instance — no module re-imports, no split-brain secrets.
     """
+    import api.dependencies as _deps
+
+    monkeypatch.setattr(_deps, "JWT_SECRET_KEY", "test-jwt-secret-key-minimum-32-characters-long")
     monkeypatch.delenv("ENGINEERING_SERVICE_AUTH_DISABLED", raising=False)
     monkeypatch.setenv("ENGINEERING_SERVICE_API_KEY", "test-hf-secret-key-12345")
-    monkeypatch.setenv("JWT_SECRET_KEY", "test-jwt-secret-key-minimum-32-characters-long")
     from fastapi.testclient import TestClient
 
     return TestClient(_HF_APP)
