@@ -7,7 +7,7 @@
 # `import etap.bridges.enterprise_pipeline` (which transitively touches
 # facp_distributed) crashes the entire process.
 aiohttp>=3.8.0,<4.0.0
-nats-py>=2.0.0,<3.0.0
+nats-py>=2.15.0,<3.0.0
 
 # FACP Distributed System — Redis-backed event bus and task queue
 redis>=4.0.0
