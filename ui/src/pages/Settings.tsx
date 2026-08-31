@@ -35,6 +35,7 @@ import NotificationSettings from "../components/NotificationSettings";
 import StorageManagement from "../components/StorageManagement";
 import { ProviderKeysPanel } from "../components/settings/ProviderKeysPanel";
 import { AgentsSkillsPromptsPanel } from "../components/settings/AgentsSkillsPromptsPanel";
+import { SecurityFlagsPanel } from "../components/settings/SecurityFlagsPanel";
 import { ContextHelpButton } from "../components/help/ContextHelpButton";
 import {
   type VisionKeyConfig,
@@ -885,6 +886,8 @@ const TAB_SECTIONS: Record<
     label: "Security",
     icon: <Shield className="w-4 h-4" />,
     sections: [
+      // P7d: SecurityFlagsPanel (backend feature-flag registry) renders above
+      // these legacy local-settings sections in the TabPanels default branch.
       { title: "Authentication", fields: ["API_KEY_SECRET", "JWT_SECRET_KEY"] },
       { title: "Vault & Secrets", fields: ["VAULT_ADDR", "VAULT_TOKEN"] },
     ],
@@ -2971,6 +2974,8 @@ export default function Settings() {
             if (activeTab === "notifications") return <NotificationSettings />;
             return (
               <>
+                {/* P7d: backend-authoritative security & feature-flags panel */}
+                {activeTab === "security" && <SecurityFlagsPanel notify={notify} />}
                 {currentSections.map((section) => (
                   <Card key={section.title} padding="md">
                     <CardHeader
