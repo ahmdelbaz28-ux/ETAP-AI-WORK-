@@ -172,8 +172,11 @@ class TestSecurityHeadersMiddleware:
         assert '"Strict-Transport-Security"' in routes_source
 
     def test_security_headers_middleware_exists(self, routes_source: str) -> None:
-        """Security headers middleware function must be defined."""
-        assert "_security_headers_middleware" in routes_source
+        """Security headers middleware must be defined (pure ASGI class)."""
+        assert (
+            "_security_headers_middleware" in routes_source
+            or "_SecurityHeadersMiddleware" in routes_source
+        )
 
 
 # ---------------------------------------------------------------------------

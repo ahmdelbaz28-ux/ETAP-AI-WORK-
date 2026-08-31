@@ -88,12 +88,12 @@ export async function handleStudyRun(
   try {
     const result = await callEngineeringService(env, svcRequest, traceId);
     task.status = result.success ? 'completed' : 'failed'; task.completedAt = Date.now();
-    task.result = { data: result.data, warnings: result.warnings, errors: result.errors, executionTimeSec: result.executionTimeSec, provider: result.provider, traceId: result.traceId };
+    task.result = { data: result.data, warnings: result.warnings, errors: result.errors, executionTimeSec: result.executionTimeSec, provider: result.provider, traceId: result.traceId, resultId: result.resultId };
     await setTask(env, taskId, task);
     if (result.success) bumpApiMetric('studyCompleted'); else { bumpApiMetric('studyFailed'); bumpApiMetric('errors'); }
     recordAudit({ timestamp: new Date().toISOString(), traceId, clientIp: extractClientIp(request), method: 'POST', path: '/api/v1/studies/run', statusCode: result.success ? 200 : 502, userAgent: request.headers.get('user-agent') || 'unknown', action: 'STUDY_RUN_ENGINE', authenticated: true, rateLimited: false, apiKeyId, scope, latencyMs: Math.round(result.executionTimeSec * 1000), details: { studyType, taskId, provider: result.provider, success: result.success } });
     if (!result.success) return errorResponse(502, `Engineering computation failed: ${result.errors.join('; ') || 'Unknown error'}`, traceId, corsHeaders(origin, env));
-    return jsonResponse(200, { studyType, status: 'completed', message: 'Study completed via real engineering computation.', taskId, parameters, result: { data: result.data, warnings: result.warnings, executionTimeSec: result.executionTimeSec, provider: result.provider }, statusUrl: `/api/v1/studies/status/${taskId}`, traceId }, corsHeaders(origin, env));
+    return jsonResponse(200, { studyType, status: 'completed', message: 'Study completed via real engineering computation.', taskId, parameters, result: { data: result.data, warnings: result.warnings, executionTimeSec: result.executionTimeSec, provider: result.provider, resultId: result.resultId }, statusUrl: `/api/v1/studies/status/${taskId}`, traceId }, corsHeaders(origin, env));
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'Engineering Service call failed';
     task.status = 'failed'; task.completedAt = Date.now(); task.result = { error: msg }; await setTask(env, taskId, task);

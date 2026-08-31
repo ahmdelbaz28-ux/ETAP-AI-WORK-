@@ -439,6 +439,17 @@ class StudyResult(_BaseSpecModel):
     execution_time_sec: float = 0.0
     trace_id: str = ""
     task_id: str | None = None
+    result_id: str | None = Field(
+        default=None,
+        description="P5 ResultStore id — returned after a completed study is persisted",
+        # M2 wire contract: the public HTTP JSON exposes this field as
+        # ``resultId`` (camelCase) to match the TypeScript client
+        # (``EngineeringServiceResult.resultId``). FastAPI serialises
+        # response models with ``by_alias=True``, so the HTTP body carries
+        # ``resultId`` while internal Python code keeps using
+        # ``result.result_id`` (``model_dump()`` without ``by_alias``).
+        serialization_alias="resultId",
+    )
     study_type: str = ""
     provider: str = "native"
     pe_stamp: dict[str, Any] | None = Field(

@@ -15,7 +15,8 @@
  */
 
 import { POPULAR_PROVIDERS } from "../pages/Settings";
-import { getCachedSettings } from "./api-config";
+import { apiUrl, getCachedSettings } from "./api-config";
+import { getAuthToken } from "./tokenStorage";
 
 // --- section ---
 export interface ChatMessage {
@@ -921,6 +922,15 @@ export async function* chatWithLLMStream(
   config?: Partial<ProviderConfig>,
   signal?: AbortSignal,
 ): AsyncGenerator<string, void, unknown> {
+  // ── P4b: server-side chat stream (web key freeze) ────────────────────────
+  // In WEB mode (no Electron shell) with the `chat_first_ui` rollout flag
+  // enabled, stream through /api/v1/chat/stream so API keys NEVER reach the
+  // browser. Electron keeps the legacy local-storage provider flow below.
+  if (!isElectronRuntime() && (await isServerChatStreamEnabled())) {
+    yield* streamFromServerChat(messages, signal);
+    return;
+  }
+
   // SonarCloud typescript:S6582: use optional chain for cleaner null-safe access.
   const activeProvider = getActiveProvider();
   const provider = config && activeProvider ? { ...activeProvider, ...config } : activeProvider;
@@ -941,4 +951,172 @@ export async function* chatWithLLMStream(
 
   // Default: OpenAI-compatible streaming (OpenCode Zen, OpenAI, DeepSeek, Groq, etc.)
   yield* streamFromOpenAICompatible(provider, messages, signal);
+}
+// ═══════════════════════════════════════════════════════════════════════════
+// ── P4b: server-side chat path ────────────────────────────────────────────
+// Consumes the unified SSE envelope from POST /api/v1/chat/stream:
+//   event: token  data: {"delta": "..."}
+//   event: done   data: {...}
+//   event: error  data: {"code": "...", "message": "..."}
+// The request body carries NO credentials — keys are resolved on the server.
+// ═══════════════════════════════════════════════════════════════════════════
+
+/** True when running inside the Electron shell (legacy local-key mode). */
+export function isElectronRuntime(): boolean {
+  return (
+    typeof window !== "undefined" && !!(window as unknown as { electronAPI?: unknown }).electronAPI
+  );
+}
+
+let _serverChatFlagCache: boolean | null = null;
+
+/**
+ * True when the `chat_first_ui` gradual-rollout flag is effectively enabled
+ * for this user (GET /api/v1/feature-flags/chat_first_ui). Any failure —
+ * offline, unknown flag, unauthorized — resolves to FALSE, keeping the
+ * legacy proxy path as the safe default. Cached for the page lifetime.
+ */
+export async function isServerChatStreamEnabled(): Promise<boolean> {
+  if (_serverChatFlagCache !== null) return _serverChatFlagCache;
+  try {
+    const token = getAuthToken();
+    const res = await fetch(apiUrl("/api/v1/feature-flags/chat_first_ui"), {
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    });
+    if (!res.ok) throw new Error(`flag http ${res.status}`);
+    const data = await res.json();
+    const flag = data?.data ?? data;
+    _serverChatFlagCache = !!(flag?.effective_enabled ?? flag?.enabled);
+  } catch (error) {
+    console.warn("chat_first_ui flag unavailable — using legacy LLM proxy:", error);
+    _serverChatFlagCache = false;
+  }
+  return _serverChatFlagCache;
+}
+
+let _chatSessionId: string | null = null;
+
+/** Stable chat session id per page load (for correlation on the server). */
+export function getChatSessionId(): string {
+  if (!_chatSessionId) {
+    const randomUUID =
+      typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+        ? crypto.randomUUID.bind(crypto)
+        : null;
+    _chatSessionId =
+      randomUUID?.() ??
+      `sess-web-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+  }
+  return _chatSessionId;
+}
+
+interface ServerChatEventData {
+  delta?: unknown;
+  code?: unknown;
+  message?: unknown;
+  detail?: unknown;
+}
+
+function redactServerMessage(message: string): string {
+  return message.slice(0, 300).replace(/sk-[a-zA-Z0-9]+/g, "[REDACTED]");
+}
+/** Build a user-facing Error for a failed non-SSE response. */
+async function buildServerChatHttpError(res: Response): Promise<Error> {
+  let text = "";
+  try {
+    text = await res.text();
+  } catch (error) {
+    console.warn("Failed to read chat stream error body:", error);
+  }
+  let detail = redactServerMessage(text || "Unknown error");
+  try {
+    detail = redactServerMessage(String(JSON.parse(text)?.detail?.message ?? detail));
+  } catch {
+    /* plain-text/HTML body — keep as-is */
+  }
+  if (res.status === 503) {
+    return new Error(`No LLM provider is configured on the server. ${detail}`);
+  }
+  if (res.status === 401) {
+    return new Error("Your session expired. Please sign in again.");
+  }
+  if (res.status === 429) {
+    return new Error("Too many chat requests. Please wait a moment and retry.");
+  }
+  return new Error(`Chat service error ${res.status}: ${detail}`);
+}
+
+/**
+ * Stream a reply through the server-side path (/api/v1/chat/stream).
+ * SECURITY: the payload contains only session_id + messages + no keys.
+ */
+export async function* streamFromServerChat(
+  messages: ChatMessage[],
+  signal?: AbortSignal,
+): AsyncGenerator<string, void, unknown> {
+  const res = await fetch(apiUrl("/api/v1/chat/stream"), {
+    method: "POST",
+    headers: (() => {
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      const token = getAuthToken();
+      if (token) headers.Authorization = `Bearer ${token}`;
+      return headers;
+    })(),
+    // NO apiKey field here — deliberately impossible to leak what we never hold.
+    body: JSON.stringify({ session_id: getChatSessionId(), messages }),
+    signal,
+  });
+
+  if (!res.ok) {
+    throw await buildServerChatHttpError(res);
+  }
+
+  const reader = res.body?.getReader();
+  if (!reader) return;
+  const decoder = new TextDecoder();
+  let buffer = "";
+
+  while (true) {
+    if (signal?.aborted) return;
+    const readResult = await reader.read();
+    if (readResult.done) break;
+    buffer += decoder.decode(readResult.value, { stream: true });
+    const lines = buffer.split("\n");
+    buffer = lines.pop() || "";
+
+    let currentEvent = "";
+    for (const line of lines) {
+      if (line.startsWith("event: ")) {
+        currentEvent = line.slice(7).trim();
+        continue;
+      }
+      if (!line.startsWith("data: ")) continue;
+      const dataStr = line.slice(6).trim();
+
+      let parsed: ServerChatEventData | null = null;
+      try {
+        parsed = JSON.parse(dataStr) as ServerChatEventData;
+      } catch {
+        currentEvent = "";
+        continue; // keep-alive or partial frame
+      }
+
+      if (currentEvent === "token") {
+        if (typeof parsed.delta === "string" && parsed.delta) {
+          yield parsed.delta;
+        }
+      } else if (currentEvent === "done") {
+        return;
+      } else if (currentEvent === "error") {
+        const rawMessage =
+          typeof parsed.message === "string"
+            ? parsed.message
+            : typeof parsed.detail === "string"
+              ? parsed.detail
+              : "LLM stream error";
+        throw new Error(redactServerMessage(rawMessage));
+      }
+      currentEvent = "";
+    }
+  }
 }

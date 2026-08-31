@@ -26,16 +26,20 @@ from fastapi.responses import JSONResponse
 # future edit references `trace.X` directly inside trace_middleware.
 from opentelemetry.trace import SpanKind, Status, StatusCode
 from pydantic import BaseModel
-from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.datastructures import Headers, MutableHeaders
 
 from api._messages import ISO_8601_UTC_FMT, MSG_INTERNAL_ERROR, MSG_USER_NOT_FOUND_OR_INACTIVE
+from api.agent_executor import router as agent_executor_router
 from api.agents import router as agents_router
 from api.ai_ml import router as ai_ml_router
+from api.approvals import router as approvals_router
+from api.approvals import session_router as approvals_session_router
 from api.assets import router as assets_router
 from api.audit_logs import router as audit_logs_router
 from api.auth import router as auth_router
 from api.autodesk_connectors import router as autodesk_connectors_router
 from api.cad_simready import router as cad_simready_router
+from api.chat_stream import router as chat_stream_router
 from api.context_engine import router as context_engine_router
 from api.copilot_config import router as copilot_config_router
 from api.csrf import CSRFMiddleware, csrf_router
@@ -56,6 +60,9 @@ from api.notifications import router as notifications_router
 from api.projects import router as projects_router
 from api.rbac import router as rbac_router
 from api.request_context import CorrelationIdMiddleware, TenantMiddleware
+from api.results_store import router as results_router
+from api.session_stream import router as session_stream_router
+from api.session_stream import session_stream_ws
 from api.settings import router as settings_router
 from api.solver_parameters import router as solver_parameters_router
 from api.storage_management import router as storage_management_router
@@ -63,6 +70,7 @@ from api.studies import router as studies_router
 from api.study_versions import router as study_versions_router
 from api.templates import router as templates_router
 from api.tenants import router as tenants_router
+from api.tool_policy import router as tool_policy_router
 from api.validation import router as validation_router
 from api.websocket import scada_websocket_endpoint
 from api.zip_generator_config import router as zip_generator_config_router
@@ -225,20 +233,32 @@ def _require_api_key(request: Request) -> None:
 _MAX_BODY_SIZE = int(os.environ.get("ENGINEERING_SERVICE_MAX_BODY_SIZE", "52_428_800"))
 
 
-class _BodySizeLimitMiddleware(BaseHTTPMiddleware):
-    async def dispatch(self, request: Request, call_next: Any) -> Any:
-        if request.method in ("POST", "PUT", "PATCH"):
-            content_length = request.headers.get("content-length")
+class _BodySizeLimitMiddleware:
+    """Reject POST/PUT/PATCH requests whose Content-Length exceeds the limit.
+
+    Pure ASGI middleware (not ``BaseHTTPMiddleware``): BaseHTTPMiddleware
+    routes the response body through an anyio memory stream and corrupts
+    StreamingResponse/SSE endpoints (chat P4b) with
+    ``RuntimeError: Unexpected message received: http.request``. Only scope
+    headers are inspected here, so streaming bodies pass through untouched.
+    """
+
+    def __init__(self, app: Any) -> None:
+        self.app = app
+
+    async def __call__(self, scope: Any, receive: Any, send: Any) -> None:
+        if scope["type"] == "http" and scope.get("method") in ("POST", "PUT", "PATCH"):
+            content_length = Headers(scope=scope).get("content-length")
             if content_length and int(content_length) > _MAX_BODY_SIZE:
-                # NOTE: Raising HTTPException inside BaseHTTPMiddleware.dispatch
-                # does NOT translate to a proper HTTP 413 response — Starlette
-                # wraps it in a 500 Internal Server Error. We must return a
-                # JSONResponse explicitly so the client sees 413.
-                return JSONResponse(
+                # NOTE: return an explicit JSONResponse so the client sees a
+                # proper HTTP 413 (raising inside ASGI middleware would 500).
+                response = JSONResponse(
                     status_code=413,
                     content={"detail": "Request body too large"},
                 )
-        return await call_next(request)
+                await response(scope, receive, send)
+                return
+        await self.app(scope, receive, send)
 
 
 # ---------------------------------------------------------------------------
@@ -352,61 +372,84 @@ _REQUEST_TIMEOUT_SEC = int(os.environ.get("ENGINEERING_SERVICE_REQUEST_TIMEOUT",
 # NOSONAR S3776: cognitive complexity intentional; logic validated by tests
 
 
-@app.middleware("http")
-async def trace_middleware(  # NOSONAR
-    request: Request, call_next: Any
-) -> Any:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
-    trace_id = request.headers.get("x-trace-id") or str(uuid.uuid4())
-    # SECURITY: Sanitize trace_id to prevent log injection (CRLF, newlines)
-    trace_id = "".join(c for c in trace_id if c.isalnum() or c in "-_.")
-    request.state.trace_id = trace_id
+class _TraceMiddleware:
+    """Trace + rate-limit middleware (pure ASGI — SSE-safe, chat P4b).
 
-    # Extract dynamic active provider credentials
-    request.state.active_provider = request.headers.get("x-active-provider")
-    request.state.active_key = request.headers.get("x-active-key")
-    request.state.active_url = request.headers.get("x-active-url")
-    request.state.active_model = request.headers.get("x-active-model")
+    Replaces the previous ``@app.middleware("http")`` implementation, which
+    inherited from ``BaseHTTPMiddleware`` and corrupted StreamingResponse/SSE
+    bodies. Sets the same ``request.state`` fields via the ASGI scope ``state``
+    mapping that Starlette's ``Request.state`` reads from.
+    """
 
-    tracer = get_tracer()
-    with tracer.start_as_current_span(
-        f"{request.method} {request.url.path}",
-        kind=SpanKind.SERVER,
-        attributes={
-            "http.method": request.method,
-            "http.url": str(request.url),
-            "http.route": request.url.path,
-            "http.scheme": request.url.scheme,
-            "net.peer.ip": request.client.host if request.client else "unknown",
-        },
-    ) as span:
-        span.set_attribute("ahmedetap.trace_id", trace_id)
+    def __init__(self, app: Any) -> None:
+        self.app = app
 
-        # Rate limiting — skip for health endpoints
-        if not request.url.path.startswith(("/health", "/ready", "/healthz", "/readyz")):
-            _TRUSTED_PROXIES = os.environ.get("ENGINEERING_SERVICE_TRUSTED_PROXIES", "")
-            if _TRUSTED_PROXIES:
-                _trusted_list = [p.strip() for p in _TRUSTED_PROXIES.split(",")]
-                xff = request.headers.get("x-forwarded-for", "").split(",")[0].strip()
-                proxy_ip = request.client.host if request.client else ""
-                if proxy_ip in _trusted_list and xff:
-                    client_id = xff
-                elif request.client:
-                    client_id = request.client.host
+    async def __call__(
+        self, scope: Any, receive: Any, send: Any
+    ) -> None:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+        request = Request(scope)
+
+        trace_id = request.headers.get("x-trace-id") or str(uuid.uuid4())
+        # SECURITY: Sanitize trace_id to prevent log injection (CRLF, newlines)
+        trace_id = "".join(c for c in trace_id if c.isalnum() or c in "-_.")
+        state = scope.setdefault("state", {})
+        state["trace_id"] = trace_id
+
+        # Extract dynamic active provider credentials
+        state["active_provider"] = request.headers.get("x-active-provider")
+        state["active_key"] = request.headers.get("x-active-key")
+        state["active_url"] = request.headers.get("x-active-url")
+        state["active_model"] = request.headers.get("x-active-model")
+
+        tracer = get_tracer()
+        with tracer.start_as_current_span(
+            f"{request.method} {request.url.path}",
+            kind=SpanKind.SERVER,
+            attributes={
+                "http.method": request.method,
+                "http.url": str(request.url),
+                "http.route": request.url.path,
+                "http.scheme": request.url.scheme,
+                "net.peer.ip": request.client.host if request.client else "unknown",
+            },
+        ) as span:
+            span.set_attribute("ahmedetap.trace_id", trace_id)
+
+            # Rate limiting — skip for health endpoints
+            if not request.url.path.startswith(("/health", "/ready", "/healthz", "/readyz")):
+                _TRUSTED_PROXIES = os.environ.get("ENGINEERING_SERVICE_TRUSTED_PROXIES", "")
+                if _TRUSTED_PROXIES:
+                    _trusted_list = [p.strip() for p in _TRUSTED_PROXIES.split(",")]
+                    xff = request.headers.get("x-forwarded-for", "").split(",")[0].strip()
+                    proxy_ip = request.client.host if request.client else ""
+                    if proxy_ip in _trusted_list and xff:
+                        client_id = xff
+                    elif request.client:
+                        client_id = request.client.host
+                    else:
+                        client_id = "unknown"
                 else:
-                    client_id = "unknown"
-            else:
-                client_id = request.client.host if request.client else "unknown"
-            if not await _check_rate_limit(client_id):
-                span.set_status(Status(StatusCode.ERROR, "rate_limit_exceeded"))
-                span.set_attribute("http.status_code", 429)
-                return JSONResponse(
-                    status_code=429,
-                    content={"detail": "Rate limit exceeded", "trace_id": trace_id},
-                    headers={"Retry-After": str(_RATE_LIMIT_WINDOW)},
-                )
+                    client_id = request.client.host if request.client else "unknown"
+                if not await _check_rate_limit(client_id):
+                    span.set_status(Status(StatusCode.ERROR, "rate_limit_exceeded"))
+                    span.set_attribute("http.status_code", 429)
+                    response = JSONResponse(
+                        status_code=429,
+                        content={"detail": "Rate limit exceeded", "trace_id": trace_id},
+                        headers={"Retry-After": str(_RATE_LIMIT_WINDOW)},
+                    )
+                    await response(scope, receive, send)
+                    return
 
-        response = await call_next(request)
-        return response
+            await self.app(scope, receive, send)
+
+
+# Registered FIRST so it stays the innermost middleware, exactly where the
+# previous ``@app.middleware("http")`` decorator placed it.
+app.add_middleware(_TraceMiddleware)
 
 
 # Define HealthResponse and ReadyResponse models if they don't exist
@@ -686,23 +729,47 @@ else:
 # ---------------------------------------------------------------------------
 # Security headers middleware — defense-in-depth (SECURITY AUDIT S-16)
 # ---------------------------------------------------------------------------
-@app.middleware("http")
-async def _security_headers_middleware(request: Request, call_next):
+class _SecurityHeadersMiddleware:
     """Add security headers to every response.
+
+    Pure ASGI (not ``BaseHTTPMiddleware``) so StreamingResponse/SSE bodies
+    (chat P4b) pass through unbuffered; headers are injected on the
+    ``http.response.start`` message via a send wrapper.
 
     Even when behind a reverse proxy (nginx/Akamai) that sets these headers,
     the application-level headers provide defense-in-depth.
     """
-    response = await call_next(request)
-    response.headers.setdefault("X-Content-Type-Options", "nosniff")
-    response.headers.setdefault("X-Frame-Options", "SAMEORIGIN")
-    response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
-    response.headers.setdefault("X-XSS-Protection", "0")  # Deprecated; CSP is the correct control
-    # HSTS — only set when explicitly configured (avoid breakage in development)
-    _hsts_env = os.environ.get("HSTS_MAX_AGE", "")
-    if _hsts_env:
-        response.headers["Strict-Transport-Security"] = f"max-age={_hsts_env}; includeSubDomains"
-    return response
+
+    def __init__(self, app: Any) -> None:
+        self.app = app
+
+    async def __call__(self, scope: Any, receive: Any, send: Any) -> None:
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+
+        # HSTS — only set when explicitly configured (avoid breakage in development)
+        _hsts_env = os.environ.get("HSTS_MAX_AGE", "")
+
+        async def send_with_security_headers(message: Any) -> None:
+            if message["type"] == "http.response.start":
+                headers = MutableHeaders(scope=message)
+                if "x-content-type-options" not in headers:
+                    headers["X-Content-Type-Options"] = "nosniff"
+                if "x-frame-options" not in headers:
+                    headers["X-Frame-Options"] = "SAMEORIGIN"
+                if "referrer-policy" not in headers:
+                    headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+                if "x-xss-protection" not in headers:
+                    headers["X-XSS-Protection"] = "0"  # Deprecated; CSP is the correct control
+                if _hsts_env:
+                    headers["Strict-Transport-Security"] = f"max-age={_hsts_env}; includeSubDomains"
+            await send(message)
+
+        await self.app(scope, receive, send_with_security_headers)
+
+
+app.add_middleware(_SecurityHeadersMiddleware)
 
 
 # ─── Security middleware: RASP + ABAC ─────────────────────────────
@@ -761,6 +828,7 @@ async def global_exception_handler(request: Request, exc: Exception) -> JSONResp
 app.include_router(csrf_router)  # /api/v1/csrf/token — CSRF token endpoint
 app.include_router(health_router)
 app.include_router(studies_router)
+app.include_router(results_router)  # /api/v1/results/* — P5 ResultStore
 app.include_router(agents_router)
 app.include_router(validation_router)
 app.include_router(ai_ml_router)
@@ -793,15 +861,35 @@ app.include_router(
 app.include_router(
     cad_simready_router
 )  # /api/v1/cad-simready/* — NVIDIA CAD to SimReady 3D OpenUSD converter
-app.include_router(
-    autodesk_connectors_router
-)  # /api/v1/connectors/autodesk/* — Autodesk connector health & test
 app.include_router(audit_logs_router)  # /api/v1/security/audit-logs/* — Security audit log API
 app.include_router(solver_parameters_router)  # /api/v1/studies/parameters/* — Solver parameters
 app.include_router(
     notification_config_router
 )  # /api/v1/notifications/digest/config/* — Notification preferences
-app.include_router(feature_flags_router)  # /api/v1/feature-flags/* — Feature flags management
+app.include_router(tool_policy_router)  # /api/v1/tool-policy/* — Tool Policy Engine
+app.include_router(approvals_router)  # /api/v1/approvals/* — Approval Gateway
+app.include_router(
+    approvals_session_router
+)  # /api/v1/session/auto-approve — Session auto-approve toggle
+app.include_router(
+    session_stream_router
+)  # /api/v1/ws-ticket — short-lived single-use WS tickets (P3)
+app.include_router(
+    agent_executor_router
+)  # /api/v1/agent-exec/* — secure agent plan & execute path (P4a)
+app.include_router(
+    chat_stream_router
+)  # /api/v1/chat/stream — server-side LLM chat SSE, keys stay server-side (P4b)
+
+
+# WebSocket endpoint for per-session event streaming (P3 SessionStreamHub).
+# Auth: ?ticket=<single-use 60s ticket from POST /api/v1/ws-ticket>
+#   or  ?token=<jwt_access_token> (same checks as /ws/notifications).
+@app.websocket("/ws/sessions/{session_id}")
+async def websocket_session_stream_handler(websocket: WebSocket, session_id: str) -> None:
+    """Stream session events: token, action_proposed, approval_result,
+    job_progress, result_ready, decision_request."""
+    await session_stream_ws(websocket, session_id)
 
 
 # WebSocket endpoint for real-time notifications

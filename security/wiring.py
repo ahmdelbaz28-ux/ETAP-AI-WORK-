@@ -29,14 +29,12 @@ logger = logging.getLogger(__name__)
 
 
 try:
-    from starlette.middleware.base import BaseHTTPMiddleware
     from starlette.requests import Request
     from starlette.responses import JSONResponse, Response
 
     _HAS_STARLETTE = True
 except ImportError:
     _HAS_STARLETTE = False
-    BaseHTTPMiddleware = None  # type: ignore[assignment,misc]
     Request = None  # type: ignore[assignment,misc]
     JSONResponse = None  # type: ignore[assignment,misc]
     Response = None  # type: ignore[assignment,misc]
@@ -44,12 +42,16 @@ except ImportError:
 
 if _HAS_STARLETTE:
 
-    class RASPMiddleware(BaseHTTPMiddleware):
+    class RASPMiddleware:
         """FastAPI/Starlette middleware for RASP attack detection.
 
         Wraps the RASPEngine from security/rasp.py. Inspects incoming
         request data (query params, body, path, headers) against attack
         detection rules. Blocks requests that match BLOCK-action rules.
+
+        Implemented as pure ASGI middleware (not ``BaseHTTPMiddleware``)
+        so StreamingResponse/SSE bodies (chat P4b) are never routed
+        through BaseHTTPMiddleware's anyio memory stream.
 
         Parameters
         ----------
@@ -68,7 +70,7 @@ if _HAS_STARLETTE:
             engine: Any | None = None,
             public_paths: list[str] | None = None,
         ) -> None:
-            super().__init__(app)
+            self.app = app
             if engine is None:
                 try:
                     from security.rasp import create_default_rasp_engine
@@ -89,15 +91,21 @@ if _HAS_STARLETTE:
                 "/prometheus",
             ]
 
-        async def dispatch(self, request: Request, call_next: Any) -> Any:
+        async def __call__(self, scope: Any, receive: Any, send: Any) -> None:
             """Inspect request + block if attack detected."""
+            if scope["type"] != "http":
+                await self.app(scope, receive, send)
+                return
             if self.engine is None or not self.engine.enabled:
-                return await call_next(request)
+                await self.app(scope, receive, send)
+                return
 
             # Skip public paths
+            request = Request(scope)
             path = request.url.path
             if any(path.startswith(p) for p in self._public_paths):
-                return await call_next(request)
+                await self.app(scope, receive, send)
+                return
 
             # Build inspection data
             inspect_data: dict[str, Any] = {
@@ -106,26 +114,40 @@ if _HAS_STARLETTE:
                 "headers": dict(request.headers.items()),
             }
 
+            downstream_receive = receive
             # Read body (for POST/PUT/PATCH)
             if request.method in ("POST", "PUT", "PATCH"):
                 try:
-                    body_bytes = await request.body()
+                    # Buffer the full request body from the ASGI receive
+                    # stream, then replay it to the downstream app. This is
+                    # the pure-ASGI equivalent of the previous
+                    # BaseHTTPMiddleware ``request._receive`` restore hack.
+                    body_chunks: list[bytes] = []
+                    while True:
+                        message = await receive()
+                        if message["type"] != "http.request":
+                            continue
+                        body_chunks.append(message.get("body", b""))
+                        if not message.get("more_body", False):
+                            break
+                    body_bytes = b"".join(body_chunks)
 
-                    # FIX: In Starlette, reading the body in BaseHTTPMiddleware consumes the
-                    # receive stream, causing TestClient tests to hang indefinitely when the
-                    # route handler tries to parse the JSON. We must restore it.
-                    _sent = False
+                    _replayed = False
 
-                    async def receive() -> dict[str, Any]:
-                        nonlocal _sent
-                        if not _sent:
-                            _sent = True
-                            return {"type": "http.request", "body": body_bytes, "more_body": False}
+                    async def receive_replay() -> dict[str, Any]:
+                        nonlocal _replayed
+                        if not _replayed:
+                            _replayed = True
+                            return {
+                                "type": "http.request",
+                                "body": body_bytes,
+                                "more_body": False,
+                            }
                         import asyncio
 
                         await asyncio.sleep(86400)
 
-                    request._receive = receive
+                    downstream_receive = receive_replay
 
                     if body_bytes:
                         try:
@@ -149,15 +171,17 @@ if _HAS_STARLETTE:
                         path,
                         request.method,
                     )
-                    return JSONResponse(
+                    response = JSONResponse(
                         status_code=403,
                         content={
                             "error": "Request blocked by security policy",
                             "rule": result.rule_name,
                             "severity": result.severity.value,
-                            "trace_id": getattr(request.state, "trace_id", ""),
+                            "trace_id": scope.get("state", {}).get("trace_id", ""),
                         },
                     )
+                    await response(scope, receive, send)
+                    return
 
             # Log non-blocked detections
             for result in results:
@@ -169,7 +193,7 @@ if _HAS_STARLETTE:
                         path,
                     )
 
-            return await call_next(request)
+            await self.app(scope, downstream_receive, send)
 
 
 # ─── Install Function ─────────────────────────────────────────────

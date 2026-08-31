@@ -6,13 +6,11 @@ on:
     paths:
       - 'migrations/**'
       - 'alembic.ini'
-      - 'alembic/**'
   pull_request:
     branches: [ main, master ]
     paths:
       - 'migrations/**'
       - 'alembic.ini'
-      - 'alembic/**'
   workflow_dispatch:  # Allow manual trigger
 
 permissions:

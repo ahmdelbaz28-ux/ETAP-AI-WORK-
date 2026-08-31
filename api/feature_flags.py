@@ -13,6 +13,7 @@ Endpoints:
 
 from __future__ import annotations
 
+import hashlib
 import json
 import logging
 import os
@@ -148,6 +149,74 @@ def get_flag_metadata(key: str) -> dict[str, Any] | None:
     """Return flag metadata dictionary or None if not found."""
     flags = _load_flags()
     return flags.get(key)
+
+
+def evaluate_flag_with_rollout(
+    key: str,
+    user_id: str | None = None,
+    roles: list[str] | None = None,
+) -> bool:
+    """Evaluate a feature flag with optional gradual-rollout rules.
+
+    Intended for per-user gradual activation (e.g. ``chat_first_ui``). Unlike
+    ``is_feature_enabled`` (which is subject to the dev/test env override),
+    this evaluates the effective flag object as loaded by ``_load_flags`` and
+    never guesses — it reads ``enabled``, ``allow_list`` and
+    ``rollout_percentage`` straight from the flag config.
+
+    Rules (first match wins):
+      1. ``enabled`` is ``True``             → True
+      2. ``allow_list`` matches              → True when the list contains the
+                                               ``user_id`` or intersects any of
+                                               ``roles``
+      3. ``rollout_percentage`` (0-100)      → True for a stable hash of
+                                               ``user_id`` when
+                                               ``hash % 100 < rollout_percentage``
+      4. otherwise                           → False
+
+    Emphasis:
+    - ``enabled=True`` short-circuits rollout; the flag is fully on.
+    - ``enabled=False`` alone yields False unless allow_list/rollout rules fire.
+    - ``rollout_percentage`` uses an MD5 digest of ``user_id`` (seeded salt for
+      the builtin ``hash()`` is per-process), so buckets are stable across
+      restarts. Without a ``user_id``, a positive rollout evaluates to False
+      (the user cannot be bucketed).
+    - ``allow_list`` is a list of user ids and/or role names.
+    """
+    flags = _load_flags()
+    cfg = flags.get(key, {})
+    if not isinstance(cfg, dict):
+        cfg = {}
+
+    # Rule 1: fully enabled.
+    if bool(cfg.get("enabled", False)):
+        return True
+
+    # Rule 2: explicit allow-list (user ids and/or roles).
+    allow_list = cfg.get("allow_list") or []
+    if user_id is not None and str(user_id).strip() and user_id in allow_list:
+        return True
+    if roles:
+        for role in roles:
+            if role in allow_list:
+                return True
+
+    # Rule 3: percentage-based rollout over a stable user_id bucket.
+    rollout = cfg.get("rollout_percentage")
+    if rollout is None or rollout == "":
+        return False
+    if user_id is None or not str(user_id).strip():
+        return False  # no user to bucket → no rollout
+    try:
+        pct = int(rollout)
+    except (TypeError, ValueError):
+        return False
+    pct = max(0, min(100, pct))
+    if pct <= 0:
+        return False
+    digest = hashlib.md5(str(user_id).encode("utf-8"), usedforsecurity=False).hexdigest()
+    bucket = int(digest, 16) % 100
+    return bucket < pct
 
 
 # ─── Pydantic schemas ────────────────────────────────────────────────────

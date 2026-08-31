@@ -28,6 +28,16 @@ os.environ.setdefault("ETAP_SECRET_KEY", "test-etap-secret-key-32-chars-long!")
 os.environ.setdefault("AUTH_DISABLED", "true")
 os.environ.setdefault("AUTH_RETURN_RESET_TOKEN", "true")
 
+# ─── pytest-xdist isolation ──────────────────────────────────────────────────
+# CI runs pytest with `-n 4`. All workers share one process-wide DATABASE_URL,
+# so four SQLite writers raced on the same file: fixtures died with
+# "database is locked" during schema setup and mid-run users looked missing
+# to auth dependencies (spurious 401s). Give each xdist worker its own
+# SQLite file. Sequential runs (no xdist) keep the previous behaviour.
+_XDIST_WORKER = os.environ.get("PYTEST_XDIST_WORKER", "")
+if _XDIST_WORKER:
+    os.environ["DATABASE_URL"] = f"sqlite+aiosqlite:///./test_{_XDIST_WORKER}.db"
+
 try:
     import matplotlib
 
@@ -68,6 +78,44 @@ def _reset_redis_singleton():
 
 
 @pytest.fixture(autouse=True)
+def _reset_chat_first_module_state():
+    """Reset chat-first (P1–P4a) module-level state around every test.
+
+    ``api.approvals._session_auto_approve`` and the agent-executor plan
+    store are process-global dicts. pytest-xdist redistributes test order
+    per worker, so keys leaked by one test flip the outcome of another
+    (auto-approve assertions, idempotency replays, forged-plan checks).
+    Clear them before and after each test to make outcomes order-safe.
+    """
+    approvals_module = None
+    agent_executor_module = None
+    try:
+        import api.approvals as approvals_module  # noqa: F811
+    except Exception:
+        pass
+    try:
+        import api.agent_executor as agent_executor_module  # noqa: F811
+    except Exception:
+        pass
+
+    def _clear() -> None:
+        if approvals_module is not None:
+            approvals_module._session_auto_approve.clear()
+        if agent_executor_module is not None:
+            agent_executor_module.reset_agent_exec_state()
+        try:
+            import api.chat_stream as chat_stream_module
+
+            chat_stream_module.reset_chat_rate_limiter()
+        except Exception:
+            pass
+
+    _clear()
+    yield
+    _clear()
+
+
+@pytest.fixture(autouse=True)
 async def _init_test_database():
     """Ensure database tables exist and test users are seeded for all tests."""
     from sqlalchemy import select
@@ -84,6 +132,7 @@ async def _init_test_database():
             users = [
                 User(
                     id="test-user-id",
+                    tenant_id="",  # match SQLite-seed semantics (empty tenant) and satisfy users.tenant_id NOT NULL on Postgres
                     username="testuser",
                     email="testuser@example.com",
                     password_hash=_hash_password("Str0ngP@ss!"),
@@ -92,6 +141,7 @@ async def _init_test_database():
                 ),
                 User(
                     id="test-admin-id",
+                    tenant_id="",  # match SQLite-seed semantics (empty tenant) and satisfy users.tenant_id NOT NULL on Postgres
                     username="admin",
                     email="admin@example.com",
                     password_hash=_hash_password("Str0ngP@ss!"),
@@ -100,14 +150,18 @@ async def _init_test_database():
                 ),
                 User(
                     id="test-operator-id",
+                    tenant_id="",  # match SQLite-seed semantics (empty tenant) and satisfy users.tenant_id NOT NULL on Postgres
                     username="operator",
                     email="operator@example.com",
                     password_hash=_hash_password("Str0ngP@ss!"),
-                    role="operator",
+                    # "operator" violates ck_users_role (migration 002 allows
+                    # admin/engineer/analyst/viewer/guest) — use "analyst".
+                    role="analyst",
                     is_active=True,
                 ),
                 User(
                     id="test-viewer-id",
+                    tenant_id="",  # match SQLite-seed semantics (empty tenant) and satisfy users.tenant_id NOT NULL on Postgres
                     username="viewer",
                     email="viewer@example.com",
                     password_hash=_hash_password("Str0ngP@ss!"),
@@ -197,7 +251,7 @@ def operator_headers():
     from api.auth import _create_access_token
     from api.csrf import generate_csrf_token
 
-    token = _create_access_token("test-operator-id", role="operator")
+    token = _create_access_token("test-operator-id", role="analyst")
     return {
         "Authorization": f"Bearer {token}",
         "X-CSRF-Token": generate_csrf_token(),

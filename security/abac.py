@@ -415,7 +415,6 @@ def ip_in_ranges(ip_str: str, allowed_ranges: Sequence[str]) -> bool:
 # ---------------------------------------------------------------------------
 
 try:
-    from starlette.middleware.base import BaseHTTPMiddleware
     from starlette.requests import Request
     from starlette.responses import JSONResponse
 
@@ -426,13 +425,17 @@ except ImportError:
 
 if _HAS_STARLETTE:
 
-    class ABACMiddleware(BaseHTTPMiddleware):
+    class ABACMiddleware:
         """FastAPI / Starlette middleware for ABAC enforcement.
 
         Extracts subject attributes from JWT claims, builds the
         action/resource/environment context, and delegates to
         :class:`ABACPolicyEngine`.  Requests that fail evaluation receive
         a ``403 Forbidden`` response.
+
+        Implemented as pure ASGI middleware (not ``BaseHTTPMiddleware``)
+        so StreamingResponse/SSE bodies (chat P4b) are never routed
+        through BaseHTTPMiddleware's anyio memory stream.
 
         Parameters
         ----------
@@ -454,7 +457,7 @@ if _HAS_STARLETTE:
             jwt_decode_fn: Callable[..., Any] | None = None,
             public_paths: list[str] | None = None,
         ) -> None:
-            super().__init__(app)
+            self.app = app
             if policies is not None:
                 self.engine = ABACPolicyEngine(policies)
             else:
@@ -497,8 +500,13 @@ if _HAS_STARLETTE:
             except _jwt.InvalidTokenError:
                 return {}
 
-        async def dispatch(self, request: Request, call_next: Any) -> Any:
+        async def __call__(self, scope: Any, receive: Any, send: Any) -> None:
             """Intercept each request and enforce ABAC."""
+            if scope["type"] != "http":
+                await self.app(scope, receive, send)
+                return
+            request = Request(scope)
+
             # Skip public paths, test mode (AUTH_DISABLED), or requests with X-API-Key
             path = request.url.path
             if (
@@ -510,23 +518,28 @@ if _HAS_STARLETTE:
                 or request.headers.get("x-api-key")
                 or request.headers.get("X-API-Key")
             ):
-                return await call_next(request)
+                await self.app(scope, receive, send)
+                return
 
             # Extract subject from JWT
             auth_header = request.headers.get("Authorization", "")
             if not auth_header.startswith("Bearer "):
-                return JSONResponse(
+                response = JSONResponse(
                     status_code=401,
                     content={"detail": "Missing or invalid Authorization header"},
                 )
+                await response(scope, receive, send)
+                return
 
             token = auth_header[7:]
             claims = await self._decode_jwt(token)
             if not claims:
-                return JSONResponse(
+                response = JSONResponse(
                     status_code=401,
                     content={"detail": "Invalid or expired token"},
                 )
+                await response(scope, receive, send)
+                return
 
             # Build ABAC context
             subject: dict[str, Any] = {
@@ -563,12 +576,14 @@ if _HAS_STARLETTE:
                     action,
                     client_ip,
                 )
-                return JSONResponse(
+                response = JSONResponse(
                     status_code=403,
                     content={"detail": "Access denied by ABAC policy"},
                 )
+                await response(scope, receive, send)
+                return
 
-            return await call_next(request)
+            await self.app(scope, receive, send)
 
 else:
     # Stub when Starlette/FastAPI is not installed

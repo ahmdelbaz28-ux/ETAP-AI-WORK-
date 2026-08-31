@@ -23,7 +23,11 @@ from typing import Any, Dict, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 
-from api.dependencies import get_api_key
+from api.dependencies import (
+    CurrentUser,
+    get_api_key,
+    get_optional_current_user_from_header,
+)
 from api.feature_flags import get_disabled_studies
 from core.metrics import count_executions, track_skill_operation
 from core_model.bus import Bus  # noqa: F401 — re-exported for backward compat
@@ -140,6 +144,54 @@ def pre_flight_check(system: dict) -> Optional[dict]:
 # ---------------------------------------------------------------------------
 
 
+async def _persist_study_result(
+    req: Request,
+    payload: StudyRequest,
+    result: StudyResult,
+    trace_id: str,
+    user: Optional[CurrentUser] = None,
+) -> None:
+    """Persist a successful study summary into the P5 ResultStore.
+
+    The tenant_id is derived from the authenticated request context only
+    (``request.state.tenant_id``, set by the JWT TenantMiddleware) — never
+    from the request body. ``created_by`` is the authenticated user id from
+    the validated JWT context (``CurrentUser.user_id``); it is ``None`` for
+    service-to-service API-key callers, which have no user identity. Identity
+    is NEVER read from the request body and NEVER fabricated. Failures are
+    logged and swallowed so study execution semantics are never altered by
+    result persistence.
+    """
+    tenant_id = (getattr(req.state, "tenant_id", "") or "").strip()
+    created_by = (user.user_id if user is not None else "").strip() or None
+    try:
+        from api.results_store import persist_study_result
+
+        result_id = await persist_study_result(
+            tenant_id=tenant_id or "default",
+            project_id=None,
+            created_by=created_by,
+            summary_json={
+                "study_type": payload.study_type,
+                "status": "success",
+                "provider": result.provider or "native",
+                "data": result.data,
+                "warnings": result.warnings,
+                "errors": result.errors,
+                "execution_time_sec": result.execution_time_sec,
+                "trace_id": trace_id,
+            },
+        )
+        if result_id:
+            result.result_id = result_id
+    except Exception:  # pragma: no cover - resilience guard
+        logger.warning(
+            "study_result_persist_failed study_type=%s — result_id omitted",
+            payload.study_type,
+            extra={"trace_id": trace_id},
+        )
+
+
 @router.post(
     "/run",
     response_model=StudyResult,
@@ -151,11 +203,17 @@ async def run_study(
     req: Request,
     payload: StudyRequest,
     _: str = Depends(get_api_key),
+    user: Optional[CurrentUser] = Depends(get_optional_current_user_from_header),
 ):
     """Execute a power system study.
 
     Delegates to StudyExecutor.execute which owns the full
     pipeline: validation -> cache -> dispatch -> scan -> risk -> serialize.
+
+    ``user`` is the optional authenticated ``CurrentUser`` (JWT context);
+    it is used ONLY to stamp ``created_by`` on the persisted result. It is
+    ``None`` for API-key-only callers — identity is never taken from the
+    request body.
     """
     trace_id = getattr(req.state, "trace_id", "unknown")
     from core.bootstrap import _increment_counter
@@ -165,6 +223,15 @@ async def run_study(
     try:
         executor = StudyExecutor()
         result = await executor.execute(payload, trace_id=trace_id)
+        # P5 ResultStore: persist the successful study summary and surface the
+        # new result_id on the response. The tenant comes ONLY from the
+        # authenticated request context (JWT TenantMiddleware) — never from the
+        # request body. ``created_by`` comes ONLY from the authenticated user
+        # context (validated JWT -> CurrentUser). A persistence failure degrades
+        # gracefully: the study result is not failed, the field is simply left
+        # unset.
+        if result and getattr(result, "success", False):
+            await _persist_study_result(req, payload, result, trace_id, user)
         return result
     except HTTPException:
         raise
