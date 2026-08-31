@@ -120,7 +120,7 @@ async def _init_test_database():
     """Ensure database tables exist and test users are seeded for all tests."""
     from sqlalchemy import select
 
-    from api.auth import _DEFAULT_TENANT_ID, User, _hash_password
+    from api.auth import User, _hash_password
     from api.database import async_session, init_db
 
     await init_db()
@@ -132,7 +132,7 @@ async def _init_test_database():
             users = [
                 User(
                     id="test-user-id",
-                    tenant_id=_DEFAULT_TENANT_ID,
+                    tenant_id="",  # match SQLite-seed semantics (empty tenant) and satisfy users.tenant_id NOT NULL on Postgres
                     username="testuser",
                     email="testuser@example.com",
                     password_hash=_hash_password("Str0ngP@ss!"),
@@ -141,7 +141,7 @@ async def _init_test_database():
                 ),
                 User(
                     id="test-admin-id",
-                    tenant_id=_DEFAULT_TENANT_ID,
+                    tenant_id="",  # match SQLite-seed semantics (empty tenant) and satisfy users.tenant_id NOT NULL on Postgres
                     username="admin",
                     email="admin@example.com",
                     password_hash=_hash_password("Str0ngP@ss!"),
@@ -150,16 +150,18 @@ async def _init_test_database():
                 ),
                 User(
                     id="test-operator-id",
-                    tenant_id=_DEFAULT_TENANT_ID,
+                    tenant_id="",  # match SQLite-seed semantics (empty tenant) and satisfy users.tenant_id NOT NULL on Postgres
                     username="operator",
                     email="operator@example.com",
                     password_hash=_hash_password("Str0ngP@ss!"),
-                    role="operator",
+                    # "operator" violates ck_users_role (migration 002 allows
+                    # admin/engineer/analyst/viewer/guest) — use "analyst".
+                    role="analyst",
                     is_active=True,
                 ),
                 User(
                     id="test-viewer-id",
-                    tenant_id=_DEFAULT_TENANT_ID,
+                    tenant_id="",  # match SQLite-seed semantics (empty tenant) and satisfy users.tenant_id NOT NULL on Postgres
                     username="viewer",
                     email="viewer@example.com",
                     password_hash=_hash_password("Str0ngP@ss!"),
@@ -249,7 +251,7 @@ def operator_headers():
     from api.auth import _create_access_token
     from api.csrf import generate_csrf_token
 
-    token = _create_access_token("test-operator-id", role="operator")
+    token = _create_access_token("test-operator-id", role="analyst")
     return {
         "Authorization": f"Bearer {token}",
         "X-CSRF-Token": generate_csrf_token(),
