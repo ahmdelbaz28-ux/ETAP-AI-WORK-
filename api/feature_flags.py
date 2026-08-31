@@ -214,7 +214,7 @@ def evaluate_flag_with_rollout(
     pct = max(0, min(100, pct))
     if pct <= 0:
         return False
-    digest = hashlib.md5(str(user_id).encode("utf-8")).hexdigest()
+    digest = hashlib.md5(str(user_id).encode("utf-8"), usedforsecurity=False).hexdigest()
     bucket = int(digest, 16) % 100
     return bucket < pct
 
