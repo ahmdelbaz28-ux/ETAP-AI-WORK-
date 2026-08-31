@@ -40,6 +40,7 @@ from api.context_engine import router as context_engine_router
 from api.copilot_config import router as copilot_config_router
 from api.csrf import CSRFMiddleware, csrf_router
 from api.data_import import router as data_import_router
+from api.digital_twin import router as digital_twin_router
 from api.email_dashboard import router as email_dashboard_router
 from api.email_digest import router as email_digest_router
 from api.email_otp import router as email_otp_router
@@ -57,6 +58,7 @@ from api.projects import router as projects_router
 from api.rbac import router as rbac_router
 from api.request_context import CorrelationIdMiddleware, TenantMiddleware
 from api.results_store import router as results_router
+from api.scada import router as scada_router
 from api.session_stream import router as session_stream_router
 from api.session_stream import session_stream_ws
 from api.settings import router as settings_router
@@ -802,6 +804,8 @@ app.include_router(approvals_session_router)  # /api/v1/session/auto-approve —
 app.include_router(session_stream_router)  # /api/v1/ws-ticket — short-lived single-use WS tickets (P3)
 app.include_router(agent_executor_router)  # /api/v1/agent-exec/* — secure agent plan & execute path (P4a)
 app.include_router(chat_stream_router)  # /api/v1/chat/stream — server-side LLM chat SSE, keys stay server-side (P4b)
+app.include_router(scada_router)  # /api/v1/scada/* — P8: migrated from inline route
+app.include_router(digital_twin_router)  # /api/v1/digital-twin/* — P8: migrated from inline route
 
 
 # WebSocket endpoint for per-session event streaming (P3 SessionStreamHub).
@@ -893,60 +897,12 @@ async def websocket_notifications_handler(websocket: WebSocket) -> None:
 # ============================================================================
 
 
-@app.get("/api/v1/scada/live", tags=["SCADA"])
-async def scada_live(request: Request):
-    """Return a snapshot of the latest SCADA telemetry.
-
-    **WARNING**: This returns SIMULATED data unless a real Zenon/IEC 61850 feed is
-    configured. On HF Space (cpu-basic, no Zenon runtime) this returns a deterministic
-    synthetic snapshot. The ``is_simulated`` flag allows the frontend to display a
-    red banner indicating non-production data. A real Zenon-backed deployment would
-    replace this with ``scada_etap_consumer.get_live_snapshot()`` and set is_simulated=false.
-    SECURITY AUDIT S-15: requires API key authentication.
-    """
-    _require_api_key(request)
-    return {
-        "success": True,
-        "is_simulated": True,
-        "data": {
-            "timestamp": _utc_now_iso(),
-            "source": "synthetic",
-            "points": [
-                {"tag": "BUS1.V", "value": 1.02, "unit": "pu", "quality": "GOOD"},
-                {"tag": "BUS1.F", "value": 50.0, "unit": "Hz", "quality": "GOOD"},
-                {"tag": "FEEDER1.I", "value": 412.5, "unit": "A", "quality": "GOOD"},
-                {"tag": "XF1.P", "value": 2.8, "unit": "MW", "quality": "GOOD"},
-                {"tag": "XF1.Q", "value": 0.9, "unit": "MVAR", "quality": "GOOD"},
-            ],
-        },
-    }
-
-
-@app.get("/api/v1/digital-twin/status", tags=["Digital Twin"])
-async def digital_twin_status(request: Request):
-    """Return the digital-twin sync status.
-
-    The digital twin is a logical mirror of the physical SCADA network.
-    Without a real SCADA feed the twin is in `STANDBY` mode: schema loaded,
-    no live measurements ingested.
-    SECURITY AUDIT S-15: requires API key authentication.
-    """
-    _require_api_key(request)
-    return {
-        "success": True,
-        "data": {
-            "timestamp": _utc_now_iso(),
-            "state": "STANDBY",
-            "schema_version": "1.0.0",
-            "nodes": 0,
-            "edges": 0,
-            "last_sync": None,
-            "deployment_note": (
-                "Digital-twin live sync requires a real SCADA feed (Zenon / IEC 61850). "
-                "Without it the twin schema is loaded but no measurements are ingested."
-            ),
-        },
-    }
+# ─── SCADA live + Digital-Twin status — migrated to modular routers (P8) ──────
+# P8 (Advanced Routes Migration): these handlers were relocated from this module
+# into their intended modular router homes, registered via include_router below:
+#   GET /api/v1/scada/live          → api/scada.py        (scada_router)
+#   GET /api/v1/digital-twin/status → api/digital_twin.py (digital_twin_router)
+# The HTTP contract (paths, auth, response bodies, status codes) is unchanged.
 
 
 @app.get("/api/v1/audit/verify", tags=["Audit"])
