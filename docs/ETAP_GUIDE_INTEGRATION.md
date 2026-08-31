@@ -241,13 +241,6 @@ else:
 validation = rag.validate_etap_operation(
     operation="load flow analysis",
     proposed_steps=["Open ETAP", "Create project", "Add components", "Run study"],
-
-    proposed_steps=[
-        "Open ETAP",
-        "Create project",
-        "Add components",
-        "Run study"
-    ]
 )
 
 if validation["valid"]:
