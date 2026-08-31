@@ -12,8 +12,9 @@ from __future__ import annotations
 import logging
 import uuid
 from contextvars import ContextVar
+from typing import Any
 
-from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.datastructures import MutableHeaders
 from starlette.requests import Request
 
 logger = logging.getLogger(__name__)
@@ -107,16 +108,32 @@ def _extract_tenant_id_from_jwt(request: Request) -> str:
 # ---------------------------------------------------------------------------
 
 
-class CorrelationIdMiddleware(BaseHTTPMiddleware):
-    """Add X-Correlation-ID header and set ContextVar for request tracing."""
+class CorrelationIdMiddleware:
+    """Add X-Correlation-ID header and set ContextVar for request tracing.
 
-    async def dispatch(self, request: Request, call_next):
+    Implemented as pure ASGI middleware instead of ``BaseHTTPMiddleware``:
+    BaseHTTPMiddleware routes the response body through an anyio memory
+    stream and corrupts StreamingResponse/SSE endpoints (chat P4b) with
+    ``RuntimeError: Unexpected message received: http.request``. Scope-level
+    header/state access keeps behaviour identical without body buffering.
+    """
+
+    def __init__(self, app: Any) -> None:
+        self.app = app
+
+    async def __call__(self, scope: Any, receive: Any, send: Any) -> None:
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+
+        request = Request(scope)
         correlation_id = request.headers.get("X-Correlation-ID", str(uuid.uuid4()))
-        request.state.correlation_id = correlation_id
+        state = scope.setdefault("state", {})
+        state["correlation_id"] = correlation_id
         _correlation_id_var.set(correlation_id)
 
         tenant_id = _extract_tenant_id_from_jwt(request)
-        request.state.tenant_id = tenant_id
+        state["tenant_id"] = tenant_id
         _tenant_id_var.set(tenant_id)
 
         path_parts = request.url.path.split("/")
@@ -126,12 +143,16 @@ class CorrelationIdMiddleware(BaseHTTPMiddleware):
                 project_id = path_parts[i + 1]
                 break
         if project_id:
-            request.state.project_id = project_id
+            state["project_id"] = project_id
             _project_id_var.set(project_id)
 
-        response = await call_next(request)
-        response.headers["X-Correlation-ID"] = correlation_id
-        return response
+        async def send_with_correlation(message: Any) -> None:
+            if message["type"] == "http.response.start":
+                headers = MutableHeaders(scope=message)
+                headers.append("X-Correlation-ID", correlation_id)
+            await send(message)
+
+        await self.app(scope, receive, send_with_correlation)
 
 
 # ---------------------------------------------------------------------------
@@ -183,23 +204,34 @@ def _reset_tenant_on_checkin(dbapi_connection, _connection_record) -> None:
         )
 
 
-class TenantMiddleware(BaseHTTPMiddleware):
-    """Set the PostgreSQL session variable for Row-Level Security (RLS)."""
+class TenantMiddleware:
+    """Set the PostgreSQL session variable for Row-Level Security (RLS).
+
+    Pure ASGI (not ``BaseHTTPMiddleware``) so SSE/streaming responses pass
+    through unbuffered; tenant/correlation contextvars are reset in a
+    ``finally`` block after the full response has been sent.
+    """
 
     _event_registered: bool = False
 
-    async def dispatch(self, request: Request, call_next):
+    def __init__(self, app: Any) -> None:
+        self.app = app
+
+    async def __call__(self, scope: Any, receive: Any, send: Any) -> None:
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+
         if not TenantMiddleware._event_registered:
             self._register_connection_event()
             TenantMiddleware._event_registered = True
 
-        response = await call_next(request)
-
-        _tenant_id_var.set("")
-        _correlation_id_var.set("")
-        _project_id_var.set("")
-
-        return response
+        try:
+            await self.app(scope, receive, send)
+        finally:
+            _tenant_id_var.set("")
+            _correlation_id_var.set("")
+            _project_id_var.set("")
 
     @staticmethod
     def _register_connection_event() -> None:

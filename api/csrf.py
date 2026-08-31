@@ -42,7 +42,6 @@ from typing import Any
 
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
-from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 
 from api.environment import auth_disabled_allowed
 
@@ -184,7 +183,17 @@ def validate_csrf_token(token: str, *, tolerate_expired: bool = False) -> str:
 _SAFE_METHODS = frozenset({"GET", "HEAD", "OPTIONS", "TRACE"})
 
 
-class CSRFMiddleware(BaseHTTPMiddleware):
+class _PureASGIMiddleware:
+    """Marker base for pure-ASGI middlewares.
+
+    These middlewares deliberately avoid ``BaseHTTPMiddleware``, which
+    routes response bodies through an anyio memory stream and corrupts
+    StreamingResponse/SSE endpoints (chat P4b) with
+    ``RuntimeError: Unexpected message received: http.request``.
+    """
+
+
+class CSRFMiddleware(_PureASGIMiddleware):
     """Protect state-changing endpoints from CSRF attacks.
 
     Sits *before* the route handler and validates the ``X-CSRF-Token`` header
@@ -197,30 +206,35 @@ class CSRFMiddleware(BaseHTTPMiddleware):
     """
 
     def __init__(self, app: Any, *, tolerate_expired: bool = False) -> None:
-        super().__init__(app)
+        self.app = app
         self._tolerate_expired = tolerate_expired
         self._api_key = os.environ.get("ENGINEERING_SERVICE_API_KEY", "")
         self._auth_disabled = auth_disabled_allowed()
 
-    async def dispatch(
-        self,
-        request: Request,
-        call_next: RequestResponseEndpoint,
-    ) -> JSONResponse:
+    async def __call__(self, scope: Any, receive: Any, send: Any) -> None:
+        """Validate mutating requests without buffering the response body."""
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+        request = Request(scope)
+
         # Only validate mutating methods
         if request.method in _SAFE_METHODS:
-            return await call_next(request)
+            await self.app(scope, receive, send)
+            return
 
         # Skip CSRF check for API-key-authenticated clients (server-to-server)
         if self._api_key:
             provided_key = request.headers.get("x-api-key", "")
             if hmac.compare_digest(provided_key, self._api_key):
-                return await call_next(request)
+                await self.app(scope, receive, send)
+                return
 
         # Skip when auth is disabled (local development & test environments only).
         # auth_disabled_allowed() already fail-closes outside the dev allow-list.
         if self._auth_disabled:
-            return await call_next(request)
+            await self.app(scope, receive, send)
+            return
 
         # Validate CSRF token
         token = request.headers.get(_CSRF_HEADER, "")
@@ -235,7 +249,7 @@ class CSRFMiddleware(BaseHTTPMiddleware):
                 request.method,
                 request.url.path,
             )
-            return JSONResponse(
+            response = JSONResponse(
                 status_code=403,
                 content={
                     "detail": (
@@ -245,8 +259,10 @@ class CSRFMiddleware(BaseHTTPMiddleware):
                     ),
                 },
             )
+            await response(scope, receive, send)
+            return
 
-        return await call_next(request)
+        await self.app(scope, receive, send)
 
 
 # ─── Router ───────────────────────────────────────────────────────────────────
