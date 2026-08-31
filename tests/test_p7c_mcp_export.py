@@ -624,11 +624,25 @@ class TestMcpHealthEndpointAuthorization:
     health endpoint (401 without/with-bad key, uniform 404 for unknown
     servers).
 
-    Known pre-existing issue (documented, NOT fixed in P7c): the
-    ``GET /mcp-servers`` listing route is shadowed by the earlier-registered
-    ``GET /{agent_id}`` catch-all in ``api/agents.py``, so it currently
-    answers 404 "Agent not found" regardless of authorization. Fixing that
-    routing is out of scope for the P7c health-endpoint hardening.
+    Historical finding (identified during P7c hardening, FIXED in the
+    subsequent route-precedence commit): the ``GET /mcp-servers`` listing
+    route was shadowed by the earlier-registered ``GET /{agent_id}``
+    catch-all in ``api/agents.py``, answering 404 "Agent not found"
+    regardless of authorization.
+
+    ROOT CAUSE: FastAPI matches routes in registration order; the
+    parameterized ``/{agent_id}`` route was declared before the static
+    ``/mcp-servers`` route, so every one-segment GET path under
+    ``/api/v1/agents`` hit the catch-all first.
+
+    FIX: the static ``/mcp-servers`` route is now registered BEFORE
+    ``/{agent_id}`` (specific-over-parameterized precedence).
+
+    REGRESSION: ``tests/test_p7c_mcp_route_precedence.py`` proves, through
+    real request routing, that the MCP list handler now serves
+    ``GET /mcp-servers`` (authorized 200 with the MCP list shape; 401
+    without/with-bad key) while ordinary ``/{agent_id}`` lookup still
+    behaves as before.
     """
 
     @pytest.fixture

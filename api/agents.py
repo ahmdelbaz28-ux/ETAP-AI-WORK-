@@ -181,6 +181,105 @@ async def get_agents_list(request: Request):
         )
 
 
+# NOTE (P7c route-precedence fix): this static route MUST be registered
+# BEFORE the parameterized ``GET /{agent_id}`` catch-all below. FastAPI
+# matches routes in registration order; registering ``/mcp-servers`` after
+# the catch-all caused it to be shadowed (404 "Agent not found").
+@router.get("/mcp-servers")
+async def list_mcp_servers(
+    request: Request,
+    _: str = Depends(
+        get_api_key
+    ),  # NOSONAR Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+):
+    """Return the list of MCP (Model Context Protocol) servers configured for the platform.
+
+    Reads from `.mcp.json` at repo root (or path in `MCP_CONFIG_PATH` env var).
+    Secret fields (api_key, token, secret, password) are masked to '***REDACTED***'
+    so the UI can render server metadata without exposing credentials.
+
+    Each server entry contains: id, name, type (stdio|http|websocket if present),
+    command, args, status ('configured' — runtime status is not yet probed),
+    env_keys (key names only, values redacted).
+    """
+    trace_id = getattr(request.state, "trace_id", "unknown")
+    try:
+        from pathlib import Path as _Path
+
+        config_path = os.getenv(
+            "MCP_CONFIG_PATH",
+            str(_Path(__file__).resolve().parent.parent / ".mcp.json"),
+        )
+        path = _Path(config_path)
+        if not path.exists():
+            return JSONResponse(
+                content={
+                    "success": True,
+                    "data": {
+                        "servers": [],
+                        "config_path": str(path),
+                        "message": "No .mcp.json found — MCP not configured.",
+                    },
+                    "trace_id": trace_id,
+                }
+            )
+
+        raw = json.loads(path.read_text(encoding="utf-8"))
+        servers_raw = raw.get("mcpServers", raw.get("servers", {}))
+
+        SECRET_KEY_HINTS = ("key", "token", "secret", "password", "credential")
+        servers: list[dict[str, Any]] = []
+        for sid, scfg in servers_raw.items():
+            env = scfg.get("env", {}) or {}
+            redacted_env: dict[str, str] = {}
+            for k, _v in env.items():
+                if any(h in k.lower() for h in SECRET_KEY_HINTS):
+                    redacted_env[k] = "***REDACTED***"
+                else:
+                    redacted_env[k] = "***REDACTED***"  # mask all env values by default
+
+            servers.append(
+                {
+                    "id": sid,
+                    "name": sid.replace("_", " ").replace("-", " ").title(),
+                    "type": scfg.get("type", "stdio"),
+                    "command": scfg.get("command", ""),
+                    "args": scfg.get("args", []),
+                    "env_keys": list(env.keys()),
+                    "env_redacted": redacted_env,
+                    "status": "configured",
+                }
+            )
+
+        return JSONResponse(
+            content={
+                "success": True,
+                "data": {
+                    "servers": servers,
+                    "total": len(servers),
+                    "config_path": str(path),
+                },
+                "trace_id": trace_id,
+            }
+        )
+    except json.JSONDecodeError as e:
+        logger.exception("mcp_servers_config_invalid error=%s", str(e))
+        return JSONResponse(
+            status_code=500,
+            content={
+                "success": False,
+                "errors": [f"MCP config is not valid JSON: {e}"],
+                "trace_id": trace_id,
+            },
+        )
+    except Exception as e:
+        logger.exception("mcp_servers_failed error=%s", str(e))
+        return JSONResponse(
+            status_code=500,
+            content={"success": False, "errors": [MSG_INTERNAL_ERROR], "trace_id": trace_id},
+        )
+
+
 @router.get("/{agent_id}")
 async def get_agent_by_id(agent_id: str, request: Request):
     """Return metadata for a specific agent by ID."""
@@ -968,101 +1067,6 @@ async def ahmed_etap_orchestrate(
             str(e),
             extra={"trace_id": trace_id},
         )
-        return JSONResponse(
-            status_code=500,
-            content={"success": False, "errors": [MSG_INTERNAL_ERROR], "trace_id": trace_id},
-        )
-
-
-@router.get("/mcp-servers")
-async def list_mcp_servers(
-    request: Request,
-    _: str = Depends(
-        get_api_key
-    ),  # NOSONAR Annotated[T, Depends(...)] migration will be done in API refactoring sprint
-):
-    """Return the list of MCP (Model Context Protocol) servers configured for the platform.
-
-    Reads from `.mcp.json` at repo root (or path in `MCP_CONFIG_PATH` env var).
-    Secret fields (api_key, token, secret, password) are masked to '***REDACTED***'
-    so the UI can render server metadata without exposing credentials.
-
-    Each server entry contains: id, name, type (stdio|http|websocket if present),
-    command, args, status ('configured' — runtime status is not yet probed),
-    env_keys (key names only, values redacted).
-    """
-    trace_id = getattr(request.state, "trace_id", "unknown")
-    try:
-        from pathlib import Path as _Path
-
-        config_path = os.getenv(
-            "MCP_CONFIG_PATH",
-            str(_Path(__file__).resolve().parent.parent / ".mcp.json"),
-        )
-        path = _Path(config_path)
-        if not path.exists():
-            return JSONResponse(
-                content={
-                    "success": True,
-                    "data": {
-                        "servers": [],
-                        "config_path": str(path),
-                        "message": "No .mcp.json found — MCP not configured.",
-                    },
-                    "trace_id": trace_id,
-                }
-            )
-
-        raw = json.loads(path.read_text(encoding="utf-8"))
-        servers_raw = raw.get("mcpServers", raw.get("servers", {}))
-
-        SECRET_KEY_HINTS = ("key", "token", "secret", "password", "credential")
-        servers: list[dict[str, Any]] = []
-        for sid, scfg in servers_raw.items():
-            env = scfg.get("env", {}) or {}
-            redacted_env: dict[str, str] = {}
-            for k, _v in env.items():
-                if any(h in k.lower() for h in SECRET_KEY_HINTS):
-                    redacted_env[k] = "***REDACTED***"
-                else:
-                    redacted_env[k] = "***REDACTED***"  # mask all env values by default
-
-            servers.append(
-                {
-                    "id": sid,
-                    "name": sid.replace("_", " ").replace("-", " ").title(),
-                    "type": scfg.get("type", "stdio"),
-                    "command": scfg.get("command", ""),
-                    "args": scfg.get("args", []),
-                    "env_keys": list(env.keys()),
-                    "env_redacted": redacted_env,
-                    "status": "configured",
-                }
-            )
-
-        return JSONResponse(
-            content={
-                "success": True,
-                "data": {
-                    "servers": servers,
-                    "total": len(servers),
-                    "config_path": str(path),
-                },
-                "trace_id": trace_id,
-            }
-        )
-    except json.JSONDecodeError as e:
-        logger.exception("mcp_servers_config_invalid error=%s", str(e))
-        return JSONResponse(
-            status_code=500,
-            content={
-                "success": False,
-                "errors": [f"MCP config is not valid JSON: {e}"],
-                "trace_id": trace_id,
-            },
-        )
-    except Exception as e:
-        logger.exception("mcp_servers_failed error=%s", str(e))
         return JSONResponse(
             status_code=500,
             content={"success": False, "errors": [MSG_INTERNAL_ERROR], "trace_id": trace_id},
