@@ -69,7 +69,7 @@ neo4j>=5.25.0,<7
 #   langchain-qdrant 1.1.0
 #   langsmith        0.10.18
 langchain-core~=1.5.0
-langchain-openai~=1.4.0
+langchain-openai>=1.4,<1.7
 langchain-community~=0.4.0
 langchain-experimental~=0.4.0
 langchain-qdrant~=1.0
