@@ -40,9 +40,7 @@ from tests.test_etap_com_mocked import FakeApp  # noqa: F401
 
 
 class TestConvergenceTruth:
-    def test_converged_flag_read_from_module(
-        self, fake_app: FakeApp, project_file: Path
-    ) -> None:
+    def test_converged_flag_read_from_module(self, fake_app: FakeApp, project_file: Path) -> None:
         fake_app.project.LoadFlow.Converged = False
         with ETAPAutomation(visible=False) as etap:
             project = etap.open_project(str(project_file))
@@ -51,9 +49,7 @@ class TestConvergenceTruth:
         assert result.data["converged"] is False
         assert result.data["convergence_source"] == "etap"
 
-    def test_converged_true_read_from_module(
-        self, fake_app: FakeApp, project_file: Path
-    ) -> None:
+    def test_converged_true_read_from_module(self, fake_app: FakeApp, project_file: Path) -> None:
         fake_app.project.LoadFlow.Converged = True
         with ETAPAutomation(visible=False) as etap:
             project = etap.open_project(str(project_file))
@@ -147,9 +143,7 @@ class _FakeResponse:
 
 
 class TestRemoteProviderPayload:
-    def test_payload_carries_parameters(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_payload_carries_parameters(self, monkeypatch: pytest.MonkeyPatch) -> None:
         captured: dict[str, Any] = {}
 
         def _fake_post(url: str, json: dict[str, Any], **kwargs: Any) -> _FakeResponse:
@@ -235,9 +229,10 @@ class TestMockDeepCopy:
         second = provider.execute_study("p.edb", etap_provider.ETAPStudyType.LOAD_FLOW)
         assert second.data["buses"]["Bus1"]["voltage_magnitude"] != 999.0
         assert "injected" not in second.data
-        assert "is_simulated" not in MockEtapProvider.MOCK_RESULTS[
-            etap_provider.ETAPStudyType.LOAD_FLOW
-        ]
+        assert (
+            "is_simulated"
+            not in MockEtapProvider.MOCK_RESULTS[etap_provider.ETAPStudyType.LOAD_FLOW]
+        )
 
 
 # ---------------------------------------------------------------------------

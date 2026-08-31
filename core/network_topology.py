@@ -428,7 +428,9 @@ class NetworkTopology:
 
         for b in self._branches.values():
             if b.status == "closed":
-                if (b.from_bus == bus_a and b.to_bus == bus_b) or (b.from_bus == bus_b and b.to_bus == bus_a):
+                if (b.from_bus == bus_a and b.to_bus == bus_b) or (
+                    b.from_bus == bus_b and b.to_bus == bus_a
+                ):
                     return b
         return None
 
@@ -456,7 +458,9 @@ class NetworkTopology:
         """
         Trace all downstream feeder branches and leaf buses starting from a substation.
         """
-        if root_substation not in self._buses and (self._graph is None or root_substation not in self._graph):
+        if root_substation not in self._buses and (
+            self._graph is None or root_substation not in self._graph
+        ):
             return FeederTree(
                 root_substation=root_substation,
                 buses=[root_substation],

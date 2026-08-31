@@ -188,7 +188,11 @@ def _require_admin():
 
 # ─── Endpoints ───────────────────────────────────────────────────────────
 @router.get("", dependencies=[Depends(_require_permission("feature_flags", "read"))])
-@router.get("/", dependencies=[Depends(_require_permission("feature_flags", "read"))], include_in_schema=False)
+@router.get(
+    "/",
+    dependencies=[Depends(_require_permission("feature_flags", "read"))],
+    include_in_schema=False,
+)
 async def list_feature_flags(request: Request):
     """List all feature flags with their effective state for the current ENV."""
     trace_id = getattr(request.state, "trace_id", "unknown")

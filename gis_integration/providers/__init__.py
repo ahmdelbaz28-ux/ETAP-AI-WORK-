@@ -53,9 +53,7 @@ def _mock_gis_allowed() -> bool:
 
         return bool(is_feature_enabled("mock_gis_provider"))
     except Exception:
-        logger.warning(
-            "feature_flags subsystem unavailable; falling back to USE_MOCK_GIS env var"
-        )
+        logger.warning("feature_flags subsystem unavailable; falling back to USE_MOCK_GIS env var")
         return os.getenv("USE_MOCK_GIS", "false").lower() == "true"
 
 

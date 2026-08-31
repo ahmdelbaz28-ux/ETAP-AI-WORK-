@@ -232,7 +232,9 @@ class RemoteEtapProvider(IEtapProvider):
         # Circuit breaker check — use shared CircuitBreaker from engine.resilience
         if self.circuit_breaker.get_state() == "OPEN":
             last_fail = self.circuit_breaker._last_failure_time or time.time()
-            retry_secs = max(0, int(last_fail + self.circuit_breaker.recovery_timeout - time.time()))
+            retry_secs = max(
+                0, int(last_fail + self.circuit_breaker.recovery_timeout - time.time())
+            )
             return ETAPResult(
                 False,
                 {},
@@ -540,9 +542,7 @@ class NullEtapProvider(IEtapProvider):
         parameters: dict[str, Any] | None = None,
     ) -> ETAPResult:
         # F-05: Sentinel markers in result data
-        _study_type_str = (
-            study_type.value if hasattr(study_type, "value") else str(study_type)
-        )
+        _study_type_str = study_type.value if hasattr(study_type, "value") else str(study_type)
         _null_sentinel = {
             "_null_provider": True,
             "_warning": (
@@ -620,4 +620,3 @@ def get_etap_provider() -> IEtapProvider:
 
 # Backward-compatibility alias
 ETAPProvider = get_etap_provider
-

@@ -417,8 +417,7 @@ async def get_api_key(  # NOSONAR async function uses sync I/O for compatibility
 
     expected_key = os.getenv("ENGINEERING_SERVICE_API_KEY", API_KEY)
     if not is_production_environment() and (
-        x_api_key == "test-key"
-        or (expected_key and hmac.compare_digest(x_api_key, expected_key))
+        x_api_key == "test-key" or (expected_key and hmac.compare_digest(x_api_key, expected_key))
     ):
         return x_api_key
 

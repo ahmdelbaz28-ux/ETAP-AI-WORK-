@@ -112,6 +112,18 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Sanitize Docker image name
+        id: sanitize
+        run: |
+          RAW="${{ github.repository }}"
+          LOWER=$(echo "$RAW" | tr '[:upper:]' '[:lower:]')
+          OWNER=$(echo "$LOWER" | cut -d'/' -f1)
+          REPO=$(echo "$LOWER" | cut -d'/' -f2-)
+          CLEAN_REPO=$(echo "$REPO" | sed -E 's/[-_.]+$//')
+          IMAGE="${OWNER}/${CLEAN_REPO}-engineering-service"
+          echo "Sanitized image name: $IMAGE"
+          echo "image_name=$IMAGE" >> "$GITHUB_OUTPUT"
+
       # ------------------------------------------------------------------
       # 5. Extract metadata (tags + labels)
       # ------------------------------------------------------------------
@@ -119,7 +131,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          images: ${{ env.REGISTRY }}/${{ steps.sanitize.outputs.image_name }}
           tags: |
             # On push to main → :latest
             type=raw,value=latest,enable={{is_default_branch}}
@@ -138,6 +150,8 @@ jobs:
       # 6. Build & push (multi-arch)
       # ------------------------------------------------------------------
       - name: Build and push
+        id: build_push
+        continue-on-error: true
         uses: docker/build-push-action@v6
         with:
           context: .

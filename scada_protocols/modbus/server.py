@@ -305,9 +305,7 @@ class ModbusServerAdapter(ProtocolAdapter):
                         self._refresh_task.cancel()
                     # pymodbus 3.x StartAsyncTcpServer exposes no clean stop,
                     # so we cancel the loop's tasks; the thread exits.
-                    tasks = [
-                        t for t in asyncio.all_tasks(loop) if t is not asyncio.current_task()
-                    ]
+                    tasks = [t for t in asyncio.all_tasks(loop) if t is not asyncio.current_task()]
                     for t in tasks:
                         t.cancel()
 

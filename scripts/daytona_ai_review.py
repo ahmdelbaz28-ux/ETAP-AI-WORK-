@@ -319,7 +319,9 @@ def _create_sandbox(daytona, target_name: str):
             errors.append(f"direct_call -> {e}")
 
     error_summary = "; ".join(errors)
-    raise RuntimeError(f"Failed to create Daytona sandbox with available SDK methods: {error_summary}")
+    raise RuntimeError(
+        f"Failed to create Daytona sandbox with available SDK methods: {error_summary}"
+    )
 
 
 def main() -> int:
@@ -338,7 +340,9 @@ def main() -> int:
         return 2
 
     api_key = os.environ.get("DAYTONA_API_KEY") or os.environ.get("DAYTONA_API_TOKEN", "")
-    api_url = os.environ.get("DAYTONA_API_URL") or os.environ.get("DAYTONA_SERVER_URL", "https://app.daytona.io")
+    api_url = os.environ.get("DAYTONA_API_URL") or os.environ.get(
+        "DAYTONA_SERVER_URL", "https://app.daytona.io"
+    )
     target_name = os.environ.get("DAYTONA_TARGET", "local")
 
     try:

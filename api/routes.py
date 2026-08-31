@@ -283,7 +283,10 @@ def _get_rate_limit_redis() -> Any | None:
         return None
     if os.getenv("ENGINEERING_SERVICE_RATE_LIMIT_DISABLED", "").lower() in ("true", "1", "yes"):
         return None
-    if os.getenv("ENVIRONMENT", "").lower() in ("test", "testing") or os.getenv("APP_ENV", "").lower() == "test":
+    if (
+        os.getenv("ENVIRONMENT", "").lower() in ("test", "testing")
+        or os.getenv("APP_ENV", "").lower() == "test"
+    ):
         return None
     redis_url = os.getenv("REDIS_URL", _REDIS_URL).strip()
     if not redis_url or redis_async is None or not redis_url.startswith(("redis://", "rediss://")):

@@ -874,9 +874,7 @@ def _write_report_output(report: CoverageReport, args: Any) -> None:
         print(file=out)
 
 
-async def _main() -> (
-    None
-):
+async def _main() -> None:
     """CLI entrypoint for running the coverage analyzer."""
     import argparse
 

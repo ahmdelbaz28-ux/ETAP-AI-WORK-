@@ -402,9 +402,7 @@ class TestGISProviderFactory:
 
     def test_factory_returns_mock_when_allowed(self):
         """get_gis_provider should return MockGISProvider when mock_gis_provider flag is True."""
-        with patch(
-            "gis_integration.providers._mock_gis_allowed", return_value=True
-        ):
+        with patch("gis_integration.providers._mock_gis_allowed", return_value=True):
             from gis_integration.providers import get_gis_provider
 
             provider = get_gis_provider("mock")
@@ -422,9 +420,7 @@ class TestGISProviderFactory:
         with patch.dict(
             "sys.modules", {"qgis": Mock(core=mock_qgis_core), "qgis.core": mock_qgis_core}
         ):
-            with patch(
-                "gis_integration.providers._mock_gis_allowed", return_value=False
-            ):
+            with patch("gis_integration.providers._mock_gis_allowed", return_value=False):
                 provider = get_gis_provider("qgis")
                 assert provider.__class__.__name__ == "QGISProvider"
 

@@ -405,7 +405,9 @@ class StudyRequest(_BaseSpecModel):
         if ".." in v:
             raise ValueError("etap_project_path cannot contain path traversal ('..')")
         if v.startswith("/"):
-            raise ValueError("etap_project_path cannot start with '/' (must be Windows path or relative)")
+            raise ValueError(
+                "etap_project_path cannot start with '/' (must be Windows path or relative)"
+            )
         return v
 
     @field_validator("study_type")

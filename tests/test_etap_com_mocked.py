@@ -398,9 +398,7 @@ class TestParameterSchemas:
 
     def test_unknown_parameter_rejected(self) -> None:
         with pytest.raises(ValueError, match="Unknown parameter 'bogus_key'"):
-            ETAPAutomation._validate_study_parameters(
-                ETAPStudyType.LOAD_FLOW, {"bogus_key": 1}
-            )
+            ETAPAutomation._validate_study_parameters(ETAPStudyType.LOAD_FLOW, {"bogus_key": 1})
 
     def test_out_of_range_integer_rejected(self) -> None:
         with pytest.raises(ValueError, match="above maximum"):
@@ -460,9 +458,7 @@ class TestParameterSchemas:
             "max_iterations": 30,
             "tolerance": 1e-06,
         }
-        validated = ETAPAutomation._validate_study_parameters(
-            ETAPStudyType.LOAD_FLOW, params
-        )
+        validated = ETAPAutomation._validate_study_parameters(ETAPStudyType.LOAD_FLOW, params)
         assert validated == params
 
 

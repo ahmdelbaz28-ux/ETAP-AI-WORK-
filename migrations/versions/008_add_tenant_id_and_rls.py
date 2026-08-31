@@ -103,8 +103,12 @@ def _create_tenants_table() -> None:
         sa.Column("plan", sa.String(32), nullable=False, server_default="free"),
         sa.Column("max_projects", sa.Integer(), nullable=False, server_default="10"),
         sa.Column("max_users", sa.Integer(), nullable=False, server_default="5"),
-        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
-        sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
+        sa.Column(
+            "created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()
+        ),
+        sa.Column(
+            "updated_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()
+        ),
     )
     op.execute(
         sa.text(
@@ -146,8 +150,9 @@ def _backfill_and_enforce_rls(bind, dialect: str) -> None:
             continue
         try:
             op.execute(
-                sa.text(f"UPDATE {table_name} SET tenant_id = :tid WHERE tenant_id IS NULL")
-                .bindparams(tid=_DEFAULT_TENANT_ID)
+                sa.text(
+                    f"UPDATE {table_name} SET tenant_id = :tid WHERE tenant_id IS NULL"
+                ).bindparams(tid=_DEFAULT_TENANT_ID)
             )
         except Exception:
             pass
@@ -188,7 +193,9 @@ def downgrade() -> None:
         for table_name in _TENANT_SCOPED_TABLES:
             if _table_exists(_bind, _dialect, table_name):
                 try:
-                    op.execute(f"DROP POLICY IF EXISTS tenant_isolation_{table_name} ON {table_name}")
+                    op.execute(
+                        f"DROP POLICY IF EXISTS tenant_isolation_{table_name} ON {table_name}"
+                    )
                     op.execute(f"ALTER TABLE {table_name} DISABLE ROW LEVEL SECURITY")
                 except Exception:
                     pass

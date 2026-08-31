@@ -175,7 +175,11 @@ async def create_solver_parameters(
     body: SolverParametersCreate,
 ) -> SolverParametersResponse:
     """Create or overwrite all solver parameters at once."""
-    tol = body.convergence_tolerance if body.convergence_tolerance is not None else body.solver_convergence_tolerance
+    tol = (
+        body.convergence_tolerance
+        if body.convergence_tolerance is not None
+        else body.solver_convergence_tolerance
+    )
     if tol is not None:
         _solver_parameters["convergence_tolerance"] = tol
         _solver_parameters["solver_convergence_tolerance"] = tol

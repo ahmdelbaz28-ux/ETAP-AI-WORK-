@@ -1458,7 +1458,12 @@ class ETAPAutomation:
 
         # Reject traversal markers in raw string regardless of OS separator
         clean_path = file_path.replace("\\", "/")
-        if "/../" in clean_path or clean_path.startswith("../") or clean_path.endswith("/..") or clean_path == "..":
+        if (
+            "/../" in clean_path
+            or clean_path.startswith("../")
+            or clean_path.endswith("/..")
+            or clean_path == ".."
+        ):
             logger.warning(
                 "Path traversal sequence detected in project path: %r", file_path
             )  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
