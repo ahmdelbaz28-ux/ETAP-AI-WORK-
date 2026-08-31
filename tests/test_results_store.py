@@ -63,12 +63,18 @@ TENANT_A = "tenant-alpha"
 TENANT_B = "tenant-beta"
 
 USER_A = CurrentUser(
-    user_id="user-a", username="alpha", email="a@example.com",
-    role="engineer", tenant_id=TENANT_A,
+    user_id="user-a",
+    username="alpha",
+    email="a@example.com",
+    role="engineer",
+    tenant_id=TENANT_A,
 )
 USER_B = CurrentUser(
-    user_id="user-b", username="beta", email="b@example.com",
-    role="engineer", tenant_id=TENANT_B,
+    user_id="user-b",
+    username="beta",
+    email="b@example.com",
+    role="engineer",
+    tenant_id=TENANT_B,
 )
 
 # ---------------------------------------------------------------------------
@@ -100,9 +106,7 @@ def api(result_store_dir):
 
 @pytest.fixture
 async def client(api):
-    async with AsyncClient(
-        transport=ASGITransport(app=api["app"]), base_url="http://test"
-    ) as ac:
+    async with AsyncClient(transport=ASGITransport(app=api["app"]), base_url="http://test") as ac:
         yield ac
 
 
@@ -116,9 +120,7 @@ async def _force_expire(result_id: str, seconds: int = -1) -> None:
     past = datetime.now(UTC) + timedelta(seconds=seconds)
     async with async_session() as session:
         row = (
-            await session.execute(
-                select(ResultRecord).where(ResultRecord.id == result_id)
-            )
+            await session.execute(select(ResultRecord).where(ResultRecord.id == result_id))
         ).scalar_one()
         row.expires_at = past
         await session.commit()
@@ -280,6 +282,7 @@ class TestExpiry:
         # direct storage-level check too
         assert await open_result_file(TENANT_A, rid, "f.txt") is None
 
+
 # ---------------------------------------------------------------------------
 # 4. File size limits
 # ---------------------------------------------------------------------------
@@ -310,6 +313,7 @@ class TestFileSizeLimit:
         create = await client.post("/api/v1/results", json={})
         rid = create.json()["id"]
 
+
 # ---------------------------------------------------------------------------
 # 5. Path safety
 # ---------------------------------------------------------------------------
@@ -319,15 +323,15 @@ class TestPathSafety:
     @pytest.mark.parametrize(
         "bad_path",
         [
-            "../escape.txt",          # unix parent traversal
-            "..\\escape.txt",         # windows parent traversal
-            "sub/../../escape.txt",   # nested traversal
-            "/etc/passwd",            # unix absolute
+            "../escape.txt",  # unix parent traversal
+            "..\\escape.txt",  # windows parent traversal
+            "sub/../../escape.txt",  # nested traversal
+            "/etc/passwd",  # unix absolute
             "C:\\Windows\\evil.txt",  # windows drive-letter absolute
-            "C:/Windows/evil.txt",    # drive letter, forward slashes
-            "\\\\server\\share\\f",   # UNC path
-            "",                       # empty
-            ".",                      # dot
+            "C:/Windows/evil.txt",  # drive letter, forward slashes
+            "\\\\server\\share\\f",  # UNC path
+            "",  # empty
+            ".",  # dot
         ],
     )
     async def test_traversal_paths_rejected_on_store(self, result_store_dir, bad_path):
@@ -356,11 +360,7 @@ class TestPathSafety:
             await store_result_file(TENANT_A, rid, "../outside.txt", b"data")
         # nothing was written anywhere under the tenant storage root
         tenant_root = result_store_dir / "tenants" / TENANT_A
-        written = (
-            [p for p in tenant_root.rglob("*") if p.is_file()]
-            if tenant_root.exists()
-            else []
-        )
+        written = [p for p in tenant_root.rglob("*") if p.is_file()] if tenant_root.exists() else []
         assert written == []
         # a subsequent legitimate write stays strictly inside the result dir
         await store_result_file(TENANT_A, rid, "ok.txt", b"fine")
@@ -389,10 +389,14 @@ class TestFileStorage:
 
         async with async_session() as session:
             rows = (
-                await session.execute(
-                    select(ResultFileRecord).where(ResultFileRecord.result_id == rid)
+                (
+                    await session.execute(
+                        select(ResultFileRecord).where(ResultFileRecord.result_id == rid)
+                    )
                 )
-            ).scalars().all()
+                .scalars()
+                .all()
+            )
             assert {r.path for r in rows} == {"a.txt", "b.bin"}
             assert all(r.result_id == rid for r in rows)
 
@@ -405,8 +409,12 @@ class TestFileStorage:
 
     async def test_heavy_content_not_stored_inside_db(self, result_store_dir):
         """result_files holds ONLY path/mime/size metadata — no blob column."""
-        assert set(c.name for c in ResultFileRecord.__table__.columns) == {
-            "id", "result_id", "path", "mime", "size_bytes",
+        assert {c.name for c in ResultFileRecord.__table__.columns} == {
+            "id",
+            "result_id",
+            "path",
+            "mime",
+            "size_bytes",
         }
         rid = await create_result(tenant_id=TENANT_A, summary_json={})
         blob = os.urandom(4096)
@@ -419,6 +427,7 @@ class TestFileStorage:
             ).scalar_one()
             # no column carries the payload bytes
             values = (row.id, row.result_id, row.path, row.mime, row.size_bytes)
+
 
 # ---------------------------------------------------------------------------
 # 7. Cleanup — removes ONLY expired results, across all tenants
@@ -516,7 +525,7 @@ class TestWriteAtomicity:
         assert exc.value.status_code == 500
 
         rdir = result_store_dir / "tenants" / TENANT_A / "results" / rid
-        assert not (rdir / "f.txt").exists()          # no false success
+        assert not (rdir / "f.txt").exists()  # no false success
         assert not [p for p in rdir.rglob("*") if p.is_file()]  # no staged leftovers
 
     async def test_file_write_failure_leaves_no_db_row(self, result_store_dir, monkeypatch):
@@ -548,9 +557,7 @@ class TestAutomaticCleanupEndpoint:
     ``POST /api/v1/email-digest/schedule/run``).
     """
 
-    async def test_cron_cleanup_removes_expired_and_keeps_live(
-        self, api, client, result_store_dir
-    ):
+    async def test_cron_cleanup_removes_expired_and_keeps_live(self, api, client, result_store_dir):
         expired_id = await create_result(tenant_id=TENANT_A, summary_json={})
         live_id_a = await create_result(tenant_id=TENANT_A, summary_json={})
         live_id_b = await create_result(tenant_id=TENANT_B, summary_json={})
@@ -639,9 +646,7 @@ def fake_study_executor(monkeypatch):
             trace_id=trace_id,
         )
 
-    monkeypatch.setattr(
-        "services.study_executor.StudyExecutor.execute", fake_execute
-    )
+    monkeypatch.setattr("services.study_executor.StudyExecutor.execute", fake_execute)
 
 
 class TestStudyRunCreatedBy:
@@ -650,9 +655,7 @@ class TestStudyRunCreatedBy:
     ):
         before = {r.id for r in await _all_result_rows()}
 
-        resp = await study_client.post(
-            "/api/v1/studies/run", json={"study_type": "load_flow"}
-        )
+        resp = await study_client.post("/api/v1/studies/run", json={"study_type": "load_flow"})
         assert resp.status_code == 200
         body = resp.json()
         # M2 contract on the same response: the wire carries resultId
@@ -722,9 +725,7 @@ class TestResultIdContract:
         async def probe():
             return StudyResult(success=True, result_id="abc")
 
-        async with AsyncClient(
-            transport=ASGITransport(app=app), base_url="http://test"
-        ) as ac:
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
             resp = await ac.get("/probe")
 
         assert resp.status_code == 200

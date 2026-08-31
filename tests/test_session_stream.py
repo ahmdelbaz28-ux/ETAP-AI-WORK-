@@ -79,9 +79,7 @@ def test_ws_connect_success_with_token(client):
     sid = "sess-connect"
     token = _make_access_token()
 
-    with client.websocket_connect(
-        f"{SESSION_PATH}/{sid}?token={token}"
-    ) as ws:
+    with client.websocket_connect(f"{SESSION_PATH}/{sid}?token={token}") as ws:
         init = ws.receive_json()
         assert init["type"] == "session_init"
         assert init["session_id"] == sid
@@ -108,19 +106,13 @@ def test_job_progress_received_during_simulated_job(client):
     hub = get_hub()
     token = _make_access_token()
 
-    with client.websocket_connect(
-        f"{SESSION_PATH}/{sid}?token={token}"
-    ) as ws:
+    with client.websocket_connect(f"{SESSION_PATH}/{sid}?token={token}") as ws:
         init = ws.receive_json()
         assert init["type"] == "session_init"
 
         # Simulate the orchestrator emitting bridge events mid-job.
-        ev_parsing = hub.publish(
-            sid, "job_progress", {"phase": "parsing", "pct": 5}
-        )
-        ev_solving = hub.publish(
-            sid, "job_progress", {"phase": "solving", "pct": 45}
-        )
+        ev_parsing = hub.publish(sid, "job_progress", {"phase": "parsing", "pct": 5})
+        ev_solving = hub.publish(sid, "job_progress", {"phase": "solving", "pct": 45})
 
         got_parsing = ws.receive_json()
         assert got_parsing["type"] == "job_progress"
@@ -133,6 +125,7 @@ def test_job_progress_received_during_simulated_job(client):
         # Sequence numbers increase monotonically.
         assert got_parsing["seq"] == ev_parsing["seq"]
         assert got_solving["seq"] == ev_solving["seq"] > got_parsing["seq"]
+
 
 # ─── 3. Tickets: REST issuance + single-use enforcement ───────────────────
 
@@ -177,9 +170,7 @@ def test_ws_ticket_bound_to_other_session_rejected(client):
     assert consume_ws_ticket(issued["ticket"], "sess-b") is None
     # …while the server-side WS path rejects it too.
     with pytest.raises(WebSocketDisconnect):
-        with client.websocket_connect(
-            f"{SESSION_PATH}/sess-b?ticket={issued['ticket']}"
-        ):
+        with client.websocket_connect(f"{SESSION_PATH}/sess-b?ticket={issued['ticket']}"):
             pass
 
 
@@ -207,14 +198,10 @@ def test_reconnect_replays_missed_events(client):
     token = _make_access_token()
 
     # First connection: consume init + one live event.
-    with client.websocket_connect(
-        f"{SESSION_PATH}/{sid}?token={token}"
-    ) as ws1:
+    with client.websocket_connect(f"{SESSION_PATH}/{sid}?token={token}") as ws1:
         init1 = ws1.receive_json()
         assert init1["type"] == "session_init"
-        missed_marker = hub.publish(
-            sid, "job_progress", {"phase": "solving", "pct": 30}
-        )
+        missed_marker = hub.publish(sid, "job_progress", {"phase": "solving", "pct": 30})
         got = ws1.receive_json()
         assert got["seq"] == missed_marker["seq"]
 
@@ -262,4 +249,3 @@ def test_resume_message_replays_history(client):
         second = ws.receive_json()
         assert [first["seq"], second["seq"]] == [1, 2]
         assert all(e["type"] == "job_progress" for e in (first, second))
-

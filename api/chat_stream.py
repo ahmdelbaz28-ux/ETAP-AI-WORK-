@@ -89,6 +89,7 @@ _SECRET_SHAPE_RE = re.compile(
     r"(sk-[A-Za-z0-9_-]{6,}|xox[a-zA-Z]-[A-Za-z0-9-]{6,}|AKIA[0-9A-Z]{16})"
 )
 
+
 # ─── Errors ────────────────────────────────────────────────────────────────
 class UpstreamProviderError(Exception):
     """Upstream LLM provider returned a non-OK / in-band error response."""
@@ -457,4 +458,3 @@ async def chat_stream_endpoint(
             "X-Accel-Buffering": "no",
         },
     )
-

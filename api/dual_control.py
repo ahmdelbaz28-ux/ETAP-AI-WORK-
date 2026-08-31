@@ -500,7 +500,7 @@ def record_approval_event(
     best-effort, to the tamper-evident ``security_audit.log`` chain so
     approval decisions survive process restarts and cannot be rewritten.
     """
-    safe_details = {k: v for k, v in (details or {}).items()}
+    safe_details = dict(details or {})
     _add_audit_entry(event_type, action_id, user_id, safe_details)
     chain = _get_security_audit_logger()
     if chain is not None:

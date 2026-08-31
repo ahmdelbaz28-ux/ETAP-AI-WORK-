@@ -29,13 +29,17 @@ from pydantic import BaseModel
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from api._messages import ISO_8601_UTC_FMT, MSG_INTERNAL_ERROR, MSG_USER_NOT_FOUND_OR_INACTIVE
+from api.agent_executor import router as agent_executor_router
 from api.agents import router as agents_router
 from api.ai_ml import router as ai_ml_router
+from api.approvals import router as approvals_router
+from api.approvals import session_router as approvals_session_router
 from api.assets import router as assets_router
 from api.audit_logs import router as audit_logs_router
 from api.auth import router as auth_router
 from api.autodesk_connectors import router as autodesk_connectors_router
 from api.cad_simready import router as cad_simready_router
+from api.chat_stream import router as chat_stream_router
 from api.context_engine import router as context_engine_router
 from api.copilot_config import router as copilot_config_router
 from api.csrf import CSRFMiddleware, csrf_router
@@ -67,9 +71,6 @@ from api.study_versions import router as study_versions_router
 from api.templates import router as templates_router
 from api.tenants import router as tenants_router
 from api.tool_policy import router as tool_policy_router
-from api.agent_executor import router as agent_executor_router
-from api.approvals import router as approvals_router, session_router as approvals_session_router
-from api.chat_stream import router as chat_stream_router
 from api.validation import router as validation_router
 from api.websocket import scada_websocket_endpoint
 from api.zip_generator_config import router as zip_generator_config_router
@@ -808,10 +809,18 @@ app.include_router(
 )  # /api/v1/notifications/digest/config/* — Notification preferences
 app.include_router(tool_policy_router)  # /api/v1/tool-policy/* — Tool Policy Engine
 app.include_router(approvals_router)  # /api/v1/approvals/* — Approval Gateway
-app.include_router(approvals_session_router)  # /api/v1/session/auto-approve — Session auto-approve toggle
-app.include_router(session_stream_router)  # /api/v1/ws-ticket — short-lived single-use WS tickets (P3)
-app.include_router(agent_executor_router)  # /api/v1/agent-exec/* — secure agent plan & execute path (P4a)
-app.include_router(chat_stream_router)  # /api/v1/chat/stream — server-side LLM chat SSE, keys stay server-side (P4b)
+app.include_router(
+    approvals_session_router
+)  # /api/v1/session/auto-approve — Session auto-approve toggle
+app.include_router(
+    session_stream_router
+)  # /api/v1/ws-ticket — short-lived single-use WS tickets (P3)
+app.include_router(
+    agent_executor_router
+)  # /api/v1/agent-exec/* — secure agent plan & execute path (P4a)
+app.include_router(
+    chat_stream_router
+)  # /api/v1/chat/stream — server-side LLM chat SSE, keys stay server-side (P4b)
 
 
 # WebSocket endpoint for per-session event streaming (P3 SessionStreamHub).

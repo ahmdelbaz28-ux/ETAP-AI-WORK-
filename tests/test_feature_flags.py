@@ -297,6 +297,8 @@ class TestHelpers:
         flags = _load_flags()
         # Should fall back to defaults, not raise
         assert set(flags.keys()) == set(DEFAULT_FEATURE_FLAGS.keys())
+
+
 # ---------------------------------------------------------------------------
 # evaluate_flag_with_rollout
 # ---------------------------------------------------------------------------
@@ -318,9 +320,7 @@ class TestEvaluateFlagWithRollout:
         return evaluate_flag_with_rollout
 
     def test_enabled_true_returns_true_regardless_of_rollout(self, monkeypatch):
-        evaluate = self._patch(
-            monkeypatch, enabled=True, rollout_percentage=0, allow_list=[]
-        )
+        evaluate = self._patch(monkeypatch, enabled=True, rollout_percentage=0, allow_list=[])
         assert evaluate("chat_first_ui", user_id="alice") is True
         assert evaluate("chat_first_ui", user_id="anyone", roles=["user"]) is True
         assert evaluate("chat_first_ui") is True
@@ -331,17 +331,13 @@ class TestEvaluateFlagWithRollout:
         assert evaluate("chat_first_ui") is False
 
     def test_allow_list_user_id_returns_true_even_when_disabled(self, monkeypatch):
-        evaluate = self._patch(
-            monkeypatch, enabled=False, allow_list=["alice", "bob"]
-        )
+        evaluate = self._patch(monkeypatch, enabled=False, allow_list=["alice", "bob"])
         assert evaluate("chat_first_ui", user_id="bob") is True
         # Same config, user NOT in allow_list, no rollout → False
         assert evaluate("chat_first_ui", user_id="carol") is False
 
     def test_allow_list_role_returns_true(self, monkeypatch):
-        evaluate = self._patch(
-            monkeypatch, enabled=False, allow_list=["admin", "ops"]
-        )
+        evaluate = self._patch(monkeypatch, enabled=False, allow_list=["admin", "ops"])
         assert evaluate("chat_first_ui", user_id="nobody", roles=["user", "ops"]) is True
         # No intersecting role → False
         assert evaluate("chat_first_ui", user_id="nobody", roles=["user"]) is False

@@ -39,7 +39,6 @@ from typing import Any
 from fastapi import APIRouter
 from pydantic import BaseModel, Field
 
-
 # ─── Tool registry (deny-by-default) ───────────────────────────────────────
 # Canonical tool policies. Keyed by the names used by callers; unknown tools
 # fall through to a `critical` default.

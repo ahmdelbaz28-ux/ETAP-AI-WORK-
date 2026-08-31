@@ -1683,7 +1683,9 @@ class ChiefEngineeringOrchestrator:
 
         # P3 JobProgress bridge: entering the solving phase
         _emit_session_progress(
-            task, "solving", 10,
+            task,
+            "solving",
+            10,
             f"Executing {len(dependent_studies + independent_studies)} studies",
         )
 
@@ -1729,7 +1731,8 @@ class ChiefEngineeringOrchestrator:
                 continue
             # P3 JobProgress bridge: per-study solving progress (10%→70%)
             _emit_session_progress(
-                task, "solving",
+                task,
+                "solving",
                 10 + 60.0 * idx / max(total, 1),
                 f"Solving {study_type.value}",
             )
@@ -1761,7 +1764,8 @@ class ChiefEngineeringOrchestrator:
                 continue
             # P3 JobProgress bridge: per-study solving progress (40%→70%)
             _emit_session_progress(
-                task, "solving",
+                task,
+                "solving",
                 40 + 30.0 * idx / max(total, 1),
                 f"Solving {study_type.value}",
             )

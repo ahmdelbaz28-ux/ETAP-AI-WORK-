@@ -34,7 +34,7 @@ from fastapi.testclient import TestClient
 
 import api.agent_executor as agent_exec
 from api.agent_executor import register_executor, reset_agent_exec_state
-from api.approvals import _session_auto_approve as SESSION_AUTO_APPROVE
+from api.approvals import _session_auto_approve as _session_auto_approve
 from api.dependencies import (
     JWT_ALGORITHM,
     JWT_SECRET_KEY,
@@ -69,9 +69,9 @@ def _clean_executor_state():
     built-in run_python executor registered."""
     reset_agent_exec_state()
     register_executor("run_python", agent_exec._run_python_executor)
-    SESSION_AUTO_APPROVE.clear()
+    _session_auto_approve.clear()
     yield
-    SESSION_AUTO_APPROVE.clear()
+    _session_auto_approve.clear()
     reset_agent_exec_state()
     register_executor("run_python", agent_exec._run_python_executor)
 
@@ -102,7 +102,7 @@ def test_plan_unsourced_engineering_value_422(client):
 
 def test_plan_with_valid_source_accepted_and_auto_approved(client):
     sid = "sess-p4a-sourced"
-    SESSION_AUTO_APPROVE[sid] = True  # mutating tool -> auto_approved here
+    _session_auto_approve[sid] = True  # mutating tool -> auto_approved here
     resp = _post_plan(
         client,
         {
@@ -175,7 +175,7 @@ def test_forged_plan_record_for_denied_tool_still_cannot_execute(client):
 
 def test_execute_idempotency_same_key_executes_once(client):
     sid = "sess-p4a-idem"
-    SESSION_AUTO_APPROVE[sid] = True
+    _session_auto_approve[sid] = True
     plan_resp = _post_plan(
         client,
         {
@@ -196,12 +196,8 @@ def test_execute_idempotency_same_key_executes_once(client):
     register_executor("run_python", _counting_executor)
 
     headers = {**_auth(), "Idempotency-Key": "idem-key-42"}
-    first = client.post(
-        "/api/v1/agent-exec/execute", json={"plan_id": plan_id}, headers=headers
-    )
-    second = client.post(
-        "/api/v1/agent-exec/execute", json={"plan_id": plan_id}, headers=headers
-    )
+    first = client.post("/api/v1/agent-exec/execute", json={"plan_id": plan_id}, headers=headers)
+    second = client.post("/api/v1/agent-exec/execute", json={"plan_id": plan_id}, headers=headers)
 
     assert first.status_code == 200, first.text
     assert second.status_code == 200, second.text
@@ -214,7 +210,7 @@ def test_execute_idempotency_same_key_executes_once(client):
 
 def test_execute_requires_idempotency_key(client):
     sid = "sess-p4a-nokey"
-    SESSION_AUTO_APPROVE[sid] = True
+    _session_auto_approve[sid] = True
     plan_id = _post_plan(
         client,
         {"tool": "run_python", "args": {}, "session_id": sid},
@@ -227,12 +223,13 @@ def test_execute_requires_idempotency_key(client):
     assert resp.status_code == 400
     assert resp.json()["detail"]["code"] == "MISSING_IDEMPOTENCY_KEY"
 
+
 # ─── 4. Plan TTL ───────────────────────────────────────────────────────────
 
 
 def test_execute_expired_plan_rejected_410(client):
     sid = "sess-p4a-expired"
-    SESSION_AUTO_APPROVE[sid] = True
+    _session_auto_approve[sid] = True
     plan_id = _post_plan(
         client,
         {
@@ -323,7 +320,7 @@ def test_execution_streams_job_progress_and_result_ready(client, monkeypatch):
     monkeypatch.setattr(hub, "publish", _recording_publish)
 
     sid = "sess-p4a-stream"
-    SESSION_AUTO_APPROVE[sid] = True
+    _session_auto_approve[sid] = True
     plan_id = _post_plan(
         client,
         {"tool": "run_python", "args": {"goal": "streaming check"}, "session_id": sid},
@@ -387,14 +384,14 @@ def gate_client():
     app.include_router(approvals_module.router)
     app.dependency_overrides[get_current_user_from_header] = lambda: EXEC_TENANT_A
 
-    SESSION_AUTO_APPROVE.clear()
+    _session_auto_approve.clear()
     reset_agent_exec_state()
     register_executor("run_python", agent_exec._run_python_executor)
 
     with TestClient(app) as c:
         yield c
 
-    SESSION_AUTO_APPROVE.clear()
+    _session_auto_approve.clear()
     reset_agent_exec_state()
     register_executor("run_python", agent_exec._run_python_executor)
 
@@ -441,7 +438,7 @@ def test_nested_engineering_value_rejected_without_source(client):
 def test_nested_engineering_value_with_valid_source_accepted(client):
     """Provenance covering nested engineering values satisfies Gate 2."""
     sid = "sess-p4a-nested-ok"
-    SESSION_AUTO_APPROVE[sid] = True
+    _session_auto_approve[sid] = True
     resp = _post_plan(
         client,
         {
@@ -464,7 +461,7 @@ def test_nested_engineering_value_with_valid_source_accepted(client):
 def test_critical_never_auto_approved(client):
     """Even with session auto-approve ON, a critical tool stays pending."""
     sid = "sess-p4a-critical"
-    SESSION_AUTO_APPROVE[sid] = True
+    _session_auto_approve[sid] = True
     resp = _post_plan(
         client,
         {
@@ -500,7 +497,9 @@ def _submit_bound_plan(gate: TestClient, session_id: str, args: dict):
     return resp.json()
 
 
-def _propose_and_resolve(gate: TestClient, session_id: str, args: dict, decision: str = "approve") -> dict:
+def _propose_and_resolve(
+    gate: TestClient, session_id: str, args: dict, decision: str = "approve"
+) -> dict:
     """Drive the real Approval Gateway: propose the identical tool+args
     identity that the plan carries, then resolve it."""
     prop = gate.post(
@@ -587,9 +586,7 @@ async def test_expired_approval_cannot_execute(gate_client):
 
     past = datetime.now(UTC) - timedelta(seconds=1)
     async with async_session() as session:
-        row = (
-            await session.execute(select(PA).where(PA.id == action_id))
-        ).scalar_one()
+        row = (await session.execute(select(PA).where(PA.id == action_id))).scalar_one()
         row.expires_at = past
         await session.commit()
 
@@ -633,7 +630,7 @@ def test_cross_tenant_execute_denied_and_owner_unaffected(gate_client):
     """Tenant-B caller cannot execute tenant-A's auto-approved plan, while
     the legitimate owner still can."""
     sid = "xten"
-    SESSION_AUTO_APPROVE[sid] = True
+    _session_auto_approve[sid] = True
     plan_resp = gate_client.post(
         "/api/v1/agent-exec/plan",
         json={"tool": "run_python", "args": {"goal": "tenant scope"}, "session_id": sid},
@@ -667,10 +664,14 @@ def test_cross_tenant_execute_denied_and_owner_unaffected(gate_client):
 def test_idempotency_key_cannot_cross_plans(client):
     """A key reserved for plan A refuses to authorise execution of plan B."""
     s1, s2 = "sess-cross-a", "sess-cross-b"
-    SESSION_AUTO_APPROVE[s1] = True
-    SESSION_AUTO_APPROVE[s2] = True
-    p1 = _post_plan(client, {"tool": "run_python", "args": {"goal": "one"}, "session_id": s1}).json()
-    p2 = _post_plan(client, {"tool": "run_python", "args": {"goal": "two"}, "session_id": s2}).json()
+    _session_auto_approve[s1] = True
+    _session_auto_approve[s2] = True
+    p1 = _post_plan(
+        client, {"tool": "run_python", "args": {"goal": "one"}, "session_id": s1}
+    ).json()
+    p2 = _post_plan(
+        client, {"tool": "run_python", "args": {"goal": "two"}, "session_id": s2}
+    ).json()
 
     calls: list[str] = []
 
@@ -696,4 +697,3 @@ def test_idempotency_key_cannot_cross_plans(client):
     assert second.status_code == 409
     assert second.json()["detail"]["code"] == "IDEMPOTENCY_KEY_CONFLICT"
     assert len(calls) == 1  # plan B was NEVER executed
-

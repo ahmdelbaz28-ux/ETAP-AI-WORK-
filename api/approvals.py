@@ -410,9 +410,7 @@ async def create_approval(
     session auto-approve toggle; ``critical`` always require a human decision
     from a *different* user (maker-checker enforced at resolve time).
     """
-    replay = await _replay_idempotent(
-        db, idempotency_key, "POST /api/v1/approvals", user.tenant_id
-    )
+    replay = await _replay_idempotent(db, idempotency_key, "POST /api/v1/approvals", user.tenant_id)
     if replay is not None:
         return replay
 

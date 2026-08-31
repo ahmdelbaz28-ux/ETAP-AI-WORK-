@@ -93,6 +93,8 @@ def test_rejects_client_supplied_headers_422(client, monkeypatch):
     body["headers"] = {"Authorization": "Bearer sk-client-credential"}
     resp = client.post("/api/v1/chat/stream", json=body, headers=_auth())
     assert resp.status_code == 422
+
+
 # ─── 3. Provider configuration (503, server env only) ──────────────────────
 
 
@@ -168,17 +170,15 @@ def test_successful_openai_stream(client, monkeypatch):
         'data: {"choices":[{"delta":{"content":" world"}}]}\n\n'
         "data: [DONE]\n\n"
     )
-    monkeypatch.setattr(
-        chat_stream, "_build_http_client", lambda: _mock_openai_response(sse_body)
-    )
+    monkeypatch.setattr(chat_stream, "_build_http_client", lambda: _mock_openai_response(sse_body))
 
     resp = client.post("/api/v1/chat/stream", json=_payload(), headers=_auth())
     assert resp.status_code == 200
     text = resp.text
-    assert 'event: token' in text
+    assert "event: token" in text
     assert '"delta": "Hello"' in text
     assert '"delta": " world"' in text
-    assert 'event: done' in text
+    assert "event: done" in text
     assert '"provider": "openai"' in text
 
 
@@ -190,9 +190,7 @@ def test_successful_anthropic_stream(client, monkeypatch):
         'data: {"type":"content_block_delta","delta":{"text":" mundo"}}\n\n'
         'data: {"type":"message_stop"}\n\n'
     )
-    monkeypatch.setattr(
-        chat_stream, "_build_http_client", lambda: _mock_openai_response(sse_body)
-    )
+    monkeypatch.setattr(chat_stream, "_build_http_client", lambda: _mock_openai_response(sse_body))
 
     resp = client.post(
         "/api/v1/chat/stream",

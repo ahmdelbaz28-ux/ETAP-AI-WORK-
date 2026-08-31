@@ -51,8 +51,8 @@ import asyncio
 import logging
 import time
 import uuid
-from datetime import timezone
 from dataclasses import dataclass, field
+from datetime import timezone
 from typing import Any, Awaitable, Callable, Dict, Optional
 
 from fastapi import APIRouter, Depends, Header, HTTPException, status
@@ -61,7 +61,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.database import get_db
 from api.dependencies import CurrentUser, get_current_user_from_header
-
 from api.tool_policy import (
     ALLOWED_SOURCE_KINDS,
     TOOL_ALIASES,
@@ -205,9 +204,7 @@ def _prune_registries(now: float) -> None:
 
 def _http_error(code: str, message: str, http_status: int) -> HTTPException:
     """Consistent error envelope: ``{"detail": {"code", "message"}}``."""
-    return HTTPException(
-        status_code=http_status, detail={"code": code, "message": message}
-    )
+    return HTTPException(status_code=http_status, detail={"code": code, "message": message})
 
 
 def get_plan(plan_id: str) -> Optional[PlanRecord]:
@@ -231,7 +228,6 @@ async def _emit(session_id: Optional[str], etype: str, payload: Dict[str, Any]) 
         # publish() is sync + thread-safe; it fans out and records the event.
         get_hub().publish(session_id, etype, dict(payload))
     except Exception:  # noqa: BLE001 — streaming must never break HTTP flow
-
         logger.debug("session-stream emit failed (%s)", etype, exc_info=True)
 
 
@@ -378,9 +374,7 @@ async def submit_plan(
 # ─── /execute ──────────────────────────────────────────────────────────────
 
 
-async def _resolve_idempotency(
-    key: str, plan_id: str
-) -> Optional[Dict[str, Any]]:
+async def _resolve_idempotency(key: str, plan_id: str) -> Optional[Dict[str, Any]]:
     """Return a replayable payload, or reserve *key* for a fresh execution.
 
     - miss                      -> None (caller executes; key now reserved)
@@ -414,7 +408,7 @@ async def _resolve_idempotency(
         # A concurrent execution holds this key; wait for its result.
         try:
             await asyncio.wait_for(done.wait(), timeout=60.0)
-        except asyncio.TimeoutError:
+        except TimeoutError:
             pass
         response = existing.get("response")
         if response is not None:
@@ -441,7 +435,7 @@ def _finish_idempotent(key: str, payload: Dict[str, Any]) -> None:
 
 async def _find_gateway_binding(
     db: AsyncSession,
-    plan_rec: "PlanRecord",
+    plan_rec: PlanRecord,
     caller_tenant_id: Optional[str],
 ) -> bool:
     """Prove that THIS plan was approved through the Approval Gateway.
@@ -466,8 +460,9 @@ async def _find_gateway_binding(
         # plan cannot be provably bound to one.
         return False
 
-    from api.approvals import PendingAction, compute_args_hash  # noqa: PLC0415
     from sqlalchemy import func, select  # noqa: PLC0415
+
+    from api.approvals import PendingAction, compute_args_hash  # noqa: PLC0415
 
     args_hash = compute_args_hash(plan_rec.args)
     candidate_tools = {plan_rec.tool}
@@ -494,7 +489,6 @@ async def _find_gateway_binding(
         if expires_at.timestamp() > now:
             return True
     return False
-
 
 
 @router.post("/execute", summary="Execute a vetted agent tool plan")
@@ -748,11 +742,3 @@ async def _run_python_executor(args: Dict[str, Any], ctx: Dict[str, Any]) -> Dic
 
 
 register_executor("run_python", _run_python_executor)
-
-
-
-
-
-
-
-

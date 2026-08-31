@@ -21,7 +21,6 @@ from api.tool_policy import (
     validate_engineering_source,
 )
 
-
 # ---------------------------------------------------------------------------
 # Classification decisions
 # ---------------------------------------------------------------------------
@@ -57,9 +56,7 @@ class TestClassification:
         assert result["decision"] == "auto_approved"
 
     def test_critical_always_pending_even_with_auto_approve(self):
-        result = evaluate_tool_policy(
-            "provider-settings-tool", args={}, auto_approve_enabled=True
-        )
+        result = evaluate_tool_policy("provider-settings-tool", args={}, auto_approve_enabled=True)
         assert result["decision"] == "pending"
 
     def test_unknown_tool_deny_by_default_critical_pending(self):
@@ -71,6 +68,8 @@ class TestClassification:
         # Deny-by-default means unknown tools never auto-approve.
         result = evaluate_tool_policy("some-unknown-tool", args={}, auto_approve_enabled=True)
         assert result["decision"] != "auto_approved"
+
+
 # ---------------------------------------------------------------------------
 # Denied-in-agent-exec tools
 # ---------------------------------------------------------------------------

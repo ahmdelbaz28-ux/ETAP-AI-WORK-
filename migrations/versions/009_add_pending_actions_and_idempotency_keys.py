@@ -19,7 +19,6 @@ environments in sync.
 from __future__ import annotations
 
 import sqlalchemy as sa
-
 from alembic import op
 
 # ---------------------------------------------------------------------------
@@ -55,9 +54,7 @@ def upgrade() -> None:
             sa.Column("decided_by_role", sa.String(32), nullable=True),
             sa.Column("args", sa.JSON(), nullable=True),
         )
-        op.create_index(
-            "ix_pending_actions_tenant_id", "pending_actions", ["tenant_id"]
-        )
+        op.create_index("ix_pending_actions_tenant_id", "pending_actions", ["tenant_id"])
         op.create_index("ix_pending_actions_session_id", "pending_actions", ["session_id"])
         op.create_index("ix_pending_actions_status", "pending_actions", ["status"])
         op.create_index(
@@ -88,9 +85,7 @@ def downgrade() -> None:
         op.drop_table("idempotency_keys")
 
     if "pending_actions" in inspector.get_table_names():
-        op.drop_index(
-            "ix_pending_actions_session_status", table_name="pending_actions"
-        )
+        op.drop_index("ix_pending_actions_session_status", table_name="pending_actions")
         op.drop_index("ix_pending_actions_status", table_name="pending_actions")
         op.drop_index("ix_pending_actions_session_id", table_name="pending_actions")
         op.drop_index("ix_pending_actions_tenant_id", table_name="pending_actions")

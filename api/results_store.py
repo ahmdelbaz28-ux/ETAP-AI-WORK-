@@ -38,8 +38,6 @@ Security guarantees
 from __future__ import annotations
 
 import contextlib
-import base64
-import hashlib
 import json
 import logging
 import os
@@ -78,9 +76,7 @@ DEFAULT_TTL = timedelta(days=DEFAULT_TTL_DAYS)
 MAX_SUMMARY_JSON_BYTES = 512 * 1024
 _MAX_FILES_PER_RESULT = 200
 
-_DEFAULT_STORAGE_ROOT = os.environ.get(
-    "RESULT_STORE_DIR", os.path.join("data", "results")
-)
+_DEFAULT_STORAGE_ROOT = os.environ.get("RESULT_STORE_DIR", os.path.join("data", "results"))
 
 
 def _storage_root() -> Path:
@@ -122,13 +118,9 @@ class ResultRecord(Base):
 
     __tablename__ = "results"
 
-    id: Mapped[str] = mapped_column(
-        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
-    )
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     tenant_id: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
-    project_id: Mapped[Optional[str]] = mapped_column(
-        String(64), nullable=True, index=True
-    )
+    project_id: Mapped[Optional[str]] = mapped_column(String(64), nullable=True, index=True)
     created_by: Mapped[Optional[str]] = mapped_column(String(128), nullable=True)
     # Metadata only — heavy content belongs in result_files on disk.
     summary_json: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
@@ -139,7 +131,7 @@ class ResultRecord(Base):
         DateTime(timezone=True), nullable=False, index=True
     )
 
-    files: Mapped[List["ResultFileRecord"]] = relationship(
+    files: Mapped[List[ResultFileRecord]] = relationship(
         back_populates="result",
         cascade="all, delete-orphan",
         lazy="selectin",
@@ -151,9 +143,7 @@ class ResultFileRecord(Base):
 
     __tablename__ = "result_files"
 
-    id: Mapped[str] = mapped_column(
-        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
-    )
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     result_id: Mapped[str] = mapped_column(
         ForeignKey("results.id", ondelete="CASCADE"), nullable=False, index=True
     )
@@ -394,9 +384,7 @@ async def store_result_file(
         with contextlib.suppress(Exception):
             if os.path.exists(str(tmp_target)):
                 os.remove(str(tmp_target))
-        logger.exception(
-            "result_file_write_failed result_id=%s path=%s", result_id, rel_path
-        )
+        logger.exception("result_file_write_failed result_id=%s path=%s", result_id, rel_path)
         raise HTTPException(status_code=500, detail="File storage failed")
 
     file_id = str(uuid.uuid4())
@@ -417,9 +405,7 @@ async def store_result_file(
         with contextlib.suppress(Exception):
             if os.path.exists(str(target)):
                 os.remove(str(target))
-        logger.exception(
-            "result_file_db_commit_failed result_id=%s path=%s", result_id, rel_path
-        )
+        logger.exception("result_file_db_commit_failed result_id=%s path=%s", result_id, rel_path)
         raise HTTPException(status_code=500, detail="File metadata persistence failed")
     return file_id
 
@@ -489,13 +475,17 @@ async def cleanup_expired_results(now: Optional[datetime] = None) -> int:
     removed = 0
     async with async_session() as session:
         expired = (
-            await session.execute(
-                select(ResultRecord).where(
-                    ResultRecord.expires_at.is_not(None),
-                    ResultRecord.expires_at <= cutoff,
+            (
+                await session.execute(
+                    select(ResultRecord).where(
+                        ResultRecord.expires_at.is_not(None),
+                        ResultRecord.expires_at <= cutoff,
+                    )
                 )
             )
-        ).scalars().all()
+            .scalars()
+            .all()
+        )
         for record in expired:
             rdir = _result_dir(record.tenant_id, record.id)
             await session.delete(record)

@@ -105,8 +105,8 @@ class _Connection:
     """One subscribed WebSocket plus its outbound queue and writer task."""
 
     websocket: WebSocket
-    queue: "asyncio.Queue[Dict[str, Any]]"
-    writer_task: Optional["asyncio.Task[None]"] = None
+    queue: asyncio.Queue[Dict[str, Any]]
+    writer_task: Optional[asyncio.Task[None]] = None
 
 
 class SessionStreamHub:
@@ -180,9 +180,7 @@ class SessionStreamHub:
             "ts": datetime.now(UTC).isoformat(),
             "payload": payload or {},
         }
-        history = self._history.setdefault(
-            session_id, deque(maxlen=self._history_limit)
-        )
+        history = self._history.setdefault(session_id, deque(maxlen=self._history_limit))
         history.append(event)
         return event
 
@@ -210,9 +208,7 @@ class SessionStreamHub:
             return event
 
         try:
-            running_loop: Optional[asyncio.AbstractEventLoop] = (
-                asyncio.get_running_loop()
-            )
+            running_loop: Optional[asyncio.AbstractEventLoop] = asyncio.get_running_loop()
         except RuntimeError:
             # Called from a non-async thread (e.g. a TestClient's main thread).
             running_loop = None
@@ -232,7 +228,6 @@ class SessionStreamHub:
             for conn in conns:
                 target_loop.call_soon_threadsafe(self._offer, conn, event)
         return event
-
 
     # -- introspection / replay ----------------------------------------------
 
@@ -295,9 +290,7 @@ def _ticket_secret() -> bytes:
 
 
 def _sign(payload_compact: str) -> str:
-    return hmac.new(
-        _ticket_secret(), payload_compact.encode(), hashlib.sha256
-    ).hexdigest()
+    return hmac.new(_ticket_secret(), payload_compact.encode(), hashlib.sha256).hexdigest()
 
 
 # Consumed ticket ids: {ticket_id: expires_at_epoch}. In-memory by design —
@@ -429,9 +422,7 @@ async def _authenticate_user_id(websocket: WebSocket) -> Optional[str]:
     token = websocket.query_params.get("token", "")
 
     if ticket:
-        claims = consume_ws_ticket(
-            ticket, str(websocket.path_params.get("session_id", ""))
-        )
+        claims = consume_ws_ticket(ticket, str(websocket.path_params.get("session_id", "")))
         if claims is None:
             await websocket.close(
                 code=_WS_CODE_POLICY_VIOLATION,
@@ -454,9 +445,7 @@ async def _authenticate_user_id(websocket: WebSocket) -> Optional[str]:
             return None
         user_id = payload.get("sub")
         if not user_id or payload.get("type") != "access":
-            await websocket.close(
-                code=_WS_CODE_POLICY_VIOLATION, reason="Invalid or expired token"
-            )
+            await websocket.close(code=_WS_CODE_POLICY_VIOLATION, reason="Invalid or expired token")
             return None
         jti = payload.get("jti")
         if jti:
@@ -560,8 +549,3 @@ async def session_stream_ws(websocket: WebSocket, session_id: str) -> None:
         logger.debug("session_stream reader terminated", exc_info=True)
     finally:
         hub.disconnect(session_id, websocket)
-
-
-
-
-

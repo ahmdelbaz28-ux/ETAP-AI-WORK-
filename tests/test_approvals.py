@@ -141,14 +141,13 @@ class TestTtlExpiry:
         action_id = resp.json()["data"]["id"]
 
         # Force the TTL deadline into the past (simulate elapsed 5 minutes).
-        from api.database import async_session
         from sqlalchemy import select
+
+        from api.database import async_session
 
         past = datetime.now(UTC) - timedelta(seconds=1)
         async with async_session() as session:
-            res = await session.execute(
-                select(PendingAction).where(PendingAction.id == action_id)
-            )
+            res = await session.execute(select(PendingAction).where(PendingAction.id == action_id))
             action = res.scalar_one()
             action.expires_at = past
             await session.commit()
@@ -198,15 +197,16 @@ class TestIdempotency:
         assert body["data"]["id"] == first.json()["data"]["id"]
 
         # Exactly one row persisted.
-        from api.database import async_session
         from sqlalchemy import func, select
+
+        from api.database import async_session
 
         async with async_session() as session:
             total = (
                 await session.execute(
-                    select(func.count()).select_from(PendingAction).where(
-                        PendingAction.session_id == "idem"
-                    )
+                    select(func.count())
+                    .select_from(PendingAction)
+                    .where(PendingAction.session_id == "idem")
                 )
             ).scalar()
         assert total == 1

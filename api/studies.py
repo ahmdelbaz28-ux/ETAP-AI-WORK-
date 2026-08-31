@@ -149,7 +149,7 @@ async def _persist_study_result(
     payload: StudyRequest,
     result: StudyResult,
     trace_id: str,
-    user: Optional["CurrentUser"] = None,
+    user: Optional[CurrentUser] = None,
 ) -> None:
     """Persist a successful study summary into the P5 ResultStore.
 
