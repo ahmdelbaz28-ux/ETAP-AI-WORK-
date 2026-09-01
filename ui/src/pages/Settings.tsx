@@ -33,9 +33,13 @@ import AISettingsPanel from "../components/AISettingsPanel";
 import EngineeringEngineSettings from "../components/EngineeringEngineSettings";
 import NotificationSettings from "../components/NotificationSettings";
 import StorageManagement from "../components/StorageManagement";
+import { ProviderKeysPanel } from "../components/settings/ProviderKeysPanel";
+import { AgentsSkillsPromptsPanel } from "../components/settings/AgentsSkillsPromptsPanel";
+import { SecurityFlagsPanel } from "../components/settings/SecurityFlagsPanel";
 import { ContextHelpButton } from "../components/help/ContextHelpButton";
 import {
   type VisionKeyConfig,
+  checkMcpServerHealth,
   deleteVisionKey,
   fetchMcpServers,
   fetchVisionKeys,
@@ -826,6 +830,16 @@ const TAB_SECTIONS: Record<
     icon: <Bot className="w-4 h-4" />,
     sections: [], // Custom-rendered panel
   },
+  providers: {
+    label: "Providers & API Keys",
+    icon: <Key className="w-4 h-4" />,
+    sections: [], // Custom-rendered panel — ProviderKeysPanel (P7a)
+  },
+  agentsSkillsPrompts: {
+    label: "Agents · Skills · Prompts",
+    icon: <Bot className="w-4 h-4" />,
+    sections: [], // Custom-rendered panel — AgentsSkillsPromptsPanel (P7b)
+  },
   mcp: {
     label: "MCP Servers",
     icon: <Database className="w-4 h-4" />,
@@ -872,6 +886,8 @@ const TAB_SECTIONS: Record<
     label: "Security",
     icon: <Shield className="w-4 h-4" />,
     sections: [
+      // P7d: SecurityFlagsPanel (backend feature-flag registry) renders above
+      // these legacy local-settings sections in the TabPanels default branch.
       { title: "Authentication", fields: ["API_KEY_SECRET", "JWT_SECRET_KEY"] },
       { title: "Vault & Secrets", fields: ["VAULT_ADDR", "VAULT_TOKEN"] },
     ],
@@ -1023,11 +1039,15 @@ const MCP_SERVERS_FALLBACK: MCPConfig[] = [
   },
 ];
 
+// P7c: per-server health-probe UI state.
+type McpHealthStatus = { status: string; message: string; loading: boolean };
+
 function MCPSettingsPanel() {
   const [servers, setServers] = useState<MCPConfig[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [usingFallback, setUsingFallback] = useState(false);
+  const [health, setHealth] = useState<Record<string, McpHealthStatus>>({});
 
   useEffect(() => {
     let cancelled = false;
@@ -1090,6 +1110,50 @@ function MCPSettingsPanel() {
             ● Offline
           </span>
         );
+    }
+  };
+
+  // P7c: backend-authoritative health probe. The backend resolves the server
+  // config, applies SSRF guards, and NEVER spawns stdio commands — the UI only
+  // renders the returned status.
+  const checkHealth = async (serverId: string) => {
+    setHealth((prev) => ({
+      ...prev,
+      [serverId]: { status: "checking", message: "Probing endpoint…", loading: true },
+    }));
+    try {
+      const resp = await checkMcpServerHealth(serverId);
+      const data = resp?.data;
+      setHealth((prev) => ({
+        ...prev,
+        [serverId]: {
+          status: data?.status ?? "unreachable",
+          message:
+            data?.message ?? resp?.errors?.[0] ?? "Health probe returned no data.",
+          loading: false,
+        },
+      }));
+    } catch (err) {
+      setHealth((prev) => ({
+        ...prev,
+        [serverId]: {
+          status: "unreachable",
+          message: err instanceof Error ? err.message : "Health probe failed.",
+          loading: false,
+        },
+      }));
+    }
+  };
+
+  const getHealthBadgeClass = (status: string) => {
+    switch (status) {
+      case "ok":
+        return "bg-green-500/10 text-green-400 border-green-500/20";
+      case "degraded":
+      case "checking":
+        return "bg-yellow-500/10 text-yellow-400 border-yellow-500/20";
+      default:
+        return "bg-red-500/10 text-red-400 border-red-500/20";
     }
   };
 
@@ -1175,6 +1239,33 @@ function MCPSettingsPanel() {
                     {tool}
                   </span>
                 ))}
+              </div>
+
+              {health[srv.id] && !health[srv.id].loading && (
+                <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed mt-2">
+                  Health: {health[srv.id].message}
+                </p>
+              )}
+
+              <div className="mt-3 pt-3 border-t border-[var(--border-primary)] flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => void checkHealth(srv.id)}
+                  disabled={health[srv.id]?.loading}
+                  className="text-xs px-3 py-1.5 rounded-md border border-brand-500/30 bg-brand-500/10 text-brand-300 hover:bg-brand-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {health[srv.id]?.loading ? "Probing…" : "Health check"}
+                </button>
+                {health[srv.id] && !health[srv.id].loading && (
+                  <span
+                    className={cn(
+                      "text-[10px] px-2 py-0.5 rounded-full border font-semibold uppercase",
+                      getHealthBadgeClass(health[srv.id].status),
+                    )}
+                  >
+                    {health[srv.id].status}
+                  </span>
+                )}
               </div>
             </div>
           ))}
@@ -2864,6 +2955,9 @@ export default function Settings() {
                   notify={notify}
                 />
               );
+            if (activeTab === "providers") return <ProviderKeysPanel notify={notify} />;
+            if (activeTab === "agentsSkillsPrompts")
+              return <AgentsSkillsPromptsPanel notify={notify} />;
             if (activeTab === "mcp") return <MCPSettingsPanel />;
             if (activeTab === "external")
               return (
@@ -2880,6 +2974,8 @@ export default function Settings() {
             if (activeTab === "notifications") return <NotificationSettings />;
             return (
               <>
+                {/* P7d: backend-authoritative security & feature-flags panel */}
+                {activeTab === "security" && <SecurityFlagsPanel notify={notify} />}
                 {currentSections.map((section) => (
                   <Card key={section.title} padding="md">
                     <CardHeader

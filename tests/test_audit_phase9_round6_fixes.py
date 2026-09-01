@@ -90,37 +90,49 @@ class TestNotificationsWebSocketSecurity:
 
 
 class TestNewEndpointAuthentication:
-    """Verify newly authenticated endpoints."""
+    """Verify the P8-migrated advanced routes still require authentication.
+
+    P8 (Advanced Routes Migration) relocated GET /api/v1/scada/live and
+    GET /api/v1/digital-twin/status from inline handlers in api/routes.py to
+    their canonical modular routers (api/scada.py, api/digital_twin.py). The
+    auth guard is now the router-level ``Depends(get_api_key)`` dependency —
+    the repository-wide canonical guard already pinned by
+    tests/test_audit_phase10_round7_fixes.py and used by every other modular
+    router (equipment, export, templates, ...). Missing/invalid credentials
+    are rejected with HTTP 401, exactly as the legacy inline ``_require_api_key``
+    guard did. These assertions therefore target the new canonical modules
+    rather than api/routes.py.
+    """
 
     @pytest.fixture(scope="class")
-    def routes_source(self) -> str:
-        return _read_file("api/routes.py")
+    def scada_source(self) -> str:
+        return _read_file("api/scada.py")
 
-    def test_scada_live_has_auth(self, routes_source: str) -> None:
-        """/api/v1/scada/live must require API key."""
-        marker = "async def scada_live("
-        pos = routes_source.index(marker)
-        body = routes_source[pos : pos + 1500]
-        assert "_require_api_key(request)" in body, (
-            "/api/v1/scada/live must call _require_api_key(request)"
+    @pytest.fixture(scope="class")
+    def digital_twin_source(self) -> str:
+        return _read_file("api/digital_twin.py")
+
+    def test_scada_router_requires_api_key(self, scada_source: str) -> None:
+        """api/scada.py must protect its routes via get_api_key."""
+        assert "dependencies=[Depends(get_api_key)]" in scada_source, (
+            "/api/v1/scada/* router must declare Depends(get_api_key)"
         )
+        assert "from api.dependencies import get_api_key" in scada_source
 
-    def test_scada_live_has_request_param(self, routes_source: str) -> None:
-        """/api/v1/scada/live must accept request: Request."""
-        assert "async def scada_live(request: Request)" in routes_source
+    def test_scada_live_handler_present(self, scada_source: str) -> None:
+        """The migrated /live handler must exist in api/scada.py."""
+        assert "async def scada_live(" in scada_source
 
-    def test_digital_twin_has_auth(self, routes_source: str) -> None:
-        """/api/v1/digital-twin/status must require API key."""
-        marker = "async def digital_twin_status("
-        pos = routes_source.index(marker)
-        body = routes_source[pos : pos + 1500]
-        assert "_require_api_key(request)" in body, (
-            "/api/v1/digital-twin/status must call _require_api_key(request)"
+    def test_digital_twin_router_requires_api_key(self, digital_twin_source: str) -> None:
+        """api/digital_twin.py must protect its routes via get_api_key."""
+        assert "dependencies=[Depends(get_api_key)]" in digital_twin_source, (
+            "/api/v1/digital-twin/* router must declare Depends(get_api_key)"
         )
+        assert "from api.dependencies import get_api_key" in digital_twin_source
 
-    def test_digital_twin_has_request_param(self, routes_source: str) -> None:
-        """/api/v1/digital-twin/status must accept request: Request."""
-        assert "async def digital_twin_status(request: Request)" in routes_source
+    def test_digital_twin_status_handler_present(self, digital_twin_source: str) -> None:
+        """The migrated /status handler must exist in api/digital_twin.py."""
+        assert "async def digital_twin_status(" in digital_twin_source
 
 
 # ---------------------------------------------------------------------------

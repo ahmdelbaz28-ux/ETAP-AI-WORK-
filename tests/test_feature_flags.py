@@ -112,12 +112,15 @@ def _clear_env(monkeypatch: pytest.MonkeyPatch):
 
 
 class TestListFeatureFlags:
-    def test_returns_all_four_default_flags(self, client: TestClient, auth_headers: dict):
+    def test_returns_all_default_flags(self, client: TestClient, auth_headers: dict):
+        # P7d fix: derive the expected count from the registry itself. The
+        # original hard-coded `== 4` broke when mock_gis_provider was added
+        # to DEFAULT_FEATURE_FLAGS (pre-existing baseline failure).
         resp = client.get("/api/v1/feature-flags", headers=auth_headers)
         assert resp.status_code == 200
         body = resp.json()
         assert body["success"] is True
-        assert body["total"] == 4
+        assert body["total"] == len(DEFAULT_FEATURE_FLAGS)
         keys = {f["key"] for f in body["data"]}
         assert keys == set(DEFAULT_FEATURE_FLAGS.keys())
 

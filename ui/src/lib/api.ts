@@ -375,6 +375,36 @@ export async function fetchMcpServers(): Promise<McpServersResponse> {
   return request<McpServersResponse>("/api/v1/agents/mcp-servers");
 }
 
+// P7c: backend-authoritative health probe for ONE configured MCP server.
+// The probe is SSRF-guarded server-side (HTTPS-only unless explicitly allowed;
+// loopback/RFC1918/link-local targets blocked) and never spawns stdio servers.
+// Statuses: ok | degraded | unreachable | blocked | invalid.
+export interface McpHealthResult {
+  id: string;
+  transport: string;
+  connected: boolean;
+  status: "ok" | "degraded" | "unreachable" | "blocked" | "invalid";
+  message: string;
+  http_status?: number;
+  command_resolvable?: boolean;
+  reachable?: boolean;
+  checked_at?: string;
+}
+
+export interface McpHealthResponse {
+  success: boolean;
+  data?: McpHealthResult;
+  errors?: string[];
+  trace_id?: string;
+}
+
+export async function checkMcpServerHealth(serverId: string): Promise<McpHealthResponse> {
+  return request<McpHealthResponse>(
+    `/api/v1/agents/mcp-servers/${encodeURIComponent(serverId)}/health`,
+    { method: "POST" },
+  );
+}
+
 // ============ Feature Flags ============
 
 export interface FeatureFlag {

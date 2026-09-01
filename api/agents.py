@@ -12,10 +12,14 @@ SECURITY AUDIT 2026-08-02 (V-49 fix):
 
 from __future__ import annotations
 
+import ipaddress
 import json
 import logging
 import os
 import re
+import shutil
+import socket
+import urllib.parse
 from datetime import datetime, timezone
 
 UTC = timezone.utc  # noqa: UP017
@@ -183,6 +187,105 @@ async def get_agents_list(request: Request):
         return JSONResponse(
             content={"success": False, "count": 0, "total": 0, "agents": [], "trace_id": trace_id},
             status_code=500,
+        )
+
+
+# NOTE (P7c route-precedence fix): this static route MUST be registered
+# BEFORE the parameterized ``GET /{agent_id}`` catch-all below. FastAPI
+# matches routes in registration order; registering ``/mcp-servers`` after
+# the catch-all caused it to be shadowed (404 "Agent not found").
+@router.get("/mcp-servers")
+async def list_mcp_servers(
+    request: Request,
+    _: str = Depends(
+        get_api_key
+    ),  # NOSONAR Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+):
+    """Return the list of MCP (Model Context Protocol) servers configured for the platform.
+
+    Reads from `.mcp.json` at repo root (or path in `MCP_CONFIG_PATH` env var).
+    Secret fields (api_key, token, secret, password) are masked to '***REDACTED***'
+    so the UI can render server metadata without exposing credentials.
+
+    Each server entry contains: id, name, type (stdio|http|websocket if present),
+    command, args, status ('configured' — runtime status is not yet probed),
+    env_keys (key names only, values redacted).
+    """
+    trace_id = getattr(request.state, "trace_id", "unknown")
+    try:
+        from pathlib import Path as _Path
+
+        config_path = os.getenv(
+            "MCP_CONFIG_PATH",
+            str(_Path(__file__).resolve().parent.parent / ".mcp.json"),
+        )
+        path = _Path(config_path)
+        if not path.exists():
+            return JSONResponse(
+                content={
+                    "success": True,
+                    "data": {
+                        "servers": [],
+                        "config_path": str(path),
+                        "message": "No .mcp.json found — MCP not configured.",
+                    },
+                    "trace_id": trace_id,
+                }
+            )
+
+        raw = json.loads(path.read_text(encoding="utf-8"))
+        servers_raw = raw.get("mcpServers", raw.get("servers", {}))
+
+        SECRET_KEY_HINTS = ("key", "token", "secret", "password", "credential")
+        servers: list[dict[str, Any]] = []
+        for sid, scfg in servers_raw.items():
+            env = scfg.get("env", {}) or {}
+            redacted_env: dict[str, str] = {}
+            for k, _v in env.items():
+                if any(h in k.lower() for h in SECRET_KEY_HINTS):
+                    redacted_env[k] = "***REDACTED***"
+                else:
+                    redacted_env[k] = "***REDACTED***"  # mask all env values by default
+
+            servers.append(
+                {
+                    "id": sid,
+                    "name": sid.replace("_", " ").replace("-", " ").title(),
+                    "type": scfg.get("type", "stdio"),
+                    "command": scfg.get("command", ""),
+                    "args": scfg.get("args", []),
+                    "env_keys": list(env.keys()),
+                    "env_redacted": redacted_env,
+                    "status": "configured",
+                }
+            )
+
+        return JSONResponse(
+            content={
+                "success": True,
+                "data": {
+                    "servers": servers,
+                    "total": len(servers),
+                    "config_path": str(path),
+                },
+                "trace_id": trace_id,
+            }
+        )
+    except json.JSONDecodeError as e:
+        logger.exception("mcp_servers_config_invalid error=%s", str(e))
+        return JSONResponse(
+            status_code=500,
+            content={
+                "success": False,
+                "errors": [f"MCP config is not valid JSON: {e}"],
+                "trace_id": trace_id,
+            },
+        )
+    except Exception as e:
+        logger.exception("mcp_servers_failed error=%s", str(e))
+        return JSONResponse(
+            status_code=500,
+            content={"success": False, "errors": [MSG_INTERNAL_ERROR], "trace_id": trace_id},
         )
 
 
@@ -979,95 +1082,403 @@ async def ahmed_etap_orchestrate(
         )
 
 
-@router.get("/mcp-servers")
-async def list_mcp_servers(
+# ---------------------------------------------------------------------------
+# MCP server health probe (P7c)
+# ---------------------------------------------------------------------------
+
+
+_RESTRICTED_IP_MSG = (
+    "Target resolves to a restricted network destination (SSRF guard)."
+)
+_HTTP_BLOCKED_MSG = "Remote MCP endpoints must use HTTPS (HTTP transport is disabled)."
+
+
+def _is_restricted_ip(ip: str) -> bool:
+    """True for loopback/private/link-local/multicast/reserved/unspecified IPs.
+
+    IPv4-mapped IPv6 addresses (e.g. ``::ffff:127.0.0.1``) are unwrapped to
+    their IPv4 form first so mapped restricted addresses cannot slip through
+    on Python versions whose ``ipaddress`` properties do not account for
+    IPv4-mapped IPv6.
+    """
+    try:
+        addr = ipaddress.ip_address(ip.strip())
+    except ValueError:
+        return True
+    if isinstance(addr, ipaddress.IPv6Address) and addr.ipv4_mapped is not None:
+        addr = addr.ipv4_mapped
+    return (
+        addr.is_loopback
+        or addr.is_private
+        or addr.is_link_local
+        or addr.is_multicast
+        or addr.is_reserved
+        or addr.is_unspecified
+    )
+
+
+def _probe_headers() -> dict[str, str]:
+    """Minimal headers — NO auth, NO cookies, NO secrets."""
+    return {
+        "User-Agent": "ETAP-AI-mcp-health-probe/1.0",
+        "Accept": "application/json",
+    }
+
+
+class _PinnedAddressBackend:
+    """httpcore network-backend adapter that pins TCP connections to
+    pre-validated IP addresses (SSRF anti-DNS-rebinding guard).
+
+    ``socket.getaddrinfo()`` in :func:`_probe_remote_mcp` decides WHERE the
+    probe is allowed to go, but a plain ``httpx.Client().get(url)`` would let
+    the HTTP client resolve the hostname a second time when it opens the
+    socket — a TOCTOU / DNS-rebinding gap (first resolution -> public IP,
+    second resolution -> private IP). This adapter closes that gap: every TCP
+    connection is opened to one of the already-validated IP addresses, while
+    the request URL keeps the original hostname so the ``Host`` header, TLS
+    SNI, and certificate-verification semantics are preserved exactly.
+
+    Duck-types the ``httpcore.NetworkBackend`` interface (only
+    ``connect_tcp`` is needed for sync TCP connections).
+    """
+
+    def __init__(
+        self,
+        pinned_ips: list,
+        delegate: Any = None,
+    ) -> None:
+        self._pinned_ips = [ip for ip in pinned_ips if ip]
+        self._delegate = delegate  # None -> real httpcore.SyncBackend
+
+    def connect_tcp(
+        self,
+        host: str,
+        port: int,
+        timeout: Any = None,
+        local_address: Any = None,
+        socket_options: Any = None,
+    ) -> Any:
+        # ``host`` is deliberately IGNORED: connections must be made to the
+        # validated destination, never to a fresh (re)resolution of it.
+        if not self._pinned_ips:
+            raise OSError("No validated IP address available for connection")
+        import httpcore
+
+        delegate = self._delegate
+        if delegate is None:
+            delegate = httpcore.SyncBackend()
+        last_exc: Any = None
+        for pinned_ip in self._pinned_ips:
+            try:
+                return delegate.connect_tcp(
+                    pinned_ip, port, timeout, local_address, socket_options
+                )
+            except Exception as exc:  # noqa: BLE001 — try the next validated IP
+                last_exc = exc
+        if last_exc is not None:
+            raise last_exc
+        raise OSError("Connection to validated destination failed")
+
+
+def _open_pinned_connection_pool(pinned_ips: list) -> Any:
+    """Create an httpcore connection pool pinned to the validated IPs.
+
+    httpcore (the engine under httpx) never follows redirects, performs full
+    TLS verification against the request hostname, and lets us inject the
+    destination-pinning backend above. ``pinned_ips`` must already have been
+    SSRF-validated by the caller.
+    """
+    import httpcore
+
+    return httpcore.ConnectionPool(network_backend=_PinnedAddressBackend(pinned_ips))
+
+
+def _resolve_mcp_config_path() -> str:
+    """Resolve the configured MCP config path (same source as list_mcp_servers)."""
+    from pathlib import Path as _Path
+
+    return os.getenv(
+        "MCP_CONFIG_PATH",
+        str(_Path(__file__).resolve().parent.parent / ".mcp.json"),
+    )
+
+
+def _probe_stdio_mcp(server_id: str, server_config: dict) -> dict[str, Any]:
+    """Resolve a stdio launch command WITHOUT executing it."""
+    command = str(server_config.get("command", "") or "").strip()
+    if not command:
+        return {
+            "id": server_id,
+            "transport": "stdio",
+            "connected": False,
+            "status": "invalid",
+            "message": "MCP server has no launch command configured.",
+        }
+    resolvable = shutil.which(command) is not None
+    return {
+        "id": server_id,
+        "transport": "stdio",
+        "connected": False,
+        "command_resolvable": resolvable,
+        "status": "ready" if resolvable else "unreachable",
+        "message": (
+            "Local command is resolvable; the server is NOT spawned by this probe."
+            if resolvable
+            else "Local command is not resolvable on this host."
+        ),
+    }
+
+
+def _probe_remote_mcp(
+    server_id: str, server_config: dict, transport: str
+) -> dict[str, Any]:
+    """SSRF-guarded bare-GET health probe for remote MCP endpoints.
+
+    Security properties:
+      * Every address the hostname resolves to is validated; the connection is
+        then PINNED to the validated IP addresses (no second DNS resolution).
+      * The request URL keeps the original hostname, so Host/TLS SNI and
+        certificate verification are unaffected by the pinning.
+      * Redirects are never followed (httpcore has no redirect following).
+      * HTTP is blocked unless MCP_HEALTH_ALLOW_HTTP is explicitly enabled.
+      * Only bare probe headers are sent — no credentials of any kind.
+    """
+    url = str(server_config.get("url") or server_config.get("endpoint") or "").strip()
+    if not url:
+        return {
+            "id": server_id,
+            "transport": transport,
+            "connected": False,
+            "status": "invalid",
+            "message": "Remote MCP server has no url/endpoint configured.",
+        }
+
+    try:
+        parsed = urllib.parse.urlparse(url)
+        port = parsed.port
+    except ValueError:
+        return {
+            "id": server_id,
+            "transport": transport,
+            "connected": False,
+            "status": "invalid",
+            "message": "Remote MCP endpoint URL is not parseable.",
+        }
+
+    if parsed.scheme not in ("http", "https"):
+        return {
+            "id": server_id,
+            "transport": transport,
+            "connected": False,
+            "status": "invalid",
+            "message": "Remote MCP endpoint URL scheme must be http/https.",
+        }
+
+    allow_http = os.getenv("MCP_HEALTH_ALLOW_HTTP", "").lower() in (
+        "1", "true", "yes", "on",
+    )
+    if parsed.scheme == "http" and not allow_http:
+        return {
+            "id": server_id,
+            "transport": transport,
+            "connected": False,
+            "status": "blocked",
+            "message": _HTTP_BLOCKED_MSG,
+        }
+
+    host = parsed.hostname or ""
+    if not host:
+        return {
+            "id": server_id,
+            "transport": transport,
+            "connected": False,
+            "status": "invalid",
+            "message": "Remote MCP endpoint URL has no host.",
+        }
+
+    fallback_port = 443 if parsed.scheme == "https" else 80
+    try:
+        addrinfos = socket.getaddrinfo(
+            host, port if port else fallback_port, proto=socket.IPPROTO_TCP
+        )
+    except socket.gaierror:
+        return {
+            "id": server_id,
+            "transport": transport,
+            "connected": False,
+            "status": "unreachable",
+            "message": "Remote MCP endpoint host could not be resolved.",
+        }
+
+    # Validate EVERY resolved address and keep the validated set for the
+    # actual connection. The HTTP client must never re-resolve the hostname
+    # (DNS-rebinding / TOCTOU SSRF guard) — see _PinnedAddressBackend.
+    pinned_ips: list[str] = []
+    for addr_info in addrinfos:
+        candidate_ip = str(addr_info[4][0])
+        if _is_restricted_ip(candidate_ip):
+            return {
+                "id": server_id,
+                "transport": transport,
+                "connected": False,
+                "status": "blocked",
+                "message": _RESTRICTED_IP_MSG,
+            }
+        if candidate_ip not in pinned_ips:
+            pinned_ips.append(candidate_ip)
+
+    try:
+        pool = _open_pinned_connection_pool(pinned_ips)
+        try:
+            core_resp = pool.request(
+                "GET",
+                url,
+                headers=_probe_headers(),
+                extensions={
+                    "timeout": {
+                        "connect": 5.0,
+                        "read": 5.0,
+                        "write": 5.0,
+                        "pool": 5.0,
+                    }
+                },
+            )
+            core_resp.read()
+            status_code = int(core_resp.status)
+        finally:
+            pool.close()
+        if 200 <= status_code < 300:
+            status = "ok"
+            message = f"Remote MCP endpoint responded with HTTP {status_code}."
+        elif 300 <= status_code < 400:
+            # Redirects are NEVER followed: the destination actually connected
+            # to was SSRF-validated, but a redirect target would not have been.
+            # ``connected`` stays False — only a verified 2xx counts.
+            status = "degraded"
+            message = (
+                f"Remote MCP endpoint responded with HTTP {status_code} "
+                "(redirect NOT followed)."
+            )
+        else:
+            status = "degraded"
+            message = f"Remote MCP endpoint responded with HTTP {status_code}."
+        return {
+            "id": server_id,
+            "transport": transport,
+            "connected": 200 <= status_code < 300,
+            "reachable": True,
+            "status": status,
+            "http_status": status_code,
+            "message": message,
+        }
+    except Exception:  # noqa: BLE001
+        return {
+            "id": server_id,
+            "transport": transport,
+            "connected": False,
+            "reachable": False,
+            "status": "unreachable",
+            "message": "Remote MCP endpoint did not respond.",
+        }
+
+
+def _probe_mcp_server(server_id: str, server_config: dict) -> dict[str, Any]:
+    """Probe a single configured MCP server (never spawns it)."""
+    transport = str(server_config.get("type", "stdio")).lower()
+    if transport in ("http", "https", "sse", "websocket", "ws", "wss"):
+        return _probe_remote_mcp(server_id, server_config, transport)
+    return _probe_stdio_mcp(server_id, server_config)
+
+
+@router.post("/mcp-servers/{server_id}/health")
+async def check_mcp_server_health(
+    server_id: str,
     request: Request,
     _: str = Depends(
         get_api_key
     ),  # NOSONAR Annotated[T, Depends(...)] migration will be done in API refactoring sprint
 ):
-    """Return the list of MCP (Model Context Protocol) servers configured for the platform.
+    """Backend-authoritative health probe for ONE configured MCP server.
 
-    Reads from `.mcp.json` at repo root (or path in `MCP_CONFIG_PATH` env var).
-    Secret fields (api_key, token, secret, password) are masked to '***REDACTED***'
-    so the UI can render server metadata without exposing credentials.
-
-    Each server entry contains: id, name, type (stdio|http|websocket if present),
-    command, args, status ('configured' — runtime status is not yet probed),
-    env_keys (key names only, values redacted).
+    Security (P7c):
+      * stdio servers are resolved on PATH but NEVER spawned.
+      * Remote endpoints are SSRF-validated (HTTPS-only unless
+        MCP_HEALTH_ALLOW_HTTP=1; loopback/RFC1918/link-local blocked) and the
+        TCP connection is pinned to the validated IP addresses so the HTTP
+        client cannot escape the policy via a second DNS resolution.
+      * Redirects are never followed; only a verified 2xx marks ``connected``.
+      * No credentials are sent or echoed back.
+      * Statuses: ok | degraded | unreachable | blocked | invalid.
+      * ``connected`` is only True after a verified 2xx HTTP/S probe.
+      * Authorization: MCP config is platform-global; this endpoint is behind
+        the same ``get_api_key`` boundary as the server list endpoint.
     """
     trace_id = getattr(request.state, "trace_id", "unknown")
-    try:
-        from pathlib import Path as _Path
+    from pathlib import Path as _Path
 
-        config_path = os.getenv(
-            "MCP_CONFIG_PATH",
-            str(_Path(__file__).resolve().parent.parent / ".mcp.json"),
-        )
-        path = _Path(config_path)
-        if not path.exists():
-            return JSONResponse(
-                content={
-                    "success": True,
-                    "data": {
-                        "servers": [],
-                        "config_path": str(path),
-                        "message": "No .mcp.json found — MCP not configured.",
-                    },
-                    "trace_id": trace_id,
-                }
-            )
-
-        raw = json.loads(path.read_text(encoding="utf-8"))
-        servers_raw = raw.get("mcpServers", raw.get("servers", {}))
-
-        servers: list[dict[str, Any]] = []
-        for sid, scfg in servers_raw.items():
-            env = scfg.get("env", {}) or {}
-            redacted_env: dict[str, str] = {}
-            for k in env:
-                redacted_env[k] = "***REDACTED***"  # mask all env values by default
-
-            servers.append(
-                {
-                    "id": sid,
-                    "name": sid.replace("_", " ").replace("-", " ").title(),
-                    "type": scfg.get("type", "stdio"),
-                    "command": scfg.get("command", ""),
-                    "args": scfg.get("args", []),
-                    "env_keys": list(env.keys()),
-                    "env_redacted": redacted_env,
-                    "status": "configured",
-                }
-            )
-
+    path = _Path(_resolve_mcp_config_path())
+    if not path.exists():
         return JSONResponse(
+            status_code=404,
             content={
-                "success": True,
-                "data": {
-                    "servers": servers,
-                    "total": len(servers),
-                    "config_path": str(path),
-                },
+                "success": False,
+                "errors": ["MCP config not found"],
                 "trace_id": trace_id,
-            }
+            },
         )
+
+    try:
+        raw = json.loads(path.read_text(encoding="utf-8"))
     except json.JSONDecodeError as e:
-        logger.exception("mcp_servers_config_invalid error=%s", str(e))
+        logger.exception("mcp_health_config_invalid error=%s", str(e))
         return JSONResponse(
             status_code=500,
             content={
                 "success": False,
-                "errors": [f"MCP config is not valid JSON: {e}"],
+                "errors": ["MCP config is not valid JSON"],
                 "trace_id": trace_id,
             },
         )
-    except Exception as e:
-        logger.exception("mcp_servers_failed error=%s", str(e))
+
+    servers_raw = raw.get("mcpServers", raw.get("servers", {}))
+    server_config = servers_raw.get(server_id)
+    if server_config is None:
+        return JSONResponse(
+            status_code=404,
+            content={
+                "success": False,
+                "errors": ["MCP server not found"],
+                "trace_id": trace_id,
+            },
+        )
+
+    try:
+        data = _probe_mcp_server(server_id, server_config)
+    except Exception as e:  # noqa: BLE001
+        logger.exception(
+            "mcp_health_probe_failed server=%s error=%s", server_id, str(e)
+        )
         return JSONResponse(
             status_code=500,
-            content={"success": False, "errors": [MSG_INTERNAL_ERROR], "trace_id": trace_id},
+            content={
+                "success": False,
+                "errors": [MSG_INTERNAL_ERROR],
+                "trace_id": trace_id,
+            },
         )
+
+    data["checked_at"] = datetime.now(timezone.utc).isoformat()
+    logger.info(
+        "mcp_health_checked server=%s transport=%s status=%s trace_id=%s",
+        server_id,
+        data.get("transport"),
+        data.get("status"),
+        trace_id,
+    )
+    return JSONResponse(
+        status_code=200,
+        content={"success": True, "data": data, "trace_id": trace_id},
+    )
 
 
 @router.get("/ahmed-etap/info")
