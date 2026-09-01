@@ -54,9 +54,11 @@ def client():
     test reuses it (huge speedup vs. per-test lifespan). Hub/ticket state is
     reset per-test inside each test via reset_hub()/reset_ws_tickets().
     """
+    from api.csrf import generate_csrf_token
     from api.routes import app
 
     with TestClient(app) as c:
+        c.headers.update({"x-csrf-token": generate_csrf_token()})
         yield c
 
 
