@@ -13,8 +13,12 @@ import { NotificationProvider } from "./context/NotificationContext";
 import { ThemeProvider } from "./context/ThemeContext";
 import { AuthProvider } from "./hooks/useAuth";
 import { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";
+import { AdvancedRedirect } from "./lib/advanced-routes";
+import { useChatFirstUi } from "./lib/chat-first-ui";
 import { useAppStore } from "./store";
 import "./i18n";
+
+const ChatWorkspace = lazyLoad(() => import("./app/ChatWorkspace"));
 
 const LoadingFallback = () => (
   <div className="flex items-center justify-center h-64">
@@ -85,9 +89,25 @@ function KeyboardShortcutsHandler() {
 export default function App() {
   const { i18n } = useTranslation();
   const { lastError, setLastError } = useAppStore();
+  const chatFirstUi = useChatFirstUi();
   const [helpOpen, setHelpOpen] = useState(false);
   const [helpContext, setHelpContext] = useState<string | undefined>();
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
+
+  // P6 feature flag gate: when `chat_first_ui` is enabled, render ChatWorkspace
+  // as the primary UI. Legacy tree (and all existing routes) is preserved
+  // below so that toggling the flag off restores the previous experience.
+  if (chatFirstUi.enabled) {
+    return (
+      <ThemeProvider>
+        <NotificationProvider>
+          <AuthProvider>
+            <ChatWorkspace onExitToLegacy={chatFirstUi.exitToLegacy} />
+          </AuthProvider>
+        </NotificationProvider>
+      </ThemeProvider>
+    );
+  }
 
   useEffect(() => {
     document.documentElement.dir = i18n.language === "ar" ? "rtl" : "ltr";
@@ -186,32 +206,10 @@ export default function App() {
                 }
               >
                 <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                <Route path="/dashboard" element={<DashboardPage />} />
-                <Route path="/studies" element={<StudiesPage />} />
-                <Route path="/grid-editor" element={<GridEditorPage />} />
-                <Route path="/studies/:studyType" element={<StudyRunPage />} />
-                <Route path="/asset-management" element={<AssetManagementPage />} />
+                {/* P8 core: chat-first assistant stays put */}
                 <Route path="/assistant" element={<AIAssistantPage />} />
-                <Route path="/projects" element={<ProjectsPage />} />
-                <Route path="/vision-keys" element={<VisionKeysPage />} />
-                <Route path="/guard-review" element={<GuardReviewPage />} />
-                <Route path="/agent-metrics" element={<AgentMetricsPage />} />
-                <Route path="/audit-logs" element={<AuditLogsPage />} />
-                <Route path="/etap" element={<EtapIntegrationPage />} />
-                <Route path="/gis" element={<GisIntegrationPage />} />
-                <Route path="/scada" element={<ScadaIntegrationPage />} />
-                <Route path="/reports" element={<ReportsPage />} />
-                <Route path="/settings" element={<SettingsPage />} />
+                {/* P8 admin: RBAC surface stays put */}
                 <Route path="/admin" element={<AdministrationPage />} />
-                <Route path="/diagnostics" element={<DiagnosticsPage />} />
-                <Route path="/digital-twin" element={<DigitalTwinPage />} />
-                <Route path="/data-import" element={<DataImportPage />} />
-                <Route path="/data-export" element={<DataExportPage />} />
-                <Route path="/logs" element={<LogsPage />} />
-                <Route path="/code-guard" element={<CodeGuardPage />} />
-                <Route path="/context-engine" element={<ContextEnginePage />} />
-                <Route path="/templates" element={<TemplatesPage />} />
-                <Route path="/asset-library" element={<AssetLibraryPage />} />
                 <Route path="/admin/cua-monitor" element={<CuaMonitorPage />} />
                 <Route path="/admin/rbac" element={<RbacAdminPage />} />
                 <Route path="/admin/email-dashboard" element={<EmailDashboardPage />} />
@@ -222,8 +220,59 @@ export default function App() {
                 <Route path="/admin/mfa" element={<MfaPage />} />
                 <Route path="/admin/agents" element={<AgentsControlPanelPage />} />
                 <Route path="/admin/ai-playground" element={<AIPlaygroundPage />} />
-                <Route path="/equipment" element={<EquipmentManagementPage />} />
                 <Route path="/admin/email/webhooks" element={<EmailWebhooksPage />} />
+                {/* P8 advanced: non-core pages under /advanced */}
+                <Route path="/advanced/dashboard" element={<DashboardPage />} />
+                <Route path="/advanced/studies" element={<StudiesPage />} />
+                <Route path="/advanced/studies/:studyType" element={<StudyRunPage />} />
+                <Route path="/advanced/grid-editor" element={<GridEditorPage />} />
+                <Route path="/advanced/projects" element={<ProjectsPage />} />
+                <Route path="/advanced/vision-keys" element={<VisionKeysPage />} />
+                <Route path="/advanced/guard-review" element={<GuardReviewPage />} />
+                <Route path="/advanced/agent-metrics" element={<AgentMetricsPage />} />
+                <Route path="/advanced/audit-logs" element={<AuditLogsPage />} />
+                <Route path="/advanced/asset-management" element={<AssetManagementPage />} />
+                <Route path="/advanced/equipment" element={<EquipmentManagementPage />} />
+                <Route path="/advanced/integrations/etap" element={<EtapIntegrationPage />} />
+                <Route path="/advanced/integrations/gis" element={<GisIntegrationPage />} />
+                <Route path="/advanced/integrations/scada" element={<ScadaIntegrationPage />} />
+                <Route path="/advanced/digital-twin" element={<DigitalTwinPage />} />
+                <Route path="/advanced/reports" element={<ReportsPage />} />
+                <Route path="/advanced/settings" element={<SettingsPage />} />
+                <Route path="/advanced/diagnostics" element={<DiagnosticsPage />} />
+                <Route path="/advanced/data-import" element={<DataImportPage />} />
+                <Route path="/advanced/data-export" element={<DataExportPage />} />
+                <Route path="/advanced/logs" element={<LogsPage />} />
+                <Route path="/advanced/code-guard" element={<CodeGuardPage />} />
+                <Route path="/advanced/context-engine" element={<ContextEnginePage />} />
+                <Route path="/advanced/templates" element={<TemplatesPage />} />
+                <Route path="/advanced/asset-library" element={<AssetLibraryPage />} />
+                {/* P8 legacy: SPA redirects → /advanced (params/search/hash preserved) */}
+                <Route path="/dashboard" element={<AdvancedRedirect legacy="/dashboard" />} />
+                <Route path="/studies" element={<AdvancedRedirect legacy="/studies" />} />
+                <Route path="/studies/:studyType" element={<AdvancedRedirect legacy="/studies" />} />
+                <Route path="/grid-editor" element={<AdvancedRedirect legacy="/grid-editor" />} />
+                <Route path="/projects" element={<AdvancedRedirect legacy="/projects" />} />
+                <Route path="/vision-keys" element={<AdvancedRedirect legacy="/vision-keys" />} />
+                <Route path="/guard-review" element={<AdvancedRedirect legacy="/guard-review" />} />
+                <Route path="/agent-metrics" element={<AdvancedRedirect legacy="/agent-metrics" />} />
+                <Route path="/audit-logs" element={<AdvancedRedirect legacy="/audit-logs" />} />
+                <Route path="/asset-management" element={<AdvancedRedirect legacy="/asset-management" />} />
+                <Route path="/equipment" element={<AdvancedRedirect legacy="/equipment" />} />
+                <Route path="/etap" element={<AdvancedRedirect legacy="/etap" />} />
+                <Route path="/gis" element={<AdvancedRedirect legacy="/gis" />} />
+                <Route path="/scada" element={<AdvancedRedirect legacy="/scada" />} />
+                <Route path="/digital-twin" element={<AdvancedRedirect legacy="/digital-twin" />} />
+                <Route path="/reports" element={<AdvancedRedirect legacy="/reports" />} />
+                <Route path="/settings" element={<AdvancedRedirect legacy="/settings" />} />
+                <Route path="/diagnostics" element={<AdvancedRedirect legacy="/diagnostics" />} />
+                <Route path="/data-import" element={<AdvancedRedirect legacy="/data-import" />} />
+                <Route path="/data-export" element={<AdvancedRedirect legacy="/data-export" />} />
+                <Route path="/logs" element={<AdvancedRedirect legacy="/logs" />} />
+                <Route path="/code-guard" element={<AdvancedRedirect legacy="/code-guard" />} />
+                <Route path="/context-engine" element={<AdvancedRedirect legacy="/context-engine" />} />
+                <Route path="/templates" element={<AdvancedRedirect legacy="/templates" />} />
+                <Route path="/asset-library" element={<AdvancedRedirect legacy="/asset-library" />} />
                 <Route path="*" element={<Navigate to="/dashboard" replace />} />
               </Route>
             </Routes>
