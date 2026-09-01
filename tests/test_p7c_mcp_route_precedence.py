@@ -50,6 +50,7 @@ def route_client(monkeypatch: pytest.MonkeyPatch, tmp_path: Any):
     from api import dependencies
     from api.agents import router as agents_router
 
+    monkeypatch.setenv("ENGINEERING_SERVICE_API_KEY", TEST_API_KEY)
     monkeypatch.setattr(dependencies, "API_KEY", TEST_API_KEY)
     monkeypatch.delenv("ENGINEERING_SERVICE_AUTH_DISABLED", raising=False)
 
