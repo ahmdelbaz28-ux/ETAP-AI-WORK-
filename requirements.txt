@@ -162,7 +162,8 @@ asyncpg>=0.29,<0.32
 # the `starlette<1.0.0` upper bound). fastapi 0.134+ additionally requires
 # starlette>=0.46.0, which guarantees the CVE fixes are present.
 # See: https://github.com/fastapi/fastapi/releases
-fastapi>=0.135.0
+# Pinned to >=0.135.0,<0.136 to guarantee Starlette 1.x security fixes with strict compatibility
+fastapi>=0.135.0,<0.136
 uvicorn~=0.25.0
 
 # GUI Automation

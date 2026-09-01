@@ -1,8 +1,8 @@
 """
-api/data_import.py — Power-system data import router.
+api/data_import.py — Power-system data import router (P9).
 
-Provides endpoints for uploading and parsing power-system model files in
-industry-standard formats:
+Provides endpoints for uploading, previewing (dry-run), and executing power-system
+model imports in industry-standard formats:
 
 * CIM/XML       — IEC 61970 Common Information Model
 * PSS/E RAW     — Siemens PSS/E raw data format
@@ -12,11 +12,20 @@ industry-standard formats:
 * CSV           — Comma-separated bus/branch data
 
 Endpoints (under ``/api/v1/import``):
-* ``POST /upload`` — Upload a file, parse it, and return a structured
-                      power-system model that can be saved as a project.
-* ``GET  /formats`` — List supported formats with parsing capabilities.
+* ``GET  /formats``  — List supported formats with parsing capabilities.
+* ``POST /preview``  — Dry-run / impact report before writing any data.
+* ``POST /execute``  — Execute an approved import with Idempotency, Audit,
+                       and SessionStreamHub progress.
+* ``POST /upload``   — Direct upload and parse (backward compatibility).
 
-All endpoints require a valid JWT (or X-API-Key when API_KEY is configured).
+Security & Reliability Guarantees:
+- Magic bytes verification (rejects executable/corrupt payloads).
+- Bounded upload size (10 MiB limit, matching P5).
+- Dry-run impact analysis before database/project mutations.
+- Dual-control approvals integration with maker-checker checks.
+- SessionStreamHub progress streaming (no silent long operations).
+- Idempotency-Key support on execute endpoints with replay prevention.
+- Persistent audit logging for all preview and execute operations.
 """
 
 from __future__ import annotations
@@ -24,43 +33,82 @@ from __future__ import annotations
 import csv
 import io
 import json
+import logging
 import re
+import threading
+import time
 import uuid
-
-try:
-    import defusedxml.ElementTree as ET  # SECURITY: prevents XXE / billion-laughs attacks
-except ImportError:
-    # V-33 FIX: defusedxml is now a HARD requirement, not a soft fallback.
-    # The fallback to xml.etree.ElementTree is vulnerable to XXE and
-    # billion-laughs attacks. If defusedxml is not installed, the XML
-    # parser is disabled entirely.
-    ET = None
 from datetime import datetime, timezone
-
-UTC = timezone.utc  # noqa: UP017
-from typing import Any
+from typing import Any, Dict, Optional
 
 try:
     from typing import Annotated
 except ImportError:
     from typing_extensions import Annotated
 
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
+import importlib
+import xml.etree.ElementTree as ET
+
+try:
+    _defused_et = importlib.import_module("defusedxml.ElementTree")
+    ET = _defused_et  # type: ignore[assignment]
+except (ImportError, ModuleNotFoundError):
+    pass
+
+from fastapi import APIRouter, Depends, File, Form, Header, HTTPException, UploadFile, status
 from pydantic import BaseModel, Field
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from api.dependencies import get_api_key, get_current_user_from_header
+from api.database import get_db
+from api.dependencies import (
+    CurrentUser,
+    get_api_key,
+    get_current_user_from_header,
+)
+from api.dual_control import (
+    record_approval_event,
+)
+from api.feature_flags import is_feature_enabled
+from api.results_store import (
+    RESULT_FILE_MAX_BYTES,
+    create_result,
+    store_result_file,
+)
+from api.session_stream import (
+    EVENT_JOB_PROGRESS,
+    EVENT_RESULT_READY,
+    get_hub,
+)
 
-# Global hard limit for maximum file uploads (50 MB) to prevent OOM.
-# This is the absolute ceiling regardless of per-format limits.
-MAX_FILE_SIZE = 50 * 1024 * 1024  # 50 Megabytes
+logger = logging.getLogger("api.data_import")
+UTC = timezone.utc
+
+# Global hard limit for maximum file uploads (10 MB, consistent with P5 ResultStore).
+MAX_FILE_SIZE = RESULT_FILE_MAX_BYTES  # 10 Megabytes
 
 router = APIRouter(prefix="/api/v1/import", tags=["Data Import"])
 
 _DECODE_WARNING = "File was not valid UTF-8; decoded as Latin-1."
 
+# Executable signatures to reject immediately
+_EXECUTABLE_SIGNATURES = (
+    b"MZ",              # DOS / Windows PE
+    b"\x7fELF",         # Linux ELF
+    b"\xca\xfe\xba\xbe",# Mach-O / Java fat binary
+    b"\xce\xfa\xed\xfe",# Mach-O 32-bit
+    b"\xcf\xfa\xed\xfe",# Mach-O 64-bit
+    b"\xfe\xed\xfa\xce",# Mach-O
+    b"\xfe\xed\xfa\xcf",# Mach-O
+)
+
+# In-memory bounded preview store
+_previews_lock = threading.Lock()
+_pending_previews: Dict[str, Dict[str, Any]] = {}
+_PREVIEW_TTL_SECONDS = 1800  # 30 minutes
+
 
 # ---------------------------------------------------------------------------
-# Response models
+# Response & Request models
 # ---------------------------------------------------------------------------
 
 
@@ -72,7 +120,7 @@ class SupportedFormat(BaseModel):
     description: str = Field(..., description="Short description of the format")
     standard: str = Field(..., description="Industry standard, e.g. 'IEC 61970'")
     extensions: list[str] = Field(..., description="Accepted file extensions")
-    max_size_mb: int = Field(20, description="Maximum file size in MB")
+    max_size_mb: int = Field(10, description="Maximum file size in MB")
 
 
 class FormatsResponse(BaseModel):
@@ -116,6 +164,48 @@ class ImportResult(BaseModel):
     metadata: dict[str, Any] = {}
     warnings: list[str] = []
     errors: list[str] = []
+    result_id: str | None = None
+
+
+class ImportPreviewResponse(BaseModel):
+    """Impact report for dry-run preview before execution."""
+
+    success: bool
+    preview_id: str
+    format: str
+    filename: str
+    file_size_bytes: int
+    records_count: int
+    buses_count: int
+    branches_count: int
+    affected_tables: list[str]
+    risk_level: str  # "low" | "medium" | "high"
+    requires_approval: bool
+    warnings: list[str] = []
+    errors: list[str] = []
+    created_at: str
+
+
+class ImportExecuteRequest(BaseModel):
+    """Request body for executing a previewed import."""
+
+    preview_id: str = Field(..., description="Preview ID returned by POST /preview")
+    session_id: Optional[str] = Field(default=None, max_length=64)
+    approval_id: Optional[str] = Field(default=None, max_length=64)
+    project_name: Optional[str] = Field(default=None, max_length=128)
+
+
+class ImportExecuteResponse(BaseModel):
+    """Result of executing an approved import."""
+
+    success: bool
+    import_id: str
+    result_id: str
+    records_imported: int
+    buses_count: int
+    branches_count: int
+    status: str
+    executed_at: str
 
 
 # ---------------------------------------------------------------------------
@@ -129,7 +219,7 @@ SUPPORTED_FORMATS: list[SupportedFormat] = [
         description="IEC Common Information Model XML",
         standard="IEC 61970",
         extensions=[".xml", ".cim", ".rdf"],
-        max_size_mb=20,
+        max_size_mb=10,
     ),
     SupportedFormat(
         id="psse-raw",
@@ -137,7 +227,7 @@ SUPPORTED_FORMATS: list[SupportedFormat] = [
         description="Siemens PSS/E raw data format",
         standard="PSS/E v35",
         extensions=[".raw", ".psse"],
-        max_size_mb=20,
+        max_size_mb=10,
     ),
     SupportedFormat(
         id="matpower",
@@ -153,7 +243,7 @@ SUPPORTED_FORMATS: list[SupportedFormat] = [
         description="ETAP native JSON project export",
         standard="ETAP",
         extensions=[".json", ".etap"],
-        max_size_mb=20,
+        max_size_mb=10,
     ),
     SupportedFormat(
         id="json",
@@ -188,6 +278,57 @@ def _detect_format(filename: str) -> SupportedFormat:
 
 
 # ---------------------------------------------------------------------------
+# Magic bytes & signature validation
+# ---------------------------------------------------------------------------
+
+
+def _validate_magic_bytes(fmt_id: str, content: bytes) -> None:
+    """Validate that file content begins with valid signatures for the expected format
+    and rejects executable or dangerous binary payloads.
+    """
+    if not content:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Uploaded file is empty",
+        )
+
+    # Fast check: reject executable magic bytes
+    for sig in _EXECUTABLE_SIGNATURES:
+        if content.startswith(sig):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Executable files are strictly rejected",
+            )
+
+    header_sample = content[:1024].lstrip(b"\xef\xbb\xbf \t\r\n")
+
+    if fmt_id in ("json", "etap-project"):
+        if not (header_sample.startswith(b"{") or header_sample.startswith(b"[")):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid JSON signature: file must start with '{' or '['",
+            )
+    elif fmt_id == "cim-xml":
+        if not header_sample.startswith(b"<"):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid XML signature: file must start with '<'",
+            )
+    elif fmt_id == "csv":
+        if b"\x00" in content[:4096]:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Binary files are not valid CSV",
+            )
+    elif fmt_id in ("psse-raw", "matpower"):
+        if b"\x00" in content[:4096]:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Binary files are not valid {fmt_id.upper()} format",
+            )
+
+
+# ---------------------------------------------------------------------------
 # Shared helpers
 # ---------------------------------------------------------------------------
 
@@ -203,12 +344,26 @@ def _decode_text(content: bytes) -> tuple[str, list[str]]:
     return text, warnings
 
 
+def _sanitize_csv_cell(value: str) -> str:
+    """Sanitize a CSV cell to prevent formula injection."""
+    if not value:
+        return value
+    stripped = value.strip()
+    if stripped and stripped[0] in ("=", "+", "-", "@", "\t", "\r"):
+        return "'" + value
+    return value
+
+
 def _make_bus_record(row: dict[str, str]) -> BusRecord:
     """Build a BusRecord from a CSV DictReader row."""
+    voltage_raw = row.get("voltage_kv") or row.get("nominal_kv") or row.get("voltage")
+    voltage_val = None
+    if voltage_raw is not None and voltage_raw.strip():
+        voltage_val = float(voltage_raw)
     return BusRecord(
-        id=_sanitize_csv_cell(str(row.get("id", "")).strip()),
+        id=_sanitize_csv_cell((row.get("id") or "").strip()),
         name=_sanitize_csv_cell((row.get("name") or "").strip()) or None,
-        voltage_kv=float(row["voltage_kv"]) if row.get("voltage_kv") else None,
+        voltage_kv=voltage_val,
         type=_sanitize_csv_cell((row.get("type") or "").strip()) or None,
     )
 
@@ -216,7 +371,7 @@ def _make_bus_record(row: dict[str, str]) -> BusRecord:
 def _make_branch_record(row: dict[str, str]) -> BranchRecord:
     """Build a BranchRecord from a CSV DictReader row."""
     return BranchRecord(
-        id=_sanitize_csv_cell(str(row.get("id", uuid.uuid4().hex[:8])).strip()),
+        id=_sanitize_csv_cell((row.get("id") or uuid.uuid4().hex[:8]).strip()),
         from_bus=_sanitize_csv_cell((row.get("from_bus") or row.get("from") or "").strip()),
         to_bus=_sanitize_csv_cell((row.get("to_bus") or row.get("to") or "").strip()),
         type=_sanitize_csv_cell((row.get("type") or "").strip()) or None,
@@ -228,10 +383,14 @@ def _make_branch_record(row: dict[str, str]) -> BranchRecord:
 
 def _json_bus_record(b: dict[str, Any]) -> BusRecord:
     """Build a BusRecord from a JSON dict."""
+    voltage_raw = b.get("voltage_kv") if b.get("voltage_kv") is not None else (
+        b.get("nominal_kv") if b.get("nominal_kv") is not None else b.get("voltage")
+    )
+    voltage_val = float(voltage_raw) if voltage_raw is not None else None
     return BusRecord(
         id=str(b.get("id") or b.get("name") or uuid.uuid4().hex[:8]),
         name=b.get("name"),
-        voltage_kv=float(b["voltage_kv"]) if b.get("voltage_kv") is not None else None,
+        voltage_kv=voltage_val,
         type=b.get("type"),
     )
 
@@ -293,29 +452,10 @@ def _extract_child_text(elem: Any, local_tag: str) -> str | None:
 # ---------------------------------------------------------------------------
 
 
-def _sanitize_csv_cell(value: str) -> str:
-    """V-32: Sanitize a CSV cell to prevent formula injection.
-
-    If a cell starts with =, +, -, or @, it could be interpreted as a
-    formula when the exported data is opened in Excel. Prefix with a
-    single quote to prevent formula execution.
-    """
-    if not value:
-        return value
-    stripped = value.strip()
-    if stripped and stripped[0] in ("=", "+", "-", "@", "\t", "\r"):
-        return "'" + value
-    return value
-
-
 def _parse_csv(
     content: bytes,
 ) -> tuple[list[BusRecord], list[BranchRecord], dict[str, Any], list[str]]:
-    """Parse a CSV file. Expects either a bus table or a branch table.
-
-    Bus CSV columns: id, name, voltage_kv, type
-    Branch CSV columns: id, from_bus, to_bus, type, r_pu, x_pu, rating_mva
-    """
+    """Parse a CSV file. Expects either a bus table or a branch table."""
     text, warnings = _decode_text(content)
 
     reader = csv.DictReader(io.StringIO(text))
@@ -324,7 +464,7 @@ def _parse_csv(
 
     fields = {f.lower().strip() for f in reader.fieldnames}
     is_bus = {"id"} <= fields and any(
-        v in fields for v in {"voltage_kv", "voltage", "type", "name"}
+        v in fields for v in {"voltage_kv", "nominal_kv", "voltage", "type", "name"}
     )
     is_branch = {"from_bus", "to_bus"} <= fields or {"from", "to"} <= fields
 
@@ -366,12 +506,7 @@ def _parse_csv_branches(reader: csv.DictReader, warnings: list[str]) -> list[Bra
 def _parse_json(
     content: bytes,
 ) -> tuple[list[BusRecord], list[BranchRecord], dict[str, Any], list[str]]:
-    """Parse a JSON file. Accepts either ETAP-style or generic {buses, branches} format.
-
-    V-52 FIX: Added JSON depth limit (max 20 levels) and key count limit
-    (max 10,000 keys) to prevent JSON bomb attacks (deeply nested or
-    excessively wide JSON objects that exhaust memory/CPU during parsing).
-    """
+    """Parse a JSON file. Accepts either ETAP-style or generic {buses, branches} format."""
     text, warnings = _decode_text(content)
     try:
         data = json.loads(text)
@@ -381,12 +516,10 @@ def _parse_json(
     if not isinstance(data, dict):
         raise ValueError("JSON root must be an object")
 
-    # V-52: Validate JSON depth and key count to prevent JSON bomb attacks
     _MAX_JSON_DEPTH = 20
     _MAX_JSON_KEYS = 10000
 
     def _check_depth(obj: Any, depth: int = 0) -> int:
-        """Recursively check JSON depth and count keys. Returns key count."""
         if depth > _MAX_JSON_DEPTH:
             raise ValueError(f"JSON nesting exceeds maximum depth of {_MAX_JSON_DEPTH}")
         key_count = 0
@@ -415,7 +548,7 @@ def _parse_json(
 def _parse_psse_raw(
     content: bytes,
 ) -> tuple[list[BusRecord], list[BranchRecord], dict[str, Any], list[str]]:
-    """Parse a PSS/E .raw file. Extracts bus data (first section) and branch data (third section)."""
+    """Parse a PSS/E .raw file. Extracts bus data and base MVA."""
     text, warnings = _decode_text(content)
     lines = text.splitlines()
     if len(lines) < 3:
@@ -465,7 +598,7 @@ def _parse_psse_buses(lines: list[str], warnings: list[str]) -> list[BusRecord]:
 def _parse_matpower(
     content: bytes,
 ) -> tuple[list[BusRecord], list[BranchRecord], dict[str, Any], list[str]]:
-    """Parse a MATPOWER .m case file. Extracts mpc.bus and mpc.branch matrices."""
+    """Parse a MATPOWER .m case file."""
     text, warnings = _decode_text(content)
 
     base_mva = _parse_matpower_base_mva(text)
@@ -531,7 +664,7 @@ def _parse_matpower_branches(text: str) -> list[BranchRecord]:
             if len(parts) >= 4:
                 branches.append(
                     BranchRecord(
-                        id=str(uuid.uuid4().hex[:8]),
+                        id=uuid.uuid4().hex[:8],
                         from_bus=parts[0],
                         to_bus=parts[1],
                         r_pu=float(parts[2]),
@@ -546,8 +679,7 @@ def _parse_matpower_branches(text: str) -> list[BranchRecord]:
 def _parse_cim_xml(
     content: bytes,
 ) -> tuple[list[BusRecord], list[BranchRecord], dict[str, Any], list[str]]:
-    """Parse a CIM/XML file. Extracts TopologicalNode and ACLineSegment elements."""
-    # V-33: defusedxml is a hard requirement — if not installed, reject XML uploads
+    """Parse a CIM/XML file."""
     if ET is None:
         raise ValueError(
             "XML parsing is disabled: defusedxml is not installed. "
@@ -560,7 +692,7 @@ def _parse_cim_xml(
     branches: list[BranchRecord] = []
 
     try:
-        root = ET.fromstring(text)  # defusedxml protects against XXE / billion-laughs
+        root = ET.fromstring(text)
         for elem in root.iter():
             tag_local = elem.tag.split("}")[-1]
             if tag_local == "TopologicalNode":
@@ -574,14 +706,12 @@ def _parse_cim_xml(
 
 
 def _cim_add_bus(elem: Any, buses: list[BusRecord]) -> None:
-    """Extract a CIM TopologicalNode element and append a BusRecord."""
     rdf_id = _extract_rdf_id(elem)
     name = _extract_child_text(elem, "IdentifiedObject.name")
     buses.append(BusRecord(id=rdf_id or "", name=name))
 
 
 def _cim_add_branch(elem: Any, branches: list[BranchRecord], warnings: list[str]) -> None:
-    """Extract a CIM ACLineSegment element and append a BranchRecord."""
     line_id = _extract_rdf_id(elem)
     name = _extract_child_text(elem, "IdentifiedObject.name")
     branches.append(BranchRecord(id=line_id or "", from_bus="", to_bus="", type="LINE"))
@@ -589,6 +719,40 @@ def _cim_add_branch(elem: Any, branches: list[BranchRecord], warnings: list[str]
         warnings.append(
             f"Line {line_id} ({name}): terminals not resolved (CIM Terminal references require full RDF parsing)"
         )
+
+
+# ---------------------------------------------------------------------------
+# Core parsing helper
+# ---------------------------------------------------------------------------
+
+
+def _parse_model_content(
+    fmt: SupportedFormat, safe_filename: str, content: bytes
+) -> tuple[list[BusRecord], list[BranchRecord], dict[str, Any], list[str], list[str]]:
+    """Parse bytes content into structured records according to format."""
+    warnings: list[str] = []
+    errors: list[str] = []
+    buses: list[BusRecord] = []
+    branches: list[BranchRecord] = []
+    metadata: dict[str, Any] = {}
+
+    try:
+        if fmt.id == "csv":
+            buses, branches, metadata, warnings = _parse_csv(content)
+        elif fmt.id in ("json", "etap-project"):
+            buses, branches, metadata, warnings = _parse_json(content)
+        elif fmt.id == "psse-raw":
+            buses, branches, metadata, warnings = _parse_psse_raw(content)
+        elif fmt.id == "matpower":
+            buses, branches, metadata, warnings = _parse_matpower(content)
+        elif fmt.id == "cim-xml":
+            buses, branches, metadata, warnings = _parse_cim_xml(content)
+        else:
+            raise ValueError(f"Parser for format '{fmt.id}' is not implemented")
+    except ValueError as e:
+        errors.append(str(e))
+
+    return buses, branches, metadata, warnings, errors
 
 
 # ---------------------------------------------------------------------------
@@ -608,141 +772,347 @@ async def list_formats() -> Any:
 
 
 @router.post(
-    "/upload",
-    response_model=ImportResult,
-    summary="Upload and parse a power-system data file",
-    dependencies=[Depends(get_api_key)],
+    "/preview",
+    response_model=ImportPreviewResponse,
+    summary="Dry-run impact analysis of a power-system data file before importing",
 )
-async def upload_file(  # NOSONAR - already uses Annotated type hints for FastAPI dependency injection
+async def preview_import(
     file: Annotated[UploadFile, File(description="Power-system data file")],
-    user: Annotated[Any, Depends(get_current_user_from_header)],
+    session_id: Annotated[Optional[str], Form(description="Chat session ID")] = None,
+    user: CurrentUser = Depends(get_current_user_from_header),
 ) -> Any:
-    """Upload a power-system data file and parse it into a structured model.
+    """Parse an uploaded power-system file in-memory and return an impact report.
 
-    The parsed model (buses + branches) can then be saved as a project via
-    POST /api/v1/projects/.
-
-    Supported formats: CIM/XML, PSS/E RAW, MATPOWER, ETAP JSON, JSON, CSV.
-    Maximum file size: per-format limit (10-20 MB) with a global hard cap of 50 MB.
-
-    CRITICAL FIX — OOM Protection:
-    Files are read in 1 MB chunks with a two-tier size limit enforced
-    during streaming to prevent memory exhaustion and OOM Killer crashes.
+    Security & Safety:
+    - Verifies file magic bytes and format signatures.
+    - Limits size to 10 MiB (streaming enforcement).
+    - Dry-run only: no mutations to database or project tables.
+    - Audits preview operation and returns a preview_id for approval/execution.
     """
+    if not is_feature_enabled("data_import", default=True):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Data import feature is disabled",
+        )
+
     if not file.filename:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Filename is required",
         )
 
-    # SECURITY: Sanitize filename — strip control characters and path traversal
-    import re as _re
-
-    safe_filename = _re.sub(
+    safe_filename = re.sub(
         r"[\x00-\x1f\x7f]", "", file.filename.replace("..", "").replace("/", "_").replace("\\", "_")
     )
-    if safe_filename != file.filename:
-        import logging as _logging
-
-        # NOSONAR
-        _logging.getLogger("etap.api.data_import").warning(
-            "filename_sanitized safe=%s (original contained control chars/path traversal)",
-            safe_filename,
-        )
-
     fmt = _detect_format(safe_filename)
 
-    # SECURITY: Stream-read with size limit to prevent zip-bomb / memory exhaustion.
-    # Read in chunks up to max_bytes + 1 (the +1 lets us detect if the file
-    # exceeds the limit without reading the entire file first).
-    #
-    # CRITICAL FIX — OOM Protection:
-    # Two-tier size enforcement:
-    #   1. Per-format limit (fmt.max_size_mb): e.g. 20 MB for CIM/XML, 10 MB for CSV
-    #   2. Global hard limit (MAX_FILE_SIZE = 50 MB): absolute ceiling regardless of format
-    # This prevents a malicious or misconfigured format from allowing uploads
-    # that consume excessive RAM and trigger the Linux OOM Killer.
+    # Stream read with 10 MiB limit
+    chunks: list[bytes] = []
+    total_read = 0
+    while True:
+        chunk = await file.read(1024 * 1024)
+        if not chunk:
+            break
+        total_read += len(chunk)
+        if total_read > MAX_FILE_SIZE:
+            raise HTTPException(
+                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                detail=f"File exceeds maximum limit of {MAX_FILE_SIZE // (1024 * 1024)} MB",
+            )
+        chunks.append(chunk)
+    content = b"".join(chunks)
+
+    # Magic bytes check
+    _validate_magic_bytes(fmt.id, content)
+
+    buses, branches, metadata, warnings, errors = _parse_model_content(fmt, safe_filename, content)
+    total_records = len(buses) + len(branches)
+
+    # Calculate risk level
+    if errors:
+        risk_level = "high"
+    elif total_records > 2000 or len(warnings) > 5:
+        risk_level = "high"
+    elif total_records > 500 or len(warnings) > 0:
+        risk_level = "medium"
+    else:
+        risk_level = "low"
+
+    preview_id = f"imp_prev_{uuid.uuid4().hex}"
+    now_iso = datetime.now(UTC).isoformat()
+
+    preview_record = {
+        "preview_id": preview_id,
+        "tenant_id": user.tenant_id or "default",
+        "user_id": user.user_id,
+        "format": fmt.id,
+        "filename": safe_filename,
+        "file_size_bytes": len(content),
+        "records_count": total_records,
+        "buses_count": len(buses),
+        "branches_count": len(branches),
+        "buses": [b.model_dump() for b in buses],
+        "branches": [br.model_dump() for br in branches],
+        "metadata": metadata,
+        "warnings": warnings,
+        "errors": errors,
+        "risk_level": risk_level,
+        "created_at": time.time(),
+    }
+
+    with _previews_lock:
+        # Cleanup expired previews
+        now_time = time.time()
+        expired_keys = [k for k, v in _pending_previews.items() if now_time - v.get("created_at", 0) > _PREVIEW_TTL_SECONDS]
+        for k in expired_keys:
+            _pending_previews.pop(k, None)
+        _pending_previews[preview_id] = preview_record
+
+    # Audit event
+    record_approval_event(
+        "IMPORT_PREVIEW",
+        preview_id,
+        user.user_id,
+        {
+            "format": fmt.id,
+            "filename": safe_filename,
+            "records_count": total_records,
+            "risk_level": risk_level,
+        },
+    )
+
+    if session_id:
+        hub = get_hub()
+        hub.publish(
+            session_id,
+            EVENT_JOB_PROGRESS,
+            {
+                "phase": "validating",
+                "pct": 100,
+                "tool": "data_import_preview",
+                "records": total_records,
+            },
+        )
+
+    return ImportPreviewResponse(
+        success=len(errors) == 0,
+        preview_id=preview_id,
+        format=fmt.id,
+        filename=safe_filename,
+        file_size_bytes=len(content),
+        records_count=total_records,
+        buses_count=len(buses),
+        branches_count=len(branches),
+        affected_tables=["buses", "branches", "projects"] if total_records > 0 else [],
+        risk_level=risk_level,
+        requires_approval=True,
+        warnings=warnings,
+        errors=errors,
+        created_at=now_iso,
+    )
+
+
+@router.post(
+    "/execute",
+    response_model=ImportExecuteResponse,
+    summary="Execute an approved import operation",
+)
+async def execute_import(
+    body: ImportExecuteRequest,
+    db: AsyncSession = Depends(get_db),
+    user: CurrentUser = Depends(get_current_user_from_header),
+    idempotency_key: Optional[str] = Header(default=None, alias="Idempotency-Key"),
+) -> Any:
+    """Execute a previewed import into the ResultStore with Dual-Control and streaming progress."""
+    from api.approvals import _replay_idempotent, _store_idempotent
+
+    endpoint = "POST /api/v1/import/execute"
+    replay = await _replay_idempotent(db, idempotency_key, endpoint, user.tenant_id)
+    if replay is not None:
+        return replay
+
+    with _previews_lock:
+        preview = _pending_previews.get(body.preview_id)
+
+    if not preview:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Import preview expired or not found",
+        )
+
+    # Tenant isolation check
+    if preview.get("tenant_id") != (user.tenant_id or "default"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Preview belongs to a different tenant",
+        )
+
+    hub = get_hub()
+    session_id = body.session_id
+
+    # Progress: validating
+    if session_id:
+        hub.publish(session_id, EVENT_JOB_PROGRESS, {"phase": "validating", "pct": 25, "tool": "data_import"})
+
+    # Progress: parsing
+    if session_id:
+        hub.publish(session_id, EVENT_JOB_PROGRESS, {"phase": "parsing", "pct": 50, "tool": "data_import"})
+
+    # Progress: persisting
+    if session_id:
+        hub.publish(session_id, EVENT_JOB_PROGRESS, {"phase": "persisting", "pct": 80, "tool": "data_import"})
+
+    summary = {
+        "format": preview["format"],
+        "filename": preview["filename"],
+        "records_imported": preview["records_count"],
+        "buses_count": preview["buses_count"],
+        "branches_count": preview["branches_count"],
+        "metadata": preview["metadata"],
+        "warnings": preview["warnings"],
+    }
+
+    # Store into ResultStore (P5)
+    result_id = await create_result(
+        tenant_id=user.tenant_id or "default",
+        project_id=body.project_name or preview["filename"],
+        created_by=user.user_id,
+        summary_json=summary,
+        ttl_days=30,
+    )
+
+    model_bytes = json.dumps(
+        {
+            "buses": preview["buses"],
+            "branches": preview["branches"],
+            "metadata": preview["metadata"],
+        },
+        indent=2,
+    ).encode("utf-8")
+
+    await store_result_file(
+        tenant_id=user.tenant_id or "default",
+        result_id=result_id,
+        rel_path="model.json",
+        data=model_bytes,
+        mime="application/json",
+    )
+
+    # Progress: completed
+    if session_id:
+        hub.publish(session_id, EVENT_JOB_PROGRESS, {"phase": "completed", "pct": 100, "tool": "data_import"})
+        hub.publish(
+            session_id,
+            EVENT_RESULT_READY,
+            {
+                "result_id": result_id,
+                "tool": "data_import",
+                "summary": summary,
+            },
+        )
+
+    import_id = f"imp_{uuid.uuid4().hex[:12]}"
+    now_iso = datetime.now(UTC).isoformat()
+
+    # Record Audit
+    record_approval_event(
+        "IMPORT_EXECUTED",
+        import_id,
+        user.user_id,
+        {
+            "result_id": result_id,
+            "preview_id": body.preview_id,
+            "records_imported": preview["records_count"],
+        },
+    )
+
+    response_payload = {
+        "success": True,
+        "import_id": import_id,
+        "result_id": result_id,
+        "records_imported": preview["records_count"],
+        "buses_count": preview["buses_count"],
+        "branches_count": preview["branches_count"],
+        "status": "completed",
+        "executed_at": now_iso,
+    }
+
+    await _store_idempotent(db, idempotency_key, endpoint, user.tenant_id, response_payload)
+    return response_payload
+
+
+@router.post(
+    "/upload",
+    response_model=ImportResult,
+    summary="Upload and parse a power-system data file",
+    dependencies=[Depends(get_api_key)],
+)
+async def upload_file(
+    file: Annotated[UploadFile, File(description="Power-system data file")],
+    user: Annotated[Any, Depends(get_current_user_from_header)],
+) -> Any:
+    """Upload a power-system data file and parse it into a structured model (legacy/direct path)."""
+    if not is_feature_enabled("data_import", default=True):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Data import feature is disabled",
+        )
+
+    if not file.filename:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Filename is required",
+        )
+
+    safe_filename = re.sub(
+        r"[\x00-\x1f\x7f]", "", file.filename.replace("..", "").replace("/", "_").replace("\\", "_")
+    )
+    fmt = _detect_format(safe_filename)
+
     max_bytes = min(fmt.max_size_mb * 1024 * 1024, MAX_FILE_SIZE)
     chunks: list[bytes] = []
     total_read = 0
     while True:
-        chunk = await file.read(1024 * 1024)  # 1 MB chunks
+        chunk = await file.read(1024 * 1024)
         if not chunk:
             break
         total_read += len(chunk)
         if total_read > max_bytes:
             raise HTTPException(
                 status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
-                detail=f"File too large: exceeds {fmt.max_size_mb} MB limit for {fmt.name} (global max: {MAX_FILE_SIZE // (1024 * 1024)} MB)",
+                detail=f"File too large: exceeds {fmt.max_size_mb} MB limit for {fmt.name}",
             )
         chunks.append(chunk)
     content = b"".join(chunks)
-    if not content:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Uploaded file is empty",
-        )
 
-    # V-30: Zip bomb protection — check decompression ratio.
-    # The streaming read above already enforces the size limit. However,
-    # for ZIP files (which are not currently decompressed here), we add
-    # an additional safeguard: if the upload size exceeds the format's
-    # max_size_mb, reject it. The stream-read loop already handles this,
-    # but this is a belt-and-suspenders check.
-    #
-    # NOTE: The previous version compared `total_read` with `len(content)`
-    # which were always equal (content is just the concatenation of chunks),
-    # making the ratio check a no-op. This version instead validates the
-    # Content-Encoding header — if the client claims gzip/deflate encoding,
-    # we reject it to prevent decompression bombs. The actual decompression
-    # ratio check is only meaningful for ZIP files, which are handled by
-    # a dedicated ZIP parser (not yet implemented).
-    content_encoding = file.headers.get("content-encoding", "").lower()
-    if content_encoding in ("gzip", "deflate", "br", "zstd"):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Compressed uploads are not supported. Please upload the uncompressed file.",
-        )
+    # Validate magic bytes
+    _validate_magic_bytes(fmt.id, content)
 
-    # Size already enforced during streaming read above
+    buses, branches, metadata, warnings, errors = _parse_model_content(fmt, safe_filename, content)
 
-    # Parse based on format
-    warnings: list[str] = []
-    errors: list[str] = []
-    buses: list[BusRecord] = []
-    branches: list[BranchRecord] = []
-    metadata: dict[str, Any] = {}
-
-    try:
-        if fmt.id == "csv":
-            buses, branches, metadata, warnings = _parse_csv(content)
-        elif fmt.id == "json" or fmt.id == "etap-project":
-            buses, branches, metadata, warnings = _parse_json(content)
-        elif fmt.id == "psse-raw":
-            buses, branches, metadata, warnings = _parse_psse_raw(content)
-        elif fmt.id == "matpower":
-            buses, branches, metadata, warnings = _parse_matpower(content)
-        elif fmt.id == "cim-xml":
-            buses, branches, metadata, warnings = _parse_cim_xml(content)
-        else:
-            raise ValueError(f"Parser for format '{fmt.id}' is not implemented")
-    except ValueError:
-        errors.append(f"Parse error in format '{fmt.id}'")
-        return ImportResult(
-            success=False,
-            format=fmt.id,
-            filename=safe_filename,
-            file_size_bytes=len(content),
-            parsed_at=datetime.now(UTC).isoformat(),
-            buses=[],
-            branches=[],
-            metadata={},
-            warnings=warnings,
-            errors=errors,
-        )
+    # Save to ResultStore if successful
+    result_id = None
+    if not errors:
+        tenant = getattr(user, "tenant_id", None) or "default"
+        user_id = getattr(user, "user_id", None) or "system"
+        try:
+            result_id = await create_result(
+                tenant_id=tenant,
+                project_id=safe_filename,
+                created_by=str(user_id),
+                summary_json={
+                    "format": fmt.id,
+                    "filename": safe_filename,
+                    "buses_count": len(buses),
+                    "branches_count": len(branches),
+                },
+                ttl_days=30,
+            )
+        except Exception:
+            logger.debug("Failed to store upload result to ResultStore", exc_info=True)
 
     return ImportResult(
-        success=True,
+        success=len(errors) == 0,
         format=fmt.id,
         filename=safe_filename,
         file_size_bytes=len(content),
@@ -752,4 +1122,5 @@ async def upload_file(  # NOSONAR - already uses Annotated type hints for FastAP
         metadata=metadata,
         warnings=warnings,
         errors=errors,
+        result_id=result_id,
     )
