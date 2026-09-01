@@ -192,8 +192,18 @@ def registered_user():
     }
 
 
+@pytest.fixture(autouse=True)
+def _reset_dependency_overrides():
+    """Ensure no test leaks dependency_overrides into another test."""
+    from api.routes import app as fastapi_app
+
+    fastapi_app.dependency_overrides.clear()
+    yield
+    fastapi_app.dependency_overrides.clear()
+
+
 @pytest.fixture
-def app():
+def app(_reset_dependency_overrides):
     """Return canonical FastAPI application."""
     from api.routes import app as fastapi_app
 

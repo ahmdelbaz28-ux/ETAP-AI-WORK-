@@ -33,7 +33,9 @@ from httpx import ASGITransport, AsyncClient
 def app():
     from api.routes import app
 
-    return app
+    app.dependency_overrides.clear()
+    yield app
+    app.dependency_overrides.clear()
 
 
 @pytest.fixture
