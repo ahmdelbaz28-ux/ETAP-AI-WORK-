@@ -245,14 +245,14 @@ jobs:
           echo "  /readyz: $STATUS"
           [ "$STATUS" = "200" ] || exit 1
 
-          STATUS=$(curl -s -L -o /dev/null -w "%{http_code}" http://localhost:8000/api/v1/equipment)
-          echo "  /api/v1/equipment (no key): $STATUS"
+          STATUS=$(curl -s -L -o /dev/null -w "%{http_code}" http://localhost:8000/api/v1/cad-simready/status)
+          echo "  /api/v1/cad-simready/status (no key): $STATUS"
           [ "$STATUS" = "401" ] || [ "$STATUS" = "403" ] || exit 1
 
           STATUS=$(curl -s -L -o /dev/null -w "%{http_code}" \
             -H "x-api-key: test-key" \
-            http://localhost:8000/api/v1/equipment)
-          echo "  /api/v1/equipment (with key): $STATUS"
+            http://localhost:8000/api/v1/cad-simready/status)
+          echo "  /api/v1/cad-simready/status (with key): $STATUS"
           [ "$STATUS" = "200" ] || exit 1
 
           echo "All critical endpoints OK"
