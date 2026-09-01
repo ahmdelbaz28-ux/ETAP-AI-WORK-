@@ -18,7 +18,6 @@ See: ``api/projects.py`` — ``list_studies()``
 from __future__ import annotations
 
 import sqlalchemy as sa
-
 from alembic import op
 
 # ---------------------------------------------------------------------------

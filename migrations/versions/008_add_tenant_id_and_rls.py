@@ -35,7 +35,6 @@ JWT validation, before any query is executed.
 from __future__ import annotations
 
 import sqlalchemy as sa
-
 from alembic import op
 
 # ---------------------------------------------------------------------------

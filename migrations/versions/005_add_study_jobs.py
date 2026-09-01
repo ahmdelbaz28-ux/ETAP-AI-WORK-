@@ -27,7 +27,6 @@ This migration introduces the ``study_jobs`` table which provides:
 from __future__ import annotations
 
 import sqlalchemy as sa
-
 from alembic import op
 
 # ---------------------------------------------------------------------------
