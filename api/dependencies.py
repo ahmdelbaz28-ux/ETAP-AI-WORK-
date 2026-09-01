@@ -446,8 +446,14 @@ async def get_api_key(  # NOSONAR async function uses sync I/O for compatibility
         )
 
     expected_key = os.getenv("ENGINEERING_SERVICE_API_KEY", API_KEY)
+    # SECURITY (CI fix 2026-09-01): the previous dev backdoor accepted the
+    # literal ``x_api_key == "test-key"`` in any non-production environment.
+    # That allowed unauthenticated access with a publicly-known value in
+    # staging/dev deployments and made the auth test-suite order-dependent.
+    # The configured key must ALWAYS come from the environment; no literal
+    # shortcuts.
     if not is_production_environment() and (
-        x_api_key == "test-key" or (expected_key and hmac.compare_digest(x_api_key, expected_key))
+        expected_key and hmac.compare_digest(x_api_key, expected_key)
     ):
         return x_api_key
 
