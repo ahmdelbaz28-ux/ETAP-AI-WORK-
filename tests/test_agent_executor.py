@@ -44,22 +44,29 @@ from api.dependencies import (
 
 
 def _auth(user_id: str = "test-user-id") -> dict:
-    """Auth header carrying a valid access JWT like /api/v1/auth/login."""
+    """Auth header carrying a valid access JWT and CSRF token."""
     now = time.time()
     token = pyjwt.encode(
         {"sub": user_id, "type": "access", "iat": int(now), "exp": int(now + 600)},
         JWT_SECRET_KEY,
         algorithm=JWT_ALGORITHM,
     )
-    return {"Authorization": f"Bearer {token}"}
+    from api.csrf import generate_csrf_token
+
+    return {
+        "Authorization": f"Bearer {token}",
+        "X-CSRF-Token": generate_csrf_token(),
+    }
 
 
 @pytest.fixture(scope="module")
 def client():
     """Module-scoped app client (starts FastAPI lifespan ONCE)."""
+    from api.csrf import generate_csrf_token
     from api.routes import app
 
     with TestClient(app) as c:
+        c.headers.update({"x-csrf-token": generate_csrf_token()})
         yield c
 
 
