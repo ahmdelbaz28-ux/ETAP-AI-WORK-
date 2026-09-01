@@ -38,7 +38,8 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine,
 )
 from sqlalchemy.orm import DeclarativeBase
-from sqlalchemy.pool import NullPool
+from sqlalchemy.pool import NullPool, StaticPool
+
 
 logger = logging.getLogger(__name__)
 
@@ -184,15 +185,21 @@ def _build_sqlite_engine(url: str):
     """
     from sqlalchemy import event
 
-    # In test environments use NullPool for the same event-loop reason as
-    # _build_postgres_engine (see comment above).
+    if ":memory:" in url:
+        poolclass = StaticPool
+    elif _is_testing_env():
+        poolclass = NullPool
+    else:
+        poolclass = None
+
     engine = create_async_engine(
         url,
         echo=_ECHO,
         future=True,
-        poolclass=NullPool if _is_testing_env() else None,
+        poolclass=poolclass,
         connect_args={"check_same_thread": False},
     )
+
 
 
     @event.listens_for(engine.sync_engine, "connect")
