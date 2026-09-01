@@ -40,13 +40,9 @@ def _read_file(relative: str) -> str:
 
 
 @pytest.fixture(autouse=True)
-def _keep_auth_enabled(monkeypatch):
-    """Force auth to stay enabled (API key configured, AUTH_DISABLED=false)."""
-    monkeypatch.setenv("ENGINEERING_SERVICE_AUTH_DISABLED", "false")
+def _isolate_auth(monkeypatch):
     monkeypatch.setenv("ENGINEERING_SERVICE_API_KEY", _TEST_API_KEY)
-    monkeypatch.setenv("ENVIRONMENT", "development")
-    monkeypatch.setenv("AUTH_RETURN_RESET_TOKEN", "true")
-    monkeypatch.setenv("ENGINEERING_SERVICE_CACHE_DISABLED", "true")
+    monkeypatch.delenv("ENGINEERING_SERVICE_AUTH_DISABLED", raising=False)
     import api.dependencies as deps
 
     monkeypatch.setattr(deps, "API_KEY", _TEST_API_KEY)
@@ -73,14 +69,15 @@ class TestRoutePrecedence:
 
     @staticmethod
     def _matching_routes(app, path: str, method: str) -> list:
-        return [
-            route
-            for route in app.routes
-            if getattr(route, "path", None) == path
-            and method in (getattr(route, "methods", None) or ())
-        ]
+        routes = []
+        for route in getattr(app, "routes", []):
+            if getattr(route, "path", None) == path and method in (
+                getattr(route, "methods", None) or ()
+            ):
+                routes.append(route)
+        return routes
 
-    def test_scada_live_registered_exactly_once(self, client):
+    def test_scada_live_registered_exactly_once(self):
         from api.routes import app
 
         matches = self._matching_routes(app, "/api/v1/scada/live", "GET")
@@ -89,7 +86,7 @@ class TestRoutePrecedence:
             "GET /api/v1/scada/live must be served by api/scada.py"
         )
 
-    def test_digital_twin_status_registered_exactly_once(self, client):
+    def test_digital_twin_status_registered_exactly_once(self):
         from api.routes import app
 
         matches = self._matching_routes(app, "/api/v1/digital-twin/status", "GET")
