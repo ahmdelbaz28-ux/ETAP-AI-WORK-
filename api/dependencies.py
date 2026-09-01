@@ -376,7 +376,8 @@ async def get_api_key(  # NOSONAR async function uses sync I/O for compatibility
     if auth_disabled_allowed():
         return ""
 
-    if not API_KEY:
+    expected_key = os.getenv("ENGINEERING_SERVICE_API_KEY", API_KEY)
+    if not expected_key:
         # SECURITY AUDIT 2026-08-02 (DEP-2 fix):
         # Previously, when ENGINEERING_SERVICE_API_KEY was not set, the
         # function returned "" — meaning ALL endpoints using
@@ -393,6 +394,7 @@ async def get_api_key(  # NOSONAR async function uses sync I/O for compatibility
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="API key not configured. Set ENGINEERING_SERVICE_API_KEY.",
         )
+
 
     # JWT bypass: if a VALID Bearer token is present, skip the API key check.
     # SECURITY AUDIT 2026-07-25 — Fix S-09: Now checks token type, expiry, and blacklist.

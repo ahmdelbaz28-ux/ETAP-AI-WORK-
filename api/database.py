@@ -27,7 +27,9 @@ from __future__ import annotations
 import contextlib
 import logging
 import os
+import sys
 from collections.abc import AsyncGenerator
+
 
 from sqlalchemy.engine.url import make_url
 from sqlalchemy.ext.asyncio import (
@@ -115,17 +117,19 @@ _ECHO = os.getenv("DB_ECHO", "false").lower() == "true"
 # NullPool creates a fresh connection per checkout and disposes it on return,
 # so there is no Future to share across loops. The production path keeps the
 # default AsyncAdaptedQueuePool with pre-ping for stale-connection detection.
-_IS_TESTING = os.getenv("ENVIRONMENT", "").lower() == "testing"
+def _is_testing_env() -> bool:
+    env = os.getenv("ENVIRONMENT", os.getenv("ENV", os.getenv("APP_ENV", ""))).lower()
+    return env in ("test", "testing", "pytest") or "pytest" in sys.modules
 
 
 def _build_postgres_engine(url: str):
     """Create an async PostgreSQL engine with sensible pool defaults.
 
-    In test environments (``ENVIRONMENT=testing``) a ``NullPool`` is used to
-    avoid the asyncpg + pytest TestClient event-loop conflict documented
-    above. Production keeps the default pooled engine with pre-ping.
+    In test environments (``ENVIRONMENT=testing`` or ``ENVIRONMENT=test``)
+    a ``NullPool`` is used to avoid the asyncpg + pytest TestClient event-loop
+    conflict documented above. Production keeps the default pooled engine with pre-ping.
     """
-    if _IS_TESTING:
+    if _is_testing_env():
         return create_async_engine(
             url,
             echo=_ECHO,
@@ -136,6 +140,7 @@ def _build_postgres_engine(url: str):
                 "timeout": int(os.getenv("DB_CONNECT_TIMEOUT", "10")),
             },
         )
+
     return create_async_engine(
         url,
         echo=_ECHO,
@@ -185,9 +190,10 @@ def _build_sqlite_engine(url: str):
         url,
         echo=_ECHO,
         future=True,
-        poolclass=NullPool if _IS_TESTING else None,
+        poolclass=NullPool if _is_testing_env() else None,
         connect_args={"check_same_thread": False},
     )
+
 
     @event.listens_for(engine.sync_engine, "connect")
     def _set_sqlite_pragmas(dbapi_conn, _connection_record):  # noqa: ANN001
