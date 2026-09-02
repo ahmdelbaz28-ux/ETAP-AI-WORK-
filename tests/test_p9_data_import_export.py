@@ -22,6 +22,7 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 from fastapi import FastAPI
+from sqlalchemy import select
 from starlette.testclient import TestClient
 
 import api.approvals as approvals_mod
@@ -116,6 +117,7 @@ async def _create_approval_action(
     decided_by: str | None,
     status: str = "approved",
     expired: bool = False,
+    preview_id: str | None = None,
 ) -> str:
     """Helper to insert a PendingAction directly into the database."""
     action_id = str(uuid.uuid4())
@@ -137,7 +139,7 @@ async def _create_approval_action(
             requested_by_role="engineer",
             decided_by_user_id=decided_by,
             decided_by_role="senior_engineer" if decided_by else None,
-            args={"preview_id": "test_prev"},
+            args={"preview_id": preview_id} if preview_id else {},
         )
         session.add(action)
         await session.commit()
@@ -437,6 +439,132 @@ class TestDualControlAndApprovalsEnforcement:
         types = [e["type"] for e in events]
         assert "job_progress" in types
         assert "result_ready" in types
+
+    @pytest.mark.asyncio
+    async def test_execute_marks_approval_resolved_and_audits_consumption(self, test_api):
+        """Successful execution transitions PendingAction to 'resolved' and blocks subsequent reuse."""
+        client = test_api["client"]
+        test_api["holder"]["user"] = MAKER_A
+
+        model = {"buses": [{"id": "BUS_1", "voltage_kv": 13.8}]}
+        prev_res = client.post(
+            "/api/v1/import/preview",
+            files={"file": ("net.json", json.dumps(model).encode("utf-8"), "application/json")},
+        )
+        preview_id = prev_res.json()["preview_id"]
+
+        action_id = await _create_approval_action(
+            tenant_id=TENANT_A,
+            requested_by=MAKER_A.user_id,
+            decided_by=CHECKER_A.user_id,
+            status="approved",
+        )
+
+        exec_res = client.post(
+            "/api/v1/import/execute",
+            json={"preview_id": preview_id, "approval_id": action_id},
+            headers={"Idempotency-Key": "idemp-consume-1"},
+        )
+        assert exec_res.status_code == 200
+
+        # Verify PendingAction in DB is now resolved
+        async with async_session() as session:
+            stmt = select(PendingAction).where(PendingAction.id == action_id)
+            res = await session.execute(stmt)
+            action = res.scalar_one()
+            assert action.status == "resolved"
+            assert action.resolved_at is not None
+
+        # Subsequent execution with a new idempotency key must fail with 403 ALREADY_CONSUMED
+        exec_res_2 = client.post(
+            "/api/v1/import/execute",
+            json={"preview_id": preview_id, "approval_id": action_id},
+            headers={"Idempotency-Key": "idemp-consume-2"},
+        )
+        assert exec_res_2.status_code == 403
+        assert "already been resolved/consumed" in exec_res_2.json()["detail"]
+
+    @pytest.mark.asyncio
+    async def test_execute_reusing_consumed_approval_on_new_preview_returns_403(self, test_api):
+        """A consumed approval action cannot be reused on a different preview."""
+        client = test_api["client"]
+        test_api["holder"]["user"] = MAKER_A
+
+        model1 = {"buses": [{"id": "B1", "voltage_kv": 13.8}]}
+        prev_res1 = client.post(
+            "/api/v1/import/preview",
+            files={"file": ("net1.json", json.dumps(model1).encode("utf-8"), "application/json")},
+        )
+        preview_id_1 = prev_res1.json()["preview_id"]
+
+        model2 = {"buses": [{"id": "B2", "voltage_kv": 13.8}]}
+        prev_res2 = client.post(
+            "/api/v1/import/preview",
+            files={"file": ("net2.json", json.dumps(model2).encode("utf-8"), "application/json")},
+        )
+        preview_id_2 = prev_res2.json()["preview_id"]
+
+        action_id = await _create_approval_action(
+            tenant_id=TENANT_A,
+            requested_by=MAKER_A.user_id,
+            decided_by=CHECKER_A.user_id,
+            status="approved",
+        )
+
+        # Execute first preview
+        res1 = client.post(
+            "/api/v1/import/execute",
+            json={"preview_id": preview_id_1, "approval_id": action_id},
+            headers={"Idempotency-Key": "idemp-reuse-1"},
+        )
+        assert res1.status_code == 200
+
+        # Attempt to use the same approval on second preview
+        res2 = client.post(
+            "/api/v1/import/execute",
+            json={"preview_id": preview_id_2, "approval_id": action_id},
+            headers={"Idempotency-Key": "idemp-reuse-2"},
+        )
+        assert res2.status_code == 403
+        assert "already been resolved/consumed" in res2.json()["detail"]
+
+    @pytest.mark.asyncio
+    async def test_execute_with_preview_id_mismatch_in_approval_args_returns_403(self, test_api):
+        """If PendingAction is explicitly bound to a specific preview_id, executing against another returns 403."""
+        client = test_api["client"]
+        test_api["holder"]["user"] = MAKER_A
+
+        model_a = {"buses": [{"id": "BA", "voltage_kv": 13.8}]}
+        prev_a = client.post(
+            "/api/v1/import/preview",
+            files={"file": ("net_a.json", json.dumps(model_a).encode("utf-8"), "application/json")},
+        )
+        preview_a = prev_a.json()["preview_id"]
+
+        model_b = {"buses": [{"id": "BB", "voltage_kv": 13.8}]}
+        prev_b = client.post(
+            "/api/v1/import/preview",
+            files={"file": ("net_b.json", json.dumps(model_b).encode("utf-8"), "application/json")},
+        )
+        preview_b = prev_b.json()["preview_id"]
+
+        # Approval action explicitly bound to preview_a
+        action_id = await _create_approval_action(
+            tenant_id=TENANT_A,
+            requested_by=MAKER_A.user_id,
+            decided_by=CHECKER_A.user_id,
+            status="approved",
+            preview_id=preview_a,
+        )
+
+        # Attempt execution against preview_b
+        res = client.post(
+            "/api/v1/import/execute",
+            json={"preview_id": preview_b, "approval_id": action_id},
+            headers={"Idempotency-Key": "idemp-mismatch-1"},
+        )
+        assert res.status_code == 403
+        assert "is bound to preview" in res.json()["detail"]
 
 
 class TestIdempotencyAndTenantIsolation:

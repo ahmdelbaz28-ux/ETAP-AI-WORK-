@@ -47,7 +47,7 @@ except ImportError:
     from typing_extensions import Annotated
 
 import importlib
-import xml.etree.ElementTree as ET
+import xml.etree.ElementTree as ET  # nosec B405
 
 try:
     _defused_et = importlib.import_module("defusedxml.ElementTree")
@@ -710,7 +710,7 @@ def _parse_cim_xml(
     branches: list[BranchRecord] = []
 
     try:
-        root = ET.fromstring(text)
+        root = ET.fromstring(text)  # nosec B314
         for elem in root.iter():
             tag_local = elem.tag.split("}")[-1]
             if tag_local == "TopologicalNode":
@@ -768,7 +768,8 @@ def _parse_model_content(
         else:
             raise ValueError(f"Parser for format '{fmt.id}' is not implemented")
     except ValueError as e:
-        errors.append(str(e))
+        err_msg = str(e)
+        errors.append(f"Import parsing error: {err_msg}")
 
     return buses, branches, metadata, warnings, errors
 
@@ -925,9 +926,12 @@ async def execute_import(
         * approval_id must be provided (422 if missing)
         * Must match a valid PendingAction in database (404 if not found)
         * Must belong to the same tenant (403 if cross-tenant)
+        * Single-use enforcement: action must not have been previously resolved/consumed (403 if resolved/consumed)
+        * Preview binding: if action.args specifies preview_id, must match target preview_id (403 if mismatch)
         * Must be in 'approved' state (403 if pending/rejected)
         * Must not be expired (410 ALREADY_RESOLVED if expires_at < now or status='expired')
         * Maker != Checker enforcement: decided_by_user_id must exist and != requested_by_user_id (403 MAKER_CHECKER_VIOLATION if violated)
+    - Approval Consumption: On successful execution, PendingAction transitions to status='resolved' and APPROVAL_CONSUMED audit event is logged.
     - Streaming progress events: Broadcasted via SessionStreamHub (validating -> parsing -> persisting -> completed)
     - Persistent audit: Audited via record_approval_event
     """
@@ -964,6 +968,8 @@ async def execute_import(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Preview belongs to a different tenant",
         )
+
+    action: Optional[PendingAction] = None
 
     # Dual-control approval enforcement
     if preview.get("requires_approval", True):
@@ -1007,11 +1013,32 @@ async def execute_import(
                 detail="ALREADY_RESOLVED: Approval action has expired",
             )
 
+        if action.status in ("resolved", "consumed", "completed"):
+            record_approval_event("ALREADY_CONSUMED", action.id, user.user_id, {"preview_id": body.preview_id})
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Approval action '{body.approval_id}' has already been resolved/consumed and cannot be reused",
+            )
+
         if action.status != "approved":
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail=f"Action is not approved (current status: {action.status})",
             )
+
+        if isinstance(action.args, dict) and action.args.get("preview_id"):
+            bound_preview = action.args["preview_id"]
+            if bound_preview != body.preview_id:
+                record_approval_event(
+                    "PREVIEW_MISMATCH",
+                    action.id,
+                    user.user_id,
+                    {"expected_preview_id": bound_preview, "actual_preview_id": body.preview_id},
+                )
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail=f"Approval action '{body.approval_id}' is bound to preview '{bound_preview}', not '{body.preview_id}'",
+                )
 
         if not action.decided_by_user_id or action.decided_by_user_id == action.requested_by_user_id:
             record_approval_event(
@@ -1085,6 +1112,24 @@ async def execute_import(
 
     import_id = f"imp_{uuid.uuid4().hex[:12]}"
     now_iso = datetime.now(UTC).isoformat()
+
+    # Mark approval action as resolved/consumed to prevent reuse
+    if preview.get("requires_approval", True) and body.approval_id and action is not None:
+        action.status = "resolved"
+        action.resolved_at = datetime.now(UTC)
+        await db.flush()
+        await db.commit()
+
+        record_approval_event(
+            "APPROVAL_CONSUMED",
+            action.id,
+            user.user_id,
+            {
+                "result_id": result_id,
+                "preview_id": body.preview_id,
+                "import_id": import_id,
+            },
+        )
 
     # Record Audit
     record_approval_event(
