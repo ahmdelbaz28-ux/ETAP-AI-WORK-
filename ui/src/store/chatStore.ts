@@ -256,7 +256,7 @@ function handleResultReadyEvent(
     plan_id: typeof payload.plan_id === "string" ? payload.plan_id : undefined,
     ts,
     summary: (payload.summary as Record<string, unknown>) ?? null,
-    loading: false,
+    loading: true,
     loaded: false,
     error: null,
   };
