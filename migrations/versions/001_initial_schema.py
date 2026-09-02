@@ -202,8 +202,9 @@ def upgrade() -> None:
         sa.Column(
             "result_data",
             sa.JSON(),
-            nullable=False,
+            nullable=True,
         ),
+
         sa.Column(
             "warnings",
             sa.JSON(),

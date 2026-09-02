@@ -187,7 +187,7 @@ pypdf>=6.15.0
 pdfplumber>=0.10,<0.12
 
 # Text processing and NLP
-# SECURITY: nltk upgraded to >=3.10.0 to fix CVEs:
+# SECURITY: nltk upgraded to >=3.10.3 to fix CVEs:
 #   PYSEC-2024-167 (RCE via pickled models)
 #   CVE-2026-33230 / CVE-2026-33231
 #   CVE-2026-12075 (DNS-rebinding SSRF in nltk.pathseek)
@@ -195,7 +195,8 @@ pdfplumber>=0.10,<0.12
 #   CVE-2026-12072 (Path Traversal in NKJPCorpusReader)
 #   CVE-2026-12074 (Path Traversal in FramenetCorpusReader)
 #   CVE-2026-54293 (URL-Encoded Path Traversal in nltk.data.load())
-nltk>=3.10.0
+#   CVE-2026-79675 (JVM option validation) & CVE-2026-78680
+nltk>=3.10.3
 
 # Document processing
 python-docx~=1.1.0

@@ -653,6 +653,9 @@ class TestMcpHealthEndpointAuthorization:
         from api import dependencies
         from api.agents import router as agents_router
 
+        monkeypatch.setenv(
+            "ENGINEERING_SERVICE_API_KEY", "p7c-test-api-key-0123456789abcdef"
+        )
         monkeypatch.setattr(
             dependencies, "API_KEY", "p7c-test-api-key-0123456789abcdef"
         )

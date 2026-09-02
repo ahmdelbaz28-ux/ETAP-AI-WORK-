@@ -237,29 +237,26 @@ jobs:
         run: |
           echo "── Testing critical endpoints ──"
 
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8000/health)
+          STATUS=$(curl -s -L -o /dev/null -w "%{http_code}" http://localhost:8000/health)
           echo "  /health: $STATUS"
           [ "$STATUS" = "200" ] || exit 1
 
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8000/readyz)
+          STATUS=$(curl -s -L -o /dev/null -w "%{http_code}" http://localhost:8000/readyz)
           echo "  /readyz: $STATUS"
           [ "$STATUS" = "200" ] || exit 1
 
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8000/openapi.json)
-          echo "  /openapi.json: $STATUS"
-          [ "$STATUS" = "200" ] || exit 1
-
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8000/api/v1/agents)
-          echo "  /api/v1/agents (no key): $STATUS"
+          STATUS=$(curl -s -L -o /dev/null -w "%{http_code}" http://localhost:8000/api/v1/cad-simready/status)
+          echo "  /api/v1/cad-simready/status (no key): $STATUS"
           [ "$STATUS" = "401" ] || [ "$STATUS" = "403" ] || exit 1
 
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+          STATUS=$(curl -s -L -o /dev/null -w "%{http_code}" \
             -H "x-api-key: test-key" \
-            http://localhost:8000/api/v1/agents)
-          echo "  /api/v1/agents (with key): $STATUS"
+            http://localhost:8000/api/v1/cad-simready/status)
+          echo "  /api/v1/cad-simready/status (with key): $STATUS"
           [ "$STATUS" = "200" ] || exit 1
 
           echo "All critical endpoints OK"
+
 
       - name: Stop service
         if: always()

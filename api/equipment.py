@@ -550,6 +550,11 @@ async def delete_category(
 
 
 @router.get(
+    "",
+    response_model=EquipmentListResponse,
+    include_in_schema=False,
+)
+@router.get(
     "/",
     response_model=EquipmentListResponse,
     summary="List equipment (paginated, filterable)",

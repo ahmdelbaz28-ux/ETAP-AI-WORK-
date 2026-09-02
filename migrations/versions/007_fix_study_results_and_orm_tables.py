@@ -74,9 +74,19 @@ def upgrade() -> None:
     except Exception:
         pass  # Non-fatal — old columns may not have data
 
+    # Ensure legacy columns that are no longer populated by the ORM are nullable
+    # so inserts without them succeed on PostgreSQL
+    for col in ("result_data", "warnings", "errors", "execution_time_sec", "provider", "native"):
+        if col in study_results_cols:
+            try:
+                op.alter_column("study_results", col, nullable=True)
+            except Exception:
+                pass
+
     # Note: We do NOT drop old columns (parameters, result_data, warnings,
     # errors, execution_time_sec, provider, native) to avoid data loss.
     # They are simply unused by the ORM going forward.
+
 
     # ── 2. Create missing ORM tables ───────────────────────────────
 

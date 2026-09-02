@@ -367,9 +367,14 @@ async def create_project(
     user: UserDep,
 ) -> Any:
     """Create a new power-system project."""
+    # V-07: users without a tenant are assigned the platform default tenant
+    # (same value registration uses). PostgreSQL enforces NOT NULL on
+    # projects.tenant_id (migration 008), so we must never insert NULL.
+    from api.auth import _DEFAULT_TENANT_ID
+
     project = Project(
         id=str(uuid.uuid4()),
-        tenant_id=user.tenant_id if user.tenant_id else None,
+        tenant_id=user.tenant_id or _DEFAULT_TENANT_ID,
         name=body.name,
         description=body.description,
         system_config=body.system_config,
@@ -511,9 +516,11 @@ async def run_project_study(
     if user.role != "admin" and project.created_by != str(user.user_id):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=MSG_PROJECT_NOT_FOUND)
 
+    from api.auth import _DEFAULT_TENANT_ID  # V-07: default tenant fallback
+
     study = StudyResult(
         id=str(uuid.uuid4()),
-        tenant_id=user.tenant_id if user.tenant_id else None,
+        tenant_id=user.tenant_id or _DEFAULT_TENANT_ID,  # V-07: never NULL (migration 008 NOT NULL on Postgres)
         project_id=project_id,
         study_type=body.study_type.value,
         status=StudyStatus.PENDING.value,
