@@ -195,6 +195,126 @@ const scheduleReconnect = (get: () => ChatWorkspaceState) => {
   }, delay);
 };
 
+type StoreGet = () => ChatWorkspaceState;
+type StoreSet = (
+  partial:
+    | ChatWorkspaceState
+    | Partial<ChatWorkspaceState>
+    | ((state: ChatWorkspaceState) => ChatWorkspaceState | Partial<ChatWorkspaceState>),
+  replace?: boolean | undefined,
+) => void;
+
+function handleTokenEvent(payload: Record<string, unknown>, get: StoreGet, set: StoreSet): void {
+  const text = typeof payload.text === "string" ? payload.text : "";
+  if (!text) return;
+  const { messages, lastAssistantId } = get();
+  if (lastAssistantId) {
+    set({
+      messages: messages.map((m) =>
+        m.id === lastAssistantId ? { ...m, content: m.content + text, status: "streaming" } : m,
+      ),
+    });
+  } else {
+    const newId = `${WS_TOKEN_MARKER}${generateId()}`;
+    const newMsg: ChatMessage = {
+      id: newId,
+      role: "assistant",
+      content: text,
+      status: "streaming",
+      createdAt: Date.now(),
+    };
+    set({ messages: [...messages, newMsg], lastAssistantId: newId });
+  }
+}
+
+function extractResultId(payload: Record<string, unknown>): string | undefined {
+  const candidates = [payload.result_id, payload.resultId, payload.execution_id, payload.executionId];
+  for (const candidate of candidates) {
+    if (typeof candidate === "string" && candidate.trim()) {
+      return candidate.trim();
+    }
+  }
+  return undefined;
+}
+
+function handleResultReadyEvent(
+  payload: Record<string, unknown>,
+  ts: string,
+  get: StoreGet,
+  set: StoreSet,
+): void {
+  const resultId = extractResultId(payload);
+  if (!resultId) return;
+
+  const current = get().results;
+  if (current.some((r) => r.resultId === resultId)) return;
+
+  const entry: ResultEntry = {
+    resultId,
+    execution_id: typeof payload.execution_id === "string" ? payload.execution_id : undefined,
+    tool: typeof payload.tool === "string" ? payload.tool : undefined,
+    plan_id: typeof payload.plan_id === "string" ? payload.plan_id : undefined,
+    ts,
+    summary: (payload.summary as Record<string, unknown>) ?? null,
+    loading: false,
+    loaded: false,
+    error: null,
+  };
+  set({
+    results: [entry, ...current].slice(0, MAX_LIST_ITEMS),
+    selectedResultId: get().selectedResultId ?? resultId,
+  });
+}
+
+function handleJobProgressEvent(
+  payload: Record<string, unknown>,
+  ts: string,
+  get: StoreGet,
+  set: StoreSet,
+): void {
+  const progress: ActivityProgress = {
+    execution_id: typeof payload.execution_id === "string" ? payload.execution_id : undefined,
+    phase: typeof payload.phase === "string" ? payload.phase : "running",
+    pct: typeof payload.pct === "number" ? payload.pct : 0,
+    tool: typeof payload.tool === "string" ? payload.tool : undefined,
+    ts,
+  };
+  set({ activity: [progress, ...get().activity].slice(0, MAX_LIST_ITEMS) });
+}
+
+function appendStreamDelta(acc: string, get: StoreGet, set: StoreSet): void {
+  const { messages } = get();
+  const last = messages[messages.length - 1];
+  if (last?.role === "assistant" && last?.id?.startsWith(WS_TOKEN_MARKER)) {
+    set({
+      messages: messages.map((m) =>
+        m.id === last.id ? { ...m, content: acc, status: "streaming" } : m,
+      ),
+      streamStatus: "streaming",
+    });
+  } else {
+    const assistantMessage: ChatMessage = {
+      id: `${WS_TOKEN_MARKER}${generateId()}`,
+      role: "assistant",
+      content: acc,
+      status: "streaming",
+      createdAt: Date.now(),
+    };
+    set({
+      messages: [...messages, assistantMessage],
+      streamStatus: "streaming",
+      lastAssistantId: assistantMessage.id,
+    });
+  }
+}
+
+function resolvePendingApprovalsList(res: { data?: PendingApproval[]; items?: PendingApproval[] }): PendingApproval[] {
+  if (Array.isArray(res?.data)) return res.data;
+  if (Array.isArray(res?.items)) return res.items;
+  if (Array.isArray(res)) return res;
+  return [];
+}
+
 export const useChatStore = create<ChatWorkspaceState>()((set, get) => ({
   sessionId: getChatSessionId(),
   messages: [],
