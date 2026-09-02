@@ -31,6 +31,12 @@ const WS_META: Record<
   failed: { label: "Failed", variant: "danger", icon: Ban },
 };
 
+function getProgressVariant(phase: string): "danger" | "success" | "default" {
+  if (phase === "failed") return "danger";
+  if (phase === "completed") return "success";
+  return "default";
+}
+
 export function ActivityDrawer() {
   const wsStatus = useChatStore((s) => s.wsStatus);
   const wsError = useChatStore((s) => s.wsError);
@@ -75,7 +81,7 @@ export function ActivityDrawer() {
                   </div>
                   <Progress
                     value={p.pct}
-                    variant={p.phase === "failed" ? "danger" : p.phase === "completed" ? "success" : "default"}
+                    variant={getProgressVariant(p.phase)}
                     size="sm"
                     showValue
                   />

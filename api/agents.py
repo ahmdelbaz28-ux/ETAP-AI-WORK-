@@ -240,12 +240,7 @@ async def list_mcp_servers(
         servers: list[dict[str, Any]] = []
         for sid, scfg in servers_raw.items():
             env = scfg.get("env", {}) or {}
-            redacted_env: dict[str, str] = {}
-            for k, _v in env.items():
-                if any(h in k.lower() for h in SECRET_KEY_HINTS):
-                    redacted_env[k] = "***REDACTED***"
-                else:
-                    redacted_env[k] = "***REDACTED***"  # mask all env values by default
+            redacted_env = {k: "***REDACTED***" for k in env}
 
             servers.append(
                 {
@@ -1152,13 +1147,13 @@ class _PinnedAddressBackend:
 
     def connect_tcp(
         self,
-        host: str,
+        _host: str,
         port: int,
         timeout: Any = None,
         local_address: Any = None,
         socket_options: Any = None,
     ) -> Any:
-        # ``host`` is deliberately IGNORED: connections must be made to the
+        # ``_host`` is deliberately IGNORED: connections must be made to the
         # validated destination, never to a fresh (re)resolution of it.
         if not self._pinned_ips:
             raise OSError("No validated IP address available for connection")
@@ -1229,23 +1224,11 @@ def _probe_stdio_mcp(server_id: str, server_config: dict) -> dict[str, Any]:
     }
 
 
-def _probe_remote_mcp(
-    server_id: str, server_config: dict, transport: str
-) -> dict[str, Any]:
-    """SSRF-guarded bare-GET health probe for remote MCP endpoints.
-
-    Security properties:
-      * Every address the hostname resolves to is validated; the connection is
-        then PINNED to the validated IP addresses (no second DNS resolution).
-      * The request URL keeps the original hostname, so Host/TLS SNI and
-        certificate verification are unaffected by the pinning.
-      * Redirects are never followed (httpcore has no redirect following).
-      * HTTP is blocked unless MCP_HEALTH_ALLOW_HTTP is explicitly enabled.
-      * Only bare probe headers are sent — no credentials of any kind.
-    """
-    url = str(server_config.get("url") or server_config.get("endpoint") or "").strip()
+def _validate_remote_url(
+    server_id: str, url: str, transport: str
+) -> tuple[Optional[urllib.parse.ParseResult], Optional[dict[str, Any]]]:
     if not url:
-        return {
+        return None, {
             "id": server_id,
             "transport": transport,
             "connected": False,
@@ -1255,9 +1238,8 @@ def _probe_remote_mcp(
 
     try:
         parsed = urllib.parse.urlparse(url)
-        port = parsed.port
     except ValueError:
-        return {
+        return None, {
             "id": server_id,
             "transport": transport,
             "connected": False,
@@ -1266,7 +1248,7 @@ def _probe_remote_mcp(
         }
 
     if parsed.scheme not in ("http", "https"):
-        return {
+        return None, {
             "id": server_id,
             "transport": transport,
             "connected": False,
@@ -1278,7 +1260,7 @@ def _probe_remote_mcp(
         "1", "true", "yes", "on",
     )
     if parsed.scheme == "http" and not allow_http:
-        return {
+        return None, {
             "id": server_id,
             "transport": transport,
             "connected": False,
@@ -1286,23 +1268,27 @@ def _probe_remote_mcp(
             "message": _HTTP_BLOCKED_MSG,
         }
 
-    host = parsed.hostname or ""
-    if not host:
-        return {
+    if not (parsed.hostname or ""):
+        return None, {
             "id": server_id,
             "transport": transport,
             "connected": False,
             "status": "invalid",
             "message": "Remote MCP endpoint URL has no host.",
         }
+    return parsed, None
 
-    fallback_port = 443 if parsed.scheme == "https" else 80
+
+def _resolve_and_validate_remote_ips(
+    server_id: str, transport: str, host: str, port: Optional[int], scheme: str
+) -> tuple[Optional[list[str]], Optional[dict[str, Any]]]:
+    fallback_port = 443 if scheme == "https" else 80
     try:
         addrinfos = socket.getaddrinfo(
             host, port if port else fallback_port, proto=socket.IPPROTO_TCP
         )
     except socket.gaierror:
-        return {
+        return None, {
             "id": server_id,
             "transport": transport,
             "connected": False,
@@ -1310,14 +1296,11 @@ def _probe_remote_mcp(
             "message": "Remote MCP endpoint host could not be resolved.",
         }
 
-    # Validate EVERY resolved address and keep the validated set for the
-    # actual connection. The HTTP client must never re-resolve the hostname
-    # (DNS-rebinding / TOCTOU SSRF guard) — see _PinnedAddressBackend.
     pinned_ips: list[str] = []
     for addr_info in addrinfos:
         candidate_ip = str(addr_info[4][0])
         if _is_restricted_ip(candidate_ip):
-            return {
+            return None, {
                 "id": server_id,
                 "transport": transport,
                 "connected": False,
@@ -1326,6 +1309,24 @@ def _probe_remote_mcp(
             }
         if candidate_ip not in pinned_ips:
             pinned_ips.append(candidate_ip)
+    return pinned_ips, None
+
+
+def _probe_remote_mcp(
+    server_id: str, server_config: dict, transport: str
+) -> dict[str, Any]:
+    """SSRF-guarded bare-GET health probe for remote MCP endpoints."""
+    url = str(server_config.get("url") or server_config.get("endpoint") or "").strip()
+    parsed, err_resp = _validate_remote_url(server_id, url, transport)
+    if err_resp is not None or parsed is None:
+        return err_resp or {}
+
+    host = parsed.hostname or ""
+    pinned_ips, ip_err = _resolve_and_validate_remote_ips(
+        server_id, transport, host, parsed.port, parsed.scheme
+    )
+    if ip_err is not None or pinned_ips is None:
+        return ip_err or {}
 
     try:
         pool = _open_pinned_connection_pool(pinned_ips)
@@ -1351,9 +1352,6 @@ def _probe_remote_mcp(
             status = "ok"
             message = f"Remote MCP endpoint responded with HTTP {status_code}."
         elif 300 <= status_code < 400:
-            # Redirects are NEVER followed: the destination actually connected
-            # to was SSRF-validated, but a redirect target would not have been.
-            # ``connected`` stays False — only a verified 2xx counts.
             status = "degraded"
             message = (
                 f"Remote MCP endpoint responded with HTTP {status_code} "
@@ -1456,7 +1454,7 @@ async def check_mcp_server_health(
         data = _probe_mcp_server(server_id, server_config)
     except Exception as e:  # noqa: BLE001
         logger.exception(
-            "mcp_health_probe_failed server=%s error=%s", server_id, str(e)
+            "mcp_health_probe_failed server=%.32s error=%s", server_id, str(e)
         )
         return JSONResponse(
             status_code=500,
@@ -1469,7 +1467,7 @@ async def check_mcp_server_health(
 
     data["checked_at"] = datetime.now(timezone.utc).isoformat()
     logger.info(
-        "mcp_health_checked server=%s transport=%s status=%s trace_id=%s",
+        "mcp_health_checked server=%.32s transport=%s status=%s trace_id=%.36s",
         server_id,
         data.get("transport"),
         data.get("status"),

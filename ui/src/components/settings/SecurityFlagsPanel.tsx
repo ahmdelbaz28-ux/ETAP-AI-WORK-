@@ -113,10 +113,10 @@ export function SecurityFlagsPanel({ notify }: SecurityFlagsPanelProps) {
           <div className="flex items-center gap-2 text-xs text-[var(--text-muted)]">
             <Info className="w-3.5 h-3.5" />
             <span>
-              Backend-authoritative. Toggles call
+              Backend-authoritative. Toggles call{' '}
               <code className="mx-1 rounded bg-[var(--bg-primary)] px-1 py-0.5">
                 PATCH /api/v1/feature-flags/&#123;key&#125;
-              </code>
+              </code>{' '}
               (admin only, audited). Effective state honours the deployment environment — in
               dev/test the backend forces flags effectively ON.
             </span>

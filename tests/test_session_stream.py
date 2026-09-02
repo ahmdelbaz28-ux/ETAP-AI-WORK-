@@ -33,6 +33,7 @@ from api.session_stream import (
 )
 
 SESSION_PATH = "/ws/sessions"
+WS_TICKET_PATH = "/api/v1/ws-ticket"
 
 
 # ─── Helpers / fixtures ────────────────────────────────────────────────────
@@ -139,7 +140,7 @@ def test_ws_ticket_valid_then_single_use(client):
 
     # Issue a ticket via the REST endpoint (Bearer JWT → short-lived ticket).
     resp = client.post(
-        "/api/v1/ws-ticket",
+        WS_TICKET_PATH,
         json={"session_id": sid},
         headers={"Authorization": f"Bearer {token}"},
     )
@@ -208,6 +209,11 @@ def test_reconnect_replays_missed_events(client):
         assert got["seq"] == missed_marker["seq"]
 
     # Connection dropped. Events published while offline are still recorded.
+    # The TestClient closes the WS synchronously, but the async endpoint's
+    # `finally: hub.disconnect(...)` runs on the event loop; give it a moment.
+    deadline = time.monotonic() + 3.0
+    while hub.client_count(sid) != 0 and time.monotonic() < deadline:
+        time.sleep(0.05)
     offline_event = hub.publish(
         sid, "result_ready", {"task_id": "workflow_1", "all_validated": True}
     )

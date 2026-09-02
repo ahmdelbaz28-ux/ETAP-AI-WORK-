@@ -91,76 +91,44 @@ if _HAS_STARLETTE:
                 "/prometheus",
             ]
 
-        async def __call__(self, scope: Any, receive: Any, send: Any) -> None:
-            """Inspect request + block if attack detected."""
-            if scope["type"] != "http":
-                await self.app(scope, receive, send)
-                return
-            if self.engine is None or not self.engine.enabled:
-                await self.app(scope, receive, send)
-                return
+        async def _extract_body_and_replay(self, receive: Any, inspect_data: dict[str, Any]) -> Any:
+            try:
+                body_chunks: list[bytes] = []
+                while True:
+                    message = await receive()
+                    if message["type"] != "http.request":
+                        continue
+                    body_chunks.append(message.get("body", b""))
+                    if not message.get("more_body", False):
+                        break
+                body_bytes = b"".join(body_chunks)
 
-            # Skip public paths
-            request = Request(scope)
-            path = request.url.path
-            if any(path.startswith(p) for p in self._public_paths):
-                await self.app(scope, receive, send)
-                return
+                _replayed = False
 
-            # Build inspection data
-            inspect_data: dict[str, Any] = {
-                "path": path,
-                "query": dict(request.query_params),
-                "headers": dict(request.headers.items()),
-            }
+                async def receive_replay() -> dict[str, Any]:
+                    nonlocal _replayed
+                    if not _replayed:
+                        _replayed = True
+                        return {
+                            "type": "http.request",
+                            "body": body_bytes,
+                            "more_body": False,
+                        }
+                    import asyncio
+                    await asyncio.sleep(86400)
 
-            downstream_receive = receive
-            # Read body (for POST/PUT/PATCH)
-            if request.method in ("POST", "PUT", "PATCH"):
-                try:
-                    # Buffer the full request body from the ASGI receive
-                    # stream, then replay it to the downstream app. This is
-                    # the pure-ASGI equivalent of the previous
-                    # BaseHTTPMiddleware ``request._receive`` restore hack.
-                    body_chunks: list[bytes] = []
-                    while True:
-                        message = await receive()
-                        if message["type"] != "http.request":
-                            continue
-                        body_chunks.append(message.get("body", b""))
-                        if not message.get("more_body", False):
-                            break
-                    body_bytes = b"".join(body_chunks)
+                if body_bytes:
+                    try:
+                        inspect_data["body"] = json.loads(body_bytes)
+                    except (json.JSONDecodeError, UnicodeDecodeError):
+                        inspect_data["body"] = body_bytes.decode("utf-8", errors="replace")
+                return receive_replay
+            except Exception:
+                return receive
 
-                    _replayed = False
-
-                    async def receive_replay() -> dict[str, Any]:
-                        nonlocal _replayed
-                        if not _replayed:
-                            _replayed = True
-                            return {
-                                "type": "http.request",
-                                "body": body_bytes,
-                                "more_body": False,
-                            }
-                        import asyncio
-
-                        await asyncio.sleep(86400)
-
-                    downstream_receive = receive_replay
-
-                    if body_bytes:
-                        try:
-                            inspect_data["body"] = json.loads(body_bytes)
-                        except (json.JSONDecodeError, UnicodeDecodeError):
-                            inspect_data["body"] = body_bytes.decode("utf-8", errors="replace")
-                except Exception:
-                    pass  # body already consumed or unavailable
-
-            # Inspect
-            results = self.engine.inspect(inspect_data)
-
-            # Check for BLOCK actions
+        async def _check_and_block_rasp(
+            self, results: list, path: str, method: str, scope: Any, receive: Any, send: Any
+        ) -> bool:
             for result in results:
                 if result.action.value == "block":
                     logger.warning(
@@ -169,7 +137,7 @@ if _HAS_STARLETTE:
                         result.severity.value,
                         result.matched_field,
                         path,
-                        request.method,
+                        method,
                     )
                     response = JSONResponse(
                         status_code=403,
@@ -181,9 +149,7 @@ if _HAS_STARLETTE:
                         },
                     )
                     await response(scope, receive, send)
-                    return
-
-            # Log non-blocked detections
+                    return True
             for result in results:
                 if result.action.value == "log":
                     logger.info(
@@ -192,6 +158,34 @@ if _HAS_STARLETTE:
                         result.matched_field,
                         path,
                     )
+            return False
+
+        async def __call__(self, scope: Any, receive: Any, send: Any) -> None:
+            """Inspect request + block if attack detected."""
+            if scope["type"] != "http" or self.engine is None or not self.engine.enabled:
+                await self.app(scope, receive, send)
+                return
+
+            request = Request(scope)
+            path = request.url.path
+            if any(path.startswith(p) for p in self._public_paths):
+                await self.app(scope, receive, send)
+                return
+
+            inspect_data: dict[str, Any] = {
+                "path": path,
+                "query": dict(request.query_params),
+                "headers": dict(request.headers.items()),
+            }
+
+            downstream_receive = receive
+            if request.method in ("POST", "PUT", "PATCH"):
+                downstream_receive = await self._extract_body_and_replay(receive, inspect_data)
+
+            results = self.engine.inspect(inspect_data)
+            blocked = await self._check_and_block_rasp(results, path, request.method, scope, receive, send)
+            if blocked:
+                return
 
             await self.app(scope, downstream_receive, send)
 

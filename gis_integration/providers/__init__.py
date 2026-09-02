@@ -57,33 +57,36 @@ def _mock_gis_allowed() -> bool:
         return os.getenv("USE_MOCK_GIS", "false").lower() == "true"
 
 
+def _resolve_mock_or_raise(mock_allowed: bool) -> MockGISProvider:
+    if mock_allowed:
+        return MockGISProvider()
+    raise RuntimeError(
+        "MockGISProvider requested but the 'mock_gis_provider' feature "
+        "flag is disabled in this environment. Enable the flag via the "
+        "admin API or .feature-flags.json, or run in dev/test env."
+    )
+
+
+def _resolve_qgis_provider(mock_allowed: bool) -> GISProviderInterface:
+    p = QGISProvider()
+    if p.health_check():
+        return p
+    if mock_allowed:
+        logger.warning("QGIS health_check failed; falling back to MockGISProvider")
+        return MockGISProvider()
+    raise RuntimeError(
+        "QGIS provider is not operational and mock fallback is "
+        "disabled by the 'mock_gis_provider' feature flag."
+    )
+
+
 def get_gis_provider(provider_type: str | None = None) -> GISProviderInterface:
-    """
-    Factory to resolve the appropriate GIS provider.
-
-    Priority:
-    1. If USE_MOCK_GIS=true or provider_type='mock' AND mock_gis_allowed()
-       -> MockGISProvider
-    2. arcgis -> raise NotImplementedFeature (archived)
-    3. qgis -> QGISProvider (with mock fallback if unavailable and mock allowed)
-
-    Raises:
-        NotImplementedFeature: if arcgis provider type is requested (archived).
-        RuntimeError: if mock is requested or required as fallback but the
-            ``mock_gis_provider`` feature flag is disabled in the current
-            environment.
-    """
+    """Factory to resolve the appropriate GIS provider."""
     use_mock = os.getenv("USE_MOCK_GIS", "false").lower() == "true"
     mock_allowed = _mock_gis_allowed()
 
-    if (use_mock or provider_type == "mock") and mock_allowed:
-        return MockGISProvider()
-    if (use_mock or provider_type == "mock") and not mock_allowed:
-        raise RuntimeError(
-            "MockGISProvider requested but the 'mock_gis_provider' feature "
-            "flag is disabled in this environment. Enable the flag via the "
-            "admin API or .feature-flags.json, or run in dev/test env."
-        )
+    if use_mock or provider_type == "mock":
+        return _resolve_mock_or_raise(mock_allowed)
 
     p_type = (provider_type or os.getenv("GIS_PROVIDER", "qgis")).lower()
 
@@ -93,16 +96,7 @@ def get_gis_provider(provider_type: str | None = None) -> GISProviderInterface:
         )
 
     if p_type == "qgis":
-        p = QGISProvider()
-        if not p.health_check() and mock_allowed:
-            logger.warning("QGIS health_check failed; falling back to MockGISProvider")
-            return MockGISProvider()
-        if not p.health_check() and not mock_allowed:
-            raise RuntimeError(
-                "QGIS provider is not operational and mock fallback is "
-                "disabled by the 'mock_gis_provider' feature flag."
-            )
-        return p
+        return _resolve_qgis_provider(mock_allowed)
 
     if mock_allowed:
         return MockGISProvider()

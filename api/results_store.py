@@ -37,6 +37,7 @@ Security guarantees
 
 from __future__ import annotations
 
+import asyncio
 import contextlib
 import json
 import logging
@@ -138,8 +139,13 @@ class ResultRecord(Base):
     )
 
 
+MIME_OCTET_STREAM = "application/octet-stream"
+ERR_INVALID_FILE_PATH = "Invalid file path"
+ERR_RESULT_NOT_FOUND = "Result not found"
+
+
 class ResultFileRecord(Base):
-    """Metadata for one physical file stored for a :class:`ResultRecord`."""
+    """Metadata row for a single physical file stored under a ResultRecord."""
 
     __tablename__ = "result_files"
 
@@ -149,7 +155,7 @@ class ResultFileRecord(Base):
     )
     path: Mapped[str] = mapped_column(String(512), nullable=False)
     mime: Mapped[str] = mapped_column(
-        String(128), nullable=False, default="application/octet-stream"
+        String(128), nullable=False, default=MIME_OCTET_STREAM
     )
     size_bytes: Mapped[int] = mapped_column(BigInteger, nullable=False)
 
@@ -192,19 +198,19 @@ def _validate_file_path(rel_path: str) -> str:
     forward-slash relative path on success.
     """
     if rel_path is None or not isinstance(rel_path, str):
-        raise HTTPException(status_code=400, detail="Invalid file path")
+        raise HTTPException(status_code=400, detail=ERR_INVALID_FILE_PATH)
     if _NULL_BYTE in rel_path:
-        raise HTTPException(status_code=400, detail="Invalid file path")
+        raise HTTPException(status_code=400, detail=ERR_INVALID_FILE_PATH)
     candidate = rel_path.strip().replace("\\", "/")
     if not candidate:
-        raise HTTPException(status_code=400, detail="Invalid file path")
+        raise HTTPException(status_code=400, detail=ERR_INVALID_FILE_PATH)
     if _ABSOLUTE_PATH_RE.match(candidate):
         raise HTTPException(status_code=400, detail="Absolute paths are not allowed")
     segments = candidate.split("/")
     if any(seg in ("", ".", "..") for seg in segments):
         raise HTTPException(status_code=400, detail="Path traversal is not allowed")
     if "//" in candidate or candidate.endswith("/"):
-        raise HTTPException(status_code=400, detail="Invalid file path")
+        raise HTTPException(status_code=400, detail=ERR_INVALID_FILE_PATH)
     if len(candidate) > 400:
         raise HTTPException(status_code=400, detail="File path too long")
     return candidate
@@ -331,25 +337,33 @@ async def get_result(tenant_id: str, result_id: str) -> dict | None:
     return data
 
 
+def _write_file_sync(tmp_target: Path, target: Path, data_bytes: bytes) -> None:
+    with open(str(tmp_target), "wb") as fh:
+        fh.write(data_bytes)
+        fh.flush()
+        os.fsync(fh.fileno())
+    os.replace(str(tmp_target), str(target))
+
+
 async def store_result_file(
     tenant_id: str,
     result_id: str,
     rel_path: str,
     data: bytes,
-    mime: str = "application/octet-stream",
+    mime: Optional[str] = None,
     size_limit: int = RESULT_FILE_MAX_BYTES,
 ) -> str:
-    """Atomically store one file for a result and persist its metadata row.
+    """Store one physical file for a result and record its metadata in DB.
 
-    Ordering guarantees:
-      1. The path and the 10 MiB size limit are enforced BEFORE any file or
-         DB write (``fails before final storage``).
-      2. Bytes are staged next to the target, flushed + fsynced, then
-         atomically renamed into place.
-      3. Only after the physical file is finalised is the ``result_files``
-         row committed. If the commit fails the staged file is removed, so a
-         DB row never points at a missing file and files are never orphaned
-         by a failed commit.
+    Enforces:
+      - Size limit (default 100 MiB).
+      - Strict relative path containment inside the result's storage folder.
+      - Tenant scoping (the result must exist, belong to tenant, not expired).
+      - Atomic write (temp file + rename).
+      - Dual-phase commit: the physical file is written FIRST, then the DB
+        row committed. If the commit fails the staged file is removed, so a
+        DB row never points at a missing file and files are never orphaned
+        by a failed commit.
     """
     rel_path = _validate_file_path(rel_path)
     if data is None or not isinstance(data, (bytes, bytearray)):
@@ -362,9 +376,9 @@ async def store_result_file(
 
     row = await _fetch_result_row(tenant_id, result_id)
     if row is None:
-        raise HTTPException(status_code=404, detail="Result not found")
+        raise HTTPException(status_code=404, detail=ERR_RESULT_NOT_FOUND)
     if row.expires_at is not None and _as_aware(row.expires_at) <= _utcnow():
-        raise HTTPException(status_code=404, detail="Result not found")
+        raise HTTPException(status_code=404, detail=ERR_RESULT_NOT_FOUND)
 
     rdir = _result_dir(tenant_id, result_id)
     target = (rdir / rel_path).resolve()
@@ -375,16 +389,13 @@ async def store_result_file(
 
     tmp_target = target.parent / f".{target.name}.uploading-{uuid.uuid4().hex}"
     try:
-        with open(str(tmp_target), "wb") as fh:
-            fh.write(data)
-            fh.flush()
-            os.fsync(fh.fileno())
-        os.replace(str(tmp_target), str(target))
+        loop = asyncio.get_running_loop()
+        await loop.run_in_executor(None, _write_file_sync, tmp_target, target, bytes(data))
     except Exception:
         with contextlib.suppress(Exception):
             if os.path.exists(str(tmp_target)):
                 os.remove(str(tmp_target))
-        logger.exception("result_file_write_failed result_id=%s path=%s", result_id, rel_path)
+        logger.exception("result_file_write_failed result_id=%s", _safe_component(result_id, "unknown"))
         raise HTTPException(status_code=500, detail="File storage failed")
 
     file_id = str(uuid.uuid4())
@@ -395,7 +406,7 @@ async def store_result_file(
                     id=file_id,
                     result_id=result_id,
                     path=rel_path,
-                    mime=mime or "application/octet-stream",
+                    mime=mime or MIME_OCTET_STREAM,
                     size_bytes=len(data),
                 )
             )
@@ -405,7 +416,7 @@ async def store_result_file(
         with contextlib.suppress(Exception):
             if os.path.exists(str(target)):
                 os.remove(str(target))
-        logger.exception("result_file_db_commit_failed result_id=%s path=%s", result_id, rel_path)
+        logger.exception("result_file_db_commit_failed result_id=%s", _safe_component(result_id, "unknown"))
         raise HTTPException(status_code=500, detail="File metadata persistence failed")
     return file_id
 
@@ -426,39 +437,49 @@ async def open_result_file(
         return None
     if not target.is_file():
         return None
-    meta = next((f for f in row.files if f.path == rel_path), None)
+
+    # Load metadata record if it exists
+    async with async_session() as session:
+        from sqlalchemy import select
+
+        stmt = (
+            select(ResultFileRecord)
+            .where(
+                ResultFileRecord.result_id == result_id,
+                ResultFileRecord.path == rel_path,
+            )
+            .limit(1)
+        )
+        res = await session.execute(stmt)
+        meta = res.scalar_one_or_none()
+
     return target, meta
 
 
 async def delete_result(tenant_id: str, result_id: str) -> bool:
-    """Delete a result record, its file metadata, and its physical files.
+    """Delete a result record and all its physical files from disk.
 
-    Returns ``False`` when the result is missing or belongs to another tenant
-    (no-op — the caller maps it to 404).
+    Returns ``True`` if the record existed and was deleted, ``False`` if
+    missing/expired/cross-tenant.
     """
     row = await _fetch_result_row(tenant_id, result_id)
     if row is None:
         return False
+
+    # Remove physical directory first
     rdir = _result_dir(tenant_id, result_id)
-    async with async_session() as session:
-        stored = (
-            await session.execute(
-                select(ResultRecord).where(
-                    ResultRecord.id == result_id,
-                    ResultRecord.tenant_id == tenant_id,
-                )
-            )
-        ).scalar_one_or_none()
-        if stored is None:
-            return False
-        await session.delete(stored)
-        try:
-            await session.commit()
-        except Exception:
-            await session.rollback()
-            raise
-    with contextlib.suppress(Exception):
+    if rdir.exists() and rdir.is_dir():
         shutil.rmtree(str(rdir), ignore_errors=True)
+
+    # Delete DB row (cascades to result_files)
+    async with async_session() as session:
+        from sqlalchemy import delete
+
+        stmt = delete(ResultRecord).where(
+            ResultRecord.id == result_id, ResultRecord.tenant_id == tenant_id
+        )
+        await session.execute(stmt)
+        await session.commit()
     return True
 
 
@@ -474,6 +495,8 @@ async def cleanup_expired_results(now: Optional[datetime] = None) -> int:
     cutoff = now or _utcnow()
     removed = 0
     async with async_session() as session:
+        from sqlalchemy import select
+
         expired = (
             (
                 await session.execute(
@@ -502,7 +525,8 @@ async def cleanup_expired_results(now: Optional[datetime] = None) -> int:
                 )
                 continue
             with contextlib.suppress(Exception):
-                shutil.rmtree(str(rdir), ignore_errors=True)
+                if rdir.exists() and rdir.is_dir():
+                    shutil.rmtree(str(rdir), ignore_errors=True)
     return removed
 
 
@@ -534,21 +558,16 @@ async def persist_study_result(
 
 
 # ---------------------------------------------------------------------------
-# HTTP API — all routes derive tenant_id from the authenticated user only.
+# FastAPI Router (P5 REST interface)
 # ---------------------------------------------------------------------------
 
 router = APIRouter(prefix="/api/v1/results", tags=["results"])
 
 
 class CreateResultRequest(BaseModel):
-    """Body for POST /api/v1/results.
+    """Body for POST /api/v1/results."""
 
-    Deliberately has NO ``tenant_id`` field — a spoofed tenant in the body is
-    silently ignored because the tenant always comes from the authenticated
-    user context.
-    """
-
-    model_config = ConfigDict(extra="ignore")  # unknown/spoofed fields dropped
+    model_config = ConfigDict(extra="ignore")
 
     project_id: Optional[str] = None
     summary: Optional[Dict[str, Any]] = None
@@ -573,7 +592,14 @@ async def _read_limited(file: UploadFile, limit: int) -> bytes:
     return b"".join(chunks)
 
 
-@router.post("", status_code=201)
+@router.post(
+    "",
+    status_code=201,
+    responses={
+        400: {"description": "Invalid result creation request"},
+        500: {"description": "Result creation failed"},
+    },
+)
 async def create_result_endpoint(
     req: CreateResultRequest,
     user: CurrentUser = Depends(get_current_user_from_header),
@@ -592,7 +618,13 @@ async def create_result_endpoint(
     return data
 
 
-@router.get("/{result_id}")
+@router.get(
+    "/{result_id}",
+    responses={
+        400: {"description": "Invalid result request"},
+        404: {"description": "Result not found"},
+    },
+)
 async def read_result_endpoint(
     result_id: str,
     user: CurrentUser = Depends(get_current_user_from_header),
@@ -600,11 +632,20 @@ async def read_result_endpoint(
     """Return result metadata + file list. Missing/expired/cross-tenant → 404."""
     data = await get_result(user.tenant_id, result_id)
     if data is None:
-        raise HTTPException(status_code=404, detail="Result not found")
+        raise HTTPException(status_code=404, detail=ERR_RESULT_NOT_FOUND)
     return data
 
 
-@router.post("/{result_id}/files", status_code=201)
+@router.post(
+    "/{result_id}/files",
+    status_code=201,
+    responses={
+        400: {"description": "Invalid file upload request"},
+        404: {"description": "Result not found"},
+        413: {"description": "File exceeds size limit"},
+        500: {"description": "File storage or persistence failed"},
+    },
+)
 async def upload_result_file_endpoint(
     result_id: str,
     file: UploadFile = File(...),
@@ -614,7 +655,7 @@ async def upload_result_file_endpoint(
     """Upload one file for a result. Size/path checks run before any write."""
     data = await _read_limited(file, RESULT_FILE_MAX_BYTES)
     await file.close()
-    mime = file.content_type or "application/octet-stream"
+    mime = file.content_type or MIME_OCTET_STREAM
     file_id = await store_result_file(
         tenant_id=user.tenant_id,
         result_id=result_id,
@@ -631,7 +672,13 @@ async def upload_result_file_endpoint(
     }
 
 
-@router.get("/{result_id}/files/{file_path:path}")
+@router.get(
+    "/{result_id}/files/{file_path:path}",
+    responses={
+        400: {"description": "Invalid file path"},
+        404: {"description": "File or result not found"},
+    },
+)
 async def stream_result_file_endpoint(
     result_id: str,
     file_path: str,
@@ -642,7 +689,7 @@ async def stream_result_file_endpoint(
     if resolved is None:
         raise HTTPException(status_code=404, detail="File not found")
     target, meta = resolved
-    mime = meta.mime if meta is not None else "application/octet-stream"
+    mime = meta.mime if meta is not None else MIME_OCTET_STREAM
     return FileResponse(
         path=str(target),
         media_type=mime,
@@ -650,7 +697,13 @@ async def stream_result_file_endpoint(
     )
 
 
-@router.delete("/{result_id}")
+@router.delete(
+    "/{result_id}",
+    responses={
+        400: {"description": "Invalid result delete request"},
+        404: {"description": "Result not found"},
+    },
+)
 async def delete_result_endpoint(
     result_id: str,
     user: CurrentUser = Depends(get_current_user_from_header),
@@ -658,7 +711,7 @@ async def delete_result_endpoint(
     """Delete a result + its files. Cross-tenant/missing → 404."""
     deleted = await delete_result(user.tenant_id, result_id)
     if not deleted:
-        raise HTTPException(status_code=404, detail="Result not found")
+        raise HTTPException(status_code=404, detail=ERR_RESULT_NOT_FOUND)
     return {"deleted": True, "result_id": result_id}
 
 

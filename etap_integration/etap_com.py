@@ -685,15 +685,26 @@ class ETAPProject:
         ETAPAutomation._check_result_size(result)
         return result
 
+    @staticmethod
+    def _extract_gen_trajectory(gen: Any, max_points: int, duration: float) -> dict[str, Any]:
+        raw_angles = getattr(gen, "RotorAngleTrajectory", None)
+        raw_times = getattr(gen, "TimeTrajectory", None)
+        if raw_angles and raw_times:
+            angles = [float(a) for a in raw_angles[:max_points]]
+            times = [float(t) for t in raw_times[:max_points]]
+        else:
+            final_angle = float(getattr(gen, "RotorAngle", 0.0))
+            angles = [final_angle]
+            times = [duration]
+        return {
+            "rotor_angle_deg": angles,
+            "time_sec": times,
+            "max_angle_deg": max(angles) if angles else 0.0,
+            "critical_clearing_time_sec": float(getattr(gen, "CriticalClearingTime", 0.0)),
+        }
+
     def _run_transient_stability(self, **kwargs) -> dict[str, Any]:
-        """
-        Run transient stability study via ETAP COM.
-
-        Extracts rotor angle, speed, and voltage trajectories from the
-        ETAP Transient Stability module.
-
-        Raises RuntimeError if COM module is unavailable or returns no data.
-        """
+        """Run transient stability study via ETAP COM."""
         duration = float(kwargs.get("simulation_duration_sec", 5.0))
         time_step = float(kwargs.get("time_step_sec", 0.01))
         max_points = max(1, min(int(duration / time_step), 1000))
@@ -706,33 +717,8 @@ class ETAPProject:
             ts_module.Calculate()
             for gen in getattr(self._com_project, "Generators", []):
                 gen_id = str(getattr(gen, "ID", ""))
-                if not gen_id:
-                    continue
-                # Read trajectories from COM module.
-                # ETAP 2021 COM property names for transient stability:
-                # - RotorAngle (scalar, final value) — most reliable
-                # - RotorAngleTrajectory (array, time series) — may not exist
-                #   in all ETAP versions; was observed missing in ETAP 2021
-                # - Speed (scalar, final value)
-                # - TimeTrajectory (array, time series)
-                # We try the trajectory form first, then fall back to scalar.
-                raw_angles = getattr(gen, "RotorAngleTrajectory", None)
-                raw_times = getattr(gen, "TimeTrajectory", None)
-                if raw_angles and raw_times:
-                    angles = [float(a) for a in raw_angles[:max_points]]
-                    times = [float(t) for t in raw_times[:max_points]]
-                else:
-                    # Fallback: use scalar RotorAngle (final value) + single
-                    # time point at the simulation duration
-                    final_angle = float(getattr(gen, "RotorAngle", 0.0))
-                    angles = [final_angle]
-                    times = [duration]
-                generators[gen_id] = {
-                    "rotor_angle_deg": angles,
-                    "time_sec": times,
-                    "max_angle_deg": max(angles) if angles else 0.0,
-                    "critical_clearing_time_sec": float(getattr(gen, "CriticalClearingTime", 0.0)),
-                }
+                if gen_id:
+                    generators[gen_id] = self._extract_gen_trajectory(gen, max_points, duration)
         except (COM_ERROR, AttributeError) as e:
             raise RuntimeError(f"COM error during transient stability: {e}") from e
         except RuntimeError:
@@ -1111,9 +1097,8 @@ class ETAPAutomation:
         min_val: float | None = None,
         max_val: float | None = None,
         max_length: int | None = None,
-    ) -> Union[int, float, str, bool]:
-        """
-        Generic input validator.
+    ) -> int | float | str | bool:
+        """Generic input validator.
 
         Parameters:
         value: Value to validate
@@ -1419,14 +1404,10 @@ class ETAPAutomation:
         Validates path length against configured maximum.
         """
         if not file_path or not isinstance(file_path, str):
-            logger.warning(
-                "Invalid project path type or empty: %r", file_path
-            )  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
-            logger.warning(
-                "Invalid project path type or empty: %r", file_path
-            )  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
-
+            logger.warning("Invalid project path type or empty")
             return False
+
+        safe_name = pathlib.Path(file_path).name
 
         if len(file_path) > MAX_PROJECT_PATH_LENGTH:
             logger.warning(
@@ -1437,26 +1418,12 @@ class ETAPAutomation:
             return False
 
         if not file_path.endswith(".edb"):
-            logger.warning(
-                "Invalid project file extension: %r", file_path
-            )  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
-            logger.warning(
-                "Invalid project file extension: %r", file_path
-            )  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
-
+            logger.warning("Invalid project file extension for file %s", safe_name)
             return False
 
-        # SonarCloud pythonsecurity:S6549: explicit path-traversal guard.
-        # file_path is user-controlled (comes from the ETAP COM API caller).
-        # We LEXICALLY normalise the path FIRST (os.path.normpath — does not
-        # touch the filesystem, so symlink-based escapes are impossible) and
-        # reject anything that escapes CWD/HOME BEFORE calling resolve().
-        # Only after the lexical check passes do we call resolve() to obtain
-        # an absolute path for the allow-list comparison.
         cwd = pathlib.Path.cwd().resolve()
         home = pathlib.Path.home().resolve()
 
-        # Reject traversal markers in raw string regardless of OS separator
         clean_path = file_path.replace("\\", "/")
         if (
             "/../" in clean_path
@@ -1464,44 +1431,29 @@ class ETAPAutomation:
             or clean_path.endswith("/..")
             or clean_path == ".."
         ):
-            logger.warning(
-                "Path traversal sequence detected in project path: %r", file_path
-            )  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
+            logger.warning("Path traversal sequence detected for file %s", safe_name)
             return False
 
-        # Detect UNC paths cross-platform (Windows \\server\share or //server/share)
         if file_path.startswith(("\\\\", "//")):
-            logger.warning(
-                "UNC path not allowed (SMB relay risk): %r", file_path
-            )  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
+            logger.warning("UNC path not allowed (SMB relay risk) for file %s", safe_name)
             return False
 
-        # Lexical normalisation only — no filesystem access, no symlink resolution.
         normalised = pathlib.Path(os.path.normpath(clean_path))
-        # Reject any ".." components that would escape the input's root.
         try:
-            # Convert to absolute (still lexical) for the containment check.
             if not normalised.is_absolute():
                 normalised = cwd / normalised
-            resolved = normalised.resolve(
-                strict=False
-            )  # NOSONAR S6549: lexical normpath + containment checks mitigate path escape
+            resolved = normalised.resolve(strict=False)
         except (ValueError, RuntimeError):
-            logger.warning(
-                "Invalid path format: %r", file_path
-            )  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
+            logger.warning("Invalid path format for file %s", safe_name)
             return False
 
-        # Containment check: resolved path must be inside CWD or HOME.
         try:
             resolved.relative_to(cwd)
         except ValueError:
             try:
                 resolved.relative_to(home)
             except ValueError:
-                logger.warning(
-                    "Project path escapes CWD and HOME: %r", file_path
-                )  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
+                logger.warning("Project path escapes CWD and HOME for file %s", safe_name)
                 return False
 
         if self._allowed_project_dirs:
@@ -1509,9 +1461,7 @@ class ETAPAutomation:
                 str(resolved).startswith(allowed_dir) for allowed_dir in self._allowed_project_dirs
             )
             if not is_allowed:
-                logger.warning(
-                    "Project path outside allowed directories: %r", file_path
-                )  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
+                logger.warning("Project path outside allowed directories for file %s", safe_name)
                 return False
 
         return True
@@ -1521,19 +1471,8 @@ class ETAPAutomation:
     # -------------------------------------------------------------------------
 
     def launch(self) -> bool:
-        """
-        Launch ETAP application.
-
-        SECURITY (LAUNCH-BLOCKER): CoInitialize() is required for COM to
-        work in threads other than the main thread (Celery workers, FastAPI
-        to_thread). Without it, Dispatch() fails with
-        'CoInitialize has not been called'.
-
-        Returns:
-        True if successful
-        """
+        """Launch ETAP application."""
         try:
-            # SECURITY (LAUNCH-BLOCKER): Initialize COM for this thread
             import sys as _sys
 
             if _sys.platform == "win32" and pythoncom is not None:
@@ -1558,23 +1497,14 @@ class ETAPAutomation:
             return False
 
     def open_project(self, file_path: str) -> ETAPProject | None:
-        """
-        Open an existing ETAP project.
-
-        Parameters:
-        file_path: Path to .edb file
-
-        Returns:
-        ETAPProject instance or None if failed
-        """
+        """Open an existing ETAP project."""
         if not self.is_running:
             raise RuntimeError("ETAP is not running. Call launch() first.")
 
-        if not self._validate_project_path(file_path):
-            logger.error(
-                "Project path validation failed: %r", file_path
-            )  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
+        safe_name = pathlib.Path(file_path).name if isinstance(file_path, str) else "unknown"
 
+        if not self._validate_project_path(file_path):
+            logger.error("Project path validation failed for %s", safe_name)
             return None
 
         if self._com_app is None:
@@ -1586,27 +1516,22 @@ class ETAPAutomation:
             if com_project:
                 project = ETAPProject(com_project, file_path, com_timeout=self.com_timeout_seconds)
                 self._projects[file_path] = project
-                logger.info(
-                    "Opened project: %r", file_path
-                )  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
+                logger.info("Opened project: %s", safe_name)
                 return project
             else:
-                logger.error(
-                    "Failed to open project: %r", file_path
-                )  # NOSONAR S5145: repr-escaped (no CR/LF injection); path kept for debugging
-
+                logger.error("Failed to open project: %s", safe_name)
                 return None
 
         except COM_ERROR as e:
             logger.exception(
                 "COM error opening project %s (timeout=%ds): %s",
-                file_path,
+                safe_name,
                 self.com_timeout_seconds,
                 e,
             )
             return None
         except Exception as e:
-            logger.exception("Error opening project %s: %s", file_path, e)
+            logger.exception("Error opening project %s: %s", safe_name, e)
             return None
 
     def create_project(self, project_name: str = "NewProject") -> ETAPProject | None:

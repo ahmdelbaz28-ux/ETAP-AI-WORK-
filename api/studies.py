@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import logging
 from typing import Any, Dict, Optional
+from typing_extensions import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 
@@ -202,8 +203,8 @@ async def _persist_study_result(
 async def run_study(
     req: Request,
     payload: StudyRequest,
-    _: str = Depends(get_api_key),
-    user: Optional[CurrentUser] = Depends(get_optional_current_user_from_header),
+    _: Annotated[str, Depends(get_api_key)],
+    user: Annotated[Optional[CurrentUser], Depends(get_optional_current_user_from_header)],
 ):
     """Execute a power system study.
 

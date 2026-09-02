@@ -106,7 +106,7 @@ export function legacyToAdvanced(pathname: string): string | null {
  * Used as the `element` of every legacy <Route> in App.tsx. Never applies to
  * protected routes — those keep their own elements.
  */
-export function AdvancedRedirect({ legacy }: { legacy: string }) {
+export function AdvancedRedirect({ legacy }: Readonly<{ legacy: string }>) {
   const location = useLocation();
   const resolved = legacyToAdvanced(location.pathname) ?? advancedTargetOf(legacy);
   if (!resolved) return null;

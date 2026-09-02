@@ -276,12 +276,6 @@ export const useChatStore = create<ChatWorkspaceState>()((set, get) => ({
       clearTimeout(reconnectTimer);
       reconnectTimer = null;
     }
-    if (activeWs) {
-      try {
-        activeWs.close();
-      } catch {
-        // ignore — the socket may already be in a closing/closed state
-      }
       activeWs = null;
     }
     set({ wsStatus: "disconnected", wsError: null });
@@ -293,7 +287,6 @@ export const useChatStore = create<ChatWorkspaceState>()((set, get) => ({
     if (typeof evt.seq !== "number" || typeof evt.type !== "string") return;
     if (typeof evt.session_id === "string" && evt.session_id !== get().sessionId) return;
 
-    // Sequence-deduped replay (resumes after `after_seq=lastSeq`).
     if (evt.seq <= get().lastSeq) return;
     set({ lastSeq: evt.seq });
 
@@ -301,31 +294,15 @@ export const useChatStore = create<ChatWorkspaceState>()((set, get) => ({
     const payload = (evt.payload ?? {}) as Record<string, unknown>;
 
     switch (evt.type) {
-      case "session_init":
+      case "token":
+        handleTokenEvent(payload, get, set);
         return;
-      case "token": {
-        if (typeof payload.delta !== "string" || !payload.delta) return;
-        const { messages } = get();
-        const last = messages[messages.length - 1];
-        if (last && last.role === "assistant" && last.status === "streaming" && last.id.startsWith(WS_TOKEN_MARKER)) {
-          set({
-            messages: messages.map((m) =>
-              m.id === last.id ? { ...m, content: m.content + payload.delta } : m,
-            ),
-          });
-        } else {
-          const newId = `${WS_TOKEN_MARKER}${generateId()}`;
-          set({
-            messages: [
-              ...messages,
-              { id: newId, role: "assistant", content: payload.delta, status: "streaming", createdAt: Date.now() },
-            ],
-            lastAssistantId: newId,
-            streamStatus: "streaming",
-          });
-        }
+      case "result_ready":
+        handleResultReadyEvent(payload, ts, get, set);
         return;
-      }
+      case "job_progress":
+        handleJobProgressEvent(payload, ts, get, set);
+        return;
       case "action_proposed": {
         const entry: ProposedActionEntry = { seq: evt.seq, ts, payload };
         set({ proposedActions: [entry, ...get().proposedActions].slice(0, MAX_LIST_ITEMS) });
@@ -340,50 +317,6 @@ export const useChatStore = create<ChatWorkspaceState>()((set, get) => ({
           reason: typeof payload.reason === "string" ? payload.reason : undefined,
         };
         set({ approvalResults: [entry, ...get().approvalResults].slice(0, MAX_LIST_ITEMS) });
-        return;
-      }
-      case "job_progress": {
-        const phase = typeof payload.phase === "string" ? payload.phase : "running";
-        const pctNum = typeof payload.pct === "number" ? payload.pct : Number(payload.pct ?? 0);
-        const progress: ActivityProgress = {
-          execution_id: typeof payload.execution_id === "string" ? payload.execution_id : undefined,
-          tool: typeof payload.tool === "string" ? payload.tool : undefined,
-          phase,
-          pct: Number.isFinite(pctNum) ? Math.max(0, Math.min(100, pctNum)) : 0,
-          ts,
-        };
-        const activity = [...get().activity, progress].slice(-MAX_LIST_ITEMS);
-        set({ activity });
-        return;
-      }
-            case "result_ready": {
-        // The P3 SessionStream `result_ready` event carries the result id as
-        // `result_id` (snake_case). The frontend's wire-facing model uses
-        // `resultId` (camelCase) to match the P5 public contract —
-        // POST /api/v1/studies/run → StudyResult serialization_alias="resultId".
-        const resultId =
-          typeof payload.result_id === "string"
-            ? payload.result_id
-            : typeof payload.execution_id === "string"
-              ? payload.execution_id
-              : null;
-        if (!resultId) return;
-        const entry: ResultEntry = {
-          resultId,
-          execution_id: typeof payload.execution_id === "string" ? payload.execution_id : undefined,
-          tool: typeof payload.tool === "string" ? payload.tool : undefined,
-          plan_id: typeof payload.plan_id === "string" ? payload.plan_id : undefined,
-          ts,
-          summary: (payload.summary as Record<string, unknown> | undefined) ?? null,
-          // result_ready announces a result whose ResultStore payload is still
-          // pending enrichment via loadResult — the entry starts in-flight.
-          loading: true,
-        };
-        const existing = get().results.find((r) => r.resultId === resultId);
-        const results = existing
-          ? get().results.map((r) => (r.resultId === resultId ? { ...r, ...entry, loading: !r.loaded } : r))
-          : [entry, ...get().results].slice(0, MAX_LIST_ITEMS);
-        set({ results, selectedResultId: get().selectedResultId ?? resultId });
         return;
       }
       case "decision_request": {
@@ -424,31 +357,11 @@ export const useChatStore = create<ChatWorkspaceState>()((set, get) => ({
       let acc = "";
       for await (const delta of streamFromServerChat(history, controller.signal)) {
         acc += delta;
-        const { messages } = get();
-        const last = messages[messages.length - 1];
-        if (last && last.role === "assistant" && last.id.startsWith(WS_TOKEN_MARKER)) {
-          set({
-            messages: messages.map((m) =>
-              m.id === last.id ? { ...m, content: acc, status: "streaming" } : m,
-            ),
-            streamStatus: "streaming",
-          });
-        } else {
-          const newId = `${WS_TOKEN_MARKER}${generateId()}`;
-          set({
-            messages: [
-              ...messages,
-              { id: newId, role: "assistant", content: acc, status: "streaming", createdAt: Date.now() },
-            ],
-            lastAssistantId: newId,
-            streamStatus: "streaming",
-          });
-        }
+        appendStreamDelta(acc, get, set);
       }
-      // Finalize the streaming assistant message.
       const { messages: afterStream } = get();
       const last = afterStream[afterStream.length - 1];
-      if (last && last.role === "assistant" && last.id.startsWith(WS_TOKEN_MARKER)) {
+      if (last?.role === "assistant" && last?.id?.startsWith(WS_TOKEN_MARKER)) {
         set({
           messages: afterStream.map((m) =>
             m.id === last.id ? { ...m, status: "complete", content: acc || m.content } : m,
@@ -463,7 +376,7 @@ export const useChatStore = create<ChatWorkspaceState>()((set, get) => ({
       const message = toErrorMessage(err, "Chat stream failed");
       const { messages: errMsgs } = get();
       const last = errMsgs[errMsgs.length - 1];
-      if (last && last.role === "assistant" && last.id.startsWith(WS_TOKEN_MARKER) && last.status === "streaming") {
+      if (last?.role === "assistant" && last?.id?.startsWith(WS_TOKEN_MARKER) && last?.status === "streaming") {
         set({
           messages: errMsgs.map((m) =>
             m.id === last.id ? { ...m, status: "error", error: message } : m,
@@ -487,6 +400,10 @@ export const useChatStore = create<ChatWorkspaceState>()((set, get) => ({
         });
       }
       return false;
+    } finally {
+      if (activeChatAbort === controller) activeChatAbort = null;
+    }
+  },
     } finally {
       if (activeChatAbort === controller) activeChatAbort = null;
     }
@@ -545,11 +462,7 @@ export const useChatStore = create<ChatWorkspaceState>()((set, get) => ({
       const res = await request<{ data?: PendingApproval[]; items?: PendingApproval[] }>(
         `/api/v1/approvals/pending?session_id=${encodeURIComponent(get().sessionId)}`,
       );
-      const list: PendingApproval[] = Array.isArray(res?.data)
-        ? res.data
-        : Array.isArray(res?.items)
-          ? res.items
-          : [];
+      const list = resolvePendingApprovalsList(res);
       set({ approvals: list, approvalsError: null });
     } catch (err) {
       set({ approvalsError: toErrorMessage(err, "Failed to load pending approvals") });

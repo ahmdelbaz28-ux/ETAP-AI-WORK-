@@ -227,6 +227,7 @@ async def _emit(session_id: Optional[str], etype: str, payload: Dict[str, Any]) 
 
         # publish() is sync + thread-safe; it fans out and records the event.
         get_hub().publish(session_id, etype, dict(payload))
+        await asyncio.sleep(0)
     except Exception:  # noqa: BLE001 — streaming must never break HTTP flow
         logger.debug("session-stream emit failed (%s)", etype, exc_info=True)
 
