@@ -410,10 +410,6 @@ export const useChatStore = create<ChatWorkspaceState>()((set, get) => ({
       if (activeChatAbort === controller) activeChatAbort = null;
     }
   },
-    } finally {
-      if (activeChatAbort === controller) activeChatAbort = null;
-    }
-  },
 
   clearSessionData: () => {
     if (activeChatAbort) {
