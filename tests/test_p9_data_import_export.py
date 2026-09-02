@@ -694,3 +694,40 @@ class TestFeatureFlagsFailClosed:
         res = client.post(f"/api/v1/export/{uuid.uuid4()}/pdf")
         assert res.status_code == 403
         assert "Data export feature is disabled" in res.json()["detail"]
+
+
+class TestDefusedXmlFailClosed:
+    """Tests for fail-closed behavior when defusedxml is not installed."""
+
+    def test_xml_import_when_defusedxml_missing_raises_error_and_returns_validation_error(
+        self, test_api, monkeypatch
+    ):
+        """When defusedxml is missing, previewing XML fails closed with validation error."""
+        monkeypatch.setattr(data_import_mod, "ET", None)
+        client = test_api["client"]
+        res = client.post(
+            "/api/v1/import/preview",
+            files={
+                "file": (
+                    "model.xml",
+                    b"<?xml version=\"1.0\"?><TopologicalNode rdf:ID=\"bus1\"/>",
+                    "application/xml",
+                )
+            },
+        )
+        assert res.status_code == 200
+        data = res.json()
+        assert data["success"] is False
+        assert any(
+            "defusedxml is not installed" in err or "XML parsing is disabled" in err
+            for err in data["errors"]
+        )
+
+    def test_parse_cim_xml_directly_raises_value_error_when_et_is_none(self, monkeypatch):
+        """Direct invocation of _parse_cim_xml raises ValueError when defusedxml is absent."""
+        monkeypatch.setattr(data_import_mod, "ET", None)
+        with pytest.raises(
+            ValueError, match="XML parsing is disabled: defusedxml is not installed"
+        ):
+            data_import_mod._parse_cim_xml(b"<xml/>")
+

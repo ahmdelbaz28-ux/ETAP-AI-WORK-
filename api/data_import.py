@@ -26,6 +26,7 @@ Security & Reliability Guarantees:
 - SessionStreamHub progress streaming (no silent long operations).
 - Idempotency-Key support on execute endpoints with replay prevention.
 - Persistent audit logging for all preview and execute operations.
+- Fail-closed XML parsing (requires defusedxml package; stdlib xml fallback is prohibited to prevent entity expansion vulnerabilities; full XML parsing support requires adding defusedxml to requirements by repository owner in fix/plan-v3-compliance).
 """
 
 from __future__ import annotations
@@ -47,13 +48,12 @@ except ImportError:
     from typing_extensions import Annotated
 
 import importlib
-import xml.etree.ElementTree as ET  # nosec B405
 
 try:
     _defused_et = importlib.import_module("defusedxml.ElementTree")
-    ET = _defused_et  # type: ignore[assignment]
+    ET = _defused_et
 except (ImportError, ModuleNotFoundError):
-    pass
+    ET = None  # fail-closed — guard in _parse_cim_xml triggers when defusedxml is not installed
 
 from fastapi import APIRouter, Depends, File, Form, Header, HTTPException, UploadFile, status
 from pydantic import BaseModel, Field
@@ -697,7 +697,11 @@ def _parse_matpower_branches(text: str) -> list[BranchRecord]:
 def _parse_cim_xml(
     content: bytes,
 ) -> tuple[list[BusRecord], list[BranchRecord], dict[str, Any], list[str]]:
-    """Parse a CIM/XML file."""
+    """Parse a CIM/XML file.
+
+    Note: Full XML parsing support requires defusedxml in requirements (decision
+    reserved for repository owner in fix/plan-v3-compliance branch).
+    """
     if ET is None:
         raise ValueError(
             "XML parsing is disabled: defusedxml is not installed. "
