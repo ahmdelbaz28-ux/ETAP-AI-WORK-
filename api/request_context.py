@@ -167,15 +167,16 @@ def _set_tenant_before_query(conn, cursor, statement, parameters, context, execu
         return
     if conn.dialect.name != "postgresql":
         return
-    if statement is not None and str(statement).lstrip().upper().startswith(
-        "SET APP.CURRENT_TENANT_ID"
+    if statement is not None and (
+        str(statement).lstrip().upper().startswith("SET APP.CURRENT_TENANT_ID")
+        or "set_config" in str(statement).lower()
     ):
         return
     try:
         from sqlalchemy import text
 
         conn.execute(
-            text("SET app.current_tenant_id = :tid"),
+            text("SELECT set_config('app.current_tenant_id', :tid, false)"),
             {"tid": tenant_id},
         )
     except Exception:
@@ -195,13 +196,14 @@ def _reset_tenant_on_checkin(dbapi_connection, _connection_record) -> None:
             return
         cursor = dbapi_connection.cursor()
         try:
-            cursor.execute("SET app.current_tenant_id = ''")
+            cursor.execute("SELECT set_config('app.current_tenant_id', '', false)")
         finally:
             cursor.close()
     except Exception:
         logger.debug(
             "Could not reset app.current_tenant_id on connection checkin (likely SQLite backend)."
         )
+
 
 
 class TenantMiddleware:

@@ -79,8 +79,8 @@ openpyxl~=3.1.0
 reportlab~=4.0.0
 
 # Security-patched utility dependencies
-# SECURITY: nltk upgraded to >=3.10.0 to fix CVE-2026-54293 and path traversal CVEs
-nltk>=3.10.0
+# SECURITY: nltk upgraded to >=3.10.3 to fix CVE-2026-54293, CVE-2026-79675, CVE-2026-78680
+nltk>=3.10.3
 # SECURITY: Pygments — aligned with pyproject.toml pin (pygments>=2.20.0)
 pygments>=2.20.0
 # SECURITY: setuptools — fixes MANIFEST.in CVE (setuptools>=83.0.0)

@@ -100,6 +100,16 @@ jobs:
   e2e-python-tests:
     name: E2E - Python Unit Tests
     runs-on: ubuntu-latest
+
+    env:
+      ENVIRONMENT: testing
+      DATABASE_URL: sqlite+aiosqlite:///./test_e2e.db
+      REDIS_URL: redis://localhost:6379/0
+      JWT_SECRET_KEY: ci-test-jwt-secret-key-for-github-actions-32-bytes-min
+      ENCRYPTION_KEY: integration-test-encryption-key-not-for-production-32b
+      ENGINEERING_SERVICE_API_KEY: test-key
+      ENGINEERING_SERVICE_AUTH_DISABLED: 'false'
+
     steps:
       - uses: actions/checkout@v4
 
@@ -111,13 +121,17 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -r requirements.txt
-          pip install pytest pytest-cov pytest-asyncio
+          pip install pytest pytest-cov pytest-asyncio pytest-timeout httpx aiosqlite
 
       - name: Run syntax validation
         run: python validate_syntax.py
 
       - name: Run unit tests
-        run: pytest tests/ -x -q --tb=short
+        run: |
+          pytest tests/ \
+            -x -q --tb=short \
+            --timeout=90 \
+            --maxfail=10
 
   e2e-security:
     name: E2E - Security Checks

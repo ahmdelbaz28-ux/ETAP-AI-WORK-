@@ -92,7 +92,14 @@ def result_store_dir(tmp_path, monkeypatch):
 
 @pytest.fixture
 def api(result_store_dir):
-    """Minimal app with only the results router; current user = USER_A."""
+    """Minimal app with only the results router; current user = USER_A.
+
+    ``get_api_key`` is overridden to a no-op so that cron endpoints
+    (``POST /api/v1/results/cleanup/expired``) return 200 even when
+    ``ENGINEERING_SERVICE_API_KEY`` is set in the environment (e.g. CI).
+    This is safe because the app fixture is a minimal, isolated test instance
+    — not a production deployment.
+    """
     app = FastAPI()
     app.include_router(results_store.router)
     holder = {"user": USER_A}
@@ -100,7 +107,11 @@ def api(result_store_dir):
     async def _current_user():
         return holder["user"]
 
+    async def _api_key_noop():
+        return ""
+
     app.dependency_overrides[get_current_user_from_header] = _current_user
+    app.dependency_overrides[get_api_key] = _api_key_noop
     return {"app": app, "holder": holder}
 
 

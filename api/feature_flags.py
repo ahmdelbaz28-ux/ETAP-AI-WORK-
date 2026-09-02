@@ -25,7 +25,7 @@ UTC = timezone.utc  # noqa: UP017
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 from api.dependencies import get_api_key
 
@@ -245,6 +245,12 @@ class FeatureFlagPatch(BaseModel):
         description="New status for the flag",
     )
 
+    @model_validator(mode="after")
+    def validate_at_least_one_field(self) -> FeatureFlagPatch:
+        if self.enabled is None and self.status is None:
+            raise ValueError("At least one field ('enabled' or 'status') must be provided")
+        return self
+
 
 # ─── Auth dependency ─────────────────────────────────────────────────────
 def _require_permission(resource: str, action: str):
@@ -352,6 +358,14 @@ async def update_feature_flag(
         flags[key]["status"] = payload.status
     flags[key]["updated_at"] = datetime.now(UTC).isoformat()
     _save_flags(flags)
+
+    audit_logger = logging.getLogger("audit")
+    audit_logger.info(
+        "feature_flag_toggled flag=%s old=%s new=%s",
+        key,
+        old_value,
+        flags[key]["enabled"],
+    )
 
     env = os.getenv("ENV", os.getenv("APP_ENV", "development")).lower()
     effective = True if env in ("development", "dev", "test", "") else bool(flags[key]["enabled"])

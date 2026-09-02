@@ -388,7 +388,13 @@ async def auth_and_rate_limit(request: Request, call_next):
 
     _eng_key = os.environ.get("ENGINEERING_SERVICE_API_KEY", "")
     _hf_key = os.environ.get("HF_API_KEY", "")
-    if _eng_key and not _hf_key:
+    # FIX (CI 2026-09-01): previously the copy happened only when HF_API_KEY
+    # was unset (`not _hf_key`), so a stale HF_API_KEY value captured by an
+    # earlier request/test permanently shadowed the canonical
+    # ENGINEERING_SERVICE_API_KEY — valid keys were rejected with 401.
+    # ENGINEERING_SERVICE_API_KEY is the canonical platform secret and always
+    # wins; HF_API_KEY is only honoured for legacy Spaces that set neither.
+    if _eng_key:
         os.environ["HF_API_KEY"] = _eng_key
     if not _is_public:
         # C-02 symmetry: honour ENGINEERING_SERVICE_AUTH_DISABLED only via the

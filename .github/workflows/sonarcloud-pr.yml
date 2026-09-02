@@ -95,9 +95,9 @@ jobs:
           args: >
             -Dsonar.projectKey=ahmdelbaz28-ux_ETAP-AI-WORK-
             -Dsonar.organization=ahmdelbaz28-ux
-            -Dsonar.python.coverage.reportPaths=coverage.xml
-            -Dsonar.coverage.exclusions=**/node_modules/**,**/.git/**,**/skills/**,**/tests/**,**/test/**
+            -Dsonar.coverage.exclusions=**
             -Dsonar.cpd.exclusions=**/tests/**,**/test/**,**/migrations/**
+
 
       - name: SonarCloud Quality Gate check (advisory, non-blocking)
         id: sonarqube-quality-gate-check

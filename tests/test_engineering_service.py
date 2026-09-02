@@ -33,7 +33,9 @@ from httpx import ASGITransport, AsyncClient
 def app():
     from api.routes import app
 
-    return app
+    app.dependency_overrides.clear()
+    yield app
+    app.dependency_overrides.clear()
 
 
 @pytest.fixture
@@ -365,81 +367,87 @@ class TestStudyRunEndpoint:
 
 
 class TestStudyRunAPIKey:
-    """Test API-key enforcement on /api/v1/studies/run."""
+    """Test API-key enforcement on /api/v1/studies/run.
 
-    async def test_study_run_missing_api_key(self, client):
+    Deterministic by construction (CI fix 2026-09-01):
+
+    * Each test builds a FRESH AsyncClient with NO client-level
+      ``x-api-key`` default, so the server sees exactly the headers the
+      test intends — immune to httpx header-merge behaviour differences.
+    * ``auth_disabled_allowed`` is patched to ``False`` in BOTH
+      ``api.dependencies`` (its own imported reference) and
+      ``api.environment`` (the canonical source), mirroring the pattern
+      used by tests/test_security_e2e.py — otherwise any test-env var
+      (CONFORMANCE/AUTH_DISABLED leaks) silently skips the API-key gate
+      and the request returns 200 instead of 401.
+    """
+
+    @staticmethod
+    def _auth_enforced_stack():
+        """ExitStack that forces API-key auth enforcement for /studies/run."""
+        stack = contextlib.ExitStack()
+        stack.enter_context(
+            patch.dict(
+                os.environ,
+                {
+                    "ENGINEERING_SERVICE_API_KEY": "test-secret-key",
+                    "ENGINEERING_SERVICE_AUTH_DISABLED": "false",
+                },
+            )
+        )
+        stack.enter_context(patch("api.dependencies.API_KEY", "test-secret-key"))
+        stack.enter_context(
+            patch("api.dependencies.auth_disabled_allowed", return_value=False)
+        )
+        stack.enter_context(
+            patch("api.environment.auth_disabled_allowed", return_value=False)
+        )
+        stack.enter_context(patch("api.routes._EXPECTED_API_KEY", "test-secret-key"))
+        stack.enter_context(patch("api.routes._API_KEY_CONFIGURED", True))
+        stack.enter_context(patch("api.routes._AUTH_DISABLED", False))
+        return stack
+
+    async def _fresh_client(self, app):
+        """AsyncClient with NO default x-api-key (CSRF token only)."""
+        from api.csrf import generate_csrf_token
+        from httpx import ASGITransport, AsyncClient
+
+        return AsyncClient(
+            transport=ASGITransport(app=app),
+            base_url="http://test",
+            headers={"x-csrf-token": generate_csrf_token()},
+        )
+
+    async def test_study_run_missing_api_key(self, app):
         """When an API key is configured, a request without one returns 401."""
-        with contextlib.ExitStack() as stack:
-            stack.enter_context(
-                patch.dict(
-                    os.environ,
-                    {
-                        "ENGINEERING_SERVICE_API_KEY": "test-secret-key",
-                        "ENGINEERING_SERVICE_AUTH_DISABLED": "false",
-                    },
+        with self._auth_enforced_stack():
+            async with await self._fresh_client(app) as ac:
+                resp = await ac.post(
+                    "/api/v1/studies/run",
+                    json={"study_type": "load_flow", "system": _MINI_SYSTEM},
                 )
-            )
-            stack.enter_context(patch("api.dependencies.API_KEY", "test-secret-key"))
-            stack.enter_context(patch("api.routes._EXPECTED_API_KEY", "test-secret-key"))
-            stack.enter_context(patch("api.routes._API_KEY_CONFIGURED", True))
-            stack.enter_context(patch("api.routes._AUTH_DISABLED", False))
-            resp = await client.post(
-                "/api/v1/studies/run",
-                json={"study_type": "load_flow", "system": _MINI_SYSTEM},
-                headers={"x-api-key": ""},
-            )
             assert resp.status_code == 401
 
-    async def test_study_run_invalid_api_key(self, client):
+    async def test_study_run_invalid_api_key(self, app):
         """When an API key is configured, a wrong key returns 401 or 403."""
-        with contextlib.ExitStack() as stack:
-            stack.enter_context(
-                patch.dict(
-                    os.environ,
-                    {
-                        "ENGINEERING_SERVICE_API_KEY": "test-secret-key",
-                        "ENGINEERING_SERVICE_AUTH_DISABLED": "false",
-                    },
+        with self._auth_enforced_stack():
+            async with await self._fresh_client(app) as ac:
+                resp = await ac.post(
+                    "/api/v1/studies/run",
+                    json={"study_type": "load_flow", "system": _MINI_SYSTEM},
+                    headers={"X-API-Key": "wrong-key"},
                 )
-            )
-            stack.enter_context(patch("api.dependencies.API_KEY", "test-secret-key"))
-            stack.enter_context(patch("api.routes._EXPECTED_API_KEY", "test-secret-key"))
-            stack.enter_context(patch("api.routes._API_KEY_CONFIGURED", True))
-            stack.enter_context(patch("api.routes._AUTH_DISABLED", False))
-            resp = await client.post(
-                "/api/v1/studies/run",
-                json={"study_type": "load_flow", "system": _MINI_SYSTEM},
-                headers={"X-API-Key": "wrong-key"},
-            )
             assert resp.status_code in (401, 403)
 
-    async def test_study_run_valid_api_key_succeeds(self, client):
+    async def test_study_run_valid_api_key_succeeds(self, app):
         """When an API key is configured, the correct key returns 200."""
-        with contextlib.ExitStack() as stack:
-            stack.enter_context(
-                patch.dict(
-                    os.environ,
-                    {
-                        "ENGINEERING_SERVICE_API_KEY": "test-secret-key",
-                        "ENGINEERING_SERVICE_AUTH_DISABLED": "false",
-                    },
+        with self._auth_enforced_stack():
+            async with await self._fresh_client(app) as ac:
+                resp = await ac.post(
+                    "/api/v1/studies/run",
+                    json={"study_type": "load_flow", "system": _MINI_SYSTEM},
+                    headers={"X-API-Key": "test-secret-key"},
                 )
-            )
-            stack.enter_context(patch("api.dependencies.API_KEY", "test-secret-key"))
-            stack.enter_context(patch("api.routes._EXPECTED_API_KEY", "test-secret-key"))
-            stack.enter_context(patch("api.routes._API_KEY_CONFIGURED", True))
-            stack.enter_context(patch("api.routes._AUTH_DISABLED", False))
-            resp = await client.post(
-                "/api/v1/studies/run",
-                json={"study_type": "load_flow", "system": _MINI_SYSTEM},
-                headers={"X-API-Key": "test-secret-key"},
-            )
-            assert resp.status_code == 200
-            resp = await client.post(
-                "/api/v1/studies/run",
-                json={"study_type": "load_flow", "system": _MINI_SYSTEM},
-                headers={"X-API-Key": "test-secret-key"},
-            )
             assert resp.status_code == 200
 
     async def test_study_run_no_api_key_configured_allows_access(self, client):

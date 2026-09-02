@@ -31,14 +31,26 @@ from api.dependencies import JWT_ALGORITHM, JWT_SECRET_KEY
 
 
 def _auth(user_id: str = "test-user-id") -> dict:
-    """Auth header carrying a valid access JWT like /api/v1/auth/login."""
+    """Auth headers carrying a valid access JWT + CSRF token.
+
+    The JWT mirrors /api/v1/auth/login; the CSRF token mirrors the browser
+    flow (GET /api/v1/csrf/token then X-CSRF-Token on every mutating request).
+    Without the CSRF header, CSRFMiddleware rejects the request with 403
+    before body validation whenever auth is enforced (CI api-e2e sets
+    ENGINEERING_SERVICE_AUTH_DISABLED=false), masking the 422 under test.
+    """
     now = time.time()
     token = pyjwt.encode(
         {"sub": user_id, "type": "access", "iat": int(now), "exp": int(now + 600)},
         JWT_SECRET_KEY,
         algorithm=JWT_ALGORITHM,
     )
-    return {"Authorization": f"Bearer {token}"}
+    from api.csrf import generate_csrf_token
+
+    return {
+        "Authorization": f"Bearer {token}",
+        "X-CSRF-Token": generate_csrf_token(),
+    }
 
 
 def _payload(**overrides) -> dict:
@@ -72,7 +84,19 @@ def _clean_rate():
 
 
 def test_requires_auth(client):
-    resp = client.post("/api/v1/chat/stream", json=_payload())
+    """Unauthenticated POST (with valid CSRF) must return 401.
+
+    A CSRF token is included so CSRFMiddleware passes the request through;
+    without it the middleware short-circuits with 403 whenever auth is
+    enforced (AUTH_DISABLED=false), masking the authentication check.
+    """
+    from api.csrf import generate_csrf_token
+
+    resp = client.post(
+        "/api/v1/chat/stream",
+        json=_payload(),
+        headers={"X-CSRF-Token": generate_csrf_token()},
+    )
     assert resp.status_code == 401
 
 
