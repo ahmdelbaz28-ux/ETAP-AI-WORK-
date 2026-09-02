@@ -276,6 +276,12 @@ export const useChatStore = create<ChatWorkspaceState>()((set, get) => ({
       clearTimeout(reconnectTimer);
       reconnectTimer = null;
     }
+    if (activeWs) {
+      try {
+        activeWs.close();
+      } catch {
+        // ignore close error
+      }
       activeWs = null;
     }
     set({ wsStatus: "disconnected", wsError: null });
