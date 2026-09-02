@@ -2,21 +2,23 @@
 tests/test_p9_data_import_export.py — Comprehensive test suite for P9 Import/Export in Chat.
 
 Covers:
+- Dual-control Maker-Checker approval enforcement (422 missing, 404 not found, 403 pending, 403 self-approval, 410 expired ALREADY_RESOLVED, 200 approved).
+- Mandatory Idempotency-Key enforcement (422 missing, replay identical on duplicate).
+- Fail-closed Feature Flag enforcement (403 when disabled in prod).
+- Tenant isolation (cross-tenant preview & cross-tenant approval blocked with 403).
 - Preview dry-run impact analysis (buses, branches, affected tables, risk level).
-- Magic bytes validation (rejects executable headers, binary injection in text formats).
+- Magic bytes validation (rejects executable headers MZ/ELF, binary injection in text formats).
 - 10 MiB size limits (P5 consistency).
-- Idempotency on execute endpoints (replay prevention).
-- Tenant isolation (cross-tenant preview/execute blocked).
 - SessionStreamHub progress streaming events.
-- Audit trail recording for preview and execute.
-- Export formats, endpoints, and read-only behavior.
-- Fail-closed feature flag behavior.
+- Audit trail recording for preview, execute, and export.
+- Pre-declared export formats, read-only guarantees, and 404 on missing projects.
 """
 
 from __future__ import annotations
 
 import json
 import uuid
+from datetime import datetime, timedelta, timezone
 
 import pytest
 from fastapi import FastAPI
@@ -25,31 +27,53 @@ from starlette.testclient import TestClient
 import api.approvals as approvals_mod
 import api.data_import as data_import_mod
 import api.export as export_mod
+import api.feature_flags as feature_flags_mod
 import api.results_store as results_store_mod
+from api.approvals import PendingAction
+from api.database import async_session
 from api.dependencies import (
     CurrentUser,
     get_api_key,
     get_current_user_from_header,
 )
+from api.rbac import require_permission
 from api.session_stream import get_hub, reset_hub
+
+UTC = timezone.utc
 
 TENANT_A = "tenant_alpha"
 TENANT_B = "tenant_beta"
 
-USER_A = CurrentUser(
-    user_id="user_tenant_a_123",
-    username="engineer_a",
-    email="engineer_a@etap.local",
-    role="admin",
+MAKER_A = CurrentUser(
+    user_id="maker_user_123",
+    username="maker_alpha",
+    email="maker@etap.local",
+    role="engineer",
+    tenant_id=TENANT_A,
+)
+
+CHECKER_A = CurrentUser(
+    user_id="checker_user_456",
+    username="checker_alpha",
+    email="checker@etap.local",
+    role="senior_engineer",
     tenant_id=TENANT_A,
 )
 
 USER_B = CurrentUser(
-    user_id="user_tenant_b_456",
-    username="engineer_b",
+    user_id="user_tenant_b_789",
+    username="engineer_beta",
     email="engineer_b@etap.local",
     role="engineer",
     tenant_id=TENANT_B,
+)
+
+ADMIN_A = CurrentUser(
+    user_id="admin_user_001",
+    username="admin_alpha",
+    email="admin@etap.local",
+    role="admin",
+    tenant_id=TENANT_A,
 )
 
 
@@ -63,24 +87,61 @@ def result_store_dir(tmp_path, monkeypatch):
 
 @pytest.fixture
 def test_api(result_store_dir):
-    """Minimal FastAPI app with only the import, export, approvals, and results routers."""
+    """Minimal FastAPI app with only the import, export, approvals, feature flags, and results routers."""
     app = FastAPI()
     app.include_router(data_import_mod.router)
     app.include_router(export_mod.router)
     app.include_router(approvals_mod.router)
+    app.include_router(feature_flags_mod.router)
     app.include_router(results_store_mod.router)
 
-    holder = {"user": USER_A}
+    holder = {"user": MAKER_A}
 
     def _get_current():
         return holder["user"]
 
     app.dependency_overrides[get_current_user_from_header] = _get_current
     app.dependency_overrides[get_api_key] = _get_current
+    app.dependency_overrides[require_permission("export", "create")] = _get_current
+    app.dependency_overrides[require_permission("export", "list")] = _get_current
 
     reset_hub()
     client = TestClient(app)
     return {"app": app, "client": client, "holder": holder}
+
+
+async def _create_approval_action(
+    tenant_id: str,
+    requested_by: str,
+    decided_by: str | None,
+    status: str = "approved",
+    expired: bool = False,
+) -> str:
+    """Helper to insert a PendingAction directly into the database."""
+    action_id = str(uuid.uuid4())
+    now = datetime.now(UTC)
+    expires_at = now - timedelta(minutes=10) if expired else now + timedelta(minutes=10)
+
+    async with async_session() as session:
+        action = PendingAction(
+            id=action_id,
+            tenant_id=tenant_id,
+            session_id="test_sess_123",
+            tool="data_import",
+            args_hash="fake_hash",
+            risk_class="critical",
+            status="expired" if expired else status,
+            expires_at=expires_at,
+            created_at=now,
+            requested_by_user_id=requested_by,
+            requested_by_role="engineer",
+            decided_by_user_id=decided_by,
+            decided_by_role="senior_engineer" if decided_by else None,
+            args={"preview_id": "test_prev"},
+        )
+        session.add(action)
+        await session.commit()
+    return action_id
 
 
 class TestDataImportFormats:
@@ -198,14 +259,141 @@ class TestImportPreviewDryRun:
         assert data["records_count"] == 2
 
 
-class TestImportExecuteAndIdempotency:
-    """Tests for POST /api/v1/import/execute with idempotency, tenant isolation, and session streaming."""
+class TestDualControlAndApprovalsEnforcement:
+    """Tests for Maker-Checker dual control on /api/v1/import/execute."""
 
-    def test_execute_import_happy_path(self, test_api):
+    @pytest.mark.asyncio
+    async def test_execute_without_approval_id_returns_422(self, test_api):
         client = test_api["client"]
-        test_api["holder"]["user"] = USER_A
+        test_api["holder"]["user"] = MAKER_A
 
-        # 1. Preview
+        # Preview
+        model = {"buses": [{"id": "B1", "voltage_kv": 13.8}]}
+        prev_res = client.post(
+            "/api/v1/import/preview",
+            files={"file": ("net.json", json.dumps(model).encode("utf-8"), "application/json")},
+        )
+        preview_id = prev_res.json()["preview_id"]
+
+        # Execute without approval_id
+        res = client.post(
+            "/api/v1/import/execute",
+            json={"preview_id": preview_id},
+            headers={"Idempotency-Key": "idemp-no-appr-1"},
+        )
+        assert res.status_code == 422
+        assert "approval_id is required" in res.json()["detail"]
+
+    @pytest.mark.asyncio
+    async def test_execute_with_nonexistent_approval_returns_404(self, test_api):
+        client = test_api["client"]
+        test_api["holder"]["user"] = MAKER_A
+
+        model = {"buses": [{"id": "B1", "voltage_kv": 13.8}]}
+        prev_res = client.post(
+            "/api/v1/import/preview",
+            files={"file": ("net.json", json.dumps(model).encode("utf-8"), "application/json")},
+        )
+        preview_id = prev_res.json()["preview_id"]
+
+        res = client.post(
+            "/api/v1/import/execute",
+            json={"preview_id": preview_id, "approval_id": str(uuid.uuid4())},
+            headers={"Idempotency-Key": "idemp-nonexist-1"},
+        )
+        assert res.status_code == 404
+        assert "not found" in res.json()["detail"]
+
+    @pytest.mark.asyncio
+    async def test_execute_with_pending_unapproved_action_returns_403(self, test_api):
+        client = test_api["client"]
+        test_api["holder"]["user"] = MAKER_A
+
+        model = {"buses": [{"id": "B1", "voltage_kv": 13.8}]}
+        prev_res = client.post(
+            "/api/v1/import/preview",
+            files={"file": ("net.json", json.dumps(model).encode("utf-8"), "application/json")},
+        )
+        preview_id = prev_res.json()["preview_id"]
+
+        # Create PendingAction in pending state
+        action_id = await _create_approval_action(
+            tenant_id=TENANT_A,
+            requested_by=MAKER_A.user_id,
+            decided_by=None,
+            status="pending",
+        )
+
+        res = client.post(
+            "/api/v1/import/execute",
+            json={"preview_id": preview_id, "approval_id": action_id},
+            headers={"Idempotency-Key": "idemp-pending-1"},
+        )
+        assert res.status_code == 403
+        assert "Action is not approved" in res.json()["detail"]
+
+    @pytest.mark.asyncio
+    async def test_execute_with_self_approval_maker_checker_violation_returns_403(self, test_api):
+        client = test_api["client"]
+        test_api["holder"]["user"] = MAKER_A
+
+        model = {"buses": [{"id": "B1", "voltage_kv": 13.8}]}
+        prev_res = client.post(
+            "/api/v1/import/preview",
+            files={"file": ("net.json", json.dumps(model).encode("utf-8"), "application/json")},
+        )
+        preview_id = prev_res.json()["preview_id"]
+
+        # Maker self-approved
+        action_id = await _create_approval_action(
+            tenant_id=TENANT_A,
+            requested_by=MAKER_A.user_id,
+            decided_by=MAKER_A.user_id,
+            status="approved",
+        )
+
+        res = client.post(
+            "/api/v1/import/execute",
+            json={"preview_id": preview_id, "approval_id": action_id},
+            headers={"Idempotency-Key": "idemp-self-appr-1"},
+        )
+        assert res.status_code == 403
+        assert "MAKER_CHECKER_VIOLATION" in res.json()["detail"]
+
+    @pytest.mark.asyncio
+    async def test_execute_with_expired_approval_returns_410_already_resolved(self, test_api):
+        client = test_api["client"]
+        test_api["holder"]["user"] = MAKER_A
+
+        model = {"buses": [{"id": "B1", "voltage_kv": 13.8}]}
+        prev_res = client.post(
+            "/api/v1/import/preview",
+            files={"file": ("net.json", json.dumps(model).encode("utf-8"), "application/json")},
+        )
+        preview_id = prev_res.json()["preview_id"]
+
+        # Expired approval
+        action_id = await _create_approval_action(
+            tenant_id=TENANT_A,
+            requested_by=MAKER_A.user_id,
+            decided_by=CHECKER_A.user_id,
+            status="approved",
+            expired=True,
+        )
+
+        res = client.post(
+            "/api/v1/import/execute",
+            json={"preview_id": preview_id, "approval_id": action_id},
+            headers={"Idempotency-Key": "idemp-expired-1"},
+        )
+        assert res.status_code == 410
+        assert "ALREADY_RESOLVED" in res.json()["detail"]
+
+    @pytest.mark.asyncio
+    async def test_execute_with_valid_checker_approval_succeeds(self, test_api):
+        client = test_api["client"]
+        test_api["holder"]["user"] = MAKER_A
+
         model = {
             "buses": [{"id": "BUS_A", "voltage_kv": 13.8}, {"id": "BUS_B", "voltage_kv": 13.8}],
             "branches": [{"from_bus": "BUS_A", "to_bus": "BUS_B", "r_pu": 0.02, "x_pu": 0.08}],
@@ -218,15 +406,23 @@ class TestImportExecuteAndIdempotency:
         assert prev_res.status_code == 200
         preview_id = prev_res.json()["preview_id"]
 
-        # 2. Execute
+        # Valid checker approval
+        action_id = await _create_approval_action(
+            tenant_id=TENANT_A,
+            requested_by=MAKER_A.user_id,
+            decided_by=CHECKER_A.user_id,
+            status="approved",
+        )
+
         exec_res = client.post(
             "/api/v1/import/execute",
             json={
                 "preview_id": preview_id,
+                "approval_id": action_id,
                 "session_id": "sess_import_progress",
                 "project_name": "Test Import Project",
             },
-            headers={"Idempotency-Key": "idemp-key-import-001"},
+            headers={"Idempotency-Key": "idemp-valid-appr-1"},
         )
         assert exec_res.status_code == 200
         exec_data = exec_res.json()
@@ -235,31 +431,71 @@ class TestImportExecuteAndIdempotency:
         assert exec_data["records_imported"] == 3
         assert exec_data["status"] == "completed"
 
-        # Verify SessionStream events were emitted
+        # Verify SessionStream events
         hub = get_hub()
         events = hub.replay("sess_import_progress", after_seq=0)
         types = [e["type"] for e in events]
         assert "job_progress" in types
         assert "result_ready" in types
 
-        # 3. Idempotent replay
-        replay_res = client.post(
-            "/api/v1/import/execute",
-            json={
-                "preview_id": preview_id,
-                "session_id": "sess_import_progress",
-            },
-            headers={"Idempotency-Key": "idemp-key-import-001"},
-        )
-        assert replay_res.status_code == 200
-        assert replay_res.json()["import_id"] == exec_data["import_id"]
-        assert replay_res.json()["result_id"] == exec_data["result_id"]
 
-    def test_execute_cross_tenant_blocked(self, test_api):
+class TestIdempotencyAndTenantIsolation:
+    """Tests for mandatory Idempotency-Key and cross-tenant protection."""
+
+    @pytest.mark.asyncio
+    async def test_execute_missing_idempotency_key_returns_422(self, test_api):
+        client = test_api["client"]
+        res = client.post(
+            "/api/v1/import/execute",
+            json={"preview_id": "fake_id"},
+        )
+        assert res.status_code == 422  # Missing required header
+
+    @pytest.mark.asyncio
+    async def test_execute_duplicate_idempotency_key_replays_identical_response(self, test_api):
+        client = test_api["client"]
+        test_api["holder"]["user"] = MAKER_A
+
+        model = {"buses": [{"id": "BUS_1", "voltage_kv": 13.8}]}
+        prev_res = client.post(
+            "/api/v1/import/preview",
+            files={"file": ("model.json", json.dumps(model).encode("utf-8"), "application/json")},
+        )
+        preview_id = prev_res.json()["preview_id"]
+
+        action_id = await _create_approval_action(
+            tenant_id=TENANT_A,
+            requested_by=MAKER_A.user_id,
+            decided_by=CHECKER_A.user_id,
+            status="approved",
+        )
+
+        idemp_key = f"idemp-dup-{uuid.uuid4().hex}"
+
+        # 1. First call
+        exec1 = client.post(
+            "/api/v1/import/execute",
+            json={"preview_id": preview_id, "approval_id": action_id},
+            headers={"Idempotency-Key": idemp_key},
+        )
+        assert exec1.status_code == 200
+
+        # 2. Replay call
+        exec2 = client.post(
+            "/api/v1/import/execute",
+            json={"preview_id": preview_id, "approval_id": action_id},
+            headers={"Idempotency-Key": idemp_key},
+        )
+        assert exec2.status_code == 200
+        assert exec2.json()["import_id"] == exec1.json()["import_id"]
+        assert exec2.json()["result_id"] == exec1.json()["result_id"]
+
+    @pytest.mark.asyncio
+    async def test_execute_cross_tenant_preview_blocked(self, test_api):
         client = test_api["client"]
 
         # Tenant A previews
-        test_api["holder"]["user"] = USER_A
+        test_api["holder"]["user"] = MAKER_A
         model = {"buses": [{"id": "BUS_A1"}]}
         prev_res = client.post(
             "/api/v1/import/preview",
@@ -268,11 +504,19 @@ class TestImportExecuteAndIdempotency:
         assert prev_res.status_code == 200
         preview_id = prev_res.json()["preview_id"]
 
+        action_id = await _create_approval_action(
+            tenant_id=TENANT_A,
+            requested_by=MAKER_A.user_id,
+            decided_by=CHECKER_A.user_id,
+            status="approved",
+        )
+
         # Tenant B attempts to execute Tenant A's preview
         test_api["holder"]["user"] = USER_B
         exec_res = client.post(
             "/api/v1/import/execute",
-            json={"preview_id": preview_id},
+            json={"preview_id": preview_id, "approval_id": action_id},
+            headers={"Idempotency-Key": "idemp-cross-1"},
         )
         assert exec_res.status_code == 403
         assert "different tenant" in exec_res.json()["detail"]
@@ -295,5 +539,30 @@ class TestExportEndpointsAndFormats:
 
     def test_export_missing_project_returns_404(self, test_api):
         client = test_api["client"]
+        test_api["holder"]["user"] = ADMIN_A
         res = client.post(f"/api/v1/export/{uuid.uuid4()}/pdf")
         assert res.status_code == 404
+
+
+class TestFeatureFlagsFailClosed:
+    """Tests for fail-closed behavior when feature flags are disabled in production."""
+
+    def test_import_disabled_in_prod_returns_403(self, test_api, monkeypatch):
+        monkeypatch.setenv("ENV", "production")
+        monkeypatch.setenv("FEATURE_FLAG_DATA_IMPORT", "false")
+        client = test_api["client"]
+        res = client.post(
+            "/api/v1/import/preview",
+            files={"file": ("model.json", b"{}", "application/json")},
+        )
+        assert res.status_code == 403
+        assert "Data import feature is disabled" in res.json()["detail"]
+
+    def test_export_disabled_in_prod_returns_403(self, test_api, monkeypatch):
+        monkeypatch.setenv("ENV", "production")
+        monkeypatch.setenv("FEATURE_FLAG_DATA_EXPORT", "false")
+        client = test_api["client"]
+        test_api["holder"]["user"] = ADMIN_A
+        res = client.post(f"/api/v1/export/{uuid.uuid4()}/pdf")
+        assert res.status_code == 403
+        assert "Data export feature is disabled" in res.json()["detail"]

@@ -57,6 +57,7 @@ except (ImportError, ModuleNotFoundError):
 
 from fastapi import APIRouter, Depends, File, Form, Header, HTTPException, UploadFile, status
 from pydantic import BaseModel, Field
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.database import get_db
@@ -105,6 +106,23 @@ _EXECUTABLE_SIGNATURES = (
 _previews_lock = threading.Lock()
 _pending_previews: Dict[str, Dict[str, Any]] = {}
 _PREVIEW_TTL_SECONDS = 1800  # 30 minutes
+
+
+def _assess_risk_level(records_count: int, has_errors: bool) -> str:
+    """Determine risk level based on model size and parse errors."""
+    if has_errors or records_count > 2000:
+        return "high"
+    if records_count > 500:
+        return "medium"
+    return "low"
+
+
+def _prune_expired_previews() -> None:
+    """Remove previews that have exceeded the TTL."""
+    now_time = time.time()
+    expired = [k for k, v in _pending_previews.items() if now_time - v.get("created_at", 0) > _PREVIEW_TTL_SECONDS]
+    for k in expired:
+        _pending_previews.pop(k, None)
 
 
 # ---------------------------------------------------------------------------
@@ -831,44 +849,32 @@ async def preview_import(
     # Calculate risk level
     if errors:
         risk_level = "high"
-    elif total_records > 2000 or len(warnings) > 5:
-        risk_level = "high"
-    elif total_records > 500 or len(warnings) > 0:
-        risk_level = "medium"
-    else:
-        risk_level = "low"
+    risk_level = _assess_risk_level(total_records, bool(errors))
 
     preview_id = f"imp_prev_{uuid.uuid4().hex}"
     now_iso = datetime.now(UTC).isoformat()
 
-    preview_record = {
-        "preview_id": preview_id,
-        "tenant_id": user.tenant_id or "default",
-        "user_id": user.user_id,
-        "format": fmt.id,
-        "filename": safe_filename,
-        "file_size_bytes": len(content),
-        "records_count": total_records,
-        "buses_count": len(buses),
-        "branches_count": len(branches),
-        "buses": [b.model_dump() for b in buses],
-        "branches": [br.model_dump() for br in branches],
-        "metadata": metadata,
-        "warnings": warnings,
-        "errors": errors,
-        "risk_level": risk_level,
-        "created_at": time.time(),
-    }
-
     with _previews_lock:
-        # Cleanup expired previews
-        now_time = time.time()
-        expired_keys = [k for k, v in _pending_previews.items() if now_time - v.get("created_at", 0) > _PREVIEW_TTL_SECONDS]
-        for k in expired_keys:
-            _pending_previews.pop(k, None)
-        _pending_previews[preview_id] = preview_record
+        _prune_expired_previews()
+        _pending_previews[preview_id] = {
+            "preview_id": preview_id,
+            "tenant_id": user.tenant_id or "default",
+            "format": fmt.id,
+            "filename": safe_filename,
+            "file_size_bytes": len(content),
+            "buses": [b.model_dump() for b in buses],
+            "branches": [br.model_dump() for br in branches],
+            "metadata": metadata,
+            "records_count": total_records,
+            "buses_count": len(buses),
+            "branches_count": len(branches),
+            "warnings": warnings,
+            "errors": errors,
+            "requires_approval": True,
+            "created_at": time.time(),
+        }
 
-    # Audit event
+    # Record Audit
     record_approval_event(
         "IMPORT_PREVIEW",
         preview_id,
@@ -880,19 +886,6 @@ async def preview_import(
             "risk_level": risk_level,
         },
     )
-
-    if session_id:
-        hub = get_hub()
-        hub.publish(
-            session_id,
-            EVENT_JOB_PROGRESS,
-            {
-                "phase": "validating",
-                "pct": 100,
-                "tool": "data_import_preview",
-                "records": total_records,
-            },
-        )
 
     return ImportPreviewResponse(
         success=len(errors) == 0,
@@ -915,19 +908,44 @@ async def preview_import(
 @router.post(
     "/execute",
     response_model=ImportExecuteResponse,
-    summary="Execute an approved import operation",
+    summary="Execute a previewed import into ResultStore with Maker-Checker dual control and session streaming.",
 )
 async def execute_import(
     body: ImportExecuteRequest,
     db: AsyncSession = Depends(get_db),
     user: CurrentUser = Depends(get_current_user_from_header),
-    idempotency_key: Optional[str] = Header(default=None, alias="Idempotency-Key"),
+    idempotency_key: str = Header(..., alias="Idempotency-Key", description="Mandatory Idempotency-Key header"),
 ) -> Any:
-    """Execute a previewed import into the ResultStore with Dual-Control and streaming progress."""
-    from api.approvals import _replay_idempotent, _store_idempotent
+    """Execute a previewed import into ResultStore with Maker-Checker dual control and session streaming.
+
+    Security & Governance:
+    - Feature flag: Checked via is_feature_enabled("data_import", default=False)
+    - Idempotency-Key: Mandatory HTTP header (422 if omitted); replays identical response if duplicate
+    - Approval verification (Maker-Checker): If preview.requires_approval is True:
+        * approval_id must be provided (422 if missing)
+        * Must match a valid PendingAction in database (404 if not found)
+        * Must belong to the same tenant (403 if cross-tenant)
+        * Must be in 'approved' state (403 if pending/rejected)
+        * Must not be expired (410 ALREADY_RESOLVED if expires_at < now or status='expired')
+        * Maker != Checker enforcement: decided_by_user_id must exist and != requested_by_user_id (403 MAKER_CHECKER_VIOLATION if violated)
+    - Streaming progress events: Broadcasted via SessionStreamHub (validating -> parsing -> persisting -> completed)
+    - Persistent audit: Audited via record_approval_event
+    """
+    if not is_feature_enabled("data_import", default=False):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Data import feature is disabled",
+        )
+
+    from api.approvals import (
+        PendingAction,
+        _norm_tenant,
+        _replay_idempotent,
+        _store_idempotent,
+    )
 
     endpoint = "POST /api/v1/import/execute"
-    replay = await _replay_idempotent(db, idempotency_key, endpoint, user.tenant_id)
+    replay = await _replay_idempotent(db, idempotency_key, endpoint, user.tenant_id or "default")
     if replay is not None:
         return replay
 
@@ -947,19 +965,73 @@ async def execute_import(
             detail="Preview belongs to a different tenant",
         )
 
+    # Dual-control approval enforcement
+    if preview.get("requires_approval", True):
+        if not body.approval_id:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="approval_id is required to execute this import",
+            )
+
+        stmt = select(PendingAction).where(PendingAction.id == body.approval_id)
+        action_res = await db.execute(stmt)
+        action = action_res.scalar_one_or_none()
+
+        if action is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Approval action '{body.approval_id}' not found",
+            )
+
+        if _norm_tenant(action.tenant_id) != _norm_tenant(user.tenant_id or preview.get("tenant_id")):
+            record_approval_event(
+                "CROSS_TENANT_FORBIDDEN",
+                action.id,
+                user.user_id,
+                {"preview_id": body.preview_id, "user_tenant": user.tenant_id, "action_tenant": action.tenant_id},
+            )
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Cross-tenant approval access forbidden",
+            )
+
+        now = datetime.now(UTC)
+        expires_at = action.expires_at
+        if expires_at.tzinfo is None:
+            expires_at = expires_at.replace(tzinfo=UTC)
+
+        if expires_at < now or action.status == "expired":
+            record_approval_event("EXPIRED", action.id, user.user_id, {"preview_id": body.preview_id})
+            raise HTTPException(
+                status_code=status.HTTP_410_GONE,
+                detail="ALREADY_RESOLVED: Approval action has expired",
+            )
+
+        if action.status != "approved":
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Action is not approved (current status: {action.status})",
+            )
+
+        if not action.decided_by_user_id or action.decided_by_user_id == action.requested_by_user_id:
+            record_approval_event(
+                "MAKER_CHECKER_VIOLATION",
+                action.id,
+                user.user_id,
+                {"requested_by": action.requested_by_user_id, "decided_by": action.decided_by_user_id},
+            )
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="MAKER_CHECKER_VIOLATION: Maker cannot approve their own action",
+            )
+
     hub = get_hub()
     session_id = body.session_id
 
-    # Progress: validating
+    # Progress streaming: phase-based progress events
     if session_id:
         hub.publish(session_id, EVENT_JOB_PROGRESS, {"phase": "validating", "pct": 25, "tool": "data_import"})
-
-    # Progress: parsing
-    if session_id:
         hub.publish(session_id, EVENT_JOB_PROGRESS, {"phase": "parsing", "pct": 50, "tool": "data_import"})
-
-    # Progress: persisting
-    if session_id:
         hub.publish(session_id, EVENT_JOB_PROGRESS, {"phase": "persisting", "pct": 80, "tool": "data_import"})
 
     summary = {
@@ -1022,6 +1094,7 @@ async def execute_import(
         {
             "result_id": result_id,
             "preview_id": body.preview_id,
+            "approval_id": body.approval_id,
             "records_imported": preview["records_count"],
         },
     )
@@ -1037,7 +1110,7 @@ async def execute_import(
         "executed_at": now_iso,
     }
 
-    await _store_idempotent(db, idempotency_key, endpoint, user.tenant_id, response_payload)
+    await _store_idempotent(db, idempotency_key, endpoint, user.tenant_id or "default", response_payload)
     return response_payload
 
 

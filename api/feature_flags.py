@@ -56,6 +56,18 @@ DEFAULT_FEATURE_FLAGS: dict[str, dict[str, Any]] = {
         "status": "alpha",
         "description": "OPF (economic dispatch) - experimental",
     },
+    "data_import": {
+        "enabled": False,
+        "status": "beta",
+        "description": "In-chat power system data import (P9) - fail-closed by default",
+        "rollout_percentage": 0,
+    },
+    "data_export": {
+        "enabled": False,
+        "status": "beta",
+        "description": "In-chat power system data export (P9) - fail-closed by default",
+        "rollout_percentage": 0,
+    },
 }
 
 FEATURE_FLAGS = DEFAULT_FEATURE_FLAGS

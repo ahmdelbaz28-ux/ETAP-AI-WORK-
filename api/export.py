@@ -335,7 +335,7 @@ async def export_pdf(
     idempotency_key: Optional[str] = Header(default=None, alias="Idempotency-Key"),
 ):
     """Export study results as PDF."""
-    if not is_feature_enabled("data_export", default=True):
+    if not is_feature_enabled("data_export", default=False):
         raise HTTPException(status_code=403, detail="Data export feature is disabled")
 
     user: CurrentUser = auth[0] if isinstance(auth, tuple) else auth
@@ -410,7 +410,7 @@ async def export_excel(
     idempotency_key: Optional[str] = Header(default=None, alias="Idempotency-Key"),
 ):
     """Export study results as Excel."""
-    if not is_feature_enabled("data_export", default=True):
+    if not is_feature_enabled("data_export", default=False):
         raise HTTPException(status_code=403, detail="Data export feature is disabled")
 
     user: CurrentUser = auth[0] if isinstance(auth, tuple) else auth
@@ -483,7 +483,7 @@ async def export_csv(
     auth=Depends(require_permission("export", "create")),
 ):
     """Export study results as CSV."""
-    if not is_feature_enabled("data_export", default=True):
+    if not is_feature_enabled("data_export", default=False):
         raise HTTPException(status_code=403, detail="Data export feature is disabled")
 
     user: CurrentUser = auth[0] if isinstance(auth, tuple) else auth
@@ -526,7 +526,7 @@ async def export_json(
     auth=Depends(require_permission("export", "create")),
 ):
     """Export study results as JSON."""
-    if not is_feature_enabled("data_export", default=True):
+    if not is_feature_enabled("data_export", default=False):
         raise HTTPException(status_code=403, detail="Data export feature is disabled")
 
     user: CurrentUser = auth[0] if isinstance(auth, tuple) else auth
