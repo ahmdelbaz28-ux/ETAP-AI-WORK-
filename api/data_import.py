@@ -332,18 +332,16 @@ def _validate_magic_bytes(fmt_id: str, content: bytes) -> None:
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Invalid XML signature: file must start with '<'",
             )
-    elif fmt_id == "csv":
-        if b"\x00" in content[:4096]:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Binary files are not valid CSV",
-            )
-    elif fmt_id in ("psse-raw", "matpower"):
-        if b"\x00" in content[:4096]:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Binary files are not valid {fmt_id.upper()} format",
-            )
+    elif fmt_id == "csv" and b"\x00" in content[:4096]:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Binary files are not valid CSV",
+        )
+    elif fmt_id in ("psse-raw", "matpower") and b"\x00" in content[:4096]:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Binary files are not valid {fmt_id.upper()} format",
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -910,6 +908,98 @@ async def preview_import(
     )
 
 
+async def _validate_import_approval(
+    preview: dict[str, Any],
+    body: ImportExecuteRequest,
+    user: CurrentUser,
+    db: AsyncSession,
+) -> Optional[PendingAction]:
+    """Validate Maker-Checker dual control constraints for import execution."""
+    if not preview.get("requires_approval", True):
+        return None
+
+    if not body.approval_id:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="approval_id is required to execute this import",
+        )
+
+    stmt = select(PendingAction).where(PendingAction.id == body.approval_id)
+    action_res = await db.execute(stmt)
+    action = action_res.scalar_one_or_none()
+
+    if action is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Approval action '{body.approval_id}' not found",
+        )
+
+    if _norm_tenant(action.tenant_id) != _norm_tenant(user.tenant_id or preview.get("tenant_id")):
+        record_approval_event(
+            "CROSS_TENANT_FORBIDDEN",
+            action.id,
+            user.user_id,
+            {"preview_id": body.preview_id, "user_tenant": user.tenant_id, "action_tenant": action.tenant_id},
+        )
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Cross-tenant approval access forbidden",
+        )
+
+    now = datetime.now(UTC)
+    expires_at = action.expires_at
+    if expires_at.tzinfo is None:
+        expires_at = expires_at.replace(tzinfo=UTC)
+
+    if expires_at < now or action.status == "expired":
+        record_approval_event("EXPIRED", action.id, user.user_id, {"preview_id": body.preview_id})
+        raise HTTPException(
+            status_code=status.HTTP_410_GONE,
+            detail="ALREADY_RESOLVED: Approval action has expired",
+        )
+
+    if action.status in ("resolved", "consumed", "completed"):
+        record_approval_event("ALREADY_CONSUMED", action.id, user.user_id, {"preview_id": body.preview_id})
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"Approval action '{body.approval_id}' has already been resolved/consumed and cannot be reused",
+        )
+
+    if action.status != "approved":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"Action is not approved (current status: {action.status})",
+        )
+
+    if isinstance(action.args, dict) and action.args.get("preview_id"):
+        bound_preview = action.args["preview_id"]
+        if bound_preview != body.preview_id:
+            record_approval_event(
+                "PREVIEW_MISMATCH",
+                action.id,
+                user.user_id,
+                {"expected_preview_id": bound_preview, "actual_preview_id": body.preview_id},
+            )
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Approval action '{body.approval_id}' is bound to preview '{bound_preview}', not '{body.preview_id}'",
+            )
+
+    if not action.decided_by_user_id or action.decided_by_user_id == action.requested_by_user_id:
+        record_approval_event(
+            "MAKER_CHECKER_VIOLATION",
+            action.id,
+            user.user_id,
+            {"requested_by": action.requested_by_user_id, "decided_by": action.decided_by_user_id},
+        )
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="MAKER_CHECKER_VIOLATION: Maker cannot approve their own action",
+        )
+
+    return action
+
+
 @router.post(
     "/execute",
     response_model=ImportExecuteResponse,
@@ -921,24 +1011,7 @@ async def execute_import(
     user: CurrentUser = Depends(get_current_user_from_header),
     idempotency_key: str = Header(..., alias="Idempotency-Key", description="Mandatory Idempotency-Key header"),
 ) -> Any:
-    """Execute a previewed import into ResultStore with Maker-Checker dual control and session streaming.
-
-    Security & Governance:
-    - Feature flag: Checked via is_feature_enabled("data_import", default=False)
-    - Idempotency-Key: Mandatory HTTP header (422 if omitted); replays identical response if duplicate
-    - Approval verification (Maker-Checker): If preview.requires_approval is True:
-        * approval_id must be provided (422 if missing)
-        * Must match a valid PendingAction in database (404 if not found)
-        * Must belong to the same tenant (403 if cross-tenant)
-        * Single-use enforcement: action must not have been previously resolved/consumed (403 if resolved/consumed)
-        * Preview binding: if action.args specifies preview_id, must match target preview_id (403 if mismatch)
-        * Must be in 'approved' state (403 if pending/rejected)
-        * Must not be expired (410 ALREADY_RESOLVED if expires_at < now or status='expired')
-        * Maker != Checker enforcement: decided_by_user_id must exist and != requested_by_user_id (403 MAKER_CHECKER_VIOLATION if violated)
-    - Approval Consumption: On successful execution, PendingAction transitions to status='resolved' and APPROVAL_CONSUMED audit event is logged.
-    - Streaming progress events: Broadcasted via SessionStreamHub (validating -> parsing -> persisting -> completed)
-    - Persistent audit: Audited via record_approval_event
-    """
+    """Execute a previewed import into ResultStore with Maker-Checker dual control and session streaming."""
     if not is_feature_enabled("data_import", default=False):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -973,88 +1046,8 @@ async def execute_import(
             detail="Preview belongs to a different tenant",
         )
 
-    action: Optional[PendingAction] = None
-
     # Dual-control approval enforcement
-    if preview.get("requires_approval", True):
-        if not body.approval_id:
-            raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                detail="approval_id is required to execute this import",
-            )
-
-        stmt = select(PendingAction).where(PendingAction.id == body.approval_id)
-        action_res = await db.execute(stmt)
-        action = action_res.scalar_one_or_none()
-
-        if action is None:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Approval action '{body.approval_id}' not found",
-            )
-
-        if _norm_tenant(action.tenant_id) != _norm_tenant(user.tenant_id or preview.get("tenant_id")):
-            record_approval_event(
-                "CROSS_TENANT_FORBIDDEN",
-                action.id,
-                user.user_id,
-                {"preview_id": body.preview_id, "user_tenant": user.tenant_id, "action_tenant": action.tenant_id},
-            )
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Cross-tenant approval access forbidden",
-            )
-
-        now = datetime.now(UTC)
-        expires_at = action.expires_at
-        if expires_at.tzinfo is None:
-            expires_at = expires_at.replace(tzinfo=UTC)
-
-        if expires_at < now or action.status == "expired":
-            record_approval_event("EXPIRED", action.id, user.user_id, {"preview_id": body.preview_id})
-            raise HTTPException(
-                status_code=status.HTTP_410_GONE,
-                detail="ALREADY_RESOLVED: Approval action has expired",
-            )
-
-        if action.status in ("resolved", "consumed", "completed"):
-            record_approval_event("ALREADY_CONSUMED", action.id, user.user_id, {"preview_id": body.preview_id})
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"Approval action '{body.approval_id}' has already been resolved/consumed and cannot be reused",
-            )
-
-        if action.status != "approved":
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"Action is not approved (current status: {action.status})",
-            )
-
-        if isinstance(action.args, dict) and action.args.get("preview_id"):
-            bound_preview = action.args["preview_id"]
-            if bound_preview != body.preview_id:
-                record_approval_event(
-                    "PREVIEW_MISMATCH",
-                    action.id,
-                    user.user_id,
-                    {"expected_preview_id": bound_preview, "actual_preview_id": body.preview_id},
-                )
-                raise HTTPException(
-                    status_code=status.HTTP_403_FORBIDDEN,
-                    detail=f"Approval action '{body.approval_id}' is bound to preview '{bound_preview}', not '{body.preview_id}'",
-                )
-
-        if not action.decided_by_user_id or action.decided_by_user_id == action.requested_by_user_id:
-            record_approval_event(
-                "MAKER_CHECKER_VIOLATION",
-                action.id,
-                user.user_id,
-                {"requested_by": action.requested_by_user_id, "decided_by": action.decided_by_user_id},
-            )
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="MAKER_CHECKER_VIOLATION: Maker cannot approve their own action",
-            )
+    action = await _validate_import_approval(preview, body, user, db)
 
     hub = get_hub()
     session_id = body.session_id

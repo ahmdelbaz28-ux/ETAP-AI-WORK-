@@ -303,10 +303,10 @@ async def _anthropic_upstream_tokens(
             )
         async for line in resp.aiter_lines():
             line = line.strip()
-            if not line.startswith("data:"):
+            if not line.startswith(SSE_DATA_PREFIX):
                 continue
             try:
-                parsed = json.loads(line[len("data:") :].strip())
+                parsed = json.loads(line[len(SSE_DATA_PREFIX) :].strip())
             except ValueError:
                 continue
             event_type = parsed.get("type")
@@ -329,7 +329,7 @@ _UPSTREAM_ADAPTERS = {
 
 # ─── SSE envelope helpers ──────────────────────────────────────────────────
 def _sse(event: str, data: dict) -> str:
-    return f"event: {event}\ndata: {json.dumps(data, ensure_ascii=False)}\n\n"
+    return f"event: {event}\n{SSE_DATA_PREFIX} {json.dumps(data, ensure_ascii=False)}\n\n"
 
 
 async def _chat_event_stream(

@@ -1407,7 +1407,7 @@ class ETAPAutomation:
             logger.warning("Invalid project path type or empty")
             return False
 
-        safe_name = pathlib.Path(file_path).name
+        safe_name = re.sub(r"[^A-Za-z0-9._-]", "_", os.path.basename(file_path))[:64] or "unknown"
 
         if len(file_path) > MAX_PROJECT_PATH_LENGTH:
             logger.warning(
@@ -1438,23 +1438,18 @@ class ETAPAutomation:
             logger.warning("UNC path not allowed (SMB relay risk) for file %s", safe_name)
             return False
 
-        normalised = pathlib.Path(os.path.normpath(clean_path))
-        try:
-            if not normalised.is_absolute():
-                normalised = cwd / normalised
-            resolved = normalised.resolve(strict=False)
-        except (ValueError, RuntimeError):
-            logger.warning("Invalid path format for file %s", safe_name)
-            return False
+        normalised_str = os.path.normpath(clean_path)
+        if os.path.isabs(normalised_str):
+            abs_str = os.path.abspath(normalised_str)
+        else:
+            abs_str = os.path.abspath(os.path.join(str(cwd), normalised_str))
+        resolved = pathlib.Path(abs_str)
 
-        try:
-            resolved.relative_to(cwd)
-        except ValueError:
-            try:
-                resolved.relative_to(home)
-            except ValueError:
-                logger.warning("Project path escapes CWD and HOME for file %s", safe_name)
-                return False
+        is_in_cwd = os.path.commonpath([str(cwd), abs_str]) == str(cwd)
+        is_in_home = os.path.commonpath([str(home), abs_str]) == str(home)
+        if not (is_in_cwd or is_in_home):
+            logger.warning("Project path escapes CWD and HOME for file %s", safe_name)
+            return False
 
         if self._allowed_project_dirs:
             is_allowed = any(

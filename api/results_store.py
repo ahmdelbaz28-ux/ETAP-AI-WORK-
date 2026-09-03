@@ -169,7 +169,8 @@ class ResultFileRecord(Base):
 
 def _safe_component(value: str, fallback: str) -> str:
     """Sanitize a tenant/result key so it can never escape its directory."""
-    sanitized = re.sub(r"[^A-Za-z0-9._-]", "_", value or "").strip(".")
+    cleaned = os.path.basename(str(value or "").strip().replace("\\", "/"))
+    sanitized = re.sub(r"[^A-Za-z0-9._-]", "_", cleaned).strip(".").strip()
     return sanitized or fallback
 
 
@@ -206,8 +207,8 @@ def _validate_file_path(rel_path: str) -> str:
         raise HTTPException(status_code=400, detail=ERR_INVALID_FILE_PATH)
     if _ABSOLUTE_PATH_RE.match(candidate):
         raise HTTPException(status_code=400, detail="Absolute paths are not allowed")
-    segments = candidate.split("/")
-    if any(seg in ("", ".", "..") for seg in segments):
+    raw_segments = candidate.split("/")
+    if any(seg in ("", ".", "..") for seg in raw_segments):
         raise HTTPException(status_code=400, detail="Path traversal is not allowed")
     if "//" in candidate or candidate.endswith("/"):
         raise HTTPException(status_code=400, detail=ERR_INVALID_FILE_PATH)
@@ -219,9 +220,10 @@ def _validate_file_path(rel_path: str) -> str:
 def _is_within(base: Path, candidate: Path) -> bool:
     """True when *candidate* (resolved) is strictly inside *base* (resolved)."""
     try:
-        candidate.resolve().relative_to(base.resolve())
-        return True
-    except ValueError:
+        base_resolved = os.path.abspath(str(base))
+        candidate_resolved = os.path.abspath(str(candidate))
+        return os.path.commonpath([base_resolved, candidate_resolved]) == base_resolved
+    except (ValueError, Exception):
         return False
 
 
@@ -393,8 +395,8 @@ async def store_result_file(
         await loop.run_in_executor(None, _write_file_sync, tmp_target, target, bytes(data))
     except Exception:
         with contextlib.suppress(Exception):
-            if os.path.exists(str(tmp_target)):
-                os.remove(str(tmp_target))
+            if _is_within(rdir, tmp_target) and tmp_target.is_file():
+                tmp_target.unlink()
         logger.exception("result_file_write_failed result_id=%s", _safe_component(result_id, "unknown"))
         raise HTTPException(status_code=500, detail="File storage failed")
 
@@ -414,8 +416,8 @@ async def store_result_file(
     except Exception:
         # DB commit failed — remove the physical file so nothing is orphaned.
         with contextlib.suppress(Exception):
-            if os.path.exists(str(target)):
-                os.remove(str(target))
+            if _is_within(rdir, target) and target.is_file():
+                target.unlink()
         logger.exception("result_file_db_commit_failed result_id=%s", _safe_component(result_id, "unknown"))
         raise HTTPException(status_code=500, detail="File metadata persistence failed")
     return file_id
@@ -468,7 +470,7 @@ async def delete_result(tenant_id: str, result_id: str) -> bool:
 
     # Remove physical directory first
     rdir = _result_dir(tenant_id, result_id)
-    if rdir.exists() and rdir.is_dir():
+    if _is_within(_storage_root(), rdir) and rdir.exists() and rdir.is_dir():
         shutil.rmtree(str(rdir), ignore_errors=True)
 
     # Delete DB row (cascades to result_files)

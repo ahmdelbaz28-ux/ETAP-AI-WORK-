@@ -79,10 +79,11 @@ export function MessageInput({
       if (busy || (!trimmed && !selectedFile)) return;
       const sendFn = typeof onSend === "function" ? onSend : storeSend;
       setSending(true);
-      try {
-        const payloadText = selectedFile
-          ? `${trimmed ? trimmed + " " : ""}[Attached: ${selectedFile.name}]`
-          : trimmed;
+        let payloadText = trimmed;
+        if (selectedFile) {
+          const prefix = trimmed ? `${trimmed} ` : "";
+          payloadText = `${prefix}[Attached: ${selectedFile.name}]`;
+        }
         const ok = await sendFn(payloadText);
         if (ok) {
           setDraft("");

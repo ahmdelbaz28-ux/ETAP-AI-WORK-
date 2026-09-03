@@ -240,7 +240,7 @@ async def list_mcp_servers(
         servers: list[dict[str, Any]] = []
         for sid, scfg in servers_raw.items():
             env = scfg.get("env", {}) or {}
-            redacted_env = {k: "***REDACTED***" for k in env}
+            redacted_env = dict.fromkeys(env, "***REDACTED***")
 
             servers.append(
                 {
@@ -1147,13 +1147,14 @@ class _PinnedAddressBackend:
 
     def connect_tcp(
         self,
-        _host: str,
+        host: str,  # NOSONAR: keyword argument required by httpcore interface contract
         port: int,
         timeout: Any = None,
         local_address: Any = None,
         socket_options: Any = None,
     ) -> Any:
-        # ``_host`` is deliberately IGNORED: connections must be made to the
+        _ = host  # deliberate: connections must be made to validated destination only
+        # ``host`` is deliberately IGNORED: connections must be made to the
         # validated destination, never to a fresh (re)resolution of it.
         if not self._pinned_ips:
             raise OSError("No validated IP address available for connection")

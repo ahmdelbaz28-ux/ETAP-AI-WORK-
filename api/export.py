@@ -61,6 +61,10 @@ from api.results_store import (
 logger = logging.getLogger("api.export")
 UTC = timezone.utc
 
+MIME_PDF = "application/pdf"
+MIME_EXCEL = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+ERR_EXPORT_DISABLED = "Data export feature is disabled"
+
 
 def _sanitize_filename(name: str, max_length: int = 64) -> str:
     """Sanitize a string for use in a Content-Disposition filename."""
@@ -124,14 +128,14 @@ EXPORT_FORMATS: list[ExportFormat] = [
     ExportFormat(
         id="pdf",
         name="PDF Report",
-        mime_type="application/pdf",
+        mime_type=MIME_PDF,
         extension=".pdf",
         description="Comprehensive formatted engineering report with tables and diagrams",
     ),
     ExportFormat(
         id="excel",
         name="Excel Workbook",
-        mime_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        mime_type=MIME_EXCEL,
         extension=".xlsx",
         description="Structured study results and bus/branch matrices in XLSX format",
     ),
@@ -327,7 +331,13 @@ async def list_export_formats() -> list[ExportFormat]:
     return EXPORT_FORMATS
 
 
-@router.post("/{project_id}/pdf", responses={404: {"description": MSG_PROJECT_NOT_FOUND}})
+@router.post(
+    "/{project_id}/pdf",
+    responses={
+        403: {"description": ERR_EXPORT_DISABLED},
+        404: {"description": MSG_PROJECT_NOT_FOUND},
+    },
+)
 async def export_pdf(
     project_id: str,
     db: AsyncSession = Depends(get_db),
@@ -336,7 +346,7 @@ async def export_pdf(
 ):
     """Export study results as PDF."""
     if not is_feature_enabled("data_export", default=False):
-        raise HTTPException(status_code=403, detail="Data export feature is disabled")
+        raise HTTPException(status_code=403, detail=ERR_EXPORT_DISABLED)
 
     user: CurrentUser = auth[0] if isinstance(auth, tuple) else auth
     project = await _load_owned_project(project_id, user, db)
@@ -366,7 +376,7 @@ async def export_pdf(
             result_id=result_id,
             rel_path=file_name,
             data=pdf_bytes,
-            mime="application/pdf",
+            mime=MIME_PDF,
         )
     except Exception:
         logger.debug("Failed to store export in ResultStore", exc_info=True)
@@ -397,12 +407,18 @@ async def export_pdf(
 
     return StreamingResponse(
         io.BytesIO(pdf_bytes),
-        media_type="application/pdf",
+        media_type=MIME_PDF,
         headers=headers,
     )
 
 
-@router.post("/{project_id}/excel", responses={404: {"description": MSG_PROJECT_NOT_FOUND}})
+@router.post(
+    "/{project_id}/excel",
+    responses={
+        403: {"description": ERR_EXPORT_DISABLED},
+        404: {"description": MSG_PROJECT_NOT_FOUND},
+    },
+)
 async def export_excel(
     project_id: str,
     db: AsyncSession = Depends(get_db),
@@ -411,7 +427,7 @@ async def export_excel(
 ):
     """Export study results as Excel."""
     if not is_feature_enabled("data_export", default=False):
-        raise HTTPException(status_code=403, detail="Data export feature is disabled")
+        raise HTTPException(status_code=403, detail=ERR_EXPORT_DISABLED)
 
     user: CurrentUser = auth[0] if isinstance(auth, tuple) else auth
     project = await _load_owned_project(project_id, user, db)
@@ -440,7 +456,7 @@ async def export_excel(
             result_id=result_id,
             rel_path=file_name,
             data=excel_bytes,
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            mime=MIME_EXCEL,
         )
     except Exception:
         logger.debug("Failed to store excel export in ResultStore", exc_info=True)
@@ -471,12 +487,18 @@ async def export_excel(
 
     return StreamingResponse(
         io.BytesIO(excel_bytes),
-        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        media_type=MIME_EXCEL,
         headers=headers,
     )
 
 
-@router.post("/{project_id}/csv", responses={404: {"description": MSG_PROJECT_NOT_FOUND}})
+@router.post(
+    "/{project_id}/csv",
+    responses={
+        403: {"description": ERR_EXPORT_DISABLED},
+        404: {"description": MSG_PROJECT_NOT_FOUND},
+    },
+)
 async def export_csv(
     project_id: str,
     db: AsyncSession = Depends(get_db),
@@ -484,7 +506,7 @@ async def export_csv(
 ):
     """Export study results as CSV."""
     if not is_feature_enabled("data_export", default=False):
-        raise HTTPException(status_code=403, detail="Data export feature is disabled")
+        raise HTTPException(status_code=403, detail=ERR_EXPORT_DISABLED)
 
     user: CurrentUser = auth[0] if isinstance(auth, tuple) else auth
     project = await _load_owned_project(project_id, user, db)
@@ -519,7 +541,13 @@ async def export_csv(
     )
 
 
-@router.post("/{project_id}/json", responses={404: {"description": MSG_PROJECT_NOT_FOUND}})
+@router.post(
+    "/{project_id}/json",
+    responses={
+        403: {"description": ERR_EXPORT_DISABLED},
+        404: {"description": MSG_PROJECT_NOT_FOUND},
+    },
+)
 async def export_json(
     project_id: str,
     db: AsyncSession = Depends(get_db),
@@ -527,7 +555,7 @@ async def export_json(
 ):
     """Export study results as JSON."""
     if not is_feature_enabled("data_export", default=False):
-        raise HTTPException(status_code=403, detail="Data export feature is disabled")
+        raise HTTPException(status_code=403, detail=ERR_EXPORT_DISABLED)
 
     user: CurrentUser = auth[0] if isinstance(auth, tuple) else auth
     project = await _load_owned_project(project_id, user, db)

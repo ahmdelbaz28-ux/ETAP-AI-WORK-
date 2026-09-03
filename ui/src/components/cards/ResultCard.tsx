@@ -29,27 +29,34 @@ export function ResultCard({ result }: ResultCardProps) {
   const isImport = result.tool === "data_import" || result.tool === "import";
   const isExport = result.tool === "data_export" || result.tool === "export";
 
-  const cardTitle = isImport
-    ? "Data Import Result"
-    : isExport
-      ? "Data Export Result"
-      : (result.tool ?? "Study result");
+  let cardTitle = result.tool ?? "Study result";
+  if (isImport) {
+    cardTitle = "Data Import Result";
+  } else if (isExport) {
+    cardTitle = "Data Export Result";
+  }
 
-  const icon = isImport ? (
-    <Upload className="w-4 h-4 text-emerald-400" />
-  ) : isExport ? (
-    <Download className="w-4 h-4 text-sky-400" />
-  ) : (
-    <FileBarChart className="w-4 h-4 text-indigo-400" />
-  );
+  let icon = <FileBarChart className="w-4 h-4 text-indigo-400" />;
+  if (isImport) {
+    icon = <Upload className="w-4 h-4 text-emerald-400" />;
+  } else if (isExport) {
+    icon = <Download className="w-4 h-4 text-sky-400" />;
+  }
 
   const summary = result.summary ?? {};
-  const fileName = typeof summary.filename === "string" ? summary.filename : (
-    typeof summary.file_name === "string" ? summary.file_name : null
-  );
-  const format = typeof summary.format === "string" ? summary.format : (
-    typeof summary.export_type === "string" ? summary.export_type : null
-  );
+  let fileName: string | null = null;
+  if (typeof summary.filename === "string") {
+    fileName = summary.filename;
+  } else if (typeof summary.file_name === "string") {
+    fileName = summary.file_name;
+  }
+
+  let format: string | null = null;
+  if (typeof summary.format === "string") {
+    format = summary.format;
+  } else if (typeof summary.export_type === "string") {
+    format = summary.export_type;
+  }
   const busesCount = typeof summary.buses_count === "number" ? summary.buses_count : null;
   const branchesCount = typeof summary.branches_count === "number" ? summary.branches_count : null;
   const recordsImported = typeof summary.records_imported === "number" ? summary.records_imported : null;
