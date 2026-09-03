@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from gis_integration.exceptions import NotImplementedFeature
 
+MSG_ARCGIS_ARCHIVED = "ArcGISProvider is archived; use QGISProvider or MockGISProvider"
+
 
 class ArcGISProvider:
     """
@@ -13,31 +15,19 @@ class ArcGISProvider:
     """
 
     def health_check(self) -> bool:
-        raise NotImplementedFeature(
-            "ArcGISProvider is archived; use QGISProvider or MockGISProvider"
-        )
+        raise NotImplementedFeature(MSG_ARCGIS_ARCHIVED)
 
     def load_project(self, path: str) -> None:
-        raise NotImplementedFeature(
-            "ArcGISProvider is archived; use QGISProvider or MockGISProvider"
-        )
+        raise NotImplementedFeature(MSG_ARCGIS_ARCHIVED)
 
     def list_layers(self) -> list[str]:
-        raise NotImplementedFeature(
-            "ArcGISProvider is archived; use QGISProvider or MockGISProvider"
-        )
+        raise NotImplementedFeature(MSG_ARCGIS_ARCHIVED)
 
     def extract_features(self, layer_id: str):
-        raise NotImplementedFeature(
-            "ArcGISProvider is archived; use QGISProvider or MockGISProvider"
-        )
+        raise NotImplementedFeature(MSG_ARCGIS_ARCHIVED)
 
     def export_geojson(self, layer_id: str) -> dict:
-        raise NotImplementedFeature(
-            "ArcGISProvider is archived; use QGISProvider or MockGISProvider"
-        )
+        raise NotImplementedFeature(MSG_ARCGIS_ARCHIVED)
 
     def get_crs(self, layer_id: str | None = None):
-        raise NotImplementedFeature(
-            "ArcGISProvider is archived; use QGISProvider or MockGISProvider"
-        )
+        raise NotImplementedFeature(MSG_ARCGIS_ARCHIVED)

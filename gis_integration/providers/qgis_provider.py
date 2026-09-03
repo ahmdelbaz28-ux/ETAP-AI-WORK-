@@ -158,6 +158,8 @@ class QGISProvider(GISProviderInterface):
         try:
             from qgis.core import QgsApplication  # type: ignore
 
+            if QgsApplication.instance() is None:
+                self._init_qgs()
             return QgsApplication.instance() is not None
         except Exception:
             return False

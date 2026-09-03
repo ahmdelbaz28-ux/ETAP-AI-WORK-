@@ -20,7 +20,7 @@ interface ProvidersTabProps {
   children?: ReactNode;
 }
 
-export default function ProvidersTab({ children }: ProvidersTabProps) {
+export default function ProvidersTab({ children }: Readonly<ProvidersTabProps>) {
   if (isElectronRuntime()) {
     return (
       <section className="rounded-lg border border-slate-700 bg-slate-900 p-5">

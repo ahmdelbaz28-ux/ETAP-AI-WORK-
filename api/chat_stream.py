@@ -32,6 +32,7 @@ import os
 import re
 import time
 from typing import AsyncIterator, Dict, List, Optional
+from typing_extensions import Annotated
 
 import httpx
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -41,6 +42,8 @@ from pydantic import BaseModel, ConfigDict, Field
 from api.dependencies import CurrentUser, get_current_user_from_header
 
 logger = logging.getLogger("api.chat_stream")
+
+SSE_DATA_PREFIX = "data:"
 
 router = APIRouter(prefix="/api/v1/chat", tags=["chat-stream"])
 
@@ -257,9 +260,9 @@ async def _openai_upstream_tokens(
             )
         async for line in resp.aiter_lines():
             line = line.strip()
-            if not line.startswith("data:"):
+            if not line.startswith(SSE_DATA_PREFIX):
                 continue
-            data = line[len("data:") :].strip()
+            data = line[len(SSE_DATA_PREFIX) :].strip()
             if data == "[DONE]":
                 return
             try:
@@ -300,10 +303,10 @@ async def _anthropic_upstream_tokens(
             )
         async for line in resp.aiter_lines():
             line = line.strip()
-            if not line.startswith("data:"):
+            if not line.startswith(SSE_DATA_PREFIX):
                 continue
             try:
-                parsed = json.loads(line[len("data:") :].strip())
+                parsed = json.loads(line[len(SSE_DATA_PREFIX) :].strip())
             except ValueError:
                 continue
             event_type = parsed.get("type")
@@ -326,7 +329,7 @@ _UPSTREAM_ADAPTERS = {
 
 # ─── SSE envelope helpers ──────────────────────────────────────────────────
 def _sse(event: str, data: dict) -> str:
-    return f"event: {event}\ndata: {json.dumps(data, ensure_ascii=False)}\n\n"
+    return f"event: {event}\n{SSE_DATA_PREFIX} {json.dumps(data, ensure_ascii=False)}\n\n"
 
 
 async def _chat_event_stream(
@@ -362,7 +365,7 @@ async def _chat_event_stream(
     except UpstreamProviderError as exc:
         sanitized = sanitize_error_text(exc.body_text)
         logger.warning(
-            "chat stream upstream error session=%s provider=%s status=%s detail=%s",
+            "chat stream upstream error session=%.24s provider=%s status=%s detail=%s",
             session_id,
             cfg.id,
             exc.upstream_status,
@@ -378,7 +381,8 @@ async def _chat_event_stream(
             },
         )
     except httpx.TimeoutException:
-        logger.warning("chat stream timeout session=%s provider=%s", session_id, cfg.id)
+        safe_sid = re.sub(r"[^A-Za-z0-9_-]", "", str(session_id or ""))[:32]
+        logger.warning("chat stream timeout session=%s provider=%s", safe_sid, cfg.id)
         yield _sse(
             "error",
             {
@@ -389,9 +393,10 @@ async def _chat_event_stream(
         )
     except httpx.HTTPError as exc:
         # Connectivity/DNS/TLS issues: generic message outward, detail logged.
+        safe_sid = re.sub(r"[^A-Za-z0-9_-]", "", str(session_id or ""))[:32]
         logger.warning(
             "chat stream connectivity error session=%s provider=%s: %s",
-            session_id,
+            safe_sid,
             cfg.id,
             exc.__class__.__name__,
         )
@@ -407,7 +412,7 @@ async def _chat_event_stream(
         raise  # client disconnected — propagate quietly, no error frame needed
     except Exception as exc:  # noqa: BLE001 — final belt-and-braces guard
         logger.exception(
-            "chat stream unexpected failure session=%s provider=%s: %s",
+            "chat stream unexpected failure session=%.24s provider=%s: %s",
             session_id,
             cfg.id,
             exc.__class__.__name__,
@@ -434,7 +439,7 @@ async def _chat_event_stream(
 )
 async def chat_stream_endpoint(
     payload: ChatStreamRequest,
-    user: CurrentUser = Depends(get_current_user_from_header),  # noqa: B008
+    user: Annotated[CurrentUser, Depends(get_current_user_from_header)],
 ) -> StreamingResponse:
     """Stream a chat completion through a server-configured LLM provider.
 
@@ -444,7 +449,7 @@ async def chat_stream_endpoint(
     enforce_chat_rate_limit(user.user_id)
     cfg = resolve_provider_config(payload.provider, payload.model)
     logger.info(
-        "chat stream opened session=%.24s provider=%s user=%s",
+        "chat stream opened session=%.24s provider=%s user=%.24s",
         payload.session_id,
         cfg.id,
         user.user_id,

@@ -22,7 +22,7 @@ export function DecisionCard({ decision }: DecisionCardProps) {
   return (
     <Card padding="sm" data-testid={`decision-card-${decision.seq}`}>
       <CardHeader
-        title={`Decision requested${requestedTool ? ` · ${requestedTool}` : ""}`}
+        title={requestedTool ? `Decision requested · ${requestedTool}` : "Decision requested"}
         icon={<GitPullRequest className="w-4 h-4" />}
         action={<Badge variant="info">pending</Badge>}
       />

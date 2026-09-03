@@ -95,24 +95,20 @@ class TestRoutePrecedence:
                         routes.append(r)
         return routes
 
-    def test_scada_live_registered_exactly_once(self):
+    @pytest.mark.parametrize(
+        "path,expected_module",
+        [
+            ("/api/v1/scada/live", "api.scada"),
+            ("/api/v1/digital-twin/status", "api.digital_twin"),
+        ],
+    )
+    def test_routes_registered_exactly_once(self, path: str, expected_module: str):
         from api.routes import app
 
-        matches = self._matching_routes(app, "/api/v1/scada/live", "GET")
-        assert len(matches) >= 1, f"expected GET /api/v1/scada/live, got {len(matches)}"
-        assert matches[0].endpoint.__module__ == "api.scada", (
-            "GET /api/v1/scada/live must be served by api/scada.py"
-        )
-
-    def test_digital_twin_status_registered_exactly_once(self):
-        from api.routes import app
-
-        matches = self._matching_routes(app, "/api/v1/digital-twin/status", "GET")
-        assert len(matches) >= 1, (
-            f"expected GET /api/v1/digital-twin/status, got {len(matches)}"
-        )
-        assert matches[0].endpoint.__module__ == "api.digital_twin", (
-            "GET /api/v1/digital-twin/status must be served by api/digital_twin.py"
+        matches = self._matching_routes(app, path, "GET")
+        assert len(matches) >= 1, f"expected GET {path}, got {len(matches)}"
+        assert matches[0].endpoint.__module__ == expected_module, (
+            f"GET {path} must be served by {expected_module}"
         )
 
     def test_legacy_inline_handlers_removed_from_routes_py(self):
@@ -134,15 +130,7 @@ class TestRoutePrecedence:
 
 
 class TestAuthPreserved:
-    """The migrated routes keep their auth boundaries.
-
-    They now use the canonical repo-wide ``get_api_key`` guard (API key OR a
-    valid JWT access ``Bearer`` token). Missing/invalid credentials → 401;
-    validating credentials → 200. This preserves the legacy S-15 requirement
-    (never public) while satisfying the architecture pinned by
-    tests/test_audit_phase10_round7_fixes.py and the Bootstrap JWT-only
-    consumer (ui/src/pages/DigitalTwin.tsx).
-    """
+    """The migrated routes keep their auth boundaries."""
 
     _headers = {"X-API-Key": _TEST_API_KEY}
 
@@ -168,53 +156,29 @@ class TestAuthPreserved:
         )
         return {"Authorization": f"Bearer {token}"}
 
-    def test_scada_live_without_api_key_returns_401(self, client):
-        resp = client.get("/api/v1/scada/live")
+    @pytest.mark.parametrize("path", ["/api/v1/scada/live", "/api/v1/digital-twin/status"])
+    def test_endpoints_without_api_key_returns_401(self, client, path: str):
+        resp = client.get(path)
         assert resp.status_code == 401
 
-    def test_scada_live_with_wrong_api_key_returns_401(self, client):
-        resp = client.get("/api/v1/scada/live", headers={"X-API-Key": "wrong-key"})
+    @pytest.mark.parametrize("path", ["/api/v1/scada/live", "/api/v1/digital-twin/status"])
+    def test_endpoints_with_wrong_api_key_returns_401(self, client, path: str):
+        resp = client.get(path, headers={"X-API-Key": "wrong-key"})
         assert resp.status_code == 401
 
-    def test_scada_live_forged_bearer_stays_401(self, client):
-        """A forged Bearer token must NOT become a bypass after migration."""
-        resp = client.get(
-            "/api/v1/scada/live", headers={"Authorization": "Bearer not-a-real-token"}
-        )
+    @pytest.mark.parametrize("path", ["/api/v1/scada/live", "/api/v1/digital-twin/status"])
+    def test_endpoints_forged_bearer_stays_401(self, client, path: str):
+        resp = client.get(path, headers={"Authorization": "Bearer not-a-real-token"})
         assert resp.status_code == 401
 
-    def test_scada_live_valid_jwt_access_token_returns_200(self, client):
-        """A valid JWT access token authenticates (canonical get_api_key)."""
-        resp = client.get("/api/v1/scada/live", headers=self._valid_bearer_headers())
+    @pytest.mark.parametrize("path", ["/api/v1/scada/live", "/api/v1/digital-twin/status"])
+    def test_endpoints_valid_jwt_access_token_returns_200(self, client, path: str):
+        resp = client.get(path, headers=self._valid_bearer_headers())
         assert resp.status_code == 200
 
-    def test_scada_live_with_valid_api_key_returns_200(self, client):
-        resp = client.get("/api/v1/scada/live", headers=self._headers)
-        assert resp.status_code == 200
-
-    def test_digital_twin_without_api_key_returns_401(self, client):
-        resp = client.get("/api/v1/digital-twin/status")
-        assert resp.status_code == 401
-
-    def test_digital_twin_with_wrong_api_key_returns_401(self, client):
-        resp = client.get("/api/v1/digital-twin/status", headers={"X-API-Key": "wrong-key"})
-        assert resp.status_code == 401
-
-    def test_digital_twin_forged_bearer_stays_401(self, client):
-        """A forged Bearer token must NOT become a bypass after migration."""
-        resp = client.get(
-            "/api/v1/digital-twin/status",
-            headers={"Authorization": "Bearer not-a-real-token"},
-        )
-        assert resp.status_code == 401
-
-    def test_digital_twin_valid_jwt_access_token_returns_200(self, client):
-        """A valid JWT access token authenticates (canonical get_api_key)."""
-        resp = client.get("/api/v1/digital-twin/status", headers=self._valid_bearer_headers())
-        assert resp.status_code == 200
-
-    def test_digital_twin_with_valid_api_key_returns_200(self, client):
-        resp = client.get("/api/v1/digital-twin/status", headers=self._headers)
+    @pytest.mark.parametrize("path", ["/api/v1/scada/live", "/api/v1/digital-twin/status"])
+    def test_endpoints_with_valid_api_key_returns_200(self, client, path: str):
+        resp = client.get(path, headers=self._headers)
         assert resp.status_code == 200
 
 

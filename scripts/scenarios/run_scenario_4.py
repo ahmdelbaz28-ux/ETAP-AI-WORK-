@@ -419,17 +419,9 @@ async def run_scenario(
 
 
 def _extract_gis_features(gis_source: str, gis_project_path: str) -> list[dict[str, Any]]:
-    if gis_source == "qgis":
-        from gis_integration.providers.qgis_provider import QGISProvider
+    from gis_integration.providers import get_gis_provider
 
-        provider = QGISProvider()
-    elif gis_source == "arcgis":
-        from gis_integration.providers.arcgis_provider import ArcGISProvider
-
-        provider = ArcGISProvider()
-    else:
-        raise ValueError(f"Unknown GIS source: {gis_source}")
-
+    provider = get_gis_provider(gis_source)
     provider.load_project(gis_project_path)
     features: list[dict[str, Any]] = []
     for layer_name in provider.list_layers():

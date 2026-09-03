@@ -374,37 +374,47 @@ _REQUEST_TIMEOUT_SEC = int(os.environ.get("ENGINEERING_SERVICE_REQUEST_TIMEOUT",
 # NOSONAR S3776: cognitive complexity intentional; logic validated by tests
 
 
-class _TraceMiddleware:
-    """Trace + rate-limit middleware (pure ASGI — SSE-safe, chat P4b).
+def _extract_tracing_state(scope: Any, request: Request) -> str:
+    trace_id = request.headers.get("x-trace-id") or str(uuid.uuid4())
+    # SECURITY: Sanitize trace_id to prevent log injection (CRLF, newlines)
+    trace_id = "".join(c for c in trace_id if c.isalnum() or c in "-_.")
+    state = scope.setdefault("state", {})
+    state["trace_id"] = trace_id
 
-    Replaces the previous ``@app.middleware("http")`` implementation, which
-    inherited from ``BaseHTTPMiddleware`` and corrupted StreamingResponse/SSE
-    bodies. Sets the same ``request.state`` fields via the ASGI scope ``state``
-    mapping that Starlette's ``Request.state`` reads from.
-    """
+    # Extract dynamic active provider credentials
+    state["active_provider"] = request.headers.get("x-active-provider")
+    state["active_key"] = request.headers.get("x-active-key")
+    state["active_url"] = request.headers.get("x-active-url")
+    state["active_model"] = request.headers.get("x-active-model")
+    return trace_id
+
+
+def _resolve_client_id(request: Request) -> str:
+    trusted_proxies = os.environ.get("ENGINEERING_SERVICE_TRUSTED_PROXIES", "")
+    if trusted_proxies:
+        trusted_list = [p.strip() for p in trusted_proxies.split(",")]
+        xff = request.headers.get("x-forwarded-for", "").split(",")[0].strip()
+        proxy_ip = request.client.host if request.client else ""
+        if proxy_ip in trusted_list and xff:
+            return xff
+        if request.client:
+            return request.client.host
+        return "unknown"
+    return request.client.host if request.client else "unknown"
+
+
+class _TraceMiddleware:
+    """Trace + rate-limit middleware (pure ASGI — SSE-safe, chat P4b)."""
 
     def __init__(self, app: Any) -> None:
         self.app = app
 
-    async def __call__(
-        self, scope: Any, receive: Any, send: Any
-    ) -> None:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+    async def __call__(self, scope: Any, receive: Any, send: Any) -> None:
         if scope["type"] != "http":
             await self.app(scope, receive, send)
             return
         request = Request(scope)
-
-        trace_id = request.headers.get("x-trace-id") or str(uuid.uuid4())
-        # SECURITY: Sanitize trace_id to prevent log injection (CRLF, newlines)
-        trace_id = "".join(c for c in trace_id if c.isalnum() or c in "-_.")
-        state = scope.setdefault("state", {})
-        state["trace_id"] = trace_id
-
-        # Extract dynamic active provider credentials
-        state["active_provider"] = request.headers.get("x-active-provider")
-        state["active_key"] = request.headers.get("x-active-key")
-        state["active_url"] = request.headers.get("x-active-url")
-        state["active_model"] = request.headers.get("x-active-model")
+        trace_id = _extract_tracing_state(scope, request)
 
         tracer = get_tracer()
         with tracer.start_as_current_span(
@@ -420,21 +430,8 @@ class _TraceMiddleware:
         ) as span:
             span.set_attribute("ahmedetap.trace_id", trace_id)
 
-            # Rate limiting — skip for health endpoints
             if not request.url.path.startswith(("/health", "/ready", "/healthz", "/readyz")):
-                _TRUSTED_PROXIES = os.environ.get("ENGINEERING_SERVICE_TRUSTED_PROXIES", "")
-                if _TRUSTED_PROXIES:
-                    _trusted_list = [p.strip() for p in _TRUSTED_PROXIES.split(",")]
-                    xff = request.headers.get("x-forwarded-for", "").split(",")[0].strip()
-                    proxy_ip = request.client.host if request.client else ""
-                    if proxy_ip in _trusted_list and xff:
-                        client_id = xff
-                    elif request.client:
-                        client_id = request.client.host
-                    else:
-                        client_id = "unknown"
-                else:
-                    client_id = request.client.host if request.client else "unknown"
+                client_id = _resolve_client_id(request)
                 if not await _check_rate_limit(client_id):
                     span.set_status(Status(StatusCode.ERROR, "rate_limit_exceeded"))
                     span.set_attribute("http.status_code", 429)
@@ -449,8 +446,6 @@ class _TraceMiddleware:
             await self.app(scope, receive, send)
 
 
-# Registered FIRST so it stays the innermost middleware, exactly where the
-# previous ``@app.middleware("http")`` decorator placed it.
 app.add_middleware(_TraceMiddleware)
 
 
@@ -731,16 +726,21 @@ else:
 # ---------------------------------------------------------------------------
 # Security headers middleware — defense-in-depth (SECURITY AUDIT S-16)
 # ---------------------------------------------------------------------------
+def _inject_security_headers(headers: MutableHeaders, hsts_env: str) -> None:
+    if "x-content-type-options" not in headers:
+        headers["X-Content-Type-Options"] = "nosniff"
+    if "x-frame-options" not in headers:
+        headers["X-Frame-Options"] = "SAMEORIGIN"
+    if "referrer-policy" not in headers:
+        headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    if "x-xss-protection" not in headers:
+        headers["X-XSS-Protection"] = "0"  # Deprecated; CSP is the correct control
+    if hsts_env:
+        headers["Strict-Transport-Security"] = f"max-age={hsts_env}; includeSubDomains"
+
+
 class _SecurityHeadersMiddleware:
-    """Add security headers to every response.
-
-    Pure ASGI (not ``BaseHTTPMiddleware``) so StreamingResponse/SSE bodies
-    (chat P4b) pass through unbuffered; headers are injected on the
-    ``http.response.start`` message via a send wrapper.
-
-    Even when behind a reverse proxy (nginx/Akamai) that sets these headers,
-    the application-level headers provide defense-in-depth.
-    """
+    """Add security headers to every response."""
 
     def __init__(self, app: Any) -> None:
         self.app = app
@@ -750,22 +750,12 @@ class _SecurityHeadersMiddleware:
             await self.app(scope, receive, send)
             return
 
-        # HSTS — only set when explicitly configured (avoid breakage in development)
-        _hsts_env = os.environ.get("HSTS_MAX_AGE", "")
+        hsts_env = os.environ.get("HSTS_MAX_AGE", "")
 
         async def send_with_security_headers(message: Any) -> None:
             if message["type"] == "http.response.start":
                 headers = MutableHeaders(scope=message)
-                if "x-content-type-options" not in headers:
-                    headers["X-Content-Type-Options"] = "nosniff"
-                if "x-frame-options" not in headers:
-                    headers["X-Frame-Options"] = "SAMEORIGIN"
-                if "referrer-policy" not in headers:
-                    headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-                if "x-xss-protection" not in headers:
-                    headers["X-XSS-Protection"] = "0"  # Deprecated; CSP is the correct control
-                if _hsts_env:
-                    headers["Strict-Transport-Security"] = f"max-age={_hsts_env}; includeSubDomains"
+                _inject_security_headers(headers, hsts_env)
             await send(message)
 
         await self.app(scope, receive, send_with_security_headers)

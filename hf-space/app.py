@@ -701,45 +701,99 @@ async def etap_gui_chat(request: SharedETAPGUIChatRequest):
     return result
 
 
-@app.post(  # NOSONAR S3776: cognitive complexity intentional; logic validated by tests
+def _validate_cua_url(start_url: Optional[str]) -> Optional[JSONResponse]:
+    if not start_url:
+        return None
+    from urllib.parse import urlparse
+    parsed = urlparse(start_url)
+    if parsed.scheme not in ("https", "http"):
+        return JSONResponse(
+            status_code=400, content={"success": False, "error": "Invalid URL scheme"}
+        )
+    hostname = parsed.hostname or ""
+    import ipaddress
+    try:
+        ip = ipaddress.ip_address(hostname)
+        if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_reserved:
+            return JSONResponse(
+                status_code=400,
+                content={"success": False, "error": "Private/internal URLs are not allowed"},
+            )
+    except ValueError:
+        pass
+    return None
+
+
+def _evaluate_cua_fast_path(body: dict, start_url: Optional[str], question: str) -> Optional[dict]:
+    dry_run_requested = bool(body.get("dry_run", False))
+    _placeholder_hosts = ("example.com", "example.org", "example.net")
+    is_placeholder_url = isinstance(start_url, str) and any(
+        host in start_url for host in _placeholder_hosts
+    )
+    quick_mode_env = os.environ.get("ETAP_GUI_QUICK_MODE", "").lower() in (
+        "1", "true", "yes", "on",
+    )
+
+    if not (dry_run_requested or is_placeholder_url or quick_mode_env):
+        return None
+
+    if dry_run_requested:
+        reason = "dry_run"
+    elif is_placeholder_url:
+        reason = "placeholder_url"
+    else:
+        reason = "quick_mode_env"
+
+    return {
+        "success": True,
+        "data": {
+            "executed": False,
+            "classification": "control",
+            "format": "C",
+            "target_app": "ETAP",
+            "deps_available": True,
+            "executor_used": "none",
+            "dry_run": True,
+            "reason": reason,
+            "result": {
+                "success": False,
+                "objective_complete": False,
+                "steps_executed": 0,
+                "steps": [],
+                "final_summary": "",
+                "aborted_reason": (
+                    f"CUA loop skipped ({reason}). Browser launch and "
+                    "vision analysis were bypassed to keep response time "
+                    "within API smoke-test thresholds."
+                ),
+                "total_duration_ms": 0,
+                "execution_id": "",
+                "resumed_from_step": 0,
+                "vision_source": "skipped",
+            },
+            "response": (
+                "🖱️ GUI AGENT — CONTROL MODE (DRY RUN)\n"
+                "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
+                f"**Your Request:** {question}\n"
+                "**Mode:** control (CUA loop bypassed)\n"
+                f"**Reason:** {reason}\n\n"
+                "**Note:** No browser was launched and no vision analysis "
+                "was performed. Send `dry_run: false` with a real ETAP "
+                "`start_url` to execute the full CUA loop."
+            ),
+        },
+    }
+
+
+@app.post(
     "/api/v1/agents/etap-gui/execute",
     tags=["Agents"],
     responses={504: {"description": "CUA Loop timed out"}},
 )
 async def etap_gui_execute(
     request: Request,
-):  # NOSONAR
-    """Execute the REAL CUA Loop (Computer Use Agent).
-
-    AUTO-DETECTS THE ENVIRONMENT:
-      - Desktop (pyautogui + display) → controls native apps (ETAP.exe, etc.)
-      - Headless (Playwright + Chromium) → controls web pages via headless browser
-      - Neither available → returns Format U fallback
-
-    On HF Space, the Browser CUA path is used (Playwright + Chromium are
-    installed in the Dockerfile). The agent opens start_url in a headless
-    Chromium and controls the web page — clicking, typing, navigating.
-
-    Required env vars:
-      - GEMINI_API_KEY (for visual perception via Gemini Vision)
-
-    Request body (JSON):
-      {
-        "question": "Open ETAP and run load flow on the demo project",
-        "max_steps": 15,
-        "require_confirmation": true,
-        "audit_dir": null,
-        "start_url": "https://etap.com/login"
-      }
-
-    See: agents/browser_cua_executor.py and integrations/gemini_vision.py
-    """
-    # CRITICAL #4 fix (AhmedETAP_Error_Report_AR.pdf):
-    # Previously these were declared as function parameters, which made FastAPI
-    # treat them as query-string params (?question=...&max_steps=...) instead of
-    # a JSON request body. Callers sending a JSON body got 422 Unprocessable
-    # Entity. We now read the body explicitly so the OpenAPI schema documents
-    # the request as a JSON body, matching the README.hf.md examples.
+):
+    """Execute the REAL CUA Loop (Computer Use Agent)."""
     try:
         body = await request.json()
     except Exception:
@@ -768,116 +822,18 @@ async def etap_gui_execute(
             },
         )
 
-    max_steps = max(
-        1, min(int(body.get("max_steps", 15)), 50)
-    )  # SECURITY: bounded to prevent resource exhaustion
+    max_steps = max(1, min(int(body.get("max_steps", 15)), 50))
     require_confirmation = bool(body.get("require_confirmation", True))
     audit_dir = body.get("audit_dir")
     start_url = body.get("start_url")
 
-    # SECURITY: SSRF prevention — validate start_url scheme and reject private IPs
-    if start_url:
-        from urllib.parse import urlparse
+    url_err = _validate_cua_url(start_url)
+    if url_err is not None:
+        return url_err
 
-        parsed = urlparse(start_url)
-        if parsed.scheme not in ("https", "http"):
-            return JSONResponse(
-                status_code=400, content={"success": False, "error": "Invalid URL scheme"}
-            )
-        hostname = parsed.hostname or ""
-        # Reject private/reserved IP ranges per RFC 1918, RFC 5737, RFC 3927
-        import ipaddress
-
-        try:
-            ip = ipaddress.ip_address(hostname)
-            if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_reserved:
-                return JSONResponse(
-                    status_code=400,
-                    content={"success": False, "error": "Private/internal URLs are not allowed"},
-                )
-        except ValueError:
-            pass  # hostname is a domain, not an IP — proceed
-
-    # ─── FAST PATH: smoke-test / dry-run detection ─────────────────────────
-    # The real Browser CUA loop needs to launch Chromium, navigate, capture
-    # screenshots, and run vision analysis. On a free-tier HF Space that
-    # takes ~10-15 seconds per step — well over the 5s threshold used by
-    # API smoke tests. Real production callers either:
-    #   (a) send `dry_run: true` explicitly to validate inputs cheaply, or
-    #   (b) hit a real ETAP URL (https://etap.com/...).
-    # Test harnesses send a placeholder URL like https://example.com (RFC
-    # 2606 reserved) which has no UI to interact with, so the CUA loop
-    # would fail anyway after the slow browser launch. We short-circuit
-    # those cases and return a fast 200 with the same JSON shape so the
-    # endpoint contract is unchanged.
-    dry_run_requested = bool(body.get("dry_run", False))
-    # `start_url` containing "example.com" / "example.org" / "localhost" /
-    # "127.0.0.1" without a path is treated as a placeholder. We match
-    # conservatively (substring on the host portion) to avoid surprising
-    # real users who happen to have "example" in their URL.
-    _PLACEHOLDER_HOSTS = ("example.com", "example.org", "example.net")
-    is_placeholder_url = isinstance(start_url, str) and any(
-        host in start_url for host in _PLACEHOLDER_HOSTS
-    )
-    # Server-wide override: setting ETAP_GUI_QUICK_MODE=1 forces fast path
-    # for ALL requests — useful when a deployment is intentionally used
-    # only for smoke tests (e.g. CI HF Space) and the browser CUA loop
-    # should never run.
-    quick_mode_env = os.environ.get("ETAP_GUI_QUICK_MODE", "").lower() in (
-        "1",
-        "true",
-        "yes",
-        "on",
-    )
-
-    if dry_run_requested or is_placeholder_url or quick_mode_env:
-        # SonarCloud python:S3358: extracted nested ternary into explicit
-        # if/elif chain so the precedence is unambiguous.
-        if dry_run_requested:
-            reason = "dry_run"
-        elif is_placeholder_url:
-            reason = "placeholder_url"
-        else:
-            reason = "quick_mode_env"
-        return {
-            "success": True,
-            "data": {
-                "executed": False,
-                "classification": "control",
-                "format": "C",
-                "target_app": "ETAP",
-                "deps_available": True,
-                "executor_used": "none",
-                "dry_run": True,
-                "reason": reason,
-                "result": {
-                    "success": False,
-                    "objective_complete": False,
-                    "steps_executed": 0,
-                    "steps": [],
-                    "final_summary": "",
-                    "aborted_reason": (
-                        f"CUA loop skipped ({reason}). Browser launch and "
-                        "vision analysis were bypassed to keep response time "
-                        "within API smoke-test thresholds."
-                    ),
-                    "total_duration_ms": 0,
-                    "execution_id": "",
-                    "resumed_from_step": 0,
-                    "vision_source": "skipped",
-                },
-                "response": (
-                    "🖱️ GUI AGENT — CONTROL MODE (DRY RUN)\n"
-                    "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
-                    f"**Your Request:** {question}\n"
-                    "**Mode:** control (CUA loop bypassed)\n"
-                    f"**Reason:** {reason}\n\n"
-                    "**Note:** No browser was launched and no vision analysis "
-                    "was performed. Send `dry_run: false` with a real ETAP "
-                    "`start_url` to execute the full CUA loop."
-                ),
-            },
-        }
+    fast_path_result = _evaluate_cua_fast_path(body, start_url, question)
+    if fast_path_result is not None:
+        return fast_path_result
 
     from agents.etap_gui_agent import ETAPGUIAgent
 
@@ -1786,14 +1742,13 @@ async def ui_catch_all(full_path: str):
     resolved_file_path = os.path.realpath(file_path)
     if not resolved_file_path.startswith(resolved_ui_dist):
         raise HTTPException(status_code=404, detail="Not Found")
-
     if full_path and file_path.is_file():
         return FileResponse(str(file_path))
 
     # SPA fallback — return index.html for any non-file path
     # (index.html is always within _UI_DIST, so no traversal check needed)
     if _UI_INDEX.is_file():
-        return HTMLResponse(content=_UI_INDEX.read_text(encoding="utf-8"))
+        return FileResponse(str(_UI_INDEX), media_type="text/html")
 
     return HTMLResponse(content="<h1>UI not built</h1>", status_code=503)
 

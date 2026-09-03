@@ -996,16 +996,24 @@ export async function isServerChatStreamEnabled(): Promise<boolean> {
 
 let _chatSessionId: string | null = null;
 
+function generateRandomHex(): string {
+  if (typeof crypto !== "undefined") {
+    if (typeof crypto.randomUUID === "function") {
+      return crypto.randomUUID();
+    }
+    if (typeof crypto.getRandomValues === "function") {
+      const bytes = new Uint8Array(8);
+      crypto.getRandomValues(bytes);
+      return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
+    }
+  }
+  return `${Date.now().toString(36)}-fallback`;
+}
+
 /** Stable chat session id per page load (for correlation on the server). */
 export function getChatSessionId(): string {
   if (!_chatSessionId) {
-    const randomUUID =
-      typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
-        ? crypto.randomUUID.bind(crypto)
-        : null;
-    _chatSessionId =
-      randomUUID?.() ??
-      `sess-web-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+    _chatSessionId = `sess-web-${Date.now().toString(36)}-${generateRandomHex().slice(0, 8)}`;
   }
   return _chatSessionId;
 }
@@ -1020,6 +1028,13 @@ interface ServerChatEventData {
 function redactServerMessage(message: string): string {
   return message.slice(0, 300).replace(/sk-[a-zA-Z0-9]+/g, "[REDACTED]");
 }
+
+function extractErrorMessage(parsed: ServerChatEventData): string {
+  if (typeof parsed.message === "string") return parsed.message;
+  if (typeof parsed.detail === "string") return parsed.detail;
+  return "LLM stream error";
+}
+
 /** Build a user-facing Error for a failed non-SSE response. */
 async function buildServerChatHttpError(res: Response): Promise<Error> {
   let text = "";
@@ -1046,6 +1061,40 @@ async function buildServerChatHttpError(res: Response): Promise<Error> {
   return new Error(`Chat service error ${res.status}: ${detail}`);
 }
 
+type SseAction = { type: "token"; delta: string } | { type: "done" } | { type: "error"; error: Error } | { type: "none" };
+
+function handleSseLine(line: string, state: { currentEvent: string }): SseAction {
+  if (line.startsWith("event: ")) {
+    state.currentEvent = line.slice(7).trim();
+    return { type: "none" };
+  }
+  if (!line.startsWith("data: ")) return { type: "none" };
+  const dataStr = line.slice(6).trim();
+
+  let parsed: ServerChatEventData | null = null;
+  try {
+    parsed = JSON.parse(dataStr) as ServerChatEventData;
+  } catch {
+    state.currentEvent = "";
+    return { type: "none" };
+  }
+
+  const evt = state.currentEvent;
+  state.currentEvent = "";
+
+  if (evt === "token") {
+    if (typeof parsed.delta === "string" && parsed.delta) {
+      return { type: "token", delta: parsed.delta };
+    }
+  } else if (evt === "done") {
+    return { type: "done" };
+  } else if (evt === "error") {
+    const rawMessage = extractErrorMessage(parsed);
+    return { type: "error", error: new Error(redactServerMessage(rawMessage)) };
+  }
+  return { type: "none" };
+}
+
 /**
  * Stream a reply through the server-side path (/api/v1/chat/stream).
  * SECURITY: the payload contains only session_id + messages + no keys.
@@ -1054,15 +1103,13 @@ export async function* streamFromServerChat(
   messages: ChatMessage[],
   signal?: AbortSignal,
 ): AsyncGenerator<string, void, unknown> {
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  const token = getAuthToken();
+  if (token) headers.Authorization = `Bearer ${token}`;
+
   const res = await fetch(apiUrl("/api/v1/chat/stream"), {
     method: "POST",
-    headers: (() => {
-      const headers: Record<string, string> = { "Content-Type": "application/json" };
-      const token = getAuthToken();
-      if (token) headers.Authorization = `Bearer ${token}`;
-      return headers;
-    })(),
-    // NO apiKey field here — deliberately impossible to leak what we never hold.
+    headers,
     body: JSON.stringify({ session_id: getChatSessionId(), messages }),
     signal,
   });
@@ -1075,6 +1122,7 @@ export async function* streamFromServerChat(
   if (!reader) return;
   const decoder = new TextDecoder();
   let buffer = "";
+  const sseState = { currentEvent: "" };
 
   while (true) {
     if (signal?.aborted) return;
@@ -1084,39 +1132,15 @@ export async function* streamFromServerChat(
     const lines = buffer.split("\n");
     buffer = lines.pop() || "";
 
-    let currentEvent = "";
     for (const line of lines) {
-      if (line.startsWith("event: ")) {
-        currentEvent = line.slice(7).trim();
-        continue;
-      }
-      if (!line.startsWith("data: ")) continue;
-      const dataStr = line.slice(6).trim();
-
-      let parsed: ServerChatEventData | null = null;
-      try {
-        parsed = JSON.parse(dataStr) as ServerChatEventData;
-      } catch {
-        currentEvent = "";
-        continue; // keep-alive or partial frame
-      }
-
-      if (currentEvent === "token") {
-        if (typeof parsed.delta === "string" && parsed.delta) {
-          yield parsed.delta;
-        }
-      } else if (currentEvent === "done") {
+      const action = handleSseLine(line, sseState);
+      if (action.type === "token") {
+        yield action.delta;
+      } else if (action.type === "done") {
         return;
-      } else if (currentEvent === "error") {
-        const rawMessage =
-          typeof parsed.message === "string"
-            ? parsed.message
-            : typeof parsed.detail === "string"
-              ? parsed.detail
-              : "LLM stream error";
-        throw new Error(redactServerMessage(rawMessage));
+      } else if (action.type === "error") {
+        throw action.error;
       }
-      currentEvent = "";
     }
   }
 }

@@ -25,6 +25,9 @@ from api.approvals import APPROVAL_TTL_SECONDS, PendingAction
 from api.dependencies import CurrentUser, get_current_user_from_header
 from api.dual_control import MAKER_CHECKER_VIOLATION
 
+API_APPROVALS = "/api/v1/approvals"
+API_SESSION_AUTO_APPROVE = "/api/v1/session/auto-approve"
+
 MAKER = CurrentUser(
     user_id="maker-user-id",
     username="maker",
@@ -58,7 +61,7 @@ def client():
 
 def _propose(client: TestClient, tool: str = "run_python", session_id: str = "sess-1", **kw):
     return client.post(
-        "/api/v1/approvals",
+        API_APPROVALS,
         json={"session_id": session_id, "tool": tool, "args": kw.pop("args", {"code": "x=1"})},
         **kw,
     )
@@ -71,7 +74,7 @@ def _propose(client: TestClient, tool: str = "run_python", session_id: str = "se
 
 class TestAutoApprove:
     def test_mutating_with_auto_approve_on_is_auto_approved(self, client):
-        r = client.put("/api/v1/session/auto-approve", json={"session_id": "s1", "enabled": True})
+        r = client.put(API_SESSION_AUTO_APPROVE, json={"session_id": "s1", "enabled": True})
         assert r.status_code == 200 and r.json()["data"]["enabled"] is True
 
         resp = _propose(client, tool="run_python", session_id="s1")
@@ -81,7 +84,7 @@ class TestAutoApprove:
         assert data["status"] == "approved"  # auto-approved straight through
 
     def test_critical_with_auto_approve_on_still_pending(self, client):
-        client.put("/api/v1/session/auto-approve", json={"session_id": "s2", "enabled": True})
+        client.put(API_SESSION_AUTO_APPROVE, json={"session_id": "s2", "enabled": True})
         resp = _propose(client, tool="provider-settings-tool", session_id="s2")
         assert resp.status_code == 200
         data = resp.json()["data"]

@@ -12,7 +12,7 @@
   *  - results         : GET /api/v1/results/{resultId}
  *  - kill switch     : GET /admin/cua/kill-switch, POST /admin/cua/kill-switch/activate ({ reason })
  */
-import { create } from "zustand";
+import { create, type StoreApi } from "zustand";
 import { request } from "../lib/api";
 import { API_BASE_URL } from "../lib/api-config";
 import { getChatSessionId, streamFromServerChat } from "../lib/llm-chat";
@@ -195,6 +195,120 @@ const scheduleReconnect = (get: () => ChatWorkspaceState) => {
   }, delay);
 };
 
+type StoreSet = StoreApi<ChatWorkspaceState>["setState"];
+type StoreGet = StoreApi<ChatWorkspaceState>["getState"];
+
+function handleTokenEvent(payload: Record<string, unknown>, get: StoreGet, set: StoreSet): void {
+  const text = typeof payload.text === "string" ? payload.text : "";
+  if (!text) return;
+  const { messages, lastAssistantId } = get();
+  if (lastAssistantId) {
+    set({
+      messages: messages.map((m) =>
+        m.id === lastAssistantId ? { ...m, content: m.content + text, status: "streaming" } : m,
+      ),
+    });
+  } else {
+    const newId = `${WS_TOKEN_MARKER}${generateId()}`;
+    const newMsg: ChatMessage = {
+      id: newId,
+      role: "assistant",
+      content: text,
+      status: "streaming",
+      createdAt: Date.now(),
+    };
+    set({ messages: [...messages, newMsg], lastAssistantId: newId });
+  }
+}
+
+function extractResultId(payload: Record<string, unknown>): string | undefined {
+  const candidates = [payload.result_id, payload.resultId, payload.execution_id, payload.executionId];
+  for (const candidate of candidates) {
+    if (typeof candidate === "string" && candidate.trim()) {
+      return candidate.trim();
+    }
+  }
+  return undefined;
+}
+
+function handleResultReadyEvent(
+  payload: Record<string, unknown>,
+  ts: string,
+  get: StoreGet,
+  set: StoreSet,
+): void {
+  const resultId = extractResultId(payload);
+  if (!resultId) return;
+
+  const current = get().results;
+  if (current.some((r) => r.resultId === resultId)) return;
+
+  const entry: ResultEntry = {
+    resultId,
+    execution_id: typeof payload.execution_id === "string" ? payload.execution_id : undefined,
+    tool: typeof payload.tool === "string" ? payload.tool : undefined,
+    plan_id: typeof payload.plan_id === "string" ? payload.plan_id : undefined,
+    ts,
+    summary: (payload.summary as Record<string, unknown>) ?? null,
+    loading: true,
+    loaded: false,
+    error: null,
+  };
+  set({
+    results: [entry, ...current].slice(0, MAX_LIST_ITEMS),
+    selectedResultId: get().selectedResultId ?? resultId,
+  });
+}
+
+function handleJobProgressEvent(
+  payload: Record<string, unknown>,
+  ts: string,
+  get: StoreGet,
+  set: StoreSet,
+): void {
+  const progress: ActivityProgress = {
+    execution_id: typeof payload.execution_id === "string" ? payload.execution_id : undefined,
+    phase: typeof payload.phase === "string" ? payload.phase : "running",
+    pct: typeof payload.pct === "number" ? payload.pct : 0,
+    tool: typeof payload.tool === "string" ? payload.tool : undefined,
+    ts,
+  };
+  set({ activity: [progress, ...get().activity].slice(0, MAX_LIST_ITEMS) });
+}
+
+function appendStreamDelta(acc: string, get: StoreGet, set: StoreSet): void {
+  const { messages } = get();
+  const last = messages.at(-1);
+  if (last?.role === "assistant" && last?.id?.startsWith(WS_TOKEN_MARKER)) {
+    set({
+      messages: messages.map((m) =>
+        m.id === last.id ? { ...m, content: acc, status: "streaming" } : m,
+      ),
+      streamStatus: "streaming",
+    });
+  } else {
+    const assistantMessage: ChatMessage = {
+      id: `${WS_TOKEN_MARKER}${generateId()}`,
+      role: "assistant",
+      content: acc,
+      status: "streaming",
+      createdAt: Date.now(),
+    };
+    set({
+      messages: [...messages, assistantMessage],
+      streamStatus: "streaming",
+      lastAssistantId: assistantMessage.id,
+    });
+  }
+}
+
+function resolvePendingApprovalsList(res: { data?: PendingApproval[]; items?: PendingApproval[] }): PendingApproval[] {
+  if (Array.isArray(res?.data)) return res.data;
+  if (Array.isArray(res?.items)) return res.items;
+  if (Array.isArray(res)) return res;
+  return [];
+}
+
 export const useChatStore = create<ChatWorkspaceState>()((set, get) => ({
   sessionId: getChatSessionId(),
   messages: [],
@@ -280,7 +394,7 @@ export const useChatStore = create<ChatWorkspaceState>()((set, get) => ({
       try {
         activeWs.close();
       } catch {
-        // ignore — the socket may already be in a closing/closed state
+        // ignore close error
       }
       activeWs = null;
     }
@@ -293,7 +407,6 @@ export const useChatStore = create<ChatWorkspaceState>()((set, get) => ({
     if (typeof evt.seq !== "number" || typeof evt.type !== "string") return;
     if (typeof evt.session_id === "string" && evt.session_id !== get().sessionId) return;
 
-    // Sequence-deduped replay (resumes after `after_seq=lastSeq`).
     if (evt.seq <= get().lastSeq) return;
     set({ lastSeq: evt.seq });
 
@@ -301,31 +414,15 @@ export const useChatStore = create<ChatWorkspaceState>()((set, get) => ({
     const payload = (evt.payload ?? {}) as Record<string, unknown>;
 
     switch (evt.type) {
-      case "session_init":
+      case "token":
+        handleTokenEvent(payload, get, set);
         return;
-      case "token": {
-        if (typeof payload.delta !== "string" || !payload.delta) return;
-        const { messages } = get();
-        const last = messages[messages.length - 1];
-        if (last && last.role === "assistant" && last.status === "streaming" && last.id.startsWith(WS_TOKEN_MARKER)) {
-          set({
-            messages: messages.map((m) =>
-              m.id === last.id ? { ...m, content: m.content + payload.delta } : m,
-            ),
-          });
-        } else {
-          const newId = `${WS_TOKEN_MARKER}${generateId()}`;
-          set({
-            messages: [
-              ...messages,
-              { id: newId, role: "assistant", content: payload.delta, status: "streaming", createdAt: Date.now() },
-            ],
-            lastAssistantId: newId,
-            streamStatus: "streaming",
-          });
-        }
+      case "result_ready":
+        handleResultReadyEvent(payload, ts, get, set);
         return;
-      }
+      case "job_progress":
+        handleJobProgressEvent(payload, ts, get, set);
+        return;
       case "action_proposed": {
         const entry: ProposedActionEntry = { seq: evt.seq, ts, payload };
         set({ proposedActions: [entry, ...get().proposedActions].slice(0, MAX_LIST_ITEMS) });
@@ -340,50 +437,6 @@ export const useChatStore = create<ChatWorkspaceState>()((set, get) => ({
           reason: typeof payload.reason === "string" ? payload.reason : undefined,
         };
         set({ approvalResults: [entry, ...get().approvalResults].slice(0, MAX_LIST_ITEMS) });
-        return;
-      }
-      case "job_progress": {
-        const phase = typeof payload.phase === "string" ? payload.phase : "running";
-        const pctNum = typeof payload.pct === "number" ? payload.pct : Number(payload.pct ?? 0);
-        const progress: ActivityProgress = {
-          execution_id: typeof payload.execution_id === "string" ? payload.execution_id : undefined,
-          tool: typeof payload.tool === "string" ? payload.tool : undefined,
-          phase,
-          pct: Number.isFinite(pctNum) ? Math.max(0, Math.min(100, pctNum)) : 0,
-          ts,
-        };
-        const activity = [...get().activity, progress].slice(-MAX_LIST_ITEMS);
-        set({ activity });
-        return;
-      }
-            case "result_ready": {
-        // The P3 SessionStream `result_ready` event carries the result id as
-        // `result_id` (snake_case). The frontend's wire-facing model uses
-        // `resultId` (camelCase) to match the P5 public contract —
-        // POST /api/v1/studies/run → StudyResult serialization_alias="resultId".
-        const resultId =
-          typeof payload.result_id === "string"
-            ? payload.result_id
-            : typeof payload.execution_id === "string"
-              ? payload.execution_id
-              : null;
-        if (!resultId) return;
-        const entry: ResultEntry = {
-          resultId,
-          execution_id: typeof payload.execution_id === "string" ? payload.execution_id : undefined,
-          tool: typeof payload.tool === "string" ? payload.tool : undefined,
-          plan_id: typeof payload.plan_id === "string" ? payload.plan_id : undefined,
-          ts,
-          summary: (payload.summary as Record<string, unknown> | undefined) ?? null,
-          // result_ready announces a result whose ResultStore payload is still
-          // pending enrichment via loadResult — the entry starts in-flight.
-          loading: true,
-        };
-        const existing = get().results.find((r) => r.resultId === resultId);
-        const results = existing
-          ? get().results.map((r) => (r.resultId === resultId ? { ...r, ...entry, loading: !r.loaded } : r))
-          : [entry, ...get().results].slice(0, MAX_LIST_ITEMS);
-        set({ results, selectedResultId: get().selectedResultId ?? resultId });
         return;
       }
       case "decision_request": {
@@ -424,31 +477,11 @@ export const useChatStore = create<ChatWorkspaceState>()((set, get) => ({
       let acc = "";
       for await (const delta of streamFromServerChat(history, controller.signal)) {
         acc += delta;
-        const { messages } = get();
-        const last = messages[messages.length - 1];
-        if (last && last.role === "assistant" && last.id.startsWith(WS_TOKEN_MARKER)) {
-          set({
-            messages: messages.map((m) =>
-              m.id === last.id ? { ...m, content: acc, status: "streaming" } : m,
-            ),
-            streamStatus: "streaming",
-          });
-        } else {
-          const newId = `${WS_TOKEN_MARKER}${generateId()}`;
-          set({
-            messages: [
-              ...messages,
-              { id: newId, role: "assistant", content: acc, status: "streaming", createdAt: Date.now() },
-            ],
-            lastAssistantId: newId,
-            streamStatus: "streaming",
-          });
-        }
+        appendStreamDelta(acc, get, set);
       }
-      // Finalize the streaming assistant message.
       const { messages: afterStream } = get();
       const last = afterStream[afterStream.length - 1];
-      if (last && last.role === "assistant" && last.id.startsWith(WS_TOKEN_MARKER)) {
+      if (last?.role === "assistant" && last?.id?.startsWith(WS_TOKEN_MARKER)) {
         set({
           messages: afterStream.map((m) =>
             m.id === last.id ? { ...m, status: "complete", content: acc || m.content } : m,
@@ -463,7 +496,7 @@ export const useChatStore = create<ChatWorkspaceState>()((set, get) => ({
       const message = toErrorMessage(err, "Chat stream failed");
       const { messages: errMsgs } = get();
       const last = errMsgs[errMsgs.length - 1];
-      if (last && last.role === "assistant" && last.id.startsWith(WS_TOKEN_MARKER) && last.status === "streaming") {
+      if (last?.role === "assistant" && last?.id?.startsWith(WS_TOKEN_MARKER) && last?.status === "streaming") {
         set({
           messages: errMsgs.map((m) =>
             m.id === last.id ? { ...m, status: "error", error: message } : m,
@@ -545,11 +578,7 @@ export const useChatStore = create<ChatWorkspaceState>()((set, get) => ({
       const res = await request<{ data?: PendingApproval[]; items?: PendingApproval[] }>(
         `/api/v1/approvals/pending?session_id=${encodeURIComponent(get().sessionId)}`,
       );
-      const list: PendingApproval[] = Array.isArray(res?.data)
-        ? res.data
-        : Array.isArray(res?.items)
-          ? res.items
-          : [];
+      const list = resolvePendingApprovalsList(res);
       set({ approvals: list, approvalsError: null });
     } catch (err) {
       set({ approvalsError: toErrorMessage(err, "Failed to load pending approvals") });

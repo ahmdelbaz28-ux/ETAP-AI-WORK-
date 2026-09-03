@@ -431,10 +431,9 @@ async def create_approval(
     action_id = str(uuid.uuid4())
 
     auto_approved = False
-    if risk_class == _RISK_READ:
-        decision_status = _STATUS_APPROVED
-        auto_approved = True
-    elif risk_class == _RISK_MUTATING and get_session_auto_approve(body.session_id):
+    if risk_class == _RISK_READ or (
+        risk_class == _RISK_MUTATING and get_session_auto_approve(body.session_id)
+    ):
         decision_status = _STATUS_APPROVED
         auto_approved = True
     else:

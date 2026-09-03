@@ -188,7 +188,7 @@ export function AgentsSkillsPromptsPanel({
               </p>
             </button>
           ))}
-          {loaded && loaded.agents.length === 0 && (
+          {loaded?.agents.length === 0 && (
             <p className="text-sm text-[var(--text-muted)]" data-testid="agents-empty">
               No agents reported by the backend.
             </p>

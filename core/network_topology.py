@@ -427,11 +427,11 @@ class NetworkTopology:
                 return self._branches.get(edge_data["id"])
 
         for b in self._branches.values():
-            if b.status == "closed":
-                if (b.from_bus == bus_a and b.to_bus == bus_b) or (
-                    b.from_bus == bus_b and b.to_bus == bus_a
-                ):
-                    return b
+            if b.status == "closed" and (
+                (b.from_bus == bus_a and b.to_bus == bus_b)
+                or (b.from_bus == bus_b and b.to_bus == bus_a)
+            ):
+                return b
         return None
 
     def _expand_feeder_node(

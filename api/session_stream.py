@@ -57,12 +57,13 @@ from datetime import datetime, timedelta, timezone
 
 UTC = timezone.utc  # noqa: UP017
 from typing import Any, Dict, List, Optional
+from typing_extensions import Annotated
 
 from fastapi import APIRouter, Depends, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel, Field
 
 # Safe top-level import: api.dependencies does not import this module.
-from api.dependencies import get_current_user_from_header
+from api.dependencies import CurrentUser, get_current_user_from_header
 
 logger = logging.getLogger("api.session_stream")
 
@@ -161,8 +162,8 @@ class SessionStreamHub:
             while True:
                 event = await conn.queue.get()
                 await conn.websocket.send_text(json.dumps(event))
-        except asyncio.CancelledError:  # normal shutdown path
-            pass
+        except asyncio.CancelledError:
+            raise
         except Exception:  # noqa: BLE001 - socket died; drop quietly
             logger.debug("session_stream writer terminated", exc_info=True)
 
@@ -389,7 +390,7 @@ router = APIRouter(tags=["session-stream"])
 )
 async def create_ws_ticket(
     body: WsTicketRequest,
-    user=Depends(get_current_user_from_header),  # noqa: B008
+    user: Annotated[CurrentUser, Depends(get_current_user_from_header)],
 ) -> Dict[str, Any]:
     """Exchange a valid Bearer JWT for a 60-second single-use WS ticket.
 
@@ -399,7 +400,7 @@ async def create_ws_ticket(
     """
     issued = issue_ws_ticket(body.session_id, user.user_id)
     logger.info(
-        "ws-ticket issued user=%s session=%s ttl=%ss",
+        "ws-ticket issued user=%.24s session=%.24s ttl=%ss",
         user.user_id,
         body.session_id,
         issued["ttl_seconds"],
@@ -412,54 +413,56 @@ async def create_ws_ticket(
 # ---------------------------------------------------------------------------
 
 
-async def _authenticate_user_id(websocket: WebSocket) -> Optional[str]:
-    """Resolve the caller identity from ``?ticket=`` or ``?token=``.
+async def _validate_ws_ticket(websocket: WebSocket, ticket: str) -> Optional[str]:
+    session_id = str(websocket.path_params.get("session_id", ""))
+    claims = consume_ws_ticket(ticket, session_id)
+    if claims is None:
+        await websocket.close(
+            code=_WS_CODE_POLICY_VIOLATION,
+            reason="Invalid, expired, already used, or mismatched ticket",
+        )
+        return None
+    return claims["user_id"]
 
-    Returns the authenticated ``user_id``, or ``None`` (after closing the
-    socket with code 1008) when authentication fails.
-    """
-    ticket = websocket.query_params.get("ticket", "")
-    token = websocket.query_params.get("token", "")
 
-    if ticket:
-        claims = consume_ws_ticket(ticket, str(websocket.path_params.get("session_id", "")))
-        if claims is None:
-            await websocket.close(
-                code=_WS_CODE_POLICY_VIOLATION,
-                reason="Invalid, expired, already used, or mismatched ticket",
-            )
-            return None
-        return claims["user_id"]
+async def _validate_ws_token(websocket: WebSocket, token: str) -> Optional[str]:
+    import jwt
+    from api.dependencies import JWT_ALGORITHM, JWT_SECRET_KEY
 
-    if token:
-        # Same verification chain as /ws/notifications: access-type JWT,
-        # blacklist check, then a DB-backed active-user check by the caller.
-        import jwt
+    try:
+        payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
+    except Exception:
+        await websocket.close(code=_WS_CODE_POLICY_VIOLATION, reason="Invalid token")
+        return None
 
-        from api.dependencies import JWT_ALGORITHM, JWT_SECRET_KEY
+    user_id = payload.get("sub")
+    if not user_id or payload.get("type") != "access":
+        await websocket.close(code=_WS_CODE_POLICY_VIOLATION, reason="Invalid or expired token")
+        return None
 
+    jti = payload.get("jti")
+    if jti:
         try:
-            payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
-        except Exception:
-            await websocket.close(code=_WS_CODE_POLICY_VIOLATION, reason="Invalid token")
-            return None
-        user_id = payload.get("sub")
-        if not user_id or payload.get("type") != "access":
-            await websocket.close(code=_WS_CODE_POLICY_VIOLATION, reason="Invalid or expired token")
-            return None
-        jti = payload.get("jti")
-        if jti:
-            try:
-                from api.auth import _is_token_blacklisted
+            from api.auth import _is_token_blacklisted
+            if await _is_token_blacklisted(jti):
+                await websocket.close(
+                    code=_WS_CODE_POLICY_VIOLATION, reason="Token has been revoked"
+                )
+                return None
+        except ImportError:
+            pass
+    return str(user_id)
 
-                if await _is_token_blacklisted(jti):
-                    await websocket.close(
-                        code=_WS_CODE_POLICY_VIOLATION, reason="Token has been revoked"
-                    )
-                    return None
-            except ImportError:
-                pass
-        return str(user_id)
+
+async def _authenticate_user_id(websocket: WebSocket) -> Optional[str]:
+    """Resolve the caller identity from ``?ticket=`` or ``?token=``."""
+    ticket = websocket.query_params.get("ticket", "")
+    if ticket:
+        return await _validate_ws_ticket(websocket, ticket)
+
+    token = websocket.query_params.get("token", "")
+    if token:
+        return await _validate_ws_token(websocket, token)
 
     await websocket.close(
         code=_WS_CODE_POLICY_VIOLATION,
@@ -468,81 +471,98 @@ async def _authenticate_user_id(websocket: WebSocket) -> Optional[str]:
     return None
 
 
+async def _verify_active_user(user_id: str) -> bool:
+    from api.database import async_session
+    from sqlalchemy import select
+    from api.auth import User
+
+    async with async_session() as db:
+        result = await db.execute(select(User).where(User.id == user_id))
+        user = result.scalar_one_or_none()
+        return bool(user and user.is_active)
+
+
+def _dispatch_ws_message(
+    hub: SessionStreamHub, conn: _Connection, session_id: str, message: dict[str, Any]
+) -> None:
+    msg_type = message.get("type")
+    if msg_type == "resume":
+        resume_after = message.get("after_seq", 0)
+        if isinstance(resume_after, int) and resume_after >= 0:
+            for ev in hub.replay(session_id, resume_after):
+                hub._offer(conn, ev)
+    elif msg_type == "ping":
+        hub._offer(conn, {"type": "pong", "ts": datetime.now(UTC).isoformat()})
+
+
+async def _handle_ws_messages(
+    hub: SessionStreamHub, conn: _Connection, session_id: str, websocket: WebSocket
+) -> None:
+    while True:
+        raw = await websocket.receive_text()
+        try:
+            message = json.loads(raw)
+        except (json.JSONDecodeError, TypeError):
+            continue
+        if isinstance(message, dict):
+            _dispatch_ws_message(hub, conn, session_id, message)
+
+
+def _send_initial_ws_events(
+    hub: SessionStreamHub,
+    conn: _Connection,
+    session_id: str,
+    user_id: str,
+    websocket: WebSocket,
+) -> None:
+    """Send session initialization and replay events on websocket connect."""
+    init_payload = {
+        "status": hub.status(session_id),
+        "authenticated_as": user_id,
+    }
+    if hub.last_seq(session_id) == 0:
+        init_event = hub._record(session_id, EVENT_SESSION_INIT, init_payload)
+        for subscriber in hub._connections.get(session_id, []):
+            hub._offer(subscriber, init_event)
+    else:
+        hub._offer(
+            conn,
+            {
+                "seq": hub.last_seq(session_id),
+                "type": EVENT_SESSION_INIT,
+                "session_id": session_id,
+                "ts": datetime.now(UTC).isoformat(),
+                "payload": init_payload,
+            },
+        )
+
+    after_seq_raw = websocket.query_params.get("after_seq", "")
+    replay_events = (
+        hub.replay(session_id, int(after_seq_raw)) if after_seq_raw.isdigit() else []
+    )
+    for ev in replay_events:
+        hub._offer(conn, ev)
+
+
 async def session_stream_ws(websocket: WebSocket, session_id: str) -> None:
     """Handle one connection to ``/ws/sessions/{session_id}``."""
     user_id = await _authenticate_user_id(websocket)
     if user_id is None:
         return
 
-    # Verify the user exists and is active (mirrors /ws/notifications).
-    from api.database import async_session
-
-    async with async_session() as db:
-        from sqlalchemy import select
-
-        from api.auth import User
-
-        result = await db.execute(select(User).where(User.id == user_id))
-        user = result.scalar_one_or_none()
-        if user is None or not user.is_active:
-            await websocket.close(
-                code=_WS_CODE_POLICY_VIOLATION, reason="User not found or inactive"
-            )
-            return
+    if not await _verify_active_user(user_id):
+        await websocket.close(
+            code=_WS_CODE_POLICY_VIOLATION, reason="User not found or inactive"
+        )
+        return
 
     hub = get_hub()
     await websocket.accept()
     conn = await hub.connect(websocket, session_id)
 
     try:
-        # session_init must occupy the shared history EXACTLY once per
-        # session. On a reconnect we greet this socket locally instead —
-        # recording a second init would append it at the tail of the history
-        # and corrupt seq ordering for replay()/latest_state().
-        init_payload = {
-            "status": hub.status(session_id),
-            "authenticated_as": user_id,
-        }
-        if hub.last_seq(session_id) == 0:
-            init_event = hub._record(session_id, EVENT_SESSION_INIT, init_payload)
-            for subscriber in list(hub._connections.get(session_id, [])):
-                hub._offer(subscriber, init_event)
-        else:
-            hub._offer(
-                conn,
-                {
-                    "seq": hub.last_seq(session_id),
-                    "type": EVENT_SESSION_INIT,
-                    "session_id": session_id,
-                    "ts": datetime.now(UTC).isoformat(),
-                    "payload": init_payload,
-                },
-            )
-
-        # Replay missed events when the client resumes with ?after_seq=N.
-        after_seq_raw = websocket.query_params.get("after_seq", "")
-        replay_events = (
-            hub.replay(session_id, int(after_seq_raw)) if after_seq_raw.isdigit() else []
-        )
-        for ev in replay_events:
-            hub._offer(conn, ev)
-
-        while True:
-            raw = await websocket.receive_text()
-            try:
-                message = json.loads(raw)
-            except (json.JSONDecodeError, TypeError):
-                continue
-            if not isinstance(message, dict):
-                continue
-            msg_type = message.get("type")
-            if msg_type == "resume":
-                resume_after = message.get("after_seq", 0)
-                if isinstance(resume_after, int) and resume_after >= 0:
-                    for ev in hub.replay(session_id, resume_after):
-                        hub._offer(conn, ev)
-            elif msg_type == "ping":
-                hub._offer(conn, {"type": "pong", "ts": datetime.now(UTC).isoformat()})
+        _send_initial_ws_events(hub, conn, session_id, user_id, websocket)
+        await _handle_ws_messages(hub, conn, session_id, websocket)
     except WebSocketDisconnect:
         pass
     except Exception:  # noqa: BLE001 - never let socket errors escape

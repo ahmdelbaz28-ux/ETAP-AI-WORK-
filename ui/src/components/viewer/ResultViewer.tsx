@@ -83,7 +83,7 @@ export function ResultViewer({ result, onClose }: ResultViewerProps) {
       a.download = `${result.tool ?? "result"}-${result.resultId}.json`;
       document.body.appendChild(a);
       a.click();
-      document.body.removeChild(a);
+      a.remove();
       URL.revokeObjectURL(url);
     } catch {
       // No-op: download is a UX nicety, never a critical path.
