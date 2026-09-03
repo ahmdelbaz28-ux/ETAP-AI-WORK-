@@ -68,7 +68,7 @@ jobs:
 
           # Extract GHSA IDs (strip comments + blanks), join with `|` so the
           # Node script can split on `|` to build the exception set.
-          EXCEPTIONS=$(grep -vE '^\s*#' "$EXCEPTIONS_FILE" | grep -E '^GHSA-' | tr -d '[:space:]' | paste -sd'|' - || true)
+          EXCEPTIONS=$(grep -vE '^\s*#' "$EXCEPTIONS_FILE" | grep -E '^GHSA-' | tr -d '\r' | awk '{$1=$1};1' | paste -sd'|' - || true)
           export EXCEPTIONS
           echo "Excepted advisory IDs: ${EXCEPTIONS:-<none>}"
 
@@ -95,9 +95,18 @@ jobs:
           # `node <<HEREDOC arg1 arg2` interprets arg1 as a script file path,
           # not as process.argv[2].
           node <<'NODE_SCRIPT'
-          const exceptions = (process.env.EXCEPTIONS || '').split('|').filter(Boolean);
-          const auditPath = process.env.AUDIT_JSON_PATH;
           const fs = require('fs');
+          const exceptionsFile = process.env.EXCEPTIONS_FILE;
+          let exceptions = [];
+          if (exceptionsFile && fs.existsSync(exceptionsFile)) {
+            exceptions = fs.readFileSync(exceptionsFile, 'utf8')
+              .split('\n')
+              .map(line => line.trim())
+              .filter(line => line && !line.startsWith('#') && line.startsWith('GHSA-'));
+          } else {
+            exceptions = (process.env.EXCEPTIONS || '').split('|').map(s => s.trim()).filter(Boolean);
+          }
+          const auditPath = process.env.AUDIT_JSON_PATH;
           const report = JSON.parse(fs.readFileSync(auditPath, 'utf8'));
 
           // npm audit JSON v3+: report.vulnerabilities is an object keyed by

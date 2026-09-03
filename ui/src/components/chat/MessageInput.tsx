@@ -79,6 +79,7 @@ export function MessageInput({
       if (busy || (!trimmed && !selectedFile)) return;
       const sendFn = typeof onSend === "function" ? onSend : storeSend;
       setSending(true);
+      try {
         let payloadText = trimmed;
         if (selectedFile) {
           const prefix = trimmed ? `${trimmed} ` : "";
