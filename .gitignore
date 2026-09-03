@@ -497,3 +497,16 @@ ui/release
 security/_tmp_secure_executor_test_runner.py
 # Helm downloaded dependency charts
 helm/**/charts/
+
+# Temporary forensic and diagnosis artifacts
+bisect*.txt
+ci_repro*.txt
+es_full_out.txt
+log_*.txt
+verify*.txt
+repro_*.txt
+sonar_issues_full.txt
+_*.py
+checks-409.json
+runs-on-main.json
+
