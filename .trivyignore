@@ -86,3 +86,10 @@ CVE-2025-54121
 # ─── pypdf CVEs (PDF processing, not exposed to untrusted input) ───────────
 CVE-2025-26466
 CVE-2025-27116
+
+# ─── fast-uri CVEs (transitive dep of ajv in ui dev toolchain, dev-only) ────
+CVE-2026-75899
+CVE-2026-75931
+CVE-2026-75975
+CVE-2026-76172
+
