@@ -125,6 +125,7 @@ def test_rejects_client_supplied_headers_422(client, monkeypatch):
 def test_no_provider_configured_503(client, monkeypatch):
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
     monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    monkeypatch.delenv("GEMINI_API_KEY", raising=False)
     # No explicit provider in the request -> any-missing => generic code.
     resp = client.post(
         "/api/v1/chat/stream",
@@ -148,6 +149,7 @@ def test_default_provider_fallback_picks_first_configured(monkeypatch):
     # No explicit provider + openai configured -> openai is resolved (no 503).
     monkeypatch.setenv("OPENAI_API_KEY", "sk-ok")
     monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    monkeypatch.delenv("GEMINI_API_KEY", raising=False)
     cfg = chat_stream.resolve_provider_config(None, None)
     assert cfg.id == "openai"
     assert cfg.model == chat_stream.PROVIDER_DEFAULT_MODEL["openai"]
@@ -162,6 +164,7 @@ def test_rate_limited_429(client, monkeypatch):
     # is rejected with 429 — avoiding any real upstream HTTP call.
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
     monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    monkeypatch.delenv("GEMINI_API_KEY", raising=False)
     monkeypatch.setattr(chat_stream, "RATE_LIMIT_REQUESTS", 2)
     monkeypatch.setattr(chat_stream, "RATE_LIMIT_WINDOW_SECONDS", 60.0)
     chat_stream.reset_chat_rate_limiter()
@@ -226,6 +229,48 @@ def test_successful_anthropic_stream(client, monkeypatch):
     assert '"delta": "hola"' in text
     assert '"delta": " mundo"' in text
     assert '"provider": "anthropic"' in text
+
+
+def test_gemini_rejects_client_supplied_api_key_422(client, monkeypatch):
+    monkeypatch.setenv("GEMINI_API_KEY", "gem-test-server-only")
+    body = dict(_payload(provider="gemini"))
+    body["apiKey"] = "gemini-client-key-attempt"
+    resp = client.post("/api/v1/chat/stream", json=body, headers=_auth())
+    assert resp.status_code == 422
+
+
+def test_gemini_requested_not_configured_503(client, monkeypatch):
+    monkeypatch.delenv("GEMINI_API_KEY", raising=False)
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-openai")
+    resp = client.post(
+        "/api/v1/chat/stream",
+        json=_payload(provider="gemini"),
+        headers=_auth(),
+    )
+    assert resp.status_code == 503
+    assert resp.json()["detail"]["code"] == "PROVIDER_NOT_CONFIGURED"
+
+
+def test_successful_gemini_stream(client, monkeypatch):
+    monkeypatch.setenv("GEMINI_API_KEY", "gem-test-key")
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    sse_body = (
+        'data: {"candidates":[{"content":{"parts":[{"text":"Marhaba"}],"role":"model"}}]}\n\n'
+        'data: {"candidates":[{"content":{"parts":[{"text":" world"}],"role":"model"}}]}\n\n'
+    )
+    monkeypatch.setattr(chat_stream, "_build_http_client", lambda: _mock_openai_response(sse_body))
+
+    resp = client.post(
+        "/api/v1/chat/stream",
+        json=_payload(provider="gemini"),
+        headers=_auth(),
+    )
+    assert resp.status_code == 200
+    text = resp.text
+    assert '"delta": "Marhaba"' in text
+    assert '"delta": " world"' in text
+    assert '"provider": "gemini"' in text
 
 
 # ─── 6. Error sanitation (defence-in-depth) ────────────────────────────────

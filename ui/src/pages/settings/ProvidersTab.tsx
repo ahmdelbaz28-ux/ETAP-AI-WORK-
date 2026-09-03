@@ -4,7 +4,7 @@
  * Web mode  : API keys are NEVER entered in the browser anymore. Chat runs
  *             through the server-side path (`/api/v1/chat/stream`, P4b) with
  *             keys configured by the administrator on the server environment
- *             (OPENAI_API_KEY / ANTHROPIC_API_KEY).
+ *             (OPENAI_API_KEY / ANTHROPIC_API_KEY / GEMINI_API_KEY).
  * Electron  : legacy per-machine provider management still lives in the
  *             classic Settings page until the P7a-d tab split lands. This
  *             component accepts optional `children` so the existing fields
@@ -40,11 +40,11 @@ settings split ships.`}
       <h2 className="mb-2 text-lg font-semibold text-slate-100">إدارة المفاتيح عبر الخادم</h2>
       <p className="text-sm leading-relaxed text-slate-400">
         {`في وضع الويب لا تُدخل مفاتيح LLM في المتصفح إطلاقًا. يضبط مسؤول النظام
-المفاتيح على الخادم عبر متغيرات البيئة، وتُبثّ الردود عبر المسار الخادمي
-الآمن. للمفعّل بهذا تواصل مع مسؤول المنصة.`}
+المفاتيح على الخادم عبر متغيرات البيئة (OPENAI_API_KEY / ANTHROPIC_API_KEY / GEMINI_API_KEY)،
+وتُبثّ الردود عبر المسار الخادمي الآمن. للتفعيل أو تغيير المفاتيح يرجى التواصل مع مسؤول المنصة.`}
       </p>
       <div className="mt-3 rounded-md border border-slate-700/60 bg-slate-800/50 px-3 py-2 text-xs text-slate-500">
-        Server-side chat: <code className="text-slate-300">POST /api/v1/chat/stream</code> — P4b
+        Server-side chat: <code className="text-slate-300">POST /api/v1/chat/stream</code> (OpenAI, Anthropic, Gemini) — P4b
       </div>
     </section>
   );
