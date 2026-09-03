@@ -90,6 +90,7 @@ PROVIDER_DEFAULT_MODEL = {
 }
 
 ANTHROPIC_VERSION_HEADER = "2023-06-01"
+CONTENT_TYPE_JSON = "application/json"
 
 # Secret-shaped strings inside upstream bodies (defence-in-depth on top of
 # exact env-value redaction in sanitize_error_text).
@@ -257,7 +258,7 @@ async def _openai_upstream_tokens(
         "temperature": 0.7,
         "stream": True,
     }
-    headers = {"Content-Type": "application/json", "Authorization": f"Bearer {cfg.api_key}"}
+    headers = {"Content-Type": CONTENT_TYPE_JSON, "Authorization": f"Bearer {cfg.api_key}"}
     async with client.stream("POST", url, json=body, headers=headers) as resp:
         if resp.status_code >= 400:
             raise UpstreamProviderError(
@@ -297,7 +298,7 @@ async def _anthropic_upstream_tokens(
         body["system"] = "\n\n".join(system_parts)
     url = f"{cfg.base_url}/messages"
     headers = {
-        "Content-Type": "application/json",
+        "Content-Type": CONTENT_TYPE_JSON,
         "x-api-key": cfg.api_key,
         "anthropic-version": ANTHROPIC_VERSION_HEADER,
     }
@@ -326,16 +327,17 @@ async def _anthropic_upstream_tokens(
                 raise UpstreamProviderError(resp.status_code, msg)
 
 
-async def _gemini_upstream_tokens(
-    client: httpx.AsyncClient, cfg: ProviderConfig, payload_body: List[dict]
-) -> AsyncIterator[str]:
-    """Yield text deltas from Google Gemini streamGenerateContent SSE stream."""
+def _build_gemini_payload(payload_body: List[dict]) -> dict:
+    """Construct Google Gemini contents payload with systemInstruction."""
     system_parts = [m["content"] for m in payload_body if m["role"] == "system"]
     chat_messages = [m for m in payload_body if m["role"] != "system"]
-    contents = []
-    for m in chat_messages:
-        role = "model" if m["role"] == "assistant" else "user"
-        contents.append({"role": role, "parts": [{"text": m["content"]}]})
+    contents = [
+        {
+            "role": "model" if m["role"] == "assistant" else "user",
+            "parts": [{"text": m["content"]}],
+        }
+        for m in chat_messages
+    ]
     body: dict = {
         "contents": contents,
         "generationConfig": {
@@ -345,11 +347,37 @@ async def _gemini_upstream_tokens(
     }
     if system_parts:
         body["systemInstruction"] = {"parts": [{"text": "\n\n".join(system_parts)}]}
+    return body
 
+
+def _extract_gemini_deltas(data: str, status_code: int) -> List[str]:
+    """Parse Gemini SSE JSON chunk and return text deltas, or raise on error."""
+    try:
+        parsed = json.loads(data)
+    except ValueError:
+        return []
+    if parsed.get("error"):
+        msg = parsed.get("error", {}).get("message") or "Gemini stream error"
+        raise UpstreamProviderError(status_code, msg)
+    deltas: List[str] = []
+    candidates = parsed.get("candidates") or []
+    if candidates:
+        for part in (candidates[0].get("content") or {}).get("parts") or []:
+            text = part.get("text")
+            if text:
+                deltas.append(str(text))
+    return deltas
+
+
+async def _gemini_upstream_tokens(
+    client: httpx.AsyncClient, cfg: ProviderConfig, payload_body: List[dict]
+) -> AsyncIterator[str]:
+    """Yield text deltas from Google Gemini streamGenerateContent SSE stream."""
+    body = _build_gemini_payload(payload_body)
     model_name = cfg.model.replace("gemini/", "").replace("google/", "")
     url = f"{cfg.base_url.rstrip('/')}/models/{model_name}:streamGenerateContent?alt=sse"
     headers = {
-        "Content-Type": "application/json",
+        "Content-Type": CONTENT_TYPE_JSON,
         "x-goog-api-key": cfg.api_key,
     }
     async with client.stream("POST", url, json=body, headers=headers) as resp:
@@ -364,19 +392,8 @@ async def _gemini_upstream_tokens(
             data = line[len(SSE_DATA_PREFIX) :].strip()
             if not data:
                 continue
-            try:
-                parsed = json.loads(data)
-            except ValueError:
-                continue
-            if parsed.get("error"):
-                msg = parsed.get("error", {}).get("message") or "Gemini stream error"
-                raise UpstreamProviderError(resp.status_code, msg)
-            candidates = parsed.get("candidates") or []
-            if candidates:
-                for part in (candidates[0].get("content") or {}).get("parts") or []:
-                    text = part.get("text")
-                    if text:
-                        yield str(text)
+            for delta in _extract_gemini_deltas(data, resp.status_code):
+                yield delta
 
 
 _UPSTREAM_ADAPTERS = {
