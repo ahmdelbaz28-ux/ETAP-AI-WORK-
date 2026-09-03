@@ -62,6 +62,12 @@ from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from api.approvals import (
+    PendingAction,
+    _norm_tenant,
+    _replay_idempotent,
+    _store_idempotent,
+)
 from api.database import get_db
 from api.dependencies import (
     CurrentUser,
@@ -1026,12 +1032,6 @@ async def execute_import(
             detail=ERR_DATA_IMPORT_DISABLED,
         )
 
-    from api.approvals import (
-        PendingAction,
-        _norm_tenant,
-        _replay_idempotent,
-        _store_idempotent,
-    )
 
     endpoint = "POST /api/v1/import/execute"
     replay = await _replay_idempotent(db, idempotency_key, endpoint, user.tenant_id or "default")
