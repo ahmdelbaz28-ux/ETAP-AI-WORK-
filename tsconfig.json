@@ -17,6 +17,7 @@
     "sourceMap": true,
     "outDir": "./dist",
     "rootDir": "./",
+    "typeRoots": ["./ui/node_modules/@types", "./node_modules/@types"],
     "types": ["node"]
   },
   "include": ["src/**/*", "tests/**/*", "test-model-config.ts"],
