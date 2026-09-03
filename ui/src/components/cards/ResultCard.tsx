@@ -11,7 +11,7 @@ export interface ResultCardProps {
   readonly result: ResultEntry;
 }
 
-const EXPORT_FORMATS = ["pdf", "excel", "csv", "json", "svg"] as const;
+const EXPORT_FORMATS = ["pdf", "excel", "csv", "json"] as const;
 type ExportFormat = (typeof EXPORT_FORMATS)[number];
 
 /**
