@@ -1496,7 +1496,8 @@ class ETAPAutomation:
         if not self.is_running:
             raise RuntimeError("ETAP is not running. Call launch() first.")
 
-        safe_name = pathlib.Path(file_path).name if isinstance(file_path, str) else "unknown"
+        raw_name = os.path.basename(file_path) if isinstance(file_path, str) else "unknown"
+        safe_name = re.sub(r"[^A-Za-z0-9._-]", "_", raw_name)[:64] or "unknown"
 
         if not self._validate_project_path(file_path):
             logger.error("Project path validation failed for %s", safe_name)

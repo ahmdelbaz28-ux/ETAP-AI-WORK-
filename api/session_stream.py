@@ -501,6 +501,42 @@ async def _handle_ws_messages(hub: SessionStreamHub, conn: _Connection, session_
             hub._offer(conn, {"type": "pong", "ts": datetime.now(UTC).isoformat()})
 
 
+def _send_initial_ws_events(
+    hub: SessionStreamHub,
+    conn: _Connection,
+    session_id: str,
+    user_id: str,
+    websocket: WebSocket,
+) -> None:
+    """Send session initialization and replay events on websocket connect."""
+    init_payload = {
+        "status": hub.status(session_id),
+        "authenticated_as": user_id,
+    }
+    if hub.last_seq(session_id) == 0:
+        init_event = hub._record(session_id, EVENT_SESSION_INIT, init_payload)
+        for subscriber in hub._connections.get(session_id, []):
+            hub._offer(subscriber, init_event)
+    else:
+        hub._offer(
+            conn,
+            {
+                "seq": hub.last_seq(session_id),
+                "type": EVENT_SESSION_INIT,
+                "session_id": session_id,
+                "ts": datetime.now(UTC).isoformat(),
+                "payload": init_payload,
+            },
+        )
+
+    after_seq_raw = websocket.query_params.get("after_seq", "")
+    replay_events = (
+        hub.replay(session_id, int(after_seq_raw)) if after_seq_raw.isdigit() else []
+    )
+    for ev in replay_events:
+        hub._offer(conn, ev)
+
+
 async def session_stream_ws(websocket: WebSocket, session_id: str) -> None:
     """Handle one connection to ``/ws/sessions/{session_id}``."""
     user_id = await _authenticate_user_id(websocket)
@@ -518,33 +554,7 @@ async def session_stream_ws(websocket: WebSocket, session_id: str) -> None:
     conn = await hub.connect(websocket, session_id)
 
     try:
-        init_payload = {
-            "status": hub.status(session_id),
-            "authenticated_as": user_id,
-        }
-        if hub.last_seq(session_id) == 0:
-            init_event = hub._record(session_id, EVENT_SESSION_INIT, init_payload)
-            for subscriber in hub._connections.get(session_id, []):
-                hub._offer(subscriber, init_event)
-        else:
-            hub._offer(
-                conn,
-                {
-                    "seq": hub.last_seq(session_id),
-                    "type": EVENT_SESSION_INIT,
-                    "session_id": session_id,
-                    "ts": datetime.now(UTC).isoformat(),
-                    "payload": init_payload,
-                },
-            )
-
-        after_seq_raw = websocket.query_params.get("after_seq", "")
-        replay_events = (
-            hub.replay(session_id, int(after_seq_raw)) if after_seq_raw.isdigit() else []
-        )
-        for ev in replay_events:
-            hub._offer(conn, ev)
-
+        _send_initial_ws_events(hub, conn, session_id, user_id, websocket)
         await _handle_ws_messages(hub, conn, session_id, websocket)
     except WebSocketDisconnect:
         pass

@@ -236,7 +236,6 @@ async def list_mcp_servers(
         raw = json.loads(path.read_text(encoding="utf-8"))
         servers_raw = raw.get("mcpServers", raw.get("servers", {}))
 
-        SECRET_KEY_HINTS = ("key", "token", "secret", "password", "credential")
         servers: list[dict[str, Any]] = []
         for sid, scfg in servers_raw.items():
             env = scfg.get("env", {}) or {}
@@ -1147,7 +1146,7 @@ class _PinnedAddressBackend:
 
     def connect_tcp(
         self,
-        host: str,  # NOSONAR: keyword argument required by httpcore interface contract
+        host: str,
         port: int,
         timeout: Any = None,
         local_address: Any = None,

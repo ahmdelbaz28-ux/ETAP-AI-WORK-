@@ -258,7 +258,7 @@ def _generate_excel(project_name: str, studies: Sequence[Any]) -> bytes:
         from openpyxl import Workbook
         from openpyxl.styles import Alignment, Font, PatternFill
     except ImportError:
-        content = "Study Type,Status,Created,Results\n"
+        content = f"# Project: {project_name}\nStudy Type,Status,Created,Results\n"
         for s in studies:
             results_str = json.dumps(s.results) if s.results else ""
             content += f"{s.study_type},{s.status},{s.created_at},{results_str}\n"
@@ -266,10 +266,11 @@ def _generate_excel(project_name: str, studies: Sequence[Any]) -> bytes:
 
     wb = Workbook()
     ws = wb.active
+    sheet_title = f"Studies-{project_name}"[:31] if project_name else "Study Results"
     if ws is None:
-        ws = wb.create_sheet(title="Study Results")
+        ws = wb.create_sheet(title=sheet_title)
     else:
-        ws.title = "Study Results"
+        ws.title = sheet_title
 
     header_font = Font(bold=True, color="FFFFFF")
     header_fill = PatternFill(start_color="366092", end_color="366092", fill_type="solid")

@@ -195,8 +195,14 @@ const scheduleReconnect = (get: () => ChatWorkspaceState) => {
   }, delay);
 };
 
-type StoreSet = Parameters<Parameters<typeof create<ChatWorkspaceState>>[0]>[0];
-type StoreGet = Parameters<Parameters<typeof create<ChatWorkspaceState>>[0]>[1];
+type StoreSet = (
+  partial:
+    | ChatWorkspaceState
+    | Partial<ChatWorkspaceState>
+    | ((state: ChatWorkspaceState) => ChatWorkspaceState | Partial<ChatWorkspaceState>),
+  replace?: boolean | undefined,
+) => void;
+type StoreGet = () => ChatWorkspaceState;
 
 function handleTokenEvent(payload: Record<string, unknown>, get: StoreGet, set: StoreSet): void {
   const text = typeof payload.text === "string" ? payload.text : "";

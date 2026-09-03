@@ -381,7 +381,8 @@ async def _chat_event_stream(
             },
         )
     except httpx.TimeoutException:
-        logger.warning("chat stream timeout session=%.24s provider=%s", session_id, cfg.id)
+        safe_sid = re.sub(r"[^A-Za-z0-9_-]", "", str(session_id or ""))[:32]
+        logger.warning("chat stream timeout session=%s provider=%s", safe_sid, cfg.id)
         yield _sse(
             "error",
             {
@@ -392,9 +393,10 @@ async def _chat_event_stream(
         )
     except httpx.HTTPError as exc:
         # Connectivity/DNS/TLS issues: generic message outward, detail logged.
+        safe_sid = re.sub(r"[^A-Za-z0-9_-]", "", str(session_id or ""))[:32]
         logger.warning(
-            "chat stream connectivity error session=%.24s provider=%s: %s",
-            session_id,
+            "chat stream connectivity error session=%s provider=%s: %s",
+            safe_sid,
             cfg.id,
             exc.__class__.__name__,
         )

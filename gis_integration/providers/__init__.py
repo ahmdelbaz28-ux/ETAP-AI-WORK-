@@ -68,9 +68,12 @@ def _resolve_mock_or_raise(mock_allowed: bool) -> MockGISProvider:
 
 
 def _resolve_qgis_provider(mock_allowed: bool) -> GISProviderInterface:
-    p = QGISProvider()
-    if p.health_check():
-        return p
+    try:
+        p = QGISProvider()
+        if p.health_check():
+            return p
+    except Exception as exc:
+        logger.debug("QGIS provider probe failed: %s", exc)
     if mock_allowed:
         logger.warning("QGIS health_check failed; falling back to MockGISProvider")
         return MockGISProvider()

@@ -52,8 +52,10 @@ import importlib
 try:
     _defused_et = importlib.import_module("defusedxml.ElementTree")
     ET = _defused_et
-except (ImportError, ModuleNotFoundError):
+except ImportError:
     ET = None  # fail-closed — guard in _parse_cim_xml triggers when defusedxml is not installed
+
+ERR_DATA_IMPORT_DISABLED = "Data import feature is disabled"
 
 from fastapi import APIRouter, Depends, File, Form, Header, HTTPException, UploadFile, status
 from pydantic import BaseModel, Field
@@ -321,7 +323,7 @@ def _validate_magic_bytes(fmt_id: str, content: bytes) -> None:
     header_sample = content[:1024].lstrip(b"\xef\xbb\xbf \t\r\n")
 
     if fmt_id in ("json", "etap-project"):
-        if not (header_sample.startswith(b"{") or header_sample.startswith(b"[")):
+        if not header_sample.startswith((b"{", b"[")):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Invalid JSON signature: file must start with '{' or '['",
@@ -399,9 +401,11 @@ def _make_branch_record(row: dict[str, str]) -> BranchRecord:
 
 def _json_bus_record(b: dict[str, Any]) -> BusRecord:
     """Build a BusRecord from a JSON dict."""
-    voltage_raw = b.get("voltage_kv") if b.get("voltage_kv") is not None else (
-        b.get("nominal_kv") if b.get("nominal_kv") is not None else b.get("voltage")
-    )
+    voltage_raw = b.get("voltage_kv")
+    if voltage_raw is None:
+        voltage_raw = b.get("nominal_kv")
+    if voltage_raw is None:
+        voltage_raw = b.get("voltage")
     voltage_val = float(voltage_raw) if voltage_raw is not None else None
     return BusRecord(
         id=str(b.get("id") or b.get("name") or uuid.uuid4().hex[:8]),
@@ -747,7 +751,7 @@ def _cim_add_branch(elem: Any, branches: list[BranchRecord], warnings: list[str]
 
 
 def _parse_model_content(
-    fmt: SupportedFormat, safe_filename: str, content: bytes
+    fmt: SupportedFormat, content: bytes
 ) -> tuple[list[BusRecord], list[BranchRecord], dict[str, Any], list[str], list[str]]:
     """Parse bytes content into structured records according to format."""
     warnings: list[str] = []
@@ -813,7 +817,7 @@ async def preview_import(
     if not is_feature_enabled("data_import", default=True):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Data import feature is disabled",
+            detail=ERR_DATA_IMPORT_DISABLED,
         )
 
     if not file.filename:
@@ -846,12 +850,10 @@ async def preview_import(
     # Magic bytes check
     _validate_magic_bytes(fmt.id, content)
 
-    buses, branches, metadata, warnings, errors = _parse_model_content(fmt, safe_filename, content)
+    buses, branches, metadata, warnings, errors = _parse_model_content(fmt, content)
     total_records = len(buses) + len(branches)
 
     # Calculate risk level
-    if errors:
-        risk_level = "high"
     risk_level = _assess_risk_level(total_records, bool(errors))
 
     preview_id = f"imp_prev_{uuid.uuid4().hex}"
@@ -908,6 +910,61 @@ async def preview_import(
     )
 
 
+def _check_action_status(action: PendingAction, preview_id: str, user_id: str) -> None:
+    now = datetime.now(UTC)
+    expires_at = action.expires_at
+    if expires_at.tzinfo is None:
+        expires_at = expires_at.replace(tzinfo=UTC)
+
+    if expires_at < now or action.status == "expired":
+        record_approval_event("EXPIRED", action.id, user_id, {"preview_id": preview_id})
+        raise HTTPException(
+            status_code=status.HTTP_410_GONE,
+            detail="ALREADY_RESOLVED: Approval action has expired",
+        )
+
+    if action.status in ("resolved", "consumed", "completed"):
+        record_approval_event("ALREADY_CONSUMED", action.id, user_id, {"preview_id": preview_id})
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"Approval action '{action.id}' has already been resolved/consumed and cannot be reused",
+        )
+
+    if action.status != "approved":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"Action is not approved (current status: {action.status})",
+        )
+
+
+def _check_action_maker_checker(action: PendingAction, preview_id: str, user_id: str) -> None:
+    if isinstance(action.args, dict) and action.args.get("preview_id"):
+        bound_preview = action.args["preview_id"]
+        if bound_preview != preview_id:
+            record_approval_event(
+                "PREVIEW_MISMATCH",
+                action.id,
+                user_id,
+                {"expected_preview_id": bound_preview, "actual_preview_id": preview_id},
+            )
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Approval action '{action.id}' is bound to preview '{bound_preview}', not '{preview_id}'",
+            )
+
+    if not action.decided_by_user_id or action.decided_by_user_id == action.requested_by_user_id:
+        record_approval_event(
+            "MAKER_CHECKER_VIOLATION",
+            action.id,
+            user_id,
+            {"requested_by": action.requested_by_user_id, "decided_by": action.decided_by_user_id},
+        )
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="MAKER_CHECKER_VIOLATION: Maker cannot approve their own action",
+        )
+
+
 async def _validate_import_approval(
     preview: dict[str, Any],
     body: ImportExecuteRequest,
@@ -946,57 +1003,8 @@ async def _validate_import_approval(
             detail="Cross-tenant approval access forbidden",
         )
 
-    now = datetime.now(UTC)
-    expires_at = action.expires_at
-    if expires_at.tzinfo is None:
-        expires_at = expires_at.replace(tzinfo=UTC)
-
-    if expires_at < now or action.status == "expired":
-        record_approval_event("EXPIRED", action.id, user.user_id, {"preview_id": body.preview_id})
-        raise HTTPException(
-            status_code=status.HTTP_410_GONE,
-            detail="ALREADY_RESOLVED: Approval action has expired",
-        )
-
-    if action.status in ("resolved", "consumed", "completed"):
-        record_approval_event("ALREADY_CONSUMED", action.id, user.user_id, {"preview_id": body.preview_id})
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=f"Approval action '{body.approval_id}' has already been resolved/consumed and cannot be reused",
-        )
-
-    if action.status != "approved":
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=f"Action is not approved (current status: {action.status})",
-        )
-
-    if isinstance(action.args, dict) and action.args.get("preview_id"):
-        bound_preview = action.args["preview_id"]
-        if bound_preview != body.preview_id:
-            record_approval_event(
-                "PREVIEW_MISMATCH",
-                action.id,
-                user.user_id,
-                {"expected_preview_id": bound_preview, "actual_preview_id": body.preview_id},
-            )
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"Approval action '{body.approval_id}' is bound to preview '{bound_preview}', not '{body.preview_id}'",
-            )
-
-    if not action.decided_by_user_id or action.decided_by_user_id == action.requested_by_user_id:
-        record_approval_event(
-            "MAKER_CHECKER_VIOLATION",
-            action.id,
-            user.user_id,
-            {"requested_by": action.requested_by_user_id, "decided_by": action.decided_by_user_id},
-        )
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="MAKER_CHECKER_VIOLATION: Maker cannot approve their own action",
-        )
-
+    _check_action_status(action, body.preview_id, user.user_id)
+    _check_action_maker_checker(action, body.preview_id, user.user_id)
     return action
 
 
@@ -1015,7 +1023,7 @@ async def execute_import(
     if not is_feature_enabled("data_import", default=False):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Data import feature is disabled",
+            detail=ERR_DATA_IMPORT_DISABLED,
         )
 
     from api.approvals import (
@@ -1170,7 +1178,7 @@ async def upload_file(
     if not is_feature_enabled("data_import", default=True):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Data import feature is disabled",
+            detail=ERR_DATA_IMPORT_DISABLED,
         )
 
     if not file.filename:
@@ -1203,7 +1211,7 @@ async def upload_file(
     # Validate magic bytes
     _validate_magic_bytes(fmt.id, content)
 
-    buses, branches, metadata, warnings, errors = _parse_model_content(fmt, safe_filename, content)
+    buses, branches, metadata, warnings, errors = _parse_model_content(fmt, content)
 
     # Save to ResultStore if successful
     result_id = None

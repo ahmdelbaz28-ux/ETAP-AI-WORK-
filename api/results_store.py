@@ -214,7 +214,8 @@ def _validate_file_path(rel_path: str) -> str:
         raise HTTPException(status_code=400, detail=ERR_INVALID_FILE_PATH)
     if len(candidate) > 400:
         raise HTTPException(status_code=400, detail="File path too long")
-    return candidate
+    safe_segments = [os.path.basename(re.sub(r"[^A-Za-z0-9._-]", "_", seg)) for seg in raw_segments]
+    return "/".join(safe_segments)
 
 
 def _is_within(base: Path, candidate: Path) -> bool:
@@ -223,7 +224,7 @@ def _is_within(base: Path, candidate: Path) -> bool:
         base_resolved = os.path.abspath(str(base))
         candidate_resolved = os.path.abspath(str(candidate))
         return os.path.commonpath([base_resolved, candidate_resolved]) == base_resolved
-    except (ValueError, Exception):
+    except Exception:
         return False
 
 
@@ -383,23 +384,39 @@ async def store_result_file(
         raise HTTPException(status_code=404, detail=ERR_RESULT_NOT_FOUND)
 
     rdir = _result_dir(tenant_id, result_id)
-    target = (rdir / rel_path).resolve()
-    if not _is_within(rdir, target):
+    rdir_abs = os.path.abspath(str(rdir))
+    target_abs = os.path.abspath(os.path.join(rdir_abs, rel_path))
+    if not target_abs.startswith(rdir_abs + os.sep):
         raise HTTPException(status_code=400, detail="Path traversal is not allowed")
 
+    target = Path(target_abs)
     target.parent.mkdir(parents=True, exist_ok=True)
 
-    tmp_target = target.parent / f".{target.name}.uploading-{uuid.uuid4().hex}"
+    tmp_name = f".{target.name}.uploading-{uuid.uuid4().hex}"
+    tmp_abs = os.path.abspath(os.path.join(str(target.parent), tmp_name))
+    tmp_target = Path(tmp_abs)
     try:
         loop = asyncio.get_running_loop()
         await loop.run_in_executor(None, _write_file_sync, tmp_target, target, bytes(data))
     except Exception:
         with contextlib.suppress(Exception):
-            if _is_within(rdir, tmp_target) and tmp_target.is_file():
-                tmp_target.unlink()
+            if tmp_abs.startswith(rdir_abs + os.sep) and os.path.isfile(tmp_abs):
+                os.remove(tmp_abs)
         logger.exception("result_file_write_failed result_id=%s", _safe_component(result_id, "unknown"))
         raise HTTPException(status_code=500, detail="File storage failed")
 
+    return await _persist_file_record(result_id, rel_path, mime, len(data), rdir_abs, target_abs)
+
+
+async def _persist_file_record(
+    result_id: str,
+    rel_path: str,
+    mime: Optional[str],
+    size_bytes: int,
+    rdir_abs: str,
+    target_abs: str,
+) -> str:
+    """Commit ResultFileRecord to database; unlinks file if DB commit fails."""
     file_id = str(uuid.uuid4())
     try:
         async with async_session() as session:
@@ -409,15 +426,15 @@ async def store_result_file(
                     result_id=result_id,
                     path=rel_path,
                     mime=mime or MIME_OCTET_STREAM,
-                    size_bytes=len(data),
+                    size_bytes=size_bytes,
                 )
             )
             await session.commit()
     except Exception:
         # DB commit failed — remove the physical file so nothing is orphaned.
         with contextlib.suppress(Exception):
-            if _is_within(rdir, target) and target.is_file():
-                target.unlink()
+            if target_abs.startswith(rdir_abs + os.sep) and os.path.isfile(target_abs):
+                os.remove(target_abs)
         logger.exception("result_file_db_commit_failed result_id=%s", _safe_component(result_id, "unknown"))
         raise HTTPException(status_code=500, detail="File metadata persistence failed")
     return file_id
@@ -434,9 +451,11 @@ async def open_result_file(
     if row.expires_at is not None and _as_aware(row.expires_at) <= _utcnow():
         return None
     rdir = _result_dir(tenant_id, result_id)
-    target = (rdir / rel_path).resolve()
-    if not _is_within(rdir, target):
+    rdir_abs = os.path.abspath(str(rdir))
+    target_abs = os.path.abspath(os.path.join(rdir_abs, rel_path))
+    if not target_abs.startswith(rdir_abs + os.sep):
         return None
+    target = Path(target_abs)
     if not target.is_file():
         return None
 
@@ -469,9 +488,11 @@ async def delete_result(tenant_id: str, result_id: str) -> bool:
         return False
 
     # Remove physical directory first
+    storage_root = os.path.abspath(str(_storage_root()))
     rdir = _result_dir(tenant_id, result_id)
-    if _is_within(_storage_root(), rdir) and rdir.exists() and rdir.is_dir():
-        shutil.rmtree(str(rdir), ignore_errors=True)
+    rdir_abs = os.path.abspath(str(rdir))
+    if rdir_abs.startswith(storage_root + os.sep) and os.path.isdir(rdir_abs):
+        shutil.rmtree(rdir_abs, ignore_errors=True)
 
     # Delete DB row (cascades to result_files)
     async with async_session() as session:
