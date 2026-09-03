@@ -12,7 +12,7 @@
   *  - results         : GET /api/v1/results/{resultId}
  *  - kill switch     : GET /admin/cua/kill-switch, POST /admin/cua/kill-switch/activate ({ reason })
  */
-import { create } from "zustand";
+import { create, type StoreApi } from "zustand";
 import { request } from "../lib/api";
 import { API_BASE_URL } from "../lib/api-config";
 import { getChatSessionId, streamFromServerChat } from "../lib/llm-chat";
@@ -195,14 +195,8 @@ const scheduleReconnect = (get: () => ChatWorkspaceState) => {
   }, delay);
 };
 
-type StoreSet = (
-  partial:
-    | ChatWorkspaceState
-    | Partial<ChatWorkspaceState>
-    | ((state: ChatWorkspaceState) => ChatWorkspaceState | Partial<ChatWorkspaceState>),
-  replace?: boolean | undefined,
-) => void;
-type StoreGet = () => ChatWorkspaceState;
+type StoreSet = StoreApi<ChatWorkspaceState>["setState"];
+type StoreGet = StoreApi<ChatWorkspaceState>["getState"];
 
 function handleTokenEvent(payload: Record<string, unknown>, get: StoreGet, set: StoreSet): void {
   const text = typeof payload.text === "string" ? payload.text : "";
