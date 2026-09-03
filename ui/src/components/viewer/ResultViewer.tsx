@@ -303,6 +303,26 @@ const VOLTAGE_HIGH = 1.05;
 const LOADING_WARN = 80;
 const LOADING_CRIT = 100;
 
+function getVoltageCellColor(voltage: number): string {
+  if (voltage < VOLTAGE_LOW || voltage > VOLTAGE_HIGH) {
+    return "#ef4444";
+  }
+  if (Math.abs(voltage - NOMINAL_VOLTAGE) < 0.02) {
+    return "#22c55e";
+  }
+  return "#f59e0b";
+}
+
+function getLoadingCellColor(loading: number): string {
+  if (loading >= LOADING_CRIT) {
+    return "#ef4444";
+  }
+  if (loading >= LOADING_WARN) {
+    return "#f59e0b";
+  }
+  return "#22c55e";
+}
+
 function ChartsTab({ result }: { readonly result: ResultEntry }) {
   if (result.loading) return <LoadingPane />;
   if (result.error) return <ErrorPane message={result.error} />;
@@ -354,16 +374,10 @@ function ChartsTab({ result }: { readonly result: ResultEntry }) {
                 formatter={(v) => [typeof v === "number" ? `${v.toFixed(4)} p.u.` : String(v ?? ""), "Voltage"]}
               />
               <Bar dataKey="voltage_pu" name="Voltage (p.u.)" radius={[3, 3, 0, 0]}>
-                {voltageData.map((entry, idx) => (
+                {voltageData.map((entry) => (
                   <Cell
-                    key={`v-${idx}`}
-                    fill={
-                      entry.voltage_pu < VOLTAGE_LOW || entry.voltage_pu > VOLTAGE_HIGH
-                        ? "#ef4444"
-                        : Math.abs(entry.voltage_pu - NOMINAL_VOLTAGE) < 0.02
-                          ? "#22c55e"
-                          : "#f59e0b"
-                    }
+                    key={entry.bus}
+                    fill={getVoltageCellColor(entry.voltage_pu)}
                   />
                 ))}
               </Bar>
@@ -372,15 +386,15 @@ function ChartsTab({ result }: { readonly result: ResultEntry }) {
           <div className="flex items-center gap-4 mt-1 text-[10px] text-[var(--text-muted)]">
             <span className="flex items-center gap-1">
               <span className="inline-block w-2.5 h-2.5 rounded-sm bg-green-500" />
-              Normal (±2%)
+              <span>Normal (±2%)</span>
             </span>
             <span className="flex items-center gap-1">
               <span className="inline-block w-2.5 h-2.5 rounded-sm bg-yellow-500" />
-              Warning (±5%)
+              <span>Warning (±5%)</span>
             </span>
             <span className="flex items-center gap-1">
               <span className="inline-block w-2.5 h-2.5 rounded-sm bg-red-500" />
-              Violation
+              <span>Violation</span>
             </span>
           </div>
         </div>
@@ -413,16 +427,10 @@ function ChartsTab({ result }: { readonly result: ResultEntry }) {
                 formatter={(v) => [typeof v === "number" ? `${v.toFixed(1)}%` : String(v ?? ""), "Loading"]}
               />
               <Bar dataKey="loading_pct" name="Loading (%)" radius={[3, 3, 0, 0]}>
-                {loadingData.map((entry, idx) => (
+                {loadingData.map((entry) => (
                   <Cell
-                    key={`l-${idx}`}
-                    fill={
-                      entry.loading_pct >= LOADING_CRIT
-                        ? "#ef4444"
-                        : entry.loading_pct >= LOADING_WARN
-                          ? "#f59e0b"
-                          : "#22c55e"
-                    }
+                    key={entry.branch}
+                    fill={getLoadingCellColor(entry.loading_pct)}
                   />
                 ))}
               </Bar>
@@ -431,15 +439,15 @@ function ChartsTab({ result }: { readonly result: ResultEntry }) {
           <div className="flex items-center gap-4 mt-1 text-[10px] text-[var(--text-muted)]">
             <span className="flex items-center gap-1">
               <span className="inline-block w-2.5 h-2.5 rounded-sm bg-green-500" />
-              Normal (&lt;80%)
+              <span>Normal (&lt;80%)</span>
             </span>
             <span className="flex items-center gap-1">
               <span className="inline-block w-2.5 h-2.5 rounded-sm bg-yellow-500" />
-              Warning (80–100%)
+              <span>Warning (80–100%)</span>
             </span>
             <span className="flex items-center gap-1">
               <span className="inline-block w-2.5 h-2.5 rounded-sm bg-red-500" />
-              Overloaded (≥100%)
+              <span>Overloaded (≥100%)</span>
             </span>
           </div>
         </div>
