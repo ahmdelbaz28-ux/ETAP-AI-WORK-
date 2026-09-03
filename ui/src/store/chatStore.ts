@@ -284,7 +284,7 @@ function handleJobProgressEvent(
 
 function appendStreamDelta(acc: string, get: StoreGet, set: StoreSet): void {
   const { messages } = get();
-  const last = messages[messages.length - 1];
+  const last = messages.at(-1);
   if (last?.role === "assistant" && last?.id?.startsWith(WS_TOKEN_MARKER)) {
     set({
       messages: messages.map((m) =>

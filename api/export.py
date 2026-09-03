@@ -252,25 +252,8 @@ def _generate_pdf(project_name: str, studies: Sequence[Any]) -> bytes:
     return buffer.getvalue()
 
 
-def _generate_excel(project_name: str, studies: Sequence[Any]) -> bytes:
-    """Generate an Excel file using openpyxl."""
-    try:
-        from openpyxl import Workbook
-        from openpyxl.styles import Alignment, Font, PatternFill
-    except ImportError:
-        content = f"# Project: {project_name}\nStudy Type,Status,Created,Results\n"
-        for s in studies:
-            results_str = json.dumps(s.results) if s.results else ""
-            content += f"{s.study_type},{s.status},{s.created_at},{results_str}\n"
-        return content.encode("utf-8")
-
-    wb = Workbook()
-    ws = wb.active
-    sheet_title = f"Studies-{project_name}"[:31] if project_name else "Study Results"
-    if ws is None:
-        ws = wb.create_sheet(title=sheet_title)
-    else:
-        ws.title = sheet_title
+def _populate_excel_sheet(ws: Any, studies: Sequence[Any]) -> None:
+    from openpyxl.styles import Alignment, Font, PatternFill
 
     header_font = Font(bold=True, color="FFFFFF")
     header_fill = PatternFill(start_color="366092", end_color="366092", fill_type="solid")
@@ -290,6 +273,28 @@ def _generate_excel(project_name: str, studies: Sequence[Any]) -> bytes:
 
     for col in range(1, 5):
         ws.column_dimensions[chr(64 + col)].width = 20
+
+
+def _generate_excel(project_name: str, studies: Sequence[Any]) -> bytes:
+    """Generate an Excel file using openpyxl."""
+    try:
+        from openpyxl import Workbook
+    except ImportError:
+        content = f"# Project: {project_name}\nStudy Type,Status,Created,Results\n"
+        for s in studies:
+            results_str = json.dumps(s.results) if s.results else ""
+            content += f"{s.study_type},{s.status},{s.created_at},{results_str}\n"
+        return content.encode("utf-8")
+
+    wb = Workbook()
+    ws = wb.active
+    sheet_title = f"Studies-{project_name}"[:31] if project_name else "Study Results"
+    if ws is None:
+        ws = wb.create_sheet(title=sheet_title)
+    else:
+        ws.title = sheet_title
+
+    _populate_excel_sheet(ws, studies)
 
     buffer = io.BytesIO()
     wb.save(buffer)

@@ -482,23 +482,30 @@ async def _verify_active_user(user_id: str) -> bool:
         return bool(user and user.is_active)
 
 
-async def _handle_ws_messages(hub: SessionStreamHub, conn: _Connection, session_id: str, websocket: WebSocket) -> None:
+def _dispatch_ws_message(
+    hub: SessionStreamHub, conn: _Connection, session_id: str, message: dict[str, Any]
+) -> None:
+    msg_type = message.get("type")
+    if msg_type == "resume":
+        resume_after = message.get("after_seq", 0)
+        if isinstance(resume_after, int) and resume_after >= 0:
+            for ev in hub.replay(session_id, resume_after):
+                hub._offer(conn, ev)
+    elif msg_type == "ping":
+        hub._offer(conn, {"type": "pong", "ts": datetime.now(UTC).isoformat()})
+
+
+async def _handle_ws_messages(
+    hub: SessionStreamHub, conn: _Connection, session_id: str, websocket: WebSocket
+) -> None:
     while True:
         raw = await websocket.receive_text()
         try:
             message = json.loads(raw)
         except (json.JSONDecodeError, TypeError):
             continue
-        if not isinstance(message, dict):
-            continue
-        msg_type = message.get("type")
-        if msg_type == "resume":
-            resume_after = message.get("after_seq", 0)
-            if isinstance(resume_after, int) and resume_after >= 0:
-                for ev in hub.replay(session_id, resume_after):
-                    hub._offer(conn, ev)
-        elif msg_type == "ping":
-            hub._offer(conn, {"type": "pong", "ts": datetime.now(UTC).isoformat()})
+        if isinstance(message, dict):
+            _dispatch_ws_message(hub, conn, session_id, message)
 
 
 def _send_initial_ws_events(
