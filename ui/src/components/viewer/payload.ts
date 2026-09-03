@@ -270,7 +270,7 @@ function parseDiagramNodes(buses: unknown): DiagramNode[] {
       id,
       type: "bus",
       label,
-      voltage_pu: v !== null ? v : undefined,
+      voltage_pu: v ?? undefined,
     });
   }
   return nodes;
