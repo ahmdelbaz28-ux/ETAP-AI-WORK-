@@ -14,12 +14,17 @@ export interface GridEditorViewerProps {
  * Read-only viewer for a `network_snapshot` document when the session payload
  * actually contains one.
  *
- * SAFETY: the P5 baseline has NO `network_snapshot` wire contract anywhere in
- * the repo (verified with repository-wide search). This viewer therefore never
- * invents a schema, performs no mutations, and renders the raw delivered
- * document only — showing a clear empty state when no snapshot exists.
+ * SAFETY: this viewer never invents a schema, performs no mutations, and renders
+ * the raw delivered document only — showing a clear empty state when no
+ * snapshot exists.
  */
-export function GridEditorViewer({ snapshot, loading, error, className, "data-testid": testId }: GridEditorViewerProps) {
+export function GridEditorViewer({
+  snapshot,
+  loading,
+  error,
+  className,
+  "data-testid": testId,
+}: GridEditorViewerProps) {
   if (loading) {
     return (
       <div className={className} data-testid={testId ?? "grid-editor-viewer"}>
