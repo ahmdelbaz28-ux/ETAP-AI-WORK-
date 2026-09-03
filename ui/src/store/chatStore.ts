@@ -9,10 +9,10 @@
  *  - approvals       : GET /api/v1/approvals/pending?session_id=...
  *                      POST /api/v1/approvals/{id}/resolve ({ decision })
  *                      PUT /api/v1/session/auto-approve ({ session_id, enabled })
-  *  - results         : GET /api/v1/results/{resultId}
+ *  - results         : GET /api/v1/results/{resultId}
  *  - kill switch     : GET /admin/cua/kill-switch, POST /admin/cua/kill-switch/activate ({ reason })
  */
-import { create, type StoreApi } from "zustand";
+import { type StoreApi, create } from "zustand";
 import { request } from "../lib/api";
 import { API_BASE_URL } from "../lib/api-config";
 import { getChatSessionId, streamFromServerChat } from "../lib/llm-chat";
@@ -85,6 +85,7 @@ export interface ResultEntry {
   readonly execution_id?: string;
   readonly tool?: string;
   readonly plan_id?: string;
+  readonly project_id?: string;
   readonly ts?: string;
   readonly summary?: Record<string, unknown> | null;
   readonly loading?: boolean;
@@ -140,7 +141,12 @@ function initialAutoApprove(): { enabled: boolean; loading: boolean; error: stri
   return { enabled: false, loading: false, error: null };
 }
 
-function initialEmergencyStop(): { active: boolean; activating: boolean; lastResult: "success" | "error" | null; error: string | null } {
+function initialEmergencyStop(): {
+  active: boolean;
+  activating: boolean;
+  lastResult: "success" | "error" | null;
+  error: string | null;
+} {
   return { active: false, activating: false, lastResult: null, error: null };
 }
 
@@ -163,7 +169,12 @@ export interface ChatWorkspaceState {
   selectedResultId: string | null;
   approvalsError: string | null;
   autoApprove: { enabled: boolean; loading: boolean; error: string | null };
-  emergencyStop: { active: boolean; activating: boolean; lastResult: "success" | "error" | null; error: string | null };
+  emergencyStop: {
+    active: boolean;
+    activating: boolean;
+    lastResult: "success" | "error" | null;
+    error: string | null;
+  };
   connectSession: () => void;
   disconnectSession: () => void;
   handleSessionEvent: (frame: unknown) => void;
@@ -177,13 +188,27 @@ export interface ChatWorkspaceState {
   checkEmergencyStop: () => Promise<void>;
   loadResult: (resultId: string) => Promise<void>;
   selectResult: (resultId: string | null) => void;
+  addResult: (entry: ResultEntry) => void;
+  addProposedAction: (payload: Record<string, unknown>) => void;
+  proposeImportApproval: (preview: {
+    preview_id: string;
+    filename: string;
+    records_count?: number;
+    buses_count?: number;
+    branches_count?: number;
+    format?: string;
+  }) => Promise<PendingApproval | null>;
+  executeImport: (previewId: string, approvalId: string) => Promise<string | null>;
   clearSessionData: () => void;
 }
 
 const scheduleReconnect = (get: () => ChatWorkspaceState) => {
   if (wsClosedByUser) return;
   if (reconnectAttempt >= RECONNECT_MAX_ATTEMPTS) {
-    useChatStore.setState({ wsStatus: "failed", wsError: "Session stream reconnect attempts exhausted" });
+    useChatStore.setState({
+      wsStatus: "failed",
+      wsError: "Session stream reconnect attempts exhausted",
+    });
     return;
   }
   reconnectAttempt += 1;
@@ -222,7 +247,12 @@ function handleTokenEvent(payload: Record<string, unknown>, get: StoreGet, set: 
 }
 
 function extractResultId(payload: Record<string, unknown>): string | undefined {
-  const candidates = [payload.result_id, payload.resultId, payload.execution_id, payload.executionId];
+  const candidates = [
+    payload.result_id,
+    payload.resultId,
+    payload.execution_id,
+    payload.executionId,
+  ];
   for (const candidate of candidates) {
     if (typeof candidate === "string" && candidate.trim()) {
       return candidate.trim();
@@ -302,7 +332,10 @@ function appendStreamDelta(acc: string, get: StoreGet, set: StoreSet): void {
   }
 }
 
-function resolvePendingApprovalsList(res: { data?: PendingApproval[]; items?: PendingApproval[] }): PendingApproval[] {
+function resolvePendingApprovalsList(res: {
+  data?: PendingApproval[];
+  items?: PendingApproval[];
+}): PendingApproval[] {
   if (Array.isArray(res?.data)) return res.data;
   if (Array.isArray(res?.items)) return res.items;
   if (Array.isArray(res)) return res;
@@ -453,7 +486,11 @@ export const useChatStore = create<ChatWorkspaceState>()((set, get) => ({
     const trimmed = (text ?? "").trim();
     if (!trimmed) return false;
     if (activeChatAbort) {
-      try { activeChatAbort.abort(); } catch { /* ignore */ }
+      try {
+        activeChatAbort.abort();
+      } catch {
+        /* ignore */
+      }
     }
     const controller = new AbortController();
     activeChatAbort = controller;
@@ -470,8 +507,8 @@ export const useChatStore = create<ChatWorkspaceState>()((set, get) => ({
     });
 
     try {
-      const history = get().messages
-        .filter((m) => m.status !== "error")
+      const history = get()
+        .messages.filter((m) => m.status !== "error")
         .map((m) => ({ role: m.role, content: m.content }));
 
       let acc = "";
@@ -496,7 +533,11 @@ export const useChatStore = create<ChatWorkspaceState>()((set, get) => ({
       const message = toErrorMessage(err, "Chat stream failed");
       const { messages: errMsgs } = get();
       const last = errMsgs[errMsgs.length - 1];
-      if (last?.role === "assistant" && last?.id?.startsWith(WS_TOKEN_MARKER) && last?.status === "streaming") {
+      if (
+        last?.role === "assistant" &&
+        last?.id?.startsWith(WS_TOKEN_MARKER) &&
+        last?.status === "streaming"
+      ) {
         set({
           messages: errMsgs.map((m) =>
             m.id === last.id ? { ...m, status: "error", error: message } : m,
@@ -527,7 +568,11 @@ export const useChatStore = create<ChatWorkspaceState>()((set, get) => ({
 
   clearSessionData: () => {
     if (activeChatAbort) {
-      try { activeChatAbort.abort(); } catch { /* ignore */ }
+      try {
+        activeChatAbort.abort();
+      } catch {
+        /* ignore */
+      }
       activeChatAbort = null;
     }
     set({
@@ -546,6 +591,135 @@ export const useChatStore = create<ChatWorkspaceState>()((set, get) => ({
     });
   },
 
+  addResult: (entry) => {
+    const current = get().results;
+    const existing = current.find((r) => r.resultId === entry.resultId);
+    if (existing) {
+      set({
+        results: current.map((r) => (r.resultId === entry.resultId ? { ...r, ...entry } : r)),
+        selectedResultId: get().selectedResultId ?? entry.resultId,
+      });
+    } else {
+      set({
+        results: [entry, ...current].slice(0, MAX_LIST_ITEMS),
+        selectedResultId: get().selectedResultId ?? entry.resultId,
+      });
+    }
+  },
+
+  addProposedAction: (payload) => {
+    const seq = get().lastSeq + 1;
+    const ts = new Date().toISOString();
+    const entry: ProposedActionEntry = { seq, ts, payload };
+    set({
+      lastSeq: seq,
+      proposedActions: [entry, ...get().proposedActions].slice(0, MAX_LIST_ITEMS),
+    });
+  },
+
+  proposeImportApproval: async (preview) => {
+    try {
+      const approval = await request<PendingApproval>("/api/v1/approvals", {
+        method: "POST",
+        body: JSON.stringify({
+          session_id: get().sessionId,
+          tool: "data_import",
+          args: {
+            preview_id: preview.preview_id,
+            filename: preview.filename,
+            records_count: preview.records_count,
+            buses_count: preview.buses_count,
+            branches_count: preview.branches_count,
+            format: preview.format,
+          },
+        }),
+      });
+      if (approval?.id) {
+        set({
+          approvals: [approval, ...get().approvals.filter((a) => a.id !== approval.id)].slice(
+            0,
+            MAX_LIST_ITEMS,
+          ),
+        });
+        return approval;
+      }
+      return null;
+    } catch (err) {
+      set({ approvalsError: toErrorMessage(err, "Failed to propose import approval") });
+      return null;
+    }
+  },
+
+  executeImport: async (previewId, approvalId) => {
+    const ts = new Date().toISOString();
+    const session_id = get().sessionId;
+    // Broadcast progress events to store activity
+    const p1: ActivityProgress = { phase: "validating", pct: 25, tool: "data_import", ts };
+    const p2: ActivityProgress = { phase: "parsing", pct: 50, tool: "data_import", ts };
+    const p3: ActivityProgress = { phase: "persisting", pct: 80, tool: "data_import", ts };
+    set({ activity: [p3, p2, p1, ...get().activity].slice(0, MAX_LIST_ITEMS) });
+
+    try {
+      const res = await request<{
+        success: boolean;
+        import_id: string;
+        result_id: string;
+        records_imported: number;
+        buses_count: number;
+        branches_count: number;
+        status: string;
+        executed_at: string;
+      }>("/api/v1/import/execute", {
+        method: "POST",
+        headers: {
+          "Idempotency-Key": `idemp-import-${previewId}-${Date.now()}`,
+        },
+        body: JSON.stringify({
+          preview_id: previewId,
+          approval_id: approvalId,
+          session_id,
+        }),
+      });
+
+      const pDone: ActivityProgress = {
+        phase: "completed",
+        pct: 100,
+        tool: "data_import",
+        ts: res?.executed_at || ts,
+      };
+      set({ activity: [pDone, ...get().activity].slice(0, MAX_LIST_ITEMS) });
+
+      if (res?.result_id) {
+        const resultEntry: ResultEntry = {
+          resultId: res.result_id,
+          execution_id: res.import_id,
+          tool: "data_import",
+          ts: res.executed_at || ts,
+          summary: {
+            records_imported: res.records_imported,
+            buses_count: res.buses_count,
+            branches_count: res.branches_count,
+          },
+          loading: false,
+          loaded: true,
+        };
+        get().addResult(resultEntry);
+        return res.result_id;
+      }
+      return null;
+    } catch (err) {
+      const errMessage = toErrorMessage(err, "Failed to execute import");
+      const pErr: ActivityProgress = {
+        phase: `failed: ${errMessage}`,
+        pct: 0,
+        tool: "data_import",
+        ts,
+      };
+      set({ activity: [pErr, ...get().activity].slice(0, MAX_LIST_ITEMS) });
+      throw err;
+    }
+  },
+
   selectResult: (resultId) => {
     set({ selectedResultId: resultId });
   },
@@ -557,10 +731,18 @@ export const useChatStore = create<ChatWorkspaceState>()((set, get) => ({
     );
     set({ results, selectedResultId: resultId });
     try {
-      const data = await request<Record<string, unknown>>(`/api/v1/results/${encodeURIComponent(resultId)}`);
+      const data = await request<Record<string, unknown>>(
+        `/api/v1/results/${encodeURIComponent(resultId)}`,
+      );
       const updated = get().results.map((r) =>
         r.resultId === resultId
-          ? { ...r, loading: false, loaded: true, summary: (data?.summary as Record<string, unknown> | undefined) ?? r.summary ?? null }
+          ? {
+              ...r,
+              loading: false,
+              loaded: true,
+              project_id: (data?.project_id as string | undefined) ?? r.project_id,
+              summary: (data?.summary as Record<string, unknown> | undefined) ?? r.summary ?? null,
+            }
           : r,
       );
       set({ results: updated });
@@ -587,18 +769,31 @@ export const useChatStore = create<ChatWorkspaceState>()((set, get) => ({
 
   resolveApproval: async (approvalId, decision) => {
     if (!approvalId) return false;
+    const targetApproval = get().approvals.find((a) => a.id === approvalId);
     const next = get().approvals.map((a) =>
       a.id === approvalId ? { ...a, resolving: decision, error: null } : a,
     );
     set({ approvals: next });
     try {
-      await request<{ success: boolean }>(`/api/v1/approvals/${encodeURIComponent(approvalId)}/resolve`, {
-        method: "POST",
-        body: JSON.stringify({ decision, session_id: get().sessionId }),
-      });
+      await request<{ success: boolean }>(
+        `/api/v1/approvals/${encodeURIComponent(approvalId)}/resolve`,
+        {
+          method: "POST",
+          body: JSON.stringify({ decision, session_id: get().sessionId }),
+        },
+      );
       set({
         approvals: get().approvals.filter((a) => a.id !== approvalId),
       });
+      if (decision === "approve" && targetApproval?.tool === "data_import") {
+        const previewId = (targetApproval as unknown as { args?: { preview_id?: string } })?.args
+          ?.preview_id;
+        if (previewId) {
+          void get()
+            .executeImport(previewId, approvalId)
+            .catch(() => {});
+        }
+      }
       return true;
     } catch (err) {
       const message = toErrorMessage(err, "Failed to resolve approval");
@@ -621,7 +816,8 @@ export const useChatStore = create<ChatWorkspaceState>()((set, get) => ({
           body: JSON.stringify({ session_id: get().sessionId, enabled }),
         },
       );
-      const resolved = typeof res?.effective_enabled === "boolean" ? res.effective_enabled : enabled;
+      const resolved =
+        typeof res?.effective_enabled === "boolean" ? res.effective_enabled : enabled;
       set({ autoApprove: { enabled: resolved, loading: false, error: null } });
       return true;
     } catch (err) {
