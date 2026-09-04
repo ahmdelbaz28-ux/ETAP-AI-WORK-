@@ -16,6 +16,7 @@
 
 import { POPULAR_PROVIDERS } from "../pages/Settings";
 import { apiUrl, getCachedSettings } from "./api-config";
+import { testProviderKey } from "./provider-keys";
 import { getAuthToken } from "./tokenStorage";
 
 // --- section ---
@@ -273,8 +274,8 @@ async function callGemini(
   provider: ProviderConfig,
   signal?: AbortSignal,
 ): Promise<ChatResult> {
-  const model = provider.model.replace("google/", "");
-  const endpoint = `${provider.baseUrl}/models/${model}:generateContent?key=${provider.apiKey}`;
+  const model = provider.model.replace("google/", "").replace("gemini/", "");
+  const endpoint = `${provider.baseUrl}/models/${model}:generateContent`;
 
   const contents = messages
     .filter((m) => m.role !== "system")
@@ -292,15 +293,15 @@ async function callGemini(
     body.systemInstruction = { parts: [{ text: systemInstruction.content }] };
   }
 
-  // Gemini uses API key in URL, not in Authorization header
+  // Gemini uses x-goog-api-key header instead of ?key= in URL to avoid URL leakage
   const res = await fetch("/api/llm-proxy", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       endpoint,
-      apiKey: "gemini-no-auth-header", // Gemini uses ?key= not Bearer
+      apiKey: provider.apiKey,
       body,
-      headers: {},
+      headers: { "x-goog-api-key": provider.apiKey },
     }),
     signal,
   });
@@ -402,6 +403,21 @@ export interface TestResult {
 }
 
 export async function testProviderConnection(providerId: string): Promise<TestResult> {
+  if (!isElectronRuntime() && (await isServerChatStreamEnabled())) {
+    try {
+      const res = await testProviderKey(providerId);
+      return {
+        success: res.data?.success ?? res.success,
+        message: res.data?.message ?? "Provider key verified",
+      };
+    } catch (err) {
+      return {
+        success: false,
+        message: err instanceof Error ? err.message : "Failed to test provider key via server",
+      };
+    }
+  }
+
   const settings = getSettings();
   const providerDef = POPULAR_PROVIDERS.find((p) => p.id === providerId);
 
@@ -495,19 +511,19 @@ async function performChatTest(provider: ProviderConfig): Promise<TestResult> {
 
     // For Gemini
     if (provider.apiType === "gemini") {
-      const model = provider.model.replace("google/", "");
-      const endpoint = `${provider.baseUrl}/models/${model}:generateContent?key=${provider.apiKey}`;
+      const model = provider.model.replace("google/", "").replace("gemini/", "");
+      const endpoint = `${provider.baseUrl}/models/${model}:generateContent`;
       const res = await fetch("/api/llm-proxy", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           endpoint,
-          apiKey: "gemini",
+          apiKey: provider.apiKey,
+          headers: { "x-goog-api-key": provider.apiKey },
           body: {
             contents: [{ role: "user", parts: [{ text: "Say OK" }] }],
             generationConfig: { maxOutputTokens: 100 },
           },
-          headers: {},
         }),
       });
       const latencyMs = Date.now() - startTime;
@@ -764,7 +780,11 @@ async function* streamFromGemini(
   messages: ChatMessage[],
   signal?: AbortSignal,
 ): AsyncGenerator<string, void, unknown> {
-  // Gemini streaming is different — fall back to non-streaming and
+  if (!isElectronRuntime() && (await isServerChatStreamEnabled())) {
+    yield* streamFromServerChat(messages, signal);
+    return;
+  }
+  // Gemini streaming in Electron — fall back to non-streaming and
   // simulate streaming by yielding word by word.
   const result = await chatWithLLM(messages, provider, signal);
   const words = result.content.split(/(\s+)/);
@@ -1061,7 +1081,11 @@ async function buildServerChatHttpError(res: Response): Promise<Error> {
   return new Error(`Chat service error ${res.status}: ${detail}`);
 }
 
-type SseAction = { type: "token"; delta: string } | { type: "done" } | { type: "error"; error: Error } | { type: "none" };
+type SseAction =
+  | { type: "token"; delta: string }
+  | { type: "done" }
+  | { type: "error"; error: Error }
+  | { type: "none" };
 
 function handleSseLine(line: string, state: { currentEvent: string }): SseAction {
   if (line.startsWith("event: ")) {

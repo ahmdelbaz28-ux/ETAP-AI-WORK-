@@ -32,12 +32,12 @@ import os
 import re
 import time
 from typing import AsyncIterator, Dict, List, Optional
-from typing_extensions import Annotated
 
 import httpx
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, ConfigDict, Field
+from typing_extensions import Annotated
 
 from api.dependencies import CurrentUser, get_current_user_from_header
 
@@ -59,29 +59,34 @@ MAX_RATE_BUCKETS = 4096  # bounded per-user bucket map (self-pruning)
 
 UPSTREAM_TIMEOUT = httpx.Timeout(120.0, connect=10.0)
 
-SUPPORTED_PROVIDERS = ("openai", "anthropic")
+SUPPORTED_PROVIDERS = ("openai", "anthropic", "gemini")
 
 # Environment variables holding server-side provider configuration.
 # NAMES are safe to expose; VALUES never leave the box.
 PROVIDER_API_KEY_ENV = {
     "openai": "OPENAI_API_KEY",
     "anthropic": "ANTHROPIC_API_KEY",
+    "gemini": "GEMINI_API_KEY",
 }
 PROVIDER_BASE_URL_ENV = {
     "openai": "OPENAI_BASE_URL",
     "anthropic": "ANTHROPIC_BASE_URL",
+    "gemini": "GEMINI_BASE_URL",
 }
 PROVIDER_DEFAULT_BASE_URL = {
     "openai": "https://api.openai.com/v1",
     "anthropic": "https://api.anthropic.com/v1",
+    "gemini": "https://generativelanguage.googleapis.com/v1beta",
 }
 PROVIDER_MODEL_ENV = {
     "openai": "OPENAI_MODEL",
     "anthropic": "ANTHROPIC_MODEL",
+    "gemini": "GEMINI_MODEL",
 }
 PROVIDER_DEFAULT_MODEL = {
     "openai": "gpt-4o-mini",
     "anthropic": "claude-3-5-haiku-latest",
+    "gemini": "gemini-1.5-flash",
 }
 
 ANTHROPIC_VERSION_HEADER = "2023-06-01"
@@ -122,7 +127,7 @@ class ChatStreamRequest(BaseModel):
 
     session_id: str = Field(min_length=1, max_length=MAX_SESSION_ID_CHARS)
     messages: List[ChatMessageIn] = Field(min_length=1, max_length=MAX_MESSAGES)
-    provider: Optional[str] = Field(default=None, pattern="^(openai|anthropic)$")
+    provider: Optional[str] = Field(default=None, pattern="^(openai|anthropic|gemini)$")
     model: Optional[str] = Field(default=None, min_length=1, max_length=128)
 
 
@@ -321,9 +326,79 @@ async def _anthropic_upstream_tokens(
                 raise UpstreamProviderError(resp.status_code, msg)
 
 
+def _build_gemini_payload(payload_body: List[dict]) -> dict:
+    """Construct Google Gemini contents payload with systemInstruction."""
+    system_parts = [m["content"] for m in payload_body if m["role"] == "system"]
+    chat_messages = [m for m in payload_body if m["role"] != "system"]
+    contents = [
+        {
+            "role": "model" if m["role"] == "assistant" else "user",
+            "parts": [{"text": m["content"]}],
+        }
+        for m in chat_messages
+    ]
+    body: dict = {
+        "contents": contents,
+        "generationConfig": {
+            "temperature": 0.7,
+            "maxOutputTokens": 4096,
+        },
+    }
+    if system_parts:
+        body["systemInstruction"] = {"parts": [{"text": "\n\n".join(system_parts)}]}
+    return body
+
+
+def _extract_gemini_deltas(data: str, status_code: int) -> List[str]:
+    """Parse Gemini SSE JSON chunk and return text deltas, or raise on error."""
+    try:
+        parsed = json.loads(data)
+    except ValueError:
+        return []
+    if parsed.get("error"):
+        msg = parsed.get("error", {}).get("message") or "Gemini stream error"
+        raise UpstreamProviderError(status_code, msg)
+    deltas: List[str] = []
+    candidates = parsed.get("candidates") or []
+    if candidates:
+        for part in (candidates[0].get("content") or {}).get("parts") or []:
+            text = part.get("text")
+            if text:
+                deltas.append(str(text))
+    return deltas
+
+
+async def _gemini_upstream_tokens(
+    client: httpx.AsyncClient, cfg: ProviderConfig, payload_body: List[dict]
+) -> AsyncIterator[str]:
+    """Yield text deltas from Google Gemini streamGenerateContent SSE stream."""
+    body = _build_gemini_payload(payload_body)
+    model_name = cfg.model.replace("gemini/", "").replace("google/", "")
+    url = f"{cfg.base_url.rstrip('/')}/models/{model_name}:streamGenerateContent?alt=sse"
+    headers = {
+        "Content-Type": "application/json",
+        "x-goog-api-key": cfg.api_key,
+    }
+    async with client.stream("POST", url, json=body, headers=headers) as resp:
+        if resp.status_code >= 400:
+            raise UpstreamProviderError(
+                resp.status_code, (await resp.aread()).decode("utf-8", "replace")
+            )
+        async for line in resp.aiter_lines():
+            line = line.strip()
+            if not line.startswith(SSE_DATA_PREFIX):
+                continue
+            data = line[len(SSE_DATA_PREFIX) :].strip()
+            if not data:
+                continue
+            for delta in _extract_gemini_deltas(data, resp.status_code):
+                yield delta
+
+
 _UPSTREAM_ADAPTERS = {
     "openai": _openai_upstream_tokens,
     "anthropic": _anthropic_upstream_tokens,
+    "gemini": _gemini_upstream_tokens,
 }
 
 
