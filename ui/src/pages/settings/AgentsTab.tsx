@@ -4,7 +4,7 @@
  * Table of 25 engineering agents registered in the platform (api/shared_handlers:AGENTS:25).
  *
  * SPECIFICATION & SECURITY:
- *   - Fetches agent catalog from canonical backend endpoint GET /api/v1/agents.
+ *   - Fetches agent catalog dynamically from canonical backend endpoint GET /api/v1/agents.
  *   - Local-only enabled/disabled state via React memory state (no PATCH /agents call).
  *   - Search filter by name, standard, and description.
  *   - Status badge and capability tags for each agent.
@@ -29,303 +29,54 @@ export interface AgentsTabProps {
   readonly notify?: (type: "success" | "error" | "info" | "warning", message: string) => void;
 }
 
-/**
- * Fallback canonical registry of 25 agents from api/shared_handlers.py:AGENTS.
- * Guarantees reliable offline rendering and resilience against network timeouts.
- */
-const CANONICAL_AGENTS: BackendAgent[] = [
-  {
-    id: "load-flow-agent",
-    name: "Load Flow Agent",
-    standard: "IEEE 3002.7",
-    status: "active",
-    description: "Newton-Raphson load flow analysis, voltage profile assessment, power loss calculation.",
-    capabilities: ["load_flow", "newton_raphson", "voltage_profile", "loss_calculation"],
-    model: "gpt-4o",
-    provider: "openai",
-  },
-  {
-    id: "short-circuit-agent",
-    name: "Short Circuit Agent",
-    standard: "IEC 60909",
-    status: "active",
-    description: "Fault current analysis (3-phase, SLG, LL, LLG), equipment rating verification.",
-    capabilities: ["short_circuit", "fault_analysis", "iec_60909", "equipment_rating"],
-    model: "gpt-4o",
-    provider: "openai",
-  },
-  {
-    id: "arcflash-agent",
-    name: "Arc Flash Agent",
-    standard: "IEEE 1584",
-    status: "beta",
-    description: "Incident energy calculation, arc flash boundary, PPE category determination.",
-    capabilities: ["arc_flash", "incident_energy", "ppe_category", "ieee_1584"],
-    model: "gpt-4o",
-    provider: "openai",
-  },
-  {
-    id: "protection-agent",
-    name: "Protection Agent",
-    standard: "IEC 60255",
-    status: "active",
-    description: "Relay coordination, time-current curve analysis, protection selectivity verification.",
-    capabilities: ["protection", "relay_coordination", "tcc_curves", "iec_60255"],
-    model: "gpt-4o",
-    provider: "openai",
-  },
-  {
-    id: "motorstarting-agent",
-    name: "Motor Starting Agent",
-    standard: "IEEE 399",
-    status: "beta",
-    description: "Motor starting current analysis, voltage dip assessment, acceleration risk evaluation.",
-    capabilities: ["motor_starting", "voltage_dip", "acceleration_risk", "ieee_399"],
-    model: "gpt-4o",
-    provider: "openai",
-  },
-  {
-    id: "stability-agent",
-    name: "Stability Agent",
-    standard: "IEEE 399",
-    status: "beta",
-    description: "Transient stability, swing equation (RK4), eigenvalue analysis, critical clearing time.",
-    capabilities: ["transient_stability", "rk4_solver", "eigenvalues", "cct"],
-    model: "gpt-4o",
-    provider: "openai",
-  },
-  {
-    id: "harmonic-agent",
-    name: "Harmonic Analysis Agent",
-    standard: "IEEE 519",
-    status: "active",
-    description: "Harmonic distortion analysis, filter sizing, THD calculation, IEEE 519 compliance.",
-    capabilities: ["harmonics", "thd_calculation", "filter_sizing", "ieee_519"],
-    model: "gpt-4o",
-    provider: "openai",
-  },
-  {
-    id: "cable-sizing-agent",
-    name: "Cable Sizing Agent",
-    standard: "IEC 60364",
-    status: "beta",
-    description: "Cable ampacity calculation, voltage drop verification, thermal withstand checks.",
-    capabilities: ["cable_sizing", "ampacity", "voltage_drop", "iec_60364"],
-    model: "gpt-4o",
-    provider: "openai",
-  },
-  {
-    id: "earth-grid-agent",
-    name: "Earth Grid Agent",
-    standard: "IEEE 80",
-    status: "beta",
-    description: "Substation ground grid design, mesh/step/touch voltage calculation.",
-    capabilities: ["ground_grid", "mesh_voltage", "step_voltage", "ieee_80"],
-    model: "gpt-4o",
-    provider: "openai",
-  },
-  {
-    id: "opf-agent",
-    name: "Optimal Power Flow Agent",
-    standard: "IEEE 3002.7",
-    status: "active",
-    description: "Cost minimization, transmission loss optimization, generation dispatch.",
-    capabilities: ["optimal_power_flow", "dispatch_optimization", "loss_minimization"],
-    model: "gpt-4o",
-    provider: "openai",
-  },
-  {
-    id: "renewable-agent",
-    name: "Renewable Energy Agent",
-    standard: "IEEE 1547",
-    status: "beta",
-    description: "Solar PV & wind generation integration, intermittency modeling, grid code compliance.",
-    capabilities: ["renewables", "solar_pv", "wind_integration", "ieee_1547"],
-    model: "gpt-4o",
-    provider: "openai",
-  },
-  {
-    id: "battery-storage-agent",
-    name: "Battery Storage Agent",
-    standard: "IEC 62933",
-    status: "beta",
-    description: "Battery Energy Storage System (BESS) sizing, state of charge, dispatch optimization.",
-    capabilities: ["bess", "battery_storage", "dispatch_optimization", "iec_62933"],
-    model: "gpt-4o",
-    provider: "openai",
-  },
-  {
-    id: "scada-agent",
-    name: "SCADA Agent",
-    standard: "IEC 61850",
-    status: "beta",
-    description: "SCADA real-time telemetry, Copa-Data zenon sync, GOOSE/SV messaging mapping.",
-    capabilities: ["scada", "telemetry", "zenon_sync", "iec_61850"],
-    model: "gpt-4o",
-    provider: "openai",
-  },
-  {
-    id: "digital-twin-agent",
-    name: "Digital Twin Agent",
-    standard: "IEC 61970",
-    status: "beta",
-    description: "Real-time state estimation, topology processing, dynamic model synchronization.",
-    capabilities: ["digital_twin", "state_estimation", "topology_processing", "iec_61970"],
-    model: "gpt-4o",
-    provider: "openai",
-  },
-  {
-    id: "predictive-agent",
-    name: "Predictive Maintenance",
-    standard: "ISO 13381",
-    status: "beta",
-    description: "Equipment degradation modeling, remaining useful life (RUL), anomaly trends.",
-    capabilities: ["predictive_maintenance", "rul_estimation", "degradation_models", "iso_13381"],
-    model: "gpt-4o",
-    provider: "openai",
-  },
-  {
-    id: "anomaly-agent",
-    name: "Anomaly Detection Agent",
-    standard: "IEEE 1159",
-    status: "beta",
-    description: "Power quality events, voltage sags/swells, transient spike anomaly detection.",
-    capabilities: ["anomaly_detection", "power_quality", "voltage_sag", "ieee_1159"],
-    model: "gpt-4o",
-    provider: "openai",
-  },
-  {
-    id: "coordination-agent",
-    name: "Coordination Agent",
-    standard: "IEC 60255",
-    status: "beta",
-    description: "Protection selectivity verification, grading margins, coordination audit.",
-    capabilities: ["protection_coordination", "selectivity_check", "grading_margins", "iec_60255"],
-    model: "gpt-4o",
-    provider: "openai",
-  },
-  {
-    id: "report-agent",
-    name: "Report Generation Agent",
-    standard: "IEEE 3002.7",
-    status: "active",
-    description: "Automated engineering documentation, calculation summaries, multi-format export.",
-    capabilities: ["reporting", "pdf_export", "standards_documentation"],
-    model: "gpt-4o",
-    provider: "openai",
-  },
-  {
-    id: "validation-agent",
-    name: "Validation Agent",
-    standard: "IEC 60038",
-    status: "active",
-    description: "Engineering sanity check, first-principles cross verification, rule compliance.",
-    capabilities: ["validation", "first_principles", "standards_audit", "iec_60038"],
-    model: "gpt-4o",
-    provider: "openai",
-  },
-  {
-    id: "etap-engineer-agent",
-    name: "ETAP Engineer Agent",
-    standard: "ETAP Manual",
-    status: "active",
-    description: "General-purpose ETAP study assistant, project file validation, one-line model audits.",
-    capabilities: ["etap_core", "study_orchestration", "model_audit"],
-    model: "gpt-4o",
-    provider: "openai",
-  },
-  {
-    id: "goal-planner-agent",
-    name: "Goal Planner Agent",
-    standard: "Internal",
-    status: "beta",
-    description: "Deconstructs high-level engineering objectives into sequenced study workflows.",
-    capabilities: ["goal_planning", "study_decomposition", "task_sequencing"],
-    model: "gpt-4o",
-    provider: "openai",
-  },
-  {
-    id: "weather-agent",
-    name: "Weather Agent",
-    standard: "IEC 60721",
-    status: "beta",
-    description: "Weather environmental data retrieval, solar irradiance, ambient temperature curves.",
-    capabilities: ["weather_telemetry", "solar_irradiance", "thermal_rating", "iec_60721"],
-    model: "gpt-4o",
-    provider: "openai",
-  },
-  {
-    id: "power-system-coordinator",
-    name: "Power System Coordinator",
-    standard: "All",
-    status: "active",
-    description: "Triage and routing agent, dispatches incoming tasks to specialist domain agents.",
-    capabilities: ["agent_coordination", "task_routing", "specialist_dispatch"],
-    model: "gpt-4o",
-    provider: "openai",
-  },
-  {
-    id: "etap-expert-agent",
-    name: "ETAP Expert Skill Agent",
-    standard: "IEEE/IEC/NEC/NFPA (all)",
-    status: "active",
-    description: "6-step workflow with Format A/B/C/D responses. Knowledge base: skills/etap-expert.md.",
-    capabilities: ["etap_expert", "rule_based_audit", "standards_compliance", "format_a_b_c_d"],
-    model: "gpt-4o",
-    provider: "openai",
-  },
-  {
-    id: "etap-gui-agent",
-    name: "ETAP GUI Agent (Computer Use Agent)",
-    standard: "Safety + Audit",
-    status: "active",
-    description: "Computer Use Agent for desktop apps (ETAP, Revit, AutoCAD, SCADA, QGIS, ArcGIS).",
-    capabilities: ["cua", "desktop_automation", "etap_ui_control", "vision_grounding"],
-    model: "gpt-4o",
-    provider: "openai",
-  },
-];
-
 export function AgentsTab({ notify }: Readonly<AgentsTabProps>) {
-  const [agents, setAgents] = useState<BackendAgent[]>(CANONICAL_AGENTS);
+  const [agents, setAgents] = useState<BackendAgent[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   // Strictly local in-memory toggle state (NO PATCH /agents call)
   const [disabledAgents, setDisabledAgents] = useState<Record<string, boolean>>({});
 
   const fetchAgentList = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
       const res = await listAgents();
-      if (res?.agents && res.agents.length > 0) {
+      if (res?.agents) {
         setAgents(res.agents);
       } else {
-        setAgents(CANONICAL_AGENTS);
+        setAgents([]);
       }
-    } catch {
-      // Graceful fallback to canonical 25 agents
-      setAgents(CANONICAL_AGENTS);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Failed to load agents";
+      setError(msg);
+      if (notify) {
+        notify("error", `Failed to load agents: ${msg}`);
+      }
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [notify]);
 
   useEffect(() => {
     void fetchAgentList();
   }, [fetchAgentList]);
 
-  const handleToggleAgent = useCallback((agentId: string, currentEnabled: boolean) => {
-    setDisabledAgents((prev) => {
-      const next = { ...prev, [agentId]: currentEnabled };
-      return next;
-    });
-    if (notify) {
-      notify(
-        "info",
-        `Agent ${agentId} ${currentEnabled ? "disabled" : "enabled"} in local session`,
-      );
-    }
-  }, [notify]);
+  const handleToggleAgent = useCallback(
+    (agentId: string, currentEnabled: boolean) => {
+      setDisabledAgents((prev) => ({
+        ...prev,
+        [agentId]: currentEnabled,
+      }));
+      if (notify) {
+        notify(
+          "info",
+          `Agent ${agentId} ${currentEnabled ? "disabled" : "enabled"} in local session`,
+        );
+      }
+    },
+    [notify],
+  );
 
   const filteredAgents = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
@@ -348,7 +99,7 @@ export function AgentsTab({ notify }: Readonly<AgentsTabProps>) {
       {/* ── Header Card ────────────────────────────────────────────── */}
       <Card padding="md">
         <CardHeader
-          title="Engineering Agents (25)"
+          title={`Engineering Agents (${agents.length || 25})`}
           subtitle="Dual-runtime architecture (Mastra TypeScript + Python Engineering Engines)"
           icon={<Bot className="w-5 h-5 text-brand-400" />}
           action={
@@ -371,8 +122,8 @@ export function AgentsTab({ notify }: Readonly<AgentsTabProps>) {
         <div className="flex items-start gap-2 mt-2 text-xs text-[var(--text-muted)]">
           <ShieldCheck className="w-4 h-4 shrink-0 text-green-400 mt-0.5" />
           <span>
-            Active agent registry loaded from the engineering backend. Toggles are managed in local
-            session memory without modifying backend registry contracts.
+            Active agent registry loaded from GET /api/v1/agents. Toggles are managed in local
+            session memory without mutating backend registry contracts.
           </span>
         </div>
       </Card>
@@ -398,6 +149,15 @@ export function AgentsTab({ notify }: Readonly<AgentsTabProps>) {
           </Button>
         )}
       </div>
+
+      {error && (
+        <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-xs flex items-center justify-between">
+          <span>Failed to load agents from backend: {error}</span>
+          <Button variant="ghost" size="sm" onClick={() => void fetchAgentList()}>
+            Retry
+          </Button>
+        </div>
+      )}
 
       {/* ── Agents Table / List ────────────────────────────────────── */}
       <Card padding="none">
@@ -472,7 +232,7 @@ export function AgentsTab({ notify }: Readonly<AgentsTabProps>) {
                       </td>
                       <td className="py-3.5 px-4 align-top whitespace-nowrap">
                         <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-[var(--bg-elevated)] text-[var(--text-secondary)] border border-[var(--border-primary)]">
-                          {agent.standard || "Standard Internal"}
+                          {agent.standard || "Internal"}
                         </span>
                       </td>
                       <td className="py-3.5 px-4 align-top whitespace-nowrap">
@@ -507,7 +267,11 @@ export function AgentsTab({ notify }: Readonly<AgentsTabProps>) {
                   <tr>
                     <td colSpan={4} className="py-12 text-center text-[var(--text-muted)]">
                       <Filter className="w-6 h-6 mx-auto mb-2 opacity-50" />
-                      <p className="text-sm">No agents matching &ldquo;{searchQuery}&rdquo;</p>
+                      <p className="text-sm">
+                        {searchQuery
+                          ? `No agents matching "${searchQuery}"`
+                          : "No agents available from backend"}
+                      </p>
                     </td>
                   </tr>
                 )}
