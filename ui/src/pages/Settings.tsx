@@ -35,6 +35,9 @@ import NotificationSettings from "../components/NotificationSettings";
 import StorageManagement from "../components/StorageManagement";
 import { ProviderKeysPanel } from "../components/settings/ProviderKeysPanel";
 import { AgentsSkillsPromptsPanel } from "../components/settings/AgentsSkillsPromptsPanel";
+import { AgentsTab } from "./settings/AgentsTab";
+import { SkillsPromptsTab } from "./settings/SkillsPromptsTab";
+import { useChatFirstUi } from "../lib/chat-first-ui";
 import { SecurityFlagsPanel } from "../components/settings/SecurityFlagsPanel";
 import { ContextHelpButton } from "../components/help/ContextHelpButton";
 import {
@@ -825,6 +828,16 @@ const TAB_SECTIONS: Record<
   string,
   { label: string; icon: React.ReactNode; sections: SettingsSection[] }
 > = {
+  agentsTab: {
+    label: "Agents",
+    icon: <Bot className="w-4 h-4" />,
+    sections: [],
+  },
+  skillsPromptsTab: {
+    label: "Skills & Prompts",
+    icon: <Code className="w-4 h-4" />,
+    sections: [],
+  },
   ai: {
     label: "AI Providers",
     icon: <Bot className="w-4 h-4" />,
@@ -2812,6 +2825,7 @@ export default function Settings() {
   const [settings, setSettings] = useState<Record<string, string>>(loadInitialSettings);
   const [saving, setSaving] = useState(false);
   const { notify } = useNotify();
+  const chatFirstUi = useChatFirstUi();
   const { activeTab, setActiveTab } = useTabState("ai");
 
   const handleSave = async () => {
@@ -2890,11 +2904,18 @@ export default function Settings() {
     input.click();
   };
 
-  const tabs = Object.entries(TAB_SECTIONS).map(([id, tab]) => ({
-    id,
-    label: tab.label,
-    icon: tab.icon,
-  }));
+  const tabs = Object.entries(TAB_SECTIONS)
+    .filter(([id]) => {
+      if ((id === "agentsTab" || id === "skillsPromptsTab") && !chatFirstUi.enabled) {
+        return false;
+      }
+      return true;
+    })
+    .map(([id, tab]) => ({
+      id,
+      label: tab.label,
+      icon: tab.icon,
+    }));
 
   const currentSections = TAB_SECTIONS[activeTab]?.sections ?? [];
 
@@ -2947,6 +2968,8 @@ export default function Settings() {
           transition={{ duration: 0.2 }}
         >
           {(() => {
+            if (activeTab === "agentsTab") return <AgentsTab notify={notify} />;
+            if (activeTab === "skillsPromptsTab") return <SkillsPromptsTab notify={notify} />;
             if (activeTab === "ai")
               return (
                 <AISettingsPanelInline
