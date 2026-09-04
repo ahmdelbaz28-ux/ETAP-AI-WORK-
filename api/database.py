@@ -30,7 +30,6 @@ import os
 import sys
 from collections.abc import AsyncGenerator
 
-
 from sqlalchemy.engine.url import make_url
 from sqlalchemy.ext.asyncio import (
     AsyncSession,
@@ -39,7 +38,6 @@ from sqlalchemy.ext.asyncio import (
 )
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.pool import NullPool, StaticPool
-
 
 logger = logging.getLogger(__name__)
 

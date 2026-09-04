@@ -409,8 +409,9 @@ class TestStudyRunAPIKey:
 
     async def _fresh_client(self, app):
         """AsyncClient with NO default x-api-key (CSRF token only)."""
-        from api.csrf import generate_csrf_token
         from httpx import ASGITransport, AsyncClient
+
+        from api.csrf import generate_csrf_token
 
         return AsyncClient(
             transport=ASGITransport(app=app),

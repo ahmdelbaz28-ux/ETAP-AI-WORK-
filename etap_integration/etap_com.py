@@ -54,7 +54,7 @@ import re
 import sys
 import tempfile
 import time
-from typing import Any, Union
+from typing import Any
 
 logger = logging.getLogger(__name__)
 

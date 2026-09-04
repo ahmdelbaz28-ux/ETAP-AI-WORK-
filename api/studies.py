@@ -20,9 +20,9 @@ from __future__ import annotations
 
 import logging
 from typing import Any, Dict, Optional
-from typing_extensions import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Request
+from typing_extensions import Annotated
 
 from api.dependencies import (
     CurrentUser,

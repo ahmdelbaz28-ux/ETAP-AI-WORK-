@@ -57,10 +57,10 @@ from datetime import datetime, timedelta, timezone
 
 UTC = timezone.utc  # noqa: UP017
 from typing import Any, Dict, List, Optional
-from typing_extensions import Annotated
 
 from fastapi import APIRouter, Depends, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel, Field
+from typing_extensions import Annotated
 
 # Safe top-level import: api.dependencies does not import this module.
 from api.dependencies import CurrentUser, get_current_user_from_header
@@ -427,6 +427,7 @@ async def _validate_ws_ticket(websocket: WebSocket, ticket: str) -> Optional[str
 
 async def _validate_ws_token(websocket: WebSocket, token: str) -> Optional[str]:
     import jwt
+
     from api.dependencies import JWT_ALGORITHM, JWT_SECRET_KEY
 
     try:
@@ -472,9 +473,10 @@ async def _authenticate_user_id(websocket: WebSocket) -> Optional[str]:
 
 
 async def _verify_active_user(user_id: str) -> bool:
-    from api.database import async_session
     from sqlalchemy import select
+
     from api.auth import User
+    from api.database import async_session
 
     async with async_session() as db:
         result = await db.execute(select(User).where(User.id == user_id))

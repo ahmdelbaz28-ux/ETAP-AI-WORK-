@@ -200,7 +200,7 @@ class _FakeNetworkStream:
 
     def start_tls(
         self, ssl_context: Any, server_hostname: Any = None, timeout: Any = None
-    ) -> "_FakeNetworkStream":
+    ) -> _FakeNetworkStream:
         # Record the SNI/verification hostname: TLS semantics must keep using
         # the ORIGINAL hostname even though TCP is pinned to the validated IP.
         self.tls_servername = server_hostname

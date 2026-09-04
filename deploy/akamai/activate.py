@@ -39,6 +39,7 @@ from pathlib import Path
 
 try:
     import requests
+
     from akamai.edgegrid import EdgeGridAuth
 except ImportError:
     print("Missing dependencies. Install with:")

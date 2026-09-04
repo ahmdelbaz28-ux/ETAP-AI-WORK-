@@ -23,7 +23,7 @@ import urllib.parse
 from datetime import datetime, timezone
 
 UTC = timezone.utc  # noqa: UP017
-from typing import Any, List
+from typing import Any, List, Optional
 
 import aiofiles
 from fastapi import APIRouter, Depends, Request

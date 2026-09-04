@@ -29,7 +29,7 @@ import logging
 import os
 import time
 from contextlib import asynccontextmanager
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 import aiofiles  # async file I/O for S7493 compliance
 
