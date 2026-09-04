@@ -424,9 +424,9 @@ export function ProvidersTab({ children, notify: notifyProp }: Readonly<Provider
           </div>
           <p className="text-sm leading-relaxed text-slate-300">
             في وضع الويب، تُدار مفاتيح النماذج (LLM & Vision API Keys) حصرياً عبر متغيرات البيئة على
-            الخادم (مثل <code>OPENAI_API_KEY</code> و <code>ANTHROPIC_API_KEY</code>). لا يتم إدخال
-            أو تخزين أي مفاتيح في متصفح الويب (localStorage / sessionStorage) حمايةً للسرية ومطابقةً
-            لمعايير الأمان الصارمة.
+            الخادم (مثل <code>OPENAI_API_KEY</code> و <code>ANTHROPIC_API_KEY</code> و{" "}
+            <code>GEMINI_API_KEY</code>). لا يتم إدخال أو تخزين أي مفاتيح في متصفح الويب
+            (localStorage / sessionStorage) حمايةً للسرية ومطابقةً لمعايير الأمان الصارمة.
           </p>
           <div className="mt-3.5 flex flex-wrap items-center gap-3 text-xs text-slate-400">
             <span className="flex items-center gap-1.5 font-mono text-sky-300">
