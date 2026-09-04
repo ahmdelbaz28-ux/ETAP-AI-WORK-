@@ -78,7 +78,7 @@ export function SkillsPromptsTab({ notify }: Readonly<SkillsPromptsTabProps>) {
     const map = new Map<string, string>();
     for (const [path, rawContent] of Object.entries(RAW_PROMPT_MODULES)) {
       const parts = path.split("/");
-      const filename = parts[parts.length - 1] ?? "";
+      const filename = parts.at(-1) ?? "";
       if (filename) {
         map.set(filename, typeof rawContent === "string" ? rawContent : "");
       }

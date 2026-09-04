@@ -29,6 +29,28 @@ export interface AgentsTabProps {
   readonly notify?: (type: "success" | "error" | "info" | "warning", message: string) => void;
 }
 
+function renderAgentStatusBadge(isDisabled: boolean, status?: string): React.ReactNode {
+  if (isDisabled) {
+    return (
+      <Badge variant="neutral" size="sm" dot>
+        Disabled
+      </Badge>
+    );
+  }
+  if (status === "active") {
+    return (
+      <Badge variant="success" size="sm" dot>
+        Active
+      </Badge>
+    );
+  }
+  return (
+    <Badge variant="warning" size="sm" dot>
+      {status || "Beta"}
+    </Badge>
+  );
+}
+
 export function AgentsTab({ notify }: Readonly<AgentsTabProps>) {
   const [agents, setAgents] = useState<BackendAgent[]>([]);
   const [loading, setLoading] = useState(true);
@@ -85,8 +107,8 @@ export function AgentsTab({ notify }: Readonly<AgentsTabProps>) {
       (agent) =>
         agent.name.toLowerCase().includes(q) ||
         agent.id.toLowerCase().includes(q) ||
-        (agent.standard && agent.standard.toLowerCase().includes(q)) ||
-        (agent.description && agent.description.toLowerCase().includes(q)),
+        Boolean(agent.standard?.toLowerCase().includes(q)) ||
+        Boolean(agent.description?.toLowerCase().includes(q)),
     );
   }, [agents, searchQuery]);
 
@@ -236,19 +258,7 @@ export function AgentsTab({ notify }: Readonly<AgentsTabProps>) {
                         </span>
                       </td>
                       <td className="py-3.5 px-4 align-top whitespace-nowrap">
-                        {isDisabled ? (
-                          <Badge variant="neutral" size="sm" dot>
-                            Disabled
-                          </Badge>
-                        ) : agent.status === "active" ? (
-                          <Badge variant="success" size="sm" dot>
-                            Active
-                          </Badge>
-                        ) : (
-                          <Badge variant="warning" size="sm" dot>
-                            {agent.status || "Beta"}
-                          </Badge>
-                        )}
+                        {renderAgentStatusBadge(isDisabled, agent.status)}
                       </td>
                       <td className="py-3.5 px-4 align-top text-right whitespace-nowrap">
                         <div className="inline-block">
