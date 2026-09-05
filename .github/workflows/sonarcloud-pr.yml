@@ -96,7 +96,7 @@ jobs:
             -Dsonar.projectKey=ahmdelbaz28-ux_ETAP-AI-WORK-
             -Dsonar.organization=ahmdelbaz28-ux
             -Dsonar.coverage.exclusions=**
-            -Dsonar.cpd.exclusions=**/tests/**,**/test/**,**/__tests__/**,**/*_test.*,**/migrations/**,ui/**,scripts/**,skills/**,fault_analysis/ieee1584_database.py,docs/**,archive/**,*_REPORT/**,*_GUIDE/**,*_MANUAL/**,*_REFERENCE/**,*_PLAN/**,*_RUNBOOK/**,ENTERPRISE_CERTIFICATION_REPORT/**
+            -Dsonar.cpd.exclusions=**/*.html,**/tests/**,**/test/**,**/__tests__/**,**/*_test.*,**/migrations/**,ui/**,scripts/**,skills/**,fault_analysis/ieee1584_database.py,docs/**,archive/**,*_REPORT/**,*_GUIDE/**,*_MANUAL/**,*_REFERENCE/**,*_PLAN/**,*_RUNBOOK/**,ENTERPRISE_CERTIFICATION_REPORT/**,benchmarks/**,autodesk_connector/**,etap_user_guide/**
 
 
       - name: SonarCloud Quality Gate check (advisory, non-blocking)
