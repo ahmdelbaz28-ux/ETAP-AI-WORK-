@@ -29,8 +29,8 @@ on:
     - cron: '0 5 1 * *'
 
 env:
-  DEFAULT_HEALTH_CHECK_API_URL: 'https://ahmdelbaz28-ahmedetap-platform.hf.space'
-  DEFAULT_HEALTH_CHECK_TIMEOUT_MS: '10000'
+  HEALTH_CHECK_API_URL: ${{ vars.HEALTH_CHECK_API_URL || 'https://ahmdelbaz28-ahmedetap-platform.hf.space' }}
+  HEALTH_CHECK_TIMEOUT_MS: ${{ vars.HEALTH_CHECK_TIMEOUT_MS || '10000' }}
 
 jobs:
   # -------------------------------------------------------------------------
@@ -120,9 +120,9 @@ jobs:
     needs: determine-checks
     if: needs.determine-checks.outputs.run-daily == 'true'
     env:
-      HEALTH_CHECK_API_URL: ${{ vars.HEALTH_CHECK_API_URL || env.DEFAULT_HEALTH_CHECK_API_URL }}
+      HEALTH_CHECK_API_URL: ${{ vars.HEALTH_CHECK_API_URL || 'https://ahmdelbaz28-ahmedetap-platform.hf.space' }}
       HEALTH_CHECK_API_KEY: ${{ secrets.HEALTH_CHECK_API_KEY }}
-      HEALTH_CHECK_TIMEOUT_MS: ${{ vars.HEALTH_CHECK_TIMEOUT_MS || env.DEFAULT_HEALTH_CHECK_TIMEOUT_MS }}
+      HEALTH_CHECK_TIMEOUT_MS: ${{ vars.HEALTH_CHECK_TIMEOUT_MS || '10000' }}
       SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
     steps:
       - name: Checkout code
@@ -177,9 +177,9 @@ jobs:
     needs: determine-checks
     if: needs.determine-checks.outputs.run-weekly == 'true'
     env:
-      HEALTH_CHECK_API_URL: ${{ vars.HEALTH_CHECK_API_URL || env.DEFAULT_HEALTH_CHECK_API_URL }}
+      HEALTH_CHECK_API_URL: ${{ vars.HEALTH_CHECK_API_URL || 'https://ahmdelbaz28-ahmedetap-platform.hf.space' }}
       HEALTH_CHECK_API_KEY: ${{ secrets.HEALTH_CHECK_API_KEY }}
-      HEALTH_CHECK_TIMEOUT_MS: ${{ vars.HEALTH_CHECK_TIMEOUT_MS || env.DEFAULT_HEALTH_CHECK_TIMEOUT_MS }}
+      HEALTH_CHECK_TIMEOUT_MS: ${{ vars.HEALTH_CHECK_TIMEOUT_MS || '10000' }}
       SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
     steps:
       - name: Checkout code
@@ -234,9 +234,9 @@ jobs:
     needs: determine-checks
     if: needs.determine-checks.outputs.run-monthly == 'true'
     env:
-      HEALTH_CHECK_API_URL: ${{ vars.HEALTH_CHECK_API_URL || env.DEFAULT_HEALTH_CHECK_API_URL }}
+      HEALTH_CHECK_API_URL: ${{ vars.HEALTH_CHECK_API_URL || 'https://ahmdelbaz28-ahmedetap-platform.hf.space' }}
       HEALTH_CHECK_API_KEY: ${{ secrets.HEALTH_CHECK_API_KEY }}
-      HEALTH_CHECK_TIMEOUT_MS: ${{ vars.HEALTH_CHECK_TIMEOUT_MS || env.DEFAULT_HEALTH_CHECK_TIMEOUT_MS }}
+      HEALTH_CHECK_TIMEOUT_MS: ${{ vars.HEALTH_CHECK_TIMEOUT_MS || '10000' }}
       SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
     steps:
       - name: Checkout code
