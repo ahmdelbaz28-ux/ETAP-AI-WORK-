@@ -170,6 +170,9 @@ class ExecutionRecord:
 
 _PLANS: Dict[str, PlanRecord] = {}
 _EXECUTIONS: Dict[str, ExecutionRecord] = {}
+# ADR-004: In-memory idempotency table intentional for single-replica HF Space
+# deployment (zero-latency in-flight deduplication + self-pruning).
+# Multi-replica migration path: swap _IDEMPOTENCY helpers to Redis or DB idempotency_keys table.
 # key -> {"plan_id": str, "response": dict|None, "expires_at": float,
 #         "done": Optional[asyncio.Event]}
 _IDEMPOTENCY: Dict[str, Dict[str, Any]] = {}

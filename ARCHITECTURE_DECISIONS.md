@@ -97,4 +97,60 @@ P0   → P0b → P1 → P2 → P3 → P4a → P4b → P5 → P6 → P7a-d → P8
 
 ---
 
-*آخر تحديث: أثناء تنفيذ P0 من خطة التنفيذ الآمن v3.x.*
+## ADR-004 — In-Memory Idempotency في Agent Executor (Single-Replica vs Multi-Replica Migration)
+
+**الحالة:** مقرَّر (P4a) — نُفِّذ.
+
+### السياق
+يحتفظ محرك تنفيذ خطط الوكلاء (`api/agent_executor.py`) بسجل حجز وحفظ مخرجات الطلبات المكررة عبر القاموس الداخلي:
+`_IDEMPOTENCY: Dict[str, Dict[str, Any]] = {}`
+محكوماً بنافذة زمنية `IDEMPOTENCY_TTL_SECONDS = 86400` (24 ساعة) وآلية تقليم ذاتي `_prune_registries()` عند تجاوز السعة.
+
+تساؤل معمارية: هل يجب نقل حجز Idempotency في `agent_executor` فوراً إلى جدول في قاعدة البيانات (مثل `idempotency_keys` المستخدَم في `api/approvals.py` و `api/data_import.py`) أو Redis؟
+
+### القرار
+الإبقاء على `_IDEMPOTENCY` في الذاكرة (In-Memory) في `api/agent_executor.py` بشكل مقصود وموثَّق:
+1. **بيئة التشغيل المستهدفة:** منصة Hugging Face Spaces تعمل بنموذج Single-Replica (نسخة خادم واحدة)، حيث يوفر التخزين في الذاكرة أداءً فائقاً (Zero-Latency) دون تكلفة I/O على قاعدة البيانات لعمليات الاستعلام المتكررة عن حالة الخطط.
+2. **عدم كسر السلوك الحالي:** السلوك الداخلي لـ `_resolve_idempotency` و `_store_idempotency` يعمل بأمان تام مع التقليم التلقائي.
+3. **مسار الترحيل عند التوسع (Multi-Replica Migration Path):**
+   عند الترقية مستقبلاً إلى بيئة متعددة النسخ (Multi-Replica / Kubernetes / Load-Balanced Instances)، يتم ترحيل التخزين بسهولة عن طريق توجيه دوال `_resolve_idempotency` و `_store_idempotency` و `_prune_registries` إلى:
+   - طبقة تخزين Redis المشتركة عبر `REDIS_URL`.
+   - أو جدول `idempotency_keys` الحالي في PostgreSQL عبر SQLAlchemy كما هو متبع في `api/approvals.py`.
+
+### العواقب
+- لا تغيير في سلوك الـ API أو جداول قاعدة البيانات الحالية.
+- أداء أقصى للـ Single-Replica مع مسار واضح ومحدد للانتقال إلى Distributed State عند التوسع.
+
+---
+
+## ADR-005 — استراتيجية التفعيل التدريجي وخروج الأمان (Chat-First v3.0 Rollout & Legacy Exit)
+
+**الحالة:** مقرَّر (P10) — نُفِّذ (2026-09-05).
+
+### السياق
+تتطلب الترقية إلى واجهة Chat-First v3.0 ضمان عدم انقطاع أعمال المهندسين في المحطات والمكاتب الاستشارية، وتوفير مسار تراجع فوري (Rollback) في حال حدوث أي طارئ تشغيلي.
+
+### القرار
+1. **التفعيل التدريجي الحصري عبر Feature Flags API:**
+   - التفعيل لا يتم بتعديل كود ثابت (Hardcoded)، بل عبر مسارات التحكم:
+     `PUT /api/v1/feature-flags/chat_first_ui`
+   - تسلسل الطرح:
+     * **Canary 0%:** `enabled: false, allow_list: ["admin"]` (فحص داخلي للوظائف).
+     * **Canary 10%:** `rollout_percentage: 10` (مراقبة telemetry وخطوط الأخطاء).
+     * **Full Rollout 100%:** `enabled: true, rollout_percentage: 100` (تفعيل كامل).
+   - إمكانية التراجع الفوري (Instant Rollback) خلال أقل من 5 دقائق عبر `PATCH /api/v1/feature-flags/chat_first_ui {"enabled": false}`.
+2. **فترة سماح الخروج الكلاسيكي (Legacy Exit Window):**
+   - الإبقاء على زر "استخدم الواجهة الكلاسيكية" عبر خيار `onExitToLegacy` في `ChatWorkspace.tsx` و `App.tsx` لمدة شهرين كاملين (حتى نوفمبر 2026)، لإتاحة الانتقال السلس للمستخدمين الصناعيين.
+3. **عزل الصلاحيات وحماية الأدوات:**
+   - فرض مصدر البيانات `source` برمجياً في `agent-exec/plan` (HTTP 422 عند الغياب).
+   - حظر الأدوات الحساسة `powershell-tool` و `node-tool` نهائياً (HTTP 403 `HARD_DENIED`).
+   - تطبيق Maker-Checker على الإجراءات الحرجة (HTTP 403 `MAKER_CHECKER_VIOLATION`).
+
+### العواقب
+- تفعيل آمن مع إمكانية تراجع لحظية.
+- انتقال تدريجي غير صادم للمستخدمين الحاليين.
+
+---
+
+*آخر تحديث: 2026-09-05 — إقفال وتفعيل جميع مراحل AhmedETAP Chat-First v3.0.*
+
