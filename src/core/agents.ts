@@ -13,7 +13,9 @@ export interface AgentMeta {
 const CORE_COORDINATOR_CAPABILITIES = [
   'load_flow',
   'short_circuit',
+  'protection_coordination',
   'protection',
+  'harmonic_analysis',
   'harmonics',
   'arc_flash',
   'motor_starting',

@@ -25,6 +25,7 @@ import logging
 import math
 import os
 import time
+import uuid
 from typing import Any, Dict, Optional
 
 from api.feature_flags import FEATURE_FLAGS, is_feature_enabled
@@ -88,7 +89,7 @@ class StudyExecutor:
         Returns a :class:`StudyResult` with ``success``, ``data``,
         ``warnings``, ``errors``, and timing/trace metadata.
         """
-        task_id = payload.task_id or str(time.perf_counter())
+        task_id = payload.task_id or f"task_{int(time.time() * 1000)}_{uuid.uuid4().hex[:8]}"
         start = time.perf_counter()
 
         warnings: list[str] = []
@@ -226,8 +227,12 @@ class StudyExecutor:
     # System building (moved from api/studies.py)
     # ------------------------------------------------------------------
 
-    def _build_system_from_spec(self, spec: SystemSpec) -> System:
-        """Build a Python System object from a SystemSpec."""
+    def _build_system_from_spec(self, spec: Any) -> System:
+        """Build a Python System object from a SystemSpec, dict, or System instance."""
+        if isinstance(spec, System):
+            return spec
+        if isinstance(spec, dict):
+            spec = SystemSpec.model_validate(spec)
         system = System(base_mva=spec.base_mva)
         bus_map: dict[int, Bus] = {}
 

@@ -83,27 +83,12 @@ START_TIME: float = time.time()
 BUILD_TIME: str = datetime.now(UTC).isoformat()
 
 # ---------------------------------------------------------------------------
-# Study types
+# Study types — derived canonically from agents.models.StudyType (ADR-0001)
 # ---------------------------------------------------------------------------
 
-STUDY_TYPES: list[str] = [
-    "load_flow",
-    "short_circuit",
-    "arc_flash",
-    "protection_coordination",
-    "motor_starting",
-    "transient_stability",
-    "harmonic_analysis",
-    "optimal_power_flow",
-    "cable_sizing",
-    "earth_grid",
-    "renewable_integration",
-    "battery_storage",
-    "scada",
-    "etap_expert",  # ETAP Expert skill — 6-step workflow with Format A/B/C/D
-    "etap_gui",  # ETAP GUI Agent — Computer Use Agent for desktop apps
-    "ahmed_etap_orchestration",  # AhmedETAP skill — SharedContext + MathGuard + PeerReview pipeline
-]
+from agents.models import StudyType
+
+STUDY_TYPES: list[str] = [st.value for st in StudyType] + ["ahmed_etap_orchestration"]
 
 # ---------------------------------------------------------------------------
 # Agents list

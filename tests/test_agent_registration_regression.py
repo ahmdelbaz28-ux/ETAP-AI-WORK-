@@ -500,3 +500,78 @@ def test_math_guard_module_is_llm_free():
     assert not found, (
         f"MathGuard module imports LLM SDKs: {found}. MathGuard must be 100% deterministic Python."
     )
+
+
+def test_get_agent_for_study_covers_all_study_types():
+    """_get_agent_for_study must not silently skip non-core study types (C3 fix)."""
+    from agents.models import StudyType
+    from agents.orchestrator import get_orchestrator
+
+    orch = get_orchestrator()
+    for st in [
+        StudyType.LOAD_FLOW,
+        StudyType.SHORT_CIRCUIT,
+        StudyType.HARMONIC_ANALYSIS,
+        StudyType.OPTIMAL_POWER_FLOW,
+        StudyType.PROTECTION_COORDINATION,
+        StudyType.ARC_FLASH,
+        StudyType.MOTOR_STARTING,
+        StudyType.TRANSIENT_STABILITY,
+        StudyType.CABLE_SIZING,
+        StudyType.EARTH_GRID,
+        StudyType.RENEWABLE_INTEGRATION,
+        StudyType.BATTERY_STORAGE,
+        StudyType.SCADA,
+        StudyType.DIGITAL_TWIN,
+    ]:
+        agent = orch._get_agent_for_study(st)
+        assert agent is not None, f"Orchestrator failed to resolve agent for StudyType: {st.name}"
+
+
+@pytest.mark.asyncio
+async def test_load_flow_agent_solver_injection():
+    """LoadFlowAgent must accept an injected solver_factory (C3 fix)."""
+    from unittest.mock import MagicMock
+
+    from agents.models import EngineeringTask, StudyType
+    from agents.orchestrator import LoadFlowAgent
+    from core_model.bus import Bus
+    from core_model.system import System
+
+    mock_solver = MagicMock()
+    mock_solver.solve.return_value = True
+    factory = MagicMock(return_value=mock_solver)
+
+    agent = LoadFlowAgent(solver_factory=factory)
+    sys = System(base_mva=100.0)
+    bus = Bus(bus_id=1, base_kv=13.8)
+    bus.voltage = complex(1.0, 0.0)
+    sys.add_bus(bus)
+
+    task = EngineeringTask(
+        task_id="test_inj_1",
+        description="test",
+        study_types=[StudyType.LOAD_FLOW],
+        parameters={"system": sys},
+    )
+    result = await agent.execute(task)
+    assert factory.called
+    assert mock_solver.solve.called
+    assert result.status.value == "completed"
+
+
+def test_parse_user_goal_covers_extended_studies():
+    """_parse_user_goal must recognize arc flash, motor starting, stability, and renewables (C3 fix)."""
+    from agents.models import StudyType
+    from agents.orchestrator import get_orchestrator
+
+    orch = get_orchestrator()
+    assert StudyType.ARC_FLASH in orch._parse_user_goal("Perform arc flash calculation")
+    assert StudyType.MOTOR_STARTING in orch._parse_user_goal("Check motor starting inrush")
+    assert StudyType.TRANSIENT_STABILITY in orch._parse_user_goal("Transient stability swing check")
+    assert StudyType.CABLE_SIZING in orch._parse_user_goal("Cable ampacity sizing")
+    assert StudyType.EARTH_GRID in orch._parse_user_goal("Ground mesh earth grid analysis")
+    assert StudyType.RENEWABLE_INTEGRATION in orch._parse_user_goal(
+        "Solar PV renewable integration"
+    )
+    assert StudyType.BATTERY_STORAGE in orch._parse_user_goal("BESS battery storage optimization")

@@ -132,10 +132,11 @@ class LoadFlowAgent(BaseAgent):
 
     prompt_handle = "load_flow_agent"
 
-    def __init__(self):
+    def __init__(self, solver_factory=None):
         super().__init__("LoadFlowAgent")
         self.voltage_limits = {"min": 0.95, "max": 1.05}
         self.convergence_tolerance = 1e-6
+        self._solver_factory = solver_factory
 
     @trace_operation(
         "LoadFlowAgent.execute",
@@ -157,15 +158,17 @@ class LoadFlowAgent(BaseAgent):
             if not system_data:
                 raise ValueError("System data not provided in task parameters")
 
-            # Ensure system_data is handled consistently as a System object
-            # LoadFlowSolver requires a System object, not a dictionary
+            # Seamlessly accept both System objects and dictionary specifications
             if isinstance(system_data, dict):
-                raise TypeError(
-                    "system_data must be a System object instance, not a dictionary. Ensure a valid System object is passed in task parameters.",
-                )
+                from services.study_executor import StudyExecutor
+
+                system_data = StudyExecutor()._build_system_from_spec(system_data)
 
             # Run load flow
-            solver = LoadFlowSolver(system_data)
+            if self._solver_factory is not None:
+                solver = self._solver_factory(system_data)
+            else:
+                solver = LoadFlowSolver(system_data)
             converged = solver.solve(
                 max_iter=task.parameters.get("max_iterations", 100),
                 tol=self.convergence_tolerance,
@@ -256,9 +259,10 @@ class ShortCircuitAgent(BaseAgent):
 
     prompt_handle = "short_circuit_agent"
 
-    def __init__(self):
+    def __init__(self, analyzer_factory=None):
         super().__init__("ShortCircuitAgent")
         self.standards_compliance = ["IEC 60909-0:2016"]
+        self._analyzer_factory = analyzer_factory
 
     @trace_operation(
         "ShortCircuitAgent.execute",
@@ -297,13 +301,22 @@ class ShortCircuitAgent(BaseAgent):
             base_mva = system_data.base_mva
             base_kv = task.parameters.get("base_kv", 115.0)
 
-            analyzer = FaultAnalyzer(
-                ybus_pos,
-                ybus_neg,
-                ybus_zero,
-                base_mva=base_mva,
-                base_kv=base_kv,
-            )
+            if self._analyzer_factory is not None:
+                analyzer = self._analyzer_factory(
+                    ybus_pos,
+                    ybus_neg,
+                    ybus_zero,
+                    base_mva=base_mva,
+                    base_kv=base_kv,
+                )
+            else:
+                analyzer = FaultAnalyzer(
+                    ybus_pos,
+                    ybus_neg,
+                    ybus_zero,
+                    base_mva=base_mva,
+                    base_kv=base_kv,
+                )
 
             # Execute all fault types at specified buses
             fault_buses = task.parameters.get("fault_buses", list(system_data.buses.keys()))
@@ -388,10 +401,11 @@ class HarmonicAnalysisAgent(BaseAgent):
 
     prompt_handle = "harmonic_agent"
 
-    def __init__(self):
+    def __init__(self, engine_factory=None):
         super().__init__("HarmonicAnalysisAgent")
         self.standard = "IEEE 519-2022"
         self.max_harmonic_order = 50
+        self._engine_factory = engine_factory
 
     @trace_operation(
         "HarmonicAnalysisAgent.execute",
@@ -415,10 +429,16 @@ class HarmonicAnalysisAgent(BaseAgent):
             voltage_kv = task.parameters.get("voltage_kv", 13.8)
 
             # Create engine
-            engine = HarmonicAnalysisEngine(
-                fundamental_freq=task.parameters.get("fundamental_freq", 60.0),
-                max_harmonic=self.max_harmonic_order,
-            )
+            if self._engine_factory is not None:
+                engine = self._engine_factory(
+                    fundamental_freq=task.parameters.get("fundamental_freq", 60.0),
+                    max_harmonic=self.max_harmonic_order,
+                )
+            else:
+                engine = HarmonicAnalysisEngine(
+                    fundamental_freq=task.parameters.get("fundamental_freq", 60.0),
+                    max_harmonic=self.max_harmonic_order,
+                )
 
             # Set system data
             ybus = system_data.get_ybus(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
@@ -499,8 +519,9 @@ class OptimalPowerFlowAgent(BaseAgent):
 
     prompt_handle = "opf_agent"
 
-    def __init__(self):
+    def __init__(self, opf_factory=None):
         super().__init__("OptimalPowerFlowAgent")
+        self._opf_factory = opf_factory
 
     @trace_operation(
         "OptimalPowerFlowAgent.execute",
@@ -530,7 +551,10 @@ class OptimalPowerFlowAgent(BaseAgent):
             bus_ids = sorted(system_data.buses.keys())
             costs = [GeneratorCost(**gc) for gc in generator_costs]
 
-            opf = OptimalPowerFlowEngine(ybus, bus_ids, costs)
+            if self._opf_factory is not None:
+                opf = self._opf_factory(ybus, bus_ids, costs)
+            else:
+                opf = OptimalPowerFlowEngine(ybus, bus_ids, costs)
 
             # Set load data
             load_data = {}
@@ -626,9 +650,10 @@ class ProtectionCoordinationAgent(BaseAgent):
 
     prompt_handle = "protection_agent"
 
-    def __init__(self):
+    def __init__(self, engine_factory=None):
         super().__init__("ProtectionCoordinationAgent")
         self.standard = "IEC 60255"
+        self._engine_factory = engine_factory
 
     @trace_operation(
         "ProtectionCoordinationAgent.execute",
@@ -649,7 +674,10 @@ class ProtectionCoordinationAgent(BaseAgent):
                 raise ValueError(_SYSTEM_DATA_NOT_PROVIDED_MSG)
 
             relay_data = task.parameters.get("relays", [])
-            coordination_engine = CoordinationEngine()
+            if self._engine_factory is not None:
+                coordination_engine = self._engine_factory()
+            else:
+                coordination_engine = CoordinationEngine()
 
             # Analyze coordination
             relays = [OvercurrentRelay(**rd) for rd in relay_data]
@@ -1663,6 +1691,30 @@ class ChiefEngineeringOrchestrator:
         if any(kw in goal_lower for kw in ["protect", "coordination", "relay"]):
             studies.append(StudyType.PROTECTION_COORDINATION)
 
+        if any(kw in goal_lower for kw in ["arc flash", "incident energy", "ppe"]):
+            studies.append(StudyType.ARC_FLASH)
+
+        if any(kw in goal_lower for kw in ["motor", "starting", "inrush"]):
+            studies.append(StudyType.MOTOR_STARTING)
+
+        if any(kw in goal_lower for kw in ["stability", "transient", "swing"]):
+            studies.append(StudyType.TRANSIENT_STABILITY)
+
+        if any(kw in goal_lower for kw in ["cable", "ampacity"]):
+            studies.append(StudyType.CABLE_SIZING)
+
+        if any(kw in goal_lower for kw in ["earth", "ground", "grounding", "grid"]):
+            studies.append(StudyType.EARTH_GRID)
+
+        if any(kw in goal_lower for kw in ["solar", "wind", "renewable", "pv"]):
+            studies.append(StudyType.RENEWABLE_INTEGRATION)
+
+        if any(kw in goal_lower for kw in ["battery", "bess", "storage"]):
+            studies.append(StudyType.BATTERY_STORAGE)
+
+        if any(kw in goal_lower for kw in ["scada", "telemetry", "61850"]):
+            studies.append(StudyType.SCADA)
+
         # If no specific studies identified, run comprehensive analysis
         if not studies:
             studies = [StudyType.LOAD_FLOW, StudyType.SHORT_CIRCUIT, StudyType.HARMONIC_ANALYSIS]
@@ -1937,18 +1989,9 @@ class ChiefEngineeringOrchestrator:
         return sorted(study_types, key=lambda x: priority_order.get(x, 99))
 
     def _get_agent_for_study(self, study_type: StudyType) -> BaseAgent | None:
-        """Get appropriate agent for study type."""
-        agent_mapping = {
-            StudyType.LOAD_FLOW: "load_flow",
-            StudyType.SHORT_CIRCUIT: "short_circuit",
-            StudyType.HARMONIC_ANALYSIS: "harmonic_analysis",
-            StudyType.OPTIMAL_POWER_FLOW: "optimal_power_flow",
-            StudyType.PROTECTION_COORDINATION: "protection_coordination",
-        }
-
-        agent_key = agent_mapping.get(study_type)
-        if agent_key is None:
-            return None
+        """Get appropriate agent for study type from the canonical mapping."""
+        mapping = self.get_study_type_mapping()
+        agent_key = mapping.get(study_type.value, study_type.value)
         return self.agents.get(agent_key)
 
     def get_study_type_mapping(self) -> dict[str, str]:

@@ -121,6 +121,7 @@ export interface SecureScriptOptions {
   timeoutMs: number;
   maxOutputLength?: number;
   toolDisplayName: string;
+  allowedExitCodes?: number[];
 }
 
 /**
@@ -133,6 +134,7 @@ export function executeSecureScript({
   timeoutMs,
   maxOutputLength = 10000,
   toolDisplayName,
+  allowedExitCodes,
 }: SecureScriptOptions): Promise<string> {
   return new Promise<string>((resolve, reject) => {
     const child = spawnSecure(binary, scriptPath, { timeoutMs });
@@ -161,7 +163,8 @@ export function executeSecureScript({
     });
 
     child.on('close', (exitCode) => {
-      if (exitCode !== 0) {
+      const allowed = allowedExitCodes ?? [0];
+      if (exitCode !== null && !allowed.includes(exitCode)) {
         const errMessage = stderr?.trim() || `Process exited with code ${exitCode}`;
         reject(new Error(`${toolDisplayName} failed: ${errMessage}`));
         return;
@@ -177,7 +180,12 @@ export function executeSecureScript({
             resolve(output);
           }
         } else {
-          reject(new Error(response.error || 'Execution failed without specific error message'));
+          const errType = response.error_type ? ` [${response.error_type}]` : '';
+          reject(
+            new Error(
+              `${toolDisplayName} error${errType}: ${response.error || 'Execution failed without specific error message'}`,
+            ),
+          );
         }
       } catch (parseError) {
         const parseErrMsg = parseError instanceof Error ? ` (${parseError.message})` : '';
