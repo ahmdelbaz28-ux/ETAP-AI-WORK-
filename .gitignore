@@ -44,6 +44,9 @@ sonar_issues.json
 security_audit.log
 search/search_index.json
 .feature-flags.json
+/.feature-flags.json
+checks-*.json
+/checks-*.json
 
 # Test runtime artifacts
 test.db

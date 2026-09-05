@@ -282,3 +282,23 @@ LLM tracing is provided by **Langfuse** via `integrations/langfuse_integration.p
   instrumentation happens inside the integration modules on first use.
 - **Prompt Versioning**: Langfuse manages remote prompt versions with rollback;
   local canonical versions are pinned by `prompts.json`.
+
+---
+
+## Chat-First Architecture & Rollout (v3.0)
+
+AhmedETAP Chat-First v3.0 introduces a unified conversational engineering workspace with specialized agent panels, authoritative server-side streaming, and tool execution gateways.
+
+- **Feature Flag**: `chat_first_ui`
+- **Rollout Schedule**:
+  - Phase 1 (Canary): `allow_list=["admin"]`, `rollout_percentage=0` (verified internally).
+  - Phase 2 (Canary 10%): `rollout_percentage=10` (monitored via telemetry).
+  - Phase 3 (Full Rollout): `enabled=true`, `rollout_percentage=100` (Activated: 2026-09-05).
+- **Grace Period / Legacy Exit**:
+  - "استخدم الواجهة الكلاسيكية" (`onExitToLegacy` via `ChatWorkspace`) is preserved for 2 months to ensure operational transition for industrial users.
+- **Fail-Closed Security**:
+  - Tool execution requires explicit `source` provenance `{user_input, project_data:{ref}, computed:{taskId}, standard:{clause}}` (HTTP 422 on absence).
+  - Dangerous system tools (`powershell-tool`, `node-tool`) are permanently blocked (HTTP 403 `HARD_DENIED`).
+  - Dual-control Maker-Checker enforcement on critical actions (HTTP 403 `MAKER_CHECKER_VIOLATION`).
+  - Tenant isolation enforced strictly via `CurrentUser.tenant_id`.
+

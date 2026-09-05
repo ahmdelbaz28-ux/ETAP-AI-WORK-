@@ -143,6 +143,8 @@ PyJWT>=2.8.0,<3
 # ResolutionImpossible at install time.
 pydantic>=2.8.0,<3
 email-validator>=2.1.0,<3
+# Safe XML parsing (prevents entity expansion and XML bomb CVEs)
+defusedxml>=0.7.1
 
 # Database ORM (async PostgreSQL + SQLite support)
 sqlalchemy[asyncio]~=2.0.0
