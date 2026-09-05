@@ -1446,10 +1446,12 @@ async def check_mcp_server_health(
             },
         )
 
+    safe_server_id = re.sub(r"[^A-Za-z0-9_.-]", "", str(server_id or ""))[:32]
     try:
         data = _probe_mcp_server(server_id, server_config)
     except Exception as e:  # noqa: BLE001
-        logger.exception("mcp_health_probe_failed server=%.32s error=%s", server_id, str(e))
+        safe_err = re.sub(r"[\r\n]", " ", str(e))[:128]
+        logger.exception("mcp_health_probe_failed server=%s error=%s", safe_server_id, safe_err)
         return JSONResponse(
             status_code=500,
             content={
@@ -1460,12 +1462,15 @@ async def check_mcp_server_health(
         )
 
     data["checked_at"] = datetime.now(timezone.utc).isoformat()
+    safe_transport = re.sub(r"[^A-Za-z0-9_.-]", "", str(data.get("transport") or ""))[:32]
+    safe_status = re.sub(r"[^A-Za-z0-9_.-]", "", str(data.get("status") or ""))[:32]
+    safe_trace = re.sub(r"[^A-Za-z0-9_.-]", "", str(trace_id or ""))[:36]
     logger.info(
-        "mcp_health_checked server=%.32s transport=%s status=%s trace_id=%.36s",
-        server_id,
-        data.get("transport"),
-        data.get("status"),
-        trace_id,
+        "mcp_health_checked server=%s transport=%s status=%s trace_id=%s",
+        safe_server_id,
+        safe_transport,
+        safe_status,
+        safe_trace,
     )
     return JSONResponse(
         status_code=200,

@@ -624,16 +624,19 @@ async def healthz_head():
 
 
 @app.get("/readyz", tags=["Health"])
+@app.head("/readyz", tags=["Health"])
 async def readyz():
     return JSONResponse(content={"status": "ready"}, status_code=200)
 
 
 @app.get("/health", tags=["Health"])
+@app.head("/health", tags=["Health"])
 async def health():
     return build_health_response(platform="huggingface-spaces")
 
 
 @app.get("/ready", tags=["Health"])
+@app.head("/ready", tags=["Health"])
 async def ready():
     return build_ready_response()
 

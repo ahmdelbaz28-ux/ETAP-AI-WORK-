@@ -49,6 +49,7 @@ import hashlib
 import hmac
 import json
 import logging
+import re
 import time
 import uuid
 from collections import deque
@@ -134,7 +135,7 @@ class SessionStreamHub:
 
     # -- lifecycle ----------------------------------------------------------
 
-    async def connect(self, websocket: WebSocket, session_id: str) -> _Connection:
+    def connect(self, websocket: WebSocket, session_id: str) -> _Connection:
         conn = _Connection(websocket, asyncio.Queue(maxsize=SEND_QUEUE_MAXSIZE))
         if self._loop is None:
             self._loop = asyncio.get_running_loop()
@@ -399,10 +400,12 @@ async def create_ws_ticket(
     long-lived credentials out of WebSocket query strings.
     """
     issued = issue_ws_ticket(body.session_id, user.user_id)
+    safe_uid = re.sub(r"[^A-Za-z0-9_-]", "", str(user.user_id or ""))[:32]
+    safe_sid = re.sub(r"[^A-Za-z0-9_-]", "", str(body.session_id or ""))[:32]
     logger.info(
-        "ws-ticket issued user=%.24s session=%.24s ttl=%ss",
-        user.user_id,
-        body.session_id,
+        "ws-ticket issued user=%s session=%s ttl=%ss",
+        safe_uid,
+        safe_sid,
         issued["ttl_seconds"],
     )
     return issued
@@ -557,7 +560,7 @@ async def session_stream_ws(websocket: WebSocket, session_id: str) -> None:
 
     hub = get_hub()
     await websocket.accept()
-    conn = await hub.connect(websocket, session_id)
+    conn = hub.connect(websocket, session_id)
 
     try:
         _send_initial_ws_events(hub, conn, session_id, user_id, websocket)

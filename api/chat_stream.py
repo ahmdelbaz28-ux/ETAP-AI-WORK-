@@ -180,7 +180,9 @@ def resolve_provider_config(provider: Optional[str], model: Optional[str]) -> Pr
                 "No LLM provider is configured on the server. Set OPENAI_API_KEY "
                 "or ANTHROPIC_API_KEY in the server environment (admin action)."
             )
-        logger.warning("chat stream rejected: %s (missing=%s)", code, ",".join(missing) or "-")
+        safe_code = re.sub(r"[^A-Za-z0-9_.-]", "", str(code or ""))[:32]
+        safe_missing = ",".join(re.sub(r"[^A-Za-z0-9_.-]", "", str(m))[:32] for m in missing) or "-"
+        logger.warning("chat stream rejected: %s (missing=%s)", safe_code, safe_missing)
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail={"code": code, "message": message},
@@ -439,12 +441,14 @@ async def _chat_event_stream(
         )
     except UpstreamProviderError as exc:
         sanitized = sanitize_error_text(exc.body_text)
+        safe_sid = re.sub(r"[^A-Za-z0-9_-]", "", str(session_id or ""))[:32]
+        safe_detail = re.sub(r"[\r\n]", " ", str(sanitized or ""))[:128]
         logger.warning(
-            "chat stream upstream error session=%.24s provider=%s status=%s detail=%s",
-            session_id,
+            "chat stream upstream error session=%s provider=%s status=%s detail=%s",
+            safe_sid,
             cfg.id,
             exc.upstream_status,
-            sanitized,
+            safe_detail,
         )
         yield _sse(
             "error",
@@ -486,9 +490,10 @@ async def _chat_event_stream(
     except asyncio.CancelledError:
         raise  # client disconnected — propagate quietly, no error frame needed
     except Exception as exc:  # noqa: BLE001 — final belt-and-braces guard
+        safe_sid = re.sub(r"[^A-Za-z0-9_-]", "", str(session_id or ""))[:32]
         logger.exception(
-            "chat stream unexpected failure session=%.24s provider=%s: %s",
-            session_id,
+            "chat stream unexpected failure session=%s provider=%s: %s",
+            safe_sid,
             cfg.id,
             exc.__class__.__name__,
         )
@@ -523,11 +528,13 @@ async def chat_stream_endpoint(
     """
     enforce_chat_rate_limit(user.user_id)
     cfg = resolve_provider_config(payload.provider, payload.model)
+    safe_sid = re.sub(r"[^A-Za-z0-9_-]", "", str(payload.session_id or ""))[:32]
+    safe_uid = re.sub(r"[^A-Za-z0-9_-]", "", str(user.user_id or ""))[:32]
     logger.info(
-        "chat stream opened session=%.24s provider=%s user=%.24s",
-        payload.session_id,
+        "chat stream opened session=%s provider=%s user=%s",
+        safe_sid,
         cfg.id,
-        user.user_id,
+        safe_uid,
     )
     return StreamingResponse(
         _chat_event_stream(payload.session_id, payload.messages, cfg),
