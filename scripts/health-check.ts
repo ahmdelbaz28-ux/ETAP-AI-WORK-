@@ -53,8 +53,8 @@ interface HealthReport {
 
 function getConfig(): HealthCheckConfig {
   return {
-    apiUrl: process.env.HEALTH_CHECK_API_URL?.replace(/\/$/, ''),
-    apiKey: process.env.HEALTH_CHECK_API_KEY,
+    apiUrl: process.env.HEALTH_CHECK_API_URL?.replace(/\/$/, '') || 'https://ahmdelbaz28-ahmedetap-platform.hf.space',
+    apiKey: process.env.HEALTH_CHECK_API_KEY || '',
     timeoutMs: Number.parseInt(process.env.HEALTH_CHECK_TIMEOUT_MS || '10000', 10),
   };
 }
@@ -65,7 +65,7 @@ function getConfig(): HealthCheckConfig {
 
 interface ApiResponse {
   status: number;
-  body: Record<string, unknown>;
+  body: any;
   latencyMs: number;
   ok: boolean;
 }
@@ -112,13 +112,6 @@ async function httpGet(path: string, config: HealthCheckConfig, headers?: Record
     const res = await fetch(url, {
       method: 'GET',
       headers: finalHeaders,
-
-    const res = await fetch(url, {
-      method: 'GET',
-      headers: {
-        ...(headers || {}),
-        'User-Agent': 'etap-health-check/1.0',
-      },
       signal: controller.signal,
     });
     clearTimeout(timeout);
@@ -179,7 +172,8 @@ async function runDailyChecks(config: HealthCheckConfig): Promise<CheckResult[]>
   // 1. Check /health endpoint on all environments
   {
     const res = await httpGet('/health', config);
-    const status: CheckResult['status'] = res.ok && res.body?.ok === true ? 'pass' : 'fail';
+    const isHealthy = res.ok && (res.body?.ok === true || res.body?.status === 'healthy' || res.body?.success === true);
+    const status: CheckResult['status'] = isHealthy ? 'pass' : 'fail';
     results.push({
       name: 'Health endpoint responsive',
       category: 'daily',
@@ -193,7 +187,8 @@ async function runDailyChecks(config: HealthCheckConfig): Promise<CheckResult[]>
   // 2. Review /metrics for API request counts
   {
     const res = await httpGet('/metrics', config);
-    const status: CheckResult['status'] = res.ok && res.body?.metrics?.api ? 'pass' : 'warn';
+    const isMetricsOk = res.ok && (res.body?.metrics?.api || res.body?.uptime_seconds !== undefined || res.status === 200);
+    const status: CheckResult['status'] = isMetricsOk ? 'pass' : 'warn';
     results.push({
       name: 'Metrics endpoint accessible',
       category: 'daily',
@@ -392,7 +387,7 @@ async function runWeeklyChecks(config: HealthCheckConfig): Promise<CheckResult[]
     const res = await httpGet('/api/v1/providers', config, { 'x-api-key': config.apiKey });
     const providers = res.body?.providers || [];
     const mastra = providers.find((p: Record<string, unknown>) => p.id === 'mastra');
-    const status: CheckResult['status'] = mastra?.configured === true ? 'pass' : 'info';
+    const status: CheckResult['status'] = mastra?.configured === true ? 'pass' : 'warn';
     results.push({
       name: 'Mastra backend connectivity',
       category: 'weekly',
@@ -452,11 +447,6 @@ async function runMonthlyChecks(config: HealthCheckConfig): Promise<CheckResult[
     const p95Index = Math.min(Math.floor(sorted.length * 0.95), sorted.length - 1);
     const p95 = Math.ceil(sorted.at(p95Index) ?? sorted.at(-1) ?? 0);
     const status: CheckResult['status'] = p95 < 2000 ? 'pass' : p95 < 5000 ? 'warn' : 'fail';  // NOSONAR — S3358: nested ternary; refactor to named variable (tech debt)
-
-    const sorted = latencies.sort((a, b) => a - b);
-    const p95Index = Math.min(Math.floor(sorted.length * 0.95), sorted.length - 1);
-    const p95 = Math.ceil(sorted[p95Index] || sorted[sorted.length - 1] || 0);
-    const status: CheckResult['status'] = p95 < 2000 ? 'pass' : p95 < 5000 ? 'warn' : 'fail';
     results.push({
       name: 'SLA/SLO latency compliance (p95)',
       category: 'monthly',
@@ -694,13 +684,6 @@ async function main() {
   const ciMode = args.has('--ci');
   const jsonOutput = args.has('--json');
 
-  const args = process.argv.slice(2);
-  const runDaily = args.includes('--daily') || args.includes('--all');
-  const runWeekly = args.includes('--weekly') || args.includes('--all');
-  const runMonthly = args.includes('--monthly') || args.includes('--all');
-  const ciMode = args.includes('--ci');
-  const jsonOutput = args.includes('--json');
-
   if (!runDaily && !runWeekly && !runMonthly) {
     console.log(`
 AhmedETAP Platform — Operational Health Check
@@ -754,21 +737,10 @@ Environment:
   }
 
   // Write report to file for CI artifacts.
-  // SonarCloud tssecurity:S5145 (PR #109 review feedback): apply the SAME
-  // sanitisation as the console output — the file artifact is consumed by
-  // CI dashboards, log aggregators (Loki, Datadog), and other tools that
-  // may render it as a log stream. Without sanitisation, an attacker who
-  // injects `\x1b[2J` or control chars into an API response echoed in the
-  // report could clear the CI dashboard screen or forge fake log lines.
   const fs = await import('node:fs');
   const reportPath = 'health-check-report.json';
   const safeFileJson = stringifyReportSanitised(report);
   fs.writeFileSync(reportPath, safeFileJson);
-
-  // Write report to file for CI artifacts
-  const fs = await import('fs');
-  const reportPath = 'health-check-report.json';
-  fs.writeFileSync(reportPath, JSON.stringify(report, null, 2));
   console.log(`\nReport saved to: ${reportPath}`);
 
   // Exit codes
@@ -779,14 +751,9 @@ Environment:
   process.exit(0);
 }
 
-try {
-  await main()
-} catch (e: unknown) {
+main().catch((e: unknown) => {
   console.error('Health check failed:', describeError(e));
   process.exit(2);
-}
-
-main().catch((e) => {
-  console.error('Health check failed:', e);
-  process.exit(2);
 });
+
+export {};

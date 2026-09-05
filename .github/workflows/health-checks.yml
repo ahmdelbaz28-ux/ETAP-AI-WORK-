@@ -29,9 +29,10 @@ on:
     - cron: '0 5 1 * *'
 
 env:
-  HEALTH_CHECK_API_URL: ${{ vars.HEALTH_CHECK_API_URL || 'https://ahmdelbaz28-etap-ai-platform.hf.space' }}
+  HEALTH_CHECK_API_URL: ${{ vars.HEALTH_CHECK_API_URL || 'https://ahmdelbaz28-ahmedetap-platform.hf.space' }}
   HEALTH_CHECK_API_KEY: ${{ secrets.HEALTH_CHECK_API_KEY }}
   HEALTH_CHECK_TIMEOUT_MS: ${{ vars.HEALTH_CHECK_TIMEOUT_MS || '10000' }}
+  SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
 jobs:
   # -------------------------------------------------------------------------
@@ -125,7 +126,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install pnpm
-        uses: pnpm/action-setup@v3
+        uses: pnpm/action-setup@v4
         with:
           version: 9
 
@@ -153,16 +154,16 @@ jobs:
           path: health-check-report.json
 
       - name: Notify on failure
-        if: failure()
+        if: failure() && env.SLACK_WEBHOOK_URL != ''
         continue-on-error: true
-        uses: slackapi/slack-github-action@v4
+        uses: slackapi/slack-github-action@v2.0.0
         with:
+          webhook: ${{ env.SLACK_WEBHOOK_URL }}
+          webhook-type: INCOMING_WEBHOOK
           payload: |
             {
               "text": "🚨 AhmedETAP — Daily Health Check FAILED\n${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
             }
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
   # -------------------------------------------------------------------------
   # Weekly Health Checks
@@ -177,7 +178,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install pnpm
-        uses: pnpm/action-setup@v3
+        uses: pnpm/action-setup@v4
         with:
           version: 9
 
@@ -205,15 +206,16 @@ jobs:
           path: health-check-report.json
 
       - name: Notify on failure
-        if: failure()
-        uses: slackapi/slack-github-action@v4
+        if: failure() && env.SLACK_WEBHOOK_URL != ''
+        continue-on-error: true
+        uses: slackapi/slack-github-action@v2.0.0
         with:
+          webhook: ${{ env.SLACK_WEBHOOK_URL }}
+          webhook-type: INCOMING_WEBHOOK
           payload: |
             {
               "text": "🚨 AhmedETAP — Weekly Health Check FAILED\n${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
             }
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
   # -------------------------------------------------------------------------
   # Monthly Health Checks
@@ -228,7 +230,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install pnpm
-        uses: pnpm/action-setup@v3
+        uses: pnpm/action-setup@v4
         with:
           version: 9
 
@@ -256,15 +258,16 @@ jobs:
           path: health-check-report.json
 
       - name: Notify on failure
-        if: failure()
-        uses: slackapi/slack-github-action@v4
+        if: failure() && env.SLACK_WEBHOOK_URL != ''
+        continue-on-error: true
+        uses: slackapi/slack-github-action@v2.0.0
         with:
+          webhook: ${{ env.SLACK_WEBHOOK_URL }}
+          webhook-type: INCOMING_WEBHOOK
           payload: |
             {
               "text": "🚨 AhmedETAP — Monthly Health Check FAILED\n${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
             }
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
   # -------------------------------------------------------------------------
   # Summary — combines all reports into a single notification
@@ -313,13 +316,13 @@ jobs:
           echo "[View Run Details](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> $GITHUB_STEP_SUMMARY
 
       - name: Notify summary
-        if: always()
+        if: always() && env.SLACK_WEBHOOK_URL != ''
         continue-on-error: true
-        uses: slackapi/slack-github-action@v4
+        uses: slackapi/slack-github-action@v2.0.0
         with:
+          webhook: ${{ env.SLACK_WEBHOOK_URL }}
+          webhook-type: INCOMING_WEBHOOK
           payload: |
             {
               "text": "📊 AhmedETAP — Health Checks Complete\n${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
             }
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
