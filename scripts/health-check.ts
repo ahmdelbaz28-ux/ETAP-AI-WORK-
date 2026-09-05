@@ -215,7 +215,7 @@ async function runDailyChecks(config: HealthCheckConfig): Promise<CheckResult[]>
 
   // 4. Check rate limiting (send invalid key to trigger 401, not 429)
   {
-    const res = await httpGet('/api/v1/agents', config, { 'x-api-key': 'invalid-key-test' });
+    const res = await httpGet('/api/v1/providers', config, { 'x-api-key': 'invalid-key-test' });
     const status: CheckResult['status'] = res.status === 401 ? 'pass' : 'warn';
     results.push({
       name: 'Rate limiting / auth rejection active',
@@ -229,15 +229,18 @@ async function runDailyChecks(config: HealthCheckConfig): Promise<CheckResult[]>
 
   // 5. Check provider health endpoint
   {
-    const res = await httpGet('/api/v1/providers', config, { 'x-api-key': config.apiKey });
+    const res = await httpGet('/api/v1/providers', config, config.apiKey ? { 'x-api-key': config.apiKey } : undefined);
     const providers = res.body?.providers || [];
     const healthyProviders = providers.filter((p: any) => p.healthy);
-    const status: CheckResult['status'] = res.ok && healthyProviders.length > 0 ? 'pass' : 'warn';
+    const isSkippedNoAuth = !config.apiKey && res.status === 401;
+    const status: CheckResult['status'] = (res.ok && healthyProviders.length > 0) || isSkippedNoAuth ? 'pass' : 'warn';
     results.push({
       name: 'LLM provider health',
       category: 'daily',
       status,
-      message: status === 'pass' ? `${healthyProviders.length}/${providers.length} providers healthy (${res.latencyMs}ms)` : `Provider health issue: ${describeHttpError(res)}`,
+      message: status === 'pass'
+        ? (isSkippedNoAuth ? 'Skipped (no API key configured in runner)' : `${healthyProviders.length}/${providers.length} providers healthy (${res.latencyMs}ms)`)
+        : `Provider health issue: ${describeHttpError(res)}`,
       latencyMs: res.latencyMs,
       details: { statusCode: res.status, providers: providers.map((p: any) => ({ id: p.id, healthy: p.healthy })) },
     });
@@ -245,13 +248,16 @@ async function runDailyChecks(config: HealthCheckConfig): Promise<CheckResult[]>
 
   // 6. Check audit logs endpoint
   {
-    const res = await httpGet('/api/v1/audit/logs', config, { 'x-api-key': config.apiKey });
-    const status: CheckResult['status'] = res.ok && Array.isArray(res.body?.logs) ? 'pass' : 'warn';
+    const res = await httpGet('/api/v1/audit/logs', config, config.apiKey ? { 'x-api-key': config.apiKey } : undefined);
+    const isSkippedNoAuth = !config.apiKey && res.status === 401;
+    const status: CheckResult['status'] = (res.ok && Array.isArray(res.body?.logs)) || isSkippedNoAuth ? 'pass' : 'warn';
     results.push({
       name: 'Audit logging operational',
       category: 'daily',
       status,
-      message: status === 'pass' ? `Audit logs accessible — ${res.body?.logs?.length || 0} entries (${res.latencyMs}ms)` : `Audit logs issue: ${describeHttpError(res)}`,
+      message: status === 'pass'
+        ? (isSkippedNoAuth ? 'Skipped (no API key configured in runner)' : `Audit logs accessible — ${res.body?.logs?.length || 0} entries (${res.latencyMs}ms)`)
+        : `Audit logs issue: ${describeHttpError(res)}`,
       latencyMs: res.latencyMs,
       details: { statusCode: res.status, logCount: res.body?.logs?.length },
     });

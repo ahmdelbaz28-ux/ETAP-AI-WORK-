@@ -113,15 +113,11 @@ class TestRemoteMcpProbe:
         assert result["status"] == "blocked"
         assert result["message"] == _RESTRICTED_IP_MSG
 
-    def test_unresolvable_host_is_unreachable(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_unresolvable_host_is_unreachable(self, monkeypatch: pytest.MonkeyPatch) -> None:
         from api.agents import _probe_remote_mcp
 
         monkeypatch.setenv("MCP_HEALTH_ALLOW_HTTP", "1")
-        result = _probe_remote_mcp(
-            "srv", {"url": "http://256.256.256.256/x"}, "http"
-        )
+        result = _probe_remote_mcp("srv", {"url": "http://256.256.256.256/x"}, "http")
         assert result["status"] == "unreachable"
         assert result["connected"] is False
 
@@ -151,9 +147,7 @@ class TestStdioMcpProbe:
     def test_unresolvable_command_is_unreachable(self) -> None:
         from api.agents import _probe_stdio_mcp
 
-        result = _probe_stdio_mcp(
-            "srv", {"command": "definitely-not-a-real-command-p7c-xyz"}
-        )
+        result = _probe_stdio_mcp("srv", {"command": "definitely-not-a-real-command-p7c-xyz"})
         assert result["status"] == "unreachable"
         assert result["command_resolvable"] is False
 
@@ -161,9 +155,7 @@ class TestStdioMcpProbe:
         from api.agents import _probe_mcp_server
 
         # Remote transports route to the remote probe (missing url -> invalid).
-        assert _probe_mcp_server("srv", {"type": "http", "url": ""})["status"] == (
-            "invalid"
-        )
+        assert _probe_mcp_server("srv", {"type": "http", "url": ""})["status"] == ("invalid")
         # Default (no type) routes to the stdio probe.
         assert _probe_mcp_server("srv", {})["transport"] == "stdio"
 
@@ -219,8 +211,12 @@ class _RecordingBackend:
         self._naive_resolve = naive_resolve
 
     def connect_tcp(
-        self, host: str, port: int, timeout: Any = None,
-        local_address: Any = None, socket_options: Any = None,
+        self,
+        host: str,
+        port: int,
+        timeout: Any = None,
+        local_address: Any = None,
+        socket_options: Any = None,
     ) -> _FakeNetworkStream:
         import ipaddress as _ipaddress
         import socket as _socket
@@ -252,8 +248,9 @@ class _StubPool:
         self.status = status
         self.requests: list = []
 
-    def request(self, method: str, url: str, headers: Any = None,
-                extensions: Any = None) -> _StubResponse:
+    def request(
+        self, method: str, url: str, headers: Any = None, extensions: Any = None
+    ) -> _StubResponse:
         self.requests.append((method, url))
         return _StubResponse(self.status)
 
@@ -274,8 +271,9 @@ class TestSsrfDestinationPinning:
         monkeypatch.setenv("MCP_HEALTH_ALLOW_HTTP", "1")
         resolution_state = {"n": 0}
 
-        def fake_getaddrinfo(host: str, port: int, family: int = 0,
-                             type: int = 0, proto: int = 0, flags: int = 0):
+        def fake_getaddrinfo(
+            host: str, port: int, family: int = 0, type: int = 0, proto: int = 0, flags: int = 0
+        ):
             resolution_state["n"] += 1
             if resolution_state["n"] == 1:
                 # First resolution (validation): public IP.
@@ -291,9 +289,7 @@ class TestSsrfDestinationPinning:
 
         def factory(pinned_ips: list):
             return httpcore.ConnectionPool(
-                network_backend=agents_mod._PinnedAddressBackend(
-                    pinned_ips, delegate=backend
-                )
+                network_backend=agents_mod._PinnedAddressBackend(pinned_ips, delegate=backend)
             )
 
         monkeypatch.setattr(agents_mod, "_open_pinned_connection_pool", factory)
@@ -320,17 +316,13 @@ class TestSsrfDestinationPinning:
         monkeypatch.setattr(
             agents_mod.socket,
             "getaddrinfo",
-            lambda host, port, family=0, type=0, proto=0, flags=0: _addrinfo(
-                "93.184.216.34", port
-            ),
+            lambda host, port, family=0, type=0, proto=0, flags=0: _addrinfo("93.184.216.34", port),
         )
         backend = _RecordingBackend(b"HTTP/1.1 200 OK\r\nContent-Length: 2\r\n\r\nok")
 
         def factory(pinned_ips: list):
             return httpcore.ConnectionPool(
-                network_backend=agents_mod._PinnedAddressBackend(
-                    pinned_ips, delegate=backend
-                )
+                network_backend=agents_mod._PinnedAddressBackend(pinned_ips, delegate=backend)
             )
 
         monkeypatch.setattr(agents_mod, "_open_pinned_connection_pool", factory)
@@ -373,23 +365,17 @@ class TestProbeRestrictedDestinationMatrix:
         monkeypatch.setattr(
             agents_mod.socket,
             "getaddrinfo",
-            lambda host, port, family=0, type=0, proto=0, flags=0: _addrinfo(
-                ip, port
-            ),
+            lambda host, port, family=0, type=0, proto=0, flags=0: _addrinfo(ip, port),
         )
 
         def factory(pinned_ips: list):
-            raise AssertionError(
-                "connection pool must never be created for restricted targets"
-            )
+            raise AssertionError("connection pool must never be created for restricted targets")
 
         monkeypatch.setattr(agents_mod, "_open_pinned_connection_pool", factory)
 
         # IPv6 literals must be bracketed in URLs.
         host = f"[{ip}]" if ":" in ip else ip
-        result = agents_mod._probe_remote_mcp(
-            "srv", {"url": f"http://{host}/health"}, "http"
-        )
+        result = agents_mod._probe_remote_mcp("srv", {"url": f"http://{host}/health"}, "http")
 
         assert result["connected"] is False
         assert result["status"] == "blocked"
@@ -427,14 +413,10 @@ class TestRedirectSemantics:
         monkeypatch.setattr(
             agents_mod.socket,
             "getaddrinfo",
-            lambda host, port, family=0, type=0, proto=0, flags=0: _addrinfo(
-                "93.184.216.34", port
-            ),
+            lambda host, port, family=0, type=0, proto=0, flags=0: _addrinfo("93.184.216.34", port),
         )
         pool = _StubPool(code)
-        monkeypatch.setattr(
-            agents_mod, "_open_pinned_connection_pool", lambda ips: pool
-        )
+        monkeypatch.setattr(agents_mod, "_open_pinned_connection_pool", lambda ips: pool)
         url = f"https://redirect.example.com/{code}"
 
         result = agents_mod._probe_remote_mcp("srv", {"url": url}, "https")
@@ -452,14 +434,10 @@ class TestRedirectSemantics:
         monkeypatch.setattr(
             agents_mod.socket,
             "getaddrinfo",
-            lambda host, port, family=0, type=0, proto=0, flags=0: _addrinfo(
-                "93.184.216.34", port
-            ),
+            lambda host, port, family=0, type=0, proto=0, flags=0: _addrinfo("93.184.216.34", port),
         )
         pool = _StubPool(200)
-        monkeypatch.setattr(
-            agents_mod, "_open_pinned_connection_pool", lambda ips: pool
-        )
+        monkeypatch.setattr(agents_mod, "_open_pinned_connection_pool", lambda ips: pool)
 
         result = agents_mod._probe_remote_mcp(
             "srv", {"url": "https://ok.example.com/health"}, "https"
@@ -469,22 +447,16 @@ class TestRedirectSemantics:
         assert result["status"] == "ok"
         assert result["http_status"] == 200
 
-    def test_4xx_is_reachable_but_not_connected(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_4xx_is_reachable_but_not_connected(self, monkeypatch: pytest.MonkeyPatch) -> None:
         from api import agents as agents_mod
 
         monkeypatch.setattr(
             agents_mod.socket,
             "getaddrinfo",
-            lambda host, port, family=0, type=0, proto=0, flags=0: _addrinfo(
-                "93.184.216.34", port
-            ),
+            lambda host, port, family=0, type=0, proto=0, flags=0: _addrinfo("93.184.216.34", port),
         )
         pool = _StubPool(404)
-        monkeypatch.setattr(
-            agents_mod, "_open_pinned_connection_pool", lambda ips: pool
-        )
+        monkeypatch.setattr(agents_mod, "_open_pinned_connection_pool", lambda ips: pool)
 
         result = agents_mod._probe_remote_mcp(
             "srv", {"url": "https://missing.example.com/health"}, "https"
@@ -527,9 +499,7 @@ async def setup_db(test_engine: Any) -> AsyncGenerator[None, None]:
 
 @pytest.fixture
 async def db_session(test_engine: Any) -> AsyncGenerator[AsyncSession, None]:
-    factory = async_sessionmaker(
-        test_engine, class_=AsyncSession, expire_on_commit=False
-    )
+    factory = async_sessionmaker(test_engine, class_=AsyncSession, expire_on_commit=False)
     async with factory() as session:
         yield session
         await session.rollback()
@@ -539,18 +509,14 @@ async def db_session(test_engine: Any) -> AsyncGenerator[AsyncSession, None]:
 async def owned_project(db_session: AsyncSession) -> dict[str, str]:
     from api.projects import Project
 
-    project = Project(
-        id=str(uuid.uuid4()), name="P7c Owner Project", created_by="user-1"
-    )
+    project = Project(id=str(uuid.uuid4()), name="P7c Owner Project", created_by="user-1")
     db_session.add(project)
     await db_session.commit()
     return {"id": project.id, "created_by": "user-1"}
 
 
 class TestLoadOwnedProject:
-    async def test_owner_can_load(
-        self, db_session: AsyncSession, owned_project: dict
-    ) -> None:
+    async def test_owner_can_load(self, db_session: AsyncSession, owned_project: dict) -> None:
         from api.export import _load_owned_project
 
         project = await _load_owned_project(
@@ -558,9 +524,7 @@ class TestLoadOwnedProject:
         )
         assert project.id == owned_project["id"]
 
-    async def test_admin_can_load_any(
-        self, db_session: AsyncSession, owned_project: dict
-    ) -> None:
+    async def test_admin_can_load_any(self, db_session: AsyncSession, owned_project: dict) -> None:
         from api.export import _load_owned_project
 
         project = await _load_owned_project(
@@ -653,22 +617,14 @@ class TestMcpHealthEndpointAuthorization:
         from api import dependencies
         from api.agents import router as agents_router
 
-        monkeypatch.setenv(
-            "ENGINEERING_SERVICE_API_KEY", "p7c-test-api-key-0123456789abcdef"
-        )
-        monkeypatch.setattr(
-            dependencies, "API_KEY", "p7c-test-api-key-0123456789abcdef"
-        )
+        monkeypatch.setenv("ENGINEERING_SERVICE_API_KEY", "p7c-test-api-key-0123456789abcdef")
+        monkeypatch.setattr(dependencies, "API_KEY", "p7c-test-api-key-0123456789abcdef")
         monkeypatch.delenv("ENGINEERING_SERVICE_AUTH_DISABLED", raising=False)
 
         cfg = tmp_path / ".mcp.json"
         cfg.write_text(
             json.dumps(
-                {
-                    "mcpServers": {
-                        "remote_ok": {"type": "http", "url": "https://mcp.example.com"}
-                    }
-                }
+                {"mcpServers": {"remote_ok": {"type": "http", "url": "https://mcp.example.com"}}}
             ),
             encoding="utf-8",
         )
@@ -708,14 +664,10 @@ class TestMcpHealthEndpointAuthorization:
         monkeypatch.setattr(
             agents_mod.socket,
             "getaddrinfo",
-            lambda host, port, family=0, type=0, proto=0, flags=0: _addrinfo(
-                "93.184.216.34", port
-            ),
+            lambda host, port, family=0, type=0, proto=0, flags=0: _addrinfo("93.184.216.34", port),
         )
         pool = _StubPool(200)
-        monkeypatch.setattr(
-            agents_mod, "_open_pinned_connection_pool", lambda ips: pool
-        )
+        monkeypatch.setattr(agents_mod, "_open_pinned_connection_pool", lambda ips: pool)
 
         resp = health_client.post(
             "/api/v1/agents/mcp-servers/remote_ok/health",

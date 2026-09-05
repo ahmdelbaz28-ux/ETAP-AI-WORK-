@@ -1081,9 +1081,7 @@ async def ahmed_etap_orchestrate(
 # ---------------------------------------------------------------------------
 
 
-_RESTRICTED_IP_MSG = (
-    "Target resolves to a restricted network destination (SSRF guard)."
-)
+_RESTRICTED_IP_MSG = "Target resolves to a restricted network destination (SSRF guard)."
 _HTTP_BLOCKED_MSG = "Remote MCP endpoints must use HTTPS (HTTP transport is disabled)."
 
 
@@ -1165,9 +1163,7 @@ class _PinnedAddressBackend:
         last_exc: Any = None
         for pinned_ip in self._pinned_ips:
             try:
-                return delegate.connect_tcp(
-                    pinned_ip, port, timeout, local_address, socket_options
-                )
+                return delegate.connect_tcp(pinned_ip, port, timeout, local_address, socket_options)
             except Exception as exc:  # noqa: BLE001 — try the next validated IP
                 last_exc = exc
         if last_exc is not None:
@@ -1257,7 +1253,10 @@ def _validate_remote_url(
         }
 
     allow_http = os.getenv("MCP_HEALTH_ALLOW_HTTP", "").lower() in (
-        "1", "true", "yes", "on",
+        "1",
+        "true",
+        "yes",
+        "on",
     )
     if parsed.scheme == "http" and not allow_http:
         return None, {
@@ -1312,9 +1311,7 @@ def _resolve_and_validate_remote_ips(
     return pinned_ips, None
 
 
-def _probe_remote_mcp(
-    server_id: str, server_config: dict, transport: str
-) -> dict[str, Any]:
+def _probe_remote_mcp(server_id: str, server_config: dict, transport: str) -> dict[str, Any]:
     """SSRF-guarded bare-GET health probe for remote MCP endpoints."""
     url = str(server_config.get("url") or server_config.get("endpoint") or "").strip()
     parsed, err_resp = _validate_remote_url(server_id, url, transport)
@@ -1354,8 +1351,7 @@ def _probe_remote_mcp(
         elif 300 <= status_code < 400:
             status = "degraded"
             message = (
-                f"Remote MCP endpoint responded with HTTP {status_code} "
-                "(redirect NOT followed)."
+                f"Remote MCP endpoint responded with HTTP {status_code} (redirect NOT followed)."
             )
         else:
             status = "degraded"
@@ -1453,9 +1449,7 @@ async def check_mcp_server_health(
     try:
         data = _probe_mcp_server(server_id, server_config)
     except Exception as e:  # noqa: BLE001
-        logger.exception(
-            "mcp_health_probe_failed server=%.32s error=%s", server_id, str(e)
-        )
+        logger.exception("mcp_health_probe_failed server=%.32s error=%s", server_id, str(e))
         return JSONResponse(
             status_code=500,
             content={

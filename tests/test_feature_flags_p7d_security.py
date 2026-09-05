@@ -122,16 +122,12 @@ class TestSafeDefaults:
 
 
 class TestAuthorization:
-    def test_unauthenticated_get_rejected_in_production(
-        self, client: TestClient, monkeypatch
-    ):
+    def test_unauthenticated_get_rejected_in_production(self, client: TestClient, monkeypatch):
         _production_env(monkeypatch)
         resp = client.get("/api/v1/feature-flags")
         assert resp.status_code in (401, 403)
 
-    def test_unauthenticated_patch_rejected_in_production(
-        self, client: TestClient, monkeypatch
-    ):
+    def test_unauthenticated_patch_rejected_in_production(self, client: TestClient, monkeypatch):
         _production_env(monkeypatch)
         resp = client.patch(
             "/api/v1/feature-flags/harmonic_analysis",
@@ -139,9 +135,7 @@ class TestAuthorization:
         )
         assert resp.status_code in (401, 403)
 
-    def test_wrong_api_key_patch_rejected_in_production(
-        self, client: TestClient, monkeypatch
-    ):
+    def test_wrong_api_key_patch_rejected_in_production(self, client: TestClient, monkeypatch):
         _production_env(monkeypatch)
         resp = client.patch(
             "/api/v1/feature-flags/harmonic_analysis",
@@ -167,9 +161,7 @@ class TestAuthorization:
 
 class TestContract:
     def test_get_unknown_flag_rejected(self, client: TestClient, auth_headers: dict):
-        resp = client.get(
-            "/api/v1/feature-flags/totally_unknown_flag", headers=auth_headers
-        )
+        resp = client.get("/api/v1/feature-flags/totally_unknown_flag", headers=auth_headers)
         assert resp.status_code == 404
 
     def test_patch_unknown_flag_rejected(self, client: TestClient, auth_headers: dict):
@@ -215,7 +207,9 @@ class TestAudit:
             )
         assert resp.status_code == 200
         audit_records = [
-            r for r in caplog.records if r.name == "audit" and "feature_flag_toggled" in r.getMessage()
+            r
+            for r in caplog.records
+            if r.name == "audit" and "feature_flag_toggled" in r.getMessage()
         ]
         assert audit_records, "PATCH must emit a feature_flag_toggled audit record"
         message = audit_records[-1].getMessage()
@@ -281,5 +275,3 @@ class TestPrecedence:
         from api.feature_flags import _load_flags
 
         assert _load_flags()["transient_stability"]["enabled"] is True
-
-

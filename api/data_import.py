@@ -101,13 +101,13 @@ _DECODE_WARNING = "File was not valid UTF-8; decoded as Latin-1."
 
 # Executable signatures to reject immediately
 _EXECUTABLE_SIGNATURES = (
-    b"MZ",              # DOS / Windows PE
-    b"\x7fELF",         # Linux ELF
-    b"\xca\xfe\xba\xbe",# Mach-O / Java fat binary
-    b"\xce\xfa\xed\xfe",# Mach-O 32-bit
-    b"\xcf\xfa\xed\xfe",# Mach-O 64-bit
-    b"\xfe\xed\xfa\xce",# Mach-O
-    b"\xfe\xed\xfa\xcf",# Mach-O
+    b"MZ",  # DOS / Windows PE
+    b"\x7fELF",  # Linux ELF
+    b"\xca\xfe\xba\xbe",  # Mach-O / Java fat binary
+    b"\xce\xfa\xed\xfe",  # Mach-O 32-bit
+    b"\xcf\xfa\xed\xfe",  # Mach-O 64-bit
+    b"\xfe\xed\xfa\xce",  # Mach-O
+    b"\xfe\xed\xfa\xcf",  # Mach-O
 )
 
 # In-memory bounded preview store
@@ -128,7 +128,11 @@ def _assess_risk_level(records_count: int, has_errors: bool) -> str:
 def _prune_expired_previews() -> None:
     """Remove previews that have exceeded the TTL."""
     now_time = time.time()
-    expired = [k for k, v in _pending_previews.items() if now_time - v.get("created_at", 0) > _PREVIEW_TTL_SECONDS]
+    expired = [
+        k
+        for k, v in _pending_previews.items()
+        if now_time - v.get("created_at", 0) > _PREVIEW_TTL_SECONDS
+    ]
     for k in expired:
         _pending_previews.pop(k, None)
 
@@ -1002,7 +1006,11 @@ async def _validate_import_approval(
             "CROSS_TENANT_FORBIDDEN",
             action.id,
             user.user_id,
-            {"preview_id": body.preview_id, "user_tenant": user.tenant_id, "action_tenant": action.tenant_id},
+            {
+                "preview_id": body.preview_id,
+                "user_tenant": user.tenant_id,
+                "action_tenant": action.tenant_id,
+            },
         )
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -1023,7 +1031,9 @@ async def execute_import(
     body: ImportExecuteRequest,
     db: AsyncSession = Depends(get_db),
     user: CurrentUser = Depends(get_current_user_from_header),
-    idempotency_key: str = Header(..., alias="Idempotency-Key", description="Mandatory Idempotency-Key header"),
+    idempotency_key: str = Header(
+        ..., alias="Idempotency-Key", description="Mandatory Idempotency-Key header"
+    ),
 ) -> Any:
     """Execute a previewed import into ResultStore with Maker-Checker dual control and session streaming."""
     if not is_feature_enabled("data_import", default=False):
@@ -1031,7 +1041,6 @@ async def execute_import(
             status_code=status.HTTP_403_FORBIDDEN,
             detail=ERR_DATA_IMPORT_DISABLED,
         )
-
 
     endpoint = "POST /api/v1/import/execute"
     replay = await _replay_idempotent(db, idempotency_key, endpoint, user.tenant_id or "default")
@@ -1062,9 +1071,19 @@ async def execute_import(
 
     # Progress streaming: phase-based progress events
     if session_id:
-        hub.publish(session_id, EVENT_JOB_PROGRESS, {"phase": "validating", "pct": 25, "tool": "data_import"})
-        hub.publish(session_id, EVENT_JOB_PROGRESS, {"phase": "parsing", "pct": 50, "tool": "data_import"})
-        hub.publish(session_id, EVENT_JOB_PROGRESS, {"phase": "persisting", "pct": 80, "tool": "data_import"})
+        hub.publish(
+            session_id,
+            EVENT_JOB_PROGRESS,
+            {"phase": "validating", "pct": 25, "tool": "data_import"},
+        )
+        hub.publish(
+            session_id, EVENT_JOB_PROGRESS, {"phase": "parsing", "pct": 50, "tool": "data_import"}
+        )
+        hub.publish(
+            session_id,
+            EVENT_JOB_PROGRESS,
+            {"phase": "persisting", "pct": 80, "tool": "data_import"},
+        )
 
     summary = {
         "format": preview["format"],
@@ -1104,7 +1123,11 @@ async def execute_import(
 
     # Progress: completed
     if session_id:
-        hub.publish(session_id, EVENT_JOB_PROGRESS, {"phase": "completed", "pct": 100, "tool": "data_import"})
+        hub.publish(
+            session_id,
+            EVENT_JOB_PROGRESS,
+            {"phase": "completed", "pct": 100, "tool": "data_import"},
+        )
         hub.publish(
             session_id,
             EVENT_RESULT_READY,
@@ -1160,7 +1183,9 @@ async def execute_import(
         "executed_at": now_iso,
     }
 
-    await _store_idempotent(db, idempotency_key, endpoint, user.tenant_id or "default", response_payload)
+    await _store_idempotent(
+        db, idempotency_key, endpoint, user.tenant_id or "default", response_payload
+    )
     return response_payload
 
 

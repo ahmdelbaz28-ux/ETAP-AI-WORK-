@@ -396,12 +396,8 @@ class TestStudyRunAPIKey:
             )
         )
         stack.enter_context(patch("api.dependencies.API_KEY", "test-secret-key"))
-        stack.enter_context(
-            patch("api.dependencies.auth_disabled_allowed", return_value=False)
-        )
-        stack.enter_context(
-            patch("api.environment.auth_disabled_allowed", return_value=False)
-        )
+        stack.enter_context(patch("api.dependencies.auth_disabled_allowed", return_value=False))
+        stack.enter_context(patch("api.environment.auth_disabled_allowed", return_value=False))
         stack.enter_context(patch("api.routes._EXPECTED_API_KEY", "test-secret-key"))
         stack.enter_context(patch("api.routes._API_KEY_CONFIGURED", True))
         stack.enter_context(patch("api.routes._AUTH_DISABLED", False))

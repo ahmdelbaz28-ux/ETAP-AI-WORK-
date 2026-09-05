@@ -115,6 +115,7 @@ if _HAS_STARLETTE:
                             "more_body": False,
                         }
                     import asyncio
+
                     await asyncio.sleep(86400)
 
                 if body_bytes:
@@ -183,7 +184,9 @@ if _HAS_STARLETTE:
                 downstream_receive = await self._extract_body_and_replay(receive, inspect_data)
 
             results = self.engine.inspect(inspect_data)
-            blocked = await self._check_and_block_rasp(results, path, request.method, scope, receive, send)
+            blocked = await self._check_and_block_rasp(
+                results, path, request.method, scope, receive, send
+            )
             if blocked:
                 return
 

@@ -17,7 +17,6 @@ class GroundTruthMismatch:
 
 
 def _feature_count(assets: list[Any]) -> int:
-
     affected_assets: List[str]  # noqa: F842
     details: Dict[str, Any]  # noqa: F842
 

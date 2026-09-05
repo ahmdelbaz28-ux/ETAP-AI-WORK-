@@ -323,7 +323,6 @@ class TestWLSEstimator:
         assert len(result.voltage_magnitudes) == 3
 
     def test_estimate_with_voltage_and_power_flow(self):
-
         Ybus = np.array(
             [
                 [2 - 20j, -1 + 10j, -1 + 10j],
@@ -400,7 +399,6 @@ class TestWLSEstimator:
         assert red["critical"] is True
 
     def test_estimate_bad_data_detection(self):
-
         Ybus = np.array(
             [
                 [2 - 20j, -1 + 10j, -1 + 10j],

@@ -182,6 +182,7 @@ unfixable = []
 "monitor_hf.py" = ["T201"]                           # CLI tool: HF Space build monitor
 "sync_hf.py" = ["T201"]                              # CLI tool: HF Space sync
 "benchmarks/**" = ["T201"]                          # benchmark scripts print results
+"deploy/**" = ["T201", "I001"]                         # standalone deployment automation scripts
 
 # SQLAlchemy ORM files use == True/False for filter expressions (e.g., Equipment.is_active == True).
 # This is the idiomatic SQLAlchemy filter syntax, not a Python boolean comparison.

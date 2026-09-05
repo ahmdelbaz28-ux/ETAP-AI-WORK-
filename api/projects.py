@@ -520,7 +520,8 @@ async def run_project_study(
 
     study = StudyResult(
         id=str(uuid.uuid4()),
-        tenant_id=user.tenant_id or _DEFAULT_TENANT_ID,  # V-07: never NULL (migration 008 NOT NULL on Postgres)
+        tenant_id=user.tenant_id
+        or _DEFAULT_TENANT_ID,  # V-07: never NULL (migration 008 NOT NULL on Postgres)
         project_id=project_id,
         study_type=body.study_type.value,
         status=StudyStatus.PENDING.value,

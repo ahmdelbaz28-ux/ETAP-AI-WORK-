@@ -705,6 +705,7 @@ def _validate_cua_url(start_url: Optional[str]) -> Optional[JSONResponse]:
     if not start_url:
         return None
     from urllib.parse import urlparse
+
     parsed = urlparse(start_url)
     if parsed.scheme not in ("https", "http"):
         return JSONResponse(
@@ -712,6 +713,7 @@ def _validate_cua_url(start_url: Optional[str]) -> Optional[JSONResponse]:
         )
     hostname = parsed.hostname or ""
     import ipaddress
+
     try:
         ip = ipaddress.ip_address(hostname)
         if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_reserved:
@@ -731,7 +733,10 @@ def _evaluate_cua_fast_path(body: dict, start_url: Optional[str], question: str)
         host in start_url for host in _placeholder_hosts
     )
     quick_mode_env = os.environ.get("ETAP_GUI_QUICK_MODE", "").lower() in (
-        "1", "true", "yes", "on",
+        "1",
+        "true",
+        "yes",
+        "on",
     )
 
     if not (dry_run_requested or is_placeholder_url or quick_mode_env):

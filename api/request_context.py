@@ -205,7 +205,6 @@ def _reset_tenant_on_checkin(dbapi_connection, _connection_record) -> None:
         )
 
 
-
 class TenantMiddleware:
     """Set the PostgreSQL session variable for Row-Level Security (RLS).
 

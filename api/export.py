@@ -155,9 +155,7 @@ EXPORT_FORMATS: list[ExportFormat] = [
     ),
 ]
 
-router = APIRouter(
-    prefix="/api/v1/export", tags=["Export"], dependencies=[Depends(get_api_key)]
-)
+router = APIRouter(prefix="/api/v1/export", tags=["Export"], dependencies=[Depends(get_api_key)])
 
 
 async def _get_project_studies(project_id: str, db: AsyncSession) -> Sequence[Any]:
@@ -309,7 +307,15 @@ def _generate_csv(project_name: str, studies: Sequence[Any]) -> bytes:
     writer.writerow(["project_name", "study_type", "status", "created_at", "results"])
     for s in studies:
         results_str = json.dumps(s.results) if s.results else ""
-        writer.writerow([project_name, s.study_type, s.status, str(s.created_at) if s.created_at else "", results_str])
+        writer.writerow(
+            [
+                project_name,
+                s.study_type,
+                s.status,
+                str(s.created_at) if s.created_at else "",
+                results_str,
+            ]
+        )
     return output.getvalue().encode("utf-8")
 
 
@@ -402,7 +408,12 @@ async def export_pdf(
         "EXPORT_REQUESTED",
         export.id,
         user.user_id,
-        {"project_id": project_id, "export_type": "pdf", "file_name": file_name, "result_id": result_id},
+        {
+            "project_id": project_id,
+            "export_type": "pdf",
+            "file_name": file_name,
+            "result_id": result_id,
+        },
     )
 
     headers = {
@@ -482,7 +493,12 @@ async def export_excel(
         "EXPORT_REQUESTED",
         export.id,
         user.user_id,
-        {"project_id": project_id, "export_type": "excel", "file_name": file_name, "result_id": result_id},
+        {
+            "project_id": project_id,
+            "export_type": "excel",
+            "file_name": file_name,
+            "result_id": result_id,
+        },
     )
 
     headers = {

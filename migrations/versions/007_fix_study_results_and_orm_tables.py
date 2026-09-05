@@ -87,7 +87,6 @@ def upgrade() -> None:
     # errors, execution_time_sec, provider, native) to avoid data loss.
     # They are simply unused by the ORM going forward.
 
-
     # ── 2. Create missing ORM tables ───────────────────────────────
 
     # equipment_categories (ORM: api/equipment.py:EquipmentCategory)

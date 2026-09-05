@@ -154,9 +154,7 @@ class ResultFileRecord(Base):
         ForeignKey("results.id", ondelete="CASCADE"), nullable=False, index=True
     )
     path: Mapped[str] = mapped_column(String(512), nullable=False)
-    mime: Mapped[str] = mapped_column(
-        String(128), nullable=False, default=MIME_OCTET_STREAM
-    )
+    mime: Mapped[str] = mapped_column(String(128), nullable=False, default=MIME_OCTET_STREAM)
     size_bytes: Mapped[int] = mapped_column(BigInteger, nullable=False)
 
     result: Mapped[ResultRecord] = relationship(back_populates="files")
@@ -402,7 +400,9 @@ async def store_result_file(
         with contextlib.suppress(Exception):
             if tmp_abs.startswith(rdir_abs + os.sep) and os.path.isfile(tmp_abs):
                 os.remove(tmp_abs)
-        logger.exception("result_file_write_failed result_id=%s", _safe_component(result_id, "unknown"))
+        logger.exception(
+            "result_file_write_failed result_id=%s", _safe_component(result_id, "unknown")
+        )
         raise HTTPException(status_code=500, detail="File storage failed")
 
     return await _persist_file_record(result_id, rel_path, mime, len(data), rdir_abs, target_abs)
@@ -435,7 +435,9 @@ async def _persist_file_record(
         with contextlib.suppress(Exception):
             if target_abs.startswith(rdir_abs + os.sep) and os.path.isfile(target_abs):
                 os.remove(target_abs)
-        logger.exception("result_file_db_commit_failed result_id=%s", _safe_component(result_id, "unknown"))
+        logger.exception(
+            "result_file_db_commit_failed result_id=%s", _safe_component(result_id, "unknown")
+        )
         raise HTTPException(status_code=500, detail="File metadata persistence failed")
     return file_id
 

@@ -228,7 +228,14 @@ class TestImportPreviewDryRun:
                 {"id": "BUS_2", "name": "Feeder Alpha", "voltage_kv": 13.8, "type": "PQ"},
             ],
             "branches": [
-                {"id": "LINE_1", "from_bus": "BUS_1", "to_bus": "BUS_2", "r_pu": 0.01, "x_pu": 0.05, "rating_mva": 50.0}
+                {
+                    "id": "LINE_1",
+                    "from_bus": "BUS_1",
+                    "to_bus": "BUS_2",
+                    "r_pu": 0.01,
+                    "x_pu": 0.05,
+                    "rating_mva": 50.0,
+                }
             ],
         }
         res = client.post(
@@ -627,7 +634,9 @@ class TestIdempotencyAndTenantIsolation:
         model = {"buses": [{"id": "BUS_A1"}]}
         prev_res = client.post(
             "/api/v1/import/preview",
-            files={"file": ("tenant_a.json", json.dumps(model).encode("utf-8"), "application/json")},
+            files={
+                "file": ("tenant_a.json", json.dumps(model).encode("utf-8"), "application/json")
+            },
         )
         assert prev_res.status_code == 200
         preview_id = prev_res.json()["preview_id"]
@@ -710,7 +719,7 @@ class TestDefusedXmlFailClosed:
             files={
                 "file": (
                     "model.xml",
-                    b"<?xml version=\"1.0\"?><TopologicalNode rdf:ID=\"bus1\"/>",
+                    b'<?xml version="1.0"?><TopologicalNode rdf:ID="bus1"/>',
                     "application/xml",
                 )
             },
@@ -730,4 +739,3 @@ class TestDefusedXmlFailClosed:
             ValueError, match="XML parsing is disabled: defusedxml is not installed"
         ):
             data_import_mod._parse_cim_xml(b"<xml/>")
-

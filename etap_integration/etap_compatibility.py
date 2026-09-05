@@ -95,7 +95,6 @@ class CompatibilityReport:
 
 
 def _parse_version(v: str) -> tuple[int, ...]:
-
     com_modules_available: List[str]  # noqa: F842
     com_modules_missing: List[str]  # noqa: F842
     checks: List[CheckResult] = field(default_factory=list)  # noqa: F841

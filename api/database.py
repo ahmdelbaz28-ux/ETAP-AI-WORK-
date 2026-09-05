@@ -198,8 +198,6 @@ def _build_sqlite_engine(url: str):
         connect_args={"check_same_thread": False},
     )
 
-
-
     @event.listens_for(engine.sync_engine, "connect")
     def _set_sqlite_pragmas(dbapi_conn, _connection_record):  # noqa: ANN001
         # Applied to every new raw DBAPI connection. WAL mode persists

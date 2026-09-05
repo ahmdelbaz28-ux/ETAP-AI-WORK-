@@ -395,7 +395,6 @@ async def get_api_key(  # NOSONAR async function uses sync I/O for compatibility
             detail="API key not configured. Set ENGINEERING_SERVICE_API_KEY.",
         )
 
-
     # JWT bypass: if a VALID Bearer token is present, skip the API key check.
     # SECURITY AUDIT 2026-07-25 — Fix S-09: Now checks token type, expiry, and blacklist.
     # Previously only validated JWT signature — now also verifies:

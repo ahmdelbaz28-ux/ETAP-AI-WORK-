@@ -83,12 +83,8 @@ def route_client(monkeypatch: pytest.MonkeyPatch, tmp_path: Any):
 class TestMcpListRoutePrecedence:
     """GET /api/v1/agents/mcp-servers must resolve to the MCP list handler."""
 
-    def test_authorized_mcp_list_resolves_to_mcp_handler(
-        self, route_client: Any
-    ) -> None:
-        resp = route_client.get(
-            "/api/v1/agents/mcp-servers", headers={"X-API-Key": TEST_API_KEY}
-        )
+    def test_authorized_mcp_list_resolves_to_mcp_handler(self, route_client: Any) -> None:
+        resp = route_client.get("/api/v1/agents/mcp-servers", headers={"X-API-Key": TEST_API_KEY})
         # Must NOT be answered by the /{agent_id} catch-all...
         assert resp.status_code != 404
         assert resp.status_code == 200
@@ -110,9 +106,7 @@ class TestMcpListRoutePrecedence:
         assert resp.status_code == 401
 
     def test_invalid_api_key_is_401(self, route_client: Any) -> None:
-        resp = route_client.get(
-            "/api/v1/agents/mcp-servers", headers={"X-API-Key": "wrong-key"}
-        )
+        resp = route_client.get("/api/v1/agents/mcp-servers", headers={"X-API-Key": "wrong-key"})
         assert resp.status_code == 401
 
 

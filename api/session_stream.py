@@ -445,6 +445,7 @@ async def _validate_ws_token(websocket: WebSocket, token: str) -> Optional[str]:
     if jti:
         try:
             from api.auth import _is_token_blacklisted
+
             if await _is_token_blacklisted(jti):
                 await websocket.close(
                     code=_WS_CODE_POLICY_VIOLATION, reason="Token has been revoked"
@@ -539,9 +540,7 @@ def _send_initial_ws_events(
         )
 
     after_seq_raw = websocket.query_params.get("after_seq", "")
-    replay_events = (
-        hub.replay(session_id, int(after_seq_raw)) if after_seq_raw.isdigit() else []
-    )
+    replay_events = hub.replay(session_id, int(after_seq_raw)) if after_seq_raw.isdigit() else []
     for ev in replay_events:
         hub._offer(conn, ev)
 
@@ -553,9 +552,7 @@ async def session_stream_ws(websocket: WebSocket, session_id: str) -> None:
         return
 
     if not await _verify_active_user(user_id):
-        await websocket.close(
-            code=_WS_CODE_POLICY_VIOLATION, reason="User not found or inactive"
-        )
+        await websocket.close(code=_WS_CODE_POLICY_VIOLATION, reason="User not found or inactive")
         return
 
     hub = get_hub()
