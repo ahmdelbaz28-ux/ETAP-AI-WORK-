@@ -43,6 +43,7 @@ data/
 sonar_issues.json
 security_audit.log
 search/search_index.json
+.feature-flags.json
 
 # Test runtime artifacts
 test.db

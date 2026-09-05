@@ -10,6 +10,8 @@ packages:
 # one or more open alerts that are fixed by the pinned version.
 # =============================================================================
 overrides:
+  # HIGH: qs array-limit bypass and DoS (GHSA-x5fp-wj9c-mxmx, GHSA-4mjr-xmp4-gh2g)
+  qs: ^6.16.0
   # CRITICAL: protobufjs 8.0.1 had Arbitrary Code Execution (CVE) — 25 alerts.
   # Was pinned to 8.0.1 via the old `overrides` block in package.json, which
   # is exactly the vulnerable version. Bumping to 8.6.6 fixes all 25 alerts.
