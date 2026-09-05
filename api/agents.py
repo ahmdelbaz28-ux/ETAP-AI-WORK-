@@ -127,33 +127,7 @@ async def get_agents_list(request: Request):
 
         # Enrich the shared AGENTS list with capabilities + model + provider
         # metadata so the frontend administration panel can display it.
-        capability_map = {
-            "load-flow-agent": ["load_flow", "voltage_profile", "power_losses"],
-            "short-circuit-agent": ["short_circuit", "iec_60909", "equipment_rating"],
-            "arcflash-agent": ["arc_flash", "ieee_1584", "ppe_category"],
-            "protection-agent": ["protection", "relay_coordination", "time_current_curves"],
-            "motorstarting-agent": ["motor_starting", "voltage_dip", "acceleration"],
-            "stability-agent": ["stability", "swing_equation", "critical_clearing_time"],
-            "harmonic-agent": ["harmonic", "ieee_519", "filter_design"],
-            "cable-sizing-agent": ["cable_sizing", "iec_60364", "voltage_drop"],
-            "earth-grid-agent": ["earth_grid", "ieee_80", "step_touch_voltage"],
-            "opf-agent": ["opf", "economic_dispatch", "optimal_power_flow"],
-            "renewable-agent": ["renewable", "solar", "wind", "ieee_1547"],
-            "battery-storage-agent": ["battery_storage", "bess", "dispatch_optimization"],
-            "scada-agent": ["scada", "iec_61850", "real_time_monitoring"],
-            "digital-twin-agent": ["digital_twin", "iec_61970", "state_estimation"],
-            "predictive-agent": ["predictive_maintenance", "iso_13381", "failure_prediction"],
-            "anomaly-agent": ["anomaly_detection", "ieee_1159", "pattern_recognition"],
-            "coordination-agent": ["coordination", "iec_60255", "relay_coordination"],
-            "report-agent": ["report_generation", "ieee_3002_7", "documentation"],
-            "validation-agent": ["validation", "iec_60038", "compliance_checking"],
-            "etap-engineer-agent": ["etap_engineering", "etap_manual", "study_setup"],
-            "goal-planner-agent": ["goal_planning", "task_decomposition", "workflow"],
-            "weather-agent": ["weather", "iec_60721", "environmental_analysis"],
-            "power-system-coordinator": ["coordination", "orchestration", "all_studies"],
-            "etap-expert-agent": ["etap_expert", "format_a_b_c_d", "6_step_workflow"],
-            "etap-gui-agent": ["gui_automation", "cua", "screenshot_analysis"],
-        }
+        capability_map = AGENT_CAPABILITY_MAP
         agents_list = []
         for a in AGENTS:
             agents_list.append(
@@ -303,33 +277,7 @@ async def get_agent_by_id(agent_id: str, request: Request):
             )
 
         # Capability map (same as get_agents_list)
-        capability_map = {
-            "load-flow-agent": ["load_flow", "voltage_profile", "power_losses"],
-            "short-circuit-agent": ["short_circuit", "iec_60909", "equipment_rating"],
-            "arcflash-agent": ["arc_flash", "ieee_1584", "ppe_category"],
-            "protection-agent": ["protection", "relay_coordination", "time_current_curves"],
-            "motorstarting-agent": ["motor_starting", "voltage_dip", "acceleration"],
-            "stability-agent": ["stability", "swing_equation", "critical_clearing_time"],
-            "harmonic-agent": ["harmonic", "ieee_519", "filter_design"],
-            "cable-sizing-agent": ["cable_sizing", "iec_60364", "voltage_drop"],
-            "earth-grid-agent": ["earth_grid", "ieee_80", "step_touch_voltage"],
-            "opf-agent": ["opf", "economic_dispatch", "optimal_power_flow"],
-            "renewable-agent": ["renewable", "solar", "wind", "ieee_1547"],
-            "battery-storage-agent": ["battery_storage", "bess", "dispatch_optimization"],
-            "scada-agent": ["scada", "iec_61850", "real_time_monitoring"],
-            "digital-twin-agent": ["digital_twin", "iec_61970", "state_estimation"],
-            "predictive-agent": ["predictive_maintenance", "iso_13381", "failure_prediction"],
-            "anomaly-agent": ["anomaly_detection", "ieee_1159", "pattern_recognition"],
-            "coordination-agent": ["coordination", "iec_60255", "relay_coordination"],
-            "report-agent": ["report_generation", "ieee_3002_7", "documentation"],
-            "validation-agent": ["validation", "iec_60038", "compliance_checking"],
-            "etap-engineer-agent": ["etap_engineering", "etap_manual", "study_setup"],
-            "goal-planner-agent": ["goal_planning", "task_decomposition", "workflow"],
-            "weather-agent": ["weather", "iec_60721", "environmental_analysis"],
-            "power-system-coordinator": ["coordination", "orchestration", "all_studies"],
-            "etap-expert-agent": ["etap_expert", "format_a_b_c_d", "6_step_workflow"],
-            "etap-gui-agent": ["gui_automation", "cua", "screenshot_analysis"],
-        }
+        capability_map = AGENT_CAPABILITY_MAP
 
         return JSONResponse(
             content={

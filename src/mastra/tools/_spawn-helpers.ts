@@ -113,3 +113,84 @@ export function spawnPythonSecure(
 ): ChildProcess {
   return spawnSecure('python', scriptPath, opts);
 }
+
+export interface SecureScriptOptions {
+  binary: string;
+  scriptPath: string;
+  inputData: string;
+  timeoutMs: number;
+  maxOutputLength?: number;
+  toolDisplayName: string;
+}
+
+/**
+ * Execute a sandboxed script securely and return its captured stdout.
+ */
+export function executeSecureScript({
+  binary,
+  scriptPath,
+  inputData,
+  timeoutMs,
+  maxOutputLength = 10000,
+  toolDisplayName,
+}: SecureScriptOptions): Promise<string> {
+  return new Promise<string>((resolve, reject) => {
+    const child = spawnSecure(binary, scriptPath, { timeoutMs });
+
+    const stdoutStream = child.stdout;
+    const stderrStream = child.stderr;
+
+    if (!stdoutStream || !stderrStream) {
+      reject(new Error(`Failed to get stdio streams from ${toolDisplayName}`));
+      return;
+    }
+
+    let stdout = '';
+    let stderr = '';
+
+    stdoutStream.on('data', (data: Buffer) => {
+      stdout += data.toString();
+    });
+
+    stderrStream.on('data', (data: Buffer) => {
+      stderr += data.toString();
+    });
+
+    child.on('error', (err) => {
+      reject(new Error(`Failed to start ${toolDisplayName}: ${err.message}`));
+    });
+
+    child.on('close', (exitCode) => {
+      if (exitCode !== 0) {
+        const errMessage = stderr?.trim() || `Process exited with code ${exitCode}`;
+        reject(new Error(`${toolDisplayName} failed: ${errMessage}`));
+        return;
+      }
+
+      try {
+        const response = JSON.parse(stdout.trim());
+        if (response.success) {
+          const output = response.output || '';
+          if (output.length > maxOutputLength) {
+            resolve(output.substring(0, maxOutputLength) + '\n... [output truncated]'); // NOSONAR
+          } else {
+            resolve(output);
+          }
+        } else {
+          reject(new Error(response.error || 'Execution failed without specific error message'));
+        }
+      } catch (parseError) {
+        const parseErrMsg = parseError instanceof Error ? ` (${parseError.message})` : '';
+        reject(new Error(`Failed to parse executor response: ${stdout}${parseErrMsg}`));
+      }
+    });
+
+    const stdinStream = child.stdin;
+    if (stdinStream) {
+      stdinStream.write(inputData);
+      stdinStream.end();
+    } else {
+      reject(new Error(`Failed to get stdin stream from ${toolDisplayName}`));
+    }
+  });
+}

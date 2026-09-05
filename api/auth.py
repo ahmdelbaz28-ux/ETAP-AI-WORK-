@@ -1101,6 +1101,45 @@ async def register(
     )
 
 
+async def _verify_mfa_and_issue_tokens(
+    user: User,
+    mfa_code: str,
+    rate_limit_username: str,
+    db: AsyncSession,
+) -> LoginResponse:
+    try:
+        from security.mfa import TOTPProvider
+    except ImportError:
+        # MFA subsystem unavailable — fail closed (no login).
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="MFA subsystem unavailable",
+        ) from None
+    totp = TOTPProvider()
+    if not totp.verify_code(str(user.id), mfa_code):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid MFA code",
+        )
+    # MFA passed — issue access+refresh
+    user.last_login = datetime.now(UTC)
+    db.add(user)
+    await db.flush()
+    # F-11 fix: reset rate-limit counter on successful login.
+    await _reset_rate_limit(rate_limit_username)
+    access_token = _create_access_token(
+        str(user.id), user.role, str(user.tenant_id) if user.tenant_id else ""
+    )
+    refresh_token = _create_refresh_token(str(user.id))
+    return LoginResponse(
+        access_token=access_token,
+        refresh_token=refresh_token,
+        token_type="bearer",
+        expires_in=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        mfa_required=False,
+    )
+
+
 @router.post(
     "/login",
     response_model=LoginResponse,
@@ -1165,38 +1204,7 @@ async def login(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail=MSG_USER_NOT_FOUND_OR_DEACTIVATED,
             )
-        # Verify the TOTP code
-        try:
-            from security.mfa import TOTPProvider
-        except ImportError:
-            # MFA subsystem unavailable — fail closed (no login).
-            raise HTTPException(
-                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-                detail="MFA subsystem unavailable",
-            ) from None
-        totp = TOTPProvider()
-        if not totp.verify_code(str(user.id), body.mfa_code):
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid MFA code",
-            )
-        # MFA passed — issue access+refresh
-        user.last_login = datetime.now(UTC)
-        db.add(user)
-        await db.flush()
-        # F-11 fix: reset rate-limit counter on successful login.
-        await _reset_rate_limit(body.username)
-        access_token = _create_access_token(
-            str(user.id), user.role, str(user.tenant_id) if user.tenant_id else ""
-        )
-        refresh_token = _create_refresh_token(str(user.id))
-        return LoginResponse(
-            access_token=access_token,
-            refresh_token=refresh_token,
-            token_type="bearer",
-            expires_in=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
-            mfa_required=False,
-        )
+        return await _verify_mfa_and_issue_tokens(user, body.mfa_code, body.username, db)
 
     # Leg 1 (password verification)
     # Accept either username or email as the login identifier. The frontend
@@ -1227,41 +1235,14 @@ async def login(
         # this when the user types the password + current TOTP together),
         # verify it immediately and complete login in one leg.
         if body.mfa_code:
-            try:
-                from security.mfa import TOTPProvider
-            except ImportError:
-                raise HTTPException(
-                    status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-                    detail="MFA subsystem unavailable",
-                ) from None
-            totp = TOTPProvider()
-            if not totp.verify_code(str(user.id), body.mfa_code):
-                raise HTTPException(
-                    status_code=status.HTTP_401_UNAUTHORIZED,
-                    detail="Invalid MFA code",
-                )
-            # MFA passed — issue tokens, reset rate limit
-            user.last_login = datetime.now(UTC)
-            db.add(user)
-            await db.flush()
-            await _reset_rate_limit(body.username)
-            access_token = _create_access_token(
-                str(user.id), user.role, str(user.tenant_id) if user.tenant_id else ""
-            )
-            refresh_token = _create_refresh_token(str(user.id))
-            return LoginResponse(
-                access_token=access_token,
-                refresh_token=refresh_token,
-                token_type="bearer",
-                expires_in=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
-                mfa_required=False,
-            )
+            return await _verify_mfa_and_issue_tokens(user, body.mfa_code, body.username, db)
         # No mfa_code — issue a challenge token and require leg 2.
         return LoginResponse(
             mfa_required=True,
             mfa_challenge_token=_create_mfa_challenge_token(str(user.id)),
             token_type="bearer",
         )
+
 
     # No MFA enabled — issue tokens directly (legacy behaviour).
     user.last_login = datetime.now(UTC)
