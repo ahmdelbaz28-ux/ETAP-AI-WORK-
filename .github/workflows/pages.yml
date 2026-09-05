@@ -30,11 +30,12 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          if gh api repos/${{ github.repository }}/pages --jq '.html_url' 2>/dev/null; then
+          BUILD_TYPE=$(gh api repos/${{ github.repository }}/pages --jq '.build_type' 2>/dev/null || echo "")
+          if [ "$BUILD_TYPE" = "workflow" ]; then
             echo "pages_enabled=true" >> $GITHUB_OUTPUT
           else
             echo "pages_enabled=false" >> $GITHUB_OUTPUT
-            echo "::warning::GitHub Pages is not enabled for this repository. Skipping deployment."
+            echo "::warning::GitHub Pages build_type is not 'workflow' (currently '$BUILD_TYPE', managed via branch deploy). Skipping actions/deploy-pages."
           fi
       - name: Setup Pages
         if: steps.pages-check.outputs.pages_enabled == 'true'
