@@ -42,6 +42,7 @@ dependencies = [
     "bcrypt>=4.0.0",
     "PyJWT>=2.13.0",  # SECURITY: CVE-2026-32597 + CVE-2026-48526 fixed
     "pydantic[email]>=2.0.0",
+    "defusedxml>=0.7.1",  # Safe XML parsing (prevents entity expansion / billion laughs CVEs)
     # SECURITY: upgraded to 0.135.0+ to fix CVE-2026-54283, CVE-2026-48818,
     # CVE-2025-62727 (starlette fixes). 0.135.0 is the first version that allows
     # starlette 1.x (which fixes 6 additional CVEs: 3 HIGH + 3 MED).
