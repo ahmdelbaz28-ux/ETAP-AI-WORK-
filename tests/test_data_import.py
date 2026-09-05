@@ -81,9 +81,7 @@ class TestCimXmlImport:
 
     def test_cim_xml_preview_endpoint(self, import_client: TestClient):
         """POST /api/v1/import/preview with CIM/XML file returns 200 and parsed topology."""
-        files = {
-            "file": ("substation_model.xml", io.BytesIO(CIM_XML_CONTENT), "application/xml")
-        }
+        files = {"file": ("substation_model.xml", io.BytesIO(CIM_XML_CONTENT), "application/xml")}
         res = import_client.post("/api/v1/import/preview", files=files)
         assert res.status_code == 200, f"Preview failed: {res.text}"
         data = res.json()

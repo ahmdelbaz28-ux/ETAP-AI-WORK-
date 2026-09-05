@@ -1243,7 +1243,6 @@ async def login(
             token_type="bearer",
         )
 
-
     # No MFA enabled — issue tokens directly (legacy behaviour).
     user.last_login = datetime.now(UTC)
     db.add(user)
