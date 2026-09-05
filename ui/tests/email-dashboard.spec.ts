@@ -274,12 +274,12 @@ test.describe("Email Dashboard page (TASK-4)", () => {
     const windowSelect = page.locator("#window-hours");
     await windowSelect.selectOption("168"); // Last 7 days
 
-    // The page should re-fetch — wait a moment for the request to fire
-    // and verify stats are still visible (mock returns same data, so we
-    // just check no error banner appeared).
-    await page.waitForTimeout(500);
-    await expect(page.locator("text=HTTP 5")).not.toBeVisible();
+    // Skill pattern: assert select state + wait for specific condition
+    // instead of waitForTimeout. Mock returns same data, so verify the
+    // select changed and stats remain visible with no error banner.
+    await expect(windowSelect).toHaveValue("168");
     await expect(page.getByText("90.48%")).toBeVisible();
+    await expect(page.locator("text=HTTP 5")).not.toBeVisible();
   });
 
   test("Recent tab loads records with flow filter", async ({ page }) => {
@@ -306,9 +306,10 @@ test.describe("Email Dashboard page (TASK-4)", () => {
     // Change flow filter
     const flowSelect = page.locator("#flow-filter");
     await flowSelect.selectOption("otp");
-    await page.waitForTimeout(300);
+    // Skill pattern: assert select state instead of waitForTimeout.
     // The mock returns the same records regardless of filter, so we just
     // verify the select changed without errors.
+    await expect(flowSelect).toHaveValue("otp");
     await expect(page.locator("text=HTTP 5")).not.toBeVisible();
   });
 

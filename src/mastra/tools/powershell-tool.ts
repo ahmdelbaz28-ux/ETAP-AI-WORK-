@@ -1,8 +1,6 @@
 import { createTool } from '@mastra/core/tools';
 import { z } from 'zod';
-import { executeSecureScript } from './_spawn-helpers';
-
-const POWERSHELL_TIMEOUT_MS = 30000; // 30 second timeout
+import { runPowershell } from './secure-execution';
 
 export const run_powershell = createTool({
   id: 'run-powershell',
@@ -12,12 +10,7 @@ export const run_powershell = createTool({
     command: z.string().describe('The PowerShell command to execute (read-only commands only)'),
   }),
   execute: async ({ command }: { command: string }) => {
-    return executeSecureScript({
-      binary: 'python',
-      scriptPath: 'security/secure_powershell_executor.py',
-      inputData: command,
-      timeoutMs: POWERSHELL_TIMEOUT_MS,
-      toolDisplayName: 'secure PowerShell executor',
-    });
+    const result = await runPowershell(command);
+    return result.output;
   },
 });

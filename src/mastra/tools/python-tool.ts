@@ -1,8 +1,6 @@
 import { createTool } from '@mastra/core/tools';
 import { z } from 'zod';
-import { executeSecureScript } from './_spawn-helpers';
-
-const PYTHON_TIMEOUT_MS = 30000; // 30 second timeout
+import { runPython } from './secure-execution';
 
 export const run_python = createTool({
   id: 'run-python',
@@ -12,12 +10,7 @@ export const run_python = createTool({
     code: z.string().describe('The Python code to execute'),
   }),
   execute: async ({ code }: { code: string }) => {
-    return executeSecureScript({
-      binary: 'python',
-      scriptPath: 'security/secure_executor.py',
-      inputData: code,
-      timeoutMs: PYTHON_TIMEOUT_MS,
-      toolDisplayName: 'secure Python executor',
-    });
+    const result = await runPython(code);
+    return result.output;
   },
 });

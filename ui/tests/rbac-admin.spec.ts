@@ -341,8 +341,7 @@ test.describe("RBAC Admin Page", () => {
     // exact match (anchored) to avoid matching the modal heading.
     await page.getByRole("button", { name: /^Delete Role$/i }).click();
 
-    // Wait briefly then poll for the DELETE call.
-    await page.waitForTimeout(500);
+    // Skill pattern: expect.poll already auto-waits — no waitForTimeout needed.
     await expect.poll(() => deletedRoleId, { timeout: 30000 }).toBe("role-viewer");
   });
 

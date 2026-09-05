@@ -21,7 +21,7 @@ test.describe("Login Page — Interactive Elements", () => {
     await expect(langBtn).toBeVisible({ timeout: 30000 });
     await expect(langBtn).toBeEnabled();
     await langBtn.click({ force: true });
-    await page.waitForTimeout(500);
+    // Skill pattern: auto-wait locator instead of waitForTimeout.
     await expect(langBtn).toBeVisible();
   });
 
@@ -29,7 +29,7 @@ test.describe("Login Page — Interactive Elements", () => {
     const forgotBtn = page.getByRole("button", { name: /Forgot password/i });
     await expect(forgotBtn).toBeVisible();
     await forgotBtn.click({ force: true });
-    await page.waitForTimeout(500);
+    // Skill pattern: poll for the async modal instead of arbitrary timeout.
     const forgotEmailInput = page.locator('input[type="email"]:not([id="login-email"])');
     const hasForgotForm = (await forgotEmailInput.count()) > 0;
     if (hasForgotForm) {
