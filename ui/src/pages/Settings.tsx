@@ -2538,6 +2538,19 @@ export default function Settings() {
   const chatFirstUi = useChatFirstUi();
   const { activeTab, setActiveTab } = useTabState("ai");
 
+  // Fallback to "ai" if active tab is restricted behind chat_first_ui but the feature is disabled
+  useEffect(() => {
+    if (
+      !chatFirstUi.enabled &&
+      (activeTab === "agentsTab" ||
+        activeTab === "skillsPromptsTab" ||
+        activeTab === "mcp" ||
+        activeTab === "importExport")
+    ) {
+      setActiveTab("ai");
+    }
+  }, [chatFirstUi.enabled, activeTab, setActiveTab]);
+
   const handleSave = async () => {
     setSaving(true);
     try {
@@ -2681,8 +2694,12 @@ export default function Settings() {
           transition={{ duration: 0.2 }}
         >
           {(() => {
-            if (activeTab === "agentsTab") return <AgentsTab notify={notify} />;
-            if (activeTab === "skillsPromptsTab") return <SkillsPromptsTab notify={notify} />;
+            if (activeTab === "agentsTab") {
+              return chatFirstUi.enabled ? <AgentsTab notify={notify} /> : null;
+            }
+            if (activeTab === "skillsPromptsTab") {
+              return chatFirstUi.enabled ? <SkillsPromptsTab notify={notify} /> : null;
+            }
             if (activeTab === "ai")
               return (
                 <AISettingsPanelInline
@@ -2694,8 +2711,12 @@ export default function Settings() {
             if (activeTab === "providers") return <ProviderKeysPanel notify={notify} />;
             if (activeTab === "agentsSkillsPrompts")
               return <AgentsSkillsPromptsPanel notify={notify} />;
-            if (activeTab === "mcp") return <McpServersTab />;
-            if (activeTab === "importExport") return <ImportExportTab notify={notify} />;
+            if (activeTab === "mcp") {
+              return chatFirstUi.enabled ? <McpServersTab /> : null;
+            }
+            if (activeTab === "importExport") {
+              return chatFirstUi.enabled ? <ImportExportTab notify={notify} /> : null;
+            }
             if (activeTab === "external")
               return (
                 <ExternalServicesPanel
