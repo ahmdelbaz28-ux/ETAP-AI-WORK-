@@ -402,6 +402,28 @@ export interface TestResult {
   suggestion?: string;
 }
 
+async function testCustomOpenAi(settings: Record<string, any>): Promise<TestResult> {
+  const apiKey = settings.CUSTOM_OPENAI_API_KEY || "";
+  const baseUrl = settings.CUSTOM_OPENAI_BASE_URL || "";
+  const modelId = settings.CUSTOM_OPENAI_MODEL_ID || "";
+
+  if (!apiKey)
+    return { success: false, message: "API key is required", errorCode: "MISSING_KEY" };
+  if (!baseUrl)
+    return { success: false, message: "Endpoint URL is required", errorCode: "MISSING_URL" };
+  if (!modelId)
+    return { success: false, message: "Model ID is required", errorCode: "MISSING_MODEL" };
+
+  return await performChatTest({
+    id: "custom_openai",
+    name: "Custom (OpenAI-compatible)",
+    apiKey,
+    baseUrl: baseUrl.replace(/\/$/, ""),
+    model: modelId,
+    apiType: "openai",
+  });
+}
+
 export async function testProviderConnection(providerId: string): Promise<TestResult> {
   if (!isElectronRuntime() && (await isServerChatStreamEnabled())) {
     try {
@@ -423,25 +445,7 @@ export async function testProviderConnection(providerId: string): Promise<TestRe
 
   // Handle custom OpenAI-compatible provider
   if (providerId === "custom_openai") {
-    const apiKey = settings.CUSTOM_OPENAI_API_KEY || "";
-    const baseUrl = settings.CUSTOM_OPENAI_BASE_URL || "";
-    const modelId = settings.CUSTOM_OPENAI_MODEL_ID || "";
-
-    if (!apiKey)
-      return { success: false, message: "API key is required", errorCode: "MISSING_KEY" };
-    if (!baseUrl)
-      return { success: false, message: "Endpoint URL is required", errorCode: "MISSING_URL" };
-    if (!modelId)
-      return { success: false, message: "Model ID is required", errorCode: "MISSING_MODEL" };
-
-    return await performChatTest({
-      id: "custom_openai",
-      name: "Custom (OpenAI-compatible)",
-      apiKey,
-      baseUrl: baseUrl.replace(/\/$/, ""),
-      model: modelId,
-      apiType: "openai",
-    });
+    return await testCustomOpenAi(settings);
   }
 
   if (!providerDef) {
@@ -1014,8 +1018,6 @@ export async function isServerChatStreamEnabled(): Promise<boolean> {
   return _serverChatFlagCache;
 }
 
-let _chatSessionId: string | null = null;
-
 function generateRandomHex(): string {
   if (typeof crypto !== "undefined") {
     if (typeof crypto.randomUUID === "function") {
@@ -1032,10 +1034,13 @@ function generateRandomHex(): string {
 
 /** Stable chat session id per page load (for correlation on the server). */
 export function getChatSessionId(): string {
-  if (!_chatSessionId) {
-    _chatSessionId = `sess-web-${Date.now().toString(36)}-${generateRandomHex().slice(0, 8)}`;
+  const g = (typeof window !== "undefined" ? window : globalThis) as unknown as {
+    __chatSessionId?: string;
+  };
+  if (!g.__chatSessionId) {
+    g.__chatSessionId = `sess-web-${Date.now().toString(36)}-${generateRandomHex().slice(0, 8)}`;
   }
-  return _chatSessionId;
+  return g.__chatSessionId;
 }
 
 interface ServerChatEventData {

@@ -141,6 +141,8 @@ async def readyz() -> Dict[str, object]:
 
 @router.head("/health")
 @router.get("/health")
+@router.head("/api/health")
+@router.get("/api/health")
 async def health_check(request: Request) -> HealthResponse:
     return HealthResponse(
         status="healthy",

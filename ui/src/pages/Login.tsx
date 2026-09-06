@@ -7,9 +7,11 @@ import {
   Database,
   Eye,
   EyeOff,
+  Globe,
   Lock,
   Mail,
   Server,
+  Shield,
   ShieldCheck,
   Terminal,
 } from "lucide-react";
@@ -238,10 +240,27 @@ export default function Login() {
       className="min-h-screen flex bg-[#070b14] relative overflow-hidden"
       dir={isRtl ? "rtl" : "ltr"}
     >
+      {/* Top Controls Overlay (z-50 pointer-events-auto ensures direct pointer reachability above side panels) */}
+      <div
+        className={`absolute top-6 ${isRtl ? "left-6" : "right-6"} z-50 flex items-center gap-3 pointer-events-auto`}
+      >
+        <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-slate-800/80 bg-slate-900/60 text-slate-400 text-[10px] font-mono">
+          <Shield className="w-3.5 h-3.5 text-blue-500" />
+          <span>CAD SIM V2.1</span>
+        </div>
+        <button
+          type="button"
+          onClick={toggleLanguage}
+          className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-800 bg-slate-900/80 hover:bg-slate-800 text-slate-300 hover:text-white transition-all text-xs font-semibold cursor-pointer"
+        >
+          <Globe className="w-3.5 h-3.5" />
+          <span>{isRtl ? "English" : "العربية"}</span>
+        </button>
+      </div>
+
       {/* Interactive Background Schematic Simulation */}
       <LoginBackground
         isRtl={isRtl}
-        onLanguageToggle={toggleLanguage}
         isBreakerOpen={isBreakerOpen}
         setIsBreakerOpen={setIsBreakerOpen}
         onTerminalLog={appendLog}
@@ -367,9 +386,9 @@ export default function Login() {
               </span>
             </div>
             <div className="w-full bg-slate-950/70 border border-slate-800/80 rounded-xl p-4 font-mono text-[10px] leading-relaxed text-slate-300 space-y-1 h-[140px] overflow-y-auto backdrop-blur-md">
-              {terminalLogs.map((log) => (
+              {terminalLogs.map((log, idx) => (
                 <div
-                  key={`log-${log.substring(0, 40).replace(/\s/g, "_")}`}
+                  key={`term-${idx}-${log.substring(0, 30).replace(/\s/g, "_")}`}
                   className={getTerminalLogColor(log)}
                 >
                   {log}

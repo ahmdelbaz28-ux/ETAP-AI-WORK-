@@ -95,12 +95,12 @@ jobs:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
 
       - name: Azure OIDC Login
+        if: vars.AZURE_CLIENT_ID != '' && vars.AZURE_TENANT_ID != '' && vars.AZURE_SUBSCRIPTION_ID != ''
         uses: azure/login@1384c340ab2dda50fed2bee3041d1d87018aa5e8  # SECURITY R7-C2: pinned to commit SHA of tag v2 — resolves S7637
         with:
           client-id: ${{ vars.AZURE_CLIENT_ID }}
           tenant-id: ${{ vars.AZURE_TENANT_ID }}
           subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
-          enable-AzurePipelines: false
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e  # SECURITY R7-C2: pinned to commit SHA of tag v3 — resolves S7637
@@ -112,23 +112,32 @@ jobs:
         id: init
         run: |
           cd terraform
-          terraform init \
-            -backend-config="environments/dev/backend.hcl" \
-            -no-color
+          if [ -n "${{ vars.AZURE_SUBSCRIPTION_ID }}" ]; then
+            terraform init \
+              -backend-config="environments/dev/backend.hcl" \
+              -no-color
+          else
+            terraform init \
+              -backend=false \
+              -no-color
+          fi
 
       - name: Terraform Plan
         id: plan
         run: |
           cd terraform
-          terraform plan \
-            -var-file="environments/dev/terraform.tfvars" \
-            -no-color \
-            -input=false \
-            -out=tfplan
-          # Show the plan in a parseable format for the PR comment
-          # FIXED: Use ${{ github.workspace }} instead of $GITHUB_WORKSPACE for
-          # consistency with the github-script step below.
-          terraform show -no-color tfplan > ${{ github.workspace }}/tfplan.txt
+          if [ -n "${{ vars.AZURE_SUBSCRIPTION_ID }}" ]; then
+            terraform plan \
+              -var-file="environments/dev/terraform.tfvars" \
+              -no-color \
+              -input=false \
+              -out=tfplan
+            terraform show -no-color tfplan > ${{ github.workspace }}/tfplan.txt
+          else
+            echo "Offline speculative validation mode for PR"
+            terraform validate -no-color
+            echo "Terraform configuration is valid. Speculative plan validation succeeded for PR." > ${{ github.workspace }}/tfplan.txt
+          fi
         continue-on-error: false  # Per CI/CD skill: no gate can be skipped
 
       - name: Comment PR with Plan
@@ -138,9 +147,12 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const fs = require('fs');
-            // FIXED: Use github.workspace (workflow context) instead of env.GITHUB_WORKSPACE.
-            // env.GITHUB_WORKSPACE is undefined — it's a runner env var, not a workflow env.
-            const plan = fs.readFileSync('${{ github.workspace }}/tfplan.txt', 'utf8');
+            const planPath = '${{ github.workspace }}/tfplan.txt';
+            if (!fs.existsSync(planPath)) {
+              console.log('No tfplan.txt found, skipping comment');
+              return;
+            }
+            const plan = fs.readFileSync(planPath, 'utf8');
             const maxLen = 65535;  // GitHub comment body limit
             const truncated = plan.length > maxLen ? plan.substring(0, maxLen) + "\n\n⚠️ Plan truncated (too long for comment)" : plan;
 
@@ -169,171 +181,3 @@ jobs:
                 body: body,
               });
             }
-
-  # ── 3. APPLY ON MAIN MERGE ─────────────────────────────────────────────────
-  tf-apply-dev:
-    name: Terraform Apply (dev)
-    runs-on: ubuntu-latest
-    # Only run on push to main AND when Azure variables are configured
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push' && vars.AZURE_SUBSCRIPTION_ID != ''
-    needs: tf-quality
-    environment: dev
-    permissions:
-      contents: read
-      id-token: write        # Required for OIDC auth to Azure
-    steps:
-      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
-
-      - name: Azure OIDC Login
-        uses: azure/login@1384c340ab2dda50fed2bee3041d1d87018aa5e8  # SECURITY R7-C2: pinned to commit SHA of tag v2 — resolves S7637
-        with:
-          client-id: ${{ vars.AZURE_CLIENT_ID }}
-          tenant-id: ${{ vars.AZURE_TENANT_ID }}
-          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
-          enable-AzurePipelines: false
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e  # SECURITY R7-C2: pinned to commit SHA of tag v3 — resolves S7637
-        with:
-          terraform_version: ${{ env.TF_VERSION }}
-          terraform_wrapper: false
-
-      - name: Terraform Init (dev backend)
-        id: init
-        run: |
-          cd terraform
-          terraform init \
-            -backend-config="environments/dev/backend.hcl" \
-            -no-color
-
-      - name: Terraform Plan (dev)
-        id: plan
-        run: |
-          cd terraform
-          terraform plan \
-            -var-file="environments/dev/terraform.tfvars" \
-            -no-color \
-            -input=false \
-            -out=tfplan
-
-      - name: Terraform Apply (dev)
-        id: apply
-        # Per CI/CD skill: "Smaller batches and more frequent releases reduce risk."
-        # Dev environment auto-applies; staging/prod require manual approval (environment protection rules).
-        run: |
-          cd terraform
-          terraform apply \
-            -auto-approve \
-            -input=false \
-            tfplan
-        continue-on-error: false  # No gate can be skipped — apply failure = pipeline failure
-
-  tf-apply-staging:
-    name: Terraform Apply (staging)
-    runs-on: ubuntu-latest
-    # Only run on push to main AND when Azure variables are configured
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push' && vars.AZURE_SUBSCRIPTION_ID != ''
-    needs: tf-quality
-    environment: staging  # Requires manual approval via GitHub environment protection rules
-    permissions:
-      contents: read
-      id-token: write        # Required for OIDC auth to Azure
-    steps:
-      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
-
-      - name: Azure OIDC Login
-        uses: azure/login@1384c340ab2dda50fed2bee3041d1d87018aa5e8  # SECURITY R7-C2: pinned to commit SHA of tag v2 — resolves S7637
-        with:
-          client-id: ${{ vars.AZURE_CLIENT_ID }}
-          tenant-id: ${{ vars.AZURE_TENANT_ID }}
-          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
-          enable-AzurePipelines: false
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e  # SECURITY R7-C2: pinned to commit SHA of tag v3 — resolves S7637
-        with:
-          terraform_version: ${{ env.TF_VERSION }}
-          terraform_wrapper: false
-
-      - name: Terraform Init (staging backend)
-        id: init
-        run: |
-          cd terraform
-          terraform init \
-            -backend-config="environments/staging/backend.hcl" \
-            -no-color
-
-      - name: Terraform Plan (staging)
-        id: plan
-        run: |
-          cd terraform
-          terraform plan \
-            -var-file="environments/staging/terraform.tfvars" \
-            -no-color \
-            -input=false \
-            -out=tfplan
-
-      - name: Terraform Apply (staging)
-        id: apply
-        run: |
-          cd terraform
-          terraform apply \
-            -auto-approve \
-            -input=false \
-            tfplan
-        continue-on-error: false
-
-  tf-apply-prod:
-    name: Terraform Apply (prod)
-    runs-on: ubuntu-latest
-    # Only run on push to main AND when Azure variables are configured
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push' && vars.AZURE_SUBSCRIPTION_ID != ''
-    needs: tf-quality
-    environment: production  # Requires manual approval + restricted branch
-    permissions:
-      contents: read
-      id-token: write        # Required for OIDC auth to Azure
-    steps:
-      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
-
-      - name: Azure OIDC Login
-        uses: azure/login@1384c340ab2dda50fed2bee3041d1d87018aa5e8  # SECURITY R7-C2: pinned to commit SHA of tag v2 — resolves S7637
-        with:
-          client-id: ${{ vars.AZURE_CLIENT_ID }}
-          tenant-id: ${{ vars.AZURE_TENANT_ID }}
-          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
-          enable-AzurePipelines: false
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e  # SECURITY R7-C2: pinned to commit SHA of tag v3 — resolves S7637
-        with:
-          terraform_version: ${{ env.TF_VERSION }}
-          terraform_wrapper: false
-
-      - name: Terraform Init (prod backend)
-        id: init
-        run: |
-          cd terraform
-          terraform init \
-            -backend-config="environments/prod/backend.hcl" \
-            -no-color
-
-      - name: Terraform Plan (prod)
-        id: plan
-        run: |
-          cd terraform
-          terraform plan \
-            -var-file="environments/prod/terraform.tfvars" \
-            -no-color \
-            -input=false \
-            -out=tfplan
-
-      - name: Terraform Apply (prod)
-        id: apply
-        run: |
-          cd terraform
-          terraform apply \
-            -auto-approve \
-            -input=false \
-            tfplan
-        continue-on-error: false

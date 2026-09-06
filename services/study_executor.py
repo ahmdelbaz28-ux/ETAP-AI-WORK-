@@ -96,7 +96,6 @@ class StudyExecutor:
         errors: list[str] = []
         data: dict[str, Any] = {}
         provider_name = "native"
-        cache_hit = False
 
         self._validate_request(payload)
 
@@ -107,7 +106,7 @@ class StudyExecutor:
             )
 
         _increment_counter("request")
-        logger.info(  # NOSONAR: user input is sanitized upstream
+        logger.info(  # NOSONAR
             "study_run_start study_type=%s use_etap=%s task_id=%s",
             payload.study_type,
             payload.use_etap,
@@ -120,24 +119,8 @@ class StudyExecutor:
                 provider_name = "etap"
                 data, warnings, errors = await self._run_etap_study(payload)
             else:
-                cache = self._cache or self._init_cache()
-                data, cache_hit = await self._lookup_cache(cache, payload, trace_id)
-
-                if not cache_hit:
-                    system = None
-                    if payload.system:
-                        try:
-                            system = self._build_system_from_spec(payload.system)
-                        except ValueError as ve:
-                            raise ValueError(f"System spec error: {ve}") from ve
-
-                    data = self._dispatch(
-                        payload.study_type,
-                        system,
-                        payload.parameters,
-                    )
-                    provider_name = "native"
-                    await self._store_cache_result(cache, payload, data, trace_id)
+                provider_name = "native"
+                data = await self._run_native_study(payload, trace_id)
 
             _increment_counter("success")
             status = "success"
@@ -157,23 +140,8 @@ class StudyExecutor:
 
         data = self._to_jsonable(data)
 
-        if status == "success" and is_feature_enabled("AI_FAILURE_MODE_SCAN"):
-            violations = self._scan_ai_failure_modes(data, payload.study_type)
-            if violations:
-                must_fix = [v for v in violations if v.get("severity") == "must_fix"]
-                if must_fix:
-                    errors.insert(
-                        0,
-                        f"AI failure mode scan blocked result: {len(must_fix)} MUST_FIX "
-                        f"violations detected (F-12). See ai_failure_mode_violations in data.",
-                    )
-                    status = "failed"
-                data["ai_failure_mode_violations"] = violations
-
         if status == "success":
-            risk_info = compute_risk(payload.study_type, data)
-            data["risk_score"] = risk_info["risk_score"]
-            data["risk_violations"] = risk_info["risk_violations"]
+            status = self._apply_post_execution_checks(data, payload.study_type, errors)
 
         elapsed_sec = time.perf_counter() - start
         _add_execution_time(elapsed_sec)
@@ -198,6 +166,53 @@ class StudyExecutor:
             study_type=payload.study_type,
             provider=provider_name,
         )
+
+    async def _run_native_study(
+        self, payload: StudyRequest, trace_id: str
+    ) -> dict[str, Any]:
+        cache = self._cache or self._init_cache()
+        data, cache_hit = await self._lookup_cache(cache, payload, trace_id)
+        if cache_hit:
+            return data
+
+        system = None
+        if payload.system:
+            try:
+                system = self._build_system_from_spec(payload.system)
+            except ValueError as ve:
+                raise ValueError(f"System spec error: {ve}") from ve
+
+        data = self._dispatch(
+            payload.study_type,
+            system,
+            payload.parameters,
+        )
+        await self._store_cache_result(cache, payload, data, trace_id)
+        return data
+
+    def _apply_post_execution_checks(
+        self, data: dict[str, Any], study_type: str, errors: list[str]
+    ) -> str:
+        status = "success"
+        if is_feature_enabled("AI_FAILURE_MODE_SCAN"):
+            violations = self._scan_ai_failure_modes(data, study_type)
+            if violations:
+                must_fix = [v for v in violations if v.get("severity") == "must_fix"]
+                if must_fix:
+                    errors.insert(
+                        0,
+                        f"AI failure mode scan blocked result: {len(must_fix)} MUST_FIX "
+                        f"violations detected (F-12). See ai_failure_mode_violations in data.",
+                    )
+                    status = "failed"
+                data["ai_failure_mode_violations"] = violations
+
+        if status == "success":
+            risk_info = compute_risk(study_type, data)
+            data["risk_score"] = risk_info["risk_score"]
+            data["risk_violations"] = risk_info["risk_violations"]
+
+        return status
 
     # ------------------------------------------------------------------
     # Validation
@@ -227,16 +242,10 @@ class StudyExecutor:
     # System building (moved from api/studies.py)
     # ------------------------------------------------------------------
 
-    def _build_system_from_spec(self, spec: Any) -> System:
-        """Build a Python System object from a SystemSpec, dict, or System instance."""
-        if isinstance(spec, System):
-            return spec
-        if isinstance(spec, dict):
-            spec = SystemSpec.model_validate(spec)
-        system = System(base_mva=spec.base_mva)
+    @staticmethod
+    def _add_spec_buses(system: System, buses: list[Any]) -> dict[int, Bus]:
         bus_map: dict[int, Bus] = {}
-
-        for b in spec.buses:
+        for b in buses:
             bus = Bus(
                 bus_id=b.bus_id,
                 voltage_magnitude=b.voltage_magnitude,
@@ -250,8 +259,11 @@ class StudyExecutor:
             )
             system.add_bus(bus)
             bus_map[b.bus_id] = bus
+        return bus_map
 
-        for l in spec.lines:
+    @staticmethod
+    def _add_spec_lines(system: System, lines: list[Any], bus_map: dict[int, Bus]) -> None:
+        for l in lines:
             if l.from_bus_id not in bus_map or l.to_bus_id not in bus_map:
                 raise ValueError(f"Line {l.line_id} references unknown bus")
             line = Line(
@@ -265,7 +277,9 @@ class StudyExecutor:
             )
             system.add_line(line)
 
-        for t in spec.transformers:
+    @staticmethod
+    def _add_spec_transformers(system: System, transformers: list[Any], bus_map: dict[int, Bus]) -> None:
+        for t in transformers:
             if t.from_bus_id not in bus_map or t.to_bus_id not in bus_map:
                 raise ValueError(f"Transformer {t.transformer_id} references unknown bus")
             xf = Transformer(
@@ -278,9 +292,16 @@ class StudyExecutor:
             )
             system.add_transformer(xf)
 
-        for g in spec.generators:
+    @staticmethod
+    def _add_spec_generators(system: System, generators: list[Any], bus_map: dict[int, Bus]) -> None:
+        for g in generators:
             if g.bus_id not in bus_map:
                 raise ValueError(f"Generator {g.generator_id} references unknown bus")
+            r1, x1 = g.r1, g.x1
+            r2 = g.r2 if g.r2 is not None else r1
+            x2 = g.x2 if g.x2 is not None else x1
+            r0 = g.r0 if g.r0 is not None else r1
+            x0 = g.x0 if g.x0 is not None else x1
             gen = Generator(
                 generator_id=g.generator_id,
                 bus=bus_map[g.bus_id],
@@ -290,30 +311,38 @@ class StudyExecutor:
                     "0": complex(0, 0),
                 },
                 impedance={
-                    "1": complex(g.r1, g.x1),
-                    "2": complex(
-                        g.r2 if g.r2 is not None else g.r1,
-                        g.x2 if g.x2 is not None else g.x1,
-                    ),
-                    "0": complex(
-                        g.r0 if g.r0 is not None else g.r1,
-                        g.x0 if g.x0 is not None else g.x1,
-                    ),
+                    "1": complex(r1, x1),
+                    "2": complex(r2, x2),
+                    "0": complex(r0, x0),
                 },
             )
             system.add_generator(gen)
 
-        for ld in spec.loads:
+    @staticmethod
+    def _add_spec_loads(system: System, loads: list[Any], bus_map: dict[int, Bus], base_mva: float) -> None:
+        for ld in loads:
             if ld.bus_id not in bus_map:
                 raise ValueError(f"Load {ld.load_id} references unknown bus")
             load = Load(
                 load_id=ld.load_id,
                 bus=bus_map[ld.bus_id],
-                load_power=complex(ld.p_mw / spec.base_mva, ld.q_mvar / spec.base_mva),
+                load_power=complex(ld.p_mw / base_mva, ld.q_mvar / base_mva),
                 constant_impedance=ld.constant_impedance,
             )
             system.add_load(load)
 
+    def _build_system_from_spec(self, spec: Any) -> System:
+        """Build a Python System object from a SystemSpec, dict, or System instance."""
+        if isinstance(spec, System):
+            return spec
+        if isinstance(spec, dict):
+            spec = SystemSpec.model_validate(spec)
+        system = System(base_mva=spec.base_mva)
+        bus_map = self._add_spec_buses(system, spec.buses)
+        self._add_spec_lines(system, spec.lines, bus_map)
+        self._add_spec_transformers(system, spec.transformers, bus_map)
+        self._add_spec_generators(system, spec.generators, bus_map)
+        self._add_spec_loads(system, spec.loads, bus_map, spec.base_mva)
         return system
 
     # ------------------------------------------------------------------
@@ -560,31 +589,35 @@ class StudyExecutor:
     # Serialization
     # ------------------------------------------------------------------
 
-    def _to_jsonable(self, obj: Any) -> Any:
-        """Recursively convert numpy types and other non-JSON-native values."""
+    def _convert_numpy_value(self, obj: Any) -> tuple[bool, Any]:
         import numpy as np
 
+        if isinstance(obj, np.ndarray):
+            return True, [self._to_jsonable(x) for x in obj.tolist()]
+        if isinstance(obj, (np.integer,)):
+            return True, int(obj.item())
+        if isinstance(obj, (np.floating,)):
+            v = float(obj.item())
+            return True, None if (math.isnan(v) or math.isinf(v)) else v
+        if isinstance(obj, (np.bool_,)):
+            return True, bool(obj.item())
+        if isinstance(obj, np.complexfloating):
+            return True, {"real": self._to_jsonable(obj.real), "imag": self._to_jsonable(obj.imag)}
+        return False, None
+
+    def _to_jsonable(self, obj: Any) -> Any:
+        """Recursively convert numpy types and other non-JSON-native values."""
         if obj is None or isinstance(obj, (str, bool)):
             return obj
         if isinstance(obj, (int, float)):
-            if isinstance(obj, float) and (math.isnan(obj) or math.isinf(obj)):
-                return None
-            return obj
+            return None if (isinstance(obj, float) and (math.isnan(obj) or math.isinf(obj))) else obj
         if isinstance(obj, complex):
             return {"re": self._to_jsonable(obj.real), "im": self._to_jsonable(obj.imag)}
-        if isinstance(obj, np.ndarray):
-            return [self._to_jsonable(x) for x in obj.tolist()]
-        if isinstance(obj, (np.integer,)):
-            return int(obj.item())
-        if isinstance(obj, (np.floating,)):
-            v = float(obj.item())
-            if math.isnan(v) or math.isinf(v):
-                return None
-            return v
-        if isinstance(obj, (np.bool_,)):
-            return bool(obj.item())
-        if isinstance(obj, np.complexfloating):
-            return {"real": self._to_jsonable(obj.real), "imag": self._to_jsonable(obj.imag)}
+
+        converted, val = self._convert_numpy_value(obj)
+        if converted:
+            return val
+
         if isinstance(obj, dict):
             return {str(k): self._to_jsonable(v) for k, v in obj.items()}
         if isinstance(obj, (list, tuple, set)):

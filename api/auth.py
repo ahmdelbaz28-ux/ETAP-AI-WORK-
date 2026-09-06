@@ -1145,6 +1145,11 @@ async def _verify_mfa_and_issue_tokens(
     response_model=LoginResponse,
     summary="Authenticate and receive JWT tokens",
 )
+@router.post(
+    "/token",
+    response_model=LoginResponse,
+    summary="Authenticate and receive JWT tokens (token alias)",
+)
 async def login(
     request: Request,
     body: LoginRequest,

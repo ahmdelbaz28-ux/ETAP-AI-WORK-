@@ -100,12 +100,15 @@ class TestCodeIndexer:
         assert mock_indexer.hash_code(code1) == mock_indexer.hash_code(code2)
         assert mock_indexer.hash_code(code1) != mock_indexer.hash_code(code3)
 
-    @pytest.mark.skipif(not CHROMA_AVAILABLE, reason="ChromaDB not installed")
     def test_chroma_collection_creation(self, mock_indexer):
-        """Test that ChromaDB client and collection are initialized."""
-        assert mock_indexer.client is not None
-        assert mock_indexer.collection is not None
-        assert mock_indexer.collection.name == "code_context"
+        """Test that ChromaDB client and collection are initialized or handled gracefully."""
+        if CHROMA_AVAILABLE:
+            assert mock_indexer.client is not None
+            assert mock_indexer.collection is not None
+            assert mock_indexer.collection.name == "code_context"
+        else:
+            assert mock_indexer.client is None
+            assert mock_indexer.collection is None
 
     @patch("ai_context_engine.indexer.CodeExtractor.extract")
     def test_index_repo_walks_directories_and_upserts(self, mock_extract, mock_indexer, tmp_path):

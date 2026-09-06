@@ -173,10 +173,21 @@ if _HAS_STARLETTE:
                 await self.app(scope, receive, send)
                 return
 
+            # Filter out standard browser navigation / identity headers from RASP inspection
+            # to prevent false-positive matches on legitimate local dev or cross-origin URLs.
+            excluded_rasp_headers = {
+                "origin", "referer", "host", "cookie", "authorization", "user-agent",
+                "sec-ch-ua", "sec-ch-ua-mobile", "sec-ch-ua-platform", "sec-fetch-site",
+                "sec-fetch-mode", "sec-fetch-dest",
+            }
+            safe_headers = {
+                k: v for k, v in request.headers.items()
+                if k.lower() not in excluded_rasp_headers
+            }
             inspect_data: dict[str, Any] = {
                 "path": path,
                 "query": dict(request.query_params),
-                "headers": dict(request.headers.items()),
+                "headers": safe_headers,
             }
 
             downstream_receive = receive

@@ -31,12 +31,12 @@ webhook is working, downgrade the `trigger-vercel.yml` workflow to
 ### Step-by-Step Procedure
 
 > ⚠️ **Prerequisites**: You need admin access to both the GitHub repository
-> (`ahmdelbaz28-ux/revit`) and the Vercel project (`revit`).
+> (`ahmdelbaz28-ux/ETAP-AI-WORK-`) and the Vercel project (`etap-ai`).
 
 #### Step 1: Disconnect the broken integration
 
 1. Go to https://vercel.com/dashboard
-2. Select the **`ahmdelbaz28-ux/revit`** project
+2. Select the **`ahmdelbaz28-ux/ETAP-AI-WORK-`** project
 3. Click **Settings** → **Git**
 4. Find the **GitHub** integration section
 5. Click **Disconnect** (or **Remove** if already disconnected)
@@ -47,7 +47,7 @@ webhook is working, downgrade the `trigger-vercel.yml` workflow to
 1. In the same **Settings → Git** page, click **Connect Git Repository**
 2. Select **GitHub** as the provider
 3. Authorize Vercel to access your GitHub account (if not already done)
-4. Select the **`ahmdelbaz28-ux/revit`** repository
+4. Select the **`ahmdelbaz28-ux/ETAP-AI-WORK-`** repository
 5. Configure the integration:
    - **Production Branch**: `main`
    - **Preview Branches**: `feat/*`, `fix/*`, `hotfix/*`
@@ -57,7 +57,7 @@ webhook is working, downgrade the `trigger-vercel.yml` workflow to
 
 #### Step 3: Verify the webhook
 
-1. Go to https://github.com/ahmdelbaz28-ux/revit/settings/hooks
+1. Go to https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-/settings/hooks
 2. You should see a Vercel webhook (URL like `https://api.vercel.com/v1/integrations/...`)
 3. Click **Recent Deliveries** — should show no errors
 4. Make a trivial commit to `main` (e.g., update a comment)
@@ -104,7 +104,7 @@ workflow only runs when manually triggered from the Actions tab.
 | Symptom | Likely Cause | Fix |
 |---------|-------------|-----|
 | Webhook still 404 after reconnect | Vercel project ID mismatch | Verify `prj_Y6Qr828DXS83tWF1LntFakyofMrf` matches the project in Vercel dashboard |
-| No webhook appears in GitHub hooks | Vercel app not authorized for the org | Go to GitHub → Settings → Applications → Vercel → Configure → grant access to `ahmdelbaz28-ux/revit` |
+| No webhook appears in GitHub hooks | Vercel app not authorized for the org | Go to GitHub → Settings → Applications → Vercel → Configure → grant access to `ahmdelbaz28-ux/ETAP-AI-WORK-` |
 | Webhook delivers but no deploy | Branch filter mismatch | Confirm Production Branch is `main` (not `master`) |
 | Deploys fail with "no framework detected" | `vercel.json` missing or framework misconfigured | Verify `vercel.json` has `"framework": "vite"` |
 
@@ -122,7 +122,7 @@ file-level suppression.
 ### Solution
 
 Run `sonar-scanner` against the SonarCloud project
-(`ahmdelbaz28-ux_revit`) and triage any new findings.
+(`ahmdelbaz28-ux_ETAP-AI-WORK-`) and triage any new findings.
 
 ### Prerequisites
 
@@ -133,7 +133,7 @@ Run `sonar-scanner` against the SonarCloud project
    - **Linux/macOS**: `brew install sonar-scanner` (macOS) or download from
      https://docs.sonarsource.com/sonarqube/latest/analyzing-source-code/scanners/sonarscanner/
    - **Docker**: `docker run --rm -v "$PWD:/usr/src" sonarsource/sonar-scanner-cli`
-3. **Project key**: `ahmdelbaz28-ux_revit` (from `sonar-project.properties`)
+3. **Project key**: `ahmdelbaz28-ux_ETAP-AI-WORK-` (from `sonar-project.properties`)
 4. **Organization**: `ahmdelbaz28-ux` (from `sonar-project.properties`)
 
 ### Step-by-Step Procedure
@@ -151,11 +151,11 @@ export SONAR_TOKEN="your_sonarcloud_token_here"
 #### Step 2: Run the scanner
 
 ```bash
-cd /home/z/my-project/work/revit
+cd /home/z/my-project/work/ETAP-AI-WORK-
 
 # Option A: Local sonar-scanner CLI
 sonar-scanner \
-  -Dsonar.projectKey=ahmdelbaz28-ux_revit \
+  -Dsonar.projectKey=ahmdelbaz28-ux_ETAP-AI-WORK- \
   -Dsonar.organization=ahmdelbaz28-ux \
   -Dsonar.sources=. \
   -Dsonar.host.url=https://sonarcloud.io \
@@ -164,7 +164,7 @@ sonar-scanner \
 # Option B: Docker (no local install needed)
 docker run --rm \
   -v "$PWD:/usr/src" \
-  -e SONAR_SCANNER_OPTS="-Dsonar.projectKey=ahmdelbaz28-ux_revit" \
+  -e SONAR_SCANNER_OPTS="-Dsonar.projectKey=ahmdelbaz28-ux_ETAP-AI-WORK-" \
   sonarsource/sonar-scanner-cli \
   -Dsonar.organization=ahmdelbaz28-ux \
   -Dsonar.sources=. \
@@ -176,11 +176,11 @@ docker run --rm \
 
 The scan takes 5-15 minutes depending on codebase size and SonarCloud
 queue. Progress is visible at:
-https://sonarcloud.io/project/activity?id=ahmdelbaz28-ux_revit
+https://sonarcloud.io/project/activity?id=ahmdelbaz28-ux_ETAP-AI-WORK-
 
 #### Step 4: Review findings
 
-1. Go to https://sonarcloud.io/project/issues?id=ahmdelbaz28-ux_revit
+1. Go to https://sonarcloud.io/project/issues?id=ahmdelbaz28-ux_ETAP-AI-WORK-
 2. Filter by:
    - **Status**: Open
    - **Severity**: Blocker, Critical, Major (skip Minor/Info for first pass)
@@ -193,7 +193,7 @@ https://sonarcloud.io/project/activity?id=ahmdelbaz28-ux_revit
 
 #### Step 5: Compare before/after metrics
 
-1. Go to https://sonarcloud.io/project/metrics?id=ahmdelbaz28-ux_revit
+1. Go to https://sonarcloud.io/project/metrics?id=ahmdelbaz28-ux_ETAP-AI-WORK-
 2. Compare these metrics before and after the NOSONAR removal:
    - **Bugs**: should NOT increase (if it does, we uncovered real bugs)
    - **Vulnerabilities**: should NOT increase
@@ -300,7 +300,7 @@ Compile the following for the AHJ:
 
 2. **Sample ProofCertificate** (generate one for a test room):
    ```bash
-   cd /home/z/my-project/work/revit
+   cd /home/z/my-project/work/ETAP-AI-WORK-
    python -c "
    from etap.core.spatial_engine.proof_certificate import ProofCertificateGenerator
    # Generate a sample certificate for a 10×10 m room

@@ -26,10 +26,15 @@ function resolveApiBaseUrl(): string {
   const env = (import.meta as unknown as { env?: Record<string, string> }).env;
   if (env?.VITE_API_URL) return env.VITE_API_URL;
 
-  // 2. On the HF Space, the UI is served from the same origin as the API.
-  //    Detect this by checking if we're on *.hf.space.
+  // 2. On HF Space or local dev (localhost / 127.0.0.1), UI uses same-origin / Vite proxy.
   //    Use typeof window check to avoid ReferenceError during Vite build (Node.js).
-  if (typeof window !== "undefined" && window.location?.hostname.endsWith(".hf.space")) {
+  if (
+    typeof window !== "undefined" &&
+    (window.location?.hostname.endsWith(".hf.space") ||
+      window.location?.hostname === "localhost" ||
+      window.location?.hostname === "127.0.0.1" ||
+      window.location?.hostname === "0.0.0.0")
+  ) {
     return ""; // same-origin — empty prefix so fetch('/api/v1/...') works
   }
 
@@ -49,7 +54,7 @@ export function apiUrl(path: string): string {
   return `${API_BASE_URL}${path}`;
 }
 
-const SECRET_FIELDS = new Set([
+export const SECRET_FIELDS = new Set([
   "API_KEY_SECRET",
   "JWT_SECRET_KEY",
   "OPENAI_API_KEY",
@@ -80,6 +85,17 @@ const SECRET_FIELDS = new Set([
   "SCADA_API_KEY",
 ]);
 
+export function isSecretField(key: string): boolean {
+  return (
+    SECRET_FIELDS.has(key) ||
+    key.endsWith("_KEY") ||
+    key.endsWith("_TOKEN") ||
+    key.endsWith("_SECRET") ||
+    key.includes("API_KEY") ||
+    (key.startsWith("PROVIDER_") && key.endsWith("_KEY"))
+  );
+}
+
 // ─── Synchronous settings cache ──────────────────────────────────────────
 // Provides a sync fallback for code that cannot use async/await (api.ts
 // request headers, llm-chat.ts synchronous access).
@@ -99,7 +115,7 @@ function _initCacheSync(): Record<string, string> {
     const parsed = JSON.parse(stored);
     const result: Record<string, string> = {};
     for (const [k, v] of Object.entries(parsed)) {
-      if (SECRET_FIELDS.has(k)) {
+      if (isSecretField(k)) {
         // Try legacy XOR deobfuscation (sync) for backward compat
         result[k] = deobfuscateLegacy(v as string);
       } else {
@@ -138,7 +154,7 @@ export async function refreshSettingsCache(): Promise<void> {
     const parsed = JSON.parse(stored);
     const result: Record<string, string> = {};
     for (const [k, v] of Object.entries(parsed)) {
-      if (SECRET_FIELDS.has(k)) {
+      if (isSecretField(k)) {
         try {
           result[k] = await decryptSecret(v as string);
         } catch {
@@ -276,8 +292,8 @@ export async function encryptSecret(value: string): Promise<string> {
     return btoa(String.fromCodePoint(...combined));
   } catch (error) {
     console.error("Failed to encrypt secret:", error);
-    // Fallback: return original value (will be stored in plaintext but logged)
-    return value;
+    // If Web Crypto is unavailable or fails, do not return unencrypted plaintext
+    return "";
   }
 }
 
@@ -385,7 +401,7 @@ export async function getDeobfuscatedSettings(): Promise<Record<string, string>>
     const deobfuscated: Record<string, string> = {};
 
     for (const [k, v] of Object.entries(parsed)) {
-      if (SECRET_FIELDS.has(k)) {
+      if (isSecretField(k)) {
         // Try new AES-GCM decryption first
         try {
           deobfuscated[k] = await decryptSecret(v as string);
@@ -415,7 +431,7 @@ export async function setEncryptedSettings(settings: Record<string, string>): Pr
     const encrypted: Record<string, string> = {};
 
     for (const [k, v] of Object.entries(settings)) {
-      if (SECRET_FIELDS.has(k) && v) {
+      if (isSecretField(k) && v) {
         encrypted[k] = await encryptSecret(v);
       } else {
         encrypted[k] = v;

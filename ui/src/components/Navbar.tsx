@@ -352,7 +352,7 @@ export function Navbar() {
               setShowNotifications((prev) => !prev);
             }}
             title="Notifications"
-            aria-label="Notifications"
+            aria-label="System Notifications"
             className={cn(
               "relative p-2 rounded-lg transition-all duration-150 group focus:outline-none focus:ring-2 focus:ring-[var(--ring)]",
               showNotifications

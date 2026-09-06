@@ -69,6 +69,7 @@ _PROMPT_INJECTION_PATTERNS: list[tuple[str, str]] = [
 ]
 
 _MAX_USER_INPUT_LENGTH = 4000
+_SAFE_ID_REGEX = r"[^A-Za-z0-9_.-]"
 
 
 def _sanitize_agent_input(text: str) -> str:
@@ -1144,7 +1145,7 @@ async def check_mcp_server_health(
             },
         )
 
-    safe_server_id = re.sub(r"[^A-Za-z0-9_.-]", "", str(server_id or ""))[:32]
+    safe_server_id = re.sub(_SAFE_ID_REGEX, "", str(server_id or ""))[:32]
     try:
         data = _probe_mcp_server(server_id, server_config)
     except Exception as e:  # noqa: BLE001
@@ -1160,9 +1161,9 @@ async def check_mcp_server_health(
         )
 
     data["checked_at"] = datetime.now(timezone.utc).isoformat()
-    safe_transport = re.sub(r"[^A-Za-z0-9_.-]", "", str(data.get("transport") or ""))[:32]
-    safe_status = re.sub(r"[^A-Za-z0-9_.-]", "", str(data.get("status") or ""))[:32]
-    safe_trace = re.sub(r"[^A-Za-z0-9_.-]", "", str(trace_id or ""))[:36]
+    safe_transport = re.sub(_SAFE_ID_REGEX, "", str(data.get("transport") or ""))[:32]
+    safe_status = re.sub(_SAFE_ID_REGEX, "", str(data.get("status") or ""))[:32]
+    safe_trace = re.sub(_SAFE_ID_REGEX, "", str(trace_id or ""))[:36]
     logger.info(
         "mcp_health_checked server=%s transport=%s status=%s trace_id=%s",
         safe_server_id,

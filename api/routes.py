@@ -93,14 +93,16 @@ def _utc_now_iso() -> str:
 
 # Create FastAPI app instance
 _ENV = os.environ.get("ENVIRONMENT", os.environ.get("ENV", "development")).lower()
+_is_prod = is_production_environment()
+_enable_docs = os.environ.get("ENABLE_DOCS", "").lower() in ("true", "1") or not _is_prod
 app = FastAPI(
     title="Engineering Service API",
     description="Production-grade FastAPI service wrapping the Python PowerSystemEngine",
     version="2.1.0",
-    docs_url="/docs",
-    redoc_url="/redoc",
+    docs_url="/docs" if _enable_docs else None,
+    redoc_url="/redoc" if _enable_docs else None,
     lifespan=lifespan,
-    debug=(_ENV == "development"),  # Explicitly set debug mode based on environment
+    debug=is_dev_environment(),  # Strictly false in production/staging
 )
 
 # ---------------------------------------------------------------------------
@@ -325,7 +327,7 @@ def _get_rate_limit_redis() -> Any | None:
 
 async def _check_rate_limit(client_id: str) -> bool:
     """Return True if allowed; False if rate limit exceeded."""
-    if os.getenv("ENGINEERING_SERVICE_RATE_LIMIT_DISABLED", "").lower() in ("true", "1", "yes"):
+    if not is_production_environment() and os.getenv("ENGINEERING_SERVICE_RATE_LIMIT_DISABLED", "").lower() in ("true", "1", "yes"):
         return True
 
     r = _get_rate_limit_redis()
@@ -363,7 +365,17 @@ async def _check_rate_limit(client_id: str) -> bool:
         return current <= _RATE_LIMIT_MAX_REQUESTS
     except Exception:
         logger.warning("rate_limit_redis_failed", extra={"trace_id": "rate-limit"})
-        return True
+        with _rate_limit_fallback_lock:
+            while len(_rate_limit_fallback_store) > _RATE_LIMIT_MAX_ENTRIES:
+                _rate_limit_fallback_store.popitem(last=False)
+            timestamps = _rate_limit_fallback_store.get(client_id, [])
+            timestamps = [t for t in timestamps if now - t < _RATE_LIMIT_WINDOW]
+            if len(timestamps) >= _RATE_LIMIT_MAX_REQUESTS:
+                _rate_limit_fallback_store[client_id] = timestamps
+                return False
+            timestamps.append(now)
+            _rate_limit_fallback_store[client_id] = timestamps
+            return True
 
 
 # ---------------------------------------------------------------------------
@@ -645,9 +657,12 @@ else:
 
 
 # CORS — restrict origins; default allows only same-origin.
-# Set ENGINEERING_SERVICE_CORS_ORIGINS to a comma-separated list of allowed origins.
+# Set ENGINEERING_SERVICE_CORS_ORIGINS or CORS_ALLOWED_ORIGINS to a comma-separated list of allowed origins.
 # Example: ENGINEERING_SERVICE_CORS_ORIGINS=https://yourapp.example.com,https://worker.example.com
-_CORS_ORIGINS = os.environ.get("ENGINEERING_SERVICE_CORS_ORIGINS", "").strip()
+_CORS_ORIGINS = os.environ.get(
+    "ENGINEERING_SERVICE_CORS_ORIGINS",
+    os.environ.get("CORS_ALLOWED_ORIGINS", ""),
+).strip()
 _cors_origin_list = (
     [o.strip() for o in _CORS_ORIGINS.split(",") if o.strip()] if _CORS_ORIGINS else []
 )

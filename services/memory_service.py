@@ -18,22 +18,25 @@ __all__ = ["AIMemoryService", "DeterministicFallbackEmbeddings"]
 
 # Try importing LangChain + Qdrant + Neo4j components.
 try:
-    from langchain_qdrant import QdrantVectorStore
     from qdrant_client import QdrantClient
     from qdrant_client.http import models as qdrant_models
 
     QDRANT_AVAILABLE = True
 except ImportError as err:
-    logger.warning("Qdrant dependencies not fully available: %s", err)
+    logger.warning("Qdrant client not available: %s", err)
     QDRANT_AVAILABLE = False
 
     class QdrantClient:
         pass
 
+    qdrant_models = None  # type: ignore[assignment]
+
+try:
+    from langchain_qdrant import QdrantVectorStore
+except ImportError:
+
     class QdrantVectorStore:
         pass
-
-    qdrant_models = None  # type: ignore[assignment]
 
 try:
     from langchain_core.embeddings import Embeddings
@@ -47,6 +50,19 @@ except ImportError:
 
 try:
     from langchain_core.documents import Document
+except ImportError:
+
+    class Document:  # type: ignore[no-redef]
+        """Fallback Document class when langchain_core is unavailable."""
+
+        def __init__(self, page_content: str = "", metadata: Any = None, **kwargs: Any) -> None:
+            self.page_content = page_content
+            self.metadata = metadata or {}
+            for k, v in kwargs.items():
+                setattr(self, k, v)
+
+
+try:
     from langchain_experimental.graph_transformers import LLMGraphTransformer
     from langchain_neo4j import GraphCypherQAChain, Neo4jGraph
     from langchain_openai import ChatOpenAI, OpenAIEmbeddings
@@ -66,9 +82,6 @@ except ImportError as err:
         pass
 
     class OpenAIEmbeddings:
-        pass
-
-    class Document:
         pass
 
     class GraphCypherQAChain:
@@ -316,7 +329,7 @@ class AIMemoryService:
         try:
             llm = self._get_llm()
             # F-01: Reject DummyLLM at call site
-            if getattr(llm, "IS_DUMMY", False):
+            if getattr(llm, "IS_DUMMY", False) is True:
                 logger.error(
                     "Refusing to populate Neo4j graph with DummyLLM — "
                     "results would be silently empty. Set OPENAI_API_KEY."
@@ -352,7 +365,7 @@ class AIMemoryService:
         try:
             llm = self._get_llm()
             # F-01: Reject DummyLLM at call site
-            if getattr(llm, "IS_DUMMY", False):
+            if getattr(llm, "IS_DUMMY", False) is True:
                 logger.error(
                     "Refusing to query Neo4j graph with DummyLLM — "
                     "results would be silently empty. Set OPENAI_API_KEY."
@@ -382,7 +395,7 @@ class AIMemoryService:
         try:
             embeddings = self._get_embeddings()
             # F-02: Reject unsafe fallback embeddings at save time
-            if getattr(embeddings, "IS_UNSAFE_FALLBACK", False):
+            if getattr(embeddings, "IS_UNSAFE_FALLBACK", False) is True:
                 logger.error(
                     "Refusing to save to vector memory with DeterministicFallbackEmbeddings — "
                     "would pollute index with semantically meaningless vectors. "
@@ -435,7 +448,7 @@ class AIMemoryService:
         try:
             embeddings = self._get_embeddings()
             # F-02: Reject unsafe fallback embeddings at query time
-            if getattr(embeddings, "IS_UNSAFE_FALLBACK", False):
+            if getattr(embeddings, "IS_UNSAFE_FALLBACK", False) is True:
                 logger.error(
                     "Refusing to query vector memory with DeterministicFallbackEmbeddings — "
                     "results would be based on hash proximity, not semantic similarity. "

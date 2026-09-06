@@ -31,6 +31,12 @@ import { useChatStore } from "../../store/chatStore";
 const ALLOWED_EXTENSIONS = [".csv", ".json", ".xml", ".raw", ".m"];
 const MAX_ATTACHMENT_BYTES = 10 * 1024 * 1024; // 10 MiB limit
 
+function getPreviewRiskVariant(riskLevel: string): "success" | "warning" | "danger" {
+  if (riskLevel === "low") return "success";
+  if (riskLevel === "medium") return "warning";
+  return "danger";
+}
+
 export interface ImportPreviewData {
   preview_id: string;
   filename: string;
@@ -323,13 +329,7 @@ export function ImportExportTab({ notify }: ImportExportTabProps) {
                   </span>
                 </div>
                 <Badge
-                  variant={
-                    preview.risk_level === "low"
-                      ? "success"
-                      : preview.risk_level === "medium"
-                        ? "warning"
-                        : "danger"
-                  }
+                  variant={getPreviewRiskVariant(preview.risk_level)}
                   size="sm"
                 >
                   Risk: {preview.risk_level.toUpperCase()}

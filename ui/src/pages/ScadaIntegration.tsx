@@ -14,7 +14,12 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Badge, Button, Card } from "../components/ui";
 import { useNotify } from "../context/NotificationContext";
-import { API_BASE_URL } from "../lib/api-config";
+import {
+  API_BASE_URL,
+  getDeobfuscatedSettings,
+  refreshSettingsCache,
+  setEncryptedSettings,
+} from "../lib/api-config";
 import { getAuthToken } from "../lib/tokenStorage";
 
 interface TelemetryPoint {
@@ -214,23 +219,21 @@ export default function ScadaIntegration() {
   const socketRef = useRef<WebSocket | null>(null);
   const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Load configuration from local storage on mount
+  // Load configuration from secure settings on mount
   // biome-ignore lint/correctness/useExhaustiveDependencies: mount-once load; addLog/isRtl changes must not re-run it
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem("etap-settings");
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (parsed.SCADA_SERVER_URL) setScadaUrl(parsed.SCADA_SERVER_URL);
-        if (parsed.SCADA_API_KEY) setApiKey(parsed.SCADA_API_KEY);
-        if (parsed.SCADA_PROJECT_NAME) setProjectName(parsed.SCADA_PROJECT_NAME);
-        if (parsed.SCADA_SYNC_INTERVAL_SEC)
-          setSyncInterval(Number.parseInt(parsed.SCADA_SYNC_INTERVAL_SEC) || 2);
-      }
-      addLog(isRtl ? "تم تحميل إعدادات SCADA بنجاح." : "SCADA settings loaded successfully.");
-    } catch (err: unknown) {
-      console.error("Failed to load SCADA settings:", err);
-    }
+    getDeobfuscatedSettings()
+      .then((settings) => {
+        if (settings.SCADA_SERVER_URL) setScadaUrl(settings.SCADA_SERVER_URL);
+        if (settings.SCADA_API_KEY) setApiKey(settings.SCADA_API_KEY);
+        if (settings.SCADA_PROJECT_NAME) setProjectName(settings.SCADA_PROJECT_NAME);
+        if (settings.SCADA_SYNC_INTERVAL_SEC)
+          setSyncInterval(Number.parseInt(settings.SCADA_SYNC_INTERVAL_SEC) || 2);
+        addLog(isRtl ? "تم تحميل إعدادات SCADA بنجاح." : "SCADA settings loaded successfully.");
+      })
+      .catch((err: unknown) => {
+        console.error("Failed to load SCADA settings:", err);
+      });
   }, []);
 
   // Add system logs helper
@@ -239,11 +242,10 @@ export default function ScadaIntegration() {
     setLogs((prev) => [`[${timestamp}] ${msg}`, ...prev.slice(0, 49)]);
   };
 
-  // Save Settings to Local Storage
-  const handleSaveSettings = () => {
+  // Save Settings to Secure Storage
+  const handleSaveSettings = async () => {
     try {
-      const stored = localStorage.getItem("etap-settings");
-      const currentSettings = stored ? JSON.parse(stored) : {};
+      const currentSettings = await getDeobfuscatedSettings();
       const updated = {
         ...currentSettings,
         SCADA_SERVER_URL: scadaUrl,
@@ -251,7 +253,8 @@ export default function ScadaIntegration() {
         SCADA_PROJECT_NAME: projectName,
         SCADA_SYNC_INTERVAL_SEC: String(syncInterval),
       };
-      localStorage.setItem("etap-settings", JSON.stringify(updated));
+      await setEncryptedSettings(updated);
+      await refreshSettingsCache();
       notify("success", isRtl ? "تم حفظ الإعدادات بنجاح!" : "SCADA Settings saved successfully!");
       addLog(
         isRtl
@@ -785,8 +788,8 @@ export default function ScadaIntegration() {
                     {isRtl ? "السجلات فارغة." : "Trace is empty."}
                   </p>
                 ) : (
-                  logs.map((log) => (
-                    <div key={log} className="border-b border-[var(--border-primary)]/40 pb-1">
+                  logs.map((log, idx) => (
+                    <div key={`scada-log-${idx}-${log.slice(0, 30)}`} className="border-b border-[var(--border-primary)]/40 pb-1">
                       {log}
                     </div>
                   ))

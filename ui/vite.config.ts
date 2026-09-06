@@ -13,20 +13,21 @@ export default defineConfig({
   // to the correct /assets/* location.
   base: "/",
   server: {
+    host: "127.0.0.1",
     port: 5173,
     fs: { strict: true },
     watch: {
       ignored: ["**/skills/**", "**/docs/**", "**/.git/**", "**/node_modules/**"],
     },
     proxy: {
-      "/api": "http://localhost:8000",
-      "/health": "http://localhost:8000",
-      "/healthz": "http://localhost:8000",
-      "/ready": "http://localhost:8000",
-      "/readyz": "http://localhost:8000",
-      "/metrics": "http://localhost:8000",
-      "/docs": "http://localhost:8000",
-      "/openapi.json": "http://localhost:8000",
+      "/api": "http://127.0.0.1:8000",
+      "/health": "http://127.0.0.1:8000",
+      "/healthz": "http://127.0.0.1:8000",
+      "/ready": "http://127.0.0.1:8000",
+      "/readyz": "http://127.0.0.1:8000",
+      "/metrics": "http://127.0.0.1:8000",
+      "/docs": "http://127.0.0.1:8000",
+      "/openapi.json": "http://127.0.0.1:8000",
     },
   },
   build: {

@@ -42,7 +42,7 @@ CHECKER = CurrentUser(
 )
 
 
-@pytest.fixture()
+@pytest.fixture
 def client():
     """Minimal FastAPI app with only the approvals + session routers."""
     app = FastAPI()
@@ -75,7 +75,8 @@ def _propose(client: TestClient, tool: str = "run_python", session_id: str = "se
 class TestAutoApprove:
     def test_mutating_with_auto_approve_on_is_auto_approved(self, client):
         r = client.put(API_SESSION_AUTO_APPROVE, json={"session_id": "s1", "enabled": True})
-        assert r.status_code == 200 and r.json()["data"]["enabled"] is True
+        assert r.status_code == 200
+        assert r.json()["data"]["enabled"] is True
 
         resp = _propose(client, tool="run_python", session_id="s1")
         assert resp.status_code == 200

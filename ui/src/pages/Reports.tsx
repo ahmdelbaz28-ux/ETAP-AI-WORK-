@@ -39,7 +39,7 @@ export default function Reports() {
         return r.json();
       })
       .then((data: Report[]) => {
-        setReports(data);
+        setReports(Array.isArray(data) ? data : []);
         setError(null); // Clear any previous error on successful fetch
       })
       .catch((err) => {
@@ -49,8 +49,9 @@ export default function Reports() {
       .finally(() => setLoading(false));
   }, []);
 
-  const generatedCount = reports.filter((r) => r.status === "generated").length;
-  const pendingCount = reports.filter((r) => r.status === "pending").length;
+  const safeReports = Array.isArray(reports) ? reports : [];
+  const generatedCount = safeReports.filter((r) => r.status === "generated").length;
+  const pendingCount = safeReports.filter((r) => r.status === "pending").length;
 
   return (
     <div className="space-y-6">
@@ -91,7 +92,7 @@ export default function Reports() {
               </div>
             </Card>
           )}
-        {!loading && !error && reports.length === 0 && (
+        {!loading && !error && safeReports.length === 0 && (
           <Card>
             <div className="flex flex-col items-center gap-2 py-8 text-sm text-[var(--text-tertiary)]">
               <FileText className="w-8 h-8 text-[var(--text-muted)]" />
@@ -100,7 +101,7 @@ export default function Reports() {
             </div>
           </Card>
         )}
-        {!loading && !error && reports.length > 0 && (
+        {!loading && !error && safeReports.length > 0 && (
           <Card padding="none">
             {/* Table Header */}
             <div className="grid grid-cols-12 gap-4 px-5 py-3 border-b border-[var(--border-primary)] bg-[var(--bg-elevated)]">
@@ -123,7 +124,7 @@ export default function Reports() {
             </div>
 
             {/* Table Rows */}
-            {reports.map((report, i) => (
+            {safeReports.map((report, i) => (
               <motion.div
                 key={`${report.name}-${report.date}-${report.format}`}
                 initial={{ opacity: 0 }}

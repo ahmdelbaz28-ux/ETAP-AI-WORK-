@@ -179,15 +179,16 @@ describe("ProviderKeysPanel — save & cancel", () => {
 
 // ── Test connection / Activate / Delete ────────────────────────────────────────
 
+function renderWithExistingKey() {
+  mockedList.mockResolvedValue({
+    success: true,
+    data: { openai: EXISTING_KEY },
+    providers: ["openai"],
+  });
+  return renderPanel();
+}
+
 describe("ProviderKeysPanel — test, activate, delete", () => {
-  function renderWithExistingKey() {
-    mockedList.mockResolvedValue({
-      success: true,
-      data: { openai: EXISTING_KEY },
-      providers: ["openai"],
-    });
-    return renderPanel();
-  }
 
   it("shows a success badge when the backend test passes", async () => {
     const user = userEvent.setup();

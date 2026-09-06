@@ -242,25 +242,12 @@ uvicorn>=0.24.0
 # ==========================================
 # ETAP User Guide Integration - PDF Processing
 # ==========================================
-# SECURITY: pypdf upgraded to >=6.15.0 to fix all CVEs:
+# SECURITY: pypdf upgraded to >=6.17.0 to fix all CVEs:
 #   CVE-2025-55197, CVE-2026-22690, CVE-2026-49461, CVE-2026-54531 (ReDoS / XML parsing)
-#   CVE-2026-59935 (infinite loop for not terminated inline images ASCII85)
-#   CVE-2026-59936 (infinite loop for not terminated inline images)
+#   CVE-2026-59935, CVE-2026-59936, GHSA-4v4c-8547-f2jp
 # Note: project switched from PyPDF2 → pypdf (PyPDF2 is deprecated since 2022).
-pypdf>=6.15.0
+pypdf>=6.17.0
 pdfplumber>=0.10,<0.12
-
-# Text processing and NLP
-# SECURITY: nltk upgraded to >=3.10.3 to fix CVEs:
-#   PYSEC-2024-167 (RCE via pickled models)
-#   CVE-2026-33230 / CVE-2026-33231
-#   CVE-2026-12075 (DNS-rebinding SSRF in nltk.pathseek)
-#   CVE-2026-12061 (ReDoS in ReviewsCorpusReader)
-#   CVE-2026-12072 (Path Traversal in NKJPCorpusReader)
-#   CVE-2026-12074 (Path Traversal in FramenetCorpusReader)
-#   CVE-2026-54293 (URL-Encoded Path Traversal in nltk.data.load())
-#   CVE-2026-79675 (JVM option validation) & CVE-2026-78680
-nltk>=3.10.3
 
 # Document processing
 python-docx~=1.1.0

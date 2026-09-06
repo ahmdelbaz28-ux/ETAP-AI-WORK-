@@ -305,14 +305,18 @@ PUBLIC_PATHS: frozenset[str] = frozenset(
         "/readyz",
         "/health",
         "/ready",
+        "/api/health",
         "/docs",
         "/redoc",
         "/openapi.json",
         "/metrics",
+        "/prometheus/metrics",
+        "/api/v1/csrf/token",
         # Auth endpoints must be public — they ARE the authentication.
         # If these required an API key, no user could ever register or log in.
         "/api/v1/auth/register",
         "/api/v1/auth/login",
+        "/api/v1/auth/token",
         "/api/v1/auth/refresh",
         "/api/v1/auth/me",  # JWT-protected (not API-key-protected)
     },

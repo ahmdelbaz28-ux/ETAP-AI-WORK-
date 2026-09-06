@@ -256,7 +256,7 @@ def test_execute_requires_idempotency_key(client):
 # ─── 4. Plan TTL ───────────────────────────────────────────────────────────
 
 
-def test_execute_expired_plan_rejected_410(client):
+def test_execute_expired_plan_rejected_410(client, monkeypatch):
     sid = "sess-p4a-expired"
     _session_auto_approve[sid] = True
     plan_id = _post_plan(
@@ -269,7 +269,7 @@ def test_execute_expired_plan_rejected_410(client):
     ).json()["plan_id"]
 
     # Force the plan past its 300 s TTL.
-    agent_exec._PLANS[plan_id].expires_at = time.time() - 1
+    monkeypatch.setattr(agent_exec._PLANS[plan_id], "expires_at", time.time() - 1)
 
     resp = client.post(
         "/api/v1/agent-exec/execute",
@@ -403,7 +403,7 @@ async def _stub_executor(args, ctx):  # deterministic exec target
     return {"studies": [{"type": "LOAD_FLOW", "converged": True}]}
 
 
-@pytest.fixture()
+@pytest.fixture
 def gate_client():
     """Fresh combined agent-exec + approvals app bound to tenant-A user."""
     from api import approvals as approvals_module
@@ -581,7 +581,8 @@ def test_gateway_approved_execution_runs_exactly_once(gate_client):
     second = gate_client.post(
         "/api/v1/agent-exec/execute", json={"plan_id": plan["plan_id"]}, headers=headers
     )
-    assert first.status_code == 200 and second.status_code == 200
+    assert first.status_code == 200
+    assert second.status_code == 200
     assert len(calls) == 1
     assert second.json()["idempotent_replay"] is True
     assert second.json()["data"]["execution_id"] == first.json()["data"]["execution_id"]

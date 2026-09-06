@@ -26,6 +26,7 @@ import { useCallback, useEffect, useState } from "react";
 import { ProviderLogo } from "../components/ProviderLogo";
 import { Button, Card, CardHeader, TabPanels, Tabs, Toggle, useTabState } from "../components/ui";
 import { useNotify } from "../context/NotificationContext";
+import { getCachedSettings, isSecretField } from "../lib/api-config";
 import { testProviderConnection } from "../lib/llm-chat";
 import { cn } from "../utils/helpers";
 
@@ -104,79 +105,6 @@ function providerButtonContent(isTesting: boolean, status: ProviderStatus): Reac
   );
 }
 
-// Legacy XOR deobfuscation for backward compatibility with stored values.
-// New values use AES-GCM encryption via getDeobfuscatedSettings/setEncryptedSettings
-// from api-config.ts.
-const OBFUSCATION_KEY = "ETAP-SEC-2024-OBFUSCATION";
-function obfuscate(value: string): string {
-  let result = "";
-  for (let i = 0; i < value.length; i++) {
-    const a = value.codePointAt(i) ?? 0;
-    const b = OBFUSCATION_KEY.codePointAt(i % OBFUSCATION_KEY.length) ?? 0;
-    result += String.fromCodePoint(a ^ b);
-    const charCode = value.codePointAt(i) ?? 0;
-    const keyCode = OBFUSCATION_KEY.codePointAt(i % OBFUSCATION_KEY.length) ?? 0;
-    result += String.fromCodePoint(charCode ^ keyCode);
-  }
-  return btoa(result);
-}
-function deobfuscate(value: string): string {
-  try {
-    const decoded = atob(value);
-    let result = "";
-    for (let i = 0; i < decoded.length; i++) {
-      const a = decoded.codePointAt(i) ?? 0;
-      const b = OBFUSCATION_KEY.codePointAt(i % OBFUSCATION_KEY.length) ?? 0;
-      result += String.fromCodePoint(a ^ b);
-      const charCode = decoded.codePointAt(i) ?? 0;
-      const keyCode = OBFUSCATION_KEY.codePointAt(i % OBFUSCATION_KEY.length) ?? 0;
-      result += String.fromCodePoint(charCode ^ keyCode);
-    }
-    return result;
-  } catch {
-    return value;
-  }
-}
-
-const SECRET_FIELDS = new Set([
-  "API_KEY_SECRET",
-  "JWT_SECRET_KEY",
-  "OPENAI_API_KEY",
-  "NVIDIA_API_KEY",
-  "QWEN_API_KEY",
-  "GLM_API_KEY",
-  "ENGINEERING_SERVICE_API_KEY",
-  "LANGWATCH_API_KEY",
-  "SMITHERY_API_KEY",
-  "HF_TOKEN",
-  "GITHUB_TOKEN",
-  "VERCEL_ACCESS_TOKEN",
-  "VERCEL_PROJECT_ID",
-  "REDIS_URL",
-  "DATABASE_URL",
-  "VAULT_TOKEN",
-  "SMTP_USERNAME",
-  "ETAP_LICENSE_PATH",
-  "CUSTOM_API_KEY",
-  "PROVIDER_OPENAI_KEY",
-  "PROVIDER_ANTHROPIC_KEY",
-  "PROVIDER_GEMINI_KEY",
-  "PROVIDER_DEEPSEEK_KEY",
-  "PROVIDER_GROQ_KEY",
-  "PROVIDER_COHERE_KEY",
-  "PROVIDER_HUGGINGFACE_KEY",
-  "SCADA_API_KEY",
-  // Additional LLM providers (added 2026-07-07)
-  "RENDER_API_KEY",
-  "ZENMUX_API_KEY",
-  "FIREWORKS_API_KEY",
-  "GITHUB_MODELS_API_KEY",
-  "OPENMODEL_API_KEY",
-  "MODAL_API_KEY",
-  // Additional LLM providers (added 2026-07-08)
-  "BYNARA_API_KEY",
-  "CLOUDFLARE_API_KEY",
-]);
 
 const SETTINGS_SCHEMA = {
   requiredKeys: ["OPENAI_MODEL", "OPENAI_BASE_URL", "ENGINEERING_SERVICE_URL"],
@@ -415,6 +343,7 @@ export const POPULAR_PROVIDERS = [
     id: "fireworks",
     name: "Fireworks AI",
     models: [
+      { id: "accounts/fireworks/models/kimi-k2p7-code", name: "Kimi K2 P7 Code", isFree: false },
       {
         id: "accounts/fireworks/models/llama-v3p1-8b-instruct",
         name: "Llama 3.1 8B",
@@ -454,12 +383,16 @@ export const POPULAR_PROVIDERS = [
     id: "cloudflare",
     name: "Cloudflare Workers AI",
     models: [
+      { id: "@cf/moonshotai/kimi-k2.6", name: "Kimi K2.6 (Moonshot)", isFree: true },
+      { id: "@cf/meta/llama-3.3-70b-instruct-fp8-fast", name: "Llama 3.3 70B Fast", isFree: true },
       { id: "@cf/meta/llama-3.1-8b-instruct", name: "Llama 3.1 8B (free)", isFree: true },
       { id: "@cf/meta/llama-3.1-70b-instruct", name: "Llama 3.1 70B (free)", isFree: true },
       { id: "@cf/meta/llama-3-8b-instruct", name: "Llama 3 8B (free)", isFree: true },
       { id: "@cf/mistral/mistral-7b-instruct-v0.1", name: "Mistral 7B (free)", isFree: true },
+      { id: "@cf/mistral/mistral-7b-instruct-v0.2", name: "Mistral 7B v0.2", isFree: true },
       { id: "@cf/qwen/qwen1.5-14b-chat-awq", name: "Qwen 1.5 14B (free)", isFree: true },
       { id: "@cf/google/gemma-2-9b-it", name: "Gemma 2 9B (free)", isFree: true },
+      { id: "@cf/openchat/openchat-3.5-0106", name: "OpenChat 3.5", isFree: true },
     ],
     defaultModel: "@cf/meta/llama-3.1-8b-instruct",
     defaultBaseUrl: "https://api.cloudflare.com/client/v4/accounts",
@@ -532,40 +465,6 @@ export const POPULAR_PROVIDERS = [
     defaultBaseUrl: "https://api.zenmux.ai/v1",
     color: "#6366F1",
     apiKeyUrl: "https://zenmux.ai",
-    isFree: false,
-    apiType: "openai" as const,
-  },
-  // ─── Fireworks AI (verified: https://api.fireworks.ai/inference/v1) ─
-  {
-    id: "fireworks",
-    name: "Fireworks AI",
-    models: [
-      { id: "accounts/fireworks/models/kimi-k2p7-code", name: "Kimi K2 P7 Code", isFree: false },
-      {
-        id: "accounts/fireworks/models/llama-v3p1-405b-instruct",
-        name: "Llama 3.1 405B",
-        isFree: false,
-      },
-      {
-        id: "accounts/fireworks/models/llama-v3p1-70b-instruct",
-        name: "Llama 3.1 70B",
-        isFree: false,
-      },
-      {
-        id: "accounts/fireworks/models/mixtral-8x22b-instruct",
-        name: "Mixtral 8x22B",
-        isFree: false,
-      },
-      {
-        id: "accounts/fireworks/models/qwen2p5-coder-32b-instruct",
-        name: "Qwen 2.5 Coder 32B",
-        isFree: false,
-      },
-    ],
-    defaultModel: "accounts/fireworks/models/kimi-k2p7-code",
-    defaultBaseUrl: "https://api.fireworks.ai/inference/v1",
-    color: "#F47F2A",
-    apiKeyUrl: "https://fireworks.ai/api-keys",
     isFree: false,
     apiType: "openai" as const,
   },
@@ -652,28 +551,6 @@ export const POPULAR_PROVIDERS = [
     color: "#06B6D4",
     apiKeyUrl: "https://bynara.id",
     isFree: false,
-    apiType: "openai" as const,
-  },
-  // ─── Cloudflare Workers AI (https://developers.cloudflare.com/workers-ai/) ─
-  // Requires BOTH API token and account ID. The account ID goes in the URL path:
-  // https://api.cloudflare.com/client/v4/accounts/{ACCOUNT_ID}/ai/v1
-  // Verified working 2026-07-08: kimi-k2.6, llama-3.3-70b-instruct-fp8-fast
-  {
-    id: "cloudflare",
-    name: "Cloudflare Workers AI",
-    models: [
-      { id: "@cf/moonshotai/kimi-k2.6", name: "Kimi K2.6 (Moonshot, reasoning)", isFree: true },
-      { id: "@cf/meta/llama-3.3-70b-instruct-fp8-fast", name: "Llama 3.3 70B Fast", isFree: true },
-      { id: "@cf/meta/llama-3.1-70b-instruct", name: "Llama 3.1 70B", isFree: true },
-      { id: "@cf/mistral/mistral-7b-instruct-v0.2", name: "Mistral 7B", isFree: true },
-      { id: "@cf/google/gemma-2-9b-it", name: "Gemma 2 9B", isFree: true },
-      { id: "@cf/openchat/openchat-3.5-0106", name: "OpenChat 3.5", isFree: true },
-    ],
-    defaultModel: "@cf/moonshotai/kimi-k2.6",
-    defaultBaseUrl: "https://api.cloudflare.com/client/v4/accounts/PLACEHOLDER/ai/v1",
-    color: "#F38020",
-    apiKeyUrl: "https://dash.cloudflare.com/profile/api-tokens",
-    isFree: true,
     apiType: "openai" as const,
   },
 ];
@@ -1047,9 +924,10 @@ function AISettingsPanelInline({ settings, setSettings, notify }: AISettingsPane
     setTestResults((prev) => ({ ...prev, [providerId]: null }));
 
     try {
-      // Save settings to localStorage BEFORE testing so testProviderConnection can read them.
-      // We store the raw values (the llm-chat.ts getSettings() reads them directly).
-      localStorage.setItem("etap-settings", JSON.stringify(settings));
+      // Save settings with encryption BEFORE testing so testProviderConnection can read them.
+      const { setEncryptedSettings, refreshSettingsCache } = await import("../lib/api-config");
+      await setEncryptedSettings(settings);
+      await refreshSettingsCache();
 
       // Call the real test function from llm-chat.ts
       const result = await testProviderConnection(providerId);
@@ -2061,21 +1939,13 @@ function SettingsField({
 }
 
 function loadInitialSettings(): Record<string, string> {
-  const stored = localStorage.getItem("etap-settings");
   const defaults = getDefaults();
-  if (stored) {
-    try {
-      const parsed = JSON.parse(stored);
-      const deobfuscated: Record<string, string> = {};
-      for (const [k, v] of Object.entries(parsed)) {
-        deobfuscated[k] = SECRET_FIELDS.has(k) ? deobfuscate(v as string) : (v as string);
-      }
-      return { ...defaults, ...deobfuscated };
-    } catch {
-      return defaults;
-    }
+  try {
+    const cached = getCachedSettings();
+    return { ...defaults, ...cached };
+  } catch {
+    return defaults;
   }
-  return defaults;
 }
 
 // ─── Vision API Keys Panel ─────────────────────────────────────────────────
@@ -2531,6 +2401,90 @@ function VisionApiKeysPanel({
   );
 }
 
+interface SettingsActiveTabPanelProps {
+  readonly activeTab: string;
+  readonly chatFirstEnabled: boolean;
+  readonly notify: (type: "success" | "error" | "info" | "warning", message: string) => void;
+  readonly settings: Record<string, string>;
+  readonly setSettings: React.Dispatch<React.SetStateAction<Record<string, string>>>;
+  readonly currentSections: Array<{ title: string; fields: string[] }>;
+}
+
+function SettingsActiveTabPanel({
+  activeTab,
+  chatFirstEnabled,
+  notify,
+  settings,
+  setSettings,
+  currentSections,
+}: SettingsActiveTabPanelProps) {
+  switch (activeTab) {
+    case "agentsTab":
+      return chatFirstEnabled ? <AgentsTab notify={notify} /> : null;
+    case "skillsPromptsTab":
+      return chatFirstEnabled ? <SkillsPromptsTab notify={notify} /> : null;
+    case "ai":
+      return (
+        <AISettingsPanelInline
+          settings={settings}
+          setSettings={setSettings}
+          notify={notify}
+        />
+      );
+    case "providers":
+      return <ProviderKeysPanel notify={notify} />;
+    case "agentsSkillsPrompts":
+      return <AgentsSkillsPromptsPanel notify={notify} />;
+    case "mcp":
+      return chatFirstEnabled ? <McpServersTab /> : null;
+    case "importExport":
+      return chatFirstEnabled ? <ImportExportTab notify={notify} /> : null;
+    case "external":
+      return (
+        <ExternalServicesPanel
+          settings={settings}
+          setSettings={setSettings}
+          notify={notify}
+        />
+      );
+    case "vision":
+      return <VisionApiKeysPanel notify={notify} />;
+    case "engineeringEngine":
+      return <EngineeringEngineSettings />;
+    case "aiCopilot":
+      return <AISettingsPanel />;
+    case "storage":
+      return <StorageManagement />;
+    case "notifications":
+      return <NotificationSettings />;
+    default:
+      return (
+        <>
+          {activeTab === "security" && <SecurityFlagsPanel notify={notify} />}
+          {currentSections.map((section) => (
+            <Card key={section.title} padding="md">
+              <CardHeader
+                title={section.title}
+                subtitle={`${section.fields.length} field${section.fields.length === 1 ? "" : "s"}`}
+                icon={TAB_SECTIONS[activeTab]?.icon}
+              />
+              <div className="space-y-4">
+                {section.fields.map((field) => (
+                  <SettingsField
+                    key={field}
+                    field={field}
+                    value={settings[field] || ""}
+                    onChange={(v) => setSettings((p) => ({ ...p, [field]: v }))}
+                  />
+                ))}
+              </div>
+            </Card>
+          ))}
+        </>
+      );
+  }
+}
+
 export default function Settings() {
   const [settings, setSettings] = useState<Record<string, string>>(loadInitialSettings);
   const [saving, setSaving] = useState(false);
@@ -2554,20 +2508,9 @@ export default function Settings() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      // Use the new AES-GCM encryption for secret fields
+      // Use the AES-GCM encryption for secret fields
       const { setEncryptedSettings, refreshSettingsCache } = await import("../lib/api-config");
       await setEncryptedSettings(settings);
-
-      // Also save legacy XOR format for backward compatibility with older code
-      const toStore: Record<string, string> = {};
-      for (const [k, v] of Object.entries(settings)) {
-        toStore[k] = SECRET_FIELDS.has(k) ? obfuscate(v) : v;
-      }
-      localStorage.setItem("etap-settings", JSON.stringify(toStore));
-
-      if (settings.API_KEY_SECRET) {
-        localStorage.setItem("etap-api-key", obfuscate(settings.API_KEY_SECRET));
-      }
 
       // Refresh the sync cache so getCachedSettings() returns the new values
       await refreshSettingsCache();
@@ -2591,7 +2534,7 @@ export default function Settings() {
   const handleExport = () => {
     const exportData: Record<string, string> = {};
     for (const [k, v] of Object.entries(settings)) {
-      exportData[k] = SECRET_FIELDS.has(k) ? "" : v;
+      exportData[k] = isSecretField(k) ? "" : v;
     }
     const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
@@ -2693,69 +2636,14 @@ export default function Settings() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.2 }}
         >
-          {(() => {
-            if (activeTab === "agentsTab") {
-              return chatFirstUi.enabled ? <AgentsTab notify={notify} /> : null;
-            }
-            if (activeTab === "skillsPromptsTab") {
-              return chatFirstUi.enabled ? <SkillsPromptsTab notify={notify} /> : null;
-            }
-            if (activeTab === "ai")
-              return (
-                <AISettingsPanelInline
-                  settings={settings}
-                  setSettings={setSettings}
-                  notify={notify}
-                />
-              );
-            if (activeTab === "providers") return <ProviderKeysPanel notify={notify} />;
-            if (activeTab === "agentsSkillsPrompts")
-              return <AgentsSkillsPromptsPanel notify={notify} />;
-            if (activeTab === "mcp") {
-              return chatFirstUi.enabled ? <McpServersTab /> : null;
-            }
-            if (activeTab === "importExport") {
-              return chatFirstUi.enabled ? <ImportExportTab notify={notify} /> : null;
-            }
-            if (activeTab === "external")
-              return (
-                <ExternalServicesPanel
-                  settings={settings}
-                  setSettings={setSettings}
-                  notify={notify}
-                />
-              );
-            if (activeTab === "vision") return <VisionApiKeysPanel notify={notify} />;
-            if (activeTab === "engineeringEngine") return <EngineeringEngineSettings />;
-            if (activeTab === "aiCopilot") return <AISettingsPanel />;
-            if (activeTab === "storage") return <StorageManagement />;
-            if (activeTab === "notifications") return <NotificationSettings />;
-            return (
-              <>
-                {/* P7d: backend-authoritative security & feature-flags panel */}
-                {activeTab === "security" && <SecurityFlagsPanel notify={notify} />}
-                {currentSections.map((section) => (
-                  <Card key={section.title} padding="md">
-                    <CardHeader
-                      title={section.title}
-                      subtitle={`${section.fields.length} field${section.fields.length === 1 ? "" : "s"}`}
-                      icon={TAB_SECTIONS[activeTab]?.icon}
-                    />
-                    <div className="space-y-4">
-                      {section.fields.map((field) => (
-                        <SettingsField
-                          key={field}
-                          field={field}
-                          value={settings[field] || ""}
-                          onChange={(v) => setSettings((p) => ({ ...p, [field]: v }))} // NOSONAR — S2004: 5-level nesting is acceptable for inline form onChange in JSX
-                        />
-                      ))}
-                    </div>
-                  </Card>
-                ))}
-              </>
-            );
-          })()}
+          <SettingsActiveTabPanel
+            activeTab={activeTab}
+            chatFirstEnabled={chatFirstUi.enabled}
+            notify={notify}
+            settings={settings}
+            setSettings={setSettings}
+            currentSections={currentSections}
+          />
         </motion.div>
       </TabPanels>
     </div>

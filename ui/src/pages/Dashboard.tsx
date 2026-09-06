@@ -74,13 +74,15 @@ const generateTimeSeriesData = (seed = 42) => {
   const now = Date.now();
   const rng = mulberry32(seed);
   for (let i = 23; i >= 0; i--) {
+    const req = Math.floor(rng() * 50) + 10;
+    const lat = Math.floor(rng() * 100) + 20;
     data.push({
       time: new Date(now - i * 3600000).toLocaleTimeString("en-US", {
         hour: "2-digit",
         hour12: false,
       }),
-      requests: Math.floor(rng() * 50) + 10,
-      latency: Math.floor(rng() * 100) + 20,
+      requests: Number.isFinite(req) ? req : 0,
+      latency: Number.isFinite(lat) ? lat : 0,
     });
   }
   return data;
@@ -477,7 +479,7 @@ export default function Dashboard() {
                 </div>
               }
             />
-            <ResponsiveContainer width="100%" height={220}>
+            <ResponsiveContainer width="100%" height={220} minWidth={0}>
               <AreaChart data={timeSeriesData}>
                 <defs>
                   <linearGradient id="colorRequests" x1="0" y1="0" x2="0" y2="1">
@@ -531,7 +533,7 @@ export default function Dashboard() {
                 </button>
               }
             />
-            <ResponsiveContainer width="100%" height={220}>
+            <ResponsiveContainer width="100%" height={220} minWidth={0}>
               <BarChart data={studyDistributionData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border-primary)" />
                 <XAxis dataKey="name" stroke="var(--text-muted)" tick={{ fontSize: 10 }} />

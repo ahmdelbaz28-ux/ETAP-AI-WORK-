@@ -1,13 +1,13 @@
 # HF Spaces minimal requirements - excludes ML/GUI packages
 # Core Web Framework
-fastapi>=0.104.0
+fastapi>=0.135.0
 uvicorn[standard]>=0.24.0
 pydantic[email]>=2.0.0
 python-multipart>=0.0.6
 
 # HTTP client
 httpx>=0.25.0
-requests>=2.26.0
+requests>=2.32.4
 aiohttp>=3.9.0
 
 # Core numerical
@@ -25,8 +25,8 @@ aiosqlite>=0.19.0
 
 # Security
 bcrypt>=4.0.0
-PyJWT>=2.6.0
-cryptography>=36.0.0
+PyJWT>=2.13.0
+cryptography>=50.0.0
 
 # Logging
 structlog>=21.0.0
@@ -38,7 +38,7 @@ opentelemetry-sdk>=1.20.0
 opentelemetry-exporter-otlp-proto-http>=1.20.0
 
 # LLM observability — Langfuse (free Hobby plan supports unlimited prompts)
-langfuse>=2.51.0
+langfuse~=2.60.0
 
 # Resilience
 tenacity>=8.2.0
@@ -48,7 +48,7 @@ email-validator>=2.0.0
 
 # Document processing
 # SECURITY: pypdf replaces deprecated PyPDF2
-pypdf>=6.15.0
+pypdf>=6.17.0
 pdfplumber>=0.7.0
 python-docx>=0.8.11
 openpyxl>=3.0.0
@@ -57,14 +57,14 @@ reportlab>=3.6.0
 # Utilities
 tqdm>=4.62.0
 beautifulsoup4>=4.10.0
-lxml>=4.6.0
+lxml>=6.1.2
 
 # Security
 pyotp>=2.9.0
 # WebAuthn / FIDO2 — required for production MFA (HIGH #8).
 # Without this, security/mfa.py rejects all WebAuthn registrations/assertions.
 webauthn>=3.0.0
-redis>=5.0.0
+redis~=5.0.0
 
 # WebSocket
 websockets>=12.0

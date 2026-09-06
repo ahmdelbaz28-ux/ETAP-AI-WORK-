@@ -1,0 +1,626 @@
+[
+  {
+    "id": "TC001",
+    "title": "Run a study from chat with validated parameters",
+    "description": "This verifies that a user can request a study in chat, receive execution guidance, and complete the study with a returned result.",
+    "category": "Real-Time Chat-First Engineering Workspace",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to the chat workspace"
+      },
+      {
+        "type": "action",
+        "description": "Enter a request to run a study"
+      },
+      {
+        "type": "action",
+        "description": "Send the message"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify clarification or execution guidance is displayed"
+      },
+      {
+        "type": "action",
+        "description": "Submit the validated study parameters"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a computation result is returned"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC002",
+    "title": "Run a load flow study and review the results",
+    "description": "This verifies that a user can submit a valid load flow study and open the returned result to review the computed system metrics.",
+    "category": "Power System Simulation Engines",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to the study workspace"
+      },
+      {
+        "type": "action",
+        "description": "Submit a valid load flow study request"
+      },
+      {
+        "type": "action",
+        "description": "Open the returned study result"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify bus voltages, angles, flows, and losses are displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the study result is available for review"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC003",
+    "title": "Run a short circuit study and review the fault results",
+    "description": "This verifies that a user can submit a valid short circuit study and inspect the returned fault current results.",
+    "category": "Power System Simulation Engines",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to the study workspace"
+      },
+      {
+        "type": "action",
+        "description": "Submit a valid short circuit study request"
+      },
+      {
+        "type": "action",
+        "description": "Open the returned study result"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify fault current results are displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the study result is available for review"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC004",
+    "title": "Retrieve grounded standards guidance in chat",
+    "description": "A user can ask a standards-related engineering question in chat and receive a grounded answer based on retrieved knowledge.",
+    "category": "Knowledge Retrieval and GraphRAG",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the username field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to the chat workspace"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the chat input with a standards lookup question"
+      },
+      {
+        "type": "action",
+        "description": "Send the chat message"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a grounded engineering answer is streamed or displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify supporting knowledge or reference context is shown"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC005",
+    "title": "Ask a standards question and receive grounded guidance",
+    "description": "This verifies that a user can ask an engineering standards question in chat and receive a streamed, evidence-based response.",
+    "category": "Real-Time Chat-First Engineering Workspace",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to the chat workspace"
+      },
+      {
+        "type": "action",
+        "description": "Enter a standards or equipment question"
+      },
+      {
+        "type": "action",
+        "description": "Send the message"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify streamed engineering guidance is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the response is grounded in retrieved context"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC006",
+    "title": "Refine a knowledge query with additional context",
+    "description": "A user can ask a topology or relationship question in chat and then refine it with a follow-up to receive a more specific network explanation.",
+    "category": "Knowledge Retrieval and GraphRAG",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the username field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to the chat workspace"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the chat input with a topology relationship question"
+      },
+      {
+        "type": "action",
+        "description": "Send the chat message"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the chat input with a follow-up question about connected equipment"
+      },
+      {
+        "type": "action",
+        "description": "Send the chat message"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the response becomes more specific to the connected network context"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC007",
+    "title": "Refuse unsupported engineering requests and recover with approved inputs",
+    "description": "A user making an unsupported request receives a fail-closed refusal and can then obtain evidence-based guidance by providing approved references.",
+    "category": "Knowledge Retrieval and GraphRAG",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the username field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to the chat workspace"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the chat input with a request that requires unsupported or inaccessible content"
+      },
+      {
+        "type": "action",
+        "description": "Send the chat message"
+      },
+      {
+        "type": "action",
+        "description": "Verify a fail-closed refusal is displayed"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the chat input with an approved standards or document reference"
+      },
+      {
+        "type": "action",
+        "description": "Send the chat message"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify an evidence-based engineering answer is displayed"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC008",
+    "title": "Correct an invalid study submission and run it successfully",
+    "description": "This verifies that invalid study parameters are rejected, then accepted after correction, with a valid result returned.",
+    "category": "Power System Simulation Engines",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to the study workspace"
+      },
+      {
+        "type": "action",
+        "description": "Submit an incomplete study request"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a study validation error is visible"
+      },
+      {
+        "type": "action",
+        "description": "Correct the study parameters"
+      },
+      {
+        "type": "action",
+        "description": "Submit the corrected study request"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a study result is returned"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC009",
+    "title": "Confirm backend health before viewing live telemetry",
+    "description": "A user can verify backend health and then open the digital twin view to receive live telemetry updates.",
+    "category": "Digital Twin and SCADA",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the username field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to the digital twin and SCADA view"
+      },
+      {
+        "type": "action",
+        "description": "Verify backend health via /healthz is healthy"
+      },
+      {
+        "type": "action",
+        "description": "Wait for live telemetry updates"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify live telemetry data is displayed"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC010",
+    "title": "Clarify an ambiguous engineering request in chat",
+    "description": "This verifies that an ambiguous or unsupported engineering request is met with a constrained clarification prompt and can be resolved with follow-up input.",
+    "category": "Real-Time Chat-First Engineering Workspace",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to the chat workspace"
+      },
+      {
+        "type": "action",
+        "description": "Enter an ambiguous engineering request"
+      },
+      {
+        "type": "action",
+        "description": "Send the message"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a clarification prompt is displayed"
+      },
+      {
+        "type": "action",
+        "description": "Provide the missing inputs"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a constrained non-hallucinated response is displayed"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC011",
+    "title": "Interpret a telemetry alarm in chat",
+    "description": "A user can ask chat to interpret a current telemetry state and receive operational guidance for investigating the event.",
+    "category": "Digital Twin and SCADA",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the username field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to the digital twin and SCADA view"
+      },
+      {
+        "type": "action",
+        "description": "Observe the current device or alarm state"
+      },
+      {
+        "type": "action",
+        "description": "Open the chat workspace"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the chat input with a request to interpret the observed telemetry state"
+      },
+      {
+        "type": "action",
+        "description": "Send the chat message"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify operational guidance for the telemetry state is displayed"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC012",
+    "title": "Handle missing knowledge with a grounded fallback",
+    "description": "A user asking for information with no relevant indexed evidence receives a constrained fallback and can improve the answer by providing more specific terms.",
+    "category": "Knowledge Retrieval and GraphRAG",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the username field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to the chat workspace"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the chat input with an intentionally vague engineering question"
+      },
+      {
+        "type": "action",
+        "description": "Send the chat message"
+      },
+      {
+        "type": "action",
+        "description": "Verify a constrained fallback response is displayed"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the chat input with a more specific follow-up question"
+      },
+      {
+        "type": "action",
+        "description": "Send the chat message"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a more targeted knowledge response is displayed"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC013",
+    "title": "Request telemetry with missing context and recover with a precise asset request",
+    "description": "A user asking for unavailable telemetry receives a constrained response and can refine the request with the correct asset or time window to get useful context.",
+    "category": "Digital Twin and SCADA",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the username field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to the chat workspace"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the chat input with a request for unavailable telemetry data"
+      },
+      {
+        "type": "action",
+        "description": "Send the chat message"
+      },
+      {
+        "type": "action",
+        "description": "Verify a constrained missing-data response is displayed"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the chat input with the correct asset or time range"
+      },
+      {
+        "type": "action",
+        "description": "Send the chat message"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a contextual telemetry answer is displayed"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC014",
+    "title": "Open a known result after an invalid result lookup",
+    "description": "This verifies that an unknown or expired result reference is handled and a valid result can still be opened afterward.",
+    "category": "Power System Simulation Engines",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to the study results area"
+      },
+      {
+        "type": "action",
+        "description": "Open an unknown or expired study result reference"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a not found state is visible"
+      },
+      {
+        "type": "action",
+        "description": "Open a valid study result reference"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify computation results are displayed"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC015",
+    "title": "Show degraded health when telemetry dependencies are unavailable",
+    "description": "A user can see that the platform is unhealthy or degraded when required dependencies are not available and later return to a healthy state after recovery.",
+    "category": "Digital Twin and SCADA",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the username field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to the digital twin and SCADA view"
+      },
+      {
+        "type": "action",
+        "description": "Verify backend health is degraded or unhealthy"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the monitoring view indicates reduced availability"
+      }
+    ],
+    "priority": "Low"
+  },
+  {
+    "id": "TC016",
+    "title": "Recover from a malformed chat submission",
+    "description": "This verifies that a malformed chat payload is rejected and a valid message can then receive a streamed response.",
+    "category": "Real-Time Chat-First Engineering Workspace",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to the chat workspace"
+      },
+      {
+        "type": "action",
+        "description": "Send a malformed chat message"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a chat validation error is visible"
+      },
+      {
+        "type": "action",
+        "description": "Send a valid engineering message"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify streamed assistant responses are displayed"
+      }
+    ],
+    "priority": "Low"
+  }
+]
