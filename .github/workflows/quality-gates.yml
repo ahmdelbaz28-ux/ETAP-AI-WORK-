@@ -64,7 +64,7 @@ jobs:
         uses: docker/setup-buildx-action@v4
 
       - name: Validate docker compose config
-        run: docker compose config --quiet
+        run: docker compose --env-file .env.example config --quiet
 
       - name: Build engineering-service image
         run: docker build -f Dockerfile.engineering-service -t etap-engineering-service:ci .
