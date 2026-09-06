@@ -159,7 +159,10 @@ class TestAIMemoryServiceConfig:
 class TestQdrantIntegrationMocked:
     """Test Qdrant vector memory operations fully mocked."""
 
-    @pytest.mark.skipif(not QDRANT_AVAILABLE, reason="qdrant-client not installed")
+    @pytest.fixture(autouse=True)
+    def _mock_qdrant_env(self, monkeypatch):
+        monkeypatch.setattr("services.memory_service.QDRANT_AVAILABLE", True)
+
     def test_initialize_qdrant_cloud_url(self, monkeypatch):
         """initialize_qdrant() should create QdrantClient with cloud URL."""
         monkeypatch.setenv("QDRANT_URL", "https://test.cloud.qdrant.io")
@@ -176,7 +179,6 @@ class TestQdrantIntegrationMocked:
             url="https://test.cloud.qdrant.io", api_key="test-api-key"
         )
 
-    @pytest.mark.skipif(not QDRANT_AVAILABLE, reason="qdrant-client not installed")
     def test_initialize_qdrant_local(self, monkeypatch):
         """initialize_qdrant() without QDRANT_URL uses host/port."""
         monkeypatch.delenv("QDRANT_URL", raising=False)
@@ -191,7 +193,6 @@ class TestQdrantIntegrationMocked:
         assert result is True
         MockClient.assert_called_once_with(host="localhost", port=6333)
 
-    @pytest.mark.skipif(not QDRANT_AVAILABLE, reason="qdrant-client not installed")
     def test_initialize_qdrant_connection_failure(self):
         """initialize_qdrant() must return False on connection error."""
         with patch(
@@ -203,7 +204,6 @@ class TestQdrantIntegrationMocked:
         assert result is False
         assert svc._initialized_qdrant is False
 
-    @pytest.mark.skipif(not QDRANT_AVAILABLE, reason="qdrant-client not installed")
     def test_save_creates_collection_if_missing(self, monkeypatch):
         """save_to_vector_memory() must create a Qdrant collection if it doesn't exist."""
         monkeypatch.setenv("OPENAI_API_KEY", "test-openai-key")
@@ -227,7 +227,6 @@ class TestQdrantIntegrationMocked:
         mock_client.collection_exists.assert_called_once_with(collection_name="test_col")
         mock_client.create_collection.assert_called_once()
 
-    @pytest.mark.skipif(not QDRANT_AVAILABLE, reason="qdrant-client not installed")
     def test_save_skips_collection_creation_if_exists(self, monkeypatch):
         """save_to_vector_memory() must NOT re-create an existing collection."""
         monkeypatch.setenv("OPENAI_API_KEY", "test-openai-key")
@@ -247,7 +246,6 @@ class TestQdrantIntegrationMocked:
 
         mock_client.create_collection.assert_not_called()
 
-    @pytest.mark.skipif(not QDRANT_AVAILABLE, reason="qdrant-client not installed")
     def test_query_returns_answer_from_retrieved_docs(self, monkeypatch):
         """query_vector_memory() must retrieve docs, prompt LLM, and return result."""
         monkeypatch.setenv(
@@ -293,7 +291,6 @@ class TestQdrantIntegrationMocked:
         mock_retriever.invoke.assert_called_once_with("What is T1 rating?")
         mock_llm.invoke.assert_called_once()
 
-    @pytest.mark.skipif(not QDRANT_AVAILABLE, reason="qdrant-client not installed")
     def test_query_returns_message_if_collection_missing(self, monkeypatch):
         """query_vector_memory() must return message if collection doesn't exist."""
         monkeypatch.setenv("OPENAI_API_KEY", "test-openai-key")
@@ -320,7 +317,10 @@ class TestQdrantIntegrationMocked:
 class TestNeo4jIntegrationMocked:
     """Test Neo4j graph memory operations fully mocked."""
 
-    @pytest.mark.skipif(not LANGCHAIN_NEO4J_AVAILABLE, reason="langchain-neo4j not installed")
+    @pytest.fixture(autouse=True)
+    def _mock_neo4j_env(self, monkeypatch):
+        monkeypatch.setattr("services.memory_service.LANGCHAIN_CORE_AVAILABLE", True)
+
     def test_initialize_neo4j_sets_flag(self):
         """initialize_neo4j() must set _initialized_neo4j=True on success."""
         with patch("services.memory_service.Neo4jGraph") as MockGraph:
@@ -331,7 +331,6 @@ class TestNeo4jIntegrationMocked:
         assert result is True
         assert svc._initialized_neo4j is True
 
-    @pytest.mark.skipif(not LANGCHAIN_NEO4J_AVAILABLE, reason="langchain-neo4j not installed")
     def test_initialize_neo4j_failure_returns_false(self):
         """initialize_neo4j() must return False when Neo4j is unreachable."""
         with patch(
@@ -343,7 +342,6 @@ class TestNeo4jIntegrationMocked:
         assert result is False
         assert svc._initialized_neo4j is False
 
-    @pytest.mark.skipif(not LANGCHAIN_NEO4J_AVAILABLE, reason="langchain-neo4j not installed")
     def test_add_knowledge_transforms_text_to_graph(self):
         """add_knowledge_to_graph() must call LLMGraphTransformer and add_graph_documents."""
         with patch("services.memory_service.Neo4jGraph") as MockGraph:
@@ -352,10 +350,14 @@ class TestNeo4jIntegrationMocked:
                     mock_graph = MagicMock()
                     MockGraph.return_value = mock_graph
                     mock_transformer = MagicMock()
-                    mock_transformer.convert_to_graph_documents.return_value = ["g_doc"]
+                    mock_doc = MagicMock()
+                    mock_doc.nodes = ["Bus", "Line"]
+                    mock_doc.relationships = ["CONNECTED_TO"]
+                    mock_transformer.convert_to_graph_documents.return_value = [mock_doc]
                     MockTransformer.return_value = mock_transformer
 
                     svc = AIMemoryService()
+                    svc.openai_api_key = "sk-test-mock-key"
                     svc.initialize_neo4j()
                     result = svc.add_knowledge_to_graph(
                         "Bus 1 is connected to Bus 2 via Line 10",
@@ -364,9 +366,8 @@ class TestNeo4jIntegrationMocked:
 
         assert result is True
         mock_transformer.convert_to_graph_documents.assert_called_once()
-        mock_graph.add_graph_documents.assert_called_once_with(["g_doc"])
+        mock_graph.add_graph_documents.assert_called_once_with([mock_doc])
 
-    @pytest.mark.skipif(not LANGCHAIN_NEO4J_AVAILABLE, reason="langchain-neo4j not installed")
     def test_query_graph_invokes_cypher_chain(self):
         """query_graph() must route the question through GraphCypherQAChain."""
         with patch("services.memory_service.Neo4jGraph") as MockGraph:
@@ -383,6 +384,7 @@ class TestNeo4jIntegrationMocked:
                     MockChain.from_llm.return_value = mock_chain
 
                     svc = AIMemoryService()
+                    svc.openai_api_key = "sk-test-mock-key"
                     svc.initialize_neo4j()
                     answer = svc.query_graph("Are Bus 1 and Bus 2 connected?")
 

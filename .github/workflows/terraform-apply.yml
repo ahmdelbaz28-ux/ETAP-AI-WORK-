@@ -1,0 +1,184 @@
+# =============================================================================
+# AhmedETAP — Terraform Deployment (Apply) Pipeline
+# =============================================================================
+# Executes ONLY on push to main (when changes are merged).
+# Does NOT execute on pull requests.
+# =============================================================================
+name: Terraform Apply
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "terraform/**"
+      - ".github/workflows/terraform*.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: terraform-apply-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  TF_VERSION: "1.9.0"
+  AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+  AZURE_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+  AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
+
+jobs:
+  tf-apply-dev:
+    name: Terraform Apply (dev)
+    runs-on: ubuntu-latest
+    if: vars.AZURE_SUBSCRIPTION_ID != ''
+    environment: dev
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+
+      - name: Azure OIDC Login
+        uses: azure/login@1384c340ab2dda50fed2bee3041d1d87018aa5e8
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+          terraform_wrapper: false
+
+      - name: Terraform Init (dev backend)
+        id: init
+        run: |
+          cd terraform
+          terraform init \
+            -backend-config="environments/dev/backend.hcl" \
+            -no-color
+
+      - name: Terraform Plan (dev)
+        id: plan
+        run: |
+          cd terraform
+          terraform plan \
+            -var-file="environments/dev/terraform.tfvars" \
+            -no-color \
+            -input=false \
+            -out=tfplan
+
+      - name: Terraform Apply (dev)
+        id: apply
+        run: |
+          cd terraform
+          terraform apply \
+            -auto-approve \
+            -input=false \
+            tfplan
+        continue-on-error: false
+
+  tf-apply-staging:
+    name: Terraform Apply (staging)
+    runs-on: ubuntu-latest
+    if: vars.AZURE_SUBSCRIPTION_ID != ''
+    needs: tf-apply-dev
+    environment: staging
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+
+      - name: Azure OIDC Login
+        uses: azure/login@1384c340ab2dda50fed2bee3041d1d87018aa5e8
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+          terraform_wrapper: false
+
+      - name: Terraform Init (staging backend)
+        id: init
+        run: |
+          cd terraform
+          terraform init \
+            -backend-config="environments/staging/backend.hcl" \
+            -no-color
+
+      - name: Terraform Plan (staging)
+        id: plan
+        run: |
+          cd terraform
+          terraform plan \
+            -var-file="environments/staging/terraform.tfvars" \
+            -no-color \
+            -input=false \
+            -out=tfplan
+
+      - name: Terraform Apply (staging)
+        id: apply
+        run: |
+          cd terraform
+          terraform apply \
+            -auto-approve \
+            -input=false \
+            tfplan
+        continue-on-error: false
+
+  tf-apply-prod:
+    name: Terraform Apply (prod)
+    runs-on: ubuntu-latest
+    if: vars.AZURE_SUBSCRIPTION_ID != ''
+    needs: tf-apply-staging
+    environment: production
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+
+      - name: Azure OIDC Login
+        uses: azure/login@1384c340ab2dda50fed2bee3041d1d87018aa5e8
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+          terraform_wrapper: false
+
+      - name: Terraform Init (prod backend)
+        id: init
+        run: |
+          cd terraform
+          terraform init \
+            -backend-config="environments/prod/backend.hcl" \
+            -no-color
+
+      - name: Terraform Plan (prod)
+        id: plan
+        run: |
+          cd terraform
+          terraform plan \
+            -var-file="environments/prod/terraform.tfvars" \
+            -no-color \
+            -input=false \
+            -out=tfplan
+
+      - name: Terraform Apply (prod)
+        id: apply
+        run: |
+          cd terraform
+          terraform apply \
+            -auto-approve \
+            -input=false \
+            tfplan
+        continue-on-error: false

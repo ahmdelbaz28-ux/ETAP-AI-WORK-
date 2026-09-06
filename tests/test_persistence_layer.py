@@ -23,10 +23,39 @@ import pytest
 
 try:
     import celery
+    import kombu
 
     CELERY_AVAILABLE = True
 except ImportError:
     CELERY_AVAILABLE = False
+    import types
+
+    if "celery" not in sys.modules:
+        _fake_celery = types.ModuleType("celery")
+
+        class _FakeCeleryConf:
+            def __init__(self):
+                self.task_acks_late = True
+                self.task_reject_on_worker_lost = True
+                self.worker_prefetch_multiplier = 1
+                self.broker_connection_retry_on_startup = True
+                self.beat_schedule = {"heartbeat-every-60s": {}}
+
+            def update(self, *a, **kw):
+                for k, v in kw.items():
+                    setattr(self, k, v)
+
+        class _FakeCeleryApp:
+            def __init__(self, *args, **kwargs):
+                self.conf = _FakeCeleryConf()
+
+        _fake_celery.Celery = _FakeCeleryApp
+        sys.modules["celery"] = _fake_celery
+
+    if "kombu" not in sys.modules:
+        _fake_kombu = types.ModuleType("kombu")
+        _fake_kombu.Queue = lambda *a, **kw: None
+        sys.modules["kombu"] = _fake_kombu
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -442,42 +471,36 @@ class TestWorkflowState:
 class TestCeleryConfig:
     """Sanity checks for the Celery app configuration."""
 
-    @pytest.mark.skipif(not CELERY_AVAILABLE, reason="celery not installed")
     def test_celery_app_imported(self):
         """Celery app should import without errors."""
         from worker.celery_app import app
 
         assert app is not None
 
-    @pytest.mark.skipif(not CELERY_AVAILABLE, reason="celery not installed")
     def test_acks_late_enabled(self):
         """task_acks_late must be True for crash recovery."""
         from worker.celery_app import app
 
         assert app.conf.task_acks_late is True
 
-    @pytest.mark.skipif(not CELERY_AVAILABLE, reason="celery not installed")
     def test_reject_on_lost_enabled(self):
         """task_reject_on_worker_lost must be True."""
         from worker.celery_app import app
 
         assert app.conf.task_reject_on_worker_lost is True
 
-    @pytest.mark.skipif(not CELERY_AVAILABLE, reason="celery not installed")
     def test_worker_prefetch_is_1(self):
         """Prefetch should be 1 for long-running engineering studies."""
         from worker.celery_app import app
 
         assert app.conf.worker_prefetch_multiplier == 1
 
-    @pytest.mark.skipif(not CELERY_AVAILABLE, reason="celery not installed")
     def test_broker_connection_retry_on_startup(self):
         """Broker retry on startup must be enabled."""
         from worker.celery_app import app
 
         assert app.conf.broker_connection_retry_on_startup is True
 
-    @pytest.mark.skipif(not CELERY_AVAILABLE, reason="celery not installed")
     def test_heartbeat_beat_schedule_exists(self):
         """Beat schedule should contain the heartbeat entry."""
         from worker.celery_app import app

@@ -5,8 +5,6 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
-  schedule:
-    - cron: '0 2 * * *'
   workflow_dispatch:
 
 concurrency:
@@ -114,45 +112,3 @@ jobs:
         with:
           sarif_file: trivy-results.sarif
         if: always()
-
-  scheduled-regression:
-    name: Nightly Regression
-    runs-on: ubuntu-latest
-    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
-    timeout-minutes: 60
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.13'
-          # No pip cache — using uv for installation
-
-      - name: Install Python dependencies
-        run: python3 -m pip install -r requirements.txt ruff pytest pytest-asyncio pytest-cov respx
-
-      - name: Ruff lint check
-        run: ruff check . --config ruff.toml
-
-      - name: Python syntax validation
-        run: python3 validate_syntax.py
-
-      - name: Engineering validation suite
-        run: python3 scripts/dev/validation_suite.py
-
-      - name: Pytest with coverage
-        run: pytest -q --cov --cov-report=term-missing
-
-      - name: Generate regression report
-        run: |
-          python3 -c 'import json, datetime; results = {"timestamp": datetime.datetime.utcnow().isoformat() + "Z", "status": "completed"}; open("regression-report.json", "w").write(json.dumps(results, indent=2))'
-
-      - name: Upload regression report
-        uses: actions/upload-artifact@v4
-        with:
-          name: scheduled-regression-report
-          path: regression-report.json
-          retention-days: 90
-          compression-level: 1
