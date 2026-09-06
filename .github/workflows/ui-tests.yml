@@ -57,11 +57,23 @@ jobs:
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
       - name: Install Playwright browsers
-        run: npx playwright install --with-deps chromium
+        run: ./node_modules/.bin/playwright install chromium
+      - name: Start Vite dev server
+        run: |
+          ./node_modules/.bin/vite --port 5173 --host 127.0.0.1 &
+          for i in $(seq 1 30); do
+            if curl -s http://127.0.0.1:5173 > /dev/null 2>&1; then
+              echo "✅ Vite ready after ${i}s"
+              break
+            fi
+            sleep 1
+          done
       - name: Run Playwright E2E
-        run: npx playwright test --config=playwright.config.ts
+        run: ./node_modules/.bin/playwright test --config=playwright.config.ts
         env:
-          BASE_URL: http://localhost:5173
+          PLAYWRIGHT_DEV_HOST: '127.0.0.1'
+          # Vite was already started by the step above — skip second launch
+          PLAYWRIGHT_NO_WEBSERVER: '1'
           CI: true
       - name: Upload Playwright report
         if: always()

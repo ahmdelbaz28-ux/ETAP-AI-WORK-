@@ -293,6 +293,11 @@ jobs:
         working-directory: ui
         env:
           PLAYWRIGHT_DEV_HOST: '127.0.0.1'
+          # Vite was already started by the "Start Vite dev server" step above.
+          # Setting this prevents playwright.config.ts from launching a second
+          # Vite instance on the same port (which fails with "port already in use"
+          # when reuseExistingServer:false in CI mode).
+          PLAYWRIGHT_NO_WEBSERVER: '1'
         run: ./node_modules/.bin/playwright test --config=playwright.config.ts
 
       - name: Upload Playwright screenshots (on failure)
