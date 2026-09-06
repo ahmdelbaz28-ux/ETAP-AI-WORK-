@@ -1047,9 +1047,10 @@ function AISettingsPanelInline({ settings, setSettings, notify }: AISettingsPane
     setTestResults((prev) => ({ ...prev, [providerId]: null }));
 
     try {
-      // Save settings to localStorage BEFORE testing so testProviderConnection can read them.
-      // We store the raw values (the llm-chat.ts getSettings() reads them directly).
-      localStorage.setItem("etap-settings", JSON.stringify(settings));
+      // Save settings with encryption BEFORE testing so testProviderConnection can read them.
+      const { setEncryptedSettings, refreshSettingsCache } = await import("../lib/api-config");
+      await setEncryptedSettings(settings);
+      await refreshSettingsCache();
 
       // Call the real test function from llm-chat.ts
       const result = await testProviderConnection(providerId);
@@ -2638,20 +2639,9 @@ export default function Settings() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      // Use the new AES-GCM encryption for secret fields
+      // Use the AES-GCM encryption for secret fields
       const { setEncryptedSettings, refreshSettingsCache } = await import("../lib/api-config");
       await setEncryptedSettings(settings);
-
-      // Also save legacy XOR format for backward compatibility with older code
-      const toStore: Record<string, string> = {};
-      for (const [k, v] of Object.entries(settings)) {
-        toStore[k] = SECRET_FIELDS.has(k) ? obfuscate(v) : v;
-      }
-      localStorage.setItem("etap-settings", JSON.stringify(toStore));
-
-      if (settings.API_KEY_SECRET) {
-        localStorage.setItem("etap-api-key", obfuscate(settings.API_KEY_SECRET));
-      }
 
       // Refresh the sync cache so getCachedSettings() returns the new values
       await refreshSettingsCache();

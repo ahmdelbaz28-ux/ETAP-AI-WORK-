@@ -21,6 +21,11 @@ import { ProviderLogo } from "../components/ProviderLogo";
 import { useNotify } from "../context/NotificationContext";
 import { type AgentMeta, fetchAgents } from "../lib/api";
 import {
+  getDeobfuscatedSettings,
+  refreshSettingsCache,
+  setEncryptedSettings,
+} from "../lib/api-config";
+import {
   type ChatMessage,
   chatWithLLM,
   chatWithLLMStream,
@@ -406,10 +411,12 @@ export default function AIAssistant() {
                 {/* Model selector dropdown — lets user change model on the fly */}
                 <select
                   value={activeProvider.model}
-                  onChange={(e) => {
-                    const settings = JSON.parse(localStorage.getItem("etap-settings") || "{}");
-                    settings[`PROVIDER_${activeProvider.id.toUpperCase()}_MODEL`] = e.target.value;
-                    localStorage.setItem("etap-settings", JSON.stringify(settings));
+                  onChange={async (e) => {
+                    const nextModel = e.target.value;
+                    const settings = await getDeobfuscatedSettings();
+                    settings[`PROVIDER_${activeProvider.id.toUpperCase()}_MODEL`] = nextModel;
+                    await setEncryptedSettings(settings);
+                    await refreshSettingsCache();
                     globalThis.location.reload();
                   }}
                   className="text-[10px] text-gray-500 dark:text-gray-400 leading-tight bg-transparent outline-none cursor-pointer border-none p-0 m-0 max-w-[180px] sm:max-w-[250px]"
@@ -429,10 +436,12 @@ export default function AIAssistant() {
               {configuredProviders.length > 1 && (
                 <select
                   value={activeProvider.id}
-                  onChange={(e) => {
-                    const settings = JSON.parse(localStorage.getItem("etap-settings") || "{}");
-                    settings.PROVIDER_ACTIVE_PROVIDER_ID = e.target.value;
-                    localStorage.setItem("etap-settings", JSON.stringify(settings));
+                  onChange={async (e) => {
+                    const nextProviderId = e.target.value;
+                    const settings = await getDeobfuscatedSettings();
+                    settings.PROVIDER_ACTIVE_PROVIDER_ID = nextProviderId;
+                    await setEncryptedSettings(settings);
+                    await refreshSettingsCache();
                     globalThis.location.reload();
                   }}
                   className="ml-1 appearance-none bg-transparent text-[10px] text-gray-500 dark:text-gray-400 outline-none cursor-pointer"

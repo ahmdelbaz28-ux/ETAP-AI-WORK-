@@ -54,7 +54,12 @@ import {
   saveVisionKey,
   testVisionKey,
 } from "../../lib/api";
-import { getCachedSettings, refreshSettingsCache } from "../../lib/api-config";
+import {
+  getCachedSettings,
+  getDeobfuscatedSettings,
+  refreshSettingsCache,
+  setEncryptedSettings,
+} from "../../lib/api-config";
 import { isElectronRuntime, testProviderConnection } from "../../lib/llm-chat";
 import { type ProviderKeyConfig, listProviderKeys, testProviderKey } from "../../lib/provider-keys";
 import { POPULAR_PROVIDERS } from "../Settings";
@@ -200,9 +205,8 @@ export function ProvidersTab({ children, notify: notifyProp }: Readonly<Provider
   const testElectronConnection = async (providerId: string) => {
     // In Electron: if user has typed a key in the edit form, persist locally first so testProviderConnection can read it
     const currentEdit = editFields[providerId];
-    if (currentEdit?.apiKey && typeof window !== "undefined" && window.localStorage) {
-      const stored = localStorage.getItem("etap-settings");
-      const settings = stored ? JSON.parse(stored) : {};
+    if (currentEdit?.apiKey && typeof window !== "undefined") {
+      const settings = await getDeobfuscatedSettings();
       settings[`PROVIDER_${providerId.toUpperCase()}_KEY`] = currentEdit.apiKey.trim();
       if (currentEdit.model) {
         settings[`PROVIDER_${providerId.toUpperCase()}_MODEL`] = currentEdit.model.trim();
@@ -210,7 +214,7 @@ export function ProvidersTab({ children, notify: notifyProp }: Readonly<Provider
       if (currentEdit.baseUrl) {
         settings[`PROVIDER_${providerId.toUpperCase()}_BASE_URL`] = currentEdit.baseUrl.trim();
       }
-      localStorage.setItem("etap-settings", JSON.stringify(settings));
+      await setEncryptedSettings(settings);
       await refreshSettingsCache();
     }
 
@@ -325,9 +329,8 @@ export function ProvidersTab({ children, notify: notifyProp }: Readonly<Provider
     }
 
     try {
-      if (typeof window !== "undefined" && window.localStorage) {
-        const stored = localStorage.getItem("etap-settings");
-        const settings = stored ? JSON.parse(stored) : {};
+      if (typeof window !== "undefined") {
+        const settings = await getDeobfuscatedSettings();
         settings[`PROVIDER_${providerId.toUpperCase()}_KEY`] = edit.apiKey.trim();
         if (edit.model.trim()) {
           settings[`PROVIDER_${providerId.toUpperCase()}_MODEL`] = edit.model.trim();
@@ -335,7 +338,7 @@ export function ProvidersTab({ children, notify: notifyProp }: Readonly<Provider
         if (edit.baseUrl.trim()) {
           settings[`PROVIDER_${providerId.toUpperCase()}_BASE_URL`] = edit.baseUrl.trim();
         }
-        localStorage.setItem("etap-settings", JSON.stringify(settings));
+        await setEncryptedSettings(settings);
         await refreshSettingsCache();
       }
 
