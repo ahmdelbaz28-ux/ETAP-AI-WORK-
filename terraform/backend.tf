@@ -30,20 +30,18 @@ terraform {
     container_name       = null # overridden by backend.hcl
     key                  = null # overridden by backend.hcl
     use_azuread_auth     = true # OIDC auth, no storage key needed
+  }
+}
 
-# AhmedETAP — Terraform Local State Backend
+# =============================================================================
+# AhmedETAP — Terraform Local State Backend (Alternative for offline use)
 # =============================================================================
 # Uses local file-based state. No Azure subscription required.
 #
-# To switch back to Azure remote state, replace with:
-#   backend "azurerm" {
-#     use_azuread_auth = true
+# To switch to local state for offline development:
+# terraform {
+#   backend "local" {
+#     path = "terraform.tfstate"
 #   }
-#   terraform init -backend-config="environments/<env>/backend.hcl"
+# }
 # =============================================================================
-
-terraform {
-  backend "local" {
-    path = "terraform.tfstate"
-  }
-}
