@@ -514,3 +514,10 @@ _*.py
 checks-409.json
 runs-on-main.json
 
+
+# TestSprite runtime artifacts and local configurations
+.testsprite/
+testsprite_tests/tmp/
+
+testsprite_tests/tmp_assistant.html
+testsprite_tests/tmp_assistant*.html

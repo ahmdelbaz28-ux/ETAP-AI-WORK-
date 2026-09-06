@@ -208,6 +208,9 @@ export default function App() {
                 <Route path="/" element={<Navigate to="/dashboard" replace />} />
                 {/* P8 core: chat-first assistant stays put */}
                 <Route path="/assistant" element={<AIAssistantPage />} />
+                <Route path="/chat" element={<Navigate to="/assistant" replace />} />
+                <Route path="/results" element={<Navigate to="/advanced/studies" replace />} />
+                <Route path="/studies/results" element={<Navigate to="/advanced/studies" replace />} />
                 {/* P8 admin: RBAC surface stays put */}
                 <Route path="/admin" element={<AdministrationPage />} />
                 <Route path="/admin/cua-monitor" element={<CuaMonitorPage />} />

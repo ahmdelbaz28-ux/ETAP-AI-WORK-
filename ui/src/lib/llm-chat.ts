@@ -1018,8 +1018,6 @@ export async function isServerChatStreamEnabled(): Promise<boolean> {
   return _serverChatFlagCache;
 }
 
-let _chatSessionId: string | null = null;
-
 function generateRandomHex(): string {
   if (typeof crypto !== "undefined") {
     if (typeof crypto.randomUUID === "function") {
@@ -1036,10 +1034,13 @@ function generateRandomHex(): string {
 
 /** Stable chat session id per page load (for correlation on the server). */
 export function getChatSessionId(): string {
-  if (!_chatSessionId) {
-    _chatSessionId = `sess-web-${Date.now().toString(36)}-${generateRandomHex().slice(0, 8)}`;
+  const g = (typeof window !== "undefined" ? window : globalThis) as unknown as {
+    __chatSessionId?: string;
+  };
+  if (!g.__chatSessionId) {
+    g.__chatSessionId = `sess-web-${Date.now().toString(36)}-${generateRandomHex().slice(0, 8)}`;
   }
-  return _chatSessionId;
+  return g.__chatSessionId;
 }
 
 interface ServerChatEventData {

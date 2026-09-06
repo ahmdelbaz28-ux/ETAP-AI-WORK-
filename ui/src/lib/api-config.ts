@@ -26,10 +26,15 @@ function resolveApiBaseUrl(): string {
   const env = (import.meta as unknown as { env?: Record<string, string> }).env;
   if (env?.VITE_API_URL) return env.VITE_API_URL;
 
-  // 2. On the HF Space, the UI is served from the same origin as the API.
-  //    Detect this by checking if we're on *.hf.space.
+  // 2. On HF Space or local dev (localhost / 127.0.0.1), UI uses same-origin / Vite proxy.
   //    Use typeof window check to avoid ReferenceError during Vite build (Node.js).
-  if (typeof window !== "undefined" && window.location?.hostname.endsWith(".hf.space")) {
+  if (
+    typeof window !== "undefined" &&
+    (window.location?.hostname.endsWith(".hf.space") ||
+      window.location?.hostname === "localhost" ||
+      window.location?.hostname === "127.0.0.1" ||
+      window.location?.hostname === "0.0.0.0")
+  ) {
     return ""; // same-origin — empty prefix so fetch('/api/v1/...') works
   }
 

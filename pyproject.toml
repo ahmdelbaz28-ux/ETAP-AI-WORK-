@@ -211,7 +211,7 @@ testpaths = ["tests", "acp_runtime/acp_tests"]
 pythonpath = ["."]
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
-python_files = ["test_*.py", "*_test.py", "unit_tests.py"]
+python_files = ["test_*.py", "*_test.py", "unit_tests.py", "TC*.py"]
 addopts = "-v --tb=short -x"
 filterwarnings = [
     "ignore::DeprecationWarning",

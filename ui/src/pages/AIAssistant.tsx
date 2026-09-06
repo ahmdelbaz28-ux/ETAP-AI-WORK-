@@ -481,7 +481,7 @@ export default function AIAssistant() {
       {/* Main Chat Area */}
       <main className="flex-1 overflow-y-auto px-4 sm:px-8 py-8 w-full">
         <div className="max-w-3xl mx-auto w-full space-y-8 pb-32">
-          {messages.length === 0 ? (
+          {!Array.isArray(messages) || messages.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full pt-8 sm:pt-16 text-center animate-in fade-in slide-in-from-bottom-4 duration-700">
               {/* API Key Warning Banner — shown if no key configured */}
               {hasApiKey === false && (
