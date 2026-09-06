@@ -324,8 +324,8 @@ export default function EmailDashboardPage() {
         ),
         dashboardFetch<ByDayResponse>(`/api/v1/email-dashboard/api/by-day?days=${days ?? 7}`),
       ]);
-      setStats(statsRes.stats);
-      setByDay(byDayRes.days);
+      setStats(statsRes?.stats ?? null);
+      setByDay(Array.isArray(byDayRes?.days) ? byDayRes.days : []);
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       setStatsError(msg);
@@ -342,7 +342,7 @@ export default function EmailDashboardPage() {
       const res = await dashboardFetch<RecentResponse>(
         `/api/v1/email-dashboard/api/recent?limit=100${flowParam || ""}`,
       );
-      setRecent(res.records);
+      setRecent(Array.isArray(res?.records) ? res.records : []);
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       setRecentError(msg);
@@ -436,7 +436,7 @@ export default function EmailDashboardPage() {
   // Derived values
   // -------------------------------------------------------------------------
 
-  const maxDayTotal = useMemo(() => Math.max(1, ...byDay.map((d) => d.total)), [byDay]);
+  const maxDayTotal = useMemo(() => Math.max(1, ...(byDay ?? []).map((d) => d.total)), [byDay]);
 
   // -------------------------------------------------------------------------
   // Render
@@ -597,7 +597,7 @@ export default function EmailDashboardPage() {
                 <Card>
                   <CardHeader title="By Flow" />
                   <CardSection>
-                    {Object.keys(stats.by_flow).length === 0 ? (
+                    {Object.keys(stats?.by_flow ?? {}).length === 0 ? (
                       <EmptyState
                         icon={<Activity className="h-8 w-8" />}
                         title="No sends in window"
@@ -615,7 +615,7 @@ export default function EmailDashboardPage() {
                           </tr>
                         </thead>
                         <tbody>
-                          {Object.entries(stats.by_flow)
+                          {Object.entries(stats?.by_flow ?? {})
                             .sort((a, b) => b[1].total - a[1].total)
                             .map(([flow, c]) => (
                               <tr key={flow} className="border-b border-zinc-900">
@@ -642,7 +642,7 @@ export default function EmailDashboardPage() {
                 <Card>
                   <CardHeader title={`Daily Sends (last ${days} days)`} />
                   <CardSection>
-                    {byDay.length === 0 ? (
+                    {(byDay ?? []).length === 0 ? (
                       <EmptyState
                         icon={<Activity className="h-8 w-8" />}
                         title="No data"
@@ -650,7 +650,7 @@ export default function EmailDashboardPage() {
                       />
                     ) : (
                       <div className="space-y-2">
-                        {byDay.map((d) => (
+                        {(byDay ?? []).map((d) => (
                           <div key={d.date} className="flex items-center gap-3 text-sm">
                             <span className="w-24 shrink-0 text-xs text-zinc-500">{d.date}</span>
                             <div className="relative h-6 flex-1 overflow-hidden rounded bg-zinc-800">
@@ -698,11 +698,11 @@ export default function EmailDashboardPage() {
                 <Card>
                   <CardHeader title="Top Errors" />
                   <CardSection>
-                    {stats.top_errors.length === 0 ? (
+                    {(stats?.top_errors ?? []).length === 0 ? (
                       <p className="py-4 text-center text-sm text-zinc-500">No errors in window.</p>
                     ) : (
                       <ul className="space-y-2 text-sm">
-                        {stats.top_errors.map((e) => (
+                        {(stats?.top_errors ?? []).map((e) => (
                           <li
                             key={`err-${e.error.slice(0, 40)}-${e.count}`}
                             className="flex items-start gap-2"
@@ -722,13 +722,13 @@ export default function EmailDashboardPage() {
                 <Card>
                   <CardHeader title="Top Recipients" />
                   <CardSection>
-                    {stats.top_recipients.length === 0 ? (
+                    {(stats?.top_recipients ?? []).length === 0 ? (
                       <p className="py-4 text-center text-sm text-zinc-500">
                         No recipients in window.
                       </p>
                     ) : (
                       <ul className="space-y-2 text-sm">
-                        {stats.top_recipients.map((r) => (
+                        {(stats?.top_recipients ?? []).map((r) => (
                           <li key={`rec-${r.email}`} className="flex items-center gap-2">
                             <Badge className="bg-zinc-500/10 text-zinc-300 border border-zinc-500/30">
                               ×{r.count}

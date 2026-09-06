@@ -788,8 +788,8 @@ export default function ScadaIntegration() {
                     {isRtl ? "السجلات فارغة." : "Trace is empty."}
                   </p>
                 ) : (
-                  logs.map((log) => (
-                    <div key={log} className="border-b border-[var(--border-primary)]/40 pb-1">
+                  logs.map((log, idx) => (
+                    <div key={`scada-log-${idx}-${log.slice(0, 30)}`} className="border-b border-[var(--border-primary)]/40 pb-1">
                       {log}
                     </div>
                   ))

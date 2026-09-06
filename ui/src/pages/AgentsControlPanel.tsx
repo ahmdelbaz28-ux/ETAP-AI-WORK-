@@ -430,7 +430,7 @@ export default function AgentsControlPanelPage() {
     setAgentsError(null);
     try {
       const res = await agentsFetch<AgentsListResponse>("/api/v1/agents");
-      setAgents(res.agents);
+      setAgents(Array.isArray(res?.agents) ? res.agents : []);
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       setAgentsError(msg);
@@ -531,10 +531,10 @@ export default function AgentsControlPanelPage() {
     }
   }, [
     tab,
-    agents.length,
+    agents?.length ?? 0,
     cuaHealth,
     siemHealth,
-    siemEvents.length,
+    siemEvents?.length ?? 0,
     ahmedInfo,
     loadAgents,
     loadAgentsInfo,

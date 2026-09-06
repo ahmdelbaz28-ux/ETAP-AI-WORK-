@@ -343,6 +343,7 @@ export const POPULAR_PROVIDERS = [
     id: "fireworks",
     name: "Fireworks AI",
     models: [
+      { id: "accounts/fireworks/models/kimi-k2p7-code", name: "Kimi K2 P7 Code", isFree: false },
       {
         id: "accounts/fireworks/models/llama-v3p1-8b-instruct",
         name: "Llama 3.1 8B",
@@ -382,12 +383,16 @@ export const POPULAR_PROVIDERS = [
     id: "cloudflare",
     name: "Cloudflare Workers AI",
     models: [
+      { id: "@cf/moonshotai/kimi-k2.6", name: "Kimi K2.6 (Moonshot)", isFree: true },
+      { id: "@cf/meta/llama-3.3-70b-instruct-fp8-fast", name: "Llama 3.3 70B Fast", isFree: true },
       { id: "@cf/meta/llama-3.1-8b-instruct", name: "Llama 3.1 8B (free)", isFree: true },
       { id: "@cf/meta/llama-3.1-70b-instruct", name: "Llama 3.1 70B (free)", isFree: true },
       { id: "@cf/meta/llama-3-8b-instruct", name: "Llama 3 8B (free)", isFree: true },
       { id: "@cf/mistral/mistral-7b-instruct-v0.1", name: "Mistral 7B (free)", isFree: true },
+      { id: "@cf/mistral/mistral-7b-instruct-v0.2", name: "Mistral 7B v0.2", isFree: true },
       { id: "@cf/qwen/qwen1.5-14b-chat-awq", name: "Qwen 1.5 14B (free)", isFree: true },
       { id: "@cf/google/gemma-2-9b-it", name: "Gemma 2 9B (free)", isFree: true },
+      { id: "@cf/openchat/openchat-3.5-0106", name: "OpenChat 3.5", isFree: true },
     ],
     defaultModel: "@cf/meta/llama-3.1-8b-instruct",
     defaultBaseUrl: "https://api.cloudflare.com/client/v4/accounts",
@@ -460,40 +465,6 @@ export const POPULAR_PROVIDERS = [
     defaultBaseUrl: "https://api.zenmux.ai/v1",
     color: "#6366F1",
     apiKeyUrl: "https://zenmux.ai",
-    isFree: false,
-    apiType: "openai" as const,
-  },
-  // ─── Fireworks AI (verified: https://api.fireworks.ai/inference/v1) ─
-  {
-    id: "fireworks",
-    name: "Fireworks AI",
-    models: [
-      { id: "accounts/fireworks/models/kimi-k2p7-code", name: "Kimi K2 P7 Code", isFree: false },
-      {
-        id: "accounts/fireworks/models/llama-v3p1-405b-instruct",
-        name: "Llama 3.1 405B",
-        isFree: false,
-      },
-      {
-        id: "accounts/fireworks/models/llama-v3p1-70b-instruct",
-        name: "Llama 3.1 70B",
-        isFree: false,
-      },
-      {
-        id: "accounts/fireworks/models/mixtral-8x22b-instruct",
-        name: "Mixtral 8x22B",
-        isFree: false,
-      },
-      {
-        id: "accounts/fireworks/models/qwen2p5-coder-32b-instruct",
-        name: "Qwen 2.5 Coder 32B",
-        isFree: false,
-      },
-    ],
-    defaultModel: "accounts/fireworks/models/kimi-k2p7-code",
-    defaultBaseUrl: "https://api.fireworks.ai/inference/v1",
-    color: "#F47F2A",
-    apiKeyUrl: "https://fireworks.ai/api-keys",
     isFree: false,
     apiType: "openai" as const,
   },
@@ -580,28 +551,6 @@ export const POPULAR_PROVIDERS = [
     color: "#06B6D4",
     apiKeyUrl: "https://bynara.id",
     isFree: false,
-    apiType: "openai" as const,
-  },
-  // ─── Cloudflare Workers AI (https://developers.cloudflare.com/workers-ai/) ─
-  // Requires BOTH API token and account ID. The account ID goes in the URL path:
-  // https://api.cloudflare.com/client/v4/accounts/{ACCOUNT_ID}/ai/v1
-  // Verified working 2026-07-08: kimi-k2.6, llama-3.3-70b-instruct-fp8-fast
-  {
-    id: "cloudflare",
-    name: "Cloudflare Workers AI",
-    models: [
-      { id: "@cf/moonshotai/kimi-k2.6", name: "Kimi K2.6 (Moonshot, reasoning)", isFree: true },
-      { id: "@cf/meta/llama-3.3-70b-instruct-fp8-fast", name: "Llama 3.3 70B Fast", isFree: true },
-      { id: "@cf/meta/llama-3.1-70b-instruct", name: "Llama 3.1 70B", isFree: true },
-      { id: "@cf/mistral/mistral-7b-instruct-v0.2", name: "Mistral 7B", isFree: true },
-      { id: "@cf/google/gemma-2-9b-it", name: "Gemma 2 9B", isFree: true },
-      { id: "@cf/openchat/openchat-3.5-0106", name: "OpenChat 3.5", isFree: true },
-    ],
-    defaultModel: "@cf/moonshotai/kimi-k2.6",
-    defaultBaseUrl: "https://api.cloudflare.com/client/v4/accounts/PLACEHOLDER/ai/v1",
-    color: "#F38020",
-    apiKeyUrl: "https://dash.cloudflare.com/profile/api-tokens",
-    isFree: true,
     apiType: "openai" as const,
   },
 ];
