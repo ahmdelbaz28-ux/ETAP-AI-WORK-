@@ -88,10 +88,10 @@ services:
       resources:
         limits:
           cpus: '4.0'
-          memory: 4Gi
+          memory: 4G
         reservations:
           cpus: '0.25'
-          memory: 256Mi
+          memory: 256M
 
     # ── Expose debug ports (only in development) ────────────────────────────
     # Production docker-compose.yml only exposes port 8000.
@@ -132,7 +132,7 @@ services:
       resources:
         limits:
           cpus: '2.0'
-          memory: 2Gi
+          memory: 2G
         reservations:
           cpus: '0.25'
-          memory: 256Mi
+          memory: 256M

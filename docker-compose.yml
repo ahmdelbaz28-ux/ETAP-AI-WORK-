@@ -36,10 +36,10 @@ services:
       resources:
         limits:
           cpus: '2.0'
-          memory: 2Gi
+          memory: 2G
         reservations:
           cpus: '0.5'
-          memory: 512Mi
+          memory: 512M
     depends_on:
       redis:
         condition: service_healthy
@@ -77,10 +77,10 @@ services:
       resources:
         limits:
           cpus: '1.0'
-          memory: 1Gi
+          memory: 1G
         reservations:
           cpus: '0.25'
-          memory: 256Mi
+          memory: 256M
     healthcheck:
       test: ["CMD-SHELL", "celery -A worker.celery_app inspect ping -d celery@$$HOSTNAME >/dev/null 2>&1 || exit 1"]
       interval: 30s
@@ -115,10 +115,10 @@ services:
       resources:
         limits:
           cpus: '1.0'
-          memory: 512Mi
+          memory: 512M
         reservations:
           cpus: '0.2'
-          memory: 128Mi
+          memory: 128M
     healthcheck:
       test: ["CMD-SHELL", "redis-cli ping"]
       interval: 10s
@@ -140,10 +140,10 @@ services:
       resources:
         limits:
           cpus: '2.0'
-          memory: 2Gi
+          memory: 2G
         reservations:
           cpus: '0.5'
-          memory: 512Mi
+          memory: 512M
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -165,10 +165,10 @@ services:
       resources:
         limits:
           cpus: '1.0'
-          memory: 1Gi
+          memory: 1G
         reservations:
           cpus: '0.2'
-          memory: 256Mi
+          memory: 256M
     volumes:
       - grafana_storage:/var/lib/grafana
     healthcheck:
@@ -193,10 +193,10 @@ services:
       resources:
         limits:
           cpus: '2.0'
-          memory: 2Gi
+          memory: 2G
         reservations:
           cpus: '0.5'
-          memory: 512Mi
+          memory: 512M
     volumes:
       - qdrant_storage:/qdrant/storage
     networks:
@@ -224,10 +224,10 @@ services:
       resources:
         limits:
           cpus: '2.0'
-          memory: 2Gi
+          memory: 2G
         reservations:
           cpus: '0.5'
-          memory: 512Mi
+          memory: 512M
     volumes:
       - neo4j_data:/data
       - neo4j_logs:/logs
