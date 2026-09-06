@@ -63,7 +63,7 @@ jobs:
       - name: Run Semgrep with security rulesets
         run: |
           echo "Running Semgrep with security rulesets..."
-          semgrep ci \
+          semgrep scan \
             --config p/python \
             --config p/security-audit \
             --config p/secrets \
@@ -78,9 +78,8 @@ jobs:
             --config p/ldap-injection \
             --config p/secure-defaults \
             --config semgrep.yml \
-            --sarif --output semgrep-results.sarif \
-            --json --output semgrep-results.json \
-            --error \
+            --json --json-output=semgrep-results.json \
+            --sarif --sarif-output=semgrep-results.sarif \
             --exclude 'tests/**' \
             --exclude 'testsprite_tests/**' \
             --exclude 'acp_runtime/acp_tests/**' \

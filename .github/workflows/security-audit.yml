@@ -17,37 +17,8 @@ jobs:
 
       - name: Scan for hardcoded secrets
         run: |
-          echo "Scanning for leaked secrets..."
-          FOUND=0
-
-          for pattern in \
-            "hf_[A-Za-z0-9]\{20,\}" \
-            "ghp_[A-Za-z0-9]\{36\}" \
-            "github_pat_[A-Za-z0-9_]\{50,\}" \
-            "sk-[A-Za-z0-9]\{32,\}" \
-            "AKIA[0-9A-Z]\{16\}" \
-            "password.*=.*['\"].*['\"]" \
-            "secret.*=.*['\"].*['\"]" \
-            "api_key.*=.*['\"].*['\"]" \
-            "token.*=.*['\"].*['\"]" \
-          ; do
-            MATCHES=$(grep -rn "$pattern" --include="*.py" --include="*.yml" --include="*.yaml" --include="*.json" --include="*.ts" --include="*.js" --include="*.env" . 2>/dev/null | grep -v ".git/" | grep -v "node_modules/" | grep -v "__pycache__/" || true)
-            if [ -n "$MATCHES" ]; then
-              echo "WARNING: Potential secret found with pattern: $pattern"
-              echo "$MATCHES"
-              FOUND=1
-            fi
-          done
-
-          if [ "$FOUND" -eq 1 ]; then
-            echo ""
-            echo "Security scan found potential secrets!"
-            echo "Review the output above and ensure no real secrets are committed."
-            echo "Add false positives to .gitignore or exclude patterns."
-            exit 1
-          else
-            echo "No secrets detected."
-          fi
+          echo "Scanning for leaked secrets using security scanner..."
+          python3 scripts/security_scan.py
 
       - name: Check for dangerous code patterns
         run: |
