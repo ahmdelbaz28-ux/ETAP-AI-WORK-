@@ -2531,6 +2531,90 @@ function VisionApiKeysPanel({
   );
 }
 
+interface SettingsActiveTabPanelProps {
+  readonly activeTab: string;
+  readonly chatFirstEnabled: boolean;
+  readonly notify: (type: "success" | "error" | "info" | "warning", message: string) => void;
+  readonly settings: Record<string, string>;
+  readonly setSettings: React.Dispatch<React.SetStateAction<Record<string, string>>>;
+  readonly currentSections: Array<{ title: string; fields: string[] }>;
+}
+
+function SettingsActiveTabPanel({
+  activeTab,
+  chatFirstEnabled,
+  notify,
+  settings,
+  setSettings,
+  currentSections,
+}: SettingsActiveTabPanelProps) {
+  switch (activeTab) {
+    case "agentsTab":
+      return chatFirstEnabled ? <AgentsTab notify={notify} /> : null;
+    case "skillsPromptsTab":
+      return chatFirstEnabled ? <SkillsPromptsTab notify={notify} /> : null;
+    case "ai":
+      return (
+        <AISettingsPanelInline
+          settings={settings}
+          setSettings={setSettings}
+          notify={notify}
+        />
+      );
+    case "providers":
+      return <ProviderKeysPanel notify={notify} />;
+    case "agentsSkillsPrompts":
+      return <AgentsSkillsPromptsPanel notify={notify} />;
+    case "mcp":
+      return chatFirstEnabled ? <McpServersTab /> : null;
+    case "importExport":
+      return chatFirstEnabled ? <ImportExportTab notify={notify} /> : null;
+    case "external":
+      return (
+        <ExternalServicesPanel
+          settings={settings}
+          setSettings={setSettings}
+          notify={notify}
+        />
+      );
+    case "vision":
+      return <VisionApiKeysPanel notify={notify} />;
+    case "engineeringEngine":
+      return <EngineeringEngineSettings />;
+    case "aiCopilot":
+      return <AISettingsPanel />;
+    case "storage":
+      return <StorageManagement />;
+    case "notifications":
+      return <NotificationSettings />;
+    default:
+      return (
+        <>
+          {activeTab === "security" && <SecurityFlagsPanel notify={notify} />}
+          {currentSections.map((section) => (
+            <Card key={section.title} padding="md">
+              <CardHeader
+                title={section.title}
+                subtitle={`${section.fields.length} field${section.fields.length === 1 ? "" : "s"}`}
+                icon={TAB_SECTIONS[activeTab]?.icon}
+              />
+              <div className="space-y-4">
+                {section.fields.map((field) => (
+                  <SettingsField
+                    key={field}
+                    field={field}
+                    value={settings[field] || ""}
+                    onChange={(v) => setSettings((p) => ({ ...p, [field]: v }))}
+                  />
+                ))}
+              </div>
+            </Card>
+          ))}
+        </>
+      );
+  }
+}
+
 export default function Settings() {
   const [settings, setSettings] = useState<Record<string, string>>(loadInitialSettings);
   const [saving, setSaving] = useState(false);
@@ -2693,69 +2777,14 @@ export default function Settings() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.2 }}
         >
-          {(() => {
-            if (activeTab === "agentsTab") {
-              return chatFirstUi.enabled ? <AgentsTab notify={notify} /> : null;
-            }
-            if (activeTab === "skillsPromptsTab") {
-              return chatFirstUi.enabled ? <SkillsPromptsTab notify={notify} /> : null;
-            }
-            if (activeTab === "ai")
-              return (
-                <AISettingsPanelInline
-                  settings={settings}
-                  setSettings={setSettings}
-                  notify={notify}
-                />
-              );
-            if (activeTab === "providers") return <ProviderKeysPanel notify={notify} />;
-            if (activeTab === "agentsSkillsPrompts")
-              return <AgentsSkillsPromptsPanel notify={notify} />;
-            if (activeTab === "mcp") {
-              return chatFirstUi.enabled ? <McpServersTab /> : null;
-            }
-            if (activeTab === "importExport") {
-              return chatFirstUi.enabled ? <ImportExportTab notify={notify} /> : null;
-            }
-            if (activeTab === "external")
-              return (
-                <ExternalServicesPanel
-                  settings={settings}
-                  setSettings={setSettings}
-                  notify={notify}
-                />
-              );
-            if (activeTab === "vision") return <VisionApiKeysPanel notify={notify} />;
-            if (activeTab === "engineeringEngine") return <EngineeringEngineSettings />;
-            if (activeTab === "aiCopilot") return <AISettingsPanel />;
-            if (activeTab === "storage") return <StorageManagement />;
-            if (activeTab === "notifications") return <NotificationSettings />;
-            return (
-              <>
-                {/* P7d: backend-authoritative security & feature-flags panel */}
-                {activeTab === "security" && <SecurityFlagsPanel notify={notify} />}
-                {currentSections.map((section) => (
-                  <Card key={section.title} padding="md">
-                    <CardHeader
-                      title={section.title}
-                      subtitle={`${section.fields.length} field${section.fields.length === 1 ? "" : "s"}`}
-                      icon={TAB_SECTIONS[activeTab]?.icon}
-                    />
-                    <div className="space-y-4">
-                      {section.fields.map((field) => (
-                        <SettingsField
-                          key={field}
-                          field={field}
-                          value={settings[field] || ""}
-                          onChange={(v) => setSettings((p) => ({ ...p, [field]: v }))} // NOSONAR — S2004: 5-level nesting is acceptable for inline form onChange in JSX
-                        />
-                      ))}
-                    </div>
-                  </Card>
-                ))}
-              </>
-            );
-          })()}
+          <SettingsActiveTabPanel
+            activeTab={activeTab}
+            chatFirstEnabled={chatFirstUi.enabled}
+            notify={notify}
+            settings={settings}
+            setSettings={setSettings}
+            currentSections={currentSections}
+          />
         </motion.div>
       </TabPanels>
     </div>

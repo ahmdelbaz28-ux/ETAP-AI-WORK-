@@ -622,6 +622,7 @@ async def _read_limited(file: UploadFile, limit: int) -> bytes:
     status_code=201,
     responses={
         400: {"description": "Invalid result creation request"},
+        413: {"description": "Summary JSON is too large"},
         500: {"description": "Result creation failed"},
     },
 )

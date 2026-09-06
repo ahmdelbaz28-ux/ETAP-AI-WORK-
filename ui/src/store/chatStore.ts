@@ -593,8 +593,8 @@ export const useChatStore = create<ChatWorkspaceState>()((set, get) => ({
 
   addResult: (entry) => {
     const current = get().results;
-    const existing = current.find((r) => r.resultId === entry.resultId);
-    if (existing) {
+    const exists = current.some((r) => r.resultId === entry.resultId);
+    if (exists) {
       set({
         results: current.map((r) => (r.resultId === entry.resultId ? { ...r, ...entry } : r)),
         selectedResultId: get().selectedResultId ?? entry.resultId,

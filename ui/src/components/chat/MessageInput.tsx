@@ -24,6 +24,12 @@ import { Card, CardHeader, CardSection } from "../ui/Card";
 const MAX_ATTACHMENT_BYTES = 10 * 1024 * 1024; // 10 MiB
 const ALLOWED_EXTENSIONS = [".json", ".xml", ".cim", ".raw", ".m", ".csv", ".tsv", ".etap"];
 
+function getImportRiskVariant(riskLevel: string): "danger" | "warning" | "info" {
+  if (riskLevel === "high") return "danger";
+  if (riskLevel === "medium") return "warning";
+  return "info";
+}
+
 export interface ImportPreviewResponse {
   success: boolean;
   preview_id: string;
@@ -257,15 +263,7 @@ export function MessageInput({
               subtitle={`File: ${preview.filename} (${preview.format.toUpperCase()})`}
               icon={<Wrench className="w-4 h-4 text-indigo-400" />}
               action={
-                <Badge
-                  variant={
-                    preview.risk_level === "high"
-                      ? "danger"
-                      : preview.risk_level === "medium"
-                        ? "warning"
-                        : "info"
-                  }
-                >
+                <Badge variant={getImportRiskVariant(preview.risk_level)}>
                   {preview.risk_level} risk
                 </Badge>
               }

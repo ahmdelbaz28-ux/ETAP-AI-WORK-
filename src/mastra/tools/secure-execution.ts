@@ -217,6 +217,68 @@ export function setDefaultLauncher(launcher: LauncherPort): void {
   defaultLauncher = launcher;
 }
 
+interface ExecutionEnvelope {
+  success: boolean;
+  output?: string;
+  error?: string;
+  error_type?: string;
+}
+
+function parseEnvelope(stdout?: string): ExecutionEnvelope | null {
+  const trimmed = stdout?.trim();
+  if (!trimmed) return null;
+  try {
+    const parsed = JSON.parse(trimmed);
+    if (parsed && typeof parsed === 'object' && typeof parsed.success === 'boolean') {
+      return parsed as ExecutionEnvelope;
+    }
+  } catch {
+    return null;
+  }
+  return null;
+}
+
+function checkExitCode(
+  raw: { exitCode: number | null; stderr?: string },
+  allowedExitCodes: number[],
+  displayName: string,
+): void {
+  if (raw.exitCode !== null && !allowedExitCodes.includes(raw.exitCode)) {
+    const errMessage = raw.stderr?.trim() || `Process exited with code ${raw.exitCode}`;
+    throw new Error(`${displayName} failed: ${errMessage}`);
+  }
+}
+
+function handleEnvelopeResult(
+  envelope: ExecutionEnvelope,
+  raw: { exitCode: number | null; stderr?: string },
+  policy: RuntimePolicy,
+  allowedExitCodes: number[],
+  maxOutputLength: number,
+): RunResult {
+  if (envelope.success) {
+    checkExitCode(raw, allowedExitCodes, policy.displayName);
+    const rawOutput = envelope.output || '';
+    if (rawOutput.length > maxOutputLength) {
+      return {
+        output: rawOutput.substring(0, maxOutputLength) + '\n... [output truncated]',
+        truncated: true,
+        exitCode: raw.exitCode ?? 0,
+      };
+    }
+    return {
+      output: rawOutput,
+      truncated: false,
+      exitCode: raw.exitCode ?? 0,
+    };
+  }
+
+  const errType = envelope.error_type ? ` [${envelope.error_type}]` : '';
+  throw new Error(
+    `${policy.displayName} error${errType}: ${envelope.error || 'Execution failed without specific error message'}`,
+  );
+}
+
 /**
  * Core sandboxed execution function applying all security policies:
  * - Runtime allow-listing
@@ -247,49 +309,13 @@ export async function run(req: { kind: Kind; code: string; opts?: RunOpts }): Pr
     throw new Error(`${policy.displayName} timed out after ${timeoutMs}ms`);
   }
 
-  const trimmedStdout = raw.stdout?.trim() ?? '';
-  let envelope: { success: boolean; output?: string; error?: string; error_type?: string } | null = null;
-  if (trimmedStdout) {
-    try {
-      envelope = JSON.parse(trimmedStdout);
-    } catch {
-      envelope = null;
-    }
-  }
-
-  // If a valid JSON envelope was emitted by the executor:
-  if (envelope && typeof envelope === 'object' && typeof envelope.success === 'boolean') {
-    if (envelope.success) {
-      if (raw.exitCode !== null && !allowedExitCodes.includes(raw.exitCode)) {
-        const errMessage = raw.stderr?.trim() || `Process exited with code ${raw.exitCode}`;
-        throw new Error(`${policy.displayName} failed: ${errMessage}`);
-      }
-      const rawOutput = envelope.output || '';
-      if (rawOutput.length > maxOutputLength) {
-        return {
-          output: rawOutput.substring(0, maxOutputLength) + '\n... [output truncated]',
-          truncated: true,
-          exitCode: raw.exitCode ?? 0,
-        };
-      }
-      return {
-        output: rawOutput,
-        truncated: false,
-        exitCode: raw.exitCode ?? 0,
-      };
-    }
-
-    const errType = envelope.error_type ? ` [${envelope.error_type}]` : '';
-    throw new Error(
-      `${policy.displayName} error${errType}: ${envelope.error || 'Execution failed without specific error message'}`,
-    );
+  const envelope = parseEnvelope(raw.stdout);
+  if (envelope) {
+    return handleEnvelopeResult(envelope, raw, policy, allowedExitCodes, maxOutputLength);
   }
 
   // Non-envelope failure: check exit code
-  if (raw.exitCode !== null && !allowedExitCodes.includes(raw.exitCode)) {
-    const errMessage = raw.stderr?.trim() || `Process exited with code ${raw.exitCode}`;
-    throw new Error(`${policy.displayName} failed: ${errMessage}`);
-  }
+  checkExitCode(raw, allowedExitCodes, policy.displayName);
 
   // Exit code was allowed, but stdout was missing or not a valid envelope
   throw new Error(`Failed to parse executor response: ${raw.stdout}`);

@@ -64,6 +64,11 @@ export interface ProvidersTabProps {
   readonly notify?: (type: "success" | "error" | "info" | "warning", message: string) => void;
 }
 
+function getProviderStatusLabel(configured: boolean, electron: boolean): string {
+  if (!configured) return "Not Configured";
+  return electron ? "Configured (Local)" : "Configured (Server)";
+}
+
 interface EditState {
   apiKey: string;
   baseUrl: string;
@@ -192,6 +197,66 @@ export function ProvidersTab({ children, notify: notifyProp }: Readonly<Provider
   // Connection Testing
   // ──────────────────────────────────────────────────────────────────────────
 
+  const testElectronConnection = async (providerId: string) => {
+    // In Electron: if user has typed a key in the edit form, persist locally first so testProviderConnection can read it
+    const currentEdit = editFields[providerId];
+    if (currentEdit?.apiKey && typeof window !== "undefined" && window.localStorage) {
+      const stored = localStorage.getItem("etap-settings");
+      const settings = stored ? JSON.parse(stored) : {};
+      settings[`PROVIDER_${providerId.toUpperCase()}_KEY`] = currentEdit.apiKey.trim();
+      if (currentEdit.model) {
+        settings[`PROVIDER_${providerId.toUpperCase()}_MODEL`] = currentEdit.model.trim();
+      }
+      if (currentEdit.baseUrl) {
+        settings[`PROVIDER_${providerId.toUpperCase()}_BASE_URL`] = currentEdit.baseUrl.trim();
+      }
+      localStorage.setItem("etap-settings", JSON.stringify(settings));
+      await refreshSettingsCache();
+    }
+
+    const result = await testProviderConnection(providerId);
+    setTestStatuses((prev) => ({
+      ...prev,
+      [providerId]: {
+        testing: false,
+        success: result.success,
+        message: result.message,
+        latencyMs: result.latencyMs,
+        errorCode: result.errorCode,
+        suggestion: result.suggestion,
+      },
+    }));
+
+    if (result.success) {
+      notify("success", `Connection test passed for ${providerId}`);
+    } else {
+      notify("error", `Connection test failed: ${result.message}`);
+    }
+  };
+
+  const testServerConnection = async (providerId: string) => {
+    // In Web: NO keys in localStorage! Test strictly via server-side endpoint
+    const resp = await testProviderKey(providerId);
+    const success = resp.success && resp.data?.success;
+    const message =
+      resp.data?.message ||
+      (success ? "Connected successfully via server" : "Server test failed");
+    setTestStatuses((prev) => ({
+      ...prev,
+      [providerId]: {
+        testing: false,
+        success,
+        message,
+      },
+    }));
+
+    if (success) {
+      notify("success", `Server connection verified for ${providerId}`);
+    } else {
+      notify("error", `Server test failed: ${message}`);
+    }
+  };
+
   const handleTestConnection = async (providerId: string) => {
     setTestStatuses((prev) => ({
       ...prev,
@@ -200,61 +265,9 @@ export function ProvidersTab({ children, notify: notifyProp }: Readonly<Provider
 
     try {
       if (isElectron) {
-        // In Electron: if user has typed a key in the edit form, persist locally first so testProviderConnection can read it
-        const currentEdit = editFields[providerId];
-        if (currentEdit?.apiKey && typeof window !== "undefined" && window.localStorage) {
-          const stored = localStorage.getItem("etap-settings");
-          const settings = stored ? JSON.parse(stored) : {};
-          settings[`PROVIDER_${providerId.toUpperCase()}_KEY`] = currentEdit.apiKey.trim();
-          if (currentEdit.model) {
-            settings[`PROVIDER_${providerId.toUpperCase()}_MODEL`] = currentEdit.model.trim();
-          }
-          if (currentEdit.baseUrl) {
-            settings[`PROVIDER_${providerId.toUpperCase()}_BASE_URL`] = currentEdit.baseUrl.trim();
-          }
-          localStorage.setItem("etap-settings", JSON.stringify(settings));
-          await refreshSettingsCache();
-        }
-
-        const result = await testProviderConnection(providerId);
-        setTestStatuses((prev) => ({
-          ...prev,
-          [providerId]: {
-            testing: false,
-            success: result.success,
-            message: result.message,
-            latencyMs: result.latencyMs,
-            errorCode: result.errorCode,
-            suggestion: result.suggestion,
-          },
-        }));
-
-        if (result.success) {
-          notify("success", `Connection test passed for ${providerId}`);
-        } else {
-          notify("error", `Connection test failed: ${result.message}`);
-        }
+        await testElectronConnection(providerId);
       } else {
-        // In Web: NO keys in localStorage! Test strictly via server-side endpoint
-        const resp = await testProviderKey(providerId);
-        const success = resp.success && resp.data?.success;
-        const message =
-          resp.data?.message ||
-          (success ? "Connected successfully via server" : "Server test failed");
-        setTestStatuses((prev) => ({
-          ...prev,
-          [providerId]: {
-            testing: false,
-            success,
-            message,
-          },
-        }));
-
-        if (success) {
-          notify("success", `Server connection verified for ${providerId}`);
-        } else {
-          notify("error", `Server test failed: ${message}`);
-        }
+        await testServerConnection(providerId);
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Connection test failed";
@@ -551,11 +564,7 @@ export function ProvidersTab({ children, notify: notifyProp }: Readonly<Provider
                         className="text-[11px]"
                         data-testid={`provider-status-${provider.id}`}
                       >
-                        {isConfigured
-                          ? isElectron
-                            ? "Configured (Local)"
-                            : "Configured (Server)"
-                          : "Not Configured"}
+                        {getProviderStatusLabel(isConfigured, isElectron)}
                       </Badge>
                     </div>
 
@@ -845,7 +854,7 @@ export function ProvidersTab({ children, notify: notifyProp }: Readonly<Provider
                     <div>
                       <div className="flex items-center justify-between mb-2">
                         <h4 className="font-semibold text-sm text-slate-100 capitalize">
-                          {providerId.replace(/_/g, " ")}
+                          {providerId.replaceAll("_", " ")}
                         </h4>
                         <Badge
                           variant={config.is_active ? "success" : "default"}

@@ -234,13 +234,17 @@ async function runDailyChecks(config: HealthCheckConfig): Promise<CheckResult[]>
     const healthyProviders = providers.filter((p: any) => p.healthy);
     const isSkippedNoAuth = !config.apiKey && res.status === 401;
     const status: CheckResult['status'] = (res.ok && healthyProviders.length > 0) || isSkippedNoAuth ? 'pass' : 'warn';
+    let providerMsg = `Provider health issue: ${describeHttpError(res)}`;
+    if (status === 'pass') {
+      providerMsg = isSkippedNoAuth
+        ? 'Skipped (no API key configured in runner)'
+        : `${healthyProviders.length}/${providers.length} providers healthy (${res.latencyMs}ms)`;
+    }
     results.push({
       name: 'LLM provider health',
       category: 'daily',
       status,
-      message: status === 'pass'
-        ? (isSkippedNoAuth ? 'Skipped (no API key configured in runner)' : `${healthyProviders.length}/${providers.length} providers healthy (${res.latencyMs}ms)`)
-        : `Provider health issue: ${describeHttpError(res)}`,
+      message: providerMsg,
       latencyMs: res.latencyMs,
       details: { statusCode: res.status, providers: providers.map((p: any) => ({ id: p.id, healthy: p.healthy })) },
     });
@@ -251,13 +255,17 @@ async function runDailyChecks(config: HealthCheckConfig): Promise<CheckResult[]>
     const res = await httpGet('/api/v1/audit/logs', config, config.apiKey ? { 'x-api-key': config.apiKey } : undefined);
     const isSkippedNoAuth = !config.apiKey && res.status === 401;
     const status: CheckResult['status'] = (res.ok && Array.isArray(res.body?.logs)) || isSkippedNoAuth ? 'pass' : 'warn';
+    let auditMsg = `Audit logs issue: ${describeHttpError(res)}`;
+    if (status === 'pass') {
+      auditMsg = isSkippedNoAuth
+        ? 'Skipped (no API key configured in runner)'
+        : `Audit logs accessible — ${res.body?.logs?.length || 0} entries (${res.latencyMs}ms)`;
+    }
     results.push({
       name: 'Audit logging operational',
       category: 'daily',
       status,
-      message: status === 'pass'
-        ? (isSkippedNoAuth ? 'Skipped (no API key configured in runner)' : `Audit logs accessible — ${res.body?.logs?.length || 0} entries (${res.latencyMs}ms)`)
-        : `Audit logs issue: ${describeHttpError(res)}`,
+      message: auditMsg,
       latencyMs: res.latencyMs,
       details: { statusCode: res.status, logCount: res.body?.logs?.length },
     });
@@ -424,6 +432,32 @@ async function runWeeklyChecks(config: HealthCheckConfig): Promise<CheckResult[]
 // Monthly checks
 // ---------------------------------------------------------------------------
 
+async function checkSlaLatencyCompliance(config: HealthCheckConfig): Promise<CheckResult> {
+  const paths = ['/health', '/metrics', '/api/v1/agents', '/api/v1/providers'];
+  const latencies: number[] = [];
+  for (const path of paths) {
+    const res = await httpGet(path, config, path.startsWith('/api') ? { 'x-api-key': config.apiKey } : undefined);
+    latencies.push(res.latencyMs);
+  }
+  const sorted = [...latencies].sort((a, b) => a - b);
+  const p95Index = Math.min(Math.floor(sorted.length * 0.95), sorted.length - 1);
+  const p95 = Math.ceil(sorted.at(p95Index) ?? sorted.at(-1) ?? 0);
+  let status: CheckResult['status'] = 'fail';
+  if (p95 < 2000) {
+    status = 'pass';
+  } else if (p95 < 5000) {
+    status = 'warn';
+  }
+  return {
+    name: 'SLA/SLO latency compliance (p95)',
+    category: 'monthly',
+    status,
+    message: `p95 latency across ${paths.length} endpoints: ${p95}ms`,
+    latencyMs: p95,
+    details: { p95, latencies: paths.map((p, i) => ({ path: p, latencyMs: latencies[i] })) },
+  };
+}
+
 async function runMonthlyChecks(config: HealthCheckConfig): Promise<CheckResult[]> {
   const results: CheckResult[] = [];
 
@@ -436,42 +470,24 @@ async function runMonthlyChecks(config: HealthCheckConfig): Promise<CheckResult[
     }, config.apiKey ? { 'x-api-key': config.apiKey } : undefined);
     const isSkippedNoAuth = !config.apiKey && res.status === 401;
     const status: CheckResult['status'] = res.ok || isSkippedNoAuth ? 'pass' : 'warn';
+    let capacityMsg = `Study execution issue: ${describeHttpError(res)}`;
+    if (isSkippedNoAuth) {
+      capacityMsg = 'Skipped (no API key configured in runner)';
+    } else if (res.ok) {
+      capacityMsg = `Study queued successfully (${res.latencyMs}ms)`;
+    }
     results.push({
       name: 'Study execution capacity test',
       category: 'monthly',
       status,
-      message: isSkippedNoAuth
-        ? 'Skipped (no API key configured in runner)'
-        : (res.ok ? `Study queued successfully (${res.latencyMs}ms)` : `Study execution issue: ${describeHttpError(res)}`),
+      message: capacityMsg,
       latencyMs: res.latencyMs,
       details: { statusCode: res.status, taskId: res.body?.taskId },
     });
   }
 
   // 2. SLA/SLO compliance review — validate response time SLO
-  {
-    const paths = ['/health', '/metrics', '/api/v1/agents', '/api/v1/providers'];
-    const latencies: number[] = [];
-    for (const path of paths) {
-      const res = await httpGet(path, config, path.startsWith('/api') ? { 'x-api-key': config.apiKey } : undefined);
-      latencies.push(res.latencyMs);
-    }
-    // SonarCloud typescript:S4043: sort() mutates in place — make a copy
-    // first so we don't mutate the original `latencies` array (which is
-    // also returned in the result object below).
-    const sorted = [...latencies].sort((a, b) => a - b);
-    const p95Index = Math.min(Math.floor(sorted.length * 0.95), sorted.length - 1);
-    const p95 = Math.ceil(sorted.at(p95Index) ?? sorted.at(-1) ?? 0);
-    const status: CheckResult['status'] = p95 < 2000 ? 'pass' : p95 < 5000 ? 'warn' : 'fail';  // NOSONAR — S3358: nested ternary; refactor to named variable (tech debt)
-    results.push({
-      name: 'SLA/SLO latency compliance (p95)',
-      category: 'monthly',
-      status,
-      message: `p95 latency across ${paths.length} endpoints: ${p95}ms`,
-      latencyMs: p95,
-      details: { p95, latencies: paths.map((p, i) => ({ path: p, latencyMs: latencies[i] })) },
-    });
-  }
+  results.push(await checkSlaLatencyCompliance(config));
 
   // 3. Cost optimization review — check if providers are configured but unused
   {
@@ -767,9 +783,11 @@ Environment:
   process.exit(0);
 }
 
-main().catch((e: unknown) => {
+try {
+  await main();
+} catch (e: unknown) {
   console.error('Health check failed:', describeError(e));
   process.exit(2);
-});
+}
 
 export {};
