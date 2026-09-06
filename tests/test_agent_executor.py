@@ -43,6 +43,20 @@ from api.dependencies import (
 )
 
 
+# Stub user returned by the overridden auth dependency.
+# The module-scoped client installs this override so the real JWT/DB lookup
+# is bypassed — identical pattern to test_approvals.py and the security-gate
+# section below.
+_TEST_USER = CurrentUser(
+    user_id="test-user-id",
+    username="test_user",
+    email="test@example.com",
+    role="engineer",
+    tenant_id="tenant-test",
+    is_active=True,
+)
+
+
 def _auth(user_id: str = "test-user-id") -> dict:
     """Auth header carrying a valid access JWT and CSRF token."""
     now = time.time()
@@ -61,13 +75,22 @@ def _auth(user_id: str = "test-user-id") -> dict:
 
 @pytest.fixture(scope="module")
 def client():
-    """Module-scoped app client (starts FastAPI lifespan ONCE)."""
+    """Module-scoped app client (starts FastAPI lifespan ONCE).
+
+    The ``get_current_user_from_header`` dependency is overridden here to
+    return ``_TEST_USER`` directly, bypassing JWT decoding and the DB user
+    lookup (which would fail because ``test-user-id`` is not seeded in the
+    test SQLite DB).  This mirrors the approach in ``test_approvals.py`` and
+    the security-gate section below.
+    """
     from api.csrf import generate_csrf_token
     from api.routes import app
 
+    app.dependency_overrides[get_current_user_from_header] = lambda: _TEST_USER
     with TestClient(app) as c:
         c.headers.update({"x-csrf-token": generate_csrf_token()})
         yield c
+    app.dependency_overrides.pop(get_current_user_from_header, None)
 
 
 @pytest.fixture(autouse=True)
