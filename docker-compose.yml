@@ -6,6 +6,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.engineering-service
+    restart: unless-stopped
+    stop_grace_period: 30s
     ports:
       - "127.0.0.1:8000:8000"
     environment:
@@ -17,12 +19,13 @@ services:
       - DATABASE_URL=postgresql+asyncpg://etap:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set (no default)}@postgres:5432/etap_platform
       - SESSION_SECRET=${SESSION_SECRET:?SESSION_SECRET must be set (no default)}
       - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS:-http://localhost:5173,http://localhost:3000,http://localhost:8000}
+      - ENGINEERING_SERVICE_CORS_ORIGINS=${ENGINEERING_SERVICE_CORS_ORIGINS:-${CORS_ALLOWED_ORIGINS:-http://localhost:5173,http://localhost:3000,http://localhost:8000}}
       - JWT_SECRET_KEY=${JWT_SECRET_KEY:?JWT_SECRET_KEY must be set (no default)}
       - FERNET_ENCRYPTION_KEY=${FERNET_ENCRYPTION_KEY:?FERNET_ENCRYPTION_KEY must be set (no default)}
     # HEALTHCHECK: python urllib is used instead of curl because the
     # engineering-service image (python slim) does not bundle curl/wget.
     healthcheck:
-      test: ["CMD-SHELL", "python -c \"import urllib.request as u; u.urlopen('http://localhost:8000/health', timeout=5)\""]
+      test: ["CMD-SHELL", "python -c \"import urllib.request as u; u.urlopen('http://localhost:8000/readyz', timeout=5)\""]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -57,6 +60,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.engineering-service
+    restart: unless-stopped
+    stop_grace_period: 30s
     command: celery -A worker.celery_app worker --loglevel=info
     environment:
       - REDIS_URL=redis://:${REDIS_PASSWORD:?REDIS_PASSWORD must be set (no default)}@redis:6379/0
@@ -85,6 +90,8 @@ services:
     depends_on:
       redis:
         condition: service_healthy
+      postgres:
+        condition: service_healthy
     volumes:
       - ./worker:/app/worker
       - ./core:/app/core
@@ -96,6 +103,7 @@ services:
 
   redis:
     image: redis:7-alpine
+    restart: unless-stopped
     ports:
       - "127.0.0.1:6379:6379"
     volumes:
@@ -103,6 +111,14 @@ services:
     command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:?REDIS_PASSWORD must be set (no default)}
     environment:
       REDISCLI_AUTH: ${REDIS_PASSWORD:?REDIS_PASSWORD must be set (no default)}
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512Mi
+        reservations:
+          cpus: '0.2'
+          memory: 128Mi
     healthcheck:
       test: ["CMD-SHELL", "redis-cli ping"]
       interval: 10s
@@ -113,13 +129,21 @@ services:
 
   postgres:
     image: postgres:15
-    restart: always
+    restart: unless-stopped
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-etap_db}
       POSTGRES_USER: ${POSTGRES_USER:-etap}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set (no default)}
     ports:
       - "127.0.0.1:5432:5432"
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2Gi
+        reservations:
+          cpus: '0.5'
+          memory: 512Mi
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -132,10 +156,19 @@ services:
 
   grafana:
     image: grafana/grafana-enterprise
+    restart: unless-stopped
     ports:
       - "127.0.0.1:3000:3000"
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:?GRAFANA_ADMIN_PASSWORD must be set (no default)}
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1Gi
+        reservations:
+          cpus: '0.2'
+          memory: 256Mi
     volumes:
       - grafana_storage:/var/lib/grafana
     healthcheck:
@@ -152,10 +185,18 @@ services:
   qdrant:
     image: qdrant/qdrant:1.12.4
     container_name: etap-qdrant
-    restart: always
+    restart: unless-stopped
     ports:
       - "127.0.0.1:6333:6333"
       - "127.0.0.1:6334:6334"
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2Gi
+        reservations:
+          cpus: '0.5'
+          memory: 512Mi
     volumes:
       - qdrant_storage:/qdrant/storage
     networks:
@@ -172,7 +213,7 @@ services:
   neo4j:
     image: neo4j:5-community
     container_name: etap-neo4j
-    restart: always
+    restart: unless-stopped
     environment:
       - NEO4J_AUTH=neo4j/${NEO4J_PASSWORD:?NEO4J_PASSWORD must be set (no default)}
     ports:

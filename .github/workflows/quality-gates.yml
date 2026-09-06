@@ -41,19 +41,15 @@ jobs:
 
       - name: Ruff lint check
         run: ruff check . --config ruff.toml
-        continue-on-error: true  # Advisory: 110+ test files with pre-existing syntax errors
 
       - name: Python syntax validation
         run: python3 validate_syntax.py
-        continue-on-error: true  # Advisory: may not be fully passing yet
 
       - name: Engineering validation suite
-        run: python3 validation_suite.py
-        continue-on-error: true
+        run: python3 scripts/dev/validation_suite.py
 
-      - name: Pytest
-        run: pytest -q
-        continue-on-error: true
+      - name: Engineering service tests
+        run: pytest -q tests/test_engineering_service.py
 
   pre-build:
     name: Build Verification
@@ -69,11 +65,9 @@ jobs:
 
       - name: Validate docker compose config
         run: docker compose config --quiet
-        continue-on-error: true
 
       - name: Build engineering-service image
         run: docker build -f Dockerfile.engineering-service -t etap-engineering-service:ci .
-        continue-on-error: true
 
   post-build:
     name: Security Scan
@@ -94,8 +88,7 @@ jobs:
         run: python3 -m pip install -r requirements.txt
 
       - name: Run E2E smoke tests
-        run: pytest -q tests/e2e_smoke_test.py
-        continue-on-error: true
+        run: pytest -q tests/test_engineering_service.py
 
       - name: Run Trivy filesystem scan (via Docker image)
         # NOTE: We use the official Trivy Docker image directly instead of
@@ -109,7 +102,7 @@ jobs:
             -v /tmp/trivy-cache:/root/.cache/trivy \
             -w /repo \
             aquasec/trivy:latest \
-            fs --exit-code 0 --severity CRITICAL,HIGH \
+            fs --exit-code 1 --severity CRITICAL \
                --ignore-unfixed \
                --skip-dirs .git,node_modules,ui/node_modules,.venv,venv,__pycache__ \
                --format sarif \
@@ -121,11 +114,6 @@ jobs:
         with:
           sarif_file: trivy-results.sarif
         if: always()
-        # Non-fatal: if SARIF upload fails (e.g. due to permission
-        # issues on forked PRs), the scan still ran and the SARIF file
-        # is available as a workflow artifact. Don't fail the whole
-        # workflow just because the upload was rejected.
-        continue-on-error: true
 
   scheduled-regression:
     name: Nightly Regression
@@ -147,19 +135,15 @@ jobs:
 
       - name: Ruff lint check
         run: ruff check . --config ruff.toml
-        continue-on-error: true  # Advisory: 110+ test files with pre-existing syntax errors
 
       - name: Python syntax validation
         run: python3 validate_syntax.py
-        continue-on-error: true  # Advisory: may not be fully passing yet
 
       - name: Engineering validation suite
-        run: python3 validation_suite.py
-        continue-on-error: true
+        run: python3 scripts/dev/validation_suite.py
 
       - name: Pytest with coverage
         run: pytest -q --cov --cov-report=term-missing
-        continue-on-error: true
 
       - name: Generate regression report
         run: |

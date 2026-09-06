@@ -100,8 +100,8 @@ jobs:
         if: always()
         run: |
           if [ ! -f semgrep-results.json ]; then
-            echo "Semgrep did not produce a JSON report"
-            exit 0
+            echo "::error::Semgrep did not produce a JSON report — scan failed"
+            exit 1
           fi
           python3 - <<'PYEOF'
           import json

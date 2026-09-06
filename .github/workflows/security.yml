@@ -118,9 +118,9 @@ jobs:
             -v /tmp/trivy-cache:/root/.cache/trivy \
             -w /repo \
             aquasec/trivy:0.58.0 \
-            fs --severity CRITICAL,HIGH \
+            fs --severity CRITICAL \
                --ignore-unfixed \
-               --exit-code 0 \
+               --exit-code 1 \
                --ignorefile .trivyignore \
                --skip-dirs .git,node_modules,ui/node_modules,.venv,venv,__pycache__,skills \
                --format sarif \

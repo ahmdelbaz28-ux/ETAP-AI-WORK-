@@ -44,6 +44,7 @@ jobs:
             echo "Security scan found potential secrets!"
             echo "Review the output above and ensure no real secrets are committed."
             echo "Add false positives to .gitignore or exclude patterns."
+            exit 1
           else
             echo "No secrets detected."
           fi
