@@ -26,6 +26,7 @@ import { useCallback, useEffect, useState } from "react";
 import { ProviderLogo } from "../components/ProviderLogo";
 import { Button, Card, CardHeader, TabPanels, Tabs, Toggle, useTabState } from "../components/ui";
 import { useNotify } from "../context/NotificationContext";
+import { getCachedSettings, isSecretField } from "../lib/api-config";
 import { testProviderConnection } from "../lib/llm-chat";
 import { cn } from "../utils/helpers";
 
@@ -104,79 +105,6 @@ function providerButtonContent(isTesting: boolean, status: ProviderStatus): Reac
   );
 }
 
-// Legacy XOR deobfuscation for backward compatibility with stored values.
-// New values use AES-GCM encryption via getDeobfuscatedSettings/setEncryptedSettings
-// from api-config.ts.
-const OBFUSCATION_KEY = "ETAP-SEC-2024-OBFUSCATION";
-function obfuscate(value: string): string {
-  let result = "";
-  for (let i = 0; i < value.length; i++) {
-    const a = value.codePointAt(i) ?? 0;
-    const b = OBFUSCATION_KEY.codePointAt(i % OBFUSCATION_KEY.length) ?? 0;
-    result += String.fromCodePoint(a ^ b);
-    const charCode = value.codePointAt(i) ?? 0;
-    const keyCode = OBFUSCATION_KEY.codePointAt(i % OBFUSCATION_KEY.length) ?? 0;
-    result += String.fromCodePoint(charCode ^ keyCode);
-  }
-  return btoa(result);
-}
-function deobfuscate(value: string): string {
-  try {
-    const decoded = atob(value);
-    let result = "";
-    for (let i = 0; i < decoded.length; i++) {
-      const a = decoded.codePointAt(i) ?? 0;
-      const b = OBFUSCATION_KEY.codePointAt(i % OBFUSCATION_KEY.length) ?? 0;
-      result += String.fromCodePoint(a ^ b);
-      const charCode = decoded.codePointAt(i) ?? 0;
-      const keyCode = OBFUSCATION_KEY.codePointAt(i % OBFUSCATION_KEY.length) ?? 0;
-      result += String.fromCodePoint(charCode ^ keyCode);
-    }
-    return result;
-  } catch {
-    return value;
-  }
-}
-
-const SECRET_FIELDS = new Set([
-  "API_KEY_SECRET",
-  "JWT_SECRET_KEY",
-  "OPENAI_API_KEY",
-  "NVIDIA_API_KEY",
-  "QWEN_API_KEY",
-  "GLM_API_KEY",
-  "ENGINEERING_SERVICE_API_KEY",
-  "LANGWATCH_API_KEY",
-  "SMITHERY_API_KEY",
-  "HF_TOKEN",
-  "GITHUB_TOKEN",
-  "VERCEL_ACCESS_TOKEN",
-  "VERCEL_PROJECT_ID",
-  "REDIS_URL",
-  "DATABASE_URL",
-  "VAULT_TOKEN",
-  "SMTP_USERNAME",
-  "ETAP_LICENSE_PATH",
-  "CUSTOM_API_KEY",
-  "PROVIDER_OPENAI_KEY",
-  "PROVIDER_ANTHROPIC_KEY",
-  "PROVIDER_GEMINI_KEY",
-  "PROVIDER_DEEPSEEK_KEY",
-  "PROVIDER_GROQ_KEY",
-  "PROVIDER_COHERE_KEY",
-  "PROVIDER_HUGGINGFACE_KEY",
-  "SCADA_API_KEY",
-  // Additional LLM providers (added 2026-07-07)
-  "RENDER_API_KEY",
-  "ZENMUX_API_KEY",
-  "FIREWORKS_API_KEY",
-  "GITHUB_MODELS_API_KEY",
-  "OPENMODEL_API_KEY",
-  "MODAL_API_KEY",
-  // Additional LLM providers (added 2026-07-08)
-  "BYNARA_API_KEY",
-  "CLOUDFLARE_API_KEY",
-]);
 
 const SETTINGS_SCHEMA = {
   requiredKeys: ["OPENAI_MODEL", "OPENAI_BASE_URL", "ENGINEERING_SERVICE_URL"],
@@ -2062,21 +1990,13 @@ function SettingsField({
 }
 
 function loadInitialSettings(): Record<string, string> {
-  const stored = localStorage.getItem("etap-settings");
   const defaults = getDefaults();
-  if (stored) {
-    try {
-      const parsed = JSON.parse(stored);
-      const deobfuscated: Record<string, string> = {};
-      for (const [k, v] of Object.entries(parsed)) {
-        deobfuscated[k] = SECRET_FIELDS.has(k) ? deobfuscate(v as string) : (v as string);
-      }
-      return { ...defaults, ...deobfuscated };
-    } catch {
-      return defaults;
-    }
+  try {
+    const cached = getCachedSettings();
+    return { ...defaults, ...cached };
+  } catch {
+    return defaults;
   }
-  return defaults;
 }
 
 // ─── Vision API Keys Panel ─────────────────────────────────────────────────
@@ -2665,7 +2585,7 @@ export default function Settings() {
   const handleExport = () => {
     const exportData: Record<string, string> = {};
     for (const [k, v] of Object.entries(settings)) {
-      exportData[k] = SECRET_FIELDS.has(k) ? "" : v;
+      exportData[k] = isSecretField(k) ? "" : v;
     }
     const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
