@@ -37,7 +37,7 @@ jobs:
           # No pip cache — using uv for installation
 
       - name: Install Python dependencies
-        run: python3 -m pip install -r requirements.txt ruff
+        run: python3 -m pip install -r requirements.txt ruff pytest pytest-asyncio pytest-cov respx
 
       - name: Ruff lint check
         run: ruff check . --config ruff.toml
@@ -85,7 +85,7 @@ jobs:
           # No pip cache — using uv for installation
 
       - name: Install Python dependencies
-        run: python3 -m pip install -r requirements.txt
+        run: python3 -m pip install -r requirements.txt pytest pytest-asyncio pytest-cov respx
 
       - name: Run E2E smoke tests
         run: pytest -q tests/test_engineering_service.py
@@ -131,7 +131,7 @@ jobs:
           # No pip cache — using uv for installation
 
       - name: Install Python dependencies
-        run: python3 -m pip install -r requirements.txt ruff
+        run: python3 -m pip install -r requirements.txt ruff pytest pytest-asyncio pytest-cov respx
 
       - name: Ruff lint check
         run: ruff check . --config ruff.toml
