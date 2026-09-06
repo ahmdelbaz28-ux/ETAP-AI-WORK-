@@ -78,8 +78,8 @@ jobs:
             --config p/ldap-injection \
             --config p/secure-defaults \
             --config semgrep.yml \
-            --json --json-output=semgrep-results.json \
-            --sarif --sarif-output=semgrep-results.sarif \
+            --sarif \
+            --output semgrep-results.sarif \
             --exclude 'tests/**' \
             --exclude 'testsprite_tests/**' \
             --exclude 'acp_runtime/acp_tests/**' \
@@ -98,17 +98,45 @@ jobs:
       - name: Generate summary report
         if: always()
         run: |
-          if [ ! -f semgrep-results.json ]; then
-            echo "::error::Semgrep did not produce a JSON report — scan failed"
+          if [ ! -f semgrep-results.sarif ]; then
+            echo "::error::Semgrep did not produce a SARIF report — scan failed"
             exit 1
           fi
           python3 - <<'PYEOF'
-          import json
-          with open('semgrep-results.json') as f:
-              data = json.load(f)
+          import json, sys
 
-          results = data.get('results', [])
-          errors = data.get('errors', [])
+          with open('semgrep-results.sarif') as f:
+              sarif = json.load(f)
+
+          runs = sarif.get('runs', [])
+          results = []
+          errors = []
+
+          for run in runs:
+              for res in run.get('results', []):
+                  level = res.get('level', 'warning').upper()
+                  sev_map = {'ERROR': 'ERROR', 'WARNING': 'WARNING', 'NOTE': 'INFO', 'NONE': 'INFO'}
+                  sev = sev_map.get(level, 'WARNING')
+                  locs = res.get('locations', [])
+                  path = '?'
+                  start_line = 1
+                  if locs:
+                      ploc = locs[0].get('physicalLocation', {})
+                      path = ploc.get('artifactLocation', {}).get('uri', '?')
+                      start_line = ploc.get('region', {}).get('startLine', 1)
+                  results.append({
+                      'check_id': res.get('ruleId', '?'),
+                      'path': path,
+                      'start': {'line': start_line},
+                      'extra': {
+                          'severity': sev,
+                          'message': res.get('message', {}).get('text', '')
+                      }
+                  })
+
+          # Write semgrep-results.json for artifact upload
+          with open('semgrep-results.json', 'w') as f:
+              json.dump({'results': results, 'errors': errors}, f, indent=2)
 
           # Group by severity
           by_severity = {}
@@ -143,14 +171,11 @@ jobs:
 
           error_count = len(by_severity.get('ERROR', []))
           warning_count = len(by_severity.get('WARNING', []))
-          if error_count > 0 or warning_count > 0:
-              print(f"Blocking findings: {error_count} ERROR, {warning_count} WARNING")
-              # Exit non-zero only on ERROR severity
-              if error_count > 0:
-                  import sys
-                  sys.exit(1)
+          if error_count > 0:
+              print(f"Blocking findings: {error_count} ERROR")
+              sys.exit(1)
           else:
-              print("No blocking findings")
+              print("No blocking ERROR findings")
           PYEOF
 
       - name: Upload SARIF to GitHub Security tab
