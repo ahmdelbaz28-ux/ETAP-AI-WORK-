@@ -25,7 +25,9 @@ overrides:
   # HIGH: brace-expansion DoS via exponential-time expansion (8 alerts)
   brace-expansion: ^5.0.9
   # HIGH: fast-uri host confusion via failed IDN canonicalization (2 alerts)
-  fast-uri: ^3.1.5
+  fast-uri: ^3.1.7
+  # MEDIUM: @xmldom/xmldom XML fragment injection (Alert #429)
+  '@xmldom/xmldom': ^0.8.15
   # HIGH: hono CORS reflection + XSS + path traversal + body limit bypass (8 alerts)
   hono: ^4.12.34
   # HIGH: js-yaml quadratic CPU consumption on merge-key chains (3 alerts)
@@ -80,7 +82,7 @@ overrides:
   # @mastra/core aliases above, so the same CVE coverage applies).
   '@ai-sdk/gateway>@ai-sdk/provider-utils': npm:@ai-sdk/provider-utils@4.0.45
   '@ai-sdk/openai@3>@ai-sdk/provider-utils': npm:@ai-sdk/provider-utils@4.0.45
-  '@ai-sdk/openai@2>@ai-sdk/provider-utils': npm:@ai-sdk/provider-utils@3.0.32
+  '@ai-sdk/openai@2>@ai-sdk/provider-utils': npm:@ai-sdk/provider-utils@4.0.45
   '@mastra/core>@ai-sdk/provider-utils-v5': npm:@ai-sdk/provider-utils@4.0.42
   '@mastra/core>@ai-sdk/provider-utils-v6': npm:@ai-sdk/provider-utils@4.0.42
   '@mastra/core>@ai-sdk/provider-utils-v4': npm:@ai-sdk/provider-utils@4.0.42

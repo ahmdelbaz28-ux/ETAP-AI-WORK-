@@ -49,13 +49,11 @@ dependencies = [
     "fastapi>=0.135.0",
     "tenacity>=8.2.0",
     "uvicorn[standard]>=0.24.0",
-    "pypdf>=6.15.0",  # SECURITY: 30 CVEs fixed (replaces deprecated PyPDF2); 6.15.0 fixes GHSA-fwg2-594c-jp42 (long runtime / large memory for large CMaps)
-    "chromadb>=0.4.24,<1.0.0",  # SECURITY: CVE-2026-45829 (CVSS 9.3, pre-auth RCE) — pins to 0.x line; 1.0+ allows unauthenticated RCE via trust_remote_code=True
+    "pypdf>=6.17.0",  # SECURITY: bumped to 6.17.0 — fixes GHSA-4v4c-8547-f2jp, GHSA-fwg2-594c-jp42, GHSA-6523-8687-jqm7
     "sentence-transformers>=2.7.0",
     "tree-sitter>=0.21.0",
     "tree-sitter-python>=0.21.0",
     "pdfplumber>=0.7.0",
-    "nltk>=3.10.3",  # SECURITY: bumped to 3.10.3 — fixes CVE-2026-79675 (JVM option validation) & CVE-2026-78680
     "python-docx>=0.8.11",
     "openpyxl>=3.0.0",
     "reportlab>=3.6.0",
