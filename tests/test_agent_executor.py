@@ -42,7 +42,6 @@ from api.dependencies import (
     get_current_user_from_header,
 )
 
-
 # Stub user returned by the overridden auth dependency.
 # The module-scoped client installs this override so the real JWT/DB lookup
 # is bypassed — identical pattern to test_approvals.py and the security-gate
