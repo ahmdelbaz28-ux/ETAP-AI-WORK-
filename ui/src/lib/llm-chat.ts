@@ -14,7 +14,8 @@
  *   - cohere:      Cohere /v2/chat
  */
 
-import { POPULAR_PROVIDERS } from "../pages/Settings";
+import { POPULAR_PROVIDERS } from "./providers";
+import { redactSecrets } from "./llm-utils";
 import { apiUrl, getCachedSettings } from "./api-config";
 import { testProviderKey } from "./provider-keys";
 import { getAuthToken } from "./tokenStorage";
@@ -1050,13 +1051,9 @@ interface ServerChatEventData {
   detail?: unknown;
 }
 
-function redactServerMessage(message: string): string {
-  return message.slice(0, 300).replace(/sk-[a-zA-Z0-9]+/g, "[REDACTED]");
-}
-
 function extractErrorMessage(parsed: ServerChatEventData): string {
-  if (typeof parsed.message === "string") return parsed.message;
-  if (typeof parsed.detail === "string") return parsed.detail;
+  if (typeof parsed.message === "string") return redactSecrets(parsed.message);
+  if (typeof parsed.detail === "string") return redactSecrets(parsed.detail);
   return "LLM stream error";
 }
 
@@ -1068,9 +1065,9 @@ async function buildServerChatHttpError(res: Response): Promise<Error> {
   } catch (error) {
     console.warn("Failed to read chat stream error body:", error);
   }
-  let detail = redactServerMessage(text || "Unknown error");
+  let detail = redactSecrets(text.slice(0, 300) || "Unknown error");
   try {
-    detail = redactServerMessage(String(JSON.parse(text)?.detail?.message ?? detail));
+    detail = redactSecrets(String(JSON.parse(text)?.detail?.message ?? detail));
   } catch {
     /* plain-text/HTML body — keep as-is */
   }
@@ -1119,7 +1116,7 @@ function handleSseLine(line: string, state: { currentEvent: string }): SseAction
     return { type: "done" };
   } else if (evt === "error") {
     const rawMessage = extractErrorMessage(parsed);
-    return { type: "error", error: new Error(redactServerMessage(rawMessage)) };
+    return { type: "error", error: new Error(redactSecrets(rawMessage)) };
   }
   return { type: "none" };
 }

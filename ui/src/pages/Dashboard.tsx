@@ -221,6 +221,14 @@ function StatCard({
         {/* Sparkline mini-chart */}
         {sparklineData && sparklineData.length > 0 && (
           <div className="mt-3 pt-3 border-t border-[var(--border-primary)]/40">
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 font-medium tracking-wider uppercase border border-amber-500/20">
+                Demo data
+              </span>
+              <span className="text-[10px] text-[var(--text-muted)] font-mono">
+                {sparklineData.at(-1)}
+              </span>
+            </div>
             <div className="flex items-end justify-between">
               <Sparkline
                 data={sparklineData}
@@ -230,9 +238,6 @@ function StatCard({
                 strokeWidth={1.5}
                 showArea
               />
-              <span className="text-[10px] text-[var(--text-muted)] font-mono">
-                {sparklineData.at(-1)}
-              </span>
             </div>
           </div>
         )}

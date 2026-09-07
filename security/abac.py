@@ -492,8 +492,6 @@ if _HAS_STARLETTE:
 
             import os
 
-            import jwt as _jwt
-
             secret = os.environ.get("JWT_SECRET_KEY", "")
             if not secret:
                 try:
@@ -506,9 +504,11 @@ if _HAS_STARLETTE:
                 logger.warning("JWT_SECRET_KEY not set; ABAC middleware cannot validate tokens")
                 return {}
             try:
-                payload = _jwt.decode(token, secret, algorithms=["HS256"])
+                from api.dependencies import _decode_jwt
+
+                payload = _decode_jwt(token, secret=secret, algorithms=["HS256"])
                 return payload
-            except _jwt.InvalidTokenError:
+            except Exception:
                 return {}
 
         async def __call__(self, scope: Any, receive: Any, send: Any) -> None:

@@ -98,7 +98,7 @@ jobs:
         # typescript (devDependency) instead of npx download (SonarCloud S6505).
         if: success()
         working-directory: ui
-        run: ./node_modules/.bin/tsc --noEmit
+        run: ./node_modules/.bin/tsc -b
 
       - name: Install pnpm
         uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa  # SECURITY R7-C2: pinned to commit SHA of tag v4  resolves S7637
@@ -547,6 +547,7 @@ jobs:
       # deployments set their own limits via these same env vars.
       ENGINEERING_SERVICE_RATE_LIMIT_MAX: '10000'
       ENGINEERING_SERVICE_RATE_LIMIT_WINDOW: '60'
+      UVICORN_PID: ""
 
     services:
       redis:
@@ -599,8 +600,7 @@ jobs:
         # that imports api.routes:app and runs it via uvicorn").
         run: |
           uvicorn api.routes:app --host 0.0.0.0 --port 8000 &
-          UVICORN_PID=$!
-          echo "UVICORN_PID=$UVICORN_PID" >> "$GITHUB_ENV"
+          echo "UVICORN_PID=$!" >> $GITHUB_ENV
           # Wait for the service to become healthy (up to 120s)
           for i in $(seq 1 60); do
             if curl -sf http://localhost:8000/health > /dev/null 2>&1; then

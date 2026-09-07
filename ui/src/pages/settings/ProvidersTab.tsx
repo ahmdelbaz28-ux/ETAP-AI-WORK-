@@ -62,7 +62,7 @@ import {
 } from "../../lib/api-config";
 import { isElectronRuntime, testProviderConnection } from "../../lib/llm-chat";
 import { type ProviderKeyConfig, listProviderKeys, testProviderKey } from "../../lib/provider-keys";
-import { POPULAR_PROVIDERS } from "../Settings";
+import { POPULAR_PROVIDERS } from "../../lib/providers";
 
 export interface ProvidersTabProps {
   readonly children?: ReactNode;

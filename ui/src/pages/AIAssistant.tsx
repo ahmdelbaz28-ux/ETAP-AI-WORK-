@@ -33,7 +33,7 @@ import {
   getConfiguredProviders,
 } from "../lib/llm-chat";
 import { cn } from "../utils/helpers";
-import { POPULAR_PROVIDERS } from "./Settings";
+import { POPULAR_PROVIDERS } from "../lib/providers";
 
 interface Message {
   id: string;

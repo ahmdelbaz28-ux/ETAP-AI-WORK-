@@ -28,26 +28,12 @@ import { API_BASE_URL } from "../../lib/api-config";
 import { getAuthToken } from "../../lib/tokenStorage";
 import { useChatStore } from "../../store/chatStore";
 
-const ALLOWED_EXTENSIONS = [".csv", ".json", ".xml", ".raw", ".m"];
-const MAX_ATTACHMENT_BYTES = 10 * 1024 * 1024; // 10 MiB limit
-
-function getPreviewRiskVariant(riskLevel: string): "success" | "warning" | "danger" {
-  if (riskLevel === "low") return "success";
-  if (riskLevel === "medium") return "warning";
-  return "danger";
-}
-
-export interface ImportPreviewData {
-  preview_id: string;
-  filename: string;
-  format: string;
-  records_count: number;
-  buses_count: number;
-  branches_count: number;
-  risk_level: "low" | "medium" | "high";
-  affected_tables?: string[];
-  warnings?: string[];
-}
+import {
+  ALLOWED_EXTENSIONS,
+  type ImportPreviewData,
+  riskVariant,
+  validatePowerFile,
+} from "../../lib/power-file";
 
 export interface ExportFormatItem {
   id: string;
@@ -161,16 +147,9 @@ export function ImportExportTab({ notify }: ImportExportTabProps) {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > MAX_ATTACHMENT_BYTES) {
-      setErrorMessage(`File exceeds 10 MiB limit (${(file.size / (1024 * 1024)).toFixed(1)} MB)`);
-      if (fileInputRef.current) fileInputRef.current.value = "";
-      return;
-    }
-
-    const lowerName = file.name.toLowerCase();
-    const isAllowed = ALLOWED_EXTENSIONS.some((ext) => lowerName.endsWith(ext));
-    if (!isAllowed) {
-      setErrorMessage(`Unsupported format. Supported: ${ALLOWED_EXTENSIONS.join(", ")}`);
+    const validation = validatePowerFile(file);
+    if (!validation.valid) {
+      setErrorMessage(validation.error ?? "Invalid file");
       if (fileInputRef.current) fileInputRef.current.value = "";
       return;
     }
@@ -279,7 +258,7 @@ export function ImportExportTab({ notify }: ImportExportTabProps) {
             <input
               ref={fileInputRef}
               type="file"
-              accept=".csv,.json,.xml,.raw,.m"
+              accept={ALLOWED_EXTENSIONS.join(",")}
               onChange={(e) => void handleFileSelect(e)}
               className="hidden"
               id="settings-import-file"
@@ -329,7 +308,7 @@ export function ImportExportTab({ notify }: ImportExportTabProps) {
                   </span>
                 </div>
                 <Badge
-                  variant={getPreviewRiskVariant(preview.risk_level)}
+                  variant={riskVariant(preview.risk_level)}
                   size="sm"
                 >
                   Risk: {preview.risk_level.toUpperCase()}

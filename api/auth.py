@@ -719,8 +719,9 @@ def _create_mfa_challenge_token(user_id: str) -> str:
 
 def _verify_mfa_challenge_token(token: str) -> Optional[str]:
     """Verify an MFA challenge token. Returns user_id or None."""
+    from api.dependencies import _decode_jwt
     try:
-        payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
+        payload = _decode_jwt(token)
     except jwt.InvalidTokenError:
         return None
     if payload.get("type") != "mfa_challenge":
@@ -755,25 +756,16 @@ async def _check_rate_limit(username: str) -> None:
             # in-memory rate limiting so login still works.
             _logger.warning("Redis unavailable for rate limiting, using in-memory fallback")
 
-    # In-memory fallback with replica-aware limits
-    # When Redis is unavailable, divide the limit by replica count to prevent
-    # attackers from exploiting multiple replicas (5 replicas = 5x limit)
+    from api._rate_limit import RateLimiter
+
     effective_limit = max(1, _RATE_LIMIT_MAX_ATTEMPTS // _REPLICA_COUNT)
+    if not hasattr(_check_rate_limit, "_limiter") or _check_rate_limit._limiter.max_requests != effective_limit:
+        _check_rate_limit._limiter = RateLimiter(
+            max_requests=effective_limit,
+            window_seconds=_RATE_LIMIT_WINDOW_SEC,
+        )
 
-    now = time.monotonic()
-    with _LOGIN_ATTEMPTS_LOCK:
-        # Clean up old entries to prevent memory leak
-        if len(_LOGIN_ATTEMPTS) > _MAX_LOGIN_ATTEMPTS_ENTRIES:
-            # Remove oldest 20% of entries
-            remove_count = _MAX_LOGIN_ATTEMPTS_ENTRIES // 5
-            for _ in range(remove_count):
-                _LOGIN_ATTEMPTS.popitem(last=False)
-
-        attempts = _LOGIN_ATTEMPTS.get(username, [])
-        attempts = [t for t in attempts if now - t < _RATE_LIMIT_WINDOW_SEC]
-        _LOGIN_ATTEMPTS[username] = attempts
-
-    if len(attempts) >= effective_limit:
+    if not _check_rate_limit._limiter.is_allowed(username):
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
             detail="Too many login attempts. Please try again later.",
@@ -974,6 +966,125 @@ async def _reset_rate_limit(username: str) -> None:
         _LOGIN_ATTEMPTS.pop(username, None)
 
 
+
+# ---------------------------------------------------------------------------
+# Domain Services (UserService, AuthService, MfaService)
+# ---------------------------------------------------------------------------
+
+
+class MfaService:
+    """Service handling MFA challenge issuance and verification."""
+
+    @staticmethod
+    def issue_challenge(user_id: str) -> str:
+        return _create_mfa_challenge_token(user_id)
+
+    @staticmethod
+    def verify_challenge(token: str) -> Optional[str]:
+        return _verify_mfa_challenge_token(token)
+
+    @staticmethod
+    async def verify_and_issue_tokens(
+        user: User,
+        mfa_code: str,
+        rate_limit_username: str,
+        db: AsyncSession,
+    ) -> LoginResponse:
+        return await _verify_mfa_and_issue_tokens(user, mfa_code, rate_limit_username, db)
+
+
+class AuthService:
+    """Service handling credential verification and token creation."""
+
+    @staticmethod
+    def hash_password(password: str) -> str:
+        return _hash_password(password)
+
+    @staticmethod
+    def verify_password(plain: str, hashed: str) -> bool:
+        return _verify_password(plain, hashed)
+
+    @staticmethod
+    def create_access_token(user_id: str, role: str, tenant_id: str = "") -> str:
+        return _create_access_token(user_id, role, tenant_id)
+
+    @staticmethod
+    def create_refresh_token(user_id: str) -> str:
+        return _create_refresh_token(user_id)
+
+    @staticmethod
+    async def verify_credentials(
+        db: AsyncSession,
+        identifier: str,
+        plain_password: str,
+    ) -> Optional[User]:
+        result = await db.execute(
+            select(User).where((User.username == identifier) | (User.email == identifier))
+        )
+        user = result.scalar_one_or_none()
+        if user is None or not _verify_password(plain_password, user.password_hash):
+            return None
+        return user
+
+
+class UserService:
+    """Service handling user account lifecycle operations."""
+
+    @staticmethod
+    async def create(
+        db: AsyncSession,
+        username: str,
+        email: str,
+        password: str,
+        tenant_id: Optional[str] = _DEFAULT_TENANT_ID,
+        role: str = "viewer",
+    ) -> User:
+        from sqlalchemy.exc import IntegrityError as _SAIntegrityError
+
+        normalised_email = email.strip().lower()
+
+        # Check username uniqueness
+        existing = await db.execute(select(User).where(User.username == username))
+        if existing.scalar_one_or_none() is not None:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Username already registered",
+            )
+
+        # Check email uniqueness (case-insensitive)
+        existing = await db.execute(select(User).where(func.lower(User.email) == normalised_email))
+        if existing.scalar_one_or_none() is not None:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Email already registered",
+            )
+
+        user = User(
+            id=str(uuid.uuid4()),
+            tenant_id=tenant_id,
+            username=username,
+            email=normalised_email,
+            password_hash=_hash_password(password),
+            role=role,
+        )
+        db.add(user)
+        try:
+            await db.flush()
+        except _SAIntegrityError as exc:
+            _logger.info(
+                "register_integrity_conflict username=%s email=%s err=%s",
+                username,
+                normalised_email,
+                exc.__class__.__name__,
+            )
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Username or email already registered (concurrent request). Please retry.",
+            ) from exc
+        await db.refresh(user)
+        return user
+
+
 # ---------------------------------------------------------------------------
 # Endpoints
 # ---------------------------------------------------------------------------
@@ -1002,64 +1113,14 @@ async def register(
     # V-1: CSRF origin validation
     _validate_csrf_origin(request)
 
-    # Normalise email to lowercase to ensure case-insensitive uniqueness.
-    normalised_email = body.email.strip().lower()
-
-    # Check username uniqueness
-    existing = await db.execute(select(User).where(User.username == body.username))
-    if existing.scalar_one_or_none() is not None:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="Username already registered",
-        )
-
-    # Check email uniqueness (case-insensitive)
-    existing = await db.execute(select(User).where(func.lower(User.email) == normalised_email))
-    if existing.scalar_one_or_none() is not None:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="Email already registered",
-        )
-
-    # SECURITY AUDIT 2026-07-29 (self-critique pass, EC-09):
-    # The pre-check above is a TOCTOU race window — two concurrent
-    # registrations with the same username/email can both pass the check
-    # and then the second flush() raises IntegrityError from the DB
-    # unique constraint, which previously surfaced as an opaque 500.
-    # Fix: wrap the insert in try/except IntegrityError and translate
-    # to a proper 409 Conflict with a user-facing message. The unique
-    # constraint name is database-specific (PostgreSQL: uq_users_username /
-    # uq_users_email; SQLite: sqlite_autoindex_users_X) so we don't try
-    # to introspect — we just say "already exists" and let the client
-    # re-fetch the canonical record if they need to know which field.
-    from sqlalchemy.exc import IntegrityError as _SAIntegrityError
-
-    user = User(
-        id=str(uuid.uuid4()),
-        tenant_id=_DEFAULT_TENANT_ID,  # V-07 (Phase 2): Assign to default tenant
+    user = await UserService.create(
+        db=db,
         username=body.username,
-        email=normalised_email,
-        password_hash=_hash_password(body.password),
-        # SECURITY: Force "viewer" role for all new registrations (S-02)
+        email=body.email,
+        password=body.password,
+        tenant_id=_DEFAULT_TENANT_ID,
         role="viewer",
     )
-    db.add(user)
-    try:
-        await db.flush()
-    except _SAIntegrityError as exc:
-        # Race condition: another request inserted a duplicate between
-        # our pre-check and our flush. Translate to 409 Conflict.
-        _logger.info(
-            "register_integrity_conflict username=%s email=%s err=%s",
-            body.username,
-            normalised_email,
-            exc.__class__.__name__,
-        )
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="Username or email already registered (concurrent request). Please retry.",
-        ) from exc
-    await db.refresh(user)
 
     # Send welcome email via Resend (additive, best-effort, toggleable)
     if os.getenv("RESEND_WELCOME_EMAIL_ENABLED", "true").lower() == "true":
@@ -1194,7 +1255,7 @@ async def login(
     # and skip the password check. The challenge token proves the password
     # was already verified in leg 1.
     if body.mfa_challenge_token and body.mfa_code:
-        challenge_user_id = _verify_mfa_challenge_token(body.mfa_challenge_token)
+        challenge_user_id = MfaService.verify_challenge(body.mfa_challenge_token)
         if challenge_user_id is None:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
@@ -1209,18 +1270,12 @@ async def login(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail=MSG_USER_NOT_FOUND_OR_DEACTIVATED,
             )
-        return await _verify_mfa_and_issue_tokens(user, body.mfa_code, body.username, db)
+        return await MfaService.verify_and_issue_tokens(user, body.mfa_code, body.username, db)
 
-    # Leg 1 (password verification)
-    # Accept either username or email as the login identifier. The frontend
-    # login form collects an "email" field and sends it as `username`, so the
-    # backend MUST match on email too — otherwise email-based logins always 401.
-    result = await db.execute(
-        select(User).where((User.username == body.username) | (User.email == body.username))
-    )
-    user = result.scalar_one_or_none()
+    # Leg 1 (password verification via AuthService)
+    user = await AuthService.verify_credentials(db, body.username, body.password)
 
-    if user is None or not _verify_password(body.password, user.password_hash):
+    if user is None:
         _record_failed_attempt(body.username)
         _record_ip_failed_attempt(ip)
         raise HTTPException(
@@ -1278,8 +1333,9 @@ async def refresh(
     db: DbDep,
 ) -> Any:
     """Exchange a valid refresh token for a new access + refresh pair."""
+    from api.dependencies import _decode_jwt
     try:
-        payload = jwt.decode(body.refresh_token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
+        payload = _decode_jwt(body.refresh_token)
     except jwt.ExpiredSignatureError as err:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -1362,11 +1418,10 @@ async def logout(
     itself remains valid until it expires (short-lived by design).
     """
     if body and body.refresh_token:
+        from api.dependencies import _decode_jwt
         try:
-            payload = jwt.decode(
+            payload = _decode_jwt(
                 body.refresh_token,
-                JWT_SECRET_KEY,
-                algorithms=[JWT_ALGORITHM],
                 options={"verify_exp": False},  # Allow blacklisting even if expired
             )
             jti = payload.get("jti")

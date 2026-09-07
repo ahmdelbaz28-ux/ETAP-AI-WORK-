@@ -213,13 +213,13 @@ export default function Login() {
           throw new Error("Request failed");
         }
       } catch {
-        setForgotSent(true);
-        appendLog("SEC-AUTH: Handled offline password reset dispatch.");
+        setForgotSent(false);
+        appendLog("SEC-AUTH: Connection offline or password reset request failed.");
         notify(
-          "info",
+          "error",
           i18n.language === "ar"
-            ? "تم إرسال تعليمات إعادة التعيين إن كان البريد مسجلاً"
-            : "Instructions sent if email is registered",
+            ? "تعذر إرسال الطلب، تأكد من الاتصال بالشبكة والمحاولة مجدداً"
+            : "Network offline or server unreachable. Please check connection and try again.",
         );
       } finally {
         setForgotLoading(false);

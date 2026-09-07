@@ -15,7 +15,7 @@ import hmac
 import logging
 import os
 import secrets
-from typing import Optional
+from typing import Any, Optional
 
 import jwt
 from fastapi import Depends, Header, HTTPException, Query, Request, status
@@ -151,38 +151,27 @@ class CurrentUser(BaseModel):
     tenant_id: str = ""
 
 
-async def get_current_user(
-    db: AsyncSession = Depends(get_db),  # noqa: B008
-    authorization: str | None = None,  # injected by FastAPI header param
-) -> CurrentUser:
-    """Validate the JWT from the ``Authorization: Bearer <token>`` header.
+def _decode_jwt(
+    token: str,
+    secret: Optional[str] = None,
+    algorithms: Optional[list[str]] = None,
+    **kwargs: Any,
+) -> dict[str, Any]:
+    """Canonical raw JWT decoding helper, encapsulated in api/dependencies.py."""
+    key = secret or JWT_SECRET_KEY
+    algos = algorithms or [JWT_ALGORITHM]
+    return jwt.decode(token, key, algorithms=algos, **kwargs)
 
-    Returns a :class:`CurrentUser` instance on success, or raises 401.
 
-    This dependency is intended to be used with FastAPI's ``Depends``::
-
-        @router.get("/me")
-        async def me(user: CurrentUser = Depends(get_current_user)):
-            ...
-
-    Note:
-        The ``authorization`` parameter is expected to be extracted from
-        the request header by the calling route or a middleware. When used
-        directly as a dependency, use the ``_get_auth_header`` helper below.
-    """
-    # Import here to avoid circular imports at module level
-    from api.auth import User  # noqa: WPS433
-
-    if authorization is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Missing Authorization header",
-        )
-
-    token = _extract_bearer_token(authorization)
-
+def _validate_jwt_access_token_sync(
+    token: str,
+    require_sub: bool = True,
+    secret: Optional[str] = None,
+    algorithms: Optional[list[str]] = None,
+) -> dict[str, Any]:
+    """Synchronous JWT access token validation (decoding, signature, expiration, type)."""
     try:
-        payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
+        payload = _decode_jwt(token, secret=secret, algorithms=algorithms)
     except jwt.ExpiredSignatureError as err:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -194,28 +183,37 @@ async def get_current_user(
             detail="Invalid token",
         ) from err
 
-    user_id: str | None = payload.get("sub")
-    token_type: str | None = payload.get("type")
+    user_id = payload.get("sub")
+    token_type = payload.get("type")
 
-    # SECURITY AUDIT 2026-07-29 (self-critique pass, EC-03):
-    # Previous check was `if user_id is None or token_type != "access"`.
-    # This rejects None but accepts the empty string `""`. An empty `sub`
-    # would pass this check, then flow into `select(User).where(User.id == "")`
-    # which on PostgreSQL matches no row (returns None → 401) but on
-    # SQLite with no constraints could match unexpected rows. Even on
-    # PostgreSQL, accepting `sub=""` is a defence-in-depth failure — the
-    # JWT should never have been minted with an empty subject.
-    # Fix: reject both None AND empty/whitespace-only strings.
-    if not user_id or not user_id.strip() or token_type != "access":
+    if token_type != "access" or (require_sub and (not user_id or not str(user_id).strip())):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid token payload",
         )
-    user_id = user_id.strip()
 
-    # SECURITY (S-09): Check token blacklist (revoked tokens).
-    # Lazy import to avoid circular dependency (auth.py imports dependencies.py).
-    jti: str | None = payload.get("jti")
+    return payload
+
+
+async def _validate_jwt_access_token(
+    token: str,
+    require_sub: bool = True,
+    secret: Optional[str] = None,
+    algorithms: Optional[list[str]] = None,
+) -> dict[str, Any]:
+    """Canonical JWT access token validator.
+
+    Decodes the JWT, validates expiration/signature, asserts type == 'access',
+    checks the JTI blacklist asynchronously, and optionally verifies that 'sub'
+    is non-empty.
+
+    Raises HTTPException(401) on failure.
+    """
+    payload = _validate_jwt_access_token_sync(
+        token, require_sub=require_sub, secret=secret, algorithms=algorithms
+    )
+
+    jti = payload.get("jti")
     if jti:
         try:
             from api.auth import _is_token_blacklisted
@@ -226,17 +224,34 @@ async def get_current_user(
                     detail="Token has been revoked",
                 )
         except ImportError:
-            # SECURITY AUDIT 2026-08-02 (DEP-4 fix):
-            # Previously, this was a silent `pass` — if the blacklist module
-            # couldn't be imported, revoked tokens were silently accepted.
-            # Now we log a warning so the operator knows the blacklist is
-            # unavailable. In production, this should never happen — the
-            # module is part of the same package.
             logger.warning(
-                "token_blacklist_import_failed jti=%s — blacklist check skipped. "
-                "Ensure api.auth module is importable.",
+                "token_blacklist_import_failed jti=%s — blacklist check skipped.",
                 jti,
             )
+
+    return payload
+
+
+async def get_current_user(
+    db: AsyncSession = Depends(get_db),  # noqa: B008
+    authorization: str | None = None,  # injected by FastAPI header param
+) -> CurrentUser:
+    """Validate the JWT from the ``Authorization: Bearer <token>`` header.
+
+    Returns a :class:`CurrentUser` instance on success, or raises 401.
+    """
+    # Import here to avoid circular imports at module level
+    from api.auth import User  # noqa: WPS433
+
+    if authorization is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing Authorization header",
+        )
+
+    token = _extract_bearer_token(authorization)
+    payload = await _validate_jwt_access_token(token, require_sub=True)
+    user_id = str(payload.get("sub", "")).strip()
 
     # Verify the user still exists and is active
     result = await db.execute(select(User).where(User.id == user_id))
@@ -405,39 +420,10 @@ async def get_api_key(  # NOSONAR async function uses sync I/O for compatibility
     if auth_header.lower().startswith("bearer "):
         token = _extract_bearer_token(auth_header)
         try:
-            payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
-            # Reject refresh tokens used as access tokens
-            if payload.get("type") != "access":
-                raise HTTPException(
-                    status_code=status.HTTP_401_UNAUTHORIZED,
-                    detail="Bearer token must be an access token, not a refresh token",
-                )
-            # SECURITY (S-09): Check token blacklist (revoked tokens).
-            # Lazy import to avoid circular dependency (auth.py imports dependencies.py).
-            jti = payload.get("jti")
-            if jti:
-                try:
-                    from api.auth import _is_token_blacklisted
-
-                    if await _is_token_blacklisted(jti):
-                        raise HTTPException(
-                            status_code=status.HTTP_401_UNAUTHORIZED,
-                            detail="Token has been revoked",
-                        )
-                except ImportError:
-                    # SECURITY AUDIT 2026-08-02 (DEP-4 fix):
-                    logger.warning(
-                        "token_blacklist_import_failed (api_key) jti=%s — blacklist check skipped",
-                        jti,
-                    )
+            await _validate_jwt_access_token(token, require_sub=False)
             return ""
-        except jwt.ExpiredSignatureError as err:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Bearer token has expired",
-            ) from err
-        except jwt.InvalidTokenError:
-            # Invalid JWT — fall through to API key validation
+        except HTTPException:
+            # Invalid/expired/revoked JWT — fall through to API key validation
             pass
 
     if not x_api_key:
@@ -447,17 +433,6 @@ async def get_api_key(  # NOSONAR async function uses sync I/O for compatibility
         )
 
     expected_key = os.getenv("ENGINEERING_SERVICE_API_KEY", API_KEY)
-    # SECURITY (CI fix 2026-09-01): the previous dev backdoor accepted the
-    # literal ``x_api_key == "test-key"`` in any non-production environment.
-    # That allowed unauthenticated access with a publicly-known value in
-    # staging/dev deployments and made the auth test-suite order-dependent.
-    # The configured key must ALWAYS come from the environment; no literal
-    # shortcuts.
-    if not is_production_environment() and (
-        expected_key and hmac.compare_digest(x_api_key, expected_key)
-    ):
-        return x_api_key
-
     if not expected_key or not hmac.compare_digest(x_api_key, expected_key):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

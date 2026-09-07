@@ -33,7 +33,7 @@ import {
   TrendingUp,
   XCircle,
 } from "lucide-react";
-import { type ReactNode, useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Badge,
   Button,
@@ -45,8 +45,8 @@ import {
   Tabs,
 } from "../components/ui";
 import { useNotify } from "../context/NotificationContext";
-import { API_BASE_URL } from "../lib/api-config";
-import { getAuthToken } from "../lib/tokenStorage";
+import { StatCard } from "../components/admin-primitives";
+import { apiFetch } from "../lib/api-fetch";
 
 // ---------------------------------------------------------------------------
 // Types — mirror api/email_dashboard.py + services/email_send_log.py
@@ -147,83 +147,12 @@ type TabId = "overview" | "recent" | "config";
 // Fetch helpers
 // ---------------------------------------------------------------------------
 
-function authHeaders(extra: Record<string, string> = {}): Record<string, string> {
-  const token = getAuthToken();
-  return { ...(token ? { Authorization: `Bearer ${token}` } : {}), ...extra };
-}
-
-async function dashboardFetch<T>(path: string, init?: RequestInit): Promise<T> {
-  const callerHeaders = init?.headers;
-  const mergedHeaders: Record<string, string> = {
-    "Content-Type": "application/json",
-    ...authHeaders(),
-  };
-  if (callerHeaders instanceof Headers) {
-    callerHeaders.forEach((v, k) => {
-      mergedHeaders[k] = v;
-    });
-  } else if (Array.isArray(callerHeaders)) {
-    for (const [k, v] of callerHeaders) {
-      mergedHeaders[k] = v;
-    }
-  } else if (callerHeaders && typeof callerHeaders === "object") {
-    Object.assign(mergedHeaders, callerHeaders);
-  }
-
-  const res = await fetch(`${API_BASE_URL}${path}`, { ...init, headers: mergedHeaders });
-  if (!res.ok) {
-    const text = await res.text().catch(() => "");
-    throw new Error(`HTTP ${res.status}: ${text || res.statusText}`);
-  }
-  return (await res.json()) as T;
-}
 
 // ---------------------------------------------------------------------------
 // Small UI primitives (kept local to avoid bloating the shared ui/ folder)
 // ---------------------------------------------------------------------------
 
-function StatCard({
-  label,
-  value,
-  sub,
-  tone = "neutral",
-  icon,
-}: {
-  label: string;
-  value: ReactNode;
-  sub?: ReactNode;
-  tone?: "success" | "danger" | "warning" | "neutral";
-  icon?: ReactNode;
-}) {
-  const toneClass = {
-    success: "text-green-400",
-    danger: "text-red-400",
-    warning: "text-amber-400",
-    neutral: "text-zinc-100",
-  }[tone];
-  const iconBg = {
-    success: "bg-green-500/10 text-green-400",
-    danger: "bg-red-500/10 text-red-400",
-    warning: "bg-amber-500/10 text-amber-400",
-    neutral: "bg-zinc-500/10 text-zinc-300",
-  }[tone];
-  return (
-    <Card>
-      <CardSection className="p-4">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0 flex-1">
-            <p className="text-[11px] uppercase tracking-wider text-zinc-400 font-semibold">
-              {label}
-            </p>
-            <p className={`mt-1 text-2xl font-bold ${toneClass}`}>{value}</p>
-            {sub ? <p className="mt-1 text-xs text-zinc-500">{sub}</p> : null}
-          </div>
-          {icon ? <div className={`shrink-0 rounded-lg p-2 ${iconBg}`}>{icon}</div> : null}
-        </div>
-      </CardSection>
-    </Card>
-  );
-}
+
 
 function FlowBadge({ flow }: { readonly flow: string }) {
   const palette: Record<string, string> = {
@@ -319,10 +248,10 @@ export default function EmailDashboardPage() {
     setStatsError(null);
     try {
       const [statsRes, byDayRes] = await Promise.all([
-        dashboardFetch<StatsResponse>(
+        apiFetch<StatsResponse>(
           `/api/v1/email-dashboard/api/stats?window_hours=${windowHours}`,
         ),
-        dashboardFetch<ByDayResponse>(`/api/v1/email-dashboard/api/by-day?days=${days ?? 7}`),
+        apiFetch<ByDayResponse>(`/api/v1/email-dashboard/api/by-day?days=${days ?? 7}`),
       ]);
       setStats(statsRes?.stats ?? null);
       setByDay(Array.isArray(byDayRes?.days) ? byDayRes.days : []);
@@ -339,7 +268,7 @@ export default function EmailDashboardPage() {
     setRecentError(null);
     try {
       const flowParam = flowFilter ? `&flow=${encodeURIComponent(flowFilter)}` : "";
-      const res = await dashboardFetch<RecentResponse>(
+      const res = await apiFetch<RecentResponse>(
         `/api/v1/email-dashboard/api/recent?limit=100${flowParam || ""}`,
       );
       setRecent(Array.isArray(res?.records) ? res.records : []);
@@ -355,7 +284,7 @@ export default function EmailDashboardPage() {
     setConfigLoading(true);
     setConfigError(null);
     try {
-      const res = await dashboardFetch<ConfigResponse>("/api/v1/email-dashboard/api/config");
+      const res = await apiFetch<ConfigResponse>("/api/v1/email-dashboard/api/config");
       setConfig(res.config);
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
@@ -399,7 +328,7 @@ export default function EmailDashboardPage() {
           setDetailLoading(false);
           return;
         }
-        const res = await dashboardFetch<RecordResponse>(
+        const res = await apiFetch<RecordResponse>(
           `/api/v1/email-dashboard/api/record/${encodeURIComponent(recordId)}`,
         );
         setDetailRecord(res.record);
@@ -416,7 +345,7 @@ export default function EmailDashboardPage() {
   const handleClear = useCallback(async () => {
     setClearing(true);
     try {
-      const res = await dashboardFetch<ClearResponse>("/api/v1/email-dashboard/api/clear", {
+      const res = await apiFetch<ClearResponse>("/api/v1/email-dashboard/api/clear", {
         method: "POST",
         body: JSON.stringify({ max_age_hours: clearAgeHours }),
       });

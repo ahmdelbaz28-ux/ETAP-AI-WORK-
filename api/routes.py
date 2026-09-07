@@ -11,7 +11,6 @@ _INVALID_API_KEY_MSG = "Invalid or missing API key"  # NOSONAR
 import hmac
 import os
 import sys
-import threading as _threading
 import time
 import uuid
 from typing import Any
@@ -287,11 +286,13 @@ _RATE_LIMIT_PREFIX = os.environ.get("RATE_LIMIT_PREFIX", "rate-limit:")
 # the oldest entry in constant time. We still also opportunistically
 # prune stale entries when a client_id is touched, but the pathological
 # full-scan is gone.
-from collections import OrderedDict as _OrderedDict
+from api._rate_limit import RateLimiter
 
-_rate_limit_fallback_store: _OrderedDict[str, list[float]] = _OrderedDict()
-_rate_limit_fallback_lock = _threading.Lock()
-_RATE_LIMIT_MAX_ENTRIES = int(os.environ.get("ENGINEERING_SERVICE_RATE_LIMIT_MAX_ENTRIES", "10000"))
+_routes_fallback_limiter = RateLimiter(
+    max_requests=_RATE_LIMIT_MAX_REQUESTS,
+    window_seconds=_RATE_LIMIT_WINDOW,
+)
+_rate_limit_fallback_store = _routes_fallback_limiter._store
 
 try:
     import redis.asyncio as redis_async  # type: ignore
@@ -331,31 +332,10 @@ async def _check_rate_limit(client_id: str) -> bool:
         return True
 
     r = _get_rate_limit_redis()
-    now = time.time()
-
     if r is None:
-        with _rate_limit_fallback_lock:
-            # O(1) cap enforcement: evict oldest entries (FIFO) when over
-            # the cap. The previous code did a full O(n) scan to find stale
-            # entries on every request once the cap was crossed — see PR-02.
-            while len(_rate_limit_fallback_store) > _RATE_LIMIT_MAX_ENTRIES:
-                _rate_limit_fallback_store.popitem(last=False)
-
-            timestamps = _rate_limit_fallback_store.get(client_id)
-            if not timestamps:
-                _rate_limit_fallback_store[client_id] = [now]
-                return True
-
-            # Opportunistic stale-entry cleanup for THIS client only (O(k)
-            # where k = number of past attempts for this client, typically <100).
-            timestamps = [t for t in timestamps if now - t < _RATE_LIMIT_WINDOW]
-            if len(timestamps) >= _RATE_LIMIT_MAX_REQUESTS:
-                _rate_limit_fallback_store[client_id] = timestamps
-                return False
-
-            timestamps.append(now)
-            _rate_limit_fallback_store[client_id] = timestamps
-            return True
+        _routes_fallback_limiter.max_requests = _RATE_LIMIT_MAX_REQUESTS
+        _routes_fallback_limiter.window_seconds = _RATE_LIMIT_WINDOW
+        return _routes_fallback_limiter.is_allowed(client_id)
 
     key = f"{_RATE_LIMIT_PREFIX}{client_id}"
     try:
@@ -365,17 +345,9 @@ async def _check_rate_limit(client_id: str) -> bool:
         return current <= _RATE_LIMIT_MAX_REQUESTS
     except Exception:
         logger.warning("rate_limit_redis_failed", extra={"trace_id": "rate-limit"})
-        with _rate_limit_fallback_lock:
-            while len(_rate_limit_fallback_store) > _RATE_LIMIT_MAX_ENTRIES:
-                _rate_limit_fallback_store.popitem(last=False)
-            timestamps = _rate_limit_fallback_store.get(client_id, [])
-            timestamps = [t for t in timestamps if now - t < _RATE_LIMIT_WINDOW]
-            if len(timestamps) >= _RATE_LIMIT_MAX_REQUESTS:
-                _rate_limit_fallback_store[client_id] = timestamps
-                return False
-            timestamps.append(now)
-            _rate_limit_fallback_store[client_id] = timestamps
-            return True
+        _routes_fallback_limiter.max_requests = _RATE_LIMIT_MAX_REQUESTS
+        _routes_fallback_limiter.window_seconds = _RATE_LIMIT_WINDOW
+        return _routes_fallback_limiter.is_allowed(client_id)
 
 
 # ---------------------------------------------------------------------------
@@ -905,11 +877,6 @@ async def websocket_session_stream_handler(websocket: WebSocket, session_id: str
 @app.websocket("/ws/notifications")
 async def websocket_notifications_handler(websocket: WebSocket) -> None:
     """WebSocket endpoint for real-time notifications."""
-    import jwt
-
-    from api.database import get_db
-    from api.dependencies import JWT_ALGORITHM, JWT_SECRET_KEY
-
     # Authenticate via token in query params (since WebSocket headers are limited)
     token = websocket.query_params.get("token", "")
     if not token:
@@ -917,31 +884,21 @@ async def websocket_notifications_handler(websocket: WebSocket) -> None:
         return
 
     try:
-        payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
+        from api.dependencies import _validate_jwt_access_token
+
+        payload = await _validate_jwt_access_token(token)
         user_id = payload.get("sub")
-        token_type = payload.get("type")
-
-        # SECURITY AUDIT S-15: Reject non-access tokens (e.g. refresh tokens)
-        if not user_id or token_type != "access":
-            await websocket.close(code=1008, reason="Invalid or expired token")
-            return
-
-        # SECURITY AUDIT S-09: Check token blacklist
-        jti = payload.get("jti")
-        if jti:
-            try:
-                from api.auth import _is_token_blacklisted
-
-                if await _is_token_blacklisted(jti):
-                    await websocket.close(code=1008, reason="Token has been revoked")
-                    return
-            except ImportError:
-                pass
+    except HTTPException as exc:
+        reason = "Token has been revoked" if "revoked" in exc.detail.lower() else "Invalid or expired token"
+        await websocket.close(code=1008, reason=reason)
+        return
     except Exception:
         await websocket.close(code=1008, reason="Invalid token")
         return
 
     # Get user from database
+    from api.database import get_db
+
     async with get_db() as db:
         from sqlalchemy import select
 

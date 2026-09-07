@@ -21,7 +21,6 @@ from __future__ import annotations
 import hmac
 import logging
 import os
-import threading
 import time
 from datetime import datetime, timezone
 
@@ -383,28 +382,15 @@ def verify_api_key(
         # Validate the JWT here to prevent bypass with any "bearer " string.
         # Import locally to avoid circular imports.
         try:
-            import jwt
-
-            from api.dependencies import JWT_ALGORITHM, JWT_SECRET_KEY
+            from api.dependencies import _validate_jwt_access_token_sync
 
             token = auth_header[7:].strip()  # Remove "Bearer " prefix
-            payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
-            # SECURITY: Reject non-access tokens (refresh, reset-password, etc.)
-            # A refresh token should NOT bypass the API key check.
-            if payload.get("type") != "access":
-                # Fall through to API key check — refresh tokens aren't a valid bypass
-                pass
-            else:
-                # JWT is valid and is an access token — skip API key check.
-                # Note: blacklist is checked downstream by Depends(get_api_key)
-                # or Depends(get_current_user_from_header) in route handlers.
-                return
-        except jwt.InvalidTokenError:
-            # Invalid/expired JWT — fall through to API key check
-            # The downstream route's CurrentUser dependency will reject it
+            _validate_jwt_access_token_sync(token, require_sub=False)
+            return
+        except HTTPException:
+            # Invalid/expired JWT or non-access token — fall through to API key check
             pass
-        except (jwt.PyJWTError, ImportError, KeyError):
-            # Any other error (e.g., missing JWT_SECRET_KEY) — fall through to API key check
+        except Exception:
             pass  # SECURITY: Intentional — JWT optional, API key is the fallback
 
     provided = request.headers.get("x-api-key") or ""
@@ -413,59 +399,16 @@ def verify_api_key(
 
 
 # ---------------------------------------------------------------------------
-# In-memory rate limiter (no Redis needed)
+# In-memory rate limiter (canonical api._rate_limit.RateLimiter)
 # ---------------------------------------------------------------------------
 
+from api._rate_limit import RateLimiter
 
-class InMemoryRateLimiter:
-    """Thread-safe, per-client sliding-window rate limiter.
+_RATE_LIMIT_WINDOW = int(os.environ.get("RATE_LIMIT_WINDOW", "60"))
+_RATE_LIMIT_MAX = int(os.environ.get("RATE_LIMIT_MAX", "120"))
 
-    This is the lightweight alternative to the Redis-backed limiter in
-    ``api/routes.py``.  It is suitable for single-process deployments like
-    Hugging Face Spaces.
-    """
-
-    def __init__(
-        self,
-        window_seconds: int | None = None,
-        max_requests: int | None = None,
-        max_entries: int = 10_000,
-    ) -> None:
-        self.window = window_seconds or int(os.environ.get("RATE_LIMIT_WINDOW", "60"))
-        self.max_requests = max_requests or int(os.environ.get("RATE_LIMIT_MAX", "120"))
-        self.max_entries = max_entries
-        self._store: dict[str, list[float]] = {}
-        self._lock = threading.Lock()
-
-    def is_allowed(self, client_id: str) -> bool:
-        """Return ``True`` if the request is allowed, ``False`` if rate-limited."""
-        now = time.time()
-        with self._lock:
-            # Evict stale entries if the store is too large
-            if len(self._store) > self.max_entries:
-                stale = [
-                    cid
-                    for cid, timestamps in self._store.items()
-                    if not timestamps or now - timestamps[-1] > self.window
-                ]
-                for cid in stale:
-                    del self._store[cid]
-
-            if client_id not in self._store:
-                self._store[client_id] = [now]
-                return True
-
-            # Prune timestamps outside the window
-            self._store[client_id] = [t for t in self._store[client_id] if now - t < self.window]
-            if len(self._store[client_id]) >= self.max_requests:
-                return False
-
-            self._store[client_id].append(now)
-            return True
-
-
-# Module-level convenience instance
-rate_limiter = InMemoryRateLimiter()
+# Module-level canonical instance
+rate_limiter = RateLimiter(max_requests=_RATE_LIMIT_MAX, window_seconds=_RATE_LIMIT_WINDOW)
 
 # ---------------------------------------------------------------------------
 # Health / readiness / metrics response builders

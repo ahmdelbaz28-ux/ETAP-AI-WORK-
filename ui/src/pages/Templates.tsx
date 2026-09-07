@@ -6,7 +6,7 @@ import { ContextHelpButton } from "../components/help/ContextHelpButton";
 import { Badge, Button, Card, Modal } from "../components/ui";
 import { useNotify } from "../context/NotificationContext";
 import { API_BASE_URL } from "../lib/api-config";
-import { getAuthToken } from "../lib/tokenStorage";
+import { authHeaders } from "../lib/admin-fetch";
 
 interface Template {
   id: string;
@@ -56,11 +56,6 @@ const EMPTY_FORM: FormState = {
   tags: "",
   is_public: false,
 };
-
-function authHeaders(extra: Record<string, string> = {}): Record<string, string> {
-  const token = getAuthToken();
-  return { ...(token ? { Authorization: `Bearer ${token}` } : {}), ...extra };
-}
 
 async function templatesFetch<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${API_BASE_URL}${path}`, {

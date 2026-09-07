@@ -142,7 +142,9 @@ jobs:
 
       - name: Comment PR with Plan
         if: always() && steps.plan.outcome != 'cancelled'
-        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3  # v9.0.0
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v7.0.1
+        env:
+          PLAN_OUTCOME: ${{ steps.plan.outcome }}
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -164,7 +166,9 @@ jobs:
             });
             const botComment = comments.find(c => c.user.type === 'Bot' && c.body.startsWith('## Terraform Plan'));
 
-            const body = `## Terraform Plan Results\n\n${{ steps.plan.outcome == 'success' && '✅' || '❌' }} Plan status: **${{ steps.plan.outcome }}**\n\n<details><summary>Show Plan</summary>\n\n\`\`\`hcl\n${truncated}\n\`\`\`\n\n</details>\n\n---\n*Triggered by @${{ github.actor }} — [${{ github.sha }}](https://github.com/${{ github.repository }}/commit/${{ github.sha }})*`;
+            const outcome = process.env.PLAN_OUTCOME || 'unknown';
+            const icon = outcome === 'success' ? '✅' : '❌';
+            const body = `## Terraform Plan Results\n\n${icon} Plan status: **${outcome}**\n\n<details><summary>Show Plan</summary>\n\n\`\`\`hcl\n${truncated}\n\`\`\`\n\n</details>\n\n---\n*Triggered by @${context.actor} — [${context.sha}](https://github.com/${context.repo.owner}/${context.repo.repo}/commit/${context.sha})*`;
 
             if (botComment) {
               await github.rest.issues.updateComment({

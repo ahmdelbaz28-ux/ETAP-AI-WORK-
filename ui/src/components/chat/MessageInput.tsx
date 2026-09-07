@@ -20,32 +20,12 @@ import { cn } from "../../utils/helpers";
 import { Badge } from "../ui/Badge";
 import { Button } from "../ui/Button";
 import { Card, CardHeader, CardSection } from "../ui/Card";
-
-const MAX_ATTACHMENT_BYTES = 10 * 1024 * 1024; // 10 MiB
-const ALLOWED_EXTENSIONS = [".json", ".xml", ".cim", ".raw", ".m", ".csv", ".tsv", ".etap"];
-
-function getImportRiskVariant(riskLevel: string): "danger" | "warning" | "info" {
-  if (riskLevel === "high") return "danger";
-  if (riskLevel === "medium") return "warning";
-  return "info";
-}
-
-export interface ImportPreviewResponse {
-  success: boolean;
-  preview_id: string;
-  format: string;
-  filename: string;
-  file_size_bytes: number;
-  records_count: number;
-  buses_count: number;
-  branches_count: number;
-  affected_tables: string[];
-  risk_level: string;
-  requires_approval: boolean;
-  warnings: string[];
-  errors: string[];
-  created_at: string;
-}
+import {
+  ALLOWED_EXTENSIONS,
+  type ImportPreviewResponse,
+  riskVariant,
+  validatePowerFile,
+} from "../../lib/power-file";
 
 interface MessageInputProps {
   readonly onSend?: (text: string, file?: File | null) => Promise<boolean> | boolean;
@@ -137,18 +117,9 @@ export function MessageInput({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > MAX_ATTACHMENT_BYTES) {
-      setFileError(
-        `File exceeds maximum allowed size of 10 MB (${(file.size / (1024 * 1024)).toFixed(1)} MB)`,
-      );
-      if (fileInputRef.current) fileInputRef.current.value = "";
-      return;
-    }
-
-    const lowerName = file.name.toLowerCase();
-    const isAllowed = ALLOWED_EXTENSIONS.some((ext) => lowerName.endsWith(ext));
-    if (!isAllowed) {
-      setFileError(`Unsupported file type. Accepted: ${ALLOWED_EXTENSIONS.join(", ")}`);
+    const validation = validatePowerFile(file);
+    if (!validation.valid) {
+      setFileError(validation.error ?? "Invalid file");
       if (fileInputRef.current) fileInputRef.current.value = "";
       return;
     }
@@ -263,7 +234,7 @@ export function MessageInput({
               subtitle={`File: ${preview.filename} (${preview.format.toUpperCase()})`}
               icon={<Wrench className="w-4 h-4 text-indigo-400" />}
               action={
-                <Badge variant={getImportRiskVariant(preview.risk_level)}>
+                <Badge variant={riskVariant(preview.risk_level)}>
                   {preview.risk_level} risk
                 </Badge>
               }

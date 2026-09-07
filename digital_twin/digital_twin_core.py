@@ -497,7 +497,7 @@ class ChangePropagationEngine:
         return propagation_record
 
     def propagate_load_change(self, bus_id: str, new_power: complex) -> dict[str, Any]:
-        """Propagate a load change through the workflow."""
+        """Propagate a load change through the workflow with rollback on partial failure."""
         propagation_id = f"prop_{int(time.time() * 1000)}"
         start_time = time.time()
 
@@ -505,47 +505,67 @@ class ChangePropagationEngine:
         if self.dt_state.system is not None:
             bid = int(bus_id) if bus_id.isdigit() else bus_id
             if bid in self.dt_state.system.buses:
-                self.dt_state.system.buses[bid].load_power = new_power
+                orig_bus = self.dt_state.system.buses[bid]
+                orig_power = getattr(orig_bus, "load_power", None)
+                orig_ybus_seq = dict(self.dt_state.system.Ybus_seq)
 
-                # Rebuild Ybus and run load flow
-                self.dt_state.system.Ybus_seq.clear()
-                self.dt_state.system.build_ybus(seq="1")
+                try:
+                    self.dt_state.system.buses[bid].load_power = new_power
 
-                from .handlers import LoadFlowHandler, PropagationContext
+                    # Rebuild Ybus and run load flow
+                    self.dt_state.system.Ybus_seq.clear()
+                    self.dt_state.system.build_ybus(seq="1")
 
-                lf_ctx = PropagationContext(
-                    propagation_id=propagation_id,
-                    dt_state=self.dt_state,
-                    load_flow_solver=self._load_flow_solver,
-                )
-                lf_ctx = LoadFlowHandler().handle(lf_ctx)
-                lf_success = len(lf_ctx.steps) > 0 and lf_ctx.steps[-1].get("success", False)
+                    from .handlers import LoadFlowHandler, PropagationContext
 
-                # Update digital twin state
-                snapshot = self.dt_state.capture_snapshot(
-                    source_event="load_changed",
-                    correlation_id=propagation_id,
-                )
-                validation_results = self.dt_state.validate()
-                snapshot.validation_passed = all(r.passed for r in validation_results)
-                version = self.dt_state.commit_snapshot(snapshot)
+                    lf_ctx = PropagationContext(
+                        propagation_id=propagation_id,
+                        dt_state=self.dt_state,
+                        load_flow_solver=self._load_flow_solver,
+                    )
+                    lf_ctx = LoadFlowHandler().handle(lf_ctx)
+                    lf_success = len(lf_ctx.steps) > 0 and lf_ctx.steps[-1].get("success", False)
 
-                self.event_bus.publish(
-                    DigitalTwinStateUpdated(
-                        state_version=version,
-                        layers_synchronized=snapshot.validation_passed,
-                        validation_passed=snapshot.validation_passed,
-                        source="change_propagation",
+                    # Update digital twin state
+                    snapshot = self.dt_state.capture_snapshot(
+                        source_event="load_changed",
                         correlation_id=propagation_id,
-                    ),
-                )
+                    )
+                    validation_results = self.dt_state.validate()
+                    snapshot.validation_passed = all(r.passed for r in validation_results)
+                    version = self.dt_state.commit_snapshot(snapshot)
 
-                return {
-                    "propagation_id": propagation_id,
-                    "success": lf_success,
-                    "elapsed_seconds": time.time() - start_time,
-                    "load_flow": lf_ctx.steps[-1].get("details", {}) if lf_ctx.steps else {},
-                }
+                    self.event_bus.publish(
+                        DigitalTwinStateUpdated(
+                            state_version=version,
+                            layers_synchronized=snapshot.validation_passed,
+                            validation_passed=snapshot.validation_passed,
+                            source="change_propagation",
+                            correlation_id=propagation_id,
+                        ),
+                    )
+
+                    return {
+                        "propagation_id": propagation_id,
+                        "success": lf_success,
+                        "elapsed_seconds": time.time() - start_time,
+                        "load_flow": lf_ctx.steps[-1].get("details", {}) if lf_ctx.steps else {},
+                    }
+                except Exception as exc:
+                    logger.error(
+                        "propagate_load_change failed for bus %s; rolling back state: %s",
+                        bus_id,
+                        exc,
+                    )
+                    self.dt_state.system.buses[bid].load_power = orig_power
+                    self.dt_state.system.Ybus_seq.clear()
+                    self.dt_state.system.Ybus_seq.update(orig_ybus_seq)
+                    return {
+                        "propagation_id": propagation_id,
+                        "success": False,
+                        "elapsed_seconds": time.time() - start_time,
+                        "error": f"Propagation failed, state rolled back: {exc}",
+                    }
 
         return {
             "propagation_id": propagation_id,
@@ -553,245 +573,6 @@ class ChangePropagationEngine:
             "elapsed_seconds": time.time() - start_time,
             "error": "Electrical model not bound or bus not found",
         }
-
-    def _run_load_flow(self) -> dict[str, Any]:
-        """Run load flow on the bound system."""
-        if self.dt_state.system is None:
-            return {"converged": False, "error": "No system bound"}
-
-        try:
-            from load_flow.load_flow import LoadFlowSolver
-
-            solver = LoadFlowSolver(self.dt_state.system)
-            converged = solver.solve(max_iter=100, tol=1e-6)
-
-            bus_voltages = {}
-            for bid in solver.bus_ids:
-                bus_voltages[str(bid)] = solver.V[solver.bus_index[bid]]
-
-            return {
-                "converged": converged,
-                "iterations": len(solver.iteration_log) if hasattr(solver, "iteration_log") else 0,
-                "bus_voltages": bus_voltages,
-            }
-        except Exception as e:
-            logger.exception("Load flow failed: %s", e)
-            return {"converged": False, "error": str(e)}
-
-    def _run_state_estimation(self) -> dict[str, Any]:
-        """Run state estimation if measurements are available."""
-        if self.dt_state.system is None or self.dt_state.scada is None:
-            return {"converged": False, "error": "System or SCADA not bound"}
-
-        try:
-            from scada_model.state_estimation import WLSEstimator
-
-            estimator = WLSEstimator()
-
-            # Build measurements from SCADA
-            bus_ids = sorted(self.dt_state.system.buses.keys())
-            measurements = {"voltage_mag": {}, "power_injection": {}, "power_flow": {}}
-
-            for i, bid in enumerate(bus_ids):
-                vmag = self.dt_state.scada.get_latest_voltage(str(bid))
-                if vmag is not None:
-                    measurements["voltage_mag"][i] = (vmag, 0.01)
-
-                pq = self.dt_state.scada.get_latest_power(str(bid))
-                if pq is not None:
-                    measurements["power_injection"][i] = (pq[0], pq[1], 0.02, 0.02)
-
-            ybus = self.dt_state.system.get_ybus(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
-                seq="1"
-            )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-            result = estimator.estimate(ybus, measurements, [str(bid) for bid in bus_ids])
-
-            return {
-                "converged": result.status.value == "converged",
-                "bad_data_count": len(result.bad_data_detected),
-                "max_residual": result.max_residual,
-            }
-        except Exception as e:
-            logger.warning("State estimation failed: %s", e)
-            return {"converged": False, "error": str(e)}
-
-    def _refresh_short_circuit(self) -> dict[str, Any]:
-        """Refresh short circuit analysis."""
-        if self.dt_state.system is None:
-            return {"error": "No system bound"}
-        try:
-            self.dt_state.system.build_sequence_networks()
-            return {"status": "refreshed", "sequences_built": True}
-        except Exception as e:
-            return {"error": str(e)}
-
-    def _refresh_arc_flash(self) -> dict[str, Any]:
-        """Refresh arc flash analysis using current fault current data.
-
-        Builds sequence networks from the current topology, computes fault
-        currents at each bus, and estimates incident energy per IEEE 1584-2018.
-        """
-        if self.dt_state.system is None:
-            return {"status": "skipped", "reason": "No electrical model bound"}
-
-        try:
-            import math
-
-            from fault_analysis.fault import (
-                FaultAnalyzer,
-            )
-
-            self.dt_state.system.build_sequence_networks(for_fault=True)
-            ybus_pos = self.dt_state.system.get_ybus(
-                seq="1"
-            )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-            ybus_neg = self.dt_state.system.get_ybus(
-                seq="2"
-            )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-            ybus_zero = self.dt_state.system.get_ybus(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
-                seq="0"
-            )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-
-            analyzer = FaultAnalyzer(
-                ybus_pos,
-                ybus_neg,
-                ybus_zero,
-                base_mva=self.dt_state.system.base_mva,
-            )
-
-            results: dict[str, Any] = {}
-            bus_ids = sorted(self.dt_state.system.buses.keys())
-            bus_index = {bid: idx for idx, bid in enumerate(bus_ids)}
-            for bus_id in bus_ids:
-                bus_idx = bus_index[bus_id]
-                fault = analyzer.three_phase_fault(bus_idx)
-                fault_ka = fault.get("fault_current_ka", 0.0)
-                # Simplified IEEE 1584-2018 incident energy estimate
-                # E = 10^(k1 + k2*log10(Ibf)) * t / D^x (VCB default)
-                arc_duration = 0.2
-                working_distance_mm = 610.0  # 24 inches
-                k1, k2, x_ie = -0.153, -0.276, 1.0
-                log_iarc = (
-                    k1 + k2 * math.log10(fault_ka)
-                )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-                iarc = (
-                    10**log_iarc
-                )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-                log_e = (
-                    0.434 + (-0.262) * math.log10(iarc)
-                )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-                e_base = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
-                    10**log_e
-                )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-                E = e_base * arc_duration / (working_distance_mm**x_ie)
-                boundary_mm = (e_base * arc_duration / 1.2) ** (1.0 / x_ie)
-
-                if E <= 1.2:
-                    ppe = "0"
-                elif E <= 4.0:
-                    ppe = "1"
-                elif E <= 8.0:
-                    ppe = "2"
-                elif E <= 25.0:
-                    ppe = "3"
-                elif E <= 40.0:
-                    ppe = "4"
-                else:
-                    ppe = "DANGER"
-
-                results[str(bus_id)] = {
-                    "incident_energy_cal_cm2": round(E, 4),
-                    "arc_flash_boundary_mm": round(boundary_mm, 1),
-                    "ppe_level": ppe,
-                    "arc_current_ka": round(iarc, 4),
-                    "fault_current_ka": round(fault_ka, 4),
-                    "method": "IEEE 1584-2018 (estimated)",
-                }
-
-            return {"status": "refreshed", "bus_count": len(results), "results": results}
-        except Exception as e:
-            logger.warning("Arc flash refresh failed: %s", e)
-            return {"status": "error", "error": str(e)}
-
-    def _refresh_protection(self) -> dict[str, Any]:
-        """Refresh protection coordination using current fault current data.
-
-        Builds sequence networks, computes fault currents, and verifies
-        that all relay pairs maintain coordination margins.
-        """
-        if self.dt_state.system is None:
-            return {"status": "skipped", "reason": "No electrical model bound"}
-
-        try:
-            from coordination.coordination import CoordinationEngine
-            from fault_analysis.fault import FaultAnalyzer
-            from relays.relay import (
-                OvercurrentRelay,
-            )
-
-            self.dt_state.system.build_sequence_networks(for_fault=True)
-            ybus_pos = self.dt_state.system.get_ybus(
-                seq="1"
-            )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-            ybus_neg = self.dt_state.system.get_ybus(
-                seq="2"
-            )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-            ybus_zero = self.dt_state.system.get_ybus(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
-                seq="0"
-            )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-
-            analyzer = FaultAnalyzer(
-                ybus_pos,
-                ybus_neg,
-                ybus_zero,
-                base_mva=self.dt_state.system.base_mva,
-            )
-
-            # Calculate fault currents at all buses
-            fault_currents: list[float] = []
-            bus_ids = sorted(self.dt_state.system.buses.keys())
-            bus_index = {bid: idx for idx, bid in enumerate(bus_ids)}
-            for bus_id in bus_ids:
-                bus_idx = bus_index[bus_id]
-                fault = analyzer.three_phase_fault(bus_idx)
-                fc_pu = abs(fault.get("fault_current", complex(0, 0)))
-                if fc_pu > 0:
-                    fault_currents.append(fc_pu)
-
-            if not fault_currents:
-                return {"status": "skipped", "reason": "No fault currents available"}
-
-            # Use representative fault current range for coordination check
-            representative_faults = sorted({round(fc, 0) for fc in fault_currents if fc > 1.0})[
-                :10
-            ]  # Up to 10 representative fault levels
-
-            if not representative_faults:
-                representative_faults = [2.0, 5.0, 10.0, 20.0]
-
-            # Create default relay pair for coordination check
-            coord_engine = CoordinationEngine()
-            relay1 = OvercurrentRelay(relay_id=1, name="Upstream", TMS=0.5, Ip=1.0)
-            relay2 = OvercurrentRelay(relay_id=2, name="Downstream", TMS=0.2, Ip=1.0)
-
-            coord_results = coord_engine.check_coordination_range(
-                relay1,
-                relay2,
-                representative_faults,
-            )
-            all_coordinated = all(r["coordinated"] for r in coord_results)
-            min_margin = min(r["margin"] for r in coord_results) if coord_results else 0.0
-
-            return {
-                "status": "refreshed",
-                "all_coordinated": all_coordinated,
-                "min_margin_sec": round(min_margin, 4),
-                "fault_levels_checked": len(representative_faults),
-                "coordination_standard": "IEC 60255",
-            }
-        except Exception as e:
-            logger.warning("Protection refresh failed: %s", e)
-            return {"status": "error", "error": str(e)}
 
     def get_propagation_log(self) -> list[dict[str, Any]]:
         """Get propagation history."""

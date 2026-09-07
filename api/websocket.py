@@ -18,12 +18,12 @@ import hmac
 import json
 import logging
 import time
-from datetime import datetime, timezone
+from datetime import timezone
 from typing import Any, List
 
 UTC = timezone.utc  # noqa: UP017
 
-from fastapi import Query, WebSocket, WebSocketDisconnect
+from fastapi import HTTPException, Query, WebSocket, WebSocketDisconnect
 from starlette.websockets import WebSocketState
 
 from api.environment import (
@@ -176,112 +176,11 @@ class SCADALiveFeed:
         for client in disconnected_clients:
             await self.disconnect(client)
 
-    async def _generate_scada_data(  # NOSONAR
-        self,
-    ) -> dict:  # NOSONAR async function uses sync I/O for compatibility reasons
-        """Generate mock SCADA data for demonstration purposes.
+    async def _generate_scada_data(self) -> dict:
+        """Acquire SCADA telemetry from bridge or simulator service."""
+        from services.scada_simulator import get_scada_telemetry
 
-        **SIMULATED DATA**: This generates synthetic data for UI/UX demos only.
-        The ``is_simulated`` flag is set to `True` so the frontend can show a
-        red banner to operators. In a real deployment, this method would connect
-        to actual SCADA systems (Zenon 7 / IEC 61850) and is_simulated would be `False`.
-        """
-        try:
-            from etap_scada_bridge import ETAPScadaBridge
-
-            bridge = ETAPScadaBridge()
-            if hasattr(bridge, "is_connected") and bridge.is_connected():
-                telemetry = bridge.read_telemetry()
-                if telemetry:
-                    return {
-                        "is_simulated": False,
-                        "timestamp": datetime.now(UTC).isoformat(),
-                        "measurements": telemetry,
-                    }
-        except Exception:
-            pass
-
-        import random
-        import secrets
-
-        scada_data = {
-            "is_simulated": True,
-            "timestamp": datetime.now(UTC).isoformat(),
-            "measurements": {
-                "bus_voltages": [
-                    {
-                        "bus_id": "BUS_1",
-                        "voltage_kV": round(random.uniform(11.0, 12.5), 3),
-                        "angle_deg": round(random.uniform(-5, 5), 2),
-                    },
-                    {
-                        "bus_id": "BUS_2",
-                        "voltage_kV": round(random.uniform(11.0, 12.5), 3),
-                        "angle_deg": round(random.uniform(-5, 5), 2),
-                    },
-                    {
-                        "bus_id": "BUS_3",
-                        "voltage_kV": round(random.uniform(11.0, 12.5), 3),
-                        "angle_deg": round(random.uniform(-5, 5), 2),
-                    },
-                ],
-                "line_flows": [
-                    {
-                        "line_id": "LINE_1_2",
-                        "mw": round(random.uniform(10, 100), 2),
-                        "mvar": round(random.uniform(5, 50), 2),
-                    },
-                    {
-                        "line_id": "LINE_2_3",
-                        "mw": round(random.uniform(10, 100), 2),
-                        "mvar": round(random.uniform(5, 50), 2),
-                    },
-                ],
-                "generator_outputs": [
-                    {
-                        "gen_id": "GEN_1",
-                        "mw": round(random.uniform(50, 200), 2),
-                        "mvar": round(random.uniform(20, 80), 2),
-                    },
-                    {
-                        "gen_id": "GEN_2",
-                        "mw": round(random.uniform(50, 200), 2),
-                        "mvar": round(random.uniform(20, 80), 2),
-                    },
-                ],
-                "load_values": [
-                    {
-                        "load_id": "LOAD_1",
-                        "mw": round(random.uniform(10, 50), 2),
-                        "mvar": round(random.uniform(5, 25), 2),
-                    },
-                    {
-                        "load_id": "LOAD_2",
-                        "mw": round(random.uniform(10, 50), 2),
-                        "mvar": round(random.uniform(5, 25), 2),
-                    },
-                ],
-            },
-            "alarms": [],
-            "system_status": "NORMAL",
-        }
-
-        # Randomly add alarms occasionally. Uses `secrets` (not `random`) so
-        # SonarCloud S2245 stays satisfied — simulated telemetry is not
-        # security-relevant, but the crypto-seeded PRNG removes the hotspot.
-        if secrets.randbelow(10) == 0:  # 10% chance of alarm
-            severity = "WARNING" if secrets.randbelow(10) < 7 else "CRITICAL"
-            scada_data["alarms"].append(
-                {
-                    "alarm_id": f"ALARM_{secrets.randbelow(9000) + 1000}",
-                    "timestamp": datetime.now(UTC).isoformat(),
-                    "severity": severity,
-                    "description": f"Simulated alarm for equipment {secrets.choice(['Transformer', 'Breaker', 'Line'])}",
-                    "location": secrets.choice(["SUBSTATION_A", "SUBSTATION_B", "FEEDER_C"]),
-                },
-            )
-
-        return scada_data
+        return get_scada_telemetry()
 
     async def _heartbeat_loop(self):
         """Security Fix V-01: Periodic heartbeat to detect zombie connections.
@@ -351,7 +250,7 @@ class SCADALiveFeed:
 scada_feed = SCADALiveFeed()
 
 
-def _validate_ws_token(token: str) -> bool:
+async def _validate_ws_token(token: str) -> bool:
     """Validate JWT token for WebSocket authentication (S-03).
 
     Accepts:
@@ -367,9 +266,15 @@ def _validate_ws_token(token: str) -> bool:
 
     # Check API key (server-to-server) — constant-time comparison
     api_key = os.getenv("ENGINEERING_SERVICE_API_KEY", "")
-    if not is_production_environment() and (
-        token in ("test-key", "test-scada-api-key-12345")
-        or (api_key and hmac.compare_digest(token, api_key))
+    dev_env_allowlist = ("development", "dev", "test", "local")
+    env = os.getenv("ENV", os.getenv("APP_ENV", "development")).lower()
+    allow_test_tokens = os.getenv("ALLOW_TEST_TOKENS", "").strip().lower() in ("true", "1", "yes")
+
+    if (
+        allow_test_tokens
+        and not is_production_environment()
+        and env in dev_env_allowlist
+        and token in ("test-key", "test-scada-api-key-12345")
     ):
         return True
 
@@ -378,33 +283,20 @@ def _validate_ws_token(token: str) -> bool:
 
     # Check JWT token
     try:
-        import jwt
+        from api.dependencies import _validate_jwt_access_token
 
         jwt_secret = os.getenv("JWT_SECRET_KEY", "")
         if not jwt_secret:
             logger.warning("WS auth: JWT_SECRET_KEY not configured")
             return False
-        payload = jwt.decode(token, jwt_secret, algorithms=["HS256"])
-        # Accept only access tokens
-        if payload.get("type") != "access":
-            logger.warning("WS auth: rejected non-access token (type=%s)", payload.get("type"))
-            return False
-        # SECURITY: Check token blacklist (revoked tokens)
-        jti = payload.get("jti")
-        if jti:
-            try:
-                from api.auth import _is_token_blacklisted
-
-                if _is_token_blacklisted(jti):
-                    logger.warning("WS auth: rejected revoked token (jti=%s)", jti)
-                    return False
-            except (ImportError, AttributeError):
-                pass  # blacklist unavailable
+        await _validate_jwt_access_token(
+            token, require_sub=False, secret=jwt_secret, algorithms=["HS256"]
+        )
         return True
-    except jwt.ExpiredSignatureError:
-        logger.warning("WS auth: token expired")
+    except HTTPException as exc:
+        logger.warning("WS auth failed: %s", exc.detail)
         return False
-    except jwt.InvalidTokenError as e:
+    except Exception as e:
         logger.warning("WS auth: invalid token: %s", e)
         return False
 
@@ -520,7 +412,7 @@ async def scada_websocket_endpoint(
             else ""
         )
     )
-    if not _validate_ws_token(auth_token):
+    if not await _validate_ws_token(auth_token):
         await websocket.close(
             code=4001, reason="Authentication required — provide valid token parameter"
         )
