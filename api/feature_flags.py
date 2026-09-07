@@ -13,6 +13,7 @@ Endpoints:
 
 from __future__ import annotations
 
+import copy
 import hashlib
 import json
 import logging
@@ -111,19 +112,19 @@ def _load_flags() -> dict[str, dict[str, Any]]:
     """Load flags from disk, falling back to defaults if the file is missing/corrupt."""
     path = _db_path()
     if not path.exists():
-        return dict(DEFAULT_FEATURE_FLAGS)
+        return copy.deepcopy(DEFAULT_FEATURE_FLAGS)
     try:
         with open(path, encoding="utf-8") as f:
             data = json.load(f)
             if isinstance(data, dict):
-                merged = dict(DEFAULT_FEATURE_FLAGS)
+                merged = copy.deepcopy(DEFAULT_FEATURE_FLAGS)
                 for k, v in data.items():
                     if isinstance(v, dict):
-                        merged[k] = v
+                        merged[k] = copy.deepcopy(v)
                 return merged
     except Exception as e:
         logger.warning("Failed to read feature flags from %s: %s; using defaults", path, e)
-    return dict(DEFAULT_FEATURE_FLAGS)
+    return copy.deepcopy(DEFAULT_FEATURE_FLAGS)
 
 
 def _save_flags(flags: dict[str, dict[str, Any]]) -> None:
@@ -367,7 +368,9 @@ async def update_feature_flag(
     request: Request,
     key: str,
     payload: FeatureFlagPatch,
-    _admin: CurrentUser = Depends(_require_admin()),  # NOSONAR python:S8410 standard FastAPI dependency
+    _admin: CurrentUser = Depends(
+        _require_admin()
+    ),  # NOSONAR python:S8410 standard FastAPI dependency
 ):
     """Toggle or update a feature flag."""
     trace_id = getattr(request.state, "trace_id", "unknown")
