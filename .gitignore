@@ -521,3 +521,5 @@ testsprite_tests/tmp/
 
 testsprite_tests/tmp_assistant.html
 testsprite_tests/tmp_assistant*.html
+
+.claude/
