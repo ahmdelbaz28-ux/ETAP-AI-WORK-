@@ -20,9 +20,9 @@ def override_auth():
     pass
 
 @pytest.mark.asyncio
-async def test_asset_tenant_isolation_idor():
-    os.environ["ENGINEERING_SERVICE_AUTH_DISABLED"] = "false"
-    os.environ["ENGINEERING_SERVICE_API_KEY"] = "test-api-key"
+async def test_asset_tenant_isolation_idor(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setenv("ENGINEERING_SERVICE_AUTH_DISABLED", "false")
+    monkeypatch.setenv("ENGINEERING_SERVICE_API_KEY", "test-api-key")
 
     # Create test assets for tenant-A and tenant-B
     asset_a_id = str(uuid.uuid4())

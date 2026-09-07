@@ -884,9 +884,18 @@ async def websocket_notifications_handler(websocket: WebSocket) -> None:
         return
 
     try:
+        from api.auth import _is_token_blacklisted
         from api.dependencies import _validate_jwt_access_token
 
         payload = await _validate_jwt_access_token(token)
+        token_type = payload.get("type")
+        if token_type != "access":
+            await websocket.close(code=1008, reason="Invalid token type")
+            return
+        jti = payload.get("jti")
+        if jti and await _is_token_blacklisted(jti):
+            await websocket.close(code=1008, reason="Token has been revoked")
+            return
         user_id = payload.get("sub")
     except HTTPException as exc:
         reason = "Token has been revoked" if "revoked" in exc.detail.lower() else "Invalid or expired token"

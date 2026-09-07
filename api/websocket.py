@@ -283,6 +283,7 @@ async def _validate_ws_token(token: str) -> bool:
 
     # Check JWT token
     try:
+        from api.auth import _is_token_blacklisted  # noqa: F401
         from api.dependencies import _validate_jwt_access_token
 
         jwt_secret = os.getenv("JWT_SECRET_KEY", "")

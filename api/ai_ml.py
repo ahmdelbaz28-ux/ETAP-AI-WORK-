@@ -85,6 +85,8 @@ async def _get_api_key_or_user(request: Request) -> AuthPrincipal:
             payload = await _validate_jwt_access_token(
                 token, require_sub=False, secret=jwt_secret or None, algorithms=["HS256"]
             )
+            if payload.get("type") != "access":
+                raise HTTPException(status_code=401, detail="Invalid token type")
             return AuthPrincipal(auth_type="jwt", identity=str(payload.get("sub", "unknown")))
         except HTTPException:
             raise
