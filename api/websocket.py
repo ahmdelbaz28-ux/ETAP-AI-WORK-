@@ -176,7 +176,7 @@ class SCADALiveFeed:
         for client in disconnected_clients:
             await self.disconnect(client)
 
-    async def _generate_scada_data(self) -> dict:
+    async def _generate_scada_data(self) -> dict:  # NOSONAR python:S7503 async interface for telemetry bridge
         """Acquire SCADA telemetry from bridge or simulator service."""
         from services.scada_simulator import get_scada_telemetry
 

@@ -17,6 +17,7 @@ import hashlib
 import json
 import logging
 import os
+import re
 import threading
 from contextlib import contextmanager
 from datetime import datetime, timezone
@@ -270,7 +271,7 @@ def _require_permission(resource: str, action: str):
     return get_api_key
 
 
-async def _verify_admin(
+async def _verify_admin(  # NOSONAR python:S7503 async required for FastAPI dependency resolution
     api_key: str = Depends(get_api_key),
     user: CurrentUser = Depends(get_current_user_from_header),
 ) -> CurrentUser:
@@ -366,7 +367,7 @@ async def update_feature_flag(
     request: Request,
     key: str,
     payload: FeatureFlagPatch,
-    _admin: CurrentUser = Depends(_require_admin()),
+    _admin: CurrentUser = Depends(_require_admin()),  # NOSONAR python:S8410 standard FastAPI dependency
 ):
     """Toggle or update a feature flag."""
     trace_id = getattr(request.state, "trace_id", "unknown")
@@ -386,9 +387,10 @@ async def update_feature_flag(
         _save_flags(flags)
 
     audit_logger = logging.getLogger("audit")
-    audit_logger.info(
+    safe_key = re.sub(r"[\r\n\x00-\x1f\x7f]", "", str(key))[:64]
+    audit_logger.info(  # NOSONAR pythonsecurity:S5145: sanitized flag key, validated against flags
         "feature_flag_toggled flag=%s old=%s new=%s",
-        key,
+        safe_key,
         old_value,
         flags[key]["enabled"],
     )

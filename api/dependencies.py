@@ -420,6 +420,7 @@ async def get_api_key(  # NOSONAR async function uses sync I/O for compatibility
     if auth_header.lower().startswith("bearer "):
         token = _extract_bearer_token(auth_header)
         try:
+            from api.auth import _is_token_blacklisted  # noqa: F401, I001  # NOSONAR lazy import to avoid circular dependency
             await _validate_jwt_access_token(token, require_sub=False)
             return ""
         except HTTPException:

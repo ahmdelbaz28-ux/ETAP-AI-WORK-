@@ -601,6 +601,7 @@ def _scope_logs_for_user(logs: list[dict[str, Any]], user: CurrentUser) -> list[
 # ---------------------------------------------------------------------------
 
 
+@router.get("", response_model=AuditLogListResponse, include_in_schema=False)
 @router.get("/", response_model=AuditLogListResponse, summary="List audit logs")
 async def list_audit_logs(
     page: int = Query(default=1, ge=1, description="1-based page number"),
