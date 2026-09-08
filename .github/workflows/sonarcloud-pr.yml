@@ -39,7 +39,8 @@ jobs:
     name: SonarCloud Scan
     runs-on: ubuntu-latest
     # Skip draft PRs to save CI minutes (they will be scanned when marked ready).
-    if: github.event.pull_request.draft == false || github.event_name != 'pull_request'
+    # Skip Dependabot PRs since secrets (SONAR_TOKEN) are not accessible to Dependabot workflows.
+    if: (github.event.pull_request.draft == false || github.event_name != 'pull_request') && github.actor != 'dependabot[bot]'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
