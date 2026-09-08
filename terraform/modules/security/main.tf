@@ -23,12 +23,7 @@ resource "azurerm_container_registry" "this" {
   # authenticate to other Azure services (Key Vault, Storage) without
   # storing credentials. We use a SystemAssigned identity which is
   # managed by Azure and tied to the resource's lifecycle.
-  identity {
-    type = "SystemAssigned"
-  }
-
-  # Managed Identity (SonarCloud S6378): ACR uses SystemAssigned identity
-  # so AKS can pull images via AcrPull role assignment without admin creds.
+  # AKS can pull images via AcrPull role assignment without admin creds.
   identity {
     type = "SystemAssigned"
   }
@@ -84,10 +79,6 @@ resource "azurerm_key_vault" "this" {
   enabled_for_template_deployment = true
   purge_protection_enabled        = true
   soft_delete_retention_days      = 90
-
-  # RBAC authorization (SonarCloud S6383): use Azure RBAC instead of access
-  # policies for finer-grained, centralized permission management.
-  rbac_authorization_enabled = true
 
   # Public network access (SonarCloud S6329): disabled by default; Key Vault
   # is reached via Private Endpoint. Override via var.kv_public_network_access_enabled

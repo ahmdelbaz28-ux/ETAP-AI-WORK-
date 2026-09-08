@@ -19,13 +19,18 @@ permissions:
 jobs:
   auto-merge:
     runs-on: ubuntu-latest
-    if: github.actor == 'dependabot[bot]'
     steps:
       - name: Check if dependency is safe to auto-merge
         id: check-safe
         uses: actions/github-script@v7
         with:
           script: |
+            if (context.actor !== 'dependabot[bot]') {
+              console.log(`Non-Dependabot PR (actor: ${context.actor}). Auto-merge check passes.`);
+              core.setOutput('safe', 'false');
+              core.setOutput('is_critical', 'false');
+              return;
+            }
             const pr = context.payload.pull_request;
             const title = pr.title || '';
             const headRef = pr.head.ref || '';
