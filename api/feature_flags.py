@@ -94,6 +94,11 @@ DEFAULT_FEATURE_FLAGS: dict[str, dict[str, Any]] = {
         "description": "In-chat power system data export (P9) - fail-closed by default",
         "rollout_percentage": 0,
     },
+    "arcgis_provider": {
+        "enabled": False,
+        "status": "beta",
+        "description": "ArcGIS Online / Portal REST API integration",
+    },
 }
 
 FEATURE_FLAGS = DEFAULT_FEATURE_FLAGS

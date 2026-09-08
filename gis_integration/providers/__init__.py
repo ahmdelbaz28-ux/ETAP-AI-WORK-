@@ -33,7 +33,7 @@ import os
 
 from gis_integration.base import GISProviderInterface
 from gis_integration.exceptions import NotImplementedFeature
-from gis_integration.providers.arcgis_provider import ArcGISProvider
+from gis_integration.providers.arcgis_provider import ArcGISOnlineProvider, ArcGISProvider
 from gis_integration.providers.mock_gis import MockGISProvider
 from gis_integration.providers.qgis_provider import QGISProvider
 
@@ -98,6 +98,21 @@ def get_gis_provider(provider_type: str | None = None) -> GISProviderInterface:
             "ArcGISProvider is archived; use QGISProvider or MockGISProvider"
         )
 
+    if p_type in ("arcgis_online", "arcgis-online"):
+        try:
+            from api.feature_flags import is_feature_enabled
+
+            enabled = is_feature_enabled("arcgis_provider", default=False)
+        except Exception:
+            logger.warning("feature_flags subsystem unavailable for arcgis_provider check")
+            enabled = False
+
+        if not enabled:
+            raise RuntimeError(
+                "ArcGIS Online provider is disabled in production by feature flag 'arcgis_provider'"
+            )
+        return ArcGISOnlineProvider()
+
     if p_type == "qgis":
         return _resolve_qgis_provider(mock_allowed)
 
@@ -110,6 +125,7 @@ def get_gis_provider(provider_type: str | None = None) -> GISProviderInterface:
 
 
 __all__ = [
+    "ArcGISOnlineProvider",
     "ArcGISProvider",
     "QGISProvider",
     "MockGISProvider",
