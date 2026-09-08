@@ -17,7 +17,7 @@ matplotlib~=3.9.4
 
 # Testing
 # SECURITY: bumped from 8.3.5 → 9.0.3 to fix CVE-2025-71176 (vulnerable tmpdir handling)
-pytest~=9.0.3
+pytest>=9.0.3,<9.2.0
 pytest-cov~=6.0.0
 
 # HTTP requests
