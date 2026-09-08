@@ -20,22 +20,21 @@
 
 import { motion } from "framer-motion";
 import {
-  AlertTriangle,
   CheckCircle2,
   GitBranch,
   GitCompare,
   History,
-  Loader2,
   RefreshCw,
   RotateCcw,
   Save,
   XCircle,
 } from "lucide-react";
-import { type ReactNode, useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, Button, Card, CardHeader, CardSection, EmptyState, Tabs } from "../components/ui";
 import { useNotify } from "../context/NotificationContext";
+import { ErrorBanner, LoadingRow, StatRow } from "../components/admin-primitives";
 import { API_BASE_URL } from "../lib/api-config";
-import { getAuthToken } from "../lib/tokenStorage";
+import { authHeaders } from "../lib/admin-fetch";
 
 // ---------------------------------------------------------------------------
 // Types — mirror api/study_versions.py
@@ -81,11 +80,6 @@ type TabId = "versions" | "create" | "compare";
 // ---------------------------------------------------------------------------
 // Fetch helper
 // ---------------------------------------------------------------------------
-
-function authHeaders(extra: Record<string, string> = {}): Record<string, string> {
-  const token = getAuthToken();
-  return { ...(token ? { Authorization: `Bearer ${token}` } : {}), ...extra };
-}
 
 async function studyFetch<T>(path: string, init?: RequestInit): Promise<T> {
   const callerHeaders = init?.headers;
@@ -133,37 +127,7 @@ async function studyFetch<T>(path: string, init?: RequestInit): Promise<T> {
 // Small UI primitives (local — kept here to avoid bloating shared ui/)
 // ---------------------------------------------------------------------------
 
-function StatRow({ label, value }: { readonly label: string; readonly value: ReactNode }) {
-  return (
-    <div className="flex items-center justify-between py-2 border-b border-[var(--border-primary)] last:border-0 gap-3">
-      <span className="text-xs uppercase tracking-wider text-zinc-400 font-semibold shrink-0">
-        {label}
-      </span>
-      <span className="text-sm text-zinc-100 font-mono text-right break-all">{value}</span>
-    </div>
-  );
-}
 
-function ErrorBanner({ message }: { readonly message: string }) {
-  return (
-    <div
-      role="alert"
-      className="flex items-start gap-2 rounded-md border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-300"
-    >
-      <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
-      <span className="break-words">{message}</span>
-    </div>
-  );
-}
-
-function LoadingRow({ label }: { readonly label: string }) {
-  return (
-    <div className="flex items-center gap-2 py-2 text-sm text-zinc-400">
-      <Loader2 className="w-4 h-4 animate-spin" />
-      <span>{label}</span>
-    </div>
-  );
-}
 
 /** Render a config/results diff value compactly. */
 function DiffValue({ value }: { readonly value: unknown }) {

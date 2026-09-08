@@ -50,7 +50,7 @@ class AuthPrincipal:
         self.identity = identity  # key fingerprint or user_id
 
 
-def _get_api_key_or_user(request: Request) -> AuthPrincipal:
+async def _get_api_key_or_user(request: Request) -> AuthPrincipal:
     """Shared auth dependency for AI/ML endpoints (S-07).
 
     Accepts either:
@@ -79,17 +79,15 @@ def _get_api_key_or_user(request: Request) -> AuthPrincipal:
     if auth_header.lower().startswith("bearer "):
         token = auth_header.split(" ", 1)[1]
         try:
-            import jwt
+            from api.dependencies import _validate_jwt_access_token
 
             jwt_secret = os.getenv("JWT_SECRET_KEY", "")
-            if jwt_secret:
-                payload = jwt.decode(token, jwt_secret, algorithms=["HS256"])
-                # SECURITY: Reject non-access tokens (e.g. refresh tokens)
-                if payload.get("type") != "access":
-                    raise HTTPException(  # NOSONAR
-                        status_code=401, detail="Bearer token must be an access token"
-                    )
-                return AuthPrincipal(auth_type="jwt", identity=payload.get("sub", "unknown"))
+            payload = await _validate_jwt_access_token(
+                token, require_sub=False, secret=jwt_secret or None, algorithms=["HS256"]
+            )
+            if payload.get("type") != "access":
+                raise HTTPException(status_code=401, detail="Invalid token type")
+            return AuthPrincipal(auth_type="jwt", identity=str(payload.get("sub", "unknown")))
         except HTTPException:
             raise
         except Exception:

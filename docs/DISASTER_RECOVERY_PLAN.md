@@ -88,8 +88,9 @@
 
 1. **Stop Mastra backend** (2 min).
 2. **Restore from backup** (10 min):
-   - Locate latest backup: `backups/mastra.db.YYYY-MM-DD-HH-MM.bak`
-   - Replace `mastra.db` with backup.
+   - Locate latest backup: `backups/mastra.db.YYYY-MM-DD-HH-MM.bak` (or `backups/mastra_*.db.gz`)
+   - Verify backup checksum: `sha256sum -c ${BACKUP_FILE}.sha256`
+   - Replace `mastra.db` with validated backup (decompress with `gzip -dc` if compressed).
    - If no backup, re-initialize with `pnpx mastra init` (creates fresh schema).
 3. **Restart Mastra** (3 min).
 4. **Validate:**

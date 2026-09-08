@@ -11,8 +11,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // ── Mocks ──────────────────────────────────────────────────────────────────────
 
-// Mock POPULAR_PROVIDERS (imported by llm-chat via Settings page)
-vi.mock("../../pages/Settings", () => ({
+// Mock POPULAR_PROVIDERS (imported by llm-chat via providers.ts)
+vi.mock("../providers", () => ({
   POPULAR_PROVIDERS: [
     {
       id: "openai",

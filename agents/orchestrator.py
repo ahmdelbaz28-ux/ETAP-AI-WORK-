@@ -319,11 +319,15 @@ class ShortCircuitAgent(BaseAgent):
                 )
 
             # Execute all fault types at specified buses
-            fault_buses = task.parameters.get("fault_buses", list(system_data.buses.keys()))
+            bus_keys = list(system_data.buses.keys())
+            bus_index_map = {b_id: idx for idx, b_id in enumerate(bus_keys)}
+            fault_buses = task.parameters.get("fault_buses", bus_keys)
             fault_results = {}
 
             for bus_id in fault_buses:
-                bus_idx = list(system_data.buses.keys()).index(bus_id)
+                bus_idx = bus_index_map.get(bus_id)
+                if bus_idx is None:
+                    continue
 
                 faults = {
                     "three_phase": analyzer.three_phase_fault(bus_idx),
@@ -1140,9 +1144,6 @@ class ValidationAgent(BaseAgent):
 
         # ── F-07: Deterministic engineering assertion checks ──
         try:
-            from copilot.ai.engineering_assertions import EngineeringAssertionLayer
-
-            assertion_layer = EngineeringAssertionLayer()  # noqa: F841
             opf_data = result.data.get("opf_results", result.data)
             generators = opf_data.get("generators", {})
             if generators:
@@ -1213,6 +1214,20 @@ class ReportGenerationAgent(BaseAgent):
                 file_path = self._export_xlsx(report_content, output_path)
             else:
                 raise ValueError(f"Unsupported format: {output_format}")
+
+            if not file_path:
+                self.log_execution(f"Report export failed for format {output_format}", "ERROR")
+                return AgentResult(
+                    agent_name=self.agent_name,
+                    study_type=StudyType.LOAD_FLOW,
+                    status=AgentStatus.FAILED,
+                    data={
+                        "report_generated": False,
+                        "format": output_format,
+                        "file_path": None,
+                    },
+                    validation_errors=[f"Failed to generate {output_format.upper()} report"],
+                )
 
             result = AgentResult(
                 agent_name=self.agent_name,
@@ -1330,7 +1345,7 @@ class ReportGenerationAgent(BaseAgent):
 
         return recommendations
 
-    def _export_pdf(self, content: dict, output_path: str) -> str:
+    def _export_pdf(self, content: dict, output_path: str) -> str | None:
         """Export report as PDF using the reporting module."""
         try:
             from reporting.advanced_reports import PDFReportGenerator, ReportMetadata, ReportSection
@@ -1355,15 +1370,15 @@ class ReportGenerationAgent(BaseAgent):
             return file_path
         except ImportError:
             self.log_execution(
-                "PDF generator unavailable (reportlab not installed) — using placeholder",
+                "PDF generator unavailable (reportlab not installed)",
                 "WARNING",
             )
-            return ""  # No file generated
+            return None  # No file generated
         except Exception as e:
             self.log_execution(f"PDF generation failed: {e}", "ERROR")
-            return ""  # Indicate failure
+            return None  # Indicate failure
 
-    def _export_docx(self, content: dict, output_path: str) -> str:
+    def _export_docx(self, content: dict, output_path: str) -> str | None:
         """Export report as DOCX using the reporting module."""
         try:
             from reporting.advanced_reports import (
@@ -1385,15 +1400,15 @@ class ReportGenerationAgent(BaseAgent):
             return file_path
         except ImportError:
             self.log_execution(
-                "DOCX generator unavailable (python-docx not installed) — using placeholder",
+                "DOCX generator unavailable (python-docx not installed)",
                 "WARNING",
             )
-            return ""  # No file generated
+            return None  # No file generated
         except Exception as e:
             self.log_execution(f"DOCX generation failed: {e}", "ERROR")
-            return ""  # Indicate failure
+            return None  # Indicate failure
 
-    def _export_xlsx(self, content: dict, output_path: str) -> str:
+    def _export_xlsx(self, content: dict, output_path: str) -> str | None:
         """Export report as XLSX using the reporting module."""
         try:
             from reporting.advanced_reports import (
@@ -1415,13 +1430,13 @@ class ReportGenerationAgent(BaseAgent):
             return file_path
         except ImportError:
             self.log_execution(
-                "XLSX generator unavailable (openpyxl not installed) — using placeholder",
+                "XLSX generator unavailable (openpyxl not installed)",
                 "WARNING",
             )
-            return ""  # No file generated
+            return None  # No file generated
         except Exception as e:
             self.log_execution(f"XLSX generation failed: {e}", "ERROR")
-            return ""  # Indicate failure
+            return None  # Indicate failure
 
 
 class ChiefEngineeringOrchestrator:

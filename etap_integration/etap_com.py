@@ -59,18 +59,6 @@ from typing import Any
 logger = logging.getLogger(__name__)
 
 
-def _sanitize_for_log(value: str, max_len: int = 200) -> str:
-    """Sanitize user-controlled data before logging to prevent injection."""
-    if not isinstance(value, str):
-        value = str(value)
-    # Remove control characters (CR/LF injection)
-    sanitized = value.replace("\n", "").replace("\r", "").replace("\t", "")
-    # Truncate to prevent log flooding
-    if len(sanitized) > max_len:
-        sanitized = sanitized[:max_len] + "..."
-    return sanitized
-
-
 class _FallbackCOMError(Exception):
     """Fallback COM error when pythoncom is not available."""
 
@@ -105,7 +93,6 @@ MAX_BUS_NAME_LENGTH = 256
 MAX_STRING_INPUT_LENGTH = 10000
 MAX_NUMERIC_VALUE = 1e15
 MIN_NUMERIC_VALUE = -1e15
-MAX_RECURSION_DEPTH = 50
 
 # Engineering parameter validation ranges
 VOLTAGE_MIN = 0.1
@@ -128,14 +115,6 @@ PICKUP_CURRENT_MIN = 0.1
 PICKUP_CURRENT_MAX = 10000.0
 
 VALID_FAULT_TYPES = {"ThreePhase", "LineToGround", "LineToLine", "DoubleLineToGround"}
-
-# Attempt to import the security-framework InputValidator for reuse
-try:
-    from security.security_framework import InputValidator as _BaseValidator  # noqa: F401
-
-    HAS_INPUT_VALIDATOR = True
-except ImportError:
-    HAS_INPUT_VALIDATOR = False
 
 
 # ─── Unified types (single source of truth) ─────────────────────────────
@@ -1012,19 +991,39 @@ class ETAPProject:
         return None
 
     def get_all_buses(self) -> list[dict[str, Any]]:
-        """Get data for all buses."""
+        """Get data for all buses.
+
+        Fetches bus properties directly from each bus in the collection in a single
+        traversal without re-querying Buses.Item(bus_id) (avoids N+1 COM roundtrips).
+
+        Raises:
+            COM_ERROR: If a COM communication error occurs while querying buses.
+            RuntimeError: If querying buses fails unexpectedly.
+        """
         buses = []
         try:
-            for bus in self._com_project.Buses:
+            com_buses = getattr(self._com_project, "Buses", None)
+            if com_buses is None:
+                return []
+            for bus in com_buses:
                 bus_id = getattr(bus, "ID", "")
                 if bus_id:
-                    data = self.get_bus_data(bus_id)
-                    if data:
-                        buses.append(data)
+                    buses.append(
+                        {
+                            "id": bus_id,
+                            "name": getattr(bus, "Name", ""),
+                            "voltage_kv": getattr(bus, "KV", 0.0),
+                            "voltage_mag_pu": getattr(bus, "VoltageMag", 1.0),
+                            "voltage_ang_deg": getattr(bus, "VoltageAng", 0.0),
+                            "type": getattr(bus, "BusType", ""),
+                        }
+                    )
         except COM_ERROR as e:
             logger.exception("COM error retrieving buses (timeout=%ss): %s", self._com_timeout, e)
+            raise
         except Exception as e:
             logger.exception("Error retrieving buses: %s", e)
+            raise RuntimeError(f"Failed to retrieve buses: {e}") from e
         return buses
 
     def save(self, file_path: str | None = None) -> bool:
