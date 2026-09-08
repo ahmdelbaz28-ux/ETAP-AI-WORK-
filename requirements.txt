@@ -216,6 +216,9 @@ websockets>=15,<16
 
 # MQTT messaging for SCADA integration
 paho-mqtt~=2.1.0
+# Industrial OT protocols for SCADA live control (OPC UA & Modbus TCP)
+asyncua~=1.1.5
+pymodbus~=3.6.9
 
 # Retry and fault tolerance
 tenacity>=8.2,<9.2

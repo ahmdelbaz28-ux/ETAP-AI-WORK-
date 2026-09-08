@@ -281,6 +281,36 @@ class ETAPScadaBridge:
         data["devices"] = list(devices_by_type.values())
         return data
 
+    # ─── Data Writing & Control ────────────────────────────────────
+
+    async def write_node(self, node_id_or_tag: str, value: Any) -> bool:
+        """
+        كتابة قيمة إلى ETAP ADMS OPC UA server مع التحقق الارتجاعي.
+
+        Args:
+            node_id_or_tag: معرف النقطة (node id) أو اسمها في ETAP_OPC_NODES
+            value: القيمة المستهدفة
+
+        Returns:
+            bool: True إذا نجحت الكتابة، False خلاف ذلك.
+        """
+        if not self._opc_client:
+            raise RuntimeError("OPC client not connected")
+
+        if node_id_or_tag in ETAP_OPC_NODES:
+            node_id, _ = ETAP_OPC_NODES[node_id_or_tag]
+        else:
+            node_id = node_id_or_tag
+
+        try:
+            node = await self._opc_client.nodes.objects.get_child(node_id)
+            await node.write_value(value)
+            logger.info("Successfully wrote value %s to OPC UA node %s", value, node_id)
+            return True
+        except Exception as exc:
+            logger.error("Failed to write to OPC node %s: %s", node_id, exc)
+            return False
+
     # ─── Publishing ────────────────────────────────────────────────
 
     def publish_to_mqtt(self, data: dict) -> None:

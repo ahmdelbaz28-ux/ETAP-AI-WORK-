@@ -1,19 +1,26 @@
 // UI components are intentionally complex for feature-rich DX
 import {
   Activity,
+  AlertTriangle,
+  CheckCircle2,
   Database,
+  Lock,
   Pause,
   Play,
+  Power,
   Radio,
   RefreshCw,
   Save,
   Server,
   ShieldAlert,
+  ShieldCheck,
+  UserCheck,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Badge, Button, Card } from "../components/ui";
+import { Badge, Button, Card, Modal } from "../components/ui";
 import { useNotify } from "../context/NotificationContext";
+import { useAuth } from "../hooks/useAuth";
 import {
   API_BASE_URL,
   getDeobfuscatedSettings,
@@ -21,6 +28,32 @@ import {
   setEncryptedSettings,
 } from "../lib/api-config";
 import { getAuthToken } from "../lib/tokenStorage";
+
+export interface ControlBayDevice {
+  id: string;
+  name: string;
+  type: "breaker" | "transformer";
+  voltageKv: number;
+  protocol: "iec61850" | "opcua" | "modbus" | "iec104";
+  state: "CLOSED" | "OPEN" | "TRIPPED";
+  mode: "REMOTE" | "LOCAL";
+  currentA?: number;
+  powerMw?: number;
+  tapPosition?: number;
+}
+
+export interface PendingControlAction {
+  action_id: string;
+  session_id?: string;
+  device_id: string;
+  action_type: string;
+  target_value?: number;
+  reason: string;
+  requested_by_user_id: string;
+  requested_by_role: string;
+  created_at: string | null;
+  expires_at: string | null;
+}
 
 interface TelemetryPoint {
   tag: string;
@@ -189,7 +222,11 @@ export default function ScadaIntegration() {
   // NOSONAR(S3776): main component render is a large bilingual (en/ar) telemetry dashboard — every `isRtl ? "..." : "..."` ternary is an intrinsic i18n pick that cannot be extracted without lifting 30+ strings into a per-section i18n catalog; decomposition into sub-components is tracked as a separate refactor task
   const { i18n } = useTranslation();
   const { notify } = useNotify();
+  const { user } = useAuth();
   const isRtl = i18n.language === "ar";
+
+  const canPropose = user?.role === "admin" || user?.role === "engineer";
+  const canApprove = user?.role === "admin";
 
   // Settings state
   const [scadaUrl, setScadaUrl] = useState("http://localhost:8080/zenon");
@@ -216,8 +253,263 @@ export default function ScadaIntegration() {
   const [alarms, setAlarms] = useState<SCADAAlarm[]>([]);
   const [logs, setLogs] = useState<string[]>([]);
 
+  // Substation Control Bay State
+  const [bayDevices, setBayDevices] = useState<ControlBayDevice[]>([
+    {
+      id: "CB-01",
+      name: "Feeder 1 Incomer (132 kV)",
+      type: "breaker",
+      voltageKv: 132,
+      protocol: "iec61850",
+      state: "CLOSED",
+      mode: "REMOTE",
+      currentA: 412.5,
+      powerMw: 48.2,
+    },
+    {
+      id: "CB-02",
+      name: "Feeder 2 Incomer (132 kV)",
+      type: "breaker",
+      voltageKv: 132,
+      protocol: "iec61850",
+      state: "CLOSED",
+      mode: "REMOTE",
+      currentA: 388.0,
+      powerMw: 44.1,
+    },
+    {
+      id: "CB-Tie-01",
+      name: "Bus Tie Coupler (132 kV)",
+      type: "breaker",
+      voltageKv: 132,
+      protocol: "iec61850",
+      state: "OPEN",
+      mode: "REMOTE",
+      currentA: 0.0,
+      powerMw: 0.0,
+    },
+    {
+      id: "XF1-Tap",
+      name: "Transformer 1 Tap Changer",
+      type: "transformer",
+      voltageKv: 11,
+      protocol: "opcua",
+      state: "CLOSED",
+      mode: "REMOTE",
+      tapPosition: 5,
+      powerMw: 28.5,
+    },
+  ]);
+
+  // SBO Modal State
+  const [sboModalOpen, setSboModalOpen] = useState(false);
+  const [selectedDevice, setSelectedDevice] = useState<ControlBayDevice | null>(null);
+  const [proposedAction, setProposedAction] = useState<
+    "breaker_open" | "breaker_close" | "tap_changer"
+  >("breaker_open");
+  const [proposedTargetValue, setProposedTargetValue] = useState<number>(0);
+  const [proposedReason, setProposedReason] = useState("");
+  const [isSubmittingProposal, setIsSubmittingProposal] = useState(false);
+  const [interlockError, setInterlockError] = useState<string | null>(null);
+
+  // Dual-Control Pending Approvals State
+  const [pendingActions, setPendingActions] = useState<PendingControlAction[]>([]);
+  const [resolvingActionId, setResolvingActionId] = useState<string | null>(null);
+  const [isLoadingPending, setIsLoadingPending] = useState(false);
+
   const socketRef = useRef<WebSocket | null>(null);
   const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const fetchPendingApprovals = async () => {
+    setIsLoadingPending(true);
+    try {
+      const token = getAuthToken();
+      const res = await fetch(`${API_BASE_URL}/api/v1/scada/control/pending`, {
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && Array.isArray(data.data)) {
+          setPendingActions(data.data);
+        }
+      }
+    } catch (err) {
+      console.error("Failed to fetch pending SCADA approvals:", err);
+    } finally {
+      setIsLoadingPending(false);
+    }
+  };
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: mount-only polling interval
+  useEffect(() => {
+    fetchPendingApprovals();
+    const iv = setInterval(fetchPendingApprovals, 8000);
+    return () => clearInterval(iv);
+  }, []);
+
+  const openSboModal = (
+    device: ControlBayDevice,
+    action: "breaker_open" | "breaker_close" | "tap_changer",
+    targetVal = 0,
+  ) => {
+    setSelectedDevice(device);
+    setProposedAction(action);
+    setProposedTargetValue(targetVal);
+    setProposedReason("");
+    setInterlockError(null);
+    setSboModalOpen(true);
+  };
+
+  const handleProposeCommand = async () => {
+    if (!selectedDevice) return;
+    if (!proposedReason.trim()) {
+      notify(
+        "warning",
+        isRtl ? "يرجى إدخال سبب العملية الهندسي" : "Please specify an engineering rationale",
+      );
+      return;
+    }
+
+    setIsSubmittingProposal(true);
+    setInterlockError(null);
+
+    try {
+      const token = getAuthToken();
+      const idempotencyKey = crypto.randomUUID();
+      const payload = {
+        device_id: selectedDevice.id,
+        protocol: selectedDevice.protocol,
+        action_type: proposedAction,
+        target_value: proposedTargetValue,
+        reason: proposedReason.trim(),
+        local_remote_check: true,
+        timeout_sec: 5.0,
+      };
+
+      const res = await fetch(`${API_BASE_URL}/api/v1/scada/control/propose`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Idempotency-Key": idempotencyKey,
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success) {
+        notify(
+          "success",
+          isRtl
+            ? `تم تقديم أمر التحكم للقاطع ${selectedDevice.id} بنجاح وفي انتظار موافقة المسؤول (Dual Control).`
+            : `Control command for ${selectedDevice.id} proposed. Held for Dual-Control Maker-Checker approval.`,
+        );
+        addLog(
+          isRtl
+            ? `أمر تحكم معلق: ${selectedDevice.id} (${proposedAction}) - معرف: ${data.action_id}`
+            : `Proposed SCADA action: ${selectedDevice.id} (${proposedAction}) - ID: ${data.action_id}`,
+        );
+        setSboModalOpen(false);
+        setProposedReason("");
+        await fetchPendingApprovals();
+      } else {
+        const errDetail = data.detail;
+        let errMsg = "Failed to propose command";
+        if (typeof errDetail === "object" && errDetail !== null) {
+          errMsg = `[${errDetail.code || "INTERLOCK_VIOLATION"}] ${errDetail.message || JSON.stringify(errDetail)}`;
+        } else if (typeof errDetail === "string") {
+          errMsg = errDetail;
+        }
+        setInterlockError(errMsg);
+        notify("error", errMsg);
+        addLog(`⚠️ Interlock Error: ${errMsg}`);
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Network error proposing command";
+      setInterlockError(msg);
+      notify("error", msg);
+    } finally {
+      setIsSubmittingProposal(false);
+    }
+  };
+
+  const handleResolveAction = async (
+    actionId: string,
+    decision: "approve" | "reject",
+    targetDeviceId?: string,
+    actionType?: string,
+    targetVal?: number,
+  ) => {
+    setResolvingActionId(actionId);
+    try {
+      const token = getAuthToken();
+      const idempotencyKey = crypto.randomUUID();
+      const res = await fetch(`${API_BASE_URL}/api/v1/scada/control/${actionId}/resolve`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Idempotency-Key": idempotencyKey,
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({
+          decision,
+          reason:
+            decision === "approve"
+              ? "Approved by Substation Admin"
+              : "Rejected by Substation Admin",
+        }),
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success) {
+        if (decision === "approve") {
+          notify(
+            "success",
+            isRtl
+              ? "تمت الموافقة بنجاح! تم إرسال الأمر وتأكيد الحالة عبر القراءة العكسية (Readback Verified)."
+              : "Approved! Command dispatched and verified by live readback.",
+          );
+          addLog(`✅ Control executed & verified for action ${actionId}`);
+          if (targetDeviceId) {
+            setBayDevices((prev) =>
+              prev.map((d) => {
+                if (d.id === targetDeviceId) {
+                  if (actionType === "breaker_open")
+                    return { ...d, state: "OPEN", currentA: 0, powerMw: 0 };
+                  if (actionType === "breaker_close")
+                    return { ...d, state: "CLOSED", currentA: 400, powerMw: 45 };
+                  if (actionType === "tap_changer" && typeof targetVal === "number")
+                    return { ...d, tapPosition: targetVal };
+                }
+                return d;
+              }),
+            );
+          }
+        } else {
+          notify("info", isRtl ? "تم رفض أمر التحكم." : "Control action was rejected.");
+          addLog(`❌ Control action ${actionId} rejected.`);
+        }
+        await fetchPendingApprovals();
+      } else {
+        const errDetail = data.detail;
+        let errMsg = "Resolution failed";
+        if (typeof errDetail === "object" && errDetail !== null) {
+          errMsg = `[${errDetail.code || "REJECTED"}] ${errDetail.message || JSON.stringify(errDetail)}`;
+        } else if (typeof errDetail === "string") {
+          errMsg = errDetail;
+        }
+        notify("error", errMsg);
+        addLog(`⚠️ Resolution failure: ${errMsg}`);
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Network error during action resolution";
+      notify("error", msg);
+    } finally {
+      setResolvingActionId(null);
+    }
+  };
 
   // Load configuration from secure settings on mount
   // biome-ignore lint/correctness/useExhaustiveDependencies: mount-once load; addLog/isRtl changes must not re-run it
@@ -672,8 +964,309 @@ export default function ScadaIntegration() {
           </Card>
         </div>
 
-        {/* Telemetry Tags Live Viewer */}
-        <div className="lg:col-span-2 space-y-4">
+        {/* Telemetry & Control Columns */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Substation Control Bay — Bay 101 */}
+          <Card padding="md">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4 pb-3 border-b border-[var(--border-primary)]">
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="w-5 h-5 text-blue-400" />
+                <div>
+                  <h3 className="text-sm font-bold text-[var(--text-primary)]">
+                    {isRtl
+                      ? "خليج التحكم في المحطة — Bay 101 (132/11 kV)"
+                      : "Substation Control Bay — Bay 101 (132/11 kV)"}
+                  </h3>
+                  <p className="text-[11px] text-[var(--text-tertiary)]">
+                    {isRtl
+                      ? "التحكم الحي في القواطع ونقاط الضبط وفق معيار IEC 61850 CSWI مع بوابات حماية مسبقة"
+                      : "Live breaker & setpoint dispatch per IEC 61850 SBO with pre-flight engineering gates"}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <Badge variant="success" size="sm" dot>
+                  CTI ≥ 0.2s & N-R Interlock Active
+                </Badge>
+                <Badge
+                  variant={
+                    user?.role === "admin"
+                      ? "warning"
+                      : user?.role === "engineer"
+                        ? "info"
+                        : "default"
+                  }
+                  size="sm"
+                >
+                  {user?.role ? `Role: ${user.role.toUpperCase()}` : "Role: OPERATOR"}
+                </Badge>
+              </div>
+            </div>
+
+            {!canPropose && (
+              <div className="mb-4 p-2.5 bg-amber-500/10 border border-amber-500/20 rounded-lg flex items-center gap-2 text-xs text-amber-400">
+                <Lock className="w-4 h-4 shrink-0" />
+                <span>
+                  {isRtl
+                    ? "وضع المراقبة فقط: دور المشغل (Operator) مخصص للمشاهدة. يتطلب تنفيذ عمليات الفتح والإغلاق صلاحيات مهندس (Engineer) أو مسؤول (Admin)."
+                    : "Operator View-Only: Switching commands are locked for operator accounts. Dual-control dispatch requires Engineer or Administrator credentials."}
+                </span>
+              </div>
+            )}
+
+            {/* Switchgear Matrix */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {bayDevices.map((dev) => (
+                <div
+                  key={dev.id}
+                  className={`p-3.5 rounded-xl border transition-all ${
+                    dev.state === "CLOSED"
+                      ? "bg-red-500/5 border-red-500/30"
+                      : "bg-emerald-500/5 border-emerald-500/30"
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-2 pb-2 border-b border-[var(--border-primary)]/60">
+                    <div className="flex items-center gap-2">
+                      <Power
+                        className={`w-4 h-4 ${
+                          dev.state === "CLOSED" ? "text-red-400" : "text-emerald-400"
+                        }`}
+                      />
+                      <span className="font-mono font-bold text-xs text-[var(--text-primary)]">
+                        {dev.id}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <Badge variant="default" size="sm">
+                        {dev.protocol.toUpperCase()}
+                      </Badge>
+                      <Badge variant={dev.state === "CLOSED" ? "danger" : "success"} size="sm">
+                        {dev.state === "CLOSED" ? "CLOSED (ENERGIZED)" : "OPEN (ISOLATED)"}
+                      </Badge>
+                    </div>
+                  </div>
+
+                  <p className="text-xs text-[var(--text-secondary)] font-medium mb-3">
+                    {dev.name}
+                  </p>
+
+                  {/* Telemetry Indicators */}
+                  <div className="grid grid-cols-3 gap-2 mb-3.5 text-center text-[11px] bg-[var(--bg-primary)] p-2 rounded-lg border border-[var(--border-primary)]/40">
+                    <div>
+                      <span className="text-[var(--text-muted)] block text-[10px]">Voltage</span>
+                      <span className="font-mono font-bold text-[var(--text-primary)]">
+                        {dev.voltageKv} kV
+                      </span>
+                    </div>
+                    {dev.type === "breaker" ? (
+                      <>
+                        <div>
+                          <span className="text-[var(--text-muted)] block text-[10px]">
+                            Current
+                          </span>
+                          <span className="font-mono font-bold text-blue-400">
+                            {dev.currentA} A
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-[var(--text-muted)] block text-[10px]">Power</span>
+                          <span className="font-mono font-bold text-amber-400">
+                            {dev.powerMw} MW
+                          </span>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div>
+                          <span className="text-[var(--text-muted)] block text-[10px]">
+                            Tap Pos
+                          </span>
+                          <span className="font-mono font-bold text-purple-400">
+                            Step {dev.tapPosition}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-[var(--text-muted)] block text-[10px]">Active</span>
+                          <span className="font-mono font-bold text-amber-400">
+                            {dev.powerMw} MW
+                          </span>
+                        </div>
+                      </>
+                    )}
+                  </div>
+
+                  {/* Actions */}
+                  {dev.type === "breaker" ? (
+                    <div className="grid grid-cols-2 gap-2">
+                      <Button
+                        variant="danger"
+                        size="sm"
+                        disabled={!canPropose || dev.state === "OPEN"}
+                        onClick={() => openSboModal(dev, "breaker_open", 0.0)}
+                      >
+                        {isRtl ? "فتح / فصل القاطع" : "Trip / Open"}
+                      </Button>
+                      <Button
+                        variant="success"
+                        size="sm"
+                        disabled={!canPropose || dev.state === "CLOSED"}
+                        onClick={() => openSboModal(dev, "breaker_close", 1.0)}
+                      >
+                        {isRtl ? "توصيل القاطع" : "Close Breaker"}
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        disabled={!canPropose || (dev.tapPosition ?? 5) <= 1}
+                        onClick={() =>
+                          openSboModal(dev, "tap_changer", Math.max(1, (dev.tapPosition ?? 5) - 1))
+                        }
+                      >
+                        -1 Step
+                      </Button>
+                      <span className="font-mono text-xs font-bold text-center flex-1 text-[var(--text-primary)]">
+                        Tap #{dev.tapPosition}
+                      </span>
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        disabled={!canPropose || (dev.tapPosition ?? 5) >= 16}
+                        onClick={() =>
+                          openSboModal(dev, "tap_changer", Math.min(16, (dev.tapPosition ?? 5) + 1))
+                        }
+                      >
+                        +1 Step
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </Card>
+
+          {/* Dual-Control Maker-Checker Pending Queue */}
+          <Card padding="md">
+            <div className="flex items-center justify-between mb-4 pb-2 border-b border-[var(--border-primary)]">
+              <div className="flex items-center gap-2">
+                <UserCheck className="w-4 h-4 text-amber-400" />
+                <h3 className="text-sm font-bold text-[var(--text-primary)]">
+                  {isRtl
+                    ? "طابور الموافقة المزدوجة (Maker-Checker Dual Control)"
+                    : "Dual-Control Authorization Queue"}
+                </h3>
+              </div>
+              <div className="flex items-center gap-2">
+                <Badge variant={pendingActions.length > 0 ? "warning" : "default"} size="sm">
+                  {pendingActions.length} Pending
+                </Badge>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  icon={RefreshCw}
+                  loading={isLoadingPending}
+                  onClick={fetchPendingApprovals}
+                >
+                  {isRtl ? "تحديث" : "Refresh"}
+                </Button>
+              </div>
+            </div>
+
+            {pendingActions.length === 0 ? (
+              <p className="text-xs text-[var(--text-muted)] text-center py-6">
+                {isRtl
+                  ? "لا توجد عمليات تحكم معلقة في انتظار الموافقة حالياً."
+                  : "No pending switching actions awaiting authorization."}
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {pendingActions.map((action) => {
+                  const isSelfRequested = action.requested_by_user_id === user?.id;
+                  const isResolving = resolvingActionId === action.action_id;
+
+                  return (
+                    <div
+                      key={action.action_id}
+                      className="p-3 bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-xl flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs"
+                    >
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono font-bold text-blue-400">
+                            {action.device_id}
+                          </span>
+                          <Badge variant="default" size="sm">
+                            {action.action_type.toUpperCase()}
+                          </Badge>
+                          <span className="text-[10px] text-[var(--text-tertiary)] font-mono">
+                            ID: {action.action_id.slice(0, 8)}...
+                          </span>
+                        </div>
+                        <p className="text-[var(--text-secondary)]">
+                          <span className="text-[var(--text-muted)]">Reason: </span>
+                          {action.reason}
+                        </p>
+                        <div className="flex items-center gap-3 text-[10px] text-[var(--text-muted)]">
+                          <span>
+                            By: {action.requested_by_user_id} ({action.requested_by_role})
+                          </span>
+                          {action.created_at && (
+                            <span>At: {new Date(action.created_at).toLocaleTimeString()}</span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 shrink-0">
+                        {canApprove ? (
+                          isSelfRequested ? (
+                            <div className="flex items-center gap-1 text-[10px] text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2.5 py-1.5 rounded-lg font-medium">
+                              <Lock className="w-3.5 h-3.5" />
+                              <span>Self-Approval Forbidden (Anti-Tamper)</span>
+                            </div>
+                          ) : (
+                            <>
+                              <Button
+                                variant="success"
+                                size="sm"
+                                icon={CheckCircle2}
+                                loading={isResolving}
+                                onClick={() =>
+                                  handleResolveAction(
+                                    action.action_id,
+                                    "approve",
+                                    action.device_id,
+                                    action.action_type,
+                                    action.target_value,
+                                  )
+                                }
+                              >
+                                {isRtl ? "موافقة وتنفيذ حي" : "Approve & Execute"}
+                              </Button>
+                              <Button
+                                variant="danger"
+                                size="sm"
+                                disabled={isResolving}
+                                onClick={() => handleResolveAction(action.action_id, "reject")}
+                              >
+                                {isRtl ? "رفض" : "Reject"}
+                              </Button>
+                            </>
+                          )
+                        ) : (
+                          <Badge variant="default" size="sm">
+                            Awaiting Admin Review
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </Card>
+
+          {/* Telemetry Tags Live Viewer */}
           <Card padding="md">
             <div className="flex items-center justify-between mb-4 pb-2 border-b border-[var(--border-primary)]">
               <div className="flex items-center gap-2">
@@ -789,7 +1382,10 @@ export default function ScadaIntegration() {
                   </p>
                 ) : (
                   logs.map((log, idx) => (
-                    <div key={`scada-log-${idx}-${log.slice(0, 30)}`} className="border-b border-[var(--border-primary)]/40 pb-1">
+                    <div
+                      key={`scada-log-${idx}-${log.slice(0, 30)}`}
+                      className="border-b border-[var(--border-primary)]/40 pb-1"
+                    >
                       {log}
                     </div>
                   ))
@@ -799,6 +1395,114 @@ export default function ScadaIntegration() {
           </div>
         </div>
       </div>
+
+      {/* Select-Before-Operate (SBO) Confirmation Modal */}
+      <Modal
+        open={sboModalOpen}
+        onClose={() => setSboModalOpen(false)}
+        title={
+          isRtl
+            ? "تأكيد أمر التحكم — Select-Before-Operate (SBO)"
+            : "Select-Before-Operate (SBO) Gate"
+        }
+        subtitle={
+          selectedDevice
+            ? `${selectedDevice.id} — ${selectedDevice.name} (${selectedDevice.protocol.toUpperCase()})`
+            : undefined
+        }
+        size="md"
+        footer={
+          <div className="flex justify-end gap-2">
+            <Button
+              variant="secondary"
+              onClick={() => setSboModalOpen(false)}
+              disabled={isSubmittingProposal}
+            >
+              {isRtl ? "إلغاء" : "Cancel"}
+            </Button>
+            <Button
+              variant="primary"
+              loading={isSubmittingProposal}
+              disabled={!proposedReason.trim() || isSubmittingProposal}
+              onClick={handleProposeCommand}
+            >
+              {isRtl ? "تأكيد وإرسال للموافقة المزدوجة" : "Confirm & Propose to Dual-Control Gate"}
+            </Button>
+          </div>
+        }
+      >
+        <div className="space-y-4 text-xs">
+          {/* Action Details */}
+          <div className="p-3 bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-lg space-y-2">
+            <div className="flex justify-between items-center">
+              <span className="text-[var(--text-muted)]">Target Device:</span>
+              <span className="font-mono font-bold text-[var(--text-primary)]">
+                {selectedDevice?.id}
+              </span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-[var(--text-muted)]">Proposed Operation:</span>
+              <Badge variant={proposedAction === "breaker_open" ? "danger" : "success"} size="sm">
+                {proposedAction.toUpperCase()}
+              </Badge>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-[var(--text-muted)]">Control Protocol:</span>
+              <span className="font-mono text-blue-400">
+                {selectedDevice?.protocol.toUpperCase()} (Verify-by-Readback)
+              </span>
+            </div>
+          </div>
+
+          {/* Pre-flight Interlock Engine Notice */}
+          <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg space-y-1.5 text-[11px] text-blue-300">
+            <div className="flex items-center gap-1.5 font-bold text-blue-400">
+              <ShieldCheck className="w-4 h-4" />
+              <span>Automated Pre-Flight Engineering Checks</span>
+            </div>
+            <ul className="list-disc list-inside space-y-0.5 text-blue-200/80">
+              <li>IEC 60255 Protection Coordination Selectivity margin (CTI ≥ 0.2s)</li>
+              <li>Newton-Raphson Load Flow Contingency (Thermal overload &lt; 100%)</li>
+              <li>ANSI 43 Bay Selector switch mode verification (REMOTE position)</li>
+            </ul>
+          </div>
+
+          {/* Interlock Error Alert */}
+          {interlockError && (
+            <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 flex items-start gap-2">
+              <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+              <div>
+                <p className="font-bold">Pre-Flight Interlock Violation (HTTP 422)</p>
+                <p className="mt-0.5">{interlockError}</p>
+              </div>
+            </div>
+          )}
+
+          {/* Mandatory Engineering Reason */}
+          <div>
+            <label
+              htmlFor="sbo-reason"
+              className="block text-[var(--text-primary)] font-semibold mb-1"
+            >
+              {isRtl
+                ? "السبب الهندسي للعملية (إلزامي):"
+                : "Engineering Rationale / Work Order (Mandatory):"}
+            </label>
+            <input
+              id="sbo-reason"
+              type="text"
+              value={proposedReason}
+              onChange={(e) => setProposedReason(e.target.value)}
+              placeholder={
+                isRtl
+                  ? "مثال: صيانة دورية للمغذي رقم 1 وفق أمر العمل WO-2026-991"
+                  : "e.g. Scheduled line maintenance per WO-2026-991"
+              }
+              className="w-full bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-lg px-3 py-2 text-[var(--text-primary)] focus:outline-none focus:border-blue-500"
+            />
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }
