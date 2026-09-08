@@ -44,6 +44,8 @@ from api.dependencies import CurrentUser, get_current_user_from_header
 logger = logging.getLogger("api.chat_stream")
 
 SSE_DATA_PREFIX = "data:"
+_CONTENT_TYPE_JSON = "application/json"
+_SAFE_SESSION_ID_PATTERN = r"[^A-Za-z0-9_-]"
 
 router = APIRouter(prefix="/api/v1/chat", tags=["chat-stream"])
 
@@ -259,7 +261,7 @@ async def _openai_upstream_tokens(
         "temperature": 0.7,
         "stream": True,
     }
-    headers = {"Content-Type": "application/json", "Authorization": f"Bearer {cfg.api_key}"}
+    headers = {"Content-Type": _CONTENT_TYPE_JSON, "Authorization": f"Bearer {cfg.api_key}"}
     async with client.stream("POST", url, json=body, headers=headers) as resp:
         if resp.status_code >= 400:
             raise UpstreamProviderError(
@@ -299,7 +301,7 @@ async def _anthropic_upstream_tokens(
         body["system"] = "\n\n".join(system_parts)
     url = f"{cfg.base_url}/messages"
     headers = {
-        "Content-Type": "application/json",
+        "Content-Type": _CONTENT_TYPE_JSON,
         "x-api-key": cfg.api_key,
         "anthropic-version": ANTHROPIC_VERSION_HEADER,
     }
@@ -378,7 +380,7 @@ async def _gemini_upstream_tokens(
     model_name = cfg.model.replace("gemini/", "").replace("google/", "")
     url = f"{cfg.base_url.rstrip('/')}/models/{model_name}:streamGenerateContent?alt=sse"
     headers = {
-        "Content-Type": "application/json",
+        "Content-Type": _CONTENT_TYPE_JSON,
         "x-goog-api-key": cfg.api_key,
     }
     async with client.stream("POST", url, json=body, headers=headers) as resp:
@@ -441,7 +443,7 @@ async def _chat_event_stream(
         )
     except UpstreamProviderError as exc:
         sanitized = sanitize_error_text(exc.body_text)
-        safe_sid = re.sub(r"[^A-Za-z0-9_-]", "", str(session_id or ""))[:32]
+        safe_sid = re.sub(_SAFE_SESSION_ID_PATTERN, "", str(session_id or ""))[:32]
         safe_detail = re.sub(r"[\r\n]", " ", str(sanitized or ""))[:128]
         logger.warning(
             "chat stream upstream error session=%s provider=%s status=%s detail=%s",
@@ -460,7 +462,7 @@ async def _chat_event_stream(
             },
         )
     except httpx.TimeoutException:
-        safe_sid = re.sub(r"[^A-Za-z0-9_-]", "", str(session_id or ""))[:32]
+        safe_sid = re.sub(_SAFE_SESSION_ID_PATTERN, "", str(session_id or ""))[:32]
         logger.warning("chat stream timeout session=%s provider=%s", safe_sid, cfg.id)
         yield _sse(
             "error",
@@ -472,7 +474,7 @@ async def _chat_event_stream(
         )
     except httpx.HTTPError as exc:
         # Connectivity/DNS/TLS issues: generic message outward, detail logged.
-        safe_sid = re.sub(r"[^A-Za-z0-9_-]", "", str(session_id or ""))[:32]
+        safe_sid = re.sub(_SAFE_SESSION_ID_PATTERN, "", str(session_id or ""))[:32]
         logger.warning(
             "chat stream connectivity error session=%s provider=%s: %s",
             safe_sid,
@@ -490,7 +492,7 @@ async def _chat_event_stream(
     except asyncio.CancelledError:
         raise  # client disconnected — propagate quietly, no error frame needed
     except Exception as exc:  # noqa: BLE001 — final belt-and-braces guard
-        safe_sid = re.sub(r"[^A-Za-z0-9_-]", "", str(session_id or ""))[:32]
+        safe_sid = re.sub(_SAFE_SESSION_ID_PATTERN, "", str(session_id or ""))[:32]
         logger.exception(
             "chat stream unexpected failure session=%s provider=%s: %s",
             safe_sid,
@@ -528,8 +530,8 @@ async def chat_stream_endpoint(
     """
     enforce_chat_rate_limit(user.user_id)
     cfg = resolve_provider_config(payload.provider, payload.model)
-    safe_sid = re.sub(r"[^A-Za-z0-9_-]", "", str(payload.session_id or ""))[:32]
-    safe_uid = re.sub(r"[^A-Za-z0-9_-]", "", str(user.user_id or ""))[:32]
+    safe_sid = re.sub(_SAFE_SESSION_ID_PATTERN, "", str(payload.session_id or ""))[:32]
+    safe_uid = re.sub(_SAFE_SESSION_ID_PATTERN, "", str(user.user_id or ""))[:32]
     logger.info(
         "chat stream opened session=%s provider=%s user=%s",
         safe_sid,

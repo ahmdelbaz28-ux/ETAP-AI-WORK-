@@ -133,6 +133,7 @@ _DEFAULT_RULES: list[RASPRule] = [
         action=RASPAction.BLOCK,
         severity=RASPSeverity.CRITICAL,
         description="SSRF attempt detected — blocked",
+        check_fields=["query", "body"],
     ),
 ]
 

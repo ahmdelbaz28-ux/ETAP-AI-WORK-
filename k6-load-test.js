@@ -147,10 +147,10 @@ export const options = {
   // running on a GitHub Actions 2-core runner. Production-grade thresholds
   // (p95<500ms, error_rate<1%) are enforced in the full Locust suite.
   thresholds: {
-    // Overall HTTP request duration — relaxed for CI
+    // Overall HTTP request duration — SLO compliant (<500ms p95, <1000ms p99)
     http_req_duration: [
-      'p(95)<2000',   // 95th percentile < 2000 ms (was 500)
-      'p(99)<5000',   // 99th percentile < 5000 ms (was 1000)
+      'p(95)<500',    // 95th percentile < 500 ms
+      'p(99)<1000',   // 99th percentile < 1000 ms
     ],
 
     // Custom error rate — relaxed for CI (allows occasional 5xx from

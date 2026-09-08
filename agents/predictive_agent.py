@@ -510,26 +510,40 @@ class PredictiveAgent(BaseAgent):
             if analysis_type in ("short_term_forecast", "full"):
                 hist_load = task.parameters.get("historical_load_mw", [])
                 if not hist_load:
-                    # No historical load provided — generate a synthetic 1-week
-                    # profile (sinusoidal daily pattern + noise) so the forecast
-                    # algorithm still produces a result. In production, callers
-                    # should always supply real SCADA historical data via the
-                    # task parameters.
-                    hours = 168  # 1 week
-                    _noise_rng = np.random.default_rng(42)
-                    hist_load = [
-                        100.0
-                        + 30.0 * np.sin(2 * np.pi * h / 24)
-                        + 5.0 * float(_noise_rng.standard_normal())  # NOSONAR
-                        for h in range(hours)
-                    ]
-                results["short_term_forecast"] = self.forecast_short_term(
-                    historical_load=hist_load,
-                    horizon_hours=int(task.parameters.get("horizon_hours", 24)),
-                    alpha=float(task.parameters.get("alpha", 0.3)),
-                    beta=float(task.parameters.get("beta", 0.1)),
-                    gamma=float(task.parameters.get("gamma", 0.2)),
-                )
+                    if task.parameters.get("allow_synthetic", False):
+                        hours = 168  # 1 week
+                        _noise_rng = np.random.default_rng(42)
+                        hist_load = [
+                            100.0
+                            + 30.0 * np.sin(2 * np.pi * h / 24)
+                            + 5.0 * float(_noise_rng.standard_normal())
+                            for h in range(hours)
+                        ]
+                        forecast_res = self.forecast_short_term(
+                            historical_load=hist_load,
+                            horizon_hours=int(task.parameters.get("horizon_hours", 24)),
+                            alpha=float(task.parameters.get("alpha", 0.3)),
+                            beta=float(task.parameters.get("beta", 0.1)),
+                            gamma=float(task.parameters.get("gamma", 0.2)),
+                        )
+                        forecast_res["status"] = "synthetic_demo"
+                        results["short_term_forecast"] = forecast_res
+                    else:
+                        results["short_term_forecast"] = {
+                            "status": "untrained",
+                            "error": "No historical load provided. Real historical SCADA data required.",
+                            "forecast_mw": [],
+                        }
+                else:
+                    forecast_res = self.forecast_short_term(
+                        historical_load=hist_load,
+                        horizon_hours=int(task.parameters.get("horizon_hours", 24)),
+                        alpha=float(task.parameters.get("alpha", 0.3)),
+                        beta=float(task.parameters.get("beta", 0.1)),
+                        gamma=float(task.parameters.get("gamma", 0.2)),
+                    )
+                    forecast_res["status"] = "trained"
+                    results["short_term_forecast"] = forecast_res
 
             # --- Long-term load forecast ---
             if analysis_type in ("long_term_forecast", "full"):
@@ -593,20 +607,38 @@ class PredictiveAgent(BaseAgent):
             if analysis_type in ("ml_short_term_forecast", "full_ml"):
                 hist_load = task.parameters.get("historical_load_mw", [])
                 if not hist_load:
-                    hours = 168
-                    _noise_rng = np.random.default_rng(42)
-                    hist_load = [
-                        100.0
-                        + 30.0 * np.sin(2 * np.pi * h / 24)
-                        + 5.0 * float(_noise_rng.standard_normal())  # NOSONAR
-                        for h in range(hours)
-                    ]
-                forecast_method = task.parameters.get("forecast_method", "auto")
-                results["ml_short_term_forecast"] = self.forecast_short_term_ml(
-                    historical_load=hist_load,
-                    horizon_hours=int(task.parameters.get("horizon_hours", 24)),
-                    method=forecast_method,
-                )
+                    if task.parameters.get("allow_synthetic", False):
+                        hours = 168
+                        _noise_rng = np.random.default_rng(42)
+                        hist_load = [
+                            100.0
+                            + 30.0 * np.sin(2 * np.pi * h / 24)
+                            + 5.0 * float(_noise_rng.standard_normal())
+                            for h in range(hours)
+                        ]
+                        forecast_method = task.parameters.get("forecast_method", "auto")
+                        ml_res = self.forecast_short_term_ml(
+                            historical_load=hist_load,
+                            horizon_hours=int(task.parameters.get("horizon_hours", 24)),
+                            method=forecast_method,
+                        )
+                        ml_res["status"] = "synthetic_demo"
+                        results["ml_short_term_forecast"] = ml_res
+                    else:
+                        results["ml_short_term_forecast"] = {
+                            "status": "untrained",
+                            "error": "No historical load provided. Real historical SCADA data required.",
+                            "forecast_mw": [],
+                        }
+                else:
+                    forecast_method = task.parameters.get("forecast_method", "auto")
+                    ml_res = self.forecast_short_term_ml(
+                        historical_load=hist_load,
+                        horizon_hours=int(task.parameters.get("horizon_hours", 24)),
+                        method=forecast_method,
+                    )
+                    ml_res["status"] = "trained"
+                    results["ml_short_term_forecast"] = ml_res
 
             # --- ML fault prediction (XGBoost + SHAP) ---
             if analysis_type == "ml_fault_prediction":

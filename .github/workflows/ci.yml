@@ -122,6 +122,7 @@ jobs:
           name: dist
           path: dist/
           retention-days: 3
+          if-no-files-found: ignore
 
   # ── Gate 5: Integration Tests ────────────────────────────────────────────
   integration-tests:
