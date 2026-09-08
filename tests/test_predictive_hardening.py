@@ -85,3 +85,40 @@ async def test_predictive_agent_trained_with_data():
     st_result = result.data.get("short_term_forecast", {})
     assert st_result.get("status") == "trained"
     assert len(st_result.get("forecast_mw", [])) == 24
+
+
+def test_load_forecaster_window_mismatch_and_history():
+    """Verify w != window_size behavior and actual historical slice usage."""
+    # window_size is 10, but sample is 8 (< 2 * 10 = 20)
+    # Expected: shrinks w to max(1, 8 // 2) = 4
+    lf = LoadForecaster(method="linear", window_size=10)
+    history = np.array([10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 70.0, 80.0])
+    lf.train(history)
+
+    assert lf._window_size == 10
+    assert lf._trained_window_size == 4
+    assert lf._trained_window_size != lf._window_size
+
+    # Verify predictions run with the shrunk window
+    preds = lf.predict(horizon_hours=2)
+    assert len(preds) == 2
+    assert lf.is_synthetic is False
+
+    # Verify evaluate also uses _trained_window_size
+    metrics = lf.evaluate(history)
+    assert "mae" in metrics
+    assert "rmse" in metrics
+
+
+def test_load_forecaster_is_synthetic_flag():
+    """Verify is_synthetic becomes True if historical data is missing or truncated."""
+    lf = LoadForecaster(method="linear", window_size=4)
+    history = np.array([1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0])
+    lf.train(history)
+    assert lf.is_synthetic is False
+
+    # Force empty training data to simulate missing history during prediction
+    lf._training_data = None
+    lf.predict(horizon_hours=2)
+    assert lf.is_synthetic is True
+

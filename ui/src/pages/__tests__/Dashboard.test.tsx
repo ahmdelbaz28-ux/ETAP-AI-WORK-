@@ -85,4 +85,10 @@ describe("Dashboard", () => {
       expect(content.length).toBeGreaterThan(0);
     });
   });
+
+  it("renders Simulated Demo badge on mock API Activity card", async () => {
+    renderDashboard();
+    const demoBadge = await screen.findByText("Simulated Demo");
+    expect(demoBadge).toBeTruthy();
+  });
 });

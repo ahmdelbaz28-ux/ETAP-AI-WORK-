@@ -259,6 +259,69 @@ class TestPatchFeatureFlag:
         assert data["enabled"] is False  # persisted value
         assert data["effective_enabled"] is True  # dev override
 
+    def test_patch_by_non_admin_returns_403_maker_checker_violation(
+        self, client: TestClient, auth_headers: dict
+    ):
+        from api.dependencies import CurrentUser, get_current_user_from_header
+
+        client.app.dependency_overrides[get_current_user_from_header] = lambda: CurrentUser(
+            user_id="test-engineer",
+            username="engineer",
+            email="engineer@example.com",
+            role="engineer",
+        )
+        try:
+            resp = client.patch(
+                "/api/v1/feature-flags/harmonic_analysis",
+                json={"enabled": True},
+                headers=auth_headers,
+            )
+            assert resp.status_code == 403
+            assert "MAKER_CHECKER_VIOLATION" in resp.json().get("detail", "")
+        finally:
+            client.app.dependency_overrides[get_current_user_from_header] = lambda: CurrentUser(
+                user_id="test-admin",
+                username="admin",
+                email="admin@example.com",
+                role="admin",
+            )
+
+    def test_put_by_non_admin_returns_403_maker_checker_violation(
+        self, client: TestClient, auth_headers: dict
+    ):
+        from api.dependencies import CurrentUser, get_current_user_from_header
+
+        client.app.dependency_overrides[get_current_user_from_header] = lambda: CurrentUser(
+            user_id="test-operator",
+            username="operator",
+            email="operator@example.com",
+            role="operator",
+        )
+        try:
+            resp = client.put(
+                "/api/v1/feature-flags/harmonic_analysis",
+                json={"enabled": True},
+                headers=auth_headers,
+            )
+            assert resp.status_code == 403
+            assert "MAKER_CHECKER_VIOLATION" in resp.json().get("detail", "")
+        finally:
+            client.app.dependency_overrides[get_current_user_from_header] = lambda: CurrentUser(
+                user_id="test-admin",
+                username="admin",
+                email="admin@example.com",
+                role="admin",
+            )
+
+    def test_put_by_admin_returns_200(self, client: TestClient, auth_headers: dict):
+        resp = client.put(
+            "/api/v1/feature-flags/harmonic_analysis",
+            json={"enabled": True},
+            headers=auth_headers,
+        )
+        assert resp.status_code == 200
+        assert resp.json()["data"]["enabled"] is True
+
 
 # ---------------------------------------------------------------------------
 # Module-level helpers

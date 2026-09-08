@@ -49,3 +49,26 @@ async def test_report_agent_succeeds_when_export_returns_path(tmp_path):
         assert result.status == AgentStatus.COMPLETED
         assert result.data.get("report_generated") is True
         assert result.data.get("file_path") == fake_path
+
+
+@pytest.mark.asyncio
+async def test_report_agent_fails_when_reportlab_import_fails(monkeypatch):
+    import sys
+
+    agent = ReportGenerationAgent()
+    task = EngineeringTask(
+        task_id="test-rep-no-reportlab",
+        description="Generate report without reportlab",
+        study_types=[],
+        parameters={"format": "pdf", "results": []},
+    )
+
+    # Simulate reportlab missing by setting module to None (triggers ImportError)
+    monkeypatch.setitem(sys.modules, "reporting.advanced_reports", None)
+
+    result = await agent.execute(task)
+    assert result.status == AgentStatus.FAILED
+    assert result.data.get("report_generated") is False
+    assert result.data.get("file_path") is None
+    assert any("Failed to generate PDF report" in err for err in result.validation_errors)
+

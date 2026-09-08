@@ -1005,6 +1005,29 @@ class ETAPProject:
             com_buses = getattr(self._com_project, "Buses", None)
             if com_buses is None:
                 return []
+
+            # Batch read optimization: if the COM collection exposes GetAll(), read all at once
+            if hasattr(com_buses, "GetAll"):
+                try:
+                    all_buses = com_buses.GetAll()
+                    if all_buses:
+                        for b in all_buses:
+                            bid = getattr(b, "ID", "")
+                            if bid:
+                                buses.append(
+                                    {
+                                        "id": bid,
+                                        "name": getattr(b, "Name", ""),
+                                        "voltage_kv": getattr(b, "KV", 0.0),
+                                        "voltage_mag_pu": getattr(b, "VoltageMag", 1.0),
+                                        "voltage_ang_deg": getattr(b, "VoltageAng", 0.0),
+                                        "type": getattr(b, "BusType", ""),
+                                    }
+                                )
+                        return buses
+                except Exception:
+                    pass
+
             for bus in com_buses:
                 bus_id = getattr(bus, "ID", "")
                 if bus_id:

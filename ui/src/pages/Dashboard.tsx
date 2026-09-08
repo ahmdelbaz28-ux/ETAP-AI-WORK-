@@ -470,8 +470,15 @@ export default function Dashboard() {
         <motion.div variants={itemVariants}>
           <Card padding="md">
             <CardHeader
-              title="API Activity"
-              subtitle="Last 24 hours"
+              title={
+                <div className="flex items-center gap-2">
+                  <span>API Activity</span>
+                  <Badge variant="warning" size="sm" className="font-mono text-[10px]">
+                    Simulated Demo
+                  </Badge>
+                </div>
+              }
+              subtitle="Demonstration telemetry (non-production mock)"
               icon={<Activity className="w-4 h-4" />}
               action={
                 <div className="flex items-center gap-3 text-xs text-[var(--text-muted)]">
