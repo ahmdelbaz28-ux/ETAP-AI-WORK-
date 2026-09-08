@@ -195,7 +195,7 @@ matplotlib>=3.9.0
 # On Linux (CI, HF Space, servers) it is skipped — the codebase imports it lazily
 # inside try/except (agents/cua_executor.py, agents/etap_gui_agent.py) so the
 # service still starts without it.
-opencv-python>=4.5.0
+opencv-python>=4.10,<5.1
 
 # System monitoring
 psutil>=5.8.0
