@@ -43,7 +43,7 @@ jobs:
     if: (github.event.pull_request.draft == false || github.event_name != 'pull_request') && github.actor != 'dependabot[bot]'
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0  # SonarCloud needs full history for blame + new-code detection
 
@@ -59,7 +59,7 @@ jobs:
           echo "✓ SONAR_TOKEN is configured."
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
         with:
           python-version: '3.13'
 

@@ -21,7 +21,6 @@ permissions:
   contents: read  # Least privilege  only read repo contents
 
 env:
-  ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: "true"
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
 
 jobs:
@@ -1120,11 +1119,11 @@ jobs:
             git add PROJECT_INDEX.json PROJECT_INDEX.md 2>/dev/null || true
             if ! git diff --cached --quiet; then
               git commit -m "chore(index): auto-update @ ${{ github.sha }} [skip ci]"
-              git push 2>&1 || echo "::warning::Index push failed (may be race condition)"
+              git push 2>&1 || echo "Index push skipped (may be race condition)"
               echo "Index updated and pushed."
             else
               echo "No index changes detected  skipping commit."
             fi
           else
-            echo "::warning::Index files not found  skipping commit."
+            echo "Index files not found  skipping commit."
           fi

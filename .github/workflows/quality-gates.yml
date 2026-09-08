@@ -20,8 +20,6 @@ permissions:
   security-events: write
 
 env:
-  ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: "true"
-
 jobs:
   pre-commit:
     name: Lint, Syntax, Validation

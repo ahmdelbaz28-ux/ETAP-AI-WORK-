@@ -30,8 +30,6 @@ concurrency:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
-  ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: "true"
-
 permissions:
   contents: read  # Least privilege — only read repo contents
 
@@ -156,7 +154,7 @@ jobs:
         with:
           version: 9
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v7.0.0
         with:
           node-version: '22'
       - name: Install dependencies
