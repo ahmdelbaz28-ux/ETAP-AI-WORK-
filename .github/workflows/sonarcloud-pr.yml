@@ -102,7 +102,7 @@ jobs:
 
       - name: SonarCloud Quality Gate check
         id: sonarqube-quality-gate-check
-        uses: sonarsource/sonarqube-quality-gate-action@v1.1.0
+        uses: sonarsource/sonarqube-quality-gate-action@v1.2.1
         # Wait up to 5 minutes for SonarCloud to compute the Quality Gate.
         timeout-minutes: 5
         env:
