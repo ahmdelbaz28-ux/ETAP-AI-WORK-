@@ -213,7 +213,7 @@ export const SHORTCUT_DEFINITIONS = [
   { keys: ["Ctrl", "H"], description: "Toggle Help Panel", category: "help" },
   { keys: ["Ctrl", "Shift", "H"], description: "Magic Help Inspector", category: "help" },
   { keys: ["Ctrl", "/"], description: "Show Keyboard Shortcuts", category: "help" },
-  { keys: ["?"], description: "Show Keyboard Shortcuts", category: "help" },
+  { keys: ["?"], description: "Show Keyboard Shortcuts (Quick)", category: "help" },
 
   // View
   { keys: ["F11"], description: "Toggle Fullscreen", category: "view" },

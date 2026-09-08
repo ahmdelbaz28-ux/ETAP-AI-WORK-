@@ -252,11 +252,17 @@ async def list_assets(
 async def get_asset(
     asset_id: str,
     db: Annotated[AsyncSession, Depends(get_db)],
+    user: Annotated[CurrentUser, Depends(get_current_user_from_header)],
 ) -> Any:
     """Return a single asset by ID."""
     result = await db.execute(select(Asset).where(Asset.id == asset_id))
     asset = result.scalar_one_or_none()
     if asset is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=f"Asset '{asset_id}' not found"
+        )
+    # Tenant isolation check: if asset.tenant_id != user.tenant_id and user.role != admin -> 404 (prevent IDOR enumeration)
+    if user.tenant_id and asset.tenant_id and asset.tenant_id != user.tenant_id and user.role != "admin":
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail=f"Asset '{asset_id}' not found"
         )
@@ -318,6 +324,12 @@ async def update_asset(
             status_code=status.HTTP_404_NOT_FOUND, detail=f"Asset '{asset_id}' not found"
         )
 
+    # Tenant isolation check: if asset.tenant_id != user.tenant_id and user.role != admin -> 404 (prevent IDOR enumeration)
+    if user.tenant_id and asset.tenant_id and asset.tenant_id != user.tenant_id and user.role != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=f"Asset '{asset_id}' not found"
+        )
+
     # SECURITY (S-11): Authorization check — owner or admin
     if asset.created_by != user.user_id and user.role != "admin":
         raise HTTPException(
@@ -361,6 +373,12 @@ async def delete_asset(
     result = await db.execute(select(Asset).where(Asset.id == asset_id))
     asset = result.scalar_one_or_none()
     if asset is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=f"Asset '{asset_id}' not found"
+        )
+
+    # Tenant isolation check: if asset.tenant_id != user.tenant_id and user.role != admin -> 404 (prevent IDOR enumeration)
+    if user.tenant_id and asset.tenant_id and asset.tenant_id != user.tenant_id and user.role != "admin":
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail=f"Asset '{asset_id}' not found"
         )

@@ -71,13 +71,17 @@ except Exception:
 _IS_POSTGRES = DATABASE_URL.startswith("postgresql+asyncpg")
 _IS_SQLITE = DATABASE_URL.startswith("sqlite")
 
-# ---------------------------------------------------------------------------
-# SQLite parent directory — ensure it exists before engine creation
-# ---------------------------------------------------------------------------
+from api.environment import is_production_environment
 
 if _IS_SQLITE:
     _sqlite_prefix = "sqlite+aiosqlite:///"
     _db_path = DATABASE_URL[len(_sqlite_prefix) :]
+    if is_production_environment() and os.environ.get("ALLOW_SQLITE_IN_PROD", "").lower() != "true":
+        raise RuntimeError(
+            f"CRITICAL CONFIGURATION ERROR: SQLite ({DATABASE_URL}) is not permitted in production. "
+            "Set DATABASE_URL to a PostgreSQL instance (e.g. postgresql+asyncpg://...) or "
+            "set ALLOW_SQLITE_IN_PROD=true if running in a single-instance container test."
+        )
     logger.warning(
         "Using SQLite database (%s). "
         "This is suitable for local development but NOT for production. "
@@ -408,3 +412,15 @@ async def init_db() -> None:
             exc,
         )
         raise
+
+
+async def close_db() -> None:
+    """Gracefully dispose of database engine connection pool upon shutdown."""
+    global engine
+    if engine is not None:
+        try:
+            await engine.dispose()
+            logger.info("Database engine disposed successfully")
+        except Exception as exc:
+            logger.warning("Error disposing database engine: %s", exc)
+
