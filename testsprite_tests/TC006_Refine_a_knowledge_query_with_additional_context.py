@@ -34,12 +34,14 @@ async def run_test() -> None:
     access_token = auth_data["access_token"]
 
     # 1. API: Initial query on topology
-    payload_1 = json.dumps({
-        "study_type": "etap_expert",
-        "parameters": {
-            "question": "Explain standard IEEE 3-bus network topology with slack and PV buses.",
-        },
-    }).encode("utf-8")
+    payload_1 = json.dumps(
+        {
+            "study_type": "etap_expert",
+            "parameters": {
+                "question": "Explain standard IEEE 3-bus network topology with slack and PV buses.",
+            },
+        }
+    ).encode("utf-8")
 
     req_1 = urllib.request.Request(
         f"{API_URL}/api/v1/studies/run",
@@ -57,12 +59,14 @@ async def run_test() -> None:
     assert data_1.get("success") is True
 
     # 2. Refined query with specific connected equipment
-    payload_2 = json.dumps({
-        "study_type": "etap_expert",
-        "parameters": {
-            "question": "For a 3-bus network with Bus 1 (Slack) and Bus 3 (PV), what is the reactive power Q limit on generator 2 at Bus 3?",
-        },
-    }).encode("utf-8")
+    payload_2 = json.dumps(
+        {
+            "study_type": "etap_expert",
+            "parameters": {
+                "question": "For a 3-bus network with Bus 1 (Slack) and Bus 3 (PV), what is the reactive power Q limit on generator 2 at Bus 3?",
+            },
+        }
+    ).encode("utf-8")
 
     req_2 = urllib.request.Request(
         f"{API_URL}/api/v1/studies/run",
@@ -100,7 +104,9 @@ async def run_test() -> None:
             await chat_input.wait_for(state="visible", timeout=15000)
 
             # Enter topology question and refined question
-            await chat_input.fill("What is the 3-bus network topology? What are the generator ratings on Bus 1 and Bus 3?")
+            await chat_input.fill(
+                "What is the 3-bus network topology? What are the generator ratings on Bus 1 and Bus 3?"
+            )
             val = await chat_input.input_value()
             assert "Bus 1 and Bus 3" in val, "Refined input should be present"
         finally:

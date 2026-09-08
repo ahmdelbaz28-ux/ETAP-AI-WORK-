@@ -328,7 +328,9 @@ def _get_rate_limit_redis() -> Any | None:
 
 async def _check_rate_limit(client_id: str) -> bool:
     """Return True if allowed; False if rate limit exceeded."""
-    if not is_production_environment() and os.getenv("ENGINEERING_SERVICE_RATE_LIMIT_DISABLED", "").lower() in ("true", "1", "yes"):
+    if not is_production_environment() and os.getenv(
+        "ENGINEERING_SERVICE_RATE_LIMIT_DISABLED", ""
+    ).lower() in ("true", "1", "yes"):
         return True
 
     r = _get_rate_limit_redis()
@@ -898,7 +900,11 @@ async def websocket_notifications_handler(websocket: WebSocket) -> None:
             return
         user_id = payload.get("sub")
     except HTTPException as exc:
-        reason = "Token has been revoked" if "revoked" in exc.detail.lower() else "Invalid or expired token"
+        reason = (
+            "Token has been revoked"
+            if "revoked" in exc.detail.lower()
+            else "Invalid or expired token"
+        )
         await websocket.close(code=1008, reason=reason)
         return
     except Exception:

@@ -35,10 +35,12 @@ async def run_test() -> None:
     access_token = auth_data["access_token"]
 
     # 1. Send malformed chat payload (e.g. invalid types or missing required fields)
-    malformed_payload = json.dumps({
-        "messages": "not-a-valid-list-of-messages",
-        "invalid_extra_field": 12345,
-    }).encode("utf-8")
+    malformed_payload = json.dumps(
+        {
+            "messages": "not-a-valid-list-of-messages",
+            "invalid_extra_field": 12345,
+        }
+    ).encode("utf-8")
 
     req_malformed = urllib.request.Request(
         f"{API_URL}/api/v1/chat/stream",
@@ -60,15 +62,19 @@ async def run_test() -> None:
         assert err.code in (400, 422), f"Expected 400 or 422 validation error, got {err.code}"
         validation_rejected = True
 
-    assert validation_rejected, "Malformed chat payload must be rejected with 422/400 validation error"
+    assert validation_rejected, (
+        "Malformed chat payload must be rejected with 422/400 validation error"
+    )
 
     # 2. Recover with valid engineering message
-    valid_payload = json.dumps({
-        "study_type": "etap_expert",
-        "parameters": {
-            "question": "What are the IEEE 399 recommendations for motor starting study analysis in ETAP?",
-        },
-    }).encode("utf-8")
+    valid_payload = json.dumps(
+        {
+            "study_type": "etap_expert",
+            "parameters": {
+                "question": "What are the IEEE 399 recommendations for motor starting study analysis in ETAP?",
+            },
+        }
+    ).encode("utf-8")
 
     req_valid = urllib.request.Request(
         f"{API_URL}/api/v1/studies/run",
@@ -87,11 +93,9 @@ async def run_test() -> None:
 
     assert data_valid.get("success") is True, "Valid engineering request must succeed"
     ans_text = str(data_valid.get("data") or data_valid.get("results") or "")
-    assert (
-        "IEEE" in ans_text
-        or "motor" in ans_text.lower()
-        or "analysis" in ans_text.lower()
-    ), "Response must contain grounded engineering guidance"
+    assert "IEEE" in ans_text or "motor" in ans_text.lower() or "analysis" in ans_text.lower(), (
+        "Response must contain grounded engineering guidance"
+    )
 
     # 3. UI interaction
     async with async_playwright() as pw:

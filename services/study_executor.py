@@ -167,9 +167,7 @@ class StudyExecutor:
             provider=provider_name,
         )
 
-    async def _run_native_study(
-        self, payload: StudyRequest, trace_id: str
-    ) -> dict[str, Any]:
+    async def _run_native_study(self, payload: StudyRequest, trace_id: str) -> dict[str, Any]:
         cache = self._cache or self._init_cache()
         data, cache_hit = await self._lookup_cache(cache, payload, trace_id)
         if cache_hit:
@@ -278,7 +276,9 @@ class StudyExecutor:
             system.add_line(line)
 
     @staticmethod
-    def _add_spec_transformers(system: System, transformers: list[Any], bus_map: dict[int, Bus]) -> None:
+    def _add_spec_transformers(
+        system: System, transformers: list[Any], bus_map: dict[int, Bus]
+    ) -> None:
         for t in transformers:
             if t.from_bus_id not in bus_map or t.to_bus_id not in bus_map:
                 raise ValueError(f"Transformer {t.transformer_id} references unknown bus")
@@ -293,7 +293,9 @@ class StudyExecutor:
             system.add_transformer(xf)
 
     @staticmethod
-    def _add_spec_generators(system: System, generators: list[Any], bus_map: dict[int, Bus]) -> None:
+    def _add_spec_generators(
+        system: System, generators: list[Any], bus_map: dict[int, Bus]
+    ) -> None:
         for g in generators:
             if g.bus_id not in bus_map:
                 raise ValueError(f"Generator {g.generator_id} references unknown bus")
@@ -319,7 +321,9 @@ class StudyExecutor:
             system.add_generator(gen)
 
     @staticmethod
-    def _add_spec_loads(system: System, loads: list[Any], bus_map: dict[int, Bus], base_mva: float) -> None:
+    def _add_spec_loads(
+        system: System, loads: list[Any], bus_map: dict[int, Bus], base_mva: float
+    ) -> None:
         for ld in loads:
             if ld.bus_id not in bus_map:
                 raise ValueError(f"Load {ld.load_id} references unknown bus")
@@ -610,7 +614,9 @@ class StudyExecutor:
         if obj is None or isinstance(obj, (str, bool)):
             return obj
         if isinstance(obj, (int, float)):
-            return None if (isinstance(obj, float) and (math.isnan(obj) or math.isinf(obj))) else obj
+            return (
+                None if (isinstance(obj, float) and (math.isnan(obj) or math.isinf(obj))) else obj
+            )
         if isinstance(obj, complex):
             return {"re": self._to_jsonable(obj.real), "im": self._to_jsonable(obj.imag)}
 

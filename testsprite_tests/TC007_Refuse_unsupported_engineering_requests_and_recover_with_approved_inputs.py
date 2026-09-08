@@ -36,10 +36,12 @@ async def run_test() -> None:
     access_token = auth_data["access_token"]
 
     # 1. Submit unsupported / invalid study type -> must FAIL-CLOSED (422 or error)
-    bad_payload = json.dumps({
-        "study_type": "unsupported_warp_reactor_sim",
-        "system": MINI_SYSTEM,
-    }).encode("utf-8")
+    bad_payload = json.dumps(
+        {
+            "study_type": "unsupported_warp_reactor_sim",
+            "system": MINI_SYSTEM,
+        }
+    ).encode("utf-8")
 
     req_bad = urllib.request.Request(
         f"{API_URL}/api/v1/studies/run",
@@ -65,10 +67,12 @@ async def run_test() -> None:
     assert failed_closed, "Unsupported study type must fail closed"
 
     # 2. Recover with approved valid load flow study
-    good_payload = json.dumps({
-        "study_type": "load_flow",
-        "system": MINI_SYSTEM,
-    }).encode("utf-8")
+    good_payload = json.dumps(
+        {
+            "study_type": "load_flow",
+            "system": MINI_SYSTEM,
+        }
+    ).encode("utf-8")
 
     req_good = urllib.request.Request(
         f"{API_URL}/api/v1/studies/run",

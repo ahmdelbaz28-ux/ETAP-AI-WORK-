@@ -34,6 +34,7 @@ logger = logging.getLogger(__name__)
 # Configuration
 # ---------------------------------------------------------------------------
 
+
 def _get_default_dsn() -> str:
     env = os.environ.get("ENVIRONMENT", os.environ.get("ENV", "development")).lower()
     dsn = os.environ.get("POSTGIS_DSN")

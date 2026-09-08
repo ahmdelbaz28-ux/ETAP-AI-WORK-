@@ -35,15 +35,17 @@ async def run_test() -> None:
     access_token = auth_data["access_token"]
 
     # 1. Submit valid short circuit study request
-    payload = json.dumps({
-        "study_type": "short_circuit",
-        "system": MINI_SYSTEM,
-        "parameters": {
-            "bus_id": 1,
-            "fault_type": "three_phase",
-            "standard": "IEC_60909",
-        },
-    }).encode("utf-8")
+    payload = json.dumps(
+        {
+            "study_type": "short_circuit",
+            "system": MINI_SYSTEM,
+            "parameters": {
+                "bus_id": 1,
+                "fault_type": "three_phase",
+                "standard": "IEC_60909",
+            },
+        }
+    ).encode("utf-8")
 
     req = urllib.request.Request(
         f"{API_URL}/api/v1/studies/run",

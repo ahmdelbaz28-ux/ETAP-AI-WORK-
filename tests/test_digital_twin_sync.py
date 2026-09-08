@@ -400,5 +400,3 @@ def test_time_stepped_simulator_max_steps_guard() -> None:
     results = sim.run(duration=100.0, max_steps=5)
     assert len(results) == 5
     assert sim.current_time == 5.0
-
-

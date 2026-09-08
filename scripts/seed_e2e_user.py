@@ -33,15 +33,17 @@ async def seed_e2e_user() -> None:
     await init_db()
 
     # Deterministic test secret derived dynamically for CI/local E2E fixtures
-    _default_test_secret = "".join(["E", "t", "a", "p", "_", "E", "2", "E", "_", "2", "0", "2", "6", "!"])
-    password = os.environ.get("E2E_USER_PASSWORD", _default_test_secret)  # gitguardian:ignore-secret
+    _default_test_secret = "".join(
+        ["E", "t", "a", "p", "_", "E", "2", "E", "_", "2", "0", "2", "6", "!"]
+    )
+    password = os.environ.get(
+        "E2E_USER_PASSWORD", _default_test_secret
+    )  # gitguardian:ignore-secret
 
     async with async_session() as session:
         async with session.begin():
             # 1. Ensure Tenant exists
-            tenant_res = await session.execute(
-                select(Tenant).where(Tenant.id == E2E_TENANT_ID)
-            )
+            tenant_res = await session.execute(select(Tenant).where(Tenant.id == E2E_TENANT_ID))
             tenant = tenant_res.scalar_one_or_none()
             if not tenant:
                 tenant = Tenant(

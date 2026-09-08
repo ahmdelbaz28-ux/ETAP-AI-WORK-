@@ -65,7 +65,9 @@ def test_put_feature_flag_maker_checker_enforcement(ff_app):
     assert res.json()["enabled"] is True
 
     # 3. GET read remains accessible with API key alone
-    res_get = client.get("/api/v1/feature-flags/harmonic_analysis", headers={"X-API-Key": "secret-admin-key"})
+    res_get = client.get(
+        "/api/v1/feature-flags/harmonic_analysis", headers={"X-API-Key": "secret-admin-key"}
+    )
     assert res_get.status_code == 200
     assert res_get.json()["enabled"] is True
 
@@ -83,7 +85,12 @@ def test_concurrent_put_feature_flags(ff_app):
         role="admin",
     )
 
-    flags_to_toggle = ["harmonic_analysis", "motor_starting", "transient_stability", "optimal_power_flow"]
+    flags_to_toggle = [
+        "harmonic_analysis",
+        "motor_starting",
+        "transient_stability",
+        "optimal_power_flow",
+    ]
 
     def toggle_flag(flag_name: str, enable: bool):
         return client.put(
@@ -96,7 +103,7 @@ def test_concurrent_put_feature_flags(ff_app):
         futures = []
         for i in range(20):
             flag = flags_to_toggle[i % len(flags_to_toggle)]
-            enable = (i % 2 == 0)
+            enable = i % 2 == 0
             futures.append(executor.submit(toggle_flag, flag, enable))
 
         responses = [f.result() for f in futures]

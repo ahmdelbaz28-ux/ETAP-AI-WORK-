@@ -423,4 +423,3 @@ async def close_db() -> None:
             logger.info("Database engine disposed successfully")
         except Exception as exc:
             logger.warning("Error disposing database engine: %s", exc)
-

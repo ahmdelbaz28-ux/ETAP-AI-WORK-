@@ -71,4 +71,3 @@ async def test_report_agent_fails_when_reportlab_import_fails(monkeypatch):
     assert result.data.get("report_generated") is False
     assert result.data.get("file_path") is None
     assert any("Failed to generate PDF report" in err for err in result.validation_errors)
-

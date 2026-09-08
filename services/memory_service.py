@@ -38,6 +38,7 @@ except ImportError:
     class QdrantVectorStore:
         pass
 
+
 try:
     from langchain_core.embeddings import Embeddings
 except ImportError:

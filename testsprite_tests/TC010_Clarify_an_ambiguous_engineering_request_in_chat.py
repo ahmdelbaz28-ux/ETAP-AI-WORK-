@@ -35,12 +35,14 @@ async def run_test() -> None:
     access_token = auth_data["access_token"]
 
     # 1. Submit ambiguous/incomplete request ("Size transformer for 500kW")
-    payload_ambiguous = json.dumps({
-        "study_type": "etap_expert",
-        "parameters": {
-            "question": "Size transformer for 500kW",
-        },
-    }).encode("utf-8")
+    payload_ambiguous = json.dumps(
+        {
+            "study_type": "etap_expert",
+            "parameters": {
+                "question": "Size transformer for 500kW",
+            },
+        }
+    ).encode("utf-8")
 
     req_ambiguous = urllib.request.Request(
         f"{API_URL}/api/v1/studies/run",
@@ -64,12 +66,14 @@ async def run_test() -> None:
     )
 
     # 2. Provide missing inputs / complete engineering parameters
-    payload_complete = json.dumps({
-        "study_type": "etap_expert",
-        "parameters": {
-            "question": "Size transformer for 500kW load with 13.8 kV primary, 480 V secondary, power factor 0.85, per IEEE 141 and IEEE C57.12",
-        },
-    }).encode("utf-8")
+    payload_complete = json.dumps(
+        {
+            "study_type": "etap_expert",
+            "parameters": {
+                "question": "Size transformer for 500kW load with 13.8 kV primary, 480 V secondary, power factor 0.85, per IEEE 141 and IEEE C57.12",
+            },
+        }
+    ).encode("utf-8")
 
     req_complete = urllib.request.Request(
         f"{API_URL}/api/v1/studies/run",

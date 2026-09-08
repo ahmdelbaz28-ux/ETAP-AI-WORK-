@@ -36,12 +36,14 @@ async def run_test() -> None:
     access_token = auth_data["access_token"]
 
     # 1. API: Query interpretation of telemetry alarm (e.g. undervoltage alarm)
-    payload = json.dumps({
-        "study_type": "etap_expert",
-        "parameters": {
-            "question": "Telemetry alarm: Bus 2 voltage dropped to 0.88 pu under heavy load, what are the recommended operational actions in ETAP and IEEE 3002.7?",
-        },
-    }).encode("utf-8")
+    payload = json.dumps(
+        {
+            "study_type": "etap_expert",
+            "parameters": {
+                "question": "Telemetry alarm: Bus 2 voltage dropped to 0.88 pu under heavy load, what are the recommended operational actions in ETAP and IEEE 3002.7?",
+            },
+        }
+    ).encode("utf-8")
 
     req = urllib.request.Request(
         f"{API_URL}/api/v1/studies/run",

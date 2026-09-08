@@ -315,6 +315,7 @@ class TestWebSocketTokenValidation:
         import time
 
         from api.websocket import _validate_ws_token
+
         monkeypatch.setenv("ENGINEERING_SERVICE_AUTH_DISABLED", "false")
         monkeypatch.setenv("JWT_SECRET_KEY", "test-secret-key-32-bytes-long-1234")
         monkeypatch.setenv("ENV", "development")
@@ -331,6 +332,7 @@ class TestWebSocketTokenValidation:
 
         from api.auth import _blacklist_token
         from api.websocket import _validate_ws_token
+
         monkeypatch.setenv("ENGINEERING_SERVICE_AUTH_DISABLED", "false")
         monkeypatch.setenv("JWT_SECRET_KEY", "test-secret-key-32-bytes-long-1234")
         monkeypatch.setenv("ENV", "development")
@@ -347,6 +349,7 @@ class TestWebSocketTokenValidation:
         import time
 
         from api.websocket import _validate_ws_token
+
         monkeypatch.setenv("ENGINEERING_SERVICE_AUTH_DISABLED", "false")
         monkeypatch.setenv("JWT_SECRET_KEY", "test-secret-key-32-bytes-long-1234")
         monkeypatch.setenv("ENV", "development")
@@ -360,6 +363,7 @@ class TestWebSocketTokenValidation:
 
     async def test_ws_test_key_gated_by_allow_list(self, monkeypatch):
         from api.websocket import _validate_ws_token
+
         monkeypatch.setenv("ENGINEERING_SERVICE_AUTH_DISABLED", "false")
         monkeypatch.setenv("JWT_SECRET_KEY", "test-secret-key-32-bytes-long-1234")
         monkeypatch.setenv("ENGINEERING_SERVICE_API_KEY", "configured-service-key-999")
@@ -379,4 +383,3 @@ class TestWebSocketTokenValidation:
 
         # Primary configured API key always accepted
         assert await _validate_ws_token("configured-service-key-999") is True
-

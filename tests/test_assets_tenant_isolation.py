@@ -19,6 +19,7 @@ from api.routes import app
 def override_auth():
     pass
 
+
 @pytest.mark.asyncio
 async def test_asset_tenant_isolation_idor(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setenv("ENGINEERING_SERVICE_AUTH_DISABLED", "false")
@@ -29,6 +30,7 @@ async def test_asset_tenant_isolation_idor(monkeypatch: pytest.MonkeyPatch):
     asset_b_id = str(uuid.uuid4())
 
     from api.database import async_session
+
     async with async_session() as db:
         asset_a = Asset(
             id=asset_a_id,
@@ -74,12 +76,15 @@ async def test_asset_tenant_isolation_idor(monkeypatch: pytest.MonkeyPatch):
     app.dependency_overrides[get_api_key] = lambda: "test-api-key"
 
     from api.csrf import generate_csrf_token
+
     csrf_token = generate_csrf_token()
     headers = {"x-csrf-token": csrf_token}
 
     try:
         transport = ASGITransport(app=app)
-        async with AsyncClient(transport=transport, base_url="http://test", headers=headers) as client:
+        async with AsyncClient(
+            transport=transport, base_url="http://test", headers=headers
+        ) as client:
             # 1. User A accesses their own asset -> 200
             app.dependency_overrides[get_current_user_from_header] = lambda: user_a
             res = await client.get(f"/api/v1/assets/{asset_a_id}")

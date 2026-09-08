@@ -121,4 +121,3 @@ def test_load_forecaster_is_synthetic_flag():
     lf._training_data = None
     lf.predict(horizon_hours=2)
     assert lf.is_synthetic is True
-

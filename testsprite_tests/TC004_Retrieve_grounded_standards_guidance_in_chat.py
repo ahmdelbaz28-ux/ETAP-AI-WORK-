@@ -36,12 +36,14 @@ async def run_test() -> None:
     access_token = auth_data["access_token"]
 
     # 1. API: query knowledge / standards guidance
-    payload = json.dumps({
-        "study_type": "etap_expert",
-        "parameters": {
-            "question": "What standard governs arc flash calculation and boundary in ETAP, and what is IEEE 1584?",
-        },
-    }).encode("utf-8")
+    payload = json.dumps(
+        {
+            "study_type": "etap_expert",
+            "parameters": {
+                "question": "What standard governs arc flash calculation and boundary in ETAP, and what is IEEE 1584?",
+            },
+        }
+    ).encode("utf-8")
 
     req = urllib.request.Request(
         f"{API_URL}/api/v1/studies/run",

@@ -20,6 +20,9 @@ concurrency:
 permissions:
   contents: read  # Least privilege  only read repo contents
 
+env:
+  ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: "true"
+
 jobs:
 
   #  1. CODE QUALITY 
@@ -173,7 +176,7 @@ jobs:
         # (which runs the full test suite with --cov). If the artifact is not
         # available (e.g. python-tests was skipped), fall back to generating a
         # lightweight coverage report locally.
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: coverage-report
           path: .
@@ -300,7 +303,7 @@ jobs:
         run: ./node_modules/.bin/playwright test --config=playwright.config.ts
 
       - name: Upload Playwright screenshots (on failure)
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: failure()
         with:
           name: playwright-screenshots-${{ github.sha }}
@@ -413,7 +416,7 @@ jobs:
           fail_ci_if_error: false
 
       - name: Upload coverage artifact for SonarCloud
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: coverage-report
@@ -637,7 +640,7 @@ jobs:
             --summary-export=load-test-results/k6/ci-summary.json
 
       - name: Upload k6 results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: k6-load-test-results-${{ github.sha }}
@@ -677,7 +680,7 @@ jobs:
         run: npm run build
 
       - name: Upload UI build artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ui-dist-${{ github.sha }}
           path: ui/dist/
@@ -712,7 +715,7 @@ jobs:
         # an artifact (ui/dist/ uploaded as ui-dist-<sha>). We must download
         # it into ui-dist/ at the repo root so Docker can find it.
         if: steps.branch-check.outputs.run_deploy == 'true'
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: ui-dist-${{ github.sha }}
           path: ui-dist
@@ -852,7 +855,7 @@ jobs:
 
       - name: Upload SBOM artifact
         if: steps.branch-check.outputs.run_deploy == 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: sbom-${{ github.sha }}
           path: sbom.json

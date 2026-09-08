@@ -34,12 +34,14 @@ async def run_test() -> None:
     access_token = auth_data["access_token"]
 
     # 1. Query telemetry for nonexistent asset
-    payload_missing = json.dumps({
-        "study_type": "etap_expert",
-        "parameters": {
-            "question": "Show real-time telemetry voltage stream for nonexistent Substation-999 Feeder-XYZ",
-        },
-    }).encode("utf-8")
+    payload_missing = json.dumps(
+        {
+            "study_type": "etap_expert",
+            "parameters": {
+                "question": "Show real-time telemetry voltage stream for nonexistent Substation-999 Feeder-XYZ",
+            },
+        }
+    ).encode("utf-8")
 
     req_missing = urllib.request.Request(
         f"{API_URL}/api/v1/studies/run",
@@ -61,12 +63,14 @@ async def run_test() -> None:
     assert len(res_text) > 0, "Agent should return constrained guidance on missing asset"
 
     # 2. Refine query with valid asset
-    payload_precise = json.dumps({
-        "study_type": "etap_expert",
-        "parameters": {
-            "question": "How to map SCADA telemetry tags for 20kV Main Substation Bus 1 and Bus 2 in ETAP digital twin?",
-        },
-    }).encode("utf-8")
+    payload_precise = json.dumps(
+        {
+            "study_type": "etap_expert",
+            "parameters": {
+                "question": "How to map SCADA telemetry tags for 20kV Main Substation Bus 1 and Bus 2 in ETAP digital twin?",
+            },
+        }
+    ).encode("utf-8")
 
     req_precise = urllib.request.Request(
         f"{API_URL}/api/v1/studies/run",

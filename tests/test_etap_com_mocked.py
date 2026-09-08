@@ -561,4 +561,3 @@ class TestGetAllBuses:
             project = etap.open_project(str(project_file))
             with pytest.raises(RuntimeError, match="Failed to retrieve buses"):
                 project.get_all_buses()
-

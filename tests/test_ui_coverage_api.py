@@ -289,7 +289,9 @@ class TestFeatureFlagsAPI:
         response = client.get("/api/v1/feature-flags/nonexistent_flag")
         assert response.status_code == 404
 
-    def test_update_feature_flag_invalid_status(self, client: TestClient, admin_headers: dict) -> None:
+    def test_update_feature_flag_invalid_status(
+        self, client: TestClient, admin_headers: dict
+    ) -> None:
         """PUT with invalid status returns 422."""
         response = client.put(
             "/api/v1/feature-flags/harmonic_analysis",

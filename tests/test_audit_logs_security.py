@@ -70,7 +70,13 @@ def test_audit_logs_scoping_and_roles(audit_app):
 
     try:
         # 1. Non-admin engineer (Alice) in Tenant-A: should only see Alice's logs
-        alice = CurrentUser(user_id="user-a", username="alice", email="alice@test.com", role="engineer", tenant_id="tenant-A")
+        alice = CurrentUser(
+            user_id="user-a",
+            username="alice",
+            email="alice@test.com",
+            role="engineer",
+            tenant_id="tenant-A",
+        )
         audit_app.dependency_overrides[get_current_user_from_header] = lambda: alice
 
         res = client.get("/api/v1/security/audit-logs/")
@@ -90,7 +96,13 @@ def test_audit_logs_scoping_and_roles(audit_app):
         assert res_alice_log.json()["id"] == "log-1"
 
         # 2. Auditor in Tenant-A: sees all Tenant-A logs (not Bob in Tenant-B)
-        auditor_a = CurrentUser(user_id="audit-1", username="auditor1", email="auditor@test.com", role="auditor", tenant_id="tenant-A")
+        auditor_a = CurrentUser(
+            user_id="audit-1",
+            username="auditor1",
+            email="auditor@test.com",
+            role="auditor",
+            tenant_id="tenant-A",
+        )
         audit_app.dependency_overrides[get_current_user_from_header] = lambda: auditor_a
 
         res = client.get("/api/v1/security/audit-logs/")
@@ -99,7 +111,13 @@ def test_audit_logs_scoping_and_roles(audit_app):
         assert len(entries) == 2
 
         # 3. Global Admin: can see all logs across tenants
-        admin = CurrentUser(user_id="admin-1", username="superadmin", email="admin@test.com", role="admin", tenant_id="")
+        admin = CurrentUser(
+            user_id="admin-1",
+            username="superadmin",
+            email="admin@test.com",
+            role="admin",
+            tenant_id="",
+        )
         audit_app.dependency_overrides[get_current_user_from_header] = lambda: admin
 
         res = client.get("/api/v1/security/audit-logs/")

@@ -36,10 +36,12 @@ async def run_test() -> None:
     access_token = auth_data["access_token"]
 
     # 1. Incomplete / invalid payload (missing required 'system' network elements)
-    invalid_payload = json.dumps({
-        "study_type": "load_flow",
-        "system": {"buses": [], "lines": []},
-    }).encode("utf-8")
+    invalid_payload = json.dumps(
+        {
+            "study_type": "load_flow",
+            "system": {"buses": [], "lines": []},
+        }
+    ).encode("utf-8")
 
     req_invalid = urllib.request.Request(
         f"{API_URL}/api/v1/studies/run",
@@ -62,19 +64,23 @@ async def run_test() -> None:
         assert err.code in (400, 422), f"Expected 400/422 validation error, got {err.code}"
         validation_error_seen = True
 
-    assert validation_error_seen, "Incomplete study submission must be rejected with validation error"
+    assert validation_error_seen, (
+        "Incomplete study submission must be rejected with validation error"
+    )
 
     # 2. Corrected valid load flow submission
-    valid_payload = json.dumps({
-        "study_type": "load_flow",
-        "system": MINI_SYSTEM,
-        "params": {
-            "method": "newton-raphson",
-            "base_mva": 100.0,
-            "tolerance": 0.0001,
-            "max_iterations": 50,
-        },
-    }).encode("utf-8")
+    valid_payload = json.dumps(
+        {
+            "study_type": "load_flow",
+            "system": MINI_SYSTEM,
+            "params": {
+                "method": "newton-raphson",
+                "base_mva": 100.0,
+                "tolerance": 0.0001,
+                "max_iterations": 50,
+            },
+        }
+    ).encode("utf-8")
 
     req_valid = urllib.request.Request(
         f"{API_URL}/api/v1/studies/run",

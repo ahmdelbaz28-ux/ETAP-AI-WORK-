@@ -34,12 +34,14 @@ async def run_test() -> None:
     access_token = auth_data["access_token"]
 
     # 1. API: Unknown / unindexed query
-    payload_vague = json.dumps({
-        "study_type": "etap_expert",
-        "parameters": {
-            "question": "Explain quantum flux warp coils in electrical distribution networks",
-        },
-    }).encode("utf-8")
+    payload_vague = json.dumps(
+        {
+            "study_type": "etap_expert",
+            "parameters": {
+                "question": "Explain quantum flux warp coils in electrical distribution networks",
+            },
+        }
+    ).encode("utf-8")
 
     req_vague = urllib.request.Request(
         f"{API_URL}/api/v1/studies/run",
@@ -62,12 +64,14 @@ async def run_test() -> None:
     assert len(res_vague) > 0
 
     # 2. Targeted follow-up with grounded standard
-    payload_grounded = json.dumps({
-        "study_type": "etap_expert",
-        "parameters": {
-            "question": "What are the IEEE 141 voltage drop limits for industrial branch circuits in ETAP?",
-        },
-    }).encode("utf-8")
+    payload_grounded = json.dumps(
+        {
+            "study_type": "etap_expert",
+            "parameters": {
+                "question": "What are the IEEE 141 voltage drop limits for industrial branch circuits in ETAP?",
+            },
+        }
+    ).encode("utf-8")
 
     req_grounded = urllib.request.Request(
         f"{API_URL}/api/v1/studies/run",

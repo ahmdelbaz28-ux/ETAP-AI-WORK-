@@ -35,16 +35,18 @@ async def run_test() -> None:
     auth_data = fetch_auth_token()
     access_token = auth_data["access_token"]
 
-    payload = json.dumps({
-        "study_type": "load_flow",
-        "system": MINI_SYSTEM,
-        "params": {
-            "method": "newton-raphson",
-            "base_mva": 100.0,
-            "tolerance": 0.0001,
-            "max_iterations": 50,
-        },
-    }).encode("utf-8")
+    payload = json.dumps(
+        {
+            "study_type": "load_flow",
+            "system": MINI_SYSTEM,
+            "params": {
+                "method": "newton-raphson",
+                "base_mva": 100.0,
+                "tolerance": 0.0001,
+                "max_iterations": 50,
+            },
+        }
+    ).encode("utf-8")
 
     req = urllib.request.Request(
         f"{API_URL}/api/v1/studies/run",

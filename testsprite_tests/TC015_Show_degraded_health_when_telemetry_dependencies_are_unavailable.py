@@ -76,7 +76,9 @@ async def run_test() -> None:
 
             # Check that container / status indicators are rendered
             status_elements = page.locator("span, div, p")
-            assert await status_elements.count() >= 5, "Monitoring view must display status indicators"
+            assert await status_elements.count() >= 5, (
+                "Monitoring view must display status indicators"
+            )
         finally:
             await context.close()
             await browser.close()

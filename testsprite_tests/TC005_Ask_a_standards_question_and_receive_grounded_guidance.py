@@ -34,12 +34,14 @@ async def run_test() -> None:
     access_token = auth_data["access_token"]
 
     # 1. API: query standards guidance for cable sizing / motor starting
-    payload = json.dumps({
-        "study_type": "etap_expert",
-        "parameters": {
-            "question": "How does ETAP calculate cable sizing according to IEC 60364 standard and ampacity derating factors?",
-        },
-    }).encode("utf-8")
+    payload = json.dumps(
+        {
+            "study_type": "etap_expert",
+            "parameters": {
+                "question": "How does ETAP calculate cable sizing according to IEC 60364 standard and ampacity derating factors?",
+            },
+        }
+    ).encode("utf-8")
 
     req = urllib.request.Request(
         f"{API_URL}/api/v1/studies/run",

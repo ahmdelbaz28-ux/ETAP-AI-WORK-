@@ -720,6 +720,7 @@ def _create_mfa_challenge_token(user_id: str) -> str:
 def _verify_mfa_challenge_token(token: str) -> Optional[str]:
     """Verify an MFA challenge token. Returns user_id or None."""
     from api.dependencies import _decode_jwt
+
     try:
         payload = _decode_jwt(token)
     except jwt.InvalidTokenError:
@@ -759,7 +760,10 @@ async def _check_rate_limit(username: str) -> None:
     from api._rate_limit import RateLimiter
 
     effective_limit = max(1, _RATE_LIMIT_MAX_ATTEMPTS // _REPLICA_COUNT)
-    if not hasattr(_check_rate_limit, "_limiter") or _check_rate_limit._limiter.max_requests != effective_limit:
+    if (
+        not hasattr(_check_rate_limit, "_limiter")
+        or _check_rate_limit._limiter.max_requests != effective_limit
+    ):
         _check_rate_limit._limiter = RateLimiter(
             max_requests=effective_limit,
             window_seconds=_RATE_LIMIT_WINDOW_SEC,
@@ -964,7 +968,6 @@ async def _reset_rate_limit(username: str) -> None:
             pass
     with _LOGIN_ATTEMPTS_LOCK:
         _LOGIN_ATTEMPTS.pop(username, None)
-
 
 
 # ---------------------------------------------------------------------------
@@ -1334,6 +1337,7 @@ async def refresh(
 ) -> Any:
     """Exchange a valid refresh token for a new access + refresh pair."""
     from api.dependencies import _decode_jwt
+
     try:
         payload = _decode_jwt(body.refresh_token)
     except jwt.ExpiredSignatureError as err:
@@ -1419,6 +1423,7 @@ async def logout(
     """
     if body and body.refresh_token:
         from api.dependencies import _decode_jwt
+
         try:
             payload = _decode_jwt(
                 body.refresh_token,

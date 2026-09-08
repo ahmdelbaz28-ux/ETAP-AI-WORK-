@@ -36,10 +36,12 @@ async def run_test() -> None:
     access_token = auth_data["access_token"]
 
     # 1. Invalid study / result lookup reference -> verify handled with error (404 / 422)
-    bad_payload = json.dumps({
-        "study_type": "nonexistent_study_result_lookup",
-        "system": MINI_SYSTEM,
-    }).encode("utf-8")
+    bad_payload = json.dumps(
+        {
+            "study_type": "nonexistent_study_result_lookup",
+            "system": MINI_SYSTEM,
+        }
+    ).encode("utf-8")
 
     req_bad = urllib.request.Request(
         f"{API_URL}/api/v1/studies/run",
@@ -59,21 +61,25 @@ async def run_test() -> None:
             if not data.get("success", True):
                 invalid_handled = True
     except urllib.error.HTTPError as err:
-        assert err.code in (400, 404, 422), f"Expected error code for invalid lookup, got {err.code}"
+        assert err.code in (400, 404, 422), (
+            f"Expected error code for invalid lookup, got {err.code}"
+        )
         invalid_handled = True
 
     assert invalid_handled, "Invalid result lookup must be rejected or handled with not found state"
 
     # 2. Open / run known valid study result
-    good_payload = json.dumps({
-        "study_type": "load_flow",
-        "system": MINI_SYSTEM,
-        "params": {
-            "method": "newton-raphson",
-            "base_mva": 100.0,
-            "tolerance": 0.0001,
-        },
-    }).encode("utf-8")
+    good_payload = json.dumps(
+        {
+            "study_type": "load_flow",
+            "system": MINI_SYSTEM,
+            "params": {
+                "method": "newton-raphson",
+                "base_mva": 100.0,
+                "tolerance": 0.0001,
+            },
+        }
+    ).encode("utf-8")
 
     req_good = urllib.request.Request(
         f"{API_URL}/api/v1/studies/run",
