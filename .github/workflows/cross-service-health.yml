@@ -425,3 +425,44 @@ jobs:
               });
               core.info('Created new failure issue');
             }
+
+  resolve-on-success:
+    name: ✅ Auto-resolve Integration Failure Issue
+    runs-on: ubuntu-latest
+    needs: integration-smoke
+    if: success()
+    permissions:
+      issues: write
+      contents: read
+
+    steps:
+      - name: 🔍 Check and close resolved issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = '🔴 Cross-Service Integration Failure';
+            const issues = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: ['integration-failure', 'auto-generated'],
+            });
+
+            const existing = issues.data.find(i => i.title === title);
+            if (existing) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: existing.number,
+                body: `✅ **All external services are healthy.** Integration smoke tests passed successfully in workflow run [${context.runId}](${context.payload.repository.html_url}/actions/runs/${context.runId}) on commit \`${context.sha}\`.\n\nClosing issue automatically.`,
+              });
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: existing.number,
+                state: 'closed',
+                state_reason: 'completed',
+              });
+              core.info(`Successfully closed issue #${existing.number}`);
+            }
+
