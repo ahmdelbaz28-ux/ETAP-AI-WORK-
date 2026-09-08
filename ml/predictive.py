@@ -52,14 +52,12 @@ _HAS_XGBOOST = False
 _HAS_SHAP = False
 _HAS_OPTUNA = False
 _HAS_PYOD = False
-_HAS_DARTS = False
 _HAS_TORCH = False
 _HAS_TORCH_GEOMETRIC = False
 _HAS_MLFLOW = False
 
 try:
     from sklearn.ensemble import IsolationForest, RandomForestClassifier
-    from sklearn.metrics import mean_absolute_error, mean_squared_error  # noqa: F401
     from sklearn.preprocessing import MinMaxScaler
 
     _HAS_SKLEARN = True
@@ -145,7 +143,7 @@ class LoadForecaster:
     otherwise falls back to a simple autoregressive linear regression approach.
     """
 
-    def __init__(self, method: str = "auto") -> None:
+    def __init__(self, method: str = "auto", window_size: int = 24) -> None:
         """Initialize LoadForecaster.
 
         Parameters
@@ -153,16 +151,16 @@ class LoadForecaster:
         method : str
             Forecasting method: 'auto', 'lstm', 'prophet', or 'linear'.
             'auto' selects the best available: lstm > prophet > linear.
+        window_size : int
+            Sliding window size (must be > 0).
         """
+        if window_size <= 0:
+            raise ValueError(f"window_size must be positive (window_size > 0), got {window_size}")
         self.model: Any = None
         self.scaler: Any | None = None
         self._is_lstm: bool = False
         self._is_prophet: bool = False
-        self._window_size: int = 24  # default sliding window for sequences
-        # When train() runs on a short sample we shrink the window for that
-        # training run. We persist the trained window here so predict() can
-        # use the same window the model was actually fit on. ``_window_size``
-        # stays at its default (24) for the next train() call.
+        self._window_size: int = window_size
         self._trained_window_size: int | None = None
         self._fallback_weights: np.ndarray | None = None
         self._fallback_bias: float = 0.0
@@ -170,6 +168,15 @@ class LoadForecaster:
         self._fallback_std: float = 1.0
         self._method = method
         self._training_data: np.ndarray | None = None
+
+    @property
+    def is_trained(self) -> bool:
+        """Return True if model has been trained."""
+        return self.model is not None or self._fallback_weights is not None
+
+    def forecast_status(self) -> str:
+        """Return 'trained' if trained, otherwise 'untrained'."""
+        return "trained" if self.is_trained else "untrained"
 
     # ------------------------------------------------------------------
     # Training
@@ -337,6 +344,8 @@ class LoadForecaster:
         falls back to the default ``self._window_size``.
         """
         w = self._trained_window_size or self._window_size
+        if w <= 0:
+            raise ValueError(f"Window size w must be positive (w > 0), got {w}")
         X: list[np.ndarray] = []
         y: list[float] = []
         for i in range(len(data) - w):
@@ -380,13 +389,16 @@ class LoadForecaster:
         return np.maximum(result, 0.0)
 
     def _predict_lstm(self, horizon_hours: int) -> np.ndarray:
-        """Autoregressive LSTM prediction."""
-        scaled_recent = self.scaler.data_min_ + (
-            self.scaler.data_max_ - self.scaler.data_min_
-        ) * _RNG.rand(  # NOSONAR
-            self._window_size
-        )  # NOSONAR numpy.random.Generator migration; API change required
-        input_seq = scaled_recent.reshape(1, self._window_size, 1)
+        """Autoregressive LSTM prediction using actual recent historical window."""
+        w = self._trained_window_size or self._window_size
+        if w <= 0:
+            raise ValueError(f"Window size w must be positive (w > 0), got {w}")
+        if self._training_data is not None and len(self._training_data) >= w:
+            recent_data = self._training_data[-w:]
+            scaled_recent = self.scaler.transform(recent_data.reshape(-1, 1)).flatten()
+        else:
+            scaled_recent = np.zeros(w)
+        input_seq = scaled_recent.reshape(1, w, 1)
         predictions: list[float] = []
         for _ in range(horizon_hours):
             pred = float(self.model.predict(input_seq, verbose=0)[0, 0])
@@ -405,7 +417,12 @@ class LoadForecaster:
         that smaller value; otherwise we use the default ``_window_size``.
         """
         w = self._trained_window_size or self._window_size
-        window = np.zeros(w)
+        if w <= 0:
+            raise ValueError(f"Window size w must be positive (w > 0), got {w}")
+        if self._training_data is not None and len(self._training_data) >= w:
+            window = (self._training_data[-w:] - self._fallback_mean) / self._fallback_std
+        else:
+            window = np.zeros(w)
         predictions: list[float] = []
         for _ in range(horizon_hours):
             next_val = float(window @ self._fallback_weights + self._fallback_bias)
@@ -422,21 +439,23 @@ class LoadForecaster:
     def evaluate(self, test_data: np.ndarray) -> dict[str, float]:
         """Evaluate model accuracy on test data."""
         w = self._trained_window_size or self._window_size
+        if w <= 0:
+            raise ValueError(f"Window size w must be positive (w > 0), got {w}")
         if len(test_data) < w + 1:
             raise ValueError(f"Need at least {w + 1} test data points")
 
         actuals: list[float] = []
         preds: list[float] = []
 
-        for i in range(self._window_size, len(test_data)):
+        for i in range(w, len(test_data)):
             actuals.append(float(test_data[i]))
-            window_data = test_data[i - self._window_size : i]
+            window_data = test_data[i - w : i]
             if self._is_prophet and self._training_data is not None:
                 # Simple comparison using training data trend
                 pred = float(np.mean(self._training_data[-24:]))
             elif self._is_lstm and self.model is not None and self.scaler is not None:
                 scaled_win = self.scaler.transform(window_data.reshape(-1, 1)).flatten()
-                inp = scaled_win.reshape(1, self._window_size, 1)
+                inp = scaled_win.reshape(1, w, 1)
                 pred_scaled = float(self.model.predict(inp, verbose=0)[0, 0])
                 pred = float(self.scaler.inverse_transform([[pred_scaled]])[0, 0])
             elif self._fallback_weights is not None:
@@ -1236,7 +1255,10 @@ class ModelRegistry:
                 mlflow.set_experiment_tag("description", description)
             return experiment_id
         except Exception:
-            return mlflow.get_experiment_by_name(name).experiment_id
+            exp = mlflow.get_experiment_by_name(name)
+            if exp is not None:
+                return exp.experiment_id
+            raise RuntimeError(f"Could not create or find MLflow experiment: {name}")
 
     def start_run(self, experiment_name: str, run_name: str = "") -> Any:
         """Start a new MLflow run.
@@ -1259,25 +1281,31 @@ class ModelRegistry:
 
     def log_params(self, params: dict[str, Any]) -> None:
         """Log parameters for the current run."""
-        if self._active_run:
-            mlflow.log_params(params)
+        if not self._active_run:
+            logger.warning("No active MLflow run. Call start_run() first.")
+            return
+        mlflow.log_params(params)
 
     def log_metrics(self, metrics: dict[str, float]) -> None:
         """Log metrics for the current run."""
-        if self._active_run:
-            mlflow.log_metrics(metrics)
+        if not self._active_run:
+            logger.warning("No active MLflow run. Call start_run() first.")
+            return
+        mlflow.log_metrics(metrics)
 
     def log_model(self, model: Any, artifact_path: str = "model") -> None:
         """Log a model artifact."""
-        if self._active_run:
+        if not self._active_run:
+            logger.warning("No active MLflow run. Call start_run() first.")
+            return
+        try:
+            mlflow.sklearn.log_model(model, artifact_path)
+        except Exception:
+            logger.warning("Could not log model via sklearn flavor, trying generic")
             try:
-                mlflow.sklearn.log_model(model, artifact_path)
-            except Exception:
-                logger.warning("Could not log model via sklearn flavor, trying generic")
-                try:
-                    mlflow.pyfunc.log_model(artifact_path, python_model=model)
-                except Exception as e:
-                    logger.warning("Could not log model: %s", e)
+                mlflow.pyfunc.log_model(artifact_path, python_model=model)
+            except Exception as e:
+                logger.warning("Could not log model: %s", e)
 
     def end_run(self) -> None:
         """End the current MLflow run."""
@@ -1311,11 +1339,16 @@ class ModelRegistry:
         if experiment is None:
             return None
 
-        runs = mlflow.search_runs(
-            experiment_ids=[experiment.experiment_id],
-            order_by=[f"metrics.{metric} {'ASC' if ascending else 'DESC'}"],
-        )
-        if runs.empty:
+        try:
+            runs = mlflow.search_runs(
+                experiment_ids=[experiment.experiment_id],
+                order_by=[f"metrics.{metric} {'ASC' if ascending else 'DESC'}"],
+            )
+        except Exception as e:
+            logger.warning("MLflow search_runs failed for experiment %s: %s", experiment_name, e)
+            return None
+
+        if runs is None or getattr(runs, "empty", True):
             return None
 
         best = runs.iloc[0]

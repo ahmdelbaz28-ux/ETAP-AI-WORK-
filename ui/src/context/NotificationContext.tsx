@@ -31,6 +31,7 @@ import {
   useState,
 } from "react";
 import { API_BASE_URL } from "../lib/api-config";
+import { authHeaders } from "../lib/admin-fetch";
 import { getAuthToken } from "../lib/tokenStorage";
 
 // ---------------------------------------------------------------------------
@@ -99,10 +100,6 @@ const colorMap = {
 // Helpers
 // ---------------------------------------------------------------------------
 
-function authHeaders(extra: Record<string, string> = {}): Record<string, string> {
-  const token = getAuthToken();
-  return { ...(token ? { Authorization: `Bearer ${token}` } : {}), ...extra };
-}
 
 /**
  * Map a backend notification's `notification_type`/`priority` to a toast

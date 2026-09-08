@@ -1,6 +1,10 @@
-# Final Deployment Guide
+# Final Deployment Guide — Standalone ARM64 AppImage
 
-## Application: ETAP Digital Twin v1.0.0
+> [!NOTE]
+> This guide is specifically for the standalone Linux ARM64 (aarch64) desktop AppImage package (`ETAP Digital Twin v1.0.0`).
+> For full container, Kubernetes, and Cloudflare platform deployment instructions, see the canonical [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md).
+
+## Application: ETAP Digital Twin v1.0.0 (Standalone AppImage)
 ## Platform: Linux ARM64 (aarch64)
 
 ---

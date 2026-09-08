@@ -35,6 +35,7 @@ import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } fro
 import { Badge, Button, Card, EmptyState, Modal, Tabs } from "../components/ui";
 import { useNotify } from "../context/NotificationContext";
 import { API_BASE_URL } from "../lib/api-config";
+import { authHeaders } from "../lib/admin-fetch";
 import { getAuthToken } from "../lib/tokenStorage";
 
 // ---------------------------------------------------------------------------
@@ -113,10 +114,6 @@ type TabId = "equipment" | "categories";
 // Fetch helpers
 // ---------------------------------------------------------------------------
 
-function authHeaders(extra: Record<string, string> = {}): Record<string, string> {
-  const token = getAuthToken();
-  return { ...(token ? { Authorization: `Bearer ${token}` } : {}), ...extra };
-}
 
 async function equipFetch<T>(path: string, init?: RequestInit): Promise<T> {
   const callerHeaders = init?.headers;

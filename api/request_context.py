@@ -78,8 +78,6 @@ def _extract_tenant_id_from_jwt(request: Request) -> str:
     """Extract tenant_id from the JWT ``Authorization: Bearer`` token."""
     import os
 
-    import jwt as pyjwt
-
     auth_header = request.headers.get("authorization", "")
     if not auth_header.lower().startswith("bearer "):
         return ""
@@ -93,8 +91,10 @@ def _extract_tenant_id_from_jwt(request: Request) -> str:
         return ""
 
     try:
-        payload = pyjwt.decode(token, jwt_key, algorithms=["HS256"])
-    except pyjwt.InvalidTokenError:
+        from api.dependencies import _decode_jwt
+
+        payload = _decode_jwt(token, secret=jwt_key, algorithms=["HS256"])
+    except Exception:
         return ""
 
     tenant_id: str | None = payload.get("tenant_id")

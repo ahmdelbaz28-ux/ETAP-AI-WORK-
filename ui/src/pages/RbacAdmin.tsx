@@ -37,7 +37,7 @@ import { type ReactNode, useCallback, useEffect, useMemo, useState } from "react
 import { Badge, Button, Card, EmptyState, Modal, Tabs } from "../components/ui";
 import { useNotify } from "../context/NotificationContext";
 import { API_BASE_URL } from "../lib/api-config";
-import { getAuthToken } from "../lib/tokenStorage";
+import { authHeaders } from "../lib/admin-fetch";
 
 // ---------------------------------------------------------------------------
 // Types — mirror api/rbac.py Pydantic schemas
@@ -85,11 +85,6 @@ type TabId = "roles" | "permissions" | "assignments";
 // ---------------------------------------------------------------------------
 // Fetch helpers
 // ---------------------------------------------------------------------------
-
-function authHeaders(extra: Record<string, string> = {}): Record<string, string> {
-  const token = getAuthToken();
-  return { ...(token ? { Authorization: `Bearer ${token}` } : {}), ...extra };
-}
 
 async function rbacFetch<T>(path: string, init?: RequestInit): Promise<T> {
   // Merge our auth+content-type headers with any caller-provided headers.

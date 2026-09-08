@@ -13,16 +13,16 @@ This guide provides step-by-step instructions for deploying the AhmedETAP in pro
 - CPU: 4 cores
 - RAM: 8 GB
 - Storage: 20 GB
-- Python: 3.9+
-- Node.js: 18+
+- Python: 3.12+ (tested on Python 3.12 & 3.13)
+- Node.js: 20+
 
 **Recommended:**
-- OS: Windows Server 2019/2022 or Ubuntu 22.04 LTS
+- OS: Windows Server 2019/2022 or Ubuntu 24.04 LTS
 - CPU: 8+ cores
 - RAM: 32 GB
 - Storage: 100 GB SSD
-- Python: 3.11+
-- Node.js: 20+
+- Python: 3.13
+- Node.js: 22+
 
 ### Software Dependencies
 
@@ -46,8 +46,8 @@ This guide provides step-by-step instructions for deploying the AhmedETAP in pro
 ### Step 1: Clone Repository
 
 ```bash
-git clone https://github.com/your-org/my-awesome-agent.git
-cd my-awesome-agent
+git clone https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-.git
+cd ETAP-AI-WORK-
 ```
 
 ### Step 2: Configure Environment

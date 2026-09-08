@@ -147,7 +147,8 @@ def test_ws_ticket_valid_then_single_use(client):
     assert resp.status_code == 200, resp.text
     body = resp.json()
     assert body["ttl_seconds"] == 60
-    assert "ticket" in body and "expires_at" in body
+    assert "ticket" in body
+    assert "expires_at" in body
     ticket = body["ticket"]
 
     # FIRST use: accepted.

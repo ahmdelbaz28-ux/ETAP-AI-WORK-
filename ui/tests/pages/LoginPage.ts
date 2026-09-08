@@ -44,7 +44,7 @@ export class LoginPage {
   async expectInvalidCredentialsHandled() {
     // Skill pattern: wait for a specific condition (error banner OR
     // staying on login/dashboard) instead of waitForTimeout.
-    const errorBanner = this.page.locator(".bg-red-950\\/20, .text-red-300");
+    const errorBanner = this.page.locator(String.raw`.bg-red-950\/20, .text-red-300`);
     await expect
       .poll(
         async () => {
