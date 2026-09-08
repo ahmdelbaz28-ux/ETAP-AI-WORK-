@@ -53,6 +53,8 @@ env:
   PYTHON_VERSION: '3.13'
   HF_SPACE_URL: https://ahmdelbaz28-ahmedetap-platform.hf.space
   HF_SPACE_ID: ahmdelbaz28/AhmedETAP-Platform
+  ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: "true"
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
 
 jobs:
   integration-smoke:
@@ -62,10 +64,10 @@ jobs:
 
     steps:
       - name: 📥 Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
 
       - name: 🐍 Set up Python 3.13
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
         with:
           python-version: "3.13"
 
@@ -97,14 +99,21 @@ jobs:
             echo "  ⚠️ HF Space stage is '$STAGE' (not RUNNING) — deployment may be in progress or failed"
           fi
 
-          # 1b. Health endpoint
-          HEALTH=$(curl -s -o /tmp/hf_health.json -w "%{http_code}" --max-time 30 \
-            "$HF_SPACE_URL/health" || echo "000")
-          echo "  /health: HTTP $HEALTH"
-          if [ "$HEALTH" = "200" ]; then
-            echo "  ✅ /health reachable"
-          else
-            echo "  ❌ /health failed"
+          # 1b. Health endpoint with retry
+          echo "  Polling /health endpoint..."
+          HEALTH="000"
+          for i in $(seq 1 15); do
+            HEALTH=$(curl -s -o /tmp/hf_health.json -w "%{http_code}" --max-time 30 \
+              "$HF_SPACE_URL/health" || echo "000")
+            echo "  Attempt $i: /health HTTP $HEALTH"
+            if [ "$HEALTH" = "200" ]; then
+              echo "  ✅ /health reachable"
+              break
+            fi
+            sleep 5
+          done
+          if [ "$HEALTH" != "200" ]; then
+            echo "  ❌ /health failed (HTTP $HEALTH)"
             exit 1
           fi
 
