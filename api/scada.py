@@ -44,9 +44,11 @@ from api.approvals import (
     expire_stale_actions,
 )
 from api.database import get_db
+from api.dependencies import get_api_key
+
+# isort: split
 from api.dependencies import (
     CurrentUser,
-    get_api_key,
     get_current_user_from_header,
 )
 from api.dual_control import (
