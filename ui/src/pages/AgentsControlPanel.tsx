@@ -53,7 +53,7 @@ import {
   Terminal,
   XCircle,
 } from "lucide-react";
-import { type ReactNode, useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Badge,
   Button,
@@ -65,8 +65,8 @@ import {
   Tabs,
 } from "../components/ui";
 import { useNotify } from "../context/NotificationContext";
-import { API_BASE_URL } from "../lib/api-config";
-import { getAuthToken } from "../lib/tokenStorage";
+import { ErrorBanner, JsonBlock, LoadingInline, StatCard } from "../components/admin-primitives";
+import { apiFetch } from "../lib/api-fetch";
 
 // ---------------------------------------------------------------------------
 // Types — mirror api/agents.py response shapes
@@ -221,83 +221,12 @@ type TabId = "agents" | "chat" | "cua" | "siem" | "orchestration";
 // Fetch helpers (same pattern as EmailDashboard)
 // ---------------------------------------------------------------------------
 
-function authHeaders(extra: Record<string, string> = {}): Record<string, string> {
-  const token = getAuthToken();
-  return { ...(token ? { Authorization: `Bearer ${token}` } : {}), ...extra };
-}
-
-async function agentsFetch<T>(path: string, init?: RequestInit): Promise<T> {
-  const callerHeaders = init?.headers;
-  const mergedHeaders: Record<string, string> = {
-    "Content-Type": "application/json",
-    ...authHeaders(),
-  };
-  if (callerHeaders instanceof Headers) {
-    callerHeaders.forEach((v, k) => {
-      mergedHeaders[k] = v;
-    });
-  } else if (Array.isArray(callerHeaders)) {
-    for (const [k, v] of callerHeaders) {
-      mergedHeaders[k] = v;
-    }
-  } else if (callerHeaders && typeof callerHeaders === "object") {
-    Object.assign(mergedHeaders, callerHeaders);
-  }
-
-  const res = await fetch(`${API_BASE_URL}${path}`, { ...init, headers: mergedHeaders });
-  if (!res.ok) {
-    const text = await res.text().catch(() => "");
-    throw new Error(`HTTP ${res.status}: ${text || res.statusText}`);
-  }
-  return (await res.json()) as T;
-}
 
 // ---------------------------------------------------------------------------
 // Small UI primitives
 // ---------------------------------------------------------------------------
 
-function StatCard({
-  label,
-  value,
-  sub,
-  tone = "neutral",
-  icon,
-}: {
-  label: string;
-  value: ReactNode;
-  sub?: ReactNode;
-  tone?: "success" | "danger" | "warning" | "neutral";
-  icon?: ReactNode;
-}) {
-  const toneClass = {
-    success: "text-green-400",
-    danger: "text-red-400",
-    warning: "text-amber-400",
-    neutral: "text-zinc-100",
-  }[tone];
-  const iconBg = {
-    success: "bg-green-500/10 text-green-400",
-    danger: "bg-red-500/10 text-red-400",
-    warning: "bg-amber-500/10 text-amber-400",
-    neutral: "bg-zinc-500/10 text-zinc-300",
-  }[tone];
-  return (
-    <Card>
-      <CardSection className="p-4">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0 flex-1">
-            <p className="text-[11px] uppercase tracking-wider text-zinc-400 font-semibold">
-              {label}
-            </p>
-            <p className={`mt-1 text-2xl font-bold ${toneClass}`}>{value}</p>
-            {sub ? <p className="mt-1 text-xs text-zinc-500">{sub}</p> : null}
-          </div>
-          {icon ? <div className={`shrink-0 rounded-lg p-2 ${iconBg}`}>{icon}</div> : null}
-        </div>
-      </CardSection>
-    </Card>
-  );
-}
+
 
 function AgentStatusBadge({ status }: { readonly status: string }) {
   const s = status.toLowerCase();
@@ -324,32 +253,7 @@ function BooleanBadge({ ok, yes, no }: { readonly ok: boolean; yes: string; no: 
   );
 }
 
-function ErrorBanner({ message }: { readonly message: string }) {
-  return (
-    <div className="rounded-md border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-300">
-      <AlertTriangle className="mr-2 inline h-4 w-4" />
-      {message}
-    </div>
-  );
-}
 
-function LoadingInline({ label }: { readonly label: string }) {
-  return (
-    <div className="flex items-center gap-2 text-zinc-400">
-      <Loader2 className="h-4 w-4 animate-spin" />
-      {label}
-    </div>
-  );
-}
-
-// Pretty-print a JSON object in a scrollable <pre>.
-function JsonBlock({ data }: { readonly data: unknown }) {
-  return (
-    <pre className="max-h-96 overflow-auto rounded-md border border-zinc-700 bg-zinc-900 p-3 text-xs text-zinc-200">
-      {JSON.stringify(data, null, 2)}
-    </pre>
-  );
-}
 
 // ---------------------------------------------------------------------------
 // Page component
@@ -429,8 +333,8 @@ export default function AgentsControlPanelPage() {
     setAgentsLoading(true);
     setAgentsError(null);
     try {
-      const res = await agentsFetch<AgentsListResponse>("/api/v1/agents");
-      setAgents(res.agents);
+      const res = await apiFetch<AgentsListResponse>("/api/v1/agents");
+      setAgents(Array.isArray(res?.agents) ? res.agents : []);
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       setAgentsError(msg);
@@ -441,7 +345,7 @@ export default function AgentsControlPanelPage() {
 
   const loadAgentsInfo = useCallback(async () => {
     try {
-      const res = await agentsFetch<AgentsInfoResponse>("/api/v1/agents/info");
+      const res = await apiFetch<AgentsInfoResponse>("/api/v1/agents/info");
       setAgentsInfo(res.data);
     } catch {
       // Non-critical; info card simply stays hidden.
@@ -452,13 +356,13 @@ export default function AgentsControlPanelPage() {
     setCuaHealthLoading(true);
     setCuaHealthError(null);
     try {
-      const res = await agentsFetch<CuaHealthResponse>("/api/v1/agents/etap-gui/health");
+      const res = await apiFetch<CuaHealthResponse>("/api/v1/agents/etap-gui/health");
       setCuaHealth(res.data);
       setSafetyHealth(res.data.life_safety);
       // Also fetch the canonical safety/health endpoint so the life_safety
       // status is always up-to-date independent of the CUA health snapshot.
       try {
-        const safetyRes = await agentsFetch<SafetyHealthResponse>(
+        const safetyRes = await apiFetch<SafetyHealthResponse>(
           "/api/v1/agents/etap-gui/safety/health",
         );
         setSafetyHealth(safetyRes.data);
@@ -476,7 +380,7 @@ export default function AgentsControlPanelPage() {
   const loadSiemHealth = useCallback(async () => {
     setSiemHealthLoading(true);
     try {
-      const res = await agentsFetch<SiemHealthResponse>("/api/v1/agents/etap-gui/siem/health");
+      const res = await apiFetch<SiemHealthResponse>("/api/v1/agents/etap-gui/siem/health");
       setSiemHealth(res.data);
     } catch {
       // Non-critical.
@@ -489,7 +393,7 @@ export default function AgentsControlPanelPage() {
     setSiemEventsLoading(true);
     setSiemError(null);
     try {
-      const res = await agentsFetch<SiemEventsResponse>(
+      const res = await apiFetch<SiemEventsResponse>(
         `/api/v1/agents/etap-gui/siem/events?limit=${siemLimit}`,
       );
       setSiemEvents(res.data?.events ?? []);
@@ -504,7 +408,7 @@ export default function AgentsControlPanelPage() {
   const loadAhmedInfo = useCallback(async () => {
     setAhmedInfoLoading(true);
     try {
-      const res = await agentsFetch<AhmedEtapInfoResponse>("/api/v1/agents/ahmed-etap/info");
+      const res = await apiFetch<AhmedEtapInfoResponse>("/api/v1/agents/ahmed-etap/info");
       setAhmedInfo(res.data);
     } catch {
       // Non-critical.
@@ -531,10 +435,10 @@ export default function AgentsControlPanelPage() {
     }
   }, [
     tab,
-    agents.length,
+    agents?.length ?? 0,
     cuaHealth,
     siemHealth,
-    siemEvents.length,
+    siemEvents?.length ?? 0,
     ahmedInfo,
     loadAgents,
     loadAgentsInfo,
@@ -571,7 +475,7 @@ export default function AgentsControlPanelPage() {
           setDetailLoading(false);
           return;
         }
-        const res = await agentsFetch<AgentDetailResponse>(
+        const res = await apiFetch<AgentDetailResponse>(
           `/api/v1/agents/${encodeURIComponent(agentId)}`,
         );
         setDetailAgent(res.agent);
@@ -593,7 +497,7 @@ export default function AgentsControlPanelPage() {
     setExpertLoading(true);
     setExpertResult(null);
     try {
-      const res = await agentsFetch<ChatResponse>("/api/v1/agents/etap-expert/chat", {
+      const res = await apiFetch<ChatResponse>("/api/v1/agents/etap-expert/chat", {
         method: "POST",
         body: JSON.stringify({ message: expertMessage }),
       });
@@ -618,7 +522,7 @@ export default function AgentsControlPanelPage() {
     setGuiLoading(true);
     setGuiResult(null);
     try {
-      const res = await agentsFetch<ChatResponse>("/api/v1/agents/etap-gui/chat", {
+      const res = await apiFetch<ChatResponse>("/api/v1/agents/etap-gui/chat", {
         method: "POST",
         body: JSON.stringify({ message: guiMessage }),
       });
@@ -643,7 +547,7 @@ export default function AgentsControlPanelPage() {
     setExecLoading(true);
     setExecResult(null);
     try {
-      const res = await agentsFetch<ChatResponse>("/api/v1/agents/etap-gui/execute", {
+      const res = await apiFetch<ChatResponse>("/api/v1/agents/etap-gui/execute", {
         method: "POST",
         body: JSON.stringify({
           message: execMessage,
@@ -667,7 +571,7 @@ export default function AgentsControlPanelPage() {
   const activateKillSwitch = useCallback(async () => {
     setKillLoading(true);
     try {
-      const res = await agentsFetch<KillSwitchResponse>(
+      const res = await apiFetch<KillSwitchResponse>(
         `/api/v1/agents/etap-gui/kill-switch/activate?reason=${encodeURIComponent(killReason)}`,
         { method: "POST" },
       );
@@ -685,7 +589,7 @@ export default function AgentsControlPanelPage() {
   const deactivateKillSwitch = useCallback(async () => {
     setDeactivateLoading(true);
     try {
-      const res = await agentsFetch<KillSwitchResponse>(
+      const res = await apiFetch<KillSwitchResponse>(
         "/api/v1/agents/etap-gui/kill-switch/deactivate",
         { method: "POST" },
       );
@@ -702,7 +606,7 @@ export default function AgentsControlPanelPage() {
   const verifyAudit = useCallback(async () => {
     setAuditLoading(true);
     try {
-      const res = await agentsFetch<AuditVerifyResponse>(
+      const res = await apiFetch<AuditVerifyResponse>(
         "/api/v1/agents/etap-gui/safety/audit/verify",
       );
       setAuditVerify(res.data);
@@ -741,7 +645,7 @@ export default function AgentsControlPanelPage() {
       if (orchExpectedUnit.trim()) body.expected_unit = orchExpectedUnit;
       if (orchLeadAgent.trim()) body.lead_agent = orchLeadAgent;
 
-      const res = await agentsFetch<OrchestrateResponse>("/api/v1/agents/ahmed-etap/orchestrate", {
+      const res = await apiFetch<OrchestrateResponse>("/api/v1/agents/ahmed-etap/orchestrate", {
         method: "POST",
         body: JSON.stringify(body),
       });

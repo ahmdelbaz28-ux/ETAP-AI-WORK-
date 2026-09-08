@@ -20,7 +20,7 @@ test.describe("Login Page — Interactive Elements", () => {
     const langBtn = page.getByRole("button", { name: /العربية|English/i });
     await expect(langBtn).toBeVisible({ timeout: 30000 });
     await expect(langBtn).toBeEnabled();
-    await langBtn.click({ force: true });
+    await langBtn.click();
     // Skill pattern: auto-wait locator instead of waitForTimeout.
     await expect(langBtn).toBeVisible();
   });

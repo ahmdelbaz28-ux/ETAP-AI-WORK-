@@ -30,7 +30,9 @@ on:
 
 env:
   HEALTH_CHECK_API_URL: ${{ vars.HEALTH_CHECK_API_URL || 'https://ahmdelbaz28-ahmedetap-platform.hf.space' }}
+  HEALTH_CHECK_API_KEY: ${{ secrets.HEALTH_CHECK_API_KEY || '' }}
   HEALTH_CHECK_TIMEOUT_MS: ${{ vars.HEALTH_CHECK_TIMEOUT_MS || '10000' }}
+  SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL || '' }}
 
 jobs:
   # -------------------------------------------------------------------------
@@ -121,9 +123,9 @@ jobs:
     if: needs.determine-checks.outputs.run-daily == 'true'
     env:
       HEALTH_CHECK_API_URL: ${{ vars.HEALTH_CHECK_API_URL || 'https://ahmdelbaz28-ahmedetap-platform.hf.space' }}
-      HEALTH_CHECK_API_KEY: ${{ secrets.HEALTH_CHECK_API_KEY }}
+      HEALTH_CHECK_API_KEY: ${{ secrets.HEALTH_CHECK_API_KEY || '' }}
       HEALTH_CHECK_TIMEOUT_MS: ${{ vars.HEALTH_CHECK_TIMEOUT_MS || '10000' }}
-      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL || '' }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -178,9 +180,9 @@ jobs:
     if: needs.determine-checks.outputs.run-weekly == 'true'
     env:
       HEALTH_CHECK_API_URL: ${{ vars.HEALTH_CHECK_API_URL || 'https://ahmdelbaz28-ahmedetap-platform.hf.space' }}
-      HEALTH_CHECK_API_KEY: ${{ secrets.HEALTH_CHECK_API_KEY }}
+      HEALTH_CHECK_API_KEY: ${{ secrets.HEALTH_CHECK_API_KEY || '' }}
       HEALTH_CHECK_TIMEOUT_MS: ${{ vars.HEALTH_CHECK_TIMEOUT_MS || '10000' }}
-      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL || '' }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -235,9 +237,9 @@ jobs:
     if: needs.determine-checks.outputs.run-monthly == 'true'
     env:
       HEALTH_CHECK_API_URL: ${{ vars.HEALTH_CHECK_API_URL || 'https://ahmdelbaz28-ahmedetap-platform.hf.space' }}
-      HEALTH_CHECK_API_KEY: ${{ secrets.HEALTH_CHECK_API_KEY }}
+      HEALTH_CHECK_API_KEY: ${{ secrets.HEALTH_CHECK_API_KEY || '' }}
       HEALTH_CHECK_TIMEOUT_MS: ${{ vars.HEALTH_CHECK_TIMEOUT_MS || '10000' }}
-      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL || '' }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -291,7 +293,7 @@ jobs:
     needs: [daily-checks, weekly-checks, monthly-checks]
     if: always()
     env:
-      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL || '' }}
     steps:
       - name: Download all reports
         uses: actions/download-artifact@v4

@@ -14,7 +14,8 @@
  *   - cohere:      Cohere /v2/chat
  */
 
-import { POPULAR_PROVIDERS } from "../pages/Settings";
+import { POPULAR_PROVIDERS } from "./providers";
+import { redactSecrets } from "./llm-utils";
 import { apiUrl, getCachedSettings } from "./api-config";
 import { testProviderKey } from "./provider-keys";
 import { getAuthToken } from "./tokenStorage";
@@ -402,6 +403,28 @@ export interface TestResult {
   suggestion?: string;
 }
 
+async function testCustomOpenAi(settings: Record<string, any>): Promise<TestResult> {
+  const apiKey = settings.CUSTOM_OPENAI_API_KEY || "";
+  const baseUrl = settings.CUSTOM_OPENAI_BASE_URL || "";
+  const modelId = settings.CUSTOM_OPENAI_MODEL_ID || "";
+
+  if (!apiKey)
+    return { success: false, message: "API key is required", errorCode: "MISSING_KEY" };
+  if (!baseUrl)
+    return { success: false, message: "Endpoint URL is required", errorCode: "MISSING_URL" };
+  if (!modelId)
+    return { success: false, message: "Model ID is required", errorCode: "MISSING_MODEL" };
+
+  return await performChatTest({
+    id: "custom_openai",
+    name: "Custom (OpenAI-compatible)",
+    apiKey,
+    baseUrl: baseUrl.replace(/\/$/, ""),
+    model: modelId,
+    apiType: "openai",
+  });
+}
+
 export async function testProviderConnection(providerId: string): Promise<TestResult> {
   if (!isElectronRuntime() && (await isServerChatStreamEnabled())) {
     try {
@@ -423,25 +446,7 @@ export async function testProviderConnection(providerId: string): Promise<TestRe
 
   // Handle custom OpenAI-compatible provider
   if (providerId === "custom_openai") {
-    const apiKey = settings.CUSTOM_OPENAI_API_KEY || "";
-    const baseUrl = settings.CUSTOM_OPENAI_BASE_URL || "";
-    const modelId = settings.CUSTOM_OPENAI_MODEL_ID || "";
-
-    if (!apiKey)
-      return { success: false, message: "API key is required", errorCode: "MISSING_KEY" };
-    if (!baseUrl)
-      return { success: false, message: "Endpoint URL is required", errorCode: "MISSING_URL" };
-    if (!modelId)
-      return { success: false, message: "Model ID is required", errorCode: "MISSING_MODEL" };
-
-    return await performChatTest({
-      id: "custom_openai",
-      name: "Custom (OpenAI-compatible)",
-      apiKey,
-      baseUrl: baseUrl.replace(/\/$/, ""),
-      model: modelId,
-      apiType: "openai",
-    });
+    return await testCustomOpenAi(settings);
   }
 
   if (!providerDef) {
@@ -1014,8 +1019,6 @@ export async function isServerChatStreamEnabled(): Promise<boolean> {
   return _serverChatFlagCache;
 }
 
-let _chatSessionId: string | null = null;
-
 function generateRandomHex(): string {
   if (typeof crypto !== "undefined") {
     if (typeof crypto.randomUUID === "function") {
@@ -1032,10 +1035,13 @@ function generateRandomHex(): string {
 
 /** Stable chat session id per page load (for correlation on the server). */
 export function getChatSessionId(): string {
-  if (!_chatSessionId) {
-    _chatSessionId = `sess-web-${Date.now().toString(36)}-${generateRandomHex().slice(0, 8)}`;
+  const g = (typeof window !== "undefined" ? window : globalThis) as unknown as {
+    __chatSessionId?: string;
+  };
+  if (!g.__chatSessionId) {
+    g.__chatSessionId = `sess-web-${Date.now().toString(36)}-${generateRandomHex().slice(0, 8)}`;
   }
-  return _chatSessionId;
+  return g.__chatSessionId;
 }
 
 interface ServerChatEventData {
@@ -1045,13 +1051,9 @@ interface ServerChatEventData {
   detail?: unknown;
 }
 
-function redactServerMessage(message: string): string {
-  return message.slice(0, 300).replace(/sk-[a-zA-Z0-9]+/g, "[REDACTED]");
-}
-
 function extractErrorMessage(parsed: ServerChatEventData): string {
-  if (typeof parsed.message === "string") return parsed.message;
-  if (typeof parsed.detail === "string") return parsed.detail;
+  if (typeof parsed.message === "string") return redactSecrets(parsed.message);
+  if (typeof parsed.detail === "string") return redactSecrets(parsed.detail);
   return "LLM stream error";
 }
 
@@ -1063,9 +1065,9 @@ async function buildServerChatHttpError(res: Response): Promise<Error> {
   } catch (error) {
     console.warn("Failed to read chat stream error body:", error);
   }
-  let detail = redactServerMessage(text || "Unknown error");
+  let detail = redactSecrets(text.slice(0, 300) || "Unknown error");
   try {
-    detail = redactServerMessage(String(JSON.parse(text)?.detail?.message ?? detail));
+    detail = redactSecrets(String(JSON.parse(text)?.detail?.message ?? detail));
   } catch {
     /* plain-text/HTML body — keep as-is */
   }
@@ -1114,7 +1116,7 @@ function handleSseLine(line: string, state: { currentEvent: string }): SseAction
     return { type: "done" };
   } else if (evt === "error") {
     const rawMessage = extractErrorMessage(parsed);
-    return { type: "error", error: new Error(redactServerMessage(rawMessage)) };
+    return { type: "error", error: new Error(redactSecrets(rawMessage)) };
   }
   return { type: "none" };
 }

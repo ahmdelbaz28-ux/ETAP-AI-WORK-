@@ -59,7 +59,7 @@ from datetime import datetime, timedelta, timezone
 UTC = timezone.utc  # noqa: UP017
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, Depends, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel, Field
 from typing_extensions import Annotated
 
@@ -429,34 +429,22 @@ async def _validate_ws_ticket(websocket: WebSocket, ticket: str) -> Optional[str
 
 
 async def _validate_ws_token(websocket: WebSocket, token: str) -> Optional[str]:
-    import jwt
-
-    from api.dependencies import JWT_ALGORITHM, JWT_SECRET_KEY
+    from api.dependencies import _validate_jwt_access_token
 
     try:
-        payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
+        payload = await _validate_jwt_access_token(token)
+        return str(payload.get("sub"))
+    except HTTPException as exc:
+        reason = (
+            "Token has been revoked"
+            if "revoked" in exc.detail.lower()
+            else "Invalid or expired token"
+        )
+        await websocket.close(code=_WS_CODE_POLICY_VIOLATION, reason=reason)
+        return None
     except Exception:
         await websocket.close(code=_WS_CODE_POLICY_VIOLATION, reason="Invalid token")
         return None
-
-    user_id = payload.get("sub")
-    if not user_id or payload.get("type") != "access":
-        await websocket.close(code=_WS_CODE_POLICY_VIOLATION, reason="Invalid or expired token")
-        return None
-
-    jti = payload.get("jti")
-    if jti:
-        try:
-            from api.auth import _is_token_blacklisted
-
-            if await _is_token_blacklisted(jti):
-                await websocket.close(
-                    code=_WS_CODE_POLICY_VIOLATION, reason="Token has been revoked"
-                )
-                return None
-        except ImportError:
-            pass
-    return str(user_id)
 
 
 async def _authenticate_user_id(websocket: WebSocket) -> Optional[str]:

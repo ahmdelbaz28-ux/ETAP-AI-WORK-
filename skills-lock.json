@@ -24,6 +24,12 @@
       "computedHash": "computed-at-install-time",
       "_note": "AhmedETAP orchestration skill — enforces SharedContext, TokenBudget, MathGuard, PeerReview per REFERENCE.md."
     },
+    "anti-koshary": {
+      "source": "ismail9k/skills",
+      "sourceType": "github",
+      "skillPath": "skills/anti-koshary/SKILL.md",
+      "computedHash": "baa9cd33b7a9677642c6a17a253d52a523e310230c97190daee2dfaa283ae079"
+    },
     "backend-code-review": {
       "source": "./.agents/skills",
       "sourceType": "local",
