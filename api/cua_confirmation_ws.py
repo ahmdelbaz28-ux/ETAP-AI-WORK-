@@ -59,7 +59,7 @@ from datetime import datetime, timezone
 UTC = timezone.utc  # noqa: UP017
 from typing import Any
 
-from fastapi import WebSocket, WebSocketDisconnect
+from fastapi import HTTPException, WebSocket, WebSocketDisconnect
 
 logger = logging.getLogger("api.cua_confirmation_ws")
 
@@ -445,11 +445,6 @@ async def cua_confirmation_ws(websocket: WebSocket) -> None:
         await websocket.close(code=_WS_CODE_POLICY_VIOLATION, reason="Origin not allowed")
         return
 
-    # SECURITY: Authentication required
-    import jwt as _jwt
-
-    from api.dependencies import JWT_ALGORITHM, JWT_SECRET_KEY
-
     # Extract token from query param or Authorization header
     token = websocket.query_params.get("token", "")
     if not token:
@@ -463,28 +458,16 @@ async def cua_confirmation_ws(websocket: WebSocket) -> None:
 
     # Validate JWT
     try:
-        payload = _jwt.decode(
-            token,
-            JWT_SECRET_KEY,
-            algorithms=[JWT_ALGORITHM],
-            options={"require": ["exp", "sub", "type"]},
-        )
-        if payload.get("type") != "access":
-            await websocket.close(code=_WS_CODE_POLICY_VIOLATION, reason="Invalid token type")
-            return
+        from api.dependencies import _validate_jwt_access_token
+
+        payload = await _validate_jwt_access_token(token)
         user_id = payload.get("sub")
-        if not user_id:
-            await websocket.close(code=_WS_CODE_POLICY_VIOLATION, reason="Invalid token payload")
-            return
         # SECURITY: Validate user_id format before deriving session_id.
-        # A non-alphanumeric (attacker-controlled) sub could be spoofed to
-        # collide with or impersonate another user and bypass the
-        # dual-confirmation requirement.
         if not isinstance(user_id, str) or not user_id.isalnum():
             logger.error("Invalid user_id in JWT: %r", user_id)
             await websocket.close(code=_WS_CODE_POLICY_VIOLATION, reason="Invalid user_id")
             return
-    except _jwt.PyJWTError:
+    except HTTPException:
         await websocket.close(code=_WS_CODE_POLICY_VIOLATION, reason="Invalid or expired token")
         return
 

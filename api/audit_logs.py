@@ -39,7 +39,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, ConfigDict, Field
 
-from api.dependencies import get_api_key
+from api.dependencies import CurrentUser, get_api_key, get_current_user_from_header
 
 # ---------------------------------------------------------------------------
 # Duplicated-string-literal constants (python:S1192)
@@ -566,11 +566,42 @@ def _apply_filters(
     return result
 
 
+def _scope_logs_for_user(logs: list[dict[str, Any]], user: CurrentUser) -> list[dict[str, Any]]:
+    """Filter logs by tenant_id and role.
+
+    - If user has a tenant_id, strictly enforce tenant_id (no cross-tenant read).
+    - If user is not admin or auditor, scope to user's own actions (username or user_id).
+    """
+    scoped = []
+    is_admin = getattr(user, "role", None) == "admin"
+    is_auditor = getattr(user, "role", None) == "auditor"
+    user_tenant = getattr(user, "tenant_id", None)
+    username = getattr(user, "username", None)
+    user_id = getattr(user, "user_id", None)
+
+    for entry in logs:
+        # Tenant scoping: if user has tenant_id, cannot view other tenant's logs
+        entry_tenant = entry.get("tenant_id")
+        if user_tenant and entry_tenant and entry_tenant != user_tenant:
+            continue
+
+        # Privilege scoping: if not admin or auditor, only view user's own logs
+        if not (is_admin or is_auditor):
+            entry_user = entry.get("user")
+            entry_uid = entry.get("user_id")
+            if entry_user not in (username, user_id) and entry_uid != user_id:
+                continue
+
+        scoped.append(entry)
+    return scoped
+
+
 # ---------------------------------------------------------------------------
 # Endpoints
 # ---------------------------------------------------------------------------
 
 
+@router.get("", response_model=AuditLogListResponse, include_in_schema=False)
 @router.get("/", response_model=AuditLogListResponse, summary="List audit logs")
 async def list_audit_logs(
     page: int = Query(default=1, ge=1, description="1-based page number"),
@@ -581,6 +612,7 @@ async def list_audit_logs(
     start_date: Optional[str] = Query(default=None, description="Start date (ISO-8601)"),
     end_date: Optional[str] = Query(default=None, description="End date (ISO-8601)"),
     search: Optional[str] = Query(default=None, description="Search in details field"),
+    current_user: CurrentUser = Depends(get_current_user_from_header),
 ) -> AuditLogListResponse:
     """List audit log entries with search, filter, and pagination support.
 
@@ -599,6 +631,8 @@ async def list_audit_logs(
                 source_logs = real_events
         except Exception:
             pass
+
+    source_logs = _scope_logs_for_user(source_logs, current_user)
 
     filtered = _apply_filters(
         source_logs,
@@ -636,6 +670,7 @@ async def export_audit_logs_csv(
     start_date: Optional[str] = Query(default=None, description="Start date (ISO-8601)"),
     end_date: Optional[str] = Query(default=None, description="End date (ISO-8601)"),
     search: Optional[str] = Query(default=None, description="Search in details field"),
+    current_user: CurrentUser = Depends(get_current_user_from_header),
 ) -> StreamingResponse:
     """Export filtered audit log entries as a CSV file download.
 
@@ -648,8 +683,9 @@ async def export_audit_logs_csv(
         This endpoint MUST be registered before ``/{log_id}`` to avoid
         FastAPI matching ``"export"`` as a path parameter.
     """
+    source_logs = _scope_logs_for_user(_SAMPLE_AUDIT_LOGS, current_user)
     filtered = _apply_filters(
-        _SAMPLE_AUDIT_LOGS,
+        source_logs,
         severity=severity,
         action=action,
         user=user,
@@ -672,6 +708,7 @@ async def export_audit_logs_csv(
             "details",
             "trace_id",
         ],
+        extrasaction="ignore",
     )
     writer.writeheader()
     for row in filtered:
@@ -687,15 +724,10 @@ async def export_audit_logs_csv(
 
 
 @router.get("/stats", response_model=AuditLogStats, summary="Get audit log statistics")
-async def get_audit_log_stats() -> AuditLogStats:
-    """Return aggregate statistics for audit log entries.
-
-    Returns:
-        - **total**: Total number of entries.
-        - **by_severity**: Entry counts grouped by severity level.
-        - **by_action**: Entry counts grouped by action type.
-        - **recent_trends**: Daily entry counts for the last 7 days.
-    """
+async def get_audit_log_stats(
+    current_user: CurrentUser = Depends(get_current_user_from_header),
+) -> AuditLogStats:
+    """Return aggregate statistics for audit log entries."""
     source_logs = _SAMPLE_AUDIT_LOGS
     audit_store_cls = globals().get("AuditStore")
     if audit_store_cls:
@@ -705,6 +737,8 @@ async def get_audit_log_stats() -> AuditLogStats:
                 source_logs = real_events
         except Exception:
             pass
+
+    source_logs = _scope_logs_for_user(source_logs, current_user)
 
     # Count by severity
     severity_counts: dict[str, int] = {}
@@ -766,19 +800,13 @@ async def get_audit_log_stats() -> AuditLogStats:
     response_model=AuditLogEntry,
     summary="Get a specific audit log entry",
 )
-async def get_audit_log(log_id: str) -> AuditLogEntry:
-    """Retrieve a single audit log entry by its unique ID.
-
-    .. note::
-
-        This endpoint is registered AFTER ``/export/csv`` and ``/stats``
-        to avoid FastAPI matching ``"export"`` or ``"stats"`` as a
-        ``log_id`` path parameter.
-
-    Raises:
-        404: If no entry with the given ``log_id`` exists.
-    """
-    for entry in _SAMPLE_AUDIT_LOGS:
+async def get_audit_log(
+    log_id: str,
+    current_user: CurrentUser = Depends(get_current_user_from_header),
+) -> AuditLogEntry:
+    """Retrieve a single audit log entry by its unique ID."""
+    scoped = _scope_logs_for_user(_SAMPLE_AUDIT_LOGS, current_user)
+    for entry in scoped:
         if entry["id"] == log_id:
             return AuditLogEntry(**entry)
     raise HTTPException(

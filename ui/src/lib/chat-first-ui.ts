@@ -45,6 +45,14 @@ export function useChatFirstUi(): ChatFirstUiState {
   const [optedOut, setOptedOut] = useState(false);
 
   useEffect(() => {
+    if (
+      typeof window !== "undefined" &&
+      (window.location.pathname === "/login" || window.location.pathname === "/register")
+    ) {
+      setResolved(false);
+      return;
+    }
+
     let alive = true;
     void isChatFirstUiEnabled().then((enabled) => {
       if (alive) setResolved(enabled);

@@ -98,6 +98,11 @@ class RateLimiter:
         # Run full stale-key eviction at most once per window
         self._cleanup_interval: float = max(window_seconds // 2, 10)
 
+    @property
+    def window(self) -> int:
+        """Alias for window_seconds for backwards-compatibility."""
+        return self.window_seconds
+
     def _evict_stale_keys(
         self, _now: float, window_start: float
     ) -> None:  # NOSONAR kept for API symmetry with is_allowed (caller passes `now`)

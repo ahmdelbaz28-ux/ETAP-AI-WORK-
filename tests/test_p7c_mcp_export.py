@@ -539,10 +539,10 @@ class TestLoadOwnedProject:
 
         from api.export import _load_owned_project
 
+        user = _StubUser("user-2", "engineer")
+        project_id = owned_project["id"]
         with pytest.raises(HTTPException) as exc_info:
-            await _load_owned_project(
-                owned_project["id"], _StubUser("user-2", "engineer"), db_session
-            )
+            await _load_owned_project(project_id, user, db_session)
         # Uniform 404 — must NOT be a 403 (existence-oracle prevention).
         assert exc_info.value.status_code == 404
 
@@ -551,10 +551,10 @@ class TestLoadOwnedProject:
 
         from api.export import _load_owned_project
 
+        user = _StubUser("user-1", "engineer")
+        missing_id = str(uuid.uuid4())
         with pytest.raises(HTTPException) as exc_info:
-            await _load_owned_project(
-                str(uuid.uuid4()), _StubUser("user-1", "engineer"), db_session
-            )
+            await _load_owned_project(missing_id, user, db_session)
         assert exc_info.value.status_code == 404
 
 
