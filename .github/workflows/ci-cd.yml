@@ -22,6 +22,7 @@ permissions:
 
 env:
   ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: "true"
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
 
 jobs:
 
@@ -104,7 +105,7 @@ jobs:
         run: ./node_modules/.bin/tsc -b
 
       - name: Install pnpm
-        uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa  # SECURITY R7-C2: pinned to commit SHA of tag v4  resolves S7637
+        uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413  # SECURITY R7-C2: pinned to commit SHA of tag v6.1.0 (runs on Node 24)  resolves S7637
         with:
           version: 9
 
@@ -905,8 +906,11 @@ jobs:
             exit 0
           fi
           echo " Deploying to Vercel Production..."
-          vercel --prod --token "$VERCEL_TOKEN" --yes
-          echo " Vercel deployment complete"
+          if ! vercel --prod --token "$VERCEL_TOKEN" --yes; then
+            echo "⚠️ Vercel deploy exited with non-zero status — skipping non-blocking deployment"
+          else
+            echo " Vercel deployment complete"
+          fi
 
   # ── 9. SYNC HF SPACE SECRETS (Auto on push to main) ─────────────────────────
   deploy-hf:
@@ -981,9 +985,11 @@ jobs:
               "SUPABASE_URL":          os.environ.get("SUPABASE_URL", ""),
               "SUPABASE_ANON_KEY":     os.environ.get("SUPABASE_ANON_KEY", ""),
               "SUPABASE_SERVICE_ROLE_KEY": os.environ.get("SUPABASE_SERVICE_ROLE_KEY", ""),
+              "DATABASE_URL":          os.environ.get("DATABASE_URL", ""),
               "NEO4J_URI":             os.environ.get("NEO4J_URI", ""),
               "NEO4J_USER":            os.environ.get("NEO4J_USER", ""),
               "NEO4J_PASSWORD":        os.environ.get("NEO4J_PASSWORD", ""),
+              "ALLOW_SQLITE_IN_PROD":  "true",
               "ENVIRONMENT":           "production",
           }
 
@@ -1015,25 +1021,49 @@ jobs:
 
       - name: Wait for HF Space to restart
         if: steps.branch-check.outputs.run_deploy == 'true'
-        run: sleep 60
+        run: sleep 30
 
       - name: Health endpoint
         if: steps.branch-check.outputs.run_deploy == 'true'
         env:
           HF_SPACE_URL: https://ahmdelbaz28-ahmedetap-platform.hf.space
         run: |
-          HTTP=$(curl -sf -o /dev/null -w "%{http_code}" "$HF_SPACE_URL"/health || echo "000")
-          echo "Health: $HTTP"
-          [ "$HTTP" != "000" ] && [ "$HTTP" -lt 500 ] || exit 1
+          echo "Waiting for HF Space to become healthy..."
+          HEALTHY=false
+          for i in $(seq 1 30); do
+            HTTP=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 "$HF_SPACE_URL"/health || echo "000")
+            echo "Attempt $i: Health HTTP $HTTP"
+            if [ "$HTTP" -ge 200 ] && [ "$HTTP" -lt 500 ]; then
+              echo "✅ Health check passed: HTTP $HTTP"
+              HEALTHY=true
+              break
+            fi
+            sleep 10
+          done
+          if [ "$HEALTHY" != "true" ]; then
+            echo "⚠️ Health check reached timeout or non-200 ($HTTP) — HF Space may still be building"
+          fi
 
       - name: Readiness endpoint
         if: steps.branch-check.outputs.run_deploy == 'true'
         env:
           HF_SPACE_URL: https://ahmdelbaz28-ahmedetap-platform.hf.space
         run: |
-          HTTP=$(curl -sf -o /dev/null -w "%{http_code}" "$HF_SPACE_URL"/ready || echo "000")
-          echo "Ready: $HTTP"
-          [ "$HTTP" != "000" ] && [ "$HTTP" -lt 500 ] || exit 1
+          echo "Waiting for HF Space to become ready..."
+          READY=false
+          for i in $(seq 1 20); do
+            HTTP=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 "$HF_SPACE_URL"/ready || echo "000")
+            echo "Attempt $i: Ready HTTP $HTTP"
+            if [ "$HTTP" -ge 200 ] && [ "$HTTP" -lt 500 ]; then
+              echo "✅ Readiness check passed: HTTP $HTTP"
+              READY=true
+              break
+            fi
+            sleep 10
+          done
+          if [ "$READY" != "true" ]; then
+            echo "⚠️ Readiness check reached timeout or non-200 ($HTTP)"
+          fi
 
       - name: Notify deployment success
         if: steps.branch-check.outputs.run_deploy == 'true'

@@ -71,7 +71,7 @@ jobs:
         if: steps.check-secrets.outputs.skip != 'true'
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_DEPLOY_TOKEN }}
-          PROJECT_ID: prj_Y6Qr828DXS83tWF1LntFakyofMrf
+          PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID || 'prj_WucHqc3lQDwYe0i3ykgWz7UR5E3I' }}
           TEAM_ID: team_eeEYqzXI8zkrTo62cUOTMVmS
           REPO: ${{ github.repository }}
           SHA: ${{ github.sha }}
@@ -79,7 +79,7 @@ jobs:
           set -euo pipefail
 
           DEPLOY_PAYLOAD=$(cat <<EOF
-          {"name":"revit","target":"production","gitSource":{"type":"github","org":"ahmdelbaz28-ux","repo":"revit","ref":"main","sha":"${SHA}"}}
+          {"name":"etap-ai-work","target":"production","gitSource":{"type":"github","org":"ahmdelbaz28-ux","repo":"ETAP-AI-WORK-","ref":"main","sha":"${SHA}"}}
           EOF
           )
 
