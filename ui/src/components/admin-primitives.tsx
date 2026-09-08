@@ -14,6 +14,7 @@
 
 import { AlertTriangle, Loader2 } from "lucide-react";
 import type { ReactNode } from "react";
+import { Card, CardSection } from "./ui/Card";
 
 /**
  * A two-column key/value row used inside result cards. Label is
@@ -70,3 +71,64 @@ export const inputClass =
   "w-full rounded-md border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:ring-2 focus:ring-brand-500/50";
 
 export const labelClass = "block text-xs uppercase tracking-wider text-zinc-400 font-semibold mb-1";
+
+export function StatCard({
+  label,
+  value,
+  sub,
+  tone = "neutral",
+  icon,
+}: {
+  readonly label: string;
+  readonly value: ReactNode;
+  readonly sub?: ReactNode;
+  readonly tone?: "success" | "danger" | "warning" | "neutral";
+  readonly icon?: ReactNode;
+}) {
+  const toneClass = {
+    success: "text-green-400",
+    danger: "text-red-400",
+    warning: "text-amber-400",
+    neutral: "text-zinc-100",
+  }[tone];
+  const iconBg = {
+    success: "bg-green-500/10 text-green-400",
+    danger: "bg-red-500/10 text-red-400",
+    warning: "bg-amber-500/10 text-amber-400",
+    neutral: "bg-zinc-500/10 text-zinc-300",
+  }[tone];
+  return (
+    <Card>
+      <CardSection className="p-4">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0 flex-1">
+            <p className="text-[11px] uppercase tracking-wider text-zinc-400 font-semibold">
+              {label}
+            </p>
+            <p className={`mt-1 text-2xl font-bold ${toneClass}`}>{value}</p>
+            {sub ? <p className="mt-1 text-xs text-zinc-500">{sub}</p> : null}
+          </div>
+          {icon ? <div className={`shrink-0 rounded-lg p-2 ${iconBg}`}>{icon}</div> : null}
+        </div>
+      </CardSection>
+    </Card>
+  );
+}
+
+export function LoadingInline({ label }: { readonly label: string }) {
+  return (
+    <div className="flex items-center gap-2 text-zinc-400">
+      <Loader2 className="h-4 w-4 animate-spin" />
+      <span>{label}</span>
+    </div>
+  );
+}
+
+export function JsonBlock({ data }: { readonly data: unknown }) {
+  return (
+    <pre className="max-h-96 overflow-auto rounded-md border border-zinc-700 bg-zinc-900 p-3 text-xs text-zinc-200">
+      {JSON.stringify(data, null, 2)}
+    </pre>
+  );
+}
+

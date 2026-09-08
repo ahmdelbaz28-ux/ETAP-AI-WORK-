@@ -33,7 +33,7 @@ export default function AuditLogs() {
     setError(null);
     try {
       const data = await fetchAuditLogs();
-      setLogs(data);
+      setLogs(Array.isArray(data) ? data : []);
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Unknown error";
       setError(msg);
@@ -46,13 +46,15 @@ export default function AuditLogs() {
     loadLogs();
   }, [loadLogs]);
 
+  const safeLogs = useMemo(() => (Array.isArray(logs) ? logs : []), [logs]);
+
   const methods = useMemo(() => {
-    const set = new Set(logs.map((l) => l.method));
+    const set = new Set(safeLogs.map((l) => l.method));
     return Array.from(set).sort((a, b) => a.localeCompare(b));
-  }, [logs]);
+  }, [safeLogs]);
 
   const filtered = useMemo(() => {
-    return logs.filter((entry) => {
+    return safeLogs.filter((entry) => {
       if (search.trim()) {
         const q = search.toLowerCase();
         const match =
@@ -72,7 +74,7 @@ export default function AuditLogs() {
       if (dateTo && entry.timestamp > `${dateTo}T23:59:59`) return false;
       return true;
     });
-  }, [logs, search, statusFilter, methodFilter, dateFrom, dateTo]);
+  }, [safeLogs, search, statusFilter, methodFilter, dateFrom, dateTo]);
 
   const columns = useMemo(
     () => [

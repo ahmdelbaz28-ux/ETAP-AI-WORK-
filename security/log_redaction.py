@@ -150,7 +150,7 @@ class SecretRedactionFilter(logging.Filter):
     >>> import logging
     >>> redact = SecretRedactionFilter()
     >>> logging.getLogger("").addFilter(redact)
-    >>> logging.warning("User logged in with token: hf_abcdef1234567890abcdef")
+    >>> logging.warning("User logged in with token: hf_sample0123456789abcdef")
     WARNING:root:User logged in with token: [REDACTED-HF-TOKEN]
     """
 

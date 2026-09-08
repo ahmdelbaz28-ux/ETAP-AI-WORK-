@@ -43,7 +43,7 @@ on:
 
 # Cancel superseded runs on the same PR (save Daytona minutes)
 concurrency:
-  group: ai-review-${{ github.event.pull_request.number || github.event.inputs.pr_number }}
+  group: ai-code-review-sandbox-${{ github.event.pull_request.number || github.event.inputs.pr_number }}
   cancel-in-progress: true
 
 permissions:

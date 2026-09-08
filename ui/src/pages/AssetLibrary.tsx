@@ -67,7 +67,8 @@ export default function AssetLibrary() {
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
-      setAssets(data.assets || data || []);
+      const list = Array.isArray(data) ? data : Array.isArray(data?.assets) ? data.assets : [];
+      setAssets(list);
     } catch {
       notify("error", "Failed to load assets");
     } finally {
@@ -138,7 +139,8 @@ export default function AssetLibrary() {
     "switch",
     "other",
   ];
-  const filtered = assets.filter((a) => {
+  const safeAssets = Array.isArray(assets) ? assets : [];
+  const filtered = safeAssets.filter((a) => {
     const matchesSearch =
       a.name.toLowerCase().includes(search.toLowerCase()) ||
       a.manufacturer.toLowerCase().includes(search.toLowerCase()) ||
