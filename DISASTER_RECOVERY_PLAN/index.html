@@ -852,8 +852,9 @@
 <ol>
 <li><strong>Stop Mastra backend</strong> (2 min).</li>
 <li><strong>Restore from backup</strong> (10 min):</li>
-<li>Locate latest backup: <code>backups/mastra.db.YYYY-MM-DD-HH-MM.bak</code></li>
-<li>Replace <code>mastra.db</code> with backup.</li>
+<li>Locate latest backup: <code>backups/mastra.db.YYYY-MM-DD-HH-MM.bak</code> (or <code>backups/mastra_*.db.gz</code>)</li>
+<li>Verify backup checksum: <code>sha256sum -c ${BACKUP_FILE}.sha256</code></li>
+<li>Replace <code>mastra.db</code> with validated backup (decompress with <code>gzip -dc</code> if compressed).</li>
 <li>If no backup, re-initialize with <code>pnpx mastra init</code> (creates fresh schema).</li>
 <li><strong>Restart Mastra</strong> (3 min).</li>
 <li><strong>Validate:</strong></li>
