@@ -18,7 +18,7 @@ from pydantic import BaseModel, ConfigDict, Field
 UTC = timezone.utc
 
 
-class ControlProtocol(str, enum.Enum):
+class ControlProtocol(str, enum.Enum):  # noqa: UP042
     """Supported industrial OT communication protocols."""
 
     OPC_UA = "opc_ua"
@@ -27,7 +27,7 @@ class ControlProtocol(str, enum.Enum):
     IEC_61850 = "iec_61850"
 
 
-class ControlActionType(str, enum.Enum):
+class ControlActionType(str, enum.Enum):  # noqa: UP042
     """Types of control actions on electrical equipment."""
 
     BREAKER_OPEN = "breaker_open"
@@ -38,7 +38,7 @@ class ControlActionType(str, enum.Enum):
     TAP_CHANGER = "tap_changer"
 
 
-class CommandStatus(str, enum.Enum):
+class CommandStatus(str, enum.Enum):  # noqa: UP042
     """Lifecycle status of a control command."""
 
     PROPOSED = "proposed"
@@ -50,7 +50,7 @@ class CommandStatus(str, enum.Enum):
     EXPIRED = "expired"
 
 
-class SignalQuality(str, enum.Enum):
+class SignalQuality(str, enum.Enum):  # noqa: UP042
     """IEC 61850 / SCADA telemetry quality classifications."""
 
     GOOD = "GOOD"
@@ -59,7 +59,7 @@ class SignalQuality(str, enum.Enum):
     INVALID = "INVALID"
 
 
-class BreakerState(str, enum.Enum):
+class BreakerState(str, enum.Enum):  # noqa: UP042
     """Double-point circuit breaker physical states."""
 
     OPEN = "OPEN"           # 01 binary

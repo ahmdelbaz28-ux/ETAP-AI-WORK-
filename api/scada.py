@@ -23,11 +23,11 @@ import logging
 import os
 import time
 from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, Optional
+from typing import Optional
 
 UTC = timezone.utc
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request, status
+from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import func, select
@@ -61,7 +61,6 @@ from scada.interlock_engine import InterlockViolation, SCADAInterlockEngine
 from scada.models import (
     CommandStatus,
     ControlCommandRequest,
-    ControlCommandResponse,
 )
 
 logger = logging.getLogger("engineering_service.scada")
