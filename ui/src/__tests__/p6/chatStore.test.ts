@@ -164,9 +164,9 @@ describe("P6 chatStore — emergency stop safety semantics", () => {
 
   it("checkEmergencyStop on backend error → active unchanged, error recorded (fallback msg)", async () => {
     const store = originalState();
-    // Empty-message error exercises the toErrorMessage fallback used for the
+    // Non-Error / empty error exercises the toErrorMessage fallback used for the
     // fail-closed "unknown" state (error is preserved, active never flips).
-    requestMock.mockRejectedValueOnce(new Error(""));
+    requestMock.mockRejectedValueOnce({});
     await store.checkEmergencyStop();
     const { emergencyStop } = useChatStore.getState();
     expect(emergencyStop.active).toBe(false);

@@ -60,9 +60,16 @@ def client(temp_db: Path, api_key: str) -> TestClient:
     import importlib
 
     import api.feature_flags as ff
+    from api.dependencies import CurrentUser, get_current_user_from_header
 
     importlib.reload(ff)
     app = FastAPI()
+    app.dependency_overrides[get_current_user_from_header] = lambda: CurrentUser(
+        user_id="test-admin",
+        username="admin",
+        email="admin@example.com",
+        role="admin",
+    )
     app.include_router(ff.router)
     return TestClient(app)
 
@@ -152,6 +159,31 @@ class TestAuthorization:
         )
         assert resp.status_code == 200
         assert resp.json()["data"]["enabled"] is True
+
+    def test_non_admin_patch_forbidden(self, client: TestClient, auth_headers: dict):
+        from api.dependencies import CurrentUser, get_current_user_from_header
+
+        client.app.dependency_overrides[get_current_user_from_header] = lambda: CurrentUser(
+            user_id="test-viewer",
+            username="viewer",
+            email="viewer@example.com",
+            role="viewer",
+        )
+        try:
+            resp = client.patch(
+                "/api/v1/feature-flags/harmonic_analysis",
+                json={"enabled": True},
+                headers=auth_headers,
+            )
+            assert resp.status_code == 403
+            assert "MAKER_CHECKER_VIOLATION" in resp.json()["detail"]
+        finally:
+            client.app.dependency_overrides[get_current_user_from_header] = lambda: CurrentUser(
+                user_id="test-admin",
+                username="admin",
+                email="admin@example.com",
+                role="admin",
+            )
 
 
 # ---------------------------------------------------------------------------

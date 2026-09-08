@@ -305,3 +305,78 @@ class TestCUAConfirmationWebSocketSecurity:
 
         # Clean up
         broker._pending.pop("req123", None)
+
+
+@pytest.mark.asyncio
+class TestWebSocketTokenValidation:
+    """Security tests for WebSocket token validation (A1 & A5)."""
+
+    async def test_ws_valid_token_with_jti(self, monkeypatch):
+        import time
+
+        from api.websocket import _validate_ws_token
+        monkeypatch.setenv("ENGINEERING_SERVICE_AUTH_DISABLED", "false")
+        monkeypatch.setenv("JWT_SECRET_KEY", "test-secret-key-32-bytes-long-1234")
+        monkeypatch.setenv("ENV", "development")
+
+        valid_token = jwt.encode(
+            {"sub": "u1", "type": "access", "jti": "valid-jti-123", "exp": time.time() + 3600},
+            "test-secret-key-32-bytes-long-1234",
+            algorithm="HS256",
+        )
+        assert await _validate_ws_token(valid_token) is True
+
+    async def test_ws_revoked_token_rejected(self, monkeypatch):
+        import time
+
+        from api.auth import _blacklist_token
+        from api.websocket import _validate_ws_token
+        monkeypatch.setenv("ENGINEERING_SERVICE_AUTH_DISABLED", "false")
+        monkeypatch.setenv("JWT_SECRET_KEY", "test-secret-key-32-bytes-long-1234")
+        monkeypatch.setenv("ENV", "development")
+
+        await _blacklist_token("revoked-jti-999")
+        revoked_token = jwt.encode(
+            {"sub": "u1", "type": "access", "jti": "revoked-jti-999", "exp": time.time() + 3600},
+            "test-secret-key-32-bytes-long-1234",
+            algorithm="HS256",
+        )
+        assert await _validate_ws_token(revoked_token) is False
+
+    async def test_ws_expired_token_rejected(self, monkeypatch):
+        import time
+
+        from api.websocket import _validate_ws_token
+        monkeypatch.setenv("ENGINEERING_SERVICE_AUTH_DISABLED", "false")
+        monkeypatch.setenv("JWT_SECRET_KEY", "test-secret-key-32-bytes-long-1234")
+        monkeypatch.setenv("ENV", "development")
+
+        expired_token = jwt.encode(
+            {"sub": "u1", "type": "access", "jti": "exp-jti-999", "exp": time.time() - 100},
+            "test-secret-key-32-bytes-long-1234",
+            algorithm="HS256",
+        )
+        assert await _validate_ws_token(expired_token) is False
+
+    async def test_ws_test_key_gated_by_allow_list(self, monkeypatch):
+        from api.websocket import _validate_ws_token
+        monkeypatch.setenv("ENGINEERING_SERVICE_AUTH_DISABLED", "false")
+        monkeypatch.setenv("JWT_SECRET_KEY", "test-secret-key-32-bytes-long-1234")
+        monkeypatch.setenv("ENGINEERING_SERVICE_API_KEY", "configured-service-key-999")
+
+        # Default closed without ALLOW_TEST_TOKENS
+        monkeypatch.setenv("ENV", "development")
+        monkeypatch.delenv("ALLOW_TEST_TOKENS", raising=False)
+        assert await _validate_ws_token("test-key") is False
+
+        # Open when explicitly allowed in development
+        monkeypatch.setenv("ALLOW_TEST_TOKENS", "true")
+        assert await _validate_ws_token("test-key") is True
+
+        # Closed in production even with ALLOW_TEST_TOKENS=true
+        monkeypatch.setenv("ENV", "production")
+        assert await _validate_ws_token("test-key") is False
+
+        # Primary configured API key always accepted
+        assert await _validate_ws_token("configured-service-key-999") is True
+

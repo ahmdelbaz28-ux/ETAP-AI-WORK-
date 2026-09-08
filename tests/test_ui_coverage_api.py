@@ -216,27 +216,30 @@ class TestAutodeskConnectorAPI:
 class TestAuditLogsAPI:
     """Tests for /api/v1/security/audit-logs endpoint."""
 
-    def test_list_audit_logs(self, client: TestClient) -> None:
+    def test_list_audit_logs(self, client: TestClient, admin_headers: dict) -> None:
         """GET /api/v1/security/audit-logs returns paginated logs."""
-        response = client.get("/api/v1/security/audit-logs")
+        response = client.get("/api/v1/security/audit-logs", headers=admin_headers)
         assert response.status_code == 200
         data = response.json()
         assert "entries" in data
         assert "total" in data
 
-    def test_list_audit_logs_with_filters(self, client: TestClient) -> None:
+    def test_list_audit_logs_with_filters(self, client: TestClient, admin_headers: dict) -> None:
         """GET with query parameters filters logs."""
-        response = client.get("/api/v1/security/audit-logs?severity=high&page=1&page_size=10")
+        response = client.get(
+            "/api/v1/security/audit-logs?severity=high&page=1&page_size=10",
+            headers=admin_headers,
+        )
         assert response.status_code == 200
 
-    def test_get_audit_log_stats(self, client: TestClient) -> None:
+    def test_get_audit_log_stats(self, client: TestClient, admin_headers: dict) -> None:
         """GET /stats returns audit log statistics."""
-        response = client.get("/api/v1/security/audit-logs/stats")
+        response = client.get("/api/v1/security/audit-logs/stats", headers=admin_headers)
         assert response.status_code == 200
 
-    def test_export_audit_logs_csv(self, client: TestClient) -> None:
+    def test_export_audit_logs_csv(self, client: TestClient, admin_headers: dict) -> None:
         """GET /export/csv returns CSV data."""
-        response = client.get("/api/v1/security/audit-logs/export/csv")
+        response = client.get("/api/v1/security/audit-logs/export/csv", headers=admin_headers)
         assert response.status_code == 200
 
 
@@ -263,11 +266,12 @@ class TestFeatureFlagsAPI:
         data = response.json()
         assert data["flag_id"] == "harmonic_analysis"
 
-    def test_update_feature_flag(self, client: TestClient) -> None:
+    def test_update_feature_flag(self, client: TestClient, admin_headers: dict) -> None:
         """PUT /api/v1/feature-flags/{flag_id} updates a flag."""
         response = client.put(
             "/api/v1/feature-flags/harmonic_analysis",
             json={"enabled": True},
+            headers=admin_headers,
         )
         assert response.status_code == 200
         data = response.json()
@@ -277,6 +281,7 @@ class TestFeatureFlagsAPI:
         client.put(
             "/api/v1/feature-flags/harmonic_analysis",
             json={"enabled": False},
+            headers=admin_headers,
         )
 
     def test_get_nonexistent_feature_flag(self, client: TestClient) -> None:
@@ -284,10 +289,11 @@ class TestFeatureFlagsAPI:
         response = client.get("/api/v1/feature-flags/nonexistent_flag")
         assert response.status_code == 404
 
-    def test_update_feature_flag_invalid_status(self, client: TestClient) -> None:
+    def test_update_feature_flag_invalid_status(self, client: TestClient, admin_headers: dict) -> None:
         """PUT with invalid status returns 422."""
         response = client.put(
             "/api/v1/feature-flags/harmonic_analysis",
             json={"status": "invalid_status"},
+            headers=admin_headers,
         )
         assert response.status_code == 422
