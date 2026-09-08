@@ -362,6 +362,7 @@ def test_network_mapping_build() -> None:
 def test_time_stepped_simulator_max_steps_guard() -> None:
     """Verify that TimeSteppedSimulator respects max_steps to prevent infinite loops."""
     from unittest.mock import MagicMock
+
     from core_model.system import System
     from digital_twin.digital_twin_core import (
         ChangePropagationEngine,
