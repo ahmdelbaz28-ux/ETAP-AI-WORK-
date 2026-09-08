@@ -109,8 +109,10 @@ describe("useAuth", () => {
       await result.current.login("engineer@etap.com", "test-password-123"); // NOSONAR — S2068: test credentials, not a real password
     });
 
+    // api-config resolveApiBaseUrl() returns "" (same-origin) in jsdom
+    // because window.location.hostname === "localhost".
     expect(mockFetch).toHaveBeenCalledWith(
-      "https://ahmdelbaz28-ahmedetap-platform.hf.space/api/v1/auth/login",
+      "/api/v1/auth/login",
       expect.objectContaining({
         method: "POST",
         body: JSON.stringify({ username: "engineer@etap.com", password: "test-password-123" }), // NOSONAR — S2068: test-only credential
@@ -199,8 +201,10 @@ describe("useAuth", () => {
       expect(result.current.isLoading).toBe(false);
     });
 
+    // api-config resolveApiBaseUrl() returns "" (same-origin) in jsdom
+    // because window.location.hostname === "localhost".
     expect(mockFetch).toHaveBeenCalledWith(
-      "https://ahmdelbaz28-ahmedetap-platform.hf.space/api/v1/auth/me",
+      "/api/v1/auth/me",
       expect.objectContaining({
         headers: expect.objectContaining({
           Authorization: "Bearer existing-token",
@@ -252,8 +256,10 @@ describe("useAuth", () => {
       await result.current.refreshToken();
     });
 
+    // api-config resolveApiBaseUrl() returns "" (same-origin) in jsdom
+    // because window.location.hostname === "localhost".
     expect(mockFetch).toHaveBeenCalledWith(
-      "https://ahmdelbaz28-ahmedetap-platform.hf.space/api/v1/auth/refresh",
+      "/api/v1/auth/refresh",
       expect.objectContaining({
         method: "POST",
         headers: expect.objectContaining({

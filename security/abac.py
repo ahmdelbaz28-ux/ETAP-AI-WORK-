@@ -464,16 +464,20 @@ if _HAS_STARLETTE:
                 self.engine = create_default_etap_abac_engine()
             self._jwt_decode_fn = jwt_decode_fn
             self._public_paths = public_paths or [
+                "/",
                 "/health",
                 "/healthz",
                 "/ready",
                 "/readyz",
+                "/api/health",
                 "/metrics",
                 "/prometheus",
+                "/prometheus/metrics",
                 "/docs",
                 "/redoc",
                 "/openapi.json",
                 "/api/v1/csrf",
+                "/api/v1/csrf/token",
                 "/api/v1/auth",
             ]
 
@@ -488,16 +492,23 @@ if _HAS_STARLETTE:
 
             import os
 
-            import jwt as _jwt
-
             secret = os.environ.get("JWT_SECRET_KEY", "")
+            if not secret:
+                try:
+                    from api.dependencies import JWT_SECRET_KEY
+
+                    secret = JWT_SECRET_KEY
+                except Exception:
+                    pass
             if not secret:
                 logger.warning("JWT_SECRET_KEY not set; ABAC middleware cannot validate tokens")
                 return {}
             try:
-                payload = _jwt.decode(token, secret, algorithms=["HS256"])
+                from api.dependencies import _decode_jwt
+
+                payload = _decode_jwt(token, secret=secret, algorithms=["HS256"])
                 return payload
-            except _jwt.InvalidTokenError:
+            except Exception:
                 return {}
 
         async def __call__(self, scope: Any, receive: Any, send: Any) -> None:
@@ -509,12 +520,14 @@ if _HAS_STARLETTE:
 
             # Skip public paths, test mode (AUTH_DISABLED), or requests with X-API-Key
             path = request.url.path
+            is_public = path == "/" or any(
+                path.startswith(prefix) for prefix in self._public_paths if prefix != "/"
+            )
             if (
                 os.environ.get("AUTH_DISABLED", "").lower() in ("true", "1", "yes")
                 or os.environ.get("ENGINEERING_SERVICE_AUTH_DISABLED", "").lower()
                 in ("true", "1", "yes")
-                or os.environ.get("AUTH_DISABLED", "").lower() in ("true", "1", "yes")
-                or any(path.startswith(prefix) for prefix in self._public_paths)
+                or is_public
                 or request.headers.get("x-api-key")
                 or request.headers.get("X-API-Key")
             ):

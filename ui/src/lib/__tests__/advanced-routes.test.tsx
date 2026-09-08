@@ -19,12 +19,12 @@ import { join } from "node:path";
 
 import {
   ADVANCED_ROUTE_MIGRATIONS,
+  AdvancedRedirect,
   advancedTargetOf,
   isProtectedLegacyRoute,
   legacyToAdvanced,
   PROTECTED_LEGACY_ROUTES,
 } from "../advanced-routes";
-import { AdvancedRedirect } from "../advanced-routes";
 
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({

@@ -26,7 +26,7 @@ export default function AgentMetrics() {
     try {
       const [m, a] = await Promise.all([fetchMetrics(), fetchAgents()]);
       setMetrics(m);
-      setAgents(a);
+      setAgents(Array.isArray(a) ? a : []);
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Unknown error";
       notify("error", `Failed to load metrics: ${msg}`);
@@ -53,13 +53,13 @@ export default function AgentMetrics() {
         hour: "2-digit",
         hour12: false,
       }),
-      requests: Math.round(metrics.requests_per_minute * (0.7 + Math.sin(i * 0.5) * 0.3)),
+      requests: Math.round((metrics?.requests_per_minute ?? 0) * (0.7 + Math.sin(i * 0.5) * 0.3)),
       latency: Math.round(20 + Math.sin(i * 0.3) * 15),
     }));
   }, [metrics]);
 
   const providerData = useMemo(() => {
-    if (!metrics) return [];
+    if (!metrics?.providers) return [];
     return Object.entries(metrics.providers).map(([name, p]) => ({
       name,
       requests: p.requests,
@@ -86,10 +86,10 @@ export default function AgentMetrics() {
       },
       {
         title: "Active Agents",
-        value: agents.length,
+        value: agents?.length ?? 0,
         icon: Cpu,
         color: "var(--color-warning)",
-        sparkline: [5, 5, 6, 6, 5, 7, 7, 8, 8, 7, 8, agents.length],
+        sparkline: [5, 5, 6, 6, 5, 7, 7, 8, 8, 7, 8, agents?.length ?? 0],
       },
       {
         title: "Avg Latency",

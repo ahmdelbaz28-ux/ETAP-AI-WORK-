@@ -34,7 +34,21 @@ logger = logging.getLogger(__name__)
 # Configuration
 # ---------------------------------------------------------------------------
 
-DEFAULT_DSN = os.environ.get("POSTGIS_DSN", "postgresql://etap:etap@localhost:5432/etap_gis")
+def _get_default_dsn() -> str:
+    env = os.environ.get("ENVIRONMENT", os.environ.get("ENV", "development")).lower()
+    dsn = os.environ.get("POSTGIS_DSN")
+    if not dsn:
+        if env in ("production", "prod", "staging"):
+            raise RuntimeError("POSTGIS_DSN required in production")
+        return "postgresql://etap:etap@localhost:5432/etap_gis"
+    return dsn
+
+
+try:
+    DEFAULT_DSN = _get_default_dsn()
+except RuntimeError:
+    DEFAULT_DSN = ""
+
 DEFAULT_SCHEMA = os.environ.get("POSTGIS_SCHEMA", "etap_gis")
 _SPATIAL_REF_SYS = 4326  # WGS84
 
@@ -153,7 +167,7 @@ class PostGISProvider:
         # SECURITY: validate schema name against whitelist before any SQL use.
         # This prevents SQL injection via crafted schema names.
         self.schema = _validate_schema_name(schema)
-        self.dsn = dsn or DEFAULT_DSN
+        self.dsn = dsn or _get_default_dsn()
         self._pool: Any = None
         self._connected = False
         self._fallback_dir: str = ""

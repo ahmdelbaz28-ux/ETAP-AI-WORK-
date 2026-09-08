@@ -1,11 +1,9 @@
-// UI components are intentionally complex for feature-rich DX
 import { AnimatePresence, motion } from "framer-motion";
-import { Globe, Shield } from "lucide-react";
 import { useCallback, useRef, useState } from "react";
 
 interface LoginBackgroundProps {
   readonly isRtl: boolean;
-  readonly onLanguageToggle: () => void;
+  readonly onLanguageToggle?: () => void;
   readonly isBreakerOpen: boolean;
   readonly setIsBreakerOpen: (val: boolean) => void;
   readonly onTerminalLog: (msg: string) => void;
@@ -247,7 +245,6 @@ const TOOLTIP_BUILDERS: Record<string, TooltipBuilder> = {
 
 export function LoginBackground({
   isRtl,
-  onLanguageToggle,
   isBreakerOpen,
   setIsBreakerOpen,
   onTerminalLog,
@@ -308,24 +305,6 @@ export function LoginBackground({
       onMouseMove={handleMouseMove}
       className="absolute inset-0 z-0 bg-[#070b14] overflow-hidden select-none"
     >
-      {/* Top Controls Overlay */}
-      <div
-        className={`absolute top-6 ${isRtl ? "left-6" : "right-6"} z-50 flex items-center gap-3`}
-      >
-        <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-slate-800/80 bg-slate-900/60 text-slate-400 text-[10px] font-mono">
-          <Shield className="w-3.5 h-3.5 text-blue-500" />
-          <span>CAD SIM V2.1</span>
-        </div>
-        <button
-          type="button"
-          onClick={onLanguageToggle}
-          className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-800 bg-slate-900/80 hover:bg-slate-800 text-slate-300 hover:text-white transition-all text-xs font-semibold"
-        >
-          <Globe className="w-3.5 h-3.5" />
-          <span>{isRtl ? "English" : "العربية"}</span>
-        </button>
-      </div>
-
       {/* CAD Workbench Grid */}
       <div
         className="absolute inset-0 opacity-[0.035]"

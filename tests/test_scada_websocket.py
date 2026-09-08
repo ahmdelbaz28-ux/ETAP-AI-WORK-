@@ -157,8 +157,9 @@ def _create_auth_gated_app(expected_key: str) -> FastAPI:
 
 
 @pytest.fixture  # NOSONAR S9083: intentional; see prior batch commits for context
-def auth_app() -> FastAPI:
+def auth_app(monkeypatch: pytest.MonkeyPatch) -> FastAPI:
     """App that requires ``x-api-key`` matching ``TEST_API_KEY``."""
+    monkeypatch.setenv("ENGINEERING_SERVICE_API_KEY", TEST_API_KEY)
     return _create_auth_gated_app(TEST_API_KEY)
 
 
