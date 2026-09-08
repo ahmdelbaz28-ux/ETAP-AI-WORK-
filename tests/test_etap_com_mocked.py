@@ -532,3 +532,33 @@ class TestRunEtapStudyWrapper:
         assert result.success is True
         assert result.study_type == ETAPStudyType.LOAD_FLOW.value
         assert fake_app.project.LoadFlow.calculate_calls == 1
+
+
+class TestGetAllBuses:
+    def test_get_all_buses_success(self, fake_app: FakeApp, project_file: Path) -> None:
+        with ETAPAutomation(visible=False) as etap:
+            project = etap.open_project(str(project_file))
+            buses = project.get_all_buses()
+            assert len(buses) == 3
+            assert buses[0]["id"] == "BUS1"
+            assert buses[0]["name"] == "Bus BUS1"
+            assert buses[0]["voltage_kv"] == 20.0
+
+    def test_get_all_buses_empty_project(self, fake_app: FakeApp, project_file: Path) -> None:
+        fake_app.project.Buses = []
+        with ETAPAutomation(visible=False) as etap:
+            project = etap.open_project(str(project_file))
+            buses = project.get_all_buses()
+            assert buses == []
+
+    def test_get_all_buses_raises_on_com_error(self, fake_app: FakeApp, project_file: Path) -> None:
+        class CrashingBuses:
+            def __iter__(self):
+                raise Exception("COM Bus Query Failure")
+
+        fake_app.project.Buses = CrashingBuses()
+        with ETAPAutomation(visible=False) as etap:
+            project = etap.open_project(str(project_file))
+            with pytest.raises(RuntimeError, match="Failed to retrieve buses"):
+                project.get_all_buses()
+

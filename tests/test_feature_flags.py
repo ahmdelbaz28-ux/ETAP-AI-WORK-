@@ -86,9 +86,15 @@ def client(temp_db: Path, api_key: str) -> TestClient:
     import importlib
 
     import api.feature_flags as ff
+    from api.dependencies import CurrentUser, get_current_user_from_header
 
-    importlib.reload(ff)
     app = FastAPI()
+    app.dependency_overrides[get_current_user_from_header] = lambda: CurrentUser(
+        user_id="test-admin",
+        username="admin",
+        email="admin@example.com",
+        role="admin",
+    )
     app.include_router(ff.router)
     return TestClient(app)
 

@@ -398,6 +398,12 @@ async def lifespan(_app: Any) -> AsyncIterator[None]:
                 await _study_cache.clear()
             except Exception as e:
                 logger.warning("Cache cleanup failed: %s", e, exc_info=True)
+        try:
+            from api.database import close_db
+
+            await close_db()
+        except Exception as e:
+            logger.warning("Database shutdown failed: %s", e, exc_info=True)
 
 
 async def _initialize_cache_with_retry(max_retries: int = 3) -> Any:

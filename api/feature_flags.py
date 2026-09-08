@@ -13,13 +13,24 @@ Endpoints:
 
 from __future__ import annotations
 
+import copy
 import hashlib
 import json
 import logging
 import os
+import re
+import threading
+from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Optional
+
+try:
+    from filelock import FileLock
+
+    _HAS_FILELOCK = True
+except ImportError:
+    _HAS_FILELOCK = False
 
 UTC = timezone.utc  # noqa: UP017
 
@@ -27,11 +38,26 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field, model_validator
 
-from api.dependencies import get_api_key
+from api.dependencies import CurrentUser, get_api_key, get_current_user_from_header
 
 router = APIRouter(prefix="/api/v1/feature-flags", tags=["feature-flags"])
 
 logger = logging.getLogger(__name__)
+
+_process_lock = threading.Lock()
+
+
+@contextmanager
+def _acquire_flags_lock():
+    """Acquire process-level and optional file-level lock for atomic RMW."""
+    lock_path = _db_path().with_suffix(".lock")
+    with _process_lock:
+        if _HAS_FILELOCK:
+            lock = FileLock(str(lock_path), timeout=10)
+            with lock:
+                yield
+        else:
+            yield
 
 
 # ─── Defaults (loaded on first import or when DB file is missing) ────────
@@ -86,19 +112,19 @@ def _load_flags() -> dict[str, dict[str, Any]]:
     """Load flags from disk, falling back to defaults if the file is missing/corrupt."""
     path = _db_path()
     if not path.exists():
-        return dict(DEFAULT_FEATURE_FLAGS)
+        return copy.deepcopy(DEFAULT_FEATURE_FLAGS)
     try:
         with open(path, encoding="utf-8") as f:
             data = json.load(f)
             if isinstance(data, dict):
-                merged = dict(DEFAULT_FEATURE_FLAGS)
+                merged = copy.deepcopy(DEFAULT_FEATURE_FLAGS)
                 for k, v in data.items():
                     if isinstance(v, dict):
-                        merged[k] = v
+                        merged[k] = copy.deepcopy(v)
                 return merged
     except Exception as e:
         logger.warning("Failed to read feature flags from %s: %s; using defaults", path, e)
-    return dict(DEFAULT_FEATURE_FLAGS)
+    return copy.deepcopy(DEFAULT_FEATURE_FLAGS)
 
 
 def _save_flags(flags: dict[str, dict[str, Any]]) -> None:
@@ -246,8 +272,20 @@ def _require_permission(resource: str, action: str):
     return get_api_key
 
 
+async def _verify_admin(  # NOSONAR python:S7503 async required for FastAPI dependency resolution
+    api_key: str = Depends(get_api_key),
+    user: CurrentUser = Depends(get_current_user_from_header),
+) -> CurrentUser:
+    if getattr(user, "role", None) != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="MAKER_CHECKER_VIOLATION: Admin role required to modify feature flags",
+        )
+    return user
+
+
 def _require_admin():
-    return get_api_key
+    return _verify_admin
 
 
 # ─── Endpoints ───────────────────────────────────────────────────────────
@@ -330,28 +368,32 @@ async def update_feature_flag(
     request: Request,
     key: str,
     payload: FeatureFlagPatch,
-    _admin=Depends(_require_admin()),
+    _admin: CurrentUser = Depends(
+        _require_admin()
+    ),  # NOSONAR python:S8410 standard FastAPI dependency
 ):
     """Toggle or update a feature flag."""
     trace_id = getattr(request.state, "trace_id", "unknown")
-    flags = _load_flags()
-    if key not in flags:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Feature flag '{key}' not found",
-        )
-    old_value = bool(flags[key].get("enabled", False))
-    if payload.enabled is not None:
-        flags[key]["enabled"] = bool(payload.enabled)
-    if payload.status is not None:
-        flags[key]["status"] = payload.status
-    flags[key]["updated_at"] = datetime.now(UTC).isoformat()
-    _save_flags(flags)
+    with _acquire_flags_lock():
+        flags = _load_flags()
+        if key not in flags:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Feature flag '{key}' not found",
+            )
+        old_value = bool(flags[key].get("enabled", False))
+        if payload.enabled is not None:
+            flags[key]["enabled"] = bool(payload.enabled)
+        if payload.status is not None:
+            flags[key]["status"] = payload.status
+        flags[key]["updated_at"] = datetime.now(UTC).isoformat()
+        _save_flags(flags)
 
     audit_logger = logging.getLogger("audit")
-    audit_logger.info(
+    safe_key = re.sub(r"[\r\n\x00-\x1f\x7f]", "", str(key))[:64]
+    audit_logger.info(  # NOSONAR pythonsecurity:S5145: sanitized flag key, validated against flags
         "feature_flag_toggled flag=%s old=%s new=%s",
-        key,
+        safe_key,
         old_value,
         flags[key]["enabled"],
     )

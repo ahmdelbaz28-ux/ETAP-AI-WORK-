@@ -49,6 +49,9 @@ function stringifyContent(content: unknown): string {
  * the prompt-file structures used by this project.
  */
 function parseYaml(content: string): Record<string, unknown> {
+  // SECURITY: js-yaml v4 `yaml.load()` uses DEFAULT_SCHEMA which is safe by default
+  // (equivalent to PyYAML's yaml.safe_load). Functions/custom types are disabled unless
+  // explicitly enabled with custom schemas.
   const result = yaml.load(content);
   if (result === null || typeof result !== 'object' || Array.isArray(result)) {
     return {};

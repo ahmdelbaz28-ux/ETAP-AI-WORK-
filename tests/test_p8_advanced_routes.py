@@ -46,10 +46,9 @@ def _isolate_auth(monkeypatch):
     import api.dependencies as deps
 
     monkeypatch.setattr(deps, "API_KEY", _TEST_API_KEY)
-    yield
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def client():
     """Create a TestClient against the real FastAPI app with auth enabled."""
     from starlette.testclient import TestClient
@@ -205,7 +204,8 @@ class TestResponseContractPreserved:
         assert body["data"]["timestamp"]
         assert body["data"]["source"] == "synthetic"
         points = body["data"]["points"]
-        assert isinstance(points, list) and len(points) >= 1
+        assert isinstance(points, list)
+        assert len(points) >= 1
         assert points[0]["tag"] == "BUS1.V"  # telemetry points consumed by the UI
 
     def test_digital_twin_status_response_shape(self, client):
