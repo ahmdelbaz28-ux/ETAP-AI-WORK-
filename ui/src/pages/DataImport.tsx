@@ -17,6 +17,7 @@ import { ContextHelpButton } from "../components/help/ContextHelpButton";
 import { Badge, Card, CardHeader } from "../components/ui";
 import { useNotify } from "../context/NotificationContext";
 import { API_BASE_URL } from "../lib/api-config";
+import { validatePowerFile } from "../lib/power-file";
 import { getAuthToken } from "../lib/tokenStorage";
 
 interface FormatInfo {
@@ -155,11 +156,9 @@ export default function DataImport() {
   const handleFile = useCallback(
     (file: File | undefined) => {
       if (!file) return;
-      if (file.size > 20 * 1024 * 1024) {
-        notify(
-          "error",
-          `File too large: ${(file.size / 1024 / 1024).toFixed(1)} MB. Maximum: 20 MB.`,
-        );
+      const validation = validatePowerFile(file);
+      if (!validation.valid) {
+        notify("error", validation.error ?? "Invalid file");
         return;
       }
       uploadFile(file);
@@ -265,7 +264,7 @@ export default function DataImport() {
               Supported: {supportedFormats.map((f) => f.name).join(", ")}
             </p>
             <p className="text-xs text-[var(--text-muted)] mt-2">
-              Maximum file size: 20 MB · Files are parsed on the server
+              Maximum file size: 10 MB · Files are parsed on the server
             </p>
           </div>
         </Card>

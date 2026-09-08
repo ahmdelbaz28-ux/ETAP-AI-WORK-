@@ -74,13 +74,15 @@ const generateTimeSeriesData = (seed = 42) => {
   const now = Date.now();
   const rng = mulberry32(seed);
   for (let i = 23; i >= 0; i--) {
+    const req = Math.floor(rng() * 50) + 10;
+    const lat = Math.floor(rng() * 100) + 20;
     data.push({
       time: new Date(now - i * 3600000).toLocaleTimeString("en-US", {
         hour: "2-digit",
         hour12: false,
       }),
-      requests: Math.floor(rng() * 50) + 10,
-      latency: Math.floor(rng() * 100) + 20,
+      requests: Number.isFinite(req) ? req : 0,
+      latency: Number.isFinite(lat) ? lat : 0,
     });
   }
   return data;
@@ -219,6 +221,14 @@ function StatCard({
         {/* Sparkline mini-chart */}
         {sparklineData && sparklineData.length > 0 && (
           <div className="mt-3 pt-3 border-t border-[var(--border-primary)]/40">
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 font-medium tracking-wider uppercase border border-amber-500/20">
+                Demo data
+              </span>
+              <span className="text-[10px] text-[var(--text-muted)] font-mono">
+                {sparklineData.at(-1)}
+              </span>
+            </div>
             <div className="flex items-end justify-between">
               <Sparkline
                 data={sparklineData}
@@ -228,9 +238,6 @@ function StatCard({
                 strokeWidth={1.5}
                 showArea
               />
-              <span className="text-[10px] text-[var(--text-muted)] font-mono">
-                {sparklineData.at(-1)}
-              </span>
             </div>
           </div>
         )}
@@ -477,7 +484,7 @@ export default function Dashboard() {
                 </div>
               }
             />
-            <ResponsiveContainer width="100%" height={220}>
+            <ResponsiveContainer width="100%" height={220} minWidth={0}>
               <AreaChart data={timeSeriesData}>
                 <defs>
                   <linearGradient id="colorRequests" x1="0" y1="0" x2="0" y2="1">
@@ -531,7 +538,7 @@ export default function Dashboard() {
                 </button>
               }
             />
-            <ResponsiveContainer width="100%" height={220}>
+            <ResponsiveContainer width="100%" height={220} minWidth={0}>
               <BarChart data={studyDistributionData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border-primary)" />
                 <XAxis dataKey="name" stroke="var(--text-muted)" tick={{ fontSize: 10 }} />

@@ -368,7 +368,9 @@ class AuthenticationManager:
                 return None
 
             try:
-                payload = jwt.decode(token, self.secret_key, algorithms=["HS256"])
+                from api.dependencies import _decode_jwt
+
+                payload = _decode_jwt(token, secret=self.secret_key, algorithms=["HS256"])
                 if payload["user_id"] != user.user_id:
                     return None
             except jwt.ExpiredSignatureError:
