@@ -20,6 +20,8 @@ permissions:
   security-events: write
 
 env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
 jobs:
   pre-commit:
     name: Lint, Syntax, Validation
