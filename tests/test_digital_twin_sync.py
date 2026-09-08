@@ -357,3 +357,47 @@ def test_network_mapping_build() -> None:
     )
     assert mapping(None) is None
     assert mapping({"type": "Point"}) is None
+
+
+def test_time_stepped_simulator_max_steps_guard() -> None:
+    """Verify that TimeSteppedSimulator respects max_steps to prevent infinite loops."""
+    from unittest.mock import MagicMock
+    from core_model.system import System
+    from digital_twin.digital_twin_core import (
+        ChangePropagationEngine,
+        DigitalTwinState,
+        EventProcessor,
+        TimeSteppedSimulator,
+    )
+    from digital_twin.event_bus import EventBus
+
+    dt_state = DigitalTwinState()
+    system = System(base_mva=100.0)
+    dt_state.bind_electrical(system)
+    event_bus = EventBus()
+    propagation = ChangePropagationEngine(
+        dt_state=dt_state,
+        event_bus=event_bus,
+        sync_engine=MagicMock(),
+        validation_gateway=MagicMock(),
+    )
+    event_processor = EventProcessor(
+        dt_state=dt_state,
+        event_bus=event_bus,
+        propagation_engine=propagation,
+    )
+
+    sim = TimeSteppedSimulator(
+        dt_state=dt_state,
+        event_bus=event_bus,
+        propagation_engine=propagation,
+        event_processor=event_processor,
+    )
+    sim.set_time_step(1.0)
+
+    # Request 100 seconds duration, but cap max_steps at 5
+    results = sim.run(duration=100.0, max_steps=5)
+    assert len(results) == 5
+    assert sim.current_time == 5.0
+
+

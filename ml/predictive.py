@@ -168,6 +168,12 @@ class LoadForecaster:
         self._fallback_std: float = 1.0
         self._method = method
         self._training_data: np.ndarray | None = None
+        self._is_synthetic: bool = False
+
+    @property
+    def is_synthetic(self) -> bool:
+        """Return True if the forecast used synthetic/zero fallback due to missing historical data."""
+        return self._is_synthetic
 
     @property
     def is_trained(self) -> bool:
@@ -396,8 +402,10 @@ class LoadForecaster:
         if self._training_data is not None and len(self._training_data) >= w:
             recent_data = self._training_data[-w:]
             scaled_recent = self.scaler.transform(recent_data.reshape(-1, 1)).flatten()
+            self._is_synthetic = False
         else:
             scaled_recent = np.zeros(w)
+            self._is_synthetic = True
         input_seq = scaled_recent.reshape(1, w, 1)
         predictions: list[float] = []
         for _ in range(horizon_hours):
@@ -421,8 +429,10 @@ class LoadForecaster:
             raise ValueError(f"Window size w must be positive (w > 0), got {w}")
         if self._training_data is not None and len(self._training_data) >= w:
             window = (self._training_data[-w:] - self._fallback_mean) / self._fallback_std
+            self._is_synthetic = False
         else:
             window = np.zeros(w)
+            self._is_synthetic = True
         predictions: list[float] = []
         for _ in range(horizon_hours):
             next_val = float(window @ self._fallback_weights + self._fallback_bias)

@@ -646,7 +646,7 @@ jobs:
 
       - name: Stop engineering service
         if: always()
-        run: kill ${{ env.UVICORN_PID }} 2>/dev/null || true
+        run: kill "$UVICORN_PID" 2>/dev/null || true
 
   #  6. BUILD UI (VITE) 
   build-ui:

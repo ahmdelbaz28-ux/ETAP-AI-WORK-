@@ -913,13 +913,19 @@ class TimeSteppedSimulator:
 
         return step_record
 
-    def run(self, duration: float, time_step: float = None) -> list[dict[str, Any]]:
+    def run(
+        self,
+        duration: float,
+        time_step: float | None = None,
+        max_steps: int | None = None,
+    ) -> list[dict[str, Any]]:
         """
         Run simulation for a given duration.
 
         Parameters:
         duration: Total simulation time in seconds.
         time_step: Override time step (optional).
+        max_steps: Maximum step limit safeguard (default: 100,000).
 
         Returns:
         List of step records.
@@ -938,10 +944,20 @@ class TimeSteppedSimulator:
 
         results = []
         end_time = self.current_time + duration
+        limit = max_steps if max_steps is not None else 100_000
+        step_count = 0
 
-        while self.current_time < end_time and self.running:
+        while self.current_time < end_time and self.running and step_count < limit:
             result = self.step()
             results.append(result)
+            step_count += 1
+
+        if step_count >= limit and self.current_time < end_time:
+            logger.warning(
+                "TimeSteppedSimulator.run: reached max_steps limit (%d) before end_time (%.2f s)",
+                limit,
+                end_time,
+            )
 
         self.running = False
         self.event_bus.publish(
