@@ -61,7 +61,7 @@ asyncpg>=0.29,<0.32
 # ETAP Worker API (FastAPI)
 # fastapi>=0.135.0 — enables starlette 1.x for CVE fixes
 fastapi>=0.135.0
-uvicorn[standard]~=0.25.0
+uvicorn[standard]>=0.25,<0.53
 python-multipart~=0.0.6
 slowapi>=0.1.9
 python-dotenv>=1.0.0
