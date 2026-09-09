@@ -409,7 +409,9 @@ async def get_project(
     if project.status == ProjectStatus.DELETED.value:
         raise HTTPException(status_code=status.HTTP_410_GONE, detail=MSG_PROJECT_DELETED)
 
-    # V-07: Tenant isolation — non-admin users can only access their own projects
+    # V-07: Tenant isolation — prevent cross-tenant IDOR even for admins
+    if user.tenant_id and project.tenant_id and project.tenant_id != user.tenant_id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=MSG_PROJECT_NOT_FOUND)
     if user.role != "admin" and project.created_by != str(user.user_id):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=MSG_PROJECT_NOT_FOUND)
 
@@ -436,7 +438,9 @@ async def update_project(
     if project is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=MSG_PROJECT_NOT_FOUND)
 
-    # V-07: Tenant isolation — only owner or admin can update
+    # V-07: Tenant isolation — prevent cross-tenant IDOR even for admins
+    if user.tenant_id and project.tenant_id and project.tenant_id != user.tenant_id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=MSG_PROJECT_NOT_FOUND)
     if user.role != "admin" and project.created_by != str(user.user_id):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=MSG_PROJECT_NOT_FOUND)
 
@@ -474,7 +478,9 @@ async def delete_project(
     if project.status == ProjectStatus.DELETED.value:
         raise HTTPException(status_code=status.HTTP_410_GONE, detail=MSG_PROJECT_ALREADY_DELETED)
 
-    # V-07: Tenant isolation — only owner or admin can delete
+    # V-07: Tenant isolation — prevent cross-tenant IDOR even for admins
+    if user.tenant_id and project.tenant_id and project.tenant_id != user.tenant_id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=MSG_PROJECT_NOT_FOUND)
     if user.role != "admin" and project.created_by != str(user.user_id):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=MSG_PROJECT_NOT_FOUND)
     project.status = ProjectStatus.DELETED.value
@@ -512,7 +518,9 @@ async def run_project_study(
     if project.status == ProjectStatus.DELETED.value:
         raise HTTPException(status_code=status.HTTP_410_GONE, detail=MSG_PROJECT_DELETED)
 
-    # V-07: Tenant isolation — only owner or admin can run studies
+    # V-07: Tenant isolation — prevent cross-tenant IDOR even for admins
+    if user.tenant_id and project.tenant_id and project.tenant_id != user.tenant_id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=MSG_PROJECT_NOT_FOUND)
     if user.role != "admin" and project.created_by != str(user.user_id):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=MSG_PROJECT_NOT_FOUND)
 
@@ -554,7 +562,9 @@ async def list_project_studies(
     if project is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=MSG_PROJECT_NOT_FOUND)
 
-    # V-07: Tenant isolation — only owner or admin can list studies
+    # V-07: Tenant isolation — prevent cross-tenant IDOR even for admins
+    if user.tenant_id and project.tenant_id and project.tenant_id != user.tenant_id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=MSG_PROJECT_NOT_FOUND)
     if user.role != "admin" and project.created_by != str(user.user_id):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=MSG_PROJECT_NOT_FOUND)
 

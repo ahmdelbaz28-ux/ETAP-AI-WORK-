@@ -177,6 +177,10 @@ async def _load_owned_project(project_id: str, user: CurrentUser, db: AsyncSessi
     project = result.scalar_one_or_none()
     if project is None:
         raise HTTPException(status_code=404, detail=MSG_PROJECT_NOT_FOUND)
+    user_tenant = getattr(user, "tenant_id", None)
+    project_tenant = getattr(project, "tenant_id", None)
+    if user_tenant and project_tenant and project_tenant != user_tenant:
+        raise HTTPException(status_code=404, detail=MSG_PROJECT_NOT_FOUND)
     if user.role != "admin" and project.created_by != user.user_id:
         raise HTTPException(status_code=404, detail=MSG_PROJECT_NOT_FOUND)
     return project
@@ -300,22 +304,28 @@ def _generate_excel(project_name: str, studies: Sequence[Any]) -> bytes:
     return buffer.getvalue()
 
 
+def _sanitize_csv_cell(val: Any) -> Any:
+    """Neutralize spreadsheet formula injection characters (=, +, -, @, tab, CR)."""
+    if isinstance(val, str) and val.startswith(("=", "+", "-", "@", "\t", "\r")):
+        return f"'{val}"
+    return val
+
+
 def _generate_csv(project_name: str, studies: Sequence[Any]) -> bytes:
-    """Generate CSV format study results."""
+    """Generate CSV format study results with formula injection defense."""
     output = io.StringIO()
     writer = csv.writer(output)
     writer.writerow(["project_name", "study_type", "status", "created_at", "results"])
     for s in studies:
         results_str = json.dumps(s.results) if s.results else ""
-        writer.writerow(
-            [
-                project_name,
-                s.study_type,
-                s.status,
-                str(s.created_at) if s.created_at else "",
-                results_str,
-            ]
-        )
+        row = [
+            _sanitize_csv_cell(project_name),
+            _sanitize_csv_cell(s.study_type),
+            _sanitize_csv_cell(s.status),
+            _sanitize_csv_cell(str(s.created_at) if s.created_at else ""),
+            _sanitize_csv_cell(results_str),
+        ]
+        writer.writerow(row)
     return output.getvalue().encode("utf-8")
 
 

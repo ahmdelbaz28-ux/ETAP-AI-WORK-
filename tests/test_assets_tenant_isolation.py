@@ -103,8 +103,20 @@ async def test_asset_tenant_isolation_idor(monkeypatch: pytest.MonkeyPatch):
             res = await client.delete(f"/api/v1/assets/{asset_b_id}")
             assert res.status_code == 404
 
-            # 5. Admin accesses Tenant B's asset -> 200
+            # 5. Admin of Tenant A cannot access Tenant B's asset -> 404 (cross-tenant IDOR fix)
             app.dependency_overrides[get_current_user_from_header] = lambda: user_admin
+            res = await client.get(f"/api/v1/assets/{asset_b_id}")
+            assert res.status_code == 404
+
+            # 6. Admin of Tenant B accesses Tenant B's asset -> 200
+            user_admin_b = CurrentUser(
+                user_id="admin-b",
+                username="admin_b",
+                email="admin_b@example.com",
+                role="admin",
+                tenant_id="tenant-B",
+            )
+            app.dependency_overrides[get_current_user_from_header] = lambda: user_admin_b
             res = await client.get(f"/api/v1/assets/{asset_b_id}")
             assert res.status_code == 200
 

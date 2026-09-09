@@ -493,6 +493,11 @@ async def update_role(
 ) -> Any:
     """Update a role's name, description, and/or permissions."""
     role = await _get_role_by_id(db, role_id)
+    if user.tenant_id and role.tenant_id and role.tenant_id != user.tenant_id:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Role '{role_id}' not found",
+        )
 
     # Prevent modifying system roles
     if role.is_system:
@@ -538,6 +543,11 @@ async def delete_role(
 ) -> dict[str, str]:
     """Delete a role. System roles cannot be deleted."""
     role = await _get_role_by_id(db, role_id)
+    if user.tenant_id and role.tenant_id and role.tenant_id != user.tenant_id:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Role '{role_id}' not found",
+        )
 
     if role.is_system:
         raise HTTPException(
@@ -720,6 +730,11 @@ async def assign_user_roles(
     user_result = await db.execute(select(User).where(User.id == user_id))
     db_user = user_result.scalar_one_or_none()
     if db_user is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=MSG_USER_NOT_FOUND,
+        )
+    if user.tenant_id and db_user.tenant_id and db_user.tenant_id != user.tenant_id:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=MSG_USER_NOT_FOUND,
