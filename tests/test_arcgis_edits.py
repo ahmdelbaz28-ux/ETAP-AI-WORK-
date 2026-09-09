@@ -16,6 +16,7 @@ Verifies:
 from __future__ import annotations
 
 import os
+import uuid
 from datetime import datetime, timezone
 from typing import Any, Generator
 
@@ -312,10 +313,10 @@ class TestArcGISOnlineProviderWriteMethods:
 
     def test_token_498_and_refresh_success(self, mock_arcgis, monkeypatch):
         monkeypatch.setenv("ARCGIS_USERNAME", "admin_user")
-        # Non-credential placeholder: this flow is fully mocked (testportal.com
-        # never resolves) and the value is never asserted — it only exercises
-        # the 498 token-refresh path. No real secret here (GitGuardian-clean).
-        monkeypatch.setenv("ARCGIS_PASSWORD", "dummy")
+        # Generated placeholder (no static secret in repo): the refresh flow
+        # only needs a non-empty password and the HTTP layer is fully mocked.
+        # GitGuardian-clean by construction — nothing here can leak.
+        monkeypatch.setenv("ARCGIS_PASSWORD", f"pw-{uuid.uuid4().hex[:12]}")
 
         provider = ArcGISOnlineProvider(portal_url="https://testportal.com", token="expired-token")
 
