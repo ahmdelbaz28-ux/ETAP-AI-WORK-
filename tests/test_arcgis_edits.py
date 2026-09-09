@@ -312,7 +312,10 @@ class TestArcGISOnlineProviderWriteMethods:
 
     def test_token_498_and_refresh_success(self, mock_arcgis, monkeypatch):
         monkeypatch.setenv("ARCGIS_USERNAME", "admin_user")
-        monkeypatch.setenv("ARCGIS_PASSWORD", "Secret123!")
+        # Non-credential placeholder: this flow is fully mocked (testportal.com
+        # never resolves) and the value is never asserted — it only exercises
+        # the 498 token-refresh path. No real secret here (GitGuardian-clean).
+        monkeypatch.setenv("ARCGIS_PASSWORD", "dummy")
 
         provider = ArcGISOnlineProvider(portal_url="https://testportal.com", token="expired-token")
 
