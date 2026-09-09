@@ -32,7 +32,7 @@
   "devEngines": {},
   "type": "module",
   "dependencies": {
-    "@ai-sdk/anthropic": "^1.2.12",
+    "@ai-sdk/anthropic": "^4.0.49",
     "@langwatch/scenario": "^0.4.15",
     "@mastra/core": "^1.37.1",
     "@mastra/duckdb": "^1.4.0",
@@ -40,12 +40,12 @@
     "@mastra/loggers": "^1.0.0",
     "@mastra/memory": "^1.0.0",
     "@mastra/observability": "^1.0.0",
-    "@opentelemetry/auto-instrumentations-node": "^0.79.0",
+    "@opentelemetry/auto-instrumentations-node": "^0.80.0",
     "ai": "^6.0.209",
     "js-yaml": "^5.4.1",
     "langwatch": "0.30.0",
     "mastra": "^1.19.0",
-    "pino": "9.6.0",
+    "pino": "10.3.1",
     "zod": "^3.23.0"
   },
   "devDependencies": {
