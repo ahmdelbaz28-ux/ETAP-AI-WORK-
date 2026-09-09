@@ -24,13 +24,11 @@ jobs:
         with:
           python-version: '3.13'
       - name: Install linters
-        run: pip install ruff
+        run: pip install "ruff==0.16.6"
       - name: Ruff lint
         run: ruff check . --config ruff.toml --output-format=github
-        continue-on-error: true  # Advisory — pre-existing lint issues should not block PRs
       - name: Python syntax validation
         run: python3 validate_syntax.py
-        continue-on-error: true  # Advisory — pre-existing syntax issues should not block PRs
 
   typescript-lint:
     name: TypeScript Lint & Format
@@ -61,17 +59,35 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
+        with:
+          python-version: '3.13'
       - name: Install YAML parser
-        run: pip install pyyaml
+        run: pip install "pyyaml>=6"
+      - name: Validate Makefile targets unique
+        run: |
+          dupes=$(grep -oE '^[a-zA-Z_-]+:' Makefile | sort | uniq -d || true)
+          if [ -n "$dupes" ]; then
+            echo "ERROR: duplicate Makefile targets:"; echo "$dupes"; exit 1
+          fi
+          echo "Makefile targets unique"
       - name: Validate YAML files
         run: |
           python3 -c "
           import yaml, sys, glob
           errors = []
-          skip_dirs = ('.git/', 'node_modules/', '.venv/', '/venv/', 'charts/', 'helm/', 'deploy/k8s/', 'deploy/docker/', 'templates/')
-          files = glob.glob('**/*.yml', recursive=True) + glob.glob('**/*.yaml', recursive=True)
+          skip_dirs = ('.git/', 'node_modules/', '.venv/', '/venv/')
+          tpl_dirs = ('charts/', 'helm/', 'templates/')
+          files = (glob.glob('**/*.yml', recursive=True) + glob.glob('**/*.yaml', recursive=True)
+                   + glob.glob('.github/**/*.yml', recursive=True) + glob.glob('.github/**/*.yaml', recursive=True))
+          seen = set()
           checked = 0
+          tpl_checked = 0
           for f in files:
+              if f in seen:
+                  continue
+              seen.add(f)
               if any(s in f for s in skip_dirs):
                   continue
               try:
@@ -79,7 +95,11 @@ jobs:
               except Exception as e:
                   errors.append(f'{f}: read error {e}')
                   continue
-              if '{{' in text or '{%' in text:
+              if any(s in f for s in tpl_dirs):
+                  tpl_checked += 1
+                  for (o, c) in (('{{', '}}'), ('{%', '%}')):
+                      if text.count(o) != text.count(c):
+                          errors.append(f'{f}: unbalanced template delimiters {o}={text.count(o)} vs {c}={text.count(c)}')
                   continue
               checked += 1
               try:
@@ -90,5 +110,9 @@ jobs:
               for e in errors:
                   print(f'ERROR: {e}')
               sys.exit(1)
-          print(f'All YAML files validated successfully ({checked} files)')
+          wf = [f for f in seen if f.startswith('.github/workflows/')]
+          if checked == 0 or not wf:
+              print(f'ERROR: validator covered nothing (checked={checked}, workflows={len(wf)})')
+              sys.exit(1)
+          print(f'All YAML files validated successfully ({checked} yaml parsed, {tpl_checked} templates checked, {len(wf)} workflows)')
           "

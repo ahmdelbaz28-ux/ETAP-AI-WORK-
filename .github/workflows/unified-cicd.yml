@@ -107,7 +107,7 @@ jobs:
         continue-on-error: true
       
       - name: Check for secrets with trufflehog
-        uses: trufflesecurity/trufflehog@v3
+        uses: trufflesecurity/trufflehog@363923b901c911a9164f50b6c423f47c15372b1c # v3.97.4
         with:
           path: ./
           base: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || '' }}

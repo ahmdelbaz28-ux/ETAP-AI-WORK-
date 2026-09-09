@@ -30,11 +30,12 @@ jobs:
           cache-to: type=gha,mode=max
       - name: Test image
         run: |
+          docker rm -f eng-test || true
           docker run --rm -d -p 8000:8000 --name eng-test \
             -e ENGINEERING_SERVICE_API_KEY=ci-test-key \
             etap-engineering-service:ci
           for i in $(seq 1 30); do
-            if curl -fsS http://localhost:8000/health >/dev/null 2>&1; then
+            if curl -fsS --max-time 10 http://localhost:8000/health >/dev/null 2>&1; then
               echo "health ready after ${i}x2s"
               break
             fi
@@ -43,7 +44,7 @@ jobs:
             fi
             sleep 2
           done
-          curl -fsS http://localhost:8000/ready || (echo "Ready check failed"; docker logs eng-test || true; exit 1)
+          curl -fsS --max-time 10 http://localhost:8000/ready || (echo "Ready check failed"; docker logs eng-test || true; exit 1)
       - name: Cleanup
         if: always()
         run: docker stop eng-test || true
@@ -68,11 +69,12 @@ jobs:
           cache-to: type=gha,mode=max
       - name: Test image
         run: |
+          docker rm -f platform-test || true
           docker run --rm -d -p 8000:8000 --name platform-test \
             -e ENGINEERING_SERVICE_API_KEY=ci-test-key \
             etap-platform:ci
           for i in $(seq 1 30); do
-            if curl -fsS http://localhost:8000/health >/dev/null 2>&1; then
+            if curl -fsS --max-time 10 http://localhost:8000/health >/dev/null 2>&1; then
               echo "health ready after ${i}x2s"
               break
             fi

@@ -172,14 +172,19 @@ jobs:
 
       - name: Verify Dockerfile has no vulnerabilities
         run: |
-          if [ -f hf-space/Dockerfile ]; then
-            if grep -q "chmod 777" hf-space/Dockerfile; then
-              echo "WARNING: chmod 777 found in Dockerfile (broad permissions)"
+          files="Dockerfile Dockerfile.engineering-service Dockerfile.hf"
+          checked=0
+          for df in $files; do
+            if [ ! -f "$df" ]; then
+              echo "FAIL: expected Dockerfile missing: $df"
+              exit 1
             fi
-            if grep -q "USER root" hf-space/Dockerfile; then
-              echo "NOTE: Running as root (required for HF Spaces)"
+            checked=$((checked + 1))
+            if grep -q "chmod 777" "$df"; then
+              echo "FAIL: chmod 777 found in $df (broad permissions)"
+              exit 1
             fi
-          else
-            echo "SKIP: hf-space/Dockerfile absent (HF uses root Dockerfile + hf-space/app.py)"
-          fi
-          echo "Dockerfile security check complete"
+            echo "PASS: no chmod 777 in $df"
+            grep "^USER" "$df" || echo "NOTE: no USER directive in $df"
+          done
+          echo "Dockerfile security check complete ($checked files checked, 0 failures)"

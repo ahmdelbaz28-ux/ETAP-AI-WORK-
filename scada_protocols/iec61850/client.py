@@ -14,7 +14,7 @@ import asyncio
 import logging
 import threading
 import time
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 from scada_protocols.common.base import (
     AdapterRole,
@@ -115,8 +115,6 @@ class IEC61850ClientAdapter(ProtocolAdapter):
                 for pt in point_map:
                     element_id = pt.get("element_id", "UNKNOWN")
                     mtype = pt.get("measurement_type", "voltage_magnitude")
-                    node = pt.get("logical_node", "MMXU1")
-                    attr = pt.get("data_attribute", "Vol.mag.f")
 
                     val: float = 0.0
                     q: str = "good"
