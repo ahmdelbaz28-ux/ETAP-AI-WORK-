@@ -55,7 +55,7 @@ aiosqlite~=0.20.0
 structlog~=24.4.0
 
 # Utilities
-typing-extensions~=4.12.2
+typing-extensions>=4.12.2,<4.17.0
 tqdm~=4.67.0
 tenacity~=9.0.0
 # setuptools — fixes MANIFEST.in CVE (setuptools>=83.0.0)
