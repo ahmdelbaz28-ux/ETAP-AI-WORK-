@@ -40,7 +40,11 @@ except ImportError:
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, ConfigDict, Field
 
-from api.dependencies import get_api_key
+from api.dependencies import (
+    CurrentUser,
+    get_api_key,
+    get_optional_current_user_from_header,
+)
 from api.r2_storage import (
     delete_many,
     is_r2_enabled,
@@ -318,6 +322,7 @@ def _filter_objects_by_age(
 )
 async def get_storage_metrics(
     _api_key: ApiKeyDep,
+    user: Optional[CurrentUser] = Depends(get_optional_current_user_from_header),
 ) -> StorageMetricsResponse:
     """Return storage usage metrics for the R2 bucket.
 
@@ -333,21 +338,23 @@ async def get_storage_metrics(
 
     logger.info("storage_metrics_requested")
 
+    tenant_prefix = f"{user.tenant_id}/" if (user and user.tenant_id) else ""
     # Gather all objects (up to the safety bound)
-    all_objects = await _list_all_objects(prefix="")
+    all_objects = await _list_all_objects(prefix=tenant_prefix)
 
     total_size = sum(obj.get("size", 0) for obj in all_objects)
     total_objects = len(all_objects)
 
     # Build by-prefix breakdown
     by_prefix: list[ByPrefixBreakdown] = []
-    for prefix in _KNOWN_PREFIXES:
-        prefix_objects = [obj for obj in all_objects if obj.get("key", "").startswith(prefix)]
+    for base_prefix in _KNOWN_PREFIXES:
+        p = f"{tenant_prefix}{base_prefix}"
+        prefix_objects = [obj for obj in all_objects if obj.get("key", "").startswith(p)]
         prefix_size = sum(obj.get("size", 0) for obj in prefix_objects)
         prefix_count = len(prefix_objects)
         by_prefix.append(
             ByPrefixBreakdown(
-                prefix=prefix,
+                prefix=base_prefix,
                 total_size_bytes=prefix_size,
                 total_objects=prefix_count,
             )
@@ -355,9 +362,10 @@ async def get_storage_metrics(
 
     # Add an "other/" bucket for objects not matching any known prefix
     accounted_keys: set[str] = set()
-    for prefix in _KNOWN_PREFIXES:
+    for base_prefix in _KNOWN_PREFIXES:
+        p = f"{tenant_prefix}{base_prefix}"
         for obj in all_objects:
-            if obj.get("key", "").startswith(prefix):
+            if obj.get("key", "").startswith(p):
                 accounted_keys.add(obj.get("key"))
     other_objects = [obj for obj in all_objects if obj.get("key") not in accounted_keys]
     if other_objects:
@@ -392,28 +400,38 @@ async def get_storage_metrics(
 async def purge_storage(
     request: StoragePurgeRequest,
     _api_key: ApiKeyDep,
+    user: Optional[CurrentUser] = Depends(get_optional_current_user_from_header),
 ) -> StoragePurgeResponse:
-    """Purge temporary/old files from R2 storage.
+    """Purge temporary/old files from R2 storage with tenant isolation.
 
     Safety mechanisms:
-    1. ``dry_run`` defaults to ``True`` — no data is deleted unless explicitly set to ``False``.
-    2. Purges affecting >100 objects require ``confirm=True`` alongside ``dry_run=False``.
-    3. All operations are logged for audit.
+    1. Role check: non-admin callers cannot delete storage items.
+    2. Tenant scoping: users can only purge within their own tenant folder.
+    3. ``dry_run`` defaults to ``True`` — no data is deleted unless explicitly set to ``False``.
+    4. Purges affecting >100 objects require ``confirm=True`` alongside ``dry_run=False``.
     """
+    if user and user.role not in ("admin", "lead_engineer"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin or lead engineer role required for storage purge operations.",
+        )
+
     if not is_r2_enabled():
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="R2 storage is not configured.",
         )
 
-    prefix = request.prefix or ""
+    tenant_prefix = f"{user.tenant_id}/" if (user and user.tenant_id) else ""
+    prefix = f"{tenant_prefix}{request.prefix}" if request.prefix else tenant_prefix
     older_than_days = request.older_than_days
 
     logger.info(
-        "storage_purge_requested prefix=%s older_than_days=%s dry_run=%s",
+        "storage_purge_requested prefix=%s older_than_days=%s dry_run=%s tenant=%s",
         prefix or "(all)",
         older_than_days,
         request.dry_run,
+        tenant_prefix or "global",
     )
 
     # List objects matching the prefix
@@ -516,6 +534,7 @@ async def get_retention_policy(
 async def update_retention_policy(
     body: RetentionPolicyUpdate,
     _api_key: ApiKeyDep,
+    user: Optional[CurrentUser] = Depends(get_optional_current_user_from_header),
 ) -> RetentionPolicyResponse:
     """Update the retention policy.
 
@@ -523,6 +542,12 @@ async def update_retention_policy(
     changed. For example, to enable auto-purge without changing the
     retention days, send only ``{"auto_purge_enabled": true}``.
     """
+    if user and user.role not in ("admin", "lead_engineer"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin or lead engineer role required to update retention policy.",
+        )
+
     if body.retention_days is None and body.auto_purge_enabled is None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -555,6 +580,7 @@ async def update_retention_policy(
 )
 async def clear_cad_artifacts(
     _api_key: ApiKeyDep,
+    user: Optional[CurrentUser] = Depends(get_optional_current_user_from_header),
     dry_run: bool = Query(
         default=True,
         description="If true (default), report what would be deleted without actually deleting",
@@ -574,6 +600,12 @@ async def clear_cad_artifacts(
     - Defaults to dry_run=true (no actual deletion).
     - Requires confirm=true for large purges (>100 objects).
     """
+    if user and user.role not in ("admin", "lead_engineer"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin or lead engineer role required to clear artifacts.",
+        )
+
     if not is_r2_enabled():
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -582,8 +614,10 @@ async def clear_cad_artifacts(
 
     logger.info("storage_cad_artifacts_purge_requested dry_run=%s", dry_run)
 
-    # List all CAD artifacts
-    objects = await _list_all_objects(prefix="cad/")
+    tenant_prefix = f"{user.tenant_id}/" if (user and user.tenant_id) else ""
+    cad_prefix = f"{tenant_prefix}cad/"
+    # List all CAD artifacts under tenant scope
+    objects = await _list_all_objects(prefix=cad_prefix)
 
     candidate_keys = [obj["key"] for obj in objects]
     freed_bytes = sum(obj.get("size", 0) for obj in objects)

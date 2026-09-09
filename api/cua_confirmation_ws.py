@@ -144,6 +144,8 @@ class ConfirmationRequest:
     request_id: str
     action_type: str
     action_target: str
+    tenant_id: str = ""
+    initiator_id: str = ""
     action_x: int | None = None
     action_y: int | None = None
     action_text: str | None = None
@@ -169,6 +171,7 @@ class ConfirmationRequest:
                 "text": self.action_text,
                 "keys": self.action_keys,
             },
+            "tenant_id": self.tenant_id,
             "requires_dual_confirmation": self.requires_dual_confirmation,
             "timestamp": self.timestamp,
             "confirmations_count": len(self.confirmations),
@@ -190,7 +193,7 @@ class ConfirmationBroker:
 
     def __init__(self) -> None:
         self._pending: dict[str, ConfirmationRequest] = {}
-        self._connected_clients: set[WebSocket] = set()
+        self._connected_clients: dict[WebSocket, str] = {}  # ws -> tenant_id
         self._async_lock: asyncio.Lock | None = None
         # Default: 2 humans required for dual-confirmation actions
         self.required_confirmations = 2
@@ -203,36 +206,42 @@ class ConfirmationBroker:
 
     # ─── WebSocket client management ──────────────────────────────────────
 
-    async def connect(self, websocket: WebSocket) -> None:
+    async def connect(self, websocket: WebSocket, tenant_id: str = "") -> None:
         """Accept a new WebSocket connection and register it for confirmation events."""
         await websocket.accept()
-        self._connected_clients.add(websocket)
-        logger.info("Confirmation WS client connected (total: %d)", len(self._connected_clients))
+        self._connected_clients[websocket] = tenant_id
+        logger.info(
+            "Confirmation WS client connected (tenant: %s, total: %d)",
+            tenant_id or "default",
+            len(self._connected_clients),
+        )
 
-        # Send any pending requests to the new client — best effort, never
-        # fail the connect() because a single send failed.
+        # Send any pending requests for this tenant to the new client
         async with self._lock:
             for req in self._pending.values():
-                with contextlib.suppress(Exception):
-                    await websocket.send_json({"type": "pending_request", "data": req.to_dict()})
+                if not req.tenant_id or not tenant_id or req.tenant_id == tenant_id:
+                    with contextlib.suppress(Exception):
+                        await websocket.send_json({"type": "pending_request", "data": req.to_dict()})
 
     def disconnect(self, websocket: WebSocket) -> None:
         """Remove a WebSocket connection from the active set."""
-        self._connected_clients.discard(websocket)
+        self._connected_clients.pop(websocket, None)
         logger.info("Confirmation WS client disconnected (total: %d)", len(self._connected_clients))
 
     # ─── Broadcast a request to all connected clients ─────────────────────
 
-    async def _broadcast(self, message: dict[str, Any]) -> None:
-        """Send a message to all connected WebSocket clients."""
+    async def _broadcast(self, message: dict[str, Any], tenant_id: str = "") -> None:
+        """Send a message to connected WebSocket clients for the matching tenant."""
         dead: list[WebSocket] = []
-        for ws in self._connected_clients:
+        for ws, client_tenant in list(self._connected_clients.items()):
+            if tenant_id and client_tenant and tenant_id != client_tenant:
+                continue
             try:
                 await ws.send_json(message)
             except Exception:  # noqa: BLE001
                 dead.append(ws)
         for ws in dead:
-            self._connected_clients.discard(ws)
+            self._connected_clients.pop(ws, None)
 
     # ─── CUA Loop side: request a confirmation ────────────────────────────
 
@@ -241,6 +250,8 @@ class ConfirmationBroker:
         action,  # CUAAction
         timeout_seconds: int = 120,
         require_two_humans: bool = True,
+        tenant_id: str = "",
+        initiator_id: str = "",
     ) -> bool:
         """Block until the action is confirmed or rejected/timed out.
 
@@ -248,6 +259,8 @@ class ConfirmationBroker:
             action: the CUAAction requiring confirmation
             timeout_seconds: max time to wait (default 120s)
             require_two_humans: if True, need 2 distinct session_ids to confirm
+            tenant_id: tenant identifier for isolation
+            initiator_id: session_id of initiator (for maker-checker enforcement)
 
         Returns:
             True if confirmed (by 2 humans if required), False otherwise.
@@ -257,6 +270,8 @@ class ConfirmationBroker:
             request_id=request_id,
             action_type=action.type,
             action_target=action.target or "unknown",
+            tenant_id=tenant_id,
+            initiator_id=initiator_id,
             action_x=action.x,
             action_y=action.y,
             action_text=action.text,
@@ -265,24 +280,22 @@ class ConfirmationBroker:
         )
         self._pending[request_id] = req
 
-        # Broadcast to all connected clients (async, but we're sync here)
+        # Broadcast to connected clients for this tenant
         try:
             loop = asyncio.get_running_loop()
             loop.create_task(
-                self._broadcast({"type": "confirmation_request", "data": req.to_dict()}),
+                self._broadcast({"type": "confirmation_request", "data": req.to_dict()}, tenant_id=tenant_id),
             )
         except RuntimeError:
-            # No event loop running (sync context) — use asyncio.run for
-            # broadcast. Best effort: never fail the request_confirmation
-            # call because the broadcast failed (the request is still logged).
             with contextlib.suppress(Exception):
                 asyncio.run(
-                    self._broadcast({"type": "confirmation_request", "data": req.to_dict()}),
+                    self._broadcast({"type": "confirmation_request", "data": req.to_dict()}, tenant_id=tenant_id),
                 )
 
         logger.info(
-            "Confirmation request %s: %s on %s (need %d humans)",
+            "Confirmation request %s (tenant: %s): %s on %s (need %d humans)",
             request_id,
+            tenant_id or "default",
             action.type,
             action.target,
             self.required_confirmations if require_two_humans else 1,
@@ -290,12 +303,8 @@ class ConfirmationBroker:
 
         # Wait for the event to be set (by confirm() or reject())
         try:
-            # Run the async wait in a sync context
             try:
                 loop = asyncio.get_running_loop()
-                # A running loop exists — but request() is sync.
-                # This is a design limitation: the CUA executors are sync.
-                # Workaround: use a thread to wait for the event.
                 import threading
 
                 result_holder: dict[str, bool | None] = {"result": None}
@@ -316,7 +325,6 @@ class ConfirmationBroker:
                 t.join(timeout=timeout_seconds + 5)
                 result = result_holder["result"]
             except RuntimeError:
-                # No running loop — safe to use asyncio.run() directly.
                 asyncio.run(asyncio.wait_for(req._event.wait(), timeout=timeout_seconds))
                 result = req._result
         except TimeoutError:
@@ -336,7 +344,7 @@ class ConfirmationBroker:
 
     # ─── WebSocket client side: confirm / reject ──────────────────────────
 
-    async def confirm(self, request_id: str, session_id: str) -> dict[str, Any]:
+    async def confirm(self, request_id: str, session_id: str, tenant_id: str = "") -> dict[str, Any]:
         """A WebSocket client confirms a request.
 
         Returns the updated request state. If enough confirmations are
@@ -346,6 +354,20 @@ class ConfirmationBroker:
             req = self._pending.get(request_id)
             if not req:
                 return {"error": "request_not_found", "request_id": request_id}
+
+            # Cross-tenant check
+            if req.tenant_id and tenant_id and req.tenant_id != tenant_id:
+                return {
+                    "error": "cross_tenant_forbidden",
+                    "message": "Cannot confirm request from a different tenant",
+                }
+
+            # Maker-checker dual control: initiator cannot confirm own request
+            if req.initiator_id and req.initiator_id == session_id:
+                return {
+                    "error": "maker_checker_violation",
+                    "message": "The user who initiated this request cannot approve it",
+                }
 
             if session_id in req.confirmations:
                 return {
@@ -361,9 +383,10 @@ class ConfirmationBroker:
             if len(req.confirmations) >= required:
                 req._result = True
                 req._event.set()
-                # Broadcast resolution
+                # Broadcast resolution to matching tenant
                 await self._broadcast(
                     {"type": "confirmation_resolved", "data": req.to_dict(), "approved": True},
+                    tenant_id=req.tenant_id,
                 )
                 logger.info(
                     "Confirmation %s APPROVED by %d humans",
@@ -373,17 +396,26 @@ class ConfirmationBroker:
 
             return {"success": True, "data": req.to_dict()}
 
-    async def reject(self, request_id: str, session_id: str, reason: str = "") -> dict[str, Any]:
+    async def reject(
+        self, request_id: str, session_id: str, reason: str = "", tenant_id: str = ""
+    ) -> dict[str, Any]:
         """A WebSocket client rejects a request. Immediately fails the request."""
         async with self._lock:
             req = self._pending.get(request_id)
             if not req:
                 return {"error": "request_not_found", "request_id": request_id}
 
+            # Cross-tenant check
+            if req.tenant_id and tenant_id and req.tenant_id != tenant_id:
+                return {
+                    "error": "cross_tenant_forbidden",
+                    "message": "Cannot reject request from a different tenant",
+                }
+
             req.rejections.append(session_id)
             req._result = False
             req._event.set()
-            # Broadcast rejection
+            # Broadcast rejection to matching tenant
             await self._broadcast(
                 {
                     "type": "confirmation_resolved",
@@ -392,6 +424,7 @@ class ConfirmationBroker:
                     "rejected_by": session_id,
                     "reason": reason,
                 },
+                tenant_id=req.tenant_id,
             )
             logger.warning("Confirmation %s REJECTED by %s: %s", request_id, session_id, reason)
             return {"success": True, "data": req.to_dict()}
@@ -463,15 +496,16 @@ async def cua_confirmation_ws(websocket: WebSocket) -> None:
         payload = await _validate_jwt_access_token(token)
         user_id = payload.get("sub")
         # SECURITY: Validate user_id format before deriving session_id.
-        if not isinstance(user_id, str) or not user_id.isalnum():
+        if not isinstance(user_id, str) or not all(c.isalnum() or c in "-_" for c in user_id):
             logger.error("Invalid user_id in JWT: %r", user_id)
             await websocket.close(code=_WS_CODE_POLICY_VIOLATION, reason="Invalid user_id")
             return
+        tenant_id = str(payload.get("tenant_id") or payload.get("tid") or "")
     except HTTPException:
         await websocket.close(code=_WS_CODE_POLICY_VIOLATION, reason="Invalid or expired token")
         return
 
-    await confirmation_broker.connect(websocket)
+    await confirmation_broker.connect(websocket, tenant_id=tenant_id)
     try:
         while True:
             message = await websocket.receive_text()
@@ -486,11 +520,13 @@ async def cua_confirmation_ws(websocket: WebSocket) -> None:
             session_id = f"user:{user_id}"
 
             if action == "confirm":
-                result = await confirmation_broker.confirm(request_id, session_id)
+                result = await confirmation_broker.confirm(request_id, session_id, tenant_id=tenant_id)
                 await websocket.send_json({"type": "confirm_result", "data": result})
             elif action == "reject":
                 reason = data.get("reason", "")
-                result = await confirmation_broker.reject(request_id, session_id, reason)
+                result = await confirmation_broker.reject(
+                    request_id, session_id, reason, tenant_id=tenant_id
+                )
                 await websocket.send_json({"type": "reject_result", "data": result})
             else:
                 await websocket.send_json({"type": "error", "message": f"unknown action: {action}"})

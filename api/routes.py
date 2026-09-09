@@ -192,7 +192,7 @@ if is_production_environment():
 
 
 def _require_api_key(request: Request) -> None:
-    """Validate API key when configured."""
+    """Validate API key or Admin Bearer token when configured."""
     auth_disabled = _AUTH_DISABLED or os.environ.get(
         "ENGINEERING_SERVICE_AUTH_DISABLED", ""
     ).lower() in ("true", "1", "yes")
@@ -203,6 +203,25 @@ def _require_api_key(request: Request) -> None:
                 detail="Authentication disabled is not permitted in this environment",
             )
         return
+
+    # Check for Bearer token authorization
+    auth_header = request.headers.get("authorization", "") or request.headers.get("Authorization", "")
+    if auth_header.lower().startswith("bearer "):
+        from api.dependencies import _validate_jwt_access_token_sync
+
+        token = auth_header.split(" ", 1)[1].strip()
+        try:
+            payload = _validate_jwt_access_token_sync(token)
+            role = payload.get("role", "")
+            # Admin endpoints require admin role
+            if request.url.path.startswith("/admin/") and role != "admin":
+                raise HTTPException(status_code=403, detail="Admin role required")
+            return
+        except HTTPException:
+            raise
+        except Exception:
+            raise HTTPException(status_code=401, detail="Invalid token")
+
     if not _API_KEY_CONFIGURED:
         if is_production_environment():
             raise HTTPException(  # NOSONAR HTTPException responses will be documented in API refactoring sprint

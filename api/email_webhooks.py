@@ -527,6 +527,15 @@ def _deliver_to_endpoint(ep: WebhookEndpoint, body: bytes, sig: str, event_type:
     import urllib.error
     import urllib.request
 
+    # Re-validate destination URL against SSRF and DNS rebinding immediately before dispatch
+    _validate_webhook_url(ep.url)
+
+    class NoRedirectHandler(urllib.request.HTTPRedirectHandler):
+        def redirect_request(self, req, fp, code, msg, headers, newurl):
+            raise _SSRFBlockedError(f"Webhook delivery redirects are forbidden (target redirected to {newurl})")
+
+    opener = urllib.request.build_opener(NoRedirectHandler)
+
     req = urllib.request.Request(
         ep.url,
         data=body,
@@ -540,7 +549,7 @@ def _deliver_to_endpoint(ep: WebhookEndpoint, body: bytes, sig: str, event_type:
     )
     try:
         # S8410 — explicit timeout prevents the thread from blocking indefinitely.
-        with urllib.request.urlopen(req, timeout=10) as r:  # noqa: S310
+        with opener.open(req, timeout=10) as r:
             return r.status
     except urllib.error.HTTPError as e:
         return e.code

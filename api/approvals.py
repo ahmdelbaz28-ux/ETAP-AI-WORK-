@@ -633,6 +633,18 @@ async def set_auto_approve(
 
     Critical tools are NEVER auto-approved regardless of this toggle.
     """
+    user_role = getattr(user, "role", None)
+    if user_role in ("viewer", "guest", "readonly") or (
+        user_role and user_role not in ("admin", "lead_engineer", "senior_engineer", "engineer")
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail={
+                "code": "INSUFFICIENT_ROLE",
+                "message": "Only engineering and admin roles can toggle session auto-approval.",
+            },
+        )
+
     set_session_auto_approve(body.session_id, body.enabled)
     return {
         "success": True,

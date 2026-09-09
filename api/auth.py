@@ -711,6 +711,7 @@ def _create_mfa_challenge_token(user_id: str) -> str:
     payload = {
         "sub": user_id,
         "type": "mfa_challenge",
+        "jti": str(uuid.uuid4()),  # HIGH-4 FIX: Add unique jti so challenge tokens can be blacklisted
         "iat": now,
         "exp": now + timedelta(minutes=_MFA_CHALLENGE_EXPIRE_MINUTES),
     }
@@ -727,6 +728,12 @@ def _verify_mfa_challenge_token(token: str) -> Optional[str]:
         return None
     if payload.get("type") != "mfa_challenge":
         return None
+    jti = payload.get("jti")
+    if jti:
+        # HIGH-4 FIX: check blacklist
+        with _token_blacklist_lock:
+            if _token_blacklist_memory.get(jti, 0) > time.time():
+                return None
     user_id = payload.get("sub")
     if not user_id or not str(user_id).strip():
         return None
@@ -1273,7 +1280,16 @@ async def login(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail=MSG_USER_NOT_FOUND_OR_DEACTIVATED,
             )
-        return await MfaService.verify_and_issue_tokens(user, body.mfa_code, body.username, db)
+        login_response = await MfaService.verify_and_issue_tokens(user, body.mfa_code, body.username, db)
+        try:
+            from api.dependencies import _decode_jwt
+            ch_payload = _decode_jwt(body.mfa_challenge_token)
+            ch_jti = ch_payload.get("jti")
+            if ch_jti:
+                await _blacklist_token(ch_jti, ttl_seconds=_MFA_CHALLENGE_EXPIRE_MINUTES * 60)
+        except Exception:
+            pass
+        return login_response
 
     # Leg 1 (password verification via AuthService)
     user = await AuthService.verify_credentials(db, body.username, body.password)
@@ -1412,18 +1428,30 @@ async def refresh(
     summary="Revoke session",
 )
 async def logout(
+    request: Request,
     user: CurrentUserDep,
     body: Optional[RefreshRequest] = Body(None),  # NOSONAR  # S8410
 ) -> Response:
-    """Log the current user out by blacklisting the provided refresh token.
+    """Log the current user out by blacklisting both the access token and provided refresh token."""
+    from api.dependencies import _decode_jwt, _extract_bearer_token
 
-    If a refresh_token is supplied in the body, its JTI is blacklisted
-    so it cannot be exchanged for new access tokens.  The access token
-    itself remains valid until it expires (short-lived by design).
-    """
+    # Revoke access token immediately upon logout
+    auth_header = request.headers.get("authorization") or ""
+    if auth_header.lower().startswith("bearer "):
+        try:
+            acc_token = _extract_bearer_token(auth_header)
+            acc_payload = _decode_jwt(acc_token, options={"verify_exp": False})
+            acc_jti = acc_payload.get("jti")
+            acc_exp = acc_payload.get("exp")
+            acc_ttl: Optional[int] = None
+            if isinstance(acc_exp, (int, float)):
+                acc_ttl = int(acc_exp - datetime.now(tz=UTC).timestamp())
+            if acc_jti:
+                await _blacklist_token(acc_jti, ttl_seconds=acc_ttl)
+        except Exception:
+            pass
+
     if body and body.refresh_token:
-        from api.dependencies import _decode_jwt
-
         try:
             payload = _decode_jwt(
                 body.refresh_token,
@@ -1706,8 +1734,12 @@ async def forgot_password(
             # `%` (e.g. switching to base64url or signed JWT), an
             # unencoded token would silently truncate at the first
             # reserved character and produce an unusable reset link.
+            raw_url = _os.getenv("EMAIL_APP_URL", "http://localhost:3000").strip()
+            parsed_app_url = _urlparse.urlparse(raw_url)
+            if parsed_app_url.scheme not in ("http", "https") or not parsed_app_url.netloc:
+                raw_url = "http://localhost:3000"
             reset_link = (
-                f"{_os.getenv('EMAIL_APP_URL', 'http://localhost:3000')}"
+                f"{raw_url.rstrip('/')}"
                 f"/reset-password?token={_urlparse.quote(reset_token, safe='')}"
             )
             result = await send_password_reset(
@@ -1745,8 +1777,8 @@ async def forgot_password(
             }
         return {"message": "If the email exists, a reset token has been sent"}
 
-    # Deliberately return the same message to avoid enumeration
-    return {"message": "If the email exists, a reset token has been generated"}
+    # Deliberately return the identical message to prevent email enumeration (LOW-1 fix)
+    return {"message": "If the email exists, a reset token has been sent"}
 
 
 @router.post(
@@ -1805,17 +1837,23 @@ async def list_users(
     pagination=Depends(pagination_params),  # NOSONAR
 ) -> Any:
     """Return a paginated list of all users. Requires the ``admin`` role."""
-    # Total count
-    count_result = await db.execute(select(func.count()).select_from(User))
-    total = count_result.scalar_one()
-
-    # Paginated query
-    result = await db.execute(
+    # Total count (scoped to caller's tenant if user has tenant_id)
+    count_stmt = select(func.count()).select_from(User)
+    query_stmt = (
         select(User)
         .order_by(User.created_at.desc())
         .offset(pagination.offset)
-        .limit(pagination.page_size),
+        .limit(pagination.page_size)
     )
+    if user.tenant_id:
+        count_stmt = count_stmt.where(User.tenant_id == user.tenant_id)
+        query_stmt = query_stmt.where(User.tenant_id == user.tenant_id)
+
+    count_result = await db.execute(count_stmt)
+    total = count_result.scalar_one()
+
+    # Paginated query
+    result = await db.execute(query_stmt)
     users = result.scalars().all()
 
     return UserListResponse(
@@ -1851,7 +1889,7 @@ async def delete_user(
 ) -> dict[str, str]:
     """Soft-delete a user by setting ``is_active = False``.
 
-    Admins cannot delete themselves.
+    Admins cannot delete themselves, and cannot delete users in another tenant.
     """
     if user_id == user.user_id:
         raise HTTPException(
@@ -1859,7 +1897,10 @@ async def delete_user(
             detail="Cannot delete your own account",
         )
 
-    result = await db.execute(select(User).where(User.id == user_id))
+    query = select(User).where(User.id == user_id)
+    if user.tenant_id:
+        query = query.where(User.tenant_id == user.tenant_id)
+    result = await db.execute(query)
     target = result.scalar_one_or_none()
 
     if target is None:

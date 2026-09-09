@@ -21,6 +21,7 @@ Policy Rule Types
 
 from __future__ import annotations
 
+import hmac
 import ipaddress
 import logging
 import operator
@@ -518,18 +519,25 @@ if _HAS_STARLETTE:
                 return
             request = Request(scope)
 
-            # Skip public paths, test mode (AUTH_DISABLED), or requests with X-API-Key
+            # Skip public paths, test mode (AUTH_DISABLED), or requests with valid X-API-Key
             path = request.url.path
             is_public = path == "/" or any(
                 path.startswith(prefix) for prefix in self._public_paths if prefix != "/"
             )
+            incoming_api_key = request.headers.get("x-api-key") or request.headers.get("X-API-Key")
+            expected_api_key = os.environ.get("ENGINEERING_SERVICE_API_KEY", "") or os.environ.get("HF_API_KEY", "")
+            has_valid_api_key = bool(
+                incoming_api_key
+                and expected_api_key
+                and hmac.compare_digest(incoming_api_key, expected_api_key)
+            )
+
             if (
                 os.environ.get("AUTH_DISABLED", "").lower() in ("true", "1", "yes")
                 or os.environ.get("ENGINEERING_SERVICE_AUTH_DISABLED", "").lower()
                 in ("true", "1", "yes")
                 or is_public
-                or request.headers.get("x-api-key")
-                or request.headers.get("X-API-Key")
+                or has_valid_api_key
             ):
                 await self.app(scope, receive, send)
                 return

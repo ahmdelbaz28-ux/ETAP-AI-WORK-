@@ -34,7 +34,7 @@ import os
 from datetime import datetime, timedelta, timezone
 
 UTC = timezone.utc  # noqa: UP017
-from typing import Any
+from typing import Any, Optional
 
 try:
     from typing import Annotated
@@ -45,7 +45,12 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import HTMLResponse, JSONResponse
 from pydantic import BaseModel, EmailStr, Field
 
-from api.dependencies import CurrentUser, get_api_key, get_current_user_from_header
+from api.dependencies import (
+    CurrentUser,
+    get_api_key,
+    get_current_user_from_header,
+    get_optional_current_user_from_header,
+)
 from services.email_send_log import get_recent_sends
 
 logger = logging.getLogger("etap.api.email_digest")
@@ -166,9 +171,17 @@ async def get_config() -> JSONResponse:
 async def generate_digest(
     request: Request,
     body: GenerateDigestRequest,
+    user: Optional[CurrentUser] = Depends(get_optional_current_user_from_header),
 ) -> JSONResponse:
     """Manually trigger a digest send for a user."""
     trace_id = getattr(request.state, "trace_id", "unknown")
+    if user and user.email:
+        if user.role != "admin" and body.email.lower() != user.email.lower():
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Non-admin users can only generate email digests for their own email address.",
+            )
+
     if not _config()["enabled"]:
         return JSONResponse(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,

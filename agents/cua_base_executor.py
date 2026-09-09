@@ -473,7 +473,27 @@ class BaseCUAExecutor(abc.ABC):
                     )
 
                 # STEP 7: human confirmation for CONTROL actions
-                if require_confirmation and on_confirmation_request is not None:
+                if require_confirmation:
+                    if on_confirmation_request is None:
+                        step_result = CUAStepResult(
+                            step_number=step_num,
+                            action=action,
+                            success=False,
+                            screenshot_before=screenshot_before,
+                            gemini_analysis=analysis,
+                            error="Action requires confirmation but no callback registered (fail-closed)",
+                            duration_ms=int((time.monotonic() - step_start) * 1000),
+                        )
+                        steps.append(step_result)
+                        return CUAExecutionResult(
+                            success=False,
+                            steps=steps,
+                            aborted_reason="Missing confirmation callback for confirmed action (fail-closed)",
+                            total_duration_ms=int((time.monotonic() - start_time) * 1000),
+                            execution_id=exec_id,
+                            resumed_from_step=resume_from,
+                            vision_source=analysis.get("source"),
+                        )
                     approved = on_confirmation_request(action)
                     if not approved:
                         step_result = CUAStepResult(
@@ -554,7 +574,34 @@ class BaseCUAExecutor(abc.ABC):
                 # If dual confirmation is required, the on_confirmation_request
                 # callback must implement it (two humans). The safety guard flags
                 # it; the caller enforces it.
-                if safety_check.requires_dual_confirmation and on_confirmation_request is not None:
+                if safety_check.requires_dual_confirmation:
+                    if on_confirmation_request is None:
+                        if safety_check.state_snapshot_id:
+                            with contextlib.suppress(Exception):
+                                life_safety_guard.rollback(
+                                    snapshot_id=safety_check.state_snapshot_id,
+                                    reason="dual_confirmation_handler_missing",
+                                )
+                        step_result = CUAStepResult(
+                            step_number=step_num,
+                            action=action,
+                            success=False,
+                            screenshot_before=screenshot_before,
+                            gemini_analysis=analysis,
+                            error="Dual confirmation required for life-safety action but no callback registered (fail-closed)",
+                            duration_ms=int((time.monotonic() - step_start) * 1000),
+                        )
+                        steps.append(step_result)
+                        return CUAExecutionResult(
+                            success=False,
+                            steps=steps,
+                            aborted_reason="Dual confirmation required but no confirmation callback provided (fail-closed)",
+                            total_duration_ms=int((time.monotonic() - start_time) * 1000),
+                            execution_id=exec_id,
+                            resumed_from_step=resume_from,
+                            vision_source=analysis.get("source"),
+                        )
+
                     # The callback should ask TWO humans; we just pass the flag
                     approved = on_confirmation_request(action)
                     if not approved:
