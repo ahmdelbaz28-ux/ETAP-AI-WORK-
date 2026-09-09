@@ -67,7 +67,7 @@
     "gsap": "^3.15.0",
     "i18next": "24.2.2",
     "i18next-browser-languagedetector": "8.2.1",
-    "lucide-react": "^0.468.0",
+    "lucide-react": "^1.41.0",
     "qrcode.react": "^4.2.0",
     "react": "19.2.7",
     "react-dom": "19.2.7",
