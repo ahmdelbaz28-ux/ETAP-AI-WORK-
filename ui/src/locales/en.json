@@ -236,7 +236,15 @@
     "loginLink": "Sign In",
     "errorPasswordsMismatch": "Passwords do not match",
     "errorPasswordLength": "Password must be at least 8 characters long",
-    "errorRegisterFields": "Please fill in all required fields correctly"
+    "errorRegisterFields": "Please fill in all required fields correctly",
+    "resetNewPasswordLabel": "New Password",
+    "resetConfirmLabel": "Confirm Password",
+    "resetSubmit": "Save New Password",
+    "resetting": "Saving...",
+    "resetSuccessTitle": "Password reset successful",
+    "resetSuccessBody": "You can now sign in with your new password.",
+    "resetInvalidLinkTitle": "Invalid link",
+    "resetInvalidLinkBody": "This reset link is missing or invalid. Request a new one from the login page."
   },
   "adminPages": {
     "common": {
