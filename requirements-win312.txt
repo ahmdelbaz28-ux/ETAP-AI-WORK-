@@ -297,7 +297,7 @@ alembic~=1.13.0
 # installed as transitive deps, but we declare them explicitly so that
 # minimal install paths (CI --no-deps fallback, Docker multi-stage builds)
 # don't end up with a broken alembic that crashes on `alembic upgrade head`.
-mako~=1.3.0
+mako~=1.4.1
 # SECURITY: upgraded from 2.18.0 → 2.20.0 — fixes CVE-2026-4539 ReDoS via
 # GUID-matching regex.
 pygments>=2.20.0
