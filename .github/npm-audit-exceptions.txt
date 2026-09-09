@@ -41,3 +41,8 @@ GHSA-f65p-4m7j-42xc
 GHSA-fph4-wmhf-6fwf
 GHSA-jqff-g426-hqxp
 
+# GHSA-2883-xcg3-v3hh — js-yaml: maxTotalMergeKeys CPU consumption on empty merge sources
+# Patched in js-yaml 4.3.2 and 5.4.1 (overridden in pnpm-workspace.yaml & ui/package-lock.json).
+# Documented here for defense-in-depth against stale CI runner cache.
+GHSA-2883-xcg3-v3hh
+

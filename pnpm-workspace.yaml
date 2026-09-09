@@ -28,10 +28,10 @@ overrides:
   fast-uri: ^3.1.7
   # MEDIUM: @xmldom/xmldom XML fragment injection (Alert #429)
   '@xmldom/xmldom': ^0.8.15
-  # HIGH: hono CORS reflection + XSS + path traversal + body limit bypass (8 alerts)
-  hono: ^4.12.34
-  # HIGH: js-yaml quadratic CPU consumption on merge-key chains (3 alerts)
-  js-yaml: ^4.3.0
+  # HIGH: hono (Dependabot alert #1565412111)
+  hono: ^4.13.7
+  # HIGH: js-yaml maxTotalMergeKeys CPU consumption (GHSA-2883-xcg3-v3hh)
+  js-yaml: ^4.3.2
   # HIGH: linkify-it quadratic DoS in mailto validator (1 alert)
   linkify-it: ^5.0.2
   # HIGH: liquidjs memory-limit bypass in `pop` filter (1 alert)
