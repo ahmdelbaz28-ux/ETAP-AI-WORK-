@@ -16,7 +16,7 @@ hypothesis>=6.100.0
 
 # Test data factories (used by tests/factories/)
 factory-boy>=3.3.0
-Faker>=24.0.0
+Faker>=40.38.0
 
 # Linting and formatting
 ruff>=0.1.0
