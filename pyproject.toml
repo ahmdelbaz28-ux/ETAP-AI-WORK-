@@ -101,7 +101,7 @@ dependencies = [
     # langsmith — pinned to >=0.10.0 to fix CVE-2024-5184 (SSRF in webhook URL
     # validation) and CVE-2025-21556 (credential leak in error responses) which
     # affected the 0.1.x / 0.2.x lines.
-    "langsmith>=0.10.0,<0.11",
+    "langsmith>=0.10.0,<0.13",
     "qdrant-client>=1.7.0",
 ]
 
