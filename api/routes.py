@@ -50,6 +50,7 @@ from api.email_otp import router as email_otp_router
 from api.email_webhooks import router as email_webhooks_router
 from api.environment import DEV_ENVIRONMENTS, is_dev_environment, is_production_environment
 from api.equipment import router as equipment_router
+from api.etap_draw import router as etap_draw_router
 from api.export import router as export_router
 from api.feature_flags import router as feature_flags_router
 from api.gis_edits import router as gis_edits_router
@@ -881,7 +882,8 @@ app.include_router(
 app.include_router(
     chat_stream_router
 )  # /api/v1/chat/stream — server-side LLM chat SSE, keys stay server-side (P4b)
-app.include_router(scada_router)  # /api/v1/scada/* — P8: migrated from inline route
+app.include_router(scada_router)
+app.include_router(etap_draw_router)  # /api/v1/etap/draw/* - DataHub REST Auto-Build (dual-control)  # /api/v1/scada/* — P8: migrated from inline route
 app.include_router(digital_twin_router)  # /api/v1/digital-twin/* — P8: migrated from inline route
 app.include_router(gis_edits_router)  # /api/v1/gis/edits/* — Safe ArcGIS write & dual-control operations
 

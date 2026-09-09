@@ -583,6 +583,46 @@ class NullEtapProvider(IEtapProvider):
             )
 
 
+class RestEtapProvider(IEtapProvider):
+    """DataHub etapAPI REST provider for server-side Auto-Build drawings.
+
+    Surgical addition: selected ONLY via ``ETAP_PROVIDER=rest`` + configured
+    ``ETAP_REST_URL``/``ETAP_REST_TOKEN``. No COM touched. Studies are NOT
+    executed here — drawings flow through ``POST /api/v1/etap/draw/*``
+    (dual-control). ``execute_study`` therefore fails closed with a pointer.
+    """
+
+    def __init__(self, client: Any | None = None):
+        self.use_etap = _is_etap_enabled()
+        self._client = client
+        if self._client is None and self.use_etap:
+            try:
+                from etap_integration.etap_rest import get_rest_client_from_env
+
+                self._client = get_rest_client_from_env()
+            except Exception as e:
+                logger.warning("RestEtapProvider unavailable: %s", e)
+                self._client = None
+
+    def is_available(self) -> bool:
+        return bool(self.use_etap and self._client is not None)
+
+    def execute_study(
+        self,
+        project_path: str,
+        study_type: ETAPStudyType,
+        visible: bool = False,
+        parameters: dict[str, Any] | None = None,
+    ) -> ETAPResult:
+        return ETAPResult(
+            False,
+            {},
+            [],
+            ["RestEtapProvider serves drawings via POST /api/v1/etap/draw/*, not studies"],
+            0.0,
+        )
+
+
 def get_etap_provider() -> IEtapProvider:
     """Factory method to get the appropriate provider based on environment.
 
@@ -603,6 +643,13 @@ def get_etap_provider() -> IEtapProvider:
     if provider_type == "mock":
         logger.info("Using MockEtapProvider (development mode)")
         return MockEtapProvider()
+
+    if provider_type == "rest":
+        rest_provider = RestEtapProvider()
+        if rest_provider.is_available():
+            logger.info("Using RestEtapProvider (DataHub etapAPI drawings)")
+            return rest_provider
+        logger.warning("RestEtapProvider requested but ETAP_REST_URL/TOKEN missing; falling through")
 
     worker_url = os.environ.get("ETAP_WORKER_URL")
     api_key = os.environ.get("ETAP_WORKER_API_KEY")

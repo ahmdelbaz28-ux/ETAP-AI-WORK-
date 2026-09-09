@@ -104,6 +104,11 @@ DEFAULT_FEATURE_FLAGS: dict[str, dict[str, Any]] = {
         "status": "beta",
         "description": "Safe ArcGIS Online / Enterprise write operations via applyEdits",
     },
+    "etap_rest_draw": {
+        "enabled": False,
+        "status": "alpha",
+        "description": "Automatic ETAP drawing via DataHub etapAPI (dual-control, OFF by default)",
+    },
 }
 
 FEATURE_FLAGS = DEFAULT_FEATURE_FLAGS
