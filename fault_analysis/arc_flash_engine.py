@@ -176,6 +176,15 @@ class ArcFlashEngine:
         Raises:
         ValueError: If any input is out of the valid range.
         """
+        for param_name, param_val in [
+            ("voltage_kv", voltage_kv),
+            ("bolted_fault_current_ka", bolted_fault_current_ka),
+            ("arc_duration_sec", arc_duration_sec),
+            ("working_distance_mm", working_distance_mm),
+        ]:
+            if not isinstance(param_val, (int, float)) or not math.isfinite(param_val):
+                raise ValueError(f"{param_name} must be a finite number.")
+
         if voltage_kv < 0.208:
             raise ValueError(
                 f"Voltage {voltage_kv} kV is below the IEEE 1584-2018 minimum range (0.208 kV). Use Ralph Lee method instead.",

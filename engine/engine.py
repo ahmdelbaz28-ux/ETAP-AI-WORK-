@@ -239,11 +239,17 @@ class PowerSystemEngine:
         try:
             electrode_enum = ElectrodeConfig(electrode_config)
         except ValueError:
-            electrode_enum = ElectrodeConfig.VCB
+            valid_configs = [e.value for e in ElectrodeConfig]
+            raise ValueError(
+                f"Invalid electrode_config '{electrode_config}'. Allowed values: {valid_configs}"
+            )
         try:
             enclosure_enum = EnclosureType(enclosure_type)
         except ValueError:
-            enclosure_enum = EnclosureType.BOX
+            valid_types = [e.value for e in EnclosureType]
+            raise ValueError(
+                f"Invalid enclosure_type '{enclosure_type}'. Allowed values: {valid_types}"
+            )
 
         result = self.arc_flash_engine.calculate(
             voltage_kv=voltage_kv,

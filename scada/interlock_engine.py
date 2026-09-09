@@ -88,8 +88,15 @@ class SCADAInterlockEngine:
                         message=f"Device {device_id} telemetry is stale ({age:.1f}s > {self.max_telemetry_age_sec}s threshold)",
                         details={"device_id": device_id, "age_seconds": age},
                     )
+            except InterlockViolation:
+                raise
             except (ValueError, TypeError):
-                pass  # If timestamp cannot be parsed, fallback to default
+                logger.warning("Interlock check failed: invalid timestamp %s for %s", timestamp_str, device_id)
+                raise InterlockViolation(
+                    code="INVALID_TELEMETRY_TIMESTAMP",
+                    message=f"Device {device_id} has invalid telemetry timestamp: {timestamp_str}",
+                    details={"device_id": device_id, "timestamp": str(timestamp_str)},
+                )
 
     def validate_local_remote_switch(
         self,
