@@ -113,14 +113,10 @@ const SETTINGS_SCHEMA = {
   maxValueLength: 1000,
 };
 
-import {
-  POPULAR_PROVIDERS,
-  type PopularProvider,
-  type ProviderModel,
-  type ProviderApiType,
-} from "../lib/providers";
+import { POPULAR_PROVIDERS } from "../lib/providers";
 
-export { POPULAR_PROVIDERS, type PopularProvider, type ProviderModel, type ProviderApiType };
+export { POPULAR_PROVIDERS };
+export type { PopularProvider, ProviderModel, ProviderApiType } from "../lib/providers";
 
 function getDefaults(): Record<string, string> {
   return {

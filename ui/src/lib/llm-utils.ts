@@ -3,7 +3,7 @@
  */
 
 const SECRET_KEY_RE = /(api[_-]?key|secret|token|password|authorization|credential)/i;
-const SECRET_STRING_RE = /(?:sk-[a-zA-Z0-9_-]{16,}|Bearer\s+[a-zA-Z0-9._-]+)/gi;
+const SECRET_STRING_RE = /(?:sk-[a-z0-9_-]{16,}|Bearer\s+[a-z0-9._-]+)/gi;
 
 /**
  * Checks if a key name suggests sensitive content.

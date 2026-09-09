@@ -26,6 +26,11 @@ from pathlib import Path
 from typing import Any, Optional
 
 try:
+    from typing import Annotated
+except ImportError:
+    from typing_extensions import Annotated
+
+try:
     from filelock import FileLock
 
     _HAS_FILELOCK = True
@@ -383,9 +388,7 @@ async def update_feature_flag(
     request: Request,
     key: str,
     payload: FeatureFlagPatch,
-    _admin: CurrentUser = Depends(
-        _require_admin()
-    ),  # NOSONAR python:S8410 standard FastAPI dependency
+    _admin: Annotated[CurrentUser, Depends(_require_admin())],
 ):
     """Toggle or update a feature flag."""
     trace_id = getattr(request.state, "trace_id", "unknown")
@@ -405,7 +408,7 @@ async def update_feature_flag(
         _save_flags(flags)
 
     audit_logger = logging.getLogger("audit")
-    safe_key = re.sub(r"[\r\n\x00-\x1f\x7f]", "", str(key))[:64]
+    safe_key = re.sub(r"[\x00-\x1f\x7f]", "", str(key))[:64]
     audit_logger.info(  # NOSONAR pythonsecurity:S5145: sanitized flag key, validated against flags
         "feature_flag_toggled flag=%s old=%s new=%s",
         safe_key,

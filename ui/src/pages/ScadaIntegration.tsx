@@ -218,6 +218,40 @@ async function testScadaConnection(
   );
 }
 
+function extractErrorMessage(errDetail: unknown, fallback = "Operation failed"): string {
+  if (typeof errDetail === "object" && errDetail !== null) {
+    const d = errDetail as { code?: string; message?: string };
+    return `[${d.code || "INTERLOCK_VIOLATION"}] ${d.message || JSON.stringify(errDetail)}`;
+  }
+  if (typeof errDetail === "string") {
+    return errDetail;
+  }
+  return fallback;
+}
+
+function updateDeviceState(
+  device: ControlBayDevice,
+  actionType?: string,
+  targetVal?: number,
+): ControlBayDevice {
+  if (actionType === "breaker_open") {
+    return { ...device, state: "OPEN", currentA: 0, powerMw: 0 };
+  }
+  if (actionType === "breaker_close") {
+    return { ...device, state: "CLOSED", currentA: 400, powerMw: 45 };
+  }
+  if (actionType === "tap_changer" && typeof targetVal === "number") {
+    return { ...device, tapPosition: targetVal };
+  }
+  return device;
+}
+
+function getRoleBadgeVariant(role?: string): "warning" | "info" | "default" {
+  if (role === "admin") return "warning";
+  if (role === "engineer") return "info";
+  return "default";
+}
+
 export default function ScadaIntegration() {
   // NOSONAR(S3776): main component render is a large bilingual (en/ar) telemetry dashboard — every `isRtl ? "..." : "..."` ternary is an intrinsic i18n pick that cannot be extracted without lifting 30+ strings into a per-section i18n catalog; decomposition into sub-components is tracked as a separate refactor task
   const { i18n } = useTranslation();
@@ -415,13 +449,7 @@ export default function ScadaIntegration() {
         setProposedReason("");
         await fetchPendingApprovals();
       } else {
-        const errDetail = data.detail;
-        let errMsg = "Failed to propose command";
-        if (typeof errDetail === "object" && errDetail !== null) {
-          errMsg = `[${errDetail.code || "INTERLOCK_VIOLATION"}] ${errDetail.message || JSON.stringify(errDetail)}`;
-        } else if (typeof errDetail === "string") {
-          errMsg = errDetail;
-        }
+        const errMsg = extractErrorMessage(data.detail, "Failed to propose command");
         setInterlockError(errMsg);
         notify("error", errMsg);
         addLog(`⚠️ Interlock Error: ${errMsg}`);
@@ -474,17 +502,7 @@ export default function ScadaIntegration() {
           addLog(`✅ Control executed & verified for action ${actionId}`);
           if (targetDeviceId) {
             setBayDevices((prev) =>
-              prev.map((d) => {
-                if (d.id === targetDeviceId) {
-                  if (actionType === "breaker_open")
-                    return { ...d, state: "OPEN", currentA: 0, powerMw: 0 };
-                  if (actionType === "breaker_close")
-                    return { ...d, state: "CLOSED", currentA: 400, powerMw: 45 };
-                  if (actionType === "tap_changer" && typeof targetVal === "number")
-                    return { ...d, tapPosition: targetVal };
-                }
-                return d;
-              }),
+              prev.map((d) => (d.id === targetDeviceId ? updateDeviceState(d, actionType, targetVal) : d)),
             );
           }
         } else {
@@ -493,13 +511,7 @@ export default function ScadaIntegration() {
         }
         await fetchPendingApprovals();
       } else {
-        const errDetail = data.detail;
-        let errMsg = "Resolution failed";
-        if (typeof errDetail === "object" && errDetail !== null) {
-          errMsg = `[${errDetail.code || "REJECTED"}] ${errDetail.message || JSON.stringify(errDetail)}`;
-        } else if (typeof errDetail === "string") {
-          errMsg = errDetail;
-        }
+        const errMsg = extractErrorMessage(data.detail, "Resolution failed");
         notify("error", errMsg);
         addLog(`⚠️ Resolution failure: ${errMsg}`);
       }
@@ -509,6 +521,57 @@ export default function ScadaIntegration() {
     } finally {
       setResolvingActionId(null);
     }
+  };
+
+  const renderApprovalControls = (
+    action: PendingControlAction,
+    isSelfRequested: boolean,
+    isResolving: boolean,
+  ) => {
+    if (!canApprove) {
+      return (
+        <Badge variant="default" size="sm">
+          Awaiting Admin Review
+        </Badge>
+      );
+    }
+    if (isSelfRequested) {
+      return (
+        <div className="flex items-center gap-1 text-[10px] text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2.5 py-1.5 rounded-lg font-medium">
+          <Lock className="w-3.5 h-3.5" />
+          <span>Self-Approval Forbidden (Anti-Tamper)</span>
+        </div>
+      );
+    }
+    return (
+      <>
+        <Button
+          variant="success"
+          size="sm"
+          icon={CheckCircle2}
+          loading={isResolving}
+          onClick={() =>
+            handleResolveAction(
+              action.action_id,
+              "approve",
+              action.device_id,
+              action.action_type,
+              action.target_value,
+            )
+          }
+        >
+          {isRtl ? "موافقة وتنفيذ حي" : "Approve & Execute"}
+        </Button>
+        <Button
+          variant="danger"
+          size="sm"
+          disabled={isResolving}
+          onClick={() => handleResolveAction(action.action_id, "reject")}
+        >
+          {isRtl ? "رفض" : "Reject"}
+        </Button>
+      </>
+    );
   };
 
   // Load configuration from secure settings on mount
@@ -989,13 +1052,7 @@ export default function ScadaIntegration() {
                   CTI ≥ 0.2s & N-R Interlock Active
                 </Badge>
                 <Badge
-                  variant={
-                    user?.role === "admin"
-                      ? "warning"
-                      : user?.role === "engineer"
-                        ? "info"
-                        : "default"
-                  }
+                  variant={getRoleBadgeVariant(user?.role)}
                   size="sm"
                 >
                   {user?.role ? `Role: ${user.role.toUpperCase()}` : "Role: OPERATOR"}
@@ -1218,46 +1275,7 @@ export default function ScadaIntegration() {
                       </div>
 
                       <div className="flex items-center gap-2 shrink-0">
-                        {canApprove ? (
-                          isSelfRequested ? (
-                            <div className="flex items-center gap-1 text-[10px] text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2.5 py-1.5 rounded-lg font-medium">
-                              <Lock className="w-3.5 h-3.5" />
-                              <span>Self-Approval Forbidden (Anti-Tamper)</span>
-                            </div>
-                          ) : (
-                            <>
-                              <Button
-                                variant="success"
-                                size="sm"
-                                icon={CheckCircle2}
-                                loading={isResolving}
-                                onClick={() =>
-                                  handleResolveAction(
-                                    action.action_id,
-                                    "approve",
-                                    action.device_id,
-                                    action.action_type,
-                                    action.target_value,
-                                  )
-                                }
-                              >
-                                {isRtl ? "موافقة وتنفيذ حي" : "Approve & Execute"}
-                              </Button>
-                              <Button
-                                variant="danger"
-                                size="sm"
-                                disabled={isResolving}
-                                onClick={() => handleResolveAction(action.action_id, "reject")}
-                              >
-                                {isRtl ? "رفض" : "Reject"}
-                              </Button>
-                            </>
-                          )
-                        ) : (
-                          <Badge variant="default" size="sm">
-                            Awaiting Admin Review
-                          </Badge>
-                        )}
+                        {renderApprovalControls(action, isSelfRequested, isResolving)}
                       </div>
                     </div>
                   );

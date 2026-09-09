@@ -67,7 +67,12 @@ export default function AssetLibrary() {
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
-      const list = Array.isArray(data) ? data : Array.isArray(data?.assets) ? data.assets : [];
+      let list: Asset[] = [];
+      if (Array.isArray(data)) {
+        list = data;
+      } else if (Array.isArray(data?.assets)) {
+        list = data.assets;
+      }
       setAssets(list);
     } catch {
       notify("error", "Failed to load assets");

@@ -70,7 +70,7 @@ export interface ImportPreviewData {
   buses_count: number;
   branches_count: number;
   affected_tables?: string[];
-  risk_level: "low" | "medium" | "high" | string;
+  risk_level: "low" | "medium" | "high";
   requires_approval?: boolean;
   warnings?: string[];
   errors?: string[];

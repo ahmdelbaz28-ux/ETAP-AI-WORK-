@@ -69,6 +69,8 @@ from scada.models import (
 
 logger = logging.getLogger("engineering_service.scada")
 
+MSG_CONTROL_ACTION_NOT_FOUND = "Control action not found"
+
 router = APIRouter(
     prefix="/api/v1/scada",
     tags=["SCADA"],
@@ -465,7 +467,7 @@ async def resolve_control_action(
     result = await db.execute(select(PendingAction).where(PendingAction.id == action_id))
     action = result.scalar_one_or_none()
     if action is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Control action not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=MSG_CONTROL_ACTION_NOT_FOUND)
 
     # 2. Tenant isolation
     if _norm_tenant(action.tenant_id) != _norm_tenant(user.tenant_id):
@@ -566,10 +568,10 @@ async def get_control_action_status(
     result = await db.execute(select(PendingAction).where(PendingAction.id == action_id))
     action = result.scalar_one_or_none()
     if action is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Control action not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=MSG_CONTROL_ACTION_NOT_FOUND)
 
     if _norm_tenant(action.tenant_id) != _norm_tenant(user.tenant_id):
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Control action not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=MSG_CONTROL_ACTION_NOT_FOUND)
 
     return {
         "success": True,
