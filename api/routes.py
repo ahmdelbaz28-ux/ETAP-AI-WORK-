@@ -52,6 +52,7 @@ from api.environment import DEV_ENVIRONMENTS, is_dev_environment, is_production_
 from api.equipment import router as equipment_router
 from api.export import router as export_router
 from api.feature_flags import router as feature_flags_router
+from api.gis_edits import router as gis_edits_router
 from api.health import router as health_router
 from api.magic_links import router as magic_links_router
 from api.notification_config import router as notification_config_router
@@ -882,6 +883,7 @@ app.include_router(
 )  # /api/v1/chat/stream — server-side LLM chat SSE, keys stay server-side (P4b)
 app.include_router(scada_router)  # /api/v1/scada/* — P8: migrated from inline route
 app.include_router(digital_twin_router)  # /api/v1/digital-twin/* — P8: migrated from inline route
+app.include_router(gis_edits_router)  # /api/v1/gis/edits/* — Safe ArcGIS write & dual-control operations
 
 
 # WebSocket endpoint for per-session event streaming (P3 SessionStreamHub).

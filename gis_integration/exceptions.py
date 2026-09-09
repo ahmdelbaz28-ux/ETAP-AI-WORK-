@@ -19,3 +19,11 @@ class GISTransformationError(GISIntegrationError):
 
 class NotImplementedFeature(GISIntegrationError):
     """Raised when a GIS provider feature (e.g., ArcGIS) is not implemented."""
+
+
+class GISWriteError(GISIntegrationError):
+    """Raised when a GIS write or edit operation fails or is rolled back."""
+
+
+class GISCapabilityError(GISIntegrationError):
+    """Raised when a GIS service or layer lacks required capabilities (e.g. Create/Update/Delete)."""

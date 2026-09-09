@@ -2,7 +2,9 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from collections.abc import Iterator
+from typing import Any
 
+from gis_integration.exceptions import NotImplementedFeature
 from gis_integration.models import GeoCRSInfo, GISFeature
 
 # Module-level string constants (extracted to satisfy S1192).
@@ -98,3 +100,39 @@ class GISProviderInterface(ABC):
         Providers override to probe their SDK / service.
         """
         return False
+
+    def apply_edits(
+        self,
+        layer_id: str,
+        adds: list[dict[str, Any]] | None = None,
+        updates: list[dict[str, Any]] | None = None,
+        deletes: list[str | int] | None = None,
+    ) -> dict[str, Any]:
+        """Apply transactional feature edits (add, update, delete) to a layer."""
+        raise NotImplementedFeature(
+            f"Write operation apply_edits is not implemented for {self.__class__.__name__}"
+        )
+
+    def add_features(
+        self,
+        layer_id: str,
+        features: list[dict[str, Any]],
+    ) -> dict[str, Any]:
+        """Add new spatial features to the specified layer."""
+        return self.apply_edits(layer_id=layer_id, adds=features)
+
+    def update_features(
+        self,
+        layer_id: str,
+        features: list[dict[str, Any]],
+    ) -> dict[str, Any]:
+        """Update existing spatial features in the specified layer."""
+        return self.apply_edits(layer_id=layer_id, updates=features)
+
+    def delete_features(
+        self,
+        layer_id: str,
+        object_ids: list[str | int],
+    ) -> dict[str, Any]:
+        """Delete spatial features by their OBJECTIDs from the specified layer."""
+        return self.apply_edits(layer_id=layer_id, deletes=object_ids)

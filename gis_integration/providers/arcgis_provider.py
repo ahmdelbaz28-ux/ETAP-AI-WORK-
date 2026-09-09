@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import logging
 import os
 import re
@@ -11,12 +12,18 @@ import httpx
 
 from gis_integration.base import GISProviderInterface
 from gis_integration.exceptions import (
+    GISCapabilityError,
     GISDataExtractionError,
     GISProviderUnavailableError,
+    GISWriteError,
     NotImplementedFeature,
 )
 from gis_integration.models import GeoCRSInfo, GISFeature
-from gis_integration.utils import safe_parse_geojson, validate_geometry_dict
+from gis_integration.utils import (
+    geojson_to_esri_json,
+    safe_parse_geojson,
+    validate_geometry_dict,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -96,6 +103,39 @@ class ArcGISOnlineProvider(GISProviderInterface):
         self._timeout: float = 30.0
         self._max_retries: int = 3
         self._crs: GeoCRSInfo = GeoCRSInfo(crs="EPSG:4326", normalized=True)
+        self._token_refreshed: bool = False
+
+    def _refresh_token_if_possible(self) -> bool:
+        """Attempt to refresh authentication token using credentials once."""
+        username = os.getenv("ARCGIS_USERNAME")
+        password = os.getenv("ARCGIS_PASSWORD")
+        if not username or not password:
+            return False
+
+        token_url = f"{self._portal_url}/sharing/rest/generateToken"
+        try:
+            with httpx.Client(timeout=self._timeout) as client:
+                resp = client.post(
+                    token_url,
+                    data={
+                        "username": username,
+                        "password": password,
+                        "client": "referer",
+                        "referer": "urn:esri:GEO",
+                        "expiration": "60",
+                        "f": "json",
+                    },
+                )
+                if resp.status_code == 200:
+                    token_data = resp.json()
+                    new_token = token_data.get("token")
+                    if new_token:
+                        self._token = new_token
+                        logger.info("Successfully refreshed ArcGIS token")
+                        return True
+        except Exception as exc:
+            logger.warning("ArcGIS token refresh failed: %s", _redact_secrets(str(exc)))
+        return False
 
     def _request(
         self,
@@ -103,8 +143,9 @@ class ArcGISOnlineProvider(GISProviderInterface):
         url: str,
         params: dict[str, Any] | None = None,
         headers: dict[str, str] | None = None,
+        data: dict[str, Any] | None = None,
     ) -> httpx.Response:
-        """Execute HTTP request with token redaction and transient retry logic."""
+        """Execute HTTP request with token redaction, token-refresh, and transient retry logic."""
         merged_headers = dict(headers or {})
         if self._token:
             merged_headers.setdefault("Authorization", f"Bearer {self._token}")
@@ -130,7 +171,29 @@ class ArcGISOnlineProvider(GISProviderInterface):
                         url=url,
                         params=merged_params,
                         headers=merged_headers,
+                        data=data,
                     )
+                    # Check for token expiration / invalid token (498, 499)
+                    is_token_error = resp.status_code in (498, 499)
+                    if not is_token_error and resp.status_code == 200:
+                        try:
+                            peek = resp.json()
+                            if isinstance(peek, dict) and peek.get("error", {}).get("code") in (498, 499):
+                                is_token_error = True
+                        except Exception:
+                            pass
+
+                    if is_token_error:
+                        if not self._token_refreshed and self._refresh_token_if_possible():
+                            self._token_refreshed = True
+                            if self._token:
+                                merged_headers["Authorization"] = f"Bearer {self._token}"
+                                merged_params["token"] = self._token
+                            continue
+                        raise GISProviderUnavailableError(
+                            f"ArcGIS service authentication failed: token expired or invalid (HTTP {resp.status_code})"
+                        )
+
                     # Retry on 5xx transient errors
                     if resp.status_code in (500, 502, 503, 504):
                         if attempt < self._max_retries:
@@ -411,4 +474,224 @@ class ArcGISOnlineProvider(GISProviderInterface):
     def get_crs(self, layer_id: str | None = None) -> GeoCRSInfo:
         """Return CRS information for the given layer (normalized to EPSG:4326)."""
         return self._crs
+
+    def apply_edits(
+        self,
+        layer_id: str,
+        adds: list[dict[str, Any]] | None = None,
+        updates: list[dict[str, Any]] | None = None,
+        deletes: list[str | int] | None = None,
+    ) -> dict[str, Any]:
+        """Apply transactional feature edits (add, update, delete) to a layer via Esri REST applyEdits.
+
+        Enforces:
+        - Layer capabilities validation (Create/Update/Delete or supportsApplyEdits)
+        - Local geometry validation & GeoJSON->Esri JSON conversion
+        - Transactional rollback on failure (rollbackOnFailure=true)
+        - Max edit limit guard (GIS_MAX_FEATURES_PER_EDIT, default 100)
+        - Verify-by-requery of affected OBJECTIDs
+        """
+        if not self._loaded:
+            raise RuntimeError("No GIS project loaded; call load_project() first")
+        if not layer_id or not isinstance(layer_id, str):
+            raise ValueError("layer_id must be a non-empty string")
+
+        resolved_id = (
+            self._layer_catalog.get(layer_id)
+            or self._layer_catalog.get(layer_id.lower())
+            or layer_id
+        )
+
+        max_features = int(os.getenv("GIS_MAX_FEATURES_PER_EDIT", "100"))
+        adds_list = list(adds or [])
+        updates_list = list(updates or [])
+        deletes_list = list(deletes or [])
+        total_features = len(adds_list) + len(updates_list) + len(deletes_list)
+
+        if total_features == 0:
+            return {
+                "success": True,
+                "addResults": [],
+                "updateResults": [],
+                "deleteResults": [],
+                "readback_verified": True,
+            }
+
+        if total_features > max_features:
+            raise GISWriteError(
+                f"Edit batch of {total_features} features exceeds maximum allowed limit of {max_features}"
+            )
+
+        # 1. Capability check
+        layer_meta_url = f"{self._service_url}/{resolved_id}"
+        resp = self._request("GET", layer_meta_url, params={"f": "json"})
+        if resp.status_code != 200:
+            raise GISCapabilityError(
+                f"Failed to fetch layer metadata for {layer_id}: HTTP {resp.status_code}"
+            )
+        layer_meta = resp.json()
+        if isinstance(layer_meta, dict) and "error" in layer_meta:
+            err_msg = layer_meta["error"].get("message", str(layer_meta["error"]))
+            raise GISCapabilityError(f"Layer metadata error for {layer_id}: {err_msg}")
+
+        caps_raw = str(layer_meta.get("capabilities", "")).lower()
+        caps = {c.strip() for c in caps_raw.split(",") if c.strip()}
+        supports_apply = bool(layer_meta.get("supportsApplyEdits", False))
+
+        if adds_list and not (supports_apply or {"create", "creates", "editing"} & caps):
+            raise GISCapabilityError(f"Layer {layer_id} lacks 'Create' capability")
+        if updates_list and not (supports_apply or {"update", "updates", "editing"} & caps):
+            raise GISCapabilityError(f"Layer {layer_id} lacks 'Update' capability")
+        if deletes_list and not (supports_apply or {"delete", "deletes", "editing"} & caps):
+            raise GISCapabilityError(f"Layer {layer_id} lacks 'Delete' capability")
+
+        # 2. Local geometry validation and GeoJSON -> Esri conversion
+        esri_adds: list[dict[str, Any]] = []
+        for idx, feat in enumerate(adds_list):
+            if not isinstance(feat, dict):
+                raise GISWriteError(f"Add feature at index {idx} must be a dict")
+            raw_geom = feat.get("geometry")
+            if raw_geom is None:
+                raise GISWriteError(f"Add feature at index {idx} missing geometry")
+            parsed_geom = safe_parse_geojson(raw_geom)
+            is_valid, reason = validate_geometry_dict(parsed_geom)
+            if not is_valid:
+                raise GISWriteError(f"Invalid geometry in add feature {idx}: {reason}")
+            esri_geom = geojson_to_esri_json(parsed_geom)
+            props = dict(feat.get("attributes") or feat.get("properties") or {})
+            esri_adds.append({"attributes": props, "geometry": esri_geom})
+
+        esri_updates: list[dict[str, Any]] = []
+        for idx, feat in enumerate(updates_list):
+            if not isinstance(feat, dict):
+                raise GISWriteError(f"Update feature at index {idx} must be a dict")
+            attrs = dict(feat.get("attributes") or feat.get("properties") or {})
+            oid = attrs.get("OBJECTID") or attrs.get("ObjectId") or attrs.get("objectId") or feat.get("id")
+            if oid is None:
+                raise GISWriteError(f"Update feature at index {idx} missing required OBJECTID")
+            attrs["OBJECTID"] = int(oid) if str(oid).isdigit() else oid
+
+            up_item: dict[str, Any] = {"attributes": attrs}
+            raw_geom = feat.get("geometry")
+            if raw_geom is not None:
+                parsed_geom = safe_parse_geojson(raw_geom)
+                is_valid, reason = validate_geometry_dict(parsed_geom)
+                if not is_valid:
+                    raise GISWriteError(f"Invalid geometry in update feature {idx}: {reason}")
+                up_item["geometry"] = geojson_to_esri_json(parsed_geom)
+            esri_updates.append(up_item)
+
+        clean_deletes: list[str] = []
+        for idx, d in enumerate(deletes_list):
+            s = str(d).strip()
+            if not s or s in ("*", "1=1") or "where" in s.lower():
+                raise GISWriteError("Mass delete is forbidden; explicit OBJECTIDs are required")
+            clean_deletes.append(s)
+
+        # 3. POST applyEdits
+        apply_edits_url = f"{self._service_url}/{resolved_id}/applyEdits"
+        post_data: dict[str, Any] = {
+            "f": "json",
+            "rollbackOnFailure": "true",
+            "useGlobalIds": "false",
+            "returnEditMoment": "true",
+        }
+        if esri_adds:
+            post_data["adds"] = json.dumps(esri_adds)
+        if esri_updates:
+            post_data["updates"] = json.dumps(esri_updates)
+        if clean_deletes:
+            post_data["deletes"] = ",".join(clean_deletes)
+
+        resp = self._request("POST", apply_edits_url, data=post_data)
+        if resp.status_code != 200:
+            raise GISWriteError(f"applyEdits HTTP request failed: HTTP {resp.status_code}")
+
+        res_json = resp.json()
+        if isinstance(res_json, list) and len(res_json) > 0:
+            res_json = res_json[0]
+
+        if isinstance(res_json, dict) and "error" in res_json:
+            err_msg = res_json["error"].get("message", str(res_json["error"]))
+            raise GISWriteError(f"ArcGIS applyEdits error: {err_msg}")
+
+        add_results = res_json.get("addResults", [])
+        update_results = res_json.get("updateResults", [])
+        delete_results = res_json.get("deleteResults", [])
+
+        # Check for individual item failure (fail-closed)
+        all_results = list(add_results) + list(update_results) + list(delete_results)
+        for r in all_results:
+            if isinstance(r, dict) and (not r.get("success", False) or "error" in r):
+                err = r.get("error", {})
+                msg = err.get("description") or err.get("message") or f"Operation failed on item {r.get('objectId')}"
+                raise GISWriteError(f"applyEdits operation failed (rolled back): {msg}")
+
+        # 4. Verify-by-requery
+        query_url = f"{self._service_url}/{resolved_id}/query"
+        active_oids = [
+            str(r.get("objectId")) for r in list(add_results) + list(update_results)
+            if r.get("objectId") is not None
+        ]
+        if active_oids:
+            q_resp = self._request(
+                "GET",
+                query_url,
+                params={
+                    "objectIds": ",".join(active_oids),
+                    "outFields": "*",
+                    "f": "geojson",
+                    "outSR": "4326",
+                },
+            )
+            if q_resp.status_code != 200:
+                raise GISWriteError(f"Verify-by-requery failed: HTTP {q_resp.status_code}")
+            q_data = q_resp.json()
+            features_found = q_data.get("features", []) if isinstance(q_data, dict) else []
+            if len(features_found) < len(active_oids):
+                raise GISWriteError(
+                    f"Verify-by-requery mismatch: expected {len(active_oids)} features, found {len(features_found)}"
+                )
+
+        del_oids = [
+            str(r.get("objectId")) for r in delete_results
+            if r.get("objectId") is not None
+        ]
+        if del_oids:
+            d_resp = self._request(
+                "GET",
+                query_url,
+                params={
+                    "objectIds": ",".join(del_oids),
+                    "outFields": "OBJECTID",
+                    "f": "json",
+                },
+            )
+            if d_resp.status_code == 200:
+                d_data = d_resp.json()
+                still_present = d_data.get("features", []) if isinstance(d_data, dict) else []
+                if len(still_present) > 0:
+                    raise GISWriteError(
+                        f"Verify-by-requery mismatch: {len(still_present)} deleted features still found"
+                    )
+
+        return {
+            "success": True,
+            "addResults": add_results,
+            "updateResults": update_results,
+            "deleteResults": delete_results,
+            "readback_verified": True,
+        }
+
+    def add_features(self, layer_id: str, features: list[dict[str, Any]]) -> dict[str, Any]:
+        """Add new spatial features to a layer."""
+        return self.apply_edits(layer_id=layer_id, adds=features)
+
+    def update_features(self, layer_id: str, features: list[dict[str, Any]]) -> dict[str, Any]:
+        """Update existing spatial features in a layer."""
+        return self.apply_edits(layer_id=layer_id, updates=features)
+
+    def delete_features(self, layer_id: str, object_ids: list[str | int]) -> dict[str, Any]:
+        """Delete spatial features by OBJECTID from a layer."""
+        return self.apply_edits(layer_id=layer_id, deletes=object_ids)
 

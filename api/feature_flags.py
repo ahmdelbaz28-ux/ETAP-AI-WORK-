@@ -99,6 +99,11 @@ DEFAULT_FEATURE_FLAGS: dict[str, dict[str, Any]] = {
         "status": "beta",
         "description": "ArcGIS Online / Portal REST API integration",
     },
+    "gis_write": {
+        "enabled": False,
+        "status": "beta",
+        "description": "Safe ArcGIS Online / Enterprise write operations via applyEdits",
+    },
 }
 
 FEATURE_FLAGS = DEFAULT_FEATURE_FLAGS

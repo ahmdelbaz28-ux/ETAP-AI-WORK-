@@ -161,3 +161,70 @@ def esri_json_to_geojson(esri: dict[str, Any]) -> dict[str, Any]:
         f"Unknown Esri JSON shape: keys={sorted(esri.keys())}. "
         f"Expected one of: x/y, points, paths, rings, xmin/ymin/xmax/ymax."
     )
+
+
+def geojson_to_esri_json(geom: dict[str, Any]) -> dict[str, Any]:
+    """Convert GeoJSON geometry dict to Esri JSON geometry dict.
+
+    Supported GeoJSON types:
+    - Point -> {"x": .., "y": ..} (with optional "z")
+    - MultiPoint -> {"points": [[x,y], ...]}
+    - LineString -> {"paths": [[[x,y], ...]]}
+    - MultiLineString -> {"paths": [[[x,y], ...], ...]}
+    - Polygon -> {"rings": [[[x,y], ...], ...]}
+    - MultiPolygon -> {"rings": [all flattened rings]}
+
+    Envelopes, unknown shapes, or invalid geometries raise GISDataExtractionError.
+    """
+    if not isinstance(geom, dict):
+        raise GISDataExtractionError(f"GeoJSON geometry must be a dict, got {type(geom).__name__}")
+
+    # Reject Esri JSON or Envelope keys passed by mistake
+    if bool({"xmin", "ymin", "xmax", "ymax", "rings", "paths", "points"} & set(geom.keys())):
+        raise GISDataExtractionError("Payload appears to be Esri JSON or Envelope, not valid GeoJSON")
+
+    is_valid, reason = validate_geometry_dict(geom)
+    if not is_valid:
+        raise GISDataExtractionError(f"Invalid GeoJSON geometry: {reason}")
+
+    gtype = geom.get("type")
+    coords = geom.get("coordinates")
+
+    if gtype == "Point":
+        if not isinstance(coords, (list, tuple)) or len(coords) < 2:
+            raise GISDataExtractionError(f"Point coordinates must have at least [x, y], got {coords}")
+        esri_point: dict[str, Any] = {"x": coords[0], "y": coords[1]}
+        if len(coords) >= 3:
+            esri_point["z"] = coords[2]
+        return esri_point
+
+    if gtype == "MultiPoint":
+        if not isinstance(coords, list):
+            raise GISDataExtractionError(f"MultiPoint coordinates must be a list, got {type(coords).__name__}")
+        return {"points": coords}
+
+    if gtype == "LineString":
+        if not isinstance(coords, list):
+            raise GISDataExtractionError(f"LineString coordinates must be a list, got {type(coords).__name__}")
+        return {"paths": [coords]}
+
+    if gtype == "MultiLineString":
+        if not isinstance(coords, list):
+            raise GISDataExtractionError(f"MultiLineString coordinates must be a list, got {type(coords).__name__}")
+        return {"paths": coords}
+
+    if gtype == "Polygon":
+        if not isinstance(coords, list):
+            raise GISDataExtractionError(f"Polygon coordinates must be a list, got {type(coords).__name__}")
+        return {"rings": coords}
+
+    if gtype == "MultiPolygon":
+        if not isinstance(coords, list):
+            raise GISDataExtractionError(f"MultiPolygon coordinates must be a list, got {type(coords).__name__}")
+        all_rings = []
+        for poly in coords:
+            if isinstance(poly, list):
+                all_rings.extend(poly)
+        return {"rings": all_rings}
+
+    raise GISDataExtractionError(f"Unsupported GeoJSON geometry type for Esri conversion: {gtype}")
