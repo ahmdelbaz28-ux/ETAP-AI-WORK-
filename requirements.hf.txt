@@ -73,4 +73,4 @@ websockets>=12.0
 alembic>=1.13.0
 
 # Cloudflare R2 storage (S3-compatible)
-boto3>=1.34.0
+boto3>=1.43.89
