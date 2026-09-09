@@ -22,6 +22,32 @@ updates:
       - dependencies
       - automated
 
+  # npm dependencies (root monorepo)
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    ignore:
+      - dependency-name: "@vitest/mocker"
+    labels:
+      - dependencies
+      - automated
+
+  # npm dependencies (ui)
+  - package-ecosystem: npm
+    directory: /ui
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    ignore:
+      - dependency-name: "@vitest/mocker"
+    labels:
+      - dependencies
+      - automated
+
   # npm dependencies (new TS service)
   - package-ecosystem: npm
     directory: /ts-service

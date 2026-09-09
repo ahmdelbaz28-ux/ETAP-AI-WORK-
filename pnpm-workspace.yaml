@@ -99,6 +99,7 @@ overrides:
   react-router-dom: ^7.18.2
   # HIGH: multer ReDoS / body limit bypass (Dependabot alert #1564925488)
   multer: ^2.3.0
+  '@vitest/mocker': ^4.1.11
 
 allowBuilds:
   '@biomejs/biome': true

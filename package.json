@@ -66,6 +66,7 @@
     "zod-to-json-schema": "3.24.5"
   },
   "overrides": {
+    "@vitest/mocker": "^4.1.11",
     "hono": "^4.13.7",
     "multer": "^2.3.0",
     "undici": "^7.29.0",
