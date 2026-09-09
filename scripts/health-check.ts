@@ -365,9 +365,13 @@ async function runWeeklyChecks(config: HealthCheckConfig): Promise<CheckResult[]
     const status: CheckResult['status'] = (res.ok && authFailures < 5 && rateLimited < 10) || isSkippedNoAuth ? 'pass' : 'warn';
     let anomalyMsg = `Audit logs issue: ${describeHttpError(res)}`;
     if (status === 'pass') {
-      anomalyMsg = isSkippedNoAuth
-        ? (res.status === 401 ? 'Skipped (runner API key unauthenticated on target: status 401)' : 'Skipped (audit logs endpoint not hosted on target backend: status 404)')
-        : `Auth failures: ${authFailures}, Rate limited: ${rateLimited}`;
+      if (isSkippedNoAuth) {
+        anomalyMsg = res.status === 401
+          ? 'Skipped (runner API key unauthenticated on target: status 401)'
+          : 'Skipped (audit logs endpoint not hosted on target backend: status 404)';
+      } else {
+        anomalyMsg = `Auth failures: ${authFailures}, Rate limited: ${rateLimited}`;
+      }
     }
     results.push({
       name: 'Audit log anomaly detection',
@@ -405,9 +409,13 @@ async function runWeeklyChecks(config: HealthCheckConfig): Promise<CheckResult[]
     const status: CheckResult['status'] = (res.ok && notFound < 20) || isSkippedNoAuth ? 'pass' : 'warn';
     let secMsg = `Audit logs issue: ${describeHttpError(res)}`;
     if (status === 'pass') {
-      secMsg = isSkippedNoAuth
-        ? (res.status === 401 ? 'Skipped (runner API key unauthenticated on target: status 401)' : 'Skipped (audit logs endpoint not hosted on target backend: status 404)')
-        : `404 events: ${notFound}`;
+      if (isSkippedNoAuth) {
+        secMsg = res.status === 401
+          ? 'Skipped (runner API key unauthenticated on target: status 401)'
+          : 'Skipped (audit logs endpoint not hosted on target backend: status 404)';
+      } else {
+        secMsg = `404 events: ${notFound}`;
+      }
     }
     results.push({
       name: 'Security event (404 scan) review',
@@ -475,149 +483,146 @@ async function checkSlaLatencyCompliance(config: HealthCheckConfig): Promise<Che
   };
 }
 
+async function checkStudyExecutionCapacity(config: HealthCheckConfig): Promise<CheckResult> {
+  const res = await httpPost('/api/v1/studies/run', config, {
+    studyType: 'load_flow',
+    parameters: { base_mva: 100, test: true },
+    dryRun: true,
+  }, config.apiKey ? { 'x-api-key': config.apiKey } : undefined);
+  const isSkippedNoAuth = res.status === 401 || res.status === 404;
+  const status: CheckResult['status'] = res.ok || isSkippedNoAuth ? 'pass' : 'warn';
+  let capacityMsg = `Study execution issue: ${describeHttpError(res)}`;
+  if (status === 'pass') {
+    if (isSkippedNoAuth) {
+      capacityMsg = res.status === 401
+        ? 'Skipped (runner API key unauthenticated on target: status 401)'
+        : 'Skipped (studies endpoint not hosted on target backend: status 404)';
+    } else {
+      capacityMsg = `Study queued successfully (${res.latencyMs}ms)`;
+    }
+  }
+  return {
+    name: 'Study execution capacity test',
+    category: 'monthly',
+    status,
+    message: capacityMsg,
+    latencyMs: res.latencyMs,
+    details: { statusCode: res.status, taskId: res.body?.taskId },
+  };
+}
+
+async function checkCostOptimization(config: HealthCheckConfig): Promise<CheckResult> {
+  const res = await httpGet('/metrics', config);
+  const providers = res.body?.metrics?.providers || [];
+  const unusedProviders = providers.filter((p: any) => p.calls === 0 && p.configured);
+  const status: CheckResult['status'] = unusedProviders.length === 0 ? 'pass' : 'warn';
+  return {
+    name: 'Cost optimization (unused providers)',
+    category: 'monthly',
+    status,
+    message: unusedProviders.length === 0 ? 'All configured providers have been used' : `${unusedProviders.length} configured providers with 0 calls`,
+    latencyMs: res.latencyMs,
+    details: { unusedProviders: unusedProviders.map((p: any) => p.name) },
+  };
+}
+
+async function checkAuditLogRetention(config: HealthCheckConfig): Promise<CheckResult> {
+  const res = await httpGet('/api/v1/audit/logs', config, config.apiKey ? { 'x-api-key': config.apiKey } : undefined);
+  const isSkippedNoAuth = res.status === 401 || res.status === 404;
+  const logs = res.body?.logs || [];
+  const hasRecentLogs = logs.some((l: any) => {
+    const logTime = new Date(l.timestamp).getTime();
+    return Date.now() - logTime < 24 * 60 * 60 * 1000; // Within 24h
+  });
+  const status: CheckResult['status'] = (res.ok && hasRecentLogs) || isSkippedNoAuth ? 'pass' : 'warn';
+  let retentionMsg = `Audit logs issue: ${describeHttpError(res)}`;
+  if (status === 'pass') {
+    if (isSkippedNoAuth) {
+      retentionMsg = res.status === 401
+        ? 'Skipped (runner API key unauthenticated on target: status 401)'
+        : 'Skipped (audit logs endpoint not hosted on target backend: status 404)';
+    } else {
+      retentionMsg = 'Recent audit logs found within 24h';
+    }
+  }
+  return {
+    name: 'Audit log retention (24h recency)',
+    category: 'monthly',
+    status,
+    message: retentionMsg,
+    latencyMs: res.latencyMs,
+    details: { hasRecentLogs, totalLogs: logs.length },
+  };
+}
+
+function checkDisasterRecoveryReadiness(): CheckResult {
+  const documentedPaths = ['/health', '/metrics', '/api/v1/agents', '/api/v1/agents/:agentId/chat', '/api/v1/studies/run', '/api/v1/studies/status/:taskId', '/api/v1/providers', '/api/v1/audit/logs'];
+  return {
+    name: 'Disaster recovery endpoint documentation',
+    category: 'monthly',
+    status: 'pass',
+    message: `${documentedPaths.length} critical endpoints documented`,
+    latencyMs: 0,
+    details: { documentedPaths },
+  };
+}
+
+function checkBackupVerification(): CheckResult {
+  return {
+    name: 'Backup verification (script availability)',
+    category: 'monthly',
+    status: 'pass',
+    message: 'Backup scripts exist: scripts/backup-mastra-db.sh, scripts/backup-mastra-db.ps1',
+    latencyMs: 0,
+    details: { scripts: ['scripts/backup-mastra-db.sh', 'scripts/backup-mastra-db.ps1'] },
+  };
+}
+
+function checkIncidentResponseRunbook(): CheckResult {
+  return {
+    name: 'Incident response runbook availability',
+    category: 'monthly',
+    status: 'pass',
+    message: 'INCIDENT_RESPONSE_RUNBOOK.md exists',
+    latencyMs: 0,
+    details: { runbook: 'INCIDENT_RESPONSE_RUNBOOK.md' },
+  };
+}
+
+function checkOperationalDocs(): CheckResult {
+  const requiredDocs = [
+    'OPERATIONS_RISK_REGISTER.md',
+    'DISASTER_RECOVERY_PLAN.md',
+    'BACKUP_RESTORE_REPORT.md',
+    'INCIDENT_RESPONSE_RUNBOOK.md',
+    'AUDIT_LOGGING_REPORT.md',
+    'CAPACITY_PLAN.md',
+    'SLA_SLO_DOCUMENT.md',
+    'COST_OPTIMIZATION_REPORT.md',
+    'SECURITY_OPERATIONS_MANUAL.md',
+    'ENTERPRISE_OPERATIONS_HANDBOOK.md',
+  ];
+  return {
+    name: 'Operational documentation completeness',
+    category: 'monthly',
+    status: 'pass',
+    message: `${requiredDocs.length} operational documents required`,
+    latencyMs: 0,
+    details: { requiredDocs },
+  };
+}
+
 async function runMonthlyChecks(config: HealthCheckConfig): Promise<CheckResult[]> {
-  const results: CheckResult[] = [];
-
-  // 1. Full capacity planning review — simulate a study run
-  {
-    const res = await httpPost('/api/v1/studies/run', config, {
-      studyType: 'load_flow',
-      parameters: { base_mva: 100, test: true },
-      dryRun: true,
-    }, config.apiKey ? { 'x-api-key': config.apiKey } : undefined);
-    const isSkippedNoAuth = res.status === 401 || res.status === 404;
-    const status: CheckResult['status'] = res.ok || isSkippedNoAuth ? 'pass' : 'warn';
-    let capacityMsg = `Study execution issue: ${describeHttpError(res)}`;
-    if (status === 'pass') {
-      if (isSkippedNoAuth) {
-        capacityMsg = res.status === 401
-          ? 'Skipped (runner API key unauthenticated on target: status 401)'
-          : 'Skipped (studies endpoint not hosted on target backend: status 404)';
-      } else {
-        capacityMsg = `Study queued successfully (${res.latencyMs}ms)`;
-      }
-    }
-    results.push({
-      name: 'Study execution capacity test',
-      category: 'monthly',
-      status,
-      message: capacityMsg,
-      latencyMs: res.latencyMs,
-      details: { statusCode: res.status, taskId: res.body?.taskId },
-    });
-  }
-
-  // 2. SLA/SLO compliance review — validate response time SLO
-  results.push(await checkSlaLatencyCompliance(config));
-
-  // 3. Cost optimization review — check if providers are configured but unused
-  {
-    const res = await httpGet('/metrics', config);
-    const providers = res.body?.metrics?.providers || [];
-    const unusedProviders = providers.filter((p: any) => p.calls === 0 && p.configured);
-    const status: CheckResult['status'] = unusedProviders.length === 0 ? 'pass' : 'warn';
-    results.push({
-      name: 'Cost optimization (unused providers)',
-      category: 'monthly',
-      status,
-      message: unusedProviders.length === 0 ? 'All configured providers have been used' : `${unusedProviders.length} configured providers with 0 calls`,
-      latencyMs: res.latencyMs,
-      details: { unusedProviders: unusedProviders.map((p: any) => p.name) },
-    });
-  }
-
-  // 4. Security operations review — check audit log retention
-  {
-    const res = await httpGet('/api/v1/audit/logs', config, config.apiKey ? { 'x-api-key': config.apiKey } : undefined);
-    const isSkippedNoAuth = res.status === 401 || res.status === 404;
-    const logs = res.body?.logs || [];
-    const hasRecentLogs = logs.some((l: any) => {
-      const logTime = new Date(l.timestamp).getTime();
-      return Date.now() - logTime < 24 * 60 * 60 * 1000; // Within 24h
-    });
-    const status: CheckResult['status'] = (res.ok && hasRecentLogs) || isSkippedNoAuth ? 'pass' : 'warn';
-    let retentionMsg = `Audit logs issue: ${describeHttpError(res)}`;
-    if (status === 'pass') {
-      retentionMsg = isSkippedNoAuth
-        ? (res.status === 401 ? 'Skipped (runner API key unauthenticated on target: status 401)' : 'Skipped (audit logs endpoint not hosted on target backend: status 404)')
-        : 'Recent audit logs found within 24h';
-    }
-    results.push({
-      name: 'Audit log retention (24h recency)',
-      category: 'monthly',
-      status,
-      message: retentionMsg,
-      latencyMs: res.latencyMs,
-      details: { hasRecentLogs, totalLogs: logs.length },
-    });
-  }
-
-  // 5. Disaster recovery readiness — verify all endpoints are documented
-  {
-    const documentedPaths = ['/health', '/metrics', '/api/v1/agents', '/api/v1/agents/:agentId/chat', '/api/v1/studies/run', '/api/v1/studies/status/:taskId', '/api/v1/providers', '/api/v1/audit/logs'];
-    const status: CheckResult['status'] = 'pass';
-    results.push({
-      name: 'Disaster recovery endpoint documentation',
-      category: 'monthly',
-      status,
-      message: `${documentedPaths.length} critical endpoints documented`,
-      latencyMs: 0,
-      details: { documentedPaths },
-    });
-  }
-
-  // 6. Backup verification test
-  {
-    const status: CheckResult['status'] = 'pass';
-    results.push({
-      name: 'Backup verification (script availability)',
-      category: 'monthly',
-      status,
-      message: 'Backup scripts exist: scripts/backup-mastra-db.sh, scripts/backup-mastra-db.ps1',
-      latencyMs: 0,
-      details: { scripts: ['scripts/backup-mastra-db.sh', 'scripts/backup-mastra-db.ps1'] },
-    });
-  }
-
-  // 7. Incident response drill — validate escalation matrix exists
-  {
-    const status: CheckResult['status'] = 'pass';
-    results.push({
-      name: 'Incident response runbook availability',
-      category: 'monthly',
-      status,
-      message: 'INCIDENT_RESPONSE_RUNBOOK.md exists',
-      latencyMs: 0,
-      details: { runbook: 'INCIDENT_RESPONSE_RUNBOOK.md' },
-    });
-  }
-
-  // 8. Documentation review
-  {
-    const requiredDocs = [
-      'OPERATIONS_RISK_REGISTER.md',
-      'DISASTER_RECOVERY_PLAN.md',
-      'BACKUP_RESTORE_REPORT.md',
-      'INCIDENT_RESPONSE_RUNBOOK.md',
-      'AUDIT_LOGGING_REPORT.md',
-      'CAPACITY_PLAN.md',
-      'SLA_SLO_DOCUMENT.md',
-      'COST_OPTIMIZATION_REPORT.md',
-      'SECURITY_OPERATIONS_MANUAL.md',
-      'ENTERPRISE_OPERATIONS_HANDBOOK.md',
-    ];
-    const status: CheckResult['status'] = 'pass';
-    results.push({
-      name: 'Operational documentation completeness',
-      category: 'monthly',
-      status,
-      message: `${requiredDocs.length} operational documents required`,
-      latencyMs: 0,
-      details: { requiredDocs },
-    });
-  }
-
-  return results;
+  return [
+    await checkStudyExecutionCapacity(config),
+    await checkSlaLatencyCompliance(config),
+    await checkCostOptimization(config),
+    await checkAuditLogRetention(config),
+    checkDisasterRecoveryReadiness(),
+    checkBackupVerification(),
+    checkIncidentResponseRunbook(),
+    checkOperationalDocs(),
+  ];
 }
 
 // ---------------------------------------------------------------------------

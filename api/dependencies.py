@@ -257,12 +257,11 @@ async def get_current_user(
     from api.auth import _is_token_blacklisted
 
     jti = payload.get("jti")
-    if jti:
-        if await _is_token_blacklisted(jti):
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Token has been revoked",
-            )
+    if jti and await _is_token_blacklisted(jti):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token has been revoked",
+        )
     user_id = str(payload.get("sub", "")).strip()
 
     # Verify the user still exists and is active

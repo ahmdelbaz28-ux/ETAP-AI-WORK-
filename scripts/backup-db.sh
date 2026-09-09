@@ -66,11 +66,9 @@ case "${DB_TYPE}" in
             fi
 
             # 2. Verify SHA256
-            if command -v sha256sum &>/dev/null; then
-                if ! sha256sum --check "${CHECKSUM_FILE}"; then
-                    log "ERROR: SHA256 checksum validation failed for ${BACKUP_FILE}!" >&2
-                    exit 1
-                fi
+            if command -v sha256sum &>/dev/null && ! sha256sum --check "${CHECKSUM_FILE}"; then
+                log "ERROR: SHA256 checksum validation failed for ${BACKUP_FILE}!" >&2
+                exit 1
             fi
 
             # 3. Test extraction into temp file and verify SQLite header/integrity

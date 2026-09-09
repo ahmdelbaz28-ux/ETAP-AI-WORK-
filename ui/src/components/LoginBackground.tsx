@@ -3,7 +3,6 @@ import { useCallback, useRef, useState } from "react";
 
 interface LoginBackgroundProps {
   readonly isRtl: boolean;
-  readonly onLanguageToggle?: () => void;
   readonly isBreakerOpen: boolean;
   readonly setIsBreakerOpen: (val: boolean) => void;
   readonly onTerminalLog: (msg: string) => void;

@@ -17,7 +17,7 @@ def audit_app():
     return app
 
 
-def test_audit_logs_scoping_and_roles(audit_app):
+def test_audit_logs_scoping_and_roles(audit_app, monkeypatch):
     client = TestClient(audit_app)
     audit_app.dependency_overrides[get_api_key] = lambda: "valid-key"
 
@@ -64,9 +64,8 @@ def test_audit_logs_scoping_and_roles(audit_app):
         },
     ]
 
-    # Temporarily monkeypatch _SAMPLE_AUDIT_LOGS
-    orig_logs = audit_module._SAMPLE_AUDIT_LOGS
-    audit_module._SAMPLE_AUDIT_LOGS = test_logs
+    # Temporarily monkeypatch _SAMPLE_AUDIT_LOGS using pytest monkeypatch
+    monkeypatch.setattr(audit_module, "_SAMPLE_AUDIT_LOGS", test_logs)
 
     try:
         # 1. Non-admin engineer (Alice) in Tenant-A: should only see Alice's logs
@@ -140,5 +139,4 @@ def test_audit_logs_scoping_and_roles(audit_app):
         assert res_stats.json()["total"] == 3
 
     finally:
-        audit_module._SAMPLE_AUDIT_LOGS = orig_logs
         audit_app.dependency_overrides.clear()

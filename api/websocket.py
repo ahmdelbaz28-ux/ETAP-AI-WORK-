@@ -176,9 +176,7 @@ class SCADALiveFeed:
         for client in disconnected_clients:
             await self.disconnect(client)
 
-    async def _generate_scada_data(
-        self,
-    ) -> dict:  # NOSONAR python:S7503 async interface for telemetry bridge
+    def _generate_scada_data(self) -> dict:
         """Acquire SCADA telemetry from bridge or simulator service."""
         from services.scada_simulator import get_scada_telemetry
 
@@ -231,7 +229,7 @@ class SCADALiveFeed:
         while self.is_broadcasting:
             try:
                 # Generate fresh SCADA data
-                scada_data = await self._generate_scada_data()
+                scada_data = self._generate_scada_data()
 
                 # Broadcast to all clients
                 message = json.dumps(scada_data, separators=(",", ":"))

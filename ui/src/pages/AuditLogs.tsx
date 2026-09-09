@@ -16,6 +16,30 @@ import { type AuditEntry, fetchAuditLogs } from "../lib/api";
 
 type StatusFilter = "all" | "2xx" | "4xx" | "5xx";
 
+function matchesSearch(entry: AuditEntry, query: string): boolean {
+  if (!query) return true;
+  const q = query.toLowerCase();
+  return (
+    entry.path.toLowerCase().includes(q) ||
+    entry.action.toLowerCase().includes(q) ||
+    (entry.userId ?? "").toLowerCase().includes(q)
+  );
+}
+
+function matchesStatus(statusCode: number, filter: StatusFilter): boolean {
+  if (filter === "all") return true;
+  if (filter === "2xx") return statusCode >= 200 && statusCode < 300;
+  if (filter === "4xx") return statusCode >= 400 && statusCode < 500;
+  if (filter === "5xx") return statusCode >= 500;
+  return true;
+}
+
+function matchesDateRange(timestamp: string, from?: string, to?: string): boolean {
+  if (from && timestamp < from) return false;
+  if (to && timestamp > `${to}T23:59:59`) return false;
+  return true;
+}
+
 export default function AuditLogs() {
   const [logs, setLogs] = useState<AuditEntry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -54,26 +78,14 @@ export default function AuditLogs() {
   }, [safeLogs]);
 
   const filtered = useMemo(() => {
-    return safeLogs.filter((entry) => {
-      if (search.trim()) {
-        const q = search.toLowerCase();
-        const match =
-          entry.path.toLowerCase().includes(q) ||
-          entry.action.toLowerCase().includes(q) ||
-          (entry.userId ?? "").toLowerCase().includes(q);
-        if (!match) return false;
-      }
-      if (statusFilter !== "all") {
-        const s = entry.statusCode;
-        if (statusFilter === "2xx" && (s < 200 || s >= 300)) return false;
-        if (statusFilter === "4xx" && (s < 400 || s >= 500)) return false;
-        if (statusFilter === "5xx" && s < 500) return false;
-      }
-      if (methodFilter !== "all" && entry.method !== methodFilter) return false;
-      if (dateFrom && entry.timestamp < dateFrom) return false;
-      if (dateTo && entry.timestamp > `${dateTo}T23:59:59`) return false;
-      return true;
-    });
+    const q = search.trim();
+    return safeLogs.filter(
+      (entry) =>
+        matchesSearch(entry, q) &&
+        matchesStatus(entry.statusCode, statusFilter) &&
+        (methodFilter === "all" || entry.method === methodFilter) &&
+        matchesDateRange(entry.timestamp, dateFrom, dateTo),
+    );
   }, [safeLogs, search, statusFilter, methodFilter, dateFrom, dateTo]);
 
   const columns = useMemo(

@@ -184,31 +184,37 @@ class DistributedTaskQueue:
         self._completed: dict[str, TaskItem] = {}
         self._failed: dict[str, TaskItem] = {}
         if queue_type == "redis":
-            env = os.environ.get("ENVIRONMENT", os.environ.get("ENV", "development")).lower()
-            redis_url = os.environ.get("REDIS_URL")
-            if not redis_url and env in ("production", "prod", "staging"):
-                raise RuntimeError("REDIS_URL required in production")
-            try:
-                from redis import Redis
-
-                self._redis = Redis.from_url(redis_url) if redis_url else Redis()
-            except ImportError:
-                logger.warning("redis not installed; falling back to in-memory")
-                self.queue_type = "memory"
+            self._init_redis()
         elif queue_type == "rabbitmq":
-            env = os.environ.get("ENVIRONMENT", os.environ.get("ENV", "development")).lower()
-            rabbitmq_url = os.environ.get("RABBITMQ_URL")
-            if not rabbitmq_url:
-                if env in ("production", "prod", "staging"):
-                    raise RuntimeError("RABBITMQ_URL required in production")
-                rabbitmq_url = "amqp://guest:guest@localhost:5672//"
-            try:
-                from kombu import Connection
+            self._init_rabbitmq()
 
-                self._rabbitmq = Connection(rabbitmq_url)
-            except ImportError:
-                logger.warning("kombu not installed; falling back to in-memory")
-                self.queue_type = "memory"
+    def _init_redis(self) -> None:
+        env = os.environ.get("ENVIRONMENT", os.environ.get("ENV", "development")).lower()
+        redis_url = os.environ.get("REDIS_URL")
+        if not redis_url and env in ("production", "prod", "staging"):
+            raise RuntimeError("REDIS_URL required in production")
+        try:
+            from redis import Redis
+
+            self._redis = Redis.from_url(redis_url) if redis_url else Redis()
+        except ImportError:
+            logger.warning("redis not installed; falling back to in-memory")
+            self.queue_type = "memory"
+
+    def _init_rabbitmq(self) -> None:
+        env = os.environ.get("ENVIRONMENT", os.environ.get("ENV", "development")).lower()
+        rabbitmq_url = os.environ.get("RABBITMQ_URL")
+        if not rabbitmq_url:
+            if env in ("production", "prod", "staging"):
+                raise RuntimeError("RABBITMQ_URL required in production")
+            rabbitmq_url = "amqp://guest:guest@localhost:5672//"
+        try:
+            from kombu import Connection
+
+            self._rabbitmq = Connection(rabbitmq_url)
+        except ImportError:
+            logger.warning("kombu not installed; falling back to in-memory")
+            self.queue_type = "memory"
 
     def enqueue(self, task_data: Any, priority: str = "normal") -> str:
         task_id = str(uuid.uuid4())
