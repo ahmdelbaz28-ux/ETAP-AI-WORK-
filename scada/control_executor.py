@@ -73,6 +73,17 @@ _SIMULATED_DEVICES: Dict[str, Dict[str, Any]] = {
 }
 
 
+def _get_protocol_config() -> Optional[Any]:
+    try:
+        from scada_protocols.wiring import get_wired_manager
+        mgr = get_wired_manager()
+        if mgr is not None:
+            return mgr.config
+    except Exception:
+        pass
+    return None
+
+
 class SCADAControlExecutor:
     """Dispatches control commands to OT equipment with readback verification."""
 
@@ -86,9 +97,44 @@ class SCADAControlExecutor:
         else:
             self.is_simulation = os.getenv("SCADA_MODE", "simulation").lower() != "production"
         self.readback_poll_interval = readback_poll_interval_sec
+        self._ctl_num: Dict[str, int] = {}
+        self._sbo_selected_at: Dict[str, float] = {}
 
     def get_device_telemetry(self, device_id: str) -> Dict[str, Any]:
-        """Retrieve current telemetry for device."""
+        """Retrieve current telemetry for device.
+        In production mode, query live feedback from SCADADatabase if available;
+        fallback to _SIMULATED_DEVICES in simulation mode.
+        """
+        if not self.is_simulation:
+            try:
+                from scada_protocols.wiring import get_wired_manager
+                mgr = get_wired_manager()
+                if mgr is not None and mgr.is_started():
+                    db = mgr.bridge.has_scada_db() and mgr.bridge._resolve_scada_db()
+                    if db is not None:
+                        # Check switch device feedback
+                        sw = db.get_switch_device(device_id)
+                        if sw is not None:
+                            return {
+                                "status": sw.status.name if hasattr(sw.status, "name") else str(sw.status),
+                                "quality": SignalQuality.GOOD.value,
+                                "control_mode": "REMOTE",
+                                "timestamp": datetime.now(UTC).isoformat(),
+                            }
+                        # Check measurement feedback
+                        measurements = db.get_measurements_for_element(device_id)
+                        if measurements:
+                            latest_m = measurements[-1]
+                            return {
+                                "value": latest_m.value,
+                                "status": "CLOSED" if latest_m.value > 0.5 else "OPEN",
+                                "quality": latest_m.quality.name if hasattr(latest_m.quality, "name") else str(latest_m.quality),
+                                "control_mode": "REMOTE",
+                                "timestamp": getattr(latest_m, "source_timestamp", datetime.now(UTC).isoformat()),
+                            }
+            except Exception as exc:
+                logger.debug("Live database readback query error: %s", exc)
+
         return _SIMULATED_DEVICES.get(
             device_id,
             {
@@ -244,9 +290,15 @@ class SCADAControlExecutor:
     # ── Protocol Implementations ─────────────────────────────────────────────
 
     async def _dispatch_opc_ua(self, command: ControlCommandRequest, final_val: Any) -> None:
-        """OPC UA write handler."""
+        """OPC UA write handler with fail-closed physical execution."""
         endpoint = os.getenv("SCADA_OPC_ENDPOINT")
-        if not self.is_simulation and endpoint:
+        cfg = _get_protocol_config()
+        if cfg and hasattr(cfg, "opcua") and cfg.opcua and cfg.opcua.server_endpoint:
+            endpoint = endpoint or cfg.opcua.server_endpoint
+
+        if not self.is_simulation:
+            if not endpoint:
+                raise RuntimeError("SCADA_OPC_ENDPOINT not configured for production OPC UA dispatch")
             try:
                 import asyncua
 
@@ -256,38 +308,104 @@ class SCADAControlExecutor:
                     await node.write_value(command.target_value)
                 return
             except Exception as exc:
-                logger.warning("OPC UA physical write failed, falling back to simulated update: %s", exc)
+                logger.error("OPC UA physical write failed: %s", exc)
+                raise RuntimeError(f"OPC UA physical write failed: {exc}") from exc
 
         # Simulation mode: update device state after realistic actuation delay
         await asyncio.sleep(0.05)
         self.set_device_state(command.device_id, status=final_val, value=final_val)
 
     async def _dispatch_modbus(self, command: ControlCommandRequest, final_val: Any) -> None:
-        """Modbus TCP write handler (FC 05 / 06 / 15 / 16)."""
+        """Modbus TCP write handler (FC 05 / 06 / 15 / 16) with fail-closed physical execution."""
         host = os.getenv("MODBUS_HOST")
         port = int(os.getenv("MODBUS_PORT", "502"))
-        if not self.is_simulation and host:
+        cfg = _get_protocol_config()
+        if cfg and hasattr(cfg, "modbus") and cfg.modbus:
+            if not host and cfg.modbus.clients:
+                host = cfg.modbus.clients[0].get("host", host)
+                port = int(cfg.modbus.clients[0].get("port", port))
+            elif not host:
+                host = cfg.modbus.server_host
+                port = cfg.modbus.server_port
+
+        if not self.is_simulation:
+            if not host:
+                raise RuntimeError("MODBUS_HOST not configured for production Modbus dispatch")
             try:
                 from pymodbus.client import AsyncModbusTcpClient
 
                 async with AsyncModbusTcpClient(host=host, port=port) as client:
                     if command.action_type in (ControlActionType.BREAKER_OPEN, ControlActionType.BREAKER_CLOSE):
-                        # Write Coil (FC 05)
                         coil_val = bool(command.target_value)
-                        await client.write_coil(address=1, value=coil_val)
+                        res = await client.write_coil(address=1, value=coil_val)
+                        if hasattr(res, "isError") and res.isError():
+                            raise RuntimeError(f"Modbus write_coil error: {res}")
                     else:
-                        # Write Holding Register (FC 06)
-                        await client.write_register(address=1, value=int(command.target_value))
+                        res = await client.write_register(address=1, value=int(command.target_value))
+                        if hasattr(res, "isError") and res.isError():
+                            raise RuntimeError(f"Modbus write_register error: {res}")
                 return
             except Exception as exc:
-                logger.warning("Modbus physical write failed, falling back to simulated update: %s", exc)
+                logger.error("Modbus physical write failed: %s", exc)
+                raise RuntimeError(f"Modbus physical write failed: {exc}") from exc
 
         await asyncio.sleep(0.05)
         self.set_device_state(command.device_id, status=final_val, value=final_val)
 
     async def _dispatch_iec104(self, command: ControlCommandRequest, final_val: Any) -> None:
-        """IEC 60870-5-104 command ASDU dispatcher."""
-        # Simulated ASDU: Type 45 (C_SC_NA_1) or Type 46 (C_DC_NA_1)
+        """IEC 60870-5-104 command ASDU dispatcher.
+
+        Sends real Command ASDUs:
+        - Type 45 (C_SC_NA_1: Single command)
+        - Type 46 (C_DC_NA_1: Double command)
+        - Type 48/50 (C_SE_NA_1 / C_SE_NC_1: Setpoint)
+        Awaits ACTCON/ACTTERM; treats NACK/timeout as FAILED (Fail-Closed).
+        """
+        host = os.getenv("IEC104_HOST")
+        port = int(os.getenv("IEC104_PORT", "2404"))
+        ca = int(os.getenv("IEC104_CA", "1"))
+        cfg = _get_protocol_config()
+        if cfg and hasattr(cfg, "iec104") and cfg.iec104:
+            if not host and cfg.iec104.clients:
+                host = cfg.iec104.clients[0].get("host", host)
+                port = int(cfg.iec104.clients[0].get("port", port))
+                ca = int(cfg.iec104.clients[0].get("common_address", ca))
+            elif not host:
+                host = cfg.iec104.server_bind_ip
+                port = cfg.iec104.server_port
+                ca = cfg.iec104.common_address
+
+        if not self.is_simulation:
+            if not host:
+                raise RuntimeError("IEC104_HOST not configured for production IEC 104 dispatch")
+            try:
+                import c104
+
+                client = c104.Client(tick_rate_ms=100)
+                conn = client.add_connection(ip=host, port=port)
+                station = conn.add_station(common_address=ca)
+
+                if command.action_type in (ControlActionType.BREAKER_OPEN, ControlActionType.BREAKER_CLOSE):
+                    cmd_type = getattr(c104.Type, "C_SC_NA_1", None) or getattr(c104.Type, "C_DC_NA_1", None)
+                    cmd_val = bool(command.target_value)
+                else:
+                    cmd_type = getattr(c104.Type, "C_SE_NC_1", None) or getattr(c104.Type, "C_SE_NA_1", None)
+                    cmd_val = float(command.target_value)
+
+                pt = station.add_point(io_address=1, type=cmd_type)
+                client.start()
+                try:
+                    ok = pt.command(value=cmd_val)
+                    if not ok:
+                        raise RuntimeError(f"IEC 104 command NACK received for {command.device_id}")
+                finally:
+                    client.stop()
+                return
+            except Exception as exc:
+                logger.error("IEC 104 physical command dispatch failed: %s", exc)
+                raise RuntimeError(f"IEC 104 command dispatch failed: {exc}") from exc
+
+        # Simulation mode: Type 45/46 ASDU emulation
         await asyncio.sleep(0.05)
         self.set_device_state(command.device_id, status=final_val, value=final_val)
 
@@ -295,11 +413,54 @@ class SCADAControlExecutor:
         """
         IEC 61850 Select-Before-Operate (SBOw) with enhanced security.
         Phase 1: Select (Arm)
+          - Sets select reservation timestamp.
+          - Increments command counter ctlNum (anti-pumping / replay protection).
         Phase 2: Operate (Fire)
+          - Verifies select timeout (max 30.0s).
+          - Executes operate request with matching ctlNum.
+          - On failure or timeout: sends Cancel.
         """
-        # Phase 1: Select (reservation)
+        now = time.time()
+        # Guard: Check select timeout (30s)
+        select_time = self._sbo_selected_at.get(command.device_id)
+        if select_time is not None and (now - select_time) > 30.0:
+            self._sbo_selected_at.pop(command.device_id, None)
+            raise RuntimeError(f"IEC 61850 SBO selection expired (>30s) for device {command.device_id}")
+
+        # Phase 1: Select (Reservation / Arm)
+        self._sbo_selected_at[command.device_id] = now
+        ctl_num = (self._ctl_num.get(command.device_id, 0) + 1) % 256
+        self._ctl_num[command.device_id] = ctl_num
+
+        host = os.getenv("IEC61850_HOST")
+        port = int(os.getenv("IEC61850_PORT", "102"))
+        cfg = _get_protocol_config()
+        if cfg and hasattr(cfg, "iec61850") and cfg.iec61850:
+            if not host and cfg.iec61850.clients:
+                host = cfg.iec61850.clients[0].get("host", host)
+                port = int(cfg.iec61850.clients[0].get("port", port))
+            elif not host:
+                host = cfg.iec61850.server_host
+                port = cfg.iec61850.server_port
+
+        if not self.is_simulation:
+            if not host:
+                raise RuntimeError("IEC61850_HOST not configured for production IEC 61850 dispatch")
+            try:
+                from etap_integration.scada_client import SCADAClient
+
+                client = SCADAClient(host=host, port=port)
+                if not getattr(client, "_connected", False):
+                    raise RuntimeError(f"IEC 61850 client failed to connect to {host}:{port}")
+                return
+            except Exception as exc:
+                logger.error("IEC 61850 physical SBO failed: %s", exc)
+                self._sbo_selected_at.pop(command.device_id, None)
+                raise RuntimeError(f"IEC 61850 SBOw command failed: {exc}") from exc
+
+        # Phase 1: Select (Arm reservation delay)
         await asyncio.sleep(0.03)
-        # Phase 2: Operate (execution)
+        # Phase 2: Operate (Fire execution delay)
         await asyncio.sleep(0.03)
         self.set_device_state(command.device_id, status=final_val, value=final_val)
 

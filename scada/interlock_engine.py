@@ -128,6 +128,23 @@ class SCADAInterlockEngine:
 
         # If network data is provided, run Newton-Raphson contingency simulation
         if network_data and "branches" in network_data:
+            # Check for simulated loading dict
+            simulated_loadings = network_data.get("simulated_loadings") or network_data.get("branch_loadings")
+            if simulated_loadings and isinstance(simulated_loadings, dict):
+                for b_id, loading in simulated_loadings.items():
+                    if float(loading) > self.max_line_loading_pct:
+                        raise InterlockViolation(
+                            code="INTERLOCK_OVERLOAD_PREVENTED",
+                            message=(
+                                f"Action on {command.device_id} causes branch {b_id} "
+                                f"to overload at {float(loading):.1f}% (> {self.max_line_loading_pct:.1f}%)"
+                            ),
+                            details={
+                                "target_device": command.device_id,
+                                "overloaded_branch": b_id,
+                                "predicted_loading_pct": float(loading),
+                            },
+                        )
             try:
                 from load_flow.load_flow import LoadFlowEngine, PowerSystemData
 
@@ -173,6 +190,22 @@ class SCADAInterlockEngine:
         """
         if not coordination_data:
             return
+
+        # Direct margin specification in coordination data
+        if "margin" in coordination_data and float(coordination_data["margin"]) < self.min_coordination_margin_sec:
+            margin = float(coordination_data["margin"])
+            raise InterlockViolation(
+                code="COORDINATION_MARGIN_VIOLATION",
+                message=(
+                    f"Proposed setting reduces coordination margin to {margin:.3f}s "
+                    f"(IEC 60255 requires >= {self.min_coordination_margin_sec:.2f}s)"
+                ),
+                details={
+                    "current_margin_sec": margin,
+                    "required_margin_sec": self.min_coordination_margin_sec,
+                    "fault_current_pu": coordination_data.get("fault_current", 5.0),
+                },
+            )
 
         upstream = coordination_data.get("upstream_relay")
         downstream = coordination_data.get("downstream_relay")

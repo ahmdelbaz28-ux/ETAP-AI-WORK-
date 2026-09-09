@@ -23,6 +23,7 @@ def app_with_router():
     cfg.modbus.enabled = False
     cfg.opcua.enabled = False
     cfg.iec104.enabled = False
+    cfg.iec61850.enabled = False
     mgr = SCADAProtocolManager(config=cfg)
     set_manager(mgr)
     app = FastAPI()
@@ -37,7 +38,7 @@ def test_libraries_endpoint(app_with_router):
     r = client.get("/api/v1/scada/protocols/libraries")
     assert r.status_code == 200
     data = r.json()
-    assert set(data.keys()) == {"modbus_tcp", "opc_ua", "iec_104"}
+    assert set(data.keys()) == {"modbus_tcp", "opc_ua", "iec_104", "iec_61850"}
 
 
 def test_status_endpoint_with_manager(app_with_router):

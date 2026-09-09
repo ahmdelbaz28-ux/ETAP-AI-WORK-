@@ -105,6 +105,8 @@ opcua:
   publish_interval_ms: 1000
 
   # Security: None | Sign | SignAndEncrypt (matches asyncua SecurityPolicy)
+  # NOTE: In production OT environments, override via OPCUA_SECURITY_MODE=SignAndEncrypt
+  # and OPCUA_SECURITY_POLICY=Basic256Sha256 with certificate verification.
   security_mode: "None"
   security_policy: "None"
 
@@ -236,3 +238,44 @@ iec104:
       element_id: "TX-1"
       measurement_type: "tap_position"
       type_id: "M_ST_NA_1"
+
+# -----------------------------------------------------------------------------
+# IEC 61850 — Substation Automation & IED integration (MMS / GOOSE)
+# -----------------------------------------------------------------------------
+# Standard Port: TCP 102 (ISO-TSAP / RFC 1006).
+# OT Network Architecture Note:
+#   - Substation OT traffic MUST be isolated on dedicated VLANs (Station Bus VLAN).
+#   - Firewall / DMZ boundaries: Only permit TCP 102 from authorized SCADA masters.
+#   - Other standard ports: Modbus TCP (502/5020), OPC UA (4840), IEC 104 (2404).
+# -----------------------------------------------------------------------------
+iec61850:
+  enabled: true
+  role: client
+  server_host: "0.0.0.0"
+  server_port: 102
+  ied_name: "ETAP_IED_1"
+  poll_interval_sec: 1.0
+
+  clients:
+    - name: "bay-controller-1"
+      host: "192.168.30.10"
+      port: 102
+      ied_name: "BAY01_IED"
+      poll_interval_sec: 1.0
+
+  point_map:
+    - element_id: "BUS-1"
+      measurement_type: "voltage_magnitude"
+      logical_node: "MMXU1"
+      data_attribute: "Vol.mag.f"
+      unit: "p.u."
+    - element_id: "BUS-1"
+      measurement_type: "active_power"
+      logical_node: "MMXU1"
+      data_attribute: "TotW.mag.f"
+      unit: "MW"
+    - element_id: "BRK-1"
+      measurement_type: "breaker_status"
+      logical_node: "XCBR1"
+      data_attribute: "Pos.stVal"
+

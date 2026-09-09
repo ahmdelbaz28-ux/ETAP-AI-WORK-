@@ -75,14 +75,15 @@ class TestManagerConstruction:
         assert s["started"] is False
 
     def test_libraries_probed(self) -> None:
-        """The manager should have probed all three libraries at construction."""
+        """The manager should have probed all libraries at construction."""
         cfg = SCADAProtocolsConfig()
         cfg.modbus.enabled = False
         cfg.opcua.enabled = False
         cfg.iec104.enabled = False
+        cfg.iec61850.enabled = False
         mgr = SCADAProtocolManager(config=cfg)
-        # All three keys present.
-        assert set(mgr._library_status.keys()) == {"modbus_tcp", "opc_ua", "iec_104"}
+        # All keys present.
+        assert set(mgr._library_status.keys()) == {"modbus_tcp", "opc_ua", "iec_104", "iec_61850"}
 
 
 class TestManagerLifecycle:
@@ -91,6 +92,7 @@ class TestManagerLifecycle:
         cfg.modbus.enabled = False
         cfg.opcua.enabled = False
         cfg.iec104.enabled = False
+        cfg.iec61850.enabled = False
         mgr = SCADAProtocolManager(config=cfg)
         mgr.start()
         assert mgr.is_started() is True
@@ -102,6 +104,7 @@ class TestManagerLifecycle:
         cfg.modbus.enabled = False
         cfg.opcua.enabled = False
         cfg.iec104.enabled = False
+        cfg.iec61850.enabled = False
         mgr = SCADAProtocolManager(config=cfg)
         mgr.start()
         mgr.start()  # should not raise
@@ -113,6 +116,7 @@ class TestManagerLifecycle:
         cfg.modbus.enabled = False
         cfg.opcua.enabled = False
         cfg.iec104.enabled = False
+        cfg.iec61850.enabled = False
         mgr = SCADAProtocolManager(config=cfg)
         mgr.stop()  # should not raise even before start
         mgr.stop()

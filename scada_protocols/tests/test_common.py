@@ -318,9 +318,9 @@ class TestAdapterBase:
 
 
 class TestProbes:
-    def test_probe_all_returns_three_protocols(self) -> None:
+    def test_probe_all_returns_protocols(self) -> None:
         result = probe_all()
-        assert set(result.keys()) == {"modbus_tcp", "opc_ua", "iec_104"}
+        assert set(result.keys()) == {"modbus_tcp", "opc_ua", "iec_104", "iec_61850"}
         for v in result.values():
             assert "available" in v
             assert "info" in v

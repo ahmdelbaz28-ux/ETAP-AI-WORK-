@@ -132,19 +132,28 @@ class ModbusClientAdapter(ProtocolAdapter):
             return cli
 
         # pymodbus read signature variants across 3.x:
+        #   3.x (<3.13): read_holding_registers(address, count=1, slave=unit_id, **kwargs)
         #   >=3.13: read_holding_registers(address, *, count=1, device_id=1)
-        #   3.9-3.12: read_holding_registers(address, *, count=1, slave=unit_id)
-        #   <3.9:  read_holding_registers(address, count, slave=unit_id)
         async def _read_registers(
             method_name: str, cli: Any, address: int, count: int, unit_id: int
         ) -> Any:
             read = getattr(cli, method_name)
+            import inspect
+
             try:
-                return await read(address, count=count, device_id=unit_id)
-            except TypeError:
+                sig = inspect.signature(read)
+                if "slave" in sig.parameters:
+                    return await read(address, count=count, slave=unit_id)
+                if "device_id" in sig.parameters:
+                    return await read(address, count=count, device_id=unit_id)
+            except Exception:
                 pass
             try:
                 return await read(address, count=count, slave=unit_id)
+            except TypeError:
+                pass
+            try:
+                return await read(address, count=count, device_id=unit_id)
             except TypeError:
                 return await read(address, count, slave=unit_id)
 
@@ -217,7 +226,9 @@ class ModbusClientAdapter(ProtocolAdapter):
                             self._mark_error(f"read {name}/{entry.name}: {exc}")
                             # Force reconnect on next cycle.
                             try:
-                                await cli.close()
+                                res = cli.close()
+                                if asyncio.iscoroutine(res):
+                                    await res
                             except Exception:
                                 pass
                             clients.pop(name, None)
@@ -241,7 +252,9 @@ class ModbusClientAdapter(ProtocolAdapter):
                 if cli is None:
                     continue
                 try:
-                    await cli.close()
+                    res = cli.close()
+                    if asyncio.iscoroutine(res):
+                        await res
                 except Exception:
                     pass
 

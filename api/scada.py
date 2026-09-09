@@ -58,10 +58,12 @@ from api.dual_control import (
     APPROVAL_EVENT_REJECTED,
     record_approval_event,
 )
+from api.projects import Project
 from scada.control_executor import _SIMULATED_DEVICES, scada_executor
 from scada.interlock_engine import InterlockViolation, SCADAInterlockEngine
 from scada.models import (
     CommandStatus,
+    ControlActionType,
     ControlCommandRequest,
 )
 
@@ -100,6 +102,17 @@ class SCADAResolveRequest(BaseModel):
 # ---------------------------------------------------------------------------
 
 
+def _get_wired_scada_db():
+    try:
+        from scada_protocols.wiring import get_wired_manager
+        mgr = get_wired_manager()
+        if mgr is not None and mgr.is_started():
+            return mgr.bridge.has_scada_db() and mgr.bridge._resolve_scada_db()
+    except Exception:
+        pass
+    return None
+
+
 @router.get("/live")
 async def scada_live(request: Request):
     """Return a snapshot of the latest SCADA telemetry.
@@ -110,43 +123,66 @@ async def scada_live(request: Request):
     trace_id = getattr(request.state, "trace_id", "unknown")
     try:
         is_prod = os.getenv("SCADA_MODE", "simulation").lower() == "production"
-
-        # Build live points from executor's device telemetry
         points = []
-        for dev_id, dev in _SIMULATED_DEVICES.items():
-            if "status" in dev:
-                points.append({
-                    "tag": f"{dev_id}.STATUS",
-                    "value": 1.0 if dev["status"] == "CLOSED" else 0.0,
-                    "unit": "state",
-                    "quality": dev.get("quality", "GOOD"),
-                })
-            if "current_A" in dev:
-                points.append({
-                    "tag": f"{dev_id}.I",
-                    "value": float(dev["current_A"]),
-                    "unit": "A",
-                    "quality": dev.get("quality", "GOOD"),
-                })
-            if "voltage_kV" in dev:
-                points.append({
-                    "tag": f"{dev_id}.V",
-                    "value": float(dev["voltage_kV"]),
-                    "unit": "kV",
-                    "quality": dev.get("quality", "GOOD"),
-                })
-            if "voltage_setpoint" in dev:
-                points.append({
-                    "tag": f"{dev_id}.V_SP",
-                    "value": float(dev["voltage_setpoint"]),
-                    "unit": "pu",
-                    "quality": dev.get("quality", "GOOD"),
-                })
 
-        # Ensure standard baseline tags exist
-        if not any(p["tag"] == "BUS1.V" for p in points):
-            points.insert(0, {"tag": "BUS1.V", "value": 1.02, "unit": "pu", "quality": "GOOD"})
-            points.insert(1, {"tag": "BUS1.F", "value": 50.0, "unit": "Hz", "quality": "GOOD"})
+        if is_prod:
+            db = _get_wired_scada_db()
+            if db is not None and db.measurements:
+                unit_map = {
+                    "VOLTAGE_MAGNITUDE": "kV",
+                    "CURRENT_MAGNITUDE": "A",
+                    "ACTIVE_POWER": "MW",
+                    "REACTIVE_POWER": "MVar",
+                    "FREQUENCY": "Hz",
+                    "BREAKER_STATUS": "state",
+                    "TAP_POSITION": "step",
+                }
+                for m in db.measurements.values():
+                    mtype_name = m.measurement_type.name if hasattr(m.measurement_type, "name") else str(m.measurement_type)
+                    q_name = m.quality.name if hasattr(m.quality, "name") else str(m.quality)
+                    points.append({
+                        "tag": f"{m.element_id}.{mtype_name}",
+                        "value": float(m.value),
+                        "unit": unit_map.get(mtype_name, "unit"),
+                        "quality": q_name,
+                        "source_timestamp": getattr(m, "source_timestamp", m.timestamp),
+                    })
+        else:
+            # Build live points from executor's device telemetry
+            for dev_id, dev in _SIMULATED_DEVICES.items():
+                if "status" in dev:
+                    points.append({
+                        "tag": f"{dev_id}.STATUS",
+                        "value": 1.0 if dev["status"] == "CLOSED" else 0.0,
+                        "unit": "state",
+                        "quality": dev.get("quality", "GOOD"),
+                    })
+                if "current_A" in dev:
+                    points.append({
+                        "tag": f"{dev_id}.I",
+                        "value": float(dev["current_A"]),
+                        "unit": "A",
+                        "quality": dev.get("quality", "GOOD"),
+                    })
+                if "voltage_kV" in dev:
+                    points.append({
+                        "tag": f"{dev_id}.V",
+                        "value": float(dev["voltage_kV"]),
+                        "unit": "kV",
+                        "quality": dev.get("quality", "GOOD"),
+                    })
+                if "voltage_setpoint" in dev:
+                    points.append({
+                        "tag": f"{dev_id}.V_SP",
+                        "value": float(dev["voltage_setpoint"]),
+                        "unit": "pu",
+                        "quality": dev.get("quality", "GOOD"),
+                    })
+
+            # Ensure standard baseline tags exist
+            if not any(p["tag"] == "BUS1.V" for p in points):
+                points.insert(0, {"tag": "BUS1.V", "value": 1.02, "unit": "pu", "quality": "GOOD"})
+                points.insert(1, {"tag": "BUS1.F", "value": 50.0, "unit": "Hz", "quality": "GOOD"})
 
         return {
             "success": True,
@@ -170,18 +206,34 @@ async def scada_devices(
     user: CurrentUser = Depends(get_current_user_from_header),
 ):
     """List substation bays and physical devices with their current operational states."""
+    is_prod = os.getenv("SCADA_MODE", "simulation").lower() == "production"
     devices = []
-    for dev_id, dev_data in _SIMULATED_DEVICES.items():
-        devices.append({
-            "device_id": dev_id,
-            "status": dev_data.get("status", "NORMAL"),
-            "quality": dev_data.get("quality", "GOOD"),
-            "control_mode": dev_data.get("control_mode", "REMOTE"),
-            "voltage_kV": dev_data.get("voltage_kV"),
-            "current_A": dev_data.get("current_A"),
-            "tap_position": dev_data.get("tap_position"),
-            "timestamp": dev_data.get("timestamp"),
-        })
+    if is_prod:
+        db = _get_wired_scada_db()
+        if db is not None and db.switch_devices:
+            for dev_id, sw in db.switch_devices.items():
+                devices.append({
+                    "device_id": dev_id,
+                    "status": sw.status.name if hasattr(sw.status, "name") else str(sw.status),
+                    "quality": "GOOD",
+                    "control_mode": "REMOTE",
+                    "voltage_kV": db.get_latest_voltage(sw.from_element) or db.get_latest_voltage(sw.to_element),
+                    "current_A": None,
+                    "tap_position": None,
+                    "timestamp": datetime.now(UTC).isoformat(),
+                })
+    else:
+        for dev_id, dev_data in _SIMULATED_DEVICES.items():
+            devices.append({
+                "device_id": dev_id,
+                "status": dev_data.get("status", "NORMAL"),
+                "quality": dev_data.get("quality", "GOOD"),
+                "control_mode": dev_data.get("control_mode", "REMOTE"),
+                "voltage_kV": dev_data.get("voltage_kV"),
+                "current_A": dev_data.get("current_A"),
+                "tap_position": dev_data.get("tap_position"),
+                "timestamp": dev_data.get("timestamp"),
+            })
 
     return {
         "success": True,
@@ -227,8 +279,50 @@ async def propose_control_action(
 
     # 2. Pre-flight Engineering Interlock validation
     telemetry = {command.device_id: scada_executor.get_device_telemetry(command.device_id)}
+
+    network_data = None
+    coordination_data = None
+
+    proj = None
+    if command.project_id:
+        proj_res = await db.execute(select(Project).where(Project.id == command.project_id))
+        proj = proj_res.scalar_one_or_none()
+    else:
+        proj_res = await db.execute(
+            select(Project).where(Project.tenant_id == user.tenant_id, Project.status == "active").order_by(Project.updated_at.desc())
+        )
+        proj = proj_res.scalars().first()
+        if not proj:
+            proj_res = await db.execute(
+                select(Project).where(Project.tenant_id.is_(None), Project.status == "active").order_by(Project.updated_at.desc())
+            )
+            proj = proj_res.scalars().first()
+
+    if proj and proj.system_config:
+        network_data = proj.system_config
+        prot_settings = network_data.get("protection_settings", {}) or network_data.get("coordination", {})
+        bay_prot = prot_settings.get(command.bay_id or command.device_id) or prot_settings.get("default")
+        if bay_prot:
+            coordination_data = bay_prot
+
+    # Fail-closed for breaker switching if no network model with branches is available
+    if command.action_type in (ControlActionType.BREAKER_OPEN, ControlActionType.BREAKER_CLOSE):
+        if not network_data or "branches" not in network_data:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail={
+                    "code": "MISSING_NETWORK_MODEL",
+                    "message": "Breaker switching requires an active network model with branches for What-If contingency analysis.",
+                },
+            )
+
     try:
-        _interlock_engine.pre_flight_check(command=command, telemetry=telemetry)
+        _interlock_engine.pre_flight_check(
+            command=command,
+            telemetry=telemetry,
+            network_data=network_data,
+            coordination_data=coordination_data,
+        )
     except InterlockViolation as violation:
         logger.warning(
             "SCADA control proposal blocked by interlock: device=%s code=%s msg=%s",

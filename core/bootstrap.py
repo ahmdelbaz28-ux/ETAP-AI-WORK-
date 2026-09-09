@@ -382,8 +382,16 @@ async def lifespan(_app: Any) -> AsyncIterator[None]:
     if os.environ.get("SCADA_PROTOCOLS_ENABLED", "").lower() == "true":
         try:
             from scada_protocols.wiring import wire_into_app
+            from scada_model.scada_model import SCADADatabase
+            from digital_twin.event_bus import EventBus
 
-            wire_into_app(_app)
+            scada_db = SCADADatabase()
+            event_bus = EventBus()
+            wire_into_app(
+                _app,
+                scada_db=scada_db,
+                event_bus=event_bus,
+            )
             logger.info("scada_protocols wired into app")
         except Exception as e:
             logger.warning("scada_protocols wiring skipped: %s", e)

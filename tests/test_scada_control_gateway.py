@@ -25,6 +25,7 @@ from sqlalchemy.orm import sessionmaker
 
 from api.database import Base, get_db
 from api.dependencies import CurrentUser, get_current_user_from_header
+from api.projects import Project
 from api.scada import router as scada_router
 from scada.control_executor import scada_executor
 from scada.models import BreakerState, SignalQuality
@@ -50,6 +51,35 @@ async def async_db() -> AsyncSession:
 
     async_session = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
     async with async_session() as session:
+        # Seed an active default project with branches for What-If interlock pre-flight analysis
+        default_proj = Project(
+            id="proj_default_ot",
+            tenant_id=None,
+            name="Substation Grid",
+            description="Default electrical network for SCADA What-If analysis",
+            created_by="system",
+            status="active",
+            system_config={
+                "buses": [
+                    {"id": "BUS_1", "nominal_kv": 11.0, "type": "slack"},
+                    {"id": "BUS_2", "nominal_kv": 11.0, "type": "pq"},
+                ],
+                "branches": [
+                    {
+                        "id": "CB_001",
+                        "name": "CB_001",
+                        "status": 1,
+                        "from_bus": "BUS_1",
+                        "to_bus": "BUS_2",
+                        "r_ohm": 0.01,
+                        "x_ohm": 0.05,
+                        "rated_current_a": 630.0,
+                    }
+                ],
+            },
+        )
+        session.add(default_proj)
+        await session.commit()
         yield session
 
     async with engine.begin() as conn:

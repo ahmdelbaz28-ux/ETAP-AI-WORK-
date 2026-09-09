@@ -36,6 +36,7 @@ def _make_disabled_config() -> SCADAProtocolsConfig:
     cfg.modbus.enabled = False
     cfg.opcua.enabled = False
     cfg.iec104.enabled = False
+    cfg.iec61850.enabled = False
     return cfg
 
 
@@ -105,7 +106,7 @@ def test_libraries_endpoint_works_through_wiring():
         r = client.get("/api/v1/scada/protocols/libraries")
         assert r.status_code == 200
         data = r.json()
-        assert set(data.keys()) == {"modbus_tcp", "opc_ua", "iec_104"}
+        assert set(data.keys()) == {"modbus_tcp", "opc_ua", "iec_104", "iec_61850"}
     finally:
         _cfg_mod.load_config = original_load
         _w.load_config = original_load

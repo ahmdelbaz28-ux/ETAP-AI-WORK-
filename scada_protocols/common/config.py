@@ -93,12 +93,27 @@ class Iec104Config:
 
 
 @dataclass
+class Iec61850Config:
+    """IEC 61850 client adapter config."""
+
+    enabled: bool = True
+    role: AdapterRole = AdapterRole.CLIENT
+    server_host: str = "0.0.0.0"
+    server_port: int = 102
+    ied_name: str = "ETAP_IED_1"
+    clients: List[Dict[str, Any]] = field(default_factory=list)
+    point_map: List[Dict[str, Any]] = field(default_factory=list)
+    poll_interval_sec: float = 1.0
+
+
+@dataclass
 class SCADAProtocolsConfig:
-    """Top-level config wrapping all three protocols plus shared options."""
+    """Top-level config wrapping all SCADA protocols plus shared options."""
 
     modbus: ModbusConfig = field(default_factory=ModbusConfig)
     opcua: OpcUaConfig = field(default_factory=OpcUaConfig)
     iec104: Iec104Config = field(default_factory=Iec104Config)
+    iec61850: Iec61850Config = field(default_factory=Iec61850Config)
     # When True, a failure to import a protocol library is fatal at start().
     # When False (default), the manager logs a warning and skips the adapter.
     strict_lib_check: bool = False
@@ -160,8 +175,8 @@ def _build_opcua(raw: Dict[str, Any]) -> OpcUaConfig:
         server_namespace=int(raw.get("server_namespace", 3)),
         clients=list(raw.get("clients", []) or []),
         node_map=list(raw.get("node_map", []) or []),
-        security_mode=str(raw.get("security_mode", "None")),
-        security_policy=str(raw.get("security_policy", "None")),
+        security_mode=str(os.environ.get("OPCUA_SECURITY_MODE", raw.get("security_mode", "None"))),
+        security_policy=str(os.environ.get("OPCUA_SECURITY_POLICY", raw.get("security_policy", "None"))),
         publish_interval_ms=int(raw.get("publish_interval_ms", 1000)),
     )
     for i, entry in enumerate(cfg.node_map):
@@ -195,6 +210,26 @@ def _build_iec104(raw: Dict[str, Any]) -> Iec104Config:
     return cfg
 
 
+def _build_iec61850(raw: Dict[str, Any]) -> Iec61850Config:
+    if not isinstance(raw, dict):
+        raise ConfigError("iec61850 section must be a mapping")
+    cfg = Iec61850Config(
+        enabled=bool(raw.get("enabled", True)),
+        role=_coerce_role(raw.get("role", AdapterRole.CLIENT)),
+        server_host=str(raw.get("server_host", "0.0.0.0")),
+        server_port=int(raw.get("server_port", 102)),
+        ied_name=str(raw.get("ied_name", "ETAP_IED_1")),
+        clients=list(raw.get("clients", []) or []),
+        point_map=list(raw.get("point_map", []) or []),
+        poll_interval_sec=float(raw.get("poll_interval_sec", 1.0)),
+    )
+    for i, entry in enumerate(cfg.point_map):
+        for key in ("element_id", "measurement_type"):
+            if key not in entry:
+                raise ConfigError(f"iec61850.point_map[{i}] missing required key {key!r}")
+    return cfg
+
+
 def load_config(path: Optional[str] = None) -> SCADAProtocolsConfig:
     """Load config from a YAML file path.
 
@@ -223,6 +258,7 @@ def load_config(path: Optional[str] = None) -> SCADAProtocolsConfig:
         modbus=_build_modbus(raw.get("modbus", {}) or {}),
         opcua=_build_opcua(raw.get("opcua", {}) or {}),
         iec104=_build_iec104(raw.get("iec104", {}) or {}),
+        iec61850=_build_iec61850(raw.get("iec61850", {}) or {}),
         strict_lib_check=bool(raw.get("strict_lib_check", False)),
         default_quality=str(raw.get("default_quality", "good")),
     )
@@ -236,6 +272,7 @@ def load_config_from_dict(raw: Dict[str, Any]) -> SCADAProtocolsConfig:
         modbus=_build_modbus(raw.get("modbus", {}) or {}),
         opcua=_build_opcua(raw.get("opcua", {}) or {}),
         iec104=_build_iec104(raw.get("iec104", {}) or {}),
+        iec61850=_build_iec61850(raw.get("iec61850", {}) or {}),
         strict_lib_check=bool(raw.get("strict_lib_check", False)),
         default_quality=str(raw.get("default_quality", "good")),
     )
@@ -245,6 +282,7 @@ __all__ = [
     "ModbusConfig",
     "OpcUaConfig",
     "Iec104Config",
+    "Iec61850Config",
     "SCADAProtocolsConfig",
     "ConfigError",
     "load_config",

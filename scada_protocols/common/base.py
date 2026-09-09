@@ -40,6 +40,7 @@ class ProtocolType(StrEnum):
     MODBUS_TCP = "modbus_tcp"
     OPC_UA = "opc_ua"
     IEC_104 = "iec_104"
+    IEC_61850 = "iec_61850"
 
 
 class AdapterRole(StrEnum):
@@ -285,6 +286,20 @@ def probe_iec104() -> Tuple[bool, str]:
         return False, str(exc)
 
 
+def probe_iec61850() -> Tuple[bool, str]:
+    try:
+        import iec61850datamodel  # type: ignore
+
+        return True, getattr(iec61850datamodel, "__version__", "unknown") or "installed"
+    except Exception:
+        try:
+            import py61850  # type: ignore
+
+            return True, getattr(py61850, "__version__", "unknown") or "installed"
+        except Exception as exc:
+            return False, str(exc)
+
+
 def probe_all() -> Dict[str, Dict[str, Any]]:
     """Probe every protocol library. Used by /health and config validation."""
     results: Dict[str, Dict[str, Any]] = {}
@@ -292,6 +307,7 @@ def probe_all() -> Dict[str, Dict[str, Any]]:
         ("modbus_tcp", probe_modbus),
         ("opc_ua", probe_opcua),
         ("iec_104", probe_iec104),
+        ("iec_61850", probe_iec61850),
     ):
         ok, info = probe()
         results[name] = {"available": ok, "info": info}
@@ -308,5 +324,6 @@ __all__ = [
     "probe_modbus",
     "probe_opcua",
     "probe_iec104",
+    "probe_iec61850",
     "probe_all",
 ]

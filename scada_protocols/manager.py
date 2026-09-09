@@ -35,6 +35,7 @@ from scada_protocols.common.base import (
 from scada_protocols.common.bridge import SCADAProtocolBridge, make_callback
 from scada_protocols.common.config import SCADAProtocolsConfig, load_config
 from scada_protocols.iec104 import IEC104Adapter
+from scada_protocols.iec61850 import IEC61850ClientAdapter
 from scada_protocols.modbus import ModbusAdapter
 from scada_protocols.opcua import OpcUaAdapter
 
@@ -145,6 +146,24 @@ class SCADAProtocolManager:
             else:
                 logger.warning("IEC 104 enabled in config but c104 not available — skipped")
 
+        # --- IEC 61850 ---
+        if hasattr(cfg, "iec61850") and cfg.iec61850.enabled:
+            ok, info = _lib_available("iec_61850")
+            if ok:
+                try:
+                    adapter = IEC61850ClientAdapter(
+                        config=cfg.iec61850,
+                        role=cfg.iec61850.role,
+                        on_measurement=self._measurement_cb,
+                    )
+                    self._adapters[ProtocolType.IEC_61850] = adapter
+                except Exception as exc:
+                    logger.error("Failed to build IEC 61850 adapter: %s", exc)
+            elif cfg.strict_lib_check:
+                raise RuntimeError(f"IEC 61850 library not available: {info}")
+            else:
+                logger.warning("IEC 61850 enabled in config but library not available — skipped")
+
     # -- lifecycle ----------------------------------------------------------
 
     def start(self) -> None:
@@ -196,6 +215,7 @@ class SCADAProtocolManager:
                     "modbus_enabled": self._cfg.modbus.enabled,
                     "opcua_enabled": self._cfg.opcua.enabled,
                     "iec104_enabled": self._cfg.iec104.enabled,
+                    "iec61850_enabled": getattr(self._cfg, "iec61850", None).enabled if hasattr(self._cfg, "iec61850") else False,
                     "strict_lib_check": self._cfg.strict_lib_check,
                 },
             }

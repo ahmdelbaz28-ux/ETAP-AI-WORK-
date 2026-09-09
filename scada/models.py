@@ -82,6 +82,8 @@ class ControlCommandRequest(BaseModel):
     expected_current_state: Optional[str] = Field(default=None, description="Expected state before command (pre-check)")
     timeout_sec: float = Field(default=5.0, ge=0.1, le=30.0, description="Max time to wait for readback verification")
     local_remote_check: bool = Field(default=True, description="Enforce ANSI 43 remote-mode check")
+    project_id: Optional[str] = Field(default=None, description="Optional associated power system project ID")
+    bay_id: Optional[str] = Field(default=None, description="Optional substation bay identifier")
 
 
 class ControlCommandResponse(BaseModel):
