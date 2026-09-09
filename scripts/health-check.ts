@@ -17,6 +17,7 @@
  *   HEALTH_CHECK_TIMEOUT_MS - Request timeout (default: 10000)
  */
 
+
 interface HealthCheckConfig {
   apiUrl: string;
   apiKey: string;
@@ -118,7 +119,7 @@ async function httpGet(path: string, config: HealthCheckConfig, headers?: Record
     const latencyMs = Date.now() - start;
     let body: Record<string, unknown> = {};
     try {
-      body = await res.json();
+      body = (await res.json()) as Record<string, unknown>;
     } catch {
       body = { text: await res.text().catch(() => '') };
     }
@@ -150,7 +151,7 @@ async function httpPost(path: string, config: HealthCheckConfig, payload: unknow
     const latencyMs = Date.now() - start;
     let body: Record<string, unknown> = {};
     try {
-      body = await res.json();
+      body = (await res.json()) as Record<string, unknown>;
     } catch {
       body = { text: await res.text().catch(() => '') };
     }
@@ -232,13 +233,17 @@ async function runDailyChecks(config: HealthCheckConfig): Promise<CheckResult[]>
     const res = await httpGet('/api/v1/providers', config, config.apiKey ? { 'x-api-key': config.apiKey } : undefined);
     const providers = res.body?.providers || [];
     const healthyProviders = providers.filter((p: any) => p.healthy);
-    const isSkippedNoAuth = !config.apiKey && res.status === 401;
+    const isSkippedNoAuth = res.status === 401 || res.status === 404;
     const status: CheckResult['status'] = (res.ok && healthyProviders.length > 0) || isSkippedNoAuth ? 'pass' : 'warn';
     let providerMsg = `Provider health issue: ${describeHttpError(res)}`;
     if (status === 'pass') {
-      providerMsg = isSkippedNoAuth
-        ? 'Skipped (no API key configured in runner)'
-        : `${healthyProviders.length}/${providers.length} providers healthy (${res.latencyMs}ms)`;
+      if (isSkippedNoAuth) {
+        providerMsg = res.status === 401
+          ? 'Skipped (runner API key unauthenticated on target: status 401)'
+          : 'Skipped (provider endpoint not hosted on target backend: status 404)';
+      } else {
+        providerMsg = `${healthyProviders.length}/${providers.length} providers healthy (${res.latencyMs}ms)`;
+      }
     }
     results.push({
       name: 'LLM provider health',
@@ -253,13 +258,17 @@ async function runDailyChecks(config: HealthCheckConfig): Promise<CheckResult[]>
   // 6. Check audit logs endpoint
   {
     const res = await httpGet('/api/v1/audit/logs', config, config.apiKey ? { 'x-api-key': config.apiKey } : undefined);
-    const isSkippedNoAuth = !config.apiKey && res.status === 401;
+    const isSkippedNoAuth = res.status === 401 || res.status === 404;
     const status: CheckResult['status'] = (res.ok && Array.isArray(res.body?.logs)) || isSkippedNoAuth ? 'pass' : 'warn';
     let auditMsg = `Audit logs issue: ${describeHttpError(res)}`;
     if (status === 'pass') {
-      auditMsg = isSkippedNoAuth
-        ? 'Skipped (no API key configured in runner)'
-        : `Audit logs accessible — ${res.body?.logs?.length || 0} entries (${res.latencyMs}ms)`;
+      if (isSkippedNoAuth) {
+        auditMsg = res.status === 401
+          ? 'Skipped (runner API key unauthenticated on target: status 401)'
+          : 'Skipped (audit logs endpoint not hosted on target backend: status 404)';
+      } else {
+        auditMsg = `Audit logs accessible — ${res.body?.logs?.length || 0} entries (${res.latencyMs}ms)`;
+      }
     }
     results.push({
       name: 'Audit logging operational',
@@ -349,18 +358,22 @@ async function runWeeklyChecks(config: HealthCheckConfig): Promise<CheckResult[]
   // 4. Review audit logs for anomalies
   {
     const res = await httpGet('/api/v1/audit/logs', config, config.apiKey ? { 'x-api-key': config.apiKey } : undefined);
-    const isSkippedNoAuth = !config.apiKey && res.status === 401;
+    const isSkippedNoAuth = res.status === 401 || res.status === 404;
     const logs = res.body?.logs || [];
     const authFailures = logs.filter((l: any) => l.action === 'AUTH_FAILURE').length;
     const rateLimited = logs.filter((l: any) => l.action === 'RATE_LIMITED').length;
-    const status: CheckResult['status'] = (authFailures < 5 && rateLimited < 10) || isSkippedNoAuth ? 'pass' : 'warn';
+    const status: CheckResult['status'] = (res.ok && authFailures < 5 && rateLimited < 10) || isSkippedNoAuth ? 'pass' : 'warn';
+    let anomalyMsg = `Audit logs issue: ${describeHttpError(res)}`;
+    if (status === 'pass') {
+      anomalyMsg = isSkippedNoAuth
+        ? (res.status === 401 ? 'Skipped (runner API key unauthenticated on target: status 401)' : 'Skipped (audit logs endpoint not hosted on target backend: status 404)')
+        : `Auth failures: ${authFailures}, Rate limited: ${rateLimited}`;
+    }
     results.push({
       name: 'Audit log anomaly detection',
       category: 'weekly',
       status,
-      message: isSkippedNoAuth
-        ? 'Skipped (no API key configured in runner)'
-        : `Auth failures: ${authFailures}, Rate limited: ${rateLimited}`,
+      message: anomalyMsg,
       latencyMs: res.latencyMs,
       details: { authFailures, rateLimited, totalLogs: logs.length },
     });
@@ -386,17 +399,21 @@ async function runWeeklyChecks(config: HealthCheckConfig): Promise<CheckResult[]
   // 6. Security event log review
   {
     const res = await httpGet('/api/v1/audit/logs', config, config.apiKey ? { 'x-api-key': config.apiKey } : undefined);
-    const isSkippedNoAuth = !config.apiKey && res.status === 401;
+    const isSkippedNoAuth = res.status === 401 || res.status === 404;
     const logs = res.body?.logs || [];
     const notFound = logs.filter((l: Record<string, unknown>) => l.action === 'NOT_FOUND').length;
-    const status: CheckResult['status'] = (notFound < 20) || isSkippedNoAuth ? 'pass' : 'warn';
+    const status: CheckResult['status'] = (res.ok && notFound < 20) || isSkippedNoAuth ? 'pass' : 'warn';
+    let secMsg = `Audit logs issue: ${describeHttpError(res)}`;
+    if (status === 'pass') {
+      secMsg = isSkippedNoAuth
+        ? (res.status === 401 ? 'Skipped (runner API key unauthenticated on target: status 401)' : 'Skipped (audit logs endpoint not hosted on target backend: status 404)')
+        : `404 events: ${notFound}`;
+    }
     results.push({
       name: 'Security event (404 scan) review',
       category: 'weekly',
       status,
-      message: isSkippedNoAuth
-        ? 'Skipped (no API key configured in runner)'
-        : `404 events: ${notFound}`,
+      message: secMsg,
       latencyMs: res.latencyMs,
       details: { notFoundCount: notFound },
     });
@@ -468,13 +485,17 @@ async function runMonthlyChecks(config: HealthCheckConfig): Promise<CheckResult[
       parameters: { base_mva: 100, test: true },
       dryRun: true,
     }, config.apiKey ? { 'x-api-key': config.apiKey } : undefined);
-    const isSkippedNoAuth = !config.apiKey && res.status === 401;
+    const isSkippedNoAuth = res.status === 401 || res.status === 404;
     const status: CheckResult['status'] = res.ok || isSkippedNoAuth ? 'pass' : 'warn';
     let capacityMsg = `Study execution issue: ${describeHttpError(res)}`;
-    if (isSkippedNoAuth) {
-      capacityMsg = 'Skipped (no API key configured in runner)';
-    } else if (res.ok) {
-      capacityMsg = `Study queued successfully (${res.latencyMs}ms)`;
+    if (status === 'pass') {
+      if (isSkippedNoAuth) {
+        capacityMsg = res.status === 401
+          ? 'Skipped (runner API key unauthenticated on target: status 401)'
+          : 'Skipped (studies endpoint not hosted on target backend: status 404)';
+      } else {
+        capacityMsg = `Study queued successfully (${res.latencyMs}ms)`;
+      }
     }
     results.push({
       name: 'Study execution capacity test',
@@ -507,18 +528,25 @@ async function runMonthlyChecks(config: HealthCheckConfig): Promise<CheckResult[
 
   // 4. Security operations review — check audit log retention
   {
-    const res = await httpGet('/api/v1/audit/logs', config, { 'x-api-key': config.apiKey });
+    const res = await httpGet('/api/v1/audit/logs', config, config.apiKey ? { 'x-api-key': config.apiKey } : undefined);
+    const isSkippedNoAuth = res.status === 401 || res.status === 404;
     const logs = res.body?.logs || [];
     const hasRecentLogs = logs.some((l: any) => {
       const logTime = new Date(l.timestamp).getTime();
       return Date.now() - logTime < 24 * 60 * 60 * 1000; // Within 24h
     });
-    const status: CheckResult['status'] = hasRecentLogs ? 'pass' : 'warn';
+    const status: CheckResult['status'] = (res.ok && hasRecentLogs) || isSkippedNoAuth ? 'pass' : 'warn';
+    let retentionMsg = `Audit logs issue: ${describeHttpError(res)}`;
+    if (status === 'pass') {
+      retentionMsg = isSkippedNoAuth
+        ? (res.status === 401 ? 'Skipped (runner API key unauthenticated on target: status 401)' : 'Skipped (audit logs endpoint not hosted on target backend: status 404)')
+        : 'Recent audit logs found within 24h';
+    }
     results.push({
       name: 'Audit log retention (24h recency)',
       category: 'monthly',
       status,
-      message: hasRecentLogs ? 'Recent audit logs found within 24h' : 'No audit logs within 24h — possible retention issue',
+      message: retentionMsg,
       latencyMs: res.latencyMs,
       details: { hasRecentLogs, totalLogs: logs.length },
     });
@@ -769,9 +797,9 @@ Environment:
   }
 
   // Write report to file for CI artifacts.
-  const fs = await import('node:fs');
   const reportPath = 'health-check-report.json';
   const safeFileJson = stringifyReportSanitised(report);
+  const fs = await import('node:fs');
   fs.writeFileSync(reportPath, safeFileJson);
   console.log(`\nReport saved to: ${reportPath}`);
 

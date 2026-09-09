@@ -66,6 +66,7 @@
     "zod-to-json-schema": "3.24.5"
   },
   "overrides": {
+    "multer": "^2.3.0",
     "undici": "^7.29.0",
     "protobufjs": "^8.6.6",
     "@opentelemetry/core": "^2.10.0",

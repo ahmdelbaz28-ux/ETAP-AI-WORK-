@@ -29,6 +29,8 @@ on:
     - cron: '0 5 1 * *'
 
 env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+  ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: "true"
   HEALTH_CHECK_API_URL: ${{ vars.HEALTH_CHECK_API_URL || 'https://ahmdelbaz28-ahmedetap-platform.hf.space' }}
   HEALTH_CHECK_API_KEY: ${{ secrets.HEALTH_CHECK_API_KEY || '' }}
   HEALTH_CHECK_TIMEOUT_MS: ${{ vars.HEALTH_CHECK_TIMEOUT_MS || '10000' }}
@@ -131,7 +133,7 @@ jobs:
           version: 9
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v7.0.0
         with:
           node-version: '22'
           
@@ -183,7 +185,7 @@ jobs:
           version: 9
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v7.0.0
         with:
           node-version: '22'
           
@@ -235,7 +237,7 @@ jobs:
           version: 9
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v7.0.0
         with:
           node-version: '22'
           

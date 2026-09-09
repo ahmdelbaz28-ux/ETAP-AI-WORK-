@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 import logging
+from collections.abc import Callable
+from typing import Any
 from unittest.mock import patch
 
 import httpx
 import pytest
-import respx
 
 from gis_integration.exceptions import (
     GISDataExtractionError,
@@ -19,6 +20,107 @@ from gis_integration.providers import (
     get_gis_provider,
 )
 from gis_integration.providers.arcgis_provider import _redact_secrets
+
+# =============================================================================
+# Mock Router for ArcGIS Online HTTP tests (zero 3rd-party dependencies)
+# =============================================================================
+
+
+class MockRoute:
+    """Mock route for intercepting httpx.Client requests without external dependencies."""
+
+    def __init__(self, url_prefix: str, method: str = "GET") -> None:
+        self.url_prefix = url_prefix
+        self.method = method.upper()
+        self.call_count: int = 0
+        self.calls: list[httpx.Request] = []
+        self._response_fn: Callable[[httpx.Request], httpx.Response] | None = None
+        self.side_effect: Any = None
+
+    def respond(
+        self,
+        status_code: int = 200,
+        json: Any = None,
+        text: str = "",
+    ) -> MockRoute:
+        def _fn(request: httpx.Request) -> httpx.Response:
+            if json is not None:
+                return httpx.Response(status_code, json=json, request=request)
+            return httpx.Response(status_code, text=text, request=request)
+
+        self._response_fn = _fn
+        return self
+
+    def mock(self, side_effect: Any) -> MockRoute:
+        self.side_effect = side_effect
+        return self
+
+    def matches(self, request: httpx.Request) -> bool:
+        if self.method and request.method.upper() != self.method:
+            return False
+        req_str = str(request.url)
+        if "?" not in self.url_prefix:
+            req_base = req_str.split("?")[0].rstrip("/")
+            target_base = self.url_prefix.rstrip("/")
+            return req_base == target_base or req_str.startswith(self.url_prefix)
+        return self.url_prefix in req_str
+
+    def handle(self, request: httpx.Request) -> httpx.Response:
+        self.call_count += 1
+        self.calls.append(request)
+        if self.side_effect is not None:
+            if isinstance(self.side_effect, list):
+                item = self.side_effect.pop(0)
+                if isinstance(item, Exception):
+                    raise item
+                return item
+            elif callable(self.side_effect):
+                return self.side_effect(request)
+            elif isinstance(self.side_effect, Exception):
+                raise self.side_effect
+        if self._response_fn:
+            return self._response_fn(request)
+        return httpx.Response(200, json={}, request=request)
+
+
+class MockArcGISRouter:
+    """Router matching registered MockRoutes against outgoing httpx.Client calls."""
+
+    def __init__(self) -> None:
+        self.routes: list[MockRoute] = []
+
+    def get(self, url: str) -> MockRoute:
+        route = MockRoute(url, "GET")
+        self.routes.append(route)
+        return route
+
+    def post(self, url: str) -> MockRoute:
+        route = MockRoute(url, "POST")
+        self.routes.append(route)
+        return route
+
+    def handle(self, request: httpx.Request) -> httpx.Response:
+        for route in reversed(self.routes):
+            if route.matches(request):
+                return route.handle(request)
+        return httpx.Response(
+            404,
+            text=f"Mock route not found for {request.method} {request.url}",
+            request=request,
+        )
+
+
+@pytest.fixture
+def mock_arcgis(monkeypatch):
+    """Fixture providing a clean MockArcGISRouter that intercepts httpx.Client.send."""
+    router = MockArcGISRouter()
+
+    def _mock_send(client_self, request, **kwargs):
+        return router.handle(request)
+
+    monkeypatch.setattr(httpx.Client, "send", _mock_send)
+    return router
+
 
 # =============================================================================
 # 1. Legacy ArcGISProvider Backward Compatibility Tests
@@ -102,36 +204,32 @@ class TestArcGISOnlineProviderInit:
 
 
 class TestArcGISOnlineProviderHealthCheck:
-    @respx.mock
-    def test_health_check_success(self):
-        respx.get("https://www.arcgis.com/sharing/rest/portals/self").respond(
+    def test_health_check_success(self, mock_arcgis):
+        mock_arcgis.get("https://www.arcgis.com/sharing/rest/portals/self").respond(
             status_code=200,
             json={"id": "0123456789ABCDEF", "isPortal": True, "name": "ArcGIS Online"},
         )
         provider = ArcGISOnlineProvider()
         assert provider.health_check() is True
 
-    @respx.mock
-    def test_health_check_failure_http_500(self):
-        respx.get("https://www.arcgis.com/sharing/rest/portals/self").respond(
+    def test_health_check_failure_http_500(self, mock_arcgis):
+        mock_arcgis.get("https://www.arcgis.com/sharing/rest/portals/self").respond(
             status_code=500,
             text="Internal Server Error",
         )
         provider = ArcGISOnlineProvider()
         assert provider.health_check() is False
 
-    @respx.mock
-    def test_health_check_portal_error_response(self):
-        respx.get("https://www.arcgis.com/sharing/rest/portals/self").respond(
+    def test_health_check_portal_error_response(self, mock_arcgis):
+        mock_arcgis.get("https://www.arcgis.com/sharing/rest/portals/self").respond(
             status_code=200,
             json={"error": {"code": 498, "message": "Invalid token"}},
         )
         provider = ArcGISOnlineProvider()
         assert provider.health_check() is False
 
-    @respx.mock
-    def test_health_check_network_timeout(self):
-        respx.get("https://www.arcgis.com/sharing/rest/portals/self").mock(
+    def test_health_check_network_timeout(self, mock_arcgis):
+        mock_arcgis.get("https://www.arcgis.com/sharing/rest/portals/self").mock(
             side_effect=httpx.TimeoutException("Read timed out")
         )
         provider = ArcGISOnlineProvider()
@@ -151,8 +249,7 @@ class TestArcGISOnlineProviderLoadProject:
         with pytest.raises(ValueError, match="non-empty string"):
             provider.load_project(None)  # type: ignore
 
-    @respx.mock
-    def test_load_project_direct_feature_service_url(self):
+    def test_load_project_direct_feature_service_url(self, mock_arcgis):
         service_url = "https://services.arcgis.com/org/arcgis/rest/services/Grid/FeatureServer"
         catalog_payload = {
             "currentVersion": 11.1,
@@ -162,7 +259,7 @@ class TestArcGISOnlineProviderLoadProject:
             ],
             "tables": [{"id": 2, "name": "InspectionLogs"}],
         }
-        respx.get(service_url).respond(status_code=200, json=catalog_payload)
+        mock_arcgis.get(service_url).respond(status_code=200, json=catalog_payload)
 
         provider = ArcGISOnlineProvider()
         provider.load_project(service_url)
@@ -175,14 +272,15 @@ class TestArcGISOnlineProviderLoadProject:
         assert "InspectionLogs" in layers
         assert len(layers) == 3
 
-    @respx.mock
-    def test_load_project_from_item_id(self):
+    def test_load_project_from_item_id(self, mock_arcgis):
         item_id = "e9123456789abcdef0123456789abcde"
         portal_url = "https://www.arcgis.com"
-        service_url = "https://services.arcgis.com/org/arcgis/rest/services/Electrical/FeatureServer"
+        service_url = (
+            "https://services.arcgis.com/org/arcgis/rest/services/Electrical/FeatureServer"
+        )
 
         # Item info endpoint
-        respx.get(f"{portal_url}/sharing/rest/content/items/{item_id}").respond(
+        mock_arcgis.get(f"{portal_url}/sharing/rest/content/items/{item_id}").respond(
             status_code=200,
             json={
                 "id": item_id,
@@ -192,7 +290,7 @@ class TestArcGISOnlineProviderLoadProject:
             },
         )
         # Service catalog endpoint
-        respx.get(service_url).respond(
+        mock_arcgis.get(service_url).respond(
             status_code=200,
             json={
                 "layers": [{"id": 0, "name": "Buses"}],
@@ -207,10 +305,9 @@ class TestArcGISOnlineProviderLoadProject:
         assert provider._service_url == service_url
         assert provider.list_layers() == ["Buses"]
 
-    @respx.mock
-    def test_load_project_item_id_without_service_url_raises(self):
+    def test_load_project_item_id_without_service_url_raises(self, mock_arcgis):
         item_id = "item-without-url"
-        respx.get(f"https://www.arcgis.com/sharing/rest/content/items/{item_id}").respond(
+        mock_arcgis.get(f"https://www.arcgis.com/sharing/rest/content/items/{item_id}").respond(
             status_code=200,
             json={"id": item_id, "title": "Static Web Map", "type": "Web Map"},
         )
@@ -218,10 +315,9 @@ class TestArcGISOnlineProviderLoadProject:
         with pytest.raises(GISDataExtractionError, match="does not contain a feature service URL"):
             provider.load_project(item_id)
 
-    @respx.mock
-    def test_load_project_catalog_error_raises(self):
+    def test_load_project_catalog_error_raises(self, mock_arcgis):
         service_url = "https://services.arcgis.com/org/FeatureServer"
-        respx.get(service_url).respond(
+        mock_arcgis.get(service_url).respond(
             status_code=200,
             json={"error": {"code": 403, "message": "Service requires subscription"}},
         )
@@ -252,10 +348,9 @@ class TestArcGISOnlineProviderExtractFeatures:
         with pytest.raises(ValueError, match="non-empty string"):
             list(provider.extract_features(""))
 
-    @respx.mock
-    def test_extract_features_geojson_format(self):
+    def test_extract_features_geojson_format(self, mock_arcgis):
         service_url = "https://services.arcgis.com/org/FeatureServer"
-        respx.get(service_url).respond(
+        mock_arcgis.get(service_url).respond(
             status_code=200,
             json={"layers": [{"id": 0, "name": "Buses"}]},
         )
@@ -277,7 +372,7 @@ class TestArcGISOnlineProviderExtractFeatures:
                 }
             ],
         }
-        respx.get(f"{service_url}/0/query").respond(
+        mock_arcgis.get(f"{service_url}/0/query").respond(
             status_code=200,
             json=geojson_resp,
         )
@@ -295,17 +390,20 @@ class TestArcGISOnlineProviderExtractFeatures:
         assert f.properties["voltage_kv"] == 220.0
         assert f.crs == "EPSG:4326"
 
-    @respx.mock
-    def test_extract_features_esri_json_fallback(self):
+    def test_extract_features_esri_json_fallback(self, mock_arcgis):
         service_url = "https://services.arcgis.com/org/FeatureServer"
-        respx.get(service_url).respond(
+        mock_arcgis.get(service_url).respond(
             status_code=200,
             json={"layers": [{"id": 1, "name": "Lines"}]},
         )
 
         def query_matcher(request: httpx.Request) -> httpx.Response:
             if "f=geojson" in str(request.url):
-                return httpx.Response(400, json={"error": {"code": 400, "message": "Format geojson unsupported"}})
+                return httpx.Response(
+                    400,
+                    json={"error": {"code": 400, "message": "Format geojson unsupported"}},
+                    request=request,
+                )
             # Esri JSON query
             return httpx.Response(
                 200,
@@ -323,9 +421,10 @@ class TestArcGISOnlineProviderExtractFeatures:
                         }
                     ]
                 },
+                request=request,
             )
 
-        respx.get(f"{service_url}/1/query").mock(side_effect=query_matcher)
+        mock_arcgis.get(f"{service_url}/1/query").mock(side_effect=query_matcher)
 
         provider = ArcGISOnlineProvider()
         provider.load_project(service_url)
@@ -342,14 +441,13 @@ class TestArcGISOnlineProviderExtractFeatures:
         assert f.properties["name"] == "East-Helwan Feeder"
         assert f.crs == "EPSG:4326"
 
-    @respx.mock
-    def test_extract_features_invalid_geometry_fails_closed(self):
+    def test_extract_features_invalid_geometry_fails_closed(self, mock_arcgis):
         service_url = "https://services.arcgis.com/org/FeatureServer"
-        respx.get(service_url).respond(
+        mock_arcgis.get(service_url).respond(
             status_code=200,
             json={"layers": [{"id": 0, "name": "FaultyLayer"}]},
         )
-        respx.get(f"{service_url}/0/query").respond(
+        mock_arcgis.get(f"{service_url}/0/query").respond(
             status_code=200,
             json={
                 "type": "FeatureCollection",
@@ -370,14 +468,13 @@ class TestArcGISOnlineProviderExtractFeatures:
         with pytest.raises(GISDataExtractionError, match="invalid geometry"):
             list(provider.extract_features("0"))
 
-    @respx.mock
-    def test_extract_features_null_geometry_raises(self):
+    def test_extract_features_null_geometry_raises(self, mock_arcgis):
         service_url = "https://services.arcgis.com/org/FeatureServer"
-        respx.get(service_url).respond(
+        mock_arcgis.get(service_url).respond(
             status_code=200,
             json={"layers": [{"id": 0, "name": "NullGeomLayer"}]},
         )
-        respx.get(f"{service_url}/0/query").respond(
+        mock_arcgis.get(f"{service_url}/0/query").respond(
             status_code=200,
             json={
                 "type": "FeatureCollection",
@@ -405,14 +502,13 @@ class TestArcGISOnlineProviderExtractFeatures:
 
 
 class TestArcGISOnlineProviderExportAndCRS:
-    @respx.mock
-    def test_export_geojson_success(self):
+    def test_export_geojson_success(self, mock_arcgis):
         service_url = "https://services.arcgis.com/org/FeatureServer"
-        respx.get(service_url).respond(
+        mock_arcgis.get(service_url).respond(
             status_code=200,
             json={"layers": [{"id": 0, "name": "Transformers"}]},
         )
-        respx.get(f"{service_url}/0/query").respond(
+        mock_arcgis.get(f"{service_url}/0/query").respond(
             status_code=200,
             json={
                 "type": "FeatureCollection",
@@ -467,11 +563,12 @@ class TestArcGISOnlineProviderSecurity:
         assert "SECRET_BEARER_KEY_123" not in redacted
         assert "Bearer ***" in redacted
 
-    @respx.mock
-    def test_token_redacted_in_exception_on_network_failure(self, caplog):
+    def test_token_redacted_in_exception_on_network_failure(self, mock_arcgis, caplog):
         secret_token = "TOP_SECRET_AUTH_TOKEN_9999"
-        respx.get("https://www.arcgis.com/sharing/rest/portals/self").mock(
-            side_effect=httpx.ConnectError("Connection failed to https://www.arcgis.com?token=TOP_SECRET_AUTH_TOKEN_9999")
+        mock_arcgis.get("https://www.arcgis.com/sharing/rest/portals/self").mock(
+            side_effect=httpx.ConnectError(
+                "Connection failed to https://www.arcgis.com?token=TOP_SECRET_AUTH_TOKEN_9999"
+            )
         )
 
         provider = ArcGISOnlineProvider(token=secret_token)
@@ -490,10 +587,9 @@ class TestArcGISOnlineProviderSecurity:
 
 
 class TestArcGISOnlineProviderRetries:
-    @respx.mock
-    def test_retry_on_transient_503_success(self):
+    def test_retry_on_transient_503_success(self, mock_arcgis):
         url = "https://www.arcgis.com/sharing/rest/portals/self"
-        route = respx.get(url)
+        route = mock_arcgis.get(url)
         # First 2 attempts return 503, 3rd returns 200
         route.side_effect = [
             httpx.Response(503, text="Service Unavailable"),
@@ -505,10 +601,9 @@ class TestArcGISOnlineProviderRetries:
         assert provider.health_check() is True
         assert route.call_count == 3
 
-    @respx.mock
-    def test_retry_exhausted_raises_provider_unavailable(self):
+    def test_retry_exhausted_raises_provider_unavailable(self, mock_arcgis):
         service_url = "https://services.arcgis.com/org/FeatureServer"
-        respx.get(service_url).respond(
+        mock_arcgis.get(service_url).respond(
             status_code=503,
             text="Service Unavailable",
         )
@@ -538,7 +633,9 @@ class TestArcGISProviderFactoryGating:
         monkeypatch.setenv("ENV", "production")
         monkeypatch.delenv("APP_ENV", raising=False)
         monkeypatch.delenv("FEATURE_FLAG_ARCGIS_PROVIDER", raising=False)
-        with pytest.raises(RuntimeError, match="disabled in production by feature flag 'arcgis_provider'"):
+        with pytest.raises(
+            RuntimeError, match="disabled in production by feature flag 'arcgis_provider'"
+        ):
             get_gis_provider("arcgis_online")
 
     def test_factory_arcgis_online_production_enabled(self, monkeypatch):

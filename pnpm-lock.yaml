@@ -36,6 +36,7 @@ overrides:
   '@mastra/core>@ai-sdk/provider-utils-v4': npm:@ai-sdk/provider-utils@4.0.42
   react-router: ^7.18.2
   react-router-dom: ^7.18.2
+  multer: ^2.3.0
 
 importers:
 
@@ -5282,8 +5283,8 @@ packages:
   ms@2.1.3:
     resolution: {integrity: sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==}
 
-  multer@2.2.0:
-    resolution: {integrity: sha512-6rdyFg2kLrMh9Jee7/BMPuV9lEAd7lLW2YUpF9/YxR7njyoUwwQ0ZPh3TaIY50Sw6vlyD2HW3wGOkTS4P79xrQ==}
+  multer@2.3.0:
+    resolution: {integrity: sha512-cjNbm3sttszgZeGfJR124D+jFEfkXCVAsoPBmFn9X7UxmDSFHWqE2CoEj0vrmSpuAFnqWR1Szcm9QTsiHr60Xw==}
     engines: {node: '>= 10.16.0'}
 
   mustache@4.2.0:
@@ -9549,7 +9550,7 @@ snapshots:
       jschardet: 3.1.4
       lodash: 4.18.1
       markdown-it: 14.3.0
-      multer: 2.2.0
+      multer: 2.3.0
       open: 11.0.1
       proper-lockfile: 4.1.2
       simple-git: 3.36.0(supports-color@10.2.2)
@@ -12612,7 +12613,7 @@ snapshots:
 
   ms@2.1.3: {}
 
-  multer@2.2.0:
+  multer@2.3.0:
     dependencies:
       append-field: 1.0.0
       busboy: 1.6.0
