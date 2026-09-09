@@ -32,7 +32,7 @@
   "devEngines": {},
   "type": "module",
   "dependencies": {
-    "@ai-sdk/anthropic": "^1.2.12",
+    "@ai-sdk/anthropic": "^4.0.49",
     "@langwatch/scenario": "^0.4.15",
     "@mastra/core": "^1.37.1",
     "@mastra/duckdb": "^1.4.0",
