@@ -19,7 +19,7 @@ opentelemetry-instrumentation-fastapi~=0.51b0
 
 # LLM observability — Langfuse (free Hobby plan supports unlimited prompts)
 # Used by integrations/langfuse_integration.py and agents/prompt_loader.py.
-langfuse~=2.60.0
+langfuse~=4.15.1
 
 # LLM SDKs (traced via langfuse.openai / langfuse.anthropic wrappers)
 # SECURITY: openai bumped from 1.50.0 → 2.52.x because langchain-openai 1.4.x
@@ -29,7 +29,7 @@ langfuse~=2.60.0
 # NOTE: ~=2.52.0 means >=2.52.0,<2.53.0. Earlier pin `~=2.7.0` was a typo —
 # 2.7.x < 2.45.0 in PEP 440 ordering, so it failed langchain-openai's lower bound.
 openai~=3.8.0
-anthropic~=0.72.0
+anthropic~=1.4.0
 
 # Supabase (managed Postgres + Storage + Auth) — used by integrations/supabase_*.py
 # Required when deploying to HF Space (where the filesystem is wiped on restart)
@@ -74,7 +74,7 @@ langchain-openai~=1.4.0
 langchain-community~=0.4.0
 langchain-experimental~=0.4.0
 langchain-qdrant~=1.0
-langsmith~=0.10.0
+langsmith>=0.10,<0.13
 
 # Metrics - Prometheus
 prometheus-client>=0.19,<0.26
@@ -229,7 +229,7 @@ alembic~=1.13.0
 # installed as transitive deps, but we declare them explicitly so that
 # minimal install paths (CI --no-deps fallback, Docker multi-stage builds)
 # don't end up with a broken alembic that crashes on `alembic upgrade head`.
-mako~=1.3.0
+mako~=1.4.1
 # SECURITY: upgraded from 2.18.0 → 2.20.0 — fixes CVE-2026-4539 ReDoS via
 # GUID-matching regex.
 pygments>=2.20.0

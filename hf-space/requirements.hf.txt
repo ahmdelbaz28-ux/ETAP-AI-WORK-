@@ -41,7 +41,7 @@ asyncpg~=0.31.0
 # ─── Security ─────────────────────────────────────────────────────────────────
 bcrypt~=5.0.0
 PyJWT~=2.13.0
-cryptography~=49.0.0
+cryptography>=49.0,<50.1
 pyotp~=2.10.0
 email-validator~=2.3.0
 
@@ -76,7 +76,7 @@ websockets>=15.0.1,<17.1.0
 # These enable the BrowserCUAExecutor — a headless-browser CUA that works
 # on HF Space (no display server required).
 # The DesktopCUAExecutor (pyautogui) is NOT installable on HF Space.
-playwright~=1.61.0
+playwright~=1.62.0
 google-generativeai~=0.8.6
 Pillow~=12.3.0
 
@@ -92,7 +92,7 @@ pytesseract~=0.3.13
 # Uses stdlib HTTP client — no resend SDK needed
 
 # ─── LLM Observability (Langfuse) ──────────────────────────────────────────
-langfuse~=4.14.2
+langfuse~=4.15.1
 
 # ─── Graph Database (Neo4j) ────────────────────────────────────────────────
 neo4j>=6.2,<6.4
@@ -103,4 +103,4 @@ supabase~=2.31.0
 # ─── LLM SDKs (required by langfuse wrapper) ───────────────────────────────
 # Added 2026-07-10 — langfuse needs these to wrap LLM calls
 openai~=3.8.0
-anthropic~=0.120.2
+anthropic~=1.4.0
