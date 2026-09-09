@@ -236,7 +236,15 @@
     "loginLink": "تسجيل الدخول",
     "errorPasswordsMismatch": "كلمتا المرور غير متطابقتين",
     "errorPasswordLength": "يجب أن لا تقل كلمة المرور عن 8 خانات",
-    "errorRegisterFields": "يرجى تعبئة جميع الحقول المطلوبة بشكل صحيح"
+    "errorRegisterFields": "يرجى تعبئة جميع الحقول المطلوبة بشكل صحيح",
+    "resetNewPasswordLabel": "كلمة المرور الجديدة",
+    "resetConfirmLabel": "تأكيد كلمة المرور",
+    "resetSubmit": "حفظ كلمة المرور الجديدة",
+    "resetting": "جاري الحفظ...",
+    "resetSuccessTitle": "تمت إعادة التعيين بنجاح",
+    "resetSuccessBody": "يمكنك الآن تسجيل الدخول بكلمة المرور الجديدة.",
+    "resetInvalidLinkTitle": "رابط غير صالح",
+    "resetInvalidLinkBody": "رابط إعادة التعيين ناقص أو غير صالح. اطلب رابطاً جديداً من صفحة الدخول."
   },
   "adminPages": {
     "common": {

@@ -80,6 +80,7 @@ const MfaPage = lazyLoad(() => import("./pages/Mfa"));
 const AgentsControlPanelPage = lazyLoad(() => import("./pages/AgentsControlPanel"));
 const LoginPage = lazyLoad(() => import("./pages/Login"));
 const RegisterPage = lazyLoad(() => import("./pages/Register"));
+const ResetPasswordPage = lazyLoad(() => import("./pages/ResetPassword"));
 
 function KeyboardShortcutsHandler() {
   useKeyboardShortcuts();
@@ -197,6 +198,7 @@ export default function App() {
             <Routes>
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
+              <Route path="/reset-password" element={<ResetPasswordPage />} />
 
               <Route
                 element={
