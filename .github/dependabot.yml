@@ -9,7 +9,7 @@ updates:
     open-pull-requests-limit: 5
     labels:
       - dependencies
-      - automated
+      - auto-generated
 
   # Python uv lockfile updater
   - package-ecosystem: uv
@@ -20,7 +20,7 @@ updates:
     open-pull-requests-limit: 5
     labels:
       - dependencies
-      - automated
+      - auto-generated
 
   # npm dependencies (root monorepo)
   - package-ecosystem: npm
@@ -33,7 +33,7 @@ updates:
       - dependency-name: "@vitest/mocker"
     labels:
       - dependencies
-      - automated
+      - auto-generated
 
   # npm dependencies (ui)
   - package-ecosystem: npm
@@ -46,7 +46,7 @@ updates:
       - dependency-name: "@vitest/mocker"
     labels:
       - dependencies
-      - automated
+      - auto-generated
 
   # npm dependencies (new TS service)
   - package-ecosystem: npm
@@ -57,7 +57,7 @@ updates:
     open-pull-requests-limit: 5
     labels:
       - dependencies
-      - automated
+      - auto-generated
 
   # GitHub Actions versions
   - package-ecosystem: github-actions
@@ -69,4 +69,4 @@ updates:
     labels:
       - ci
       - dependencies
-      - automated
+      - auto-generated
