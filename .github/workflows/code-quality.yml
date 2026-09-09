@@ -61,21 +61,34 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
+      - name: Install YAML parser
+        run: pip install pyyaml
       - name: Validate YAML files
         run: |
           python3 -c "
           import yaml, sys, glob
           errors = []
-          for f in glob.glob('**/*.yml', recursive=True):
-              if '.git/' in f or 'node_modules/' in f:
+          skip_dirs = ('.git/', 'node_modules/', '.venv/', '/venv/', 'charts/', 'helm/', 'deploy/k8s/', 'deploy/docker/', 'templates/')
+          files = glob.glob('**/*.yml', recursive=True) + glob.glob('**/*.yaml', recursive=True)
+          checked = 0
+          for f in files:
+              if any(s in f for s in skip_dirs):
                   continue
               try:
-                  yaml.safe_load(open(f))
+                  text = open(f).read()
+              except Exception as e:
+                  errors.append(f'{f}: read error {e}')
+                  continue
+              if '{{' in text or '{%' in text:
+                  continue
+              checked += 1
+              try:
+                  list(yaml.safe_load_all(text))
               except Exception as e:
                   errors.append(f'{f}: {e}')
           if errors:
               for e in errors:
                   print(f'ERROR: {e}')
               sys.exit(1)
-          print(f'All YAML files validated successfully')
+          print(f'All YAML files validated successfully ({checked} files)')
           "

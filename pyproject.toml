@@ -110,6 +110,7 @@ test = [
     "pytest>=7.0.0",
     "pytest-cov>=3.0.0",
     "pytest-asyncio>=0.21.0",
+    "pytest-timeout>=2.3.0",
     "fastapi>=0.135.0",
     "httpx>=0.25.0",
 ]
@@ -122,6 +123,7 @@ dev = [
     "pytest>=7.0.0",
     "pytest-cov>=3.0.0",
     "pytest-asyncio>=0.21.0",
+    "pytest-timeout>=2.3.0",
     "black>=24.0",
     "ruff>=0.3.0",
     "mypy>=2.3.1",
@@ -204,6 +206,11 @@ include = [
     "backend*",
     "core*",
     "skills*",
+    "api*",
+    "ml*",
+    "config*",
+    "schemas*",
+    "services*",
 ]
 
 [tool.pytest.ini_options]
