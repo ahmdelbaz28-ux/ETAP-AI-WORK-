@@ -15,7 +15,7 @@ httpx>=0.25.0
 hypothesis>=6.100.0
 
 # Test data factories (used by tests/factories/)
-factory-boy>=3.3.0
+factory-boy>=3.3.3
 Faker>=40.38.0
 
 # Linting and formatting
