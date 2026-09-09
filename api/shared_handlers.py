@@ -964,7 +964,12 @@ def handle_detect_anomalies(body: dict[str, Any]) -> dict[str, Any]:
         return {"success": False, "errors": [MSG_INTERNAL_ERROR], "_status": 500}
 
 
-def handle_context_retrieval(query: str, top_k: int = 5, max_tokens: int = 2000) -> dict[str, Any]:
+def handle_context_retrieval(
+    query: str,
+    top_k: int = 5,
+    max_tokens: int = 2000,
+    tenant_id: str | None = None,
+) -> dict[str, Any]:
     """Retrieve and compress relevant code chunks based on semantic search."""
     try:
         from ai_context_engine.retriever import CHROMA_AVAILABLE, CodeRetriever
@@ -973,7 +978,9 @@ def handle_context_retrieval(query: str, top_k: int = 5, max_tokens: int = 2000)
         index_dir = os.environ.get("CODE_CONTEXT_INDEX_DIR", "./index")
 
         retriever = CodeRetriever(index_dir=index_dir)
-        compressed = retriever.retrieve_and_compress(query, top_k=top_k, max_tokens=max_tokens)
+        compressed = retriever.retrieve_and_compress(
+            query, top_k=top_k, max_tokens=max_tokens, tenant_id=tenant_id
+        )
 
         response: dict[str, Any] = {
             "success": True,

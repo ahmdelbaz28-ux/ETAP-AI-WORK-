@@ -24,7 +24,12 @@ def unpack_document(input_file, output_dir):
     output_path.mkdir(parents=True, exist_ok=True)  # NOSONAR - pythonsecurity:S8707
 
     with zipfile.ZipFile(input_file) as zf:
-        zf.extractall(output_path)
+        resolved_output = output_path.resolve()
+        for member in zf.infolist():
+            member_path = (output_path / member.filename).resolve()
+            if not str(member_path).startswith(str(resolved_output)):
+                raise ValueError(f"ZipSlip detected in archive member: {member.filename}")
+            zf.extract(member, output_path)
 
     for pattern in ["*.xml", "*.rels"]:
         for xml_file in output_path.rglob(pattern):

@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
+from typing import Any
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("ai_context_engine_retriever")
@@ -119,14 +120,17 @@ class CodeRetriever:
             except Exception as e:
                 logger.exception("Failed to load Chroma collection: %s", e)
 
-    def retrieve(self, query: str, top_k: int = 5) -> list[dict]:
-        """Query ChromaDB and return raw matching code chunks."""
+    def retrieve(self, query: str, top_k: int = 5, tenant_id: str | None = None) -> list[dict]:
+        """Query ChromaDB and return raw matching code chunks with optional tenant isolation."""
         if not CHROMA_AVAILABLE or not self.collection:
             logger.warning("ChromaDB not initialized or code_context collection missing.")
             return []
 
         try:
-            results = self.collection.query(query_texts=[query], n_results=top_k)
+            kwargs: dict[str, Any] = {"query_texts": [query], "n_results": top_k}
+            if tenant_id:
+                kwargs["where"] = {"tenant_id": tenant_id}
+            results = self.collection.query(**kwargs)
 
             chunks = []
             if results and results.get("documents"):
@@ -142,6 +146,7 @@ class CodeRetriever:
                             "name": metadatas[idx].get("name", ""),
                             "type": metadatas[idx].get("type", ""),
                             "filepath": metadatas[idx].get("filepath", ""),
+                            "tenant_id": metadatas[idx].get("tenant_id", ""),
                         },
                     )
             return chunks
@@ -154,7 +159,8 @@ class CodeRetriever:
         query: str,
         top_k: int = 5,
         max_tokens: int = 2000,
+        tenant_id: str | None = None,
     ) -> list[dict]:
         """Fetches raw chunks and compresses them using Jaccard pruning."""
-        raw_chunks = self.retrieve(query, top_k=top_k)
+        raw_chunks = self.retrieve(query, top_k=top_k, tenant_id=tenant_id)
         return CodeCompressor.compress_chunks(raw_chunks, query, max_tokens=max_tokens)
