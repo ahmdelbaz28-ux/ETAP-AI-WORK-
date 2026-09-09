@@ -312,7 +312,9 @@ class TestArcGISOnlineProviderWriteMethods:
             )
 
     def test_token_498_and_refresh_success(self, mock_arcgis, monkeypatch):
-        monkeypatch.setenv("ARCGIS_USERNAME", "admin_user")
+        # Fully generated placeholders (no static credentials in repo): the
+        # refresh flow only needs non-empty values and HTTP is fully mocked.
+        monkeypatch.setenv("ARCGIS_USERNAME", f"user-{uuid.uuid4().hex[:8]}")
         # Generated placeholder (no static secret in repo): the refresh flow
         # only needs a non-empty password and the HTTP layer is fully mocked.
         # GitGuardian-clean by construction — nothing here can leak.
