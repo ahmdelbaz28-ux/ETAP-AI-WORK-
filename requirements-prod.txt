@@ -103,7 +103,7 @@ tenacity>=8.2,<9.2
 
 # API & Database dependencies
 alembic~=1.13.0
-mako~=1.3.0
+mako~=1.4.1
 
 # Task queue
 celery>=5.3,<5.7
