@@ -48,7 +48,7 @@ importers:
         version: 1.2.12(zod@3.25.76)
       '@langwatch/scenario':
         specifier: ^0.4.15
-        version: 0.4.15(4b160445636fc69131bf6d862ce99108)
+        version: 0.4.15(ffa5f868026ba214374865ac2fb55ecf)
       '@mastra/core':
         specifier: ^1.37.1
         version: 1.59.0(@grpc/grpc-js@1.14.4)(ai@6.0.255(zod@3.25.76))(express@5.2.1(supports-color@10.2.2))(rxjs@7.8.2)(supports-color@10.2.2)(zod@3.25.76)
@@ -112,7 +112,7 @@ importers:
         version: 7.0.5
       '@vitest/coverage-v8':
         specifier: 3.2.6
-        version: 3.2.6(supports-color@10.2.2)(vitest@3.2.6(@types/debug@4.1.13)(@types/node@22.20.1)(happy-dom@20.11.2)(jiti@2.7.0)(jsdom@29.1.1(@noble/hashes@2.3.0))(lightningcss@1.33.0)(supports-color@10.2.2)(tsx@4.23.0)(yaml@2.9.0))
+        version: 3.2.6(supports-color@10.2.2)(vitest@3.2.6(@types/debug@4.1.13)(@types/node@22.20.1)(happy-dom@20.14.0)(jiti@2.7.0)(jsdom@29.1.1(@noble/hashes@2.3.0))(lightningcss@1.33.0)(supports-color@10.2.2)(tsx@4.23.0)(yaml@2.9.0))
       commander:
         specifier: 12.1.0
         version: 12.1.0
@@ -130,7 +130,7 @@ importers:
         version: 6.0.3
       vitest:
         specifier: 3.2.6
-        version: 3.2.6(@types/debug@4.1.13)(@types/node@22.20.1)(happy-dom@20.11.2)(jiti@2.7.0)(jsdom@29.1.1(@noble/hashes@2.3.0))(lightningcss@1.33.0)(supports-color@10.2.2)(tsx@4.23.0)(yaml@2.9.0)
+        version: 3.2.6(@types/debug@4.1.13)(@types/node@22.20.1)(happy-dom@20.14.0)(jiti@2.7.0)(jsdom@29.1.1(@noble/hashes@2.3.0))(lightningcss@1.33.0)(supports-color@10.2.2)(tsx@4.23.0)(yaml@2.9.0)
       zod-to-json-schema:
         specifier: 3.24.5
         version: 3.24.5(zod@3.25.76)
@@ -163,7 +163,7 @@ importers:
         version: 8.2.1
       lucide-react:
         specifier: ^1.41.0
-        version: 1.42.0(react@19.2.7)
+        version: 1.41.0(react@19.2.7)
       qrcode.react:
         specifier: ^4.2.0
         version: 4.2.0(react@19.2.7)
@@ -195,8 +195,8 @@ importers:
         specifier: ^4.0.1
         version: 4.0.1(supports-color@10.2.2)
       simple-icons:
-        specifier: ^16.25.0
-        version: 16.28.0
+        specifier: ^16.30.0
+        version: 16.30.0
       tailwind-merge:
         specifier: 2.6.0
         version: 2.6.0
@@ -4216,10 +4216,6 @@ packages:
   gsap@3.15.0:
     resolution: {integrity: sha512-dMW4CWBTUK1AEEDeZc1g4xpPGIrSf9fJF960qbTZmN/QwZIWY5wgliS6JWl9/25fpTGJrMRtSjGtOmPnfjZB+A==}
 
-  happy-dom@20.11.2:
-    resolution: {integrity: sha512-7MB+bJLkxu3SowAfBJbjW+c55kNz5tkR45gu2qzrxznezhLeN5YIlJbwUgSzlGc+qWoZ8Ykg71H5ezz69xixrw==}
-    engines: {node: '>=20.0.0'}
-
   happy-dom@20.14.0:
     resolution: {integrity: sha512-4bRh1KzRvKDnFNTlLhzT1RZTpkKhQbQDl9j+7GXszWsvuspYdo29k6OHRf4PwiM6oLb8r/pMWeYiJjkfod5AvQ==}
     engines: {node: '>=20.0.0'}
@@ -5011,8 +5007,8 @@ packages:
     resolution: {integrity: sha512-Jo6dJ04CmSjuznwJSS3pUeWmd/H0ffTlkXXgwZi+eq1UCmqQwCh+eLsYOYCwY991i2Fah4h1BEMCx4qThGbsiA==}
     engines: {node: '>=10'}
 
-  lucide-react@1.42.0:
-    resolution: {integrity: sha512-b3jprplnoLS8n5etw1z8xODe3hF/yjKATrTitsrKrnjUhCef5BdDct6Ppv3zVvzFwmtfWgLO6XNM3C9fAD93ug==}
+  lucide-react@1.41.0:
+    resolution: {integrity: sha512-6lksP35l6KszDKUeRTi4LV7i6DEe0Yzl2ALJm9j4c5xEYN91GdW1xGsawGMOg2mgjF5GHBVX8pKX9kP+cWsP3Q==}
     peerDependencies:
       react: ^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0
 
@@ -6194,8 +6190,8 @@ packages:
   simple-git@3.36.0:
     resolution: {integrity: sha512-cGQjLjK8bxJw4QuYT7gxHw3/IouVESbhahSsHrX97MzCL1gu2u7oy38W6L2ZIGECEfIBG4BabsWDPjBxJENv9Q==}
 
-  simple-icons@16.28.0:
-    resolution: {integrity: sha512-sQPR5AtK/ijRjou7zw7mlLp08oB6FH7i0lOy5XJ2zp9mJs/yejgiOn7KvQoe2q4YJIx6VmgUSW5AOefebPt5kg==}
+  simple-icons@16.30.0:
+    resolution: {integrity: sha512-YX/HmgEqjpn5Zs3myzKp8ek5Ti+TdrkvNWn9skGLetg9tOg0cTjYizj9ESAYJn4xwc0GQYVGzQxBELDfbxq7WQ==}
     engines: {node: '>=0.12.18'}
 
   simple-update-notifier@2.0.0:
@@ -7938,7 +7934,7 @@ snapshots:
       '@langchain/core': 0.3.80(@opentelemetry/api@1.9.1)(@opentelemetry/exporter-trace-otlp-proto@0.217.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.10.0(@opentelemetry/api@1.9.1))(openai@6.49.0(ws@8.21.3)(zod@3.25.76))(ws@8.21.3)
       js-tiktoken: 1.0.21
 
-  '@langwatch/scenario@0.4.15(4b160445636fc69131bf6d862ce99108)':
+  '@langwatch/scenario@0.4.15(ffa5f868026ba214374865ac2fb55ecf)':
     dependencies:
       '@ag-ui/core': 0.0.28
       '@ai-sdk/openai': 3.0.96(zod@3.25.76)
@@ -7953,7 +7949,7 @@ snapshots:
       open: 11.0.0
       openai: 6.49.0(ws@8.21.3)(zod@3.25.76)
       rxjs: 7.8.2
-      vitest: 3.2.6(@types/debug@4.1.13)(@types/node@22.20.1)(happy-dom@20.11.2)(jiti@2.7.0)(jsdom@29.1.1(@noble/hashes@2.3.0))(lightningcss@1.33.0)(supports-color@10.2.2)(tsx@4.23.0)(yaml@2.9.0)
+      vitest: 3.2.6(@types/debug@4.1.13)(@types/node@22.20.1)(happy-dom@20.14.0)(jiti@2.7.0)(jsdom@29.1.1(@noble/hashes@2.3.0))(lightningcss@1.33.0)(supports-color@10.2.2)(tsx@4.23.0)(yaml@2.9.0)
       ws: 8.21.3
       xksuid: 0.0.4
       zod: 3.25.76
@@ -9875,7 +9871,7 @@ snapshots:
       '@rolldown/pluginutils': 1.0.1
       vite: 8.2.0(@types/node@22.20.1)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.0)(yaml@2.9.0)
 
-  '@vitest/coverage-v8@3.2.6(supports-color@10.2.2)(vitest@3.2.6(@types/debug@4.1.13)(@types/node@22.20.1)(happy-dom@20.11.2)(jiti@2.7.0)(jsdom@29.1.1(@noble/hashes@2.3.0))(lightningcss@1.33.0)(supports-color@10.2.2)(tsx@4.23.0)(yaml@2.9.0))':
+  '@vitest/coverage-v8@3.2.6(supports-color@10.2.2)(vitest@3.2.6(@types/debug@4.1.13)(@types/node@22.20.1)(happy-dom@20.14.0)(jiti@2.7.0)(jsdom@29.1.1(@noble/hashes@2.3.0))(lightningcss@1.33.0)(supports-color@10.2.2)(tsx@4.23.0)(yaml@2.9.0))':
     dependencies:
       '@ampproject/remapping': 2.3.0
       '@bcoe/v8-coverage': 1.0.2
@@ -9890,7 +9886,7 @@ snapshots:
       std-env: 3.10.0
       test-exclude: 7.0.2
       tinyrainbow: 2.0.0
-      vitest: 3.2.6(@types/debug@4.1.13)(@types/node@22.20.1)(happy-dom@20.11.2)(jiti@2.7.0)(jsdom@29.1.1(@noble/hashes@2.3.0))(lightningcss@1.33.0)(supports-color@10.2.2)(tsx@4.23.0)(yaml@2.9.0)
+      vitest: 3.2.6(@types/debug@4.1.13)(@types/node@22.20.1)(happy-dom@20.14.0)(jiti@2.7.0)(jsdom@29.1.1(@noble/hashes@2.3.0))(lightningcss@1.33.0)(supports-color@10.2.2)(tsx@4.23.0)(yaml@2.9.0)
     transitivePeerDependencies:
       - supports-color
 
@@ -11432,20 +11428,6 @@ snapshots:
 
   gsap@3.15.0: {}
 
-  happy-dom@20.11.2:
-    dependencies:
-      '@types/node': 22.20.1
-      '@types/whatwg-mimetype': 3.0.2
-      '@types/ws': 8.18.1
-      buffer-image-size: 0.6.4
-      entities: 7.0.1
-      whatwg-mimetype: 3.0.0
-      ws: 8.21.3
-    transitivePeerDependencies:
-      - bufferutil
-      - utf-8-validate
-    optional: true
-
   happy-dom@20.14.0:
     dependencies:
       '@types/node': 22.20.1
@@ -12149,7 +12131,7 @@ snapshots:
     dependencies:
       yallist: 4.0.0
 
-  lucide-react@1.42.0(react@19.2.7):
+  lucide-react@1.41.0(react@19.2.7):
     dependencies:
       react: 19.2.7
 
@@ -13663,7 +13645,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  simple-icons@16.28.0: {}
+  simple-icons@16.30.0: {}
 
   simple-update-notifier@2.0.0:
     dependencies:
@@ -14170,50 +14152,6 @@ snapshots:
       jiti: 2.7.0
       tsx: 4.23.0
       yaml: 2.9.0
-
-  vitest@3.2.6(@types/debug@4.1.13)(@types/node@22.20.1)(happy-dom@20.11.2)(jiti@2.7.0)(jsdom@29.1.1(@noble/hashes@2.3.0))(lightningcss@1.33.0)(supports-color@10.2.2)(tsx@4.23.0)(yaml@2.9.0):
-    dependencies:
-      '@types/chai': 5.2.3
-      '@vitest/expect': 3.2.6
-      '@vitest/mocker': 4.1.11(vite@7.3.6(@types/node@22.20.1)(jiti@2.7.0)(lightningcss@1.33.0)(tsx@4.23.0)(yaml@2.9.0))
-      '@vitest/pretty-format': 3.2.7
-      '@vitest/runner': 3.2.6
-      '@vitest/snapshot': 3.2.6
-      '@vitest/spy': 3.2.6
-      '@vitest/utils': 3.2.6
-      chai: 5.3.3
-      debug: 4.4.3(supports-color@10.2.2)
-      expect-type: 1.4.0
-      magic-string: 0.30.21
-      pathe: 2.0.3
-      picomatch: 4.0.5
-      std-env: 3.10.0
-      tinybench: 2.9.0
-      tinyexec: 0.3.2
-      tinyglobby: 0.2.17
-      tinypool: 1.1.1
-      tinyrainbow: 2.0.0
-      vite: 7.3.6(@types/node@22.20.1)(jiti@2.7.0)(lightningcss@1.33.0)(tsx@4.23.0)(yaml@2.9.0)
-      vite-node: 3.2.4(@types/node@22.20.1)(jiti@2.7.0)(lightningcss@1.33.0)(supports-color@10.2.2)(tsx@4.23.0)(yaml@2.9.0)
-      why-is-node-running: 2.3.0
-    optionalDependencies:
-      '@types/debug': 4.1.13
-      '@types/node': 22.20.1
-      happy-dom: 20.11.2
-      jsdom: 29.1.1(@noble/hashes@2.3.0)
-    transitivePeerDependencies:
-      - jiti
-      - less
-      - lightningcss
-      - msw
-      - sass
-      - sass-embedded
-      - stylus
-      - sugarss
-      - supports-color
-      - terser
-      - tsx
-      - yaml
 
   vitest@3.2.6(@types/debug@4.1.13)(@types/node@22.20.1)(happy-dom@20.14.0)(jiti@2.7.0)(jsdom@29.1.1(@noble/hashes@2.3.0))(lightningcss@1.33.0)(supports-color@10.2.2)(tsx@4.23.0)(yaml@2.9.0):
     dependencies:
