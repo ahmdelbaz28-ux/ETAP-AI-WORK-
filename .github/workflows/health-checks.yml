@@ -158,7 +158,7 @@ jobs:
       - name: Notify on failure
         if: failure() && env.SLACK_WEBHOOK_URL != ''
         continue-on-error: true
-        uses: slackapi/slack-github-action@v2.0.0
+        uses: slackapi/slack-github-action@v4.0.0
         with:
           webhook: ${{ env.SLACK_WEBHOOK_URL }}
           webhook-type: INCOMING_WEBHOOK
@@ -210,7 +210,7 @@ jobs:
       - name: Notify on failure
         if: failure() && env.SLACK_WEBHOOK_URL != ''
         continue-on-error: true
-        uses: slackapi/slack-github-action@v2.0.0
+        uses: slackapi/slack-github-action@v4.0.0
         with:
           webhook: ${{ env.SLACK_WEBHOOK_URL }}
           webhook-type: INCOMING_WEBHOOK
@@ -262,7 +262,7 @@ jobs:
       - name: Notify on failure
         if: failure() && env.SLACK_WEBHOOK_URL != ''
         continue-on-error: true
-        uses: slackapi/slack-github-action@v2.0.0
+        uses: slackapi/slack-github-action@v4.0.0
         with:
           webhook: ${{ env.SLACK_WEBHOOK_URL }}
           webhook-type: INCOMING_WEBHOOK
@@ -320,7 +320,7 @@ jobs:
       - name: Notify summary
         if: always() && env.SLACK_WEBHOOK_URL != ''
         continue-on-error: true
-        uses: slackapi/slack-github-action@v2.0.0
+        uses: slackapi/slack-github-action@v4.0.0
         with:
           webhook: ${{ env.SLACK_WEBHOOK_URL }}
           webhook-type: INCOMING_WEBHOOK
