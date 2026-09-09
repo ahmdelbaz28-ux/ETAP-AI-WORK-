@@ -374,25 +374,50 @@ class LocalSecretsManager:
             return None
 
     def rotate_key(self) -> bool:
-        """Rotate the local Fernet encryption key (re-encrypts all stored keys)."""
+        """Rotate the local Fernet encryption key atomically (re-encrypts all stored keys)."""
         try:
             old_cipher = self._cipher
             new_key = Fernet.generate_key()
             new_cipher = Fernet(new_key)
 
+            staged: dict[Path, bytes] = {}
             for enc_file in SECRETS_DIR.glob("*.enc"):
                 if enc_file.name == _ENCRYPTION_KEY_FILENAME:
                     continue
                 try:
                     plaintext = old_cipher.decrypt(enc_file.read_bytes())
-                    enc_file.write_bytes(new_cipher.encrypt(plaintext))
+                    staged[enc_file] = new_cipher.encrypt(plaintext)
                 except InvalidToken:
                     logger.warning("Skipping %s: unable to decrypt with old key", enc_file.name)
 
-            ENCRYPTION_KEY_FILE.write_bytes(new_key)
+            # Atomic write of all secrets via temp files
+            temp_files: list[Path] = []
+            tmp_key_file = ENCRYPTION_KEY_FILE.with_suffix(".key.tmp")
+            try:
+                for enc_file, new_bytes in staged.items():
+                    tmp_file = enc_file.with_suffix(".enc.tmp")
+                    tmp_file.write_bytes(new_bytes)
+                    temp_files.append((tmp_file, enc_file))
 
-            if os.name != "nt":
-                os.chmod(str(ENCRYPTION_KEY_FILE), stat.S_IRUSR | stat.S_IWUSR)
+                # Write new master key to temp file
+                tmp_key_file.write_bytes(new_key)
+                if os.name != "nt":
+                    os.chmod(str(tmp_key_file), stat.S_IRUSR | stat.S_IWUSR)
+
+                # Atomically replace all files
+                for tmp_file, target_file in temp_files:
+                    tmp_file.replace(target_file)
+
+                tmp_key_file.replace(ENCRYPTION_KEY_FILE)
+                if os.name != "nt":
+                    os.chmod(str(ENCRYPTION_KEY_FILE), stat.S_IRUSR | stat.S_IWUSR)
+            except Exception:
+                for tmp_file, _ in temp_files:
+                    if tmp_file.exists():
+                        tmp_file.unlink()
+                if tmp_key_file.exists():
+                    tmp_key_file.unlink()
+                raise
 
             self._key = new_key
             self._cipher = new_cipher

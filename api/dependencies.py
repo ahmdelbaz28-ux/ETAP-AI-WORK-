@@ -157,10 +157,13 @@ def _decode_jwt(
     algorithms: Optional[list[str]] = None,
     **kwargs: Any,
 ) -> dict[str, Any]:
-    """Canonical raw JWT decoding helper, encapsulated in api/dependencies.py."""
+    """Canonical raw JWT decoding helper, encapsulated in api/dependencies.py.
+
+    Pinned strictly to HS256 to prevent algorithm confusion/substitution attacks.
+    """
     key = secret or JWT_SECRET_KEY
-    algos = algorithms or [JWT_ALGORITHM]
-    return jwt.decode(token, key, algorithms=algos, **kwargs)
+    # Enforce HS256 strictly to mitigate algorithm confusion attacks (CVE-2015-9235 style)
+    return jwt.decode(token, key, algorithms=["HS256"], **kwargs)
 
 
 def _validate_jwt_access_token_sync(
@@ -431,9 +434,24 @@ async def get_api_key(  # NOSONAR async function uses sync I/O for compatibility
         try:
             from api.auth import _is_token_blacklisted  # noqa: F401, I001  # NOSONAR lazy import to avoid circular dependency
 
-            await _validate_jwt_access_token(token, require_sub=False)
+            payload = await _validate_jwt_access_token(token, require_sub=False)
+            user_id = str(payload.get("sub", "")).strip()
+            if user_id:
+                from api.auth import User
+                from api.database import async_session
+
+                async with async_session() as db_session:
+                    res = await db_session.execute(select(User).where(User.id == user_id))
+                    db_user = res.scalar_one_or_none()
+                    if db_user is not None and not db_user.is_active:
+                        raise HTTPException(
+                            status_code=status.HTTP_401_UNAUTHORIZED,
+                            detail="User account is deactivated",
+                        )
             return ""
-        except HTTPException:
+        except HTTPException as exc:
+            if exc.status_code == status.HTTP_401_UNAUTHORIZED and "deactivated" in str(exc.detail).lower():
+                raise
             # Invalid/expired/revoked JWT — fall through to API key validation
             pass
 
