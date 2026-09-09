@@ -509,9 +509,6 @@ async def execute_plan(
             "The Idempotency-Key header is required for /agent-exec/execute.",
             status.HTTP_400_BAD_REQUEST,
         )
-    replay = await _resolve_idempotency(idempotency_key, body.plan_id)
-    if replay is not None:
-        return replay
 
     plan_rec = get_plan(body.plan_id)
     if plan_rec is None:
@@ -547,6 +544,11 @@ async def execute_plan(
             "The executing user belongs to a different tenant than the plan.",
             status.HTTP_403_FORBIDDEN,
         )
+
+    scoped_key = f"{_norm_tenant(user.tenant_id)}:{idempotency_key}"
+    replay = await _resolve_idempotency(scoped_key, body.plan_id)
+    if replay is not None:
+        return replay
 
     # ── Decision gate: auto-approved plans execute directly; pending plans
     #    become executable ONLY when the Approval Gateway proves that THIS
@@ -647,7 +649,7 @@ async def execute_plan(
                 "error_code": "EXECUTION_FAILED",
             },
         }
-        _finish_idempotent(idempotency_key, payload)
+        _finish_idempotent(scoped_key, payload)
         await _emit(
             plan_rec.session_id,
             "job_progress",
@@ -682,7 +684,7 @@ async def execute_plan(
         },
     }
     _EXECUTIONS[execution_id].finished_at = _utc_ts()
-    _finish_idempotent(idempotency_key, payload)
+    _finish_idempotent(scoped_key, payload)
     await _emit(
         plan_rec.session_id,
         "job_progress",
