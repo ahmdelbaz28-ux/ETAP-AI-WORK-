@@ -503,7 +503,8 @@ class ETAPProject:
                         ),
                         "arc_flash_boundary_mm": ETAPAutomation._safe_com_float(
                             equip, "ArcFlashBoundary", 0.0, warn_if_absent=True, context=ctx
-                        ) * 1000,
+                        )
+                        * 1000,
                         "ppe_level": getattr(equip, "PPELevel", "Unknown"),
                         "arc_duration_sec": ETAPAutomation._safe_com_float(
                             equip, "ArcDuration", 0.0, warn_if_absent=True, context=ctx

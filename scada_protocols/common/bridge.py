@@ -221,9 +221,7 @@ class SCADAProtocolBridge:
         t_enum_name = _TYPE_ALIASES.get(t_str, "VOLTAGE_MAGNITUDE")
         return q_enum_name, t_enum_name
 
-    def _is_deadband_suppressed(
-        self, point_key: str, value: float, deadband: float
-    ) -> bool:
+    def _is_deadband_suppressed(self, point_key: str, value: float, deadband: float) -> bool:
         if deadband > 0.0 and point_key in self._last_values:
             if abs(float(value) - self._last_values[point_key]) < deadband:
                 return True
@@ -376,9 +374,7 @@ class SCADAProtocolBridge:
             return True
 
         self._update_stats(source, element_id, t_enum_name, q_enum_name, now)
-        pushed = self._push_measurement(
-            source, element_id, t_enum_name, q_enum_name, value, src_ts
-        )
+        pushed = self._push_measurement(source, element_id, t_enum_name, q_enum_name, value, src_ts)
         self._publish_event(
             source, element_id, measurement_type, t_enum_name, q_enum_name, value, src_ts
         )

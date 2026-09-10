@@ -218,7 +218,11 @@ class EtapRestClient:
                     resp = await client.request(method, path, **kwargs)
                 except httpx.HTTPError as exc:
                     last_exc = exc
-                    logger.warning("ETAP REST transport error (attempt %d): %s", attempt + 1, type(exc).__name__)
+                    logger.warning(
+                        "ETAP REST transport error (attempt %d): %s",
+                        attempt + 1,
+                        type(exc).__name__,
+                    )
                 else:
                     if resp.status_code == 401:
                         raise ETAPRestError("AUTH_FAILED", "ETAP REST rejected credentials (401).")
@@ -280,7 +284,9 @@ class EtapRestClient:
         try:
             data = resp.json()
         except ValueError as exc:
-            raise ETAPRestError("HTTP_ERROR", "ETAP REST returned non-JSON on autobuild.", {}) from exc
+            raise ETAPRestError(
+                "HTTP_ERROR", "ETAP REST returned non-JSON on autobuild.", {}
+            ) from exc
         drawing_id = data.get("drawing_id") or data.get("id")
         if not drawing_id:
             raise ETAPRestError("AUTOBUILD_FAILED", "ETAP Auto-Build returned no drawing ID.", {})
@@ -293,7 +299,9 @@ class EtapRestClient:
         try:
             data = resp.json()
         except ValueError as exc:
-            raise ETAPRestError("HTTP_ERROR", "ETAP REST returned non-JSON on readback.", {}) from exc
+            raise ETAPRestError(
+                "HTTP_ERROR", "ETAP REST returned non-JSON on readback.", {}
+            ) from exc
         elements = data.get("elements") or data.get("items") or []
         return list(elements)
 
@@ -319,7 +327,9 @@ class EtapRestClient:
             drawing_id = await self.trigger_autobuild(plan.project_id)
             readback = await self.get_elements(plan.project_id, created_ids)
         except ETAPRestError:
-            logger.warning("ETAP draw failed after create; attempting cleanup of %d elements", len(created_ids))
+            logger.warning(
+                "ETAP draw failed after create; attempting cleanup of %d elements", len(created_ids)
+            )
             await self.delete_elements(plan.project_id, created_ids)
             raise
 
@@ -330,7 +340,9 @@ class EtapRestClient:
                     seen.add(str(el.get(key)))
         missing = [i for i in created_ids if i not in seen]
         if missing:
-            logger.warning("ETAP draw readback missed %d elements; attempting cleanup", len(missing))
+            logger.warning(
+                "ETAP draw readback missed %d elements; attempting cleanup", len(missing)
+            )
             await self.delete_elements(plan.project_id, created_ids)
             logger.warning("ETAP draw PARTIAL_RESULT audited: missing=%s", missing)
             raise ETAPRestError(

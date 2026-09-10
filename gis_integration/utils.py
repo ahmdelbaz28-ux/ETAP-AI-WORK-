@@ -181,7 +181,9 @@ def geojson_to_esri_json(geom: dict[str, Any]) -> dict[str, Any]:
 
     # Reject Esri JSON or Envelope keys passed by mistake
     if bool({"xmin", "ymin", "xmax", "ymax", "rings", "paths", "points"} & set(geom.keys())):
-        raise GISDataExtractionError("Payload appears to be Esri JSON or Envelope, not valid GeoJSON")
+        raise GISDataExtractionError(
+            "Payload appears to be Esri JSON or Envelope, not valid GeoJSON"
+        )
 
     is_valid, reason = validate_geometry_dict(geom)
     if not is_valid:
@@ -192,7 +194,9 @@ def geojson_to_esri_json(geom: dict[str, Any]) -> dict[str, Any]:
 
     if gtype == "Point":
         if not isinstance(coords, (list, tuple)) or len(coords) < 2:
-            raise GISDataExtractionError(f"Point coordinates must have at least [x, y], got {coords}")
+            raise GISDataExtractionError(
+                f"Point coordinates must have at least [x, y], got {coords}"
+            )
         esri_point: dict[str, Any] = {"x": coords[0], "y": coords[1]}
         if len(coords) >= 3:
             esri_point["z"] = coords[2]
@@ -200,27 +204,37 @@ def geojson_to_esri_json(geom: dict[str, Any]) -> dict[str, Any]:
 
     if gtype == "MultiPoint":
         if not isinstance(coords, list):
-            raise GISDataExtractionError(f"MultiPoint coordinates must be a list, got {type(coords).__name__}")
+            raise GISDataExtractionError(
+                f"MultiPoint coordinates must be a list, got {type(coords).__name__}"
+            )
         return {"points": coords}
 
     if gtype == "LineString":
         if not isinstance(coords, list):
-            raise GISDataExtractionError(f"LineString coordinates must be a list, got {type(coords).__name__}")
+            raise GISDataExtractionError(
+                f"LineString coordinates must be a list, got {type(coords).__name__}"
+            )
         return {"paths": [coords]}
 
     if gtype == "MultiLineString":
         if not isinstance(coords, list):
-            raise GISDataExtractionError(f"MultiLineString coordinates must be a list, got {type(coords).__name__}")
+            raise GISDataExtractionError(
+                f"MultiLineString coordinates must be a list, got {type(coords).__name__}"
+            )
         return {"paths": coords}
 
     if gtype == "Polygon":
         if not isinstance(coords, list):
-            raise GISDataExtractionError(f"Polygon coordinates must be a list, got {type(coords).__name__}")
+            raise GISDataExtractionError(
+                f"Polygon coordinates must be a list, got {type(coords).__name__}"
+            )
         return {"rings": coords}
 
     if gtype == "MultiPolygon":
         if not isinstance(coords, list):
-            raise GISDataExtractionError(f"MultiPolygon coordinates must be a list, got {type(coords).__name__}")
+            raise GISDataExtractionError(
+                f"MultiPolygon coordinates must be a list, got {type(coords).__name__}"
+            )
         all_rings = []
         for poly in coords:
             if isinstance(poly, list):

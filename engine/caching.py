@@ -248,6 +248,7 @@ class StudyCache:
         if not tenant_id:
             try:
                 from api.request_context import get_tenant_id
+
                 tenant_id = get_tenant_id()
             except ImportError:
                 tenant_id = ""

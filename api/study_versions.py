@@ -236,7 +236,9 @@ async def create_version(
     )
 
 
-@router.get("/{project_id}/studies/{study_id}/versions/{version_id}", response_model=VersionResponse)
+@router.get(
+    "/{project_id}/studies/{study_id}/versions/{version_id}", response_model=VersionResponse
+)
 async def get_version(
     project_id: str,
     study_id: str,
@@ -356,7 +358,9 @@ async def compare_versions(
         raise HTTPException(status_code=404, detail="Version not found")
 
     if user.tenant_id:
-        if (va.tenant_id and va.tenant_id != user.tenant_id) or (vb.tenant_id and vb.tenant_id != user.tenant_id):
+        if (va.tenant_id and va.tenant_id != user.tenant_id) or (
+            vb.tenant_id and vb.tenant_id != user.tenant_id
+        ):
             raise HTTPException(status_code=404, detail="Version not found")
 
     def compute_diff(a: dict, b: dict) -> dict:

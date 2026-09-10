@@ -57,10 +57,12 @@ class IEC61850ClientAdapter(ProtocolAdapter):
         has_lib = False
         try:
             import iec61850datamodel  # type: ignore  # noqa: F401
+
             has_lib = True
         except ImportError:
             try:
                 import py61850  # type: ignore  # noqa: F401
+
                 has_lib = True
             except ImportError:
                 pass
@@ -156,7 +158,6 @@ class IEC61850ClientAdapter(ProtocolAdapter):
                 if self._stop_event is not None:
                     self._stop_event.set()
                 raise
-
 
     # -- server stubs (client-only adapter) ---------------------------------
 

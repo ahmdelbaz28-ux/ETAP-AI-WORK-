@@ -45,7 +45,9 @@ from tests.test_arcgis_provider import MockArcGISRouter, MockRoute
 UTC = timezone.utc
 
 TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
-TEST_SERVICE_URL = "https://services.arcgis.com/test_org/arcgis/rest/services/ElectricalGrid/FeatureServer"
+TEST_SERVICE_URL = (
+    "https://services.arcgis.com/test_org/arcgis/rest/services/ElectricalGrid/FeatureServer"
+)
 
 
 # ---------------------------------------------------------------------------
@@ -94,7 +96,9 @@ def mock_arcgis(monkeypatch):
 @pytest.fixture
 def client(app: FastAPI, async_db: AsyncSession, monkeypatch: pytest.MonkeyPatch) -> TestClient:
     monkeypatch.setenv("ENGINEERING_SERVICE_API_KEY", "test-api-key")
-    monkeypatch.setenv("GIS_SERVICE_ALLOWLIST", "https://services.arcgis.com/test_org/arcgis/rest/services")
+    monkeypatch.setenv(
+        "GIS_SERVICE_ALLOWLIST", "https://services.arcgis.com/test_org/arcgis/rest/services"
+    )
     monkeypatch.setenv("GIS_MAX_FEATURES_PER_EDIT", "100")
 
     # Enable flags for testing
@@ -168,7 +172,9 @@ class TestGeometryAndTransformerRoundtrip:
             "coordinates": [[[0.0, 0.0], [1.0, 0.0], [1.0, 1.0], [0.0, 1.0], [0.0, 0.0]]],
         }
         esri_poly = geojson_to_esri_json(geojson_poly)
-        assert esri_poly == {"rings": [[[0.0, 0.0], [1.0, 0.0], [1.0, 1.0], [0.0, 1.0], [0.0, 0.0]]]}
+        assert esri_poly == {
+            "rings": [[[0.0, 0.0], [1.0, 0.0], [1.0, 1.0], [0.0, 1.0], [0.0, 0.0]]]
+        }
         back_to_geo = esri_json_to_geojson(esri_poly)
         assert back_to_geo == geojson_poly
 
@@ -226,7 +232,11 @@ class TestArcGISOnlineProviderWriteMethods:
 
         # 2. Mock layer capabilities
         mock_arcgis.get(f"{TEST_SERVICE_URL}/0").respond(
-            json={"id": 0, "capabilities": "Create,Query,Update,Delete,Editing", "supportsApplyEdits": True}
+            json={
+                "id": 0,
+                "capabilities": "Create,Query,Update,Delete,Editing",
+                "supportsApplyEdits": True,
+            }
         )
 
         # 3. Mock applyEdits POST
@@ -255,7 +265,12 @@ class TestArcGISOnlineProviderWriteMethods:
 
         res = provider.apply_edits(
             layer_id="0",
-            adds=[{"geometry": {"type": "Point", "coordinates": [31.0, 30.0]}, "properties": {"name": "SW_1"}}],
+            adds=[
+                {
+                    "geometry": {"type": "Point", "coordinates": [31.0, 30.0]},
+                    "properties": {"name": "SW_1"},
+                }
+            ],
         )
         assert res["success"] is True
         assert res["readback_verified"] is True
@@ -277,7 +292,11 @@ class TestArcGISOnlineProviderWriteMethods:
             json={
                 "addResults": [
                     {"objectId": 101, "success": True},
-                    {"objectId": 102, "success": False, "error": {"description": "Field validation failed"}},
+                    {
+                        "objectId": 102,
+                        "success": False,
+                        "error": {"description": "Field validation failed"},
+                    },
                 ],
                 "updateResults": [],
                 "deleteResults": [],
@@ -324,10 +343,20 @@ class TestArcGISOnlineProviderWriteMethods:
 
         # 1. First call to self returns 498
         route_self = mock_arcgis.get("https://testportal.com/sharing/rest/portals/self")
-        route_self.mock([
-            httpx.Response(498, json={"error": {"code": 498, "message": "Token Expired"}}, request=httpx.Request("GET", "https://testportal.com")),
-            httpx.Response(200, json={"id": "portal_123"}, request=httpx.Request("GET", "https://testportal.com")),
-        ])
+        route_self.mock(
+            [
+                httpx.Response(
+                    498,
+                    json={"error": {"code": 498, "message": "Token Expired"}},
+                    request=httpx.Request("GET", "https://testportal.com"),
+                ),
+                httpx.Response(
+                    200,
+                    json={"id": "portal_123"},
+                    request=httpx.Request("GET", "https://testportal.com"),
+                ),
+            ]
+        )
 
         # 2. Token refresh endpoint returns valid token
         mock_arcgis.post("https://testportal.com/sharing/rest/generateToken").respond(
@@ -347,7 +376,9 @@ class TestArcGISOnlineProviderWriteMethods:
 class TestGISEditsAPIGateway:
     """Full API router tests covering Maker-Checker, tenant isolation, and gating."""
 
-    def test_propose_and_resolve_success_dual_control(self, client: TestClient, app: FastAPI, mock_arcgis):
+    def test_propose_and_resolve_success_dual_control(
+        self, client: TestClient, app: FastAPI, mock_arcgis
+    ):
         # 1. Setup mock routes
         mock_arcgis.get(TEST_SERVICE_URL).respond(
             json={"layers": [{"id": 0, "name": "Switches"}], "tables": []}
@@ -356,12 +387,22 @@ class TestGISEditsAPIGateway:
             json={"id": 0, "capabilities": "Create,Query", "supportsApplyEdits": True}
         )
         mock_arcgis.post(f"{TEST_SERVICE_URL}/0/applyEdits").respond(
-            json={"addResults": [{"objectId": 501, "success": True}], "updateResults": [], "deleteResults": []}
+            json={
+                "addResults": [{"objectId": 501, "success": True}],
+                "updateResults": [],
+                "deleteResults": [],
+            }
         )
         mock_arcgis.get(f"{TEST_SERVICE_URL}/0/query").respond(
             json={
                 "type": "FeatureCollection",
-                "features": [{"id": 501, "properties": {"OBJECTID": 501}, "geometry": {"type": "Point", "coordinates": [31.0, 30.0]}}],
+                "features": [
+                    {
+                        "id": 501,
+                        "properties": {"OBJECTID": 501},
+                        "geometry": {"type": "Point", "coordinates": [31.0, 30.0]},
+                    }
+                ],
             }
         )
 
@@ -370,7 +411,12 @@ class TestGISEditsAPIGateway:
         propose_payload = {
             "service_url": TEST_SERVICE_URL,
             "layer_id": "0",
-            "adds": [{"geometry": {"type": "Point", "coordinates": [31.0, 30.0]}, "properties": {"name": "CB_NEW"}}],
+            "adds": [
+                {
+                    "geometry": {"type": "Point", "coordinates": [31.0, 30.0]},
+                    "properties": {"name": "CB_NEW"},
+                }
+            ],
             "reason": "Expanding Bay 4 feeder network",
         }
         res = client.post("/api/v1/gis/edits/propose", json=propose_payload, headers=headers)
@@ -441,7 +487,9 @@ class TestGISEditsAPIGateway:
         err = res_resolve.json()["detail"]
         assert err["code"] == "MAKER_CHECKER_VIOLATION"
 
-    def test_feature_flag_off_returns_403(self, client: TestClient, monkeypatch: pytest.MonkeyPatch):
+    def test_feature_flag_off_returns_403(
+        self, client: TestClient, monkeypatch: pytest.MonkeyPatch
+    ):
         headers = {"x-api-key": "test-api-key"}
         monkeypatch.setenv("FEATURE_FLAG_GIS_WRITE", "false")
 
