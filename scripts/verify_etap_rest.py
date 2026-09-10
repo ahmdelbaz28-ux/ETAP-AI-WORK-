@@ -14,10 +14,32 @@ from __future__ import annotations
 import argparse
 import asyncio
 import sys
+from pathlib import Path
+
+# Bootstrap: allow running as `python scripts/verify_etap_rest.py` from anywhere —
+# repo root (parent of scripts/) must be importable for `etap_integration`.
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+try:
+    import httpx  # noqa: F401
+    import pydantic  # noqa: F401
+except ImportError:
+    print("BLOCKED: missing dependencies. Run with the project interpreter:")
+    print('  pip install httpx "pydantic>=2"')
+    sys.exit(2)
 
 
 async def _main(url: str, token: str, project: str) -> int:
+    from urllib.parse import urlparse
+
     from etap_integration.etap_rest import EtapDrawPlan, EtapRestClient
+
+    host = urlparse(url).hostname or ""
+    if not host or "<" in url or ">" in url or any(ord(c) > 127 for c in host):
+        print("BLOCKED: bad --url. Use the REAL DataHub host (ASCII only), e.g.:")
+        print('  --url "https://192.168.1.50/etapapi"   (no <> placeholders, no description words)')
+        print("Tip: the same host must open https://<host>/etapapi/swagger in a browser.")
+        return 2
 
     client = EtapRestClient(base_url=url, token=token)
     if not await client.health_check():

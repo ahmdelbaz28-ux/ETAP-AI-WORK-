@@ -1,5 +1,3 @@
-#!/usr/bin/env bash
-# NOSONAR
 # services/yolo/Dockerfile — YOLO Layout Segmentation Service for AhmedETAP
 FROM python:3.13-slim
 
@@ -7,11 +5,13 @@ WORKDIR /app
 
 # hadolint ignore=DL3008
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    libgl1-mesa-glx libglib2.0-0 git && \
+    git \
+    libgl1-mesa-glx \
+    libglib2.0-0 && \
     rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir --only-binary :all: -r requirements.txt || pip install --no-cache-dir -r requirements.txt
 
 # S6470 fix: .dockerignore (added in this commit) filters secrets/VCS/caches
 # so the recursive copy is safe. Copying explicitly-listed files would

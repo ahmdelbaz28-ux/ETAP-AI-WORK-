@@ -55,7 +55,7 @@ jobs:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - uses: actions/setup-node@v7
         with:
@@ -85,7 +85,7 @@ jobs:
       name: staging
       url: https://staging.example.com
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - uses: actions/setup-node@v7
         with:
@@ -107,8 +107,6 @@ jobs:
           # or: docker push && kubectl apply
           echo "Staging deployment complete"
         env:
-          DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
-          JWT_SECRET: ${{ secrets.STAGING_JWT_SECRET }}
           NODE_ENV: staging
 
       - name: Smoke test staging
@@ -127,7 +125,7 @@ jobs:
       name: production
       url: https://example.com
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - uses: actions/setup-node@v7
         with:
@@ -147,8 +145,6 @@ jobs:
           # Replace with actual deployment command
           echo "Production deployment complete"
         env:
-          DATABASE_URL: ${{ secrets.PRODUCTION_DATABASE_URL }}
-          JWT_SECRET: ${{ secrets.PRODUCTION_JWT_SECRET }}
           NODE_ENV: production
 
       - name: Post-deploy health check
@@ -175,4 +171,3 @@ jobs:
         run: |
           echo "Deployment failed — notification sent"
           # In production: send Slack/Discord/email notification
-          # curl -X POST ${{ secrets.SLACK_WEBHOOK }} -d '{"text":"Deployment failed!"}'

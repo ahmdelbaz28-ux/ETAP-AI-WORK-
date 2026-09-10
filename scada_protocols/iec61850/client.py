@@ -146,7 +146,22 @@ class IEC61850ClientAdapter(ProtocolAdapter):
             try:
                 await asyncio.sleep(sleep_for)
             except asyncio.CancelledError:
-                break
+                if self._stop_event is not None:
+                    self._stop_event.set()
+                raise
+
+    # -- server stubs (client-only adapter) ---------------------------------
+
+    def start_server(self) -> None:
+        pass  # pragma: no cover
+
+    def stop_server(self) -> None:
+        pass  # pragma: no cover
+
+    # -- health -------------------------------------------------------------
+
+    def health_check(self) -> bool:
+        return self._thread is not None and self._thread.is_alive()
 
     def describe(self) -> Dict[str, Any]:
         return {
