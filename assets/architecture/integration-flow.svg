@@ -12,23 +12,23 @@
   <text x="60" y="118" fill="#60a5fa" font-size="14" font-weight="600">BIM INTEGRATION</text>
   <rect x="60" y="135" width="310" height="55" rx="6" fill="#1e3a5f" stroke="#60a5fa" stroke-width="1"/>
   <text x="75" y="158" fill="#93c5fd" font-size="12" font-weight="600">Revit BIM Sync</text>
-  <text x="75" y="178" fill="#94a3b8" font-size="10">fireai/bridges/revit_bim_sync.py</text>
+  <text x="75" y="178" fill="#94a3b8" font-size="10">etap/bridges/revit_bim_sync.py</text>
   <line x1="215" y1="190" x2="215" y2="210" stroke="#475569" stroke-width="1" marker-end="url(#arr)"/>
   <rect x="60" y="215" width="310" height="55" rx="6" fill="#1e3a5f" stroke="#60a5fa" stroke-width="1"/>
   <text x="75" y="238" fill="#93c5fd" font-size="12" font-weight="600">IFC Headless Bridge</text>
-  <text x="75" y="258" fill="#94a3b8" font-size="10">fireai/bridges/ifc_headless_bridge.py</text>
+  <text x="75" y="258" fill="#94a3b8" font-size="10">etap/bridges/ifc_headless_bridge.py</text>
   <line x1="215" y1="270" x2="215" y2="290" stroke="#475569" stroke-width="1" marker-end="url(#arr)"/>
   <rect x="60" y="295" width="310" height="55" rx="6" fill="#1e3a5f" stroke="#60a5fa" stroke-width="1"/>
   <text x="75" y="318" fill="#93c5fd" font-size="12" font-weight="600">AutoCAD Bridge</text>
-  <text x="75" y="338" fill="#94a3b8" font-size="10">fireai/integration/autocad_bridge.py</text>
+  <text x="75" y="338" fill="#94a3b8" font-size="10">etap/integration/autocad_bridge.py</text>
   <line x1="215" y1="350" x2="215" y2="370" stroke="#475569" stroke-width="1" marker-end="url(#arr)"/>
   <rect x="60" y="375" width="310" height="55" rx="6" fill="#1e3a5f" stroke="#60a5fa" stroke-width="1"/>
   <text x="75" y="398" fill="#93c5fd" font-size="12" font-weight="600">Bentley Bridge</text>
-  <text x="75" y="418" fill="#94a3b8" font-size="10">fireai/integration/bentley_bridge.py</text>
+  <text x="75" y="418" fill="#94a3b8" font-size="10">etap/integration/bentley_bridge.py</text>
   <line x1="215" y1="430" x2="215" y2="450" stroke="#475569" stroke-width="1" marker-end="url(#arr)"/>
   <rect x="60" y="455" width="310" height="55" rx="6" fill="#1e3a5f" stroke="#60a5fa" stroke-width="1"/>
   <text x="75" y="478" fill="#93c5fd" font-size="12" font-weight="600">MCP Server (Revit)</text>
-  <text x="75" y="498" fill="#94a3b8" font-size="10">fireai/mcp_server/revit_mcp_server.py</text>
+  <text x="75" y="498" fill="#94a3b8" font-size="10">etap/mcp_server/revit_mcp_server.py</text>
 
   <!-- External API column -->
   <rect x="420" y="90" width="370" height="640" rx="8" fill="#083344" stroke="#22d3ee" stroke-width="1" stroke-opacity=".3"/>
@@ -60,21 +60,21 @@
   <text x="840" y="118" fill="#34d399" font-size="14" font-weight="600">ENTERPRISE &amp; IoT</text>
   <rect x="840" y="135" width="310" height="55" rx="6" fill="#064e3b" stroke="#34d399" stroke-width="1"/>
   <text x="855" y="158" fill="#6ee7b7" font-size="12" font-weight="600">IoT Pipeline</text>
-  <text x="855" y="178" fill="#94a3b8" font-size="10">fireai/integration/iot_pipeline.py</text>
+  <text x="855" y="178" fill="#94a3b8" font-size="10">etap/integration/iot_pipeline.py</text>
   <line x1="995" y1="190" x2="995" y2="210" stroke="#475569" stroke-width="1" marker-end="url(#arr)"/>
   <rect x="840" y="215" width="310" height="55" rx="6" fill="#064e3b" stroke="#34d399" stroke-width="1"/>
   <text x="855" y="238" fill="#6ee7b7" font-size="12" font-weight="600">Enterprise Pipeline</text>
-  <text x="855" y="258" fill="#94a3b8" font-size="10">fireai/bridges/enterprise_pipeline.py</text>
+  <text x="855" y="258" fill="#94a3b8" font-size="10">etap/bridges/enterprise_pipeline.py</text>
   <line x1="995" y1="270" x2="995" y2="290" stroke="#475569" stroke-width="1" marker-end="url(#arr)"/>
   <rect x="840" y="295" width="310" height="55" rx="6" fill="#064e3b" stroke="#34d399" stroke-width="1"/>
   <text x="855" y="318" fill="#6ee7b7" font-size="12" font-weight="600">Field Data Service</text>
-  <text x="855" y="338" fill="#94a3b8" font-size="10">fireai/integration/field_data_service.py</text>
+  <text x="855" y="338" fill="#94a3b8" font-size="10">etap/integration/field_data_service.py</text>
   <line x1="995" y1="350" x2="995" y2="370" stroke="#475569" stroke-width="1" marker-end="url(#arr)"/>
   <rect x="840" y="375" width="310" height="55" rx="6" fill="#064e3b" stroke="#34d399" stroke-width="1"/>
   <text x="855" y="398" fill="#6ee7b7" font-size="12" font-weight="600">Mobile API</text>
-  <text x="855" y="418" fill="#94a3b8" font-size="10">fireai/integration/mobile_api.py</text>
+  <text x="855" y="418" fill="#94a3b8" font-size="10">etap/integration/mobile_api.py</text>
   <line x1="995" y1="430" x2="995" y2="450" stroke="#475569" stroke-width="1" marker-end="url(#arr)"/>
   <rect x="840" y="455" width="310" height="55" rx="6" fill="#064e3b" stroke="#34d399" stroke-width="1"/>
   <text x="855" y="478" fill="#6ee7b7" font-size="12" font-weight="600">AR/VR Visualizer</text>
-  <text x="855" y="498" fill="#94a3b8" font-size="10">fireai/integration/ar_vr_visualizer.py</text>
+  <text x="855" y="498" fill="#94a3b8" font-size="10">etap/integration/ar_vr_visualizer.py</text>
 </svg>

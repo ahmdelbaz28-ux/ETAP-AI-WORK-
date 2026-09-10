@@ -7,7 +7,7 @@
   </defs>
   <rect width="1200" height="900" fill="url(#bg)" rx="12"/>
   <text x="40" y="45" fill="#e2e8f0" font-size="22" font-weight="700">Component Architecture</text>
-  <text x="40" y="65" fill="#94a3b8" font-size="12">FireAI Digital Twin Platform v1.0.0</text>
+  <text x="40" y="65" fill="#94a3b8" font-size="12">AhmedETAP Digital Twin Platform v1.0.0</text>
 
   <!-- Frontend -->
   <rect x="40" y="90" width="540" height="790" rx="8" fill="url(#box)" stroke="#3b82f6" stroke-width="1" stroke-opacity=".4"/>
@@ -116,7 +116,7 @@
   <rect x="885" y="462" width="260" height="32" rx="5" fill="#064e3b" stroke="#34d399" stroke-width="1"/>
   <text x="895" y="483" fill="#6ee7b7" font-size="11">schemas.py — Validation + serialization</text>
 
-  <text x="635" y="520" fill="#34d399" font-size="12" font-weight="600">ENGINEERING KERNEL (fireai/)</text>
+  <text x="635" y="520" fill="#34d399" font-size="12" font-weight="600">ENGINEERING KERNEL (etap/)</text>
   <rect x="635" y="530" width="250" height="26" rx="4" fill="#064e3b" stroke="#34d399" stroke-width=".5"/>
   <text x="642" y="548" fill="#6ee7b7" font-size="10">NFPA 72: engine, coverage, models, calculations</text>
   <rect x="895" y="530" width="250" height="26" rx="4" fill="#064e3b" stroke="#34d399" stroke-width=".5"/>

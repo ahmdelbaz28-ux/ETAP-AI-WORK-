@@ -5,7 +5,7 @@
   </defs>
   <rect width="1200" height="500" fill="url(#bg)" rx="12"/>
   <text x="40" y="45" fill="#e2e8f0" font-size="22" font-weight="700">Product Roadmap</text>
-  <text x="40" y="65" fill="#94a3b8" font-size="12">FireAI Digital Twin Platform — Current &amp; Future Milestones</text>
+  <text x="40" y="65" fill="#94a3b8" font-size="12">AhmedETAP Digital Twin Platform — Current &amp; Future Milestones</text>
 
   <!-- Timeline base -->
   <line x1="100" y1="400" x2="1100" y2="400" stroke="#334155" stroke-width="3"/>

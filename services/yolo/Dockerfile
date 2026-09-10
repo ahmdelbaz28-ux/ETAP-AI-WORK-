@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # NOSONAR
-# services/yolo/Dockerfile — YOLO Layout Segmentation Service for FireAI
+# services/yolo/Dockerfile — YOLO Layout Segmentation Service for AhmedETAP
 FROM python:3.13-slim
 
 WORKDIR /app
