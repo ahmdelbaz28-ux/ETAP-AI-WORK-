@@ -5,7 +5,7 @@
   </defs>
   <rect width="1200" height="500" fill="url(#bg)" rx="12"/>
   <text x="40" y="45" fill="#e2e8f0" font-size="22" font-weight="700">Product Roadmap</text>
-  <text x="40" y="65" fill="#94a3b8" font-size="12">FireAI Digital Twin Platform — Current &amp; Future Milestones</text>
+  <text x="40" y="65" fill="#94a3b8" font-size="12">AhmedETAP Digital Twin Platform — Current &amp; Future Milestones</text>
 
   <!-- Timeline base -->
   <line x1="100" y1="400" x2="1100" y2="400" stroke="#334155" stroke-width="3"/>
@@ -32,10 +32,10 @@
   <rect x="100" y="90" width="440" height="40" rx="10" fill="#ef4444" opacity=".15"/>
   <text x="130" y="117" fill="#ef4444" font-size="16" font-weight="700">Current State</text>
   <text x="130" y="145" fill="#e2e8f0" font-size="12" font-weight="600">Phase 1-8 Production Readiness Delivered</text>
-  <text x="130" y="168" fill="#94a3b8" font-size="11">✅ NFPA 72 engine with coverage, acoustics, voltage drop</text>
+  <text x="130" y="168" fill="#94a3b8" font-size="11">✅ Power system analysis engine (Load Flow, Short Circuit, Arc Flash)</text>
   <text x="130" y="185" fill="#94a3b8" font-size="11">✅ AI Agents: learning, predictive, self-improvement</text>
   <text x="130" y="202" fill="#94a3b8" font-size="11">✅ BIM integration: Revit, IFC, AutoCAD, Bentley</text>
-  <text x="130" y="219" fill="#94a3b8" font-size="11">✅ Compliance: NFPA 72, NEC, UL 864, IBC, ATEX</text>
+  <text x="130" y="219" fill="#94a3b8" font-size="11">✅ Standards Compliance: IEEE 3002, IEC 60909, IEEE 1584, IEC 60255</text>
   <text x="130" y="236" fill="#94a3b8" font-size="11">✅ Auditing: SHA-256 hash chain, HMAC, Merkle proofs</text>
   <text x="130" y="253" fill="#94a3b8" font-size="11">✅ Electron desktop app with security hardening</text>
   <text x="130" y="270" fill="#94a3b8" font-size="11">✅ 157 MB ARM64 AppImage</text>

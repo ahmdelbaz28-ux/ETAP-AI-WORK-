@@ -219,6 +219,7 @@ class TestSCADAInterlockAPIGateway:
         from httpx import ASGITransport, AsyncClient
         from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
         from sqlalchemy.orm import sessionmaker
+
         from api.database import Base, get_db
         from api.dependencies import CurrentUser, get_current_user_from_header
         from api.scada import router as scada_router
@@ -280,6 +281,7 @@ class TestSCADAInterlockAPIGateway:
         from httpx import ASGITransport, AsyncClient
         from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
         from sqlalchemy.orm import sessionmaker
+
         from api.database import Base, get_db
         from api.dependencies import CurrentUser, get_current_user_from_header
         from api.projects import Project
@@ -357,6 +359,7 @@ class TestSCADAInterlockAPIGateway:
         from httpx import ASGITransport, AsyncClient
         from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
         from sqlalchemy.orm import sessionmaker
+
         from api.database import Base, get_db
         from api.dependencies import CurrentUser, get_current_user_from_header
         from api.projects import Project

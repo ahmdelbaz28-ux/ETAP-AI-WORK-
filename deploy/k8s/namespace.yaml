@@ -6,7 +6,7 @@ metadata:
     name: etap
     environment: production
     security-tier: critical
-    compliance: nfpa72-2022
+    compliance: ieee-iec-standards
   annotations:
-    description: "ETAP Safety-Critical Fire Protection Platform"
+    description: "AhmedETAP Electrical Power Systems Engineering Platform"
     security.etap.com/zero-trust: "enforced"

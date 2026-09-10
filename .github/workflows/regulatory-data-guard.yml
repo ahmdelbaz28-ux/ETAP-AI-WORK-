@@ -18,15 +18,11 @@ on:
   pull_request:
     branches: [main]
     paths:
-      - 'etap/core/qomn_kernel.py'
-      - 'etap/core/nfpa72_*.py'
-      - 'etap/core/voltage_drop.py'
-      - 'etap/core/battery_aging_derating.py'
-      - 'etap/core/device_placement.py'
-      - 'etap/constants/**'
-      - 'qomn_fire/core/constants.py'
-      - 'qomn_conduit/**'
-      - 'facp_system/**'
+      - 'core/**'
+      - 'load_flow/**'
+      - 'fault_analysis/**'
+      - 'coordination/**'
+      - 'relays/**'
 
 jobs:
   check-regulatory-attestation:

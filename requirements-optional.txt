@@ -26,7 +26,7 @@ httpx>=0.24.0,<1.0.0
 # ═══════════════════════════════════════════════════════════════════════════
 # V214: DWG file conversion — system binaries (NOT pip packages)
 # ═══════════════════════════════════════════════════════════════════════════
-# The dwg_converter.py module (qomn_fire/parsers/dwg_converter.py) tries
+# The dwg_converter.py module (parsers/dwg_converter.py) tries
 # these binaries in order to convert DWG→DXF without requiring AutoCAD:
 #
 #   1. dwg2dxf       — LibreDWG (open source, Linux/Mac/Windows)

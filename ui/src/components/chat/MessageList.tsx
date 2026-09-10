@@ -50,7 +50,33 @@ function MessageBubble({ message }: { readonly message: ChatMessage }) {
             message.content
           ) : (
             <div className="prose-engineering">
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>{message.content || ""}</ReactMarkdown>
+              <ReactMarkdown
+                remarkPlugins={[remarkGfm]}
+                components={{
+                  a: ({ href, children, ...props }) => {
+                    const isSafe = /^https?:\/\//i.test(href || "");
+                    if (!isSafe) return <span>{children}</span>;
+                    return (
+                      <a
+                        href={href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-brand-400 underline hover:text-brand-300"
+                        {...props}
+                      >
+                        {children}
+                      </a>
+                    );
+                  },
+                  img: ({ alt }) => (
+                    <span className="inline-flex items-center gap-1 text-xs text-[var(--text-muted)] italic">
+                      🖼️ [{alt || "Image"}]
+                    </span>
+                  ),
+                }}
+              >
+                {message.content || ""}
+              </ReactMarkdown>
             </div>
           )}
         </div>

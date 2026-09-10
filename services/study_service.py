@@ -373,7 +373,13 @@ def execute_study_logic(  # NOSONAR
         # --- Cache lookup for native studies (non-ETAP) ---
         if not payload.use_etap:
             try:
-                cache_params = {"study_type": payload.study_type, "parameters": payload.parameters}
+                from api.request_context import get_tenant_id
+
+                cache_params = {
+                    "study_type": payload.study_type,
+                    "parameters": payload.parameters,
+                    "tenant_id": get_tenant_id(),
+                }
                 if payload.system:
                     # Use deterministic hashing (SHA-256) instead of Python hash()
                     import hashlib as _hashlib
@@ -437,7 +443,13 @@ def execute_study_logic(  # NOSONAR
 
             # --- Store result in cache ---
             try:
-                cache_params = {"study_type": payload.study_type, "parameters": payload.parameters}
+                from api.request_context import get_tenant_id
+
+                cache_params = {
+                    "study_type": payload.study_type,
+                    "parameters": payload.parameters,
+                    "tenant_id": get_tenant_id(),
+                }
                 if payload.system:
                     import hashlib as _hashlib
 

@@ -26,14 +26,10 @@ RUNTIME_PATHS=(
   "adapters"
   "backend"
   "core"
-  "facp_system"
   "etap"
   "frontend"
   "integration"
-  "marine"
   "parsers"
-  "qomn_conduit"
-  "qomn_fire"
 )
 
 # rsync exclude patterns (must match sync-to-hf.yml)

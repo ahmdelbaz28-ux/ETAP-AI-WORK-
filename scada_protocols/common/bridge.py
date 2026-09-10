@@ -22,7 +22,7 @@ from __future__ import annotations
 import logging
 import time
 from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Callable, Dict, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -128,19 +128,35 @@ class SCADAProtocolBridge:
         self._stats = BridgeStats()
         self._last_values: Dict[str, float] = {}
         # Lazy caches
-        self._MeasurementType: Any = None
-        self._QualityFlag: Any = None
-        self._Measurement: Any = None
-        self._SCADAUpdateReceived: Any = None
+        self._measurement_type_cls: Any = None
+        self._quality_flag_cls: Any = None
+        self._measurement_cls: Any = None
+        self._scada_update_received_cls: Any = None
         self._initialised = False
         self._ensure_imports()
+
+    @property
+    def _Measurement(self) -> Any:
+        return self._measurement_cls
+
+    @property
+    def _MeasurementType(self) -> Any:
+        return self._measurement_type_cls
+
+    @property
+    def _QualityFlag(self) -> Any:
+        return self._quality_flag_cls
+
+    @property
+    def _SCADAUpdateReceived(self) -> Any:
+        return self._scada_update_received_cls
 
     # -- lazy resolution ----------------------------------------------------
 
     def _ensure_imports(self) -> bool:
         """Lazily import host-repo types. Returns True on success."""
         if self._initialised:
-            return True
+            return self._measurement_cls is not None and self._quality_flag_cls is not None
         try:
             from scada_model.scada_model import (  # type: ignore
                 Measurement,
@@ -148,31 +164,31 @@ class SCADAProtocolBridge:
                 QualityFlag,
             )
 
-            self._Measurement = Measurement
-            self._MeasurementType = MeasurementType
-            self._QualityFlag = QualityFlag
+            self._measurement_cls = Measurement
+            self._measurement_type_cls = MeasurementType
+            self._quality_flag_cls = QualityFlag
         except Exception as exc:
             logger.debug(
                 "scada_model not importable; bridge will run in log-only mode (%s)",
                 exc,
             )
-            self._Measurement = None
-            self._MeasurementType = None
-            self._QualityFlag = None
+            self._measurement_cls = None
+            self._measurement_type_cls = None
+            self._quality_flag_cls = None
 
         try:
             from digital_twin.event_bus import SCADAUpdateReceived  # type: ignore
 
-            self._SCADAUpdateReceived = SCADAUpdateReceived
+            self._scada_update_received_cls = SCADAUpdateReceived
         except Exception as exc:
             logger.debug(
                 "digital_twin.event_bus not importable; event publishing disabled (%s)",
                 exc,
             )
-            self._SCADAUpdateReceived = None
+            self._scada_update_received_cls = None
 
         self._initialised = True
-        return True
+        return self._measurement_cls is not None and self._quality_flag_cls is not None
 
     def _resolve_scada_db(self) -> Any:
         if self._scada_db is not None:
@@ -185,6 +201,149 @@ class SCADAProtocolBridge:
         except Exception as exc:
             logger.debug("could not auto-create SCADADatabase: %s", exc)
             return None
+
+    # -- public API helpers -------------------------------------------------
+
+    def _resolve_quality_and_type(
+        self,
+        quality: Optional[str],
+        measurement_type: str,
+        src_ts: float,
+        now: float,
+        max_age_sec: float,
+    ) -> Tuple[str, str]:
+        q_raw = quality or self._default_quality or "good"
+        if (now - src_ts) > max_age_sec:
+            q_raw = "missing"
+        q_str = str(q_raw).strip().lower()
+        q_enum_name = _QUALITY_ALIASES.get(q_str, "GOOD")
+        t_str = (measurement_type or "").strip().lower()
+        t_enum_name = _TYPE_ALIASES.get(t_str, "VOLTAGE_MAGNITUDE")
+        return q_enum_name, t_enum_name
+
+    def _is_deadband_suppressed(
+        self, point_key: str, value: float, deadband: float
+    ) -> bool:
+        if deadband > 0.0 and point_key in self._last_values:
+            if abs(float(value) - self._last_values[point_key]) < deadband:
+                return True
+        self._last_values[point_key] = float(value)
+        return False
+
+    def _update_stats(
+        self,
+        source: str,
+        element_id: str,
+        t_enum_name: str,
+        q_enum_name: str,
+        now: float,
+    ) -> None:
+        self._stats.total_ingested += 1
+        self._stats.by_protocol[source] = self._stats.by_protocol.get(source, 0) + 1
+        self._stats.by_type[t_enum_name] = self._stats.by_type.get(t_enum_name, 0) + 1
+        self._stats.by_quality[q_enum_name] = self._stats.by_quality.get(q_enum_name, 0) + 1
+        self._stats.last_element_id = element_id
+        self._stats.last_ts = now
+
+    def _push_measurement(
+        self,
+        source: str,
+        element_id: str,
+        t_enum_name: str,
+        q_enum_name: str,
+        value: float,
+        src_ts: float,
+    ) -> bool:
+        self._ensure_imports()
+        db = self._resolve_scada_db()
+        if db is not None and self._measurement_cls is not None:
+            try:
+                mtype = self._measurement_type_cls[t_enum_name]
+                qflag = self._quality_flag_cls[q_enum_name]
+                if q_enum_name == "GOOD":
+                    confidence = 1.0
+                elif q_enum_name == "QUESTIONABLE":
+                    confidence = 0.5
+                else:
+                    confidence = 0.0
+
+                measurement = self._measurement_cls(
+                    measurement_id=f"{source}::{element_id}::{t_enum_name}",
+                    measurement_type=mtype,
+                    element_id=element_id,
+                    value=float(value),
+                    timestamp=src_ts,
+                    quality=qflag,
+                    confidence=confidence,
+                )
+                measurement.source_timestamp = src_ts
+                db.add_measurement(measurement)
+                return True
+            except Exception as exc:
+                logger.warning(
+                    "bridge: SCADADatabase.add_measurement failed for %s/%s: %s",
+                    element_id,
+                    t_enum_name,
+                    exc,
+                )
+                return False
+        else:
+            logger.debug(
+                "bridge ingest (log-only): src=%s elem=%s type=%s val=%.4f q=%s",
+                source,
+                element_id,
+                t_enum_name,
+                float(value),
+                q_enum_name,
+            )
+            return False
+
+    def _publish_event(
+        self,
+        source: str,
+        element_id: str,
+        measurement_type: str,
+        t_enum_name: str,
+        q_enum_name: str,
+        value: float,
+        src_ts: float,
+    ) -> None:
+        if self._event_bus is None or self._scada_update_received_cls is None:
+            return
+        try:
+            event = self._scada_update_received_cls(
+                source=source,
+                measurements=[
+                    {
+                        "element_id": element_id,
+                        "type": t_enum_name,
+                        "value": float(value),
+                        "quality": q_enum_name,
+                        "ts": src_ts,
+                    }
+                ],
+                metadata={
+                    "protocol_source": source,
+                    "raw_measurement_type": measurement_type,
+                    "source_timestamp": src_ts,
+                },
+            )
+            try:
+                self._event_bus.publish(event)
+            except TypeError:
+                self._event_bus.publish(
+                    {
+                        "type": "scada_update_received",
+                        "source": source,
+                        "element_id": element_id,
+                        "measurement_type": t_enum_name,
+                        "value": float(value),
+                        "quality": q_enum_name,
+                        "source_timestamp": src_ts,
+                    }
+                )
+        except Exception as exc:
+            logger.debug("bridge: event publish failed: %s", exc)
 
     # -- public API ---------------------------------------------------------
 
@@ -208,112 +367,21 @@ class SCADAProtocolBridge:
         now = time.time()
         src_ts = float(source_timestamp) if source_timestamp is not None else now
 
-        # Staleness check: if source telemetry is older than max_age_sec, mark MISSING
-        q_raw = quality or self._default_quality or "good"
-        if (now - src_ts) > max_age_sec:
-            q_raw = "missing"
+        q_enum_name, t_enum_name = self._resolve_quality_and_type(
+            quality, measurement_type, src_ts, now, max_age_sec
+        )
 
-        q_str = str(q_raw).strip().lower()
-        q_enum_name = _QUALITY_ALIASES.get(q_str, "GOOD")
-        t_str = (measurement_type or "").strip().lower()
-        t_enum_name = _TYPE_ALIASES.get(t_str, "VOLTAGE_MAGNITUDE")
-
-        # Deadband check: suppress updates if change is within deadband threshold
         point_key = f"{element_id}::{t_enum_name}"
-        if deadband > 0.0 and point_key in self._last_values:
-            if abs(float(value) - self._last_values[point_key]) < deadband:
-                return True
-        self._last_values[point_key] = float(value)
+        if self._is_deadband_suppressed(point_key, value, deadband):
+            return True
 
-        # Update stats regardless of whether SCADADatabase is available.
-        self._stats.total_ingested += 1
-        self._stats.by_protocol[source] = self._stats.by_protocol.get(source, 0) + 1
-        self._stats.by_type[t_enum_name] = self._stats.by_type.get(t_enum_name, 0) + 1
-        self._stats.by_quality[q_enum_name] = self._stats.by_quality.get(q_enum_name, 0) + 1
-        self._stats.last_element_id = element_id
-        self._stats.last_ts = now
-
-        # Try to push into the SCADADatabase.
-        self._ensure_imports()
-        pushed = False
-        db = self._resolve_scada_db()
-        if db is not None and self._Measurement is not None:
-            try:
-                mtype = self._MeasurementType[t_enum_name]
-                qflag = self._QualityFlag[q_enum_name]
-                measurement = self._Measurement(
-                    measurement_id=f"{source}::{element_id}::{t_enum_name}",
-                    measurement_type=mtype,
-                    element_id=element_id,
-                    value=float(value),
-                    timestamp=src_ts,
-                    quality=qflag,
-                    confidence=1.0 if q_enum_name == "GOOD" else (0.5 if q_enum_name == "QUESTIONABLE" else 0.0),
-                )
-                setattr(measurement, "source_timestamp", src_ts)
-                db.add_measurement(measurement)
-                pushed = True
-            except Exception as exc:
-                logger.warning(
-                    "bridge: SCADADatabase.add_measurement failed for %s/%s: %s",
-                    element_id,
-                    t_enum_name,
-                    exc,
-                )
-        else:
-            logger.debug(
-                "bridge ingest (log-only): src=%s elem=%s type=%s val=%.4f q=%s",
-                source,
-                element_id,
-                t_enum_name,
-                float(value),
-                q_enum_name,
-            )
-
-        # Try to publish an event on the digital twin EventBus.
-        # The SCADAUpdateReceived event in digital_twin.event_bus has this shape:
-        #   SCADAUpdateReceived(
-        #     source=str, measurements=[{element_id, type, value, quality, ts}, ...],
-        #     switch_statuses={element_id: status}, metadata={...}
-        #   )
-        if self._event_bus is not None and self._SCADAUpdateReceived is not None:
-            try:
-                event = self._SCADAUpdateReceived(
-                    source=source,
-                    measurements=[
-                        {
-                            "element_id": element_id,
-                            "type": t_enum_name,
-                            "value": float(value),
-                            "quality": q_enum_name,
-                            "ts": src_ts,
-                        }
-                    ],
-                    metadata={
-                        "protocol_source": source,
-                        "raw_measurement_type": measurement_type,
-                        "source_timestamp": src_ts,
-                    },
-                )
-                # EventBus.publish signature in the repo accepts a DomainEvent.
-                try:
-                    self._event_bus.publish(event)
-                except TypeError:
-                    # Fall back to dict payload if the EventBus API differs.
-                    self._event_bus.publish(
-                        {
-                            "type": "scada_update_received",
-                            "source": source,
-                            "element_id": element_id,
-                            "measurement_type": t_enum_name,
-                            "value": float(value),
-                            "quality": q_enum_name,
-                            "source_timestamp": src_ts,
-                        }
-                    )
-            except Exception as exc:
-                logger.debug("bridge: event publish failed: %s", exc)
-
+        self._update_stats(source, element_id, t_enum_name, q_enum_name, now)
+        pushed = self._push_measurement(
+            source, element_id, t_enum_name, q_enum_name, value, src_ts
+        )
+        self._publish_event(
+            source, element_id, measurement_type, t_enum_name, q_enum_name, value, src_ts
+        )
         return pushed
 
     # -- introspection ------------------------------------------------------
@@ -348,11 +416,11 @@ def make_callback(bridge: SCADAProtocolBridge) -> Callable[..., None]:
     ) -> None:
         try:
             bridge.ingest(
-                element_id=element_id,
-                measurement_type=measurement_type,
-                value=value,
-                quality=quality,
-                source=source,
+                element_id,
+                measurement_type,
+                value,
+                quality,
+                source,
                 *args,
                 **kwargs,
             )

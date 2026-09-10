@@ -1212,6 +1212,9 @@ class PowerGridGNN:
 # ===========================================================================
 
 
+MSG_NO_ACTIVE_MLFLOW_RUN = "No active MLflow run. Call start_run() first."
+
+
 class ModelRegistry:
     """MLflow-based model tracking and registry.
 
@@ -1292,21 +1295,21 @@ class ModelRegistry:
     def log_params(self, params: dict[str, Any]) -> None:
         """Log parameters for the current run."""
         if not self._active_run:
-            logger.warning("No active MLflow run. Call start_run() first.")
+            logger.warning(MSG_NO_ACTIVE_MLFLOW_RUN)
             return
         mlflow.log_params(params)
 
     def log_metrics(self, metrics: dict[str, float]) -> None:
         """Log metrics for the current run."""
         if not self._active_run:
-            logger.warning("No active MLflow run. Call start_run() first.")
+            logger.warning(MSG_NO_ACTIVE_MLFLOW_RUN)
             return
         mlflow.log_metrics(metrics)
 
     def log_model(self, model: Any, artifact_path: str = "model") -> None:
         """Log a model artifact."""
         if not self._active_run:
-            logger.warning("No active MLflow run. Call start_run() first.")
+            logger.warning(MSG_NO_ACTIVE_MLFLOW_RUN)
             return
         try:
             mlflow.sklearn.log_model(model, artifact_path)

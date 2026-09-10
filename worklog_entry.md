@@ -9,7 +9,7 @@ Work Log:
 - Fixed BATTERY_SAFETY_FACTOR to 1.25 (more conservative, Safety First per Rule #12)
 - Made etap/constants/__init__.py re-export from canonical etap/constants/nfpa72.py
 - Removed duplicate NFPA72_HEIGHT_SPACING_TABLE from __init__.py (now imported from nfpa72.py)
-- Updated compute_smoke_detector_spacing() in qomn_kernel.py for V127 Phase C:
+- Updated compute_smoke_detector_spacing() in kernel.py for V127 Phase C:
   - Replaced flat 9.1m spacing (V121) with height-adjusted table lookup
   - Uses canonical table from etap/constants/nfpa72.py (SSoT)
   - No additional 1%/ft reduction on top of table values (fixes V120 double-reduction bug)

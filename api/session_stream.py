@@ -131,6 +131,7 @@ class SessionStreamHub:
         self._connections: Dict[str, List[_Connection]] = {}
         self._history: Dict[str, deque] = {}
         self._seq: Dict[str, int] = {}
+        self._owners: Dict[str, str] = {}
         self._loop: Optional[asyncio.AbstractEventLoop] = None
 
     # -- lifecycle ----------------------------------------------------------
@@ -261,6 +262,23 @@ class SessionStreamHub:
 
     def client_count(self, session_id: str) -> int:
         return len(self._connections.get(session_id, []))
+
+    def get_owner(self, session_id: str) -> Optional[str]:
+        return self._owners.get(session_id)
+
+    def verify_ownership(self, session_id: str, user_id: str, is_admin: bool = False) -> bool:
+        """Verify that user_id owns or is authorized to access session_id.
+
+        If the session has no recorded owner, user_id claims initial ownership.
+        Admins are permitted to access any session.
+        """
+        if is_admin:
+            return True
+        existing = self._owners.get(session_id)
+        if existing is None:
+            self._owners[session_id] = user_id
+            return True
+        return existing == user_id
 
 
 _hub: Optional[SessionStreamHub] = None
@@ -399,6 +417,13 @@ async def create_ws_ticket(
     ``/ws/sessions/{body.session_id}`` and expires after 60 seconds, keeping
     long-lived credentials out of WebSocket query strings.
     """
+    hub = get_hub()
+    is_admin = getattr(user, "role", "") == "admin"
+    if not hub.verify_ownership(body.session_id, user.user_id, is_admin=is_admin):
+        raise HTTPException(
+            status_code=403,
+            detail="Forbidden: session belongs to another user",
+        )
     issued = issue_ws_ticket(body.session_id, user.user_id)
     safe_uid = re.sub(r"[^A-Za-z0-9_-]", "", str(user.user_id or ""))[:32]
     safe_sid = re.sub(r"[^A-Za-z0-9_-]", "", str(body.session_id or ""))[:32]
@@ -547,6 +572,29 @@ async def session_stream_ws(websocket: WebSocket, session_id: str) -> None:
         return
 
     hub = get_hub()
+    if not hub.verify_ownership(session_id, user_id):
+        from sqlalchemy import select
+
+        from api.auth import User
+        from api.database import async_session
+
+        is_admin = False
+        try:
+            async with async_session() as db:
+                result = await db.execute(select(User).where(User.id == user_id))
+                db_user = result.scalar_one_or_none()
+                if db_user and getattr(db_user, "role", "") == "admin":
+                    is_admin = True
+        except Exception:
+            pass
+
+        if not is_admin:
+            await websocket.close(
+                code=_WS_CODE_POLICY_VIOLATION,
+                reason="Forbidden: session belongs to another user",
+            )
+            return
+
     await websocket.accept()
     conn = hub.connect(websocket, session_id)
 

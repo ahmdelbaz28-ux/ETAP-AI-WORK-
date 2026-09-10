@@ -75,10 +75,11 @@ describe("SecurityFlagsPanel — rendering", () => {
       name: "Toggle harmonic_analysis",
     })) as HTMLButtonElement;
     expect(toggle.getAttribute("aria-checked")).toBe("false");
+  });
 
-    // ── Toggle (backend-authoritative) ─────────────────────────────────────────────
+  // ── Toggle (backend-authoritative) ─────────────────────────────────────────────
 
-    describe("SecurityFlagsPanel — toggle", () => {
+  describe("SecurityFlagsPanel — toggle", () => {
       it("calls PATCH with the inverted value and applies the BACKEND response", async () => {
         const user = userEvent.setup();
         // Backend rejects the intent: returns enabled=false even though the UI
@@ -168,7 +169,6 @@ describe("SecurityFlagsPanel — rendering", () => {
         expect(String(errorCall?.[1])).toContain("backend unreachable");
       });
     });
-  });
 
   it("writes nothing to localStorage or sessionStorage", async () => {
     renderPanel();

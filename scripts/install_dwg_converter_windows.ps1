@@ -3,7 +3,7 @@
     Install DWG converter (LibreDWG or ODA File Converter) on Windows.
 .DESCRIPTION
     V214: This script installs a DWG→DXF converter so that
-    qomn_fire/parsers/dwg_converter.py can read DWG files without requiring
+    parsers/dwg_converter.py can read DWG files without requiring
     AutoCAD installed.
 
     It tries LibreDWG first (open source, recommended), then ODA File

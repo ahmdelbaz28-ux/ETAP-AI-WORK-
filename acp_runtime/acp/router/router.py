@@ -190,6 +190,8 @@ class Router:
         succeeded (or no auth validator is configured).
         """
         if self._config.auth_validator is None:
+            if self._config.require_auth_for_public:
+                return "", self._scope_validator, (AuthenticationRequired.code, "Authentication required", None)
             return "", self._scope_validator, None
         try:
             identity = self._config.auth_validator(req.trace_id)

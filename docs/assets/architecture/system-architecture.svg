@@ -13,7 +13,7 @@
   </defs>
   <rect width="1200" height="900" fill="url(#bg)" rx="12"/>
   <text x="40" y="45" fill="#e2e8f0" font-size="22" font-weight="700">System Architecture</text>
-  <text x="40" y="65" fill="#94a3b8" font-size="12">FireAI Digital Twin Platform v1.0.0</text>
+  <text x="40" y="65" fill="#94a3b8" font-size="12">AhmedETAP Digital Twin Platform v1.0.0</text>
 
   <!-- Layer 6: External Systems -->
   <rect x="40" y="85" width="1120" height="110" rx="8" fill="url(#layer6)" stroke="#22d3ee" stroke-width="1" stroke-opacity=".3"/>
@@ -59,9 +59,9 @@
   <line x1="600" y1="330" x2="600" y2="350" stroke="#475569" stroke-width="2"/>
   <polygon points="600,353 595,347 605,347" fill="#475569"/>
 
-  <!-- Layer 4: FireAI Core -->
+  <!-- Layer 4: AhmedETAP Core -->
   <rect x="40" y="355" width="1120" height="120" rx="8" fill="url(#layer4)" stroke="#fbbf24" stroke-width="1" stroke-opacity=".3"/>
-  <text x="55" y="378" fill="#fbbf24" font-size="13" font-weight="600">FIREAI CORE — ORCHESTRATION &amp; DATA</text>
+  <text x="55" y="378" fill="#fbbf24" font-size="13" font-weight="600">AHMEDETAP CORE — ORCHESTRATION &amp; DATA</text>
   <rect x="55" y="390" width="180" height="36" rx="6" fill="#78350f" stroke="#fbbf24" stroke-width="1"/>
   <text x="70" y="413" fill="#fde68a" font-size="11">Analysis Pipeline</text>
   <rect x="245" y="390" width="180" height="36" rx="6" fill="#78350f" stroke="#fbbf24" stroke-width="1"/>
@@ -82,7 +82,7 @@
   <rect x="40" y="500" width="1120" height="120" rx="8" fill="url(#layer3)" stroke="#f472b6" stroke-width="1" stroke-opacity=".3"/>
   <text x="55" y="523" fill="#f472b6" font-size="13" font-weight="600">ENGINEERING ENGINES</text>
   <rect x="55" y="535" width="170" height="36" rx="6" fill="#831843" stroke="#f472b6" stroke-width="1"/>
-  <text x="70" y="558" fill="#f9a8d4" font-size="10">NFPA 72 Engine</text>
+  <text x="70" y="558" fill="#f9a8d4" font-size="10">Power Systems Engine</text>
   <rect x="235" y="535" width="170" height="36" rx="6" fill="#831843" stroke="#f472b6" stroke-width="1"/>
   <text x="250" y="558" fill="#f9a8d4" font-size="10">Acoustics Engine</text>
   <rect x="415" y="535" width="170" height="36" rx="6" fill="#831843" stroke="#f472b6" stroke-width="1"/>

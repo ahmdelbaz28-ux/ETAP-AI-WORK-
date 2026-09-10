@@ -2648,7 +2648,6 @@ export const helpCategories = [
   { id: "all" as const, label: { en: "All Topics", ar: "جميع المواضيع" } },
   { id: "getting-started" as const, label: { en: "Getting Started", ar: "البدء" } },
   { id: "projects" as const, label: { en: "Projects", ar: "المشاريع" } },
-  { id: "fire-alarm" as const, label: { en: "Fire Alarm", ar: "إنذار الحريق" } },
   { id: "engineering" as const, label: { en: "Engineering", ar: "الهندسة" } },
   { id: "reports" as const, label: { en: "Reports", ar: "التقارير" } },
   { id: "digital-twin" as const, label: { en: "Digital Twin", ar: "التوأم الرقمي" } },

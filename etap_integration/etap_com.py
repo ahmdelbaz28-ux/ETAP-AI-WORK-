@@ -116,6 +116,11 @@ PICKUP_CURRENT_MAX = 10000.0
 
 VALID_FAULT_TYPES = {"ThreePhase", "LineToGround", "LineToLine", "DoubleLineToGround"}
 
+# Sentinel returned by _safe_com_float when a property is absent on the COM object.
+# Callers that must distinguish "truly zero" from "property missing" should check
+# `value is COM_PROPERTY_ABSENT`.
+COM_PROPERTY_ABSENT: object = object()
+
 
 # ─── Unified types (single source of truth) ─────────────────────────────
 # ETAPStudyType + ETAPResult are now defined in unified_etap_types.py
@@ -435,14 +440,24 @@ class ETAPProject:
                     # - ILGKA: line-to-ground fault current (kA)
                     # - ILLKA: line-to-line fault current (kA)  ← was "IllKA" (typo)
                     # - IDLGKA: double-line-to-ground fault current (kA)
-                    # The previous "IllKA" was a casing typo that silently returned
-                    # 0.0 via getattr() fallback, making all line-to-line fault
-                    # currents appear as zero.
+                    # HIGH-8 fix: use _safe_com_float with warn_if_absent=True so that
+                    # any property-name mismatch emits a WARNING instead of silently
+                    # returning 0.0 — wrong fault currents lead to wrong breaker sizing
+                    # and wrong PPE selection (safety-critical).
+                    ctx = f"bus={bus_id}"
                     faults[bus_id] = {
-                        "three_phase_ka": getattr(bus, "I3PhaseKA", 0.0),
-                        "line_to_ground_ka": getattr(bus, "ILGKA", 0.0),
-                        "line_to_line_ka": getattr(bus, "ILLKA", 0.0),  # fixed: was "IllKA"
-                        "double_line_to_ground_ka": getattr(bus, "IDLGKA", 0.0),
+                        "three_phase_ka": ETAPAutomation._safe_com_float(
+                            bus, "I3PhaseKA", 0.0, warn_if_absent=True, context=ctx
+                        ),
+                        "line_to_ground_ka": ETAPAutomation._safe_com_float(
+                            bus, "ILGKA", 0.0, warn_if_absent=True, context=ctx
+                        ),
+                        "line_to_line_ka": ETAPAutomation._safe_com_float(
+                            bus, "ILLKA", 0.0, warn_if_absent=True, context=ctx
+                        ),  # fixed: was "IllKA"
+                        "double_line_to_ground_ka": ETAPAutomation._safe_com_float(
+                            bus, "IDLGKA", 0.0, warn_if_absent=True, context=ctx
+                        ),
                     }
 
                 result = {"fault_currents": faults, "fault_type": fault_type}
@@ -478,11 +493,21 @@ class ETAPProject:
                 equipment = {}
                 for equip in self._com_project.Equipment:
                     equip_id = getattr(equip, "ID", "")
+                    # HIGH-8 fix: use _safe_com_float with warn_if_absent=True for
+                    # all safety-critical arc flash properties.  A missing property
+                    # silently returning 0.0 would cause wrong PPE selection.
+                    ctx = f"equip={equip_id}"
                     equipment[equip_id] = {
-                        "incident_energy_cal_cm2": getattr(equip, "IncidentEnergy", 0),
-                        "arc_flash_boundary_mm": getattr(equip, "ArcFlashBoundary", 0) * 1000,
+                        "incident_energy_cal_cm2": ETAPAutomation._safe_com_float(
+                            equip, "IncidentEnergy", 0.0, warn_if_absent=True, context=ctx
+                        ),
+                        "arc_flash_boundary_mm": ETAPAutomation._safe_com_float(
+                            equip, "ArcFlashBoundary", 0.0, warn_if_absent=True, context=ctx
+                        ) * 1000,
                         "ppe_level": getattr(equip, "PPELevel", "Unknown"),
-                        "arc_duration_sec": getattr(equip, "ArcDuration", 0),
+                        "arc_duration_sec": ETAPAutomation._safe_com_float(
+                            equip, "ArcDuration", 0.0, warn_if_absent=True, context=ctx
+                        ),
                     }
 
                 result = {"equipment_results": equipment, "standard": "IEEE 1584-2018"}
@@ -1330,6 +1355,73 @@ class ETAPAutomation:
         if not sanitized:
             raise ValueError("Project name is empty after sanitization")
         return sanitized
+
+    @staticmethod
+    def _safe_com_float(
+        obj: Any,
+        prop: str,
+        default: float,
+        *,
+        warn_if_absent: bool = False,
+        context: str = "",
+    ) -> float:
+        """
+        Read a float property from a COM object without silently hiding
+        property-name mismatches.
+
+        Unlike bare ``getattr(obj, prop, default)``, this helper checks whether
+        the attribute actually exists on the COM object before fetching it.  When
+        the property is absent and ``warn_if_absent=True``, a WARNING is emitted
+        so that wrong COM property names surface immediately rather than
+        producing silent zero values in safety-critical calculations.
+
+        Parameters
+        ----------
+        obj:
+            COM object (bus, equipment, module …)
+        prop:
+            COM property name to read.
+        default:
+            Value to return when the property is absent (or raises on access).
+        warn_if_absent:
+            If True, log a WARNING when ``prop`` is not found on ``obj``.
+            Set this for safety-critical properties (fault currents, incident
+            energy, arc-flash boundaries) so property-name mismatches are not
+            silently swallowed.
+        context:
+            Optional string describing the caller / bus / equipment ID to
+            include in the warning message.
+
+        Returns
+        -------
+        float
+            The property value cast to float, or ``default`` when absent/error.
+        """
+        if not hasattr(obj, prop):
+            if warn_if_absent:
+                ctx = f" ({context})" if context else ""
+                logger.warning(
+                    "COM property '%s' not found on %s%s — "
+                    "returning default %s.  Verify property name against ETAP version.",
+                    prop,
+                    type(obj).__name__,
+                    ctx,
+                    default,
+                )
+            return default
+        try:
+            return float(getattr(obj, prop))
+        except Exception as exc:  # NOSONAR S1166 — COM surface probe
+            ctx = f" ({context})" if context else ""
+            logger.warning(
+                "COM property '%s' on %s%s raised %s — returning default %s.",
+                prop,
+                type(obj).__name__,
+                ctx,
+                exc,
+                default,
+            )
+            return default
 
     @staticmethod
     def _read_convergence(module: Any) -> tuple[bool | None, str]:

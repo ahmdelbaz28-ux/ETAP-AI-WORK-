@@ -5,7 +5,7 @@
   </defs>
   <rect width="1200" height="600" fill="url(#bg)" rx="12"/>
   <text x="40" y="45" fill="#e2e8f0" font-size="22" font-weight="700">Deployment Architecture</text>
-  <text x="40" y="65" fill="#94a3b8" font-size="12">FireAI Digital Twin Platform v1.0.0 — All Implemented</text>
+  <text x="40" y="65" fill="#94a3b8" font-size="12">AhmedETAP Digital Twin Platform v1.0.0 — All Implemented</text>
 
   <!-- Desktop (Standalone) -->
   <rect x="40" y="100" width="540" height="460" rx="10" fill="#1e3a5f" stroke="#60a5fa" stroke-width="1" stroke-opacity=".4"/>

@@ -72,17 +72,17 @@ allow_anonymous true
 mqtt:
   broker: mqtt://localhost:1883
   topics:
-    - project/fire/alarm
-    - project/fire/extinguish
+    - substation/breaker/trip
+    - substation/transformer/overload
     - project/power/status
 tags:
-  - id: detector_001
-    zone: zone_A
-    type: smoke
-    coverage: 45m²
-  - id: extinguisher_001
-    zone: zone_A
-    type: water_mist
+  - id: breaker_001
+    bay: bay_A
+    type: circuit_breaker
+    rating: 1250A
+  - id: transformer_001
+    bay: bay_A
+    type: power_transformer
     pressure: 10bar
     flow: 120L/min
 ems:
@@ -150,15 +150,15 @@ go build
 {
   "mqtt": {
     "broker": "mqtt://localhost:1883",
-    "topics": ["project/fire/alarm", "project/fire/extinguish"]
+    "topics": ["substation/breaker/trip", "substation/transformer/overload"]
   },
   "mongodb": {
     "uri": "mongodb://localhost:27017",
     "db": "jsonscada"
   },
   "tags": [
-    {"id": "detector_001", "zone": "zone_A", "type": "smoke"},
-    {"id": "extinguisher_001", "zone": "zone_A", "type": "water_mist"}
+    {"id": "breaker_001", "bay": "bay_A", "type": "circuit_breaker"},
+    {"id": "transformer_001", "bay": "bay_A", "type": "power_transformer"}
   ]
 }
 ```
@@ -435,8 +435,8 @@ if __name__ == "__main__":
 ```json
 {
   "arcgis_url": "https://arcgis.yourcompany.com/rest/services",
-  "service": "SCADA_Fire_Alarm",
-  "layers": ["detectors", "extinguishers"],
+  "service": "SCADA_Substation_Monitoring",
+  "layers": ["breakers", "transformers", "feeders"],
   "sync_interval": 30,
   "credentials": {
     "username": "qgis_connector",
@@ -621,7 +621,7 @@ def publish_gis_service():
     """
     # Define connection file and service name
     connection_file = r"C:\temp\arcgis_connection.ags"
-    service_name = "SCADA_Fire_Alarm"
+    service_name = "SCADA_Substation_Monitoring"
 
     # Create service definition draft
     sddraft_path = f"C:\\temp\\{service_name}.sddraft"
@@ -635,8 +635,8 @@ def publish_gis_service():
         connection_file_path=connection_file,
         copy_data_to_server=False,
         folder_name="SCADA_Integration",
-        summary="SCADA Fire Alarm System Layers",
-        tags="SCADA,Fire,Alarm,GIS",
+        summary="SCADA Substation Electrical Monitoring Layers",
+        tags="SCADA,Substation,Electrical,GIS",
     )
 
     print(f"Service definition draft created at {sddraft_path}")
@@ -674,8 +674,8 @@ class ArcGISProMQTTClient:
         print(f"Connected to MQTT broker with result code {rc}")
 
         # Subscribe to SCADA topics
-        client.subscribe("project/fire/alarm")
-        client.subscribe("project/fire/extinguish")
+        client.subscribe("substation/breaker/+/status")
+        client.subscribe("substation/transformer/+/overload")
         client.subscribe("project/power/+/status")
         print("Subscribed to SCADA topics")
 
@@ -701,24 +701,14 @@ class ArcGISProMQTTClient:
         # In a real implementation, this would update the corresponding feature in the geodatabase
         print(f"Updated SCADA tag {topic} with data: {data}")
 
-        # Example: If it's a fire alarm, update the corresponding detector
-        if "fire/alarm" in topic:
-            detector_id = topic.split("/")[-1]  # Extract detector ID from topic
-            self.update_detector_status(detector_id, "alarm_triggered")
+        # Example: If it's a breaker trip, update the corresponding breaker
+        if "breaker" in topic:
+            breaker_id = topic.split("/")[-2]  # Extract breaker ID from topic
+            self.update_breaker_status(breaker_id, "trip_triggered")
 
-        self.scada_tags[topic] = {"data": data, "timestamp": time.time()}
-
-        # In a real implementation, this would update the corresponding feature in the geodatabase
-        print(f"Updated SCADA tag {topic} with data: {data}")
-
-        # Example: If it's a fire alarm, update the corresponding detector
-        if "fire/alarm" in topic:
-            detector_id = topic.split("/")[-1]  # Extract detector ID from topic
-            self.update_detector_status(detector_id, "alarm_triggered")
-
-    def update_detector_status(self, detector_id, status):
+    def update_breaker_status(self, breaker_id, status):
         """
-        Update detector status in ArcGIS Pro feature class
+        Update breaker status in ArcGIS Pro feature class
         """
         gdb_path = r"C:\temp\scada_geodatabase.gdb"
 

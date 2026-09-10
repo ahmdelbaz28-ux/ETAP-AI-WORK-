@@ -1,11 +1,12 @@
 # DocTR OCR Service requirements
 # V140 Phase 10: Standalone OCR service for ETAP
-doctr>=0.8.0
-fastapi>=0.100.0
-uvicorn[standard]>=0.20.0
-python-multipart>=0.0.6
-torch>=2.0.0
-torchvision>=0.15.0
-numpy>=1.24.0
-Pillow>=10.0.0
-python-dotenv>=1.0.0
+# Versions pinned for reproducible builds (SonarCloud docker:S8544)
+doctr==0.8.1
+fastapi==0.115.12
+uvicorn[standard]==0.34.3
+python-multipart==0.0.30
+torch==2.7.1
+torchvision==0.22.1
+numpy==2.2.6
+Pillow==12.3.0
+python-dotenv==1.1.0

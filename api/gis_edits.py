@@ -95,6 +95,8 @@ class GISEditResolveRequest(BaseModel):
 
 def _check_allowlist(service_url: str, tenant_id: Optional[str]) -> None:
     """Verify that service_url matches the configured GIS_SERVICE_ALLOWLIST."""
+    from urllib.parse import urlparse
+
     allowlist_env = os.getenv("GIS_SERVICE_ALLOWLIST", "").strip()
     if not allowlist_env:
         raise HTTPException(
@@ -105,10 +107,42 @@ def _check_allowlist(service_url: str, tenant_id: Optional[str]) -> None:
             },
         )
 
-    clean_url = service_url.rstrip("/").lower()
-    allowed_urls = [u.strip().rstrip("/").lower() for u in allowlist_env.split(",") if u.strip()]
+    parsed_target = urlparse(service_url)
+    target_scheme = parsed_target.scheme.lower()
+    target_host = (parsed_target.hostname or "").lower()
+    target_port = parsed_target.port
+    target_path = parsed_target.path.rstrip("/").lower()
 
-    if not any(clean_url.startswith(allowed) for allowed in allowed_urls):
+    if target_scheme not in ("http", "https") or not target_host:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail={
+                "code": "SERVICE_NOT_ALLOWLISTED",
+                "message": f"Service URL '{service_url}' has invalid scheme or host.",
+            },
+        )
+
+    allowed_entries = [u.strip() for u in allowlist_env.split(",") if u.strip()]
+    matched = False
+    for allowed in allowed_entries:
+        parsed_allowed = urlparse(allowed)
+        allowed_scheme = parsed_allowed.scheme.lower()
+        allowed_host = (parsed_allowed.hostname or "").lower()
+        allowed_port = parsed_allowed.port
+        allowed_path = parsed_allowed.path.rstrip("/").lower()
+
+        if allowed_scheme and target_scheme != allowed_scheme:
+            continue
+        if target_host != allowed_host:
+            continue
+        if allowed_port is not None and target_port != allowed_port:
+            continue
+        if allowed_path and not (target_path == allowed_path or target_path.startswith(allowed_path + "/")):
+            continue
+        matched = True
+        break
+
+    if not matched:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail={

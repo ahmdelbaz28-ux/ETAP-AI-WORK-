@@ -7,11 +7,11 @@ Comprehensive test suite for etap/core/security_logging.py.
 
 SAFETY CRITICAL: Security logging provides tamper-evident audit trails
 for security events. Chain hash corruption or sensitive data leaks could
-compromise forensic analysis and violate NFPA 72 §14.2.4.
+compromise forensic analysis and violate IEC 62443 / IEEE 1686 requirements.
 
-NFPA 72 References:
-  §10.6.7 — Record retention requirements
-  §14.2.4 — Documentation integrity requirements
+Standards References:
+  IEC 62443-3-3 — System security requirements and security levels
+  IEEE 1686 — Standard for Substation Intelligent Electronic Devices (IEDs) Cyber Security Capabilities
 
 Key V-Fixes tested:
   V103 FIX — loguru-based log rotation (500 MB, 30-day, zip compression)

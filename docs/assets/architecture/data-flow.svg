@@ -6,7 +6,7 @@
   </defs>
   <rect width="1200" height="900" fill="url(#bg)" rx="12"/>
   <text x="40" y="45" fill="#e2e8f0" font-size="22" font-weight="700">Data Flow</text>
-  <text x="40" y="65" fill="#94a3b8" font-size="12">FireAI Digital Twin Platform v1.0.0</text>
+  <text x="40" y="65" fill="#94a3b8" font-size="12">AhmedETAP Digital Twin Platform v1.0.0</text>
 
   <!-- User -->
   <rect x="450" y="90" width="300" height="50" rx="8" fill="#1e3a5f" stroke="#60a5fa" stroke-width="2"/>
@@ -48,7 +48,7 @@
   <!-- Core layer -->
   <rect x="550" y="350" width="550" height="60" rx="6" fill="#78350f" stroke="#fbbf24" stroke-width="1"/>
   <text x="565" y="375" fill="#fde68a" font-size="11" font-weight="600">Engineering Kernel</text>
-  <text x="565" y="395" fill="#fde68a" font-size="10">NFPA 72 | Acoustics | Electrical | Cable | Conduit | Safety</text>
+  <text x="565" y="395" fill="#fde68a" font-size="10">IEEE / IEC | Load Flow | Short Circuit | Protection | SCADA</text>
 
   <!-- Arrow to DB -->
   <line x1="600" y1="410" x2="600" y2="445" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>

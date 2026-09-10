@@ -7,7 +7,7 @@
   </defs>
   <rect width="1200" height="900" fill="url(#bg)" rx="12"/>
   <text x="40" y="45" fill="#e2e8f0" font-size="22" font-weight="700">Component Architecture</text>
-  <text x="40" y="65" fill="#94a3b8" font-size="12">FireAI Digital Twin Platform v1.0.0</text>
+  <text x="40" y="65" fill="#94a3b8" font-size="12">AhmedETAP Digital Twin Platform v1.0.0</text>
 
   <!-- Frontend -->
   <rect x="40" y="90" width="540" height="790" rx="8" fill="url(#box)" stroke="#3b82f6" stroke-width="1" stroke-opacity=".4"/>
@@ -19,7 +19,7 @@
   <rect x="55" y="170" width="250" height="32" rx="5" fill="#1e3a5f" stroke="#60a5fa" stroke-width="1"/>
   <text x="65" y="191" fill="#93c5fd" font-size="11">Engineering Workspace</text>
   <rect x="315" y="170" width="250" height="32" rx="5" fill="#1e3a5f" stroke="#60a5fa" stroke-width="1"/>
-  <text x="325" y="191" fill="#93c5fd" font-size="11">Fire Alarm Designer</text>
+  <text x="325" y="191" fill="#93c5fd" font-size="11">Grid &amp; SLD Designer</text>
   <rect x="55" y="210" width="250" height="32" rx="5" fill="#1e3a5f" stroke="#60a5fa" stroke-width="1"/>
   <text x="65" y="231" fill="#93c5fd" font-size="11">Compliance Center</text>
   <rect x="315" y="210" width="250" height="32" rx="5" fill="#1e3a5f" stroke="#60a5fa" stroke-width="1"/>
@@ -44,7 +44,7 @@
   <text x="392" y="367" fill="#93c5fd" font-size="10">AICopilot</text>
 
   <text x="55" y="400" fill="#60a5fa" font-size="12" font-weight="600">PAGES (12 routes)</text>
-  <text x="55" y="420" fill="#94a3b8" font-size="10">/ /projects /engineering /fire-alarm /elements /elements/:id</text>
+  <text x="55" y="420" fill="#94a3b8" font-size="10">/ /projects /engineering /grid-editor /elements /elements/:id</text>
   <text x="55" y="435" fill="#94a3b8" font-size="10">/connections /conflicts /reports /settings</text>
 
   <text x="55" y="465" fill="#60a5fa" font-size="12" font-weight="600">HOOKS &amp; SERVICES</text>
@@ -85,7 +85,7 @@
   <rect x="635" y="217" width="160" height="26" rx="4" fill="#064e3b" stroke="#34d399" stroke-width=".5"/>
   <text x="642" y="235" fill="#6ee7b7" font-size="10">facp.py</text>
   <rect x="800" y="217" width="160" height="26" rx="4" fill="#064e3b" stroke="#34d399" stroke-width=".5"/>
-  <text x="807" y="235" fill="#6ee7b7" font-size="10">qomn.py</text>
+  <text x="807" y="235" fill="#6ee7b7" font-size="10">solver.py</text>
   <rect x="965" y="217" width="180" height="26" rx="4" fill="#064e3b" stroke="#34d399" stroke-width=".5"/>
   <text x="972" y="235" fill="#6ee7b7" font-size="10">reports.py</text>
   <rect x="635" y="248" width="160" height="26" rx="4" fill="#064e3b" stroke="#34d399" stroke-width=".5"/>
@@ -116,9 +116,9 @@
   <rect x="885" y="462" width="260" height="32" rx="5" fill="#064e3b" stroke="#34d399" stroke-width="1"/>
   <text x="895" y="483" fill="#6ee7b7" font-size="11">schemas.py — Validation + serialization</text>
 
-  <text x="635" y="520" fill="#34d399" font-size="12" font-weight="600">ENGINEERING KERNEL (fireai/)</text>
+  <text x="635" y="520" fill="#34d399" font-size="12" font-weight="600">ENGINEERING KERNEL (etap/)</text>
   <rect x="635" y="530" width="250" height="26" rx="4" fill="#064e3b" stroke="#34d399" stroke-width=".5"/>
-  <text x="642" y="548" fill="#6ee7b7" font-size="10">NFPA 72: engine, coverage, models, calculations</text>
+  <text x="642" y="548" fill="#6ee7b7" font-size="10">IEEE / IEC: Load Flow, Short Circuit, Arc Flash</text>
   <rect x="895" y="530" width="250" height="26" rx="4" fill="#064e3b" stroke="#34d399" stroke-width=".5"/>
   <text x="902" y="548" fill="#6ee7b7" font-size="10">Acoustics: engine, calculator, UGLD raytrace</text>
   <rect x="635" y="561" width="250" height="26" rx="4" fill="#064e3b" stroke="#34d399" stroke-width=".5"/>

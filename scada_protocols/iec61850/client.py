@@ -14,7 +14,7 @@ import asyncio
 import logging
 import threading
 import time
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 from scada_protocols.common.base import (
     AdapterRole,
@@ -104,6 +104,36 @@ class IEC61850ClientAdapter(ProtocolAdapter):
         self._loop = None
         self._stop_event = None
 
+    def _dispatch_point(self, pt: dict) -> None:
+        """Ingest a single configured point measurement into the SCADA bridge.
+
+        Extracted from _poll_loop to reduce cognitive complexity (SonarCloud S3776).
+        """
+        element_id = pt.get("element_id", "UNKNOWN")
+        mtype = pt.get("measurement_type", "voltage_magnitude")
+        _node = pt.get("logical_node", "MMXU1")
+        _attr = pt.get("data_attribute", "Vol.mag.f")
+
+        val: float = 0.0
+        q: str = "good"
+        src_ts = time.time()
+
+        if self._on_measurement is None:
+            return
+
+        try:
+            self._on_measurement(
+                element_id=element_id,
+                measurement_type=mtype,
+                value=float(val),
+                quality=q,
+                source="iec_61850",
+                source_timestamp=src_ts,
+            )
+            self._metric.rx_packets += 1
+        except Exception as cb_exc:
+            logger.warning("IEC61850 callback failed for %s: %s", element_id, cb_exc)
+
     async def _poll_loop(self) -> None:
         """Poll configured IEC 61850 IED targets periodically."""
         poll_interval = max(0.2, float(self._cfg.poll_interval_sec))
@@ -113,30 +143,7 @@ class IEC61850ClientAdapter(ProtocolAdapter):
             t0 = time.perf_counter()
             try:
                 for pt in point_map:
-                    element_id = pt.get("element_id", "UNKNOWN")
-                    mtype = pt.get("measurement_type", "voltage_magnitude")
-                    node = pt.get("logical_node", "MMXU1")
-                    attr = pt.get("data_attribute", "Vol.mag.f")
-
-                    val: float = 0.0
-                    q: str = "good"
-                    src_ts = time.time()
-
-                    # Ingest decoded point into bridge
-                    if self._on_measurement is not None:
-                        try:
-                            self._on_measurement(
-                                element_id=element_id,
-                                measurement_type=mtype,
-                                value=float(val),
-                                quality=q,
-                                source="iec_61850",
-                                source_timestamp=src_ts,
-                            )
-                            self._metric.rx_packets += 1
-                        except Exception as cb_exc:
-                            logger.warning("IEC61850 callback failed for %s: %s", element_id, cb_exc)
-
+                    self._dispatch_point(pt)
                 self._mark_rx()
             except Exception as exc:
                 self._mark_error(f"poll error: {exc}")
@@ -146,7 +153,23 @@ class IEC61850ClientAdapter(ProtocolAdapter):
             try:
                 await asyncio.sleep(sleep_for)
             except asyncio.CancelledError:
-                break
+                if self._stop_event is not None:
+                    self._stop_event.set()
+                raise
+
+
+    # -- server stubs (client-only adapter) ---------------------------------
+
+    def start_server(self) -> None:
+        pass  # pragma: no cover
+
+    def stop_server(self) -> None:
+        pass  # pragma: no cover
+
+    # -- health -------------------------------------------------------------
+
+    def health_check(self) -> bool:
+        return self._thread is not None and self._thread.is_alive()
 
     def describe(self) -> Dict[str, Any]:
         return {

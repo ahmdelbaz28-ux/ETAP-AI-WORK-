@@ -44,19 +44,19 @@
   <!-- Title -->
   <text x="220" y="170" font-family="system-ui, -apple-system, sans-serif"
         font-size="72" font-weight="900" fill="url(#text)">
-    BAZ<tspan fill="url(#spark)">Spark</tspan>
+    Ahmed<tspan fill="url(#spark)">ETAP</tspan>
   </text>
 
   <!-- Subtitle -->
   <text x="222" y="215" font-family="system-ui, -apple-system, sans-serif"
         font-size="24" font-weight="400" fill="#94a3b8" letter-spacing="2">
-    Safety-Critical Fire Alarm Engineering Platform
+    Autonomous Power Systems Engineering Intelligence Platform
   </text>
 
   <!-- Tags -->
   <g transform="translate(222, 250)">
     <rect x="0" y="0" width="120" height="32" rx="16" fill="#1e293b" stroke="#334155"/>
-    <text x="60" y="21" font-family="system-ui" font-size="14" font-weight="600" fill="#e2e8f0" text-anchor="middle">NFPA 72</text>
+    <text x="60" y="21" font-family="system-ui" font-size="14" font-weight="600" fill="#e2e8f0" text-anchor="middle">IEEE / IEC</text>
 
     <rect x="135" y="0" width="100" height="32" rx="16" fill="#1e293b" stroke="#334155"/>
     <text x="185" y="21" font-family="system-ui" font-size="14" font-weight="600" fill="#e2e8f0" text-anchor="middle">FastAPI</text>
@@ -88,7 +88,7 @@
     <text x="600" y="0" font-weight="600" fill="#e2e8f0">21</text>
     <text x="625" y="0">UI Pages</text>
 
-    <text x="750" y="0" font-weight="600" fill="#e2e8f0">NFPA 72-2022</text>
+    <text x="750" y="0" font-weight="600" fill="#e2e8f0">IEEE 3002.7</text>
     <text x="870" y="0">Compliant</text>
   </g>
 
