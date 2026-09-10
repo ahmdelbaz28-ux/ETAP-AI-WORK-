@@ -510,7 +510,8 @@ log_*.txt
 verify*.txt
 repro_*.txt
 sonar_issues_full.txt
-_*.py
+/_*.py
+!**/__init__.py
 checks-409.json
 runs-on-main.json
 
