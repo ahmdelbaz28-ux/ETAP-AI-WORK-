@@ -1,0 +1,3 @@
+Non-Dot Total: 161
+Non-Dot Files: 75
+Non-Dot Directories: 86

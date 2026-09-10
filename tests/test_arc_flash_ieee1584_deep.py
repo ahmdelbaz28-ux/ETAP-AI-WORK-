@@ -111,8 +111,10 @@ class TestArcCurrentCalculations:
 
     def test_arc_current_finite_and_positive(self):
         iarc, iarc_red = ArcFlashEngine.calculate_arc_current(0.48, 10.0, ElectrodeConfig.VCB)
-        assert iarc > 0 and math.isfinite(iarc)
-        assert iarc_red > 0 and math.isfinite(iarc_red)
+        assert iarc > 0
+        assert math.isfinite(iarc)
+        assert iarc_red > 0
+        assert math.isfinite(iarc_red)
 
 
 class TestIncidentEnergy:
@@ -284,10 +286,11 @@ class TestArcFlashCalcWrapper:
             electrode_config="VCB",
         )
         assert isinstance(res, dict)
-        assert res["incident_energy_cal_per_cm2"] > 0
-        assert res["arc_flash_boundary_mm"] > 0
+        # IEEE 1584-2018 Table D.1 & Clause 4.11 physical bounds for 480V / 25kA / 0.1s
+        assert 0.0005 <= res["incident_energy_cal_per_cm2"] <= 20.0
+        assert 0.1 <= res["arc_flash_boundary_mm"] <= 5000.0
         assert res["method"] == "IEEE 1584-2018"
-        assert "ppe_level" in res
+        assert res["ppe_level"] in ("0", "1", "2", "3", "4", "DANGER")
 
     def test_calculate_arc_flash_low_voltage(self):
         from fault_analysis.arc_flash_calc import calculate_arc_flash
@@ -299,8 +302,10 @@ class TestArcFlashCalcWrapper:
             working_distance_mm=300.0,
         )
         assert isinstance(res, dict)
-        assert res["incident_energy_cal_per_cm2"] > 0
+        # Ralph Lee method for low voltage (< 0.208 kV)
+        assert 0.001 <= res["incident_energy_cal_per_cm2"] <= 50.0
         assert "Ralph Lee" in res["method"]
+        assert res["ppe_level"] in ("0", "1", "2", "3", "4", "DANGER")
 
     def test_validate_arc_flash_input(self):
         from fault_analysis.arc_flash_calc import _validate_arc_flash_input

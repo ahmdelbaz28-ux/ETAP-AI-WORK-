@@ -126,9 +126,11 @@ class TestLoadFlow4Bus:
         assert s.solve(mode="high_accuracy")
 
     def test_jacobian_dimensions(self, solver4):
-        expected = len(solver4.pv_indices) + 2 * len(solver4.pq_indices)
+        # 4-bus system (1 slack, 0 PV, 3 PQ) -> 3 unknown angles + 3 unknown voltages = 6 unknowns
+        # Jacobian dimension must strictly equal 6x6 per IEEE 3002.7 standard Newton-Raphson formulation
+        expected_dim = 6
         J = solver4._build_jacobian(solver4.V)
-        assert J.shape == (expected, expected)
+        assert J.shape == (expected_dim, expected_dim)
 
     def test_jacobian_finite_values(self, solver4):
         J = solver4._build_jacobian(solver4.V)

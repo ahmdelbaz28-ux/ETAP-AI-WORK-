@@ -132,3 +132,9 @@ This audit table documents the categorization, reference verification, action ta
 | `docker-compose*.yml` (6 files) | config | Compose orchestration | keep | High | Protected by rule. Kept at root. |
 | `requirements*.txt` (8 files) | config | Dependencies | keep | High | Protected by rule. Kept at root. |
 | `pyproject.toml`, `alembic.ini`, etc. | config | Build & Migration | keep | High | Protected by rule. Kept at root. |
+| `download/` | archive | Unreferenced download cache | move to `archive/download_2026-09-11/` | Low | Archived via git mv. |
+| `upload/` | archive | Unreferenced upload cache | move to `archive/upload_2026-09-11/` | Low | Archived via git mv. |
+| `mkdocs.yml` | duplicate | Redundant root config (`docs/mkdocs.yml` canonical) | delete | Low | Deleted via git rm, resolves Vercel build check #1. |
+| `ARCHITECTURE.md` | duplicate | Root copy redundant with `docs/ARCHITECTURE.md` | archive & pointer | Low | Archived to `docs/generated/`, replaced with 5-line pointer. |
+| `INSTALLATION.md` | duplicate | Root copy merged with `docs/INSTALLATION.md` | merge, archive & pointer | Low | Archived to `docs/generated/`, replaced with 5-line pointer. |
+| `TROUBLESHOOTING.md` | duplicate | Root copy merged with `docs/TROUBLESHOOTING.md` | merge, archive & pointer | Low | Archived to `docs/generated/`, replaced with 5-line pointer. |

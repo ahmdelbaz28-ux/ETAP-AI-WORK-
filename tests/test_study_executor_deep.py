@@ -168,8 +168,12 @@ class TestExecutionPipeline:
         res = await executor.execute(req)
         assert isinstance(res, StudyResult)
         assert res.success is True
-        assert "incident_energy_cal_per_cm2" in res.data
         assert res.study_type == "arc_flash"
+        # IEEE 1584-2018 Clause 4.11 & 4.12: Physical incident energy and boundary limits
+        energy = res.data.get("incident_energy_cal_per_cm2", 0)
+        afb = res.data.get("arc_flash_boundary_mm", 0)
+        assert 0.0005 <= energy <= 100.0, f"Incident energy {energy} out of IEEE 1584 bounds"
+        assert 0.1 <= afb <= 10000.0, f"Arc flash boundary {afb} mm out of physical bounds"
 
     @pytest.mark.asyncio
     async def test_execute_load_flow(self, executor, sample_spec):
@@ -181,6 +185,11 @@ class TestExecutionPipeline:
         assert isinstance(res, StudyResult)
         assert res.success is True
         assert res.data.get("converged") is True
+        # IEEE 3002.7 & ANSI C84.1: Bus voltage magnitudes must lie in 0.90 - 1.10 pu range
+        voltages = res.data.get("voltages", {})
+        for bus_id, v in voltages.items():
+            vmag = abs(complex(v["re"], v["im"])) if isinstance(v, dict) else abs(v)
+            assert 0.90 <= vmag <= 1.10, f"Bus {bus_id} voltage {vmag} outside IEEE 3002.7 limits"
 
     @pytest.mark.asyncio
     async def test_execute_short_circuit(self, executor, sample_spec):
@@ -192,7 +201,9 @@ class TestExecutionPipeline:
         res = await executor.execute(req)
         assert isinstance(res, StudyResult)
         assert res.success is True
-        assert "fault_current" in res.data or "fault_current_ka" in res.data
+        ik = res.data.get("fault_current_ka") or res.data.get("fault_current_magnitude")
+        assert ik >= 0.1, f"Fault current {ik} outside IEC 60909 prospective range"
+        assert ik <= 500.0, f"Fault current {ik} outside IEC 60909 prospective range"
 
     @pytest.mark.asyncio
     async def test_execute_etap_expert(self, executor):

@@ -75,7 +75,8 @@ class TestThreePhaseFault:
     def test_different_buses_different_currents(self, analyzer3):
         r0 = analyzer3.three_phase_fault(0)["fault_current_magnitude"]
         r1 = analyzer3.three_phase_fault(1)["fault_current_magnitude"]
-        assert r0 > 0 and r1 > 0
+        assert r0 > 0
+        assert r1 > 0
 
     def test_affected_bus_index_correct(self, analyzer3):
         for i in range(3):
@@ -96,7 +97,8 @@ class TestSLGFault:
     def test_asymmetric_sequences_used(self, analyzer_asymmetric):
         slg = analyzer_asymmetric.line_to_ground_fault(0)["fault_current_magnitude"]
         three = analyzer_asymmetric.three_phase_fault(0)["fault_current_magnitude"]
-        assert slg > 0 and three > 0
+        assert slg > 0
+        assert three > 0
 
 
 class TestLLFault:

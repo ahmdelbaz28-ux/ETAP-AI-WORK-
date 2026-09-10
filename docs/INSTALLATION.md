@@ -80,10 +80,22 @@ curl http://localhost:8000/api/health
 - Standard installation procedure works
 - `/tmp/` paths are valid for default database locations
 
+## System Requirements & Prerequisites
+
+### Supported Platforms
+- **Windows**: Windows 10/11, Windows Server 2019+ (64-bit)
+- **Linux**: Ubuntu 20.04+, CentOS/RHEL 8+, Debian 11+
+- **macOS**: macOS 12+ (Apple Silicon and Intel)
+
+### Core Dependencies
+- Python 3.12+ (supports 3.13 and 3.14)
+- Git 2.30+
+- Node.js 18+ and pnpm / npm (for frontend UI)
+
 ## Verification Checklist
 
 - [ ] Server starts without errors: `python -m uvicorn backend.app:app`
 - [ ] Health check returns 200: `curl http://localhost:8000/api/health`
 - [ ] All tests pass: `pytest tests/ -v`
-- [ ] Frontend builds: `cd frontend && npm run build`
-- [ ] Linting passes: `ruff check etap/ backend/ parsers/`
+- [ ] Frontend builds: `cd ui && pnpm install && pnpm build`
+- [ ] Linting passes: `ruff check .`

@@ -14,6 +14,6 @@ TOTAL (Core Physics & Execution)       1261    265    79.0% (Average: 83.1%)
 
 All 8 primary calculation & execution modules meet or exceed the >= 70% threshold!
 
-Updated Gate in pyproject.toml: fail_under = 45 (incrementally raised)
-CI flag: --cov-fail-under=45 (in sync with pyproject.toml)
+Updated Gate in pyproject.toml: fail_under = 50 (incrementally raised: 40 -> 45 -> 50)
+CI flag: --cov-fail-under=50 (in sync with pyproject.toml)
 ===================================================================================

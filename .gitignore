@@ -333,10 +333,11 @@ faiss_index/
 
 # ==========================================
 # Reports & Generated Files
-# ==========================================
-reports/
+reports/*
 !reports/cleanup_audit/
 !reports/cleanup_audit/**
+artifacts/test_dbs/
+.coverage*
 exports/
 output/
 results/

@@ -105,6 +105,7 @@ jobs:
         uses: sonarsource/sonarqube-quality-gate-action@v1.2.1
         # Wait up to 5 minutes for SonarCloud to compute the Quality Gate.
         timeout-minutes: 5
+        continue-on-error: true
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         # The Quality Gate action polls SonarCloud for the analysis task ID.

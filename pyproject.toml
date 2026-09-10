@@ -268,11 +268,12 @@ exclude_lines = [
     "def __repr__",
     "def __str__",
 ]
-# CRITICAL FIX: Unified coverage gate raised incrementally from 40% to 45%.
+# CRITICAL FIX: Unified coverage gate raised incrementally from 40% to 50%.
+# Core physics 83.1% (8 modules), global gate 50.
 # Primary physics calculation and study execution modules exceed 70% coverage
 # (coordination: 100%, arc_flash_calc: 100%, load_flow: 83%, engine: 80%,
 # arc_flash_engine: 80%, fault: 79%, study_executor: 73%, solver: 70%).
-fail_under = 45
+fail_under = 50
 
 [tool.pyright]
 include = ["."]
