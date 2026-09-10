@@ -77,6 +77,7 @@ def _sanitize_for_log(value: object, max_len: int = 200) -> str:
         s = s[:max_len] + "...[truncated]"
     return s
 
+
 router = APIRouter(
     prefix="/api/v1/gis/edits",
     tags=["GIS Edits"],
