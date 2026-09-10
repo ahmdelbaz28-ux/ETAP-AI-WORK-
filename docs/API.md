@@ -28,7 +28,7 @@ Per-path rate limits with longest-prefix match algorithm. Configurable via envir
 |--------|--------|-----------|-------------|
 | health | `/api/health` | 2 | Health check, statistics |
 | projects | `/api/projects` | 5 | Project CRUD |
-| devices | `/api/projects/:id/devices` | 5 | Fire alarm device CRUD |
+| devices | `/api/projects/:id/devices` | 5 | Substation equipment device CRUD |
 | connections | `/api/projects/:id/connections` | 3 | Cable connection CRUD |
 | reports | `/api/projects/:id/reports` | 2 | Engineering reports |
 | exports | `/api/projects/:id/export` | 4 | DXF, Revit, IFC exports |
@@ -37,8 +37,8 @@ Per-path rate limits with longest-prefix match algorithm. Configurable via envir
 | connections_v2 | `/api/connections` | 3 | UDM relationship connections |
 | conflicts | `/api/conflicts` | 3 | Conflict detection/resolution |
 | environment | `/api/environment` | 9 | Weather, geocoding, elevation, AQI, hazmat |
-| facp | `/api/facp` | 5 | FACP selection & compliance |
-| qomn | `/api/qomn` | 9 | QOMN-FIRE engineering kernel |
+| protection | `/api/protection` | 5 | Protection relay selection & compliance |
+| studies | `/api/studies` | 9 | Electrical studies & engineering kernel |
 | workflow* | `/api/workflow` | 5 | LangGraph workflow engine |
 | memory* | `/api/memory` | 4 | Mem0 long-term memory |
 

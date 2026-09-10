@@ -82,8 +82,8 @@ except ImportError as e:
 app = FastAPI(
     title="ETAP Digital Twin API",
     description=(
-        "REST API for the ETAP Digital Twin — a life-safety critical "
-        "fire alarm engineering platform. Supports project management, "
+        "REST API for the AhmedETAP Digital Twin — an autonomous "
+        "electrical power systems engineering platform. Supports project management, "
         "device and connection CRUD, engineering reports, and BIM/CAD exports.\n\n"
         "## CAD/BIM Integration\n\n"
         "### AutoCAD Endpoints\n"

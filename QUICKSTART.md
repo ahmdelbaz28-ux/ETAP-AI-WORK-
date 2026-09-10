@@ -160,7 +160,7 @@ Before installing ETAP, ensure your system meets the following requirements:
    - Click "New Project"
    - Upload your CAD/BIM files (DWG, DXF, IFC, PDF)
    - Configure project parameters
-   - Run NFPA 72 compliance analysis
+   - Run IEEE / IEC electrical power system analysis
 
 ### Using the API
 
@@ -180,9 +180,9 @@ Before installing ETAP, ensure your system meets the following requirements:
      -H "Content-Type: application/json" \
      -H "X-API-Key: YOUR_API_KEY" \
      -d '{
-       "name": "My First Fire Alarm Project",
-       "description": "Office building fire alarm system",
-       "jurisdiction": "NFPA_72_2022"
+       "name": "Substation 11kV Grid Project",
+       "description": "11kV / 0.4kV distribution network analysis",
+       "standard": "IEEE_3002_7"
      }'
    ```
 
@@ -334,10 +334,10 @@ pip install --force-reinstall -r requirements.txt
    - Try different types of projects and configurations
 
 2. **Explore advanced features**
-   - NFPA 72 compliance checking
+   - IEEE / IEC compliance checking (IEEE 3002.7, IEC 60909)
    - CAD file parsing (DWG, DXF, IFC)
-   - FACP selection and NAC design
-   - Voltage drop calculations
+   - Protection relay coordination and SLD design
+   - Load flow and short circuit calculations
 
 3. **Contribute to the project**
    - Review the [CONTRIBUTING.md](./CONTRIBUTING.md) guide
@@ -367,9 +367,9 @@ When ready for production deployment:
 
 - **Official Documentation**: [README.md](./README.md)
 - **API Reference**: [docs/API.md](./docs/API.md)
-- **GitHub Repository**: [https://github.com/ahmdelbaz28-ux/revit](https://github.com/ahmdelbaz28-ux/revit)
+- **GitHub Repository**: [https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-](https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-)
 - **Commercial Support**: engineering@etap.org
 
 ---
 
-*ETAP Digital Twin Platform v1.0.0 - Safety-Critical Fire Protection Engineering*
+*AhmedETAP Platform - Autonomous Power Systems Engineering Intelligence*

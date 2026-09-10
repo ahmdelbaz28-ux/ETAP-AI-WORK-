@@ -18,18 +18,18 @@ const puppeteer = require("puppeteer");
 	});
 	console.log("Dashboard screenshot saved");
 
-	// Fire Alarm page
-	console.log("Taking fire alarm screenshot...");
-	await page.goto("http://localhost:5173/fire-alarm", {
+	// Grid Editor page
+	console.log("Taking grid editor screenshot...");
+	await page.goto("http://localhost:5173/grid-editor", {
 		waitUntil: "networkidle0",
 		timeout: 30000,
 	});
 	await new Promise((r) => setTimeout(r, 3000));
 	await page.screenshot({
-		path: "docs/assets/screenshot_firealarm.png",
+		path: "docs/assets/screenshot_grid_editor.png",
 		fullPage: true,
 	});
-	console.log("Fire alarm screenshot saved");
+	console.log("Grid editor screenshot saved");
 
 	// Reports page
 	console.log("Taking reports screenshot...");

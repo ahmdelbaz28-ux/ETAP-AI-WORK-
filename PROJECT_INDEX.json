@@ -15532,13 +15532,6 @@
         }
       },
       {
-        "id": "fire-alarm",
-        "label": {
-          "en": "Fire Alarm",
-          "ar": "إنذار الحريق"
-        }
-      },
-      {
         "id": "engineering",
         "label": {
           "en": "Engineering",

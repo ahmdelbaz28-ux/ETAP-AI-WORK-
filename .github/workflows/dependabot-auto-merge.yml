@@ -2,7 +2,7 @@ name: Auto-merge Dependabot PRs
 
 # M-9 FIX: Auto-merge is now restricted to DEV dependencies only.
 # Safety-critical production packages (fastapi, cryptography, etc.) require
-# manual review because any API change could break NFPA 72 calculations.
+# manual review because any API change could break power system engineering calculations.
 
 on:
   pull_request:
@@ -37,7 +37,7 @@ jobs:
 
             // M-9: Critical packages that MUST NOT be auto-merged.
             // These are production runtime dependencies where API changes
-            // could break safety-critical NFPA 72 calculations.
+            // could break safety-critical power system engineering calculations.
             const CRITICAL_PACKAGES = [
               // Web framework & ASGI
               'fastapi', 'starlette', 'uvicorn', 'gunicorn',
@@ -47,7 +47,7 @@ jobs:
               'pydantic', 'pydantic-settings', 'sqlalchemy', 'alembic',
               // Networking
               'aiohttp', 'requests', 'httpx', 'websockets', 'asyncpg',
-              // Math & science (used in NFPA 72 calculations)
+              // Math & science (used in power system engineering calculations)
               'numpy', 'scipy', 'shapely',
               // File parsing (attack surface)
               'python-multipart', 'pillow', 'lxml',
@@ -152,4 +152,4 @@ jobs:
         run: |
           echo "::notice::Auto-merge skipped for critical package: ${{ steps.check-safe.outputs.package }}"
           echo "This PR requires manual review because it touches a safety-critical dependency."
-          echo "Reviewer must verify NFPA 72 calculations still produce correct results."
+          echo "Reviewer must verify power system engineering calculations still produce correct results."

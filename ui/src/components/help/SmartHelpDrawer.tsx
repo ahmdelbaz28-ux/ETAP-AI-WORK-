@@ -10,7 +10,6 @@ import {
   FolderPlus,
   HelpCircle,
   Layers,
-  Radio,
   Search,
   Settings,
   Sparkles,
@@ -28,7 +27,6 @@ import { cn } from "../../utils/helpers";
 const categoryIcons: Record<string, React.ElementType> = {
   "getting-started": Zap,
   projects: FolderPlus,
-  "fire-alarm": Radio,
   engineering: Activity,
   reports: FileText,
   "digital-twin": Layers,
@@ -71,19 +69,27 @@ const docTree: DocTreeNode[] = [
     ],
   },
   {
-    label: { en: "🚨 Fire Alarm System", ar: "🚨 أنظمة إنذار الحريق" },
+    label: { en: "⚡ Electrical Studies", ar: "⚡ دراسات الأنظمة الكهربائية" },
     children: [
       {
-        label: { en: "Detector Placement", ar: "وضع أجهزة الاستشعار" },
-        topicId: "fire-alarm.detector-placement",
+        label: { en: "Load Flow Analysis", ar: "تحليل سريان الأحمال" },
+        topicId: "studies.load-flow",
       },
       {
-        label: { en: "Zone Design & Navigation", ar: "تصميم وتنقل المناطق" },
-        topicId: "fire-alarm.zone-navigation",
+        label: { en: "Short Circuit Analysis", ar: "تحليل القصر الكهربائي" },
+        topicId: "studies.short-circuit",
       },
       {
-        label: { en: "Device Symbol Library", ar: "مكتبة رموز الأجهزة" },
-        topicId: "fire-alarm.symbol-library",
+        label: { en: "Arc Flash Analysis", ar: "تحليل الوميض القوسي" },
+        topicId: "studies.arc-flash",
+      },
+      {
+        label: { en: "Protection Coordination", ar: "تنسيق أجهزة الحماية" },
+        topicId: "studies.protection",
+      },
+      {
+        label: { en: "Motor Starting Analysis", ar: "تحليل بدء المحركات" },
+        topicId: "studies.motor-starting",
       },
     ],
   },

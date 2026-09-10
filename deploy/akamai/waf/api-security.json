@@ -57,9 +57,9 @@
       "protections": ["BLOCK_IF_BODY_DOES_NOT_MATCH_SCHEMA", "REQUIRE_API_KEY", "REQUIRE_HTTPS"]
     },
     {
-      "path": "/api/v1/qomn/*",
+      "path": "/api/v1/studies/*",
       "method": "POST",
-      "_comment": "NFPA 72 engineering calculation endpoints — strict schema validation required for safety.",
+      "_comment": "Power engineering calculation endpoints — strict schema validation required for safety.",
       "rateLimit": {"perUser": "30/minute"},
       "protections": [
         "BLOCK_IF_BODY_DOES_NOT_MATCH_SCHEMA",
@@ -67,7 +67,7 @@
         "REQUIRE_HTTPS",
         "LOG_ENGINEERING_CALCULATION_FOR_AUDIT_TRAIL"
       ],
-      "comments": "Engineering calculations are auditable events per NFPA 72 §14.2.4 — must log to immutable audit trail."
+      "comments": "Engineering calculations are auditable events per IEEE / IEC standards — must log to immutable audit trail."
     },
     {
       "path": "/api/v1/marine/*",

@@ -18,7 +18,6 @@ export interface HelpTopic {
 export type HelpCategory =
   | "getting-started"
   | "projects"
-  | "fire-alarm"
   | "engineering"
   | "reports"
   | "digital-twin"

@@ -132,31 +132,33 @@ from typing import Tuple
 import numpy as np
 
 
-def calculate_detector_coverage(
-    detector_position: Tuple[float, float, float],
-    room_dimensions: Tuple[float, float, float],
-    coverage_radius: float = 9.1,  # Default: 9.1m for smoke detectors per NFPA 72
+def calculate_bus_voltage_drop(
+    nominal_voltage_kv: float,
+    operating_current_a: float,
+    line_impedance_ohm: float,
+    power_factor: float = 0.85,
 ) -> float:
     """
-    Calculate coverage percentage for a detector in a given room.
+    Calculate voltage drop percentage for a power system bus per IEEE 141.
 
-    Safety Note: This function implements NFPA 72 Chapter 17 requirements
-    for minimum coverage. Conservative assumptions are made when data
-    is ambiguous to ensure safety.
+    Safety Note: This function implements IEEE 141 / IEEE 3002.7 standards
+    for bus voltage regulations (±5% limits). Conservative assumptions
+    are made when data is ambiguous to ensure grid safety.
 
     Args:
-        detector_position: (x, y, z) coordinates of detector
-        room_dimensions: (length, width, height) of room
-        coverage_radius: Coverage radius in meters (default per NFPA 72)
+        nominal_voltage_kv: Base bus voltage in kV
+        operating_current_a: Load current in Amperes
+        line_impedance_ohm: Feeder impedance in Ohms
+        power_factor: Operating power factor (default: 0.85 lagging)
 
     Returns:
-        Coverage percentage (0.0 to 1.0)
+        Voltage drop percentage (0.0 to 100.0)
 
     Raises:
-        ValueError: If inputs are invalid or would cause unsafe calculations
+        ValueError: If nominal voltage or current is non-positive
     """
-    if coverage_radius <= 0:
-        raise ValueError("Coverage radius must be positive for safe operation")
+    if nominal_voltage_kv <= 0 or operating_current_a < 0:
+        raise ValueError("Nominal voltage and current must be valid positive values")
 
     # Implementation here...
     return coverage_percentage
@@ -286,8 +288,8 @@ ETAP uses semantic versioning with safety considerations:
 *Knowledge management approach by Eng. Ahmed Elbaz*
 
 ### Resources
-- [NFPA 72 Standard](https://www.nfpa.org/codes-and-standards/document-information-pages/national-fire-alarm-and-signaling-code)
-- [Building Codes](https://www.iccsafe.org/)
+- [IEEE Standards Association](https://standards.ieee.org/)
+- [IEC International Standards](https://www.iec.ch/)
 - [Python Best Practices](https://docs.python-guide.org/)
 - [Safety-Critical Systems](https://safetycritical.net/)
 
@@ -299,8 +301,8 @@ ETAP uses semantic versioning with safety considerations:
 
 ---
 
-*These development guidelines were established by Eng. Ahmed Elbaz to maintain the high standards required for safety-critical fire protection engineering software.*
+*These development guidelines were established by Eng. Ahmed Elbaz to maintain the high standards required for autonomous electrical power systems engineering intelligence software.*
 
 ---
 
-**Remember: In ETAP, code quality directly impacts human safety. Every line of code you write could be the difference between life and death. Code accordingly.**
+**Remember: In AhmedETAP, code quality directly impacts electrical power system reliability and operator safety. Code accordingly.**

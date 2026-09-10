@@ -19,7 +19,7 @@
   <rect x="55" y="170" width="250" height="32" rx="5" fill="#1e3a5f" stroke="#60a5fa" stroke-width="1"/>
   <text x="65" y="191" fill="#93c5fd" font-size="11">Engineering Workspace</text>
   <rect x="315" y="170" width="250" height="32" rx="5" fill="#1e3a5f" stroke="#60a5fa" stroke-width="1"/>
-  <text x="325" y="191" fill="#93c5fd" font-size="11">Fire Alarm Designer</text>
+  <text x="325" y="191" fill="#93c5fd" font-size="11">Grid &amp; SLD Designer</text>
   <rect x="55" y="210" width="250" height="32" rx="5" fill="#1e3a5f" stroke="#60a5fa" stroke-width="1"/>
   <text x="65" y="231" fill="#93c5fd" font-size="11">Compliance Center</text>
   <rect x="315" y="210" width="250" height="32" rx="5" fill="#1e3a5f" stroke="#60a5fa" stroke-width="1"/>
@@ -44,7 +44,7 @@
   <text x="392" y="367" fill="#93c5fd" font-size="10">AICopilot</text>
 
   <text x="55" y="400" fill="#60a5fa" font-size="12" font-weight="600">PAGES (12 routes)</text>
-  <text x="55" y="420" fill="#94a3b8" font-size="10">/ /projects /engineering /fire-alarm /elements /elements/:id</text>
+  <text x="55" y="420" fill="#94a3b8" font-size="10">/ /projects /engineering /grid-editor /elements /elements/:id</text>
   <text x="55" y="435" fill="#94a3b8" font-size="10">/connections /conflicts /reports /settings</text>
 
   <text x="55" y="465" fill="#60a5fa" font-size="12" font-weight="600">HOOKS &amp; SERVICES</text>
@@ -118,7 +118,7 @@
 
   <text x="635" y="520" fill="#34d399" font-size="12" font-weight="600">ENGINEERING KERNEL (etap/)</text>
   <rect x="635" y="530" width="250" height="26" rx="4" fill="#064e3b" stroke="#34d399" stroke-width=".5"/>
-  <text x="642" y="548" fill="#6ee7b7" font-size="10">NFPA 72: engine, coverage, models, calculations</text>
+  <text x="642" y="548" fill="#6ee7b7" font-size="10">IEEE / IEC: Load Flow, Short Circuit, Arc Flash</text>
   <rect x="895" y="530" width="250" height="26" rx="4" fill="#064e3b" stroke="#34d399" stroke-width=".5"/>
   <text x="902" y="548" fill="#6ee7b7" font-size="10">Acoustics: engine, calculator, UGLD raytrace</text>
   <rect x="635" y="561" width="250" height="26" rx="4" fill="#064e3b" stroke="#34d399" stroke-width=".5"/>
