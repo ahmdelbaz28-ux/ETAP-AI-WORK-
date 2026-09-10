@@ -23,7 +23,7 @@ concurrency:
 env:
   PYTHON_VERSION: "3.13"
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}/copilot-api
+  IMAGE_NAME: ${{ github.repository_owner }}/etap-copilot-api
 
 jobs:
   # =========================================================================
@@ -129,7 +129,7 @@ jobs:
       - name: Sanitize image name
         id: image
         run: |
-          IMAGE_LOWER=$(echo "${{ github.repository }}/copilot-api" | tr '[:upper:]' '[:lower:]' | tr '_' '-')
+          IMAGE_LOWER=$(echo "${{ github.repository_owner }}/etap-copilot-api" | tr '[:upper:]' '[:lower:]')
           echo "name=${IMAGE_LOWER}" >> "$GITHUB_OUTPUT"
 
       - name: Build and tag image

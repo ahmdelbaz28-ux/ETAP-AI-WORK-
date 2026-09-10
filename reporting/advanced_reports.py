@@ -349,8 +349,14 @@ class PDFReportGenerator:
 
             self.logger.info("Generating PDF report using ReportLab")
             filepath = self._generate_with_reportlab(metadata, sections, output_path)
-        except ImportError:
-            self.logger.warning("ReportLab not available. Using fallback PDF generation.")
+        except (ImportError, TypeError) as e:
+            # TypeError covers Python 3.8 incompatibility: ReportLab calls
+            # openssl_md5(usedforsecurity=False) which is only valid on Python 3.9+.
+            self.logger.warning(
+                "ReportLab not available or incompatible with this Python version "
+                "(%s). Using fallback PDF generation.",
+                e,
+            )
             filepath = self._generate_fallback_pdf(metadata, sections, output_path)
 
         # Upload to Supabase Storage if available
