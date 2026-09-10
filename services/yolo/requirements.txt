@@ -3,7 +3,7 @@
 doclayout-yolo==0.0.7
 fastapi==0.115.12
 uvicorn[standard]==0.34.3
-python-multipart==0.0.20
+python-multipart==0.0.30
 torch==2.7.1
 torchvision==0.22.1
 numpy==2.2.6
