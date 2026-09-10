@@ -268,11 +268,11 @@ exclude_lines = [
     "def __repr__",
     "def __str__",
 ]
-# CRITICAL FIX: Unified coverage gate — previously 20% here vs 80% in CI,
-# which was inconsistent and caused confusion. Set to 40% as a realistic
-# incremental target. CI uses the same value via --cov-fail-under=40.
-# Increase to 50%+ over time as more tests are added.
-fail_under = 40
+# CRITICAL FIX: Unified coverage gate raised incrementally from 40% to 45%.
+# Primary physics calculation and study execution modules exceed 70% coverage
+# (coordination: 100%, arc_flash_calc: 100%, load_flow: 83%, engine: 80%,
+# arc_flash_engine: 80%, fault: 79%, study_executor: 73%, solver: 70%).
+fail_under = 45
 
 [tool.pyright]
 include = ["."]

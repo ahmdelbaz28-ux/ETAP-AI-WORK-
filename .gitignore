@@ -49,11 +49,15 @@ checks-*.json
 /checks-*.json
 
 # Test runtime artifacts
-test.db
-test.db-shm
-test.db-wal
+*.db
+*.db-shm
+*.db-wal
 *.db-journal
 .scenario/
+.coverage
+.coverage.*
+.ruff_cache/
+.pytest_cache/
 
 # Audit test-run artifacts (generated JSON dumps from audit tests — never shipped)
 audit/
