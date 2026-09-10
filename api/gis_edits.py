@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import logging
 import os
+import re
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional, Union
 
@@ -57,6 +58,24 @@ from gis_integration.providers.arcgis_provider import ArcGISOnlineProvider
 from gis_integration.utils import safe_parse_geojson, validate_geometry_dict
 
 logger = logging.getLogger("engineering_service.gis_edits")
+
+# SECURITY: S5145 - strip control characters from user-controlled values
+# before they reach the logger. Prevents log injection / CRLF spoofing.
+# Mirrors the helper in api/copilot_config.py (SonarCloud S5145 batch 5).
+_SAFE_LOG_RE = re.compile(r"[\x00-\x1f\x7f]")
+
+
+def _sanitize_for_log(value: object, max_len: int = 200) -> str:
+    """Sanitize user-controlled input before writing to logs.
+
+    Strips control characters and truncates to prevent log-flooding / injection.
+    """
+    if value is None:
+        return "None"
+    s = _SAFE_LOG_RE.sub("_", str(value))
+    if len(s) > max_len:
+        s = s[:max_len] + "...[truncated]"
+    return s
 
 router = APIRouter(
     prefix="/api/v1/gis/edits",
@@ -339,8 +358,8 @@ async def propose_gis_edit(
     logger.info(
         "GIS edit proposed: action_id=%s layer=%s by user=%s",
         action.id,
-        command.layer_id,
-        user.user_id,
+        _sanitize_for_log(command.layer_id),
+        _sanitize_for_log(user.user_id),
     )
     return response_data
 
