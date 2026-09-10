@@ -6,16 +6,18 @@
 # =============================================================================
 
 # Observability - OpenTelemetry
-# Pin all OTel packages to compatible versions. opentelemetry-sdk 1.30.x
-# requires opentelemetry-semantic-conventions 0.51b0 — which is compatible
-# with opentelemetry-instrumentation-fastapi 0.51b0.
-opentelemetry-api~=1.30.0
-opentelemetry-sdk~=1.30.0
-opentelemetry-exporter-otlp==1.30.0
-opentelemetry-semantic-conventions~=0.51b0
+# Pin all OTel packages to compatible versions. opentelemetry-sdk 1.33.x
+# requires opentelemetry-semantic-conventions 0.54b0 — which is compatible
+# with opentelemetry-instrumentation-fastapi 0.54b0.
+# NOTE: langfuse>=4.15.1 requires opentelemetry-exporter-otlp-proto-http>=1.33.1,
+# so the 1.30.x stack is unsatisfiable.
+opentelemetry-api~=1.33.0
+opentelemetry-sdk~=1.33.0
+opentelemetry-exporter-otlp==1.33.*
+opentelemetry-semantic-conventions~=0.54b0
 # OTLP/HTTP exporter for the Langfuse OTLP endpoint (used by core/tracing.py)
-opentelemetry-exporter-otlp-proto-http~=1.30.0
-opentelemetry-instrumentation-fastapi~=0.51b0
+opentelemetry-exporter-otlp-proto-http~=1.33.0
+opentelemetry-instrumentation-fastapi~=0.54b0
 
 # LLM observability — Langfuse (free Hobby plan supports unlimited prompts)
 # Used by integrations/langfuse_integration.py and agents/prompt_loader.py.
@@ -28,7 +30,7 @@ langfuse~=4.15.1
 # a ResolutionImpossible at install time.
 # NOTE: ~=2.52.0 means >=2.52.0,<2.53.0. Earlier pin `~=2.7.0` was a typo —
 # 2.7.x < 2.45.0 in PEP 440 ordering, so it failed langchain-openai's lower bound.
-openai~=3.8.0
+openai~=2.52.0
 anthropic~=1.4.0
 
 # Supabase (managed Postgres + Storage + Auth) — used by integrations/supabase_*.py
