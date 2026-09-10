@@ -148,7 +148,9 @@ class IEC61850ClientAdapter(ProtocolAdapter):
             try:
                 await asyncio.sleep(sleep_for)
             except asyncio.CancelledError:
-                break
+                # S7497: re-raise so task cancellation propagates instead of
+                # being swallowed (a bare break would return normally).
+                raise
 
     def describe(self) -> Dict[str, Any]:
         return {
