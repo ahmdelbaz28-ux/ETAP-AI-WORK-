@@ -215,7 +215,9 @@ class SCADAProtocolManager:
                     "modbus_enabled": self._cfg.modbus.enabled,
                     "opcua_enabled": self._cfg.opcua.enabled,
                     "iec104_enabled": self._cfg.iec104.enabled,
-                    "iec61850_enabled": getattr(self._cfg, "iec61850", None).enabled if hasattr(self._cfg, "iec61850") else False,
+                    "iec61850_enabled": getattr(self._cfg, "iec61850", None).enabled
+                    if hasattr(self._cfg, "iec61850")
+                    else False,
                     "strict_lib_check": self._cfg.strict_lib_check,
                 },
             }

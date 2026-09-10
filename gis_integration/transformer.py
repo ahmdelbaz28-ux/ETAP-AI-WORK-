@@ -82,9 +82,14 @@ class GisToAdmsTransformer:
         else:
             feature_id = str(asset.asset_id)
 
-        layer_name = str(meta.get("source_layer") or (
-            asset.asset_type.value.lower() if hasattr(asset.asset_type, "value") else str(asset.asset_type).lower()
-        ))
+        layer_name = str(
+            meta.get("source_layer")
+            or (
+                asset.asset_type.value.lower()
+                if hasattr(asset.asset_type, "value")
+                else str(asset.asset_type).lower()
+            )
+        )
         crs = str(meta.get("source_crs") or "EPSG:4326")
 
         properties = dict(meta.get("source_properties") or {})
@@ -105,7 +110,13 @@ class GisToAdmsTransformer:
     def transform_adms_list(self, assets: list[ADMSAsset]) -> list[GISFeature]:
         """Transform a list of ADMSAsset items to GISFeature in deterministic order."""
         features: list[GISFeature] = []
-        for a in sorted(assets, key=lambda x: (x.asset_type.value if hasattr(x.asset_type, "value") else str(x.asset_type), x.asset_id or "")):
+        for a in sorted(
+            assets,
+            key=lambda x: (
+                x.asset_type.value if hasattr(x.asset_type, "value") else str(x.asset_type),
+                x.asset_id or "",
+            ),
+        ):
             features.append(self.transform_adms_to_feature(a))
         return features
 

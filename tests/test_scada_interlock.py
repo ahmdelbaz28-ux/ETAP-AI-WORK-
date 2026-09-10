@@ -113,6 +113,7 @@ class TestSCADAInterlockEngine:
         self, interlock_engine: SCADAInterlockEngine, sample_breaker_command: ControlCommandRequest
     ) -> None:
         """Mock load flow overload detection."""
+
         class MockBranch:
             def __init__(self, bid):
                 self.id = bid
@@ -133,10 +134,16 @@ class TestSCADAInterlockEngine:
 
         engine = OverloadingEngine()
         telemetry = {
-            "CB_001": {"quality": "GOOD", "control_mode": "REMOTE", "timestamp": datetime.now(UTC).isoformat()}
+            "CB_001": {
+                "quality": "GOOD",
+                "control_mode": "REMOTE",
+                "timestamp": datetime.now(UTC).isoformat(),
+            }
         }
         with pytest.raises(InterlockViolation) as exc_info:
-            engine.pre_flight_check(sample_breaker_command, telemetry=telemetry, network_data=mock_network)
+            engine.pre_flight_check(
+                sample_breaker_command, telemetry=telemetry, network_data=mock_network
+            )
 
         assert exc_info.value.code == "INTERLOCK_OVERLOAD_PREVENTED"
         assert "118.5%" in exc_info.value.message
@@ -145,6 +152,7 @@ class TestSCADAInterlockEngine:
         self, interlock_engine: SCADAInterlockEngine, sample_breaker_command: ControlCommandRequest
     ) -> None:
         """Protection margin < 0.2s must raise COORDINATION_MARGIN_VIOLATION."""
+
         class MockRelay:
             def __init__(self, time_val):
                 self._t = time_val
@@ -159,7 +167,11 @@ class TestSCADAInterlockEngine:
         }
 
         telemetry = {
-            "CB_001": {"quality": "GOOD", "control_mode": "REMOTE", "timestamp": datetime.now(UTC).isoformat()}
+            "CB_001": {
+                "quality": "GOOD",
+                "control_mode": "REMOTE",
+                "timestamp": datetime.now(UTC).isoformat(),
+            }
         }
         with pytest.raises(InterlockViolation) as exc_info:
             interlock_engine.pre_flight_check(
@@ -180,7 +192,11 @@ class TestSCADAInterlockEngine:
             "branch_loadings": {"FEEDER_B": 108.5},
         }
         telemetry = {
-            "CB_001": {"quality": "GOOD", "control_mode": "REMOTE", "timestamp": datetime.now(UTC).isoformat()}
+            "CB_001": {
+                "quality": "GOOD",
+                "control_mode": "REMOTE",
+                "timestamp": datetime.now(UTC).isoformat(),
+            }
         }
         with pytest.raises(InterlockViolation) as exc_info:
             interlock_engine.pre_flight_check(
@@ -197,7 +213,11 @@ class TestSCADAInterlockEngine:
         """Coordination margin < 0.20s in coordination data raises COORDINATION_MARGIN_VIOLATION."""
         coordination_data = {"margin": 0.12, "fault_current": 8.0}
         telemetry = {
-            "CB_001": {"quality": "GOOD", "control_mode": "REMOTE", "timestamp": datetime.now(UTC).isoformat()}
+            "CB_001": {
+                "quality": "GOOD",
+                "control_mode": "REMOTE",
+                "timestamp": datetime.now(UTC).isoformat(),
+            }
         }
         with pytest.raises(InterlockViolation) as exc_info:
             interlock_engine.pre_flight_check(
@@ -255,7 +275,9 @@ class TestSCADAInterlockAPIGateway:
         )
 
         try:
-            async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            async with AsyncClient(
+                transport=ASGITransport(app=app), base_url="http://test"
+            ) as client:
                 resp = await client.post(
                     "/api/v1/scada/control/propose",
                     json={
@@ -332,7 +354,9 @@ class TestSCADAInterlockAPIGateway:
         )
 
         try:
-            async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            async with AsyncClient(
+                transport=ASGITransport(app=app), base_url="http://test"
+            ) as client:
                 resp = await client.post(
                     "/api/v1/scada/control/propose",
                     json={
@@ -415,7 +439,9 @@ class TestSCADAInterlockAPIGateway:
         )
 
         try:
-            async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            async with AsyncClient(
+                transport=ASGITransport(app=app), base_url="http://test"
+            ) as client:
                 resp = await client.post(
                     "/api/v1/scada/control/propose",
                     json={

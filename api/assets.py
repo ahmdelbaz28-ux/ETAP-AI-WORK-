@@ -262,11 +262,7 @@ async def get_asset(
             status_code=status.HTTP_404_NOT_FOUND, detail=f"Asset '{asset_id}' not found"
         )
     # Tenant isolation check: if asset.tenant_id != user.tenant_id -> 404 (prevent cross-tenant IDOR)
-    if (
-        user.tenant_id
-        and asset.tenant_id
-        and asset.tenant_id != user.tenant_id
-    ):
+    if user.tenant_id and asset.tenant_id and asset.tenant_id != user.tenant_id:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail=f"Asset '{asset_id}' not found"
         )
@@ -329,11 +325,7 @@ async def update_asset(
         )
 
     # Tenant isolation check: if asset.tenant_id != user.tenant_id -> 404 (prevent cross-tenant IDOR)
-    if (
-        user.tenant_id
-        and asset.tenant_id
-        and asset.tenant_id != user.tenant_id
-    ):
+    if user.tenant_id and asset.tenant_id and asset.tenant_id != user.tenant_id:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail=f"Asset '{asset_id}' not found"
         )
@@ -386,11 +378,7 @@ async def delete_asset(
         )
 
     # Tenant isolation check: if asset.tenant_id != user.tenant_id -> 404 (prevent cross-tenant IDOR)
-    if (
-        user.tenant_id
-        and asset.tenant_id
-        and asset.tenant_id != user.tenant_id
-    ):
+    if user.tenant_id and asset.tenant_id and asset.tenant_id != user.tenant_id:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail=f"Asset '{asset_id}' not found"
         )

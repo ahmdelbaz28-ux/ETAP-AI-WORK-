@@ -532,7 +532,9 @@ def _deliver_to_endpoint(ep: WebhookEndpoint, body: bytes, sig: str, event_type:
 
     class NoRedirectHandler(urllib.request.HTTPRedirectHandler):
         def redirect_request(self, req, fp, code, msg, headers, newurl):
-            raise _SSRFBlockedError(f"Webhook delivery redirects are forbidden (target redirected to {newurl})")
+            raise _SSRFBlockedError(
+                f"Webhook delivery redirects are forbidden (target redirected to {newurl})"
+            )
 
     opener = urllib.request.build_opener(NoRedirectHandler)
 

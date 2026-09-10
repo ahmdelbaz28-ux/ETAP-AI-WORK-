@@ -57,10 +57,12 @@ class IEC61850ClientAdapter(ProtocolAdapter):
         has_lib = False
         try:
             import iec61850datamodel  # type: ignore  # noqa: F401
+
             has_lib = True
         except ImportError:
             try:
                 import py61850  # type: ignore  # noqa: F401
+
                 has_lib = True
             except ImportError:
                 pass
@@ -133,7 +135,9 @@ class IEC61850ClientAdapter(ProtocolAdapter):
                             )
                             self._metric.rx_packets += 1
                         except Exception as cb_exc:
-                            logger.warning("IEC61850 callback failed for %s: %s", element_id, cb_exc)
+                            logger.warning(
+                                "IEC61850 callback failed for %s: %s", element_id, cb_exc
+                            )
 
                 self._mark_rx()
             except Exception as exc:

@@ -178,7 +178,10 @@ class ArcGISOnlineProvider(GISProviderInterface):
                     if not is_token_error and resp.status_code == 200:
                         try:
                             peek = resp.json()
-                            if isinstance(peek, dict) and peek.get("error", {}).get("code") in (498, 499):
+                            if isinstance(peek, dict) and peek.get("error", {}).get("code") in (
+                                498,
+                                499,
+                            ):
                                 is_token_error = True
                         except Exception:
                             pass
@@ -566,7 +569,12 @@ class ArcGISOnlineProvider(GISProviderInterface):
             if not isinstance(feat, dict):
                 raise GISWriteError(f"Update feature at index {idx} must be a dict")
             attrs = dict(feat.get("attributes") or feat.get("properties") or {})
-            oid = attrs.get("OBJECTID") or attrs.get("ObjectId") or attrs.get("objectId") or feat.get("id")
+            oid = (
+                attrs.get("OBJECTID")
+                or attrs.get("ObjectId")
+                or attrs.get("objectId")
+                or feat.get("id")
+            )
             if oid is None:
                 raise GISWriteError(f"Update feature at index {idx} missing required OBJECTID")
             attrs["OBJECTID"] = int(oid) if str(oid).isdigit() else oid
@@ -624,13 +632,18 @@ class ArcGISOnlineProvider(GISProviderInterface):
         for r in all_results:
             if isinstance(r, dict) and (not r.get("success", False) or "error" in r):
                 err = r.get("error", {})
-                msg = err.get("description") or err.get("message") or f"Operation failed on item {r.get('objectId')}"
+                msg = (
+                    err.get("description")
+                    or err.get("message")
+                    or f"Operation failed on item {r.get('objectId')}"
+                )
                 raise GISWriteError(f"applyEdits operation failed (rolled back): {msg}")
 
         # 4. Verify-by-requery
         query_url = f"{self._service_url}/{resolved_id}/query"
         active_oids = [
-            str(r.get("objectId")) for r in list(add_results) + list(update_results)
+            str(r.get("objectId"))
+            for r in list(add_results) + list(update_results)
             if r.get("objectId") is not None
         ]
         if active_oids:
@@ -653,10 +666,7 @@ class ArcGISOnlineProvider(GISProviderInterface):
                     f"Verify-by-requery mismatch: expected {len(active_oids)} features, found {len(features_found)}"
                 )
 
-        del_oids = [
-            str(r.get("objectId")) for r in delete_results
-            if r.get("objectId") is not None
-        ]
+        del_oids = [str(r.get("objectId")) for r in delete_results if r.get("objectId") is not None]
         if del_oids:
             d_resp = self._request(
                 "GET",
@@ -694,4 +704,3 @@ class ArcGISOnlineProvider(GISProviderInterface):
     def delete_features(self, layer_id: str, object_ids: list[str | int]) -> dict[str, Any]:
         """Delete spatial features by OBJECTID from a layer."""
         return self.apply_edits(layer_id=layer_id, deletes=object_ids)
-

@@ -248,7 +248,9 @@ class SCADAProtocolBridge:
                     value=float(value),
                     timestamp=src_ts,
                     quality=qflag,
-                    confidence=1.0 if q_enum_name == "GOOD" else (0.5 if q_enum_name == "QUESTIONABLE" else 0.0),
+                    confidence=1.0
+                    if q_enum_name == "GOOD"
+                    else (0.5 if q_enum_name == "QUESTIONABLE" else 0.0),
                 )
                 measurement.source_timestamp = src_ts
                 db.add_measurement(measurement)

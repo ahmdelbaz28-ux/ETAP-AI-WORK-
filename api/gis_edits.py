@@ -134,7 +134,10 @@ def _preflight_validate_features(
         if not raw_geom:
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                detail={"code": "MISSING_GEOMETRY", "message": f"Add feature {idx} missing geometry."},
+                detail={
+                    "code": "MISSING_GEOMETRY",
+                    "message": f"Add feature {idx} missing geometry.",
+                },
             )
         try:
             parsed = safe_parse_geojson(raw_geom)
@@ -142,28 +145,45 @@ def _preflight_validate_features(
             if not is_valid:
                 raise HTTPException(
                     status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                    detail={"code": "INVALID_GEOMETRY", "message": f"Add feature {idx} invalid geometry: {reason}"},
+                    detail={
+                        "code": "INVALID_GEOMETRY",
+                        "message": f"Add feature {idx} invalid geometry: {reason}",
+                    },
                 )
         except HTTPException:
             raise
         except Exception as exc:
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                detail={"code": "INVALID_GEOMETRY", "message": f"Add feature {idx} geometry parse failure: {exc}"},
+                detail={
+                    "code": "INVALID_GEOMETRY",
+                    "message": f"Add feature {idx} geometry parse failure: {exc}",
+                },
             ) from exc
 
     for idx, item in enumerate(updates or []):
         if not isinstance(item, dict):
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                detail={"code": "INVALID_PAYLOAD", "message": f"Update feature {idx} must be a dict."},
+                detail={
+                    "code": "INVALID_PAYLOAD",
+                    "message": f"Update feature {idx} must be a dict.",
+                },
             )
         attrs = item.get("attributes") or item.get("properties") or {}
-        oid = attrs.get("OBJECTID") or attrs.get("ObjectId") or attrs.get("objectId") or item.get("id")
+        oid = (
+            attrs.get("OBJECTID")
+            or attrs.get("ObjectId")
+            or attrs.get("objectId")
+            or item.get("id")
+        )
         if oid is None:
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                detail={"code": "MISSING_OBJECTID", "message": f"Update feature {idx} missing required OBJECTID."},
+                detail={
+                    "code": "MISSING_OBJECTID",
+                    "message": f"Update feature {idx} missing required OBJECTID.",
+                },
             )
         raw_geom = item.get("geometry")
         if raw_geom:
@@ -173,14 +193,20 @@ def _preflight_validate_features(
                 if not is_valid:
                     raise HTTPException(
                         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                        detail={"code": "INVALID_GEOMETRY", "message": f"Update feature {idx} invalid geometry: {reason}"},
+                        detail={
+                            "code": "INVALID_GEOMETRY",
+                            "message": f"Update feature {idx} invalid geometry: {reason}",
+                        },
                     )
             except HTTPException:
                 raise
             except Exception as exc:
                 raise HTTPException(
                     status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                    detail={"code": "INVALID_GEOMETRY", "message": f"Update feature {idx} geometry parse failure: {exc}"},
+                    detail={
+                        "code": "INVALID_GEOMETRY",
+                        "message": f"Update feature {idx} geometry parse failure: {exc}",
+                    },
                 ) from exc
 
     for idx, d in enumerate(deletes or []):
@@ -188,7 +214,10 @@ def _preflight_validate_features(
         if not s or s in ("*", "1=1") or "where" in s.lower():
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                detail={"code": "INVALID_DELETE", "message": "Mass delete is forbidden; explicit OBJECTIDs are required."},
+                detail={
+                    "code": "INVALID_DELETE",
+                    "message": "Mass delete is forbidden; explicit OBJECTIDs are required.",
+                },
             )
 
 
@@ -221,7 +250,9 @@ async def propose_gis_edit(
         )
 
     # 2. Feature Flags Gating
-    if not is_feature_enabled("gis_write", default=False) or not is_feature_enabled("arcgis_provider", default=False):
+    if not is_feature_enabled("gis_write", default=False) or not is_feature_enabled(
+        "arcgis_provider", default=False
+    ):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail={
@@ -239,7 +270,10 @@ async def propose_gis_edit(
     if total_count == 0:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail={"code": "EMPTY_PAYLOAD", "message": "At least one add, update, or delete feature must be specified."},
+            detail={
+                "code": "EMPTY_PAYLOAD",
+                "message": "At least one add, update, or delete feature must be specified.",
+            },
         )
     if total_count > max_features:
         raise HTTPException(
@@ -302,7 +336,12 @@ async def propose_gis_edit(
     await _store_idempotent(db, idempotency_key, endpoint, user.tenant_id, response_data)
     await db.commit()
 
-    logger.info("GIS edit proposed: action_id=%s layer=%s by user=%s", action.id, command.layer_id, user.user_id)
+    logger.info(
+        "GIS edit proposed: action_id=%s layer=%s by user=%s",
+        action.id,
+        command.layer_id,
+        user.user_id,
+    )
     return response_data
 
 
@@ -325,17 +364,19 @@ async def list_pending_gis_edits(
 
     items = []
     for a in pending:
-        items.append({
-            "action_id": a.id,
-            "session_id": a.session_id,
-            "service_url": (a.args or {}).get("service_url"),
-            "layer_id": (a.args or {}).get("layer_id"),
-            "reason": (a.args or {}).get("reason"),
-            "requested_by_user_id": a.requested_by_user_id,
-            "requested_by_role": a.requested_by_role,
-            "created_at": a.created_at.isoformat() if a.created_at else None,
-            "expires_at": a.expires_at.isoformat() if a.expires_at else None,
-        })
+        items.append(
+            {
+                "action_id": a.id,
+                "session_id": a.session_id,
+                "service_url": (a.args or {}).get("service_url"),
+                "layer_id": (a.args or {}).get("layer_id"),
+                "reason": (a.args or {}).get("reason"),
+                "requested_by_user_id": a.requested_by_user_id,
+                "requested_by_role": a.requested_by_role,
+                "created_at": a.created_at.isoformat() if a.created_at else None,
+                "expires_at": a.expires_at.isoformat() if a.expires_at else None,
+            }
+        )
 
     return {
         "success": True,
@@ -373,7 +414,9 @@ async def resolve_gis_edit(
     result = await db.execute(select(PendingAction).where(PendingAction.id == action_id))
     action = result.scalar_one_or_none()
     if action is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="GIS edit action not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="GIS edit action not found"
+        )
 
     # 2. Multi-tenant isolation
     if _norm_tenant(action.tenant_id) != _norm_tenant(user.tenant_id):
@@ -465,7 +508,9 @@ async def resolve_gis_edit(
         action.status = "failed"
         exec_res = {"success": False, "error": str(exc), "readback_verified": False}
     except Exception as exc:
-        logger.exception("Unexpected error executing GIS applyEdits for action %s: %s", action.id, exc)
+        logger.exception(
+            "Unexpected error executing GIS applyEdits for action %s: %s", action.id, exc
+        )
         action.status = "failed"
         exec_res = {"success": False, "error": str(exc), "readback_verified": False}
 
@@ -492,10 +537,14 @@ async def get_gis_edit_status(
     result = await db.execute(select(PendingAction).where(PendingAction.id == action_id))
     action = result.scalar_one_or_none()
     if action is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="GIS edit action not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="GIS edit action not found"
+        )
 
     if _norm_tenant(action.tenant_id) != _norm_tenant(user.tenant_id):
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="GIS edit action not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="GIS edit action not found"
+        )
 
     return {
         "success": True,

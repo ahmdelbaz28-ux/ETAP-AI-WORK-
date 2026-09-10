@@ -173,7 +173,9 @@ def test_abac_uses_hmac_compare_digest() -> None:
 def test_cua_executor_fail_closed_on_confirmation() -> None:
     source = _read_file("agents/cua_base_executor.py")
     assert "Missing confirmation callback for confirmed action (fail-closed)" in source
-    assert "Dual confirmation required but no confirmation callback provided (fail-closed)" in source
+    assert (
+        "Dual confirmation required but no confirmation callback provided (fail-closed)" in source
+    )
 
 
 # ---------------------------------------------------------------------------
