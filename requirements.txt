@@ -30,7 +30,9 @@ langfuse~=4.15.1
 # a ResolutionImpossible at install time.
 # NOTE: ~=2.52.0 means >=2.52.0,<2.53.0. Earlier pin `~=2.7.0` was a typo —
 # 2.7.x < 2.45.0 in PEP 440 ordering, so it failed langchain-openai's lower bound.
-openai~=3.8.0
+# openai 3.x is likewise incompatible (langchain-openai 1.4.x needs openai<3) —
+# do NOT bump to 3.x without also resolving langchain-openai.
+openai~=2.52.0
 anthropic~=1.4.0
 
 # Supabase (managed Postgres + Storage + Auth) — used by integrations/supabase_*.py
