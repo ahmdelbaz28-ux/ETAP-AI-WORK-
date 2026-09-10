@@ -20,8 +20,8 @@ permissions:
 
 # Avoid concurrent deploys racing
 concurrency:
-  group: pages
-  cancel-in-progress: false
+  group: mkdocs-pages
+  cancel-in-progress: true
 
 jobs:
   build:
