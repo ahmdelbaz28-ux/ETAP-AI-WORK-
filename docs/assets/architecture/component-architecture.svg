@@ -85,7 +85,7 @@
   <rect x="635" y="217" width="160" height="26" rx="4" fill="#064e3b" stroke="#34d399" stroke-width=".5"/>
   <text x="642" y="235" fill="#6ee7b7" font-size="10">facp.py</text>
   <rect x="800" y="217" width="160" height="26" rx="4" fill="#064e3b" stroke="#34d399" stroke-width=".5"/>
-  <text x="807" y="235" fill="#6ee7b7" font-size="10">qomn.py</text>
+  <text x="807" y="235" fill="#6ee7b7" font-size="10">solver.py</text>
   <rect x="965" y="217" width="180" height="26" rx="4" fill="#064e3b" stroke="#34d399" stroke-width=".5"/>
   <text x="972" y="235" fill="#6ee7b7" font-size="10">reports.py</text>
   <rect x="635" y="248" width="160" height="26" rx="4" fill="#064e3b" stroke="#34d399" stroke-width=".5"/>
