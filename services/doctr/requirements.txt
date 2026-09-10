@@ -5,7 +5,7 @@ doctr==0.8.1
 fastapi==0.115.12
 uvicorn[standard]==0.34.3
 python-multipart==0.0.31
-torch==2.7.1
+torch==2.13.0
 torchvision==0.22.1
 numpy==2.2.6
 Pillow==12.3.0
