@@ -140,9 +140,7 @@ class TestSCADAControlGateway:
             "target_value": 0,
             "reason": "Routine isolation",
         }
-        resp = client.post(
-            "/api/v1/scada/control/propose", json=payload, headers={"X-API-Key": "test-api-key"}
-        )
+        resp = client.post("/api/v1/scada/control/propose", json=payload, headers={"X-API-Key": "test-api-key"})
         assert resp.status_code == 403
         data = resp.json()
         assert data["detail"]["code"] == "INSUFFICIENT_PERMISSIONS"
@@ -169,9 +167,7 @@ class TestSCADAControlGateway:
         action_id = data["action_id"]
 
         # Check pending list
-        pending_resp = client.get(
-            "/api/v1/scada/control/pending", headers={"X-API-Key": "test-api-key"}
-        )
+        pending_resp = client.get("/api/v1/scada/control/pending", headers={"X-API-Key": "test-api-key"})
         assert pending_resp.status_code == 200
         pending_data = pending_resp.json()
         assert pending_data["total"] >= 1
@@ -195,9 +191,7 @@ class TestSCADAControlGateway:
             "target_value": 0,
             "reason": "Emergency bus de-energization",
         }
-        prop_resp = client.post(
-            "/api/v1/scada/control/propose", json=payload, headers={"X-API-Key": "test-api-key"}
-        )
+        prop_resp = client.post("/api/v1/scada/control/propose", json=payload, headers={"X-API-Key": "test-api-key"})
         assert prop_resp.status_code == 202
         action_id = prop_resp.json()["action_id"]
 
@@ -212,9 +206,7 @@ class TestSCADAControlGateway:
         data = resolve_resp.json()
         assert data["detail"]["code"] == "MAKER_CHECKER_VIOLATION"
 
-    def test_independent_admin_approves_and_executes(
-        self, client: TestClient, app: FastAPI
-    ) -> None:
+    def test_independent_admin_approves_and_executes(self, client: TestClient, app: FastAPI) -> None:
         """Independent admin approves: command executes and verifies readback."""
         # 1. Engineer proposes
         app.dependency_overrides[get_current_user_from_header] = lambda: CurrentUser(
@@ -231,9 +223,7 @@ class TestSCADAControlGateway:
             "target_value": 0,
             "reason": "Isolate line L1",
         }
-        prop_resp = client.post(
-            "/api/v1/scada/control/propose", json=payload, headers={"X-API-Key": "test-api-key"}
-        )
+        prop_resp = client.post("/api/v1/scada/control/propose", json=payload, headers={"X-API-Key": "test-api-key"})
         assert prop_resp.status_code == 202
         action_id = prop_resp.json()["action_id"]
 
@@ -259,20 +249,14 @@ class TestSCADAControlGateway:
         assert res_data["result"]["final_state"] == "OPEN"
 
         # 3. Status endpoint reflects completed
-        status_resp = client.get(
-            f"/api/v1/scada/control/{action_id}/status", headers={"X-API-Key": "test-api-key"}
-        )
+        status_resp = client.get(f"/api/v1/scada/control/{action_id}/status", headers={"X-API-Key": "test-api-key"})
         assert status_resp.status_code == 200
         assert status_resp.json()["data"]["status"] == "completed"
 
     def test_admin_rejects_control_action(self, client: TestClient, app: FastAPI) -> None:
         """Admin rejects proposed control command."""
         app.dependency_overrides[get_current_user_from_header] = lambda: CurrentUser(
-            user_id="eng_user",
-            username="eng",
-            email="eng@ot.local",
-            role="engineer",
-            tenant_id="tenant_test",
+            user_id="eng_user", username="eng", email="eng@ot.local", role="engineer", tenant_id="tenant_test"
         )
         prop_resp = client.post(
             "/api/v1/scada/control/propose",
@@ -289,11 +273,7 @@ class TestSCADAControlGateway:
 
         # Admin rejects
         app.dependency_overrides[get_current_user_from_header] = lambda: CurrentUser(
-            user_id="admin_user",
-            username="adm",
-            email="adm@ot.local",
-            role="admin",
-            tenant_id="tenant_test",
+            user_id="admin_user", username="adm", email="adm@ot.local", role="admin", tenant_id="tenant_test"
         )
         resolve_resp = client.post(
             f"/api/v1/scada/control/{action_id}/resolve",
@@ -308,11 +288,7 @@ class TestSCADAControlGateway:
         """Admin from Tenant B cannot resolve or see action from Tenant A."""
         # Tenant A engineer proposes
         app.dependency_overrides[get_current_user_from_header] = lambda: CurrentUser(
-            user_id="eng_tenant_a",
-            username="eng_a",
-            email="a@ot.local",
-            role="engineer",
-            tenant_id="tenant_A",
+            user_id="eng_tenant_a", username="eng_a", email="a@ot.local", role="engineer", tenant_id="tenant_A"
         )
         prop_resp = client.post(
             "/api/v1/scada/control/propose",
@@ -329,11 +305,7 @@ class TestSCADAControlGateway:
 
         # Tenant B admin attempts to resolve
         app.dependency_overrides[get_current_user_from_header] = lambda: CurrentUser(
-            user_id="admin_tenant_b",
-            username="admin_b",
-            email="b@ot.local",
-            role="admin",
-            tenant_id="tenant_B",
+            user_id="admin_tenant_b", username="admin_b", email="b@ot.local", role="admin", tenant_id="tenant_B"
         )
         resolve_resp = client.post(
             f"/api/v1/scada/control/{action_id}/resolve",

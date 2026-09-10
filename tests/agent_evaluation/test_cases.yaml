@@ -13,12 +13,12 @@ test_cases:
       parameters:
         system:
           buses:
-            - {id: 1, type: slack, voltage: 1.0}
-            - {id: 2, type: pq}
-            - {id: 3, type: pq}
+            - id: 1, type: slack, voltage: 1.0
+            - id: 2, type: pq
+            - id: 3, type: pq
           lines:
-            - {from: 1, to: 2, impedance: [0.01, 0.05]}
-            - {from: 2, to: 3, impedance: [0.02, 0.08]}
+            - from: 1, to: 2, impedance: [0.01, 0.05]
+            - from: 2, to: 3, impedance: [0.02, 0.08]
     assertions:
       - field: "data.bus_voltages"
         op: "exists"

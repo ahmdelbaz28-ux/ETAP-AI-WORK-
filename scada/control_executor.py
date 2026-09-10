@@ -76,7 +76,6 @@ _SIMULATED_DEVICES: Dict[str, Dict[str, Any]] = {
 def _get_protocol_config() -> Optional[Any]:
     try:
         from scada_protocols.wiring import get_wired_manager
-
         mgr = get_wired_manager()
         if mgr is not None:
             return mgr.config
@@ -109,7 +108,6 @@ class SCADAControlExecutor:
         if not self.is_simulation:
             try:
                 from scada_protocols.wiring import get_wired_manager
-
                 mgr = get_wired_manager()
                 if mgr is not None and mgr.is_started():
                     db = mgr.bridge.has_scada_db() and mgr.bridge._resolve_scada_db()
@@ -118,9 +116,7 @@ class SCADAControlExecutor:
                         sw = db.get_switch_device(device_id)
                         if sw is not None:
                             return {
-                                "status": sw.status.name
-                                if hasattr(sw.status, "name")
-                                else str(sw.status),
+                                "status": sw.status.name if hasattr(sw.status, "name") else str(sw.status),
                                 "quality": SignalQuality.GOOD.value,
                                 "control_mode": "REMOTE",
                                 "timestamp": datetime.now(UTC).isoformat(),
@@ -132,13 +128,9 @@ class SCADAControlExecutor:
                             return {
                                 "value": latest_m.value,
                                 "status": "CLOSED" if latest_m.value > 0.5 else "OPEN",
-                                "quality": latest_m.quality.name
-                                if hasattr(latest_m.quality, "name")
-                                else str(latest_m.quality),
+                                "quality": latest_m.quality.name if hasattr(latest_m.quality, "name") else str(latest_m.quality),
                                 "control_mode": "REMOTE",
-                                "timestamp": getattr(
-                                    latest_m, "source_timestamp", datetime.now(UTC).isoformat()
-                                ),
+                                "timestamp": getattr(latest_m, "source_timestamp", datetime.now(UTC).isoformat()),
                             }
             except Exception as exc:
                 logger.debug("Live database readback query error: %s", exc)
@@ -211,12 +203,7 @@ class SCADAControlExecutor:
             elapsed_ms = (time.perf_counter() - start_time) * 1000.0
 
             if verified:
-                logger.info(
-                    "✅ Command %s COMPLETED. Readback verified: %s (%.1f ms)",
-                    command_id,
-                    final_state,
-                    elapsed_ms,
-                )
+                logger.info("✅ Command %s COMPLETED. Readback verified: %s (%.1f ms)", command_id, final_state, elapsed_ms)
                 return ControlCommandResponse(
                     command_id=command_id,
                     action_id=action_id,
@@ -311,9 +298,7 @@ class SCADAControlExecutor:
 
         if not self.is_simulation:
             if not endpoint:
-                raise RuntimeError(
-                    "SCADA_OPC_ENDPOINT not configured for production OPC UA dispatch"
-                )
+                raise RuntimeError("SCADA_OPC_ENDPOINT not configured for production OPC UA dispatch")
             try:
                 import asyncua
 
@@ -350,18 +335,13 @@ class SCADAControlExecutor:
                 from pymodbus.client import AsyncModbusTcpClient
 
                 async with AsyncModbusTcpClient(host=host, port=port) as client:
-                    if command.action_type in (
-                        ControlActionType.BREAKER_OPEN,
-                        ControlActionType.BREAKER_CLOSE,
-                    ):
+                    if command.action_type in (ControlActionType.BREAKER_OPEN, ControlActionType.BREAKER_CLOSE):
                         coil_val = bool(command.target_value)
                         res = await client.write_coil(address=1, value=coil_val)
                         if hasattr(res, "isError") and res.isError():
                             raise RuntimeError(f"Modbus write_coil error: {res}")
                     else:
-                        res = await client.write_register(
-                            address=1, value=int(command.target_value)
-                        )
+                        res = await client.write_register(address=1, value=int(command.target_value))
                         if hasattr(res, "isError") and res.isError():
                             raise RuntimeError(f"Modbus write_register error: {res}")
                 return
@@ -405,18 +385,11 @@ class SCADAControlExecutor:
                 conn = client.add_connection(ip=host, port=port)
                 station = conn.add_station(common_address=ca)
 
-                if command.action_type in (
-                    ControlActionType.BREAKER_OPEN,
-                    ControlActionType.BREAKER_CLOSE,
-                ):
-                    cmd_type = getattr(c104.Type, "C_SC_NA_1", None) or getattr(
-                        c104.Type, "C_DC_NA_1", None
-                    )
+                if command.action_type in (ControlActionType.BREAKER_OPEN, ControlActionType.BREAKER_CLOSE):
+                    cmd_type = getattr(c104.Type, "C_SC_NA_1", None) or getattr(c104.Type, "C_DC_NA_1", None)
                     cmd_val = bool(command.target_value)
                 else:
-                    cmd_type = getattr(c104.Type, "C_SE_NC_1", None) or getattr(
-                        c104.Type, "C_SE_NA_1", None
-                    )
+                    cmd_type = getattr(c104.Type, "C_SE_NC_1", None) or getattr(c104.Type, "C_SE_NA_1", None)
                     cmd_val = float(command.target_value)
 
                 pt = station.add_point(io_address=1, type=cmd_type)
@@ -452,9 +425,7 @@ class SCADAControlExecutor:
         select_time = self._sbo_selected_at.get(command.device_id)
         if select_time is not None and (now - select_time) > 30.0:
             self._sbo_selected_at.pop(command.device_id, None)
-            raise RuntimeError(
-                f"IEC 61850 SBO selection expired (>30s) for device {command.device_id}"
-            )
+            raise RuntimeError(f"IEC 61850 SBO selection expired (>30s) for device {command.device_id}")
 
         # Phase 1: Select (Reservation / Arm)
         self._sbo_selected_at[command.device_id] = now

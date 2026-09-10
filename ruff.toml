@@ -50,6 +50,7 @@ ignore = [
     "UP006",  # Use list[str] instead of List[str] (gradual migration)
     "UP035",  # Deprecated import (typing.Dict, typing.List — gradual migration)
     "UP017",  # Use datetime.UTC alias (gradual migration; many call sites still use datetime.timezone.utc)
+    "UP038",  # Use X | Y in isinstance — valid in CI's ruff==0.7.0; kept for CI lint compat (local 0.15.17 emits a harmless "rule removed" warning)
     # UP045 (non-pep604-annotation-optional) was added in ruff 0.8+ — not available in CI's ruff 0.7.0.
     # UP047 (non-pep695-type-parameters) was added in ruff 0.8+ — not available in CI's ruff 0.7.0.
     # Both are omitted from this ignore list to keep CI ruff 0.7.0 compatible.

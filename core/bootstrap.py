@@ -381,9 +381,9 @@ async def lifespan(_app: Any) -> AsyncIterator[None]:
     # (e.g. Linux builds without pymodbus/asyncua/c104 installed).
     if os.environ.get("SCADA_PROTOCOLS_ENABLED", "").lower() == "true":
         try:
-            from digital_twin.event_bus import EventBus
-            from scada_model.scada_model import SCADADatabase
             from scada_protocols.wiring import wire_into_app
+            from scada_model.scada_model import SCADADatabase
+            from digital_twin.event_bus import EventBus
 
             scada_db = SCADADatabase()
             event_bus = EventBus()

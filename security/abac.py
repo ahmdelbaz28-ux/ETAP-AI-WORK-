@@ -525,9 +525,7 @@ if _HAS_STARLETTE:
                 path.startswith(prefix) for prefix in self._public_paths if prefix != "/"
             )
             incoming_api_key = request.headers.get("x-api-key") or request.headers.get("X-API-Key")
-            expected_api_key = os.environ.get("ENGINEERING_SERVICE_API_KEY", "") or os.environ.get(
-                "HF_API_KEY", ""
-            )
+            expected_api_key = os.environ.get("ENGINEERING_SERVICE_API_KEY", "") or os.environ.get("HF_API_KEY", "")
             has_valid_api_key = bool(
                 incoming_api_key
                 and expected_api_key
