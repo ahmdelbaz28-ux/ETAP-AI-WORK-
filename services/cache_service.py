@@ -79,11 +79,19 @@ class StudyCache:
         Best-effort key generator used by legacy callers:
         await cache.get(study_type: str, params: Dict[str, Any])
         """
+        tenant_id = params.get("tenant_id") if isinstance(params, dict) else None
+        if not tenant_id:
+            try:
+                from api.request_context import get_tenant_id
+                tenant_id = get_tenant_id()
+            except ImportError:
+                tenant_id = ""
+        tenant_prefix = f"tenant:{tenant_id}:" if tenant_id else ""
         try:
             params_part = json.dumps(params, sort_keys=True, default=str)
         except Exception:
             params_part = str(params)
-        return f"{study_type}:{params_part}"
+        return f"{tenant_prefix}{study_type}:{params_part}"
 
     def _cleanup_key_if_expired(self, key: str) -> None:
         entry = self._memory_cache.get(key)

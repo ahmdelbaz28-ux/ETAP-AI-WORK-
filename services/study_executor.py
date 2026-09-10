@@ -523,11 +523,15 @@ class StudyExecutor:
             payload.etap_project_path,
             etap_study,
         )
-        warnings = data.pop("warnings", [])
-        errors = data.pop("errors", [])
-        if not data.pop("success", True):
+        # provider.execute_study() returns an ETAPResult object (not a dict).
+        # Use getattr() to safely extract its attributes.
+        warnings = list(getattr(data, "warnings", []) or [])
+        errors = list(getattr(data, "errors", []) or [])
+        if not getattr(data, "success", True):
             errors.append("ETAP study reported failure")
-        return data, warnings, errors
+        # ETAPResult stores the actual payload in .results (dict)
+        payload_dict = getattr(data, "results", None) or {}
+        return payload_dict, warnings, errors
 
     # ------------------------------------------------------------------
     # Cache helpers

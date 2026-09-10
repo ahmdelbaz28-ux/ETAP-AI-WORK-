@@ -204,6 +204,8 @@ def _require_api_key(request: Request) -> None:
                 status_code=503,
                 detail="Authentication disabled is not permitted in this environment",
             )
+        if request.url.path.startswith("/admin/"):
+            raise HTTPException(status_code=403, detail="Admin role required")
         return
 
     # Check for Bearer token authorization
@@ -231,6 +233,8 @@ def _require_api_key(request: Request) -> None:
                 detail="Authentication required but no API key configured. "
                 "Set ENGINEERING_SERVICE_API_KEY or ENGINEERING_SERVICE_AUTH_DISABLED=true",
             )
+        if request.url.path.startswith("/admin/"):
+            raise HTTPException(status_code=403, detail="Admin role required")
         return
     # NOSONAR S8415: HTTPException documented in OpenAPI route summary; responses parameter is verbose for this use case
     provided = request.headers.get("x-api-key") or ""
@@ -239,6 +243,11 @@ def _require_api_key(request: Request) -> None:
             status_code=401,
             detail=_INVALID_API_KEY_MSG,  # NOSONAR
         )  # NOSONAR HTTPException responses will be documented in API refactoring sprint
+
+    # SECURITY AUDIT RUN-2 (HIGH-2, MEDIUM-4): Admin endpoints require admin role.
+    # Service API keys do not carry role information and cannot access /admin/ endpoints.
+    if request.url.path.startswith("/admin/"):
+        raise HTTPException(status_code=403, detail="Admin role required")
 
 
 # ---------------------------------------------------------------------------

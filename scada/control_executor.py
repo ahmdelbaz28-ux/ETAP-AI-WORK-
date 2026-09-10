@@ -18,6 +18,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import os
+import re
 import time
 import uuid
 from datetime import datetime, timezone
@@ -81,7 +82,26 @@ def _get_protocol_config() -> Optional[Any]:
             return mgr.config
     except Exception:
         pass
-    return None
+_DEVICE_ADDRESS_MAP: Dict[str, int] = {
+    "CB_001": 1,
+    "CB_002": 2,
+    "CB_TIE_01": 3,
+    "XF1_TAP": 10,
+}
+
+
+def _resolve_device_address(device_id: str) -> int:
+    """Resolve device_id to a deterministic protocol integer address (HIGH-5).
+    Fails closed if the device cannot be safely resolved.
+    """
+    if device_id in _DEVICE_ADDRESS_MAP:
+        return _DEVICE_ADDRESS_MAP[device_id]
+    match = re.search(r"(\d+)$", device_id)
+    if match:
+        addr = int(match.group(1))
+        if addr > 0:
+            return addr
+    raise ValueError(f"Unmapped SCADA device_id '{device_id}': cannot resolve physical protocol address safely")
 
 
 class SCADAControlExecutor:
@@ -334,14 +354,15 @@ class SCADAControlExecutor:
             try:
                 from pymodbus.client import AsyncModbusTcpClient
 
+                target_address = _resolve_device_address(command.device_id)
                 async with AsyncModbusTcpClient(host=host, port=port) as client:
                     if command.action_type in (ControlActionType.BREAKER_OPEN, ControlActionType.BREAKER_CLOSE):
                         coil_val = bool(command.target_value)
-                        res = await client.write_coil(address=1, value=coil_val)
+                        res = await client.write_coil(address=target_address, value=coil_val)
                         if hasattr(res, "isError") and res.isError():
                             raise RuntimeError(f"Modbus write_coil error: {res}")
                     else:
-                        res = await client.write_register(address=1, value=int(command.target_value))
+                        res = await client.write_register(address=target_address, value=int(command.target_value))
                         if hasattr(res, "isError") and res.isError():
                             raise RuntimeError(f"Modbus write_register error: {res}")
                 return
@@ -392,7 +413,8 @@ class SCADAControlExecutor:
                     cmd_type = getattr(c104.Type, "C_SE_NC_1", None) or getattr(c104.Type, "C_SE_NA_1", None)
                     cmd_val = float(command.target_value)
 
-                pt = station.add_point(io_address=1, type=cmd_type)
+                target_io_address = _resolve_device_address(command.device_id)
+                pt = station.add_point(io_address=target_io_address, type=cmd_type)
                 client.start()
                 try:
                     ok = pt.command(value=cmd_val)
@@ -444,19 +466,11 @@ class SCADAControlExecutor:
                 port = cfg.iec61850.server_port
 
         if not self.is_simulation:
-            if not host:
-                raise RuntimeError("IEC61850_HOST not configured for production IEC 61850 dispatch")
-            try:
-                from etap_integration.scada_client import SCADAClient
-
-                client = SCADAClient(host=host, port=port)
-                if not getattr(client, "_connected", False):
-                    raise RuntimeError(f"IEC 61850 client failed to connect to {host}:{port}")
-                return
-            except Exception as exc:
-                logger.error("IEC 61850 physical SBO failed: %s", exc)
-                self._sbo_selected_at.pop(command.device_id, None)
-                raise RuntimeError(f"IEC 61850 SBOw command failed: {exc}") from exc
+            self._sbo_selected_at.pop(command.device_id, None)
+            raise NotImplementedError(
+                "Physical IEC 61850 SBO (Select-Before-Operate) protocol dispatch is not yet implemented. "
+                "Production execution is blocked to prevent unvalidated command execution."
+            )
 
         # Phase 1: Select (Arm reservation delay)
         await asyncio.sleep(0.03)

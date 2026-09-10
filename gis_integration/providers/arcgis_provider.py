@@ -165,7 +165,7 @@ class ArcGISOnlineProvider(GISProviderInterface):
                     attempt,
                     self._max_retries,
                 )
-                with httpx.Client(timeout=self._timeout) as client:
+                with httpx.Client(timeout=self._timeout, follow_redirects=False) as client:
                     resp = client.request(
                         method=method,
                         url=url,

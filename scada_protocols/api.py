@@ -45,7 +45,22 @@ def get_manager() -> Any:
 
 def build_router() -> APIRouter:
     """Build a fresh APIRouter. Call once per FastAPI app."""
-    router = APIRouter(tags=["scada-protocols"])
+    from fastapi import Depends
+    from api.dependencies import get_api_key, get_optional_current_user_from_header
+
+    async def _require_admin(
+        user: Any = Depends(get_optional_current_user_from_header),
+    ) -> None:
+        if user is not None and getattr(user, "role", "") != "admin":
+            raise HTTPException(
+                status_code=403,
+                detail="Admin role required for SCADA protocol control operations",
+            )
+
+    router = APIRouter(
+        tags=["scada-protocols"],
+        dependencies=[Depends(get_api_key)],
+    )
 
     # ---------------------------------------------------------------------
     # Library probes
@@ -80,7 +95,7 @@ def build_router() -> APIRouter:
             return []
         return mgr.list_adapters()
 
-    @router.post("/start")
+    @router.post("/start", dependencies=[Depends(_require_admin)])
     def start_manager() -> Dict[str, Any]:
         mgr = get_manager()
         if mgr is None:
@@ -88,7 +103,7 @@ def build_router() -> APIRouter:
         mgr.start()
         return {"ok": True, "started": mgr.is_started()}
 
-    @router.post("/stop")
+    @router.post("/stop", dependencies=[Depends(_require_admin)])
     def stop_manager() -> Dict[str, Any]:
         mgr = get_manager()
         if mgr is None:
@@ -124,7 +139,7 @@ def build_router() -> APIRouter:
             "health": adapter.health_check(),
         }
 
-    @router.post("/{protocol}/start")
+    @router.post("/{protocol}/start", dependencies=[Depends(_require_admin)])
     def start_protocol(protocol: str) -> Dict[str, Any]:
         mgr = get_manager()
         if mgr is None:
@@ -140,10 +155,9 @@ def build_router() -> APIRouter:
             adapter.start()
             return {"ok": True, "state": adapter.state.value}
         except Exception as exc:
-            raise HTTPException(status_code=500, detail=str(exc)) from None
             raise HTTPException(status_code=500, detail=str(exc)) from exc
 
-    @router.post("/{protocol}/stop")
+    @router.post("/{protocol}/stop", dependencies=[Depends(_require_admin)])
     def stop_protocol(protocol: str) -> Dict[str, Any]:
         mgr = get_manager()
         if mgr is None:

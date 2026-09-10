@@ -229,7 +229,7 @@ class StudyCache:
     def _make_key(self, study_type: str, params: dict) -> str:
         """Create a deterministic cache key from study type + parameters.
 
-        The key is ``<prefix><study_type>:<sha256_hex>`` where the SHA-256
+        The key is ``<prefix><tenant_prefix><study_type>:<sha256_hex>`` where the SHA-256
         digest is computed over the canonical JSON of *params*.
 
         Parameters
@@ -244,9 +244,17 @@ class StudyCache:
         str
             Cache key string.
         """
+        tenant_id = params.get("tenant_id") if isinstance(params, dict) else None
+        if not tenant_id:
+            try:
+                from api.request_context import get_tenant_id
+                tenant_id = get_tenant_id()
+            except ImportError:
+                tenant_id = ""
+        tenant_prefix = f"tenant:{tenant_id}:" if tenant_id else ""
         canonical = json.dumps(params, sort_keys=True, default=str)
         digest = hashlib.sha256(canonical.encode("utf-8")).hexdigest()
-        return f"{self._key_prefix}{study_type}:{digest}"
+        return f"{self._key_prefix}{tenant_prefix}{study_type}:{digest}"
 
     # -- Redis health --------------------------------------------------------
 
