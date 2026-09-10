@@ -85,8 +85,13 @@ def client(app: FastAPI, async_db: AsyncSession, monkeypatch: pytest.MonkeyPatch
 
     app.dependency_overrides[get_db] = _override_get_db
     app.dependency_overrides[get_current_user_from_header] = lambda: _engineer()
+    # Override the router-level API key dependency so test requests are not
+    # rejected with 401 "Missing X-API-Key header". The business logic under
+    # test is dual-control / feature-flag, NOT authentication.
+    app.dependency_overrides[deps.get_api_key] = lambda: "test-api-key"
     with TestClient(app) as test_client:
         yield test_client
+
 
 
 def _ok_transport(calls: list, mode="ok"):

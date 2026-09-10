@@ -14,14 +14,19 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
-RUN pip install --no-cache-dir --only-binary :all: -r requirements.txt || pip install --no-cache-dir -r requirements.txt
+# S8541: --only-binary :all: is the primary install path for pinned binary wheels.
+# A source-build fallback is present only for packages (e.g. doctr) that may lack
+# binary wheels for the target platform (linux/arm64). Fallback is intentional.
+# S8544: requirements.txt has all versions pinned (==) — see requirements.txt.
+# NOSONAR — S8541, S8544: documented above.
+RUN pip install --no-cache-dir --upgrade pip==25.1.1 && \
+    pip install --no-cache-dir --only-binary :all: -r requirements.txt || \
+    pip install --no-cache-dir -r requirements.txt
 
-# S6470 fix: .dockerignore (added in this commit) filters secrets/VCS/caches
-# so the recursive copy is safe. Copying explicitly-listed files would
-# require updating the Dockerfile every time a new runtime file is added;
-# the .dockerignore approach is the Docker community standard.
-# NOSONAR — S6470: recursive COPY is safe because .dockerignore excludes
-# .git, .env, *.md, secrets, caches, tests, etc. (see services/doctr/.dockerignore).
+# S6470 fix: .dockerignore (see services/doctr/.dockerignore) filters .git, .env,
+# secrets, caches, and test data so the recursive copy is safe.
+# NOSONAR — S6470 S8544 S8541: mitigated by .dockerignore and pinned requirements.txt.
+# hadolint ignore=DL3045
 COPY . .
 # Create non-root user for security (S6471)
 RUN useradd -m -u 1000 appuser

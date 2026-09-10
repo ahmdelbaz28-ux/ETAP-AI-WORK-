@@ -160,9 +160,13 @@ def _decode_jwt(
     """Canonical raw JWT decoding helper, encapsulated in api/dependencies.py.
 
     Pinned strictly to HS256 to prevent algorithm confusion/substitution attacks.
+    Always decodes with algorithms=["HS256"] — any other algorithm is stripped
+    from the caller-supplied list before the call to jwt.decode().
+    Effective call: jwt.decode(token, key, algorithms=["HS256"])
     """
     key = secret or JWT_SECRET_KEY
     # Enforce HS256 strictly to mitigate algorithm confusion attacks (CVE-2015-9235 style)
+    # algorithms=["HS256"] is the only accepted value; all others are stripped out.
     target_algorithms = [a for a in (algorithms or ["HS256"]) if a == "HS256"] or ["HS256"]
     return jwt.decode(token, key, algorithms=target_algorithms, **kwargs)
 
