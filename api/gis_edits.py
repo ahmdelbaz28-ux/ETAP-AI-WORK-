@@ -336,7 +336,7 @@ async def propose_gis_edit(
     await _store_idempotent(db, idempotency_key, endpoint, user.tenant_id, response_data)
     await db.commit()
 
-    logger.info("GIS edit proposed: action_id=%s layer=%s by user=%s", action.id, command.layer_id, user.user_id)
+    logger.info("GIS edit proposed: action_id=%s", action.id)
     return response_data
 
 

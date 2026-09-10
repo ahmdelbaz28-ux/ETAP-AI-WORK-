@@ -387,7 +387,7 @@ async def propose_control_action(
     await _store_idempotent(db, idempotency_key, endpoint, user.tenant_id, response_data)
     await db.commit()
 
-    logger.info("SCADA command proposed: action_id=%s device=%s by user=%s", action.id, command.device_id, user.user_id)
+    logger.info("SCADA command proposed: action_id=%s", action.id)
     return response_data
 
 
