@@ -48,9 +48,35 @@ async function parseHttpError(res: Response): Promise<Error> {
   return new Error(`HTTP ${res.status}: ${text || res.statusText}`);
 }
 
-function shouldRetryError(err: Error, attempt: number, maxRetries: number, isIdempotent: boolean): boolean {
-  if (attempt >= maxRetries || !isIdempotent) return false;
-  return !err.message.startsWith("HTTP 4");
+type AttemptResult<T> =
+  | { ok: true; data: T }
+  | { ok: false; retry: boolean; error: Error };
+
+async function executeSingleAttempt<T>(
+  url: string,
+  init: ApiFetchOptions | undefined,
+  headers: Record<string, string>,
+  timeoutMs: number,
+  canRetry: boolean,
+): Promise<AttemptResult<T>> {
+  try {
+    const signal = resolveSignal(init?.signal, timeoutMs);
+    const res = await fetch(url, { ...init, headers, signal });
+    if (res.ok) {
+      const data = (await res.json()) as T;
+      return { ok: true, data };
+    }
+    const shouldRetry = res.status >= 500 && canRetry;
+    const error = await parseHttpError(res);
+    return { ok: false, retry: shouldRetry, error };
+  } catch (err: unknown) {
+    if (err instanceof DOMException && err.name === "AbortError" && init?.signal?.aborted) {
+      throw err;
+    }
+    const error = err instanceof Error ? err : new Error(String(err));
+    const retry = canRetry && !error.message.startsWith("HTTP 4");
+    return { ok: false, retry, error };
+  }
 }
 
 export async function apiFetch<T>(path: string, init?: ApiFetchOptions): Promise<T> {
@@ -59,31 +85,21 @@ export async function apiFetch<T>(path: string, init?: ApiFetchOptions): Promise
   const maxRetries = init?.retries ?? 2;
   const method = (init?.method || "GET").toUpperCase();
   const isIdempotent = ["GET", "HEAD", "OPTIONS", "PUT", "DELETE"].includes(method);
+  const url = `${API_BASE_URL}${path}`;
 
   let lastError: Error | null = null;
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
-    try {
-      const signal = resolveSignal(init?.signal, timeoutMs);
-      const res = await fetch(`${API_BASE_URL}${path}`, { ...init, headers: mergedHeaders, signal });
-      if (!res.ok) {
-        if (res.status >= 500 && attempt < maxRetries && isIdempotent) {
-          await new Promise((resolve) => setTimeout(resolve, backoffDelay(attempt)));
-          continue;
-        }
-        throw await parseHttpError(res);
-      }
-      return (await res.json()) as T;
-    } catch (err: unknown) {
-      lastError = err instanceof Error ? err : new Error(String(err));
-      if (err instanceof DOMException && err.name === "AbortError" && init?.signal?.aborted) {
-        throw err;
-      }
-      if (shouldRetryError(lastError, attempt, maxRetries, isIdempotent)) {
-        await new Promise((resolve) => setTimeout(resolve, backoffDelay(attempt)));
-        continue;
-      }
-      throw lastError;
+    const canRetry = attempt < maxRetries && isIdempotent;
+    const result = await executeSingleAttempt<T>(url, init, mergedHeaders, timeoutMs, canRetry);
+    if (result.ok) {
+      return result.data;
     }
+    lastError = result.error;
+    if (result.retry) {
+      await new Promise((resolve) => setTimeout(resolve, backoffDelay(attempt)));
+      continue;
+    }
+    throw lastError;
   }
 
   throw lastError ?? new Error(`Request to ${path} failed after retries`);
