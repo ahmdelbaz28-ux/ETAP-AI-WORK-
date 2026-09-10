@@ -252,6 +252,27 @@ function getRoleBadgeVariant(role?: string): "warning" | "info" | "default" {
   return "default";
 }
 
+function getResolveResultMessage(
+  decision: "approve" | "reject",
+  isRtl: boolean,
+  actionId: string,
+): { notifyType: "success" | "info"; userMsg: string; logMsg: string } {
+  if (decision === "approve") {
+    return {
+      notifyType: "success",
+      userMsg: isRtl
+        ? "تمت الموافقة بنجاح! تم إرسال الأمر وتأكيد الحالة عبر القراءة العكسية (Readback Verified)."
+        : "Approved! Command dispatched and verified by live readback.",
+      logMsg: `✅ Control executed & verified for action ${actionId}`,
+    };
+  }
+  return {
+    notifyType: "info",
+    userMsg: isRtl ? "تم رفض أمر التحكم." : "Control action was rejected.",
+    logMsg: `❌ Control action ${actionId} rejected.`,
+  };
+}
+
 export default function ScadaIntegration() {
   // NOSONAR(S3776): main component render is a large bilingual (en/ar) telemetry dashboard — every `isRtl ? "..." : "..."` ternary is an intrinsic i18n pick that cannot be extracted without lifting 30+ strings into a per-section i18n catalog; decomposition into sub-components is tracked as a separate refactor task
   const { i18n } = useTranslation();
@@ -474,6 +495,7 @@ export default function ScadaIntegration() {
     try {
       const token = getAuthToken();
       const idempotencyKey = crypto.randomUUID();
+      const reason = decision === "approve" ? "Approved by Substation Admin" : "Rejected by Substation Admin";
       const res = await fetch(`${API_BASE_URL}/api/v1/scada/control/${actionId}/resolve`, {
         method: "POST",
         headers: {
@@ -481,33 +503,18 @@ export default function ScadaIntegration() {
           "Idempotency-Key": idempotencyKey,
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
-        body: JSON.stringify({
-          decision,
-          reason:
-            decision === "approve"
-              ? "Approved by Substation Admin"
-              : "Rejected by Substation Admin",
-        }),
+        body: JSON.stringify({ decision, reason }),
       });
 
       const data = await res.json();
       if (res.ok && data.success) {
-        if (decision === "approve") {
-          notify(
-            "success",
-            isRtl
-              ? "تمت الموافقة بنجاح! تم إرسال الأمر وتأكيد الحالة عبر القراءة العكسية (Readback Verified)."
-              : "Approved! Command dispatched and verified by live readback.",
+        const { notifyType, userMsg, logMsg } = getResolveResultMessage(decision, isRtl, actionId);
+        notify(notifyType, userMsg);
+        addLog(logMsg);
+        if (targetDeviceId) {
+          setBayDevices((prev) =>
+            prev.map((d) => (d.id === targetDeviceId ? updateDeviceState(d, actionType, targetVal) : d)),
           );
-          addLog(`✅ Control executed & verified for action ${actionId}`);
-          if (targetDeviceId) {
-            setBayDevices((prev) =>
-              prev.map((d) => (d.id === targetDeviceId ? updateDeviceState(d, actionType, targetVal) : d)),
-            );
-          }
-        } else {
-          notify("info", isRtl ? "تم رفض أمر التحكم." : "Control action was rejected.");
-          addLog(`❌ Control action ${actionId} rejected.`);
         }
         await fetchPendingApprovals();
       } else {

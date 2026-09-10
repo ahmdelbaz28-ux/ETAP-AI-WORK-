@@ -4,6 +4,30 @@ import { Link, useSearchParams } from "react-router";
 import { useNotify } from "../context/NotificationContext";
 import { API_BASE_URL } from "../lib/api-config";
 
+function validatePasswordInput(pwd: string, confirm: string, isRtl: boolean): string | null {
+  if (pwd.length < 8) {
+    return isRtl ? "يجب أن لا تقل كلمة المرور عن 8 خانات" : "Password must be at least 8 characters long";
+  }
+  if (pwd !== confirm) {
+    return isRtl ? "كلمتا المرور غير متطابقتين" : "Passwords do not match";
+  }
+  return null;
+}
+
+function resolveResetErrorMessage(data: unknown, isRtl: boolean): string {
+  if (typeof data === "object" && data !== null && "detail" in data && typeof (data as { detail: unknown }).detail === "string") {
+    return (data as { detail: string }).detail;
+  }
+  return isRtl ? "الرابط غير صالح أو منتهي الصلاحية" : "Invalid or expired reset token";
+}
+
+function getSubmitButtonText(loading: boolean, isRtl: boolean): string {
+  if (loading) {
+    return isRtl ? "جاري الحفظ..." : "Saving...";
+  }
+  return isRtl ? "حفظ كلمة المرور الجديدة" : "Save New Password";
+}
+
 export default function ResetPassword() {
   const { i18n } = useTranslation();
   const { notify } = useNotify();
@@ -40,14 +64,9 @@ export default function ResetPassword() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    if (newPassword.length < 8) {
-      setError(
-        isRtl ? "يجب أن لا تقل كلمة المرور عن 8 خانات" : "Password must be at least 8 characters long",
-      );
-      return;
-    }
-    if (newPassword !== confirmPassword) {
-      setError(isRtl ? "كلمتا المرور غير متطابقتين" : "Passwords do not match");
+    const validationError = validatePasswordInput(newPassword, confirmPassword, isRtl);
+    if (validationError) {
+      setError(validationError);
       return;
     }
     setLoading(true);
@@ -62,9 +81,7 @@ export default function ResetPassword() {
         setDone(true);
         notify("success", isRtl ? "تمت إعادة تعيين كلمة المرور بنجاح" : "Password has been reset successfully");
       } else {
-        const detail =
-          typeof data?.detail === "string" ? data.detail : isRtl ? "الرابط غير صالح أو منتهي الصلاحية" : "Invalid or expired reset token";
-        setError(detail);
+        setError(resolveResetErrorMessage(data, isRtl));
       }
     } catch {
       setError(
@@ -143,13 +160,7 @@ export default function ResetPassword() {
           disabled={loading}
           className="w-full py-2 rounded-lg bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-sm font-semibold"
         >
-          {loading
-            ? isRtl
-              ? "جاري الحفظ..."
-              : "Saving..."
-            : isRtl
-              ? "حفظ كلمة المرور الجديدة"
-              : "Save New Password"}
+          {getSubmitButtonText(loading, isRtl)}
         </button>
         <div className="text-center">
           <Link to="/login" className="text-slate-400 hover:text-slate-300 text-xs">

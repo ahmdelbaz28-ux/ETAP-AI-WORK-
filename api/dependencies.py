@@ -163,7 +163,8 @@ def _decode_jwt(
     """
     key = secret or JWT_SECRET_KEY
     # Enforce HS256 strictly to mitigate algorithm confusion attacks (CVE-2015-9235 style)
-    return jwt.decode(token, key, algorithms=["HS256"], **kwargs)
+    target_algorithms = [a for a in (algorithms or ["HS256"]) if a == "HS256"] or ["HS256"]
+    return jwt.decode(token, key, algorithms=target_algorithms, **kwargs)
 
 
 def _validate_jwt_access_token_sync(
@@ -452,7 +453,6 @@ async def get_api_key(  # NOSONAR async function uses sync I/O for compatibility
             if exc.status_code == status.HTTP_401_UNAUTHORIZED and "deactivated" in str(exc.detail).lower():
                 raise
             # Invalid/expired/revoked JWT — fall through to API key validation
-            pass
 
     if not x_api_key:
         raise HTTPException(
