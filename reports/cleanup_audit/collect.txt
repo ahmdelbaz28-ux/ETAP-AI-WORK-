@@ -1,0 +1,5 @@
+﻿        <Function test_agent_result_dataclass>
+        <Function test_study_type_enum>
+        <Function test_engineering_task_creation>
+
+======================= 3231 tests collected in 17.00s ========================

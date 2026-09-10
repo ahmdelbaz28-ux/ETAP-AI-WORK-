@@ -335,6 +335,8 @@ faiss_index/
 # Reports & Generated Files
 # ==========================================
 reports/
+!reports/cleanup_audit/
+!reports/cleanup_audit/**
 exports/
 output/
 results/
