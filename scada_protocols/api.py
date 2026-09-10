@@ -46,6 +46,7 @@ def get_manager() -> Any:
 def build_router() -> APIRouter:
     """Build a fresh APIRouter. Call once per FastAPI app."""
     from fastapi import Depends
+
     from api.dependencies import get_api_key, get_optional_current_user_from_header
 
     async def _require_admin(

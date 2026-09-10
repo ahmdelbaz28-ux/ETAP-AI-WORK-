@@ -574,6 +574,7 @@ async def session_stream_ws(websocket: WebSocket, session_id: str) -> None:
     hub = get_hub()
     if not hub.verify_ownership(session_id, user_id):
         from sqlalchemy import select
+
         from api.auth import User
         from api.database import async_session
 
