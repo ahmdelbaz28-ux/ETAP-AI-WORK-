@@ -117,8 +117,9 @@ class TestNewEndpointAuthentication:
         assert "dependencies=[Depends(get_api_key)]" in scada_source, (
             "/api/v1/scada/* router must declare Depends(get_api_key)"
         )
-        assert "from api.dependencies import get_api_key" in scada_source or (
-            "from api.dependencies import" in scada_source and "get_api_key" in scada_source
+        assert (
+            "from api.dependencies import get_api_key" in scada_source
+            or ("from api.dependencies import" in scada_source and "get_api_key" in scada_source)
         )
 
     def test_scada_live_handler_present(self, scada_source: str) -> None:

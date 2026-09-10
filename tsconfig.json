@@ -20,6 +20,6 @@
     "typeRoots": ["./ui/node_modules/@types", "./node_modules/@types"],
     "types": ["node"]
   },
-  "include": ["src/**/*", "tests/**/*", "scripts/**/*"],
+  "include": ["src/**/*", "tests/**/*", "test-model-config.ts", "scripts/**/*"],
   "exclude": ["node_modules", "tests/load", "tests/stress", "tests/chaos"]
 }

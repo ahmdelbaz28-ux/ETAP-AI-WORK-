@@ -649,9 +649,7 @@ def get_etap_provider() -> IEtapProvider:
         if rest_provider.is_available():
             logger.info("Using RestEtapProvider (DataHub etapAPI drawings)")
             return rest_provider
-        logger.warning(
-            "RestEtapProvider requested but ETAP_REST_URL/TOKEN missing; falling through"
-        )
+        logger.warning("RestEtapProvider requested but ETAP_REST_URL/TOKEN missing; falling through")
 
     worker_url = os.environ.get("ETAP_WORKER_URL")
     api_key = os.environ.get("ETAP_WORKER_API_KEY")

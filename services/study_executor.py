@@ -423,7 +423,9 @@ class StudyExecutor:
             downstream = parameters.get("downstream_relay_id", 2)
             fault_currents = parameters.get("fault_currents", [2.0, 5.0, 10.0, 20.0])
             relays_config = parameters.get("relays_config")
-            return method(upstream, downstream, fault_currents, relays_config=relays_config)
+            return method(
+                upstream, downstream, fault_currents, relays_config=relays_config
+            )
         # Generic fallback for any future native handler
         return method(**parameters)
 

@@ -221,9 +221,7 @@ class ConfirmationBroker:
             for req in self._pending.values():
                 if not req.tenant_id or not tenant_id or req.tenant_id == tenant_id:
                     with contextlib.suppress(Exception):
-                        await websocket.send_json(
-                            {"type": "pending_request", "data": req.to_dict()}
-                        )
+                        await websocket.send_json({"type": "pending_request", "data": req.to_dict()})
 
     def disconnect(self, websocket: WebSocket) -> None:
         """Remove a WebSocket connection from the active set."""
@@ -286,16 +284,12 @@ class ConfirmationBroker:
         try:
             loop = asyncio.get_running_loop()
             loop.create_task(
-                self._broadcast(
-                    {"type": "confirmation_request", "data": req.to_dict()}, tenant_id=tenant_id
-                ),
+                self._broadcast({"type": "confirmation_request", "data": req.to_dict()}, tenant_id=tenant_id),
             )
         except RuntimeError:
             with contextlib.suppress(Exception):
                 asyncio.run(
-                    self._broadcast(
-                        {"type": "confirmation_request", "data": req.to_dict()}, tenant_id=tenant_id
-                    ),
+                    self._broadcast({"type": "confirmation_request", "data": req.to_dict()}, tenant_id=tenant_id),
                 )
 
         logger.info(
@@ -350,9 +344,7 @@ class ConfirmationBroker:
 
     # ─── WebSocket client side: confirm / reject ──────────────────────────
 
-    async def confirm(
-        self, request_id: str, session_id: str, tenant_id: str = ""
-    ) -> dict[str, Any]:
+    async def confirm(self, request_id: str, session_id: str, tenant_id: str = "") -> dict[str, Any]:
         """A WebSocket client confirms a request.
 
         Returns the updated request state. If enough confirmations are
@@ -528,9 +520,7 @@ async def cua_confirmation_ws(websocket: WebSocket) -> None:
             session_id = f"user:{user_id}"
 
             if action == "confirm":
-                result = await confirmation_broker.confirm(
-                    request_id, session_id, tenant_id=tenant_id
-                )
+                result = await confirmation_broker.confirm(request_id, session_id, tenant_id=tenant_id)
                 await websocket.send_json({"type": "confirm_result", "data": result})
             elif action == "reject":
                 reason = data.get("reason", "")

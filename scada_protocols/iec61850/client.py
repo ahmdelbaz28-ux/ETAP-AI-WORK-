@@ -14,7 +14,7 @@ import asyncio
 import logging
 import threading
 import time
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 from scada_protocols.common.base import (
     AdapterRole,
@@ -57,12 +57,10 @@ class IEC61850ClientAdapter(ProtocolAdapter):
         has_lib = False
         try:
             import iec61850datamodel  # type: ignore  # noqa: F401
-
             has_lib = True
         except ImportError:
             try:
                 import py61850  # type: ignore  # noqa: F401
-
                 has_lib = True
             except ImportError:
                 pass
@@ -117,6 +115,8 @@ class IEC61850ClientAdapter(ProtocolAdapter):
                 for pt in point_map:
                     element_id = pt.get("element_id", "UNKNOWN")
                     mtype = pt.get("measurement_type", "voltage_magnitude")
+                    node = pt.get("logical_node", "MMXU1")
+                    attr = pt.get("data_attribute", "Vol.mag.f")
 
                     val: float = 0.0
                     q: str = "good"
@@ -135,9 +135,7 @@ class IEC61850ClientAdapter(ProtocolAdapter):
                             )
                             self._metric.rx_packets += 1
                         except Exception as cb_exc:
-                            logger.warning(
-                                "IEC61850 callback failed for %s: %s", element_id, cb_exc
-                            )
+                            logger.warning("IEC61850 callback failed for %s: %s", element_id, cb_exc)
 
                 self._mark_rx()
             except Exception as exc:
@@ -148,9 +146,7 @@ class IEC61850ClientAdapter(ProtocolAdapter):
             try:
                 await asyncio.sleep(sleep_for)
             except asyncio.CancelledError:
-                # S7497: re-raise so task cancellation propagates instead of
-                # being swallowed (a bare break would return normally).
-                raise
+                break
 
     def describe(self) -> Dict[str, Any]:
         return {

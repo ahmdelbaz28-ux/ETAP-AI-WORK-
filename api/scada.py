@@ -107,7 +107,6 @@ class SCADAResolveRequest(BaseModel):
 def _get_wired_scada_db():
     try:
         from scada_protocols.wiring import get_wired_manager
-
         mgr = get_wired_manager()
         if mgr is not None and mgr.is_started():
             return mgr.bridge.has_scada_db() and mgr.bridge._resolve_scada_db()
@@ -141,60 +140,46 @@ async def scada_live(request: Request):
                     "TAP_POSITION": "step",
                 }
                 for m in db.measurements.values():
-                    mtype_name = (
-                        m.measurement_type.name
-                        if hasattr(m.measurement_type, "name")
-                        else str(m.measurement_type)
-                    )
+                    mtype_name = m.measurement_type.name if hasattr(m.measurement_type, "name") else str(m.measurement_type)
                     q_name = m.quality.name if hasattr(m.quality, "name") else str(m.quality)
-                    points.append(
-                        {
-                            "tag": f"{m.element_id}.{mtype_name}",
-                            "value": float(m.value),
-                            "unit": unit_map.get(mtype_name, "unit"),
-                            "quality": q_name,
-                            "source_timestamp": getattr(m, "source_timestamp", m.timestamp),
-                        }
-                    )
+                    points.append({
+                        "tag": f"{m.element_id}.{mtype_name}",
+                        "value": float(m.value),
+                        "unit": unit_map.get(mtype_name, "unit"),
+                        "quality": q_name,
+                        "source_timestamp": getattr(m, "source_timestamp", m.timestamp),
+                    })
         else:
             # Build live points from executor's device telemetry
             for dev_id, dev in _SIMULATED_DEVICES.items():
                 if "status" in dev:
-                    points.append(
-                        {
-                            "tag": f"{dev_id}.STATUS",
-                            "value": 1.0 if dev["status"] == "CLOSED" else 0.0,
-                            "unit": "state",
-                            "quality": dev.get("quality", "GOOD"),
-                        }
-                    )
+                    points.append({
+                        "tag": f"{dev_id}.STATUS",
+                        "value": 1.0 if dev["status"] == "CLOSED" else 0.0,
+                        "unit": "state",
+                        "quality": dev.get("quality", "GOOD"),
+                    })
                 if "current_A" in dev:
-                    points.append(
-                        {
-                            "tag": f"{dev_id}.I",
-                            "value": float(dev["current_A"]),
-                            "unit": "A",
-                            "quality": dev.get("quality", "GOOD"),
-                        }
-                    )
+                    points.append({
+                        "tag": f"{dev_id}.I",
+                        "value": float(dev["current_A"]),
+                        "unit": "A",
+                        "quality": dev.get("quality", "GOOD"),
+                    })
                 if "voltage_kV" in dev:
-                    points.append(
-                        {
-                            "tag": f"{dev_id}.V",
-                            "value": float(dev["voltage_kV"]),
-                            "unit": "kV",
-                            "quality": dev.get("quality", "GOOD"),
-                        }
-                    )
+                    points.append({
+                        "tag": f"{dev_id}.V",
+                        "value": float(dev["voltage_kV"]),
+                        "unit": "kV",
+                        "quality": dev.get("quality", "GOOD"),
+                    })
                 if "voltage_setpoint" in dev:
-                    points.append(
-                        {
-                            "tag": f"{dev_id}.V_SP",
-                            "value": float(dev["voltage_setpoint"]),
-                            "unit": "pu",
-                            "quality": dev.get("quality", "GOOD"),
-                        }
-                    )
+                    points.append({
+                        "tag": f"{dev_id}.V_SP",
+                        "value": float(dev["voltage_setpoint"]),
+                        "unit": "pu",
+                        "quality": dev.get("quality", "GOOD"),
+                    })
 
             # Ensure standard baseline tags exist
             if not any(p["tag"] == "BUS1.V" for p in points):
@@ -229,33 +214,28 @@ async def scada_devices(
         db = _get_wired_scada_db()
         if db is not None and db.switch_devices:
             for dev_id, sw in db.switch_devices.items():
-                devices.append(
-                    {
-                        "device_id": dev_id,
-                        "status": sw.status.name if hasattr(sw.status, "name") else str(sw.status),
-                        "quality": "GOOD",
-                        "control_mode": "REMOTE",
-                        "voltage_kV": db.get_latest_voltage(sw.from_element)
-                        or db.get_latest_voltage(sw.to_element),
-                        "current_A": None,
-                        "tap_position": None,
-                        "timestamp": datetime.now(UTC).isoformat(),
-                    }
-                )
+                devices.append({
+                    "device_id": dev_id,
+                    "status": sw.status.name if hasattr(sw.status, "name") else str(sw.status),
+                    "quality": "GOOD",
+                    "control_mode": "REMOTE",
+                    "voltage_kV": db.get_latest_voltage(sw.from_element) or db.get_latest_voltage(sw.to_element),
+                    "current_A": None,
+                    "tap_position": None,
+                    "timestamp": datetime.now(UTC).isoformat(),
+                })
     else:
         for dev_id, dev_data in _SIMULATED_DEVICES.items():
-            devices.append(
-                {
-                    "device_id": dev_id,
-                    "status": dev_data.get("status", "NORMAL"),
-                    "quality": dev_data.get("quality", "GOOD"),
-                    "control_mode": dev_data.get("control_mode", "REMOTE"),
-                    "voltage_kV": dev_data.get("voltage_kV"),
-                    "current_A": dev_data.get("current_A"),
-                    "tap_position": dev_data.get("tap_position"),
-                    "timestamp": dev_data.get("timestamp"),
-                }
-            )
+            devices.append({
+                "device_id": dev_id,
+                "status": dev_data.get("status", "NORMAL"),
+                "quality": dev_data.get("quality", "GOOD"),
+                "control_mode": dev_data.get("control_mode", "REMOTE"),
+                "voltage_kV": dev_data.get("voltage_kV"),
+                "current_A": dev_data.get("current_A"),
+                "tap_position": dev_data.get("tap_position"),
+                "timestamp": dev_data.get("timestamp"),
+            })
 
     return {
         "success": True,
@@ -311,27 +291,19 @@ async def propose_control_action(
         proj = proj_res.scalar_one_or_none()
     else:
         proj_res = await db.execute(
-            select(Project)
-            .where(Project.tenant_id == user.tenant_id, Project.status == "active")
-            .order_by(Project.updated_at.desc())
+            select(Project).where(Project.tenant_id == user.tenant_id, Project.status == "active").order_by(Project.updated_at.desc())
         )
         proj = proj_res.scalars().first()
         if not proj:
             proj_res = await db.execute(
-                select(Project)
-                .where(Project.tenant_id.is_(None), Project.status == "active")
-                .order_by(Project.updated_at.desc())
+                select(Project).where(Project.tenant_id.is_(None), Project.status == "active").order_by(Project.updated_at.desc())
             )
             proj = proj_res.scalars().first()
 
     if proj and proj.system_config:
         network_data = proj.system_config
-        prot_settings = network_data.get("protection_settings", {}) or network_data.get(
-            "coordination", {}
-        )
-        bay_prot = prot_settings.get(command.bay_id or command.device_id) or prot_settings.get(
-            "default"
-        )
+        prot_settings = network_data.get("protection_settings", {}) or network_data.get("coordination", {})
+        bay_prot = prot_settings.get(command.bay_id or command.device_id) or prot_settings.get("default")
         if bay_prot:
             coordination_data = bay_prot
 
@@ -415,12 +387,7 @@ async def propose_control_action(
     await _store_idempotent(db, idempotency_key, endpoint, user.tenant_id, response_data)
     await db.commit()
 
-    logger.info(
-        "SCADA command proposed: action_id=%s device=%s by user=%s",
-        action.id,
-        command.device_id,
-        user.user_id,
-    )
+    logger.info("SCADA command proposed: action_id=%s device=%s by user=%s", action.id, command.device_id, user.user_id)
     return response_data
 
 
@@ -443,20 +410,18 @@ async def list_pending_control_actions(
 
     items = []
     for a in pending:
-        items.append(
-            {
-                "action_id": a.id,
-                "session_id": a.session_id,
-                "device_id": (a.args or {}).get("device_id"),
-                "action_type": (a.args or {}).get("action_type"),
-                "target_value": (a.args or {}).get("target_value"),
-                "reason": (a.args or {}).get("reason"),
-                "requested_by_user_id": a.requested_by_user_id,
-                "requested_by_role": a.requested_by_role,
-                "created_at": a.created_at.isoformat() if a.created_at else None,
-                "expires_at": a.expires_at.isoformat() if a.expires_at else None,
-            }
-        )
+        items.append({
+            "action_id": a.id,
+            "session_id": a.session_id,
+            "device_id": (a.args or {}).get("device_id"),
+            "action_type": (a.args or {}).get("action_type"),
+            "target_value": (a.args or {}).get("target_value"),
+            "reason": (a.args or {}).get("reason"),
+            "requested_by_user_id": a.requested_by_user_id,
+            "requested_by_role": a.requested_by_role,
+            "created_at": a.created_at.isoformat() if a.created_at else None,
+            "expires_at": a.expires_at.isoformat() if a.expires_at else None,
+        })
 
     return {
         "success": True,
@@ -502,9 +467,7 @@ async def resolve_control_action(
     result = await db.execute(select(PendingAction).where(PendingAction.id == action_id))
     action = result.scalar_one_or_none()
     if action is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail=MSG_CONTROL_ACTION_NOT_FOUND
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=MSG_CONTROL_ACTION_NOT_FOUND)
 
     # 2. Tenant isolation
     if _norm_tenant(action.tenant_id) != _norm_tenant(user.tenant_id):
@@ -533,10 +496,7 @@ async def resolve_control_action(
             APPROVAL_EVENT_MAKER_CHECKER_VIOLATION,
             action.id,
             user.user_id,
-            {
-                "device_id": (action.args or {}).get("device_id"),
-                "attempted_decision": body.decision,
-            },
+            {"device_id": (action.args or {}).get("device_id"), "attempted_decision": body.decision},
         )
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -608,14 +568,10 @@ async def get_control_action_status(
     result = await db.execute(select(PendingAction).where(PendingAction.id == action_id))
     action = result.scalar_one_or_none()
     if action is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail=MSG_CONTROL_ACTION_NOT_FOUND
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=MSG_CONTROL_ACTION_NOT_FOUND)
 
     if _norm_tenant(action.tenant_id) != _norm_tenant(user.tenant_id):
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail=MSG_CONTROL_ACTION_NOT_FOUND
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=MSG_CONTROL_ACTION_NOT_FOUND)
 
     return {
         "success": True,

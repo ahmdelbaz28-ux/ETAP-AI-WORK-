@@ -449,10 +449,7 @@ async def get_api_key(  # NOSONAR async function uses sync I/O for compatibility
                         )
             return ""
         except HTTPException as exc:
-            if (
-                exc.status_code == status.HTTP_401_UNAUTHORIZED
-                and "deactivated" in str(exc.detail).lower()
-            ):
+            if exc.status_code == status.HTTP_401_UNAUTHORIZED and "deactivated" in str(exc.detail).lower():
                 raise
             # Invalid/expired/revoked JWT — fall through to API key validation
             pass

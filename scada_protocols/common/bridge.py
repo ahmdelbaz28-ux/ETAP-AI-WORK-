@@ -248,11 +248,9 @@ class SCADAProtocolBridge:
                     value=float(value),
                     timestamp=src_ts,
                     quality=qflag,
-                    confidence=1.0
-                    if q_enum_name == "GOOD"
-                    else (0.5 if q_enum_name == "QUESTIONABLE" else 0.0),
+                    confidence=1.0 if q_enum_name == "GOOD" else (0.5 if q_enum_name == "QUESTIONABLE" else 0.0),
                 )
-                measurement.source_timestamp = src_ts
+                setattr(measurement, "source_timestamp", src_ts)
                 db.add_measurement(measurement)
                 pushed = True
             except Exception as exc:
@@ -350,12 +348,12 @@ def make_callback(bridge: SCADAProtocolBridge) -> Callable[..., None]:
     ) -> None:
         try:
             bridge.ingest(
-                *args,
                 element_id=element_id,
                 measurement_type=measurement_type,
                 value=value,
                 quality=quality,
                 source=source,
+                *args,
                 **kwargs,
             )
         except Exception as exc:  # pragma: no cover - defensive

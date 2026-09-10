@@ -176,9 +176,7 @@ def _build_opcua(raw: Dict[str, Any]) -> OpcUaConfig:
         clients=list(raw.get("clients", []) or []),
         node_map=list(raw.get("node_map", []) or []),
         security_mode=str(os.environ.get("OPCUA_SECURITY_MODE", raw.get("security_mode", "None"))),
-        security_policy=str(
-            os.environ.get("OPCUA_SECURITY_POLICY", raw.get("security_policy", "None"))
-        ),
+        security_policy=str(os.environ.get("OPCUA_SECURITY_POLICY", raw.get("security_policy", "None"))),
         publish_interval_ms=int(raw.get("publish_interval_ms", 1000)),
     )
     for i, entry in enumerate(cfg.node_map):

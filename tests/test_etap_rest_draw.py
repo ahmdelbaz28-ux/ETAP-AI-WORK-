@@ -104,9 +104,7 @@ def _ok_transport(calls: list, mode="ok"):
         if path.endswith("/elements") and request.method == "GET":
             if mode == "miss":
                 return httpx.Response(200, json={"elements": [{"id": "OTHER"}]}, request=request)
-            return httpx.Response(
-                200, json={"elements": [{"id": "E1", "name": "BUS_1"}]}, request=request
-            )
+            return httpx.Response(200, json={"elements": [{"id": "E1", "name": "BUS_1"}]}, request=request)
         if path.endswith("/elements") and request.method == "DELETE":
             return httpx.Response(200, json={"deleted": 1}, request=request)
         return httpx.Response(404, json={}, request=request)
@@ -117,9 +115,7 @@ def _ok_transport(calls: list, mode="ok"):
 def _client(mode="ok", **kw):
     calls: list = []
     kw.setdefault("retry_delays", (0, 0, 0))
-    c = EtapRestClient(
-        base_url="https://etap.test/etapapi", token="t", transport=_ok_transport(calls, mode), **kw
-    )
+    c = EtapRestClient(base_url="https://etap.test/etapapi", token="t", transport=_ok_transport(calls, mode), **kw)
     return c, calls
 
 
@@ -138,14 +134,10 @@ async def test_apply_draw_success_verified():
 
 async def test_apply_draw_partial_create_fails():
     c, _ = _client()
-    plan = EtapDrawPlan(
-        **_plan(
-            items=[
-                {"element_type": "bus", "name": "B1", "properties": {"base_kv": 11.0}},
-                {"element_type": "bus", "name": "B2", "properties": {"base_kv": 33.0}},
-            ]
-        )
-    )
+    plan = EtapDrawPlan(**_plan(items=[
+        {"element_type": "bus", "name": "B1", "properties": {"base_kv": 11.0}},
+        {"element_type": "bus", "name": "B2", "properties": {"base_kv": 33.0}},
+    ]))
     with pytest.raises(ETAPRestError) as ei:
         await c.apply_draw(plan)
     assert ei.value.code == "PARTIAL_RESULT"
@@ -163,12 +155,7 @@ async def test_auth_401_maps_to_unavailable():
     def handler(request: httpx.Request) -> httpx.Response:
         return httpx.Response(401, json={}, request=request)
 
-    c = EtapRestClient(
-        base_url="https://x",
-        token="bad",
-        transport=httpx.MockTransport(handler),
-        retry_delays=(0, 0, 0),
-    )
+    c = EtapRestClient(base_url="https://x", token="bad", transport=httpx.MockTransport(handler), retry_delays=(0, 0, 0))
     with pytest.raises(ETAPRestError) as ei:
         await c.apply_draw(EtapDrawPlan(**_plan()))
     assert ei.value.code == "AUTH_FAILED"
@@ -183,12 +170,7 @@ async def test_retry_on_503_then_success():
             return httpx.Response(503, json={}, request=request)
         return httpx.Response(200, json={"status": "ok"}, request=request)
 
-    c = EtapRestClient(
-        base_url="https://x",
-        token="t",
-        transport=httpx.MockTransport(handler),
-        retry_delays=(0, 0, 0),
-    )
+    c = EtapRestClient(base_url="https://x", token="t", transport=httpx.MockTransport(handler), retry_delays=(0, 0, 0))
     assert await c.health_check() is True
     assert len(seen) == 2
 
@@ -245,9 +227,7 @@ def test_flag_off_blocks_propose(client: TestClient, monkeypatch: pytest.MonkeyP
 
 
 def test_propose_and_self_approve_blocked(client: TestClient, app: FastAPI):
-    app.dependency_overrides[get_current_user_from_header] = lambda: _engineer(
-        uid="admin_1", role="admin"
-    )
+    app.dependency_overrides[get_current_user_from_header] = lambda: _engineer(uid="admin_1", role="admin")
     r = client.post("/api/v1/etap/draw/propose", json=_plan())
     assert r.status_code == 202, r.text
     action_id = r.json()["action_id"]
@@ -256,9 +236,7 @@ def test_propose_and_self_approve_blocked(client: TestClient, app: FastAPI):
     assert r2.json()["detail"]["code"] == "MAKER_CHECKER_VIOLATION"
 
 
-def test_other_admin_approves_and_verifies(
-    client: TestClient, app: FastAPI, monkeypatch: pytest.MonkeyPatch
-):
+def test_other_admin_approves_and_verifies(client: TestClient, app: FastAPI, monkeypatch: pytest.MonkeyPatch):
     r = client.post("/api/v1/etap/draw/propose", json=_plan())
     assert r.status_code == 202, r.text
     action_id = r.json()["action_id"]
@@ -273,9 +251,7 @@ def test_other_admin_approves_and_verifies(
     import api.etap_draw as draw_mod
 
     monkeypatch.setattr(draw_mod, "get_rest_client_from_env", lambda: _FakeClient())
-    app.dependency_overrides[get_current_user_from_header] = lambda: _engineer(
-        uid="admin_2", role="admin"
-    )
+    app.dependency_overrides[get_current_user_from_header] = lambda: _engineer(uid="admin_2", role="admin")
     r2 = client.post(f"/api/v1/etap/draw/{action_id}/resolve", json={"decision": "approve"})
     assert r2.status_code == 200, r2.text
     body = r2.json()
@@ -286,9 +262,7 @@ def test_other_admin_approves_and_verifies(
 def test_cross_tenant_resolve_forbidden(client: TestClient, app: FastAPI):
     r = client.post("/api/v1/etap/draw/propose", json=_plan())
     action_id = r.json()["action_id"]
-    app.dependency_overrides[get_current_user_from_header] = lambda: _engineer(
-        uid="admin_x", role="admin", tenant="other"
-    )
+    app.dependency_overrides[get_current_user_from_header] = lambda: _engineer(uid="admin_x", role="admin", tenant="other")
     r2 = client.post(f"/api/v1/etap/draw/{action_id}/resolve", json={"decision": "approve"})
     assert r2.status_code == 403
     assert r2.json()["detail"]["code"] == "CROSS_TENANT_FORBIDDEN"
@@ -297,12 +271,8 @@ def test_cross_tenant_resolve_forbidden(client: TestClient, app: FastAPI):
 def test_reject_flow(client: TestClient, app: FastAPI):
     r = client.post("/api/v1/etap/draw/propose", json=_plan())
     action_id = r.json()["action_id"]
-    app.dependency_overrides[get_current_user_from_header] = lambda: _engineer(
-        uid="admin_2", role="admin"
-    )
-    r2 = client.post(
-        f"/api/v1/etap/draw/{action_id}/resolve", json={"decision": "reject", "reason": "no"}
-    )
+    app.dependency_overrides[get_current_user_from_header] = lambda: _engineer(uid="admin_2", role="admin")
+    r2 = client.post(f"/api/v1/etap/draw/{action_id}/resolve", json={"decision": "reject", "reason": "no"})
     assert r2.status_code == 200
     assert r2.json()["status"] == "rejected"
 

@@ -711,9 +711,7 @@ def _create_mfa_challenge_token(user_id: str) -> str:
     payload = {
         "sub": user_id,
         "type": "mfa_challenge",
-        "jti": str(
-            uuid.uuid4()
-        ),  # HIGH-4 FIX: Add unique jti so challenge tokens can be blacklisted
+        "jti": str(uuid.uuid4()),  # HIGH-4 FIX: Add unique jti so challenge tokens can be blacklisted
         "iat": now,
         "exp": now + timedelta(minutes=_MFA_CHALLENGE_EXPIRE_MINUTES),
     }
@@ -1282,12 +1280,9 @@ async def login(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail=MSG_USER_NOT_FOUND_OR_DEACTIVATED,
             )
-        login_response = await MfaService.verify_and_issue_tokens(
-            user, body.mfa_code, body.username, db
-        )
+        login_response = await MfaService.verify_and_issue_tokens(user, body.mfa_code, body.username, db)
         try:
             from api.dependencies import _decode_jwt
-
             ch_payload = _decode_jwt(body.mfa_challenge_token)
             ch_jti = ch_payload.get("jti")
             if ch_jti:

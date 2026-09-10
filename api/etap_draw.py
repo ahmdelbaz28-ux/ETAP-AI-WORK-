@@ -208,12 +208,7 @@ async def propose_draw(
     await _store_idempotent(db, idempotency_key, endpoint, user.tenant_id, response_data)
     await db.commit()
 
-    logger.info(
-        "ETAP draw proposed: action_id=%s project=%s by user=%s",
-        action.id,
-        plan.project_id,
-        user.user_id,
-    )
+    logger.info("ETAP draw proposed: action_id=%s project=%s by user=%s", action.id, plan.project_id, user.user_id)
     return response_data
 
 
@@ -238,19 +233,17 @@ async def list_pending_draws(
     items = []
     for a in pending:
         args = a.args or {}
-        items.append(
-            {
-                "action_id": a.id,
-                "session_id": a.session_id,
-                "project_id": args.get("project_id"),
-                "elements": len(args.get("items") or []),
-                "reason": args.get("reason"),
-                "requested_by_user_id": a.requested_by_user_id,
-                "requested_by_role": a.requested_by_role,
-                "created_at": a.created_at.isoformat() if a.created_at else None,
-                "expires_at": a.expires_at.isoformat() if a.expires_at else None,
-            }
-        )
+        items.append({
+            "action_id": a.id,
+            "session_id": a.session_id,
+            "project_id": args.get("project_id"),
+            "elements": len(args.get("items") or []),
+            "reason": args.get("reason"),
+            "requested_by_user_id": a.requested_by_user_id,
+            "requested_by_role": a.requested_by_role,
+            "created_at": a.created_at.isoformat() if a.created_at else None,
+            "expires_at": a.expires_at.isoformat() if a.expires_at else None,
+        })
 
     return {"success": True, "total": len(items), "data": items}
 
@@ -314,10 +307,7 @@ async def resolve_draw(
             APPROVAL_EVENT_MAKER_CHECKER_VIOLATION,
             action.id,
             user.user_id,
-            {
-                "project_id": (action.args or {}).get("project_id"),
-                "attempted_decision": body.decision,
-            },
+            {"project_id": (action.args or {}).get("project_id"), "attempted_decision": body.decision},
         )
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -335,18 +325,10 @@ async def resolve_draw(
     if body.decision == "reject":
         action.status = "rejected"
         record_approval_event(
-            APPROVAL_EVENT_REJECTED,
-            action.id,
-            user.user_id,
-            {"reason": body.reason or "Rejected by administrator"},
+            APPROVAL_EVENT_REJECTED, action.id, user.user_id, {"reason": body.reason or "Rejected by administrator"}
         )
         await db.commit()
-        return {
-            "success": True,
-            "action_id": action.id,
-            "status": "rejected",
-            "message": "Draw was rejected.",
-        }
+        return {"success": True, "action_id": action.id, "status": "rejected", "message": "Draw was rejected."}
 
     # 5. Approved -> allowlist re-check, then execute with verify-by-readback
     if not _tenant_allowed(user.tenant_id):
@@ -354,18 +336,12 @@ async def resolve_draw(
         await db.commit()
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail={
-                "code": "TENANT_NOT_ALLOWLISTED",
-                "message": "Tenant allowlist revoked before execution.",
-            },
+            detail={"code": "TENANT_NOT_ALLOWLISTED", "message": "Tenant allowlist revoked before execution."},
         )
 
     action.status = "executing"
     record_approval_event(
-        APPROVAL_EVENT_APPROVED,
-        action.id,
-        user.user_id,
-        {"reason": body.reason or "Approved by administrator"},
+        APPROVAL_EVENT_APPROVED, action.id, user.user_id, {"reason": body.reason or "Approved by administrator"}
     )
     await db.flush()
 
@@ -386,10 +362,7 @@ async def resolve_draw(
         action.status = "failed"
         await db.commit()
         code = 503 if exc.code in ("MISSING_CONFIG", "UNAVAILABLE", "AUTH_FAILED") else 502
-        raise HTTPException(
-            status_code=code,
-            detail={"code": exc.code, "message": exc.message, "details": exc.details},
-        )
+        raise HTTPException(status_code=code, detail={"code": exc.code, "message": exc.message, "details": exc.details})
 
     action.status = "completed"
     response_data = {
@@ -421,10 +394,7 @@ async def get_draw_status(
     if _norm_tenant(action.tenant_id) != _norm_tenant(user.tenant_id):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail={
-                "code": CROSS_TENANT_FORBIDDEN,
-                "message": "This draw action belongs to another tenant.",
-            },
+            detail={"code": CROSS_TENANT_FORBIDDEN, "message": "This draw action belongs to another tenant."},
         )
     return {
         "success": True,

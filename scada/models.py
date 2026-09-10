@@ -62,10 +62,10 @@ class SignalQuality(str, enum.Enum):  # noqa: UP042
 class BreakerState(str, enum.Enum):  # noqa: UP042
     """Double-point circuit breaker physical states."""
 
-    OPEN = "OPEN"  # 01 binary
-    CLOSED = "CLOSED"  # 10 binary
+    OPEN = "OPEN"           # 01 binary
+    CLOSED = "CLOSED"       # 10 binary
     INTERMEDIATE = "INTERMEDIATE"  # 00 binary (in transit)
-    FAULTED = "FAULTED"  # 11 binary (discrepancy)
+    FAULTED = "FAULTED"     # 11 binary (discrepancy)
 
 
 class ControlCommandRequest(BaseModel):
@@ -73,28 +73,16 @@ class ControlCommandRequest(BaseModel):
 
     model_config = ConfigDict(extra="ignore")
 
-    device_id: str = Field(
-        ..., min_length=1, max_length=64, description="Target device ID, e.g. 'CB_001'"
-    )
+    device_id: str = Field(..., min_length=1, max_length=64, description="Target device ID, e.g. 'CB_001'")
     protocol: ControlProtocol = Field(default=ControlProtocol.OPC_UA)
     action_type: ControlActionType = Field(...)
-    target_value: Any = Field(
-        ..., description="Target value: 0/1 for breaker open/close, float for setpoints"
-    )
-    reason: str = Field(
-        ..., min_length=5, max_length=500, description="Engineering justification for action"
-    )
+    target_value: Any = Field(..., description="Target value: 0/1 for breaker open/close, float for setpoints")
+    reason: str = Field(..., min_length=5, max_length=500, description="Engineering justification for action")
     idempotency_key: Optional[str] = Field(default=None, max_length=128)
-    expected_current_state: Optional[str] = Field(
-        default=None, description="Expected state before command (pre-check)"
-    )
-    timeout_sec: float = Field(
-        default=5.0, ge=0.1, le=30.0, description="Max time to wait for readback verification"
-    )
+    expected_current_state: Optional[str] = Field(default=None, description="Expected state before command (pre-check)")
+    timeout_sec: float = Field(default=5.0, ge=0.1, le=30.0, description="Max time to wait for readback verification")
     local_remote_check: bool = Field(default=True, description="Enforce ANSI 43 remote-mode check")
-    project_id: Optional[str] = Field(
-        default=None, description="Optional associated power system project ID"
-    )
+    project_id: Optional[str] = Field(default=None, description="Optional associated power system project ID")
     bay_id: Optional[str] = Field(default=None, description="Optional substation bay identifier")
 
 

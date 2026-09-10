@@ -69,9 +69,7 @@ class SCADAInterlockEngine:
         point = telemetry.get(device_id, {})
         quality = point.get("quality", SignalQuality.GOOD.value)
         if quality != SignalQuality.GOOD.value and quality != SignalQuality.GOOD:
-            logger.warning(
-                "Interlock check failed: poor quality %s for device %s", quality, device_id
-            )
+            logger.warning("Interlock check failed: poor quality %s for device %s", quality, device_id)
             raise InterlockViolation(
                 code="POOR_DATA_QUALITY",
                 message=f"Device {device_id} telemetry quality is {quality} (must be GOOD to operate)",
@@ -84,9 +82,7 @@ class SCADAInterlockEngine:
                 ts = datetime.fromisoformat(timestamp_str.replace("Z", "+00:00"))
                 age = (datetime.now(UTC) - ts).total_seconds()
                 if age > self.max_telemetry_age_sec:
-                    logger.warning(
-                        "Interlock check failed: stale telemetry age=%.1fs for %s", age, device_id
-                    )
+                    logger.warning("Interlock check failed: stale telemetry age=%.1fs for %s", age, device_id)
                     raise InterlockViolation(
                         code="STALE_TELEMETRY",
                         message=f"Device {device_id} telemetry is stale ({age:.1f}s > {self.max_telemetry_age_sec}s threshold)",
@@ -95,9 +91,7 @@ class SCADAInterlockEngine:
             except InterlockViolation:
                 raise
             except (ValueError, TypeError):
-                logger.warning(
-                    "Interlock check failed: invalid timestamp %s for %s", timestamp_str, device_id
-                )
+                logger.warning("Interlock check failed: invalid timestamp %s for %s", timestamp_str, device_id)
                 raise InterlockViolation(
                     code="INVALID_TELEMETRY_TIMESTAMP",
                     message=f"Device {device_id} has invalid telemetry timestamp: {timestamp_str}",
@@ -129,18 +123,13 @@ class SCADAInterlockEngine:
         Run What-If contingency analysis using the load flow solver.
         Ensures the proposed breaker switching does not cause thermal overload.
         """
-        if command.action_type not in (
-            ControlActionType.BREAKER_OPEN,
-            ControlActionType.BREAKER_CLOSE,
-        ):
+        if command.action_type not in (ControlActionType.BREAKER_OPEN, ControlActionType.BREAKER_CLOSE):
             return
 
         # If network data is provided, run Newton-Raphson contingency simulation
         if network_data and "branches" in network_data:
             # Check for simulated loading dict
-            simulated_loadings = network_data.get("simulated_loadings") or network_data.get(
-                "branch_loadings"
-            )
+            simulated_loadings = network_data.get("simulated_loadings") or network_data.get("branch_loadings")
             if simulated_loadings and isinstance(simulated_loadings, dict):
                 for b_id, loading in simulated_loadings.items():
                     if float(loading) > self.max_line_loading_pct:
@@ -162,13 +151,8 @@ class SCADAInterlockEngine:
                 ps = PowerSystemData(network_data)
                 # Temporarily toggle status in model
                 for b in ps.branches:
-                    if (
-                        getattr(b, "id", None) == command.device_id
-                        or getattr(b, "name", None) == command.device_id
-                    ):
-                        b.status = (
-                            1 if command.action_type == ControlActionType.BREAKER_CLOSE else 0
-                        )
+                    if getattr(b, "id", None) == command.device_id or getattr(b, "name", None) == command.device_id:
+                        b.status = 1 if command.action_type == ControlActionType.BREAKER_CLOSE else 0
 
                 engine = LoadFlowEngine()
                 lf_res = engine.solve_newton_raphson(ps)
@@ -208,10 +192,7 @@ class SCADAInterlockEngine:
             return
 
         # Direct margin specification in coordination data
-        if (
-            "margin" in coordination_data
-            and float(coordination_data["margin"]) < self.min_coordination_margin_sec
-        ):
+        if "margin" in coordination_data and float(coordination_data["margin"]) < self.min_coordination_margin_sec:
             margin = float(coordination_data["margin"])
             raise InterlockViolation(
                 code="COORDINATION_MARGIN_VIOLATION",
@@ -237,10 +218,7 @@ class SCADAInterlockEngine:
                 engine = CoordinationEngine(default_margin_sec=self.min_coordination_margin_sec)
                 result = engine.check_coordination(upstream, downstream, fault_current)
 
-                if (
-                    not result.get("coordinated", True)
-                    or result.get("margin", 0.0) < self.min_coordination_margin_sec
-                ):
+                if not result.get("coordinated", True) or result.get("margin", 0.0) < self.min_coordination_margin_sec:
                     margin = result.get("margin", 0.0)
                     raise InterlockViolation(
                         code="COORDINATION_MARGIN_VIOLATION",
@@ -285,8 +263,4 @@ class SCADAInterlockEngine:
         # 4. Check protection selectivity
         self.validate_protection_coordination(command, coordination_data)
 
-        logger.info(
-            "✅ Pre-flight interlock passed for device=%s action=%s",
-            command.device_id,
-            command.action_type,
-        )
+        logger.info("✅ Pre-flight interlock passed for device=%s action=%s", command.device_id, command.action_type)
