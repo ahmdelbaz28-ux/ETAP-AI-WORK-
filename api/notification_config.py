@@ -497,7 +497,9 @@ async def list_webhooks(
             for wh in _store["webhooks"].values()
             if wh.get("owner_id") == user_id or wh.get("owner_id") is None
         ]
-    return [_webhook_to_response(wh) for wh in _store["webhooks"].values() if not wh.get("owner_id")]
+    return [
+        _webhook_to_response(wh) for wh in _store["webhooks"].values() if not wh.get("owner_id")
+    ]
 
 
 @router.post(

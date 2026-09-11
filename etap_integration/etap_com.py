@@ -582,7 +582,15 @@ class ETAPProject:
                         "fundamental_voltage_mag": ETAPAutomation._safe_com_float(
                             bus, "VoltageMag", 1.0, warn_if_absent=True, context=ctx
                         ),
-                        "dominant_harmonic_order": int(getattr(bus, "DominantHarmonic", 5)),
+                        "dominant_harmonic_order": int(
+                            ETAPAutomation._safe_com_float(
+                                bus,
+                                "DominantHarmonic",
+                                default=5.0,
+                                warn_if_absent=True,
+                                context=f"{ctx}_DominantHarmonic",
+                            )
+                        ),
                     }
         except (COM_ERROR, AttributeError) as e:
             raise RuntimeError(f"COM error during harmonic analysis: {e}") from e
@@ -751,7 +759,11 @@ class ETAPProject:
             "time_sec": times,
             "max_angle_deg": max(angles) if angles else 0.0,
             "critical_clearing_time_sec": ETAPAutomation._safe_com_float(
-                gen, "CriticalClearingTime", 0.0, warn_if_absent=True, context="gen_CriticalClearingTime"
+                gen,
+                "CriticalClearingTime",
+                0.0,
+                warn_if_absent=True,
+                context="gen_CriticalClearingTime",
             ),
         }
 
@@ -883,13 +895,25 @@ class ETAPProject:
                 "converged": converged if converged is not None else False,
                 "convergence_source": conv_src,
                 "soil_resistivity_ohm_m": ETAPAutomation._safe_com_float(
-                    gg_module, "SoilResistivity", 0.0, warn_if_absent=True, context="gg_SoilResistivity"
+                    gg_module,
+                    "SoilResistivity",
+                    0.0,
+                    warn_if_absent=True,
+                    context="gg_SoilResistivity",
                 ),
                 "surface_layer_thickness_m": ETAPAutomation._safe_com_float(
-                    gg_module, "SurfaceThickness", 0.0, warn_if_absent=True, context="gg_SurfaceThickness"
+                    gg_module,
+                    "SurfaceThickness",
+                    0.0,
+                    warn_if_absent=True,
+                    context="gg_SurfaceThickness",
                 ),
                 "grid_resistance_ohm": ETAPAutomation._safe_com_float(
-                    gg_module, "GridResistance", 0.0, warn_if_absent=True, context="gg_GridResistance"
+                    gg_module,
+                    "GridResistance",
+                    0.0,
+                    warn_if_absent=True,
+                    context="gg_GridResistance",
                 ),
                 "mesh_voltage_v": ETAPAutomation._safe_com_float(
                     gg_module, "MeshVoltage", 0.0, warn_if_absent=True, context="gg_MeshVoltage"
@@ -900,17 +924,49 @@ class ETAPProject:
                 "grid_potential_rise_v": ETAPAutomation._safe_com_float(
                     gg_module, "GPR", 0.0, warn_if_absent=True, context="gg_GPR"
                 ),
-                "rod_count": int(getattr(gg_module, "RodCount", 0)),
+                "rod_count": int(
+                    ETAPAutomation._safe_com_float(
+                        gg_module,
+                        "RodCount",
+                        default=0.0,
+                        warn_if_absent=True,
+                        context="gg_RodCount",
+                    )
+                ),
                 "standard": "IEEE 80-2013",
                 "compliance": {
                     "touch_voltage_limit_v": ETAPAutomation._safe_com_float(
-                        gg_module, "TouchVoltageLimit", 0.0, warn_if_absent=True, context="gg_TouchVoltageLimit"
+                        gg_module,
+                        "TouchVoltageLimit",
+                        0.0,
+                        warn_if_absent=True,
+                        context="gg_TouchVoltageLimit",
                     ),
                     "step_voltage_limit_v": ETAPAutomation._safe_com_float(
-                        gg_module, "StepVoltageLimit", 0.0, warn_if_absent=True, context="gg_StepVoltageLimit"
+                        gg_module,
+                        "StepVoltageLimit",
+                        0.0,
+                        warn_if_absent=True,
+                        context="gg_StepVoltageLimit",
                     ),
-                    "touch_ok": bool(getattr(gg_module, "TouchCompliant", False)),
-                    "step_ok": bool(getattr(gg_module, "StepCompliant", False)),
+                    "touch_ok": bool(
+                        ETAPAutomation._safe_com_float(
+                            gg_module,
+                            "TouchCompliant",
+                            default=0.0,
+                            warn_if_absent=True,
+                            context="gg_TouchCompliant",
+                        )
+                    ),
+                    "step_ok": bool(
+                        ETAPAutomation._safe_com_float(
+                            gg_module,
+                            "StepCompliant",
+                            default=0.0,
+                            warn_if_absent=True,
+                            context="gg_StepCompliant",
+                        )
+                    ),
                 },
             }
         except (COM_ERROR, AttributeError) as e:
@@ -938,11 +994,39 @@ class ETAPProject:
                 raise RuntimeError("Reliability module not available in ETAP project")
             rel_module.Calculate()
 
-            customers_served = int(getattr(rel_module, "CustomersServed", 0))
-            sustained_outages = int(getattr(rel_module, "SustainedOutages", 0))
-            momentary_outages = int(getattr(rel_module, "MomentaryOutages", 0))
+            customers_served = int(
+                ETAPAutomation._safe_com_float(
+                    rel_module,
+                    "CustomersServed",
+                    default=0.0,
+                    warn_if_absent=True,
+                    context="rel_CustomersServed",
+                )
+            )
+            sustained_outages = int(
+                ETAPAutomation._safe_com_float(
+                    rel_module,
+                    "SustainedOutages",
+                    default=0.0,
+                    warn_if_absent=True,
+                    context="rel_SustainedOutages",
+                )
+            )
+            momentary_outages = int(
+                ETAPAutomation._safe_com_float(
+                    rel_module,
+                    "MomentaryOutages",
+                    default=0.0,
+                    warn_if_absent=True,
+                    context="rel_MomentaryOutages",
+                )
+            )
             total_outage_hours = ETAPAutomation._safe_com_float(
-                rel_module, "TotalOutageHours", 0.0, warn_if_absent=True, context="rel_TotalOutageHours"
+                rel_module,
+                "TotalOutageHours",
+                0.0,
+                warn_if_absent=True,
+                context="rel_TotalOutageHours",
             )
 
             if customers_served <= 0:
@@ -1036,7 +1120,15 @@ class ETAPProject:
                                 "cti_margin_sec": ETAPAutomation._safe_com_float(
                                     entry, "CTI", 0.0, warn_if_absent=True, context=ctx
                                 ),
-                                "coordinated": bool(getattr(entry, "Coordinated", False)),
+                                "coordinated": bool(
+                                    ETAPAutomation._safe_com_float(
+                                        entry,
+                                        "Coordinated",
+                                        default=0.0,
+                                        warn_if_absent=True,
+                                        context=f"{ctx}_Coordinated",
+                                    )
+                                ),
                             },
                         )
                 pairs[pid] = {

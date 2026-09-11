@@ -346,6 +346,39 @@ def test_audit_log_detects_tampering():
         assert len(broken) > 0
 
 
+def test_audit_log_hmac_sha256_chain_verification():
+    """When hmac_secret is provided, entries must use HMAC-SHA256 and verify correctly."""
+    from agents.life_safety import TamperEvidentAuditLog
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        log_path = Path(tmpdir) / "hmac_chain.jsonl"
+        audit_log = TamperEvidentAuditLog(log_path=log_path, hmac_secret="super-secret-hmac-key")
+
+        # Append entries
+        h1 = audit_log.append({"event": "login", "user": "alice"})
+        h2 = audit_log.append({"event": "action", "detail": "study_run"})
+
+        assert len(h1) == 64
+        assert len(h2) == 64
+
+        # Verification with same secret succeeds
+        is_valid, broken = audit_log.verify_chain()
+        assert is_valid is True
+        assert broken == []
+
+        # Verification with different secret fails
+        verifier_wrong_key = TamperEvidentAuditLog(log_path=log_path, hmac_secret="wrong-key")
+        is_valid_wrong, broken_wrong = verifier_wrong_key.verify_chain()
+        assert is_valid_wrong is False
+        assert len(broken_wrong) > 0
+
+        # Verification with plain SHA-256 (no secret) fails
+        verifier_no_key = TamperEvidentAuditLog(log_path=log_path, hmac_secret="")
+        is_valid_no_key, broken_no_key = verifier_no_key.verify_chain()
+        assert is_valid_no_key is False
+        assert len(broken_no_key) > 0
+
+
 # ---------------------------------------------------------------------------
 # 7. Cooldown enforcement
 # ---------------------------------------------------------------------------

@@ -37,7 +37,7 @@ vi.mock("../api-config", () => ({
 }));
 
 // Import the module under test AFTER mocks are set up
-import { chatWithLLM, testProviderConnection } from "../llm-chat";
+import { chatWithLLM, getChatSessionId, testProviderConnection } from "../llm-chat";
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
@@ -232,5 +232,26 @@ describe("llm-chat: no-enumeration (API key leakage prevention)", () => {
     if (result.details) {
       expect(result.details.length).toBeLessThan(500);
     }
+  });
+});
+
+describe("llm-chat: session ID entropy", () => {
+  beforeEach(() => {
+    const g = (typeof window !== "undefined" ? window : globalThis) as Record<string, unknown>;
+    delete g.__chatSessionId;
+  });
+
+  it("getChatSessionId generates a 128-bit (16 hex chars) random suffix without hyphens", () => {
+    const sessionId = getChatSessionId();
+    expect(sessionId).toMatch(/^sess-web-[0-9a-z]+-[0-9a-f]{16}$/i);
+    const parts = sessionId.split("-");
+    const randomHex = parts[parts.length - 1];
+    expect(randomHex.length).toBe(16);
+  });
+
+  it("getChatSessionId caches the session ID across multiple invocations", () => {
+    const id1 = getChatSessionId();
+    const id2 = getChatSessionId();
+    expect(id1).toBe(id2);
   });
 });

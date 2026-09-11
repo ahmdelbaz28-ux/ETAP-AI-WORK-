@@ -180,7 +180,11 @@ class TestWorkerParameterRoundTrip:
     ) -> None:
         from fastapi.testclient import TestClient
 
-        monkeypatch.setenv("ETAP_WORKER_STATIC_KEY", "roundtrip-key")
+        class _StubAuthz:
+            def check_permission(self, token: str, permission: Any) -> bool:
+                return True
+
+        monkeypatch.setattr(worker_service, "get_authz_manager", lambda: _StubAuthz())
         captured: dict[str, Any] = {}
         original = etap_com.ETAPProject.run_study
 
@@ -199,7 +203,7 @@ class TestWorkerParameterRoundTrip:
                 "study_type": "SHORT_CIRCUIT",
                 "parameters": {"fault_type": "LineToGround", "prefault_voltage_pu": 1.02},
             },
-            headers={"Authorization": "Bearer roundtrip-key"},
+            headers={"Authorization": "Bearer roundtrip-jwt-token"},
         )
         assert resp.status_code == 200, resp.text
         assert resp.json()["success"] is True

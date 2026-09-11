@@ -330,7 +330,9 @@ class SCADAControlExecutor:
             command.device_id not in _DEVICE_ADDRESS_MAP
             and command.device_id not in _SIMULATED_DEVICES
         ):
-            raise ValueError(f"Unknown or unmapped device_id for OPC UA dispatch: {command.device_id}")
+            raise ValueError(
+                f"Unknown or unmapped device_id for OPC UA dispatch: {command.device_id}"
+            )
 
         endpoint = os.getenv("SCADA_OPC_ENDPOINT")
         cfg = _get_protocol_config()

@@ -1022,10 +1022,10 @@ export async function isServerChatStreamEnabled(): Promise<boolean> {
 function generateRandomHex(): string {
   if (typeof crypto !== "undefined") {
     if (typeof crypto.randomUUID === "function") {
-      return crypto.randomUUID();
+      return crypto.randomUUID().replace(/-/g, "");
     }
     if (typeof crypto.getRandomValues === "function") {
-      const bytes = new Uint8Array(8);
+      const bytes = new Uint8Array(16);
       crypto.getRandomValues(bytes);
       return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
     }
@@ -1039,7 +1039,7 @@ export function getChatSessionId(): string {
     __chatSessionId?: string;
   };
   if (!g.__chatSessionId) {
-    g.__chatSessionId = `sess-web-${Date.now().toString(36)}-${generateRandomHex().slice(0, 8)}`;
+    g.__chatSessionId = `sess-web-${Date.now().toString(36)}-${generateRandomHex().slice(0, 16)}`;
   }
   return g.__chatSessionId;
 }

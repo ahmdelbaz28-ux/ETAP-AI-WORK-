@@ -188,7 +188,7 @@ class CodeIndexer:
         return hashlib.sha256(code.encode("utf-8")).hexdigest()
 
     def index_repo(  # NOSONAR
-        self, repo_path: str
+        self, repo_path: str, tenant_id: str | None = None
     ):  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         """Index a repository with resource limits (V-06).
 
@@ -263,14 +263,15 @@ class CodeIndexer:
 
                         batch_ids.append(chunk_id)
                         batch_docs.append(chunk["code"])
-                        batch_metas.append(
-                            {
-                                "name": chunk["name"],
-                                "type": chunk["type"],
-                                "filepath": chunk["filepath"],
-                                "hash": chunk_hash,
-                            },
-                        )
+                        meta = {
+                            "name": chunk["name"],
+                            "type": chunk["type"],
+                            "filepath": chunk["filepath"],
+                            "hash": chunk_hash,
+                        }
+                        if tenant_id:
+                            meta["tenant_id"] = tenant_id
+                        batch_metas.append(meta)
 
                         # V-06: Batched upsert to prevent memory spikes
                         if len(batch_ids) >= self.BATCH_SIZE:

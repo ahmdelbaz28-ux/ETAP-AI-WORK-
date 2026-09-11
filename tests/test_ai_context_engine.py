@@ -146,6 +146,32 @@ class TestCodeIndexer:
             assert len(kwargs["metadatas"]) == 1
             assert kwargs["metadatas"][0]["name"] == "func1"
 
+    @patch("ai_context_engine.indexer.CodeExtractor.extract")
+    def test_index_repo_attaches_tenant_id_to_metadata(self, mock_extract, mock_indexer, tmp_path):
+        """Test that index_repo propagates tenant_id into chunk metadata for isolation."""
+        repo_dir = tmp_path / "tenant_repo"
+        repo_dir.mkdir()
+        (repo_dir / "mod.py").write_text("def tenant_func(): pass")
+
+        mock_extract.return_value = [
+            {
+                "name": "tenant_func",
+                "type": "function",
+                "filepath": str(repo_dir / "mod.py"),
+                "code": "def tenant_func(): pass",
+            }
+        ]
+
+        if mock_indexer.collection:
+            mock_indexer.collection.upsert = MagicMock()
+
+        mock_indexer.index_repo(str(repo_dir), tenant_id="tenant-alpha-99")
+
+        if mock_indexer.collection:
+            mock_indexer.collection.upsert.assert_called_once()
+            _, kwargs = mock_indexer.collection.upsert.call_args
+            assert kwargs["metadatas"][0]["tenant_id"] == "tenant-alpha-99"
+
 
 from ai_context_engine.retriever import CodeCompressor, CodeRetriever
 

@@ -14,6 +14,7 @@ Validates the 10 remediated vulnerabilities:
   10. MEDIUM-3: Webhook URL owner scoping and SSRF validation
 """
 
+from typing import Any
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -47,14 +48,15 @@ def test_scada_protocol_admin_required():
 
 
 # ===========================================================================
-# 2. CRITICAL-2: ETAP Worker Static Key RBAC & Scoping
+# 2. CRITICAL-2: ETAP Worker Static Key Complete Removal & Enforced RBAC
 # ===========================================================================
-def test_worker_static_key_unauthorized_study_rejected(monkeypatch):
+def test_worker_static_key_removed_and_rbac_enforced(monkeypatch):
     import etap_integration.etap_worker_service as worker_mod
     from etap_integration.etap_com import ETAPStudyType
 
-    monkeypatch.setenv(worker_mod.STATIC_BEARER_ENV, "worker-secret")
-    monkeypatch.setenv("ETAP_WORKER_ALLOWED_STUDIES", "LOAD_FLOW,SHORT_CIRCUIT")
+    # Static key configuration is completely removed
+    assert not hasattr(worker_mod, "STATIC_BEARER_ENV")
+    assert not hasattr(worker_mod, "_get_static_bearer_key")
 
     class _StubAutomation:
         def __init__(self, visible=False):
@@ -75,21 +77,26 @@ def test_worker_static_key_unauthorized_study_rejected(monkeypatch):
     monkeypatch.setattr(worker_mod, "ETAPAutomation", _StubAutomation)
     client = TestClient(worker_mod.app, raise_server_exceptions=False)
 
-    # Allowed study -> reaches open_project (or fails cleanly on project opening, not 403)
-    resp_allowed = client.post(
+    # Static key attempt without RBAC permission -> 403 Forbidden
+    resp_static = client.post(
         "/execute",
         json={"project_path": "demo.edb", "study_type": "LOAD_FLOW"},
         headers={"Authorization": "Bearer worker-secret"},
     )
-    assert resp_allowed.status_code == 200
+    assert resp_static.status_code == 403
 
-    # Disallowed study -> 403 Forbidden
-    resp_blocked = client.post(
+    # Authorized JWT token with RBAC permission -> reaches execution (200)
+    class _StubAuthz:
+        def check_permission(self, token: str, permission: Any) -> bool:
+            return token == "valid-jwt-token"
+
+    monkeypatch.setattr(worker_mod, "get_authz_manager", lambda: _StubAuthz())
+    resp_jwt = client.post(
         "/execute",
-        json={"project_path": "demo.edb", "study_type": "CABLE_AMACITY"},
-        headers={"Authorization": "Bearer worker-secret"},
+        json={"project_path": "demo.edb", "study_type": "LOAD_FLOW"},
+        headers={"Authorization": "Bearer valid-jwt-token"},
     )
-    assert resp_blocked.status_code == 403
+    assert resp_jwt.status_code == 200
 
 
 # ===========================================================================
@@ -328,7 +335,13 @@ def test_etap_project_path_symlink_traversal_rejected(tmp_path):
 
     from etap_integration.etap_com import ETAPAutomation
 
-    automation = ETAPAutomation(visible=False)
+    try:
+        automation = ETAPAutomation(visible=False)
+    except ImportError:
+        # On non-Windows platforms (e.g. Linux CI) where pywin32 is absent, allocate
+        # instance without COM init to test path-guard validation methods directly
+        automation = ETAPAutomation.__new__(ETAPAutomation)
+        automation._allowed_project_dirs = []
 
     target_external = (
         "C:\\outside_forbidden_dir\\secret.edb" if os.name == "nt" else "/var/forbidden/secret.edb"
