@@ -527,8 +527,8 @@ class StudyExecutor:
         errors = list(getattr(data, "errors", []) or [])
         if not getattr(data, "success", True):
             errors.append("ETAP study reported failure")
-        # ETAPResult stores the actual payload in .results (dict)
-        payload_dict = getattr(data, "results", None) or {}
+        # ETAPResult stores the actual payload in .data (dict), fallback to .results for legacy objects
+        payload_dict = getattr(data, "data", None) or getattr(data, "results", None) or {}
         return payload_dict, warnings, errors
 
     # ------------------------------------------------------------------

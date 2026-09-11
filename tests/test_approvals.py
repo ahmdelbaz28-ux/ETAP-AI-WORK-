@@ -54,6 +54,7 @@ def client():
 
     # Fresh in-memory auto-approve registry per test.
     approvals_mod._session_auto_approve.clear()
+    approvals_mod._session_auto_approve_owners.clear()
 
     with TestClient(app) as c:
         yield c
@@ -103,6 +104,17 @@ class TestAutoApprove:
         data = resp.json()["data"]
         assert data["risk_class"] == "read"
         assert data["status"] == "approved"
+
+    def test_cross_user_auto_approve_hijack_blocked(self, client):
+        # Maker creates and enables auto-approve for session s5
+        r1 = client.put(API_SESSION_AUTO_APPROVE, json={"session_id": "s5", "enabled": True})
+        assert r1.status_code == 200
+
+        # Another engineer (CHECKER) tries to modify Maker's session auto-approve
+        client.app.dependency_overrides[get_current_user_from_header] = lambda: CHECKER
+        r2 = client.put(API_SESSION_AUTO_APPROVE, json={"session_id": "s5", "enabled": False})
+        assert r2.status_code == 403
+        assert r2.json()["detail"]["code"] == "FORBIDDEN"
 
 
 class TestMakerChecker:

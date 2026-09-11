@@ -94,16 +94,11 @@ _DEVICE_ADDRESS_MAP: Dict[str, int] = {
 
 
 def _resolve_device_address(device_id: str) -> int:
-    """Resolve device_id to a deterministic protocol integer address (HIGH-5).
-    Fails closed if the device cannot be safely resolved.
+    """Resolve device_id to a deterministic protocol integer address.
+    Fails closed if the device cannot be safely resolved from the allowlist.
     """
     if device_id in _DEVICE_ADDRESS_MAP:
         return _DEVICE_ADDRESS_MAP[device_id]
-    match = re.search(r"(\d+)$", device_id)
-    if match:
-        addr = int(match.group(1))
-        if addr > 0:
-            return addr
     raise ValueError(
         f"Unmapped SCADA device_id '{device_id}': cannot resolve physical protocol address safely"
     )
@@ -328,6 +323,15 @@ class SCADAControlExecutor:
 
     async def _dispatch_opc_ua(self, command: ControlCommandRequest, final_val: Any) -> None:
         """OPC UA write handler with fail-closed physical execution."""
+        # Sanitize and validate device_id against allowlist
+        if not re.match(r"^[A-Za-z0-9_]+$", command.device_id):
+            raise ValueError(f"Invalid device_id format for OPC UA dispatch: {command.device_id}")
+        if (
+            command.device_id not in _DEVICE_ADDRESS_MAP
+            and command.device_id not in _SIMULATED_DEVICES
+        ):
+            raise ValueError(f"Unknown or unmapped device_id for OPC UA dispatch: {command.device_id}")
+
         endpoint = os.getenv("SCADA_OPC_ENDPOINT")
         cfg = _get_protocol_config()
         if cfg and hasattr(cfg, "opcua") and cfg.opcua and cfg.opcua.server_endpoint:

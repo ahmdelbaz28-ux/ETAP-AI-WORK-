@@ -23,6 +23,12 @@ _RNG = np.random.default_rng()  # NOSONAR
 
 logger = logging.getLogger(__name__)
 
+# Resource limits for large calculation simulation to prevent OOM / CPU DoS
+MAX_CALCULATION_SIZE = 5000
+MIN_CALCULATION_SIZE = 1
+MAX_CALCULATION_ITERATIONS = 100
+MIN_CALCULATION_ITERATIONS = 1
+
 
 @app.task(bind=True)
 def execute_engineering_study_task(self, study_data: dict):
@@ -162,9 +168,24 @@ def process_large_calculation_task(self, calculation_data: dict):
         # In real implementation, this would contain the actual computational logic
         import numpy as np
 
-        # Example: Heavy matrix computation
-        size = calculation_data.get("size", 1000)
-        iterations = calculation_data.get("iterations", 100)
+        # Example: Heavy matrix computation with bounded size and iterations
+        try:
+            raw_size = int(calculation_data.get("size", 1000))
+            raw_iterations = int(calculation_data.get("iterations", 100))
+        except (ValueError, TypeError) as err:
+            raise ValueError(f"Invalid size or iterations parameter: {err}") from err
+
+        if raw_size < MIN_CALCULATION_SIZE or raw_size > MAX_CALCULATION_SIZE:
+            raise ValueError(
+                f"Calculation size {raw_size} exceeds allowed bounds [{MIN_CALCULATION_SIZE}, {MAX_CALCULATION_SIZE}]"
+            )
+        if raw_iterations < MIN_CALCULATION_ITERATIONS or raw_iterations > MAX_CALCULATION_ITERATIONS:
+            raise ValueError(
+                f"Calculation iterations {raw_iterations} exceeds allowed bounds [{MIN_CALCULATION_ITERATIONS}, {MAX_CALCULATION_ITERATIONS}]"
+            )
+
+        size = raw_size
+        iterations = raw_iterations
 
         # Simulate computation progress
         for i in range(iterations):

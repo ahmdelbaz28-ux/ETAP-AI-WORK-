@@ -261,7 +261,9 @@ async def test_stdio_transport_start():
     )
     stdout = io.StringIO()
     parser = _build_parser()
-    args = parser.parse_args(["stdio", "--handlers", "tests.test_cli", "--scopes", "math.read"])
+    args = parser.parse_args(
+        ["stdio", "--handlers", "tests.test_cli", "--scopes", "math.read", "--no-auth"]
+    )
     tracer, metrics, logger = _build_observability(args)
     runtime, _ = _build_runtime(args, tracer, metrics, logger)
     router = _build_router(args, runtime, tracer, metrics, logger)
@@ -297,6 +299,15 @@ class TestEnvVarFallback:
         router = _build_router(args, runtime, tracer, metrics, logger)
         assert router._config.caller_scopes == {"math.read", "math.write"}
         assert router._config.auth_validator is not None
+        assert router._config.require_auth_for_public is True
+
+    def test_default_require_auth_is_true(self, monkeypatch):
+        monkeypatch.delenv("ACP_REQUIRE_AUTH", raising=False)
+        parser = _build_parser()
+        args = parser.parse_args(["stdio", "--handlers", "tests.test_cli"])
+        tracer, metrics, logger = _build_observability(args)
+        runtime, _ = _build_runtime(args, tracer, metrics, logger)
+        router = _build_router(args, runtime, tracer, metrics, logger)
         assert router._config.require_auth_for_public is True
 
 

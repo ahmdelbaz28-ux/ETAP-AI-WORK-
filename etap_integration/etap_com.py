@@ -375,22 +375,42 @@ class ETAPProject:
                 for bus in self._com_project.Buses:
                     bus_id = getattr(bus, "ID", "")
                     ETAPAutomation._validate_bus_id(bus_id)
+                    ctx = f"bus={bus_id}"
                     buses[bus_id] = {
-                        "voltage_magnitude": getattr(bus, "VoltageMag", 0.0),
-                        "voltage_angle": getattr(bus, "VoltageAng", 0.0),
-                        "active_power": getattr(bus, "PMW", 0.0),
-                        "reactive_power": getattr(bus, "QMVAR", 0.0),
+                        "voltage_magnitude": ETAPAutomation._safe_com_float(
+                            bus, "VoltageMag", 0.0, warn_if_absent=True, context=ctx
+                        ),
+                        "voltage_angle": ETAPAutomation._safe_com_float(
+                            bus, "VoltageAng", 0.0, warn_if_absent=True, context=ctx
+                        ),
+                        "active_power": ETAPAutomation._safe_com_float(
+                            bus, "PMW", 0.0, warn_if_absent=True, context=ctx
+                        ),
+                        "reactive_power": ETAPAutomation._safe_com_float(
+                            bus, "QMVAR", 0.0, warn_if_absent=True, context=ctx
+                        ),
                     }
 
                 branches = {}
                 for branch in self._com_project.Branches:
                     branch_id = getattr(branch, "ID", "")
+                    ctx = f"branch={branch_id}"
                     branches[branch_id] = {
-                        "active_power_from": getattr(branch, "PFrom", 0.0),
-                        "reactive_power_from": getattr(branch, "QFrom", 0.0),
-                        "active_power_to": getattr(branch, "PTo", 0.0),
-                        "reactive_power_to": getattr(branch, "QTo", 0.0),
-                        "current": getattr(branch, "Current", 0.0),
+                        "active_power_from": ETAPAutomation._safe_com_float(
+                            branch, "PFrom", 0.0, warn_if_absent=True, context=ctx
+                        ),
+                        "reactive_power_from": ETAPAutomation._safe_com_float(
+                            branch, "QFrom", 0.0, warn_if_absent=True, context=ctx
+                        ),
+                        "active_power_to": ETAPAutomation._safe_com_float(
+                            branch, "PTo", 0.0, warn_if_absent=True, context=ctx
+                        ),
+                        "reactive_power_to": ETAPAutomation._safe_com_float(
+                            branch, "QTo", 0.0, warn_if_absent=True, context=ctx
+                        ),
+                        "current": ETAPAutomation._safe_com_float(
+                            branch, "Current", 0.0, warn_if_absent=True, context=ctx
+                        ),
                     }
 
                 converged, conv_src = ETAPAutomation._read_convergence(lf_module)
@@ -551,10 +571,17 @@ class ETAPProject:
                 bus_id = str(getattr(bus, "ID", ""))
                 if bus_id:
                     ETAPAutomation._validate_bus_id(bus_id)
+                    ctx = f"bus={bus_id}"
                     buses[bus_id] = {
-                        "voltage_thd_percent": float(getattr(bus, "VTHD", 0.0)),
-                        "current_thd_percent": float(getattr(bus, "ITHD", 0.0)),
-                        "fundamental_voltage_mag": float(getattr(bus, "VoltageMag", 1.0)),
+                        "voltage_thd_percent": ETAPAutomation._safe_com_float(
+                            bus, "VTHD", 0.0, warn_if_absent=True, context=ctx
+                        ),
+                        "current_thd_percent": ETAPAutomation._safe_com_float(
+                            bus, "ITHD", 0.0, warn_if_absent=True, context=ctx
+                        ),
+                        "fundamental_voltage_mag": ETAPAutomation._safe_com_float(
+                            bus, "VoltageMag", 1.0, warn_if_absent=True, context=ctx
+                        ),
                         "dominant_harmonic_order": int(getattr(bus, "DominantHarmonic", 5)),
                     }
         except (COM_ERROR, AttributeError) as e:
@@ -597,10 +624,17 @@ class ETAPProject:
             for gen in getattr(self._com_project, "Generators", []):
                 gen_id = str(getattr(gen, "ID", ""))
                 if gen_id:
+                    ctx = f"gen={gen_id}"
                     generators[gen_id] = {
-                        "active_power_mw": float(getattr(gen, "PMW", 0.0)),
-                        "reactive_power_mvar": float(getattr(gen, "QMVAR", 0.0)),
-                        "cost_per_hour": float(getattr(gen, "Cost", 0.0)),
+                        "active_power_mw": ETAPAutomation._safe_com_float(
+                            gen, "PMW", 0.0, warn_if_absent=True, context=ctx
+                        ),
+                        "reactive_power_mvar": ETAPAutomation._safe_com_float(
+                            gen, "QMVAR", 0.0, warn_if_absent=True, context=ctx
+                        ),
+                        "cost_per_hour": ETAPAutomation._safe_com_float(
+                            gen, "Cost", 0.0, warn_if_absent=True, context=ctx
+                        ),
                     }
         except (COM_ERROR, AttributeError) as e:
             raise RuntimeError(f"COM error during optimal power flow: {e}") from e
@@ -614,7 +648,9 @@ class ETAPProject:
 
         total_gen = sum(g["active_power_mw"] for g in generators.values())
         total_cost = sum(g["cost_per_hour"] for g in generators.values())
-        total_loss = float(getattr(opf_module, "TotalLosses", 0.0))
+        total_loss = ETAPAutomation._safe_com_float(
+            opf_module, "TotalLosses", 0.0, warn_if_absent=True, context="opf_module"
+        )
 
         converged, conv_src = ETAPAutomation._read_convergence(opf_module)
         if converged is None:
@@ -650,13 +686,20 @@ class ETAPProject:
             for motor in getattr(self._com_project, "Motors", []):
                 motor_id = str(getattr(motor, "ID", ""))
                 if motor_id:
+                    ctx = f"motor={motor_id}"
                     motors[motor_id] = {
-                        "starting_current_multiplier": float(
-                            getattr(motor, "StartingCurrentMult", 0.0),
+                        "starting_current_multiplier": ETAPAutomation._safe_com_float(
+                            motor, "StartingCurrentMult", 0.0, warn_if_absent=True, context=ctx
                         ),
-                        "acceleration_time_sec": float(getattr(motor, "AccelTime", 0.0)),
-                        "min_voltage_during_start_pu": float(getattr(motor, "MinVoltagePU", 0.0)),
-                        "speed_at_end_of_start_percent": float(getattr(motor, "SpeedPercent", 0.0)),
+                        "acceleration_time_sec": ETAPAutomation._safe_com_float(
+                            motor, "AccelTime", 0.0, warn_if_absent=True, context=ctx
+                        ),
+                        "min_voltage_during_start_pu": ETAPAutomation._safe_com_float(
+                            motor, "MinVoltagePU", 0.0, warn_if_absent=True, context=ctx
+                        ),
+                        "speed_at_end_of_start_percent": ETAPAutomation._safe_com_float(
+                            motor, "SpeedPercent", 0.0, warn_if_absent=True, context=ctx
+                        ),
                     }
         except (COM_ERROR, AttributeError) as e:
             raise RuntimeError(f"COM error during motor starting analysis: {e}") from e
@@ -698,14 +741,18 @@ class ETAPProject:
             angles = [float(a) for a in raw_angles[:max_points]]
             times = [float(t) for t in raw_times[:max_points]]
         else:
-            final_angle = float(getattr(gen, "RotorAngle", 0.0))
+            final_angle = ETAPAutomation._safe_com_float(
+                gen, "RotorAngle", 0.0, warn_if_absent=True, context="gen_RotorAngle"
+            )
             angles = [final_angle]
             times = [duration]
         return {
             "rotor_angle_deg": angles,
             "time_sec": times,
             "max_angle_deg": max(angles) if angles else 0.0,
-            "critical_clearing_time_sec": float(getattr(gen, "CriticalClearingTime", 0.0)),
+            "critical_clearing_time_sec": ETAPAutomation._safe_com_float(
+                gen, "CriticalClearingTime", 0.0, warn_if_absent=True, context="gen_CriticalClearingTime"
+            ),
         }
 
     def _run_transient_stability(self, **kwargs) -> dict[str, Any]:
@@ -769,14 +816,21 @@ class ETAPProject:
             for cable in cable_module:
                 cable_id = str(getattr(cable, "ID", ""))
                 if cable_id:
-                    base_rating = float(getattr(cable, "Ampacity", 0.0))
-                    derated = float(getattr(cable, "DeratedAmpacity", base_rating))
+                    ctx = f"cable={cable_id}"
+                    base_rating = ETAPAutomation._safe_com_float(
+                        cable, "Ampacity", 0.0, warn_if_absent=True, context=ctx
+                    )
+                    derated = ETAPAutomation._safe_com_float(
+                        cable, "DeratedAmpacity", base_rating, warn_if_absent=True, context=ctx
+                    )
                     cables[cable_id] = {
                         "base_ampacity_a": base_rating,
                         "installation_method": installation,
                         "ambient_temperature_c": ambient_c,
                         "derated_ampacity_a": round(derated, 2),
-                        "voltage_kv": float(getattr(cable, "KV", 0.0)),
+                        "voltage_kv": ETAPAutomation._safe_com_float(
+                            cable, "KV", 0.0, warn_if_absent=True, context=ctx
+                        ),
                     }
         except (COM_ERROR, AttributeError) as e:
             raise RuntimeError(f"COM error during cable ampacity study: {e}") from e
@@ -828,17 +882,33 @@ class ETAPProject:
             result = {
                 "converged": converged if converged is not None else False,
                 "convergence_source": conv_src,
-                "soil_resistivity_ohm_m": float(getattr(gg_module, "SoilResistivity", 0.0)),
-                "surface_layer_thickness_m": float(getattr(gg_module, "SurfaceThickness", 0.0)),
-                "grid_resistance_ohm": float(getattr(gg_module, "GridResistance", 0.0)),
-                "mesh_voltage_v": float(getattr(gg_module, "MeshVoltage", 0.0)),
-                "step_voltage_v": float(getattr(gg_module, "StepVoltage", 0.0)),
-                "grid_potential_rise_v": float(getattr(gg_module, "GPR", 0.0)),
+                "soil_resistivity_ohm_m": ETAPAutomation._safe_com_float(
+                    gg_module, "SoilResistivity", 0.0, warn_if_absent=True, context="gg_SoilResistivity"
+                ),
+                "surface_layer_thickness_m": ETAPAutomation._safe_com_float(
+                    gg_module, "SurfaceThickness", 0.0, warn_if_absent=True, context="gg_SurfaceThickness"
+                ),
+                "grid_resistance_ohm": ETAPAutomation._safe_com_float(
+                    gg_module, "GridResistance", 0.0, warn_if_absent=True, context="gg_GridResistance"
+                ),
+                "mesh_voltage_v": ETAPAutomation._safe_com_float(
+                    gg_module, "MeshVoltage", 0.0, warn_if_absent=True, context="gg_MeshVoltage"
+                ),
+                "step_voltage_v": ETAPAutomation._safe_com_float(
+                    gg_module, "StepVoltage", 0.0, warn_if_absent=True, context="gg_StepVoltage"
+                ),
+                "grid_potential_rise_v": ETAPAutomation._safe_com_float(
+                    gg_module, "GPR", 0.0, warn_if_absent=True, context="gg_GPR"
+                ),
                 "rod_count": int(getattr(gg_module, "RodCount", 0)),
                 "standard": "IEEE 80-2013",
                 "compliance": {
-                    "touch_voltage_limit_v": float(getattr(gg_module, "TouchVoltageLimit", 0.0)),
-                    "step_voltage_limit_v": float(getattr(gg_module, "StepVoltageLimit", 0.0)),
+                    "touch_voltage_limit_v": ETAPAutomation._safe_com_float(
+                        gg_module, "TouchVoltageLimit", 0.0, warn_if_absent=True, context="gg_TouchVoltageLimit"
+                    ),
+                    "step_voltage_limit_v": ETAPAutomation._safe_com_float(
+                        gg_module, "StepVoltageLimit", 0.0, warn_if_absent=True, context="gg_StepVoltageLimit"
+                    ),
                     "touch_ok": bool(getattr(gg_module, "TouchCompliant", False)),
                     "step_ok": bool(getattr(gg_module, "StepCompliant", False)),
                 },
@@ -871,7 +941,9 @@ class ETAPProject:
             customers_served = int(getattr(rel_module, "CustomersServed", 0))
             sustained_outages = int(getattr(rel_module, "SustainedOutages", 0))
             momentary_outages = int(getattr(rel_module, "MomentaryOutages", 0))
-            total_outage_hours = float(getattr(rel_module, "TotalOutageHours", 0.0))
+            total_outage_hours = ETAPAutomation._safe_com_float(
+                rel_module, "TotalOutageHours", 0.0, warn_if_absent=True, context="rel_TotalOutageHours"
+            )
 
             if customers_served <= 0:
                 raise RuntimeError("Reliability analysis returned zero customers served")
@@ -949,18 +1021,29 @@ class ETAPProject:
                 coord_data = getattr(relay, "CoordinationResults", None)
                 if coord_data:
                     for entry in coord_data:
+                        ctx = f"relay={pid}"
                         relay_results.append(
                             {
-                                "fault_current_pu": float(getattr(entry, "FaultCurrent", 0.0)),
-                                "primary_trip_time_sec": float(getattr(entry, "PrimaryTime", 0.0)),
-                                "backup_trip_time_sec": float(getattr(entry, "BackupTime", 0.0)),
-                                "cti_margin_sec": float(getattr(entry, "CTI", 0.0)),
+                                "fault_current_pu": ETAPAutomation._safe_com_float(
+                                    entry, "FaultCurrent", 0.0, warn_if_absent=True, context=ctx
+                                ),
+                                "primary_trip_time_sec": ETAPAutomation._safe_com_float(
+                                    entry, "PrimaryTime", 0.0, warn_if_absent=True, context=ctx
+                                ),
+                                "backup_trip_time_sec": ETAPAutomation._safe_com_float(
+                                    entry, "BackupTime", 0.0, warn_if_absent=True, context=ctx
+                                ),
+                                "cti_margin_sec": ETAPAutomation._safe_com_float(
+                                    entry, "CTI", 0.0, warn_if_absent=True, context=ctx
+                                ),
                                 "coordinated": bool(getattr(entry, "Coordinated", False)),
                             },
                         )
                 pairs[pid] = {
                     "curve_type": str(getattr(relay, "CurveType", curve_type)),
-                    "tms": float(getattr(relay, "TMS", 0.0)),
+                    "tms": ETAPAutomation._safe_com_float(
+                        relay, "TMS", 0.0, warn_if_absent=True, context=f"relay={pid}"
+                    ),
                     "results": relay_results,
                     "all_coordinated": all(r["coordinated"] for r in relay_results)
                     if relay_results
@@ -1555,9 +1638,9 @@ class ETAPAutomation:
 
         normalised_str = os.path.normpath(clean_path)
         if os.path.isabs(normalised_str):
-            abs_str = os.path.abspath(normalised_str)
+            abs_str = os.path.realpath(normalised_str)
         else:
-            abs_str = os.path.abspath(os.path.join(str(cwd), normalised_str))
+            abs_str = os.path.realpath(os.path.join(str(cwd), normalised_str))
         resolved = pathlib.Path(abs_str)
 
         is_in_cwd = os.path.commonpath([str(cwd), abs_str]) == str(cwd)

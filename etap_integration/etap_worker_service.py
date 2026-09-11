@@ -180,7 +180,26 @@ async def execute_study(
             detail=f"Invalid study type: {request.study_type}",
         ) from err
 
-    if not via_static_key:
+    if via_static_key:
+        allowed_studies_env = os.environ.get("ETAP_WORKER_ALLOWED_STUDIES")
+        if allowed_studies_env:
+            allowed_studies = {s.strip().upper() for s in allowed_studies_env.split(",") if s.strip()}
+        else:
+            allowed_studies = {
+                ETAPStudyType.LOAD_FLOW.name,
+                ETAPStudyType.SHORT_CIRCUIT.name,
+                ETAPStudyType.ARC_FLASH.name,
+                ETAPStudyType.MOTOR_STARTING.name,
+                ETAPStudyType.HARMONIC_ANALYSIS.name,
+                ETAPStudyType.OPTIMAL_POWER_FLOW.name,
+                ETAPStudyType.PROTECTION_COORDINATION.name,
+            }
+        if study_type.name not in allowed_studies:
+            raise HTTPException(
+                status_code=403,
+                detail=f"Study type '{study_type.name}' not permitted for static key",
+            )
+    else:
         # RBAC: check that the authenticated user has permission for this study type
         required_perm = STUDY_TYPE_TO_PERMISSION.get(study_type)
         if required_perm is None:
@@ -205,6 +224,12 @@ async def execute_study(
         start_time = time.time()
 
         with ETAPAutomation(visible=request.visible) as etap:
+            validate_fn = getattr(etap, "_validate_project_path", None)
+            if validate_fn is not None and not validate_fn(request.project_path):
+                raise HTTPException(
+                    status_code=403 if via_static_key else 400,
+                    detail=f"Project path not permitted: {request.project_path}",
+                )
             project = etap.open_project(request.project_path)
             if not project:
                 return StudyResponse(

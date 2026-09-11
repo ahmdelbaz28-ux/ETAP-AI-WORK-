@@ -45,7 +45,12 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import Response
 from pydantic import BaseModel, Field, field_validator
 
-from api.dependencies import get_api_key
+from api.dependencies import (
+    CurrentUser,
+    get_api_key,
+    get_current_user_from_header,
+    get_optional_current_user_from_header,
+)
 
 _SAFE_LOG_RE = re.compile(r"[\x00-\x1f\x7f]")
 
@@ -477,9 +482,22 @@ async def update_alert_config(
     response_model=List[WebhookResponse],
     summary="List registered webhooks",
 )
-async def list_webhooks() -> List[WebhookResponse]:
-    """Return all registered webhooks."""
-    return [_webhook_to_response(wh) for wh in _store["webhooks"].values()]
+async def list_webhooks(
+    user: Optional[CurrentUser] = Depends(get_optional_current_user_from_header),
+) -> List[WebhookResponse]:
+    """Return all registered webhooks scoped to the current user (or all if admin)."""
+    user_id = str(getattr(user, "user_id", "")).strip() if user else None
+    role = getattr(user, "role", "") if user else ""
+
+    if role == "admin":
+        return [_webhook_to_response(wh) for wh in _store["webhooks"].values()]
+    if user_id:
+        return [
+            _webhook_to_response(wh)
+            for wh in _store["webhooks"].values()
+            if wh.get("owner_id") == user_id or wh.get("owner_id") is None
+        ]
+    return [_webhook_to_response(wh) for wh in _store["webhooks"].values() if not wh.get("owner_id")]
 
 
 @router.post(
@@ -490,6 +508,7 @@ async def list_webhooks() -> List[WebhookResponse]:
 )
 async def create_webhook(
     body: WebhookCreateRequest,
+    user: Optional[CurrentUser] = Depends(get_optional_current_user_from_header),
 ) -> WebhookResponse:
     """Register a new webhook endpoint.
 
@@ -498,8 +517,25 @@ async def create_webhook(
     to compute an ``X-Webhook-Signature`` header (HMAC-SHA256) on each
     delivery so the receiver can verify authenticity.
     """
+    # SSRF protection: validate URL against private / internal targets
+    from api.email_webhooks import _SSRFBlockedError, _validate_webhook_url
+
+    try:
+        _validate_webhook_url(str(body.url))
+    except _SSRFBlockedError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid webhook URL: {exc}",
+        ) from exc
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Webhook URL validation failed: {exc}",
+        ) from exc
+
     webhook_id = str(uuid.uuid4())
     now = datetime.now(UTC).isoformat()
+    user_id = str(getattr(user, "user_id", "")).strip() if user else None
 
     webhook_data = {
         "id": webhook_id,
@@ -507,15 +543,17 @@ async def create_webhook(
         "events": body.events,
         "secret": body.secret,
         "enabled": True,
+        "owner_id": user_id,
         "created_at": now,
     }
 
     _store["webhooks"][webhook_id] = webhook_data
     logger.info(
-        "webhook_created id=%s url=%s events=%s",
+        "webhook_created id=%s url=%s events=%s owner_id=%s",
         webhook_id,
         body.url,
         body.events,
+        user_id,
     )
     return _webhook_to_response(webhook_data)
 
@@ -529,16 +567,30 @@ async def create_webhook(
 )
 async def delete_webhook(
     webhook_id: str,
+    user: CurrentUser = Depends(get_current_user_from_header),
 ) -> None:
     """Remove a registered webhook by its ID.
 
-    Returns 204 on success, 404 if the webhook does not exist.
+    Returns 204 on success, 404 if the webhook does not exist, 403 if unauthorized.
+    Requires an authenticated user JWT (API-key-only callers are rejected with 401).
     """
     if webhook_id not in _store["webhooks"]:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Webhook '{webhook_id}' not found",
         )
+
+    wh = _store["webhooks"][webhook_id]
+    user_id = str(user.user_id).strip()
+    role = getattr(user, "role", "")
+
+    if role != "admin":
+        owner_id = wh.get("owner_id")
+        if not owner_id or owner_id != user_id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Cannot delete another user's webhook",
+            )
 
     del _store["webhooks"][webhook_id]
     logger.info("webhook_deleted id=%s", webhook_id)

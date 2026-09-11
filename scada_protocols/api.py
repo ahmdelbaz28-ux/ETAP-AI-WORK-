@@ -47,12 +47,21 @@ def build_router() -> APIRouter:
     """Build a fresh APIRouter. Call once per FastAPI app."""
     from fastapi import Depends
 
-    from api.dependencies import get_api_key, get_optional_current_user_from_header
+    from api.dependencies import get_api_key, get_current_user_from_header
 
+    # ARCHITECTURAL DESIGN NOTE (CRITICAL-1 Fix):
+    # _require_admin explicitly depends on get_current_user_from_header (requiring
+    # an Authorization: Bearer <jwt> token) rather than get_optional_current_user_from_header.
+    # While read-only endpoints in this router (/libraries, /status, /{protocol}/status)
+    # accept service-to-service calls authenticated solely via X-API-Key, mutating physical
+    # SCADA control operations (/start, /stop, /{protocol}/start, /{protocol}/stop) MUST NOT
+    # execute under automated/machine API keys alone. Starting and stopping operational
+    # OT protocols can disrupt substation telemetry and grid switching; therefore, physical
+    # SCADA control requires human administrator authentication and explicit user attribution.
     async def _require_admin(
-        user: Any = Depends(get_optional_current_user_from_header),
+        user: Any = Depends(get_current_user_from_header),
     ) -> None:
-        if user is not None and getattr(user, "role", "") != "admin":
+        if getattr(user, "role", "") != "admin":
             raise HTTPException(
                 status_code=403,
                 detail="Admin role required for SCADA protocol control operations",

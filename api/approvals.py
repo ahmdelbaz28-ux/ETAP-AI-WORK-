@@ -228,6 +228,7 @@ class ApprovalResponse(BaseModel):
 # Per-session auto-run toggle. Kept in-memory (single-replica HF Space);
 # a Redis-backed store would be a drop-in replacement.
 _session_auto_approve: Dict[str, bool] = {}
+_session_auto_approve_owners: Dict[str, str] = {}
 
 
 def set_session_auto_approve(session_id: str, enabled: bool) -> None:
@@ -644,6 +645,40 @@ async def set_auto_approve(
                 "message": "Only engineering and admin roles can toggle session auto-approval.",
             },
         )
+
+    user_id = str(getattr(user, "user_id", "")).strip()
+    is_admin = user_role == "admin"
+
+    # Check SessionStreamHub owner if known
+    try:
+        from api.session_stream import get_hub
+
+        hub = get_hub()
+        hub_owner = hub.get_owner(body.session_id)
+        if hub_owner and hub_owner != user_id and not is_admin:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail={
+                    "code": "FORBIDDEN",
+                    "message": "Cannot modify another user's session auto-approval.",
+                },
+            )
+    except Exception:
+        pass
+
+    # Check local session ownership registry
+    existing_owner = _session_auto_approve_owners.get(body.session_id)
+    if existing_owner and existing_owner != user_id and not is_admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail={
+                "code": "FORBIDDEN",
+                "message": "Cannot modify another user's session auto-approval.",
+            },
+        )
+
+    if not existing_owner and user_id:
+        _session_auto_approve_owners[body.session_id] = user_id
 
     set_session_auto_approve(body.session_id, body.enabled)
     return {

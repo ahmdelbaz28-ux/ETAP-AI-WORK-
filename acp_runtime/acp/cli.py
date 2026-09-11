@@ -16,7 +16,7 @@ Environment variables (all optional)::
     ACP_SCOPES            -- Comma-separated caller scopes
     ACP_AUTH_SECRET       -- HMAC secret for bearer-token auth
     ACP_AUTH_TTL          -- Token TTL in seconds (default 3600)
-    ACP_REQUIRE_AUTH      -- Require auth for public capabilities (default false)
+    ACP_REQUIRE_AUTH      -- Require auth for public capabilities (default true)
     ACP_AUDIT_LOG         -- Path to NDJSON audit log file
     ACP_TRACE_FILE        -- Path to JSON trace output file
     ACP_DEADLINE_MS       -- Default deadline in ms (default 30000)
@@ -229,9 +229,12 @@ def _build_router(
     if audit_path:
         audit_logger = NDJSONAuditLogger(audit_path)
 
-    require_auth = (
-        args.require_auth if args.require_auth is not None else env_bool("ACP_REQUIRE_AUTH", False)
-    )
+    if getattr(args, "no_auth", False):
+        require_auth = False
+    elif args.require_auth is not None:
+        require_auth = bool(args.require_auth)
+    else:
+        require_auth = env_bool("ACP_REQUIRE_AUTH", True)
 
     return Router(
         runtime,
@@ -365,6 +368,7 @@ def _build_parser() -> argparse.ArgumentParser:
     common.add_argument(
         "--require-auth",
         action="store_true",
+        default=None,
         help="Require authentication even for public capabilities",
     )
     common.add_argument(
