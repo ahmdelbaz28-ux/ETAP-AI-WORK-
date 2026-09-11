@@ -25,7 +25,7 @@ from fastapi.responses import JSONResponse
 # future edit references `trace.X` directly inside trace_middleware.
 from opentelemetry.trace import SpanKind, Status, StatusCode
 from pydantic import BaseModel
-from starlette.datastructures import Headers, MutableHeaders
+from starlette.datastructures import Headers
 
 from api._messages import ISO_8601_UTC_FMT, MSG_INTERNAL_ERROR, MSG_USER_NOT_FOUND_OR_INACTIVE
 from api.agent_executor import router as agent_executor_router
@@ -70,7 +70,7 @@ from api.rbac import router as rbac_router
 from api.request_context import CorrelationIdMiddleware, TenantMiddleware
 from api.results_store import router as results_router
 from api.scada import router as scada_router
-from api.security_headers import HostValidationMiddleware
+from api.security_headers import HostValidationMiddleware, SecurityHeadersMiddleware
 from api.session_stream import router as session_stream_router
 from api.session_stream import session_stream_ws
 from api.settings import router as settings_router
@@ -759,42 +759,7 @@ else:
 # ---------------------------------------------------------------------------
 # Security headers middleware — defense-in-depth (SECURITY AUDIT S-16)
 # ---------------------------------------------------------------------------
-def _inject_security_headers(headers: MutableHeaders, hsts_env: str) -> None:
-    if "x-content-type-options" not in headers:
-        headers["X-Content-Type-Options"] = "nosniff"
-    if "x-frame-options" not in headers:
-        headers["X-Frame-Options"] = "SAMEORIGIN"
-    if "referrer-policy" not in headers:
-        headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-    if "x-xss-protection" not in headers:
-        headers["X-XSS-Protection"] = "0"  # Deprecated; CSP is the correct control
-    if hsts_env:
-        headers["Strict-Transport-Security"] = f"max-age={hsts_env}; includeSubDomains"
-
-
-class _SecurityHeadersMiddleware:
-    """Add security headers to every response."""
-
-    def __init__(self, app: Any) -> None:
-        self.app = app
-
-    async def __call__(self, scope: Any, receive: Any, send: Any) -> None:
-        if scope["type"] != "http":
-            await self.app(scope, receive, send)
-            return
-
-        hsts_env = os.environ.get("HSTS_MAX_AGE", "")
-
-        async def send_with_security_headers(message: Any) -> None:
-            if message["type"] == "http.response.start":
-                headers = MutableHeaders(scope=message)
-                _inject_security_headers(headers, hsts_env)
-            await send(message)
-
-        await self.app(scope, receive, send_with_security_headers)
-
-
-app.add_middleware(_SecurityHeadersMiddleware)
+app.add_middleware(SecurityHeadersMiddleware)
 
 
 # ─── Security middleware: RASP + ABAC ─────────────────────────────
