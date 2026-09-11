@@ -111,6 +111,19 @@ This log tracks the step-by-step implementation, verification, and git commit de
 
 ---
 
+## التحسين 9: JWT algorithm pinning (MEDIUM)
+- **الحالة**: مكتمل ومتحقق منه (VERIFIED)
+- **الملفات المعدلة**:
+  - `api/dependencies.py`: تثبيت خوارزمية فك تشفير وفحص توقيع رموز JWT صراحةً على `algorithms=["HS256"]` ومنع أي خوارزميات بديلة أو قيم فارغة (None/"none") لدرء هجمات Algorithm Confusion / Substitution.
+- **نتائج التحقق**:
+  - `ruff check api/`: All checks passed!
+  - `pytest tests/test_approvals.py tests/test_worker_auth_contract.py -q`: 26 passed in 41.75s
+  - `validate-findings.cjs`: PASS: 11 findings valid
+- **Commit**: `security: pin JWT decoding algorithms strictly to HS256`
+
+---
+
+
 
 
 
