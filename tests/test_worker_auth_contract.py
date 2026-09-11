@@ -6,10 +6,10 @@ SAME unified Bearer scheme.
 
 1. RemoteEtapProvider sends ``Authorization: Bearer <ETAP_WORKER_API_KEY>``
    and never emits the removed legacy header.
-2. The worker accepts that exact credential shape: a Bearer token matching
-   ETAP_WORKER_STATIC_KEY authenticates as the service principal, JWT-shaped
-   tokens flow to RBAC, wrong/absent credentials are rejected, and the legacy
-   header no longer exists on the worker side.
+2. The worker accepts that exact credential shape: Bearer JWT access
+   tokens flow to RBAC, wrong/absent credentials are rejected, static key
+   bypass is completely removed, and the legacy header no longer exists
+   on the worker side.
 """
 
 from __future__ import annotations
@@ -125,28 +125,35 @@ def worker_client(monkeypatch: pytest.MonkeyPatch):
     return TestClient(worker_mod.app, raise_server_exceptions=False)
 
 
-def test_static_key_authenticates_as_service_principal(
-    worker_client, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    monkeypatch.setenv(worker_mod.STATIC_BEARER_ENV, "static-key-42")
+def test_no_static_key_bypass(worker_client) -> None:
+    """Confirm static key environment variable and bypass logic are completely removed."""
+    assert not hasattr(worker_mod, "STATIC_BEARER_ENV")
+    assert not hasattr(worker_mod, "_get_static_bearer_key")
     response = worker_client.post(
         "/execute",
         json={"project_path": "demo.edb", "study_type": "LOAD_FLOW"},
         headers={"Authorization": "Bearer static-key-42"},
     )
-    assert response.status_code == 200
-    body = response.json()
-    assert body["success"] is True
+    assert response.status_code in (401, 403)
 
 
-def test_wrong_credential_rejected(worker_client, monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setenv(worker_mod.STATIC_BEARER_ENV, "static-key-42")
+def test_bearer_token_without_permission_rejected_403(
+    worker_client, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Bearer token without required study permission must return 403 Forbidden."""
+
+    class _StubAuthzForbidden:
+        def check_permission(self, token: str, permission: Any) -> bool:
+            return False
+
+    monkeypatch.setattr(worker_mod, "get_authz_manager", lambda: _StubAuthzForbidden())
     response = worker_client.post(
         "/execute",
         json={"project_path": "demo.edb", "study_type": "LOAD_FLOW"},
-        headers={"Authorization": "Bearer static-key-WRONG"},
+        headers={"Authorization": "Bearer valid-token-insufficient-perms"},
     )
-    assert response.status_code in (401, 403)
+    assert response.status_code == 403
+    assert "insufficient permissions" in response.json().get("detail", "").lower()
 
 
 def test_missing_authorization_rejected(worker_client) -> None:
@@ -155,12 +162,11 @@ def test_missing_authorization_rejected(worker_client) -> None:
         json={"project_path": "demo.edb", "study_type": "LOAD_FLOW"},
     )
     # HTTPBearer(auto_error=True) rejects a missing Authorization header
-    # with 401 Unauthorized before the handler runs.
     assert response.status_code in (401, 403)
 
 
 def test_jwt_shaped_token_flows_to_rbac(worker_client, monkeypatch: pytest.MonkeyPatch) -> None:
-    """Non-static credentials must reach the RBAC manager (JWT-first)."""
+    """Valid JWT credentials reach the RBAC manager and grant access upon permission."""
     checked: dict[str, Any] = {}
 
     class _StubAuthz:
@@ -168,7 +174,6 @@ def test_jwt_shaped_token_flows_to_rbac(worker_client, monkeypatch: pytest.Monke
             checked["token"] = token
             return True
 
-    monkeypatch.delenv(worker_mod.STATIC_BEARER_ENV, raising=False)
     monkeypatch.setattr(worker_mod, "get_authz_manager", lambda: _StubAuthz())
     response = worker_client.post(
         "/execute",

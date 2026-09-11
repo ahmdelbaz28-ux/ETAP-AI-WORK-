@@ -340,6 +340,10 @@ def _validate_environment() -> None:
     if is_production:
         if not os.environ.get("JWT_SECRET_KEY"):
             warnings.append("JWT_SECRET_KEY not set - JWT tokens will not survive restarts")
+        if not os.environ.get("AUDIT_HMAC_SECRET"):
+            warnings.append(
+                "AUDIT_HMAC_SECRET not set - audit log tamper protection uses plain SHA-256"
+            )
         if not os.environ.get("ENGINEERING_SERVICE_API_KEY"):
             auth_disabled = os.environ.get("ENGINEERING_SERVICE_AUTH_DISABLED", "").lower() in (
                 "1",

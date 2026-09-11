@@ -62,6 +62,7 @@ References:
 from __future__ import annotations
 
 import hashlib
+import hmac
 import json
 import logging
 import os
@@ -348,7 +349,7 @@ class TamperEvidentAuditLog:
 
     GENESIS_HASH = "0" * 64
 
-    def __init__(self, log_path: str | None = None) -> None:
+    def __init__(self, log_path: str | Path | None = None, hmac_secret: str | None = None) -> None:
         # Default to the per-user cache directory (NOT /tmp) to avoid
         # SonarCloud S5443 (publicly writable directories).
         if log_path is None:
@@ -359,6 +360,17 @@ class TamperEvidentAuditLog:
             os.chmod(self.log_path.parent, 0o700)
         except OSError:
             pass
+        self._hmac_secret = hmac_secret or os.environ.get("AUDIT_HMAC_SECRET", "")
+
+    def _compute_hash(self, hash_input: str) -> str:
+        """Compute entry hash using HMAC-SHA256 if secret is set, else plain SHA-256."""
+        if self._hmac_secret:
+            return hmac.new(
+                self._hmac_secret.encode("utf-8"),
+                hash_input.encode("utf-8"),
+                hashlib.sha256,
+            ).hexdigest()
+        return hashlib.sha256(hash_input.encode("utf-8")).hexdigest()
 
     def append(self, data: dict[str, Any]) -> str:
         """Append an entry to the chain. Returns the entry's hash."""
@@ -374,10 +386,10 @@ class TamperEvidentAuditLog:
             "timestamp": datetime.now(UTC).isoformat(),
         }
 
-        # Compute hash: SHA-256(prev_hash + canonical_json(data) + timestamp)
+        # Compute hash: HMAC-SHA256 / SHA-256(prev_hash + canonical_json(data) + timestamp)
         canonical = json.dumps(data, sort_keys=True, default=str)
         hash_input = f"{prev_hash}{canonical}{entry['timestamp']}"
-        entry_hash = hashlib.sha256(hash_input.encode()).hexdigest()
+        entry_hash = self._compute_hash(hash_input)
         entry["hash"] = entry_hash
 
         # Append to file (one JSON per line)
@@ -415,7 +427,7 @@ class TamperEvidentAuditLog:
                 # Verify hash
                 canonical = json.dumps(entry["data"], sort_keys=True, default=str)
                 hash_input = f"{prev_hash}{canonical}{entry['timestamp']}"
-                expected_hash = hashlib.sha256(hash_input.encode()).hexdigest()
+                expected_hash = self._compute_hash(hash_input)
                 if entry.get("hash") != expected_hash:
                     broken.append(f"entry_{entry.get('entry_id')}: hash_mismatch")
 
@@ -489,6 +501,7 @@ class LifeSafetyGuard:
         self,
         audit_dir: str | None = None,
         safety_log_path: str | None = None,
+        hmac_secret: str | None = None,
     ) -> None:
         # Default audit_dir to the per-user cache (NOT /tmp) to avoid
         # SonarCloud S5443 (publicly writable directories).
@@ -502,6 +515,7 @@ class LifeSafetyGuard:
             pass
         self.audit_log = TamperEvidentAuditLog(
             log_path=safety_log_path or str(self.audit_dir / "safety_chain.jsonl"),
+            hmac_secret=hmac_secret,
         )
         self._last_control_action_time: float = 0.0
         self._last_safety_check: SafetyCheckResult | None = None

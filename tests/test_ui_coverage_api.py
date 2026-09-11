@@ -299,3 +299,24 @@ class TestFeatureFlagsAPI:
             headers=admin_headers,
         )
         assert response.status_code == 422
+
+
+# ---------------------------------------------------------------------------
+# Step 9: UI Session ID Entropy Verification (Fix 5)
+# ---------------------------------------------------------------------------
+
+
+class TestChatSessionIdEntropy:
+    """Verifies that the frontend getChatSessionId implementation generates 128-bit entropy."""
+
+    def test_session_id_entropy_in_ts_source(self) -> None:
+        from pathlib import Path
+
+        llm_chat_path = Path("ui/src/lib/llm-chat.ts")
+        assert llm_chat_path.exists(), "ui/src/lib/llm-chat.ts must exist"
+        content = llm_chat_path.read_text(encoding="utf-8")
+
+        # Must generate 16 hex chars (128-bit entropy)
+        assert "slice(0, 16)" in content, "getChatSessionId must slice 16 hex chars"
+        assert "Uint8Array(16)" in content, "generateRandomHex must use 16 random bytes (128 bits)"
+        assert 'replace(/-/g, "")' in content

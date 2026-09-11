@@ -663,6 +663,8 @@ async def set_auto_approve(
                     "message": "Cannot modify another user's session auto-approval.",
                 },
             )
+    except HTTPException:
+        raise
     except Exception:
         pass
 

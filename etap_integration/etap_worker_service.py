@@ -7,7 +7,6 @@ Provides a REST API for the Linux-based AI platform to execute ETAP studies.
 
 from __future__ import annotations
 
-import hmac
 import os
 import sys
 from typing import Any
@@ -31,46 +30,23 @@ from security.security_framework import Permission, get_authz_manager
 app = FastAPI(title="AhmedETAP Windows Worker", version="1.0.0")
 
 # ----------------------------
-# Security: unified Bearer auth (JWT first, static key transitional)
+# Security: Bearer auth (JWT-only)
 # ----------------------------
 # All callers authenticate with a single header shape:
 #     Authorization: Bearer <credential>
 #
-# Credential resolution order:
-#   1. JWT access token — validated downstream by the RBAC authorization
-#      manager (check_permission) as before. This is the target steady state.
-#   2. Static shared bearer — accepted ONLY when the operator sets
-#   ETAP_WORKER_STATIC_KEY on the worker host. This is TRANSITIONAL
-#      scaffolding so the cloud-to-worker loop can run before a full JWT
-#      issuance flow exists; it must be removed once JWT issuance ships.
-# The legacy dedicated API-key header scheme was removed entirely from both
-# worker and provider; only the unified Bearer shape is accepted.
+# Credential resolution:
+#   JWT access token — validated downstream by the RBAC authorization
+#   manager (check_permission). Static shared bearer key removed per
+#   security audit run-4.
 bearer_scheme = HTTPBearer(auto_error=True)
-
-STATIC_BEARER_ENV = "ETAP_WORKER_STATIC_KEY"
-
-
-def _get_static_bearer_key() -> str | None:
-    """Return the configured transitional static bearer key, if any."""
-    return os.environ.get(STATIC_BEARER_ENV) or None
 
 
 def _require_auth(
     creds: HTTPAuthorizationCredentials = Security(bearer_scheme),  # noqa: B008
 ) -> tuple[str, bool]:
-    """
-    Validate the unified Bearer credential.
-
-    Returns ``(credential, via_static_key)``. When ``via_static_key`` is
-    True the caller authenticated with the transitional static shared key
-    and is authorized as the worker's service principal by construction.
-    Otherwise the credential is treated as a JWT and permission checks are
-    performed by the endpoint handler via the authorization manager.
-    """
     credential = creds.credentials
-    static_key = _get_static_bearer_key()
-    if static_key and hmac.compare_digest(credential.encode(), static_key.encode()):
-        return credential, True
+    # JWT-only authentication; static key removed per security audit run-4.
     return credential, False
 
 
@@ -157,14 +133,11 @@ async def execute_study(
     """
     Execute an ETAP study via COM automation.
 
-    Authentication: unified Bearer credential required (JWT or, when
-    ETAP_WORKER_STATIC_KEY is configured on this host, the transitional
-    static shared key).
+    Authentication: Bearer JWT access token required.
     Authorization: JWT callers are checked via RBAC permission mapped from
-    the requested study type. Static-key callers act as this worker's
-    service principal and are authorized for all supported study types.
+    the requested study type.
     """
-    token, via_static_key = auth
+    token, _ = auth
 
     if sys.platform != "win32" and ETAPAutomation.__name__ == "ETAPAutomation":
         raise HTTPException(  # NOSONAR
@@ -180,39 +153,19 @@ async def execute_study(
             detail=f"Invalid study type: {request.study_type}",
         ) from err
 
-    if via_static_key:
-        allowed_studies_env = os.environ.get("ETAP_WORKER_ALLOWED_STUDIES")
-        if allowed_studies_env:
-            allowed_studies = {s.strip().upper() for s in allowed_studies_env.split(",") if s.strip()}
-        else:
-            allowed_studies = {
-                ETAPStudyType.LOAD_FLOW.name,
-                ETAPStudyType.SHORT_CIRCUIT.name,
-                ETAPStudyType.ARC_FLASH.name,
-                ETAPStudyType.MOTOR_STARTING.name,
-                ETAPStudyType.HARMONIC_ANALYSIS.name,
-                ETAPStudyType.OPTIMAL_POWER_FLOW.name,
-                ETAPStudyType.PROTECTION_COORDINATION.name,
-            }
-        if study_type.name not in allowed_studies:
-            raise HTTPException(
-                status_code=403,
-                detail=f"Study type '{study_type.name}' not permitted for static key",
-            )
-    else:
-        # RBAC: check that the authenticated user has permission for this study type
-        required_perm = STUDY_TYPE_TO_PERMISSION.get(study_type)
-        if required_perm is None:
-            raise HTTPException(  # NOSONAR HTTPException responses will be documented in API refactoring sprint
-                status_code=400,
-                detail=f"No RBAC mapping for study type: {study_type.value}",
-            )
+    # RBAC: check that the authenticated user has permission for this study type
+    required_perm = STUDY_TYPE_TO_PERMISSION.get(study_type)
+    if required_perm is None:
+        raise HTTPException(  # NOSONAR HTTPException responses will be documented in API refactoring sprint
+            status_code=400,
+            detail=f"No RBAC mapping for study type: {study_type.value}",
+        )
 
-        authz = get_authz_manager()
-        if not authz.check_permission(token, required_perm):
-            raise HTTPException(  # NOSONAR
-                status_code=403, detail="Forbidden: insufficient permissions"
-            )  # NOSONAR HTTPException responses will be documented in API refactoring sprint
+    authz = get_authz_manager()
+    if not authz.check_permission(token, required_perm):
+        raise HTTPException(  # NOSONAR
+            status_code=403, detail="Forbidden: insufficient permissions"
+        )  # NOSONAR HTTPException responses will be documented in API refactoring sprint
 
     # Validate parameters against the study type schema
     if request.parameters:
@@ -227,7 +180,7 @@ async def execute_study(
             validate_fn = getattr(etap, "_validate_project_path", None)
             if validate_fn is not None and not validate_fn(request.project_path):
                 raise HTTPException(
-                    status_code=403 if via_static_key else 400,
+                    status_code=400,
                     detail=f"Project path not permitted: {request.project_path}",
                 )
             project = etap.open_project(request.project_path)

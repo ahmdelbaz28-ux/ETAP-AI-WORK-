@@ -179,7 +179,10 @@ def process_large_calculation_task(self, calculation_data: dict):
             raise ValueError(
                 f"Calculation size {raw_size} exceeds allowed bounds [{MIN_CALCULATION_SIZE}, {MAX_CALCULATION_SIZE}]"
             )
-        if raw_iterations < MIN_CALCULATION_ITERATIONS or raw_iterations > MAX_CALCULATION_ITERATIONS:
+        if (
+            raw_iterations < MIN_CALCULATION_ITERATIONS
+            or raw_iterations > MAX_CALCULATION_ITERATIONS
+        ):
             raise ValueError(
                 f"Calculation iterations {raw_iterations} exceeds allowed bounds [{MIN_CALCULATION_ITERATIONS}, {MAX_CALCULATION_ITERATIONS}]"
             )
