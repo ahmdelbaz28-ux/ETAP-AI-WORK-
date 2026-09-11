@@ -138,3 +138,7 @@ This audit table documents the categorization, reference verification, action ta
 | `ARCHITECTURE.md` | duplicate | Root copy redundant with `docs/ARCHITECTURE.md` | archive & pointer | Low | Archived to `docs/generated/`, replaced with 5-line pointer. |
 | `INSTALLATION.md` | duplicate | Root copy merged with `docs/INSTALLATION.md` | merge, archive & pointer | Low | Archived to `docs/generated/`, replaced with 5-line pointer. |
 | `TROUBLESHOOTING.md` | duplicate | Root copy merged with `docs/TROUBLESHOOTING.md` | merge, archive & pointer | Low | Archived to `docs/generated/`, replaced with 5-line pointer. |
+| `scratch/` | directory | Runtime scratch space for agent executions | keep (ignored) | Low | Referenced by agent tooling, `.gitignore:12`. |
+| `logs/` | directory | Runtime log destination | keep (ignored) | Low | Referenced by 820+ code locations, `.gitignore:315`. |
+| `site/` | directory | MkDocs documentation build output | keep (ignored) | Low | Referenced by 330+ doc build locations, `.gitignore:391`. |
+| `dist/` | directory | Python/NPM packaging distribution output | keep (ignored) | Low | Referenced by 1300+ build/release workflows, `.gitignore:169`. |
