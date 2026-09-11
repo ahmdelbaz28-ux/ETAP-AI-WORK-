@@ -75,6 +75,20 @@ This log tracks the step-by-step implementation, verification, and git commit de
 
 ---
 
+## التحسين 6: استخدام SET LOCAL لـ tenant context (HIGH)
+- **الحالة**: مكتمل ومتحقق منه (VERIFIED)
+- **الملفات المعدلة**:
+  - `api/request_context.py`: تحديث استدعاءات `set_config('app.current_tenant_id', ...)` لتمرير `is_local=true` لضمان حصر الإعداد على المعاملة الحالية (Transaction-scoped) ومنع تسرب سياق المستأجر عبر اتصالات Connection Pool.
+  - `api/dependencies.py`: إضافة المساعد `set_session_tenant_context(session, tenant_id)` لتطبيق `SET LOCAL` صراحة على معاملات `AsyncSession`.
+- **نتائج التحقق**:
+  - `ruff check api/`: All checks passed!
+  - `pytest tests/test_approvals.py tests/test_worker_auth_contract.py -q`: 26 passed in 42.72s
+  - `validate-findings.cjs`: PASS: 11 findings valid
+- **Commit**: `security: enforce SET LOCAL transaction scoping for tenant context`
+
+---
+
+
 
 
 

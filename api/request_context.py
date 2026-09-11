@@ -176,7 +176,7 @@ def _set_tenant_before_query(conn, cursor, statement, parameters, context, execu
         from sqlalchemy import text
 
         conn.execute(
-            text("SELECT set_config('app.current_tenant_id', :tid, false)"),
+            text("SELECT set_config('app.current_tenant_id', :tid, true)"),
             {"tid": tenant_id},
         )
     except Exception:
@@ -196,7 +196,7 @@ def _reset_tenant_on_checkin(dbapi_connection, _connection_record) -> None:
             return
         cursor = dbapi_connection.cursor()
         try:
-            cursor.execute("SELECT set_config('app.current_tenant_id', '', false)")
+            cursor.execute("SELECT set_config('app.current_tenant_id', '', true)")
         finally:
             cursor.close()
     except Exception:

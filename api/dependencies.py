@@ -495,3 +495,14 @@ def _extract_bearer_token(authorization: str) -> str:
             detail="Invalid Authorization header format. Expected: Bearer <token>",
         )
     return parts[1]
+
+
+async def set_session_tenant_context(session: AsyncSession, tenant_id: str) -> None:
+    """Set transaction-local tenant context (SET LOCAL) to prevent cross-tenant pool contamination."""
+    from sqlalchemy import text
+
+    await session.execute(
+        text("SELECT set_config('app.current_tenant_id', :tid, true)"),
+        {"tid": tenant_id},
+    )
+
