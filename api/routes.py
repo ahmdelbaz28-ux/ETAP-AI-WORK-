@@ -63,8 +63,8 @@ from api.projects import router as projects_router
 from api.rate_limit import (
     RateLimitExceeded,
     SlowAPIMiddleware,
-    _rate_limit_exceeded_handler,
     limiter,
+    rate_limit_exceeded_handler,
 )
 from api.rbac import router as rbac_router
 from api.request_context import CorrelationIdMiddleware, TenantMiddleware
@@ -114,6 +114,7 @@ app = FastAPI(
     debug=is_dev_environment(),  # Strictly false in production/staging
 )
 app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, rate_limit_exceeded_handler)
 
 # ---------------------------------------------------------------------------
 # API Key validation
@@ -712,13 +713,15 @@ if not _cors_origin_list:
 # V-07 (Phase 2): TenantMiddleware and CorrelationIdMiddleware are added
 # BEFORE BodySizeLimit so they run AFTER authentication (innermost) and
 # can set the PostgreSQL RLS session variable before any query runs.
-app.add_middleware(HostValidationMiddleware)
-app.add_middleware(SlowAPIMiddleware)
-app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+# D7 Execution order (last added = outermost, executed first on incoming requests):
+# SecurityHeadersMiddleware → HostValidationMiddleware → CORSMiddleware →
+# SlowAPIMiddleware → CSRFMiddleware → _BodySizeLimitMiddleware →
+# TenantMiddleware → CorrelationIdMiddleware → _TraceMiddleware → handler
 app.add_middleware(TenantMiddleware)
 app.add_middleware(CorrelationIdMiddleware)
 app.add_middleware(_BodySizeLimitMiddleware)
 app.add_middleware(CSRFMiddleware)
+app.add_middleware(SlowAPIMiddleware)
 if not _cors_origin_list or _CORS_ORIGINS == "":
     # Don't allow credentials when no origins are configured
     app.add_middleware(  # NOSONAR CORSMiddleware added last to make it outermost in the middleware chain
@@ -762,8 +765,9 @@ else:
 
 
 # ---------------------------------------------------------------------------
-# Security headers middleware — defense-in-depth (SECURITY AUDIT S-16)
+# Host validation and Security headers middleware — outermost defense (D7)
 # ---------------------------------------------------------------------------
+app.add_middleware(HostValidationMiddleware)
 app.add_middleware(SecurityHeadersMiddleware)
 
 
