@@ -64,6 +64,7 @@ from api.rbac import router as rbac_router
 from api.request_context import CorrelationIdMiddleware, TenantMiddleware
 from api.results_store import router as results_router
 from api.scada import router as scada_router
+from api.security_headers import HostValidationMiddleware
 from api.session_stream import router as session_stream_router
 from api.session_stream import session_stream_ws
 from api.settings import router as settings_router
@@ -198,13 +199,14 @@ def _require_api_key(request: Request) -> None:
     auth_disabled = _AUTH_DISABLED or os.environ.get(
         "ENGINEERING_SERVICE_AUTH_DISABLED", ""
     ).lower() in ("true", "1", "yes")
+    path = request.scope.get("path") or request.url.path
     if auth_disabled:
         if not is_dev_environment():
             raise HTTPException(
                 status_code=503,
                 detail="Authentication disabled is not permitted in this environment",
             )
-        if request.url.path.startswith("/admin/"):
+        if path.startswith("/admin/"):
             raise HTTPException(status_code=403, detail="Admin role required")
         return
 
@@ -220,7 +222,7 @@ def _require_api_key(request: Request) -> None:
             payload = _validate_jwt_access_token_sync(token)
             role = payload.get("role", "")
             # Admin endpoints require admin role
-            if request.url.path.startswith("/admin/") and role != "admin":
+            if path.startswith("/admin/") and role != "admin":
                 raise HTTPException(status_code=403, detail="Admin role required")
             return
         except HTTPException:
@@ -235,7 +237,7 @@ def _require_api_key(request: Request) -> None:
                 detail="Authentication required but no API key configured. "
                 "Set ENGINEERING_SERVICE_API_KEY or ENGINEERING_SERVICE_AUTH_DISABLED=true",
             )
-        if request.url.path.startswith("/admin/"):
+        if path.startswith("/admin/"):
             raise HTTPException(status_code=403, detail="Admin role required")
         return
     # NOSONAR S8415: HTTPException documented in OpenAPI route summary; responses parameter is verbose for this use case
@@ -248,7 +250,7 @@ def _require_api_key(request: Request) -> None:
 
     # SECURITY AUDIT RUN-2 (HIGH-2, MEDIUM-4): Admin endpoints require admin role.
     # Service API keys do not carry role information and cannot access /admin/ endpoints.
-    if request.url.path.startswith("/admin/"):
+    if path.startswith("/admin/"):
         raise HTTPException(status_code=403, detail="Admin role required")
 
 
@@ -698,6 +700,7 @@ if not _cors_origin_list:
 # V-07 (Phase 2): TenantMiddleware and CorrelationIdMiddleware are added
 # BEFORE BodySizeLimit so they run AFTER authentication (innermost) and
 # can set the PostgreSQL RLS session variable before any query runs.
+app.add_middleware(HostValidationMiddleware)
 app.add_middleware(TenantMiddleware)
 app.add_middleware(CorrelationIdMiddleware)
 app.add_middleware(_BodySizeLimitMiddleware)

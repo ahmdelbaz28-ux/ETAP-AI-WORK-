@@ -520,7 +520,7 @@ if _HAS_STARLETTE:
             request = Request(scope)
 
             # Skip public paths, test mode (AUTH_DISABLED), or requests with valid X-API-Key
-            path = request.url.path
+            path = scope.get("path") or request.url.path
             is_public = path == "/" or any(
                 path.startswith(prefix) for prefix in self._public_paths if prefix != "/"
             )
