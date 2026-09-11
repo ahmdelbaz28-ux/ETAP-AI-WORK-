@@ -324,12 +324,12 @@ async def submit_plan(
     eval_args: Dict[str, Any] = dict(raw_args)
     if src_dict is not None:
         eval_args.setdefault("source", src_dict)
-    from api.approvals import get_session_auto_approve
+    from api.session_ownership import is_auto_approve
 
     decision_result = evaluate_tool_policy(
         tool_name=canonical,
         args=eval_args,
-        auto_approve_enabled=get_session_auto_approve(plan.session_id or ""),
+        auto_approve_enabled=is_auto_approve(plan.session_id or ""),
     )
     decision = decision_result["decision"]
     reason = decision_result["reason"]

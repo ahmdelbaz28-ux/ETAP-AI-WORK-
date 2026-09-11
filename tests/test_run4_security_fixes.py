@@ -371,3 +371,43 @@ def test_etap_project_path_symlink_traversal_rejected(tmp_path):
                 link_in_cwd.unlink()
             except OSError:
                 pass
+
+
+# ===========================================================================
+# 12. REGRESSION: Session Ownership Hub Divergence Prevention
+# ===========================================================================
+def test_session_ownership_hub_divergence_prevented():
+    """Claiming ownership via SessionStreamHub prevents another user from toggling
+
+    session auto-approve via the REST endpoint (hub divergence regression).
+    """
+    from api.approvals import session_router
+    from api.dependencies import get_current_user_from_header
+    from api.session_ownership import reset_session_ownership
+    from api.session_stream import get_hub
+
+    reset_session_ownership()
+    hub = get_hub()
+    test_session = "sess_hub_divergence_test"
+    user_a = CurrentUser(
+        user_id="user_owner_a", username="alice", email="alice@example.com", role="engineer"
+    )
+    user_b = CurrentUser(
+        user_id="user_intruder_b", username="bob", email="bob@example.com", role="engineer"
+    )
+
+    # 1. User A claims ownership through the SessionStreamHub path
+    assert hub.verify_ownership(test_session, user_a.user_id) is True
+
+    # 2. User B tries to toggle auto-approval on User A's session via REST API
+    app = FastAPI()
+    app.include_router(session_router)
+    app.dependency_overrides[get_current_user_from_header] = lambda: user_b
+
+    client = TestClient(app, raise_server_exceptions=False)
+    resp = client.put(
+        "/api/v1/session/auto-approve", json={"session_id": test_session, "enabled": True}
+    )
+
+    assert resp.status_code == 403
+    assert resp.json()["detail"]["code"] == "FORBIDDEN"
