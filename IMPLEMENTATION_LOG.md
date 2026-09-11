@@ -23,3 +23,16 @@ This log tracks the step-by-step implementation, verification, and git commit de
 
 ---
 
+## التحسين 2: منع Celery pickle deserialization (CRITICAL)
+- **الحالة**: مكتمل ومتحقق منه (VERIFIED)
+- **الملفات المعدلة**:
+  - `worker/celery_app.py`: ضبط `broker_use_ssl` عبر متغير البيئة، وضمان قصر التسلسل وقبول المحتوى على `json` فقط، وإضافة فحص bootstrap صارم يرفض الإقلاع في حال وجود `pickle` أو `application/x-python-serialize`.
+- **نتائج التحقق**:
+  - `ruff check worker/celery_app.py`: All checks passed!
+  - `pytest tests/test_worker_auth_contract.py -q`: 8 passed in 19.31s
+  - `validate-findings.cjs`: PASS: 11 findings valid
+- **Commit**: `security: prevent celery pickle deserialization and configure broker ssl`
+
+---
+
+

@@ -57,6 +57,7 @@ app.conf.update(
     task_serializer="json",
     accept_content=["json"],
     result_serializer="json",
+    broker_use_ssl=os.environ.get("CELERY_BROKER_USE_SSL", "false").lower() == "true",
     # Timezone
     timezone="UTC",
     enable_utc=True,
@@ -130,5 +131,16 @@ app.conf.beat_schedule = {
     },
 }
 
+# ---------------------------------------------------------------------------
+# Security: Forbid pickle deserialization at bootstrap
+# ---------------------------------------------------------------------------
+
+if (
+    "pickle" in app.conf.accept_content
+    or "application/x-python-serialize" in app.conf.accept_content
+):
+    raise RuntimeError("SECURITY: Celery pickle deserialization is forbidden")
+
 if __name__ == "__main__":
     app.start()
+
