@@ -123,6 +123,20 @@ This log tracks the step-by-step implementation, verification, and git commit de
 
 ---
 
+## التحسين 10: تفعيل lifespan handlers (LOW)
+- **الحالة**: مكتمل ومتحقق منه (VERIFIED)
+- **الملفات المعدلة**:
+  - `core/bootstrap.py`: التأكد من تفعيل واستخدام مدير دورة الحياة الحديث `lifespan` في كافة عمليات الإقلاع وإغلاق قواعد البيانات وإدارة الذاكرة المؤقتة.
+  - `scada_protocols/wiring.py`: استبدال استخدام `@app.on_event("shutdown")` القديم بـ `app.add_event_handler("shutdown", ...)` لمنع أي تحذيرات deprecation في إصدارات FastAPI الحديثة.
+- **نتائج التحقق**:
+  - `ruff check scada_protocols/ core/ api/`: All checks passed!
+  - `pytest tests/test_ui_coverage_api.py -q`: 27 passed in 51.06s
+  - `validate-findings.cjs`: PASS: 11 findings valid
+- **Commit**: `refactor: modernize application lifecycle handlers using lifespan and event handlers`
+
+---
+
+
 
 
 
