@@ -399,7 +399,7 @@ jobs:
             --cov=. \
             --cov-report=term-missing \
             --cov-report=xml \
-            --cov-fail-under=40 \
+            --cov-fail-under=50 \
             --timeout=60 \
             --maxfail=5 \
             -n 4 \

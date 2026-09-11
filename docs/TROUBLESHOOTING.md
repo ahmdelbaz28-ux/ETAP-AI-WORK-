@@ -72,6 +72,15 @@ cd frontend && npm install && npm run build
 
 **Fix**: This is intentional security behavior. Paths with null bytes, traversal sequences, or leading dashes are rejected. Ensure file paths are clean.
 
+### Native Dependency Compilation Errors
+
+**Symptom**: C extension compilation fails when installing requirements
+
+**Fix**:
+- On Windows: Install Microsoft C++ Build Tools (Visual Studio 2022 Build Tools with Desktop Development with C++).
+- On Linux: Run `sudo apt-get install build-essential python3-dev` (Debian/Ubuntu) or `sudo yum groupinstall "Development Tools"` (RHEL/CentOS).
+- On macOS: Run `xcode-select --install`.
+
 ## Getting Help
 
 1. Check logs: `LOG_LEVEL=DEBUG` for detailed output

@@ -66,10 +66,12 @@ async def test_individual_agents():
             # Instantiate the agent
             agent = agent_class()
 
-            # Verify the agent has required properties
-            assert hasattr(agent, "agent_name"), f"{agent_name} missing agent_name"
-            assert hasattr(agent, "status"), f"{agent_name} missing status"
-            assert hasattr(agent, "execute"), f"{agent_name} missing execute method"
+            if not hasattr(agent, "agent_name"):
+                raise AttributeError(f"{agent_name} missing agent_name")
+            if not hasattr(agent, "status"):
+                raise AttributeError(f"{agent_name} missing status")
+            if not hasattr(agent, "execute"):
+                raise AttributeError(f"{agent_name} missing execute method")
 
             # Create a minimal test task
             task = EngineeringTask(
@@ -115,13 +117,10 @@ async def test_orchestrator():
     try:
         orchestrator = get_orchestrator()
 
-        # Verify orchestrator has required methods (actual implementation uses execute_parallel_studies)
-        assert hasattr(orchestrator, "execute_parallel_studies"), (
-            "Orchestrator missing execute_parallel_studies method"
-        )
-        assert hasattr(orchestrator, "get_agents_info"), (
-            "Orchestrator missing get_agents_info method"
-        )
+        if not hasattr(orchestrator, "execute_parallel_studies"):
+            raise AttributeError("Orchestrator missing execute_parallel_studies method")
+        if not hasattr(orchestrator, "get_agents_info"):
+            raise AttributeError("Orchestrator missing get_agents_info method")
 
         agent_info = orchestrator.get_agents_info()
         logger.info(f"✓ Orchestrator retrieved info for {len(agent_info.get('agents', []))} agents")  # noqa: G004

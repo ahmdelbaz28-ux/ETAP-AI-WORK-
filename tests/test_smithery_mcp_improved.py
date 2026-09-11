@@ -489,11 +489,14 @@ class TestAsyncRetry:
         client = fresh_smithery_module.SmitheryClient()
         client.max_retries = 5
 
-        async def op() -> str:
-            raise KeyboardInterrupt("user pressed Ctrl+C")
+        class CustomInterrupt(BaseException):
+            """BaseException to verify retry loop does not swallow non-Exception."""
 
-        # KeyboardInterrupt is a BaseException, not Exception — should propagate
-        with pytest.raises(KeyboardInterrupt):
+        async def op() -> str:
+            raise CustomInterrupt("simulated interrupt")
+
+        # CustomInterrupt is a BaseException, not Exception — should propagate
+        with pytest.raises(CustomInterrupt):
             await client._call_with_retry(op, op_name="test", timeout=1.0)
 
 

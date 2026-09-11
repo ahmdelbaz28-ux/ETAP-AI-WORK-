@@ -9,7 +9,7 @@ if ! command -v node &> /dev/null; then
 fi
 
 echo "Installing dependencies..."
-npm install
+npm install --ignore-scripts
 
 echo ""
 echo "Dependencies installed successfully!"

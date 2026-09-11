@@ -1,11 +1,11 @@
 """Set SONAR_TOKEN as a GitHub Actions repo secret (official libsodium flow)."""
+
 import base64
 import json
+import os
 import urllib.request
 
 from nacl import encoding, public
-
-import os
 
 # Load secrets from environment variables for security. Ensure they are set before running this script.
 TOKEN = os.getenv("SONAR_TOKEN")
@@ -13,7 +13,9 @@ GH = os.getenv("GITHUB_PAT")
 REPO = os.getenv("GITHUB_REPO", "ahmdelbaz28-ux/ETAP-AI-WORK-")
 
 if not TOKEN or not GH:
-    raise RuntimeError("SONAR_TOKEN and GITHUB_PAT environment variables must be set to use this script.")
+    raise RuntimeError(
+        "SONAR_TOKEN and GITHUB_PAT environment variables must be set to use this script."
+    )
 HEADERS = {
     "Authorization": f"token {GH}",
     "Accept": "application/vnd.github+json",

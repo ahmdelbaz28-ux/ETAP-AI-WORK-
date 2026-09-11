@@ -1,0 +1,348 @@
+﻿.agents                                                      [DIR]
+.agents-coordination.md                                      [FILE] 24,558 bytes
+.bandit                                                      [FILE] 584 bytes
+.claude                                                      [DIR]
+.devcontainer                                                [DIR]
+.dockerignore                                                [FILE] 2,819 bytes
+.editorconfig                                                [FILE] 295 bytes
+.env.example                                                 [FILE] 13,634 bytes
+.feature-flags.json                                          [FILE] 1,165 bytes
+.gitattributes                                               [FILE] 1,521 bytes
+.gitguardian.yaml                                            [FILE] 257 bytes
+.githooks                                                    [DIR]
+.github                                                      [DIR]
+.gitignore                                                   [FILE] 10,201 bytes
+.gitleaks.toml                                               [FILE] 2,340 bytes
+.gitleaks-baseline.json                                      [FILE] 473 bytes
+.gitmodules                                                  [FILE] 637 bytes
+.hadolint.yaml                                               [FILE] 1,933 bytes
+.hypothesis                                                  [DIR]
+.kilo                                                        [DIR]
+.mcp.json.example                                            [FILE] 607 bytes
+.nojekyll                                                    [FILE] 0 bytes
+.npmrc                                                       [FILE] 45 bytes
+.nvmrc                                                       [FILE] 4 bytes
+.playwright-mcp                                              [DIR]
+.pre-commit-config.yaml                                      [FILE] 3,220 bytes
+.pytest_cache                                                [DIR]
+.python-version                                              [FILE] 6 bytes
+.ruff_cache                                                  [DIR]
+.ruffignore                                                  [FILE] 38 bytes
+.safety-policy.yml                                           [FILE] 862 bytes
+.secrets.baseline                                            [FILE] 1,119 bytes
+.sonarcloud.properties                                       [FILE] 4,099 bytes
+.sonar-rescan-trigger                                        [FILE] 29 bytes
+.trivyignore                                                 [FILE] 3,501 bytes
+.vercel                                                      [DIR]
+.vercelignore                                                [FILE] 2,182 bytes
+__pycache__                                                  [DIR]
+_fitz_compat.py                                              [FILE] 2,993 bytes
+_set_sonar_secret.py                                         [FILE] 1,466 bytes
+acp_runtime                                                  [DIR]
+add_prometheus_metrics.py                                    [FILE] 2,084 bytes
+adms_control                                                 [DIR]
+agents                                                       [DIR]
+AGENTS.md                                                    [FILE] 14,331 bytes
+AI_AGENT_INDEX.md                                            [FILE] 18,301 bytes
+ai_agent_instructions.md                                     [FILE] 8,445 bytes
+ai_context_engine                                            [DIR]
+ai_quick_reference.md                                        [FILE] 1,215 bytes
+ai_system_prompt.md                                          [FILE] 9,059 bytes
+akamai                                                       [DIR]
+alembic.ini                                                  [FILE] 2,662 bytes
+api                                                          [DIR]
+API_DOCUMENTATION.md                                         [FILE] 10,479 bytes
+API_Test_Collection.postman_collection.json                  [FILE] 12,521 bytes
+apply_engineering_patch.py                                   [FILE] 2,260 bytes
+arcgis_pro_documentation_index.json                          [FILE] 107,033 bytes
+arcgis_pro_indexing_workflow.json                            [FILE] 2,062 bytes
+arcgis_pro_indexing_workflow.py                              [FILE] 10,393 bytes
+arcgis_pro_sdk_repositories_analysis.json                    [FILE] 9,513 bytes
+ARCHITECTURE.md                                              [FILE] 3,966 bytes
+ARCHITECTURE_DECISIONS.md                                    [FILE] 11,269 bytes
+archive                                                      [DIR]
+assets                                                       [DIR]
+AUDIT_CORRECTED_REPORT.md                                    [FILE] 18,272 bytes
+autodesk_connector                                           [DIR]
+benchmarks                                                   [DIR]
+biome.json                                                   [FILE] 1,716 bytes
+bisect1.txt                                                  [FILE] 3,972 bytes
+bisect2.txt                                                  [FILE] 603 bytes
+bisect3.txt                                                  [FILE] 685 bytes
+bisect4.txt                                                  [FILE] 685 bytes
+bisect5.txt                                                  [FILE] 685 bytes
+bisect6.txt                                                  [FILE] 685 bytes
+bisect7.txt                                                  [FILE] 766 bytes
+CAD_BIM_API_INTEGRATION_GUIDE.md                             [FILE] 10,071 bytes
+CHANGELOG.md                                                 [FILE] 12,704 bytes
+charts                                                       [DIR]
+check_hf_status.py                                           [FILE] 355 bytes
+check_results.py                                             [FILE] 615 bytes
+ci_repro_out.txt                                             [FILE] 4,181 bytes
+ci_repro2_out.txt                                            [FILE] 10,819 bytes
+CLEANUP_REPORT.md                                            [FILE] 14,866 bytes
+cloud                                                        [DIR]
+cloudflare                                                   [DIR]
+CODE_OF_CONDUCT.md                                           [FILE] 5,223 bytes
+CODEBASE_MAP.md                                              [FILE] 7,938 bytes
+compat.py                                                    [FILE] 572 bytes
+COMPREHENSIVE_IMPLEMENTATION_SUMMARY.md                      [FILE] 15,958 bytes
+config                                                       [DIR]
+conftest.py                                                  [FILE] 593 bytes
+CONTEXT.md                                                   [FILE] 8,221 bytes
+CONTRIBUTING.md                                              [FILE] 2,937 bytes
+coordination                                                 [DIR]
+copilot                                                      [DIR]
+core                                                         [DIR]
+core_model                                                   [DIR]
+COVERAGE_REPORT.md                                           [FILE] 4,153 bytes
+create_alerts.py                                             [FILE] 1,443 bytes
+create_extra_metrics.py                                      [FILE] 1,261 bytes
+curves                                                       [DIR]
+data                                                         [DIR]
+demos                                                        [DIR]
+deploy                                                       [DIR]
+DEPLOYMENT_GUIDE.md                                          [FILE] 21,218 bytes
+DEVELOPMENT.md                                               [FILE] 8,733 bytes
+diagrams                                                     [DIR]
+digital_twin                                                 [DIR]
+dist                                                         [DIR]
+docker                                                       [DIR]
+docker-compose.copilot.yml                                   [FILE] 8,292 bytes
+docker-compose.loki.yml                                      [FILE] 1,790 bytes
+docker-compose.monitoring.yml                                [FILE] 9,383 bytes
+docker-compose.override.yml                                  [FILE] 6,021 bytes
+docker-compose.windows.yml                                   [FILE] 1,833 bytes
+docker-compose.yml                                           [FILE] 8,146 bytes
+Dockerfile                                                   [FILE] 4,837 bytes
+Dockerfile.engineering                                       [FILE] 4,767 bytes
+Dockerfile.engineering-service                               [FILE] 4,909 bytes
+Dockerfile.hf                                                [FILE] 3,929 bytes
+Dockerfile.windows-worker                                    [FILE] 5,298 bytes
+docs                                                         [DIR]
+download                                                     [DIR]
+duplicate-audit                                              [DIR]
+ELECTRON_SECURITY_REPORT.md                                  [FILE] 4,230 bytes
+EMAIL_INTEGRATION_README.md                                  [FILE] 10,879 bytes
+engine                                                       [DIR]
+engineering_service.py                                       [FILE] 2,980 bytes
+env.example.txt                                              [FILE] 4,359 bytes
+es_full_out.txt                                              [FILE] 685 bytes
+etap_integration                                             [DIR]
+etap_scada_bridge.py                                         [FILE] 19,964 bytes
+etap_user_guide                                              [DIR]
+EXHAUSTIVE_AUDIT_REPORT.md                                   [FILE] 21,904 bytes
+fault_analysis                                               [DIR]
+final_agent_verification.py                                  [FILE] 3,995 bytes
+FINAL_ARTIFACT_MANIFEST.md                                   [FILE] 3,015 bytes
+FINAL_COMPLETION_REPORT.md                                   [FILE] 24,691 bytes
+FINAL_COMPREHENSIVE_AUDIT_REPORT.md                          [FILE] 23,331 bytes
+FINAL_DEPLOYMENT_GUIDE.md                                    [FILE] 5,070 bytes
+FINAL_RELEASE_CERTIFICATE.md                                 [FILE] 3,909 bytes
+fix_agent_structures.py                                      [FILE] 6,575 bytes
+fix_eol_strings.py                                           [FILE] 2,961 bytes
+fix_future_imports.py                                        [FILE] 1,888 bytes
+forensic_gate_report.md                                      [FILE] 10,410 bytes
+gis_integration                                              [DIR]
+gis_model                                                    [DIR]
+gis_validation                                               [DIR]
+gis_validation_electrical                                    [DIR]
+gis_validation_real                                          [DIR]
+GOVERNANCE_PROPOSALS.md                                      [FILE] 4,371 bytes
+grafana                                                      [DIR]
+guards                                                       [DIR]
+helm                                                         [DIR]
+hf-space                                                     [DIR]
+HTTP_STRESS_TEST_RESULTS.json                                [FILE] 3,994 bytes
+images                                                       [DIR]
+indexer.py                                                   [FILE] 45,370 bytes
+infra                                                        [DIR]
+INSTALLATION.md                                              [FILE] 7,627 bytes
+integrations                                                 [DIR]
+k6-load-test.js                                              [FILE] 17,347 bytes
+k8s                                                          [DIR]
+knowledge                                                    [DIR]
+langfuse_setup.py                                            [FILE] 4,205 bytes
+LICENSE                                                      [FILE] 1,129 bytes
+load_flow                                                    [DIR]
+locustfile.py                                                [FILE] 16,595 bytes
+log_99687035102.txt                                          [FILE] 340,997 bytes
+log_99687035659.txt                                          [FILE] 424,529 bytes
+log_99688725248.txt                                          [FILE] 3,350 bytes
+logs                                                         [DIR]
+Makefile                                                     [FILE] 13,488 bytes
+MANIFEST.in                                                  [FILE] 332 bytes
+mastra.config.ts                                             [FILE] 380 bytes
+mastra.db                                                    [FILE] 4,096 bytes
+mastra.db-shm                                                [FILE] 32,768 bytes
+mastra.db-wal                                                [FILE] 1,009,432 bytes
+mcp_server_intelligent_index_system.json                     [FILE] 9,436 bytes
+MCP_SETUP.md                                                 [FILE] 2,556 bytes
+MCP_SETUP_GUIDE.md                                           [FILE] 2,087 bytes
+merge_all_remote_branches.ps1                                [FILE] 6,499 bytes
+migrations                                                   [DIR]
+mkdocs.yml                                                   [FILE] 994 bytes
+ml                                                           [DIR]
+modify_scada.py                                              [FILE] 886 bytes
+monitor_hf.py                                                [FILE] 1,582 bytes
+monitoring                                                   [DIR]
+MULTI_DATABASE_INSTRUCTIONS.md                               [FILE] 3,740 bytes
+MULTI_DATABASE_SETUP.md                                      [FILE] 4,716 bytes
+network_solver                                               [DIR]
+nginx                                                        [DIR]
+nginx.conf                                                   [FILE] 12,850 bytes
+node_modules                                                 [DIR]
+NOSONAR_AUDIT.md                                             [FILE] 11,277 bytes
+NOTICE                                                       [FILE] 489 bytes
+OPERATOR_ACTION_ITEMS.md                                     [FILE] 7,123 bytes
+OPS_RUNBOOK.md                                               [FILE] 16,671 bytes
+package.json                                                 [FILE] 2,502 bytes
+PHASE2_COVERAGE_REPORT.md                                    [FILE] 2,277 bytes
+pnpm-lock.yaml                                               [FILE] 507,803 bytes
+pnpm-workspace.yaml                                          [FILE] 6,252 bytes
+postman_login.py                                             [FILE] 1,156 bytes
+post-merge-certification.md                                  [FILE] 7,052 bytes
+PRE_LAUNCH_CHECKLIST_TRACKER.md                              [FILE] 12,444 bytes
+PRE_LAUNCH_INDEX.md                                          [FILE] 9,402 bytes
+PRE_LAUNCH_REMEDIATION_PLAN.md                               [FILE] 22,852 bytes
+PROJECT_INDEX.json                                           [FILE] 711,570 bytes
+PROJECT_INDEX.md                                             [FILE] 163,488 bytes
+prometheus.yml                                               [FILE] 2,686 bytes
+prompts                                                      [DIR]
+prompts.json                                                 [FILE] 2,255 bytes
+prompts-lock.json                                            [FILE] 5,110 bytes
+providers.json                                               [FILE] 263 bytes
+pylock.toml                                                  [FILE] 7,084 bytes
+pyproject.toml                                               [FILE] 10,538 bytes
+pyrightconfig.json                                           [FILE] 109 bytes
+qgis_complete_documentation_index.json                       [FILE] 42,564 bytes
+qgis_comprehensive_documentation_index.json                  [FILE] 13,794 bytes
+qgis_scada_layer.py                                          [FILE] 11,937 bytes
+qgis_server_documentation_index.json                         [FILE] 16,038 bytes
+qgis_user_manual_index.json                                  [FILE] 31,604 bytes
+QUICK_START_REMEDIATION.md                                   [FILE] 10,477 bytes
+QUICKSTART.md                                                [FILE] 9,188 bytes
+quickstart.ps1                                               [FILE] 3,701 bytes
+quickstart.sh                                                [FILE] 3,571 bytes
+README.hf.md                                                 [FILE] 31,958 bytes
+README.md                                                    [FILE] 31,958 bytes
+README_MODERNIZATION_REPORT.md                               [FILE] 4,788 bytes
+relays                                                       [DIR]
+REMEDIATION_PLAN.md                                          [FILE] 19,369 bytes
+reporting                                                    [DIR]
+reports                                                      [DIR]
+repro_err.txt                                                [FILE] 0 bytes
+repro_out.txt                                                [FILE] 348 bytes
+requirements.hf.txt                                          [FILE] 1,393 bytes
+requirements.txt                                             [FILE] 10,916 bytes
+requirements-dev.txt                                         [FILE] 730 bytes
+requirements-minimal.txt                                     [FILE] 1,805 bytes
+requirements-ml.txt                                          [FILE] 1,251 bytes
+requirements-optional.txt                                    [FILE] 2,596 bytes
+requirements-prod.txt                                        [FILE] 3,107 bytes
+requirements-win312.txt                                      [FILE] 16,928 bytes
+REVIT_INTEGRATION_GUIDE.md                                   [FILE] 8,609 bytes
+ROADMAP.md                                                   [FILE] 18,725 bytes
+ruff.toml                                                    [FILE] 11,460 bytes
+run_arcgis_workflow.ps1                                      [FILE] 3,180 bytes
+run_button_tests.bat                                         [FILE] 671 bytes
+run_complete_setup.py                                        [FILE] 14,216 bytes
+run_comprehensive_tests.bat                                  [FILE] 1,310 bytes
+run_cov.bat                                                  [FILE] 259 bytes
+run_git.py                                                   [FILE] 49 bytes
+runs-on-main.json                                            [FILE] 2,880 bytes
+scada                                                        [DIR]
+scada_etap_consumer.py                                       [FILE] 5,263 bytes
+scada_etap_gis_integration_guide.md                          [FILE] 27,918 bytes
+scada_integration_instructions.md                            [FILE] 6,638 bytes
+scada_model                                                  [DIR]
+scada_protocols                                              [DIR]
+scenario.config.mjs                                          [FILE] 238 bytes
+schemas                                                      [DIR]
+scratch                                                      [DIR]
+screenshots                                                  [DIR]
+script.js                                                    [FILE] 7,309 bytes
+scripts                                                      [DIR]
+security                                                     [DIR]
+SECURITY.md                                                  [FILE] 1,558 bytes
+security_audit.log                                           [FILE] 22,495 bytes
+SECURITY_CHECKLIST.md                                        [FILE] 3,567 bytes
+SECURITY_COMPLIANCE_SUMMARY.md                               [FILE] 10,624 bytes
+SECURITY_EXCEPTIONS.md                                       [FILE] 2,221 bytes
+SECURITY_FIXES.md                                            [FILE] 6,021 bytes
+SECURITY_REMEDIATION_REPORT.md                               [FILE] 4,048 bytes
+SECURITY_REQUIREMENTS.md                                     [FILE] 27,842 bytes
+semgrep.yml                                                  [FILE] 9,662 bytes
+services                                                     [DIR]
+setup_and_run_tests.bat                                      [FILE] 751 bytes
+setup_and_run_tests.sh                                       [FILE] 690 bytes
+site                                                         [DIR]
+sitemap.xml                                                  [FILE] 111 bytes
+sitemap.xml.gz                                               [FILE] 127 bytes
+skills                                                       [DIR]
+skills-lock.json                                             [FILE] 16,005 bytes
+sonar_fix_plan.json                                          [FILE] 837 bytes
+sonar_issues.json                                            [FILE] 287,827 bytes
+sonar_issues_full.txt                                        [FILE] 32,433 bytes
+SONARCLOUD_REPORT.md                                         [FILE] 5,252 bytes
+sonar-project.properties                                     [FILE] 8,492 bytes
+src                                                          [DIR]
+start_worker.py                                              [FILE] 695 bytes
+STATIC_ANALYSIS_REPORT.md                                    [FILE] 2,723 bytes
+STRESS_TEST_REMEDIATION_REPORT.md                            [FILE] 10,202 bytes
+STRESS_TEST_RESULTS.json                                     [FILE] 8,209 bytes
+STRICT_STRESS_V3_RESULTS.json                                [FILE] 4,098 bytes
+style.css                                                    [FILE] 4,850 bytes
+SUPPORT.md                                                   [FILE] 1,277 bytes
+sync.ps1                                                     [FILE] 628 bytes
+sync_hf.py                                                   [FILE] 1,922 bytes
+sync_v2.ps1                                                  [FILE] 1,462 bytes
+TASK_COMPLETE.txt                                            [FILE] 453 bytes
+templates                                                    [DIR]
+terraform                                                    [DIR]
+test_agents.py                                               [FILE] 7,395 bytes
+test_agents_basic.py                                         [FILE] 10,487 bytes
+test_e2e.db                                                  [FILE] 344,064 bytes
+test_mcp.bat                                                 [FILE] 789 bytes
+test_mcp_config.js                                           [FILE] 1,251 bytes
+test_mcp_config.py                                           [FILE] 3,185 bytes
+TEST_REPORT.md                                               [FILE] 35,515 bytes
+test_results.json                                            [FILE] 3,173 bytes
+TESTING_GUIDE.md                                             [FILE] 8,818 bytes
+TESTING_SOLUTION_SUMMARY.md                                  [FILE] 4,446 bytes
+tests                                                        [DIR]
+testsprite_tests                                             [DIR]
+TODO.md                                                      [FILE] 0 bytes
+TODO_phase4_security.md                                      [FILE] 673 bytes
+tools                                                        [DIR]
+traefik                                                      [DIR]
+TROUBLESHOOTING.md                                           [FILE] 6,794 bytes
+tsconfig.json                                                [FILE] 732 bytes
+ts-service                                                   [DIR]
+ui                                                           [DIR]
+ui_api_test.js                                               [FILE] 18,206 bytes
+UI_UX_LOGIN_PAGE_PLAN.md                                     [FILE] 13,218 bytes
+ui-dist                                                      [DIR]
+upload                                                       [DIR]
+USER_GUIDE_SUMMARY.md                                        [FILE] 1,489 bytes
+utils                                                        [DIR]
+uv.lock                                                      [FILE] 652,312 bytes
+validate_syntax.py                                           [FILE] 5,721 bytes
+validation_campaign.py                                       [FILE] 38,761 bytes
+vercel.json                                                  [FILE] 1,655 bytes
+VERCEL_FINAL_REPORT.md                                       [FILE] 15,313 bytes
+vercel_relink_guide                                          [DIR]
+VERCEL_VERIFICATION_REPORT.md                                [FILE] 8,676 bytes
+vercel-build.sh                                              [FILE] 5,111 bytes
+verify_agents.py                                             [FILE] 7,042 bytes
+verify_out.txt                                               [FILE] 2,923 bytes
+verify_out2.txt                                              [FILE] 766 bytes
+verify3_out.txt                                              [FILE] 603 bytes
+VERSION                                                      [FILE] 7 bytes
+visualization                                                [DIR]
+vitest.config.ts                                             [FILE] 1,665 bytes
+vitest.scenarios.config.ts                                   [FILE] 1,169 bytes
+WINDOWS_RELEASE_REPORT.md                                    [FILE] 2,455 bytes
+worker                                                       [DIR]
+worklog_entry.md                                             [FILE] 3,236 bytes
+zenon_user_guide                                             [DIR]

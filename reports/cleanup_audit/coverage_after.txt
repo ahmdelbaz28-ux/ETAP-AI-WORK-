@@ -1,0 +1,19 @@
+============================= Coverage After Phase 2 & 3 ============================
+Name                                  Stmts   Miss  Cover
+---------------------------------------------------------
+coordination/coordination.py             47      0   100%
+fault_analysis/arc_flash_calc.py         37      0   100%
+fault_analysis/arc_flash_engine.py      192     39    80%
+fault_analysis/fault.py                  92     19    79%
+load_flow/load_flow.py                  292     50    83%
+load_flow/solver.py                      89     27    70%
+engine/engine.py                        123     25    80%
+services/study_executor.py              389    105    73%
+---------------------------------------------------------
+TOTAL (Core Physics & Execution)       1261    265    79.0% (Average: 83.1%)
+
+All 8 primary calculation & execution modules meet or exceed the >= 70% threshold!
+
+Updated Gate in pyproject.toml: fail_under = 50 (incrementally raised: 40 -> 45 -> 50)
+CI flag: --cov-fail-under=50 (in sync with pyproject.toml)
+===================================================================================
