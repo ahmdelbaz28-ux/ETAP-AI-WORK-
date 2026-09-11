@@ -1,0 +1,2461 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Enterprise AI-Powered Power Systems Engineering Platform">
+      
+      
+        <meta name="author" content="AhmedETAP Team">
+      
+      
+      
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.11">
+    
+    
+      
+        <title>UI Coverage & Configuration Exposure Policy Audit — CORRECTED REPORT - AhmedETAP Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.4af4bdda.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="deep-purple">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#ui-coverage-configuration-exposure-policy-audit-corrected-report" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="AhmedETAP Documentation" class="md-header__button md-logo" aria-label="AhmedETAP Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            AhmedETAP Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              UI Coverage &amp; Configuration Exposure Policy Audit — CORRECTED REPORT
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  الصفحة الرئيسية
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../ARCHITECTURE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  الهيكلية
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../API_REFERENCE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  واجهة برمجة التطبيقات
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../OPERATIONS_RUNBOOK/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  دليل التشغيل
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../TROUBLESHOOTING_GUIDE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  دليل الأعطال
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../SECURITY_OPERATIONS_MANUAL/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  البنية التحتية للأمان
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../ENTERPRISE_CERTIFICATION_REPORT/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  التقييم المؤسسي
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="AhmedETAP Documentation" class="md-nav__button md-logo" aria-label="AhmedETAP Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    AhmedETAP Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    الصفحة الرئيسية
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ARCHITECTURE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    الهيكلية
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../API_REFERENCE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    واجهة برمجة التطبيقات
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../OPERATIONS_RUNBOOK/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    دليل التشغيل
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../TROUBLESHOOTING_GUIDE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    دليل الأعطال
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../SECURITY_OPERATIONS_MANUAL/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    البنية التحتية للأمان
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ENTERPRISE_CERTIFICATION_REPORT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    التقييم المؤسسي
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#self-critique-errors-found-and-fixed" class="md-nav__link">
+    <span class="md-ellipsis">
+      Self-Critique: Errors Found and Fixed
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#corrected-audit-results" class="md-nav__link">
+    <span class="md-ellipsis">
+      Corrected Audit Results
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Corrected Audit Results">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-complete-api-endpoint-catalog-120-unique-endpoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Complete API Endpoint Catalog (~120 unique endpoints)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. Complete API Endpoint Catalog (~120 unique endpoints)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#core-routes-apiroutespy-14-endpoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      Core Routes (api/routes.py) — 14 endpoints
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#studies-apistudiespy-2-endpoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      Studies (api/studies.py) — 2 endpoints
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#health-apihealthpy-10-endpoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      Health (api/health.py) — 10 endpoints
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#auth-apiauthpy-11-endpoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      Auth (api/auth.py) — 11 endpoints
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mfa-apimfapy-2-endpoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      MFA (api/mfa.py) — 2 endpoints
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#magic-links-apimagic_linkspy-3-endpoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      Magic Links (api/magic_links.py) — 3 endpoints
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#email-otp-apiemail_otppy-3-endpoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      Email OTP (api/email_otp.py) — 3 endpoints
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#projects-apiprojectspy-9-endpoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      Projects (api/projects.py) — 9 endpoints
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#study-versions-apistudy_versionspy-4-endpoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      Study Versions (api/study_versions.py) — 4 endpoints
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#templates-apitemplatespy-6-endpoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      Templates (api/templates.py) — 6 endpoints
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#settings-apisettingspy-7-endpoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      Settings (api/settings.py) — 7 endpoints
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#agents-apiagentspy-15-endpoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      Agents (api/agents.py) — 15 endpoints
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aiml-apiai_mlpy-7-endpoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      AI/ML (api/ai_ml.py) — 7 endpoints
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rbac-apirbacpy-9-endpoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      RBAC (api/rbac.py) — 9 endpoints
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#equipment-apiequipmentpy-11-endpoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      Equipment (api/equipment.py) — 11 endpoints
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#assets-apiassetspy-5-endpoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      Assets (api/assets.py) — 5 endpoints
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#notifications-apinotificationspy-5-endpoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      Notifications (api/notifications.py) — 5 endpoints
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#data-import-apidata_importpy-2-endpoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      Data Import (api/data_import.py) — 2 endpoints
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#export-apiexportpy-3-endpoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      Export (api/export.py) — 3 endpoints
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#validation-apivalidationpy-1-endpoint" class="md-nav__link">
+    <span class="md-ellipsis">
+      Validation (api/validation.py) — 1 endpoint
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#context-engine-apicontext_enginepy-2-endpoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      Context Engine (api/context_engine.py) — 2 endpoints
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scada-apiscadapy-1-endpoint" class="md-nav__link">
+    <span class="md-ellipsis">
+      SCADA (api/scada.py) — 1 endpoint
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#digital-twin-apidigital_twinpy-1-endpoint" class="md-nav__link">
+    <span class="md-ellipsis">
+      Digital Twin (api/digital_twin.py) — 1 endpoint
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#email-webhooks-apiemail_webhookspy-6-endpoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      Email Webhooks (api/email_webhooks.py) — 6 endpoints
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#email-digest-apiemail_digestpy-4-endpoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      Email Digest (api/email_digest.py) — 4 endpoints
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#email-dashboard-apiemail_dashboardpy-7-endpoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      Email Dashboard (api/email_dashboard.py) — 7 endpoints
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dependencies-apidependenciespy-2-endpoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      Dependencies (api/dependencies.py) — 2 endpoints
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-database-schema-8-tables" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Database Schema (8 tables)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-feature-flags-4-flags" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Feature Flags (4 flags)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-corrected-ui-completeness-score" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Corrected UI Completeness Score
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-corrected-implementation-plan" class="md-nav__link">
+    <span class="md-ellipsis">
+      5. Corrected Implementation Plan
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6-justified-hidden-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      6. Justified Hidden Features
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="ui-coverage-configuration-exposure-policy-audit-corrected-report">UI Coverage &amp; Configuration Exposure Policy Audit — CORRECTED REPORT</h1>
+<p><strong>Project:</strong> AhmedETAP AI Engineering Platform<br />
+<strong>Audit Date:</strong> 2026-07-30<br />
+<strong>Correction Date:</strong> 2026-07-30<br />
+<strong>Status:</strong> CORRECTED — 7 errors found in initial audit, now fixed</p>
+<hr />
+<h2 id="self-critique-errors-found-and-fixed">Self-Critique: Errors Found and Fixed</h2>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Error in Original</th>
+<th>Correction</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Claimed 87 API endpoints</td>
+<td>Actual: ~154 route decorators (some HEAD+GET duplicates, ~120 unique endpoints)</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Missed database schemas</td>
+<td>8 tables: users, projects, study_results, sessions, audit_log, security_events, mfa_credentials, study_jobs</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Missed feature flags</td>
+<td>4 flags: harmonic_analysis, motor_starting, transient_stability, optimal_power_flow</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Missed MFA endpoints</td>
+<td>TOTP setup/verify in api/mfa.py</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Missed email webhooks</td>
+<td>6 endpoints in api/email_webhooks.py</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Missed email dashboard</td>
+<td>7 endpoints in api/email_dashboard.py</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Missed digital_twin.py and cua_confirmation_ws.py</td>
+<td>Separate routers not cataloged</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="corrected-audit-results">Corrected Audit Results</h2>
+<h3 id="1-complete-api-endpoint-catalog-120-unique-endpoints">1. Complete API Endpoint Catalog (~120 unique endpoints)</h3>
+<h4 id="core-routes-apiroutespy-14-endpoints">Core Routes (api/routes.py) — 14 endpoints</h4>
+<table>
+<thead>
+<tr>
+<th>Endpoint</th>
+<th>Method</th>
+<th>Feature</th>
+<th>UI Page</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>/api/v1/studies/run_async</td>
+<td>POST</td>
+<td>Async study execution</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>/api/v1/studies/task_status/{task_id}</td>
+<td>GET</td>
+<td>Task status polling</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>/ws/scada/live</td>
+<td>WS</td>
+<td>SCADA streaming</td>
+<td>ScadaIntegration.tsx ✅</td>
+</tr>
+<tr>
+<td>/ws/cua/confirmation</td>
+<td>WS</td>
+<td>CUA dual-confirmation</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>/ws/notifications</td>
+<td>WS</td>
+<td>Real-time notifications</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>/api/v1/scada/live</td>
+<td>GET</td>
+<td>SCADA snapshot</td>
+<td>ScadaIntegration.tsx ✅</td>
+</tr>
+<tr>
+<td>/api/v1/digital-twin/status</td>
+<td>GET</td>
+<td>Digital twin status</td>
+<td>DigitalTwin.tsx ✅</td>
+</tr>
+<tr>
+<td>/api/v1/audit/verify</td>
+<td>GET</td>
+<td>Audit chain verification</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>/admin/cua/kill-switch</td>
+<td>GET</td>
+<td>Kill switch status</td>
+<td>CuaMonitor.tsx ✅</td>
+</tr>
+<tr>
+<td>/admin/cua/kill-switch/activate</td>
+<td>POST</td>
+<td>Activate kill switch</td>
+<td>CuaMonitor.tsx ✅</td>
+</tr>
+<tr>
+<td>/admin/cua/kill-switch/deactivate</td>
+<td>POST</td>
+<td>Deactivate kill switch</td>
+<td>CuaMonitor.tsx ✅</td>
+</tr>
+<tr>
+<td>/admin/cua/rollback</td>
+<td>POST</td>
+<td>CUA rollback</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>/admin/cua/audit-log</td>
+<td>GET</td>
+<td>CUA audit log</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>/api/v1/benchmark</td>
+<td>GET</td>
+<td>Benchmark</td>
+<td>❌ MISSING</td>
+</tr>
+</tbody>
+</table>
+<h4 id="studies-apistudiespy-2-endpoints">Studies (api/studies.py) — 2 endpoints</h4>
+<table>
+<thead>
+<tr>
+<th>Endpoint</th>
+<th>Method</th>
+<th>Feature</th>
+<th>UI Page</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>/api/v1/studies/run</td>
+<td>POST</td>
+<td>Execute study</td>
+<td>StudyRun.tsx ✅</td>
+</tr>
+<tr>
+<td>/api/v1/studies/types</td>
+<td>GET</td>
+<td>List study types</td>
+<td>Studies.tsx ✅</td>
+</tr>
+</tbody>
+</table>
+<h4 id="health-apihealthpy-10-endpoints">Health (api/health.py) — 10 endpoints</h4>
+<table>
+<thead>
+<tr>
+<th>Endpoint</th>
+<th>Method</th>
+<th>Feature</th>
+<th>UI Page</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>/</td>
+<td>GET</td>
+<td>Root</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>/healthz</td>
+<td>GET/HEAD</td>
+<td>Health check</td>
+<td>Diagnostics.tsx ✅</td>
+</tr>
+<tr>
+<td>/readyz</td>
+<td>GET/HEAD</td>
+<td>Readiness check</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>/health</td>
+<td>GET/HEAD</td>
+<td>Health check</td>
+<td>Diagnostics.tsx ✅</td>
+</tr>
+<tr>
+<td>/ready</td>
+<td>GET/HEAD</td>
+<td>Readiness check</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>/api/v1/info</td>
+<td>GET</td>
+<td>Platform info</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>/api/v1/knowledge</td>
+<td>GET</td>
+<td>Knowledge info</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>/metrics</td>
+<td>GET</td>
+<td>Metrics</td>
+<td>Administration.tsx ✅</td>
+</tr>
+<tr>
+<td>/prometheus/metrics</td>
+<td>GET</td>
+<td>Prometheus metrics</td>
+<td>❌ MISSING</td>
+</tr>
+</tbody>
+</table>
+<h4 id="auth-apiauthpy-11-endpoints">Auth (api/auth.py) — 11 endpoints</h4>
+<table>
+<thead>
+<tr>
+<th>Endpoint</th>
+<th>Method</th>
+<th>Feature</th>
+<th>UI Page</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>/api/v1/auth/register</td>
+<td>POST</td>
+<td>Register</td>
+<td>Register.tsx ✅</td>
+</tr>
+<tr>
+<td>/api/v1/auth/login</td>
+<td>POST</td>
+<td>Login</td>
+<td>Login.tsx ✅</td>
+</tr>
+<tr>
+<td>/api/v1/auth/refresh</td>
+<td>POST</td>
+<td>Token refresh</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>/api/v1/auth/logout</td>
+<td>POST</td>
+<td>Logout</td>
+<td>Login.tsx ✅</td>
+</tr>
+<tr>
+<td>/api/v1/auth/me</td>
+<td>GET</td>
+<td>Current user</td>
+<td>Administration.tsx ✅</td>
+</tr>
+<tr>
+<td>/api/v1/auth/me</td>
+<td>PUT</td>
+<td>Update profile</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>/api/v1/auth/me/password</td>
+<td>PUT</td>
+<td>Change password</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>/api/v1/auth/forgot-password</td>
+<td>POST</td>
+<td>Forgot password</td>
+<td>Login.tsx ✅</td>
+</tr>
+<tr>
+<td>/api/v1/auth/reset-password</td>
+<td>POST</td>
+<td>Reset password</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>/api/v1/auth/users</td>
+<td>GET</td>
+<td>List users</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>/api/v1/auth/users/{user_id}</td>
+<td>DELETE</td>
+<td>Delete user</td>
+<td>❌ MISSING</td>
+</tr>
+</tbody>
+</table>
+<h4 id="mfa-apimfapy-2-endpoints">MFA (api/mfa.py) — 2 endpoints</h4>
+<table>
+<thead>
+<tr>
+<th>Endpoint</th>
+<th>Method</th>
+<th>Feature</th>
+<th>UI Page</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>/api/v1/auth/totp/setup</td>
+<td>POST</td>
+<td>TOTP setup</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>/api/v1/auth/totp/verify</td>
+<td>POST</td>
+<td>TOTP verify</td>
+<td>❌ MISSING</td>
+</tr>
+</tbody>
+</table>
+<h4 id="magic-links-apimagic_linkspy-3-endpoints">Magic Links (api/magic_links.py) — 3 endpoints</h4>
+<table>
+<thead>
+<tr>
+<th>Endpoint</th>
+<th>Method</th>
+<th>Feature</th>
+<th>UI Page</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>/api/v1/auth/magic-link/request</td>
+<td>POST</td>
+<td>Request magic link</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>/api/v1/auth/magic-link/verify</td>
+<td>POST</td>
+<td>Verify magic link</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>/api/v1/auth/magic-link/invalidate</td>
+<td>POST</td>
+<td>Invalidate magic link</td>
+<td>❌ MISSING</td>
+</tr>
+</tbody>
+</table>
+<h4 id="email-otp-apiemail_otppy-3-endpoints">Email OTP (api/email_otp.py) — 3 endpoints</h4>
+<table>
+<thead>
+<tr>
+<th>Endpoint</th>
+<th>Method</th>
+<th>Feature</th>
+<th>UI Page</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>/api/v1/auth/email-otp/send</td>
+<td>POST</td>
+<td>Send OTP</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>/api/v1/auth/email-otp/verify</td>
+<td>POST</td>
+<td>Verify OTP</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>/api/v1/auth/email-otp/invalidate</td>
+<td>POST</td>
+<td>Invalidate OTP</td>
+<td>❌ MISSING</td>
+</tr>
+</tbody>
+</table>
+<h4 id="projects-apiprojectspy-9-endpoints">Projects (api/projects.py) — 9 endpoints</h4>
+<table>
+<thead>
+<tr>
+<th>Endpoint</th>
+<th>Method</th>
+<th>Feature</th>
+<th>UI Page</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>/api/v1/projects</td>
+<td>GET</td>
+<td>List projects</td>
+<td>Projects.tsx ✅</td>
+</tr>
+<tr>
+<td>/api/v1/projects</td>
+<td>POST</td>
+<td>Create project</td>
+<td>Projects.tsx ✅</td>
+</tr>
+<tr>
+<td>/api/v1/projects/{id}</td>
+<td>GET</td>
+<td>Get project</td>
+<td>Projects.tsx ✅</td>
+</tr>
+<tr>
+<td>/api/v1/projects/{id}</td>
+<td>PUT</td>
+<td>Update project</td>
+<td>Projects.tsx ✅</td>
+</tr>
+<tr>
+<td>/api/v1/projects/{id}</td>
+<td>DELETE</td>
+<td>Delete project</td>
+<td>Projects.tsx ✅</td>
+</tr>
+<tr>
+<td>/api/v1/projects/{id}/studies</td>
+<td>POST</td>
+<td>Create study in project</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>/api/v1/projects/{id}/studies</td>
+<td>GET</td>
+<td>List project studies</td>
+<td>❌ MISSING</td>
+</tr>
+</tbody>
+</table>
+<h4 id="study-versions-apistudy_versionspy-4-endpoints">Study Versions (api/study_versions.py) — 4 endpoints</h4>
+<table>
+<thead>
+<tr>
+<th>Endpoint</th>
+<th>Method</th>
+<th>Feature</th>
+<th>UI Page</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>/projects/{pid}/studies/{sid}/versions</td>
+<td>GET</td>
+<td>List versions</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>/projects/{pid}/studies/{sid}/versions</td>
+<td>POST</td>
+<td>Save version</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>/projects/{pid}/studies/{sid}/versions/{vid}/rollback</td>
+<td>POST</td>
+<td>Rollback</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>/projects/{pid}/studies/{sid}/versions/{v1}/compare/{v2}</td>
+<td>GET</td>
+<td>Compare</td>
+<td>❌ MISSING</td>
+</tr>
+</tbody>
+</table>
+<h4 id="templates-apitemplatespy-6-endpoints">Templates (api/templates.py) — 6 endpoints</h4>
+<table>
+<thead>
+<tr>
+<th>Endpoint</th>
+<th>Method</th>
+<th>Feature</th>
+<th>UI Page</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>/api/v1/templates</td>
+<td>GET</td>
+<td>List templates</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>/api/v1/templates</td>
+<td>POST</td>
+<td>Create template</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>/api/v1/templates/{id}</td>
+<td>GET</td>
+<td>Get template</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>/api/v1/templates/{id}</td>
+<td>PUT</td>
+<td>Update template</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>/api/v1/templates/{id}</td>
+<td>DELETE</td>
+<td>Delete template</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>/api/v1/templates/{id}/apply</td>
+<td>POST</td>
+<td>Apply template</td>
+<td>❌ MISSING</td>
+</tr>
+</tbody>
+</table>
+<h4 id="settings-apisettingspy-7-endpoints">Settings (api/settings.py) — 7 endpoints</h4>
+<table>
+<thead>
+<tr>
+<th>Endpoint</th>
+<th>Method</th>
+<th>Feature</th>
+<th>UI Page</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>/api/v1/settings/keys</td>
+<td>GET</td>
+<td>List keys</td>
+<td>Settings.tsx ✅</td>
+</tr>
+<tr>
+<td>/api/v1/settings/keys/{provider}</td>
+<td>GET</td>
+<td>Get key</td>
+<td>Settings.tsx ✅</td>
+</tr>
+<tr>
+<td>/api/v1/settings/keys/{provider}</td>
+<td>POST</td>
+<td>Save key</td>
+<td>Settings.tsx ✅</td>
+</tr>
+<tr>
+<td>/api/v1/settings/keys/{provider}</td>
+<td>DELETE</td>
+<td>Delete key</td>
+<td>Settings.tsx ✅</td>
+</tr>
+<tr>
+<td>/api/v1/settings/keys/{provider}/activate</td>
+<td>POST</td>
+<td>Activate key</td>
+<td>Settings.tsx ✅</td>
+</tr>
+<tr>
+<td>/api/v1/settings/keys/{provider}/test</td>
+<td>POST</td>
+<td>Test key</td>
+<td>Settings.tsx ✅</td>
+</tr>
+<tr>
+<td>/api/v1/settings/health</td>
+<td>GET</td>
+<td>Storage health</td>
+<td>❌ MISSING</td>
+</tr>
+</tbody>
+</table>
+<h4 id="agents-apiagentspy-15-endpoints">Agents (api/agents.py) — 15 endpoints</h4>
+<table>
+<thead>
+<tr>
+<th>Endpoint</th>
+<th>Method</th>
+<th>Feature</th>
+<th>UI Page</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>/api/v1/agents</td>
+<td>GET</td>
+<td>List agents</td>
+<td>Administration.tsx ✅</td>
+</tr>
+<tr>
+<td>/api/v1/agents/{id}</td>
+<td>GET</td>
+<td>Get agent</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>/api/v1/agents/info</td>
+<td>GET</td>
+<td>Agents info</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>/api/v1/agents/etap-expert/chat</td>
+<td>POST</td>
+<td>ETAP Expert chat</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>/api/v1/agents/etap-gui/chat</td>
+<td>POST</td>
+<td>ETAP GUI chat</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>/api/v1/agents/etap-gui/execute</td>
+<td>POST</td>
+<td>CUA execution</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>/api/v1/agents/etap-gui/health</td>
+<td>GET</td>
+<td>GUI health</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>/api/v1/agents/etap-gui/kill-switch/activate</td>
+<td>POST</td>
+<td>Activate kill switch</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>/api/v1/agents/etap-gui/kill-switch/deactivate</td>
+<td>POST</td>
+<td>Deactivate kill switch</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>/api/v1/agents/etap-gui/safety/health</td>
+<td>GET</td>
+<td>Safety status</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>/api/v1/agents/etap-gui/safety/audit/verify</td>
+<td>GET</td>
+<td>Audit verify</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>/api/v1/agents/etap-gui/siem/health</td>
+<td>GET</td>
+<td>SIEM health</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>/api/v1/agents/etap-gui/siem/events</td>
+<td>GET</td>
+<td>SIEM events</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>/api/v1/agents/ahmed-etap/orchestrate</td>
+<td>POST</td>
+<td>Orchestration</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>/api/v1/agents/ahmed-etap/info</td>
+<td>GET</td>
+<td>Orchestration info</td>
+<td>❌ MISSING</td>
+</tr>
+</tbody>
+</table>
+<h4 id="aiml-apiai_mlpy-7-endpoints">AI/ML (api/ai_ml.py) — 7 endpoints</h4>
+<table>
+<thead>
+<tr>
+<th>Endpoint</th>
+<th>Method</th>
+<th>Feature</th>
+<th>UI Page</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>/api/v1/ml/capabilities</td>
+<td>GET</td>
+<td>ML capabilities</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>/api/v1/predict/load</td>
+<td>POST</td>
+<td>Load forecasting</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>/api/v1/predict/fault</td>
+<td>POST</td>
+<td>Fault prediction</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>/api/v1/predict/fault/train</td>
+<td>POST</td>
+<td>Train fault model</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>/api/v1/predict/anomaly</td>
+<td>POST</td>
+<td>Anomaly detection</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>/api/v1/gnn/predict</td>
+<td>POST</td>
+<td>GNN prediction</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>/api/v1/rag/query</td>
+<td>POST</td>
+<td>RAG query</td>
+<td>❌ MISSING</td>
+</tr>
+</tbody>
+</table>
+<h4 id="rbac-apirbacpy-9-endpoints">RBAC (api/rbac.py) — 9 endpoints</h4>
+<table>
+<thead>
+<tr>
+<th>Endpoint</th>
+<th>Method</th>
+<th>Feature</th>
+<th>UI Page</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>/api/v1/rbac/roles</td>
+<td>GET</td>
+<td>List roles</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>/api/v1/rbac/roles</td>
+<td>POST</td>
+<td>Create role</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>/api/v1/rbac/roles/{id}</td>
+<td>PUT</td>
+<td>Update role</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>/api/v1/rbac/roles/{id}</td>
+<td>DELETE</td>
+<td>Delete role</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>/api/v1/rbac/permissions</td>
+<td>GET</td>
+<td>List permissions</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>/api/v1/rbac/permissions</td>
+<td>POST</td>
+<td>Create permission</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>/api/v1/rbac/users/{id}/roles</td>
+<td>GET</td>
+<td>Get user roles</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>/api/v1/rbac/users/{id}/roles</td>
+<td>POST</td>
+<td>Assign role</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>/api/v1/rbac/users/{id}/roles/{rid}</td>
+<td>DELETE</td>
+<td>Remove role</td>
+<td>❌ MISSING</td>
+</tr>
+</tbody>
+</table>
+<h4 id="equipment-apiequipmentpy-11-endpoints">Equipment (api/equipment.py) — 11 endpoints</h4>
+<table>
+<thead>
+<tr>
+<th>Endpoint</th>
+<th>Method</th>
+<th>Feature</th>
+<th>UI Page</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>/api/v1/equipment/categories</td>
+<td>GET</td>
+<td>List categories</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>/api/v1/equipment/categories</td>
+<td>POST</td>
+<td>Create category</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>/api/v1/equipment/categories/{id}</td>
+<td>PUT</td>
+<td>Update category</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>/api/v1/equipment/categories/{id}</td>
+<td>DELETE</td>
+<td>Delete category</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>/api/v1/equipment</td>
+<td>GET</td>
+<td>List equipment</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>/api/v1/equipment</td>
+<td>POST</td>
+<td>Create equipment</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>/api/v1/equipment/{id}</td>
+<td>GET</td>
+<td>Get equipment</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>/api/v1/equipment/{id}</td>
+<td>PUT</td>
+<td>Update equipment</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>/api/v1/equipment/{id}</td>
+<td>DELETE</td>
+<td>Delete equipment</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>/api/v1/equipment/search</td>
+<td>GET</td>
+<td>Search equipment</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>/api/v1/equipment/import</td>
+<td>POST</td>
+<td>Import equipment</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>/api/v1/equipment/export</td>
+<td>GET</td>
+<td>Export equipment</td>
+<td>❌ MISSING</td>
+</tr>
+</tbody>
+</table>
+<h4 id="assets-apiassetspy-5-endpoints">Assets (api/assets.py) — 5 endpoints</h4>
+<table>
+<thead>
+<tr>
+<th>Endpoint</th>
+<th>Method</th>
+<th>Feature</th>
+<th>UI Page</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>/api/v1/assets</td>
+<td>GET</td>
+<td>List assets</td>
+<td>AssetManagement.tsx ✅</td>
+</tr>
+<tr>
+<td>/api/v1/assets</td>
+<td>POST</td>
+<td>Create asset</td>
+<td>AssetManagement.tsx ✅</td>
+</tr>
+<tr>
+<td>/api/v1/assets/{id}</td>
+<td>GET</td>
+<td>Get asset</td>
+<td>AssetManagement.tsx ✅</td>
+</tr>
+<tr>
+<td>/api/v1/assets/{id}</td>
+<td>PUT</td>
+<td>Update asset</td>
+<td>AssetManagement.tsx ✅</td>
+</tr>
+<tr>
+<td>/api/v1/assets/{id}</td>
+<td>DELETE</td>
+<td>Delete asset</td>
+<td>AssetManagement.tsx ✅</td>
+</tr>
+</tbody>
+</table>
+<h4 id="notifications-apinotificationspy-5-endpoints">Notifications (api/notifications.py) — 5 endpoints</h4>
+<table>
+<thead>
+<tr>
+<th>Endpoint</th>
+<th>Method</th>
+<th>Feature</th>
+<th>UI Page</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>/api/v1/notifications</td>
+<td>GET</td>
+<td>List notifications</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>/api/v1/notifications/unread</td>
+<td>GET</td>
+<td>Unread count</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>/api/v1/notifications/{id}/read</td>
+<td>PUT</td>
+<td>Mark read</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>/api/v1/notifications/read-all</td>
+<td>PUT</td>
+<td>Mark all read</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>/api/v1/notifications/test</td>
+<td>POST</td>
+<td>Test notification</td>
+<td>❌ MISSING</td>
+</tr>
+</tbody>
+</table>
+<h4 id="data-import-apidata_importpy-2-endpoints">Data Import (api/data_import.py) — 2 endpoints</h4>
+<table>
+<thead>
+<tr>
+<th>Endpoint</th>
+<th>Method</th>
+<th>Feature</th>
+<th>UI Page</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>/api/v1/data-import/formats</td>
+<td>GET</td>
+<td>Import formats</td>
+<td>DataImport.tsx ✅</td>
+</tr>
+<tr>
+<td>/api/v1/data-import/upload</td>
+<td>POST</td>
+<td>Upload data</td>
+<td>DataImport.tsx ✅</td>
+</tr>
+</tbody>
+</table>
+<h4 id="export-apiexportpy-3-endpoints">Export (api/export.py) — 3 endpoints</h4>
+<table>
+<thead>
+<tr>
+<th>Endpoint</th>
+<th>Method</th>
+<th>Feature</th>
+<th>UI Page</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>/api/v1/export/{id}/pdf</td>
+<td>POST</td>
+<td>Export PDF</td>
+<td>DataExport.tsx ✅</td>
+</tr>
+<tr>
+<td>/api/v1/export/{id}/excel</td>
+<td>POST</td>
+<td>Export Excel</td>
+<td>DataExport.tsx ✅</td>
+</tr>
+<tr>
+<td>/api/v1/export/history</td>
+<td>GET</td>
+<td>Export history</td>
+<td>DataExport.tsx ✅</td>
+</tr>
+</tbody>
+</table>
+<h4 id="validation-apivalidationpy-1-endpoint">Validation (api/validation.py) — 1 endpoint</h4>
+<table>
+<thead>
+<tr>
+<th>Endpoint</th>
+<th>Method</th>
+<th>Feature</th>
+<th>UI Page</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>/api/v1/validation/validate</td>
+<td>POST</td>
+<td>Validate study</td>
+<td>❌ MISSING</td>
+</tr>
+</tbody>
+</table>
+<h4 id="context-engine-apicontext_enginepy-2-endpoints">Context Engine (api/context_engine.py) — 2 endpoints</h4>
+<table>
+<thead>
+<tr>
+<th>Endpoint</th>
+<th>Method</th>
+<th>Feature</th>
+<th>UI Page</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>/api/v1/context/retrieve</td>
+<td>POST</td>
+<td>Context retrieval</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>/api/v1/context/impact</td>
+<td>POST</td>
+<td>Impact analysis</td>
+<td>❌ MISSING</td>
+</tr>
+</tbody>
+</table>
+<h4 id="scada-apiscadapy-1-endpoint">SCADA (api/scada.py) — 1 endpoint</h4>
+<table>
+<thead>
+<tr>
+<th>Endpoint</th>
+<th>Method</th>
+<th>Feature</th>
+<th>UI Page</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>/api/v1/scada/live</td>
+<td>GET</td>
+<td>SCADA live data</td>
+<td>ScadaIntegration.tsx ✅</td>
+</tr>
+</tbody>
+</table>
+<h4 id="digital-twin-apidigital_twinpy-1-endpoint">Digital Twin (api/digital_twin.py) — 1 endpoint</h4>
+<table>
+<thead>
+<tr>
+<th>Endpoint</th>
+<th>Method</th>
+<th>Feature</th>
+<th>UI Page</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>/api/v1/digital-twin/status</td>
+<td>GET</td>
+<td>Digital twin status</td>
+<td>DigitalTwin.tsx ✅</td>
+</tr>
+</tbody>
+</table>
+<h4 id="email-webhooks-apiemail_webhookspy-6-endpoints">Email Webhooks (api/email_webhooks.py) — 6 endpoints</h4>
+<table>
+<thead>
+<tr>
+<th>Endpoint</th>
+<th>Method</th>
+<th>Feature</th>
+<th>UI Page</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>/api/v1/email/webhooks/resend</td>
+<td>POST</td>
+<td>Resend webhook</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>/api/v1/email/webhooks/endpoints</td>
+<td>POST</td>
+<td>Create endpoint</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>/api/v1/email/webhooks/endpoints</td>
+<td>GET</td>
+<td>List endpoints</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>/api/v1/email/webhooks/endpoints/{id}</td>
+<td>DELETE</td>
+<td>Delete endpoint</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>/api/v1/email/webhooks/endpoints/{id}/test</td>
+<td>POST</td>
+<td>Test endpoint</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>/api/v1/email/webhooks/events</td>
+<td>GET</td>
+<td>List events</td>
+<td>❌ MISSING</td>
+</tr>
+</tbody>
+</table>
+<h4 id="email-digest-apiemail_digestpy-4-endpoints">Email Digest (api/email_digest.py) — 4 endpoints</h4>
+<table>
+<thead>
+<tr>
+<th>Endpoint</th>
+<th>Method</th>
+<th>Feature</th>
+<th>UI Page</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>/api/v1/email-digest/config</td>
+<td>GET</td>
+<td>Digest config</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>/api/v1/email-digest/generate</td>
+<td>POST</td>
+<td>Generate digest</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>/api/v1/email-digest/preview/{email}</td>
+<td>GET</td>
+<td>Preview digest</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>/api/v1/email-digest/schedule/run</td>
+<td>POST</td>
+<td>Run scheduled</td>
+<td>❌ MISSING</td>
+</tr>
+</tbody>
+</table>
+<h4 id="email-dashboard-apiemail_dashboardpy-7-endpoints">Email Dashboard (api/email_dashboard.py) — 7 endpoints</h4>
+<table>
+<thead>
+<tr>
+<th>Endpoint</th>
+<th>Method</th>
+<th>Feature</th>
+<th>UI Page</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>/api/v1/email-dashboard/api/stats</td>
+<td>GET</td>
+<td>Email stats</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>/api/v1/email-dashboard/api/recent</td>
+<td>GET</td>
+<td>Recent sends</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>/api/v1/email-dashboard/api/by-day</td>
+<td>GET</td>
+<td>Daily counts</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>/api/v1/email-dashboard/api/record/{id}</td>
+<td>GET</td>
+<td>Record detail</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>/api/v1/email-dashboard/api/clear</td>
+<td>POST</td>
+<td>Clear logs</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>/api/v1/email-dashboard/api/config</td>
+<td>GET</td>
+<td>Config</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>/api/v1/email-dashboard</td>
+<td>GET</td>
+<td>Dashboard HTML</td>
+<td>❌ MISSING</td>
+</tr>
+</tbody>
+</table>
+<h4 id="dependencies-apidependenciespy-2-endpoints">Dependencies (api/dependencies.py) — 2 endpoints</h4>
+<table>
+<thead>
+<tr>
+<th>Endpoint</th>
+<th>Method</th>
+<th>Feature</th>
+<th>UI Page</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>/api/v1/users/me</td>
+<td>GET</td>
+<td>Current user</td>
+<td>Administration.tsx ✅</td>
+</tr>
+<tr>
+<td>/api/v1/users/{id}</td>
+<td>DELETE</td>
+<td>Delete user</td>
+<td>❌ MISSING</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="2-database-schema-8-tables">2. Database Schema (8 tables)</h3>
+<table>
+<thead>
+<tr>
+<th>Table</th>
+<th>Columns</th>
+<th>UI Coverage</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>users</td>
+<td>id, username, email, password_hash, role, is_active, created_at, updated_at</td>
+<td>Login/Register ✅</td>
+</tr>
+<tr>
+<td>projects</td>
+<td>id, name, description, system_config, created_by, status, created_at, updated_at</td>
+<td>Projects.tsx ✅</td>
+</tr>
+<tr>
+<td>study_results</td>
+<td>id, project_id, study_type, parameters, results, status, created_at</td>
+<td>Studies.tsx ✅</td>
+</tr>
+<tr>
+<td>sessions</td>
+<td>id, user_id, token, expires_at, created_at</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>audit_log</td>
+<td>id, user_id, action, resource, details, ip_address, created_at</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>security_events</td>
+<td>id, event_type, severity, details, ip_address, created_at</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>mfa_credentials</td>
+<td>id, user_id, method, secret, verified, created_at</td>
+<td>❌ MISSING</td>
+</tr>
+<tr>
+<td>study_jobs</td>
+<td>id, study_id, job_type, status, progress, result, created_at</td>
+<td>❌ MISSING</td>
+</tr>
+</tbody>
+</table>
+<h3 id="3-feature-flags-4-flags">3. Feature Flags (4 flags)</h3>
+<table>
+<thead>
+<tr>
+<th>Flag</th>
+<th>Status</th>
+<th>Description</th>
+<th>UI Coverage</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>harmonic_analysis</td>
+<td>beta/disabled</td>
+<td>IEEE 519 harmonic analysis</td>
+<td>Studies.tsx (shows disabled) ✅</td>
+</tr>
+<tr>
+<td>motor_starting</td>
+<td>beta/disabled</td>
+<td>IEEE 399 motor starting</td>
+<td>Studies.tsx (shows disabled) ✅</td>
+</tr>
+<tr>
+<td>transient_stability</td>
+<td>alpha/disabled</td>
+<td>Swing equation stability</td>
+<td>Studies.tsx (shows disabled) ✅</td>
+</tr>
+<tr>
+<td>optimal_power_flow</td>
+<td>alpha/disabled</td>
+<td>Economic dispatch OPF</td>
+<td>Studies.tsx (shows disabled) ✅</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="4-corrected-ui-completeness-score">4. Corrected UI Completeness Score</h3>
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>Original (Wrong)</th>
+<th>Corrected</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Total Backend Features</td>
+<td>87</td>
+<td>~120 unique endpoints</td>
+</tr>
+<tr>
+<td>Total UI Pages</td>
+<td>22</td>
+<td>22</td>
+</tr>
+<tr>
+<td>Mapped Features</td>
+<td>34</td>
+<td>34</td>
+</tr>
+<tr>
+<td>Hidden Features</td>
+<td>53</td>
+<td>~86</td>
+</tr>
+<tr>
+<td>Missing Pages</td>
+<td>6</td>
+<td>6</td>
+</tr>
+<tr>
+<td>Missing Settings</td>
+<td>7</td>
+<td>7</td>
+</tr>
+<tr>
+<td>Unused APIs (no UI)</td>
+<td>53</td>
+<td>~86</td>
+</tr>
+<tr>
+<td>Dead Buttons</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td><strong>Coverage Percentage</strong></td>
+<td><strong>39%</strong></td>
+<td><strong>~28%</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>The corrected coverage is ~28%, not 39% as originally claimed.</strong> This is because I undercounted the total endpoints.</p>
+<hr />
+<h3 id="5-corrected-implementation-plan">5. Corrected Implementation Plan</h3>
+<p>The implementation plan remains valid but the scope is larger. The 7 new pages (RBACAdmin, Templates, EquipmentLibrary, AILab, StudyVersions, Validation, Notifications) address the most critical gaps. Additional pages needed:</p>
+<ul>
+<li><strong>Email Dashboard</strong> — for email_webhooks, email_digest, email_dashboard endpoints</li>
+<li><strong>MFA Settings</strong> — for TOTP setup/verify</li>
+<li><strong>Session Management</strong> — for sessions table</li>
+<li><strong>Audit Log Viewer</strong> — for audit_log table</li>
+<li><strong>Security Events Viewer</strong> — for security_events table</li>
+</ul>
+<hr />
+<h3 id="6-justified-hidden-features">6. Justified Hidden Features</h3>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Justification</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CUA Loop execution</td>
+<td>Life-safety critical, requires physical workstation</td>
+</tr>
+<tr>
+<td>Email OTP/Magic Links</td>
+<td>Authentication backend only</td>
+</tr>
+<tr>
+<td>SIEM endpoints</td>
+<td>Operational/integration only</td>
+</tr>
+<tr>
+<td>Benchmark endpoint</td>
+<td>Diagnostic only</td>
+</tr>
+<tr>
+<td>Prometheus metrics</td>
+<td>Infrastructure only</td>
+</tr>
+<tr>
+<td>Email webhooks</td>
+<td>Backend integration only</td>
+</tr>
+<tr>
+<td>Email digest scheduling</td>
+<td>Backend cron only</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<p><strong>AUDIT CORRECTED: Coverage is ~28% (not 39%). Target remains 100%.</strong></p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "search.suggest", "search.highlight"], "search": "../../assets/javascripts/workers/search.f8cc74c7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.c8b220af.min.js"></script>
+      
+    
+  </body>
+</html>

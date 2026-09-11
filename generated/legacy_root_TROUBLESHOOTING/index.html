@@ -1,0 +1,1166 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Enterprise AI-Powered Power Systems Engineering Platform">
+      
+      
+        <meta name="author" content="AhmedETAP Team">
+      
+      
+      
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.11">
+    
+    
+      
+        <title>ETAP Troubleshooting Guide - AhmedETAP Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.4af4bdda.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="deep-purple">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#etap-troubleshooting-guide" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="AhmedETAP Documentation" class="md-header__button md-logo" aria-label="AhmedETAP Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            AhmedETAP Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              ETAP Troubleshooting Guide
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  الصفحة الرئيسية
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../ARCHITECTURE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  الهيكلية
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../API_REFERENCE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  واجهة برمجة التطبيقات
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../OPERATIONS_RUNBOOK/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  دليل التشغيل
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../TROUBLESHOOTING_GUIDE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  دليل الأعطال
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../SECURITY_OPERATIONS_MANUAL/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  البنية التحتية للأمان
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../ENTERPRISE_CERTIFICATION_REPORT/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  التقييم المؤسسي
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="AhmedETAP Documentation" class="md-nav__button md-logo" aria-label="AhmedETAP Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    AhmedETAP Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    الصفحة الرئيسية
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ARCHITECTURE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    الهيكلية
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../API_REFERENCE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    واجهة برمجة التطبيقات
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../OPERATIONS_RUNBOOK/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    دليل التشغيل
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../TROUBLESHOOTING_GUIDE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    دليل الأعطال
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../SECURITY_OPERATIONS_MANUAL/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    البنية التحتية للأمان
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ENTERPRISE_CERTIFICATION_REPORT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    التقييم المؤسسي
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#emergency-procedures" class="md-nav__link">
+    <span class="md-ellipsis">
+      🚨 Emergency Procedures
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🚨 Emergency Procedures">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#immediate-safety-concerns" class="md-nav__link">
+    <span class="md-ellipsis">
+      Immediate Safety Concerns
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#common-installation-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔧 Common Installation Issues
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔧 Common Installation Issues">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#virtual-environment-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      Virtual Environment Setup
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#missing-dependencies" class="md-nav__link">
+    <span class="md-ellipsis">
+      Missing Dependencies
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cad-file-compatibility" class="md-nav__link">
+    <span class="md-ellipsis">
+      CAD File Compatibility
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      ⚙️ Configuration Issues
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="⚙️ Configuration Issues">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#environment-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      Environment Variables
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#api-connection-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      API Connection Issues
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#calculation-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      🧮 Calculation Issues
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🧮 Calculation Issues">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#detector-placement-problems" class="md-nav__link">
+    <span class="md-ellipsis">
+      Detector Placement Problems
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#compliance-checking-failures" class="md-nav__link">
+    <span class="md-ellipsis">
+      Compliance Checking Failures
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#performance-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      Performance Issues
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#safety-related-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      🚨 Safety-Related Issues
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🚨 Safety-Related Issues">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#coverage-calculation-discrepancies" class="md-nav__link">
+    <span class="md-ellipsis">
+      Coverage Calculation Discrepancies
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#false-compliance-reports" class="md-nav__link">
+    <span class="md-ellipsis">
+      False Compliance Reports
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#missing-safety-checks" class="md-nav__link">
+    <span class="md-ellipsis">
+      Missing Safety Checks
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#debugging-tips" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔍 Debugging Tips
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔍 Debugging Tips">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#enable-detailed-logging" class="md-nav__link">
+    <span class="md-ellipsis">
+      Enable Detailed Logging
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#diagnostic-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      Diagnostic Commands
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#safety-verification" class="md-nav__link">
+    <span class="md-ellipsis">
+      Safety Verification
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#error-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      📋 Error Reference
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📋 Error Reference">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#common-error-codes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Common Error Codes
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#warning-levels" class="md-nav__link">
+    <span class="md-ellipsis">
+      Warning Levels
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#getting-help" class="md-nav__link">
+    <span class="md-ellipsis">
+      🆘 Getting Help
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🆘 Getting Help">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#when-to-contact-support" class="md-nav__link">
+    <span class="md-ellipsis">
+      When to Contact Support
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#support-channels" class="md-nav__link">
+    <span class="md-ellipsis">
+      Support Channels
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#information-to-include" class="md-nav__link">
+    <span class="md-ellipsis">
+      Information to Include
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#testing-your-installation" class="md-nav__link">
+    <span class="md-ellipsis">
+      🧪 Testing Your Installation
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🧪 Testing Your Installation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#basic-functionality-test" class="md-nav__link">
+    <span class="md-ellipsis">
+      Basic Functionality Test
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#safety-system-test" class="md-nav__link">
+    <span class="md-ellipsis">
+      Safety System Test
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#important-safety-reminders" class="md-nav__link">
+    <span class="md-ellipsis">
+      ⚠️ Important Safety Reminders
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="etap-troubleshooting-guide">ETAP Troubleshooting Guide</h1>
+<p>This guide provides solutions to common issues encountered when using ETAP. Since ETAP is a safety-critical system, pay special attention to any issues that could affect safety calculations.</p>
+<h2 id="emergency-procedures">🚨 Emergency Procedures</h2>
+<h3 id="immediate-safety-concerns">Immediate Safety Concerns</h3>
+<p>If you encounter any behavior that could compromise fire protection safety:</p>
+<ol>
+<li><strong>Stop using the system immediately</strong></li>
+<li><strong>Verify all calculations manually</strong></li>
+<li><strong>Contact the ETAP team at <a href="mailto:emergency@etap.org">emergency@etap.org</a></strong></li>
+<li><strong>Do not rely on potentially compromised results</strong></li>
+</ol>
+<h2 id="common-installation-issues">🔧 Common Installation Issues</h2>
+<h3 id="virtual-environment-setup">Virtual Environment Setup</h3>
+<p><strong>Problem</strong>: Installation fails with permission errors
+<strong>Solution</strong>: 
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># Ensure you're using a virtual environment</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>python<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>app_env
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="nb">source</span><span class="w"> </span>app_env/bin/activate<span class="w">  </span><span class="c1"># On Windows: app_env\Scripts\activate</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>pip<span class="w"> </span>install<span class="w"> </span>etap
+</code></pre></div></p>
+<h3 id="missing-dependencies">Missing Dependencies</h3>
+<p><strong>Problem</strong>: ImportError for required packages
+<strong>Solution</strong>:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># Update pip first</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>pip<span class="w"> </span>install<span class="w"> </span>--upgrade<span class="w"> </span>pip
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="c1"># Install with all dependencies</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>pip<span class="w"> </span>install<span class="w"> </span>etap<span class="o">[</span>all<span class="o">]</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="c1"># Or install missing packages individually</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>pip<span class="w"> </span>install<span class="w"> </span>shapely<span class="w"> </span>numpy<span class="w"> </span>scipy
+</code></pre></div></p>
+<h3 id="cad-file-compatibility">CAD File Compatibility</h3>
+<p><strong>Problem</strong>: CAD files fail to load or parse incorrectly
+<strong>Solution</strong>:
+1. Verify the file format is supported (DWG, DXF, RVT, IFC)
+2. Check that the file is not corrupted
+3. Ensure CAD file doesn't contain unsupported elements
+4. Try simplifying the CAD file if it's very complex</p>
+<h2 id="configuration-issues">⚙️ Configuration Issues</h2>
+<h3 id="environment-variables">Environment Variables</h3>
+<p><strong>Problem</strong>: Configuration errors or missing settings
+<strong>Solution</strong>: Create a <code>.env</code> file in your project root:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>DEBUG=false
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>LOG_LEVEL=INFO
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>DATA_DIR=./data
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>CACHE_DIR=./cache
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>MAX_MEMORY_GB=8
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>TIMEOUT_SECONDS=300
+</code></pre></div></p>
+<h3 id="api-connection-issues">API Connection Issues</h3>
+<p><strong>Problem</strong>: Cannot connect to ETAP API
+<strong>Solution</strong>:
+1. Check that the server is running: <code>etap-server --host 0.0.0.0 --port 8000</code>
+2. Verify the correct endpoint URL
+3. Check firewall settings
+4. Ensure authentication tokens are valid</p>
+<h2 id="calculation-issues">🧮 Calculation Issues</h2>
+<h3 id="detector-placement-problems">Detector Placement Problems</h3>
+<p><strong>Problem</strong>: Detectors not placed optimally or coverage gaps exist
+<strong>Solution</strong>:
+1. Verify room geometry is valid and closed polygons
+2. Check that all required parameters are specified
+3. Review building type classification (affects NFPA rules)
+4. Validate that coverage radius matches detector type</p>
+<h3 id="compliance-checking-failures">Compliance Checking Failures</h3>
+<p><strong>Problem</strong>: False positives or negatives in compliance checking
+<strong>Solution</strong>:
+1. Verify building codes and standards are correctly selected
+2. Check that local amendments are applied
+3. Review calculation tolerances and safety margins
+4. Manually verify critical compliance points</p>
+<h3 id="performance-issues">Performance Issues</h3>
+<p><strong>Problem</strong>: Slow calculations or memory exhaustion
+<strong>Solution</strong>:
+1. Simplify CAD geometry where possible
+2. Increase available memory allocation
+3. Process large files in smaller sections
+4. Check for circular dependencies in geometry</p>
+<h2 id="safety-related-issues">🚨 Safety-Related Issues</h2>
+<h3 id="coverage-calculation-discrepancies">Coverage Calculation Discrepancies</h3>
+<p><strong>Problem</strong>: Coverage calculations don't match manual calculations
+<strong>Solution</strong>:
+1. <strong>Always verify critical calculations manually</strong>
+2. Check units (meters vs feet)
+3. Verify detector specifications are correct
+4. Validate room boundary definitions
+5. Contact support if discrepancy exceeds 1%</p>
+<h3 id="false-compliance-reports">False Compliance Reports</h3>
+<p><strong>Problem</strong>: System reports compliance when violations exist
+<strong>Solution</strong>:
+1. <strong>Immediately stop relying on automated reports</strong>
+2. Perform manual compliance verification
+3. Report the issue to the ETAP team immediately
+4. Document the specific violation that wasn't caught</p>
+<h3 id="missing-safety-checks">Missing Safety Checks</h3>
+<p><strong>Problem</strong>: Safety validations appear to be bypassed
+<strong>Solution</strong>:
+1. <strong>Verify all safety features are enabled</strong>
+2. Check that safety level is set to maximum
+3. Review configuration for any disabled safety features
+4. Contact support immediately if safety features are missing</p>
+<h2 id="debugging-tips">🔍 Debugging Tips</h2>
+<h3 id="enable-detailed-logging">Enable Detailed Logging</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># Set log level to DEBUG for detailed output</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="nb">export</span><span class="w"> </span><span class="nv">LOG_LEVEL</span><span class="o">=</span>DEBUG
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>etap-cli<span class="w"> </span>--verbose<span class="w"> </span>analyze<span class="w"> </span>building.dxf
+</code></pre></div>
+<h3 id="diagnostic-commands">Diagnostic Commands</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># Check system health</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>etap-cli<span class="w"> </span>diagnose
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="c1"># Validate CAD file</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>etap-cli<span class="w"> </span>validate-cad<span class="w"> </span>building.dxf
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="c1"># Check compliance rules</span>
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>etap-cli<span class="w"> </span>list-rules
+<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>
+<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="c1"># Test calculations</span>
+<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>etap-cli<span class="w"> </span>test-calculations
+</code></pre></div>
+<h3 id="safety-verification">Safety Verification</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1"># Run safety audit on results</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>etap-cli<span class="w"> </span>safety-audit<span class="w"> </span>results.json
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="c1"># Verify compliance independently</span>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>etap-cli<span class="w"> </span>verify-compliance<span class="w"> </span>results.json
+</code></pre></div>
+<h2 id="error-reference">📋 Error Reference</h2>
+<h3 id="common-error-codes">Common Error Codes</h3>
+<ul>
+<li><code>FAC-001</code>: Invalid geometry - Check CAD file validity</li>
+<li><code>FAC-002</code>: Insufficient coverage - Add more detectors or adjust placement</li>
+<li><code>FAC-003</code>: Compliance violation - Review building codes</li>
+<li><code>FAC-004</code>: Resource exhaustion - Simplify model or increase resources</li>
+<li><code>FAC-005</code>: Safety gate failure - Check safety configuration</li>
+</ul>
+<h3 id="warning-levels">Warning Levels</h3>
+<ul>
+<li><strong>CRITICAL</strong>: Stop immediately, safety may be compromised</li>
+<li><strong>HIGH</strong>: Verify manually, may affect safety</li>
+<li><strong>MEDIUM</strong>: Review results carefully</li>
+<li><strong>LOW</strong>: Minor issue, safe to continue</li>
+</ul>
+<h2 id="getting-help">🆘 Getting Help</h2>
+<h3 id="when-to-contact-support">When to Contact Support</h3>
+<ul>
+<li>Safety-related concerns</li>
+<li>Compliance checking failures</li>
+<li>Unexpected calculation results</li>
+<li>Security vulnerabilities</li>
+<li>Performance issues with safety-critical systems</li>
+</ul>
+<h3 id="support-channels">Support Channels</h3>
+<ul>
+<li><strong>Emergency (Safety)</strong>: <a href="mailto:emergency@etap.org">emergency@etap.org</a> (24/7)</li>
+<li><strong>Technical Issues</strong>: <a href="mailto:support@etap.org">support@etap.org</a> (Business hours)</li>
+<li><strong>Feature Requests</strong>: <a href="mailto:features@etap.org">features@etap.org</a></li>
+<li><strong>Security Issues</strong>: <a href="mailto:security@etap.org">security@etap.org</a></li>
+</ul>
+<h3 id="information-to-include">Information to Include</h3>
+<p>When contacting support, include:
+- ETAP version
+- Python version
+- Operating system
+- Detailed error message
+- Steps to reproduce
+- CAD file sample (if possible)
+- Expected vs. actual results</p>
+<h2 id="testing-your-installation">🧪 Testing Your Installation</h2>
+<h3 id="basic-functionality-test">Basic Functionality Test</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1"># Verify installation</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>python<span class="w"> </span>-c<span class="w"> </span><span class="s2">"import etap; print(etap.__version__)"</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="c1"># Run basic test</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>etap-cli<span class="w"> </span><span class="nb">test</span>
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="c1"># Validate environment</span>
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>etap-cli<span class="w"> </span>check-env
+</code></pre></div>
+<h3 id="safety-system-test">Safety System Test</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1"># Run safety validation</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>etap-cli<span class="w"> </span>safety-check
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="c1"># Verify compliance engine</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>etap-cli<span class="w"> </span>test-compliance
+</code></pre></div>
+<h2 id="important-safety-reminders">⚠️ Important Safety Reminders</h2>
+<ol>
+<li><strong>ETAP is a tool to assist professional engineers, not replace them</strong></li>
+<li><strong>Always have designs reviewed by licensed professionals</strong></li>
+<li><strong>Verify critical calculations independently</strong></li>
+<li><strong>Stay updated with the latest safety patches</strong></li>
+<li><strong>Report any safety-related issues immediately</strong></li>
+</ol>
+<hr />
+<p><strong>If you encounter any issue that might affect safety, do not continue using the system until the issue is resolved. When in doubt, consult with a licensed fire protection engineer.</strong></p>
+<p>For urgent safety concerns, contact emergency services and the ETAP team immediately.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "search.suggest", "search.highlight"], "search": "../../assets/javascripts/workers/search.f8cc74c7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.c8b220af.min.js"></script>
+      
+    
+  </body>
+</html>

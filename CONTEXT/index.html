@@ -20,7 +20,7 @@
     
     
       
-        <title>ETAP Troubleshooting Guide - AhmedETAP Documentation</title>
+        <title>AhmedETAP Domain Model - AhmedETAP Documentation</title>
       
     
     
@@ -70,7 +70,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#etap-troubleshooting-guide" class="md-skip">
+        <a href="#ahmedetap-domain-model" class="md-skip">
           Skip to content
         </a>
       
@@ -104,7 +104,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              ETAP Troubleshooting Guide
+              AhmedETAP Domain Model
             
           </span>
         </div>
@@ -544,82 +544,64 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#common-issues" class="md-nav__link">
+  <a href="#core-entities" class="md-nav__link">
     <span class="md-ellipsis">
-      Common Issues
+      Core Entities
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Common Issues">
+    <nav class="md-nav" aria-label="Core Entities">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#backend-wont-start" class="md-nav__link">
+  <a href="#agent" class="md-nav__link">
     <span class="md-ellipsis">
-      Backend Won't Start
+      Agent
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#cors-errors" class="md-nav__link">
+  <a href="#study" class="md-nav__link">
     <span class="md-ellipsis">
-      CORS Errors
+      Study
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#database-locked-windows" class="md-nav__link">
+  <a href="#task" class="md-nav__link">
     <span class="md-ellipsis">
-      Database Locked (Windows)
+      Task
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#503-service-unavailable-on-apiworkflow-or-apimemory" class="md-nav__link">
+  <a href="#api-key" class="md-nav__link">
     <span class="md-ellipsis">
-      503 Service Unavailable on /api/workflow or /api/memory
+      API Key
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#health-check-failing" class="md-nav__link">
+  <a href="#engineering-service" class="md-nav__link">
     <span class="md-ellipsis">
-      Health Check Failing
+      Engineering Service
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#frontend-not-loading" class="md-nav__link">
+  <a href="#kv-storage" class="md-nav__link">
     <span class="md-ellipsis">
-      Frontend Not Loading
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#parser-security-errors" class="md-nav__link">
-    <span class="md-ellipsis">
-      Parser Security Errors
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#native-dependency-compilation-errors" class="md-nav__link">
-    <span class="md-ellipsis">
-      Native Dependency Compilation Errors
+      KV Storage
     </span>
   </a>
   
@@ -631,9 +613,69 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#getting-help" class="md-nav__link">
+  <a href="#relationships" class="md-nav__link">
     <span class="md-ellipsis">
-      Getting Help
+      Relationships
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-scenarios" class="md-nav__link">
+    <span class="md-ellipsis">
+      Key Scenarios
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Key Scenarios">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#study-execution-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      Study Execution Flow
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#agent-interaction-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      Agent Interaction Flow
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ambiguities-and-open-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Ambiguities and Open Questions
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#decisions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Decisions
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#glossary" class="md-nav__link">
+    <span class="md-ellipsis">
+      Glossary
     </span>
   </a>
   
@@ -658,63 +700,238 @@
   
 
 
-<h1 id="etap-troubleshooting-guide">ETAP Troubleshooting Guide</h1>
-<h2 id="common-issues">Common Issues</h2>
-<h3 id="backend-wont-start">Backend Won't Start</h3>
-<p><strong>Symptom</strong>: <code>ModuleNotFoundError: No module named 'X'</code></p>
-<p><strong>Fix</strong>:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="c1"># For optional features:</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>pip<span class="w"> </span>install<span class="w"> </span>etap<span class="o">[</span>workflow<span class="o">]</span><span class="w">  </span><span class="c1"># if you need /api/workflow</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>pip<span class="w"> </span>install<span class="w"> </span>etap<span class="o">[</span>memory<span class="o">]</span><span class="w">    </span><span class="c1"># if you need /api/memory</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>pip<span class="w"> </span>install<span class="w"> </span>etap<span class="o">[</span>ifc<span class="o">]</span><span class="w">       </span><span class="c1"># if you need IFC export</span>
-</code></pre></div></p>
-<p><strong>Symptom</strong>: <code>API_KEY must be set</code></p>
-<p><strong>Fix</strong>: Set environment variable:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">API_KEY</span><span class="o">=</span><span class="k">$(</span>openssl<span class="w"> </span>rand<span class="w"> </span>-hex<span class="w"> </span><span class="m">32</span><span class="k">)</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="nb">export</span><span class="w"> </span><span class="nv">EVIDENCE_HMAC_KEY</span><span class="o">=</span><span class="k">$(</span>openssl<span class="w"> </span>rand<span class="w"> </span>-hex<span class="w"> </span><span class="m">32</span><span class="k">)</span>
-</code></pre></div></p>
-<h3 id="cors-errors">CORS Errors</h3>
-<p><strong>Symptom</strong>: Browser shows CORS policy errors</p>
-<p><strong>Fix</strong>: In <code>.env</code>, set <code>CORS_ALLOWED_ORIGINS=https://your-domain.com</code>
-- NEVER use <code>*</code> in production
-- Development mode allows wildcards automatically</p>
-<h3 id="database-locked-windows">Database Locked (Windows)</h3>
-<p><strong>Symptom</strong>: <code>PermissionError: [WinError 32]</code> on SQLite files</p>
-<p><strong>Fix</strong>: This is a Windows-specific SQLite file locking issue. Ensure all connections are closed before file operations. Use <code>DeltaCache.persist()</code> or <code>AuditLog.close()</code> before cleanup.</p>
-<h3 id="503-service-unavailable-on-apiworkflow-or-apimemory">503 Service Unavailable on /api/workflow or /api/memory</h3>
-<p><strong>Symptom</strong>: Optional endpoints return 503</p>
-<p><strong>Fix</strong>: Install optional dependencies:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>pip<span class="w"> </span>install<span class="w"> </span>etap<span class="o">[</span>workflow<span class="o">]</span><span class="w">  </span><span class="c1"># requires langgraph</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>pip<span class="w"> </span>install<span class="w"> </span>etap<span class="o">[</span>memory<span class="o">]</span><span class="w">    </span><span class="c1"># requires mem0 + qdrant-client</span>
-</code></pre></div></p>
-<h3 id="health-check-failing">Health Check Failing</h3>
-<p><strong>Symptom</strong>: <code>/api/health</code> returns non-200</p>
-<p><strong>Fix</strong>: Check:
-1. Database path is accessible and writable
-2. Core modules can be imported: <code>python -c "from etap.core.qomn_kernel import QOMNKernel"</code>
-3. Environment variables are set correctly</p>
-<h3 id="frontend-not-loading">Frontend Not Loading</h3>
-<p><strong>Symptom</strong>: Blank page or API-only mode</p>
-<p><strong>Fix</strong>: Build and serve frontend:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nb">cd</span><span class="w"> </span>frontend<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>npm<span class="w"> </span>install<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>npm<span class="w"> </span>run<span class="w"> </span>build
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="c1"># Backend auto-serves frontend/dist when it exists</span>
-</code></pre></div></p>
-<h3 id="parser-security-errors">Parser Security Errors</h3>
-<p><strong>Symptom</strong>: File parsing returns "path rejected" errors</p>
-<p><strong>Fix</strong>: This is intentional security behavior. Paths with null bytes, traversal sequences, or leading dashes are rejected. Ensure file paths are clean.</p>
-<h3 id="native-dependency-compilation-errors">Native Dependency Compilation Errors</h3>
-<p><strong>Symptom</strong>: C extension compilation fails when installing requirements</p>
-<p><strong>Fix</strong>:
-- On Windows: Install Microsoft C++ Build Tools (Visual Studio 2022 Build Tools with Desktop Development with C++).
-- On Linux: Run <code>sudo apt-get install build-essential python3-dev</code> (Debian/Ubuntu) or <code>sudo yum groupinstall "Development Tools"</code> (RHEL/CentOS).
-- On macOS: Run <code>xcode-select --install</code>.</p>
-<h2 id="getting-help">Getting Help</h2>
+<h1 id="ahmedetap-domain-model">AhmedETAP Domain Model</h1>
+<p>This document defines the ubiquitous language for the AhmedETAP platform, ensuring clarity and consistency in terminology across the codebase, documentation, and discussions.</p>
+<hr />
+<h2 id="core-entities">Core Entities</h2>
+<h3 id="agent">Agent</h3>
+<ul>
+<li><strong>Definition</strong>: A specialized AI service responsible for performing specific engineering studies or tasks.</li>
+<li><strong>Key Attributes</strong>:</li>
+<li><code>agentId</code>: Unique identifier for the agent (e.g., <code>load-flow-agent</code>, <code>short-circuit-agent</code>).</li>
+<li>Specialized for one or more <code>studyTypes</code> (e.g., <code>load-flow-agent</code> handles <code>load_flow</code> studies).</li>
+<li><strong>Relationships</strong>:</li>
+<li>Performs <code>Studies</code> and generates <code>Tasks</code>.</li>
+<li>Authenticated via <code>API Keys</code>.</li>
+</ul>
+<h3 id="study">Study</h3>
+<ul>
+<li><strong>Definition</strong>: A computational analysis or task performed by an <code>Agent</code> (e.g., load flow, short circuit, arc flash).</li>
+<li><strong>Key Attributes</strong>:</li>
+<li><code>studyType</code>: Type of analysis (e.g., <code>load_flow</code>, <code>short_circuit</code>, <code>arc_flash</code>).</li>
+<li><code>parameters</code>: Input data required for the study (structure varies by <code>studyType</code>).</li>
+<li><code>dryRun</code>: Boolean flag indicating whether the study is validated but not executed.</li>
+<li><strong>Relationships</strong>:</li>
+<li>Executed by an <code>Agent</code> or the <code>Engineering Service</code>.</li>
+<li>Generates a <code>Task</code> upon execution.</li>
+</ul>
+<h3 id="task">Task</h3>
+<ul>
+<li><strong>Definition</strong>: A persisted record of a <code>Study</code> execution, including its status and results.</li>
+<li><strong>Key Attributes</strong>:</li>
+<li><code>taskId</code>: Unique identifier for the task.</li>
+<li><code>status</code>: Current state of the task (<code>dry_run</code>, <code>pending</code>, <code>completed</code>).</li>
+<li><code>studyType</code>: The type of study associated with the task.</li>
+<li><code>results</code>: Output data from the study (if completed).</li>
+<li><strong>Relationships</strong>:</li>
+<li>Generated by a <code>Study</code>.</li>
+<li>Persisted in <code>KV Storage</code> for tracking and retrieval.</li>
+</ul>
+<h3 id="api-key">API Key</h3>
+<ul>
+<li><strong>Definition</strong>: Authentication mechanism for accessing the platform's API.</li>
+<li><strong>Key Attributes</strong>:</li>
+<li><code>key</code>: Unique string used for authentication.</li>
+<li><code>revoked</code>: Boolean flag indicating whether the key is revoked.</li>
+<li><code>name</code>: Optional human-readable name for the key.</li>
+<li><strong>Relationships</strong>:</li>
+<li>Authenticates requests to interact with <code>Agents</code> or execute <code>Studies</code>.</li>
+<li>Stored in <code>KV Storage</code> (<code>API_KEYS_KV</code>).</li>
+</ul>
+<h3 id="engineering-service">Engineering Service</h3>
+<ul>
+<li><strong>Definition</strong>: External service (Python runtime) responsible for executing computational studies.</li>
+<li><strong>Key Attributes</strong>:</li>
+<li><code>configured</code>: Boolean flag indicating whether the service is configured.</li>
+<li><code>healthy</code>: Boolean flag indicating whether the service is operational.</li>
+<li><strong>Relationships</strong>:</li>
+<li>Executes <code>Studies</code> for non-<code>dryRun</code> requests.</li>
+<li>Status checked via the <code>/health</code> endpoint.</li>
+</ul>
+<h3 id="kv-storage">KV Storage</h3>
+<ul>
+<li><strong>Definition</strong>: Key-value storage used for persisting tasks, API keys, and metrics.</li>
+<li><strong>Key Namespaces</strong>:</li>
+<li><code>TASK_STORE_KV</code>: Stores <code>Tasks</code>.</li>
+<li><code>API_KEYS_KV</code>: Stores <code>API Keys</code>.</li>
+<li><code>RATE_LIMIT_KV</code>: Enforces rate limiting.</li>
+<li><code>METRICS_KV</code>: Stores platform metrics.</li>
+</ul>
+<hr />
+<h2 id="relationships">Relationships</h2>
+<table>
+<thead>
+<tr>
+<th><strong>Source Entity</strong></th>
+<th><strong>Relationship</strong></th>
+<th><strong>Target Entity</strong></th>
+<th><strong>Description</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Agent</td>
+<td>Performs</td>
+<td>Study</td>
+<td>An <code>Agent</code> executes a <code>Study</code> and generates a <code>Task</code>.</td>
+</tr>
+<tr>
+<td>Study</td>
+<td>Generates</td>
+<td>Task</td>
+<td>A <code>Study</code> execution creates a <code>Task</code> for tracking and persistence.</td>
+</tr>
+<tr>
+<td>Task</td>
+<td>Persisted in</td>
+<td>KV Storage</td>
+<td><code>Tasks</code> are stored in <code>TASK_STORE_KV</code> for retrieval and status tracking.</td>
+</tr>
+<tr>
+<td>API Key</td>
+<td>Authenticates</td>
+<td>Agent/Study</td>
+<td><code>API Keys</code> validate requests to interact with <code>Agents</code> or execute <code>Studies</code>.</td>
+</tr>
+<tr>
+<td>Engineering Service</td>
+<td>Executes</td>
+<td>Study</td>
+<td>The <code>Engineering Service</code> performs computational studies for non-<code>dryRun</code> requests.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="key-scenarios">Key Scenarios</h2>
+<h3 id="study-execution-flow">Study Execution Flow</h3>
 <ol>
-<li>Check logs: <code>LOG_LEVEL=DEBUG</code> for detailed output</li>
-<li>Review ARCHITECTURE.md for system design</li>
-<li>Check API docs: <code>http://localhost:8000/docs</code> (Swagger UI)</li>
+<li>A user submits a request to <code>/api/v1/studies/run</code> with a <code>studyType</code> and <code>parameters</code>.</li>
+<li>The API gateway validates the <code>studyType</code> and <code>API Key</code>.</li>
+<li>If <code>dryRun: true</code>, the study is validated but not executed by the <code>Engineering Service</code>.</li>
+<li>If <code>dryRun: false</code>, the <code>Engineering Service</code> executes the study.</li>
+<li>A <code>Task</code> is generated and persisted in <code>KV Storage</code>.</li>
+<li>The <code>taskId</code> is returned to the user for status tracking.</li>
 </ol>
+<h3 id="agent-interaction-flow">Agent Interaction Flow</h3>
+<ol>
+<li>A user submits a request to <code>/api/v1/agents/{agentId}/chat</code> with a <code>messages</code> array.</li>
+<li>The API gateway validates the <code>API Key</code> and <code>agentId</code>.</li>
+<li>The <code>Agent</code> processes the request and returns a response.</li>
+<li>If the request involves a <code>Study</code>, a <code>Task</code> may be generated.</li>
+</ol>
+<hr />
+<h2 id="ambiguities-and-open-questions">Ambiguities and Open Questions</h2>
+<ol>
+<li><strong><code>Study</code> vs. <code>Task</code></strong>:</li>
+<li>Are <code>Studies</code> and <code>Tasks</code> distinct entities, or is a <code>Task</code> simply a persisted instance of a <code>Study</code>?</li>
+<li>
+<p><strong>Current Interpretation</strong>: A <code>Task</code> is a persisted record of a <code>Study</code> execution, including its status and results.</p>
+</li>
+<li>
+<p><strong><code>Agent</code> vs. <code>StudyType</code> Mapping</strong>:</p>
+</li>
+<li>Is every <code>studyType</code> tied to a specific <code>Agent</code>, or are some studies executed directly by the <code>Engineering Service</code>?</li>
+<li>
+<p><strong>Current Interpretation</strong>: Most <code>studyTypes</code> are tied to <code>Agents</code>, but some (e.g., <code>fault</code>) may be executed directly by the <code>Engineering Service</code>.</p>
+</li>
+<li>
+<p><strong><code>parameters</code> Structure</strong>:</p>
+</li>
+<li>The structure of <code>parameters</code> for a <code>Study</code> is not standardized. Are they study-specific or platform-wide?</li>
+<li>
+<p><strong>Current Interpretation</strong>: <code>parameters</code> are study-specific and defined by the <code>Agent</code> or <code>Engineering Service</code>.</p>
+</li>
+<li>
+<p><strong><code>dryRun</code> Mode</strong>:</p>
+</li>
+<li>Does <code>dryRun</code> validate <code>parameters</code> or only the <code>studyType</code>?</li>
+<li>
+<p><strong>Current Interpretation</strong>: <code>dryRun</code> validates the <code>studyType</code> and basic request structure but does not execute the study.</p>
+</li>
+<li>
+<p><strong>Task Lifecycle</strong>:</p>
+</li>
+<li>Are there policies for task cleanup, archival, or TTL in <code>KV Storage</code>?</li>
+<li><strong>Current Interpretation</strong>: Not explicitly defined. Tasks persist until manually deleted.</li>
+</ol>
+<hr />
+<h2 id="decisions">Decisions</h2>
+<ol>
+<li><strong>Terminology Standardization</strong>:</li>
+<li>Use <code>Agent</code> to refer to specialized AI services (e.g., <code>load-flow-agent</code>).</li>
+<li>Use <code>Study</code> to refer to computational analyses (e.g., <code>load_flow</code>).</li>
+<li>
+<p>Use <code>Task</code> to refer to persisted execution records of <code>Studies</code>.</p>
+</li>
+<li>
+<p><strong><code>dryRun</code> Behavior</strong>:</p>
+</li>
+<li>
+<p><code>dryRun: true</code> validates the <code>studyType</code> and request structure but skips execution by the <code>Engineering Service</code>.</p>
+</li>
+<li>
+<p><strong><code>parameters</code> Flexibility</strong>:</p>
+</li>
+<li><code>parameters</code> are study-specific and defined by the <code>Agent</code> or <code>Engineering Service</code>. No platform-wide schema is enforced.</li>
+</ol>
+<hr />
+<h2 id="glossary">Glossary</h2>
+<table>
+<thead>
+<tr>
+<th><strong>Term</strong></th>
+<th><strong>Definition</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Agent</td>
+<td>A specialized AI service that performs engineering studies (e.g., <code>load-flow-agent</code>).</td>
+</tr>
+<tr>
+<td>Study</td>
+<td>A computational analysis or task (e.g., <code>load_flow</code>, <code>short_circuit</code>).</td>
+</tr>
+<tr>
+<td>Task</td>
+<td>A persisted record of a <code>Study</code> execution, including its status and results.</td>
+</tr>
+<tr>
+<td>API Key</td>
+<td>Authentication mechanism for accessing the platform's API.</td>
+</tr>
+<tr>
+<td>Engineering Service</td>
+<td>External service (Python runtime) that executes computational studies.</td>
+</tr>
+<tr>
+<td>KV Storage</td>
+<td>Key-value storage for persisting tasks, API keys, and metrics.</td>
+</tr>
+<tr>
+<td><code>studyType</code></td>
+<td>The type of engineering analysis (e.g., <code>load_flow</code>, <code>short_circuit</code>).</td>
+</tr>
+<tr>
+<td><code>dryRun</code></td>
+<td>A mode where the study is validated but not executed by the <code>Engineering Service</code>.</td>
+</tr>
+<tr>
+<td><code>taskId</code></td>
+<td>Unique identifier for a <code>Task</code>.</td>
+</tr>
+</tbody>
+</table>
 
 
 

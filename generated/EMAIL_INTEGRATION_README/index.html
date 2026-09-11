@@ -1,0 +1,1203 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Enterprise AI-Powered Power Systems Engineering Platform">
+      
+      
+        <meta name="author" content="AhmedETAP Team">
+      
+      
+      
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.11">
+    
+    
+      
+        <title>⚡ AhmedETAP — Resend Email Integration v2 - AhmedETAP Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.4af4bdda.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="deep-purple">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#ahmedetap-resend-email-integration-v2" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="AhmedETAP Documentation" class="md-header__button md-logo" aria-label="AhmedETAP Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            AhmedETAP Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              ⚡ AhmedETAP — Resend Email Integration v2
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  الصفحة الرئيسية
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../ARCHITECTURE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  الهيكلية
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../API_REFERENCE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  واجهة برمجة التطبيقات
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../OPERATIONS_RUNBOOK/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  دليل التشغيل
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../TROUBLESHOOTING_GUIDE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  دليل الأعطال
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../SECURITY_OPERATIONS_MANUAL/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  البنية التحتية للأمان
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../ENTERPRISE_CERTIFICATION_REPORT/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  التقييم المؤسسي
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="AhmedETAP Documentation" class="md-nav__button md-logo" aria-label="AhmedETAP Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    AhmedETAP Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    الصفحة الرئيسية
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ARCHITECTURE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    الهيكلية
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../API_REFERENCE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    واجهة برمجة التطبيقات
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../OPERATIONS_RUNBOOK/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    دليل التشغيل
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../TROUBLESHOOTING_GUIDE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    دليل الأعطال
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../SECURITY_OPERATIONS_MANUAL/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    البنية التحتية للأمان
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ENTERPRISE_CERTIFICATION_REPORT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    التقييم المؤسسي
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#v2" class="md-nav__link">
+    <span class="md-ellipsis">
+      🆕 ما الجديد في v2
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      📦 المحتويات
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5" class="md-nav__link">
+    <span class="md-ellipsis">
+      🚀 التثبيت (5 دقائق)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🚀 التثبيت (5 دقائق)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1" class="md-nav__link">
+    <span class="md-ellipsis">
+      الطريقة 1: استخدام النسخة المحلية الجاهزة
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2" class="md-nav__link">
+    <span class="md-ellipsis">
+      الطريقة 2: تثبيت يدوي
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#env-vars" class="md-nav__link">
+    <span class="md-ellipsis">
+      ⚙️ الإعدادات (env vars)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="⚙️ الإعدادات (env vars)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      الأساسية (مطلوبة)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      الهوية البصرية
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      الميزات الجديدة
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#apis" class="md-nav__link">
+    <span class="md-ellipsis">
+      📋 الـ APIs الجديدة
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📋 الـ APIs الجديدة">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-magic-links" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Magic Links
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-email-digests" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Email Digests
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-webhooks" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Webhooks
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-dashboard" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Dashboard
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      🎨 الهوية البصرية
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      ✅ الاختبارات
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      🛡️ الأمان
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#resend" class="md-nav__link">
+    <span class="md-ellipsis">
+      📊 حدود Resend
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#repo" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔄 ما تم تطبيقه على repo المحلي
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      📞 الدعم
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      📝 الترخيص
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="ahmedetap-resend-email-integration-v2">⚡ AhmedETAP — Resend Email Integration v2</h1>
+<p>تكامل كامل ومحسّن بين منصة AhmedETAP وخدمة <a href="https://resend.com">Resend</a> — مع هوية AhmedETAP البصرية (⚡ أصفر→أحمر) وميزات متقدمة.</p>
+<hr />
+<h2 id="v2">🆕 ما الجديد في v2</h2>
+<table>
+<thead>
+<tr>
+<th>الميزة</th>
+<th>الوصف</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>🪄 <strong>Magic Links</strong></td>
+<td>دخول بدون كلمة مرور عبر رابط بريدي one-shot</td>
+</tr>
+<tr>
+<td>📊 <strong>Email Digests</strong></td>
+<td>ملخص يومي/أسبوعي بنشاط المستخدم</td>
+</tr>
+<tr>
+<td>🔔 <strong>Webhooks</strong></td>
+<td>استقبال أحداث Resend + إعادة توجيهها لأنظمة خارجية</td>
+</tr>
+<tr>
+<td>📈 <strong>Dashboard</strong></td>
+<td>لوحة مراقبة حية لإحصائيات الإرسال</td>
+</tr>
+<tr>
+<td>🎨 <strong>هوية AhmedETAP</strong></td>
+<td>كل القوالب بتدرج أصفر→أحمر + شعار ⚡</td>
+</tr>
+<tr>
+<td>📝 <strong>سجل الإرسال</strong></td>
+<td>تسجيل تلقائي لكل عملية إرسال للإحصائيات</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="_1">📦 المحتويات</h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>ETAP-AI-WORK-/
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>├── integrations/
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>│   └── resend_email.py             # عميل Resend + auto-logging
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>├── services/
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>│   ├── email_service.py            # 13+ دالة بريد جاهزة
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>│   ├── otp_store.py                # OTP آمن (hash + rate limiting)
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>│   └── email_send_log.py           # 🆕 سجل الإرسال للـ dashboard
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>├── api/
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>│   ├── email_otp.py                # راوتر OTP
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>│   ├── magic_links.py              # 🆕 Magic Links (passwordless)
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>│   ├── email_digest.py             # 🆕 Digests (daily/weekly)
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>│   ├── email_webhooks.py           # 🆕 Webhooks (inbound+outbound)
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>│   ├── email_dashboard.py          # 🆕 Dashboard (HTML+JSON)
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>│   ├── auth.py                     # ✏️ مُعدّل (welcome, reset, change pwd)
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>│   ├── notifications.py            # ✏️ مُعدّل (requires_email delivery)
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>│   └── routes.py                   # ✏️ مُعدّل (5 routers مسجّلة)
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>├── templates/emails/               # 14 قالب بهوية AhmedETAP
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>│   ├── otp.html                    # أصفر→أحمر + ⚡
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>│   ├── password_reset.html
+<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>│   ├── welcome.html
+<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>│   ├── verify_email.html
+<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>│   ├── login_alert.html            # أحمر خالص (تنبيه)
+<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>│   ├── lockout.html
+<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>│   ├── notification.html
+<a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>│   ├── study_complete.html         # أخضر (نجاح)
+<a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>│   ├── study_failed.html
+<a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>│   ├── role_change.html            # بنفسجي
+<a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>│   ├── password_change.html        # سماوي
+<a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>│   ├── critical_alert.html         # أحمر + شريط جانبي
+<a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>│   ├── magic_link.html             # 🆕
+<a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>│   └── digest.html                 # 🆕
+<a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a>├── tests/
+<a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a>│   └── test_new_features.py        # اختبارات شاملة (تعمل فعلياً)
+<a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a>└── .env.example                    # ✏️ مُحدّث بكل المتغيرات الجديدة
+</code></pre></div>
+<hr />
+<h2 id="5">🚀 التثبيت (5 دقائق)</h2>
+<h3 id="1">الطريقة 1: استخدام النسخة المحلية الجاهزة</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># النسخة المحلية في /home/z/my-project/etap-local-clone/ جاهزة بالفعل</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="c1"># — كل الباتشات تم تطبيقها، القوالب محدّثة، الميزات مُختبرة</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="c1"># انسخها فوق repo الحالي</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>cp<span class="w"> </span>-r<span class="w"> </span>/home/z/my-project/etap-local-clone/*<span class="w"> </span>/path/to/your/ETAP-AI-WORK-/
+</code></pre></div>
+<h3 id="2">الطريقة 2: تثبيت يدوي</h3>
+<ol>
+<li>انسخ المجلدات: <code>integrations/</code>, <code>services/</code>, <code>templates/</code>, والملفات الجديدة في <code>api/</code></li>
+<li>طبّق التعديلات على <code>api/auth.py</code>, <code>api/notifications.py</code>, <code>api/routes.py</code></li>
+<li>أضف إعدادات Resend من <code>.env.example</code> إلى <code>.env</code></li>
+</ol>
+<hr />
+<h2 id="env-vars">⚙️ الإعدادات (env vars)</h2>
+<h3 id="_2">الأساسية (مطلوبة)</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nv">RESEND_API_KEY</span><span class="o">=</span>re_your_key_here
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="nv">RESEND_FROM_EMAIL</span><span class="o">=</span>onboarding@resend.dev<span class="w">     </span><span class="c1"># أو noreply@yourdomain.com</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="nv">RESEND_FROM_NAME</span><span class="o">=</span>AhmedETAP
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="nv">RESEND_ENABLED</span><span class="o">=</span><span class="nb">true</span>
+</code></pre></div>
+<h3 id="_3">الهوية البصرية</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nv">EMAIL_BRAND_NAME</span><span class="o">=</span>AhmedETAP
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="nv">EMAIL_BRAND_TAGLINE</span><span class="o">=</span>Enterprise<span class="w"> </span>AI-Powered<span class="w"> </span>Power<span class="w"> </span>Systems<span class="w"> </span>Engineering
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="nv">EMAIL_SUPPORT_ADDRESS</span><span class="o">=</span>support@etap-ai-work.vercel.app
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="nv">EMAIL_APP_URL</span><span class="o">=</span>https://etap-ai-work.vercel.app
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="nv">EMAIL_BRAND_PRIMARY</span><span class="o">=</span><span class="c1">#facc15                # أصفر AhmedETAP</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="nv">EMAIL_BRAND_SECONDARY</span><span class="o">=</span><span class="c1">#ef4444              # أحمر AhmedETAP</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="nv">EMAIL_BRAND_LOGO_EMOJI</span><span class="o">=</span>⚡<span class="w">                   </span><span class="c1"># البرق</span>
+</code></pre></div>
+<h3 id="_4">الميزات الجديدة</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># Magic Links</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="nv">MAGIC_LINK_TTL_SECONDS</span><span class="o">=</span><span class="m">900</span><span class="w">                 </span><span class="c1"># 15 دقيقة</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="nv">MAGIC_LINK_MAX_USES</span><span class="o">=</span><span class="m">1</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="c1"># Digests</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="nv">EMAIL_DIGEST_ENABLED</span><span class="o">=</span><span class="nb">true</span>
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="nv">EMAIL_DIGEST_SCHEDULE_DAILY</span><span class="o">=</span><span class="m">08</span>:00<span class="w">          </span><span class="c1"># UTC</span>
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="nv">EMAIL_DIGEST_SCHEDULE_WEEKLY</span><span class="o">=</span>MONDAY_08:00
+<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>
+<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="c1"># Webhooks</span>
+<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="nv">EMAIL_WEBHOOK_SECRET</span><span class="o">=</span>your-hmac-secret<span class="w">      </span><span class="c1"># لتوقيع الـ outbound</span>
+<a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a><span class="nv">EMAIL_WEBHOOK_EVENTS</span><span class="o">=</span>email.sent,email.delivered,email.bounced
+<a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a>
+<a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a><span class="c1"># Dashboard</span>
+<a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a><span class="nv">EMAIL_DASHBOARD_ENABLED</span><span class="o">=</span><span class="nb">true</span>
+<a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a><span class="nv">EMAIL_DASHBOARD_ADMIN_ROLES</span><span class="o">=</span>admin,super_admin
+<a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a><span class="nv">EMAIL_DASHBOARD_DEV_OPEN</span><span class="o">=</span><span class="nb">false</span><span class="w">             </span><span class="c1"># true للتطوير فقط</span>
+</code></pre></div>
+<hr />
+<h2 id="apis">📋 الـ APIs الجديدة</h2>
+<h3 id="1-magic-links">1. Magic Links</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1"># طلب رابط دخول</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://localhost:8000/api/v1/auth/magic-link/request<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">  </span>-H<span class="w"> </span><span class="s1">'Content-Type: application/json'</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">  </span>-d<span class="w"> </span><span class="s1">'{"email":"user@example.com"}'</span>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="c1"># التحقق من الرابط (بعد الضغط عليه)</span>
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://localhost:8000/api/v1/auth/magic-link/verify<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="w">  </span>-H<span class="w"> </span><span class="s1">'Content-Type: application/json'</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="w">  </span>-d<span class="w"> </span><span class="s1">'{"token":"...32+ chars..."}'</span>
+<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="c1"># → يرجع access_token + refresh_token</span>
+</code></pre></div>
+<h3 id="2-email-digests">2. Email Digests</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1"># معاينة digest لمستخدم (بدون إرسال)</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>curl<span class="w"> </span>http://localhost:8000/api/v1/email-digest/preview/user@example.com
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="c1"># توليد digest يدوياً</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://localhost:8000/api/v1/email-digest/generate<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="w">  </span>-H<span class="w"> </span><span class="s1">'Content-Type: application/json'</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="w">  </span>-d<span class="w"> </span><span class="s1">'{"email":"user@example.com","period":"daily"}'</span>
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>
+<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="c1"># cron call (يُستدعى كل ساعة)</span>
+<a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://localhost:8000/api/v1/email-digest/schedule/run<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a><span class="w">  </span>-H<span class="w"> </span><span class="s1">'X-API-Key: your-service-key'</span>
+</code></pre></div>
+<h3 id="3-webhooks">3. Webhooks</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1"># تسجيل endpoint خارجي</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://localhost:8000/api/v1/email/webhooks/endpoints<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">  </span>-H<span class="w"> </span><span class="s1">'Content-Type: application/json'</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">  </span>-d<span class="w"> </span><span class="s1">'{</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="s1">    "url":"https://hooks.slack.com/services/...",</span>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="s1">    "events":["email.bounced","email.complained"],</span>
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="s1">    "secret":"slack_signing_secret_min_16_chars"</span>
+<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="s1">  }'</span>
+<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>
+<a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="c1"># استقبال webhook من Resend</span>
+<a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="c1"># (يُسجّل في Resend Dashboard → Webhooks → Add endpoint)</span>
+<a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a><span class="c1"># URL: https://your-api.com/api/v1/email/webhooks/resend</span>
+</code></pre></div>
+<h3 id="4-dashboard">4. Dashboard</h3>
+<p>افتح في المتصفح:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>http://localhost:8000/api/v1/email-dashboard/
+</code></pre></div></p>
+<p>أو استخدم JSON APIs:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c1"># إحصائيات آخر 24 ساعة</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>curl<span class="w"> </span>http://localhost:8000/api/v1/email-dashboard/api/stats?window_hours<span class="o">=</span><span class="m">24</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="w">  </span>-H<span class="w"> </span><span class="s1">'Authorization: Bearer &lt;admin-jwt&gt;'</span>
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="c1"># آخر 100 إرسال</span>
+<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>curl<span class="w"> </span>http://localhost:8000/api/v1/email-dashboard/api/recent?limit<span class="o">=</span><span class="m">100</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="w">  </span>-H<span class="w"> </span><span class="s1">'Authorization: Bearer &lt;admin-jwt&gt;'</span>
+</code></pre></div></p>
+<hr />
+<h2 id="_5">🎨 الهوية البصرية</h2>
+<p>كل القوالب تستخدم الآن:</p>
+<table>
+<thead>
+<tr>
+<th>العنصر</th>
+<th>القيمة</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>التدرج الأساسي</td>
+<td><code>linear-gradient(135deg, #facc15 0%, #ef4444 100%)</code></td>
+</tr>
+<tr>
+<td>الشعار</td>
+<td>⚡ (في رأس كل قالب)</td>
+</tr>
+<tr>
+<td>اللون النصي على التدرج</td>
+<td><code>#1f2937</code> (رمادي داكن)</td>
+</tr>
+<tr>
+<td>اللون النصي الأساسي</td>
+<td><code>#111827</code></td>
+</tr>
+<tr>
+<td>الخط</td>
+<td><code>-apple-system, BlinkMacSystemFont, Segoe UI, Roboto</code></td>
+</tr>
+<tr>
+<td>الحدود</td>
+<td><code>border-radius: 12px</code> للبطاقات، <code>6px</code> للأزرار</td>
+</tr>
+</tbody>
+</table>
+<p><strong>قوالب خاصة:</strong>
+- <code>study_complete.html</code> — أخضر (#16a34a) للنجاح
+- <code>login_alert.html</code>, <code>lockout.html</code>, <code>critical_alert.html</code> — أحمر (#ef4444 → #b91c1c) للتنبيه
+- <code>role_change.html</code> — بنفسجي (#7c3aed) لتغيير الصلاحيات
+- <code>password_change.html</code> — سماوي (#0891b2) للتأكيد</p>
+<hr />
+<h2 id="_6">✅ الاختبارات</h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="nb">cd</span><span class="w"> </span>/home/z/my-project/etap-local-clone
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>python<span class="w"> </span>tests/test_new_features.py
+</code></pre></div>
+<p><strong>النتائج:</strong>
+- ✅ OTP: issue + verify + re-verify rejection + rate limit
+- ✅ Magic Links: issue + verify + one-shot + rate limit
+- ✅ Send Log: log + recent + stats + by-day + record-by-id
+- ✅ Dashboard: stats + recent + by-day + config endpoints
+- ✅ Webhooks: register + list + delete + test
+- ✅ Digests: context building + config
+- ✅ Live send: 3 رسائل فعلية بهوية AhmedETAP إلى <code>a7medbaz16@gmail.com</code></p>
+<hr />
+<h2 id="_7">🛡️ الأمان</h2>
+<table>
+<thead>
+<tr>
+<th>الميزة</th>
+<th>التفاصيل</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>OTP hash</strong></td>
+<td>SHA-256 (لا يُخزَّن plaintext)</td>
+</tr>
+<tr>
+<td><strong>Magic link tokens</strong></td>
+<td>32-byte URL-safe random</td>
+</tr>
+<tr>
+<td><strong>Webhook signature</strong></td>
+<td>HMAC-SHA256 (Svix-compatible)</td>
+</tr>
+<tr>
+<td><strong>Rate limiting</strong></td>
+<td>لكل مستلم + لكل IP (على الـ API level)</td>
+</tr>
+<tr>
+<td><strong>Auto-logging</strong></td>
+<td>كل إرسال يُسجَّل تلقائياً مع message_id</td>
+</tr>
+<tr>
+<td><strong>User enumeration</strong></td>
+<td>OTP/magic-link ترجع 200 دائماً</td>
+</tr>
+<tr>
+<td><strong>One-shot consumption</strong></td>
+<td>كل OTP/magic link يُستهلك عند الاستخدام</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="resend">📊 حدود Resend</h2>
+<table>
+<thead>
+<tr>
+<th>الحد</th>
+<th>القيمة</th>
+<th>ملاحظة</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>شهرياً</td>
+<td>3,000 email</td>
+<td>Free tier</td>
+</tr>
+<tr>
+<td>يومياً</td>
+<td>100 email</td>
+<td>Free tier</td>
+</tr>
+<tr>
+<td>معدل الإرسال</td>
+<td>2/sec</td>
+<td>Free tier</td>
+</tr>
+<tr>
+<td>Recipient restriction</td>
+<td>فقط <code>a7medbaz16@gmail.com</code></td>
+<td>بدون domain مخصص</td>
+</tr>
+</tbody>
+</table>
+<p><strong>للتجاوز</strong>: أضف domain في <a href="https://resend.com/domains">Resend → Domains</a> وحدّث <code>RESEND_FROM_EMAIL</code>.</p>
+<hr />
+<h2 id="repo">🔄 ما تم تطبيقه على repo المحلي</h2>
+<p>في <code>/home/z/my-project/etap-local-clone/</code>:</p>
+<table>
+<thead>
+<tr>
+<th>الملف</th>
+<th>التغيير</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>api/routes.py</code></td>
+<td>✅ تسجيل 5 routers جديدة (email_otp, magic_links, email_digest, email_webhooks, email_dashboard)</td>
+</tr>
+<tr>
+<td><code>api/auth.py</code></td>
+<td>✅ ربط <code>forgot_password</code> بـ <code>send_password_reset</code></td>
+</tr>
+<tr>
+<td><code>api/auth.py</code></td>
+<td>✅ ربط <code>register</code> بـ <code>send_welcome</code></td>
+</tr>
+<tr>
+<td><code>api/auth.py</code></td>
+<td>✅ ربط <code>change_password</code> بـ <code>send_password_change_email</code></td>
+</tr>
+<tr>
+<td><code>api/notifications.py</code></td>
+<td>✅ ربط <code>requires_email=True</code> بـ <code>send_notification_email</code></td>
+</tr>
+<tr>
+<td><code>.env.example</code></td>
+<td>✅ إضافة كل إعدادات Resend والميزات الجديدة</td>
+</tr>
+<tr>
+<td><code>integrations/resend_email.py</code></td>
+<td>✅ إضافة auto-logging لكل إرسال</td>
+</tr>
+<tr>
+<td>9 ملفات جديدة</td>
+<td>✅ في <code>api/</code>, <code>services/</code>, <code>templates/emails/</code></td>
+</tr>
+<tr>
+<td>14 قالب HTML</td>
+<td>✅ كلها بهوية AhmedETAP (أصفر→أحمر + ⚡)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="_8">📞 الدعم</h2>
+<ul>
+<li><strong>مشاكل الإرسال</strong>: راجع Dashboard على <code>/api/v1/email-dashboard/</code></li>
+<li><strong>OTP لا يصل</strong>: تحقق من spam + <code>RESEND_FROM_EMAIL</code></li>
+<li><strong>429 Too Many Requests</strong>: زِد <code>RESEND_RATE_LIMIT_MAX</code> أو انتظر</li>
+<li><strong>401 Unauthorized</strong>: المفتاح غير صحيح أو مُلغى</li>
+<li><strong>Magic link لا يعمل</strong>: تحقق من <code>EMAIL_APP_URL</code> + أن الـ token لم يُستهلك</li>
+</ul>
+<hr />
+<h2 id="_9">📝 الترخيص</h2>
+<p>MIT License — نفس ترخيص ETAP-AI-WORK-.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "search.suggest", "search.highlight"], "search": "../../assets/javascripts/workers/search.f8cc74c7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.c8b220af.min.js"></script>
+      
+    
+  </body>
+</html>

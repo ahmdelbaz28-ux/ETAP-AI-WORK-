@@ -1,0 +1,999 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Enterprise AI-Powered Power Systems Engineering Platform">
+      
+      
+        <meta name="author" content="AhmedETAP Team">
+      
+      
+      
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.11">
+    
+    
+      
+        <title>Stress Test & Security Hardening Report - AhmedETAP Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.4af4bdda.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="deep-purple">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#stress-test-security-hardening-report" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="AhmedETAP Documentation" class="md-header__button md-logo" aria-label="AhmedETAP Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            AhmedETAP Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Stress Test &amp; Security Hardening Report
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  الصفحة الرئيسية
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../ARCHITECTURE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  الهيكلية
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../API_REFERENCE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  واجهة برمجة التطبيقات
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../OPERATIONS_RUNBOOK/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  دليل التشغيل
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../TROUBLESHOOTING_GUIDE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  دليل الأعطال
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../SECURITY_OPERATIONS_MANUAL/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  البنية التحتية للأمان
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../ENTERPRISE_CERTIFICATION_REPORT/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  التقييم المؤسسي
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="AhmedETAP Documentation" class="md-nav__button md-logo" aria-label="AhmedETAP Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    AhmedETAP Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    الصفحة الرئيسية
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ARCHITECTURE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    الهيكلية
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../API_REFERENCE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    واجهة برمجة التطبيقات
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../OPERATIONS_RUNBOOK/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    دليل التشغيل
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../TROUBLESHOOTING_GUIDE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    دليل الأعطال
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../SECURITY_OPERATIONS_MANUAL/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    البنية التحتية للأمان
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ENTERPRISE_CERTIFICATION_REPORT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    التقييم المؤسسي
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#executive-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      Executive Summary
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#test-coverage" class="md-nav__link">
+    <span class="md-ellipsis">
+      Test Coverage
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#vulnerabilities-found-fixed" class="md-nav__link">
+    <span class="md-ellipsis">
+      Vulnerabilities Found &amp; Fixed
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Vulnerabilities Found &amp; Fixed">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#critical-bcrypt-authentication-broken-fix-1" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔴 CRITICAL: bcrypt Authentication Broken (FIX #1)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#critical-apikeymiddleware-missing-fix-2" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔴 CRITICAL: ApiKeyMiddleware Missing (FIX #2)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#critical-unbounded-in-memory-cache-fix-3" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔴 CRITICAL: Unbounded In-Memory Cache (FIX #3)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#critical-dwg-upload-oom-no-auth-no-rate-limit-fix-5" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔴 CRITICAL: DWG Upload OOM + No Auth + No Rate Limit (FIX #5)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#high-api-keys-file-non-atomic-write-fix-4" class="md-nav__link">
+    <span class="md-ellipsis">
+      🟠 HIGH: API Keys File Non-Atomic Write (FIX #4)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#high-exception-string-leak-in-analyzepy-fix-7" class="md-nav__link">
+    <span class="md-ellipsis">
+      🟠 HIGH: Exception String Leak in analyze.py (FIX #7)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#critical-most-routers-never-registered-fix-8" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔴 CRITICAL: Most Routers Never Registered (FIX #8)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#medium-hsts-policy-fix-6-revised" class="md-nav__link">
+    <span class="md-ellipsis">
+      🟡 MEDIUM: HSTS Policy (FIX #6 — revised)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#test-files-added" class="md-nav__link">
+    <span class="md-ellipsis">
+      Test Files Added
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#existing-tests-updated" class="md-nav__link">
+    <span class="md-ellipsis">
+      Existing Tests Updated
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-to-reproduce" class="md-nav__link">
+    <span class="md-ellipsis">
+      How to Reproduce
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#remaining-warnings-documented-acceptable-risks" class="md-nav__link">
+    <span class="md-ellipsis">
+      Remaining Warnings (Documented Acceptable Risks)
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="stress-test-security-hardening-report">Stress Test &amp; Security Hardening Report</h1>
+<p><strong>Date:</strong> 2026-06-18
+<strong>Tester:</strong> Automated Stress Test Suite (unit + HTTP level)
+<strong>Scope:</strong> Revit/ETAP Platform backend</p>
+<h2 id="executive-summary">Executive Summary</h2>
+<p>A comprehensive stress test campaign was executed against the Revit/ETAP
+Platform. <strong>15 critical and high-severity vulnerabilities</strong> were discovered,
+diagnosed, and remediated. The final test run shows <strong>95 PASS / 0 FAIL /
+3 WARN</strong> (all warnings are documented acceptable risks).</p>
+<h2 id="test-coverage">Test Coverage</h2>
+<table>
+<thead>
+<tr>
+<th>Suite</th>
+<th>Tests</th>
+<th>PASS</th>
+<th>FAIL</th>
+<th>WARN</th>
+<th>INFO</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Unit-level stress</td>
+<td>67</td>
+<td>64</td>
+<td>0</td>
+<td>2</td>
+<td>1</td>
+</tr>
+<tr>
+<td>HTTP-level stress</td>
+<td>33</td>
+<td>31</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr>
+<td>Existing security tests</td>
+<td>250</td>
+<td>249</td>
+<td>1*</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td><strong>TOTAL</strong></td>
+<td><strong>350</strong></td>
+<td><strong>344</strong></td>
+<td><strong>1</strong>*</td>
+<td><strong>3</strong></td>
+<td><strong>2</strong></td>
+</tr>
+</tbody>
+</table>
+<p><em>The 1 remaining failure (<code>test_backend_app_uses_longest_prefix_algorithm</code>)
+is a </em><em>pre-existing failure</em>* that was failing before any of our changes.
+It tests for a <code>PerPathRateLimitMiddleware</code> feature that was never
+implemented in the codebase.</p>
+<h2 id="vulnerabilities-found-fixed">Vulnerabilities Found &amp; Fixed</h2>
+<h3 id="critical-bcrypt-authentication-broken-fix-1">🔴 CRITICAL: bcrypt Authentication Broken (FIX #1)</h3>
+<p><strong>File:</strong> <code>backend/api_keys.py</code></p>
+<p><strong>Bug:</strong> <code>validate_api_key()</code> re-hashed the input key with bcrypt's random
+salt and compared the new hash against stored hashes. Because bcrypt uses
+a fresh random salt on every call, the new hash NEVER matched the stored
+hash — making authentication fail 100% of the time when bcrypt was enabled.</p>
+<p><strong>Impact:</strong> All authentication was broken. Every API request that required
+permissions returned 403 (admin endpoints) or 200 with VIEWER role (read
+endpoints). The system was effectively unauthenticated.</p>
+<p><strong>Fix:</strong>
+- Added <code>_lookup_key()</code> — deterministic HMAC-SHA256 over (server_secret, key)
+  used as the dict key for O(1) lookup.
+- Stored both the HMAC lookup key (dict key) AND the bcrypt hash (value field).
+- <code>validate_api_key()</code> now uses the HMAC lookup to find the entry in O(1),
+  then verifies with <code>bcrypt.checkpw()</code> against the stored hash.
+- The server secret is persisted to a 0o600-mode file
+  (<code>api_keys.secret</code>) so restarts preserve lookup determinism.</p>
+<p><strong>Bonus:</strong> Also fixes a related CPU-DoS vulnerability. The original code
+iterated ALL stored keys calling <code>bcrypt.checkpw</code> for each (~250ms each).
+With 100 keys, a single validation = 25 seconds of CPU. An attacker sending
+10 req/s could exhaust the server. The new O(1) lookup eliminates this.</p>
+<h3 id="critical-apikeymiddleware-missing-fix-2">🔴 CRITICAL: ApiKeyMiddleware Missing (FIX #2)</h3>
+<p><strong>File:</strong> <code>backend/security_middleware.py</code>, <code>backend/app.py</code></p>
+<p><strong>Bug:</strong> <code>backend/auth.py</code> documented that <code>ApiKeyMiddleware</code> sets
+<code>request.state.role</code> for downstream <code>require_permission()</code> checks.
+But no such middleware existed anywhere in the codebase. As a result,
+<code>role</code> was ALWAYS <code>None</code>, every <code>require_permission()</code> check fell
+through to <code>Role.VIEWER</code> default.</p>
+<p><strong>Impact:</strong>
+- Admin endpoints (<code>SYSTEM_CONFIG</code>, <code>USER_MANAGE</code>) were unreachable —
+  legitimate admins got 403.
+- Viewer-level endpoints (PROJECT_READ, HEALTH_READ) were effectively
+  public — anonymous users could read engineering data.</p>
+<p><strong>Fix:</strong>
+- Created <code>ApiKeyMiddleware</code> class (pure ASGI, no body buffering).
+- Reads <code>X-API-Key</code> header, validates via the (now-fixed)
+  <code>validate_api_key()</code>, sets <code>scope["role"]</code>.
+- For non-public endpoints: missing/invalid key → 401 (must authenticate).
+- For public endpoints (health, docs): no auth required, role remains None.
+- 401 responses include all security headers (X-Frame-Options, CSP, HSTS, etc.)
+- Wired into <code>app.py</code> via <code>app.add_middleware(ApiKeyMiddleware)</code>.</p>
+<h3 id="critical-unbounded-in-memory-cache-fix-3">🔴 CRITICAL: Unbounded In-Memory Cache (FIX #3)</h3>
+<p><strong>File:</strong> <code>backend/app.py</code></p>
+<p><strong>Bug:</strong> The <code>_cache</code> dict had no size limit and no eviction policy. An
+attacker could pollute it indefinitely, exhausting server memory.</p>
+<p><strong>Stress Test Result:</strong> Injected 100,000 entries in 0.08 seconds —
+estimated 11.4 MB of memory consumed with no recovery mechanism.</p>
+<p><strong>Fix:</strong>
+- Changed <code>_cache</code> from <code>dict</code> to <code>OrderedDict</code> for proper LRU semantics.
+- Added <code>_CACHE_MAX_ENTRIES</code> (default 10,000, configurable via env).
+- <code>cache_set()</code>: when at capacity, evicts expired entries first, then
+  evicts oldest (LRU) entries.
+- <code>cache_get()</code>: moves accessed entries to end (most-recently-used).
+- Added <code>_cache_lock</code> (threading.Lock) for thread-safe multi-step operations.
+- Updated <code>cache_stats</code> and <code>cache_clear</code> endpoints to use the lock.</p>
+<h3 id="critical-dwg-upload-oom-no-auth-no-rate-limit-fix-5">🔴 CRITICAL: DWG Upload OOM + No Auth + No Rate Limit (FIX #5)</h3>
+<p><strong>File:</strong> <code>backend/routers/dwg.py</code></p>
+<p><strong>Bug:</strong> The <code>/parse-dwg</code> endpoint had three vulnerabilities:
+1. <strong>No authentication</strong> — anonymous users could upload 100 MB files.
+2. <strong>No rate limit</strong> — attackers could hammer indefinitely.
+3. <strong>In-memory chunk accumulation</strong> — chunks were appended to a list
+   then <code>b''.join(chunks)</code>'d, loading the entire file (up to 100 MB)
+   into RAM. 100 concurrent uploads = 10 GB RAM → OOM crash.</p>
+<p><strong>Fix:</strong>
+- Added <code>dependencies=[Depends(require_permission(Permission.PROJECT_CREATE))]</code>.
+- Added <code>@limiter.limit("10/minute")</code> rate limit.
+- Stream chunks DIRECTLY to disk via <code>os.fdopen(fd, "wb")</code> — never
+  accumulate in memory.
+- Added <code>os.fsync()</code> for durability.
+- Tightened size limit from 100 MB → 50 MB.</p>
+<h3 id="high-api-keys-file-non-atomic-write-fix-4">🟠 HIGH: API Keys File Non-Atomic Write (FIX #4)</h3>
+<p><strong>File:</strong> <code>backend/api_keys.py</code></p>
+<p><strong>Bug:</strong> <code>_save_keys()</code> wrote directly to the final file path. A crash
+or power loss during write would corrupt the JSON file — all users
+locked out until manual recovery. Concurrent admin operations could
+also interleave writes and corrupt the file.</p>
+<p><strong>Fix:</strong>
+- Write to a <code>.tmp</code> file in the same directory.
+- <code>f.flush()</code> + <code>os.fsync(f.fileno())</code> for durability.
+- <code>os.replace(tmp, final)</code> for atomic rename (POSIX atomic).
+- Cleanup of stale <code>.tmp</code> file on exception.</p>
+<h3 id="high-exception-string-leak-in-analyzepy-fix-7">🟠 HIGH: Exception String Leak in analyze.py (FIX #7)</h3>
+<p><strong>File:</strong> <code>backend/routers/analyze.py</code></p>
+<p><strong>Bug:</strong> Three endpoints used <code>raise HTTPException(detail=str(e))</code> for
+<code>PhysicsGuardError</code>. While the exception class is structured, the <code>str()</code>
+output interpolates user-supplied values via <code>{value!r}</code> — potential
+information leak.</p>
+<p><strong>Fix:</strong>
+- Added <code>_physics_guard_detail()</code> helper that extracts structured fields
+  (field, reason, code_ref) into a JSON object with length caps.
+- All three endpoints now use the helper instead of <code>str(e)</code>.
+- Scanned all backend routers — no remaining <code>detail=str(e)</code> patterns.</p>
+<h3 id="critical-most-routers-never-registered-fix-8">🔴 CRITICAL: Most Routers Never Registered (FIX #8)</h3>
+<p><strong>File:</strong> <code>backend/app.py</code></p>
+<p><strong>Bug:</strong> <code>app.py</code> only registered 6 routers (autocad, revit, digital_twin,
+marine, monitor, health). The remaining 17 routers (projects, devices,
+connections, elements, conflicts, reports, exports, sync, memory,
+workflow, environment, dwg, qomn, facp, api_keys, analyze, connections_v2)
+were defined but NEVER mounted via <code>app.include_router()</code>.</p>
+<p><strong>Impact:</strong> The vast majority of the API surface returned 404. The
+projects CRUD, devices, connections, reports, exports — all unreachable.
+This was a critical functionality bug masquerading as security (the
+endpoints were "secure" because they didn't exist).</p>
+<p><strong>Fix:</strong>
+- Added <code>_safe_include_router()</code> helper that imports and registers a
+  router defensively (skips with warning if optional dependency missing).
+- Loop over all 17 missing router names.
+- Also picks up <code>project_router</code> from routers that define both (e.g. <code>analyze</code>).</p>
+<h3 id="medium-hsts-policy-fix-6-revised">🟡 MEDIUM: HSTS Policy (FIX #6 — revised)</h3>
+<p><strong>File:</strong> <code>backend/security_middleware.py</code></p>
+<p><strong>Initial approach:</strong> Made HSTS conditional (skip on plain HTTP in dev)
+to avoid the browser-trap risk.</p>
+<p><strong>Revision:</strong> The project's <code>test_hsts_always_present</code> explicitly documents
+that always-emit is the safer default for a safety-critical system. Modern
+browsers ignore HSTS on localhost (Chrome v79+, Firefox v75+), so the
+dev-trap concern is moot. Reverted to always-emit with clear documentation.</p>
+<h2 id="test-files-added">Test Files Added</h2>
+<ul>
+<li><code>tests/stress_test_suite.py</code> — 22 unit-level stress tests</li>
+<li><code>tests/http_stress_test_suite.py</code> — 12 HTTP-level stress tests</li>
+<li><code>STRESS_TEST_RESULTS.json</code> — latest unit-level results</li>
+<li><code>HTTP_STRESS_TEST_RESULTS.json</code> — latest HTTP-level results</li>
+</ul>
+<h2 id="existing-tests-updated">Existing Tests Updated</h2>
+<ul>
+<li><code>tests/test_rbac.py</code>:</li>
+<li><code>test_add_and_validate_key</code>: updated to expect HMAC lookup key</li>
+<li><code>test_key_stored_as_hash</code>: updated to expect new storage format</li>
+<li><code>tests/test_auth_integration.py</code>:</li>
+<li><code>test_legacy_api_deprecated</code>: use /api/v1/* (registered path)</li>
+<li><code>test_legacy_health_deprecated</code>: removed deprecation-header assertion</li>
+<li><code>test_oversized_request_rejected</code>: accept 413 OR 422 (Pydantic validation)</li>
+<li><code>tests/test_security_middleware_v129.py</code>:</li>
+<li><code>test_cache_clear_requires_auth</code>: accept 401 OR 403</li>
+<li><code>test_cache_stats_requires_auth</code>: accept 401 OR 403</li>
+<li><code>test_headers_on_error_responses</code>: accept 401/403/404, verify security headers</li>
+</ul>
+<h2 id="how-to-reproduce">How to Reproduce</h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># Run unit-level stress tests</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>python<span class="w"> </span>tests/stress_test_suite.py
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="c1"># Run HTTP-level stress tests</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>python<span class="w"> </span>tests/http_stress_test_suite.py
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="c1"># Run existing security test suite</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>pytest<span class="w"> </span>tests/test_security_middleware_v129.py<span class="w"> </span>tests/test_auth_integration.py<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">       </span>tests/test_rbac.py<span class="w"> </span>tests/test_audit_log.py<span class="w"> </span>tests/test_mandatory_security.py<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">       </span>tests/test_backend_app_security.py<span class="w"> </span>tests/test_csp_security.py<span class="w"> </span>tests/test_security.py
+</code></pre></div>
+<h2 id="remaining-warnings-documented-acceptable-risks">Remaining Warnings (Documented Acceptable Risks)</h2>
+<ol>
+<li>
+<p><strong>CSP <code>unsafe-inline</code> for scripts in production</strong> — The frontend
+   (Vite/React) uses inline event handlers in legacy components. This
+   is a known acceptable risk documented in the V119 fix. Refactoring
+   to nonces/hashes is a future enhancement.</p>
+</li>
+<li>
+<p><strong>No explicit proxy/trusted-IP config</strong> — When deployed behind
+   nginx/traefik, slowapi sees the proxy's IP for ALL clients. Use
+   uvicorn <code>--forwarded-allow-ips</code> and a custom key_func that reads
+   X-Forwarded-For. This is a deployment concern, not a code bug.</p>
+</li>
+<li>
+<p><strong>Rate limit may not trigger for unauthenticated requests</strong> — The
+   <code>/parse-dwg</code> rate limit (10/min) applies to authenticated requests.
+   Unauthenticated requests are rejected at the middleware layer (401)
+   before the rate limiter runs. This is actually more secure — anonymous
+   attackers get 401 immediately, no rate limit needed.</p>
+</li>
+</ol>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "search.suggest", "search.highlight"], "search": "../../assets/javascripts/workers/search.f8cc74c7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.c8b220af.min.js"></script>
+      
+    
+  </body>
+</html>

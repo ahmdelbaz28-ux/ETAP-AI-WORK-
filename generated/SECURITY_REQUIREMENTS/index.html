@@ -1,0 +1,1418 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Enterprise AI-Powered Power Systems Engineering Platform">
+      
+      
+        <meta name="author" content="AhmedETAP Team">
+      
+      
+      
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.11">
+    
+    
+      
+        <title>Security Requirements — AhmedETAP Platform - AhmedETAP Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.4af4bdda.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="deep-purple">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#security-requirements-ahmedetap-platform" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="AhmedETAP Documentation" class="md-header__button md-logo" aria-label="AhmedETAP Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            AhmedETAP Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Security Requirements — AhmedETAP Platform
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  الصفحة الرئيسية
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../ARCHITECTURE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  الهيكلية
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../API_REFERENCE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  واجهة برمجة التطبيقات
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../OPERATIONS_RUNBOOK/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  دليل التشغيل
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../TROUBLESHOOTING_GUIDE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  دليل الأعطال
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../SECURITY_OPERATIONS_MANUAL/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  البنية التحتية للأمان
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../ENTERPRISE_CERTIFICATION_REPORT/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  التقييم المؤسسي
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="AhmedETAP Documentation" class="md-nav__button md-logo" aria-label="AhmedETAP Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    AhmedETAP Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    الصفحة الرئيسية
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ARCHITECTURE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    الهيكلية
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../API_REFERENCE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    واجهة برمجة التطبيقات
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../OPERATIONS_RUNBOOK/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    دليل التشغيل
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../TROUBLESHOOTING_GUIDE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    دليل الأعطال
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../SECURITY_OPERATIONS_MANUAL/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    البنية التحتية للأمان
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ENTERPRISE_CERTIFICATION_REPORT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    التقييم المؤسسي
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-threat-model-stride-register" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Threat Model (STRIDE Register)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. Threat Model (STRIDE Register)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#verified-clean-areas" class="md-nav__link">
+    <span class="md-ellipsis">
+      Verified-clean areas
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-security-requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Security Requirements
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. Security Requirements">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#21-sandbox-code-execution-domain-input_validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.1 Sandbox &amp; Code Execution (Domain: input_validation)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22-authentication-domain-authentication" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.2 Authentication (Domain: authentication)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#23-authorization-tenant-isolation-domain-authorization" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.3 Authorization &amp; Tenant Isolation (Domain: authorization)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#24-data-protection-secrets-domain-cryptography-data_protection" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.4 Data Protection &amp; Secrets (Domain: cryptography / data_protection)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#25-audit-logging-domain-audit_logging" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.5 Audit Logging (Domain: audit_logging)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#26-error-handling-domain-error_handling" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.6 Error Handling (Domain: error_handling)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#27-availability-dos-domain-availability" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.7 Availability &amp; DoS (Domain: availability)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#28-file-integrity-safe-serialization-domain-input_validation-data_protection" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.8 File Integrity &amp; Safe Serialization (Domain: input_validation / data_protection)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#29-defense-in-depth-domain-network_security" class="md-nav__link">
+    <span class="md-ellipsis">
+      2.9 Defense-in-depth (Domain: network_security)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-threat-to-requirement-traceability-matrix" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Threat-to-Requirement Traceability Matrix
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-compliance-mapping-high-level" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Compliance Mapping (high-level)
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-recommended-remediation-order" class="md-nav__link">
+    <span class="md-ellipsis">
+      5. Recommended Remediation Order
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="security-requirements-ahmedetap-platform">Security Requirements — AhmedETAP Platform</h1>
+<p>Derived from a STRIDE-based threat analysis of the codebase (API layer, agent runtime, backend/infra).
+Generated with the <code>security-requirement-extraction</code> skill (Template 1: Security Requirement Model).</p>
+<p><strong>Version:</strong> 1.0
+<strong>Scope:</strong> api/ · backend/ · core/ · services/ · agents/ · security/ · acp_runtime/ · facp_distributed/ · docker-compose.yml
+<strong>Method:</strong> STRIDE threat model → requirement extraction (traceability + acceptance criteria + test cases + compliance mapping)
+<strong>Status of each finding:</strong> verified by code reading; CRITICAL findings additionally verified by live execution.</p>
+<hr />
+<h2 id="1-threat-model-stride-register">1. Threat Model (STRIDE Register)</h2>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>STRIDE</th>
+<th>Severity</th>
+<th>Threat</th>
+<th>Evidence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>T-01</td>
+<td>Tampering / Elevation</td>
+<td><strong>CRITICAL</strong></td>
+<td>Python sandbox escape → RCE. <code>import numpy.f2py as nf; nf.__dict__['os']</code> exposes <code>os.system</code>. Pre-scan (<code>security/secure_executor.py:91-153</code>) blocks <code>os.</code> and <code>__builtins__</code> but not <code>__dict__</code> subscripting; the module freeze runs only in the parent and is discarded. <strong>Verified live.</strong></td>
+<td><code>security/secure_executor.py:65-77,383-390,447-452</code></td>
+</tr>
+<tr>
+<td>T-02</td>
+<td>Spoofing / Tampering / Info Disclosure</td>
+<td><strong>CRITICAL</strong></td>
+<td>Hardcoded secrets in <code>docker-compose.yml</code>: JWT secret <code>test-secret-32-bytes-long-aaaa-bbbb</code> (passes the ≥32-byte gate at <code>api/dependencies.py:36-42</code>), API key <code>etap_dev_api_key_1234567890</code>, Redis/Postgres passwords, and the sample Fernet key from public docs. Any deployment from compose ships with attacker-known credentials. <strong>Verified.</strong></td>
+<td><code>docker-compose.yml:12-21</code></td>
+</tr>
+<tr>
+<td>T-03</td>
+<td>Information Disclosure / Elevation</td>
+<td><strong>CRITICAL</strong></td>
+<td>Cross-tenant RLS isolation broken. <code>before_cursor_execute</code> marks each pooled DBAPI connection in a process-wide <code>WeakSet</code> after the first <code>SET app.current_tenant_id</code> and never re-sets it (and never resets to empty). Connection reuse across requests/tenants executes tenant B's queries under tenant A's RLS variable. <strong>Verified — no reset exists.</strong></td>
+<td><code>backend/request_context.py:290-301</code></td>
+</tr>
+<tr>
+<td>T-04</td>
+<td>Elevation of Privilege</td>
+<td>HIGH</td>
+<td>Life-safety admin endpoints (<code>/admin/cua/kill-switch/*</code>, <code>/admin/cua/rollback</code>, <code>/admin/cua/audit-log</code>, <code>/api/v1/audit/verify</code>) gated only by the single shared API key — no role/admin separation.</td>
+<td><code>api/routes.py:906,1003,1027,1074,1100</code></td>
+</tr>
+<tr>
+<td>T-05</td>
+<td>Spoofing / Info Disclosure</td>
+<td>HIGH</td>
+<td>ACP runtime unauthenticated by default (<code>auth_validator=None</code> unless <code>ACP_AUTH_SECRET</code> set) and the HMAC bearer token rides in <code>trace_id</code>, which is written verbatim into logs/spans/audit files.</td>
+<td><code>acp_runtime/acp/cli.py:211-226</code>, <code>acp_runtime/router/router.py:192-195</code>, <code>acp_runtime/observability/*</code></td>
+</tr>
+<tr>
+<td>T-06</td>
+<td>Elevation / Spoofing</td>
+<td>HIGH</td>
+<td><code>ENGINEERING_SERVICE_AUTH_DISABLED</code> / <code>AUTH_DISABLED</code> grants <strong>anonymous ADMIN</strong> (<code>role=_Role.ADMIN</code>) per-request with no environment guard; the ETAP app has no startup fail-safe equivalent to <code>api/routes.py:123-146</code>.</td>
+<td><code>backend/security_middleware.py:397-403</code></td>
+</tr>
+<tr>
+<td>T-07</td>
+<td>Tampering / Elevation</td>
+<td>HIGH</td>
+<td>PowerShell executor newline statement-injection bypass: <code>Get-Service\r\nnet user attacker P@ssw0rd /add</code> — newlines are flattened by normalization before scanning, cmdlet regex only matches <code>Verb-Noun</code>, and the command is written verbatim to the <code>.ps1</code>.</td>
+<td><code>security/secure_powershell_executor.py:173-246,304</code>, <code>security/security_framework.py:595-634</code></td>
+</tr>
+<tr>
+<td>T-08</td>
+<td>Information Disclosure</td>
+<td>HIGH</td>
+<td>Raw exception strings echoed to clients (<code>detail=f"System spec error: {ve}"</code>, <code>errors.append(str(e))</code>) leak file paths and engine internals; FastAPI <code>debug=(_ENV == "development")</code> defaults to dev when <code>ENVIRONMENT</code> is unset.</td>
+<td><code>services/study_service.py:434,475</code>, <code>api/routes.py:84-93</code></td>
+</tr>
+<tr>
+<td>T-09</td>
+<td>Information Disclosure (IDOR)</td>
+<td>HIGH</td>
+<td><code>GET /api/v1/studies/task_status/{task_id}</code> returns full study results for any task ID to any key holder — no ownership/tenant scoping; fallback IDs are predictable (<code>task_{int(time.time())}</code>).</td>
+<td><code>api/routes.py:460-493</code></td>
+</tr>
+<tr>
+<td>T-10</td>
+<td>Information Disclosure</td>
+<td>HIGH</td>
+<td>JWT access tokens passed in WebSocket query strings (<code>ws://.../ws/scada?token=&lt;jwt&gt;</code>) — captured by proxy/access logs, browser history, Referer.</td>
+<td><code>api/websocket.py:367-398</code></td>
+</tr>
+<tr>
+<td>T-11</td>
+<td>Spoofing / Integrity</td>
+<td>HIGH</td>
+<td><code>/ws/notifications</code> handler omits token-blacklist, user-existence, and <code>is_active</code> checks (unlike its twin) and echoes raw client data back over the socket.</td>
+<td><code>backend/app.py:767-797</code></td>
+</tr>
+<tr>
+<td>T-12</td>
+<td>Authentication bypass</td>
+<td>HIGH</td>
+<td><code>verify_api_key</code> open-by-default: <code>if not expected_key: return</code> — the whole surface is open when <code>HF_API_KEY</code> is unset; valid access JWTs skip the key check with no blacklist validation here.</td>
+<td><code>api/shared_handlers.py:362-406</code></td>
+</tr>
+<tr>
+<td>T-13</td>
+<td>Denial of Service</td>
+<td>MEDIUM</td>
+<td>Body-size limit bypassed via chunked <code>Transfer-Encoding</code> (no <code>content-length</code> → unbounded buffering).</td>
+<td><code>api/routes.py:191-204</code></td>
+</tr>
+<tr>
+<td>T-14</td>
+<td>Denial of Service</td>
+<td>MEDIUM</td>
+<td>Rate limiter fails open: any Redis error returns <code>True</code> (allow), and identity falls back to <code>request.client.host</code> unless trusted proxies configured.</td>
+<td><code>api/routes.py:295-297,351</code></td>
+</tr>
+<tr>
+<td>T-15</td>
+<td>Spoofing</td>
+<td>MEDIUM</td>
+<td>No Origin validation on WebSocket handshakes → cross-site WebSocket hijacking / DNS-rebinding.</td>
+<td><code>api/websocket.py:353-398</code></td>
+</tr>
+<tr>
+<td>T-16</td>
+<td>Elevation of Privilege</td>
+<td>MEDIUM</td>
+<td>Parent process <code>pickle.load</code>s child result files in <code>facp_distributed</code> isolation boundary; exec path built via f-string.</td>
+<td><code>facp_distributed/security/isolation.py:58-122</code></td>
+</tr>
+<tr>
+<td>T-17</td>
+<td>Spoofing</td>
+<td>MEDIUM</td>
+<td>CSRF origin check defaults to a Host-derived same-origin comparison (DNS-rebinding-sensitive) when <code>CSRF_ALLOWED_ORIGINS</code> unset.</td>
+<td><code>api/auth.py:554-610</code></td>
+</tr>
+<tr>
+<td>T-18</td>
+<td>Denial of Service</td>
+<td>MEDIUM</td>
+<td>Sync CPU-bound native studies (<code>_run_native_study</code>) execute directly on the event loop; blocks health checks/WS/auth under a few concurrent studies.</td>
+<td><code>api/studies.py:628,703</code></td>
+</tr>
+<tr>
+<td>T-19</td>
+<td>Tampering</td>
+<td>MEDIUM</td>
+<td>Report generation writes to user-supplied <code>output_path</code> from task parameters without <code>validate_file_path</code>.</td>
+<td><code>agents/orchestrator.py:1327,1477</code></td>
+</tr>
+<tr>
+<td>T-20</td>
+<td>Information Disclosure</td>
+<td>MEDIUM</td>
+<td>LLM provider key (<code>x-active-key</code>) accepted in plaintext headers and whitelisted in CORS <code>allow_headers</code>; no TLS-only enforcement.</td>
+<td><code>api/routes.py:318-321,617-640</code></td>
+</tr>
+<tr>
+<td>T-21</td>
+<td>Tampering</td>
+<td>LOW</td>
+<td>CSV formula injection in audit-log export: <code>details</code>/<code>user</code> written with no sanitization of leading <code>= + - @</code>.</td>
+<td><code>api/audit_logs.py:659-676</code></td>
+</tr>
+<tr>
+<td>T-22</td>
+<td>Information Disclosure</td>
+<td>LOW</td>
+<td>Reflective error details echoing user input back in messages.</td>
+<td><code>api/audit_logs.py:546,556,784</code></td>
+</tr>
+<tr>
+<td>T-23</td>
+<td>Elevation (traversal)</td>
+<td>LOW</td>
+<td><code>etap_project_path</code> unvalidated at the service layer (currently mitigated downstream by <code>etap_com.py</code> containment checks).</td>
+<td><code>services/study_service.py:409-421</code></td>
+</tr>
+<tr>
+<td>T-24</td>
+<td>Info Disclosure (defense-in-depth)</td>
+<td>LOW</td>
+<td>No CSP / no default HSTS on the engineering API; only <code>X-Content-Type-Options</code>/<code>X-Frame-Options</code>/<code>Referrer-Policy</code>.</td>
+<td><code>api/routes.py:649-665</code></td>
+</tr>
+<tr>
+<td>T-25</td>
+<td>Authentication</td>
+<td>LOW</td>
+<td><code>backend/config.py</code> reads <code>JWT_SECRET_KEY</code> with empty default and only warns on validation failure.</td>
+<td><code>backend/config.py:91,112-113</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="verified-clean-areas">Verified-clean areas</h3>
+<ul>
+<li>No SQL injection (only bound parameters); no <code>eval</code>/<code>exec</code>/unsafe <code>yaml.load</code> in service code.</li>
+<li>No <code>allow_origins=["*"]</code> with credentials; CORS fails restrictive in both apps.</li>
+<li>Constant-time key comparison (<code>hmac.compare_digest</code>) everywhere.</li>
+<li><code>TRUSTED_PROXY_HOPS</code> defaults to 0 (X-Forwarded-For not trusted by default).</li>
+<li>No hardcoded secrets in production Python code (grep hits are test fixtures only).</li>
+<li>nginx: TLS 1.2/1.3 only, <code>server_tokens off</code>, rate limiting.</li>
+</ul>
+<hr />
+<h2 id="2-security-requirements">2. Security Requirements</h2>
+<p>Priorities: CRITICAL = 1, HIGH = 2, MEDIUM = 3, LOW = 4.
+Requirement types: F = Functional, NF = Non-functional, C = Constraint.</p>
+<h3 id="21-sandbox-code-execution-domain-input_validation">2.1 Sandbox &amp; Code Execution (Domain: input_validation)</h3>
+<p><strong>SR-001 — Sandbox must prevent module-<code>__dict__</code> escapes (F, CRITICAL)</strong>
+As a security-conscious system, I need to prevent sandboxed Python code from reaching the OS object model, so that generated study code can never execute arbitrary commands.</p>
+<ul>
+<li><strong>Threat refs:</strong> T-01</li>
+<li><strong>Rationale:</strong> <code>import numpy.f2py as nf; nf.__dict__['os']</code> was verified live to yield <code>os.system</code> (exit 0, marker file written) — the sandbox is bypassable.</li>
+<li><strong>Acceptance criteria:</strong></li>
+<li>[ ] Pre-scan and <code>FORBIDDEN_ATTRS</code> block <code>__dict__</code> attribute reads and subscripting of module objects (<code>mod['name']</code>)</li>
+<li>[ ] Module attribute freezing executes inside the sandboxed subprocess, not only in the parent</li>
+<li>[ ] Escape payloads via numpy/scipy/math module <code>__dict__</code> are rejected with a "sandbox escape" error</li>
+<li>[ ] A regression test asserts <code>numpy.f2py.__dict__['os']</code> cannot execute</li>
+<li><strong>Test cases:</strong></li>
+<li>Test: <code>import numpy.f2py as nf; nf.__dict__['os'].system('cmd')</code> is rejected</li>
+<li>Test: <code>scipy.__dict__['sys']</code>-style payloads are rejected</li>
+<li>Test: freeze bypass — child process cannot import an unfrozen <code>os</code></li>
+<li>Test: sandboxed code cannot write outside the temp workdir</li>
+<li><strong>Compliance refs:</strong> OWASP ASVS V5 (Input Validation); NIST CSF PR.AC / PR.PT</li>
+</ul>
+<p><strong>SR-002 — PowerShell executor must reject multi-statement input (F, CRITICAL)</strong>
+As a security-conscious system, I need to treat newline-separated commands as distinct statements, so that <code>Get-Service\r\nnet user attacker P@ssw0rd /add</code> cannot slip past the dangerous-pattern scan.</p>
+<ul>
+<li><strong>Threat refs:</strong> T-07</li>
+<li><strong>Rationale:</strong> normalization <code>" ".join(command.split())</code> erases newlines before scanning; the first-token allowlist and <code>Verb-Noun</code> regex never see the injected statement.</li>
+<li><strong>Acceptance criteria:</strong></li>
+<li>[ ] Input is split into statements (newline/<code>;</code>/<code>|</code>) <em>before</em> normalization</li>
+<li>[ ] Each statement's first token is validated against the allowlist</li>
+<li>[ ] Bare executables without a whitelisted cmdlet match (<code>net</code>, <code>whoami</code>, <code>curl</code>, …) are rejected</li>
+<li>[ ] Regression tests for <code>\r\n</code>, <code>\n</code>, and <code>;</code>-joined injection</li>
+<li><strong>Test cases:</strong></li>
+<li>Test: <code>Get-Service\r\nnet user attacker P@ssw0rd /add</code> is rejected</li>
+<li>Test: <code>whoami</code> alone is rejected</li>
+<li>Test: multi-cmdlet pipe <code>Get-Process | Stop-Process</code> is rejected</li>
+<li><strong>Compliance refs:</strong> OWASP ASVS V5; NIST CSF PR.AC-1</li>
+</ul>
+<h3 id="22-authentication-domain-authentication">2.2 Authentication (Domain: authentication)</h3>
+<p><strong>SR-003 — Admin/life-safety endpoints require role-based auth (F, CRITICAL)</strong>
+As a system administrator, I need admin CUA and audit endpoints protected by <code>role=admin</code> JWTs, so that a leaked shared API key cannot flip kill switches or read the tamper-evident audit chain.</p>
+<ul>
+<li><strong>Threat refs:</strong> T-04</li>
+<li><strong>Acceptance criteria:</strong></li>
+<li>[ ] <code>/admin/cua/*</code> and <code>/api/v1/audit/verify</code> require <code>Depends(require_role("admin"))</code></li>
+<li>[ ] A valid API key alone returns 403 on admin endpoints</li>
+<li>[ ] Role change endpoints are admin-only and logged</li>
+<li><strong>Test cases:</strong></li>
+<li>Test: viewer JWT + API key → 403 on kill-switch</li>
+<li>Test: admin JWT → 200 on kill-switch</li>
+<li>Test: API key only → 403</li>
+<li><strong>Compliance refs:</strong> OWASP ASVS V2.1/V4; NIST CSF PR.AC-4; ISO 27001 A.9.2</li>
+</ul>
+<p><strong>SR-004 — WebSocket auth token must not travel in the query string (C, HIGH)</strong>
+As a security-conscious system, I need to transmit WebSocket credentials via a first-party header, so that bearer tokens are not captured in access logs, proxy logs, or browser history.</p>
+<ul>
+<li><strong>Threat refs:</strong> T-10</li>
+<li><strong>Acceptance criteria:</strong></li>
+<li>[ ] SCADA/notification WS handshakes read tokens from <code>Authorization</code> or a <code>Sec-WebSocket-Protocol</code> subprotocol, never <code>query_params</code></li>
+<li>[ ] Requests presenting <code>?token=</code> are rejected</li>
+<li>[ ] No WS endpoint logs the token</li>
+<li><strong>Test cases:</strong></li>
+<li>Test: WS handshake with <code>?token=&lt;jwt&gt;</code> is rejected</li>
+<li>Test: WS handshake with <code>Authorization: Bearer &lt;jwt&gt;</code> succeeds</li>
+<li>Test: access logs contain no token substring</li>
+<li><strong>Compliance refs:</strong> OWASP ASVS V3; NIST CSF PR.DS-2</li>
+</ul>
+<p><strong>SR-005 — WebSocket handshakes validate Origin (F, HIGH)</strong>
+As a security-conscious system, I need to reject cross-origin WebSocket handshakes, so that a malicious webpage cannot drive a logged-in socket (CSWSH/DNS-rebinding).</p>
+<ul>
+<li><strong>Threat refs:</strong> T-15, T-11</li>
+<li><strong>Acceptance criteria:</strong></li>
+<li>[ ] All WS endpoints validate <code>Origin</code> against the configured allowlist before upgrade</li>
+<li>[ ] Missing/mismatched Origin → close code 1008</li>
+<li>[ ] <code>/ws/notifications</code> runs the identical auth pipeline (blacklist + user exists + <code>is_active</code>) as the SCADA handler</li>
+<li>[ ] Server never echoes raw client payloads back (pong payload is fixed)</li>
+<li><strong>Test cases:</strong></li>
+<li>Test: WS with forged Origin is rejected</li>
+<li>Test: <code>/ws/notifications</code> with revoked-token JWT is rejected</li>
+<li>Test: <code>/ws/notifications</code> pong returns a constant payload</li>
+<li><strong>Compliance refs:</strong> OWASP ASVS V3.1/V12; NIST CSF PR.AC-5</li>
+</ul>
+<p><strong>SR-006 — Auth-disable switches fail closed in production (C, HIGH)</strong>
+As a security-conscious system, I need <code>ENGINEERING_SERVICE_AUTH_DISABLED</code> / <code>AUTH_DISABLED</code> to be inert in production, so that a misconfigured environment can never grant anonymous admin access.</p>
+<ul>
+<li><strong>Threat refs:</strong> T-06, T-12</li>
+<li><strong>Acceptance criteria:</strong></li>
+<li>[ ] Both apps refuse to start in production/staging when auth is disabled (mirror <code>api/routes.py:123-146</code> guard in <code>backend/app.py</code>)</li>
+<li>[ ] No code path assigns <code>_Role.ADMIN</code> to an unauthenticated request</li>
+<li>[ ] <code>verify_api_key</code> fails closed when the expected key is unset (no <code>if not expected_key: return</code>)</li>
+<li><strong>Test cases:</strong></li>
+<li>Test: <code>AUTH_DISABLED=true</code> + <code>ENVIRONMENT=production</code> → startup failure</li>
+<li>Test: anonymous request with <code>ENGINEERING_SERVICE_AUTH_DISABLED=true</code> in prod → 401</li>
+<li>Test: unset <code>HF_API_KEY</code> → 401, not open</li>
+<li><strong>Compliance refs:</strong> OWASP ASVS V2.1; NIST CSF PR.AC-1</li>
+</ul>
+<p><strong>SR-007 — ACP runtime requires transport authentication by default (F, HIGH)</strong>
+As a security-conscious system, I need ACP transports (WebSocket/UDS) to require an HMAC secret in any real deployment, so that arbitrary processes cannot drive the router.</p>
+<ul>
+<li><strong>Threat refs:</strong> T-05</li>
+<li><strong>Acceptance criteria:</strong></li>
+<li>[ ] Startup refuses to bind transport when <code>ACP_AUTH_SECRET</code> is unset in non-dev environments</li>
+<li>[ ] WS transport validates <code>Origin</code> before upgrade</li>
+<li>[ ] The auth token is never logged in <code>trace_id</code>, span JSONL, or audit NDJSON (redact or separate fields)</li>
+<li><strong>Test cases:</strong></li>
+<li>Test: transport with no secret configured → startup error (prod)</li>
+<li>Test: token-bearing <code>trace_id</code> is redacted in all sinks</li>
+<li>Test: WS with foreign Origin is rejected</li>
+<li><strong>Compliance refs:</strong> NIST CSF PR.AC; ISO 27001 A.9.1</li>
+</ul>
+<h3 id="23-authorization-tenant-isolation-domain-authorization">2.3 Authorization &amp; Tenant Isolation (Domain: authorization)</h3>
+<p><strong>SR-008 — RLS session variable must be reset per request (F, CRITICAL)</strong>
+As a data owner, I need every pooled DB connection to run under the correct tenant's RLS variable, so that tenant B can never observe tenant A's rows through connection reuse.</p>
+<ul>
+<li><strong>Threat refs:</strong> T-03</li>
+<li><strong>Acceptance criteria:</strong></li>
+<li>[ ] <code>before_cursor_execute</code> re-sets <code>app.current_tenant_id</code> on every request (no process-wide "already set" skip)</li>
+<li>[ ] The RLS variable is reset (<code>SET app.current_tenant_id = ''</code>) when a request ends / on connection checkout</li>
+<li>[ ] A pooled-connection regression test asserts tenant B sees zero tenant-A rows after tenant A reuses the same connection</li>
+<li>[ ] Application-layer tenant filtering remains active as defense-in-depth</li>
+<li><strong>Test cases:</strong></li>
+<li>Test: sequential tenant-A → tenant-B requests on the same pooled connection leak nothing</li>
+<li>Test: anonymous request after tenant request sees no rows</li>
+<li>Test: <code>current_setting('app.current_tenant_id')</code> is empty between requests</li>
+<li><strong>Compliance refs:</strong> ISO 27001 A.9.1/A.10; NIST CSF PR.AC-4</li>
+</ul>
+<p><strong>SR-009 — Study task results are ownership-scoped (F, HIGH)</strong>
+As a data owner, I need to fetch task results only for my own studies, so that other users/tenants cannot harvest study output via predictable task IDs.</p>
+<ul>
+<li><strong>Threat refs:</strong> T-09</li>
+<li><strong>Acceptance criteria:</strong></li>
+<li>[ ] Task IDs are unpredictable (UUID, not <code>task_{int(time.time())}</code>)</li>
+<li>[ ] <code>task_status/{task_id}</code> verifies the requester's identity/tenant owns the task</li>
+<li>[ ] Cross-tenant/cross-user task lookups return 404</li>
+<li><strong>Test cases:</strong></li>
+<li>Test: user B fetching user A's task ID → 404</li>
+<li>Test: forged/unpredictable IDs cannot be enumerated</li>
+<li>Test: task ID format contains no timestamp</li>
+<li><strong>Compliance refs:</strong> OWASP ASVS V4.1 (IDOR); NIST CSF PR.AC-4</li>
+</ul>
+<h3 id="24-data-protection-secrets-domain-cryptography-data_protection">2.4 Data Protection &amp; Secrets (Domain: cryptography / data_protection)</h3>
+<p><strong>SR-010 — No hardcoded or sample secrets in deployment configs (C, CRITICAL)</strong>
+As a security-conscious system, I need all secrets injected at deploy time, so that a public repository cannot contain working JWT/API/Fernet keys.</p>
+<ul>
+<li><strong>Threat refs:</strong> T-02</li>
+<li><strong>Acceptance criteria:</strong></li>
+<li>[ ] <code>docker-compose.yml</code> uses <code>${VAR:?must be set}</code> (no <code>:-default</code>) for all secrets</li>
+<li>[ ] Startup rejects known-insecure values (<code>test-secret*</code>, <code>etap_dev_api_key*</code>, Fernet sample key) even when they meet length checks</li>
+<li>[ ] Secrets come from a secret manager / CI-injected env in production</li>
+<li><strong>Test cases:</strong></li>
+<li>Test: compose with unset <code>JWT_SECRET_KEY</code> fails to start the service</li>
+<li>Test: startup refuses <code>test-secret-32-bytes-long-aaaa-bbbb</code> as <code>JWT_SECRET_KEY</code></li>
+<li>Test: scan fails on <code>etap_dev_api_key_1234567890</code> in compose</li>
+<li><strong>Compliance refs:</strong> NIST CSF PR.DS-1; ISO 27001 A.8.10/A.9.4</li>
+</ul>
+<p><strong>SR-011 — Config-layer secret validation must hard-fail (C, LOW)</strong>
+As a security-conscious system, I need <code>backend/config.py</code> to validate <code>JWT_SECRET_KEY</code> and raise on missing/short keys, so that no code path can sign or verify tokens with an empty secret.</p>
+<ul>
+<li><strong>Threat refs:</strong> T-25</li>
+<li><strong>Acceptance criteria:</strong></li>
+<li>[ ] <code>Config</code> raises at construction in production when <code>JWT_SECRET_KEY</code> is empty or &lt;32 bytes</li>
+<li>[ ] No <code>os.getenv("JWT_SECRET_KEY", "")</code> default remains for token operations</li>
+<li><strong>Test cases:</strong></li>
+<li>Test: <code>Config()</code> with empty secret in prod env raises</li>
+<li>Test: all token operations read from the validated source</li>
+<li><strong>Compliance refs:</strong> NIST CSF PR.DS-1</li>
+</ul>
+<p><strong>SR-012 — Sensitive provider keys require TLS and are not CORS-exposed (C, MEDIUM)</strong>
+As a security-conscious system, I need <code>x-active-key</code> removed from CORS <code>allow_headers</code> and API traffic forced over TLS, so that provider credentials cannot be read by third-party pages or captured in cleartext.</p>
+<ul>
+<li><strong>Threat refs:</strong> T-20</li>
+<li><strong>Acceptance criteria:</strong></li>
+<li>[ ] <code>x-active-key</code> / <code>x-active-url</code> removed from <code>allow_headers</code></li>
+<li>[ ] HSTS enforced by default on the engineering API</li>
+<li>[ ] Cleartext HTTP rejected in production</li>
+<li><strong>Test cases:</strong></li>
+<li>Test: preflight for <code>x-active-key</code> is not allowed</li>
+<li>Test: response carries HSTS header in prod</li>
+<li>Test: HTTP request in prod is redirected/rejected</li>
+<li><strong>Compliance refs:</strong> OWASP ASVS V9 (TLS); NIST CSF PR.DS-2</li>
+</ul>
+<h3 id="25-audit-logging-domain-audit_logging">2.5 Audit Logging (Domain: audit_logging)</h3>
+<p><strong>SR-013 — Audit export is formula-injection safe (F, LOW)</strong>
+As a security analyst, I need exported CSV cells neutralized, so that opening an audit export in a spreadsheet cannot execute formulas.</p>
+<ul>
+<li><strong>Threat refs:</strong> T-21</li>
+<li><strong>Acceptance criteria:</strong></li>
+<li>[ ] Values starting with <code>= + - @</code> are prefixed (e.g., <code>'</code>)</li>
+<li>[ ] Applies to <code>details</code> and <code>user</code> fields in the audit export</li>
+<li><strong>Test cases:</strong></li>
+<li>Test: <code>=HYPERLINK(...)</code> export value is escaped</li>
+<li>Test: <code>@cmd</code> export value is escaped</li>
+<li><strong>Compliance refs:</strong> OWASP ASVS V5.4; NIST CSF PR.DS-1</li>
+</ul>
+<p><strong>SR-014 — Security events are logged with full attribution (F, HIGH)</strong>
+As a security analyst, I need admin actions, privilege changes, and auth events logged with user identity and non-repudiation, so that incidents can be investigated.</p>
+<ul>
+<li><strong>Threat refs:</strong> T-04, T-11, T-05</li>
+<li><strong>Acceptance criteria:</strong></li>
+<li>[ ] Kill-switch activate/deactivate, rollback, role changes, and logins are audit-logged with user/tenant/timestamp</li>
+<li>[ ] Audit entries are tamper-evident (chained hash) — preserved</li>
+<li>[ ] No raw tokens/passwords written to any log sink (ACP <code>trace_id</code> redaction per SR-007)</li>
+<li><strong>Test cases:</strong></li>
+<li>Test: admin action produces an audit entry with actor identity</li>
+<li>Test: logs contain no JWT/password/api-key substrings</li>
+<li>Test: tampered chain is detected by <code>/api/v1/audit/verify</code></li>
+<li><strong>Compliance refs:</strong> OWASP ASVS V7; NIST CSF DE.CM-6/PR.PT-1; ISO 27001 A.12.4</li>
+</ul>
+<h3 id="26-error-handling-domain-error_handling">2.6 Error Handling (Domain: error_handling)</h3>
+<p><strong>SR-015 — No internal state in error responses (F, HIGH)</strong>
+As a security-conscious system, I need to sanitize exception messages before returning them, so that file paths and engine internals are never disclosed to clients.</p>
+<ul>
+<li><strong>Threat refs:</strong> T-08, T-22</li>
+<li><strong>Acceptance criteria:</strong></li>
+<li>[ ] <code>study_service</code> maps exceptions to generic details and logs the full trace server-side</li>
+<li>[ ] FastAPI <code>debug</code> defaults to <code>False</code> unless <code>ENVIRONMENT=development</code> is explicit</li>
+<li>[ ] Reflective details (<code>{value!r}</code>) are removed from audit-log errors</li>
+<li><strong>Test cases:</strong></li>
+<li>Test: invalid study payload returns generic 400 without file paths</li>
+<li>Test: unset <code>ENVIRONMENT</code> runs with <code>debug=False</code></li>
+<li>Test: error responses never echo input back verbatim</li>
+<li><strong>Compliance refs:</strong> OWASP ASVS V7.4; NIST CSF PR.DS-1</li>
+</ul>
+<h3 id="27-availability-dos-domain-availability">2.7 Availability &amp; DoS (Domain: availability)</h3>
+<p><strong>SR-016 — Request body limits cover chunked encoding (F, MEDIUM)</strong>
+As a security-conscious system, I need to enforce body size on chunked requests, so that clients cannot bypass the 50 MB cap and exhaust memory.</p>
+<ul>
+<li><strong>Threat refs:</strong> T-13</li>
+<li><strong>Acceptance criteria:</strong></li>
+<li>[ ] Middleware caps body streaming for <code>Transfer-Encoding: chunked</code> (Content-Length absent) at the same limit</li>
+<li>[ ] Overflowing requests receive 413</li>
+<li><strong>Test cases:</strong></li>
+<li>Test: chunked POST &gt; 50 MB → 413</li>
+<li>Test: chunked POST ≤ 50 MB passes</li>
+<li><strong>Compliance refs:</strong> NIST CSF PR.AC-1; OWASP ASVS V11</li>
+</ul>
+<p><strong>SR-017 — Rate limiting fails closed (F, MEDIUM)</strong>
+As a security-conscious system, I need throttling to stay effective during a Redis outage, so that attackers cannot disable brute-force protection by exhausting Redis.</p>
+<ul>
+<li><strong>Threat refs:</strong> T-14</li>
+<li><strong>Acceptance criteria:</strong></li>
+<li>[ ] Redis failure in the rate limiter denies conservatively or uses a bounded local fallback — never <code>return True</code></li>
+<li>[ ] Sensitive endpoints carry per-IP and per-user buckets behind proxies</li>
+<li>[ ] Trusted-proxy configuration is validated at startup</li>
+<li><strong>Test cases:</strong></li>
+<li>Test: rate limiter with Redis down still blocks a burst of login attempts</li>
+<li>Test: 429 returned when both Redis and local limit exhausted</li>
+<li><strong>Compliance refs:</strong> NIST CSF PR.DS-4; OWASP ASVS V11</li>
+</ul>
+<p><strong>SR-018 — CPU-bound studies do not block the event loop (NF, MEDIUM)</strong>
+As a system administrator, I need native study computations off the async event loop, so that health checks and authentication remain responsive under load.</p>
+<ul>
+<li><strong>Threat refs:</strong> T-18</li>
+<li><strong>Acceptance criteria:</strong></li>
+<li>[ ] <code>_run_native_study</code> executes via <code>to_thread</code>/executor (parity with the ETAP path)</li>
+<li>[ ] Health endpoint latency stays &lt;100 ms under concurrent studies</li>
+<li><strong>Test cases:</strong></li>
+<li>Test: two concurrent large load-flow runs do not stall <code>/health</code></li>
+<li>Test: event loop blocked time during study is ~0</li>
+<li><strong>Compliance refs:</strong> NIST CSF PR.DS-4</li>
+</ul>
+<h3 id="28-file-integrity-safe-serialization-domain-input_validation-data_protection">2.8 File Integrity &amp; Safe Serialization (Domain: input_validation / data_protection)</h3>
+<p><strong>SR-019 — Report output paths are allowlisted (F, MEDIUM)</strong>
+As a security-conscious system, I need report generation paths validated, so that task parameters cannot write outside the reports directory.</p>
+<ul>
+<li><strong>Threat refs:</strong> T-19</li>
+<li><strong>Acceptance criteria:</strong></li>
+<li>[ ] <code>output_path</code> passes <code>validate_file_path</code> / an allowlist before any write</li>
+<li>[ ] Attempts outside the reports directory are rejected</li>
+<li><strong>Test cases:</strong></li>
+<li>Test: <code>output_path=../../etc</code> is rejected</li>
+<li>Test: <code>output_path=/tmp/..</code> is rejected</li>
+<li>Test: legitimate <code>./reports</code> path succeeds</li>
+<li><strong>Compliance refs:</strong> OWASP ASVS V12.3; NIST CSF PR.AC-3</li>
+</ul>
+<p><strong>SR-020 — Serialization boundary uses a safe format (F, MEDIUM)</strong>
+As a security-conscious system, I need the isolation boundary to never <code>pickle.load</code> untrusted data in the parent, so that a tampered result file cannot execute code in the API process.</p>
+<ul>
+<li><strong>Threat refs:</strong> T-16</li>
+<li><strong>Acceptance criteria:</strong></li>
+<li>[ ] Parent-side reads use a restricted unpickler or a safe format (JSON/schema-validated)</li>
+<li>[ ] <code>exec_dir</code> path is validated before f-string interpolation</li>
+<li><strong>Test cases:</strong></li>
+<li>Test: crafted <code>result.pkl</code> with <code>__reduce__</code> payload is rejected</li>
+<li>Test: sandbox path traversal in <code>exec_script</code> is blocked</li>
+<li><strong>Compliance refs:</strong> OWASP ASVS V5.5; NIST CSF PR.DS-1</li>
+</ul>
+<h3 id="29-defense-in-depth-domain-network_security">2.9 Defense-in-depth (Domain: network_security)</h3>
+<p><strong>SR-021 — ETAP project paths validated at the service boundary (F, LOW)</strong>
+- <strong>Threat refs:</strong> T-23
+- <strong>Acceptance criteria:</strong> [ ] <code>etap_project_path</code> validated (extension, allowlisted dir, no traversal) in <code>study_service</code> before reaching the provider
+- <strong>Test cases:</strong> 1. Test: <code>../../etc</code> project path rejected 2. Test: non-<code>.edb</code> path rejected
+- <strong>Compliance refs:</strong> OWASP ASVS V12.3</p>
+<p><strong>SR-022 — Security headers enforced on the engineering API (NF, LOW)</strong>
+- <strong>Threat refs:</strong> T-24
+- <strong>Acceptance criteria:</strong> [ ] CSP header set on engineering API 2. [ ] HSTS with <code>max-age</code> enabled by default in production
+- <strong>Test cases:</strong> 1. Test: <code>/health</code> carries CSP in prod 2. Test: HTTPS response carries HSTS
+- <strong>Compliance refs:</strong> OWASP ASVS V14.4; NIST CSF PR.DS-2</p>
+<hr />
+<h2 id="3-threat-to-requirement-traceability-matrix">3. Threat-to-Requirement Traceability Matrix</h2>
+<table>
+<thead>
+<tr>
+<th>Threat</th>
+<th>Requirements</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>T-01 Sandbox escape (RCE)</td>
+<td>SR-001</td>
+</tr>
+<tr>
+<td>T-02 Hardcoded secrets</td>
+<td>SR-010</td>
+</tr>
+<tr>
+<td>T-03 RLS tenant leak</td>
+<td>SR-008</td>
+</tr>
+<tr>
+<td>T-04 Admin endpoints by API key only</td>
+<td>SR-003, SR-014</td>
+</tr>
+<tr>
+<td>T-05 ACP unauth + token in logs</td>
+<td>SR-007, SR-014</td>
+</tr>
+<tr>
+<td>T-06 Auth-disable grants ADMIN</td>
+<td>SR-006</td>
+</tr>
+<tr>
+<td>T-07 PowerShell newline injection</td>
+<td>SR-002</td>
+</tr>
+<tr>
+<td>T-08 Raw exceptions / debug=True</td>
+<td>SR-015</td>
+</tr>
+<tr>
+<td>T-09 Task result IDOR</td>
+<td>SR-009</td>
+</tr>
+<tr>
+<td>T-10 JWT in WS query string</td>
+<td>SR-004</td>
+</tr>
+<tr>
+<td>T-11 WS notifications weak + echo</td>
+<td>SR-005, SR-014</td>
+</tr>
+<tr>
+<td>T-12 verify_api_key open</td>
+<td>SR-006</td>
+</tr>
+<tr>
+<td>T-13 Chunked body bypass</td>
+<td>SR-016</td>
+</tr>
+<tr>
+<td>T-14 Rate limiter fails open</td>
+<td>SR-017</td>
+</tr>
+<tr>
+<td>T-15 WS no Origin check</td>
+<td>SR-005</td>
+</tr>
+<tr>
+<td>T-16 Pickle parent-side</td>
+<td>SR-020</td>
+</tr>
+<tr>
+<td>T-17 CSRF DNS-rebinding default</td>
+<td>SR-005 (Origin checks)</td>
+</tr>
+<tr>
+<td>T-18 Sync study blocks loop</td>
+<td>SR-018</td>
+</tr>
+<tr>
+<td>T-19 Report path traversal</td>
+<td>SR-019</td>
+</tr>
+<tr>
+<td>T-20 x-active-key plaintext</td>
+<td>SR-012</td>
+</tr>
+<tr>
+<td>T-21 CSV formula injection</td>
+<td>SR-013</td>
+</tr>
+<tr>
+<td>T-22 Reflective errors</td>
+<td>SR-015</td>
+</tr>
+<tr>
+<td>T-23 ETAP path unvalidated</td>
+<td>SR-021</td>
+</tr>
+<tr>
+<td>T-24 Missing CSP/HSTS</td>
+<td>SR-022</td>
+</tr>
+<tr>
+<td>T-25 Empty JWT secret default</td>
+<td>SR-011</td>
+</tr>
+</tbody>
+</table>
+<h2 id="4-compliance-mapping-high-level">4. Compliance Mapping (high-level)</h2>
+<table>
+<thead>
+<tr>
+<th>Framework</th>
+<th>Covered requirements</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>OWASP ASVS</td>
+<td>SR-001 (V5), SR-002 (V5), SR-003 (V2/V4), SR-004 (V3), SR-005 (V3/V12), SR-009 (V4.1), SR-012 (V9), SR-013 (V5.4), SR-015 (V7), SR-016 (V11), SR-017 (V11), SR-019 (V12.3), SR-020 (V5.5), SR-021 (V12.3), SR-022 (V14.4)</td>
+</tr>
+<tr>
+<td>NIST CSF</td>
+<td>PR.AC (SR-002, SR-003, SR-005, SR-006, SR-007, SR-016, SR-019), PR.DS (SR-010, SR-011, SR-012, SR-013, SR-015, SR-017, SR-018, SR-020, SR-022), PR.PT (SR-001, SR-014), DE.CM (SR-014)</td>
+</tr>
+<tr>
+<td>ISO 27001</td>
+<td>A.8.10/A.9.4 (SR-010), A.9.1 (SR-007), A.9.2 (SR-003), A.12.4 (SR-014), A.9.1/A.10 (SR-008)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="5-recommended-remediation-order">5. Recommended Remediation Order</h2>
+<ol>
+<li><strong>CRITICAL — now:</strong> remove hardcoded secrets from <code>docker-compose.yml</code> (SR-010); fix sandbox <code>__dict__</code> escape (SR-001); fix RLS connection reuse (SR-008).</li>
+<li><strong>HIGH — next sprint:</strong> role-gate admin CUA endpoints (SR-003), fail-closed auth switches (SR-006), WS auth/origin/notifications (SR-004/SR-005), PowerShell statement validation (SR-002), ACP auth + log redaction (SR-007), sanitize error responses (SR-015), scope task results (SR-009).</li>
+<li><strong>MEDIUM/LOW — backlog:</strong> chunked body limits (SR-016), fail-closed rate limiting (SR-017), event-loop offload (SR-018), report path validation (SR-019), safe serialization (SR-020), CSV formula sanitization (SR-013), TLS/HSTS + headers (SR-012/SR-022), config secret hard-fail (SR-011).</li>
+</ol>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "search.suggest", "search.highlight"], "search": "../../assets/javascripts/workers/search.f8cc74c7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.c8b220af.min.js"></script>
+      
+    
+  </body>
+</html>

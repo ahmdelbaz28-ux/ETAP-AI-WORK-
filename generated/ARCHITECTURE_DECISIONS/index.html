@@ -1,0 +1,1019 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Enterprise AI-Powered Power Systems Engineering Platform">
+      
+      
+        <meta name="author" content="AhmedETAP Team">
+      
+      
+      
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.11">
+    
+    
+      
+        <title>Architecture Decisions — AhmedETAP - AhmedETAP Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.4af4bdda.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="deep-purple">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#architecture-decisions-ahmedetap" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="AhmedETAP Documentation" class="md-header__button md-logo" aria-label="AhmedETAP Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            AhmedETAP Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Architecture Decisions — AhmedETAP
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  الصفحة الرئيسية
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../ARCHITECTURE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  الهيكلية
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../API_REFERENCE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  واجهة برمجة التطبيقات
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../OPERATIONS_RUNBOOK/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  دليل التشغيل
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../TROUBLESHOOTING_GUIDE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  دليل الأعطال
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../SECURITY_OPERATIONS_MANUAL/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  البنية التحتية للأمان
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../ENTERPRISE_CERTIFICATION_REPORT/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  التقييم المؤسسي
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="AhmedETAP Documentation" class="md-nav__button md-logo" aria-label="AhmedETAP Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    AhmedETAP Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    الصفحة الرئيسية
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ARCHITECTURE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    الهيكلية
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../API_REFERENCE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    واجهة برمجة التطبيقات
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../OPERATIONS_RUNBOOK/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    دليل التشغيل
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../TROUBLESHOOTING_GUIDE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    دليل الأعطال
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../SECURITY_OPERATIONS_MANUAL/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    البنية التحتية للأمان
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ENTERPRISE_CERTIFICATION_REPORT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    التقييم المؤسسي
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#adr-001-data-migrations-alembic" class="md-nav__link">
+    <span class="md-ellipsis">
+      ADR-001 — مصدر واحد لمسارات Data Migrations (Alembic)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ADR-001 — مصدر واحد لمسارات Data Migrations (Alembic)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      السياق
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      القرار
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      عواقب
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      ملاحظة عن "الرأسَين"
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-002-router-registration-duplicates" class="md-nav__link">
+    <span class="md-ellipsis">
+      ADR-002 — إزالة تكرار تسجيل المسارات (Router Registration Duplicates)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ADR-002 — إزالة تكرار تسجيل المسارات (Router Registration Duplicates)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      السياق
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      القرار
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      عواقب
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-003" class="md-nav__link">
+    <span class="md-ellipsis">
+      ADR-003 — مخطط المراحل ومبدأ "نطاق الملفي المحترم"
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ADR-003 — مخطط المراحل ومبدأ &#34;نطاق الملفي المحترم&#34;">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      مبادئ ملزمة عبر كل المراحل
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-004-in-memory-idempotency-agent-executor-single-replica-vs-multi-replica-migration" class="md-nav__link">
+    <span class="md-ellipsis">
+      ADR-004 — In-Memory Idempotency في Agent Executor (Single-Replica vs Multi-Replica Migration)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ADR-004 — In-Memory Idempotency في Agent Executor (Single-Replica vs Multi-Replica Migration)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      السياق
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      القرار
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      العواقب
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-005-chat-first-v30-rollout-legacy-exit" class="md-nav__link">
+    <span class="md-ellipsis">
+      ADR-005 — استراتيجية التفعيل التدريجي وخروج الأمان (Chat-First v3.0 Rollout &amp; Legacy Exit)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ADR-005 — استراتيجية التفعيل التدريجي وخروج الأمان (Chat-First v3.0 Rollout &amp; Legacy Exit)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      السياق
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      القرار
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_14" class="md-nav__link">
+    <span class="md-ellipsis">
+      العواقب
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="architecture-decisions-ahmedetap">Architecture Decisions — AhmedETAP</h1>
+<p>سجلّ القرارات المعمارية المقصودة (Architecture Decision Records). كل قرار يُوثّق
+السياق، والاختيار، والبدائل المُهملة، وعواقب التنفيذ — وفق الفصل P0 من خطة التنفيذ
+الآمن v3.x. تُنشر مراحل التنفيذ المحددة لكل قرار في قسم "المرتبط بالخطة".</p>
+<hr />
+<h2 id="adr-001-data-migrations-alembic">ADR-001 — مصدر واحد لمسارات Data Migrations (Alembic)</h2>
+<p><strong>الحالة:</strong> مقرَّر (P0) — نُفِّذ.</p>
+<h3 id="_1">السياق</h3>
+<p>كان المستودع يحوي مجلّدي هجرة متقاطعين:
+- <code>migrations/</code> — المجلد الفعلي المستخدَم (فيه <code>env.py</code> المخصّص غير المتزامن، و8 مراجعات
+  001→008، و<code>__init__.py</code>)، وهو ما تشير إليه <code>alembic.ini:22 → script_location = migrations</code>.
+- <code>alembic/</code> — مجلد ميت/متقادم يحتوي <code>env.py</code> متزامن قديماً (SQLite-only) + <code>script.py.mako</code>
+  + نسخة قديمة مكررة من مراجعة <code>001_initial_schema.py</code> وحدها. لا يخدمه أي شيء في <code>script_location</code>.</p>
+<p>التحقق (قبل الحذف):
+- <code>alembic.ini</code> → <code>script_location = migrations</code> ✅
+- سلسلة الهجرة في <code>migrations/versions/</code> خطّية ورأس واحد:
+  <code>001 → 002 → 003 → 004 → 005 → 006_scada_gis_email → 007_fix_study_results_orm → 008_add_tenant_id_and_rls</code> ✅
+- فحص <code>git grep</code> لم يرصد أي إشارة استيراد سليمة إلى <code>alembic/</code> (سوى مراجع وثائقية/تعليقية
+  ومسار-fliters في workflow قديم).</p>
+<h3 id="_2">القرار</h3>
+<p>اعتماد <strong><code>migrations/</code></strong> كمصدر وحيد لمسارات Alembic، وحذف مجلد <code>alembic/</code> الميت بالكامل.</p>
+<h3 id="_3">عواقب</h3>
+<ul>
+<li><code>script_location</code> بلا تغيير (كان يُشير أصلاً إلى <code>migrations</code>).</li>
+<li>حُذف <code>alembic/**</code> من path-filters في <code>.github/workflows/alembic-migrations.yml</code>
+  (أصبح يشغّل على <code>migrations/**</code> و<code>alembic.ini</code> فقط) — فيُجنَّب CI تشغيلاً بلا داعٍ على مسار ميت.</li>
+<li>أي مرجع وثائقي قديم إلى <code>alembic/</code> (مثل <code>docs/DEV_PIPELINE.md</code>, <code>docs/NEON_DATABASE.md</code>)
+  يُعدّ متقادماً؛ تُهذَّب الوثائق في مرحلة لاحقة دون أن يغيّر ذلك من سلوك الهجرة.</li>
+</ul>
+<h3 id="_4">ملاحظة عن "الرأسَين"</h3>
+<p>بدأنا من ملاحظة REMEDIATION_PLAN (بند C1) التي ذكرت رأسَين (<code>006_scada_gis_email</code> +
+<code>006_add_tenant_id_and_rls</code>). التحقق الفعلي أثبت أن المسألة <strong>أُصلحت مسبقاً</strong>: الإصدار
+<code>007</code> أُدرج بينهما فأصبحت السلسلة خطّية ذات رأس واحد (<code>008_add_tenant_id_and_rls</code>).
+لا حاجة لتغيير <code>down_revision</code> في P0.</p>
+<hr />
+<h2 id="adr-002-router-registration-duplicates">ADR-002 — إزالة تكرار تسجيل المسارات (Router Registration Duplicates)</h2>
+<p><strong>الحالة:</strong> مقرَّر (P0) — نُفِّذ.</p>
+<h3 id="_5">السياق</h3>
+<p>رصد الفحص تكرار تسجيل نفس الـ APIRouter أكثر من مرة، ما يُسبب
+سلوكاً غير محسوم في المسار/التوثيق الحسابي، بل يُعدّ خطأً في بعض الحالات:
+- <code>feature_flags_router</code> مضمّن مرتين في <code>api/routes.py</code> (السطر الأصلي 771 + 794).
+- <code>autodesk_connectors_router</code> مضمّن مرتين في <code>api/routes.py</code> (السطر الأصلي 780-782 + 786-788).
+- <code>email-digest</code> مسجَّل كمسارين متطابقين في <code>ui/src/App.tsx</code> (السطران 218 + 227).</p>
+<h3 id="_6">القرار</h3>
+<p>إبقاء التسجيل الأول/المرجعي وحذف كل التكرارات.</p>
+<h3 id="_7">عواقب</h3>
+<ul>
+<li>لا تغيير في الواجهة أو السلوك؛ مجرد إزالة التكرار.</li>
+<li><code>SearchRemedy</code> — تم التحقق بعد الحذف من بقاء مرجع واحد فقط لكل مكوّن.</li>
+</ul>
+<hr />
+<h2 id="adr-003">ADR-003 — مخطط المراحل ومبدأ "نطاق الملفي المحترم"</h2>
+<p><strong>الحالة:</strong> مرجعي (لا يتطلب تعديل ملفات في P0 ذاتها).</p>
+<p>ترتيب مراحل البناء المُعتمد والأساس الكودي لكل مرحلة:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>P0   → P0b → P1 → P2 → P3 → P4a → P4b → P5 → P6 → P7a-d → P8 → P9 → P10
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>مرحلة</th>
+<th>الملفات/المسؤولية</th>
+<th>الأساس الكودي</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>P0</td>
+<td>تحضيرات موحدة (تكرارات + مسار Alembic) + هذا الملف</td>
+<td><code>ui/src/App.tsx</code>, <code>api/routes.py</code>, <code>alembic.ini</code>, <code>.github/workflows/alembic-migrations.yml</code></td>
+</tr>
+<tr>
+<td>P0b</td>
+<td>آلية rollout نسبي <code>evaluate_flag_with_rollout()</code></td>
+<td><code>api/feature_flags.py</code></td>
+</tr>
+<tr>
+<td>P1</td>
+<td>Tool Policy Engine (<code>api/tool_policy.py</code>) — deny-by-default</td>
+<td><code>src/mastra/tools/*</code></td>
+</tr>
+<tr>
+<td>P2</td>
+<td>بوابة موافقة + idempotency + maker-checker (<code>api/approvals.py</code>)</td>
+<td><code>api/dual_control.py</code></td>
+</tr>
+<tr>
+<td>P3</td>
+<td><code>api/session_stream.py</code> — SessionStreamHub + ticket 60s</td>
+<td><code>api/websocket.py</code>, <code>api/cua_confirmation_ws.py</code></td>
+</tr>
+<tr>
+<td>P4a</td>
+<td>Agent Executor (<code>api/agent_executor.py</code>) — <code>agent-exec/plan</code> بفرض <code>source</code> (422)</td>
+<td><code>api/routes.py</code></td>
+</tr>
+<tr>
+<td>P4b</td>
+<td><code>api/chat_stream.py</code> — LLM خادمي + إنشاء <code>ProvidersTab.tsx</code> (stub)</td>
+<td><code>ui/src/lib/llm-chat.ts</code>, <code>ui/src/pages/settings/</code></td>
+</tr>
+<tr>
+<td>P5</td>
+<td><code>api/results_store.py</code> — ResultStore (حد 10MB + TTL)</td>
+<td><code>api/routes.py</code> (<code>studies/run</code>)</td>
+</tr>
+<tr>
+<td>P6</td>
+<td><code>ui/src/app/ChatWorkspace.tsx</code> + مكوّنات chat/cards/viewer</td>
+<td>مسار <code>ui/src/pages/settings/Settings.tsx</code> (2909 سطراً)</td>
+</tr>
+<tr>
+<td>P7a-d</td>
+<td>تقسيم Settings (Providers/Agents/Skills/ MCP/Import-Export/Security)</td>
+<td><code>ui/src/pages/Settings.tsx</code></td>
+</tr>
+<tr>
+<td>P8</td>
+<td>نقل صفحات قديمة إلى <code>/advanced</code> (<code>&lt;Navigate replace /&gt;</code>)</td>
+<td><code>ui/src/App.tsx</code></td>
+</tr>
+<tr>
+<td>P9</td>
+<td>استيراد/تصدير داخل الشات</td>
+<td><code>api/import</code> + <code>api/export</code></td>
+</tr>
+<tr>
+<td>P10</td>
+<td>تفعيل <code>chat_first_ui</code> تدريجياً</td>
+<td><code>api/feature_flags.py</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="_8">مبادئ ملزمة عبر كل المراحل</h3>
+<ul>
+<li>لا تعديل لأي ملف خارج نطاق المرحلة الجارية.</li>
+<li><code>npm run typecheck</code> و<code>pytest api/</code> و<code>npm run build</code> خضراء قبل دمج أي مرحلة.</li>
+<li>كل مسار جديد يخضع لـ Rate Limiting (نمط <code>api/routes.py</code> السطر ~248-269) و tenant-scoping.</li>
+<li>مفاتيح LLM لا تصل إلى المتصفح (تُغلق ثغرة <code>localStorage["etap-settings"]</code> في P4b).</li>
+<li>تُضاف فحوصات Prompt-Injection (Validation على معاملات الأدوات) في نطاق P1.</li>
+</ul>
+<hr />
+<h2 id="adr-004-in-memory-idempotency-agent-executor-single-replica-vs-multi-replica-migration">ADR-004 — In-Memory Idempotency في Agent Executor (Single-Replica vs Multi-Replica Migration)</h2>
+<p><strong>الحالة:</strong> مقرَّر (P4a) — نُفِّذ.</p>
+<h3 id="_9">السياق</h3>
+<p>يحتفظ محرك تنفيذ خطط الوكلاء (<code>api/agent_executor.py</code>) بسجل حجز وحفظ مخرجات الطلبات المكررة عبر القاموس الداخلي:
+<code>_IDEMPOTENCY: Dict[str, Dict[str, Any]] = {}</code>
+محكوماً بنافذة زمنية <code>IDEMPOTENCY_TTL_SECONDS = 86400</code> (24 ساعة) وآلية تقليم ذاتي <code>_prune_registries()</code> عند تجاوز السعة.</p>
+<p>تساؤل معمارية: هل يجب نقل حجز Idempotency في <code>agent_executor</code> فوراً إلى جدول في قاعدة البيانات (مثل <code>idempotency_keys</code> المستخدَم في <code>api/approvals.py</code> و <code>api/data_import.py</code>) أو Redis؟</p>
+<h3 id="_10">القرار</h3>
+<p>الإبقاء على <code>_IDEMPOTENCY</code> في الذاكرة (In-Memory) في <code>api/agent_executor.py</code> بشكل مقصود وموثَّق:
+1. <strong>بيئة التشغيل المستهدفة:</strong> منصة Hugging Face Spaces تعمل بنموذج Single-Replica (نسخة خادم واحدة)، حيث يوفر التخزين في الذاكرة أداءً فائقاً (Zero-Latency) دون تكلفة I/O على قاعدة البيانات لعمليات الاستعلام المتكررة عن حالة الخطط.
+2. <strong>عدم كسر السلوك الحالي:</strong> السلوك الداخلي لـ <code>_resolve_idempotency</code> و <code>_store_idempotency</code> يعمل بأمان تام مع التقليم التلقائي.
+3. <strong>مسار الترحيل عند التوسع (Multi-Replica Migration Path):</strong>
+   عند الترقية مستقبلاً إلى بيئة متعددة النسخ (Multi-Replica / Kubernetes / Load-Balanced Instances)، يتم ترحيل التخزين بسهولة عن طريق توجيه دوال <code>_resolve_idempotency</code> و <code>_store_idempotency</code> و <code>_prune_registries</code> إلى:
+   - طبقة تخزين Redis المشتركة عبر <code>REDIS_URL</code>.
+   - أو جدول <code>idempotency_keys</code> الحالي في PostgreSQL عبر SQLAlchemy كما هو متبع في <code>api/approvals.py</code>.</p>
+<h3 id="_11">العواقب</h3>
+<ul>
+<li>لا تغيير في سلوك الـ API أو جداول قاعدة البيانات الحالية.</li>
+<li>أداء أقصى للـ Single-Replica مع مسار واضح ومحدد للانتقال إلى Distributed State عند التوسع.</li>
+</ul>
+<hr />
+<h2 id="adr-005-chat-first-v30-rollout-legacy-exit">ADR-005 — استراتيجية التفعيل التدريجي وخروج الأمان (Chat-First v3.0 Rollout &amp; Legacy Exit)</h2>
+<p><strong>الحالة:</strong> مقرَّر (P10) — نُفِّذ (2026-09-05).</p>
+<h3 id="_12">السياق</h3>
+<p>تتطلب الترقية إلى واجهة Chat-First v3.0 ضمان عدم انقطاع أعمال المهندسين في المحطات والمكاتب الاستشارية، وتوفير مسار تراجع فوري (Rollback) في حال حدوث أي طارئ تشغيلي.</p>
+<h3 id="_13">القرار</h3>
+<ol>
+<li><strong>التفعيل التدريجي الحصري عبر Feature Flags API:</strong></li>
+<li>التفعيل لا يتم بتعديل كود ثابت (Hardcoded)، بل عبر مسارات التحكم:
+     <code>PUT /api/v1/feature-flags/chat_first_ui</code></li>
+<li>تسلسل الطرح:<ul>
+<li><strong>Canary 0%:</strong> <code>enabled: false, allow_list: ["admin"]</code> (فحص داخلي للوظائف).</li>
+<li><strong>Canary 10%:</strong> <code>rollout_percentage: 10</code> (مراقبة telemetry وخطوط الأخطاء).</li>
+<li><strong>Full Rollout 100%:</strong> <code>enabled: true, rollout_percentage: 100</code> (تفعيل كامل).</li>
+</ul>
+</li>
+<li>إمكانية التراجع الفوري (Instant Rollback) خلال أقل من 5 دقائق عبر <code>PATCH /api/v1/feature-flags/chat_first_ui {"enabled": false}</code>.</li>
+<li><strong>فترة سماح الخروج الكلاسيكي (Legacy Exit Window):</strong></li>
+<li>الإبقاء على زر "استخدم الواجهة الكلاسيكية" عبر خيار <code>onExitToLegacy</code> في <code>ChatWorkspace.tsx</code> و <code>App.tsx</code> لمدة شهرين كاملين (حتى نوفمبر 2026)، لإتاحة الانتقال السلس للمستخدمين الصناعيين.</li>
+<li><strong>عزل الصلاحيات وحماية الأدوات:</strong></li>
+<li>فرض مصدر البيانات <code>source</code> برمجياً في <code>agent-exec/plan</code> (HTTP 422 عند الغياب).</li>
+<li>حظر الأدوات الحساسة <code>powershell-tool</code> و <code>node-tool</code> نهائياً (HTTP 403 <code>HARD_DENIED</code>).</li>
+<li>تطبيق Maker-Checker على الإجراءات الحرجة (HTTP 403 <code>MAKER_CHECKER_VIOLATION</code>).</li>
+</ol>
+<h3 id="_14">العواقب</h3>
+<ul>
+<li>تفعيل آمن مع إمكانية تراجع لحظية.</li>
+<li>انتقال تدريجي غير صادم للمستخدمين الحاليين.</li>
+</ul>
+<hr />
+<p><em>آخر تحديث: 2026-09-05 — إقفال وتفعيل جميع مراحل AhmedETAP Chat-First v3.0.</em></p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "search.suggest", "search.highlight"], "search": "../../assets/javascripts/workers/search.f8cc74c7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.c8b220af.min.js"></script>
+      
+    
+  </body>
+</html>

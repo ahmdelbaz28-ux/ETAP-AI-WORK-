@@ -613,6 +613,39 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#system-requirements-prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      System Requirements &amp; Prerequisites
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="System Requirements &amp; Prerequisites">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#supported-platforms" class="md-nav__link">
+    <span class="md-ellipsis">
+      Supported Platforms
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#core-dependencies" class="md-nav__link">
+    <span class="md-ellipsis">
+      Core Dependencies
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#verification-checklist" class="md-nav__link">
     <span class="md-ellipsis">
       Verification Checklist
@@ -751,13 +784,26 @@
 <li>Standard installation procedure works</li>
 <li><code>/tmp/</code> paths are valid for default database locations</li>
 </ul>
+<h2 id="system-requirements-prerequisites">System Requirements &amp; Prerequisites</h2>
+<h3 id="supported-platforms">Supported Platforms</h3>
+<ul>
+<li><strong>Windows</strong>: Windows 10/11, Windows Server 2019+ (64-bit)</li>
+<li><strong>Linux</strong>: Ubuntu 20.04+, CentOS/RHEL 8+, Debian 11+</li>
+<li><strong>macOS</strong>: macOS 12+ (Apple Silicon and Intel)</li>
+</ul>
+<h3 id="core-dependencies">Core Dependencies</h3>
+<ul>
+<li>Python 3.12+ (supports 3.13 and 3.14)</li>
+<li>Git 2.30+</li>
+<li>Node.js 18+ and pnpm / npm (for frontend UI)</li>
+</ul>
 <h2 id="verification-checklist">Verification Checklist</h2>
 <ul>
 <li>[ ] Server starts without errors: <code>python -m uvicorn backend.app:app</code></li>
 <li>[ ] Health check returns 200: <code>curl http://localhost:8000/api/health</code></li>
 <li>[ ] All tests pass: <code>pytest tests/ -v</code></li>
-<li>[ ] Frontend builds: <code>cd frontend &amp;&amp; npm run build</code></li>
-<li>[ ] Linting passes: <code>ruff check etap/ backend/ parsers/</code></li>
+<li>[ ] Frontend builds: <code>cd ui &amp;&amp; pnpm install &amp;&amp; pnpm build</code></li>
+<li>[ ] Linting passes: <code>ruff check .</code></li>
 </ul>
 
 

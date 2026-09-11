@@ -1,0 +1,1366 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Enterprise AI-Powered Power Systems Engineering Platform">
+      
+      
+        <meta name="author" content="AhmedETAP Team">
+      
+      
+      
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.11">
+    
+    
+      
+        <title>UI and API Integration Testing Guide - AhmedETAP Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.4af4bdda.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="deep-purple">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#ui-and-api-integration-testing-guide" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="AhmedETAP Documentation" class="md-header__button md-logo" aria-label="AhmedETAP Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            AhmedETAP Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              UI and API Integration Testing Guide
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  الصفحة الرئيسية
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../ARCHITECTURE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  الهيكلية
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../API_REFERENCE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  واجهة برمجة التطبيقات
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../OPERATIONS_RUNBOOK/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  دليل التشغيل
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../TROUBLESHOOTING_GUIDE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  دليل الأعطال
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../SECURITY_OPERATIONS_MANUAL/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  البنية التحتية للأمان
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../ENTERPRISE_CERTIFICATION_REPORT/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  التقييم المؤسسي
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="AhmedETAP Documentation" class="md-nav__button md-logo" aria-label="AhmedETAP Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    AhmedETAP Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    الصفحة الرئيسية
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ARCHITECTURE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    الهيكلية
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../API_REFERENCE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    واجهة برمجة التطبيقات
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../OPERATIONS_RUNBOOK/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    دليل التشغيل
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../TROUBLESHOOTING_GUIDE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    دليل الأعطال
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../SECURITY_OPERATIONS_MANUAL/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    البنية التحتية للأمان
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ENTERPRISE_CERTIFICATION_REPORT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    التقييم المؤسسي
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#table-of-contents" class="md-nav__link">
+    <span class="md-ellipsis">
+      Table of Contents
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      Overview
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#postman-collection-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      Postman Collection Setup
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Postman Collection Setup">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      Prerequisites
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#importing-the-collection" class="md-nav__link">
+    <span class="md-ellipsis">
+      Importing the Collection
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#setting-up-environment-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      Setting Up Environment Variables
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#running-tests-in-postman" class="md-nav__link">
+    <span class="md-ellipsis">
+      Running Tests in Postman
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#running-tests-with-newman-command-line" class="md-nav__link">
+    <span class="md-ellipsis">
+      Running Tests with Newman (Command Line)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#puppeteer-ui-testing-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      Puppeteer UI Testing Setup
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Puppeteer UI Testing Setup">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#prerequisites_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Prerequisites
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#installation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Installation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Configuration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#available-scripts" class="md-nav__link">
+    <span class="md-ellipsis">
+      Available Scripts
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#running-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      Running Tests
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Running Tests">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#postman-api-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      Postman API Tests
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Postman API Tests">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#health-checks" class="md-nav__link">
+    <span class="md-ellipsis">
+      Health Checks
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#authentication" class="md-nav__link">
+    <span class="md-ellipsis">
+      Authentication
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#projects" class="md-nav__link">
+    <span class="md-ellipsis">
+      Projects
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#autocad-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      AutoCAD Integration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#revit-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Revit Integration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#digital-twin" class="md-nav__link">
+    <span class="md-ellipsis">
+      Digital Twin
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#devices-elements" class="md-nav__link">
+    <span class="md-ellipsis">
+      Devices &amp; Elements
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#connections-conflicts" class="md-nav__link">
+    <span class="md-ellipsis">
+      Connections &amp; Conflicts
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reports-exports" class="md-nav__link">
+    <span class="md-ellipsis">
+      Reports &amp; Exports
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#monitoring" class="md-nav__link">
+    <span class="md-ellipsis">
+      Monitoring
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#puppeteer-ui-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      Puppeteer UI Tests
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#test-report-generation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Test Report Generation
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Test Report Generation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#postman-reports" class="md-nav__link">
+    <span class="md-ellipsis">
+      Postman Reports
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#puppeteer-reports" class="md-nav__link">
+    <span class="md-ellipsis">
+      Puppeteer Reports
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      Troubleshooting
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Troubleshooting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#common-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      Common Issues
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Common Issues">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#puppeteer-connection-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      Puppeteer Connection Issues
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#postman-authentication-errors" class="md-nav__link">
+    <span class="md-ellipsis">
+      Postman Authentication Errors
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#timeout-errors" class="md-nav__link">
+    <span class="md-ellipsis">
+      Timeout Errors
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#element-not-found-errors-puppeteer" class="md-nav__link">
+    <span class="md-ellipsis">
+      Element Not Found Errors (Puppeteer)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#debugging-tips" class="md-nav__link">
+    <span class="md-ellipsis">
+      Debugging Tips
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Debugging Tips">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#enable-verbose-logging" class="md-nav__link">
+    <span class="md-ellipsis">
+      Enable Verbose Logging
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#monitor-network-requests" class="md-nav__link">
+    <span class="md-ellipsis">
+      Monitor Network Requests
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#best-practices" class="md-nav__link">
+    <span class="md-ellipsis">
+      Best Practices
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#continuous-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Continuous Integration
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="ui-and-api-integration-testing-guide">UI and API Integration Testing Guide</h1>
+<p>This guide provides instructions for testing the CAD/BIM Integration Platform using both Postman for API testing and Puppeteer for UI simulation with corresponding API requests.</p>
+<h2 id="table-of-contents">Table of Contents</h2>
+<ol>
+<li><a href="#overview">Overview</a></li>
+<li><a href="#postman-collection-setup">Postman Collection Setup</a></li>
+<li><a href="#puppeteer-ui-testing-setup">Puppeteer UI Testing Setup</a></li>
+<li><a href="#running-tests">Running Tests</a></li>
+<li><a href="#test-report-generation">Test Report Generation</a></li>
+<li><a href="#troubleshooting">Troubleshooting</a></li>
+</ol>
+<h2 id="overview">Overview</h2>
+<p>The testing suite consists of two main components:</p>
+<ol>
+<li><strong>Postman Collection</strong>: Comprehensive API testing for all endpoints in the CAD/BIM Integration Platform</li>
+<li><strong>Puppeteer Script</strong>: UI interaction simulation that clicks buttons and makes corresponding API requests</li>
+</ol>
+<p>Both tools work together to provide complete coverage of the application's functionality.</p>
+<h2 id="postman-collection-setup">Postman Collection Setup</h2>
+<h3 id="prerequisites">Prerequisites</h3>
+<ul>
+<li>Install <a href="https://www.postman.com/downloads/">Postman</a></li>
+<li>Or install <a href="https://github.com/postmanlabs/newman">Newman</a> for command-line execution</li>
+</ul>
+<h3 id="importing-the-collection">Importing the Collection</h3>
+<ol>
+<li>Open Postman</li>
+<li>Go to <strong>Collections</strong> tab</li>
+<li>Click <strong>Import</strong></li>
+<li>Select the <code>API_Test_Collection.postman_collection.json</code> file</li>
+<li>The collection will be imported with all API endpoints organized by category</li>
+</ol>
+<h3 id="setting-up-environment-variables">Setting Up Environment Variables</h3>
+<ol>
+<li>Create a new environment in Postman</li>
+<li>Add the following variables:</li>
+<li><code>baseUrl</code>: Your API base URL (e.g., <code>http://localhost:8000</code>)</li>
+<li><code>apiKey</code>: Your API key for authentication</li>
+<li><code>username</code>: Test user username</li>
+<li><code>password</code>: Test user password</li>
+</ol>
+<h3 id="running-tests-in-postman">Running Tests in Postman</h3>
+<ol>
+<li>Select your environment</li>
+<li>Choose the CAD/BIM Integration Platform collection</li>
+<li>Click <strong>Runner</strong> to run all tests</li>
+<li>Or select individual requests to run specific tests</li>
+</ol>
+<h3 id="running-tests-with-newman-command-line">Running Tests with Newman (Command Line)</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># Install Newman globally if not already installed</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>npm<span class="w"> </span>install<span class="w"> </span>-g<span class="w"> </span>newman
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="c1"># Run the collection</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>newman<span class="w"> </span>run<span class="w"> </span>API_Test_Collection.postman_collection.json<span class="w"> </span>-e<span class="w"> </span>your-environment.json
+</code></pre></div>
+<h2 id="puppeteer-ui-testing-setup">Puppeteer UI Testing Setup</h2>
+<h3 id="prerequisites_1">Prerequisites</h3>
+<ul>
+<li>Node.js 16 or higher</li>
+<li>npm or yarn package manager</li>
+</ul>
+<h3 id="installation">Installation</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># Install dependencies</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>npm<span class="w"> </span>install
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="c1"># Puppeteer will automatically download a Chromium binary</span>
+</code></pre></div>
+<h3 id="configuration">Configuration</h3>
+<p>The Puppeteer script uses environment variables for configuration:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># Set environment variables</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="nb">export</span><span class="w"> </span><span class="nv">BASE_URL</span><span class="o">=</span>http://localhost:3000<span class="w">      </span><span class="c1"># Frontend URL</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="nb">export</span><span class="w"> </span><span class="nv">API_URL</span><span class="o">=</span>http://localhost:8000<span class="w">       </span><span class="c1"># Backend API URL</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="nb">export</span><span class="w"> </span><span class="nv">API_KEY</span><span class="o">=</span>your-api-key-here<span class="w">          </span><span class="c1"># API authentication key</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="nb">export</span><span class="w"> </span><span class="nv">USERNAME</span><span class="o">=</span>test-user<span class="w">                 </span><span class="c1"># Test username</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="nb">export</span><span class="w"> </span><span class="nv">PASSWORD</span><span class="o">=</span>test-password<span class="w">             </span><span class="c1"># Test password</span>
+</code></pre></div>
+<p>Or create a <code>.env</code> file in the project root:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>BASE_URL=http://localhost:3000
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>API_URL=http://localhost:8000
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>API_KEY=your-api-key-here
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>USERNAME=test-user
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>PASSWORD=test-password
+</code></pre></div>
+<h3 id="available-scripts">Available Scripts</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># Run UI tests with Puppeteer</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>npm<span class="w"> </span>run<span class="w"> </span>test:ui
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="c1"># Run all tests (UI and API)</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>npm<span class="w"> </span>run<span class="w"> </span>test:all
+</code></pre></div>
+<h2 id="running-tests">Running Tests</h2>
+<h3 id="postman-api-tests">Postman API Tests</h3>
+<p>The collection includes tests for:</p>
+<h4 id="health-checks">Health Checks</h4>
+<ul>
+<li><code>/api/health</code> - Overall system health</li>
+<li><code>/api/health/statistics</code> - System statistics</li>
+</ul>
+<h4 id="authentication">Authentication</h4>
+<ul>
+<li><code>/api/v1/auth/me</code> - Get current user info</li>
+<li><code>/api/v1/auth/session/login</code> - Session login</li>
+</ul>
+<h4 id="projects">Projects</h4>
+<ul>
+<li><code>/api/v1/projects</code> - List and create projects</li>
+</ul>
+<h4 id="autocad-integration">AutoCAD Integration</h4>
+<ul>
+<li><code>/api/v1/autocad/connect</code> - Connect to AutoCAD</li>
+<li><code>/api/v1/autocad/documents</code> - Get documents</li>
+<li><code>/api/v1/autocad/upload</code> - Upload DWG files</li>
+</ul>
+<h4 id="revit-integration">Revit Integration</h4>
+<ul>
+<li><code>/api/v1/revit/connect</code> - Connect to Revit</li>
+<li><code>/api/v1/revit/elements</code> - Get Revit elements</li>
+<li><code>/api/v1/revit/upload</code> - Upload RVT files</li>
+</ul>
+<h4 id="digital-twin">Digital Twin</h4>
+<ul>
+<li><code>/api/v1/digital-twin/convert</code> - Convert CAD files</li>
+<li><code>/api/v1/digital-twin/history</code> - Get conversion history</li>
+</ul>
+<h4 id="devices-elements">Devices &amp; Elements</h4>
+<ul>
+<li><code>/api/v1/devices</code> - List devices</li>
+<li><code>/api/v1/elements</code> - List elements</li>
+</ul>
+<h4 id="connections-conflicts">Connections &amp; Conflicts</h4>
+<ul>
+<li><code>/api/v1/connections</code> - List connections</li>
+<li><code>/api/v1/conflicts</code> - Check conflicts</li>
+</ul>
+<h4 id="reports-exports">Reports &amp; Exports</h4>
+<ul>
+<li><code>/api/v1/reports/generate</code> - Generate reports</li>
+<li><code>/api/v1/exports</code> - Export data</li>
+</ul>
+<h4 id="monitoring">Monitoring</h4>
+<ul>
+<li><code>/api/v1/monitor/metrics</code> - Get metrics</li>
+<li><code>/api/v1/monitor/health</code> - System health</li>
+</ul>
+<h3 id="puppeteer-ui-tests">Puppeteer UI Tests</h3>
+<p>The Puppeteer script simulates user interactions with the UI and makes corresponding API requests:</p>
+<ol>
+<li><strong>Dashboard Page</strong></li>
+<li>Loads dashboard statistics</li>
+<li>
+<p>Retrieves recent projects</p>
+</li>
+<li>
+<p><strong>Projects Page</strong></p>
+</li>
+<li>Creates new projects</li>
+<li>
+<p>Lists existing projects</p>
+</li>
+<li>
+<p><strong>AutoCAD Page</strong></p>
+</li>
+<li>Connects to AutoCAD</li>
+<li>
+<p>Loads AutoCAD documents</p>
+</li>
+<li>
+<p><strong>Revit Page</strong></p>
+</li>
+<li>Connects to Revit</li>
+<li>
+<p>Loads Revit elements</p>
+</li>
+<li>
+<p><strong>Digital Twin Page</strong></p>
+</li>
+<li>Initiates conversions</li>
+<li>
+<p>Loads conversion history</p>
+</li>
+<li>
+<p><strong>Elements Page</strong></p>
+</li>
+<li>
+<p>Lists elements</p>
+</li>
+<li>
+<p><strong>Connections Page</strong></p>
+</li>
+<li>
+<p>Lists connections</p>
+</li>
+<li>
+<p><strong>Conflicts Page</strong></p>
+</li>
+<li>
+<p>Checks for conflicts</p>
+</li>
+<li>
+<p><strong>Reports Page</strong></p>
+</li>
+<li>Generates reports</li>
+</ol>
+<h2 id="test-report-generation">Test Report Generation</h2>
+<h3 id="postman-reports">Postman Reports</h3>
+<p>Postman generates detailed reports showing:
+- Response times
+- Status codes
+- Response bodies
+- Assertion results
+- Error details</p>
+<h3 id="puppeteer-reports">Puppeteer Reports</h3>
+<p>The Puppeteer script generates two types of reports:</p>
+<ol>
+<li><strong>Markdown Report</strong> (<code>test_report.md</code>)</li>
+<li>Human-readable test results</li>
+<li>Summary statistics</li>
+<li>Individual test details</li>
+<li>
+<p>Failed test analysis</p>
+</li>
+<li>
+<p><strong>JSON Report</strong> (<code>test_report.json</code>)</p>
+</li>
+<li>Structured data for CI/CD pipelines</li>
+<li>Programmatic analysis</li>
+<li>Detailed timing information</li>
+</ol>
+<p>Example report structure:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="p">{</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">  </span><span class="nt">"startTime"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2023-01-01T00:00:00.000Z"</span><span class="p">,</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">  </span><span class="nt">"endTime"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2023-01-01T00:05:00.000Z"</span><span class="p">,</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">  </span><span class="nt">"results"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="w">    </span><span class="p">{</span>
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="w">      </span><span class="nt">"testName"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Connect AutoCAD Button"</span><span class="p">,</span>
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="w">      </span><span class="nt">"action"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Click connect AutoCAD button"</span><span class="p">,</span>
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="w">      </span><span class="nt">"timestamp"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2023-01-01T00:01:00.000Z"</span><span class="p">,</span>
+<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="w">      </span><span class="nt">"status"</span><span class="p">:</span><span class="w"> </span><span class="mi">200</span><span class="p">,</span>
+<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="w">      </span><span class="nt">"duration"</span><span class="p">:</span><span class="w"> </span><span class="mi">125</span><span class="p">,</span>
+<a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="w">      </span><span class="nt">"details"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a><span class="w">        </span><span class="nt">"response"</span><span class="p">:</span><span class="w"> </span><span class="p">{},</span>
+<a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a><span class="w">        </span><span class="nt">"headers"</span><span class="p">:</span><span class="w"> </span><span class="p">{}</span>
+<a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a><span class="w">      </span><span class="p">}</span>
+<a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-5-16" name="__codelineno-5-16" href="#__codelineno-5-16"></a><span class="w">  </span><span class="p">],</span>
+<a id="__codelineno-5-17" name="__codelineno-5-17" href="#__codelineno-5-17"></a><span class="w">  </span><span class="nt">"summary"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-5-18" name="__codelineno-5-18" href="#__codelineno-5-18"></a><span class="w">    </span><span class="nt">"totalTests"</span><span class="p">:</span><span class="w"> </span><span class="mi">10</span><span class="p">,</span>
+<a id="__codelineno-5-19" name="__codelineno-5-19" href="#__codelineno-5-19"></a><span class="w">    </span><span class="nt">"passedTests"</span><span class="p">:</span><span class="w"> </span><span class="mi">9</span><span class="p">,</span>
+<a id="__codelineno-5-20" name="__codelineno-5-20" href="#__codelineno-5-20"></a><span class="w">    </span><span class="nt">"failedTests"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+<a id="__codelineno-5-21" name="__codelineno-5-21" href="#__codelineno-5-21"></a><span class="w">    </span><span class="nt">"totalTime"</span><span class="p">:</span><span class="w"> </span><span class="mi">300000</span>
+<a id="__codelineno-5-22" name="__codelineno-5-22" href="#__codelineno-5-22"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-5-23" name="__codelineno-5-23" href="#__codelineno-5-23"></a><span class="p">}</span>
+</code></pre></div></p>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<h3 id="common-issues">Common Issues</h3>
+<h4 id="puppeteer-connection-issues">Puppeteer Connection Issues</h4>
+<ul>
+<li>Ensure the frontend application is running at the configured <code>BASE_URL</code></li>
+<li>Verify the backend API is running at the configured <code>API_URL</code></li>
+<li>Check that the API key is valid and has appropriate permissions</li>
+</ul>
+<h4 id="postman-authentication-errors">Postman Authentication Errors</h4>
+<ul>
+<li>Verify the API key is correct</li>
+<li>Ensure the user account has necessary permissions</li>
+<li>Check that authentication endpoints are accessible</li>
+</ul>
+<h4 id="timeout-errors">Timeout Errors</h4>
+<ul>
+<li>Increase timeout values in the Puppeteer script</li>
+<li>Verify network connectivity to the application</li>
+<li>Check if the application is responding slowly due to high load</li>
+</ul>
+<h4 id="element-not-found-errors-puppeteer">Element Not Found Errors (Puppeteer)</h4>
+<ul>
+<li>Update selectors if the UI has changed</li>
+<li>Add waits for dynamic content to load</li>
+<li>Verify the application is rendering correctly</li>
+</ul>
+<h3 id="debugging-tips">Debugging Tips</h3>
+<h4 id="enable-verbose-logging">Enable Verbose Logging</h4>
+<p>Add debug flags to get more detailed information:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1">// In the Puppeteer script</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="k">await</span><span class="w"> </span><span class="nx">page</span><span class="p">.</span><span class="nx">emulateMediaFeatures</span><span class="p">([{</span><span class="w"> </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="s1">'prefers-color-scheme'</span><span class="p">,</span><span class="w"> </span><span class="nx">value</span><span class="o">:</span><span class="w"> </span><span class="s1">'dark'</span><span class="w"> </span><span class="p">}]);</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="k">await</span><span class="w"> </span><span class="nx">page</span><span class="p">.</span><span class="nx">evaluateOnNewDocument</span><span class="p">(()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">  </span><span class="nb">Object</span><span class="p">.</span><span class="nx">defineProperty</span><span class="p">(</span><span class="nx">navigator</span><span class="p">,</span><span class="w"> </span><span class="s1">'webdriver'</span><span class="p">,</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">get</span><span class="o">:</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="kc">undefined</span><span class="w"> </span><span class="p">});</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="p">});</span>
+</code></pre></div>
+<h4 id="monitor-network-requests">Monitor Network Requests</h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="nx">page</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="s1">'response'</span><span class="p">,</span><span class="w"> </span><span class="nx">response</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">  </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="sb">`</span><span class="si">${</span><span class="nx">response</span><span class="p">.</span><span class="nx">status</span><span class="p">()</span><span class="si">}</span><span class="sb"> </span><span class="si">${</span><span class="nx">response</span><span class="p">.</span><span class="nx">url</span><span class="p">()</span><span class="si">}</span><span class="sb">`</span><span class="p">);</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="p">});</span>
+</code></pre></div>
+<h2 id="best-practices">Best Practices</h2>
+<ol>
+<li><strong>Environment Consistency</strong>: Use consistent environment variables across local, staging, and production testing</li>
+<li><strong>Data Isolation</strong>: Use test-specific data that won't interfere with production data</li>
+<li><strong>Authentication Management</strong>: Implement proper token refresh mechanisms for long-running tests</li>
+<li><strong>Error Handling</strong>: Implement robust error handling to prevent cascading failures</li>
+<li><strong>Performance Monitoring</strong>: Track response times and performance metrics</li>
+<li><strong>Regular Maintenance</strong>: Update tests regularly as the API evolves</li>
+</ol>
+<h2 id="continuous-integration">Continuous Integration</h2>
+<p>To integrate these tests into your CI pipeline:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1"># Example GitHub Actions workflow</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">API and UI Tests</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="nt">on</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">push</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">pull_request</span><span class="p p-Indicator">]</span>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="nt">jobs</span><span class="p">:</span>
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="w">  </span><span class="nt">test</span><span class="p">:</span>
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="w">    </span><span class="nt">runs-on</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ubuntu-latest</span>
+<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="w">    </span><span class="nt">steps</span><span class="p">:</span>
+<a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">actions/checkout@v3</span>
+<a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Setup Node.js</span>
+<a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a><span class="w">        </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">actions/setup-node@v3</span>
+<a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a><span class="w">        </span><span class="nt">with</span><span class="p">:</span>
+<a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a><span class="w">          </span><span class="nt">node-version</span><span class="p">:</span><span class="w"> </span><span class="s">'18'</span>
+<a id="__codelineno-8-14" name="__codelineno-8-14" href="#__codelineno-8-14"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Install dependencies</span>
+<a id="__codelineno-8-15" name="__codelineno-8-15" href="#__codelineno-8-15"></a><span class="w">        </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">npm install</span>
+<a id="__codelineno-8-16" name="__codelineno-8-16" href="#__codelineno-8-16"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Run Puppeteer tests</span>
+<a id="__codelineno-8-17" name="__codelineno-8-17" href="#__codelineno-8-17"></a><span class="w">        </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">npm run test:ui</span>
+<a id="__codelineno-8-18" name="__codelineno-8-18" href="#__codelineno-8-18"></a><span class="w">        </span><span class="nt">env</span><span class="p">:</span>
+<a id="__codelineno-8-19" name="__codelineno-8-19" href="#__codelineno-8-19"></a><span class="w">          </span><span class="nt">BASE_URL</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${{ secrets.BASE_URL }}</span>
+<a id="__codelineno-8-20" name="__codelineno-8-20" href="#__codelineno-8-20"></a><span class="w">          </span><span class="nt">API_URL</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${{ secrets.API_URL }}</span>
+<a id="__codelineno-8-21" name="__codelineno-8-21" href="#__codelineno-8-21"></a><span class="w">          </span><span class="nt">API_KEY</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${{ secrets.API_KEY }}</span>
+<a id="__codelineno-8-22" name="__codelineno-8-22" href="#__codelineno-8-22"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Archive test reports</span>
+<a id="__codelineno-8-23" name="__codelineno-8-23" href="#__codelineno-8-23"></a><span class="w">        </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">actions/upload-artifact@v3</span>
+<a id="__codelineno-8-24" name="__codelineno-8-24" href="#__codelineno-8-24"></a><span class="w">        </span><span class="nt">with</span><span class="p">:</span>
+<a id="__codelineno-8-25" name="__codelineno-8-25" href="#__codelineno-8-25"></a><span class="w">          </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">test-reports</span>
+<a id="__codelineno-8-26" name="__codelineno-8-26" href="#__codelineno-8-26"></a><span class="w">          </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">test_report.*</span>
+</code></pre></div>
+<p>This testing approach ensures comprehensive coverage of your CAD/BIM Integration Platform, combining the reliability of API testing with the realism of UI simulation.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "search.suggest", "search.highlight"], "search": "../assets/javascripts/workers/search.f8cc74c7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.c8b220af.min.js"></script>
+      
+    
+  </body>
+</html>
