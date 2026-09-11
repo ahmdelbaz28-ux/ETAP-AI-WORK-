@@ -60,6 +60,12 @@ from api.notification_config import router as notification_config_router
 from api.notifications import notification_websocket_endpoint
 from api.notifications import router as notifications_router
 from api.projects import router as projects_router
+from api.rate_limit import (
+    RateLimitExceeded,
+    SlowAPIMiddleware,
+    _rate_limit_exceeded_handler,
+    limiter,
+)
 from api.rbac import router as rbac_router
 from api.request_context import CorrelationIdMiddleware, TenantMiddleware
 from api.results_store import router as results_router
@@ -106,6 +112,7 @@ app = FastAPI(
     lifespan=lifespan,
     debug=is_dev_environment(),  # Strictly false in production/staging
 )
+app.state.limiter = limiter
 
 # ---------------------------------------------------------------------------
 # API Key validation
@@ -701,6 +708,8 @@ if not _cors_origin_list:
 # BEFORE BodySizeLimit so they run AFTER authentication (innermost) and
 # can set the PostgreSQL RLS session variable before any query runs.
 app.add_middleware(HostValidationMiddleware)
+app.add_middleware(SlowAPIMiddleware)
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 app.add_middleware(TenantMiddleware)
 app.add_middleware(CorrelationIdMiddleware)
 app.add_middleware(_BodySizeLimitMiddleware)

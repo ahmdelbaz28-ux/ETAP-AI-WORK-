@@ -41,6 +41,7 @@ from api._messages import (
     MSG_USER_NOT_FOUND,
     MSG_USER_NOT_FOUND_OR_DEACTIVATED,
 )
+from api.rate_limit import auth_limiter
 
 UTC = timezone.utc  # noqa: UP017
 # Module-level constants
@@ -1223,6 +1224,7 @@ async def _verify_mfa_and_issue_tokens(
     response_model=LoginResponse,
     summary="Authenticate and receive JWT tokens (token alias)",
 )
+@auth_limiter.limit("10/minute")
 async def login(
     request: Request,
     body: LoginRequest,

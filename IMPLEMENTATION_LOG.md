@@ -35,4 +35,19 @@ This log tracks the step-by-step implementation, verification, and git commit de
 
 ---
 
+## التحسين 3: إضافة Rate Limiting على نقاط Authentication (HIGH)
+- **الحالة**: مكتمل ومتحقق منه (VERIFIED)
+- **الملفات المعدلة**:
+  - `api/rate_limit.py`: إنشاء وحدة Rate limiting موحدة باستخدام SlowAPI مع دعم Redis تلقائي وfallback سلس للذاكرة في بيئات التطوير والاختبار.
+  - `api/auth.py`: تطبيق `@auth_limiter.limit("10/minute")` على نقاط المصادقة `/login` و `/token`.
+  - `api/routes.py`: ربط `SlowAPIMiddleware` و `RateLimitExceeded` handler وتثبيت `app.state.limiter = limiter`.
+- **نتائج التحقق**:
+  - `ruff check api/ worker/ agents/ security/`: All checks passed!
+  - `pytest tests/test_approvals.py tests/test_worker_auth_contract.py -q`: 26 passed in 49.40s
+  - `validate-findings.cjs`: PASS: 11 findings valid
+- **Commit**: `security: add slowapi rate limiting on authentication endpoints`
+
+---
+
+
 
