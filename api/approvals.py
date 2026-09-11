@@ -57,6 +57,17 @@ from api.dual_control import (
     MAKER_CHECKER_VIOLATION,
     record_approval_event,
 )
+from api.session_ownership import (
+    Actor,
+    OwnershipDenied,
+    is_auto_approve,
+)
+from api.session_ownership import (
+    _flags as _session_auto_approve,
+)
+from api.session_ownership import (
+    set_auto_approve as _policy_set_auto_approve,
+)
 from api.tool_policy import TOOL_ALIASES, TOOL_POLICIES, evaluate_tool_policy
 
 # Reason code raised when the authenticated user's tenant does not match the
@@ -227,16 +238,16 @@ class ApprovalResponse(BaseModel):
 
 # Per-session auto-run toggle. Kept in-memory (single-replica HF Space);
 # a Redis-backed store would be a drop-in replacement.
-_session_auto_approve: Dict[str, bool] = {}
-_session_auto_approve_owners: Dict[str, str] = {}
 
 
 def set_session_auto_approve(session_id: str, enabled: bool) -> None:
+    """Deprecated: thin forwarder to session_ownership module."""
     _session_auto_approve[session_id] = bool(enabled)
 
 
 def get_session_auto_approve(session_id: str) -> bool:
-    return bool(_session_auto_approve.get(session_id, False))
+    """Deprecated: thin forwarder to session_ownership module."""
+    return is_auto_approve(session_id)
 
 
 # ---------------------------------------------------------------------------
@@ -635,59 +646,28 @@ async def set_auto_approve(
     Critical tools are NEVER auto-approved regardless of this toggle.
     """
     user_role = getattr(user, "role", None)
-    if user_role in ("viewer", "guest", "readonly") or (
-        user_role and user_role not in ("admin", "lead_engineer", "senior_engineer", "engineer")
-    ):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail={
-                "code": "INSUFFICIENT_ROLE",
-                "message": "Only engineering and admin roles can toggle session auto-approval.",
-            },
-        )
-
-    user_id = str(getattr(user, "user_id", "")).strip()
-    is_admin = user_role == "admin"
-
-    # Check SessionStreamHub owner if known
+    actor = Actor(
+        user_id=str(getattr(user, "user_id", "")).strip(),
+        role=str(user_role or "").strip(),
+        is_admin=user_role == "admin",
+        tenant_id=str(getattr(user, "tenant_id", "") or "").strip(),
+    )
     try:
-        from api.session_stream import get_hub
-
-        hub = get_hub()
-        hub_owner = hub.get_owner(body.session_id)
-        if hub_owner and hub_owner != user_id and not is_admin:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail={
-                    "code": "FORBIDDEN",
-                    "message": "Cannot modify another user's session auto-approval.",
-                },
-            )
-    except HTTPException:
-        raise
-    except Exception:
-        pass
-
-    # Check local session ownership registry
-    existing_owner = _session_auto_approve_owners.get(body.session_id)
-    if existing_owner and existing_owner != user_id and not is_admin:
+        _policy_set_auto_approve(body.session_id, actor, body.enabled)
+    except OwnershipDenied as exc:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail={
-                "code": "FORBIDDEN",
-                "message": "Cannot modify another user's session auto-approval.",
+                "code": exc.code,
+                "message": str(exc),
             },
-        )
+        ) from exc
 
-    if not existing_owner and user_id:
-        _session_auto_approve_owners[body.session_id] = user_id
-
-    set_session_auto_approve(body.session_id, body.enabled)
     return {
         "success": True,
         "data": {
             "session_id": body.session_id,
-            "enabled": get_session_auto_approve(body.session_id),
+            "enabled": is_auto_approve(body.session_id),
             "note": "critical tools always require manual approval",
         },
     }

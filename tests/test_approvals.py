@@ -53,8 +53,9 @@ def client():
     app.dependency_overrides[get_current_user_from_header] = lambda: MAKER
 
     # Fresh in-memory auto-approve registry per test.
-    approvals_mod._session_auto_approve.clear()
-    approvals_mod._session_auto_approve_owners.clear()
+    from api.session_ownership import reset_session_ownership
+
+    reset_session_ownership()
 
     with TestClient(app) as c:
         yield c

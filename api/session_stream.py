@@ -131,7 +131,6 @@ class SessionStreamHub:
         self._connections: Dict[str, List[_Connection]] = {}
         self._history: Dict[str, deque] = {}
         self._seq: Dict[str, int] = {}
-        self._owners: Dict[str, str] = {}
         self._loop: Optional[asyncio.AbstractEventLoop] = None
 
     # -- lifecycle ----------------------------------------------------------
@@ -264,21 +263,21 @@ class SessionStreamHub:
         return len(self._connections.get(session_id, []))
 
     def get_owner(self, session_id: str) -> Optional[str]:
-        return self._owners.get(session_id)
+        from api.session_ownership import get_owner
+
+        return get_owner(session_id)
 
     def verify_ownership(self, session_id: str, user_id: str, is_admin: bool = False) -> bool:
         """Verify that user_id owns or is authorized to access session_id.
 
-        If the session has no recorded owner, user_id claims initial ownership.
-        Admins are permitted to access any session.
+        Delegates to the session_ownership module (the single authority).
         """
-        if is_admin:
-            return True
-        existing = self._owners.get(session_id)
-        if existing is None:
-            self._owners[session_id] = user_id
-            return True
-        return existing == user_id
+        from api.session_ownership import OwnershipDenied, verify_ownership
+
+        try:
+            return verify_ownership(session_id, user_id, is_admin=is_admin)
+        except OwnershipDenied:
+            return False
 
 
 _hub: Optional[SessionStreamHub] = None
