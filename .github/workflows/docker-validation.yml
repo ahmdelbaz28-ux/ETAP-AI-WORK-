@@ -42,7 +42,6 @@ concurrency:
 
 env:
   EXPECTED_PYTHON_VERSION: '3.13'
-  ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: 'true'
 
 jobs:
   # ── 1. LINT: hadolint on every Dockerfile ────────────────────────────────
