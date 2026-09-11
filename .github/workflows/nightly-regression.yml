@@ -18,6 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 90
     env:
+      # TODO: upgrade checkout@v4→v5, setup-python@v5→v6 for Node24, then remove this flag
       ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: 'true'
     steps:
       - name: Checkout repository
@@ -46,7 +47,7 @@ jobs:
             --ignore=tests/load \
             --ignore=tests/stress \
             --ignore=tests/chaos \
-            -v \
+            -q \
             -n auto \
             --timeout=60 \
             --cov=. \
