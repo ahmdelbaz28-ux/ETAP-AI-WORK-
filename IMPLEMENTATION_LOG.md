@@ -161,14 +161,13 @@ This log tracks the step-by-step implementation, verification, and git commit de
 
 ---
 
-
-
-
-
-
-
-
-
-
-
-
+## التحسين 13: تقييد أحجام payloads و multi-part form data (LOW)
+- **الحالة**: مكتمل ومتحقق منه (VERIFIED)
+- **الملفات المعدلة**:
+  - `api/data_import.py`: إضافة ثوابت وحدود مقيدة لمعالجة نماذج multipart (`MAX_FORM_FIELDS = 1000`, `MAX_FORM_FILES = 1000`) ودالة مساعدة آمنة `safe_parse_form` تمنع هجمات الإغراق واستنزاف الذاكرة hash collision / multipart exhaustion، مع تأكيد سقف التحميل المقسم chunks حتى 10 ميجابايت (`MAX_FILE_SIZE`).
+  - `api/equipment.py`: استبدال القراءة غير المقيدة للذاكرة `file.read()` بقراءة مجزأة متدفقة (chunked streaming) بحد أقصى صارم 10 ميجابايت مع إرجاع HTTP 413 لمنع استهلاك الذاكرة وحماية مسار استيراد المعدات.
+- **نتائج التحقق**:
+  - `ruff check api/data_import.py api/equipment.py`: All checks passed!
+  - `pytest tests/test_ui_coverage_api.py -q`: 27 passed in 51.67s
+  - `validate-findings.cjs`: PASS: 11 findings valid
+- **Commit**: `security: enforce bounded form parsing limits and chunked streaming in data import`

@@ -801,7 +801,21 @@ async def import_equipment(
     user: CurrentUser = Depends(require_permission("equipment", "create")),  # noqa: B008
 ) -> Any:
     """Import equipment from an uploaded JSON or CSV file."""
-    content = await file.read()
+    max_equipment_file_size = 10 * 1024 * 1024  # 10 MiB limit
+    chunks: list[bytes] = []
+    total_read = 0
+    while True:
+        chunk = await file.read(1024 * 1024)
+        if not chunk:
+            break
+        total_read += len(chunk)
+        if total_read > max_equipment_file_size:
+            raise HTTPException(
+                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                detail="File exceeds maximum limit of 10 MB",
+            )
+        chunks.append(chunk)
+    content = b"".join(chunks)
     imported = 0
     errors: list[str] = []
 
