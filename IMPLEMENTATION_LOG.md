@@ -88,6 +88,19 @@ This log tracks the step-by-step implementation, verification, and git commit de
 
 ---
 
+## التحسين 7: تقييد Celery broker URL credentials في inspect stats (MEDIUM)
+- **الحالة**: مكتمل ومتحقق منه (VERIFIED)
+- **الملفات المعدلة**:
+  - `worker/celery_app.py`: تأمين وتطهير بيانات اعتماد وسيط المهام (Broker & Result backend URLs) باستخدام `sanitize_url` لمنع تسريب أي كلمات مرور أو مفاتيح سرية في إحصائيات `inspect stats` أو تفريغ الإعدادات `app.conf.table`.
+- **نتائج التحقق**:
+  - `ruff check worker/celery_app.py`: All checks passed!
+  - `pytest tests/test_worker_auth_contract.py -q`: 8 passed in 21.13s
+  - `validate-findings.cjs`: PASS: 11 findings valid
+- **Commit**: `security: sanitize celery broker url credentials in inspect stats`
+
+---
+
+
 
 
 

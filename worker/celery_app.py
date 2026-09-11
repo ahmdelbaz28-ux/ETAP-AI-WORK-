@@ -16,9 +16,11 @@ Production features
 from __future__ import annotations
 
 import os
+from typing import Any
 
 from celery import Celery
 from kombu import Queue  # type: ignore
+from kombu.utils.url import sanitize_url
 
 # ---------------------------------------------------------------------------
 # Redis connection
@@ -39,6 +41,20 @@ app = Celery(
     backend=result_backend_url,
     include=["worker.tasks"],
 )
+
+# SECURITY: Mask credentials in configuration dumps / inspect stats
+_original_conf_table = app.conf.table
+
+
+def _sanitized_conf_table(*args: Any, **kwargs: Any) -> dict[str, Any]:
+    raw_table = _original_conf_table(*args, **kwargs)
+    return {
+        k: (sanitize_url(v) if k in ("broker_url", "result_backend") and isinstance(v, str) else v)
+        for k, v in raw_table.items()
+    }
+
+
+app.conf.table = _sanitized_conf_table  # type: ignore[assignment]
 
 # ---------------------------------------------------------------------------
 # Queue definitions — enables priority routing
