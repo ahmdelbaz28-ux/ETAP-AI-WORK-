@@ -44,6 +44,9 @@ class handler(BaseHTTPRequestHandler):
         if cf_secret:
             headers["X-Origin-Verify"] = cf_secret
 
+        if not endpoint.startswith("https://"):
+            raise ValueError("Endpoint must use HTTPS scheme")
+
         try:
             req = urllib.request.Request(
                 endpoint,
@@ -51,7 +54,7 @@ class handler(BaseHTTPRequestHandler):
                 headers=headers,
                 data=b"{}",
             )
-            with urllib.request.urlopen(req, timeout=30) as resp:
+            with urllib.request.urlopen(req, timeout=30) as resp:  # nosec B310
                 body = resp.read().decode("utf-8")
                 self._send_json(resp.status, body)
         except urllib.error.HTTPError as e:

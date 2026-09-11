@@ -136,6 +136,20 @@ This log tracks the step-by-step implementation, verification, and git commit de
 
 ---
 
+## التحسين 11: إضافة dependency scanning في CI (LOW)
+- **الحالة**: مكتمل ومتحقق منه (VERIFIED)
+- **الملفات المعدلة**:
+  - `.github/workflows/ci.yml`: إضافة خطوة فحص التبعيات والثغرات باستخدام `pip-audit` و `bandit -r api/ agents/ etap_integration/ -ll` ضمن بوابة الأمان Gate 7 في pipeline الـ CI.
+  - `api/cron/digest.py`: تعزيز أمان الاتصال بالتحقق من بروتوكول HTTPS الصارم وتطهير استدعاء `urlopen` لمنع تنبيهات B310 في Bandit.
+- **نتائج التحقق**:
+  - `bandit -r api/ -ll`: No issues identified!
+  - `pip-audit`: verified available.
+  - `validate-findings.cjs`: PASS: 11 findings valid
+- **Commit**: `ci: add pip-audit and bandit SAST scanning to quality pipeline`
+
+---
+
+
 
 
 
