@@ -37,6 +37,7 @@ env:
   TERRAFORM_VERSION: '1.9.5'
   TFLINT_VERSION: 'v0.53.0'
   TFSEC_VERSION: 'v1.28.1'
+  ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: 'true'
 
 jobs:
   # ── 1. HELM VALIDATION ────────────────────────────────────────────────────
@@ -177,12 +178,11 @@ jobs:
 
       - name: Terraform fmt check
         run: |
-          terraform fmt -check -recursive -diff
-          if [ $? -ne 0 ]; then
+          if ! terraform fmt -check -recursive -diff; then
             echo "::warning::Terraform files are not properly formatted. Run 'terraform fmt -recursive'"
-            exit 0  # Non-blocking — formatting issues shouldn't block the pipeline
+          else
+            echo "Terraform formatting OK"
           fi
-          echo "Terraform formatting OK"
 
       - name: Terraform init (backend disabled for CI)
         run: |
