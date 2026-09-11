@@ -682,6 +682,10 @@ _CORS_ORIGINS = os.environ.get(
 _cors_origin_list = (
     [o.strip() for o in _CORS_ORIGINS.split(",") if o.strip()] if _CORS_ORIGINS else []
 )
+if is_production_environment():
+    # Disallow wildcard '*' in production to protect credentialed requests
+    _cors_origin_list = [o for o in _cors_origin_list if o != "*"]
+
 if not _cors_origin_list:
     _ENV = os.environ.get("ENVIRONMENT", os.environ.get("ENV", "development")).lower()
     if _ENV in ("production", "prod", "staging"):
@@ -721,7 +725,7 @@ if not _cors_origin_list or _CORS_ORIGINS == "":
         CORSMiddleware,
         allow_origins=_cors_origin_list,
         allow_credentials=False,
-        allow_methods=["GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS"],
+        allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"],
         allow_headers=[
             "x-api-key",
             "x-trace-id",
@@ -741,7 +745,7 @@ else:
         CORSMiddleware,
         allow_origins=_cors_origin_list,
         allow_credentials=True,
-        allow_methods=["GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS"],
+        allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"],
         allow_headers=[
             "x-api-key",
             "x-trace-id",

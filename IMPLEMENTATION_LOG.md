@@ -149,6 +149,19 @@ This log tracks the step-by-step implementation, verification, and git commit de
 
 ---
 
+## التحسين 12: تقييد CORS origins (LOW)
+- **الحالة**: مكتمل ومتحقق منه (VERIFIED)
+- **الملفات المعدلة**:
+  - `api/routes.py`: منع استخدام النجمة `*` في أصول CORS عند العمل في بيئة الإنتاج لمنع تسريب بيانات الاعتماد عبر النطاقات، مع تحديد قائمة صريحة لطرق HTTP المسموح بها بما فيها `PATCH`.
+- **نتائج التحقق**:
+  - `ruff check api/routes.py`: All checks passed!
+  - `pytest tests/test_ui_coverage_api.py -q`: 27 passed in 51.49s
+  - `validate-findings.cjs`: PASS: 11 findings valid
+- **Commit**: `security: restrict CORS allowed origins and disallow wildcards in production`
+
+---
+
+
 
 
 
