@@ -168,7 +168,7 @@ if _HAS_STARLETTE:
                 return
 
             request = Request(scope)
-            path = request.url.path
+            path = scope.get("path") or request.url.path
             if any(path.startswith(p) for p in self._public_paths):
                 await self.app(scope, receive, send)
                 return

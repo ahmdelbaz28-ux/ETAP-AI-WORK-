@@ -157,14 +157,15 @@ def wire_into_app(
         else:
             app.router.lifespan_context = _scada_protocols_lifespan
     except Exception as exc:
-        # Fallback: deprecated on_event handler (still works in FastAPI).
-        logger.debug("falling back to on_event shutdown handler: %s", exc)
+        # Fallback: add_event_handler (backward compatible without deprecated @app.on_event).
+        logger.debug("falling back to add_event_handler shutdown: %s", exc)
 
-        @app.on_event("shutdown")
-        async def _shutdown_scada_protocols() -> None:  # type: ignore
+        async def _shutdown_scada_protocols() -> None:
             if _WIRED_MANAGER is not None and _WIRED_MANAGER.is_started():
                 logger.info("Stopping SCADA protocols on app shutdown")
                 _WIRED_MANAGER.stop()
+
+        app.add_event_handler("shutdown", _shutdown_scada_protocols)
 
     # Optionally start the manager immediately.
     if autostart:

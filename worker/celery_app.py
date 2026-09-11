@@ -16,9 +16,11 @@ Production features
 from __future__ import annotations
 
 import os
+from typing import Any
 
 from celery import Celery
 from kombu import Queue  # type: ignore
+from kombu.utils.url import sanitize_url
 
 # ---------------------------------------------------------------------------
 # Redis connection
@@ -40,6 +42,20 @@ app = Celery(
     include=["worker.tasks"],
 )
 
+# SECURITY: Mask credentials in configuration dumps / inspect stats
+_original_conf_table = app.conf.table
+
+
+def _sanitized_conf_table(*args: Any, **kwargs: Any) -> dict[str, Any]:
+    raw_table = _original_conf_table(*args, **kwargs)
+    return {
+        k: (sanitize_url(v) if k in ("broker_url", "result_backend") and isinstance(v, str) else v)
+        for k, v in raw_table.items()
+    }
+
+
+app.conf.table = _sanitized_conf_table  # type: ignore[assignment]
+
 # ---------------------------------------------------------------------------
 # Queue definitions — enables priority routing
 # ---------------------------------------------------------------------------
@@ -57,6 +73,7 @@ app.conf.update(
     task_serializer="json",
     accept_content=["json"],
     result_serializer="json",
+    broker_use_ssl=os.environ.get("CELERY_BROKER_USE_SSL", "false").lower() == "true",
     # Timezone
     timezone="UTC",
     enable_utc=True,
@@ -130,5 +147,16 @@ app.conf.beat_schedule = {
     },
 }
 
+# ---------------------------------------------------------------------------
+# Security: Forbid pickle deserialization at bootstrap
+# ---------------------------------------------------------------------------
+
+if (
+    "pickle" in app.conf.accept_content
+    or "application/x-python-serialize" in app.conf.accept_content
+):
+    raise RuntimeError("SECURITY: Celery pickle deserialization is forbidden")
+
 if __name__ == "__main__":
     app.start()
+

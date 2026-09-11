@@ -41,6 +41,12 @@ from api._messages import (
     MSG_USER_NOT_FOUND,
     MSG_USER_NOT_FOUND_OR_DEACTIVATED,
 )
+from api.rate_limit import (
+    get_authenticated_or_ip_key,
+    get_login_rate_limit_key,
+    get_remote_address_proxy_aware,
+    limiter,
+)
 
 UTC = timezone.utc  # noqa: UP017
 # Module-level constants
@@ -1108,6 +1114,7 @@ class UserService:
     status_code=status.HTTP_201_CREATED,
     summary="Register a new user",
 )
+@limiter.limit("5/minute", key_func=get_remote_address_proxy_aware)
 async def register(
     body: RegisterRequest,
     request: Request,
@@ -1223,6 +1230,7 @@ async def _verify_mfa_and_issue_tokens(
     response_model=LoginResponse,
     summary="Authenticate and receive JWT tokens (token alias)",
 )
+@limiter.limit("10/minute", key_func=get_login_rate_limit_key)
 async def login(
     request: Request,
     body: LoginRequest,
@@ -1352,7 +1360,9 @@ async def login(
     response_model=TokenResponse,
     summary="Refresh JWT access token",
 )
+@limiter.limit("30/minute", key_func=get_authenticated_or_ip_key)
 async def refresh(
+    request: Request,
     body: RefreshRequest,
     db: DbDep,
 ) -> Any:
@@ -1683,7 +1693,9 @@ async def change_password(
     status_code=status.HTTP_200_OK,
     summary="Request a password reset",
 )
+@limiter.limit("5/minute", key_func=get_remote_address_proxy_aware)
 async def forgot_password(
+    request: Request,
     body: ForgotPasswordRequest,
     db: DbDep,
 ) -> dict[str, str]:
@@ -1791,7 +1803,9 @@ async def forgot_password(
     status_code=status.HTTP_200_OK,
     summary="Reset password using token",
 )
+@limiter.limit("10/minute", key_func=get_remote_address_proxy_aware)
 async def reset_password(
+    request: Request,
     body: ResetPasswordRequest,
     db: DbDep,
 ) -> dict[str, str]:

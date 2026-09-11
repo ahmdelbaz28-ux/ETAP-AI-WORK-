@@ -165,10 +165,8 @@ def _decode_jwt(
     Effective call: jwt.decode(token, key, algorithms=["HS256"])
     """
     key = secret or JWT_SECRET_KEY
-    # Enforce HS256 strictly to mitigate algorithm confusion attacks (CVE-2015-9235 style)
-    # algorithms=["HS256"] is the only accepted value; all others are stripped out.
-    target_algorithms = [a for a in (algorithms or ["HS256"]) if a == "HS256"] or ["HS256"]
-    return jwt.decode(token, key, algorithms=target_algorithms, **kwargs)
+    # Strictly pin to HS256 to prevent algorithm confusion attacks (CVE-2015-9235 style)
+    return jwt.decode(token, key, algorithms=["HS256"], **kwargs)
 
 
 def _validate_jwt_access_token_sync(
@@ -495,3 +493,14 @@ def _extract_bearer_token(authorization: str) -> str:
             detail="Invalid Authorization header format. Expected: Bearer <token>",
         )
     return parts[1]
+
+
+async def set_session_tenant_context(session: AsyncSession, tenant_id: str) -> None:
+    """Set transaction-local tenant context (SET LOCAL) to prevent cross-tenant pool contamination."""
+    from sqlalchemy import text
+
+    await session.execute(
+        text("SELECT set_config('app.current_tenant_id', :tid, true)"),
+        {"tid": tenant_id},
+    )
+

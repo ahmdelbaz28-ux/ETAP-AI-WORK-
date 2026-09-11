@@ -57,7 +57,17 @@ except ImportError:
 
 ERR_DATA_IMPORT_DISABLED = "Data import feature is disabled"
 
-from fastapi import APIRouter, Depends, File, Form, Header, HTTPException, UploadFile, status
+from fastapi import (
+    APIRouter,
+    Depends,
+    File,
+    Form,
+    Header,
+    HTTPException,
+    Request,
+    UploadFile,
+    status,
+)
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -94,6 +104,22 @@ UTC = timezone.utc
 
 # Global hard limit for maximum file uploads (10 MB, consistent with P5 ResultStore).
 MAX_FILE_SIZE = RESULT_FILE_MAX_BYTES  # 10 Megabytes
+MAX_FORM_FIELDS = 1000
+MAX_FORM_FILES = 1000
+
+
+async def safe_parse_form(
+    request: Request,
+    max_files: int = MAX_FORM_FILES,
+    max_fields: int = MAX_FORM_FIELDS,
+) -> Any:
+    """Safely parse multipart form data with strictly bounded field and file limits.
+
+    Protects against multipart resource exhaustion, unbounded memory allocation,
+    and hash collision attacks.
+    """
+    return await request.form(max_files=max_files, max_fields=max_fields)
+
 
 router = APIRouter(prefix="/api/v1/import", tags=["Data Import"])
 

@@ -25,7 +25,7 @@ from fastapi.responses import JSONResponse
 # future edit references `trace.X` directly inside trace_middleware.
 from opentelemetry.trace import SpanKind, Status, StatusCode
 from pydantic import BaseModel
-from starlette.datastructures import Headers, MutableHeaders
+from starlette.datastructures import Headers
 
 from api._messages import ISO_8601_UTC_FMT, MSG_INTERNAL_ERROR, MSG_USER_NOT_FOUND_OR_INACTIVE
 from api.agent_executor import router as agent_executor_router
@@ -60,10 +60,17 @@ from api.notification_config import router as notification_config_router
 from api.notifications import notification_websocket_endpoint
 from api.notifications import router as notifications_router
 from api.projects import router as projects_router
+from api.rate_limit import (
+    RateLimitExceeded,
+    SlowAPIMiddleware,
+    limiter,
+    rate_limit_exceeded_handler,
+)
 from api.rbac import router as rbac_router
 from api.request_context import CorrelationIdMiddleware, TenantMiddleware
 from api.results_store import router as results_router
 from api.scada import router as scada_router
+from api.security_headers import HostValidationMiddleware, SecurityHeadersMiddleware
 from api.session_stream import router as session_stream_router
 from api.session_stream import session_stream_ws
 from api.settings import router as settings_router
@@ -101,10 +108,13 @@ app = FastAPI(
     description="Production-grade FastAPI service wrapping the Python PowerSystemEngine",
     version="2.1.0",
     docs_url="/docs" if _enable_docs else None,
-    redoc_url="/redoc" if _enable_docs else None,
+    redoc_url=None,
+    openapi_url="/openapi.json" if _enable_docs else None,
     lifespan=lifespan,
     debug=is_dev_environment(),  # Strictly false in production/staging
 )
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, rate_limit_exceeded_handler)
 
 # ---------------------------------------------------------------------------
 # API Key validation
@@ -198,13 +208,14 @@ def _require_api_key(request: Request) -> None:
     auth_disabled = _AUTH_DISABLED or os.environ.get(
         "ENGINEERING_SERVICE_AUTH_DISABLED", ""
     ).lower() in ("true", "1", "yes")
+    path = request.scope.get("path") or request.url.path
     if auth_disabled:
         if not is_dev_environment():
             raise HTTPException(
                 status_code=503,
                 detail="Authentication disabled is not permitted in this environment",
             )
-        if request.url.path.startswith("/admin/"):
+        if path.startswith("/admin/"):
             raise HTTPException(status_code=403, detail="Admin role required")
         return
 
@@ -220,7 +231,7 @@ def _require_api_key(request: Request) -> None:
             payload = _validate_jwt_access_token_sync(token)
             role = payload.get("role", "")
             # Admin endpoints require admin role
-            if request.url.path.startswith("/admin/") and role != "admin":
+            if path.startswith("/admin/") and role != "admin":
                 raise HTTPException(status_code=403, detail="Admin role required")
             return
         except HTTPException:
@@ -235,7 +246,7 @@ def _require_api_key(request: Request) -> None:
                 detail="Authentication required but no API key configured. "
                 "Set ENGINEERING_SERVICE_API_KEY or ENGINEERING_SERVICE_AUTH_DISABLED=true",
             )
-        if request.url.path.startswith("/admin/"):
+        if path.startswith("/admin/"):
             raise HTTPException(status_code=403, detail="Admin role required")
         return
     # NOSONAR S8415: HTTPException documented in OpenAPI route summary; responses parameter is verbose for this use case
@@ -248,7 +259,7 @@ def _require_api_key(request: Request) -> None:
 
     # SECURITY AUDIT RUN-2 (HIGH-2, MEDIUM-4): Admin endpoints require admin role.
     # Service API keys do not carry role information and cannot access /admin/ endpoints.
-    if request.url.path.startswith("/admin/"):
+    if path.startswith("/admin/"):
         raise HTTPException(status_code=403, detail="Admin role required")
 
 
@@ -672,6 +683,10 @@ _CORS_ORIGINS = os.environ.get(
 _cors_origin_list = (
     [o.strip() for o in _CORS_ORIGINS.split(",") if o.strip()] if _CORS_ORIGINS else []
 )
+if is_production_environment():
+    # Disallow wildcard '*' in production to protect credentialed requests
+    _cors_origin_list = [o for o in _cors_origin_list if o != "*"]
+
 if not _cors_origin_list:
     _ENV = os.environ.get("ENVIRONMENT", os.environ.get("ENV", "development")).lower()
     if _ENV in ("production", "prod", "staging"):
@@ -698,17 +713,22 @@ if not _cors_origin_list:
 # V-07 (Phase 2): TenantMiddleware and CorrelationIdMiddleware are added
 # BEFORE BodySizeLimit so they run AFTER authentication (innermost) and
 # can set the PostgreSQL RLS session variable before any query runs.
+# D7 Execution order (last added = outermost, executed first on incoming requests):
+# SecurityHeadersMiddleware → HostValidationMiddleware → CORSMiddleware →
+# SlowAPIMiddleware → CSRFMiddleware → _BodySizeLimitMiddleware →
+# TenantMiddleware → CorrelationIdMiddleware → _TraceMiddleware → handler
 app.add_middleware(TenantMiddleware)
 app.add_middleware(CorrelationIdMiddleware)
 app.add_middleware(_BodySizeLimitMiddleware)
 app.add_middleware(CSRFMiddleware)
+app.add_middleware(SlowAPIMiddleware)
 if not _cors_origin_list or _CORS_ORIGINS == "":
     # Don't allow credentials when no origins are configured
     app.add_middleware(  # NOSONAR CORSMiddleware added last to make it outermost in the middleware chain
         CORSMiddleware,
         allow_origins=_cors_origin_list,
         allow_credentials=False,
-        allow_methods=["GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS"],
+        allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"],
         allow_headers=[
             "x-api-key",
             "x-trace-id",
@@ -728,7 +748,7 @@ else:
         CORSMiddleware,
         allow_origins=_cors_origin_list,
         allow_credentials=True,
-        allow_methods=["GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS"],
+        allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"],
         allow_headers=[
             "x-api-key",
             "x-trace-id",
@@ -745,44 +765,10 @@ else:
 
 
 # ---------------------------------------------------------------------------
-# Security headers middleware — defense-in-depth (SECURITY AUDIT S-16)
+# Host validation and Security headers middleware — outermost defense (D7)
 # ---------------------------------------------------------------------------
-def _inject_security_headers(headers: MutableHeaders, hsts_env: str) -> None:
-    if "x-content-type-options" not in headers:
-        headers["X-Content-Type-Options"] = "nosniff"
-    if "x-frame-options" not in headers:
-        headers["X-Frame-Options"] = "SAMEORIGIN"
-    if "referrer-policy" not in headers:
-        headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-    if "x-xss-protection" not in headers:
-        headers["X-XSS-Protection"] = "0"  # Deprecated; CSP is the correct control
-    if hsts_env:
-        headers["Strict-Transport-Security"] = f"max-age={hsts_env}; includeSubDomains"
-
-
-class _SecurityHeadersMiddleware:
-    """Add security headers to every response."""
-
-    def __init__(self, app: Any) -> None:
-        self.app = app
-
-    async def __call__(self, scope: Any, receive: Any, send: Any) -> None:
-        if scope["type"] != "http":
-            await self.app(scope, receive, send)
-            return
-
-        hsts_env = os.environ.get("HSTS_MAX_AGE", "")
-
-        async def send_with_security_headers(message: Any) -> None:
-            if message["type"] == "http.response.start":
-                headers = MutableHeaders(scope=message)
-                _inject_security_headers(headers, hsts_env)
-            await send(message)
-
-        await self.app(scope, receive, send_with_security_headers)
-
-
-app.add_middleware(_SecurityHeadersMiddleware)
+app.add_middleware(HostValidationMiddleware)
+app.add_middleware(SecurityHeadersMiddleware)
 
 
 # ─── Security middleware: RASP + ABAC ─────────────────────────────

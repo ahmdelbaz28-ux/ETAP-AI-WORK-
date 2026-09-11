@@ -175,6 +175,17 @@ jobs:
       - name: pnpm audit
         run: pnpm audit --audit-level=critical || true
 
+      - name: Set up Python for Security Scan
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Python dependency and SAST security scan
+        run: |
+          pip install pip-audit bandit
+          pip-audit --requirement requirements.txt || true
+          bandit -r api/ agents/ etap_integration/ -ll
+
       - name: Secrets scan
         run: |
           SECRETS_FOUND=0
