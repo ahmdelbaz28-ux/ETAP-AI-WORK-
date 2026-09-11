@@ -8,6 +8,7 @@ on:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+  ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: "true"
 
 jobs:
   e2e-hf-space:
@@ -124,7 +125,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -r requirements.txt
-          pip install pytest pytest-cov pytest-asyncio pytest-timeout httpx aiosqlite
+          pip install pytest pytest-cov pytest-asyncio pytest-timeout pytest-xdist httpx aiosqlite
 
       - name: Run syntax validation
         run: python validate_syntax.py
@@ -133,6 +134,7 @@ jobs:
         run: |
           pytest tests/ \
             -x -q --tb=short \
+            -n auto \
             --timeout=90 \
             --maxfail=10
 
