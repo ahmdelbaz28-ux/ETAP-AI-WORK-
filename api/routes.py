@@ -108,7 +108,8 @@ app = FastAPI(
     description="Production-grade FastAPI service wrapping the Python PowerSystemEngine",
     version="2.1.0",
     docs_url="/docs" if _enable_docs else None,
-    redoc_url="/redoc" if _enable_docs else None,
+    redoc_url=None,
+    openapi_url="/openapi.json" if _enable_docs else None,
     lifespan=lifespan,
     debug=is_dev_environment(),  # Strictly false in production/staging
 )

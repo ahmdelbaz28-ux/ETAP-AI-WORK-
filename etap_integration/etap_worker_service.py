@@ -27,7 +27,15 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from etap_integration.etap_com import ETAPAutomation, ETAPStudyType
 from security.security_framework import Permission, get_authz_manager
 
-app = FastAPI(title="AhmedETAP Windows Worker", version="1.0.0")
+_is_prod = os.environ.get("ENVIRONMENT", "").lower() in ("production", "prod")
+_enable_docs = os.environ.get("ENABLE_DOCS", "").lower() in ("true", "1") or not _is_prod
+app = FastAPI(
+    title="AhmedETAP Windows Worker",
+    version="1.0.0",
+    docs_url="/docs" if _enable_docs else None,
+    redoc_url=None,
+    openapi_url="/openapi.json" if _enable_docs else None,
+)
 
 # ----------------------------
 # Security: Bearer auth (JWT-only)

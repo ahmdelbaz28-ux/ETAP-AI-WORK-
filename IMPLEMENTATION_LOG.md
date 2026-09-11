@@ -62,6 +62,20 @@ This log tracks the step-by-step implementation, verification, and git commit de
 
 ---
 
+## التحسين 5: تعطيل /docs و /openapi.json في الإنتاج (HIGH)
+- **الحالة**: مكتمل ومتحقق منه (VERIFIED)
+- **الملفات المعدلة**:
+  - `api/routes.py`: تعطيل `openapi_url` و `redoc_url` و `docs_url` في الإنتاج ما لم تكن `ENABLE_DOCS=true`.
+  - `etap_integration/etap_worker_service.py`: تعطيل `openapi_url` و `redoc_url` و `docs_url` في الإنتاج ما لم تكن `ENABLE_DOCS=true`.
+- **نتائج التحقق**:
+  - `ruff check api/ etap_integration/ worker/ agents/ security/`: All checks passed!
+  - `pytest tests/test_ui_coverage_api.py -q`: 27 passed in 49.11s
+  - `validate-findings.cjs`: PASS: 11 findings valid
+- **Commit**: `security: disable openapi schema and docs in production environment`
+
+---
+
+
 
 
 
