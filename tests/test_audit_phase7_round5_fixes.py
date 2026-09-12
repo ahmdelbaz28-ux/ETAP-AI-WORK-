@@ -149,7 +149,7 @@ class TestSecurityHeadersMiddleware:
 
     @pytest.fixture(scope="class")
     def routes_source(self) -> str:
-        return _read_file("api/routes.py")
+        return _read_file("api/routes.py") + "\n" + _read_file("api/security_headers.py")
 
     def test_x_content_type_options(self, routes_source: str) -> None:
         """Must set X-Content-Type-Options: nosniff."""

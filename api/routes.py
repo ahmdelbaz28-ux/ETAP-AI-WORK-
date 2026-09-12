@@ -71,7 +71,12 @@ from api.rbac import router as rbac_router
 from api.request_context import CorrelationIdMiddleware, TenantMiddleware
 from api.results_store import router as results_router
 from api.scada import router as scada_router
-from api.security_headers import HostValidationMiddleware, SecurityHeadersMiddleware
+from api.security_headers import (
+    HostValidationMiddleware,
+    SecurityHeadersMiddleware,
+)
+
+_SecurityHeadersMiddleware = SecurityHeadersMiddleware
 from api.session_stream import router as session_stream_router
 from api.session_stream import session_stream_ws
 from api.settings import router as settings_router

@@ -36,17 +36,32 @@ from api.rate_limit import (
 from api.routes import app as main_app
 
 
+def _reset_limiter_storage(lim):
+    storage = getattr(lim, "_storage", None)
+    if storage is None:
+        return
+    inner = getattr(storage, "storage", None)
+    if inner is not None:
+        if hasattr(inner, "clear"):
+            inner.clear()
+        elif hasattr(inner, "flushdb"):
+            inner.flushdb()
+    if hasattr(storage, "reset"):
+        try:
+            storage.reset()
+        except Exception:
+            pass
+
+
 @pytest.fixture(autouse=True)
 def _enable_rate_limit_for_tests():
     """Ensure rate limiting is active during rate-limit unit tests."""
     old_enabled = limiter._override_enabled
     limiter.enabled = True
-    if hasattr(limiter, "_storage") and hasattr(limiter._storage, "storage"):
-        limiter._storage.storage.clear()
+    _reset_limiter_storage(limiter)
     yield
     limiter.enabled = old_enabled
-    if hasattr(limiter, "_storage") and hasattr(limiter._storage, "storage"):
-        limiter._storage.storage.clear()
+    _reset_limiter_storage(limiter)
 
 
 @pytest.fixture

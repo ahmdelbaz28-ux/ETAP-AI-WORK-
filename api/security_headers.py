@@ -7,6 +7,7 @@ for all endpoints in the AhmedETAP platform.
 
 from __future__ import annotations
 
+import os
 import re
 from typing import Any
 
@@ -37,6 +38,10 @@ class HostValidationMiddleware:
         await self.app(scope, receive, send)
 
 
+_HSTS_MAX_AGE = os.environ.get("HSTS_MAX_AGE", "31536000")
+_X_FRAME_OPTIONS = os.environ.get("X_FRAME_OPTIONS", "SAMEORIGIN")
+
+
 class SecurityHeadersMiddleware:
     """Inject strict security headers into all HTTP responses.
 
@@ -56,10 +61,10 @@ class SecurityHeadersMiddleware:
             if message["type"] == "http.response.start":
                 headers = MutableHeaders(scope=message)
                 headers["Strict-Transport-Security"] = (
-                    "max-age=31536000; includeSubDomains; preload"
+                    f"max-age={_HSTS_MAX_AGE}; includeSubDomains; preload"
                 )
                 headers["X-Content-Type-Options"] = "nosniff"
-                headers["X-Frame-Options"] = "DENY"
+                headers["X-Frame-Options"] = _X_FRAME_OPTIONS
                 headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
                 headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
                 headers["Content-Security-Policy"] = (
@@ -70,3 +75,6 @@ class SecurityHeadersMiddleware:
             await send(message)
 
         await self.app(scope, receive, send_with_headers)
+
+
+_SecurityHeadersMiddleware = SecurityHeadersMiddleware
