@@ -175,7 +175,7 @@ jobs:
                      -m "Workflow run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
 
           # Push back to HF
-          git push "https://${HF_USERNAME}:${HF_TOKEN}@huggingface.co/spaces/${HF_USERNAME}/${HF_SPACE_NAME}" HEAD:main
+          git push --force "https://${HF_USERNAME}:${HF_TOKEN}@huggingface.co/spaces/${HF_USERNAME}/${HF_SPACE_NAME}" HEAD:main
 
           # Print HF commit SHA for traceability (after sync)
           git rev-parse --short HEAD | tee ../hf_after_sha.txt
