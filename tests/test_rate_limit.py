@@ -152,6 +152,7 @@ class TestRateLimitModuleContract:
             def limit(self, *args, **kwargs):
                 def decorator(func):
                     return func
+
                 return decorator
 
         fl = FallbackLimiter(key_func=lambda req: "127.0.0.1")

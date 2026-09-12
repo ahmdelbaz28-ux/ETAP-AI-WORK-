@@ -130,7 +130,7 @@ if _HAS_STARLETTE:
                             for part in content_type.split(";"):
                                 part = part.strip()
                                 if part.startswith("boundary="):
-                                    boundary = part.split("=", 1)[1].strip('"\'').encode()
+                                    boundary = part.split("=", 1)[1].strip("\"'").encode()
                                     break
                             if boundary:
                                 for section in body_bytes.split(b"--" + boundary):
@@ -143,7 +143,9 @@ if _HAS_STARLETTE:
                                             m = re.search(r'name="([^"]+)"', headers_text)
                                             if m:
                                                 field_name = m.group(1)
-                                                field_val = val_part.rstrip(b"\r\n").decode("utf-8", errors="replace")
+                                                field_val = val_part.rstrip(b"\r\n").decode(
+                                                    "utf-8", errors="replace"
+                                                )
                                                 form_fields[field_name] = field_val
                         except Exception:
                             pass

@@ -55,7 +55,9 @@ class SecurityHeadersMiddleware:
         async def send_with_headers(message: Any) -> None:
             if message["type"] == "http.response.start":
                 headers = MutableHeaders(scope=message)
-                headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains; preload"
+                headers["Strict-Transport-Security"] = (
+                    "max-age=31536000; includeSubDomains; preload"
+                )
                 headers["X-Content-Type-Options"] = "nosniff"
                 headers["X-Frame-Options"] = "DENY"
                 headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"

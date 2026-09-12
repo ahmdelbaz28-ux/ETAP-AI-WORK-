@@ -503,4 +503,3 @@ async def set_session_tenant_context(session: AsyncSession, tenant_id: str) -> N
         text("SELECT set_config('app.current_tenant_id', :tid, true)"),
         {"tid": tenant_id},
     )
-

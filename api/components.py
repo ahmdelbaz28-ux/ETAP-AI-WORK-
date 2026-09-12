@@ -60,7 +60,9 @@ class Component(Base):
     __tablename__ = "components"
 
     id: Mapped[str] = mapped_column(String(64), primary_key=True, default=lambda: str(uuid.uuid4()))
-    type: Mapped[str] = mapped_column(String(50), nullable=False, index=True)  # cable, transformer, breaker, relay, template
+    type: Mapped[str] = mapped_column(
+        String(50), nullable=False, index=True
+    )  # cable, transformer, breaker, relay, template
     category: Mapped[str] = mapped_column(String(128), index=True, nullable=False)
     subcategory: Mapped[Optional[str]] = mapped_column(String(128), index=True, nullable=True)
     name: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
@@ -70,10 +72,14 @@ class Component(Base):
     standards: Mapped[Optional[list]] = mapped_column(JSON, nullable=True)
     tags: Mapped[Optional[list]] = mapped_column(JSON, nullable=True)
     is_verified: Mapped[bool] = mapped_column(Boolean, default=False, index=True)
-    source: Mapped[str] = mapped_column(String(50), default="user")  # iec-standard, ieee-standard, etap-import, user
+    source: Mapped[str] = mapped_column(
+        String(50), default="user"
+    )  # iec-standard, ieee-standard, etap-import, user
     contributor_id: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
     tenant_id: Mapped[Optional[str]] = mapped_column(String(64), nullable=True, index=True)
-    review_status: Mapped[str] = mapped_column(String(20), default="approved", index=True)  # pending, approved, rejected
+    review_status: Mapped[str] = mapped_column(
+        String(20), default="approved", index=True
+    )  # pending, approved, rejected
     review_notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     reviewed_by: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
     reviewed_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
@@ -225,13 +231,21 @@ async def _get_component_by_id(db: AsyncSession, component_id: str) -> Component
 @router.get("/", include_in_schema=False, response_model=ComponentListResponse)
 async def list_components(
     pagination: PaginationParams = Depends(pagination_params),
-    type: Optional[str] = Query(None, description="Filter by type (cable, transformer, breaker, relay, template)"),
+    type: Optional[str] = Query(
+        None, description="Filter by type (cable, transformer, breaker, relay, template)"
+    ),
     category: Optional[str] = Query(None, description="Filter by category"),
-    standard: Optional[str] = Query(None, description="Filter by standard (e.g. IEC 60364, IEEE C57)"),
+    standard: Optional[str] = Query(
+        None, description="Filter by standard (e.g. IEC 60364, IEEE C57)"
+    ),
     manufacturer: Optional[str] = Query(None, description="Filter by manufacturer"),
     tag: Optional[str] = Query(None, description="Filter by tag"),
-    search: Optional[str] = Query(None, description="Search name, manufacturer, model, subcategory"),
-    verified: Optional[bool] = Query(None, description="Filter by verification status (default: true)"),
+    search: Optional[str] = Query(
+        None, description="Search name, manufacturer, model, subcategory"
+    ),
+    verified: Optional[bool] = Query(
+        None, description="Filter by verification status (default: true)"
+    ),
     db: AsyncSession = Depends(get_db),
 ) -> ComponentListResponse:
     """Retrieve paginated components matching query criteria.
@@ -274,10 +288,12 @@ async def list_components(
         )
     if standard:
         from sqlalchemy import cast
+
         filters.append(cast(Component.standards, String).ilike(f"%{standard.strip()}%"))
 
     if tag:
         from sqlalchemy import cast
+
         filters.append(cast(Component.tags, String).ilike(f"%{tag.strip()}%"))
 
     if filters:
@@ -305,7 +321,11 @@ async def list_components(
     )
 
 
-@router.get("/types", response_model=List[TypeCountResponse], summary="Available component types with counts")
+@router.get(
+    "/types",
+    response_model=List[TypeCountResponse],
+    summary="Available component types with counts",
+)
 async def get_component_types(db: AsyncSession = Depends(get_db)) -> List[TypeCountResponse]:
     """Return available component types with item counts."""
     await ensure_seed_data(db)
@@ -319,8 +339,14 @@ async def get_component_types(db: AsyncSession = Depends(get_db)) -> List[TypeCo
     return [TypeCountResponse(type=row[0], count=row[1]) for row in res.fetchall()]
 
 
-@router.get("/standards", response_model=List[StandardCountResponse], summary="Available standards with counts")
-async def get_component_standards(db: AsyncSession = Depends(get_db)) -> List[StandardCountResponse]:
+@router.get(
+    "/standards",
+    response_model=List[StandardCountResponse],
+    summary="Available standards with counts",
+)
+async def get_component_standards(
+    db: AsyncSession = Depends(get_db),
+) -> List[StandardCountResponse]:
     """Return standards referenced across components with occurrence counts."""
     await ensure_seed_data(db)
     result = await db.execute(select(Component.standards).where(Component.is_verified.is_(True)))
@@ -334,7 +360,11 @@ async def get_component_standards(db: AsyncSession = Depends(get_db)) -> List[St
     return [StandardCountResponse(standard=k, count=v) for k, v in sorted_items]
 
 
-@router.get("/pending", response_model=List[ComponentResponse], summary="List unverified community submissions")
+@router.get(
+    "/pending",
+    response_model=List[ComponentResponse],
+    summary="List unverified community submissions",
+)
 async def list_pending_components(
     user: CurrentUser = Depends(get_current_user_from_header),
     db: AsyncSession = Depends(get_db),
@@ -360,7 +390,12 @@ async def get_component(id: str, db: AsyncSession = Depends(get_db)) -> Componen
     return ComponentResponse.model_validate(comp)
 
 
-@router.post("/contribute", response_model=ComponentResponse, status_code=status.HTTP_201_CREATED, summary="Contribute component")
+@router.post(
+    "/contribute",
+    response_model=ComponentResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Contribute component",
+)
 async def contribute_component(
     payload: ComponentContributeRequest,
     user: CurrentUser = Depends(get_current_user_from_header),
@@ -393,7 +428,9 @@ async def contribute_component(
     return ComponentResponse.model_validate(comp)
 
 
-@router.put("/{id}/verify", response_model=ComponentResponse, summary="Approve and verify component (admin)")
+@router.put(
+    "/{id}/verify", response_model=ComponentResponse, summary="Approve and verify component (admin)"
+)
 @router.post("/{id}/verify", response_model=ComponentResponse, include_in_schema=False)
 async def verify_component(
     id: str,
@@ -418,7 +455,9 @@ async def verify_component(
     return ComponentResponse.model_validate(comp)
 
 
-@router.put("/{id}/reject", response_model=ComponentResponse, summary="Reject component submission (admin)")
+@router.put(
+    "/{id}/reject", response_model=ComponentResponse, summary="Reject component submission (admin)"
+)
 @router.post("/{id}/reject", response_model=ComponentResponse, include_in_schema=False)
 async def reject_component(
     id: str,
@@ -442,7 +481,11 @@ async def reject_component(
     return ComponentResponse.model_validate(comp)
 
 
-@router.post("/import/etap", response_model=List[ComponentResponse], summary="Bulk import components from ETAP .etp XML")
+@router.post(
+    "/import/etap",
+    response_model=List[ComponentResponse],
+    summary="Bulk import components from ETAP .etp XML",
+)
 async def import_etap_components(
     file: UploadFile = File(...),
     user: CurrentUser = Depends(get_current_user_from_header),
@@ -450,7 +493,9 @@ async def import_etap_components(
 ) -> List[ComponentResponse]:
     """Extract and bulk-create standardized component definitions from an ETAP project XML file."""
     if user.role not in ("admin", "engineer"):
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Engineer or admin role required")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Engineer or admin role required"
+        )
 
     content = await file.read()
     if not content:
@@ -491,7 +536,11 @@ async def import_etap_components(
     return [ComponentResponse.model_validate(c) for c in created_components]
 
 
-@router.post("/import/json", response_model=List[ComponentResponse], summary="Bulk import components from JSON")
+@router.post(
+    "/import/json",
+    response_model=List[ComponentResponse],
+    summary="Bulk import components from JSON",
+)
 async def import_json_components(
     file: UploadFile = File(...),
     user: CurrentUser = Depends(get_current_user_from_header),
@@ -499,7 +548,9 @@ async def import_json_components(
 ) -> List[ComponentResponse]:
     """Bulk-import component definitions from a JSON list payload."""
     if user.role not in ("admin", "engineer"):
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Engineer or admin role required")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Engineer or admin role required"
+        )
 
     content = await file.read()
     try:

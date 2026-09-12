@@ -80,6 +80,7 @@ except ImportError:
 
             return decorator
 
+
 logger = logging.getLogger("etap.rate_limit")
 
 # ---------------------------------------------------------------------------
