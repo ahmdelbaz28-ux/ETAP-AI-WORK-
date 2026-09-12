@@ -46,6 +46,47 @@ except Exception:
     pass
 
 
+try:
+    import redis.asyncio.connection as _rac
+
+    for _cls_name in ("AbstractConnection", "Connection"):
+        _cls = getattr(_rac, _cls_name, None)
+        if _cls and hasattr(_cls, "__del__"):
+            _orig_del = _cls.__del__
+
+            def _safe_del(self, *args: Any, _orig: Any = _orig_del, **kwargs: Any) -> None:
+                try:
+                    loop = getattr(self, "_loop", None)
+                    if loop is not None and loop.is_closed():
+                        self._writer = None
+                        return
+                    _orig(self, *args, **kwargs)
+                except Exception:
+                    pass
+
+            _cls.__del__ = _safe_del
+except Exception:
+    pass
+
+
+def _detach_redis_connections(client: Any) -> None:
+    if client is None:
+        return
+    try:
+        pool = getattr(client, "connection_pool", None)
+        if pool is not None:
+            for conn in getattr(pool, "_created_connections", []):
+                try:
+                    conn_loop = getattr(conn, "_loop", None)
+                    if conn_loop is None or conn_loop.is_closed():
+                        conn._writer = None
+                        conn._reader = None
+                except Exception:
+                    pass
+    except Exception:
+        pass
+
+
 @pytest.fixture(autouse=True)
 def _reset_redis_singleton():
     """Reset the module-level async Redis client around every test.
@@ -56,23 +97,45 @@ def _reset_redis_singleton():
     """
     from api import auth as auth_module
 
+    _detach_redis_connections(auth_module._redis_client)
     auth_module._redis_client = None
     auth_module._redis_client_loop = None
     try:
         from api import routes as routes_module
 
+        _detach_redis_connections(routes_module._redis_client)
         routes_module._redis_client = None
         routes_module._rate_limit_fallback_store.clear()
     except Exception:
         pass
+    try:
+        from core import redis_state
+
+        _detach_redis_connections(redis_state._client)
+        _detach_redis_connections(redis_state._sync_client)
+        redis_state._client = None
+        redis_state._sync_client = None
+    except Exception:
+        pass
     yield
+    _detach_redis_connections(auth_module._redis_client)
     auth_module._redis_client = None
     auth_module._redis_client_loop = None
     try:
         from api import routes as routes_module
 
+        _detach_redis_connections(routes_module._redis_client)
         routes_module._redis_client = None
         routes_module._rate_limit_fallback_store.clear()
+    except Exception:
+        pass
+    try:
+        from core import redis_state
+
+        _detach_redis_connections(redis_state._client)
+        _detach_redis_connections(redis_state._sync_client)
+        redis_state._client = None
+        redis_state._sync_client = None
     except Exception:
         pass
 

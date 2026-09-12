@@ -492,7 +492,8 @@ async def import_etap_components(
     try:
         extracted = etap_importer.parse_xml_content(content)
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e)) from e
+        logger.warning("Failed to parse ETAP XML content: %s", e)
+        raise HTTPException(status_code=400, detail="Invalid ETAP XML format") from e
 
     created_components: List[Component] = []
     for item in extracted:
