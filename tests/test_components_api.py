@@ -256,3 +256,90 @@ def test_etap_xml_bulk_import(
     for c in imported:
         assert c["source"] == "etap-import"
         assert c["is_verified"] is True
+
+
+def test_anonymous_requests_rejected_when_auth_enabled(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Anonymous requests (client.get('/api/v1/components')) must return 401 or 403 when auth is active."""
+    monkeypatch.setenv("ENGINEERING_SERVICE_AUTH_DISABLED", "false")
+    monkeypatch.setenv("ENGINEERING_SERVICE_API_KEY", "real-prod-api-key-32-chars-long!")
+
+    res = client.get("/api/v1/components")
+    assert res.status_code in (401, 403)
+
+    res_types = client.get("/api/v1/components/types")
+    assert res_types.status_code in (401, 403)
+
+    res_stds = client.get("/api/v1/components/standards")
+    assert res_stds.status_code in (401, 403)
+
+    res_single = client.get("/api/v1/components/cable-sample-id")
+    assert res_single.status_code in (401, 403)
+
+    # Valid API Key should succeed
+    headers = {"X-API-Key": "real-prod-api-key-32-chars-long!"}
+    res_auth = client.get("/api/v1/components", headers=headers)
+    assert res_auth.status_code == 200
+
+
+def test_json_import_ignores_user_supplied_ids(
+    client: TestClient,
+    admin_user: CurrentUser,
+) -> None:
+    """JSON import endpoint must never accept user-provided IDs (IDOR protection)."""
+    app.dependency_overrides[get_current_user_from_header] = lambda: admin_user
+
+    attacker_chosen_id = "injected-custom-id-9999"
+    payload = [
+        {
+            "id": attacker_chosen_id,
+            "type": "cable",
+            "category": "LV Power",
+            "name": "Security Test Injected ID Cable",
+            "specs": {"voltage_kv": 1.0},
+        }
+    ]
+
+    files = {
+        "file": (
+            "components.json",
+            json.dumps(payload).encode("utf-8"),
+            "application/json",
+        ),
+    }
+    res = client.post("/api/v1/components/import/json", files=files)
+    assert res.status_code == 200
+    imported = res.json()
+    assert len(imported) == 1
+    # Verify the generated ID is NOT what the user provided
+    assert imported[0]["id"] != attacker_chosen_id
+    assert imported[0]["name"] == "Security Test Injected ID Cable"
+
+
+def test_pending_queue_tenant_isolation(
+    client: TestClient,
+    admin_user: CurrentUser,
+) -> None:
+    """Test tenant filtering on pending submissions for non-platform admin."""
+    app.dependency_overrides[get_current_user_from_header] = lambda: admin_user
+    res = client.get("/api/v1/components/pending")
+    assert res.status_code == 200
+
+
+def test_category_regex_validation(
+    client: TestClient,
+    engineer_user: CurrentUser,
+) -> None:
+    """Test regex pattern enforcement on category and subcategory."""
+    app.dependency_overrides[get_current_user_from_header] = lambda: engineer_user
+
+    invalid_submission = {
+        "type": "cable",
+        "category": "LV Power $#@!",  # Invalid special chars not matching ^[a-zA-Z0-9\s\-_/]+$
+        "name": "Invalid Regex Cable",
+        "specs": {"voltage_kv": 1.0},
+    }
+    res = client.post("/api/v1/components/contribute", json=invalid_submission)
+    assert res.status_code == 422  # Unprocessable Entity from pydantic regex

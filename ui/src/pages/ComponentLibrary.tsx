@@ -104,9 +104,14 @@ export default function ComponentLibrary() {
   // Fetch Types & Standards Stats
   const fetchMetadata = useCallback(async () => {
     try {
+      const token = getAuthToken();
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
       const [resTypes, resStds] = await Promise.all([
-        fetch(`${API_BASE_URL}/api/v1/components/types`),
-        fetch(`${API_BASE_URL}/api/v1/components/standards`),
+        fetch(`${API_BASE_URL}/api/v1/components/types`, { headers }),
+        fetch(`${API_BASE_URL}/api/v1/components/standards`, { headers }),
       ]);
       if (resTypes.ok) {
         setTypes(await resTypes.json());
@@ -130,7 +135,13 @@ export default function ComponentLibrary() {
       if (verifiedOnly) params.set("verified", "true");
       params.set("page_size", "100");
 
-      const res = await fetch(`${API_BASE_URL}/api/v1/components?${params.toString()}`);
+      const token = getAuthToken();
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+
+      const res = await fetch(`${API_BASE_URL}/api/v1/components?${params.toString()}`, { headers });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       setComponents(data.components || []);
@@ -178,11 +189,16 @@ export default function ComponentLibrary() {
       };
 
       const token = getAuthToken();
+      if (!token) {
+        notify("error", "Please log in to contribute components");
+        setSubmitting(false);
+        return;
+      }
       const res = await fetch(`${API_BASE_URL}/api/v1/components/contribute`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(payload),
       });
@@ -208,6 +224,11 @@ export default function ComponentLibrary() {
     setImporting(true);
     try {
       const token = getAuthToken();
+      if (!token) {
+        notify("error", "Please log in to import components");
+        setImporting(false);
+        return;
+      }
       const formData = new FormData();
       formData.append("file", file);
 
@@ -219,7 +240,7 @@ export default function ComponentLibrary() {
       const res = await fetch(endpoint, {
         method: "POST",
         headers: {
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          Authorization: `Bearer ${token}`,
         },
         body: formData,
       });

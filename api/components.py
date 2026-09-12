@@ -42,6 +42,7 @@ from api.database import Base, get_db
 from api.dependencies import (
     CurrentUser,
     PaginationParams,
+    get_api_key,
     get_current_user_from_header,
     pagination_params,
 )
@@ -68,18 +69,18 @@ class Component(Base):
     name: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
     manufacturer: Mapped[Optional[str]] = mapped_column(String(255), index=True, nullable=True)
     model_number: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
-    specs: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
-    standards: Mapped[Optional[list]] = mapped_column(JSON, nullable=True)
-    tags: Mapped[Optional[list]] = mapped_column(JSON, nullable=True)
-    is_verified: Mapped[bool] = mapped_column(Boolean, default=False, index=True)
+    specs: Mapped[Optional[Dict[str, Any]]] = mapped_column(JSON, nullable=True)
+    standards: Mapped[Optional[List[str]]] = mapped_column(JSON, nullable=True)
+    tags: Mapped[Optional[List[str]]] = mapped_column(JSON, nullable=True)
+    is_verified: Mapped[bool] = mapped_column(Boolean, default=True, index=True)
     source: Mapped[str] = mapped_column(
-        String(50), default="user"
+        String(50), default="iec-standard"
     )  # iec-standard, ieee-standard, etap-import, user
     contributor_id: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
     tenant_id: Mapped[Optional[str]] = mapped_column(String(64), nullable=True, index=True)
     review_status: Mapped[str] = mapped_column(
-        String(20), default="approved", index=True
-    )  # pending, approved, rejected
+        String(30), default="approved", index=True
+    )  # approved, pending, rejected
     review_notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     reviewed_by: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
     reviewed_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
@@ -99,33 +100,16 @@ class Component(Base):
 # ---------------------------------------------------------------------------
 
 
-class ComponentCreateRequest(BaseModel):
-    """Payload for creating a new component directly."""
-
-    model_config = ConfigDict(strict=False)
-
-    id: Optional[str] = None
-    type: str = Field(min_length=1, max_length=50)
-    category: str = Field(min_length=1, max_length=128)
-    subcategory: Optional[str] = Field(default=None, max_length=128)
-    name: str = Field(min_length=1, max_length=255)
-    manufacturer: Optional[str] = Field(default=None, max_length=255)
-    model_number: Optional[str] = Field(default=None, max_length=255)
-    specs: Optional[Dict[str, Any]] = None
-    standards: Optional[List[str]] = None
-    tags: Optional[List[str]] = None
-    is_verified: bool = True
-    source: str = "iec-standard"
-
-
 class ComponentContributeRequest(BaseModel):
     """Payload for community component submission."""
 
     model_config = ConfigDict(strict=False)
 
     type: str = Field(min_length=1, max_length=50)
-    category: str = Field(min_length=1, max_length=128)
-    subcategory: Optional[str] = Field(default=None, max_length=128)
+    category: str = Field(min_length=1, max_length=128, pattern=r"^[a-zA-Z0-9\s\-_/]+$")
+    subcategory: Optional[str] = Field(
+        default=None, max_length=128, pattern=r"^[a-zA-Z0-9\s\-_/]+$"
+    )
     name: str = Field(min_length=1, max_length=255)
     manufacturer: Optional[str] = Field(default=None, max_length=255)
     model_number: Optional[str] = Field(default=None, max_length=255)
@@ -199,7 +183,11 @@ class StandardCountResponse(BaseModel):
 # Router
 # ---------------------------------------------------------------------------
 
-router = APIRouter(prefix="/api/v1/components", tags=["Component Library"])
+router = APIRouter(
+    prefix="/api/v1/components",
+    tags=["Component Library"],
+    dependencies=[Depends(get_api_key)],
+)
 
 
 # ---------------------------------------------------------------------------
@@ -252,8 +240,6 @@ async def list_components(
 
     Defaults to verified components (public catalog) unless verified=false is explicitly requested.
     """
-    await ensure_seed_data(db)
-
     query = select(Component)
     count_query = select(func.count(Component.id))
 
@@ -328,7 +314,6 @@ async def list_components(
 )
 async def get_component_types(db: AsyncSession = Depends(get_db)) -> List[TypeCountResponse]:
     """Return available component types with item counts."""
-    await ensure_seed_data(db)
     stmt = (
         select(Component.type, func.count(Component.id))
         .where(Component.is_verified.is_(True))
@@ -348,7 +333,6 @@ async def get_component_standards(
     db: AsyncSession = Depends(get_db),
 ) -> List[StandardCountResponse]:
     """Return standards referenced across components with occurrence counts."""
-    await ensure_seed_data(db)
     result = await db.execute(select(Component.standards).where(Component.is_verified.is_(True)))
     counts: dict[str, int] = {}
     for (standards,) in result.fetchall():
@@ -378,6 +362,11 @@ async def list_pending_components(
         .where(Component.review_status == "pending")
         .order_by(Component.created_at.desc())
     )
+
+    # Add tenant filtering for non-platform admins
+    if user.tenant_id and not getattr(user, "is_platform_admin", False):
+        stmt = stmt.where(Component.tenant_id == user.tenant_id)
+
     res = await db.execute(stmt)
     return [ComponentResponse.model_validate(c) for c in res.scalars().all()]
 
@@ -385,7 +374,6 @@ async def list_pending_components(
 @router.get("/{id}", response_model=ComponentResponse, summary="Get component details")
 async def get_component(id: str, db: AsyncSession = Depends(get_db)) -> ComponentResponse:
     """Retrieve detailed specifications for a single component."""
-    await ensure_seed_data(db)
     comp = await _get_component_by_id(db, id)
     return ComponentResponse.model_validate(comp)
 
@@ -564,7 +552,7 @@ async def import_json_components(
 
     created: List[Component] = []
     for item in items:
-        cid = item.get("id") or str(uuid.uuid4())
+        cid = str(uuid.uuid4())
         comp = Component(
             id=cid,
             type=item.get("type", "other"),

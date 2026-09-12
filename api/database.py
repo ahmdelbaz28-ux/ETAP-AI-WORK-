@@ -408,6 +408,16 @@ async def init_db() -> None:
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
         logger.info("Database tables created/verified successfully")
+
+        # Seed component library definitions on startup if not present
+        try:
+            from api.components import ensure_seed_data
+
+            async with async_session() as session:
+                await ensure_seed_data(session)
+        except Exception as seed_err:
+            logger.warning("Failed to auto-seed components during init_db: %s", seed_err)
+
         return
     except Exception as exc:
         # No silent fallback. Re-raise so the failure is visible in the
