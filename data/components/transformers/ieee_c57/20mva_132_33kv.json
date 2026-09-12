@@ -1,0 +1,38 @@
+{
+  "id": "xfmr-ieee-c57-20mva-132-33kv",
+  "type": "transformer",
+  "category": "IEEE C57",
+  "subcategory": "Transmission Grid Transformer",
+  "name": "20 MVA Grid Intertie Transformer 132/33 kV",
+  "manufacturer": "Standard IEEE Class",
+  "model_number": "C57-GRID-20MVA",
+  "specs": {
+    "rated_power_kva": 20000,
+    "primary_voltage_kv": 132.0,
+    "secondary_voltage_kv": 33.0,
+    "phases": 3,
+    "frequency_hz": 50,
+    "impedance_percent": 10.5,
+    "xr_ratio": 18.0,
+    "vector_group": "Ynd11",
+    "no_load_loss_kw": 16.0,
+    "full_load_loss_kw": 110.0,
+    "cooling": "ONAN/ONAF/OFAF"
+  },
+  "standards": [
+    "IEEE C57.12.00",
+    "IEC 60076"
+  ],
+  "tags": [
+    "grid-transformer",
+    "20mva",
+    "transmission",
+    "132kv",
+    "33kv"
+  ],
+  "is_verified": true,
+  "source": "ieee-standard",
+  "contributor": "AhmedETAP Standards Committee",
+  "created_at": "2026-01-01T00:00:00Z",
+  "updated_at": "2026-01-01T00:00:00Z"
+}

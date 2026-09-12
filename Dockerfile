@@ -74,6 +74,7 @@ COPY --chown=user:user utils/ /app/utils/
 COPY --chown=user:user ai_context_engine/ /app/ai_context_engine/
 COPY --chown=user:user integrations/ /app/integrations/
 COPY --chown=user:user ml/ /app/ml/
+COPY --chown=user:user data/ /app/data/
 COPY --chown=user:user VERSION /app/VERSION
 
 # UI static files (Vite-built React app, served at root / by app.py)

@@ -45,6 +45,7 @@ cryptography>=49.0,<50.1
 pyotp~=2.10.0
 email-validator~=2.3.0
 slowapi~=0.1.9
+defusedxml~=0.7.1
 
 # ─── Logging & Observability ──────────────────────────────────────────────────
 structlog~=26.1.0

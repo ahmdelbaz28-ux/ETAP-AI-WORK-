@@ -181,7 +181,7 @@ jobs:
           cp -r ../agents ../prompts ../core_model ../core ../engine ./
           cp -r ../load_flow ../fault_analysis ../coordination ../relays ./
           cp -r ../network_solver ../services ../api ../utils ../ai_context_engine ./
-          cp -r ../integrations ../ml ./
+          cp -r ../integrations ../ml ../data ./
           # CRITICAL: copy the pre-built UI static files. The root Dockerfile
           # does `COPY --chown=user:user ui-dist/ /app/ui-dist/` so without
           # this directory the HF Space Docker build fails with:

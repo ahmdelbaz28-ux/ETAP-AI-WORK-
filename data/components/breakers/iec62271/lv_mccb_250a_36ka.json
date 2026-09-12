@@ -1,0 +1,32 @@
+{
+  "id": "cb-iec62271-lv-mccb-250a-36ka",
+  "type": "breaker",
+  "category": "IEC 62271",
+  "subcategory": "Molded Case Circuit Breaker",
+  "name": "LV Molded Case Circuit Breaker 250A 36kA",
+  "manufacturer": "Standard IEC Class",
+  "model_number": "MCCB-250-36",
+  "specs": {
+    "rated_voltage_kv": 0.415,
+    "rated_current_a": 250,
+    "breaking_capacity_ka": 36.0,
+    "making_capacity_ka": 75.6,
+    "poles": 3,
+    "trip_unit": "Electronic LSI"
+  },
+  "standards": [
+    "IEC 60947-2"
+  ],
+  "tags": [
+    "mccb",
+    "low-voltage",
+    "panelboard",
+    "250a",
+    "36ka"
+  ],
+  "is_verified": true,
+  "source": "iec-standard",
+  "contributor": "AhmedETAP Standards Committee",
+  "created_at": "2026-01-01T00:00:00Z",
+  "updated_at": "2026-01-01T00:00:00Z"
+}

@@ -39,6 +39,7 @@ from api.auth import router as auth_router
 from api.autodesk_connectors import router as autodesk_connectors_router
 from api.cad_simready import router as cad_simready_router
 from api.chat_stream import router as chat_stream_router
+from api.components import router as components_router
 from api.context_engine import router as context_engine_router
 from api.copilot_config import router as copilot_config_router
 from api.csrf import CSRFMiddleware, csrf_router
@@ -839,6 +840,7 @@ app.include_router(assets_router)
 app.include_router(rbac_router)
 app.include_router(tenants_router)  # V-07 (Phase 2): Tenant CRUD endpoints
 app.include_router(equipment_router)
+app.include_router(components_router)
 app.include_router(zip_generator_config_router)  # ZIP Load & Generator capability CRUD
 app.include_router(notifications_router)
 app.include_router(study_versions_router)

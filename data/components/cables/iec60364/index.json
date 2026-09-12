@@ -1,0 +1,17 @@
+{
+  "category": "cables",
+  "standard": "IEC 60364",
+  "title": "IEC 60364 Standard Low & Medium Voltage Cables",
+  "items": [
+    "cu_pvc_1kv_1c_25.json",
+    "cu_pvc_1kv_1c_50.json",
+    "cu_pvc_1kv_1c_95.json",
+    "cu_pvc_1kv_1c_150.json",
+    "cu_pvc_1kv_1c_240.json",
+    "al_pvc_1kv_1c_50.json",
+    "al_pvc_1kv_1c_95.json",
+    "cu_xlpe_11kv_3c_95.json",
+    "cu_xlpe_11kv_3c_150.json",
+    "al_xlpe_11kv_3c_240.json"
+  ]
+}

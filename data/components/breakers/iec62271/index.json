@@ -1,0 +1,12 @@
+{
+  "category": "breakers",
+  "standard": "IEC 62271",
+  "title": "IEC 62271 / IEC 60947 Switchgear and Breakers",
+  "items": [
+    "lv_acb_1600a_65ka.json",
+    "lv_mccb_250a_36ka.json",
+    "mv_vcb_12kv_1250a_25ka.json",
+    "mv_vcb_24kv_1250a_25ka.json",
+    "hv_sf6_72kv_2500a_31ka.json"
+  ]
+}

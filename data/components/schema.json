@@ -1,0 +1,76 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Standardized Electrical Component",
+  "description": "Schema for component catalog items in the AhmedETAP platform.",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier (slug or UUID)"
+    },
+    "type": {
+      "type": "string",
+      "enum": ["cable", "transformer", "breaker", "relay", "template", "conductor", "protection"],
+      "description": "High-level equipment category"
+    },
+    "category": {
+      "type": "string",
+      "description": "Standard category or family, e.g. IEC 60364, IEEE C57"
+    },
+    "subcategory": {
+      "type": ["string", "null"],
+      "description": "Specific subclassification or construction type"
+    },
+    "name": {
+      "type": "string",
+      "description": "Human-readable display name"
+    },
+    "manufacturer": {
+      "type": ["string", "null"],
+      "description": "Component manufacturer, or null for generic standard items"
+    },
+    "model_number": {
+      "type": ["string", "null"],
+      "description": "Manufacturer model number"
+    },
+    "specs": {
+      "type": "object",
+      "description": "Technical electrical and physical characteristics",
+      "additionalProperties": true
+    },
+    "standards": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "List of governing engineering standards"
+    },
+    "tags": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Search and classification tags"
+    },
+    "is_verified": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether component parameters have been verified against standards"
+    },
+    "source": {
+      "type": "string",
+      "enum": ["iec-standard", "ieee-standard", "etap-import", "manufacturer", "user"],
+      "default": "user",
+      "description": "Provenance source of the data"
+    },
+    "contributor": {
+      "type": ["string", "null"],
+      "description": "User or organization who contributed the item"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": ["id", "type", "category", "name", "specs", "standards"]
+}

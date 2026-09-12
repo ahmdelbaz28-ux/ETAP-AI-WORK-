@@ -8,6 +8,7 @@ import {
   ChevronDown,
   ChevronUp,
   Clock,
+  Package,
   Play,
   XCircle,
   Zap,
@@ -15,6 +16,8 @@ import {
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router";
+import ModalBackdrop from "../components/ModalBackdrop";
+import ModalHeader from "../components/ModalHeader";
 import {
   Badge,
   Button,
@@ -27,6 +30,7 @@ import {
 } from "../components/ui";
 import { useNotify } from "../context/NotificationContext";
 import { runStudy } from "../lib/api";
+import { API_BASE_URL } from "../lib/api-config";
 import { studyCategories } from "../lib/studyCategories";
 import { cn } from "../utils/helpers";
 
@@ -336,6 +340,38 @@ export default function StudyRun() {
   const [showFullResult, setShowFullResult] = useState(false);
   const { activeTab, setActiveTab } = useTabState("diagram");
 
+  const [showComponentPicker, setShowComponentPicker] = useState(false);
+  const [libraryComponents, setLibraryComponents] = useState<
+    Array<{ id: string; name: string; type: string; category: string; specs?: Record<string, unknown> }>
+  >([]);
+  const [loadingLibrary, setLoadingLibrary] = useState(false);
+  const [selectedComponent, setSelectedComponent] = useState<{
+    name: string;
+    specs?: Record<string, unknown>;
+  } | null>(null);
+
+  const openComponentPicker = async () => {
+    setShowComponentPicker(true);
+    setLoadingLibrary(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/v1/components?verified=true&page_size=50`);
+      if (res.ok) {
+        const data = await res.json();
+        setLibraryComponents(data.components || []);
+      }
+    } catch {
+      notify("error", "Failed to load components from library");
+    } finally {
+      setLoadingLibrary(false);
+    }
+  };
+
+  const applyComponent = (comp: { name: string; specs?: Record<string, unknown> }) => {
+    setSelectedComponent(comp);
+    setShowComponentPicker(false);
+    notify("success", `Applied specs from "${comp.name}" to study!`);
+  };
+
   const category = studyCategories.find((s) => s.id === studyType);
 
   if (!studyType || !category) {
@@ -413,11 +449,41 @@ export default function StudyRun() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Form */}
         <Card padding="lg">
-          <CardHeader
-            title="Parameters"
-            subtitle="Configure the study execution"
-            icon={<Zap className="w-4 h-4" />}
-          />
+          <div className="flex items-center justify-between mb-2">
+            <CardHeader
+              title="Parameters"
+              subtitle="Configure the study execution"
+              icon={<Zap className="w-4 h-4" />}
+            />
+            <Button
+              variant="secondary"
+              size="sm"
+              icon={Package}
+              type="button"
+              onClick={openComponentPicker}
+            >
+              From Library
+            </Button>
+          </div>
+
+          {selectedComponent && (
+            <div className="flex items-center justify-between p-3 rounded-xl bg-brand-500/10 border border-brand-500/20 text-xs mb-4">
+              <div className="flex items-center gap-2">
+                <Package className="w-4 h-4 text-brand-400" />
+                <span>
+                  Using component specs: <strong>{selectedComponent.name}</strong>
+                </span>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSelectedComponent(null)}
+              >
+                Reset
+              </Button>
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-5">
             <Toggle
               checked={dryRun}
@@ -599,6 +665,50 @@ export default function StudyRun() {
           )}
         </div>
       </div>
+
+      {showComponentPicker && (
+        <ModalBackdrop onClose={() => setShowComponentPicker(false)}>
+          <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-2xl max-w-lg w-full max-h-[80vh] overflow-y-auto shadow-2xl p-6">
+            <ModalHeader
+              title="Select Standard Component"
+              icon={Package}
+              onClose={() => setShowComponentPicker(false)}
+            />
+            <p className="text-xs text-[var(--text-muted)] -mt-2 mb-4">
+              Choose a verified standard cable, transformer, or breaker to populate study parameters
+            </p>
+
+            {loadingLibrary ? (
+              <p className="text-xs text-[var(--text-muted)] text-center py-6">
+                Loading library components...
+              </p>
+            ) : libraryComponents.length === 0 ? (
+              <p className="text-xs text-[var(--text-muted)] text-center py-6">
+                No verified components found in library.
+              </p>
+            ) : (
+              <div className="space-y-2 max-h-96 overflow-y-auto">
+                {libraryComponents.map((c) => (
+                  <button
+                    key={c.id}
+                    type="button"
+                    onClick={() => applyComponent(c)}
+                    className="w-full text-left p-3 rounded-xl bg-[var(--bg-primary)] border border-[var(--border-primary)] hover:border-brand-500/50 hover:bg-[var(--bg-hover)] transition-all flex items-center justify-between"
+                  >
+                    <div>
+                      <span className="text-[10px] uppercase font-bold text-brand-400">
+                        {c.type} • {c.category}
+                      </span>
+                      <p className="text-xs font-semibold text-[var(--text-primary)]">{c.name}</p>
+                    </div>
+                    <span className="text-xs text-brand-400 font-medium">Select &rarr;</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </ModalBackdrop>
+      )}
     </div>
   );
 }

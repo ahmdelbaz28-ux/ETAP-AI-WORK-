@@ -1,0 +1,10 @@
+{
+  "category": "templates",
+  "standard": "IEC/IEEE Protection",
+  "title": "Protection Coordination Templates",
+  "items": [
+    "oc_ef_normal_inverse.json",
+    "motor_49_50_51_46.json",
+    "transformer_differential_87t.json"
+  ]
+}

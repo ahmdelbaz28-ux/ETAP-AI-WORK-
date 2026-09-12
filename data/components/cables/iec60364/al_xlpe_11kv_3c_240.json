@@ -1,0 +1,38 @@
+{
+  "id": "cable-iec60364-al-xlpe-11kv-3c-240",
+  "type": "cable",
+  "category": "IEC 60364",
+  "subcategory": "AL/XLPE 11kV",
+  "name": "11kV Three Core XLPE Aluminum Cable 240mm\u00b2",
+  "manufacturer": "Generic Standard",
+  "model_number": "IEC-AL-XLPE-3X240-11KV",
+  "specs": {
+    "conductor_material": "aluminum",
+    "insulation": "xlpe",
+    "voltage_rating_kv": 11.0,
+    "cores": 3,
+    "cross_section_mm2": 240,
+    "resistance_ohm_per_km": 0.125,
+    "reactance_ohm_per_km": 0.096,
+    "current_rating_a": 435,
+    "max_operating_temp_c": 90
+  },
+  "standards": [
+    "IEC 60502-2",
+    "IEC 60228",
+    "IEC 60364"
+  ],
+  "tags": [
+    "mv-cable",
+    "aluminum",
+    "xlpe",
+    "three-core",
+    "11kv",
+    "240mm2"
+  ],
+  "is_verified": true,
+  "source": "iec-standard",
+  "contributor": "AhmedETAP Standards Committee",
+  "created_at": "2026-01-01T00:00:00Z",
+  "updated_at": "2026-01-01T00:00:00Z"
+}

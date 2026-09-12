@@ -1,0 +1,38 @@
+{
+  "id": "xfmr-ieee-c57-500kva-11-0415kv",
+  "type": "transformer",
+  "category": "IEEE C57",
+  "subcategory": "Distribution Transformer",
+  "name": "500 kVA Distribution Transformer 11/0.415 kV",
+  "manufacturer": "Standard IEEE Class",
+  "model_number": "C57-DIST-500KVA",
+  "specs": {
+    "rated_power_kva": 500,
+    "primary_voltage_kv": 11.0,
+    "secondary_voltage_kv": 0.415,
+    "phases": 3,
+    "frequency_hz": 50,
+    "impedance_percent": 4.5,
+    "xr_ratio": 4.5,
+    "vector_group": "Dyn11",
+    "no_load_loss_kw": 0.95,
+    "full_load_loss_kw": 5.4,
+    "cooling": "ONAN"
+  },
+  "standards": [
+    "IEEE C57.12.00",
+    "IEC 60076"
+  ],
+  "tags": [
+    "distribution-transformer",
+    "500kva",
+    "step-down",
+    "11kv",
+    "415v"
+  ],
+  "is_verified": true,
+  "source": "ieee-standard",
+  "contributor": "AhmedETAP Standards Committee",
+  "created_at": "2026-01-01T00:00:00Z",
+  "updated_at": "2026-01-01T00:00:00Z"
+}

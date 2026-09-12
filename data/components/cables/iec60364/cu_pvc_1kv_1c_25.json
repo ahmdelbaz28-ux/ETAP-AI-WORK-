@@ -1,0 +1,37 @@
+{
+  "id": "cable-iec60364-cu-pvc-1kv-1c-25",
+  "type": "cable",
+  "category": "IEC 60364",
+  "subcategory": "CU/PVC 1kV",
+  "name": "1kV Single Core PVC Copper Cable 25mm\u00b2",
+  "manufacturer": "Generic Standard",
+  "model_number": "IEC-CU-PVC-1X25",
+  "specs": {
+    "conductor_material": "copper",
+    "insulation": "pvc",
+    "voltage_rating_kv": 1.0,
+    "cores": 1,
+    "cross_section_mm2": 25,
+    "resistance_ohm_per_km": 0.727,
+    "reactance_ohm_per_km": 0.098,
+    "current_rating_a": 130,
+    "max_operating_temp_c": 70
+  },
+  "standards": [
+    "IEC 60364-52",
+    "IEC 60228",
+    "IEC 60502-1"
+  ],
+  "tags": [
+    "lv-cable",
+    "copper",
+    "pvc",
+    "single-core",
+    "25mm2"
+  ],
+  "is_verified": true,
+  "source": "iec-standard",
+  "contributor": "AhmedETAP Standards Committee",
+  "created_at": "2026-01-01T00:00:00Z",
+  "updated_at": "2026-01-01T00:00:00Z"
+}

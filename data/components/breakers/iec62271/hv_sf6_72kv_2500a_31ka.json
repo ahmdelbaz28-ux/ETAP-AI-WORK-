@@ -1,0 +1,34 @@
+{
+  "id": "cb-iec62271-hv-sf6-72kv-2500a-31ka",
+  "type": "breaker",
+  "category": "IEC 62271",
+  "subcategory": "SF6 Circuit Breaker",
+  "name": "72.5kV SF6 Gas Circuit Breaker 2500A 31.5kA",
+  "manufacturer": "Standard IEC Class",
+  "model_number": "GCB-72.5-2500-31.5",
+  "specs": {
+    "rated_voltage_kv": 72.5,
+    "rated_current_a": 2500,
+    "breaking_capacity_ka": 31.5,
+    "making_capacity_ka": 78.75,
+    "short_time_withstand_ka_3s": 31.5,
+    "operating_sequence": "O-0.3s-CO-3min-CO",
+    "medium": "SF6 Gas"
+  },
+  "standards": [
+    "IEC 62271-100",
+    "IEC 62271-102"
+  ],
+  "tags": [
+    "sf6",
+    "high-voltage",
+    "gas-insulated",
+    "72.5kv",
+    "31.5ka"
+  ],
+  "is_verified": true,
+  "source": "iec-standard",
+  "contributor": "AhmedETAP Standards Committee",
+  "created_at": "2026-01-01T00:00:00Z",
+  "updated_at": "2026-01-01T00:00:00Z"
+}

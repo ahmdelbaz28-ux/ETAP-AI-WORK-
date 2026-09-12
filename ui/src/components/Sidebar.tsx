@@ -81,6 +81,12 @@ const navItems: NavItem[] = [
     section: "engineering",
   },
   {
+    to: "/component-library",
+    icon: Package,
+    labelKey: "sidebar.componentLibrary",
+    section: "engineering",
+  },
+  {
     to: "/vision-keys",
     icon: KeyRound,
     labelKey: "sidebar.visionKeys",
@@ -139,6 +145,12 @@ const navItems: NavItem[] = [
     to: "/admin/rbac",
     icon: Shield,
     labelKey: "sidebar.rbacAdmin",
+    section: "system",
+  },
+  {
+    to: "/admin/component-review",
+    icon: ShieldCheck,
+    labelKey: "sidebar.componentReview",
     section: "system",
   },
   {

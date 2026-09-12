@@ -38,7 +38,9 @@ ETAP-AI-WORK-/
 temp_repo/
 
 # Data
-data/
+data/*
+!data/components/
+!data/components/**
 .hypothesis/
 sonar_issues.json
 security_audit.log
@@ -326,7 +328,9 @@ logs/
 *.sqlite3
 *.sqlite-shm
 *.sqlite-wal
-data/
+data/*
+!data/components/
+!data/components/**
 knowledge_db/
 chroma_db/
 faiss_index/

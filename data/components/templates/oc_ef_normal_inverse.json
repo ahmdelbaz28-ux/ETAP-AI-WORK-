@@ -1,0 +1,33 @@
+{
+  "id": "template-protection-oc-ef-normal-inverse",
+  "type": "template",
+  "category": "Protection Coordination",
+  "subcategory": "Overcurrent & Earth Fault",
+  "name": "Feeder Overcurrent & Earth Fault Protection Template (50/51/51N)",
+  "manufacturer": "AhmedETAP Protection Library",
+  "model_number": "TPL-OC-EF-NI",
+  "specs": {
+    "curve_type": "IEC Normal Inverse",
+    "phase_overcurrent_51_pickup_pu": 1.1,
+    "phase_time_multiplier": 0.15,
+    "phase_instantaneous_50_pickup_pu": 6.5,
+    "earth_fault_51n_pickup_pu": 0.2,
+    "earth_time_multiplier": 0.1,
+    "curve_equation": "t = (0.14 / ((I/Is)^0.02 - 1)) * TMS"
+  },
+  "standards": [
+    "IEC 60255-151",
+    "IEEE C37.112"
+  ],
+  "tags": [
+    "protection-coordination",
+    "overcurrent",
+    "earth-fault",
+    "iec-curve"
+  ],
+  "is_verified": true,
+  "source": "iec-standard",
+  "contributor": "AhmedETAP Standards Committee",
+  "created_at": "2026-01-01T00:00:00Z",
+  "updated_at": "2026-01-01T00:00:00Z"
+}

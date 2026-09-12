@@ -1,0 +1,38 @@
+{
+  "id": "cable-iec60364-cu-xlpe-11kv-3c-95",
+  "type": "cable",
+  "category": "IEC 60364",
+  "subcategory": "CU/XLPE 11kV",
+  "name": "11kV Three Core XLPE Copper Cable 95mm\u00b2",
+  "manufacturer": "Generic Standard",
+  "model_number": "IEC-CU-XLPE-3X95-11KV",
+  "specs": {
+    "conductor_material": "copper",
+    "insulation": "xlpe",
+    "voltage_rating_kv": 11.0,
+    "cores": 3,
+    "cross_section_mm2": 95,
+    "resistance_ohm_per_km": 0.193,
+    "reactance_ohm_per_km": 0.108,
+    "current_rating_a": 315,
+    "max_operating_temp_c": 90
+  },
+  "standards": [
+    "IEC 60502-2",
+    "IEC 60228",
+    "IEC 60364"
+  ],
+  "tags": [
+    "mv-cable",
+    "copper",
+    "xlpe",
+    "three-core",
+    "11kv",
+    "95mm2"
+  ],
+  "is_verified": true,
+  "source": "iec-standard",
+  "contributor": "AhmedETAP Standards Committee",
+  "created_at": "2026-01-01T00:00:00Z",
+  "updated_at": "2026-01-01T00:00:00Z"
+}

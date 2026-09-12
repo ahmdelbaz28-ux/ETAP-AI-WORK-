@@ -1,0 +1,38 @@
+{
+  "id": "xfmr-ieee-c57-1000kva-11-0415kv",
+  "type": "transformer",
+  "category": "IEEE C57",
+  "subcategory": "Distribution Transformer",
+  "name": "1000 kVA Distribution Transformer 11/0.415 kV",
+  "manufacturer": "Standard IEEE Class",
+  "model_number": "C57-DIST-1000KVA",
+  "specs": {
+    "rated_power_kva": 1000,
+    "primary_voltage_kv": 11.0,
+    "secondary_voltage_kv": 0.415,
+    "phases": 3,
+    "frequency_hz": 50,
+    "impedance_percent": 5.0,
+    "xr_ratio": 6.0,
+    "vector_group": "Dyn11",
+    "no_load_loss_kw": 1.6,
+    "full_load_loss_kw": 10.5,
+    "cooling": "ONAN"
+  },
+  "standards": [
+    "IEEE C57.12.00",
+    "IEC 60076"
+  ],
+  "tags": [
+    "distribution-transformer",
+    "1000kva",
+    "step-down",
+    "11kv",
+    "415v"
+  ],
+  "is_verified": true,
+  "source": "ieee-standard",
+  "contributor": "AhmedETAP Standards Committee",
+  "created_at": "2026-01-01T00:00:00Z",
+  "updated_at": "2026-01-01T00:00:00Z"
+}

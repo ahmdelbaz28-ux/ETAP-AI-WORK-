@@ -1,0 +1,12 @@
+{
+  "category": "transformers",
+  "standard": "IEEE C57",
+  "title": "IEEE C57 Distribution & Power Transformers",
+  "items": [
+    "500kva_11_0415kv.json",
+    "1000kva_11_0415kv.json",
+    "2500kva_33_11kv.json",
+    "5mva_33_11kv.json",
+    "20mva_132_33kv.json"
+  ]
+}

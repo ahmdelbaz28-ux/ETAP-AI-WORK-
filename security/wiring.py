@@ -91,7 +91,9 @@ if _HAS_STARLETTE:
                 "/prometheus",
             ]
 
-        async def _extract_body_and_replay(self, receive: Any, inspect_data: dict[str, Any]) -> Any:
+        async def _extract_body_and_replay(
+            self, receive: Any, inspect_data: dict[str, Any], content_type: str = ""
+        ) -> Any:
             try:
                 body_chunks: list[bytes] = []
                 while True:
@@ -119,10 +121,38 @@ if _HAS_STARLETTE:
                     await asyncio.sleep(86400)
 
                 if body_bytes:
-                    try:
-                        inspect_data["body"] = json.loads(body_bytes)
-                    except (json.JSONDecodeError, UnicodeDecodeError):
-                        inspect_data["body"] = body_bytes.decode("utf-8", errors="replace")
+                    if content_type.startswith("multipart/"):
+                        # Extract only non-file text form fields to prevent false positives
+                        # on raw binary/XML/JSON files and MIME boundary markers ('--boundary--\r\n')
+                        form_fields: dict[str, str] = {}
+                        try:
+                            boundary = None
+                            for part in content_type.split(";"):
+                                part = part.strip()
+                                if part.startswith("boundary="):
+                                    boundary = part.split("=", 1)[1].strip('"\'').encode()
+                                    break
+                            if boundary:
+                                for section in body_bytes.split(b"--" + boundary):
+                                    if b"\r\n\r\n" in section:
+                                        headers_part, val_part = section.split(b"\r\n\r\n", 1)
+                                        headers_text = headers_part.decode("utf-8", errors="ignore")
+                                        if "filename=" not in headers_text.lower():
+                                            import re
+
+                                            m = re.search(r'name="([^"]+)"', headers_text)
+                                            if m:
+                                                field_name = m.group(1)
+                                                field_val = val_part.rstrip(b"\r\n").decode("utf-8", errors="replace")
+                                                form_fields[field_name] = field_val
+                        except Exception:
+                            pass
+                        inspect_data["body"] = form_fields
+                    else:
+                        try:
+                            inspect_data["body"] = json.loads(body_bytes)
+                        except (json.JSONDecodeError, UnicodeDecodeError):
+                            inspect_data["body"] = body_bytes.decode("utf-8", errors="replace")
                 return receive_replay
             except Exception:
                 return receive
@@ -200,7 +230,10 @@ if _HAS_STARLETTE:
 
             downstream_receive = receive
             if request.method in ("POST", "PUT", "PATCH"):
-                downstream_receive = await self._extract_body_and_replay(receive, inspect_data)
+                content_type = request.headers.get("content-type", "").lower()
+                downstream_receive = await self._extract_body_and_replay(
+                    receive, inspect_data, content_type
+                )
 
             results = self.engine.inspect(inspect_data)
             blocked = await self._check_and_block_rasp(

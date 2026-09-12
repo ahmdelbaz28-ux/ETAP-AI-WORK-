@@ -27,6 +27,8 @@
     "digitalTwin": "Digital Twin",
     "assetManagement": "Asset Management",
     "equipment": "Equipment",
+    "componentLibrary": "Component Library",
+    "componentReview": "Component Review",
     "dataImport": "Data Import",
     "dataExport": "Data Export",
     "logs": "Logs",

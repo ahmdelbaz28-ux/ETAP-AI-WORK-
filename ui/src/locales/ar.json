@@ -27,6 +27,8 @@
     "digitalTwin": "التوأم الرقمي",
     "assetManagement": "إدارة الأصول",
     "equipment": "المعدات",
+    "componentLibrary": "مكتبة المكونات القياسية",
+    "componentReview": "مراجعة المكونات",
     "dataImport": "استيراد البيانات",
     "dataExport": "تصدير البيانات",
     "logs": "السجلات",

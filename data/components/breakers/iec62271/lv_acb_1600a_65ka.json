@@ -1,0 +1,35 @@
+{
+  "id": "cb-iec62271-lv-acb-1600a-65ka",
+  "type": "breaker",
+  "category": "IEC 62271",
+  "subcategory": "Low Voltage Air Circuit Breaker",
+  "name": "LV Air Circuit Breaker 1600A 65kA",
+  "manufacturer": "Standard IEC Class",
+  "model_number": "ACB-1600-65",
+  "specs": {
+    "rated_voltage_kv": 0.69,
+    "rated_current_a": 1600,
+    "breaking_capacity_ka": 65.0,
+    "making_capacity_ka": 143.0,
+    "short_time_withstand_ka_1s": 65.0,
+    "poles": 3,
+    "mechanism": "Stored Energy Spring",
+    "arc_extinction": "De-ionizing Air Chutes"
+  },
+  "standards": [
+    "IEC 60947-2",
+    "IEC 62271-100"
+  ],
+  "tags": [
+    "acb",
+    "low-voltage",
+    "switchgear",
+    "1600a",
+    "65ka"
+  ],
+  "is_verified": true,
+  "source": "iec-standard",
+  "contributor": "AhmedETAP Standards Committee",
+  "created_at": "2026-01-01T00:00:00Z",
+  "updated_at": "2026-01-01T00:00:00Z"
+}

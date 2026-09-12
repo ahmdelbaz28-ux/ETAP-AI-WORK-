@@ -394,6 +394,7 @@ async def init_db() -> None:
     # This MUST happen before create_all is called.
     import api.assets  # noqa: F401  - registers Asset model
     import api.auth  # noqa: F401  - registers User model
+    import api.components  # noqa: F401  - registers Component model
     import api.projects  # noqa: F401  - registers Project & StudyResult models
     import api.rbac  # noqa: F401  - registers Role Permission and UserRole models
     import api.tenants  # noqa: F401  - registers Tenant model (V-07 Phase 2)

@@ -67,6 +67,8 @@ const CodeGuardPage = lazyLoad(() => import("./pages/CodeGuard"));
 const ContextEnginePage = lazyLoad(() => import("./pages/ContextEngine"));
 const TemplatesPage = lazyLoad(() => import("./pages/Templates"));
 const AssetLibraryPage = lazyLoad(() => import("./pages/AssetLibrary"));
+const ComponentLibraryPage = lazyLoad(() => import("./pages/ComponentLibrary"));
+const ComponentReviewPage = lazyLoad(() => import("./pages/ComponentReview"));
 const RbacAdminPage = lazyLoad(() => import("./pages/RbacAdmin"));
 const EquipmentManagementPage = lazyLoad(() => import("./pages/EquipmentManagement"));
 const EmailDashboardPage = lazyLoad(() => import("./pages/EmailDashboard"));
@@ -226,6 +228,7 @@ export default function App() {
                 <Route path="/admin/agents" element={<AgentsControlPanelPage />} />
                 <Route path="/admin/ai-playground" element={<AIPlaygroundPage />} />
                 <Route path="/admin/email/webhooks" element={<EmailWebhooksPage />} />
+                <Route path="/admin/component-review" element={<ComponentReviewPage />} />
                 {/* P8 advanced: non-core pages under /advanced */}
                 <Route path="/advanced/dashboard" element={<DashboardPage />} />
                 <Route path="/advanced/studies" element={<StudiesPage />} />
@@ -252,6 +255,8 @@ export default function App() {
                 <Route path="/advanced/context-engine" element={<ContextEnginePage />} />
                 <Route path="/advanced/templates" element={<TemplatesPage />} />
                 <Route path="/advanced/asset-library" element={<AssetLibraryPage />} />
+                <Route path="/advanced/component-library" element={<ComponentLibraryPage />} />
+                <Route path="/component-library" element={<ComponentLibraryPage />} />
                 {/* P8 legacy: SPA redirects → /advanced (params/search/hash preserved) */}
                 <Route path="/dashboard" element={<AdvancedRedirect legacy="/dashboard" />} />
                 <Route path="/studies" element={<AdvancedRedirect legacy="/studies" />} />
@@ -278,6 +283,7 @@ export default function App() {
                 <Route path="/context-engine" element={<AdvancedRedirect legacy="/context-engine" />} />
                 <Route path="/templates" element={<AdvancedRedirect legacy="/templates" />} />
                 <Route path="/asset-library" element={<AdvancedRedirect legacy="/asset-library" />} />
+                <Route path="/components" element={<AdvancedRedirect legacy="/component-library" />} />
                 <Route path="*" element={<Navigate to="/dashboard" replace />} />
               </Route>
             </Routes>

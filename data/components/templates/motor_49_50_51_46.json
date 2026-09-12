@@ -1,0 +1,33 @@
+{
+  "id": "template-protection-motor-49-50-51-46",
+  "type": "template",
+  "category": "Protection Coordination",
+  "subcategory": "Motor Protection",
+  "name": "MV Induction Motor Complete Protection Template (49/50/51/46)",
+  "manufacturer": "AhmedETAP Protection Library",
+  "model_number": "TPL-MOTOR-PROT",
+  "specs": {
+    "thermal_overload_49_pickup": 1.05,
+    "thermal_time_constant_min": 15.0,
+    "locked_rotor_51lr_pickup": 2.5,
+    "locked_rotor_delay_sec": 3.0,
+    "short_circuit_50_pickup": 8.0,
+    "unbalance_negative_sequence_46_pickup": 0.15
+  },
+  "standards": [
+    "IEEE 399",
+    "IEEE 242",
+    "IEC 60255"
+  ],
+  "tags": [
+    "motor-protection",
+    "thermal-overload",
+    "locked-rotor",
+    "negative-sequence"
+  ],
+  "is_verified": true,
+  "source": "iec-standard",
+  "contributor": "AhmedETAP Standards Committee",
+  "created_at": "2026-01-01T00:00:00Z",
+  "updated_at": "2026-01-01T00:00:00Z"
+}

@@ -1,0 +1,38 @@
+{
+  "id": "xfmr-ieee-c57-5mva-33-11kv",
+  "type": "transformer",
+  "category": "IEEE C57",
+  "subcategory": "Substation Power Transformer",
+  "name": "5 MVA Primary Substation Transformer 33/11 kV",
+  "manufacturer": "Standard IEEE Class",
+  "model_number": "C57-SUB-5MVA",
+  "specs": {
+    "rated_power_kva": 5000,
+    "primary_voltage_kv": 33.0,
+    "secondary_voltage_kv": 11.0,
+    "phases": 3,
+    "frequency_hz": 50,
+    "impedance_percent": 7.15,
+    "xr_ratio": 11.0,
+    "vector_group": "Dyn11",
+    "no_load_loss_kw": 5.4,
+    "full_load_loss_kw": 36.5,
+    "cooling": "ONAN/ONAF"
+  },
+  "standards": [
+    "IEEE C57.12.00",
+    "IEC 60076"
+  ],
+  "tags": [
+    "power-transformer",
+    "5mva",
+    "substation",
+    "33kv",
+    "11kv"
+  ],
+  "is_verified": true,
+  "source": "ieee-standard",
+  "contributor": "AhmedETAP Standards Committee",
+  "created_at": "2026-01-01T00:00:00Z",
+  "updated_at": "2026-01-01T00:00:00Z"
+}
