@@ -66,6 +66,7 @@ import hmac
 import json
 import logging
 import os
+import tempfile
 import time
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
@@ -194,12 +195,10 @@ _CUA_AUDIT_DIR = Path(os.environ.get("CUA_AUDIT_DIR", _DEFAULT_CUA_AUDIT_DIR))
 try:
     _CUA_AUDIT_DIR.mkdir(parents=True, exist_ok=True)
 except PermissionError:
-    # Fallback to /tmp on restricted environments (HF Spaces, CI) where
+    # Fallback to system temp directory on restricted environments (HF Spaces, CI) where
     # HOME may point to a non-writable directory (e.g. /root when running
     # as UID 1000). /tmp/cua_audit is pre-created by the Dockerfile.
-    _fallback = Path(
-        "/tmp/cua_audit"  # NOSONAR /tmp fallback is permission-hardened to 0o700 below (mkdir mode + explicit chmod); only used when HOME is not writable
-    )
+    _fallback = Path(tempfile.gettempdir()) / "cua_audit"  # NOSONAR
     _fallback.mkdir(parents=True, exist_ok=True, mode=0o700)
     # Harden immediately at the point of /tmp use so other users on the host
     # cannot read kill-switch state or audit logs. mkdir's `mode` arg is
