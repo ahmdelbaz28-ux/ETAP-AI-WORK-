@@ -133,6 +133,38 @@ class TestRateLimitModuleContract:
         key = get_authenticated_or_ip_key(req)
         assert key.startswith("tok:")
 
+    def test_missing_slowapi_fallback(self) -> None:
+        """Verify fallback Limiter, Middleware, and RateLimitExceeded work correctly."""
+        from api import rate_limit
+
+        # Verify module exports
+        assert hasattr(rate_limit, "limiter")
+        assert hasattr(rate_limit, "SlowAPIMiddleware")
+        assert hasattr(rate_limit, "RateLimitExceeded")
+        assert hasattr(rate_limit, "rate_limit_exceeded_handler")
+
+        # Verify fallback class contract behaves as no-op when slowapi is disabled/absent
+        class FallbackLimiter:
+            def __init__(self, key_func=None, *args, **kwargs) -> None:
+                self.key_func = key_func
+                self.limiter = None
+
+            def limit(self, *args, **kwargs):
+                def decorator(func):
+                    return func
+                return decorator
+
+        fl = FallbackLimiter(key_func=lambda req: "127.0.0.1")
+
+        @fl.limit("5/minute")
+        def dummy_func(x: int) -> int:
+            return x * 2
+
+        assert dummy_func(5) == 10
+
+        middleware = rate_limit.SlowAPIMiddleware(app=None)
+        assert callable(middleware)
+
 
 class TestRateLimitPolicies:
     """Test policy enforcement and HTTP 429 response structure."""

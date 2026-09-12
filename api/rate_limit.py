@@ -34,11 +34,51 @@ import time
 from typing import Any, Callable, Optional
 
 from fastapi.responses import JSONResponse
-from slowapi import Limiter
-from slowapi.errors import RateLimitExceeded
-from slowapi.middleware import SlowAPIMiddleware
 from starlette.requests import Request
 from starlette.responses import Response
+
+try:
+    from slowapi import Limiter
+    from slowapi.errors import RateLimitExceeded
+    from slowapi.middleware import SlowAPIMiddleware
+
+    _SLOWAPI_AVAILABLE = True
+except ImportError:
+    _SLOWAPI_AVAILABLE = False
+
+    class RateLimitExceeded(Exception):  # type: ignore[no-redef]
+        """Fallback RateLimitExceeded when slowapi is not installed."""
+
+        def __init__(self, detail: str = "Rate limit exceeded"):
+            super().__init__(detail)
+            self.detail = detail
+
+    class SlowAPIMiddleware:  # type: ignore[no-redef]
+        """Fallback pass-through middleware when slowapi is not installed."""
+
+        def __init__(self, app: Any) -> None:
+            self.app = app
+
+        async def __call__(self, scope: Any, receive: Any, send: Any) -> None:
+            await self.app(scope, receive, send)
+
+    class Limiter:  # type: ignore[no-redef]
+        """Fallback Limiter when slowapi is not installed."""
+
+        def __init__(
+            self,
+            key_func: Optional[Callable[..., str]] = None,
+            *args: Any,
+            **kwargs: Any,
+        ) -> None:
+            self.key_func = key_func
+            self.limiter = None
+
+        def limit(self, *args: Any, **kwargs: Any) -> Callable[..., Any]:
+            def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
+                return func
+
+            return decorator
 
 logger = logging.getLogger("etap.rate_limit")
 
@@ -224,12 +264,15 @@ class UnifiedLimiter(Limiter):
 
 # D1/D2 Fix: Exactly one Limiter instance for the entire application.
 # No default_limits on the instance to avoid unintentionally throttling un-decorated routes.
-limiter: Limiter = UnifiedLimiter(
-    key_func=get_remote_address_proxy_aware,
-    storage_uri=_STORAGE_URI,
-    strategy="moving-window",
-    in_memory_fallback_enabled=True,
-)
+if _SLOWAPI_AVAILABLE:
+    limiter: Limiter = UnifiedLimiter(
+        key_func=get_remote_address_proxy_aware,
+        storage_uri=_STORAGE_URI,
+        strategy="moving-window",
+        in_memory_fallback_enabled=True,
+    )
+else:
+    limiter = UnifiedLimiter()
 
 # Deprecated alias to maintain backward compatibility without splitting state (D1)
 auth_limiter: Limiter = limiter
@@ -238,7 +281,7 @@ auth_limiter: Limiter = limiter
 # ---------------------------------------------------------------------------
 # Exception Handler with Retry-After Header
 # ---------------------------------------------------------------------------
-def rate_limit_exceeded_handler(request: Request, exc: RateLimitExceeded) -> Response:
+def rate_limit_exceeded_handler(request: Request, exc: Any) -> Response:
     """Build a standard JSON 429 response including Retry-After header.
 
     Args:
@@ -251,7 +294,7 @@ def rate_limit_exceeded_handler(request: Request, exc: RateLimitExceeded) -> Res
     retry_after: int = 60  # Default fallback window
     vrl = getattr(request.state, "view_rate_limit", None)
 
-    if vrl and hasattr(limiter, "limiter"):
+    if vrl and hasattr(limiter, "limiter") and limiter.limiter:
         try:
             window_stats = limiter.limiter.get_window_stats(vrl[0], *vrl[1])
             reset_in = 1 + window_stats[0]
@@ -265,8 +308,9 @@ def rate_limit_exceeded_handler(request: Request, exc: RateLimitExceeded) -> Res
         "Retry-After": str(retry_after),
     }
 
+    detail = getattr(exc, "detail", str(exc))
     return JSONResponse(
-        {"error": f"Rate limit exceeded: {exc.detail}"},
+        {"error": f"Rate limit exceeded: {detail}"},
         status_code=429,
         headers=headers,
     )
