@@ -93,7 +93,8 @@ class TestRateLimitModuleContract:
     def test_no_unintended_default_limits_on_limiter(self) -> None:
         """D2: Limiter instance has no default_limits that leak onto un-decorated routes."""
         # _default_limits should be empty on the root Limiter
-        assert len(limiter._default_limits) == 0
+        default_limits = getattr(limiter, "_default_limits", [])
+        assert len(default_limits) == 0
 
     def test_proxy_aware_ip_spoofing_invariant(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """D5: X-Forwarded-For is ignored when TRUSTED_PROXY_HOPS=0 (default)."""

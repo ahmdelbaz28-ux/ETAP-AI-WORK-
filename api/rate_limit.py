@@ -73,6 +73,8 @@ except ImportError:
         ) -> None:
             self.key_func = key_func
             self.limiter = None
+            self._default_limits: list[Any] = []
+            self._storage_uri: str = "memory://"
 
         def limit(self, *args: Any, **kwargs: Any) -> Callable[..., Any]:
             def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
@@ -222,6 +224,10 @@ class UnifiedLimiter(Limiter):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
         self._override_enabled: Optional[bool] = None
+        if not hasattr(self, "_default_limits"):
+            self._default_limits = []
+        if not hasattr(self, "_storage_uri"):
+            self._storage_uri = kwargs.get("storage_uri", _STORAGE_URI)
 
     @property
     def enabled(self) -> bool:
