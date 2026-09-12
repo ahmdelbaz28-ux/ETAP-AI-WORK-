@@ -55,7 +55,9 @@ class SPAHandler(http.server.SimpleHTTPRequestHandler):
             body = self.rfile.read(content_length) if content_length > 0 else None
             url = f"{BACKEND_URL}{self.path}"
             headers = {k: v for k, v in self.headers.items() if k.lower() != "host"}
-            req = urllib.request.Request(url, data=body, method=self.command, headers=headers)  # NOSONAR pythonsecurity:S7044
+            req = urllib.request.Request(
+                url, data=body, method=self.command, headers=headers
+            )  # NOSONAR pythonsecurity:S7044
             with urllib.request.urlopen(req, timeout=30) as resp:
                 response_body = resp.read()
                 self.send_response(resp.status)

@@ -1298,7 +1298,9 @@ def _write_security_report(report: Any, args: Any) -> None:
             out = sys.stdout
         else:
             safe_output = Path(args.output).resolve()
-            out = stack.enter_context(open(safe_output, "w", encoding="utf-8"))  # NOSONAR pythonsecurity:S8707
+            out = stack.enter_context(
+                open(safe_output, "w", encoding="utf-8")
+            )  # NOSONAR pythonsecurity:S8707
 
         if not args.json_only:
             _print_security_summary(report, out)

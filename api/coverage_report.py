@@ -864,7 +864,9 @@ def _write_report_output(report: CoverageReport, args: Any) -> None:
             out = sys.stdout
         else:
             safe_output = Path(args.output).resolve()
-            out = stack.enter_context(open(safe_output, "w", encoding="utf-8"))  # NOSONAR pythonsecurity:S8707
+            out = stack.enter_context(
+                open(safe_output, "w", encoding="utf-8")
+            )  # NOSONAR pythonsecurity:S8707
 
         report_dict = report.to_dict()
 

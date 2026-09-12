@@ -24,6 +24,7 @@ from typing import Any, Dict, List, Optional
 
 UTC = timezone.utc  # noqa: UP017
 
+
 def _clean_log(val: Any) -> str:
     return re.sub(r"[\r\n\t]", "_", str(val or ""))[:200]
 
@@ -445,7 +446,9 @@ async def verify_component(
         comp.review_notes = payload.notes
     await db.commit()
     await db.refresh(comp)
-    logger.info("Component %s approved by admin %s", _clean_log(id), _clean_log(user.user_id))  # NOSONAR pythonsecurity:S5145
+    logger.info(
+        "Component %s approved by admin %s", _clean_log(id), _clean_log(user.user_id)
+    )  # NOSONAR pythonsecurity:S5145
     return ComponentResponse.model_validate(comp)
 
 
@@ -471,7 +474,12 @@ async def reject_component(
     comp.reviewed_at = datetime.now(UTC)
     await db.commit()
     await db.refresh(comp)
-    logger.info("Component %s rejected by admin %s: %s", _clean_log(id), _clean_log(user.user_id), _clean_log(payload.reason))  # NOSONAR pythonsecurity:S5145
+    logger.info(
+        "Component %s rejected by admin %s: %s",
+        _clean_log(id),
+        _clean_log(user.user_id),
+        _clean_log(payload.reason),
+    )  # NOSONAR pythonsecurity:S5145
     return ComponentResponse.model_validate(comp)
 
 
@@ -527,7 +535,11 @@ async def import_etap_components(
     for c in created_components:
         await db.refresh(c)
 
-    logger.info("Imported %d components from ETAP file %s", len(created_components), _clean_log(file.filename or ""))  # NOSONAR pythonsecurity:S5145
+    logger.info(
+        "Imported %d components from ETAP file %s",
+        len(created_components),
+        _clean_log(file.filename or ""),
+    )  # NOSONAR pythonsecurity:S5145
     return [ComponentResponse.model_validate(c) for c in created_components]
 
 

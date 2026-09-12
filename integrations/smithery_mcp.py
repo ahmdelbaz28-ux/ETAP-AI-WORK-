@@ -458,7 +458,9 @@ class SmitheryClient:
                 self._record_circuit_result(success=True)
                 if attempt > 0:
                     clean_op = re.sub(r"[\r\n\t]", "_", str(op_name))[:64]
-                    logger.info("Smithery %s succeeded after %d retries", clean_op, attempt)  # NOSONAR pythonsecurity:S5145
+                    logger.info(
+                        "Smithery %s succeeded after %d retries", clean_op, attempt
+                    )  # NOSONAR pythonsecurity:S5145
                 return result
             except Exception as exc:  # noqa: BLE001 — broad on purpose (NOT BaseException: let KeyboardInterrupt propagate)
                 last_exc = exc

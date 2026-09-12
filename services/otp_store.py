@@ -32,6 +32,7 @@ from dataclasses import dataclass
 
 logger = logging.getLogger("etap.otp_store")
 
+
 def _clean(val: str) -> str:
     return re.sub(r"[\r\n\t]", "_", str(val or ""))[:100]
 
@@ -197,7 +198,9 @@ async def issue_otp(email: str, purpose: str) -> OtpIssueResult:
         expires_at=now + OTP_TTL_SECONDS,
     )
     await _mem_store.set(key, rec)
-    logger.info("otp_issued email=%s purpose=%s ttl=%ds", _clean(email), _clean(purpose), OTP_TTL_SECONDS)  # NOSONAR pythonsecurity:S5145
+    logger.info(
+        "otp_issued email=%s purpose=%s ttl=%ds", _clean(email), _clean(purpose), OTP_TTL_SECONDS
+    )  # NOSONAR pythonsecurity:S5145
     return OtpIssueResult(success=True, code=code)
 
 
@@ -236,7 +239,9 @@ async def verify_otp(email: str, purpose: str, code: str) -> OtpVerifyResult:
 
     # Success — consume
     await _mem_store.delete(key)
-    logger.info("otp_verified email=%s purpose=%s", _clean(email), _clean(purpose))  # NOSONAR pythonsecurity:S5145
+    logger.info(
+        "otp_verified email=%s purpose=%s", _clean(email), _clean(purpose)
+    )  # NOSONAR pythonsecurity:S5145
     return OtpVerifyResult(success=True)
 
 
