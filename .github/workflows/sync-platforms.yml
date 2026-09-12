@@ -507,6 +507,8 @@ jobs:
     name: 🔍 Drift Detection (HF → GitHub)
     runs-on: ubuntu-latest
     if: github.event_name == 'schedule'
+    env:
+      DRIFT_DETECTED: 'false'
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
         with:
@@ -514,6 +516,7 @@ jobs:
           token: ${{ secrets.GH_PAT }}
 
       - name: 🤗 Check for HF Space drift
+        id: check_drift
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
@@ -533,14 +536,16 @@ jobs:
             echo "⚠️ Drift detected on HF Space README"
             mkdir -p .drift
             cp /tmp/hf-space/README.md .drift/README.hf.md.hf-latest
-            echo "DRIFT_DETECTED=true" >> $GITHUB_ENV
+            echo "DRIFT_DETECTED=true" >> "$GITHUB_ENV"
+            echo "drift_detected=true" >> "$GITHUB_OUTPUT"
           else
             echo "✅ HF Space README in sync with GitHub"
-            echo "DRIFT_DETECTED=false" >> $GITHUB_ENV
+            echo "DRIFT_DETECTED=false" >> "$GITHUB_ENV"
+            echo "drift_detected=false" >> "$GITHUB_OUTPUT"
           fi
 
       - name: 📝 Create PR to back-sync HF drift
-        if: env.DRIFT_DETECTED == 'true'
+        if: steps.check_drift.outputs.drift_detected == 'true'
         env:
           GH_TOKEN: ${{ secrets.GH_PAT }}
         run: |
