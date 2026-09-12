@@ -223,9 +223,9 @@ def approve_request(
         if approver_id == request["requested_by"]:
             logger.warning(
                 "dual_control_self_approval_blocked request=%s approver=%s",
-                request_id,
+                _sanitize_for_log(request_id),
                 _sanitize_for_log(approver_id),
-            )  # NOSONAR
+            )  # NOSONAR pythonsecurity:S5145
             _add_audit_entry("self_approval_blocked", request_id, approver_id)
             return {
                 "success": False,
@@ -309,10 +309,10 @@ def reject_request(
     # _sanitize_for_log() (S5145: no CR/LF can reach the log).
     logger.info(
         "Dual-control request %s REJECTED by %s: %s",
-        request_id,
+        _sanitize_for_log(request_id),
         _sanitize_for_log(rejector_id),
         _sanitize_for_log(reason),
-    )  # NOSONAR S5145: server-generated id + sanitized rejector_id/reason
+    )  # NOSONAR pythonsecurity:S5145
 
     _notify_clients(request_id, request)
 

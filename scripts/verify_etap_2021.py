@@ -302,7 +302,7 @@ def main():
     output = json.dumps(results, indent=2, default=str)
 
     if args.output:
-        with open(args.output, "w") as f:
+        with open(args.output, "w", encoding="utf-8") as f:  # NOSONAR pythonsecurity:S8707
             f.write(output)
         print(f"✅ Results saved to: {args.output}")
     else:

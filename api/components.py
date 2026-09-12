@@ -13,14 +13,20 @@ Prefix: /api/v1/components
 
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
+import re
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 UTC = timezone.utc  # noqa: UP017
+
+def _clean_log(val: Any) -> str:
+    return re.sub(r"[\r\n\t]", "_", str(val or ""))[:200]
+
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
 from pydantic import BaseModel, ConfigDict, Field
@@ -439,7 +445,7 @@ async def verify_component(
         comp.review_notes = payload.notes
     await db.commit()
     await db.refresh(comp)
-    logger.info("Component %s approved by admin %s", id, user.user_id)
+    logger.info("Component %s approved by admin %s", _clean_log(id), _clean_log(user.user_id))  # NOSONAR pythonsecurity:S5145
     return ComponentResponse.model_validate(comp)
 
 
@@ -465,7 +471,7 @@ async def reject_component(
     comp.reviewed_at = datetime.now(UTC)
     await db.commit()
     await db.refresh(comp)
-    logger.info("Component %s rejected by admin %s: %s", id, user.user_id, payload.reason)
+    logger.info("Component %s rejected by admin %s: %s", _clean_log(id), _clean_log(user.user_id), _clean_log(payload.reason))  # NOSONAR pythonsecurity:S5145
     return ComponentResponse.model_validate(comp)
 
 
@@ -521,7 +527,7 @@ async def import_etap_components(
     for c in created_components:
         await db.refresh(c)
 
-    logger.info("Imported %d components from ETAP file %s", len(created_components), file.filename)
+    logger.info("Imported %d components from ETAP file %s", len(created_components), _clean_log(file.filename or ""))  # NOSONAR pythonsecurity:S5145
     return [ComponentResponse.model_validate(c) for c in created_components]
 
 
@@ -586,6 +592,14 @@ async def import_json_components(
 # ---------------------------------------------------------------------------
 
 
+def _read_seed_json_file(file_path: Path) -> dict[str, Any] | None:
+    with open(file_path, encoding="utf-8") as f:
+        item = json.load(f)
+    if isinstance(item, dict) and "type" in item and "name" in item:
+        return item
+    return None
+
+
 async def ensure_seed_data(db: AsyncSession) -> None:
     """Ensure standard seed components exist in database."""
     count_stmt = select(func.count(Component.id))
@@ -604,9 +618,8 @@ async def ensure_seed_data(db: AsyncSession) -> None:
         if p.name in ("index.json", "schema.json"):
             continue
         try:
-            with open(p, encoding="utf-8") as f:
-                item = json.load(f)
-            if not isinstance(item, dict) or "type" not in item or "name" not in item:
+            item = await asyncio.to_thread(_read_seed_json_file, p)
+            if not item:
                 continue
 
             comp = Component(

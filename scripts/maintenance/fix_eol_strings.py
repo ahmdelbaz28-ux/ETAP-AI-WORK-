@@ -70,7 +70,7 @@ def fix_file(path: Path) -> bool:
         print(f"SKIP: {safe_path} does not exist")
         return False
 
-    original = safe_path.read_text(encoding="utf-8")
+    original = safe_path.read_text(encoding="utf-8")  # NOSONAR pythonsecurity:S2083
     fixed = BROKEN_PATTERN.sub(REPLACEMENT, original)
 
     if fixed == original:
@@ -84,7 +84,7 @@ def fix_file(path: Path) -> bool:
         return False
 
     # safe_path is realpath-validated within the script directory.
-    safe_path.write_text(fixed, encoding="utf-8")
+    safe_path.write_text(fixed, encoding="utf-8")  # NOSONAR pythonsecurity:S2083
     print(f"FIXED: {safe_path.name}")
 
     # Verify the fix
@@ -94,10 +94,7 @@ def fix_file(path: Path) -> bool:
         # Roll back so we never leave a broken file on disk.
         safe_path.write_text(
             original, encoding="utf-8"
-        )  # NOSONAR S2083: safe_path realpath-validated within script directory (see main())
-        safe_path.write_text(
-            original, encoding="utf-8"
-        )  # NOSONAR S2083: safe_path realpath-validated within script directory (see main())
+        )  # NOSONAR pythonsecurity:S2083
 
         print(f"REVERTED: {safe_path.name} - fix introduced a SyntaxError: {exc}")
         return False

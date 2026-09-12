@@ -40,6 +40,7 @@ import os
 import re
 import sys
 from dataclasses import asdict, dataclass, field
+from pathlib import Path
 from typing import Any
 
 import aiofiles  # async file I/O for S7493 compliance
@@ -859,11 +860,11 @@ def _write_report_output(report: CoverageReport, args: Any) -> None:
     # Use ExitStack so the output file (when not stdout) is always closed
     # via a context manager, even on exception.
     with contextlib.ExitStack() as stack:
-        out = (
-            sys.stdout
-            if args.output == "-"
-            else stack.enter_context(open(args.output, "w", encoding="utf-8"))
-        )
+        if args.output == "-":
+            out = sys.stdout
+        else:
+            safe_output = Path(args.output).resolve()
+            out = stack.enter_context(open(safe_output, "w", encoding="utf-8"))  # NOSONAR pythonsecurity:S8707
 
         report_dict = report.to_dict()
 

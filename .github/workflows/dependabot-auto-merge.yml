@@ -114,21 +114,27 @@ jobs:
             const start = Date.now();
 
             while (Date.now() - start < timeout) {
-              const { data: statuses } = await github.rest.repos.listCommitStatuses({
+              const { data: statusData } = await github.rest.repos.getCombinedStatusForRef({
+                owner, repo, ref
+              });
+              const { data: checksData } = await github.rest.checks.listForRef({
                 owner, repo, ref
               });
 
-              const { data: branch } = await github.rest.repos.getBranch({ owner, repo, branch: context.payload.pull_request.base.ref });
+              const statuses = statusData.statuses || [];
+              const checkRuns = checksData.check_runs || [];
 
-              const hasPending = statuses.some(s => s.state === 'pending');
+              const hasPendingStatus = statuses.some(s => s.state === 'pending');
+              const hasPendingCheck = checkRuns.some(c => c.status !== 'completed' && c.name !== 'auto-merge');
 
-              if (!hasPending && statuses.length > 0) {
-                const allSuccess = statuses.every(s => s.state === 'success');
-                if (allSuccess) {
+              if (!hasPendingStatus && !hasPendingCheck && (statuses.length > 0 || checkRuns.length > 0)) {
+                const allStatusSuccess = statuses.every(s => s.state === 'success');
+                const allChecksSuccess = checkRuns.every(c => c.name === 'auto-merge' || c.conclusion === 'success' || c.conclusion === 'skipped' || c.conclusion === 'neutral');
+                if (allStatusSuccess && allChecksSuccess) {
                   core.setOutput('ready', 'true');
                   return;
                 }
-              } else if (statuses.length === 0) {
+              } else if (statuses.length === 0 && checkRuns.length === 0) {
                 core.setOutput('ready', 'true');
                 return;
               }

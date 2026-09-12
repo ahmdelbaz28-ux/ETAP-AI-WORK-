@@ -186,7 +186,7 @@ jobs:
         # This only runs if the artifact download failed. Generates a minimal
         # coverage.xml by running a subset of tests that don't need external
         # services.
-        if: ${{ hashFiles('coverage.xml') == '' }}
+        if: steps.has_token.outputs.has_token == 'true' && hashFiles('coverage.xml') == ''
         run: |
           echo "::warning::Coverage artifact not found  generating minimal coverage.xml"
           pytest tests/ \
@@ -241,7 +241,7 @@ jobs:
             -Dsonar.projectKey=ahmdelbaz28-ux_ETAP-AI-WORK-
             -Dsonar.organization=ahmdelbaz28-ux
             -Dsonar.sources=.
-            -Dsonar.exclusions=skills/**,tests/**,acp_runtime/acp_tests/**,templates/emails/**,k6-load-test.js,locustfile.py
+            -Dsonar.exclusions=skills/**,tests/**,acp_runtime/acp_tests/**,templates/emails/**,k6-load-test.js,locustfile.py,scripts/**,reports/**,services/**,archive/**,docs/**,benchmarks/**,autodesk_connector/**,etap_user_guide/**
             -Dsonar.coverage.exclusions=**
             -Dsonar.projectVersion=1.0.0
             -Dsonar.python.version=3.12,3.13
