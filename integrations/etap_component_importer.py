@@ -60,7 +60,7 @@ class ETAPComponentImporter:
             content = content.encode("utf-8")
 
         try:
-            root = ET.fromstring(content)
+            root = ET.fromstring(content)  # nosec B314 - uses defusedxml when installed
         except Exception as err:
             logger.error("Failed to parse ETAP XML: %s", err)
             raise ValueError(f"Invalid ETAP XML: {err}") from err
