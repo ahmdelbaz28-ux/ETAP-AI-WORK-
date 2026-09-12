@@ -50,9 +50,12 @@ reports/
 # Knowledge DB (generated)
 knowledge_db/
 
-# Data files
-data/
+# Data files (ephemeral runtime DBs excluded; component catalog data/components/ is included)
+data/*.db*
+data/local_repro*
 *.db
+*.db-wal
+*.db-shm
 
 # Environment files (use .env.example instead)
 .env
