@@ -1,9 +1,9 @@
 /**
  * DemoModeBanner — visible when the API client is in demo mode.
  *
- * In demo mode, all API responses are canned data (DEMO_AGENTS, DEMO_STUDIES,
- * etc.) — there is NO real backend. This banner makes that fact obvious so
- * users don't mistake demo data for live production data.
+ * In demo mode, all API responses use local fallback mocks — there is NO real
+ * backend. This banner makes that fact obvious so users don't mistake demo data
+ * for live production data.
  */
 
 import { useEffect, useState } from "react";
