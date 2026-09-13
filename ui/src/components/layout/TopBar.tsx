@@ -55,7 +55,7 @@ export function TopBar({ onHelpOpen }: TopBarProps) {
           </span>
         </button>
 
-        {/* Project context placeholder */}
+        {/* Project context */}
         <div className="hidden md:flex items-center gap-1.5 ml-3 px-2.5 py-1 rounded-md bg-[var(--bg-primary)] border border-[var(--border-primary)] text-xs text-[var(--text-muted)]">
           <span className="w-1.5 h-1.5 rounded-full bg-green-400" />
           <span>No project loaded</span>
@@ -63,7 +63,7 @@ export function TopBar({ onHelpOpen }: TopBarProps) {
         </div>
       </div>
 
-      {/* Center: Search placeholder */}
+      {/* Center: Search */}
       <div className="hidden lg:flex items-center flex-1 max-w-md mx-8">
         <div className="flex items-center gap-2 w-full px-3 py-1.5 bg-[var(--bg-primary)] rounded-lg border border-[var(--border-primary)] text-xs text-[var(--text-muted)]">
           <Search className="w-3.5 h-3.5" />
