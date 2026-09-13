@@ -15,6 +15,41 @@ export const TEST_ADMIN: MockUser = {
 };
 
 /**
+ * Baseline background route mocks to prevent Vite proxy stalls
+ * (ECONNREFUSED 127.0.0.1:8000) when running E2E without live FastAPI backend.
+ */
+export async function mockBaselineRoutes(page: Page): Promise<void> {
+  // Feature flags (default off / empty, fail-closed)
+  await page.route("**/api/v1/feature-flags*", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ success: true, data: [] }),
+    }),
+  );
+
+  // Notifications bell & list in Navbar
+  await page.route("**/api/v1/notifications/**", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ success: true, data: [], unread_count: 0 }),
+    }),
+  );
+
+  // Health and readiness checks
+  await page.route(
+    /.*\/((health|ready)z?|metrics|openapi\.json)$/,
+    (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ status: "ok" }),
+      }),
+  );
+}
+
+/**
  * Shared authenticated-session mock.
  * Consolidates the sessionStorage + /api/v1/auth/me route setup
  * duplicated across ~8 specs. Uses addInitScript so auth survives
@@ -33,6 +68,9 @@ export async function mockAuthenticatedSession(
     },
     { token: "test-token", mockUser: user },
   );
+
+  // Install baseline mocks first so specific route mocks registered in specs can override them (LIFO)
+  await mockBaselineRoutes(page);
 
   await page.route("**/api/v1/auth/me", (route) =>
     route.fulfill({

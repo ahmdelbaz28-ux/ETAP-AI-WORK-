@@ -16,6 +16,7 @@
  */
 
 import { type Page, expect, test } from "@playwright/test";
+import { mockAuthenticatedSession } from "./fixtures/auth";
 
 // ---------------------------------------------------------------------------
 // Test fixtures
@@ -166,36 +167,8 @@ let orchestrateCalled = false;
 let orchestrateStudyType: string | null = null;
 
 async function mockAgentsBackend(page: Page) {
-  // Auth + onboarding-dismissal (same pattern as email-dashboard.spec.ts)
-  await page.addInitScript(() => {
-    sessionStorage.setItem("authToken", "test-token");
-    sessionStorage.setItem(
-      "authUser",
-      JSON.stringify({
-        user_id: "u1",
-        email: "admin@etap.com",
-        role: "admin",
-        tenant_id: "t1",
-      }),
-    );
-    localStorage.setItem("etap-ai-onboarding-completed", "true");
-  });
-
-  // Auth: validateTokenAndSetUser calls /api/v1/auth/me on mount.
-  await page.route("**/api/v1/auth/me", (route) =>
-    route.fulfill({
-      status: 200,
-      contentType: "application/json",
-      body: JSON.stringify({
-        user_id: "u1",
-        email: "admin@etap.com",
-        username: "admin",
-        role: "admin",
-        is_active: true,
-        tenant_id: "t1",
-      }),
-    }),
-  );
+  // Use shared authenticated session and baseline routes (feature-flags, notifications, health)
+  await mockAuthenticatedSession(page);
 
   // GET "" (list) — the bare prefix /api/v1/agents has NO trailing path, so
   // the catch-all glob **/api/v1/agents/** does NOT match it. Register a
@@ -398,7 +371,7 @@ test.describe("Agents Control Panel page (TASK-5)", () => {
     await page.goto("/admin/agents");
 
     // Header
-    await expect(page.getByRole("heading", { name: /Agents Control Panel/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Agents Control Panel/i })).toBeVisible({ timeout: 35_000 });
 
     // Agents table — wait for mock agents to load
     const agentsTable = page.locator("table").first();
@@ -423,6 +396,7 @@ test.describe("Agents Control Panel page (TASK-5)", () => {
   test("Agent Chat: ETAP Expert submit fires POST /etap-expert/chat", async ({ page }) => {
     await mockAgentsBackend(page);
     await page.goto("/admin/agents");
+    await expect(page.getByRole("heading", { name: /Agents Control Panel/i })).toBeVisible({ timeout: 35_000 });
 
     // Go to the Agent Chat tab
     await page.getByRole("button", { name: /^Agent Chat$/i }).click();
@@ -447,6 +421,7 @@ test.describe("Agents Control Panel page (TASK-5)", () => {
   test("CUA & Safety: health card loads from GET /etap-gui/health", async ({ page }) => {
     await mockAgentsBackend(page);
     await page.goto("/admin/agents");
+    await expect(page.getByRole("heading", { name: /Agents Control Panel/i })).toBeVisible({ timeout: 35_000 });
 
     // Go to the CUA & Safety tab
     await page.getByRole("button", { name: /^CUA & Safety$/i }).click();
@@ -464,6 +439,7 @@ test.describe("Agents Control Panel page (TASK-5)", () => {
   test("Kill-switch activate opens modal then fires POST with reason", async ({ page }) => {
     await mockAgentsBackend(page);
     await page.goto("/admin/agents");
+    await expect(page.getByRole("heading", { name: /Agents Control Panel/i })).toBeVisible({ timeout: 35_000 });
 
     // Go to the CUA & Safety tab
     await page.getByRole("button", { name: /^CUA & Safety$/i }).click();
@@ -494,6 +470,7 @@ test.describe("Agents Control Panel page (TASK-5)", () => {
   test("Audit verify fires GET /safety/audit/verify and shows verdict", async ({ page }) => {
     await mockAgentsBackend(page);
     await page.goto("/admin/agents");
+    await expect(page.getByRole("heading", { name: /Agents Control Panel/i })).toBeVisible({ timeout: 35_000 });
 
     // Go to the CUA & Safety tab
     await page.getByRole("button", { name: /^CUA & Safety$/i }).click();
@@ -517,6 +494,7 @@ test.describe("Agents Control Panel page (TASK-5)", () => {
   test("SIEM tab loads events from GET /siem/events", async ({ page }) => {
     await mockAgentsBackend(page);
     await page.goto("/admin/agents");
+    await expect(page.getByRole("heading", { name: /Agents Control Panel/i })).toBeVisible({ timeout: 35_000 });
 
     // Go to the SIEM tab
     await page.getByRole("button", { name: /^SIEM$/i }).click();
@@ -533,6 +511,7 @@ test.describe("Agents Control Panel page (TASK-5)", () => {
   test("Orchestration: fill form + submit fires POST /ahmed-etap/orchestrate", async ({ page }) => {
     await mockAgentsBackend(page);
     await page.goto("/admin/agents");
+    await expect(page.getByRole("heading", { name: /Agents Control Panel/i })).toBeVisible({ timeout: 35_000 });
 
     // Go to the Orchestration tab
     await page.getByRole("button", { name: /^Orchestration$/i }).click();

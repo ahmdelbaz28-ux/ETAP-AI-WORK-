@@ -15,6 +15,7 @@
  */
 
 import { type Page, expect, test } from "@playwright/test";
+import { mockAuthenticatedSession } from "./fixtures/auth";
 
 // ---------------------------------------------------------------------------
 // Test fixtures
@@ -116,39 +117,8 @@ let clearCalled = false;
 let clearMaxAge: number | null = null;
 
 async function mockEmailDashboardBackend(page: Page) {
-  // Auth + onboarding-dismissal
-  await page.addInitScript(() => {
-    sessionStorage.setItem("authToken", "test-token");
-    sessionStorage.setItem(
-      "authUser",
-      JSON.stringify({
-        user_id: "u1",
-        email: "admin@etap.com",
-        role: "admin",
-        tenant_id: "t1",
-      }),
-    );
-    localStorage.setItem("etap-ai-onboarding-completed", "true");
-  });
-
-  // Auth: validateTokenAndSetUser calls /api/v1/auth/me on mount. The token
-  // is fake, so we must mock the /me response or ProtectedRoute redirects
-  // to /login. (Same pattern used by rbac-admin.spec.ts and
-  // equipment-management.spec.ts.)
-  await page.route("**/api/v1/auth/me", (route) =>
-    route.fulfill({
-      status: 200,
-      contentType: "application/json",
-      body: JSON.stringify({
-        user_id: "u1",
-        email: "admin@etap.com",
-        username: "admin",
-        role: "admin",
-        is_active: true,
-        tenant_id: "t1",
-      }),
-    }),
-  );
+  // Use shared authenticated session and baseline routes (feature-flags, notifications, health)
+  await mockAuthenticatedSession(page);
 
   // Single catch-all route for /api/v1/email-dashboard/api/**
   await page.route("**/api/v1/email-dashboard/api/**", async (route) => {
@@ -285,6 +255,7 @@ test.describe("Email Dashboard page (TASK-4)", () => {
   test("Recent tab loads records with flow filter", async ({ page }) => {
     await mockEmailDashboardBackend(page);
     await page.goto("/admin/email-dashboard");
+    await expect(page.getByRole("heading", { name: /Email Dashboard/i })).toBeVisible({ timeout: 20_000 });
 
     // Click the Recent Sends tab
     await page.getByRole("button", { name: /Recent Sends/i }).click();
@@ -316,6 +287,7 @@ test.describe("Email Dashboard page (TASK-4)", () => {
   test("clicking a record row opens the detail modal", async ({ page }) => {
     await mockEmailDashboardBackend(page);
     await page.goto("/admin/email-dashboard");
+    await expect(page.getByRole("heading", { name: /Email Dashboard/i })).toBeVisible({ timeout: 20_000 });
 
     // Go to Recent tab
     await page.getByRole("button", { name: /Recent Sends/i }).click();
@@ -341,6 +313,7 @@ test.describe("Email Dashboard page (TASK-4)", () => {
   test("Config tab loads non-secret Resend config", async ({ page }) => {
     await mockEmailDashboardBackend(page);
     await page.goto("/admin/email-dashboard");
+    await expect(page.getByRole("heading", { name: /Email Dashboard/i })).toBeVisible({ timeout: 20_000 });
 
     // Click the Config tab
     await page.getByRole("button", { name: /^Config$/i }).click();

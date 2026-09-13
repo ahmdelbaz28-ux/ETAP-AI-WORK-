@@ -31,7 +31,7 @@ export default defineConfig({
     // Auto-waiting assertions (toBeVisible, poll, etc.). Must exceed the
     // cold-transform time of lazily imported pages or the first test that
     // visits each route fails spuriously.
-    timeout: 15_000,
+    timeout: 30_000,
   },
   use: {
     // Allow overriding the dev-server host/port via env vars (useful in

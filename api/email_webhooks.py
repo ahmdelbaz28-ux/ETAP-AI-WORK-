@@ -88,6 +88,45 @@ _WEBHOOK_RATE_LIMIT_WINDOW = int(os.getenv("WEBHOOK_RATE_LIMIT_WINDOW", "60"))  
 _webhook_rate_limit: dict[str, list[float]] = {}
 _webhook_rate_lock = threading.Lock()
 
+# Idempotency cache for inbound svix-id to prevent duplicate processing on retries
+_processed_svix_ids: dict[str, float] = {}
+_SVIX_CACHE_MAX = 10000
+_SVIX_CACHE_TTL_SECONDS = 86400  # 24 hours
+_svix_id_lock = threading.Lock()
+
+
+def _is_svix_id_duplicate(svix_id: str) -> bool:
+    """Check if an inbound svix-id has already been processed within the TTL window.
+
+    Returns True if this is a duplicate event (already processed).
+    If False, marks the svix-id as processed and records the timestamp.
+    Thread-safe with automatic TTL expiry and bounded memory limit.
+    """
+    if not svix_id:
+        return False
+
+    now = time.time()
+    with _svix_id_lock:
+        # Check if already processed and unexpired
+        if svix_id in _processed_svix_ids:
+            recorded_at = _processed_svix_ids[svix_id]
+            if now - recorded_at < _SVIX_CACHE_TTL_SECONDS:
+                return True
+
+        # Prune expired entries if cache is growing large
+        if len(_processed_svix_ids) >= _SVIX_CACHE_MAX:
+            cutoff = now - _SVIX_CACHE_TTL_SECONDS
+            expired_keys = [k for k, t in _processed_svix_ids.items() if t < cutoff]
+            for k in expired_keys:
+                _processed_svix_ids.pop(k, None)
+            if len(_processed_svix_ids) >= _SVIX_CACHE_MAX:
+                oldest_keys = sorted(_processed_svix_ids, key=_processed_svix_ids.get)[:1000]
+                for k in oldest_keys:
+                    _processed_svix_ids.pop(k, None)
+
+        _processed_svix_ids[svix_id] = now
+        return False
+
 # S1313 — named constants instead of hardcoded cloud-metadata IP literals.
 _CLOUD_METADATA_IPV4 = "169.254.169.254"  # AWS IMDSv1/v2, GCP, Azure shared address
 _CLOUD_METADATA_IPV6 = "fd00:ec2::254"  # AWS IMDSv2 IPv6 endpoint
@@ -368,6 +407,33 @@ async def resend_webhook(
         sig_error = _verify_signature_or_reject(raw_body, svix_signature, secret, trace_id)
         if sig_error is not None:
             return sig_error
+
+    # Resolve effective svix_id: prefer header, fallback to parsing svix_signature
+    effective_svix_id = svix_id
+    if not effective_svix_id and svix_signature:
+        for part in svix_signature.split(","):
+            part_strip = part.strip()
+            if part_strip.startswith("svix-id="):
+                effective_svix_id = part_strip.split("=", 1)[1].strip()
+                break
+
+    # Deduplication check for retried webhook deliveries
+    if effective_svix_id and _is_svix_id_duplicate(effective_svix_id):
+        logger.info(
+            "resend_webhook_duplicate_svix_id svix_id=%s trace=%s",
+            effective_svix_id,
+            trace_id,
+        )
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content={
+                "success": True,
+                "idempotent_replay": True,
+                "svix_id": effective_svix_id,
+                "message": "Webhook already processed (idempotent replay)",
+                "trace_id": trace_id,
+            },
+        )
 
     # Parse body
     try:

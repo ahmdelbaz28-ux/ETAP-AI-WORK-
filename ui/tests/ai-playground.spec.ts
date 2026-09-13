@@ -15,6 +15,7 @@
  */
 
 import { type Page, expect, test } from "@playwright/test";
+import { mockAuthenticatedSession } from "./fixtures/auth";
 
 const MOCK_PREDICT_LOAD_RESPONSE = {
   success: true,
@@ -104,37 +105,7 @@ async function mockApiRoutes(page: Page) {
 test.describe("AI/ML Playground (TASK-8)", () => {
   test.beforeEach(async ({ page }) => {
     await mockApiRoutes(page);
-    // Seed auth storage exactly like the other specs: the app's protected
-    // routes require a stored token/user BEFORE the /auth/me round-trip,
-    // otherwise they redirect to the sign-in screen.
-    await page.addInitScript(() => {
-      sessionStorage.setItem("authToken", "test-token");
-      sessionStorage.setItem(
-        "authUser",
-        JSON.stringify({
-          user_id: "u1",
-          email: "admin@etap.com",
-          role: "admin",
-          tenant_id: "t1",
-        }),
-      );
-      localStorage.setItem("etap-ai-onboarding-completed", "true");
-    });
-    // Mock auth so the page can load (shape must match the app's contract)
-    await page.route("**/api/v1/auth/me", async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify({
-          user_id: "u1",
-          email: "admin@etap.com",
-          username: "admin",
-          role: "admin",
-          is_active: true,
-          tenant_id: "t1",
-        }),
-      });
-    });
+    await mockAuthenticatedSession(page);
   });
 
   test("renders 5 capability tabs and defaults to predict/load", async ({ page }) => {
@@ -160,6 +131,8 @@ test.describe("AI/ML Playground (TASK-8)", () => {
     });
 
     await page.goto("/admin/ai-playground");
+    await expect(page.getByRole("heading", { name: /AI\/ML Playground/i })).toBeVisible({ timeout: 20_000 });
+
     // Click Run
     await page.getByRole("button", { name: /Run/i }).click();
     // Result viewer should show SUCCESS badge
@@ -171,6 +144,8 @@ test.describe("AI/ML Playground (TASK-8)", () => {
 
   test("switching tabs clears the result and changes the editor", async ({ page }) => {
     await page.goto("/admin/ai-playground");
+    await expect(page.getByRole("heading", { name: /AI\/ML Playground/i })).toBeVisible({ timeout: 20_000 });
+
     // Run on first tab
     await page.getByRole("button", { name: /^Run/i }).click();
     await expect(page.getByText("SUCCESS")).toBeVisible({ timeout: 30000 });
@@ -191,6 +166,8 @@ test.describe("AI/ML Playground (TASK-8)", () => {
     });
 
     await page.goto("/admin/ai-playground");
+    await expect(page.getByRole("heading", { name: /AI\/ML Playground/i })).toBeVisible({ timeout: 20_000 });
+
     // Replace textarea content with invalid JSON
     const textarea = page.getByLabel(/JSON input for Load Forecast/i);
     await textarea.fill("{not valid json");
@@ -204,6 +181,8 @@ test.describe("AI/ML Playground (TASK-8)", () => {
 
   test("Sample button restores original sample input", async ({ page }) => {
     await page.goto("/admin/ai-playground");
+    await expect(page.getByRole("heading", { name: /AI\/ML Playground/i })).toBeVisible({ timeout: 20_000 });
+
     const textarea = page.getByLabel(/JSON input for Load Forecast/i);
     // Get original value
     const original = await textarea.inputValue();

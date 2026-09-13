@@ -31,7 +31,13 @@ import pytest
 # Ensure project root is importable
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from api.email_webhooks import WebhookEndpoint, _should_forward
+from api.email_webhooks import (
+    WebhookEndpoint,
+    _is_svix_id_duplicate,
+    _processed_svix_ids,
+    _should_forward,
+    _svix_id_lock,
+)
 
 # ---------------------------------------------------------------------------
 # Test fixtures
@@ -220,3 +226,45 @@ class TestShouldForwardEdgeCases:
 # Combined with the short-circuit `if not ep.is_active: return False` guard,
 # this is logically equivalent to the pre-refactor implementation.
 # ---------------------------------------------------------------------------
+
+
+# ---------------------------------------------------------------------------
+# Branch 5: Inbound svix-id deduplication (idempotency)
+# ---------------------------------------------------------------------------
+
+
+class TestSvixDeduplication:
+    """Verify that inbound webhook svix-ids are properly deduplicated."""
+
+    @pytest.fixture(autouse=True)
+    def clean_svix_cache(self):
+        with _svix_id_lock:
+            _processed_svix_ids.clear()
+        yield
+        with _svix_id_lock:
+            _processed_svix_ids.clear()
+
+    def test_empty_or_none_svix_id_never_duplicate(self) -> None:
+        assert _is_svix_id_duplicate("") is False
+        assert _is_svix_id_duplicate(None) is False  # type: ignore[arg-type]
+
+    def test_first_delivery_returns_false(self) -> None:
+        assert _is_svix_id_duplicate("msg_svix_1001") is False
+
+    def test_second_delivery_with_same_id_returns_true(self) -> None:
+        assert _is_svix_id_duplicate("msg_svix_1002") is False
+        assert _is_svix_id_duplicate("msg_svix_1002") is True
+
+    def test_different_svix_ids_do_not_collide(self) -> None:
+        assert _is_svix_id_duplicate("msg_svix_alpha") is False
+        assert _is_svix_id_duplicate("msg_svix_beta") is False
+        assert _is_svix_id_duplicate("msg_svix_alpha") is True
+        assert _is_svix_id_duplicate("msg_svix_beta") is True
+
+    def test_expired_svix_id_is_not_treated_as_duplicate(self) -> None:
+        import time
+
+        with _svix_id_lock:
+            _processed_svix_ids["msg_svix_old"] = time.time() - 90000  # > 24 hours ago
+        # Since it is expired, should return False (treated as fresh)
+        assert _is_svix_id_duplicate("msg_svix_old") is False
