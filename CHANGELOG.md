@@ -6,6 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Safe Stabilization Batch-1 (Docs & UI Placeholders)
+
+#### Added
+- Honest technical debt tracking table in `docs/STATUS.md` referencing open ROADMAP items (TD-001, TD-004, TD-009, TD-012).
+- Explanatory footnote in `ROADMAP.md` clarifying variance between canonical 24 agents and earlier 19-agent snapshots.
+
+#### Changed
+- `ROADMAP.md`: Unified AI agent count to 24 specialized agents and removed duplicated stale v1.0.0 roadmap appendix.
+- `ui/src/components/mfa/MFASetup.tsx`: Replaced styled text placeholder with production `QRCodeSVG` component from `qrcode.react`.
+- `ui/src/components/layout/TopBar.tsx`: Cleaned placeholder comments in top navigation bar.
+- `ui/src/components/DemoModeBanner.tsx`: Updated stale comment referencing deleted demo agents/studies.
+
 ### UI/Backend coverage — pass-2 (branch `fix/ui-backend-coverage-pass-2`)
 
 This pass closes 4 of the 4 tasks left undone by pass-1 (TASK-8, 9, 11, 13, 14)

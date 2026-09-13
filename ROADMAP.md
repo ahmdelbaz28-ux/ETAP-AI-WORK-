@@ -48,11 +48,13 @@ AhmedETAP v2.1.0 is an enterprise-grade autonomous engineering intelligence plat
 - `__slots__` optimization on core model classes (Bus, Line, Load, Generator, Transformer, System)
 - GPU solver module (`engine/gpu_solver.py`)
 
-#### AI Agent System (23 Specialized Agents)
+#### AI Agent System (24 Specialized Agents)[^1]
 
 - **Engineering Agents:** Load Flow, Short Circuit, Arc Flash, Harmonic, OPF, Motor Starting, Stability, Cable Sizing, Earth Grid, Renewable, Battery Storage, Protection Coordination
 - **Operational Agents:** SCADA, Digital Twin, Weather, Anomaly Detection, Predictive Analytics
-- **Meta Agents:** Goal Planner, Power System Coordinator, ETAP Expert, ETAP GUI, Code Guard, Validation Agent
+- **Meta Agents:** Goal Planner, Power System Coordinator, ETAP Expert, ETAP GUI, Code Guard, Validation Agent, Report Generation Agent
+
+[^1]: Note on agent count: Canonical architecture specifies 24 specialist agents as documented in `README.md` and `AGENTS.md`. Earlier snapshots (e.g. `PROJECT_INDEX.md` dated 2026-06-28 listing 19 agents) reflect prior milestones before full agent suite consolidation.
 
 #### ETAP Integration
 
@@ -424,45 +426,3 @@ For security vulnerabilities, do **not** open a public issue. Email security@eta
 ### License
 
 AhmedETAP is released under the [MIT License](LICENSE).
-
-# AhmedETAP — Roadmap
-
-## Current Release (v1.0.0)
-
-### ✅ Completed
-- Multi-agent architecture with 9 specialized agents
-- Load Flow, Short Circuit, Arc Flash, Harmonic Analysis, OPF
-- IEEE 1584-2018, IEC 60909, IEEE 519-2022 compliance
-- FastAPI engineering service with Docker multi-arch support
-- Mastra framework integration for agent orchestration
-- JWT authentication and RBAC
-- CI/CD with GitHub Actions
-- GHCR multi-arch image publishing
-
-## Q3 2026
-
-- [ ] Digital Twin integration
-- [ ] Real-time SCADA connectivity
-- [ ] Advanced visualization dashboard
-- [ ] Mobile application (React Native)
-- [ ] GraphQL API support
-
-## Q4 2026
-
-- [ ] Multi-tenant architecture
-- [ ] Advanced ML models for prediction
-- [ ] ISO 27001 certification
-- [ ] Real-time collaboration features
-- [ ] Plugin system for custom agents
-
-## 2027
-
-- [ ] Renewable energy optimization
-- [ ] Microgrid management
-- [ ] Battery storage integration
-- [ ] EV charging infrastructure
-- [ ] Edge computing support
-
-## Contributing
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for how to contribute to the roadmap.
