@@ -230,7 +230,7 @@ jobs:
               "core",
               "core.bootstrap",
               # "core.config",  # Module does not exist (removed or never created)
-              "core.database",
+              # "core.database",  # Module consolidated into api.database
               "core.metrics",
               "core.retry",
               "core.tracing",
@@ -250,6 +250,7 @@ jobs:
               "core_model.line",
               "core_model.transformer",
               "api",
+              "api.database",
               "api.shared_handlers",
               "api.health",
               "integrations",
