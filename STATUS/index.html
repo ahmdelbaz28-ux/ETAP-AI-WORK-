@@ -20,7 +20,7 @@
     
     
       
-        <title>🚀 AhmedETAP Platform — Official Launch Readiness Status - AhmedETAP Documentation</title>
+        <title>🚀 AhmedETAP Platform — Launch Readiness & Technical Status - AhmedETAP Documentation</title>
       
     
     
@@ -70,7 +70,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#ahmedetap-platform-official-launch-readiness-status" class="md-skip">
+        <a href="#ahmedetap-platform-launch-readiness-technical-status" class="md-skip">
           Skip to content
         </a>
       
@@ -104,7 +104,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              🚀 AhmedETAP Platform — Official Launch Readiness Status
+              🚀 AhmedETAP Platform — Launch Readiness &amp; Technical Status
             
           </span>
         </div>
@@ -544,6 +544,15 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#technical-debt-production-gaps-tracking" class="md-nav__link">
+    <span class="md-ellipsis">
+      📊 Technical Debt &amp; Production Gaps Tracking
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#launch-readiness-matrix-8-dimensions" class="md-nav__link">
     <span class="md-ellipsis">
       📊 Launch Readiness Matrix (8 Dimensions)
@@ -589,70 +598,105 @@
   
 
 
-<h1 id="ahmedetap-platform-official-launch-readiness-status">🚀 AhmedETAP Platform — Official Launch Readiness Status</h1>
-<p><strong>Last Updated:</strong> August 2026<br />
-<strong>Status:</strong> <strong>10/10 Ready for Production Launch</strong> 🟢<br />
+<h1 id="ahmedetap-platform-launch-readiness-technical-status">🚀 AhmedETAP Platform — Launch Readiness &amp; Technical Status</h1>
+<p><strong>Last Updated:</strong> September 2026<br />
+<strong>Status:</strong> <strong>Production Hardening in Progress</strong> 🟡<br />
 <strong>Platform Version:</strong> 2.1.0<br />
 <strong>Lead Engineer:</strong> Eng. Ahmed Elbaz PE  </p>
+<hr />
+<h2 id="technical-debt-production-gaps-tracking">📊 Technical Debt &amp; Production Gaps Tracking</h2>
+<p>In alignment with <a href="../ROADMAP.md#technical-debt">ROADMAP.md</a>, the platform tracks open technical debt and production readiness items:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">ID</th>
+<th style="text-align: left;">Area</th>
+<th style="text-align: center;">Status</th>
+<th style="text-align: center;">Severity</th>
+<th style="text-align: left;">Description &amp; Roadmap Reference</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>TD-001</strong></td>
+<td style="text-align: left;">Git History</td>
+<td style="text-align: center;">🟡 Open</td>
+<td style="text-align: center;">Critical</td>
+<td style="text-align: left;">Historical secret exposure requires BFG/filter-repo purge before public release (<a href="../ROADMAP.md">ROADMAP TD-001</a>).</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>TD-004</strong></td>
+<td style="text-align: left;">Rate Limiting</td>
+<td style="text-align: center;">🟡 Open</td>
+<td style="text-align: center;">High</td>
+<td style="text-align: left;">Rate limiting currently in-memory; distributed Redis-backed rate limiter targeted for multi-instance deployment (<a href="../ROADMAP.md">ROADMAP TD-004</a>).</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>TD-009</strong></td>
+<td style="text-align: left;">Transport Security</td>
+<td style="text-align: center;">🟡 Open</td>
+<td style="text-align: center;">Medium</td>
+<td style="text-align: left;">Strict HTTPS / HSTS redirection enforcement needed in reverse-proxy layer (<a href="../ROADMAP.md">ROADMAP TD-009</a>).</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>TD-012</strong></td>
+<td style="text-align: left;">Test Coverage</td>
+<td style="text-align: center;">🟡 Open</td>
+<td style="text-align: center;">Low</td>
+<td style="text-align: left;">Incomplete automated test coverage for <code>digital_twin</code>, <code>gis</code>, and <code>scada</code> modules (<a href="../ROADMAP.md">ROADMAP TD-012</a>).</td>
+</tr>
+</tbody>
+</table>
 <hr />
 <h2 id="launch-readiness-matrix-8-dimensions">📊 Launch Readiness Matrix (8 Dimensions)</h2>
 <table>
 <thead>
 <tr>
 <th style="text-align: left;">Dimension</th>
-<th style="text-align: center;">Score</th>
 <th style="text-align: center;">Status</th>
-<th style="text-align: left;">Key Verifications</th>
+<th style="text-align: left;">Key Verifications &amp; Gaps</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td style="text-align: left;"><strong>1. 🔐 Security</strong></td>
-<td style="text-align: center;"><strong>10/10</strong></td>
-<td style="text-align: center;">🟢 Complete</td>
-<td style="text-align: left;">Fail-closed startup auth guard in HF Space &amp; API, zero plaintext secrets, SealedSecret Kubernetes templates, strict CORS, CSP without unsafe-eval, safe token blacklist.</td>
+<td style="text-align: center;">🟡 Hardening</td>
+<td style="text-align: left;">Fail-closed startup auth guard in HF Space &amp; API, zero plaintext secrets in repo, SealedSecret templates. Tracking TD-001 (history purge) &amp; TD-009 (HTTPS enforcement).</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>2. 📦 Dependencies</strong></td>
-<td style="text-align: center;"><strong>10/10</strong></td>
 <td style="text-align: center;">🟢 Complete</td>
-<td style="text-align: left;">Single unified <code>pnpm-workspace.yaml</code> / <code>pnpm-lock.yaml</code>, strictly pinned <code>requirements-prod.txt</code>, zero duplicate requirements, dependabot auto-merge guarded against major/critical bumps.</td>
+<td style="text-align: left;">Single unified <code>pnpm-workspace.yaml</code> / <code>pnpm-lock.yaml</code>, pinned <code>requirements-prod.txt</code>, dependabot security audits.</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>3. 🧪 Testing &amp; CI</strong></td>
-<td style="text-align: center;"><strong>10/10</strong></td>
-<td style="text-align: center;">🟢 Complete</td>
-<td style="text-align: left;">Full 8-gate CI pipeline active (Gate 1 Lint, Gate 2 TypeCheck, Gate 3 Unit, Gate 4 Build, Gate 5 Integration, Gate 6 E2E, Gate 7 Security Audit, Gate 8 Bundle Size), 64+ passing workflows.</td>
+<td style="text-align: center;">🟡 Good (Gaps)</td>
+<td style="text-align: left;">Full 8-gate CI pipeline active (Lint, TypeCheck, Unit, Build, Integration, E2E Playwright, Security Audit). Core solvers 100% verified; tracking TD-012 for GIS/Digital Twin/SCADA test coverage.</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>4. 🏗️ Architecture</strong></td>
-<td style="text-align: center;"><strong>10/10</strong></td>
 <td style="text-align: center;">🟢 Complete</td>
-<td style="text-align: left;">Single authoritative FastAPI entry point (<code>api.routes:app</code>), dual-runtime Mastra (TS) + Python architecture, clean modular separation, memory-bounded rate limiters.</td>
+<td style="text-align: left;">Single authoritative FastAPI entry point (<code>api.routes:app</code>), dual-runtime Mastra (TS) + Python architecture, clean modular separation.</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>5. ⚡ Performance</strong></td>
-<td style="text-align: center;"><strong>10/10</strong></td>
-<td style="text-align: center;">🟢 Complete</td>
-<td style="text-align: left;">Multi-tenant async database pool (aiosqlite + asyncpg), Redis Cluster caching with automatic TTL eviction, streaming responses with backpressure control.</td>
+<td style="text-align: center;">🟡 In Progress</td>
+<td style="text-align: left;">Async database pool (aiosqlite + asyncpg), Redis Cluster caching with TTL eviction. Tracking TD-004 for multi-instance rate limiting.</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>6. 🌐 Standards &amp; Compliance</strong></td>
-<td style="text-align: center;"><strong>10/10</strong></td>
 <td style="text-align: center;">🟢 Complete</td>
 <td style="text-align: left;">Strict adherence to IEEE 1584 / 3002.7 / 399 / 519 / 80 / 1547 and IEC 60909 / 60255 / 60364 / 62933 / 61850. Zero guesswork on power parameters.</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>7. 🐳 Containerization</strong></td>
-<td style="text-align: center;"><strong>10/10</strong></td>
 <td style="text-align: center;">🟢 Complete</td>
 <td style="text-align: left;">Multi-stage slim Dockerfiles (<code>Dockerfile</code>, <code>Dockerfile.hf</code>, <code>Dockerfile.engineering-service</code>), non-root execution (<code>hfuser</code>, <code>engsvc</code>), healthy probe checks (<code>/healthz</code>, <code>/readyz</code>).</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>8. 📚 Documentation</strong></td>
-<td style="text-align: center;"><strong>10/10</strong></td>
 <td style="text-align: center;">🟢 Complete</td>
-<td style="text-align: left;">Single authoritative status source, full <a href="../AGENTS.md">AGENTS.md</a> reference, comprehensive <a href="../README.md">README.md</a>, <a href="../CONTRIBUTING.md">CONTRIBUTING.md</a>, and <a href="../SECURITY.md">SECURITY.md</a>.</td>
+<td style="text-align: left;">Authoritative status tracking, full <a href="../AGENTS.md">AGENTS.md</a> reference (24 agents), <a href="../README.md">README.md</a>, <a href="../ROADMAP.md">ROADMAP.md</a>, <a href="../CONTRIBUTING.md">CONTRIBUTING.md</a>, and <a href="../SECURITY.md">SECURITY.md</a>.</td>
 </tr>
 </tbody>
 </table>
