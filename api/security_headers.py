@@ -57,6 +57,27 @@ class SecurityHeadersMiddleware:
             await self.app(scope, receive, send)
             return
 
+        if os.environ.get("ENFORCE_HTTPS", "false").lower() in ("true", "1"):
+            req_headers = Headers(scope=scope)
+            proto = req_headers.get("x-forwarded-proto", scope.get("scheme", "http"))
+            if proto == "http":
+                host = req_headers.get("host", "localhost")
+                path = scope.get("raw_path", b"").decode("latin-1")
+                query = scope.get("query_string", b"").decode("latin-1")
+                redirect_url = f"https://{host}{path}"
+                if query:
+                    redirect_url = f"{redirect_url}?{query}"
+                response = JSONResponse(
+                    status_code=301,
+                    headers={
+                        "Location": redirect_url,
+                        "Strict-Transport-Security": f"max-age={_HSTS_MAX_AGE}; includeSubDomains; preload",
+                    },
+                    content={"detail": "HTTPS required"},
+                )
+                await response(scope, receive, send)
+                return
+
         async def send_with_headers(message: Any) -> None:
             if message["type"] == "http.response.start":
                 headers = MutableHeaders(scope=message)
