@@ -1176,6 +1176,48 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#56-kubernetes-secrets-management-sealedsecrets-external-secrets-operator" class="md-nav__link">
+    <span class="md-ellipsis">
+      5.6 Kubernetes Secrets Management (SealedSecrets &amp; External Secrets Operator)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5.6 Kubernetes Secrets Management (SealedSecrets &amp; External Secrets Operator)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#option-c-bitnami-sealedsecrets-gitops-in-repo-encryption" class="md-nav__link">
+    <span class="md-ellipsis">
+      Option C: Bitnami SealedSecrets (GitOps In-Repo Encryption)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#option-d-external-secrets-operator-vault-aws-azure-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Option D: External Secrets Operator (Vault / AWS / Azure Integration)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#secret-rotation-sop-zero-downtime" class="md-nav__link">
+    <span class="md-ellipsis">
+      Secret Rotation SOP (Zero-Downtime)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2265,6 +2307,48 @@
   <a href="#docker-image-updates" class="md-nav__link">
     <span class="md-ellipsis">
       Docker Image Updates
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#56-kubernetes-secrets-management-sealedsecrets-external-secrets-operator" class="md-nav__link">
+    <span class="md-ellipsis">
+      5.6 Kubernetes Secrets Management (SealedSecrets &amp; External Secrets Operator)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5.6 Kubernetes Secrets Management (SealedSecrets &amp; External Secrets Operator)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#option-c-bitnami-sealedsecrets-gitops-in-repo-encryption" class="md-nav__link">
+    <span class="md-ellipsis">
+      Option C: Bitnami SealedSecrets (GitOps In-Repo Encryption)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#option-d-external-secrets-operator-vault-aws-azure-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Option D: External Secrets Operator (Vault / AWS / Azure Integration)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#secret-rotation-sop-zero-downtime" class="md-nav__link">
+    <span class="md-ellipsis">
+      Secret Rotation SOP (Zero-Downtime)
     </span>
   </a>
   
@@ -3955,6 +4039,82 @@
 <a id="__codelineno-49-7" name="__codelineno-49-7" href="#__codelineno-49-7"></a># Step 3: Deploy updated images
 <a id="__codelineno-49-8" name="__codelineno-49-8" href="#__codelineno-49-8"></a>docker-compose up -d
 </code></pre></div>
+<h3 id="56-kubernetes-secrets-management-sealedsecrets-external-secrets-operator">5.6 Kubernetes Secrets Management (SealedSecrets &amp; External Secrets Operator)</h3>
+<p>In compliance with AhmedETAP production security standards and pre-deployment manifests in <code>k8s/etap-api-key-secret.yaml</code>, plain secrets must never be committed to Git. The platform supports two enterprise GitOps-friendly workflows for managing the <code>etap-api-key</code> secret and external credentials:</p>
+<h4 id="option-c-bitnami-sealedsecrets-gitops-in-repo-encryption">Option C: Bitnami SealedSecrets (GitOps In-Repo Encryption)</h4>
+<p>Bitnami SealedSecrets uses asymmetric cryptography to allow encrypted secrets (<code>SealedSecret</code> custom resources) to be safely stored in public or private Git repositories. Only the cluster's SealedSecrets controller can decrypt them into standard Kubernetes <code>Secret</code> objects.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-50-1" name="__codelineno-50-1" href="#__codelineno-50-1"></a><span class="c1"># 1. Install kubeseal CLI locally</span>
+<a id="__codelineno-50-2" name="__codelineno-50-2" href="#__codelineno-50-2"></a><span class="c1"># macOS: brew install kubeseal | Linux: release binary | Windows: choco install kubeseal</span>
+<a id="__codelineno-50-3" name="__codelineno-50-3" href="#__codelineno-50-3"></a>
+<a id="__codelineno-50-4" name="__codelineno-50-4" href="#__codelineno-50-4"></a><span class="c1"># 2. Fetch the cluster public encryption key (or rely on cluster connection)</span>
+<a id="__codelineno-50-5" name="__codelineno-50-5" href="#__codelineno-50-5"></a>kubeseal<span class="w"> </span>--fetch-cert<span class="w"> </span>--controller-namespace<span class="o">=</span>kube-system<span class="w"> </span>&gt;<span class="w"> </span>pub-cert.pem
+<a id="__codelineno-50-6" name="__codelineno-50-6" href="#__codelineno-50-6"></a>
+<a id="__codelineno-50-7" name="__codelineno-50-7" href="#__codelineno-50-7"></a><span class="c1"># 3. Generate sealed secret from dry-run manifest (NEVER commit the plaintext command with real key)</span>
+<a id="__codelineno-50-8" name="__codelineno-50-8" href="#__codelineno-50-8"></a>kubectl<span class="w"> </span>create<span class="w"> </span>secret<span class="w"> </span>generic<span class="w"> </span>etap-api-key<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-50-9" name="__codelineno-50-9" href="#__codelineno-50-9"></a><span class="w">  </span>--from-literal<span class="o">=</span>api-key<span class="o">=</span><span class="s2">"</span><span class="si">${</span><span class="nv">REAL_ETAP_API_KEY</span><span class="si">}</span><span class="s2">"</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-50-10" name="__codelineno-50-10" href="#__codelineno-50-10"></a><span class="w">  </span>--namespace<span class="o">=</span>ahmedetap<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-50-11" name="__codelineno-50-11" href="#__codelineno-50-11"></a><span class="w">  </span>--dry-run<span class="o">=</span>client<span class="w"> </span>-o<span class="w"> </span>yaml<span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-50-12" name="__codelineno-50-12" href="#__codelineno-50-12"></a><span class="w">  </span>kubeseal<span class="w"> </span>--cert<span class="o">=</span>pub-cert.pem<span class="w"> </span>-o<span class="w"> </span>yaml<span class="w"> </span>&gt;<span class="w"> </span>k8s/sealed-etap-api-key-secret.yaml
+<a id="__codelineno-50-13" name="__codelineno-50-13" href="#__codelineno-50-13"></a>
+<a id="__codelineno-50-14" name="__codelineno-50-14" href="#__codelineno-50-14"></a><span class="c1"># 4. Commit and apply the sealed secret</span>
+<a id="__codelineno-50-15" name="__codelineno-50-15" href="#__codelineno-50-15"></a>kubectl<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>k8s/sealed-etap-api-key-secret.yaml
+<a id="__codelineno-50-16" name="__codelineno-50-16" href="#__codelineno-50-16"></a>
+<a id="__codelineno-50-17" name="__codelineno-50-17" href="#__codelineno-50-17"></a><span class="c1"># 5. Verify unsealed secret generation in target namespace</span>
+<a id="__codelineno-50-18" name="__codelineno-50-18" href="#__codelineno-50-18"></a>kubectl<span class="w"> </span>get<span class="w"> </span>secret<span class="w"> </span>etap-api-key<span class="w"> </span>-n<span class="w"> </span>ahmedetap<span class="w"> </span>-o<span class="w"> </span><span class="nv">jsonpath</span><span class="o">=</span><span class="s1">'{.metadata.name}'</span>
+</code></pre></div>
+<h4 id="option-d-external-secrets-operator-vault-aws-azure-integration">Option D: External Secrets Operator (Vault / AWS / Azure Integration)</h4>
+<p>External Secrets Operator (ESO) synchronizes secrets directly from external secret management systems (HashiCorp Vault, AWS Secrets Manager, Azure Key Vault, GCP Secret Manager) into Kubernetes native secrets.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-51-1" name="__codelineno-51-1" href="#__codelineno-51-1"></a><span class="c1"># 1. ClusterSecretStore referencing HashiCorp Vault / Azure KeyVault</span>
+<a id="__codelineno-51-2" name="__codelineno-51-2" href="#__codelineno-51-2"></a><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">external-secrets.io/v1beta1</span>
+<a id="__codelineno-51-3" name="__codelineno-51-3" href="#__codelineno-51-3"></a><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">SecretStore</span>
+<a id="__codelineno-51-4" name="__codelineno-51-4" href="#__codelineno-51-4"></a><span class="nt">metadata</span><span class="p">:</span>
+<a id="__codelineno-51-5" name="__codelineno-51-5" href="#__codelineno-51-5"></a><span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">vault-backend</span>
+<a id="__codelineno-51-6" name="__codelineno-51-6" href="#__codelineno-51-6"></a><span class="w">  </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ahmedetap</span>
+<a id="__codelineno-51-7" name="__codelineno-51-7" href="#__codelineno-51-7"></a><span class="nt">spec</span><span class="p">:</span>
+<a id="__codelineno-51-8" name="__codelineno-51-8" href="#__codelineno-51-8"></a><span class="w">  </span><span class="nt">provider</span><span class="p">:</span>
+<a id="__codelineno-51-9" name="__codelineno-51-9" href="#__codelineno-51-9"></a><span class="w">    </span><span class="nt">vault</span><span class="p">:</span>
+<a id="__codelineno-51-10" name="__codelineno-51-10" href="#__codelineno-51-10"></a><span class="w">      </span><span class="nt">server</span><span class="p">:</span><span class="w"> </span><span class="s">"https://vault.internal.corp:8200"</span>
+<a id="__codelineno-51-11" name="__codelineno-51-11" href="#__codelineno-51-11"></a><span class="w">      </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="s">"secret"</span>
+<a id="__codelineno-51-12" name="__codelineno-51-12" href="#__codelineno-51-12"></a><span class="w">      </span><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="s">"v2"</span>
+<a id="__codelineno-51-13" name="__codelineno-51-13" href="#__codelineno-51-13"></a><span class="w">      </span><span class="nt">auth</span><span class="p">:</span>
+<a id="__codelineno-51-14" name="__codelineno-51-14" href="#__codelineno-51-14"></a><span class="w">        </span><span class="nt">kubernetes</span><span class="p">:</span>
+<a id="__codelineno-51-15" name="__codelineno-51-15" href="#__codelineno-51-15"></a><span class="w">          </span><span class="nt">mountPath</span><span class="p">:</span><span class="w"> </span><span class="s">"kubernetes"</span>
+<a id="__codelineno-51-16" name="__codelineno-51-16" href="#__codelineno-51-16"></a><span class="w">          </span><span class="nt">role</span><span class="p">:</span><span class="w"> </span><span class="s">"etap-ai-role"</span>
+<a id="__codelineno-51-17" name="__codelineno-51-17" href="#__codelineno-51-17"></a><span class="nn">---</span>
+<a id="__codelineno-51-18" name="__codelineno-51-18" href="#__codelineno-51-18"></a><span class="c1"># 2. ExternalSecret synchronizing etap-api-key into ahmedetap namespace</span>
+<a id="__codelineno-51-19" name="__codelineno-51-19" href="#__codelineno-51-19"></a><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">external-secrets.io/v1beta1</span>
+<a id="__codelineno-51-20" name="__codelineno-51-20" href="#__codelineno-51-20"></a><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ExternalSecret</span>
+<a id="__codelineno-51-21" name="__codelineno-51-21" href="#__codelineno-51-21"></a><span class="nt">metadata</span><span class="p">:</span>
+<a id="__codelineno-51-22" name="__codelineno-51-22" href="#__codelineno-51-22"></a><span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">etap-api-key-sync</span>
+<a id="__codelineno-51-23" name="__codelineno-51-23" href="#__codelineno-51-23"></a><span class="w">  </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ahmedetap</span>
+<a id="__codelineno-51-24" name="__codelineno-51-24" href="#__codelineno-51-24"></a><span class="nt">spec</span><span class="p">:</span>
+<a id="__codelineno-51-25" name="__codelineno-51-25" href="#__codelineno-51-25"></a><span class="w">  </span><span class="nt">refreshInterval</span><span class="p">:</span><span class="w"> </span><span class="s">"1h"</span>
+<a id="__codelineno-51-26" name="__codelineno-51-26" href="#__codelineno-51-26"></a><span class="w">  </span><span class="nt">secretStoreRef</span><span class="p">:</span>
+<a id="__codelineno-51-27" name="__codelineno-51-27" href="#__codelineno-51-27"></a><span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">vault-backend</span>
+<a id="__codelineno-51-28" name="__codelineno-51-28" href="#__codelineno-51-28"></a><span class="w">    </span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">SecretStore</span>
+<a id="__codelineno-51-29" name="__codelineno-51-29" href="#__codelineno-51-29"></a><span class="w">  </span><span class="nt">target</span><span class="p">:</span>
+<a id="__codelineno-51-30" name="__codelineno-51-30" href="#__codelineno-51-30"></a><span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">etap-api-key</span>
+<a id="__codelineno-51-31" name="__codelineno-51-31" href="#__codelineno-51-31"></a><span class="w">    </span><span class="nt">creationPolicy</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Owner</span>
+<a id="__codelineno-51-32" name="__codelineno-51-32" href="#__codelineno-51-32"></a><span class="w">  </span><span class="nt">data</span><span class="p">:</span>
+<a id="__codelineno-51-33" name="__codelineno-51-33" href="#__codelineno-51-33"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">secretKey</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">api-key</span>
+<a id="__codelineno-51-34" name="__codelineno-51-34" href="#__codelineno-51-34"></a><span class="w">      </span><span class="nt">remoteRef</span><span class="p">:</span>
+<a id="__codelineno-51-35" name="__codelineno-51-35" href="#__codelineno-51-35"></a><span class="w">        </span><span class="nt">key</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">etap/production/credentials</span>
+<a id="__codelineno-51-36" name="__codelineno-51-36" href="#__codelineno-51-36"></a><span class="w">        </span><span class="nt">property</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">api_key</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-52-1" name="__codelineno-52-1" href="#__codelineno-52-1"></a><span class="c1"># Verify synchronization status</span>
+<a id="__codelineno-52-2" name="__codelineno-52-2" href="#__codelineno-52-2"></a>kubectl<span class="w"> </span>get<span class="w"> </span>externalsecret<span class="w"> </span>etap-api-key-sync<span class="w"> </span>-n<span class="w"> </span>ahmedetap
+<a id="__codelineno-52-3" name="__codelineno-52-3" href="#__codelineno-52-3"></a>kubectl<span class="w"> </span>describe<span class="w"> </span>externalsecret<span class="w"> </span>etap-api-key-sync<span class="w"> </span>-n<span class="w"> </span>ahmedetap
+</code></pre></div>
+<h4 id="secret-rotation-sop-zero-downtime">Secret Rotation SOP (Zero-Downtime)</h4>
+<ol>
+<li><strong>Rotate credential at source</strong>: Generate a new API key in the provider / Vault.</li>
+<li><strong>Update store</strong>: Update the secret in HashiCorp Vault or seal a new version with <code>kubeseal</code>.</li>
+<li><strong>Trigger deployment reload</strong>: The ESO or SealedSecrets updates the Kubernetes Secret. Deployment pods will detect the change or can be gracefully restarted:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-53-1" name="__codelineno-53-1" href="#__codelineno-53-1"></a>kubectl<span class="w"> </span>rollout<span class="w"> </span>restart<span class="w"> </span>deployment/etap-ai-engine<span class="w"> </span>-n<span class="w"> </span>ahmedetap
+<a id="__codelineno-53-2" name="__codelineno-53-2" href="#__codelineno-53-2"></a>kubectl<span class="w"> </span>rollout<span class="w"> </span>status<span class="w"> </span>deployment/etap-ai-engine<span class="w"> </span>-n<span class="w"> </span>ahmedetap
+</code></pre></div></li>
+<li><strong>Revoke old credential</strong>: After verifying that all pods run successfully on the new key for at least 1 hour, revoke the legacy key at the provider.</li>
+</ol>
 <hr />
 <h2 id="6-disaster-recovery">6. Disaster Recovery</h2>
 <h3 id="recovery-objectives">Recovery Objectives</h3>
@@ -3986,19 +4146,19 @@
 <ol>
 <li>
 <p><strong>Provision new server (30 min):</strong>
-   <div class="highlight"><pre><span></span><code><a id="__codelineno-50-1" name="__codelineno-50-1" href="#__codelineno-50-1"></a># Deploy new VM/cloud instance with:
-<a id="__codelineno-50-2" name="__codelineno-50-2" href="#__codelineno-50-2"></a># - Windows Server 2019 or later
-<a id="__codelineno-50-3" name="__codelineno-50-3" href="#__codelineno-50-3"></a># - Docker Desktop
-<a id="__codelineno-50-4" name="__codelineno-50-4" href="#__codelineno-50-4"></a># - ETAP x.x (Windows-only component)
-<a id="__codelineno-50-5" name="__codelineno-50-5" href="#__codelineno-50-5"></a># - Python 3.11
-<a id="__codelineno-50-6" name="__codelineno-50-6" href="#__codelineno-50-6"></a># - Node.js 18+
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-54-1" name="__codelineno-54-1" href="#__codelineno-54-1"></a># Deploy new VM/cloud instance with:
+<a id="__codelineno-54-2" name="__codelineno-54-2" href="#__codelineno-54-2"></a># - Windows Server 2019 or later
+<a id="__codelineno-54-3" name="__codelineno-54-3" href="#__codelineno-54-3"></a># - Docker Desktop
+<a id="__codelineno-54-4" name="__codelineno-54-4" href="#__codelineno-54-4"></a># - ETAP x.x (Windows-only component)
+<a id="__codelineno-54-5" name="__codelineno-54-5" href="#__codelineno-54-5"></a># - Python 3.11
+<a id="__codelineno-54-6" name="__codelineno-54-6" href="#__codelineno-54-6"></a># - Node.js 18+
 </code></pre></div></p>
 </li>
 <li>
 <p><strong>Restore code from repository (15 min):</strong>
-   <div class="highlight"><pre><span></span><code><a id="__codelineno-51-1" name="__codelineno-51-1" href="#__codelineno-51-1"></a>git clone https://github.com/your-org/etap-ai-platform.git
-<a id="__codelineno-51-2" name="__codelineno-51-2" href="#__codelineno-51-2"></a>cd etap-ai-platform
-<a id="__codelineno-51-3" name="__codelineno-51-3" href="#__codelineno-51-3"></a>git checkout production
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-55-1" name="__codelineno-55-1" href="#__codelineno-55-1"></a>git clone https://github.com/your-org/etap-ai-platform.git
+<a id="__codelineno-55-2" name="__codelineno-55-2" href="#__codelineno-55-2"></a>cd etap-ai-platform
+<a id="__codelineno-55-3" name="__codelineno-55-3" href="#__codelineno-55-3"></a>git checkout production
 </code></pre></div></p>
 </li>
 <li>
@@ -4010,38 +4170,38 @@
 </li>
 <li>
 <p><strong>Restore data from backup (30 min):</strong>
-   <div class="highlight"><pre><span></span><code><a id="__codelineno-52-1" name="__codelineno-52-1" href="#__codelineno-52-1"></a># Restore database from latest backup
-<a id="__codelineno-52-2" name="__codelineno-52-2" href="#__codelineno-52-2"></a>copy /Y \\backup-server\etap-backups\latest\mastra.db .\mastra.db
-<a id="__codelineno-52-3" name="__codelineno-52-3" href="#__codelineno-52-3"></a>copy /Y \\backup-server\etap-backups\latest\mastra.duckdb .\mastra.duckdb
-<a id="__codelineno-52-4" name="__codelineno-52-4" href="#__codelineno-52-4"></a>
-<a id="__codelineno-52-5" name="__codelineno-52-5" href="#__codelineno-52-5"></a># Restore knowledge base
-<a id="__codelineno-52-6" name="__codelineno-52-6" href="#__codelineno-52-6"></a>Expand-Archive -Path \\backup-server\etap-backups\latest\knowledge_db.zip -DestinationPath .\
-<a id="__codelineno-52-7" name="__codelineno-52-7" href="#__codelineno-52-7"></a>
-<a id="__codelineno-52-8" name="__codelineno-52-8" href="#__codelineno-52-8"></a># Restore reports
-<a id="__codelineno-52-9" name="__codelineno-52-9" href="#__codelineno-52-9"></a>Expand-Archive -Path \\backup-server\etap-backups\latest\reports.zip -DestinationPath .\
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-56-1" name="__codelineno-56-1" href="#__codelineno-56-1"></a># Restore database from latest backup
+<a id="__codelineno-56-2" name="__codelineno-56-2" href="#__codelineno-56-2"></a>copy /Y \\backup-server\etap-backups\latest\mastra.db .\mastra.db
+<a id="__codelineno-56-3" name="__codelineno-56-3" href="#__codelineno-56-3"></a>copy /Y \\backup-server\etap-backups\latest\mastra.duckdb .\mastra.duckdb
+<a id="__codelineno-56-4" name="__codelineno-56-4" href="#__codelineno-56-4"></a>
+<a id="__codelineno-56-5" name="__codelineno-56-5" href="#__codelineno-56-5"></a># Restore knowledge base
+<a id="__codelineno-56-6" name="__codelineno-56-6" href="#__codelineno-56-6"></a>Expand-Archive -Path \\backup-server\etap-backups\latest\knowledge_db.zip -DestinationPath .\
+<a id="__codelineno-56-7" name="__codelineno-56-7" href="#__codelineno-56-7"></a>
+<a id="__codelineno-56-8" name="__codelineno-56-8" href="#__codelineno-56-8"></a># Restore reports
+<a id="__codelineno-56-9" name="__codelineno-56-9" href="#__codelineno-56-9"></a>Expand-Archive -Path \\backup-server\etap-backups\latest\reports.zip -DestinationPath .\
 </code></pre></div></p>
 </li>
 <li>
 <p><strong>Build and start services (30 min):</strong>
-   <div class="highlight"><pre><span></span><code><a id="__codelineno-53-1" name="__codelineno-53-1" href="#__codelineno-53-1"></a>docker-compose build
-<a id="__codelineno-53-2" name="__codelineno-53-2" href="#__codelineno-53-2"></a>docker-compose up -d
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-57-1" name="__codelineno-57-1" href="#__codelineno-57-1"></a>docker-compose build
+<a id="__codelineno-57-2" name="__codelineno-57-2" href="#__codelineno-57-2"></a>docker-compose up -d
 </code></pre></div></p>
 </li>
 <li>
 <p><strong>Verify recovery (15 min):</strong>
-   <div class="highlight"><pre><span></span><code><a id="__codelineno-54-1" name="__codelineno-54-1" href="#__codelineno-54-1"></a>curl http://localhost:3000/health
-<a id="__codelineno-54-2" name="__codelineno-54-2" href="#__codelineno-54-2"></a>python -c "
-<a id="__codelineno-54-3" name="__codelineno-54-3" href="#__codelineno-54-3"></a>import sqlite3
-<a id="__codelineno-54-4" name="__codelineno-54-4" href="#__codelineno-54-4"></a>conn = sqlite3.connect('mastra.db')
-<a id="__codelineno-54-5" name="__codelineno-54-5" href="#__codelineno-54-5"></a>count = conn.execute('SELECT COUNT(*) FROM tasks').fetchone()[0]
-<a id="__codelineno-54-6" name="__codelineno-54-6" href="#__codelineno-54-6"></a>print(f'Recovered {count} tasks')
-<a id="__codelineno-54-7" name="__codelineno-54-7" href="#__codelineno-54-7"></a>"
-<a id="__codelineno-54-8" name="__codelineno-54-8" href="#__codelineno-54-8"></a>python -c "
-<a id="__codelineno-54-9" name="__codelineno-54-9" href="#__codelineno-54-9"></a>from knowledge.rag_engine import RAGEngine
-<a id="__codelineno-54-10" name="__codelineno-54-10" href="#__codelineno-54-10"></a>rag = RAGEngine()
-<a id="__codelineno-54-11" name="__codelineno-54-11" href="#__codelineno-54-11"></a>result = rag.query('test query', use_llm=False)
-<a id="__codelineno-54-12" name="__codelineno-54-12" href="#__codelineno-54-12"></a>print(f'RAG restored: {len(result[\"sources\"])} sources')
-<a id="__codelineno-54-13" name="__codelineno-54-13" href="#__codelineno-54-13"></a>"
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-58-1" name="__codelineno-58-1" href="#__codelineno-58-1"></a>curl http://localhost:3000/health
+<a id="__codelineno-58-2" name="__codelineno-58-2" href="#__codelineno-58-2"></a>python -c "
+<a id="__codelineno-58-3" name="__codelineno-58-3" href="#__codelineno-58-3"></a>import sqlite3
+<a id="__codelineno-58-4" name="__codelineno-58-4" href="#__codelineno-58-4"></a>conn = sqlite3.connect('mastra.db')
+<a id="__codelineno-58-5" name="__codelineno-58-5" href="#__codelineno-58-5"></a>count = conn.execute('SELECT COUNT(*) FROM tasks').fetchone()[0]
+<a id="__codelineno-58-6" name="__codelineno-58-6" href="#__codelineno-58-6"></a>print(f'Recovered {count} tasks')
+<a id="__codelineno-58-7" name="__codelineno-58-7" href="#__codelineno-58-7"></a>"
+<a id="__codelineno-58-8" name="__codelineno-58-8" href="#__codelineno-58-8"></a>python -c "
+<a id="__codelineno-58-9" name="__codelineno-58-9" href="#__codelineno-58-9"></a>from knowledge.rag_engine import RAGEngine
+<a id="__codelineno-58-10" name="__codelineno-58-10" href="#__codelineno-58-10"></a>rag = RAGEngine()
+<a id="__codelineno-58-11" name="__codelineno-58-11" href="#__codelineno-58-11"></a>result = rag.query('test query', use_llm=False)
+<a id="__codelineno-58-12" name="__codelineno-58-12" href="#__codelineno-58-12"></a>print(f'RAG restored: {len(result[\"sources\"])} sources')
+<a id="__codelineno-58-13" name="__codelineno-58-13" href="#__codelineno-58-13"></a>"
 </code></pre></div></p>
 </li>
 <li>
@@ -4054,29 +4214,29 @@
 <ol>
 <li>
 <p><strong>Identify latest valid backup:</strong>
-   <div class="highlight"><pre><span></span><code><a id="__codelineno-55-1" name="__codelineno-55-1" href="#__codelineno-55-1"></a>dir backups\*.db | Sort-Object LastWriteTime -Descending | Select-Object -First 5
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-59-1" name="__codelineno-59-1" href="#__codelineno-59-1"></a>dir backups\*.db | Sort-Object LastWriteTime -Descending | Select-Object -First 5
 </code></pre></div></p>
 </li>
 <li>
 <p><strong>Restore database:</strong>
-   <div class="highlight"><pre><span></span><code><a id="__codelineno-56-1" name="__codelineno-56-1" href="#__codelineno-56-1"></a>copy /Y backups\mastra_20260607_020000.db mastra.db
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-60-1" name="__codelineno-60-1" href="#__codelineno-60-1"></a>copy /Y backups\mastra_20260607_020000.db mastra.db
 </code></pre></div></p>
 </li>
 <li>
 <p><strong>Verify integrity:</strong>
-   <div class="highlight"><pre><span></span><code><a id="__codelineno-57-1" name="__codelineno-57-1" href="#__codelineno-57-1"></a>python -c "
-<a id="__codelineno-57-2" name="__codelineno-57-2" href="#__codelineno-57-2"></a>import sqlite3
-<a id="__codelineno-57-3" name="__codelineno-57-3" href="#__codelineno-57-3"></a>conn = sqlite3.connect('mastra.db')
-<a id="__codelineno-57-4" name="__codelineno-57-4" href="#__codelineno-57-4"></a>result = conn.execute('PRAGMA integrity_check').fetchone()
-<a id="__codelineno-57-5" name="__codelineno-57-5" href="#__codelineno-57-5"></a>assert result[0] == 'ok', f'Corrupted: {result}'
-<a id="__codelineno-57-6" name="__codelineno-57-6" href="#__codelineno-57-6"></a>tables = conn.execute(\"SELECT name FROM sqlite_master WHERE type='table'\").fetchall()
-<a id="__codelineno-57-7" name="__codelineno-57-7" href="#__codelineno-57-7"></a>print(f'Database restored with {len(tables)} tables')
-<a id="__codelineno-57-8" name="__codelineno-57-8" href="#__codelineno-57-8"></a>"
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-61-1" name="__codelineno-61-1" href="#__codelineno-61-1"></a>python -c "
+<a id="__codelineno-61-2" name="__codelineno-61-2" href="#__codelineno-61-2"></a>import sqlite3
+<a id="__codelineno-61-3" name="__codelineno-61-3" href="#__codelineno-61-3"></a>conn = sqlite3.connect('mastra.db')
+<a id="__codelineno-61-4" name="__codelineno-61-4" href="#__codelineno-61-4"></a>result = conn.execute('PRAGMA integrity_check').fetchone()
+<a id="__codelineno-61-5" name="__codelineno-61-5" href="#__codelineno-61-5"></a>assert result[0] == 'ok', f'Corrupted: {result}'
+<a id="__codelineno-61-6" name="__codelineno-61-6" href="#__codelineno-61-6"></a>tables = conn.execute(\"SELECT name FROM sqlite_master WHERE type='table'\").fetchall()
+<a id="__codelineno-61-7" name="__codelineno-61-7" href="#__codelineno-61-7"></a>print(f'Database restored with {len(tables)} tables')
+<a id="__codelineno-61-8" name="__codelineno-61-8" href="#__codelineno-61-8"></a>"
 </code></pre></div></p>
 </li>
 <li>
 <p><strong>Restart services:</strong>
-   <div class="highlight"><pre><span></span><code><a id="__codelineno-58-1" name="__codelineno-58-1" href="#__codelineno-58-1"></a>docker-compose restart
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-62-1" name="__codelineno-62-1" href="#__codelineno-62-1"></a>docker-compose restart
 </code></pre></div></p>
 </li>
 <li>
@@ -4095,22 +4255,22 @@
 </li>
 <li>
 <p><strong>Copy ETAP project files:</strong>
-   <div class="highlight"><pre><span></span><code><a id="__codelineno-59-1" name="__codelineno-59-1" href="#__codelineno-59-1"></a>copy /Y \\backup-server\etap-projects\* "C:\Projects\"
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-63-1" name="__codelineno-63-1" href="#__codelineno-63-1"></a>copy /Y \\backup-server\etap-projects\* "C:\Projects\"
 </code></pre></div></p>
 </li>
 <li>
 <p><strong>Update platform configuration:</strong>
-   <div class="highlight"><pre><span></span><code><a id="__codelineno-60-1" name="__codelineno-60-1" href="#__codelineno-60-1"></a># Update .env with new ETAP server hostname
-<a id="__codelineno-60-2" name="__codelineno-60-2" href="#__codelineno-60-2"></a>ETAP_HOST=new-etap-server.domain.com
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-64-1" name="__codelineno-64-1" href="#__codelineno-64-1"></a># Update .env with new ETAP server hostname
+<a id="__codelineno-64-2" name="__codelineno-64-2" href="#__codelineno-64-2"></a>ETAP_HOST=new-etap-server.domain.com
 </code></pre></div></p>
 </li>
 <li>
 <p><strong>Test ETAP connection:</strong>
-   <div class="highlight"><pre><span></span><code><a id="__codelineno-61-1" name="__codelineno-61-1" href="#__codelineno-61-1"></a>python -c "
-<a id="__codelineno-61-2" name="__codelineno-61-2" href="#__codelineno-61-2"></a>from etap_integration.etap_com import ETAPAutomation
-<a id="__codelineno-61-3" name="__codelineno-61-3" href="#__codelineno-61-3"></a>with ETAPAutomation(visible=False) as etap:
-<a id="__codelineno-61-4" name="__codelineno-61-4" href="#__codelineno-61-4"></a>    print(f'ETAP reconnected: v{etap.get_version()}')
-<a id="__codelineno-61-5" name="__codelineno-61-5" href="#__codelineno-61-5"></a>"
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-65-1" name="__codelineno-65-1" href="#__codelineno-65-1"></a>python -c "
+<a id="__codelineno-65-2" name="__codelineno-65-2" href="#__codelineno-65-2"></a>from etap_integration.etap_com import ETAPAutomation
+<a id="__codelineno-65-3" name="__codelineno-65-3" href="#__codelineno-65-3"></a>with ETAPAutomation(visible=False) as etap:
+<a id="__codelineno-65-4" name="__codelineno-65-4" href="#__codelineno-65-4"></a>    print(f'ETAP reconnected: v{etap.get_version()}')
+<a id="__codelineno-65-5" name="__codelineno-65-5" href="#__codelineno-65-5"></a>"
 </code></pre></div></p>
 </li>
 <li>
@@ -4161,42 +4321,42 @@
 </tbody>
 </table>
 <h4 id="dr-test-procedure">DR Test Procedure</h4>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-62-1" name="__codelineno-62-1" href="#__codelineno-62-1"></a># Pre-test: Document current state
-<a id="__codelineno-62-2" name="__codelineno-62-2" href="#__codelineno-62-2"></a>echo "Pre-test state captured at $(Get-Date)" &gt; dr-test-log.txt
-<a id="__codelineno-62-3" name="__codelineno-62-3" href="#__codelineno-62-3"></a>python -c "
-<a id="__codelineno-62-4" name="__codelineno-62-4" href="#__codelineno-62-4"></a>import sqlite3
-<a id="__codelineno-62-5" name="__codelineno-62-5" href="#__codelineno-62-5"></a>conn = sqlite3.connect('mastra.db')
-<a id="__codelineno-62-6" name="__codelineno-62-6" href="#__codelineno-62-6"></a>count = conn.execute('SELECT COUNT(*) FROM tasks').fetchone()[0]
-<a id="__codelineno-62-7" name="__codelineno-62-7" href="#__codelineno-62-7"></a>print(f'Tasks in production: {count}')" &gt;&gt; dr-test-log.txt
-<a id="__codelineno-62-8" name="__codelineno-62-8" href="#__codelineno-62-8"></a>
-<a id="__codelineno-62-9" name="__codelineno-62-9" href="#__codelineno-62-9"></a># Test 1: Backup restore (in test environment)
-<a id="__codelineno-62-10" name="__codelineno-62-10" href="#__codelineno-62-10"></a># - Take a backup
-<a id="__codelineno-62-11" name="__codelineno-62-11" href="#__codelineno-62-11"></a># - Restore to test database
-<a id="__codelineno-62-12" name="__codelineno-62-12" href="#__codelineno-62-12"></a># - Verify data integrity and count
-<a id="__codelineno-62-13" name="__codelineno-62-13" href="#__codelineno-62-13"></a>
-<a id="__codelineno-62-14" name="__codelineno-62-14" href="#__codelineno-62-14"></a># Test 2: Full failover (in test environment)
-<a id="__codelineno-62-15" name="__codelineno-62-15" href="#__codelineno-62-15"></a># - Stop production analog
-<a id="__codelineno-62-16" name="__codelineno-62-16" href="#__codelineno-62-16"></a># - Provision new environment
-<a id="__codelineno-62-17" name="__codelineno-62-17" href="#__codelineno-62-17"></a># - Restore code, data, configuration
-<a id="__codelineno-62-18" name="__codelineno-62-18" href="#__codelineno-62-18"></a># - Start services
-<a id="__codelineno-62-19" name="__codelineno-62-19" href="#__codelineno-62-19"></a># - Verify health check
-<a id="__codelineno-62-20" name="__codelineno-62-20" href="#__codelineno-62-20"></a># - Run a test workflow
-<a id="__codelineno-62-21" name="__codelineno-62-21" href="#__codelineno-62-21"></a>
-<a id="__codelineno-62-22" name="__codelineno-62-22" href="#__codelineno-62-22"></a># Test 3: Measure RTO
-<a id="__codelineno-62-23" name="__codelineno-62-23" href="#__codelineno-62-23"></a>$startTime = Get-Date
-<a id="__codelineno-62-24" name="__codelineno-62-24" href="#__codelineno-62-24"></a># [Execute DR procedure]
-<a id="__codelineno-62-25" name="__codelineno-62-25" href="#__codelineno-62-25"></a>$endTime = Get-Date
-<a id="__codelineno-62-26" name="__codelineno-62-26" href="#__codelineno-62-26"></a>$rto = ($endTime - $startTime).TotalMinutes
-<a id="__codelineno-62-27" name="__codelineno-62-27" href="#__codelineno-62-27"></a>Write-Host "Measured RTO: $rto minutes"
-<a id="__codelineno-62-28" name="__codelineno-62-28" href="#__codelineno-62-28"></a>if ($rto -gt 240) { Write-Warning "RTO exceeds 4 hour target!" }
-<a id="__codelineno-62-29" name="__codelineno-62-29" href="#__codelineno-62-29"></a>
-<a id="__codelineno-62-30" name="__codelineno-62-30" href="#__codelineno-62-30"></a># Test 4: Measure RPO
-<a id="__codelineno-62-31" name="__codelineno-62-31" href="#__codelineno-62-31"></a># Compare backup timestamp with last data change
-<a id="__codelineno-62-32" name="__codelineno-62-32" href="#__codelineno-62-32"></a># Verify data loss is within 1 hour window
-<a id="__codelineno-62-33" name="__codelineno-62-33" href="#__codelineno-62-33"></a>
-<a id="__codelineno-62-34" name="__codelineno-62-34" href="#__codelineno-62-34"></a># Post-test: Document results
-<a id="__codelineno-62-35" name="__codelineno-62-35" href="#__codelineno-62-35"></a>echo "DR test completed at $(Get-Date)" &gt;&gt; dr-test-log.txt
-<a id="__codelineno-62-36" name="__codelineno-62-36" href="#__codelineno-62-36"></a>echo "RTO: $rto minutes" &gt;&gt; dr-test-log.txt
+<div class="highlight"><pre><span></span><code><a id="__codelineno-66-1" name="__codelineno-66-1" href="#__codelineno-66-1"></a># Pre-test: Document current state
+<a id="__codelineno-66-2" name="__codelineno-66-2" href="#__codelineno-66-2"></a>echo "Pre-test state captured at $(Get-Date)" &gt; dr-test-log.txt
+<a id="__codelineno-66-3" name="__codelineno-66-3" href="#__codelineno-66-3"></a>python -c "
+<a id="__codelineno-66-4" name="__codelineno-66-4" href="#__codelineno-66-4"></a>import sqlite3
+<a id="__codelineno-66-5" name="__codelineno-66-5" href="#__codelineno-66-5"></a>conn = sqlite3.connect('mastra.db')
+<a id="__codelineno-66-6" name="__codelineno-66-6" href="#__codelineno-66-6"></a>count = conn.execute('SELECT COUNT(*) FROM tasks').fetchone()[0]
+<a id="__codelineno-66-7" name="__codelineno-66-7" href="#__codelineno-66-7"></a>print(f'Tasks in production: {count}')" &gt;&gt; dr-test-log.txt
+<a id="__codelineno-66-8" name="__codelineno-66-8" href="#__codelineno-66-8"></a>
+<a id="__codelineno-66-9" name="__codelineno-66-9" href="#__codelineno-66-9"></a># Test 1: Backup restore (in test environment)
+<a id="__codelineno-66-10" name="__codelineno-66-10" href="#__codelineno-66-10"></a># - Take a backup
+<a id="__codelineno-66-11" name="__codelineno-66-11" href="#__codelineno-66-11"></a># - Restore to test database
+<a id="__codelineno-66-12" name="__codelineno-66-12" href="#__codelineno-66-12"></a># - Verify data integrity and count
+<a id="__codelineno-66-13" name="__codelineno-66-13" href="#__codelineno-66-13"></a>
+<a id="__codelineno-66-14" name="__codelineno-66-14" href="#__codelineno-66-14"></a># Test 2: Full failover (in test environment)
+<a id="__codelineno-66-15" name="__codelineno-66-15" href="#__codelineno-66-15"></a># - Stop production analog
+<a id="__codelineno-66-16" name="__codelineno-66-16" href="#__codelineno-66-16"></a># - Provision new environment
+<a id="__codelineno-66-17" name="__codelineno-66-17" href="#__codelineno-66-17"></a># - Restore code, data, configuration
+<a id="__codelineno-66-18" name="__codelineno-66-18" href="#__codelineno-66-18"></a># - Start services
+<a id="__codelineno-66-19" name="__codelineno-66-19" href="#__codelineno-66-19"></a># - Verify health check
+<a id="__codelineno-66-20" name="__codelineno-66-20" href="#__codelineno-66-20"></a># - Run a test workflow
+<a id="__codelineno-66-21" name="__codelineno-66-21" href="#__codelineno-66-21"></a>
+<a id="__codelineno-66-22" name="__codelineno-66-22" href="#__codelineno-66-22"></a># Test 3: Measure RTO
+<a id="__codelineno-66-23" name="__codelineno-66-23" href="#__codelineno-66-23"></a>$startTime = Get-Date
+<a id="__codelineno-66-24" name="__codelineno-66-24" href="#__codelineno-66-24"></a># [Execute DR procedure]
+<a id="__codelineno-66-25" name="__codelineno-66-25" href="#__codelineno-66-25"></a>$endTime = Get-Date
+<a id="__codelineno-66-26" name="__codelineno-66-26" href="#__codelineno-66-26"></a>$rto = ($endTime - $startTime).TotalMinutes
+<a id="__codelineno-66-27" name="__codelineno-66-27" href="#__codelineno-66-27"></a>Write-Host "Measured RTO: $rto minutes"
+<a id="__codelineno-66-28" name="__codelineno-66-28" href="#__codelineno-66-28"></a>if ($rto -gt 240) { Write-Warning "RTO exceeds 4 hour target!" }
+<a id="__codelineno-66-29" name="__codelineno-66-29" href="#__codelineno-66-29"></a>
+<a id="__codelineno-66-30" name="__codelineno-66-30" href="#__codelineno-66-30"></a># Test 4: Measure RPO
+<a id="__codelineno-66-31" name="__codelineno-66-31" href="#__codelineno-66-31"></a># Compare backup timestamp with last data change
+<a id="__codelineno-66-32" name="__codelineno-66-32" href="#__codelineno-66-32"></a># Verify data loss is within 1 hour window
+<a id="__codelineno-66-33" name="__codelineno-66-33" href="#__codelineno-66-33"></a>
+<a id="__codelineno-66-34" name="__codelineno-66-34" href="#__codelineno-66-34"></a># Post-test: Document results
+<a id="__codelineno-66-35" name="__codelineno-66-35" href="#__codelineno-66-35"></a>echo "DR test completed at $(Get-Date)" &gt;&gt; dr-test-log.txt
+<a id="__codelineno-66-36" name="__codelineno-66-36" href="#__codelineno-66-36"></a>echo "RTO: $rto minutes" &gt;&gt; dr-test-log.txt
 </code></pre></div>
 <hr />
 <h2 id="7-capacity-planning">7. Capacity Planning</h2>
@@ -4372,25 +4532,25 @@
 </tbody>
 </table>
 <h4 id="capacity-upgrade-procedures">Capacity Upgrade Procedures</h4>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-63-1" name="__codelineno-63-1" href="#__codelineno-63-1"></a># Scale up Docker replicas (horizontal)
-<a id="__codelineno-63-2" name="__codelineno-63-2" href="#__codelineno-63-2"></a>docker-compose up -d --scale etap-platform=5
-<a id="__codelineno-63-3" name="__codelineno-63-3" href="#__codelineno-63-3"></a>
-<a id="__codelineno-63-4" name="__codelineno-63-4" href="#__codelineno-63-4"></a># Scale up Kubernetes (horizontal)
-<a id="__codelineno-63-5" name="__codelineno-63-5" href="#__codelineno-63-5"></a>kubectl scale deployment etap-platform --replicas=10
-<a id="__codelineno-63-6" name="__codelineno-63-6" href="#__codelineno-63-6"></a>
-<a id="__codelineno-63-7" name="__codelineno-63-7" href="#__codelineno-63-7"></a># Increase resource limits (vertical, in docker-compose.yml)
-<a id="__codelineno-63-8" name="__codelineno-63-8" href="#__codelineno-63-8"></a>services:
-<a id="__codelineno-63-9" name="__codelineno-63-9" href="#__codelineno-63-9"></a>  etap-platform:
-<a id="__codelineno-63-10" name="__codelineno-63-10" href="#__codelineno-63-10"></a>    deploy:
-<a id="__codelineno-63-11" name="__codelineno-63-11" href="#__codelineno-63-11"></a>      resources:
-<a id="__codelineno-63-12" name="__codelineno-63-12" href="#__codelineno-63-12"></a>        limits:
-<a id="__codelineno-63-13" name="__codelineno-63-13" href="#__codelineno-63-13"></a>          memory: 8g
-<a id="__codelineno-63-14" name="__codelineno-63-14" href="#__codelineno-63-14"></a>          cpus: '4'
-<a id="__codelineno-63-15" name="__codelineno-63-15" href="#__codelineno-63-15"></a>
-<a id="__codelineno-63-16" name="__codelineno-63-16" href="#__codelineno-63-16"></a># Add database read replicas (if using PostgreSQL)
-<a id="__codelineno-63-17" name="__codelineno-63-17" href="#__codelineno-63-17"></a># Configure in .env:
-<a id="__codelineno-63-18" name="__codelineno-63-18" href="#__codelineno-63-18"></a>DATABASE_URL=postgresql://master:5432/etap
-<a id="__codelineno-63-19" name="__codelineno-63-19" href="#__codelineno-63-19"></a>DATABASE_READ_REPLICA_URL=postgresql://replica:5432/etap
+<div class="highlight"><pre><span></span><code><a id="__codelineno-67-1" name="__codelineno-67-1" href="#__codelineno-67-1"></a># Scale up Docker replicas (horizontal)
+<a id="__codelineno-67-2" name="__codelineno-67-2" href="#__codelineno-67-2"></a>docker-compose up -d --scale etap-platform=5
+<a id="__codelineno-67-3" name="__codelineno-67-3" href="#__codelineno-67-3"></a>
+<a id="__codelineno-67-4" name="__codelineno-67-4" href="#__codelineno-67-4"></a># Scale up Kubernetes (horizontal)
+<a id="__codelineno-67-5" name="__codelineno-67-5" href="#__codelineno-67-5"></a>kubectl scale deployment etap-platform --replicas=10
+<a id="__codelineno-67-6" name="__codelineno-67-6" href="#__codelineno-67-6"></a>
+<a id="__codelineno-67-7" name="__codelineno-67-7" href="#__codelineno-67-7"></a># Increase resource limits (vertical, in docker-compose.yml)
+<a id="__codelineno-67-8" name="__codelineno-67-8" href="#__codelineno-67-8"></a>services:
+<a id="__codelineno-67-9" name="__codelineno-67-9" href="#__codelineno-67-9"></a>  etap-platform:
+<a id="__codelineno-67-10" name="__codelineno-67-10" href="#__codelineno-67-10"></a>    deploy:
+<a id="__codelineno-67-11" name="__codelineno-67-11" href="#__codelineno-67-11"></a>      resources:
+<a id="__codelineno-67-12" name="__codelineno-67-12" href="#__codelineno-67-12"></a>        limits:
+<a id="__codelineno-67-13" name="__codelineno-67-13" href="#__codelineno-67-13"></a>          memory: 8g
+<a id="__codelineno-67-14" name="__codelineno-67-14" href="#__codelineno-67-14"></a>          cpus: '4'
+<a id="__codelineno-67-15" name="__codelineno-67-15" href="#__codelineno-67-15"></a>
+<a id="__codelineno-67-16" name="__codelineno-67-16" href="#__codelineno-67-16"></a># Add database read replicas (if using PostgreSQL)
+<a id="__codelineno-67-17" name="__codelineno-67-17" href="#__codelineno-67-17"></a># Configure in .env:
+<a id="__codelineno-67-18" name="__codelineno-67-18" href="#__codelineno-67-18"></a>DATABASE_URL=postgresql://master:5432/etap
+<a id="__codelineno-67-19" name="__codelineno-67-19" href="#__codelineno-67-19"></a>DATABASE_READ_REPLICA_URL=postgresql://replica:5432/etap
 </code></pre></div>
 <hr />
 <h2 id="8-contact-information">8. Contact Information</h2>
@@ -4500,31 +4660,31 @@
 </tbody>
 </table>
 <h3 id="83-escalation-path">8.3 Escalation Path</h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-64-1" name="__codelineno-64-1" href="#__codelineno-64-1"></a>User reports issue
-<a id="__codelineno-64-2" name="__codelineno-64-2" href="#__codelineno-64-2"></a>    │
-<a id="__codelineno-64-3" name="__codelineno-64-3" href="#__codelineno-64-3"></a>    ▼
-<a id="__codelineno-64-4" name="__codelineno-64-4" href="#__codelineno-64-4"></a>L1: On-Call Engineer
-<a id="__codelineno-64-5" name="__codelineno-64-5" href="#__codelineno-64-5"></a>    │  Contact: PagerDuty / +1-XXX-XXX-XXXX
-<a id="__codelineno-64-6" name="__codelineno-64-6" href="#__codelineno-64-6"></a>    │  Response: 15 min (P1), 1 hour (P2)
-<a id="__codelineno-64-7" name="__codelineno-64-7" href="#__codelineno-64-7"></a>    │
-<a id="__codelineno-64-8" name="__codelineno-64-8" href="#__codelineno-64-8"></a>    ├── Resolved → Close
-<a id="__codelineno-64-9" name="__codelineno-64-9" href="#__codelineno-64-9"></a>    │
-<a id="__codelineno-64-10" name="__codelineno-64-10" href="#__codelineno-64-10"></a>    ▼
-<a id="__codelineno-64-11" name="__codelineno-64-11" href="#__codelineno-64-11"></a>L2: Engineering Lead
-<a id="__codelineno-64-12" name="__codelineno-64-12" href="#__codelineno-64-12"></a>    │  Contact: +1-XXX-XXX-XXXX
-<a id="__codelineno-64-13" name="__codelineno-64-13" href="#__codelineno-64-13"></a>    │  Response: 1 hour
-<a id="__codelineno-64-14" name="__codelineno-64-14" href="#__codelineno-64-14"></a>    │
-<a id="__codelineno-64-15" name="__codelineno-64-15" href="#__codelineno-64-15"></a>    ├── Resolved → Post-mortem → Update runbook
-<a id="__codelineno-64-16" name="__codelineno-64-16" href="#__codelineno-64-16"></a>    │
-<a id="__codelineno-64-17" name="__codelineno-64-17" href="#__codelineno-64-17"></a>    ▼
-<a id="__codelineno-64-18" name="__codelineno-64-18" href="#__codelineno-64-18"></a>L3: VP Engineering
-<a id="__codelineno-64-19" name="__codelineno-64-19" href="#__codelineno-64-19"></a>    │  Contact: +1-XXX-XXX-XXXX
-<a id="__codelineno-64-20" name="__codelineno-64-20" href="#__codelineno-64-20"></a>    │  Response: Immediate for P1
-<a id="__codelineno-64-21" name="__codelineno-64-21" href="#__codelineno-64-21"></a>    │
-<a id="__codelineno-64-22" name="__codelineno-64-22" href="#__codelineno-64-22"></a>    ▼
-<a id="__codelineno-64-23" name="__codelineno-64-23" href="#__codelineno-64-23"></a>L4: Executive / Crisis Team
-<a id="__codelineno-64-24" name="__codelineno-64-24" href="#__codelineno-64-24"></a>       Contact: emergency@yourcompany.com
-<a id="__codelineno-64-25" name="__codelineno-64-25" href="#__codelineno-64-25"></a>       Response: Immediate
+<div class="highlight"><pre><span></span><code><a id="__codelineno-68-1" name="__codelineno-68-1" href="#__codelineno-68-1"></a>User reports issue
+<a id="__codelineno-68-2" name="__codelineno-68-2" href="#__codelineno-68-2"></a>    │
+<a id="__codelineno-68-3" name="__codelineno-68-3" href="#__codelineno-68-3"></a>    ▼
+<a id="__codelineno-68-4" name="__codelineno-68-4" href="#__codelineno-68-4"></a>L1: On-Call Engineer
+<a id="__codelineno-68-5" name="__codelineno-68-5" href="#__codelineno-68-5"></a>    │  Contact: PagerDuty / +1-XXX-XXX-XXXX
+<a id="__codelineno-68-6" name="__codelineno-68-6" href="#__codelineno-68-6"></a>    │  Response: 15 min (P1), 1 hour (P2)
+<a id="__codelineno-68-7" name="__codelineno-68-7" href="#__codelineno-68-7"></a>    │
+<a id="__codelineno-68-8" name="__codelineno-68-8" href="#__codelineno-68-8"></a>    ├── Resolved → Close
+<a id="__codelineno-68-9" name="__codelineno-68-9" href="#__codelineno-68-9"></a>    │
+<a id="__codelineno-68-10" name="__codelineno-68-10" href="#__codelineno-68-10"></a>    ▼
+<a id="__codelineno-68-11" name="__codelineno-68-11" href="#__codelineno-68-11"></a>L2: Engineering Lead
+<a id="__codelineno-68-12" name="__codelineno-68-12" href="#__codelineno-68-12"></a>    │  Contact: +1-XXX-XXX-XXXX
+<a id="__codelineno-68-13" name="__codelineno-68-13" href="#__codelineno-68-13"></a>    │  Response: 1 hour
+<a id="__codelineno-68-14" name="__codelineno-68-14" href="#__codelineno-68-14"></a>    │
+<a id="__codelineno-68-15" name="__codelineno-68-15" href="#__codelineno-68-15"></a>    ├── Resolved → Post-mortem → Update runbook
+<a id="__codelineno-68-16" name="__codelineno-68-16" href="#__codelineno-68-16"></a>    │
+<a id="__codelineno-68-17" name="__codelineno-68-17" href="#__codelineno-68-17"></a>    ▼
+<a id="__codelineno-68-18" name="__codelineno-68-18" href="#__codelineno-68-18"></a>L3: VP Engineering
+<a id="__codelineno-68-19" name="__codelineno-68-19" href="#__codelineno-68-19"></a>    │  Contact: +1-XXX-XXX-XXXX
+<a id="__codelineno-68-20" name="__codelineno-68-20" href="#__codelineno-68-20"></a>    │  Response: Immediate for P1
+<a id="__codelineno-68-21" name="__codelineno-68-21" href="#__codelineno-68-21"></a>    │
+<a id="__codelineno-68-22" name="__codelineno-68-22" href="#__codelineno-68-22"></a>    ▼
+<a id="__codelineno-68-23" name="__codelineno-68-23" href="#__codelineno-68-23"></a>L4: Executive / Crisis Team
+<a id="__codelineno-68-24" name="__codelineno-68-24" href="#__codelineno-68-24"></a>       Contact: emergency@yourcompany.com
+<a id="__codelineno-68-25" name="__codelineno-68-25" href="#__codelineno-68-25"></a>       Response: Immediate
 </code></pre></div>
 <h3 id="84-communication-channels">8.4 Communication Channels</h3>
 <table>
@@ -4574,69 +4734,69 @@
 </tbody>
 </table>
 <h3 id="85-on-call-schedule">8.5 On-Call Schedule</h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-65-1" name="__codelineno-65-1" href="#__codelineno-65-1"></a>Weekly rotation: Engineering team (4 engineers)
-<a id="__codelineno-65-2" name="__codelineno-65-2" href="#__codelineno-65-2"></a>Shift: Mon-Fri 9am-6pm (business hours)
-<a id="__codelineno-65-3" name="__codelineno-65-3" href="#__codelineno-65-3"></a>After-hours: On-call engineer carries pager 24/7
-<a id="__codelineno-65-4" name="__codelineno-65-4" href="#__codelineno-65-4"></a>Weekend: Dedicated on-call engineer
-<a id="__codelineno-65-5" name="__codelineno-65-5" href="#__codelineno-65-5"></a>Holiday: Pre-arranged coverage with compensation
-<a id="__codelineno-65-6" name="__codelineno-65-6" href="#__codelineno-65-6"></a>
-<a id="__codelineno-65-7" name="__codelineno-65-7" href="#__codelineno-65-7"></a>Primary On-Call:
-<a id="__codelineno-65-8" name="__codelineno-65-8" href="#__codelineno-65-8"></a>- Current: [NAME] - [DATE RANGE]
-<a id="__codelineno-65-9" name="__codelineno-65-9" href="#__codelineno-65-9"></a>- Phone: +1-XXX-XXX-XXXX
-<a id="__codelineno-65-10" name="__codelineno-65-10" href="#__codelineno-65-10"></a>
-<a id="__codelineno-65-11" name="__codelineno-65-11" href="#__codelineno-65-11"></a>Secondary On-Call:
-<a id="__codelineno-65-12" name="__codelineno-65-12" href="#__codelineno-65-12"></a>- Current: [NAME] - [DATE RANGE]
-<a id="__codelineno-65-13" name="__codelineno-65-13" href="#__codelineno-65-13"></a>- Phone: +1-XXX-XXX-XXXX
+<div class="highlight"><pre><span></span><code><a id="__codelineno-69-1" name="__codelineno-69-1" href="#__codelineno-69-1"></a>Weekly rotation: Engineering team (4 engineers)
+<a id="__codelineno-69-2" name="__codelineno-69-2" href="#__codelineno-69-2"></a>Shift: Mon-Fri 9am-6pm (business hours)
+<a id="__codelineno-69-3" name="__codelineno-69-3" href="#__codelineno-69-3"></a>After-hours: On-call engineer carries pager 24/7
+<a id="__codelineno-69-4" name="__codelineno-69-4" href="#__codelineno-69-4"></a>Weekend: Dedicated on-call engineer
+<a id="__codelineno-69-5" name="__codelineno-69-5" href="#__codelineno-69-5"></a>Holiday: Pre-arranged coverage with compensation
+<a id="__codelineno-69-6" name="__codelineno-69-6" href="#__codelineno-69-6"></a>
+<a id="__codelineno-69-7" name="__codelineno-69-7" href="#__codelineno-69-7"></a>Primary On-Call:
+<a id="__codelineno-69-8" name="__codelineno-69-8" href="#__codelineno-69-8"></a>- Current: [NAME] - [DATE RANGE]
+<a id="__codelineno-69-9" name="__codelineno-69-9" href="#__codelineno-69-9"></a>- Phone: +1-XXX-XXX-XXXX
+<a id="__codelineno-69-10" name="__codelineno-69-10" href="#__codelineno-69-10"></a>
+<a id="__codelineno-69-11" name="__codelineno-69-11" href="#__codelineno-69-11"></a>Secondary On-Call:
+<a id="__codelineno-69-12" name="__codelineno-69-12" href="#__codelineno-69-12"></a>- Current: [NAME] - [DATE RANGE]
+<a id="__codelineno-69-13" name="__codelineno-69-13" href="#__codelineno-69-13"></a>- Phone: +1-XXX-XXX-XXXX
 </code></pre></div>
 <h3 id="86-escalation-notification-templates">8.6 Escalation Notification Templates</h3>
 <h4 id="p1-incident-notification-smspager">P1 Incident Notification (SMS/Pager)</h4>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-66-1" name="__codelineno-66-1" href="#__codelineno-66-1"></a>[P1] ETAP Platform - [BRIEF DESCRIPTION]
-<a id="__codelineno-66-2" name="__codelineno-66-2" href="#__codelineno-66-2"></a>Impact: [SERVICE IMPACT]
-<a id="__codelineno-66-3" name="__codelineno-66-3" href="#__codelineno-66-3"></a>Affected: [COMPONENT/S]
-<a id="__codelineno-66-4" name="__codelineno-66-4" href="#__codelineno-66-4"></a>Status: Investigating / Resolved
-<a id="__codelineno-66-5" name="__codelineno-66-5" href="#__codelineno-66-5"></a>Time: [TIMESTAMP]
-<a id="__codelineno-66-6" name="__codelineno-66-6" href="#__codelineno-66-6"></a>Lead: [ENGINEER NAME]
-<a id="__codelineno-66-7" name="__codelineno-66-7" href="#__codelineno-66-7"></a>Bridge: [CONFERENCE LINK]
+<div class="highlight"><pre><span></span><code><a id="__codelineno-70-1" name="__codelineno-70-1" href="#__codelineno-70-1"></a>[P1] ETAP Platform - [BRIEF DESCRIPTION]
+<a id="__codelineno-70-2" name="__codelineno-70-2" href="#__codelineno-70-2"></a>Impact: [SERVICE IMPACT]
+<a id="__codelineno-70-3" name="__codelineno-70-3" href="#__codelineno-70-3"></a>Affected: [COMPONENT/S]
+<a id="__codelineno-70-4" name="__codelineno-70-4" href="#__codelineno-70-4"></a>Status: Investigating / Resolved
+<a id="__codelineno-70-5" name="__codelineno-70-5" href="#__codelineno-70-5"></a>Time: [TIMESTAMP]
+<a id="__codelineno-70-6" name="__codelineno-70-6" href="#__codelineno-70-6"></a>Lead: [ENGINEER NAME]
+<a id="__codelineno-70-7" name="__codelineno-70-7" href="#__codelineno-70-7"></a>Bridge: [CONFERENCE LINK]
 </code></pre></div>
 <h4 id="status-page-update">Status Page Update</h4>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-67-1" name="__codelineno-67-1" href="#__codelineno-67-1"></a>Title: [Minor / Major / Critical] - [SERVICE NAME] - [INCIDENT TYPE]
-<a id="__codelineno-67-2" name="__codelineno-67-2" href="#__codelineno-67-2"></a>Status: Investigating / Identified / Monitoring / Resolved
-<a id="__codelineno-67-3" name="__codelineno-67-3" href="#__codelineno-67-3"></a>Description: [TECHNICAL DESCRIPTION IN PLAIN ENGLISH]
-<a id="__codelineno-67-4" name="__codelineno-67-4" href="#__codelineno-67-4"></a>Impact: [USER-FACING IMPACT]
-<a id="__codelineno-67-5" name="__codelineno-67-5" href="#__codelineno-67-5"></a>Start Time: [START TIME]
-<a id="__codelineno-67-6" name="__codelineno-67-6" href="#__codelineno-67-6"></a>Estimated Resolution: [ESTIMATE OR "N/A"]
-<a id="__codelineno-67-7" name="__codelineno-67-7" href="#__codelineno-67-7"></a>Components: [LIST OF AFFECTED COMPONENTS]
+<div class="highlight"><pre><span></span><code><a id="__codelineno-71-1" name="__codelineno-71-1" href="#__codelineno-71-1"></a>Title: [Minor / Major / Critical] - [SERVICE NAME] - [INCIDENT TYPE]
+<a id="__codelineno-71-2" name="__codelineno-71-2" href="#__codelineno-71-2"></a>Status: Investigating / Identified / Monitoring / Resolved
+<a id="__codelineno-71-3" name="__codelineno-71-3" href="#__codelineno-71-3"></a>Description: [TECHNICAL DESCRIPTION IN PLAIN ENGLISH]
+<a id="__codelineno-71-4" name="__codelineno-71-4" href="#__codelineno-71-4"></a>Impact: [USER-FACING IMPACT]
+<a id="__codelineno-71-5" name="__codelineno-71-5" href="#__codelineno-71-5"></a>Start Time: [START TIME]
+<a id="__codelineno-71-6" name="__codelineno-71-6" href="#__codelineno-71-6"></a>Estimated Resolution: [ESTIMATE OR "N/A"]
+<a id="__codelineno-71-7" name="__codelineno-71-7" href="#__codelineno-71-7"></a>Components: [LIST OF AFFECTED COMPONENTS]
 </code></pre></div>
 <hr />
 <h2 id="appendix-quick-command-reference">Appendix: Quick Command Reference</h2>
 <h3 id="startup-shutdown">Startup &amp; Shutdown</h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-68-1" name="__codelineno-68-1" href="#__codelineno-68-1"></a>docker-compose up -d                    # Start all services
-<a id="__codelineno-68-2" name="__codelineno-68-2" href="#__codelineno-68-2"></a>docker-compose down                     # Stop all services
-<a id="__codelineno-68-3" name="__codelineno-68-3" href="#__codelineno-68-3"></a>docker-compose restart                  # Restart all services
-<a id="__codelineno-68-4" name="__codelineno-68-4" href="#__codelineno-68-4"></a>docker-compose logs -f                  # Follow all logs
+<div class="highlight"><pre><span></span><code><a id="__codelineno-72-1" name="__codelineno-72-1" href="#__codelineno-72-1"></a>docker-compose up -d                    # Start all services
+<a id="__codelineno-72-2" name="__codelineno-72-2" href="#__codelineno-72-2"></a>docker-compose down                     # Stop all services
+<a id="__codelineno-72-3" name="__codelineno-72-3" href="#__codelineno-72-3"></a>docker-compose restart                  # Restart all services
+<a id="__codelineno-72-4" name="__codelineno-72-4" href="#__codelineno-72-4"></a>docker-compose logs -f                  # Follow all logs
 </code></pre></div>
 <h3 id="health-checks">Health Checks</h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-69-1" name="__codelineno-69-1" href="#__codelineno-69-1"></a>curl http://localhost:3000/health       # Basic health
-<a id="__codelineno-69-2" name="__codelineno-69-2" href="#__codelineno-69-2"></a>curl http://localhost:8000/metrics      # Prometheus metrics
-<a id="__codelineno-69-3" name="__codelineno-69-3" href="#__codelineno-69-3"></a>docker-compose ps                       # Container status
+<div class="highlight"><pre><span></span><code><a id="__codelineno-73-1" name="__codelineno-73-1" href="#__codelineno-73-1"></a>curl http://localhost:3000/health       # Basic health
+<a id="__codelineno-73-2" name="__codelineno-73-2" href="#__codelineno-73-2"></a>curl http://localhost:8000/metrics      # Prometheus metrics
+<a id="__codelineno-73-3" name="__codelineno-73-3" href="#__codelineno-73-3"></a>docker-compose ps                       # Container status
 </code></pre></div>
 <h3 id="backup-restore">Backup &amp; Restore</h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-70-1" name="__codelineno-70-1" href="#__codelineno-70-1"></a>.\backup.ps1                            # Run backup script
-<a id="__codelineno-70-2" name="__codelineno-70-2" href="#__codelineno-70-2"></a>copy backups\latest\mastra.db .         # Restore database
+<div class="highlight"><pre><span></span><code><a id="__codelineno-74-1" name="__codelineno-74-1" href="#__codelineno-74-1"></a>.\backup.ps1                            # Run backup script
+<a id="__codelineno-74-2" name="__codelineno-74-2" href="#__codelineno-74-2"></a>copy backups\latest\mastra.db .         # Restore database
 </code></pre></div>
 <h3 id="diagnostics">Diagnostics</h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-71-1" name="__codelineno-71-1" href="#__codelineno-71-1"></a>Get-Content logs\*.log | Select-String "ERROR"  # Find errors
-<a id="__codelineno-71-2" name="__codelineno-71-2" href="#__codelineno-71-2"></a>docker stats --no-stream                         # Resource usage
-<a id="__codelineno-71-3" name="__codelineno-71-3" href="#__codelineno-71-3"></a>docker-compose logs etap-platform --tail 100     # Last 100 lines
+<div class="highlight"><pre><span></span><code><a id="__codelineno-75-1" name="__codelineno-75-1" href="#__codelineno-75-1"></a>Get-Content logs\*.log | Select-String "ERROR"  # Find errors
+<a id="__codelineno-75-2" name="__codelineno-75-2" href="#__codelineno-75-2"></a>docker stats --no-stream                         # Resource usage
+<a id="__codelineno-75-3" name="__codelineno-75-3" href="#__codelineno-75-3"></a>docker-compose logs etap-platform --tail 100     # Last 100 lines
 </code></pre></div>
 <h3 id="maintenance">Maintenance</h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-72-1" name="__codelineno-72-1" href="#__codelineno-72-1"></a>python -c "import sqlite3; sqlite3.connect('mastra.db').execute('VACUUM')"  # DB maintenance
-<a id="__codelineno-72-2" name="__codelineno-72-2" href="#__codelineno-72-2"></a>pip list --outdated                                                         # Check updates
-<a id="__codelineno-72-3" name="__codelineno-72-3" href="#__codelineno-72-3"></a>pnpm outdated                                                                 # Check updates
+<div class="highlight"><pre><span></span><code><a id="__codelineno-76-1" name="__codelineno-76-1" href="#__codelineno-76-1"></a>python -c "import sqlite3; sqlite3.connect('mastra.db').execute('VACUUM')"  # DB maintenance
+<a id="__codelineno-76-2" name="__codelineno-76-2" href="#__codelineno-76-2"></a>pip list --outdated                                                         # Check updates
+<a id="__codelineno-76-3" name="__codelineno-76-3" href="#__codelineno-76-3"></a>pnpm outdated                                                                 # Check updates
 </code></pre></div>
 <h3 id="scaling">Scaling</h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-73-1" name="__codelineno-73-1" href="#__codelineno-73-1"></a>docker-compose up -d --scale etap-platform=5    # Scale horizontally
-<a id="__codelineno-73-2" name="__codelineno-73-2" href="#__codelineno-73-2"></a>kubectl scale deployment etap-platform --replicas=10  # Scale in K8s
+<div class="highlight"><pre><span></span><code><a id="__codelineno-77-1" name="__codelineno-77-1" href="#__codelineno-77-1"></a>docker-compose up -d --scale etap-platform=5    # Scale horizontally
+<a id="__codelineno-77-2" name="__codelineno-77-2" href="#__codelineno-77-2"></a>kubectl scale deployment etap-platform --replicas=10  # Scale in K8s
 </code></pre></div>
 <hr />
 <p><strong>Document Version:</strong> 1.0<br />
