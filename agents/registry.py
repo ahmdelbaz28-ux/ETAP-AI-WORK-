@@ -27,6 +27,7 @@ from core.tracing import trace_operation
 
 UTC = timezone.utc  # noqa: UP017
 logger = logging.getLogger(__name__)
+_ENGINEERING_ASSERTION_FAILED = "Engineering assertion check failed: %s"
 
 
 class LoadFlowAgent(BaseAgent):
@@ -812,58 +813,7 @@ class ValidationAgent(BaseAgent):
             }
 
             for agent_result in results_to_validate:
-                # ── F-03: Code-gated mandatory output validation ──
-                try:
-                    from agents.output_schema_guard import validate_agent_output
-
-                    guard_result = validate_agent_output(
-                        agent_result.agent_name.lower()
-                        .replace(" ", "_")
-                        .replace("agent", "_agent"),
-                        agent_result.data,
-                    )
-                    if not guard_result.passed:
-                        for v in guard_result.violations:
-                            validation_summary["critical_issues"].append(
-                                f"[SCHEMA-GUARD {v.rule_id}] {v.description}"
-                            )
-                except ImportError:
-                    pass  # output_schema_guard not available — skip
-                except Exception as exc:
-                    logger.debug("Output schema guard check failed: %s", exc)
-
-                # ── F-12: AI failure mode scan on agent text output ──
-                try:
-                    from guards.agent_output_scanner import scan_agent_output
-
-                    agent_output_text = str(agent_result.data) if agent_result.data else ""
-                    fm_warnings = scan_agent_output(
-                        agent_result.agent_name.lower()
-                        .replace(" ", "_")
-                        .replace("agent", "_agent"),
-                        agent_output_text,
-                    )
-                    for w in fm_warnings:
-                        if w.severity == "critical":
-                            validation_summary["critical_issues"].append(
-                                f"[FM-{w.failure_mode_id}] {w.description}: {w.matched_text}"
-                            )
-                except ImportError:
-                    pass  # agent_output_scanner not available — skip
-                except Exception as exc:
-                    logger.debug("Agent output scanner failed: %s", exc)
-
-                # Validate based on study type
-                if agent_result.study_type == StudyType.LOAD_FLOW:
-                    checks = self._validate_load_flow(agent_result)
-                elif agent_result.study_type == StudyType.SHORT_CIRCUIT:
-                    checks = self._validate_short_circuit(agent_result)
-                elif agent_result.study_type == StudyType.HARMONIC_ANALYSIS:
-                    checks = self._validate_harmonic(agent_result)
-                elif agent_result.study_type == StudyType.OPTIMAL_POWER_FLOW:
-                    checks = self._validate_opf(agent_result)
-                else:
-                    checks = {"status": "unknown", "issues": []}
+                checks = self._validate_single_result(agent_result, validation_summary)
 
                 validation_summary["total_checks"] += 1
                 if checks["status"] == "pass":
@@ -904,27 +854,77 @@ class ValidationAgent(BaseAgent):
                 validation_errors=[str(e)],
             )
 
-    def _validate_load_flow(self, result: AgentResult) -> dict:
-        """Validate load flow results.
+    def _validate_single_result(self, agent_result, validation_summary):
+        """Run all checks for a single agent result."""
+        self._check_output_schema_guard(agent_result, validation_summary)
+        self._scan_agent_output(agent_result, validation_summary)
+        return self._get_study_checks(agent_result)
 
-        ARCHITECTURE AUDIT FIX (F-07): Now also runs the
-        EngineeringAssertionLayer deterministic voltage checks
-        (IEEE C84.1 Range A/B) for physically impossible values.
-        """
+    def _check_output_schema_guard(self, agent_result, validation_summary):
+        """F-03: Code-gated mandatory output validation."""
+        try:
+            from agents.output_schema_guard import validate_agent_output
+
+            guard_result = validate_agent_output(
+                agent_result.agent_name.lower()
+                .replace(" ", "_")
+                .replace("agent", "_agent"),
+                agent_result.data,
+            )
+            if not guard_result.passed:
+                for v in guard_result.violations:
+                    validation_summary["critical_issues"].append(
+                        f"[SCHEMA-GUARD {v.rule_id}] {v.description}"
+                    )
+        except ImportError:
+            pass  # output_schema_guard not available — skip
+        except Exception as exc:
+            logger.debug("Output schema guard check failed: %s", exc)
+
+    def _scan_agent_output(self, agent_result, validation_summary):
+        """F-12: AI failure mode scan on agent text output."""
+        try:
+            from guards.agent_output_scanner import scan_agent_output
+
+            agent_output_text = str(agent_result.data) if agent_result.data else ""
+            fm_warnings = scan_agent_output(
+                agent_result.agent_name.lower()
+                .replace(" ", "_")
+                .replace("agent", "_agent"),
+                agent_output_text,
+            )
+            for w in fm_warnings:
+                if w.severity == "critical":
+                    validation_summary["critical_issues"].append(
+                        f"[FM-{w.failure_mode_id}] {w.description}: {w.matched_text}"
+                    )
+        except ImportError:
+            pass  # agent_output_scanner not available — skip
+        except Exception as exc:
+            logger.debug("Agent output scanner failed: %s", exc)
+
+    def _get_study_checks(self, agent_result):
+        """Dispatch to the appropriate study-type validator."""
+        if agent_result.study_type == StudyType.LOAD_FLOW:
+            return self._validate_load_flow(agent_result)
+        elif agent_result.study_type == StudyType.SHORT_CIRCUIT:
+            return self._validate_short_circuit(agent_result)
+        elif agent_result.study_type == StudyType.HARMONIC_ANALYSIS:
+            return self._validate_harmonic(agent_result)
+        elif agent_result.study_type == StudyType.OPTIMAL_POWER_FLOW:
+            return self._validate_opf(agent_result)
+        else:
+            return {"status": "unknown", "issues": []}
+
+    def _check_load_flow_assertions(self, result: AgentResult) -> list[str]:
+        """Run deterministic engineering assertion checks for load flow results."""
         issues = []
-
-        # ── F-07: Deterministic engineering assertion checks ──
         try:
             from copilot.ai.engineering_assertions import EngineeringAssertionLayer
 
             assertion_layer = EngineeringAssertionLayer()
-            # Validate bus voltages if present in result data
             buses = result.data.get("buses", {})
             if buses:
-                # validate_voltage_results expects kV values.
-                # Only include buses that explicitly provide a kV reading;
-                # voltage_magnitude_pu cannot be treated as kV (unit mismatch
-                # would produce fictitious Range-B violations).
                 bus_voltages = {
                     bus_id: bus_data["voltage_kv"]
                     for bus_id, bus_data in buses.items()
@@ -942,7 +942,17 @@ class ValidationAgent(BaseAgent):
         except ImportError:
             logger.debug("EngineeringAssertionLayer not available for load flow validation")
         except Exception as exc:
-            logger.warning("Engineering assertion check failed: %s", exc)
+            logger.warning(_ENGINEERING_ASSERTION_FAILED, exc)
+        return issues
+
+    def _validate_load_flow(self, result: AgentResult) -> dict:
+        """Validate load flow results.
+
+        ARCHITECTURE AUDIT FIX (F-07): Now also runs the
+        EngineeringAssertionLayer deterministic voltage checks
+        (IEEE C84.1 Range A/B) for physically impossible values.
+        """
+        issues = self._check_load_flow_assertions(result)
 
         if not result.data.get("converged"):
             issues.append("Load flow did not converge")
@@ -959,21 +969,13 @@ class ValidationAgent(BaseAgent):
 
         return {"status": "pass" if not issues else "fail", "issues": issues}
 
-    def _validate_short_circuit(self, result: AgentResult) -> dict:
-        """Validate short circuit results.
-
-        ARCHITECTURE AUDIT FIX (F-07): Now also runs the
-        EngineeringAssertionLayer deterministic checks for physically
-        impossible values (IEEE C84.1, IEC 60909).
-        """
+    def _check_short_circuit_assertions(self, result: AgentResult) -> list[str]:
+        """Run deterministic engineering assertion checks for short circuit results."""
         issues = []
-
-        # ── F-07: Deterministic engineering assertion checks ──
         try:
             from copilot.ai.engineering_assertions import EngineeringAssertionLayer
 
             assertion_layer = EngineeringAssertionLayer()
-            # Validate fault currents if present in result data
             fault_results = result.data.get("fault_results", {})
             if fault_results:
                 assertion_results = assertion_layer.validate_short_circuit_results(
@@ -987,7 +989,17 @@ class ValidationAgent(BaseAgent):
         except ImportError:
             logger.debug("EngineeringAssertionLayer not available for short circuit validation")
         except Exception as exc:
-            logger.warning("Engineering assertion check failed: %s", exc)
+            logger.warning(_ENGINEERING_ASSERTION_FAILED, exc)
+        return issues
+
+    def _validate_short_circuit(self, result: AgentResult) -> dict:
+        """Validate short circuit results.
+
+        ARCHITECTURE AUDIT FIX (F-07): Now also runs the
+        EngineeringAssertionLayer deterministic checks for physically
+        impossible values (IEEE C84.1, IEC 60909).
+        """
+        issues = self._check_short_circuit_assertions(result)
 
         # Check that fault currents are reasonable
         fault_results = result.data.get("fault_results", {})
@@ -1002,16 +1014,9 @@ class ValidationAgent(BaseAgent):
 
         return {"status": "pass" if not issues else "fail", "issues": issues}
 
-    def _validate_harmonic(self, result: AgentResult) -> dict:
-        """Validate harmonic analysis results.
-
-        ARCHITECTURE AUDIT FIX (F-07): Now also runs the
-        EngineeringAssertionLayer deterministic checks for THD limits
-        (IEEE 519-2014) when harmonic data is available.
-        """
+    def _check_harmonic_assertions(self, result: AgentResult) -> list[str]:
+        """Run deterministic engineering assertion checks for harmonic results."""
         issues = []
-
-        # ── F-07: Deterministic engineering assertion checks ──
         try:
             from copilot.ai.engineering_assertions import EngineeringAssertionLayer
 
@@ -1036,7 +1041,17 @@ class ValidationAgent(BaseAgent):
         except ImportError:
             logger.debug("EngineeringAssertionLayer not available for harmonic validation")
         except Exception as exc:
-            logger.warning("Engineering assertion check failed: %s", exc)
+            logger.warning(_ENGINEERING_ASSERTION_FAILED, exc)
+        return issues
+
+    def _validate_harmonic(self, result: AgentResult) -> dict:
+        """Validate harmonic analysis results.
+
+        ARCHITECTURE AUDIT FIX (F-07): Now also runs the
+        EngineeringAssertionLayer deterministic checks for THD limits
+        (IEEE 519-2014) when harmonic data is available.
+        """
+        issues = self._check_harmonic_assertions(result)
 
         violations = result.data.get("violations", [])
         if violations:
@@ -1048,16 +1063,9 @@ class ValidationAgent(BaseAgent):
 
         return {"status": "pass" if not issues else "fail", "issues": issues}
 
-    def _validate_opf(self, result: AgentResult) -> dict:
-        """Validate OPF results.
-
-        ARCHITECTURE AUDIT FIX (F-07): Now also runs the
-        EngineeringAssertionLayer deterministic checks for OPF
-        generator outputs and system losses when available.
-        """
+    def _check_opf_assertions(self, result: AgentResult) -> list[str]:
+        """Run deterministic engineering assertion checks for OPF results."""
         issues = []
-
-        # ── F-07: Deterministic engineering assertion checks ──
         try:
             opf_data = result.data.get("opf_results", result.data)
             generators = opf_data.get("generators", {})
@@ -1073,7 +1081,17 @@ class ValidationAgent(BaseAgent):
         except ImportError:
             logger.debug("EngineeringAssertionLayer not available for OPF validation")
         except Exception as exc:
-            logger.warning("Engineering assertion check failed: %s", exc)
+            logger.warning(_ENGINEERING_ASSERTION_FAILED, exc)
+        return issues
+
+    def _validate_opf(self, result: AgentResult) -> dict:
+        """Validate OPF results.
+
+        ARCHITECTURE AUDIT FIX (F-07): Now also runs the
+        EngineeringAssertionLayer deterministic checks for OPF
+        generator outputs and system losses when available.
+        """
+        issues = self._check_opf_assertions(result)
 
         if not result.data.get("success"):
             issues.append("OPF did not converge")

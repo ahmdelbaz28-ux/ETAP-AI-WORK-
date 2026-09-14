@@ -76,7 +76,7 @@ pdfplumber>=0.10,<0.12
 # Document processing
 python-docx~=1.1.0
 openpyxl~=3.1.0
-reportlab~=4.0.0
+reportlab>=4.0.0
 
 # Security-patched utility dependencies
 # SECURITY: Pygments — aligned with pyproject.toml pin (pygments>=2.20.0)
@@ -87,7 +87,7 @@ setuptools>=83.0.0
 # Additional utilities
 tqdm~=4.66.0
 beautifulsoup4~=4.12.0
-lxml>=6.1.2
+lxml>=6.1.3
 ezdxf>=1.1.0,<1.5.0
 aiofiles>=25.1.0,<26.0.0
 

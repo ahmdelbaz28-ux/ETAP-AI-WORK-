@@ -220,10 +220,10 @@ async def _get_component_by_id(db: AsyncSession, component_id: str) -> Component
 
 @router.get(
     "",
-    response_model=ComponentListResponse,
     summary="List components with multi-faceted filtering",
+    responses={400: {"description": "Bad request"}, 404: {"description": "Not found"}},
 )
-@router.get("/", include_in_schema=False, response_model=ComponentListResponse)
+@router.get("/", include_in_schema=False)
 async def list_components(
     pagination: PaginationParams = Depends(pagination_params),
     type: Optional[str] = Query(
@@ -316,7 +316,6 @@ async def list_components(
 
 @router.get(
     "/types",
-    response_model=List[TypeCountResponse],
     summary="Available component types with counts",
 )
 async def get_component_types(db: AsyncSession = Depends(get_db)) -> List[TypeCountResponse]:
@@ -333,7 +332,6 @@ async def get_component_types(db: AsyncSession = Depends(get_db)) -> List[TypeCo
 
 @router.get(
     "/standards",
-    response_model=List[StandardCountResponse],
     summary="Available standards with counts",
 )
 async def get_component_standards(
@@ -353,8 +351,8 @@ async def get_component_standards(
 
 @router.get(
     "/pending",
-    response_model=List[ComponentResponse],
     summary="List unverified community submissions",
+    responses={403: {"description": "Forbidden"}},
 )
 async def list_pending_components(
     user: CurrentUser = Depends(get_current_user_from_header),
@@ -378,7 +376,7 @@ async def list_pending_components(
     return [ComponentResponse.model_validate(c) for c in res.scalars().all()]
 
 
-@router.get("/{id}", response_model=ComponentResponse, summary="Get component details")
+@router.get("/{id}", summary="Get component details", responses={404: {"description": "Not found"}})
 async def get_component(id: str, db: AsyncSession = Depends(get_db)) -> ComponentResponse:
     """Retrieve detailed specifications for a single component."""
     comp = await _get_component_by_id(db, id)
@@ -387,9 +385,9 @@ async def get_component(id: str, db: AsyncSession = Depends(get_db)) -> Componen
 
 @router.post(
     "/contribute",
-    response_model=ComponentResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Contribute component",
+    responses={400: {"description": "Bad request"}, 403: {"description": "Forbidden"}},
 )
 async def contribute_component(
     payload: ComponentContributeRequest,
@@ -424,9 +422,9 @@ async def contribute_component(
 
 
 @router.put(
-    "/{id}/verify", response_model=ComponentResponse, summary="Approve and verify component (admin)"
+    "/{id}/verify", summary="Approve and verify component (admin)", responses={403: {"description": "Forbidden"}, 404: {"description": "Not found"}}
 )
-@router.post("/{id}/verify", response_model=ComponentResponse, include_in_schema=False)
+@router.post("/{id}/verify", include_in_schema=False)
 async def verify_component(
     id: str,
     payload: ComponentVerifyRequest,
@@ -453,9 +451,9 @@ async def verify_component(
 
 
 @router.put(
-    "/{id}/reject", response_model=ComponentResponse, summary="Reject component submission (admin)"
+    "/{id}/reject", summary="Reject component submission (admin)", responses={403: {"description": "Forbidden"}, 404: {"description": "Not found"}}
 )
-@router.post("/{id}/reject", response_model=ComponentResponse, include_in_schema=False)
+@router.post("/{id}/reject", include_in_schema=False)
 async def reject_component(
     id: str,
     payload: ComponentRejectRequest,
@@ -485,8 +483,8 @@ async def reject_component(
 
 @router.post(
     "/import/etap",
-    response_model=List[ComponentResponse],
     summary="Bulk import components from ETAP .etp XML",
+    responses={400: {"description": "Bad request"}, 403: {"description": "Forbidden"}},
 )
 async def import_etap_components(
     file: UploadFile = File(...),
@@ -545,8 +543,8 @@ async def import_etap_components(
 
 @router.post(
     "/import/json",
-    response_model=List[ComponentResponse],
     summary="Bulk import components from JSON",
+    responses={400: {"description": "Bad request"}, 403: {"description": "Forbidden"}},
 )
 async def import_json_components(
     file: UploadFile = File(...),
