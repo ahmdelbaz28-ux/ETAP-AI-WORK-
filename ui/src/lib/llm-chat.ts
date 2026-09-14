@@ -1121,9 +1121,12 @@ function handleSseLine(line: string, state: { currentEvent: string }): SseAction
   return { type: "none" };
 }
 
+export const CHAT_STREAM_TIMEOUT_MS = 15000;
+
 /**
  * Stream a reply through the server-side path (/api/v1/chat/stream).
  * SECURITY: the payload contains only session_id + messages + no keys.
+ * Enforces unified 15s timeout on stream requests.
  */
 export async function* streamFromServerChat(
   messages: ChatMessage[],
@@ -1133,40 +1136,59 @@ export async function* streamFromServerChat(
   const token = getAuthToken();
   if (token) headers.Authorization = `Bearer ${token}`;
 
-  const res = await fetch(apiUrl("/api/v1/chat/stream"), {
-    method: "POST",
-    headers,
-    body: JSON.stringify({ session_id: getChatSessionId(), messages }),
-    signal,
-  });
+  const timeoutController = new AbortController();
+  const timeoutId = setTimeout(() => {
+    timeoutController.abort(new Error("Chat stream timed out after 15s"));
+  }, CHAT_STREAM_TIMEOUT_MS);
 
-  if (!res.ok) {
-    throw await buildServerChatHttpError(res);
+  if (signal) {
+    if (signal.aborted) {
+      timeoutController.abort(signal.reason);
+    } else {
+      signal.addEventListener("abort", () => timeoutController.abort(signal.reason), {
+        once: true,
+      });
+    }
   }
 
-  const reader = res.body?.getReader();
-  if (!reader) return;
-  const decoder = new TextDecoder();
-  let buffer = "";
-  const sseState = { currentEvent: "" };
+  try {
+    const res = await fetch(apiUrl("/api/v1/chat/stream"), {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ session_id: getChatSessionId(), messages }),
+      signal: timeoutController.signal,
+    });
 
-  while (true) {
-    if (signal?.aborted) return;
-    const readResult = await reader.read();
-    if (readResult.done) break;
-    buffer += decoder.decode(readResult.value, { stream: true });
-    const lines = buffer.split("\n");
-    buffer = lines.pop() || "";
+    if (!res.ok) {
+      throw await buildServerChatHttpError(res);
+    }
 
-    for (const line of lines) {
-      const action = handleSseLine(line, sseState);
-      if (action.type === "token") {
-        yield action.delta;
-      } else if (action.type === "done") {
-        return;
-      } else if (action.type === "error") {
-        throw action.error;
+    const reader = res.body?.getReader();
+    if (!reader) return;
+    const decoder = new TextDecoder();
+    let buffer = "";
+    const sseState = { currentEvent: "" };
+
+    while (true) {
+      if (timeoutController.signal.aborted) return;
+      const readResult = await reader.read();
+      if (readResult.done) break;
+      buffer += decoder.decode(readResult.value, { stream: true });
+      const lines = buffer.split("\n");
+      buffer = lines.pop() || "";
+
+      for (const line of lines) {
+        const action = handleSseLine(line, sseState);
+        if (action.type === "token") {
+          yield action.delta;
+        } else if (action.type === "done") {
+          return;
+        } else if (action.type === "error") {
+          throw action.error;
+        }
       }
     }
+  } finally {
+    clearTimeout(timeoutId);
   }
 }

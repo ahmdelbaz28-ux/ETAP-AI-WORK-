@@ -159,6 +159,7 @@ export interface ChatWorkspaceState {
   lastAssistantId: string | null;
   wsStatus: WsConnectionStatus;
   lastSeq: number;
+  reconnectAttempts: number;
   wsError: string | null;
   activity: ActivityProgress[];
   proposedActions: ProposedActionEntry[];
@@ -202,16 +203,38 @@ export interface ChatWorkspaceState {
   clearSessionData: () => void;
 }
 
+export function _resetWsStateForTesting(): void {
+  reconnectAttempt = 0;
+  if (reconnectTimer) {
+    clearTimeout(reconnectTimer);
+    reconnectTimer = null;
+  }
+  if (activeWs) {
+    try {
+      activeWs.close();
+    } catch {
+      // ignore
+    }
+    activeWs = null;
+  }
+  wsClosedByUser = false;
+}
+
 const scheduleReconnect = (get: () => ChatWorkspaceState) => {
   if (wsClosedByUser) return;
   if (reconnectAttempt >= RECONNECT_MAX_ATTEMPTS) {
     useChatStore.setState({
       wsStatus: "failed",
       wsError: "Session stream reconnect attempts exhausted",
+      reconnectAttempts: reconnectAttempt,
     });
     return;
   }
   reconnectAttempt += 1;
+  useChatStore.setState({
+    wsStatus: "reconnecting",
+    reconnectAttempts: reconnectAttempt,
+  });
   const delay = Math.min(1000 * 2 ** reconnectAttempt, 15000);
   if (reconnectTimer) clearTimeout(reconnectTimer);
   reconnectTimer = setTimeout(() => {
@@ -229,9 +252,12 @@ function handleTokenEvent(payload: Record<string, unknown>, get: StoreGet, set: 
   const { messages, lastAssistantId } = get();
   if (lastAssistantId) {
     set({
-      messages: messages.map((m) =>
-        m.id === lastAssistantId ? { ...m, content: m.content + text, status: "streaming" } : m,
-      ),
+      messages: messages.map((m) => {
+        if (m.id !== lastAssistantId) return m;
+        // Avoid duplicate token insertion if parallel SSE stream already produced this chunk
+        if (m.content.endsWith(text) && text.length > 2) return m;
+        return { ...m, content: m.content + text, status: "streaming" };
+      }),
     });
   } else {
     const newId = `${WS_TOKEN_MARKER}${generateId()}`;
@@ -349,6 +375,7 @@ export const useChatStore = create<ChatWorkspaceState>()((set, get) => ({
   lastAssistantId: null,
   wsStatus: "disconnected",
   lastSeq: 0,
+  reconnectAttempts: 0,
   wsError: null,
   activity: [],
   proposedActions: [],
@@ -391,7 +418,7 @@ export const useChatStore = create<ChatWorkspaceState>()((set, get) => ({
         wsClosedByUser = false;
         socket.addEventListener("open", () => {
           reconnectAttempt = 0;
-          set({ wsStatus: "connected", wsError: null });
+          set({ wsStatus: "connected", wsError: null, reconnectAttempts: 0 });
         });
         socket.addEventListener("message", (event) => {
           try {
@@ -462,6 +489,7 @@ export const useChatStore = create<ChatWorkspaceState>()((set, get) => ({
         return;
       }
       case "approval_result": {
+        const approvalId = (payload.approval_id || payload.id) as string | undefined;
         const entry: ApprovalResultEntry = {
           seq: evt.seq,
           ts,
@@ -469,7 +497,14 @@ export const useChatStore = create<ChatWorkspaceState>()((set, get) => ({
           decision: typeof payload.decision === "string" ? payload.decision : "unknown",
           reason: typeof payload.reason === "string" ? payload.reason : undefined,
         };
-        set({ approvalResults: [entry, ...get().approvalResults].slice(0, MAX_LIST_ITEMS) });
+        const currentApprovals = get().approvals;
+        const updatedApprovals = approvalId
+          ? currentApprovals.filter((a) => a.id !== approvalId)
+          : currentApprovals;
+        set({
+          approvals: updatedApprovals,
+          approvalResults: [entry, ...get().approvalResults].slice(0, MAX_LIST_ITEMS),
+        });
         return;
       }
       case "decision_request": {
@@ -485,6 +520,21 @@ export const useChatStore = create<ChatWorkspaceState>()((set, get) => ({
   sendMessage: async (text) => {
     const trimmed = (text ?? "").trim();
     if (!trimmed) return false;
+
+    // Fail-Closed: halt message sending when emergency stop is active
+    if (get().emergencyStop.active) {
+      const blockedMsg: ChatMessage = {
+        id: generateId(),
+        role: "assistant",
+        content: "Emergency stop is active. Chat actions and execution are halted.",
+        status: "error",
+        error: "EMERGENCY_STOP_ACTIVE",
+        createdAt: Date.now(),
+      };
+      set({ messages: [...get().messages, blockedMsg], streamStatus: "error" });
+      return false;
+    }
+
     if (activeChatAbort) {
       try {
         activeChatAbort.abort();
@@ -494,6 +544,12 @@ export const useChatStore = create<ChatWorkspaceState>()((set, get) => ({
     }
     const controller = new AbortController();
     activeChatAbort = controller;
+
+    // Unified 15s timeout
+    const timeoutTimer = setTimeout(() => {
+      controller.abort(new Error("Chat stream timed out after 15s"));
+    }, 15000);
+
     const userMessage: ChatMessage = {
       id: generateId(),
       role: "user",
@@ -530,7 +586,14 @@ export const useChatStore = create<ChatWorkspaceState>()((set, get) => ({
       }
       return true;
     } catch (err) {
-      const message = toErrorMessage(err, "Chat stream failed");
+      clearTimeout(timeoutTimer);
+      const isTimeout =
+        controller.signal.aborted &&
+        ((err instanceof Error && err.message.includes("15s")) ||
+          (err instanceof Error && err.message.includes("timed out")));
+      const message = isTimeout
+        ? "Chat stream timed out after 15s. Please retry."
+        : toErrorMessage(err, "Chat stream failed");
       const { messages: errMsgs } = get();
       const last = errMsgs[errMsgs.length - 1];
       if (
@@ -562,6 +625,7 @@ export const useChatStore = create<ChatWorkspaceState>()((set, get) => ({
       }
       return false;
     } finally {
+      clearTimeout(timeoutTimer);
       if (activeChatAbort === controller) activeChatAbort = null;
     }
   },

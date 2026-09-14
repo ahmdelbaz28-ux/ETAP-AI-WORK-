@@ -11,7 +11,7 @@
  * - Displays ImportPreviewResponse in ActionCard with Approval Gateway guarded execution
  * - Never stores secrets or credentials in component or browser state
  */
-import { FileText, Play, Send, ShieldCheck, Upload, Wrench, X } from "lucide-react";
+import { FileText, Play, Send, ShieldAlert, ShieldCheck, Upload, Wrench, X } from "lucide-react";
 import { type ChangeEvent, type FormEvent, useCallback, useRef, useState } from "react";
 import { API_BASE_URL } from "../../lib/api-config";
 import { getAuthToken } from "../../lib/tokenStorage";
@@ -62,8 +62,12 @@ export function MessageInput({
   const resolveApproval = useChatStore((s) => s.resolveApproval);
   const executeImport = useChatStore((s) => s.executeImport);
   const addProposedAction = useChatStore((s) => s.addProposedAction);
+  const approvals = useChatStore((s) => s.approvals);
+  const autoApprove = useChatStore((s) => s.autoApprove);
+  const emergencyStop = useChatStore((s) => s.emergencyStop);
 
-  const busy = disabled || sending || storeStreaming || executing;
+  const isEmergencyStopped = emergencyStop.active;
+  const busy = disabled || sending || storeStreaming || executing || isEmergencyStopped;
   const trimmed = draft.trim();
 
   const runPreview = async (fileToPreview: File) => {
@@ -327,6 +331,49 @@ export function MessageInput({
         </div>
       )}
 
+      {isEmergencyStopped && (
+        <div
+          className="flex items-center gap-2 px-3 py-1.5 bg-rose-500/10 border-b border-rose-500/30 text-rose-400 text-xs"
+          data-testid="emergency-stop-banner"
+        >
+          <ShieldAlert className="w-4 h-4 shrink-0 text-rose-400" />
+          <span className="font-medium">
+            Emergency Stop (Kill-Switch) is active — chat message dispatch and actions are halted.
+          </span>
+        </div>
+      )}
+
+      {approvals.length > 0 && !isEmergencyStopped && (
+        <div
+          className="flex items-center justify-between px-3 py-1.5 bg-amber-500/10 border-b border-amber-500/20 text-xs text-amber-300"
+          data-testid="pending-approvals-bar"
+        >
+          <div className="flex items-center gap-1.5">
+            <ShieldCheck className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+            <span>
+              Pending Approvals: <strong>{approvals.length}</strong> action(s) awaiting review
+            </span>
+          </div>
+          {autoApprove.enabled && (
+            <Badge variant="success" size="sm" data-testid="auto-approve-badge">
+              Auto-Approve Active
+            </Badge>
+          )}
+        </div>
+      )}
+
+      {autoApprove.enabled && approvals.length === 0 && !isEmergencyStopped && (
+        <div
+          className="flex items-center justify-end px-3 py-0.5 bg-[var(--bg-muted)] border-b border-[var(--border-primary)] text-[10px] text-emerald-400"
+          data-testid="auto-approve-status"
+        >
+          <span className="flex items-center gap-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block" />
+            Auto-Approve Enabled (Low-Risk)
+          </span>
+        </div>
+      )}
+
       <form onSubmit={submit} className="flex items-end gap-2 p-3" data-testid="message-input-form">
         {attachmentsEnabled && (
           <>
@@ -362,7 +409,11 @@ export function MessageInput({
             }
           }}
           rows={2}
-          placeholder={placeholder ?? "Ask a power-system question or import a network model…"}
+          placeholder={
+            isEmergencyStopped
+              ? "Emergency stop active — all chat actions disabled"
+              : (placeholder ?? "Ask a power-system question or import a network model…")
+          }
           aria-label="Chat message"
           disabled={busy}
           className={cn(
