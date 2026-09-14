@@ -31,8 +31,8 @@ pyyaml~=6.0.2
 # cryptography>=50.0.0 — fixes CVE-2026-69247 (Bleichenbacher oracle) + earlier CVEs
 cryptography>=50.0.0
 bcrypt~=4.2.1
-# PyJWT >=2.8.0 — fixes CVE-2026-32597 and CVE-2026-48526 (2.13.0 was never released)
-PyJWT>=2.8.0,<3
+# PyJWT >=2.13.0 — fixes CVE-2026-32597 and CVE-2026-48526
+PyJWT>=2.13.0,<3
 
 # Data validation
 # pydantic >=2.8.0 (2.11.7 was never released; latest stable is 2.10.x)

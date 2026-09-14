@@ -8,6 +8,7 @@ version: 3
 
 project:
   name: ETAP-AI-WORK-
+  url: "https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-"
 
 paths:
   exclude:
@@ -21,10 +22,3 @@ paths:
     - "venv/"
     - "skills/ppt/"
     - "coverage/"
-
-targets:
-  only:
-    - type: pip
-      path: "."
-    - type: npm
-      path: "."

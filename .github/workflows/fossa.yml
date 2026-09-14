@@ -36,11 +36,21 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Install uv and sync dependencies
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+          run_install: false
+
+      - name: Install uv and sync Python dependencies
         run: |
           curl -LsSf https://astral.sh/uv/install.sh | sh
           export PATH="$HOME/.local/bin:$PATH"
-          uv sync --frozen --all-extras || true
+          uv sync --frozen --all-extras || uv sync --all-extras || true
+
+      - name: Install Node dependencies
+        run: |
+          pnpm install --no-frozen-lockfile || npm install --package-lock-only || true
 
       - name: Install FOSSA CLI
         run: |
@@ -52,7 +62,7 @@ jobs:
           FOSSA_API_KEY: ${{ secrets.FOSSA_API_KEY }}
         run: |
           echo "Starting FOSSA dependency & license analysis..."
-          fossa analyze --debug --output || fossa analyze --output
+          fossa analyze --debug || fossa analyze
 
       - name: Run FOSSA Test
         env:

@@ -46,8 +46,8 @@ hvac~=2.1.0
 bcrypt~=4.1.0
 
 # JWT token signing
-# SECURITY: PyJWT >=2.8.0 — fixes CVE-2026-32597 and CVE-2026-48526
-PyJWT>=2.8.0,<3
+# SECURITY: PyJWT >=2.13.0 — fixes CVE-2026-32597 and CVE-2026-48526
+PyJWT>=2.13.0,<3
 
 # Data validation
 pydantic[email]>=2.8.0,<3
