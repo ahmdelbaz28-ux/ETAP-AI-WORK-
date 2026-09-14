@@ -127,6 +127,7 @@ def _is_svix_id_duplicate(svix_id: str) -> bool:
         _processed_svix_ids[svix_id] = now
         return False
 
+
 # S1313 — named constants instead of hardcoded cloud-metadata IP literals.
 _CLOUD_METADATA_IPV4 = "169.254.169.254"  # AWS IMDSv1/v2, GCP, Azure shared address
 _CLOUD_METADATA_IPV6 = "fd00:ec2::254"  # AWS IMDSv2 IPv6 endpoint
