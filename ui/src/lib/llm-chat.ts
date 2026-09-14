@@ -486,80 +486,15 @@ async function performChatTest(provider: ProviderConfig): Promise<TestResult> {
   try {
     const testMessages: ChatMessage[] = [{ role: "user", content: 'Say "OK" in one word.' }];
 
-    // For Anthropic
     if (provider.apiType === "anthropic") {
-      const endpoint = `${provider.baseUrl}/messages`;
-      const res = await proxyFetch(
-        endpoint,
-        provider.apiKey,
-        {
-          model: provider.model.replace("anthropic/", ""),
-          max_tokens: 100,
-          messages: testMessages,
-        },
-        {
-          "x-api-key": provider.apiKey,
-          "anthropic-version": "2023-06-01",
-        },
-      );
-      const latencyMs = Date.now() - startTime;
-      if (!res.ok) return await diagnoseHttpError(res, provider, latencyMs);
-      const data = await res.json();
-      const content = data.content?.[0]?.text || "";
-      return {
-        success: true,
-        message: `Connection successful! Response: "${content.slice(0, 50)}"`,
-        latencyMs,
-        details: `Provider: ${provider.name} | Model: ${provider.model} | Latency: ${latencyMs}ms`,
-      };
+      return await _testAnthropicProvider(provider, testMessages, startTime);
     }
 
-    // For Gemini
     if (provider.apiType === "gemini") {
-      const model = provider.model.replace("google/", "").replace("gemini/", "");
-      const endpoint = `${provider.baseUrl}/models/${model}:generateContent`;
-      const res = await fetch("/api/llm-proxy", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          endpoint,
-          apiKey: provider.apiKey,
-          headers: { "x-goog-api-key": provider.apiKey },
-          body: {
-            contents: [{ role: "user", parts: [{ text: "Say OK" }] }],
-            generationConfig: { maxOutputTokens: 100 },
-          },
-        }),
-      });
-      const latencyMs = Date.now() - startTime;
-      if (!res.ok) return await diagnoseHttpError(res, provider, latencyMs);
-      return {
-        success: true,
-        message: "Connection successful! Gemini API responded correctly.",
-        latencyMs,
-      };
+      return await _testGeminiProvider(provider, startTime);
     }
 
-    // Default: OpenAI-compatible (through proxy)
-    const endpoint = `${provider.baseUrl}/chat/completions`;
-    const res = await proxyFetch(endpoint, provider.apiKey, {
-      model: provider.model,
-      messages: testMessages,
-      max_tokens: 100,
-    });
-    const latencyMs = Date.now() - startTime;
-
-    if (!res.ok) return await diagnoseHttpError(res, provider, latencyMs);
-
-    const data = await res.json();
-    const content =
-      data.choices?.[0]?.message?.content || "(empty response - model may use reasoning tokens)";
-    return {
-      success: true,
-      message: `Connection successful! Response: "${content.slice(0, 80)}"`,
-      latencyMs,
-      details: `Provider: ${provider.name} | Model: ${provider.model} | Latency: ${latencyMs}ms`,
-    };
+    return await _testOpenAICompatibleProvider(provider, testMessages, startTime);
   } catch (err) {
     const latencyMs = Date.now() - startTime;
     const errMsg = err instanceof Error ? err.message : String(err);
@@ -570,6 +505,91 @@ async function performChatTest(provider: ProviderConfig): Promise<TestResult> {
       latencyMs,
     };
   }
+}
+
+async function _testAnthropicProvider(
+  provider: ProviderConfig,
+  testMessages: ChatMessage[],
+  startTime: number,
+): Promise<TestResult> {
+  const endpoint = `${provider.baseUrl}/messages`;
+  const res = await proxyFetch(
+    endpoint,
+    provider.apiKey,
+    {
+      model: provider.model.replace("anthropic/", ""),
+      max_tokens: 100,
+      messages: testMessages,
+    },
+    {
+      "x-api-key": provider.apiKey,
+      "anthropic-version": "2023-06-01",
+    },
+  );
+  const latencyMs = Date.now() - startTime;
+  if (!res.ok) return await diagnoseHttpError(res, provider, latencyMs);
+  const data = await res.json();
+  const content = data.content?.[0]?.text || "";
+  return {
+    success: true,
+    message: `Connection successful! Response: "${content.slice(0, 50)}"`,
+    latencyMs,
+    details: `Provider: ${provider.name} | Model: ${provider.model} | Latency: ${latencyMs}ms`,
+  };
+}
+
+async function _testGeminiProvider(
+  provider: ProviderConfig,
+  startTime: number,
+): Promise<TestResult> {
+  const model = provider.model.replace("google/", "").replace("gemini/", "");
+  const endpoint = `${provider.baseUrl}/models/${model}:generateContent`;
+  const res = await fetch("/api/llm-proxy", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      endpoint,
+      apiKey: provider.apiKey,
+      headers: { "x-goog-api-key": provider.apiKey },
+      body: {
+        contents: [{ role: "user", parts: [{ text: "Say OK" }] }],
+        generationConfig: { maxOutputTokens: 100 },
+      },
+    }),
+  });
+  const latencyMs = Date.now() - startTime;
+  if (!res.ok) return await diagnoseHttpError(res, provider, latencyMs);
+  return {
+    success: true,
+    message: "Connection successful! Gemini API responded correctly.",
+    latencyMs,
+  };
+}
+
+async function _testOpenAICompatibleProvider(
+  provider: ProviderConfig,
+  testMessages: ChatMessage[],
+  startTime: number,
+): Promise<TestResult> {
+  const endpoint = `${provider.baseUrl}/chat/completions`;
+  const res = await proxyFetch(endpoint, provider.apiKey, {
+    model: provider.model,
+    messages: testMessages,
+    max_tokens: 100,
+  });
+  const latencyMs = Date.now() - startTime;
+
+  if (!res.ok) return await diagnoseHttpError(res, provider, latencyMs);
+
+  const data = await res.json();
+  const content =
+    data.choices?.[0]?.message?.content || "(empty response - model may use reasoning tokens)";
+  return {
+    success: true,
+    message: `Connection successful! Response: "${content.slice(0, 80)}"`,
+    latencyMs,
+    details: `Provider: ${provider.name} | Model: ${provider.model} | Latency: ${latencyMs}ms`,
+  };
 }
 
 async function diagnoseHttpError(

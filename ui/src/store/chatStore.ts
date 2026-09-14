@@ -150,6 +150,35 @@ function initialEmergencyStop(): {
   return { active: false, activating: false, lastResult: null, error: null };
 }
 
+function setupWebSocketHandlers(
+  socket: WebSocket,
+  get: StoreGet,
+  set: StoreSet,
+): void {
+  socket.addEventListener("open", () => {
+    reconnectAttempt = 0;
+    set({ wsStatus: "connected", wsError: null, reconnectAttempts: 0 });
+  });
+  socket.addEventListener("message", (event) => {
+    try {
+      get().handleSessionEvent(JSON.parse(String(event.data)));
+    } catch {
+      // Non-JSON frames (heartbeats/pings) are ignored — never crash.
+    }
+  });
+  socket.addEventListener("error", () => {
+    set({ wsStatus: "failed", wsError: "Session stream connection failed" });
+  });
+  socket.addEventListener("close", () => {
+    if (wsClosedByUser || get().wsStatus === "disconnected") {
+      set({ wsStatus: "disconnected" });
+      return;
+    }
+    set({ wsStatus: "reconnecting", wsError: "Session stream disconnected — reconnecting" });
+    scheduleReconnect(get);
+  });
+}
+
 // @@CHUNK_STORE_CONTINUE@@
 
 export interface ChatWorkspaceState {
@@ -416,28 +445,7 @@ export const useChatStore = create<ChatWorkspaceState>()((set, get) => ({
         const socket = new WebSocket(url);
         activeWs = socket;
         wsClosedByUser = false;
-        socket.addEventListener("open", () => {
-          reconnectAttempt = 0;
-          set({ wsStatus: "connected", wsError: null, reconnectAttempts: 0 });
-        });
-        socket.addEventListener("message", (event) => {
-          try {
-            get().handleSessionEvent(JSON.parse(String(event.data)));
-          } catch {
-            // Non-JSON frames (heartbeats/pings) are ignored — never crash.
-          }
-        });
-        socket.addEventListener("error", () => {
-          set({ wsStatus: "failed", wsError: "Session stream connection failed" });
-        });
-        socket.addEventListener("close", () => {
-          if (wsClosedByUser || get().wsStatus === "disconnected") {
-            set({ wsStatus: "disconnected" });
-            return;
-          }
-          set({ wsStatus: "reconnecting", wsError: "Session stream disconnected — reconnecting" });
-          scheduleReconnect(get);
-        });
+        setupWebSocketHandlers(socket, get, set);
       } catch (err) {
         set({ wsStatus: "failed", wsError: toErrorMessage(err, "Failed to open session stream") });
       }

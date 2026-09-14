@@ -303,7 +303,9 @@ describe("Chat Surgical — Exponential Reconnection", () => {
           this.listeners[event] = this.listeners[event] || [];
           this.listeners[event].push(cb);
         }
-        close() {}
+        close(): void {
+          // no-op: mock WebSocket
+        }
       }
 
       const originalWs = globalThis.WebSocket;
