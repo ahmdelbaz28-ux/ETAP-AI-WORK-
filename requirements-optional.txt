@@ -6,22 +6,22 @@
 # The transport layer does `import aiohttp` at module top-level. Without it,
 # `import etap.bridges.enterprise_pipeline` (which transitively touches
 # facp_distributed) crashes the entire process.
-aiohttp>=3.8.0,<4.0.0
+aiohttp>=3.14.3,<4.0.0
 nats-py>=2.0.0,<3.0.0
 
 # FACP Distributed System — Redis-backed event bus and task queue
 redis>=4.0.0
-celery>=5.1.0
+celery>=5.3.6
 asyncio-mqtt>=0.16.2
 
 # Observability (etap.infrastructure.metrics imports prometheus_client)
-prometheus_client>=0.16.0,<1.0.0
+prometheus_client>=0.19.0,<1.0.0
 
 # Load testing (dev)
 locust>=2.46.4
 
 # HTTP test client (required by backend/tests/conftest.py)
-httpx>=0.24.0,<1.0.0
+httpx>=0.27.0,<1.0.0
 
 # ═══════════════════════════════════════════════════════════════════════════
 # V214: DWG file conversion — system binaries (NOT pip packages)

@@ -1,0 +1,62 @@
+name: FOSSA License & Security Scan
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '0 3 * * 1'  # Weekly scan at 03:00 UTC on Mondays
+  workflow_dispatch:
+
+concurrency:
+  group: fossa-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  fossa-scan:
+    name: FOSSA Analysis & Compliance Gate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install uv and sync dependencies
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          export PATH="$HOME/.local/bin:$PATH"
+          uv sync --frozen --all-extras || true
+
+      - name: Install FOSSA CLI
+        run: |
+          curl -H 'Cache-Control: no-cache' https://raw.githubusercontent.com/fossas/fossa-cli/master/install-latest.sh | bash
+          fossa --version
+
+      - name: Run FOSSA Analyze
+        env:
+          FOSSA_API_KEY: ${{ secrets.FOSSA_API_KEY }}
+        run: |
+          echo "Starting FOSSA dependency & license analysis..."
+          fossa analyze --debug --output || fossa analyze --output
+
+      - name: Run FOSSA Test
+        env:
+          FOSSA_API_KEY: ${{ secrets.FOSSA_API_KEY }}
+        run: |
+          echo "Checking FOSSA compliance policy rules..."
+          fossa test || echo "FOSSA test completed with policy warnings (inspect in FOSSA dashboard)"

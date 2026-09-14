@@ -77,6 +77,8 @@
     "@opentelemetry/propagator-jaeger": "^2.10.0",
     "uuid": "^11.1.0",
     "cross-spawn": "^7.0.6",
-    "qs": "^6.16.0"
+    "qs": "^6.16.0",
+    "liquidjs": "^10.20.0",
+    "joi": "^17.13.3"
   }
 }

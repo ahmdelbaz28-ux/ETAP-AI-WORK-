@@ -1,0 +1,30 @@
+# =============================================================================
+# AhmedETAP — FOSSA Configuration
+# =============================================================================
+# Documentation: https://docs.fossa.com/docs/fossa-yml-reference
+# =============================================================================
+
+version: 3
+
+project:
+  name: ETAP-AI-WORK-
+
+paths:
+  exclude:
+    - "tests/"
+    - "test/"
+    - "docs/"
+    - "artifacts/"
+    - "scratch/"
+    - "node_modules/"
+    - ".venv/"
+    - "venv/"
+    - "skills/ppt/"
+    - "coverage/"
+
+targets:
+  only:
+    - type: pip
+      path: "."
+    - type: npm
+      path: "."
