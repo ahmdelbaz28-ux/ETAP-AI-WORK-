@@ -116,7 +116,9 @@ def _get_wired_scada_db():
     return None
 
 
-@router.get("/live")
+@router.get("/live", responses={
+    500: {"description": "Internal server error — telemetry fetch failed"},
+})
 async def scada_live(request: Request):
     """Return a snapshot of the latest SCADA telemetry.
 
@@ -218,7 +220,9 @@ async def scada_live(request: Request):
         )
 
 
-@router.get("/devices")
+@router.get("/devices", responses={
+    403: {"description": "Forbidden — insufficient permissions"},
+})
 async def scada_devices(
     user: CurrentUser = Depends(get_current_user_from_header),
 ):

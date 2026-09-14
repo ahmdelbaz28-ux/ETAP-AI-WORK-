@@ -319,7 +319,13 @@ async def _send_digest_to_recipient(email: str, period: str) -> bool:
         return False
 
 
-@router.post("/schedule/run", summary="Process scheduled digests (cron call)")
+@router.post(
+    "/schedule/run",
+    summary="Process scheduled digests (cron call)",
+    responses={
+        403: {"description": "Forbidden — missing or invalid API key"},
+    },
+)
 async def run_scheduled_digests(request: Request) -> JSONResponse:
     """Cron entry point — sends digests to all users with recent activity."""
     trace_id = getattr(request.state, "trace_id", "unknown")

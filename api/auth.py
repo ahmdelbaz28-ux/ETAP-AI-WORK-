@@ -1455,6 +1455,9 @@ async def refresh(
     status_code=status.HTTP_204_NO_CONTENT,
     response_class=Response,
     summary="Revoke session",
+    responses={
+        401: {"description": "Unauthorized — missing or invalid credentials"},
+    },
 )
 async def logout(
     request: Request,
@@ -1505,6 +1508,9 @@ async def logout(
     "/me",
     response_model=UserResponse,
     summary="Get current user profile",
+    responses={
+        404: {"description": "User not found"},
+    },
 )
 async def get_me(
     user: CurrentUserDep,
@@ -1537,6 +1543,11 @@ async def get_me(
     "/me",
     response_model=UserResponse,
     summary="Update current user profile",
+    responses={
+        403: {"description": "Forbidden — cannot disable MFA without verification"},
+        404: {"description": "User not found"},
+        409: {"description": "Email already in use"},
+    },
 )
 async def update_me(
     body: UpdateProfileRequest,
@@ -1617,6 +1628,10 @@ async def update_me(
     "/me/password",
     response_model=UserResponse,
     summary="Change password",
+    responses={
+        400: {"description": "Bad request — incorrect current password or invalid new password"},
+        404: {"description": "User not found"},
+    },
 )
 async def change_password(
     body: ChangePasswordRequest,
@@ -1706,6 +1721,10 @@ async def change_password(
     "/forgot-password",
     status_code=status.HTTP_200_OK,
     summary="Request a password reset",
+    responses={
+        400: {"description": "Bad request — validation error"},
+        429: {"description": "Too many password reset attempts"},
+    },
 )
 @limiter.limit("5/minute", key_func=get_remote_address_proxy_aware)
 async def forgot_password(
@@ -1816,6 +1835,9 @@ async def forgot_password(
     "/reset-password",
     status_code=status.HTTP_200_OK,
     summary="Reset password using token",
+    responses={
+        400: {"description": "Bad request — invalid or expired reset token"},
+    },
 )
 @limiter.limit("10/minute", key_func=get_remote_address_proxy_aware)
 async def reset_password(
@@ -1863,6 +1885,9 @@ async def reset_password(
     "/users",
     response_model=UserListResponse,
     summary="List all users (admin only)",
+    responses={
+        403: {"description": "Forbidden — admin role required"},
+    },
 )
 async def list_users(
     db: DbDep,

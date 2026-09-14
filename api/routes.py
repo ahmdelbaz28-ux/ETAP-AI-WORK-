@@ -1004,7 +1004,14 @@ async def websocket_notifications_handler(websocket: WebSocket) -> None:
 # The HTTP contract (paths, auth, response bodies, status codes) is unchanged.
 
 
-@app.get("/api/v1/audit/verify", tags=["Audit"])
+@app.get(
+    "/api/v1/audit/verify",
+    tags=["Audit"],
+    responses={
+        401: {"description": "Unauthorized — missing or invalid API key"},
+        403: {"description": "Forbidden — missing or invalid API key"},
+    },
+)
 async def audit_verify(request: Request):
     """Verify the safety audit chain file integrity.
 
