@@ -115,7 +115,7 @@ importers:
         specifier: 3.2.6
         version: 3.2.6(supports-color@10.2.2)(vitest@3.2.6)
       commander:
-        specifier: 12.1.0
+        specifier: ^14.0.3
         version: 12.1.0
       dotenv:
         specifier: 16.4.7
@@ -242,7 +242,7 @@ importers:
         specifier: ^10.0.4
         version: 10.0.4
       cross-env:
-        specifier: 7.0.3
+        specifier: ^10.1.0
         version: 7.0.3
       electron:
         specifier: 44.2.0
