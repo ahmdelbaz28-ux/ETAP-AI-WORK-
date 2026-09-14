@@ -30,6 +30,7 @@ app_port: 7860
 [![Vite](https://img.shields.io/badge/Vite-6-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://typescriptlang.org)
 [![License](https://img.shields.io/badge/License-MIT-22c55e?style=for-the-badge&logo=open-source-initiative&logoColor=white)](LICENSE)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fahmdelbaz28-ux%2FETAP-AI-WORK-.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fahmdelbaz28-ux%2FETAP-AI-WORK-?ref=badge_shield)
 
 <br/>
 
@@ -364,6 +365,8 @@ mkdocs serve -f docs/mkdocs.yml   # http://127.0.0.1:8000
 </p>
 
 ---
+
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fahmdelbaz28-ux%2FETAP-AI-WORK-.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fahmdelbaz28-ux%2FETAP-AI-WORK-?ref=badge_large)
 
 ## Table of Contents
 // This is the omitted part
