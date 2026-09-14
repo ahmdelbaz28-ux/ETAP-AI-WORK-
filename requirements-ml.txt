@@ -23,3 +23,4 @@ mlflow>=3.16.0                       # Model tracking, versioning, registry
 # Phase 6e: ML/AI - NLP & RAG Enhancement
 transformers>=5.15.1                # HuggingFace Transformers
 sentence-transformers>=2.2.0        # Sentence embeddings for RAG
+pillow>=10.0.0 # not directly required, pinned by Snyk to avoid a vulnerability
