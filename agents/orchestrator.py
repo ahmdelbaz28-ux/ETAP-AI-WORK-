@@ -99,6 +99,7 @@ class ChiefEngineeringOrchestrator:
     def __init__(self) -> None:
         self.agents = create_agent_registry(orchestrator_instance=self)
         self._code_guard_agent = self.agents.get("code_guard")
+        # S-19: If CodeGuardAgent is not available, safety code review is DISABLED (logged as warning in agents.registry).
         self._etap_expert_agent = self.agents.get("etap_expert")
         self._etap_gui_agent = self.agents.get("etap_gui")
         self._ahmed_etap_skill_agent = self.agents.get("ahmed_etap")
