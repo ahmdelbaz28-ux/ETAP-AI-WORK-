@@ -76,12 +76,12 @@ const weatherAgent = await createAgent({
   tools: { weatherTool },
 });
 
-// Power System Coordinator — no tools, no memory, has sub-agents + network options.
+// Power System Coordinator — has sub-agents, 12 maxSteps, memory, and resilient routing options.
 const powerSystemCoordinatorAgent = await createAgent({
   id: 'power-system-coordinator-agent',
   name: 'Power System Coordinator Agent',
   promptHandle: 'power_system_coordinator_agent',
-  noMemory: true,
+  memory: { maxMessages: 30, ttl: 3600 },
   subAgents: {
     loadFlowAgent,
     shortCircuitAgent,
@@ -90,12 +90,15 @@ const powerSystemCoordinatorAgent = await createAgent({
     arcFlashAgent,
     etapEngineerAgent,
     goalPlannerAgent,
+    weatherAgent,
+    etapExpertAgent,
+    codeGuardAgent,
   },
   defaultNetworkOptions: {
-    maxSteps: 7,
+    maxSteps: 12,
     routing: {
       additionalInstructions:
-        'Prefer the narrowest specialist agent that can safely answer the user request. If a sub-agent returns a successful result, exit immediately. If 3 consecutive failures occur, exit with error.',
+        'Prefer the narrowest specialist agent that can safely answer the user request. On ambiguity or unfamiliar terms, attempt domain synonyms first, then ask at most one clarifying question, then fall back safely. If a sub-agent returns a successful result, exit immediately. If 3 consecutive failures occur, exit with error.',
     },
   },
 });
