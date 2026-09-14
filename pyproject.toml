@@ -66,7 +66,7 @@ dependencies = [
     "pygments>=2.20.0",  # SECURITY: ReDoS via GUID regex fixed
     "setuptools>=83.0.0",  # SECURITY: MANIFEST.in Unicode normalization bypass fixed
     "python-dotenv>=1.2.2",  # SECURITY: CVE-2026-2270 fixed
-    "redis>=5.0.0",
+    "redis>=6.2.0",
     "prometheus-client>=0.19.0",
     "celery>=5.3.6",
     # SECURITY: bumped lower bound 11 → 15 because langsmith 0.10.x (pinned
@@ -108,12 +108,12 @@ dependencies = [
     # validation) and CVE-2025-21556 (credential leak in error responses) which
     # affected the 0.1.x / 0.2.x lines.
     "langsmith>=0.10.0,<0.13",
-    "qdrant-client>=1.7.0",
+    "qdrant-client>=1.9.1",
 ]
 
 [project.optional-dependencies]
 test = [
-    "pytest>=7.0.0",
+    "pytest>=9.0.3",
     "pytest-cov>=3.0.0",
     "pytest-asyncio>=0.21.0",
     "fastapi>=0.135.0",
@@ -125,7 +125,7 @@ win32 = [
     "opencv-python>=4.5.0",
 ]
 dev = [
-    "pytest>=7.0.0",
+    "pytest>=9.0.3",
     "pytest-cov>=3.0.0",
     "pytest-asyncio>=0.21.0",
     "black>=24.0",

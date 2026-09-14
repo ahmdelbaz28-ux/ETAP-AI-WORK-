@@ -82,7 +82,7 @@ langsmith>=0.10,<0.13
 prometheus-client>=0.19,<0.26
 
 # Core numerical and scientific computing
-numpy>=1.24,<2.6
+numpy>=1.26.0,<2.6
 scipy>=1.12,<1.19
 pandas~=2.2.0
 
@@ -94,10 +94,8 @@ psutil~=5.9.0
 
 # HTTP requests
 # SECURITY: upgraded from 2.31.0 → 2.33.0 to fix CVE-2024-35195 (cert
-# verification bypass) and CVE-2024-47081.
-# SECURITY: upgraded from 2.33.0 → 2.34.0 to fix CVE-2026-25645
-# (insecure temp file reuse in extract_zipped_paths).
-requests>=2.32.0
+# verification bypass), CVE-2024-47081 (.netrc leak), and CVE-2026-25645 (insecure tmp file).
+requests>=2.33.0
 
 # CAD file processing
 ezdxf>=1.1.0,<1.5.0
@@ -206,7 +204,7 @@ pyotp~=2.9.0
 # WebAuthn / FIDO2 — required for production MFA (HIGH #8 from AhmedETAP_Error_Report_AR.pdf).
 # Without this, security/mfa.py rejects all WebAuthn registrations/assertions.
 webauthn>=2.0.0,<3.0.0
-redis~=5.0.0
+redis>=6.2.0
 httpx~=0.27.0
 
 # Phase 3: WebSocket
@@ -236,11 +234,11 @@ mako~=1.4.1
 # GUID-matching regex.
 pygments>=2.20.0
 setuptools>=83.0.0
-python-dotenv>=1.0.0
+python-dotenv>=1.2.2
 slowapi>=0.1.9
 
 # Python multipart for FastAPI file uploads
-python-multipart~=0.0.6
+python-multipart>=0.0.31
 
 # Starlette (FastAPI dependency - pinned for compatibility)
 # SECURITY: upgraded from 0.40.x → 1.3.1 — fixes 6 CVEs (3 HIGH + 3 MED) that

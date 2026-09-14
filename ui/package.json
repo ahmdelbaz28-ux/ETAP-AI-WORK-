@@ -111,6 +111,7 @@
     "wait-on": "9.1.0"
   },
   "overrides": {
-    "@vitest/mocker": "^4.1.11"
+    "@vitest/mocker": "^4.1.11",
+    "joi": "^18.2.9"
   }
 }
