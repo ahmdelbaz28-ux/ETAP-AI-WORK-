@@ -9,6 +9,7 @@ preserving 100% regression compatibility with existing goal phrases and fallback
 from __future__ import annotations
 
 import logging
+from dataclasses import dataclass
 from typing import Any
 
 from agents.models import StudyType
@@ -56,23 +57,37 @@ DEFAULT_STUDIES: list[StudyType] = [
 ]
 
 
+@dataclass
+class RouterDecision:
+    """Typed decision returned by the goal router containing study types, confidence, and reasoning."""
+
+    study_types: list[StudyType]
+    confidence: float
+    reason: str
+
+
 class GoalRouter:
     """Typed router that analyzes user goals and maps them to executable StudyTypes."""
 
     def __init__(self, custom_rules: list[tuple[list[str], StudyType]] | None = None) -> None:
         self.rules = custom_rules or KEYWORD_RULES
 
-    def parse_user_goal(self, goal: Any) -> list[StudyType]:
-        """Parse a user goal into an ordered list of StudyType enums.
+    def route(self, goal: Any) -> RouterDecision:
+        """Route a user goal into a typed RouterDecision with confidence and reasoning.
 
         Supports:
-        1. String input with keyword pattern extraction.
+        1. Empty / whitespace -> baseline default fallback.
         2. Sequence of StudyType enums or string study identifiers.
         3. Dict structure with 'study_types' or 'intent' fields.
+        4. String input with keyword pattern extraction.
         Fallback returns [LOAD_FLOW, SHORT_CIRCUIT, HARMONIC_ANALYSIS].
         """
-        if not goal:
-            return list(DEFAULT_STUDIES)
+        if not goal or (isinstance(goal, str) and not goal.strip()):
+            return RouterDecision(
+                study_types=list(DEFAULT_STUDIES),
+                confidence=0.5,
+                reason="Default baseline studies for empty/unspecified goal",
+            )
 
         # Handle typed list of StudyTypes or strings directly
         if isinstance(goal, (list, tuple)):
@@ -86,30 +101,57 @@ class GoalRouter:
                             resolved.append(st)
                             break
             if resolved:
-                return resolved
-            return list(DEFAULT_STUDIES)
+                return RouterDecision(
+                    study_types=resolved,
+                    confidence=1.0,
+                    reason="Explicit study types provided directly",
+                )
+            return RouterDecision(
+                study_types=list(DEFAULT_STUDIES),
+                confidence=0.5,
+                reason="Unrecognized sequence elements; default baseline fallback",
+            )
 
         # Handle dict format
         if isinstance(goal, dict):
             studies = goal.get("study_types") or goal.get("studies")
             if studies:
-                return self.parse_user_goal(studies)
+                return self.route(studies)
             goal_str = goal.get("goal") or goal.get("description") or ""
-            return self.parse_user_goal(goal_str)
+            return self.route(goal_str)
 
         # String goal processing
         goal_lower = str(goal).lower()
         studies: list[StudyType] = []
+        matched_reasons: list[str] = []
 
         for keywords, study_type in self.rules:
-            if any(kw in goal_lower for kw in keywords):
+            matched_kws = [kw for kw in keywords if kw in goal_lower]
+            if matched_kws:
                 if study_type not in studies:
                     studies.append(study_type)
+                    matched_reasons.append(f"{study_type.value} ('{matched_kws[0]}')")
 
-        if not studies:
-            studies = list(DEFAULT_STUDIES)
+        if studies:
+            confidence = 0.95 if len(studies) > 1 else 0.90
+            return RouterDecision(
+                study_types=studies,
+                confidence=confidence,
+                reason=f"Matched keywords: {', '.join(matched_reasons)}",
+            )
 
-        return studies
+        return RouterDecision(
+            study_types=list(DEFAULT_STUDIES),
+            confidence=0.3,
+            reason="Unrecognized goal intent; safe fallback to baseline load flow, short circuit, harmonic analysis",
+        )
+
+    def parse_user_goal(self, goal: Any) -> list[StudyType]:
+        """Parse a user goal into an ordered list of StudyType enums.
+
+        Backward-compatible shim returning study_types from RouterDecision.
+        """
+        return self.route(goal).study_types
 
     def determine_execution_order(self, study_types: list[StudyType]) -> list[StudyType]:
         """Sort study types into dependency-safe execution order (e.g. Load Flow first)."""
@@ -118,6 +160,11 @@ class GoalRouter:
 
 # Module-level singletons / conveniences
 _default_router = GoalRouter()
+
+
+def route_user_goal(goal: Any) -> RouterDecision:
+    """Module convenience function for typed goal routing."""
+    return _default_router.route(goal)
 
 
 def parse_user_goal(goal: Any) -> list[StudyType]:

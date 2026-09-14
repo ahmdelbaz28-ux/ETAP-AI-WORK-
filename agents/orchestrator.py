@@ -57,6 +57,7 @@ from agents.registry import (  # noqa: F401
 )
 from agents.router import (  # noqa: F401
     GoalRouter,
+    RouterDecision,
     determine_execution_order,
     parse_user_goal,
 )
@@ -159,8 +160,9 @@ class ChiefEngineeringOrchestrator:
         """Execute complete autonomous engineering workflow based on user goal."""
         self.logger.info("Starting autonomous workflow for goal: %s", user_goal)
 
-        # Parse user goal and determine required studies
-        required_studies = self._parse_user_goal(user_goal)
+        # Parse user goal and determine required studies via typed router
+        decision = self.router.route(user_goal)
+        required_studies = decision.study_types
 
         # Create task
         task = EngineeringTask(
@@ -204,8 +206,12 @@ class ChiefEngineeringOrchestrator:
             "all_validated": all(r.validation_status for r in results),
         }
 
+    def route_user_goal(self, goal: Any) -> RouterDecision:
+        """Route user goal into a typed RouterDecision with confidence and reasoning."""
+        return self.router.route(goal)
+
     def _parse_user_goal(self, goal: str) -> list[StudyType]:
-        """Parse user goal to determine required studies."""
+        """Parse user goal to determine required studies (backward compatible shim)."""
         return self.router.parse_user_goal(goal)
 
     def _determine_execution_order(self, study_types: list[StudyType]) -> list[StudyType]:
