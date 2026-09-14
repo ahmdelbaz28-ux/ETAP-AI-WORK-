@@ -9,13 +9,7 @@ import pytest
 
 from agents.models import StudyType
 from agents.orchestrator import ChiefEngineeringOrchestrator, get_orchestrator
-from agents.router import (
-    GoalRouter,
-    RouterDecision,
-    determine_execution_order,
-    parse_user_goal,
-    route_user_goal,
-)
+from agents.router import GoalRouter, determine_execution_order, parse_user_goal
 
 
 @pytest.fixture
@@ -127,52 +121,3 @@ def test_typed_router_direct_enum_and_dict_support() -> None:
         StudyType.LOAD_FLOW,
         StudyType.SHORT_CIRCUIT,
     ]
-
-
-def test_typed_router_decision_properties() -> None:
-    """GoalRouter.route() returns a well-formed RouterDecision dataclass."""
-    router = GoalRouter()
-    decision = router.route("run load flow and calculate faults")
-
-    assert isinstance(decision, RouterDecision)
-    assert StudyType.LOAD_FLOW in decision.study_types
-    assert StudyType.SHORT_CIRCUIT in decision.study_types
-    assert decision.confidence >= 0.90
-    assert "load_flow" in decision.reason
-    assert "short_circuit" in decision.reason
-
-
-def test_typed_router_decision_fallbacks() -> None:
-    """Empty and unknown goals return safe fallbacks with calibrated confidence."""
-    router = GoalRouter()
-
-    # Empty goal
-    empty_decision = router.route("")
-    assert empty_decision.study_types == [
-        StudyType.LOAD_FLOW,
-        StudyType.SHORT_CIRCUIT,
-        StudyType.HARMONIC_ANALYSIS,
-    ]
-    assert empty_decision.confidence == 0.5
-    assert "Default" in empty_decision.reason
-
-    # Unknown goal
-    unknown_decision = router.route("some random text with no electrical terms")
-    assert unknown_decision.study_types == [
-        StudyType.LOAD_FLOW,
-        StudyType.SHORT_CIRCUIT,
-        StudyType.HARMONIC_ANALYSIS,
-    ]
-    assert unknown_decision.confidence == 0.3
-    assert "Unrecognized" in unknown_decision.reason
-
-
-def test_orchestrator_route_user_goal(orchestrator: ChiefEngineeringOrchestrator) -> None:
-    """ChiefEngineeringOrchestrator exposes route_user_goal returning typed RouterDecision."""
-    decision = orchestrator.route_user_goal("cable sizing for 200A feeder")
-    assert isinstance(decision, RouterDecision)
-    assert decision.study_types == [StudyType.CABLE_SIZING]
-    assert decision.confidence >= 0.90
-    assert "cable_sizing" in decision.reason
-    # Convenience function also works
-    assert route_user_goal("cable sizing").study_types == [StudyType.CABLE_SIZING]

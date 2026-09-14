@@ -262,7 +262,16 @@ def _preflight_validate_features(
 # ---------------------------------------------------------------------------
 
 
-@router.post("/propose", status_code=status.HTTP_202_ACCEPTED)
+@router.post(
+    "/propose",
+    status_code=status.HTTP_202_ACCEPTED,
+    responses={
+        400: {"description": "Bad request"},
+        401: {"description": "Unauthorized — missing or invalid API key"},
+        403: {"description": "Forbidden — insufficient role or feature disabled"},
+        422: {"description": "Validation error — invalid geometry or payload"},
+    },
+)
 async def propose_gis_edit(
     command: GISEditProposeRequest,
     db: AsyncSession = Depends(get_db),
@@ -376,7 +385,12 @@ async def propose_gis_edit(
     return response_data
 
 
-@router.get("/pending")
+@router.get(
+    "/pending",
+    responses={
+        403: {"description": "Forbidden — insufficient role or feature disabled"},
+    },
+)
 async def list_pending_gis_edits(
     db: AsyncSession = Depends(get_db),
     user: CurrentUser = Depends(get_current_user_from_header),
@@ -416,7 +430,14 @@ async def list_pending_gis_edits(
     }
 
 
-@router.post("/{action_id}/resolve")
+@router.post(
+    "/{action_id}/resolve",
+    responses={
+        400: {"description": "Bad request"},
+        403: {"description": "Forbidden — insufficient role, cross-tenant, or maker-checker violation"},
+        404: {"description": "GIS edit action not found"},
+    },
+)
 async def resolve_gis_edit(
     action_id: str,
     body: GISEditResolveRequest,
@@ -558,7 +579,12 @@ async def resolve_gis_edit(
     return response_data
 
 
-@router.get("/{action_id}/status")
+@router.get(
+    "/{action_id}/status",
+    responses={
+        404: {"description": "GIS edit action not found"},
+    },
+)
 async def get_gis_edit_status(
     action_id: str,
     db: AsyncSession = Depends(get_db),

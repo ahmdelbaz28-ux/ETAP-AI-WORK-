@@ -150,7 +150,14 @@ async def _get_study_result(
     return study
 
 
-@router.get("/{project_id}/studies/{study_id}/versions", response_model=VersionListResponse)
+@router.get(
+    "/{project_id}/studies/{study_id}/versions",
+    responses={
+        400: {"description": "Bad request"},
+        403: {"description": "Forbidden — insufficient permissions"},
+        404: {"description": "Project or study not found"},
+    },
+)
 async def list_versions(
     project_id: str,
     study_id: str,
@@ -190,7 +197,13 @@ async def list_versions(
 
 
 @router.post(
-    "/{project_id}/studies/{study_id}/versions", response_model=VersionResponse, status_code=201
+    "/{project_id}/studies/{study_id}/versions",
+    status_code=201,
+    responses={
+        400: {"description": "Bad request"},
+        403: {"description": "Forbidden — insufficient permissions"},
+        404: {"description": "Project or study not found"},
+    },
 )
 async def create_version(
     project_id: str,
@@ -237,7 +250,11 @@ async def create_version(
 
 
 @router.get(
-    "/{project_id}/studies/{study_id}/versions/{version_id}", response_model=VersionResponse
+    "/{project_id}/studies/{study_id}/versions/{version_id}",
+    responses={
+        403: {"description": "Forbidden — insufficient permissions"},
+        404: {"description": "Version not found"},
+    },
 )
 async def get_version(
     project_id: str,
@@ -275,7 +292,14 @@ async def get_version(
     )
 
 
-@router.post("/{project_id}/studies/{study_id}/versions/{version_id}/rollback", response_model=dict)
+@router.post(
+    "/{project_id}/studies/{study_id}/versions/{version_id}/rollback",
+    responses={
+        400: {"description": "Bad request"},
+        403: {"description": "Forbidden — insufficient permissions"},
+        404: {"description": "Version not found"},
+    },
+)
 async def rollback_version(
     project_id: str,
     study_id: str,
@@ -333,7 +357,12 @@ async def rollback_version(
 
 
 @router.get(
-    "/{project_id}/studies/{study_id}/versions/{v1}/compare/{v2}", response_model=CompareResponse
+    "/{project_id}/studies/{study_id}/versions/{v1}/compare/{v2}",
+    response_model=CompareResponse,
+    responses={
+        403: {"description": "Forbidden — insufficient permissions"},
+        404: {"description": "Version not found"},
+    },
 )
 async def compare_versions(
     project_id: str,

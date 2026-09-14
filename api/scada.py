@@ -269,7 +269,11 @@ async def scada_devices(
 # ---------------------------------------------------------------------------
 
 
-@router.post("/control/propose", status_code=status.HTTP_202_ACCEPTED)
+@router.post("/control/propose", status_code=status.HTTP_202_ACCEPTED, responses={
+    400: {"description": "Bad request"},
+    403: {"description": "Forbidden — insufficient role or feature disabled"},
+    422: {"description": "Validation error — interlock violation or missing network model"},
+})
 async def propose_control_action(
     command: ControlCommandRequest,
     db: AsyncSession = Depends(get_db),
@@ -419,7 +423,9 @@ async def propose_control_action(
     return response_data
 
 
-@router.get("/control/pending")
+@router.get("/control/pending", responses={
+    403: {"description": "Forbidden — insufficient role"},
+})
 async def list_pending_control_actions(
     db: AsyncSession = Depends(get_db),
     user: CurrentUser = Depends(get_current_user_from_header),
@@ -460,7 +466,11 @@ async def list_pending_control_actions(
     }
 
 
-@router.post("/control/{action_id}/resolve")
+@router.post("/control/{action_id}/resolve", responses={
+    400: {"description": "Bad request"},
+    403: {"description": "Forbidden — insufficient role, cross-tenant, or maker-checker violation"},
+    404: {"description": "Control action not found"},
+})
 async def resolve_control_action(
     action_id: str,
     body: SCADAResolveRequest,
@@ -593,7 +603,9 @@ async def resolve_control_action(
     return response_data
 
 
-@router.get("/control/{action_id}/status")
+@router.get("/control/{action_id}/status", responses={
+    404: {"description": "Control action not found"},
+})
 async def get_control_action_status(
     action_id: str,
     db: AsyncSession = Depends(get_db),

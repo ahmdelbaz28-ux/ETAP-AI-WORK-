@@ -346,6 +346,11 @@ def _verify_resend_signature(
 @router.post(
     "/resend",
     summary="Receive webhook from Resend (delivery events)",
+    responses={
+        400: {"description": "Bad request — invalid JSON or webhook payload"},
+        401: {"description": "Unauthorized — invalid Svix signature"},
+        503: {"description": "Service unavailable — webhook secret not configured"},
+    },
 )
 async def resend_webhook(
     request: Request,
@@ -665,7 +670,10 @@ async def _forward_to_endpoints(event_type: str, payload: dict) -> int:
 
 @router.post(
     "/endpoints",
-    response_model=EndpointResponse,
+    responses={
+        400: {"description": "Bad request — SSRF-blocked or invalid URL"},
+        403: {"description": "Forbidden — admin or service role required"},
+    },
     status_code=status.HTTP_201_CREATED,
     summary="Register an outbound webhook endpoint (admin only)",
 )
@@ -717,6 +725,10 @@ def register_endpoint(
 @router.get(
     "/endpoints",
     summary="List registered outbound webhook endpoints (admin only)",
+    responses={
+        403: {"description": "Forbidden — admin or service role required"},
+        404: {"description": "No endpoints registered"},
+    },
 )
 def list_endpoints(
     user: CurrentUser = Depends(require_role("admin", "service")),  # NOSONAR
@@ -749,6 +761,10 @@ def list_endpoints(
 @router.delete(
     "/endpoints/{endpoint_id}",
     summary="Delete a webhook endpoint (admin only)",
+    responses={
+        403: {"description": "Forbidden — admin or service role required"},
+        404: {"description": "Endpoint not found"},
+    },
 )
 def delete_endpoint(
     endpoint_id: str,
@@ -780,6 +796,10 @@ def delete_endpoint(
 @router.post(
     "/endpoints/{endpoint_id}/test",
     summary="Send a test event to a webhook endpoint (admin only)",
+    responses={
+        403: {"description": "Forbidden — admin or service role required"},
+        404: {"description": "Endpoint not found"},
+    },
 )
 async def test_endpoint(
     endpoint_id: str,
@@ -824,6 +844,10 @@ async def test_endpoint(
 @router.get(
     "/events",
     summary="List recent inbound webhook events (admin only — debug)",
+    responses={
+        400: {"description": "Bad request — limit out of range"},
+        403: {"description": "Forbidden — admin or service role required"},
+    },
 )
 def list_events(
     limit: int = 50,

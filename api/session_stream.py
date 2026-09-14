@@ -405,6 +405,10 @@ router = APIRouter(tags=["session-stream"])
 @router.post(
     "/api/v1/ws-ticket",
     summary="Issue a short-lived single-use WebSocket ticket",
+    responses={
+        400: {"description": "Bad request — missing or invalid session_id"},
+        403: {"description": "Forbidden — session belongs to another user"},
+    },
 )
 async def create_ws_ticket(
     body: WsTicketRequest,

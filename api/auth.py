@@ -1110,9 +1110,12 @@ class UserService:
 
 @router.post(
     "/register",
-    response_model=UserResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Register a new user",
+    responses={
+        400: {"description": "Bad request"},
+        409: {"description": "Conflict — username or email already registered"},
+    },
 )
 @limiter.limit("5/minute", key_func=get_remote_address_proxy_aware)
 async def register(
@@ -1222,13 +1225,21 @@ async def _verify_mfa_and_issue_tokens(
 
 @router.post(
     "/login",
-    response_model=LoginResponse,
     summary="Authenticate and receive JWT tokens",
+    responses={
+        400: {"description": "Bad request"},
+        401: {"description": "Unauthorized — invalid credentials or inactive account"},
+        429: {"description": "Too many login attempts"},
+    },
 )
 @router.post(
     "/token",
-    response_model=LoginResponse,
     summary="Authenticate and receive JWT tokens (token alias)",
+    responses={
+        400: {"description": "Bad request"},
+        401: {"description": "Unauthorized — invalid credentials or inactive account"},
+        429: {"description": "Too many login attempts"},
+    },
 )
 @limiter.limit("10/minute", key_func=get_login_rate_limit_key)
 async def login(
@@ -1357,8 +1368,11 @@ async def login(
 
 @router.post(
     "/refresh",
-    response_model=TokenResponse,
     summary="Refresh JWT access token",
+    responses={
+        400: {"description": "Bad request"},
+        401: {"description": "Unauthorized — invalid or expired refresh token"},
+    },
 )
 @limiter.limit("30/minute", key_func=get_authenticated_or_ip_key)
 async def refresh(

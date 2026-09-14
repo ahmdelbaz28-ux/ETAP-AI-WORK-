@@ -536,7 +536,14 @@ def get_celery_components() -> tuple[Any | None, Any | None, Any | None]:
         return _celery_cache
 
 
-@app.post("/api/v1/studies/run_async", responses={500: {"description": MSG_INTERNAL_ERROR}})
+@app.post(
+    "/api/v1/studies/run_async",
+    responses={
+        400: {"description": "Bad request"},
+        401: {"description": "Unauthorized — missing or invalid API key"},
+        500: {"description": MSG_INTERNAL_ERROR},
+    },
+)
 async def run_study_async(study_request: StudyRequest, request: Request) -> dict[str, Any]:
     """Execute an engineering study asynchronously using Celery."""
     _require_api_key(request)  # Add authentication check
@@ -577,7 +584,13 @@ async def run_study_async(study_request: StudyRequest, request: Request) -> dict
 
 
 @app.get(
-    "/api/v1/studies/task_status/{task_id}", responses={500: {"description": MSG_INTERNAL_ERROR}}
+    "/api/v1/studies/task_status/{task_id}",
+    responses={
+        400: {"description": "Bad request"},
+        401: {"description": "Unauthorized — missing or invalid API key"},
+        404: {"description": "Task not found"},
+        500: {"description": MSG_INTERNAL_ERROR},
+    },
 )
 async def get_task_status(task_id: str, request: Request) -> dict[str, Any]:
     """Get the status of an async study task."""
@@ -1059,7 +1072,9 @@ async def audit_verify(request: Request):
 # corresponding physical safety measures separately.
 
 
-@app.get("/admin/cua/kill-switch", tags=["CUA", "Admin"])
+@app.get("/admin/cua/kill-switch", tags=["CUA", "Admin"], responses={
+    403: {"description": "Forbidden — missing or invalid API key"},
+})
 async def cua_kill_switch_status(request: Request):
     """Return the current CUA kill switch status.
 
@@ -1089,7 +1104,10 @@ async def cua_kill_switch_status(request: Request):
     }
 
 
-@app.post("/admin/cua/kill-switch/activate", tags=["CUA", "Admin"])
+@app.post("/admin/cua/kill-switch/activate", tags=["CUA", "Admin"], responses={
+    400: {"description": "Bad request"},
+    403: {"description": "Forbidden — missing or invalid API key"},
+})
 async def cua_kill_switch_activate(request: Request):
     """Activate the CUA kill switch — blocks all CUA agent actions.
 
@@ -1117,7 +1135,9 @@ async def cua_kill_switch_activate(request: Request):
     }
 
 
-@app.post("/admin/cua/kill-switch/deactivate", tags=["CUA", "Admin"])
+@app.post("/admin/cua/kill-switch/deactivate", tags=["CUA", "Admin"], responses={
+    403: {"description": "Forbidden — missing or invalid API key"},
+})
 async def cua_kill_switch_deactivate(request: Request):
     """Deactivate the CUA kill switch — resumes CUA agent actions.
     SECURITY AUDIT S-15: admin endpoints require auth.
@@ -1139,7 +1159,14 @@ class CUARollbackRequest(BaseModel):
     reason: str = "manual_rollback"
 
 
-@app.post("/admin/cua/rollback", tags=["CUA", "Admin"])
+@app.post(
+    "/admin/cua/rollback",
+    tags=["CUA", "Admin"],
+    responses={
+        400: {"description": "Bad request"},
+        403: {"description": "Forbidden — missing or invalid API key"},
+    },
+)
 async def cua_rollback(request: Request, body: CUARollbackRequest):
     """Execute a CUA rollback using a previously captured state snapshot.
     SECURITY AUDIT S-15: admin endpoints require auth.
@@ -1187,7 +1214,10 @@ async def cua_rollback(request: Request, body: CUARollbackRequest):
         )
 
 
-@app.get("/admin/cua/audit-log", tags=["CUA", "Admin"])
+@app.get("/admin/cua/audit-log", tags=["CUA", "Admin"], responses={
+    400: {"description": "Bad request"},
+    403: {"description": "Forbidden — missing or invalid API key"},
+})
 async def cua_audit_log(request: Request, limit: int = 50):
     """Return the last N entries from the CUA tamper-evident audit log.
     SECURITY AUDIT S-15: admin endpoints require auth.
@@ -1224,7 +1254,9 @@ async def cua_audit_log(request: Request, limit: int = 50):
     return {"entries": entries, "total": len(entries)}
 
 
-@app.get("/api/v1/benchmark", tags=["Benchmark"])
+@app.get("/api/v1/benchmark", tags=["Benchmark"], responses={
+    403: {"description": "Forbidden — missing or invalid API key"},
+})
 async def benchmark(request: Request):
     """Run a lightweight in-process benchmark and return timing metrics.
     SECURITY AUDIT S-15: benchmark requires auth (resource consumption + info disclosure).
