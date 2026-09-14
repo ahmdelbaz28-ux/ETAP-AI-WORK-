@@ -91,6 +91,44 @@ if _HAS_STARLETTE:
                 "/prometheus",
             ]
 
+        async def _parse_multipart_form_fields(
+            self, body_bytes: bytes, content_type: str
+        ) -> dict[str, str]:
+            """Extract non-file text form fields from a multipart body."""
+            form_fields: dict[str, str] = {}
+            try:
+                boundary = None
+                for part in content_type.split(";"):
+                    part = part.strip()
+                    if part.startswith("boundary="):
+                        boundary = part.split("=", 1)[1].strip("\"'").encode()
+                        break
+                if boundary:
+                    for section in body_bytes.split(b"--" + boundary):
+                        if b"\r\n\r\n" in section:
+                            headers_part, val_part = section.split(b"\r\n\r\n", 1)
+                            headers_text = headers_part.decode("utf-8", errors="ignore")
+                            if "filename=" not in headers_text.lower():
+                                import re
+
+                                m = re.search(r'name="([^"]+)"', headers_text)
+                                if m:
+                                    field_name = m.group(1)
+                                    field_val = val_part.rstrip(b"\r\n").decode(
+                                        "utf-8", errors="replace"
+                                    )
+                                    form_fields[field_name] = field_val
+            except Exception:
+                pass
+            return form_fields
+
+        def _safe_parse_json_body(self, body_bytes: bytes) -> Any:
+            """Parse JSON body or fall back to raw string."""
+            try:
+                return json.loads(body_bytes)
+            except (json.JSONDecodeError, UnicodeDecodeError):
+                return body_bytes.decode("utf-8", errors="replace")
+
         async def _extract_body_and_replay(
             self, receive: Any, inspect_data: dict[str, Any], content_type: str = ""
         ) -> Any:
@@ -122,39 +160,11 @@ if _HAS_STARLETTE:
 
                 if body_bytes:
                     if content_type.startswith("multipart/"):
-                        # Extract only non-file text form fields to prevent false positives
-                        # on raw binary/XML/JSON files and MIME boundary markers ('--boundary--\r\n')
-                        form_fields: dict[str, str] = {}
-                        try:
-                            boundary = None
-                            for part in content_type.split(";"):
-                                part = part.strip()
-                                if part.startswith("boundary="):
-                                    boundary = part.split("=", 1)[1].strip("\"'").encode()
-                                    break
-                            if boundary:
-                                for section in body_bytes.split(b"--" + boundary):
-                                    if b"\r\n\r\n" in section:
-                                        headers_part, val_part = section.split(b"\r\n\r\n", 1)
-                                        headers_text = headers_part.decode("utf-8", errors="ignore")
-                                        if "filename=" not in headers_text.lower():
-                                            import re
-
-                                            m = re.search(r'name="([^"]+)"', headers_text)
-                                            if m:
-                                                field_name = m.group(1)
-                                                field_val = val_part.rstrip(b"\r\n").decode(
-                                                    "utf-8", errors="replace"
-                                                )
-                                                form_fields[field_name] = field_val
-                        except Exception:
-                            pass
-                        inspect_data["body"] = form_fields
+                        inspect_data["body"] = self._parse_multipart_form_fields(
+                            body_bytes, content_type
+                        )
                     else:
-                        try:
-                            inspect_data["body"] = json.loads(body_bytes)
-                        except (json.JSONDecodeError, UnicodeDecodeError):
-                            inspect_data["body"] = body_bytes.decode("utf-8", errors="replace")
+                        inspect_data["body"] = self._safe_parse_json_body(body_bytes)
                 return receive_replay
             except Exception:
                 return receive
