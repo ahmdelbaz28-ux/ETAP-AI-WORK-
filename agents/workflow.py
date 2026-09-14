@@ -261,40 +261,51 @@ class WorkflowEngine:
                 continue
             if not result.data:
                 continue
+            self._apply_assertion_to_result(result, assertion_layer)
 
-            study_type = result.study_type
-            try:
-                assertion_results = assertion_layer.validate(
-                    data=result.data,
-                    study_type=study_type.value
-                    if hasattr(study_type, "value")
-                    else str(study_type),
-                )
+    def _apply_assertion_to_result(
+        self, result: AgentResult, assertion_layer
+    ) -> None:
+        """Apply engineering assertions to a single result."""
+        study_type = result.study_type
+        try:
+            assertion_results = assertion_layer.validate(
+                data=result.data,
+                study_type=study_type.value
+                if hasattr(study_type, "value")
+                else str(study_type),
+            )
 
-                if assertion_results and hasattr(assertion_results, "failures"):
-                    failures = [ar for ar in assertion_results.failures if not ar.passed]
-                    if failures:
-                        result.validation_status = False
-                        for failure in failures:
-                            _msg = (
-                                f"Engineering assertion FAILED: {failure.check_name} — "
-                                f"{failure.message if hasattr(failure, 'message') else failure}"
-                            )
-                            result.validation_errors.append(_msg)
-                            severity = (
-                                failure.severity if hasattr(failure, "severity") else "WARNING"
-                            )
-                            if str(severity).upper() in ("CRITICAL", "FATAL"):
-                                self.logger.critical("F-07: %s", _msg)
-                            else:
-                                self.logger.warning("F-07: %s", _msg)
+            if assertion_results and hasattr(assertion_results, "failures"):
+                failures = [ar for ar in assertion_results.failures if not ar.passed]
+                if failures:
+                    result.validation_status = False
+                    self._record_assertion_failures(result, failures)
 
-            except Exception as assertion_err:
-                self.logger.warning(
-                    "Engineering assertion gate failed for %s (non-blocking): %s",
-                    study_type.value if hasattr(study_type, "value") else str(study_type),
-                    assertion_err,
-                )
+        except Exception as assertion_err:
+            self.logger.warning(
+                "Engineering assertion gate failed for %s (non-blocking): %s",
+                study_type.value if hasattr(study_type, "value") else str(study_type),
+                assertion_err,
+            )
+
+    def _record_assertion_failures(
+        self, result: AgentResult, failures: list
+    ) -> None:
+        """Record assertion failures on the result and log them."""
+        for failure in failures:
+            _msg = (
+                f"Engineering assertion FAILED: {failure.check_name} — "
+                f"{failure.message if hasattr(failure, 'message') else failure}"
+            )
+            result.validation_errors.append(_msg)
+            severity = (
+                failure.severity if hasattr(failure, "severity") else "WARNING"
+            )
+            if str(severity).upper() in ("CRITICAL", "FATAL"):
+                self.logger.critical("F-07: %s", _msg)
+            else:
+                self.logger.warning("F-07: %s", _msg)
 
     async def _run_report_phase(self, task: EngineeringTask, results: list[AgentResult]) -> None:
         """Phase 4: generate the final report when validations pass."""

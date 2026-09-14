@@ -89,39 +89,48 @@ class GoalRouter:
                 reason="Default baseline studies for empty/unspecified goal",
             )
 
-        # Handle typed list of StudyTypes or strings directly
         if isinstance(goal, (list, tuple)):
-            resolved: list[StudyType] = []
-            for item in goal:
-                if isinstance(item, StudyType):
-                    resolved.append(item)
-                elif isinstance(item, str):
-                    for st in StudyType:
-                        if st.value == item:
-                            resolved.append(st)
-                            break
-            if resolved:
-                return RouterDecision(
-                    study_types=resolved,
-                    confidence=1.0,
-                    reason="Explicit study types provided directly",
-                )
-            return RouterDecision(
-                study_types=list(DEFAULT_STUDIES),
-                confidence=0.5,
-                reason="Unrecognized sequence elements; default baseline fallback",
-            )
+            return self._resolve_list_goal(goal)
 
-        # Handle dict format
         if isinstance(goal, dict):
-            studies = goal.get("study_types") or goal.get("studies")
-            if studies:
-                return self.route(studies)
-            goal_str = goal.get("goal") or goal.get("description") or ""
-            return self.route(goal_str)
+            return self._resolve_dict_goal(goal)
 
-        # String goal processing
-        goal_lower = str(goal).lower()
+        return self._resolve_string_goal(str(goal))
+
+    def _resolve_list_goal(self, goal: list | tuple) -> RouterDecision:
+        """Resolve a list or tuple of StudyTypes or string identifiers."""
+        resolved: list[StudyType] = []
+        for item in goal:
+            if isinstance(item, StudyType):
+                resolved.append(item)
+            elif isinstance(item, str):
+                for st in StudyType:
+                    if st.value == item:
+                        resolved.append(st)
+                        break
+        if resolved:
+            return RouterDecision(
+                study_types=resolved,
+                confidence=1.0,
+                reason="Explicit study types provided directly",
+            )
+        return RouterDecision(
+            study_types=list(DEFAULT_STUDIES),
+            confidence=0.5,
+            reason="Unrecognized sequence elements; default baseline fallback",
+        )
+
+    def _resolve_dict_goal(self, goal: dict) -> RouterDecision:
+        """Resolve a dict goal by extracting study types or a nested goal string."""
+        studies = goal.get("study_types") or goal.get("studies")
+        if studies:
+            return self.route(studies)
+        goal_str = goal.get("goal") or goal.get("description") or ""
+        return self.route(goal_str)
+
+    def _resolve_string_goal(self, goal: str) -> RouterDecision:
+        """Resolve a string goal by matching against keyword rules."""
+        goal_lower = goal.lower()
         studies: list[StudyType] = []
         matched_reasons: list[str] = []
 
