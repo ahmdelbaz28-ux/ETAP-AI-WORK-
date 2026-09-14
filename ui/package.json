@@ -80,7 +80,7 @@
     "remark-gfm": "^4.0.1",
     "simple-icons": "^16.30.0",
     "tailwind-merge": "2.6.0",
-    "tailwindcss": "4.3.2",
+    "tailwindcss": "4.3.3",
     "zustand": "5.0.14"
   },
   "devDependencies": {
