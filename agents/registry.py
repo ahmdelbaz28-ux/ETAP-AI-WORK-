@@ -1353,6 +1353,7 @@ class ReportGenerationAgent(BaseAgent):
             self.log_execution(f"XLSX generation failed: {e}", "ERROR")
             return None  # Indicate failure
 
+
 STUDY_TYPE_MAPPING: dict[str, str] = {
     "load_flow": "load_flow",
     "short_circuit": "short_circuit",
@@ -1444,6 +1445,7 @@ def create_agent_registry(orchestrator_instance: Any = None) -> dict[str, BaseAg
 
     try:
         from agents.code_guard_agent import CodeGuardAgent
+
         agents["code_guard"] = CodeGuardAgent()
     except ImportError:
         _logger = logging.getLogger("orchestrator")
@@ -1451,6 +1453,7 @@ def create_agent_registry(orchestrator_instance: Any = None) -> dict[str, BaseAg
 
     try:
         from agents.etap_expert_agent import ETAPExpertAgent
+
         agents["etap_expert"] = ETAPExpertAgent()
     except Exception as exc:
         _logger = logging.getLogger("orchestrator")
@@ -1458,6 +1461,7 @@ def create_agent_registry(orchestrator_instance: Any = None) -> dict[str, BaseAg
 
     try:
         from agents.etap_gui_agent import ETAPGUIAgent
+
         agents["etap_gui"] = ETAPGUIAgent()
     except Exception as exc:
         _logger = logging.getLogger("orchestrator")
@@ -1465,6 +1469,7 @@ def create_agent_registry(orchestrator_instance: Any = None) -> dict[str, BaseAg
 
     try:
         from agents.ahmed_etap_orchestrator import AhmedETAPSkillAgent
+
         agents["ahmed_etap"] = AhmedETAPSkillAgent(orchestrator=orchestrator_instance)
     except Exception as exc:
         _logger = logging.getLogger("orchestrator")

@@ -1053,6 +1053,93 @@ docker scan etap-platform:latest
 docker-compose up -d
 ```
 
+### 5.6 Kubernetes Secrets Management (SealedSecrets & External Secrets Operator)
+
+In compliance with AhmedETAP production security standards and pre-deployment manifests in `k8s/etap-api-key-secret.yaml`, plain secrets must never be committed to Git. The platform supports two enterprise GitOps-friendly workflows for managing the `etap-api-key` secret and external credentials:
+
+#### Option C: Bitnami SealedSecrets (GitOps In-Repo Encryption)
+Bitnami SealedSecrets uses asymmetric cryptography to allow encrypted secrets (`SealedSecret` custom resources) to be safely stored in public or private Git repositories. Only the cluster's SealedSecrets controller can decrypt them into standard Kubernetes `Secret` objects.
+
+```bash
+# 1. Install kubeseal CLI locally
+# macOS: brew install kubeseal | Linux: release binary | Windows: choco install kubeseal
+
+# 2. Fetch the cluster public encryption key (or rely on cluster connection)
+kubeseal --fetch-cert --controller-namespace=kube-system > pub-cert.pem
+
+# 3. Generate sealed secret from dry-run manifest (NEVER commit the plaintext command with real key)
+kubectl create secret generic etap-api-key \
+  --from-literal=api-key="${REAL_ETAP_API_KEY}" \
+  --namespace=ahmedetap \
+  --dry-run=client -o yaml | \
+  kubeseal --cert=pub-cert.pem -o yaml > k8s/sealed-etap-api-key-secret.yaml
+
+# 4. Commit and apply the sealed secret
+kubectl apply -f k8s/sealed-etap-api-key-secret.yaml
+
+# 5. Verify unsealed secret generation in target namespace
+kubectl get secret etap-api-key -n ahmedetap -o jsonpath='{.metadata.name}'
+```
+
+#### Option D: External Secrets Operator (Vault / AWS / Azure Integration)
+External Secrets Operator (ESO) synchronizes secrets directly from external secret management systems (HashiCorp Vault, AWS Secrets Manager, Azure Key Vault, GCP Secret Manager) into Kubernetes native secrets.
+
+```yaml
+# 1. ClusterSecretStore referencing HashiCorp Vault / Azure KeyVault
+apiVersion: external-secrets.io/v1beta1
+kind: SecretStore
+metadata:
+  name: vault-backend
+  namespace: ahmedetap
+spec:
+  provider:
+    vault:
+      server: "https://vault.internal.corp:8200"
+      path: "secret"
+      version: "v2"
+      auth:
+        kubernetes:
+          mountPath: "kubernetes"
+          role: "etap-ai-role"
+---
+# 2. ExternalSecret synchronizing etap-api-key into ahmedetap namespace
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: etap-api-key-sync
+  namespace: ahmedetap
+spec:
+  refreshInterval: "1h"
+  secretStoreRef:
+    name: vault-backend
+    kind: SecretStore
+  target:
+    name: etap-api-key
+    creationPolicy: Owner
+  data:
+    - secretKey: api-key
+      remoteRef:
+        key: etap/production/credentials
+        property: api_key
+```
+
+```bash
+# Verify synchronization status
+kubectl get externalsecret etap-api-key-sync -n ahmedetap
+kubectl describe externalsecret etap-api-key-sync -n ahmedetap
+```
+
+#### Secret Rotation SOP (Zero-Downtime)
+1. **Rotate credential at source**: Generate a new API key in the provider / Vault.
+2. **Update store**: Update the secret in HashiCorp Vault or seal a new version with `kubeseal`.
+3. **Trigger deployment reload**: The ESO or SealedSecrets updates the Kubernetes Secret. Deployment pods will detect the change or can be gracefully restarted:
+   ```bash
+   kubectl rollout restart deployment/etap-ai-engine -n ahmedetap
+   kubectl rollout status deployment/etap-ai-engine -n ahmedetap
+   ```
+4. **Revoke old credential**: After verifying that all pods run successfully on the new key for at least 1 hour, revoke the legacy key at the provider.
+
+
 ---
 
 ## 6. Disaster Recovery
