@@ -772,7 +772,7 @@ jobs:
 
       - name: Set up Docker Buildx
         if: steps.branch-check.outputs.run_deploy == 'true'
-        uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c  # SECURITY R7-C2: pinned to commit SHA of tag v4  resolves S7637
+        uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e  # SECURITY R7-C2: pinned to commit SHA of tag v4  resolves S7637
         # Required for GHA cache backend  the default 'docker' driver
         # does not support cache export (--cache-to type=gha).
 
