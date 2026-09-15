@@ -37,7 +37,7 @@
     "@mastra/core": "^1.37.1",
     "@mastra/duckdb": "^1.4.0",
     "@mastra/libsql": "^1.4.0",
-    "@mastra/loggers": "^1.0.0",
+    "@mastra/loggers": "1.2.0",
     "@mastra/memory": "^1.0.0",
     "@mastra/observability": "^1.0.0",
     "@opentelemetry/auto-instrumentations-node": "^0.80.0",
@@ -56,13 +56,13 @@
     "@types/js-yaml": "^4.0.9",
     "@types/node": "^22.12.0",
     "@types/pino": "7.0.5",
-    "@vitest/coverage-v8": "3.2.6",
+    "@vitest/coverage-v8": "^4.1.11",
     "commander": "^14.0.3",
     "dotenv": "16.4.7",
     "playwright": "^1.62.0",
     "tsx": "4.23.0",
     "typescript": "^6.0.3",
-    "vitest": "3.2.6",
+    "vitest": "^4.1.11",
     "zod-to-json-schema": "3.24.5"
   },
   "overrides": {
@@ -83,6 +83,7 @@
     "protobufjs": "^8.6.6",
     "qs": "^6.16.0",
     "undici": "^7.29.0",
-    "uuid": "^11.1.0"
+    "uuid": "^11.1.0",
+    "vitest": "^4.1.11"
   }
 }

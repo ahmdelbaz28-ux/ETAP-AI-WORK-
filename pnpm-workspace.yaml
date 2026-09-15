@@ -102,6 +102,9 @@ overrides:
   # HIGH: multer ReDoS / body limit bypass (Dependabot alert #1564925488)
   multer: ^2.3.0
   '@vitest/mocker': ^4.1.11
+  vitest: ^4.1.11
+  '@vitest/coverage-v8': ^4.1.11
+  '@mastra/loggers': 1.2.0
   # FOSSA quality: cross-env outdated (7.0.3 → 10.1.0)
   cross-env: ^10.1.0
   # FOSSA quality: joi outdated (18.2.8 → 18.2.9)
