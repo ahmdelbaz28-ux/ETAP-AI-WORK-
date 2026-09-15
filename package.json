@@ -38,7 +38,7 @@
     "@mastra/duckdb": "^1.4.0",
     "@mastra/libsql": "^1.4.0",
     "@mastra/loggers": "1.2.0",
-    "@mastra/memory": "^1.0.0",
+    "@mastra/memory": "^1.29.0",
     "@mastra/observability": "^1.0.0",
     "@opentelemetry/auto-instrumentations-node": "^0.80.0",
     "ai": "^6.0.209",
@@ -51,7 +51,7 @@
   "devDependencies": {
     "@ai-sdk/openai": "^4.0.60",
     "@modelcontextprotocol/server-filesystem": "^2026.1.14",
-    "@playwright/test": "^1.62.1",
+    "@playwright/test": "^1.63.0",
     "@testsprite/testsprite-mcp": "^0.0.39",
     "@types/js-yaml": "^4.0.9",
     "@types/node": "^22.12.0",
@@ -63,7 +63,7 @@
     "tsx": "4.23.0",
     "typescript": "^6.0.3",
     "vitest": "^4.1.11",
-    "zod-to-json-schema": "3.24.5"
+    "zod-to-json-schema": "3.25.2"
   },
   "overrides": {
     "@isaacs/cliui": "^9.0.0",
