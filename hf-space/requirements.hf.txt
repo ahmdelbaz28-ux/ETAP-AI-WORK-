@@ -104,5 +104,5 @@ supabase~=2.31.0
 
 # ─── LLM SDKs (required by langfuse wrapper) ───────────────────────────────
 # Added 2026-07-10 — langfuse needs these to wrap LLM calls
-openai~=3.8.0
+openai~=3.13.0
 anthropic~=1.4.0
