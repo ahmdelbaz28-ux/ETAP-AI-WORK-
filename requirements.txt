@@ -13,7 +13,7 @@
 # so the 1.30.x stack is unsatisfiable.
 opentelemetry-api~=1.33.0
 opentelemetry-sdk~=1.33.0
-opentelemetry-exporter-otlp==1.33.*
+opentelemetry-exporter-otlp==1.44.*
 opentelemetry-semantic-conventions~=0.54b0
 # OTLP/HTTP exporter for the Langfuse OTLP endpoint (used by core/tracing.py)
 opentelemetry-exporter-otlp-proto-http~=1.33.0
