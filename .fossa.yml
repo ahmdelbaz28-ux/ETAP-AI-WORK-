@@ -23,8 +23,3 @@ paths:
     - "skills/ppt/"
     - "coverage/"
     - "ts-service/"
-
-targets:
-  exclude:
-    - path: ts-service
-    - path: ts-service/package.json
