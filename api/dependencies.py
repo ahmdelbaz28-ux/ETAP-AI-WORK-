@@ -164,6 +164,8 @@ def _decode_jwt(
     from the caller-supplied list before the call to jwt.decode().
     Effective call: jwt.decode(token, key, algorithms=["HS256"])
     """
+    if algorithms and "HS256" not in algorithms:
+        raise ValueError("Only HS256 algorithm is supported")
     key = secret or JWT_SECRET_KEY
     # Strictly pin to HS256 to prevent algorithm confusion attacks (CVE-2015-9235 style)
     return jwt.decode(token, key, algorithms=["HS256"], **kwargs)

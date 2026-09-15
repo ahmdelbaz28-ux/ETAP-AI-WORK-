@@ -369,7 +369,7 @@ export function MessageInput({
         >
           <span className="flex items-center gap-1">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block" />
-            Auto-Approve Enabled (Low-Risk)
+            {" "}Auto-Approve Enabled (Low-Risk)
           </span>
         </div>
       )}

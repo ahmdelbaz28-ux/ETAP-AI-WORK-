@@ -1042,7 +1042,7 @@ export async function isServerChatStreamEnabled(): Promise<boolean> {
 function generateRandomHex(): string {
   if (typeof crypto !== "undefined") {
     if (typeof crypto.randomUUID === "function") {
-      return crypto.randomUUID().replace(/-/g, "");
+      return crypto.randomUUID().replaceAll("-", "");
     }
     if (typeof crypto.getRandomValues === "function") {
       const bytes = new Uint8Array(16);
@@ -1143,6 +1143,36 @@ function handleSseLine(line: string, state: { currentEvent: string }): SseAction
 
 export const CHAT_STREAM_TIMEOUT_MS = 15000;
 
+function createServerChatHeaders(): Record<string, string> {
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  const token = getAuthToken();
+  if (token) headers.Authorization = `Bearer ${token}`;
+  return headers;
+}
+
+function createTimeoutController(
+  signal?: AbortSignal,
+  timeoutMs: number = CHAT_STREAM_TIMEOUT_MS,
+): { controller: AbortController; cleanup: () => void } {
+  const controller = new AbortController();
+  const timer = setTimeout(() => {
+    controller.abort(new Error(`Chat stream timed out after ${Math.round(timeoutMs / 1000)}s`));
+  }, timeoutMs);
+
+  if (signal) {
+    if (signal.aborted) {
+      controller.abort(signal.reason);
+    } else {
+      signal.addEventListener("abort", () => controller.abort(signal.reason), { once: true });
+    }
+  }
+
+  return {
+    controller,
+    cleanup: () => clearTimeout(timer),
+  };
+}
+
 /**
  * Stream a reply through the server-side path (/api/v1/chat/stream).
  * SECURITY: the payload contains only session_id + messages + no keys.
@@ -1152,31 +1182,15 @@ export async function* streamFromServerChat(
   messages: ChatMessage[],
   signal?: AbortSignal,
 ): AsyncGenerator<string, void, unknown> {
-  const headers: Record<string, string> = { "Content-Type": "application/json" };
-  const token = getAuthToken();
-  if (token) headers.Authorization = `Bearer ${token}`;
-
-  const timeoutController = new AbortController();
-  const timeoutId = setTimeout(() => {
-    timeoutController.abort(new Error("Chat stream timed out after 15s"));
-  }, CHAT_STREAM_TIMEOUT_MS);
-
-  if (signal) {
-    if (signal.aborted) {
-      timeoutController.abort(signal.reason);
-    } else {
-      signal.addEventListener("abort", () => timeoutController.abort(signal.reason), {
-        once: true,
-      });
-    }
-  }
+  const headers = createServerChatHeaders();
+  const { controller, cleanup } = createTimeoutController(signal);
 
   try {
     const res = await fetch(apiUrl("/api/v1/chat/stream"), {
       method: "POST",
       headers,
       body: JSON.stringify({ session_id: getChatSessionId(), messages }),
-      signal: timeoutController.signal,
+      signal: controller.signal,
     });
 
     if (!res.ok) {
@@ -1190,7 +1204,7 @@ export async function* streamFromServerChat(
     const sseState = { currentEvent: "" };
 
     while (true) {
-      if (timeoutController.signal.aborted) return;
+      if (controller.signal.aborted) return;
       const readResult = await reader.read();
       if (readResult.done) break;
       buffer += decoder.decode(readResult.value, { stream: true });
@@ -1209,6 +1223,6 @@ export async function* streamFromServerChat(
       }
     }
   } finally {
-    clearTimeout(timeoutId);
+    cleanup();
   }
 }

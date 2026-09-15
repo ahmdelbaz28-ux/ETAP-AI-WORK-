@@ -387,6 +387,65 @@ function appendStreamDelta(acc: string, get: StoreGet, set: StoreSet): void {
   }
 }
 
+function finalizeStreamCompletion(acc: string, get: StoreGet, set: StoreSet): void {
+  const { messages: afterStream } = get();
+  const last = afterStream.at(-1);
+  if (last?.role === "assistant" && last?.id?.startsWith(WS_TOKEN_MARKER)) {
+    set({
+      messages: afterStream.map((m) =>
+        m.id === last.id ? { ...m, status: "complete", content: acc || m.content } : m,
+      ),
+      streamStatus: "completed",
+    });
+  } else {
+    set({ streamStatus: "completed" });
+  }
+}
+
+function handleStreamError(
+  err: unknown,
+  controller: AbortController,
+  get: StoreGet,
+  set: StoreSet,
+): void {
+  const isTimeout =
+    controller.signal.aborted &&
+    ((err instanceof Error && err.message.includes("15s")) ||
+      (err instanceof Error && err.message.includes("timed out")));
+  const message = isTimeout
+    ? "Chat stream timed out after 15s. Please retry."
+    : toErrorMessage(err, "Chat stream failed");
+  const { messages: errMsgs } = get();
+  const last = errMsgs.at(-1);
+  if (
+    last?.role === "assistant" &&
+    last?.id?.startsWith(WS_TOKEN_MARKER) &&
+    last?.status === "streaming"
+  ) {
+    set({
+      messages: errMsgs.map((m) =>
+        m.id === last.id ? { ...m, status: "error", error: message } : m,
+      ),
+      streamStatus: "error",
+    });
+  } else {
+    set({
+      messages: [
+        ...errMsgs,
+        {
+          id: generateId(),
+          role: "assistant",
+          content: message,
+          status: "error",
+          error: message,
+          createdAt: Date.now(),
+        },
+      ],
+      streamStatus: "error",
+    });
+  }
+}
+
 function resolvePendingApprovalsList(res: {
   data?: PendingApproval[];
   items?: PendingApproval[];
@@ -580,57 +639,11 @@ export const useChatStore = create<ChatWorkspaceState>()((set, get) => ({
         acc += delta;
         appendStreamDelta(acc, get, set);
       }
-      const { messages: afterStream } = get();
-      const last = afterStream[afterStream.length - 1];
-      if (last?.role === "assistant" && last?.id?.startsWith(WS_TOKEN_MARKER)) {
-        set({
-          messages: afterStream.map((m) =>
-            m.id === last.id ? { ...m, status: "complete", content: acc || m.content } : m,
-          ),
-          streamStatus: "completed",
-        });
-      } else {
-        set({ streamStatus: "completed" });
-      }
+      finalizeStreamCompletion(acc, get, set);
       return true;
     } catch (err) {
       clearTimeout(timeoutTimer);
-      const isTimeout =
-        controller.signal.aborted &&
-        ((err instanceof Error && err.message.includes("15s")) ||
-          (err instanceof Error && err.message.includes("timed out")));
-      const message = isTimeout
-        ? "Chat stream timed out after 15s. Please retry."
-        : toErrorMessage(err, "Chat stream failed");
-      const { messages: errMsgs } = get();
-      const last = errMsgs[errMsgs.length - 1];
-      if (
-        last?.role === "assistant" &&
-        last?.id?.startsWith(WS_TOKEN_MARKER) &&
-        last?.status === "streaming"
-      ) {
-        set({
-          messages: errMsgs.map((m) =>
-            m.id === last.id ? { ...m, status: "error", error: message } : m,
-          ),
-          streamStatus: "error",
-        });
-      } else {
-        set({
-          messages: [
-            ...errMsgs,
-            {
-              id: generateId(),
-              role: "assistant",
-              content: message,
-              status: "error",
-              error: message,
-              createdAt: Date.now(),
-            },
-          ],
-          streamStatus: "error",
-        });
-      }
+      handleStreamError(err, controller, get, set);
       return false;
     } finally {
       clearTimeout(timeoutTimer);

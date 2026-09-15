@@ -319,7 +319,7 @@ describe("Chat Surgical — Exponential Reconnection", () => {
         // Exhaust 5 reconnect attempts (initial connection + 5 reconnects = 6 closes)
         for (let i = 0; i <= 5; i++) {
           await Promise.resolve();
-          const current = mockSockets[mockSockets.length - 1];
+          const current = mockSockets.at(-1);
           if (current) current.trigger("close");
           await vi.advanceTimersByTimeAsync(20000);
           await Promise.resolve();

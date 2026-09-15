@@ -1014,30 +1014,39 @@ class ValidationAgent(BaseAgent):
 
         return {"status": "pass" if not issues else "fail", "issues": issues}
 
+    def _extract_bus_thd_values(self, harmonic_data: dict) -> dict[str, float]:
+        """Extract voltage THD percent for each bus from harmonic data."""
+        thd_values = {}
+        buses = harmonic_data.get("buses", {})
+        for bus_id, bus_data in buses.items():
+            thd = bus_data.get("voltage_thd_percent", 0)
+            if thd:
+                thd_values[bus_id] = thd
+        return thd_values
+
+    def _run_harmonic_assertions(self, assertion_layer, thd_values: dict) -> list[str]:
+        """Run harmonic assertion validation and collect failure messages."""
+        assertion_results = assertion_layer.validate_harmonic_results(thd_values=thd_values)
+        return [
+            f"[ASSERTION-{ar.severity.value}] {ar.check_name}: {ar.message}"
+            for ar in assertion_results
+            if not ar.passed
+        ]
+
     def _check_harmonic_assertions(self, result: AgentResult) -> list[str]:
         """Run deterministic engineering assertion checks for harmonic results."""
         issues = []
         try:
-            from copilot.ai.engineering_assertions import EngineeringAssertionLayer
-
-            assertion_layer = EngineeringAssertionLayer()
             harmonic_data = result.data.get("harmonic_results", {})
-            if harmonic_data:
-                thd_values = {}
-                buses = harmonic_data.get("buses", {})
-                for bus_id, bus_data in buses.items():
-                    thd = bus_data.get("voltage_thd_percent", 0)
-                    if thd:
-                        thd_values[bus_id] = thd
-                if thd_values:
-                    assertion_results = assertion_layer.validate_harmonic_results(
-                        thd_values=thd_values,
-                    )
-                    for ar in assertion_results:
-                        if not ar.passed:
-                            issues.append(
-                                f"[ASSERTION-{ar.severity.value}] {ar.check_name}: {ar.message}"
-                            )
+            if not harmonic_data:
+                return issues
+
+            thd_values = self._extract_bus_thd_values(harmonic_data)
+            if thd_values:
+                from copilot.ai.engineering_assertions import EngineeringAssertionLayer
+
+                assertion_layer = EngineeringAssertionLayer()
+                issues.extend(self._run_harmonic_assertions(assertion_layer, thd_values))
         except ImportError:
             logger.debug("EngineeringAssertionLayer not available for harmonic validation")
         except Exception as exc:

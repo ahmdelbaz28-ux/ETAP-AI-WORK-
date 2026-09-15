@@ -15,6 +15,33 @@ interface MessageListProps {
   readonly className?: string;
 }
 
+const MarkdownLink = ({ href, children, ...props }: React.ComponentPropsWithoutRef<"a">) => {
+  const isSafe = /^https?:\/\//i.test(href || "");
+  if (!isSafe) return <span>{children}</span>;
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="text-brand-400 underline hover:text-brand-300"
+      {...props}
+    >
+      {children}
+    </a>
+  );
+};
+
+const MarkdownImage = ({ alt }: React.ComponentPropsWithoutRef<"img">) => (
+  <span className="inline-flex items-center gap-1 text-xs text-[var(--text-muted)] italic">
+    🖼️ [{alt || "Image"}]
+  </span>
+);
+
+const MARKDOWN_COMPONENTS = {
+  a: MarkdownLink,
+  img: MarkdownImage,
+};
+
 function MessageBubble({ message }: { readonly message: ChatMessage }) {
   const isUser = message.role === "user";
   return (
@@ -52,28 +79,7 @@ function MessageBubble({ message }: { readonly message: ChatMessage }) {
             <div className="prose-engineering">
               <ReactMarkdown
                 remarkPlugins={[remarkGfm]}
-                components={{
-                  a: ({ href, children, ...props }) => {
-                    const isSafe = /^https?:\/\//i.test(href || "");
-                    if (!isSafe) return <span>{children}</span>;
-                    return (
-                      <a
-                        href={href}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-brand-400 underline hover:text-brand-300"
-                        {...props}
-                      >
-                        {children}
-                      </a>
-                    );
-                  },
-                  img: ({ alt }) => (
-                    <span className="inline-flex items-center gap-1 text-xs text-[var(--text-muted)] italic">
-                      🖼️ [{alt || "Image"}]
-                    </span>
-                  ),
-                }}
+                components={MARKDOWN_COMPONENTS}
               >
                 {message.content || ""}
               </ReactMarkdown>

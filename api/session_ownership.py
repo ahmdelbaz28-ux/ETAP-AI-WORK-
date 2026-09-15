@@ -10,6 +10,8 @@ from typing import Dict, Optional, Set, Tuple
 
 ALLOWED_ROLES: Set[str] = {"admin", "lead_engineer", "senior_engineer", "engineer"}
 DISALLOWED_ROLES: Set[str] = {"viewer", "guest", "readonly"}
+_MSG_SESSION_ID_EMPTY = "Session ID cannot be empty."
+_MSG_USER_ID_EMPTY = "User ID cannot be empty."
 
 
 @dataclass(frozen=True)
@@ -71,9 +73,9 @@ def set_auto_approve(session_id: str, actor: Actor, enabled: bool) -> bool:
             is not the session owner.
     """
     if not session_id or not str(session_id).strip():
-        raise OwnershipDenied("INVALID_PRINCIPAL", "Session ID cannot be empty.")
+        raise OwnershipDenied("INVALID_PRINCIPAL", _MSG_SESSION_ID_EMPTY)
     if not actor.user_id or not str(actor.user_id).strip():
-        raise OwnershipDenied("INVALID_PRINCIPAL", "User ID cannot be empty.")
+        raise OwnershipDenied("INVALID_PRINCIPAL", _MSG_USER_ID_EMPTY)
 
     _check_role(actor.role)
 
@@ -152,9 +154,9 @@ def admin_set(session_id: str, actor: Actor, enabled: bool, *, reason: str) -> b
             "Admin override requires a non-empty reason.",
         )
     if not session_id or not str(session_id).strip():
-        raise OwnershipDenied("INVALID_PRINCIPAL", "Session ID cannot be empty.")
+        raise OwnershipDenied("INVALID_PRINCIPAL", _MSG_SESSION_ID_EMPTY)
     if not actor.user_id or not str(actor.user_id).strip():
-        raise OwnershipDenied("INVALID_PRINCIPAL", "User ID cannot be empty.")
+        raise OwnershipDenied("INVALID_PRINCIPAL", _MSG_USER_ID_EMPTY)
 
     sid = str(session_id).strip()
     with _lock:
@@ -190,9 +192,9 @@ def verify_ownership(
     Raises OwnershipDenied on conflict, empty principals, or forbidden access.
     """
     if not session_id or not str(session_id).strip():
-        raise OwnershipDenied("INVALID_PRINCIPAL", "Session ID cannot be empty.")
+        raise OwnershipDenied("INVALID_PRINCIPAL", _MSG_SESSION_ID_EMPTY)
     if not user_id or not str(user_id).strip():
-        raise OwnershipDenied("INVALID_PRINCIPAL", "User ID cannot be empty.")
+        raise OwnershipDenied("INVALID_PRINCIPAL", _MSG_USER_ID_EMPTY)
 
     if is_admin:
         return True

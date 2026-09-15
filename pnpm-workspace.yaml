@@ -104,6 +104,9 @@ overrides:
   cross-env: ^10.1.0
   # FOSSA quality: joi outdated (18.2.8 → 18.2.9)
   joi: ^18.2.9
+  # FOSSA scan failure: @isaacs/cliui 8.0.2 uses fake aliases string-width-cjs, strip-ansi-cjs, wrap-ansi-cjs
+  # Bumping to ^9.0.0 has zero dependencies and completely removes all *-cjs packages.
+  '@isaacs/cliui': ^9.0.0
 
 allowBuilds:
   '@biomejs/biome': true

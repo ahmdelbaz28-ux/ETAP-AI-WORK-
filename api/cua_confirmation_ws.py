@@ -235,7 +235,7 @@ class ConfirmationBroker:
     async def _broadcast(self, message: dict[str, Any], tenant_id: str = "") -> None:
         """Send a message to connected WebSocket clients for the matching tenant."""
         dead: list[WebSocket] = []
-        for ws, client_tenant in list(self._connected_clients.items()):
+        for ws, client_tenant in self._connected_clients.items():
             if tenant_id and client_tenant and tenant_id != client_tenant:
                 continue
             try:

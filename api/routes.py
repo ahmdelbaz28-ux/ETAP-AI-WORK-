@@ -209,6 +209,57 @@ if is_production_environment():
         sys.exit(1)
 
 
+_ADMIN_PREFIX = "/admin/"
+_MSG_ADMIN_ROLE_REQUIRED = "Admin role required"
+
+
+def _check_admin_path_restricted(path: str) -> None:
+    if path.startswith(_ADMIN_PREFIX):
+        raise HTTPException(status_code=403, detail=_MSG_ADMIN_ROLE_REQUIRED)
+
+
+def _validate_bearer_auth(auth_header: str, path: str) -> bool:
+    """Validate bearer token. Returns True if validated, False if not a bearer token."""
+    if not auth_header.lower().startswith("bearer "):
+        return False
+    from api.dependencies import _validate_jwt_access_token_sync
+
+    token = auth_header.split(" ", 1)[1].strip()
+    try:
+        payload = _validate_jwt_access_token_sync(token)
+        role = payload.get("role", "")
+        if path.startswith(_ADMIN_PREFIX) and role != "admin":
+            raise HTTPException(status_code=403, detail=_MSG_ADMIN_ROLE_REQUIRED)
+        return True
+    except HTTPException:
+        raise
+    except Exception:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+
+def _validate_api_key_auth(request: Request, path: str) -> None:
+    if not _API_KEY_CONFIGURED:
+        if is_production_environment():
+            raise HTTPException(
+                status_code=401,
+                detail="Authentication required but no API key configured. "
+                "Set ENGINEERING_SERVICE_API_KEY or ENGINEERING_SERVICE_AUTH_DISABLED=true",
+            )
+        _check_admin_path_restricted(path)
+        return
+
+    provided = request.headers.get("x-api-key") or ""
+    if not hmac.compare_digest(provided, _EXPECTED_API_KEY):
+        raise HTTPException(
+            status_code=401,
+            detail=_INVALID_API_KEY_MSG,
+        )
+
+    # SECURITY AUDIT RUN-2 (HIGH-2, MEDIUM-4): Admin endpoints require admin role.
+    # Service API keys do not carry role information and cannot access /admin/ endpoints.
+    _check_admin_path_restricted(path)
+
+
 def _require_api_key(request: Request) -> None:
     """Validate API key or Admin Bearer token when configured."""
     auth_disabled = _AUTH_DISABLED or os.environ.get(
@@ -221,52 +272,16 @@ def _require_api_key(request: Request) -> None:
                 status_code=503,
                 detail="Authentication disabled is not permitted in this environment",
             )
-        if path.startswith("/admin/"):
-            raise HTTPException(status_code=403, detail="Admin role required")
+        _check_admin_path_restricted(path)
         return
 
-    # Check for Bearer token authorization
     auth_header = request.headers.get("authorization", "") or request.headers.get(
         "Authorization", ""
     )
-    if auth_header.lower().startswith("bearer "):
-        from api.dependencies import _validate_jwt_access_token_sync
-
-        token = auth_header.split(" ", 1)[1].strip()
-        try:
-            payload = _validate_jwt_access_token_sync(token)
-            role = payload.get("role", "")
-            # Admin endpoints require admin role
-            if path.startswith("/admin/") and role != "admin":
-                raise HTTPException(status_code=403, detail="Admin role required")
-            return
-        except HTTPException:
-            raise
-        except Exception:
-            raise HTTPException(status_code=401, detail="Invalid token")
-
-    if not _API_KEY_CONFIGURED:
-        if is_production_environment():
-            raise HTTPException(  # NOSONAR HTTPException responses will be documented in API refactoring sprint
-                status_code=401,
-                detail="Authentication required but no API key configured. "
-                "Set ENGINEERING_SERVICE_API_KEY or ENGINEERING_SERVICE_AUTH_DISABLED=true",
-            )
-        if path.startswith("/admin/"):
-            raise HTTPException(status_code=403, detail="Admin role required")
+    if _validate_bearer_auth(auth_header, path):
         return
-    # NOSONAR S8415: HTTPException documented in OpenAPI route summary; responses parameter is verbose for this use case
-    provided = request.headers.get("x-api-key") or ""
-    if not hmac.compare_digest(provided, _EXPECTED_API_KEY):
-        raise HTTPException(  # NOSONAR
-            status_code=401,
-            detail=_INVALID_API_KEY_MSG,  # NOSONAR
-        )  # NOSONAR HTTPException responses will be documented in API refactoring sprint
 
-    # SECURITY AUDIT RUN-2 (HIGH-2, MEDIUM-4): Admin endpoints require admin role.
-    # Service API keys do not carry role information and cannot access /admin/ endpoints.
-    if path.startswith("/admin/"):
-        raise HTTPException(status_code=403, detail="Admin role required")
+    _validate_api_key_auth(request, path)
 
 
 # ---------------------------------------------------------------------------

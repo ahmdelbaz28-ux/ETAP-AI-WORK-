@@ -216,12 +216,11 @@ def _build_router(
         ttl = args.auth_ttl if args.auth_ttl is not None else env_int("ACP_AUTH_TTL", 3600)
         config = AuthConfig(secret_key=secret, token_ttl_seconds=ttl)
         auth_validator = HmacTokenValidator(config).validate
-    elif not no_auth_explicit:
-        if logger is not None:
-            logger.warning(
-                "SECURITY WARNING (MEDIUM-5): ACP running without authentication secret. "
-                "Specify --auth-secret, set ACP_AUTH_SECRET, or pass --no-auth explicitly."
-            )
+    elif not no_auth_explicit and logger is not None:
+        logger.warning(
+            "SECURITY WARNING (MEDIUM-5): ACP running without authentication secret. "
+            "Specify --auth-secret, set ACP_AUTH_SECRET, or pass --no-auth explicitly."
+        )
 
     # Optional audit
     audit_logger = None

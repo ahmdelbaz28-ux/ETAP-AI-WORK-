@@ -53,3 +53,54 @@ class TestRASPMultipartParsing:
         assert result.get("username") == "admin_user"
         assert result.get("comment") == "Safe test comment"
         assert "file" not in result  # Files should be skipped from form_fields inspection
+
+    @pytest.mark.asyncio
+    async def test_middleware_inspects_multipart_body_as_dict_not_coroutine(self):
+        """Verify RASPMiddleware passes real dict to engine.inspect, not a coroutine."""
+        inspected_payloads = []
+
+        class MockEngine:
+            enabled = True
+
+            def inspect(self, data):
+                inspected_payloads.append(data)
+                return []
+
+        async def dummy_app(scope, receive, send):
+            pass
+
+        middleware = RASPMiddleware(app=dummy_app, engine=MockEngine(), public_paths=[])
+        boundary = "my_test_boundary_999"
+        body = (
+            f"--{boundary}\r\n"
+            'Content-Disposition: form-data; name="component_id"\r\n\r\n'
+            "transformer_1\r\n"
+            f"--{boundary}--\r\n"
+        ).encode()
+
+        scope = {
+            "type": "http",
+            "method": "POST",
+            "path": "/api/v1/components",
+            "headers": [
+                (b"content-type", f"multipart/form-data; boundary={boundary}".encode()),
+                (b"host", b"testserver"),
+            ],
+            "query_string": b"",
+        }
+
+        async def receive():
+            return {"type": "http.request", "body": body, "more_body": False}
+
+        async def send(msg):
+            pass
+
+        await middleware(scope, receive, send)
+
+        assert len(inspected_payloads) == 1
+        inspect_data = inspected_payloads[0]
+        assert "body" in inspect_data
+        assert not inspect.iscoroutine(inspect_data["body"])
+        assert isinstance(inspect_data["body"], dict)
+        assert inspect_data["body"].get("component_id") == "transformer_1"
+

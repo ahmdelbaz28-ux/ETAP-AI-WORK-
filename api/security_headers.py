@@ -14,8 +14,8 @@ from typing import Any
 from starlette.datastructures import Headers, MutableHeaders
 from starlette.responses import JSONResponse
 
-_HOST_PATTERN = re.compile(r"^[a-zA-Z0-9._\-]+(:[0-9]+)?$")
-_IPV6_HOST_PATTERN = re.compile(r"^\[[0-9a-fA-F:]+\](:[0-9]+)?$")
+_HOST_PATTERN = re.compile(r"^[a-zA-Z0-9._\-]+(:\d+)?$")
+_IPV6_HOST_PATTERN = re.compile(r"^\[[\da-fA-F:]+\](:\d+)?$")
 
 
 class HostValidationMiddleware:

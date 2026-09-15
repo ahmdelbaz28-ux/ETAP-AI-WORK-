@@ -57,6 +57,7 @@ from gis_integration.providers.arcgis_provider import ArcGISOnlineProvider
 from gis_integration.utils import safe_parse_geojson, validate_geometry_dict
 
 logger = logging.getLogger("engineering_service.gis_edits")
+_MSG_GIS_ACTION_NOT_FOUND = "GIS edit action not found"
 
 router = APIRouter(
     prefix="/api/v1/gis/edits",
@@ -467,7 +468,7 @@ async def resolve_gis_edit(
     action = result.scalar_one_or_none()
     if action is None:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="GIS edit action not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail=_MSG_GIS_ACTION_NOT_FOUND
         )
 
     # 2. Multi-tenant isolation
@@ -556,7 +557,7 @@ async def resolve_gis_edit(
         )
         action.status = "completed" if exec_res.get("readback_verified") else "failed"
     except (GISCapabilityError, GISWriteError) as exc:
-        logger.error("GIS applyEdits failed for action %s: %s", action.id, exc)
+        logger.exception("GIS applyEdits failed for action %s: %s", action.id, exc)
         action.status = "failed"
         exec_res = {"success": False, "error": str(exc), "readback_verified": False}
     except Exception as exc:
@@ -595,7 +596,7 @@ async def get_gis_edit_status(
     action = result.scalar_one_or_none()
     if action is None:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="GIS edit action not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail=_MSG_GIS_ACTION_NOT_FOUND
         )
 
     if _norm_tenant(action.tenant_id) != _norm_tenant(user.tenant_id):

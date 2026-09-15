@@ -56,6 +56,7 @@ from api.dependencies import (
 from integrations.etap_component_importer import etap_importer
 
 logger = logging.getLogger(__name__)
+_MSG_ADMIN_ROLE_REQUIRED = "Admin role required"
 
 # ---------------------------------------------------------------------------
 # SQLAlchemy ORM model
@@ -360,7 +361,7 @@ async def list_pending_components(
 ) -> List[ComponentResponse]:
     """Admin queue for unverified community submissions."""
     if user.role != "admin":
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin role required")
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=_MSG_ADMIN_ROLE_REQUIRED)
 
     stmt = (
         select(Component)
@@ -433,7 +434,7 @@ async def verify_component(
 ) -> ComponentResponse:
     """Admin action to approve and verify a contributed component."""
     if user.role != "admin":
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin role required")
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=_MSG_ADMIN_ROLE_REQUIRED)
 
     comp = await _get_component_by_id(db, id)
     comp.is_verified = True
@@ -462,7 +463,7 @@ async def reject_component(
 ) -> ComponentResponse:
     """Admin action to reject a submitted component with explanation notes."""
     if user.role != "admin":
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin role required")
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=_MSG_ADMIN_ROLE_REQUIRED)
 
     comp = await _get_component_by_id(db, id)
     comp.is_verified = False

@@ -121,7 +121,7 @@ class WorkflowEngine:
         await self._run_independent_studies(task, independent_studies, results)
 
         # Phase 2.5: Engineering Assertion Gate (F-07 Fix)
-        await self._run_engineering_assertions(task, results)
+        self._run_engineering_assertions(task, results)
 
         # Phase 3: Final validation pass
         _emit_session_progress(task, "validating", 85, "Final validation pass")
@@ -242,7 +242,7 @@ class WorkflowEngine:
         except Exception as guard_err:
             self.logger.warning("Guard review failed (non-blocking): %s", guard_err)
 
-    async def _run_engineering_assertions(
+    def _run_engineering_assertions(
         self, _task: EngineeringTask, results: list[AgentResult]
     ) -> None:
         """Phase 2.5: Run deterministic engineering assertions on all results."""

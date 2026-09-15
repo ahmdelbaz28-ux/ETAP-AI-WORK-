@@ -122,7 +122,7 @@ test = [
 win32 = [
     "pywin32>=303",
     "pyautogui>=0.9.53",
-    "opencv-python>=4.5.0",
+    "opencv-python>=4.10.0.84",
 ]
 dev = [
     "pytest>=9.0.3",

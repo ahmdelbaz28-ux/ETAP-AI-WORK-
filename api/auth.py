@@ -52,6 +52,7 @@ UTC = timezone.utc  # noqa: UP017
 # Module-level constants
 _AUTH_LOGGER_NAME = "etap.auth"
 _logger = _logging.getLogger(_AUTH_LOGGER_NAME)
+_MSG_RESET_TOKEN_SENT = "If the email exists, a reset token has been sent"
 
 
 def _validate_password_strength(v: str) -> str:
@@ -1822,13 +1823,13 @@ async def forgot_password(
         # Set AUTH_RETURN_RESET_TOKEN=true ONLY for local development/testing.
         if os.getenv("AUTH_RETURN_RESET_TOKEN", "false").lower() == "true":
             return {
-                "message": "If the email exists, a reset token has been sent",
+                "message": _MSG_RESET_TOKEN_SENT,
                 "reset_token": reset_token,
             }
-        return {"message": "If the email exists, a reset token has been sent"}
+        return {"message": _MSG_RESET_TOKEN_SENT}
 
     # Deliberately return the identical message to prevent email enumeration (LOW-1 fix)
-    return {"message": "If the email exists, a reset token has been sent"}
+    return {"message": _MSG_RESET_TOKEN_SENT}
 
 
 @router.post(

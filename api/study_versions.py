@@ -46,6 +46,8 @@ from api.dependencies import (
 )
 from api.rbac import require_permission
 
+_MSG_VERSION_NOT_FOUND = "Version not found"
+
 
 class StudyVersion(Base):
     """A snapshot of a study at a point in time."""
@@ -274,9 +276,9 @@ async def get_version(
     )
     v = result.scalar_one_or_none()
     if v is None:
-        raise HTTPException(status_code=404, detail="Version not found")
+        raise HTTPException(status_code=404, detail=_MSG_VERSION_NOT_FOUND)
     if user.tenant_id and v.tenant_id and v.tenant_id != user.tenant_id:
-        raise HTTPException(status_code=404, detail="Version not found")
+        raise HTTPException(status_code=404, detail=_MSG_VERSION_NOT_FOUND)
 
     return VersionResponse(
         id=str(v.id),
@@ -319,10 +321,10 @@ async def rollback_version(
     )
     version = result.scalar_one_or_none()
     if version is None:
-        raise HTTPException(status_code=404, detail="Version not found")
+        raise HTTPException(status_code=404, detail=_MSG_VERSION_NOT_FOUND)
 
     if user.tenant_id and version.tenant_id and version.tenant_id != user.tenant_id:
-        raise HTTPException(status_code=404, detail="Version not found")
+        raise HTTPException(status_code=404, detail=_MSG_VERSION_NOT_FOUND)
 
     # Finding 15: Create an audit snapshot of current state before rollback so history is preserved
     count_result = await db.execute(
@@ -384,13 +386,13 @@ async def compare_versions(
     va = result_a.scalar_one_or_none()
     vb = result_b.scalar_one_or_none()
     if not va or not vb:
-        raise HTTPException(status_code=404, detail="Version not found")
+        raise HTTPException(status_code=404, detail=_MSG_VERSION_NOT_FOUND)
 
-    if user.tenant_id:
-        if (va.tenant_id and va.tenant_id != user.tenant_id) or (
-            vb.tenant_id and vb.tenant_id != user.tenant_id
-        ):
-            raise HTTPException(status_code=404, detail="Version not found")
+    if user.tenant_id and (
+        (va.tenant_id and va.tenant_id != user.tenant_id)
+        or (vb.tenant_id and vb.tenant_id != user.tenant_id)
+    ):
+        raise HTTPException(status_code=404, detail=_MSG_VERSION_NOT_FOUND)
 
     def compute_diff(a: dict, b: dict) -> dict:
         diff = {}

@@ -72,9 +72,9 @@ except ImportError:
             **kwargs: Any,
         ) -> None:
             self.key_func = key_func
-            self.limiter = None
+            self._underlying_limiter = None
             self._default_limits: list[Any] = []
-            self._storage_uri: str = "memory://"
+            self._storage_uri: str = _MEMORY_STORAGE_URI
 
         def limit(self, *args: Any, **kwargs: Any) -> Callable[..., Any]:
             def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
@@ -91,6 +91,7 @@ logger = logging.getLogger("etap.rate_limit")
 # Two Adapters = real Seam.
 # When REDIS_URL or USE_REDIS_RATE_LIMIT is enabled, uses the Redis Adapter for
 # distributed clusters. Otherwise, falls back to the in-memory Adapter.
+_MEMORY_STORAGE_URI: str = "memory://"
 _REDIS_HOST: str = os.environ.get("REDIS_HOST", "localhost")
 _REDIS_PORT: str = os.environ.get("REDIS_PORT", "6379")
 _REDIS_PASSWORD: Optional[str] = os.environ.get("REDIS_PASSWORD")
@@ -102,11 +103,11 @@ if not _REDIS_URL and os.environ.get("USE_REDIS_RATE_LIMIT", "false").lower() in
     else:
         _REDIS_URL = f"redis://{_REDIS_HOST}:{_REDIS_PORT}/0"
 
-_STORAGE_URI: str = _REDIS_URL if _REDIS_URL.startswith(("redis://", "rediss://")) else "memory://"
+_STORAGE_URI: str = _REDIS_URL if _REDIS_URL.startswith(("redis://", "rediss://")) else _MEMORY_STORAGE_URI
 
 logger.info(
     "Rate limiting storage adapter initialized with storage_uri=%s",
-    "redis://***" if _STORAGE_URI.startswith(("redis://", "rediss://")) else "memory://",
+    "redis://***" if _STORAGE_URI.startswith(("redis://", "rediss://")) else _MEMORY_STORAGE_URI,
 )
 
 

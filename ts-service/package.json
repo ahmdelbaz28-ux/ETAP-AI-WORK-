@@ -49,6 +49,9 @@
     "tsx": "^4.19.2",
     "typescript": "^7.0.2"
   },
+  "overrides": {
+    "@isaacs/cliui": "^9.0.0"
+  },
   "lint-staged": {
     "*.ts": [
       "eslint --fix",

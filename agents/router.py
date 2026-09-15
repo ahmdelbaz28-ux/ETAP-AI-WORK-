@@ -136,10 +136,9 @@ class GoalRouter:
 
         for keywords, study_type in self.rules:
             matched_kws = [kw for kw in keywords if kw in goal_lower]
-            if matched_kws:
-                if study_type not in studies:
-                    studies.append(study_type)
-                    matched_reasons.append(f"{study_type.value} ('{matched_kws[0]}')")
+            if matched_kws and study_type not in studies:
+                studies.append(study_type)
+                matched_reasons.append(f"{study_type.value} ('{matched_kws[0]}')")
 
         if studies:
             confidence = 0.95 if len(studies) > 1 else 0.90
