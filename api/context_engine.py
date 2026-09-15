@@ -20,12 +20,16 @@ from api.shared_handlers import (
 router = APIRouter(prefix="/api/v1/context", tags=["Context Engine"])
 
 
-@router.post("/retrieve", dependencies=[Depends(get_api_key)], responses={
-    400: {"description": "Bad request"},
-    403: {"description": "Forbidden — missing or invalid API key"},
-    404: {"description": "No matching context found"},
-    422: {"description": "Validation error"},
-})
+@router.post(
+    "/retrieve",
+    dependencies=[Depends(get_api_key)],
+    responses={
+        400: {"description": "Bad request"},
+        403: {"description": "Forbidden — missing or invalid API key"},
+        404: {"description": "No matching context found"},
+        422: {"description": "Validation error"},
+    },
+)
 async def retrieve_context(
     request: SharedContextRetrieveRequest,
     user: Optional[CurrentUser] = Depends(get_optional_current_user_from_header),
@@ -47,12 +51,16 @@ async def retrieve_context(
     return JSONResponse(content=result)
 
 
-@router.post("/impact", dependencies=[Depends(get_api_key)], responses={
-    400: {"description": "Bad request"},
-    403: {"description": "Forbidden — missing or invalid API key"},
-    404: {"description": "Component not found"},
-    422: {"description": "Validation error"},
-})
+@router.post(
+    "/impact",
+    dependencies=[Depends(get_api_key)],
+    responses={
+        400: {"description": "Bad request"},
+        403: {"description": "Forbidden — missing or invalid API key"},
+        404: {"description": "Component not found"},
+        422: {"description": "Validation error"},
+    },
+)
 async def analyze_impact(request: SharedImpactAnalysisRequest):
     """
     Perform dependency impact analysis on a component using the Code Property Graph.

@@ -61,9 +61,7 @@ class TestAdminEndpointAuthentication:
         # Check that within the function body, _require_api_key is called
         pattern = re.compile(rf'@app\.{method.lower()}\(\s*"{re.escape(path)}"')
         match = pattern.search(routes_source)
-        assert match is not None, (
-            f"Route decorator for {method} {path} not found"
-        )
+        assert match is not None, f"Route decorator for {method} {path} not found"
         # Find the function definition after the decorator
         decorator_pos = match.start()
         # Get the next characters after the decorator (should contain the function body)

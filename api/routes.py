@@ -1094,9 +1094,13 @@ async def audit_verify(request: Request):
 # corresponding physical safety measures separately.
 
 
-@app.get("/admin/cua/kill-switch", tags=["CUA", "Admin"], responses={
-    403: {"description": "Forbidden — missing or invalid API key"},
-})
+@app.get(
+    "/admin/cua/kill-switch",
+    tags=["CUA", "Admin"],
+    responses={
+        403: {"description": "Forbidden — missing or invalid API key"},
+    },
+)
 async def cua_kill_switch_status(request: Request):
     """Return the current CUA kill switch status.
 
@@ -1126,10 +1130,14 @@ async def cua_kill_switch_status(request: Request):
     }
 
 
-@app.post("/admin/cua/kill-switch/activate", tags=["CUA", "Admin"], responses={
-    400: {"description": "Bad request"},
-    403: {"description": "Forbidden — missing or invalid API key"},
-})
+@app.post(
+    "/admin/cua/kill-switch/activate",
+    tags=["CUA", "Admin"],
+    responses={
+        400: {"description": "Bad request"},
+        403: {"description": "Forbidden — missing or invalid API key"},
+    },
+)
 async def cua_kill_switch_activate(request: Request):
     """Activate the CUA kill switch — blocks all CUA agent actions.
 
@@ -1157,9 +1165,13 @@ async def cua_kill_switch_activate(request: Request):
     }
 
 
-@app.post("/admin/cua/kill-switch/deactivate", tags=["CUA", "Admin"], responses={
-    403: {"description": "Forbidden — missing or invalid API key"},
-})
+@app.post(
+    "/admin/cua/kill-switch/deactivate",
+    tags=["CUA", "Admin"],
+    responses={
+        403: {"description": "Forbidden — missing or invalid API key"},
+    },
+)
 async def cua_kill_switch_deactivate(request: Request):
     """Deactivate the CUA kill switch — resumes CUA agent actions.
     SECURITY AUDIT S-15: admin endpoints require auth.
@@ -1181,10 +1193,14 @@ class CUARollbackRequest(BaseModel):
     reason: str = "manual_rollback"
 
 
-@app.post("/admin/cua/rollback", tags=["CUA", "Admin"], responses={
-    400: {"description": "Bad request"},
-    403: {"description": "Forbidden — missing or invalid API key"},
-})
+@app.post(
+    "/admin/cua/rollback",
+    tags=["CUA", "Admin"],
+    responses={
+        400: {"description": "Bad request"},
+        403: {"description": "Forbidden — missing or invalid API key"},
+    },
+)
 async def cua_rollback(request: Request, body: CUARollbackRequest):
     """Execute a CUA rollback using a previously captured state snapshot.
     SECURITY AUDIT S-15: admin endpoints require auth.
@@ -1232,10 +1248,14 @@ async def cua_rollback(request: Request, body: CUARollbackRequest):
         )
 
 
-@app.get("/admin/cua/audit-log", tags=["CUA", "Admin"], responses={
-    400: {"description": "Bad request"},
-    403: {"description": "Forbidden — missing or invalid API key"},
-})
+@app.get(
+    "/admin/cua/audit-log",
+    tags=["CUA", "Admin"],
+    responses={
+        400: {"description": "Bad request"},
+        403: {"description": "Forbidden — missing or invalid API key"},
+    },
+)
 async def cua_audit_log(request: Request, limit: int = 50):
     """Return the last N entries from the CUA tamper-evident audit log.
     SECURITY AUDIT S-15: admin endpoints require auth.
@@ -1272,9 +1292,13 @@ async def cua_audit_log(request: Request, limit: int = 50):
     return {"entries": entries, "total": len(entries)}
 
 
-@app.get("/api/v1/benchmark", tags=["Benchmark"], responses={
-    403: {"description": "Forbidden — missing or invalid API key"},
-})
+@app.get(
+    "/api/v1/benchmark",
+    tags=["Benchmark"],
+    responses={
+        403: {"description": "Forbidden — missing or invalid API key"},
+    },
+)
 async def benchmark(request: Request):
     """Run a lightweight in-process benchmark and return timing metrics.
     SECURITY AUDIT S-15: benchmark requires auth (resource consumption + info disclosure).

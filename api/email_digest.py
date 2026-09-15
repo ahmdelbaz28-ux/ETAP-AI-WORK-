@@ -162,18 +162,26 @@ def _parse_iso(s: str) -> datetime:
 # ---------------------------------------------------------------------------
 
 
-@router.get("/config", summary="Show digest configuration", responses={
-    403: {"description": "Forbidden — missing or invalid API key"},
-})
+@router.get(
+    "/config",
+    summary="Show digest configuration",
+    responses={
+        403: {"description": "Forbidden — missing or invalid API key"},
+    },
+)
 async def get_config() -> JSONResponse:
     return JSONResponse(content={"success": True, "config": _config()})
 
 
-@router.post("/generate", summary="Generate and send a digest now", responses={
-    400: {"description": "Bad request"},
-    403: {"description": "Forbidden — non-admin cannot send for another user"},
-    503: {"description": "Service unavailable — digests disabled"},
-})
+@router.post(
+    "/generate",
+    summary="Generate and send a digest now",
+    responses={
+        400: {"description": "Bad request"},
+        403: {"description": "Forbidden — non-admin cannot send for another user"},
+        503: {"description": "Service unavailable — digests disabled"},
+    },
+)
 async def generate_digest(
     request: Request,
     body: GenerateDigestRequest,
@@ -256,9 +264,14 @@ async def generate_digest(
         )
 
 
-@router.get("/preview/{email}", response_class=HTMLResponse, summary="Preview a user's digest", responses={
-    403: {"description": "Forbidden — cannot preview another user's digest"},
-})
+@router.get(
+    "/preview/{email}",
+    response_class=HTMLResponse,
+    summary="Preview a user's digest",
+    responses={
+        403: {"description": "Forbidden — cannot preview another user's digest"},
+    },
+)
 async def preview_digest(
     email: str,
     user: Annotated[

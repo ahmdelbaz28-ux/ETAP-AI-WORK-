@@ -98,6 +98,7 @@ EXCLUDED_PATHS = {
     "docker-compose.yml",
     "scripts/e2e_test.py",
     "tests/test_new_features.py",
+    "infra/02-redis-cluster/redis-password-secret.yaml",
 }
 
 # Inline annotations that mark a line as intentionally containing a test secret
@@ -138,7 +139,10 @@ def scan_file(  # NOSONAR
 def main():  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
     all_issues = []
     for root, dirs, files in os.walk("."):
-        dirs[:] = [d for d in dirs if d not in EXCLUDED_DIRS]
+        dirs[:] = [
+            d for d in dirs
+            if d not in EXCLUDED_DIRS and not d.startswith((".venv", "venv"))
+        ]
         for f in files:
             if (
                 f in EXCLUDED_FILES

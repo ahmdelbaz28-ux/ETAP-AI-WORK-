@@ -129,11 +129,17 @@ class EtapDrawResolveRequest(BaseModel):
 # ---------------------------------------------------------------------------
 
 
-@router.post("/propose", status_code=status.HTTP_202_ACCEPTED, responses={
-    400: {"description": "Bad request"},
-    403: {"description": "Forbidden — insufficient role, tenant not allowlisted, or feature disabled"},
-    422: {"description": "Validation error — invalid draw plan"},
-})
+@router.post(
+    "/propose",
+    status_code=status.HTTP_202_ACCEPTED,
+    responses={
+        400: {"description": "Bad request"},
+        403: {
+            "description": "Forbidden — insufficient role, tenant not allowlisted, or feature disabled"
+        },
+        422: {"description": "Validation error — invalid draw plan"},
+    },
+)
 async def propose_draw(
     plan: EtapDrawProposeRequest,
     db: AsyncSession = Depends(get_db),
@@ -221,9 +227,12 @@ async def propose_draw(
     return response_data
 
 
-@router.get("/pending", responses={
-    403: {"description": "Forbidden — insufficient role or feature disabled"},
-})
+@router.get(
+    "/pending",
+    responses={
+        403: {"description": "Forbidden — insufficient role or feature disabled"},
+    },
+)
 async def list_pending_draws(
     db: AsyncSession = Depends(get_db),
     user: CurrentUser = Depends(get_current_user_from_header),
@@ -261,11 +270,16 @@ async def list_pending_draws(
     return {"success": True, "total": len(items), "data": items}
 
 
-@router.post("/{action_id}/resolve", responses={
-    400: {"description": "Bad request"},
-    403: {"description": "Forbidden — insufficient role, cross-tenant, or maker-checker violation"},
-    404: {"description": "Draw action not found"},
-})
+@router.post(
+    "/{action_id}/resolve",
+    responses={
+        400: {"description": "Bad request"},
+        403: {
+            "description": "Forbidden — insufficient role, cross-tenant, or maker-checker violation"
+        },
+        404: {"description": "Draw action not found"},
+    },
+)
 async def resolve_draw(
     action_id: str,
     body: EtapDrawResolveRequest,
@@ -416,10 +430,13 @@ async def resolve_draw(
     return response_data
 
 
-@router.get("/{action_id}/status", responses={
-    403: {"description": "Forbidden — cross-tenant access"},
-    404: {"description": "Draw action not found"},
-})
+@router.get(
+    "/{action_id}/status",
+    responses={
+        403: {"description": "Forbidden — cross-tenant access"},
+        404: {"description": "Draw action not found"},
+    },
+)
 async def get_draw_status(
     action_id: str,
     db: AsyncSession = Depends(get_db),

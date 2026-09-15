@@ -103,7 +103,9 @@ if not _REDIS_URL and os.environ.get("USE_REDIS_RATE_LIMIT", "false").lower() in
     else:
         _REDIS_URL = f"redis://{_REDIS_HOST}:{_REDIS_PORT}/0"
 
-_STORAGE_URI: str = _REDIS_URL if _REDIS_URL.startswith(("redis://", "rediss://")) else _MEMORY_STORAGE_URI
+_STORAGE_URI: str = (
+    _REDIS_URL if _REDIS_URL.startswith(("redis://", "rediss://")) else _MEMORY_STORAGE_URI
+)
 
 logger.info(
     "Rate limiting storage adapter initialized with storage_uri=%s",

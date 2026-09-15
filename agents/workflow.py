@@ -263,17 +263,13 @@ class WorkflowEngine:
                 continue
             self._apply_assertion_to_result(result, assertion_layer)
 
-    def _apply_assertion_to_result(
-        self, result: AgentResult, assertion_layer
-    ) -> None:
+    def _apply_assertion_to_result(self, result: AgentResult, assertion_layer) -> None:
         """Apply engineering assertions to a single result."""
         study_type = result.study_type
         try:
             assertion_results = assertion_layer.validate(
                 data=result.data,
-                study_type=study_type.value
-                if hasattr(study_type, "value")
-                else str(study_type),
+                study_type=study_type.value if hasattr(study_type, "value") else str(study_type),
             )
 
             if assertion_results and hasattr(assertion_results, "failures"):
@@ -289,9 +285,7 @@ class WorkflowEngine:
                 assertion_err,
             )
 
-    def _record_assertion_failures(
-        self, result: AgentResult, failures: list
-    ) -> None:
+    def _record_assertion_failures(self, result: AgentResult, failures: list) -> None:
         """Record assertion failures on the result and log them."""
         for failure in failures:
             _msg = (
@@ -299,9 +293,7 @@ class WorkflowEngine:
                 f"{failure.message if hasattr(failure, 'message') else failure}"
             )
             result.validation_errors.append(_msg)
-            severity = (
-                failure.severity if hasattr(failure, "severity") else "WARNING"
-            )
+            severity = failure.severity if hasattr(failure, "severity") else "WARNING"
             if str(severity).upper() in ("CRITICAL", "FATAL"):
                 self.logger.critical("F-07: %s", _msg)
             else:

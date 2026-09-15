@@ -423,7 +423,9 @@ async def contribute_component(
 
 
 @router.put(
-    "/{id}/verify", summary="Approve and verify component (admin)", responses={403: {"description": "Forbidden"}, 404: {"description": "Not found"}}
+    "/{id}/verify",
+    summary="Approve and verify component (admin)",
+    responses={403: {"description": "Forbidden"}, 404: {"description": "Not found"}},
 )
 @router.post("/{id}/verify", include_in_schema=False)
 async def verify_component(
@@ -452,7 +454,9 @@ async def verify_component(
 
 
 @router.put(
-    "/{id}/reject", summary="Reject component submission (admin)", responses={403: {"description": "Forbidden"}, 404: {"description": "Not found"}}
+    "/{id}/reject",
+    summary="Reject component submission (admin)",
+    responses={403: {"description": "Forbidden"}, 404: {"description": "Not found"}},
 )
 @router.post("/{id}/reject", include_in_schema=False)
 async def reject_component(

@@ -866,9 +866,7 @@ class ValidationAgent(BaseAgent):
             from agents.output_schema_guard import validate_agent_output
 
             guard_result = validate_agent_output(
-                agent_result.agent_name.lower()
-                .replace(" ", "_")
-                .replace("agent", "_agent"),
+                agent_result.agent_name.lower().replace(" ", "_").replace("agent", "_agent"),
                 agent_result.data,
             )
             if not guard_result.passed:
@@ -888,9 +886,7 @@ class ValidationAgent(BaseAgent):
 
             agent_output_text = str(agent_result.data) if agent_result.data else ""
             fm_warnings = scan_agent_output(
-                agent_result.agent_name.lower()
-                .replace(" ", "_")
-                .replace("agent", "_agent"),
+                agent_result.agent_name.lower().replace(" ", "_").replace("agent", "_agent"),
                 agent_output_text,
             )
             for w in fm_warnings:

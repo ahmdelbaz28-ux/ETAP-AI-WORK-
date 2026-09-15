@@ -435,7 +435,9 @@ async def list_pending_gis_edits(
     "/{action_id}/resolve",
     responses={
         400: {"description": "Bad request"},
-        403: {"description": "Forbidden — insufficient role, cross-tenant, or maker-checker violation"},
+        403: {
+            "description": "Forbidden — insufficient role, cross-tenant, or maker-checker violation"
+        },
         404: {"description": "GIS edit action not found"},
     },
 )
@@ -467,9 +469,7 @@ async def resolve_gis_edit(
     result = await db.execute(select(PendingAction).where(PendingAction.id == action_id))
     action = result.scalar_one_or_none()
     if action is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail=_MSG_GIS_ACTION_NOT_FOUND
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=_MSG_GIS_ACTION_NOT_FOUND)
 
     # 2. Multi-tenant isolation
     if _norm_tenant(action.tenant_id) != _norm_tenant(user.tenant_id):
@@ -595,9 +595,7 @@ async def get_gis_edit_status(
     result = await db.execute(select(PendingAction).where(PendingAction.id == action_id))
     action = result.scalar_one_or_none()
     if action is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail=_MSG_GIS_ACTION_NOT_FOUND
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=_MSG_GIS_ACTION_NOT_FOUND)
 
     if _norm_tenant(action.tenant_id) != _norm_tenant(user.tenant_id):
         raise HTTPException(

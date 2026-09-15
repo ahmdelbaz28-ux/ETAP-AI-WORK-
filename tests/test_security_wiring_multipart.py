@@ -22,7 +22,7 @@ class TestRASPMultipartParsing:
         boundary = middleware._extract_multipart_boundary(content_type)
         assert boundary == b"----WebKitFormBoundary12345"
 
-        content_type_no_quotes = 'multipart/form-data; boundary=my_custom_boundary; charset=utf-8'
+        content_type_no_quotes = "multipart/form-data; boundary=my_custom_boundary; charset=utf-8"
         boundary2 = middleware._extract_multipart_boundary(content_type_no_quotes)
         assert boundary2 == b"my_custom_boundary"
 
@@ -103,4 +103,3 @@ class TestRASPMultipartParsing:
         assert not inspect.iscoroutine(inspect_data["body"])
         assert isinstance(inspect_data["body"], dict)
         assert inspect_data["body"].get("component_id") == "transformer_1"
-
