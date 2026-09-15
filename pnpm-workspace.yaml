@@ -26,6 +26,8 @@ overrides:
   brace-expansion: ^5.0.9
   # HIGH: fast-uri host confusion via failed IDN canonicalization (2 alerts)
   fast-uri: ^3.1.7
+  # HIGH: ip-address CVE-2026-69192
+  ip-address: ^10.3.1
   # MEDIUM: @xmldom/xmldom XML fragment injection (Alert #429)
   '@xmldom/xmldom': ^0.8.15
   # HIGH: hono (Dependabot alert #1565412111)
