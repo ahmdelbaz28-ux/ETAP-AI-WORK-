@@ -51,7 +51,7 @@
   "devDependencies": {
     "@ai-sdk/openai": "^4.0.60",
     "@modelcontextprotocol/server-filesystem": "^2026.1.14",
-    "@playwright/test": "^1.62.1",
+    "@playwright/test": "^1.63.0",
     "@testsprite/testsprite-mcp": "^0.0.39",
     "@types/js-yaml": "^4.0.9",
     "@types/node": "^22.12.0",
