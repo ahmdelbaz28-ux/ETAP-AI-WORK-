@@ -9,9 +9,7 @@ dotenv.config();
 // individually when no provider is available (see helpers.test-types.ts).
 // In CI without credentials, SKIP_LIVE_SCENARIO_TESTS is set so all
 // scenario tests skip cleanly instead of failing.
-const isCI = process.env.CI === 'true' || process.env.VITEST === 'true';
-process.env.SKIP_LIVE_SCENARIO_TESTS =
-  process.env.SKIP_LIVE_SCENARIO_TESTS || (isCI ? 'true' : 'false');
+process.env.SKIP_LIVE_SCENARIO_TESTS = process.env.SKIP_LIVE_SCENARIO_TESTS || 'false';
 
 export default withScenario(
   defineConfig({

@@ -51,24 +51,5 @@ export function countToolCalls(adapter: AgentAdapter): number {
  * with invalid or missing credentials.
  */
 export function isRealProviderAvailable(): boolean {
-  if (process.env.SKIP_LIVE_SCENARIO_TESTS === 'true') return false;
-
-  const isValidKey = (key: string | undefined): boolean => {
-    if (!key || key.trim().length < 20) return false;
-    const lower = key.toLowerCase().trim();
-    // Reject only exact placeholder strings
-    const exactPlaceholders = ['test', 'dummy', 'placeholder', 'your-key', 'your_key', 'example', 'changeme', 'secret', 'token', 'key_here', 'your-api-key', 'api-key', 'xoxb'];
-    // SonarCloud typescript:S7765: use .includes() for value existence
-    if (exactPlaceholders.includes(lower)) return false;
-    // Reject keys that are purely numeric or purely alphabetic (not real API keys)
-    // SonarCloud typescript:S6353: \d is the concise equivalent of [0-9]
-    if (/^\d+$/.test(key) || /^[a-zA-Z]+$/.test(key)) return false;
-    return true;
-  };
-
-  const hasQwen = isValidKey(process.env.QWEN_API_KEY);
-  const hasQwen2 = isValidKey(process.env.QWEN2_API_KEY);
-  const hasGlm = isValidKey(process.env.GLM_API_KEY);
-  const hasOpenAI = isValidKey(process.env.OPENAI_API_KEY);
-  return hasQwen || hasQwen2 || hasGlm || hasOpenAI;
+  return true;
 }
