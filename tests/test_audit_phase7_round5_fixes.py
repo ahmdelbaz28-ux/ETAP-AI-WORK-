@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import importlib
 import os
+import re
 import textwrap
 from pathlib import Path
 from typing import Any
@@ -58,12 +59,14 @@ class TestAdminEndpointAuthentication:
         """Each admin endpoint must call _require_api_key(request)."""
         # Find the route decorator and the function that follows
         # Check that within the function body, _require_api_key is called
-        assert f'@app.{method.lower()}("{path}"' in routes_source, (
+        pattern = re.compile(rf'@app\.{method.lower()}\(\s*"{re.escape(path)}"')
+        match = pattern.search(routes_source)
+        assert match is not None, (
             f"Route decorator for {method} {path} not found"
         )
         # Find the function definition after the decorator
-        decorator_pos = routes_source.index(f'@app.{method.lower()}("{path}"')
-        # Get the next ~500 characters after the decorator (should contain the function body)
+        decorator_pos = match.start()
+        # Get the next characters after the decorator (should contain the function body)
         func_body = routes_source[decorator_pos : decorator_pos + 3000]
         assert "_require_api_key(request)" in func_body, (
             f"{method} {path} does NOT call _require_api_key(request)"

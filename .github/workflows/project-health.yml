@@ -38,7 +38,7 @@ jobs:
 
     steps:
       - name: 📥 Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0  # Full history for git stats
 
@@ -253,10 +253,10 @@ jobs:
           )
 
           for entry in "${DOCS[@]}"; do
-            PATH="${entry%%:*}"
+            DOC_PATH="${entry%%:*}"
             NAME="${entry##*:}"
-            if [ -f "$PATH" ]; then
-              LINES=$(wc -l < "$PATH")
+            if [ -f "$DOC_PATH" ]; then
+              LINES=$(wc -l < "$DOC_PATH")
               echo "| $NAME | ✅ $LINES lines |" >> $GITHUB_STEP_SUMMARY
             else
               echo "| $NAME | ❌ Missing |" >> $GITHUB_STEP_SUMMARY

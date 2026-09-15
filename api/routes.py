@@ -1166,14 +1166,10 @@ class CUARollbackRequest(BaseModel):
     reason: str = "manual_rollback"
 
 
-@app.post(
-    "/admin/cua/rollback",
-    tags=["CUA", "Admin"],
-    responses={
-        400: {"description": "Bad request"},
-        403: {"description": "Forbidden — missing or invalid API key"},
-    },
-)
+@app.post("/admin/cua/rollback", tags=["CUA", "Admin"], responses={
+    400: {"description": "Bad request"},
+    403: {"description": "Forbidden — missing or invalid API key"},
+})
 async def cua_rollback(request: Request, body: CUARollbackRequest):
     """Execute a CUA rollback using a previously captured state snapshot.
     SECURITY AUDIT S-15: admin endpoints require auth.

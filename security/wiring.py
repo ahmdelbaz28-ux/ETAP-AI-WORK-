@@ -91,33 +91,38 @@ if _HAS_STARLETTE:
                 "/prometheus",
             ]
 
-        async def _parse_multipart_form_fields(
+        def _extract_multipart_boundary(self, content_type: str) -> bytes | None:
+            """Extract boundary bytes from multipart Content-Type header."""
+            for part in content_type.split(";"):
+                part = part.strip()
+                if part.startswith("boundary="):
+                    return part.split("=", 1)[1].strip("\"'").encode()
+            return None
+
+        def _parse_multipart_form_fields(
             self, body_bytes: bytes, content_type: str
         ) -> dict[str, str]:
             """Extract non-file text form fields from a multipart body."""
             form_fields: dict[str, str] = {}
-            try:
-                boundary = None
-                for part in content_type.split(";"):
-                    part = part.strip()
-                    if part.startswith("boundary="):
-                        boundary = part.split("=", 1)[1].strip("\"'").encode()
-                        break
-                if boundary:
-                    for section in body_bytes.split(b"--" + boundary):
-                        if b"\r\n\r\n" in section:
-                            headers_part, val_part = section.split(b"\r\n\r\n", 1)
-                            headers_text = headers_part.decode("utf-8", errors="ignore")
-                            if "filename=" not in headers_text.lower():
-                                import re
+            boundary = self._extract_multipart_boundary(content_type)
+            if not boundary:
+                return form_fields
 
-                                m = re.search(r'name="([^"]+)"', headers_text)
-                                if m:
-                                    field_name = m.group(1)
-                                    field_val = val_part.rstrip(b"\r\n").decode(
-                                        "utf-8", errors="replace"
-                                    )
-                                    form_fields[field_name] = field_val
+            import re
+
+            try:
+                for section in body_bytes.split(b"--" + boundary):
+                    if b"\r\n\r\n" not in section:
+                        continue
+                    headers_part, val_part = section.split(b"\r\n\r\n", 1)
+                    headers_text = headers_part.decode("utf-8", errors="ignore")
+                    if "filename=" in headers_text.lower():
+                        continue
+                    m = re.search(r'name="([^"]+)"', headers_text)
+                    if m:
+                        form_fields[m.group(1)] = val_part.rstrip(b"\r\n").decode(
+                            "utf-8", errors="replace"
+                        )
             except Exception:
                 pass
             return form_fields

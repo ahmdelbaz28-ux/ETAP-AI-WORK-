@@ -34,8 +34,8 @@ overrides:
   js-yaml: ^4.3.2
   # HIGH: linkify-it quadratic DoS in mailto validator (1 alert)
   linkify-it: ^5.0.2
-  # HIGH: liquidjs memory-limit bypass in `pop` filter (1 alert)
-  liquidjs: ^10.27.1
+  # HIGH: liquidjs memory-limit bypass in `pop` filter (1 alert) & FOSSA update
+  liquidjs: ^10.29.0
   # HIGH: postCSS path traversal via sourceMappingURL (1 alert)
   postcss: ^8.5.18
   # HIGH: shell-quote quadratic DoS in parse() (1 alert)
@@ -104,8 +104,6 @@ overrides:
   cross-env: ^10.1.0
   # FOSSA quality: joi outdated (18.2.8 → 18.2.9)
   joi: ^18.2.9
-  # FOSSA quality: liquidjs outdated
-  liquidjs: ^10.29.0
 
 allowBuilds:
   '@biomejs/biome': true
