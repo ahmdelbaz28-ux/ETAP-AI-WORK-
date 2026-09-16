@@ -67,6 +67,8 @@
   },
   "overrides": {
     "@isaacs/cliui": "^9.0.0",
+    "@mastra/core": "1.59.0",
+    "@mastra/loggers": "1.2.0",
     "@opentelemetry/core": "^2.10.0",
     "@opentelemetry/exporter-prometheus": "^0.221.0",
     "@opentelemetry/propagator-jaeger": "^2.10.0",
@@ -85,5 +87,11 @@
     "undici": "^7.29.0",
     "uuid": "^11.1.0",
     "vitest": "^4.1.11"
+  },
+  "pnpm": {
+    "overrides": {
+      "@mastra/core": "1.59.0",
+      "@mastra/loggers": "1.2.0"
+    }
   }
 }

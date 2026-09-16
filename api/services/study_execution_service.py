@@ -16,7 +16,7 @@ from datetime import datetime, timezone
 from typing import Any, Dict, Optional
 
 from fastapi import HTTPException, status
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api._messages import MSG_PROJECT_NOT_FOUND
@@ -34,24 +34,21 @@ async def get_next_revision_number(
     study_id: Optional[str] = None,
 ) -> int:
     """Safely calculate the next revision number for a project or study."""
-    from sqlalchemy import text
-
     bind = db.get_bind()
     dialect_name = getattr(bind, "name", "")
 
-    where_clause = "study_id = :sid" if study_id else "project_id = :pid"
-    params = {"sid": study_id} if study_id else {"pid": project_id}
+    stmt = select(func.coalesce(func.max(StudyVersion.version_number), 0) + 1)
+    if study_id:
+        stmt = stmt.where(StudyVersion.study_id == study_id)
+    else:
+        stmt = stmt.where(StudyVersion.project_id == project_id)
 
     if dialect_name == "postgresql":
-        query = f"SELECT COALESCE(MAX(version_number), 0) + 1 FROM study_versions WHERE {where_clause} FOR UPDATE"
-        res = await db.execute(text(query), params)
-        val = res.scalar()
-        return int(val) if val is not None else 1
-    else:
-        query = f"SELECT COALESCE(MAX(version_number), 0) + 1 FROM study_versions WHERE {where_clause}"
-        res = await db.execute(text(query), params)
-        val = res.scalar()
-        return int(val) if val is not None else 1
+        stmt = stmt.with_for_update()
+
+    res = await db.execute(stmt)
+    val = res.scalar()
+    return int(val) if val is not None else 1
 
 
 async def execute_study_re_run(
