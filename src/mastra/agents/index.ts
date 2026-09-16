@@ -97,8 +97,13 @@ const powerSystemCoordinatorAgent = await createAgent({
   defaultNetworkOptions: {
     maxSteps: 12,
     routing: {
-      additionalInstructions:
-        'Prefer the narrowest specialist agent that can safely answer the user request. On ambiguity or unfamiliar terms, attempt domain synonyms first, then ask at most one clarifying question, then fall back safely. If a sub-agent returns a successful result, exit immediately. If 3 consecutive failures occur, exit with error.',
+      additionalInstructions: `
+Prefer the narrowest specialist agent that can safely answer the user request. 
+On ambiguity or unfamiliar terms, attempt domain synonyms first, then ask at most one clarifying question, then fall back safely. 
+If a sub-agent returns a successful result, exit immediately. 
+If 3 consecutive failures occur, exit with error.
+BUDGET AWARENESS: Track tool calls. If >10 calls without final answer, ask user to narrow scope or split question.
+`.trim(),
     },
   },
 });
