@@ -59,7 +59,7 @@ jobs:
           python3 -c 'import json, datetime; results = {"timestamp": datetime.datetime.utcnow().isoformat() + "Z", "status": "completed"}; open("regression-report.json", "w").write(json.dumps(results, indent=2))'
 
       - name: Upload regression report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1 (node24)
         with:
           name: scheduled-regression-report
           path: regression-report.json

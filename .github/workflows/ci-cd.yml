@@ -176,7 +176,7 @@ jobs:
         # (which runs the full test suite with --cov). If the artifact is not
         # available (e.g. python-tests was skipped), fall back to generating a
         # lightweight coverage report locally.
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8.0.1 (node24) — resolves S7637
         with:
           name: coverage-report
           path: .
@@ -303,7 +303,7 @@ jobs:
         run: ./node_modules/.bin/playwright test --config=playwright.config.ts
 
       - name: Upload Playwright screenshots (on failure)
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1 (node24)
         if: failure()
         with:
           name: playwright-screenshots-${{ github.sha }}
@@ -417,7 +417,7 @@ jobs:
           fail_ci_if_error: false
 
       - name: Upload coverage artifact for SonarCloud
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1 (node24) — resolves S7637
         if: always()
         with:
           name: coverage-report
@@ -642,7 +642,7 @@ jobs:
             --summary-export=load-test-results/k6/ci-summary.json
 
       - name: Upload k6 results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1 (node24) — resolves S7637
         if: always()
         with:
           name: k6-load-test-results-${{ github.sha }}
@@ -683,7 +683,7 @@ jobs:
         run: npm run build
 
       - name: Upload UI build artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1 (node24) — resolves S7637
         with:
           name: ui-dist-${{ github.sha }}
           path: ui/dist/
@@ -718,7 +718,7 @@ jobs:
         # an artifact (ui/dist/ uploaded as ui-dist-<sha>). We must download
         # it into ui-dist/ at the repo root so Docker can find it.
         if: steps.branch-check.outputs.run_deploy == 'true'
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8.0.1 (node24) — resolves S7637
         with:
           name: ui-dist-${{ github.sha }}
           path: ui-dist
@@ -858,7 +858,7 @@ jobs:
 
       - name: Upload SBOM artifact
         if: steps.branch-check.outputs.run_deploy == 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1 (node24) — resolves S7637
         with:
           name: sbom-${{ github.sha }}
           path: sbom.json

@@ -153,7 +153,7 @@ jobs:
 
       - name: Upload ESLint results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1 (node24)
         with:
           name: eslint-results-${{ github.sha }}
           path: ${{ env.UI_DIR }}/eslint-results.json
@@ -225,7 +225,7 @@ jobs:
 
       - name: Upload Vitest results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1 (node24)
         with:
           name: vitest-results-${{ github.sha }}
           path: ${{ env.UI_DIR }}/vitest-results.json
@@ -285,7 +285,7 @@ jobs:
           fi
 
       - name: Upload build artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1 (node24)
         with:
           name: ui-dist-${{ github.sha }}
           path: ${{ env.UI_DIR }}/dist/

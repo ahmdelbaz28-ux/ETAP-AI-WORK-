@@ -56,7 +56,7 @@ jobs:
 
       - name: Upload A/B test report
         if: steps.check-key.outputs.has_key == 'true' && always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1 (node24)
         with:
           name: ab-test-report
           path: tests/agent_evaluation/report.json
