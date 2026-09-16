@@ -80,6 +80,17 @@ def upgrade() -> None:
         )
         op.create_index("ix_export_history_project_id", "export_history", ["project_id"])
         op.create_index("ix_export_history_study_id", "export_history", ["study_id"])
+    else:
+        existing_cols = {c["name"] for c in inspector.get_columns("export_history")}
+        with op.batch_alter_table("export_history") as batch_op:
+            if "study_id" not in existing_cols:
+                batch_op.add_column(sa.Column("study_id", sa.String(36), nullable=True))
+                batch_op.create_index("ix_export_history_study_id", ["study_id"])
+            if "export_type" not in existing_cols:
+                if "format" in existing_cols:
+                    batch_op.alter_column("format", new_column_name="export_type")
+                else:
+                    batch_op.add_column(sa.Column("export_type", sa.String(16), nullable=False, server_default="pdf"))
 
 
 def downgrade() -> None:
