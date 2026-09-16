@@ -243,6 +243,42 @@ services:
     networks:
       - etap_network
 
+  etap-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.windows-worker
+    image: etap-windows-worker:2.1.0
+    platform: windows
+    ports:
+      - "${ETAP_WORKER_PORT:-8081}:8081"
+    environment:
+      - ETAP_WORKER_HOST=0.0.0.0
+      - ETAP_WORKER_PORT=8081
+      - ETAP_INSTALL_PATH=${ETAP_INSTALL_PATH:-C:\Program Files\ETAP}
+      - ETAP_VERSION=${ETAP_VERSION:-19.0}
+    volumes:
+      - etap_worker_data:C:\app\data
+      - etap_worker_reports:C:\app\reports
+      - etap_worker_logs:C:\app\logs
+    restart: unless-stopped
+    stop_grace_period: 60s
+    healthcheck:
+      test: ["CMD", "powershell", "-Command", "try { (Invoke-WebRequest -Uri http://localhost:8081/health -UseBasicParsing).StatusCode -eq 200 } catch { exit 1 }"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          cpus: '${WORKER_CPU_LIMIT:-2.0}'
+          memory: ${WORKER_MEMORY_LIMIT:-4G}
+    networks:
+      - etap_network
+    profiles:
+      - full
+      - windows
+
 volumes:
   etap_data:
   redis_data:
@@ -251,6 +287,9 @@ volumes:
   qdrant_storage:
   neo4j_data:
   neo4j_logs:
+  etap_worker_data:
+  etap_worker_reports:
+  etap_worker_logs:
 
 networks:
   etap_network:
