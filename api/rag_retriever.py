@@ -76,7 +76,7 @@ class RAGRetriever:
         """Compute 512-dimensional term frequency vector."""
         vec = np.zeros(dim, dtype=np.float32)
         for tok in tokens:
-            h = int(hashlib.md5(tok.encode("utf-8")).hexdigest(), 16) % dim
+            h = int(hashlib.sha256(tok.encode("utf-8")).hexdigest(), 16) % dim
             vec[h] += 1.0
         return vec
 
