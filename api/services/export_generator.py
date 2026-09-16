@@ -10,9 +10,9 @@ Provides format generators for study results:
 from __future__ import annotations
 
 import csv
-from datetime import datetime, timezone
 import io
 import json
+from datetime import datetime, timezone
 from typing import Any, Sequence
 
 UTC = timezone.utc

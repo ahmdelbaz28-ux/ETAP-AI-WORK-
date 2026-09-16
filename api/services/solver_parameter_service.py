@@ -7,6 +7,7 @@ Supports project-scoped and global default parameters.
 from __future__ import annotations
 
 from typing import Any, Dict, Optional
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 

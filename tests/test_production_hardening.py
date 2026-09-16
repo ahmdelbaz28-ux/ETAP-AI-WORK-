@@ -12,9 +12,11 @@ from __future__ import annotations
 
 import json
 from typing import AsyncGenerator
+
 import pytest
 from fastapi.testclient import TestClient
 
+from api.feature_flags import is_feature_enabled
 from api.models.solver_parameters import ProjectSolverParameters
 from api.projects import Project
 from api.routes import app
@@ -24,7 +26,6 @@ from api.services.export_generator import (
     generate_json_export,
     generate_pdf_export,
 )
-from api.feature_flags import is_feature_enabled
 
 
 @pytest.fixture

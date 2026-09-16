@@ -21,15 +21,12 @@ from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, ConfigDict, Field
-
-from api.dependencies import get_api_key
-
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from api.database import get_db
+from api.dependencies import get_api_key
 from api.services.solver_parameter_service import (
-    DEFAULT_ACCELERATION_FACTOR,
     DEFAULT_CONVERGENCE_TOLERANCE,
-    DEFAULT_MAX_ITERATIONS,
     load_solver_params,
     save_solver_params,
 )

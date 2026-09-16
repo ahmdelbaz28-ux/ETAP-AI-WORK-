@@ -467,7 +467,8 @@ certs/
 *.pt
 *.pth
 *.onnx
-models/
+/models/
+!api/models/
 
 # ==========================================
 # Test Fixtures

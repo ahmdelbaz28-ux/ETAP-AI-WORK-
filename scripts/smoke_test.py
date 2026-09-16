@@ -31,12 +31,14 @@ os.environ.setdefault("DATABASE_URL", "sqlite+aiosqlite:///./data/smoke_test.db"
 os.environ.setdefault("AUTH_DISABLED", "false")
 os.environ.setdefault("JWT_SECRET_KEY", "test-jwt-secret-key-32-chars-long!")
 
-from starlette.testclient import TestClient
-from api.routes import app
-from api.auth import _create_access_token, User, _hash_password
-from api.csrf import generate_csrf_token
-from api.database import init_db, async_session
 from sqlalchemy import select
+from starlette.testclient import TestClient
+
+from api.auth import User, _create_access_token, _hash_password
+from api.csrf import generate_csrf_token
+from api.database import async_session, init_db
+from api.routes import app
+
 
 async def setup_smoke_db():
     await init_db()
@@ -95,13 +97,13 @@ async def run_smoke():
     print(f"✅ Project created: {project_id}")
 
     # 2. حفظ معاملات
-    params = client.put(f"/api/v1/studies/parameters/{project_id}", 
+    params = client.put(f"/api/v1/studies/parameters/{project_id}",
         json={"convergence_tolerance": 1e-5, "max_iterations": 50})
     assert params.status_code == 200, f"Failed: {params.status_code} {params.text}"
     print("✅ Parameters saved")
 
     # 3. Re-run #1
-    rerun1 = client.post("/api/v1/studies/re-run", 
+    rerun1 = client.post("/api/v1/studies/re-run",
         json={"project_id": project_id, "tool": "load_flow", "parameters": {"convergence_tolerance": 1e-5}})
     assert rerun1.status_code == 200, f"Failed: {rerun1.status_code} {rerun1.text}"
     rev1 = rerun1.json().get("version")
@@ -109,7 +111,7 @@ async def run_smoke():
 
     # 4. Re-run #2 مع معامل مختلف
     headers2 = {**headers, "Idempotency-Key": "smoke-test-002"}
-    rerun2 = client.post("/api/v1/studies/re-run", 
+    rerun2 = client.post("/api/v1/studies/re-run",
         json={"project_id": project_id, "tool": "load_flow", "parameters": {"convergence_tolerance": 1e-4}},
         headers=headers2)
     assert rerun2.status_code == 200, f"Failed: {rerun2.status_code} {rerun2.text}"

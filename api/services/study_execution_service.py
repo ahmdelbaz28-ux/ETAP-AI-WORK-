@@ -16,13 +16,13 @@ from datetime import datetime, timezone
 from typing import Any, Dict, Optional
 
 from fastapi import HTTPException, status
-from sqlalchemy import func, select
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api._messages import MSG_PROJECT_NOT_FOUND
 from api.dependencies import CurrentUser
 from api.projects import Project, StudyResult, StudyStatus
-from api.services.solver_parameter_service import load_solver_params, save_solver_params
+from api.services.solver_parameter_service import save_solver_params
 from api.study_versions import StudyVersion
 
 UTC = timezone.utc
