@@ -473,4 +473,3 @@ class TestVerifyEndpoint:
         assert v_data["verified"] is True
         assert v_data["status"] == "pending"
         assert v_data["dual_control_required"] is True
-

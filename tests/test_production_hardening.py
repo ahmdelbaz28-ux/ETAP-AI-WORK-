@@ -95,7 +95,9 @@ class TestSolverParametersPersistence:
 class TestNoHardcodedBaselines:
     """Verify that no fake baselines are returned."""
 
-    def test_nonexistent_project_returns_404(self, client: TestClient, auth_headers: dict[str, str]):
+    def test_nonexistent_project_returns_404(
+        self, client: TestClient, auth_headers: dict[str, str]
+    ):
         # Both removed baselines should return 404
         resp1 = client.get("/api/v1/projects/proj_cairo_west_132kv", headers=auth_headers)
         assert resp1.status_code == 404
@@ -188,10 +190,12 @@ class TestExportGenerators:
 class TestSCADABridgeEnforcement:
     """Verify SCADA live endpoint enforces bridge configuration in production_hardening mode."""
 
-    def test_scada_live_without_bridge_returns_503(self, client: TestClient):
+    def test_scada_live_without_bridge_returns_503(
+        self, client: TestClient, admin_auth_headers: dict[str, str]
+    ):
         # With production_hardening enabled, live telemetry should return 503 if no live bridge
         assert is_feature_enabled("production_hardening") is True
-        resp = client.get("/api/v1/scada/live")
+        resp = client.get("/api/v1/scada/live", headers=admin_auth_headers)
         assert resp.status_code == 503
         data = resp.json()
         assert data["success"] is False
@@ -308,4 +312,3 @@ class TestStudyReRunWorkflow:
 
         assert data1["study_id"] == data2["study_id"]
         assert data1["version"] == data2["version"]
-

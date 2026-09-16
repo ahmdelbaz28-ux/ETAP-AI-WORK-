@@ -313,4 +313,3 @@ async def re_run_study(
         await _store_idempotent(db, idempotency_key, endpoint, tenant_id, result)
 
     return result
-

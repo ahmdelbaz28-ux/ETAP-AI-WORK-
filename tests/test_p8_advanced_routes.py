@@ -47,6 +47,13 @@ def _isolate_auth(monkeypatch):
 
     monkeypatch.setattr(deps, "API_KEY", _TEST_API_KEY)
 
+    import api.scada as scada_mod
+
+    async def _mock_bridge():
+        return True
+
+    monkeypatch.setattr(scada_mod, "_check_bridge_connection", _mock_bridge)
+
 
 @pytest.fixture
 def client():

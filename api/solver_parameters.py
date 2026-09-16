@@ -269,4 +269,3 @@ async def update_project_parameters(
     data = await save_solver_params(project_id, current, db)
     logger.info("Project %s solver parameters updated in DB: %s", project_id, data)
     return SolverParametersResponse(**data)
-

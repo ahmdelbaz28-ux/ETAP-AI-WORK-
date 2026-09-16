@@ -82,7 +82,12 @@ async def save_solver_params(
     res = await db.execute(stmt)
     record = res.scalar_one_or_none()
 
-    tol = float(params.get("convergence_tolerance", params.get("solver_convergence_tolerance", DEFAULT_CONVERGENCE_TOLERANCE)))
+    tol = float(
+        params.get(
+            "convergence_tolerance",
+            params.get("solver_convergence_tolerance", DEFAULT_CONVERGENCE_TOLERANCE),
+        )
+    )
     max_iter = int(params.get("max_iterations", DEFAULT_MAX_ITERATIONS))
     accel = float(params.get("acceleration_factor", DEFAULT_ACCELERATION_FACTOR))
 

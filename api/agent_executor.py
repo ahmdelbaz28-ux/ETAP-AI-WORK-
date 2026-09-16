@@ -361,7 +361,10 @@ async def submit_plan(
         ui_hint = {"open": "scada"}
     elif "gis" in canon_lower:
         ui_hint = {"open": "gis"}
-    elif any(k in canon_lower for k in ("grid", "load_flow", "power_flow", "short_circuit", "circuit", "fault")):
+    elif any(
+        k in canon_lower
+        for k in ("grid", "load_flow", "power_flow", "short_circuit", "circuit", "fault")
+    ):
         ui_hint = {"open": "grid"}
 
     await _emit(

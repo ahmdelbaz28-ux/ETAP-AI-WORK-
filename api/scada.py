@@ -48,6 +48,7 @@ from api.database import get_db
 # isort: split
 from api.dependencies import (
     CurrentUser,
+    get_api_key,
     get_current_user_from_header,
 )
 from api.dual_control import (
@@ -73,6 +74,7 @@ MSG_CONTROL_ACTION_NOT_FOUND = "Control action not found"
 router = APIRouter(
     prefix="/api/v1/scada",
     tags=["SCADA"],
+    dependencies=[Depends(get_api_key)],
 )
 
 _interlock_engine = SCADAInterlockEngine()
@@ -162,7 +164,11 @@ async def scada_live(request: Request):
                 )
                 return JSONResponse(
                     status_code=503,
-                    content={"success": False, "error": "SCADA bridge not configured", "trace_id": trace_id},
+                    content={
+                        "success": False,
+                        "error": "SCADA bridge not configured",
+                        "trace_id": trace_id,
+                    },
                 )
 
         is_prod = os.getenv("SCADA_MODE", "simulation").lower() == "production"

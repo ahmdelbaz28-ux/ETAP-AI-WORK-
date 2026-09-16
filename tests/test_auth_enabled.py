@@ -63,20 +63,26 @@ def auth_client():
 @pytest.fixture(scope="function")
 def registered_user_token(auth_client):
     """Register a user and return their JWT access token."""
-    # Use the dev seed endpoint (available in development)
+    from api.csrf import generate_csrf_token
+
+    csrf_token = generate_csrf_token()
+    headers = {"x-csrf-token": csrf_token}
+
+    # Register the user
     resp = auth_client.post(
-        "/api/v1/auth/_dev-seed-admin",
+        "/api/v1/auth/register",
         json={
             "username": "auth_test_user",
             "email": "auth_test@example.com",
             "password": "Str0ngP@ss!",
-            "role": "admin",
         },
+        headers=headers,
     )
     # Login
     resp = auth_client.post(
         "/api/v1/auth/login",
         json={"username": "auth_test_user", "password": "Str0ngP@ss!"},
+        headers=headers,
     )
     if resp.status_code != 200:
         pytest.skip(f"Could not login for auth test: {resp.status_code} {resp.text}")

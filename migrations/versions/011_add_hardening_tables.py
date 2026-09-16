@@ -41,7 +41,9 @@ def upgrade() -> None:
             sa.Column("created_at", sa.DateTime(timezone=True), nullable=True),
             sa.Column("updated_at", sa.DateTime(timezone=True), nullable=True),
         )
-        op.create_index("ix_solver_parameters_project_id", "project_solver_parameters", ["project_id"])
+        op.create_index(
+            "ix_solver_parameters_project_id", "project_solver_parameters", ["project_id"]
+        )
 
     # 2. study_versions
     if "study_versions" not in existing_tables:
@@ -90,7 +92,11 @@ def upgrade() -> None:
                 if "format" in existing_cols:
                     batch_op.alter_column("format", new_column_name="export_type")
                 else:
-                    batch_op.add_column(sa.Column("export_type", sa.String(16), nullable=False, server_default="pdf"))
+                    batch_op.add_column(
+                        sa.Column(
+                            "export_type", sa.String(16), nullable=False, server_default="pdf"
+                        )
+                    )
 
 
 def downgrade() -> None:

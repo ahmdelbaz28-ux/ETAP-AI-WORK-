@@ -140,8 +140,7 @@ def main():  # NOSONAR cognitive complexity; scheduled for refactoring sprint (e
     all_issues = []
     for root, dirs, files in os.walk("."):
         dirs[:] = [
-            d for d in dirs
-            if d not in EXCLUDED_DIRS and not d.startswith((".venv", "venv"))
+            d for d in dirs if d not in EXCLUDED_DIRS and not d.startswith((".venv", "venv"))
         ]
         for f in files:
             if (

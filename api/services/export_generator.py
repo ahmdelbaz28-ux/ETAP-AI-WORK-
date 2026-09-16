@@ -22,7 +22,7 @@ try:
     import hashlib
 
     try:
-        hashlib.md5(b"", usedforsecurity=False)
+        hashlib.md5(b"", usedforsecurity=False)  # nosec: B303
     except TypeError:
         _orig_md5 = hashlib.md5
 
@@ -33,7 +33,6 @@ try:
         hashlib.md5 = _compat_md5
 except Exception:
     pass
-
 
 
 def _sanitize_csv_cell(val: Any) -> Any:

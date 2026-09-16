@@ -13,7 +13,6 @@ Prefix: /api/v1/components
 
 from __future__ import annotations
 
-import asyncio
 import json
 import logging
 import re
@@ -629,11 +628,13 @@ async def ensure_seed_data(db: AsyncSession) -> None:
 
     json_files = list(base_dir.rglob("*.json"))
     loaded = 0
+    from compat import to_thread
+
     for p in json_files:
         if p.name in ("index.json", "schema.json"):
             continue
         try:
-            item = await asyncio.to_thread(_read_seed_json_file, p)
+            item = await to_thread(_read_seed_json_file, p)
             if not item:
                 continue
 

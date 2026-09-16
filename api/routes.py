@@ -957,7 +957,6 @@ async def gis_status_probe(request: Request):
     }
 
 
-
 # WebSocket endpoint for per-session event streaming (P3 SessionStreamHub).
 # Auth: ?ticket=<single-use 60s ticket from POST /api/v1/ws-ticket>
 #   or  ?token=<jwt_access_token> (same checks as /ws/notifications).

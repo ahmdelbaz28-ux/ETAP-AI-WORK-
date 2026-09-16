@@ -561,7 +561,11 @@ async def export_history_by_project(
         .limit(pagination.page_size)
     )
     exports = result.scalars().all()
-    count_stmt = select(func.count()).select_from(ExportHistory).where(ExportHistory.project_id == project_id)
+    count_stmt = (
+        select(func.count())
+        .select_from(ExportHistory)
+        .where(ExportHistory.project_id == project_id)
+    )
     if user.role != "admin":
         count_stmt = count_stmt.where(ExportHistory.created_by == user.user_id)
     count = await db.execute(count_stmt)
@@ -583,4 +587,3 @@ async def export_history_by_project(
         ],
         total=total,
     )
-

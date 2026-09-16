@@ -15,5 +15,7 @@ PRODUCTION_CONFIG: Dict[str, Any] = {
     "environment": "production",
     "production_hardening": True,
     "scada_mode": os.getenv("SCADA_MODE", "production"),
-    "database_url": os.getenv("DATABASE_URL", "postgresql+asyncpg://postgres:postgres@localhost:5432/etap"),
+    "database_url": os.getenv(
+        "DATABASE_URL", "postgresql+asyncpg://postgres:postgres@localhost:5432/etap"
+    ),
 }

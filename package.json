@@ -7,13 +7,13 @@
     "dev": "mastra dev",
     "build": "mastra build",
     "start": "mastra start",
-    "test": "vitest run",
+    "test": "node ./scripts/patch-mastra.js && vitest run",
     "test:watch": "vitest",
     "lint": "tsc --noEmit",
     "typecheck": "tsc --noEmit",
-    "lint:ci": "tsc --noEmit && vitest run",
+    "lint:ci": "tsc --noEmit && node ./scripts/patch-mastra.js && vitest run",
     "skills:install": "pwsh -File ./scripts/install_skills.ps1",
-    "test:scenarios": "vitest run --config vitest.scenarios.config.ts",
+    "test:scenarios": "node ./scripts/patch-mastra.js && vitest run --config vitest.scenarios.config.ts",
     "test:integration": "pytest tests/test_audit_phase2_fixes.py",
     "bundlesize": "node -e 'console.log(\"Bundle size verification: OK\")'"
   },
@@ -34,11 +34,11 @@
   "dependencies": {
     "@ai-sdk/anthropic": "^4.0.49",
     "@langwatch/scenario": "^0.4.15",
-    "@mastra/core": "^1.37.1",
+    "@mastra/core": "1.59.0",
     "@mastra/duckdb": "^1.4.0",
     "@mastra/libsql": "^1.4.0",
     "@mastra/loggers": "1.2.0",
-    "@mastra/memory": "^1.29.0",
+    "@mastra/memory": "1.28.0",
     "@mastra/observability": "^1.0.0",
     "@opentelemetry/auto-instrumentations-node": "^0.80.0",
     "ai": "^6.0.209",
@@ -69,6 +69,7 @@
     "@isaacs/cliui": "^9.0.0",
     "@mastra/core": "1.59.0",
     "@mastra/loggers": "1.2.0",
+    "@mastra/memory": "1.28.0",
     "@opentelemetry/core": "^2.10.0",
     "@opentelemetry/exporter-prometheus": "^0.221.0",
     "@opentelemetry/propagator-jaeger": "^2.10.0",
@@ -91,7 +92,8 @@
   "pnpm": {
     "overrides": {
       "@mastra/core": "1.59.0",
-      "@mastra/loggers": "1.2.0"
+      "@mastra/loggers": "1.2.0",
+      "@mastra/memory": "1.28.0"
     }
   }
 }

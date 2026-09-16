@@ -8,6 +8,7 @@ Validates end-to-end production readiness:
 5. PDF Export Generation (application/pdf)
 6. SCADA Fail-Closed (HTTP 503 when unconfigured)
 """
+
 import asyncio
 import os
 import sys
@@ -61,12 +62,14 @@ async def setup_smoke_db():
             user.role = "admin"
             await session.commit()
 
+
 async def run_smoke():
     prod_url = os.environ.get("PRODUCTION_URL", os.environ.get("BASE_URL", "")).rstrip("/")
 
     if prod_url:
         print(f"--- STARTING PRODUCTION SMOKE TEST (REMOTE: {prod_url}) ---")
         import httpx
+
         token = os.environ.get("ADMIN_TOKEN", os.environ.get("AUTH_TOKEN", ""))
         if not token:
             token = _create_access_token("admin-user", role="admin")
@@ -91,29 +94,46 @@ async def run_smoke():
             client.headers[k] = v
 
     # 1. إنشاء مشروع
-    proj = client.post("/api/v1/projects/", json={"name": "Smoke Test Project", "description": "Production validation"})
+    proj = client.post(
+        "/api/v1/projects/",
+        json={"name": "Smoke Test Project", "description": "Production validation"},
+    )
     assert proj.status_code == 201, f"Failed: {proj.status_code} {proj.text}"
     project_id = proj.json()["id"]
     print(f"✅ Project created: {project_id}")
 
     # 2. حفظ معاملات
-    params = client.put(f"/api/v1/studies/parameters/{project_id}",
-        json={"convergence_tolerance": 1e-5, "max_iterations": 50})
+    params = client.put(
+        f"/api/v1/studies/parameters/{project_id}",
+        json={"convergence_tolerance": 1e-5, "max_iterations": 50},
+    )
     assert params.status_code == 200, f"Failed: {params.status_code} {params.text}"
     print("✅ Parameters saved")
 
     # 3. Re-run #1
-    rerun1 = client.post("/api/v1/studies/re-run",
-        json={"project_id": project_id, "tool": "load_flow", "parameters": {"convergence_tolerance": 1e-5}})
+    rerun1 = client.post(
+        "/api/v1/studies/re-run",
+        json={
+            "project_id": project_id,
+            "tool": "load_flow",
+            "parameters": {"convergence_tolerance": 1e-5},
+        },
+    )
     assert rerun1.status_code == 200, f"Failed: {rerun1.status_code} {rerun1.text}"
     rev1 = rerun1.json().get("version")
     print(f"✅ Re-run 1: Rev {rev1}")
 
     # 4. Re-run #2 مع معامل مختلف
     headers2 = {**headers, "Idempotency-Key": "smoke-test-002"}
-    rerun2 = client.post("/api/v1/studies/re-run",
-        json={"project_id": project_id, "tool": "load_flow", "parameters": {"convergence_tolerance": 1e-4}},
-        headers=headers2)
+    rerun2 = client.post(
+        "/api/v1/studies/re-run",
+        json={
+            "project_id": project_id,
+            "tool": "load_flow",
+            "parameters": {"convergence_tolerance": 1e-4},
+        },
+        headers=headers2,
+    )
     assert rerun2.status_code == 200, f"Failed: {rerun2.status_code} {rerun2.text}"
     rev2 = rerun2.json().get("version")
     assert rev2 > rev1, f"Revision not incremented: {rev1} -> {rev2}"
@@ -134,6 +154,7 @@ async def run_smoke():
         print("✅ SCADA bridge connected")
 
     print("\n🎉 ALL SMOKE TESTS PASSED")
+
 
 if __name__ == "__main__":
     asyncio.run(run_smoke())
