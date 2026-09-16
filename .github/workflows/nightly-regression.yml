@@ -18,14 +18,13 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 90
     env:
-      # TODO: upgrade checkout@v4→v5, setup-python@v5→v6 for Node24, then remove this flag
-      ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: 'true'
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
         with:
           python-version: '3.13'
 
