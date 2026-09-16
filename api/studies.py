@@ -21,9 +21,12 @@ from __future__ import annotations
 import logging
 from typing import Any, Dict, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, Header, HTTPException, Request
+from pydantic import BaseModel, Field
+from sqlalchemy.ext.asyncio import AsyncSession
 from typing_extensions import Annotated
 
+from api.database import get_db
 from api.dependencies import (
     CurrentUser,
     get_api_key,
@@ -271,3 +274,43 @@ async def get_study_types(request: Request):
         "study_types": [t for t in STUDY_TYPES if t not in disabled],
         "disabled_studies": get_disabled_studies(),
     }
+
+
+class StudyReRunRequest(BaseModel):
+    project_id: str
+    tool: str = "load_flow"
+    parameters: Dict[str, Any] = Field(default_factory=dict)
+
+
+@router.post("/re-run")
+async def re_run_study(
+    body: StudyReRunRequest,
+    idempotency_key: Annotated[Optional[str], Header(alias="Idempotency-Key")] = None,
+    db: AsyncSession = Depends(get_db),
+    user: Annotated[Optional[CurrentUser], Depends(get_optional_current_user_from_header)] = None,
+):
+    """Execute study re-run with updated solver parameters, idempotency, and revision tracking."""
+    from api.approvals import _replay_idempotent, _store_idempotent
+    from api.services.study_execution_service import execute_study_re_run
+
+    tenant_id = (user.tenant_id if user and getattr(user, "tenant_id", None) else None) or "default"
+    endpoint = f"POST /api/v1/studies/re-run/{body.project_id}"
+
+    if idempotency_key:
+        cached = await _replay_idempotent(db, idempotency_key, endpoint, tenant_id)
+        if cached is not None:
+            return cached
+
+    result = await execute_study_re_run(
+        project_id=body.project_id,
+        tool=body.tool,
+        params=body.parameters,
+        user=user,
+        db=db,
+    )
+
+    if idempotency_key:
+        await _store_idempotent(db, idempotency_key, endpoint, tenant_id, result)
+
+    return result
+

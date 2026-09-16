@@ -437,3 +437,40 @@ class TestTenantIsolation:
         assert b_body.get("idempotent_replay") is not True  # no cross-tenant replay
         assert b_body["data"]["id"] != a_id
         assert b_body["data"]["tenant_id"] == TENANT_B_INTRUDER.tenant_id
+
+
+class TestVerifyEndpoint:
+    """Tests for GET /api/v1/approvals/verify (mobile QR & dual-control scanner)."""
+
+    @pytest.mark.asyncio
+    async def test_verify_missing_id_returns_422(self, client):
+        resp = client.get("/api/v1/approvals/verify")
+        assert resp.status_code == 422
+
+    @pytest.mark.asyncio
+    async def test_verify_nonexistent_returns_404(self, client):
+        resp = client.get("/api/v1/approvals/verify?approval_id=nonexistent-id")
+        assert resp.status_code == 404
+
+    @pytest.mark.asyncio
+    async def test_verify_valid_approval_returns_status(self, client):
+        client.app.dependency_overrides[get_current_user_from_header] = lambda: TENANT_A_USER
+        create_resp = client.post(
+            "/api/v1/approvals",
+            json={
+                "session_id": "verify-sess",
+                "tool": "breaker_trip",
+                "args": {"breaker_id": "CB-101"},
+            },
+        )
+        assert create_resp.status_code == 200
+        app_id = create_resp.json()["data"]["id"]
+
+        verify_resp = client.get(f"/api/v1/approvals/verify?approval_id={app_id}")
+        assert verify_resp.status_code == 200
+        v_data = verify_resp.json()["data"]
+        assert v_data["approval_id"] == app_id
+        assert v_data["verified"] is True
+        assert v_data["status"] == "pending"
+        assert v_data["dual_control_required"] is True
+

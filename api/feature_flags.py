@@ -114,6 +114,12 @@ DEFAULT_FEATURE_FLAGS: dict[str, dict[str, Any]] = {
         "status": "alpha",
         "description": "Automatic ETAP drawing via DataHub etapAPI (dual-control, OFF by default)",
     },
+    "production_hardening": {
+        "enabled": True,
+        "status": "ga",
+        "description": "Enforce real integrations, fail closed on mock",
+        "rollout_percentage": 100,
+    },
 }
 
 FEATURE_FLAGS = DEFAULT_FEATURE_FLAGS

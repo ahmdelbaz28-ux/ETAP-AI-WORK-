@@ -629,9 +629,57 @@ async def resolve_action(
     return payload
 
 
+@router.get("/verify", summary="Verify approval request via QR code / web link")
+async def verify_approval(
+    approval_id: str = Query(..., description="Approval ID to verify"),
+    tool: Optional[str] = Query(None, description="Tool name for validation"),
+    db: AsyncSession = Depends(get_db),
+) -> Dict[str, Any]:
+    """Verification endpoint for QR code mobile scanning and second-approver validation."""
+    await expire_stale_actions(db)
+
+    stmt = select(PendingAction).where(PendingAction.id == approval_id)
+    result = await db.execute(stmt)
+    action = result.scalar_one_or_none()
+    if action is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={
+                "code": "APPROVAL_NOT_FOUND",
+                "message": f"Approval action '{approval_id}' not found or does not exist.",
+            },
+        )
+
+    now = _utc_now()
+    expires_at = action.expires_at
+    if expires_at is not None and expires_at.tzinfo is None:
+        expires_at = expires_at.replace(tzinfo=UTC)
+
+    is_expired = expires_at is not None and now > expires_at
+    is_verified = not is_expired and action.status == _STATUS_PENDING
+    dual_control = action.risk_class == "critical"
+
+    data = {
+        "verified": is_verified,
+        "valid": is_verified,
+        "approval_id": action.id,
+        "tool": action.tool,
+        "status": "expired" if is_expired else action.status,
+        "risk_class": action.risk_class,
+        "requested_by_user_id": action.requested_by_user_id,
+        "requested_by_role": action.requested_by_role,
+        "created_at": action.created_at.isoformat() if action.created_at else None,
+        "expires_at": action.expires_at.isoformat() if action.expires_at else None,
+        "dual_control_required": dual_control,
+        "dual_control_enforced": dual_control,
+    }
+    return {"success": True, "data": data}
+
+
 # ---------------------------------------------------------------------------
 # Session auto-approve toggle (registered under /api/v1/session/*)
 # ---------------------------------------------------------------------------
+
 
 session_router = APIRouter(prefix="/api/v1/session", tags=["approvals"])
 

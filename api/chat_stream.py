@@ -131,6 +131,7 @@ class ChatStreamRequest(BaseModel):
     messages: List[ChatMessageIn] = Field(min_length=1, max_length=MAX_MESSAGES)
     provider: Optional[str] = Field(default=None, pattern="^(openai|anthropic|gemini)$")
     model: Optional[str] = Field(default=None, min_length=1, max_length=128)
+    project_id: Optional[str] = Field(default=None, max_length=128)
 
 
 class ProviderConfig(BaseModel):

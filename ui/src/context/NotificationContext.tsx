@@ -33,6 +33,7 @@ import {
 import { API_BASE_URL } from "../lib/api-config";
 import { authHeaders } from "../lib/admin-fetch";
 import { getAuthToken } from "../lib/tokenStorage";
+import { toast } from "../lib/toast";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -200,6 +201,12 @@ export function NotificationProvider({ children }: { readonly children: ReactNod
     },
     [pushToast],
   );
+
+  useEffect(() => {
+    return toast.subscribe((type, message) => {
+      notify(type, message);
+    });
+  }, [notify]);
 
   // Public dismiss — removes the toast locally. If the toast corresponds
   // to a backend notification (i.e. its id is a backend notification id),

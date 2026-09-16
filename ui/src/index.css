@@ -53,6 +53,15 @@
   --color-engine-fault: #ef4444;
   --color-engine-protection: #06b6d4;
 
+  /* ETAP MV Network Engineering Brand Tokens */
+  --color-etap-graphite: #20262e;
+  --color-etap-graphite-dark: #181d24;
+  --color-etap-sheet: #e9edf0;
+  --color-etap-amber: #d99a2b;
+  --color-etap-trip: #b3362a;
+  --color-etap-relay: #2f7a5d;
+  --color-etap-grid: #c2c9d1;
+
   /* Typography */
   --font-sans: "Inter", system-ui, -apple-system, sans-serif;
   --font-arabic: "Cairo", "Inter", system-ui, sans-serif;

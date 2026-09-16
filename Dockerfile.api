@@ -1,0 +1,89 @@
+# =============================================================================
+# AhmedETAP API Service — Production Dockerfile
+# =============================================================================
+# Multi-stage build with non-root security hardening, minimized CVE footprint,
+# and tini init process.
+#
+# Build:
+#   docker build -t ahmetap/api:v2.1.0 -f Dockerfile.api .
+# =============================================================================
+
+# ---------- Stage 1: Builder ----------
+FROM python:3.13-slim AS builder
+
+WORKDIR /build
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    g++ \
+    gcc \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt ./
+# Filter out pywin32 Windows-only dependency and install into /install prefix
+RUN grep -v "^#" requirements.txt | grep -v "^$" | grep -v "pywin32" > req.txt \
+    && pip install --no-cache-dir --upgrade pip==25.0.1 \
+    && pip install --no-cache-dir --prefix=/install -r req.txt
+
+# ---------- Stage 2: Runtime ----------
+FROM python:3.13-slim
+
+LABEL maintainer="AhmedETAP Core Team <ahmdelbaz28@gmail.com>" \
+      description="AhmedETAP Unified Engineering API Service" \
+      version="2.1.0"
+
+# Install tini and minimal curl for healthchecks
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    tini \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy pre-built dependencies from builder
+COPY --from=builder /install /usr/local
+
+# Create isolated non-root user (UID 1000)
+RUN groupadd -r etapuser && \
+    useradd -r -u 1000 -g etapuser -d /app -s /sbin/nologin etapuser && \
+    mkdir -p /app /app/logs /app/data /tmp/data && \
+    chown -R etapuser:etapuser /app /tmp
+
+WORKDIR /app
+
+# Application source code
+COPY --chown=root:root --chmod=go-w compat.py ./
+COPY --chown=root:root --chmod=go-w alembic.ini ./
+COPY --chown=etapuser:etapuser api/ ./api/
+COPY --chown=etapuser:etapuser core/ ./core/
+COPY --chown=etapuser:etapuser core_model/ ./core_model/
+COPY --chown=etapuser:etapuser services/ ./services/
+COPY --chown=etapuser:etapuser engine/ ./engine/
+COPY --chown=etapuser:etapuser load_flow/ ./load_flow/
+COPY --chown=etapuser:etapuser fault_analysis/ ./fault_analysis/
+COPY --chown=etapuser:etapuser coordination/ ./coordination/
+COPY --chown=etapuser:etapuser relays/ ./relays/
+COPY --chown=etapuser:etapuser network_solver/ ./network_solver/
+COPY --chown=etapuser:etapuser migrations/ ./migrations/
+COPY --chown=etapuser:etapuser prompts/ ./prompts/
+COPY --chown=etapuser:etapuser prompts.json ./
+COPY --chown=etapuser:etapuser utils/ ./utils/
+COPY --chown=etapuser:etapuser security/ ./security/
+COPY --chown=etapuser:etapuser data/ ./data/
+
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PORT=8000 \
+    HOST=0.0.0.0 \
+    APP_ENV=production \
+    ENVIRONMENT=production \
+    DATABASE_URL=postgresql+asyncpg://etap:etap_password@postgres:5432/etap_platform
+
+EXPOSE 8000
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+    CMD ["curl", "-fsS", "http://localhost:8000/readyz"]
+
+USER 1000
+
+ENTRYPOINT ["/usr/bin/tini", "--"]
+
+CMD ["python", "-m", "uvicorn", "api.routes:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4"]

@@ -1,0 +1,44 @@
+# =============================================================================
+# AhmedETAP UI Service — Production Dockerfile
+# =============================================================================
+# Multi-stage build for React SPA with Nginx Alpine runtime
+#
+# Build:
+#   docker build -t ahmetap/ui:v2.1.0 -f Dockerfile.ui .
+# =============================================================================
+
+# ---------- Stage 1: Build Frontend ----------
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+COPY ui/package*.json ./
+
+RUN npm ci --silent
+
+COPY ui/ ./
+
+RUN npm run build
+
+# ---------- Stage 2: Nginx Runtime ----------
+FROM nginx:1.27-alpine
+
+LABEL maintainer="AhmedETAP Core Team <ahmdelbaz28@gmail.com>" \
+      description="AhmedETAP Production Web Interface" \
+      version="2.1.0"
+
+# Remove default nginx static assets
+RUN rm -rf /usr/share/nginx/html/*
+
+# Copy built assets from builder stage
+COPY --from=builder /app/dist /usr/share/nginx/html
+
+# Copy custom nginx configuration
+COPY ui/nginx.conf /etc/nginx/conf.d/default.conf
+
+EXPOSE 80
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+    CMD wget -q -O /dev/null http://localhost:80/healthz || exit 1
+
+CMD ["nginx", "-g", "daemon off;"]

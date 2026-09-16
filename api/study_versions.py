@@ -179,6 +179,10 @@ async def list_versions(
         )
     result = await db.execute(stmt.order_by(desc(StudyVersion.version_number)))
     versions = result.scalars().all()
+
+    if not versions:
+        return VersionListResponse(versions=[], total=0)
+
     return VersionListResponse(
         versions=[
             VersionResponse(

@@ -1,0 +1,61 @@
+groups:
+  - name: production_hardening_alerts
+    rules:
+      # 1. SCADA Bridge Health Alert
+      - alert: SCADABridgeUnreachable
+        expr: sum(rate(http_requests_total{handler=~".*scada/live.*", status="503"}[5m])) > 0
+        for: 1m
+        labels:
+          severity: critical
+          service: engineering
+          tier: p0
+          escalation: oncall-pager
+        annotations:
+          summary: "SCADA bridge is unreachable or disconnected (returning HTTP 503)"
+          description: "SCADA live telemetry is failing closed due to unconfigured or disconnected bridge. Substation data is offline."
+          runbook_url: "https://docs.ahmetap.com/ops/runbooks/scada-bridge-offline"
+
+      # 2. Re-run Endpoint Latency Alert
+      - alert: StudyReRunLatencyHigh
+        expr: histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{path=~".*studies/re-run.*"}[5m])) by (le)) > 30
+        for: 2m
+        labels:
+          severity: warning
+          service: engineering
+          tier: p1
+          escalation: engineering-slack
+        annotations:
+          summary: "Study re-run latency > 30s (p95)"
+          description: "95th percentile latency of Edit & Re-run calculations has exceeded 30 seconds for 2 minutes."
+          runbook_url: "https://docs.ahmetap.com/ops/runbooks/study-engine-performance"
+
+      # 3. Export Generation Failure Rate Alert
+      - alert: ExportGenerationHighFailureRate
+        expr: >
+          (sum(rate(http_requests_total{path=~".*export.*", status=~"5.."}[5m])) or vector(0))
+          /
+          (sum(rate(http_requests_total{path=~".*export.*"}[5m])) > 0) > 0.05
+        for: 3m
+        labels:
+          severity: warning
+          service: engineering
+          tier: p1
+          escalation: engineering-slack
+        annotations:
+          summary: "Report export failure rate > 5%"
+          description: "Over 5% of PDF, Excel, or CSV export requests are returning 5xx server errors."
+          runbook_url: "https://docs.ahmetap.com/ops/runbooks/export-generator-failures"
+
+      # 4. Revision Concurrency Conflict / Deadlock Alert
+      - alert: RevisionConcurrencyDeadlock
+        expr: sum(increase(database_deadlocks_total[5m])) > 0 or sum(increase(study_revision_conflict_total[5m])) > 0
+        for: 0m
+        labels:
+          severity: critical
+          service: database
+          tier: p0
+          escalation: oncall-pager
+        annotations:
+          summary: "Revision concurrency conflict or database deadlock detected"
+          description: "Concurrent study version increment operations triggered a deadlock or race condition on study_versions table."
+          runbook_url: "https://docs.ahmetap.com/ops/runbooks/db-deadlocks"

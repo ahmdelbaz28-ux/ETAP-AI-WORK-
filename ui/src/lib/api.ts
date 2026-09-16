@@ -52,6 +52,19 @@ async function extractErrorDetail(response: Response): Promise<string> {
   }
 }
 
+export class ApiError extends Error {
+  status: number;
+  detail?: string;
+
+  constructor(status: number, message: string) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+    this.detail = message;
+    Object.setPrototypeOf(this, ApiError.prototype);
+  }
+}
+
 export async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const url = `${API_BASE_URL}${path}`;
   // SECURITY FIX: Use sessionStorage instead of localStorage for auth tokens.
@@ -79,7 +92,7 @@ export async function request<T>(path: string, options?: RequestInit): Promise<T
 
   if (!response.ok) {
     const detail = await extractErrorDetail(response);
-    throw new Error(`API ${response.status}: ${detail}`);
+    throw new ApiError(response.status, `API ${response.status}: ${detail}`);
   }
 
   // 204 No Content
@@ -990,4 +1003,72 @@ export async function getDualControlQrSecret(
   return res.json();
 }
 
+export interface SolverParametersPayload {
+  convergence_tolerance?: number;
+  solver_convergence_tolerance?: number;
+  max_iterations?: number;
+  acceleration_factor?: number;
+}
+
+/** Update solver parameters for a project in the database. */
+export async function updateProjectSolverParameters(
+  projectId: string,
+  params: SolverParametersPayload,
+): Promise<SolverParametersPayload> {
+  return request<SolverParametersPayload>(`/studies/parameters/${projectId}`, {
+    method: "PUT",
+    body: JSON.stringify(params),
+  });
+}
+
+export interface StudyReRunPayload {
+  project_id: string;
+  tool?: string;
+  parameters?: Record<string, unknown>;
+}
+
+export interface StudyReRunResponse {
+  success: boolean;
+  study_id: string;
+  project_id: string;
+  version: number;
+  version_number: number;
+  status: string;
+  results: Record<string, unknown>;
+  parameters: Record<string, unknown>;
+}
+
+/** Execute a study re-run with updated parameters and revision tracking. */
+export async function executeStudyReRun(
+  payload: StudyReRunPayload,
+): Promise<StudyReRunResponse> {
+  const url = `${API_BASE_URL}/studies/re-run`;
+  const token = getAuthToken();
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+  Object.assign(headers, buildProviderHeaders(getCachedSettings()));
+
+  const res = await fetch(url, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({
+      project_id: payload.project_id,
+      tool: payload.tool || "load_flow",
+      parameters: payload.parameters || {},
+    }),
+  });
+
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({ detail: "Re-run failed" }));
+    throw new ApiError(res.status, error.detail || "Re-run failed");
+  }
+
+  return res.json() as Promise<StudyReRunResponse>;
+}
+
 // ============ End of API client ============
+

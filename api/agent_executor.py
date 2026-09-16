@@ -132,6 +132,7 @@ class ToolPlan(BaseModel):
     source: Optional[EngineeringSource] = None
     session_id: Optional[str] = None
     tenant_id: Optional[str] = None
+    project_id: Optional[str] = None
 
 
 class ExecuteRequest(BaseModel):
@@ -150,6 +151,7 @@ class PlanRecord:
     source: Optional[Dict[str, Any]] = None
     session_id: Optional[str] = None
     tenant_id: Optional[str] = None
+    project_id: Optional[str] = None
     user_id: Optional[str] = None
     decision: str = ""
     reason: str = ""
@@ -345,6 +347,7 @@ async def submit_plan(
         # Security Gate: tenant identity always comes from the authenticated
         # caller, never from the request body (no arbitrary tenant stamping).
         tenant_id=user.tenant_id or None,
+        project_id=getattr(plan, "project_id", None) or raw_args.get("project_id"),
         user_id=user.user_id,
         decision=decision,
         reason=reason,
@@ -352,16 +355,27 @@ async def submit_plan(
         expires_at=now + PLAN_TTL_SECONDS,
     )
 
+    ui_hint = None
+    canon_lower = canonical.lower()
+    if "scada" in canon_lower:
+        ui_hint = {"open": "scada"}
+    elif "gis" in canon_lower:
+        ui_hint = {"open": "gis"}
+    elif any(k in canon_lower for k in ("grid", "load_flow", "power_flow", "short_circuit", "circuit", "fault")):
+        ui_hint = {"open": "grid"}
+
+    await _emit(
+        plan.session_id,
+        "action_proposed",
+        {
+            "tool": canonical,
+            "requested_tool": requested_tool,
+            "plan_id": plan_id,
+            "ui_hint": ui_hint,
+        },
+    )
+
     if decision != "auto_approved":
-        await _emit(
-            plan.session_id,
-            "action_proposed",
-            {
-                "tool": canonical,
-                "requested_tool": requested_tool,
-                "plan_id": plan_id,
-            },
-        )
         await _emit(
             plan.session_id,
             "approval_result",
@@ -629,6 +643,7 @@ async def execute_plan(
     ctx = {
         "user_id": user.user_id,
         "tenant_id": plan_rec.tenant_id or user.tenant_id,
+        "project_id": plan_rec.project_id,
         "session_id": plan_rec.session_id,
         "execution_id": execution_id,
         "plan_id": plan_rec.plan_id,

@@ -6,6 +6,31 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [2.1.0] - 2026-09-16
+
+### Production Hardening & Enterprise Deployment
+
+#### Added
+- **Database Persistence**: `ProjectSolverParameters` SQLAlchemy ORM model and async service layer in `api/services/solver_parameter_service.py`; eliminated all in-memory parameter dictionaries.
+- **Real Edit & Re-run Execution**: End-to-end calculation re-run pipeline via `POST /api/v1/studies/re-run` (`api/services/study_execution_service.py`), creating immutable study snapshots and incrementing revisions.
+- **Revision Concurrency Safety**: PostgreSQL `FOR UPDATE` row locking to prevent race conditions during version numbering.
+- **Re-run Idempotency**: Support for `Idempotency-Key` request header in study execution endpoints with automatic replay of cached responses.
+- **Modular Export Service**: Decoupled report generation in `api/services/export_generator.py` supporting PDF (ReportLab), Excel (OpenPyXL), CSV (RFC 4180 with formula injection sanitization), and JSON.
+- **Python 3.8 Compatibility**: Added MD5 hashlib compatibility shim in PDF generator resolving OpenSSL `usedforsecurity` keyword issues on legacy runtimes.
+- **Production Dockerfiles**: Multi-stage `Dockerfile.api` (Python 3.13-slim + tini) and `Dockerfile.ui` (Node 20 build + Nginx Alpine runtime) with non-root security boundaries.
+- **Nginx SPA Configuration**: `ui/nginx.conf` with security headers (CSP, HSTS, X-Frame-Options), gzip compression, and `/healthz` endpoint.
+- **Database Migration 011**: Alembic migration `011_add_hardening_tables.py` adding `project_solver_parameters`, `study_versions`, and `export_history` tables.
+- **Prometheus Alerting**: Rules in `monitoring/alerts/production_hardening_alerts.yml` for SCADA bridge outages, study re-run latency (>30s), export failure rates (>5%), and revision deadlocks.
+- **Disaster Recovery**: Comprehensive rollback guide in `DEPLOYMENT_ROLLBACK.md` and signed `PRODUCTION_RELEASE_CHECKLIST.md`.
+- **Automated Smoke Test**: End-to-end verification script `scripts/smoke_test.py` supporting both remote `PRODUCTION_URL` and local ASGI transports.
+
+#### Changed
+- **Elimination of Mock Baselines**: Removed hardcoded baseline projects (`proj_cairo_west_132kv`, `proj_helwan_industrial`), fake version histories, and synthetic export records.
+- **Fail-Closed SCADA Bridge**: `GET /api/v1/scada/live` verifies live connection with a 2.0s timeout and fails closed with HTTP 503 instead of falling back to synthetic data.
+- **Frontend Error Handling**: `ui/src/lib/api.ts` throws structured `ApiError`; `ResultViewer.tsx` handles re-run rejections gracefully with toast alerts and drawer reset.
+- **UI Dynamic Revisions**: Replaced static revision indicators with dynamic `Rev N` displays in `ChatWorkspace.tsx` and `ResultViewer.tsx`.
+
+
 ### Safe Stabilization Batch-1 (Docs & UI Placeholders)
 
 #### Added

@@ -87,6 +87,7 @@ export interface ResultEntry {
   readonly plan_id?: string;
   readonly project_id?: string;
   readonly ts?: string;
+  readonly version?: number | string;
   readonly summary?: Record<string, unknown> | null;
   readonly loading?: boolean;
   readonly loaded?: boolean;
@@ -183,6 +184,8 @@ function setupWebSocketHandlers(
 
 export interface ChatWorkspaceState {
   sessionId: string;
+  projectId: string | null;
+  activeView: "scada" | "gis" | "grid" | null;
   messages: ChatMessage[];
   streamStatus: ChatStreamStatus;
   lastAssistantId: string | null;
@@ -205,6 +208,8 @@ export interface ChatWorkspaceState {
     lastResult: "success" | "error" | null;
     error: string | null;
   };
+  setProjectId: (projectId: string | null) => void;
+  setActiveView: (activeView: "scada" | "gis" | "grid" | null) => void;
   connectSession: () => void;
   disconnectSession: () => void;
   handleSessionEvent: (frame: unknown) => void;
@@ -458,6 +463,11 @@ function resolvePendingApprovalsList(res: {
 
 export const useChatStore = create<ChatWorkspaceState>()((set, get) => ({
   sessionId: getChatSessionId(),
+  projectId:
+    typeof localStorage !== "undefined"
+      ? localStorage.getItem("etap_last_project_id") || "proj_cairo_west_132kv"
+      : "proj_cairo_west_132kv",
+  activeView: null,
   messages: [],
   streamStatus: "idle",
   lastAssistantId: null,
@@ -475,6 +485,16 @@ export const useChatStore = create<ChatWorkspaceState>()((set, get) => ({
   approvalsError: null,
   autoApprove: initialAutoApprove(),
   emergencyStop: initialEmergencyStop(),
+
+  setProjectId: (projectId) => {
+    if (typeof localStorage !== "undefined") {
+      if (projectId) localStorage.setItem("etap_last_project_id", projectId);
+      else localStorage.removeItem("etap_last_project_id");
+    }
+    set({ projectId });
+  },
+
+  setActiveView: (activeView) => set({ activeView }),
 
   setStreamStatus: (status) => set({ streamStatus: status }),
 
@@ -552,6 +572,11 @@ export const useChatStore = create<ChatWorkspaceState>()((set, get) => ({
         return;
       case "action_proposed": {
         const entry: ProposedActionEntry = { seq: evt.seq, ts, payload };
+        const rawHint = (payload.ui_hint ?? {}) as Record<string, unknown>;
+        const openHint = typeof rawHint.open === "string" ? rawHint.open.toLowerCase() : null;
+        if (openHint === "scada" || openHint === "gis" || openHint === "grid") {
+          set({ activeView: openHint });
+        }
         set({ proposedActions: [entry, ...get().proposedActions].slice(0, MAX_LIST_ITEMS) });
         return;
       }
@@ -635,7 +660,7 @@ export const useChatStore = create<ChatWorkspaceState>()((set, get) => ({
         .map((m) => ({ role: m.role, content: m.content }));
 
       let acc = "";
-      for await (const delta of streamFromServerChat(history, controller.signal)) {
+      for await (const delta of streamFromServerChat(history, controller.signal, get().projectId)) {
         acc += delta;
         appendStreamDelta(acc, get, set);
       }

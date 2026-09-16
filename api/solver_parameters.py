@@ -24,21 +24,17 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from api.dependencies import get_api_key
 
+from sqlalchemy.ext.asyncio import AsyncSession
+from api.database import get_db
+from api.services.solver_parameter_service import (
+    DEFAULT_ACCELERATION_FACTOR,
+    DEFAULT_CONVERGENCE_TOLERANCE,
+    DEFAULT_MAX_ITERATIONS,
+    load_solver_params,
+    save_solver_params,
+)
+
 logger = logging.getLogger(__name__)
-
-# ---------------------------------------------------------------------------
-# Default solver parameters
-# ---------------------------------------------------------------------------
-
-_DEFAULTS: dict[str, float | int] = {
-    "convergence_tolerance": 1e-5,
-    "solver_convergence_tolerance": 1e-5,
-    "max_iterations": 50,
-    "acceleration_factor": 1.6,
-}
-
-# In-memory store — persists across requests for the lifetime of the process.
-_solver_parameters: dict[str, float | int] = dict(_DEFAULTS)
 
 
 # ---------------------------------------------------------------------------
@@ -156,11 +152,14 @@ router = APIRouter(
     "/",
     response_model=SolverParametersResponse,
     summary="Get current solver parameters",
-    description="Returns the current solver parameters stored in memory.",
+    description="Returns the current solver parameters from the database.",
 )
-async def get_solver_parameters() -> SolverParametersResponse:
+async def fetch_global_parameters(
+    db: AsyncSession = Depends(get_db),
+) -> SolverParametersResponse:
     """Retrieve the current solver parameters."""
-    return SolverParametersResponse(**_solver_parameters)
+    data = await load_solver_params(None, db)
+    return SolverParametersResponse(**data)
 
 
 @router.post("", response_model=SolverParametersResponse, include_in_schema=False)
@@ -169,10 +168,11 @@ async def get_solver_parameters() -> SolverParametersResponse:
     response_model=SolverParametersResponse,
     status_code=status.HTTP_200_OK,
     summary="Create / overwrite solver parameters",
-    description="Creates or completely replaces all solver parameters.",
+    description="Creates or completely replaces all solver parameters in the database.",
 )
-async def create_solver_parameters(
+async def create_global_parameters(
     body: SolverParametersCreate,
+    db: AsyncSession = Depends(get_db),
 ) -> SolverParametersResponse:
     """Create or overwrite all solver parameters at once."""
     tol = (
@@ -180,20 +180,14 @@ async def create_solver_parameters(
         if body.convergence_tolerance is not None
         else body.solver_convergence_tolerance
     )
-    if tol is not None:
-        _solver_parameters["convergence_tolerance"] = tol
-        _solver_parameters["solver_convergence_tolerance"] = tol
-    _solver_parameters["max_iterations"] = body.max_iterations
-    _solver_parameters["acceleration_factor"] = body.acceleration_factor
-
-    logger.info(
-        "Solver parameters overwritten: convergence_tolerance=%s, "
-        "max_iterations=%s, acceleration_factor=%s",
-        _solver_parameters["convergence_tolerance"],
-        _solver_parameters["max_iterations"],
-        _solver_parameters["acceleration_factor"],
-    )
-    return SolverParametersResponse(**_solver_parameters)
+    payload = {
+        "convergence_tolerance": tol if tol is not None else DEFAULT_CONVERGENCE_TOLERANCE,
+        "max_iterations": body.max_iterations,
+        "acceleration_factor": body.acceleration_factor,
+    }
+    data = await save_solver_params(None, payload, db)
+    logger.info("Solver parameters overwritten in DB: %s", data)
+    return SolverParametersResponse(**data)
 
 
 @router.put("", response_model=SolverParametersResponse, include_in_schema=False)
@@ -206,8 +200,9 @@ async def create_solver_parameters(
         "Omitted fields retain their current values."
     ),
 )
-async def update_solver_parameters(
+async def update_global_parameters(
     body: SolverParametersUpdate,
+    db: AsyncSession = Depends(get_db),
 ) -> SolverParametersResponse:
     """Partially update individual solver parameters."""
     updates = body.model_dump(exclude_none=True)
@@ -216,14 +211,65 @@ async def update_solver_parameters(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail="At least one parameter must be provided for update.",
         )
+    current = await load_solver_params(None, db)
     tol = updates.get("convergence_tolerance") or updates.get("solver_convergence_tolerance")
     if tol is not None:
-        _solver_parameters["convergence_tolerance"] = tol
-        _solver_parameters["solver_convergence_tolerance"] = tol
+        current["convergence_tolerance"] = tol
+        current["solver_convergence_tolerance"] = tol
     if "max_iterations" in updates:
-        _solver_parameters["max_iterations"] = updates["max_iterations"]
+        current["max_iterations"] = updates["max_iterations"]
     if "acceleration_factor" in updates:
-        _solver_parameters["acceleration_factor"] = updates["acceleration_factor"]
+        current["acceleration_factor"] = updates["acceleration_factor"]
 
-    logger.info("Solver parameters updated: %s", _solver_parameters)
-    return SolverParametersResponse(**_solver_parameters)
+    data = await save_solver_params(None, current, db)
+    logger.info("Solver parameters updated in DB: %s", data)
+    return SolverParametersResponse(**data)
+
+
+@router.get(
+    "/{project_id}",
+    response_model=SolverParametersResponse,
+    summary="Get solver parameters for a specific project",
+    description="Returns the solver parameters stored for a specific project ID, falling back to defaults.",
+)
+async def fetch_project_parameters(
+    project_id: str,
+    db: AsyncSession = Depends(get_db),
+) -> SolverParametersResponse:
+    """Retrieve solver parameters scoped to a specific project."""
+    data = await load_solver_params(project_id, db)
+    return SolverParametersResponse(**data)
+
+
+@router.put(
+    "/{project_id}",
+    response_model=SolverParametersResponse,
+    summary="Partially update solver parameters for a specific project",
+    description="Updates only the solver parameters provided for a specific project.",
+)
+async def update_project_parameters(
+    project_id: str,
+    body: SolverParametersUpdate,
+    db: AsyncSession = Depends(get_db),
+) -> SolverParametersResponse:
+    """Partially update solver parameters for a specific project."""
+    updates = body.model_dump(exclude_none=True)
+    if not updates:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="At least one parameter must be provided for update.",
+        )
+    current = await load_solver_params(project_id, db)
+    tol = updates.get("convergence_tolerance") or updates.get("solver_convergence_tolerance")
+    if tol is not None:
+        current["convergence_tolerance"] = tol
+        current["solver_convergence_tolerance"] = tol
+    if "max_iterations" in updates:
+        current["max_iterations"] = updates["max_iterations"]
+    if "acceleration_factor" in updates:
+        current["acceleration_factor"] = updates["acceleration_factor"]
+
+    data = await save_solver_params(project_id, current, db)
+    logger.info("Project %s solver parameters updated in DB: %s", project_id, data)
+    return SolverParametersResponse(**data)
+

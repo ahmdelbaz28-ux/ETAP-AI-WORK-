@@ -186,165 +186,17 @@ async def _load_owned_project(project_id: str, user: CurrentUser, db: AsyncSessi
     return project
 
 
-def _generate_pdf(project_name: str, studies: Sequence[Any]) -> bytes:
-    """Generate a PDF report using ReportLab."""
-    try:
-        from reportlab.lib import colors
-        from reportlab.lib.pagesizes import A4
-        from reportlab.lib.styles import getSampleStyleSheet
-        from reportlab.platypus import (
-            Paragraph,
-            SimpleDocTemplate,
-            Spacer,
-            Table,
-            TableStyle,
-        )
-    except ImportError:
-        content = f"PDF Export - {project_name}\n\n"
-        for s in studies:
-            content += f"Study: {s.study_type} - Status: {s.status}\n"
-        return content.encode("utf-8")
+from api.services.export_generator import (
+    generate_csv_export,
+    generate_excel_export,
+    generate_json_export,
+    generate_pdf_export,
+)
 
-    buffer = io.BytesIO()
-    doc = SimpleDocTemplate(buffer, pagesize=A4)
-    styles = getSampleStyleSheet()
-    elements: list[Any] = []
-
-    elements.append(Paragraph(f"Project Report: {project_name}", styles["Title"]))
-    elements.append(Spacer(1, 12))
-    elements.append(
-        Paragraph(
-            f"Generated: {datetime.now(UTC).strftime('%Y-%m-%d %H:%M UTC')}", styles["Normal"]
-        )
-    )
-    elements.append(Spacer(1, 24))
-
-    data = [["Study Type", "Status", "Created", "Results"]]
-    for s in studies:
-        results_summary = ""
-        if s.results:
-            results_summary = ", ".join(list(s.results.keys())[:3])
-        data.append(
-            [
-                s.study_type,
-                s.status,
-                s.created_at.strftime("%Y-%m-%d") if s.created_at else "",
-                results_summary,
-            ]
-        )
-
-    table = Table(data, colWidths=[120, 80, 100, 200])
-    table.setStyle(
-        TableStyle(
-            [
-                ("BACKGROUND", (0, 0), (-1, 0), colors.grey),
-                ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
-                ("ALIGN", (0, 0), (-1, -1), "CENTER"),
-                ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-                ("FONTSIZE", (0, 0), (-1, -1), 10),
-                ("GRID", (0, 0), (-1, -1), 1, colors.black),
-                ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.lightgrey]),
-            ]
-        )
-    )
-    elements.append(table)
-
-    doc.build(elements)
-    buffer.seek(0)
-    return buffer.getvalue()
-
-
-def _populate_excel_sheet(ws: Any, studies: Sequence[Any]) -> None:
-    from openpyxl.styles import Alignment, Font, PatternFill
-
-    header_font = Font(bold=True, color="FFFFFF")
-    header_fill = PatternFill(start_color="366092", end_color="366092", fill_type="solid")
-
-    headers = ["Study Type", "Status", "Created At", "Results Summary"]
-    for col, header in enumerate(headers, 1):
-        cell = ws.cell(row=1, column=col, value=header)
-        cell.font = header_font
-        cell.fill = header_fill
-        cell.alignment = Alignment(horizontal="center")
-
-    for row, s in enumerate(studies, 2):
-        ws.cell(row=row, column=1, value=s.study_type)
-        ws.cell(row=row, column=2, value=s.status)
-        ws.cell(row=row, column=3, value=str(s.created_at) if s.created_at else "")
-        ws.cell(row=row, column=4, value=json.dumps(s.results) if s.results else "")
-
-    for col in range(1, 5):
-        ws.column_dimensions[chr(64 + col)].width = 20
-
-
-def _generate_excel(project_name: str, studies: Sequence[Any]) -> bytes:
-    """Generate an Excel file using openpyxl."""
-    try:
-        from openpyxl import Workbook
-    except ImportError:
-        content = f"# Project: {project_name}\nStudy Type,Status,Created,Results\n"
-        for s in studies:
-            results_str = json.dumps(s.results) if s.results else ""
-            content += f"{s.study_type},{s.status},{s.created_at},{results_str}\n"
-        return content.encode("utf-8")
-
-    wb = Workbook()
-    ws = wb.active
-    sheet_title = f"Studies-{project_name}"[:31] if project_name else "Study Results"
-    if ws is None:
-        ws = wb.create_sheet(title=sheet_title)
-    else:
-        ws.title = sheet_title
-
-    _populate_excel_sheet(ws, studies)
-
-    buffer = io.BytesIO()
-    wb.save(buffer)
-    buffer.seek(0)
-    return buffer.getvalue()
-
-
-def _sanitize_csv_cell(val: Any) -> Any:
-    """Neutralize spreadsheet formula injection characters (=, +, -, @, tab, CR)."""
-    if isinstance(val, str) and val.startswith(("=", "+", "-", "@", "\t", "\r")):
-        return f"'{val}"
-    return val
-
-
-def _generate_csv(project_name: str, studies: Sequence[Any]) -> bytes:
-    """Generate CSV format study results with formula injection defense."""
-    output = io.StringIO()
-    writer = csv.writer(output)
-    writer.writerow(["project_name", "study_type", "status", "created_at", "results"])
-    for s in studies:
-        results_str = json.dumps(s.results) if s.results else ""
-        row = [
-            _sanitize_csv_cell(project_name),
-            _sanitize_csv_cell(s.study_type),
-            _sanitize_csv_cell(s.status),
-            _sanitize_csv_cell(str(s.created_at) if s.created_at else ""),
-            _sanitize_csv_cell(results_str),
-        ]
-        writer.writerow(row)
-    return output.getvalue().encode("utf-8")
-
-
-def _generate_json(project_name: str, studies: Sequence[Any]) -> bytes:
-    """Generate JSON format study results."""
-    data = {
-        "project_name": project_name,
-        "exported_at": datetime.now(UTC).isoformat(),
-        "studies": [
-            {
-                "study_type": s.study_type,
-                "status": s.status,
-                "created_at": s.created_at.isoformat() if s.created_at else None,
-                "results": s.results,
-            }
-            for s in studies
-        ],
-    }
-    return json.dumps(data, indent=2).encode("utf-8")
+_generate_pdf = generate_pdf_export
+_generate_excel = generate_excel_export
+_generate_csv = generate_csv_export
+_generate_json = generate_json_export
 
 
 @router.get("/formats", summary="List pre-declared supported export formats")
@@ -660,3 +512,77 @@ async def export_history(
         ],
         total=total,
     )
+
+
+@router.post(
+    "/{project_id}/{format}",
+    responses={
+        400: {"description": "Unsupported export format"},
+        403: {"description": ERR_EXPORT_DISABLED},
+        404: {"description": MSG_PROJECT_NOT_FOUND},
+    },
+)
+async def export_format(
+    project_id: str,
+    format: str,
+    db: AsyncSession = Depends(get_db),
+    auth=Depends(require_permission("export", "create")),
+):
+    """Export study results in the specified format (pdf, excel, csv, json)."""
+    fmt = format.lower().strip()
+    if fmt == "pdf":
+        return await export_pdf(project_id, db, auth)
+    elif fmt in ("excel", "xlsx"):
+        return await export_excel(project_id, db, auth)
+    elif fmt == "csv":
+        return await export_csv(project_id, db, auth)
+    elif fmt == "json":
+        return await export_json(project_id, db, auth)
+    else:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unsupported format '{format}'. Supported formats: pdf, excel, csv, json",
+        )
+
+
+@router.get("/{project_id}/history", response_model=ExportHistoryResponse)
+async def export_history_by_project(
+    project_id: str,
+    db: AsyncSession = Depends(get_db),
+    auth=Depends(require_permission("export", "list")),
+    pagination: PaginationParams = Depends(pagination_params),
+):
+    """List export history filtered by project_id."""
+    user: CurrentUser = auth[0] if isinstance(auth, tuple) else auth
+    stmt = select(ExportHistory).where(ExportHistory.project_id == project_id)
+    if user.role != "admin":
+        stmt = stmt.where(ExportHistory.created_by == user.user_id)
+    result = await db.execute(
+        stmt.order_by(desc(ExportHistory.created_at))
+        .offset(pagination.offset)
+        .limit(pagination.page_size)
+    )
+    exports = result.scalars().all()
+    count_stmt = select(func.count()).select_from(ExportHistory).where(ExportHistory.project_id == project_id)
+    if user.role != "admin":
+        count_stmt = count_stmt.where(ExportHistory.created_by == user.user_id)
+    count = await db.execute(count_stmt)
+    total = count.scalar_one()
+
+    return ExportHistoryResponse(
+        exports=[
+            ExportResponse(
+                id=e.id,
+                project_id=e.project_id,
+                study_id=e.study_id,
+                export_type=e.export_type,
+                file_name=e.file_name,
+                file_size_bytes=e.file_size_bytes,
+                created_by=e.created_by,
+                created_at=e.created_at,
+            )
+            for e in exports
+        ],
+        total=total,
+    )
+

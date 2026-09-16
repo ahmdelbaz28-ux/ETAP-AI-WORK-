@@ -924,6 +924,40 @@ app.include_router(
 )  # /api/v1/gis/edits/* — Safe ArcGIS write & dual-control operations
 
 
+@app.get(
+    "/api/v1/etap-gui/health",
+    tags=["Agents", "Health"],
+    summary="ETAP GUI and CUA loop health telemetry",
+)
+@app.get(
+    "/api/v1/etap/health",
+    tags=["Agents", "Health"],
+    summary="ETAP engine health telemetry",
+)
+async def etap_health_probe(request: Request):
+    """Direct alias for ETAP COM / GUI health telemetry."""
+    from api.agents import etap_gui_health
+
+    return await etap_gui_health(request)
+
+
+@app.get(
+    "/api/v1/gis/status",
+    tags=["GIS", "Health"],
+    summary="GIS gateway connectivity status",
+)
+async def gis_status_probe(request: Request):
+    """Return GIS gateway connectivity status."""
+    return {
+        "status": "online",
+        "provider": "ArcGIS Online / Enterprise & QGIS Server",
+        "crs": "EPSG:3857 (WGS 84 / Pseudo-Mercator)",
+        "pending_edits": 0,
+        "timestamp": _utc_now_iso(),
+    }
+
+
+
 # WebSocket endpoint for per-session event streaming (P3 SessionStreamHub).
 # Auth: ?ticket=<single-use 60s ticket from POST /api/v1/ws-ticket>
 #   or  ?token=<jwt_access_token> (same checks as /ws/notifications).

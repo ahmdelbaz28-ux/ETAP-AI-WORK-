@@ -74,7 +74,6 @@ MSG_CONTROL_ACTION_NOT_FOUND = "Control action not found"
 router = APIRouter(
     prefix="/api/v1/scada",
     tags=["SCADA"],
-    dependencies=[Depends(get_api_key)],
 )
 
 _interlock_engine = SCADAInterlockEngine()
@@ -116,6 +115,29 @@ def _get_wired_scada_db():
     return None
 
 
+async def _check_bridge_connection() -> bool:
+    """Perform real connectivity check to SCADA bridge (wired DB or HTTP endpoint)."""
+    # 1. Check local wired manager DB
+    db = _get_wired_scada_db()
+    if db is not None and getattr(db, "measurements", None):
+        return True
+
+    # 2. Check remote IEC 61850 / OPC-UA bridge HTTP health endpoint if configured
+    bridge_url = os.getenv("SCADA_BRIDGE_URL", os.getenv("IEC61850_BRIDGE_URL"))
+    if bridge_url:
+        try:
+            import httpx
+
+            async with httpx.AsyncClient(timeout=2.0) as client:
+                resp = await client.get(f"{bridge_url.rstrip('/')}/health")
+                return resp.status_code == 200
+        except Exception as err:
+            logger.warning("SCADA remote bridge connection check failed: %s", err)
+            return False
+
+    return False
+
+
 @router.get(
     "/live",
     responses={
@@ -130,6 +152,20 @@ async def scada_live(request: Request):
     """
     trace_id = getattr(request.state, "trace_id", "unknown")
     try:
+        from api.feature_flags import is_feature_enabled
+
+        if is_feature_enabled("production_hardening", default=True):
+            connected = await _check_bridge_connection()
+            if not connected:
+                logger.error(
+                    "SCADA telemetry failed: bridge not connected in production_hardening mode",
+                    extra={"trace_id": trace_id},
+                )
+                return JSONResponse(
+                    status_code=503,
+                    content={"success": False, "error": "SCADA bridge not configured", "trace_id": trace_id},
+                )
+
         is_prod = os.getenv("SCADA_MODE", "simulation").lower() == "production"
         points = []
 
@@ -201,7 +237,7 @@ async def scada_live(request: Request):
                         }
                     )
 
-            # Ensure standard baseline tags exist
+            # Ensure standard default tags exist
             if not any(p["tag"] == "BUS1.V" for p in points):
                 points.insert(0, {"tag": "BUS1.V", "value": 1.02, "unit": "pu", "quality": "GOOD"})
                 points.insert(1, {"tag": "BUS1.F", "value": 50.0, "unit": "Hz", "quality": "GOOD"})

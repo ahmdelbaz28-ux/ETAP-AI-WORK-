@@ -18,9 +18,9 @@ alerting:
     - static_configs:
         - targets: []  # Empty by default — populate when alertmanager is deployed
 
-# Rule files (optional — create if alerting rules are needed)
-# rule_files:
-#   - 'alerts/*.yml'
+# Rule files
+rule_files:
+  - 'monitoring/alerts/*.yml'
 
 scrape_configs:
   # Prometheus self-monitoring

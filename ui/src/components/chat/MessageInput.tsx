@@ -27,6 +27,15 @@ import {
   validatePowerFile,
 } from "../../lib/power-file";
 
+const ENGINEERING_COMMANDS = [
+  { cmd: "/flow F-07", label: "/flow <feeder>", desc: "Run Newton-Raphson Load Flow (IEEE 3002.7)" },
+  { cmd: "/fault Bus-1", label: "/fault <bus>", desc: "Calculate 3-Phase short-circuit fault (IEC 60909)" },
+  { cmd: "/arc-flash SWG-01", label: "/arc-flash <bus>", desc: "Run IEEE 1584 Arc Flash Incident Energy & PPE assessment" },
+  { cmd: "/coordination Relay-51", label: "/coordination <relay>", desc: "Verify relay time-current curve coordination (IEC 60255)" },
+  { cmd: "/motor-start M-101", label: "/motor-start <motor>", desc: "Simulate dynamic motor starting & voltage dip (IEEE 399)" },
+  { cmd: "/export pdf", label: "/export <format>", desc: "Export calculation reports in PDF, Excel, CSV, or JSON" },
+];
+
 interface MessageInputProps {
   readonly onSend?: (text: string, file?: File | null) => Promise<boolean> | boolean;
   readonly disabled?: boolean;
@@ -53,6 +62,7 @@ export function MessageInput({
   const [executing, setExecuting] = useState(false);
   const [executionError, setExecutionError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const storeStreaming = useChatStore(
     (s) => s.streamStatus === "streaming" || s.streamStatus === "connecting",
@@ -374,6 +384,46 @@ export function MessageInput({
         </div>
       )}
 
+      {/* Slash command quick suggestions */}
+      {draft.startsWith("/") && (
+        (() => {
+          const matches = ENGINEERING_COMMANDS.filter((c) =>
+            c.cmd.toLowerCase().startsWith(draft.toLowerCase()) ||
+            c.label.toLowerCase().includes(draft.toLowerCase()) ||
+            c.desc.toLowerCase().includes(draft.toLowerCase())
+          );
+          if (matches.length === 0) return null;
+          return (
+            <div
+              className="px-3 pt-2 pb-1 border-b border-[#2A3441] bg-[#161B22]"
+              data-testid="command-suggestions"
+            >
+              <div className="text-[10px] font-mono text-slate-400 mb-1.5 flex justify-between items-center">
+                <span className="text-brand-400 font-semibold uppercase">⚡ Engineering Commands</span>
+                <span>Click or Press <kbd className="px-1 py-0.5 bg-[#20262E] rounded border border-[#334155] text-slate-300">Tab ⇥</kbd></span>
+              </div>
+              <div className="flex flex-wrap gap-1.5 pb-1">
+                {matches.map((item, idx) => (
+                  <button
+                    key={item.cmd}
+                    type="button"
+                    onClick={() => {
+                      setDraft(item.cmd + " ");
+                      textareaRef.current?.focus();
+                    }}
+                    className="px-2 py-1 rounded bg-[#20262E] hover:bg-brand-600/30 hover:border-brand-500/50 border border-[#334155] text-left text-xs transition-colors flex items-center gap-1.5 group"
+                    data-testid={`cmd-suggestion-${idx}`}
+                  >
+                    <span className="font-mono text-brand-400 font-semibold">{item.label}</span>
+                    <span className="text-[10px] text-slate-400 group-hover:text-slate-300">({item.desc.split("(")[0].trim()})</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          );
+        })()
+      )}
+
       <form onSubmit={submit} className="flex items-end gap-2 p-3" data-testid="message-input-form">
         {attachmentsEnabled && (
           <>
@@ -400,9 +450,21 @@ export function MessageInput({
         )}
 
         <textarea
+          ref={textareaRef}
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           onKeyDown={(e) => {
+            if (e.key === "Tab" && draft.startsWith("/")) {
+              const matches = ENGINEERING_COMMANDS.filter((c) =>
+                c.cmd.toLowerCase().startsWith(draft.toLowerCase()) ||
+                c.label.toLowerCase().includes(draft.toLowerCase())
+              );
+              if (matches.length > 0) {
+                e.preventDefault();
+                setDraft(matches[0].cmd + " ");
+                return;
+              }
+            }
             if (e.key === "Enter" && !e.shiftKey) {
               e.preventDefault();
               void submit();

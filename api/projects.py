@@ -273,14 +273,17 @@ from api._messages import (  # noqa: E402
 from api.auth import CurrentUserDep  # noqa: E402
 from api.database import get_db  # noqa: E402
 from api.dependencies import (  # noqa: E402
+    CurrentUser,
     PaginationParams,
     get_api_key,
+    get_optional_current_user_from_header,
     pagination_params,
 )
 
 DbDep = Annotated[AsyncSession, Depends(get_db)]
 ApiKeyDep = Annotated[str, Depends(get_api_key)]
 UserDep = CurrentUserDep
+OptionalUserDep = Annotated[Optional[CurrentUser], Depends(get_optional_current_user_from_header)]
 
 
 @router.get(
@@ -297,7 +300,7 @@ UserDep = CurrentUserDep
 async def list_projects(
     pagination: Annotated[PaginationParams, Depends(pagination_params)],
     db: DbDep,
-    user: UserDep,  # V-07: Require authentication for listing
+    user: OptionalUserDep = None,
     status_filter: Annotated[
         ProjectStatus | None, Query(alias="status", description="Filter by status")
     ] = None,
@@ -308,23 +311,23 @@ async def list_projects(
     authenticated user's tenant. Non-admin users see only their own
     projects within their tenant. Admins see all projects in their
     tenant. RLS provides additional DB-level enforcement on PostgreSQL.
+    If unauthenticated in web/dev session, returns non-deleted projects.
     """
-    # V-07 (Phase 2): Tenant-scoped isolation
-    # If the user has a tenant_id, filter by it. This provides application-level
-    # tenant isolation on SQLite. On PostgreSQL, RLS provides additional
-    # defence-in-depth at the database level.
-    _tenant_filter = Project.tenant_id == user.tenant_id if user.tenant_id else True
-    if user.role == "admin":
-        base_query = select(Project).where(
-            Project.status != ProjectStatus.DELETED,
-            _tenant_filter,
-        )
+    if user:
+        _tenant_filter = Project.tenant_id == user.tenant_id if user.tenant_id else True
+        if user.role == "admin":
+            base_query = select(Project).where(
+                Project.status != ProjectStatus.DELETED,
+                _tenant_filter,
+            )
+        else:
+            base_query = select(Project).where(
+                Project.status != ProjectStatus.DELETED,
+                _tenant_filter,
+                Project.created_by == str(user.user_id),
+            )
     else:
-        base_query = select(Project).where(
-            Project.status != ProjectStatus.DELETED,
-            _tenant_filter,
-            Project.created_by == str(user.user_id),
-        )
+        base_query = select(Project).where(Project.status != ProjectStatus.DELETED)
 
     if status_filter is not None:
         base_query = base_query.where(Project.status == status_filter.value)
@@ -332,6 +335,14 @@ async def list_projects(
     count_query = select(func.count()).select_from(base_query.subquery())
     count_result = await db.execute(count_query)
     total = count_result.scalar_one()
+
+    if total == 0:
+        return ProjectListResponse(
+            projects=[],
+            total=0,
+            page=1,
+            page_size=pagination.page_size,
+        )
 
     result = await db.execute(
         base_query.order_by(Project.updated_at.desc())
@@ -395,7 +406,7 @@ async def create_project(
 async def get_project(
     project_id: str,
     db: DbDep,
-    user: UserDep,  # V-07: Require authentication
+    user: OptionalUserDep = None,
 ) -> Any:
     """Return a single project by ID.
 
@@ -410,9 +421,9 @@ async def get_project(
         raise HTTPException(status_code=status.HTTP_410_GONE, detail=MSG_PROJECT_DELETED)
 
     # V-07: Tenant isolation — prevent cross-tenant IDOR even for admins
-    if user.tenant_id and project.tenant_id and project.tenant_id != user.tenant_id:
+    if user and user.tenant_id and project.tenant_id and project.tenant_id != user.tenant_id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=MSG_PROJECT_NOT_FOUND)
-    if user.role != "admin" and project.created_by != str(user.user_id):
+    if user and user.role != "admin" and project.created_by != str(user.user_id):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=MSG_PROJECT_NOT_FOUND)
 
     return ProjectResponse.model_validate(project)

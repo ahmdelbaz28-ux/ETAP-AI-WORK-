@@ -1042,7 +1042,7 @@ export async function isServerChatStreamEnabled(): Promise<boolean> {
 function generateRandomHex(): string {
   if (typeof crypto !== "undefined") {
     if (typeof crypto.randomUUID === "function") {
-      return crypto.randomUUID().replaceAll("-", "");
+      return crypto.randomUUID().replace(/-/g, "");
     }
     if (typeof crypto.getRandomValues === "function") {
       const bytes = new Uint8Array(16);
@@ -1181,6 +1181,7 @@ function createTimeoutController(
 export async function* streamFromServerChat(
   messages: ChatMessage[],
   signal?: AbortSignal,
+  projectId?: string | null,
 ): AsyncGenerator<string, void, unknown> {
   const headers = createServerChatHeaders();
   const { controller, cleanup } = createTimeoutController(signal);
@@ -1189,7 +1190,11 @@ export async function* streamFromServerChat(
     const res = await fetch(apiUrl("/api/v1/chat/stream"), {
       method: "POST",
       headers,
-      body: JSON.stringify({ session_id: getChatSessionId(), messages }),
+      body: JSON.stringify({
+        session_id: getChatSessionId(),
+        messages,
+        project_id: projectId || undefined,
+      }),
       signal: controller.signal,
     });
 

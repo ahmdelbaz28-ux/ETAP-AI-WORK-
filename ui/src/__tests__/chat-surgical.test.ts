@@ -63,6 +63,8 @@ function resetStore(): void {
     streamStatus: "idle",
     lastAssistantId: null,
     wsError: null,
+    projectId: null,
+    activeView: null,
   });
   requestMock.mockReset();
   mockStreamChunks.length = 0;
@@ -334,6 +336,72 @@ describe("Chat Surgical — Exponential Reconnection", () => {
     } finally {
       vi.useRealTimers();
     }
+  });
+});
+
+describe("Chat-First P6 UI Integrations (Project context & ui_hint auto-view)", () => {
+  beforeEach(resetStore);
+  afterEach(resetStore);
+
+  it("updates projectId and persists to localStorage", () => {
+    const store = useChatStore.getState();
+    expect(store.projectId).toBeNull();
+
+    store.setProjectId("proj_cairo_west_132kv");
+    expect(useChatStore.getState().projectId).toBe("proj_cairo_west_132kv");
+    expect(localStorage.getItem("etap_last_project_id")).toBe("proj_cairo_west_132kv");
+
+    store.setProjectId(null);
+    expect(useChatStore.getState().projectId).toBeNull();
+  });
+
+  it("activates SCADA auto-view on action_proposed with ui_hint", () => {
+    const store = useChatStore.getState();
+    expect(store.activeView).toBeNull();
+
+    store.handleSessionEvent({
+      seq: 10,
+      type: "action_proposed",
+      session_id: "surgical-session-id",
+      ts: "2026-09-15T12:00:00Z",
+      payload: {
+        tool: "scada_breaker_trip",
+        ui_hint: { open: "scada" },
+      },
+    });
+
+    expect(useChatStore.getState().activeView).toBe("scada");
+  });
+
+  it("activates GIS and Grid auto-views dynamically", () => {
+    const store = useChatStore.getState();
+
+    store.handleSessionEvent({
+      seq: 11,
+      type: "action_proposed",
+      session_id: "surgical-session-id",
+      ts: "2026-09-15T12:01:00Z",
+      payload: {
+        tool: "gis_cable_routing",
+        ui_hint: { open: "gis" },
+      },
+    });
+    expect(useChatStore.getState().activeView).toBe("gis");
+
+    store.handleSessionEvent({
+      seq: 12,
+      type: "action_proposed",
+      session_id: "surgical-session-id",
+      ts: "2026-09-15T12:02:00Z",
+      payload: {
+        tool: "power_flow_study",
+        ui_hint: { open: "grid" },
+      },
+    });
+    expect(useChatStore.getState().activeView).toBe("grid");
+
+    store.setActiveView(null);
+    expect(useChatStore.getState().activeView).toBeNull();
   });
 });
 
