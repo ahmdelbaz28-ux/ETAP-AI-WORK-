@@ -238,11 +238,17 @@ async def run_study(
                 )
                 if cached:
                     cached_data = cached.result
-                    cached_result = StudyResult(**cached_data) if not isinstance(cached_data, StudyResult) else cached_data
+                    cached_result = (
+                        StudyResult(**cached_data)
+                        if not isinstance(cached_data, StudyResult)
+                        else cached_data
+                    )
                     cached_result.trace_id = trace_id
                     return cached_result
             except Exception as cache_lookup_err:
-                logger.warning("Semantic cache lookup error: %s (falling back to execution)", cache_lookup_err)
+                logger.warning(
+                    "Semantic cache lookup error: %s (falling back to execution)", cache_lookup_err
+                )
 
         executor = StudyExecutor()
         result = await executor.execute(payload, trace_id=trace_id)

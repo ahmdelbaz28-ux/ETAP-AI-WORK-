@@ -3,6 +3,7 @@ tests/test_semantic_cache.py — Unit tests for Semantic Cache Layer.
 """
 
 import time
+
 import pytest
 
 from api.semantic_cache import (
@@ -50,7 +51,9 @@ async def test_semantic_cache_hit_saves_tokens():
     assert cached is not None
     assert cached.tokens_saved == 2500
     assert cached.result["success"] is True
-    val = cached.result["results"]["bus_voltages"].get(1) or cached.result["results"]["bus_voltages"].get("1")
+    val = cached.result["results"]["bus_voltages"].get(1) or cached.result["results"][
+        "bus_voltages"
+    ].get("1")
     assert val == 1.02
 
     # Verify telemetry recorded cache hit

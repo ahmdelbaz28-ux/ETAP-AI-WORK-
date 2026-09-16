@@ -3,6 +3,7 @@ tests/test_prompt_registry.py — Unit tests for PromptRegistry & A/B Measuremen
 """
 
 import pytest
+
 from api.prompt_registry import (
     PromptRegistry,
     get_prompt_registry,
@@ -63,12 +64,20 @@ def test_record_metrics_and_tradeoff_report():
     v2 = reg.register_version("short_circuit_agent", "Candidate prompt (concise)")
 
     # Record metrics for v1 (baseline)
-    reg.record_metrics(v1.version_id, tokens_used=2000, latency_ms=450.0, success=True, quality_score=0.95)
-    reg.record_metrics(v1.version_id, tokens_used=2200, latency_ms=470.0, success=True, quality_score=0.93)
+    reg.record_metrics(
+        v1.version_id, tokens_used=2000, latency_ms=450.0, success=True, quality_score=0.95
+    )
+    reg.record_metrics(
+        v1.version_id, tokens_used=2200, latency_ms=470.0, success=True, quality_score=0.93
+    )
 
     # Record metrics for v2 (candidate - 50% token reduction)
-    reg.record_metrics(v2.version_id, tokens_used=1050, latency_ms=250.0, success=True, quality_score=0.96)
-    reg.record_metrics(v2.version_id, tokens_used=1050, latency_ms=260.0, success=True, quality_score=0.94)
+    reg.record_metrics(
+        v2.version_id, tokens_used=1050, latency_ms=250.0, success=True, quality_score=0.96
+    )
+    reg.record_metrics(
+        v2.version_id, tokens_used=1050, latency_ms=260.0, success=True, quality_score=0.94
+    )
 
     report = reg.get_tradeoff_report("short_circuit_agent")
     assert "short_circuit_agent" in report

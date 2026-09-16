@@ -20,7 +20,7 @@ import math
 import os
 import threading
 import time
-from dataclasses import asdict, dataclass, field
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -126,7 +126,9 @@ class SemanticCache:
         Per safety guardrail: when Embedding API is down/absent,
         Semantic Cache falls back to exact-match key (SHA256).
         """
-        return not bool(os.getenv("OPENAI_API_KEY")) and not getattr(self, "_force_vector_search", False)
+        return not bool(os.getenv("OPENAI_API_KEY")) and not getattr(
+            self, "_force_vector_search", False
+        )
 
     def _embed(self, system_text: str, param_text: str) -> np.ndarray:
         """Generate partitioned vector embedding with deterministic local fallback.
@@ -157,7 +159,7 @@ class SemanticCache:
 
     def _cosine_similarity(self, a: np.ndarray, b: np.ndarray) -> float:
         """Compute cosine similarity between two unit vectors."""
-        denom = (np.linalg.norm(a) * np.linalg.norm(b))
+        denom = np.linalg.norm(a) * np.linalg.norm(b)
         if denom < 1e-9:
             return 0.0
         return float(np.dot(a, b) / denom)
@@ -286,7 +288,9 @@ class SemanticCache:
         with self._lock:
             total_lookups = self._hits + self._misses
             hit_rate = (self._hits / total_lookups) if total_lookups > 0 else 0.0
-            avg_sim = (sum(self._similarities) / len(self._similarities)) if self._similarities else 0.0
+            avg_sim = (
+                (sum(self._similarities) / len(self._similarities)) if self._similarities else 0.0
+            )
             # Rough memory estimate
             entry_count = len(self._entries)
             memory_usage = entry_count * 1024  # approx 1KB per entry in memory

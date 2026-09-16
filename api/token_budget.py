@@ -138,9 +138,8 @@ class TokenBudgetManager:
         """Return remaining tokens for an agent in a specific session."""
         budget = self.get_budget_for_agent(agent_handle)
         with self._lock:
-            agent_data = (
-                self._session_usage.get(session_id, {})
-                .get(agent_handle, {"used": 0, "reserved": 0})
+            agent_data = self._session_usage.get(session_id, {}).get(
+                agent_handle, {"used": 0, "reserved": 0}
             )
             allocated = agent_data["used"] + agent_data["reserved"]
             return max(0, budget - allocated)
@@ -190,9 +189,7 @@ class TokenBudgetManager:
             else:
                 conversation_messages.append(msg)
 
-        sys_tokens = sum(
-            estimate_tokens(str(m.get("content", ""))) for m in system_messages
-        )
+        sys_tokens = sum(estimate_tokens(str(m.get("content", ""))) for m in system_messages)
         remaining_budget = max(0, limit - sys_tokens)
 
         # Traverse conversation from newest to oldest

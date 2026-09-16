@@ -118,9 +118,7 @@ class RAGRetriever:
 
         # Build indexable text representation
         text_corpus = (
-            f"{agent_handle} "
-            f"{json.dumps(summary, default=str)} "
-            f"{json.dumps(meta, default=str)}"
+            f"{agent_handle} {json.dumps(summary, default=str)} {json.dumps(meta, default=str)}"
         )
         tokens = self._extract_tokens(text_corpus)
         emb = self._embed(tokens)
@@ -154,7 +152,11 @@ class RAGRetriever:
         with self._lock:
             for rid, item in self._index.items():
                 stored_handle = item.get("agent_handle", "")
-                if stored_handle and norm_handle not in ("unknown", "") and stored_handle != norm_handle:
+                if (
+                    stored_handle
+                    and norm_handle not in ("unknown", "")
+                    and stored_handle != norm_handle
+                ):
                     continue
 
                 sim = self._calculate_similarity(
@@ -191,7 +193,6 @@ class RAGRetriever:
         return results
 
     def clear(self) -> None:
-
         """Clear indexed items (test helper)."""
         with self._lock:
             self._index.clear()

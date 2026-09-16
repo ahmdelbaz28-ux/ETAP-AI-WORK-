@@ -63,9 +63,7 @@ class TokenUsageTracker:
             self._cache_misses += 1
         logger.debug("Semantic cache miss for %s", agent_handle)
 
-    def record_rag_retrieved(
-        self, count: int = 1, agent_handle: str = "unknown"
-    ) -> None:
+    def record_rag_retrieved(self, count: int = 1, agent_handle: str = "unknown") -> None:
         """Record RAG context retrievals."""
         with self._lock:
             self._rag_retrieved += max(0, count)
@@ -89,11 +87,7 @@ class TokenUsageTracker:
         """Return snapshot of current metrics."""
         with self._lock:
             total_lookups = self._cache_hits + self._cache_misses
-            hit_rate = (
-                (self._cache_hits / total_lookups * 100.0)
-                if total_lookups > 0
-                else 0.0
-            )
+            hit_rate = (self._cache_hits / total_lookups * 100.0) if total_lookups > 0 else 0.0
             return {
                 "tokens_used_input": self._tokens_used_input,
                 "tokens_used_output": self._tokens_used_output,

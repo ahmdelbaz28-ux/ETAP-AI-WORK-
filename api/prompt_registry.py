@@ -68,7 +68,11 @@ class PromptMetrics:
 
     @property
     def avg_quality_score(self) -> float:
-        return round(sum(self.quality_scores) / len(self.quality_scores), 4) if self.quality_scores else 0.0
+        return (
+            round(sum(self.quality_scores) / len(self.quality_scores), 4)
+            if self.quality_scores
+            else 0.0
+        )
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -215,7 +219,7 @@ class PromptRegistry:
             for vid in vids:
                 ver = self._versions.get(vid)
                 if ver:
-                    ver.is_active = (vid == version_id)
+                    ver.is_active = vid == version_id
 
             logger.info("Promoted prompt version %s to active", version_id)
             return True
@@ -223,7 +227,11 @@ class PromptRegistry:
     def get_tradeoff_report(self, agent_handle: Optional[str] = None) -> Dict[str, Any]:
         """Generate a comparative trade-off report across versions."""
         with self._lock:
-            handles = [agent_handle.strip().lower()] if agent_handle else list(self._agent_versions.keys())
+            handles = (
+                [agent_handle.strip().lower()]
+                if agent_handle
+                else list(self._agent_versions.keys())
+            )
             report: Dict[str, Any] = {}
 
             for handle in handles:
@@ -246,7 +254,9 @@ class PromptRegistry:
 
                     token_savings_pct = 0.0
                     if baseline_tokens and baseline_tokens > 0 and avg_tok > 0:
-                        token_savings_pct = round(((baseline_tokens - avg_tok) / baseline_tokens) * 100.0, 2)
+                        token_savings_pct = round(
+                            ((baseline_tokens - avg_tok) / baseline_tokens) * 100.0, 2
+                        )
 
                     version_reports.append(
                         {

@@ -330,7 +330,6 @@ async def create_result(
     return result_id
 
 
-
 async def get_result(tenant_id: str, result_id: str) -> dict | None:
     """Return serialized result + files, or ``None``.
 

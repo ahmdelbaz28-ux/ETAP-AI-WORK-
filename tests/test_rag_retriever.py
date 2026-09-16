@@ -3,6 +3,7 @@ tests/test_rag_retriever.py — Unit tests for RAG Retriever.
 """
 
 import time
+
 import pytest
 
 from api.rag_retriever import RAGRetriever, get_rag_retriever, reset_rag_retriever
