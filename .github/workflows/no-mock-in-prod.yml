@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     continue-on-error: true  # Advisory: pre-existing mock data in production code (tracked in PRODUCTION_PLAN/04_MOCK_TO_REAL_PLAN.md)
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
 
       - name: Check for mock data in production path
         run: |

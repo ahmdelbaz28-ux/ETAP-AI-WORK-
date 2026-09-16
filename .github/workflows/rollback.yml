@@ -121,7 +121,7 @@ jobs:
       url: ${{ github.event.inputs.vercel_deployment_url }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
 
       - name: Set up Node.js
         uses: actions/setup-node@v7
@@ -197,7 +197,7 @@ jobs:
       url: https://huggingface.co/spaces/ahmdelbaz28/AhmedETAP-Platform
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
         with:
           fetch-depth: 0
           lfs: true

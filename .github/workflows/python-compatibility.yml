@@ -62,7 +62,7 @@ jobs:
         python-version: ['3.13']
     steps:
       - name: 📥 Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
 
       - name: 🐍 Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
@@ -111,7 +111,7 @@ jobs:
 
     steps:
       - name: 📥 Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
 
       - name: 🐍 Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
@@ -308,7 +308,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 📥 Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
 
       - name: 🐍 Set up Python 3.13
         uses: actions/setup-python@v5
