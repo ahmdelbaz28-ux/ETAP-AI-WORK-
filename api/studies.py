@@ -33,7 +33,6 @@ from api.dependencies import (
     get_optional_current_user_from_header,
 )
 from api.feature_flags import get_disabled_studies, is_feature_enabled
-from api.semantic_cache import get_semantic_cache
 from core.metrics import count_executions, track_skill_operation
 from core_model.bus import Bus  # noqa: F401 — re-exported for backward compat
 from core_model.generator import Generator  # noqa: F401
@@ -229,7 +228,10 @@ async def run_study(
         # Phase 2: Semantic Cache lookup (guarded by token_governance flag)
         if is_feature_enabled("token_governance", default=False):
             try:
+                from api.semantic_cache import get_semantic_cache
+
                 cache = get_semantic_cache()
+
                 sys_data = payload.system.model_dump() if payload.system else {}
                 cached = await cache.lookup(
                     system_data=sys_data,
@@ -244,6 +246,7 @@ async def run_study(
                         else cached_data
                     )
                     cached_result.trace_id = trace_id
+                    await _persist_study_result(req, payload, cached_result, trace_id, user)
                     return cached_result
             except Exception as cache_lookup_err:
                 logger.warning(
@@ -261,21 +264,25 @@ async def run_study(
         # unset.
         if result and getattr(result, "success", False):
             await _persist_study_result(req, payload, result, trace_id, user)
-            # Store in semantic cache if feature enabled
-            if is_feature_enabled("token_governance", default=False):
-                try:
-                    cache = get_semantic_cache()
-                    sys_data = payload.system.model_dump() if payload.system else {}
-                    await cache.store(
-                        system_data=sys_data,
-                        parameters=payload.parameters or {},
-                        agent_handle=payload.study_type,
-                        result=result.model_dump(),
-                        metadata={"tokens_used": 2000, "quality_score": 1.0},
-                    )
-                except Exception as cache_store_err:
-                    logger.warning("Semantic cache store error: %s", cache_store_err)
+            # Store successful result in semantic cache for future lookups
+            try:
+                from api.semantic_cache import get_semantic_cache
+
+                cache = get_semantic_cache()
+                await cache.store(
+                    system_data=payload.system.model_dump() if payload.system else {},
+                    parameters=payload.parameters or {},
+                    agent_handle=payload.study_type,
+                    result=result,
+                    metadata={
+                        "tokens_used": getattr(result, "tokens_used", 2000),
+                        "trace_id": trace_id,
+                    },
+                )
+            except Exception as e:
+                logger.debug("Semantic cache store skipped: %s", e)
         return result
+
     except HTTPException:
         raise
     except ValueError as ve:

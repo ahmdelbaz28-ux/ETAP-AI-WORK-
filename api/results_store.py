@@ -312,20 +312,27 @@ async def create_result(
             raise
 
     if summary_json:
+        # Index result in RAG retriever for historical context
         try:
-            from api.feature_flags import is_feature_enabled
             from api.rag_retriever import get_rag_retriever
 
-            if is_feature_enabled("token_governance"):
-                rag = get_rag_retriever()
-                meta = {
-                    "tenant_id": tenant_id,
+            rag = get_rag_retriever()
+            await rag.index_result(
+                result_id=result_id,
+                summary={
+                    "study_type": summary_json.get("study_type"),
+                    "status": summary_json.get("status"),
+                    "execution_time_sec": summary_json.get("execution_time_sec"),
+                },
+                metadata={
+                    "agent_handle": summary_json.get("study_type"),
+                    "tokens_used": summary_json.get("tokens_used", 2000),
                     "project_id": project_id,
-                    "created_by": created_by,
-                }
-                await rag.index_result(result_id, summary_json, meta)
-        except Exception as exc:
-            logger.warning("Failed to index result %s in RAG: %s", result_id, exc)
+                    "tenant_id": tenant_id,
+                },
+            )
+        except Exception as e:
+            logger.debug("RAG indexing skipped: %s", e)
 
     return result_id
 

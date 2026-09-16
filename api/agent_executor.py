@@ -336,7 +336,24 @@ async def submit_plan(
     decision = decision_result["decision"]
     reason = decision_result["reason"]
 
+    # Retrieve relevant historical studies to augment context
+    try:
+        from api.rag_retriever import get_rag_retriever
+
+        rag = get_rag_retriever()
+        historical = await rag.retrieve(
+            query=str((plan.args or {}).get("goal", "")),
+            system_context=(plan.args or {}).get("system"),
+            agent_handle=canonical,
+        )
+        # Attach to plan for downstream use
+        if historical:
+            raw_args["_rag_context"] = [h.to_dict() for h in historical]
+    except Exception as e:
+        logger.debug("RAG retrieval skipped: %s", e)
+
     plan_id = f"plan_{uuid.uuid4().hex}"
+
     _PLANS[plan_id] = PlanRecord(
         plan_id=plan_id,
         tool=canonical,
