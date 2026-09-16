@@ -1377,3 +1377,34 @@ async def benchmark(request: Request):
     if not numpy_ok:
         result["data"]["numpy_error"] = "numpy unavailable" if numpy_err is not None else None
     return result
+
+
+# --- OpenAPI Documentation (auto-generated from code) ---
+from fastapi.openapi.docs import get_redoc_html, get_swagger_ui_html
+from fastapi.openapi.utils import get_openapi
+
+
+@app.get("/api/v1/openapi.json", include_in_schema=False)
+async def openapi_schema():
+    return get_openapi(
+        title="AhmedETAP Engineering API",
+        version="2.1.0",
+        description=(
+            "Power system analysis via natural language and direct study execution.\n\n"
+            "Studies: load_flow, short_circuit, arc_flash, protection, harmonic, "
+            "opf, motor_starting, transient_stability, cable_sizing, ground_grid, "
+            "reliability, renewable, battery_storage, scada, digital_twin.\n"
+            "Authentication: Bearer JWT (header: Authorization: Bearer <token>)"
+        ),
+        routes=app.routes,
+    )
+
+
+@app.get("/api/v1/docs", include_in_schema=False)
+async def swagger_ui():
+    return get_swagger_ui_html(openapi_url="/api/v1/openapi.json", title="AhmedETAP API")
+
+
+@app.get("/api/v1/redoc", include_in_schema=False)
+async def redoc_ui():
+    return get_redoc_html(openapi_url="/api/v1/openapi.json", title="AhmedETAP API")

@@ -374,6 +374,25 @@ jobs:
         run: |
           python -c "from api.routes import app; assert app is not None; print(' api.routes:app imports OK ', len(app.routes), 'routes registered')"
 
+      - name: Generate & Validate OpenAPI Spec
+        env:
+          ENVIRONMENT: testing
+          JWT_SECRET_KEY: ci-test-jwt-secret-key-for-github-actions-32-bytes-min
+          DATABASE_URL: sqlite+aiosqlite:///./test.db
+        run: |
+          pip install fastapi[all] uvicorn httpx
+          uvicorn api.routes:app --host 0.0.0.0 --port 8000 &
+          sleep 8
+          curl -sf http://localhost:8000/api/v1/openapi.json -o openapi.json
+          python -c "
+          import json
+          spec = json.load(open('openapi.json'))
+          required = ['/api/v1/studies/run', '/api/v1/projects/', '/api/v1/auth/login']
+          for ep in required:
+              assert any(ep in p for p in spec['paths']), f'Missing endpoint: {ep}'
+          print('OpenAPI spec valid, all required endpoints present')
+          "
+
       - name: Run test suite with coverage gate
         # Excluded directories:
         #   - tests/scenarios, tests/load, tests/stress, tests/chaos  these
