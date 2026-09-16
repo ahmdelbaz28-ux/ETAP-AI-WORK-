@@ -228,7 +228,9 @@ async def run_study(
         # Phase 2: Semantic Cache lookup (guarded by token_governance flag)
         if is_feature_enabled("token_governance", default=False):
             try:
-                from api.semantic_cache import get_semantic_cache
+                from api.semantic_cache_redis import (
+                    get_distributed_semantic_cache as get_semantic_cache,
+                )
 
                 cache = get_semantic_cache()
 
@@ -266,7 +268,9 @@ async def run_study(
             await _persist_study_result(req, payload, result, trace_id, user)
             # Store successful result in semantic cache for future lookups
             try:
-                from api.semantic_cache import get_semantic_cache
+                from api.semantic_cache_redis import (
+                    get_distributed_semantic_cache as get_semantic_cache,
+                )
 
                 cache = get_semantic_cache()
                 await cache.store(

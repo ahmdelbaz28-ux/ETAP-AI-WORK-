@@ -338,7 +338,9 @@ async def submit_plan(
 
     # Retrieve relevant historical studies to augment context
     try:
-        from api.rag_retriever import get_rag_retriever
+        from api.rag_retriever_redis import (
+            get_distributed_rag_retriever as get_rag_retriever,
+        )
 
         rag = get_rag_retriever()
         historical = await rag.retrieve(
@@ -410,7 +412,9 @@ async def submit_plan(
 
     try:
         from api.feature_flags import is_feature_enabled
-        from api.rag_retriever import get_rag_retriever
+        from api.rag_retriever_redis import (
+            get_distributed_rag_retriever as get_rag_retriever,
+        )
 
         if is_feature_enabled("token_governance"):
             rag = get_rag_retriever()

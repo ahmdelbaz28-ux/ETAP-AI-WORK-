@@ -314,7 +314,9 @@ async def create_result(
     if summary_json:
         # Index result in RAG retriever for historical context
         try:
-            from api.rag_retriever import get_rag_retriever
+            from api.rag_retriever_redis import (
+                get_distributed_rag_retriever as get_rag_retriever,
+            )
 
             rag = get_rag_retriever()
             await rag.index_result(

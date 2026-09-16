@@ -167,5 +167,63 @@ describe('Secure Execution Module (Port-Adapter)', () => {
       const output = await run_powershell.execute!({ command: 'Get-Process' }, {} as any);
       expect(output).toBe('ps-result');
     });
+
+    it('run_python tracks and increments tool call count via requestContext', async () => {
+      inMemoryLauncher.setResult({ success: true, output: 'ok' });
+      const store = new Map<string, any>();
+      const mockContext = {
+        requestContext: {
+          get: (k: string) => store.get(k),
+          set: (k: string, v: any) => store.set(k, v),
+        },
+      };
+
+      await run_python.execute!({ code: 'a = 1' }, mockContext as any);
+      expect(store.get('etap:tool_call_count')).toBe(1);
+
+      await run_python.execute!({ code: 'b = 2' }, mockContext as any);
+      expect(store.get('etap:tool_call_count')).toBe(2);
+    });
+
+    it('run_python throws when exceeding MAX_LLM_CALLS_PER_REQUEST', async () => {
+      inMemoryLauncher.setResult({ success: true, output: 'ok' });
+      const store = new Map<string, any>();
+      store.set('etap:tool_call_count', 15); // Already at max default 15
+      const mockContext = {
+        requestContext: {
+          get: (k: string) => store.get(k),
+          set: (k: string, v: any) => store.set(k, v),
+        },
+      };
+
+      await expect(
+        run_python.execute!({ code: 'c = 3' }, mockContext as any)
+      ).rejects.toThrow(/TOOL_CALL_BUDGET_EXCEEDED/);
+    });
+
+    it('run_python throws when code exceeds token budget', async () => {
+      const hugeCode = 'x = 1\n'.repeat(60000); // 360,000 chars > 50,000 tokens
+      await expect(
+        run_python.execute!({ code: hugeCode }, {} as any)
+      ).rejects.toThrow(/TOKEN_BUDGET_EXCEEDED/);
+    });
+
+    it('run_python uses context.observe.span when available', async () => {
+      inMemoryLauncher.setResult({ success: true, output: 'span-result' });
+      let spanCalled = false;
+      const mockContext = {
+        observe: {
+          span: async (name: string, fn: () => Promise<any>, _attrs?: any) => {
+            spanCalled = true;
+            expect(name).toBe('run_python');
+            return fn();
+          },
+        },
+      };
+
+      const result = await run_python.execute!({ code: 'd = 4' }, mockContext as any);
+      expect(spanCalled).toBe(true);
+      expect(result).toBe('span-result');
+    });
   });
 });
