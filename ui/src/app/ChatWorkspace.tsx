@@ -7,8 +7,10 @@ import { MessageInput } from "../components/chat/MessageInput";
 import { MessageList } from "../components/chat/MessageList";
 import { ProjectSelector } from "../components/chat/ProjectSelector";
 import { ParametersDrawer } from "../components/chat/ParametersDrawer";
+import { TokenBudgetIndicator } from "../components/chat/TokenBudgetIndicator";
 import { IntegrationStatusPills } from "../components/chat/IntegrationStatusPills";
 import { AISettingsModal } from "../components/chat/AISettingsModal";
+
 import { AutoViewPanel } from "../components/chat/AutoViewPanel";
 import { ActionCard } from "../components/cards/ActionCard";
 import { ApprovalCard } from "../components/cards/ApprovalCard";
@@ -138,6 +140,12 @@ export function ChatWorkspace({ onExitToLegacy }: ChatWorkspaceProps) {
         <div className="hidden lg:flex items-center shrink-0">
           <IntegrationStatusPills />
         </div>
+
+        {/* Token Budget Indicator */}
+        <div className="flex items-center shrink-0">
+          <TokenBudgetIndicator />
+        </div>
+
 
         {/* Header Action Controls */}
         <div className="ml-auto flex items-center gap-2.5">

@@ -79,6 +79,7 @@ EVENT_APPROVAL_RESULT = "approval_result"
 EVENT_JOB_PROGRESS = "job_progress"
 EVENT_RESULT_READY = "result_ready"
 EVENT_DECISION_REQUEST = "decision_request"
+EVENT_TOKEN_USAGE = "token_usage"
 
 KNOWN_EVENT_TYPES = frozenset(
     {
@@ -89,6 +90,7 @@ KNOWN_EVENT_TYPES = frozenset(
         EVENT_JOB_PROGRESS,
         EVENT_RESULT_READY,
         EVENT_DECISION_REQUEST,
+        EVENT_TOKEN_USAGE,
     }
 )
 
@@ -295,6 +297,11 @@ def reset_hub() -> None:
     """Test helper — drop the singleton so each test starts clean."""
     global _hub
     _hub = None
+
+
+def publish_token_usage(session_id: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+    """Publish a token_usage event for the session."""
+    return get_hub().publish(session_id, EVENT_TOKEN_USAGE, payload)
 
 
 # ---------------------------------------------------------------------------

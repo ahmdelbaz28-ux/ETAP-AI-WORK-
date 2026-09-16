@@ -16,6 +16,13 @@ import { type StoreApi, create } from "zustand";
 import { request } from "../lib/api";
 import { API_BASE_URL } from "../lib/api-config";
 import { getChatSessionId, streamFromServerChat } from "../lib/llm-chat";
+import {
+  type TokenBudgetState,
+  calculateTokenBudgetState,
+  loadSessionTokenUsage,
+  saveSessionTokenUsage,
+  pruneMessagesForBudget,
+} from "../lib/token-governance";
 import { generateId } from "../utils/helpers";
 
 export type ChatStreamStatus = "idle" | "connecting" | "streaming" | "completed" | "error";
@@ -44,7 +51,8 @@ export type SessionEventType =
   | "approval_result"
   | "job_progress"
   | "result_ready"
-  | "decision_request";
+  | "decision_request"
+  | "token_usage";
 
 export interface SessionEvent<TPayload = Record<string, unknown>> {
   readonly seq: number;
@@ -235,6 +243,8 @@ export interface ChatWorkspaceState {
   }) => Promise<PendingApproval | null>;
   executeImport: (previewId: string, approvalId: string) => Promise<string | null>;
   clearSessionData: () => void;
+  tokenBudget: TokenBudgetState;
+  updateTokenBudget: (usage: Partial<TokenBudgetState>) => void;
 }
 
 export function _resetWsStateForTesting(): void {
@@ -485,6 +495,13 @@ export const useChatStore = create<ChatWorkspaceState>()((set, get) => ({
   approvalsError: null,
   autoApprove: initialAutoApprove(),
   emergencyStop: initialEmergencyStop(),
+  tokenBudget: calculateTokenBudgetState(loadSessionTokenUsage(getChatSessionId())),
+
+  updateTokenBudget: (usage) => {
+    set({
+      tokenBudget: { ...get().tokenBudget, ...usage },
+    });
+  },
 
   setProjectId: (projectId) => {
     if (typeof localStorage !== "undefined") {
@@ -604,6 +621,17 @@ export const useChatStore = create<ChatWorkspaceState>()((set, get) => ({
         set({ decisions: [entry, ...get().decisions].slice(0, MAX_LIST_ITEMS) });
         return;
       }
+      case "token_usage": {
+        const totalUsed = typeof payload.total_used === "number" ? payload.total_used : undefined;
+        const budget = typeof payload.budget === "number" ? payload.budget : undefined;
+        if (totalUsed !== undefined) {
+          saveSessionTokenUsage(get().sessionId, totalUsed);
+          set({
+            tokenBudget: calculateTokenBudgetState(totalUsed, budget || get().tokenBudget.totalBudget),
+          });
+        }
+        return;
+      }
       default:
         return;
     }
@@ -655,9 +683,10 @@ export const useChatStore = create<ChatWorkspaceState>()((set, get) => ({
     });
 
     try {
-      const history = get()
+      const rawHistory = get()
         .messages.filter((m) => m.status !== "error")
         .map((m) => ({ role: m.role, content: m.content }));
+      const history = pruneMessagesForBudget(rawHistory);
 
       let acc = "";
       for await (const delta of streamFromServerChat(history, controller.signal, get().projectId)) {
@@ -698,6 +727,7 @@ export const useChatStore = create<ChatWorkspaceState>()((set, get) => ({
       approvalsError: null,
       lastSeq: 0,
       streamStatus: "idle",
+      tokenBudget: calculateTokenBudgetState(0),
     });
   },
 

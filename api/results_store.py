@@ -310,7 +310,25 @@ async def create_result(
         except Exception:
             await session.rollback()
             raise
+
+    if summary_json:
+        try:
+            from api.feature_flags import is_feature_enabled
+            from api.rag_retriever import get_rag_retriever
+
+            if is_feature_enabled("token_governance"):
+                rag = get_rag_retriever()
+                meta = {
+                    "tenant_id": tenant_id,
+                    "project_id": project_id,
+                    "created_by": created_by,
+                }
+                await rag.index_result(result_id, summary_json, meta)
+        except Exception as exc:
+            logger.warning("Failed to index result %s in RAG: %s", result_id, exc)
+
     return result_id
+
 
 
 async def get_result(tenant_id: str, result_id: str) -> dict | None:

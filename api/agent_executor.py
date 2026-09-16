@@ -385,11 +385,30 @@ async def submit_plan(
             {"tool": canonical, "decision": decision, "reason": reason, "plan_id": plan_id},
         )
 
-    return {
+    response_payload: Dict[str, Any] = {
         "plan_id": plan_id,
         "decision": decision,
         "reason": reason,
     }
+
+    try:
+        from api.feature_flags import is_feature_enabled
+        from api.rag_retriever import get_rag_retriever
+
+        if is_feature_enabled("token_governance"):
+            rag = get_rag_retriever()
+            rag_results = await rag.retrieve(
+                query=str(raw_args),
+                system_context=raw_args,
+                agent_handle=canonical,
+            )
+            if rag_results:
+                response_payload["historical_context"] = [r.to_dict() for r in rag_results]
+    except Exception as exc:
+        logger.debug("RAG retrieval skipped or failed: %s", exc)
+
+    return response_payload
+
 
 
 # ─── /execute ──────────────────────────────────────────────────────────────

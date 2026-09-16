@@ -120,6 +120,12 @@ DEFAULT_FEATURE_FLAGS: dict[str, dict[str, Any]] = {
         "description": "Enforce real integrations, fail closed on mock",
         "rollout_percentage": 100,
     },
+    "token_governance": {
+        "enabled": False,
+        "status": "beta",
+        "description": "Token Governance Layer (Token Budgeting, Semantic Cache, RAG & Prompt Versioning)",
+        "rollout_percentage": 0,
+    },
 }
 
 FEATURE_FLAGS = DEFAULT_FEATURE_FLAGS

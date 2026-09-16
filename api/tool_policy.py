@@ -243,3 +243,29 @@ async def evaluate_endpoint(req: ToolPolicyRequest) -> dict[str, Any]:
         auto_approve_enabled=req.auto_approve_enabled,
     )
     return {"success": True, "data": result}
+
+
+def estimate_tool_tokens(tool_name: str, args: dict[str, Any] | None = None) -> int:
+    """Estimate token consumption of a tool invocation.
+
+    Calculates base tool invocation overhead plus token estimation from argument payload (~4 chars/token).
+    """
+    import json
+
+    tool_overhead = {
+        "run_python": 350,
+        "weather-tool": 100,
+        "etap_execute": 400,
+        "provider-settings-tool": 150,
+    }
+    base = tool_overhead.get(tool_name, 200)
+    if not args:
+        return base
+
+    try:
+        serialized = json.dumps(args, default=str)
+        arg_tokens = max(1, len(serialized) // 4)
+    except Exception:
+        arg_tokens = 50
+
+    return base + arg_tokens

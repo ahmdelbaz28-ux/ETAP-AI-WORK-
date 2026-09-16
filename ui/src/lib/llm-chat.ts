@@ -1173,16 +1173,31 @@ function createTimeoutController(
   };
 }
 
+export interface ServerChatStreamOptions {
+  signal?: AbortSignal;
+  projectId?: string | null;
+  maxTokens?: number;
+  stopSequences?: string[];
+}
+
 /**
  * Stream a reply through the server-side path (/api/v1/chat/stream).
  * SECURITY: the payload contains only session_id + messages + no keys.
- * Enforces unified 15s timeout on stream requests.
+ * Enforces unified 15s timeout on stream requests and token limits.
  */
 export async function* streamFromServerChat(
   messages: ChatMessage[],
-  signal?: AbortSignal,
+  signalOrOptions?: AbortSignal | ServerChatStreamOptions,
   projectId?: string | null,
 ): AsyncGenerator<string, void, unknown> {
+  const isOptions =
+    signalOrOptions && typeof signalOrOptions === "object" && !(signalOrOptions instanceof AbortSignal);
+  const options = isOptions ? (signalOrOptions as ServerChatStreamOptions) : undefined;
+  const signal = isOptions ? options?.signal : (signalOrOptions as AbortSignal | undefined);
+  const resolvedProjectId = options?.projectId ?? projectId;
+  const maxTokens = options?.maxTokens ?? 4000;
+  const stopSequences = options?.stopSequences;
+
   const headers = createServerChatHeaders();
   const { controller, cleanup } = createTimeoutController(signal);
 
@@ -1193,10 +1208,13 @@ export async function* streamFromServerChat(
       body: JSON.stringify({
         session_id: getChatSessionId(),
         messages,
-        project_id: projectId || undefined,
+        project_id: resolvedProjectId || undefined,
+        max_tokens: maxTokens,
+        stop: stopSequences,
       }),
       signal: controller.signal,
     });
+
 
     if (!res.ok) {
       throw await buildServerChatHttpError(res);
