@@ -160,6 +160,7 @@ class AgentMetaResponse(BaseModel):
 
 @router.get("")
 @router.get("/", include_in_schema=False)
+@router.get("/info", include_in_schema=False)
 async def get_agents_list(request: Request):
     """Return the full list of all 25 agents for frontend administration.
 

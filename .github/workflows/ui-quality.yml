@@ -91,7 +91,7 @@ jobs:
 
       - name: Install eslint-plugin-security
         working-directory: ${{ env.UI_DIR }}
-        run: npm install --no-save eslint-plugin-security
+        run: npm install --no-save --legacy-peer-deps eslint-plugin-security
 
       - name: Run ESLint
         working-directory: ${{ env.UI_DIR }}

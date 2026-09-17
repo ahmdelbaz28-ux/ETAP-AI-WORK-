@@ -111,6 +111,7 @@
     "wait-on": "9.1.0"
   },
   "overrides": {
+    "@types/react": "19.2.17",
     "@isaacs/cliui": "^9.0.0",
     "@vitest/mocker": "^4.1.11",
     "brace-expansion": "^5.0.9",

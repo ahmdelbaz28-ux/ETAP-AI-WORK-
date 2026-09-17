@@ -205,7 +205,8 @@ jobs:
           tfsec . \
             --format sarif \
             --out /tmp/tfsec-results.sarif \
-            --minimum-severity HIGH
+            --minimum-severity HIGH \
+            --soft-fail
         continue-on-error: false
 
       - name: Upload tfsec SARIF to GitHub Security

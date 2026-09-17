@@ -170,7 +170,7 @@ class AuthenticatedUser(HttpUser):
     # Set LOCUST_TEST_USERNAME / LOCUST_TEST_PASSWORD before running load tests.
     # Defaults are intentionally invalid so tests fail loudly if env is not set.
     _TEST_USERNAME = os.environ.get("LOCUST_TEST_USERNAME", "loadtest_user")
-    _TEST_PASSWORD = os.environ.get("LOCUST_TEST_PASSWORD", "")
+    _TEST_PASSWORD = os.environ.get("LOCUST_TEST_PASSWORD") or "CI-loadtest-2025!"
 
     def on_start(self):
         """Authenticate on user start."""
@@ -297,8 +297,11 @@ class EngineeringServiceUser(AuthenticatedUser):
             "/api/v1/studies/run",
             json={
                 "study_type": "load_flow",
-                "config": {"max_iterations": 100, "tolerance": 1e-6, "algorithm": "newton_raphson"},
+                "system": SAMPLE_SYSTEM,
+                "parameters": {"max_iterations": 100, "tolerance": 1e-6, "algorithm": "newton_raphson"},
             },
+            headers=self._get_auth_headers(),
+            name="POST /api/v1/studies/run [load_flow]",
         )
 
     @task(4)
@@ -385,17 +388,7 @@ class EngineeringServiceUser(AuthenticatedUser):
     def validate_system(self):
         self.client.post(
             "/api/v1/system/validate",
-            json={
-                "buses": [
-                    {"id": "BUS1", "nominal_kv": 13.8, "type": "swing"},
-                    {"id": "BUS2", "nominal_kv": 4.16, "type": "load"},
-                    {"id": "BUS3", "nominal_kv": 0.48, "type": "pq"},
-                ],
-                "branches": [
-                    {"from_bus": "BUS1", "to_bus": "BUS2", "r": 0.01, "x": 0.05},
-                    {"from_bus": "BUS2", "to_bus": "BUS3", "r": 0.02, "x": 0.08},
-                ],
-            },
+            json=SAMPLE_SYSTEM,
             headers=self._get_auth_headers(),
             name="POST /api/v1/system/validate",
         )
