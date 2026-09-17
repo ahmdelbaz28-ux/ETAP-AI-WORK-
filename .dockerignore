@@ -140,8 +140,6 @@ terraform/
 helm/
 charts/
 
-# Benchmarks
-benchmarks/
 
 # Root-level scripts (not needed in container)
 fix_*.py
@@ -184,9 +182,6 @@ monitoring/
 
 # Source code for other runtimes
 src/
-ts-service/
-acp_runtime/
-archive/
 
 # DuckDB databases
 *.duckdb*
