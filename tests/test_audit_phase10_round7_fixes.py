@@ -149,7 +149,10 @@ class TestCIPinning:
 
     @pytest.fixture(scope="class")
     def ci_cd_source(self) -> str:
-        return _read_file(".github/workflows/ci-cd.yml")
+        docker_val = _REPO_ROOT / ".github" / "workflows" / "docker-validation.yml"
+        if docker_val.exists():
+            return docker_val.read_text(encoding="utf-8")
+        return _read_file(".github/workflows/ci.yml")
 
     def test_no_trivy_at_master(self, ci_cd_source: str) -> None:
         """trivy-action must NOT be pinned to @master."""

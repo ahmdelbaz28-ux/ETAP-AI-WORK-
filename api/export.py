@@ -185,6 +185,7 @@ async def _load_owned_project(project_id: str, user: CurrentUser, db: AsyncSessi
 
 
 from api.services.export_generator import (
+    _sanitize_csv_cell,
     generate_csv_export,
     generate_excel_export,
     generate_json_export,
