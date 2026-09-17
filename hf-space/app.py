@@ -126,10 +126,18 @@ async def lifespan(_app: FastAPI):
         logger.exception("Database init failed")
 
     # FIX-27: Alembic startup migration gate — ensure schema is fully upgraded to head
+    # Protected by distributed lock to prevent race conditions across multi-worker deployments
     try:
         from api.database_migrations import run_alembic_startup_gate
+        from core.redis_state import LockManager, get_redis_state_client
 
-        await run_alembic_startup_gate()
+        redis_client = await get_redis_state_client()
+        if redis_client:
+            lock_mgr = LockManager(client=redis_client)
+            async with lock_mgr.lock("alembic-migration", ttl_seconds=300, timeout_ms=30000):
+                await run_alembic_startup_gate()
+        else:
+            await run_alembic_startup_gate()
     except Exception as exc:
         logger.exception("Alembic startup migration gate failed: %s", exc)
         env = os.environ.get("ENVIRONMENT", os.environ.get("ENV", "production")).lower()

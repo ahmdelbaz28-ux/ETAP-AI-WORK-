@@ -97,10 +97,10 @@ if _IS_SQLITE:
 # Connection pool configuration (PostgreSQL only)
 # ---------------------------------------------------------------------------
 
-_POOL_SIZE = int(os.getenv("DB_POOL_SIZE", "10"))
-_MAX_OVERFLOW = int(os.getenv("DB_MAX_OVERFLOW", "20"))
+_POOL_SIZE = int(os.getenv("DB_POOL_SIZE", "20"))
+_MAX_OVERFLOW = int(os.getenv("DB_MAX_OVERFLOW", "30"))
 _POOL_TIMEOUT = int(os.getenv("DB_POOL_TIMEOUT", "30"))
-_POOL_RECYCLE = int(os.getenv("DB_POOL_RECYCLE", "1800"))
+_POOL_RECYCLE = int(os.getenv("DB_POOL_RECYCLE", "3600"))
 _ECHO = os.getenv("DB_ECHO", "false").lower() == "true"
 
 # ---------------------------------------------------------------------------

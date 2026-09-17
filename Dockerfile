@@ -112,4 +112,4 @@ EXPOSE 7860
 # Use numeric UID (1000) per HF Spaces recommendation
 USER 1000
 
-CMD ["python", "app.py"]
+CMD ["gunicorn", "-w", "4", "-k", "uvicorn.workers.UvicornWorker", "--bind", "0.0.0.0:7860", "--timeout", "120", "--keep-alive", "5", "--max-requests", "1000", "--max-requests-jitter", "100", "app:app"]
