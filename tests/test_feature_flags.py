@@ -181,8 +181,11 @@ class TestListFeatureFlags:
         monkeypatch.setenv("ENV", "production")
         resp = client.get("/api/v1/feature-flags", headers=auth_headers)
         for flag in resp.json()["data"]:
-            # All defaults are disabled, so effective should be False in prod
-            assert flag["effective_enabled"] is False
+            if flag["key"] == "production_hardening":
+                # GA hardening flag defaults to enabled in production (fail-closed on mocks)
+                assert flag["effective_enabled"] is True
+            else:
+                assert flag["effective_enabled"] is False
 
 
 # ---------------------------------------------------------------------------

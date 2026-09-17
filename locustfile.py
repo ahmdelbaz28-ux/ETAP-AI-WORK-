@@ -272,7 +272,7 @@ class AuthenticatedUser(HttpUser):
         return self.auth_headers
 
 
-class EngineeringServiceUser(HttpUser):
+class EngineeringServiceUser(AuthenticatedUser):
     wait_time = between(0.5, 2.0)
 
     @task(5)

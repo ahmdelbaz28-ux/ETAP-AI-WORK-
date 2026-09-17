@@ -101,6 +101,10 @@ class TestSafeDefaults:
     def test_every_registry_flag_fails_closed(self):
         """All security-sensitive defaults must be disabled (fail closed)."""
         for key, cfg in DEFAULT_FEATURE_FLAGS.items():
+            if key == "production_hardening":
+                # GA hardening flag defaults to enabled to enforce fail-closed on mocks
+                assert cfg.get("enabled") is True
+                continue
             assert cfg.get("enabled", True) is False, (
                 f"Flag '{key}' must default to disabled (fail closed)"
             )
