@@ -9,6 +9,7 @@ Verifies:
 """
 
 import os
+
 import pytest
 from fastapi import HTTPException
 from fastapi.testclient import TestClient
@@ -24,8 +25,9 @@ def test_fix_12_jwt_sample_blacklist():
 
 def test_fix_11_verify_api_key_deny_by_default(monkeypatch):
     """Verify verify_api_key fails closed when ENVIRONMENT is staging or unset."""
-    from api.shared_handlers import verify_api_key
     from unittest.mock import MagicMock
+
+    from api.shared_handlers import verify_api_key
 
     req = MagicMock()
     req.url.path = "/api/v1/studies/run"
@@ -70,16 +72,21 @@ def test_fix_09_c_validation_router_has_auth():
 
 
 def test_fix_13_re_run_kills_fake_results(monkeypatch):
-    """Verify study_execution_service raises 501 instead of generating fake BUS-1 results."""
-    from api.services.study_execution_service import execute_study_re_run
-    from unittest.mock import AsyncMock, MagicMock
+    """Verify study_execution_service raises 422 validation error instead of generating fake BUS-1 results."""
     import asyncio
+    from unittest.mock import AsyncMock, MagicMock
+
+    from api.services.study_execution_service import execute_study_re_run
 
     db = AsyncMock()
     mock_proj = MagicMock()
     mock_proj.id = "proj-123"
     mock_proj.tenant_id = "default"
+    mock_proj.system_config = None
     db.get = AsyncMock(return_value=mock_proj)
+    db.execute = AsyncMock(
+        return_value=MagicMock(scalar_one_or_none=MagicMock(return_value=mock_proj))
+    )
 
     monkeypatch.setattr(
         "api.services.study_execution_service.save_solver_params",
@@ -95,5 +102,5 @@ def test_fix_13_re_run_kills_fake_results(monkeypatch):
                 tool="load_flow",
             )
         )
-    assert exc.value.status_code == 501
-    assert "Real study execution engine integration" in exc.value.detail
+    assert exc.value.status_code == 422
+    assert "System configuration is required for re-run" in exc.value.detail

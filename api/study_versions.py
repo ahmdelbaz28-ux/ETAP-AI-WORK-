@@ -32,6 +32,7 @@ from sqlalchemy import (
     Integer,
     String,
     Text,
+    UniqueConstraint,
     desc,
     func,
     select,
@@ -53,6 +54,9 @@ class StudyVersion(Base):
     """A snapshot of a study at a point in time."""
 
     __tablename__ = "study_versions"
+    __table_args__ = (
+        UniqueConstraint("project_id", "version_number", name="uq_study_version_project_num"),
+    )
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     tenant_id: Mapped[Optional[str]] = mapped_column(String(36), index=True, nullable=True)

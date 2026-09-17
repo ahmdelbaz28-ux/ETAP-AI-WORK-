@@ -97,10 +97,12 @@ if _IS_SQLITE:
 # Connection pool configuration (PostgreSQL only)
 # ---------------------------------------------------------------------------
 
-_POOL_SIZE = int(os.getenv("DB_POOL_SIZE", "20"))
-_MAX_OVERFLOW = int(os.getenv("DB_MAX_OVERFLOW", "30"))
+_POOL_SIZE = int(os.getenv("DB_POOL_SIZE", "5"))
+_MAX_OVERFLOW = int(os.getenv("DB_MAX_OVERFLOW", "10"))
 _POOL_TIMEOUT = int(os.getenv("DB_POOL_TIMEOUT", "30"))
 _POOL_RECYCLE = int(os.getenv("DB_POOL_RECYCLE", "3600"))
+_DB_MAX_CONNECTIONS = int(os.getenv("DB_MAX_CONNECTIONS", "100"))
+_WORKERS = int(os.getenv("WEB_CONCURRENCY", os.getenv("WORKERS", "4")))
 _ECHO = os.getenv("DB_ECHO", "false").lower() == "true"
 
 # ---------------------------------------------------------------------------
@@ -131,6 +133,19 @@ def _build_postgres_engine(url: str):
     a ``NullPool`` is used to avoid the asyncpg + pytest TestClient event-loop
     conflict documented above. Production keeps the default pooled engine with pre-ping.
     """
+    total_potential_connections = _WORKERS * (_POOL_SIZE + _MAX_OVERFLOW)
+    if total_potential_connections > _DB_MAX_CONNECTIONS:
+        logger.warning(
+            "Database connection pool configuration exceeds DB_MAX_CONNECTIONS: "
+            "workers (%d) * (pool_size (%d) + max_overflow (%d)) = %d > max_connections (%d). "
+            "Risk of connection exhaustion. Adjust DB_POOL_SIZE and DB_MAX_OVERFLOW.",
+            _WORKERS,
+            _POOL_SIZE,
+            _MAX_OVERFLOW,
+            total_potential_connections,
+            _DB_MAX_CONNECTIONS,
+        )
+
     if _is_testing_env():
         return create_async_engine(
             url,

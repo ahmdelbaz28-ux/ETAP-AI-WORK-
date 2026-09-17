@@ -298,7 +298,6 @@ class EngineeringServiceUser(AuthenticatedUser):
             },
         )
 
-    @task(1)
     @task(4)
     def run_short_circuit(self):
         """Execute a short circuit study."""

@@ -59,12 +59,22 @@ class ReadinessClient:
 
         if self.is_local:
             try:
-                from fastapi.testclient import TestClient
-                from api.routes import app
-                from api.dependencies import JWT_SECRET_KEY, JWT_ALGORITHM
                 import jwt
+                from fastapi.testclient import TestClient
+
+                from api.dependencies import JWT_ALGORITHM, JWT_SECRET_KEY
+                from api.routes import app
 
                 self._test_client = TestClient(app)
+                _log(
+                    "=" * 78 + "\n  WARNING: RUNNING IN LOCAL MODE (--local)\n"
+                    "  Using in-process FastAPI TestClient.\n"
+                    "  This DOES NOT substitute for testing against a real network endpoint,\n"
+                    "  production PostgreSQL connection pools, real Redis cluster, or TLS.\n"
+                    + "="
+                    * 78,
+                    "WARN",
+                )
                 # Mint a drill admin token for testing authenticated routes
                 self.token = jwt.encode(
                     {
@@ -113,9 +123,9 @@ class ReadinessClient:
                 data = resp.text
             return resp.status_code, dict(resp.headers), data
         else:
-            import urllib.request
-            import urllib.error
             import json
+            import urllib.error
+            import urllib.request
 
             url = f"{self.base_url}{path}"
             req = urllib.request.Request(url, headers=req_headers, method="GET")
@@ -155,9 +165,9 @@ class ReadinessClient:
                 data = resp.text
             return resp.status_code, dict(resp.headers), data
         else:
-            import urllib.request
-            import urllib.error
             import json
+            import urllib.error
+            import urllib.request
 
             url = f"{self.base_url}{path}"
             body_bytes = json.dumps(json_data or {}).encode("utf-8")
@@ -235,12 +245,21 @@ def run_readiness_drill(client: ReadinessClient) -> bool:
     xfo_pass = xfo in ("DENY", "SAMEORIGIN")
     csp_pass = "frame-ancestors 'none'" in csp or "default-src" in csp or len(csp) > 0
 
-    sec_pass = cto_pass and xfo_pass
-    results.append(("Security Headers & CSP", sec_pass, f"X-CTO: {cto}, XFO: {xfo}"))
+    sec_pass = cto_pass and xfo_pass and csp_pass
+    results.append(
+        ("Security Headers & CSP", sec_pass, f"X-CTO: {cto}, XFO: {xfo}, CSP present: {bool(csp)}")
+    )
     if sec_pass:
-        _log("Security Headers (X-Content-Type-Options, X-Frame-Options) present and valid", "PASS")
+        _log(
+            "Security Headers (X-Content-Type-Options, X-Frame-Options, CSP) present and valid",
+            "PASS",
+        )
     else:
-        _log(f"Security Headers incomplete: CTO={cto_pass}, XFO={xfo_pass}", "WARN")
+        all_passed = False
+        _log(
+            f"Security Headers incomplete: CTO={cto_pass}, XFO={xfo_pass}, CSP={csp_pass}",
+            "FAIL",
+        )
 
     # 4. Fail-Closed Authentication Gate
     _log("Gate 4: Testing Fail-Closed Authentication Enforcement...", "INFO")
@@ -249,7 +268,7 @@ def run_readiness_drill(client: ReadinessClient) -> bool:
         json_data={"study_type": "load_flow", "config": {}},
         headers={"Authorization": "Bearer bad-token-drill-xyz"},
     )
-    auth_enforced = code in (401, 403, 422)
+    auth_enforced = code in (401, 403)
     results.append(
         ("Fail-Closed Auth Enforcement", auth_enforced, f"Status: {code} on unauthorized call")
     )
@@ -257,7 +276,10 @@ def run_readiness_drill(client: ReadinessClient) -> bool:
         _log(f"Fail-closed auth correctly blocked unauthorized payload (HTTP {code})", "PASS")
     else:
         all_passed = False
-        _log(f"Security violation: Unauthorized call returned unexpected code {code}", "FAIL")
+        _log(
+            f"Security violation: Unauthorized call returned unexpected code {code} (expected 401/403)",
+            "FAIL",
+        )
 
     # 5. End-to-End Study Execution with Provenance
     _log("Gate 5: Testing End-to-End Study Execution with Provenance...", "INFO")
@@ -298,12 +320,11 @@ def run_readiness_drill(client: ReadinessClient) -> bool:
     if study_passed:
         _log("E2E Newton-Raphson Load Flow executed with authoritative provenance", "PASS")
     else:
+        all_passed = False
         _log(
-            f"Study run returned status {code}: {study_data}",
-            "WARN" if code in (400, 422) else "FAIL",
+            f"Study run failed with status {code}: {study_data}",
+            "FAIL",
         )
-        if code >= 500:
-            all_passed = False
 
     # 6. Feature Flags Sanity
     _log("Gate 6: Checking Feature Flags Registry Integrity...", "INFO")

@@ -136,9 +136,17 @@ async def lifespan(_app: FastAPI):
         redis_client = await get_redis_state_client()
         if redis_client:
             lock_mgr = LockManager(client=redis_client)
-            async with lock_mgr.lock("alembic-migration", ttl_seconds=300, timeout_ms=30000):
+            # ttl_seconds=300: 5 min lease gives ample time for DDL transactions on cloud databases.
+            # timeout_ms=120000: Waiting workers/replicas give up to 120s for primary worker to complete migration.
+            async with lock_mgr.lock("alembic-migration", ttl_seconds=300, timeout_ms=120000):
                 await run_alembic_startup_gate()
         else:
+            # Fallback without Redis: Single-replica / development mode only.
+            # Multi-replica deployments without REDIS_URL risk concurrent DDL race conditions.
+            logger.warning(
+                "Alembic startup migration gate running without Redis lock (single-replica fallback). "
+                "Set REDIS_URL in multi-replica production deployments to guarantee safe migration locking."
+            )
             await run_alembic_startup_gate()
     except Exception as exc:
         logger.exception("Alembic startup migration gate failed: %s", exc)

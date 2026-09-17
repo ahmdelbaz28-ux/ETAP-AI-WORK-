@@ -10,6 +10,7 @@ Orchestrates:
 
 from __future__ import annotations
 
+import asyncio
 import time
 import uuid
 from datetime import datetime, timezone
@@ -90,8 +91,8 @@ async def execute_study_re_run(
 
     if canonical_tool in _TYPES_REQUIRING_SYSTEM and not system_data:
         raise HTTPException(
-            status_code=status.HTTP_501_NOT_IMPLEMENTED,
-            detail="Real study execution engine integration for project re-run requires a system configuration.",
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="System configuration is required for re-run.",
         )
 
     system_spec = None
@@ -150,24 +151,38 @@ async def execute_study_re_run(
     )
     db.add(db_study_result)
 
-    # 5. Create a StudyVersion revision snapshot
-    version_number = await get_next_revision_number(db, project_id)
-    study_version = StudyVersion(
-        id=str(uuid.uuid4()),
-        tenant_id=tenant_id,
-        study_id=study_id,
-        project_id=project_id,
-        version_number=version_number,
-        label=f"v{version_number}",
-        description=f"Re-run study using {tool}",
-        config_snapshot=params,
-        results_snapshot=study_res.data,
-        diff_summary=f"Re-run executed with tool={tool} (status={status_val})",
-        created_by=str(creator_id),
-        created_at=datetime.now(UTC),
-    )
-    db.add(study_version)
-    await db.commit()
+    # 5. Create a StudyVersion revision snapshot with retry loop on concurrency IntegrityError
+    from sqlalchemy.exc import IntegrityError
+
+    max_retries = 3
+    version_number = 1
+    for attempt in range(max_retries):
+        version_number = await get_next_revision_number(db, project_id)
+        study_version = StudyVersion(
+            id=str(uuid.uuid4()),
+            tenant_id=tenant_id,
+            study_id=study_id,
+            project_id=project_id,
+            version_number=version_number,
+            label=f"v{version_number}",
+            description=f"Re-run study using {tool}",
+            config_snapshot=params,
+            results_snapshot=study_res.data,
+            diff_summary=f"Re-run executed with tool={tool} (status={status_val})",
+            created_by=str(creator_id),
+            created_at=datetime.now(UTC),
+        )
+        db.add(study_version)
+        try:
+            await db.commit()
+            break
+        except IntegrityError:
+            await db.rollback()
+            if attempt == max_retries - 1:
+                raise
+            # Session rollback clears uncommitted objects, so re-add db_study_result
+            db.add(db_study_result)
+            await asyncio.sleep(0.01 * (attempt + 1))
 
     return {
         "success": study_res.success,

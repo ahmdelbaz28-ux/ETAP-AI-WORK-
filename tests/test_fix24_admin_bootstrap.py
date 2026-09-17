@@ -90,3 +90,36 @@ async def test_first_user_or_admin_bootstrap(async_db: AsyncSession):
     res = await async_db.execute(select(User).where(User.username == "regular_viewer"))
     promoted = res.scalar_one()
     assert promoted.role == "admin"
+
+
+@pytest.mark.asyncio
+async def test_concurrent_admin_bootstrap_with_pinned_email(async_db: AsyncSession, monkeypatch):
+    """Verify that in concurrent multi-worker registration, INITIAL_ADMIN_EMAIL deterministically pins the admin.
+
+    Note on Cold-Start Concurrency:
+    Pure user_count == 0 bootstrap is intended for single-process sequential initial setup.
+    In multi-worker environments, INITIAL_ADMIN_EMAIL must be configured in environment variables
+    to guarantee that exactly the intended user receives administrative privileges under race conditions.
+    """
+    monkeypatch.setenv("INITIAL_ADMIN_EMAIL", "designated_lead@etap-ai.internal")
+
+    # Simulate concurrent registration of two users before either is committed
+    user_a = await UserService.create(
+        db=async_db,
+        username="designated_lead",
+        email="designated_lead@etap-ai.internal",
+        password="SuperSecurePass2026!A",
+        role="viewer",
+    )
+    user_b = await UserService.create(
+        db=async_db,
+        username="parallel_candidate",
+        email="candidate@etap-ai.internal",
+        password="SuperSecurePass2026!B",
+        role="viewer",
+    )
+    await async_db.commit()
+
+    # The designated email MUST become admin, while candidate must remain viewer
+    assert user_a.role == "admin"
+    assert user_b.role == "viewer"

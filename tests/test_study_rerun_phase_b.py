@@ -173,3 +173,135 @@ async def test_re_run_404_when_project_not_found(async_db: AsyncSession):
             db=async_db,
         )
     assert exc.value.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_re_run_422_when_system_config_missing(async_db: AsyncSession):
+    """Verify 422 is returned when both params['system'] and project.system_config are absent."""
+    project_id = "proj-no-system-config"
+    proj = Project(
+        id=project_id,
+        tenant_id="tenant-beta",
+        name="Empty Project",
+        description="No system data attached",
+        system_config=None,
+        created_by="engineer-2",
+    )
+    async_db.add(proj)
+    await async_db.commit()
+
+    user = CurrentUser(
+        user_id="eng-456",
+        username="engineer2",
+        email="eng2@etap-ai.internal",
+        role="engineer",
+        tenant_id="tenant-beta",
+    )
+
+    with pytest.raises(HTTPException) as exc:
+        await execute_study_re_run(
+            project_id=project_id,
+            tool="load_flow",
+            params={"max_iterations": 50},
+            user=user,
+            db=async_db,
+        )
+    assert exc.value.status_code == 422
+    assert "System configuration is required for re-run" in exc.value.detail
+
+
+@pytest.mark.asyncio
+async def test_study_version_unique_constraint_blocks_duplicates(async_db: AsyncSession):
+    """Verify UniqueConstraint('project_id', 'version_number') prevents duplicate version records."""
+    import uuid
+
+    from sqlalchemy.exc import IntegrityError
+
+    v1 = StudyVersion(
+        id=str(uuid.uuid4()),
+        project_id="proj-unique-test",
+        study_id="study-1",
+        version_number=1,
+        label="v1",
+        config_snapshot={},
+        created_by="eng-1",
+    )
+    async_db.add(v1)
+    await async_db.commit()
+
+    # Attempt to insert identical project_id and version_number
+    v1_dup = StudyVersion(
+        id=str(uuid.uuid4()),
+        project_id="proj-unique-test",
+        study_id="study-2",
+        version_number=1,
+        label="v1-duplicate",
+        config_snapshot={},
+        created_by="eng-2",
+    )
+    async_db.add(v1_dup)
+    with pytest.raises(IntegrityError):
+        await async_db.commit()
+    await async_db.rollback()
+
+
+@pytest.mark.asyncio
+async def test_re_run_retry_on_version_concurrency_race(async_db: AsyncSession, monkeypatch):
+    """Verify that execute_study_re_run retries and recovers when version race condition occurs."""
+    project_id = "proj-race-test"
+    proj = Project(
+        id=project_id,
+        tenant_id="tenant-gamma",
+        name="Race Test Substation",
+        system_config=get_sample_system_dict(),
+        created_by="engineer-3",
+    )
+    async_db.add(proj)
+    await async_db.commit()
+
+    user = CurrentUser(
+        user_id="eng-789",
+        username="engineer3",
+        email="eng3@etap-ai.internal",
+        role="engineer",
+        tenant_id="tenant-gamma",
+    )
+
+    # First re-run succeeds at version 1
+    res1 = await execute_study_re_run(
+        project_id=project_id,
+        tool="load_flow",
+        params={},
+        user=user,
+        db=async_db,
+    )
+    assert res1["version_number"] == 1
+
+    # Second re-run: simulate get_next_revision_number returning 1 on first attempt (simulating race),
+    # then 2 on subsequent attempts
+    from api.services import study_execution_service
+
+    original_get_rev = study_execution_service.get_next_revision_number
+    call_count = 0
+
+    async def mock_get_next_revision_number(db, p_id, s_id=None):
+        nonlocal call_count
+        call_count += 1
+        if call_count == 1:
+            return 1  # collision with already existing v1
+        return await original_get_rev(db, p_id, s_id)
+
+    monkeypatch.setattr(
+        "api.services.study_execution_service.get_next_revision_number",
+        mock_get_next_revision_number,
+    )
+
+    res2 = await execute_study_re_run(
+        project_id=project_id,
+        tool="load_flow",
+        params={},
+        user=user,
+        db=async_db,
+    )
+    assert res2["version_number"] == 2
+    assert call_count >= 2, "Retry loop should have retried after collision"

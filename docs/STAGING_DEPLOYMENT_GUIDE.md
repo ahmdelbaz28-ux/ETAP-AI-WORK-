@@ -27,8 +27,20 @@ All production and staging environments must supply the following environment va
 | `ENGINEERING_SERVICE_API_KEY` | Admin / service-to-service authentication | Cryptographically strong token. Banned samples cause startup crash. |
 | `CRON_SECRET` | Secret token for Vercel/external cron jobs | Mandatory Bearer token for triggering `/api/cron/digest`. |
 | `CSRF_SECRET` | Secret for signing anti-CSRF tokens | Minimum 32 bytes random string. |
-| `API_KEY_ENCRYPTION_KEY` | AES key for encrypting provider keys | Minimum 32 bytes hex. |
-| `ENV` / `ENVIRONMENT` | Target environment mode | Set strictly to `staging` or `production`. |
+| `DB_POOL_SIZE` | Connection pool size per worker (default: 5) | Sized with workers to prevent pool exhaustion. |
+| `DB_MAX_OVERFLOW` | Max overflow connections per worker (default: 10) | Total per worker = pool + overflow (default: 15). |
+| `DB_MAX_CONNECTIONS` | Expected database max_connections (default: 100) | Enforced via startup sizing check. |
+
+### 2.1 Database Connection Pool Budgeting Formula
+To prevent PostgreSQL connection exhaustion across multi-worker deployments (e.g. 4 Gunicorn workers):
+```
+Total Connections = Workers × (DB_POOL_SIZE + DB_MAX_OVERFLOW) <= DB_MAX_CONNECTIONS
+```
+With default settings:
+```
+4 workers × (5 pool + 10 overflow) = 60 connections <= 100 max_connections
+```
+If the calculated total exceeds `DB_MAX_CONNECTIONS`, the application logs a warning on startup.
 
 ---
 
@@ -39,11 +51,29 @@ AhmedETAP enforces an automatic **Fail-Closed Startup Migration Gate** (`api/dat
    ```bash
    alembic upgrade head
    ```
-2. In production or staging, if the migration fails or database schema diverges from `head_revision`, the process exits with a non-zero exit code to prevent dirty writes or split-brain schema state.
-3. To inspect schema synchronization status at any time:
+2. **Distributed Migration Lock**: In multi-worker / multi-replica environments, migration is coordinated via a Redis distributed lock (`LockManager.lock("alembic-migration", ttl_seconds=300, timeout_ms=120000)`).
+   > [!WARNING]
+   > Running multi-replica deployments without `REDIS_URL` falls back to uncoordinated execution and risks concurrent DDL migration collisions. Multi-replica environments MUST configure `REDIS_URL`.
+3. In production or staging, if the migration fails or database schema diverges from `head_revision`, the process exits with a non-zero exit code to prevent dirty writes or split-brain schema state.
+4. To inspect schema synchronization status at any time:
    ```bash
    curl -s -H "Authorization: Bearer <ADMIN_TOKEN>" http://localhost:8000/api/v1/health/schema
    ```
+
+---
+
+## 4. Verification & Staging Readiness Gate
+
+Run the staging readiness verification script:
+```bash
+python scripts/verify_staging_readiness.py --url https://staging.ahmedetap.internal --api-key <KEY>
+```
+> [!NOTE]
+> When using `python scripts/verify_staging_readiness.py --local`, execution is performed within an in-process FastAPI `TestClient`. While suitable for fast CI route verification, it does NOT test real network latency, socket buffer sizes, physical PostgreSQL connection pools, real Redis cluster failovers, or TLS certificates. Full staging drills must execute against a running HTTP/TLS service endpoint.
+
+---
+
+## 5. Feature Flags & Canary Rollout Strategy (Chat-First v3.0)
    **Expected Response:**
    ```json
    {
@@ -138,7 +168,7 @@ curl -s -H "Authorization: Bearer <ADMIN_TOKEN>" http://localhost:8000/api/v1/he
 ### Scenario C: Redis Outage / Restart
 If Redis restarts or becomes temporarily unavailable:
 1. In development, the platform continues in single-process in-memory mode.
-2. In production, `LockManager` and `RedisTaskQueue` fail closed safely with structured error envelopes without exposing database credentials or Python tracebacks.
+2. In production, `LockManager.acquire()` propagates a `ConnectionError` (or `RuntimeError`), failing closed immediately and aborting critical operations before state corruption occurs. The release mechanism safely no-ops (`release()` catches exceptions cleanly). At the API layer, the global exception handler catches unhandled exceptions and returns a sanitized HTTP 500 error envelope without exposing internal paths (`C:\`, `/home/`, `/app/`), Python tracebacks, or secret credentials (`password`, `secret`, `api_key`).
 3. Once Redis is reachable again, clients re-establish connection automatically without process restart.
 
 ---

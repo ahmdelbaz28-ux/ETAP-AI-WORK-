@@ -269,7 +269,9 @@ class RedisDistributedLock:
         Returns True if lock was acquired.
         """
         if self._client is None:
-            return True  # no Redis — allow (single-process fallback)
+            # Single-process in-memory fallback: allowed in local dev/tests, but does NOT protect
+            # multi-worker (Gunicorn) or multi-replica clusters from concurrent race conditions.
+            return True
 
         import uuid
 

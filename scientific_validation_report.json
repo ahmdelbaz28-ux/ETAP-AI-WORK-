@@ -1,18 +1,20 @@
 {
   "title": "AhmedETAP Scientific Numerical Benchmark Certification",
-  "timestamp": "2026-09-17T09:43:57.169963+00:00",
+  "timestamp": "2026-09-17T10:39:11.162485+00:00",
   "total_benchmarks": 4,
   "passed_benchmarks": 4,
   "status": "CERTIFIED_PASS",
-  "total_execution_time_sec": 0.0076,
+  "total_execution_time_sec": 0.0069,
   "benchmarks": [
     {
       "name": "IEEE 9-Bus WSCC Load Flow",
       "standard": "IEEE 3002.7 / Anderson & Fouad",
       "converged": true,
-      "execution_time_sec": 0.0018,
+      "iterations": 4,
+      "execution_time_sec": 0.0016,
       "max_error_pct": 0.04,
-      "tolerance_limit_pct": 1.0,
+      "tolerance_limit_pct": 0.05,
+      "standard_upper_bound_pct": 0.8,
       "passed": true,
       "details": {
         "Bus_1": {
@@ -66,7 +68,8 @@
       "name": "IEEE 14-Bus Standard Test Feeder",
       "standard": "IEEE PES Power Flow Archive",
       "converged": true,
-      "execution_time_sec": 0.0055,
+      "iterations": 5,
+      "execution_time_sec": 0.0048,
       "tolerance_limit_pct": 0.5,
       "passed": true,
       "bus_count": 14,
@@ -86,7 +89,7 @@
       "standard": "IEEE 1584-2018",
       "incident_energy_cal_cm2": 0.0005,
       "arc_flash_boundary_mm": 0.3,
-      "execution_time_sec": 0.0002,
+      "execution_time_sec": 0.0005,
       "passed": true
     }
   ]

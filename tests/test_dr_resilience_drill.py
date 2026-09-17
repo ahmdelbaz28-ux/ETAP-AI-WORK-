@@ -54,7 +54,7 @@ async def test_alembic_single_head_consistency() -> None:
 
     assert len(heads) == 1, f"Database migration history must have exactly 1 head, found: {heads}"
     head_rev = heads[0]
-    assert head_rev == "011_add_hardening_tables"
+    assert head_rev == "012_add_study_version_unique_constraint"
 
     # Verify that the head revision script defines both upgrade and downgrade functions
     rev_script = script.get_revision(head_rev)
@@ -82,13 +82,70 @@ async def test_task_queue_resilience_on_enqueue_failure() -> None:
 
 
 def test_error_envelope_does_not_leak_stack_traces() -> None:
-    """Verify that unhandled 404 or bad requests return structured JSON without Python stack traces."""
-    client = TestClient(app)
+    """Verify that unhandled 404 or 500 errors return structured JSON without leaking tracebacks, paths, or credentials."""
+    client = TestClient(app, raise_server_exceptions=False)
+
+    # 1. 404 Not Found check
     resp = client.get("/api/v1/non_existent_endpoint_for_dr_test")
     assert resp.status_code == 404
     body = resp.text
 
-    # Assert no traceback or internal filesystem paths leaked
+    # Assert no traceback, internal filesystem paths, or credentials leaked in 404
     assert "Traceback (most recent call last)" not in body
     assert "c:\\users" not in body.lower()
     assert "/home/" not in body
+    assert "/app/" not in body
+    assert "password" not in body.lower()
+    assert "secret" not in body.lower()
+    assert "api_key" not in body.lower()
+
+    # 2. 500 Internal Server Error check in production mode (debug=False)
+    curr = getattr(client.app, "middleware_stack", None)
+    debug_objects = []
+    while curr:
+        if hasattr(curr, "debug"):
+            debug_objects.append((curr, curr.debug))
+            curr.debug = False
+        curr = getattr(curr, "app", None)
+
+    try:
+        with patch(
+            "api.health.time.strftime",
+            side_effect=RuntimeError(
+                "Simulated DR crash in C:\\Users\\Admin\\Desktop\\etap\\app.py with password=leak_pass and api_key=leak_token"
+            ),
+        ):
+            resp_500 = client.get("/health")
+            assert resp_500.status_code == 500
+            body_500 = resp_500.text
+
+            # Assert no traceback, internal filesystem paths, or credentials leaked in 500
+            assert "Traceback (most recent call last)" not in body_500
+            assert "c:\\users" not in body_500.lower()
+            assert "/home/" not in body_500
+            assert "/app/" not in body_500
+            assert "password" not in body_500.lower()
+            assert "secret" not in body_500.lower()
+            assert "api_key" not in body_500.lower()
+    finally:
+        for obj, val in debug_objects:
+            obj.debug = val
+
+    # 3. Direct verification of global_exception_handler sanitization envelope
+    import asyncio
+
+    from starlette.requests import Request
+
+    from api.routes import global_exception_handler
+
+    scope = {"type": "http", "method": "GET", "path": "/health", "headers": []}
+    dummy_req = Request(scope)
+    dummy_req.state.trace_id = "trace-dr-test-123"
+    leak_exc = RuntimeError("Fatal leak with password=secret_pw in C:\\Users\\Administrator\\etap")
+    handler_resp = asyncio.run(global_exception_handler(dummy_req, leak_exc))
+    assert handler_resp.status_code == 500
+    handler_body = handler_resp.body.decode()
+    assert "Traceback" not in handler_body
+    assert "c:\\users" not in handler_body.lower()
+    assert "secret_pw" not in handler_body
+    assert "error" in handler_body

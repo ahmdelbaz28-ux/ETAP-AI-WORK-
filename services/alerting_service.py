@@ -33,7 +33,15 @@ class AlertSeverity(str, Enum):
 
 
 class AlertingService:
-    """Production alerting service with debouncing and multi-channel dispatch."""
+    """Production alerting service with debouncing and multi-channel dispatch.
+
+    Note on Multi-Worker Concurrency:
+    Debouncing is currently maintained in-memory per worker process (_last_alert_times dict).
+    In a deployment with N worker processes (e.g. 4 Gunicorn workers), a burst of identical
+    alerts may dispatch up to N times (once per worker) during the debounce window (default 300s)
+    before each worker's local cache suppresses further dispatches. For strictly unified
+    cross-worker deduplication, a shared Redis key with TTL can be utilized.
+    """
 
     def __init__(
         self,

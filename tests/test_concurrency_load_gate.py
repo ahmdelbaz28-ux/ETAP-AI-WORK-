@@ -1,11 +1,11 @@
 """
-tests/test_concurrency_load_gate.py — Automated Concurrency & Load Testing Gate.
+tests/test_concurrency_load_gate.py — In-Process Concurrency & Mock Load Testing Gate.
 
-Validates that AhmedETAP handles concurrent load and distributed state under high concurrency:
-1. 50 concurrent health and probe requests with sub-second p95 latency.
-2. Distributed LockManager mutual exclusion under concurrent contention.
-3. Concurrent RedisTaskQueue enqueue and atomic dequeue.
-4. Concurrent study execution without cross-talk or calculation corruption.
+Validates application behavior under concurrent load using an in-process mock (ConcurrentMockRedis):
+1. 50 concurrent health and probe requests with tight in-process p95 latency (< 0.25s).
+2. In-process LockManager mutual exclusion simulation under concurrent coroutine contention.
+3. In-process RedisTaskQueue enqueue and atomic dequeue simulation.
+4. Integration test against a real distributed Redis server when REDIS_URL is provided.
 """
 
 from __future__ import annotations
@@ -25,7 +25,7 @@ from core.redis_state import LockManager
 
 
 class ConcurrentMockRedis:
-    """Thread/task safe mock Redis client for concurrent load testing."""
+    """In-process thread/task safe mock Redis client (simulation only, not real distributed Redis)."""
 
     def __init__(self) -> None:
         self.hashes: Dict[str, Dict[str, str]] = {}
@@ -126,7 +126,7 @@ class ConcurrentMockRedis:
 
 @pytest.mark.asyncio
 async def test_concurrent_health_probes_p95_latency() -> None:
-    """Execute 50 concurrent health check requests and assert p95 latency < 1.0s."""
+    """Execute 50 concurrent in-process health check requests and assert p95 latency < 0.25s."""
     client = TestClient(app)
     latencies: List[float] = []
 
@@ -151,18 +151,18 @@ async def test_concurrent_health_probes_p95_latency() -> None:
     p95_idx = int(len(sorted_latencies) * 0.95)
     p95_val = sorted_latencies[p95_idx]
 
-    # Assert p95 latency is sub-second
-    assert p95_val < 1.0, f"p95 latency {p95_val:.3f}s exceeded 1.0s threshold"
+    # Assert p95 latency is sub-250ms for local in-process execution
+    assert p95_val < 0.25, f"In-process p95 latency {p95_val:.3f}s exceeded 0.25s threshold"
 
 
 @pytest.mark.asyncio
 async def test_concurrent_distributed_locks_mutual_exclusion() -> None:
-    """Test 20 concurrent coroutines competing for the same distributed lock.
+    """Test 20 concurrent coroutines competing for the same in-process mock lock.
 
-    Guarantees:
+    Guarantees within the local process:
     - At most ONE coroutine enters the critical section at any given time.
     - Zero deadlocks occur.
-    - No race condition corrupts the shared state.
+    - Note: This is an in-process asyncio.Lock simulation, not multi-replica distributed isolation.
     """
     mock_redis = ConcurrentMockRedis()
     lock_manager = LockManager(client=mock_redis)
@@ -263,3 +263,34 @@ async def test_concurrent_task_queue_atomic_processing() -> None:
         assert set(processed_job_ids) == set(enqueued_job_ids), (
             "Processed job IDs do not match enqueued IDs"
         )
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_real_redis_distributed_lock_integration() -> None:
+    """Live integration test against a real Redis server (requires REDIS_URL).
+
+    Skipped automatically in CI/local runs where no live Redis instance is configured.
+    """
+    redis_url = os.getenv("REDIS_URL")
+    if not redis_url:
+        pytest.skip("Live Redis test skipped: REDIS_URL environment variable is not set.")
+
+    import redis.asyncio as aioredis
+
+    client = aioredis.from_url(redis_url, decode_responses=True)
+    try:
+        await client.ping()
+    except Exception as exc:
+        pytest.skip(f"Live Redis unreachable at {redis_url}: {exc}")
+
+    lock_manager = LockManager(client=client)
+    lock_name = "test:live_redis:integration_lock"
+
+    try:
+        async with lock_manager.lock(lock_name, ttl_seconds=5, timeout_ms=2000):
+            val = await client.get(f"etap:lock:{lock_name}")
+            assert val is not None
+    finally:
+        await client.delete(f"etap:lock:{lock_name}")
+        await client.aclose()
