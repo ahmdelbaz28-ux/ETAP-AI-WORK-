@@ -323,6 +323,9 @@ async def _load_owned_project(project_id: str, user: CurrentUser, db: AsyncSessi
 
 
 from api.services.export_generator import (
+    _sanitize_csv_cell as _sanitize_csv_cell_impl,
+)
+from api.services.export_generator import (
     generate_csv_export,
     generate_excel_export,
     generate_json_export,
@@ -333,6 +336,7 @@ _generate_pdf = generate_pdf_export
 _generate_excel = generate_excel_export
 _generate_csv = generate_csv_export
 _generate_json = generate_json_export
+_sanitize_csv_cell = _sanitize_csv_cell_impl
 
 
 @router.get("/formats", summary="List pre-declared supported export formats")

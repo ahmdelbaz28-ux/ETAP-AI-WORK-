@@ -190,15 +190,15 @@ async def _init_test_database():
     try:
         from sqlalchemy import select, text
 
-        from api.auth import User, _hash_password
+        from api.auth import _DEFAULT_TENANT_ID, User, _hash_password
         from api.database import async_session, init_db
     except (ImportError, ModuleNotFoundError):
         # Database stack not installed in this runner (e.g. boundary tests)
         yield
         return
 
-    # Canonical test-tenant ID used by all seeded users.
-    _TEST_TENANT_ID = "00000000-0000-0000-0000-000000000001"
+    # Canonical test-tenant ID used by all seeded users (aligned with _DEFAULT_TENANT_ID).
+    _TEST_TENANT_ID = _DEFAULT_TENANT_ID
 
     await init_db()
 
@@ -214,8 +214,8 @@ async def _init_test_database():
                 session.add(
                     Tenant(
                         id=_TEST_TENANT_ID,
-                        name="Test Tenant",
-                        slug="test-tenant",
+                        name="Default Organization",
+                        slug="default",
                         plan="enterprise",
                         is_active=True,
                         max_projects=100,
@@ -234,8 +234,8 @@ async def _init_test_database():
                     ),
                     {
                         "id": _TEST_TENANT_ID,
-                        "name": "Test Tenant",
-                        "slug": "test-tenant",
+                        "name": "Default Organization",
+                        "slug": "default",
                         "plan": "enterprise",
                         "active": True,
                     },
@@ -316,7 +316,11 @@ def registered_user():
 @pytest.fixture(autouse=True)
 def _reset_dependency_overrides():
     """Ensure no test leaks dependency_overrides into another test."""
-    from api.routes import app as fastapi_app
+    try:
+        from api.routes import app as fastapi_app
+    except (ImportError, ModuleNotFoundError):
+        yield
+        return
 
     fastapi_app.dependency_overrides.clear()
     yield

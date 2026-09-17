@@ -35,7 +35,7 @@ def test_alembic_config_and_head_revision() -> None:
     head_rev = get_head_revision()
     assert head_rev is not None
     # Verify matches latest migration revision ID
-    assert head_rev == "011_add_hardening_tables"
+    assert head_rev == "012_study_version_unique"
 
 
 @pytest.mark.asyncio
@@ -43,7 +43,7 @@ async def test_schema_health_reporting() -> None:
     """Verify check_schema_health returns head revision."""
     health = await check_schema_health()
     assert health["status"] == "synchronized"
-    assert health["head_revision"] == "011_add_hardening_tables"
+    assert health["head_revision"] == "012_study_version_unique"
 
 
 @pytest.mark.asyncio
@@ -77,4 +77,4 @@ def test_schema_health_endpoint() -> None:
     assert resp.status_code == 200
     data = resp.json()
     assert "head_revision" in data
-    assert data["head_revision"] == "011_add_hardening_tables"
+    assert data["head_revision"] == "012_study_version_unique"

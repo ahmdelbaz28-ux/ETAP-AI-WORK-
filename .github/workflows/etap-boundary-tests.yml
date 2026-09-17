@@ -37,8 +37,8 @@ jobs:
 
       - name: Install dependencies
         run: |
-          # E4 fix: pytest-asyncio required for async fixtures in boundary tests
-          pip install --quiet pytest pyyaml pytest-asyncio
+          # E4 fix: pytest-asyncio and aiofiles required for async fixtures in boundary tests
+          pip install --quiet pytest pyyaml pytest-asyncio aiofiles
 
       - name: Run boundary mismatch tests
         run: |
