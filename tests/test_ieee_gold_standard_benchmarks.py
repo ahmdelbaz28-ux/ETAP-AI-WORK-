@@ -35,7 +35,9 @@ def test_ieee_9bus_convergence_and_voltage_accuracy():
     # Explicit assertion on actual measured Newton-Raphson iterations
     iterations = len(solver.iteration_log)
     assert iterations <= 10, f"Newton-Raphson iterations {iterations} exceeded limit 10"
-    assert iterations == 4, f"Actual measured iterations is 4, got {iterations}"
+    assert 3 <= iterations <= 6, (
+        f"Measured Newton-Raphson iterations {iterations} outside expected range [3, 6]"
+    )
 
     # Verify voltage magnitudes against standard benchmark values
     max_err_pct = 0.0

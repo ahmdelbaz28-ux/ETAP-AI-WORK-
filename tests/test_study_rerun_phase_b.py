@@ -305,3 +305,173 @@ async def test_re_run_retry_on_version_concurrency_race(async_db: AsyncSession, 
     )
     assert res2["version_number"] == 2
     assert call_count >= 2, "Retry loop should have retried after collision"
+
+
+@pytest.mark.asyncio
+async def test_create_version_retry_on_concurrency_collision(async_db: AsyncSession, monkeypatch):
+    """Verify create_version retries and succeeds with incremented version number when collision occurs."""
+    from unittest.mock import MagicMock
+
+    from api.study_versions import VersionCreateRequest, create_version
+
+    project_id = "proj-create-ver-retry"
+    study_id = "study-create-ver-1"
+
+    proj = Project(
+        id=project_id,
+        tenant_id="tenant-delta",
+        name="Test Project Delta",
+        created_by="eng-1",
+    )
+    async_db.add(proj)
+
+    study = StudyResult(
+        id=study_id,
+        project_id=project_id,
+        tenant_id="tenant-delta",
+        study_type="load_flow",
+        status="completed",
+        config={"base_mva": 100.0},
+        results={"buses": []},
+        created_by="eng-1",
+    )
+    async_db.add(study)
+    await async_db.commit()
+
+    user = CurrentUser(
+        user_id="eng-1",
+        username="engineer1",
+        email="eng1@delta.internal",
+        role="engineer",
+        tenant_id="tenant-delta",
+    )
+
+    # 1. Create first version
+    v1 = await create_version(
+        project_id=project_id,
+        study_id=study_id,
+        body=VersionCreateRequest(label="Baseline"),
+        db=async_db,
+        user=user,
+    )
+    assert v1.version_number == 1
+    await async_db.commit()
+
+    # 2. Simulate collision on first attempt of second create_version:
+    # return version 1 (which causes IntegrityError on flush), then real query on retry.
+    call_count = 0
+    orig_execute = async_db.execute
+
+    async def mock_execute(statement, *args, **kwargs):
+        nonlocal call_count
+        stmt_str = str(statement).lower()
+        if "max" in stmt_str and "study_version" in stmt_str:
+            call_count += 1
+            if call_count == 1:
+                mock_res = MagicMock()
+                mock_res.scalar_one.return_value = 1  # collision with v1
+                return mock_res
+        return await orig_execute(statement, *args, **kwargs)
+
+    monkeypatch.setattr(async_db, "execute", mock_execute)
+
+    v2 = await create_version(
+        project_id=project_id,
+        study_id=study_id,
+        body=VersionCreateRequest(label="Second Version"),
+        db=async_db,
+        user=user,
+    )
+    assert v2.version_number == 2
+    assert call_count >= 2, "Should have retried after collision on attempt 0"
+
+
+@pytest.mark.asyncio
+async def test_rollback_version_retry_on_concurrency_collision(async_db: AsyncSession, monkeypatch):
+    """Verify rollback_version retries and succeeds when audit version number collides."""
+    from unittest.mock import MagicMock
+
+    from api.study_versions import VersionCreateRequest, create_version, rollback_version
+
+    project_id = "proj-rollback-retry"
+    study_id = "study-rollback-1"
+
+    proj = Project(
+        id=project_id,
+        tenant_id="tenant-omega",
+        name="Test Project Omega",
+        created_by="eng-omega",
+    )
+    async_db.add(proj)
+
+    study = StudyResult(
+        id=study_id,
+        project_id=project_id,
+        tenant_id="tenant-omega",
+        study_type="load_flow",
+        status="completed",
+        config={"base_mva": 100.0},
+        results={"v": 1.0},
+        created_by="eng-omega",
+    )
+    async_db.add(study)
+    await async_db.commit()
+
+    user = CurrentUser(
+        user_id="eng-omega",
+        username="engineer_omega",
+        email="eng@omega.internal",
+        role="engineer",
+        tenant_id="tenant-omega",
+    )
+
+    # Create v1
+    v1 = await create_version(
+        project_id=project_id,
+        study_id=study_id,
+        body=VersionCreateRequest(label="Original Snapshot"),
+        db=async_db,
+        user=user,
+    )
+    assert v1.version_number == 1
+
+    # Create v2
+    v2 = await create_version(
+        project_id=project_id,
+        study_id=study_id,
+        body=VersionCreateRequest(label="Updated Snapshot"),
+        db=async_db,
+        user=user,
+    )
+    assert v2.version_number == 2
+    await async_db.commit()
+
+    # Simulate collision on first attempt of rollback audit snapshot:
+    # return version 1 (which causes IntegrityError on flush), then real query on retry.
+    call_count = 0
+    orig_execute = async_db.execute
+
+    async def mock_execute(statement, *args, **kwargs):
+        nonlocal call_count
+        stmt_str = str(statement).lower()
+        if "max" in stmt_str and "study_version" in stmt_str:
+            call_count += 1
+            if call_count == 1:
+                mock_res = MagicMock()
+                mock_res.scalar_one.return_value = 1  # collision with v1
+                return mock_res
+        return await orig_execute(statement, *args, **kwargs)
+
+    monkeypatch.setattr(async_db, "execute", mock_execute)
+
+    # Perform rollback to v1 (pre-rollback audit snapshot will be version 3 after retry)
+    res_rollback = await rollback_version(
+        project_id=project_id,
+        study_id=study_id,
+        version_id=v1.id,
+        db=async_db,
+        user=user,
+    )
+    assert res_rollback["version"] == 1
+    assert res_rollback["audit_snapshot_version"] == 3
+    assert call_count >= 2, "Should have retried after collision on attempt 0"

@@ -17,6 +17,7 @@ Exposes endpoints under ``/api/v1/studies/{study_id}/versions``:
 
 from __future__ import annotations
 
+import asyncio
 import json
 import uuid
 from datetime import datetime, timezone
@@ -37,6 +38,7 @@ from sqlalchemy import (
     func,
     select,
 )
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -225,27 +227,40 @@ async def create_version(
     """Create a new version snapshot of a study."""
     study = await _get_study_result(project_id, study_id, db, user=user)
 
-    # Get current version count
-    count_result = await db.execute(
-        select(func.count()).select_from(StudyVersion).where(StudyVersion.study_id == study_id)
-    )
-    version_number = count_result.scalar_one() + 1
+    # 3x retry on IntegrityError for concurrent StudyVersion creation
+    max_retries = 3
+    version = None
+    for attempt in range(max_retries):
+        count_result = await db.execute(
+            select(func.coalesce(func.max(StudyVersion.version_number), 0) + 1).where(
+                StudyVersion.project_id == project_id
+            )
+        )
+        version_number = count_result.scalar_one()
 
-    version = StudyVersion(
-        id=str(uuid.uuid4()),
-        tenant_id=user.tenant_id,
-        study_id=study_id,
-        project_id=project_id,
-        version_number=version_number,
-        label=body.label or f"Version {version_number}",
-        description=body.description,
-        config_snapshot=study.config or {},
-        results_snapshot=study.results,
-        created_by=user.user_id,
-    )
-    db.add(version)
-    await db.flush()
-    await db.refresh(version)
+        version = StudyVersion(
+            id=str(uuid.uuid4()),
+            tenant_id=user.tenant_id,
+            study_id=study_id,
+            project_id=project_id,
+            version_number=version_number,
+            label=body.label or f"Version {version_number}",
+            description=body.description,
+            config_snapshot=study.config or {},
+            results_snapshot=study.results,
+            created_by=user.user_id,
+        )
+        db.add(version)
+        try:
+            await db.flush()
+            await db.refresh(version)
+            break
+        except IntegrityError:
+            await db.rollback()
+            if attempt == max_retries - 1:
+                raise
+            study = await _get_study_result(project_id, study_id, db, user=user)
+            await asyncio.sleep(0.01 * (attempt + 1))
 
     return VersionResponse(
         id=str(version.id),
@@ -334,30 +349,51 @@ async def rollback_version(
     if user.tenant_id and version.tenant_id and version.tenant_id != user.tenant_id:
         raise HTTPException(status_code=404, detail=_MSG_VERSION_NOT_FOUND)
 
-    # Finding 15: Create an audit snapshot of current state before rollback so history is preserved
-    count_result = await db.execute(
-        select(func.count()).select_from(StudyVersion).where(StudyVersion.study_id == study_id)
-    )
-    audit_version_number = count_result.scalar_one() + 1
-    pre_rollback_version = StudyVersion(
-        id=str(uuid.uuid4()),
-        tenant_id=user.tenant_id,
-        study_id=study_id,
-        project_id=project_id,
-        version_number=audit_version_number,
-        label=f"Pre-rollback snapshot (before restoring v{version.version_number})",
-        description=f"Automated audit snapshot before rolling back to version {version.version_number}",
-        config_snapshot=study.config or {},
-        results_snapshot=study.results,
-        diff_summary=f"Rolled back to v{version.version_number} by {user.user_id}",
-        created_by=user.user_id,
-    )
-    db.add(pre_rollback_version)
+    # Finding 15: Create an audit snapshot of current state before rollback with 3x retry on IntegrityError
+    max_retries = 3
+    audit_version_number = 1
+    for attempt in range(max_retries):
+        count_result = await db.execute(
+            select(func.coalesce(func.max(StudyVersion.version_number), 0) + 1).where(
+                StudyVersion.project_id == project_id
+            )
+        )
+        audit_version_number = count_result.scalar_one()
+        pre_rollback_version = StudyVersion(
+            id=str(uuid.uuid4()),
+            tenant_id=user.tenant_id,
+            study_id=study_id,
+            project_id=project_id,
+            version_number=audit_version_number,
+            label=f"Pre-rollback snapshot (before restoring v{version.version_number})",
+            description=f"Automated audit snapshot before rolling back to version {version.version_number}",
+            config_snapshot=study.config or {},
+            results_snapshot=study.results,
+            diff_summary=f"Rolled back to v{version.version_number} by {user.user_id}",
+            created_by=user.user_id,
+        )
+        db.add(pre_rollback_version)
 
-    study.config = version.config_snapshot
-    study.results = version.results_snapshot
-    db.add(study)
-    await db.flush()
+        study.config = version.config_snapshot
+        study.results = version.results_snapshot
+        db.add(study)
+        try:
+            await db.flush()
+            break
+        except IntegrityError:
+            await db.rollback()
+            if attempt == max_retries - 1:
+                raise
+            study = await _get_study_result(project_id, study_id, db, user=user)
+            result = await db.execute(
+                select(StudyVersion).where(
+                    StudyVersion.id == version_id,
+                    StudyVersion.study_id == study_id,
+                    StudyVersion.project_id == project_id,
+                )
+            )
+            version = result.scalar_one_or_none()
+            await asyncio.sleep(0.01 * (attempt + 1))
 
     return {
         "message": f"Study rolled back to version {version.version_number}",

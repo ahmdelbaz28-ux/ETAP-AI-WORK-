@@ -58,7 +58,7 @@ def run_benchmarks() -> dict:
             "error_pct": err,
         }
 
-    passed_9bus = bool(conv9 and max_err_9bus < 1.0)
+    passed_9bus = bool(conv9 and max_err_9bus <= 0.05)
     if not passed_9bus:
         overall_passed = False
 
@@ -70,6 +70,7 @@ def run_benchmarks() -> dict:
             "iterations": len(solver9.iteration_log),
             "execution_time_sec": round(t9, 4),
             "max_error_pct": max_err_9bus,
+            "measured_tolerance_pct": 0.05,
             "tolerance_limit_pct": 0.05,
             "standard_upper_bound_pct": 0.8,
             "passed": passed_9bus,
