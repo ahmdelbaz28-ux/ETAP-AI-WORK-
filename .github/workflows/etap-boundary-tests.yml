@@ -7,14 +7,14 @@ on:
     paths:
       - 'api/**'
       - 'ui/src/**'
-      - 'tests/boundary_mismatch/**'
+      - 'tests/**'
       - '.github/workflows/etap-boundary-tests.yml'
   pull_request:
     branches: [main]
     paths:
       - 'api/**'
       - 'ui/src/**'
-      - 'tests/boundary_mismatch/**'
+      - 'tests/**'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
