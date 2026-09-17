@@ -75,6 +75,14 @@ def _normalize_buses(raw: Any) -> list[dict[str, Any]]:
 
 
 def _normalize_faults(raw: Any) -> list[dict[str, Any]]:
+    """Normalise fault current data from study results.
+
+    P1.3 — SECURITY/ACCURACY: The fabricated fallback ``ip = ik * 2.55`` has
+    been removed.  ``ip`` is ``None`` when the upstream engine did not return a
+    peak current, so the export layer can show "N/A" explicitly instead of
+    fabricating a value.  Real ``ip`` values come from the IEC 60909 engine
+    (``ip_peak`` field) which uses the bus-specific κ factor.
+    """
     if not raw:
         return []
     res = []
@@ -82,26 +90,40 @@ def _normalize_faults(raw: Any) -> list[dict[str, Any]]:
         for item in raw:
             if isinstance(item, dict):
                 b_name = item.get("bus") or item.get("name") or item.get("equipment") or "Bus"
-                ik = item.get("ik_ss") or item.get("ik_ss_ka") or item.get("fault_current_ka") or 25.0
-                ip = item.get("ip") or item.get("ip_ka") or (float(ik) * 2.55)
-                res.append({"bus": str(b_name), "ik_ss": float(ik), "ip": float(ip)})
+                ik = item.get("ik_ss") or item.get("ik_ss_ka") or item.get("fault_current_ka")
+                # ip: accept real engine value; do NOT fabricate with 2.55 multiplier
+                ip = item.get("ip") or item.get("ip_ka") or item.get("ip_peak")
+                sk = item.get("sk") or item.get("sk_mva")
+                res.append({
+                    "bus": str(b_name),
+                    "ik_ss": float(ik) if ik is not None else None,
+                    "ip": float(ip) if ip is not None else None,
+                    "sk": float(sk) if sk is not None else None,
+                })
     elif isinstance(raw, dict):
         for b_name, val in sorted(raw.items()):
             if isinstance(val, dict):
-                ik = val.get("ik_ss") or val.get("ik_ss_ka") or val.get("fault_current_ka") or 25.0
-                ip = val.get("ip") or val.get("ip_ka") or (float(ik) * 2.55)
+                ik = val.get("ik_ss") or val.get("ik_ss_ka") or val.get("fault_current_ka")
+                ip = val.get("ip") or val.get("ip_ka") or val.get("ip_peak")
+                sk = val.get("sk") or val.get("sk_mva")
             else:
                 ik = float(val)
-                ip = float(ik) * 2.55
-            res.append({"bus": str(b_name), "ik_ss": float(ik), "ip": float(ip)})
+                ip = None  # no peak current — engine value required
+                sk = None
+            res.append({
+                "bus": str(b_name),
+                "ik_ss": float(ik) if ik is not None else None,
+                "ip": float(ip) if ip is not None else None,
+                "sk": float(sk) if sk is not None else None,
+            })
     return res
 
 
 def generate_pdf_export(
     project_name: str,
     studies: Sequence[Any],
-    engineer_name: str = "Eng. Ahmed Elbaz, PE",
-    license_number: str = "PE-EE-2026-08819",
+    engineer_name: str | None = None,
+    license_number: str | None = None,
 ) -> bytes:
     """Generate a certified engineering PDF report with PE Stamp and IEEE/IEC tables."""
     try:
@@ -116,7 +138,15 @@ def generate_pdf_export(
             TableStyle,
         )
 
-        from api.pe_stamp import create_pe_stamp
+        # P0.2 — Use unified PEStamp API (DEFAULT_* constants + sign_study) exclusively.
+        # create_pe_stamp (legacy) is no longer called from this module.
+        from api.pe_stamp import (
+            DEFAULT_ENGINEER_NAME,
+            DEFAULT_LICENSE_ID,
+            PEStamp,
+        )
+        _eng_name = engineer_name or DEFAULT_ENGINEER_NAME
+        _lic_id = license_number or DEFAULT_LICENSE_ID
 
         buffer = io.BytesIO()
         doc = SimpleDocTemplate(
@@ -152,15 +182,22 @@ def generate_pdf_export(
         elements.append(Spacer(1, 14))
 
         # 2. Professional Engineer (PE) Regulatory Stamp Box
+        # P0.2 — Unified PE stamp via PEStamp.sign_study (single source of truth).
         res_payload = [_extract_study_attr(s, "results") for s in studies]
-        res_hash = hashlib.sha256(json.dumps(res_payload, sort_keys=True, default=str).encode()).hexdigest()
-        pe_stamp = create_pe_stamp(
-            engineer_id=engineer_name,
-            license_number=license_number,
-            study_type="Power System Analysis",
-            study_id=project_name,
-            result_hash=res_hash,
+        pe_stamp_record = PEStamp.sign_study(
+            study_data=res_payload,
+            engineer_name=_eng_name,
+            license_id=_lic_id,
         )
+        res_hash = pe_stamp_record.raw_hash
+        # P1.6 — Certification status is derived from real study convergence.
+        all_converged = all(
+            (_extract_study_attr(s, "results") or {}).get("converged", True)
+            and _extract_study_attr(s, "status", "completed") in ("completed", "Unknown", None)
+            for s in studies
+        ) if studies else False
+        cert_status_label = "PASS — All calculations verified" if all_converged else "PARTIAL — Some studies incomplete"
+        cert_color = "#16A34A" if all_converged else "#B45309"
 
         stamp_data = [
             [
@@ -168,11 +205,11 @@ def generate_pdf_export(
                 ""
             ],
             [
-                Paragraph(f"<b>Certified Engineer:</b> {engineer_name}<br/><b>License ID:</b> {license_number} (Active)", styles["Normal"]),
-                Paragraph("<b>Jurisdiction & Codes:</b> IEEE 3002.7 / IEC 60909<br/><b>Audit Status:</b> <font color='#16A34A'><b>VERIFIED PASS</b></font>", styles["Normal"])
+                Paragraph(f"<b>Certified Engineer:</b> {_eng_name}<br/><b>License ID:</b> {_lic_id} (Active)", styles["Normal"]),
+                Paragraph(f"<b>Jurisdiction &amp; Codes:</b> IEEE 3002.7 / IEC 60909<br/><b>Certification Status:</b> <font color='{cert_color}'><b>{cert_status_label}</b></font>", styles["Normal"])
             ],
             [
-                Paragraph(f"<b>Digital Signature Hash (SHA-256):</b><br/><font size=7 color='#4B5563'>{pe_stamp['signature_hash']}</font>", styles["Normal"]),
+                Paragraph(f"<b>Digital Signature Hash (SHA-256):</b><br/><font size=7 color='#4B5563'>{pe_stamp_record.signature_sha256}</font>", styles["Normal"]),
                 Paragraph(f"<b>Result Verification Hash:</b><br/><font size=7 color='#4B5563'>{res_hash}</font>", styles["Normal"])
             ],
         ]
@@ -277,12 +314,16 @@ def generate_pdf_export(
         # 5. IEC 60909 Short Circuit Fault Duty (if available)
         if fault_list:
             elements.append(Paragraph("3. Short Circuit Analysis (IEC 60909 Symmetrical Fault Currents)", h2_style))
-            sc_rows = [["Bus / Equipment", "Fault Type", "Ik'' Initial (kA)", "ip Peak (kA)", "Standard Status"]]
+            sc_rows = [["Bus / Equipment", "Fault Type", "Ik'' Initial (kA)", "ip Peak (kA)", "Sk (MVA)", "Status"]]
             for f_info in fault_list:
-                ik = f_info["ik_ss"]
-                ip = f_info["ip"]
-                sc_rows.append([f_info["bus"], "3-Phase Symmetrical", f"{ik:.2f}", f"{ip:.2f}", "VERIFIED"])
-            sc_table = Table(sc_rows, colWidths=[120, 120, 90, 90, 100])
+                ik = f_info.get("ik_ss")
+                ip = f_info.get("ip")
+                sk = f_info.get("sk")
+                ik_str = f"{ik:.2f}" if ik is not None else "N/A"
+                ip_str = f"{ip:.2f}" if ip is not None else "N/A — κ engine required"
+                sk_str = f"{sk:.1f}" if sk is not None else "N/A"
+                sc_rows.append([f_info["bus"], "3-Phase Symmetrical", ik_str, ip_str, sk_str, "IEC 60909"])
+            sc_table = Table(sc_rows, colWidths=[105, 110, 85, 85, 75, 60])
             sc_table.setStyle(
                 TableStyle([
                     ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#B45309")),
@@ -300,13 +341,29 @@ def generate_pdf_export(
         # 6. IEEE 1584 Arc Flash Hazard (if available)
         if arc_flash_data and isinstance(arc_flash_data, dict):
             elements.append(Paragraph("4. Arc Flash Hazard Assessment (IEEE 1584-2018 / NFPA 70E)", h2_style))
-            ie = arc_flash_data.get("incident_energy_cal_per_cm2", 4.2)
-            afb = arc_flash_data.get("arc_flash_boundary_mm", 1200)
-            ppe_cat = "Category 2" if ie <= 8.0 else ("Category 4" if ie <= 40.0 else "DANGEROUS")
+            ie = arc_flash_data.get("incident_energy_cal_per_cm2") or arc_flash_data.get("incident_energy_cal_cm2")
+            afb = arc_flash_data.get("arc_flash_boundary_mm")
+            # P1.5 — PPE determined by NFPA 70E via ArcFlashEngine (not hardcoded thresholds).
+            if ie is not None:
+                try:
+                    from fault_analysis.arc_flash_engine import ArcFlashEngine
+                    _ppe_lvl, _ppe_desc = ArcFlashEngine.determine_ppe_level(float(ie))
+                    ppe_cat = f"Category {_ppe_lvl}" if _ppe_lvl not in ("DANGER", "0") else (
+                        "DANGER — De-energize before working" if _ppe_lvl == "DANGER" else "Category 0 (No arc-rated PPE required)"
+                    )
+                except Exception:
+                    ppe_cat = "See NFPA 70E Table 130.7(C)(15)(c)"
+            else:
+                ie = "N/A — Engine data required"
+                afb = "N/A"
+                ppe_cat = "N/A"
+            # Format ie and afb safely — they may be strings ("N/A") if no engine data.
+            ie_str = f"{ie:.2f} cal/cm²" if isinstance(ie, (int, float)) else str(ie)
+            afb_str = f"{afb} mm" if afb is not None else "N/A"
             af_rows = [
                 ["Parameter", "Calculated Value", "Standard Limit / Category"],
-                ["Incident Energy", f"{ie:.2f} cal/cm²", "Working Distance: 457 mm (18 in)"],
-                ["Arc Flash Boundary", f"{afb} mm", "Restricted Approach Boundary"],
+                ["Incident Energy", ie_str, "Working Distance: 457 mm (18 in)"],
+                ["Arc Flash Boundary", afb_str, "Restricted Approach Boundary"],
                 ["Required PPE Category", ppe_cat, "NFPA 70E Standard Compliant"],
             ]
             af_table = Table(af_rows, colWidths=[160, 180, 180])
@@ -346,15 +403,18 @@ def generate_pdf_export(
 def generate_excel_export(
     project_name: str,
     studies: Sequence[Any],
-    engineer_name: str = "Eng. Ahmed Elbaz, PE",
-    license_number: str = "PE-EE-2026-08819",
+    engineer_name: str | None = None,
+    license_number: str | None = None,
 ) -> bytes:
     """Generate an Excel (.xlsx) file with multi-sheet IEEE/IEC tables and PE Stamp."""
     try:
         from openpyxl import Workbook
         from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 
-        from api.pe_stamp import create_pe_stamp
+        # P0.2 — Unified PEStamp API.
+        from api.pe_stamp import DEFAULT_ENGINEER_NAME, DEFAULT_LICENSE_ID, PEStamp
+        _eng_name = engineer_name or DEFAULT_ENGINEER_NAME
+        _lic_id = license_number or DEFAULT_LICENSE_ID
 
         wb = Workbook()
         ws_exec = wb.active
@@ -376,22 +436,29 @@ def generate_excel_export(
         ws_exec.cell(row=1, column=1, value=f"AhmedETAP — {project_name} Certification Report").font = title_font
         ws_exec.cell(row=2, column=1, value=f"Generated: {datetime.now(UTC).strftime('%Y-%m-%d %H:%M UTC')}").font = Font(color="64748B", size=9)
 
+        # P0.2 — Unified PEStamp.sign_study; P1.6 — real certification status.
         res_payload = [_extract_study_attr(s, "results") for s in studies]
-        res_hash = hashlib.sha256(json.dumps(res_payload, sort_keys=True, default=str).encode()).hexdigest()
-        pe_stamp = create_pe_stamp(
-            engineer_id=engineer_name,
-            license_number=license_number,
-            study_type="Power System Analysis",
-            study_id=project_name,
-            result_hash=res_hash,
+        pe_stamp_record = PEStamp.sign_study(
+            study_data=res_payload,
+            engineer_name=_eng_name,
+            license_id=_lic_id,
         )
+        res_hash = pe_stamp_record.raw_hash
+
+        # Real certification: only PASS if all studies converged/completed.
+        all_converged = all(
+            (_extract_study_attr(s, "results") or {}).get("converged", True)
+            and _extract_study_attr(s, "status", "completed") in ("completed", "Unknown", None)
+            for s in studies
+        ) if studies else False
+        cert_label = "PASS — All calculations verified" if all_converged else "PARTIAL — Some studies incomplete"
 
         stamp_rows = [
-            ("Professional Engineer Seal:", f"{engineer_name} (License: {license_number})"),
+            ("Professional Engineer Seal:", f"{_eng_name} (License: {_lic_id})"),
             ("Regulatory Standard:", "IEEE Std 3002.7-2018 / IEC 60909 / IEEE 1584-2018"),
-            ("Digital Signature Hash (SHA-256):", pe_stamp["signature_hash"]),
+            ("Digital Signature Hash (SHA-256):", pe_stamp_record.signature_sha256),
             ("Result Verification Checksum:", res_hash),
-            ("Compliance Certification:", "VERIFIED PASS — FORMALLY CERTIFIED"),
+            ("Compliance Certification:", cert_label),
         ]
 
         for i, (label, val) in enumerate(stamp_rows, 4):
@@ -485,13 +552,17 @@ def generate_excel_export(
                 cell.border = thin_border
 
             for row_idx, f_info in enumerate(fault_list, 2):
-                ik = f_info["ik_ss"]
-                ip = f_info["ip"]
+                ik = f_info.get("ik_ss")
+                ip = f_info.get("ip")
+                sk = f_info.get("sk")
+                ik_str = f"{ik:.3f}" if ik is not None else "N/A — engine data required"
+                ip_str = f"{ip:.3f}" if ip is not None else "N/A — κ factor required from engine"
+                sk_str = f"{sk:.1f}" if sk is not None else "N/A"
                 ws_sc.cell(row=row_idx, column=1, value=f_info["bus"]).border = thin_border
                 ws_sc.cell(row=row_idx, column=2, value="3-Phase Symmetrical").border = thin_border
-                ws_sc.cell(row=row_idx, column=3, value=float(ik)).border = thin_border
-                ws_sc.cell(row=row_idx, column=4, value=float(ip)).border = thin_border
-                ws_sc.cell(row=row_idx, column=5, value="VERIFIED").border = thin_border
+                ws_sc.cell(row=row_idx, column=3, value=ik_str).border = thin_border
+                ws_sc.cell(row=row_idx, column=4, value=ip_str).border = thin_border
+                ws_sc.cell(row=row_idx, column=5, value=sk_str).border = thin_border
 
             for col in range(1, 6):
                 ws_sc.column_dimensions[chr(64 + col)].width = 20

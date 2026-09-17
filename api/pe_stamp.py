@@ -143,14 +143,26 @@ def verify_pe_stamp(
     license_id: str = DEFAULT_LICENSE_ID,
     certified_date: str | None = None,
 ) -> bool:
-    """Verify cryptographic signature against study data."""
-    raw_hash = _compute_data_hash(study_data)
-    if certified_date:
-        sig_payload = f"{engineer_name}|{license_id}|{raw_hash}|{certified_date}"
-        return hashlib.sha256(sig_payload.encode("utf-8")).hexdigest() == signature_sha256
+    """Verify cryptographic signature against study data.
 
-    # If certified date is not provided, verify raw hash prefix or match
-    return len(signature_sha256) == 64 and bool(raw_hash)
+    SECURITY (P0.1): ``certified_date`` is required for a valid cryptographic
+    verification.  Without it we cannot reconstruct the exact HMAC payload
+    ``engineer|license|hash|date`` and therefore CANNOT authenticate the
+    signature — we return ``False`` (fail-closed) rather than accepting any
+    64-character hex string as valid.  Callers that only have the stamp dict
+    (returned by ``generate_pe_stamp``) must pass ``stamp["certified_date"]``.
+    """
+    if not certified_date:
+        # Fail-closed: no date → no verifiable signature.
+        logger.warning(
+            "verify_pe_stamp called without certified_date — rejecting (fail-closed). "
+            "Pass stamp['certified_date'] to perform a real cryptographic check."
+        )
+        return False
+
+    raw_hash = _compute_data_hash(study_data)
+    sig_payload = f"{engineer_name}|{license_id}|{raw_hash}|{certified_date}"
+    return hashlib.sha256(sig_payload.encode("utf-8")).hexdigest() == signature_sha256
 
 
 def create_pe_stamp(

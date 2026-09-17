@@ -134,7 +134,16 @@ def test_generate_pe_stamp_convenience_function():
     assert "engineer_name" in stamp_dict
     assert "signature_sha256" in stamp_dict
     assert "certified_date" in stamp_dict
-    assert verify_pe_stamp(MOCK_STUDIES[0]["results"], stamp_dict["signature_sha256"]) is True
+    # P0.1 — verify_pe_stamp REQUIRES certified_date; without it returns False (fail-closed).
+    assert verify_pe_stamp(
+        MOCK_STUDIES[0]["results"], stamp_dict["signature_sha256"]
+    ) is False, "verify_pe_stamp without certified_date must return False (fail-closed)"
+    # With the real certified_date the signature verifies correctly.
+    assert verify_pe_stamp(
+        MOCK_STUDIES[0]["results"],
+        stamp_dict["signature_sha256"],
+        certified_date=stamp_dict["certified_date"],
+    ) is True
 
 
 # ===========================================================================
@@ -314,3 +323,109 @@ def test_hf_space_router_parity():
 
     # 2. Studies re-run endpoint
     assert "/api/v1/studies/re-run" in route_paths
+
+
+# ===========================================================================
+# 6. Security Tests — Forge Rejection, Tenant Isolation, No Fabricated Constants
+# ===========================================================================
+
+
+def test_verify_pe_stamp_rejects_without_certified_date():
+    """P0.1 — verify_pe_stamp must return False (fail-closed) when certified_date is absent."""
+    import hashlib
+
+    payload = {"bus": "Bus1", "voltage_pu": 1.04}
+    # Any 64-char hex string should be rejected when date is absent.
+    fake_sig = hashlib.sha256(b"random").hexdigest()  # valid length, wrong value
+    result = verify_pe_stamp(payload, fake_sig)  # no certified_date
+    assert result is False, (
+        "verify_pe_stamp without certified_date must fail-closed regardless of signature length"
+    )
+
+
+def test_verify_pe_stamp_rejects_forged_signature():
+    """P0.1 — Even with certified_date, a random 64-char hex string is rejected."""
+    import hashlib
+    import uuid
+
+    payload = {"bus": "Bus1", "voltage_pu": 1.04}
+    fake_sig = hashlib.sha256(str(uuid.uuid4()).encode()).hexdigest()
+    assert verify_pe_stamp(
+        payload, fake_sig, certified_date="2026-09-17 00:00:00 UTC"
+    ) is False, "Forged 64-char signature must not verify"
+
+
+def test_verify_pe_stamp_rejects_payload_tampering():
+    """Payload tampering must invalidate the signature."""
+    payload = {"project": "Cairo West 400kV", "result": "converged"}
+    stamp = PEStamp.sign_study(study_data=payload)
+    tampered = {"project": "Cairo West 400kV", "result": "diverged"}  # changed!
+    assert stamp.verify(tampered) is False, "Tampered payload must not verify"
+
+
+def test_list_reports_tenant_isolation_fail_closed(api_client):
+    """P0.4 — A user with no tenant_id must receive an empty list, not a 500 or cross-tenant data.
+
+    CurrentUser.tenant_id defaults to "" (empty string, never None) per api/dependencies.py:153.
+    An empty tenant_id is the valid sentinel for 'no tenant assigned' and must be treated
+    fail-closed: the handler returns [] rather than leaking rows from other tenants.
+    """
+    from fastapi import FastAPI
+    from fastapi.testclient import TestClient
+
+    from api.export import reports_router
+
+    # tenant_id="" is the correct sentinel — CurrentUser.tenant_id is str, not Optional[str].
+    no_tenant_user = CurrentUser(
+        user_id="anonymous",
+        username="anon",
+        email="anon@example.com",
+        role="engineer",
+        tenant_id="",  # empty string = no tenant assigned (the fail-closed sentinel)
+    )
+
+    app2 = FastAPI()
+    app2.include_router(reports_router)
+    app2.dependency_overrides[get_current_user_from_header] = lambda: no_tenant_user
+    app2.dependency_overrides[get_api_key] = lambda: no_tenant_user
+    app2.dependency_overrides[require_permission("export", "list")] = lambda: no_tenant_user
+
+    client2 = TestClient(app2, raise_server_exceptions=False)
+    res = client2.get("/api/v1/reports")
+    assert res.status_code == 200
+    data = res.json()
+    # Must return empty list — no benchmark fillers for un-tenanted users.
+    assert isinstance(data, list)
+    assert len(data) == 0, (
+        "list_reports with empty tenant_id must return empty list (fail-closed), "
+        f"got {len(data)} records instead"
+    )
+
+
+def test_export_output_contains_no_fabricated_constants():
+    """P1.1/P1.3 — Export output must not contain hardcoded constants 25.4, 4.25, or 2.55."""
+    import json
+
+    pdf_bytes = generate_pdf_export("Test", MOCK_STUDIES)
+    excel_bytes = generate_excel_export("Test", MOCK_STUDIES)
+
+    for constant in (b"25.4", b"4.25", b"2.55"):
+        assert constant not in pdf_bytes, (
+            f"Fabricated constant '{constant.decode()}' found in PDF output"
+        )
+        assert constant not in excel_bytes, (
+            f"Fabricated constant '{constant.decode()}' found in Excel output"
+        )
+
+
+def test_require_permission_dependency_override_works():
+    """P0.5 — @lru_cache on require_permission guarantees object identity (FastAPI override works)."""
+    dep_a = require_permission("export", "create")
+    dep_b = require_permission("export", "create")
+    assert dep_a is dep_b, (
+        "require_permission must return the same object for the same args (lru_cache) "
+        "so FastAPI app.dependency_overrides keying by identity works in tests"
+    )
+    # Different args → different object (cache key differs)
+    dep_c = require_permission("export", "list")
+    assert dep_a is not dep_c

@@ -283,6 +283,20 @@ router = APIRouter(prefix="/api/v1/auth", tags=["RBAC"])
 def require_permission(resource: str, action: str):
     """Dependency factory that checks if the user has a specific permission.
 
+    **P0.5 — ARCHITECTURAL INVARIANT: DO NOT REMOVE @lru_cache.**
+
+    FastAPI ``app.dependency_overrides`` is keyed by **object identity** of the
+    dependency callable.  If this function were not cached, every call to
+    ``require_permission("resource", "action")`` would return a *different*
+    closure object (same code, different identity), so overriding it in tests
+    would silently fail and the real permission check would run.  The cache
+    guarantees that ``require_permission("projects", "read") is
+    require_permission("projects", "read")`` — same cache key → same object →
+    overrides work correctly.
+
+    This was validated in ``tests/test_certified_reports_and_pe_stamp.py`` in
+    the ``test_require_permission_dependency_override_works`` test.
+
     Usage::
 
         @router.get("/projects", dependencies=[Depends(require_permission("projects", "read"))])

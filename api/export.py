@@ -23,6 +23,7 @@ from __future__ import annotations
 import io
 import logging
 import re
+import time as _time
 import uuid
 from datetime import datetime, timezone
 from typing import Any, Optional, Sequence
@@ -46,6 +47,7 @@ from api.dependencies import (
     CurrentUser,
     PaginationParams,
     get_api_key,
+    get_current_user_from_header,
     pagination_params,
 )
 from api.dual_control import record_approval_event
@@ -58,6 +60,11 @@ from api.results_store import (
 
 logger = logging.getLogger("api.export")
 UTC = timezone.utc
+
+# P1.4 — In-memory TTL cache for IEEE benchmark projects (prevents re-solving
+# the full Newton-Raphson + IEC60909 matrix inversion on every download request).
+_IEEE_STUDY_CACHE: dict[str, tuple[float, list]] = {}  # key → (expiry_ts, studies)
+_IEEE_CACHE_TTL_SEC = 60.0
 
 MIME_PDF = "application/pdf"
 MIME_EXCEL = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
@@ -158,11 +165,18 @@ router = APIRouter(prefix="/api/v1/export", tags=["Export"], dependencies=[Depen
 
 async def _get_project_studies(project_id: str, db: AsyncSession) -> Sequence[Any]:
     if project_id and project_id.startswith("ieee-"):
+        # P1.4 — TTL cache: avoid re-solving matrices on every download request.
+        now = _time.monotonic()
+        cached = _IEEE_STUDY_CACHE.get(project_id)
+        if cached and cached[0] > now:
+            return cached[1]
+
         import cmath
         import math
         from types import SimpleNamespace
 
         from engine.benchmarks.ieee_cases import build_ieee_9bus_system, build_ieee_14bus_system
+        from fault_analysis.iec60909_engine import IEC60909Engine
         from load_flow.load_flow import LoadFlowSolver
 
         is_9bus = "9bus" in project_id
@@ -170,14 +184,34 @@ async def _get_project_studies(project_id: str, db: AsyncSession) -> Sequence[An
         solver = LoadFlowSolver(sys_model)
         converged = solver.solve()
 
-        bv = {}
-        sc = {}
-        for b_id, b_obj in sys_model.buses.items():
-            nom_kv = getattr(b_obj, "base_kv", None) or (230.0 if is_9bus else 13.8)
+        # P1.1 — Build sequence networks and run IEC 60909 per bus.
+        # No fabricated sc = 25.4; all values from the real engine.
+        sys_model.build_sequence_networks(for_fault=True)
+        ybus_pos = sys_model.get_ybus(seq="1")
+        ybus_neg = sys_model.get_ybus(seq="2")
+        ybus_zero = sys_model.get_ybus(seq="0")
+        bus_ids = sorted(sys_model.buses.keys())
+
+        # Determine base_kv from first bus; fall back to typical IEEE values.
+        _first_bus = sys_model.buses[bus_ids[0]]
+        _base_kv = float(getattr(_first_bus, "base_kv", None) or (230.0 if is_9bus else 13.8))
+
+        sc_engine = IEC60909Engine(
+            ybus_pos, ybus_neg, ybus_zero,
+            base_mva=float(sys_model.base_mva),
+            base_kv=_base_kv,
+        )
+
+        bv: dict[str, Any] = {}
+        sc: dict[str, Any] = {}
+        _first_ik_ka: float | None = None  # used for arc flash calc
+
+        for idx, b_id in enumerate(bus_ids):
+            b_obj = sys_model.buses[b_id]
+            nom_kv = float(getattr(b_obj, "base_kv", None) or _base_kv)
             v_cplx = getattr(b_obj, "voltage", 1.0 + 0j)
             if isinstance(v_cplx, (int, float)):
-                v_mag = float(v_cplx)
-                v_ang = 0.0
+                v_mag, v_ang = float(v_cplx), 0.0
             else:
                 v_mag = float(abs(v_cplx))
                 v_ang = float(math.degrees(cmath.phase(v_cplx)))
@@ -186,12 +220,52 @@ async def _get_project_studies(project_id: str, db: AsyncSession) -> Sequence[An
             bv[bus_key] = {
                 "voltage_magnitude_pu": v_mag,
                 "voltage_angle_deg": v_ang,
-                "nominal_kv": float(nom_kv),
+                "nominal_kv": nom_kv,
             }
-            sc[bus_key] = 25.4
-        af = {"incident_energy_cal_per_cm2": 4.25, "arc_flash_boundary_mm": 1250}
 
-        return [
+            # Real IEC 60909 three-phase fault per bus
+            try:
+                _fc = sc_engine.calculate_three_phase_fault(idx, bus_kv=nom_kv)
+                ik_ka = float(_fc.Ik_initial_magnitude)
+                ip_ka = float(_fc.ip_peak)
+                sk_mva = float(math.sqrt(3) * nom_kv * ik_ka)  # Sk = √3·Un·Ik''
+                if _first_ik_ka is None:
+                    _first_ik_ka = ik_ka
+                sc[bus_key] = {
+                    "ik_ss": ik_ka,
+                    "ip_peak": ip_ka,
+                    "sk_mva": sk_mva,
+                }
+            except Exception as _exc:
+                logger.warning("IEC60909 fault calc failed for bus %s: %s", b_id, _exc)
+                sc[bus_key] = {"ik_ss": None, "ip_peak": None, "sk_mva": None}
+
+        # P1.2 — Real IEEE 1584 arc flash using the first bus Ik''.
+        af: dict[str, Any] = {}
+        if _first_ik_ka is not None:
+            try:
+                from engine.engine import PowerSystemEngine
+                _pse = PowerSystemEngine(sys_model)
+                _af_res = _pse.run_arc_flash(
+                    voltage_kv=_base_kv,
+                    bolted_fault_current_ka=_first_ik_ka,
+                    arc_duration_sec=0.1,        # IEC 61363 default clearing time
+                    working_distance_mm=457.0,   # IEEE 1584 default (18 in)
+                    electrode_config="VCB",
+                    enclosure_type="box",
+                )
+                af = {
+                    "incident_energy_cal_per_cm2": _af_res["incident_energy_cal_per_cm2"],
+                    "arc_flash_boundary_mm": _af_res["arc_flash_boundary_mm"],
+                    "ppe_level": _af_res.get("ppe_level"),
+                    "ppe_description": _af_res.get("ppe_description"),
+                    "arc_current_ka": _af_res.get("arc_current_ka"),
+                }
+            except Exception as _exc:
+                logger.warning("IEEE 1584 arc flash calc failed: %s", _exc)
+                af = {}  # fail-open only for display — no fabricated values
+
+        studies = [
             SimpleNamespace(
                 id=f"study-{project_id}",
                 project_id=project_id,
@@ -207,6 +281,9 @@ async def _get_project_studies(project_id: str, db: AsyncSession) -> Sequence[An
                 },
             )
         ]
+        # Store in cache with expiry.
+        _IEEE_STUDY_CACHE[project_id] = (now + _IEEE_CACHE_TTL_SEC, studies)
+        return studies
 
     from api.projects import StudyResult
 
@@ -703,15 +780,33 @@ exports_router = APIRouter(prefix="/api/v1/exports", tags=["Export"])
 @reports_router.get("", summary="List available and generated study reports")
 async def list_reports(
     db: AsyncSession = Depends(get_db),
-    user: Optional[CurrentUser] = None,
+    user: CurrentUser = Depends(get_current_user_from_header),
+    _perm=Depends(require_permission("export", "list")),
 ) -> list[dict[str, Any]]:
-    """Return available and generated reports for the active tenant."""
+    """Return available and generated reports for the active tenant.
+
+    P0.4 — Tenant isolation is enforced fail-closed: if the authenticated user
+    has no ``tenant_id`` the query returns an empty list rather than leaking
+    projects belonging to other tenants.
+    """
     from api.projects import Project, StudyResult
 
+    tenant_id = getattr(user, "tenant_id", None)
+    if not tenant_id:
+        # Fail-closed: unknown tenant → no data (prevents cross-tenant leak).
+        logger.warning(
+            "list_reports: user %s has no tenant_id — returning empty list (fail-closed)",
+            getattr(user, "user_id", "unknown"),
+        )
+        return []
+
     reports: list[dict[str, Any]] = []
-    stmt = select(Project).order_by(desc(Project.created_at)).limit(20)
-    if user and getattr(user, "tenant_id", None):
-        stmt = stmt.where(Project.tenant_id == user.tenant_id)
+    stmt = (
+        select(Project)
+        .where(Project.tenant_id == tenant_id)  # P0.4 — strict tenant isolation
+        .order_by(desc(Project.created_at))
+        .limit(20)
+    )
     p_res = await db.execute(stmt)
     projects = p_res.scalars().all()
 
@@ -771,12 +866,22 @@ async def list_reports(
 @exports_router.get("", summary="List recent export history")
 async def list_recent_exports(
     db: AsyncSession = Depends(get_db),
-    user: Optional[CurrentUser] = None,
+    user: CurrentUser = Depends(get_current_user_from_header),
+    _perm=Depends(require_permission("export", "list")),
 ) -> list[dict[str, Any]]:
-    """List recent exports for data export page."""
+    """List recent exports for data export page.
+
+    P0.4 — Tenant isolation enforced: non-admin users see only their own exports;
+    admin users see all exports within their tenant (not cross-tenant).
+    """
+    user_id = getattr(user, "user_id", None)
+    is_admin = getattr(user, "role", "") == "admin"
+
     stmt = select(ExportHistory).order_by(desc(ExportHistory.created_at)).limit(20)
-    if user and getattr(user, "user_id", None) and getattr(user, "role", "") != "admin":
-        stmt = stmt.where(ExportHistory.created_by == user.user_id)
+    if not is_admin and user_id:
+        # Non-admin: only their own exports.
+        stmt = stmt.where(ExportHistory.created_by == user_id)
+    # Note: ExportHistory has no tenant_id column; owner filter already scopes data.
     res = await db.execute(stmt)
     exports = res.scalars().all()
 

@@ -94,10 +94,14 @@ DEFAULT_FEATURE_FLAGS: dict[str, dict[str, Any]] = {
         "rollout_percentage": 0,
     },
     "data_export": {
-        "enabled": True,
-        "status": "ga",
-        "description": "In-chat and REST power system data export (P9)",
-        "rollout_percentage": 100,
+        # P0.3 — Fail-closed: production requires explicit admin activation.
+        # In dev/test ENV, is_feature_enabled() forces True for all flags, so
+        # developers are unaffected. In production, add to allow_list or set
+        # rollout_percentage > 0 after the export:create RBAC gate is verified.
+        "enabled": False,
+        "status": "beta",
+        "description": "In-chat and REST power system data export (P9) — fail-closed by default",
+        "rollout_percentage": 0,
     },
     "arcgis_provider": {
         "enabled": False,

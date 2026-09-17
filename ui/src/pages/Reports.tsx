@@ -5,7 +5,7 @@ import { ContextHelpButton } from "../components/help/ContextHelpButton";
 import { Badge, Button, Card } from "../components/ui";
 import { useNotify } from "../context/NotificationContext";
 import { API_BASE_URL } from "../lib/api-config";
-import { getAuthToken } from "../lib/tokenStorage";
+import { getAuthToken, getCsrfToken } from "../lib/tokenStorage";
 
 interface Report {
   id?: string;
@@ -82,7 +82,13 @@ export default function Reports() {
       const blobUrl = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = blobUrl;
-      const ext = (report.format || "pdf").toLowerCase() === "xlsx" ? "xlsx" : "pdf";
+      // P2.1 — Correct extension by actual format (not just xlsx vs pdf).
+      const fmt = (report.format || "pdf").toLowerCase();
+      const ext =
+        fmt === "xlsx" || fmt === "excel" ? "xlsx"
+        : fmt === "csv" ? "csv"
+        : fmt === "json" ? "json"
+        : "pdf";
       const cleanName = report.name.replace(/[^a-zA-Z0-9_\- ]/g, "").replace(/\s+/g, "_").toLowerCase();
       a.download = `${cleanName}.${ext}`;
       document.body.appendChild(a);
@@ -103,9 +109,12 @@ export default function Reports() {
     setGenerating(true);
     try {
       notify("info", "Generating IEEE 9-Bus Certified PE Report...");
+      // P2.2 — Include X-CSRF-Token on state-changing (POST) generate request.
       const token = getAuthToken();
+      const csrfToken = getCsrfToken();
       const headers: Record<string, string> = {};
       if (token) headers["Authorization"] = `Bearer ${token}`;
+      if (csrfToken) headers["X-CSRF-Token"] = csrfToken;
 
       const res = await fetch(`${API_BASE_URL}/api/v1/export/ieee-9bus-wscc/pdf`, { headers });
       if (!res.ok) {

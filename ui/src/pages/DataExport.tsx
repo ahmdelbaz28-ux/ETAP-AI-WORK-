@@ -13,7 +13,7 @@ import { ContextHelpButton } from "../components/help/ContextHelpButton";
 import { Button, Card, CardHeader } from "../components/ui";
 import { useNotify } from "../context/NotificationContext";
 import { API_BASE_URL } from "../lib/api-config";
-import { getAuthToken } from "../lib/tokenStorage";
+import { getAuthToken, getCsrfToken } from "../lib/tokenStorage";
 import { useChatStore } from "../store/chatStore";
 import { cn } from "../utils/helpers";
 
@@ -93,9 +93,12 @@ export default function DataExport() {
     setExportingFormat(formatId);
     try {
       notify("info", `Exporting ${formatName} for ${activeProjectId}...`);
+      // P2.2 — Include X-CSRF-Token on state-changing export request.
       const token = getAuthToken();
+      const csrfToken = getCsrfToken();
       const headers: Record<string, string> = {};
       if (token) headers["Authorization"] = `Bearer ${token}`;
+      if (csrfToken) headers["X-CSRF-Token"] = csrfToken;
 
       const endpoint = `${API_BASE_URL}/api/v1/export/${activeProjectId}/${formatId}`;
       const res = await fetch(endpoint, { headers });

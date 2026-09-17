@@ -93,4 +93,35 @@ export function removeRefreshToken(): void {
 export function clearAuthTokens(): void {
   removeAuthToken();
   removeRefreshToken();
+  removeCsrfToken();
+}
+
+// ─── CSRF Token ──────────────────────────────────────────────────────────────
+const CSRF_TOKEN_KEY = "csrfToken";
+
+/**
+ * P2.2 — Get the stored CSRF token from sessionStorage.
+ *
+ * The token is obtained from ``GET /api/v1/csrf/token`` at login and stored
+ * here so it can be attached to all state-changing requests as the
+ * ``X-CSRF-Token`` header (POST / PUT / PATCH / DELETE).
+ * sessionStorage is used (not localStorage) to match the auth-token security
+ * model — it is cleared when the browser tab closes.
+ */
+export function getCsrfToken(): string | null {
+  return sessionStorage.getItem(CSRF_TOKEN_KEY);
+}
+
+/**
+ * Store the CSRF token in sessionStorage.
+ */
+export function setCsrfToken(token: string): void {
+  sessionStorage.setItem(CSRF_TOKEN_KEY, token);
+}
+
+/**
+ * Remove the stored CSRF token (e.g. on logout).
+ */
+export function removeCsrfToken(): void {
+  sessionStorage.removeItem(CSRF_TOKEN_KEY);
 }
