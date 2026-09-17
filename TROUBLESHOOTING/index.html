@@ -20,7 +20,7 @@
     
     
       
-        <title>ETAP Troubleshooting Guide - AhmedETAP Documentation</title>
+        <title>AhmedETAP Troubleshooting Guide (v2.0 Production Runbook) - AhmedETAP Documentation</title>
       
     
     
@@ -70,7 +70,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#etap-troubleshooting-guide" class="md-skip">
+        <a href="#ahmedetap-troubleshooting-guide-v20-production-runbook" class="md-skip">
           Skip to content
         </a>
       
@@ -104,7 +104,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              ETAP Troubleshooting Guide
+              AhmedETAP Troubleshooting Guide (v2.0 Production Runbook)
             
           </span>
         </div>
@@ -544,82 +544,37 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#common-issues" class="md-nav__link">
+  <a href="#1-authentication-security-issues" class="md-nav__link">
     <span class="md-ellipsis">
-      Common Issues
+      1. Authentication &amp; Security Issues
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Common Issues">
+    <nav class="md-nav" aria-label="1. Authentication &amp; Security Issues">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#backend-wont-start" class="md-nav__link">
+  <a href="#http-401-unauthorized-on-study-or-validation-endpoints" class="md-nav__link">
     <span class="md-ellipsis">
-      Backend Won't Start
+      HTTP 401 Unauthorized on Study or Validation Endpoints
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#cors-errors" class="md-nav__link">
+  <a href="#websocket-dual-control-connection-dropped-close-code-1011-or-4001" class="md-nav__link">
     <span class="md-ellipsis">
-      CORS Errors
+      WebSocket Dual-Control Connection Dropped (Close Code 1011 or 4001)
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#database-locked-windows" class="md-nav__link">
+  <a href="#insecure-jwt-secret-rejection-at-startup" class="md-nav__link">
     <span class="md-ellipsis">
-      Database Locked (Windows)
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#503-service-unavailable-on-apiworkflow-or-apimemory" class="md-nav__link">
-    <span class="md-ellipsis">
-      503 Service Unavailable on /api/workflow or /api/memory
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#health-check-failing" class="md-nav__link">
-    <span class="md-ellipsis">
-      Health Check Failing
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#frontend-not-loading" class="md-nav__link">
-    <span class="md-ellipsis">
-      Frontend Not Loading
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#parser-security-errors" class="md-nav__link">
-    <span class="md-ellipsis">
-      Parser Security Errors
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#native-dependency-compilation-errors" class="md-nav__link">
-    <span class="md-ellipsis">
-      Native Dependency Compilation Errors
+      Insecure JWT Secret Rejection at Startup
     </span>
   </a>
   
@@ -631,11 +586,185 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#getting-help" class="md-nav__link">
+  <a href="#2-database-alembic-migrations-redis-shared-state" class="md-nav__link">
     <span class="md-ellipsis">
-      Getting Help
+      2. Database, Alembic Migrations &amp; Redis Shared State
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="2. Database, Alembic Migrations &amp; Redis Shared State">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#production-postgresql-connection-failure" class="md-nav__link">
+    <span class="md-ellipsis">
+      Production PostgreSQL Connection Failure
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#alembic-startup-migration-gate-failure-fix-27" class="md-nav__link">
+    <span class="md-ellipsis">
+      Alembic Startup Migration Gate Failure (FIX-27)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#redis-shared-state-distributed-lock-contention-fix-22" class="md-nav__link">
+    <span class="md-ellipsis">
+      Redis Shared State &amp; Distributed Lock Contention (FIX-22)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#administrator-account-bootstrap" class="md-nav__link">
+    <span class="md-ellipsis">
+      Administrator Account Bootstrap
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-frontend-csp-ui-bundle-security" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Frontend, CSP &amp; UI Bundle Security
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Frontend, CSP &amp; UI Bundle Security">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#content-security-policy-csp-script-or-style-blocking-fix-29" class="md-nav__link">
+    <span class="md-ellipsis">
+      Content-Security-Policy (CSP) Script or Style Blocking (FIX-29)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ui-bundle-secret-scanning-failure" class="md-nav__link">
+    <span class="md-ellipsis">
+      UI Bundle Secret Scanning Failure
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-scada-telemetry-multi-agent-scenarios" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. SCADA, Telemetry &amp; Multi-Agent Scenarios
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. SCADA, Telemetry &amp; Multi-Agent Scenarios">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#iec-61850-logical-node-or-interlock-violation" class="md-nav__link">
+    <span class="md-ellipsis">
+      IEC 61850 Logical Node or Interlock Violation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#etap-com-windows-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      ETAP COM Windows Integration
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-deployment-cicd-and-rollback" class="md-nav__link">
+    <span class="md-ellipsis">
+      5. Deployment, CI/CD, and Rollback
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Deployment, CI/CD, and Rollback">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cd-run-fails-with-not-deployed" class="md-nav__link">
+    <span class="md-ellipsis">
+      CD Run Fails with "NOT DEPLOYED"
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#deployment-drift-check-failure" class="md-nav__link">
+    <span class="md-ellipsis">
+      Deployment Drift-Check Failure
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#executing-a-production-rollback" class="md-nav__link">
+    <span class="md-ellipsis">
+      Executing a Production Rollback
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-operational-monitoring-health" class="md-nav__link">
+    <span class="md-ellipsis">
+      6. Operational Monitoring &amp; Health
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. Operational Monitoring &amp; Health">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#health-probe-verification" class="md-nav__link">
+    <span class="md-ellipsis">
+      Health Probe Verification
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -658,63 +787,146 @@
   
 
 
-<h1 id="etap-troubleshooting-guide">ETAP Troubleshooting Guide</h1>
-<h2 id="common-issues">Common Issues</h2>
-<h3 id="backend-wont-start">Backend Won't Start</h3>
-<p><strong>Symptom</strong>: <code>ModuleNotFoundError: No module named 'X'</code></p>
-<p><strong>Fix</strong>:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="c1"># For optional features:</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>pip<span class="w"> </span>install<span class="w"> </span>etap<span class="o">[</span>workflow<span class="o">]</span><span class="w">  </span><span class="c1"># if you need /api/workflow</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>pip<span class="w"> </span>install<span class="w"> </span>etap<span class="o">[</span>memory<span class="o">]</span><span class="w">    </span><span class="c1"># if you need /api/memory</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>pip<span class="w"> </span>install<span class="w"> </span>etap<span class="o">[</span>ifc<span class="o">]</span><span class="w">       </span><span class="c1"># if you need IFC export</span>
-</code></pre></div></p>
-<p><strong>Symptom</strong>: <code>API_KEY must be set</code></p>
-<p><strong>Fix</strong>: Set environment variable:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">API_KEY</span><span class="o">=</span><span class="k">$(</span>openssl<span class="w"> </span>rand<span class="w"> </span>-hex<span class="w"> </span><span class="m">32</span><span class="k">)</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="nb">export</span><span class="w"> </span><span class="nv">EVIDENCE_HMAC_KEY</span><span class="o">=</span><span class="k">$(</span>openssl<span class="w"> </span>rand<span class="w"> </span>-hex<span class="w"> </span><span class="m">32</span><span class="k">)</span>
-</code></pre></div></p>
-<h3 id="cors-errors">CORS Errors</h3>
-<p><strong>Symptom</strong>: Browser shows CORS policy errors</p>
-<p><strong>Fix</strong>: In <code>.env</code>, set <code>CORS_ALLOWED_ORIGINS=https://your-domain.com</code>
-- NEVER use <code>*</code> in production
-- Development mode allows wildcards automatically</p>
-<h3 id="database-locked-windows">Database Locked (Windows)</h3>
-<p><strong>Symptom</strong>: <code>PermissionError: [WinError 32]</code> on SQLite files</p>
-<p><strong>Fix</strong>: This is a Windows-specific SQLite file locking issue. Ensure all connections are closed before file operations. Use <code>DeltaCache.persist()</code> or <code>AuditLog.close()</code> before cleanup.</p>
-<h3 id="503-service-unavailable-on-apiworkflow-or-apimemory">503 Service Unavailable on /api/workflow or /api/memory</h3>
-<p><strong>Symptom</strong>: Optional endpoints return 503</p>
-<p><strong>Fix</strong>: Install optional dependencies:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>pip<span class="w"> </span>install<span class="w"> </span>etap<span class="o">[</span>workflow<span class="o">]</span><span class="w">  </span><span class="c1"># requires langgraph</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>pip<span class="w"> </span>install<span class="w"> </span>etap<span class="o">[</span>memory<span class="o">]</span><span class="w">    </span><span class="c1"># requires mem0 + qdrant-client</span>
-</code></pre></div></p>
-<h3 id="health-check-failing">Health Check Failing</h3>
-<p><strong>Symptom</strong>: <code>/api/health</code> returns non-200</p>
-<p><strong>Fix</strong>: Check:
-1. Database path is accessible and writable
-2. Core modules can be imported: <code>python -c "from etap.core.qomn_kernel import QOMNKernel"</code>
-3. Environment variables are set correctly</p>
-<h3 id="frontend-not-loading">Frontend Not Loading</h3>
-<p><strong>Symptom</strong>: Blank page or API-only mode</p>
-<p><strong>Fix</strong>: Build and serve frontend:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nb">cd</span><span class="w"> </span>frontend<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>npm<span class="w"> </span>install<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>npm<span class="w"> </span>run<span class="w"> </span>build
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="c1"># Backend auto-serves frontend/dist when it exists</span>
-</code></pre></div></p>
-<h3 id="parser-security-errors">Parser Security Errors</h3>
-<p><strong>Symptom</strong>: File parsing returns "path rejected" errors</p>
-<p><strong>Fix</strong>: This is intentional security behavior. Paths with null bytes, traversal sequences, or leading dashes are rejected. Ensure file paths are clean.</p>
-<h3 id="native-dependency-compilation-errors">Native Dependency Compilation Errors</h3>
-<p><strong>Symptom</strong>: C extension compilation fails when installing requirements</p>
-<p><strong>Fix</strong>:
-- On Windows: Install Microsoft C++ Build Tools (Visual Studio 2022 Build Tools with Desktop Development with C++).
-- On Linux: Run <code>sudo apt-get install build-essential python3-dev</code> (Debian/Ubuntu) or <code>sudo yum groupinstall "Development Tools"</code> (RHEL/CentOS).
-- On macOS: Run <code>xcode-select --install</code>.</p>
-<h2 id="getting-help">Getting Help</h2>
-<ol>
-<li>Check logs: <code>LOG_LEVEL=DEBUG</code> for detailed output</li>
-<li>Review ARCHITECTURE.md for system design</li>
-<li>Check API docs: <code>http://localhost:8000/docs</code> (Swagger UI)</li>
-</ol>
+<h1 id="ahmedetap-troubleshooting-guide-v20-production-runbook">AhmedETAP Troubleshooting Guide (v2.0 Production Runbook)</h1>
+<p>This guide provides operational diagnostics, common failure modes, root causes, and verified remediation procedures for the AhmedETAP platform.</p>
+<hr />
+<h2 id="1-authentication-security-issues">1. Authentication &amp; Security Issues</h2>
+<h3 id="http-401-unauthorized-on-study-or-validation-endpoints">HTTP 401 Unauthorized on Study or Validation Endpoints</h3>
+<ul>
+<li><strong>Affected Endpoints</strong>: <code>POST /api/v1/studies/re-run</code>, <code>POST /api/v1/tool-policy/evaluate</code>, <code>POST /api/v1/system/validate</code>.</li>
+<li><strong>Root Cause</strong>: These endpoints are fail-closed and strictly require the <code>X-API-Key</code> or <code>Authorization: Bearer</code> header containing <code>ENGINEERING_SERVICE_API_KEY</code>.</li>
+<li><strong>Resolution</strong>:
+  <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>curl<span class="w"> </span>-H<span class="w"> </span><span class="s2">"X-API-Key: </span><span class="nv">$ENGINEERING_SERVICE_API_KEY</span><span class="s2">"</span><span class="w"> </span>https://ahmdelbaz28-ahmedetap-platform.hf.space/api/v1/system/validate
+</code></pre></div></li>
+</ul>
+<h3 id="websocket-dual-control-connection-dropped-close-code-1011-or-4001">WebSocket Dual-Control Connection Dropped (Close Code 1011 or 4001)</h3>
+<ul>
+<li><strong>Code 1011 (<code>Internal Error</code>)</strong>: The server does not have <code>ENGINEERING_SERVICE_API_KEY</code> configured in its environment (fail-closed security).</li>
+<li><strong>Code 4001 (<code>Unauthorized</code>)</strong>: The provided dual-control API key token is invalid or does not match the server secret.</li>
+<li><strong>Resolution</strong>: Ensure <code>ENGINEERING_SERVICE_API_KEY</code> is properly defined in the deployment environment and the client sends <code>?token=&lt;key&gt;</code> or passes the authorization header upon connecting.</li>
+</ul>
+<h3 id="insecure-jwt-secret-rejection-at-startup">Insecure JWT Secret Rejection at Startup</h3>
+<ul>
+<li><strong>Symptom</strong>: Application fails to boot with <code>FATAL: Insecure JWT secret key detected</code>.</li>
+<li><strong>Root Cause</strong>: <code>JWT_SECRET_KEY</code> is using a known placeholder (such as <code>.env.example</code> sample string) or is shorter than 32 characters.</li>
+<li><strong>Resolution</strong>:
+  <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># Generate a cryptographically secure 256-bit secret:</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>openssl<span class="w"> </span>rand<span class="w"> </span>-hex<span class="w"> </span><span class="m">32</span>
+</code></pre></div></li>
+</ul>
+<hr />
+<h2 id="2-database-alembic-migrations-redis-shared-state">2. Database, Alembic Migrations &amp; Redis Shared State</h2>
+<h3 id="production-postgresql-connection-failure">Production PostgreSQL Connection Failure</h3>
+<ul>
+<li><strong>Symptom</strong>: Startup fails with <code>FATAL: DATABASE_URL must be configured</code> or connection timeout.</li>
+<li><strong>Root Cause</strong>: Per FIX-14, ephemeral SQLite is forbidden in production environments. A persistent PostgreSQL instance (e.g. Supabase Postgres) is mandatory.</li>
+<li><strong>Resolution</strong>:</li>
+<li>Verify the <code>DATABASE_URL</code> environment variable format:
+     <code>postgresql+asyncpg://user:password@host:port/dbname</code></li>
+<li>Test network connectivity to port 5432/6543 (pooler).</li>
+<li>Ensure SSL mode is enabled (<code>?ssl=require</code>).</li>
+</ul>
+<h3 id="alembic-startup-migration-gate-failure-fix-27">Alembic Startup Migration Gate Failure (FIX-27)</h3>
+<ul>
+<li><strong>Symptom</strong>: Application logs <code>FATAL: Database migration failed at startup (Fail-Closed)</code> and terminates boot.</li>
+<li><strong>Root Cause</strong>: Pending migrations exist or a dirty revision was applied to the database schema.</li>
+<li><strong>Resolution</strong>:
+  <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># Check current revision vs head:</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>alembic<span class="w"> </span>current
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>alembic<span class="w"> </span>heads
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="c1"># Apply pending migrations:</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>alembic<span class="w"> </span>upgrade<span class="w"> </span>head
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="c1"># If a migration got interrupted and needs stamping:</span>
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>alembic<span class="w"> </span>stamp<span class="w"> </span>head
+</code></pre></div></li>
+</ul>
+<h3 id="redis-shared-state-distributed-lock-contention-fix-22">Redis Shared State &amp; Distributed Lock Contention (FIX-22)</h3>
+<ul>
+<li><strong>Symptom</strong>: Session data missing on cross-replica requests or <code>TimeoutError: Could not acquire distributed lock for resource: ...</code>.</li>
+<li><strong>Root Cause</strong>:</li>
+<li><code>REDIS_URL</code> not configured or unreachable; replicas falling back to in-memory mode.</li>
+<li>A task died holding a lock before TTL expired.</li>
+<li><strong>Resolution</strong>:
+  <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># Test Redis connectivity:</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>redis-cli<span class="w"> </span>-u<span class="w"> </span><span class="s2">"</span><span class="nv">$REDIS_URL</span><span class="s2">"</span><span class="w"> </span>ping
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="c1"># Inspect active locks:</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>redis-cli<span class="w"> </span>-u<span class="w"> </span><span class="s2">"</span><span class="nv">$REDIS_URL</span><span class="s2">"</span><span class="w"> </span>keys<span class="w"> </span><span class="s2">"etap:lock:*"</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="c1"># Inspect sessions:</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>redis-cli<span class="w"> </span>-u<span class="w"> </span><span class="s2">"</span><span class="nv">$REDIS_URL</span><span class="s2">"</span><span class="w"> </span>keys<span class="w"> </span><span class="s2">"etap:session:*"</span>
+</code></pre></div></li>
+</ul>
+<h3 id="administrator-account-bootstrap">Administrator Account Bootstrap</h3>
+<ul>
+<li><strong>Symptom</strong>: New users registered via the API get <code>role="viewer"</code> and cannot approve changes.</li>
+<li><strong>Resolution</strong>: Set <code>INITIAL_ADMIN_EMAIL</code> before the user registers, or run the CLI helper:
+  <div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>python<span class="w"> </span>scripts/create_admin.py<span class="w"> </span>--username<span class="w"> </span>admin<span class="w"> </span>--email<span class="w"> </span>admin@domain.com<span class="w"> </span>--password<span class="w"> </span><span class="s2">"SecurePass123!"</span>
+</code></pre></div></li>
+</ul>
+<hr />
+<h2 id="3-frontend-csp-ui-bundle-security">3. Frontend, CSP &amp; UI Bundle Security</h2>
+<h3 id="content-security-policy-csp-script-or-style-blocking-fix-29">Content-Security-Policy (CSP) Script or Style Blocking (FIX-29)</h3>
+<ul>
+<li><strong>Symptom</strong>: Browser console logs <code>Refused to execute inline script because it violates the following Content Security Policy directive...</code>.</li>
+<li><strong>Root Cause</strong>: <code>SecurityHeadersMiddleware</code> strictly enforces CSP (<code>script-src 'self' 'unsafe-inline'</code>, <code>connect-src 'self' wss: https:</code>).</li>
+<li><strong>Resolution</strong>: Do not load scripts from external unvetted CDNs. All API requests must route to same-origin or explicit HTTPS/WSS endpoints.</li>
+</ul>
+<h3 id="ui-bundle-secret-scanning-failure">UI Bundle Secret Scanning Failure</h3>
+<ul>
+<li><strong>Symptom</strong>: CI fails step <code>UI Bundle Provider Keys Scan</code> with <code>[FAIL] CRITICAL: Found exposed secrets in UI bundle</code>.</li>
+<li><strong>Root Cause</strong>: A frontend file in <code>ui/</code> or <code>ui/dist</code> contains a literal API token (<code>sk-</code>, <code>hf_</code>, <code>vcp_</code>, <code>sb_</code>, <code>github_pat_</code>).</li>
+<li><strong>Resolution</strong>: Run <code>python scripts/check_bundle_secrets.py</code> locally to locate and purge any exposed keys.</li>
+</ul>
+<hr />
+<h2 id="4-scada-telemetry-multi-agent-scenarios">4. SCADA, Telemetry &amp; Multi-Agent Scenarios</h2>
+<h3 id="iec-61850-logical-node-or-interlock-violation">IEC 61850 Logical Node or Interlock Violation</h3>
+<ul>
+<li><strong>Symptom</strong>: Control action rejected with <code>InterlockViolation: invalid telemetry timestamp</code> or <code>bad signal quality</code>.</li>
+<li><strong>Root Cause</strong>: Telemetry data has expired timestamp (&gt;60s old) or signal quality is not GOOD.</li>
+<li><strong>Resolution</strong>: Verify NTP time synchronization on SCADA gateways and check that device signal quality flags are healthy.</li>
+</ul>
+<h3 id="etap-com-windows-integration">ETAP COM Windows Integration</h3>
+<ul>
+<li><strong>Symptom</strong>: <code>ImportError: win32com.client</code> or <code>ETAP COM Automation unavailable</code>.</li>
+<li><strong>Root Cause</strong>: ETAP COM API is Windows-only (<code>pywin32</code>). In Linux/Docker environments, the system automatically uses validated native Python calculation engines (Newton-Raphson, IEC 60909).</li>
+</ul>
+<hr />
+<h2 id="5-deployment-cicd-and-rollback">5. Deployment, CI/CD, and Rollback</h2>
+<h3 id="cd-run-fails-with-not-deployed">CD Run Fails with "NOT DEPLOYED"</h3>
+<ul>
+<li><strong>Root Cause</strong>: One or more deployment secrets (<code>HF_TOKEN</code>, <code>VERCEL_TOKEN</code>, <code>VERCEL_ORG_ID</code>, <code>VERCEL_PROJECT_ID</code>) are missing or empty in GitHub Repository Secrets.</li>
+<li><strong>Resolution</strong>: Go to GitHub Repository Settings -&gt; Secrets and Variables -&gt; Actions, and verify all four secrets are defined.</li>
+</ul>
+<h3 id="deployment-drift-check-failure">Deployment Drift-Check Failure</h3>
+<ul>
+<li><strong>Symptom</strong>: <code>cd.yml</code> step <code>Drift-check — every Dockerfile COPY source must be staged</code> exits with code 1.</li>
+<li><strong>Root Cause</strong>: A new file or directory was added to a <code>COPY</code> instruction in <code>Dockerfile</code> without being included in the canonical 25-item production whitelist in <code>cd.yml</code>.</li>
+<li><strong>Resolution</strong>: Add the necessary directory to the <code>Stage THE 25-item production whitelist</code> step in <code>.github/workflows/cd.yml</code>.</li>
+</ul>
+<h3 id="executing-a-production-rollback">Executing a Production Rollback</h3>
+<ul>
+<li><strong>Procedure</strong>:</li>
+<li>Identify the commit SHA of the last known-good green CI run:
+     <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>git<span class="w"> </span>log<span class="w"> </span>--oneline<span class="w"> </span>-n<span class="w"> </span><span class="m">10</span>
+</code></pre></div></li>
+<li>Navigate to GitHub Actions -&gt; <strong>Production Rollback</strong> (<code>rollback.yml</code>).</li>
+<li>Click <strong>Run workflow</strong>, enter the 40-character target <code>git_sha</code> and incident <code>reason</code>.</li>
+<li>The workflow triggers <code>cd.yml</code> with the pinned SHA and validates <code>/healthz</code> post-rollback.</li>
+</ul>
+<hr />
+<h2 id="6-operational-monitoring-health">6. Operational Monitoring &amp; Health</h2>
+<h3 id="health-probe-verification">Health Probe Verification</h3>
+<ul>
+<li><strong>App Healthz</strong>: <code>GET /healthz</code> on port 7860/8000.
+  Returns HTTP 200 <code>{"status":"ok"}</code>.</li>
+<li><strong>Readiness Probe</strong>: <code>GET /readyz</code>
+  Returns HTTP 200 <code>{"ready": true, "checks": {"db": "ok", "redis": "ok", "schema_version": "011_add_hardening_tables"}}</code> or 503 on dependency outage.</li>
+<li><strong>Schema Health</strong>: <code>GET /api/v1/health/schema</code>
+  Returns HTTP 200 <code>{"status": "synchronized", "head_revision": "011_add_hardening_tables"}</code>.</li>
+<li><strong>Metrics</strong>: <code>GET /metrics</code> exports Prometheus metrics including request rates and study latencies.</li>
+<li><strong>Syslog Forwarder</strong>: Configured via <code>SIEM_ENABLED=true</code> and <code>SIEM_SYSLOG_HOST</code> / <code>SIEM_SYSLOG_PORT</code> (UDP 514 / TCP 514 / TLS 6514 per RFC 5424).</li>
+</ul>
 
 
 
