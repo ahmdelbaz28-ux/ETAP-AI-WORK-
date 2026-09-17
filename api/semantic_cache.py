@@ -149,7 +149,9 @@ class SemanticCache:
             p_clean = param_text.lower().strip()
             for i in range(max(1, len(p_clean) - 2)):
                 tri = p_clean[i : i + 3]
-                idx = 128 + (int(hashlib.sha256(("p:" + tri).encode("utf-8")).hexdigest(), 16) % 128)
+                idx = 128 + (
+                    int(hashlib.sha256(("p:" + tri).encode("utf-8")).hexdigest(), 16) % 128
+                )
                 vec[idx] += 2.0  # Simulation parameters have high discriminant weight
 
         norm = np.linalg.norm(vec)
