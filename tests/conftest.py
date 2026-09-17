@@ -187,10 +187,15 @@ async def _init_test_database():
     first, then seed users with that tenant_id.  SQLite (the default test DB)
     has no FK enforcement so this change is backward-compatible.
     """
-    from sqlalchemy import select, text
+    try:
+        from sqlalchemy import select, text
 
-    from api.auth import User, _hash_password
-    from api.database import async_session, init_db
+        from api.auth import User, _hash_password
+        from api.database import async_session, init_db
+    except (ImportError, ModuleNotFoundError):
+        # Database stack not installed in this runner (e.g. boundary tests)
+        yield
+        return
 
     # Canonical test-tenant ID used by all seeded users.
     _TEST_TENANT_ID = "00000000-0000-0000-0000-000000000001"

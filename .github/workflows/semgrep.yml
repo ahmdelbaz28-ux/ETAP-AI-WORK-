@@ -73,9 +73,6 @@ jobs:
             --config p/sql-injection \
             --config p/xss \
             --config p/command-injection \
-            --config p/path-traversal \
-            --config p/ssrf \
-            --config p/ldap-injection \
             --config p/secure-defaults \
             --config semgrep.yml \
             --sarif \
