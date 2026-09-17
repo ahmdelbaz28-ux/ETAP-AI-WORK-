@@ -64,6 +64,8 @@ JWT_ALGORITHM: str = "HS256"
 _INSECURE_JWT_SAMPLES = {
     "test-secret-32-bytes-long-aaaa-bbbb",
     "super_secret_session_key_minimum_43_characters_long_entropy_12345",
+    "your-jwt-secret-key-minimum-32-characters",
+    "change-me-to-a-secure-random-32-character-secret",
 }
 if len(_jwt_key) < 32 or _jwt_key in _INSECURE_JWT_SAMPLES:
     raise RuntimeError(

@@ -294,9 +294,14 @@ System Volume Information/
 # Environment & Secrets
 # ==========================================
 .env
-.env.local
-.env.*.local
+.env*.pyc
+__pycache__/
+.env
+.env.*
 !.env.example
+security_audit_findings*.json
+security_findings*.json
+ETAP_Radical_Remediation_Plan_v2.0.md
 
 # Secrets
 *.pem

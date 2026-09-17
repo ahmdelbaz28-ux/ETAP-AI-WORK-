@@ -36,8 +36,10 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
+
+from api.dependencies import get_api_key
 
 # ─── Tool registry (deny-by-default) ───────────────────────────────────────
 # Canonical tool policies. Keyed by the names used by callers; unknown tools
@@ -225,7 +227,7 @@ def evaluate_tool_policy(
 
 
 # ─── API surface (optional: registered in api/routes.py) ──────────────────
-router = APIRouter(prefix="/api/v1/tool-policy", tags=["tool-policy"])
+router = APIRouter(prefix="/api/v1/tool-policy", tags=["tool-policy"], dependencies=[Depends(get_api_key)])
 
 
 class ToolPolicyRequest(BaseModel):

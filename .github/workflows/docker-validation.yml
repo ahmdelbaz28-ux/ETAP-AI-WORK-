@@ -252,7 +252,7 @@ jobs:
           cache-from: type=gha
 
       - name: 🔬 Trivy vulnerability scan
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@18f2510ee396bbf400402947b394f2dd8c87dbb0  # v0.29.0
         with:
           image-ref: etap-${{ matrix.name }}:scan
           format: 'sarif'

@@ -79,27 +79,27 @@ jobs:
           find . -name '*.sh' -not -path './.git/*' -not -path './node_modules/*' | xargs -r shellcheck -x || true
 
       - name: Helm lint (default values)
-        run: helm lint infra/helm/etap-ai
+        run: helm lint helm/etap-ai
 
       - name: Helm lint (production values)
-        run: helm lint infra/helm/etap-ai -f infra/helm/etap-ai/values-production.yaml
+        run: helm lint helm/etap-ai -f helm/etap-ai/values-production.yaml
 
       - name: Helm unittest
-        run: helm unittest -t JUnit -o infra/helm/etap-ai/.unittest_results.xml infra/helm/etap-ai || helm unittest infra/helm/etap-ai
+        run: helm unittest -t JUnit -o helm/etap-ai/.unittest_results.xml helm/etap-ai || helm unittest helm/etap-ai
 
       - name: Publish test report
         if: always()
-        uses: dorny/test-reporter@v1
+        uses: dorny/test-reporter@31a54ee7ebcacc03a09ea97a7e5465a47b84aea5  # v1.9.1
         with:
           name: Helm Unit Tests
-          path: 'infra/helm/etap-ai/.unittest_results.xml'
+          path: 'helm/etap-ai/.unittest_results.xml'
           reporter: java-junit
           fail-on-error: 'false'
 
       - name: Helm template + kubeconform (rendered chart)
         run: |
-          helm template etap-ai infra/helm/etap-ai -n etap \
-              -f infra/helm/etap-ai/values-production.yaml > /tmp/rendered.yaml
+          helm template etap-ai helm/etap-ai -n etap \
+              -f helm/etap-ai/values-production.yaml > /tmp/rendered.yaml
           kubeconform -strict -summary -ignore-missing-schemas \
               -kubernetes-version 1.29.0 /tmp/rendered.yaml
 

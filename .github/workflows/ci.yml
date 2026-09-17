@@ -141,11 +141,9 @@ jobs:
 
       - name: Install dependencies
         run: "pip install --only-binary :all: --requirement requirements.txt"
-        continue-on-error: true
 
       - name: Install test runner
         run: "pip install --only-binary :all: pytest==8.3.5 pytest-asyncio==0.25.3"
-        continue-on-error: true
 
       - name: Run Integration Tests
         run: pytest tests/test_audit_phase2_fixes.py tests/test_hf_space_fail_closed.py
@@ -173,18 +171,20 @@ jobs:
         run: pnpm install --no-frozen-lockfile --ignore-scripts
 
       - name: pnpm audit
-        run: pnpm audit --audit-level=critical || true
+        run: pnpm audit --audit-level=critical
 
       - name: Set up Python for Security Scan
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
         with:
           python-version: '3.11'
 
-      - name: Python dependency and SAST security scan
+      - name: Python dependency audit
         run: |
-          pip install pip-audit bandit
-          pip-audit --requirement requirements.txt || true
-          bandit -r api/ agents/ etap_integration/ -ll
+          pip install pip-audit
+          pip-audit --requirement requirements.txt
+
+      - name: Bandit (shared gate)
+        uses: ./.github/actions/bandit-scan
 
       - name: Secrets scan
         run: |

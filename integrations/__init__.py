@@ -197,7 +197,21 @@ except ImportError as _exc:
     ensure_buckets_exist = None  # type: ignore[assignment]
     supabase_health_check = None  # type: ignore[assignment]
 
+# SIEM Syslog (RFC 5424)
+try:
+    from integrations.siem_syslog import (
+        SIEMSyslogForwarder,
+        siem_forwarder,
+    )
+except ImportError as _exc:
+    logger.warning("siem_syslog import failed: %s", _exc)
+    SIEMSyslogForwarder = None  # type: ignore[assignment]
+    siem_forwarder = None  # type: ignore[assignment]
+
 __all__ = [
+    # SIEM Syslog (RFC 5424)
+    "SIEMSyslogForwarder",
+    "siem_forwarder",
     # Langfuse core (integration.py)
     "LangfuseTracker",
     "langfuse_tracker",
@@ -297,6 +311,7 @@ def health_check_all() -> dict[str, Any]:
         ("smithery", lambda: smithery_client.health_check()),
         ("supabase", lambda: supabase_health_check()),
         ("supabase_auth", lambda: supabase_auth_health_check()),
+        ("siem", lambda: siem_forwarder.health_check() if siem_forwarder else {"enabled": False, "status": "unavailable"}),
     ]
 
     for name, check in checks:

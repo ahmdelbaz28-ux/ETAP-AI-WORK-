@@ -67,11 +67,8 @@ keywords = ["sk-lw-"]
 [allowlist]
 description = "Allowed paths / patterns (examples, tests, fixtures)"
 paths = [
-  '''\.env\.example$''',
-  '''docs/.*\.md$''',  # docs may discuss secret patterns in prose
   '''README\.md$''',
   '''SECURITY\.md$''',
-  '''SECURITY_INCIDENT.*\.md$''',
   '''tests/.*''',
   '''acp_runtime/tests/.*''',
   '''scripts/security_scan\.py$''',  # the scanner itself mentions patterns

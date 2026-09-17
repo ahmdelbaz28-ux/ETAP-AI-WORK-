@@ -139,7 +139,7 @@ jobs:
               enabled: false
           EOF
 
-          helm install etap-ai infra/helm/etap-ai -n etap -f /tmp/ci-values.yaml
+          helm install etap-ai helm/etap-ai -n etap -f /tmp/ci-values.yaml
           kubectl -n etap get all
 
       - name: Verify pods come up

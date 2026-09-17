@@ -41,9 +41,8 @@ jobs:
 
       - name: Run boundary mismatch tests
         run: |
+          set -euo pipefail
           python -m pytest tests/boundary_mismatch/ -v --tb=short -s 2>&1 | tee boundary-test-results.txt
-          # Boundary tests print findings but don't fail (they're informational)
-          # Convert findings to GitHub issues separately
 
       - name: Upload test results
         if: always()

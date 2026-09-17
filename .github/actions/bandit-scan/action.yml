@@ -1,0 +1,20 @@
+name: 'Bandit Scan (single source of truth)'
+description: >
+  The ONE canonical Bandit invocation. Every pipeline that wants a Bandit
+  gate MUST call this composite action — never re-declare flags inline.
+  Scope = all production Python. Config = the curated repo .bandit ini.
+inputs: {}
+runs:
+  using: 'composite'
+  steps:
+    - name: Install pinned bandit
+      shell: bash
+      run: pip install --quiet "bandit==1.7.10"
+    - name: Run Bandit (curated .bandit config, production scope)
+      shell: bash
+      run: |
+        set -euo pipefail
+        bandit --ini .bandit -ll -ii --format txt \
+          -r api/ agents/ engine/ core/ core_model/ services/ security/ \
+             guards/ scada_protocols/ etap_integration/ gis_integration/ \
+             gis_model/ hf-space/

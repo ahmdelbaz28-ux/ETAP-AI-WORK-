@@ -93,7 +93,6 @@ jobs:
             --exclude 'docs/**' \
             --exclude '*.md' \
             --metrics off
-        continue-on-error: true  # We process results separately
 
       - name: Generate summary report
         if: always()

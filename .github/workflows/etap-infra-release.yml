@@ -42,17 +42,17 @@ jobs:
         run: helm plugin install https://github.com/helm-unittest/helm-unittest.git --version v0.5.1
 
       - name: Run unit tests (gate the release)
-        run: helm unittest infra/helm/etap-ai
+        run: helm unittest helm/etap-ai
 
       - name: Lint chart
         run: |
-          helm lint infra/helm/etap-ai
-          helm lint infra/helm/etap-ai -f infra/helm/etap-ai/values-production.yaml
+          helm lint helm/etap-ai
+          helm lint helm/etap-ai -f helm/etap-ai/values-production.yaml
 
       - name: Package chart
         run: |
           mkdir -p /tmp/chart-package
-          helm package infra/helm/etap-ai -d /tmp/chart-package
+          helm package helm/etap-ai -d /tmp/chart-package
           ls -la /tmp/chart-package/
 
       - name: Login to GHCR

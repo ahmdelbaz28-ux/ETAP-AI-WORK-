@@ -94,8 +94,8 @@ ENV XDG_CACHE_HOME=/tmp/cache
 ENV HF_HOME=/tmp/cache
 ENV NUMBA_CACHE_DIR=/tmp/cache
 
-# Database path (writable /tmp)
-ENV DATABASE_URL=sqlite+aiosqlite:////tmp/data/etap_platform.db
+# Database configuration — in production, DATABASE_URL must be provided via environment secrets (PostgreSQL)
+ENV DATABASE_URL=""
 
 # Environment mode (not a secret)
 ENV ENVIRONMENT=production

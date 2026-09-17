@@ -40,10 +40,11 @@ model = None
 
 
 def download_model():
-    """Download the DocLayout-YOLO model from HuggingFace."""
+    """Download the DocLayout-YOLO model from HuggingFace (pinned revision)."""
     filepath = hf_hub_download(
         repo_id="juliozhao/DocLayout-YOLO-DocStructBench",
         filename="doclayout_yolo_docstructbench_imgsz1024.pt",
+        revision="8c3299a30b8ff29a1503c4431b035b93220f7b11",  # B615 fix: pin model revision (supply-chain)
     )
     from doclayout_yolo import YOLOv10
 

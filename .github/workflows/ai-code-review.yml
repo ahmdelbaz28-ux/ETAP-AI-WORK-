@@ -56,7 +56,7 @@ jobs:
     name: "Daytona sandbox review"
     runs-on: ubuntu-latest
     # Skip draft PRs unless explicitly dispatched; skip Dependabot PRs (no secrets)
-    if: (github.event.pull_request.draft == false || github.event_name == 'workflow_dispatch') && github.actor != 'dependabot[bot]'
+    if: (github.event_name == 'workflow_dispatch' || !github.event.pull_request.draft) && github.actor != 'dependabot[bot]'
     timeout-minutes: 25
 
     steps:

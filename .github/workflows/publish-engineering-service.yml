@@ -151,7 +151,6 @@ jobs:
       # ------------------------------------------------------------------
       - name: Build and push
         id: build_push
-        continue-on-error: true
         uses: docker/build-push-action@v6
         with:
           context: .

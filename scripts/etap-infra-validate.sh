@@ -34,9 +34,9 @@ FAIL=0
 # 1. helm lint
 # ---------------------------------------------------------------------------
 INFO "1/4: helm lint"
-for VALUES in "" "-f infra/helm/etap-ai/values-production.yaml"; do
+for VALUES in "" "-f helm/etap-ai/values-production.yaml"; do
     # shellcheck disable=SC2086 # intentional word splitting for the -f flag
-    if helm lint infra/helm/etap-ai $VALUES > /tmp/lint.log 2>&1; then
+    if helm lint helm/etap-ai $VALUES > /tmp/lint.log 2>&1; then
         INFO "  helm lint ${VALUES:-default values}: PASS"
     else
         ERR "  helm lint ${VALUES:-default values}: FAIL"
@@ -49,7 +49,7 @@ done
 # 2. helm unittest
 # ---------------------------------------------------------------------------
 INFO "2/4: helm unittest"
-if helm unittest infra/helm/etap-ai > /tmp/unittest.log 2>&1; then
+if helm unittest helm/etap-ai > /tmp/unittest.log 2>&1; then
     INFO "  helm unittest: PASS"
     grep -E "Tests:|Test Suites:|Charts:" /tmp/unittest.log | sed 's/^/    /'
 else
@@ -62,8 +62,8 @@ fi
 # 3. helm template (render chart to YAML for kubeconform)
 # ---------------------------------------------------------------------------
 INFO "3/4: helm template"
-if helm template etap-ai infra/helm/etap-ai -n etap \
-    -f infra/helm/etap-ai/values-production.yaml > /tmp/etap-rendered.yaml 2>/tmp/template.log; then
+if helm template etap-ai helm/etap-ai -n etap \
+    -f helm/etap-ai/values-production.yaml > /tmp/etap-rendered.yaml 2>/tmp/template.log; then
     COUNT=$(grep -c '^kind:' /tmp/etap-rendered.yaml)
     INFO "  helm template: rendered $COUNT objects"
 else

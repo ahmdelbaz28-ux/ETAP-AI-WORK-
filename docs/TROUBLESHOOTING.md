@@ -1,88 +1,89 @@
-# ETAP Troubleshooting Guide
+# AhmedETAP Troubleshooting Guide
 
-## Common Issues
+This guide provides operational diagnostics, common failure modes, and verified remediation procedures for the AhmedETAP platform (v2.0 production architecture).
 
-### Backend Won't Start
+---
 
-**Symptom**: `ModuleNotFoundError: No module named 'X'`
+## 1. Authentication & Security Issues
 
-**Fix**:
-```bash
-pip install -r requirements.txt
-# For optional features:
-pip install etap[workflow]  # if you need /api/workflow
-pip install etap[memory]    # if you need /api/memory
-pip install etap[ifc]       # if you need IFC export
-```
+### HTTP 401 Unauthorized on Study or Validation Endpoints
+- **Affected Endpoints**: `POST /api/v1/studies/re-run`, `POST /api/v1/tool-policy/evaluate`, `POST /api/v1/system/validate`.
+- **Root Cause**: These endpoints are fail-closed and strictly require the `X-API-Key` or `Authorization: Bearer` header containing `ENGINEERING_SERVICE_API_KEY`.
+- **Resolution**:
+  ```bash
+  curl -H "X-API-Key: $ENGINEERING_SERVICE_API_KEY" https://ahmdelbaz28-ahmedetap-platform.hf.space/api/v1/system/validate
+  ```
 
-**Symptom**: `API_KEY must be set`
+### WebSocket Dual-Control Connection Dropped (Close Code 1011 or 4001)
+- **Code 1011 (`Internal Error`)**: The server does not have `ENGINEERING_SERVICE_API_KEY` configured in its environment (fail-closed security).
+- **Code 4001 (`Unauthorized`)**: The provided dual-control API key token is invalid or does not match the server secret.
+- **Resolution**: Ensure `ENGINEERING_SERVICE_API_KEY` is properly defined in the deployment environment and the client sends `?token=<key>` or passes the authorization header upon connecting.
 
-**Fix**: Set environment variable:
-```bash
-export API_KEY=$(openssl rand -hex 32)
-export EVIDENCE_HMAC_KEY=$(openssl rand -hex 32)
-```
+### Insecure JWT Secret Rejection at Startup
+- **Symptom**: Application fails to boot with `FATAL: Insecure JWT secret key detected`.
+- **Root Cause**: `JWT_SECRET_KEY` is using a known placeholder (such as `.env.example` sample string) or is shorter than 32 characters.
+- **Resolution**:
+  ```bash
+  # Generate a cryptographically secure 256-bit secret:
+  openssl rand -hex 32
+  ```
 
-### CORS Errors
+---
 
-**Symptom**: Browser shows CORS policy errors
+## 2. Database & Data Layer Issues
 
-**Fix**: In `.env`, set `CORS_ALLOWED_ORIGINS=https://your-domain.com`
-- NEVER use `*` in production
-- Development mode allows wildcards automatically
+### Production PostgreSQL Connection Failure
+- **Symptom**: Startup fails with `FATAL: DATABASE_URL must be configured` or connection timeout.
+- **Root Cause**: Per FIX-14, ephemeral SQLite is forbidden in production environments. A persistent PostgreSQL instance (e.g. Supabase Postgres) is mandatory.
+- **Resolution**:
+  1. Verify the `DATABASE_URL` environment variable format:
+     `postgresql+asyncpg://user:password@host:port/dbname`
+  2. Test network connectivity to port 5432/6543 (pooler).
+  3. Ensure SSL mode is enabled (`?ssl=require`).
 
-### Database Locked (Windows)
+### Schema Out of Sync / Missing Tables
+- **Symptom**: Query error `relation "users" does not exist` or `missing column`.
+- **Resolution**: Run Alembic migrations against the database:
+  ```bash
+  alembic upgrade head
+  ```
 
-**Symptom**: `PermissionError: [WinError 32]` on SQLite files
+### Administrator Account Bootstrap
+- **Symptom**: New users registered via the API get `role="viewer"` and cannot approve changes.
+- **Resolution**: Set `INITIAL_ADMIN_EMAIL` before the user registers, or run the CLI helper:
+  ```bash
+  python scripts/create_admin.py --username admin --email admin@domain.com --password "SecurePass123!"
+  ```
 
-**Fix**: This is a Windows-specific SQLite file locking issue. Ensure all connections are closed before file operations. Use `DeltaCache.persist()` or `AuditLog.close()` before cleanup.
+---
 
-### 503 Service Unavailable on /api/workflow or /api/memory
+## 3. Deployment, CI/CD, and Rollback
 
-**Symptom**: Optional endpoints return 503
+### CD Run Fails with "NOT DEPLOYED"
+- **Root Cause**: One or more deployment secrets (`HF_TOKEN`, `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`) are missing or empty in GitHub Repository Secrets.
+- **Resolution**: Go to GitHub Repository Settings -> Secrets and Variables -> Actions, and verify all four secrets are defined.
 
-**Fix**: Install optional dependencies:
-```bash
-pip install etap[workflow]  # requires langgraph
-pip install etap[memory]    # requires mem0 + qdrant-client
-```
+### Deployment Drift-Check Failure
+- **Symptom**: `cd.yml` step `Drift-check — every Dockerfile COPY source must be staged` exits with code 1.
+- **Root Cause**: A new file or directory was added to a `COPY` instruction in `Dockerfile` without being included in the canonical 25-item production whitelist in `cd.yml`.
+- **Resolution**: Add the necessary directory to the `Stage THE 25-item production whitelist` step in `.github/workflows/cd.yml`.
 
-### Health Check Failing
+### Executing a Production Rollback
+- **Procedure**:
+  1. Identify the commit SHA of the last known-good green CI run:
+     ```bash
+     git log --oneline -n 10
+     ```
+  2. Navigate to GitHub Actions -> **Production Rollback** (`rollback.yml`).
+  3. Click **Run workflow**, enter the 40-character target `git_sha` and incident `reason`.
+  4. The workflow triggers `cd.yml` with the pinned SHA and validates `/healthz` post-rollback.
 
-**Symptom**: `/api/health` returns non-200
+---
 
-**Fix**: Check:
-1. Database path is accessible and writable
-2. Core modules can be imported: `python -c "from etap.core.qomn_kernel import QOMNKernel"`
-3. Environment variables are set correctly
+## 4. Operational Monitoring & Health
 
-### Frontend Not Loading
-
-**Symptom**: Blank page or API-only mode
-
-**Fix**: Build and serve frontend:
-```bash
-cd frontend && npm install && npm run build
-# Backend auto-serves frontend/dist when it exists
-```
-
-### Parser Security Errors
-
-**Symptom**: File parsing returns "path rejected" errors
-
-**Fix**: This is intentional security behavior. Paths with null bytes, traversal sequences, or leading dashes are rejected. Ensure file paths are clean.
-
-### Native Dependency Compilation Errors
-
-**Symptom**: C extension compilation fails when installing requirements
-
-**Fix**:
-- On Windows: Install Microsoft C++ Build Tools (Visual Studio 2022 Build Tools with Desktop Development with C++).
-- On Linux: Run `sudo apt-get install build-essential python3-dev` (Debian/Ubuntu) or `sudo yum groupinstall "Development Tools"` (RHEL/CentOS).
-- On macOS: Run `xcode-select --install`.
-
-## Getting Help
-
-1. Check logs: `LOG_LEVEL=DEBUG` for detailed output
-2. Review ARCHITECTURE.md for system design
-3. Check API docs: `http://localhost:8000/docs` (Swagger UI)
+### Health Probe Verification
+- **App Healthz**: `GET /healthz` on port 7860/8000.
+  Returns HTTP 200 `{"status":"ok", "timestamp": ...}`.
+- **Metrics**: `GET /metrics` exports Prometheus metrics including request rates and study latencies.
+- **Syslog Forwarder**: Configured via `SIEM_ENABLED=true` and `SIEM_SYSLOG_HOST` / `SIEM_SYSLOG_PORT` (UDP 514 / TCP 514 / TLS 6514 per RFC 5424).

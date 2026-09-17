@@ -9,13 +9,14 @@ from __future__ import annotations
 
 import logging
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 
+from api.dependencies import get_api_key
 from api.studies import SystemSpec, _build_system_from_spec
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/api/v1/system", tags=["validation"])
+router = APIRouter(prefix="/api/v1/system", tags=["validation"], dependencies=[Depends(get_api_key)])
 
 
 @router.post(

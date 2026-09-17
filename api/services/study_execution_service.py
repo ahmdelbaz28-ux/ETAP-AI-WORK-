@@ -76,74 +76,11 @@ async def execute_study_re_run(
         )
 
     # 2. Persist updated solver parameters for this project
-    saved_params = await save_solver_params(project_id, params, db)
+    await save_solver_params(project_id, params, db)
 
-    # 3. Determine next revision / version number safely
-    next_version = await get_next_revision_number(db, project_id=project_id)
-
-    # 4. Generate study results
-    results = {
-        "summary": f"{tool.replace('_', ' ').title()} study completed successfully.",
-        "status": "converged",
-        "version": next_version,
-        "parameters": saved_params,
-        "execution_timestamp": datetime.now(UTC).isoformat(),
-        "buses": [
-            {"id": "BUS-1", "v_pu": 1.0, "angle_deg": 0.0},
-            {"id": "BUS-2", "v_pu": 0.985, "angle_deg": -1.2},
-        ],
-        "total_losses_mw": 0.42,
-    }
-
-    study_id = str(uuid.uuid4())
-    user_id = str(user.user_id) if user and getattr(user, "user_id", None) else "system"
-    tenant_id = (
-        (user.tenant_id if user and getattr(user, "tenant_id", None) else None)
-        or project.tenant_id
-        or "default"
+    # 3. FIX-13 Phase A: Real study execution engine integration
+    # Hardcoded fake results (BUS-1/BUS-2, 0.42 MW) are permanently removed.
+    raise HTTPException(
+        status_code=status.HTTP_501_NOT_IMPLEMENTED,
+        detail="Real study execution engine integration for project re-run is not yet connected.",
     )
-
-    # 5. Persist StudyResult
-    study_result = StudyResult(
-        id=study_id,
-        tenant_id=tenant_id,
-        project_id=project_id,
-        study_type=tool,
-        status=StudyStatus.COMPLETED.value,
-        config={"tool": tool, "parameters": saved_params},
-        results=results,
-        created_by=user_id,
-        completed_at=datetime.now(UTC),
-    )
-    db.add(study_result)
-
-    # 6. Create StudyVersion snapshot
-    version_id = str(uuid.uuid4())
-    study_version = StudyVersion(
-        id=version_id,
-        tenant_id=tenant_id,
-        study_id=study_id,
-        project_id=project_id,
-        version_number=next_version,
-        label=f"Rev {next_version}",
-        description=f"Re-run with updated solver parameters ({tool})",
-        config_snapshot={"tool": tool, "parameters": saved_params},
-        results_snapshot=results,
-        diff_summary=f"Updated parameters: {json.dumps(params)}",
-        created_by=user_id,
-    )
-    db.add(study_version)
-
-    await db.commit()
-    await db.refresh(study_result)
-
-    return {
-        "success": True,
-        "study_id": study_id,
-        "project_id": project_id,
-        "version": next_version,
-        "version_number": next_version,
-        "status": "completed",
-        "results": results,
-        "parameters": saved_params,
-    }

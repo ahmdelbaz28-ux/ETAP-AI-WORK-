@@ -132,23 +132,39 @@ async def lifespan(_app: FastAPI):
 
 
 async def _startup_auth_fail_closed_check() -> None:
-    """Ensure production/staging environments fail closed if API key is unconfigured."""
-    env = os.environ.get("ENVIRONMENT", os.environ.get("ENV", "development")).lower()
-    eng_key = os.environ.get("ENGINEERING_SERVICE_API_KEY", "") or os.environ.get("HF_API_KEY", "")
-    if env in ("production", "staging", "prod") and not eng_key:
-        logger.critical(
-            "FATAL: Running in %s mode without ENGINEERING_SERVICE_API_KEY or HF_API_KEY! "
-            "Startup aborted to prevent open-by-default security vulnerability.",
-            env,
-        )
-        raise RuntimeError(
-            f"ENGINEERING_SERVICE_API_KEY or HF_API_KEY must be configured in {env} mode (Fail-Closed Security Guard)."
-        )
-    if not eng_key:
-        logger.warning(
-            "⚠️ WARNING: Running in %s mode without API key. Unauthenticated access permitted ONLY in development.",
-            env,
-        )
+    """Ensure production/staging environments fail closed if mandatory vars are unconfigured (FIX-15)."""
+    env = os.environ.get("ENVIRONMENT", os.environ.get("ENV", "production")).lower()
+    is_prod = env in ("production", "staging", "prod")
+
+    if is_prod:
+        missing_vars = []
+        eng_key = os.environ.get("ENGINEERING_SERVICE_API_KEY", "") or os.environ.get("HF_API_KEY", "")
+        if not eng_key:
+            missing_vars.append("ENGINEERING_SERVICE_API_KEY (or HF_API_KEY)")
+
+        db_url = os.environ.get("DATABASE_URL", "")
+        if not db_url or db_url.startswith("sqlite"):
+            missing_vars.append("DATABASE_URL (Persistent PostgreSQL required; SQLite is forbidden in production)")
+
+        jwt_key = os.environ.get("JWT_SECRET_KEY", "")
+        if not jwt_key:
+            missing_vars.append("JWT_SECRET_KEY")
+
+        if missing_vars:
+            msg = (
+                f"FATAL STARTUP ERROR: Running in {env} mode with missing mandatory configuration: "
+                + ", ".join(missing_vars)
+                + ". Aborting startup (Fail-Closed Security Guard)."
+            )
+            logger.critical(msg)
+            raise RuntimeError(msg)
+    else:
+        eng_key = os.environ.get("ENGINEERING_SERVICE_API_KEY", "") or os.environ.get("HF_API_KEY", "")
+        if not eng_key:
+            logger.warning(
+                "⚠️ WARNING: Running in %s mode without API key. Unauthenticated access permitted ONLY in development.",
+                env,
+            )
 
 
 # -- App Init -----------------------------------------------------------------
@@ -1049,10 +1065,15 @@ async def websocket_dual_control_approve(websocket: WebSocket):
         reject_request,
     )
 
-    # Auth via query param token
+    # Auth via query param token — fail closed per FIX-10
     token = websocket.query_params.get("token", "")
     expected = os.environ.get("ENGINEERING_SERVICE_API_KEY", "")
-    if expected and not hmac.compare_digest(token, expected):
+    if not expected:
+        logger.error("Dual-control WS rejected: ENGINEERING_SERVICE_API_KEY not configured")
+        await websocket.close(code=1011, reason="Server authentication not configured")
+        return
+    if not hmac.compare_digest(token, expected):
+        logger.warning("Dual-control WS rejected: invalid or missing token")
         await websocket.close(code=4001, reason="Invalid or missing token")
         return
 

@@ -40,7 +40,7 @@ jobs:
     runs-on: ubuntu-latest
     # Skip draft PRs to save CI minutes (they will be scanned when marked ready).
     # Skip Dependabot PRs since secrets (SONAR_TOKEN) are not accessible to Dependabot workflows.
-    if: (github.event.pull_request.draft == false || github.event_name != 'pull_request') && github.actor != 'dependabot[bot]'
+    if: (github.event_name != 'pull_request' || !github.event.pull_request.draft) && github.actor != 'dependabot[bot]'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
@@ -72,8 +72,7 @@ jobs:
             pytest pytest-cov \
             || echo "Some deps failed to install — continuing for static analysis."
 
-      - name: Run tests with coverage (best-effort, non-blocking)
-        continue-on-error: true
+      - name: Run tests with coverage
         run: |
           pytest \
             --cov=. \
@@ -81,8 +80,7 @@ jobs:
             --cov-report=term \
             -q \
             --ignore=tests/integration \
-            --ignore=tests/e2e \
-            || echo "pytest failed — SonarCloud will still scan without coverage."
+            --ignore=tests/e2e
 
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@v3.0.0
@@ -102,10 +100,9 @@ jobs:
 
       - name: SonarCloud Quality Gate check
         id: sonarqube-quality-gate-check
-        uses: sonarsource/sonarqube-quality-gate-action@v1.2.1
+        uses: sonarsource/sonarqube-quality-gate-action@7a5fffe8e523c40e0c740b6bc2712ab503e52efa  # v1.2.1
         # Wait up to 5 minutes for SonarCloud to compute the Quality Gate.
         timeout-minutes: 5
-        continue-on-error: true
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         # The Quality Gate action polls SonarCloud for the analysis task ID.

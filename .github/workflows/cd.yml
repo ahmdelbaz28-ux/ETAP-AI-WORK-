@@ -1,0 +1,227 @@
+name: "CD — Deploy (gated on CI)"
+
+on:
+  workflow_run:
+    workflows: ["CI"]          # Surviving CI workflow
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:            # Manual deployment / rollback path, confirmed by pinned SHA
+    inputs:
+      ref_sha:
+        description: "Deploy this exact commit SHA (must be a green CI run)"
+        required: true
+        type: string
+
+concurrency:
+  group: cd-production          # Single deployment at a time, never cancel mid-flight
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    outputs:
+      sha: ${{ steps.sha.outputs.sha }}
+    steps:
+      - name: Verify CI success + SHA pinning
+        id: sha
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            SHA="${{ inputs.ref_sha }}"
+          else
+            if [ "${{ github.event.workflow_run.conclusion }}" != "success" ]; then
+              echo "::error::CI did not succeed — refusing to deploy"; exit 1
+            fi
+            if [ "${{ github.event.workflow_run.head_repository.full_name }}" != "${{ github.repository }}" ]; then
+              echo "::error::CI ran on a fork — refusing to deploy"; exit 1
+            fi
+            SHA="${{ github.event.workflow_run.head_sha }}"
+          fi
+          echo "Deploying pinned SHA: $SHA"
+          echo "sha=$SHA" >> "$GITHUB_OUTPUT"
+
+  validate-secrets:
+    needs: [guard]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail fast on missing deploy secrets (NO silent no-ops per FIX-19)
+        run: |
+          set -euo pipefail
+          missing=0
+          for s in HF_TOKEN VERCEL_TOKEN VERCEL_ORG_ID VERCEL_PROJECT_ID; do
+            if [ -z "${!s:-}" ]; then
+              echo "::error::Missing deployment secret: $s"
+              missing=1
+            fi
+          done
+          if [ $missing -ne 0 ]; then
+            echo "::error::NOT DEPLOYED — Required secrets are missing."
+            exit 1
+          fi
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+  build-ui:
+    needs: [guard]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
+        with:
+          ref: "${{ needs.guard.outputs.sha }}"
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v7.0.0
+        with:
+          node-version: 20
+      - run: corepack enable && pnpm install --frozen-lockfile
+        working-directory: ui
+      - run: pnpm build
+        working-directory: ui
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
+        with:
+          name: ui-dist
+          path: ui/dist
+
+  deploy-hf:
+    needs: [guard, validate-secrets, build-ui]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
+        with:
+          ref: "${{ needs.guard.outputs.sha }}"
+      - uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16  # v4.1.8
+        with:
+          name: ui-dist
+          path: ui-dist
+
+      - name: Stage THE 25-item production whitelist (FIX-0.1 / FIX-17)
+        run: |
+          set -euo pipefail
+          mkdir -p stage
+          # 1) HF frontmatter README (renamed on the Space)
+          test -f README.hf.md   || { echo "README.hf.md missing";   exit 1; }
+          test -f Dockerfile     || { echo "Dockerfile missing";     exit 1; }
+          test -f hf-space/app.py || { echo "hf-space/app.py missing"; exit 1; }
+          test -f ui-dist/index.html || { echo "ui-dist/index.html missing — UI build failed"; exit 1; }
+          cp README.hf.md stage/README.md
+          # 2) root files (5)
+          cp -r Dockerfile .dockerignore VERSION prompts.json compat.py stage/
+          # 3) the whole hf-space/ dir (app.py + requirements.hf.txt + README.md)
+          cp -r hf-space stage/
+          # 4) the 16 runtime code dirs
+          cp -r agents prompts core_model core engine stage/
+          cp -r load_flow fault_analysis coordination relays stage/
+          cp -r network_solver services api utils ai_context_engine stage/
+          cp -r integrations ml stage/
+          # 5) data/ minus runtime DBs
+          cp -r data stage/
+          rm -f stage/data/*.db* 2>/dev/null || true
+          # 6) the FRESH UI build from this exact SHA
+          cp -r ui-dist stage/
+          # NOTE: skills/ is intentionally NOT shipped (HF file-size limit;
+          # agents load skills from the GitHub repo, per sync-platforms.yml:175-180)
+
+      - name: Drift-check — every Dockerfile COPY source must be staged (FIX-17 2.0 gate)
+        run: |
+          set -euo pipefail
+          MISSING=0
+          for src in $(grep -E '^\s*COPY(\s+--chown=[^\s]+)?(\s+--chmod=[^\s]+)?\s+\S+' Dockerfile \
+                        | awk '{print $NF=="/app/"?$(NF-1):$2}' \
+                        | grep -vE '^(/app|/tmp)' | sed 's:/$::' | sort -u); do
+            base=$(basename "$src")
+            if [ ! -e "stage/$base" ] && [ "$base" != "ui-dist" ]; then
+              echo "::error::Dockerfile COPY source '$base' missing from cd.yml whitelist"
+              MISSING=1
+            fi
+          done
+          exit $MISSING
+
+      - name: Push staged set to HF Space (single atomic commit)
+        run: |
+          set -euo pipefail
+          echo "https://user:${HF_TOKEN}@huggingface.co" > /tmp/.git-credentials-hf
+          git config credential.helper "store --file=/tmp/.git-credentials-hf"
+          git clone https://huggingface.co/spaces/ahmdelbaz28/AhmedETAP-Platform space-repo 2>&1 | tail -3
+          cd space-repo
+          find . -mindepth 1 -maxdepth 1 -not -name '.git' -not -name '.gitattributes' -exec rm -rf {} +
+          cp -r ../stage/. ./
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+          git add -A
+          git commit -m "deploy ${{ needs.guard.outputs.sha }}"
+          git push origin main 2>&1 | tee /tmp/hf-push.log
+          if grep -q "remote rejected\|failed to push" /tmp/hf-push.log; then
+            echo "::error::HF Space push FAILED"
+            exit 1
+          fi
+          rm -f /tmp/.git-credentials-hf
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+
+  deploy-vercel:
+    needs: [guard, validate-secrets, build-ui]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
+        with:
+          ref: "${{ needs.guard.outputs.sha }}"
+      - name: Deploy (strict — failures must fail the run)
+        run: |
+          set -euo pipefail
+          npx vercel pull --yes --environment=production \
+            --token="${{ secrets.VERCEL_TOKEN }}"
+          npx vercel build --prod --token="${{ secrets.VERCEL_TOKEN }}"
+          npx vercel deploy --prebuilt --prod --token="${{ secrets.VERCEL_TOKEN }}"
+
+  smoke-and-health-gate:
+    needs: [guard, deploy-hf, deploy-vercel]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Smoke the EXACT deployed revision
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          WANT_SHA: ${{ needs.guard.outputs.sha }}
+        run: |
+          set -euo pipefail
+          SHA="${{ needs.guard.outputs.sha }}"
+          # 1) HF must report the deployed sha
+          python - <<'PY'
+          import os, sys, urllib.request, json
+          req = urllib.request.Request(
+            "https://huggingface.co/api/spaces/ahmdelbaz28/AhmedETAP-Platform",
+            headers={"Authorization": "Bearer " + os.environ["HF_TOKEN"]})
+          meta = json.load(urllib.request.urlopen(req))
+          deployed = (meta.get("runtime") or {}).get("sha") or ""
+          want = os.environ["WANT_SHA"]
+          print(f"deployed={deployed} want={want}")
+          if want[:7] not in deployed:
+              sys.exit("FATAL: Space runtime sha does not match pinned sha")
+          PY
+          # 2) Real app health probe (/healthz endpoint at app.py:584)
+          for i in $(seq 1 30); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' \
+              https://ahmdelbaz28-ahmedetap-platform.hf.space/healthz || true)
+            [ "$code" = "200" ] && { echo "healthz OK"; exit 0; }
+            echo "attempt $i: /healthz -> $code"; sleep 10
+          done
+          echo "::error::/healthz never returned 200 within 5 minutes"
+          exit 1
+
+  rollback-on-failure:
+    needs: [smoke-and-health-gate]
+    if: failure()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Page + pin back (SP-6)
+        run: |
+          echo "::error::Deploy failed health gate. ACTION: re-run cd.yml with the last green SHA."
+          if [ -n "${{ secrets.ALERT_WEBHOOK }}" ]; then
+            curl -s -X POST -H 'Content-type: application/json' \
+              --data "{\"text\":\"ETAP CD FAILED health gate at ${{ needs.guard.outputs.sha }} — rollback required\"}" \
+              "${{ secrets.ALERT_WEBHOOK }}" || true
+          fi

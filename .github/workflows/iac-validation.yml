@@ -62,15 +62,15 @@ jobs:
       - name: Helm dependency update
         working-directory: ./helm/etap-ai
         run: helm dependency update
-        continue-on-error: true  # May fail if Bitnami repo is unreachable
+        continue-on-error: false
 
       - name: Helm lint (default values)
         run: helm lint ./helm/etap-ai/
-        continue-on-error: true  # May fail if dependencies aren't downloaded
+        continue-on-error: false
 
       - name: Helm lint (strict mode)
         run: helm lint ./helm/etap-ai/ --strict
-        continue-on-error: true  # Strict mode may flag style issues
+        continue-on-error: false
 
       - name: Helm template render (default values)
         run: |
@@ -109,7 +109,7 @@ jobs:
               /tmp/rendered-default.yaml /tmp/rendered-prod.yaml || \
               echo "::warning::kubeconform found schema issues — see output above"
           fi
-        continue-on-error: true
+        continue-on-error: false
 
       - name: Security check — no secrets in rendered manifests
         run: |
@@ -194,7 +194,7 @@ jobs:
 
       - name: Terraform validate
         run: terraform validate -no-color
-        continue-on-error: true  # May fail if providers aren't downloaded
+        continue-on-error: false
 
       - name: Install tflint
         run: |
@@ -209,7 +209,7 @@ jobs:
           tflint --version
           tflint --init
           tflint -f compact
-        continue-on-error: true  # Warnings, not blocking
+        continue-on-error: false
 
       - name: Install tfsec
         run: |
@@ -226,7 +226,7 @@ jobs:
             --out /tmp/tfsec-results.sarif \
             --minimum-severity HIGH \
             --soft-fail
-        continue-on-error: true
+        continue-on-error: false
 
       - name: Upload tfsec SARIF to GitHub Security
         uses: github/codeql-action/upload-sarif@cdf488f595d80d6e07e03d4674febd5ab45fa938  # v4.37.9
@@ -250,7 +250,7 @@ jobs:
             -input=false \
             -no-color \
             -out=/tmp/tfplan
-        continue-on-error: true  # Plan may fail due to missing provider creds
+        continue-on-error: false
 
   # ── 3. SUMMARY ────────────────────────────────────────────────────────────
   summary:

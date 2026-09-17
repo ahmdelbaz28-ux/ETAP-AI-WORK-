@@ -8,7 +8,7 @@ on:
   # Run after the main CI pipeline succeeds (avoids duplicate triggers
   # with the push event — pushes already trigger CI/CD which fans out)
   workflow_run:
-    workflows: ["AhmedETAP CI/CD"]
+    workflows: ["CI"]
     types: [completed]
     branches: [main, staging]
 
@@ -333,7 +333,6 @@ jobs:
 
       - name: Parse Locust results
         if: always()
-        continue-on-error: true
         run: |
           python - <<'PYEOF'
           import json, os, sys, csv
@@ -442,14 +441,12 @@ jobs:
         with:
           name: k6-load-test-results-${{ github.sha }}
           path: k6-results
-        continue-on-error: true
 
       - name: Download Locust results
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8.0.1 (node24)
         with:
           name: locust-stress-test-results-${{ github.sha }}
           path: locust-results
-        continue-on-error: true
 
       - name: Build PR comment
         run: |
@@ -459,78 +456,81 @@ jobs:
           lines = [
               "## 📊 Load & Stress Test Results",
               "",
-              f"**Commit:** `{os.environ.get('GITHUB_SHA', 'N/A')[:7]}`",
-              f"**Branch:** `{os.environ.get('GITHUB_REF_NAME', 'N/A')}`",
+              "Automated performance and stress test results for commit `" + os.environ.get("GITHUB_SHA", "")[:8] + "`.",
               "",
           ]
 
-          # ── k6 results ─────────────────────────────────────────────────────
-          k6_path = "k6-results/parsed-results.json"
-          if os.path.exists(k6_path):
-              with open(k6_path) as f:
-                  k6 = json.load(f)
-              lines += [
-                  "### k6 Load Test",
-                  "",
-                  f"| Metric | Value |",
-                  f"|--------|-------|",
-                  f"| Requests | {k6.get('requests', 'N/A')} |",
-                  f"| Iterations | {k6.get('iterations', 'N/A')} |",
-                  f"| Avg Duration | {k6.get('avg_ms', 'N/A')} ms |",
-                  f"| P95 Duration | {k6.get('p95_ms', 'N/A')} ms |",
-                  f"| P99 Duration | {k6.get('p99_ms', 'N/A')} ms |",
-                  f"| Error Rate | {k6.get('error_rate', 'N/A')} |",
-                  f"| Thresholds | {'✅ All Passed' if k6.get('thresholds_passed') else '❌ Some Failed'} |",
-                  "",
-              ]
+          # Read k6 results
+          k6_summary_file = "k6-results/k6_summary.json"
+          if os.path.exists(k6_summary_file):
+              try:
+                  with open(k6_summary_file) as f:
+                      k6_data = json.load(f)
+                  lines.append("### k6 Load Test Summary")
+                  lines.append("| Metric | Value | Threshold | Status |")
+                  lines.append("|--------|-------|-----------|--------|")
+                  metrics = k6_data.get("metrics", {})
+                  # Format key metrics
+                  http_req_duration = metrics.get("http_req_duration", {}).get("values", {})
+                  p95 = http_req_duration.get("p(95)", "N/A")
+                  p99 = http_req_duration.get("p(99)", "N/A")
+                  med = http_req_duration.get("med", "N/A")
+                  lines.append(f"| Response Time (p95) | {p95:.1f}ms | < 2000ms | {'✅' if p95 != 'N/A' and p95 < 2000 else '❌'} |" if isinstance(p95, (int, float)) else f"| Response Time (p95) | {p95} | < 2000ms | ❓ |")
+                  lines.append(f"| Response Time (p99) | {p99:.1f}ms | < 5000ms | {'✅' if p99 != 'N/A' and p99 < 5000 else '❌'} |" if isinstance(p99, (int, float)) else f"| Response Time (p99) | {p99} | < 5000ms | ❓ |")
+                  lines.append(f"| Response Time (median) | {med:.1f}ms | < 500ms | {'✅' if med != 'N/A' and med < 500 else '❌'} |" if isinstance(med, (int, float)) else f"| Response Time (median) | {med} | < 500ms | ❓ |")
+                  http_req_failed = metrics.get("http_req_failed", {}).get("values", {})
+                  rate = http_req_failed.get("rate", "N/A")
+                  lines.append(f"| Error Rate | {rate*100:.2f}% | < 5% | {'✅' if rate != 'N/A' and rate < 0.05 else '❌'} |" if isinstance(rate, (int, float)) else f"| Error Rate | {rate} | < 5% | ❓ |")
+                  lines.append("")
+              except Exception as e:
+                  lines.append(f"⚠️ Could not parse k6 results: {e}\n")
           else:
-              lines += ["### k6 Load Test", "", "⚠️ Results not available", ""]
+              lines.append("⚠️ No k6 results found.\n")
 
-          # ── Locust results ─────────────────────────────────────────────────
-          locust_path = "locust-results/parsed-results.json"
-          if os.path.exists(locust_path):
-              with open(locust_path) as f:
-                  locust = json.load(f)
-              summary = locust.get("summary", {})
-              lines += [
-                  "### 🦗 Locust Stress Test",
-                  "",
-                  f"| Metric | Value |",
-                  f"|--------|-------|",
-                  f"| Total Requests | {summary.get('total_requests', 'N/A')} |",
-                  f"| Total Failures | {summary.get('total_failures', 'N/A')} |",
-                  f"| Error Rate | {summary.get('error_rate_pct', 'N/A')}% |",
-                  f"| Pass/Fail | {'✅ PASS' if summary.get('passed') else '❌ FAIL'} (< 1%) |",
-                  "",
-              ]
+          # Read Locust results
+          locust_stats_file = "locust-results/locust_stats.json"
+          if os.path.exists(locust_stats_file):
+              try:
+                  with open(locust_stats_file) as f:
+                      locust_data = json.load(f)
+                  summary = locust_data.get("summary", {})
+                  lines.append("### Locust Stress Test Summary")
+                  lines.append(f"- **Total Requests**: {summary.get('total_requests', 'N/A')}")
+                  lines.append(f"- **Total Failures**: {summary.get('total_failures', 'N/A')}")
+                  lines.append(f"- **Failure Rate**: {summary.get('failure_rate_pct', 'N/A')}%")
+                  lines.append(f"- **Average RPS**: {summary.get('total_rps', 'N/A'):.1f}" if isinstance(summary.get('total_rps'), (int, float)) else f"- **Average RPS**: {summary.get('total_rps', 'N/A')}")
+                  lines.append("")
+                  endpoint_stats = locust_data.get("endpoint_stats", [])
+                  if endpoint_stats:
+                      lines.append("| Method | Endpoint | Requests | Failures | Median (ms) | p95 (ms) | RPS |")
+                      lines.append("|--------|----------|----------|----------|-------------|----------|-----|")
+                      for ep in endpoint_stats[:10]:
+                          lines.append(f"| {ep.get('method','')} | `{ep.get('name','')}` | {ep.get('num_requests','')} | {ep.get('num_failures','')} | {ep.get('median_response_time','')} | {ep.get('p95','')} | {ep.get('current_rps',''):.1f} |" if isinstance(ep.get('current_rps'), (int, float)) else f"| {ep.get('method','')} | `{ep.get('name','')}` | {ep.get('num_requests','')} | {ep.get('num_failures','')} | {ep.get('median_response_time','')} | {ep.get('p95','')} | {ep.get('current_rps','')} |")
+                      lines.append("")
+              except Exception as e:
+                  lines.append(f"⚠️ Could not parse Locust results: {e}\n")
           else:
-              lines += ["### 🦗 Locust Stress Test", "", "⚠️ Results not available", ""]
+              lines.append("⚠️ No Locust results found.\n")
 
-          comment = "\n".join(lines)
-          with open(os.environ["GITHUB_ENV"], "a") as f:
-              # Newline-safe encoding for GITHUB_ENV
-              f.write(f"LOAD_TEST_COMMENT<<EOF_MARKER\n{comment}\nEOF_MARKER\n")
+          comment_body = "\n".join(lines)
+          with open("load-test-comment.md", "w") as f:
+              f.write(comment_body)
           PYEOF
 
-      - name: Post comment on PR
-        if: env.LOAD_TEST_COMMENT != ''
+      - name: Post PR comment
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ steps.pr-finder.outputs.pr_number }}
         run: |
-          PR_NUMBER=$(gh pr view --json number -q .number 2>/dev/null || echo "")
-          if [ -n "$PR_NUMBER" ]; then
-            echo "$LOAD_TEST_COMMENT" | gh pr comment "$PR_NUMBER" --body-file -
-            echo "✅ Comment posted on PR #$PR_NUMBER"
+          if [ -n "$PR_NUMBER" ] && [ -f load-test-comment.md ]; then
+            echo "Posting load test results to PR #$PR_NUMBER..."
+            gh pr comment "$PR_NUMBER" --body-file load-test-comment.md || {
+              echo "::warning::Failed to post PR comment — check permissions"
+            }
           else
             echo "⚠️ No associated PR found — skipping comment"
           fi
 
-  # ── 4. GATE — Report load test results (non-blocking) ──────────────────────
-  # The load test gate is NON-BLOCKING (continue-on-error: true) because:
-  #   1. The CI test backend doesn't have production dependencies (LLM API keys,
-  #      Qdrant, persisted Redis data), so ~30% of endpoints (studies/run,
-  #      agents/chat, rag/query, system/validate) return errors in CI that they
-  #      wouldn't return in production.
   #   2. The load test is a performance monitoring tool, not a correctness gate.
   #      Results are uploaded as artifacts for manual review.
   #   3. The test has historically been flaky (14 pass / 2 fail in 30 runs).
@@ -540,12 +540,9 @@ jobs:
     name: "🚦 Load Test Gate"
     runs-on: ubuntu-latest
     needs: [k6-load-test, locust-stress-test]
-    if: always()
-    continue-on-error: true
 
     steps:
       - name: Check load test results
-        continue-on-error: true
         run: |
           echo "k6 result:      ${{ needs.k6-load-test.result }}"
           echo "Locust result:  ${{ needs.locust-stress-test.result }}"

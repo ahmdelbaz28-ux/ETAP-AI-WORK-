@@ -184,3 +184,10 @@ monitoring/
 
 # Source code for other runtimes
 src/
+ts-service/
+acp_runtime/
+archive/
+
+# DuckDB databases
+*.duckdb*
+

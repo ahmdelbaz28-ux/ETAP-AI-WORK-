@@ -1078,6 +1078,19 @@ class UserService:
                 detail="Email already registered",
             )
 
+        # FIX-24: Initial admin bootstrap — if first user or INITIAL_ADMIN_EMAIL matches, assign admin role
+        initial_admin_email = os.getenv("INITIAL_ADMIN_EMAIL", "").strip().lower()
+        if role == "viewer":
+            count_res = await db.execute(select(func.count(User.id)))
+            user_count = count_res.scalar() or 0
+            if user_count == 0 or (initial_admin_email and normalised_email == initial_admin_email):
+                role = "admin"
+                _logger.warning(
+                    "Elevating user %s (%s) to administrator role (bootstrap/INITIAL_ADMIN_EMAIL).",
+                    username,
+                    normalised_email,
+                )
+
         user = User(
             id=str(uuid.uuid4()),
             tenant_id=tenant_id,

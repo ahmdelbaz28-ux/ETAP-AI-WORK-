@@ -76,19 +76,10 @@ from api.environment import is_production_environment
 if _IS_SQLITE:
     _sqlite_prefix = "sqlite+aiosqlite:///"
     _db_path = DATABASE_URL[len(_sqlite_prefix) :]
-    _is_hf_space = bool(
-        os.environ.get("SPACE_ID") or os.environ.get("SPACE_HOST") or os.environ.get("HF_SPACE_ID")
-    )
-    _allow_sqlite = os.environ.get("ALLOW_SQLITE_IN_PROD", "").lower() in (
-        "true",
-        "1",
-        "yes",
-    )
-    if is_production_environment() and not (_allow_sqlite or _is_hf_space):
+    if is_production_environment():
         raise RuntimeError(
-            f"CRITICAL CONFIGURATION ERROR: SQLite ({DATABASE_URL}) is not permitted in production. "
-            "Set DATABASE_URL to a PostgreSQL instance (e.g. postgresql+asyncpg://...) or "
-            "set ALLOW_SQLITE_IN_PROD=true if running in a single-instance container test."
+            f"CRITICAL CONFIGURATION ERROR: SQLite ({DATABASE_URL}) is not permitted in production (including HF Space). "
+            "Set DATABASE_URL to a persistent PostgreSQL instance (e.g. Supabase / HF Postgres: postgresql+asyncpg://...)."
         )
     logger.warning(
         "Using SQLite database (%s). "
