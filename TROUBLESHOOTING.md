@@ -1,6 +1,6 @@
-# AhmedETAP Troubleshooting Guide
+# AhmedETAP Troubleshooting Guide (v2.0 Production Runbook)
 
-This guide provides operational diagnostics, common failure modes, and verified remediation procedures for the AhmedETAP platform (v2.0 production architecture).
+This guide provides operational diagnostics, common failure modes, root causes, and verified remediation procedures for the AhmedETAP platform.
 
 ---
 
@@ -30,7 +30,7 @@ This guide provides operational diagnostics, common failure modes, and verified 
 
 ---
 
-## 2. Database & Data Layer Issues
+## 2. Database, Alembic Migrations & Redis Shared State
 
 ### Production PostgreSQL Connection Failure
 - **Symptom**: Startup fails with `FATAL: DATABASE_URL must be configured` or connection timeout.
@@ -41,11 +41,35 @@ This guide provides operational diagnostics, common failure modes, and verified 
   2. Test network connectivity to port 5432/6543 (pooler).
   3. Ensure SSL mode is enabled (`?ssl=require`).
 
-### Schema Out of Sync / Missing Tables
-- **Symptom**: Query error `relation "users" does not exist` or `missing column`.
-- **Resolution**: Run Alembic migrations against the database:
+### Alembic Startup Migration Gate Failure (FIX-27)
+- **Symptom**: Application logs `FATAL: Database migration failed at startup (Fail-Closed)` and terminates boot.
+- **Root Cause**: Pending migrations exist or a dirty revision was applied to the database schema.
+- **Resolution**:
   ```bash
+  # Check current revision vs head:
+  alembic current
+  alembic heads
+
+  # Apply pending migrations:
   alembic upgrade head
+
+  # If a migration got interrupted and needs stamping:
+  alembic stamp head
+  ```
+
+### Redis Shared State & Distributed Lock Contention (FIX-22)
+- **Symptom**: Session data missing on cross-replica requests or `TimeoutError: Could not acquire distributed lock for resource: ...`.
+- **Root Cause**:
+  1. `REDIS_URL` not configured or unreachable; replicas falling back to in-memory mode.
+  2. A task died holding a lock before TTL expired.
+- **Resolution**:
+  ```bash
+  # Test Redis connectivity:
+  redis-cli -u "$REDIS_URL" ping
+  # Inspect active locks:
+  redis-cli -u "$REDIS_URL" keys "etap:lock:*"
+  # Inspect sessions:
+  redis-cli -u "$REDIS_URL" keys "etap:session:*"
   ```
 
 ### Administrator Account Bootstrap
@@ -57,7 +81,34 @@ This guide provides operational diagnostics, common failure modes, and verified 
 
 ---
 
-## 3. Deployment, CI/CD, and Rollback
+## 3. Frontend, CSP & UI Bundle Security
+
+### Content-Security-Policy (CSP) Script or Style Blocking (FIX-29)
+- **Symptom**: Browser console logs `Refused to execute inline script because it violates the following Content Security Policy directive...`.
+- **Root Cause**: `SecurityHeadersMiddleware` strictly enforces CSP (`script-src 'self' 'unsafe-inline'`, `connect-src 'self' wss: https:`).
+- **Resolution**: Do not load scripts from external unvetted CDNs. All API requests must route to same-origin or explicit HTTPS/WSS endpoints.
+
+### UI Bundle Secret Scanning Failure
+- **Symptom**: CI fails step `UI Bundle Provider Keys Scan` with `[FAIL] CRITICAL: Found exposed secrets in UI bundle`.
+- **Root Cause**: A frontend file in `ui/` or `ui/dist` contains a literal API token (`sk-`, `hf_`, `vcp_`, `sb_`, `github_pat_`).
+- **Resolution**: Run `python scripts/check_bundle_secrets.py` locally to locate and purge any exposed keys.
+
+---
+
+## 4. SCADA, Telemetry & Multi-Agent Scenarios
+
+### IEC 61850 Logical Node or Interlock Violation
+- **Symptom**: Control action rejected with `InterlockViolation: invalid telemetry timestamp` or `bad signal quality`.
+- **Root Cause**: Telemetry data has expired timestamp (>60s old) or signal quality is not GOOD.
+- **Resolution**: Verify NTP time synchronization on SCADA gateways and check that device signal quality flags are healthy.
+
+### ETAP COM Windows Integration
+- **Symptom**: `ImportError: win32com.client` or `ETAP COM Automation unavailable`.
+- **Root Cause**: ETAP COM API is Windows-only (`pywin32`). In Linux/Docker environments, the system automatically uses validated native Python calculation engines (Newton-Raphson, IEC 60909).
+
+---
+
+## 5. Deployment, CI/CD, and Rollback
 
 ### CD Run Fails with "NOT DEPLOYED"
 - **Root Cause**: One or more deployment secrets (`HF_TOKEN`, `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`) are missing or empty in GitHub Repository Secrets.
@@ -80,10 +131,14 @@ This guide provides operational diagnostics, common failure modes, and verified 
 
 ---
 
-## 4. Operational Monitoring & Health
+## 6. Operational Monitoring & Health
 
 ### Health Probe Verification
 - **App Healthz**: `GET /healthz` on port 7860/8000.
-  Returns HTTP 200 `{"status":"ok", "timestamp": ...}`.
+  Returns HTTP 200 `{"status":"ok"}`.
+- **Readiness Probe**: `GET /readyz`
+  Returns HTTP 200 `{"ready": true, "checks": {"db": "ok", "redis": "ok", "schema_version": "011_add_hardening_tables"}}` or 503 on dependency outage.
+- **Schema Health**: `GET /api/v1/health/schema`
+  Returns HTTP 200 `{"status": "synchronized", "head_revision": "011_add_hardening_tables"}`.
 - **Metrics**: `GET /metrics` exports Prometheus metrics including request rates and study latencies.
 - **Syslog Forwarder**: Configured via `SIEM_ENABLED=true` and `SIEM_SYSLOG_HOST` / `SIEM_SYSLOG_PORT` (UDP 514 / TCP 514 / TLS 6514 per RFC 5424).

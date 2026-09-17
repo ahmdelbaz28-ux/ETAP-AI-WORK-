@@ -23,13 +23,18 @@ from api.auth import User, UserService, _validate_password_strength
 async def main() -> int:
     parser = argparse.ArgumentParser(description="Seed or promote an administrator user account.")
     parser.add_argument("--username", default=os.getenv("INITIAL_ADMIN_USERNAME", "admin"))
-    parser.add_argument("--email", default=os.getenv("INITIAL_ADMIN_EMAIL", "admin@etap-ai.internal"))
+    parser.add_argument(
+        "--email", default=os.getenv("INITIAL_ADMIN_EMAIL", "admin@etap-ai.internal")
+    )
     parser.add_argument("--password", default=os.getenv("INITIAL_ADMIN_PASSWORD"))
 
     args = parser.parse_args()
 
     if not args.password:
-        print("ERROR: Password must be supplied via --password or INITIAL_ADMIN_PASSWORD env var.", file=sys.stderr)
+        print(
+            "ERROR: Password must be supplied via --password or INITIAL_ADMIN_PASSWORD env var.",
+            file=sys.stderr,
+        )
         return 1
 
     try:
@@ -41,7 +46,9 @@ async def main() -> int:
     async with async_session_factory() as session:
         # Check if user already exists
         norm_email = args.email.strip().lower()
-        stmt = select(User).where((User.username == args.username) | (func.lower(User.email) == norm_email))
+        stmt = select(User).where(
+            (User.username == args.username) | (func.lower(User.email) == norm_email)
+        )
         res = await session.execute(stmt)
         user = res.scalar_one_or_none()
 
@@ -49,7 +56,9 @@ async def main() -> int:
             if user.role != "admin":
                 user.role = "admin"
                 await session.commit()
-                print(f"SUCCESS: Promoted existing user '{user.username}' ({user.email}) to role 'admin'.")
+                print(
+                    f"SUCCESS: Promoted existing user '{user.username}' ({user.email}) to role 'admin'."
+                )
             else:
                 print(f"NOTICE: User '{user.username}' is already an admin.")
             return 0
@@ -63,7 +72,9 @@ async def main() -> int:
             role="admin",
         )
         await session.commit()
-        print(f"SUCCESS: Created new administrator account '{new_admin.username}' ({new_admin.email}) with role 'admin'.")
+        print(
+            f"SUCCESS: Created new administrator account '{new_admin.username}' ({new_admin.email}) with role 'admin'."
+        )
         return 0
 
 

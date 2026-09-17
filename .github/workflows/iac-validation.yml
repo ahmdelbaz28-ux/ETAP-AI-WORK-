@@ -74,11 +74,7 @@ jobs:
 
       - name: Helm template render (default values)
         run: |
-          helm template etap-ai ./helm/etap-ai/ > /tmp/rendered-default.yaml 2>&1 || {
-            echo "::warning::helm template failed — dependencies may be missing"
-            echo "# helm template failed" > /tmp/rendered-default.yaml
-            exit 0
-          }
+          helm template etap-ai ./helm/etap-ai/ > /tmp/rendered-default.yaml
           echo "Rendered manifest size: $(wc -l < /tmp/rendered-default.yaml) lines"
 
       - name: Helm template render (production values)
@@ -88,11 +84,7 @@ jobs:
             --set redis.auth.password=test-password-12345 \
             --set env.ENGINEERING_SERVICE_API_KEY=test-api-key \
             --set env.existingSecret=etap-secrets \
-            > /tmp/rendered-prod.yaml 2>&1 || {
-            echo "::warning::helm template (prod) failed — dependencies may be missing"
-            echo "# helm template prod failed" > /tmp/rendered-prod.yaml
-            exit 0
-          }
+            > /tmp/rendered-prod.yaml
           echo "Rendered manifest size: $(wc -l < /tmp/rendered-prod.yaml) lines"
 
       - name: Kubeconform schema validation
@@ -176,21 +168,10 @@ jobs:
           terraform_wrapper: false
 
       - name: Terraform fmt check
-        run: |
-          terraform fmt -check -recursive -diff
-          if [ $? -ne 0 ]; then
-            echo "::warning::Terraform files are not properly formatted. Run 'terraform fmt -recursive'"
-            exit 0  # Non-blocking — formatting issues shouldn't block the pipeline
-          fi
-          echo "Terraform formatting OK"
+        run: terraform fmt -check -recursive -diff
 
       - name: Terraform init (backend disabled for CI)
-        run: |
-          # Use -backend=false for CI validation (avoids remote state connection and duplicate backend errors)
-          terraform init -backend=false -input=false -no-color 2>&1 || {
-            echo "::warning::terraform init failed — providers may be unavailable"
-            exit 0
-          }
+        run: terraform init -backend=false -input=false -no-color
 
       - name: Terraform validate
         run: terraform validate -no-color
@@ -224,8 +205,7 @@ jobs:
           tfsec . \
             --format sarif \
             --out /tmp/tfsec-results.sarif \
-            --minimum-severity HIGH \
-            --soft-fail
+            --minimum-severity HIGH
         continue-on-error: false
 
       - name: Upload tfsec SARIF to GitHub Security
@@ -273,12 +253,10 @@ jobs:
             echo "**Terraform version:** ${{ env.TERRAFORM_VERSION }}"
           } >> $GITHUB_STEP_SUMMARY
 
-      - name: Report results (non-blocking)
+      - name: Check overall results
         run: |
-          echo "IaC validation complete"
-          echo "  Helm result: ${{ needs.helm.result }}"
-          echo "  Terraform result: ${{ needs.terraform.result }}"
-          # Non-blocking: IaC validation is informational. Critical
-          # failures (e.g., real security issues in tfsec) are already
-          # blocking in their individual jobs via continue-on-error: false.
-          # This summary just reports the overall status.
+          if [ "${{ needs.helm.result }}" != "success" ] || [ "${{ needs.terraform.result }}" != "success" ]; then
+            echo "ERROR: Infrastructure as Code validation failed"
+            exit 1
+          fi
+          echo "IaC validation passed cleanly"

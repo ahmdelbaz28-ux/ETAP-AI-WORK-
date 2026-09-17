@@ -101,14 +101,15 @@ jobs:
       - name: SonarCloud Quality Gate check
         id: sonarqube-quality-gate-check
         uses: sonarsource/sonarqube-quality-gate-action@7a5fffe8e523c40e0c740b6bc2712ab503e52efa  # v1.2.1
-        # Wait up to 5 minutes for SonarCloud to compute the Quality Gate.
         timeout-minutes: 5
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        # The Quality Gate action polls SonarCloud for the analysis task ID.
-        # Currently set to continue-on-error because the SonarCloud project
-        # quality gate conditions need to be adjusted in the SonarCloud UI
-        # (Administration → Quality Gates) to match the project's actual
-        # thresholds. Once configured, remove continue-on-error to block PRs.
-        # Output: status (PASSED / FAILED / WARNING / NONE)
-        # On failure, a comment is automatically posted on the PR by SonarCloud.
+
+      - name: Assert SonarCloud Quality Gate PASSED
+        run: |
+          STATUS="${{ steps.sonarqube-quality-gate-check.outputs.quality-gate-status }}"
+          echo "SonarCloud Quality Gate Status: $STATUS"
+          if [ "$STATUS" != "PASSED" ]; then
+            echo "ERROR: SonarCloud Quality Gate did not pass (Status: $STATUS). PR blocked."
+            exit 1
+          fi

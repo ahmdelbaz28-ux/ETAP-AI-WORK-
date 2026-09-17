@@ -118,6 +118,15 @@ async def readyz() -> Dict[str, object]:
             checks["redis"] = "ok"
     except Exception as exc:
         checks["redis"] = f"fail: {type(exc).__name__}: {exc}"
+    # Schema check (FIX-27)
+    try:
+        from api.database_migrations import get_head_revision
+
+        head_rev = get_head_revision()
+        checks["schema_version"] = head_rev or "unknown"
+    except Exception as exc:
+        checks["schema_version"] = f"unknown: {exc}"
+
     # Critical dependencies: DB must be ok. Redis is optional in dev but
     # required in production (fail-closed if configured but unreachable).
     # NOTE: checks["db"] may carry a backend suffix ("ok (sqlite)") so the
@@ -137,6 +146,14 @@ async def readyz() -> Dict[str, object]:
         status_code=status_code,
         content={"ready": all_ready, "checks": checks},
     )
+
+
+@router.get("/api/v1/health/schema")
+async def schema_health() -> Dict[str, object]:
+    """Return current database schema migration status (FIX-27)."""
+    from api.database_migrations import check_schema_health
+
+    return await check_schema_health()
 
 
 @router.head("/health")

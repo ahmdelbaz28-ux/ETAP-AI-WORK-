@@ -395,3 +395,33 @@ async def delete_workflow_state(
         await r.delete(key)
     except Exception as exc:
         logger.debug("Workflow state delete failed (non-fatal): %s", exc)
+
+
+class LockManager:
+    """Manager for acquiring and releasing named Redis distributed locks."""
+
+    def __init__(self, client: Any = None) -> None:
+        self._client = client
+
+    async def get_lock(
+        self, resource: str, ttl_seconds: int = _DEFAULT_LOCK_TTL
+    ) -> RedisDistributedLock:
+        client = self._client if self._client is not None else await get_redis_state_client()
+        return RedisDistributedLock(client, resource, ttl_seconds=ttl_seconds)
+
+    @contextlib.asynccontextmanager
+    async def lock(
+        self,
+        resource: str,
+        ttl_seconds: int = _DEFAULT_LOCK_TTL,
+        timeout_ms: int = 5000,
+    ):
+        client = self._client if self._client is not None else await get_redis_state_client()
+        dist_lock = RedisDistributedLock(client, resource, ttl_seconds=ttl_seconds)
+        acquired = await dist_lock.acquire(timeout_ms=timeout_ms)
+        if not acquired:
+            raise TimeoutError(f"Could not acquire distributed lock for resource: {resource}")
+        try:
+            yield dist_lock
+        finally:
+            await dist_lock.release()

@@ -18,11 +18,29 @@ class handler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         """Handle POST request from Vercel Cron."""
+        if not self._verify_auth():
+            self._send_json(
+                401, json.dumps({"error": "Unauthorized: Invalid or missing CRON_SECRET"})
+            )
+            return
         self._process()
 
     def do_GET(self):
         """Handle GET request (for manual testing)."""
+        if not self._verify_auth():
+            self._send_json(
+                401, json.dumps({"error": "Unauthorized: Invalid or missing CRON_SECRET"})
+            )
+            return
         self._process()
+
+    def _verify_auth(self) -> bool:
+        cron_secret = os.getenv("CRON_SECRET", "")
+        if cron_secret:
+            auth = self.headers.get("Authorization", "")
+            if auth != f"Bearer {cron_secret}":
+                return False
+        return True
 
     def _process(self):
         """Call the HF Space digest endpoint."""

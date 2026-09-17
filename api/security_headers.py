@@ -89,8 +89,8 @@ class SecurityHeadersMiddleware:
                 headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
                 headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
                 headers["Content-Security-Policy"] = (
-                    "default-src 'self'; script-src 'self'; style-src 'self'; "
-                    "img-src 'self' data:; font-src 'self'; connect-src 'self'; "
+                    "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; "
+                    "img-src 'self' data:; font-src 'self'; connect-src 'self' wss: https:; "
                     "object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
                 )
             await send(message)

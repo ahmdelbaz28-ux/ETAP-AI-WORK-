@@ -233,6 +233,17 @@ def test_dependencies_jwt_and_active_checks() -> None:
     assert 'algorithms=["HS256"]' in dep_source
     assert "user.is_active" in dep_source
 
+    from api.dependencies import _validate_jwt_access_token_sync
+
+    # Behavioral check: reject algorithm confusion (non-HS256)
+    with pytest.raises(ValueError, match="Only HS256 algorithm is supported"):
+        _validate_jwt_access_token_sync("dummy", algorithms=["none"])
+
+    # Behavioral check: reject invalid token signature
+    with pytest.raises(HTTPException) as exc:
+        _validate_jwt_access_token_sync("invalid.token.signature")
+    assert exc.value.status_code == 401
+
 
 # ---------------------------------------------------------------------------
 # 10. Study Versioning Tenant Scoping & Snapshot Verification

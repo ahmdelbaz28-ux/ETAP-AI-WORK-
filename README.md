@@ -681,6 +681,48 @@ MIT License — Copyright (c) 2026 Eng. Ahmed Elbaz
 
 ---
 
+## ⚡ Engineering Engine Architecture & ETAP COM Automation (FIX-39)
+
+AhmedETAP supports a **hybrid dual-engine architecture**:
+
+1. **Native Mathematical Solvers (Linux / Docker / Cloud):**
+   - **Load Flow:** Newton-Raphson solver conforming to IEEE 3002.7.
+   - **Short Circuit:** Symmetrical components fault analysis conforming to IEC 60909 / IEEE 141.
+   - **Arc Flash:** Empirical incident energy and boundary calculation conforming to IEEE 1584-2018 / NFPA 70E.
+   - **Protection Coordination:** Time-current curve (TCC) selectivity analysis conforming to IEC 60255.
+   - Runs cross-platform with zero proprietary software dependencies.
+
+2. **Direct ETAP COM Automation (Windows Only):**
+   - When running on Windows workstations with licensed ETAP installed, `etap_integration/etap_com.py` interfaces directly via `pywin32` COM automation to extract native `.edb` project models, execute studies, and synchronize single-line diagrams.
+   - On non-Windows platforms, COM calls gracefully fall back to native solvers with clear diagnostic notices.
+
+---
+
+## 🛡️ Enterprise SIEM Syslog Audit Forwarding (RFC 5424) (FIX-40)
+
+To satisfy industrial security compliance (IEC 62443 / NERC CIP), AhmedETAP includes a native RFC 5424 syslog forwarder in `integrations/siem_syslog.py` that streams security events, dual-control maker-checker approvals, and authorization decisions to your enterprise SIEM:
+
+```bash
+# Enable SIEM Forwarding:
+SIEM_ENABLED=true
+SIEM_SYSLOG_HOST=siem.corp.internal
+SIEM_SYSLOG_PORT=514              # Default: 514 (UDP/TCP) or 6514 (TLS)
+SIEM_SYSLOG_PROTOCOL=UDP          # Options: UDP, TCP, TLS
+SIEM_FACILITY=LOCAL0              # Default: LOCAL0
+SIEM_APP_NAME=ahmedetap
+```
+
+---
+
+## 🤖 Agent Runtime & Mastra Open-Source Attribution (FIX-41)
+
+AhmedETAP operates on a dual-runtime architecture:
+- **Python Runtime:** Houses the mathematical power-system engineering engines, FastAPI REST/WebSocket endpoints, and safety verifiers.
+- **TypeScript Agent Runtime:** Utilizes the open-source **[Mastra](https://github.com/mastra-ai/mastra)** framework (`src/mastra/`) for LLM agent definition, tool binding, and specialist triage.
+- Mastra is an open-source framework developed by Mastra AI. AhmedETAP builds on top of Mastra's orchestration primitives to deliver domain-specific power systems engineering workflows.
+
+---
+
 ## 🤝 Contributing
 
 1. Fork the repo and create a feature branch: `git checkout -b feat/your-feature`

@@ -311,7 +311,12 @@ def health_check_all() -> dict[str, Any]:
         ("smithery", lambda: smithery_client.health_check()),
         ("supabase", lambda: supabase_health_check()),
         ("supabase_auth", lambda: supabase_auth_health_check()),
-        ("siem", lambda: siem_forwarder.health_check() if siem_forwarder else {"enabled": False, "status": "unavailable"}),
+        (
+            "siem",
+            lambda: siem_forwarder.health_check()
+            if siem_forwarder
+            else {"enabled": False, "status": "unavailable"},
+        ),
     ]
 
     for name, check in checks:

@@ -290,7 +290,11 @@ class TestACPRuntimeLockfileCVE(unittest.TestCase):
             return f.read()
 
     def test_acp_websockets_bumped(self):
-        """websockets should be bumped from 12.0 to 13.1."""
+        """websockets should be bumped from 12.0 to 13.1, or acp_runtime purged (FIX-32)."""
+        if not os.path.exists(self.lock_path):
+            # acp_runtime purged as dead weight per FIX-32
+            self.assertFalse(os.path.exists(self.lock_path))
+            return
         src = self._read()
         self.assertIn('websockets = "13.1"', src, "acp_runtime pylock.toml websockets not bumped")
         self.assertNotIn(

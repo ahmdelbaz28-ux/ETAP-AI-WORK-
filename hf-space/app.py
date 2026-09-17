@@ -125,6 +125,17 @@ async def lifespan(_app: FastAPI):
         # to apply but never actually did. Verified by reading line 112.
         logger.exception("Database init failed")
 
+    # FIX-27: Alembic startup migration gate — ensure schema is fully upgraded to head
+    try:
+        from api.database_migrations import run_alembic_startup_gate
+
+        await run_alembic_startup_gate()
+    except Exception as exc:
+        logger.exception("Alembic startup migration gate failed: %s", exc)
+        env = os.environ.get("ENVIRONMENT", os.environ.get("ENV", "production")).lower()
+        if env in ("production", "staging", "prod"):
+            raise
+
     await _startup_auth_fail_closed_check()
 
     yield
@@ -138,13 +149,17 @@ async def _startup_auth_fail_closed_check() -> None:
 
     if is_prod:
         missing_vars = []
-        eng_key = os.environ.get("ENGINEERING_SERVICE_API_KEY", "") or os.environ.get("HF_API_KEY", "")
+        eng_key = os.environ.get("ENGINEERING_SERVICE_API_KEY", "") or os.environ.get(
+            "HF_API_KEY", ""
+        )
         if not eng_key:
             missing_vars.append("ENGINEERING_SERVICE_API_KEY (or HF_API_KEY)")
 
         db_url = os.environ.get("DATABASE_URL", "")
         if not db_url or db_url.startswith("sqlite"):
-            missing_vars.append("DATABASE_URL (Persistent PostgreSQL required; SQLite is forbidden in production)")
+            missing_vars.append(
+                "DATABASE_URL (Persistent PostgreSQL required; SQLite is forbidden in production)"
+            )
 
         jwt_key = os.environ.get("JWT_SECRET_KEY", "")
         if not jwt_key:
@@ -159,7 +174,9 @@ async def _startup_auth_fail_closed_check() -> None:
             logger.critical(msg)
             raise RuntimeError(msg)
     else:
-        eng_key = os.environ.get("ENGINEERING_SERVICE_API_KEY", "") or os.environ.get("HF_API_KEY", "")
+        eng_key = os.environ.get("ENGINEERING_SERVICE_API_KEY", "") or os.environ.get(
+            "HF_API_KEY", ""
+        )
         if not eng_key:
             logger.warning(
                 "⚠️ WARNING: Running in %s mode without API key. Unauthenticated access permitted ONLY in development.",
@@ -185,6 +202,11 @@ app = FastAPI(
     openapi_url="/openapi.json",
     lifespan=lifespan,
 )
+
+# FIX-29: Security Headers & CSP Enforcement
+from api.security_headers import SecurityHeadersMiddleware  # noqa: E402
+
+app.add_middleware(SecurityHeadersMiddleware)
 
 # Register the auth router so /api/v1/auth/register, /login, /refresh, /me
 # are available on the HF Space. Without this, users cannot register or

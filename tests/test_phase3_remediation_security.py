@@ -54,17 +54,19 @@ def test_fix_11_verify_api_key_deny_by_default(monkeypatch):
 def test_fix_09_b_tool_policy_router_has_auth():
     """Verify tool-policy router requires get_api_key dependency."""
     from api.tool_policy import router
-    assert any(
-        "get_api_key" in str(dep.dependency) for dep in router.dependencies
-    ), "Router must have get_api_key dependency"
+
+    assert any("get_api_key" in str(dep.dependency) for dep in router.dependencies), (
+        "Router must have get_api_key dependency"
+    )
 
 
 def test_fix_09_c_validation_router_has_auth():
     """Verify system validation router requires get_api_key dependency."""
     from api.validation import router
-    assert any(
-        "get_api_key" in str(dep.dependency) for dep in router.dependencies
-    ), "Validation router must have get_api_key dependency"
+
+    assert any("get_api_key" in str(dep.dependency) for dep in router.dependencies), (
+        "Validation router must have get_api_key dependency"
+    )
 
 
 def test_fix_13_re_run_kills_fake_results(monkeypatch):

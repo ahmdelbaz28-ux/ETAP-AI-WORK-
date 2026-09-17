@@ -227,7 +227,9 @@ def evaluate_tool_policy(
 
 
 # ─── API surface (optional: registered in api/routes.py) ──────────────────
-router = APIRouter(prefix="/api/v1/tool-policy", tags=["tool-policy"], dependencies=[Depends(get_api_key)])
+router = APIRouter(
+    prefix="/api/v1/tool-policy", tags=["tool-policy"], dependencies=[Depends(get_api_key)]
+)
 
 
 class ToolPolicyRequest(BaseModel):

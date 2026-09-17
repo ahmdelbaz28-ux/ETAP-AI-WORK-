@@ -148,14 +148,59 @@ jobs:
       - name: Install dependencies
         run: "pip install --only-binary :all: --requirement requirements.txt"
 
+      - name: Dependency alignment verification (FIX-25)
+        run: pip check
+
       - name: Install test runner
         run: "pip install --only-binary :all: pytest==8.3.5 pytest-asyncio==0.25.3"
 
       - name: Run Integration Tests
         run: pytest tests/test_audit_phase2_fixes.py tests/test_hf_space_fail_closed.py
 
-  # ── Gate 6: E2E Tests (optional) ────────────────────────────────────────
-  # Skipped until Playwright is configured. Uncomment when ready.
+  # ── Gate 6: SCADA & Scenario Tests (FIX-30) ──────────────────────────────
+  scenario-tests:
+    name: SCADA & Scenario Tests
+    runs-on: ubuntu-latest
+    needs: [build]
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: etap
+          POSTGRES_PASSWORD: etap_test_password
+          POSTGRES_DB: etap_platform_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
+        with:
+          python-version: '3.13'
+
+      - name: Install dependencies
+        run: "pip install --only-binary :all: --requirement requirements.txt pytest==8.3.5 pytest-asyncio==0.25.3"
+
+      - name: Run SCADA and Multi-Agent Scenarios
+        env:
+          DATABASE_URL: "postgresql+asyncpg://etap:etap_test_password@localhost:5432/etap_platform_test"
+          REDIS_URL: "redis://localhost:6379/0"
+        run: pytest tests/scenarios/test_*_scenario.py -v
 
   # ── Gate 7: Security Audit ───────────────────────────────────────────────
   security-audit:
@@ -212,6 +257,9 @@ jobs:
             exit 1
           fi
           echo "No secrets found in source code"
+
+      - name: UI Bundle Provider Keys Scan (FIX-29)
+        run: python scripts/check_bundle_secrets.py
 
   # ── Gate 8: Bundle Size Check ────────────────────────────────────────────
   bundle-size:
