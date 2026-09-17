@@ -32,6 +32,8 @@ from contextlib import asynccontextmanager
 from typing import TYPE_CHECKING, Optional
 
 import aiofiles  # async file I/O for S7493 compliance
+from sqlalchemy.ext.asyncio import AsyncSession
+from typing_extensions import Annotated
 
 from api._messages import ISO_8601_UTC_FMT
 
@@ -43,7 +45,7 @@ if TYPE_CHECKING:
 from pathlib import Path
 
 import uvicorn
-from fastapi import Depends, FastAPI, HTTPException, Request, WebSocket, WebSocketDisconnect
+from fastapi import Depends, FastAPI, Header, HTTPException, Request, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 
@@ -220,26 +222,50 @@ app.add_middleware(SecurityHeadersMiddleware)
 # are available on the HF Space. Without this, users cannot register or
 # log in — the endpoints returned 404.
 from api.agents import router as agents_router  # noqa: E402
-from api.assets import router as assets_router  # noqa: E402
-from api.auth import router as auth_router  # noqa: E402
-
-# Email integration routers (Resend integration v2 — added 2026-07-10)
-from api.csrf import CSRFMiddleware, csrf_router  # noqa: E402
-from api.data_import import router as data_import_router  # noqa: E402
 
 # CONDITION A (Phase-2 P0 — see worklog Task ID 5):
 # Dual-control REST endpoints require role-based auth. Importing
 # ``require_role`` + ``CurrentUser`` here lets us attach
 # ``Depends(require_role("admin", "engineer"))`` to the 5 dual-control
 # endpoints below (lines ~993-1057).
-from api.dependencies import CurrentUser, require_role  # noqa: E402
+from api.approvals import (  # noqa: E402
+    router as approvals_router,
+)
+from api.approvals import (
+    session_router as approvals_session_router,
+)
+from api.assets import router as assets_router  # noqa: E402
+from api.auth import router as auth_router  # noqa: E402
+
+# Email integration routers (Resend integration v2 — added 2026-07-10)
+from api.csrf import CSRFMiddleware, csrf_router  # noqa: E402
+from api.data_import import router as data_import_router  # noqa: E402
+from api.database import get_db  # noqa: E402
+from api.dependencies import (  # noqa: E402
+    CurrentUser,
+    get_api_key,
+    get_optional_current_user_from_header,
+    require_role,
+)
 from api.email_dashboard import router as email_dashboard_router  # noqa: E402
 from api.email_digest import router as email_digest_router  # noqa: E402
 from api.email_otp import router as email_otp_router  # noqa: E402
 from api.email_webhooks import router as email_webhooks_router  # noqa: E402
+from api.export import (  # noqa: E402
+    exports_router,
+    reports_router,
+)
+from api.export import (
+    router as export_router,
+)
+from api.feature_flags import router as feature_flags_router  # noqa: E402
 from api.magic_links import router as magic_links_router  # noqa: E402
 from api.notifications import router as notifications_router  # noqa: E402
 from api.projects import router as projects_router  # noqa: E402
+from api.results_store import router as results_router  # noqa: E402
+from api.studies import StudyReRunRequest  # noqa: E402
+from api.study_versions import router as study_versions_router  # noqa: E402
+from api.templates import router as templates_router  # noqa: E402
 
 app.include_router(csrf_router)  # /api/v1/csrf/token
 app.include_router(auth_router)
@@ -248,6 +274,16 @@ app.include_router(projects_router)
 app.include_router(data_import_router)
 app.include_router(assets_router)
 app.include_router(notifications_router)
+# Production parity routers
+app.include_router(study_versions_router)
+app.include_router(templates_router)
+app.include_router(export_router)
+app.include_router(reports_router)
+app.include_router(exports_router)
+app.include_router(approvals_router)
+app.include_router(approvals_session_router)
+app.include_router(feature_flags_router)
+app.include_router(results_router)
 # Email integration routers
 app.include_router(email_otp_router)  # /api/v1/auth/email-otp/*
 app.include_router(magic_links_router)  # /api/v1/auth/magic-link/*
@@ -1483,6 +1519,40 @@ async def run_study(request: SharedStudyRequest):
     status = result.pop("_status", None)
     if status:
         return JSONResponse(status_code=status, content=result)
+    return result
+
+
+@app.post("/api/v1/studies/re-run", tags=["Studies"])
+async def re_run_study(
+    body: StudyReRunRequest,
+    _: Annotated[str, Depends(get_api_key)],
+    idempotency_key: Annotated[Optional[str], Header(alias="Idempotency-Key")] = None,
+    db: AsyncSession = Depends(get_db),
+    user: Annotated[Optional[CurrentUser], Depends(get_optional_current_user_from_header)] = None,
+):
+    """Execute study re-run with updated solver parameters, idempotency, and revision tracking."""
+    from api.approvals import _replay_idempotent, _store_idempotent
+    from api.services.study_execution_service import execute_study_re_run
+
+    tenant_id = (user.tenant_id if user and getattr(user, "tenant_id", None) else None) or "default"
+    endpoint = f"POST /api/v1/studies/re-run/{body.project_id}"
+
+    if idempotency_key:
+        cached = await _replay_idempotent(db, idempotency_key, endpoint, tenant_id)
+        if cached is not None:
+            return cached
+
+    result = await execute_study_re_run(
+        project_id=body.project_id,
+        tool=body.tool,
+        params=body.parameters,
+        user=user,
+        db=db,
+    )
+
+    if idempotency_key:
+        await _store_idempotent(db, idempotency_key, endpoint, tenant_id, result)
+
     return result
 
 

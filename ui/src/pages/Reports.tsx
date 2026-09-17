@@ -8,11 +8,14 @@ import { API_BASE_URL } from "../lib/api-config";
 import { getAuthToken } from "../lib/tokenStorage";
 
 interface Report {
+  id?: string;
   name: string;
   type: string;
   format: string;
   date: string;
   status: string;
+  download_url?: string;
+  project_id?: string;
 }
 
 const formatIcons: Record<string, React.ReactNode> = {
@@ -26,8 +29,11 @@ export default function Reports() {
   const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
+  const [generating, setGenerating] = useState(false);
 
-  useEffect(() => {
+  const fetchReports = () => {
+    setLoading(true);
     const token = getAuthToken();
     fetch(`${API_BASE_URL}/api/v1/reports`, {
       headers: token ? { Authorization: `Bearer ${token}` } : {},
@@ -40,14 +46,90 @@ export default function Reports() {
       })
       .then((data: Report[]) => {
         setReports(Array.isArray(data) ? data : []);
-        setError(null); // Clear any previous error on successful fetch
+        setError(null);
       })
       .catch((err) => {
         console.error("Failed to load reports:", err);
         setError(err.message);
       })
       .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    fetchReports();
   }, []);
+
+  const handleDownload = async (report: Report) => {
+    const itemKey = report.id || `${report.name}-${report.format}`;
+    setDownloadingId(itemKey);
+    try {
+      notify("info", `Downloading ${report.name}...`);
+      const token = getAuthToken();
+      const headers: Record<string, string> = {};
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+
+      const targetPath = report.download_url
+        ? (report.download_url.startsWith("http") ? report.download_url : `${API_BASE_URL}${report.download_url}`)
+        : `${API_BASE_URL}/api/v1/export/${report.project_id || "ieee-9bus-wscc"}/${(report.format || "pdf").toLowerCase()}`;
+
+      const res = await fetch(targetPath, { headers });
+      if (!res.ok) {
+        const errDetail = await res.text().catch(() => res.statusText);
+        throw new Error(`Server returned ${res.status}: ${errDetail}`);
+      }
+
+      const blob = await res.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = blobUrl;
+      const ext = (report.format || "pdf").toLowerCase() === "xlsx" ? "xlsx" : "pdf";
+      const cleanName = report.name.replace(/[^a-zA-Z0-9_\- ]/g, "").replace(/\s+/g, "_").toLowerCase();
+      a.download = `${cleanName}.${ext}`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(blobUrl);
+
+      notify("success", `Downloaded ${report.name} successfully`);
+    } catch (err: any) {
+      console.error("Download failed:", err);
+      notify("error", `Failed to download: ${err.message || "Network error"}`);
+    } finally {
+      setDownloadingId(null);
+    }
+  };
+
+  const handleGenerateCertifiedReport = async () => {
+    setGenerating(true);
+    try {
+      notify("info", "Generating IEEE 9-Bus Certified PE Report...");
+      const token = getAuthToken();
+      const headers: Record<string, string> = {};
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+
+      const res = await fetch(`${API_BASE_URL}/api/v1/export/ieee-9bus-wscc/pdf`, { headers });
+      if (!res.ok) {
+        throw new Error(`Failed to generate: HTTP ${res.status}`);
+      }
+
+      const blob = await res.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = blobUrl;
+      a.download = "ieee_9bus_wscc_certified_pe_report.pdf";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(blobUrl);
+
+      notify("success", "IEEE 9-Bus Certified PE Report generated & downloaded!");
+      fetchReports();
+    } catch (err: any) {
+      notify("error", `Generation failed: ${err.message}`);
+    } finally {
+      setGenerating(false);
+    }
+  };
 
   const safeReports = Array.isArray(reports) ? reports : [];
   const generatedCount = safeReports.filter((r) => r.status === "generated").length;
@@ -56,18 +138,31 @@ export default function Reports() {
   return (
     <div className="space-y-6">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-        <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-xl bg-brand-500/10 border border-brand-500/20">
-            <FileText className="w-5 h-5 text-brand-400" />
-          </div>
-          <div>
-            <h2 className="text-2xl font-bold text-[var(--text-primary)]">Reports</h2>
-            <div className="flex items-center gap-2">
-              <p className="text-sm text-[var(--text-tertiary)]">
-                {generatedCount} generated · {pendingCount} pending
-              </p>
-              <ContextHelpButton contextId="reports.generate" />
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-xl bg-brand-500/10 border border-brand-500/20">
+              <FileText className="w-5 h-5 text-brand-400" />
             </div>
+            <div>
+              <h2 className="text-2xl font-bold text-[var(--text-primary)]">Reports</h2>
+              <div className="flex items-center gap-2">
+                <p className="text-sm text-[var(--text-tertiary)]">
+                  {generatedCount} generated · {pendingCount} pending
+                </p>
+                <ContextHelpButton contextId="reports.generate" />
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="primary"
+              size="sm"
+              icon={FileText}
+              loading={generating}
+              onClick={handleGenerateCertifiedReport}
+            >
+              Generate Certified PE Report (IEEE 9-Bus)
+            </Button>
           </div>
         </div>
       </motion.div>
@@ -168,8 +263,10 @@ export default function Reports() {
                     variant="ghost"
                     size="icon"
                     icon={Download}
-                    onClick={() => notify("success", `Downloading ${report.name}`)}
+                    loading={downloadingId === (report.id || `${report.name}-${report.format}`)}
+                    onClick={() => handleDownload(report)}
                     className="text-[var(--text-tertiary)] hover:text-[var(--text-primary)]"
+                    title={`Download ${report.name}`}
                   />
                 </div>
               </motion.div>

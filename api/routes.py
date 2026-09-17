@@ -52,6 +52,7 @@ from api.email_webhooks import router as email_webhooks_router
 from api.environment import DEV_ENVIRONMENTS, is_dev_environment, is_production_environment
 from api.equipment import router as equipment_router
 from api.etap_draw import router as etap_draw_router
+from api.export import exports_router, reports_router
 from api.export import router as export_router
 from api.feature_flags import router as feature_flags_router
 from api.gis_edits import router as gis_edits_router
@@ -879,6 +880,8 @@ app.include_router(notifications_router)
 app.include_router(study_versions_router)
 app.include_router(templates_router)
 app.include_router(export_router)
+app.include_router(reports_router)
+app.include_router(exports_router)
 app.include_router(settings_router)
 app.include_router(feature_flags_router)  # /api/v1/feature-flags/*
 # ─── Resend email integration routers ─────────────────────────────────────

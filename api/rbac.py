@@ -22,6 +22,7 @@ Exposes endpoints under the ``/api/v1/auth`` prefix:
 * ``DELETE /users/{user_id}/roles/{role_id}`` — Remove role from user (admin only)
 """
 
+import functools
 import uuid
 from datetime import datetime, timezone
 
@@ -278,6 +279,7 @@ router = APIRouter(prefix="/api/v1/auth", tags=["RBAC"])
 # ---------------------------------------------------------------------------
 
 
+@functools.lru_cache(maxsize=128)
 def require_permission(resource: str, action: str):
     """Dependency factory that checks if the user has a specific permission.
 

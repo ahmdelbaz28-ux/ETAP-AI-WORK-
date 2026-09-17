@@ -135,6 +135,7 @@ async def _get_template(template_id: str, db: AsyncSession) -> StudyTemplate:
     return template
 
 
+@router.get("", response_model=TemplateListResponse)
 @router.get("/", response_model=TemplateListResponse)
 async def list_templates(
     db,

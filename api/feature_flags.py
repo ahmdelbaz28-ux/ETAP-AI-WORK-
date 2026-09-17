@@ -94,10 +94,10 @@ DEFAULT_FEATURE_FLAGS: dict[str, dict[str, Any]] = {
         "rollout_percentage": 0,
     },
     "data_export": {
-        "enabled": False,
-        "status": "beta",
-        "description": "In-chat power system data export (P9) - fail-closed by default",
-        "rollout_percentage": 0,
+        "enabled": True,
+        "status": "ga",
+        "description": "In-chat and REST power system data export (P9)",
+        "rollout_percentage": 100,
     },
     "arcgis_provider": {
         "enabled": False,
