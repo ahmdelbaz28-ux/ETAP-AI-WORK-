@@ -207,24 +207,44 @@ async def _init_test_database():
         # Check if the tenants table exists before trying to insert
         # (SQLite test DB may not have the tenants table if migrations haven't run).
         try:
-            await session.execute(
-                text(
-                    "INSERT INTO tenants (id, name, plan, is_active, created_at) "
-                    "VALUES (:id, :name, :plan, :active, NOW()) "
-                    "ON CONFLICT (id) DO NOTHING"
-                ),
-                {
-                    "id": _TEST_TENANT_ID,
-                    "name": "Test Tenant",
-                    "plan": "enterprise",
-                    "active": True,
-                },
-            )
-            await session.commit()
+            from api.tenants import Tenant
+
+            tenant_res = await session.execute(select(Tenant).where(Tenant.id == _TEST_TENANT_ID))
+            if tenant_res.scalar_one_or_none() is None:
+                session.add(
+                    Tenant(
+                        id=_TEST_TENANT_ID,
+                        name="Test Tenant",
+                        slug="test-tenant",
+                        plan="enterprise",
+                        is_active=True,
+                        max_projects=100,
+                        max_users=50,
+                    )
+                )
+                await session.commit()
         except Exception:
-            # SQLite: ON CONFLICT syntax may differ; tenants table may not exist.
-            # Silently continue — SQLite doesn't enforce FK constraints by default.
             await session.rollback()
+            try:
+                await session.execute(
+                    text(
+                        "INSERT INTO tenants (id, name, slug, plan, is_active, created_at) "
+                        "VALUES (:id, :name, :slug, :plan, :active, NOW()) "
+                        "ON CONFLICT (id) DO NOTHING"
+                    ),
+                    {
+                        "id": _TEST_TENANT_ID,
+                        "name": "Test Tenant",
+                        "slug": "test-tenant",
+                        "plan": "enterprise",
+                        "active": True,
+                    },
+                )
+                await session.commit()
+            except Exception:
+                # SQLite: ON CONFLICT syntax may differ; tenants table may not exist.
+                # Silently continue — SQLite doesn't enforce FK constraints by default.
+                await session.rollback()
 
         res = await session.execute(select(User).where(User.id == "test-user-id"))
         user = res.scalar_one_or_none()

@@ -176,6 +176,7 @@ def test_forged_plan_record_for_denied_tool_still_cannot_execute(client):
         requested_tool="node-tool",
         args={},
         session_id=None,
+        tenant_id=_TEST_USER.tenant_id,
         decision="auto_approved",
         reason="forged",
         created_at=time.time(),

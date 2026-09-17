@@ -581,6 +581,15 @@ async def execute_plan(
             status.HTTP_404_NOT_FOUND,
         )
 
+    # ── Belt-and-braces: hard-denied tools never execute, even if a plan
+    #    record somehow reached this point (e.g. policy table edited later).
+    if plan_rec.tool in HARD_DENIED_TOOLS or plan_rec.requested_tool in HARD_DENIED_TOOLS:
+        raise _http_error(
+            TOOL_DENIED_IN_AGENT_EXEC,
+            f"Tool '{plan_rec.requested_tool}' may never be executed by an agent.",
+            status.HTTP_403_FORBIDDEN,
+        )
+
     # ── Tenant gate (Security Gate): the executing caller must belong to the
     #    same tenant scope the plan was created under.
     if _norm_tenant(plan_rec.tenant_id) != _norm_tenant(user.tenant_id):
@@ -641,15 +650,6 @@ async def execute_plan(
                 "plan_id": plan_rec.plan_id,
                 "execution_blocked": False,
             },
-        )
-
-    # ── Belt-and-braces: hard-denied tools never execute, even if a plan
-    #    record somehow reached this point (e.g. policy table edited later).
-    if plan_rec.tool in HARD_DENIED_TOOLS or plan_rec.requested_tool in HARD_DENIED_TOOLS:
-        raise _http_error(
-            TOOL_DENIED_IN_AGENT_EXEC,
-            f"Tool '{plan_rec.requested_tool}' may never be executed by an agent.",
-            status.HTTP_403_FORBIDDEN,
         )
 
     executor = _EXECUTORS.get(plan_rec.tool)
