@@ -634,13 +634,35 @@ async def healthz():
 
         db_health = await check_db_health()
     except Exception:
-        # Import error or unexpected exception — report degraded.
+        # Import error or unexpected exception — report degraded and alert (FIX-26)
         logger.exception("healthz: check_db_health raised unexpectedly")
+        try:
+            from services.alerting_service import get_alerting_service
+
+            await get_alerting_service().trigger_alert(
+                alert_type="health_check_exception",
+                message="Health check failed with unexpected exception",
+                severity="CRITICAL",
+            )
+        except Exception:
+            pass
         return JSONResponse(
             content={"status": "degraded", "detail": "health check error"},
             status_code=503,
         )
     if db_health.get("status") == "unhealthy":
+        # Database is unhealthy — report degraded and trigger alert (FIX-26)
+        try:
+            from services.alerting_service import get_alerting_service
+
+            await get_alerting_service().trigger_alert(
+                alert_type="database_unhealthy",
+                message=f"Database backend {db_health.get('backend', 'unknown')} is unhealthy on /healthz",
+                severity="CRITICAL",
+                details=db_health,
+            )
+        except Exception:
+            pass
         return JSONResponse(
             content={
                 "status": "degraded",

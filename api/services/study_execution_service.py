@@ -10,7 +10,7 @@ Orchestrates:
 
 from __future__ import annotations
 
-import json
+import time
 import uuid
 from datetime import datetime, timezone
 from typing import Any, Dict, Optional
@@ -60,8 +60,9 @@ async def execute_study_re_run(
 ) -> Dict[str, Any]:
     """Execute a study re-run with updated solver parameters.
 
-    Persists the parameters to the database, generates/calculates the study results,
-    creates a new StudyResult record, and creates an associated StudyVersion record.
+    Persists the parameters to the database, executes the study calculation
+    using the real StudyExecutor engine (FIX-13 Phase B), creates a new StudyResult record,
+    and creates an associated StudyVersion revision snapshot.
     """
     if db is None:
         raise ValueError("Database session is required for execute_study_re_run")
@@ -78,9 +79,104 @@ async def execute_study_re_run(
     # 2. Persist updated solver parameters for this project
     await save_solver_params(project_id, params, db)
 
-    # 3. FIX-13 Phase A: Real study execution engine integration
-    # Hardcoded fake results (BUS-1/BUS-2, 0.42 MW) are permanently removed.
-    raise HTTPException(
-        status_code=status.HTTP_501_NOT_IMPLEMENTED,
-        detail="Real study execution engine integration for project re-run is not yet connected.",
+    # 3. FIX-13 Phase B: Real study execution engine integration
+    system_data = params.get("system") or getattr(project, "system_config", None)
+
+    from services.study_executor import _TYPES_REQUIRING_SYSTEM
+
+    canonical_tool = tool.lower()
+    if canonical_tool in ("fault_analysis", "fault"):
+        canonical_tool = "short_circuit"
+
+    if canonical_tool in _TYPES_REQUIRING_SYSTEM and not system_data:
+        raise HTTPException(
+            status_code=status.HTTP_501_NOT_IMPLEMENTED,
+            detail="Real study execution engine integration for project re-run requires a system configuration.",
+        )
+
+    system_spec = None
+    if system_data is not None:
+        if isinstance(system_data, dict):
+            from core_model.specs import SystemSpec
+
+            try:
+                system_spec = SystemSpec(**system_data)
+            except Exception as spec_err:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Invalid system configuration: {spec_err}",
+                ) from spec_err
+        else:
+            system_spec = system_data
+
+    from core_model.specs import StudyRequest
+    from services.study_executor import StudyExecutor
+
+    executor = StudyExecutor()
+    task_id = f"rerun_{project_id}_{int(time.time() * 1000)}"
+    request_payload = StudyRequest(
+        study_type=canonical_tool,
+        parameters=params,
+        system=system_spec,
+        task_id=task_id,
     )
+
+    study_res = await executor.execute(request_payload)
+
+    # 4. Persist StudyResult record in DB
+    study_id = str(uuid.uuid4())
+    creator_id = (
+        getattr(user, "user_id", None)
+        or getattr(user, "id", None)
+        or getattr(project, "created_by", "system")
+        or "system"
+    )
+    tenant_id = getattr(user, "tenant_id", None) or getattr(project, "tenant_id", None)
+
+    status_val = StudyStatus.COMPLETED.value if study_res.success else StudyStatus.FAILED.value
+    err_msg = "; ".join(study_res.errors) if study_res.errors else None
+
+    db_study_result = StudyResult(
+        id=study_id,
+        tenant_id=tenant_id,
+        project_id=project_id,
+        study_type=tool,
+        status=status_val,
+        config=params,
+        results=study_res.data,
+        error_message=err_msg,
+        completed_at=datetime.now(UTC),
+        created_by=str(creator_id),
+    )
+    db.add(db_study_result)
+
+    # 5. Create a StudyVersion revision snapshot
+    version_number = await get_next_revision_number(db, project_id)
+    study_version = StudyVersion(
+        id=str(uuid.uuid4()),
+        tenant_id=tenant_id,
+        study_id=study_id,
+        project_id=project_id,
+        version_number=version_number,
+        label=f"v{version_number}",
+        description=f"Re-run study using {tool}",
+        config_snapshot=params,
+        results_snapshot=study_res.data,
+        diff_summary=f"Re-run executed with tool={tool} (status={status_val})",
+        created_by=str(creator_id),
+        created_at=datetime.now(UTC),
+    )
+    db.add(study_version)
+    await db.commit()
+
+    return {
+        "success": study_res.success,
+        "project_id": project_id,
+        "study_id": study_id,
+        "version_number": version_number,
+        "tool": tool,
+        "status": status_val,
+        "results": study_res.data,
+        "warnings": study_res.warnings,
+        "errors": study_res.errors,
+    }

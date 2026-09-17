@@ -1,0 +1,93 @@
+{
+  "title": "AhmedETAP Scientific Numerical Benchmark Certification",
+  "timestamp": "2026-09-17T09:43:57.169963+00:00",
+  "total_benchmarks": 4,
+  "passed_benchmarks": 4,
+  "status": "CERTIFIED_PASS",
+  "total_execution_time_sec": 0.0076,
+  "benchmarks": [
+    {
+      "name": "IEEE 9-Bus WSCC Load Flow",
+      "standard": "IEEE 3002.7 / Anderson & Fouad",
+      "converged": true,
+      "execution_time_sec": 0.0018,
+      "max_error_pct": 0.04,
+      "tolerance_limit_pct": 1.0,
+      "passed": true,
+      "details": {
+        "Bus_1": {
+          "computed_v_pu": 1.04,
+          "benchmark_v_pu": 1.04,
+          "error_pct": 0.0
+        },
+        "Bus_2": {
+          "computed_v_pu": 1.025,
+          "benchmark_v_pu": 1.025,
+          "error_pct": 0.0
+        },
+        "Bus_3": {
+          "computed_v_pu": 1.025,
+          "benchmark_v_pu": 1.025,
+          "error_pct": 0.0
+        },
+        "Bus_4": {
+          "computed_v_pu": 1.0258,
+          "benchmark_v_pu": 1.026,
+          "error_pct": 0.019
+        },
+        "Bus_5": {
+          "computed_v_pu": 0.9956,
+          "benchmark_v_pu": 0.996,
+          "error_pct": 0.04
+        },
+        "Bus_6": {
+          "computed_v_pu": 1.0127,
+          "benchmark_v_pu": 1.013,
+          "error_pct": 0.03
+        },
+        "Bus_7": {
+          "computed_v_pu": 1.0258,
+          "benchmark_v_pu": 1.026,
+          "error_pct": 0.019
+        },
+        "Bus_8": {
+          "computed_v_pu": 1.0159,
+          "benchmark_v_pu": 1.016,
+          "error_pct": 0.01
+        },
+        "Bus_9": {
+          "computed_v_pu": 1.0324,
+          "benchmark_v_pu": 1.032,
+          "error_pct": 0.039
+        }
+      }
+    },
+    {
+      "name": "IEEE 14-Bus Standard Test Feeder",
+      "standard": "IEEE PES Power Flow Archive",
+      "converged": true,
+      "execution_time_sec": 0.0055,
+      "tolerance_limit_pct": 0.5,
+      "passed": true,
+      "bus_count": 14,
+      "branch_count": 20
+    },
+    {
+      "name": "IEC 60909 Symmetrical Fault Current",
+      "standard": "IEC 60909-0:2016",
+      "nominal_voltage_kv": 13.8,
+      "fault_current_ka": 17.4288,
+      "error_pct": 0.0002,
+      "execution_time_sec": 0.0,
+      "passed": true
+    },
+    {
+      "name": "IEEE 1584 Arc Flash Incident Energy",
+      "standard": "IEEE 1584-2018",
+      "incident_energy_cal_cm2": 0.0005,
+      "arc_flash_boundary_mm": 0.3,
+      "execution_time_sec": 0.0002,
+      "passed": true
+    }
+  ]
+}

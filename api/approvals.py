@@ -268,7 +268,7 @@ async def _replay_idempotent(
     ignored (treated as a miss) so the replay window is bounded by
     ``IDEMPOTENCY_TTL_SECONDS``.
     """
-    if not key:
+    if not key or not isinstance(key, str):
         return None
     result = await db.execute(select(IdempotencyKey).where(IdempotencyKey.key == key))
     record = result.scalar_one_or_none()
@@ -304,7 +304,7 @@ async def _store_idempotent(
     it) — this handler simply skips storing, keeping the current operation's
     own side effects intact.
     """
-    if not key:
+    if not key or not isinstance(key, str):
         return
     # Sequential guard: if the key is already claimed (same or different
     # endpoint/tenant), do not attempt an insert that would only end in an
