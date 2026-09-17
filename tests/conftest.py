@@ -95,7 +95,11 @@ def _reset_redis_singleton():
     to the event loop current at creation; TestClient spins a fresh loop per
     test, so a carried-over client raises 'RuntimeError: Event loop is closed'.
     """
-    from api import auth as auth_module
+    try:
+        from api import auth as auth_module
+    except (ImportError, ModuleNotFoundError):
+        yield
+        return
 
     _detach_redis_connections(auth_module._redis_client)
     auth_module._redis_client = None
