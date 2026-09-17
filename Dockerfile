@@ -66,6 +66,7 @@ COPY --chown=user:user engine/ /app/engine/
 COPY --chown=user:user load_flow/ /app/load_flow/
 COPY --chown=user:user fault_analysis/ /app/fault_analysis/
 COPY --chown=user:user coordination/ /app/coordination/
+COPY --chown=user:user curves/ /app/curves/
 COPY --chown=user:user relays/ /app/relays/
 COPY --chown=user:user network_solver/ /app/network_solver/
 COPY --chown=user:user services/ /app/services/

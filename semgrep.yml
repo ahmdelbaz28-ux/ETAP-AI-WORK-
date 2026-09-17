@@ -19,11 +19,11 @@ rules:
       the provider fail to initialize if the env var is missing.
       Previous incident: a real OpenAI key was committed in src/mastra/lib/model-config.ts.
     patterns:
-      - pattern: os.environ.get("...", "..._KEY...", "...")
-      - pattern-not: os.environ.get("...", "")
-      - pattern-not: os.environ.get("...", "your-...-here")
+      - pattern: os.environ.get($KEY, $VAL)
+      - pattern-not: os.environ.get($KEY, "")
+      - pattern-not: os.environ.get($KEY, "your-...-here")
       - metavariable-regex:
-          metavariable: $ARG
+          metavariable: $VAL
           regex: '^(sk-|hf_|ghp_|sb_|github_pat_|vcp_|prj_|team_)'
 
   - id: etap.secrets.jwt-secret-default
@@ -214,7 +214,7 @@ rules:
 
   # ─── Dependency Security ──────────────────────────────────────────────────
   - id: etap.deps.unpinned-requirements
-    languages: [python]
+    languages: [generic]
     severity: INFO
     message: >-
       Requirement without version pin. Use ~=X.Y.Z for patch updates,

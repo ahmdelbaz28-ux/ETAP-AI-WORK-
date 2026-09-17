@@ -278,4 +278,3 @@ iec61850:
       measurement_type: "breaker_status"
       logical_node: "XCBR1"
       data_attribute: "Pos.stVal"
-

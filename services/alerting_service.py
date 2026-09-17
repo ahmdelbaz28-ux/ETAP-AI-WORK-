@@ -19,14 +19,15 @@ import logging
 import os
 import time
 from datetime import datetime, timezone
-from enum import Enum
 from typing import Any, Dict, Optional
+
+from compat import StrEnum
 
 logger = logging.getLogger("engineering_service.alerting")
 UTC = timezone.utc
 
 
-class AlertSeverity(str, Enum):
+class AlertSeverity(StrEnum):
     CRITICAL = "CRITICAL"
     WARNING = "WARNING"
     INFO = "INFO"

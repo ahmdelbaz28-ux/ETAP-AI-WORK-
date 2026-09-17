@@ -68,8 +68,10 @@ jobs:
           python -m pip install --upgrade pip
           # Install only the lightweight deps needed for tests to collect;
           # heavy optional deps are skipped intentionally to keep CI fast.
+          # E3 fix: pyyaml required by tests/agent_evaluation/run_ab_test.py
           pip install --no-cache-dir \
-            pytest pytest-cov \
+            pytest pytest-cov pytest-asyncio \
+            pyyaml \
             || echo "Some deps failed to install — continuing for static analysis."
 
       - name: Run tests with coverage

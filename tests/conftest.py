@@ -180,22 +180,54 @@ def _reset_chat_first_module_state():
 
 @pytest.fixture(autouse=True)
 async def _init_test_database():
-    """Ensure database tables exist and test users are seeded for all tests."""
-    from sqlalchemy import select
+    """Ensure database tables exist and test users are seeded for all tests.
+
+    E2 fix: On PostgreSQL the users table has users_tenant_id_fkey → tenants.id.
+    An empty string '' violates the FK.  We upsert a canonical test-tenant row
+    first, then seed users with that tenant_id.  SQLite (the default test DB)
+    has no FK enforcement so this change is backward-compatible.
+    """
+    from sqlalchemy import select, text
 
     from api.auth import User, _hash_password
     from api.database import async_session, init_db
 
+    # Canonical test-tenant ID used by all seeded users.
+    _TEST_TENANT_ID = "00000000-0000-0000-0000-000000000001"
+
     await init_db()
 
     async with async_session() as session:
+        # ── Upsert the test tenant first (satisfies FK on Postgres) ──────────
+        # Check if the tenants table exists before trying to insert
+        # (SQLite test DB may not have the tenants table if migrations haven't run).
+        try:
+            await session.execute(
+                text(
+                    "INSERT INTO tenants (id, name, plan, is_active, created_at) "
+                    "VALUES (:id, :name, :plan, :active, NOW()) "
+                    "ON CONFLICT (id) DO NOTHING"
+                ),
+                {
+                    "id": _TEST_TENANT_ID,
+                    "name": "Test Tenant",
+                    "plan": "enterprise",
+                    "active": True,
+                },
+            )
+            await session.commit()
+        except Exception:
+            # SQLite: ON CONFLICT syntax may differ; tenants table may not exist.
+            # Silently continue — SQLite doesn't enforce FK constraints by default.
+            await session.rollback()
+
         res = await session.execute(select(User).where(User.id == "test-user-id"))
         user = res.scalar_one_or_none()
         if user is None:
             users = [
                 User(
                     id="test-user-id",
-                    tenant_id="",  # match SQLite-seed semantics (empty tenant) and satisfy users.tenant_id NOT NULL on Postgres
+                    tenant_id=_TEST_TENANT_ID,  # E2: valid FK on Postgres
                     username="testuser",
                     email="testuser@example.com",
                     password_hash=_hash_password("Str0ngP@ss!"),
@@ -204,7 +236,7 @@ async def _init_test_database():
                 ),
                 User(
                     id="test-admin-id",
-                    tenant_id="",  # match SQLite-seed semantics (empty tenant) and satisfy users.tenant_id NOT NULL on Postgres
+                    tenant_id=_TEST_TENANT_ID,  # E2: valid FK on Postgres
                     username="admin",
                     email="admin@example.com",
                     password_hash=_hash_password("Str0ngP@ss!"),
@@ -213,7 +245,7 @@ async def _init_test_database():
                 ),
                 User(
                     id="test-operator-id",
-                    tenant_id="",  # match SQLite-seed semantics (empty tenant) and satisfy users.tenant_id NOT NULL on Postgres
+                    tenant_id=_TEST_TENANT_ID,  # E2: valid FK on Postgres
                     username="operator",
                     email="operator@example.com",
                     password_hash=_hash_password("Str0ngP@ss!"),
@@ -224,7 +256,7 @@ async def _init_test_database():
                 ),
                 User(
                     id="test-viewer-id",
-                    tenant_id="",  # match SQLite-seed semantics (empty tenant) and satisfy users.tenant_id NOT NULL on Postgres
+                    tenant_id=_TEST_TENANT_ID,  # E2: valid FK on Postgres
                     username="viewer",
                     email="viewer@example.com",
                     password_hash=_hash_password("Str0ngP@ss!"),
@@ -241,6 +273,7 @@ async def _init_test_database():
             user.is_active = True
             await session.commit()
     yield
+
 
 
 @pytest.fixture

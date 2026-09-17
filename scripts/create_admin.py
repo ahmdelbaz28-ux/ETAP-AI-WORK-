@@ -15,9 +15,10 @@ import sys
 # Ensure repository root is on sys.path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from sqlalchemy import select, func
-from api.database import async_session_factory
+from sqlalchemy import func, select
+
 from api.auth import User, UserService, _validate_password_strength
+from api.database import async_session_factory
 
 
 async def main() -> int:

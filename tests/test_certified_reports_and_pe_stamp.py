@@ -12,6 +12,7 @@ Automated test suite verifying:
 
 from __future__ import annotations
 
+import hashlib
 import io
 import uuid
 
@@ -345,9 +346,6 @@ def test_verify_pe_stamp_rejects_without_certified_date():
 
 def test_verify_pe_stamp_rejects_forged_signature():
     """P0.1 — Even with certified_date, a random 64-char hex string is rejected."""
-    import hashlib
-    import uuid
-
     payload = {"bus": "Bus1", "voltage_pu": 1.04}
     fake_sig = hashlib.sha256(str(uuid.uuid4()).encode()).hexdigest()
     assert verify_pe_stamp(

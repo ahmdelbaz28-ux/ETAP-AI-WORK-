@@ -93,7 +93,8 @@
     "overrides": {
       "@mastra/core": "1.59.0",
       "@mastra/loggers": "1.2.0",
-      "@mastra/memory": "1.28.0"
+      "@mastra/memory": "1.28.0",
+      "protobufjs": "^8.6.6"
     }
   }
 }

@@ -17,7 +17,7 @@ from alembic import op
 # Revision identifiers
 # ---------------------------------------------------------------------------
 
-revision = "012_add_study_version_unique_constraint"
+revision = "012_study_version_unique"
 down_revision = "011_add_hardening_tables"
 branch_labels = None
 depends_on = None

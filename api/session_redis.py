@@ -14,12 +14,10 @@ import logging
 import os
 import secrets
 import time
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Dict, Optional
 
-from starlette.datastructures import MutableHeaders
 from starlette.requests import Request
-from starlette.responses import Response
-from starlette.types import ASGIApp, Message, Receive, Scope, Send
+from starlette.types import ASGIApp, Receive, Scope, Send
 
 from api.redis_client import get_redis
 
