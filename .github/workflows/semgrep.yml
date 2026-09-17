@@ -104,6 +104,30 @@ jobs:
           with open('semgrep-results.sarif') as f:
               sarif = json.load(f)
 
+          # Normalize security-severity for GitHub Code Scanning (requires numeric 0.0 - 10.0)
+          sev_score_map = {
+              "critical": "9.0",
+              "high": "8.0",
+              "medium": "5.5",
+              "low": "2.0",
+              "info": "1.0",
+          }
+          for r in sarif.get("runs", []):
+              for rule in r.get("tool", {}).get("driver", {}).get("rules", []):
+                  props = rule.get("properties", {})
+                  if "security-severity" in props:
+                      raw_sev = str(props["security-severity"]).strip().lower()
+                      if raw_sev in sev_score_map:
+                          props["security-severity"] = sev_score_map[raw_sev]
+                      else:
+                          try:
+                              float(raw_sev)
+                          except ValueError:
+                              props["security-severity"] = "5.5"
+
+          with open('semgrep-results.sarif', 'w') as f:
+              json.dump(sarif, f)
+
           runs = sarif.get('runs', [])
           results = []
           errors = []

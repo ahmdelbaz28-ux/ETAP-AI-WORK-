@@ -66,11 +66,10 @@ jobs:
       - name: Install Python dependencies (for coverage)
         run: |
           python -m pip install --upgrade pip
-          # Install requirements-minimal.txt (includes fast binary wheels for pytest,
-          # pytest-cov, PyJWT, pyyaml, sqlalchemy, pydantic, fastapi, etc.)
+          # Install full dependencies from requirements.txt to ensure all modules collect cleanly
           pip install --no-cache-dir --only-binary :all: \
-            -r requirements-minimal.txt \
-            pytest-asyncio \
+            --requirement requirements.txt \
+            pytest pytest-cov pytest-asyncio hypothesis \
             || echo "Some deps failed to install — continuing for static analysis."
 
       - name: Run tests with coverage
