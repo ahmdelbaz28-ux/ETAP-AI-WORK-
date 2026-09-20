@@ -87,7 +87,9 @@ class TestArcCurrentCalculations:
         )
         assert iarc > 0
         assert iarc_red > 0
-        assert math.isclose(iarc_red, 0.85 * iarc, rel_tol=1e-4)
+        # Under IEEE 1584-2018 §5.4, VarCf reduction replaces legacy fixed 0.85 multiplier
+        assert iarc_red < iarc
+        assert 0.75 * iarc <= iarc_red <= 0.98 * iarc
 
     @pytest.mark.parametrize(
         "config",
@@ -107,7 +109,8 @@ class TestArcCurrentCalculations:
         )
         assert iarc > 0
         assert iarc_red > 0
-        assert math.isclose(iarc_red, 0.85 * iarc, rel_tol=1e-4)
+        assert iarc_red < iarc
+        assert 0.75 * iarc <= iarc_red <= 0.98 * iarc
 
     def test_arc_current_finite_and_positive(self):
         iarc, iarc_red = ArcFlashEngine.calculate_arc_current(0.48, 10.0, ElectrodeConfig.VCB)

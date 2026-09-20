@@ -25,7 +25,6 @@ def get_default_parameters() -> Dict[str, Any]:
         "convergence_tolerance": DEFAULT_CONVERGENCE_TOLERANCE,
         "solver_convergence_tolerance": DEFAULT_CONVERGENCE_TOLERANCE,
         "max_iterations": DEFAULT_MAX_ITERATIONS,
-        "acceleration_factor": None,
     }
 
 
@@ -48,7 +47,6 @@ async def load_solver_params(
             "convergence_tolerance": record.convergence_tolerance,
             "solver_convergence_tolerance": record.convergence_tolerance,
             "max_iterations": record.max_iterations,
-            "acceleration_factor": record.acceleration_factor,
         }
 
     # If scoped and not found, check global scope
@@ -63,7 +61,6 @@ async def load_solver_params(
                 "convergence_tolerance": record_global.convergence_tolerance,
                 "solver_convergence_tolerance": record_global.convergence_tolerance,
                 "max_iterations": record_global.max_iterations,
-                "acceleration_factor": record_global.acceleration_factor,
             }
 
     return get_default_parameters()
@@ -88,23 +85,17 @@ async def save_solver_params(
         )
     )
     max_iter = int(params.get("max_iterations", DEFAULT_MAX_ITERATIONS))
-    has_accel = "acceleration_factor" in params
-    accel_val = params.get("acceleration_factor")
-    accel = float(accel_val) if accel_val is not None else None
 
     if record is None:
         record = ProjectSolverParameters(
             project_id=key,
             convergence_tolerance=tol,
             max_iterations=max_iter,
-            acceleration_factor=accel,
         )
         db.add(record)
     else:
         record.convergence_tolerance = tol
         record.max_iterations = max_iter
-        if has_accel:
-            record.acceleration_factor = accel
         db.add(record)
 
     await db.commit()
@@ -114,5 +105,4 @@ async def save_solver_params(
         "convergence_tolerance": record.convergence_tolerance,
         "solver_convergence_tolerance": record.convergence_tolerance,
         "max_iterations": record.max_iterations,
-        "acceleration_factor": record.acceleration_factor,
     }

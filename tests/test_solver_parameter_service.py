@@ -36,18 +36,18 @@ async def async_db_session():
 
 @pytest.mark.asyncio
 async def test_get_default_parameters():
-    """get_default_parameters should return Newton-Raphson defaults without 1.6 acceleration."""
+    """get_default_parameters should return Newton-Raphson defaults without acceleration_factor."""
     defaults = get_default_parameters()
     assert defaults["convergence_tolerance"] == DEFAULT_CONVERGENCE_TOLERANCE
     assert defaults["solver_convergence_tolerance"] == DEFAULT_CONVERGENCE_TOLERANCE
     assert defaults["max_iterations"] == DEFAULT_MAX_ITERATIONS
-    assert defaults["acceleration_factor"] is None
+    assert "acceleration_factor" not in defaults
 
 
 @pytest.mark.asyncio
-async def test_save_and_load_without_acceleration_factor(async_db_session: AsyncSession):
-    """Saving parameters without acceleration_factor should not inject 1.6."""
-    proj_id = "test-proj-no-accel"
+async def test_save_and_load_persistence(async_db_session: AsyncSession):
+    """Saving and loading solver parameters operates cleanly without acceleration_factor."""
+    proj_id = "test-proj-persistence"
     saved = await save_solver_params(
         project_id=proj_id,
         params={"convergence_tolerance": 1e-4, "max_iterations": 80},
@@ -55,24 +55,9 @@ async def test_save_and_load_without_acceleration_factor(async_db_session: Async
     )
     assert saved["convergence_tolerance"] == 1e-4
     assert saved["max_iterations"] == 80
-    assert saved["acceleration_factor"] is None
+    assert "acceleration_factor" not in saved
 
     loaded = await load_solver_params(proj_id, db=async_db_session)
     assert loaded["convergence_tolerance"] == 1e-4
     assert loaded["max_iterations"] == 80
-    assert loaded["acceleration_factor"] is None
-
-
-@pytest.mark.asyncio
-async def test_save_and_load_with_explicit_acceleration_factor(async_db_session: AsyncSession):
-    """Explicit acceleration_factor should be preserved for legacy/UI compatibility."""
-    proj_id = "test-proj-with-accel"
-    saved = await save_solver_params(
-        project_id=proj_id,
-        params={"convergence_tolerance": 2e-5, "max_iterations": 60, "acceleration_factor": 1.35},
-        db=async_db_session,
-    )
-    assert saved["acceleration_factor"] == 1.35
-
-    loaded = await load_solver_params(proj_id, db=async_db_session)
-    assert loaded["acceleration_factor"] == 1.35
+    assert "acceleration_factor" not in loaded

@@ -157,14 +157,25 @@ def calculate_ku(
     has_oltc: bool = False,
 ) -> float:
     """
-    Calculate power station unit (generator + transformer block) correction factor KU (or KS)
-    per IEC 60909-0:2016 Clause 3.7.
+    Calculate power station unit (generator + unit transformer block) correction factor K_U (or K_S/K_SO/K_SAT)
+    per IEC 60909-0:2016 Clause 3.3.2 and Clause 3.7.
 
-    Without on-load tap-changer:
-    KU = (Un / UrTHV) * (UrTLV / UrG) * (c_max / (1 + |xd'' - xT| * sin(phi_rG)))
+    In standard IEC 60909 notation:
+    - K_S (or K_SO / K_U) applies to unit blocks without on-load tap changer:
+        K_U = (Un / UrTHV) * (UrTLV / UrG) * (c_max / (1 + |xd'' - xT| * sin(phi_rG)))
+    - K_SAT applies to unit blocks with on-load tap changer:
+        K_SAT = (Un^2 / UrTHV^2) * (c_max / (1 + xd'' * sin(phi_rG)))
 
-    With on-load tap-changer (KSAT):
-    KU = (Un^2 / UrTHV^2) * (c_max / (1 + xd'' * sin(phi_rG)))
+    Parameters:
+        un_kv: Nominal system voltage at connection point Q (kV).
+        urthv_kv: Rated voltage of transformer HV winding (kV).
+        urtlv_kv: Rated voltage of transformer LV winding (kV).
+        urg_kv: Rated voltage of generator (kV).
+        c_max: Voltage factor c_max per Table 1.
+        xd_pp: Subtransient reactance of generator in pu.
+        xt: Transformer reactance in pu.
+        cos_phi_rg: Generator rated power factor (default 0.8).
+        has_oltc: True if transformer has on-load tap-changer.
     """
     sin_phi = float(np.sqrt(max(0.0, 1.0 - cos_phi_rg**2)))
     if has_oltc:
@@ -425,12 +436,13 @@ class IEC60909Engine:
 
     def _calculate_kappa(self, bus_index: int) -> float:
         """
-        Calculate the peak factor kappa per IEC 60909.
+        Calculate the peak factor kappa per IEC 60909-0:2016 Clause 4.3.1.2 (Method A: Uniform ratio R/X).
 
-        kappa = 1.02 + 0.98 * exp(-3 * R/X)
+        Method A evaluates the equivalent R/X at the short-circuit location:
+            kappa = 1.02 + 0.98 * exp(-3 * R/X)
 
         Returns:
-        float: Peak factor kappa (1.0 to 2.0).
+            float: Peak factor kappa clamped to [1.0, 2.0] per standard limits.
         """
         rx = self._get_rx_ratio(bus_index)
         kappa = 1.02 + 0.98 * np.exp(-3.0 * rx)

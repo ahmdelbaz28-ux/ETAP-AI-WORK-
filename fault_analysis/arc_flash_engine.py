@@ -654,14 +654,18 @@ class ArcFlashEngine:
 
         ppe_level, ppe_description = ArcFlashEngine.determine_ppe_level(E)
 
+        iarc, iarc_reduced = ArcFlashEngine.calculate_arc_current(
+            voltage_kv, bolted_fault_current_ka, ElectrodeConfig.VOA
+        )
+
         return ArcFlashResult(
             incident_energy_cal_cm2=round(E, 4),
             incident_energy_at_full_arc_current=round(E, 4),
             incident_energy_at_reduced_arc_current=round(E, 4),
             arc_flash_boundary_mm=round(d_boundary, 1),
             arc_flash_boundary_in=round(d_boundary / 25.4, 1),
-            arc_current_ka=round(Ibf, 4),
-            reduced_arc_current_ka=round(0.85 * Ibf, 4),
+            arc_current_ka=round(iarc, 4),
+            reduced_arc_current_ka=round(iarc_reduced, 4),
             method="Ralph Lee (outside IEEE 1584 range)",
             electrode_configuration="N/A",
             enclosure_type="N/A",

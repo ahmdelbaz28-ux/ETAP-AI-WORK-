@@ -24,7 +24,7 @@ class TestSolverParametersAPI:
         data = response.json()
         assert "convergence_tolerance" in data
         assert "max_iterations" in data
-        assert "acceleration_factor" in data
+        assert "acceleration_factor" not in data
 
     def test_put_solver_parameters(self, client: TestClient) -> None:
         """PUT /api/v1/studies/parameters updates parameters."""
@@ -33,14 +33,13 @@ class TestSolverParametersAPI:
             json={
                 "convergence_tolerance": 1e-4,
                 "max_iterations": 100,
-                "acceleration_factor": 1.4,
             },
         )
         assert response.status_code == 200
         data = response.json()
         assert data["convergence_tolerance"] == 1e-4
         assert data["max_iterations"] == 100
-        assert data["acceleration_factor"] == 1.4
+        assert "acceleration_factor" not in data
 
     def test_post_solver_parameters(self, client: TestClient) -> None:
         """POST /api/v1/studies/parameters creates/overwrites all parameters."""
@@ -49,7 +48,6 @@ class TestSolverParametersAPI:
             json={
                 "convergence_tolerance": 1e-6,
                 "max_iterations": 200,
-                "acceleration_factor": 1.0,
             },
         )
         assert response.status_code == 200

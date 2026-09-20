@@ -2,7 +2,7 @@
 api/solver_parameters.py — Solver Parameters Management API.
 
 Provides CRUD endpoints for managing power-flow solver parameters that
-control convergence behaviour, iteration limits, and acceleration.
+control convergence behaviour and iteration limits.
 
 Exposes endpoints under the ``/api/v1/studies/parameters`` prefix:
 
@@ -42,7 +42,7 @@ logger = logging.getLogger(__name__)
 class SolverParametersBase(BaseModel):
     """Base model with shared solver-parameter field definitions."""
 
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="forbid")
 
     convergence_tolerance: float = Field(
         default=1e-5,
@@ -63,31 +63,16 @@ class SolverParametersBase(BaseModel):
             "declaring non-convergence. Range: 10 to 200."
         ),
     )
-    acceleration_factor: Optional[float] = Field(
-        default=None,
-        ge=1.0,
-        le=2.0,
-        description=(
-            "Deprecated: Gauss-Seidel only; not applied in Newton-Raphson power flow. "
-            "Retained for client schema compatibility. Range: 1.0 to 2.0."
-        ),
-    )
 
 
 class SolverParametersCreate(BaseModel):
     """Request body for creating/overwriting all solver parameters."""
 
-    model_config = ConfigDict(populate_by_name=True, extra="ignore")
+    model_config = ConfigDict(populate_by_name=True, extra="forbid")
 
     convergence_tolerance: Optional[float] = Field(default=None, ge=1e-6, le=1e-3)
     solver_convergence_tolerance: Optional[float] = Field(default=None, ge=1e-6, le=1e-3)
     max_iterations: int = Field(default=50, ge=10, le=200)
-    acceleration_factor: Optional[float] = Field(
-        default=None,
-        ge=1.0,
-        le=2.0,
-        description="Deprecated: Gauss-Seidel only. Retained for compatibility.",
-    )
 
 
 class SolverParametersUpdate(BaseModel):
@@ -113,12 +98,6 @@ class SolverParametersUpdate(BaseModel):
         le=200,
         description="Updated maximum iterations (10 to 200).",
     )
-    acceleration_factor: Optional[float] = Field(
-        default=None,
-        ge=1.0,
-        le=2.0,
-        description="Deprecated: Gauss-Seidel only. Retained for compatibility.",
-    )
 
 
 class SolverParametersResponse(BaseModel):
@@ -129,12 +108,6 @@ class SolverParametersResponse(BaseModel):
     convergence_tolerance: float = Field(default=1e-5, ge=1e-6, le=1e-3)
     solver_convergence_tolerance: float = Field(default=1e-5, ge=1e-6, le=1e-3)
     max_iterations: int = Field(default=50, ge=10, le=200)
-    acceleration_factor: Optional[float] = Field(
-        default=None,
-        ge=1.0,
-        le=2.0,
-        description="Deprecated: Gauss-Seidel only. Retained for compatibility.",
-    )
 
 
 # ---------------------------------------------------------------------------
@@ -189,7 +162,6 @@ async def create_global_parameters(
     payload = {
         "convergence_tolerance": tol if tol is not None else DEFAULT_CONVERGENCE_TOLERANCE,
         "max_iterations": body.max_iterations,
-        "acceleration_factor": body.acceleration_factor,
     }
     data = await save_solver_params(None, payload, db)
     logger.info("Solver parameters overwritten in DB: %s", data)
@@ -224,8 +196,6 @@ async def update_global_parameters(
         current["solver_convergence_tolerance"] = tol
     if "max_iterations" in updates:
         current["max_iterations"] = updates["max_iterations"]
-    if "acceleration_factor" in updates:
-        current["acceleration_factor"] = updates["acceleration_factor"]
 
     data = await save_solver_params(None, current, db)
     logger.info("Solver parameters updated in DB: %s", data)
@@ -272,8 +242,6 @@ async def update_project_parameters(
         current["solver_convergence_tolerance"] = tol
     if "max_iterations" in updates:
         current["max_iterations"] = updates["max_iterations"]
-    if "acceleration_factor" in updates:
-        current["acceleration_factor"] = updates["acceleration_factor"]
 
     data = await save_solver_params(project_id, current, db)
     logger.info("Project %s solver parameters updated in DB: %s", project_id, data)

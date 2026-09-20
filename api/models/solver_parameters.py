@@ -21,6 +21,7 @@ class ProjectSolverParameters(Base):
     project_id: Mapped[str] = mapped_column(String(64), primary_key=True)
     convergence_tolerance: Mapped[float] = mapped_column(Float, nullable=False, default=1e-5)
     max_iterations: Mapped[int] = mapped_column(Integer, nullable=False, default=50)
+    # Legacy column kept nullable=True for database backward-compatibility; unused by Newton-Raphson solver.
     acceleration_factor: Mapped[Optional[float]] = mapped_column(Float, nullable=True, default=None)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),

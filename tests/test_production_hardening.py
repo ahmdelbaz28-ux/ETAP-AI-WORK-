@@ -60,14 +60,13 @@ class TestSolverParametersPersistence:
         payload = {
             "convergence_tolerance": 0.0001,
             "max_iterations": 75,
-            "acceleration_factor": 1.4,
         }
         resp = client.put("/api/v1/studies/parameters/", json=payload, headers=auth_headers)
         assert resp.status_code == 200
         data = resp.json()
         assert data["convergence_tolerance"] == 0.0001
         assert data["max_iterations"] == 75
-        assert data["acceleration_factor"] == 1.4
+        assert "acceleration_factor" not in data
 
         # Read back
         get_resp = client.get("/api/v1/studies/parameters/", headers=auth_headers)
@@ -75,13 +74,13 @@ class TestSolverParametersPersistence:
         get_data = get_resp.json()
         assert get_data["convergence_tolerance"] == 0.0001
         assert get_data["max_iterations"] == 75
+        assert "acceleration_factor" not in get_data
 
     def test_project_scoped_solver_parameters_flow(self, client: TestClient, auth_headers: dict[str, str]):
         proj_id = "test-project-db-persistence"
         payload = {
             "convergence_tolerance": 0.00002,
             "max_iterations": 90,
-            "acceleration_factor": 1.25,
         }
         # FIX-RC6: PUT مع auth_headers
         put_resp = client.put(f"/api/v1/studies/parameters/{proj_id}", json=payload, headers=auth_headers)
@@ -89,6 +88,7 @@ class TestSolverParametersPersistence:
         put_data = put_resp.json()
         assert put_data["convergence_tolerance"] == 0.00002
         assert put_data["max_iterations"] == 90
+        assert "acceleration_factor" not in put_data
 
         # GET project parameters
         get_resp = client.get(f"/api/v1/studies/parameters/{proj_id}", headers=auth_headers)
@@ -96,7 +96,7 @@ class TestSolverParametersPersistence:
         get_data = get_resp.json()
         assert get_data["convergence_tolerance"] == 0.00002
         assert get_data["max_iterations"] == 90
-        assert get_data["acceleration_factor"] == 1.25
+        assert "acceleration_factor" not in get_data
 
 
 class TestNoHardcodedBaselines:
