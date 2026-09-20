@@ -246,15 +246,19 @@ jobs:
           exit 1
 
   rollback-on-failure:
-    needs: [smoke-and-health-gate]
+    needs: [guard, smoke-and-health-gate]
     if: failure()
     runs-on: ubuntu-latest
     steps:
       - name: Page + pin back (SP-6)
+        env:
+          ALERT_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
+          DEPLOY_SHA: ${{ needs.guard.outputs.sha }}
         run: |
           echo "::error::Deploy failed health gate. ACTION: re-run cd.yml with the last green SHA."
-          if [ -n "${{ secrets.ALERT_WEBHOOK }}" ]; then
+          if [ -n "$ALERT_WEBHOOK" ]; then
             curl -s -X POST -H 'Content-type: application/json' \
-              --data "{\"text\":\"ETAP CD FAILED health gate at ${{ needs.guard.outputs.sha }} — rollback required\"}" \
-              "${{ secrets.ALERT_WEBHOOK }}" || true
+              --data "{\"text\":\"ETAP CD FAILED health gate at ${DEPLOY_SHA:-unknown} — rollback required\"}" \
+              "$ALERT_WEBHOOK" || true
           fi
+

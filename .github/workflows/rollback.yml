@@ -136,7 +136,7 @@ jobs:
     steps:
       - name: Alert Webhook
         env:
-          ALERT_WEBHOOK: ${{ secrets.ALERT_WEBHOOK }}
+          ALERT_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
           TARGET_SHA: ${{ needs.validate.outputs.target_sha }}
           STATUS: ${{ needs.verify-rollback.result }}
           REASON: ${{ github.event.inputs.reason }}

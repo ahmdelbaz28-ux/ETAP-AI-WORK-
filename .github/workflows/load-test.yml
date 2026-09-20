@@ -317,7 +317,7 @@ jobs:
           # value when not set — safe because ENGINEERING_SERVICE_AUTH_DISABLED=true
           # means the auth middleware is bypassed entirely in this job.
           LOCUST_TEST_USERNAME: loadtest_user
-          LOCUST_TEST_PASSWORD: ${{ secrets['LOCUST_TEST_PASSWORD'] || 'CI-loadtest-2025!' }}
+          LOCUST_TEST_PASSWORD: "CI-loadtest-2025!"
         run: |
           mkdir -p load-test-results/locust
 
@@ -448,8 +448,6 @@ jobs:
           PR_NUM=""
           if [ "${{ github.event_name }}" = "workflow_run" ]; then
             PR_NUM=$(gh pr list --head "${{ github.event.workflow_run.head_branch }}" --json number --jq '.[0].number' 2>/dev/null || echo "")
-          elif [ "${{ github.event_name }}" = "pull_request" ]; then
-            PR_NUM="${{ github.event.number }}"
           else
             PR_NUM=$(gh pr list --head "${{ github.ref_name }}" --json number --jq '.[0].number' 2>/dev/null || echo "")
           fi
