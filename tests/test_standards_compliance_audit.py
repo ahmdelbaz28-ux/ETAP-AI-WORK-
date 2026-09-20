@@ -9,11 +9,12 @@ Provides direct empirical test assertions for:
 """
 
 import pytest
-from fault_analysis.arc_flash_labels import ArcFlashLabelSpec
+
 from coordination.coordination import CoordinationEngine
-from relays.relay import OvercurrentRelay
-from core_model.system import System
 from core_model.bus import Bus
+from core_model.system import System
+from fault_analysis.arc_flash_labels import ArcFlashLabelSpec
+from relays.relay import OvercurrentRelay
 
 
 class TestANSIZ535Labels:

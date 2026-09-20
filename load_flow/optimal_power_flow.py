@@ -244,7 +244,7 @@ class OptimalPowerFlowEngine:
                         if (u_bid, v_bid) not in all_branches and (v_bid, u_bid) not in all_branches:
                             all_branches[(u_bid, v_bid)] = 1.0 / abs(y_ij.imag)
 
-        for (u, v) in self.branch_limits.keys():
+        for (u, v) in self.branch_limits:
             if (u, v) not in all_branches and (v, u) not in all_branches:
                 if u in self.bus_index and v in self.bus_index:
                     ui, vi = self.bus_index[u], self.bus_index[v]
@@ -329,7 +329,7 @@ class OptimalPowerFlowEngine:
         )
 
         a_eq_row = np.zeros(len(gen_ids))
-        for gid in self.gen_buses.keys():
+        for gid in self.gen_buses:
             if gid in gen_col_map:
                 gen_col = gen_col_map[gid]
                 a_eq_row[gen_col] = 1.0

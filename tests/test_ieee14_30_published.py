@@ -16,16 +16,16 @@ Assertions verify:
 
 import json
 import os
+
 import pytest
 
 from engine.benchmarks.ieee_cases import (
-    build_ieee_14bus_system,
-    build_ieee_30bus_system,
     IEEE_14BUS_BENCHMARK_VOLTAGES,
     IEEE_30BUS_BENCHMARK_VOLTAGES,
+    build_ieee_14bus_system,
+    build_ieee_30bus_system,
 )
 from load_flow.load_flow import LoadFlowSolver
-
 
 GOLD_CASES_DIR = os.path.join(os.path.dirname(__file__), "gold_cases")
 
@@ -36,7 +36,7 @@ class TestIEEE14PublishedBenchmark:
     @pytest.fixture
     def gold_data(self):
         gold_path = os.path.join(GOLD_CASES_DIR, "ieee14_published.json")
-        with open(gold_path, "r", encoding="utf-8") as f:
+        with open(gold_path, encoding="utf-8") as f:
             return json.load(f)
 
     def test_ieee14_convergence_and_voltages(self, gold_data):
@@ -79,7 +79,7 @@ class TestIEEE30PublishedBenchmark:
     @pytest.fixture
     def gold_data(self):
         gold_path = os.path.join(GOLD_CASES_DIR, "ieee30_published.json")
-        with open(gold_path, "r", encoding="utf-8") as f:
+        with open(gold_path, encoding="utf-8") as f:
             return json.load(f)
 
     def test_ieee30_convergence_and_voltages(self, gold_data):

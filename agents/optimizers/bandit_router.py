@@ -9,10 +9,9 @@ rewards and telemetry, while maintaining 100% fail-safe fallback to canonical KE
 from __future__ import annotations
 
 import hashlib
-import json
 import logging
 import math
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
 import numpy as np
 

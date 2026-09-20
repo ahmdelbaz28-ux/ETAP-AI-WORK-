@@ -11,9 +11,7 @@ from __future__ import annotations
 import logging
 import math
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Tuple
-
-import numpy as np
+from typing import Dict, List, Optional, Tuple
 
 from motor_starting.motor_models import (
     DynamicMotorParams,
@@ -158,8 +156,6 @@ class MotorStartingEngine:
         else:
             v_bus_mag = self.v_source
 
-        # Terminal voltage seen by the motor windings
-        v_terminal = v_bus_mag * (method_scale if self.method == StartingMethod.SOFT_STARTER else 1.0)
         i_pu = v_bus_mag / abs(z_motor) if abs(z_motor) > 0 else 0.0
 
         return v_bus_mag, i_pu, z_motor

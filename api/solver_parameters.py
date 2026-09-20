@@ -63,14 +63,13 @@ class SolverParametersBase(BaseModel):
             "declaring non-convergence. Range: 10 to 200."
         ),
     )
-    acceleration_factor: float = Field(
-        default=1.6,
+    acceleration_factor: Optional[float] = Field(
+        default=None,
         ge=1.0,
         le=2.0,
         description=(
-            "Acceleration (relaxation) factor applied during the iterative "
-            "solve. Values closer to 2.0 speed up convergence but may "
-            "cause oscillation. Range: 1.0 to 2.0."
+            "Deprecated: Gauss-Seidel only; not applied in Newton-Raphson power flow. "
+            "Retained for client schema compatibility. Range: 1.0 to 2.0."
         ),
     )
 
@@ -83,7 +82,12 @@ class SolverParametersCreate(BaseModel):
     convergence_tolerance: Optional[float] = Field(default=None, ge=1e-6, le=1e-3)
     solver_convergence_tolerance: Optional[float] = Field(default=None, ge=1e-6, le=1e-3)
     max_iterations: int = Field(default=50, ge=10, le=200)
-    acceleration_factor: float = Field(default=1.6, ge=1.0, le=2.0)
+    acceleration_factor: Optional[float] = Field(
+        default=None,
+        ge=1.0,
+        le=2.0,
+        description="Deprecated: Gauss-Seidel only. Retained for compatibility.",
+    )
 
 
 class SolverParametersUpdate(BaseModel):
@@ -113,7 +117,7 @@ class SolverParametersUpdate(BaseModel):
         default=None,
         ge=1.0,
         le=2.0,
-        description="Updated acceleration factor (1.0 to 2.0).",
+        description="Deprecated: Gauss-Seidel only. Retained for compatibility.",
     )
 
 
@@ -125,7 +129,12 @@ class SolverParametersResponse(BaseModel):
     convergence_tolerance: float = Field(default=1e-5, ge=1e-6, le=1e-3)
     solver_convergence_tolerance: float = Field(default=1e-5, ge=1e-6, le=1e-3)
     max_iterations: int = Field(default=50, ge=10, le=200)
-    acceleration_factor: float = Field(default=1.6, ge=1.0, le=2.0)
+    acceleration_factor: Optional[float] = Field(
+        default=None,
+        ge=1.0,
+        le=2.0,
+        description="Deprecated: Gauss-Seidel only. Retained for compatibility.",
+    )
 
 
 # ---------------------------------------------------------------------------

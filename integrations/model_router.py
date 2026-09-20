@@ -14,7 +14,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
-from integrations.langfuse_llm import _PRICING_USD_PER_1K, estimate_cost_usd
+from integrations.langfuse_llm import _PRICING_USD_PER_1K
 
 logger = logging.getLogger(__name__)
 

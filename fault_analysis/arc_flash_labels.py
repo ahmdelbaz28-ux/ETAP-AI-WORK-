@@ -15,7 +15,7 @@ Generates industrial-grade arc flash warning label specifications and layouts:
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Dict, Any, Optional
+from typing import Any, Dict
 
 
 @dataclass

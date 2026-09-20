@@ -9,7 +9,6 @@ simulations, featuring Redis persistence with local in-memory LRU fallback.
 
 from __future__ import annotations
 
-import copy
 import hashlib
 import json
 import logging
@@ -147,7 +146,7 @@ class WarmStartStore:
             try:
                 import asyncio
                 # Only attempt Redis read if we have an active loop and task context
-                loop = asyncio.get_running_loop()
+                asyncio.get_running_loop()
                 # Check for sync redis fallback or background read
             except RuntimeError:
                 pass

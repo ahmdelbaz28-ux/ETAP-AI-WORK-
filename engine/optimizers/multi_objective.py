@@ -10,12 +10,10 @@ to equip engineers with interactive design trade-offs rather than a single black
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass, field
-from typing import Callable, List, Optional, Tuple, Union
+from dataclasses import dataclass
+from typing import Callable, List, Optional, Union
 
 import numpy as np
-
-from engine.optimizers.pso_core import PSOConfig
 
 logger = logging.getLogger(__name__)
 

@@ -85,7 +85,7 @@ class TestHarmonicAnalysisIEEE519:
         engine.add_harmonic_source(src5)
 
         result_5 = engine.solve_harmonic_power_flow(5)
-        assert 5 == result_5.harmonic_order
+        assert result_5.harmonic_order == 5
         assert len(result_5.bus_voltages) == 2
         assert abs(result_5.bus_voltages["2"]) > 0.0, "Bus 2 should have 5th harmonic voltage distortion"
 

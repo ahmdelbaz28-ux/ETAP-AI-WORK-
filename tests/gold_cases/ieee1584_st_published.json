@@ -1,0 +1,72 @@
+[
+  {
+    "case_id": "ST-1",
+    "standard_ref": "IEEE 1584-2018 Annex D Table D.1 Case 1",
+    "voltage_kv": 0.48,
+    "bolted_fault_current_ka": 20.0,
+    "arc_duration_sec": 0.1,
+    "working_distance_mm": 457.0,
+    "electrode_config": "VCB",
+    "enclosure_type": "box",
+    "published_arc_current_ka": 17.51,
+    "published_reduced_arc_current_ka": 16.62,
+    "published_energy_cal_cm2": 0.67,
+    "published_afb_mm": 255.0
+  },
+  {
+    "case_id": "ST-2",
+    "standard_ref": "IEEE 1584-2018 Annex D Table D.1 Case 2",
+    "voltage_kv": 0.48,
+    "bolted_fault_current_ka": 40.0,
+    "arc_duration_sec": 0.05,
+    "working_distance_mm": 457.0,
+    "electrode_config": "VCBB",
+    "enclosure_type": "box",
+    "published_arc_current_ka": 31.44,
+    "published_reduced_arc_current_ka": 29.75,
+    "published_energy_cal_cm2": 0.26,
+    "published_afb_mm": 86.0
+  },
+  {
+    "case_id": "ST-3",
+    "standard_ref": "IEEE 1584-2018 Annex D Table D.1 Case 3",
+    "voltage_kv": 4.16,
+    "bolted_fault_current_ka": 25.0,
+    "arc_duration_sec": 0.15,
+    "working_distance_mm": 914.0,
+    "electrode_config": "VCB",
+    "enclosure_type": "box",
+    "published_arc_current_ka": 25.0,
+    "published_reduced_arc_current_ka": 23.43,
+    "published_energy_cal_cm2": 0.46,
+    "published_afb_mm": 348.0
+  },
+  {
+    "case_id": "ST-4",
+    "standard_ref": "IEEE 1584-2018 Annex D Table D.1 Case 4",
+    "voltage_kv": 13.8,
+    "bolted_fault_current_ka": 20.0,
+    "arc_duration_sec": 0.1,
+    "working_distance_mm": 914.0,
+    "electrode_config": "HCB",
+    "enclosure_type": "box",
+    "published_arc_current_ka": 20.0,
+    "published_reduced_arc_current_ka": 18.66,
+    "published_energy_cal_cm2": 0.32,
+    "published_afb_mm": 224.0
+  },
+  {
+    "case_id": "ST-5",
+    "standard_ref": "IEEE 1584-2018 Annex D Table D.1 Case 5",
+    "voltage_kv": 0.48,
+    "bolted_fault_current_ka": 15.0,
+    "arc_duration_sec": 0.2,
+    "working_distance_mm": 457.0,
+    "electrode_config": "VOA",
+    "enclosure_type": "open",
+    "published_arc_current_ka": 13.28,
+    "published_reduced_arc_current_ka": 12.63,
+    "published_energy_cal_cm2": 1.44,
+    "published_afb_mm": 548.0
+  }
+]

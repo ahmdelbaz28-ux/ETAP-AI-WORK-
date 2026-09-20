@@ -11,6 +11,10 @@ Validates:
 """
 
 import pytest
+
+from agents.motor_starting_agent import MotorStartingAgent
+from agents.orchestrator import AgentStatus, EngineeringTask, StudyType
+from motor_starting.engine import MotorStartingEngine, MotorStartingResult
 from motor_starting.motor_models import (
     DynamicMotorParams,
     InductionMotorDynamics,
@@ -18,9 +22,6 @@ from motor_starting.motor_models import (
     MechanicalLoadModel,
     StartingMethod,
 )
-from motor_starting.engine import MotorStartingEngine, MotorStartingResult
-from agents.motor_starting_agent import MotorStartingAgent
-from agents.orchestrator import EngineeringTask, StudyType, AgentStatus
 
 
 class TestDynamicMotorStarting:

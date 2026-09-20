@@ -14,7 +14,6 @@ from typing import Any, Dict
 from agents.orchestrator import AgentResult, AgentStatus, BaseAgent, EngineeringTask
 from coordination.optimizers.pso_coordinator import PSOCoordinationEngine
 from engine.optimizers.filter_design_pso import HarmonicFilterOptimizer
-from engine.optimizers.multi_objective import MultiObjectivePSO
 from engine.optimizers.placement_pso import OptimalPlacementPSO
 from load_flow.optimizers.pso_opf import PSOOptimalPowerFlow
 

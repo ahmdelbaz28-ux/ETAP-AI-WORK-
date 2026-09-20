@@ -158,8 +158,8 @@ def audit_claims(strict: bool = False) -> List[StandardAuditResult]:
 
     results = []
     for std_name, claim_list in sorted(claims.items()):
-        test_files = sorted(list(test_cov.get(std_name, set())))
-        src_files = sorted(list({c.source_file for c in claim_list}))
+        test_files = sorted(test_cov.get(std_name, set()))
+        src_files = sorted({c.source_file for c in claim_list})
         status = "VERIFIED" if len(test_files) > 0 else "MISSING_TESTS"
 
         results.append(
@@ -195,9 +195,9 @@ def main() -> int:
         }
         print(json.dumps(output, indent=2))
     else:
-        print(f"\n=======================================================")
-        print(f"   AhmedETAP Standards & Claims Verification Audit")
-        print(f"=======================================================\n")
+        print("\n=======================================================")
+        print("   AhmedETAP Standards & Claims Verification Audit")
+        print("=======================================================\n")
         print(f"{'Standard':<20} | {'Claims':<8} | {'Tests':<8} | {'Status'}")
         print(f"{'-'*20}-+-{'-'*8}-+-{'-'*8}-+--------")
         for r in results:

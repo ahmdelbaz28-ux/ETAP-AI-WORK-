@@ -15,7 +15,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 
-
 def _make_fake_results(n: int = 3) -> list:
     """يُنشئ نتائج وهمية بنفس شكل RetrievalResult."""
     return [
@@ -30,10 +29,10 @@ def _make_fake_results(n: int = 3) -> list:
 
 def test_rag_query_calls_retrieve_knowledge() -> None:
     """يتحقق أن ai_ml.py يستدعي retrieve_knowledge وليس search."""
-    from api import ai_ml  # noqa: PLC0415
-
     import ast
     import inspect
+
+    from api import ai_ml  # noqa: PLC0415
 
     source = inspect.getsource(ai_ml)
     tree = ast.parse(source)

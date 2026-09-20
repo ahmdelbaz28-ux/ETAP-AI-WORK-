@@ -20,10 +20,9 @@ Reference: IEEE Std 1584-2018 "IEEE Guide for Performing Arc-Flash Hazard Calcul
 
 from __future__ import annotations
 
-import math
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, Tuple, Any
+from typing import Dict, Tuple
 
 import numpy as np
 

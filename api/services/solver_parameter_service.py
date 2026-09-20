@@ -15,7 +15,6 @@ from api.models.solver_parameters import ProjectSolverParameters
 
 DEFAULT_CONVERGENCE_TOLERANCE = 1e-5
 DEFAULT_MAX_ITERATIONS = 50
-DEFAULT_ACCELERATION_FACTOR = 1.6
 
 GLOBAL_SCOPE_KEY = "__global__"
 
@@ -26,6 +25,7 @@ def get_default_parameters() -> Dict[str, Any]:
         "convergence_tolerance": DEFAULT_CONVERGENCE_TOLERANCE,
         "solver_convergence_tolerance": DEFAULT_CONVERGENCE_TOLERANCE,
         "max_iterations": DEFAULT_MAX_ITERATIONS,
+        "acceleration_factor": None,
     }
 
 
@@ -88,7 +88,9 @@ async def save_solver_params(
         )
     )
     max_iter = int(params.get("max_iterations", DEFAULT_MAX_ITERATIONS))
-    accel = float(params.get("acceleration_factor", DEFAULT_ACCELERATION_FACTOR))
+    has_accel = "acceleration_factor" in params
+    accel_val = params.get("acceleration_factor")
+    accel = float(accel_val) if accel_val is not None else None
 
     if record is None:
         record = ProjectSolverParameters(
@@ -101,7 +103,8 @@ async def save_solver_params(
     else:
         record.convergence_tolerance = tol
         record.max_iterations = max_iter
-        record.acceleration_factor = accel
+        if has_accel:
+            record.acceleration_factor = accel
         db.add(record)
 
     await db.commit()

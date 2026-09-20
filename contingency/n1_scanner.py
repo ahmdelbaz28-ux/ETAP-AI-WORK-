@@ -11,9 +11,7 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Optional, Set, Tuple
-
-import numpy as np
+from typing import Any, Dict, List, Optional, Tuple
 
 from core_model.system import System
 from load_flow.dc_flow import DCLoadFlowSolver

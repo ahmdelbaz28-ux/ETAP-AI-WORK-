@@ -23,13 +23,14 @@ Tolerances: All benchmark comparisons verified within ±2.0% of standard referen
 """
 
 import math
+
 import numpy as np
 import pytest
 
 from fault_analysis.iec60909_engine import (
+    FaultType,
     IEC60909Engine,
     ShortCircuitResult,
-    FaultType,
     VoltageFactorC,
     calculate_kg,
     calculate_kt,

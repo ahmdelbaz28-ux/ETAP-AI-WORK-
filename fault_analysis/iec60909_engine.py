@@ -20,7 +20,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, List, Dict, Optional
+from typing import Any, Dict, List
 
 import numpy as np
 import numpy.typing as npt

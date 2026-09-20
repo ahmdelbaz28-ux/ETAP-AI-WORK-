@@ -2,14 +2,14 @@
 
 from __future__ import annotations
 
-import pytest
 import numpy as np
+import pytest
 
+from coordination.coordination import CoordinationEngine
 from core_model.bus import Bus
 from core_model.line import Line
 from core_model.system import System
 from engine.engine import PowerSystemEngine
-from coordination.coordination import CoordinationEngine
 from relays.relay import OvercurrentRelay
 
 
@@ -40,7 +40,7 @@ def test_s01_solver_parameter_propagation():
 def test_s02_default_curve_type():
     """S-2: run_protection_coordination should succeed with default curve type (standard_inverse)."""
     engine = PowerSystemEngine()
-    
+
     # Run protection coordination with no curve_type specified (testing default fallback)
     res = engine.run_protection_coordination(
         upstream_relay_id=1,
@@ -63,20 +63,20 @@ def test_s03_custom_coordination_margin():
     # Create upstream and downstream relays
     upstream = OvercurrentRelay(relay_id=1, tms=0.5, ip=100.0, curve_type="standard_inverse")
     downstream = OvercurrentRelay(relay_id=2, tms=0.1, ip=50.0, curve_type="standard_inverse")
-    
+
     fault_current = 200.0  # 2x upstream, 4x downstream
     t_up = upstream.trip_time(fault_current)
     t_down = downstream.trip_time(fault_current)
     actual_margin = t_up - t_down
     assert actual_margin > 0
-    
+
     # Margin engine with threshold higher than actual margin
     strict_margin = actual_margin + 0.05
     engine_strict = CoordinationEngine(default_margin_sec=strict_margin)
     res_strict = engine_strict.check_coordination(upstream, downstream, fault_current)
     assert res_strict["coordinated"] is False
     assert res_strict["required_margin"] == strict_margin
-    
+
     # Margin engine with threshold lower than actual margin
     lenient_margin = max(0.01, actual_margin - 0.05)
     engine_lenient = CoordinationEngine(default_margin_sec=lenient_margin)

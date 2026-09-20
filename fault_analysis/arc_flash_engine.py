@@ -258,7 +258,7 @@ class ArcFlashEngine:
             bolted_fault_current_ka=Ibf,
             electrode_config=electrode_key,
         )
-        iarc_reduced = 0.85 * iarc
+        iarc_reduced = iarc_varcf
 
         return iarc, iarc_reduced
 

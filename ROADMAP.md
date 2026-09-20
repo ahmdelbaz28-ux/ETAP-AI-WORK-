@@ -31,7 +31,7 @@ AhmedETAP v2.1.0 is an enterprise-grade autonomous engineering intelligence plat
 | Load Flow Analysis | Newton-Raphson (Analytical Jacobian) | Shipped |
 | Fast Decoupled Load Flow | Stott-Alsac (XB / BX) | In Development |
 | Short Circuit Analysis | IEC 60909 (Driving-point) | Shipped |
-| Arc Flash Analysis | IEEE 1584-2018 | In Development |
+| Arc Flash Analysis | IEEE 1584-2018 (ST-validated) | Shipped |
 | Harmonic Analysis | IEEE 519-2022 | In Development |
 | Protection Coordination | IEC 60255 (Pairwise grading) | Shipped |
 | Optimal Power Flow | DC-OPF / AC-OPF | In Development |
