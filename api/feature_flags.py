@@ -124,6 +124,12 @@ DEFAULT_FEATURE_FLAGS: dict[str, dict[str, Any]] = {
         "description": "Enforce real integrations, fail closed on mock",
         "rollout_percentage": 100,
     },
+    "chat_first_ui": {
+        "enabled": True,
+        "status": "ga",
+        "description": "Unified chat-first conversational engineering workspace (ChatWorkspace)",
+        "rollout_percentage": 100,
+    },
     "token_governance": {
         "enabled": False,
         "status": "beta",

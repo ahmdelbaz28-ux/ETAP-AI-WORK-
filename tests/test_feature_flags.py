@@ -181,8 +181,8 @@ class TestListFeatureFlags:
         monkeypatch.setenv("ENV", "production")
         resp = client.get("/api/v1/feature-flags", headers=auth_headers)
         for flag in resp.json()["data"]:
-            if flag["key"] == "production_hardening":
-                # GA hardening flag defaults to enabled in production (fail-closed on mocks)
+            if flag["key"] in ("production_hardening", "chat_first_ui"):
+                # GA hardening and chat_first_ui flags default to enabled in production
                 assert flag["effective_enabled"] is True
             else:
                 assert flag["effective_enabled"] is False

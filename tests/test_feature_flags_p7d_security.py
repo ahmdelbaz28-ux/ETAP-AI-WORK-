@@ -99,32 +99,27 @@ def _production_env(monkeypatch: pytest.MonkeyPatch) -> None:
 
 class TestSafeDefaults:
     def test_every_registry_flag_fails_closed(self):
-        """All security-sensitive defaults must be disabled (fail closed)."""
+        """All non-GA defaults must be disabled (fail closed)."""
         for key, cfg in DEFAULT_FEATURE_FLAGS.items():
-            if key == "production_hardening":
-                # GA hardening flag defaults to enabled to enforce fail-closed on mocks
+            if key in ("production_hardening", "chat_first_ui"):
+                # GA flags default to enabled
                 assert cfg.get("enabled") is True
                 continue
             assert cfg.get("enabled", True) is False, (
                 f"Flag '{key}' must default to disabled (fail closed)"
             )
 
-    def test_chat_first_ui_is_not_in_registry(self):
-        """chat_first_ui (P10 rollout) must NOT be a registry default.
+    def test_chat_first_ui_is_in_registry(self):
+        """chat_first_ui is GA in registry."""
+        assert "chat_first_ui" in DEFAULT_FEATURE_FLAGS
+        assert DEFAULT_FEATURE_FLAGS["chat_first_ui"]["status"] == "ga"
+        assert DEFAULT_FEATURE_FLAGS["chat_first_ui"]["enabled"] is True
 
-        Its activation is backend-controlled via the rollout file; P7d must
-        not enable it prematurely and must not expose it as a plain toggle.
-        """
-        assert "chat_first_ui" not in DEFAULT_FEATURE_FLAGS
-
-    def test_get_chat_first_ui_fails_closed(self, client: TestClient, auth_headers: dict):
-        """chat_first_ui is not in the registry → GET must 404 (fail closed).
-
-        The P6 UI gateway treats any failure as "flag unavailable → legacy
-        UI", so a 404 here preserves the existing rollout semantics.
-        """
+    def test_get_chat_first_ui_enabled(self, client: TestClient, auth_headers: dict):
+        """chat_first_ui is GA → GET returns effective_enabled True."""
         resp = client.get("/api/v1/feature-flags/chat_first_ui", headers=auth_headers)
-        assert resp.status_code == 404
+        assert resp.status_code == 200
+        assert resp.json()["data"]["effective_enabled"] is True
 
 
 # ---------------------------------------------------------------------------

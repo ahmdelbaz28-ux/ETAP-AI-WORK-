@@ -291,9 +291,9 @@ AhmedETAP Chat-First v3.0 introduces a unified conversational engineering worksp
 
 - **Feature Flag**: `chat_first_ui`
 - **Rollout Schedule**:
-  - Phase 1 (Canary): `allow_list=["admin"]`, `rollout_percentage=0` (verified internally).
-  - Phase 2 (Canary 10%): `rollout_percentage=10` (monitored via telemetry).
-  - Phase 3 (Full Rollout): `enabled=true`, `rollout_percentage=100` (Activated: 2026-09-05).
+  - Phase 1 (Canary): Evaluated internally with admin allow-list.
+  - Phase 2 (Telemetry Rollout): Verified circuit breakers and real-time streams.
+  - Phase 3 (Full Rollout): Defined in `DEFAULT_FEATURE_FLAGS` with `enabled=true, rollout_percentage=100, status="ga"` (Activated: 2026-09-20).
 - **Grace Period / Legacy Exit**:
   - "استخدم الواجهة الكلاسيكية" (`onExitToLegacy` via `ChatWorkspace`) is preserved for 2 months to ensure operational transition for industrial users.
 - **Fail-Closed Security**:
