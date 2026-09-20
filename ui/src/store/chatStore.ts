@@ -243,6 +243,9 @@ export interface ChatWorkspaceState {
   }) => Promise<PendingApproval | null>;
   executeImport: (previewId: string, approvalId: string) => Promise<string | null>;
   clearSessionData: () => void;
+  abortStream: () => void;
+  exportSessionMarkdown: () => string;
+  startNewSession: () => void;
   tokenBudget: TokenBudgetState;
   updateTokenBudget: (usage: Partial<TokenBudgetState>) => void;
 }
@@ -471,14 +474,28 @@ function resolvePendingApprovalsList(res: {
   return [];
 }
 
+function loadSavedMessages(sessionId: string): ChatMessage[] {
+  if (typeof localStorage === "undefined") return [];
+  try {
+    const raw = localStorage.getItem(`etap_chat_history_${sessionId}`);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) return parsed;
+    }
+  } catch {
+    /* ignore */
+  }
+  return [];
+}
+
 export const useChatStore = create<ChatWorkspaceState>()((set, get) => ({
   sessionId: getChatSessionId(),
   projectId:
     typeof localStorage !== "undefined"
-      ? localStorage.getItem("etap_last_project_id") || "proj_cairo_west_132kv"
-      : "proj_cairo_west_132kv",
+      ? localStorage.getItem("etap_last_project_id") || null
+      : null,
   activeView: null,
-  messages: [],
+  messages: loadSavedMessages(getChatSessionId()),
   streamStatus: "idle",
   lastAssistantId: null,
   wsStatus: "disconnected",
@@ -989,9 +1006,71 @@ export const useChatStore = create<ChatWorkspaceState>()((set, get) => ({
     }
   },
 
+  abortStream: () => {
+    if (activeChatAbort) {
+      try {
+        activeChatAbort.abort(new Error("USER_ABORT"));
+      } catch {
+        /* ignore */
+      }
+      activeChatAbort = null;
+    }
+    set({
+      streamStatus: "idle",
+      activity: get().activity.map((a) =>
+        a.phase !== "completed" && a.phase !== "failed"
+          ? { ...a, phase: "failed", pct: 100 }
+          : a
+      ),
+    });
+  },
+
+  exportSessionMarkdown: () => {
+    const { messages, sessionId, projectId, results } = get();
+    const dateStr = new Date().toISOString();
+    let md = `# AhmedETAP Engineering Session Transcript\n\n`;
+    md += `- **Date**: ${dateStr}\n`;
+    md += `- **Session ID**: \`${sessionId}\`\n`;
+    md += `- **Project ID**: \`${projectId || "UNASSIGNED"}\`\n`;
+    md += `- **Completed Studies**: ${results.length}\n`;
+    md += `- **Standards**: IEC 60909 / IEEE 1584 / IEEE 3002.7 / IEC 60255\n\n`;
+    md += `---\n\n## Chat Messages\n\n`;
+
+    for (const msg of messages) {
+      const time = new Date(msg.createdAt).toLocaleTimeString();
+      const role = msg.role === "user" ? "👤 Engineer" : "🤖 ETAP AI Assistant";
+      md += `### ${role} (${time})\n\n${msg.content}\n\n`;
+      if (msg.error) {
+        md += `> ⚠️ **Error**: ${msg.error}\n\n`;
+      }
+    }
+    return md;
+  },
+
+  startNewSession: () => {
+    get().abortStream();
+    get().disconnectSession();
+    const newId = generateId();
+    const newSessionId = `sess-web-${Date.now().toString(36)}-${newId.slice(0, 8)}`;
+    if (typeof window !== "undefined") {
+      (window as unknown as { __chatSessionId?: string }).__chatSessionId = newSessionId;
+    }
+    set({
+      sessionId: newSessionId,
+      messages: [],
+      activity: [],
+      results: [],
+      streamStatus: "idle",
+    });
+    get().connectSession();
+  },
+
   activateEmergencyStop: async (reason) => {
+    // 1. Immediately abort active stream and stop ongoing activity
+    get().abortStream();
     set({
       emergencyStop: { ...get().emergencyStop, activating: true, error: null },
+      streamStatus: "error",
     });
     try {
       await request<{ success: boolean }>("/admin/cua/kill-switch/activate", {
@@ -1020,3 +1099,16 @@ export const useChatStore = create<ChatWorkspaceState>()((set, get) => ({
     }
   },
 }));
+
+// Session message persistence subscription
+if (typeof localStorage !== "undefined") {
+  useChatStore.subscribe((state) => {
+    try {
+      if (state.sessionId && Array.isArray(state.messages)) {
+        localStorage.setItem(`etap_chat_history_${state.sessionId}`, JSON.stringify(state.messages));
+      }
+    } catch {
+      /* ignore quota errors */
+    }
+  });
+}
