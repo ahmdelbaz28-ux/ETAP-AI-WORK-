@@ -444,9 +444,15 @@ async def rag_query(request: Request):
         serialized_results = []
         if isinstance(results, list):
             import dataclasses
+
             for r in results:
                 if dataclasses.is_dataclass(r) and not isinstance(r, type):
-                    serialized_results.append(dataclasses.asdict(r))
+                    item = dataclasses.asdict(r)
+                    if "document" in item and isinstance(item["document"], dict):
+                        doc_created = item["document"].get("created_at")
+                        if doc_created is not None:
+                            item["document"]["created_at"] = str(doc_created)
+                    serialized_results.append(item)
                 elif isinstance(r, dict):
                     serialized_results.append(r)
                 else:

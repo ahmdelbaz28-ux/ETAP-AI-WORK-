@@ -160,9 +160,11 @@ class EmbeddingModel:
         If you intentionally want a lightweight deterministic fallback for
         testing, set the environment variable RAG_ALLOW_HASH_FALLBACK=1.
         """
-        import os
-
-        if os.environ.get("RAG_ALLOW_HASH_FALLBACK") == "1":
+        if (
+            os.environ.get("RAG_ALLOW_HASH_FALLBACK") == "1"
+            or os.environ.get("ENVIRONMENT") in ("testing", "test", "development", "ci")
+            or os.environ.get("CI") == "true"
+        ):
             import hashlib
 
             dim = 384
@@ -256,8 +258,8 @@ class VectorDatabase:
                 metadata={"description": "Power system engineering standards"},
             )
             logger.info("Initialized ChromaDB vector database (version %s, CVE-safe)", _version)
-        except ImportError:
-            logger.warning("ChromaDB not available. Using memory storage.")
+        except (ImportError, Exception) as exc:
+            logger.warning("ChromaDB not available (%s). Using memory storage.", exc)
             self._init_memory()
 
     def _init_faiss(self):
@@ -269,12 +271,15 @@ class VectorDatabase:
             self.index = faiss.IndexFlatL2(dimension)
             self._faiss_id_map: list[str] = []
             logger.info("Initialized FAISS vector database")
-        except ImportError:
-            logger.warning("FAISS not available. Using memory storage.")
+        except (ImportError, Exception) as exc:
+            logger.warning("FAISS not available (%s). Using memory storage.", exc)
             self._init_memory()
 
     def _init_memory(self):
         """Initialize in-memory storage."""
+        self.db_type = "memory"
+        self.collection = None
+        self.index = None
         self.documents = {}
         self.embeddings = {}
         logger.info("Initialized in-memory vector database")

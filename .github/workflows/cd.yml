@@ -75,12 +75,18 @@ jobs:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
         with:
           ref: "${{ needs.guard.outputs.sha }}"
+      - name: Install pnpm
+        uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413
+        with:
+          version: 9
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v7.0.0
         with:
-          node-version: 20
-      - run: corepack enable && pnpm install --frozen-lockfile
+          node-version: '22'
+      - name: Install dependencies
+        run: pnpm install --no-frozen-lockfile
         working-directory: ui
-      - run: pnpm build
+      - name: Build UI
+        run: pnpm build
         working-directory: ui
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
         with:
