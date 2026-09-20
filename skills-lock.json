@@ -30,6 +30,12 @@
       "skillPath": "skills/anti-koshary/SKILL.md",
       "computedHash": "baa9cd33b7a9677642c6a17a253d52a523e310230c97190daee2dfaa283ae079"
     },
+    "api-design": {
+      "source": "affaan-m/ECC",
+      "sourceType": "github",
+      "skillPath": "skills/api-design/SKILL.md",
+      "computedHash": "f3c716e9ee0a1076496629807ee311c1b81b358e84d86956abcbc91e6b995e8f"
+    },
     "backend-code-review": {
       "source": "./.agents/skills",
       "sourceType": "local",

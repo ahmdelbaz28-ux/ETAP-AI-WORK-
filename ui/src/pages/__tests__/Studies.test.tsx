@@ -65,7 +65,7 @@ describe("Studies", () => {
     expect(screen.getByText(/Select a study type to run/)).toBeTruthy();
   });
 
-  it("renders all 8 study category cards", () => {
+  it("renders all 9 study category cards", () => {
     renderStudies();
     expect(screen.getByText("Load Flow Analysis")).toBeTruthy();
     expect(screen.getByText("Short Circuit Analysis")).toBeTruthy();
@@ -75,6 +75,7 @@ describe("Studies", () => {
     expect(screen.getByText("Motor Starting Analysis")).toBeTruthy();
     expect(screen.getByText("Optimal Power Flow")).toBeTruthy();
     expect(screen.getByText("Transient Stability")).toBeTruthy();
+    expect(screen.getByText("AI Optimization Suite")).toBeTruthy();
   });
 
   it("displays standard badges for compliant studies", () => {
@@ -94,7 +95,7 @@ describe("Studies", () => {
     renderStudies();
     // The text "4 Parameters" etc. is split across elements, so use a function matcher
     const paramElements = screen.getAllByText(/Parameters/);
-    expect(paramElements).toHaveLength(8);
+    expect(paramElements).toHaveLength(9);
   });
 
   it("navigates to the study run page when a card is clicked", async () => {
@@ -115,6 +116,6 @@ describe("Studies", () => {
   it('renders the "Run Study" label on each card', () => {
     renderStudies();
     const runStudyLabels = screen.getAllByText("Run Study");
-    expect(runStudyLabels).toHaveLength(8);
+    expect(runStudyLabels).toHaveLength(9);
   });
 });

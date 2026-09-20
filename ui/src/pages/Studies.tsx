@@ -9,6 +9,7 @@ import {
   Play,
   RefreshCw,
   Shield,
+  Sparkles,
   TrendingUp,
   Zap,
 } from "lucide-react";
@@ -34,6 +35,7 @@ const studyIconMap: Record<string, React.ElementType> = {
   Cog,
   TrendingUp,
   RefreshCw,
+  Sparkles,
 };
 
 const categoryColors: Record<string, string> = {
@@ -45,6 +47,7 @@ const categoryColors: Record<string, string> = {
   motor_starting: "from-green-500 to-emerald-700",
   optimal_power_flow: "from-indigo-500 to-indigo-700",
   transient_stability: "from-rose-500 to-pink-700",
+  optimization: "from-emerald-500 to-teal-700",
 };
 
 const categoryIconBgColors: Record<string, string> = {
@@ -56,6 +59,7 @@ const categoryIconBgColors: Record<string, string> = {
   motor_starting: "bg-green-500/10 border-green-500/20 text-green-400",
   optimal_power_flow: "bg-indigo-500/10 border-indigo-500/20 text-indigo-400",
   transient_stability: "bg-rose-500/10 border-rose-500/20 text-rose-400",
+  optimization: "bg-emerald-500/10 border-emerald-500/20 text-emerald-400",
 };
 
 export default function Studies() {

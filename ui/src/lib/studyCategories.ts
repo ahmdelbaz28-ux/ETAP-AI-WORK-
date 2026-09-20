@@ -142,4 +142,24 @@ export const studyCategories: StudyCategory[] = [
       },
     ],
   },
+  {
+    id: "optimization",
+    name: "AI Optimization Suite",
+    icon: "🧬",
+    lucideIcon: "Sparkles",
+    description:
+      "Swarm-intelligence optimization: PSO coordination, OPF, capacitor placement, harmonic filter design, and Pareto exploration.",
+    standard: "PSO / IEEE 519 / IEC 60255",
+    params: [
+      {
+        name: "optimization_type",
+        type: "select",
+        default: "placement",
+        label: "Optimization Type",
+      },
+      { name: "swarm_size", type: "number", default: 40, label: "Swarm Size" },
+      { name: "max_iterations", type: "number", default: 70, label: "Max Iterations" },
+    ],
+  },
 ];
+

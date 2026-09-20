@@ -1451,6 +1451,7 @@ def create_agent_registry(orchestrator_instance: Any = None) -> dict[str, BaseAg
         ("predictive", "agents.predictive_agent", "PredictiveAgent"),
         ("weather", "agents.weather_agent", "WeatherAgent"),
         ("goal_planner", "agents.goal_planner_agent", "GoalPlannerAgent"),
+        ("optimization", "agents.optimizers.optimization_agent", "OptimizationAgent"),
     ):
         try:
             _mod = __import__(_module_name, fromlist=[_cls_name])

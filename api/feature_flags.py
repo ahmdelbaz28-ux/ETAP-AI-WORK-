@@ -130,6 +130,24 @@ DEFAULT_FEATURE_FLAGS: dict[str, dict[str, Any]] = {
         "description": "Token Governance Layer (Token Budgeting, Semantic Cache, RAG & Prompt Versioning)",
         "rollout_percentage": 0,
     },
+    "use_pso_coordination": {
+        "enabled": False,
+        "status": "beta",
+        "description": "Enable PSO-based protection coordination optimization (replaces linear TMS sweep)",
+        "rollout_percentage": 0,
+    },
+    "use_warm_start": {
+        "enabled": False,
+        "status": "beta",
+        "description": "Enable warm-start voltage memory for Newton-Raphson load flow solver",
+        "rollout_percentage": 0,
+    },
+    "use_model_cascade": {
+        "enabled": False,
+        "status": "alpha",
+        "description": "Enable cost-aware LLM cascade router (Economy → Standard → Reasoning)",
+        "rollout_percentage": 0,
+    },
 }
 
 FEATURE_FLAGS = DEFAULT_FEATURE_FLAGS
@@ -195,6 +213,24 @@ def is_feature_enabled(key: str, default: bool = True) -> bool:
     env = os.getenv("ENV", os.getenv("APP_ENV", "development")).lower()
     if env in ("development", "dev", "test", ""):
         return True
+
+    flags = _load_flags()
+    if key in flags:
+        return bool(flags[key].get("enabled", default))
+    return default
+
+
+def is_strict_feature_enabled(key: str, default: bool = False) -> bool:
+    """Check if a feature flag is enabled strictly from stored config or env override.
+
+    Unlike is_feature_enabled(), this helper does not force True in dev/test environments.
+    This guarantees that performance accelerators and experimental optimizers (e.g.
+    use_pso_coordination, use_warm_start, use_model_cascade) remain strictly opt-in,
+    preventing non-deterministic side-effects or regressions in standard regression suites.
+    """
+    env_override = os.getenv(f"FEATURE_FLAG_{key.upper()}")
+    if env_override is not None:
+        return env_override.strip().lower() in ("1", "true", "yes", "on")
 
     flags = _load_flags()
     if key in flags:

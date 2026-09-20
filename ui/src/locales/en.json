@@ -194,7 +194,8 @@
     "protection_coordination": "Protection Coordination",
     "arc_flash": "Arc Flash",
     "motor_starting": "Motor Starting",
-    "transient_stability": "Transient Stability"
+    "transient_stability": "Transient Stability",
+    "optimization": "AI Optimization Suite"
   },
   "statuses": {
     "pending": "Pending",
