@@ -1,0 +1,37 @@
+name: Docker Drift Check
+
+# يتحقق أن كل مصدر COPY في Dockerfile موجود في خطوة staging بـ cd.yml.
+# يمنع تكرار عطل RC-3 (cd.yml يُنشئ Space بمجلدات ناقصة).
+
+on:
+  pull_request:
+    paths:
+      - 'Dockerfile'
+      - '.github/workflows/cd.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'Dockerfile'
+      - '.github/workflows/cd.yml'
+
+concurrency:
+  group: docker-drift-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  drift-check:
+    name: Dockerfile vs cd.yml Drift Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
+        with:
+          python-version: '3.12'
+
+      - name: Check for drift between Dockerfile COPY sources and cd.yml staging
+        run: python3 scripts/check_docker_drift.py

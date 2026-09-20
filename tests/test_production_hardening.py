@@ -45,17 +45,24 @@ def admin_auth_headers() -> dict[str, str]:
     }
 
 
+# FIX-RC6: alias يتوافق مع conftest.py admin_auth_headers
+@pytest.fixture
+def auth_headers(admin_auth_headers: dict[str, str]) -> dict[str, str]:
+    """Alias for admin_auth_headers — يُستخدم في CI حيث AUTH_DISABLED=false."""
+    return admin_auth_headers
+
+
 class TestSolverParametersPersistence:
     """Test solver parameters are persisted to database and retrieved correctly."""
 
-    def test_global_solver_parameters_flow(self, client: TestClient):
-        # Update global parameters
+    def test_global_solver_parameters_flow(self, client: TestClient, auth_headers: dict[str, str]):
+        # FIX-RC6: إضافة auth_headers — في CI مع ENGINEERING_SERVICE_AUTH_DISABLED=false → 403 بدونها
         payload = {
             "convergence_tolerance": 0.0001,
             "max_iterations": 75,
             "acceleration_factor": 1.4,
         }
-        resp = client.put("/api/v1/studies/parameters/", json=payload)
+        resp = client.put("/api/v1/studies/parameters/", json=payload, headers=auth_headers)
         assert resp.status_code == 200
         data = resp.json()
         assert data["convergence_tolerance"] == 0.0001
@@ -63,28 +70,28 @@ class TestSolverParametersPersistence:
         assert data["acceleration_factor"] == 1.4
 
         # Read back
-        get_resp = client.get("/api/v1/studies/parameters/")
+        get_resp = client.get("/api/v1/studies/parameters/", headers=auth_headers)
         assert get_resp.status_code == 200
         get_data = get_resp.json()
         assert get_data["convergence_tolerance"] == 0.0001
         assert get_data["max_iterations"] == 75
 
-    def test_project_scoped_solver_parameters_flow(self, client: TestClient):
+    def test_project_scoped_solver_parameters_flow(self, client: TestClient, auth_headers: dict[str, str]):
         proj_id = "test-project-db-persistence"
         payload = {
             "convergence_tolerance": 0.00002,
             "max_iterations": 90,
             "acceleration_factor": 1.25,
         }
-        # PUT project parameters
-        put_resp = client.put(f"/api/v1/studies/parameters/{proj_id}", json=payload)
+        # FIX-RC6: PUT مع auth_headers
+        put_resp = client.put(f"/api/v1/studies/parameters/{proj_id}", json=payload, headers=auth_headers)
         assert put_resp.status_code == 200
         put_data = put_resp.json()
         assert put_data["convergence_tolerance"] == 0.00002
         assert put_data["max_iterations"] == 90
 
         # GET project parameters
-        get_resp = client.get(f"/api/v1/studies/parameters/{proj_id}")
+        get_resp = client.get(f"/api/v1/studies/parameters/{proj_id}", headers=auth_headers)
         assert get_resp.status_code == 200
         get_data = get_resp.json()
         assert get_data["convergence_tolerance"] == 0.00002
@@ -202,6 +209,25 @@ class TestSCADABridgeEnforcement:
         assert "SCADA bridge not configured" in data["error"]
 
 
+# FIX-RC6: Valid minimal SystemSpec configuration for re-run tests
+_MINIMAL_SYSTEM = {
+    "base_mva": 100.0,
+    "buses": [
+        {"bus_id": 1, "bus_type": "slack", "base_kv": 20.0, "voltage_magnitude": 1.0, "voltage_angle": 0.0},
+        {"bus_id": 2, "bus_type": "pq", "base_kv": 20.0, "load_power_real": 10.0, "load_power_imag": 5.0},
+    ],
+    "lines": [
+        {"line_id": 1, "from_bus_id": 1, "to_bus_id": 2, "r1": 0.02, "x1": 0.08, "bshunt1": 0.0},
+    ],
+    "generators": [
+        {"generator_id": 1, "bus_id": 1, "internal_voltage_mag": 1.0},
+    ],
+    "loads": [
+        {"load_id": 1, "bus_id": 2, "p_mw": 10.0, "q_mvar": 5.0},
+    ],
+}
+
+
 class TestStudyReRunWorkflow:
     """Verify Edit & Re-run execution creates real study results and revisions."""
 
@@ -216,6 +242,7 @@ class TestStudyReRunWorkflow:
         project_id = create_resp.json()["id"]
 
         # 2. Re-run study (Revision 1)
+        # FIX-RC6: أضف system — load_flow ينتمي لـ _TYPES_REQUIRING_SYSTEM
         rerun_payload_1 = {
             "project_id": project_id,
             "tool": "load_flow",
@@ -223,6 +250,7 @@ class TestStudyReRunWorkflow:
                 "convergence_tolerance": 1e-4,
                 "max_iterations": 40,
                 "bus_voltage": 1.02,
+                "system": _MINIMAL_SYSTEM,
             },
         }
         res1 = client.post("/api/v1/studies/re-run", json=rerun_payload_1, headers=auth_headers)
@@ -242,6 +270,7 @@ class TestStudyReRunWorkflow:
                 "convergence_tolerance": 1e-6,
                 "max_iterations": 60,
                 "bus_voltage": 1.05,
+                "system": _MINIMAL_SYSTEM,
             },
         }
         res2 = client.post("/api/v1/studies/re-run", json=rerun_payload_2, headers=auth_headers)
@@ -253,7 +282,7 @@ class TestStudyReRunWorkflow:
         assert data2["parameters"]["max_iterations"] == 60
 
         # 4. Check solver parameters persisted for project
-        params_resp = client.get(f"/api/v1/studies/parameters/{project_id}")
+        params_resp = client.get(f"/api/v1/studies/parameters/{project_id}", headers=auth_headers)
         assert params_resp.status_code == 200
         saved_params = params_resp.json()
         assert saved_params["convergence_tolerance"] == 1e-6
@@ -276,7 +305,7 @@ class TestStudyReRunWorkflow:
                 json={
                     "project_id": project_id,
                     "tool": "load_flow",
-                    "parameters": {"max_iterations": 20 + i},
+                    "parameters": {"max_iterations": 20 + i, "system": _MINIMAL_SYSTEM},
                 },
                 headers=auth_headers,
             )
@@ -299,7 +328,7 @@ class TestStudyReRunWorkflow:
         payload = {
             "project_id": project_id,
             "tool": "load_flow",
-            "parameters": {"convergence_tolerance": 1e-5},
+            "parameters": {"convergence_tolerance": 1e-5, "system": _MINIMAL_SYSTEM},
         }
 
         resp1 = client.post("/api/v1/studies/re-run", json=payload, headers=headers_with_key)

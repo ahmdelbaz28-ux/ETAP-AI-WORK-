@@ -22,8 +22,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY requirements.txt ./
 # Filter out pywin32 Windows-only dependency and install into /install prefix
 RUN grep -v "^#" requirements.txt | grep -v "^$" | grep -v "pywin32" > req.txt \
-    && pip install --no-cache-dir --upgrade pip==25.0.1 \
-    && pip install --no-cache-dir --prefix=/install -r req.txt
+    && pip install --no-cache-dir --only-binary :all: --upgrade pip==25.0.1 \
+    && pip install --no-cache-dir --only-binary :all: --prefix=/install -r req.txt
 
 # ---------- Stage 2: Runtime ----------
 FROM python:3.13-slim

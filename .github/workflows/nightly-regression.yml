@@ -52,7 +52,15 @@ jobs:
             --cov=. \
             --cov-report=term-missing \
             --cov-fail-under=50 \
-            --tb=short
+            --tb=short \
+            --junitxml=test-results.xml
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-nightly-${{ github.sha }}
+          path: test-results.xml
 
       - name: Generate regression report
         run: |

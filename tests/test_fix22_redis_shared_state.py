@@ -20,6 +20,7 @@ import pytest
 from starlette.applications import Starlette
 from starlette.requests import Request
 from starlette.responses import JSONResponse
+from starlette.routing import Route
 from starlette.testclient import TestClient
 
 from api.session_redis import RedisSessionStore, SessionMiddleware
@@ -262,10 +263,6 @@ def test_session_middleware_integration() -> None:
             store.create_session("engineer_test", {"org": "NationalGrid"})
         )
 
-        app = Starlette()
-        app.add_middleware(SessionMiddleware, store=store)
-
-        @app.route("/profile")
         async def profile_handler(request: Request) -> JSONResponse:
             session = getattr(request.state, "session", None)
             if not session:
@@ -277,6 +274,10 @@ def test_session_middleware_integration() -> None:
                     "org": session["data"].get("org"),
                 }
             )
+
+        # FIX-RC5: Starlette الحديثة حذفت @app.route — نستخدم routes=[Route(...)] بدلاً منها
+        app = Starlette(routes=[Route("/profile", profile_handler)])
+        app.add_middleware(SessionMiddleware, store=store)
 
         client = TestClient(app)
 

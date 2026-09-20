@@ -12,14 +12,14 @@
 #   3. mkdocs.yml SHOULD exist at docs/mkdocs.yml (the intentional location)
 #
 # Then runs the real build:
-#   1. npm --prefix ui install --no-audit --no-fund
-#   2. npm --prefix ui run build:vercel
+#   1. pnpm --prefix ui install --frozen-lockfile --ignore-scripts
+#   2. pnpm --prefix ui run build:vercel
 #   3. verify ui/dist/index.html exists before exiting
 #
 # Exit codes:
 #   0 — build succeeded, ui/dist/ populated
 #   1 — pre-flight check failed (fix the repo, then redeploy)
-#   2 — npm install failed
+#   2 — pnpm install failed
 #   3 — vite build failed
 #   4 — build reported success but ui/dist/index.html is missing
 # =============================================================================
@@ -32,7 +32,7 @@ echo "$SEP"
 echo " vercel-build.sh — Vite UI build wrapper"
 echo " repo root: $(pwd)"
 echo " node:      $(node --version 2>/dev/null || echo 'NOT FOUND')"
-echo " npm:       $(npm --version 2>/dev/null || echo 'NOT FOUND')"
+echo " pnpm:      $(pnpm --version 2>/dev/null || echo 'NOT FOUND')"
 echo "$SEP"
 
 # -----------------------------------------------------------------------------
@@ -76,16 +76,16 @@ else
 fi
 
 # -----------------------------------------------------------------------------
-# Step 1: verify npm install already happened (Vercel runs installCommand first)
+# Step 1: verify pnpm install already happened (Vercel runs installCommand first)
 # -----------------------------------------------------------------------------
 echo ""
 echo "=== Step 1/3: verify node_modules present ==="
 if [[ ! -d ui/node_modules ]]; then
   echo ""
-  echo "⚠  ui/node_modules missing — running npm install now as fallback..."
-  if ! npm --prefix ui install --no-audit --no-fund; then
+  echo "⚠  ui/node_modules missing — running pnpm install now as fallback..."
+  if ! pnpm --prefix ui install --frozen-lockfile --ignore-scripts; then
     echo ""
-    echo "❌ npm install failed for ui/"
+    echo "❌ pnpm install failed for ui/"
     exit 2
   fi
 else
@@ -97,9 +97,9 @@ fi
 # -----------------------------------------------------------------------------
 echo ""
 echo "=== Step 2/3: vite build (ui/) ==="
-if ! npm --prefix ui run build:vercel; then
+if ! pnpm --prefix ui run build:vercel; then
   echo ""
-  echo "❌ vite build failed (npm run build:vercel)"
+  echo "❌ vite build failed (pnpm run build:vercel)"
   exit 3
 fi
 echo "✓ vite build completed"

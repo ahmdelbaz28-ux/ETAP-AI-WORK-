@@ -371,6 +371,8 @@ jobs:
           total_failures = 0
           for stat in parsed["endpoint_stats"]:
               name = stat.get("Name", stat.get("name", "unknown"))
+              if name.lower() in ("aggregated", "total", ""):
+                  continue
               req_count = int(stat.get("Request Count", stat.get("request_count", 0)))
               fail_count = int(stat.get("Failure Count", stat.get("failure_count", 0)))
               median_ms = stat.get("Median Response Time", stat.get("median_response_time", "N/A"))

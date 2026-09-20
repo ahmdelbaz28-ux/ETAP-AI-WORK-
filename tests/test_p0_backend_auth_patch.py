@@ -184,28 +184,30 @@ class TestConditionA_SourceStructure:
             "Only identity fields (approver_id) move to JWT."
         )
 
-    def test_dependencies_imported(self, hf_source: str) -> None:
+    def test_dependencies_imported(self, hf_tree: ast.Module) -> None:
         """hf-space/app.py must import CurrentUser + require_role from api.dependencies."""
-        assert "from api.dependencies import" in hf_source, (
-            "hf-space/app.py must import from api.dependencies for the auth patch."
+        imported_names = set()
+        for node in ast.walk(hf_tree):
+            if isinstance(node, ast.ImportFrom) and node.module == "api.dependencies":
+                for alias in node.names:
+                    imported_names.add(alias.name)
+        assert "CurrentUser" in imported_names, (
+            f"Import from api.dependencies must include CurrentUser, found: {imported_names}"
         )
-        # Pull just the import line
-        for line in hf_source.splitlines():
-            if "from api.dependencies import" in line:
-                assert "CurrentUser" in line, "Import must include CurrentUser"
-                assert "require_role" in line, "Import must include require_role"
-                return
-        pytest.fail("Could not find `from api.dependencies import` line")
+        assert "require_role" in imported_names, (
+            f"Import from api.dependencies must include require_role, found: {imported_names}"
+        )
 
-    def test_depends_imported_from_fastapi(self, hf_source: str) -> None:
+    def test_depends_imported_from_fastapi(self, hf_tree: ast.Module) -> None:
         """hf-space/app.py must import Depends from fastapi."""
-        # Either `from fastapi import Depends, ...` or `from fastapi import ..., Depends, ...`
-        assert "Depends" in hf_source, "Depends not used anywhere in hf-space/app.py"
-        for line in hf_source.splitlines():
-            if line.startswith("from fastapi import"):
-                assert "Depends" in line, f"Depends must be in the fastapi import line: {line!r}"
-                return
-        pytest.fail("No `from fastapi import` line found")
+        imported_names = set()
+        for node in ast.walk(hf_tree):
+            if isinstance(node, ast.ImportFrom) and node.module == "fastapi":
+                for alias in node.names:
+                    imported_names.add(alias.name)
+        assert "Depends" in imported_names, (
+            f"Depends must be imported from fastapi, found: {imported_names}"
+        )
 
 
 # ---------------------------------------------------------------------------

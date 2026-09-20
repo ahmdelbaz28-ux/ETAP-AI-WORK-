@@ -439,14 +439,31 @@ async def rag_query(request: Request):
         from knowledge.rag_engine import EngineeringKnowledgeBase
 
         kb = EngineeringKnowledgeBase()
-        results = kb.search(query, top_k=top_k)
+        results = kb.retrieve_knowledge(query, top_k=top_k)
+
+        serialized_results = []
+        if isinstance(results, list):
+            import dataclasses
+            for r in results:
+                if dataclasses.is_dataclass(r) and not isinstance(r, type):
+                    serialized_results.append(dataclasses.asdict(r))
+                elif isinstance(r, dict):
+                    serialized_results.append(r)
+                else:
+                    serialized_results.append({
+                        "content": getattr(r, "content", str(r)),
+                        "score": getattr(r, "score", 0.0),
+                        "source": getattr(r, "source", "unknown"),
+                    })
+        else:
+            serialized_results = str(results)
 
         return JSONResponse(
             content={
                 "success": True,
                 "data": {
                     "query": query,
-                    "results": results if isinstance(results, list) else str(results),
+                    "results": serialized_results,
                     "top_k": top_k,
                     "standards_covered": [
                         "IEEE 1584-2018",

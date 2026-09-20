@@ -81,9 +81,19 @@ class SecurityHeadersMiddleware:
         async def send_with_headers(message: Any) -> None:
             if message["type"] == "http.response.start":
                 headers = MutableHeaders(scope=message)
-                headers["Strict-Transport-Security"] = (
-                    f"max-age={_HSTS_MAX_AGE}; includeSubDomains; preload"
+                # FIX-RC5: HSTS يُرسَل فقط عبر HTTPS — إرساله عبر HTTP يلوّث سجلات التطوير
+                # ويمكن أن يُثبّت HSTS على localhost لمدة سنة كاملة.
+                is_https = (
+                    scope.get("scheme", "http") == "https"
+                    or any(
+                        k == b"x-forwarded-proto" and v == b"https"
+                        for k, v in scope.get("headers", [])
+                    )
                 )
+                if is_https:
+                    headers["Strict-Transport-Security"] = (
+                        f"max-age={_HSTS_MAX_AGE}; includeSubDomains; preload"
+                    )
                 headers["X-Content-Type-Options"] = "nosniff"
                 headers["X-Frame-Options"] = _X_FRAME_OPTIONS
                 headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"

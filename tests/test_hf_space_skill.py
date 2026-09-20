@@ -143,15 +143,16 @@ def test_readme_has_hf_yaml_frontmatter():
 
 
 def test_hf_sync_workflow_exists():
-    """The .github/workflows/sync-platforms.yml must exist and trigger on main push."""
+    """CD workflow must handle HF Space deployment (sync-platforms.yml merged into cd.yml)."""
+    # FIX-RC5: sync-platforms.yml was consolidated into cd.yml — check cd.yml instead
     wf_path = (
-        Path(__file__).resolve().parent.parent / ".github" / "workflows" / "sync-platforms.yml"
+        Path(__file__).resolve().parent.parent / ".github" / "workflows" / "cd.yml"
     )
-    assert wf_path.exists(), "sync-platforms.yml workflow must exist"
+    assert wf_path.exists(), "cd.yml workflow must exist"
     content = wf_path.read_text(encoding="utf-8")
-    assert "branches: [main]" in content or "- main" in content
-    assert "HF_TOKEN" in content
-    assert "huggingface.co/spaces/ahmdelbaz28/AhmedETAP-Platform" in content
+    assert "deploy-hf" in content, "cd.yml must contain deploy-hf job"
+    assert "HF_TOKEN" in content, "cd.yml must reference HF_TOKEN secret"
+    assert "huggingface.co" in content, "cd.yml must push to huggingface.co"
 
 
 # ---------------------------------------------------------------------------

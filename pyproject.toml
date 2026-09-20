@@ -79,7 +79,10 @@ dependencies = [
     "httpx>=0.25.0",
     "aiosqlite>=0.19.0",
     "asyncpg>=0.29.0",
+    "psycopg2-binary>=2.9.9",
     "sqlalchemy[asyncio]>=2.0.0",
+    "gunicorn>=22.0.0",
+    "langwatch>=0.1.0",
     "email-validator>=2.0.0",
     "python-multipart>=0.0.31",  # SECURITY: CVE-2026-1852, CVE-2026-3038, CVE-2026-3040 fixed
     "ujson>=5.13.0",  # SECURITY: CVE-2026-2294 fixed
@@ -109,6 +112,9 @@ dependencies = [
     # affected the 0.1.x / 0.2.x lines.
     "langsmith>=0.10.0,<0.13",
     "qdrant-client>=1.9.1",
+    "chromadb>=0.5.0,<1",
+    "folium>=0.16.0,<1",
+    "langfuse[anthropic]~=4.15.1",
 ]
 
 [project.optional-dependencies]
@@ -218,7 +224,7 @@ pythonpath = ["."]
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
 python_files = ["test_*.py", "*_test.py", "unit_tests.py", "TC*.py"]
-addopts = "-v --tb=short -x"
+addopts = "-v --tb=short"
 filterwarnings = [
     "ignore::DeprecationWarning",
     "ignore::PendingDeprecationWarning",

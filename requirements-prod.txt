@@ -13,7 +13,7 @@ opentelemetry-semantic-conventions~=0.54b0
 opentelemetry-instrumentation-fastapi~=0.54b0
 
 # LLM observability — Langfuse
-langfuse~=4.15.1
+langfuse[anthropic]~=4.15.1
 
 # Metrics - Prometheus
 prometheus-client>=0.19,<0.26
@@ -57,11 +57,13 @@ email-validator>=2.1.0,<3
 sqlalchemy[asyncio]~=2.0.0
 aiosqlite~=0.19.0
 asyncpg>=0.29,<0.32
+psycopg2-binary>=2.9.9
 
 # ETAP Worker API (FastAPI)
 # fastapi>=0.135.0 — enables starlette 1.x for CVE fixes
 fastapi>=0.135.0
 uvicorn[standard]>=0.25,<0.53
+gunicorn>=22.0.0
 python-multipart>=0.0.31
 slowapi>=0.1.9
 python-dotenv>=1.2.2
@@ -118,5 +120,9 @@ langchain-experimental~=0.4.0
 langchain-qdrant~=1.0
 langsmith>=0.10,<0.13
 qdrant-client>=1.9.1
+chromadb>=0.5.0
+
+# GIS visualization
+folium>=0.16.0
 
 defusedxml>=0.7.1

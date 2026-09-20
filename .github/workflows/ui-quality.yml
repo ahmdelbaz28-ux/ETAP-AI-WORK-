@@ -50,15 +50,29 @@ jobs:
         uses: actions/setup-node@v7
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-          cache-dependency-path: ${{ env.UI_DIR }}/package-lock.json
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+          run_install: false
+
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        run: echo "dir=$(pnpm store path)" >> $GITHUB_OUTPUT
+
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.pnpm-cache.outputs.dir }}
+          key: pnpm-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: pnpm-${{ runner.os }}-
 
       - name: Install UI dependencies
         working-directory: ${{ env.UI_DIR }}
         run: |
-          # Use --ignore-scripts to skip Electron binary download (not needed for typecheck)
-          # --no-optional skips platform-specific Electron deps on Linux
-          npm install --ignore-scripts --no-optional --no-audit --no-fund
+          # FIX-RC1: pnpm --frozen-lockfile بدل npm ci — يضمن توافق lockfile
+          pnpm install --frozen-lockfile --ignore-scripts
 
       - name: TypeScript type-check (strict)
         working-directory: ${{ env.UI_DIR }}
@@ -82,16 +96,31 @@ jobs:
         uses: actions/setup-node@v7
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-          cache-dependency-path: ${{ env.UI_DIR }}/package-lock.json
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+          run_install: false
+
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        run: echo "dir=$(pnpm store path)" >> $GITHUB_OUTPUT
+
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.pnpm-cache.outputs.dir }}
+          key: pnpm-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: pnpm-${{ runner.os }}-
 
       - name: Install UI dependencies
         working-directory: ${{ env.UI_DIR }}
-        run: npm install --ignore-scripts --no-optional --no-audit --no-fund
+        run: pnpm install --frozen-lockfile --ignore-scripts
 
       - name: Install eslint-plugin-security
         working-directory: ${{ env.UI_DIR }}
-        run: npm install --no-save --legacy-peer-deps eslint-plugin-security
+        run: pnpm add --save-dev eslint-plugin-security
 
       - name: Run ESLint
         working-directory: ${{ env.UI_DIR }}
@@ -173,12 +202,27 @@ jobs:
         uses: actions/setup-node@v7
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-          cache-dependency-path: ${{ env.UI_DIR }}/package-lock.json
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+          run_install: false
+
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        run: echo "dir=$(pnpm store path)" >> $GITHUB_OUTPUT
+
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.pnpm-cache.outputs.dir }}
+          key: pnpm-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: pnpm-${{ runner.os }}-
 
       - name: Install UI dependencies
         working-directory: ${{ env.UI_DIR }}
-        run: npm install --ignore-scripts --no-optional --no-audit --no-fund
+        run: pnpm install --frozen-lockfile --ignore-scripts
 
       - name: Run Vitest
         working-directory: ${{ env.UI_DIR }}
@@ -245,16 +289,32 @@ jobs:
         uses: actions/setup-node@v7
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-          cache-dependency-path: ${{ env.UI_DIR }}/package-lock.json
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+          run_install: false
+
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        run: echo "dir=$(pnpm store path)" >> $GITHUB_OUTPUT
+
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.pnpm-cache.outputs.dir }}
+          key: pnpm-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: pnpm-${{ runner.os }}-
 
       - name: Install UI dependencies
         working-directory: ${{ env.UI_DIR }}
-        run: npm ci --ignore-scripts --include=optional
+        # FIX-RC1: pnpm install --frozen-lockfile بدل npm ci — يحل مشكلة lockfile drift
+        run: pnpm install --frozen-lockfile
 
       - name: Build for production (Vite)
         working-directory: ${{ env.UI_DIR }}
-        run: npm run build:vercel || npm run build
+        run: pnpm run build:vercel || pnpm run build
 
       - name: Verify dist output
         working-directory: ${{ env.UI_DIR }}

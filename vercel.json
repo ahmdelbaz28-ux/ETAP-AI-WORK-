@@ -2,10 +2,10 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "vite",
   "ignoreCommand": "if [ \"$VERCEL_GIT_COMMIT_REF\" = \"gh-pages\" ]; then exit 0; else exit 1; fi",
-  "installCommand": "npm --prefix ui install --no-audit --no-fund",
+  "installCommand": "pnpm --prefix ui install --frozen-lockfile --ignore-scripts",
   "buildCommand": "bash vercel-build.sh",
   "outputDirectory": "ui/dist",
-  "devCommand": "npm --prefix ui run dev",
+  "devCommand": "pnpm --prefix ui run dev",
   "rewrites": [
     { "source": "/assets/(.*)", "destination": "/assets/$1" },
     { "source": "/((?!api/).*)", "destination": "/index.html" }

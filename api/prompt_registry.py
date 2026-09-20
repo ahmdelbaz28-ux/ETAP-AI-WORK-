@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import copy
 import logging
-import random
+import secrets
 import threading
 import time
 from dataclasses import dataclass, field
@@ -171,7 +171,7 @@ class PromptRegistry:
 
             # A/B candidate evaluation if requested
             if candidate_traffic_pct > 0.0 and candidate_vers:
-                if random.random() * 100.0 < candidate_traffic_pct:
+                if secrets.SystemRandom().random() * 100.0 < candidate_traffic_pct:
                     # Serve latest candidate
                     return copy.deepcopy(candidate_vers[-1])
 

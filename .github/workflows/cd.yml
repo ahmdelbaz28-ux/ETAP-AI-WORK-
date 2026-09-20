@@ -118,6 +118,8 @@ jobs:
           cp -r load_flow fault_analysis coordination relays stage/
           cp -r network_solver services api utils ai_context_engine stage/
           cp -r integrations ml stage/
+          # 7 مجلدات كانت مفقودة (RC-3 fix): curves visualization reporting digital_twin security gis_integration adms_control
+          cp -r curves visualization reporting digital_twin security gis_integration adms_control stage/
           # 5) data/ minus runtime DBs
           cp -r data stage/
           rm -f stage/data/*.db* 2>/dev/null || true
@@ -129,17 +131,42 @@ jobs:
       - name: Drift-check — every Dockerfile COPY source must be staged (FIX-17 2.0 gate)
         run: |
           set -euo pipefail
-          MISSING=0
-          for src in $(grep -E '^\s*COPY(\s+--chown=[^\s]+)?(\s+--chmod=[^\s]+)?\s+\S+' Dockerfile \
-                        | awk '{print $NF=="/app/"?$(NF-1):$2}' \
-                        | grep -vE '^(/app|/tmp)' | sed 's:/$::' | sort -u); do
-            base=$(basename "$src")
-            if [ ! -e "stage/$base" ] && [ "$base" != "ui-dist" ]; then
-              echo "::error::Dockerfile COPY source '$base' missing from cd.yml whitelist"
-              MISSING=1
-            fi
-          done
-          exit $MISSING
+          python3 - <<'PYEOF'
+          import re, os, sys
+
+          with open("Dockerfile", encoding="utf-8") as f:
+              content = f.read()
+
+          # استخرج مصادر COPY بدقة — أزل كل --flags قبل التحليل
+          sources = set()
+          for line in content.splitlines():
+              line = line.strip()
+              if not line.upper().startswith("COPY"):
+                  continue
+              # أزل كل --flag=value أو --flag value
+              cleaned = re.sub(r'--\S+', '', line).split()
+              # cleaned[0]=COPY، cleaned[1:-1]=sources، cleaned[-1]=dest
+              if len(cleaned) >= 3:
+                  for src in cleaned[1:-1]:
+                      src = src.rstrip('/')
+                      if not src.startswith('/'):
+                          sources.add(os.path.basename(src))
+
+          # استثناءات: مصادر تُعالَج بشكل مختلف
+          exempt = {'requirements.hf.txt', 'app.py', 'ui-dist'}
+
+          missing = []
+          for base in sorted(sources):
+              if base in exempt:
+                  continue
+              if not os.path.exists(f"stage/{base}"):
+                  missing.append(base)
+                  print(f"::error::Dockerfile COPY source '{base}' missing from cd.yml stage")
+
+          if missing:
+              sys.exit(1)
+          print(f"Drift check passed — {len(sources)} sources all present in stage/")
+          PYEOF
 
       - name: Push staged set to HF Space (single atomic commit)
         run: |

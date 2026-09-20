@@ -10,7 +10,7 @@ from __future__ import annotations
 import copy
 import json
 import logging
-import random
+import secrets
 import time
 from typing import Any, Dict, List, Optional
 
@@ -131,7 +131,7 @@ class DistributedPromptRegistry:
                     candidate_vers.append(ver)
 
             if candidate_traffic_pct > 0.0 and candidate_vers:
-                if random.random() * 100.0 < candidate_traffic_pct:
+                if secrets.SystemRandom().random() * 100.0 < candidate_traffic_pct:
                     return candidate_vers[-1]
 
             if active_ver:
