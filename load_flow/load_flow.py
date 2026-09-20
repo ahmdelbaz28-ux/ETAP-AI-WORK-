@@ -402,6 +402,15 @@ class LoadFlowSolver:
         self.iteration_log = []
         self.switching_log = []
 
+        # Warm-start application if feature flag is enabled
+        try:
+            from api.feature_flags import is_strict_feature_enabled
+            if is_strict_feature_enabled("use_warm_start", default=False):
+                from engine.optimizers.warm_start_store import get_warm_start_store
+                get_warm_start_store().apply_warm_start(self)
+        except Exception as e:
+            logger.debug("Warm-start lookup skipped: %s", e)
+
         for iteration in range(max_iter):
             deltap, deltaq = self._power_mismatch(
                 self.V, p_sch, q_sch
@@ -469,6 +478,13 @@ class LoadFlowSolver:
                         P[i] + bus.load_power.real,
                         Q[i] + bus.load_power.imag,
                     )
+                try:
+                    from api.feature_flags import is_strict_feature_enabled
+                    if is_strict_feature_enabled("use_warm_start", default=False):
+                        from engine.optimizers.warm_start_store import get_warm_start_store
+                        get_warm_start_store().store_warm_start(self.system, self.bus_ids, self.V)
+                except Exception as e:
+                    logger.debug("Warm-start store skipped: %s", e)
                 return True
 
             J = self._build_jacobian(self.V)

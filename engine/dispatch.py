@@ -151,6 +151,12 @@ def _build_dispatch() -> dict[str, StudyRegistration]:
         requires_system=False,
         required_params=(),
     )
+    dispatch["optimization"] = StudyRegistration(
+        handler_type="external",
+        handler="OptimizationAgent",
+        requires_system=False,
+        required_params=(),
+    )
 
     return dispatch
 

@@ -87,6 +87,7 @@ EXPECTED_REGISTERED_AGENTS = {
     "predictive",
     "weather",
     "goal_planner",
+    "optimization",
     # Skill / guard agents
     "code_guard",
     "etap_expert",

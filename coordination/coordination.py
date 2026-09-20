@@ -48,6 +48,20 @@ class CoordinationEngine:
         self.tms_search_max = tms_search_max
         self.tms_search_steps = tms_search_steps
 
+        # Optional PSO Coordination implementation hook via feature flag
+        self._pso_impl = None
+        try:
+            from api.feature_flags import is_strict_feature_enabled
+            if is_strict_feature_enabled("use_pso_coordination", default=False):
+                from coordination.optimizers.pso_coordinator import PSOCoordinationEngine
+                self._pso_impl = PSOCoordinationEngine(
+                    default_margin_sec=self.default_margin_sec,
+                    tms_search_min=self.tms_search_min,
+                    tms_search_max=self.tms_search_max,
+                )
+        except Exception:
+            self._pso_impl = None
+
     def check_coordination(self, upstream_relay, downstream_relay, fault_current):
         """
         Check coordination between upstream and downstream relays for a given fault current.
@@ -60,6 +74,9 @@ class CoordinationEngine:
         Returns:
         dict: Coordination status and times.
         """
+        if self._pso_impl is not None:
+            return self._pso_impl.check_coordination(upstream_relay, downstream_relay, fault_current)
+
         # Get trip times for both relays — safety guards are enforced
         # automatically because OvercurrentRelay.trip_time() delegates
         # to calculate_iec_operating_time().
@@ -129,6 +146,13 @@ class CoordinationEngine:
         Returns:
         float: Suggested TMS for upstream relay, or None if not possible.
         """
+        if self._pso_impl is not None:
+            return self._pso_impl.suggest_tms_adjustment(
+                upstream_relay,
+                downstream_relay,
+                fault_currents,
+                target_margin=target_margin,
+            )
 
         def _trip_time_for_tms(tms, relay, i):
             """Compute trip time for a given TMS WITHOUT mutating the relay.

@@ -76,6 +76,13 @@ const STUDY_SELECT_OPTIONS: Record<
     { value: "min_loss", label: "Minimize Loss" },
     { value: "max_load", label: "Maximize Load" },
   ],
+  optimization_type: [
+    { value: "placement", label: "Capacitor & DER Placement" },
+    { value: "filter_design", label: "Harmonic Filter Design (IEEE 519)" },
+    { value: "pso_coordination", label: "Protection Coordination (PSO)" },
+    { value: "ac_opf", label: "Continuous AC-OPF" },
+    { value: "pareto", label: "Multi-Objective Pareto Exploration" },
+  ],
 };
 
 function renderSelectOptions(paramName: string, defaultValue: unknown): React.ReactNode {

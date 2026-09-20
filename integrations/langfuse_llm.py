@@ -463,6 +463,19 @@ def safe_openai_chat(
     if openai is None:
         raise RuntimeError("OpenAI SDK not installed. Run: pip install openai langfuse")
 
+    # 0. Optional Model Cascade routing if use_model_cascade flag is active
+    try:
+        from api.feature_flags import is_strict_feature_enabled
+        if is_strict_feature_enabled("use_model_cascade", default=False):
+            from integrations.model_router import ModelCascadeRouter
+            router = ModelCascadeRouter()
+            prompt_content = " ".join([m.get("content", "") for m in messages if isinstance(m.get("content"), str)])
+            selection = router.select_model(prompt_content)
+            model = selection.model
+            logger.info("Model cascade selected: %s (tier: %s)", model, selection.tier)
+    except Exception as e:
+        logger.debug("ModelCascadeRouter skipped: %s", e)
+
     # 1. Run safety guardrails
     _validate_input(messages, metadata)
     _validate_model(model)

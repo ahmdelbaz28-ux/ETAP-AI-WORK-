@@ -194,7 +194,8 @@
     "protection_coordination": "تنسيق الحماية",
     "arc_flash": "وميض القوس",
     "motor_starting": "بدء المحركات",
-    "transient_stability": "استقرار عابر"
+    "transient_stability": "استقرار عابر",
+    "optimization": "حزمة التحسين الذكي (AI)"
   },
   "statuses": {
     "pending": "في الانتظار",
