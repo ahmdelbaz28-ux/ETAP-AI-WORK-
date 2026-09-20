@@ -739,7 +739,10 @@ See [`CONTRIBUTING.md`](CONTRIBUTING.md) for the full workflow.
 
 MIT — see [`LICENSE`](LICENSE).
 
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fahmdelbaz28-ux%2FETAP-AI-WORK-.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fahmdelbaz28-ux%2FETAP-AI-WORK-?ref=badge_large)
+
 ---
+
 
 ## 🆘 Support
 
@@ -777,4 +780,5 @@ MIT — see [`LICENSE`](LICENSE).
 
 <p align="center">
   <sub>Built with precision for the power systems engineering community.</sub>
-</p
+</p>
+
