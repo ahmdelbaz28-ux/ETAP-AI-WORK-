@@ -115,7 +115,7 @@ jobs:
           cp -r hf-space stage/
           # 4) the 16 runtime code dirs
           cp -r agents prompts core_model core engine stage/
-          cp -r load_flow fault_analysis coordination relays stage/
+          cp -r load_flow fault_analysis coordination relays contingency motor_starting stage/
           cp -r network_solver services api utils ai_context_engine stage/
           cp -r integrations ml stage/
           # 7 مجلدات كانت مفقودة (RC-3 fix): curves visualization reporting digital_twin security gis_integration adms_control
