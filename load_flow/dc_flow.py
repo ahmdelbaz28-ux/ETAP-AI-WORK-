@@ -170,7 +170,7 @@ class DCLoadFlowSolver(AbstractLoadFlowSolver):
             "iterations": self.iterations,
             "method": "DC Linearized Load Flow",
             "bus_voltages": self.bus_voltages,
-            "voltage_magnitudes": {bid: 1.0 for bid in self.bus_ids},
+            "voltage_magnitudes": dict.fromkeys(self.bus_ids, 1.0),
             "voltage_angles_deg": {bid: float(np.degrees(self.theta[self.bus_index[bid]])) for bid in self.bus_ids},
             "branch_flows": self.branch_flows,
             "losses": self.losses,

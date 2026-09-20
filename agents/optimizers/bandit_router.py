@@ -54,7 +54,7 @@ class ContextualBanditRouter:
         self.b: Dict[StudyType, np.ndarray] = {
             arm: np.zeros((self.d, 1), dtype=np.float64) for arm in self.arms
         }
-        self.arm_pulls: Dict[StudyType, int] = {arm: 0 for arm in self.arms}
+        self.arm_pulls: Dict[StudyType, int] = dict.fromkeys(self.arms, 0)
 
         # Seed with canonical keywords for cold-start competence
         self._bootstrap_prior_knowledge()

@@ -69,7 +69,7 @@ def test_solver_parameter_tuner():
 
     class MockSystem:
         def __init__(self, n_buses):
-            self.buses = {i: None for i in range(n_buses)}
+            self.buses = dict.fromkeys(range(n_buses))
             self.branches = {}
 
     small_sys = MockSystem(14)

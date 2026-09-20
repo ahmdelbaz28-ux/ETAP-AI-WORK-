@@ -64,6 +64,7 @@ ignore = [
     "UP045",  # non-pep604-annotation-optional
     "UP046",  # non-pep695-generic-class
     "UP047",  # non-pep695-generic-function
+    "UP042",  # replace-str-enum (StrEnum requires Python 3.11+, breaks supported py38-py310)
     "T201",   # print() found — CLI tools in tools/ use print() for output (intentional)
     "N817",   # CamelCase imported as acronym (ET for ElementTree — standard Python convention)
     "SIM114", # Combine if branches — sometimes less readable than explicit branches

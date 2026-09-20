@@ -57,7 +57,7 @@ class PSOOptimalPowerFlow:
         self.base_mva = base_mva
 
         # Limits
-        self.voltage_limits = voltage_limits or {bid: (0.90, 1.10) for bid in bus_ids}
+        self.voltage_limits = voltage_limits or dict.fromkeys(bus_ids, (0.90, 1.10))
         self.branch_limits = branch_limits or {}
 
         # Swarm config
