@@ -407,6 +407,51 @@
       "preview": {
         "loadFailed": "Failed to load preview: {{error}}"
       }
+    },
+    "chat": {
+      "workspace": "Chat Workspace",
+      "subtitle": "MV Protection & Studies",
+      "project": "PROJECT",
+      "unassigned": "UNASSIGNED",
+      "selectProject": "Select Project",
+      "failedToLoadProjects": "Failed to load projects — Retry",
+      "activeProjectContext": "Active Project Context",
+      "parameters": "Parameters",
+      "aiEngine": "AI Engine",
+      "legacyUi": "Legacy UI",
+      "exportChat": "Export Chat",
+      "newSession": "New Session",
+      "sessionHistory": "Session History",
+      "previousSessions": "Previous Sessions",
+      "noMessagesYet": "No messages yet",
+      "suggestionsTitle": "Suggested engineering studies & actions:",
+      "sessionActivity": "Session Activity",
+      "sessionStream": "Session stream",
+      "emergencyStop": "Emergency Stop",
+      "emergencyStopActive": "Active (Stopped)",
+      "autoApprove": "Auto-Approve",
+      "recheckProbe": "Re-check Probe",
+      "dismiss": "Dismiss",
+      "selectProjectFirst": "Please select a project first to launch this study",
+      "quickActions": {
+        "loadFlow": "Load Flow",
+        "shortCircuit": "Short Circuit",
+        "arcFlash": "Arc Flash",
+        "coordination": "Coordination",
+        "motorStarting": "Motor Starting",
+        "harmonic": "Harmonics",
+        "stability": "Stability",
+        "report": "Report",
+        "inDevelopment": "In Development"
+      },
+      "suggestions": {
+        "loadFlow": "Run Load Flow analysis on current network per IEEE 3002.7",
+        "arcFlash": "Calculate Arc Flash incident energy and boundaries per IEEE 1584",
+        "shortCircuit": "Calculate 3-phase short-circuit currents per IEC 60909",
+        "coordination": "Verify protection coordination time-current curves (TCC)",
+        "uploadGrid": "Preview and validate network topology file",
+        "summarizeResults": "Summarize recent study results and violation checks"
+      }
     }
   }
 }

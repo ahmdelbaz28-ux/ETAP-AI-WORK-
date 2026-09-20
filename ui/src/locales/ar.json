@@ -407,6 +407,51 @@
       "preview": {
         "loadFailed": "فشل تحميل المعاينة: {{error}}"
       }
+    },
+    "chat": {
+      "workspace": "مساحة العمل الهندسية الذكية",
+      "subtitle": "دراسات وحماية الجهد المتوسط",
+      "project": "المشروع",
+      "unassigned": "غير محدد",
+      "selectProject": "اختر مشروعاً",
+      "failedToLoadProjects": "تعذر تحميل المشاريع — أعد المحاولة",
+      "activeProjectContext": "سياق المشروع النشط",
+      "parameters": "المعاملات",
+      "aiEngine": "محرك الذكاء",
+      "legacyUi": "الواجهة الكلاسيكية",
+      "exportChat": "تصدير المحادثة",
+      "newSession": "محادثة جديدة",
+      "sessionHistory": "سجل المحادثات",
+      "previousSessions": "المحادثات السابقة",
+      "noMessagesYet": "لا توجد رسائل بعد",
+      "suggestionsTitle": "دراسات وإجراءات هندسية مقترحة:",
+      "sessionActivity": "نشاط الجلسة",
+      "sessionStream": "بث الجلسة المباشر",
+      "emergencyStop": "إيقاف الطوارئ",
+      "emergencyStopActive": "نشط (تم الإيقاف)",
+      "autoApprove": "موافقة تلقائية",
+      "recheckProbe": "إعادة فحص الاتصال",
+      "dismiss": "إغلاق",
+      "selectProjectFirst": "يرجى اختيار مشروع أولاً لتشغيل هذه الدراسة",
+      "quickActions": {
+        "loadFlow": "سريان الأحمال",
+        "shortCircuit": "تيار القصر",
+        "arcFlash": "وميض القوس",
+        "coordination": "تنسيق الحماية",
+        "motorStarting": "إقلاع المحركات",
+        "harmonic": "التوافقيات",
+        "stability": "الاستقرار العابر",
+        "report": "تقرير شامل",
+        "inDevelopment": "قيد التفعيل (In Development)"
+      },
+      "suggestions": {
+        "loadFlow": "شغل دراسة سريان الأحمال (Load Flow) على الشبكة الحالية وفقاً لمعيار IEEE 3002.7",
+        "arcFlash": "احسب طاقة الوميض القوسي وحدود الأمان (Arc Flash IEEE 1584) للمشروع",
+        "shortCircuit": "احسب تيار القصر ثلاثي الأوجه (Short Circuit IEC 60909) لقضبان التوزيع",
+        "coordination": "تحقق من التنسيق الزمني وقواطع الحماية ومطابقة المنحنيات (TCC)",
+        "uploadGrid": "معاينة وتحليل ملف شبكة كهربائية ومطابقته",
+        "summarizeResults": "لخص أحدث نتائج الدراسات المكتملة وتجاوزات الحدود المسموحة"
+      }
     }
   }
 }
