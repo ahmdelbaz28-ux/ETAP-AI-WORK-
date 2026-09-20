@@ -269,3 +269,5 @@ langwatch>=0.1.0
 
 # Production requirements (lightweight subset)
 -r requirements-prod.txt
+nltk>=3.10.3 # not directly required, pinned by Snyk to avoid a vulnerability
+transformers>=5.10.0 # not directly required, pinned by Snyk to avoid a vulnerability
