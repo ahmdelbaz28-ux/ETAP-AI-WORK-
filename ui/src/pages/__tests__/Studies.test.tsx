@@ -65,7 +65,7 @@ describe("Studies", () => {
     expect(screen.getByText(/Select a study type to run/)).toBeTruthy();
   });
 
-  it("renders all 8 study category cards", () => {
+  it("renders all 9 study category cards", () => {
     renderStudies();
     expect(screen.getByText("Load Flow Analysis")).toBeTruthy();
     expect(screen.getByText("Short Circuit Analysis")).toBeTruthy();
@@ -75,6 +75,7 @@ describe("Studies", () => {
     expect(screen.getByText("Motor Starting Analysis")).toBeTruthy();
     expect(screen.getByText("Optimal Power Flow")).toBeTruthy();
     expect(screen.getByText("Transient Stability")).toBeTruthy();
+    expect(screen.getByText("AI Optimization Suite")).toBeTruthy();
   });
 
   it("displays standard badges for compliant studies", () => {
