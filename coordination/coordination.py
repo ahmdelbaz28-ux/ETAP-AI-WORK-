@@ -84,15 +84,16 @@ class CoordinationEngine:
         t_down = downstream_relay.trip_time(fault_current)
 
         # Check if downstream relay trips first
+        required_margin = self.default_margin_sec
         if t_down < t_up:
             margin = t_up - t_down
-            coordinated = margin >= 0.2  # typical grading margin of 0.2 seconds
+            coordinated = margin >= required_margin
             return {
                 "coordinated": coordinated,
                 "upstream_time": t_up,
                 "downstream_time": t_down,
                 "margin": margin,
-                "required_margin": 0.2,
+                "required_margin": required_margin,
                 "fault_current": fault_current,
             }
         else:
@@ -102,7 +103,7 @@ class CoordinationEngine:
                 "upstream_time": t_up,
                 "downstream_time": t_down,
                 "margin": t_up - t_down,
-                "required_margin": 0.2,
+                "required_margin": required_margin,
                 "fault_current": fault_current,
             }
 
@@ -128,7 +129,7 @@ class CoordinationEngine:
         upstream_relay,
         downstream_relay,
         fault_currents,
-        target_margin=0.2,
+        target_margin: float | None = None,
     ):
         """
         Suggest TMS adjustment for upstream relay to achieve coordination.
@@ -141,11 +142,13 @@ class CoordinationEngine:
         upstream_relay (OvercurrentRelay): The upstream relay (to be adjusted).
         downstream_relay (OvercurrentRelay): The downstream relay (fixed).
         fault_currents (list): List of fault currents in per-unit.
-        target_margin (float): Desired margin in seconds.
+        target_margin (float or None): Desired margin in seconds (defaults to self.default_margin_sec).
 
         Returns:
         float: Suggested TMS for upstream relay, or None if not possible.
         """
+        if target_margin is None:
+            target_margin = self.default_margin_sec
         if self._pso_impl is not None:
             return self._pso_impl.suggest_tms_adjustment(
                 upstream_relay,

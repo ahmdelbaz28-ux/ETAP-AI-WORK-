@@ -28,18 +28,19 @@ AhmedETAP v2.1.0 is an enterprise-grade autonomous engineering intelligence plat
 
 | Capability | Standard | Status |
 |---|---|---|
-| Load Flow Analysis | Newton-Raphson, Fast Decoupled, DC-OPF | Shipped |
-| Short Circuit Analysis | IEC 60909 | Shipped |
-| Arc Flash Analysis | IEEE 1584-2018 | Shipped |
-| Harmonic Analysis | IEEE 519-2022 | Shipped |
-| Protection Coordination | IEC 60255 | Shipped |
-| Optimal Power Flow | AC/DC | Shipped |
-| Motor Starting Analysis | — | Shipped |
-| Transient Stability | — | Shipped |
-| Cable Sizing Verification | — | Shipped |
-| Earth Grid Calculation | — | Shipped |
-| Renewable Energy Integration | — | Shipped |
-| Battery Storage Analysis | — | Shipped |
+| Load Flow Analysis | Newton-Raphson (Analytical Jacobian) | Shipped |
+| Fast Decoupled Load Flow | Stott-Alsac (XB / BX) | In Development |
+| Short Circuit Analysis | IEC 60909 (Driving-point) | Shipped |
+| Arc Flash Analysis | IEEE 1584-2018 | In Development |
+| Harmonic Analysis | IEEE 519-2022 | In Development |
+| Protection Coordination | IEC 60255 (Pairwise grading) | Shipped |
+| Optimal Power Flow | DC-OPF / AC-OPF | In Development |
+| Motor Starting Analysis | Time-Domain Dynamic (RK4) | In Development |
+| Transient Stability | Swing Equation (RK4) | In Development |
+| Cable Sizing Verification | IEC 60287 | Planned |
+| Earth Grid Calculation | IEEE 80 | Planned |
+| Renewable Energy Integration | Solar / Wind Integration | Planned |
+| Battery Storage Analysis | BESS Sizing & Dispatch | Planned |
 
 #### Solver Optimizations
 

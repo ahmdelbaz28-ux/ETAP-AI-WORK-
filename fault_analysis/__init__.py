@@ -25,6 +25,9 @@ from fault_analysis.iec60909_engine import (
     IEC60909Engine,
     ShortCircuitResult,
     VoltageFactorC,
+    calculate_kg,
+    calculate_kt,
+    calculate_ku,
 )
 from fault_analysis.ieee1584_database import (
     ElectrodeConfig as IEEE1584ElectrodeConfig,
@@ -44,6 +47,9 @@ __all__ = [
     "FaultType",
     "ShortCircuitResult",
     "VoltageFactorC",
+    "calculate_kg",
+    "calculate_kt",
+    "calculate_ku",
     # Arc flash
     "ArcFlashEngine",
     "ArcFlashResult",

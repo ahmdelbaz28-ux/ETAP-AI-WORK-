@@ -205,11 +205,6 @@ class TestIEEE4Bus:
         marked as expected failure until the FaultAnalyzer is fixed to remove
         the slack bus row/column before inversion.
         """
-        import pytest
-
-        pytest.skip(
-            "FaultAnalyzer: Ybus singularity (slack bus included). Fix requires slack removal before inversion."
-        )
         # Run load flow first (required for fault analysis)
         lf = engine.run_load_flow()
         assert lf["converged"]

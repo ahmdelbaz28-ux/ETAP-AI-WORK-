@@ -241,7 +241,10 @@ def _run_native_study(  # NOSONAR cognitive complexity; scheduled for refactorin
     engine = Engine(system)
 
     if study_type in ("load_flow",):
-        return engine.run_load_flow()
+        tol = parameters.get("tol") or parameters.get("tolerance") or parameters.get("convergence_tolerance", 1e-6)
+        max_iter = parameters.get("max_iter") or parameters.get("max_iterations", 100)
+        mode = parameters.get("mode", "engineering")
+        return engine.run_load_flow(tol=float(tol), max_iter=int(max_iter), mode=str(mode))
     elif study_type in ("short_circuit", "fault", "fault_analysis"):
         fault_type = parameters.get("fault_type", "three_phase")
         bus_id = parameters.get("bus_id")

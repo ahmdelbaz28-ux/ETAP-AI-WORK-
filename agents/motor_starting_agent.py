@@ -617,6 +617,68 @@ class MotorStartingAgent(BaseAgent):
                 )
                 results["acceleration_time"] = acc_result
 
+            # --- Dynamic RK4 Simulation (IEEE 399) ---
+            if analysis_type in ("dynamic", "full"):
+                try:
+                    from motor_starting.engine import MotorStartingEngine
+                    from motor_starting.motor_models import (
+                        DynamicMotorParams,
+                        LoadProfile,
+                        MechanicalLoadModel,
+                        StartingMethod,
+                    )
+
+                    method_enum = StartingMethod.DOL
+                    for sm in StartingMethod:
+                        if sm.value.lower() == starting_method.lower():
+                            method_enum = sm
+                            break
+
+                    j_tot = float(task.parameters.get("j_total_kgm2", 10.0))
+                    dyn_params = DynamicMotorParams(
+                        motor_id=task.parameters.get("motor_id", "M1"),
+                        rated_hp=motor_hp,
+                        rated_kv=voltage_v / 1000.0,
+                        rated_rpm=rated_rpm,
+                        inertia_j_motor=float(task.parameters.get("j_motor_kgm2", j_tot * 0.4)),
+                        inertia_j_load=float(task.parameters.get("j_load_kgm2", j_tot * 0.6)),
+                    )
+                    load_prof_str = str(task.parameters.get("load_profile", "quadratic")).lower()
+                    load_prof = LoadProfile.QUADRATIC
+                    if "const" in load_prof_str:
+                        load_prof = LoadProfile.CONSTANT
+                    elif "lin" in load_prof_str:
+                        load_prof = LoadProfile.LINEAR
+
+                    dyn_load = MechanicalLoadModel(profile=load_prof)
+                    dyn_engine = MotorStartingEngine(
+                        motor_params=dyn_params,
+                        load_model=dyn_load,
+                        source_impedance=complex(
+                            float(task.parameters.get("source_impedance_r_pu", 0.01)),
+                            float(task.parameters.get("source_impedance_x_pu", 0.05)),
+                        ),
+                        starting_method=method_enum,
+                    )
+                    dyn_res = dyn_engine.simulate(
+                        t_max_s=float(task.parameters.get("t_max_s", 10.0)),
+                        dt_s=float(task.parameters.get("dt_s", 0.005)),
+                    )
+                    results["dynamic_simulation"] = {
+                        "successful_start": dyn_res.successful_start,
+                        "acceleration_time_s": dyn_res.acceleration_time_s,
+                        "max_voltage_dip_pct": dyn_res.max_voltage_dip_pct,
+                        "min_voltage_pu": dyn_res.min_voltage_pu,
+                        "peak_starting_current_a": dyn_res.peak_starting_current_a,
+                        "peak_starting_current_pu": dyn_res.peak_starting_current_pu,
+                        "final_speed_rpm": dyn_res.final_speed_rpm,
+                        "stall_detected": dyn_res.stall_detected,
+                        "status_message": dyn_res.status_message,
+                        "trajectory_sample_count": len(dyn_res.trajectory.time_s),
+                    }
+                except Exception as dyn_err:
+                    self.log_execution(f"Dynamic motor starting fallback: {dyn_err}", "WARNING")
+
             result = AgentResult(
                 agent_name=self.agent_name,
                 study_type=StudyType.MOTOR_STARTING,

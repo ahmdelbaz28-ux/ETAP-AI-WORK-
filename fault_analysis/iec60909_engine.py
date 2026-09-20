@@ -18,9 +18,9 @@ Calculates:
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any
+from typing import Any, List, Dict, Optional
 
 import numpy as np
 import numpy.typing as npt
@@ -50,40 +50,133 @@ class ShortCircuitResult:
 
     fault_type: str
     fault_bus_index: int
-    ik_initial: complex  # NOSONAR
-    Ik_initial_magnitude: float  # NOSONAR
+    ik_initial: complex  # Initial symmetrical short-circuit current (pu)
+    Ik_initial_magnitude: float  # Initial symmetrical current magnitude (kA)
     ip_peak: float  # Peak current (kA)
-    Ib_breaking: float  # NOSONAR
-    Ik_steady: float  # NOSONAR
-    Ith_thermal: float  # NOSONAR
+    Ib_breaking: float  # Breaking current (kA)
+    Ik_steady: float  # Steady-state current (kA)
+    Ith_thermal: float  # Thermal equivalent current (kA)
     voltage_factor_c: float  # Voltage factor used
     fault_location: str = ""
-    # Sequence currents
-    i_positive: complex = complex(
-        0, 0
-    )  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
-    i_negative: complex = complex(
-        0, 0
-    )  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
-    i_zero: complex = complex(
-        0, 0
-    )  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
-    # Phase currents
-    ia: complex = complex(
-        0, 0
-    )  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
-    ib: complex = complex(
-        0, 0
-    )  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
-    ic: complex = complex(
-        0, 0
-    )  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
-    i_positive: complex = complex(0, 0)  # noqa: S116 — standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
-    i_negative: complex = complex(0, 0)  # noqa: S116 — standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
-    i_zero: complex = complex(0, 0)  # noqa: S116 — standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
-    ia: complex = complex(0, 0)  # noqa: S116 — standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
-    ib: complex = complex(0, 0)  # noqa: S116 — standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
-    ic: complex = complex(0, 0)  # noqa: S116 — standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
+    # Sequence currents (pu)
+    i_positive: complex = complex(0, 0)
+    i_negative: complex = complex(0, 0)
+    i_zero: complex = complex(0, 0)
+    # Phase currents (pu)
+    ia: complex = complex(0, 0)
+    ib: complex = complex(0, 0)
+    ic: complex = complex(0, 0)
+    # Near-generator factors and branch contributions
+    is_near_generator: bool = False
+    mu_factor: float = 1.0
+    lambda_factor: float = 1.0
+    kappa_factor: float = 1.0
+    branch_contributions: List[Dict[str, Any]] = field(default_factory=list)
+
+
+def calculate_kg(
+    un_kv: float,
+    urg_kv: float,
+    c_max: float,
+    xd_pp: float,
+    cos_phi_rg: float = 0.8,
+) -> float:
+    """
+    Calculate generator impedance correction factor KG per IEC 60909-0:2016 Clause 3.6.1.
+
+    KG = (Un / UrG) * (c_max / (1 + xd'' * sin(phi_rG)))
+
+    Parameters
+    ----------
+    un_kv : float
+        Nominal system voltage (kV).
+    urg_kv : float
+        Rated generator voltage (kV).
+    c_max : float
+        Voltage factor c_max (e.g. 1.10 for HV/MV).
+    xd_pp : float
+        Subtransient reactance of generator in per unit.
+    cos_phi_rg : float
+        Rated generator power factor (default 0.8).
+
+    Returns
+    -------
+    float
+        Correction factor KG.
+    """
+    sin_phi = float(np.sqrt(max(0.0, 1.0 - cos_phi_rg**2)))
+    denom = 1.0 + xd_pp * sin_phi
+    if denom <= 0:
+        return 1.0
+    return float((un_kv / urg_kv) * (c_max / denom))
+
+
+def calculate_kt(
+    c_max: float,
+    xt: float,
+    ut_lv_kv: float | None = None,
+    un_kv: float | None = None,
+) -> float:
+    """
+    Calculate network transformer impedance correction factor KT per IEC 60909-0:2016 Clause 3.3.3.
+
+    KT = 0.95 * (c_max / (1 + 0.6 * xT))
+
+    Parameters
+    ----------
+    c_max : float
+        Voltage factor c_max.
+    xt : float
+        Transformer reactance in per unit (xT = uk / 100).
+    ut_lv_kv, un_kv : float, optional
+        Voltage ratio adjustment if applicable.
+
+    Returns
+    -------
+    float
+        Correction factor KT.
+    """
+    denom = 1.0 + 0.6 * xt
+    if denom <= 0:
+        return 1.0
+    kt = 0.95 * (c_max / denom)
+    if ut_lv_kv is not None and un_kv is not None and un_kv > 0:
+        kt *= un_kv / ut_lv_kv
+    return float(kt)
+
+
+def calculate_ku(
+    un_kv: float,
+    urthv_kv: float,
+    urtlv_kv: float,
+    urg_kv: float,
+    c_max: float,
+    xd_pp: float,
+    xt: float,
+    cos_phi_rg: float = 0.8,
+    has_oltc: bool = False,
+) -> float:
+    """
+    Calculate power station unit (generator + transformer block) correction factor KU (or KS)
+    per IEC 60909-0:2016 Clause 3.7.
+
+    Without on-load tap-changer:
+    KU = (Un / UrTHV) * (UrTLV / UrG) * (c_max / (1 + |xd'' - xT| * sin(phi_rG)))
+
+    With on-load tap-changer (KSAT):
+    KU = (Un^2 / UrTHV^2) * (c_max / (1 + xd'' * sin(phi_rG)))
+    """
+    sin_phi = float(np.sqrt(max(0.0, 1.0 - cos_phi_rg**2)))
+    if has_oltc:
+        denom = 1.0 + xd_pp * sin_phi
+        if denom <= 0:
+            return 1.0
+        return float(((un_kv / urthv_kv) ** 2) * (c_max / denom))
+    else:
+        denom = 1.0 + abs(xd_pp - xt) * sin_phi
+        if denom <= 0:
+            return 1.0
+        return float((un_kv / urthv_kv) * (urtlv_kv / urg_kv) * (c_max / denom))
 
 
 # Default R/X ratio when the bus impedance is purely resistive (imaginary
@@ -113,6 +206,10 @@ class IEC60909Engine:
         generators: list[Any] | None = None,
         r_override: dict[int, float] | None = None,
         frequency_hz: float = 50.0,
+        slack_bus_index: int | None = None,
+        branches: list[dict[str, Any]] | None = None,
+        generator_type: str = "salient",
+        irg_pu: float = 1.0,
     ) -> None:
         """
         Initialize the IEC 60909 engine.
@@ -125,6 +222,10 @@ class IEC60909Engine:
         base_kv (float): Base kV (line-to-line).
         generators (list): List of generator objects with impedance info.
         r_override (dict): Override R/X ratios for specific buses.
+        slack_bus_index (int): Optional index of slack/reference bus to resolve singularity.
+        branches (list): Optional branch models for calculating branch current contributions.
+        generator_type (str): 'salient' or 'turbo' for steady-state current factor lambda.
+        irg_pu (float): Rated generator current in per unit.
         """
         self.Ybus_pos = ybus_pos  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
         self.Ybus_neg = ybus_neg  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
@@ -135,6 +236,10 @@ class IEC60909Engine:
         self.generators = generators or []
         self.r_override = r_override or {}
         self.frequency_hz = max(1.0, float(frequency_hz))  # SECURITY: S-20 — was hardcoded 50.0
+        self.slack_bus_index = slack_bus_index
+        self.branches = branches or []
+        self.generator_type = generator_type
+        self.irg_pu = irg_pu
 
         # Base impedance and current
         self.base_z = (base_kv**2) / base_mva  # ohms
@@ -143,30 +248,141 @@ class IEC60909Engine:
         # Compute Zbus matrices (inverse of Ybus)
         self._compute_zbus()
 
+    def _invert_matrix(self, ybus: npt.NDArray[np.complexfloating]) -> npt.NDArray[np.complexfloating]:
+        """Invert Ybus to Zbus, resolving singularity via slack removal or pseudo-inverse."""
+        if ybus is None:
+            return None
+        n = ybus.shape[0]
+        is_singular = False
+        try:
+            cond = np.linalg.cond(ybus)
+            if cond > 1e12 or np.isnan(cond) or np.isinf(cond):
+                is_singular = True
+        except Exception:
+            is_singular = True
+
+        if is_singular:
+            s = self.slack_bus_index
+            if s is not None and 0 <= s < n:
+                rem_idx = [i for i in range(n) if i != s]
+                y_rem = ybus[np.ix_(rem_idx, rem_idx)]
+                try:
+                    z_rem = np.linalg.inv(y_rem)
+                except Exception:
+                    z_rem = np.linalg.pinv(y_rem)
+                zbus = np.zeros((n, n), dtype=complex)
+                for i_new, i_orig in enumerate(rem_idx):
+                    for j_new, j_orig in enumerate(rem_idx):
+                        zbus[i_orig, j_orig] = z_rem[i_new, j_new]
+                return zbus
+            return np.linalg.pinv(ybus)
+
+        try:
+            return np.linalg.inv(ybus)
+        except np.linalg.LinAlgError:
+            return np.linalg.pinv(ybus)
+
     def _compute_zbus(self) -> None:
         """Compute Zbus matrices from Ybus."""
-        try:
-            self.Zbus_pos = np.linalg.inv(
-                self.Ybus_pos
-            )  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
-        except np.linalg.LinAlgError:
-            self.Zbus_pos = np.linalg.pinv(self.Ybus_pos)
-        try:
-            self.Zbus_neg = np.linalg.inv(
-                self.Ybus_neg
-            )  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
-        except np.linalg.LinAlgError:
-            self.Zbus_neg = np.linalg.pinv(self.Ybus_neg)
-        try:
-            self.Zbus_zero = np.linalg.inv(
-                self.Ybus_zero
-            )  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
-            self.Zbus_pos = np.linalg.inv(self.Ybus_pos)  # noqa: S116 — standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
-            self.Zbus_neg = np.linalg.inv(self.Ybus_neg)  # noqa: S116 — standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
-            self.Zbus_zero = np.linalg.inv(self.Ybus_zero)  # noqa: S116 — standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
+        self.Zbus_pos = self._invert_matrix(self.Ybus_pos)
+        self.Zbus_neg = self._invert_matrix(self.Ybus_neg)
+        self.Zbus_zero = self._invert_matrix(self.Ybus_zero)
 
-        except np.linalg.LinAlgError:
-            self.Zbus_zero = np.linalg.pinv(self.Ybus_zero)
+    def is_near_generator(self, ik_initial_pu: float, irg_pu: float = 1.0) -> bool:
+        """
+        Determine if fault is near-to-generator per IEC 60909-0 Clause 4.5.
+        Near-to-generator: Ik'' / IrG >= 2.0 (decay occurs in ac component).
+        Far-from-generator: Ik'' / IrG < 2.0 (negligible ac decay, Ib = Ik'').
+        """
+        ratio = ik_initial_pu / max(1e-6, irg_pu)
+        return ratio >= 2.0
+
+    def _calculate_lambda(
+        self,
+        ik_initial_pu: float,
+        irg_pu: float = 1.0,
+        generator_type: str = "salient",
+        maximum: bool = True,
+        xd_pu: float = 1.2,
+    ) -> float:
+        """
+        Calculate factor lambda for steady-state short-circuit current Ik per IEC 60909-0 Clause 4.6.
+
+        Ik = lambda * IrG (for near-generator faults)
+        Ik = Ik'' (for far-from-generator faults, lambda = Ik''/IrG)
+        """
+        ratio = ik_initial_pu / max(1e-6, irg_pu)
+        if ratio < 2.0:
+            # Far from generator: Ik = Ik"
+            return ratio
+
+        if not maximum:
+            # Minimum steady-state current (underexcited / constant excitation)
+            return float(min(ratio, max(0.5, 1.0 / max(0.1, xd_pu))))
+
+        # Maximum steady-state current (ceiling excitation, IEC 60909-0 Figures 13 & 14)
+        if generator_type.lower() in ("salient", "salient_pole", "hydro"):
+            # Salient-pole machine curve
+            lam = 0.88 + 0.46 * np.exp(-0.27 * min(ratio, 10.0)) + 0.15 * min(ratio, 5.0)
+            return float(min(lam, 2.5))
+        else:
+            # Cylindrical rotor / turbo-generator
+            lam = 0.75 + 0.55 * np.exp(-0.30 * min(ratio, 10.0)) + 0.12 * min(ratio, 5.0)
+            return float(min(lam, 2.0))
+
+    def calculate_branch_contributions(
+        self,
+        fault_bus_index: int,
+        if_pu: complex,
+        branches: list[dict[str, Any]] | None = None,
+        c_factor: float = 1.10,
+    ) -> list[dict[str, Any]]:
+        """
+        Calculate individual branch current contributions during a fault at fault_bus_index.
+
+        Parameters
+        ----------
+        fault_bus_index : int
+            Index of faulted bus.
+        if_pu : complex
+            Fault current injection in per-unit.
+        branches : list[dict], optional
+            Branch configurations with from_bus, to_bus, r, x (or z1).
+        c_factor : float
+            Pre-fault voltage factor.
+
+        Returns
+        -------
+        list[dict]
+            Branch contribution entries.
+        """
+        contributions: list[dict[str, Any]] = []
+        br_list = branches if branches is not None else self.branches
+        if not br_list:
+            return contributions
+
+        # Compute fault voltages at all buses: V_fault = V_pre - Zbus[:, fault_bus] * If
+        v_pre = complex(c_factor, 0.0)
+        z_col = self.Zbus_pos[:, fault_bus_index]
+        v_fault = np.full(self.n_buses, v_pre, dtype=complex) - z_col * if_pu
+
+        for br in br_list:
+            fb = br.get("from_bus", br.get("from_bus_id", 0))
+            tb = br.get("to_bus", br.get("to_bus_id", 0))
+            if isinstance(fb, int) and isinstance(tb, int) and fb < self.n_buses and tb < self.n_buses:
+                z = br.get("z1", complex(br.get("r", br.get("r1", 0.0)), br.get("x", br.get("x1", 0.01))))
+                if abs(z) > 1e-12:
+                    i_branch = (v_fault[fb] - v_fault[tb]) / z
+                    i_ka = abs(i_branch) * self.base_i / 1000.0
+                    contributions.append({
+                        "from_bus": fb,
+                        "to_bus": tb,
+                        "current_pu": complex(i_branch),
+                        "current_magnitude_pu": float(abs(i_branch)),
+                        "current_ka": float(i_ka),
+                        "angle_deg": float(np.angle(i_branch, deg=True)),
+                    })
+        return contributions
 
     def _get_voltage_factor(self, bus_kv: float, maximum: bool = True) -> float:
         """
@@ -306,6 +522,7 @@ class IEC60909Engine:
         maximum: bool = True,
         t_min: float | None = None,
         t_k: float = 1.0,
+        **kwargs: Any,
     ) -> ShortCircuitResult:
         """
         Calculate three-phase short-circuit current per IEC 60909.
@@ -352,13 +569,27 @@ class IEC60909Engine:
             mu * ik_ka
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
-        # Steady-state current (simplified: Ik = Ik" for far-from-generator faults)
-        Ik_steady = ik_ka  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        # Steady-state current: near vs far generator
+        is_near = self.is_near_generator(abs(ik_pu), self.irg_pu)
+        if is_near:
+            lambda_factor = self._calculate_lambda(
+                abs(ik_pu), self.irg_pu, generator_type=self.generator_type, maximum=maximum
+            )
+            Ik_steady = lambda_factor * (self.irg_pu * self.base_i / 1000.0)
+        else:
+            lambda_factor = 1.0
+            Ik_steady = ik_ka
 
         # Thermal current
         ith = self._calculate_thermal_factor(
             ik_ka, ip, t_k
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+
+        # Branch contributions
+        branch_list = kwargs.get("branches", self.branches)
+        branch_contribs = self.calculate_branch_contributions(
+            bus_index, ik_pu, branches=branch_list, c_factor=c_factor
+        )
 
         # Phase currents (balanced three-phase fault)
         ia = ik_pu  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
@@ -385,6 +616,11 @@ class IEC60909Engine:
             ia=ia,
             ib=ib_phase,
             ic=ic_phase,
+            is_near_generator=is_near,
+            mu_factor=mu,
+            lambda_factor=lambda_factor,
+            kappa_factor=kappa,
+            branch_contributions=branch_contribs,
         )
 
     def calculate_line_to_ground_fault(
@@ -395,6 +631,7 @@ class IEC60909Engine:
         maximum: bool = True,
         t_min: float | None = None,
         t_k: float = 1.0,
+        **kwargs: Any,
     ) -> ShortCircuitResult:
         """
         Calculate single line-to-ground short-circuit current per IEC 60909.
@@ -449,12 +686,26 @@ class IEC60909Engine:
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         # Steady-state
-        Ik_steady = ik_ka  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        is_near = self.is_near_generator(abs(ia), self.irg_pu)
+        if is_near:
+            lambda_factor = self._calculate_lambda(
+                abs(ia), self.irg_pu, generator_type=self.generator_type, maximum=maximum
+            )
+            Ik_steady = lambda_factor * (self.irg_pu * self.base_i / 1000.0)
+        else:
+            lambda_factor = 1.0
+            Ik_steady = ik_ka
 
         # Thermal
         ith = self._calculate_thermal_factor(
             ik_ka, ip, t_k
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+
+        # Branch contributions
+        branch_list = kwargs.get("branches", self.branches)
+        branch_contribs = self.calculate_branch_contributions(
+            bus_index, ia, branches=branch_list, c_factor=c_factor
+        )
 
         # Phase currents
         ib_phase = complex(
@@ -480,6 +731,11 @@ class IEC60909Engine:
             ia=ia,
             ib=ib_phase,
             ic=ic_phase,
+            is_near_generator=is_near,
+            mu_factor=mu,
+            lambda_factor=lambda_factor,
+            kappa_factor=kappa,
+            branch_contributions=branch_contribs,
         )
 
     def calculate_line_to_line_fault(
@@ -490,6 +746,7 @@ class IEC60909Engine:
         maximum: bool = True,
         t_min: float | None = None,
         t_k: float = 1.0,
+        **kwargs: Any,
     ) -> ShortCircuitResult:
         """
         Calculate line-to-line short-circuit current per IEC 60909.
@@ -555,12 +812,26 @@ class IEC60909Engine:
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         # Steady-state
-        Ik_steady = ik_ka  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        is_near = self.is_near_generator(ik_pu, self.irg_pu)
+        if is_near:
+            lambda_factor = self._calculate_lambda(
+                ik_pu, self.irg_pu, generator_type=self.generator_type, maximum=maximum
+            )
+            Ik_steady = lambda_factor * (self.irg_pu * self.base_i / 1000.0)
+        else:
+            lambda_factor = 1.0
+            Ik_steady = ik_ka
 
         # Thermal
         ith = self._calculate_thermal_factor(
             ik_ka, ip, t_k
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+
+        # Branch contributions
+        branch_list = kwargs.get("branches", self.branches)
+        branch_contribs = self.calculate_branch_contributions(
+            bus_index, ib_phase, branches=branch_list, c_factor=c_factor
+        )
 
         return ShortCircuitResult(
             fault_type=FaultType.LINE_TO_LINE.value,
@@ -578,6 +849,11 @@ class IEC60909Engine:
             ia=ia,
             ib=ib_phase,
             ic=ic_phase,
+            is_near_generator=is_near,
+            mu_factor=mu,
+            lambda_factor=lambda_factor,
+            kappa_factor=kappa,
+            branch_contributions=branch_contribs,
         )
 
     def calculate_double_line_to_ground_fault(
@@ -588,6 +864,7 @@ class IEC60909Engine:
         maximum: bool = True,
         t_min: float | None = None,
         t_k: float = 1.0,
+        **kwargs: Any,
     ) -> ShortCircuitResult:
         """
         Calculate double line-to-ground short-circuit current per IEC 60909.
@@ -653,12 +930,27 @@ class IEC60909Engine:
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
         # Steady-state
-        Ik_steady = ik_ka  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        ik_max_pu = max(abs(ib_phase), abs(ic_phase))
+        is_near = self.is_near_generator(ik_max_pu, self.irg_pu)
+        if is_near:
+            lambda_factor = self._calculate_lambda(
+                ik_max_pu, self.irg_pu, generator_type=self.generator_type, maximum=maximum
+            )
+            Ik_steady = lambda_factor * (self.irg_pu * self.base_i / 1000.0)
+        else:
+            lambda_factor = 1.0
+            Ik_steady = ik_ka
 
         # Thermal
         ith = self._calculate_thermal_factor(
             ik_ka, ip, t_k
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+
+        # Branch contributions
+        branch_list = kwargs.get("branches", self.branches)
+        branch_contribs = self.calculate_branch_contributions(
+            bus_index, max(ib_phase, ic_phase, key=abs), branches=branch_list, c_factor=c_factor
+        )
 
         return ShortCircuitResult(
             fault_type=FaultType.DOUBLE_LINE_TO_GROUND.value,
@@ -676,6 +968,11 @@ class IEC60909Engine:
             ia=ia,
             ib=ib_phase,
             ic=ic_phase,
+            is_near_generator=is_near,
+            mu_factor=mu,
+            lambda_factor=lambda_factor,
+            kappa_factor=kappa,
+            branch_contributions=branch_contribs,
         )
 
     def calculate(

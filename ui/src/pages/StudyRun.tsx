@@ -53,8 +53,6 @@ const STUDY_SELECT_OPTIONS: Record<
 > = {
   method: [
     { value: "newton-raphson", label: "Newton-Raphson" },
-    { value: "gauss-seidel", label: "Gauss-Seidel" },
-    { value: "fast-decoupled", label: "Fast Decoupled" },
   ],
   standard: [
     { value: "iec60909", label: "IEC 60909" },

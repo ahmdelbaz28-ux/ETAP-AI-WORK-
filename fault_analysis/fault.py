@@ -10,7 +10,15 @@ except ImportError:
 
 
 class FaultAnalyzer:
-    def __init__(self, ybus_pos, ybus_neg=None, ybus_zero=None, base_mva=100.0, base_kv=115.0):
+    def __init__(
+        self,
+        ybus_pos,
+        ybus_neg=None,
+        ybus_zero=None,
+        base_mva=100.0,
+        base_kv=115.0,
+        slack_bus_index=None,
+    ):
         """
         Initialize the FaultAnalyzer with sequence admittance matrices.
 
@@ -26,6 +34,7 @@ class FaultAnalyzer:
         ybus_zero (numpy.ndarray): Zero sequence Ybus matrix (optional, defaults to ybus_pos).
         base_mva (float): Base MVA for per-unit conversion. Default 100.0.
         base_kv (float): Base kV for current conversion. Default 115.0.
+        slack_bus_index (int): Optional index of slack/reference bus to resolve singularity.
         """
         self.Ybus_pos = ybus_pos  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
         self.Ybus_neg = (
@@ -40,20 +49,28 @@ class FaultAnalyzer:
 
         self.base_mva = base_mva
         self.base_kv = base_kv
+        self.slack_bus_index = slack_bus_index
 
         self.n = ybus_pos.shape[0]
 
         if HAS_SCIPY and issparse(ybus_pos):
-            # Sparse path: store LU factorisations, compute Zbus[k,k] on demand
-            self._lu_pos = splu(ybus_pos)
-            self._lu_neg = splu(ybus_neg)
-            self._lu_zero = splu(ybus_zero)
-            self._use_lu = True
-            self.Zbus_pos = None  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
-            self.Zbus_neg = None  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
-            self.Zbus_zero = None  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
+            try:
+                # Sparse path: store LU factorisations, compute Zbus[k,k] on demand
+                self._lu_pos = splu(ybus_pos)
+                self._lu_neg = splu(ybus_neg)
+                self._lu_zero = splu(ybus_zero)
+                self._use_lu = True
+                self.Zbus_pos = None  # NOSONAR standard IEEE/IEC engineering notation
+                self.Zbus_neg = None
+                self.Zbus_zero = None
+            except Exception:
+                # Singular matrix in sparse path: fallback to dense with slack removal
+                self._use_lu = False
+                self.Zbus_pos = self._invert_ybus(self.Ybus_pos)
+                self.Zbus_neg = self._invert_ybus(self.Ybus_neg)
+                self.Zbus_zero = self._invert_ybus(self.Ybus_zero)
         else:
-            # Dense path: full inversion for backward compatibility
+            # Dense path: full inversion
             self._use_lu = False
             self.Zbus_pos = self._invert_ybus(self.Ybus_pos)
             self.Zbus_neg = self._invert_ybus(self.Ybus_neg)
@@ -70,11 +87,35 @@ class FaultAnalyzer:
         self,
         ybus,
     ):  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        """Invert Ybus to get Zbus, handling singularity by using pseudo-inverse.
+        """Invert Ybus to get Zbus, handling singularity by removing slack bus or using pseudo-inverse."""
+        if ybus is None:
+            return None
 
-        Only called for the dense fallback path (when scipy.sparse is unavailable
-        or Ybus is dense).  The primary LU path never needs the full inverse.
-        """
+        # Check if matrix is singular or ill-conditioned
+        is_singular = False
+        try:
+            cond = np.linalg.cond(ybus)
+            if cond > 1e12 or np.isnan(cond) or np.isinf(cond):
+                is_singular = True
+        except Exception:
+            is_singular = True
+
+        if is_singular:
+            s = self.slack_bus_index
+            if s is not None and 0 <= s < self.n:
+                rem_idx = [i for i in range(self.n) if i != s]
+                y_rem = ybus[np.ix_(rem_idx, rem_idx)]
+                try:
+                    z_rem = np.linalg.inv(y_rem)
+                except Exception:
+                    z_rem = np.linalg.pinv(y_rem)
+                zbus = np.zeros((self.n, self.n), dtype=complex)
+                for i_new, i_orig in enumerate(rem_idx):
+                    for j_new, j_orig in enumerate(rem_idx):
+                        zbus[i_orig, j_orig] = z_rem[i_new, j_new]
+                return zbus
+            return np.linalg.pinv(ybus)
+
         try:
             return np.linalg.inv(ybus)
         except np.linalg.LinAlgError:

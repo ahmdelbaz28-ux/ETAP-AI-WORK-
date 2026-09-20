@@ -122,6 +122,7 @@ class OptimalPowerFlowEngine:
         # Limits
         self.voltage_limits: dict[int, tuple[float, float]] = {}  # bus_id -> (Vmin, Vmax)
         self.branch_limits: dict[tuple[int, int], float] = {}  # (from, to) -> S_max (MVA)
+        self.branch_reactances: dict[tuple[int, int], float] = {}  # (from, to) -> X (pu)
 
     def set_load_data(self, load_data: dict[int, complex]):
         """Set load data for each bus."""
@@ -138,6 +139,10 @@ class OptimalPowerFlowEngine:
     def set_branch_limits(self, limits: dict[tuple[int, int], float]):
         """Set thermal limits for branches."""
         self.branch_limits = limits
+
+    def set_branch_reactances(self, reactances: dict[tuple[int, int], float]):
+        """Set series reactances for branches (from_bus, to_bus)."""
+        self.branch_reactances = reactances
 
     def _build_dc_approximation(self) -> tuple[np.ndarray, np.ndarray]:
         """
@@ -182,19 +187,15 @@ class OptimalPowerFlowEngine:
         Uses linear programming to minimize generation cost subject to:
         - Power balance (DC power flow equations)
         - Generator limits
-        - Line flow limits (approximated)
+        - Line flow limits via Power Transfer Distribution Factors (PTDF)
 
         Returns:
         OPFResult with solution
         """
-        logger.info("Solving DC-OPF using Linear Programming")
+        logger.info("Solving DC-OPF using Linear Programming with PTDF branch constraints")
 
         n_gen = len(self.generator_costs)
         gen_ids = list(self.generator_costs.keys())
-
-        # Decision variables: P_g for each generator
-        # Objective: minimize sum(c0 + c1*Pg + c2*Pg^2)
-        # For LP, we use linear approximation: minimize sum(c1*Pg)
 
         # Cost coefficients (linear term)
         c = np.array(
@@ -206,88 +207,200 @@ class OptimalPowerFlowEngine:
             ],
         )
 
-        # Inequality constraints: A_ub * x <= b_ub
-        # Generator limits
-        A_ub = []  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        b_ub = []
+        gen_col_map = {gid: i for i, gid in enumerate(gen_ids)}
 
+        # Inequality constraints: A_ub * x <= b_ub
+        A_ub_list = []
+        b_ub_list = []
+
+        # 1. Generator limits
         # P_g <= P_max
         for i, gid in enumerate(gen_ids):
             row = np.zeros(n_gen)
-            row[i] = 1
-            A_ub.append(row)
-            b_ub.append(self.generator_costs[gid].p_max)
+            row[i] = 1.0
+            A_ub_list.append(row)
+            b_ub_list.append(self.generator_costs[gid].p_max)
 
         # -P_g <= -P_min  =>  P_g >= P_min
         for i, gid in enumerate(gen_ids):
             row = np.zeros(n_gen)
-            row[i] = -1
-            A_ub.append(row)
-            b_ub.append(-self.generator_costs[gid].p_min)
+            row[i] = -1.0
+            A_ub_list.append(row)
+            b_ub_list.append(-self.generator_costs[gid].p_min)
 
-        A_ub = np.array(A_ub)
-        b_ub = np.array(b_ub)
+        # 2. Branch thermal limits via PTDF
+        all_branches: dict[tuple[int, int], float] = {}
+        for (u, v), x_val in self.branch_reactances.items():
+            if abs(x_val) > 1e-12:
+                all_branches[(u, v)] = float(x_val)
 
-        # Equality constraints: Power balance
-        # Sum(P_g) = Sum(P_load) + Losses (approximated as 0 in DC)
-        total_load = sum(load.real for load in self.load_data.values())
+        if self.Ybus is not None and hasattr(self.Ybus, "shape") and self.Ybus.shape[0] == self.n_buses:
+            for i in range(self.n_buses):
+                for j in range(i + 1, self.n_buses):
+                    y_ij = self.Ybus[i, j]
+                    if abs(y_ij.imag) > 1e-6:
+                        u_bid = self.bus_ids[i]
+                        v_bid = self.bus_ids[j]
+                        if (u_bid, v_bid) not in all_branches and (v_bid, u_bid) not in all_branches:
+                            all_branches[(u_bid, v_bid)] = 1.0 / abs(y_ij.imag)
 
-        # NOTE: Original code created one equality constraint per bus, which
-        # overconstrains the LP when there are more buses than generators.
-        # Fix: use a single system-wide power balance: sum(gen) = sum(load).
-        # Build a mapping from generator index to LP decision variable column.
-        gen_col_map = {}
-        for i, gid in enumerate(gen_ids):
-            gen_col_map[gid] = i
+        for (u, v) in self.branch_limits.keys():
+            if (u, v) not in all_branches and (v, u) not in all_branches:
+                if u in self.bus_index and v in self.bus_index:
+                    ui, vi = self.bus_index[u], self.bus_index[v]
+                    if (
+                        self.Ybus is not None
+                        and hasattr(self.Ybus, "shape")
+                        and self.Ybus.shape[0] == self.n_buses
+                        and abs(self.Ybus[ui, vi].imag) > 1e-6
+                    ):
+                        all_branches[(u, v)] = 1.0 / abs(self.Ybus[ui, vi].imag)
+                    else:
+                        all_branches[(u, v)] = 0.1
+
+        ptdf_computed = False
+        B_red_inv = None
+        if self.n_buses > 1 and all_branches:
+            B_bus = np.zeros((self.n_buses, self.n_buses), dtype=float)
+            for (u, v), x_val in all_branches.items():
+                if u in self.bus_index and v in self.bus_index:
+                    ui, vi = self.bus_index[u], self.bus_index[v]
+                    b_val = 1.0 / x_val
+                    B_bus[ui, vi] -= b_val
+                    B_bus[vi, ui] -= b_val
+                    B_bus[ui, ui] += b_val
+                    B_bus[vi, vi] += b_val
+
+            B_red = B_bus[1:, 1:]
+            try:
+                B_red_inv = np.linalg.pinv(B_red)
+                ptdf_computed = True
+            except Exception as e:
+                logger.warning("Failed to invert B_red for PTDF: %s", e)
+                ptdf_computed = False
+
+        if ptdf_computed and B_red_inv is not None and self.branch_limits:
+            for (u, v), s_max in self.branch_limits.items():
+                if u not in self.bus_index or v not in self.bus_index:
+                    continue
+                ui, vi = self.bus_index[u], self.bus_index[v]
+                x_val = all_branches.get((u, v), all_branches.get((v, u), 0.1))
+                if abs(x_val) < 1e-12:
+                    continue
+
+                b_row = np.zeros(self.n_buses - 1, dtype=float)
+                if ui > 0:
+                    b_row[ui - 1] += 1.0 / x_val
+                if vi > 0:
+                    b_row[vi - 1] -= 1.0 / x_val
+
+                ptdf_k = np.dot(b_row, B_red_inv)
+
+                A_flow = np.zeros(n_gen, dtype=float)
+                for gid, bid in self.gen_buses.items():
+                    if bid in self.bus_index:
+                        b_idx = self.bus_index[bid]
+                        if b_idx > 0:
+                            A_flow[gen_col_map[gid]] = ptdf_k[b_idx - 1]
+
+                p_shift = 0.0
+                for bid, load_s in self.load_data.items():
+                    if bid in self.bus_index:
+                        b_idx = self.bus_index[bid]
+                        if b_idx > 0:
+                            load_val = load_s.real if isinstance(load_s, complex) else float(load_s)
+                            p_shift += ptdf_k[b_idx - 1] * load_val
+
+                # A_flow * P_g <= s_max + p_shift
+                A_ub_list.append(A_flow)
+                b_ub_list.append(float(s_max + p_shift))
+
+                # -A_flow * P_g <= s_max - p_shift
+                A_ub_list.append(-A_flow)
+                b_ub_list.append(float(s_max - p_shift))
+
+        A_ub = np.array(A_ub_list)
+        b_ub = np.array(b_ub_list)
 
         # Single system-wide power balance constraint: sum(gen) = sum(load)
-        a_eq_row = np.zeros(
-            len(gen_ids)
-        )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        b_eq_val = 0.0
-        for _bus_idx, bid in enumerate(self.bus_ids):
-            load_val = self.load_data.get(bid, complex(0, 0)).real
-            b_eq_val += load_val
-        for gid, _bus_id in self.gen_buses.items():
-            gen_col = gen_col_map[gid]
-            a_eq_row[gen_col] = 1.0
-        A_eq = a_eq_row.reshape(
-            1, -1
-        )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        b_eq = np.array([b_eq_val])
+        total_load = sum(
+            (load.real if isinstance(load, complex) else float(load))
+            for load in self.load_data.values()
+        )
+
+        a_eq_row = np.zeros(len(gen_ids))
+        for gid in self.gen_buses.keys():
+            if gid in gen_col_map:
+                gen_col = gen_col_map[gid]
+                a_eq_row[gen_col] = 1.0
+        A_eq = a_eq_row.reshape(1, -1)
+        b_eq = np.array([total_load])
 
         # Solve LP
         try:
             result = linprog(c, A_ub=A_ub, b_ub=b_ub, A_eq=A_eq, b_eq=b_eq, method="highs")
 
             if result.success:
-                # Extract solution
-                P_gen = result.x  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+                P_gen = result.x
                 objective = result.fun
 
-                # Build result
                 generator_dispatch = {}
                 for i, gid in enumerate(gen_ids):
-                    self.gen_buses[gid]
-                    Q_gen = 0  # NOSONAR
-                    generator_dispatch[gid] = complex(P_gen[i], Q_gen)
+                    generator_dispatch[gid] = complex(P_gen[i], 0.0)
 
-                # Calculate losses (approximate)
-                total_gen = sum(P_gen)
+                total_gen = float(sum(P_gen))
                 total_losses = total_gen - total_load
+
+                bus_voltages = {}
+                branch_flows = {}
+                violations = []
+                if ptdf_computed and B_red_inv is not None and self.n_buses > 1:
+                    p_inj_red = np.zeros(self.n_buses - 1, dtype=float)
+                    for i, gid in enumerate(gen_ids):
+                        bid = self.gen_buses.get(gid)
+                        if bid in self.bus_index:
+                            b_idx = self.bus_index[bid]
+                            if b_idx > 0:
+                                p_inj_red[b_idx - 1] += P_gen[i]
+                    for bid, load_s in self.load_data.items():
+                        if bid in self.bus_index:
+                            b_idx = self.bus_index[bid]
+                            if b_idx > 0:
+                                load_val = load_s.real if isinstance(load_s, complex) else float(load_s)
+                                p_inj_red[b_idx - 1] -= load_val
+
+                    theta_red = np.dot(B_red_inv, p_inj_red)
+                    theta_full = np.zeros(self.n_buses, dtype=float)
+                    theta_full[1:] = theta_red
+
+                    for idx, bid in enumerate(self.bus_ids):
+                        bus_voltages[bid] = complex(1.0, float(theta_full[idx]))
+
+                    for (u, v), x_val in all_branches.items():
+                        if u in self.bus_index and v in self.bus_index:
+                            ui, vi = self.bus_index[u], self.bus_index[v]
+                            flow_mw = (theta_full[ui] - theta_full[vi]) / x_val
+                            branch_flows[(u, v)] = complex(flow_mw, 0.0)
+
+                    for (u, v), s_max in self.branch_limits.items():
+                        flow = branch_flows.get((u, v), branch_flows.get((v, u), complex(0.0, 0.0)))
+                        if abs(flow.real) > s_max + 1e-4:
+                            violations.append(
+                                f"Branch ({u}, {v}) flow {abs(flow.real):.2f} MW exceeds limit {s_max:.2f} MW"
+                            )
 
                 return OPFResult(
                     success=True,
                     objective_value=objective,
                     generator_dispatch=generator_dispatch,
-                    bus_voltages={},  # DC OPF doesn't calculate voltages
-                    branch_flows={},
+                    bus_voltages=bus_voltages,
+                    branch_flows=branch_flows,
                     total_generation=total_gen,
                     total_load=total_load,
-                    total_losses=max(total_losses, 0),
-                    constraint_violations=[],
+                    total_losses=max(total_losses, 0.0),
+                    constraint_violations=violations,
                     iterations=result.nit if hasattr(result, "nit") else 0,
-                    method_used="Linear Programming (DC-OPF)",  # NOSONAR intentional repetition (audit constant)
+                    method_used="Linear Programming (DC-OPF)",
                     convergence_status="converged",
                 )
             else:

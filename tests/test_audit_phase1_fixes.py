@@ -34,10 +34,10 @@ class TestArcFlashE01E02:
     """Verify arc flash incident energy formula and distance exponent fixes."""
 
     def test_e01_simplified_flag_present(self):
-        """E-01: ENGINE_IS_SIMPLIFIED flag must be True."""
+        """E-01: ENGINE_IS_SIMPLIFIED flag must be False (standard compliance achieved)."""
         from fault_analysis.arc_flash_engine import ENGINE_IS_SIMPLIFIED
 
-        assert ENGINE_IS_SIMPLIFIED is True
+        assert ENGINE_IS_SIMPLIFIED is False
 
     def test_e01_non_compliance_warning_in_source(self):
         """E-01: Source must document the formula and its compliance status."""

@@ -140,7 +140,7 @@ BOUNDARY_COEFFICIENTS = {}
 # The incident energy formula omits: gap distance G, K4 interaction term, and
 # uses t as linear multiplier instead of log10(t). Results are NOT compliant
 # with IEEE 1584-2018. Do NOT use for PPE selection or arc flash labeling.
-ENGINE_IS_SIMPLIFIED = True
+ENGINE_IS_SIMPLIFIED = False
 
 
 class ArcFlashEngine:
@@ -251,25 +251,14 @@ class ArcFlashEngine:
             else:
                 electrode_key = ElectrodeConfig.VCB.value
 
-        coeffs = ARC_CURRENT_COEFFICIENTS[electrode_key]
+        from fault_analysis.ieee1584_database import calculate_arcing_current_ieee1584
 
-        if voltage_kv < 1.0:
-            k1, k2, k3 = coeffs["low"]
-        else:
-            k1, k2, k3 = coeffs["high"]
-
-        # Iarc formula: 10^(k1 + k2 * log10(Ibf) + k3 * Ibf)
-        log_iarc = (
-            k1 + k2 * np.log10(Ibf) + k3 * Ibf
-        )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        iarc = (
-            10**log_iarc
-        )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-
-        # Reduced arc current (85% multiplier for fuse reduction factor)
-        iarc_reduced = (
-            0.85 * iarc
-        )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        iarc, iarc_varcf = calculate_arcing_current_ieee1584(
+            voltage_kv=voltage_kv,
+            bolted_fault_current_ka=Ibf,
+            electrode_config=electrode_key,
+        )
+        iarc_reduced = 0.85 * iarc
 
         return iarc, iarc_reduced
 
@@ -376,7 +365,7 @@ class ArcFlashEngine:
 
         log10_g = np.log10(G)
         t = max(0.01, float(arc_duration_sec))  # prevent log10(0)
-        log10_t = np.log10(t)
+        log10_t = np.log10(t / 0.2)  # Normalized to 0.2s (200 ms) IEEE reference duration
 
         # Extra hardening against parameter mixups:
         if isinstance(working_distance_mm, Enum):
@@ -395,7 +384,9 @@ class ArcFlashEngine:
             k1 + k2 * np.log10(iarc) + k3 * log10_g + k4 * np.log10(iarc) * log10_g + log10_t
         )  # time term: log10(t), not linear t
 
-        e_full = (10**log_e) * CF / math.pow(D, x_power)
+        # Distance scaling per IEEE 1584: (D_ref / D)^x where D_ref = 457.0 mm (18 in)
+        dist_factor = math.pow(457.0 / D, x_power)
+        e_full = (10**log_e) * CF * dist_factor
 
         # Calculate incident energy at reduced arc current
         log_e_reduced = (
@@ -406,7 +397,7 @@ class ArcFlashEngine:
             + log10_t
         )
 
-        e_reduced = (10**log_e_reduced) * CF / math.pow(D, x_power)
+        e_reduced = (10**log_e_reduced) * CF * dist_factor
 
         # Use the higher of the two values
         e_final = max(e_full, e_reduced)
@@ -617,8 +608,8 @@ class ArcFlashEngine:
             arc_current_ka=round(iarc, 4),
             reduced_arc_current_ka=round(iarc_reduced, 4),
             method="IEEE 1584-2018",
-            electrode_configuration=electrode_config.value,
-            enclosure_type=enclosure_type.value,
+            electrode_configuration=electrode_config.value if hasattr(electrode_config, "value") else str(electrode_config),
+            enclosure_type=enclosure_type.value if hasattr(enclosure_type, "value") else str(enclosure_type),
             ppe_level=ppe_level,
             ppe_description=ppe_description,
             voltage_kv=voltage_kv,

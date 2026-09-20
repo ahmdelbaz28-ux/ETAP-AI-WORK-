@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
+from typing import Optional
 
 from sqlalchemy import DateTime, Float, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
@@ -20,7 +21,7 @@ class ProjectSolverParameters(Base):
     project_id: Mapped[str] = mapped_column(String(64), primary_key=True)
     convergence_tolerance: Mapped[float] = mapped_column(Float, nullable=False, default=1e-5)
     max_iterations: Mapped[int] = mapped_column(Integer, nullable=False, default=50)
-    acceleration_factor: Mapped[float] = mapped_column(Float, nullable=False, default=1.6)
+    acceleration_factor: Mapped[Optional[float]] = mapped_column(Float, nullable=True, default=None)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(UTC),

@@ -26,7 +26,6 @@ def get_default_parameters() -> Dict[str, Any]:
         "convergence_tolerance": DEFAULT_CONVERGENCE_TOLERANCE,
         "solver_convergence_tolerance": DEFAULT_CONVERGENCE_TOLERANCE,
         "max_iterations": DEFAULT_MAX_ITERATIONS,
-        "acceleration_factor": DEFAULT_ACCELERATION_FACTOR,
     }
 
 

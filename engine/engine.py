@@ -135,17 +135,50 @@ class PowerSystemEngine:
         self.visualizer = visualizer if visualizer is not None else Visualizer()
         # Fault analyzer is created lazily in run_fault_analysis with sequence networks
 
-    def run_load_flow(self) -> dict[str, Any]:
+    def run_load_flow(
+        self,
+        tol: float = 1e-6,
+        max_iter: int = 100,
+        mode: str = "engineering",
+        solver_type: str = "newton_raphson",
+    ) -> dict[str, Any]:
         """
         Run load flow analysis.
+
+        Parameters:
+        tol (float): Convergence tolerance. Default 1e-6.
+        max_iter (int): Maximum iterations. Default 100.
+        mode (str): Solver mode ('engineering' or 'high_accuracy').
+        solver_type (str): Solver method ('newton_raphson', 'fast_decoupled', 'dc_flow').
 
         Returns:
         dict: Results including bus voltages, power flows, and convergence status.
         """
-        if self.load_flow_solver is None:
+        if self.system is None and self.load_flow_solver is None:
             raise RuntimeError("No system model loaded — cannot run load flow")
-        converged = self.load_flow_solver.solve(max_iter=100, tol=1e-6)
-        # Extract results
+
+        stype = str(solver_type).lower().strip()
+        if stype in ("fast_decoupled", "fdlf"):
+            from load_flow.fast_decoupled import FastDecoupledSolver, FDLFFormulation
+            solver = FastDecoupledSolver(self.system, formulation=FDLFFormulation.XB)
+            converged = solver.solve(max_iter=max_iter, tol=tol)
+            res = solver.get_results()
+            res["Ybus"] = solver.Ybus
+            return res
+
+        elif stype in ("dc_flow", "dc", "dc_load_flow"):
+            from load_flow.dc_flow import DCLoadFlowSolver
+            solver = DCLoadFlowSolver(self.system)
+            converged = solver.solve()
+            res = solver.get_results()
+            res["Ybus"] = self.system.get_ybus(seq="1")
+            return res
+
+        # Default Newton-Raphson solver
+        if self.load_flow_solver is None and self.system is not None:
+            self.load_flow_solver = LoadFlowSolver(self.system)
+
+        converged = self.load_flow_solver.solve(max_iter=max_iter, tol=tol, mode=mode)
         bus_voltages = {}
         for bid in self.load_flow_solver.bus_ids:
             bus_voltages[bid] = self.load_flow_solver.V[self.load_flow_solver.bus_index[bid]]
@@ -179,8 +212,37 @@ class PowerSystemEngine:
         ybus_zero = self.system.get_ybus(
             seq="0"
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        # Determine slack bus index
+        slack_index = None
+        slack_bus_id = getattr(self.load_flow_solver, "slack_bus_id", None)
+        if slack_bus_id is not None and slack_bus_id in self.load_flow_solver.bus_index:
+            slack_index = self.load_flow_solver.bus_index[slack_bus_id]
+        elif hasattr(self.system, "buses"):
+            for bid, b in self.system.buses.items():
+                if getattr(b, "bus_type", "") == "slack":
+                    slack_index = self.load_flow_solver.bus_index.get(bid, 0)
+                    break
+
+        base_mva = 100.0
+        if getattr(self.system, "base_mva", None) is not None:
+            base_mva = float(self.system.base_mva)
+
+        base_kv = 115.0
+        bus_obj = self.system.buses.get(bus_id) if hasattr(self.system, "buses") else None
+        if bus_obj and getattr(bus_obj, "base_kv", None) is not None:
+            base_kv = float(bus_obj.base_kv)
+        elif getattr(self.system, "base_kv", None) is not None:
+            base_kv = float(self.system.base_kv)
+
         # Create fault analyzer
-        fault_analyzer = FaultAnalyzer(ybus_pos, ybus_neg, ybus_zero)
+        fault_analyzer = FaultAnalyzer(
+            ybus_pos,
+            ybus_neg,
+            ybus_zero,
+            base_mva=base_mva,
+            base_kv=base_kv,
+            slack_bus_index=slack_index,
+        )
         # Get bus index
         bus_index = self.load_flow_solver.bus_index[bus_id]
         # Calculate fault
@@ -358,14 +420,14 @@ class PowerSystemEngine:
             name=up_conf.get("name", f"Upstream_{upstream_relay_id}"),
             TMS=up_conf["tms"],
             Ip=up_conf["pickup_current_a"],
-            curve_type=up_conf.get("curve_type", "CO-8"),
+            curve_type=up_conf.get("curve_type", "standard_inverse"),
         )
         downstream_relay = OvercurrentRelay(
             relay_id=downstream_relay_id,
             name=down_conf.get("name", f"Downstream_{downstream_relay_id}"),
             TMS=down_conf["tms"],
             Ip=down_conf["pickup_current_a"],
-            curve_type=down_conf.get("curve_type", "CO-8"),
+            curve_type=down_conf.get("curve_type", "standard_inverse"),
         )
 
         # Check coordination
@@ -385,13 +447,13 @@ class PowerSystemEngine:
                 "id": upstream_relay_id,
                 "tms": up_conf["tms"],
                 "pickup_current_a": up_conf["pickup_current_a"],
-                "curve_type": up_conf.get("curve_type", "CO-8"),
+                "curve_type": up_conf.get("curve_type", "standard_inverse"),
             },
             "downstream_relay": {
                 "id": downstream_relay_id,
                 "tms": down_conf["tms"],
                 "pickup_current_a": down_conf["pickup_current_a"],
-                "curve_type": down_conf.get("curve_type", "CO-8"),
+                "curve_type": down_conf.get("curve_type", "standard_inverse"),
             },
         }
 

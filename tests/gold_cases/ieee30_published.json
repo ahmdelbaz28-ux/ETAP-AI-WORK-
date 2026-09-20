@@ -1,0 +1,42 @@
+{
+  "name": "IEEE 30-Bus Standard Benchmark System",
+  "reference": "Alsac & Stott (1974), 'Optimal Load Flow with Steady-State Security', IEEE Trans. PAS-93 / IEEE PES",
+  "base_mva": 100.0,
+  "bus_voltages": {
+    "1": {"v_mag": 1.060, "type": "slack"},
+    "2": {"v_mag": 1.043, "type": "pv"},
+    "3": {"v_mag": 1.021, "type": "pq"},
+    "4": {"v_mag": 1.012, "type": "pq"},
+    "5": {"v_mag": 1.010, "type": "pv"},
+    "6": {"v_mag": 1.010, "type": "pq"},
+    "7": {"v_mag": 1.002, "type": "pq"},
+    "8": {"v_mag": 1.010, "type": "pv"},
+    "9": {"v_mag": 1.051, "type": "pq"},
+    "10": {"v_mag": 1.045, "type": "pq"},
+    "11": {"v_mag": 1.082, "type": "pv"},
+    "12": {"v_mag": 1.057, "type": "pq"},
+    "13": {"v_mag": 1.071, "type": "pv"},
+    "14": {"v_mag": 1.042, "type": "pq"},
+    "15": {"v_mag": 1.038, "type": "pq"},
+    "16": {"v_mag": 1.045, "type": "pq"},
+    "17": {"v_mag": 1.040, "type": "pq"},
+    "18": {"v_mag": 1.028, "type": "pq"},
+    "19": {"v_mag": 1.026, "type": "pq"},
+    "20": {"v_mag": 1.030, "type": "pq"},
+    "21": {"v_mag": 1.033, "type": "pq"},
+    "22": {"v_mag": 1.033, "type": "pq"},
+    "23": {"v_mag": 1.027, "type": "pq"},
+    "24": {"v_mag": 1.021, "type": "pq"},
+    "25": {"v_mag": 1.017, "type": "pq"},
+    "26": {"v_mag": 1.000, "type": "pq"},
+    "27": {"v_mag": 1.023, "type": "pq"},
+    "28": {"v_mag": 1.007, "type": "pq"},
+    "29": {"v_mag": 1.003, "type": "pq"},
+    "30": {"v_mag": 0.992, "type": "pq"}
+  },
+  "summary": {
+    "total_load_mw": 283.4,
+    "total_load_mvar": 126.2,
+    "total_losses_mw_approx": 17.5
+  }
+}

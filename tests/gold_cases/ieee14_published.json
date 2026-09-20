@@ -1,0 +1,27 @@
+{
+  "name": "IEEE 14-Bus Standard Benchmark System",
+  "reference": "IEEE Power Systems Test Case Archive / Christie, UW-Madison / IEEE PES",
+  "base_mva": 100.0,
+  "bus_voltages": {
+    "1": {"v_mag": 1.060, "v_angle_deg": 0.0, "type": "slack"},
+    "2": {"v_mag": 1.045, "v_angle_deg": -4.98, "type": "pv"},
+    "3": {"v_mag": 1.010, "v_angle_deg": -12.72, "type": "pv"},
+    "4": {"v_mag": 1.018, "v_angle_deg": -10.31, "type": "pq"},
+    "5": {"v_mag": 1.020, "v_angle_deg": -8.77, "type": "pq"},
+    "6": {"v_mag": 1.070, "v_angle_deg": -14.22, "type": "pv"},
+    "7": {"v_mag": 1.062, "v_angle_deg": -13.36, "type": "pq"},
+    "8": {"v_mag": 1.090, "v_angle_deg": -13.36, "type": "pv"},
+    "9": {"v_mag": 1.056, "v_angle_deg": -14.94, "type": "pq"},
+    "10": {"v_mag": 1.051, "v_angle_deg": -15.10, "type": "pq"},
+    "11": {"v_mag": 1.057, "v_angle_deg": -14.79, "type": "pq"},
+    "12": {"v_mag": 1.055, "v_angle_deg": -15.07, "type": "pq"},
+    "13": {"v_mag": 1.050, "v_angle_deg": -15.16, "type": "pq"},
+    "14": {"v_mag": 1.036, "v_angle_deg": -16.03, "type": "pq"}
+  },
+  "summary": {
+    "total_load_mw": 259.0,
+    "total_load_mvar": 73.5,
+    "total_losses_mw_approx": 13.4,
+    "total_losses_mvar_approx": 56.9
+  }
+}

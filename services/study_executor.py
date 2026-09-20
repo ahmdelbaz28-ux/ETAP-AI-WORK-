@@ -395,7 +395,10 @@ class StudyExecutor:
         missing = [p for p in registration.required_params if parameters.get(p) is None]
 
         if registration.handler == "run_load_flow":
-            return method()
+            tol = parameters.get("tol") or parameters.get("tolerance") or parameters.get("convergence_tolerance", 1e-6)
+            max_iter = parameters.get("max_iter") or parameters.get("max_iterations", 100)
+            mode = parameters.get("mode", "engineering")
+            return method(tol=float(tol), max_iter=int(max_iter), mode=str(mode))
         if registration.handler == "run_fault_analysis":
             if not missing or "bus_id" in parameters:
                 fault_type = parameters.get("fault_type", "three_phase")
