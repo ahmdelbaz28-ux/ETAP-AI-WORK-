@@ -9,13 +9,11 @@ import { Button } from "../ui/Button";
 export interface SolverParams {
   convergence_tolerance: number;
   max_iterations: number;
-  acceleration_factor: number;
 }
 
 const DEFAULTS: SolverParams = {
   convergence_tolerance: 1e-5,
   max_iterations: 50,
-  acceleration_factor: 1.6,
 };
 
 interface ParametersDrawerProps {
@@ -28,7 +26,7 @@ export function ParametersDrawer({ open, onClose, projectId: propProjectId }: Pa
   const storeProjectId = useChatStore((s) => s.projectId);
   const streamStatus = useChatStore((s) => s.streamStatus);
   const isExecuting = streamStatus === "streaming" || streamStatus === "connecting";
-  const targetProject = propProjectId ?? storeProjectId ?? "proj_cairo_west_132kv";
+  const targetProject = propProjectId ?? storeProjectId ?? "";
 
   const [params, setParams] = useState<SolverParams>(DEFAULTS);
   const [loading, setLoading] = useState(false);
@@ -51,7 +49,6 @@ export function ParametersDrawer({ open, onClose, projectId: propProjectId }: Pa
           setParams({
             convergence_tolerance: res.convergence_tolerance ?? DEFAULTS.convergence_tolerance,
             max_iterations: res.max_iterations ?? DEFAULTS.max_iterations,
-            acceleration_factor: res.acceleration_factor ?? DEFAULTS.acceleration_factor,
           });
         }
       } catch (err) {
@@ -85,7 +82,12 @@ export function ParametersDrawer({ open, onClose, projectId: propProjectId }: Pa
       setSavedSuccess(true);
       setTimeout(() => setSavedSuccess(false), 3000);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to update solver parameters");
+      const msg = err instanceof Error ? err.message : String(err);
+      if (msg.includes("422") || msg.includes("acceleration_factor")) {
+        setError("معامل ملغي — acceleration_factor محذوف من النظام (Deprecated parameter)");
+      } else {
+        setError(msg || "Failed to update solver parameters");
+      }
     } finally {
       setSaving(false);
     }
@@ -131,7 +133,7 @@ export function ParametersDrawer({ open, onClose, projectId: propProjectId }: Pa
                 )}
               </h2>
               <p className="text-[11px] text-slate-400">
-                Project: <span className="font-mono text-slate-300">{targetProject}</span> • Power-Flow Convergence Settings
+                Project: <span className="font-mono text-slate-300">{targetProject || "UNASSIGNED"}</span> • Power-Flow Convergence Settings
               </p>
             </div>
           </div>
@@ -243,43 +245,6 @@ export function ParametersDrawer({ open, onClose, projectId: propProjectId }: Pa
             </div>
             <p className="text-[11px] text-slate-400 leading-relaxed">
               Cutoff limit before declaring non-convergence or voltage collapse.
-            </p>
-          </div>
-
-          {/* Acceleration Factor */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between text-xs">
-              <label htmlFor="acceleration-factor" className="font-medium text-slate-200">
-                Acceleration Factor (α)
-              </label>
-              <span className="font-mono text-brand-400 bg-brand-950/50 px-2 py-0.5 rounded border border-brand-500/30 text-[11px]">
-                {params.acceleration_factor.toFixed(2)}
-              </span>
-            </div>
-            <input
-              id="acceleration-factor"
-              type="range"
-              min="1.0"
-              max="2.0"
-              step="0.05"
-              value={params.acceleration_factor}
-              disabled={isExecuting}
-              onChange={(e) =>
-                setParams((prev) => ({
-                  ...prev,
-                  acceleration_factor: Number.parseFloat(e.target.value),
-                }))
-              }
-              className="w-full accent-brand-500 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-              data-testid="input-acceleration"
-            />
-            <div className="flex justify-between text-[10px] text-slate-500 font-mono">
-              <span>1.0 (Damped)</span>
-              <span>1.5</span>
-              <span>2.0 (Fast)</span>
-            </div>
-            <p className="text-[11px] text-slate-400 leading-relaxed">
-              Step multiplier for Jacobian updates. Values closer to 1.6 optimize typical MV networks.
             </p>
           </div>
 
