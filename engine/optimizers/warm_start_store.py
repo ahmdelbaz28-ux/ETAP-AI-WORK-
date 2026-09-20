@@ -80,7 +80,7 @@ class WarmStartStore:
 
     def _make_key(self, topology_hash: str, bus_ids: List[Any]) -> str:
         b_str = ",".join(str(b) for b in bus_ids)
-        return f"warm_v:{topology_hash}:{hashlib.md5(b_str.encode()).hexdigest()[:10]}"
+        return f"warm_v:{topology_hash}:{hashlib.sha256(b_str.encode()).hexdigest()[:10]}"
 
     def store_solution(
         self,

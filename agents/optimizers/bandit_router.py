@@ -90,7 +90,7 @@ class ContextualBanditRouter:
         # Remaining dimensions: hashed character n-grams
         for i in range(len(norm_text) - 2):
             trigram = norm_text[i : i + 3]
-            h = int(hashlib.md5(trigram.encode("utf-8")).hexdigest(), 16)
+            h = int(hashlib.sha256(trigram.encode("utf-8")).hexdigest(), 16)
             slot = 14 + (h % (self.d - 14))
             x[slot] += 0.2
 
