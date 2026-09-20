@@ -1,5 +1,5 @@
-import { Check, ChevronDown, FolderKanban, Loader2, Search } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { AlertCircle, Check, ChevronDown, FolderKanban, Loader2, RotateCcw, Search } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { request } from "../../lib/api";
 import { useChatStore } from "../../store/chatStore";
 import { cn } from "../../utils/helpers";
@@ -19,59 +19,37 @@ export function ProjectSelector() {
 
   const [projects, setProjects] = useState<ProjectItem[]>([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    let mounted = true;
-    async function loadProjects() {
-      setLoading(true);
-      try {
-        const res = await request<{ projects: ProjectItem[] }>("/api/v1/projects");
-        if (!mounted) return;
-        const list = res?.projects || [];
-        setProjects(list);
+  const loadProjects = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await request<{ projects: ProjectItem[] }>("/api/v1/projects");
+      const list = res?.projects || [];
+      setProjects(list);
 
-        // Auto-select first project if none selected
-        const currentSelected = useChatStore.getState().projectId;
-        if (!currentSelected && list.length > 0) {
-          const firstActive = list.find((p) => p.status === "active") || list[0];
-          setProjectId(firstActive.id);
-        }
-      } catch {
-        // Graceful fallback for offline / mock testing
-        if (mounted && projects.length === 0) {
-          const fallbackProjects: ProjectItem[] = [
-            {
-              id: "proj_cairo_west_132kv",
-              name: "Cairo West 132/33kV Substation",
-              status: "active",
-              description: "Primary grid intertie & 66kV industrial feeder network",
-            },
-            {
-              id: "proj_helwan_industrial",
-              name: "Helwan Heavy Industrial MV Ring",
-              status: "active",
-              description: "Steel works & arc furnace medium voltage ring",
-            },
-          ];
-          setProjects(fallbackProjects);
-          if (!useChatStore.getState().projectId) {
-            setProjectId(fallbackProjects[0].id);
-          }
-        }
-      } finally {
-        if (mounted) setLoading(false);
+      // Auto-select first active project if none selected and valid projects exist
+      const currentSelected = useChatStore.getState().projectId;
+      if (!currentSelected && list.length > 0) {
+        const firstActive = list.find((p) => p.status === "active") || list[0];
+        setProjectId(firstActive.id);
       }
+    } catch {
+      // Fail-closed: Never fabricate projects. Report error to the user and prompt to retry.
+      setProjects([]);
+      setError("تعذر تحميل المشاريع — أعد المحاولة (Failed to load projects)");
+    } finally {
+      setLoading(false);
     }
-
-    void loadProjects();
-
-    return () => {
-      mounted = false;
-    };
   }, [setProjectId]);
+
+  useEffect(() => {
+    void loadProjects();
+  }, [loadProjects]);
 
   // Click outside to close
   useEffect(() => {
@@ -114,11 +92,11 @@ export function ProjectSelector() {
           <FolderKanban className="w-3.5 h-3.5" />
         </div>
         <div className="text-left max-w-[160px] truncate">
-          <div className="font-medium truncate leading-tight">
-            {selectedProject ? selectedProject.name : "Select Project"}
+          <div className={cn("font-medium truncate leading-tight", error && "text-rose-400")}>
+            {error ? "تعذر تحميل المشاريع" : selectedProject ? selectedProject.name : "Select Project"}
           </div>
           <div className="text-[10px] text-[var(--text-tertiary)] font-mono truncate leading-none mt-0.5">
-            {selectedProject ? selectedProject.id : "No project active"}
+            {error ? "Failed to load" : selectedProject ? selectedProject.id : "No project active"}
           </div>
         </div>
         {loading ? (
@@ -158,7 +136,28 @@ export function ProjectSelector() {
           </div>
 
           <div className="max-h-60 overflow-y-auto p-1.5 space-y-1">
-            {filtered.length === 0 ? (
+            {error ? (
+              <div className="p-4 text-center space-y-2.5" data-testid="project-selector-error">
+                <div className="w-8 h-8 rounded-full bg-rose-500/10 border border-rose-500/30 text-rose-400 mx-auto flex items-center justify-center">
+                  <AlertCircle className="w-4 h-4" />
+                </div>
+                <p className="text-xs text-rose-300 font-medium leading-relaxed">
+                  تعذر تحميل المشاريع — أعد المحاولة
+                </p>
+                <p className="text-[10px] text-slate-400">
+                  Failed to load projects from server.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => void loadProjects()}
+                  className="px-3 py-1.5 rounded-lg bg-rose-600/30 hover:bg-rose-600/50 border border-rose-500/40 text-white text-xs font-semibold inline-flex items-center gap-1.5 transition-colors cursor-pointer"
+                  data-testid="retry-load-projects"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  إعادة المحاولة (Retry)
+                </button>
+              </div>
+            ) : filtered.length === 0 ? (
               <div className="py-6 text-center text-xs text-slate-500">
                 No matching projects found
               </div>

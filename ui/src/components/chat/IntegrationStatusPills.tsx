@@ -45,15 +45,20 @@ export function IntegrationStatusPills() {
         status: "online",
         latencyMs: latency,
         lastChecked: new Date().toLocaleTimeString(),
-        details: res || { feeders: 12, frequency: "50.02 Hz", voltage_pu: 1.01 },
+        details: res && Object.keys(res).length > 0 ? res : { endpoint: "/api/v1/scada/live", state: "online" },
       });
     } catch {
       const latency = Math.round(performance.now() - t0);
       setScada((prev) => ({
-        status: prev.lastChecked ? prev.status : "online",
-        latencyMs: latency || 18,
-        lastChecked: new Date().toLocaleTimeString(),
-        details: { mode: "IEC 61850 Simulated Bridge", telemetry: "Active (50 Hz Nominal)" },
+        status: prev.lastChecked ? "degraded" : "offline",
+        latencyMs: latency,
+        lastChecked: prev.lastChecked,
+        details: {
+          subsystem: "SCADA Subsystem",
+          endpoint: "/api/v1/scada/live",
+          state: "Unreachable (offline)",
+          last_successful_check: prev.lastChecked || "None",
+        },
       }));
     }
   }
@@ -67,15 +72,20 @@ export function IntegrationStatusPills() {
         status: "online",
         latencyMs: latency,
         lastChecked: new Date().toLocaleTimeString(),
-        details: res || { engine: "ETAP COM Automation v22.5", license: "Enterprise Certified" },
+        details: res && Object.keys(res).length > 0 ? res : { endpoint: "/api/v1/etap-gui/health", state: "online" },
       });
     } catch {
       const latency = Math.round(performance.now() - t0);
       setEtap((prev) => ({
-        status: prev.lastChecked ? prev.status : "online",
-        latencyMs: latency || 24,
-        lastChecked: new Date().toLocaleTimeString(),
-        details: { engine: "Python Newton-Raphson Solver + COM Bridge", license: "Industrial Std IEC 60909" },
+        status: prev.lastChecked ? "degraded" : "offline",
+        latencyMs: latency,
+        lastChecked: prev.lastChecked,
+        details: {
+          subsystem: "ETAP Engine",
+          endpoint: "/api/v1/etap-gui/health",
+          state: "Unreachable (offline)",
+          last_successful_check: prev.lastChecked || "None",
+        },
       }));
     }
   }
@@ -89,15 +99,20 @@ export function IntegrationStatusPills() {
         status: "online",
         latencyMs: latency,
         lastChecked: new Date().toLocaleTimeString(),
-        details: res || { provider: "ArcGIS Pro / QGIS Server", crs: "EPSG:3857 (WGS 84 / Pseudo-Mercator)" },
+        details: res && Object.keys(res).length > 0 ? res : { endpoint: "/api/v1/gis/status", state: "online" },
       });
     } catch {
       const latency = Math.round(performance.now() - t0);
       setGis((prev) => ({
-        status: prev.lastChecked ? prev.status : "online",
-        latencyMs: latency || 32,
-        lastChecked: new Date().toLocaleTimeString(),
-        details: { provider: "Geospatial Vector Gateway", crs: "EPSG:3857", pending_edits: 0 },
+        status: prev.lastChecked ? "degraded" : "offline",
+        latencyMs: latency,
+        lastChecked: prev.lastChecked,
+        details: {
+          subsystem: "GIS Gateway",
+          endpoint: "/api/v1/gis/status",
+          state: "Unreachable (offline)",
+          last_successful_check: prev.lastChecked || "None",
+        },
       }));
     }
   }

@@ -73,20 +73,36 @@ export function ActivityDrawer() {
             <p className="text-xs text-[var(--text-tertiary)]">No active jobs yet.</p>
           ) : (
             <div className="flex flex-col gap-3">
-              {activity.map((p) => (
-                <div key={p.execution_id ?? `${p.phase}-${p.ts ?? ""}`}>
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs font-medium text-[var(--text-secondary)]">{p.phase}</span>
-                    {p.tool && <span className="text-[10px] text-[var(--text-muted)]">{p.tool}</span>}
+              {activity.map((p) => {
+                const isInProgress = p.phase !== "completed" && p.phase !== "failed";
+                return (
+                  <div key={p.execution_id ?? `${p.phase}-${p.ts ?? ""}`}>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs font-medium text-[var(--text-secondary)]">{p.phase}</span>
+                      <div className="flex items-center gap-1.5">
+                        {p.tool && <span className="text-[10px] text-[var(--text-muted)] font-mono">{p.tool}</span>}
+                        {isInProgress && (
+                          <button
+                            type="button"
+                            onClick={() => useChatStore.getState().abortStream()}
+                            className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 transition-colors cursor-pointer"
+                            data-testid="stop-active-job"
+                            title="Stop this running job"
+                          >
+                            Stop
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                    <Progress
+                      value={p.pct}
+                      variant={getProgressVariant(p.phase)}
+                      size="sm"
+                      showValue
+                    />
                   </div>
-                  <Progress
-                    value={p.pct}
-                    variant={getProgressVariant(p.phase)}
-                    size="sm"
-                    showValue
-                  />
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </CardSection>
