@@ -252,15 +252,48 @@ class StudyEngine:
         }, []
 
     async def _run_arc_flash(self, parameters: dict[str, Any]) -> tuple[dict[str, Any], list[str]]:
-        """Calculate IEEE 1584 incident energy and PPE category."""
+        """Calculate IEEE 1584 incident energy and PPE category via canonical ArcFlashEngine."""
+        from fault_analysis.arc_flash_engine import (
+            ArcFlashEngine,
+            ElectrodeConfig,
+            EnclosureType,
+        )
+
+        voltage_kv = float(parameters.get("voltage_kv", 0.48))
         fault_current_ka = float(parameters.get("fault_current_ka", 20.0))
         clearing_time_s = float(parameters.get("clearing_time_s", 0.1))
         working_distance_mm = float(parameters.get("working_distance_mm", 457.2))  # 18 inches
 
-        # Simplified IEEE 1584 formulation
-        incident_energy_cal_cm2 = (4.184 * fault_current_ka * clearing_time_s * 1000) / (
-            working_distance_mm**1.2
+        raw_electrode = parameters.get("electrode_config", ElectrodeConfig.VCB)
+        if isinstance(raw_electrode, str):
+            try:
+                electrode_config = ElectrodeConfig(raw_electrode.upper())
+            except (ValueError, KeyError):
+                electrode_config = ElectrodeConfig.VCB
+        else:
+            electrode_config = raw_electrode or ElectrodeConfig.VCB
+
+        raw_enclosure = parameters.get("enclosure_type", EnclosureType.BOX)
+        if isinstance(raw_enclosure, str):
+            try:
+                enclosure_type = EnclosureType(raw_enclosure.lower())
+            except (ValueError, KeyError):
+                enclosure_type = EnclosureType.BOX
+        else:
+            enclosure_type = raw_enclosure or EnclosureType.BOX
+
+        engine = ArcFlashEngine()
+        result = engine.calculate(
+            voltage_kv=voltage_kv,
+            bolted_fault_current_ka=fault_current_ka,
+            arc_duration_sec=clearing_time_s,
+            working_distance_mm=working_distance_mm,
+            electrode_config=electrode_config,
+            enclosure_type=enclosure_type,
         )
+
+        incident_energy_cal_cm2 = result.incident_energy_cal_cm2
+        boundary_mm = result.arc_flash_boundary_mm
 
         if incident_energy_cal_cm2 <= 1.2:
             ppe_category = "Category 1"
@@ -273,14 +306,14 @@ class StudyEngine:
         else:
             ppe_category = "Dangerous (> 40 cal/cm²)"
 
-        boundary_mm = working_distance_mm * ((incident_energy_cal_cm2 / 1.2) ** (1 / 1.2))
-
         return {
             "incident_energy_cal_cm2": round(incident_energy_cal_cm2, 2),
             "arc_flash_boundary_mm": round(boundary_mm, 1),
             "ppe_category": ppe_category,
+            "ppe_level": result.ppe_level,
             "working_distance_mm": working_distance_mm,
             "standard": "IEEE 1584-2018",
+            "method": result.method,
         }, []
 
     async def _run_cable_sizing(

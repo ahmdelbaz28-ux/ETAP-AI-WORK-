@@ -442,8 +442,10 @@ class OptimalPowerFlowEngine:
         """
         Solve AC Optimal Power Flow using Interior Point Method.
 
-        This is a simplified implementation. Production systems should use
-        specialized solvers like IPOPT, KNITRO, or MATPOWER.
+        NOTE: This is a planning-grade approximation — requires voltage-magnitude
+        update loop (planned). Production systems requiring full non-linear AC
+        constraints should interface with specialized solvers like IPOPT, KNITRO,
+        or MATPOWER.
 
         Returns:
         OPFResult with full AC solution
