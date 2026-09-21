@@ -3,7 +3,7 @@ Unified Study Dispatch Table
 =============================
 
 Single source of truth for routing study requests to their handlers across
-both runtimes (ADR-0002). Covers all 16 canonical ``StudyType`` values
+both runtimes (ADR-0002). Covers all 17 canonical ``StudyType`` values
 (ADR-0001) plus the three special study types used by the ETAP skill pipeline.
 
 Each entry maps a canonical ``study_type`` string to a ``StudyRegistration``
@@ -136,6 +136,7 @@ def _build_dispatch() -> dict[str, StudyRegistration]:
         requires_system = study_type_enum not in (
             StudyType.ETAP_EXPERT,
             StudyType.ETAP_GUI,
+            StudyType.GENERATIVE_DESIGN,  # scaffold agent — no System model needed (commit 7617d30be)
         )
         dispatch[study_type_enum.value] = StudyRegistration(
             handler_type="agent",
@@ -154,6 +155,18 @@ def _build_dispatch() -> dict[str, StudyRegistration]:
     dispatch["optimization"] = StudyRegistration(
         handler_type="external",
         handler="OptimizationAgent",
+        requires_system=False,
+        required_params=(),
+    )
+    # Generative Design Agent — registered in agents/registry.py but absent from
+    # STUDY_TYPE_AGENT_MAP (agents/__init__.py), so the STUDY_TYPE_AGENT_MAP loop
+    # above never picks it up. Added here explicitly (commit 7617d30be).
+    # requires_system=False: DesignAgent is a scaffold agent that does not need a
+    # System model; it derives topology from engineering parameters directly.
+    # Feature flag "generative_design" is DISABLED by default.
+    dispatch["generative_design"] = StudyRegistration(
+        handler_type="agent",
+        handler="agents.design_agent.DesignAgent",
         requires_system=False,
         required_params=(),
     )

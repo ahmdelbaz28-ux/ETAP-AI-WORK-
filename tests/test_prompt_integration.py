@@ -324,6 +324,8 @@ class TestPromptHandleMapping:
             "qgis_agent": "QGIS & GIS Integration Agent (GIS/ArcGIS Pro/QGIS)",
             "generic_agent_chat": "Generic chat fallback",
             "sample_prompt": "Template/sample only",
+            # Added by commit 7617d30be (generative design scaffold):
+            "design_agent": "DesignAgent (agents/design_agent.py) — scaffold, flag=disabled by default",
         }
 
         prompts = list_available_prompts()
