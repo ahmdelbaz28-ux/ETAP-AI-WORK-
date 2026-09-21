@@ -1,15 +1,32 @@
 /**
  * EmergencyStopButton — UI reflector for the backend CUA kill-switch.
  *
- * The button calls the EXISTING backend contract:
- *   GET  /admin/cua/kill-switch          (status)
- *   POST /admin/cua/kill-switch/activate (activate)
+ * The button performs TWO distinct actions and reports BOTH honestly:
  *
- * It never claims a client-side cancellation stopped anything — success is
- * only reported after the backend acknowledges activation.
+ *   1. LOCAL STREAM ABORT (immediate, client-side):
+ *      Calls abortStream() first — cancels the active SSE/fetch stream and
+ *      marks all in-progress activity entries as "failed" in the UI.
+ *      This always succeeds instantly regardless of server reachability.
+ *      NOTE: This does NOT cancel a background Python study — api/studies.py
+ *      has no cancel endpoint. A running Python computation continues until
+ *      it finishes naturally.
+ *
+ *   2. SERVER KILL-SWITCH (async, backend-confirmed):
+ *      Calls activateEmergencyStop() which POSTs to
+ *      POST /admin/cua/kill-switch/activate (agents/life_safety.py file gate).
+ *      The CUA Loop will abort on its next action check — this is NOT a
+ *      guarantee of immediate cancellation of any already-dispatched study.
+ *      Server failure → error is surfaced honestly; "confirmed" is never
+ *      shown unless the backend acknowledges the activation.
+ *
+ * Both results are shown as separate status indicators.
+ *
+ * Backend contracts (both calls delegated to chatStore.activateEmergencyStop):
+ *   GET  /admin/cua/kill-switch          (status check on mount)
+ *   POST /admin/cua/kill-switch/activate (activate kill-switch)
  */
-import { AlertOctagon, CheckCircle2, Loader2, OctagonX } from "lucide-react";
-import { useEffect } from "react";
+import { AlertOctagon, CheckCircle2, Loader2, OctagonX, WifiOff } from "lucide-react";
+import { useEffect, useRef } from "react";
 import { useChatStore } from "../../store/chatStore";
 import { Badge } from "../ui/Badge";
 import { Button } from "../ui/Button";
@@ -20,10 +37,29 @@ export function EmergencyStopButton() {
   const activate = useChatStore((s) => s.activateEmergencyStop);
   const checkStatus = useChatStore((s) => s.checkEmergencyStop);
 
+  // Track whether stream was locally aborted (set to true the moment button is pressed,
+  // independently of the server outcome).
+  const streamAbortedRef = useRef(false);
+  const streamAbortedState = useChatStore(
+    (s) =>
+      s.streamStatus === "idle" ||
+      s.streamStatus === "error" ||
+      s.streamStatus === "completed",
+  );
+
   // Reflect the backend state on mount (best-effort; backend dictates access).
   useEffect(() => {
     void checkStatus();
   }, [checkStatus]);
+
+  const handleClick = () => {
+    streamAbortedRef.current = true;
+    void activate("chat_workspace_ui");
+  };
+
+  // "Stream locally stopped" is true once the button was pressed AND
+  // the streamStatus reflects a non-streaming state.
+  const localAbortConfirmed = streamAbortedRef.current && streamAbortedState;
 
   return (
     <div className="flex flex-col gap-1.5" data-testid="emergency-stop">
@@ -34,15 +70,12 @@ export function EmergencyStopButton() {
           loading={activating}
           disabled={active}
           icon={active ? OctagonX : AlertOctagon}
-          onClick={() => void activate("chat_workspace_ui")}
+          onClick={handleClick}
           data-testid="emergency-stop-button"
         >
           {active ? "Active" : "Emergency Stop"}
         </Button>
         {active && <Badge variant="danger" dot>Active</Badge>}
-        {lastResult === "success" && !active && (
-          <Badge variant="success" dot>Confirmed by backend</Badge>
-        )}
       </div>
 
       {activating && (
@@ -51,13 +84,46 @@ export function EmergencyStopButton() {
           Contacting backend…
         </span>
       )}
-      {lastResult === "success" && (
-        <span className={cn("text-xs inline-flex items-center gap-1", active ? "text-red-400" : "text-green-400")}>
+
+      {/* ── Truth 1: Local stream status ── */}
+      {localAbortConfirmed && (
+        <span
+          className="text-xs inline-flex items-center gap-1 text-amber-400"
+          data-testid="local-abort-status"
+        >
           <CheckCircle2 className="w-3.5 h-3.5" />
-          {active ? "Emergency stop activated by backend." : "Backend acknowledged the stop request."}
+          Stream stopped locally (client-side only)
         </span>
       )}
-      {error && <span className="text-xs text-red-400">{error}</span>}
+
+      {/* ── Truth 2: Server kill-switch status ── */}
+      {lastResult === "success" && active && (
+        <span
+          className={cn("text-xs inline-flex items-center gap-1", "text-red-400")}
+          data-testid="server-stop-status"
+        >
+          <CheckCircle2 className="w-3.5 h-3.5" />
+          Kill-switch confirmed by server — CUA Loop will abort on next check
+        </span>
+      )}
+      {lastResult === "success" && !active && (
+        <span
+          className="text-xs inline-flex items-center gap-1 text-green-400"
+          data-testid="server-stop-status"
+        >
+          <CheckCircle2 className="w-3.5 h-3.5" />
+          Backend acknowledged the stop request
+        </span>
+      )}
+      {error && (
+        <span
+          className="text-xs inline-flex items-center gap-1 text-red-400"
+          data-testid="server-stop-error"
+        >
+          <WifiOff className="w-3.5 h-3.5" />
+          Server not confirmed: {error}
+        </span>
+      )}
     </div>
   );
 }
