@@ -91,6 +91,7 @@ async def save_solver_params(
             project_id=key,
             convergence_tolerance=tol,
             max_iterations=max_iter,
+            acceleration_factor=1.6,
         )
         db.add(record)
     else:
