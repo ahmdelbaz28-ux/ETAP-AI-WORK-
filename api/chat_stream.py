@@ -34,7 +34,7 @@ import time
 from typing import AsyncIterator, Dict, List, Optional
 
 import httpx
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, ConfigDict, Field
 from typing_extensions import Annotated
@@ -143,14 +143,20 @@ class ProviderConfig(BaseModel):
     model: str
 
 
-def resolve_provider_config(provider: Optional[str], model: Optional[str]) -> ProviderConfig:
-    """Build the provider config from SERVER-SIDE environment only.
+def resolve_provider_config(
+    provider: Optional[str],
+    model: Optional[str],
+    user_api_key: Optional[str] = None,
+    user_provider: Optional[str] = None,
+) -> ProviderConfig:
+    """Build the provider config from SERVER-SIDE environment or authorized BYOK header.
 
-    Raises 503 (stable error code in ``detail``) when the requested — or,
-    without an explicit request, any — provider lacks a configured key.
-    Never guesses; never falls back to client-supplied credentials.
+    If server environment variables lack an API key, an authorized client-provided
+    BYOK key (from header X-User-LLM-Key) is utilized securely without logging.
+    Raises 503 when no provider can be configured.
     """
-    candidates = (provider,) if provider else SUPPORTED_PROVIDERS
+    effective_provider = provider or user_provider
+    candidates = (effective_provider,) if effective_provider else SUPPORTED_PROVIDERS
     chosen: Optional[ProviderConfig] = None
     missing: List[str] = []
     for pid in candidates:
@@ -173,15 +179,32 @@ def resolve_provider_config(provider: Optional[str], model: Optional[str]) -> Pr
         )
         break
 
+    # Fallback to BYOK user-supplied API key if server-side key is absent
+    if chosen is None and user_api_key and user_api_key.strip():
+        target_pid = effective_provider if effective_provider in SUPPORTED_PROVIDERS else "openai"
+        chosen = ProviderConfig(
+            id=target_pid,
+            api_key=user_api_key.strip(),
+            base_url=(
+                os.environ.get(PROVIDER_BASE_URL_ENV[target_pid], "").strip().rstrip("/")
+                or PROVIDER_DEFAULT_BASE_URL[target_pid]
+            ),
+            model=(
+                (model or "").strip()
+                or os.environ.get(PROVIDER_MODEL_ENV[target_pid], "").strip()
+                or PROVIDER_DEFAULT_MODEL[target_pid]
+            ),
+        )
+
     if chosen is None:
-        if provider:
+        if effective_provider:
             code = "PROVIDER_NOT_CONFIGURED"
             message = "Requested LLM provider is not configured on the server."
         else:
             code = "NO_LLM_PROVIDER_CONFIGURED"
             message = (
                 "No LLM provider is configured on the server. Set OPENAI_API_KEY "
-                "or ANTHROPIC_API_KEY in the server environment (admin action)."
+                "or ANTHROPIC_API_KEY in the server environment (admin action) or supply BYOK."
             )
         safe_code = re.sub(r"[^A-Za-z0-9_.-]", "", str(code or ""))[:32]
         safe_missing = ",".join(re.sub(r"[^A-Za-z0-9_.-]", "", str(m))[:32] for m in missing) or "-"
@@ -226,17 +249,22 @@ def enforce_chat_rate_limit(user_id: str) -> None:
 
 
 # ─── Secret redaction ──────────────────────────────────────────────────────
-def sanitize_error_text(text: str, limit: int = MAX_ERROR_ECHO_CHARS) -> str:
+def sanitize_error_text(
+    text: str, limit: int = MAX_ERROR_ECHO_CHARS, extra_secrets: Optional[List[str]] = None
+) -> str:
     """Truncate and strip secret-shaped / configured-credential substrings."""
     out = _SECRET_SHAPE_RE.sub("[REDACTED]", text or "")
+    all_secrets: List[str] = list(extra_secrets or [])
     for env_name, env_value in os.environ.items():
         needle = (env_value or "").strip()
         if (
             needle
             and len(needle) >= 12
             and env_name.upper().endswith(("API_KEY", "TOKEN", "SECRET"))
-            and needle in out
         ):
+            all_secrets.append(needle)
+    for needle in all_secrets:
+        if needle and len(needle) >= 8 and needle in out:
             out = out.replace(needle, "[REDACTED]")
     out = " ".join(out.split())  # collapse whitespace/newlines from upstream bodies
     if len(out) > limit:
@@ -443,7 +471,7 @@ async def _chat_event_stream(
             },
         )
     except UpstreamProviderError as exc:
-        sanitized = sanitize_error_text(exc.body_text)
+        sanitized = sanitize_error_text(exc.body_text, extra_secrets=[cfg.api_key])
         safe_sid = re.sub(_SAFE_SESSION_ID_PATTERN, "", str(session_id or ""))[:32]
         safe_detail = re.sub(r"[\r\n]", " ", str(sanitized or ""))[:128]
         logger.warning(
@@ -521,6 +549,7 @@ async def _chat_event_stream(
     ),
 )
 async def chat_stream_endpoint(
+    request: Request,
     payload: ChatStreamRequest,
     user: Annotated[CurrentUser, Depends(get_current_user_from_header)],
 ) -> StreamingResponse:
@@ -530,14 +559,20 @@ async def chat_stream_endpoint(
     surfaces as a normal HTTP error (503) rather than a mid-stream event.
     """
     enforce_chat_rate_limit(user.user_id)
-    cfg = resolve_provider_config(payload.provider, payload.model)
+    user_api_key = request.headers.get("x-user-llm-key", "").strip() or None
+    user_provider = request.headers.get("x-user-llm-provider", "").strip().lower() or None
+    cfg = resolve_provider_config(
+        payload.provider, payload.model, user_api_key=user_api_key, user_provider=user_provider
+    )
     safe_sid = re.sub(_SAFE_SESSION_ID_PATTERN, "", str(payload.session_id or ""))[:32]
     safe_uid = re.sub(_SAFE_SESSION_ID_PATTERN, "", str(user.user_id or ""))[:32]
+    is_byok = bool(user_api_key and cfg.api_key == user_api_key)
     logger.info(
-        "chat stream opened session=%s provider=%s user=%s",
+        "chat stream opened session=%s provider=%s user=%s byok=%s",
         safe_sid,
         cfg.id,
         safe_uid,
+        is_byok,
     )
     return StreamingResponse(
         _chat_event_stream(payload.session_id, payload.messages, cfg),

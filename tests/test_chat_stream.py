@@ -295,3 +295,30 @@ def test_sanitize_truncates_long():
     out = chat_stream.sanitize_error_text(long_text)
     assert len(out) <= chat_stream.MAX_ERROR_ECHO_CHARS + 1  # + ellipsis char
     assert out.endswith("…")
+
+
+def test_byok_header_resolves_and_streams(client, monkeypatch):
+    """When server env lacks keys, an authorized client BYOK key header works without error."""
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    monkeypatch.delenv("GEMINI_API_KEY", raising=False)
+
+    sse_body = (
+        'data: {"choices":[{"delta":{"content":"BYOK response"}}]}\n\n'
+        "data: [DONE]\n\n"
+    )
+    from tests.test_chat_stream import _mock_openai_response
+    monkeypatch.setattr(chat_stream, "_build_http_client", lambda: _mock_openai_response(sse_body))
+
+    headers = _auth()
+    headers["X-User-LLM-Key"] = "sk-user-provided-byok-test-key-12345"
+    headers["X-User-LLM-Provider"] = "openai"
+
+    resp = client.post("/api/v1/chat/stream", json=_payload(provider="openai"), headers=headers)
+    assert resp.status_code == 200
+    assert "text/event-stream" in resp.headers["content-type"]
+    text = resp.text
+    assert "BYOK response" in text
+    # Crucial security check: the raw key must NEVER appear in the response
+    assert "sk-user-provided-byok-test-key-12345" not in text
+

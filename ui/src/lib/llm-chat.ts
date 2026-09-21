@@ -1147,6 +1147,13 @@ function createServerChatHeaders(): Record<string, string> {
   const headers: Record<string, string> = { "Content-Type": "application/json" };
   const token = getAuthToken();
   if (token) headers.Authorization = `Bearer ${token}`;
+  const activeProv = getActiveProvider();
+  if (activeProv?.apiKey) {
+    headers["X-User-LLM-Key"] = activeProv.apiKey;
+    if (activeProv.id) {
+      headers["X-User-LLM-Provider"] = activeProv.id;
+    }
+  }
   return headers;
 }
 
