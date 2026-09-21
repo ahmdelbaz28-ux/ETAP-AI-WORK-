@@ -238,3 +238,126 @@ class TestIEC60909BranchContributions:
         # Branch 1-2 is unloaded downstream: current should be near zero
         br12 = [b for b in res.branch_contributions if b["from_bus"] == 1 and b["to_bus"] == 2][0]
         assert br12["current_ka"] < 1e-4
+
+
+class TestIEC60909MethodEvidence:
+    """Evidence tests for IEC 60909-0:2016 Clause 4.3.1.2 Method A peak factor kappa.
+
+    Verifies mathematical and physical limits of Method A:
+    1. R/X = 0.1 matches hand calculation (kappa = 1.7460).
+    2. R/X -> 0 approaches theoretical upper bound (kappa = 2.0).
+    3. Large R/X (10.0) approaches asymptotic lower bound (kappa ≈ 1.02).
+    4. Published benchmark outputs remain invariant.
+    """
+
+    @staticmethod
+    def _create_single_bus_engine(r: float, x: float) -> IEC60909Engine:
+        """Helper to create a single-bus IEC 60909 engine with specified R and X impedance."""
+        z = complex(r, x)
+        y = 1.0 / z
+        Y = np.array([[y]], dtype=complex)
+        return IEC60909Engine(
+            ybus_pos=Y,
+            ybus_neg=Y,
+            ybus_zero=Y,
+            base_mva=100.0,
+            base_kv=11.0,
+            slack_bus_index=0,
+        )
+
+    def test_kappa_method_a_at_rx_0_point_1(self):
+        """
+        Verify peak factor kappa at R/X = 0.1 against hand calculation.
+
+        Hand Calculation (IEC 60909-0:2016 Clause 4.3.1.2 Method A: Uniform ratio R/X):
+        Formula:
+            kappa = 1.02 + 0.98 * exp(-3.0 * (R/X))
+        Step-by-step evaluation for R/X = 0.1:
+            - Exponent: -3.0 * 0.1 = -0.3
+            - exp(-0.3) = 0.7408182206817179
+            - Product: 0.98 * 0.7408182206817179 = 0.7260018562680835
+            - Sum: 1.02 + 0.7260018562680835 = 1.7460018562680837
+        """
+        engine = self._create_single_bus_engine(r=0.1, x=1.0)
+        assert math.isclose(engine._get_rx_ratio(0), 0.1, rel_tol=1e-9)
+
+        kappa = engine._calculate_kappa(0)
+        expected_hand_calc = 1.02 + 0.98 * math.exp(-0.3)
+        # Expected value is exactly 1.7460018562680837
+        assert math.isclose(kappa, expected_hand_calc, rel_tol=1e-6)
+        assert math.isclose(kappa, 1.746001856, rel_tol=1e-6)
+
+    def test_kappa_method_a_upper_bound_rx_approaches_zero(self):
+        """
+        Verify that as R/X -> 0, kappa approaches the theoretical upper bound of 2.0.
+
+        Hand Calculation (IEC 60909-0:2016 Clause 4.3.1.2 Upper Bound Limit):
+        Formula:
+            kappa = 1.02 + 0.98 * exp(-3.0 * (R/X))
+        Physical boundary condition:
+            In an ideal purely inductive network with negligible resistance (R/X -> 0):
+            - Exponent: -3.0 * 0 = 0
+            - exp(0) = 1.0
+            - kappa = 1.02 + 0.98 * 1.0 = 2.0000
+            The standard specifies kappa <= 2.0, representing the maximum possible
+            asymmetrical peak current with 100% DC offset.
+        """
+        engine = self._create_single_bus_engine(r=1e-9, x=1.0)
+        assert math.isclose(engine._get_rx_ratio(0), 0.0, abs_tol=1e-8)
+
+        kappa = engine._calculate_kappa(0)
+        expected_upper_bound = 2.0
+        assert math.isclose(kappa, expected_upper_bound, rel_tol=1e-5)
+        assert kappa <= 2.0, "Peak factor kappa must never exceed standard ceiling of 2.0"
+
+    def test_kappa_method_a_lower_bound_large_rx(self):
+        """
+        Verify that for large R/X (e.g. R/X = 10.0), kappa approaches 1.02.
+
+        Hand Calculation (IEC 60909-0:2016 Clause 4.3.1.2 Asymptotic Lower Bound):
+        Formula:
+            kappa = 1.02 + 0.98 * exp(-3.0 * (R/X))
+        Step-by-step evaluation for R/X = 10.0 (high resistive damping):
+            - Exponent: -3.0 * 10.0 = -30.0
+            - exp(-30.0) = 9.357622968840175e-14 ≈ 0.0
+            - Product: 0.98 * 9.3576e-14 ≈ 0.0
+            - Sum: 1.02 + 0.0 = 1.0200000000000917 ≈ 1.02
+        Physical meaning:
+            With high resistance, the DC transient component decays almost instantaneously,
+            so the peak current equals the AC peak (kappa ≈ 1.02).
+        """
+        engine = self._create_single_bus_engine(r=10.0, x=1.0)
+        assert math.isclose(engine._get_rx_ratio(0), 10.0, rel_tol=1e-9)
+
+        kappa = engine._calculate_kappa(0)
+        expected_lower_bound = 1.02
+        assert math.isclose(kappa, expected_lower_bound, rel_tol=1e-5)
+        assert kappa >= 1.02, "Peak factor kappa must be >= 1.02"
+
+    def test_published_benchmark_cases_numerical_invariance(self):
+        """
+        Prove that documentation updates and Method A evidence tests produce zero
+        behavioral or numerical changes in published benchmark outputs.
+        """
+        # 1. Generator correction factor KG
+        kg = calculate_kg(un_kv=10.5, urg_kv=10.5, c_max=1.10, xd_pp=0.15, cos_phi_rg=0.85)
+        assert math.isclose(kg, 1.019447, rel_tol=1e-5)
+
+        # 2. Transformer correction factor KT
+        kt = calculate_kt(c_max=1.10, xt=0.12)
+        assert math.isclose(kt, 0.974813, rel_tol=1e-5)
+
+        # 3. Power station unit block KU without OLTC
+        ku_no_oltc = calculate_ku(
+            un_kv=110.0, urthv_kv=115.0, urtlv_kv=10.5, urg_kv=10.5,
+            c_max=1.10, xd_pp=0.18, xt=0.12, cos_phi_rg=0.85, has_oltc=False,
+        )
+        assert math.isclose(ku_no_oltc, 1.019937, rel_tol=1e-5)
+
+        # 4. Power station unit block KU with OLTC (KSAT)
+        ku_oltc = calculate_ku(
+            un_kv=110.0, urthv_kv=115.0, urtlv_kv=10.5, urg_kv=10.5,
+            c_max=1.10, xd_pp=0.18, xt=0.12, cos_phi_rg=0.85, has_oltc=True,
+        )
+        assert math.isclose(ku_oltc, 0.919262, rel_tol=1e-5)
+
