@@ -154,6 +154,12 @@ DEFAULT_FEATURE_FLAGS: dict[str, dict[str, Any]] = {
         "description": "Enable cost-aware LLM cascade router (Economy → Standard → Reasoning)",
         "rollout_percentage": 0,
     },
+    "generative_design": {
+        "enabled": False,
+        "status": "experimental",
+        "description": "Generative Substation & Feeder Design Scaffold (topology, equipment sizing, protection scheme)",
+        "rollout_percentage": 0,
+    },
 }
 
 FEATURE_FLAGS = DEFAULT_FEATURE_FLAGS

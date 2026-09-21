@@ -59,6 +59,7 @@ class StudyType(Enum):
     DIGITAL_TWIN = "digital_twin"
     ETAP_EXPERT = "etap_expert"
     ETAP_GUI = "etap_gui"
+    GENERATIVE_DESIGN = "generative_design"
 
 
 @dataclass

@@ -1452,6 +1452,7 @@ def create_agent_registry(orchestrator_instance: Any = None) -> dict[str, BaseAg
         ("weather", "agents.weather_agent", "WeatherAgent"),
         ("goal_planner", "agents.goal_planner_agent", "GoalPlannerAgent"),
         ("optimization", "agents.optimizers.optimization_agent", "OptimizationAgent"),
+        ("generative_design", "agents.design_agent", "DesignAgent"),
     ):
         try:
             _mod = __import__(_module_name, fromlist=[_cls_name])
@@ -1500,3 +1501,6 @@ def create_agent_registry(orchestrator_instance: Any = None) -> dict[str, BaseAg
         _logger.warning("AhmedETAPSkillAgent not available: %s", exc)
 
     return agents
+
+
+create_specialist_agents = create_agent_registry
