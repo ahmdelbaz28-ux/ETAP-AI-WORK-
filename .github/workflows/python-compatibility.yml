@@ -59,7 +59,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ['3.13']
+        python-version: ['3.11', '3.12', '3.13']
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
@@ -107,7 +107,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ['3.13']
+        python-version: ['3.11', '3.12', '3.13']
 
     steps:
       - name: 📥 Checkout code
@@ -390,11 +390,11 @@ jobs:
           {
             echo "### 🐍 Python Compatibility Matrix"
             echo ""
-            echo "| Check | 3.12 | 3.13 |"
-            echo "|-------|------|------|"
-            echo "| Dependency resolution | ${{ needs.resolution-test.result }} | ${{ needs.resolution-test.result }} |"
-            echo "| Imports (core + project) | ${{ needs.import-test.result }} | ${{ needs.import-test.result }} |"
-            echo "| pyproject.toml | ${{ needs.pyproject-validation.result }} | — |"
+            echo "| Check | 3.11 | 3.12 | 3.13 |"
+            echo "|-------|------|------|------|"
+            echo "| Dependency resolution | ${{ needs.resolution-test.result }} | ${{ needs.resolution-test.result }} | ${{ needs.resolution-test.result }} |"
+            echo "| Imports (core + project) | ${{ needs.import-test.result }} | ${{ needs.import-test.result }} | ${{ needs.import-test.result }} |"
+            echo "| pyproject.toml | — | ${{ needs.pyproject-validation.result }} | — |"
             echo ""
             echo "**Trigger:** ${{ github.event_name }}"
             echo "**Commit:** \`$GITHUB_SHA\`"
