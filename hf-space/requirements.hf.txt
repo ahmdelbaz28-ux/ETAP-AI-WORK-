@@ -9,7 +9,7 @@
 # ─── Web Framework ────────────────────────────────────────────────────────────
 fastapi~=0.141.1
 uvicorn[standard]~=0.52.0
-gunicorn~=23.0.0
+gunicorn>=23.0,<26.3
 pydantic[email]~=2.13.4
 python-multipart~=0.0.32
 
