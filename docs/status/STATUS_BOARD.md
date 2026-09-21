@@ -30,9 +30,9 @@
 | **S2.1** | تصحيح مصغر R3: إزالة البندين غير المُسنَدين (3.7.1/3.7.2 + وصف Method B/C) | ✅ **مغلقة بتصريح المستشار (2026-09-21)** | تحقق المستشار مباشرةً: `3.7.1\|3.7.2` → صفر · `equivalent frequency` → صفر · نص `Method Scope` الحرفي موجود (482-484) · صدر `(Clause 3.7)` المُسنَد · 15 passed in 30.70s · ruff 0 · HEAD ثابت | لا شيء | — |
 | **S3** | تدقيق أدلة الثقة (لا رقم بلا أمر) | ✅ **مغلقة بتصريح المستشار (2026-09-21)** | `run_ieee_benchmarks.py`: 4/4 PASS · `claims_audit.py --strict`: 16 Verified 0 Missing · `test_arcflash_1584_st_cases.py + test_ieee_gold_standard_benchmarks.py`: 11 passed in 26.28s · `pnpm -C ui test --run`: 24 Test Files 193 passed · ruff clean · HEAD ثابت c7cf56e6c · إزالة CERTIFIED PASS و0.00% Exact Match · تحديث أرقام claims_audit للقيم الفعلية (336 citations, 83 tests) · تغليف D4 بـ[PENDING OWNER CONFIRMATION] · تصحيح MathGuard scope وPE Stamp legal framing في TRUST_CHARTER · إزالة data_export→ISO 27001 من VERIFIED_STANDARDS_MAP | لا شيء | لا توجد |
 | **S4** | الطوارئ الحقيقي + Stop لكل عملية | ✅ **مغلقة بتصريح (S4 + S4.1)** | `pnpm p6/`: **27 passed (4 files)** (أعدت التشغيل بنفسي: 7+9+2+9) · EmergencyStopButton: حقيقتان منفصلتان · **زر Stop مسبق الوجود** (72c1024ee — لا جديد) · لا مسار cancel لدراسات Python (موثق) · chatStore/ActivityDrawer بلا diff | لا شيء | kill-switch CUA يُوقف عند الفحص التالي فقط — دراسة Python خلفية لا تُوقَف |
-| **S5** | وكيل التصميم: إكمال + إصلاح dispatch + إغلاق F-BASE-B | ✅ **مغلقة بتصريح المستشار (2026-09-21)** | dispatch: requires_system=False + مدخل صريح · test_design_agent_scaffold: 8 passed in 20.00s · F-BASE-B: 3 passed in 13.27s · AGENTS.md مُحدَّث · ruff 0 · HEAD ثابت | لا شيء | إزالة worktree round-pram معلقة على موافقة المالك |
-| **S6** | القياس النهائي الشامل (تجميد كامل) | 🟨 **مكتملة بانتظار اعتماد المستشار** | البوابة الكاملة: 3774 passed تسلسلياً · ruff 0 · syntax 822/822 · validation_suite 31/31 · claims 16/16 · test_engineering_service 74/74 · coverage 69% · UI (typecheck + 202 tests + build) خضراء · HEAD ثابت c7cf56e6c | لا شيء | — |
-| **S7** | الدفع النظيف (فرع → PR → CI → Squash) | ⬜ لم تبدأ | — | — | — |
+| **S5** | وكيل التصميم: إكمال + إصلاح dispatch + إغلاق F-BASE-B | ✅ **مغلقة بتصريح المستشار (2026-09-21)** | dispatch: requires_system=False + مدخل صريح · test_design_agent_scaffold: 8 passed in 20.00s · F-BASE-B: 3 passed in 13.27s · AGENTS.md مُحدَّث · ruff 0 · HEAD ثابت | لا شيء | إزالة worktree round-pram **معتمدة** (D1 مُحسوم 2026-09-21) — تُنفَّذ في S7-A |
+| **S6** | القياس النهائي الشامل (تجميد كامل) | ✅ **مغلقة بتصريح المستشار (2026-09-21)** | البوابة الكاملة: 3774 passed تسلسلياً · ruff 0 · syntax 822/822 · validation_suite 31/31 · claims 16/16 · test_engineering_service 74/74 · coverage 69% · UI (typecheck + 202 tests + build) خضراء · HEAD ثابت c7cf56e6c · تجميد 2h08m بلا تعديل | لا شيء | استثناء بيئي معتمد: اختبار p95 latency (#19 من خط الأساس) تجاوز العتبة 2.3ms تحت حمل 128 دقيقة ومرّ منفرداً 3 passed — مسجّل بلا أي تغيير كود |
+| **S7** | الدفع النظيف (فرع → PR → CI → Squash) | 🟩 مصرَّح بالبدء | — | تنفيذ المرسل + إضافات S7-A (D4/D1) | راقب تغيّر origin/main قبل كل خطوة |
 | **S8** | التقرير النهائي + HF smoke | ⬜ لم تبدأ | — | — | — |
 
 **رموز الحالة:** ⬜ لم تبدأ · 🟨 جارية/مفتوحة · 🟩 مصرَّح بالبدء · ✅ مغلقة بتصريح · ⛔ متوقفة (تنتظر قرار المالك)
@@ -41,12 +41,12 @@
 
 | # | القرار | يؤثر على | الافتراض الآمن إن لم يُجب |
 |---|---|---|---|
-| D1 | تجميد أي وكيل آخر + مصير worktree الوكيل الموازي `.kilo\worktrees\round-pram` | S1 | مُعلن التجميد. أدلة S0.1: شجرته **نظيفة** (`status --porcelain` فارغ)، و`HEAD` عنده `1d9e66288` (سلف لـ`main`)، و`origin/main == HEAD == c7cf56e6c` ⇒ **التوصية: إزالته** — يُنفَّذ فقط بعد تأكيد المالك أن وكيل round-pram انتهى: `git worktree remove .kilo/worktrees/round-pram` ثم `git worktree prune` |
-| D2 | وكيل التصميم: (أ) إكمال مع إصلاح dispatch أم (ب) عزل؟ | S5 | يُترك كما هو (الراية مغلقة) ويُصلح dispatch فقط |
-| D3 | قبول أن الالتزامات الأخيرة دخلت `main` مباشرة أم مراجعتها التزامًا التزامًا | S0/S7 | تُعتمد كنقطة انطلاق، ومنع أي دفع مباشر لاحق |
-| D4 | تأكيد تدوير المفاتيح (سطر `SECURITY.md`) | S3 | يُعلَّق السطر كـ PENDING OWNER CONFIRMATION |
+| D1 | تجميد أي وكيل آخر + مصير worktree الوكيل الموازي `.kilo\worktrees\round-pram` | S1/S7 | ✅ **مُنفَّذ (2026-09-21)**: وافق المالك وأُزيل الـ worktree بالكامل: `git worktree remove` + `git worktree prune` |
+| D2 | وكيل التصميم: (أ) إكمال مع إصلاح dispatch أم (ب) عزل؟ | S5 | ✅ **محسوم**: أُنجز المسار (أ) وأُصلح dispatch واعتُمدت S5 |
+| D3 | قبول أن الالتزامات الأخيرة دخلت `main` مباشرة أم مراجعتها التزامًا التزامًا | S0/S7 | ✅ **محسوم**: اعتُمدت كنقطة انطلاق وبدء الدفع النظيف عبر PR |
+| D4 | تأكيد تدوير المفاتيح (سطر `SECURITY.md`) | S3/S7 | ✅ **مؤكد رسميًا من المالك (2026-09-21)**: كُتب التأكيد في `SECURITY.md` |
 | D5 | تنفيذ AC-OPF/HHO (P0–P2) الآن أم لاحقة | خارج النطاق | لاحقة (بعد S8) |
-| D6 | عتبة `--cov-fail-under=50` | S6 | تُقاس النسبة أولًا ويُقرَّر برقم حقيقي |
+| D6 | عتبة `--cov-fail-under=50` | S6/S7 | ✅ **محسوم**: التغطية 69% وتتجاوز العتبة 50% التي بقيت دون تعديل |
 
 ## 4) سجل المخاطر
 
