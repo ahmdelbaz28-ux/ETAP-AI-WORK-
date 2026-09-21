@@ -135,7 +135,7 @@ bcrypt~=4.1.0
 # SECURITY: upgraded from >=2.12.0 to >=2.13.0 to fix:
 #   CVE-2026-32597 (accepts unknown `crit` header extensions)
 #   CVE-2026-48526 (public-key JWK accepted as HMAC secret)
-PyJWT>=2.13.0,<3
+PyJWT>=2.13.0
 
 # Data validation
 # NOTE: pydantic must be >=2.11.7 to satisfy `realtime` (sub-dep of supabase~=2.31.0)
