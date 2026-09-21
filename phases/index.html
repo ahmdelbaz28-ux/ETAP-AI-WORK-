@@ -20,7 +20,7 @@
     
     
       
-        <title>Scientific Validation & Numerical Benchmark Report - AhmedETAP Documentation</title>
+        <title>مراحل الإغلاق — دليل الاستخدام (للمستشار والمنفذ) - AhmedETAP Documentation</title>
       
     
     
@@ -70,7 +70,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#scientific-validation-numerical-benchmark-report" class="md-skip">
+        <a href="#_1" class="md-skip">
           Skip to content
         </a>
       
@@ -104,7 +104,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Scientific Validation &amp; Numerical Benchmark Report
+              مراحل الإغلاق — دليل الاستخدام (للمستشار والمنفذ)
             
           </span>
         </div>
@@ -544,69 +544,36 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#1-executive-summary" class="md-nav__link">
+  <a href="#_2" class="md-nav__link">
     <span class="md-ellipsis">
-      1. Executive Summary
+      كيف تُستخدم هذه الملفات
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#2-certified-benchmark-suite-scriptsrun_ieee_benchmarkspy" class="md-nav__link">
+  <a href="#_3" class="md-nav__link">
     <span class="md-ellipsis">
-      2. Certified Benchmark Suite (scripts/run_ieee_benchmarks.py)
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="2. Certified Benchmark Suite (scripts/run_ieee_benchmarks.py)">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#benchmark-summary-table" class="md-nav__link">
-    <span class="md-ellipsis">
-      Benchmark Summary Table
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#3-ieee-9-bus-wscc-detailed-bus-voltages" class="md-nav__link">
-    <span class="md-ellipsis">
-      3. IEEE 9-Bus WSCC Detailed Bus Voltages
+      الترتيب الملزم
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#4-ieee-1584-2018-arc-flash-gold-standard-test-cases" class="md-nav__link">
+  <a href="#_4" class="md-nav__link">
     <span class="md-ellipsis">
-      4. IEEE 1584-2018 Arc Flash Gold Standard Test Cases
+      الثوابت غير القابلة للتفاوض
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#5-automated-claims-audit-verification" class="md-nav__link">
+  <a href="#_5" class="md-nav__link">
     <span class="md-ellipsis">
-      5. Automated Claims Audit Verification
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#6-how-to-reproduce-validation-locally" class="md-nav__link">
-    <span class="md-ellipsis">
-      6. How to Reproduce Validation Locally
+      ملفات الجولة المشتركة
     </span>
   </a>
   
@@ -631,201 +598,68 @@
   
 
 
-<h1 id="scientific-validation-numerical-benchmark-report">Scientific Validation &amp; Numerical Benchmark Report</h1>
-<p><strong>AhmedETAP Virtual Power System Engineering Platform</strong><br />
-<em>Document Ref: VAL-REP-2026-V1</em><br />
-<em>Verification Status: PASS (Automated Test Suite Evidence)</em><br />
-<em>Git Commit Hash: c7cf56e6cee23451648ade93520f2b78f386ae27 | Benchmark Date: 2026-09-21</em><br />
-<em>Standards Coverage: 16/16 Verified (<code>claims_audit.py --strict</code>)</em></p>
-<hr />
-<h2 id="1-executive-summary">1. Executive Summary</h2>
-<p>This report documents the empirical validation of the calculation engines in AhmedETAP against published international gold standards, IEEE test feeders, and analytical reference cases. All calculations are executed directly by validated Python numerical engines conforming to IEEE, IEC, and NFPA standards without approximations or synthetic mock fallbacks.</p>
-<p>The AhmedETAP dual-runtime platform enforces strict mathematical separation:
-- <strong>Node.js/Mastra Layer</strong>: User intent parsing, specialist agent orchestration, structured I/O validation.
-- <strong>Python Numerical Core</strong>: Rigorous, deterministic execution of Newton-Raphson load flow, IEC 60909 fault calculations, IEEE 1584-2018 arc flash equations, and IEEE 80 grounding grid analysis.</p>
-<hr />
-<h2 id="2-certified-benchmark-suite-scriptsrun_ieee_benchmarkspy">2. Certified Benchmark Suite (<code>scripts/run_ieee_benchmarks.py</code>)</h2>
-<p>All benchmarks are executed via automated testing suites and verified against published benchmark data.</p>
-<h3 id="benchmark-summary-table">Benchmark Summary Table</h3>
+<h1 id="_1">مراحل الإغلاق — دليل الاستخدام (للمستشار والمنفذ)</h1>
+<h2 id="_2">كيف تُستخدم هذه الملفات</h2>
+<ol>
+<li>أرسل <strong>ملف مرحلة واحد فقط</strong> للوكيل المنفذ — ممنوع إرسال أكثر من مرحلة في جلسة واحدة.</li>
+<li>الوكيل لا يقرأ ملفات المراحل الأخرى ولا وثيقة البرومبت الأصلية (منعًا لفقدان السياق والتشويش).</li>
+<li>في نهاية كل مرحلة: الوكيل يكتب تقريره بنموذج <code>docs/status/REPORT_TEMPLATE.md</code> ويحدّث <code>docs/status/STATUS_BOARD.md</code> ثم <strong>يتوقف</strong>.</li>
+<li>المستشار (أنا) يراجع الأدلة، يصحح المسار إن لزم، ثم <strong>يصرّح</strong> ببدء المرحلة التالية.</li>
+</ol>
+<h2 id="_3">الترتيب الملزم</h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>S0 التثبيت وخط الأساس
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a> → S1 إغلاق BYOK الصدق (CORS/توثيق/اختبارات)
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a> → S1.5 إغلاق F-BASE-A (8 إخفاقات خط أساس حقيقية: قوس×2 · rate-limit×3 · HF-parity×1 · symlink×1 · headers×1)
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a> → S2 إغلاق IEC 60909 (Method + توثيق البنود)
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a> → S3 تدقيق أدلة الثقة (لا رقم بلا أمر)
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a> → S4 الطوارئ الحقيقي + Stop لكل عملية
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a> → S5 وكيل التصميم (إكمال/عزل) + إصلاح dispatch
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a> → S6 القياس النهائي الشامل (تجميد كامل)
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a> → S7 الدفع النظيف (فرع → PR → CI → Squash)
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a> → S8 التقرير النهائي + HF smoke
+</code></pre></div>
+<h2 id="_4">الثوابت غير القابلة للتفاوض</h2>
+<ul>
+<li><strong>لا force-push</strong> على <code>main</code> أو أي فرع مشترك. لا دفع مباشر إلى <code>main</code> بعد S0.</li>
+<li><strong>لا ادعاء بلا أمر</strong>: كل رقم في أي تقرير له أمر نُفِّذ ونتيجة حرفية.</li>
+<li><strong>لا بيانات وهمية/fallback</strong> في أي شاشة أو تقرير (الصدق &gt; الجمال).</li>
+<li><strong>لا تعديل خارج قائمة الملفات</strong> المصرح بها في ملف المرحلة؛ أي خروج يُبلَّغ <strong>قبل</strong> التنفيذ ويُوثَّق.</li>
+<li><strong>لا تجاوز</strong> <code>tool_policy</code> أو نظام الموافقات أو أي بوابة CI حمراء.</li>
+<li><strong>التجميد أثناء القياس</strong>: ممنوع تعديل ملف واحد أثناء تشغيل الاختبارات؛ يُثبت بثبات <code>git rev-parse HEAD</code> قبل/بعد.</li>
+<li>أي بند لا يُنفَّذ: يُكتب «غير منفذ + السبب + اقتراح الجولة القادمة».</li>
+</ul>
+<h2 id="_5">ملفات الجولة المشتركة</h2>
 <table>
 <thead>
 <tr>
-<th style="text-align: left;">Benchmark System</th>
-<th style="text-align: left;">Standard / Reference</th>
-<th style="text-align: left;">Target Metric</th>
-<th style="text-align: left;">Measured Value</th>
-<th style="text-align: left;">Benchmark Ref</th>
-<th style="text-align: left;">Max Error (%)</th>
-<th style="text-align: left;">Tolerance Limit</th>
-<th style="text-align: left;">Status</th>
+<th>الملف</th>
+<th>من يكتبه</th>
+<th>متى</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;"><strong>IEEE 9-Bus WSCC</strong></td>
-<td style="text-align: left;">IEEE 3002.7 / Anderson &amp; Fouad</td>
-<td style="text-align: left;">Voltage Profile (p.u.)</td>
-<td style="text-align: left;">Bus 5: 0.9956<br>Bus 9: 1.0324</td>
-<td style="text-align: left;">Bus 5: 0.9960<br>Bus 9: 1.0320</td>
-<td style="text-align: left;"><strong>0.04%</strong></td>
-<td style="text-align: left;">$\pm 0.05\%$ (Std: $0.8\%$)</td>
-<td style="text-align: left;"><strong>PASS</strong></td>
+<td><code>docs/status/STATUS_BOARD.md</code></td>
+<td>المنفذ</td>
+<td>نهاية كل مرحلة فقط</td>
 </tr>
 <tr>
-<td style="text-align: left;"><strong>IEEE 14-Bus Feeder</strong></td>
-<td style="text-align: left;">IEEE PES Archive</td>
-<td style="text-align: left;">Iterative Convergence</td>
-<td style="text-align: left;">5 Iterations</td>
-<td style="text-align: left;">5 Iterations</td>
-<td style="text-align: left;"><strong>&lt; 0.5%</strong></td>
-<td style="text-align: left;">$\pm 0.5\%$</td>
-<td style="text-align: left;"><strong>PASS</strong></td>
+<td><code>logs/baseline_2026-09-21.txt</code></td>
+<td>المنفذ</td>
+<td>S0 (محلي — مستثنى من git)</td>
 </tr>
 <tr>
-<td style="text-align: left;"><strong>IEC 60909 Symmetrical Fault</strong></td>
-<td style="text-align: left;">IEC 60909-0:2016</td>
-<td style="text-align: left;">$I_k''$ Fault Current (13.8 kV)</td>
-<td style="text-align: left;">$17.4288\text{ kA}$</td>
-<td style="text-align: left;">$17.4288\text{ kA}$</td>
-<td style="text-align: left;"><strong>0.0002%</strong></td>
-<td style="text-align: left;">$\pm 0.01\%$</td>
-<td style="text-align: left;"><strong>PASS</strong></td>
+<td><code>implementation_plan.md</code></td>
+<td>المستشار</td>
+<td>تحديث استشاري عند تغير الحقائق</td>
 </tr>
 <tr>
-<td style="text-align: left;"><strong>IEEE 1584 Arc Flash</strong></td>
-<td style="text-align: left;">IEEE 1584-2018</td>
-<td style="text-align: left;">Incident Energy &amp; Arc Boundary</td>
-<td style="text-align: left;">$E = 0.4723\text{ cal/cm}^2$<br>AFB: $240.1\text{ mm}$</td>
-<td style="text-align: left;">ST Cases 1–7 (Annex D)</td>
-<td style="text-align: left;">$I_{arc} \le 5\%$, $E \le 15\%$</td>
-<td style="text-align: left;">Current $\pm 5\%$, Energy $\pm 15\%$</td>
-<td style="text-align: left;"><strong>PASS</strong></td>
+<td>تقارير المراحل</td>
+<td>المنفذ</td>
+<td>تُرفق في الرد النصي للمستشار</td>
 </tr>
 </tbody>
 </table>
-<blockquote>
-<p>[!NOTE]
-<strong>IEEE 118-Bus Network</strong>: The synthetic 118-bus topology is verified for graph connectivity and matrix factorization in <code>tests/test_study_executor_deep.py</code>. Large-scale dynamic convergence under stressed conditions is documented for future load-profile extensions.</p>
-</blockquote>
-<hr />
-<h2 id="3-ieee-9-bus-wscc-detailed-bus-voltages">3. IEEE 9-Bus WSCC Detailed Bus Voltages</h2>
-<p>Execution converged in 4 iterations using Newton-Raphson full Jacobian formulation.</p>
-<table>
-<thead>
-<tr>
-<th style="text-align: left;">Bus ID</th>
-<th style="text-align: left;">Type</th>
-<th style="text-align: left;">Specified / Target $V$ (p.u.)</th>
-<th style="text-align: left;">Benchmark $V$ (p.u.)</th>
-<th style="text-align: left;">Computed $V$ (p.u.)</th>
-<th style="text-align: left;">Absolute Error (%)</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align: left;"><strong>Bus 1</strong></td>
-<td style="text-align: left;">Slack</td>
-<td style="text-align: left;">1.0400</td>
-<td style="text-align: left;">1.0400</td>
-<td style="text-align: left;">1.0400</td>
-<td style="text-align: left;">0.000%</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>Bus 2</strong></td>
-<td style="text-align: left;">PV</td>
-<td style="text-align: left;">1.0250</td>
-<td style="text-align: left;">1.0250</td>
-<td style="text-align: left;">1.0250</td>
-<td style="text-align: left;">0.000%</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>Bus 3</strong></td>
-<td style="text-align: left;">PV</td>
-<td style="text-align: left;">1.0250</td>
-<td style="text-align: left;">1.0250</td>
-<td style="text-align: left;">1.0250</td>
-<td style="text-align: left;">0.000%</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>Bus 4</strong></td>
-<td style="text-align: left;">PQ</td>
-<td style="text-align: left;">—</td>
-<td style="text-align: left;">1.0260</td>
-<td style="text-align: left;">1.0258</td>
-<td style="text-align: left;">0.019%</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>Bus 5</strong></td>
-<td style="text-align: left;">PQ</td>
-<td style="text-align: left;">—</td>
-<td style="text-align: left;">0.9960</td>
-<td style="text-align: left;">0.9956</td>
-<td style="text-align: left;"><strong>0.040%</strong></td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>Bus 6</strong></td>
-<td style="text-align: left;">PQ</td>
-<td style="text-align: left;">—</td>
-<td style="text-align: left;">1.0130</td>
-<td style="text-align: left;">1.0127</td>
-<td style="text-align: left;">0.030%</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>Bus 7</strong></td>
-<td style="text-align: left;">PQ</td>
-<td style="text-align: left;">—</td>
-<td style="text-align: left;">1.0260</td>
-<td style="text-align: left;">1.0258</td>
-<td style="text-align: left;">0.019%</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>Bus 8</strong></td>
-<td style="text-align: left;">PQ</td>
-<td style="text-align: left;">—</td>
-<td style="text-align: left;">1.0160</td>
-<td style="text-align: left;">1.0159</td>
-<td style="text-align: left;">0.010%</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>Bus 9</strong></td>
-<td style="text-align: left;">PQ</td>
-<td style="text-align: left;">—</td>
-<td style="text-align: left;">1.0320</td>
-<td style="text-align: left;">1.0324</td>
-<td style="text-align: left;">0.039%</td>
-</tr>
-</tbody>
-</table>
-<p><em>Maximum Observed Error: 0.040% (Well inside the strict 0.05% threshold and international 0.8% standard limit).</em></p>
-<hr />
-<h2 id="4-ieee-1584-2018-arc-flash-gold-standard-test-cases">4. IEEE 1584-2018 Arc Flash Gold Standard Test Cases</h2>
-<p>AhmedETAP uses the published IEEE 1584-2018 standard test cases loaded directly from <a href="file:///c:/Users/EWS-01/Desktop/etap/tests/gold_cases/ieee1584_st_published.json"><code>tests/gold_cases/ieee1584_st_published.json</code></a>.</p>
-<p>Verified via automated test suite <a href="file:///c:/Users/EWS-01/Desktop/etap/tests/test_arcflash_1584_st_cases.py"><code>tests/test_arcflash_1584_st_cases.py</code></a>:
-- <strong>Case ST-1</strong> (VCB, 0.48 kV, open air enclosure): Validated arcing current $I_{arc}$ within $\pm 5\%$ and incident energy $E$ within $\pm 15\%$ of published Annex D reference.
-- <strong>Case ST-2</strong> (VCBB, 0.48 kV, barrier configuration): Verified non-linear electrode boundary effects.
-- <strong>Case ST-3</strong> (HCB, 0.48 kV, horizontal electrodes): Verified horizontal convection directional arc flash multiplier.
-- <strong>Case ST-4</strong> (VOA, 0.48 kV, open air): Validated zero enclosure boundary reflection.
-- <strong>Case ST-5</strong> (HOA, 0.48 kV, open air horizontal): Validated horizontal open-air dispersion.
-- <strong>Case ST-6</strong> (VCB, 4.16 kV, medium voltage switchgear): Validated medium-voltage curve fitting equations.
-- <strong>Case ST-7</strong> (VCBB, 13.8 kV, distribution switchgear): Validated high-voltage enclosure reflection and boundary safety margins.</p>
-<hr />
-<h2 id="5-automated-claims-audit-verification">5. Automated Claims Audit Verification</h2>
-<p>The repository enforces strict zero-untested-claims via <a href="file:///c:/Users/EWS-01/Desktop/etap/scripts/claims_audit.py"><code>scripts/claims_audit.py</code></a>:
-- <strong>Citations Audited</strong>: 336 standard references across engines, agents, and core modules.
-- <strong>Test Corroborations</strong>: 83 empirical test implementations across the test suite.
-- <strong>Verified Standard Count</strong>: <strong>16 / 16 (100%)</strong>.
-- <strong>Exit Status</strong>: Clean Zero (<code>exit code 0</code>).</p>
-<hr />
-<h2 id="6-how-to-reproduce-validation-locally">6. How to Reproduce Validation Locally</h2>
-<p>Run the empirical benchmark suite:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">python</span> <span class="n">scripts</span><span class="p">/</span><span class="n">run_ieee_benchmarks</span><span class="p">.</span><span class="n">py</span>
-</code></pre></div></p>
-<p>Run the strict claims audit:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">python</span> <span class="n">scripts</span><span class="p">/</span><span class="n">claims_audit</span><span class="p">.</span><span class="n">py</span> <span class="p">-</span><span class="n">-strict</span>
-</code></pre></div></p>
-<p>Run the IEEE 1584 published cases and gold standard test suite:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="n">pytest</span> <span class="n">tests</span><span class="p">/</span><span class="n">test_arcflash_1584_st_cases</span><span class="p">.</span><span class="n">py</span> <span class="n">tests</span><span class="p">/</span><span class="n">test_ieee_gold_standard_benchmarks</span><span class="p">.</span><span class="n">py</span> <span class="n">-v</span>
-</code></pre></div></p>
 
 
 
