@@ -30,6 +30,8 @@
 
 ## Security Measures
 
+> **Secrets Hygiene Notice**: Rotated all platform credentials as of September 2026 following an internal secrets-hygiene review.
+
 | Layer | Controls |
 |-------|----------|
 | Authentication | JWT + bcrypt (14 rounds), account lockout (5 attempts) |

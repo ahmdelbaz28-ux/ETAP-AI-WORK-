@@ -12,6 +12,12 @@ env/
 scratch/
 .local/
 
+# Environment / Secrets
+.env
+.env.*
+.env.local
+*.env
+
 # Scan / temp files
 dead_code_report.json
 dead_code_scan.py
