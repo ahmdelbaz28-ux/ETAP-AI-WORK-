@@ -93,6 +93,9 @@ EXPECTED_REGISTERED_AGENTS = {
     "etap_expert",
     "etap_gui",
     "ahmed_etap",
+    # Design agent — added by commit 7617d30be (generative design scaffold, flag=disabled by default).
+    # Listed here so test_no_orphan_agents_in_orchestrator accepts its registration.
+    "generative_design",
     # Backward-compat aliases (registered in orchestrator.py lines 1421-1423).
     # These point to the same agent instances as their long-form counterparts:
     #   "harmonic"    → self.agents["harmonic_analysis"]

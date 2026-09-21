@@ -310,7 +310,18 @@ def test_hf_space_router_parity():
     hf_app = hf_mod.app
     assert hf_app is not None
 
-    route_paths = {r.path for r in hf_app.routes if hasattr(r, "path")}
+    route_paths = set()
+    for r in hf_app.routes:
+        if hasattr(r, "path"):
+            route_paths.add(r.path)
+        if hasattr(r, "routes"):
+            for sub in r.routes:
+                if hasattr(sub, "path"):
+                    route_paths.add(sub.path)
+        if hasattr(r, "original_router"):
+            for sub in r.original_router.routes:
+                if hasattr(sub, "path"):
+                    route_paths.add(sub.path)
 
     # 1. Parity routers
     assert "/api/v1/reports" in route_paths

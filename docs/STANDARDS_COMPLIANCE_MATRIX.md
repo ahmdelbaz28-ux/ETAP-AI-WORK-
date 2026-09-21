@@ -61,6 +61,5 @@ python scripts/claims_audit.py --strict
 ```
 Expected output:
 ```text
-All 16 cited standards have matching empirical test coverage.
-Audit PASSED.
+Summary: 16 Verified, 0 Missing empirical test coverage.
 ```

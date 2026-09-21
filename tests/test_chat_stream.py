@@ -322,3 +322,104 @@ def test_byok_header_resolves_and_streams(client, monkeypatch):
     # Crucial security check: the raw key must NEVER appear in the response
     assert "sk-user-provided-byok-test-key-12345" not in text
 
+
+# ─── 7. S1 BYOK Tests: CORS Preflight, Missing Keys, Log Sanitization ──────
+
+
+def test_cors_preflight_allows_byok_headers(client):
+    """OPTIONS preflight to /api/v1/chat/stream must include x-user-llm-key in allow_headers."""
+    resp = client.options(
+        "/api/v1/chat/stream",
+        headers={
+            "Origin": "http://localhost:5173",
+            "Access-Control-Request-Method": "POST",
+            "Access-Control-Request-Headers": "x-user-llm-key, x-user-llm-provider, content-type, authorization, x-csrf-token",
+        },
+    )
+    # Read the allowed headers list from the Access-Control-Allow-Headers response header
+    allow_headers_raw = resp.headers.get("access-control-allow-headers", "")
+    allowed = [h.strip().lower() for h in allow_headers_raw.split(",") if h.strip()]
+    assert "x-user-llm-key" in allowed
+    assert "x-user-llm-provider" in allowed
+
+
+def test_chat_stream_missing_all_keys_returns_stable_503(client, monkeypatch):
+    """When both server environment keys and request BYOK headers are absent, returns 503."""
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    monkeypatch.delenv("GEMINI_API_KEY", raising=False)
+
+    # 1. No provider specified -> NO_LLM_PROVIDER_CONFIGURED
+    resp_no_prov = client.post(
+        "/api/v1/chat/stream",
+        json=_payload(provider=None),
+        headers=_auth(),
+    )
+    assert resp_no_prov.status_code == 503
+    assert resp_no_prov.json().get("detail", {}).get("code") == "NO_LLM_PROVIDER_CONFIGURED"
+
+    # 2. Specific provider specified -> PROVIDER_NOT_CONFIGURED
+    resp_with_prov = client.post(
+        "/api/v1/chat/stream",
+        json=_payload(provider="openai"),
+        headers=_auth(),
+    )
+    assert resp_with_prov.status_code == 503
+    assert resp_with_prov.json().get("detail", {}).get("code") == "PROVIDER_NOT_CONFIGURED"
+
+
+def test_byok_key_never_appears_in_logs(client, monkeypatch, caplog):
+    """Caplog assertion: user-supplied BYOK key must NEVER leak into any server logs."""
+    import logging
+
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    monkeypatch.delenv("GEMINI_API_KEY", raising=False)
+
+    secret_key = "sk-super-secret-user-key-999888777"
+    sse_body = (
+        'data: {"choices":[{"delta":{"content":"Safe response"}}]}\n\n'
+        "data: [DONE]\n\n"
+    )
+    from tests.test_chat_stream import _mock_openai_response
+
+    monkeypatch.setattr(chat_stream, "_build_http_client", lambda: _mock_openai_response(sse_body))
+
+    headers = _auth()
+    headers["X-User-LLM-Key"] = secret_key
+    headers["X-User-LLM-Provider"] = "openai"
+
+    with caplog.at_level(logging.DEBUG):
+        resp = client.post(
+            "/api/v1/chat/stream",
+            json=_payload(provider="openai"),
+            headers=headers,
+        )
+
+    assert resp.status_code == 200
+    assert "Safe response" in resp.text
+    # Verify the secret key does not appear anywhere in captured log text
+    assert secret_key not in caplog.text
+
+
+def test_legacy_x_active_key_not_accepted_for_streaming(client, monkeypatch):
+    """Regression: legacy x-active-key is REST-only and MUST NOT be accepted for chat streaming."""
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    monkeypatch.delenv("GEMINI_API_KEY", raising=False)
+
+    headers = _auth()
+    headers["x-active-key"] = "sk-legacy-not-for-streaming"
+    headers["x-active-provider"] = "openai"
+
+    resp = client.post(
+        "/api/v1/chat/stream",
+        json=_payload(provider="openai"),
+        headers=headers,
+    )
+    # Must reject with 503 because legacy headers are strictly not accepted for streaming
+    assert resp.status_code == 503
+    assert resp.json().get("detail", {}).get("code") == "PROVIDER_NOT_CONFIGURED"
+
+
+

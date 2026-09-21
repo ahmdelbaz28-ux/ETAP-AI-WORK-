@@ -91,3 +91,110 @@ async def test_design_agent_synthesis_success(monkeypatch):
     topology = result.data["topology"]
     assert "Double-bus" in topology["bus_configuration"]
     assert topology["protection_scheme"]["transformer_differential_87t"] is True
+
+
+# ---------------------------------------------------------------------------
+# S5 Dispatch regression tests (commit 7617d30be introduced GENERATIVE_DESIGN)
+# ---------------------------------------------------------------------------
+
+def test_dispatch_generative_design_requires_system_false():
+    """GENERATIVE_DESIGN must have requires_system=False in STUDY_DISPATCH.
+
+    Root cause (commit 7617d30be): dispatch.py:136-139 originally only had
+    ETAP_EXPERT and ETAP_GUI in the requires_system=False exception tuple.
+    GENERATIVE_DESIGN was added to StudyType without being added to that
+    exception, so it incorrectly received requires_system=True.
+    Fix: added StudyType.GENERATIVE_DESIGN to the exception tuple (S5).
+    """
+    from engine.dispatch import STUDY_DISPATCH
+
+    reg = STUDY_DISPATCH.get("generative_design")
+    assert reg is not None, "generative_design missing from STUDY_DISPATCH"
+    assert reg.handler_type == "agent", (
+        f"Expected handler_type='agent', got '{reg.handler_type}'"
+    )
+    assert reg.requires_system is False, (
+        "GENERATIVE_DESIGN should not require a System model — "
+        "it is a conversational scaffold agent (commit 7617d30be)"
+    )
+
+
+def test_dispatch_etap_expert_and_gui_still_false():
+    """Regression: ETAP_EXPERT and ETAP_GUI must keep requires_system=False.
+
+    Guards against accidentally removing existing entries from the exception
+    tuple while adding GENERATIVE_DESIGN (S5 fix).
+    """
+    from engine.dispatch import STUDY_DISPATCH
+
+    for key in ("etap_expert", "etap_gui"):
+        reg = STUDY_DISPATCH.get(key)
+        if reg is None:
+            continue  # etap_gui is optional (headless env)
+        assert reg.requires_system is False, (
+            f"{key} should not require a System model — "
+            "it is a conversational agent (commit 7617d30be)"
+        )
+
+
+def test_dispatch_generative_design_flag_disabled_returns_failed(monkeypatch):
+    """generative_design with flag closed → agent FAILED + no system demand.
+
+    Verifies the fail-closed + dispatch fix together:
+    1. The dispatch entry exists with requires_system=False (S5 fix).
+    2. The agent rejects the task when the flag is disabled (pre-existing).
+    """
+    import asyncio
+
+    from engine.dispatch import STUDY_DISPATCH
+
+    # dispatch-level: entry exists with requires_system=False
+    reg = STUDY_DISPATCH["generative_design"]
+    assert reg.requires_system is False
+
+    # agent-level: explicit reject when flag off
+    monkeypatch.setenv("FEATURE_FLAG_GENERATIVE_DESIGN", "false")
+    agent = DesignAgent()
+    task = EngineeringTask(
+        task_id="task_dispatch_regression",
+        description="dispatch regression: flag disabled",
+        study_types=[StudyType.GENERATIVE_DESIGN],
+        parameters={"primary_voltage_kv": 66.0, "secondary_voltage_kv": 11.0, "total_load_mva": 25.0},
+    )
+    result = asyncio.get_event_loop().run_until_complete(agent.execute(task))
+    assert result.status == AgentStatus.FAILED
+    assert result.data["summary"].get("reason") == "flag_disabled"
+
+
+def test_dispatch_generative_design_flag_enabled_no_system_required(monkeypatch):
+    """generative_design with flag open → works without a System object.
+
+    Verifies the fix ensures no requires_system gate blocks the agent
+    when the feature flag is enabled.
+    """
+    import asyncio
+
+    from engine.dispatch import STUDY_DISPATCH
+
+    reg = STUDY_DISPATCH["generative_design"]
+    assert reg.requires_system is False  # dispatch fix confirmed
+
+    monkeypatch.setenv("FEATURE_FLAG_GENERATIVE_DESIGN", "true")
+    agent = DesignAgent()
+    task = EngineeringTask(
+        task_id="task_dispatch_enabled",
+        description="dispatch regression: flag enabled, no system needed",
+        study_types=[StudyType.GENERATIVE_DESIGN],
+        parameters={
+            "primary_voltage_kv": 66.0,
+            "secondary_voltage_kv": 11.0,
+            "total_load_mva": 40.0,
+            "redundancy": "N-1",
+            "num_feeders": 6,
+        },
+    )
+    result = asyncio.get_event_loop().run_until_complete(agent.execute(task))
+    # Agent executes fully without any system-model demand
+    assert result.status == AgentStatus.COMPLETED
+    assert result.data["summary"]["status"] == "success"
+

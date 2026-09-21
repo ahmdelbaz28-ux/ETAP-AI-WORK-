@@ -157,14 +157,24 @@ def calculate_ku(
     has_oltc: bool = False,
 ) -> float:
     """
-    Calculate power station unit (generator + unit transformer block) correction factor K_U (or K_S/K_SO/K_SAT)
-    per IEC 60909-0:2016 Clause 3.3.2 and Clause 3.7.
+    Calculate power station unit (generator + unit transformer block) correction factor.
 
-    In standard IEC 60909 notation:
-    - K_S (or K_SO / K_U) applies to unit blocks without on-load tap changer:
-        K_U = (Un / UrTHV) * (UrTLV / UrG) * (c_max / (1 + |xd'' - xT| * sin(phi_rG)))
-    - K_SAT applies to unit blocks with on-load tap changer:
-        K_SAT = (Un^2 / UrTHV^2) * (c_max / (1 + xd'' * sin(phi_rG)))
+    Standard Normative References (IEC 60909-0:2016):
+    - IEC 60909-0:2016 Clause 3.6.1: Generator correction factor K_G (calculated in calculate_kg).
+    - IEC 60909-0:2016 Clause 3.3.3: Network transformer correction factor K_T (calculated in calculate_kt).
+    - IEC 60909-0:2016 Clause 3.7: Power station unit blocks (generator + unit transformer) correction factor K_S.
+      * Unit blocks WITHOUT on-load tap-changer (Clause 3.7):
+          K_S (or K_SO / K_U) = (Un / UrTHV) * (UrTLV / UrG) * (c_max / (1 + |xd'' - xT| * sin(phi_rG)))
+      * Unit blocks WITH on-load tap-changer (Clause 3.7):
+          K_SAT = (Un^2 / UrTHV^2) * (c_max / (1 + xd'' * sin(phi_rG)))
+
+    Naming Rationale:
+    The function is named `calculate_ku` where 'U' designates the combined 'Unit block'
+    (Kraftwerksbloecke) impedance correction factor, matching the ETAP convention K_U.
+    In the standard text of IEC 60909-0 Clause 3.7, this factor is denoted K_S (or K_SO / K_SAT).
+    This function specifically evaluates the combined unit block factor and must NOT be confused
+    with individual generator correction factor K_G (Clause 3.6.1) or individual network transformer
+    correction factor K_T (Clause 3.3.3).
 
     Parameters:
         un_kv: Nominal system voltage at connection point Q (kV).
@@ -176,6 +186,9 @@ def calculate_ku(
         xt: Transformer reactance in pu.
         cos_phi_rg: Generator rated power factor (default 0.8).
         has_oltc: True if transformer has on-load tap-changer.
+
+    Returns:
+        float: Unit block correction factor K_U (equivalent to K_S / K_SO / K_SAT).
     """
     sin_phi = float(np.sqrt(max(0.0, 1.0 - cos_phi_rg**2)))
     if has_oltc:
@@ -423,9 +436,24 @@ class IEC60909Engine:
 
     def _get_rx_ratio(self, bus_index: int) -> float:
         """
-        Get the R/X ratio at a bus for peak current calculation.
+        Get the equivalent R/X ratio at a bus for peak current calculation.
 
-        Per IEC 60909, the R/X ratio determines the peak factor kappa.
+        Standard Normative Reference:
+        IEC 60909-0:2016 Clause 4.3.3.1 (Short-circuit impedance and R/X ratio).
+
+        Signed R/X Ratio Justification:
+        Per IEC 60909 Clause 4.3.3.1, the ratio R/X is determined from the complex short-circuit
+        impedance Z_k = R + jX using the actual signed imaginary component `z_pos.imag`
+        (not abs). In physical AC power systems, inductive reactance (X > 0) governs the rate
+        of DC decaying offset during faults. Retaining the signed value ensures physical
+        correctness and prevents erroneously treating inductive and capacitive reactances as
+        equivalent (Fix S-21).
+
+        Parameters:
+            bus_index (int): Index of the bus in the network admittance matrix.
+
+        Returns:
+            float: Signed R/X ratio at the short-circuit location, or _DEFAULT_RX_RATIO if X == 0.
         """
         z_pos = self.Zbus_pos[bus_index, bus_index]
         # SECURITY AUDIT 2026-07-25 — Fix S-21: Use z_pos.imag (not abs).
@@ -436,13 +464,30 @@ class IEC60909Engine:
 
     def _calculate_kappa(self, bus_index: int) -> float:
         """
-        Calculate the peak factor kappa per IEC 60909-0:2016 Clause 4.3.1.2 (Method A: Uniform ratio R/X).
+        Calculate peak factor kappa per IEC 60909-0:2016 Clause 4.3.1.2 (Method A: Uniform ratio R/X).
 
-        Method A evaluates the equivalent R/X at the short-circuit location:
-            kappa = 1.02 + 0.98 * exp(-3 * R/X)
+        Standard Normative Reference:
+        IEC 60909-0:2016 Clause 4.3.1.2 defines Method A (Uniform ratio R/X):
+            kappa = 1.02 + 0.98 * exp(-3.0 * (R/X))
+
+        Mathematical & Physical Clamping Limits [1.0, 2.0]:
+        - Upper bound (kappa = 2.0): As R/X -> 0 (purely inductive fault, zero resistance damping),
+          exp(0) = 1.0, giving kappa = 1.02 + 0.98 = 2.00. This represents the theoretical
+          maximum asymmetrical peak fault current with 100% DC offset.
+        - Lower bound (kappa -> 1.02): For large R/X ratios (e.g. R/X >= 10, predominantly resistive
+          or damped networks), exp(-3 * R/X) -> 0, asymptotically approaching 1.02 where the DC
+          transient component decays almost instantaneously.
+        - The standard clamps kappa to a maximum ceiling of 2.0: min(kappa, 2.0).
+
+        Method Scope:
+        This engine implements Method A (Uniform ratio R/X, Clause 4.3.1.2) only.
+        Methods B and C are not implemented in this engine.
+
+        Parameters:
+            bus_index (int): Bus index for retrieving the R/X ratio.
 
         Returns:
-            float: Peak factor kappa clamped to [1.0, 2.0] per standard limits.
+            float: Peak factor kappa clamped to the standard range [1.0, 2.0].
         """
         rx = self._get_rx_ratio(bus_index)
         kappa = 1.02 + 0.98 * np.exp(-3.0 * rx)

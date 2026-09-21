@@ -90,7 +90,7 @@ describe("P9: Import / Export in Chat Components", () => {
       };
 
       render(<ResultCard result={entry} />);
-      expect(screen.getByText(/IEEE 3002.7 • 16\/16 Verified \(claims_audit\)/i)).toBeInTheDocument();
+      expect(screen.getByText(/IEEE 3002.7 • Verifiable via claims_audit/i)).toBeInTheDocument();
       expect(screen.getByText("Validated")).toBeInTheDocument();
     });
 

@@ -75,6 +75,7 @@ messages:
 | `predictive_agent.prompt.yaml` | Predictive | 0.2 |
 | `code_guard_agent.prompt.yaml` | Code Guard | 0.1 |
 | `qgis_agent.prompt.yaml` | GIS & Geospatial Integration (ArcGIS Pro / ArcGIS Online / QGIS) | 0.2 |
+| `design_agent.prompt.yaml` | Generative Design | 0.2 |
 | `fallback_agent.prompt.yaml` | Safety-net fallback | 0.2 |
 
 ---
@@ -242,6 +243,16 @@ All Python agents inherit from `BaseAgent` in `agents/orchestrator.py`.
 - **Coverage**: All ETAP modules — Load Flow, Short Circuit, Arc Flash, Protection, ADMS, GIS, Renewables, Transients, Industrial, API
 - **Standards**: IEEE 80/141/242/399/519/1547/1584, IEC 60909/61363/61660/61850/62351, NEC, NFPA 70E
 - **Test Suite**: `tests/test_etap_expert_skill.py` (22 tests covering all 4 formats + workflow)
+
+### 25. Generative Design Agent (`DesignAgent`)
+- **File**: `agents/design_agent.py`
+- **Prompt**: `design_agent` (manifest → `design_agent.prompt.yaml`)
+- **StudyType**: `GENERATIVE_DESIGN`
+- **Feature Flag**: `generative_design` (DISABLED by default — introduced in commit `7617d30be`)
+- **Tools**: None (pure parametric synthesis — no external Python engine calls)
+- **Standards Referenced**: IEEE 141, IEEE 242, IEC 62271, IEC 60076, IEC 60364, IEC 60909
+- **Purpose**: Generative topology synthesis of substation Single-Line Diagrams (SLD), transformer sizing, switchgear rating, and protection scheme allocation from explicit user parameters.
+- **Honest Limits & Constraints**: Scaffold status only (commit `7617d30be`). Does not modify existing ETAP project files or mutate production topologies directly. Outputs are NOT field-validated against live utility configurations; human expert review and engineering stamp are strictly required prior to physical implementation. Fails closed (`AgentStatus.FAILED` with `reason="flag_disabled"`) whenever the `generative_design` feature flag is inactive.
 
 ---
 

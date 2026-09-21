@@ -34,7 +34,6 @@ const VERIFIED_STANDARDS_MAP: Record<string, string> = {
   harmonic_analysis: "IEEE 519",
   stability: "IEEE 399",
   data_import: "IEC 61850",
-  data_export: "ISO 27001",
 };
 
 const EXPORT_FORMATS = ["pdf", "excel", "csv", "json"] as const;
@@ -205,7 +204,7 @@ export function ResultCard({ result }: ResultCardProps) {
             )}
             <span className="font-medium truncate">
               {isValidated
-                ? `${standard} • 16/16 Verified (claims_audit)`
+                ? `${standard} • Verifiable via claims_audit`
                 : "Unverified Engine Calculation"}
             </span>
           </div>

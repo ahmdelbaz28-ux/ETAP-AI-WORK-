@@ -1,7 +1,8 @@
 # Scientific Validation & Numerical Benchmark Report
 **AhmedETAP Virtual Power System Engineering Platform**  
 *Document Ref: VAL-REP-2026-V1*  
-*Certification Status: CERTIFIED PASS*  
+*Verification Status: PASS (Automated Test Suite Evidence)*  
+*Git Commit Hash: c7cf56e6cee23451648ade93520f2b78f386ae27 | Benchmark Date: 2026-09-21*  
 *Standards Coverage: 16/16 Verified (`claims_audit.py --strict`)*
 
 ---
@@ -27,7 +28,7 @@ All benchmarks are executed via automated testing suites and verified against pu
 | **IEEE 9-Bus WSCC** | IEEE 3002.7 / Anderson & Fouad | Voltage Profile (p.u.) | Bus 5: 0.9956<br>Bus 9: 1.0324 | Bus 5: 0.9960<br>Bus 9: 1.0320 | **0.04%** | $\pm 0.05\%$ (Std: $0.8\%$) | **PASS** |
 | **IEEE 14-Bus Feeder** | IEEE PES Archive | Iterative Convergence | 5 Iterations | 5 Iterations | **< 0.5%** | $\pm 0.5\%$ | **PASS** |
 | **IEC 60909 Symmetrical Fault** | IEC 60909-0:2016 | $I_k''$ Fault Current (13.8 kV) | $17.4288\text{ kA}$ | $17.4288\text{ kA}$ | **0.0002%** | $\pm 0.01\%$ | **PASS** |
-| **IEEE 1584 Arc Flash** | IEEE 1584-2018 | Incident Energy & Arc Boundary | ST Cases 1–7 | Published Table | **0.00%** | Exact Match | **PASS** |
+| **IEEE 1584 Arc Flash** | IEEE 1584-2018 | Incident Energy & Arc Boundary | $E = 0.4723\text{ cal/cm}^2$<br>AFB: $240.1\text{ mm}$ | ST Cases 1–7 (Annex D) | $I_{arc} \le 5\%$, $E \le 15\%$ | Current $\pm 5\%$, Energy $\pm 15\%$ | **PASS** |
 
 > [!NOTE]
 > **IEEE 118-Bus Network**: The synthetic 118-bus topology is verified for graph connectivity and matrix factorization in `tests/test_study_executor_deep.py`. Large-scale dynamic convergence under stressed conditions is documented for future load-profile extensions.
@@ -59,7 +60,7 @@ Execution converged in 4 iterations using Newton-Raphson full Jacobian formulati
 AhmedETAP uses the published IEEE 1584-2018 standard test cases loaded directly from [`tests/gold_cases/ieee1584_st_published.json`](file:///c:/Users/EWS-01/Desktop/etap/tests/gold_cases/ieee1584_st_published.json).
 
 Verified via automated test suite [`tests/test_arcflash_1584_st_cases.py`](file:///c:/Users/EWS-01/Desktop/etap/tests/test_arcflash_1584_st_cases.py):
-- **Case ST-1** (VCB, 0.48 kV, open air enclosure): Exact analytical match for arcing current $I_{arc}$ and incident energy $E$.
+- **Case ST-1** (VCB, 0.48 kV, open air enclosure): Validated arcing current $I_{arc}$ within $\pm 5\%$ and incident energy $E$ within $\pm 15\%$ of published Annex D reference.
 - **Case ST-2** (VCBB, 0.48 kV, barrier configuration): Verified non-linear electrode boundary effects.
 - **Case ST-3** (HCB, 0.48 kV, horizontal electrodes): Verified horizontal convection directional arc flash multiplier.
 - **Case ST-4** (VOA, 0.48 kV, open air): Validated zero enclosure boundary reflection.
@@ -72,8 +73,8 @@ Verified via automated test suite [`tests/test_arcflash_1584_st_cases.py`](file:
 ## 5. Automated Claims Audit Verification
 
 The repository enforces strict zero-untested-claims via [`scripts/claims_audit.py`](file:///c:/Users/EWS-01/Desktop/etap/scripts/claims_audit.py):
-- **Citations Audited**: 385 standard references across engines, agents, and core modules.
-- **Test Corroborations**: 91 empirical test implementations across the test suite.
+- **Citations Audited**: 336 standard references across engines, agents, and core modules.
+- **Test Corroborations**: 83 empirical test implementations across the test suite.
 - **Verified Standard Count**: **16 / 16 (100%)**.
 - **Exit Status**: Clean Zero (`exit code 0`).
 
@@ -91,7 +92,7 @@ Run the strict claims audit:
 python scripts/claims_audit.py --strict
 ```
 
-Run the IEEE 1584 published cases test:
+Run the IEEE 1584 published cases and gold standard test suite:
 ```powershell
-pytest tests/test_arcflash_1584_st_cases.py -v
+pytest tests/test_arcflash_1584_st_cases.py tests/test_ieee_gold_standard_benchmarks.py -v
 ```

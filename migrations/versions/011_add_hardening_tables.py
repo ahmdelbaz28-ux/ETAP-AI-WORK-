@@ -37,7 +37,7 @@ def upgrade() -> None:
             sa.Column("project_id", sa.String(64), primary_key=True),
             sa.Column("convergence_tolerance", sa.Float(), nullable=False, server_default="1e-5"),
             sa.Column("max_iterations", sa.Integer(), nullable=False, server_default="50"),
-            sa.Column("acceleration_factor", sa.Float(), nullable=False, server_default="1.6"),
+            sa.Column("acceleration_factor", sa.Float(), nullable=True, server_default="1.6"),
             sa.Column("created_at", sa.DateTime(timezone=True), nullable=True),
             sa.Column("updated_at", sa.DateTime(timezone=True), nullable=True),
         )
