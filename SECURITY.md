@@ -30,7 +30,7 @@
 
 ## Security Measures
 
-> **Secrets Hygiene Notice**: Rotated all platform credentials as of September 2026 following an internal secrets-hygiene review.
+> **Secrets Hygiene Notice**: [PENDING OWNER CONFIRMATION — 2026-09] Rotated all platform credentials as of September 2026 following an internal secrets-hygiene review.
 
 | Layer | Controls |
 |-------|----------|
