@@ -1,23 +1,35 @@
 """
-api/chat_stream.py — Server-side LLM chat streaming (P4b).
+api/chat_stream.py — Server-side LLM chat streaming (P4b & S1 BYOK).
 
 ``POST /api/v1/chat/stream`` accepts ``{session_id, messages[],
-provider?, model?}`` (NO API keys) and replies with a unified SSE envelope::
+provider?, model?}`` (NO API keys in body payload) and replies with a unified SSE envelope::
 
     event: token  data: {"delta": "..."}    per generated chunk
     event: done   data: {...}               on successful completion
     event: error  data: {"code", "message"} on failure
 
+Credential & Header Resolution (Channel Boundaries):
+- Canonical Stream Channel: ``X-User-LLM-Key`` and ``X-User-LLM-Provider``
+  are the ONLY client credential headers accepted for SSE chat streaming
+  (consumed solely by ``ui/src/lib/llm-chat.ts:1219`` and allowed in CORS).
+- Legacy Channel: ``x-active-*`` headers are legacy REST-only credentials used by
+  ``ui/src/lib/api.ts:21-35`` (which may configure custom base URLs ignored by the streaming
+  resolver) and are STRICTLY NOT accepted or consumed on the /api/v1/chat/stream path
+  to prevent inadvertent credential disclosure.
+- Resolution Precedence: Server environment keys (OPENAI_API_KEY / ANTHROPIC_API_KEY /
+  GEMINI_API_KEY) take precedence. If server keys are missing, an authorized client BYOK
+  header key (X-User-LLM-Key) is used. If neither is present, HTTP 503 is returned.
+
 Security invariants:
-1. Keys never reach the browser — schema uses ``extra="forbid"`` so any
-   client-supplied credential field is rejected with 422; keys are read
-   exclusively from server env (OPENAI_API_KEY / ANTHROPIC_API_KEY).
-2. Provider allowlist — only OpenAI-compatible and Anthropic adapters,
+1. No keys in body payload — schema uses ``extra="forbid"`` so any client-supplied
+   credential field in JSON body is rejected with 422. BYOK credentials must be passed
+   via transport headers only.
+2. Provider allowlist — only OpenAI-compatible, Anthropic, and Gemini adapters,
    reusing ui/api/llm-proxy.js wire patterns (SSE framing, ``[DONE]``
    sentinel, Anthropic ``content_block_delta``).
-3. No sensitive leakage — upstream failures are truncated + redacted
-   (secret-shaped strings AND configured env credential values) before
-   being emitted; sanitized details go to server logs only.
+3. Zero credential leakage — client and server keys NEVER appear in logs or client-facing
+   error bodies. Upstream failures are sanitized via ``sanitize_error_text`` with
+   ``extra_secrets`` redaction before emission.
 4. Auth required — Bearer access token via get_current_user_from_header
    (mirrors the P4a agent-exec path).
 5. Per-user rate limiting — bounded sliding window (platform rule).
@@ -120,9 +132,11 @@ class ChatStreamRequest(BaseModel):
     """Wire contract for POST /api/v1/chat/stream.
 
     ``extra="forbid"`` is deliberate SECURITY: a request carrying any
-    credential-ish extra field (apiKey / api_key / headers ...) is rejected
-    outright instead of silently ignored, making the "no client keys ever"
-    invariant observable and testable.
+    credential-ish extra field in the JSON payload (apiKey / api_key / token ...)
+    is rejected outright with 422.
+    Client-supplied BYOK keys MUST be passed via transport headers (X-User-LLM-Key),
+    never in the request body. Server environment keys take precedence; when absent,
+    authorized header keys are utilized securely without logging.
     """
 
     model_config = ConfigDict(extra="forbid")

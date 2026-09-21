@@ -1143,6 +1143,13 @@ function handleSseLine(line: string, state: { currentEvent: string }): SseAction
 
 export const CHAT_STREAM_TIMEOUT_MS = 15000;
 
+/**
+ * Build request headers for POST /api/v1/chat/stream.
+ *
+ * Transmits the canonical Chat-First BYOK headers (X-User-LLM-Key and
+ * X-User-LLM-Provider) configured in backend CORS allow_headers and handled
+ * securely by api/chat_stream.py without server logging.
+ */
 function createServerChatHeaders(): Record<string, string> {
   const headers: Record<string, string> = { "Content-Type": "application/json" };
   const token = getAuthToken();
