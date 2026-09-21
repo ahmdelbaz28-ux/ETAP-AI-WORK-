@@ -693,7 +693,6 @@ export async function deleteProject(projectId: string): Promise<void> {
 export interface SolverParameters {
   convergence_tolerance: number;
   max_iterations: number;
-  acceleration_factor?: number;
   zbus_calculation_enabled: boolean;
   zbus_iteration_limit: number;
   zbus_voltage_threshold: number;
@@ -1019,7 +1018,6 @@ export interface SolverParametersPayload {
   convergence_tolerance?: number;
   solver_convergence_tolerance?: number;
   max_iterations?: number;
-  acceleration_factor?: number;
 }
 
 /** Update solver parameters for a project in the database. */

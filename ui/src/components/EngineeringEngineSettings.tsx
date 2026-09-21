@@ -13,7 +13,6 @@ import { cn } from "../utils/helpers";
 interface SolverParameters {
   convergence_tolerance: number;
   max_iterations: number;
-  acceleration_factor: number;
   zbus_enabled: boolean;
   zbus_iteration_limit: number;
   zbus_voltage_threshold: number;
@@ -22,7 +21,6 @@ interface SolverParameters {
 const DEFAULT_PARAMETERS: SolverParameters = {
   convergence_tolerance: 1e-4,
   max_iterations: 50,
-  acceleration_factor: 1.4,
   zbus_enabled: true,
   zbus_iteration_limit: 100,
   zbus_voltage_threshold: 0.001,
@@ -74,7 +72,6 @@ export default function EngineeringEngineSettings() {
         convergence_tolerance:
           data.convergence_tolerance ?? DEFAULT_PARAMETERS.convergence_tolerance,
         max_iterations: data.max_iterations ?? DEFAULT_PARAMETERS.max_iterations,
-        acceleration_factor: data.acceleration_factor ?? DEFAULT_PARAMETERS.acceleration_factor,
         zbus_enabled: data.zbus_enabled ?? DEFAULT_PARAMETERS.zbus_enabled,
         zbus_iteration_limit: data.zbus_iteration_limit ?? DEFAULT_PARAMETERS.zbus_iteration_limit,
         zbus_voltage_threshold:
@@ -270,32 +267,6 @@ export default function EngineeringEngineSettings() {
                   <span className="text-xs text-[var(--text-muted)]">Range: 10 – 200</span>
                 </div>
               </div>
-
-              {/* Acceleration Factor */}
-              <div>
-                <label
-                  htmlFor="acceleration-factor"
-                  className="block text-sm font-medium text-[var(--text-secondary)] mb-2"
-                >
-                  Acceleration Factor
-                </label>
-                <div className="flex items-center gap-3">
-                  <input
-                    id="acceleration-factor"
-                    type="number"
-                    min={1.0}
-                    max={2.0}
-                    step={0.05}
-                    value={params.acceleration_factor}
-                    onChange={(e) => {
-                      const val = Math.min(2.0, Math.max(1.0, Number(e.target.value) || 1.0));
-                      setParams({ ...params, acceleration_factor: val });
-                    }}
-                    className="w-28 px-3 py-2 rounded-lg bg-[var(--bg-primary)] border border-[var(--border-primary)] text-sm text-[var(--text-primary)] font-mono focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
-                  />
-                  <span className="text-xs text-[var(--text-muted)]">Range: 1.0 – 2.0</span>
-                </div>
-              </div>
             </div>
           </Card>
         </motion.div>
@@ -410,12 +381,6 @@ export default function EngineeringEngineSettings() {
                     <span className="text-[var(--text-tertiary)]">Max Iterations</span>
                     <span className="text-[var(--text-primary)] font-mono">
                       {params.max_iterations}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-[var(--text-tertiary)]">Acceleration</span>
-                    <span className="text-[var(--text-primary)] font-mono">
-                      {params.acceleration_factor.toFixed(2)}
                     </span>
                   </div>
                   <div className="flex justify-between">
