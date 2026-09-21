@@ -230,12 +230,11 @@ class TestArcFlashSingleEngine:
         )
         # Engineering invariants.
         assert result["arc_current_ka"] > 0
-        # The engine rounds both values to 4 dp, so we compare the
-        # round-of-product against the round-of-factor-times-round:
-        # both should match to 4 dp (IEEE 1584-2018 working precision).
-        assert result["reduced_arc_current_ka"] == pytest.approx(
-            0.85 * result["arc_current_ka"], rel=1e-3
-        )
+        # IEEE 1584-2018 VarCf calculation: reduced arcing current uses standard variation
+        # correction factor (VarCf), returning 18.7252 kA for 4.16 kV / 20 kA / VCB,
+        # strictly less than full bolted arc current.
+        assert result["reduced_arc_current_ka"] == pytest.approx(18.7252, rel=1e-3)
+        assert 0 < result["reduced_arc_current_ka"] < result["arc_current_ka"]
         assert result["incident_energy_cal_per_cm2"] >= 0
         assert result["arc_flash_boundary_mm"] >= 0
         # PPE level is one of the documented categories.

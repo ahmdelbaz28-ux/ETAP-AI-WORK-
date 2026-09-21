@@ -30,16 +30,23 @@ def _build_test_app() -> Starlette:
 
 def test_security_headers_injected():
     client = TestClient(_build_test_app())
+
+    # Plain HTTP request: security headers present, but HSTS omitted per RFC 6797 Section 7.2 & FIX-RC5
     res = client.get("/test")
     assert res.status_code == 200
-    assert "Strict-Transport-Security" in res.headers
-    assert "max-age=" in res.headers["Strict-Transport-Security"]
+    assert "Strict-Transport-Security" not in res.headers
     assert res.headers["X-Content-Type-Options"] == "nosniff"
     assert "X-Frame-Options" in res.headers
     assert "Content-Security-Policy" in res.headers
     assert "default-src 'self'" in res.headers["Content-Security-Policy"]
     assert res.headers["Referrer-Policy"] == "strict-origin-when-cross-origin"
     assert "Permissions-Policy" in res.headers
+
+    # HTTPS request (via X-Forwarded-Proto): HSTS is injected with max-age
+    res_https = client.get("/test", headers={"X-Forwarded-Proto": "https"})
+    assert res_https.status_code == 200
+    assert "Strict-Transport-Security" in res_https.headers
+    assert "max-age=" in res_https.headers["Strict-Transport-Security"]
 
 
 def test_host_validation_valid():

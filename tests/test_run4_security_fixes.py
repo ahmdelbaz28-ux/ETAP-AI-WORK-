@@ -362,8 +362,16 @@ def test_etap_project_path_symlink_traversal_rejected(tmp_path):
             assert automation._validate_project_path(str(link_in_cwd)) is False
         else:
             # In environments without Windows symlink privilege, verify that resolving
-            # realpath to an external target outside CWD and HOME returns False
-            with patch("os.path.realpath", return_value=target_external):
+            # realpath to an external target outside CWD and HOME returns False.
+            # Preserve realpath resolution for cwd/home while redirecting the symlink target.
+            orig_realpath = os.path.realpath
+
+            def _mock_realpath(p, *args, **kwargs):
+                if "test_symlink" in str(p):
+                    return target_external
+                return orig_realpath(p, *args, **kwargs)
+
+            with patch("os.path.realpath", side_effect=_mock_realpath):
                 assert automation._validate_project_path("networks/test_symlink.edb") is False
     finally:
         if link_in_cwd.is_symlink() or link_in_cwd.exists():
