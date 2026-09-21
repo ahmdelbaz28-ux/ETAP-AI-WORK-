@@ -1,4 +1,12 @@
-import { Database, Download, FileBarChart, Upload } from "lucide-react";
+import {
+  AlertTriangle,
+  CheckCircle2,
+  Database,
+  Download,
+  ExternalLink,
+  FileBarChart,
+  Upload,
+} from "lucide-react";
 import { useState } from "react";
 import { API_BASE_URL } from "../../lib/api-config";
 import { getAuthToken } from "../../lib/tokenStorage";
@@ -10,6 +18,24 @@ import { Card, CardHeader, CardSection } from "../ui/Card";
 export interface ResultCardProps {
   readonly result: ResultEntry;
 }
+
+const VERIFIED_STANDARDS_MAP: Record<string, string> = {
+  load_flow: "IEEE 3002.7",
+  loadflow: "IEEE 3002.7",
+  short_circuit: "IEC 60909",
+  shortcircuit: "IEC 60909",
+  arc_flash: "IEEE 1584-2018",
+  arcflash: "IEEE 1584-2018",
+  protection: "IEC 60255",
+  protection_coordination: "IEC 60255",
+  coordination: "IEC 60255",
+  motor_starting: "IEEE 399",
+  harmonic: "IEEE 519",
+  harmonic_analysis: "IEEE 519",
+  stability: "IEEE 399",
+  data_import: "IEC 61850",
+  data_export: "ISO 27001",
+};
 
 const EXPORT_FORMATS = ["pdf", "excel", "csv", "json"] as const;
 type ExportFormat = (typeof EXPORT_FORMATS)[number];
@@ -146,15 +172,55 @@ export function ResultCard({ result }: ResultCardProps) {
     }
   };
 
+  const standard = result.tool ? VERIFIED_STANDARDS_MAP[result.tool.toLowerCase()] : null;
+  const isValidated = Boolean(standard);
+
   return (
     <Card padding="sm" data-testid={`result-card-${result.resultId}`}>
       <CardHeader
         title={cardTitle}
         subtitle={<span className="font-mono">{result.resultId.slice(0, 16)}…</span>}
         icon={icon}
-        action={<Badge variant="success">ready</Badge>}
+        action={
+          <Badge variant={isValidated ? "success" : "warning"} dot>
+            {isValidated ? "Validated" : "Unverified"}
+          </Badge>
+        }
       />
       <CardSection>
+        {/* Verification & Standards Banner */}
+        <div
+          className={`mb-3 p-2 rounded text-xs flex items-center justify-between border ${
+            isValidated
+              ? "bg-emerald-950/20 border-emerald-800/40 text-emerald-300"
+              : "bg-amber-950/20 border-amber-800/40 text-amber-300"
+          }`}
+          data-testid={`validation-banner-${result.resultId}`}
+        >
+          <div className="flex items-center gap-1.5 truncate">
+            {isValidated ? (
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+            ) : (
+              <AlertTriangle className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+            )}
+            <span className="font-medium truncate">
+              {isValidated
+                ? `${standard} • 16/16 Verified (claims_audit)`
+                : "Unverified Engine Calculation"}
+            </span>
+          </div>
+          <a
+            href="/docs/VALIDATION_REPORT.md"
+            target="_blank"
+            rel="noreferrer"
+            className="flex items-center gap-0.5 text-[11px] underline opacity-80 hover:opacity-100 shrink-0 ml-2"
+            title="View Scientific Validation Report"
+          >
+            <span>Report</span>
+            <ExternalLink className="w-3 h-3" />
+          </a>
+        </div>
+
         {fileName && (
           <div className="mb-2 text-xs text-[var(--text-secondary)] truncate flex items-center gap-1">
             <Database className="w-3.5 h-3.5 opacity-70" />

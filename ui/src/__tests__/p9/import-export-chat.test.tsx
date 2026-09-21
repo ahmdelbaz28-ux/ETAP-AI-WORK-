@@ -82,6 +82,28 @@ describe("P9: Import / Export in Chat Components", () => {
 
       expect(useChatStore.getState().selectedResultId).toBe("res_click_test_1234567");
     });
+
+    it("renders validation banner for verified engineering standard", () => {
+      const entry: ResultEntry = {
+        resultId: "res_val_test_1234567",
+        tool: "load_flow",
+      };
+
+      render(<ResultCard result={entry} />);
+      expect(screen.getByText(/IEEE 3002.7 • 16\/16 Verified \(claims_audit\)/i)).toBeInTheDocument();
+      expect(screen.getByText("Validated")).toBeInTheDocument();
+    });
+
+    it("renders unverified badge when tool is unknown", () => {
+      const entry: ResultEntry = {
+        resultId: "res_unv_test_1234567",
+        tool: "unknown_custom_tool",
+      };
+
+      render(<ResultCard result={entry} />);
+      expect(screen.getByText("Unverified")).toBeInTheDocument();
+      expect(screen.getByText("Unverified Engine Calculation")).toBeInTheDocument();
+    });
   });
 
   describe("MessageInput", () => {
