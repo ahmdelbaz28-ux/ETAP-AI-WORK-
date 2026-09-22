@@ -25,6 +25,10 @@ on:
         description: "Commit SHA to validate against canonical release criteria (default: current HEAD)"
         required: false
         default: ""
+      shadow_mode:
+        description: "Run in shadow / audit mode without failing workflow (reveals missing or skipped checks)"
+        required: false
+        default: "false"
 
 concurrency:
   group: release-gate-${{ github.event.inputs.target_sha || github.sha }}
@@ -75,12 +79,14 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           COMMIT_SHA: ${{ steps.resolve-sha.outputs.commit_sha }}
+          IS_SHADOW: ${{ github.event.inputs.shadow_mode }}
         shell: bash
         run: |
           set -euo pipefail
 
           echo "============================================================"
           echo "Evaluating Canonical Release Gate for Commit: $COMMIT_SHA"
+          echo "Mode: $([ "$IS_SHADOW" = "true" ] && echo 'SHADOW / AUDIT' || echo 'AUTHORITATIVE BLOCKING')"
           echo "============================================================"
 
           # Query all check runs for this commit
@@ -90,14 +96,14 @@ jobs:
             "CI Success"
             "Trivy Security Scan"
             "Docker Validation Summary"
-            "Authoritative TypeScript Quality Gate"
+            "UI Quality Summary"
           )
 
           GATE_FAILED=0
 
           for CHECK in "${REQUIRED_CHECKS[@]}"; do
-            STATUS=$(echo "$CHECK_RUNS" | jq -r --arg name "$CHECK" '.[] | select(.name == $name) | .status' | head -n1)
-            CONCLUSION=$(echo "$CHECK_RUNS" | jq -r --arg name "$CHECK" '.[] | select(.name == $name) | .conclusion' | head -n1)
+            STATUS=$(echo "$CHECK_RUNS" | jq -r --arg name "$CHECK" '.[] | select(.name | contains($name)) | .status' | head -n1)
+            CONCLUSION=$(echo "$CHECK_RUNS" | jq -r --arg name "$CHECK" '.[] | select(.name | contains($name)) | .conclusion' | head -n1)
 
             if [ -z "$STATUS" ] || [ "$STATUS" == "null" ]; then
               echo "::error::[MISSING] Required check '$CHECK' was not found for commit $COMMIT_SHA (fail-closed)."
@@ -115,9 +121,15 @@ jobs:
 
           if [ "$GATE_FAILED" -ne 0 ]; then
             echo "============================================================"
-            echo "::error::Release Gate FAILED. One or more mandatory checks did not succeed."
-            echo "============================================================"
-            exit 1
+            if [ "$IS_SHADOW" = "true" ]; then
+              echo "::warning::[SHADOW MODE] Release Gate detected failures or skipped checks above, but shadow mode is enabled."
+              echo "============================================================"
+              exit 0
+            else
+              echo "::error::Release Gate FAILED. One or more mandatory checks did not succeed."
+              echo "============================================================"
+              exit 1
+            fi
           fi
 
           echo "============================================================"

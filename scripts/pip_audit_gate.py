@@ -11,7 +11,6 @@ from __future__ import annotations
 
 import datetime
 import json
-import os
 import subprocess
 import sys
 from pathlib import Path
@@ -26,7 +25,7 @@ def main() -> int:
         print(f"::error::Baseline file not found: {baseline_path}")
         return 1
 
-    with open(baseline_path, "r", encoding="utf-8") as f:
+    with open(baseline_path, encoding="utf-8") as f:
         baseline = json.load(f)
 
     today = datetime.date.today()
