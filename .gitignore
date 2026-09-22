@@ -229,6 +229,9 @@ pnpm-debug.log*
 # Build outputs
 .next/
 out/
+ui-dist/
+duplicate-audit/
+scientific_validation_report.json
 
 # Testing
 coverage/
