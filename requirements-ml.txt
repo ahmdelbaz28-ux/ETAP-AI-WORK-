@@ -21,7 +21,7 @@ torch-geometric>=2.8.0.post1              # Graph Neural Networks for power grid
 mlflow>=3.16.1                       # Model tracking, versioning, registry
 
 # Phase 6e: ML/AI - NLP & RAG Enhancement
-transformers>=5.15.1                # HuggingFace Transformers
+transformers>=5.17.0                # HuggingFace Transformers
 sentence-transformers>=2.2.0        # Sentence embeddings for RAG
 # SECURITY: Pillow~=12.3.0 fixes 17 CVEs (CVE-2026-59197..59205, CVE-2023-50447, CVE-2023-4863, etc.)
 Pillow~=12.3.0
