@@ -121,6 +121,36 @@ def _reset_redis_singleton():
         redis_state._sync_client = None
     except Exception:
         pass
+    try:
+        from api.redis_client import reset_redis_client
+
+        reset_redis_client()
+    except Exception:
+        pass
+    try:
+        from api.prompt_registry_redis import reset_distributed_prompt_registry
+
+        reset_distributed_prompt_registry()
+    except Exception:
+        pass
+    try:
+        from api.semantic_cache_redis import reset_distributed_semantic_cache
+
+        reset_distributed_semantic_cache()
+    except Exception:
+        pass
+    try:
+        from api.token_budget_redis import reset_distributed_budget_manager
+
+        reset_distributed_budget_manager()
+    except Exception:
+        pass
+    try:
+        from api.rag_retriever_redis import reset_distributed_rag_retriever
+
+        reset_distributed_rag_retriever()
+    except Exception:
+        pass
     yield
     _detach_redis_connections(auth_module._redis_client)
     auth_module._redis_client = None
@@ -140,6 +170,36 @@ def _reset_redis_singleton():
         _detach_redis_connections(redis_state._sync_client)
         redis_state._client = None
         redis_state._sync_client = None
+    except Exception:
+        pass
+    try:
+        from api.redis_client import reset_redis_client
+
+        reset_redis_client()
+    except Exception:
+        pass
+    try:
+        from api.prompt_registry_redis import reset_distributed_prompt_registry
+
+        reset_distributed_prompt_registry()
+    except Exception:
+        pass
+    try:
+        from api.semantic_cache_redis import reset_distributed_semantic_cache
+
+        reset_distributed_semantic_cache()
+    except Exception:
+        pass
+    try:
+        from api.token_budget_redis import reset_distributed_budget_manager
+
+        reset_distributed_budget_manager()
+    except Exception:
+        pass
+    try:
+        from api.rag_retriever_redis import reset_distributed_rag_retriever
+
+        reset_distributed_rag_retriever()
     except Exception:
         pass
 

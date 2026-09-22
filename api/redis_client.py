@@ -49,14 +49,17 @@ async def get_redis() -> Optional[redis_async.Redis]:
 
     if _redis_client is None:
         url = get_redis_url()
+        max_connections = int(os.getenv("REDIS_MAX_CONNECTIONS", "50"))
+        socket_timeout = float(os.getenv("REDIS_SOCKET_TIMEOUT", "5.0"))
+        socket_connect_timeout = float(os.getenv("REDIS_SOCKET_CONNECT_TIMEOUT", "5.0"))
         try:
             _redis_client = redis_async.from_url(
                 url,
                 encoding="utf-8",
                 decode_responses=True,
-                max_connections=20,
-                socket_connect_timeout=2.0,
-                socket_timeout=2.0,
+                max_connections=max_connections,
+                socket_connect_timeout=socket_connect_timeout,
+                socket_timeout=socket_timeout,
             )
             _client_loop = current_loop
         except Exception as exc:
@@ -95,5 +98,12 @@ async def close_redis() -> None:
 def reset_redis_client() -> None:
     """Synchronously reset the shared Redis client reference for test isolation."""
     global _redis_client, _client_loop
+    if _redis_client is not None:
+        try:
+            pool = getattr(_redis_client, "connection_pool", None)
+            if pool is not None:
+                pool.disconnect()
+        except Exception:
+            pass
     _redis_client = None
     _client_loop = None

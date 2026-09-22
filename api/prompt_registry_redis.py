@@ -7,6 +7,7 @@ with seamless fallback to in-memory PromptRegistry when Redis is unavailable.
 
 from __future__ import annotations
 
+import asyncio
 import copy
 import json
 import logging
@@ -32,6 +33,22 @@ class DistributedPromptRegistry:
     def __init__(self, namespace: str = "prompt_registry") -> None:
         self.namespace = namespace
         self._mode: Optional[str] = None  # Resolved mode: "redis" or "memory"
+
+    async def _retry(self, fn: Any, *args: Any, **kwargs: Any) -> Any:
+        """Execute Redis call with exponential backoff on transient network/timeout errors."""
+        retries = 2
+        delay = 0.05
+        for attempt in range(retries + 1):
+            try:
+                res = fn(*args, **kwargs)
+                if asyncio.iscoroutine(res):
+                    return await res
+                return res
+            except (ConnectionError, TimeoutError, OSError):
+                if attempt < retries:
+                    await asyncio.sleep(delay * (2 ** attempt))
+                else:
+                    raise
 
     async def _get_client(self) -> Optional[Any]:
         """Resolve backend source of truth consistently for this operation sequence."""
@@ -68,30 +85,36 @@ class DistributedPromptRegistry:
         norm_handle = agent_handle.strip().lower()
         meta = metadata or {}
 
+        # Read-Your-Writes: Always mirror to local in-memory registry so that
+        # if a fallback to memory happens later, local state is 100% complete and consistent.
+        mem_pv = _get_in_memory_registry().register_version(
+            agent_handle,
+            prompt_text,
+            temperature,
+            metadata,
+            is_active,
+        )
+
         r = await self._get_client()
         if r is None:
-            return _get_in_memory_registry().register_version(
-                agent_handle,
-                prompt_text,
-                temperature,
-                metadata,
-                is_active,
-            )
+            return mem_pv
 
         try:
-            version_count = await r.llen(self._versions_key(norm_handle))
+            version_count = await self._retry(r.llen, self._versions_key(norm_handle))
             version_num = version_count + 1
             version_id = f"{norm_handle}:v{version_num}"
 
             should_activate = is_active or (version_count == 0)
             if should_activate:
-                existing_ids = await r.lrange(self._versions_key(norm_handle), 0, -1)
+                existing_ids = await self._retry(
+                    r.lrange, self._versions_key(norm_handle), 0, -1
+                )
                 for vid in existing_ids:
-                    v_data = await r.get(self._version_key(vid))
+                    v_data = await self._retry(r.get, self._version_key(vid))
                     if v_data:
                         v = json.loads(v_data)
                         v["is_active"] = False
-                        await r.set(self._version_key(vid), json.dumps(v))
+                        await self._retry(r.set, self._version_key(vid), json.dumps(v))
 
             pv = PromptVersion(
                 version_id=version_id,
@@ -103,9 +126,12 @@ class DistributedPromptRegistry:
                 created_at=time.time(),
             )
 
-            await r.set(self._version_key(version_id), json.dumps(pv.to_dict()))
-            await r.rpush(self._versions_key(norm_handle), version_id)
-            await r.set(
+            await self._retry(
+                r.set, self._version_key(version_id), json.dumps(pv.to_dict())
+            )
+            await self._retry(r.rpush, self._versions_key(norm_handle), version_id)
+            await self._retry(
+                r.set,
                 self._metrics_key(version_id),
                 json.dumps(PromptMetrics(version_id=version_id).to_dict()),
             )
@@ -117,13 +143,7 @@ class DistributedPromptRegistry:
         except Exception as exc:
             logger.debug("Redis prompt register_version failed, falling back to memory: %s", exc)
             self._mode = "memory"
-            return _get_in_memory_registry().register_version(
-                agent_handle,
-                prompt_text,
-                temperature,
-                metadata,
-                is_active,
-            )
+            return mem_pv
 
     async def get_active_version(
         self,
@@ -136,15 +156,17 @@ class DistributedPromptRegistry:
             return _get_in_memory_registry().get_active_version(agent_handle, candidate_traffic_pct)
 
         try:
-            vids = await r.lrange(self._versions_key(norm_handle), 0, -1)
+            vids = await self._retry(r.lrange, self._versions_key(norm_handle), 0, -1)
             if not vids:
-                return None
+                return _get_in_memory_registry().get_active_version(
+                    agent_handle, candidate_traffic_pct
+                )
 
             active_ver: Optional[PromptVersion] = None
             candidate_vers: List[PromptVersion] = []
 
             for vid in vids:
-                v_data = await r.get(self._version_key(vid))
+                v_data = await self._retry(r.get, self._version_key(vid))
                 if not v_data:
                     continue
                 ver = PromptVersion(**json.loads(v_data))
@@ -160,10 +182,10 @@ class DistributedPromptRegistry:
             if active_ver:
                 return active_ver
 
-            latest_data = await r.get(self._version_key(vids[-1]))
+            latest_data = await self._retry(r.get, self._version_key(vids[-1]))
             if latest_data:
                 return PromptVersion(**json.loads(latest_data))
-            return None
+            return _get_in_memory_registry().get_active_version(agent_handle, candidate_traffic_pct)
         except Exception as exc:
             logger.debug("Redis get_active_version failed, falling back to memory: %s", exc)
             self._mode = "memory"
@@ -177,15 +199,17 @@ class DistributedPromptRegistry:
         success: bool = True,
         quality_score: Optional[float] = None,
     ) -> None:
+        # Read-Your-Writes: Always record metrics in local memory mirror
+        _get_in_memory_registry().record_metrics(
+            version_id, tokens_used, latency_ms, success, quality_score
+        )
+
         r = await self._get_client()
         if r is None:
-            _get_in_memory_registry().record_metrics(
-                version_id, tokens_used, latency_ms, success, quality_score
-            )
             return
 
         try:
-            metrics_data = await r.get(self._metrics_key(version_id))
+            metrics_data = await self._retry(r.get, self._metrics_key(version_id))
             if metrics_data:
                 metrics = PromptMetrics(**json.loads(metrics_data))
             else:
@@ -201,34 +225,39 @@ class DistributedPromptRegistry:
             if quality_score is not None:
                 metrics.quality_scores.append(float(quality_score))
 
-            await r.set(self._metrics_key(version_id), json.dumps(metrics.to_dict()))
+            await self._retry(
+                r.set, self._metrics_key(version_id), json.dumps(metrics.to_dict())
+            )
         except Exception as exc:
-            logger.debug("Redis record_metrics failed, falling back to memory: %s", exc)
-            self._mode = "memory"
-            _get_in_memory_registry().record_metrics(
-                version_id, tokens_used, latency_ms, success, quality_score
+            logger.debug(
+                "Redis record_metrics failed (state preserved in memory mirror): %s", exc
             )
 
     async def promote_version(self, version_id: str) -> bool:
+        # Mirror promotion to in-memory registry
+        _get_in_memory_registry().promote_version(version_id)
+
         r = await self._get_client()
         if r is None:
-            return _get_in_memory_registry().promote_version(version_id)
+            return True
 
         try:
-            target_data = await r.get(self._version_key(version_id))
+            target_data = await self._retry(r.get, self._version_key(version_id))
             if not target_data:
                 return False
 
             target = PromptVersion(**json.loads(target_data))
             norm_handle = target.agent_handle
 
-            vids = await r.lrange(self._versions_key(norm_handle), 0, -1)
+            vids = await self._retry(r.lrange, self._versions_key(norm_handle), 0, -1)
             for vid in vids:
-                v_data = await r.get(self._version_key(vid))
+                v_data = await self._retry(r.get, self._version_key(vid))
                 if v_data:
                     ver = PromptVersion(**json.loads(v_data))
                     ver.is_active = vid == version_id
-                    await r.set(self._version_key(vid), json.dumps(ver.to_dict()))
+                    await self._retry(
+                        r.set, self._version_key(vid), json.dumps(ver.to_dict())
+                    )
 
             logger.info("Promoted prompt version %s to active", version_id)
             return True
@@ -250,8 +279,8 @@ class DistributedPromptRegistry:
                 handles = []
                 cursor = 0
                 while True:
-                    cursor, keys = await r.scan(
-                        cursor, match=f"{self.namespace}:versions:*", count=100
+                    cursor, keys = await self._retry(
+                        r.scan, cursor, match=f"{self.namespace}:versions:*", count=100
                     )
                     for k in keys:
                         k_str = k.decode() if isinstance(k, bytes) else str(k)
@@ -261,7 +290,7 @@ class DistributedPromptRegistry:
                 handles = [k.replace(f"{self.namespace}:versions:", "") for k in handles]
 
             for handle in handles:
-                vids = await r.lrange(self._versions_key(handle), 0, -1)
+                vids = await self._retry(r.lrange, self._versions_key(handle), 0, -1)
                 if not vids:
                     continue
 
@@ -269,8 +298,8 @@ class DistributedPromptRegistry:
                 baseline_tokens: Optional[float] = None
 
                 for idx, vid in enumerate(vids):
-                    v_data = await r.get(self._version_key(vid))
-                    m_data = await r.get(self._metrics_key(vid))
+                    v_data = await self._retry(r.get, self._version_key(vid))
+                    m_data = await self._retry(r.get, self._metrics_key(vid))
                     if not v_data:
                         continue
                     ver = PromptVersion(**json.loads(v_data))
@@ -305,6 +334,14 @@ class DistributedPromptRegistry:
                     "versions": version_reports,
                 }
 
+            # Read-Your-Writes: If Redis returned an empty report or is missing requested handle,
+            # union with in-memory report so session-registered versions are never silently dropped.
+            mem_report = _get_in_memory_registry().get_tradeoff_report(agent_handle)
+            if not report:
+                return mem_report
+            for h, h_data in mem_report.items():
+                if h not in report:
+                    report[h] = h_data
             return report
         except Exception as exc:
             logger.debug("Redis get_tradeoff_report failed, falling back to memory: %s", exc)

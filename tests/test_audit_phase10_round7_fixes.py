@@ -155,24 +155,37 @@ class TestCIPinning:
         return _read_file(".github/workflows/ci.yml")
 
     def test_no_trivy_at_master(self, ci_cd_source: str) -> None:
-        """trivy-action must NOT be pinned to @master."""
+        """trivy-action must NOT be pinned to @master or :latest."""
         assert "trivy-action@master" not in ci_cd_source, (
             "trivy-action must not use @master (supply chain risk)"
         )
+        assert "aquasec/trivy:latest" not in ci_cd_source, (
+            "aquasec/trivy must not use :latest (supply chain risk)"
+        )
 
     def test_trivy_pinned_to_sha(self, ci_cd_source: str) -> None:
-        """trivy-action must be pinned to a specific commit SHA (not a
-        mutable tag like @master or @0.9.2).
-
-        Commit-SHA pinning is more secure than tag pinning because tags
-        can be moved by the repository owner.  The workflow currently
-        pins to the SHA for v0.9.2:
-        ``1f0aa582c8c8f5f7639610d6d38baddfea4fdcee``.
+        """Trivy vulnerability scanning must be pinned to an immutable identifier
+        (either a 40-hex commit SHA for GitHub action or a specific pinned semver/digest
+        for official container image), and must enforce a blocking exit-code of 1
+        to prevent silently ignoring high or critical security vulnerabilities.
         """
         import re
 
-        assert re.search(r"trivy-action@[a-f0-9]{40}", ci_cd_source), (
-            "trivy-action should be pinned to a specific commit SHA"
+        is_action_pinned = bool(re.search(r"trivy-action@[a-f0-9]{40}", ci_cd_source))
+        is_container_pinned = bool(
+            re.search(r"aquasec/trivy:(?:\d+\.\d+\.\d+|sha256:[a-f0-9]{64})", ci_cd_source)
+        )
+        assert is_action_pinned or is_container_pinned, (
+            "Trivy scanner must be pinned to a specific commit SHA (trivy-action@<40-hex>) "
+            "or pinned container image (aquasec/trivy:<semver|sha256>)"
+        )
+
+        has_blocking_exit_code = bool(
+            re.search(r"--exit-code\s+1\b", ci_cd_source)
+            or re.search(r"exit-code:\s*['\"]?1['\"]?", ci_cd_source)
+        )
+        assert has_blocking_exit_code, (
+            "Trivy scanner must enforce blocking --exit-code 1"
         )
 
 

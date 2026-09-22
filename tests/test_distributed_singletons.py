@@ -348,3 +348,37 @@ async def test_distributed_prompt_registry_mid_chain_redis_failure():
         assert pv2 is not None
         assert reg._mode == "memory"
 
+
+@pytest.mark.asyncio
+async def test_distributed_prompt_registry_read_your_writes_on_tradeoff_timeout():
+    """
+    Regression test: Verifies that when register_version succeeds on Redis,
+    but subsequent get_tradeoff_report encounters a TimeoutError on Redis,
+    Read-Your-Writes state mirroring guarantees the tradeoff report contains
+    the registered agent's metrics instead of collapsing to an empty dict {}.
+    """
+    mock_redis = AsyncMock()
+    mock_redis.llen.return_value = 0
+    mock_redis.lrange.return_value = []
+    mock_redis.set.return_value = True
+    mock_redis.rpush.return_value = 1
+
+    with patch("api.prompt_registry_redis.get_redis", return_value=mock_redis):
+        reg = DistributedPromptRegistry(namespace="test_ryw_timeout")
+        pv = await reg.register_version(
+            agent_handle="load_flow_agent",
+            prompt_text="Load flow specialized prompt",
+            temperature=0.2,
+        )
+        assert pv.agent_handle == "load_flow_agent"
+
+        await reg.record_metrics(pv.version_id, tokens_used=1200, latency_ms=180.0, success=True)
+
+        # Now simulate Redis timeout during get_tradeoff_report (scan / lrange)
+        mock_redis.lrange.side_effect = TimeoutError("Redis socket timeout under heavy CI load")
+
+        # Must NOT return empty {} — Read-Your-Writes ensures local mirror has data
+        report = await reg.get_tradeoff_report("load_flow_agent")
+        assert "load_flow_agent" in report
+        assert report["load_flow_agent"]["total_versions"] >= 1
+

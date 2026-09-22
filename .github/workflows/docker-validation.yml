@@ -254,15 +254,19 @@ jobs:
           load: true
           cache-from: type=gha
 
-      - name: 🔬 Trivy vulnerability scan
-        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25  # v0.36.0
-        with:
-          image-ref: etap-${{ matrix.name }}:scan
-          format: 'sarif'
-          output: 'trivy-${{ matrix.name }}.sarif'
-          severity: 'CRITICAL,HIGH'
-          exit-code: '1'
-          ignore-unfixed: true
+      - name: 🔬 Trivy vulnerability scan (via Docker)
+        run: |
+          docker run --rm \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            -v /tmp/trivy-cache:/root/.cache/trivy \
+            -v "${PWD}:/repo" \
+            aquasec/trivy:0.58.0 \
+            image --severity CRITICAL,HIGH \
+                  --ignore-unfixed \
+                  --exit-code 1 \
+                  --format sarif \
+                  --output /repo/trivy-${{ matrix.name }}.sarif \
+                  etap-${{ matrix.name }}:scan
 
       - name: 📤 Upload SARIF to GitHub Security
         uses: github/codeql-action/upload-sarif@1c5b675653bb5c22dbe9b12b556ec555138e09fd  # v4.38.1
