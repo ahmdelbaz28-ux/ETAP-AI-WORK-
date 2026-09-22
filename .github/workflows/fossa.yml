@@ -42,11 +42,8 @@ jobs:
           version: 9.15.4
           run_install: false
 
-      - name: Install uv and sync Python dependencies
-        run: |
-          curl -LsSf https://astral.sh/uv/install.sh | sh
-          export PATH="$HOME/.local/bin:$PATH"
-          uv sync --frozen --all-extras
+      - name: Install Python dependencies
+        run: pip install --only-binary :all: --requirement requirements.txt
 
       - name: Install Node dependencies
         run: pnpm install --frozen-lockfile
