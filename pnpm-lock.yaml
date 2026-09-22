@@ -60,8 +60,8 @@ importers:
         specifier: ^1.37.1
         version: 1.59.0(@grpc/grpc-js@1.14.4)(ai@6.0.255(zod@3.25.76))(express@5.2.1(supports-color@10.2.2))(rxjs@7.8.2)(supports-color@10.2.2)(zod@3.25.76)
       '@mastra/duckdb':
-        specifier: ^1.4.0
-        version: 1.6.1(@mastra/core@1.59.0(@grpc/grpc-js@1.14.4)(ai@6.0.255(zod@3.25.76))(express@5.2.1(supports-color@10.2.2))(rxjs@7.8.2)(supports-color@10.2.2)(zod@3.25.76))
+        specifier: ^1.9.0
+        version: 1.9.0(@mastra/core@1.59.0(@grpc/grpc-js@1.14.4)(ai@6.0.255(zod@3.25.76))(express@5.2.1(supports-color@10.2.2))(rxjs@7.8.2)(supports-color@10.2.2)(zod@3.25.76))
       '@mastra/libsql':
         specifier: ^1.4.0
         version: 1.20.0(@mastra/core@1.59.0(@grpc/grpc-js@1.14.4)(ai@6.0.255(zod@3.25.76))(express@5.2.1(supports-color@10.2.2))(rxjs@7.8.2)(supports-color@10.2.2)(zod@3.25.76))
@@ -1316,11 +1316,11 @@ packages:
     peerDependencies:
       '@mastra/core': '>=1.50.0-0 <2.0.0-0'
 
-  '@mastra/duckdb@1.6.1':
-    resolution: {integrity: sha512-hm1qC+NzqSal8C1jPrc2vcQHtLh6g3DivJLgKVSRnDd6ypzqQ+QOGxNjZ0iYFCt7y130KayOk/HUe9aXAn7kcg==}
+  '@mastra/duckdb@1.9.0':
+    resolution: {integrity: sha512-A4w5oqs8yeffgzp8+rao0YLxlszDV7UDNIjEl4MdjJxJvqMSNvPpkrAsjPofQNdP40p290i+bj3eIMdrUOKZNg==}
     engines: {node: '>=22.13.0'}
     peerDependencies:
-      '@mastra/core': '>=1.57.0-0 <2.0.0-0'
+      '@mastra/core': '>=1.58.0-0 <2.0.0-0'
 
   '@mastra/libsql@1.20.0':
     resolution: {integrity: sha512-8yLoR43E/vON0Mv611RvjToVfo2kXTaziwVwCscKPBW7nYYcSb5ZT/Bq6W5CC0+Qy4pYGYrrsxZb1xEuU2Fd0g==}
@@ -7873,7 +7873,7 @@ snapshots:
       - utf-8-validate
       - zod
 
-  '@mastra/duckdb@1.6.1(@mastra/core@1.59.0(@grpc/grpc-js@1.14.4)(ai@6.0.255(zod@3.25.76))(express@5.2.1(supports-color@10.2.2))(rxjs@7.8.2)(supports-color@10.2.2)(zod@3.25.76))':
+  '@mastra/duckdb@1.9.0(@mastra/core@1.59.0(@grpc/grpc-js@1.14.4)(ai@6.0.255(zod@3.25.76))(express@5.2.1(supports-color@10.2.2))(rxjs@7.8.2)(supports-color@10.2.2)(zod@3.25.76))':
     dependencies:
       '@duckdb/node-api': 1.5.2-r.2
       '@mastra/core': 1.59.0(@grpc/grpc-js@1.14.4)(ai@6.0.255(zod@3.25.76))(express@5.2.1(supports-color@10.2.2))(rxjs@7.8.2)(supports-color@10.2.2)(zod@3.25.76)
