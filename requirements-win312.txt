@@ -395,20 +395,20 @@ paho-mqtt>=1.6.1
 # pyScada-opcua      # Commented out - not on PyPI
 # pyScada-modbus     # Commented out - not on PyPI
 # pyScada-ems        # Commented out - not on PyPI
-pymongo
+pymongo~=4.8.0
 # arcpy  # Commented out - installed with ArcGIS Pro only
-pandas
+pandas~=2.2.0
 numpy>=1.26.0,<2.6
 requests>=2.33.0
-flask  # For potential web APIs
-geopandas  # For GIS operations
-shapely  # For geometric operations
+flask~=3.0.0  # For potential web APIs
+geopandas~=1.0.0  # For GIS operations
+shapely~=2.0.0  # For geometric operations
 
 # Retry and fault tolerance (used by core/retry.py)
 tenacity>=8.2.0
 
 # API & Database dependencies
-alembic
+alembic~=1.13.0
 slowapi>=0.1.9
 python-dotenv>=1.2.2
 

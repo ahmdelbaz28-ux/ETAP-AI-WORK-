@@ -199,9 +199,9 @@ jobs:
           set -euo pipefail
           trap 'rm -f /tmp/.git-credentials-hf' EXIT ERR
           echo "https://user:${HF_TOKEN}@huggingface.co" > /tmp/.git-credentials-hf
+          git config --global credential.helper "store --file=/tmp/.git-credentials-hf"
           git clone https://huggingface.co/spaces/ahmdelbaz28/AhmedETAP-Platform space-repo 2>&1 | tail -3
           cd space-repo
-          git config credential.helper "store --file=/tmp/.git-credentials-hf"
           find . -mindepth 1 -maxdepth 1 -not -name '.git' -not -name '.gitattributes' -exec rm -rf {} +
           cp -r ../stage/. ./
           git config user.email "github-actions[bot]@users.noreply.github.com"

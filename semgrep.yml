@@ -220,11 +220,11 @@ rules:
       Requirement without version pin. Use ~=X.Y.Z for patch updates,
       >=X.Y.Z,<X+1.0.0 for minor updates, or pin exact versions for
       production. Unpinned deps make builds non-reproducible.
-    pattern: |
-      $PKG
+    pattern-regex: '(?m)^[ \t]*[a-zA-Z0-9][a-zA-Z0-9_.-]*[ \t]*$'
     paths:
       include:
-        - requirements*.txt
-    metavariable-regex:
-      metavariable: $PKG
-      regex: '^[a-zA-Z0-9_-]+$'
+        - requirements.txt
+        - requirements-dev.txt
+        - requirements-prod.txt
+        - requirements-ml.txt
+        - requirements-win312.txt

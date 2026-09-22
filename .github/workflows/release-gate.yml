@@ -52,13 +52,18 @@ jobs:
       - name: Resolve and Validate Target Commit SHA
         id: resolve-sha
         shell: bash
+        env:
+          INPUT_TARGET_SHA: ${{ github.event.inputs.target_sha }}
+          EVENT_NAME: ${{ github.event_name }}
+          WORKFLOW_RUN_HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          DEFAULT_SHA: ${{ github.sha }}
         run: |
-          TARGET_SHA="${{ github.event.inputs.target_sha }}"
+          TARGET_SHA="$INPUT_TARGET_SHA"
           if [ -z "$TARGET_SHA" ]; then
-            if [ "${{ github.event_name }}" == "workflow_run" ]; then
-              TARGET_SHA="${{ github.event.workflow_run.head_sha }}"
+            if [ "$EVENT_NAME" == "workflow_run" ]; then
+              TARGET_SHA="$WORKFLOW_RUN_HEAD_SHA"
             else
-              TARGET_SHA="${{ github.sha }}"
+              TARGET_SHA="$DEFAULT_SHA"
             fi
           fi
 
@@ -80,6 +85,9 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           COMMIT_SHA: ${{ steps.resolve-sha.outputs.commit_sha }}
           IS_SHADOW: ${{ github.event.inputs.shadow_mode }}
+          REPO: ${{ github.repository }}
+          SERVER_URL: ${{ github.server_url }}
+          RUN_ID: ${{ github.run_id }}
         shell: bash
         run: |
           set -euo pipefail
@@ -90,7 +98,7 @@ jobs:
           echo "============================================================"
 
           # Query all check runs for this commit
-          CHECK_RUNS=$(gh api "repos/${{ github.repository }}/commits/${COMMIT_SHA}/check-runs" --jq '.check_runs')
+          CHECK_RUNS=$(gh api "repos/${REPO}/commits/${COMMIT_SHA}/check-runs" --jq '.check_runs')
 
           REQUIRED_CHECKS=(
             "CI Success"
@@ -137,10 +145,10 @@ jobs:
           echo "Posting authoritative release status to GitHub commit..."
           echo "============================================================"
 
-          gh api "repos/${{ github.repository }}/statuses/${COMMIT_SHA}" \
+          gh api "repos/${REPO}/statuses/${COMMIT_SHA}" \
             -f state="success" \
             -f context="release-gate/authoritative" \
             -f description="All canonical quality, security, container, and test gates passed." \
-            -f target_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            -f target_url="${SERVER_URL}/${REPO}/actions/runs/${RUN_ID}"
 
           echo "Authoritative release gate status posted successfully."
