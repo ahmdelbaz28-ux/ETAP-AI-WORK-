@@ -43,7 +43,7 @@ jobs:
           run_install: false
 
       - name: Install Python dependencies
-        run: pip install --only-binary :all: --requirement requirements.txt
+        run: "pip install --only-binary :all: --requirement requirements.txt"
 
       - name: Install Node dependencies
         run: pnpm install --frozen-lockfile
