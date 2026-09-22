@@ -41,6 +41,34 @@
       "severity": "MODERATE",
       "reason": "HTTP request smuggling advisory on chunked encoding; mitigated by reverse proxy terminating chunked requests",
       "expires_at": "2026-12-31"
+    },
+    {
+      "id": "CVE-2026-45833",
+      "package": "chromadb",
+      "severity": "CRITICAL",
+      "reason": "ChromaDB remote code execution advisory on /api/v2 REST endpoints; mitigated by running ChromaDB strictly in embedded in-memory/local file mode with no HTTP server or multi-tenant endpoint exposed",
+      "expires_at": "2026-12-31"
+    },
+    {
+      "id": "CVE-2026-45831",
+      "package": "chromadb",
+      "severity": "HIGH",
+      "reason": "ChromaDB SimpleRBACAuthorizationProvider cross-tenant access advisory; mitigated by embedded single-tenant execution model",
+      "expires_at": "2026-12-31"
+    },
+    {
+      "id": "CVE-2026-45830",
+      "package": "chromadb",
+      "severity": "HIGH",
+      "reason": "ChromaDB user-controlled key auth bypass advisory; mitigated by embedded single-tenant execution model",
+      "expires_at": "2026-12-31"
+    },
+    {
+      "id": "CVE-2024-37060",
+      "package": "mlflow",
+      "severity": "HIGH",
+      "reason": "MLflow untrusted model pickle deserialization advisory; mitigated by using MLflow strictly for local SQLite experiment tracking with zero external/untrusted model imports",
+      "expires_at": "2026-12-31"
     }
   ]
 }

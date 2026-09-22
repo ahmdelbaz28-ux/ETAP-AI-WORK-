@@ -400,8 +400,8 @@ pymongo~=4.8.0
 pandas~=2.2.0
 numpy>=1.26.0,<2.6
 requests>=2.33.0
-flask~=3.0.0  # For potential web APIs
-geopandas~=1.0.0  # For GIS operations
+flask>=3.1.3  # For potential web APIs (SECURITY: CVE-2026-27205 fixed in >=3.1.3)
+geopandas>=1.1.2  # For GIS operations (SECURITY: CVE-2025-69662 fixed in >=1.1.2)
 shapely~=2.0.0  # For geometric operations
 
 # Retry and fault tolerance (used by core/retry.py)
