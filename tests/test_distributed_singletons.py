@@ -13,6 +13,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
+from api.prompt_registry import PromptRegistry
 from api.prompt_registry_redis import (
     DistributedPromptRegistry,
     get_distributed_prompt_registry,
@@ -23,7 +24,12 @@ from api.rag_retriever_redis import (
     get_distributed_rag_retriever,
     reset_distributed_rag_retriever,
 )
-from api.redis_client import close_redis, get_redis_url, is_redis_available
+from api.redis_client import (
+    clamp_connections_to_server_maxclients,
+    close_redis,
+    get_redis_url,
+    is_redis_available,
+)
 from api.semantic_cache_redis import (
     DistributedSemanticCache,
     get_distributed_semantic_cache,
@@ -381,4 +387,90 @@ async def test_distributed_prompt_registry_read_your_writes_on_tradeoff_timeout(
         report = await reg.get_tradeoff_report("load_flow_agent")
         assert "load_flow_agent" in report
         assert report["load_flow_agent"]["total_versions"] >= 1
+
+
+@pytest.mark.asyncio
+async def test_clamp_connections_to_server_maxclients():
+    """Verify that clamp_connections_to_server_maxclients clamps pool size to server maxclients."""
+    # Case 1: Server maxclients is lower than configured pool
+    mock_client = AsyncMock()
+    mock_pool = type("MockPool", (), {"max_connections": 50})()
+    mock_client.connection_pool = mock_pool
+    mock_client.config_get.return_value = {"maxclients": "30"}
+
+    clamped = await clamp_connections_to_server_maxclients(mock_client, safety_margin=5)
+    assert clamped == 25
+    assert mock_pool.max_connections == 25
+
+    # Case 2: Server maxclients is generous (no clamping needed)
+    mock_pool.max_connections = 50
+    mock_client.config_get.return_value = {"maxclients": "10000"}
+
+    clamped = await clamp_connections_to_server_maxclients(mock_client, safety_margin=5)
+    assert clamped == 50
+    assert mock_pool.max_connections == 50
+
+    # Case 3: CONFIG GET fails (e.g. disabled command), falls back to INFO clients
+    mock_pool.max_connections = 50
+    mock_client.config_get.side_effect = RuntimeError("CONFIG command restricted")
+    mock_client.info.return_value = {"maxclients": 20}
+
+    clamped = await clamp_connections_to_server_maxclients(mock_client, safety_margin=5)
+    assert clamped == 15
+    assert mock_pool.max_connections == 15
+
+
+def test_prompt_registry_local_ttl_and_staleness():
+    """Verify that local PromptRegistry prunes inactive stale versions and tracks staleness."""
+    registry = PromptRegistry(local_ttl_seconds=5.0)
+
+    # Version 1 (initial active)
+    v1 = registry.register_version("calc_agent", "Base prompt v1", is_active=True)
+    # Manually age v1 past TTL
+    registry._versions[v1.version_id].created_at = time.time() - 10.0
+
+    # Version 2 (new active version)
+    v2 = registry.register_version("calc_agent", "Base prompt v2", is_active=True)
+
+    # v1 is now an inactive candidate and exceeds the 5s TTL
+    pruned = registry.prune_stale_versions(max_age_seconds=5.0)
+    assert pruned == 1
+    assert v1.version_id not in registry._versions
+    assert v2.version_id in registry._versions
+
+    report = registry.get_tradeoff_report("calc_agent")
+    assert report["calc_agent"]["total_versions"] == 1
+    rep_v2 = report["calc_agent"]["versions"][0]
+    assert rep_v2["version_id"] == v2.version_id
+    assert rep_v2["is_stale"] is False
+    assert "created_at" in rep_v2
+
+
+@pytest.mark.asyncio
+async def test_distributed_prompt_registry_tradeoff_report_fallback_source_and_staleness():
+    """Verify DistributedPromptRegistry annotates fallback_source and detects TTL staleness."""
+    reg = DistributedPromptRegistry(namespace="test_ttl_fallback", local_ttl_seconds=3.0)
+
+    # Force fallback mode by patching get_redis to None
+    with patch("api.prompt_registry_redis.get_redis", return_value=None):
+        pv = await reg.register_version("stale_test_agent", "Fallback prompt", temperature=0.3)
+        assert pv.agent_handle == "stale_test_agent"
+
+        # Report immediately: should have fallback_source="local_memory" and is_stale=False
+        rep1 = await reg.get_tradeoff_report("stale_test_agent")
+        assert "stale_test_agent" in rep1
+        v_data1 = rep1["stale_test_agent"]["versions"][0]
+        assert v_data1["fallback_source"] == "local_memory"
+        assert v_data1["is_stale"] is False
+
+        # Age the version in local memory past TTL (3.0s)
+        from api.prompt_registry import get_prompt_registry
+        in_mem = get_prompt_registry()
+        in_mem._versions[pv.version_id].created_at = time.time() - 10.0
+
+        # When active, it is retained but marked is_stale=True
+        rep2 = await reg.get_tradeoff_report("stale_test_agent")
+        v_data2 = rep2["stale_test_agent"]["versions"][0]
+        assert v_data2["is_stale"] is True
+
 

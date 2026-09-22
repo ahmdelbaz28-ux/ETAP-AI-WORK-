@@ -69,14 +69,67 @@ async def get_redis() -> Optional[redis_async.Redis]:
     return _redis_client
 
 
+async def clamp_connections_to_server_maxclients(
+    client: redis_async.Redis, safety_margin: int = 5
+) -> int:
+    """Query the Redis server's maxclients limit and clamp pool size if needed.
+
+    Prevents connection starvation or server-side connection drops when the
+    configured REDIS_MAX_CONNECTIONS exceeds the server limit.
+    """
+    pool = getattr(client, "connection_pool", None)
+    current_max = getattr(pool, "max_connections", None)
+    if current_max is None:
+        return 0
+
+    server_max: Optional[int] = None
+    try:
+        config_dict = await client.config_get("maxclients")
+        if isinstance(config_dict, dict) and "maxclients" in config_dict:
+            server_max = int(config_dict["maxclients"])
+    except Exception as exc:
+        logger.debug("CONFIG GET maxclients unavailable (%s), trying INFO clients", exc)
+        try:
+            info_dict = await client.info("clients")
+            if isinstance(info_dict, dict) and "maxclients" in info_dict:
+                server_max = int(info_dict["maxclients"])
+        except Exception:
+            pass
+
+    if server_max is not None and server_max > 0:
+        safe_max = max(1, server_max - safety_margin)
+        if current_max > safe_max:
+            logger.warning(
+                "Configured Redis max_connections (%d) exceeds server limit (%d - %d margin). "
+                "Clamping connection pool to %d.",
+                current_max,
+                server_max,
+                safety_margin,
+                safe_max,
+            )
+            pool.max_connections = safe_max
+            return safe_max
+
+    return current_max
+
+
 async def is_redis_available() -> bool:
-    """Check if the configured Redis server is currently reachable and responding to PING."""
+    """Check if the configured Redis server is currently reachable and responding to PING.
+
+    Also dynamically inspects and clamps the connection pool to the server's maxclients limit.
+    """
     try:
         client = await get_redis()
         if client is None:
             return False
         res = await client.ping()
-        return bool(res)
+        if res:
+            try:
+                await clamp_connections_to_server_maxclients(client)
+            except Exception as exc:
+                logger.debug("Failed to clamp Redis connections during availability check: %s", exc)
+            return True
+        return False
     except Exception as exc:
         logger.debug("Redis availability check failed: %s", exc)
         return False

@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import copy
 import logging
+import os
 import secrets
 import threading
 import time
@@ -92,7 +93,7 @@ class PromptMetrics:
 class PromptRegistry:
     """Manages prompt versions, A/B routing, and metric evaluation."""
 
-    def __init__(self) -> None:
+    def __init__(self, local_ttl_seconds: Optional[float] = None) -> None:
         self._lock = threading.RLock()
         # version_id -> PromptVersion
         self._versions: Dict[str, PromptVersion] = {}
@@ -100,6 +101,31 @@ class PromptRegistry:
         self._agent_versions: Dict[str, List[str]] = {}
         # version_id -> PromptMetrics
         self._metrics: Dict[str, PromptMetrics] = {}
+        if local_ttl_seconds is None:
+            self.local_ttl_seconds = float(os.getenv("PROMPT_LOCAL_TTL_SECONDS", "86400.0"))
+        else:
+            self.local_ttl_seconds = float(local_ttl_seconds)
+
+    def prune_stale_versions(self, max_age_seconds: Optional[float] = None) -> int:
+        """Remove inactive candidate versions that exceed the TTL / max age in seconds."""
+        ttl = max_age_seconds if max_age_seconds is not None else self.local_ttl_seconds
+        if ttl <= 0:
+            return 0
+        now = time.time()
+        pruned = 0
+        with self._lock:
+            for handle, vids in list(self._agent_versions.items()):
+                retained: List[str] = []
+                for vid in vids:
+                    ver = self._versions.get(vid)
+                    if ver and not ver.is_active and (now - ver.created_at) > ttl:
+                        self._versions.pop(vid, None)
+                        self._metrics.pop(vid, None)
+                        pruned += 1
+                    else:
+                        retained.append(vid)
+                self._agent_versions[handle] = retained
+        return pruned
 
     def register_version(
         self,
@@ -224,8 +250,17 @@ class PromptRegistry:
             logger.info("Promoted prompt version %s to active", version_id)
             return True
 
-    def get_tradeoff_report(self, agent_handle: Optional[str] = None) -> Dict[str, Any]:
-        """Generate a comparative trade-off report across versions."""
+    def get_tradeoff_report(
+        self,
+        agent_handle: Optional[str] = None,
+        max_age_seconds: Optional[float] = None,
+    ) -> Dict[str, Any]:
+        """Generate a comparative trade-off report across versions with staleness tracking."""
+        ttl = max_age_seconds if max_age_seconds is not None else self.local_ttl_seconds
+        if ttl > 0:
+            self.prune_stale_versions(ttl)
+
+        now = time.time()
         with self._lock:
             handles = (
                 [agent_handle.strip().lower()]
@@ -258,18 +293,21 @@ class PromptRegistry:
                             ((baseline_tokens - avg_tok) / baseline_tokens) * 100.0, 2
                         )
 
+                    is_stale = (now - ver.created_at) > ttl if ttl > 0 else False
                     version_reports.append(
                         {
                             "version_id": vid,
                             "is_active": ver.is_active,
                             "temperature": ver.temperature,
+                            "created_at": ver.created_at,
+                            "is_stale": is_stale,
                             "metrics": metrics.to_dict(),
                             "token_savings_pct": token_savings_pct,
                         }
                     )
 
                 report[handle] = {
-                    "total_versions": len(vids),
+                    "total_versions": len(version_reports),
                     "versions": version_reports,
                 }
 

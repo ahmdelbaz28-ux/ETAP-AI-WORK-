@@ -11,6 +11,7 @@ import asyncio
 import copy
 import json
 import logging
+import os
 import secrets
 import time
 from typing import Any, Dict, List, Optional
@@ -30,9 +31,17 @@ logger = logging.getLogger(__name__)
 class DistributedPromptRegistry:
     """Distributed Prompt Registry backed by Redis with A/B routing and metric tracking."""
 
-    def __init__(self, namespace: str = "prompt_registry") -> None:
+    def __init__(
+        self,
+        namespace: str = "prompt_registry",
+        local_ttl_seconds: Optional[float] = None,
+    ) -> None:
         self.namespace = namespace
         self._mode: Optional[str] = None  # Resolved mode: "redis" or "memory"
+        if local_ttl_seconds is None:
+            self.local_ttl_seconds = float(os.getenv("PROMPT_LOCAL_TTL_SECONDS", "86400.0"))
+        else:
+            self.local_ttl_seconds = float(local_ttl_seconds)
 
     async def _retry(self, fn: Any, *args: Any, **kwargs: Any) -> Any:
         """Execute Redis call with exponential backoff on transient network/timeout errors."""
@@ -267,9 +276,19 @@ class DistributedPromptRegistry:
             return _get_in_memory_registry().promote_version(version_id)
 
     async def get_tradeoff_report(self, agent_handle: Optional[str] = None) -> Dict[str, Any]:
+        in_mem = _get_in_memory_registry()
+        if self.local_ttl_seconds > 0:
+            in_mem.prune_stale_versions(self.local_ttl_seconds)
+
         r = await self._get_client()
         if r is None:
-            return _get_in_memory_registry().get_tradeoff_report(agent_handle)
+            mem_rep = in_mem.get_tradeoff_report(
+                agent_handle, max_age_seconds=self.local_ttl_seconds
+            )
+            for h_data in mem_rep.values():
+                for v in h_data.get("versions", []):
+                    v["fallback_source"] = "local_memory"
+            return mem_rep
 
         try:
             report: Dict[str, Any] = {}
@@ -289,6 +308,7 @@ class DistributedPromptRegistry:
                         break
                 handles = [k.replace(f"{self.namespace}:versions:", "") for k in handles]
 
+            now = time.time()
             for handle in handles:
                 vids = await self._retry(r.lrange, self._versions_key(handle), 0, -1)
                 if not vids:
@@ -319,34 +339,55 @@ class DistributedPromptRegistry:
                             ((baseline_tokens - avg_tok) / baseline_tokens) * 100.0, 2
                         )
 
+                    is_stale = (
+                        (now - ver.created_at) > self.local_ttl_seconds
+                        if self.local_ttl_seconds > 0
+                        else False
+                    )
                     version_reports.append(
                         {
                             "version_id": vid,
                             "is_active": ver.is_active,
                             "temperature": ver.temperature,
+                            "created_at": ver.created_at,
+                            "is_stale": is_stale,
                             "metrics": metrics.to_dict(),
                             "token_savings_pct": token_savings_pct,
                         }
                     )
 
                 report[handle] = {
-                    "total_versions": len(vids),
+                    "total_versions": len(version_reports),
                     "versions": version_reports,
                 }
 
             # Read-Your-Writes: If Redis returned an empty report or is missing requested handle,
-            # union with in-memory report so session-registered versions are never silently dropped.
-            mem_report = _get_in_memory_registry().get_tradeoff_report(agent_handle)
+            # union with in-memory report with TTL staleness awareness.
+            mem_report = in_mem.get_tradeoff_report(
+                agent_handle, max_age_seconds=self.local_ttl_seconds
+            )
             if not report:
+                for h_data in mem_report.values():
+                    for v in h_data.get("versions", []):
+                        v["fallback_source"] = "local_memory"
                 return mem_report
+
             for h, h_data in mem_report.items():
                 if h not in report:
+                    for v in h_data.get("versions", []):
+                        v["fallback_source"] = "local_memory"
                     report[h] = h_data
             return report
         except Exception as exc:
             logger.debug("Redis get_tradeoff_report failed, falling back to memory: %s", exc)
             self._mode = "memory"
-            return _get_in_memory_registry().get_tradeoff_report(agent_handle)
+            mem_rep = in_mem.get_tradeoff_report(
+                agent_handle, max_age_seconds=self.local_ttl_seconds
+            )
+            for h_data in mem_rep.values():
+                for v in h_data.get("versions", []):
+                    v["fallback_source"] = "local_memory"
+            return mem_rep
 
     async def clear(self) -> None:
         r = await self._get_client()
