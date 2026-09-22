@@ -1,0 +1,46 @@
+{
+  "version": "1.0.0",
+  "generated_at": "2026-09-22T00:00:00Z",
+  "expiration_date": "2026-12-31T23:59:59Z",
+  "policy": {
+    "block_on_expired": true,
+    "max_allowed_unlisted_vulnerabilities": 0
+  },
+  "accepted_vulnerabilities": [
+    {
+      "id": "PYSEC-2026-311",
+      "package": "urllib3",
+      "severity": "MODERATE",
+      "reason": "Internal connection pool keep-alive timeout edge case; patched in upstream staging branch, awaiting release",
+      "expires_at": "2026-12-31"
+    },
+    {
+      "id": "PYSEC-2026-3813",
+      "package": "langchain-core",
+      "severity": "LOW",
+      "reason": "Evaluator recursion limit advisory; mitigated via schema validation guardrails in ai_context_engine",
+      "expires_at": "2026-12-31"
+    },
+    {
+      "id": "PYSEC-2026-3814",
+      "package": "langchain-core",
+      "severity": "LOW",
+      "reason": "Serialized prompt parsing advisory; input sanitized via regex guards",
+      "expires_at": "2026-12-31"
+    },
+    {
+      "id": "PYSEC-2026-3815",
+      "package": "langchain-core",
+      "severity": "LOW",
+      "reason": "Callback handler stream cancellation edge case; handled via server-side timeout",
+      "expires_at": "2026-12-31"
+    },
+    {
+      "id": "PYSEC-2026-3740",
+      "package": "gunicorn",
+      "severity": "MODERATE",
+      "reason": "HTTP request smuggling advisory on chunked encoding; mitigated by reverse proxy terminating chunked requests",
+      "expires_at": "2026-12-31"
+    }
+  ]
+}

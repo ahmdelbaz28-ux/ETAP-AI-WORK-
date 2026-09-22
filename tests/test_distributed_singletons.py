@@ -297,3 +297,54 @@ async def test_distributed_prompt_registry_mock_redis():
 
         promoted = await reg.promote_version("load_flow_agent:v1")
         assert promoted is True
+
+
+@pytest.mark.asyncio
+async def test_distributed_prompt_registry_mid_chain_redis_failure():
+    """
+    Regression test: Simulates Redis failure mid-chain during register_version (e.g.
+    r.set succeeds, but subsequent r.rpush raises ConnectionError). Proves that sticky
+    self._mode = "memory" prevents architectural drift / split-brain by permanently
+    routing subsequent operations through in-memory fallback without touching Redis.
+    """
+    mock_redis = AsyncMock()
+    mock_redis.llen.return_value = 0
+    # First set succeeds, but rpush fails with ConnectionError mid-operation
+    mock_redis.set.return_value = True
+    mock_redis.rpush.side_effect = ConnectionError("Redis cluster unreachable mid-chain")
+
+    with patch("api.prompt_registry_redis.get_redis", return_value=mock_redis):
+        reg = DistributedPromptRegistry(namespace="test_drift_regression")
+        assert reg._mode is None
+
+        # Call register_version: starts with redis, sets key, fails at rpush, catches error,
+        # sets sticky self._mode = "memory", and completes registration via in-memory registry.
+        pv = await reg.register_version(
+            agent_handle="drift_agent",
+            prompt_text="Prompt during mid-chain failure",
+        )
+        assert pv is not None
+        assert pv.agent_handle == "drift_agent"
+        # Verify sticky mode transitioned to "memory"
+        assert reg._mode == "memory"
+
+        # Now simulate Redis recovering:
+        mock_redis.rpush.side_effect = None
+        mock_redis.rpush.return_value = 1
+        mock_redis.get.return_value = None  # Redis would return None or stale state
+
+        # Crucial architectural proof: subsequent calls MUST NOT touch Redis or cause split-brain;
+        # because _mode == "memory", _get_client() returns None immediately.
+        active = await reg.get_active_version("drift_agent")
+        assert active is not None
+        assert active.version_id == pv.version_id
+        assert active.prompt_text == "Prompt during mid-chain failure"
+
+        # Another registration on the same instance continues in deterministic in-memory mode
+        pv2 = await reg.register_version(
+            agent_handle="drift_agent",
+            prompt_text="Prompt v2 in sticky fallback mode",
+        )
+        assert pv2 is not None
+        assert reg._mode == "memory"
+

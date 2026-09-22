@@ -171,7 +171,7 @@ class PromptRegistry:
 
             # A/B candidate evaluation if requested
             if candidate_traffic_pct > 0.0 and candidate_vers:
-                if secrets.SystemRandom().random() * 100.0 < candidate_traffic_pct:
+                if (secrets.randbelow(10000) / 100.0) < candidate_traffic_pct:
                     # Serve latest candidate
                     return copy.deepcopy(candidate_vers[-1])
 

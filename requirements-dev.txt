@@ -4,26 +4,28 @@
 
 # Testing
 pytest>=9.0.3,<9.2.0
-pytest-asyncio>=0.26.0
-pytest-cov>=6.0.0
-pytest-timeout>=2.4.0
-pytest-xdist>=3.6
-httpx>=0.25.0
+pytest-asyncio>=0.26.0,<1.0.0
+pytest-cov>=6.0.0,<7.0.0
+pytest-timeout>=2.4.0,<3.0.0
+pytest-xdist>=3.6.0,<4.0.0
+httpx>=0.25.0,<1.0.0
 # hypothesis is required by tests/property_based/test_retry_behavior.py and
 # tests/property_based/test_skill_loading.py. Without it, pytest fails at
 # collection time with ModuleNotFoundError, breaking all integration tests
 # that run `pytest tests/` (database/api/agents jobs in integration-tests.yml).
-hypothesis>=6.100.0
+hypothesis>=6.100.0,<7.0.0
 
 # Test data factories (used by tests/factories/)
-factory-boy>=3.3.3
-Faker>=40.38.0
+factory-boy>=3.3.3,<4.0.0
+Faker>=40.38.0,<41.0.0
 
 # Linting and formatting
-ruff>=0.1.0
-mypy>=1.0.0
+ruff>=0.1.0,<1.0.0
+mypy>=1.0.0,<2.0.0
 
 # Development tools
-pre-commit>=3.0.0
-black>=24.10.0
-isort>=9.0.1
+pre-commit>=3.0.0,<4.0.0
+# SECURITY: black>=26.3.1 fixes CVE-2026-32274 (path traversal) and CVE-2026-31900 (code execution)
+black>=26.3.1
+isort>=9.0.1,<10.0.0
+

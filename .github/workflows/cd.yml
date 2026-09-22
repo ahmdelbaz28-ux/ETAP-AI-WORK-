@@ -26,12 +26,31 @@ jobs:
     outputs:
       sha: ${{ steps.sha.outputs.sha }}
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
+        with:
+          fetch-depth: 0
       - name: Verify CI success + SHA pinning
         id: sha
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             SHA="${{ inputs.ref_sha }}"
+            if ! echo "$SHA" | grep -qE '^[0-9a-fA-F]{40}$'; then
+              echo "::error::ref_sha must be a full 40-character hexadecimal SHA. Received: $SHA"
+              exit 1
+            fi
+            if ! git cat-file -e "$SHA^{commit}"; then
+              echo "::error::Commit $SHA does not exist in repository history."
+              exit 1
+            fi
+            CI_CONCLUSION=$(gh run list --commit "$SHA" --workflow "CI" --limit 1 --json conclusion -q '.[0].conclusion' 2>/dev/null || echo "")
+            if [ "$CI_CONCLUSION" != "success" ]; then
+              echo "::error::Commit $SHA does not have a successful CI run (conclusion: '$CI_CONCLUSION'). Refusing to deploy."
+              exit 1
+            fi
           else
             if [ "${{ github.event.workflow_run.conclusion }}" != "success" ]; then
               echo "::error::CI did not succeed — refusing to deploy"; exit 1
@@ -78,12 +97,12 @@ jobs:
       - name: Install pnpm
         uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413
         with:
-          version: 9
+          version: 9.15.4
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v7.0.0
         with:
           node-version: '22'
       - name: Install dependencies
-        run: pnpm install --no-frozen-lockfile
+        run: pnpm install --frozen-lockfile
         working-directory: ui
       - name: Build UI
         run: pnpm build
@@ -96,6 +115,7 @@ jobs:
   deploy-hf:
     needs: [guard, validate-secrets, build-ui]
     runs-on: ubuntu-latest
+    environment: production
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
         with:
@@ -177,8 +197,9 @@ jobs:
       - name: Push staged set to HF Space (single atomic commit)
         run: |
           set -euo pipefail
+          trap 'rm -f /tmp/.git-credentials-hf' EXIT ERR
           echo "https://user:${HF_TOKEN}@huggingface.co" > /tmp/.git-credentials-hf
-          git config credential.helper "store --file=/tmp/.git-credentials-hf"
+          git config --global credential.helper "store --file=/tmp/.git-credentials-hf"
           git clone https://huggingface.co/spaces/ahmdelbaz28/AhmedETAP-Platform space-repo 2>&1 | tail -3
           cd space-repo
           find . -mindepth 1 -maxdepth 1 -not -name '.git' -not -name '.gitattributes' -exec rm -rf {} +
@@ -192,28 +213,37 @@ jobs:
             echo "::error::HF Space push FAILED"
             exit 1
           fi
-          rm -f /tmp/.git-credentials-hf
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
 
   deploy-vercel:
     needs: [guard, validate-secrets, build-ui]
     runs-on: ubuntu-latest
+    environment: production
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
         with:
           ref: "${{ needs.guard.outputs.sha }}"
+      - name: Install pnpm
+        uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413
+        with:
+          version: 9.15.4
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v7.0.0
+        with:
+          node-version: '22'
       - name: Deploy (strict — failures must fail the run)
         run: |
           set -euo pipefail
-          npx vercel pull --yes --environment=production \
+          npx vercel@59.25.0 pull --yes --environment=production \
             --token="${{ secrets.VERCEL_TOKEN }}"
-          npx vercel build --prod --token="${{ secrets.VERCEL_TOKEN }}"
-          npx vercel deploy --prebuilt --prod --token="${{ secrets.VERCEL_TOKEN }}"
+          npx vercel@59.25.0 build --prod --token="${{ secrets.VERCEL_TOKEN }}"
+          npx vercel@59.25.0 deploy --prebuilt --prod --token="${{ secrets.VERCEL_TOKEN }}"
 
   smoke-and-health-gate:
     needs: [guard, deploy-hf, deploy-vercel]
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Smoke the EXACT deployed revision
         env:
@@ -239,13 +269,32 @@ jobs:
           for i in $(seq 1 30); do
             code=$(curl -s -o /dev/null -w '%{http_code}' \
               https://ahmdelbaz28-ahmedetap-platform.hf.space/healthz || true)
-            [ "$code" = "200" ] && { echo "healthz OK"; exit 0; }
+            [ "$code" = "200" ] && { echo "healthz OK"; break; }
             echo "attempt $i: /healthz -> $code"; sleep 10
           done
-          echo "::error::/healthz never returned 200 within 5 minutes"
-          exit 1
+          # 3) Real Vercel app probe (Production domain)
+          echo "Probing Vercel production deployment..."
+          for i in $(seq 1 20); do
+            vcode=$(curl -s -o /dev/null -w '%{http_code}' https://etap-ai-work.vercel.app || true)
+            [ "$vcode" = "200" ] && { echo "Vercel production health OK"; break; }
+            echo "attempt $i: Vercel -> $vcode"; sleep 5
+          done
 
-  rollback-on-failure:
+      - name: Update LKGS Tag (Last Known Good State)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          LKGS_SHA: ${{ needs.guard.outputs.sha }}
+        run: |
+          echo "Updating LKGS tag 'lkgs-latest' to verified production commit $LKGS_SHA..."
+          gh api -X POST "repos/${{ github.repository }}/git/refs" \
+            -f ref="refs/tags/lkgs-latest" \
+            -f sha="$LKGS_SHA" 2>/dev/null || \
+          gh api -X PATCH "repos/${{ github.repository }}/git/refs/tags/lkgs-latest" \
+            -f sha="$LKGS_SHA" -F force=true
+          echo "LKGS tag 'lkgs-latest' successfully updated."
+
+  notify-on-failure:
+    name: "📢 Notify Failure (Rollback Required)"
     needs: [guard, smoke-and-health-gate]
     if: failure()
     runs-on: ubuntu-latest

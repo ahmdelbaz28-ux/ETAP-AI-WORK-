@@ -26,31 +26,27 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Set up Python 3.12
-        uses: actions/setup-python@v5
+      - name: Set up Python 3.13
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
         with:
-          python-version: '3.12'
+          python-version: '3.13'
 
       - name: Set up Node.js 22
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v7.0.0
         with:
           node-version: '22'
 
       - name: Install pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413
         with:
-          version: 9
+          version: 9.15.4
           run_install: false
 
-      - name: Install uv and sync Python dependencies
-        run: |
-          curl -LsSf https://astral.sh/uv/install.sh | sh
-          export PATH="$HOME/.local/bin:$PATH"
-          uv sync --frozen --all-extras || uv sync --all-extras || true
+      - name: Install Python dependencies
+        run: "pip install --only-binary :all: --requirement requirements.txt"
 
       - name: Install Node dependencies
-        run: |
-          pnpm install --no-frozen-lockfile || npm install --package-lock-only || true
+        run: pnpm install --frozen-lockfile
 
       - name: Install FOSSA CLI
         run: |
@@ -60,13 +56,49 @@ jobs:
       - name: Run FOSSA Analyze
         env:
           FOSSA_API_KEY: ${{ secrets.FOSSA_API_KEY }}
+          IS_FORK: ${{ github.event.pull_request.head.repo.fork }}
         run: |
+          if [ -z "$FOSSA_API_KEY" ]; then
+            if [ "$IS_FORK" = "true" ]; then
+              echo "::warning::FOSSA_API_KEY is not set (fork PR). Skipping FOSSA scan."
+              exit 0
+            else
+              echo "::error::FOSSA_API_KEY is missing in non-fork repository."
+              exit 1
+            fi
+          fi
           echo "Starting FOSSA dependency & license analysis..."
-          fossa analyze --debug || fossa analyze
+          fossa analyze
 
-      - name: Run FOSSA Test
+      - name: Run FOSSA Policy Test (Advisory - Push-Only Token)
         env:
           FOSSA_API_KEY: ${{ secrets.FOSSA_API_KEY }}
+          IS_FORK: ${{ github.event.pull_request.head.repo.fork }}
         run: |
+          if [ -z "$FOSSA_API_KEY" ]; then
+            if [ "$IS_FORK" = "true" ]; then
+              echo "::warning::FOSSA_API_KEY is not set (fork PR). Skipping FOSSA policy test."
+              exit 0
+            else
+              echo "::error::FOSSA_API_KEY is missing in non-fork repository."
+              exit 1
+            fi
+          fi
           echo "Checking FOSSA compliance policy rules..."
-          fossa test || echo "FOSSA test completed with policy warnings (inspect in FOSSA dashboard)"
+          set +e
+          TEST_OUTPUT=$(fossa test 2>&1)
+          TEST_EXIT=$?
+          set -e
+          if [ "$TEST_EXIT" -eq 0 ]; then
+            echo "✅ FOSSA compliance policy test passed with zero issues."
+            exit 0
+          elif echo "$TEST_OUTPUT" | grep -qi "push-only API key"; then
+            echo "::warning::FOSSA_API_KEY has Push-Only scope; full policy evaluation requires Full-Access key (documented owner post-merge action). Scan successfully recorded in FOSSA dashboard."
+            echo "$TEST_OUTPUT"
+            exit 0
+          else
+            echo "::error::FOSSA policy test failed with error code $TEST_EXIT"
+            echo "$TEST_OUTPUT"
+            exit 1
+          fi
+

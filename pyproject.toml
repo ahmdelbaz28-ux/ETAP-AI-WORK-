@@ -126,7 +126,7 @@ test = [
     "httpx>=0.25.0",
 ]
 win32 = [
-    "pywin32>=303",
+    "pywin32>=303; sys_platform == 'win32'",
     "pyautogui>=0.9.53",
     "opencv-python>=4.10.0.84",
 ]
@@ -134,7 +134,7 @@ dev = [
     "pytest>=9.0.3",
     "pytest-cov>=3.0.0",
     "pytest-asyncio>=0.26.0",
-    "black>=24.0",
+    "black>=26.3.1",
     "ruff>=0.3.0",
     "mypy>=2.3.1",
     "types-requests>=2.28.0",

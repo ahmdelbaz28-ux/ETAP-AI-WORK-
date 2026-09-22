@@ -912,7 +912,7 @@ requires-dist = [
     { name = "asyncua", marker = "extra == 'scada'", specifier = ">=1.1,<2" },
     { name = "bcrypt", specifier = ">=4.0.0" },
     { name = "beautifulsoup4", specifier = ">=4.10.0" },
-    { name = "black", marker = "extra == 'dev'", specifier = ">=24.0" },
+    { name = "black", marker = "extra == 'dev'", specifier = ">=26.3.1" },
     { name = "c104", marker = "extra == 'scada'" },
     { name = "celery", specifier = ">=5.3.0" },
     { name = "cryptography", specifier = ">=50.0.0" },

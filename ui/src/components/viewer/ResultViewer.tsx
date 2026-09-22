@@ -805,6 +805,13 @@ function VersionsTab({ result }: { readonly result: ResultEntry }) {
               <div
                 key={ver.id}
                 onClick={() => setSelectedVer(ver.id)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    setSelectedVer(ver.id);
+                  }
+                }}
+                role="button"
+                tabIndex={0}
                 className={cn(
                   "p-3 rounded-lg border cursor-pointer transition-all",
                   ver.version === 3 || ver.version === versions[0]?.version

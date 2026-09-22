@@ -90,3 +90,10 @@ async def close_redis() -> None:
         finally:
             _redis_client = None
             _client_loop = None
+
+
+def reset_redis_client() -> None:
+    """Synchronously reset the shared Redis client reference for test isolation."""
+    global _redis_client, _client_loop
+    _redis_client = None
+    _client_loop = None

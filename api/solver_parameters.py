@@ -244,5 +244,7 @@ async def update_project_parameters(
         current["max_iterations"] = updates["max_iterations"]
 
     data = await save_solver_params(project_id, current, db)
-    logger.info("Project %s solver parameters updated in DB: %s", project_id, data)
+    clean_project_id = str(project_id).replace("\r", "").replace("\n", "")[:64]
+    logger.info("Project %s solver parameters updated in DB: %s", clean_project_id, data)
     return SolverParametersResponse(**data)
+

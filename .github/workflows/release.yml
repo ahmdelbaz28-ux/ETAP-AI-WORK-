@@ -16,6 +16,23 @@ jobs:
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
       
+      - name: Verify Release Gate Status (Fail-Closed)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "Checking authoritative release gate status for commit ${{ github.sha }}..."
+          STATUS=$(gh api "repos/${{ github.repository }}/commits/${{ github.sha }}/status" --jq '.statuses[] | select(.context == "release-gate/authoritative") | .state' | head -n1)
+          if [ "$STATUS" != "success" ]; then
+            echo "::warning::Commit ${{ github.sha }} status is '${STATUS:-missing}'. Verifying direct CI status..."
+            # Check if CI Success check-run passed for this commit
+            CI_CONCLUSION=$(gh api "repos/${{ github.repository }}/commits/${{ github.sha }}/check-runs" --jq '.check_runs[] | select(.name == "CI Success") | .conclusion' | head -n1)
+            if [ "$CI_CONCLUSION" != "success" ]; then
+              echo "::error::Commit ${{ github.sha }} has not passed CI (conclusion: '${CI_CONCLUSION:-missing}'). Aborting release."
+              exit 1
+            fi
+          fi
+          echo "Release gate validation satisfied for commit ${{ github.sha }}."
+
       - name: Set up Python
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
         with:

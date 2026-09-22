@@ -1,7 +1,7 @@
 # ═══════════════════════════════════════════════════════════════════════════
 # AHMED ETAP — AI Agent Code Review via Daytona Sandbox
 # ═══════════════════════════════════════════════════════════════════════════
-# Triggers on every PR to main. Spins up a Daytona sandbox (Python 3.12),
+# Triggers on every PR to main. Spins up a Daytona sandbox (Python 3.13),
 # clones the PR head, installs deps, runs the full validation matrix
 # (ruff + mypy + pytest + vitest), and posts a structured report comment
 # back to the PR. The sandbox auto-evicts after the job completes
@@ -75,10 +75,10 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
 
-      - name: Set up Python 3.12 (runner-side control plane)
-        uses: actions/setup-python@v5
+      - name: Set up Python 3.13 (runner-side control plane)
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
         with:
-          python-version: "3.12"
+          python-version: "3.13"
 
       - name: Install Daytona SDK + tooling
         env:
@@ -116,7 +116,7 @@ jobs:
           client = Daytona(config)
 
           params = CreateSandboxFromImageParams(
-              image="python:3.12-slim",
+              image="python:3.13-slim",
               language="python",
               env_vars={
                   "APP_ENV": "ci",
@@ -130,7 +130,7 @@ jobs:
               # Auto-evict after 1h (Daytona session limit) as a safety net
               auto_stop_interval=3600,
           )
-          print("▶ Creating Daytona sandbox (image=python:3.12-slim, 2vCPU/4GB/20GB)…", flush=True)
+          print("▶ Creating Daytona sandbox (image=python:3.13-slim, 2vCPU/4GB/20GB)…", flush=True)
           sb = client.create(params, timeout=300)
           print(f"✓ Sandbox created: id={sb.id}", flush=True)
 
@@ -195,7 +195,7 @@ jobs:
           sb.fs.upload_file("/tmp/pr-src.tar.gz", "/tmp/pr-src.tar.gz")
           print("▶ Extracting + installing deps in sandbox (V209: Node.js + libgeos + requirements.txt)…", flush=True)
           # V209: install system deps (Node.js 20 for tsc, libgeos-dev for shapely, gcc for building C exts)
-          # BEFORE pip install. python:3.12-slim doesn't include any of these.
+          # BEFORE pip install. python:3.13-slim doesn't include any of these.
           # V209: install from requirements.txt first (more reliable than `pip install -e .` for deps),
           # then install the package itself with --no-deps (deps already installed above).
           # V208: set SETUPTOOLS_SCM_PRETEND_VERSION as a fallback in case .git is incomplete.
