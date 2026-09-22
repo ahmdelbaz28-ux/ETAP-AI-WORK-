@@ -34,9 +34,9 @@ concurrency:
 env:
   TF_VERSION: "1.9.0"
   # Azure credentials: reads from secrets or repository variables (fallback to empty string for speculative PR validation)
-  AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID || vars['AZURE_SUBSCRIPTION_ID'] || '' }}
-  AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID || vars['AZURE_TENANT_ID'] || '' }}
-  AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID || vars['AZURE_CLIENT_ID'] || '' }}
+  AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID || vars.AZURE_SUBSCRIPTION_ID || '' }}
+  AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID || vars.AZURE_TENANT_ID || '' }}
+  AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID || vars.AZURE_CLIENT_ID || '' }}
 
 jobs:
   # ── 1. FORMAT & VALIDATE ────────────────────────────────────────────────────
