@@ -31,6 +31,22 @@ class DistributedPromptRegistry:
 
     def __init__(self, namespace: str = "prompt_registry") -> None:
         self.namespace = namespace
+        self._mode: Optional[str] = None  # Resolved mode: "redis" or "memory"
+
+    async def _get_client(self) -> Optional[Any]:
+        """Resolve backend source of truth consistently for this operation sequence."""
+        if self._mode == "memory":
+            return None
+        try:
+            r = await get_redis()
+            if r is None:
+                self._mode = "memory"
+                return None
+            self._mode = "redis"
+            return r
+        except Exception:
+            self._mode = "memory"
+            return None
 
     def _versions_key(self, agent_handle: str) -> str:
         return f"{self.namespace}:versions:{agent_handle}"
@@ -52,11 +68,17 @@ class DistributedPromptRegistry:
         norm_handle = agent_handle.strip().lower()
         meta = metadata or {}
 
-        try:
-            r = await get_redis()
-            if r is None:
-                raise ConnectionError("Redis client is unavailable")
+        r = await self._get_client()
+        if r is None:
+            return _get_in_memory_registry().register_version(
+                agent_handle,
+                prompt_text,
+                temperature,
+                metadata,
+                is_active,
+            )
 
+        try:
             version_count = await r.llen(self._versions_key(norm_handle))
             version_num = version_count + 1
             version_id = f"{norm_handle}:v{version_num}"
@@ -94,6 +116,7 @@ class DistributedPromptRegistry:
             return pv
         except Exception as exc:
             logger.debug("Redis prompt register_version failed, falling back to memory: %s", exc)
+            self._mode = "memory"
             return _get_in_memory_registry().register_version(
                 agent_handle,
                 prompt_text,
@@ -108,11 +131,11 @@ class DistributedPromptRegistry:
         candidate_traffic_pct: float = 0.0,
     ) -> Optional[PromptVersion]:
         norm_handle = agent_handle.strip().lower()
-        try:
-            r = await get_redis()
-            if r is None:
-                raise ConnectionError("Redis client is unavailable")
+        r = await self._get_client()
+        if r is None:
+            return _get_in_memory_registry().get_active_version(agent_handle, candidate_traffic_pct)
 
+        try:
             vids = await r.lrange(self._versions_key(norm_handle), 0, -1)
             if not vids:
                 return None
@@ -143,6 +166,7 @@ class DistributedPromptRegistry:
             return None
         except Exception as exc:
             logger.debug("Redis get_active_version failed, falling back to memory: %s", exc)
+            self._mode = "memory"
             return _get_in_memory_registry().get_active_version(agent_handle, candidate_traffic_pct)
 
     async def record_metrics(
@@ -153,11 +177,14 @@ class DistributedPromptRegistry:
         success: bool = True,
         quality_score: Optional[float] = None,
     ) -> None:
-        try:
-            r = await get_redis()
-            if r is None:
-                raise ConnectionError("Redis client is unavailable")
+        r = await self._get_client()
+        if r is None:
+            _get_in_memory_registry().record_metrics(
+                version_id, tokens_used, latency_ms, success, quality_score
+            )
+            return
 
+        try:
             metrics_data = await r.get(self._metrics_key(version_id))
             if metrics_data:
                 metrics = PromptMetrics(**json.loads(metrics_data))
@@ -177,16 +204,17 @@ class DistributedPromptRegistry:
             await r.set(self._metrics_key(version_id), json.dumps(metrics.to_dict()))
         except Exception as exc:
             logger.debug("Redis record_metrics failed, falling back to memory: %s", exc)
+            self._mode = "memory"
             _get_in_memory_registry().record_metrics(
                 version_id, tokens_used, latency_ms, success, quality_score
             )
 
     async def promote_version(self, version_id: str) -> bool:
-        try:
-            r = await get_redis()
-            if r is None:
-                raise ConnectionError("Redis client is unavailable")
+        r = await self._get_client()
+        if r is None:
+            return _get_in_memory_registry().promote_version(version_id)
 
+        try:
             target_data = await r.get(self._version_key(version_id))
             if not target_data:
                 return False
@@ -206,14 +234,15 @@ class DistributedPromptRegistry:
             return True
         except Exception as exc:
             logger.debug("Redis promote_version failed, falling back to memory: %s", exc)
+            self._mode = "memory"
             return _get_in_memory_registry().promote_version(version_id)
 
     async def get_tradeoff_report(self, agent_handle: Optional[str] = None) -> Dict[str, Any]:
-        try:
-            r = await get_redis()
-            if r is None:
-                raise ConnectionError("Redis client is unavailable")
+        r = await self._get_client()
+        if r is None:
+            return _get_in_memory_registry().get_tradeoff_report(agent_handle)
 
+        try:
             report: Dict[str, Any] = {}
             if agent_handle:
                 handles = [agent_handle.strip().lower()]
@@ -279,12 +308,13 @@ class DistributedPromptRegistry:
             return report
         except Exception as exc:
             logger.debug("Redis get_tradeoff_report failed, falling back to memory: %s", exc)
+            self._mode = "memory"
             return _get_in_memory_registry().get_tradeoff_report(agent_handle)
 
     async def clear(self) -> None:
-        try:
-            r = await get_redis()
-            if r is not None:
+        r = await self._get_client()
+        if r is not None:
+            try:
                 cursor = 0
                 while True:
                     cursor, keys = await r.scan(cursor, match=f"{self.namespace}:*", count=100)
@@ -292,9 +322,10 @@ class DistributedPromptRegistry:
                         await r.delete(*keys)
                     if cursor == 0:
                         break
-        except Exception as exc:
-            logger.debug("Redis clear failed: %s", exc)
+            except Exception as exc:
+                logger.debug("Redis clear failed: %s", exc)
         _get_in_memory_registry().clear()
+        self._mode = None
 
 
 _distributed_prompt_registry: Optional[DistributedPromptRegistry] = None
@@ -309,6 +340,17 @@ def get_distributed_prompt_registry() -> DistributedPromptRegistry:
 
 
 def reset_distributed_prompt_registry() -> None:
-    """Reset global DistributedPromptRegistry singleton."""
+    """Reset global DistributedPromptRegistry singleton and isolate test state."""
     global _distributed_prompt_registry
     _distributed_prompt_registry = None
+    try:
+        from api.prompt_registry import reset_prompt_registry
+        reset_prompt_registry()
+    except Exception:
+        pass
+    try:
+        from api.redis_client import reset_redis_client
+        reset_redis_client()
+    except Exception:
+        pass
+

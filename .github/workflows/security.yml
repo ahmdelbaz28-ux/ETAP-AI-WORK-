@@ -60,10 +60,10 @@ jobs:
       - name: Install pnpm
         uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413
         with:
-          version: 9
+          version: 9.15.4
           run_install: false
       - name: Build TypeScript
-        run: pnpm install --frozen-lockfile || pnpm install --no-frozen-lockfile
+        run: pnpm install --frozen-lockfile
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@cdf488f595d80d6e07e03d4674febd5ab45fa938  # v4.37.9
         with:
@@ -87,7 +87,7 @@ jobs:
       - name: Dependency Review
         uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294  # v5
         with:
-          fail-on-severity: high
+          config-file: .github/dependency-review-config.yml
 
   trivy:
     name: Trivy Security Scan
@@ -150,13 +150,13 @@ jobs:
       - name: Install pnpm
         uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413
         with:
-          version: 9
+          version: 9.15.4
       - name: Set up Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v7.0.0
         with:
           node-version: '22'
       - name: Install dependencies
-        run: pnpm install --no-frozen-lockfile
+        run: pnpm install --frozen-lockfile
       - name: Run pnpm audit
         run: |
           echo "### pnpm audit summary ###"
@@ -181,7 +181,10 @@ jobs:
       - name: Install security tools
         # safety 3.2.7 crashes on Python 3.12+ with TypeError in typer/click.
         # Upgraded to safety>=3.8.1 which resolves the incompatibility.
-        run: 'pip install --only-binary :all: bandit==1.7.10 safety>=3.8.1'  # NOSONAR: single-use security scanner tools with pinned versions
+        run: 'pip install --only-binary :all: bandit==1.7.10 safety>=3.8.1 pip-audit'  # NOSONAR: single-use security scanner tools with pinned versions
+
+      - name: Run pip-audit baseline security gate
+        run: python3 scripts/pip_audit_gate.py
 
       - name: Bandit (shared gate)
         uses: ./.github/actions/bandit-scan

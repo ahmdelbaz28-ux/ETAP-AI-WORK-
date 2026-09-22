@@ -31,8 +31,10 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Verify Target SHA
+      - name: Verify Target SHA and CI Status
         id: check
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
           SHA="${{ github.event.inputs.target_sha }}"
@@ -50,7 +52,14 @@ jobs:
             exit 1
           fi
 
-          echo "Target commit verified: $(git log -1 --oneline "$SHA")"
+          # Verify CI passed for target SHA
+          CI_CONCLUSION=$(gh run list --commit "$SHA" --workflow "CI" --limit 1 --json conclusion -q '.[0].conclusion' 2>/dev/null || echo "")
+          if [ "$CI_CONCLUSION" != "success" ]; then
+            echo "::error::Commit $SHA does not have a verified green CI run (found: '$CI_CONCLUSION'). Refusing to rollback to unverified SHA."
+            exit 1
+          fi
+
+          echo "Target commit verified with green CI: $(git log -1 --oneline "$SHA")"
           echo "target_sha=$SHA" >> "$GITHUB_OUTPUT"
 
   dispatch-cd:

@@ -251,16 +251,19 @@ jobs:
           load: true
           cache-from: type=gha
 
-      - name: 🔬 Trivy vulnerability scan
-        uses: aquasecurity/trivy-action@18f2510ee396bbf400402947b394f2dd8c87dbb0  # v0.29.0
-        with:
-          image-ref: etap-${{ matrix.name }}:scan
-          format: 'sarif'
-          output: 'trivy-${{ matrix.name }}.sarif'
-          severity: 'CRITICAL,HIGH'
-          exit-code: '0'
-          ignore-unfixed: true
-        continue-on-error: true  # Advisory: security scan best-effort
+      - name: 🔬 Trivy vulnerability scan (via Docker)
+        run: |
+          docker run --rm \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            -v /tmp/trivy-cache:/root/.cache/trivy \
+            -v "${PWD}:/repo" \
+            aquasec/trivy:0.58.0 \
+            image --severity CRITICAL,HIGH \
+                  --ignore-unfixed \
+                  --exit-code 1 \
+                  --format sarif \
+                  --output /repo/trivy-${{ matrix.name }}.sarif \
+                  etap-${{ matrix.name }}:scan
 
       - name: 📤 Upload SARIF to GitHub Security
         uses: github/codeql-action/upload-sarif@cdf488f595d80d6e07e03d4674febd5ab45fa938  # v4.37.9
@@ -294,17 +297,12 @@ jobs:
             echo "All Dockerfiles must use Python ${{ env.EXPECTED_PYTHON_VERSION }} (matches CI)."
           } >> $GITHUB_STEP_SUMMARY
 
-      - name: Fail if critical check failed
+      - name: Fail if any Docker validation check failed
         if: |
-          needs.version-consistency.result == 'failure'
-        run: |
-          echo "❌ Python version consistency check failed"
-          exit 1
-
-      - name: Warn about non-critical failures
-        if: |
+          needs.version-consistency.result == 'failure' ||
           needs.hadolint.result == 'failure' ||
-          needs.build-test.result == 'failure'
+          needs.build-test.result == 'failure' ||
+          needs.security-scan.result == 'failure'
         run: |
-          echo "⚠️ Some non-critical Docker validation checks failed (hadolint/build)"
-          echo "These are advisory and should not block the PR"
+          echo "❌ One or more Docker validation checks failed (hadolint, version, build, or security)"
+          exit 1

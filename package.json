@@ -1,6 +1,7 @@
 {
   "name": "etap-ai-engineering-platform",
   "version": "2.1.0",
+  "packageManager": "pnpm@9.15.4",
   "description": "Enterprise-grade AI engineering platform for validated power-system studies, ETAP automation, GIS enrichment, and autonomous technical workflows.",
   "main": "index.js",
   "scripts": {
@@ -15,7 +16,7 @@
     "skills:install": "pwsh -File ./scripts/install_skills.ps1",
     "test:scenarios": "node ./scripts/patch-mastra.js && vitest run --config vitest.scenarios.config.ts",
     "test:integration": "pytest tests/test_audit_phase2_fixes.py",
-    "bundlesize": "node -e 'console.log(\"Bundle size verification: OK\")'"
+    "bundlesize": "node ./scripts/check_bundle_size.js"
   },
   "keywords": [
     "power-systems",
@@ -65,32 +66,48 @@
     "vitest": "^4.1.11",
     "zod-to-json-schema": "3.25.2"
   },
-  "overrides": {
-    "@isaacs/cliui": "^9.0.0",
-    "@mastra/loggers": "1.2.0",
-    "@opentelemetry/core": "^2.10.0",
-    "@opentelemetry/exporter-prometheus": "^0.221.0",
-    "@opentelemetry/propagator-jaeger": "^2.10.0",
-    "@opentelemetry/sdk-node": "^0.221.0",
-    "@vitest/mocker": "^4.1.11",
-    "brace-expansion": "^5.0.9",
-    "cross-spawn": "^7.0.6",
-    "fast-uri": "^3.1.7",
-    "hono": "^4.13.7",
-    "ip-address": "^10.3.1",
-    "joi": "^18.2.9",
-    "liquidjs": "^10.29.0",
-    "multer": "^2.3.0",
-    "protobufjs": "^8.6.6",
-    "qs": "^6.16.0",
-    "undici": "^7.29.0",
-    "uuid": "^11.1.0",
-    "vitest": "^4.1.11"
-  },
   "pnpm": {
     "overrides": {
+      "qs": "^6.16.0",
+      "protobufjs": "^8.6.6",
+      "langsmith": "^0.8.0",
+      "axios": "^1.18.0",
+      "brace-expansion": "^5.0.9",
+      "fast-uri": "^3.1.7",
+      "ip-address": "^10.3.1",
+      "@xmldom/xmldom": "^0.8.15",
+      "hono": "^4.13.7",
+      "js-yaml": "^4.3.2",
+      "linkify-it": "^5.0.2",
+      "liquidjs": "^10.29.0",
+      "postcss": "^8.5.18",
+      "shell-quote": "^1.9.0",
+      "tar": "^7.5.21",
+      "uuid": "^11.1.1",
+      "body-parser": "^2.3.0",
+      "@opentelemetry/exporter-prometheus": "^0.217.0",
+      "@opentelemetry/sdk-node": "^0.217.0",
+      "@opentelemetry/propagator-jaeger": "^2.9.0",
+      "@opentelemetry/core": "^2.8.0",
+      "@hono/node-server": "^2.0.5",
+      "undici": "^7.29.0",
+      "@ai-sdk/provider-utils": "^5.0.0",
+      "@ai-sdk/gateway>@ai-sdk/provider-utils": "npm:@ai-sdk/provider-utils@4.0.45",
+      "@ai-sdk/openai@3>@ai-sdk/provider-utils": "npm:@ai-sdk/provider-utils@4.0.45",
+      "@ai-sdk/openai@2>@ai-sdk/provider-utils": "npm:@ai-sdk/provider-utils@4.0.45",
+      "@mastra/core>@ai-sdk/provider-utils-v5": "npm:@ai-sdk/provider-utils@4.0.42",
+      "@mastra/core>@ai-sdk/provider-utils-v6": "npm:@ai-sdk/provider-utils@4.0.42",
+      "@mastra/core>@ai-sdk/provider-utils-v4": "npm:@ai-sdk/provider-utils@4.0.42",
+      "react-router": "^7.18.2",
+      "react-router-dom": "^7.18.2",
+      "multer": "^2.3.0",
+      "@vitest/mocker": "^4.1.11",
+      "vitest": "^4.1.11",
+      "@vitest/coverage-v8": "^4.1.11",
       "@mastra/loggers": "1.2.0",
-      "protobufjs": "^8.6.6"
+      "cross-env": "^10.1.0",
+      "joi": "^18.2.9",
+      "@isaacs/cliui": "^9.0.0"
     }
   }
 }

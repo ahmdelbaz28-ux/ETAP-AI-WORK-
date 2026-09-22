@@ -1,0 +1,134 @@
+# .github/workflows/release-gate.yml
+# AhmedETAP — Canonical Authoritative Release Gate
+#
+# Unified blocking gate that validates ALL required CI/CD workflows and security
+# checks have passed for a specific commit SHA before production release or deployment.
+#
+# Fail-closed: If ANY required check is missing, pending, failed, or cancelled,
+# this gate immediately fails with exit code 1.
+
+name: Release Gate
+
+on:
+  workflow_run:
+    workflows:
+      - "CI"
+      - "Security Scans"
+      - "Docker Validation"
+      - "UI Quality"
+      - "UI Tests"
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      target_sha:
+        description: "Commit SHA to validate against canonical release criteria (default: current HEAD)"
+        required: false
+        default: ""
+
+concurrency:
+  group: release-gate-${{ github.event.inputs.target_sha || github.sha }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  statuses: write
+  actions: read
+
+jobs:
+  authoritative-gate:
+    name: Authoritative Release Gate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
+        with:
+          fetch-depth: 0
+
+      - name: Resolve and Validate Target Commit SHA
+        id: resolve-sha
+        shell: bash
+        run: |
+          TARGET_SHA="${{ github.event.inputs.target_sha }}"
+          if [ -z "$TARGET_SHA" ]; then
+            if [ "${{ github.event_name }}" == "workflow_run" ]; then
+              TARGET_SHA="${{ github.event.workflow_run.head_sha }}"
+            else
+              TARGET_SHA="${{ github.sha }}"
+            fi
+          fi
+
+          echo "Target Commit SHA: $TARGET_SHA"
+          if ! [[ "$TARGET_SHA" =~ ^[0-9a-fA-F]{40}$ ]]; then
+            echo "::error::Invalid commit SHA format (must be 40 hex characters): $TARGET_SHA"
+            exit 1
+          fi
+
+          if ! git cat-file -e "${TARGET_SHA}^{commit}" 2>/dev/null; then
+            echo "::error::Commit SHA does not exist in repository git history: $TARGET_SHA"
+            exit 1
+          fi
+
+          echo "commit_sha=$TARGET_SHA" >> "$GITHUB_OUTPUT"
+
+      - name: Evaluate Required Workflow Statuses (Fail-Closed)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          COMMIT_SHA: ${{ steps.resolve-sha.outputs.commit_sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          echo "============================================================"
+          echo "Evaluating Canonical Release Gate for Commit: $COMMIT_SHA"
+          echo "============================================================"
+
+          # Query all check runs for this commit
+          CHECK_RUNS=$(gh api "repos/${{ github.repository }}/commits/${COMMIT_SHA}/check-runs" --jq '.check_runs')
+
+          REQUIRED_CHECKS=(
+            "CI Success"
+            "Trivy Security Scan"
+            "Docker Validation Summary"
+            "Authoritative TypeScript Quality Gate"
+          )
+
+          GATE_FAILED=0
+
+          for CHECK in "${REQUIRED_CHECKS[@]}"; do
+            STATUS=$(echo "$CHECK_RUNS" | jq -r --arg name "$CHECK" '.[] | select(.name == $name) | .status' | head -n1)
+            CONCLUSION=$(echo "$CHECK_RUNS" | jq -r --arg name "$CHECK" '.[] | select(.name == $name) | .conclusion' | head -n1)
+
+            if [ -z "$STATUS" ] || [ "$STATUS" == "null" ]; then
+              echo "::error::[MISSING] Required check '$CHECK' was not found for commit $COMMIT_SHA (fail-closed)."
+              GATE_FAILED=1
+            elif [ "$STATUS" != "completed" ]; then
+              echo "::error::[PENDING] Required check '$CHECK' is still in status '$STATUS' (fail-closed)."
+              GATE_FAILED=1
+            elif [ "$CONCLUSION" != "success" ]; then
+              echo "::error::[FAILED] Required check '$CHECK' finished with conclusion '$CONCLUSION' (fail-closed)."
+              GATE_FAILED=1
+            else
+              echo "  [PASSED] $CHECK -> completed / success"
+            fi
+          done
+
+          if [ "$GATE_FAILED" -ne 0 ]; then
+            echo "============================================================"
+            echo "::error::Release Gate FAILED. One or more mandatory checks did not succeed."
+            echo "============================================================"
+            exit 1
+          fi
+
+          echo "============================================================"
+          echo "All canonical release criteria verified successfully!"
+          echo "Posting authoritative release status to GitHub commit..."
+          echo "============================================================"
+
+          gh api "repos/${{ github.repository }}/statuses/${COMMIT_SHA}" \
+            -f state="success" \
+            -f context="release-gate/authoritative" \
+            -f description="All canonical quality, security, container, and test gates passed." \
+            -f target_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
+          echo "Authoritative release gate status posted successfully."
