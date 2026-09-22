@@ -17,10 +17,11 @@ torch>=2.14.0                        # PyTorch - deep learning foundation
 torch-geometric>=2.8.0.post1              # Graph Neural Networks for power grids
 
 # Phase 6d: ML/AI - Model Management
-# SECURITY: mlflow>=3.16.0 fixes CVE-2026-71211 (SSRF in AI Gateway auth_config.api_base)
-mlflow>=3.16.0                       # Model tracking, versioning, registry
+# SECURITY: mlflow>=3.16.1 fixes CVE-2026-71211 (SSRF in AI Gateway auth_config.api_base)
+mlflow>=3.16.1                       # Model tracking, versioning, registry
 
 # Phase 6e: ML/AI - NLP & RAG Enhancement
 transformers>=5.15.1                # HuggingFace Transformers
 sentence-transformers>=2.2.0        # Sentence embeddings for RAG
-pillow>=10.0.0 # not directly required, pinned by Snyk to avoid a vulnerability
+# SECURITY: Pillow~=12.3.0 fixes 17 CVEs (CVE-2026-59197..59205, CVE-2023-50447, CVE-2023-4863, etc.)
+Pillow~=12.3.0
