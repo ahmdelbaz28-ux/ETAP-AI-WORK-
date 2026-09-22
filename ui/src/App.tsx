@@ -97,21 +97,6 @@ export default function App() {
   const [helpContext, setHelpContext] = useState<string | undefined>();
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
 
-  // P6 feature flag gate: when `chat_first_ui` is enabled, render ChatWorkspace
-  // as the primary UI. Legacy tree (and all existing routes) is preserved
-  // below so that toggling the flag off restores the previous experience.
-  if (chatFirstUi.enabled) {
-    return (
-      <ThemeProvider>
-        <NotificationProvider>
-          <AuthProvider>
-            <ChatWorkspace onExitToLegacy={chatFirstUi.exitToLegacy} />
-          </AuthProvider>
-        </NotificationProvider>
-      </ThemeProvider>
-    );
-  }
-
   useEffect(() => {
     document.documentElement.dir = i18n.language === "ar" ? "rtl" : "ltr";
     document.documentElement.lang = i18n.language;
@@ -191,6 +176,21 @@ export default function App() {
     globalThis.addEventListener("toggle-smart-help", handler);
     return () => globalThis.removeEventListener("toggle-smart-help", handler);
   }, []);
+
+  // P6 feature flag gate: when `chat_first_ui` is enabled, render ChatWorkspace
+  // as the primary UI. Legacy tree (and all existing routes) is preserved
+  // below so that toggling the flag off restores the previous experience.
+  if (chatFirstUi.enabled) {
+    return (
+      <ThemeProvider>
+        <NotificationProvider>
+          <AuthProvider>
+            <ChatWorkspace onExitToLegacy={chatFirstUi.exitToLegacy} />
+          </AuthProvider>
+        </NotificationProvider>
+      </ThemeProvider>
+    );
+  }
 
   return (
     <ThemeProvider>

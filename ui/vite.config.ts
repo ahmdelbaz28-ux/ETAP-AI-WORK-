@@ -32,13 +32,19 @@ export default defineConfig({
   },
   build: {
     outDir: "dist",
-    chunkSizeWarningLimit: 600,
+    chunkSizeWarningLimit: 800,
     rollupOptions: {
       output: {
         // vite@8 (rolldown) requires manualChunks to be a function, not an object.
         manualChunks: (id: string) => {
           if (id.includes("node_modules")) {
-            if (id.includes("react") || id.includes("react-dom") || id.includes("react-router")) {
+            if (id.includes("react-router")) {
+              return "router-vendor";
+            }
+            if (id.includes("react-dom")) {
+              return "react-dom-vendor";
+            }
+            if (id.includes("react")) {
               return "react-vendor";
             }
             if (id.includes("recharts")) {

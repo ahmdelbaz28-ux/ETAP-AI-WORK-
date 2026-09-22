@@ -40,6 +40,12 @@ export default defineConfig({
       // They run via the dedicated `pnpm test:scenarios` script after
       // upgrading zod to 4.x or pinning zod-to-json-schema to 3.24.x.
       'tests/scenarios/**',
+      // Native Node.js test-runner scripts (.cjs with require("node:test"))
+      // run via dedicated `pnpm test:security-audit` script, not vitest.
+      '**/*.test.cjs',
+      '.agents/**',
+      '.claude/**',
+      'data/skills/**',
     ],
   },
 });

@@ -116,6 +116,7 @@ overrides:
 allowBuilds:
   '@biomejs/biome': true
   '@tailwindcss/oxide': true
+  cloudflared: true
   electron: true
   electron-winstaller: true
   esbuild: true
@@ -125,6 +126,7 @@ allowBuilds:
 onlyBuiltDependencies:
   - '@biomejs/biome'
   - '@tailwindcss/oxide'
+  - cloudflared
   - electron
   - electron-winstaller
   - esbuild

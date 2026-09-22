@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { AlertTriangle, Bot, Save, SlidersHorizontal } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { ContextHelpButton } from "../components/help/ContextHelpButton";
 import { Button, Card, CardHeader, Toggle } from "../components/ui";
 import { useNotify } from "../context/NotificationContext";
@@ -62,41 +62,59 @@ export default function AISettingsPanel() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch current config
-  const fetchConfig = useCallback(async () => {
+  const [retryTrigger, setRetryTrigger] = useState(0);
+
+  // Fetch current config on mount and retry
+  useEffect(() => {
+    let ignore = false;
+
+    async function loadConfig() {
+      try {
+        const token = getAuthToken();
+        const r = await fetch(`${API_BASE_URL}/api/v1/copilot/config`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+          signal: AbortSignal.timeout(8000),
+        });
+        if (!r.ok) {
+          const text = await r.text().catch(() => "Unknown error");
+          throw new Error(`API ${r.status}: ${text.substring(0, 100)}`);
+        }
+        const data = await r.json();
+        if (!ignore) {
+          const fetched: AIConfig = {
+            model_cascade: data.model_cascade ?? DEFAULT_CONFIG.model_cascade,
+            temperature: data.temperature ?? DEFAULT_CONFIG.temperature,
+            max_tokens: data.max_tokens ?? DEFAULT_CONFIG.max_tokens,
+            fallback_notifications:
+              data.fallback_notifications ?? DEFAULT_CONFIG.fallback_notifications,
+          };
+          setConfig(fetched);
+          setOriginal(fetched);
+          setError(null);
+        }
+      } catch (e) {
+        if (!ignore) {
+          const msg = e instanceof Error ? e.message : "Unknown error";
+          setError(msg);
+        }
+      } finally {
+        if (!ignore) {
+          setLoading(false);
+        }
+      }
+    }
+
+    void loadConfig();
+    return () => {
+      ignore = true;
+    };
+  }, [retryTrigger]);
+
+  const handleRetry = () => {
     setLoading(true);
     setError(null);
-    try {
-      const token = getAuthToken();
-      const r = await fetch(`${API_BASE_URL}/api/v1/copilot/config`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-        signal: AbortSignal.timeout(8000),
-      });
-      if (!r.ok) {
-        const text = await r.text().catch(() => "Unknown error");
-        throw new Error(`API ${r.status}: ${text.substring(0, 100)}`);
-      }
-      const data = await r.json();
-      const fetched: AIConfig = {
-        model_cascade: data.model_cascade ?? DEFAULT_CONFIG.model_cascade,
-        temperature: data.temperature ?? DEFAULT_CONFIG.temperature,
-        max_tokens: data.max_tokens ?? DEFAULT_CONFIG.max_tokens,
-        fallback_notifications:
-          data.fallback_notifications ?? DEFAULT_CONFIG.fallback_notifications,
-      };
-      setConfig(fetched);
-      setOriginal(fetched);
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : "Unknown error";
-      setError(msg);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchConfig();
-  }, [fetchConfig]);
+    setRetryTrigger((prev) => prev + 1);
+  };
 
   // Save config
   const handleSave = async () => {
@@ -150,7 +168,7 @@ export default function AISettingsPanel() {
             Failed to load AI configuration
           </p>
           <p className="text-xs text-[var(--text-muted)] mb-4 font-mono">{error}</p>
-          <Button variant="secondary" size="sm" onClick={fetchConfig}>
+          <Button variant="secondary" size="sm" onClick={handleRetry}>
             Retry
           </Button>
         </div>

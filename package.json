@@ -16,6 +16,7 @@
     "skills:install": "pwsh -File ./scripts/install_skills.ps1",
     "test:scenarios": "node ./scripts/patch-mastra.js && vitest run --config vitest.scenarios.config.ts",
     "test:integration": "pytest tests/test_audit_phase2_fixes.py",
+    "test:security-audit": "node --test .agents/skills/security-audit/*.test.cjs",
     "bundlesize": "node ./scripts/check_bundle_size.js"
   },
   "keywords": [
@@ -67,6 +68,9 @@
     "zod-to-json-schema": "3.25.2"
   },
   "pnpm": {
+    "onlyBuiltDependencies": [
+      "cloudflared"
+    ],
     "overrides": {
       "qs": "^6.16.0",
       "protobufjs": "^8.6.6",
@@ -109,8 +113,7 @@
       "joi": "^18.2.9",
       "@isaacs/cliui": "^9.0.0",
       "nanoid": "^3.3.8",
-      "mkdirp": "^1.0.4",
-      "minimatch": "^5.1.6"
+      "mkdirp": "^1.0.4"
     }
   }
 }
