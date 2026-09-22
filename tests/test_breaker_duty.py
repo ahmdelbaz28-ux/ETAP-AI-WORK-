@@ -79,3 +79,57 @@ class TestBreakerDutyGolden:
         reg = STUDY_DISPATCH["breaker_duty"]
         assert reg.requires_system is False
         assert reg.handler == "breaker_duty.evaluator.BreakerDutyEvaluator"
+
+    def test_dispatch_via_study_executor_gated(self, monkeypatch):
+        from services.study_executor import StudyExecutor
+
+        svc = StudyExecutor()
+        params = {
+            "breaker_id": "mv_vcb_12kv_1250a_25ka",
+            "ik_initial_ka": 20.0,
+            "ip_peak_ka": 50.0,
+            "ib_breaking_ka": 18.0,
+            "voltage_kv": 11.0,
+        }
+
+        # 1) When feature flag is disabled (default), dispatch must raise ValueError
+        monkeypatch.delenv("FEATURE_FLAG_BREAKER_DUTY", raising=False)
+        with pytest.raises(ValueError, match="disabled by feature flag"):
+            svc._dispatch("breaker_duty", system=None, parameters=params)
+
+        # 2) When feature flag is enabled via env, dispatch executes study
+        monkeypatch.setenv("FEATURE_FLAG_BREAKER_DUTY", "true")
+        res = svc._dispatch("breaker_duty", system=None, parameters=params)
+        assert res["is_compliant"] is True
+        assert res["status"] == "COMPLIANT_PASS"
+        assert "duty_table" in res
+
+    def test_execute_study_rejects_missing_breaker_id(self, evaluator):
+        with pytest.raises(ValueError, match="Parameter required: breaker_id"):
+            evaluator.execute_study({"ik_initial_ka": 20.0})
+
+    def test_execute_study_rejects_missing_fault_current(self, evaluator):
+        with pytest.raises(ValueError, match="Parameter required: ik_initial_ka"):
+            evaluator.execute_study({"breaker_id": "mv_vcb_12kv_1250a_25ka"})
+
+    def test_execute_study_rejects_missing_ip_ib_without_voltage(self, evaluator):
+        with pytest.raises(ValueError, match="parameter required: ip_peak_ka/ib_breaking_ka"):
+            evaluator.execute_study({
+                "breaker_id": "mv_vcb_12kv_1250a_25ka",
+                "ik_initial_ka": 20.0,
+            })
+
+    def test_execute_study_analytical_derivation(self, evaluator):
+        # When voltage_kv is provided, IEC 60909 engine derives ip and ib analytically
+        res = evaluator.execute_study({
+            "breaker_id": "mv_vcb_12kv_1250a_25ka",
+            "ik_initial_ka": 20.0,
+            "voltage_kv": 11.0,
+            "rx_ratio": 0.1,
+        })
+        assert res["is_compliant"] is True
+        assert res["status"] == "COMPLIANT_PASS"
+        # Verify peak duty is present and calculated without arbitrary 2.5 multiplier
+        peak_row = next(r for r in res["duty_table"] if r["parameter"] == "Peak Making Current (ip)")
+        assert peak_row["calculated_value"] > 0
+

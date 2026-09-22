@@ -258,15 +258,82 @@ class BreakerDutyEvaluator:
         """Execute breaker duty analysis from parameters."""
         breaker_id = parameters.get("breaker_id") or parameters.get("breaker")
         if not breaker_id and "breakers" not in parameters:
-            # Default to first MV breaker if none specified
-            breaker_id = "mv_vcb_12kv_1250a_25ka"
+            raise ValueError("Parameter required: breaker_id — no default breaker permitted")
 
-        ik_initial_ka = float(parameters.get("ik_initial_ka", parameters.get("ik_ss_ka", 20.0)))
-        ip_peak_ka = float(parameters.get("ip_peak_ka", ik_initial_ka * 2.5))
-        ib_breaking_ka = float(parameters.get("ib_breaking_ka", ik_initial_ka * 0.9))
+        if "ik_initial_ka" not in parameters and "ik_ss_ka" not in parameters:
+            raise ValueError("Parameter required: ik_initial_ka — no default fault current permitted")
+        ik_initial_ka = float(parameters.get("ik_initial_ka", parameters.get("ik_ss_ka")))
+
+        ip_peak_ka = parameters.get("ip_peak_ka")
+        ib_breaking_ka = parameters.get("ib_breaking_ka")
+
+        voltage_kv = float(parameters["voltage_kv"]) if "voltage_kv" in parameters else None
+        current_a = float(parameters["current_a"]) if "current_a" in parameters else None
+
+        if ip_peak_ka is None or ib_breaking_ka is None:
+            # Analytical derivation via IEC60909Engine if voltage_kv is provided
+            if voltage_kv is not None and voltage_kv > 0:
+                import numpy as np
+
+                from fault_analysis.iec60909_engine import FaultType, IEC60909Engine
+
+                base_mva = float(parameters.get("base_mva", 100.0))
+                base_i = (base_mva * 1000.0) / (voltage_kv * np.sqrt(3))
+                ik_target_pu = (ik_initial_ka * 1000.0) / base_i
+
+                c_factor = float(
+                    parameters.get(
+                        "c_factor",
+                        1.10 if voltage_kv >= 1.0 else 1.05,
+                    )
+                )
+                v_pre = c_factor * 1.0
+                z_mag = v_pre / max(1e-6, ik_target_pu)
+
+                if "rx_ratio" in parameters:
+                    rx = float(parameters["rx_ratio"])
+                elif "kappa" in parameters:
+                    kappa_in = float(parameters["kappa"])
+                    if kappa_in >= 2.0:
+                        rx = 0.0
+                    elif kappa_in <= 1.02:
+                        rx = 10.0
+                    else:
+                        rx = float(-np.log(max(1e-6, (kappa_in - 1.02) / 0.98)) / 3.0)
+                else:
+                    rx = 0.1
+
+                theta = np.arctan(1.0 / max(1e-6, rx))
+                z1 = complex(z_mag * np.cos(theta), z_mag * np.sin(theta))
+                y1 = 1.0 / z1
+                ybus = np.array([[y1]], dtype=complex)
+
+                engine = IEC60909Engine(
+                    ybus_pos=ybus,
+                    ybus_neg=ybus,
+                    ybus_zero=ybus,
+                    base_mva=base_mva,
+                    base_kv=voltage_kv,
+                    r_override={0: rx},
+                )
+                t_min = parameters.get("t_min")
+                result = engine.calculate(
+                    FaultType.THREE_PHASE,
+                    bus_index=0,
+                    bus_kv=voltage_kv,
+                    c_factor=c_factor,
+                    t_min=float(t_min) if t_min is not None else None,
+                )
+                if ip_peak_ka is None:
+                    ip_peak_ka = float(result.ip_peak)
+                if ib_breaking_ka is None:
+                    ib_breaking_ka = float(result.Ib_breaking)
+            else:
+                raise ValueError("parameter required: ip_peak_ka/ib_breaking_ka — no assumed factors permitted")
+
+        ip_peak_ka = float(ip_peak_ka)
+        ib_breaking_ka = float(ib_breaking_ka)
         ith_thermal_ka = float(parameters.get("ith_thermal_ka", ik_initial_ka))
-        voltage_kv = float(parameters.get("voltage_kv", 11.0)) if "voltage_kv" in parameters else None
-        current_a = float(parameters.get("current_a", 800.0)) if "current_a" in parameters else None
 
         res = self.evaluate_breaker(
             breaker=breaker_id,

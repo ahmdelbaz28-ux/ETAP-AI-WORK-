@@ -86,8 +86,19 @@ class EmbeddingModel:
         self.model = None
 
         if use_local:
-            self._load_local_model()
+            from api.feature_flags import is_strict_feature_enabled
+
+            if is_strict_feature_enabled("rag_model2vec"):
+                from knowledge.emb_model2vec import Model2VecEmbedder
+
+                self.model = Model2VecEmbedder()
+                self._is_model2vec = True
+                logger.info("Loaded model2vec CPU embedding model under rag_model2vec flag")
+            else:
+                self._is_model2vec = False
+                self._load_local_model()
         else:
+            self._is_model2vec = False
             self._setup_cloud_api()
 
     def _load_local_model(self):
@@ -131,6 +142,9 @@ class EmbeddingModel:
             # Fallback: simple TF-IDF-like representation
             logger.warning("Using fallback embedding (not recommended)")
             return self._fallback_embedding(texts)
+
+        if getattr(self, "_is_model2vec", False):
+            return self.model.encode(texts)
 
         if self.use_local:
             embeddings = self.model.encode(texts)

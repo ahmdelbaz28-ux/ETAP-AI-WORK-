@@ -85,3 +85,132 @@ def test_history_pruning_keeps_100_plus_messages_within_budget():
 def test_fallback_prompt_content():
     """Ensure safety-net fallback prompt contains mandatory refusal directive."""
     assert "REFUSE to give a numerical answer" in _FALLBACK_PROMPT
+
+
+@pytest.mark.asyncio
+async def test_chat_structured_backend_validation_success():
+    """When chat_structured is enabled and response is valid EngineerAnswer JSON, done event has structured=True."""
+    import json
+    messages = [ChatMessageIn(role="user", content="Perform short circuit evaluation")]
+    cfg = ProviderConfig(id="openai", model="gpt-4o", api_key="sk-test", base_url="https://api.openai.com/v1")
+
+    valid_json_answer = json.dumps({
+        "title": "Bus 1 Short Circuit",
+        "summary": "Verified compliance",
+        "status": "complete",
+        "study_type": "SHORT_CIRCUIT",
+        "findings": [],
+        "parameters": {"ik_initial_ka": 25.0},
+        "standards_referenced": ["IEC 60909"],
+        "recommendations": [],
+        "confidence": 0.95,
+    })
+
+    async def fake_adapter(client, provider_cfg, body):
+        yield valid_json_answer
+
+    with patch.dict(os.environ, {"FEATURE_FLAG_CHAT_STRUCTURED": "1"}):
+        with patch.dict("api.chat_stream._UPSTREAM_ADAPTERS", {"openai": fake_adapter}):
+            with patch("api.chat_stream._build_http_client") as mock_client:
+                mock_client.return_value.__aenter__ = AsyncMock()
+                mock_client.return_value.__aexit__ = AsyncMock()
+
+                events = [ev async for ev in _chat_event_stream("sess-struct-1", messages, cfg)]
+
+    done_event = next(ev for ev in events if ev.startswith("event: done"))
+    assert '"structured": true' in done_event or '"structured":true' in done_event
+
+
+@pytest.mark.asyncio
+async def test_chat_structured_backend_validation_free_text_non_fatal():
+    """When chat_structured is enabled and response is free text, stream succeeds with structured=False."""
+    messages = [ChatMessageIn(role="user", content="Hello")]
+    cfg = ProviderConfig(id="openai", model="gpt-4o", api_key="sk-test", base_url="https://api.openai.com/v1")
+
+    async def fake_adapter(client, provider_cfg, body):
+        yield "This is a free text answer without JSON format."
+
+    with patch.dict(os.environ, {"FEATURE_FLAG_CHAT_STRUCTURED": "1"}):
+        with patch.dict("api.chat_stream._UPSTREAM_ADAPTERS", {"openai": fake_adapter}):
+            with patch("api.chat_stream._build_http_client") as mock_client:
+                mock_client.return_value.__aenter__ = AsyncMock()
+                mock_client.return_value.__aexit__ = AsyncMock()
+
+                events = [ev async for ev in _chat_event_stream("sess-struct-2", messages, cfg)]
+
+    done_event = next(ev for ev in events if ev.startswith("event: done"))
+    assert '"structured": false' in done_event or '"structured":false' in done_event
+    assert "structured_errors" in done_event
+
+
+@pytest.mark.asyncio
+async def test_chat_structured_flag_disabled_omits_field():
+    """When chat_structured is disabled, done event does not contain structured key."""
+    messages = [ChatMessageIn(role="user", content="Hello")]
+    cfg = ProviderConfig(id="openai", model="gpt-4o", api_key="sk-test", base_url="https://api.openai.com/v1")
+
+    async def fake_adapter(client, provider_cfg, body):
+        yield "Regular answer"
+
+    with patch.dict(os.environ, {"FEATURE_FLAG_CHAT_STRUCTURED": "0"}):
+        with patch.dict("api.chat_stream._UPSTREAM_ADAPTERS", {"openai": fake_adapter}):
+            with patch("api.chat_stream._build_http_client") as mock_client:
+                mock_client.return_value.__aenter__ = AsyncMock()
+                mock_client.return_value.__aexit__ = AsyncMock()
+
+                events = [ev async for ev in _chat_event_stream("sess-struct-3", messages, cfg)]
+
+    done_event = next(ev for ev in events if ev.startswith("event: done"))
+    assert "structured" not in done_event
+
+
+@pytest.mark.asyncio
+async def test_langfuse_output_gating_privacy():
+    """When langfuse_output_capture is disabled, output passed to tracker is redacted with zero response text."""
+    from unittest.mock import MagicMock
+
+    messages = [ChatMessageIn(role="user", content="Query")]
+    cfg = ProviderConfig(id="openai", model="gpt-4o", api_key="sk-test", base_url="https://api.openai.com/v1")
+
+    secret_response = "TOP_SECRET_ENGINEERING_ANSWER_12345"
+
+    async def fake_adapter(client, provider_cfg, body):
+        yield secret_response
+
+    mock_obs = MagicMock()
+
+    class FakeCM:
+        def __enter__(self):
+            return mock_obs
+
+        def __exit__(self, *args):
+            pass
+
+    # 1) When langfuse_output_capture is disabled (default), zero response content logged
+    with patch.dict(os.environ, {"FEATURE_FLAG_LANGFUSE_OUTPUT_CAPTURE": "0"}):
+        with patch.dict("api.chat_stream._UPSTREAM_ADAPTERS", {"openai": fake_adapter}):
+            with patch("api.chat_stream._build_http_client") as mock_client:
+                mock_client.return_value.__aenter__ = AsyncMock()
+                mock_client.return_value.__aexit__ = AsyncMock()
+                with patch("integrations.langfuse_integration.langfuse_tracker.get_context_manager", return_value=FakeCM()):
+                    _ = [ev async for ev in _chat_event_stream("sess-lf-1", messages, cfg)]
+
+    mock_obs.update.assert_called_once()
+    called_output = mock_obs.update.call_args.kwargs.get("output", "")
+    assert secret_response not in called_output
+    assert "[REDACTED: langfuse_output_capture=disabled" in called_output
+
+    # 2) When langfuse_output_capture is enabled, response text is passed
+    mock_obs.reset_mock()
+    with patch.dict(os.environ, {"FEATURE_FLAG_LANGFUSE_OUTPUT_CAPTURE": "1"}):
+        with patch.dict("api.chat_stream._UPSTREAM_ADAPTERS", {"openai": fake_adapter}):
+            with patch("api.chat_stream._build_http_client") as mock_client:
+                mock_client.return_value.__aenter__ = AsyncMock()
+                mock_client.return_value.__aexit__ = AsyncMock()
+                with patch("integrations.langfuse_integration.langfuse_tracker.get_context_manager", return_value=FakeCM()):
+                    _ = [ev async for ev in _chat_event_stream("sess-lf-2", messages, cfg)]
+
+    mock_obs.update.assert_called_once()
+    called_output_enabled = mock_obs.update.call_args.kwargs.get("output", "")
+    assert secret_response in called_output_enabled
+

@@ -376,6 +376,15 @@ class StudyExecutor:
         if registration.requires_system and system is None:
             raise ValueError(f"study_type '{canonical}' requires a 'system' to be provided")
 
+        if canonical == "breaker_duty":
+            from api.feature_flags import is_strict_feature_enabled
+
+            if not is_strict_feature_enabled("breaker_duty"):
+                raise ValueError("Study type 'breaker_duty' is disabled by feature flag")
+            from breaker_duty.evaluator import BreakerDutyEvaluator
+
+            return BreakerDutyEvaluator().execute_study(parameters)
+
         if registration.handler_type == "native":
             return self._dispatch_native(registration, system, parameters)
         if registration.handler_type == "agent":

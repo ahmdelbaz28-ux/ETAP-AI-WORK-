@@ -190,3 +190,47 @@ class TestRAGRetrievalBilingual:
         accuracy = success_count / total_queries
         print(f"Bilingual Top-3 RAG Accuracy: {success_count}/{total_queries} ({accuracy * 100:.1f}%)")
         assert accuracy >= 0.90, f"Expected >= 90% top-3 retrieval success, got {accuracy * 100:.1f}%"
+
+
+class TestModel2VecIntegration:
+    """Validate model2vec CPU embedding integration under rag_model2vec flag."""
+
+    def test_default_behavior_preserves_sentence_transformers_when_flag_disabled(self, monkeypatch):
+        from knowledge.rag_engine import EmbeddingModel
+
+        monkeypatch.delenv("FEATURE_FLAG_RAG_MODEL2VEC", raising=False)
+        em = EmbeddingModel(use_local=True)
+        assert getattr(em, "_is_model2vec", False) is False
+
+    def test_model2vec_active_when_flag_enabled(self, monkeypatch):
+        from unittest.mock import MagicMock, patch
+
+        import numpy as np
+
+        from knowledge.rag_engine import EmbeddingModel
+
+        monkeypatch.setenv("FEATURE_FLAG_RAG_MODEL2VEC", "true")
+
+        mock_static_model = MagicMock()
+        mock_static_model.encode.return_value = np.array([[0.1, 0.2, 0.3, 0.4]], dtype=np.float32)
+
+        with patch("model2vec.StaticModel.from_pretrained", return_value=mock_static_model) as mock_pretrained:
+            em = EmbeddingModel(use_local=True)
+            assert getattr(em, "_is_model2vec", False) is True
+            mock_pretrained.assert_called_once()
+
+            embeddings = em.encode(["Sample electrical standard document"])
+            assert isinstance(embeddings, np.ndarray)
+            assert embeddings.shape == (1, 4)
+            mock_static_model.encode.assert_called_once_with(["Sample electrical standard document"])
+
+    def test_model2vec_fails_closed_on_load_error(self, monkeypatch):
+        from unittest.mock import patch
+
+        from knowledge.rag_engine import EmbeddingModel
+
+        monkeypatch.setenv("FEATURE_FLAG_RAG_MODEL2VEC", "true")
+
+        with patch("model2vec.StaticModel.from_pretrained", side_effect=Exception("Model weights corrupted")):
+            with pytest.raises(RuntimeError, match="Failed to load model2vec model"):
+                EmbeddingModel(use_local=True)

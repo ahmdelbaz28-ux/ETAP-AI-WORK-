@@ -219,19 +219,25 @@ class StudyEngine:
         if system_data and hasattr(system_data, "ybus_pos"):
             from fault_analysis.fault import FaultAnalyzer
 
+            base_mva = float(parameters.get("base_mva", 100.0))
             analyzer = FaultAnalyzer(
                 ybus_pos=system_data.ybus_pos,
                 ybus_neg=getattr(system_data, "ybus_neg", None),
                 ybus_zero=getattr(system_data, "ybus_zero", None),
+                base_mva=base_mva,
                 base_kv=voltage_kv,
             )
             bus_idx = int(parameters.get("bus_index", 0))
-            ik_initial = analyzer.three_phase_fault(bus_idx)
+            fault_result = analyzer.three_phase_fault(bus_idx)
+            if isinstance(fault_result, dict):
+                ik_initial_val = float(fault_result.get("fault_current_ka", fault_result.get("fault_current_magnitude", 0.0)))
+            else:
+                ik_initial_val = float(np.abs(fault_result))
             return {
                 "fault_type": fault_type,
                 "fault_bus": fault_bus,
-                "ik_initial_ka": round(float(np.abs(ik_initial)), 3),
-                "ip_peak_ka": round(float(np.abs(ik_initial) * 2.54), 3),
+                "ik_initial_ka": round(ik_initial_val, 3),
+                "ip_peak_ka": round(ik_initial_val * 2.54, 3),
                 "standards": "IEC 60909",
             }, []
 

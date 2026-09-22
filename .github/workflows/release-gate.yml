@@ -14,8 +14,8 @@ on:
     workflows:
       - "CI"
       - "Security Scans"
-      - "Docker Validation"
-      - "UI Quality"
+      - "Docker Build & Validation"
+      - "UI Quality & Security"
       - "UI Tests"
     types: [completed]
     branches: [main]
@@ -97,9 +97,6 @@ jobs:
           echo "Mode: $([ "$IS_SHADOW" = "true" ] && echo 'SHADOW / AUDIT' || echo 'AUTHORITATIVE BLOCKING')"
           echo "============================================================"
 
-          # Query all check runs for this commit
-          CHECK_RUNS=$(gh api "repos/${REPO}/commits/${COMMIT_SHA}/check-runs" --jq '.check_runs')
-
           REQUIRED_CHECKS=(
             "CI Success"
             "Trivy Security Scan"
@@ -107,38 +104,66 @@ jobs:
             "UI Quality Summary"
           )
 
-          GATE_FAILED=0
+          MAX_ATTEMPTS=20
+          SLEEP_SECONDS=30
+          ATTEMPT=1
 
-          for CHECK in "${REQUIRED_CHECKS[@]}"; do
-            STATUS=$(echo "$CHECK_RUNS" | jq -r --arg name "$CHECK" '.[] | select(.name | contains($name)) | .status' | head -n1)
-            CONCLUSION=$(echo "$CHECK_RUNS" | jq -r --arg name "$CHECK" '.[] | select(.name | contains($name)) | .conclusion' | head -n1)
+          while true; do
+            echo "Evaluating checks (attempt $ATTEMPT of $MAX_ATTEMPTS)..."
+            CHECK_RUNS=$(gh api "repos/${REPO}/commits/${COMMIT_SHA}/check-runs" --jq '.check_runs' 2>/dev/null || echo "[]")
 
-            if [ -z "$STATUS" ] || [ "$STATUS" == "null" ]; then
-              echo "::error::[MISSING] Required check '$CHECK' was not found for commit $COMMIT_SHA (fail-closed)."
-              GATE_FAILED=1
-            elif [ "$STATUS" != "completed" ]; then
-              echo "::error::[PENDING] Required check '$CHECK' is still in status '$STATUS' (fail-closed)."
-              GATE_FAILED=1
-            elif [ "$CONCLUSION" != "success" ]; then
-              echo "::error::[FAILED] Required check '$CHECK' finished with conclusion '$CONCLUSION' (fail-closed)."
-              GATE_FAILED=1
-            else
-              echo "  [PASSED] $CHECK -> completed / success"
+            GATE_FAILED=0
+            ANY_PENDING=0
+
+            for CHECK in "${REQUIRED_CHECKS[@]}"; do
+              STATUS=$(echo "$CHECK_RUNS" | jq -r --arg name "$CHECK" '.[] | select(.name | contains($name)) | .status' | head -n1)
+              CONCLUSION=$(echo "$CHECK_RUNS" | jq -r --arg name "$CHECK" '.[] | select(.name | contains($name)) | .conclusion' | head -n1)
+
+              if [ -z "$STATUS" ] || [ "$STATUS" == "null" ]; then
+                echo "  [MISSING] Required check '$CHECK' not found yet."
+                ANY_PENDING=1
+              elif [ "$STATUS" != "completed" ]; then
+                echo "  [PENDING] Required check '$CHECK' is in status '$STATUS'."
+                ANY_PENDING=1
+              elif [ "$CONCLUSION" != "success" ]; then
+                echo "::error::[FAILED] Required check '$CHECK' finished with conclusion '$CONCLUSION' (fail-closed)."
+                GATE_FAILED=1
+              else
+                echo "  [PASSED] $CHECK -> completed / success"
+              fi
+            done
+
+            if [ "$GATE_FAILED" -ne 0 ]; then
+              echo "============================================================"
+              if [ "$IS_SHADOW" = "true" ]; then
+                echo "::warning::[SHADOW MODE] Release Gate detected failures or skipped checks above, but shadow mode is enabled."
+                echo "============================================================"
+                exit 0
+              else
+                echo "::error::Release Gate FAILED. One or more mandatory checks failed."
+                echo "============================================================"
+                exit 1
+              fi
             fi
+
+            if [ "$ANY_PENDING" -eq 0 ]; then
+              echo "All required checks have completed successfully!"
+              break
+            fi
+
+            if [ "$ATTEMPT" -ge "$MAX_ATTEMPTS" ]; then
+              echo "::error::Timed out waiting for required checks to complete after $(( MAX_ATTEMPTS * SLEEP_SECONDS )) seconds."
+              if [ "$IS_SHADOW" = "true" ]; then
+                exit 0
+              else
+                exit 1
+              fi
+            fi
+
+            echo "One or more checks still pending/missing. Sleeping ${SLEEP_SECONDS}s before re-evaluating..."
+            sleep "$SLEEP_SECONDS"
+            ATTEMPT=$(( ATTEMPT + 1 ))
           done
-
-          if [ "$GATE_FAILED" -ne 0 ]; then
-            echo "============================================================"
-            if [ "$IS_SHADOW" = "true" ]; then
-              echo "::warning::[SHADOW MODE] Release Gate detected failures or skipped checks above, but shadow mode is enabled."
-              echo "============================================================"
-              exit 0
-            else
-              echo "::error::Release Gate FAILED. One or more mandatory checks did not succeed."
-              echo "============================================================"
-              exit 1
-            fi
-          fi
 
           echo "============================================================"
           echo "All canonical release criteria verified successfully!"

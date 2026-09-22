@@ -33,6 +33,9 @@ Security invariants:
 4. Auth required — Bearer access token via get_current_user_from_header
    (mirrors the P4a agent-exec path).
 5. Per-user rate limiting — bounded sliding window (platform rule).
+6. Output Privacy Gating — LLM response message content capture into Langfuse/external
+   observability is strictly gated behind the ``langfuse_output_capture`` feature flag
+   (zero content logged when flag is disabled).
 """
 
 from __future__ import annotations
@@ -44,7 +47,7 @@ import logging
 import os
 import re
 import time
-from typing import AsyncIterator, Dict, List, Optional
+from typing import Any, AsyncIterator, Dict, List, Optional
 
 import httpx
 from fastapi import APIRouter, Depends, HTTPException, Request, status
@@ -475,7 +478,8 @@ async def _chat_event_stream(
 
     Errors NEVER echo secrets: every outward message passes through
     :func:`sanitize_error_text`; unsanitized context goes to server logs
-    only, and message CONTENT is never logged at all.
+    only, and message CONTENT is never logged unless langfuse_output_capture
+    feature flag is explicitly enabled.
     """
     started = time.monotonic()
     deltas = 0
@@ -492,6 +496,14 @@ async def _chat_event_stream(
             except Exception:
                 from agents.prompt_loader import get_system_prompt
                 sys_prompt = get_system_prompt("etap_engineer_agent")
+            # P-B4: When chat_structured is also enabled, append output schema instructions
+            if is_strict_feature_enabled("chat_structured") and sys_prompt:
+                sys_prompt += (
+                    "\n\nOUTPUT FORMAT INSTRUCTIONS:\n"
+                    "Provide your final engineering response strictly formatted as a valid JSON object "
+                    "matching the EngineerAnswer schema with keys: 'title', 'summary', 'status' ('complete'|'partial'|'needs_input'|'error'), "
+                    "'study_type', 'findings', 'parameters', 'standards_referenced', 'recommendations', 'confidence'."
+                )
             if sys_prompt and (not body or body[0].get("role") != "system"):
                 body.insert(0, {"role": "system", "content": sys_prompt})
 
@@ -518,21 +530,43 @@ async def _chat_event_stream(
                             delta = delta[:16_000]
                         yield _sse("token", {"delta": delta})
                     if hasattr(obs, "update"):
-                        obs.update(output="".join(collected_tokens)[:langfuse_tracker.max_capture_chars])
+                        full_output_text = "".join(collected_tokens)
+                        if is_strict_feature_enabled("langfuse_output_capture"):
+                            obs.update(output=full_output_text[:langfuse_tracker.max_capture_chars])
+                        else:
+                            # P-B5: Obfuscated summary — zero response content logged to tracker
+                            obs.update(
+                                output=f"[REDACTED: langfuse_output_capture=disabled, chars={len(full_output_text)}, deltas={deltas}, provider={cfg.id}]"
+                            )
                 except Exception as exc:
                     if hasattr(obs, "record_exception"):
                         with contextlib.suppress(Exception):
                             obs.record_exception(exc)
                     raise
-        yield _sse(
-            "done",
-            {
-                "session_id": session_id,
-                "provider": cfg.id,
-                "deltas": deltas,
-                "elapsed_ms": int((time.monotonic() - started) * 1000),
-            },
-        )
+
+        done_payload: dict[str, Any] = {
+            "session_id": session_id,
+            "provider": cfg.id,
+            "deltas": deltas,
+            "elapsed_ms": int((time.monotonic() - started) * 1000),
+        }
+
+        # P-B4: Backend validation against EngineerAnswer when chat_structured is enabled
+        if is_strict_feature_enabled("chat_structured"):
+            from api.answer_schema import EngineerAnswer
+
+            full_text = "".join(collected_tokens).strip()
+            try:
+                EngineerAnswer.model_validate_json(full_text)
+                done_payload["structured"] = True
+            except Exception as schema_err:
+                done_payload["structured"] = False
+                done_payload["structured_errors"] = [
+                    f"{err.get('loc')}: {err.get('msg')}"
+                    for err in getattr(schema_err, "errors", lambda: [])()
+                ] if hasattr(schema_err, "errors") else ["JSON validation failed"]
+
+        yield _sse("done", done_payload)
     except UpstreamProviderError as exc:
         sanitized = sanitize_error_text(exc.body_text, extra_secrets=[cfg.api_key])
         safe_sid = re.sub(_SAFE_SESSION_ID_PATTERN, "", str(session_id or ""))[:32]

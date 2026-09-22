@@ -190,6 +190,12 @@ DEFAULT_FEATURE_FLAGS: dict[str, dict[str, Any]] = {
         "description": "Enforce Pydantic EngineerAnswer schema validation for chat responses",
         "rollout_percentage": 0,
     },
+    "langfuse_output_capture": {
+        "enabled": False,
+        "status": "beta",
+        "description": "Allow capturing chat stream response output in Langfuse LLM traces",
+        "rollout_percentage": 0,
+    },
 }
 
 FEATURE_FLAGS = DEFAULT_FEATURE_FLAGS
