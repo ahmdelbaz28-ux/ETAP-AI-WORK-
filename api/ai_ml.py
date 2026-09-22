@@ -423,10 +423,6 @@ async def rag_query(request: Request):
     """Query the engineering knowledge base with RAG (IEEE/IEC standards)."""
     trace_id = getattr(request.state, "trace_id", "unknown")
     try:
-        import os
-
-        os.environ.setdefault("RAG_ALLOW_HASH_FALLBACK", "1")
-
         body = await request.json()
         query = body.get("query", "")
         top_k = body.get("top_k", 5)
@@ -485,6 +481,17 @@ async def rag_query(request: Request):
             },
         )
     except HTTPException:
+        raise
+    except RuntimeError as e:
+        if "embedding provider" in str(e).lower():
+            from logging import getLogger
+
+            logger = getLogger("engineering_service")
+            logger.warning("rag_query_unavailable error=%s", str(e), extra={"trace_id": trace_id})
+            return JSONResponse(
+                status_code=503,
+                content={"success": False, "errors": ["RAG embedding provider unavailable"], "trace_id": trace_id},
+            )
         raise
     except Exception as e:
         from logging import getLogger

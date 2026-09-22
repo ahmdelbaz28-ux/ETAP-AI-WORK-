@@ -692,6 +692,42 @@ class StudyExecutor:
                 }
         return None
 
+    def _pre_flight_units(self, system: dict) -> Optional[dict]:
+        """Validate explicit units on system elements (buses, lines, parameters) for physical dimension consistency."""
+        try:
+            from core.units import validate_parameter_dimension
+        except ImportError:
+            return None
+
+        # Check buses
+        for bus in system.get("buses", []):
+            bus_id = bus.get("bus_id", "unknown")
+            v_val = bus.get("base_kv") or bus.get("voltage_kv") or bus.get("nominal_voltage")
+            if v_val is not None:
+                valid, err = validate_parameter_dimension("voltage_setpoint", v_val)
+                if not valid:
+                    return {"error": f"Bus {bus_id} voltage dimension mismatch: {err}"}
+
+        # Check lines
+        for line in system.get("lines", []):
+            line_id = line.get("line_id", "unknown")
+            for param in ("r1", "x1", "r0", "x0"):
+                val = line.get(param)
+                if val is not None:
+                    valid, err = validate_parameter_dimension("transformer_impedance", val)
+                    if not valid:
+                        return {"error": f"Line {line_id} parameter '{param}' dimension mismatch: {err}"}
+
+        # Check top-level engineering parameters if present in system dictionary
+        for key, val in system.items():
+            if key in ("buses", "lines", "transformers", "loads", "generators"):
+                continue
+            valid, err = validate_parameter_dimension(key, val)
+            if not valid:
+                return {"error": f"System parameter '{key}' dimension mismatch: {err}"}
+
+        return None
+
     def _pre_flight_check(self, system: dict) -> Optional[dict]:
         """Validate system configuration before running a study."""
         result = self._pre_flight_basic(system)
@@ -706,7 +742,10 @@ class StudyExecutor:
         result = self._pre_flight_isolated_buses(bus_ids, lines)
         if result is not None:
             return result
-        return self._pre_flight_voltage_bounds(buses)
+        result = self._pre_flight_voltage_bounds(buses)
+        if result is not None:
+            return result
+        return self._pre_flight_units(system)
 
     # ------------------------------------------------------------------
     # AI failure mode scan (F-12)

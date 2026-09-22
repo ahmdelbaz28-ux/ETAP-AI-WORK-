@@ -38,6 +38,7 @@ Security invariants:
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import json
 import logging
 import os
@@ -296,12 +297,15 @@ async def _openai_upstream_tokens(
     client: httpx.AsyncClient, cfg: ProviderConfig, payload_body: List[dict]
 ) -> AsyncIterator[str]:
     """Yield content deltas from an OpenAI-compatible /chat/completions SSE."""
+    from api.feature_flags import is_strict_feature_enabled
+
+    use_sys = is_strict_feature_enabled("chat_system_prompt")
     url = f"{cfg.base_url}/chat/completions"
     body = {
         "model": cfg.model,
         "messages": payload_body,
-        "max_tokens": 4096,
-        "temperature": 0.7,
+        "max_tokens": 8192 if use_sys else 4096,
+        "temperature": 0.2 if use_sys else 0.7,
         "stream": True,
     }
     headers = {"Content-Type": _CONTENT_TYPE_JSON, "Authorization": f"Bearer {cfg.api_key}"}
@@ -332,14 +336,19 @@ async def _anthropic_upstream_tokens(
     client: httpx.AsyncClient, cfg: ProviderConfig, payload_body: List[dict]
 ) -> AsyncIterator[str]:
     """Yield text deltas from the Anthropic /v1/messages SSE stream."""
+    from api.feature_flags import is_strict_feature_enabled
+
+    use_sys = is_strict_feature_enabled("chat_system_prompt")
     system_parts = [m["content"] for m in payload_body if m["role"] == "system"]
     chat_messages = [m for m in payload_body if m["role"] != "system"]
     body: dict = {
         "model": cfg.model.replace("anthropic/", ""),
-        "max_tokens": 4096,
+        "max_tokens": 8192 if use_sys else 4096,
         "messages": chat_messages,
         "stream": True,
     }
+    if use_sys:
+        body["temperature"] = 0.2
     if system_parts:
         body["system"] = "\n\n".join(system_parts)
     url = f"{cfg.base_url}/messages"
@@ -375,6 +384,9 @@ async def _anthropic_upstream_tokens(
 
 def _build_gemini_payload(payload_body: List[dict]) -> dict:
     """Construct Google Gemini contents payload with systemInstruction."""
+    from api.feature_flags import is_strict_feature_enabled
+
+    use_sys = is_strict_feature_enabled("chat_system_prompt")
     system_parts = [m["content"] for m in payload_body if m["role"] == "system"]
     chat_messages = [m for m in payload_body if m["role"] != "system"]
     contents = [
@@ -387,8 +399,8 @@ def _build_gemini_payload(payload_body: List[dict]) -> dict:
     body: dict = {
         "contents": contents,
         "generationConfig": {
-            "temperature": 0.7,
-            "maxOutputTokens": 4096,
+            "temperature": 0.2 if use_sys else 0.7,
+            "maxOutputTokens": 8192 if use_sys else 4096,
         },
     }
     if system_parts:
@@ -468,13 +480,50 @@ async def _chat_event_stream(
     started = time.monotonic()
     deltas = 0
     try:
+        from api.feature_flags import is_strict_feature_enabled
+
         body = [{"role": m.role, "content": m.content} for m in messages]
+
+        # P-A4: System prompt injection (etap_engineer_agent canonical prompt)
+        if is_strict_feature_enabled("chat_system_prompt"):
+            from agents.prompt_loader import get_system_prompt_async
+            try:
+                sys_prompt = await get_system_prompt_async("etap_engineer_agent")
+            except Exception:
+                from agents.prompt_loader import get_system_prompt
+                sys_prompt = get_system_prompt("etap_engineer_agent")
+            if sys_prompt and (not body or body[0].get("role") != "system"):
+                body.insert(0, {"role": "system", "content": sys_prompt})
+
+        # P-A5: Token budget history pruning (8000 token cap for etap_engineer_agent)
+        if is_strict_feature_enabled("chat_history_prune"):
+            from api.token_budget import budget_manager
+            body = budget_manager.prune_history(body, max_tokens=8000, keep_system=True)
+
         async with _build_http_client() as client:
-            async for delta in _UPSTREAM_ADAPTERS[cfg.id](client, cfg, body):
-                deltas += 1
-                if len(delta) > 16_000:  # defensive trim on pathological chunks
-                    delta = delta[:16_000]
-                yield _sse("token", {"delta": delta})
+            adapter = _UPSTREAM_ADAPTERS[cfg.id]
+            from integrations.langfuse_integration import langfuse_tracker
+            obs_cm = langfuse_tracker.get_context_manager(
+                name=f"chat_stream.{cfg.id}",
+                metadata={"provider": cfg.id, "model": cfg.model, "agent": "etap_engineer_agent"},
+                session_id=session_id,
+            )
+            with obs_cm as obs:
+                collected_tokens: list[str] = []
+                try:
+                    async for delta in adapter(client, cfg, body):
+                        deltas += 1
+                        collected_tokens.append(delta)
+                        if len(delta) > 16_000:  # defensive trim on pathological chunks
+                            delta = delta[:16_000]
+                        yield _sse("token", {"delta": delta})
+                    if hasattr(obs, "update"):
+                        obs.update(output="".join(collected_tokens)[:langfuse_tracker.max_capture_chars])
+                except Exception as exc:
+                    if hasattr(obs, "record_exception"):
+                        with contextlib.suppress(Exception):
+                            obs.record_exception(exc)
+                    raise
         yield _sse(
             "done",
             {

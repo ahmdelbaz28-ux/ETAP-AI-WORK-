@@ -4,8 +4,10 @@
  */
 import {
   Activity,
+  AlertTriangle,
   BarChart3,
   Bot,
+  CheckCircle2,
   Flame,
   Loader2,
   ShieldAlert,
@@ -53,8 +55,163 @@ const MARKDOWN_COMPONENTS = {
   img: MarkdownImage,
 };
 
+interface StructuredFinding {
+  category: string;
+  severity: "info" | "warning" | "critical" | "pass";
+  message: string;
+  standard_reference?: string;
+}
+
+interface StructuredDutyItem {
+  parameter: string;
+  calculated_value: number;
+  rated_limit: number;
+  unit: string;
+  duty_percent: number;
+  status: string;
+  standard_clause?: string;
+}
+
+interface StructuredAnswer {
+  title?: string;
+  summary?: string;
+  status?: "complete" | "warning" | "error";
+  study_type?: string;
+  findings?: StructuredFinding[];
+  parameters?: Record<string, unknown>;
+  standards_referenced?: string[];
+  recommendations?: string[];
+  duty_table?: StructuredDutyItem[];
+  confidence?: number;
+}
+
+function tryParseStructuredAnswer(content: string): StructuredAnswer | null {
+  if (!content) return null;
+  const trimmed = content.trim();
+  if (!trimmed.startsWith("{") || !trimmed.endsWith("}")) return null;
+  try {
+    const data = JSON.parse(trimmed) as StructuredAnswer;
+    if (data && (data.title || data.summary) && (data.findings || data.parameters || data.duty_table)) {
+      return data;
+    }
+  } catch {
+    return null;
+  }
+  return null;
+}
+
+function EngineerAnswerCard({ answer }: { readonly answer: StructuredAnswer }) {
+  const isPass = answer.status === "complete";
+  const isWarn = answer.status === "warning";
+
+  return (
+    <div className="flex flex-col gap-3 rounded-xl bg-[var(--bg-secondary)] border border-[var(--border-primary)] p-4 max-w-full text-sm">
+      <div className="flex items-center justify-between gap-2 border-b border-[var(--border-secondary)] pb-2">
+        <div className="flex items-center gap-2">
+          {isPass ? (
+            <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+          ) : isWarn ? (
+            <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0" />
+          ) : (
+            <ShieldAlert className="w-5 h-5 text-rose-400 shrink-0" />
+          )}
+          <span className="font-semibold text-[var(--text-primary)]">{answer.title || "Engineering Analysis"}</span>
+        </div>
+        {answer.study_type && (
+          <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-brand-500/10 text-brand-400 border border-brand-500/20">
+            {answer.study_type}
+          </span>
+        )}
+      </div>
+
+      {answer.summary && (
+        <p className="text-[var(--text-secondary)] leading-relaxed">{answer.summary}</p>
+      )}
+
+      {answer.standards_referenced && answer.standards_referenced.length > 0 && (
+        <div className="flex flex-wrap gap-1.5 items-center">
+          <span className="text-xs text-[var(--text-muted)]">Standards:</span>
+          {answer.standards_referenced.map((std) => (
+            <span key={std} className="text-[11px] px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-300 border border-cyan-500/20 font-mono">
+              {std}
+            </span>
+          ))}
+        </div>
+      )}
+
+      {answer.duty_table && answer.duty_table.length > 0 && (
+        <div className="overflow-x-auto my-1">
+          <table className="w-full text-xs text-left border-collapse">
+            <thead>
+              <tr className="border-b border-[var(--border-secondary)] text-[var(--text-muted)]">
+                <th className="py-1 px-2">Parameter</th>
+                <th className="py-1 px-2">Calculated</th>
+                <th className="py-1 px-2">Rated Limit</th>
+                <th className="py-1 px-2">% Duty</th>
+                <th className="py-1 px-2">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {answer.duty_table.map((row, idx) => (
+                <tr key={idx} className="border-b border-[var(--border-secondary)]/50 hover:bg-white/5">
+                  <td className="py-1 px-2 font-medium">{row.parameter}</td>
+                  <td className="py-1 px-2">{row.calculated_value} {row.unit}</td>
+                  <td className="py-1 px-2">{row.rated_limit} {row.unit}</td>
+                  <td className="py-1 px-2 font-mono font-semibold">{row.duty_percent}%</td>
+                  <td className="py-1 px-2">
+                    <span className={cn(
+                      "px-1.5 py-0.5 rounded text-[10px] font-semibold",
+                      row.status === "PASS" ? "bg-emerald-500/15 text-emerald-300" : "bg-rose-500/15 text-rose-300"
+                    )}>
+                      {row.status}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {answer.findings && answer.findings.length > 0 && (
+        <div className="flex flex-col gap-1.5 mt-1">
+          <span className="text-xs font-semibold text-[var(--text-muted)]">Findings:</span>
+          {answer.findings.map((f, i) => (
+            <div key={i} className="flex items-start gap-2 text-xs bg-[var(--bg-elevated)] p-2 rounded border border-[var(--border-secondary)]">
+              <span className={cn(
+                "px-1.5 py-0.5 rounded text-[10px] uppercase font-bold shrink-0",
+                f.severity === "pass" ? "bg-emerald-500/20 text-emerald-400" :
+                f.severity === "warning" ? "bg-amber-500/20 text-amber-400" : "bg-rose-500/20 text-rose-400"
+              )}>
+                {f.severity}
+              </span>
+              <span className="text-[var(--text-primary)]">{f.message}</span>
+              {f.standard_reference && (
+                <span className="text-[10px] text-[var(--text-muted)] ml-auto shrink-0 font-mono">[{f.standard_reference}]</span>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {answer.recommendations && answer.recommendations.length > 0 && (
+        <div className="flex flex-col gap-1 mt-1 text-xs">
+          <span className="font-semibold text-[var(--text-muted)]">Recommendations:</span>
+          <ul className="list-disc list-inside space-y-0.5 text-[var(--text-secondary)]">
+            {answer.recommendations.map((rec, i) => (
+              <li key={i}>{rec}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function MessageBubble({ message }: { readonly message: ChatMessage }) {
   const isUser = message.role === "user";
+  const structuredAnswer = !isUser ? tryParseStructuredAnswer(message.content) : null;
+
   return (
     <div
       className={cn(
@@ -86,6 +243,8 @@ function MessageBubble({ message }: { readonly message: ChatMessage }) {
         >
           {isUser ? (
             message.content
+          ) : structuredAnswer ? (
+            <EngineerAnswerCard answer={structuredAnswer} />
           ) : (
             <div className="prose-engineering">
               <ReactMarkdown

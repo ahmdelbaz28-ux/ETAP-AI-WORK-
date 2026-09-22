@@ -122,9 +122,17 @@ ENGINEERING_PARAMS: tuple[str, ...] = (
     "electrode_config",
 )
 
+# ─── Engineering aliases mapped to canonical parameters ─────────────────────
+ENGINEERING_ALIASES: dict[str, str] = {
+    "bolted_fault_ka": "bolted_fault_current",
+    "ik_double_prime": "bolted_fault_current",
+    "isc3ph": "short_circuit_level",
+}
+
 # Reason codes.
 TOOL_DENIED_IN_AGENT_EXEC = "TOOL_DENIED_IN_AGENT_EXEC"
 UNSOURCED_ENGINEERING_VALUE = "UNSOURCED_ENGINEERING_VALUE"
+UNIT_DIMENSION_MISMATCH = "UNIT_DIMENSION_MISMATCH"
 
 
 # ─── Evaluation logic ──────────────────────────────────────────────────────
@@ -132,6 +140,47 @@ def _resolve_policy(tool_name: str) -> dict[str, Any]:
     """Return the policy for a tool name, falling back to deny-by-default."""
     canonical = TOOL_ALIASES.get(tool_name, tool_name)
     return TOOL_POLICIES.get(canonical) or _DEFAULT_POLICY
+
+
+def _canonical_engineering_param(key: str) -> str:
+    """Resolve an engineering alias to its canonical parameter name."""
+    return ENGINEERING_ALIASES.get(key, key)
+
+
+def validate_engineering_dimensions(args: dict, depth: int = 0) -> tuple[bool, str | None]:
+    """Recursively validate that explicit units on engineering parameters match their physical dimensions.
+
+    Returns (True, None) if dimensions match, or (False, error_details) on mismatch (e.g. V in kA field).
+    """
+    if depth > _ENGINEERING_SCAN_MAX_DEPTH or not isinstance(args, dict):
+        return True, None
+
+    try:
+        from core.units import validate_parameter_dimension
+    except ImportError:
+        return True, None
+
+    for key, val in args.items():
+        if key == "source":
+            continue
+        if isinstance(key, str):
+            canonical = _canonical_engineering_param(key)
+            if canonical in ENGINEERING_PARAMS:
+                valid, err = validate_parameter_dimension(canonical, val)
+                if not valid:
+                    return False, err
+        if isinstance(val, dict):
+            sub_valid, sub_err = validate_engineering_dimensions(val, depth + 1)
+            if not sub_valid:
+                return False, sub_err
+        elif isinstance(val, (list, tuple)):
+            for item in val:
+                if isinstance(item, dict):
+                    sub_valid, sub_err = validate_engineering_dimensions(item, depth + 1)
+                    if not sub_valid:
+                        return False, sub_err
+
+    return True, None
 
 
 def validate_engineering_source(args: dict, source: dict | None) -> bool:
@@ -162,13 +211,15 @@ _ENGINEERING_SCAN_MAX_DEPTH = 6
 
 
 def _contains_engineering_param(value: Any, depth: int = 0) -> bool:
-    """Recursively detect an ENGINEERING_PARAMS key inside *value*."""
+    """Recursively detect an ENGINEERING_PARAMS key (or alias) inside *value*."""
     if depth > _ENGINEERING_SCAN_MAX_DEPTH:
         return False
     if isinstance(value, dict):
         for key, sub_value in value.items():
-            if isinstance(key, str) and key in ENGINEERING_PARAMS:
-                return True
+            if isinstance(key, str):
+                canonical = _canonical_engineering_param(key)
+                if canonical in ENGINEERING_PARAMS:
+                    return True
             if _contains_engineering_param(sub_value, depth + 1):
                 return True
         return False
@@ -196,11 +247,12 @@ def evaluate_tool_policy(
     Rules (in order):
       1. Tools denied in agent exec (``powershell-tool``, ``node-tool``) are
          rejected immediately -> ``TOOL_DENIED_IN_AGENT_EXEC``.
-      2. Engineering arguments without a valid source are rejected ->
+      2. Unit dimension check -> ``UNIT_DIMENSION_MISMATCH``.
+      3. Engineering arguments without a valid source are rejected ->
          ``UNSOURCED_ENGINEERING_VALUE``.
-      3. ``read`` tools -> ``auto_approved``.
-      4. ``critical`` tools -> always ``pending`` (even with auto-approve).
-      5. ``mutating`` tools -> ``auto_approved`` when ``auto_approve_enabled``
+      4. ``read`` tools -> ``auto_approved``.
+      5. ``critical`` tools -> always ``pending`` (even with auto-approve).
+      6. ``mutating`` tools -> ``auto_approved`` when ``auto_approve_enabled``
           is True, else ``pending``.
     """
     policy = _resolve_policy(tool_name)
@@ -210,12 +262,17 @@ def evaluate_tool_policy(
     if policy.get("deny_in_agent_exec"):
         return {"decision": "rejected", "reason": TOOL_DENIED_IN_AGENT_EXEC}
 
-    # Rule 2 - engineering-source enforcement (no guessing).
+    # Rule 2 - physical unit dimension enforcement.
+    dims_valid, _dim_err = validate_engineering_dimensions(args)
+    if not dims_valid:
+        return {"decision": "rejected", "reason": UNIT_DIMENSION_MISMATCH}
+
+    # Rule 3 - engineering-source enforcement (no guessing).
     source = args.get("source") if isinstance(args, dict) else None
     if not validate_engineering_source(args, source):
         return {"decision": "rejected", "reason": UNSOURCED_ENGINEERING_VALUE}
 
-    # Rule 3/4/5 - classification decision.
+    # Rule 4/5/6 - classification decision.
     if classification == "read":
         return {"decision": "auto_approved", "reason": "read-only tool auto-approved"}
     if classification == "critical":

@@ -160,6 +160,36 @@ DEFAULT_FEATURE_FLAGS: dict[str, dict[str, Any]] = {
         "description": "Generative Substation & Feeder Design Scaffold (topology, equipment sizing, protection scheme)",
         "rollout_percentage": 0,
     },
+    "breaker_duty": {
+        "enabled": False,
+        "status": "beta",
+        "description": "Breaker Duty evaluation per IEC 62271-100 against catalog switchgear limits",
+        "rollout_percentage": 0,
+    },
+    "chat_system_prompt": {
+        "enabled": False,
+        "status": "beta",
+        "description": "Inject canonical etap_engineer_agent system prompt and engineering temperature/token limits",
+        "rollout_percentage": 0,
+    },
+    "chat_history_prune": {
+        "enabled": False,
+        "status": "beta",
+        "description": "Prune chat conversation history exceeding token budget while preserving system prompt",
+        "rollout_percentage": 0,
+    },
+    "rag_model2vec": {
+        "enabled": False,
+        "status": "beta",
+        "description": "Enable CPU-optimized model2vec embedding inference for engineering knowledge search",
+        "rollout_percentage": 0,
+    },
+    "chat_structured": {
+        "enabled": False,
+        "status": "beta",
+        "description": "Enforce Pydantic EngineerAnswer schema validation for chat responses",
+        "rollout_percentage": 0,
+    },
 }
 
 FEATURE_FLAGS = DEFAULT_FEATURE_FLAGS

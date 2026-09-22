@@ -235,19 +235,80 @@ class StudyEngine:
                 "standards": "IEC 60909",
             }, []
 
-        # Analytical IEC 60909 standard computation
-        ik_ss = float(parameters.get("ik_ss_ka", parameters.get("ik_initial_ka", 25.0)))
-        kappa = float(parameters.get("kappa", 1.80))
-        ip_peak = kappa * 1.414 * ik_ss
-        breaking_current_ib = ik_ss * 0.95
+        # Analytical IEC 60909 standard computation via canonical IEC60909Engine delegator
+        from fault_analysis.iec60909_engine import FaultType, IEC60909Engine
+
+        raw_fault_type = str(parameters.get("fault_type", "three_phase")).lower()
+        if raw_fault_type in ("3phase", "three_phase", "3p"):
+            fault_type_enum = FaultType.THREE_PHASE
+        elif raw_fault_type in ("line_to_ground", "slg", "1phase"):
+            fault_type_enum = FaultType.LINE_TO_GROUND
+        elif raw_fault_type in ("line_to_line", "ll", "2phase"):
+            fault_type_enum = FaultType.LINE_TO_LINE
+        elif raw_fault_type in ("double_line_to_ground", "llg"):
+            fault_type_enum = FaultType.DOUBLE_LINE_TO_GROUND
+        else:
+            fault_type_enum = FaultType.THREE_PHASE
+
+        base_mva = float(parameters.get("base_mva", 100.0))
+        base_i = (base_mva * 1000.0) / (voltage_kv * np.sqrt(3))
+        ik_target_ka = float(parameters.get("ik_ss_ka", parameters.get("ik_initial_ka", 25.0)))
+        ik_target_pu = (ik_target_ka * 1000.0) / base_i
+
+        c_factor = float(
+            parameters.get(
+                "c_factor",
+                1.10 if voltage_kv >= 1.0 else 1.05,
+            )
+        )
+        v_pre = c_factor * 1.0
+        z_mag = v_pre / ik_target_pu
+
+        # Determine R/X from kappa or explicit rx_ratio
+        if "rx_ratio" in parameters:
+            rx = float(parameters["rx_ratio"])
+        elif "kappa" in parameters:
+            kappa_in = float(parameters["kappa"])
+            if kappa_in >= 2.0:
+                rx = 0.0
+            elif kappa_in <= 1.02:
+                rx = 10.0
+            else:
+                rx = float(-np.log(max(1e-6, (kappa_in - 1.02) / 0.98)) / 3.0)
+        else:
+            rx = 0.1
+
+        theta = np.arctan(1.0 / max(1e-6, rx))
+        z1 = complex(z_mag * np.cos(theta), z_mag * np.sin(theta))
+        y1 = 1.0 / z1
+        ybus = np.array([[y1]], dtype=complex)
+
+        engine = IEC60909Engine(
+            ybus_pos=ybus,
+            ybus_neg=ybus,
+            ybus_zero=ybus,
+            base_mva=base_mva,
+            base_kv=voltage_kv,
+            r_override={0: rx},
+        )
+        t_min = parameters.get("t_min")
+        result = engine.calculate(
+            fault_type_enum,
+            bus_index=0,
+            bus_kv=voltage_kv,
+            c_factor=c_factor,
+            t_min=float(t_min) if t_min is not None else None,
+        )
 
         return {
             "fault_type": fault_type,
             "fault_bus": fault_bus,
             "voltage_kv": voltage_kv,
-            "ik_initial_ka": round(ik_ss, 3),
-            "ip_peak_ka": round(ip_peak, 3),
-            "ib_breaking_ka": round(breaking_current_ib, 3),
+            "ik_initial_ka": round(float(result.Ik_initial_magnitude), 3),
+            "ip_peak_ka": round(float(result.ip_peak), 3),
+            "ib_breaking_ka": round(float(result.Ib_breaking), 3),
+            "ik_steady_ka": round(float(result.Ik_steady), 3),
+            "ith_thermal_ka": round(float(result.Ith_thermal), 3),
             "standards": "IEC 60909",
         }, []
 

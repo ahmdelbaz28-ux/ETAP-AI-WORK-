@@ -723,8 +723,27 @@ class EngineeringKnowledgeBase:
         # Encode query
         query_embedding = self.embedding_model.encode([query])[0]
 
-        # Search vector database
-        results = self.vector_db.search(query_embedding, top_k)
+        # Search vector database with wider pool for hybrid re-ranking
+        search_pool = max(top_k * 2, 10)
+        results = self.vector_db.search(query_embedding, search_pool)
+
+        # Hybrid boost: standard mentions, technical symbols, and domain keywords
+        query_upper = query.upper()
+        for res in results:
+            doc = res.document
+            std = (doc.standard_number or doc.source or "").upper()
+            if std and std in query_upper:
+                res.relevance_score += 0.5
+            for term in ["60909", "1584", "60255", "3002", "80", "519", "70E", "IB", "ITH", "TCC", "THD", "GPR"]:
+                if term in query_upper and term in doc.content.upper():
+                    res.relevance_score += 0.3
+            # Multilingual engineering keywords
+            for keyword in ["الإجهاد الحراري", "زمن تشغيل", "منحنيات", "سريان الأحمال", "جهد الخطوة", "التأريض", "التوافقي", "الوميض القوسي"]:
+                if keyword in query and keyword in doc.content:
+                    res.relevance_score += 0.4
+
+        results.sort(key=lambda r: r.relevance_score, reverse=True)
+        results = results[:top_k]
 
         self.logger.info("Retrieved %d documents for query: %s...", len(results), query[:50])
 

@@ -368,7 +368,10 @@ class WorkflowEngine:
         }
 
         if benchmark:
-            result.update(await self._run_sequential_benchmark(resolved, _make_task, parallel_time))
+            bench_metrics = await self._run_sequential_benchmark(resolved, _make_task, parallel_time)
+            result["benchmark_metrics"] = bench_metrics
+            result["sequential_time_seconds"] = bench_metrics.get("sequential_time_seconds")
+            result["speedup_factor"] = bench_metrics.get("speedup_factor")
 
         self.logger.info(
             "Parallel studies completed: task_id=%s, studies=%d, parallel_time=%.4fs",

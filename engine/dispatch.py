@@ -170,6 +170,14 @@ def _build_dispatch() -> dict[str, StudyRegistration]:
         requires_system=False,
         required_params=(),
     )
+    # Breaker Duty Study — evaluating short-circuit stress vs equipment ratings per IEC 62271-100 / IEC 60947-2.
+    # Feature flag "breaker_duty" is DISABLED by default.
+    dispatch["breaker_duty"] = StudyRegistration(
+        handler_type="external",
+        handler="breaker_duty.evaluator.BreakerDutyEvaluator",
+        requires_system=False,
+        required_params=(),
+    )
 
     return dispatch
 
