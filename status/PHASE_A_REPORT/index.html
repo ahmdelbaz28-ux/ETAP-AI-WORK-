@@ -1,0 +1,875 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Enterprise AI-Powered Power Systems Engineering Platform">
+      
+      
+        <meta name="author" content="AhmedETAP Team">
+      
+      
+      
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.11">
+    
+    
+      
+        <title>تقرير المرحلة A (المُصحَّح) — Phase A Report - AhmedETAP Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.4af4bdda.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="deep-purple">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#a-phase-a-report" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="AhmedETAP Documentation" class="md-header__button md-logo" aria-label="AhmedETAP Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            AhmedETAP Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              تقرير المرحلة A (المُصحَّح) — Phase A Report
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  الصفحة الرئيسية
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../ARCHITECTURE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  الهيكلية
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../API_REFERENCE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  واجهة برمجة التطبيقات
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../OPERATIONS_RUNBOOK/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  دليل التشغيل
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../TROUBLESHOOTING_GUIDE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  دليل الأعطال
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../SECURITY_OPERATIONS_MANUAL/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  البنية التحتية للأمان
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../ENTERPRISE_CERTIFICATION_REPORT/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  التقييم المؤسسي
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="AhmedETAP Documentation" class="md-nav__button md-logo" aria-label="AhmedETAP Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    AhmedETAP Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    الصفحة الرئيسية
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ARCHITECTURE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    الهيكلية
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../API_REFERENCE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    واجهة برمجة التطبيقات
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../OPERATIONS_RUNBOOK/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    دليل التشغيل
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../TROUBLESHOOTING_GUIDE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    دليل الأعطال
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../SECURITY_OPERATIONS_MANUAL/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    البنية التحتية للأمان
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ENTERPRISE_CERTIFICATION_REPORT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    التقييم المؤسسي
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1" class="md-nav__link">
+    <span class="md-ellipsis">
+      1) هوية المرحلة
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-phase-a" class="md-nav__link">
+    <span class="md-ellipsis">
+      2) جدول التعديلات المنجزة فعلياً في Phase A
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-gate-execution" class="md-nav__link">
+    <span class="md-ellipsis">
+      3) الأدلة الحرفية (Gate Execution)
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-phase-a" class="md-nav__link">
+    <span class="md-ellipsis">
+      4) بوابة القبول لـ Phase A
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-crucial-scaffolds" class="md-nav__link">
+    <span class="md-ellipsis">
+      5) غير المنفَّذ بدقة وتصحيح الادعاءات السابقة (Crucial Scaffolds)
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6" class="md-nav__link">
+    <span class="md-ellipsis">
+      6) إقرار الصدق الهندسي
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="a-phase-a-report">تقرير المرحلة A (المُصحَّح) — Phase A Report</h1>
+<blockquote>
+<p><strong>تنبيه وتصحيح:</strong> تم إعداد هذا التقرير التزاماً بنموذج <code>REPORT_TEMPLATE.md</code> وميثاق الصدق الهندسي، لتصحيح التوصيف الواقعي لمخرجات Phase A عند الالتزام <code>d7228c24d412f08e6fee6317bdf539ba6d35a5c9</code> وإغلاق الفجوات التوثيقية والادعائية.</p>
+</blockquote>
+<hr />
+<h2 id="1">1) هوية المرحلة</h2>
+<ul>
+<li>المرحلة: <code>Phase A — الوحدات الهندسية، توحيد القصر، سعة القواطع، تعزيزات المحادثة ومخطط الإجابة</code></li>
+<li><code>HEAD</code> المعتمد: <code>d7228c24d412f08e6fee6317bdf539ba6d35a5c9</code></li>
+<li>حالة الشجرة: نظيفة (<code>clean tree</code>).</li>
+<li>ملاحظة توثيقية حاسمة: ملف <code>walkthrough.md</code> المشار إليه في بعض التوثيقات غير موجود في المستودع أصلًا (لم يتم دمجه أو رفعه)، ومستندات الحالة المعتمدة هي الموجودة داخل <code>docs/status/</code>.</li>
+</ul>
+<hr />
+<h2 id="2-phase-a">2) جدول التعديلات المنجزة فعلياً في Phase A</h2>
+<table>
+<thead>
+<tr>
+<th>ملف (مسار كامل)</th>
+<th>السطر/الدالة</th>
+<th>قبل</th>
+<th>بعد</th>
+<th>السبب الهندسي والدليل</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>core/units.py</code></td>
+<td>كامل الملف (جديد)</td>
+<td>غير موجود</td>
+<td>تعريف <code>UnitRegistry</code> وتحويل الوحدات</td>
+<td>منع أخطاء تفاوت الوحدات الهندسية (kV, A, MVA)</td>
+</tr>
+<tr>
+<td><code>api/tool_policy.py</code></td>
+<td><code>ENGINEERING_ALIASES</code>, <code>validate_engineering_units</code></td>
+<td>بدون تحقق وحدات</td>
+<td>فحص مدخلات الأدوات والتحقق من الأبعاد</td>
+<td>رفض التضارب البعدي <code>UNIT_DIMENSION_MISMATCH</code></td>
+</tr>
+<tr>
+<td><code>core/study_engine.py</code></td>
+<td>219-270</td>
+<td>معامل 0.95 ثابت</td>
+<td>تفويض الحساب التحليلي لـ <code>IEC60909Engine</code></td>
+<td>توحيد حسابات القصر وإلغاء المعاملات الاعتباطية</td>
+</tr>
+<tr>
+<td><code>breaker_duty/catalog.py</code></td>
+<td>كامل الملف (جديد)</td>
+<td>غير موجود</td>
+<td>كتالوج قواطع IEC 62271-100</td>
+<td>توفير بيانات سعة القواطع المعيارية للمقارنة</td>
+</tr>
+<tr>
+<td><code>breaker_duty/evaluator.py</code></td>
+<td>كامل الملف (جديد)</td>
+<td>غير موجود</td>
+<td>فئات تقييم %Duty</td>
+<td>حساب نسبة إجهاد القواطع مقابل السعات الاسمية</td>
+</tr>
+<tr>
+<td><code>engine/dispatch.py</code></td>
+<td>174-181</td>
+<td>غير مسجل</td>
+<td>تسجيل <code>breaker_duty</code> كـ <code>external</code></td>
+<td>تعريف نوع الدراسة في جدول التوجيه العام</td>
+</tr>
+<tr>
+<td><code>api/chat_stream.py</code></td>
+<td>490-502, 505-526</td>
+<td>بدون موجه نظام مخصص أو تشذيب</td>
+<td>حقن <code>etap_engineer_agent</code>، وتشذيب 8000 توكن</td>
+<td>ضبط سلوك المهندس وتفادي تجاوز نافذة السياق</td>
+</tr>
+<tr>
+<td><code>knowledge/chunking.py</code></td>
+<td>كامل الملف (جديد)</td>
+<td>غير موجود</td>
+<td>تقطيع النصوص الهندسية (400-600 توكن)</td>
+<td>تحسين جودة استرجاع RAG للمعايير</td>
+</tr>
+<tr>
+<td><code>knowledge/rag_engine.py</code></td>
+<td>516-538</td>
+<td>بدون إعادة ترتيب</td>
+<td>تفعيل hybrid re-ranking</td>
+<td>رفع دقة استرجاع معايير IEEE/IEC</td>
+</tr>
+<tr>
+<td><code>api/answer_schema.py</code></td>
+<td>كامل الملف (جديد)</td>
+<td>غير موجود</td>
+<td>مخطط <code>EngineerAnswer</code> عبر Pydantic</td>
+<td>توحيد هيكل الإجابات الهندسية</td>
+</tr>
+<tr>
+<td><code>ui/src/components/chat/MessageList.tsx</code></td>
+<td>103-247</td>
+<td>لا يوجد عرض منظم</td>
+<td>مكون <code>EngineerAnswerCard</code></td>
+<td>عرض الإجابات الهندسية المنظمة في الواجهة</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="3-gate-execution">3) الأدلة الحرفية (Gate Execution)</h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="p">.</span><span class="n">venv-fix</span><span class="p">\</span><span class="n">Scripts</span><span class="p">\</span><span class="n">python</span><span class="p">.</span><span class="n">exe</span> <span class="n">-m</span> <span class="n">pytest</span> <span class="n">tests</span><span class="p">/</span><span class="n">test_chat_stream</span><span class="p">.</span><span class="n">py</span> <span class="n">tests</span><span class="p">/</span><span class="n">test_iec60909_published_cases</span><span class="p">.</span><span class="n">py</span> <span class="n">tests</span><span class="p">/</span><span class="n">test_design_agent_scaffold</span><span class="p">.</span><span class="n">py</span> <span class="n">tests</span><span class="p">/</span><span class="n">test_tool_policy</span><span class="p">.</span><span class="n">py</span> <span class="n">tests</span><span class="p">/</span><span class="n">test_breaker_duty</span><span class="p">.</span><span class="n">py</span> <span class="n">tests</span><span class="p">/</span><span class="n">test_phase_a_chat_enhancements</span><span class="p">.</span><span class="n">py</span> <span class="n">tests</span><span class="p">/</span><span class="n">test_phase_a_rag_and_schema</span><span class="p">.</span><span class="n">py</span> <span class="n">-q</span> <span class="p">-</span><span class="n">-tb</span><span class="p">=</span><span class="n">short</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">76</span> <span class="n">passed</span> <span class="k">in</span> <span class="n">188</span><span class="p">.</span><span class="n">35s</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="p">.</span><span class="n">venv-fix</span><span class="p">\</span><span class="n">Scripts</span><span class="p">\</span><span class="n">python</span><span class="p">.</span><span class="n">exe</span> <span class="n">-m</span> <span class="n">ruff</span> <span class="n">check</span> <span class="p">.</span> <span class="p">-</span><span class="n">-config</span> <span class="n">ruff</span><span class="p">.</span><span class="n">toml</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="n">All</span> <span class="n">checks</span> <span class="n">passed</span><span class="p">!</span> <span class="p">(</span><span class="n">RUFF_EXIT</span><span class="p">=</span><span class="n">0</span><span class="p">)</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="p">.</span><span class="n">venv-fix</span><span class="p">\</span><span class="n">Scripts</span><span class="p">\</span><span class="n">python</span><span class="p">.</span><span class="n">exe</span> <span class="n">scripts</span><span class="p">\</span><span class="n">claims_audit</span><span class="p">.</span><span class="n">py</span> <span class="p">-</span><span class="n">-strict</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="n">Summary</span><span class="p">:</span> <span class="n">16</span> <span class="n">Verified</span><span class="p">,</span> <span class="n">0</span> <span class="n">Missing</span> <span class="n">empirical</span> <span class="n">test</span> <span class="n">coverage</span><span class="p">.</span>
+</code></pre></div>
+<hr />
+<h2 id="4-phase-a">4) بوابة القبول لـ Phase A</h2>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>شرط المرحلة</th>
+<th>النتيجة</th>
+<th>الدليل الحرفي</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>التحقق البعدي للوحدات ومنع التخمين</td>
+<td>✅ محقق</td>
+<td><code>tests/test_tool_policy.py</code> (20 passed)</td>
+</tr>
+<tr>
+<td>2</td>
+<td>توحيد محرك القصر وإلغاء 0.95</td>
+<td>✅ محقق</td>
+<td><code>tests/test_iec60909_published_cases.py</code> (15 passed)</td>
+</tr>
+<tr>
+<td>3</td>
+<td>كتالوج وفاحص سعة القواطع IEC 62271-100</td>
+<td>✅ محقق وحدوياً</td>
+<td><code>tests/test_breaker_duty.py</code> (5 passed)</td>
+</tr>
+<tr>
+<td>4</td>
+<td>حقن موجه المهندس وتشذيب السياق</td>
+<td>✅ محقق</td>
+<td><code>tests/test_phase_a_chat_enhancements.py</code> (4 passed)</td>
+</tr>
+<tr>
+<td>5</td>
+<td>تقطيع RAG وإعادة الترتيب ومخطط الإجابة</td>
+<td>✅ محقق</td>
+<td><code>tests/test_phase_a_rag_and_schema.py</code> (4 passed)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="5-crucial-scaffolds">5) غير المنفَّذ بدقة وتصحيح الادعاءات السابقة (Crucial Scaffolds)</h2>
+<p>يقر هذا التقرير بوجود ثلاثة بنود تم تسجيلها كهياكل أولية (Scaffolds) دون اكتمال مسار تدفقها الإنتاجي، ويتم تصحيح أي ادعاء سابق يزعم اكتمالها:</p>
+<table>
+<thead>
+<tr>
+<th>البند غير المكتمل</th>
+<th>الحقيقة البرمجية والدليل الحرفي</th>
+<th>السبب</th>
+<th>معالجة الفجوة في Phase B</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>مسار استدعاء <code>breaker_duty</code> عبر الموزع العام</strong> (<code>breaker_duty-execution-path</code>)</td>
+<td>الدراسة مسجلة في <code>engine/dispatch.py:174-181</code> كـ <code>handler_type="external"</code>، لكن الموزع الفعلي <code>services/study_executor.py:383-384</code> يرفض أي نوع غير <code>native</code> و<code>agent</code> برفع <code>ValueError</code>. لا يوجد أي مسار استدعاء إنتاجي مكتمل.</td>
+<td>اقتصر عمل Phase A على بناء الحزمة واختبارها الوحدوي.</td>
+<td>إضافة فرع تنفيذي صريح في <code>study_executor.py</code> مشروط براية <code>breaker_duty</code>.</td>
+</tr>
+<tr>
+<td><strong>تكامل <code>model2vec</code> الفعلي</strong> (<code>model2vec-integration</code>)</td>
+<td>الحزمة مثبتة في البيئة والراية مسجلة في <code>api/feature_flags.py:181-187</code>، لكن لا يوجد سطر واحد يستورد المكتبة. دقة 96.7% نتجت حصراً عن <code>hybrid re-ranking</code>.</td>
+<td>لم يتم ربط محرك <code>model2vec.StaticModel</code> بموفر التضمين في <code>rag_engine.py</code>.</td>
+<td>ربط <code>model2vec</code> كمحرك تضمين محلي CPU عند تفعيل راية <code>rag_model2vec</code>.</td>
+</tr>
+<tr>
+<td><strong>الفرض الخلفي لـ <code>chat_structured</code></strong> (<code>chat_structured-enforcement</code>)</td>
+<td>راية <code>chat_structured</code> غير مستهلكة خلفياً في <code>api/chat_stream.py</code>؛ والتحقق من <code>EngineerAnswer</code> يتم عبر regex/JSON في الواجهة فقط (<code>MessageList.tsx:213</code>).</td>
+<td>الاعتماد المؤقت على الواجهة دون فحص في تدفق البث الخلفي.</td>
+<td>إضافة تحقق <code>EngineerAnswer.model_validate_json</code> وإرسال الحالة في حدث <code>done</code>.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="6">6) إقرار الصدق الهندسي</h2>
+<p>نقر بأن كافة التفاصيل المذكورة أعلاه تم التحقق منها فحصاً برمجياً واختبارياً دقيقاً، وأن البنود غير المكتملة تم حصرها وتوصيفها تمهيداً لإغلاقها الكامل في Phase B.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "search.suggest", "search.highlight"], "search": "../../assets/javascripts/workers/search.f8cc74c7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.c8b220af.min.js"></script>
+      
+    
+  </body>
+</html>
