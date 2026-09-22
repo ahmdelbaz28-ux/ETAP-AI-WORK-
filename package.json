@@ -40,7 +40,7 @@
     "@mastra/libsql": "^1.4.0",
     "@mastra/loggers": "1.2.0",
     "@mastra/memory": "^1.29.0",
-    "@mastra/observability": "^1.0.0",
+    "@mastra/observability": "^1.17.8",
     "@opentelemetry/auto-instrumentations-node": "^0.80.0",
     "ai": "^6.0.209",
     "js-yaml": "^5.4.1",

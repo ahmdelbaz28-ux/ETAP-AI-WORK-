@@ -72,8 +72,8 @@ importers:
         specifier: ^1.29.0
         version: 1.29.0(@mastra/core@1.59.0(@grpc/grpc-js@1.14.4)(ai@6.0.255(zod@3.25.76))(express@5.2.1(supports-color@10.2.2))(rxjs@7.8.2)(supports-color@10.2.2)(zod@3.25.76))(supports-color@10.2.2)
       '@mastra/observability':
-        specifier: ^1.0.0
-        version: 1.17.0(@mastra/core@1.59.0(@grpc/grpc-js@1.14.4)(ai@6.0.255(zod@3.25.76))(express@5.2.1(supports-color@10.2.2))(rxjs@7.8.2)(supports-color@10.2.2)(zod@3.25.76))(zod@3.25.76)
+        specifier: ^1.17.8
+        version: 1.17.8(@mastra/core@1.59.0(@grpc/grpc-js@1.14.4)(ai@6.0.255(zod@3.25.76))(express@5.2.1(supports-color@10.2.2))(rxjs@7.8.2)(supports-color@10.2.2)(zod@3.25.76))(zod@3.25.76)
       '@opentelemetry/auto-instrumentations-node':
         specifier: ^0.80.0
         version: 0.80.0(@opentelemetry/api@1.9.1)(@opentelemetry/core@2.11.0(@opentelemetry/api@1.9.1))(supports-color@10.2.2)
@@ -1340,8 +1340,8 @@ packages:
     peerDependencies:
       '@mastra/core': '>=1.4.1-0 <2.0.0-0'
 
-  '@mastra/observability@1.17.0':
-    resolution: {integrity: sha512-iqHeLWrF3z72csNaVdIZI8e9pSzE5iAf4OQf4KWvMKq0D8I9HIMWQzG6RB/xbVlFdmid1HAUBvPBDmDRCnW/JA==}
+  '@mastra/observability@1.17.8':
+    resolution: {integrity: sha512-lbJKipnZXLsixURQVP+M5RMtP8VwPj9vwmN51lVB17PRxk5vg1sWsgrTH3UL9Yt+kRX407Ei6SydQ/j6GvOiPg==}
     engines: {node: '>=22.13.0'}
     peerDependencies:
       '@mastra/core': '>=1.16.0-0 <2.0.0-0'
@@ -7907,7 +7907,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@mastra/observability@1.17.0(@mastra/core@1.59.0(@grpc/grpc-js@1.14.4)(ai@6.0.255(zod@3.25.76))(express@5.2.1(supports-color@10.2.2))(rxjs@7.8.2)(supports-color@10.2.2)(zod@3.25.76))(zod@3.25.76)':
+  '@mastra/observability@1.17.8(@mastra/core@1.59.0(@grpc/grpc-js@1.14.4)(ai@6.0.255(zod@3.25.76))(express@5.2.1(supports-color@10.2.2))(rxjs@7.8.2)(supports-color@10.2.2)(zod@3.25.76))(zod@3.25.76)':
     dependencies:
       '@mastra/core': 1.59.0(@grpc/grpc-js@1.14.4)(ai@6.0.255(zod@3.25.76))(express@5.2.1(supports-color@10.2.2))(rxjs@7.8.2)(supports-color@10.2.2)(zod@3.25.76)
       zod: 3.25.76
