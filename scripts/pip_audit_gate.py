@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import datetime
 import json
-import subprocess  # nosec B404  # subprocess used exclusively for pinned internal pip-audit CLI invocation
+import subprocess  # nosec B404 # nosemgrep  # subprocess used exclusively for pinned internal pip-audit CLI invocation
 import sys
 from pathlib import Path
 
@@ -67,7 +67,7 @@ def main() -> int:
     ] + ignore_args
 
     sys.stdout.write(f"\nRunning command: pip-audit -r requirements.txt {' '.join(ignore_args)}\n\n")
-    res = subprocess.run(cmd, cwd=repo_root, check=False)  # nosec B603
+    res = subprocess.run(cmd, cwd=repo_root, check=False)  # nosec B603 # nosemgrep
 
     if res.returncode != 0:
         sys.stderr.write("\n[BLOCKED] pip-audit found unaccepted vulnerabilities in dependencies.\n")
