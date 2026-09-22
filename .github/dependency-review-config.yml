@@ -10,3 +10,7 @@ allow-ghsas:
   - GHSA-xph7-9rjv-w5fr
   # urllib3 accepted vulnerability per .pip-audit-baseline.json
   - GHSA-wqq4-5wpv-3x8g
+  # geopandas SQL injection in to_postgis() — accepted; geopandas is an optional Windows
+  # GIS integration dependency in requirements-win312.txt only, not present in production
+  # container requirements. No external user input reaches to_postgis() in this codebase.
+  - GHSA-6497-prx7-gpmq
