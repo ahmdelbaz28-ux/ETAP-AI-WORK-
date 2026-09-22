@@ -17,23 +17,6 @@ from typing import Any, Sequence
 
 UTC = timezone.utc
 
-# Python 3.8 compatibility shim: ReportLab 3.x passes usedforsecurity=False to hashlib.md5
-try:
-    import hashlib
-
-    try:
-        hashlib.md5(b"", usedforsecurity=False)  # nosec: B303
-    except TypeError:
-        _orig_md5 = hashlib.md5
-
-        def _compat_md5(*args: Any, **kwargs: Any) -> Any:
-            kwargs.pop("usedforsecurity", None)
-            return _orig_md5(*args, **kwargs)
-
-        hashlib.md5 = _compat_md5
-except Exception:
-    pass
-
 
 def _sanitize_csv_cell(val: Any) -> Any:
     """Neutralize spreadsheet formula injection characters (=, +, -, @, tab, CR)."""

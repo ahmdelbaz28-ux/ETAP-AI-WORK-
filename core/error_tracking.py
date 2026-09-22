@@ -55,7 +55,7 @@ _SENSITIVE_PATTERNS = [
     re.compile(r"Bearer\s+[\w.-]{20,}", re.IGNORECASE),
     # Generic API key patterns in JSON
     re.compile(
-        r'["\'](?:api[_-]?key|apikey|secret|password|token|jwt)["\']\s*:\s*["\'][^"\']{8,}["\']',
+        r'["\'](?:api[_-]?key|secret|password|token|jwt)["\']\s*:\s*["\'][^"\']{8,}["\']',
         re.IGNORECASE,
     ),
 ]

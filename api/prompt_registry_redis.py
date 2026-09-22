@@ -154,7 +154,7 @@ class DistributedPromptRegistry:
                     candidate_vers.append(ver)
 
             if candidate_traffic_pct > 0.0 and candidate_vers:
-                if secrets.SystemRandom().random() * 100.0 < candidate_traffic_pct:
+                if (secrets.randbelow(10000) / 100.0) < candidate_traffic_pct:
                     return candidate_vers[-1]
 
             if active_ver:

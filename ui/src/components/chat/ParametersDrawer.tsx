@@ -105,6 +105,14 @@ export function ParametersDrawer({ open, onClose, projectId: propProjectId }: Pa
       className="fixed inset-0 z-50 flex justify-end bg-black/50 backdrop-blur-xs animate-in fade-in duration-200"
       data-testid="parameters-drawer-overlay"
       onClick={onClose}
+      onKeyDown={(e) => {
+        if (e.key === "Escape" || e.key === "Enter" || e.key === " ") {
+          onClose();
+        }
+      }}
+      role="button"
+      tabIndex={0}
+      aria-label="Close parameters drawer"
     >
       <div
         className={cn(
@@ -112,6 +120,9 @@ export function ParametersDrawer({ open, onClose, projectId: propProjectId }: Pa
           "animate-in slide-in-from-right duration-300",
         )}
         onClick={(e) => e.stopPropagation()}
+        onKeyDown={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
         data-testid="parameters-drawer"
       >
         {/* Header */}
