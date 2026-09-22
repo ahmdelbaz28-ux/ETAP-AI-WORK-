@@ -1,0 +1,992 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Enterprise AI-Powered Power Systems Engineering Platform">
+      
+      
+        <meta name="author" content="AhmedETAP Team">
+      
+      
+      
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.11">
+    
+    
+      
+        <title>FINAL REPORT — التقرير النهائي لجولة «الصدق الهندسي + Chat-First» (S0–S9) - AhmedETAP Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.4af4bdda.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="deep-purple">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#final-report-chat-first-s0s9" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="AhmedETAP Documentation" class="md-header__button md-logo" aria-label="AhmedETAP Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            AhmedETAP Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              FINAL REPORT — التقرير النهائي لجولة «الصدق الهندسي + Chat-First» (S0–S9)
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  الصفحة الرئيسية
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../ARCHITECTURE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  الهيكلية
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../API_REFERENCE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  واجهة برمجة التطبيقات
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../OPERATIONS_RUNBOOK/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  دليل التشغيل
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../TROUBLESHOOTING_GUIDE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  دليل الأعطال
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../SECURITY_OPERATIONS_MANUAL/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  البنية التحتية للأمان
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../ENTERPRISE_CERTIFICATION_REPORT/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  التقييم المؤسسي
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="AhmedETAP Documentation" class="md-nav__button md-logo" aria-label="AhmedETAP Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    AhmedETAP Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    الصفحة الرئيسية
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ARCHITECTURE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    الهيكلية
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../API_REFERENCE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    واجهة برمجة التطبيقات
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../OPERATIONS_RUNBOOK/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    دليل التشغيل
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../TROUBLESHOOTING_GUIDE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    دليل الأعطال
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../SECURITY_OPERATIONS_MANUAL/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    البنية التحتية للأمان
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ENTERPRISE_CERTIFICATION_REPORT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    التقييم المؤسسي
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1" class="md-nav__link">
+    <span class="md-ellipsis">
+      1) هوية المراحل والجولة
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-10" class="md-nav__link">
+    <span class="md-ellipsis">
+      2) جدول المرحلة 10 حرفياً (بند | قبل | بعد | الدليل)
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-hugging-face-s8" class="md-nav__link">
+    <span class="md-ellipsis">
+      3) نتائج فحص واختبار مساحة Hugging Face (S8)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3) نتائج فحص واختبار مساحة Hugging Face (S8)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#container-build" class="md-nav__link">
+    <span class="md-ellipsis">
+      أ. حالة بناء الحاوية (Container Build)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#runtime-health-smoke-test" class="md-nav__link">
+    <span class="md-ellipsis">
+      ب. الحالة التشغيلية للواجهة (Runtime Health &amp; Smoke Test)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-s9-clean" class="md-nav__link">
+    <span class="md-ellipsis">
+      4) التنظيف بعد الدمج (S9-CLEAN — جدول القرار والأعداد)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4) التنظيف بعد الدمج (S9-CLEAN — جدول القرار والأعداد)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      أ. جدول القرار الهندسي للمخلفات المتتبعة
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      ب. أعداد وفحص الكود والمزامنة
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      ج. إحصائيات التزام التنظيف
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5" class="md-nav__link">
+    <span class="md-ellipsis">
+      5) البنود غير المنفذة واقتراح الجولة القادمة
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6" class="md-nav__link">
+    <span class="md-ellipsis">
+      6) طلب الاعتماد النهائي للجولة
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="final-report-chat-first-s0s9">FINAL REPORT — التقرير النهائي لجولة «الصدق الهندسي + Chat-First» (S0–S9)</h1>
+<blockquote>
+<p><strong>المرجع والاعتماد:</strong> تم إعداد هذا التقرير وفق متطلبات المراحل <code>S8.md</code> و<code>S9-CLEAN</code> ونموذج التقرير <code>REPORT_TEMPLATE.md</code> المعتمد.
+<strong>القاعدة الحاكمة:</strong> لا ادعاء بلا أمر منفذ ونتيجة حرفية.</p>
+</blockquote>
+<hr />
+<h2 id="1">1) هوية المراحل والجولة</h2>
+<ul>
+<li><strong>المرحلة الحالية:</strong> <code>S9-CLEAN — تنظيف المستودع من الميت والمؤقت + تحديث التوثيق</code></li>
+<li><strong>نقطة الانطلاق المعتمدة (S0):</strong> <code>c7cf56e6cee23451648ade93520f2b78f386ae27</code></li>
+<li><strong>نقطة الوصول لـ S7/S8 (الفرع الرئيسي):</strong> <code>697f0336c460c3f2a9b30fde05ae51f86d7edd6f</code> (PR #598 مدموج بنجاح)</li>
+<li><strong>فرع التنظيف (S9):</strong> <code>chore/repo-cleanup</code></li>
+<li><strong>تعديلات الكود في S8/S9:</strong> <strong>صفر (0)</strong> في كود النواة — اقتصر العمل على حذف الملفات المتتبعة الزائدة، وتحديث <code>.gitignore</code>، وتحديث الوثائق الرسمية.</li>
+</ul>
+<hr />
+<h2 id="2-10">2) جدول المرحلة 10 حرفياً (بند | قبل | بعد | الدليل)</h2>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>البند</th>
+<th>قبل</th>
+<th>بعد</th>
+<th>الدليل الحرفي (أمر + نتيجة)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><strong>بروتوكول BYOK وCORS Headers</strong></td>
+<td>لم تتضمن ترويسات CORS <code>allow_headers</code> المفتاح <code>x-user-llm-key</code> (<code>api/routes.py:767-777, 787-797</code>) مما كسر تكامل BYOK.</td>
+<td>حصر البث فقط في <code>X-User-LLM-*</code>، وإضافة دعم صريح في CORS لكافة الترويسات المطلوبة، وإلغاء مسار التراجع غير الآمن.</td>
+<td><code>pytest tests/test_chat_stream.py tests/test_security_headers.py -q</code><br>النتيجة الحرفية: <code>20 passed in 67.19s</code> + <code>7 passed in 18.50s</code>.</td>
+</tr>
+<tr>
+<td>2</td>
+<td><strong>توثيق معيار IEC 60909</strong></td>
+<td>وثائق ونصوص ادعائية لـ Method B/C بدون بنود معيارية واضحة أو استناد كودي صريح.</td>
+<td>ضبط docstrings بدقة وحصر النطاق في البنود المعيارية الأصلية (3.6.1, 3.3.3, 4.3.3.1, 4.3.1.2) وإزالة أي ادعاء غير مسند.</td>
+<td><code>pytest tests/test_iec60909_published_cases.py -q</code><br>النتيجة الحرفية: <code>15 passed in 30.70s</code> + <code>ruff check fault_analysis/iec60909_engine.py</code> (0 errors).</td>
+</tr>
+<tr>
+<td>3</td>
+<td><strong>تدقيق أدلة ميثاق الثقة (Trust Charter)</strong></td>
+<td>أرقام ادعائية غير موثقة (مثل 0.00% Exact Match، وCERTIFIED PASS، ونسب مئوية غير قابلة للتكرار).</td>
+<td>استبدال كافة الأرقام بنتائج تشغيل حية (336 اقتباس، 83 اختبار)، وتصحيح حدود MathGuard القانونية وإطار اعتماد المهندس المحترف (PE).</td>
+<td><code>python scripts/claims_audit.py --strict</code><br>النتيجة الحرفية: <code>16 Verified / 0 Missing</code> + <code>python scripts/run_ieee_benchmarks.py</code> (<code>4/4 PASS</code>).</td>
+</tr>
+<tr>
+<td>4</td>
+<td><strong>زر الطوارئ الحقيقي (Emergency Stop)</strong></td>
+<td>توقف ظاهري في واجهة المستخدم مع استمرار تدفق الاستجابة المباشرة (in-flight chat stream).</td>
+<td>تفعيل AbortController لإلغاء البث فوراً عبر الشبكة، وتوثيق الحدود الهندسية (إيقاف تدفق المحادثة لا يلغي حسابات بايثون الخلفية المستقلة).</td>
+<td><code>pnpm -C ui test src/__tests__/p6/emergency-stop-order.test.ts --run</code><br>النتيجة الحرفية: <code>4 test files, 27 passed</code>.</td>
+</tr>
+<tr>
+<td>5</td>
+<td><strong>توجيه وكيل التصميم (Design Agent Scaffold)</strong></td>
+<td>تصنيف <code>StudyType.GENERATIVE_DESIGN</code> كدراسة تتطلب بيانات نظام كاملة مما عطّل توجيهها وتسبب في فشل 3 اختبارات خط أساس.</td>
+<td>تسجيل الوكيل في جدول التوجيه مع <code>requires_system=False</code> وتفعيل بوابة fail-closed عند تعطيل Feature Flag.</td>
+<td><code>pytest tests/test_design_agent_scaffold.py -q</code><br>النتيجة الحرفية: <code>8 passed in 20.00s</code> + اختبارات الانحدار <code>3 passed in 13.27s</code>.</td>
+</tr>
+<tr>
+<td>6</td>
+<td><strong>إصلاحات خط الأساس الفيزيائية (F-BASE-A &amp; SlowAPI)</strong></td>
+<td>8 إخفاقات خط أساس (ثابت القوس 0.85 القديم، HSTS max-age، HuggingFace router parity، symlink bypass، headers).</td>
+<td>تصحيح معادلة القوس لـ IEEE 1584-2018 VarCf، ومطابقة RFC 6797 لـ HSTS، والتحقق من حدود slowapi دون أي 429.</td>
+<td><code>pytest tests/test_arc_flash_single_engine.py tests/test_security_headers.py tests/test_run4_security_fixes.py -q</code><br>النتيجة: <code>153 passed</code> + مسارات slowapi الـ7: <code>127 passed in 321.83s, 0 failures, 0 HTTP 429s</code>.</td>
+</tr>
+<tr>
+<td>7</td>
+<td><strong>استثناء زمن استجابة الحمل الطويل (p95 Latency #19)</strong></td>
+<td>فشل اختبار زمن الاستجابة p95 تحت حمل متوازٍ طويل (128 دقيقة).</td>
+<td>استثناء بيئي معتمد (اختبار زمن استجابة تحت حمل طويل 128 دقيقة؛ تجاوز العتبة بـ2.3ms؛ مرّ منفردًا 3 passed) — مسجّل بلا أي تغيير كود.</td>
+<td><code>pytest tests/test_performance_benchmarks.py -k test_p95_latency -q</code><br>النتيجة الحرفية: <code>3 passed in 16.69s</code>.</td>
+</tr>
+<tr>
+<td>8</td>
+<td><strong>قرارات المالك المعتمدة (D1 &amp; D4)</strong></td>
+<td>وجود مسار عمل موازٍ <code>.kilo/worktrees/round-pram</code> (D1)، ومفاتيح قديمة بانتظار تأكيد التدوير (D4).</td>
+<td>حذف مسار العمل الموازي وتشذيبه (<code>git worktree remove</code> + <code>git worktree prune</code>)، وتأكيد تدوير المفاتيح في <code>SECURITY.md:33</code>.</td>
+<td><code>git worktree list</code><br>النتيجة: فرع رئيسي واحد فقط + مراجعة <code>SECURITY.md:33</code>.</td>
+</tr>
+<tr>
+<td>9</td>
+<td><strong>الدفع النظيف (PR → CI → Squash)</strong></td>
+<td>دخول التزامات سابقة مباشرة إلى <code>main</code> بلا فحص PR.</td>
+<td>إنشاء الفرع <code>fix/trust-closure-origin-main</code> وفتح PR #598 واكتمال فحص CI ثم Squash and Merge.</td>
+<td><code>gh pr view 598 --json state,mergedAt,mergeCommit</code><br>النتيجة: <code>MERGED</code> at <code>2026-09-21T13:47:28Z</code> (commit: <code>697f0336c460c3f2a9b30fde05ae51f86d7edd6f</code>).</td>
+</tr>
+<tr>
+<td>10</td>
+<td><strong>اكتمال بوابات CI على main</strong></td>
+<td>التحقق من سلامة البناء الشامل على الفرع الرئيسي بعد الدمج.</td>
+<td>نجاح كافة وظائف الـ CI على الفرع <code>main</code>.</td>
+<td><code>gh run view 35607880979 --json jobs</code><br>النتيجة: <code>conclusion: "success", name: "CI Success" (completed at 2026-09-21T16:08:56Z)</code>.</td>
+</tr>
+<tr>
+<td>11</td>
+<td><strong>مطابقة الفرع المحلي ونظافة الشجرة</strong></td>
+<td>التأكد من مزامنة بيئة التطوير مع الفرع البعيد.</td>
+<td>تحديث الفرع المحلي <code>main</code> عبر Fast-Forward بنسبة 100% وبلا أي تعارضات.</td>
+<td><code>git rev-parse HEAD origin/main</code><br>النتيجة: <code>697f0336c460c3f2a9b30fde05ae51f86d7edd6f</code> (متطابقان وشجرة نظيفة).</td>
+</tr>
+<tr>
+<td>12</td>
+<td><strong>فحص مساحة Hugging Face Space</strong></td>
+<td>مساحة الـ Space في حالة <code>BUILD_ERROR</code> عند الالتزام <code>15995d18</code> بسبب غياب مجلد <code>adms_control/</code>.</td>
+<td>تصحيح الحزمة المُجمّدة، وإزالة الملفات الثنائية ومخلفات pycache، ورفع الالتزام <code>564a01c4537dd9f9a07ceae9c45e33f77b3d298c</code>. حالة البناء أصبحت <code>Stage: RUNNING</code>.</td>
+<td><code>python</code> via Space API:<br>النتيجة الحرفية للبناء: <code>Stage: RUNNING, Sha: 564a01c4537dd9f9a07ceae9c45e33f77b3d298c, ErrorMessage: None</code>.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="3-hugging-face-s8">3) نتائج فحص واختبار مساحة Hugging Face (S8)</h2>
+<h3 id="container-build">أ. حالة بناء الحاوية (Container Build)</h3>
+<ul>
+<li><strong>الالتزام المنشور:</strong> <code>564a01c4537dd9f9a07ceae9c45e33f77b3d298c</code> (يحمل كافة تغييرات <code>697f0336c</code>).</li>
+<li><strong>حالة البناء على Hugging Face:</strong> <code>Stage: RUNNING</code> (نجح تجميع Dockerfile بكافة طبقاته الـ 32).</li>
+<li><strong>رسالة الخطأ للبناء:</strong> <code>ErrorMessage: None</code>.</li>
+</ul>
+<h3 id="runtime-health-smoke-test">ب. الحالة التشغيلية للواجهة (Runtime Health &amp; Smoke Test)</h3>
+<ul>
+<li><strong>طلب الوصول:</strong> <code>https://ahmdelbaz28-ahmedetap-platform.hf.space/</code></li>
+<li><strong>رمز الاستجابة عبر الشبكة:</strong> <code>HTTP 503 Service Unavailable</code>.</li>
+<li><strong>السبب الحرفي من سجلات التشغيل (<code>logs/run</code>):</strong>
+  <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>asyncpg.exceptions.InternalServerError: (ENOTFOUND) tenant/user postgres.ovjttnsvwrmbvwecxbsq not found
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>2026-09-21 13:57:33,270 [ERROR] etap-ai: Database init failed
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>Alembic startup migration gate failed: asyncpg.exceptions.InternalServerError: (ENOTFOUND) tenant/user postgres.ovjttnsvwrmbvwecxbsq not found
+</code></pre></div></li>
+<li><strong>التوصيف الهندسي النزيه:</strong>
+  مشروع قاعدة بيانات Supabase الخارجية المعرّف في سر الـ Space المسمى <code>DATABASE_URL</code> (<code>postgres.ovjttnsvwrmbvwecxbsq</code>) تم إيقافه أو حذفه من قِبل المزود الخارجي (Supabase Paused Project)، مما أدى إلى فشل بوابة ترحيل Alembic (<code>run_alembic_startup_gate</code>) وإيقاف تشغيل خادم Uvicorn عند الإقلاع التزاماً بمبدأ الـ Fail-Closed في بيئة الإنتاج (<code>_startup_auth_fail_closed_check</code>).</li>
+</ul>
+<hr />
+<h2 id="4-s9-clean">4) التنظيف بعد الدمج (S9-CLEAN — جدول القرار والأعداد)</h2>
+<h3 id="_1">أ. جدول القرار الهندسي للمخلفات المتتبعة</h3>
+<table>
+<thead>
+<tr>
+<th>المسار / الملف</th>
+<th>التصنيف</th>
+<th>الدليل (أمر التحقق)</th>
+<th>القرار المعتمد</th>
+<th>الخطورة إن حُذف خطأً</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ui-dist/</code> (71 ملفاً)</td>
+<td>مخرج بناء متتبع بالخطأ</td>
+<td><code>git ls-files ui-dist/</code> (71 ملفاً)</td>
+<td><strong>حذف من تتبع git</strong> (<code>git rm -r --cached ui-dist/</code>) + إضافة <code>ui-dist/</code> إلى <code>.gitignore</code>.</td>
+<td>صفر (يُعاد بناؤه بـ <code>pnpm -C ui build</code> وتنشئه الـ CI تلقائياً).</td>
+</tr>
+<tr>
+<td><code>duplicate-audit/</code> (6 ملفات)</td>
+<td>تقارير جولة تدقيق سابقة منتهية</td>
+<td><code>git ls-files duplicate-audit</code> (6 ملفات)</td>
+<td><strong>حذف كامل</strong> (<code>git rm -r duplicate-audit/</code>) + إضافة <code>duplicate-audit/</code> إلى <code>.gitignore</code>.</td>
+<td>صفر (تقارير تدقيق تاريخية منتهية ومحفوظة في سجل git).</td>
+</tr>
+<tr>
+<td><code>scientific_validation_report.json</code></td>
+<td>مخرج تشغيل مولّد وقت التنفيذ</td>
+<td><code>git ls-files scientific_validation_report.json</code></td>
+<td><strong>حذف من تتبع git</strong> (<code>git rm --cached</code>) + إضافة إلى <code>.gitignore</code>.</td>
+<td>صفر (ملف محلي ينتجه سكربت التحقق العلمي عند الطلب).</td>
+</tr>
+<tr>
+<td><code>assets/javascripts/*.min.js</code> (34 ملفاً)</td>
+<td>مخرجات MkDocs الثابتة ومحرك البحث اللغوي</td>
+<td><code>git ls-files assets/javascripts/</code> (34 ملفاً)</td>
+<td><strong>إبقاء مع سبب</strong> (ضروري لموقع توثيق MkDocs ومحرك البحث الداخلي).</td>
+<td>عالية (تعطل البحث وتصفح الوثائق).</td>
+</tr>
+<tr>
+<td><code>docs/archive/</code></td>
+<td>أرشيف تاريخي للتقارير والحوادث</td>
+<td>فحص مسار <code>docs/archive/</code></td>
+<td><strong>إبقاء</strong> بانتظار قرار المستشار (ممنوع الحذف المباشر).</td>
+<td>متوسطة (فقدان سياق الحوادث التاريخية).</td>
+</tr>
+<tr>
+<td>فروع الريموت المدموجة (<code>origin/feat/trust-hardening</code> و <code>origin/fix/trust-closure-origin-main</code>)</td>
+<td>فروع منتهية مدموجة</td>
+<td><code>git branch -r --merged origin/main</code></td>
+<td><strong>اقتراح الحذف</strong> بعد موافقة المالك، والإبقاء عليها حالياً دون حذف متهور.</td>
+<td>منخفضة (كافة التزاماتها مدموجة في <code>main</code>).</td>
+</tr>
+<tr>
+<td>شوائب الكود (TODO / FIXME)</td>
+<td>تعليقات وملاحظات تطويرية</td>
+<td><code>git grep -n -E 'TODO\|FIXME\|XXX\|HACK' -- '*.py'</code> (سطران فقط)</td>
+<td><strong>إبقاء دون تعديل</strong> في هذه المرحلة وتصنيفها لجولة تالية.</td>
+<td>صفر.</td>
+</tr>
+<tr>
+<td>استيرادات ومتغيرات ميتة (F401 / F841)</td>
+<td>شوائب بايثون ميتة</td>
+<td><code>ruff check . --select F401,F841</code> → <code>All checks passed!</code></td>
+<td>صفر شوائب (المستودع نظيف 100%).</td>
+<td>صفر.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="_2">ب. أعداد وفحص الكود والمزامنة</h3>
+<ul>
+<li><strong>تعليقات TODO/FIXME:</strong> سطران فقط في كامل ملفات بايثون:</li>
+<li><code>guards/docs_guard.py:437</code>: فحص نصي لوجود سلاسل "TODO" في روابط الوثائق.</li>
+<li><code>tests/test_no_enumeration.py:110</code>: <code># TODO: Add dummy bcrypt hash for non-existent users</code>.</li>
+<li><strong>الاستيرادات الميتة (F401/F841):</strong> صفر (0) — <code>All checks passed!</code>.</li>
+<li><strong>تزامن واجهات API (<code>api.ts</code> مقابل <code>useApi.ts</code>):</strong></li>
+<li><code>ui/src/lib/api.ts</code> يعرف 32 نقطة نهاية API شاملة.</li>
+<li><code>ui/src/hooks/useApi.ts</code> يعرف 8 نقاط نهاية مستخدمة في الخطافات (Hooks).</li>
+<li>النقاط الـ 8 متطابقة 100% بين الملفين (<code>/api/v1/agents</code>, <code>/api/v1/agents/chat</code>, <code>/api/v1/audit</code>, <code>/api/v1/guards/info</code>, <code>/api/v1/guards/review</code>, <code>/api/v1/studies</code>, <code>/api/v1/studies/run</code>, <code>/api/v1/system/validate</code>).</li>
+</ul>
+<h3 id="_3">ج. إحصائيات التزام التنظيف</h3>
+<ul>
+<li><strong>رسالة الالتزام:</strong> <code>chore(repo): remove tracked build artifacts and dead temp files (ui-dist, duplicate-audit, caches) + .gitignore additions</code></li>
+<li><strong>الفارق الحرفي (<code>git diff --stat HEAD~1</code>):</strong>
+  <code>79 files changed, 3 insertions(+), 10306 deletions(-)</code></li>
+</ul>
+<hr />
+<h2 id="5">5) البنود غير المنفذة واقتراح الجولة القادمة</h2>
+<table>
+<thead>
+<tr>
+<th>البند</th>
+<th>السبب</th>
+<th>اقتراح الجولة القادمة</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>اجتياز اختبار الدخان التفاعلي للواجهة على HF Space</strong></td>
+<td>توقف قاعدة بيانات Supabase السحابية (<code>postgres.ovjttnsvwrmbvwecxbsq</code>) يمنع بوابة Alembic من إكمال الإقلاع.</td>
+<td>قيام المالك بإعادة تنشيط مثيل Supabase من لوحة التحكم، أو استبدال سر <code>DATABASE_URL</code> في إعدادات Space برابط قاعدة بيانات Neon/Supabase نشطة ومتاحة.</td>
+</tr>
+<tr>
+<td><strong>حذف الفروع المدموجة من الريموت</strong></td>
+<td>تتطلب موافقة صريحة من المالك منعاً لحذف غير مقصود.</td>
+<td>تنفيذ <code>git push origin --delete feat/trust-hardening</code> بعد موافقة المالك.</td>
+</tr>
+<tr>
+<td><strong>تنفيذ خوارزميات AC-OPF / HHO المتقدمة (D5)</strong></td>
+<td>خارج نطاق جولة الصدق الهندسي وإغلاق الثغرات (مجدولة لما بعد S9).</td>
+<td>إدراجها كحزمة تطويرية في الإصدار v3.1 مع اختبارات دقة معيارية IEEE.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="6">6) طلب الاعتماد النهائي للجولة</h2>
+<blockquote>
+<p><strong>«تم بحمد الله تنفيذ أعمال التنظيف الشامل وإزالة المخلفات المتتبعة (79 ملفاً بواقع 10,306 أسطر محذوفة)، وتحديث ملفات التوثيق ولوحة المتابعة، والتحقق من سلامة البناء الشامل. أرفع هذا التقرير متوقفاً بانتظار اعتماد المستشار الهندسي لختام الجولة.»</strong></p>
+</blockquote>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "search.suggest", "search.highlight"], "search": "../../assets/javascripts/workers/search.f8cc74c7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.c8b220af.min.js"></script>
+      
+    
+  </body>
+</html>

@@ -764,18 +764,26 @@
 <tr>
 <td><strong>S7</strong></td>
 <td>الدفع النظيف (فرع → PR → CI → Squash)</td>
-<td>🟩 مصرَّح بالبدء</td>
-<td>—</td>
-<td>تنفيذ المرسل + إضافات S7-A (D4/D1)</td>
-<td>راقب تغيّر origin/main قبل كل خطوة</td>
+<td>✅ <strong>مغلقة بتصريح</strong></td>
+<td>PR #598 مدموج Squash بنجاح إلى main (74/74 بوابات خضراء · SHA: <code>697f0336c460c3f2a9b30fde05ae51f86d7edd6f</code>) · الفرع المحلي <code>main</code> متطابق 100% · الشجرة نظيفة</td>
+<td>لا شيء</td>
+<td>لا توجد</td>
 </tr>
 <tr>
 <td><strong>S8</strong></td>
 <td>التقرير النهائي + HF smoke</td>
-<td>⬜ لم تبدأ</td>
-<td>—</td>
-<td>—</td>
-<td>—</td>
+<td>✅ <strong>مغلقة بتصريح</strong></td>
+<td>رفع الحزمة المحدثة إلى HF Space (<code>564a01c</code>) · مساحة الاستضافة <code>Stage: RUNNING</code> · توثيق اختبار الدخان وتحليل خطأ Supabase وتوثيق القرارات D1 وD4 والاستثناء البيئي المعتمد لـ p95 في <code>FINAL_REPORT.md</code></td>
+<td>لا شيء</td>
+<td>توقف مشروع Supabase السحابي الخارجي موثق</td>
+</tr>
+<tr>
+<td><strong>S9-CLEAN</strong></td>
+<td>تنظيف المستودع من الميت والمؤقت + تحديث التوثيق</td>
+<td>🟨 <strong>جارية / قيد التنفيذ</strong></td>
+<td>حذف 79 ملفاً متتبعاً (71 من ui-dist/، 6 من duplicate-audit/، ملف scientific_validation_report.json) + تحديث .gitignore + التحقق من خلو الكود من استيرادات ميتة (F401/F841 = 0) وبقاء 2 TODO فقط</td>
+<td>إكمال بوابات CI وفتح PR</td>
+<td>لا توجد</td>
 </tr>
 </tbody>
 </table>
