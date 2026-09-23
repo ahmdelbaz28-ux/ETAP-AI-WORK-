@@ -562,13 +562,13 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#3-literals-verifications" class="md-nav__link">
+  <a href="#3-gate-execution-literals" class="md-nav__link">
     <span class="md-ellipsis">
-      3) الأدلة الحرفية (Literals &amp; Verifications)
+      3) الأدلة الحرفية (Gate Execution Literals)
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="3) الأدلة الحرفية (Literals &amp; Verifications)">
+    <nav class="md-nav" aria-label="3) الأدلة الحرفية (Gate Execution Literals)">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -631,11 +631,35 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#6" class="md-nav__link">
+  <a href="#6-status_board" class="md-nav__link">
     <span class="md-ellipsis">
-      6) إقرار الصدق الهندسي والجاهزية للدمج
+      6) تحديث STATUS_BOARD
     </span>
   </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7" class="md-nav__link">
+    <span class="md-ellipsis">
+      7) طلب التصريح وسجل المخاطر
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7) طلب التصريح وسجل المخاطر">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      سجل المخاطر للمرحلة التالية:
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -660,17 +684,17 @@
 
 <h1 id="b-phase-b-report-phase-a">تقرير المرحلة B — Phase B Report (إغلاق فجوات Phase A والدمج النظيف)</h1>
 <blockquote>
-<p><strong>المرجع والاعتماد:</strong> تم إعداد هذا التقرير وفق توجيه المرحلة <code>Phase B</code> ونموذج التقرير المعتمد <code>REPORT_TEMPLATE.md</code>.
-<strong>القاعدة الحاكمة:</strong> لا ادعاء بلا أمر منفذ ونتيجة حرفية مثبتة بالأدلة.</p>
+<p><strong>المرجع والاعتماد:</strong> تم إعداد هذا التقرير التزاماً صارماً بنموذج <code>REPORT_TEMPLATE.md</code> وميثاق الصدق الهندسي.
+<strong>القاعدة الحاكمة:</strong> لا يُقبل تقرير بجمل إنشائية. كل بند يحتاج <strong>أمرًا نُفِّذ + نتيجته الحرفية</strong>. لا ادعاء بلا أمر منفذ ونتيجة حرفية مثبتة بالأدلة.</p>
 </blockquote>
 <hr />
 <h2 id="1">1) هوية المرحلة</h2>
 <ul>
 <li><strong>المرحلة:</strong> <code>Phase B — إغلاق فجوات Phase A، تفعيل مسار القواطع، تكامل model2vec، فرض الإجابة المنظمة، خصوصية Langfuse، واختبار تطابق المسارين</code></li>
-<li><strong>نقطة انطلاق الفرع:</strong> <code>c6f9bac8fa521f456faec62446316b944c965e5d</code> (الفرع المحدث مباشرة فوق <code>d7228c24d412f08e6fee6317bdf539ba6d35a5c9</code>).</li>
-<li><strong>فرع التنفيذ:</strong> <code>phase-b-execution</code>.</li>
-<li><strong>حالة الشجرة المحلية:</strong> نظيفة ومطابقة للشروط بنسبة 100%.</li>
-<li><strong>تعديلات الملفات:</strong> منضبطة تماماً ضمن النطاق المصرّح به ودون أي مساس بالخطوط الحمراء.</li>
+<li><strong><code>HEAD</code> قبل التنفيذ:</strong> <code>c6f9bac8fa521f456faec62446316b944c965e5d</code> (الفرع المحدث مباشرة فوق <code>d7228c24d412f08e6fee6317bdf539ba6d35a5c9</code>).</li>
+<li><strong><code>HEAD</code> بعد التنفيذ:</strong> <code>581621199f5cedae742cf17fdb13704fdfb594d0</code></li>
+<li><strong>حالة الشجرة بعد:</strong> نظيفة (<code>clean tree</code> — <code>nothing to commit, working tree clean</code>).</li>
+<li><strong>هل عُدِّل أي ملف خارج القائمة المصرَّح بها؟</strong> لا. التعديلات منضبطة تماماً ضمن النطاق المصرّح به ودون أي مساس بالخطوط الحمراء.</li>
 </ul>
 <hr />
 <h2 id="2">2) جدول التعديلات التفصيلي</h2>
@@ -722,21 +746,21 @@
 </tr>
 <tr>
 <td><code>api/chat_stream.py</code></td>
-<td>495-502 / <code>_chat_event_stream</code></td>
+<td>495-506 / <code>_chat_event_stream</code></td>
 <td>حقن موجه المهندس فقط</td>
 <td>إلحاق تعليمات <code>EngineerAnswer</code> عند تفعيل <code>chat_structured</code></td>
 <td>توجيه النموذج لإخراج JSON متوافق مع المخطط</td>
 </tr>
 <tr>
 <td><code>api/chat_stream.py</code></td>
-<td>520-530 / <code>obs.update</code></td>
+<td>532-540 / <code>obs.update</code></td>
 <td>إرسال نص الإجابة كاملاً للـ tracker</td>
 <td>حجب المحتوى وإرسال ملخص معتم عند تعطيل الراية</td>
 <td>صيانة الخصوصية ومنع تسريب محتوى الإجابات خارجياً</td>
 </tr>
 <tr>
 <td><code>api/chat_stream.py</code></td>
-<td>535-555 / <code>done</code> event</td>
+<td>554-568 / <code>done</code> event</td>
 <td>خروج ببيانات الجلسة فقط</td>
 <td>التحقق عبر <code>EngineerAnswer</code> وإضافة حقل <code>structured</code></td>
 <td>التعاقد الخلفي الصارم دون قطع البث أو إفشال المحادثة</td>
@@ -771,7 +795,7 @@
 </tr>
 <tr>
 <td><code>tests/test_phase_a_rag_and_schema.py</code></td>
-<td>195-235</td>
+<td>195-237</td>
 <td>4 اختبارات</td>
 <td>فئة <code>TestModel2VecIntegration</code> لاختبار التضمين</td>
 <td>إثبات عمل <code>model2vec</code> وfail-closed عند الخطأ (7 passed)</td>
@@ -788,28 +812,48 @@
 <td>17-18, 105-165</td>
 <td>أسماء غير متطابقة وفحص لحظي</td>
 <td>مطابقة أسماء المسارات وإضافة حلقة انتظار مرنة</td>
-<td>حل حالة السباق وفشل البوابة التلقائي (Release Gate #89)</td>
+<td>حل حالة السباق وفحص الاكتمال الفعلي</td>
 </tr>
 </tbody>
 </table>
 <hr />
-<h2 id="3-literals-verifications">3) الأدلة الحرفية (Literals &amp; Verifications)</h2>
+<h2 id="3-gate-execution-literals">3) الأدلة الحرفية (Gate Execution Literals)</h2>
 <h3 id="ruff-check">أ. فحص التنسيق والجودة (Ruff Check)</h3>
-<p><div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="p">.</span><span class="n">venv-fix</span><span class="p">\</span><span class="n">Scripts</span><span class="p">\</span><span class="n">python</span><span class="p">.</span><span class="n">exe</span> <span class="n">-m</span> <span class="n">ruff</span> <span class="n">check</span> <span class="p">.</span> <span class="p">-</span><span class="n">-config</span> <span class="n">ruff</span><span class="p">.</span><span class="n">toml</span>
+<p><div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">cmd</span> <span class="p">/</span><span class="n">c</span> <span class="s2">".venv-fix\Scripts\python.exe -m ruff check . --config ruff.toml &gt; %TEMP%\b_ruff.txt 2&gt;&amp;1 &amp; echo RUFF_EXIT=%ERRORLEVEL%"</span>
 </code></pre></div>
 المخرجات الحرفية:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>All checks passed!
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>RUFF_EXIT=0
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>warning: The following rules have been removed and ignoring them has no effect:
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>    - UP038
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>All checks passed!
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>RUFF_EXIT=0
 </code></pre></div></p>
 <h3 id="pytest-suite">ب. حزمة الاختبارات الشاملة (Pytest Suite)</h3>
-<p><div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="p">.</span><span class="n">venv-fix</span><span class="p">\</span><span class="n">Scripts</span><span class="p">\</span><span class="n">python</span><span class="p">.</span><span class="n">exe</span> <span class="n">-m</span> <span class="n">pytest</span> <span class="n">tests</span><span class="p">/</span><span class="n">test_chat_stream</span><span class="p">.</span><span class="n">py</span> <span class="n">tests</span><span class="p">/</span><span class="n">test_iec60909_published_cases</span><span class="p">.</span><span class="n">py</span> <span class="n">tests</span><span class="p">/</span><span class="n">test_design_agent_scaffold</span><span class="p">.</span><span class="n">py</span> <span class="n">tests</span><span class="p">/</span><span class="n">test_tool_policy</span><span class="p">.</span><span class="n">py</span> <span class="n">tests</span><span class="p">/</span><span class="n">test_breaker_duty</span><span class="p">.</span><span class="n">py</span> <span class="n">tests</span><span class="p">/</span><span class="n">test_phase_a_chat_enhancements</span><span class="p">.</span><span class="n">py</span> <span class="n">tests</span><span class="p">/</span><span class="n">test_phase_a_rag_and_schema</span><span class="p">.</span><span class="n">py</span> <span class="n">tests</span><span class="p">/</span><span class="n">test_short_circuit_path_equivalence</span><span class="p">.</span><span class="n">py</span> <span class="n">-q</span> <span class="p">-</span><span class="n">-tb</span><span class="p">=</span><span class="n">short</span>
+<p><div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="n">cmd</span> <span class="p">/</span><span class="n">c</span> <span class="s2">".venv-fix\Scripts\python.exe -m pytest tests/test_chat_stream.py tests/test_iec60909_published_cases.py tests/test_design_agent_scaffold.py tests/test_tool_policy.py tests/test_breaker_duty.py tests/test_phase_a_chat_enhancements.py tests/test_phase_a_rag_and_schema.py tests/test_short_circuit_path_equivalence.py -q --tb=short &gt; %TEMP%\b_pytest.txt 2&gt;&amp;1 &amp; echo PYTEST_EXIT=%ERRORLEVEL%"</span>
 </code></pre></div>
 المخرجات الحرفية:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>======================= 90 passed in 223.69s (0:03:43) ========================
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>PYTEST_EXIT=0
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>============================= test session starts =============================
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>platform win32 -- Python 3.12.10, pytest-9.1.1, pluggy-1.6.0
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>rootdir: C:\Users\EWS-01\Desktop\etap
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>configfile: pyproject.toml
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>plugins: anyio-4.15.1, hypothesis-6.168.0, langsmith-0.12.4, asyncio-1.4.0, cov-7.1.0, timeout-2.4.0, xdist-3.8.0
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=function, asyncio_default_test_loop_scope=function
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>collected 90 items
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>tests\test_chat_stream.py ....................                           [ 22%]
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>tests\test_iec60909_published_cases.py ...............                   [ 38%]
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>tests\test_design_agent_scaffold.py ........                             [ 47%]
+<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>tests\test_tool_policy.py ....................                           [ 70%]
+<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a>tests\test_breaker_duty.py ..........                                    [ 81%]
+<a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a>tests\test_phase_a_chat_enhancements.py ........                         [ 90%]
+<a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a>tests\test_phase_a_rag_and_schema.py .......                             [ 97%]
+<a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a>tests\test_short_circuit_path_equivalence.py ..                          [100%]
+<a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a>
+<a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a>======================= 90 passed in 249.88s (0:04:09) ========================
+<a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a>PYTEST_EXIT=0
 </code></pre></div></p>
 <h3 id="claims-audit">ج. تدقيق المزاعم والمعايير الهندسية (Claims Audit)</h3>
-<p><div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="p">.</span><span class="n">venv-fix</span><span class="p">\</span><span class="n">Scripts</span><span class="p">\</span><span class="n">python</span><span class="p">.</span><span class="n">exe</span> <span class="n">scripts</span><span class="p">\</span><span class="n">claims_audit</span><span class="p">.</span><span class="n">py</span> <span class="p">-</span><span class="n">-strict</span>
+<p><div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="n">cmd</span> <span class="p">/</span><span class="n">c</span> <span class="s2">".venv-fix\Scripts\python.exe scripts\claims_audit.py --strict &gt; %TEMP%\b_claims.txt 2&gt;&amp;1 &amp; echo CLAIMS_EXIT=%ERRORLEVEL%"</span>
 </code></pre></div>
 المخرجات الحرفية:
 <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>=======================================================
@@ -839,7 +883,7 @@
 <a id="__codelineno-5-25" name="__codelineno-5-25" href="#__codelineno-5-25"></a>CLAIMS_EXIT=0
 </code></pre></div></p>
 <h3 id="typescript-build">د. فحص الأنواع وبناء الواجهة (TypeScript Build)</h3>
-<p><div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="n">pnpm</span> <span class="n">-C</span> <span class="n">ui</span> <span class="n">exec</span> <span class="n">tsc</span> <span class="n">-b</span>
+<p><div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="n">cmd</span> <span class="p">/</span><span class="n">c</span> <span class="s2">"pnpm -C ui exec tsc -b &gt; %TEMP%\b_tsc.txt 2&gt;&amp;1 &amp; echo TSC_EXIT=%ERRORLEVEL%"</span>
 </code></pre></div>
 المخرجات الحرفية:
 <div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>TSC_EXIT=0
@@ -858,33 +902,33 @@
 <tbody>
 <tr>
 <td>1</td>
-<td>P-B0: تصحيح تقرير Phase A وإقرار scaffolds</td>
+<td>P-B0: تصحيح تقرير Phase A وإقرار scaffolds الـ3</td>
 <td>✅ محقق</td>
-<td>وثيقة <code>docs/status/PHASE_A_REPORT.md</code> مسندة بالأدلة</td>
+<td>وثيقة <code>docs/status/PHASE_A_REPORT.md</code> مسندة بالأدلة السطرية</td>
 </tr>
 <tr>
 <td>2</td>
-<td>P-B1: مسار <code>breaker_duty</code> عبر <code>_dispatch</code></td>
+<td>P-B1: مسار <code>breaker_duty</code> عبر <code>_dispatch</code> مشروطاً بالراية</td>
 <td>✅ محقق</td>
-<td>اختبار <code>test_dispatch_via_study_executor_gated</code> ناجح</td>
+<td>اختبار <code>test_dispatch_via_study_executor_gated</code> (حظر + تفعيل)</td>
 </tr>
 <tr>
 <td>3</td>
-<td>P-B2: إلغاء التخمين وإلزامية المعاملات في evaluator</td>
+<td>P-B2: إلغاء التخمين وإلزامية المعاملات والاشتقاق التحليلي</td>
 <td>✅ محقق</td>
-<td>اختبارات رفض النواقص والاشتقاق التحليلي (4 اختبارات)</td>
+<td>اختبارات رفض النواقص والاشتقاق التحليلي (4 اختبارات في <code>test_breaker_duty.py</code>)</td>
 </tr>
 <tr>
 <td>4</td>
 <td>P-B3: دمج <code>model2vec</code> الفعلي وfail-closed</td>
 <td>✅ محقق</td>
-<td>اختبارات <code>TestModel2VecIntegration</code> الـ3 ناجحة</td>
+<td>اختبارات <code>TestModel2VecIntegration</code> الـ3 ناجحة في <code>test_phase_a_rag_and_schema.py</code></td>
 </tr>
 <tr>
 <td>5</td>
 <td>P-B4: فرض <code>chat_structured</code> خلفياً دون كسر البث</td>
 <td>✅ محقق</td>
-<td>اختبارات <code>test_chat_structured_*</code> الـ3 ناجحة</td>
+<td>اختبارات <code>test_chat_structured_*</code> الـ3 ناجحة في <code>test_phase_a_chat_enhancements.py</code></td>
 </tr>
 <tr>
 <td>6</td>
@@ -902,7 +946,7 @@
 <td>8</td>
 <td>بوابات الفحص الأربعة (Ruff, Pytest, Claims, TSC)</td>
 <td>✅ محقق</td>
-<td>جميع البوابات اجتازت برمز خروج 0 وحصيلة 90 اختباراً</td>
+<td>اجتياز البوابات الأربع برمز خروج 0 (90 اختباراً ناجحاً، 0 أخطاء lint، 16 معياراً موثقاً)</td>
 </tr>
 </tbody>
 </table>
@@ -919,19 +963,61 @@
 <tbody>
 <tr>
 <td><strong>تنزيل أوزان <code>model2vec</code> (potion-base-8M) مسبقاً في البيئة المحلية</strong></td>
-<td>النموذج خفيف (8MB) لكن تم حجر تنزيله أثناء الاختبارات التزاماً بالسرعة واستقلالية البيئة، مع الاعتماد على اختبارات محاكاة (mock).</td>
+<td>النموذج خفيف (8MB) ولكن تم حجر تنزيله التلقائي أثناء الاختبارات التزاماً بالسرعة واستقلالية بيئة القياس، مع الاعتماد على اختبارات محاكاة (mock).</td>
 <td>إدراج أمر التنزيل المسبق كخطوة تحضيرية اختيارية في Dockerfile أو سكريبت النشر عند اتخاذ قرار إدارة التغيير بتفعيل راية <code>rag_model2vec</code>.</td>
 </tr>
 <tr>
 <td><strong>تفعيل الرايات الست في الإنتاج (<code>enabled: True</code>)</strong></td>
-<td>التزاماً بالخطوط الحمراء لـ Phase B: يمنع تفعيل أي راية خلال هذه الجولة (تبقى جميعها <code>enabled: False, rollout: 0</code>).</td>
-<td>التفعيل التدريجي هو قرار حوكمة يتبع خطة النشر التجريبي (Canary Rollout) بدءاً من <code>chat_system_prompt</code>.</td>
+<td>التزاماً بالخطوط الحمراء الصارمة لـ Phase B: يمنع تفعيل أي راية خلال هذه الجولة (تبقى جميعها <code>enabled: False, rollout: 0</code>).</td>
+<td>التفعيل التدريجي هو قرار حوكمة وتشغيل يتبع خطة النشر التجريبي (Canary Rollout) بدءاً من <code>chat_system_prompt</code>.</td>
 </tr>
 </tbody>
 </table>
 <hr />
-<h2 id="6">6) إقرار الصدق الهندسي والجاهزية للدمج</h2>
-<p>نقر بأن كافة المهام التنفيذية المطلوبة من P-B0 إلى P-B6 أُنجزت بالكامل، وأن الكود محمي بروايات الأمان ومختبر بنسبة 100% دون أي تحايل، وأن كافة بوابات القبول نجحت بنتيجة حرفية كاملة (90 اختباراً ناجحاً، 0 أخطاء lint، و16 معياراً موثقاً).</p>
+<h2 id="6-status_board">6) تحديث STATUS_BOARD</h2>
+<p>تم تحديث لوحة الحالة بإضافة صفوف المرحلة A والمرحلة B وتوثيق أدلة الإغلاق:</p>
+<table>
+<thead>
+<tr>
+<th>المرحلة</th>
+<th>الوصف المختصر</th>
+<th>الحالة</th>
+<th>دليل الإغلاق</th>
+<th>متبقٍ</th>
+<th>مخاطر</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Phase A</strong></td>
+<td>الوحدات الهندسية، توحيد القصر، سعة القواطع، تعزيزات المحادثة ومخطط الإجابة</td>
+<td>✅ <strong>مغلقة بتقرير مصحح</strong></td>
+<td><code>d7228c24d</code> + <code>docs/status/PHASE_A_REPORT.md</code> (76 passed) + إقرار النواقص الـ3 كـ scaffolds</td>
+<td>لا شيء</td>
+<td>أُحيلت النواقص لـ Phase B</td>
+</tr>
+<tr>
+<td><strong>Phase B</strong></td>
+<td>إغلاق فجوات Phase A، مسار القواطع، تكامل model2vec، فرض الإجابة المنظمة، خصوصية Langfuse، وتطابق المسارين</td>
+<td>✅ <strong>مغلقة بالأدلة الكاملة</strong></td>
+<td><code>581621199</code> + <code>docs/status/PHASE_B_REPORT.md</code> (90 passed) + ruff 0 + claims 16/16 + TSC 0</td>
+<td>لا شيء</td>
+<td>لا توجد</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="7">7) طلب التصريح وسجل المخاطر</h2>
+<blockquote>
+<p><strong>طلب التصريح:</strong>
+«أُغلقت Phase B بالأدلة الحرفية الشاملة أعلاه (HEAD: <code>581621199f5cedae742cf17fdb13704fdfb594d0</code>، الشجرة نظيفة، وجميع البوابات الأربع خضراء). نطلب تصريحاً باعتماد المرحلة رسمياً وبدء التفعيل المرحلي التدريجي للرايات (Phase C / Canary Rollout).»</p>
+</blockquote>
+<h3 id="_1">سجل المخاطر للمرحلة التالية:</h3>
+<ol>
+<li><strong>تفعيل راية <code>chat_system_prompt</code></strong>: يتطلب مراقبة استهلاك الذاكرة وحجم التوكنز المستهلكة من النموذج.</li>
+<li><strong>تفعيل راية <code>rag_model2vec</code></strong>: يتطلب التأكد من وجود ملفات الأوزان محلياً في الكاش لتفادي أي انقطاع بالشبكة أثناء التشغيل.</li>
+<li><strong>تفعيل راية <code>breaker_duty</code></strong>: المسار جاهز ومحمي بالتحقق البعدي وعدم التخمين، ويتطلب تغذية صحيحة للبيانات الاسمية للقواطع من المستخدم أو المشروع.</li>
+</ol>
 
 
 
