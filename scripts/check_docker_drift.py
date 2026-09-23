@@ -29,7 +29,8 @@ def get_dockerfile_sources() -> set[str]:
             for src in cleaned[1:-1]:
                 src = src.rstrip("/")
                 if not src.startswith("/"):
-                    sources.add(os.path.basename(src))
+                    # أزل أي glob (مثل DEPLOY_SHA*) ليطابق الاسم الحقيقي
+                    sources.add(os.path.basename(src).rstrip("*?"))
     return sources
 
 
@@ -43,6 +44,9 @@ def get_staged_items() -> set[str]:
             item = item.strip().rstrip("/")
             if item and not item.startswith("-"):
                 staged.add(os.path.basename(item))
+    # العناصر المولّدة برمجياً داخل stage/ (مثل DEPLOY_SHA عبر echo >)
+    for match in re.finditer(r">\s*stage/([\w.*?-]+)", content):
+        staged.add(match.group(1).rstrip("*?"))
     return staged
 
 
