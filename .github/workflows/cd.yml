@@ -206,13 +206,14 @@ jobs:
                           sources.add(os.path.basename(src))
 
           # استثناءات: مصادر تُعالَج بشكل مختلف
-          exempt = {'requirements.hf.txt', 'app.py', 'ui-dist', 'DEPLOY_SHA'}
+          exempt = {'requirements.hf.txt', 'app.py', 'ui-dist', 'DEPLOY_SHA', 'DEPLOY_SHA*'}
 
           missing = []
           for base in sorted(sources):
-              if base in exempt:
+              clean_base = base.rstrip('*')
+              if base in exempt or clean_base in exempt:
                   continue
-              if not os.path.exists(f"stage/{base}"):
+              if not os.path.exists(f"stage/{base}") and not os.path.exists(f"stage/{clean_base}"):
                   missing.append(base)
                   print(f"::error::Dockerfile COPY source '{base}' missing from cd.yml stage")
 
