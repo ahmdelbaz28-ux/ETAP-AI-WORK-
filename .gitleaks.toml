@@ -81,6 +81,10 @@ paths = [
 regexes = [
   '''YOUR_[A-Z_]+_HERE''',
   '''your-[a-z-]+-here''',
+  '''your-[a-z-]+-key''',
+  '''your-api-key''',
+  '''your-secret-key''',
+  '''your-service-key''',
   '''PLACEHOLDER''',
   '''example\.com''',
   '''ETAP-SEC-2024-OBFUSCATION''',

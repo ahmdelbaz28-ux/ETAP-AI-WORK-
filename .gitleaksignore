@@ -777,3 +777,4 @@ f0e4affc57224ec1864377a7e53079cdba439a98:.gitleaks-baseline.json:langwatch-key:9
 f66cc3b31f87b9ac64348fb08c09de42183c9560:ui/src/lib/__tests__/llm-chat.test.ts:generic-api-key:191
 f66cc3b31f87b9ac64348fb08c09de42183c9560:ui/src/lib/__tests__/llm-chat.test.ts:generic-api-key:206
 f66cc3b31f87b9ac64348fb08c09de42183c9560:ui/src/lib/__tests__/llm-chat.test.ts:generic-api-key:35
+278a5a844da913d188855ac3b2f8244c72976153:scripts/uptimerobot_check.py:generic-api-key:9
