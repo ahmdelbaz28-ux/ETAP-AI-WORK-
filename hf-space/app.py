@@ -134,7 +134,10 @@ async def lifespan(_app: FastAPI):
         from core.redis_state import LockManager, get_redis_state_client
 
         redis_client = await get_redis_state_client()
-        if redis_client:
+        db_url = os.getenv("DATABASE_URL", "").strip()
+        if not db_url:
+            logger.info("DATABASE_URL is not configured on HF Space. Skipping database migrations.")
+        elif redis_client:
             lock_mgr = LockManager(client=redis_client)
             # ttl_seconds=300: 5 min lease gives ample time for DDL transactions on cloud databases.
             # timeout_ms=120000: Waiting workers/replicas give up to 120s for primary worker to complete migration.

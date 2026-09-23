@@ -146,8 +146,8 @@ jobs:
           test -f hf-space/app.py || { echo "hf-space/app.py missing"; exit 1; }
           test -f ui-dist/index.html || { echo "ui-dist/index.html missing — UI build failed"; exit 1; }
           cp README.hf.md stage/README.md
-          # 2) root files (5)
-          cp -r Dockerfile .dockerignore VERSION prompts.json compat.py stage/
+          # 2) root files (7)
+          cp -r Dockerfile .dockerignore VERSION prompts.json compat.py alembic.ini migrations stage/
           echo "${{ needs.guard.outputs.sha }}" > stage/DEPLOY_SHA
           # 3) the whole hf-space/ dir (app.py + requirements.hf.txt + README.md)
           cp -r hf-space stage/
