@@ -23,6 +23,10 @@ _*
 _*.txt
 _*.json
 _*.log
+sonar_issues.json
+sonar_report.json
+gitleaks-results.sarif
+eslint-results.json
 _glbin/
 _glclone.git/
 _tmp_gl/

@@ -67,21 +67,15 @@ keywords = ["sk-lw-"]
 [allowlist]
 description = "Allowed paths / patterns (examples, tests, fixtures, documentation)"
 paths = [
-  '''.*\.md$''',
   '''docs[/\\].*''',
   '''tests[/\\].*''',
   '''acp_runtime[/\\].*''',
   '''ui[/\\].*[/\\].*test.*''',
   '''\.kilo[/\\].*''',
-  '''scripts[/\\].*''',
   '''.gitleaks\.toml$''',
   '''\.gitleaksignore$''',
-  '''\.github[/\\].*''',
-  '''akamai[/\\].*''',
-  '''cloudflare[/\\].*''',
   '''\.secrets\.baseline$''',
-  '''_.*''',
-  '''\.env.*''',
+  '''.*\.env\.example$''',
   '''.*revit_integration.*''',
 ]
 regexes = [

@@ -17,7 +17,7 @@ This document defines the authoritative branch protection policies and required 
 - **Require status checks to pass before merging:** Enabled
 - **Require branches to be up to date before merging:** Enabled (`strict: true`)
 - **Canonical Required Check:**
-  - **`Authoritative Release Gate`** (Job: `release-gate` in [`.github/workflows/release-gate.yml`](./workflows/release-gate.yml))
+  - **`Authoritative Release Gate`** (Job: `authoritative-gate` in [`.github/workflows/release-gate.yml`](./workflows/release-gate.yml))
 
 #### Underlying Gate Coverage Enforced by Release Gate:
 The `Authoritative Release Gate` runs with `cancel-in-progress: false` and polls GitHub Check Runs to verify all canonical gates have completed with `success`:

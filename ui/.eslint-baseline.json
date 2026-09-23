@@ -1,0 +1,19 @@
+{
+  "version": "1.0.0",
+  "expiry_date": "2026-11-30",
+  "max_allowed_errors": 87,
+  "total_errors": 87,
+  "total_warnings": 25,
+  "rules": {
+    "@typescript-eslint/no-unused-vars": 14,
+    "react-hooks/set-state-in-effect": 56,
+    "react-hooks/refs": 4,
+    "@typescript-eslint/no-unused-expressions": 1,
+    "react-hooks/immutability": 3,
+    "@typescript-eslint/no-explicit-any": 6,
+    "react-hooks/purity": 1,
+    "react-hooks/use-memo": 1,
+    "require-yield": 1
+  },
+  "description": "Ratchet baseline of pre-existing ESLint issues. Any new errors will fail ui-quality gate."
+}

@@ -10,6 +10,7 @@ Enforces structural and security invariants across all GitHub Actions workflows:
 
 from __future__ import annotations
 
+import re
 import sys
 from pathlib import Path
 
@@ -77,6 +78,25 @@ def main() -> int:
                 violations.append(
                     f"{rel_path} -> job '{job_name}': Missing 'timeout-minutes'"
                 )
+
+        # Check triggers and branch names
+        on_data = data.get("on") or data.get(True)
+        if isinstance(on_data, dict):
+            for event_name in ["push", "pull_request", "workflow_run"]:
+                ev = on_data.get(event_name)
+                if isinstance(ev, dict) and "branches" in ev:
+                    branches = ev["branches"]
+                    if isinstance(branches, str):
+                        branches = [branches]
+                    if isinstance(branches, list):
+                        for b in branches:
+                            if not isinstance(b, str):
+                                continue
+                            # Canonical branch pattern: alphanumeric, slashes, dashes, dots, wildcards
+                            if not b or b.endswith("]") or "[" in b or not re.match(r"^[a-zA-Z0-9_./*-]+$", b):
+                                violations.append(
+                                    f"{rel_path} -> event '{event_name}': Invalid branch pattern '{b}'"
+                                )
 
     if violations:
         sys.stderr.write(f"\n[BLOCKED] Meta-CI found {len(violations)} workflow standard violation(s):\n")

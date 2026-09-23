@@ -227,7 +227,7 @@ jobs:
             process.exit(1);
           }
 
-          console.log('::notice::npm audit passed — no unexcepted high/critical vulnerabilities.');
+          console.log('::notice::npm audit passed — no unexpected high/critical vulnerabilities.');
           NODE_SCRIPT
 
           echo "npm-audit gate passed."

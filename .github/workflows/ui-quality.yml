@@ -169,12 +169,36 @@ jobs:
                   print(f"    {count:3d}  {rule}")
           print()
 
+          import json, sys, os
+          from datetime import datetime, timezone
+
+          baseline_file = '.eslint-baseline.json'
+          baseline = {}
+          if os.path.exists(baseline_file):
+              with open(baseline_file) as bf:
+                  baseline = json.load(bf)
+
+          max_allowed = baseline.get('max_allowed_errors', 0)
+          expiry = baseline.get('expiry_date')
+
           if total_errors > 0:
-              print(f"WARNING: {total_errors} ESLint errors (advisory, non-blocking)")
-              # Pre-existing ESLint errors should not block PRs
-              import sys
-              sys.exit(0)
-          print("No ESLint errors")
+              print(f"Detected {total_errors} ESLint errors (Baseline allowed: {max_allowed})")
+              if expiry:
+                  exp_date = datetime.strptime(expiry, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+                  if datetime.now(timezone.utc) > exp_date:
+                      sys.stderr.write(f"::error::ESLint baseline expired on {expiry}. All {total_errors} errors must now be resolved.\n")
+                      sys.exit(1)
+
+              if total_errors > max_allowed:
+                  sys.stderr.write(
+                      f"::error::ESLint errors ({total_errors}) exceed baseline threshold ({max_allowed}). "
+                      f"New errors were introduced: PR blocked.\n"
+                  )
+                  sys.exit(1)
+              else:
+                  print(f"✓ ESLint ratchet check PASSED: {total_errors} pre-existing errors within baseline limit ({max_allowed}). Expiry: {expiry}")
+          else:
+              print("✓ Zero ESLint errors detected.")
           PYEOF
 
       - name: Upload ESLint results

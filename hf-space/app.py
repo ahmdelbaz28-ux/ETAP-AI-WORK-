@@ -775,10 +775,12 @@ async def get_version():
     """Return platform version and deployed Git SHA if available."""
     deploy_sha = "unknown"
     for candidate in [Path("DEPLOY_SHA"), Path("/app/DEPLOY_SHA"), Path("VERSION")]:
-        if candidate.name == "DEPLOY_SHA" and candidate.exists():
+        if candidate.exists():
             try:
-                deploy_sha = candidate.read_text(encoding="utf-8").strip()
-                break
+                content = candidate.read_text(encoding="utf-8").strip()
+                if content:
+                    deploy_sha = content
+                    break
             except Exception:
                 pass
     return JSONResponse(

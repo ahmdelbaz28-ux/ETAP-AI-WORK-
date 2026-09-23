@@ -167,12 +167,12 @@ jobs:
           AUDIT_FAIL=0
           echo "### pnpm audit (root) ###"
           if ! pnpm audit --audit-level=high; then
-            echo "::error::pnpm audit found unexcepted high/critical vulnerabilities in root"
+            echo "::error::pnpm audit found unexpected high/critical vulnerabilities in root"
             AUDIT_FAIL=1
           fi
           echo "### pnpm audit (ui/) ###"
           if ! (cd ui && pnpm audit --audit-level=high); then
-            echo "::error::pnpm audit found unexcepted high/critical vulnerabilities in ui/"
+            echo "::error::pnpm audit found unexpected high/critical vulnerabilities in ui/"
             AUDIT_FAIL=1
           fi
           if [ "$AUDIT_FAIL" -ne 0 ]; then
