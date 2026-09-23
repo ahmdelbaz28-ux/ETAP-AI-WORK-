@@ -29,9 +29,11 @@ REMOTE_URL = f"https://ahmdelbaz28:{HF_TOKEN}@huggingface.co/spaces/{SPACE_REPO}
 import stat
 
 
-def _on_rm_error(func, path, exc):
+def _on_rm_error(*args):
     """Clear read-only attribute and retry removal on Windows."""
     try:
+        path = args[1]
+        func = args[0]
         os.chmod(path, stat.S_IWRITE)
         func(path)
     except Exception:
@@ -47,7 +49,8 @@ def main() -> int:
     print("=" * 60)
 
     if stage_dir.exists():
-        shutil.rmtree(stage_dir, onexc=_on_rm_error)
+        kwargs = {"onexc": _on_rm_error} if sys.version_info >= (3, 12) else {"onerror": _on_rm_error}
+        shutil.rmtree(stage_dir, **kwargs)
     stage_dir.mkdir(parents=True, exist_ok=True)
 
     # 1) HF frontmatter README (renamed to README.md on Space)
