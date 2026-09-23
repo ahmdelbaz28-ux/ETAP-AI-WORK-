@@ -19,6 +19,9 @@ import re
 import subprocess
 import sys
 
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
+
 REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 PASSED = 0
 FAILED = 0
@@ -106,7 +109,7 @@ pkg_json = os.path.join(REPO_ROOT, "package.json")
 if os.path.exists(pkg_json):
     with open(pkg_json) as f:
         pkg = json.load(f)
-    overrides = pkg.get("overrides", {})
+    overrides = pkg.get("overrides") or pkg.get("pnpm", {}).get("overrides", {})
 
     expected_overrides = {
         "undici": ("^7.29.0", "CVE-2026-13697 HIGH"),
@@ -189,6 +192,7 @@ try:
         capture_output=True,
         text=True,
         timeout=30,
+        shell=sys.platform == "win32",
     )
     try:
         audit = json.loads(result.stdout)
