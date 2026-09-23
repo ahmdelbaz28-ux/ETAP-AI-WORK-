@@ -38,11 +38,15 @@ env:
   TFLINT_VERSION: 'v0.53.0'
   TFSEC_VERSION: 'v1.28.1'
 
+permissions:
+  contents: read
+
 jobs:
   # ── 1. HELM VALIDATION ────────────────────────────────────────────────────
   helm:
     name: Helm Chart Validation
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Checkout code
         uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
@@ -153,6 +157,7 @@ jobs:
   terraform:
     name: Terraform Validation
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     defaults:
       run:
         working-directory: terraform
@@ -237,6 +242,7 @@ jobs:
   summary:
     name: IaC Validation Summary
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     needs: [helm, terraform]
     if: always()
     steps:

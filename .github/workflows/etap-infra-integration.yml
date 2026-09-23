@@ -21,6 +21,9 @@ on:
     paths:
       - '01-helm-chart/**'
 
+permissions:
+  contents: read
+
 jobs:
   integration-test:
     name: kind cluster smoke test

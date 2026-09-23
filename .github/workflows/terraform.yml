@@ -39,6 +39,7 @@ jobs:
   tf-quality:
     name: Terraform fmt + validate
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     permissions:
       contents: read
     steps:
@@ -80,6 +81,7 @@ jobs:
   tf-plan:
     name: Terraform Plan
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     if: github.event_name == 'pull_request'
     needs: tf-quality
     environment: dev

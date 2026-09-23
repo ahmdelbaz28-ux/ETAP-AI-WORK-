@@ -765,6 +765,28 @@ async def platform_info():
     return build_platform_info()
 
 
+@app.get("/version", tags=["Platform"])
+@app.head("/version", tags=["Platform"])
+async def get_version():
+    """Return platform version and deployed Git SHA if available."""
+    deploy_sha = "unknown"
+    for candidate in [Path("DEPLOY_SHA"), Path("/app/DEPLOY_SHA"), Path("VERSION")]:
+        if candidate.name == "DEPLOY_SHA" and candidate.exists():
+            try:
+                deploy_sha = candidate.read_text(encoding="utf-8").strip()
+                break
+            except Exception:
+                pass
+    return JSONResponse(
+        content={
+            "version": VERSION,
+            "commit_sha": deploy_sha,
+            "status": "ok",
+        },
+        status_code=200,
+    )
+
+
 # -- Agents -------------------------------------------------------------------
 @app.get("/api/v1/agents", tags=["Agents"])
 async def list_agents():

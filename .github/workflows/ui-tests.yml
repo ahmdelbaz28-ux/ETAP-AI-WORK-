@@ -12,10 +12,14 @@ concurrency:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+permissions:
+  contents: read
+
 jobs:
   vitest:
     name: Vitest (UI Components)
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
@@ -43,6 +47,7 @@ jobs:
   playwright:
     name: Playwright (E2E)
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     defaults:
       run:
         working-directory: ui

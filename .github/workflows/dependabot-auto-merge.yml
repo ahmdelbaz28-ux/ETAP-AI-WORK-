@@ -19,6 +19,7 @@ permissions:
 jobs:
   auto-merge:
     runs-on: ubuntu-latest
+    timeout-minutes: 35
     steps:
       - name: Check if dependency is safe to auto-merge
         id: check-safe
@@ -129,14 +130,11 @@ jobs:
 
               if (!hasPendingStatus && !hasPendingCheck && (statuses.length > 0 || checkRuns.length > 0)) {
                 const allStatusSuccess = statuses.every(s => s.state === 'success');
-                const allChecksSuccess = checkRuns.every(c => c.name === 'auto-merge' || c.conclusion === 'success' || c.conclusion === 'skipped' || c.conclusion === 'neutral');
+                const allChecksSuccess = checkRuns.every(c => c.name === 'auto-merge' || c.conclusion === 'success' || c.conclusion === 'neutral');
                 if (allStatusSuccess && allChecksSuccess) {
                   core.setOutput('ready', 'true');
                   return;
                 }
-              } else if (statuses.length === 0 && checkRuns.length === 0) {
-                core.setOutput('ready', 'true');
-                return;
               }
 
               await new Promise(resolve => setTimeout(resolve, 30000));
@@ -146,10 +144,9 @@ jobs:
 
       - name: Enable auto-merge (dev deps only)
         if: steps.check-safe.outputs.safe == 'true' && steps.wait-for-status-checks.outputs.ready == 'true'
-        continue-on-error: true
         run: |
-          echo "Auto-merging dev dependency: ${{ steps.check-safe.outputs.package }}"
-          gh pr merge --admin --squash "${{ github.event.pull_request.number }}" || true
+          echo "Enabling auto-merge for dev dependency: ${{ steps.check-safe.outputs.package }}"
+          gh pr merge --auto --squash "${{ github.event.pull_request.number }}"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

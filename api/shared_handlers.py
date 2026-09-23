@@ -300,6 +300,7 @@ class SharedImpactAnalysisRequest(BaseModel):
 PUBLIC_PATHS: frozenset[str] = frozenset(
     {
         "/",
+        "/version",
         "/healthz",
         "/readyz",
         "/health",

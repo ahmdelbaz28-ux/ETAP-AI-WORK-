@@ -35,6 +35,9 @@ env:
   HEALTH_CHECK_TIMEOUT_MS: ${{ vars.HEALTH_CHECK_TIMEOUT_MS || '10000' }}
   SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL || '' }}
 
+permissions:
+  contents: read
+
 jobs:
   # -------------------------------------------------------------------------
   # Determine which checks to run based on schedule or manual input
@@ -42,6 +45,7 @@ jobs:
   determine-checks:
     name: Determine Check Type
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     outputs:
       run-daily: ${{ steps.decide.outputs.run-daily }}
       run-weekly: ${{ steps.decide.outputs.run-weekly }}
@@ -120,6 +124,7 @@ jobs:
   daily-checks:
     name: Daily Health Checks
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     needs: determine-checks
     if: needs.determine-checks.outputs.run-daily == 'true'
     steps:
@@ -172,6 +177,7 @@ jobs:
   weekly-checks:
     name: Weekly Health Checks
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     needs: determine-checks
     if: needs.determine-checks.outputs.run-weekly == 'true'
     steps:
@@ -224,6 +230,7 @@ jobs:
   monthly-checks:
     name: Monthly Health Checks
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     needs: determine-checks
     if: needs.determine-checks.outputs.run-monthly == 'true'
     steps:
@@ -276,6 +283,7 @@ jobs:
   summary:
     name: Health Check Summary
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     needs: [daily-checks, weekly-checks, monthly-checks]
     if: always()
     steps:

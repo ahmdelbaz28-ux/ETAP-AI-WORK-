@@ -44,11 +44,15 @@ concurrency:
 env:
   PYTHON_VERSION: '3.13'
 
+permissions:
+  contents: read
+
 jobs:
   # ── 1. GENERATE OPENAPI SCHEMA ───────────────────────────────────────────
   generate-schema:
     name: Generate OpenAPI Schema
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Checkout code
         uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
@@ -113,6 +117,7 @@ jobs:
   validate-schema:
     name: Validate OpenAPI Schema
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     needs: generate-schema
     steps:
       - name: Checkout code
@@ -233,6 +238,7 @@ jobs:
   generate-docs:
     name: Generate API Reference Markdown
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     needs: validate-schema
     steps:
       - name: Checkout code
@@ -342,6 +348,7 @@ jobs:
   summary:
     name: API Schema Summary
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     needs: [generate-schema, validate-schema, generate-docs]
     if: always()
     steps:

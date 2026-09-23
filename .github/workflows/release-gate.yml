@@ -32,7 +32,7 @@ on:
 
 concurrency:
   group: release-gate-${{ github.event.inputs.target_sha || github.sha }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 permissions:
   contents: read
@@ -43,6 +43,7 @@ jobs:
   authoritative-gate:
     name: Authoritative Release Gate
     runs-on: ubuntu-latest
+    timeout-minutes: 90
     steps:
       - name: Checkout repository
         uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
@@ -99,13 +100,15 @@ jobs:
 
           REQUIRED_CHECKS=(
             "CI Success"
+            "Gitleaks Secret Scan"
+            "npm audit (high)"
             "Trivy Security Scan"
             "Docker Validation Summary"
             "UI Quality Summary"
           )
 
-          MAX_ATTEMPTS=20
-          SLEEP_SECONDS=30
+          MAX_ATTEMPTS=60
+          SLEEP_SECONDS=45
           ATTEMPT=1
 
           while true; do
@@ -116,8 +119,8 @@ jobs:
             ANY_PENDING=0
 
             for CHECK in "${REQUIRED_CHECKS[@]}"; do
-              STATUS=$(echo "$CHECK_RUNS" | jq -r --arg name "$CHECK" '.[] | select(.name | contains($name)) | .status' | head -n1)
-              CONCLUSION=$(echo "$CHECK_RUNS" | jq -r --arg name "$CHECK" '.[] | select(.name | contains($name)) | .conclusion' | head -n1)
+              STATUS=$(echo "$CHECK_RUNS" | jq -r --arg name "$CHECK" '.[] | select(.name == $name) | .status' | head -n1)
+              CONCLUSION=$(echo "$CHECK_RUNS" | jq -r --arg name "$CHECK" '.[] | select(.name == $name) | .conclusion' | head -n1)
 
               if [ -z "$STATUS" ] || [ "$STATUS" == "null" ]; then
                 echo "  [MISSING] Required check '$CHECK' not found yet."

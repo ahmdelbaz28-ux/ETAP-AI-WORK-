@@ -43,11 +43,15 @@ concurrency:
 env:
   EXPECTED_PYTHON_VERSION: '3.13'
 
+permissions:
+  contents: read
+
 jobs:
   # ── 1. LINT: hadolint on every Dockerfile ────────────────────────────────
   hadolint:
     name: 🔍 Hadolint Lint
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
@@ -64,6 +68,7 @@ jobs:
   version-consistency:
     name: 🐍 Python Version Consistency
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
@@ -153,6 +158,7 @@ jobs:
   build-test:
     name: 🏗️ Build Docker Image
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     needs: [hadolint, version-consistency]
     strategy:
       fail-fast: false
@@ -225,6 +231,7 @@ jobs:
   security-scan:
     name: 🔒 Container Security Scan
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     needs: build-test
     if: always() && needs.build-test.result == 'success'
     strategy:
@@ -282,6 +289,7 @@ jobs:
   summary:
     name: 📊 Docker Validation Summary
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     needs: [hadolint, version-consistency, build-test, security-scan]
     if: always()
     steps:

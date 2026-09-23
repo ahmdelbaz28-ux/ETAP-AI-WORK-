@@ -33,6 +33,9 @@ concurrency:
   group: ui-quality-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 env:
   NODE_VERSION: '22'
   UI_DIR: ui
@@ -42,6 +45,7 @@ jobs:
   typecheck:
     name: TypeScript Type Check
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Checkout code
         uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
@@ -75,17 +79,16 @@ jobs:
       - name: TypeScript type-check (strict)
         working-directory: ${{ env.UI_DIR }}
         run: npx tsc --noEmit --strict
-        continue-on-error: true  # Advisory — strict mode catches extra issues
 
       - name: TypeScript type-check (project config)
         working-directory: ${{ env.UI_DIR }}
         run: npx tsc -b --noEmit
-        continue-on-error: true  # Advisory — project build mode catches extra issues
 
   # ── 2. ESLINT (with security rules) ───────────────────────────────────────
   eslint:
     name: ESLint + Security Rules
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Checkout code
         uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
@@ -115,10 +118,6 @@ jobs:
       - name: Install UI dependencies
         working-directory: ${{ env.UI_DIR }}
         run: pnpm install --frozen-lockfile --ignore-scripts
-
-      - name: Install eslint-plugin-security
-        working-directory: ${{ env.UI_DIR }}
-        run: pnpm add --save-dev eslint-plugin-security
 
       - name: Run ESLint
         working-directory: ${{ env.UI_DIR }}
@@ -191,6 +190,7 @@ jobs:
   vitest:
     name: Vitest Unit Tests
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     needs: [typecheck, eslint]
     steps:
       - name: Checkout code
@@ -278,6 +278,7 @@ jobs:
   build:
     name: Production Build Test
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     needs: [typecheck, eslint]
     steps:
       - name: Checkout code
@@ -311,7 +312,7 @@ jobs:
 
       - name: Build for production (Vite)
         working-directory: ${{ env.UI_DIR }}
-        run: pnpm run build:vercel || pnpm run build
+        run: pnpm run build
 
       - name: Verify dist output
         working-directory: ${{ env.UI_DIR }}
@@ -354,6 +355,7 @@ jobs:
   summary:
     name: UI Quality Summary
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     needs: [typecheck, eslint, vitest, build]
     if: always()
     steps:

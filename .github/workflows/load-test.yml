@@ -65,6 +65,7 @@ jobs:
   k6-load-test:
     name: "📊 k6 Load Test"
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     if: >
       github.event_name == 'workflow_dispatch' ||
       github.event_name == 'schedule' ||
@@ -240,6 +241,7 @@ jobs:
   locust-stress-test:
     name: "🦗 Locust Stress Test"
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     if: >
       github.event_name == 'workflow_dispatch' ||
       github.event_name == 'schedule' ||
@@ -430,6 +432,7 @@ jobs:
   comment-on-pr:
     name: "💬 Post Load Test Results"
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     needs: [k6-load-test, locust-stress-test]
     if: >
       always() &&
@@ -556,6 +559,7 @@ jobs:
   load-test-gate:
     name: "🚦 Load Test Gate"
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     needs: [k6-load-test, locust-stress-test]
 
     steps:

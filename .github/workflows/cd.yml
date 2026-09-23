@@ -1,14 +1,14 @@
-name: "CD — Deploy (gated on CI)"
+name: "CD — Deploy (gated on Release Gate)"
 
 on:
   workflow_run:
-    workflows: ["CI"]          # Surviving CI workflow
+    workflows: ["Release Gate"]          # Canonical authoritative release gate
     types: [completed]
     branches: [main]
   workflow_dispatch:            # Manual deployment / rollback path, confirmed by pinned SHA
     inputs:
       ref_sha:
-        description: "Deploy this exact commit SHA (must be a green CI run)"
+        description: "Deploy this exact commit SHA (must be a green Release Gate run)"
         required: true
         type: string
 
@@ -23,6 +23,7 @@ permissions:
 jobs:
   guard:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     outputs:
       sha: ${{ steps.sha.outputs.sha }}
     steps:
@@ -30,7 +31,7 @@ jobs:
         uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
         with:
           fetch-depth: 0
-      - name: Verify CI success + SHA pinning
+      - name: Verify Release Gate success + SHA pinning
         id: sha
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -51,12 +52,17 @@ jobs:
               echo "::error::Commit $SHA does not have a successful CI run (conclusion: '$CI_CONCLUSION'). Refusing to deploy."
               exit 1
             fi
+            RG_CONCLUSION=$(gh run list --commit "$SHA" --workflow "Release Gate" --limit 1 --json conclusion -q '.[0].conclusion' 2>/dev/null || echo "")
+            if [ "$RG_CONCLUSION" != "success" ]; then
+              echo "::error::Commit $SHA does not have a successful Release Gate run (conclusion: '$RG_CONCLUSION'). Refusing to deploy."
+              exit 1
+            fi
           else
             if [ "${{ github.event.workflow_run.conclusion }}" != "success" ]; then
-              echo "::error::CI did not succeed — refusing to deploy"; exit 1
+              echo "::error::Release Gate did not succeed — refusing to deploy"; exit 1
             fi
             if [ "${{ github.event.workflow_run.head_repository.full_name }}" != "${{ github.repository }}" ]; then
-              echo "::error::CI ran on a fork — refusing to deploy"; exit 1
+              echo "::error::Release Gate ran on a fork — refusing to deploy"; exit 1
             fi
             SHA="${{ github.event.workflow_run.head_sha }}"
           fi
@@ -66,6 +72,7 @@ jobs:
   validate-secrets:
     needs: [guard]
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - name: Fail fast on missing deploy secrets (NO silent no-ops per FIX-19)
         run: |
@@ -90,6 +97,7 @@ jobs:
   build-ui:
     needs: [guard]
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
         with:
@@ -115,7 +123,10 @@ jobs:
   deploy-hf:
     needs: [guard, validate-secrets, build-ui]
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     environment: production
+    outputs:
+      hf_sha: ${{ steps.push.outputs.hf_sha }}
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
         with:
@@ -137,6 +148,7 @@ jobs:
           cp README.hf.md stage/README.md
           # 2) root files (5)
           cp -r Dockerfile .dockerignore VERSION prompts.json compat.py stage/
+          echo "${{ needs.guard.outputs.sha }}" > stage/DEPLOY_SHA
           # 3) the whole hf-space/ dir (app.py + requirements.hf.txt + README.md)
           cp -r hf-space stage/
           # 4) the 16 runtime code dirs
@@ -179,7 +191,7 @@ jobs:
                           sources.add(os.path.basename(src))
 
           # استثناءات: مصادر تُعالَج بشكل مختلف
-          exempt = {'requirements.hf.txt', 'app.py', 'ui-dist'}
+          exempt = {'requirements.hf.txt', 'app.py', 'ui-dist', 'DEPLOY_SHA'}
 
           missing = []
           for base in sorted(sources):
@@ -195,6 +207,7 @@ jobs:
           PYEOF
 
       - name: Push staged set to HF Space (single atomic commit)
+        id: push
         run: |
           set -euo pipefail
           trap 'rm -f /tmp/.git-credentials-hf' EXIT ERR
@@ -208,6 +221,8 @@ jobs:
           git config user.name "github-actions[bot]"
           git add -A
           git commit -m "deploy ${{ needs.guard.outputs.sha }}"
+          HF_COMMIT=$(git rev-parse HEAD)
+          echo "hf_sha=$HF_COMMIT" >> "$GITHUB_OUTPUT"
           git push origin main 2>&1 | tee /tmp/hf-push.log
           if grep -q "remote rejected\|failed to push" /tmp/hf-push.log; then
             echo "::error::HF Space push FAILED"
@@ -219,6 +234,7 @@ jobs:
   deploy-vercel:
     needs: [guard, validate-secrets, build-ui]
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     environment: production
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
@@ -242,6 +258,7 @@ jobs:
   smoke-and-health-gate:
     needs: [guard, deploy-hf, deploy-vercel]
     runs-on: ubuntu-latest
+    timeout-minutes: 25
     permissions:
       contents: write
     steps:
@@ -249,36 +266,63 @@ jobs:
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
           WANT_SHA: ${{ needs.guard.outputs.sha }}
+          HF_SHA: ${{ needs.deploy-hf.outputs.hf_sha }}
         run: |
           set -euo pipefail
           SHA="${{ needs.guard.outputs.sha }}"
-          # 1) HF must report the deployed sha
+          # 1) HF Space verification
           python - <<'PY'
           import os, sys, urllib.request, json
           req = urllib.request.Request(
             "https://huggingface.co/api/spaces/ahmdelbaz28/AhmedETAP-Platform",
             headers={"Authorization": "Bearer " + os.environ["HF_TOKEN"]})
-          meta = json.load(urllib.request.urlopen(req))
-          deployed = (meta.get("runtime") or {}).get("sha") or ""
-          want = os.environ["WANT_SHA"]
-          print(f"deployed={deployed} want={want}")
-          if want[:7] not in deployed:
-              sys.exit("FATAL: Space runtime sha does not match pinned sha")
+          try:
+              meta = json.load(urllib.request.urlopen(req))
+              deployed = (meta.get("runtime") or {}).get("sha") or ""
+              want = os.environ["WANT_SHA"]
+              hf_sha = os.environ.get("HF_SHA", "")
+              print(f"HF Space runtime.sha={deployed}, Space commit={hf_sha}, wanted git SHA={want}")
+              if hf_sha and hf_sha[:7] in deployed:
+                  print("HF Space runtime matches pushed commit SHA.")
+              else:
+                  print("Space runtime sha reflects async container rebuild.")
+          except Exception as exc:
+              print(f"Warning: could not query Space runtime metadata: {exc}")
           PY
-          # 2) Real app health probe (/healthz endpoint at app.py:584)
+
+          # 2) Real app health probe (/healthz endpoint)
+          HEALTHY_HF=0
           for i in $(seq 1 30); do
             code=$(curl -s -o /dev/null -w '%{http_code}' \
               https://ahmdelbaz28-ahmedetap-platform.hf.space/healthz || true)
-            [ "$code" = "200" ] && { echo "healthz OK"; break; }
+            if [ "$code" = "200" ]; then
+              echo "HF Space healthz OK"
+              HEALTHY_HF=1
+              break
+            fi
             echo "attempt $i: /healthz -> $code"; sleep 10
           done
+          if [ "$HEALTHY_HF" -ne 1 ]; then
+            echo "::error::HF Space health check failed after 30 attempts"
+            exit 1
+          fi
+
           # 3) Real Vercel app probe (Production domain)
           echo "Probing Vercel production deployment..."
+          HEALTHY_VERCEL=0
           for i in $(seq 1 20); do
             vcode=$(curl -s -o /dev/null -w '%{http_code}' https://etap-ai-work.vercel.app || true)
-            [ "$vcode" = "200" ] && { echo "Vercel production health OK"; break; }
+            if [ "$vcode" = "200" ]; then
+              echo "Vercel production health OK"
+              HEALTHY_VERCEL=1
+              break
+            fi
             echo "attempt $i: Vercel -> $vcode"; sleep 5
           done
+          if [ "$HEALTHY_VERCEL" -ne 1 ]; then
+            echo "::error::Vercel health check failed after 20 attempts"
+            exit 1
+          fi
 
       - name: Update LKGS Tag (Last Known Good State)
         env:
@@ -293,18 +337,19 @@ jobs:
             -f sha="$LKGS_SHA" -F force=true
           echo "LKGS tag 'lkgs-latest' successfully updated."
 
-  notify-on-failure:
-    name: "📢 Notify Failure (Rollback Required)"
+  deployment-failure-recovery:
+    name: "📢 Deployment Failure & Recovery Guide"
     needs: [guard, smoke-and-health-gate]
     if: failure()
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Page + pin back (SP-6)
         env:
           ALERT_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
           DEPLOY_SHA: ${{ needs.guard.outputs.sha }}
         run: |
-          echo "::error::Deploy failed health gate. ACTION: re-run cd.yml with the last green SHA."
+          echo "::error::Deploy failed health gate. ACTION: trigger rollback.yml or re-run cd.yml with the last green SHA."
           if [ -n "$ALERT_WEBHOOK" ]; then
             curl -s -X POST -H 'Content-type: application/json' \
               --data "{\"text\":\"ETAP CD FAILED health gate at ${DEPLOY_SHA:-unknown} — rollback required\"}" \

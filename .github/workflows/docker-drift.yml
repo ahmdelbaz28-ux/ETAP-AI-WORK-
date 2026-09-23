@@ -25,6 +25,7 @@ jobs:
   drift-check:
     name: Dockerfile vs cd.yml Drift Check
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
 

@@ -40,7 +40,7 @@ opentelemetry-sdk>=1.20.0
 opentelemetry-exporter-otlp-proto-http>=1.20.0
 
 # LLM observability — Langfuse (free Hobby plan supports unlimited prompts)
-langfuse~=4.15.1
+langfuse~=2.54.0
 
 # Resilience
 tenacity>=8.2.0
