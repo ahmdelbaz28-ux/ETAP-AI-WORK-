@@ -52,11 +52,18 @@ jobs:
               echo "::error::Commit $SHA does not have a successful CI run (conclusion: '$CI_CONCLUSION'). Refusing to deploy."
               exit 1
             fi
-            RG_CONCLUSION=$(gh run list --commit "$SHA" --workflow "Release Gate" --limit 1 --json conclusion -q '.[0].conclusion' 2>/dev/null || echo "")
-            if [ "$RG_CONCLUSION" != "success" ]; then
-              echo "::error::Commit $SHA does not have a successful Release Gate run (conclusion: '$RG_CONCLUSION'). Refusing to deploy."
+          # ── Canonical contract: the ONLY deploy authority is the
+          # 'release-gate/authoritative' commit status posted by the
+          # Release Gate after a real, fail-closed evaluation. Workflow
+          # conclusions alone are NOT trusted (an early-exit/deferred gate
+          # never posts the status, so it cannot enable a deployment).
+            RG_STATUS=$(gh api "repos/${{ github.repository }}/commits/$SHA/status" \
+              --jq '.statuses[] | select(.context == "release-gate/authoritative") | .state' 2>/dev/null | head -n1 || echo "")
+            if [ "$RG_STATUS" != "success" ]; then
+              echo "::error::Commit $SHA has no authoritative 'release-gate/authoritative' status = success (found: '$RG_STATUS'). Refusing to deploy."
               exit 1
             fi
+            echo "Authoritative Release Gate status verified for $SHA."
           else
             if [ "${{ github.event.workflow_run.conclusion }}" != "success" ]; then
               echo "::error::Release Gate did not succeed — refusing to deploy"; exit 1
@@ -65,6 +72,13 @@ jobs:
               echo "::error::Release Gate ran on a fork — refusing to deploy"; exit 1
             fi
             SHA="${{ github.event.workflow_run.head_sha }}"
+            RG_STATUS=$(gh api "repos/${{ github.repository }}/commits/$SHA/status" \
+              --jq '.statuses[] | select(.context == "release-gate/authoritative") | .state' 2>/dev/null | head -n1 || echo "")
+            if [ "$RG_STATUS" != "success" ]; then
+              echo "::error::Commit $SHA has no authoritative 'release-gate/authoritative' status = success (found: '$RG_STATUS'). Refusing to deploy."
+              exit 1
+            fi
+            echo "Authoritative Release Gate status verified for $SHA."
           fi
           echo "Deploying pinned SHA: $SHA"
           echo "sha=$SHA" >> "$GITHUB_OUTPUT"

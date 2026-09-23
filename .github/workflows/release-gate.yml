@@ -86,6 +86,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           COMMIT_SHA: ${{ steps.resolve-sha.outputs.commit_sha }}
           IS_SHADOW: ${{ github.event.inputs.shadow_mode }}
+          EVENT_NAME: ${{ github.event_name }}
           REPO: ${{ github.repository }}
           SERVER_URL: ${{ github.server_url }}
           RUN_ID: ${{ github.run_id }}
@@ -98,14 +99,63 @@ jobs:
           echo "Mode: $([ "$IS_SHADOW" = "true" ] && echo 'SHADOW / AUDIT' || echo 'AUTHORITATIVE BLOCKING')"
           echo "============================================================"
 
+          # ── Deferred-gate guard (fail-closed hygiene) ─────────────────────
+          # If this gate run was triggered by a workflow_run whose run did
+          # NOT succeed (e.g. CI cancelled mid-flight by a newer push), the
+          # target commit is superseded. Do NOT evaluate it and do NOT post
+          # an authoritative commit status — CD only deploys on the posted
+          # 'release-gate/authoritative' status, so this cannot be bypassed.
+          if [ "$EVENT_NAME" = "workflow_run" ] && [ "$IS_SHADOW" != "true" ]; then
+            TRIGGER_CONCLUSION="${{ github.event.workflow_run.conclusion }}"
+            TRIGGER_NAME="${{ github.event.workflow_run.name }}"
+            if [ "$TRIGGER_CONCLUSION" != "success" ]; then
+              echo "::notice::Triggering workflow '$TRIGGER_NAME' concluded '$TRIGGER_CONCLUSION'. Release Gate deferred — no authoritative status posted. The head commit is evaluated by its own gate run."
+              exit 0
+            fi
+          fi
+
+          # ── Path-based applicability (Phase 18: prove N/A, never fake) ────
+          # Docker Validation and UI Quality are path-filtered workflows.
+          # If this commit does not touch their trigger paths, their
+          # check-runs will never exist; a plain "missing = fail" rule would
+          # fail every workflow-only commit. The gate therefore PROVES
+          # non-applicability from the changed-file set and marks them N/A.
+          CHANGED_FILES=$(git diff-tree --no-commit-id --name-only -r --root "$COMMIT_SHA" 2>/dev/null || true)
+          if [ -z "$CHANGED_FILES" ]; then
+            CHANGED_FILES=$(git diff --name-only "${COMMIT_SHA}^" "${COMMIT_SHA}" 2>/dev/null || true)
+          fi
+          echo "Changed files for this commit:"
+          echo "$CHANGED_FILES" | sed 's/^/  /'
+
+          DOCKER_TRIGGER_RE='^(Dockerfile|hf-space/Dockerfile|docker-compose|requirements.*\.txt|pyproject\.toml|\.github/workflows/docker-validation\.yml)'
+          UI_TRIGGER_RE='^(ui/|package\.json$|pnpm-lock\.yaml$|\.github/workflows/ui-quality\.yml)'
+
+          DOCKER_APPLICABLE=0
+          UI_APPLICABLE=0
+          while IFS= read -r f; do
+            [ -z "$f" ] && continue
+            if echo "$f" | grep -Eq "$DOCKER_TRIGGER_RE"; then DOCKER_APPLICABLE=1; fi
+            if echo "$f" | grep -Eq "$UI_TRIGGER_RE"; then UI_APPLICABLE=1; fi
+          done <<< "$CHANGED_FILES"
+          echo "Docker Validation applicable: $DOCKER_APPLICABLE | UI Quality applicable: $UI_APPLICABLE"
+          echo "============================================================"
+
           REQUIRED_CHECKS=(
             "CI Success"
             "Gitleaks Secret Scan"
             "npm audit (high)"
             "Trivy Security Scan"
-            "Docker Validation Summary"
-            "UI Quality Summary"
           )
+          if [ "$DOCKER_APPLICABLE" -eq 1 ]; then
+            REQUIRED_CHECKS+=("Docker Validation Summary")
+          else
+            echo "  [N/A] 'Docker Validation Summary' — commit does not touch Docker validation trigger paths."
+          fi
+          if [ "$UI_APPLICABLE" -eq 1 ]; then
+            REQUIRED_CHECKS+=("UI Quality Summary")
+          else
+            echo "  [N/A] 'UI Quality Summary' — commit does not touch UI quality trigger paths."
+          fi
 
           MAX_ATTEMPTS=60
           SLEEP_SECONDS=45
