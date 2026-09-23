@@ -45,9 +45,13 @@ logger = logging.getLogger(__name__)
 # Configuration
 # ---------------------------------------------------------------------------
 
-_DEFAULT_DB_URL = "sqlite+aiosqlite:///./data/etap_platform.db"
+_DEFAULT_DB_URL = (
+    "sqlite+aiosqlite:////tmp/data/etap_platform.db"
+    if os.path.exists("/tmp/data")
+    else "sqlite+aiosqlite:///./data/etap_platform.db"
+)
 
-_raw_db_url: str = os.getenv("DATABASE_URL", _DEFAULT_DB_URL)
+_raw_db_url: str = os.getenv("DATABASE_URL") or _DEFAULT_DB_URL
 
 
 # Normalise plain postgres:// / postgresql:// → asyncpg driver, sqlite:// → aiosqlite
@@ -76,10 +80,12 @@ from api.environment import is_production_environment
 if _IS_SQLITE:
     _sqlite_prefix = "sqlite+aiosqlite:///"
     _db_path = DATABASE_URL[len(_sqlite_prefix) :]
-    if is_production_environment():
+    allow_sqlite = os.getenv("ALLOW_SQLITE_IN_PROD", "").lower() in ("1", "true", "yes")
+    if is_production_environment() and not allow_sqlite:
         raise RuntimeError(
             f"CRITICAL CONFIGURATION ERROR: SQLite ({DATABASE_URL}) is not permitted in production (including HF Space). "
-            "Set DATABASE_URL to a persistent PostgreSQL instance (e.g. Supabase / HF Postgres: postgresql+asyncpg://...)."
+            "Set DATABASE_URL to a persistent PostgreSQL instance (e.g. Supabase / HF Postgres: postgresql+asyncpg://...) or "
+            "set ALLOW_SQLITE_IN_PROD=true if running in a single-instance container test."
         )
     logger.warning(
         "Using SQLite database (%s). "

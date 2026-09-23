@@ -135,8 +135,8 @@ async def lifespan(_app: FastAPI):
 
         redis_client = await get_redis_state_client()
         db_url = os.getenv("DATABASE_URL", "").strip()
-        if not db_url:
-            logger.info("DATABASE_URL is not configured on HF Space. Skipping database migrations.")
+        if not db_url or db_url.startswith("sqlite"):
+            logger.info("DATABASE_URL is SQLite or unset on HF Space. Skipping database migrations.")
         elif redis_client:
             lock_mgr = LockManager(client=redis_client)
             # ttl_seconds=300: 5 min lease gives ample time for DDL transactions on cloud databases.
@@ -176,10 +176,11 @@ async def _startup_auth_fail_closed_check() -> None:
         if not eng_key:
             missing_vars.append("ENGINEERING_SERVICE_API_KEY (or HF_API_KEY)")
 
+        allow_sqlite = os.getenv("ALLOW_SQLITE_IN_PROD", "").lower() in ("1", "true", "yes")
         db_url = os.environ.get("DATABASE_URL", "")
-        if not db_url or db_url.startswith("sqlite"):
+        if (not db_url or db_url.startswith("sqlite")) and not allow_sqlite:
             missing_vars.append(
-                "DATABASE_URL (Persistent PostgreSQL required; SQLite is forbidden in production)"
+                "DATABASE_URL (Persistent PostgreSQL required; SQLite is forbidden in production unless ALLOW_SQLITE_IN_PROD=true)"
             )
 
         jwt_key = os.environ.get("JWT_SECRET_KEY", "")
