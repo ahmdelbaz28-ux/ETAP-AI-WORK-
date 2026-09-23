@@ -95,7 +95,7 @@ pytesseract~=0.3.13
 # Uses stdlib HTTP client — no resend SDK needed
 
 # ─── LLM Observability (Langfuse) ──────────────────────────────────────────
-langfuse~=4.15.1
+langfuse~=2.54.0
 
 # ─── Graph Database (Neo4j) ────────────────────────────────────────────────
 neo4j>=6.2,<6.4
@@ -105,5 +105,5 @@ supabase~=2.31.0
 
 # ─── LLM SDKs (required by langfuse wrapper) ───────────────────────────────
 # Added 2026-07-10 — langfuse needs these to wrap LLM calls
-openai~=3.13.0
+openai~=2.52.0
 anthropic~=1.4.0

@@ -9,10 +9,14 @@ on:
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
 
+permissions:
+  contents: read
+
 jobs:
   e2e-hf-space:
     name: E2E - HF Space Health & API
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v5
 
@@ -107,6 +111,7 @@ jobs:
   e2e-python-tests:
     name: E2E - Python Unit Tests
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     services:
       redis:
@@ -161,6 +166,7 @@ jobs:
   e2e-security:
     name: E2E - Security Checks
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v5
 

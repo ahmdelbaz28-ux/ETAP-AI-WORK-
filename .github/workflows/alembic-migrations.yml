@@ -20,6 +20,7 @@ jobs:
   test-migrations:
     name: Test Migrations
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     
     services:
       postgres:
@@ -75,6 +76,7 @@ jobs:
     name: Deploy Migrations to Production
     needs: test-migrations
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
     
     steps:

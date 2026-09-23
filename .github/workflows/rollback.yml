@@ -24,6 +24,7 @@ jobs:
   validate:
     name: "Validate Rollback Request"
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     outputs:
       target_sha: ${{ steps.check.outputs.target_sha }}
     steps:
@@ -67,6 +68,7 @@ jobs:
     name: "Dispatch CD Pipeline with Target SHA"
     needs: [validate]
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Trigger cd.yml with target SHA
         env:
@@ -96,6 +98,7 @@ jobs:
     name: "Verify Production Health Post-Rollback"
     needs: [validate, dispatch-cd]
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Probe HF Space /healthz and runtime SHA
         env:
@@ -143,6 +146,7 @@ jobs:
     needs: [validate, verify-rollback]
     if: always()
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Alert Webhook
         env:

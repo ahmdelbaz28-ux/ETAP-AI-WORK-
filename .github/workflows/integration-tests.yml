@@ -363,6 +363,7 @@ jobs:
   summary:
     name: Integration Tests Summary
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     needs: [database, api-e2e, agents]
     if: always()
     steps:

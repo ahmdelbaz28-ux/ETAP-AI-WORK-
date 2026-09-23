@@ -26,6 +26,9 @@ on:
       - 'scripts/etap-infra-validate.sh'
       - '.github/workflows/etap-infra-validate.yml'
 
+permissions:
+  contents: read
+
 jobs:
   validate:
     name: Lint + Unit Test + Schema Validate

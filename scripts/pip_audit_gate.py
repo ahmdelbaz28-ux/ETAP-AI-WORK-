@@ -3,8 +3,9 @@
 scripts/pip_audit_gate.py — Blocking dependency security audit gate.
 
 Validates all accepted vulnerabilities in .pip-audit-baseline.json for expiration,
-runs pip-audit against requirements.txt, and blocks if any unaccepted or expired
-vulnerability is found.
+checks validity window consumption (>=80% warning alert), runs pip-audit against
+requirements.txt, hf-space/requirements.hf.txt, and requirements-prod.txt, and
+blocks if any unaccepted or expired vulnerability is found.
 """
 
 from __future__ import annotations
@@ -19,16 +20,28 @@ from pathlib import Path
 def main() -> int:
     repo_root = Path(__file__).resolve().parent.parent
     baseline_path = repo_root / ".pip-audit-baseline.json"
-    req_file = repo_root / "requirements.txt"
+    req_files = [
+        repo_root / "requirements.txt",
+        repo_root / "hf-space" / "requirements.hf.txt",
+        repo_root / "requirements-prod.txt",
+    ]
 
     if not baseline_path.exists():
         sys.stderr.write(f"::error::Baseline file not found: {baseline_path}\n")
         return 1
 
+    for rf in req_files:
+        if not rf.exists():
+            sys.stderr.write(f"::error::Requirements file not found: {rf}\n")
+            return 1
+
     with open(baseline_path, encoding="utf-8") as f:
         baseline = json.load(f)
 
     today = datetime.date.today()
+    generated_at_str = baseline.get("generated_at", "2026-09-22T00:00:00Z")[:10]
+    default_start_date = datetime.date.fromisoformat(generated_at_str)
+
     accepted_vulns = baseline.get("accepted_vulnerabilities", [])
     ignore_args = []
     has_expired = False
@@ -47,6 +60,16 @@ def main() -> int:
                 has_expired = True
             else:
                 days_left = (expires_at - today).days
+                item_start = datetime.date.fromisoformat(item["added_at"]) if "added_at" in item else default_start_date
+                total_window = (expires_at - item_start).days
+                elapsed = (today - item_start).days
+                if total_window > 0:
+                    consumed_ratio = elapsed / total_window
+                    if consumed_ratio >= 0.80:
+                        sys.stdout.write(
+                            f"::warning::Accepted vulnerability {vid} ({item.get('package')}) has consumed "
+                            f"{consumed_ratio * 100:.1f}% of its validity window ({days_left} days remaining until {expires_at_str})!\n"
+                        )
                 sys.stdout.write(f"  [ACCEPTED] {vid} ({item.get('package')} - {item.get('severity')}): valid for {days_left} more days\n")
                 ignore_args.extend(["--ignore-vuln", vid])
         else:
@@ -57,23 +80,24 @@ def main() -> int:
         sys.stderr.write("\n[BLOCKED] One or more baseline vulnerabilities have expired or missing expiry dates.\n")
         return 1
 
-    cmd = [
-        sys.executable,
-        "-m",
-        "pip_audit",
-        "--requirement",
-        str(req_file),
-        "--desc",
-    ] + ignore_args
+    for rf in req_files:
+        cmd = [
+            sys.executable,
+            "-m",
+            "pip_audit",
+            "--requirement",
+            str(rf),
+            "--desc",
+        ] + ignore_args
 
-    sys.stdout.write(f"\nRunning command: pip-audit -r requirements.txt {' '.join(ignore_args)}\n\n")
-    res = subprocess.run(cmd, cwd=repo_root, check=False)  # nosec B603 # nosemgrep
+        sys.stdout.write(f"\nRunning command: pip-audit -r {rf.name} {' '.join(ignore_args)}\n\n")
+        res = subprocess.run(cmd, cwd=repo_root, check=False)  # nosec B603 # nosemgrep
 
-    if res.returncode != 0:
-        sys.stderr.write("\n[BLOCKED] pip-audit found unaccepted vulnerabilities in dependencies.\n")
-        return res.returncode
+        if res.returncode != 0:
+            sys.stderr.write(f"\n[BLOCKED] pip-audit found unaccepted vulnerabilities in {rf.name}.\n")
+            return res.returncode
 
-    sys.stdout.write("\n[OK] pip-audit dependency audit gate PASSED with zero unaccepted vulnerabilities.\n\n")
+    sys.stdout.write("\n[OK] pip-audit dependency audit gate PASSED with zero unaccepted vulnerabilities across all requirements files.\n\n")
     return 0
 
 

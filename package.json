@@ -44,7 +44,7 @@
     "@mastra/observability": "^1.17.8",
     "@opentelemetry/auto-instrumentations-node": "^0.80.0",
     "ai": "^6.0.209",
-    "js-yaml": "^5.4.1",
+    "js-yaml": "^4.3.2",
     "langwatch": "^1.17.0",
     "mastra": "^1.25.1",
     "pino": "10.3.1",

@@ -37,6 +37,7 @@ jobs:
   codeql:
     name: CodeQL Analysis
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     permissions:
       contents: read
       security-events: write  # SonarCloud S8233: scoped to this job only
@@ -72,6 +73,7 @@ jobs:
   dependency-review:
     name: Dependency Review
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     if: github.event_name == 'pull_request'
     # CRITICAL FIX: Removed continue-on-error from both the job and the step.
     # Per CI/CD skill: "No gate can be skipped." Vulnerable dependencies MUST
@@ -92,6 +94,7 @@ jobs:
   trivy:
     name: Trivy Security Scan
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     permissions:
       contents: read
       security-events: write  # SonarCloud S8233: scoped to this job only (uploads SARIF)
@@ -141,8 +144,9 @@ jobs:
 
   # ── CUSTOM SECURITY CHECKS ────────────────────────────────────────────────────
   custom-scans:
-    name: Custom Security Checks
+    name: Node.js Security Audits
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - name: Checkout code
         uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
@@ -157,19 +161,29 @@ jobs:
           node-version: '22'
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-      - name: Run pnpm audit
+      - name: Run JS security audits
         run: |
-          echo "### pnpm audit summary ###"
-          pnpm audit --audit-level=high 2>&1 || echo "::warning::pnpm audit found high/critical vulnerabilities"
-      - name: Audit UI dependencies
-        working-directory: ui
-        run: |
-          echo "### npm audit (ui/) summary ###"
-          npm audit --audit-level=high 2>&1 || echo "::warning::npm audit (ui/) found high/critical vulnerabilities"
+          set -uo pipefail
+          AUDIT_FAIL=0
+          echo "### pnpm audit (root) ###"
+          if ! pnpm audit --audit-level=high; then
+            echo "::error::pnpm audit found unexcepted high/critical vulnerabilities in root"
+            AUDIT_FAIL=1
+          fi
+          echo "### pnpm audit (ui/) ###"
+          if ! (cd ui && pnpm audit --audit-level=high); then
+            echo "::error::pnpm audit found unexcepted high/critical vulnerabilities in ui/"
+            AUDIT_FAIL=1
+          fi
+          if [ "$AUDIT_FAIL" -ne 0 ]; then
+            echo "::error::JavaScript security audit gate failed."
+            exit 1
+          fi
 
   pip-audit:
     name: pip Audit (Python)
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - name: Checkout code
         uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
@@ -203,6 +217,7 @@ jobs:
   runtime-security:
     name: Runtime Security Check
     runs-on: ubuntu-latest
+    timeout-minutes: 25
     services:
       postgres:
         image: postgres:15-alpine
@@ -259,16 +274,40 @@ jobs:
 
       - name: Basic security posture check
         run: |
-          # Check that security headers are present
-          RESPONSE=$(curl -I http://localhost:8000/healthz 2>/dev/null || echo "Service not responding")
-          if [[ $RESPONSE == *"X-Frame-Options"* ]]; then
-            echo "✅ X-Frame-Options header present"
-          else
-            echo "⚠️ X-Frame-Options header missing"
+          set -euo pipefail
+          echo "Waiting for service to become healthy..."
+          HEALTHY=0
+          for i in $(seq 1 15); do
+            if curl -s -f http://localhost:8000/healthz >/dev/null 2>&1; then
+              HEALTHY=1
+              break
+            fi
+            sleep 2
+          done
+          if [ "$HEALTHY" -ne 1 ]; then
+            echo "::error::Engineering service failed to start or respond on /healthz"
+            exit 1
           fi
 
-          if [[ $RESPONSE == *"X-Content-Type-Options"* ]]; then
+          HEADERS=$(curl -s -I http://localhost:8000/healthz)
+          echo "$HEADERS"
+
+          MISSING_HEADERS=0
+          if echo "$HEADERS" | grep -qi "X-Frame-Options"; then
+            echo "✅ X-Frame-Options header present"
+          else
+            echo "::error::X-Frame-Options header missing"
+            MISSING_HEADERS=1
+          fi
+
+          if echo "$HEADERS" | grep -qi "X-Content-Type-Options"; then
             echo "✅ X-Content-Type-Options header present"
           else
-            echo "⚠️ X-Content-Type-Options header missing"
+            echo "::error::X-Content-Type-Options header missing"
+            MISSING_HEADERS=1
+          fi
+
+          if [ "$MISSING_HEADERS" -ne 0 ]; then
+            echo "::error::Runtime security headers verification failed"
+            exit 1
           fi

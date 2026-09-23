@@ -55,6 +55,9 @@ env:
   HF_SPACE_ID: ahmdelbaz28/AhmedETAP-Platform
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
 
+permissions:
+  contents: read
+
 jobs:
   integration-smoke:
     name: 🌐 Integration Smoke Tests
@@ -374,6 +377,7 @@ jobs:
   notify-on-failure:
     name: 🚨 Notify on Integration Failure
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     needs: integration-smoke
     if: failure() && github.event_name == 'schedule'
     permissions:
@@ -437,6 +441,7 @@ jobs:
   resolve-on-success:
     name: ✅ Auto-resolve Integration Failure Issue
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     needs: integration-smoke
     if: success()
     permissions:

@@ -16,7 +16,7 @@ repos:
         files: ^config/.*\.json$
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.6.0
+    rev: v0.9.7
     hooks:
       - id: ruff
         args: [--fix]

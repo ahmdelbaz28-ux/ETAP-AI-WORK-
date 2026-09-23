@@ -17,6 +17,7 @@ jobs:
   production-smoke:
     name: Production Smoke Tests
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     # Only run if the sync workflow succeeded (or manual/schedule trigger)
     if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
     steps:

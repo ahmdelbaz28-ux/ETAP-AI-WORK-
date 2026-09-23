@@ -51,11 +51,15 @@ env:
   # Use uv for faster dependency resolution (10-100x faster than pip)
   UV_VERSION: '0.5.11'
 
+permissions:
+  contents: read
+
 jobs:
   # ── 1. RESOLUTION TEST: Can pip/uv resolve all dependencies? ──────────────
   resolution-test:
     name: 🔧 Dependency Resolution
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
@@ -103,6 +107,7 @@ jobs:
   import-test:
     name: 📦 Import Sanity Check
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     needs: resolution-test
     strategy:
       fail-fast: false
@@ -306,6 +311,7 @@ jobs:
   pyproject-validation:
     name: 📋 pyproject.toml Validation
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
@@ -382,6 +388,7 @@ jobs:
   summary:
     name: 📊 Compatibility Summary
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     needs: [resolution-test, import-test, pyproject-validation]
     if: always()
     steps:

@@ -5,14 +5,18 @@ on:
     - cron: "0 */6 * * *"  # Every 6 hours
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   ping:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Ping HF Space
         run: |
           HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
-            https://ahmdelbaz28-etap-ai-platform.hf.space/healthz)
+            https://ahmdelbaz28-ahmedetap-platform.hf.space/healthz)
           echo "Health check HTTP code: $HTTP_CODE"
           if [ "$HTTP_CODE" != "200" ]; then
             echo "Warning: Space returned HTTP $HTTP_CODE"
@@ -20,7 +24,7 @@ jobs:
 
       - name: Deep Health Check
         run: |
-          RESPONSE=$(curl -s https://ahmdelbaz28-etap-ai-platform.hf.space/readyz)
+          RESPONSE=$(curl -s https://ahmdelbaz28-ahmedetap-platform.hf.space/readyz)
           echo "Ready check response: $RESPONSE"
           if echo "$RESPONSE" | grep -q '"ready": true'; then
             echo "Space is healthy and ready"
