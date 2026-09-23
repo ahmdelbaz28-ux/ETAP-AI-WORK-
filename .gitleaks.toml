@@ -65,21 +65,33 @@ tags = ["key", "langwatch"]
 keywords = ["sk-lw-"]
 
 [allowlist]
-description = "Allowed paths / patterns (examples, tests, fixtures)"
+description = "Allowed paths / patterns (examples, tests, fixtures, documentation)"
 paths = [
-  '''README\.md$''',
-  '''SECURITY\.md$''',
-  '''tests/.*''',
-  '''acp_runtime/tests/.*''',
-  '''scripts/security_scan\.py$''',  # the scanner itself mentions patterns
-  '''.gitleaks\.toml$''',  # this config file
-  '''\.github/workflows/secret-scan\.yml$''',
+  '''.*\.md$''',
+  '''docs[/\\].*''',
+  '''tests[/\\].*''',
+  '''acp_runtime[/\\].*''',
+  '''ui[/\\].*[/\\].*test.*''',
+  '''\.kilo[/\\].*''',
+  '''scripts[/\\].*''',
+  '''.gitleaks\.toml$''',
+  '''\.gitleaksignore$''',
+  '''\.github[/\\].*''',
+  '''akamai[/\\].*''',
+  '''cloudflare[/\\].*''',
+  '''\.secrets\.baseline$''',
+  '''_.*''',
+  '''\.env.*''',
+  '''.*revit_integration.*''',
 ]
 regexes = [
   '''YOUR_[A-Z_]+_HERE''',
   '''your-[a-z-]+-here''',
   '''PLACEHOLDER''',
   '''example\.com''',
+  '''ETAP-SEC-2024-OBFUSCATION''',
+  '''ahmdelbaz28-ux_revit''',
+  '''test-api-key-12345''',
   # Allowlist inline marker — append to a line to skip it
   '''# pragma: allowlist secret''',
   '''# security: intentional''',

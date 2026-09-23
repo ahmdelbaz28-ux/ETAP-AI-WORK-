@@ -80,6 +80,8 @@ def main() -> int:
         sys.stderr.write("\n[BLOCKED] One or more baseline vulnerabilities have expired or missing expiry dates.\n")
         return 1
 
+    import time
+
     for rf in req_files:
         cmd = [
             sys.executable,
@@ -87,15 +89,57 @@ def main() -> int:
             "pip_audit",
             "--requirement",
             str(rf),
+            "--vulnerability-service",
+            "osv",
+            "--timeout",
+            "30",
             "--desc",
         ] + ignore_args
 
-        sys.stdout.write(f"\nRunning command: pip-audit -r {rf.name} {' '.join(ignore_args)}\n\n")
-        res = subprocess.run(cmd, cwd=repo_root, check=False)  # nosec B603 # nosemgrep
+        sys.stdout.write(f"\nRunning command: pip-audit -r {rf.name} --vulnerability-service osv {' '.join(ignore_args)}\n\n")
+        sys.stdout.flush()
 
-        if res.returncode != 0:
-            sys.stderr.write(f"\n[BLOCKED] pip-audit found unaccepted vulnerabilities in {rf.name}.\n")
-            return res.returncode
+        max_retries = 3
+        res = None
+        for attempt in range(1, max_retries + 1):
+            res = subprocess.run(cmd, cwd=repo_root, capture_output=True, text=True, check=False)  # nosec B603 # nosemgrep
+            sys.stdout.write(res.stdout)
+            sys.stdout.flush()
+
+            if res.returncode == 0:
+                break
+
+            stderr_lower = res.stderr.lower()
+            is_infra_error = any(
+                err_token in stderr_lower
+                for err_token in [
+                    "503",
+                    "502",
+                    "504",
+                    "serviceerror",
+                    "backend is unhealthy",
+                    "connectionerror",
+                    "timeout",
+                    "temporarily unavailable",
+                ]
+            )
+
+            if is_infra_error and attempt < max_retries:
+                backoff = attempt * 5
+                sys.stderr.write(
+                    f"\n[WARNING] pip-audit encountered transient service/network error on attempt {attempt}/{max_retries}. Retrying in {backoff}s...\n"
+                )
+                sys.stderr.write(res.stderr)
+                sys.stderr.flush()
+                time.sleep(backoff)
+            else:
+                sys.stderr.write(res.stderr)
+                sys.stderr.flush()
+                break
+
+        if res is None or res.returncode != 0:
+            sys.stderr.write(f"\n[BLOCKED] pip-audit failed on {rf.name} (exit code {res.returncode if res else 'None'}).\n")
+            return res.returncode if res else 1
 
     sys.stdout.write("\n[OK] pip-audit dependency audit gate PASSED with zero unaccepted vulnerabilities across all requirements files.\n\n")
     return 0

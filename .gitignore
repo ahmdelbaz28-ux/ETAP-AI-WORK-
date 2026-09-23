@@ -19,6 +19,16 @@ scratch/
 *.env
 
 # Scan / temp files
+_*
+_*.txt
+_*.json
+_*.log
+_glbin/
+_glclone.git/
+_tmp_gl/
+_head_tree/
+_ci_logs/
+_ss_logs/
 dead_code_report.json
 dead_code_scan.py
 fix_dead_code.py
