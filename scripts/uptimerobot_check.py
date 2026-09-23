@@ -3,10 +3,11 @@
 Inspect and configure UptimeRobot monitors.
 """
 import json
+import os
 import urllib.parse
 import urllib.request
 
-API_KEY = "u3475686-dcae0377ed9ef73751fce22a"
+API_KEY = os.environ.get("UPTIMEROBOT_API_KEY", "")
 
 def get_monitors():
     url = "https://api.uptimerobot.com/v2/getMonitors"
