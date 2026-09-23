@@ -288,6 +288,21 @@ jobs:
                   print("Space runtime sha reflects async container rebuild.")
           except Exception as exc:
               print(f"Warning: could not query Space runtime metadata: {exc}")
+
+          # Forensic check via /version endpoint
+          try:
+              v_req = urllib.request.Request(
+                  "https://ahmdelbaz28-ahmedetap-platform.hf.space/version",
+                  headers={"User-Agent": "AhmedETAP-CI-Smoke"}
+              )
+              with urllib.request.urlopen(v_req, timeout=10) as v_resp:
+                  v_data = json.load(v_resp)
+                  reported_sha = v_data.get("commit_sha", "unknown")
+                  print(f"HF Space /version returned: {v_data}")
+                  if reported_sha != "unknown" and reported_sha == os.environ["WANT_SHA"]:
+                      print(f"✓ Forensic check PASSED: Deployed /version matches WANT_SHA ({reported_sha})")
+          except Exception as exc:
+              print(f"Notice: /version endpoint probe: {exc}")
           PY
 
           # 2) Real app health probe (/healthz endpoint)
