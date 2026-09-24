@@ -570,6 +570,30 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#4-gate-life-proof-deliberate-negative-test-verification" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Gate Life Proof (Deliberate Negative Test Verification)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Gate Life Proof (Deliberate Negative Test Verification)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#empirical-results-verification-evidence" class="md-nav__link">
+    <span class="md-ellipsis">
+      Empirical Results &amp; Verification Evidence:
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -620,6 +644,21 @@
 <li><strong>Authoritative Scanner</strong>: <code>Gitleaks</code> (<code>.github/workflows/secret-scan.yml</code>) scans the complete repository on all pull requests and pushes to <code>main</code>.</li>
 <li><strong>Pre-Push Gate</strong>: <code>scripts/verify_secure_push.py</code> validates that all security, lockfile, and branch invariants pass before allowing any branch push.</li>
 <li><strong>Credential Rotation</strong>: Managed per <code>docs/security/rotation-log.md</code>.</li>
+</ul>
+<hr />
+<h2 id="4-gate-life-proof-deliberate-negative-test-verification">4. Gate Life Proof (Deliberate Negative Test Verification)</h2>
+<p>To empirically verify the fail-closed quality gate invariant under adverse conditions (T-1.6 / R-4), a deliberate negative test was executed via dedicated pull request <a href="https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-/pull/605">#605</a> on branch <code>test/gate-life-proof</code> containing an intentional syntax break (<code>SYNTAX_ERROR_GATE_LIFE_PROOF =</code> in <code>api/routes.py:8</code>).</p>
+<h3 id="empirical-results-verification-evidence">Empirical Results &amp; Verification Evidence:</h3>
+<ul>
+<li><strong>CI Run ID</strong>: <code>35973517199</code> (Run #972)</li>
+<li><strong>Gate Enforcement</strong>:</li>
+<li><code>SCADA &amp; Scenario Tests</code> (<a href="https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-/actions/runs/35973517199/job/107553322406">Job 107553322406</a>): 41 errors in 47.93s, Process completed with exit code 1 (<code>SyntaxError: invalid syntax</code> in <code>api/routes.py:8</code>).</li>
+<li><code>Integration Tests</code> (<a href="https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-/actions/runs/35973517199/job/107553322418">Job 107553322418</a>): 95 errors in 110.54s, Process completed with exit code 1 (<code>SyntaxError: invalid syntax</code> in <code>api/routes.py:8</code>).</li>
+<li><code>CI Success</code> (<a href="https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-/actions/runs/35973517199/job/107555116496">Job 107555116496</a>): Failed with exit code 1 due to prerequisite suite failure.</li>
+<li><strong>Fail-Closed Gate Behavior</strong>:</li>
+<li>Zero <code>release-gate/authoritative</code> commit status was posted to GitHub.</li>
+<li>The gated CD deployment workflow (<code>.github/workflows/cd.yml</code>) remained completely blocked (deployments skipped per <code>if: github.event.workflow_run.conclusion == 'success'</code>).</li>
+<li><strong>Sanitization &amp; Cleanup</strong>: PR #605 was closed, branch <code>test/gate-life-proof</code> deleted both remotely and locally, and production source files remained unaffected.</li>
 </ul>
 
 

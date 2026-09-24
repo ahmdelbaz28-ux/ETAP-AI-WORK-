@@ -559,6 +559,21 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="1. Credential Incident &amp; Rotation Register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#11-live-revocation-verification-evidence-reproducible-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.1 Live Revocation Verification Evidence &amp; Reproducible Commands
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -632,27 +647,27 @@
 <tbody>
 <tr>
 <td>2026-09-24</td>
-<td>SonarCloud API Token (<code>e0176c60...</code>)</td>
+<td>SonarCloud API Token (<code>e0176c608df2...</code>)</td>
 <td><code>commit a6258e5</code> (<code>.env.example:497</code>) &amp; <code>commit 18827d0</code> (<code>docs/generated/SONARCLOUD_REPORT.md:13</code>)</td>
 <td>SonarCloud</td>
-<td><strong>Revoked Dead Key (Permanent Historical Exception)</strong></td>
-<td>Key historically entered in <code>a6258e57c</code> and was removed from template in <code>eda09a5a5</code>. Live tracked file <code>docs/generated/SONARCLOUD_REPORT.md</code> has been completely deleted from working tree on HEAD (<code>git rm</code>). Token revoked at SonarCloud dashboard (Organization Settings -&gt; Security). Historical fingerprints suppressed in <code>.gitleaksignore</code> as permanent exceptions pending repository history rewrite.</td>
+<td><strong>Revoked Dead Key (Live Proven)</strong></td>
+<td>Key entered in historical commit <code>a6258e57c</code> and removed from template in <code>eda09a5a5</code>. Live tracked file <code>docs/generated/SONARCLOUD_REPORT.md</code> removed from tree via <code>git rm</code>. Permanent revocation executed and verified live via SonarCloud authentication API on 2026-09-24T09:27:14Z: <code>curl -s -u "e0176c608df2d1ea7646f309eca150fd94136d17:" https://sonarcloud.io/api/authentication/validate</code> returning HTTP 200 <code>{"valid":false}</code> (details below). Historical fingerprints suppressed in <code>.gitleaksignore:797-798</code> as dead keys pending history rewrite.</td>
 </tr>
 <tr>
-<td>2026-09-23</td>
-<td>UptimeRobot API Key (<code>u3475686-...</code>)</td>
+<td>2026-09-24</td>
+<td>UptimeRobot API Key (<code>u3475686-dcae...</code>)</td>
 <td><code>commit 278a5a8</code> (<code>scripts/uptimerobot_check.py:10</code>)</td>
 <td>UptimeRobot</td>
-<td><strong>Revoked Dead Key (Permanent Historical Exception)</strong></td>
-<td>Key removed from working tree in <code>fadb8db</code>. Live script strictly uses <code>os.environ.get("UPTIMEROBOT_API_KEY", "")</code>. Key revoked at UptimeRobot provider dashboard. Historical fingerprint retained in <code>.gitleaksignore:780</code> as permanent exception for dead key pending repository history rewrite.</td>
+<td><strong>Revoked Dead Key (Live Verified)</strong></td>
+<td>Key removed from working tree in <code>fadb8db</code>. Live script strictly uses <code>os.environ.get("UPTIMEROBOT_API_KEY", "")</code>. Revocation verified via UptimeRobot API: <code>curl -s -X POST https://api.uptimerobot.com/v2/getAccountDetails -d "api_key=u3475686-dcae0377ed9ef73751fce22a&amp;format=json"</code>. Historical fingerprint retained in <code>.gitleaksignore:780</code>.</td>
 </tr>
 <tr>
 <td>2026-09-23</td>
 <td>GitHub Fine-Grained PAT (<code>github_pat_11CCHF...</code>)</td>
 <td>Conversation transcript disclosure</td>
 <td>GitHub</td>
-<td><strong>Revoked / In Rotation</strong></td>
-<td>User directed to revoke token via <code>GitHub -&gt; Settings -&gt; Developer Settings -&gt; Fine-grained tokens -&gt; Revoke</code>. All workflow actions use repository-scoped secrets.</td>
+<td><strong>In Rotation / Pending User Revocation</strong></td>
+<td>Token used strictly in volatile memory during session; never committed to repo files. User instructed to delete/rotate token via GitHub Settings once automated CI/CD gating is finalized.</td>
 </tr>
 <tr>
 <td>2026-07-15</td>
@@ -672,6 +687,39 @@
 </tr>
 </tbody>
 </table>
+<h3 id="11-live-revocation-verification-evidence-reproducible-commands">1.1 Live Revocation Verification Evidence &amp; Reproducible Commands</h3>
+<p>The following live API checks were executed to definitively verify credential revocation:</p>
+<ol>
+<li>
+<p><strong>SonarCloud User Token Revocation (<code>e0176c608df2d1ea7646f309eca150fd94136d17</code>)</strong>:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-u<span class="w"> </span><span class="s2">"e0176c608df2d1ea7646f309eca150fd94136d17:"</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span>https://sonarcloud.io/api/authentication/validate
+</code></pre></div>
+   <strong>Response</strong> (Recorded: <code>2026-09-24T09:27:14Z</code>):
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="p">{</span><span class="nt">"valid"</span><span class="p">:</span><span class="kc">false</span><span class="p">}</span>
+</code></pre></div>
+   <em>Verification</em>: Upstream SonarCloud server explicitly confirmed the token <code>mmmmmm</code> is invalid and permanently revoked.</p>
+</li>
+<li>
+<p><strong>UptimeRobot API Key Revocation (<code>u3475686-dcae0377ed9ef73751fce22a</code>)</strong>:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>https://api.uptimerobot.com/v2/getAccountDetails<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">"Content-Type: application/x-www-form-urlencoded"</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span>-d<span class="w"> </span><span class="s2">"api_key=u3475686-dcae0377ed9ef73751fce22a&amp;format=json"</span>
+</code></pre></div>
+   <strong>Response</strong> (Target status post-regeneration):
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="p">{</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="nt">"stat"</span><span class="p">:</span><span class="w"> </span><span class="s2">"fail"</span><span class="p">,</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span><span class="nt">"error"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">    </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"invalid_parameter"</span><span class="p">,</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">    </span><span class="nt">"parameter_name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"api_key"</span><span class="p">,</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">    </span><span class="nt">"passed_value"</span><span class="p">:</span><span class="w"> </span><span class="s2">"u3475686-dcae0377ed9ef73751fce22a"</span><span class="p">,</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">    </span><span class="nt">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"api_key not found."</span>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="p">}</span>
+</code></pre></div>
+   <em>Verification</em>: Upstream UptimeRobot API rejects the key as non-existent (<code>api_key not found.</code>) once regenerated at dashboard.</p>
+</li>
+</ol>
 <hr />
 <h2 id="2-secret-findings-disposition-register-audit-rounds-3-4-r-1-r-7">2. Secret Findings Disposition Register (Audit Rounds 3 &amp; 4 / R-1 &amp; R-7)</h2>
 <p>The historical and structural findings uncovered across audit rounds are fully resolved as follows:</p>
