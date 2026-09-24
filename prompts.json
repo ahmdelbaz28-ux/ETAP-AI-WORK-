@@ -33,7 +33,9 @@
     "ahmed_etap_agent": "prompts/ahmed_etap_agent.prompt.yaml",
     "qgis_agent": "prompts/qgis_agent.prompt.yaml",
     "design_agent": "prompts/design_agent.prompt.yaml",
-    "fallback_agent": "prompts/fallback_agent.prompt.yaml"
+    "fallback_agent": "prompts/fallback_agent.prompt.yaml",
+    "dspy_sld_ingest": "prompts/dspy_sld_ingest.prompt.yaml",
+    "dspy_diagnostic_copilot": "prompts/dspy_diagnostic_copilot.prompt.yaml"
   },
   "_aliases": {
     "arcflash_agent_prompt": "Alias for arcflash_agent (kept for back-compat with src/mastra/agents/arcflash-agent.ts and tests)."
