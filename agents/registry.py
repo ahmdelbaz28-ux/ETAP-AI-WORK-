@@ -1403,7 +1403,103 @@ STUDY_TYPE_MAPPING: dict[str, str] = {
     "ahmed_etap_orchestration": "ahmed_etap",
     "validation": "validation",
     "report": "report",
+    "dspy_copilot": "dspy_copilot",
 }
+
+
+class DspyCopilotAgent(BaseAgent):
+    """DSPy Copilot Agent — SLD ingestion and engineering diagnostic copilot.
+
+    Prompt Handle: dspy_diagnostic_copilot
+    """
+
+    prompt_handle = "dspy_diagnostic_copilot"
+
+    def __init__(self):
+        super().__init__("DspyCopilotAgent")
+
+    @trace_operation(
+        "DspyCopilotAgent.execute",
+        attributes={"component": "orchestrator", "study_type": "dspy_copilot"},
+    )
+    async def execute(self, task: EngineeringTask) -> AgentResult:
+        """Execute DSPy copilot diagnosis or SLD ingestion."""
+        start_time = datetime.now(UTC)
+        self.status = AgentStatus.RUNNING
+
+        from services.dspy_copilot.runtime import (
+            DspyIngestError,
+            is_enabled,
+            run_diagnose,
+            run_ingest,
+        )
+
+        if not is_enabled():
+            self.status = AgentStatus.FAILED
+            return AgentResult(
+                agent_name=self.agent_name,
+                study_type=None,
+                status=AgentStatus.FAILED,
+                data={
+                    "reason": "flag_disabled",
+                    "warnings": ["DSPy copilot feature flag is disabled"],
+                },
+                execution_time=(datetime.now(UTC) - start_time).total_seconds(),
+            )
+
+        try:
+            sld_notes = task.parameters.get("sld_notes")
+            study_data = task.parameters.get("study_data") or task.parameters.get("results")
+
+            if sld_notes:
+                ingest_res = run_ingest(sld_notes)
+                data = ingest_res.model_dump()
+            elif study_data:
+                diag_res = run_diagnose(study_data)
+                data = diag_res.model_dump()
+            else:
+                self.status = AgentStatus.FAILED
+                return AgentResult(
+                    agent_name=self.agent_name,
+                    study_type=None,
+                    status=AgentStatus.FAILED,
+                    data={"reason": "missing_input", "message": "No sld_notes or study_data provided to copilot"},
+                    validation_errors=["No sld_notes or study_data provided to copilot"],
+                    execution_time=(datetime.now(UTC) - start_time).total_seconds(),
+                )
+
+            self.status = AgentStatus.COMPLETED
+            return AgentResult(
+                agent_name=self.agent_name,
+                study_type=None,
+                status=AgentStatus.COMPLETED,
+                data=data,
+                execution_time=(datetime.now(UTC) - start_time).total_seconds(),
+            )
+        except DspyIngestError as exc:
+            self.status = AgentStatus.FAILED
+            logger.warning("DspyCopilotAgent ingest failed: %s", exc)
+            return AgentResult(
+                agent_name=self.agent_name,
+                study_type=None,
+                status=AgentStatus.FAILED,
+                data={"reason": str(exc), "stage": "ingest"},
+                validation_errors=[str(exc)],
+                execution_time=(datetime.now(UTC) - start_time).total_seconds(),
+            )
+        except Exception as exc:
+            if isinstance(exc, (KeyboardInterrupt, SystemExit)):
+                raise
+            self.status = AgentStatus.FAILED
+            logger.error("DspyCopilotAgent execution failed: %s", exc)
+            return AgentResult(
+                agent_name=self.agent_name,
+                study_type=None,
+                status=AgentStatus.FAILED,
+                data={"error": str(exc)},
+                validation_errors=[str(exc)],
+                execution_time=(datetime.now(UTC) - start_time).total_seconds(),
+            )
 
 
 def get_study_type_mapping() -> dict[str, str]:
@@ -1499,6 +1595,12 @@ def create_agent_registry(orchestrator_instance: Any = None) -> dict[str, BaseAg
     except Exception as exc:
         _logger = logging.getLogger("orchestrator")
         _logger.warning("AhmedETAPSkillAgent not available: %s", exc)
+
+    try:
+        agents["dspy_copilot"] = DspyCopilotAgent()
+    except Exception as exc:
+        _logger = logging.getLogger("orchestrator")
+        _logger.warning("DspyCopilotAgent not available: %s", exc)
 
     return agents
 
