@@ -22,7 +22,7 @@ This document defines the authoritative branch protection policies and required 
 #### Underlying Gate Coverage Enforced by Release Gate:
 The `Authoritative Release Gate` runs with `cancel-in-progress: false` and polls GitHub Check Runs to verify all canonical gates have completed with `success`:
 1. `CI Success` (aggregates linting, typechecking, pytest unit & scenario suites, UI build, bundle size)
-2. `Gitleaks Secret Scan` (authoritative pre-commit & CI credential leak detection with SARIF reporting)
+2. `gitleaks` (authoritative pre-commit & CI credential leak detection with SARIF reporting)
 3. `npm audit (high)` (root & UI zero high/critical vulnerability enforcement)
 4. `Trivy Security Scan` (container vulnerability scanning with SARIF reporting)
 5. `Docker Validation Summary` (container build verification)

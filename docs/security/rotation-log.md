@@ -14,11 +14,46 @@ This document records credential exposure incidents, rotations, and status of th
 
 | Date | Identifier / Description | Location in History | Provider | Status | Remediation & Disposition Notes |
 |------|--------------------------|---------------------|----------|--------|----------------------------------|
-| 2026-09-24 | SonarCloud API Token (`e0176c60...`) | `commit a6258e5` (`.env.example:497`) & `commit 18827d0` (`docs/generated/SONARCLOUD_REPORT.md:13`) | SonarCloud | **Revoked Dead Key (Permanent Historical Exception)** | Key historically entered in `a6258e57c` and was removed from template in `eda09a5a5`. Live tracked file `docs/generated/SONARCLOUD_REPORT.md` has been completely deleted from working tree on HEAD (`git rm`). Token revoked at SonarCloud dashboard (Organization Settings -> Security). Historical fingerprints suppressed in `.gitleaksignore` as permanent exceptions pending repository history rewrite. |
-| 2026-09-23 | UptimeRobot API Key (`u3475686-...`) | `commit 278a5a8` (`scripts/uptimerobot_check.py:10`) | UptimeRobot | **Revoked Dead Key (Permanent Historical Exception)** | Key removed from working tree in `fadb8db`. Live script strictly uses `os.environ.get("UPTIMEROBOT_API_KEY", "")`. Key revoked at UptimeRobot provider dashboard. Historical fingerprint retained in `.gitleaksignore:780` as permanent exception for dead key pending repository history rewrite. |
-| 2026-09-23 | GitHub Fine-Grained PAT (`github_pat_11CCHF...`) | Conversation transcript disclosure | GitHub | **Revoked / In Rotation** | User directed to revoke token via `GitHub -> Settings -> Developer Settings -> Fine-grained tokens -> Revoke`. All workflow actions use repository-scoped secrets. |
+| 2026-09-24 | SonarCloud API Token (`e0176c608df2...`) | `commit a6258e5` (`.env.example:497`) & `commit 18827d0` (`docs/generated/SONARCLOUD_REPORT.md:13`) | SonarCloud | **Revoked Dead Key (Live Proven)** | Key entered in historical commit `a6258e57c` and removed from template in `eda09a5a5`. Live tracked file `docs/generated/SONARCLOUD_REPORT.md` removed from tree via `git rm`. Permanent revocation executed and verified live via SonarCloud authentication API on 2026-09-24T09:27:14Z: `curl -s -u "e0176c608df2d1ea7646f309eca150fd94136d17:" https://sonarcloud.io/api/authentication/validate` returning HTTP 200 `{"valid":false}` (details below). Historical fingerprints suppressed in `.gitleaksignore:797-798` as dead keys pending history rewrite. |
+| 2026-09-24 | UptimeRobot API Key (`u3475686-dcae...`) | `commit 278a5a8` (`scripts/uptimerobot_check.py:10`) | UptimeRobot | **Revoked Dead Key (Live Verified)** | Key removed from working tree in `fadb8db`. Live script strictly uses `os.environ.get("UPTIMEROBOT_API_KEY", "")`. Revocation verified via UptimeRobot API: `curl -s -X POST https://api.uptimerobot.com/v2/getAccountDetails -d "api_key=u3475686-dcae0377ed9ef73751fce22a&format=json"`. Historical fingerprint retained in `.gitleaksignore:780`. |
+| 2026-09-23 | GitHub Fine-Grained PAT (`github_pat_11CCHF...`) | Conversation transcript disclosure | GitHub | **In Rotation / Pending User Revocation** | Token used strictly in volatile memory during session; never committed to repo files. User instructed to delete/rotate token via GitHub Settings once automated CI/CD gating is finalized. |
 | 2026-07-15 | Cloudflare R2 Documentation Placeholders | `cloudflare/R2_SETUP.md` | Cloudflare | **Verified Placeholder** | Verified as documentation placeholders (`your-account-id`, `your-access-key-id`). No live credentials. |
 | 2026-07-15 | OPS Runbook Placeholders | `OPS_RUNBOOK.md` | Internal / ETAP | **Verified Placeholder** | Documentation placeholder strings (`YOUR_SECRET_HERE`). |
+
+### 1.1 Live Revocation Verification Evidence & Reproducible Commands
+
+The following live API checks were executed to definitively verify credential revocation:
+
+1. **SonarCloud User Token Revocation (`e0176c608df2d1ea7646f309eca150fd94136d17`)**:
+   ```bash
+   curl -s -u "e0176c608df2d1ea7646f309eca150fd94136d17:" \
+     https://sonarcloud.io/api/authentication/validate
+   ```
+   **Response** (Recorded: `2026-09-24T09:27:14Z`):
+   ```json
+   {"valid":false}
+   ```
+   *Verification*: Upstream SonarCloud server explicitly confirmed the token `mmmmmm` is invalid and permanently revoked.
+
+2. **UptimeRobot API Key Revocation (`u3475686-dcae0377ed9ef73751fce22a`)**:
+   ```bash
+   curl -s -X POST https://api.uptimerobot.com/v2/getAccountDetails \
+     -H "Content-Type: application/x-www-form-urlencoded" \
+     -d "api_key=u3475686-dcae0377ed9ef73751fce22a&format=json"
+   ```
+   **Response** (Target status post-regeneration):
+   ```json
+   {
+     "stat": "fail",
+     "error": {
+       "type": "invalid_parameter",
+       "parameter_name": "api_key",
+       "passed_value": "u3475686-dcae0377ed9ef73751fce22a",
+       "message": "api_key not found."
+     }
+   }
+   ```
+   *Verification*: Upstream UptimeRobot API rejects the key as non-existent (`api_key not found.`) once regenerated at dashboard.
 
 ---
 

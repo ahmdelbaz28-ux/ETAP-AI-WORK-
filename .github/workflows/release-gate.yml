@@ -143,7 +143,7 @@ jobs:
 
           REQUIRED_CHECKS=(
             "CI Success"
-            "Gitleaks Secret Scan"
+            "gitleaks"
             "npm audit (high)"
             "Trivy Security Scan"
           )
@@ -164,7 +164,7 @@ jobs:
 
           while true; do
             echo "Evaluating checks (attempt $ATTEMPT of $MAX_ATTEMPTS)..."
-            CHECK_RUNS=$(gh api "repos/${REPO}/commits/${COMMIT_SHA}/check-runs?per_page=100" --jq '.check_runs' 2>/dev/null || echo "[]")
+            CHECK_RUNS=$(gh api --paginate "repos/${REPO}/commits/${COMMIT_SHA}/check-runs" --jq '.check_runs[]' 2>/dev/null | jq -s '.' || echo "[]")
 
             GATE_FAILED=0
             ANY_PENDING=0
