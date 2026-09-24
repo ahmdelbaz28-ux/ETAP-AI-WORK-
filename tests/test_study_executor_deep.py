@@ -152,6 +152,53 @@ class TestRequestValidation:
         )
         executor._validate_request(req)  # Should not raise
 
+    def test_native_load_flow_accepted(self, executor, sample_spec):
+        req = StudyRequest(study_type="load_flow", system=sample_spec)
+        executor._validate_request(req)  # Should not raise
+
+    def test_native_fault_alias_accepted(self, executor, sample_spec):
+        req = StudyRequest(study_type="fault", system=sample_spec)
+        executor._validate_request(req)  # Should not raise
+
+    def test_use_etap_etap_load_flow_accepted(self, executor):
+        req = StudyRequest(
+            study_type="etap_load_flow",
+            use_etap=True,
+            etap_project_path="dummy.oti",
+        )
+        executor._validate_request(req)  # Should not raise
+
+    def test_use_etap_etap_short_circuit_accepted(self, executor):
+        req = StudyRequest(
+            study_type="etap_short_circuit",
+            use_etap=True,
+            etap_project_path="dummy.oti",
+        )
+        executor._validate_request(req)  # Should not raise
+
+    def test_invalid_etap_mapping_rejected(self, executor):
+        req = StudyRequest.model_construct(study_type="etap_nonexistent", use_etap=True)
+        with pytest.raises(ValueError, match="Unknown or unsupported ETAP study type"):
+            executor._validate_request(req)
+
+    def test_unknown_native_type_rejected(self, executor):
+        req = StudyRequest.model_construct(study_type="nonexistent_physics_study", use_etap=False)
+        with pytest.raises(ValueError, match="Unknown or unsupported native study type"):
+            executor._validate_request(req)
+
+    def test_disabled_feature_flag_path(self, executor, monkeypatch):
+        from api.feature_flags import FEATURE_FLAGS
+
+        monkeypatch.setitem(
+            FEATURE_FLAGS,
+            "load_flow",
+            {"enabled": False, "status": "disabled", "description": "Disabled in test"},
+        )
+        monkeypatch.setattr("services.study_executor.is_feature_enabled", lambda x: False)
+        req = StudyRequest.model_construct(study_type="load_flow")
+        with pytest.raises(ValueError, match="This study type is currently disabled in production"):
+            executor._validate_request(req)
+
 
 class TestExecutionPipeline:
     @pytest.mark.asyncio
