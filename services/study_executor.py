@@ -218,6 +218,22 @@ class StudyExecutor:
 
     def _validate_request(self, payload: StudyRequest) -> None:
         """Validate feature flag, system requirement, and pre-flight checks."""
+        # RC-1: deny-by-default — reject unknown/unregistered study types FIRST,
+        # before is_feature_enabled() which returns True for ANY key in dev/test
+        # environments.  The canonical registry is STUDY_DISPATCH (all registered
+        # handlers) union _NATIVE_ALIASES (short-form aliases like 'fault' →
+        # 'short_circuit').  FEATURE_FLAGS covers only feature-gated studies;
+        # always-on studies (load_flow, arc_flash, etap_expert …) have no flag
+        # entry.  Using this union closes the hole: a caller cannot submit an
+        # unregistered study_type string and have it silently pass validation in
+        # dev/test because is_feature_enabled() forces True for any key.
+        _known_study_types = set(STUDY_DISPATCH.keys()) | set(_NATIVE_ALIASES.keys())
+        if payload.study_type not in _known_study_types:
+            raise ValueError(
+                f"Unknown study_type '{payload.study_type}' — deny-by-default "
+                f"(not in FEATURE_FLAGS)."
+            )
+
         if not is_feature_enabled(payload.study_type):
             flag_info = FEATURE_FLAGS.get(payload.study_type, {})
             raise ValueError(
@@ -235,6 +251,7 @@ class StudyExecutor:
             pf_result = self._pre_flight_check(payload.system.model_dump())
             if pf_result is not None:
                 raise ValueError(pf_result["error"])
+
 
     # ------------------------------------------------------------------
     # System building (moved from api/studies.py)

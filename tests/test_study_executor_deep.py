@@ -313,3 +313,70 @@ class TestETAPGUIAndFailureScan:
         # Small payload should return empty list without error
         res = executor._scan_ai_failure_modes({"test": 123}, "load_flow")
         assert isinstance(res, list)
+
+
+class TestDenyByDefaultValidationGate:
+    """RC-1 regression tests — deny-by-default for unregistered study types.
+
+    StudyRequest's Pydantic validator (_ALLOWED_STUDY_TYPES) already rejects
+    completely unknown strings.  The RC-1 guard in _validate_request() provides a
+    SECOND layer: it rejects study_types that pass Pydantic's allowed list but are
+    NOT registered in STUDY_DISPATCH or _NATIVE_ALIASES.  This prevents types like
+    'etap_load_flow' (which pass Pydantic) from silently passing validation in
+    dev/test because is_feature_enabled() forces True for any key string.
+
+    Ref: services/study_executor.py::StudyExecutor._validate_request (RC-1)
+    """
+
+    def test_unregistered_etap_type_raises_deny_by_default(self, executor):
+        """'etap_load_flow' passes Pydantic (_ALLOWED_STUDY_TYPES) but is NOT in
+        STUDY_DISPATCH or _NATIVE_ALIASES, so _validate_request must deny it.
+        This validates the RC-1 guard fires before is_feature_enabled().
+        """
+        req = StudyRequest(study_type="etap_load_flow", parameters={})
+        with pytest.raises(ValueError, match="deny-by-default"):
+            executor._validate_request(req)
+
+    def test_unregistered_etap_type_error_mentions_unknown(self, executor):
+        """Error message must include 'Unknown study_type' for rejected types."""
+        req = StudyRequest(study_type="etap_short_circuit", parameters={})
+        with pytest.raises(ValueError, match="Unknown study_type"):
+            executor._validate_request(req)
+
+    def test_alias_fault_passes_deny_by_default_guard(self, executor):
+        """'fault' is a valid alias for 'short_circuit' in _NATIVE_ALIASES.
+        The RC-1 guard must NOT reject it — aliases are in _known_study_types.
+        _validate_request passes it through cleanly; alias resolution to
+        'short_circuit' happens later in _dispatch().  _TYPES_REQUIRING_SYSTEM
+        also uses canonical names ('short_circuit'), not aliases ('fault'),
+        so no system-required error fires here either.
+        """
+        req = StudyRequest(study_type="fault", parameters={})
+        # Must NOT raise — fault is a registered alias, passes all _validate_request gates
+        executor._validate_request(req)  # no exception expected
+
+    def test_known_disabled_flag_harmonic_analysis_follows_feature_flag_path(self, executor):
+        """harmonic_analysis is REGISTERED (in STUDY_DISPATCH) and DISABLED by flag.
+        It should raise the 'disabled in production' error, NOT the deny-by-default error.
+        This confirms the deny-by-default guard does not swallow known-disabled studies.
+        """
+        import os
+
+        # Force production env so is_feature_enabled() reads flags (not dev bypass)
+        original_env = os.environ.get("ENV")
+        original_app_env = os.environ.get("APP_ENV")
+        try:
+            os.environ["ENV"] = "production"
+            os.environ.pop("APP_ENV", None)
+            req = StudyRequest(study_type="harmonic_analysis", system=None)
+            with pytest.raises(ValueError, match="disabled in production"):
+                executor._validate_request(req)
+        finally:
+            # Restore original env
+            if original_env is not None:
+                os.environ["ENV"] = original_env
+            else:
+                os.environ.pop("ENV", None)
+            if original_app_env is not None:
+                os.environ["APP_ENV"] = original_app_env
+

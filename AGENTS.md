@@ -265,6 +265,9 @@ All Python agents inherit from `BaseAgent` in `agents/orchestrator.py`.
 - **Standards Referenced**: IEEE 3002.7, ANSI C84.1, IEC 60038
 - **Purpose**: Translates unverified SLD text notes into validated `SystemSpec` models (pre-processor) and synthesizes diagnostic findings from deterministic calculation results (post-processor).
 - **Honest Limits & Constraints**: Experimental status. Does NOT solve load flow or perform numerical simulations. All calculations are executed exclusively by deterministic engines. Guards always execute first and cannot be overridden by AI outputs. When feature flag is inactive: `run_ingest` fails closed (raises `DspyIngestError`, `AgentStatus.FAILED` with `reason="flag_disabled"`), while `run_diagnose` returns a `DiagnosticOutput` with finding code `"FLAG_DISABLED"` (graceful degrade).
+- **Known risk (RC-2): `use_warm_start` has no topology/parameter fingerprint guard; enabling it without a validity check can reuse stale voltage state from a prior network configuration. Not touched by this PR (physics). Follow-up required before enabling `use_warm_start` in production.**
+- **Known risk (RC-4): DSPy copilot LM calls are NOT yet routed through `token_governance`/semantic cache; enabling `dspy_copilot` in production requires enabling `token_governance` first. Follow-up.**
+
 
 ---
 
