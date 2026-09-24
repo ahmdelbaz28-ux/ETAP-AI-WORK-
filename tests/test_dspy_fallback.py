@@ -163,4 +163,3 @@ async def test_agent_execute_ingest_error_surfaces_reason(monkeypatch):
     result = await agent.execute(task)
     assert result.status == AgentStatus.FAILED
     assert result.data.get("reason") == "flag_disabled"
-

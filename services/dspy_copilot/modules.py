@@ -227,5 +227,3 @@ class DspyDiagnosticModule(_BaseModule):
         except (json.JSONDecodeError, ValidationError, ValueError, TypeError) as val_err:
             logger.warning("DiagnosticOutput validation failed: %s", type(val_err).__name__)
             raise ValueError(f"dspy_diagnostic_validation_failed: {val_err}") from val_err
-
-
