@@ -224,21 +224,57 @@ MANDATORY_RULES: dict[str, list[dict[str, Any]]] = {
             "severity": "error",
         },
     ],
-    "dspy_copilot": [
+    # dspy_copilot_agent: the canonical handle emitted by registry._check_output_schema_guard
+    # for DspyCopilotAgent (line 869: agent_name.lower().replace('agent', '_agent') →
+    # 'DspyCopilotAgent' → 'dspycopilot_agent').
+    # Only validates DiagnosticOutput (summary + findings); ingest is validated by
+    # SldIngestOutput.model_validate in modules.py before reaching this guard.
+    "dspy_copilot_agent": [
         {
             "rule_id": "DSPY-M1",
-            "description": "Must conform to DiagnosticOutput schema (summary and findings)",
+            "description": "Diagnostic output must conform to DiagnosticOutput schema (summary and findings)",
             "check": "dict_keys_contain",
             "required_keys": ["summary", "findings"],
             "severity": "error",
         },
     ],
+    # dspy_diagnostic_copilot: handle used when calling diagnose directly via prompt handle
     "dspy_diagnostic_copilot": [
         {
             "rule_id": "DSPY-M2",
-            "description": "Must conform to DiagnosticOutput schema (summary and findings)",
+            "description": "Diagnostic output must conform to DiagnosticOutput schema (summary and findings)",
             "check": "dict_keys_contain",
             "required_keys": ["summary", "findings"],
+            "severity": "error",
+        },
+    ],
+    # dspy_copilot: legacy handle alias (kept for backward compat with earlier callers)
+    # NOTE: this rule only fires on diagnostic output — ingest output lacks summary/findings
+    # and is validated by SldIngestOutput.model_validate, NOT by this guard.
+    # Use 'dspy_copilot_ingest' for ingest-specific schema checks.
+    "dspy_copilot": [
+        {
+            "rule_id": "DSPY-M3",
+            "description": "Diagnostic output must conform to DiagnosticOutput schema (summary and findings)",
+            "check": "dict_keys_contain",
+            "required_keys": ["summary", "findings"],
+            "severity": "error",
+        },
+    ],
+    # dspy_copilot_ingest: ingest-specific guard that validates buses list exists
+    "dspy_copilot_ingest": [
+        {
+            "rule_id": "DSPY-I1",
+            "description": "Ingest output must contain buses list",
+            "check": "dict_keys_contain",
+            "required_keys": ["buses"],
+            "severity": "error",
+        },
+        {
+            "rule_id": "DSPY-I2",
+            "description": "Ingest output must contain provenance map",
+            "check": "dict_keys_contain",
+            "required_keys": ["provenance"],
             "severity": "error",
         },
     ],

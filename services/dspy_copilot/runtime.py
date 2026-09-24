@@ -11,6 +11,7 @@ Provides:
 
 from __future__ import annotations
 
+import asyncio
 import hashlib
 import json
 import logging
@@ -20,7 +21,7 @@ from typing import Any
 
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_exponential
 
-from api.feature_flags import is_feature_enabled
+from api.feature_flags import is_strict_feature_enabled
 from core_model.specs import StudyRequest, StudyResult, SystemSpec
 from services.dspy_copilot.metrics import check_physics_guards
 from services.dspy_copilot.modules import DspyDiagnosticModule, DspySldIngestModule
@@ -41,14 +42,25 @@ class DspyIngestError(Exception):
     pass
 
 
+class DspyTransientError(Exception):
+    """Typed transient error for LM calls that can be retried (network/timeout).
+
+    Tenacity retries on this type.  modules.py must raise DspyTransientError
+    (not ValueError) for TimeoutError and ConnectionError so they reach the
+    retry boundary.  After exhaustion, the caller converts to DspyIngestError
+    or the diagnostic fallback.
+    """
+    pass
+
+
 def is_enabled() -> bool:
     """Check if dspy_copilot feature flag is enabled.
 
-    NOTE: In development/test environments, is_feature_enabled() returns True
-    unless explicitly overridden by the FEATURE_FLAG_DSPY_COPILOT environment variable.
-    In production environments, it is OFF (False) by default.
+    Uses is_strict_feature_enabled — never returns True for dev/test by default.
+    Must be explicitly enabled via FEATURE_FLAG_DSPY_COPILOT=true or stored flag.
+    This guarantees the experimental copilot is strict-opt-in in EVERY environment.
     """
-    return is_feature_enabled("dspy_copilot", default=False)
+    return is_strict_feature_enabled("dspy_copilot", default=False)
 
 
 def load_compiled_copilot(path: Path = ARTIFACT_PATH) -> Any | None:
@@ -77,11 +89,25 @@ def load_compiled_copilot(path: Path = ARTIFACT_PATH) -> Any | None:
 @retry(
     stop=stop_after_attempt(2),
     wait=wait_exponential(multiplier=1, min=1, max=3),
-    retry=retry_if_exception_type((TimeoutError, ConnectionError)),
+    retry=retry_if_exception_type(DspyTransientError),
     reraise=True,
 )
 def _invoke_ingest_predictor(module: DspySldIngestModule, sld_notes: str) -> SldIngestOutput:
+    """Invoke ingest with typed transient retry (max 2 attempts)."""
     return module.forward(sld_notes=sld_notes)
+
+
+@retry(
+    stop=stop_after_attempt(2),
+    wait=wait_exponential(multiplier=1, min=1, max=3),
+    retry=retry_if_exception_type(DspyTransientError),
+    reraise=True,
+)
+def _invoke_diagnostic_predictor(
+    module: DspyDiagnosticModule, results_json: str
+) -> DiagnosticOutput:
+    """Invoke diagnostic with typed transient retry (max 2 attempts)."""
+    return module.forward(results_json=results_json)
 
 
 def run_ingest(sld_notes: str) -> SldIngestOutput:
@@ -203,10 +229,10 @@ def run_diagnose(
             citations=[],
         )
 
-    # 4. Attempt LLM enhancement
+    # 4. Attempt LLM enhancement (with typed transient retry)
     try:
         module = DspyDiagnosticModule()
-        ai_output = module.forward(results_json=results_json)
+        ai_output = _invoke_diagnostic_predictor(module, results_json)
 
         # Merge findings: deterministic guards ALWAYS win and cannot be downgraded by LLM (FIX-1)
         guard_codes = {gf.code for gf in guard_findings}
@@ -250,12 +276,15 @@ async def execute_with_copilot(
     payload: StudyRequest,
     sld_notes: str | None = None,
     trace_id: str = "unknown",
+    human_approved: bool = False,
 ) -> StudyResult:
     """Thin wrapper around StudyExecutor.execute providing pre-ingest and post-diagnostic hooks.
 
-    Guarded by feature flag:
-    - Pre-hook: Ingests raw SLD notes into SystemSpec; fails closed if ingest fails.
-    - Post-hook: Adds 'dspy_diagnostic' key to StudyResult.data and extends warnings with violation codes.
+    Safety contract:
+    - Pre-hook: Ingests raw SLD notes into SystemSpec PROPOSAL only. Requires
+      human_approved=True to use that proposal in execution — never automatic.
+    - Post-hook: Adds 'dspy_diagnostic' key to StudyResult.data.
+    - Blocking LM calls are run through asyncio.to_thread to avoid event-loop blocking.
     """
     if not is_enabled():
         # Copilot disabled: run standard execution
@@ -263,11 +292,21 @@ async def execute_with_copilot(
 
     # 1. Pre-hook: SLD ingestion if notes provided
     if sld_notes:
-        ingest_res = run_ingest(sld_notes)
+        # Run blocking ingest in a thread to avoid blocking the event loop
+        ingest_res = await asyncio.to_thread(run_ingest, sld_notes)
         if len(ingest_res.buses) == 0:
             raise DspyIngestError("Cannot execute study: ingested system contains 0 buses")
 
-        # Build SystemSpec
+        # SAFETY: LM ingest output is a PROPOSAL only.
+        # It must NOT be automatically executed without explicit human confirmation.
+        if not human_approved:
+            raise DspyIngestError(
+                "LM-ingested topology requires explicit human approval before execution. "
+                "Set human_approved=True only after a qualified engineer has reviewed "
+                "the SldIngestOutput proposal."
+            )
+
+        # Build SystemSpec only after human approval
         system_spec = SystemSpec(
             buses=ingest_res.buses,
             lines=ingest_res.lines,
@@ -279,9 +318,9 @@ async def execute_with_copilot(
     # 2. Deterministic Execution
     result = await executor.execute(payload, trace_id=trace_id)
 
-    # 3. Post-hook: Diagnostic synthesis
+    # 3. Post-hook: Diagnostic synthesis (run in thread — LM call is blocking)
     sys_spec = payload.system if isinstance(payload.system, SystemSpec) else None
-    diagnostic = run_diagnose(result, system_spec=sys_spec)
+    diagnostic = await asyncio.to_thread(run_diagnose, result, sys_spec)
 
     # Additive key only: never overwrite physics fields
     if not isinstance(result.data, dict):

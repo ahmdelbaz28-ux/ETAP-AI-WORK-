@@ -107,6 +107,7 @@ def test_guards_win_over_mocked_llm_that_drops_violation(monkeypatch):
         "services.dspy_copilot.runtime.DspyDiagnosticModule",
         MockDiagnosticModule,
     )
+    monkeypatch.setattr("services.dspy_copilot.runtime.is_enabled", lambda: True)
 
     out = run_diagnose(study_data=study_data, system_spec=None)
     codes = {f.code for f in out.findings}
@@ -157,6 +158,7 @@ def test_guards_win_over_colliding_llm_softer_severity(monkeypatch):
         "services.dspy_copilot.runtime.DspyDiagnosticModule",
         CollidingDiagnosticModule,
     )
+    monkeypatch.setattr("services.dspy_copilot.runtime.is_enabled", lambda: True)
 
     out = run_diagnose(study_data=study_data, system_spec=None)
     vband_findings = [f for f in out.findings if f.code == "V-BAND"]
@@ -181,4 +183,3 @@ def test_check_physics_guards_overload_traceability():
     overloads = [f for f in findings if f.code == "OVERLOAD"]
     assert len(overloads) == 1
     assert overloads[0].bus_id == 5
-
