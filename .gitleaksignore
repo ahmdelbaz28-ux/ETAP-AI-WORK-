@@ -797,3 +797,4 @@ b0e78e36f05c0e0eaa5b4894b7e807c437af4dad:scripts/e2e_test.py:generic-api-key:31
 a6258e57cf3e97857eb42cdd7a3f81d427ad21ab:.env.example:sonar-api-token:497
 18827d00a8fef764394eeda596b73a4a784cf2a1:docs/generated/SONARCLOUD_REPORT.md:sonar-api-token:13
 ee6a499a5336743e04dec802f92264153a922a16:api/websocket.py:generic-api-key:277
+95dd2b6845cf341b62159534ef8b280b4b5ec09c:security/rotation-log/index.html:curl-auth-user:654

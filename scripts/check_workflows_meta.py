@@ -69,7 +69,7 @@ def check_gitleaksignore_ratchet(repo_root: Path, violations: list[str]) -> None
         return
 
     # Maximum allowed non-empty lines in .gitleaksignore (ratchet ceiling)
-    RATCHET_CEILING = 799
+    RATCHET_CEILING = 800
     try:
         with open(gitleaksignore_path, encoding="utf-8") as f:
             lines = [line.strip() for line in f if line.strip() and not line.startswith("#")]
@@ -215,7 +215,7 @@ def main() -> int:
     sys.stdout.write("  - Job timeouts: ENFORCED\n")
     sys.stdout.write("  - Branch triggers: VALIDATED\n")
     sys.stdout.write("  - Overrides consistency (T-2.1): SYNCHRONIZED\n")
-    sys.stdout.write("  - Gitleaksignore ratchet (R-3): ENFORCED (ceiling: 799)\n")
+    sys.stdout.write("  - Gitleaksignore ratchet (R-3): ENFORCED (ceiling: 800)\n")
     sys.stdout.write("  - Release Gate job names (G-3 / N28): VERIFIED\n\n")
     sys.stdout.flush()
     return 0

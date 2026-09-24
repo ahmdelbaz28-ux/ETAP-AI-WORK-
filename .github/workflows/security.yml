@@ -106,6 +106,14 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
+      - name: Cache Trivy vulnerability database
+        uses: actions/cache@v4
+        with:
+          path: /tmp/trivy-cache
+          key: ${{ runner.os }}-trivy-db-${{ github.run_id }}
+          restore-keys: |
+            ${{ runner.os }}-trivy-db-
+
       - name: Run Trivy vulnerability scanner (filesystem, via Docker)
         # NOTE: We use the official Trivy Docker image directly instead of
         # aquasecurity/trivy-action, because the action's setup-trivy
@@ -117,28 +125,49 @@ jobs:
         # .trivyignore lists known accepted exceptions; anything not listed
         # MUST be remediated or explicitly added to .trivyignore.
         # The SARIF upload reports to Security tab for manual review.
+        # Wrapped in a 3-attempt retry loop to guard against transient OCI DB mirrors.
         run: |
-          docker run --rm \
-            -v "${PWD}:/repo" \
-            -v /tmp/trivy-cache:/root/.cache/trivy \
-            -w /repo \
-            aquasec/trivy:0.58.0 \
-            fs --severity CRITICAL \
-               --ignore-unfixed \
-               --exit-code 1 \
-               --ignorefile .trivyignore \
-               --skip-dirs .git,node_modules,ui/node_modules,.venv,venv,__pycache__,skills \
-               --format sarif \
-               --output /repo/trivy-results.sarif \
-               .
-          # Non-blocking: new CVEs are discovered daily and blocking every push
-          # is impractical. SARIF results are uploaded to GitHub Security tab
-          # for review. Known accepted CVEs are listed in .trivyignore.
-          # Quarterly remediation sprints should update .trivyignore and
-          # fix vulnerable packages.
+          mkdir -p /tmp/trivy-cache
+          MAX_RETRIES=3
+          RETRY_COUNT=0
+          SUCCESS=0
+          until [ "$RETRY_COUNT" -ge "$MAX_RETRIES" ]; do
+            echo "Running Trivy (Attempt $((RETRY_COUNT + 1))/$MAX_RETRIES)..."
+            if docker run --rm \
+              -v "${PWD}:/repo" \
+              -v /tmp/trivy-cache:/root/.cache/trivy \
+              -w /repo \
+              aquasec/trivy:0.58.0 \
+              fs --severity CRITICAL \
+                 --ignore-unfixed \
+                 --exit-code 1 \
+                 --ignorefile .trivyignore \
+                 --skip-dirs .git,node_modules,ui/node_modules,.venv,venv,__pycache__,skills \
+                 --format sarif \
+                 --output /repo/trivy-results.sarif \
+                 .; then
+              SUCCESS=1
+              break
+            fi
+            EXIT_CODE=$?
+            # If SARIF file was generated, this was an actual vulnerability detection, not an infra error
+            if [ -f "trivy-results.sarif" ]; then
+              echo "Trivy completed with exit code $EXIT_CODE and generated SARIF."
+              exit $EXIT_CODE
+            fi
+            RETRY_COUNT=$((RETRY_COUNT + 1))
+            if [ "$RETRY_COUNT" -lt "$MAX_RETRIES" ]; then
+              echo "Transient failure detected (no SARIF generated). Retrying in 10 seconds..."
+              sleep 10
+            fi
+          done
+          if [ "$SUCCESS" -ne 1 ]; then
+            echo "Trivy execution failed after $MAX_RETRIES attempts."
+            exit 1
+          fi
       - name: Upload Trivy scan results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@c23de5a82f64bb08c6d9f28844551440ca298e76  # v4.38.1
-        if: always()
+        if: always() && hashFiles('trivy-results.sarif') != ''
         with:
           sarif_file: 'trivy-results.sarif'
 
