@@ -69,7 +69,7 @@ def check_gitleaksignore_ratchet(repo_root: Path, violations: list[str]) -> None
         return
 
     # Maximum allowed non-empty lines in .gitleaksignore (ratchet ceiling)
-    RATCHET_CEILING = 800
+    RATCHET_CEILING = 799
     try:
         with open(gitleaksignore_path, encoding="utf-8") as f:
             lines = [line.strip() for line in f if line.strip() and not line.startswith("#")]
@@ -81,6 +81,34 @@ def check_gitleaksignore_ratchet(repo_root: Path, violations: list[str]) -> None
             )
     except Exception as e:
         violations.append(f"Failed to check .gitleaksignore ratchet: {e}")
+
+
+def check_release_gate_job_names(
+    repo_root: Path, defined_job_names: set[str], violations: list[str]
+) -> None:
+    release_gate_path = repo_root / ".github" / "workflows" / "release-gate.yml"
+    if not release_gate_path.exists():
+        return
+
+    try:
+        content = release_gate_path.read_text(encoding="utf-8")
+        m_initial = re.search(r"REQUIRED_CHECKS=\((.*?)\n\s*\)", content, re.DOTALL)
+        required_checks: list[str] = []
+        if m_initial:
+            required_checks.extend(re.findall(r'"([^"]+)"', m_initial.group(1)))
+        required_checks.extend(
+            re.findall(r'REQUIRED_CHECKS\+=\("([^"]+)"\)', content)
+        )
+
+        for check in required_checks:
+            if check not in defined_job_names:
+                violations.append(
+                    f".github/workflows/release-gate.yml: REQUIRED_CHECK '{check}' does not match "
+                    "any defined workflow job name or job ID across the repository. "
+                    "Ensure exact naming without emojis or case discrepancies (G-3 / N28 guard)."
+                )
+    except Exception as e:
+        violations.append(f"Failed to check release gate job names: {e}")
 
 
 def main() -> int:
@@ -106,6 +134,7 @@ def main() -> int:
     sys.stdout.flush()
 
     violations = []
+    defined_job_names: set[str] = set()
 
     for wf_path in workflow_files:
         rel_path = wf_path.relative_to(repo_root)
@@ -128,6 +157,10 @@ def main() -> int:
             continue
 
         for job_name, job_data in jobs.items():
+            defined_job_names.add(job_name)
+            if isinstance(job_data, dict) and "name" in job_data:
+                defined_job_names.add(str(job_data["name"]).strip())
+
             if not isinstance(job_data, dict):
                 violations.append(f"{rel_path} -> job '{job_name}': Job configuration must be a mapping")
                 continue
@@ -164,9 +197,10 @@ def main() -> int:
                                     f"{rel_path} -> event '{event_name}': Invalid branch pattern '{b}'"
                                 )
 
-    # Check repository-level invariants (T-2.1 and R-3)
+    # Check repository-level invariants (T-2.1, R-3, G-3)
     check_overrides_consistency(repo_root, violations)
     check_gitleaksignore_ratchet(repo_root, violations)
+    check_release_gate_job_names(repo_root, defined_job_names, violations)
 
     if violations:
         sys.stderr.write(f"\n[BLOCKED] Meta-CI found {len(violations)} workflow standard violation(s):\n")
@@ -181,7 +215,8 @@ def main() -> int:
     sys.stdout.write("  - Job timeouts: ENFORCED\n")
     sys.stdout.write("  - Branch triggers: VALIDATED\n")
     sys.stdout.write("  - Overrides consistency (T-2.1): SYNCHRONIZED\n")
-    sys.stdout.write("  - Gitleaksignore ratchet (R-3): ENFORCED\n\n")
+    sys.stdout.write("  - Gitleaksignore ratchet (R-3): ENFORCED (ceiling: 799)\n")
+    sys.stdout.write("  - Release Gate job names (G-3 / N28): VERIFIED\n\n")
     sys.stdout.flush()
     return 0
 
