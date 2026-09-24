@@ -48,6 +48,17 @@ def check_overrides_consistency(repo_root: Path, violations: list[str]) -> None:
             violations.append(
                 f"Overrides drift (T-2.1): Keys in pnpm-workspace.yaml but missing from package.json: {sorted(only_in_ws)}"
             )
+
+        # Check values matching (R-8)
+        common_keys = sorted(set(pkg_overrides.keys()) & set(ws_overrides.keys()))
+        for k in common_keys:
+            pkg_val = str(pkg_overrides[k]).strip()
+            ws_val = str(ws_overrides[k]).strip()
+            if pkg_val != ws_val:
+                violations.append(
+                    f"Overrides value drift (T-2.1): Key '{k}' has mismatched versions: "
+                    f"package.json='{pkg_val}' vs pnpm-workspace.yaml='{ws_val}'"
+                )
     except Exception as e:
         violations.append(f"Failed to check overrides consistency: {e}")
 
