@@ -58,7 +58,7 @@ The historical entries in `.gitleaksignore` represent past commits and generated
 | Round 4 Resolutions (N15-N17) | 3 | Historical fingerprints added in Round 4 for `.env.example:497` (N15), `docs/generated/SONARCLOUD_REPORT.md:13` (N16), and `api/websocket.py:277` (N17). | Suppressed via `.gitleaksignore:797-799`. | Zero risk — file removed / code refactored / token revoked. |
 
 **Total Governed Entries:** 799 entries in `.gitleaksignore`.  
-**Ratchet Invariant:** Enforced via `scripts/check_workflows_meta.py` (ceiling: 800) — any PR increasing the entry count beyond the ratchet ceiling without documented approval is automatically rejected.
+**Ceiling Invariant:** Enforced via `scripts/check_workflows_meta.py` (ceiling: 800) — any PR increasing the entry count beyond the ceiling without documented approval is automatically rejected.
 
 ---
 
