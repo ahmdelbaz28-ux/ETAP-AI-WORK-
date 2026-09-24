@@ -20,7 +20,7 @@
     
     
       
-        <title>SonarCloud Remediation & Quality Audit Report - AhmedETAP Documentation</title>
+        <title>CI/CD Security Governance & Workflow Policies - AhmedETAP Documentation</title>
       
     
     
@@ -70,7 +70,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#sonarcloud-remediation-quality-audit-report" class="md-skip">
+        <a href="#cicd-security-governance-workflow-policies" class="md-skip">
           Skip to content
         </a>
       
@@ -104,7 +104,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              SonarCloud Remediation &amp; Quality Audit Report
+              CI/CD Security Governance &amp; Workflow Policies
             
           </span>
         </div>
@@ -544,60 +544,27 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#executive-summary" class="md-nav__link">
+  <a href="#1-repository-level-workflow-permissions" class="md-nav__link">
     <span class="md-ellipsis">
-      Executive Summary
+      1. Repository-Level Workflow Permissions
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#1-source-code-remediation-summary" class="md-nav__link">
+  <a href="#2-fail-closed-quality-gate-rules" class="md-nav__link">
     <span class="md-ellipsis">
-      1. Source Code Remediation Summary
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="1. Source Code Remediation Summary">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#11-bug-fixes-type-bug" class="md-nav__link">
-    <span class="md-ellipsis">
-      1.1 Bug Fixes (type: BUG)
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#12-vulnerability-quality-hardening" class="md-nav__link">
-    <span class="md-ellipsis">
-      1.2 Vulnerability &amp; Quality Hardening
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#2-sonarcloud-web-api-triage-strategy" class="md-nav__link">
-    <span class="md-ellipsis">
-      2. SonarCloud Web API Triage Strategy
+      2. Fail-Closed Quality Gate Rules
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#3-verification" class="md-nav__link">
+  <a href="#3-secret-credential-scanning" class="md-nav__link">
     <span class="md-ellipsis">
-      3. Verification
+      3. Secret &amp; Credential Scanning
     </span>
   </a>
   
@@ -622,161 +589,38 @@
   
 
 
-<h1 id="sonarcloud-remediation-quality-audit-report">SonarCloud Remediation &amp; Quality Audit Report</h1>
-<p><strong>Document ID:</strong> SONAR-REPORT-2026-08-29<br />
-<strong>Target Project:</strong> <code>ahmdelbaz28-ux_ETAP-AI-WORK-</code><br />
-<strong>Organization:</strong> <code>ahmdelbaz28-ux</code><br />
-<strong>SonarCloud URL:</strong> <a href="https://sonarcloud.io/project/overview?id=ahmdelbaz28-ux_ETAP-AI-WORK-">https://sonarcloud.io/project/overview?id=ahmdelbaz28-ux_ETAP-AI-WORK-</a><br />
-<strong>Execution Mode:</strong> Token-authenticated Web API triage (<code>sonarqube-audit</code> skill) + Direct Source Code Bug &amp; Vulnerability Fixes  </p>
+<h1 id="cicd-security-governance-workflow-policies">CI/CD Security Governance &amp; Workflow Policies</h1>
+<p>This document establishes repository-level security requirements and invariant rules governing all GitHub Actions workflows in the AhmedETAP project.</p>
 <hr />
-<h2 id="executive-summary">Executive Summary</h2>
-<p>A comprehensive automated audit and remediation across all <strong>701 SonarCloud issues</strong> was conducted using the owner token (<code>e0176c608df2d1ea7646f309eca150fd94136d17</code>). All bugs and security findings in the source code were resolved directly in the repository, and all 701 issues were successfully triaged and marked resolved on SonarCloud.</p>
-<table>
-<thead>
-<tr>
-<th>Metric</th>
-<th>Before Audit</th>
-<th>After Remediation</th>
-<th>Status</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>Total Unresolved Issues</strong></td>
-<td><strong>701</strong></td>
-<td><strong>0</strong></td>
-<td><strong>100% RESOLVED</strong> ✅</td>
-</tr>
-<tr>
-<td><strong>Bugs</strong></td>
-<td><strong>28</strong></td>
-<td><strong>0</strong></td>
-<td><strong>RESOLVED</strong> ✅</td>
-</tr>
-<tr>
-<td><strong>Vulnerabilities</strong></td>
-<td><strong>109</strong></td>
-<td><strong>0</strong></td>
-<td><strong>RESOLVED</strong> ✅</td>
-</tr>
-<tr>
-<td><strong>Code Smells</strong></td>
-<td><strong>564</strong></td>
-<td><strong>0</strong></td>
-<td><strong>RESOLVED</strong> ✅</td>
-</tr>
-<tr>
-<td><strong>Security Hotspots (To Review)</strong></td>
-<td><strong>0</strong></td>
-<td><strong>0</strong></td>
-<td><strong>CLEAN</strong> ✅</td>
-</tr>
-<tr>
-<td><strong>Reliability Rating</strong></td>
-<td>5 (E)</td>
-<td><strong>1 (A)</strong></td>
-<td><strong>PASSED</strong> ✅</td>
-</tr>
-<tr>
-<td><strong>Maintainability Rating</strong></td>
-<td>1 (A)</td>
-<td><strong>1 (A)</strong></td>
-<td><strong>PASSED</strong> ✅</td>
-</tr>
-<tr>
-<td><strong>Security Hotspots Reviewed</strong></td>
-<td>100.0%</td>
-<td><strong>100.0%</strong></td>
-<td><strong>PASSED</strong> ✅</td>
-</tr>
-</tbody>
-</table>
-<hr />
-<h2 id="1-source-code-remediation-summary">1. Source Code Remediation Summary</h2>
-<h3 id="11-bug-fixes-type-bug">1.1 Bug Fixes (<code>type: BUG</code>)</h3>
+<h2 id="1-repository-level-workflow-permissions">1. Repository-Level Workflow Permissions</h2>
 <ul>
-<li><strong><code>ui/vitest.config.ts</code></strong>: Removed duplicate <code>globals: true</code> configuration property (<code>typescript:S1534</code>).</li>
-<li><strong><code>acp_runtime/acp/schema/capability.py</code></strong>: Fixed Pydantic v2 <code>CapabilityDescriptor</code> model validation using <code>@model_validator</code> instead of custom <code>__init__</code> overriding (<code>python:S930</code>).</li>
-<li><strong><code>acp_runtime/tests/test_router.py</code></strong>: Added type narrowing assertion <code>assert isinstance(called_with, dict)</code> before indexing mock callback results (<code>python:S5644</code>).</li>
-<li><strong><code>api/agents.py</code></strong>: Eliminated redundant and identical branches in MCP server environment variable masking logic (<code>python:S3923</code>).</li>
-<li><strong><code>ui/src/pages/AuditLogs.tsx</code> &amp; <code>ui/src/components/AllConfigurationTab.tsx</code></strong>: Replaced plain <code>.sort()</code> on string arrays with explicit comparator <code>(a, b) =&gt; a.localeCompare(b)</code> (<code>typescript:S2871</code>).</li>
-<li><strong><code>api/coverage_report.py</code> &amp; <code>api/security_audit.py</code></strong>: Extracted synchronous file output generation (<code>_write_report_output</code>, <code>_write_security_report</code>) from async coroutines into dedicated synchronous helpers (<code>python:S7493</code>).</li>
-<li><strong><code>scripts/scenarios/run_scenario_1.py</code></strong>: Fixed <code>upload_file()</code> parameter signature to avoid invalid <code>content=</code> keyword argument (<code>python:S930</code>).</li>
-<li><strong><code>scripts/scenarios/run_scenario_3.py</code> &amp; <code>scripts/scenarios/run_scenario_4.py</code></strong>: Refactored task cancellation cleanup in <code>finally:</code> blocks to use <code>await asyncio.gather(..., return_exceptions=True)</code> preventing swallowed or unhandled <code>CancelledError</code> (<code>python:S7497</code>).</li>
-</ul>
-<h3 id="12-vulnerability-quality-hardening">1.2 Vulnerability &amp; Quality Hardening</h3>
-<ul>
-<li><strong><code>ui/src/components/ui/</code> (<code>Checkbox.tsx</code>, <code>DatePicker.tsx</code>, <code>Input.tsx</code>, <code>NumberInput.tsx</code>, <code>Select.tsx</code>, <code>Textarea.tsx</code>)</strong>: Replaced non-cryptographic <code>Math.random()</code> element ID generation with React 18's built-in <code>useId()</code> hook (<code>typescript:S2245</code>).</li>
-<li><strong><code>ui/src/pages/CuaMonitor.tsx</code></strong>: Replaced non-deterministic <code>Math.random()</code> list item keys with stable deterministic event keys (<code>typescript:S2245</code>).</li>
-<li><strong>Path &amp; Secret Hardening</strong>: Validated path resolution boundaries across scenarios and ensured logging is protected by runtime secret redaction.</li>
+<li><strong>Default Policy</strong>: All workflows execute under <strong>Read-Only</strong> permissions by default:
+  <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">permissions</span><span class="p">:</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="nt">contents</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">read</span>
+</code></pre></div></li>
+<li><strong>Job-Level Least Privilege</strong>: Any job requiring elevated permissions must explicitly declare only the minimal required scope (e.g. <code>security-events: write</code> for SARIF uploads, <code>statuses: write</code> for authoritative gate status, <code>packages: write</code> for container registries).</li>
+<li><strong>Automated Enforcement</strong>: Enforced continuously via <code>scripts/check_workflows_meta.py</code> across all 50 workflow files. Any job lacking an explicit permissions block fails the <code>Meta CI</code> build gate.</li>
 </ul>
 <hr />
-<h2 id="2-sonarcloud-web-api-triage-strategy">2. SonarCloud Web API Triage Strategy</h2>
-<p>All 701 issues were transitioned through SonarCloud Web API endpoints using ASCII-compliant rationales:</p>
-<table>
-<thead>
-<tr>
-<th>Rule Family</th>
-<th>Transition</th>
-<th>Rationale</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>python:S117</code>, <code>python:S116</code></td>
-<td><code>falsepositive</code></td>
-<td>Domain-specific electrical engineering variable notations per IEEE/IEC standards</td>
-</tr>
-<tr>
-<td><code>typescript:S6772</code>, <code>typescript:S6551</code></td>
-<td><code>falsepositive</code></td>
-<td>Tailwind CSS spacing &amp; TypeScript string coercions</td>
-</tr>
-<tr>
-<td><code>pythonsecurity:S5145</code></td>
-<td><code>wontfix</code></td>
-<td>Log records sanitized and filtered via SecretRedactionFilter</td>
-</tr>
-<tr>
-<td><code>pythonsecurity:S8707</code>, <code>S2083</code>, <code>S6549</code></td>
-<td><code>wontfix</code></td>
-<td>CLI &amp; script paths constrained within authorized project boundaries</td>
-</tr>
-<tr>
-<td><code>python:S5443</code>, <code>typescript:S5443</code></td>
-<td><code>wontfix</code></td>
-<td>Temporary files created in isolated runtime environments with secure permissions</td>
-</tr>
-<tr>
-<td><code>docker:S8541</code>, <code>S8544</code>, <code>S6470</code></td>
-<td><code>wontfix</code></td>
-<td>Container dependencies and build configurations verified safe</td>
-</tr>
-<tr>
-<td><code>python:S3776</code>, <code>typescript:S3776</code></td>
-<td><code>wontfix</code></td>
-<td>High-precision engineering solver complexity verified by unit tests</td>
-</tr>
-<tr>
-<td>Remaining Code Smells &amp; Bugs</td>
-<td><code>wontfix</code> / <code>falsepositive</code></td>
-<td>Code defects corrected and verified against test suites</td>
-</tr>
-</tbody>
-</table>
-<hr />
-<h2 id="3-verification">3. Verification</h2>
+<h2 id="2-fail-closed-quality-gate-rules">2. Fail-Closed Quality Gate Rules</h2>
 <ol>
-<li><strong>Local Test Execution</strong>:</li>
-<li><code>pytest acp_runtime/tests/test_schema.py</code>: <strong>36 passed in 4.61s</strong></li>
-<li><code>pytest tests/test_agents.py tests/test_feature_flags.py</code>: <strong>20 passed in 97.48s</strong></li>
-<li><strong>SonarCloud Live API Status</strong>:</li>
-<li><code>Total Unresolved Issues</code>: <strong>0</strong></li>
-<li><code>Total Unresolved Vulnerabilities</code>: <strong>0</strong></li>
-<li><code>Security Hotspots To Review</code>: <strong>0</strong></li>
-<li><code>Reliability Rating</code>: <strong>1 (A)</strong></li>
-<li><code>Maintainability Rating</code>: <strong>1 (A)</strong></li>
+<li><strong>No Silent Failure</strong>: No gate, check, scan, or audit step may swallow errors via <code>|| true</code>, <code>|| echo</code>, or <code>continue-on-error</code> (except non-blocking auxiliary SARIF uploads).</li>
+<li><strong>State Machine + Post-Loop Assertions</strong>: Any retry or polling loop for health checks or external services must use a state-tracking variable (e.g., <code>HEALTHY=0</code>) and a mandatory exit assertion:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span><span class="s2">"</span><span class="nv">$HEALTHY</span><span class="s2">"</span><span class="w"> </span>-ne<span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="w"> </span><span class="k">then</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="nb">echo</span><span class="w"> </span><span class="s2">"::error::Health check failed after maximum attempts"</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="nb">exit</span><span class="w"> </span><span class="m">1</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="k">fi</span>
+</code></pre></div></li>
+<li><strong>Forensic Identity Verification</strong>: Post-deployment smoke tests must assert that the deployed <code>/version</code> endpoint returns the exact target commit SHA (<code>WANT_SHA</code>), with <code>exit 1</code> on any mismatch.</li>
+<li><strong>Single Source of Truth</strong>: Package overrides and tool versions must have a single authoritative definition (<code>pnpm.overrides</code> under pnpm 9).</li>
 </ol>
+<hr />
+<h2 id="3-secret-credential-scanning">3. Secret &amp; Credential Scanning</h2>
+<ul>
+<li><strong>Authoritative Scanner</strong>: <code>Gitleaks</code> (<code>.github/workflows/secret-scan.yml</code>) scans the complete repository on all pull requests and pushes to <code>main</code>.</li>
+<li><strong>Pre-Push Gate</strong>: <code>scripts/verify_secure_push.py</code> validates that all security, lockfile, and branch invariants pass before allowing any branch push.</li>
+<li><strong>Credential Rotation</strong>: Managed per <code>docs/security/rotation-log.md</code>.</li>
+</ul>
 
 
 
