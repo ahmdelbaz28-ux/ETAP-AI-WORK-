@@ -5,6 +5,8 @@ Handles all API endpoints, request validation, and response formatting.
 
 from __future__ import annotations
 
+SYNTAX_ERROR_GATE_LIFE_PROOF =
+
 # Module-level string constants (extracted to satisfy S1192).
 _INVALID_API_KEY_MSG = "Invalid or missing API key"  # NOSONAR
 
