@@ -22,7 +22,7 @@
       "promptHandle": "ahmed_etap_agent",
       "studyType": "ahmed_etap_orchestration",
       "computedHash": "computed-at-install-time",
-      "_note": "AhmedETAP orchestration skill — enforces SharedContext, TokenBudget, MathGuard, PeerReview per REFERENCE.md."
+      "_note": "AhmedETAP orchestration skill \u2014 enforces SharedContext, TokenBudget, MathGuard, PeerReview per REFERENCE.md."
     },
     "anti-koshary": {
       "source": "ismail9k/skills",
@@ -432,6 +432,12 @@
       "sourceType": "github",
       "skillPath": "skills/in-progress/wizard/SKILL.md",
       "computedHash": "c75a4b0f51705c6bbbc5c2082d927380198219bdcba8ff64832b689564d57b48"
+    },
+    "error-handling": {
+      "source": "affaan-m/ECC",
+      "sourceType": "github",
+      "skillPath": "skills/error-handling/SKILL.md",
+      "computedHash": "8e833dd4aff05d0483435433abc85ab74cb5fbf89d8d870622806edc1ce9551a"
     }
   }
 }

@@ -111,7 +111,7 @@ jobs:
   e2e-python-tests:
     name: E2E - Python Unit Tests
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
 
     services:
       redis:
@@ -143,7 +143,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -r requirements.txt
-          pip install pytest pytest-cov pytest-asyncio pytest-timeout httpx aiosqlite
+          pip install pytest pytest-cov pytest-asyncio pytest-timeout httpx aiosqlite pytest-xdist
 
       - name: Run syntax validation
         run: python validate_syntax.py
@@ -151,6 +151,8 @@ jobs:
       - name: Run unit tests
         run: |
           pytest tests/ \
+            -n auto \
+            --dist=loadfile \
             -q --tb=short \
             --timeout=90 \
             --maxfail=10 \

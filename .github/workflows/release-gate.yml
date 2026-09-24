@@ -219,6 +219,14 @@ jobs:
             ATTEMPT=$(( ATTEMPT + 1 ))
           done
 
+          if [ "$IS_SHADOW" = "true" ]; then
+            echo "============================================================"
+            echo "All canonical release criteria verified successfully (SHADOW MODE)."
+            echo "Shadow mode is active — skipping authoritative status post."
+            echo "============================================================"
+            exit 0
+          fi
+
           echo "============================================================"
           echo "All canonical release criteria verified successfully!"
           echo "Posting authoritative release status to GitHub commit..."

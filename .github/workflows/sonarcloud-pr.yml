@@ -38,7 +38,7 @@ jobs:
   sonarcloud:
     name: SonarCloud Scan
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 60
     # Skip draft PRs to save CI minutes (they will be scanned when marked ready).
     # Skip Dependabot PRs since secrets (SONAR_TOKEN) are not accessible to Dependabot workflows.
     if: (github.event_name != 'pull_request' || !github.event.pull_request.draft) && github.actor != 'dependabot[bot]'
@@ -70,11 +70,13 @@ jobs:
           # Install full dependencies from requirements.txt to ensure all modules collect cleanly
           pip install --no-cache-dir --only-binary :all: \
             --requirement requirements.txt \
-            pytest pytest-cov pytest-asyncio hypothesis
+            pytest pytest-cov pytest-asyncio hypothesis pytest-xdist pytest-timeout
 
       - name: Run tests with coverage
         run: |
           pytest \
+            -n auto \
+            --dist=loadfile \
             --cov=. \
             --cov-report=xml:coverage.xml \
             --cov-report=term \

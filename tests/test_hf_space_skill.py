@@ -126,7 +126,10 @@ def test_dockerfile_uses_non_root_user():
 
 def test_readme_has_hf_yaml_frontmatter():
     """README.md must start with HF Spaces YAML frontmatter (title, sdk, etc.)."""
-    readme = (Path(__file__).resolve().parent.parent / "README.md").read_text(encoding="utf-8")
+    readme_path = Path(__file__).resolve().parent.parent / "README.md"
+    raw_bytes = readme_path.read_bytes()
+    assert not raw_bytes.startswith(b"\xef\xbb\xbf"), "README.md must NOT contain a UTF-8 BOM"
+    readme = readme_path.read_text(encoding="utf-8")
     assert readme.startswith("---"), "README.md must start with YAML frontmatter ---"
     # Extract the frontmatter block
     parts = readme.split("---", 2)

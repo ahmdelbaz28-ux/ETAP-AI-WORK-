@@ -67,32 +67,36 @@ keywords = ["sk-lw-"]
 [allowlist]
 description = "Allowed paths / patterns (examples, tests, fixtures, documentation)"
 paths = [
-  '''.*\.md$''',
   '''docs[/\\].*''',
   '''tests[/\\].*''',
   '''acp_runtime[/\\].*''',
   '''ui[/\\].*[/\\].*test.*''',
   '''\.kilo[/\\].*''',
-  '''scripts[/\\].*''',
   '''.gitleaks\.toml$''',
   '''\.gitleaksignore$''',
-  '''\.github[/\\].*''',
-  '''akamai[/\\].*''',
-  '''cloudflare[/\\].*''',
   '''\.secrets\.baseline$''',
-  '''_.*''',
-  '''\.env.*''',
+  '''.*\.env\.example$''',
   '''.*revit_integration.*''',
 ]
 regexes = [
   '''YOUR_[A-Z_]+_HERE''',
   '''your-[a-z-]+-here''',
+  '''your-[a-z-]+-key''',
+  '''your-api-key''',
+  '''your-secret-key''',
+  '''your-service-key''',
   '''PLACEHOLDER''',
   '''example\.com''',
   '''ETAP-SEC-2024-OBFUSCATION''',
   '''ahmdelbaz28-ux_revit''',
   '''test-api-key-12345''',
-  # Allowlist inline marker — append to a line to skip it
+  # Test fixture values - clearly labeled non-secrets in test/setup scripts
+  '''test_secret_key_for_validation''',
+  '''password123''',
+  '''testuser''',
+  # sonar.login is a config property name, not a secret value
+  '''sonar\.login''',
+  # Allowlist inline marker - append to a line to skip it
   '''# pragma: allowlist secret''',
   '''# security: intentional''',
 ]

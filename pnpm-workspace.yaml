@@ -112,6 +112,10 @@ overrides:
   # FOSSA scan failure: @isaacs/cliui 8.0.2 uses fake aliases string-width-cjs, strip-ansi-cjs, wrap-ansi-cjs
   # Bumping to ^9.0.0 has zero dependencies and completely removes all *-cjs packages.
   '@isaacs/cliui': ^9.0.0
+  # HIGH: mkdirp directory traversal
+  mkdirp: ^1.0.4
+  # HIGH: nanoid predictable ID generation
+  nanoid: ^3.3.8
 
 allowBuilds:
   '@biomejs/biome': true

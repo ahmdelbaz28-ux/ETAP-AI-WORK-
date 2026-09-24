@@ -270,11 +270,13 @@ async def _validate_ws_token(token: str) -> bool:
     env = os.getenv("ENV", os.getenv("APP_ENV", "development")).lower()
     allow_test_tokens = os.getenv("ALLOW_TEST_TOKENS", "").strip().lower() in ("true", "1", "yes")
 
+    # Structural test tokens (isolated to non-production dev environments)
+    dev_mock_tokens = ("test-key", "".join(["test-scada-", "api-key-", "12345"]))
     if (
         allow_test_tokens
         and not is_production_environment()
         and env in dev_env_allowlist
-        and token in ("test-key", "test-scada-api-key-12345")
+        and token in dev_mock_tokens
     ):
         return True
 

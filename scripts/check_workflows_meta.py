@@ -6,14 +6,81 @@ Enforces structural and security invariants across all GitHub Actions workflows:
 1. Valid YAML syntax (fail-closed on parsing errors).
 2. Explicit permissions block (at top-level or on every individual job).
 3. Explicit timeout-minutes on every job (preventing runaway hanging runners).
+4. Valid branch trigger patterns (no malformed bracket suffixes like ain]).
+5. Overrides consistency between package.json and pnpm-workspace.yaml (T-2.1).
+6. Line count ratchet on .gitleaksignore (R-3).
 """
 
 from __future__ import annotations
 
+import json
+import re
 import sys
 from pathlib import Path
 
 import yaml
+
+
+def check_overrides_consistency(repo_root: Path, violations: list[str]) -> None:
+    pkg_path = repo_root / "package.json"
+    ws_path = repo_root / "pnpm-workspace.yaml"
+
+    if not pkg_path.exists() or not ws_path.exists():
+        return
+
+    try:
+        with open(pkg_path, encoding="utf-8") as f:
+            pkg_data = json.load(f)
+        with open(ws_path, encoding="utf-8") as f:
+            ws_data = yaml.safe_load(f)
+
+        pkg_overrides = pkg_data.get("pnpm", {}).get("overrides", {})
+        ws_overrides = ws_data.get("overrides", {}) if isinstance(ws_data, dict) else {}
+
+        only_in_pkg = set(pkg_overrides.keys()) - set(ws_overrides.keys())
+        only_in_ws = set(ws_overrides.keys()) - set(pkg_overrides.keys())
+
+        if only_in_pkg:
+            violations.append(
+                f"Overrides drift (T-2.1): Keys in package.json (pnpm.overrides) but missing from pnpm-workspace.yaml: {sorted(only_in_pkg)}"
+            )
+        if only_in_ws:
+            violations.append(
+                f"Overrides drift (T-2.1): Keys in pnpm-workspace.yaml but missing from package.json: {sorted(only_in_ws)}"
+            )
+
+        # Check values matching (R-8)
+        common_keys = sorted(set(pkg_overrides.keys()) & set(ws_overrides.keys()))
+        for k in common_keys:
+            pkg_val = str(pkg_overrides[k]).strip()
+            ws_val = str(ws_overrides[k]).strip()
+            if pkg_val != ws_val:
+                violations.append(
+                    f"Overrides value drift (T-2.1): Key '{k}' has mismatched versions: "
+                    f"package.json='{pkg_val}' vs pnpm-workspace.yaml='{ws_val}'"
+                )
+    except Exception as e:
+        violations.append(f"Failed to check overrides consistency: {e}")
+
+
+def check_gitleaksignore_ratchet(repo_root: Path, violations: list[str]) -> None:
+    gitleaksignore_path = repo_root / ".gitleaksignore"
+    if not gitleaksignore_path.exists():
+        return
+
+    # Maximum allowed non-empty lines in .gitleaksignore (ratchet ceiling)
+    RATCHET_CEILING = 800
+    try:
+        with open(gitleaksignore_path, encoding="utf-8") as f:
+            lines = [line.strip() for line in f if line.strip() and not line.startswith("#")]
+        count = len(lines)
+        if count > RATCHET_CEILING:
+            violations.append(
+                f"Gitleaksignore ratchet violation (R-3): {count} entries exceeds maximum ratchet ceiling of {RATCHET_CEILING}. "
+                "Do not add unapproved exemptions to .gitleaksignore."
+            )
+    except Exception as e:
+        violations.append(f"Failed to check .gitleaksignore ratchet: {e}")
 
 
 def main() -> int:
@@ -33,7 +100,7 @@ def main() -> int:
         return 1
 
     sys.stdout.write("=" * 60 + "\n")
-    sys.stdout.write("[META-CI] Validating GitHub Actions Workflows\n")
+    sys.stdout.write("[META-CI] Validating GitHub Actions Workflows & Invariants\n")
     sys.stdout.write(f"Found {len(workflow_files)} workflow files.\n")
     sys.stdout.write("=" * 60 + "\n")
     sys.stdout.flush()
@@ -78,6 +145,29 @@ def main() -> int:
                     f"{rel_path} -> job '{job_name}': Missing 'timeout-minutes'"
                 )
 
+        # Check triggers and branch names
+        on_data = data.get("on") or data.get(True)
+        if isinstance(on_data, dict):
+            for event_name in ["push", "pull_request", "workflow_run"]:
+                ev = on_data.get(event_name)
+                if isinstance(ev, dict) and "branches" in ev:
+                    branches = ev["branches"]
+                    if isinstance(branches, str):
+                        branches = [branches]
+                    if isinstance(branches, list):
+                        for b in branches:
+                            if not isinstance(b, str):
+                                continue
+                            # Canonical branch pattern: alphanumeric, slashes, dashes, dots, wildcards
+                            if not b or b.endswith("]") or "[" in b or not re.match(r"^[a-zA-Z0-9_./*-]+$", b):
+                                violations.append(
+                                    f"{rel_path} -> event '{event_name}': Invalid branch pattern '{b}'"
+                                )
+
+    # Check repository-level invariants (T-2.1 and R-3)
+    check_overrides_consistency(repo_root, violations)
+    check_gitleaksignore_ratchet(repo_root, violations)
+
     if violations:
         sys.stderr.write(f"\n[BLOCKED] Meta-CI found {len(violations)} workflow standard violation(s):\n")
         for v in violations:
@@ -88,7 +178,10 @@ def main() -> int:
     sys.stdout.write(f"\n[OK] All {len(workflow_files)} GitHub Actions workflows comply with Meta-CI standards.\n")
     sys.stdout.write("  - YAML syntax: VALID\n")
     sys.stdout.write("  - Permissions: EXPLICIT\n")
-    sys.stdout.write("  - Job timeouts: ENFORCED\n\n")
+    sys.stdout.write("  - Job timeouts: ENFORCED\n")
+    sys.stdout.write("  - Branch triggers: VALIDATED\n")
+    sys.stdout.write("  - Overrides consistency (T-2.1): SYNCHRONIZED\n")
+    sys.stdout.write("  - Gitleaksignore ratchet (R-3): ENFORCED\n\n")
     sys.stdout.flush()
     return 0
 
