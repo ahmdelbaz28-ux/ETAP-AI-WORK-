@@ -184,8 +184,14 @@ def check_physics_guards(
     # 6. Check Q-LIMIT: if and only if system_spec provides limits; otherwise skip explicitly
     if system_spec is not None:
         for bus in system_spec.buses:
-            # Check if non-default limits are configured
-            has_explicit_limits = (bus.q_min > -990.0) or (bus.q_max < 990.0)
+            # Determine if limits are explicitly user-provided using model_fields_set.
+            # model_fields_set contains only fields the user explicitly passed to the
+            # constructor — Pydantic default values are NOT included.
+            # This avoids false negatives where e.g. q_min=-950 was explicit but
+            # fails the old (-990 / 990) threshold comparison.
+            has_explicit_limits = (
+                "q_min" in bus.model_fields_set or "q_max" in bus.model_fields_set
+            )
             if has_explicit_limits and isinstance(buses_data, dict):
                 b_info = buses_data.get(bus.bus_id) or buses_data.get(str(bus.bus_id))
                 if isinstance(b_info, dict):
@@ -207,6 +213,7 @@ def check_physics_guards(
                             continue
 
     return findings
+
 
 
 def metric_guards_recall(predicted: list[DiagnosticFinding], expected_codes: set[str]) -> float:

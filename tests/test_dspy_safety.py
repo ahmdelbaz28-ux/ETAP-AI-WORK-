@@ -59,6 +59,7 @@ def test_dspy_not_installed_scenario(monkeypatch):
         return real_import(name, *args, **kwargs)
 
     monkeypatch.setattr(builtins, "__import__", mock_import)
+    monkeypatch.setattr("services.dspy_copilot.runtime.is_enabled", lambda: True)
 
     # Calling run_ingest without dspy installed must raise DspyIngestError (fail-closed)
     from services.dspy_copilot.runtime import DspyIngestError, run_ingest
