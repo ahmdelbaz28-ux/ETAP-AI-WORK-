@@ -54,4 +54,3 @@ httpx>=0.27.0,<1.0.0
 
 # DSPy copilot (optional, offline-compile + runtime-infer only)
 dspy-ai>=2.5,<2.7
-
