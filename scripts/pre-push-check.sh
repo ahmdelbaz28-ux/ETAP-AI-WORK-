@@ -137,7 +137,7 @@ for f in $PY_FILES; do
   fi
 done
 if [[ "$IMPORT_ERRORS" -gt 0 ]]; then
-  echo "  ⚠ $IMPORT_FILES import warnings — review before pushing"
+  echo "  ⚠ $IMPORT_ERRORS import warnings — review before pushing"
 else
   echo "✓ [9/9] Python imports look correct"
 fi

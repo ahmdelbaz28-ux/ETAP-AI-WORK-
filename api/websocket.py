@@ -274,7 +274,7 @@ async def _validate_ws_token(token: str) -> bool:
         allow_test_tokens
         and not is_production_environment()
         and env in dev_env_allowlist
-        and token in ("test-key", "test-scada-api-key-12345")
+        and token in ("test-key", "test-scada-api-key-12345")  # pragma: allowlist secret
     ):
         return True
 

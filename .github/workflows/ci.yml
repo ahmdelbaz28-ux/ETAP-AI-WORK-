@@ -291,7 +291,6 @@ jobs:
       - name: Bandit (shared gate)
         uses: ./.github/actions/bandit-scan
 
-
       - name: UI Bundle Provider Keys Scan (FIX-29)
         run: python scripts/check_bundle_secrets.py
 

@@ -134,8 +134,8 @@ jobs:
         working-directory: ${{ env.UI_DIR }}
         run: |
           if [ ! -f eslint-results.json ]; then
-            echo "ESLint did not produce results"
-            exit 0
+            echo "::error::ESLint did not produce results file — failing closed"
+            exit 1
           fi
           python3 - <<'PYEOF'
           import json

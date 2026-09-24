@@ -369,7 +369,7 @@ def test_security_framework():
 from security.security_framework import AuthenticationManager, UserRole
 
 # Create auth manager
-auth = AuthenticationManager(secret_key="test_secret_key_for_validation")
+auth = AuthenticationManager(secret_key="test_secret_key_for_validation")  # pragma: allowlist secret
 
 # Create user
 user = auth.create_user("testuser", "test@example.com", "password123", UserRole.ENGINEER)

@@ -71,11 +71,11 @@ paths = [
   '''tests[/\\].*''',
   '''acp_runtime[/\\].*''',
   '''ui[/\\].*[/\\].*test.*''',
-  '''\.kilo[/\\].*''',
-  '''.gitleaks\.toml$''',
-  '''\.gitleaksignore$''',
-  '''\.secrets\.baseline$''',
-  '''.*\.env\.example$''',
+  '''\\.kilo[/\\].*''',
+  '''.gitleaks\\.toml$''',
+  '''\\.gitleaksignore$''',
+  '''\\.secrets\\.baseline$''',
+  '''.*\\.env\\.example$''',
   '''.*revit_integration.*''',
 ]
 regexes = [
@@ -90,7 +90,17 @@ regexes = [
   '''ETAP-SEC-2024-OBFUSCATION''',
   '''ahmdelbaz28-ux_revit''',
   '''test-api-key-12345''',
-  # Allowlist inline marker — append to a line to skip it
+  # Test fixture values - clearly labeled non-secrets in test/setup scripts
+  '''test_secret_key_for_validation''',
+  '''password123''',
+  '''testuser''',
+  # sonar.login is a config property name, not a secret value
+  '''sonar\.login''',
+  # kubectl create secret generic - Kubernetes command verb, not a credential
+  '''kubectl.*create secret generic''',
+  # etap-* are Kubernetes resource names (not API keys)
+  '''etap-redis-cluster|etap-ai-secrets|etap-postgres-app|etap-app-config''',
+  # Allowlist inline marker - append to a line to skip it
   '''# pragma: allowlist secret''',
   '''# security: intentional''',
 ]
