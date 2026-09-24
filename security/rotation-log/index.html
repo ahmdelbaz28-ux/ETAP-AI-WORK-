@@ -647,19 +647,19 @@
 <tbody>
 <tr>
 <td>2026-09-24</td>
-<td>SonarCloud API Token (<code>e0176c608df2...</code>)</td>
+<td>SonarCloud API Token (<code>e0176c608df2…36d17</code>)</td>
 <td><code>commit a6258e5</code> (<code>.env.example:497</code>) &amp; <code>commit 18827d0</code> (<code>docs/generated/SONARCLOUD_REPORT.md:13</code>)</td>
 <td>SonarCloud</td>
 <td><strong>Revoked Dead Key (Live Proven)</strong></td>
-<td>Key entered in historical commit <code>a6258e57c</code> and removed from template in <code>eda09a5a5</code>. Live tracked file <code>docs/generated/SONARCLOUD_REPORT.md</code> removed from tree via <code>git rm</code>. Permanent revocation executed and verified live via SonarCloud authentication API on 2026-09-24T09:27:14Z: <code>curl -s -u "e0176c608df2d1ea7646f309eca150fd94136d17:" https://sonarcloud.io/api/authentication/validate</code> returning HTTP 200 <code>{"valid":false}</code> (details below). Historical fingerprints suppressed in <code>.gitleaksignore:797-798</code> as dead keys pending history rewrite.</td>
+<td>Key entered in historical commit <code>a6258e57c</code> and removed from template in <code>eda09a5a5</code>. Live tracked file <code>docs/generated/SONARCLOUD_REPORT.md</code> removed from tree via <code>git rm</code>. Permanent revocation executed and verified live via SonarCloud authentication API on 2026-09-24T09:27:14Z: <code>curl -s -u "${SONAR_TOKEN}:" https://sonarcloud.io/api/authentication/validate</code> returning HTTP 200 <code>{"valid":false}</code> (details below). Historical fingerprints suppressed in <code>.gitleaksignore:797-798</code> as dead keys pending history rewrite.</td>
 </tr>
 <tr>
 <td>2026-09-24</td>
-<td>UptimeRobot API Key (<code>u3475686-dcae...</code>)</td>
+<td>UptimeRobot API Key (<code>u3475686-dcae…ce22a</code>)</td>
 <td><code>commit 278a5a8</code> (<code>scripts/uptimerobot_check.py:10</code>)</td>
 <td>UptimeRobot</td>
-<td><strong>Revoked Dead Key (Live Verified)</strong></td>
-<td>Key removed from working tree in <code>fadb8db</code>. Live script strictly uses <code>os.environ.get("UPTIMEROBOT_API_KEY", "")</code>. Revocation verified via UptimeRobot API: <code>curl -s -X POST https://api.uptimerobot.com/v2/getAccountDetails -d "api_key=u3475686-dcae0377ed9ef73751fce22a&amp;format=json"</code>. Historical fingerprint retained in <code>.gitleaksignore:780</code>.</td>
+<td><strong>LIVE — Pending Manual Regeneration</strong></td>
+<td>Key removed from working tree in <code>fadb8db</code>. Live script strictly uses <code>os.environ.get("UPTIMEROBOT_API_KEY", "")</code>. Live API check on 2026-09-24 returned HTTP 200 <code>{"stat":"ok"}</code> confirming key is currently active until regenerated at provider dashboard. Requires manual regeneration by user at UptimeRobot dashboard (<code>API Settings -&gt; Regenerate API Key</code>). Historical fingerprint retained in <code>.gitleaksignore:780</code>.</td>
 </tr>
 <tr>
 <td>2026-09-23</td>
@@ -688,36 +688,48 @@
 </tbody>
 </table>
 <h3 id="11-live-revocation-verification-evidence-reproducible-commands">1.1 Live Revocation Verification Evidence &amp; Reproducible Commands</h3>
-<p>The following live API checks were executed to definitively verify credential revocation:</p>
+<p>The following live API checks were executed to definitively verify credential status:</p>
 <ol>
 <li>
-<p><strong>SonarCloud User Token Revocation (<code>e0176c608df2d1ea7646f309eca150fd94136d17</code>)</strong>:
-   <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-u<span class="w"> </span><span class="s2">"e0176c608df2d1ea7646f309eca150fd94136d17:"</span><span class="w"> </span><span class="se">\</span>
+<p><strong>SonarCloud User Token Revocation (<code>e0176c608df2…36d17</code>)</strong>:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-u<span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">SONAR_TOKEN</span><span class="si">}</span><span class="s2">:"</span><span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span>https://sonarcloud.io/api/authentication/validate
 </code></pre></div>
-   <strong>Response</strong> (Recorded: <code>2026-09-24T09:27:14Z</code>):
+   <strong>Response</strong> (Recorded: <code>2026-09-24T09:27:14Z</code> with token <code>e0176c608df2…36d17</code>):
    <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="p">{</span><span class="nt">"valid"</span><span class="p">:</span><span class="kc">false</span><span class="p">}</span>
 </code></pre></div>
-   <em>Verification</em>: Upstream SonarCloud server explicitly confirmed the token <code>mmmmmm</code> is invalid and permanently revoked.</p>
+   <em>Verification</em>: Upstream SonarCloud server explicitly confirmed the token <code>e0176c608df2…36d17</code> is invalid and permanently revoked.</p>
 </li>
 <li>
-<p><strong>UptimeRobot API Key Revocation (<code>u3475686-dcae0377ed9ef73751fce22a</code>)</strong>:
+<p><strong>UptimeRobot API Key Live Status (<code>u3475686-dcae…ce22a</code>)</strong>:
    <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>https://api.uptimerobot.com/v2/getAccountDetails<span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">"Content-Type: application/x-www-form-urlencoded"</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span>-d<span class="w"> </span><span class="s2">"api_key=u3475686-dcae0377ed9ef73751fce22a&amp;format=json"</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span>-d<span class="w"> </span><span class="s2">"api_key=</span><span class="si">${</span><span class="nv">UPTIMEROBOT_API_KEY</span><span class="si">}</span><span class="s2">&amp;format=json"</span>
 </code></pre></div>
-   <strong>Response</strong> (Target status post-regeneration):
+   <strong>Response</strong> (Recorded Live Check: <code>2026-09-24T10:18:03Z</code>):
    <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="p">{</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="nt">"stat"</span><span class="p">:</span><span class="w"> </span><span class="s2">"fail"</span><span class="p">,</span>
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span><span class="nt">"error"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">    </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"invalid_parameter"</span><span class="p">,</span>
-<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">    </span><span class="nt">"parameter_name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"api_key"</span><span class="p">,</span>
-<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">    </span><span class="nt">"passed_value"</span><span class="p">:</span><span class="w"> </span><span class="s2">"u3475686-dcae0377ed9ef73751fce22a"</span><span class="p">,</span>
-<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">    </span><span class="nt">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"api_key not found."</span>
-<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="w">  </span><span class="p">}</span>
-<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="p">}</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="nt">"stat"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ok"</span><span class="p">,</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span><span class="nt">"account"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">    </span><span class="nt">"email"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ahmdelbaz28@gmail.com"</span><span class="p">,</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">    </span><span class="nt">"user_id"</span><span class="p">:</span><span class="w"> </span><span class="mi">3475686</span><span class="p">,</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">    </span><span class="nt">"firstname"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Ahmed Elbaz"</span><span class="p">,</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">    </span><span class="nt">"sms_credits"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="w">    </span><span class="nt">"payment_processor"</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="w">    </span><span class="nt">"payment_period"</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="w">    </span><span class="nt">"subscription_expiry_date"</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="w">    </span><span class="nt">"monitor_limit"</span><span class="p">:</span><span class="w"> </span><span class="mi">50</span><span class="p">,</span>
+<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="w">    </span><span class="nt">"monitor_interval"</span><span class="p">:</span><span class="w"> </span><span class="mi">5</span><span class="p">,</span>
+<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="w">    </span><span class="nt">"up_monitors"</span><span class="p">:</span><span class="w"> </span><span class="mi">7</span><span class="p">,</span>
+<a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a><span class="w">    </span><span class="nt">"down_monitors"</span><span class="p">:</span><span class="w"> </span><span class="mi">4</span><span class="p">,</span>
+<a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a><span class="w">    </span><span class="nt">"paused_monitors"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
+<a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a><span class="w">    </span><span class="nt">"total_monitors_count"</span><span class="p">:</span><span class="w"> </span><span class="mi">11</span><span class="p">,</span>
+<a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a><span class="w">    </span><span class="nt">"registered_at"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2026-05-02T17:37:03.000Z"</span><span class="p">,</span>
+<a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a><span class="w">    </span><span class="nt">"active_subscription"</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
+<a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a><span class="w">    </span><span class="nt">"organizations"</span><span class="p">:</span><span class="w"> </span><span class="p">[]</span>
+<a id="__codelineno-3-20" name="__codelineno-3-20" href="#__codelineno-3-20"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-3-21" name="__codelineno-3-21" href="#__codelineno-3-21"></a><span class="p">}</span>
 </code></pre></div>
-   <em>Verification</em>: Upstream UptimeRobot API rejects the key as non-existent (<code>api_key not found.</code>) once regenerated at dashboard.</p>
+   <em>Verification</em>: Upstream UptimeRobot API confirmed key is currently <strong>LIVE</strong> (<code>stat:ok</code>). Status is formally tracked as <strong>LIVE — Pending Manual Regeneration</strong>. Once regenerated at UptimeRobot dashboard (<code>API Settings -&gt; Regenerate API Key</code>), this status will be updated to Revoked.</p>
 </li>
 </ol>
 <hr />
@@ -890,9 +902,16 @@
 <td>Suppressed via <code>.gitleaksignore:797-799</code>.</td>
 <td>Zero risk — file removed / code refactored / token revoked.</td>
 </tr>
+<tr>
+<td>Round 8 Gh-Pages HTML Build (E-1)</td>
+<td>1</td>
+<td>Historical MkDocs generated HTML commit <code>95dd2b6845cf</code> on <code>gh-pages</code> branch (<code>security/rotation-log/index.html:654</code>). Source markdown masked to templates; gh-pages historical commit suppressed.</td>
+<td>Suppressed via <code>.gitleaksignore:800</code>.</td>
+<td>Zero risk — documentation template; downstream builds cleanly masked.</td>
+</tr>
 </tbody>
 </table>
-<p><strong>Total Governed Entries:</strong> 799 entries in <code>.gitleaksignore</code>.<br />
+<p><strong>Total Governed Entries:</strong> 800 entries in <code>.gitleaksignore</code>.<br />
 <strong>Ceiling Invariant:</strong> Enforced via <code>scripts/check_workflows_meta.py</code> (ceiling: 800) — any PR increasing the entry count beyond the ceiling without documented approval is automatically rejected.</p>
 <hr />
 <h2 id="4-automated-verification-governance">4. Automated Verification &amp; Governance</h2>
