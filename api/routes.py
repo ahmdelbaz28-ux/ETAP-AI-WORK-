@@ -45,6 +45,7 @@ from api.copilot_config import router as copilot_config_router
 from api.csrf import CSRFMiddleware, csrf_router
 from api.data_import import router as data_import_router
 from api.digital_twin import router as digital_twin_router
+from api.dspy import router as dspy_router
 from api.email_dashboard import router as email_dashboard_router
 from api.email_digest import router as email_digest_router
 from api.email_otp import router as email_otp_router
@@ -929,6 +930,8 @@ app.include_router(digital_twin_router)  # /api/v1/digital-twin/* — P8: migrat
 app.include_router(
     gis_edits_router
 )  # /api/v1/gis/edits/* — Safe ArcGIS write & dual-control operations
+app.include_router(dspy_router)  # /api/v1/dspy/* — DSPy SLD Ingest & Diagnostic Copilot
+
 
 
 @app.get(

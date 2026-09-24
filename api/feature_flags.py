@@ -196,6 +196,12 @@ DEFAULT_FEATURE_FLAGS: dict[str, dict[str, Any]] = {
         "description": "Allow capturing chat stream response output in Langfuse LLM traces",
         "rollout_percentage": 0,
     },
+    "dspy_copilot": {
+        "enabled": False,
+        "status": "experimental",
+        "description": "DSPy SLD ingest + diagnostic copilot (pre/post processor only, OFF by default)",
+        "rollout_percentage": 0,
+    },
 }
 
 FEATURE_FLAGS = DEFAULT_FEATURE_FLAGS

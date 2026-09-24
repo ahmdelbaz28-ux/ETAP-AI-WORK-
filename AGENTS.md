@@ -77,6 +77,8 @@ messages:
 | `qgis_agent.prompt.yaml` | GIS & Geospatial Integration (ArcGIS Pro / ArcGIS Online / QGIS) | 0.2 |
 | `design_agent.prompt.yaml` | Generative Design | 0.2 |
 | `fallback_agent.prompt.yaml` | Safety-net fallback | 0.2 |
+| `dspy_sld_ingest.prompt.yaml` | DSPy SLD Ingest Copilot | 0.2 |
+| `dspy_diagnostic_copilot.prompt.yaml` | DSPy Diagnostic Copilot | 0.2 |
 
 ---
 
@@ -253,6 +255,16 @@ All Python agents inherit from `BaseAgent` in `agents/orchestrator.py`.
 - **Standards Referenced**: IEEE 141, IEEE 242, IEC 62271, IEC 60076, IEC 60364, IEC 60909
 - **Purpose**: Generative topology synthesis of substation Single-Line Diagrams (SLD), transformer sizing, switchgear rating, and protection scheme allocation from explicit user parameters.
 - **Honest Limits & Constraints**: Scaffold status only (commit `7617d30be`). Does not modify existing ETAP project files or mutate production topologies directly. Outputs are NOT field-validated against live utility configurations; human expert review and engineering stamp are strictly required prior to physical implementation. Fails closed (`AgentStatus.FAILED` with `reason="flag_disabled"`) whenever the `generative_design` feature flag is inactive.
+
+### 26. DSPy Copilot Agent (`DspyCopilotAgent`)
+- **File**: `services/dspy_copilot/runtime.py` / `agents/registry.py`
+- **Prompt**: `dspy_diagnostic_copilot` (manifest → `dspy_diagnostic_copilot.prompt.yaml`) and `dspy_sld_ingest` (manifest → `dspy_sld_ingest.prompt.yaml`)
+- **StudyType**: N/A (pre/post-copilot)
+- **Feature Flag**: `dspy_copilot` (DISABLED by default in production; experimental)
+- **Tools**: None (pure pre/post processor around deterministic calculation engines)
+- **Standards Referenced**: IEEE 3002.7, ANSI C84.1, IEC 60038
+- **Purpose**: Translates unverified SLD text notes into validated `SystemSpec` models (pre-processor) and synthesizes diagnostic findings from deterministic calculation results (post-processor).
+- **Honest Limits & Constraints**: Experimental status. Does NOT solve load flow or perform numerical simulations. All calculations are executed exclusively by deterministic engines. Guards always execute first and cannot be overridden by AI outputs. When feature flag is inactive: `run_ingest` fails closed (raises `DspyIngestError`, `AgentStatus.FAILED` with `reason="flag_disabled"`), while `run_diagnose` returns a `DiagnosticOutput` with finding code `"FLAG_DISABLED"` (graceful degrade).
 
 ---
 

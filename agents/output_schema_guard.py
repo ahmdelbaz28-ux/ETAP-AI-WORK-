@@ -224,6 +224,24 @@ MANDATORY_RULES: dict[str, list[dict[str, Any]]] = {
             "severity": "error",
         },
     ],
+    "dspy_copilot": [
+        {
+            "rule_id": "DSPY-M1",
+            "description": "Must conform to DiagnosticOutput schema (summary and findings)",
+            "check": "dict_keys_contain",
+            "required_keys": ["summary", "findings"],
+            "severity": "error",
+        },
+    ],
+    "dspy_diagnostic_copilot": [
+        {
+            "rule_id": "DSPY-M2",
+            "description": "Must conform to DiagnosticOutput schema (summary and findings)",
+            "check": "dict_keys_contain",
+            "required_keys": ["summary", "findings"],
+            "severity": "error",
+        },
+    ],
 }
 
 
