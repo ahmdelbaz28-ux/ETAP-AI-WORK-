@@ -513,6 +513,17 @@ class PowerSystemEngine:
                 enclosure_depth_mm=kwargs.get("enclosure_depth_mm", 508.0),
             )
         else:
+            try:
+                from engine.dispatch import STUDY_DISPATCH
+
+                if study_type in STUDY_DISPATCH:
+                    from core.exceptions import SpecializedExecutionUnavailableError
+
+                    raise SpecializedExecutionUnavailableError(
+                        study_type, "not supported in native engine shim"
+                    )
+            except ImportError:
+                pass
             raise ValueError(f"Unsupported study type: {study_type}")
 
     def visualize_tcc(

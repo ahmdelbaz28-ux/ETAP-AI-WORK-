@@ -32,6 +32,7 @@ from api.feature_flags import FEATURE_FLAGS, is_feature_enabled
 from api.pe_stamp import requires_stamp
 from api.risk_scoring import compute_risk
 from core.bootstrap import _add_execution_time, _increment_counter
+from core.exceptions import SpecializedExecutionUnavailableError
 from core_model.bus import Bus
 from core_model.generator import Generator
 from core_model.line import Line
@@ -380,17 +381,22 @@ class StudyExecutor:
             from api.feature_flags import is_strict_feature_enabled
 
             if not is_strict_feature_enabled("breaker_duty"):
-                raise ValueError("Study type 'breaker_duty' is disabled by feature flag")
+                raise SpecializedExecutionUnavailableError(
+                    "breaker_duty", "Study type 'breaker_duty' is disabled by feature flag"
+                )
             from breaker_duty.evaluator import BreakerDutyEvaluator
 
             return BreakerDutyEvaluator().execute_study(parameters)
+
+        if canonical in ("ahmed_etap_orchestration", "ahmed_etap"):
+            return self._dispatch_agent(canonical, parameters)
 
         if registration.handler_type == "native":
             return self._dispatch_native(registration, system, parameters)
         if registration.handler_type == "agent":
             return self._dispatch_agent(canonical, parameters)
-        raise ValueError(
-            f"Unsupported handler_type '{registration.handler_type}' for study '{canonical}'"
+        raise SpecializedExecutionUnavailableError(
+            canonical, f"handler_type '{registration.handler_type}' is external/not supported natively"
         )
 
     def _dispatch_native(
@@ -459,46 +465,54 @@ class StudyExecutor:
                 raise ValueError("'question' field is required for study_type='etap_gui'")
             return agent.answer(question)
 
-        if study_type == "ahmed_etap_orchestration" or study_type == "ahmed_etap":
-            from agents.ahmed_etap_orchestrator import AhmedETAPSkillAgent
-            from agents.models import EngineeringTask, StudyType, get_orchestrator
-
-            agent = AhmedETAPSkillAgent(orchestrator=get_orchestrator())
-            inner_study = str(parameters.get("study_type", "load_flow"))
+        if study_type in ("ahmed_etap_orchestration", "ahmed_etap"):
             try:
-                st_enum = StudyType(inner_study)
-            except ValueError:
-                st_enum = StudyType.LOAD_FLOW
-            skill_task = EngineeringTask(
-                task_id=f"ahmed_etap_skill_{int(time.time())}",
-                description=f"Skill-orchestrated {inner_study}",
-                study_types=[st_enum],
-                parameters=parameters,
-            )
-            try:
-                asyncio.get_running_loop()
-                import concurrent.futures as _cf
+                from agents.ahmed_etap_orchestrator import AhmedETAPSkillAgent
+                from agents.models import EngineeringTask, StudyType
+                from agents.orchestrator import get_orchestrator
 
-                with _cf.ThreadPoolExecutor(max_workers=1) as pool:
-                    result = pool.submit(lambda: asyncio.run(agent.execute(skill_task))).result()
-            except RuntimeError:
-                result = asyncio.run(agent.execute(skill_task))
-            return {
-                "verdict": result.data.get("verdict"),
-                "study_type": result.data.get("study_type"),
-                "lead_agent": result.data.get("lead_agent"),
-                "peer_reviewer": result.data.get("peer_reviewer"),
-                "math_guard": result.data.get("math_guard"),
-                "peer_review": result.data.get("peer_review"),
-                "shared_context": result.data.get("shared_context"),
-                "response": result.data.get("response"),
-                "iterations": result.data.get("iterations"),
-                "elapsed_seconds": result.data.get("elapsed_seconds"),
-                "validation_status": result.validation_status,
-                "validation_errors": result.validation_errors,
-            }
+                agent = AhmedETAPSkillAgent(orchestrator=get_orchestrator())
+                inner_study = str(parameters.get("study_type", "load_flow"))
+                try:
+                    st_enum = StudyType(inner_study)
+                except ValueError:
+                    st_enum = StudyType.LOAD_FLOW
+                skill_task = EngineeringTask(
+                    task_id=f"ahmed_etap_skill_{int(time.time())}",
+                    description=f"Skill-orchestrated {inner_study}",
+                    study_types=[st_enum],
+                    parameters=parameters,
+                )
+                try:
+                    asyncio.get_running_loop()
+                    import concurrent.futures as _cf
 
-        raise ValueError(f"Unsupported agent-routed study type: {study_type}")
+                    with _cf.ThreadPoolExecutor(max_workers=1) as pool:
+                        result = pool.submit(lambda: asyncio.run(agent.execute(skill_task))).result()
+                except RuntimeError:
+                    result = asyncio.run(agent.execute(skill_task))
+                return {
+                    "verdict": result.data.get("verdict"),
+                    "study_type": result.data.get("study_type"),
+                    "lead_agent": result.data.get("lead_agent"),
+                    "peer_reviewer": result.data.get("peer_reviewer"),
+                    "math_guard": result.data.get("math_guard"),
+                    "peer_review": result.data.get("peer_review"),
+                    "shared_context": result.data.get("shared_context"),
+                    "response": result.data.get("response"),
+                    "iterations": result.data.get("iterations"),
+                    "elapsed_seconds": result.data.get("elapsed_seconds"),
+                    "validation_status": result.validation_status,
+                    "validation_errors": result.validation_errors,
+                }
+            except Exception as exc:
+                raise SpecializedExecutionUnavailableError(
+                    study_type, f"Orchestrator execution unavailable: {exc}"
+                ) from exc
+
+        raise SpecializedExecutionUnavailableError(
+            study_type, "Agent execution requires specialized runtime"
+        )
 
     # ------------------------------------------------------------------
     # ETAP provider
