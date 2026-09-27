@@ -63,6 +63,20 @@ _NATIVE_ALIASES = {
     "opf": "optimal_power_flow",
 }
 
+from etap_integration.etap_provider import ETAPStudyType
+
+# Supported ETAP study types and their mapping to ETAPStudyType enum (canonical source of truth).
+_ETAP_STUDY_TYPE_MAP: dict[str, ETAPStudyType] = {
+    "etap_load_flow": ETAPStudyType.LOAD_FLOW,
+    "etap_short_circuit": ETAPStudyType.SHORT_CIRCUIT,
+    "etap_arc_flash": ETAPStudyType.ARC_FLASH,
+    "etap_harmonic_analysis": ETAPStudyType.HARMONIC_ANALYSIS,
+    "etap_optimal_power_flow": ETAPStudyType.OPTIMAL_POWER_FLOW,
+    "etap_motor_starting": ETAPStudyType.MOTOR_STARTING,
+    "etap_protection_coordination": ETAPStudyType.PROTECTION_COORDINATION,
+}
+_ETAP_STUDY_TYPES: frozenset[str] = frozenset(_ETAP_STUDY_TYPE_MAP.keys())
+
 
 class StudyExecutor:
     """Deep module: owns the entire study execution pipeline.
@@ -218,20 +232,40 @@ class StudyExecutor:
     # ------------------------------------------------------------------
 
     def _validate_request(self, payload: StudyRequest) -> None:
-        """Validate feature flag, system requirement, and pre-flight checks."""
-        if not is_feature_enabled(payload.study_type):
-            flag_info = FEATURE_FLAGS.get(payload.study_type, {})
+        """Validate study type against active provider registry, feature flag, system requirement, and pre-flight checks."""
+        # 1. Provider-aware study type validation against active registry
+        if payload.use_etap:
+            if payload.study_type not in _ETAP_STUDY_TYPE_MAP:
+                raise ValueError(
+                    f"Unknown or unsupported ETAP study type '{payload.study_type}'. "
+                    f"Supported ETAP study types: {sorted(_ETAP_STUDY_TYPE_MAP.keys())}"
+                )
+        else:
+            native_allowed = set(STUDY_DISPATCH.keys()) | set(_NATIVE_ALIASES.keys())
+            if payload.study_type not in native_allowed:
+                raise ValueError(
+                    f"Unknown or unsupported native study type '{payload.study_type}'. "
+                    f"Supported native study types: {sorted(native_allowed)}"
+                )
+
+        # 2. Feature flag check
+        canonical_type = _NATIVE_ALIASES.get(payload.study_type, payload.study_type)
+        flag_key = canonical_type if canonical_type in FEATURE_FLAGS else payload.study_type
+        if flag_key in FEATURE_FLAGS and not is_feature_enabled(flag_key):
+            flag_info = FEATURE_FLAGS.get(flag_key, {})
             raise ValueError(
                 f"This study type is currently disabled in production. "
                 f"Status: {flag_info.get('status', 'unknown')}. "
                 f"Description: {flag_info.get('description', 'No description')}"
             )
 
-        if payload.study_type in _TYPES_REQUIRING_SYSTEM and payload.system is None:
+        # 3. System model requirement
+        if canonical_type in _TYPES_REQUIRING_SYSTEM and payload.system is None:
             raise ValueError(
                 "System configuration is required. Please provide a valid power system model."
             )
 
+        # 4. Pre-flight physics checks
         if payload.system is not None:
             pf_result = self._pre_flight_check(payload.system.model_dump())
             if pf_result is not None:
@@ -523,20 +557,11 @@ class StudyExecutor:
         if not payload.etap_project_path:
             raise ValueError("etap_project_path is required when use_etap=True")
 
-        from etap_integration.etap_provider import ETAPStudyType, get_etap_provider
+        from etap_integration.etap_provider import get_etap_provider
 
         provider = get_etap_provider()
 
-        mapping = {
-            "etap_load_flow": ETAPStudyType.LOAD_FLOW,
-            "etap_short_circuit": ETAPStudyType.SHORT_CIRCUIT,
-            "etap_arc_flash": ETAPStudyType.ARC_FLASH,
-            "etap_harmonic_analysis": ETAPStudyType.HARMONIC_ANALYSIS,
-            "etap_optimal_power_flow": ETAPStudyType.OPTIMAL_POWER_FLOW,
-            "etap_motor_starting": ETAPStudyType.MOTOR_STARTING,
-            "etap_protection_coordination": ETAPStudyType.PROTECTION_COORDINATION,
-        }
-        etap_study = mapping.get(payload.study_type)
+        etap_study = _ETAP_STUDY_TYPE_MAP.get(payload.study_type)
         if etap_study is None:
             raise ValueError(f"No ETAP mapping for study type: {payload.study_type}")
 

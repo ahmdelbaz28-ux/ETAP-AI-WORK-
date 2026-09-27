@@ -28,7 +28,13 @@ from core_model.specs import (
     TransformerSpec,
 )
 from core_model.system import System
-from services.study_executor import _NATIVE_ALIASES, _TYPES_REQUIRING_SYSTEM, StudyExecutor
+from etap_integration.etap_provider import ETAPStudyType
+from services.study_executor import (
+    _ETAP_STUDY_TYPE_MAP,
+    _NATIVE_ALIASES,
+    _TYPES_REQUIRING_SYSTEM,
+    StudyExecutor,
+)
 
 
 @pytest.fixture(name="executor")
@@ -152,6 +158,58 @@ class TestRequestValidation:
         )
         executor._validate_request(req)  # Should not raise
 
+    def test_native_load_flow_accepted(self, executor, sample_spec):
+        req = StudyRequest(study_type="load_flow", system=sample_spec)
+        executor._validate_request(req)  # Should not raise
+
+    def test_native_fault_alias_accepted(self, executor, sample_spec):
+        req = StudyRequest(study_type="fault", system=sample_spec)
+        executor._validate_request(req)  # Should not raise
+
+    def test_use_etap_etap_load_flow_accepted(self, executor):
+        req = StudyRequest(
+            study_type="etap_load_flow",
+            use_etap=True,
+            etap_project_path="dummy.oti",
+        )
+        executor._validate_request(req)  # Should not raise
+
+    def test_use_etap_etap_short_circuit_accepted(self, executor):
+        req = StudyRequest(
+            study_type="etap_short_circuit",
+            use_etap=True,
+            etap_project_path="dummy.oti",
+        )
+        executor._validate_request(req)  # Should not raise
+
+    def test_invalid_etap_mapping_rejected(self, executor):
+        req = StudyRequest.model_construct(study_type="etap_nonexistent", use_etap=True)
+        with pytest.raises(ValueError, match="Unknown or unsupported ETAP study type"):
+            executor._validate_request(req)
+
+    def test_unknown_native_type_rejected(self, executor):
+        req = StudyRequest.model_construct(study_type="nonexistent_physics_study", use_etap=False)
+        with pytest.raises(ValueError, match="Unknown or unsupported native study type"):
+            executor._validate_request(req)
+
+    def test_unregistered_ahmed_etap_rejected(self, executor):
+        req = StudyRequest.model_construct(study_type="ahmed_etap", use_etap=False)
+        with pytest.raises(ValueError, match="Unknown or unsupported native study type"):
+            executor._validate_request(req)
+
+    def test_disabled_feature_flag_path(self, executor, monkeypatch):
+        from api.feature_flags import FEATURE_FLAGS
+
+        monkeypatch.setitem(
+            FEATURE_FLAGS,
+            "load_flow",
+            {"enabled": False, "status": "disabled", "description": "Disabled in test"},
+        )
+        monkeypatch.setattr("services.study_executor.is_feature_enabled", lambda x: False)
+        req = StudyRequest.model_construct(study_type="load_flow")
+        with pytest.raises(ValueError, match="This study type is currently disabled in production"):
+            executor._validate_request(req)
+
 
 class TestExecutionPipeline:
     @pytest.mark.asyncio
@@ -224,6 +282,112 @@ class TestExecutionPipeline:
         )
         with pytest.raises(ValueError, match="'question' field is required"):
             await executor.execute(req)
+
+    @pytest.mark.asyncio
+    async def test_execute_fault_alias_end_to_end(self, executor, sample_spec):
+        req = StudyRequest(
+            study_type="fault",
+            system=sample_spec,
+            parameters={"bus_id": 2, "fault_type": "three_phase"},
+        )
+        res = await executor.execute(req)
+        assert isinstance(res, StudyResult)
+        assert res.success is True
+        assert res.study_type == "fault"
+        ik = res.data.get("fault_current_ka") or res.data.get("fault_current_magnitude")
+        assert ik is not None
+        assert 0.1 <= ik <= 500.0
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        ("alias_input", "canonical_expected"),
+        [
+            ("fault", "short_circuit"),
+            ("coordination", "protection_coordination"),
+            ("harmonic", "harmonic_analysis"),
+        ],
+    )
+    async def test_native_alias_resolves_to_canonical_dispatch(
+        self, executor, sample_spec, monkeypatch, alias_input, canonical_expected
+    ):
+        routed_targets = []
+
+        def mock_dispatch_native(registration, system, parameters):
+            routed_targets.append(registration.handler)
+            return {"handler": registration.handler, "success": True}
+
+        def mock_dispatch_agent(canonical, parameters):
+            routed_targets.append(canonical)
+            return {"agent": canonical, "success": True}
+
+        monkeypatch.setattr(executor, "_dispatch_native", mock_dispatch_native)
+        monkeypatch.setattr(executor, "_dispatch_agent", mock_dispatch_agent)
+
+        req = StudyRequest.model_construct(
+            study_type=alias_input,
+            system=sample_spec,
+            parameters={"bus_id": 1, "upstream_relay_id": 1, "downstream_relay_id": 2, "fault_currents": [1.0]},
+        )
+        res = await executor.execute(req)
+        assert res.success is True
+        from engine.dispatch import STUDY_DISPATCH
+
+        expected_handler = STUDY_DISPATCH[canonical_expected].handler
+        if STUDY_DISPATCH[canonical_expected].handler_type == "native":
+            assert routed_targets == [expected_handler]
+        else:
+            assert routed_targets == [canonical_expected]
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        ("etap_study_name", "expected_enum"),
+        [
+            ("etap_load_flow", ETAPStudyType.LOAD_FLOW),
+            ("etap_short_circuit", ETAPStudyType.SHORT_CIRCUIT),
+            ("etap_arc_flash", ETAPStudyType.ARC_FLASH),
+            ("etap_harmonic_analysis", ETAPStudyType.HARMONIC_ANALYSIS),
+            ("etap_optimal_power_flow", ETAPStudyType.OPTIMAL_POWER_FLOW),
+            ("etap_motor_starting", ETAPStudyType.MOTOR_STARTING),
+            ("etap_protection_coordination", ETAPStudyType.PROTECTION_COORDINATION),
+        ],
+    )
+    async def test_all_supported_etap_mappings_dispatch_to_provider(
+        self, executor, monkeypatch, etap_study_name, expected_enum
+    ):
+        recorded_calls = []
+
+        class MockETAPProvider:
+            def execute_study(self, project_path, study_type):
+                recorded_calls.append((project_path, study_type))
+                return type(
+                    "MockResult",
+                    (),
+                    {
+                        "success": True,
+                        "data": {"executed": study_type.value},
+                        "warnings": [],
+                        "errors": [],
+                    },
+                )()
+
+        monkeypatch.setattr(
+            "etap_integration.etap_provider.get_etap_provider",
+            lambda: MockETAPProvider(),
+        )
+
+        req = StudyRequest(
+            study_type=etap_study_name,
+            use_etap=True,
+            etap_project_path="C:/projects/substation.oti",
+        )
+        res = await executor.execute(req)
+        assert res.success is True
+        assert res.provider == "etap"
+        assert len(recorded_calls) == 1
+        path, dispatched_enum = recorded_calls[0]
+        assert path == "C:/projects/substation.oti"
+        assert dispatched_enum == expected_enum
+        assert res.data["executed"] == expected_enum.value
 
 
 class TestJsonSerialization:
