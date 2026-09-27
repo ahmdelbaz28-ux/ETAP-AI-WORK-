@@ -145,6 +145,9 @@ class PSOCoordinationEngine:
             initial_guess=np.array([getattr(upstream_relay, "TMS", getattr(upstream_relay, "tms", 0.5))]),
         )
 
+        if not res.converged or res.best_fitness >= 1e5:
+            return None
+
         best_tms = float(res.best_position[0])
 
         # Verification check
@@ -228,12 +231,17 @@ class PSOCoordinationEngine:
             if m < target_margin - 1e-4:
                 is_coordinated = False
 
+        feasible = bool(res.best_fitness < 1e5)
+        coordinated = bool(is_coordinated and feasible and res.converged)
+
         return {
             "optimal_tms": opt_tms,
             "optimal_pickup": opt_pickup,
-            "coordinated": is_coordinated,
-            "min_margin_sec": float(min(margins)),
-            "avg_margin_sec": float(np.mean(margins)),
+            "coordinated": coordinated,
+            "converged": bool(res.converged),
+            "feasible": feasible,
+            "min_margin_sec": float(min(margins)) if margins else 0.0,
+            "avg_margin_sec": float(np.mean(margins)) if margins else 0.0,
             "n_evaluations": res.n_evaluations,
             "convergence_history": res.convergence_history,
         }

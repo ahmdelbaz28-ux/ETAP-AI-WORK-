@@ -45,6 +45,28 @@ def test_capacitor_placement_loss_reduction():
     assert result.optimized_losses_mw < result.initial_losses_mw
     assert result.min_voltage_after >= result.min_voltage_before
     assert len(result.optimal_allocations) > 0
+    assert isinstance(result.converged, bool)
+
+
+def test_capacitor_placement_power_flow_divergence_flag():
+    """Verify that _solve_power_flow detects and flags non-convergence."""
+    # Disconnected or extremely high impedance bus with absurd load
+    ybus = np.array([
+        [0.001 - 0.002j, -0.001 + 0.002j],
+        [-0.001 + 0.002j, 0.001 - 0.002j],
+    ], dtype=complex)
+    bus_ids = [1, 2]
+    extreme_load = {2: complex(50000.0, 50000.0)}
+
+    opt = OptimalPlacementPSO(
+        ybus=ybus,
+        bus_ids=bus_ids,
+        load_data=extreme_load,
+        base_mva=100.0,
+    )
+
+    _, _, converged = opt._solve_power_flow({})
+    assert converged is False
 
 
 def test_harmonic_filter_ieee_519_compliance():
@@ -60,6 +82,8 @@ def test_harmonic_filter_ieee_519_compliance():
 
     assert res.thd_v_after_pct < res.thd_v_before_pct
     assert res.ieee_519_compliant is True
+    assert isinstance(res.converged, bool)
+    assert res.converged is True
     assert res.thd_v_after_pct <= 5.0
     for h, v_pct in res.individual_harmonics_after_pct.items():
         assert v_pct <= 3.0, f"Harmonic {h} voltage {v_pct}% exceeds 3.0%"
@@ -68,3 +92,21 @@ def test_harmonic_filter_ieee_519_compliance():
     assert res.inductance_mh > 0.0
     assert res.capacitance_uf > 0.0
     assert 20.0 <= res.quality_factor <= 100.0
+
+
+def test_harmonic_filter_non_compliance_detection():
+    """When massive harmonic currents are injected and the filter is undersized, ieee_519_compliant must be False."""
+    opt = HarmonicFilterOptimizer(
+        nominal_voltage_kv=13.8,
+        system_frequency_hz=60.0,
+        short_circuit_mva=50.0,  # Weak grid
+        harmonic_currents_a={5: 250.0, 7: 180.0, 11: 120.0, 13: 90.0},  # Massive distortion
+        seed=42,
+    )
+
+    # Undersized filter
+    res = opt.design_filter_for_harmonic(target_harmonic=5, target_q_kvar=50.0)
+
+    assert isinstance(res.converged, bool)
+    assert res.ieee_519_compliant is False
+    assert res.thd_v_after_pct > 5.0

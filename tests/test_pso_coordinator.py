@@ -68,6 +68,16 @@ def test_suggest_tms_adjustment_reaches_target_margin(relay_pair):
         assert margin >= target_margin - 1e-4, f"Violation at fault {If}: margin {margin} < {target_margin}"
 
 
+def test_suggest_tms_adjustment_uncoordinateable_pair(relay_pair):
+    """When target margin cannot physically be reached within TMS bounds, suggest_tms_adjustment must return None."""
+    r_up, r_down, faults = relay_pair
+    engine = PSOCoordinationEngine(seed=42)
+
+    # Impossible target margin of 10.0 seconds cannot be satisfied within tms_search_max=3.0
+    best_tms = engine.suggest_tms_adjustment(r_up, r_down, faults, target_margin=10.0)
+    assert best_tms is None
+
+
 def test_optimize_coordination_2d(relay_pair):
     r_up, r_down, faults = relay_pair
     engine = PSOCoordinationEngine(seed=42)
@@ -75,7 +85,21 @@ def test_optimize_coordination_2d(relay_pair):
     res_2d = engine.optimize_coordination_2d(r_up, r_down, faults, target_margin=0.2)
 
     assert res_2d["coordinated"] is True
+    assert res_2d["converged"] is True
+    assert res_2d["feasible"] is True
     assert res_2d["optimal_tms"] > 0.05
     assert res_2d["optimal_pickup"] > 0.2
     assert res_2d["min_margin_sec"] >= 0.1999
     assert res_2d["n_evaluations"] > 0
+
+
+def test_optimize_coordination_2d_uncoordinateable(relay_pair):
+    """When coordination is impossible, optimize_coordination_2d must report feasible=False and coordinated=False."""
+    r_up, r_down, faults = relay_pair
+    engine = PSOCoordinationEngine(seed=42)
+
+    res_2d = engine.optimize_coordination_2d(r_up, r_down, faults, target_margin=15.0)
+
+    assert res_2d["feasible"] is False
+    assert res_2d["coordinated"] is False
+    assert isinstance(res_2d["converged"], bool)
