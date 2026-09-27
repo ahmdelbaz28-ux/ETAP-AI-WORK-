@@ -8,6 +8,7 @@ export interface AgentMeta {
   name: string;
   description: string;
   capabilities: string[];
+  promptHandle?: string;
 }
 
 const CORE_COORDINATOR_CAPABILITIES = [
@@ -56,30 +57,35 @@ export const AGENT_REGISTRY: Readonly<Record<string, AgentMeta>> = Object.freeze
     name: 'Power System Coordinator Agent',
     description: 'Orchestrates multi-study power system engineering workflows.',
     capabilities: [...CORE_COORDINATOR_CAPABILITIES],
+    promptHandle: 'power_system_coordinator_agent',
   },
   'load-flow-agent': {
     id: 'load-flow-agent',
     name: 'Load Flow Analysis Agent',
     description: 'Performs AC load flow analysis using Newton-Raphson.',
     capabilities: ['load_flow', 'voltage_profile', 'power_balance'],
+    promptHandle: 'load_flow_agent',
   },
   'short-circuit-agent': {
     id: 'short-circuit-agent',
     name: 'Short Circuit Analysis Agent',
     description: 'Calculates fault currents per IEC 60909.',
     capabilities: ['short_circuit', 'fault_analysis', 'iec_60909'],
+    promptHandle: 'short_circuit_agent',
   },
   'arcflash-agent': {
     id: 'arcflash-agent',
     name: 'Arc Flash Analysis Agent',
     description: 'Computes incident energy per IEEE 1584-2018.',
     capabilities: ['arc_flash', 'incident_energy', 'ppe_level'],
+    promptHandle: 'arcflash_agent',
   },
   'etap-engineer-agent': {
     id: 'etap-engineer-agent',
     name: 'ETAP Engineering Agent',
     description: 'Interfaces with ETAP for project automation.',
     capabilities: ['etap_automation', 'project_management', 'study_execution'],
+    promptHandle: 'etap_engineer_agent',
   },
   'etap-expert-agent': {
     id: 'etap-expert-agent',
@@ -87,30 +93,35 @@ export const AGENT_REGISTRY: Readonly<Record<string, AgentMeta>> = Object.freeze
     description:
       'ETAP Expert skill — 6-step workflow (PARSE → SEARCH → VALIDATE → SIMULATE → FORMAT → QA) with Format A/B/C/D responses. Knowledge base: skills/etap-expert.md (4,400+ lines). Covers ALL ETAP modules: Load Flow, Short Circuit, Arc Flash, Protection, ADMS, GIS, Renewables, Transients, Industrial.',
     capabilities: [...EXPERT_MODULE_CAPABILITIES],
+    promptHandle: 'etap_expert_agent',
   },
   'protection-agent': {
     id: 'protection-agent',
     name: 'Protection Coordination Agent',
     description: 'Validates relay coordination per IEC 60255.',
     capabilities: ['protection_coordination', 'relay_settings', 'tcc_curves'],
+    promptHandle: 'protection_agent',
   },
   'motorstarting-agent': {
     id: 'motorstarting-agent',
     name: 'Motor Starting Agent',
     description: 'Analyzes motor starting voltage dip and acceleration.',
     capabilities: ['motor_starting', 'voltage_dip', 'acceleration_time'],
+    promptHandle: 'motor_starting_agent',
   },
   'goal-planner-agent': {
     id: 'goal-planner-agent',
     name: 'Goal Planner Agent',
     description: 'Breaks down engineering goals into actionable tasks.',
     capabilities: ['task_planning', 'priority_estimation', 'workflow_design'],
+    promptHandle: 'goal_planner_agent',
   },
   'weather-agent': {
     id: 'weather-agent',
     name: 'Weather Agent',
     description: 'Retrieves weather data for engineering planning.',
     capabilities: ['weather_forecast', 'temperature', 'wind_speed'],
+    promptHandle: 'weather_agent',
   },
   'code-guard-agent': {
     id: 'code-guard-agent',
@@ -124,6 +135,7 @@ export const AGENT_REGISTRY: Readonly<Record<string, AgentMeta>> = Object.freeze
       'docs_accuracy',
       'clean_code',
     ],
+    promptHandle: 'code_guard_agent',
   },
 });
 
@@ -133,4 +145,9 @@ export function getAgent(id: string): AgentMeta | undefined {
 
 export function listAgentIds(): string[] {
   return Object.keys(AGENT_REGISTRY);
+}
+
+export function getAgentPromptHandle(id: string): string {
+  const agent = getAgent(id);
+  return agent?.promptHandle || id.replace(/-/g, '_');
 }
