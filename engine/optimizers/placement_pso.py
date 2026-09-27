@@ -81,7 +81,7 @@ class OptimalPlacementPSO:
             patience=15,
         )
 
-    def _solve_power_flow(self, q_injections_mvar: Dict[int, float]) -> Tuple[np.ndarray, float]:
+    def _solve_power_flow(self, q_injections_mvar: Dict[int, float]) -> Tuple[np.ndarray, float, bool]:
         """Solve power flow for given reactive power injections (capacitors)."""
         n = self.n_buses
         V = np.ones(n, dtype=complex)
@@ -103,36 +103,32 @@ class OptimalPlacementPSO:
 
         pq_indices = [i for i in range(n) if i != 0]
 
-        for _ in range(25):
+        converged = False
+        for _ in range(35):
+            for i in pq_indices:
+                s_inj = complex(p_inj[i], q_inj[i])
+                sum_yv = sum(self.Ybus[i, j] * V[j] for j in range(n) if j != i)
+                v_new = (np.conj(s_inj / (V[i] + 1e-12)) - sum_yv) / self.Ybus[i, i]
+                V[i] = V[i] + 1.2 * (v_new - V[i])
+                v_abs = abs(V[i])
+                if v_abs < 0.5 or v_abs > 1.5:
+                    V[i] = (V[i] / (v_abs + 1e-12)) * np.clip(v_abs, 0.5, 1.5)
+
             I = self.Ybus.dot(V)
             S_calc = V * np.conj(I)
-            P_calc = S_calc.real
-            Q_calc = S_calc.imag
-
-            d_p = p_inj - P_calc
-            d_q = q_inj - Q_calc
+            d_p = p_inj - S_calc.real
+            d_q = q_inj - S_calc.imag
 
             mismatches = [d_p[i] for i in pq_indices] + [d_q[i] for i in pq_indices]
             if not mismatches or float(np.max(np.abs(mismatches))) < 1e-4:
+                converged = True
                 break
-
-            angles = np.angle(V)
-            v_mag = np.abs(V)
-
-            for i in pq_indices:
-                B_ii = float(self.Ybus[i, i].imag)
-                if abs(B_ii) > 1e-4:
-                    angles[i] += float(d_p[i]) / (-B_ii * (v_mag[i] ** 2 + 1e-4))
-                    v_mag[i] += float(d_q[i]) / (-B_ii * (v_mag[i] + 1e-4))
-                    v_mag[i] = np.clip(v_mag[i], 0.8, 1.2)
-
-            V = v_mag * np.exp(1j * angles)
 
         I_final = self.Ybus.dot(V)
         losses_pu = max(0.0, float(np.sum((V * np.conj(I_final)).real)))
         losses_mw = losses_pu * self.base_mva
 
-        return V, losses_mw
+        return V, losses_mw, converged
 
     def optimize_capacitor_placement(
         self,
@@ -142,7 +138,7 @@ class OptimalPlacementPSO:
     ) -> PlacementResult:
         """Run PSO to find optimal shunt capacitor sizes and locations."""
         # 1. Base case evaluation (zero compensation)
-        v_base, loss_base = self._solve_power_flow({})
+        v_base, loss_base, base_flow_converged = self._solve_power_flow({})
         v_base_dict = {bid: float(abs(v_base[self.bus_index[bid]])) for bid in self.bus_ids}
 
         # Decision variables: Q_c for each candidate bus [0, max_per_bus_q_mvar]
@@ -157,7 +153,9 @@ class OptimalPlacementPSO:
             if tot_q > self.max_total_q_mvar:
                 penalty += 1000.0 * (tot_q - self.max_total_q_mvar) ** 2
 
-            V, losses = self._solve_power_flow(q_dict)
+            V, losses, flow_converged = self._solve_power_flow(q_dict)
+            if not flow_converged:
+                penalty += 2000.0
 
             # Voltage deviations from 1.0 pu and bounds [0.95, 1.05]
             v_dev = 0.0
@@ -187,13 +185,15 @@ class OptimalPlacementPSO:
         # Threshold out negligible capacitors (< 0.05 MVAR)
         best_q = {bid: round(val, 3) for bid, val in best_q_raw.items() if val >= 0.05}
 
-        v_opt, loss_opt = self._solve_power_flow(best_q)
+        v_opt, loss_opt, opt_flow_converged = self._solve_power_flow(best_q)
         v_opt_dict = {bid: float(abs(v_opt[self.bus_index[bid]])) for bid in self.bus_ids}
 
         loss_reduction = max(0.0, loss_base - loss_opt)
         reduction_pct = (loss_reduction / loss_base * 100.0) if loss_base > 0 else 0.0
         tot_kvar = sum(best_q.values()) * 1000.0
         invest_cost = tot_kvar * self.cost_per_kvar
+
+        overall_converged = bool(res.converged and base_flow_converged and opt_flow_converged)
 
         return PlacementResult(
             optimal_allocations=best_q,
@@ -206,5 +206,5 @@ class OptimalPlacementPSO:
             min_voltage_after=round(min(v_opt_dict.values()), 4),
             estimated_investment_cost=round(invest_cost, 2),
             n_evaluations=res.n_evaluations,
-            converged=res.converged,
+            converged=overall_converged,
         )
