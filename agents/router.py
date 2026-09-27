@@ -31,6 +31,10 @@ STUDY_PRIORITY: dict[StudyType, int] = {
     StudyType.RENEWABLE_INTEGRATION: 11,
     StudyType.BATTERY_STORAGE: 12,
     StudyType.SCADA: 13,
+    StudyType.DIGITAL_TWIN: 14,
+    StudyType.GENERATIVE_DESIGN: 15,
+    StudyType.ETAP_EXPERT: 16,
+    StudyType.ETAP_GUI: 17,
 }
 
 # Canonical keyword dictionary for heuristic goal analysis
@@ -48,6 +52,10 @@ KEYWORD_RULES: list[tuple[list[str], StudyType]] = [
     (["solar", "wind", "renewable", "pv"], StudyType.RENEWABLE_INTEGRATION),
     (["battery", "bess", "storage"], StudyType.BATTERY_STORAGE),
     (["scada", "telemetry", "61850"], StudyType.SCADA),
+    (["digital twin", "twin model", "real-time twin", "state estimation twin"], StudyType.DIGITAL_TWIN),
+    (["etap expert", "expert advice", "etap rule", "format a", "format b"], StudyType.ETAP_EXPERT),
+    (["etap gui", "gui guide", "one-line diagram step", "user interface guide"], StudyType.ETAP_GUI),
+    (["generative design", "substation design", "sld synthesis", "topology synthesis"], StudyType.GENERATIVE_DESIGN),
 ]
 
 DEFAULT_STUDIES: list[StudyType] = [
