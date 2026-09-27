@@ -4,8 +4,9 @@
 import type { Env, ExecutionContext } from '../core/types.js';
 import { type ModelMessage } from 'ai';
 import { jsonResponse, errorResponse, corsHeaders, getIdempotencyKey, extractClientIp } from '../utils/response.js';
-import { getAgent, AGENT_REGISTRY } from '../core/agents.js';
+import { getAgent, AGENT_REGISTRY, getAgentPromptHandle } from '../core/agents.js';
 import { generateWithFailover, hasAnyProviderConfigured } from '../core/providers.js';
+import { getSystemPrompt } from '../mastra/prompts.js';
 import { recordAudit } from '../utils/audit.js';
 import { bumpApiMetric, bumpPerKey, bumpPerRoute } from '../utils/metrics.js';
 import { getCachedResponse, cacheResponse } from '../core/idempotency.js';
@@ -145,6 +146,29 @@ async function parseChatBody(rc: ChatContext): Promise<Array<{ role: string; con
   return messages;
 }
 
+/**
+ * Engineering Grounding Directive to eliminate ungrounded hallucinations
+ * during direct-AI chat fallback when no calculation engine is connected.
+ */
+export const ENGINEERING_GROUNDING_DIRECTIVE = `
+[ENGINEERING GROUNDING & CONVERSATIONAL CONSTRAINTS]
+CRITICAL SAFETY DIRECTIVE:
+1. NO ENGINE CONNECTED: You are currently operating in conversational direct-AI fallback mode without an active execution engine (PowerSystemEngine/ETAP).
+2. ZERO HALLUCINATION & NO GUESSING: You MUST NOT invent, hallucinate, or fabricate numerical simulation results, bus voltages, fault currents, incident energy values, or protection trip times.
+3. PARAMETER CLARIFICATION: If the user requests a calculation or quantitative study, you must clearly identify the required engineering parameters per the referenced standards, state the missing inputs, and outline the exact calculation methodology.
+4. STANDARDS COMPLIANCE: Ground all qualitative technical guidance, formulas, and recommendations strictly in the international standards referenced in your system prompt.
+`.trim();
+
+/**
+ * Assemble a grounded system prompt for an agent, combining its canonical
+ * prompt with the Engineering Grounding Directive to prevent hallucination.
+ */
+export async function getGroundedSystemPrompt(agentId: string): Promise<string> {
+  const handle = getAgentPromptHandle(agentId);
+  const basePrompt = await getSystemPrompt(handle);
+  return `${basePrompt}\n\n${ENGINEERING_GROUNDING_DIRECTIVE}`;
+}
+
 /** Run the direct-AI fallback. Always returns a Response (200 on success,
  *  502 on AI error). */
 async function runDirectAi(
@@ -154,8 +178,7 @@ async function runDirectAi(
   if (!hasAnyProviderConfigured(rc.env)) {
     return errorResponse(503, 'No AI provider is configured', rc.traceId, rc.cors);
   }
-  const agent = getAgent(rc.agentId)!;
-  const systemPrompt = `You are the ${agent.name}. ${agent.description}.\nRespond with professional engineering analysis. Be concise, accurate, and cite relevant standards when applicable.`;
+  const systemPrompt = await getGroundedSystemPrompt(rc.agentId);
   const mappedMessages = messages.map((m) => ({
     role: (CHAT_VALID_ROLES.has(m.role) ? m.role : 'user') as 'system' | 'user' | 'assistant' | 'tool',
     content: typeof m.content === 'string' ? m.content : JSON.stringify(m.content),
@@ -165,14 +188,25 @@ async function runDirectAi(
     const result = await generateWithFailover(rc.env, systemPrompt, mappedMessages);
     bumpApiMetric('agentChats');
     const responseBody = JSON.stringify({
-      agentId: rc.agentId, text: result.text, provider: result.provider, model: result.model,
-      latencyMs: result.latencyMs, promptTokens: result.promptTokens,
-      completionTokens: result.completionTokens, finishReason: result.finishReason, traceId: rc.traceId,
+      agentId: rc.agentId,
+      text: result.text,
+      provider: result.provider,
+      model: result.model,
+      executionMode: 'grounded_direct_ai_fallback',
+      latencyMs: result.latencyMs,
+      promptTokens: result.promptTokens,
+      completionTokens: result.completionTokens,
+      finishReason: result.finishReason,
+      traceId: rc.traceId,
     });
     recordAudit({
       ...chatAuditFields(rc, 200, 'AGENT_CHAT'),
       latencyMs: result.latencyMs,
-      details: { agentId: rc.agentId, provider: result.provider },
+      details: {
+        agentId: rc.agentId,
+        provider: result.provider,
+        executionMode: 'grounded_direct_ai_fallback',
+      },
     });
     if (rc.idempotencyKey) {
       rc.ctx.waitUntil(cacheResponse(rc.env, rc.apiKeyId, rc.route, rc.idempotencyKey, 200, responseBody, 'application/json; charset=utf-8'));
