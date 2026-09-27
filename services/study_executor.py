@@ -461,7 +461,8 @@ class StudyExecutor:
 
         if study_type == "ahmed_etap_orchestration" or study_type == "ahmed_etap":
             from agents.ahmed_etap_orchestrator import AhmedETAPSkillAgent
-            from agents.models import EngineeringTask, StudyType, get_orchestrator
+            from agents.models import EngineeringTask, StudyType
+            from agents.orchestrator import get_orchestrator
 
             agent = AhmedETAPSkillAgent(orchestrator=get_orchestrator())
             inner_study = str(parameters.get("study_type", "load_flow"))
