@@ -186,3 +186,12 @@ class ContextualBanditRouter:
             "feature_dim": self.d,
             "arm_pulls": {arm.value: cnt for arm, cnt in self.arm_pulls.items()},
         }
+
+    def parse_user_goal(self, goal: Any) -> List[StudyType]:
+        """Parse user goal into study types (router interface parity)."""
+        return self.route(goal).study_types
+
+    def determine_execution_order(self, study_types: List[StudyType]) -> List[StudyType]:
+        """Determine dependency execution order using fallback router."""
+        return self.fallback_router.determine_execution_order(study_types)
+

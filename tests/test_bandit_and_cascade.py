@@ -79,3 +79,73 @@ def test_model_cascade_validation_and_escalation():
     metrics = cascade.metrics
     assert metrics["total_requests"] == 1
     assert metrics["escalated_requests"] == 1
+
+
+def test_router_factory_default_and_bandit():
+    from agents.router import GoalRouter, create_router
+
+    # Default off
+    r_default = create_router(use_bandit=False)
+    assert isinstance(r_default, GoalRouter)
+    assert not hasattr(r_default, "update_reward")
+
+    # Explicit on
+    r_bandit = create_router(use_bandit=True)
+    assert isinstance(r_bandit, ContextualBanditRouter)
+    assert hasattr(r_bandit, "update_reward")
+
+    # Interface parity
+    studies = r_bandit.parse_user_goal("Run load flow")
+    assert StudyType.LOAD_FLOW in studies
+    ordered = r_bandit.determine_execution_order([StudyType.SHORT_CIRCUIT, StudyType.LOAD_FLOW])
+    assert ordered[0] == StudyType.LOAD_FLOW
+
+
+def test_orchestrator_bandit_router_flag_and_injection():
+    from agents.orchestrator import ChiefEngineeringOrchestrator
+    from agents.router import GoalRouter
+
+    # Default off (fail-closed)
+    orch_default = ChiefEngineeringOrchestrator(enable_bandit_router=False)
+    assert isinstance(orch_default.router, GoalRouter)
+
+    # Bandit enabled
+    orch_bandit = ChiefEngineeringOrchestrator(enable_bandit_router=True)
+    assert isinstance(orch_bandit.router, ContextualBanditRouter)
+
+    # Injected router
+    custom_router = GoalRouter()
+    orch_custom = ChiefEngineeringOrchestrator(router=custom_router)
+    assert orch_custom.router is custom_router
+
+
+@pytest.mark.asyncio
+async def test_orchestrator_workflow_telemetry_updates_bandit_reward():
+    from agents.orchestrator import AgentResult, AgentStatus, ChiefEngineeringOrchestrator
+
+    bandit_router = ContextualBanditRouter(alpha=0.3)
+    orch = ChiefEngineeringOrchestrator(router=bandit_router)
+
+    # Mock workflow engine execution to return a completed load flow result
+    async def mock_execute(task):
+        return [
+            AgentResult(
+                agent_name="LoadFlowAgent",
+                study_type=StudyType.LOAD_FLOW,
+                status=AgentStatus.COMPLETED,
+                validation_status=True,
+                data={"converged": True},
+            )
+        ]
+
+    orch._execute_workflow = mock_execute
+
+    initial_pulls = bandit_router.arm_pulls.get(StudyType.LOAD_FLOW, 0)
+    result = await orch.execute_autonomous_workflow(
+        user_goal="Evaluate grid voltage stability and power flow",
+        system_data={"buses": 14},
+    )
+
+    assert result["all_validated"] is True
+    assert bandit_router.arm_pulls[StudyType.LOAD_FLOW] > initial_pulls
+

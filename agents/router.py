@@ -191,3 +191,27 @@ def parse_user_goal(goal: Any) -> list[StudyType]:
 def determine_execution_order(study_types: list[StudyType]) -> list[StudyType]:
     """Module convenience function for determining dependency execution order."""
     return _default_router.determine_execution_order(study_types)
+
+
+def create_router(
+    use_bandit: bool = False,
+    custom_rules: list[tuple[list[str], StudyType]] | None = None,
+    fallback_router: GoalRouter | None = None,
+    **kwargs: Any,
+) -> Any:
+    """Factory to create GoalRouter or ContextualBanditRouter with safe fallback."""
+    base_router = fallback_router or GoalRouter(custom_rules=custom_rules)
+    if not use_bandit:
+        return base_router
+
+    try:
+        from agents.optimizers.bandit_router import ContextualBanditRouter
+
+        return ContextualBanditRouter(fallback_router=base_router, **kwargs)
+    except Exception as exc:  # pragma: no cover
+        logger.warning(
+            "Failed to initialize ContextualBanditRouter (%s); falling back to GoalRouter",
+            exc,
+        )
+        return base_router
+
