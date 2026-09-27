@@ -13,6 +13,7 @@ from collections.abc import Coroutine
 from typing import Any, TypeVar
 
 from core.bootstrap import _get_etap_provider, _get_power_system_engine, _to_jsonable, logger
+from core.exceptions import SpecializedExecutionUnavailableError
 from core.tracing import trace_operation
 
 # ---------------------------------------------------------------------------
@@ -281,7 +282,9 @@ def _run_native_study(  # NOSONAR cognitive complexity; scheduled for refactorin
         fault_currents = parameters.get("fault_currents", [2.0, 5.0, 10.0, 20.0])
         return engine.run_protection_coordination(upstream, downstream, fault_currents)
     else:
-        raise ValueError(f"Unsupported native study type: {study_type}")
+        raise SpecializedExecutionUnavailableError(
+            study_type, f"Unsupported native study type: {study_type}"
+        )
 
 
 @trace_operation("_run_etap_study", attributes={"component": "engineering_service"})
