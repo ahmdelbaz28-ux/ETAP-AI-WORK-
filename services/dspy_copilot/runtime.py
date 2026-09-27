@@ -66,7 +66,11 @@ def is_enabled() -> bool:
 def load_compiled_copilot(path: Path = ARTIFACT_PATH) -> Any | None:
     """Thread-safe singleton loader for compiled DSPy copilot program.
 
-    Returns a ready-to-use dspy module via dspy.load, or None if the artifact is missing/corrupted.
+    Loads the compiled module using the concrete module class:
+        module = DspySldIngestModule()
+        module.load(str(path))
+    Returns None if the artifact is missing, unreadable, or invalid.
+    Never returns an unvalidated object.
     """
     global _COMPILED_LOADED, _COMPILED_MODULE
     with _COMPILED_LOCK:
@@ -77,13 +81,22 @@ def load_compiled_copilot(path: Path = ARTIFACT_PATH) -> Any | None:
             _COMPILED_MODULE = None
             return None
         try:
-            import dspy
-            _COMPILED_MODULE = dspy.load(str(path)) if hasattr(dspy, "load") else None
+            module = DspySldIngestModule()
+            if hasattr(module, "load") and callable(module.load):
+                module.load(str(path))
+                _COMPILED_MODULE = module
+            elif hasattr(module, "prog") and hasattr(module.prog, "load"):
+                module.prog.load(str(path))
+                _COMPILED_MODULE = module
+            else:
+                logger.warning("DspySldIngestModule does not support .load()")
+                _COMPILED_MODULE = None
         except Exception as exc:
             logger.warning("Failed to load compiled DSPy copilot from %s: %s", path, exc)
             _COMPILED_MODULE = None
         _COMPILED_LOADED = True
         return _COMPILED_MODULE
+
 
 
 @retry(
@@ -145,8 +158,36 @@ def run_ingest(sld_notes: str) -> SldIngestOutput:
     except Exception as exc:
         if isinstance(exc, (KeyboardInterrupt, SystemExit)):
             raise
-        logger.error("SLD ingest failed: %s", exc)
-        raise DspyIngestError(f"dspy_ingest_failed: {exc}") from exc
+        logger.error("SLD ingest failed: %s", type(exc).__name__)
+        raise DspyIngestError("dspy_ingest_failed") from exc
+
+
+def _sanitize_study_result_for_llm(result: StudyResult) -> dict[str, Any]:
+    """Extract an allowlisted subset of StudyResult strictly for LLM consumption.
+
+    Allowed keys only:
+    - success
+    - converged
+    - buses
+    - lines
+    - transformers
+    - generators
+    - loads
+    - warnings
+
+    Excludes PII, user identifiers, task_id, trace_id, result_id, pe_stamp, and provider metadata.
+    """
+    raw_data = result.data if isinstance(result.data, dict) else (result.results or {})
+    return {
+        "success": bool(result.success),
+        "converged": bool(raw_data.get("converged", getattr(result, "converged", result.success))),
+        "buses": raw_data.get("buses", {}),
+        "lines": raw_data.get("lines", []),
+        "transformers": raw_data.get("transformers", []),
+        "generators": raw_data.get("generators", []),
+        "loads": raw_data.get("loads", []),
+        "warnings": list(result.warnings or []),
+    }
 
 
 def run_diagnose(
@@ -175,6 +216,28 @@ def run_diagnose(
             citations=[],
         )
 
+    # 0. Check raw input length cap before deep processing
+    try:
+        raw_input_len = len(json.dumps(study_data)) if isinstance(study_data, dict) else len(str(study_data))
+    except Exception:
+        raw_input_len = 0
+    if raw_input_len > MAX_INPUT_CHARS:
+        logger.warning("Diagnostic input exceeded cap: len=%d", raw_input_len)
+        return DiagnosticOutput(
+            summary="Study results payload exceeded maximum allowed size (INPUT_TOO_LARGE).",
+            findings=[
+                DiagnosticFinding(
+                    severity="info",
+                    code="INPUT_TOO_LARGE",
+                    message=f"Payload exceeds {MAX_INPUT_CHARS} character limit",
+                    bus_id=None,
+                    standard_ref=None,
+                )
+            ],
+            recommendations=[],
+            citations=[],
+        )
+
     # 1. First validate StudyResult input
     try:
         if isinstance(study_data, dict):
@@ -186,14 +249,14 @@ def run_diagnose(
     except Exception as exc:
         if isinstance(exc, (KeyboardInterrupt, SystemExit)):
             raise
-        logger.error("Failed validating study_data in run_diagnose: %s", exc)
+        logger.error("Failed validating study_data in run_diagnose: %s", type(exc).__name__)
         return DiagnosticOutput(
             summary="Diagnostic failed due to invalid study_data schema.",
             findings=[
                 DiagnosticFinding(
                     severity="info",
                     code="FALLBACK",
-                    message=f"Validation error: {exc}",
+                    message="Validation error: study_data did not conform to schema",
                     bus_id=None,
                     standard_ref=None,
                 )
@@ -205,26 +268,23 @@ def run_diagnose(
     # 2. Compute physics guard findings deterministically FIRST
     guard_findings = check_physics_guards(system_spec=system_spec, study_data=validated_result)
 
-    # 3. Serialize results to JSON for diagnostic LLM
-    try:
-        results_json = validated_result.model_dump_json()
-    except Exception:
-        results_json = json.dumps(validated_result.data or validated_result.results or {})
+    # 3. Serialize minimized allowlisted payload for diagnostic LLM (STEP 8)
+    sanitized_payload = _sanitize_study_result_for_llm(validated_result)
+    results_json = json.dumps(sanitized_payload)
 
-    # Check input length cap
+    # Check sanitized payload length cap
     if len(results_json) > MAX_INPUT_CHARS:
         logger.warning("Diagnostic input JSON exceeded cap: len=%d", len(results_json))
+        too_large_finding = DiagnosticFinding(
+            severity="info",
+            code="INPUT_TOO_LARGE",
+            message=f"Payload exceeds {MAX_INPUT_CHARS} character limit",
+            bus_id=None,
+            standard_ref=None,
+        )
         return DiagnosticOutput(
             summary="Study results payload exceeded maximum allowed size (INPUT_TOO_LARGE).",
-            findings=guard_findings or [
-                DiagnosticFinding(
-                    severity="info",
-                    code="INPUT_TOO_LARGE",
-                    message="Payload exceeds 50000 character limit",
-                    bus_id=None,
-                    standard_ref=None,
-                )
-            ],
+            findings=[too_large_finding] + list(guard_findings),
             recommendations=[],
             citations=[],
         )
@@ -281,39 +341,22 @@ async def execute_with_copilot(
     """Thin wrapper around StudyExecutor.execute providing pre-ingest and post-diagnostic hooks.
 
     Safety contract:
-    - Pre-hook: Ingests raw SLD notes into SystemSpec PROPOSAL only. Requires
-      human_approved=True to use that proposal in execution — never automatic.
-    - Post-hook: Adds 'dspy_diagnostic' key to StudyResult.data.
+    - Pre-hook: SLD ingestion is PROPOSAL-ONLY. Direct execution of unverified LM-generated
+      topology is strictly blocked. Ingestion output must never be automatically executed.
+    - Post-hook: Adds 'dspy_diagnostic' key to StudyResult.data. Never overwrites physics fields.
     - Blocking LM calls are run through asyncio.to_thread to avoid event-loop blocking.
     """
     if not is_enabled():
         # Copilot disabled: run standard execution
         return await executor.execute(payload, trace_id=trace_id)
 
-    # 1. Pre-hook: SLD ingestion if notes provided
+    # 1. Pre-hook: SLD ingestion is PROPOSAL-ONLY (STEP 2 / Spec-2)
+    # Direct execution of unverified LM-generated topology is strictly blocked.
     if sld_notes:
-        # Run blocking ingest in a thread to avoid blocking the event loop
-        ingest_res = await asyncio.to_thread(run_ingest, sld_notes)
-        if len(ingest_res.buses) == 0:
-            raise DspyIngestError("Cannot execute study: ingested system contains 0 buses")
-
-        # SAFETY: LM ingest output is a PROPOSAL only.
-        # It must NOT be automatically executed without explicit human confirmation.
-        if not human_approved:
-            raise DspyIngestError(
-                "LM-ingested topology requires explicit human approval before execution. "
-                "Set human_approved=True only after a qualified engineer has reviewed "
-                "the SldIngestOutput proposal."
-            )
-
-        # Build SystemSpec only after human approval
-        system_spec = SystemSpec(
-            buses=ingest_res.buses,
-            lines=ingest_res.lines,
-            loads=ingest_res.loads,
-            transformers=ingest_res.transformers,
+        raise DspyIngestError(
+            "LM-ingested topology execution is not supported: SLD ingestion is proposal-only "
+            "and cannot be executed automatically."
         )
-        payload.system = system_spec
 
     # 2. Deterministic Execution
     result = await executor.execute(payload, trace_id=trace_id)
@@ -333,3 +376,4 @@ async def execute_with_copilot(
             result.warnings.append(f"[copilot] {finding.code}: {finding.message}")
 
     return result
+

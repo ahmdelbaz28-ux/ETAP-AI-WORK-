@@ -7,6 +7,7 @@ Encapsulates registration, life-cycle management, and class definitions for all
 
 from __future__ import annotations
 
+import asyncio
 import logging
 from datetime import datetime, timezone
 from typing import Any
@@ -1453,10 +1454,10 @@ class DspyCopilotAgent(BaseAgent):
             study_data = task.parameters.get("study_data") or task.parameters.get("results")
 
             if sld_notes:
-                ingest_res = run_ingest(sld_notes)
+                ingest_res = await asyncio.to_thread(run_ingest, sld_notes)
                 data = ingest_res.model_dump()
             elif study_data:
-                diag_res = run_diagnose(study_data)
+                diag_res = await asyncio.to_thread(run_diagnose, study_data)
                 data = diag_res.model_dump()
             else:
                 self.status = AgentStatus.FAILED
@@ -1479,28 +1480,45 @@ class DspyCopilotAgent(BaseAgent):
             )
         except DspyIngestError as exc:
             self.status = AgentStatus.FAILED
-            logger.warning("DspyCopilotAgent ingest failed: %s", exc)
+            reason_str = str(exc)
+            if "INPUT_TOO_LARGE" in reason_str:
+                stable_reason = "INPUT_TOO_LARGE"
+            elif "flag_disabled" in reason_str:
+                stable_reason = "flag_disabled"
+            else:
+                stable_reason = "dspy_ingest_failed"
+
+            logger.warning(
+                "DspyCopilotAgent ingest failed: exc_class=%s stage=ingest trace_id=%s",
+                type(exc).__name__,
+                task.task_id,
+            )
             return AgentResult(
                 agent_name=self.agent_name,
                 study_type=None,
                 status=AgentStatus.FAILED,
-                data={"reason": str(exc), "stage": "ingest"},
-                validation_errors=[str(exc)],
+                data={"reason": stable_reason, "stage": "ingest"},
+                validation_errors=[stable_reason],
                 execution_time=(datetime.now(UTC) - start_time).total_seconds(),
             )
         except Exception as exc:
             if isinstance(exc, (KeyboardInterrupt, SystemExit)):
                 raise
             self.status = AgentStatus.FAILED
-            logger.error("DspyCopilotAgent execution failed: %s", exc)
+            logger.error(
+                "DspyCopilotAgent execution failed: exc_class=%s trace_id=%s",
+                type(exc).__name__,
+                task.task_id,
+            )
             return AgentResult(
                 agent_name=self.agent_name,
                 study_type=None,
                 status=AgentStatus.FAILED,
-                data={"error": str(exc)},
-                validation_errors=[str(exc)],
+                data={"reason": "dspy_execution_failed"},
+                validation_errors=["dspy_execution_failed"],
                 execution_time=(datetime.now(UTC) - start_time).total_seconds(),
             )
+
 
 
 def get_study_type_mapping() -> dict[str, str]:

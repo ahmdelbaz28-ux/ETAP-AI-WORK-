@@ -33,16 +33,14 @@ def test_forbidden_physics_tokens():
 
 def test_import_runtime_does_not_pull_load_flow_solver():
     """Importing services.dspy_copilot.runtime must never eagerly import load_flow.load_flow."""
-    # Evict modules if present
-    for mod in list(sys.modules.keys()):
-        if mod.startswith("load_flow") or mod.startswith("services.dspy_copilot"):
-            sys.modules.pop(mod, None)
-
-    import services.dspy_copilot.runtime  # noqa: F401
-
-    assert "load_flow.load_flow" not in sys.modules, (
-        "Eagerly imported load_flow.load_flow when loading copilot runtime!"
-    )
+    import subprocess
+    cmd = [
+        sys.executable,
+        "-c",
+        "import services.dspy_copilot.runtime, sys; assert 'load_flow.load_flow' not in sys.modules",
+    ]
+    res = subprocess.run(cmd, capture_output=True, text=True)
+    assert res.returncode == 0, f"Import check failed: {res.stderr}"
 
 
 def test_dspy_not_installed_scenario(monkeypatch):

@@ -224,17 +224,23 @@ MANDATORY_RULES: dict[str, list[dict[str, Any]]] = {
             "severity": "error",
         },
     ],
-    # dspy_copilot_agent: the canonical handle emitted by registry._check_output_schema_guard
-    # for DspyCopilotAgent (line 869: agent_name.lower().replace('agent', '_agent') →
-    # 'DspyCopilotAgent' → 'dspycopilot_agent').
-    # Only validates DiagnosticOutput (summary + findings); ingest is validated by
-    # SldIngestOutput.model_validate in modules.py before reaching this guard.
+    # dspycopilot_agent: canonical handle emitted by registry._check_output_schema_guard
+    # for DspyCopilotAgent (agent_name.lower().replace("agent", "_agent") -> "dspycopilot_agent").
+    # Supports both Ingest (buses, provenance) and Diagnostic (summary, findings) outputs.
+    "dspycopilot_agent": [
+        {
+            "rule_id": "DSPY-M1",
+            "description": "Output must conform to either DiagnosticOutput (summary, findings) or SldIngestOutput (buses, provenance)",
+            "check": "dspy_dual_schema",
+            "severity": "error",
+        },
+    ],
+    # dspy_copilot_agent: alias for dspycopilot_agent
     "dspy_copilot_agent": [
         {
             "rule_id": "DSPY-M1",
-            "description": "Diagnostic output must conform to DiagnosticOutput schema (summary and findings)",
-            "check": "dict_keys_contain",
-            "required_keys": ["summary", "findings"],
+            "description": "Output must conform to either DiagnosticOutput (summary, findings) or SldIngestOutput (buses, provenance)",
+            "check": "dspy_dual_schema",
             "severity": "error",
         },
     ],
@@ -248,20 +254,16 @@ MANDATORY_RULES: dict[str, list[dict[str, Any]]] = {
             "severity": "error",
         },
     ],
-    # dspy_copilot: legacy handle alias (kept for backward compat with earlier callers)
-    # NOTE: this rule only fires on diagnostic output — ingest output lacks summary/findings
-    # and is validated by SldIngestOutput.model_validate, NOT by this guard.
-    # Use 'dspy_copilot_ingest' for ingest-specific schema checks.
+    # dspy_copilot: legacy handle alias
     "dspy_copilot": [
         {
             "rule_id": "DSPY-M3",
-            "description": "Diagnostic output must conform to DiagnosticOutput schema (summary and findings)",
-            "check": "dict_keys_contain",
-            "required_keys": ["summary", "findings"],
+            "description": "Output must conform to either DiagnosticOutput (summary, findings) or SldIngestOutput (buses, provenance)",
+            "check": "dspy_dual_schema",
             "severity": "error",
         },
     ],
-    # dspy_copilot_ingest: ingest-specific guard that validates buses list exists
+    # dspy_copilot_ingest: ingest-specific guard that validates buses list and provenance exist
     "dspy_copilot_ingest": [
         {
             "rule_id": "DSPY-I1",
@@ -279,6 +281,7 @@ MANDATORY_RULES: dict[str, list[dict[str, Any]]] = {
         },
     ],
 }
+
 
 
 def _check_dict_keys_contain(data: dict, required_keys: list[str]) -> list[str]:
@@ -391,6 +394,48 @@ def validate_agent_output(
                     )
                 )
 
+        elif check_type == "dspy_dual_schema":
+            is_ingest = "buses" in data or data.get("output_type") == "ingest"
+            is_diagnostic = "summary" in data or data.get("output_type") == "diagnostic"
+            if is_ingest and not is_diagnostic:
+                missing = [k for k in ("buses", "provenance") if k not in data]
+                if missing:
+                    violations.append(
+                        GuardViolation(
+                            rule_id=rule["rule_id"],
+                            description=f"Ingest output missing required keys: {missing}",
+                            severity=severity,
+                        )
+                    )
+            elif is_diagnostic and not is_ingest:
+                missing = [k for k in ("summary", "findings") if k not in data]
+                if missing:
+                    violations.append(
+                        GuardViolation(
+                            rule_id=rule["rule_id"],
+                            description=f"Diagnostic output missing required keys: {missing}",
+                            severity=severity,
+                        )
+                    )
+            elif is_ingest and is_diagnostic:
+                missing = [k for k in ("buses", "provenance", "summary", "findings") if k not in data]
+                if missing:
+                    violations.append(
+                        GuardViolation(
+                            rule_id=rule["rule_id"],
+                            description=f"Combined output missing required keys: {missing}",
+                            severity=severity,
+                        )
+                    )
+            else:
+                violations.append(
+                    GuardViolation(
+                        rule_id=rule["rule_id"],
+                        description="DSPy output conforms to neither Ingest (requires 'buses', 'provenance') nor Diagnostic (requires 'summary', 'findings')",
+                        severity=severity,
+                    )
+                )
+
         elif check_type == "output_contains_refusal":
             if not _check_output_contains_refusal(output):
                 violations.append(
@@ -400,6 +445,7 @@ def validate_agent_output(
                         severity=severity,
                     )
                 )
+
 
     # Determine pass/fail
     error_violations = [v for v in violations if v.severity == "error"]

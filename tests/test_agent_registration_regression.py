@@ -96,6 +96,9 @@ EXPECTED_REGISTERED_AGENTS = {
     # Design agent — added by commit 7617d30be (generative design scaffold, flag=disabled by default).
     # Listed here so test_no_orphan_agents_in_orchestrator accepts its registration.
     "generative_design",
+    # DSPy copilot agent — added per AGENTS.md §26 (pre/post copilot, flag=disabled by default).
+    # Listed here so test_no_orphan_agents_in_orchestrator accepts its registration.
+    "dspy_copilot",
     # Backward-compat aliases (registered in orchestrator.py lines 1421-1423).
     # These point to the same agent instances as their long-form counterparts:
     #   "harmonic"    → self.agents["harmonic_analysis"]

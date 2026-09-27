@@ -32,6 +32,7 @@ def test_valid_sld_ingest_output():
         "transformers": [],
         "provenance": {
             "buses[0].voltage_magnitude": "user_input",
+            "buses[1].voltage_magnitude": "user_input",
             "buses[1].load_power_real": "user_input",
             "lines[0].r1": "user_input",
             "lines[0].x1": "user_input",
@@ -45,7 +46,7 @@ def test_valid_sld_ingest_output():
     assert out.buses[1].bus_type == "pq"
     assert out.lines[0].r1 == 0.01
     assert out.lines[0].x1 == 0.05
-    assert len(out.provenance) == 4
+    assert len(out.provenance) == 5
 
 
 def test_zero_bus_output_rejected():

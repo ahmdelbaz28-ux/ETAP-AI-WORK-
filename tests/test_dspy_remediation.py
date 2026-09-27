@@ -170,6 +170,52 @@ def test_guard_missing_summary_fails():
     result = validate_agent_output("dspy_copilot_agent", {"findings": []})
     assert not result.passed
 
+
+def test_validation_agent_schema_guard_integration_diagnostic_pass():
+    from agents.orchestrator import AgentResult, AgentStatus, StudyType
+    from agents.registry import ValidationAgent
+    val_agent = ValidationAgent()
+    summary = {"critical_issues": []}
+    result = AgentResult(
+        agent_name="DspyCopilotAgent",
+        study_type=StudyType.LOAD_FLOW,
+        status=AgentStatus.COMPLETED,
+        data={"summary": "Load flow within acceptable bounds.", "findings": []},
+    )
+    val_agent._check_output_schema_guard(result, summary)
+    assert len(summary["critical_issues"]) == 0
+
+
+def test_validation_agent_schema_guard_integration_diagnostic_fail():
+    from agents.orchestrator import AgentResult, AgentStatus, StudyType
+    from agents.registry import ValidationAgent
+    val_agent = ValidationAgent()
+    summary = {"critical_issues": []}
+    result = AgentResult(
+        agent_name="DspyCopilotAgent",
+        study_type=StudyType.LOAD_FLOW,
+        status=AgentStatus.COMPLETED,
+        data={"findings": []},  # missing summary
+    )
+    val_agent._check_output_schema_guard(result, summary)
+    assert any("SCHEMA-GUARD" in issue for issue in summary["critical_issues"])
+
+
+def test_validation_agent_schema_guard_integration_ingest_pass():
+    from agents.orchestrator import AgentResult, AgentStatus, StudyType
+    from agents.registry import ValidationAgent
+    val_agent = ValidationAgent()
+    summary = {"critical_issues": []}
+    result = AgentResult(
+        agent_name="DspyCopilotAgent",
+        study_type=StudyType.LOAD_FLOW,
+        status=AgentStatus.COMPLETED,
+        data={"buses": [{"bus_id": 1}], "provenance": {"buses[0]": "user_input"}},
+    )
+    val_agent._check_output_schema_guard(result, summary)
+    assert len(summary["critical_issues"]) == 0
+
+
 # --- STEP 10: Q-LIMIT model_fields_set ---
 
 def test_q_limit_triggers_for_explicit_q_min():
