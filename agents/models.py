@@ -74,6 +74,10 @@ class AgentResult:
     validation_errors: list[str] = field(default_factory=list)
     execution_time: float = 0.0
     timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
+    # M2.2 wire contract linkage fields (backward-compatible: all optional)
+    run_id: str | None = None
+    plan_id: str | None = None
+    node_id: str | None = None
 
 
 @dataclass
@@ -88,3 +92,6 @@ class EngineeringTask:
     created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     status: AgentStatus = AgentStatus.IDLE
     results: list[AgentResult] = field(default_factory=list)
+    # M2.2 wire contract linkage fields (backward-compatible: all optional)
+    run_id: str | None = None
+    plan_id: str | None = None
