@@ -143,7 +143,8 @@ async def api_ingest_sld(
     )
 
     try:
-        return await asyncio.to_thread(run_ingest, payload.sld_notes)
+        loop = asyncio.get_running_loop()
+        return await loop.run_in_executor(None, run_ingest, payload.sld_notes)
     except Exception as exc:
         if isinstance(exc, DspyIngestError) or type(exc).__name__ == "DspyIngestError":
             reason = str(exc)
@@ -218,7 +219,8 @@ async def api_diagnose_study(
     )
 
     try:
-        return await asyncio.to_thread(run_diagnose, payload.study_data)
+        loop = asyncio.get_running_loop()
+        return await loop.run_in_executor(None, run_diagnose, payload.study_data)
     except Exception:
         logger.exception(
             "dspy_diagnose_error user=%s tenant=%s",

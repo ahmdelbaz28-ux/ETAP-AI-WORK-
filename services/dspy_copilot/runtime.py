@@ -363,7 +363,8 @@ async def execute_with_copilot(
 
     # 3. Post-hook: Diagnostic synthesis (run in thread — LM call is blocking)
     sys_spec = payload.system if isinstance(payload.system, SystemSpec) else None
-    diagnostic = await asyncio.to_thread(run_diagnose, result, sys_spec)
+    loop = asyncio.get_running_loop()
+    diagnostic = await loop.run_in_executor(None, run_diagnose, result, sys_spec)
 
     # Additive key only: never overwrite physics fields
     if not isinstance(result.data, dict):

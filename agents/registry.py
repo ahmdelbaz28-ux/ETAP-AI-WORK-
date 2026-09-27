@@ -1453,11 +1453,12 @@ class DspyCopilotAgent(BaseAgent):
             sld_notes = task.parameters.get("sld_notes")
             study_data = task.parameters.get("study_data") or task.parameters.get("results")
 
+            loop = asyncio.get_running_loop()
             if sld_notes:
-                ingest_res = await asyncio.to_thread(run_ingest, sld_notes)
+                ingest_res = await loop.run_in_executor(None, run_ingest, sld_notes)
                 data = ingest_res.model_dump()
             elif study_data:
-                diag_res = await asyncio.to_thread(run_diagnose, study_data)
+                diag_res = await loop.run_in_executor(None, run_diagnose, study_data)
                 data = diag_res.model_dump()
             else:
                 self.status = AgentStatus.FAILED
