@@ -50,6 +50,8 @@ def test_pso_ac_opf_convergence(sample_3bus_network):
     assert result.objective_value > 0.0
     assert result.total_generation >= result.total_load
     assert result.total_losses >= 0.0
+    assert len(result.constraint_violations) == 0
+    assert "Optimal dispatch found" in result.convergence_status
 
     # Ensure real AC voltages are calculated (not placeholder 1.0 pu)
     for bid in bus_ids:
@@ -63,3 +65,60 @@ def test_pso_ac_opf_convergence(sample_3bus_network):
     # Verify active power balance: P_gen = P_load + P_losses within 1 MW
     imbalance = abs(result.total_generation - (result.total_load + result.total_losses))
     assert imbalance < 1.0
+
+
+def test_pso_ac_opf_branch_limit_violation_triggers_failure(sample_3bus_network):
+    """Enforcing an impossibly small branch limit must cause success=False and record violation."""
+    ybus, bus_ids, costs, gen_buses, load_data = sample_3bus_network
+
+    # Feeding 60 MW load at bus 3 through lines with only 2.0 MVA capacity
+    impossible_branch_limits = {(1, 3): 2.0, (2, 3): 2.0}
+
+    pso_opf = PSOOptimalPowerFlow(
+        ybus=ybus,
+        bus_ids=bus_ids,
+        generator_costs=costs,
+        gen_buses=gen_buses,
+        load_data=load_data,
+        branch_limits=impossible_branch_limits,
+        swarm_size=25,
+        max_iter=30,
+        seed=42,
+    )
+
+    result = pso_opf.solve()
+
+    assert isinstance(result, OPFResult)
+    assert result.success is False
+    assert len(result.constraint_violations) > 0
+    assert any("Branch" in v and "exceeds limit" in v for v in result.constraint_violations)
+    assert "Constraints violated" in result.convergence_status
+
+
+def test_pso_ac_opf_infeasible_generator_q_limits(sample_3bus_network):
+    """Restricting generator Q to near-zero when load demands 20 MVAR reactive power must fail."""
+    ybus, bus_ids, _, gen_buses, load_data = sample_3bus_network
+
+    # Both generators cannot supply any reactive power
+    choked_costs = [
+        GeneratorCost(generator_id=1, cost_coefficients=[100.0, 20.0, 0.05], p_min=10.0, p_max=100.0, q_min=-0.1, q_max=0.1),
+        GeneratorCost(generator_id=2, cost_coefficients=[80.0, 15.0, 0.08], p_min=10.0, p_max=80.0, q_min=-0.1, q_max=0.1),
+    ]
+
+    pso_opf = PSOOptimalPowerFlow(
+        ybus=ybus,
+        bus_ids=bus_ids,
+        generator_costs=choked_costs,
+        gen_buses=gen_buses,
+        load_data=load_data,
+        swarm_size=25,
+        max_iter=30,
+        seed=42,
+    )
+
+    result = pso_opf.solve()
+
+    assert isinstance(result, OPFResult)
+    assert result.success is False
+    assert len(result.constraint_violations) > 0
+    assert any("Generator" in v and "Q" in v for v in result.constraint_violations)

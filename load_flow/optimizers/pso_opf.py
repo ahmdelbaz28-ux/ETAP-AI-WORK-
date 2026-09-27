@@ -190,6 +190,9 @@ class PSOOptimalPowerFlow:
 
             # Strict penalty for active power supply shortfall or extreme surplus
             penalty = 0.0
+            if not converged:
+                penalty += 5000.0
+
             power_imbalance = (tot_gen - (total_load + losses))
             if abs(power_imbalance) > 0.01:
                 penalty += 10000.0 * (power_imbalance ** 2)
@@ -208,6 +211,29 @@ class PSOOptimalPowerFlow:
                 elif v_mag > vmax:
                     penalty += 500.0 * (v_mag - vmax) ** 2
                 v_dev += (v_mag - 1.0) ** 2
+
+            # Branch flow limits penalty: |S_ij| = |v_i * (y_ij* * (v_i* - v_j*))| * S_base
+            for (b1, b2), limit_mva in self.branch_limits.items():
+                if b1 in self.bus_index and b2 in self.bus_index:
+                    i, j = self.bus_index[b1], self.bus_index[b2]
+                    if abs(self.Ybus[i, j]) > 1e-6:
+                        v1, v2 = V[i], V[j]
+                        y_ij = -self.Ybus[i, j]
+                        i_ij = y_ij * (v1 - v2)
+                        s_flow = abs(v1 * np.conj(i_ij)) * self.base_mva
+                        if s_flow > limit_mva:
+                            penalty += 2000.0 * (s_flow - limit_mva) ** 2
+
+            # Generator Q limits penalty
+            for gid in self.gen_ids:
+                gc = self.generator_costs[gid]
+                bid = self.gen_buses.get(gid, self.bus_ids[0])
+                idx = self.bus_index[bid]
+                q_calc = float((V[idx] * np.conj(self.Ybus.dot(V)[idx])).imag) * self.base_mva
+                if q_calc < gc.q_min:
+                    penalty += 500.0 * (gc.q_min - q_calc) ** 2
+                elif q_calc > gc.q_max:
+                    penalty += 500.0 * (q_calc - gc.q_max) ** 2
 
             f_cost = fuel_cost / base_cost
             f_loss = losses / (total_load + 1e-4)
@@ -262,10 +288,41 @@ class PSOOptimalPowerFlow:
             if v_m < vmin or v_m > vmax:
                 violations.append(f"Bus {bid} voltage {v_m:.4f} pu outside [{vmin}, {vmax}]")
 
+        # Evaluate branch limits
+        for (b1, b2), s_ij in branch_flows.items():
+            limit_mva = self.branch_limits.get((b1, b2), self.branch_limits.get((b2, b1)))
+            if limit_mva is not None and abs(s_ij) > limit_mva + 1e-3:
+                violations.append(
+                    f"Branch ({b1}, {b2}) flow {abs(s_ij):.2f} MVA exceeds limit {limit_mva:.2f} MVA"
+                )
+
+        # Evaluate generator Q limits
+        for gid in self.gen_ids:
+            gc = self.generator_costs[gid]
+            q_val = generator_dispatch[gid].imag
+            if q_val < gc.q_min - 1e-3 or q_val > gc.q_max + 1e-3:
+                violations.append(
+                    f"Generator {gid} Q {q_val:.2f} MVAR outside [{gc.q_min}, {gc.q_max}]"
+                )
+
+        success = bool(conv and res.converged and len(violations) == 0)
+
+        if success:
+            convergence_status = "Optimal dispatch found with real AC voltages"
+        elif not conv:
+            convergence_status = "AC power flow failed to converge"
+        elif len(violations) > 0:
+            if any("voltage" in v.lower() for v in violations):
+                convergence_status = f"Voltage constraints violated: {'; '.join(violations)}"
+            else:
+                convergence_status = f"Constraints violated: {'; '.join(violations)}"
+        else:
+            convergence_status = "PSO iteration limit reached without convergence"
+
         total_cost = sum(self.generator_costs[gid].cost(best_p_gen[gid]) for gid in self.gen_ids)
 
         return OPFResult(
-            success=True,
+            success=success,
             objective_value=float(total_cost),
             generator_dispatch=generator_dispatch,
             bus_voltages=bus_voltages,
@@ -276,5 +333,5 @@ class PSOOptimalPowerFlow:
             constraint_violations=violations,
             iterations=res.n_iterations,
             method_used="Particle Swarm Optimization (Hybrid AC-OPF)",
-            convergence_status="Optimal dispatch found with real AC voltages",
+            convergence_status=convergence_status,
         )
