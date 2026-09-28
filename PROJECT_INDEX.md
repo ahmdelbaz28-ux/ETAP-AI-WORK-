@@ -1,6 +1,6 @@
 # 📘 AhmedETAP — Complete Project Index v2.0.0
 
-> Auto-generated on **2026-09-28T11:21:03.206590+00:00** by indexer v2.0.0.
+> Auto-generated on **2026-09-28T11:37:52.501388+00:00** by indexer v2.0.0.
 > Re-run `python indexer.py` to refresh.
 
 ---
@@ -10,12 +10,12 @@
 | Metric | Count |
 |:---|---:|
 | Python | Packages | 41 |
-| Python | Files | 375 |
-| Python | Classes | 901 |
+| Python | Files | 376 |
+| Python | Classes | 902 |
 | Python | Functions | 785 |
 | UI | Files (TSX/TS) | 241 |
-| Test | Files | 235 |
-| Total | Tests | 3557 |
+| Test | Files | 239 |
+| Total | Tests | 3590 |
 | Help | Topics | 0 |
 | Context | Mappings | 0 |
 | Environment | Variables | 440 |
@@ -38,7 +38,7 @@
 | **Browser Cua Executor.Py** | `browser_cua_executor.py` | — | agents/browser_cua_executor.py — Browser-based CUA Loop (hea |
 | **Cable Sizing** | `cable_sizing_agent.py` | IEC 60364 | AhmedETAP - Cable Sizing Agent ============================= |
 | **Code Guard** | `code_guard_agent.py` | — | Code Guard Agent — AI-Powered Code Quality Review ========== |
-| **Coordination** | `coordination_agent.py` | IEC60255, IEEE 242, IEC 60255 | AhmedETAP - Protection Coordination Agent ================== |
+| **Coordination** | `coordination_agent.py` | IEEE 242, IEC 60255, IEC60255 | AhmedETAP - Protection Coordination Agent ================== |
 | **Cua Base Executor.Py** | `cua_base_executor.py` | — | agents/cua_base_executor.py — Base CUA Executor (Template Me |
 | **Cua Executor.Py** | `cua_executor.py` | — | agents/cua_executor.py — Computer Use Agent Executor (Deskto |
 | **Design** | `design_agent.py` | — | AhmedETAP - Generative Substation & Feeder Design Agent (Sca |
@@ -840,7 +840,7 @@ This module loa
 - **def** `get_prompt_cache_info()` (line 686)
 - **def** `list_available_prompts()` (line 706)
 
-#### 📄 `agents/registry.py` _57.1 KB_
+#### 📄 `agents/registry.py` _57.2 KB_
 > AhmedETAP - Agent Registry & Specialist Agents
 ===============================================
 Encapsulates registration, life-cycle management, and c
@@ -861,9 +861,9 @@ Encapsulates registration, life-cycle management, and c
   - Methods: `execute()`
 - **Class** `ReportGenerationAgent` (line 1107)
   - Methods: `execute()`
-- **def** `get_study_type_mapping()` (line 1409)
-- **def** `get_agent_for_study()` (line 1414)
-- **def** `create_agent_registry()` (line 1422)
+- **def** `get_study_type_mapping()` (line 1410)
+- **def** `get_agent_for_study()` (line 1415)
+- **def** `create_agent_registry()` (line 1423)
 
 #### 📄 `agents/renewable_agent.py` _35.4 KB_
 > AhmedETAP - Renewable Integration Agent
@@ -874,17 +874,17 @@ Solar PV and wind turbine integration analysis per
 - **Class** `RenewableAgent` (line 55)
   - Methods: `analyze_solar_pv()`, `analyze_wind()`, `check_ieee1547_compliance()`, `calculate_hosting_capacity()`, `execute()`, `validate_result()`
 
-#### 📄 `agents/router.py` _7.0 KB_
+#### 📄 `agents/router.py` _7.5 KB_
 > AhmedETAP - Power System Goal Router
 ====================================
 Typed goal router and dependency-aware study planner for multi-agent workflo
 
-- **Class** `RouterDecision` (line 61)
-- **Class** `GoalRouter` (line 69)
+- **Class** `RouterDecision` (line 69)
+- **Class** `GoalRouter` (line 77)
   - Methods: `route()`, `parse_user_goal()`, `determine_execution_order()`
-- **def** `route_user_goal()` (line 173)
-- **def** `parse_user_goal()` (line 178)
-- **def** `determine_execution_order()` (line 183)
+- **def** `route_user_goal()` (line 181)
+- **def** `parse_user_goal()` (line 186)
+- **def** `determine_execution_order()` (line 191)
 
 #### 📄 `agents/scada_agent.py` _35.1 KB_
 > AhmedETAP - SCADA Integration Agent
@@ -945,12 +945,12 @@ Replaces static heuristic routing with an online learning Conte
 - **Class** `ContextualBanditRouter` (line 24)
   - Methods: `route()`, `update_reward()`, `to_dict()`
 
-#### 📄 `agents/optimizers/optimization_agent.py` _5.9 KB_
+#### 📄 `agents/optimizers/optimization_agent.py` _6.3 KB_
 > agents/optimizers/optimization_agent.py — Optimization Specialist Agent for AhmedETAP.
 
 Integrates Particle Swarm Optimization (PSO), multi-objective 
 
-- **Class** `OptimizationAgent` (line 23)
+- **Class** `OptimizationAgent` (line 29)
   - Methods: `name()`, `execute()`
 
 #### 📄 `agents/etap_expert/__init__.py` _1.3 KB_
@@ -2545,6 +2545,13 @@ Provides a unified interface for error reporting that works with or without
 - **def** `flush()` (line 369)
 - **def** `setup_fastapi_error_tracking()` (line 383)
 
+#### 📄 `core/exceptions.py` _0.7 KB_
+> core/exceptions.py — Standardized exceptions for AhmedETAP platform.
+
+Provides unified error definitions across the study dispatch and execution pipel
+
+- **Class** `SpecializedExecutionUnavailableError` (line 10)
+
 #### 📄 `core/extra_metrics.py` _0.9 KB_
 
 #### 📄 `core/metrics.py` _12.7 KB_
@@ -2760,7 +2767,7 @@ both runtimes (
 
 - **Class** `StudyRegistration` (line 53)
 
-#### 📄 `engine/engine.py` _23.2 KB_
+#### 📄 `engine/engine.py` _23.6 KB_
 - **Class** `PowerSystemEngine` (line 88)
   - Methods: `run_load_flow()`, `run_fault_analysis()`, `run_arc_flash()`, `run_protection_coordination()`, `run_study()`, `visualize_tcc()`, `visualize_coordination()`
 
@@ -2925,7 +2932,7 @@ Computes the Pareto Optimal Frontier for multi-criteria p
 - **Class** `MultiObjectivePSO` (line 48)
   - Methods: `optimize()`
 
-#### 📄 `engine/optimizers/placement_pso.py` _7.7 KB_
+#### 📄 `engine/optimizers/placement_pso.py` _7.9 KB_
 > engine/optimizers/placement_pso.py — Optimal Capacitor & DER Placement & Sizing via PSO.
 
 Determines the optimal bus locations and capacities for shun
@@ -3132,7 +3139,7 @@ dense (existing) and s
 > load_flow/optimizers — Metaheuristic and Advanced Solvers for Load Flow & OPF.
 
 
-#### 📄 `load_flow/optimizers/pso_opf.py` _10.4 KB_
+#### 📄 `load_flow/optimizers/pso_opf.py` _13.0 KB_
 > load_flow/optimizers/pso_opf.py — Swarm-Intelligence Hybrid AC-OPF Engine.
 
 Solves the genuine non-convex AC Optimal Power Flow problem with continuou
@@ -3271,20 +3278,20 @@ Separates real SCADA bridge communication (ETAPScadaBridge / IEC 61
 - **def** `generate_simulated_scada()` (line 36)
 - **def** `get_scada_telemetry()` (line 115)
 
-#### 📄 `services/study_executor.py` _33.1 KB_
+#### 📄 `services/study_executor.py` _33.8 KB_
 > Study Executor — deep module for the study execution pipeline.
 
 Owns the entire pipeline behind a single seam: validate → cache lookup →
 build system 
 
-- **Class** `StudyExecutor` (line 66)
+- **Class** `StudyExecutor` (line 67)
   - Methods: `execute()`
 
-#### 📄 `services/study_service.py` _19.1 KB_
+#### 📄 `services/study_service.py` _19.2 KB_
 > Study Service module for the Engineering Service.
 Handles all study execution logic, system building, and ETAP integration.
 
-- **def** `execute_study_logic()` (line 339)
+- **def** `execute_study_logic()` (line 342)
 
 #### 📄 `services/yolo/main.py` _7.0 KB_
 > services/yolo/main.py — YOLO Layout Segmentation Service for ETAP
@@ -3729,7 +3736,7 @@ V-TCC-01 Self-Critique Fixes:
 > coordination/optimizers — Protection coordination optimizers.
 
 
-#### 📄 `coordination/optimizers/pso_coordinator.py` _8.3 KB_
+#### 📄 `coordination/optimizers/pso_coordinator.py` _8.6 KB_
 > coordination/optimizers/pso_coordinator.py — Swarm-Optimized Protection Coordination.
 
 Satisfies CoordinationEngineProtocol (engine/interfaces.py:103)
@@ -5529,10 +5536,10 @@ Provides
 
 | Type | Count |
 |:---|---:|
-| ui-component | 281 |
-| python-module | 41 |
 | api-route | 92 |
 | ui-page | 61 |
+| python-module | 41 |
+| ui-component | 281 |
 | **TOTAL** | **475** |
 
 ---
@@ -5544,15 +5551,15 @@ Provides
 | `adms_control` | `scada_model` | — |
 | `agents` | `api`, `coordination`, `copilot`, `core`, `curves`, `engine`, `etap_integration`, `fault_analysis`, `guards`, `integrations`, `load_flow`, `ml`, `relays`, `reporting`, `services` | `api`, `core`, `engine`, `services` |
 | `ai_context_engine` | — | `api` |
-| `api` | `agents`, `ai_context_engine`, `autodesk_connector`, `core`, `core_model`, `engine`, `etap_integration`, `fault_analysis`, `gis_integration`, `integrations`, `knowledge`, `load_flow`, `ml`, `security`, `services` | `agents`, `coordination`, `core`, `engine`, `gis_integration`, `integrations`, `knowledge`, `load_flow`, `migrations`, `security`, `services` |
+| `api` | `agents`, `ai_context_engine`, `autodesk_connector`, `core`, `core_model`, `engine`, `etap_integration`, `fault_analysis`, `gis_integration`, `integrations`, `knowledge`, `load_flow`, `ml`, `security`, `services`, `worker` | `agents`, `coordination`, `core`, `engine`, `gis_integration`, `integrations`, `knowledge`, `load_flow`, `migrations`, `security`, `services` |
 | `autodesk_connector` | — | `api`, `copilot` |
 | `coordination` | `api`, `curves`, `engine`, `relays` | `agents`, `digital_twin`, `engine` |
 | `copilot` | `autodesk_connector`, `digital_twin`, `etap_integration` | `agents` |
-| `core` | `agents`, `api`, `digital_twin`, `engine`, `etap_integration`, `fault_analysis`, `integrations`, `load_flow`, `scada_model`, `services` | `agents`, `api`, `etap_integration`, `services` |
+| `core` | `agents`, `api`, `digital_twin`, `engine`, `etap_integration`, `fault_analysis`, `integrations`, `load_flow`, `scada_model`, `services` | `agents`, `api`, `engine`, `etap_integration`, `services` |
 | `core_model` | — | `api`, `digital_twin`, `engine`, `etap_integration`, `load_flow`, `services` |
 | `curves` | — | `agents`, `coordination`, `relays` |
 | `digital_twin` | `coordination`, `core_model`, `engine`, `fault_analysis`, `gis_integration`, `gis_model`, `load_flow`, `relays`, `scada_model` | `copilot`, `core` |
-| `engine` | `agents`, `api`, `coordination`, `core_model`, `fault_analysis`, `load_flow`, `relays`, `visualization` | `agents`, `api`, `coordination`, `core`, `digital_twin`, `etap_integration`, `integrations`, `load_flow`, `services`, `utils` |
+| `engine` | `agents`, `api`, `coordination`, `core`, `core_model`, `fault_analysis`, `load_flow`, `relays`, `visualization` | `agents`, `api`, `coordination`, `core`, `digital_twin`, `etap_integration`, `integrations`, `load_flow`, `services`, `utils` |
 | `etap_integration` | `core`, `core_model`, `engine`, `security` | `agents`, `api`, `copilot`, `core`, `services`, `worker` |
 | `etap_user_guide` | — | — |
 | `fault_analysis` | — | `agents`, `api`, `core`, `digital_twin`, `engine` |
@@ -5575,7 +5582,7 @@ Provides
 | `services` | `agents`, `api`, `core`, `core_model`, `engine`, `etap_integration`, `guards`, `integrations`, `utils` | `agents`, `api`, `core`, `integrations`, `worker` |
 | `utils` | `engine` | `services` |
 | `visualization` | `relays` | `engine` |
-| `worker` | `etap_integration`, `services` | — |
+| `worker` | `etap_integration`, `services` | `api` |
 | `zenon_user_guide` | — | — |
 
 ---
@@ -5651,6 +5658,7 @@ Provides
 | `test_digital_twin_sync.py` | 15 | 0 | **15** |
 | `test_distributed_singletons.py` | 14 | 0 | **14** |
 | `test_dr_resilience_drill.py` | 4 | 0 | **4** |
+| `test_dspy_baseline_gate.py` | 3 | 0 | **3** |
 | `test_edge_cases.py` | 0 | 7 | **31** |
 | `test_email_webhooks.py` | 0 | 6 | **21** |
 | `test_engine_deep.py` | 0 | 6 | **18** |
@@ -5712,6 +5720,7 @@ Provides
 | `test_node_sandbox.py` | 0 | 4 | **33** |
 | `test_opencv_resilience.py` | 25 | 0 | **25** |
 | `test_opf_correctness.py` | 0 | 1 | **3** |
+| `test_optimization_agent_construct.py` | 4 | 0 | **4** |
 | `test_orchestrator_b1_b2.py` | 3 | 0 | **3** |
 | `test_p0_backend_auth_patch.py` | 0 | 6 | **29** |
 | `test_p7c_mcp_export.py` | 1 | 9 | **28** |
@@ -5722,7 +5731,7 @@ Provides
 | `test_phase3_remediation_security.py` | 5 | 0 | **5** |
 | `test_phase_a_chat_enhancements.py` | 8 | 0 | **8** |
 | `test_phase_a_rag_and_schema.py` | 0 | 3 | **7** |
-| `test_placement_and_filter.py` | 2 | 0 | **2** |
+| `test_placement_and_filter.py` | 4 | 0 | **4** |
 | `test_predictive_hardening.py` | 7 | 0 | **7** |
 | `test_production_hardening.py` | 0 | 5 | **12** |
 | `test_projects_api.py` | 0 | 7 | **28** |
@@ -5732,9 +5741,9 @@ Provides
 | `test_prompt_manifest.py` | 3 | 0 | **3** |
 | `test_prompt_registry.py` | 5 | 0 | **5** |
 | `test_prompt_registry_deep.py` | 4 | 0 | **4** |
-| `test_pso_coordinator.py` | 5 | 0 | **5** |
+| `test_pso_coordinator.py` | 7 | 0 | **7** |
 | `test_pso_core.py` | 6 | 0 | **6** |
-| `test_pso_opf.py` | 1 | 0 | **1** |
+| `test_pso_opf.py` | 3 | 0 | **3** |
 | `test_rag_blueprint_adapter.py` | 4 | 0 | **4** |
 | `test_rag_retriever.py` | 3 | 0 | **3** |
 | `test_rasp_security.py` | 0 | 4 | **20** |
@@ -5744,6 +5753,7 @@ Provides
 | `test_relays.py` | 0 | 5 | **50** |
 | `test_reporting.py` | 0 | 6 | **31** |
 | `test_results_store.py` | 0 | 12 | **33** |
+| `test_router_completeness_gate.py` | 10 | 0 | **10** |
 | `test_router_regression.py` | 5 | 0 | **5** |
 | `test_run4_security_fixes.py` | 11 | 0 | **11** |
 | `test_run_study_behavioral_equivalence.py` | 0 | 4 | **17** |
@@ -5772,6 +5782,7 @@ Provides
 | `test_stress_tests.py` | 0 | 3 | **11** |
 | `test_study_engine_deep.py` | 5 | 0 | **5** |
 | `test_study_executor_deep.py` | 0 | 6 | **23** |
+| `test_study_reachability_gate.py` | 0 | 4 | **10** |
 | `test_study_rerun_phase_b.py` | 7 | 0 | **7** |
 | `test_study_service.py` | 5 | 0 | **5** |
 | `test_supabase_integration.py` | 0 | 8 | **31** |
