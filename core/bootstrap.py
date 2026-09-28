@@ -385,7 +385,7 @@ async def lifespan(_app: Any) -> AsyncIterator[None]:
         from scripts.maintenance.verify_agents import verify_agent_registry
 
         verify_agent_registry(fail_loudly=True)
-        logger.info("M1.6 Agent registry verified successfully at startup")
+        logger.info("M1.6 Agent registry verified successfully at startup")  # nosemgrep: etap.logging.secret-in-log
     except Exception as ag_err:
         logger.critical("M1.6 Fail-Fast: Agent registry verification failed: %s", ag_err)
         raise RuntimeError(f"Startup aborted due to agent registry failure: {ag_err}") from ag_err

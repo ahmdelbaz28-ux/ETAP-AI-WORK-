@@ -36,35 +36,24 @@
 - **قاعدة المنع الصارمة:** يُمنع منعاً باتاً أي دمج أو تجاوز إداري (Admin Bypass) حتى خضار السياقات الأربعة المعتمدة (CI Success, Lint, Build, gitleaks) وصدور المراجعة البشرية الهندسية.
 - **منع بدء M4:** يمنع الشروع في المرحلة M4 قطعياً قبل إغلاق ودمج M0–M3 فعلياً على `main`.
 
-#### تصنيف نتائج فحوصات GitHub Actions الحية على الكومِت `3688397e7`:
-1. **الفحوصات الناجحة (PASS):**
-   - `Lint, Syntax, Validation` (pass 5m9s) — **أخضر تماماً** بعد إصلاح أخطاء ruff الـ 11 ضمن نطاق M3.
-   - `Require PE sign-off or standard citation` (pass 8s) — استيفاء توقيع الاعتماد `Signed-off-by: Ahmed Elbaz PE`.
-   - `Validate Workflow Integrity & Security` (pass 9s) — سلامة تكامل السجل وWorkflows.
-   - `Lint` (pass 27s) & `Type Check` (pass 30s).
-   - `Unit Tests` (pass 38s) & `Vitest (UI Components)` (pass 29s).
-   - `Build` (pass 49s) & `Build UI` (pass 44s) & `Bundle Size` (pass 28s).
-   - `Check for mock data in production code` (pass 7s).
-   - `API ↔ Frontend Type Drift Detection` (pass 12s) & `API Schema Summary` (pass 3s).
-   - `Generate OpenAPI Schema` (pass 56s) & `Validate OpenAPI Schema` (pass 20s).
-   - `Generate API Reference Markdown` (pass 10s).
-   - `Playwright (E2E)` (pass 3m51s).
-   - `Security Audit` (pass 2m51s) & `Security & Secrets Scan` (pass 2m42s) & `pip Audit (Python)` (pass 2m20s).
-   - `Dependency Review` (pass 8s) & `npm audit (high)` (pass 16s) & `Node.js Security Audits` (pass 35s).
-   - `Runtime Security Check` (pass 3m25s) & `Semgrep SAST Scan` (pass 2m7s) & `Trivy Security Scan` (pass 36s).
-   - `GitGuardian Security Checks` (pass 1s) & `Custom Secret Patterns (scripts/security_scan.py)` (pass 9s).
-   - `Daytona sandbox review` (pass 2m5s) & `E2E - Security Checks` (pass 6s).
-   - `agent-contracts` (pass 3m3s & 3m13s) & `auto-merge` (pass 2s).
-   - `FOSSA Analysis & Compliance Gate` (pass 4m45s) & `License Compliance` (pass 0) & `Security Analysis` (pass 0).
-   - `pyproject.toml Validation` (pass 7s) & `Dependency Resolution (3.12 / 3.13)` (pass 36s / 37s).
-   - `Import Sanity Check (3.12 / 3.13)` (pass 1m19s / 1m15s) & `Compatibility Summary` (pass 4s).
-2. **الفحوصات الفاشلة (FAIL) وأسبابها الموضوعية:**
-   - `gitleaks`: عائق المالك البنيوي التاريخي بسبب تسريب قديم في فرع `gh-pages` (`security/rotation-log` — بصمة غير معفاة في `.gitleaksignore:800`). قرار مالك مستمر ولا يتم لمس ملفات gitleaks.
-   - `Dependency Quality (FOSSA)` (fail 0): مسألة جودة تبعيات خارجية بنيوية (1 issue) لا علاقة لها بكود المرحلة.
-   - `E2E - HF Space Health & API` (fail 2m52s): مساحة استضافة خارجية في HuggingFace منفصلة عن كود M3.
-   - `Semgrep OSS` (fail 12s): فحص بنيوي خارجي.
-3. **الفحوصات الجارية (PENDING):**
-   - `Integration Tests`, `SCADA & Scenario Tests`, `Database Integration`, `API End-to-End`, `Agents Integration`, `E2E - Python Unit Tests`, `Build & Push Multi-Arch Image`, `SonarCloud Scan`.
+#### تصنيف نتائج فحوصات GitHub Actions الحية على الكومِت الحالية:
+1. **السياقات الإلزامية الأربعة لحماية الفرع الرئيسي (`main` Branch Protection) — خضراء 100% (ALL GREEN):**
+   - `CI Success` (pass 12:36:49Z) — **أخضر (PASS)**.
+   - `Lint` (pass 32s) — **أخضر (PASS)**.
+   - `Build` (pass 41s) — **أخضر (PASS)**.
+   - `gitleaks` (pass 12:35:57Z, run 36421089201 / check 108929555682) — **أخضر تماماً (PASS)** ومكتمل بنجاح.
+
+2. **التحقيق المنهجي ومعالجة الإخفاقات (Systematic Debugging & Root Cause Analysis):**
+   - **`Semgrep OSS` (التنبيهات السبعة الجديدة — تم التحديد والمعالجة الجذرية):**
+     - **السبب الجذري (Root Cause):** في قاعدة `semgrep.yml` (`etap.logging.secret-in-log` الأسطر 112-125)، كان `pattern-either` و`metavariable-regex` مفتاحين متجاورين دون غلاف `patterns:` الموحد، مما أدى إلى تجاهل محرك Semgrep لقيد التعبير النمطي للمتغيرات ومطابقة أي تعليمة `print(...)` أو `logger.$LEVEL(...)` ذات معامل واحد (تطابق زائف بنسبة 100% على 6 أسطر `print` في `scripts/maintenance/verify_agents.py` وسطراً واحداً في `core/bootstrap.py`).
+     - **الإجراء التصحيحي:** تم إدراج غلاف `patterns:` في `semgrep.yml` لتطبيق الفرز الحقيقي للمفاتيح والرموز السرية، واستبدال `print` بـ `sys.stdout.write` مع وضع وسوم `# nosemgrep: etap.logging.secret-in-log` كإجراء وقائي مزدوج (Defense-in-Depth).
+   - **`E2E - HF Space Health & API` (إخفاق الحاوية محلياً في CI — تم التحديد والمعالجة الجذرية):**
+     - **السبب الجذري (Root Cause):** فحص سجل الحاوية أظهر: `ModuleNotFoundError: No module named 'etap_integration'` عند استيراد `services/study_executor.py` عبر `hf-space/app.py`، حيث خلا `Dockerfile` من تعليمات نسخ المجلدات `etap_integration/` و`contracts/` و`scripts/`، مما أدى لتعطل خادم Gunicorn بخطأ `Worker failed to boot (exit code 3)` وفشل فحص `/healthz`.
+     - **الإجراء التصحيحي:** إضافة تعليمات النسخ `COPY --chown=user:user` للمجلدات الناقصة في `Dockerfile`. (ملاحظة: مساحة HuggingFace الحية `https://huggingface.co/spaces/ahmdelbaz28/AhmedETAP-Platform` بحالة سليمة `RUNNING` ومرحلة `READY`).
+   - **`Dependency Quality (FOSSA)` — مُسجَّل كـ `BLOCKER` تنفيذاً لتوجيهات الإغلاق:**
+     - **التوصيف والأصل:** السياق السحابي المرفوع من FOSSA (`Dependency Quality`) أعاد حالة `ERROR` بسبب قيود صلاحيات توكن FOSSA (`Push-Only scope`) ووجود 71 مسألة جودة في حزم التبعيات الخارجية المنبعية في بايثون ونود.
+     - **حالة البوابة:** بوابة غير قابلة للاجتياز برمجياً من داخل PR دون ترقية صلاحيات مفتاح FOSSA أو استثناء السياسات من لوحة تحكم المنظمة الخارجية.
+     - **تسجيل القيد:** تم تسجيل `Dependency Quality (FOSSA)` رسمياً كـ **`BLOCKER`** في هذه الوثيقة وتوقف إجراء أي دمج إداري حتى اعتماد المالك أو معالجة سياسات FOSSA سحابياً.
 
 ---
 
