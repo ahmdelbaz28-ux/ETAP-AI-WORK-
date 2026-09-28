@@ -905,9 +905,9 @@
 <tr>
 <td>Round 8 Gh-Pages HTML Build (E-1)</td>
 <td>1</td>
-<td>Historical MkDocs generated HTML commit <code>95dd2b6845cf</code> on <code>gh-pages</code> branch (<code>security/rotation-log/index.html:654</code>). Source markdown masked to templates; gh-pages historical commit suppressed.</td>
-<td>Suppressed via <code>.gitleaksignore:800</code>.</td>
-<td>Zero risk — documentation template; downstream builds cleanly masked.</td>
+<td>MkDocs-built page <code>security/rotation-log/index.html</code> on <code>gh-pages</code>. Commit <code>95dd2b6845cf</code> embeds the real (revoked) SonarCloud token in the rendered page → pinned. Commit <code>b366eb80fdc0</code> (rebuilt from the masked source markdown) renders the template <code>curl -s -u "${SONAR_TOKEN}:"</code>; the <code>curl-auth-user</code> rule flags the <code>${...}</code> placeholder as a false positive (fingerprint <code>b366eb80fdc0:security/rotation-log/index.html:curl-auth-user:654</code>).</td>
+<td>Real value pinned at <code>.gitleaksignore:800</code>; template false positive suppressed by an anchored global allowlist regex in <code>.gitleaks.toml</code> (no new <code>.gitleaksignore</code> entries — ceiling intact).</td>
+<td>Zero risk — one revoked dead key (revocation proven live) and one non-secret shell-variable template.</td>
 </tr>
 </tbody>
 </table>
