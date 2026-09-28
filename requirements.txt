@@ -258,7 +258,7 @@ Pillow~=12.3.0
 hypothesis>=6.100.0
 
 # Physical units and dimensions registry
-pint>=0.23
+pint>=0.26.1
 
 # RAG embedding model & vector database — FIX-RC4 / FIX-RC10
 sentence-transformers>=2.2.0
