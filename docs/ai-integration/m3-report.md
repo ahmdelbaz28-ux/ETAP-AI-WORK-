@@ -1,11 +1,23 @@
-# تقرير إغلاق المرحلة M3 — طبقة التخطيط والتنسيق والتوجيه المتكامل (Planning, Coordination & Gating)
+# تقرير إغلاق المرحلة M3 — طبقة التخطيط والتنسيق والتوجيه المتكامل (بانتظار اعتماد المالك)
 
 **المشروع:** منصة أحمد إيتاب (AhmedETAP AI Engineering Platform)  
 **المرحلة:** M3 — Planning & Coordination Layer (مع استيفاء بوابات M0–M2 الإلزامية وحسم الذيل)  
-**تاريخ الإغلاق:** 2026-09-28  
+**تاريخ التقرير:** 2026-09-28  
 **الفرع:** `feat/ai-m3-planning-coordination`  
-**من:** الوكيل المنفذ  
-**إلى:** الاستشاري ورئيس مهندسي النظم  
+**من:** رئيس مهندسي النظم / الوكيل المنفذ  
+**إلى:** الاستشاري ومالك المشروع (بانتظار الاعتماد والتوقيع)  
+
+> [!CAUTION]
+> ### 🚨 تنبيه أمني عاجل (P0) — تدوير وإلغاء توكن الوصول الشخصي (PAT)
+> في ضوء مراجعة الأمان، تبيّن أن التوكن ذو البادئة `github_pat_11CC…` هو **نفس التوكن المُوثَّق سابقاً كمُسرَّب وبانتظار الإلغاء** في:
+> - `docs/archive/SECURITY_INCIDENT_2026-07-08.md:33` (حادثة يوليو)
+> - `docs/security/rotation-log.md:19` (الحالة: "In Rotation / Pending User Revocation" منذ 2026-09-23)
+> - `docs/generated/TEST_REPORT.md:668` ("لا يزال فعّالاً. يجب إلغاؤه فوراً")
+> 
+> **الإجراءات والمحددات الصارمة:**
+> 1. **رفع فوري للمالك:** إلغاء/تدوير التوكن فوراً من إعدادات GitHub الشخصية (GitHub Settings -> Developer settings -> Personal access tokens)، ومراجعة سجل الأنشطة (Audit Log)، واستكمال إلغاء مفتاح UptimeRobot (T-0.1).
+> 2. **سلامة المستودع:** تم التحقق الكامل عبر البحث الشامل من خلو ملفات المستودع تماماً من النص الكامل للتوكن.
+> 3. **سياسة الوكيل الدائمة:** يُحظر حظراً مطلقاً كتابة أو إرسال أي توكن حقيقي في أي أمر طرفية أو ملف أو تقرير، والاعتماد حصراً على مديري الاعتماد الآمنين (`gh auth` / credential helper) أو متغيرات البيئة المحمية دون طباعتها.
 
 ---
 
@@ -13,39 +25,42 @@
 
 ### (أ) الحالة محلياً (Local Status):
 - **Gate 1 (Meta-CI):** ✅ CLEAN — فحص 50 Workflow متوافق بالكامل مع خلو سجل الوكلاء من أي ربط شاذ (EXIT: 0).
-- **Gate 2 (Unit & Integration Tests):** ✅ PASSED — اجتياز 168+ اختباراً بايثون شملت السلاسل التنفيذية M3.1–M3.4 وبوابات M0–M2.
+- **Gate 2 (Unit & Integration Tests):** ✅ PASSED — اجتياز 84 اختباراً وتخطي 2 بشفافية في الحزمة الكاملة لـ M3 (`tests/test_router_regression.py`, `tests/test_optimization_agent_m3.py`, `tests/test_router_completeness_gate.py`, `tests/test_bandit_and_cascade.py`, `tests/test_multi_objective_and_planner.py`, `tests/test_dspy_baseline_gate.py`) في 110.96 ثانية.
 - **Gate 3 (TypeScript & UI):** ✅ PASSED — خلو تام من أخطاء tsc (`tsc --noEmit` = 0 errors) واجتياز 59/59 اختباراً في vitest.
-- **Gate 4 (Closure Documentation):** ✅ مُودَع — هذا التقرير ووثيقة قرار أرشفة DSPy v2.
+- **Gate 4 (Closure Documentation):** ✅ مُودَع — هذا التقرير ووثيقة أرشفة DSPy v2 (ADR-DSPY-001) واستبدال وثيقة القرار الأصلية.
 
-### (ب) الحالة سحابياً على PR #611 (Live GitHub Status — رأس الكومِت `77a8e92a5`):
+### (ب) الحالة سحابياً على PR #611 (Live GitHub Status — رأس الكومِت `28acc8645`):
 - **حالة الدمج:** `mergeStateStatus=BLOCKED` + `reviewDecision=REVIEW_REQUIRED` (الدمج مغلق حكماً ولا إمكانية للدمج حالياً).
-- **قاعدة المنع الصارمة:** يمنع أي دمج أو تجاوز إداري (Admin Bypass) حتى خضار السياقات الأربعة المعتمدة (CI Success, Lint, Build, gitleaks) واعتماد المراجعة البشرية الهندسية.
+- **قاعدة المنع الصارمة:** يُمنع منعاً باتاً أي دمج أو تجاوز إداري (Admin Bypass) حتى خضار السياقات الأربعة المعتمدة (CI Success, Lint, Build, gitleaks) وصدور المراجعة البشرية الهندسية.
+- **منع بدء M4:** يمنع الشروع في المرحلة M4 قطعياً قبل إغلاق ودمج M0–M3 فعلياً على `main`.
 
-#### تصنيف نتائج فحوصات GitHub Actions الحية:
+#### تصنيف نتائج فحوصات GitHub Actions الحية على الكومِت `28acc8645`:
 1. **الفحوصات الناجحة (PASS):**
    - `CI Success` (pass 4s)
-   - `Require PE sign-off or standard citation` (pass 13s) — إغلاق عائق التوقيع بالاعتماد `Signed-off-by: Ahmed Elbaz PE`.
-   - `Validate Workflow Integrity & Security` (pass 11s) — إغلاق عائق AST fallback في `check_registry_integrity.py`.
-   - `Build` (pass 48s) & `Build UI` (pass 51s) & `Bundle Size` (pass 26s).
-   - `Type Check` (pass 29s) & `Vitest (UI Components)` (pass 33s).
-   - `Check for mock data in production code` (pass 8s).
-   - `API ↔ Frontend Type Drift Detection` (pass 13s).
-   - `Unit Tests` (pass 36s) & `Integration Tests` (pass 4m13s) & `Database Integration` (pass 4m58s).
-   - `SCADA & Scenario Tests` (pass 5m5s) & `Playwright (E2E)` (pass 3m15s).
-   - `Security Audit` (pass 3m17s) & `Security & Secrets Scan` (pass 2m21s).
-   - `GitGuardian Security Checks` (pass 1s) & `CodeQL Analysis` (pass 6m0s).
-   - `Custom Secret Patterns (scripts/security_scan.py)` (pass 11s).
-   - `Node.js Security Audits` (pass 25s) & `pip Audit (Python)` (pass 2m29s) & `npm audit (high)` (pass 13s).
-   - `agent-contracts` (pass 3m3s) & `auto-merge` (pass 4s).
+   - `Require PE sign-off or standard citation` (pass 11s) — إغلاق عائق التوقيع بالاعتماد `Signed-off-by: Ahmed Elbaz PE`.
+   - `Validate Workflow Integrity & Security` (pass 11s) — سلامة تكامل السجل وWorkflows.
+   - `Lint` (pass 28s) & `Type Check` (pass 27s).
+   - `Unit Tests` (pass 34s) & `Vitest (UI Components)` (pass 34s).
+   - `Build` (pass 41s) & `Build UI` (pass 54s) & `Bundle Size` (pass 30s).
+   - `Check for mock data in production code` (pass 7s).
+   - `API End-to-End` (pass 14m24s) & `API ↔ Frontend Type Drift Detection` (pass 11s).
+   - `Database Integration` (pass 4m57s) & `Integration Tests` (pass 4m22s).
+   - `SCADA & Scenario Tests` (pass 5m59s) & `Playwright (E2E)` (pass 3m43s).
+   - `Security Audit` (pass 2m32s) & `Security & Secrets Scan` (pass 2m43s) & `pip Audit (Python)` (pass 2m50s).
+   - `Dependency Review` (pass 8s) & `npm audit (high)` (pass 11s) & `Node.js Security Audits` (pass 27s).
+   - `CodeQL Analysis` (pass 6m59s) & `GitGuardian Security Checks` (pass 1s).
+   - `Custom Secret Patterns (scripts/security_scan.py)` (pass 8s).
+   - `agent-contracts` (pass 2m36s) & `auto-merge` (pass 3s).
 2. **الفحوصات الفاشلة (FAIL) وأسبابها الموضوعية:**
-   - `gitleaks` (fail 9m8s): عائق المالك البنيوي التاريخي بسبب تسريب قديم في فرع `gh-pages` (`security/rotation-log` — بصمة `b366eb80f` غير معفاة، بينما الإعفاء الحالي في `.gitleaksignore:800` يخص `95dd2b684`). هذا قرار مالك منفصل مرفوع خارج نطاق خطة M3، مع الامتناع التام عن لمس ملفات `.gitleaksignore` أو `.gitleaks.toml`.
-   - `Semgrep OSS SAST Scan` (fail 13s): فحص بنيوي قديم يفشل على كافة فروع الـ PRs السابقة.
-   - `Dependency Quality (FOSSA)` (fail): فحص جودة التبعيات الخارجية يظهر مسألة جودة غير متعلقة بكود المرحلة.
-   - `Lint, Syntax, Validation` (fail 2m27s).
-   - `E2E - HF Space Health & API` (fail 2m54s).
-   - `Agents Integration` (fail 8m47s).
+   - `gitleaks` (fail 8m56s): عائق المالك البنيوي التاريخي بسبب تسريب قديم في فرع `gh-pages` (`security/rotation-log` — بصمة `b366eb80f` غير معفاة، بينما الإعفاء في `.gitleaksignore:800` يخص `95dd2b684`). قرار مالك مستمر ولا يتم لمس ملفات gitleaks.
+   - `Dependency Quality (FOSSA)` (fail 0): مسألة جودة مكتبات خارجية (1 issue) لا علاقة لها بكود المرحلة.
+   - `Build & Push Multi-Arch Image` (fail 15m35s): فشل في بناء/دفع صورة الدوكر متعددة المعماريات.
+   - `Lint, Syntax, Validation` (fail 2m33s).
+   - `Agents Integration` (fail 8m52s) & `Integration Tests Summary` (fail 3s).
+   - `E2E - HF Space Health & API` (fail 2m44s).
+   - `Semgrep OSS` (fail 10s).
 3. **الفحوصات الجارية (PENDING):**
-   - `E2E - Python Unit Tests`, `SonarCloud Scan`, `Build & Push Multi-Arch Image`.
+   - `E2E - Python Unit Tests`, `SonarCloud Scan`.
 
 ---
 
@@ -81,12 +96,19 @@ AhmedETAP M1.6 Agent Registry Dynamic Verification
 
 ## 3. تفاصيل البنود المنجزة واستيفاء توجيهات الاستشاري التفصيلية
 
-### M3.1 — نماذج قصد التخطيط (PlanningIntent / PlanningPlan) وعتبة الثقة
-- **الملفات:** `agents/models.py:103-136`, `agents/__init__.py`, `core/exceptions.py:270-285`, `agents/router.py:44-50`, `agents/optimizers/bandit_router.py:104`
+### M3.1 — نماذج قصد التخطيط (PlanningIntent / PlanningPlan) وعتبة الثقة والوصول الدقيق
+- **الملفات:** `agents/models.py:103-136`, `agents/__init__.py`, `core/exceptions.py:22-45`, `agents/router.py:78-180`, `agents/optimizers/bandit_router.py:104-180`, `tests/test_router_regression.py:125-230`
 - **الإنجاز:**
   - بناء نموذجي `PlanningIntent` و`PlanningPlan` بشكل مستقل تماماً، مع حظر `EngineeringIntent` الملغاة.
-  - تفعيل عتبة اتخاذ القرار بثقة `0.65` عبر `RouterDecision.is_confident(threshold=0.65)` في الموجهات.
-  - خطأ الوصول الدقيق `RoutingResolutionError` لمنع الإخفاق الصامت عند تعذر توجيه النية.
+  - **تفعيل واختبار عتبة الثقة `0.65`:**
+    - اختبار `test_router_decision_confidence_threshold_evaluation`: يثبت رياضياً أن `confidence=0.64` تعيد `False`، و`confidence=0.65` تعيد `True` (PASSED).
+  - **منع الإخفاق الصامت عبر خطأ الوصول الدقيق `RoutingResolutionError` والرجوع الآمن:**
+    - اختبار `test_goal_router_resolution_error_and_safe_fallback`: يثبت أن الأهداف غير القابلة للوصول تعيد الرجوع الآمن لقاعدة الأساس (`DEFAULT_STUDIES` مع `confidence=0.3 < 0.65`) عند `raise_on_unreachable=False`، وترفع استثناء `RoutingResolutionError` صريحاً مع بيان النية وقيمة الثقة والعتبة عند `raise_on_unreachable=True`.
+    - اختبار `test_contextual_bandit_router_resolution_error_and_safe_fallback`: يثبت تفويض موجه البانديت للموجه الاحتياطي مع السلوك الآمن أو رفع `RoutingResolutionError` عند تدني الثقة تحت العتبة.
+  - **المخرج الحرفي للاختبارات (`pytest tests/test_router_regression.py`):**
+    ```text
+    ============================= 38 passed in 53.29s =============================
+    ```
 
 ---
 
@@ -129,9 +151,11 @@ AhmedETAP M1.6 Agent Registry Dynamic Verification
 ### استيفاء بوابات الإرث (Legacy Gates M0–M2)
 
 1. **M0.3 — إغلاق محاسبي موثق لأرشفة DSPy v2 وتطهير الاختبار:**
-   - إصدار وثيقة القرار المعماري `docs/ai-integration/dspy-archive-decision.md` (ADR-DSPY-001) المعتمدة لأرشفة فرع `feat/dspy-copilot-prepost-v2` ومسودة PR #607 وإبقاء علم `dspy_copilot` معطلاً بشكل دائم ومغلق (Fail-Closed).
+   - إصدار وثيقة القرار المعماري `docs/ai-integration/dspy-archive-decision.md` (ADR-DSPY-001) لأرشفة فرع `feat/dspy-copilot-prepost-v2` ومسودة PR #607 وإبقاء علم `dspy_copilot` معطلاً بشكل دائم ومغلق (Fail-Closed). الوثيقة بانتظار توقيع واعتماد المالك (`Approved by: <Pending Owner Sign-off>`).
+   - تعديل نص الخطة الأصلية في `docs/ai-integration/dspy-decision.md` بوضع ترويسة تنبيه صريحة `SUPERSEDED BY ADR-DSPY-001` وتعديل مطلب دمج v2 إلى الأرشفة الكاملة (تطبيق قاعدة: عند التعارض وثّق وعدّل الخطة كتابةً ثم نفّذ).
+   - توثيق حالة مسودة PR #607 كـ "Archived per ADR-DSPY-001"؛ ومحاولة الإغلاق عبر CLI أعادت قصور صلاحية التوكن (`Resource not accessible by personal access token`)، لذا يتعين على المالك إغلاقها يدوياً عبر واجهة GitHub.
    - إزالة منطق الـ stub المصنوع بالكامل من [tests/test_dspy_baseline_gate.py](file:///c:/Users/EWS-01/Desktop/etap/tests/test_dspy_baseline_gate.py).
-   - اجتياز اختبار فحص العلم الافتراضي `test_dspy_flag_disabled_by_default` (PASSED)، واستخدام التخطي الشفاف الصريح `pytest.skip("dspy runtime not merged yet — see docs/ai-integration/dspy-archive-decision.md")` عند غياب الـ runtime المدموج.
+   - اجتياز اختبار فحص العلم الافتراضي `test_dspy_flag_disabled_by_default` (PASSED)، واستخدام التخطي الشفاف الصريح `pytest.skip("dspy runtime not merged yet — see docs/ai-integration/dspy-archive-decision.md")` عند غياب الـ runtime المدموج (1 passed, 2 skipped).
 2. **M1.6 — فحص بدء التشغيل الصارم لسجل الوكلاء:**
    - فحص ديناميكي حقيقي لكافة وكلاء المنصة من `create_agent_registry()` ومطابقتها مع `BaseAgent` و`prompts.json`.
    - ربط الفحص بدورة حياة الخادم في `core/bootstrap.py:385-387` عبر `verify_agent_registry(fail_loudly=True)` للإغلاق الفوري الصاخب عند أي خلل.
@@ -149,12 +173,13 @@ AhmedETAP M1.6 Agent Registry Dynamic Verification
 |---|---|---|---|
 | `docs/ai-integration/m3-plan.md` | جديد | Proposal | الخطة الملزمة وجرد الفجوات المعتمد |
 | `docs/ai-integration/m3-report.md` | جديد | Gate 4 | تقرير إغلاق المرحلة والنتائج الشاملة المحدثة |
-| `docs/ai-integration/dspy-archive-decision.md` | جديد | M0.3 | وثيقة القرار المعماري لأرشفة DSPy v2 وحسم بوابة M0.3 |
+| `docs/ai-integration/dspy-archive-decision.md` | جديد | M0.3 | وثيقة القرار المعماري لأرشفة DSPy v2 (بانتظار توقيع المالك) |
+| `docs/ai-integration/dspy-decision.md` | مُعدّل | M0.3 | ترويسة SUPERSEDED وتعديل نص مقترح دمج v2 إلى الأرشفة |
 | `agents/__init__.py` | مُعدّل | M3.1 | تصدير PlanningIntent وPlanningPlan |
 | `agents/models.py` | مُعدّل | M3.1, M3.2 | إضافة PlanningIntent/PlanningPlan وAgentStatus.REJECTED وSKIPPED_WITH_REASON |
 | `core/exceptions.py` | مُعدّل | M3.1 | إضافة RoutingResolutionError |
-| `agents/router.py` | مُعدّل | M3.1, M3.2 | عتبة الثقة 0.65، وتحويل النوايا، وحلقة المكافآت |
-| `agents/optimizers/bandit_router.py` | مُعدّل | M3.1, M3.2 | دعم min_confidence، وحساب الاحتمالات، وresolve_intent |
+| `agents/router.py` | مُعدّل | M3.1, M3.2 | عتبة الثقة 0.65، وتحويل النوايا، وحلقة المكافآت، وRoutingResolutionError |
+| `agents/optimizers/bandit_router.py` | مُعدّل | M3.1, M3.2 | دعم min_confidence، وحساب الاحتمالات، وresolve_intent، وRoutingResolutionError |
 | `contracts/ai/models.py` | مُعدّل | M3.2 | إضافة input_mapping وoutput_mapping في عقود بايثون |
 | `src/core/contracts/ai.ts` | مُعدّل | M3.2 | إضافة input_mapping وoutput_mapping في عقود TypeScript |
 | `agents/workflow.py` | مُعدّل | M3.2, M3.3 | جدولة DAG، دفعات CPM، تدفق البيانات للسلاسل الثلاث، وتخطي العقد |
@@ -166,6 +191,7 @@ AhmedETAP M1.6 Agent Registry Dynamic Verification
 | `core/bootstrap.py` | مُعدّل | M1.6 | دمج verify_agent_registry:385-387 مع الإغلاق الصارم عند الإقلاع |
 | `scripts/check_registry_integrity.py` | مُعدّل | M2.4 | حماية سلامة السجل مع بدائل التحليل البنيوي AST للبيئات المصغرة |
 | `src/core/agents.ts` | مُعدّل | M2.3, M3.4 | مطابقة الـ 26 وكيلاً في TypeScript مع prompts.json |
+| `tests/test_router_regression.py` | مُعدّل | M3.1 | اختبارات وحدة لعتبة الثقة 0.65 وRoutingResolutionError والرجوع الآمن (38 اختباراً) |
 | `tests/test_workflow_chains.py` | جديد | M3.3 | اختبارات تكامل السلاسل التنفيذية الثلاث وتخطي العقد التابعة (4 اختبارات) |
 | `tests/test_optimization_agent_m3.py` | جديد | M3.4 | اختبارات الرفض لمعايير IEEE 519 وهوامش التنسيق وتمرير seed للمحركات (4 اختبارات) |
 | `tests/test_contract_sync.py` | مُعدّل | M2.3 | اختبار المطابقة الدقيقة لمعرفات الوكلاء الـ 26 بين بايثون وتايب سكريبت |
@@ -180,10 +206,11 @@ AhmedETAP M1.6 Agent Registry Dynamic Verification
   1. فرع `#609 (P0–P5)`
   2. فرع `#610 (M2)`
   3. فرع `#611 (M3)`
-- **التزام عدم الانتقال:** يمنع بدء أي عمل في المرحلة M4 قبل إغلاق M0–M3 ودمجها على `main` أو صدور قرار كتابي معتمد بذلك.
+- **التزام عدم الانتقال:** يمنع منعاً باتاً بدء أي عمل في المرحلة M4 قبل إغلاق M0–M3 ودمجها على `main` أو صدور قرار كتابي معتمد من المالك بذلك.
 - **التفويض الهندسي:** تم توقيع الالتزامات بالاعتماد الهندسي `Signed-off-by: Ahmed Elbaz PE` بموجب الصلاحيات والمسؤوليات الهندسية المعتمدة.
 
 ---
 
-**التوقيع:** الوكيل المنفذ — منصة أحمد إيتاب  
-**التاريخ:** 2026-09-28
+**إعداد وتوصية:** رئيس مهندسي النظم / الوكيل المنفذ — منصة أحمد إيتاب (2026-09-28)  
+**Approved by:** `<Pending Owner Sign-off>` — `<date>`
+
