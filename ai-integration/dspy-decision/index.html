@@ -1,0 +1,894 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Enterprise AI-Powered Power Systems Engineering Platform">
+      
+      
+        <meta name="author" content="AhmedETAP Team">
+      
+      
+      
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.11">
+    
+    
+      
+        <title>قرار وهندسة دمج DSPy Copilot — DSPy Decision & Integration Plan - AhmedETAP Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.4af4bdda.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="deep-purple">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#dspy-copilot-dspy-decision-integration-plan" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="AhmedETAP Documentation" class="md-header__button md-logo" aria-label="AhmedETAP Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            AhmedETAP Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              قرار وهندسة دمج DSPy Copilot — DSPy Decision &amp; Integration Plan
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  الصفحة الرئيسية
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../ARCHITECTURE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  الهيكلية
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../API_REFERENCE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  واجهة برمجة التطبيقات
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../OPERATIONS_RUNBOOK/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  دليل التشغيل
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../TROUBLESHOOTING_GUIDE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  دليل الأعطال
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../SECURITY_OPERATIONS_MANUAL/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  البنية التحتية للأمان
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../ENTERPRISE_CERTIFICATION_REPORT/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  التقييم المؤسسي
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="AhmedETAP Documentation" class="md-nav__button md-logo" aria-label="AhmedETAP Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    AhmedETAP Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    الصفحة الرئيسية
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ARCHITECTURE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    الهيكلية
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../API_REFERENCE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    واجهة برمجة التطبيقات
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../OPERATIONS_RUNBOOK/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    دليل التشغيل
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../TROUBLESHOOTING_GUIDE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    دليل الأعطال
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../SECURITY_OPERATIONS_MANUAL/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    البنية التحتية للأمان
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ENTERPRISE_CERTIFICATION_REPORT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    التقييم المؤسسي
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-non-negotiable-architectural-decision" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. القرار المحسوم (Non-Negotiable Architectural Decision)
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-git-topology-commits-audit" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. التحقق الرقمي الدقيق بين الفروع الثلاثة (Git Topology &amp; Commits Audit)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. التحقق الرقمي الدقيق بين الفروع الثلاثة (Git Topology &amp; Commits Audit)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      كشف انحراف فرضيات الدليل:
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-merge-strategy-downstream-impact" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. استراتيجية الدمج المعتمدة وأثرها (Merge Strategy &amp; Downstream Impact)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. استراتيجية الدمج المعتمدة وأثرها (Merge Strategy &amp; Downstream Impact)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fast-forward-rebase-merge-no-ff" class="md-nav__link">
+    <span class="md-ellipsis">
+      الاستراتيجية: Fast-Forward Rebase مع دمج صريح merge --no-ff
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-fail-by-default" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. اختبار بوابة Fail-by-Default بالبراهين الحرفية
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. اختبار بوابة Fail-by-Default بالبراهين الحرفية">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-run_ingest" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. سلوك run_ingest عند تعطيل العلم:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-run_diagnose" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. سلوك run_diagnose عند تعطيل العلم:
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-v2-prepost-v1" class="md-nav__link">
+    <span class="md-ellipsis">
+      5. المقارنة الجنائية: ما استُخدم من v2 وما استُبعد من prepost (v1)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. المقارنة الجنائية: ما استُخدم من v2 وما استُبعد من prepost (v1)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#v2-prepost-v2" class="md-nav__link">
+    <span class="md-ellipsis">
+      الملفات الموجودة في v2 وتم استبعادها من prepost (إضافات v2 الحصرية):
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#prepost-v1-v2" class="md-nav__link">
+    <span class="md-ellipsis">
+      الملفات الموجودة في prepost (v1) وتم استبعادها من v2:
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-4" class="md-nav__link">
+    <span class="md-ellipsis">
+      6. التحقق الحاسم لما قبل الدمج (البند 4)
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="dspy-copilot-dspy-decision-integration-plan">قرار وهندسة دمج DSPy Copilot — DSPy Decision &amp; Integration Plan</h1>
+<p><strong>المستودع:</strong> <code>https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-.git</code><br />
+<strong>نقطة الأساس الحية:</strong> <code>main @ 43fdd481f</code> (<code>43fdd481faf134f757914702db3b4ab596bfc429</code>)<br />
+<strong>تاريخ التوثيق:</strong> 2026-09-27<br />
+<strong>الحالة:</strong> قرار محسوم معتمد — Zero Speculation</p>
+<hr />
+<h2 id="1-non-negotiable-architectural-decision">1. القرار المحسوم (Non-Negotiable Architectural Decision)</h2>
+<p>القرار المعماري محسوم سلفاً ومثبت بالبراهين الفنية:
+1. <strong>الأساس المعتمد:</strong> فرع <code>feat/dspy-copilot-prepost-v2</code>.
+2. <strong>فوق الأساس:</strong> إعادة تشكيل فرع <code>fix/study-executor-study-type-gate</code> ليعمل بسلاسة فوقه.
+3. <strong>المحظور تماماً:</strong> يُمنع منعاً باتاً دمج فرع <code>feat/dspy-copilot-prepost</code> (v1) بأي شكل من الأشكال.</p>
+<hr />
+<h2 id="2-git-topology-commits-audit">2. التحقق الرقمي الدقيق بين الفروع الثلاثة (Git Topology &amp; Commits Audit)</h2>
+<p>تم استخراج هذه الأرقام عبر أوامر Git المباشرة مقابل رأس <code>main @ 43fdd481f</code>:</p>
+<table>
+<thead>
+<tr>
+<th>المعيار الرقمي</th>
+<th><code>feat/dspy-copilot-prepost-v2</code></th>
+<th><code>feat/dspy-copilot-prepost</code> (v1)</th>
+<th><code>fix/study-executor-study-type-gate</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>git merge-base main &lt;branch&gt;</code></td>
+<td><code>43fdd481faf134f757914702db3b4ab596bfc429</code></td>
+<td><code>43fdd481faf134f757914702db3b4ab596bfc429</code></td>
+<td><code>43fdd481faf134f757914702db3b4ab596bfc429</code></td>
+</tr>
+<tr>
+<td><code>git rev-list --count main..&lt;branch&gt;</code> (متقدم بـ)</td>
+<td><strong>5 commits</strong></td>
+<td><strong>2 commits</strong></td>
+<td><strong>2 commits</strong> (محلياً: <code>0fcc311d0</code>, <code>334244ab4</code>) / <strong>1</strong> (origin)</td>
+</tr>
+<tr>
+<td><code>git rev-list --count &lt;branch&gt;..main</code> (متأخر بـ)</td>
+<td><strong>0 commits</strong></td>
+<td><strong>0 commits</strong></td>
+<td><strong>0 commits</strong></td>
+</tr>
+<tr>
+<td><code>git diff --shortstat main..&lt;branch&gt;</code></td>
+<td><code>25 files changed, 3129 insertions(+), 1 deletion(-)</code></td>
+<td><code>24 files changed, 1920 insertions(+), 1 deletion(-)</code></td>
+<td><code>2 files changed, 205 insertions(+), 16 deletions(-)</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="_1">كشف انحراف فرضيات الدليل:</h3>
+<p>ذكر الدليل التمهيدي أن <code>prepost</code> و <code>fix</code> متأخران عن main (بـ 1 و 2). التحقق المباشر يثبت أن جميع الفروع متفرعة بدقة من كوميت main الحالي (<code>43fdd481f</code>)، وبالتالي فإن عدد الكوميتات المتأخرة عن main هو <strong>صفر</strong> لجميع الفروع الثلاثة، ولا يوجد تفرع مفقود.</p>
+<hr />
+<h2 id="3-merge-strategy-downstream-impact">3. استراتيجية الدمج المعتمدة وأثرها (Merge Strategy &amp; Downstream Impact)</h2>
+<h3 id="fast-forward-rebase-merge-no-ff">الاستراتيجية: Fast-Forward Rebase مع دمج صريح <code>merge --no-ff</code></h3>
+<ol>
+<li><strong>الخطوة الأولى (التأسيس):</strong>
+   اعتماد كود <code>v2</code> ودمجه عبر <code>git merge --no-ff</code> للحفاظ على التاريخ النظيف وشجرة المراجعة.</li>
+<li><strong>الخطوة الثانية (إعادة التشكيل):</strong>
+   إعادة تموضع (rebase) فرع <code>fix/study-executor-study-type-gate</code> فوق رأس فرع <code>v2</code> المدمج، بدلاً من دمجهما بالتوازي.</li>
+<li><strong>السبب:</strong> فرع <code>fix</code> يعدل <a href="file:///c:/Users/EWS-01/Desktop/etap/services/study_executor.py">services/study_executor.py</a> واختباراته <a href="file:///c:/Users/EWS-01/Desktop/etap/tests/test_study_executor_deep.py">tests/test_study_executor_deep.py</a>. بينما فرع <code>v2</code> تجنب لمس <code>services/study_executor.py</code> واعتمد على المغلف المستقل <a href="file:///c:/Users/EWS-01/Desktop/etap/services/study_executor_copilot.py">services/study_executor_copilot.py</a>.</li>
+<li>هذا الفصل يضمن انعدام التعارض النصي أثناء الدمج.</li>
+</ol>
+<hr />
+<h2 id="4-fail-by-default">4. اختبار بوابة Fail-by-Default بالبراهين الحرفية</h2>
+<p>تطبق خدمة DSPy Copilot في فرع <code>v2</code> مبدأ الأمان المغلق بالافتراض (Fail-Closed / Fail-by-Default) الصارم، والذي يضمن عدم تسريب أي مخرجات غير معتمدة أو تنفيذ كود تجريبي عند إيقاف علم الميزة:</p>
+<h3 id="1-run_ingest">1. سلوك <code>run_ingest</code> عند تعطيل العلم:</h3>
+<ul>
+<li><strong>السلوك:</strong> يلقي استثناء <code>DspyIngestError("flag_disabled")</code> ولا ينتج أبداً أي مواصفة شبكة أو كود تنفيذي.</li>
+<li><strong>الشاهد الصريح:</strong> في <a href="file:///c:/Users/EWS-01/Desktop/etap/services/dspy_copilot/runtime.py#L131-L133">services/dspy_copilot/runtime.py:131-133</a>:
+  <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># Contract: run_ingest raises DspyIngestError on flag_disabled (fail-closed, never produces executable spec)</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="k">if</span> <span class="ow">not</span> <span class="n">is_enabled</span><span class="p">():</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="k">raise</span> <span class="n">DspyIngestError</span><span class="p">(</span><span class="s2">"flag_disabled"</span><span class="p">)</span>
+</code></pre></div></li>
+</ul>
+<h3 id="2-run_diagnose">2. سلوك <code>run_diagnose</code> عند تعطيل العلم:</h3>
+<ul>
+<li><strong>السلوك:</strong> يعيد كائن تشخيص يحتوي على <code>code="FLAG_DISABLED"</code> مع رسالة واضحة دون أي استدعاء لنموذج الذكاء الاصطناعي (Graceful Degrade).</li>
+<li>
+<p><strong>الشاهد الصريح:</strong> في <a href="file:///c:/Users/EWS-01/Desktop/etap/services/dspy_copilot/runtime.py#L202-L214">services/dspy_copilot/runtime.py:202-214</a>:
+  <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># Contract: run_diagnose returns DiagnosticOutput with code=FLAG_DISABLED on flag_disabled (graceful degrade)</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="k">if</span> <span class="ow">not</span> <span class="n">is_enabled</span><span class="p">():</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>    <span class="k">return</span> <span class="n">DiagnosticOutput</span><span class="p">(</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>        <span class="n">summary</span><span class="o">=</span><span class="s2">"DSPy Copilot is disabled by feature flag."</span><span class="p">,</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>        <span class="n">findings</span><span class="o">=</span><span class="p">[</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>            <span class="n">DiagnosticFinding</span><span class="p">(</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>                <span class="n">severity</span><span class="o">=</span><span class="s2">"info"</span><span class="p">,</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>                <span class="n">code</span><span class="o">=</span><span class="s2">"FLAG_DISABLED"</span><span class="p">,</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>                <span class="n">message</span><span class="o">=</span><span class="s2">"Feature flag 'dspy_copilot' is inactive"</span><span class="p">,</span>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>                <span class="n">bus_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>                <span class="n">standard_ref</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>            <span class="p">)</span>
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>        <span class="p">],</span>
+<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>        <span class="n">recommendations</span><span class="o">=</span><span class="p">[],</span>
+<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>        <span class="n">citations</span><span class="o">=</span><span class="p">[],</span>
+<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a>    <span class="p">)</span>
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>فحص الاسم التاريخي "RC-1":</strong> كما نبهت التعليمات، تم التأكد بالبحث أن نص "RC-1" غير موجود، وأن الاختبار يستند للسلوك الحقيقي المبرهن أعلاه والموثق في <a href="file:///c:/Users/EWS-01/Desktop/etap/tests/test_dspy_fallback.py#L46-L70">tests/test_dspy_fallback.py:46-70</a>.</p>
+</li>
+</ul>
+<hr />
+<h2 id="5-v2-prepost-v1">5. المقارنة الجنائية: ما استُخدم من v2 وما استُبعد من prepost (v1)</h2>
+<h3 id="v2-prepost-v2">الملفات الموجودة في <code>v2</code> وتم استبعادها من <code>prepost</code> (إضافات v2 الحصرية):</h3>
+<ol>
+<li><strong><code>tests/test_dspy_api_security.py</code></strong> (328 سطراً):</li>
+<li><strong>سبب الاستخدام:</strong> يحقق فحص أمان صارم لواجهة API (Multi-tenant isolation, JWT verification, X-API-Key, ومقاومة هجمات التجاوز).</li>
+<li><strong><code>tests/test_dspy_remediation.py</code></strong> (243 سطراً):</li>
+<li><strong>سبب الاستخدام:</strong> يوفر اختبارات شاملة لاقتراحات التصحيح والتكامل الهندسي مع معايير IEEE/IEC.</li>
+<li><strong><code>tests/test_agent_registration_regression.py</code></strong>:</li>
+<li><strong>سبب الاستخدام:</strong> يمنع أي انحدار أو كسر في تسجيل الوكلاء الـ 27 القائمين.</li>
+<li><strong><code>services/study_executor_copilot.py</code></strong>:</li>
+<li><strong>سبب الاستخدام:</strong> يغلف استدعاءات الكوبايلوت كـ hook خارجي نظيف دون التعديل التخريبي على <code>services/study_executor.py</code>.</li>
+</ol>
+<h3 id="prepost-v1-v2">الملفات الموجودة في <code>prepost</code> (v1) وتم استبعادها من <code>v2</code>:</h3>
+<ol>
+<li><strong><code>services/study_executor.py</code></strong> (تعديلات v1 المتشابكة):</li>
+<li><strong>سبب الاستبعاد:</strong> في v1 تم حشر تعديلات الكوبايلوت والتوجيه داخل المنفذ الأساسي مباشرة، مما خلق اعتمادية متشابكة وتعديلاً غير آمن على كود التشغيل. تم تفكيك هذا التداخل في v2 ونقل التعديل إلى فرع <code>fix/study-executor-study-type-gate</code> المنفصل.</li>
+<li><strong><code>tests/test_study_executor_deep.py</code></strong> (تعديلات v1 المباشرة):</li>
+<li><strong>سبب الاستبعاد:</strong> تم فصلها بالكامل لفرع الـ fix المستقل لضمان نقاء حزمة DSPy.</li>
+</ol>
+<hr />
+<h2 id="6-4">6. التحقق الحاسم لما قبل الدمج (البند 4)</h2>
+<p>تم تنفيذ الأوامر المقررة لإثبات عدم تسرب أي من ملفات DSPy إلى الفرع الرئيسي <code>main</code>:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>git<span class="w"> </span>show<span class="w"> </span>main:services/dspy_copilot/runtime.py
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>git<span class="w"> </span>show<span class="w"> </span>main:services/study_executor_copilot.py
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>git<span class="w"> </span>show<span class="w"> </span>main:api/dspy.py
+</code></pre></div>
+* <strong>المخرج الحرفي لـ main:</strong>
+  - <code>fatal: path 'services/dspy_copilot/runtime.py' does not exist in 'main'</code>
+  - <code>fatal: path 'services/study_executor_copilot.py' does not exist in 'main'</code>
+  - <code>fatal: path 'api/dspy.py' does not exist in 'main'</code>
+* <strong>المخرج الحرفي لـ <code>feat/dspy-copilot-prepost-v2</code>:</strong>
+  - تم استعراض الملفات الثلاثة بنجاح كامل وجميعها موجودة وتعمل.
+* <strong>النتيجة:</strong> التأكيد القاطع بأن ملفات DSPy غير مدمجة في <code>main</code> وجاهزة للدمج المنظم وفق المراحل المعتمدة.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "search.suggest", "search.highlight"], "search": "../../assets/javascripts/workers/search.f8cc74c7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.c8b220af.min.js"></script>
+      
+    
+  </body>
+</html>

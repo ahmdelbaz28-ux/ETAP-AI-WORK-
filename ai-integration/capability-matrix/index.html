@@ -1,0 +1,893 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Enterprise AI-Powered Power Systems Engineering Platform">
+      
+      
+        <meta name="author" content="AhmedETAP Team">
+      
+      
+      
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.11">
+    
+    
+      
+        <title>مصفوفة القدرات والوكلاء وسلطة التعريف — Capability Matrix - AhmedETAP Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.4af4bdda.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="deep-purple">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#capability-matrix" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="AhmedETAP Documentation" class="md-header__button md-logo" aria-label="AhmedETAP Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            AhmedETAP Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              مصفوفة القدرات والوكلاء وسلطة التعريف — Capability Matrix
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  الصفحة الرئيسية
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../ARCHITECTURE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  الهيكلية
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../API_REFERENCE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  واجهة برمجة التطبيقات
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../OPERATIONS_RUNBOOK/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  دليل التشغيل
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../TROUBLESHOOTING_GUIDE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  دليل الأعطال
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../SECURITY_OPERATIONS_MANUAL/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  البنية التحتية للأمان
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../ENTERPRISE_CERTIFICATION_REPORT/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  التقييم المؤسسي
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="AhmedETAP Documentation" class="md-nav__button md-logo" aria-label="AhmedETAP Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    AhmedETAP Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    الصفحة الرئيسية
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ARCHITECTURE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    الهيكلية
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../API_REFERENCE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    واجهة برمجة التطبيقات
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../OPERATIONS_RUNBOOK/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    دليل التشغيل
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../TROUBLESHOOTING_GUIDE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    دليل الأعطال
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../SECURITY_OPERATIONS_MANUAL/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    البنية التحتية للأمان
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ENTERPRISE_CERTIFICATION_REPORT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    التقييم المؤسسي
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. محاور المصفوفة والتحقق العددي الحرفي
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. جدول المصفوفة وحالة التنفيذ وسلطة التعريف
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. الخلاصة الإلزامية والتحليل الحاكم للمسارات الميتة (نص تحليلي لا جدول)
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="capability-matrix">مصفوفة القدرات والوكلاء وسلطة التعريف — Capability Matrix</h1>
+<p><strong>المستودع:</strong> <code>https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-.git</code><br />
+<strong>نقطة الأساس الحية:</strong> <code>main @ 43fdd481f</code> (<code>43fdd481faf134f757914702db3b4ab596bfc429</code>)<br />
+<strong>تاريخ التحقق الجنائي:</strong> 2026-09-27<br />
+<strong>الحالة:</strong> معتمد جنائياً ومثبت كودياً (صفر تخمين — Zero Hallucination)</p>
+<hr />
+<h2 id="1">1. محاور المصفوفة والتحقق العددي الحرفي</h2>
+<ul>
+<li><strong>المحور الرأسي (الدراسات):</strong> 20 دراسة من جدول <code>STUDY_DISPATCH</code> في <a href="file:///c:/Users/EWS-01/Desktop/etap/engine/dispatch.py">engine/dispatch.py</a>.</li>
+<li><strong>المحور الأفقي (الوكلاء):</strong> 27 فئة وكيل فريدة مسجلة ومُنشأة في <code>create_agent_registry</code> داخل <a href="file:///c:/Users/EWS-01/Desktop/etap/agents/registry.py#L1422-L1503">agents/registry.py:1422-1503</a>:</li>
+<li><code>load_flow</code> (<code>LoadFlowAgent</code>)</li>
+<li><code>short_circuit</code> (<code>ShortCircuitAgent</code>)</li>
+<li><code>harmonic_analysis</code> (<code>HarmonicAnalysisAgent</code>)</li>
+<li><code>optimal_power_flow</code> (<code>OptimalPowerFlowAgent</code>)</li>
+<li><code>protection_coordination</code> (<code>ProtectionCoordinationAgent</code>)</li>
+<li><code>etap_execution</code> (<code>ETAPExecutionAgent</code>)</li>
+<li><code>validation</code> (<code>ValidationAgent</code>)</li>
+<li><code>report</code> (<code>ReportGenerationAgent</code>)</li>
+<li><code>arc_flash</code> (<code>ArcFlashAgent</code>)</li>
+<li><code>motor_starting</code> (<code>MotorStartingAgent</code>)</li>
+<li><code>transient_stability</code> (<code>StabilityAgent</code>)</li>
+<li><code>cable_sizing</code> (<code>CableSizingAgent</code>)</li>
+<li><code>earth_grid</code> (<code>EarthGridAgent</code>)</li>
+<li><code>renewable_integration</code> (<code>RenewableAgent</code>)</li>
+<li><code>battery_storage</code> (<code>BatteryStorageAgent</code>)</li>
+<li><code>scada</code> (<code>SCADAAgent</code>)</li>
+<li><code>digital_twin</code> (<code>DigitalTwinAgent</code>)</li>
+<li><code>anomaly</code> (<code>AnomalyAgent</code>)</li>
+<li><code>predictive</code> (<code>PredictiveAgent</code>)</li>
+<li><code>weather</code> (<code>WeatherAgent</code>)</li>
+<li><code>goal_planner</code> (<code>GoalPlannerAgent</code>)</li>
+<li><code>optimization</code> (<code>OptimizationAgent</code>)</li>
+<li><code>generative_design</code> (<code>DesignAgent</code>)</li>
+<li><code>code_guard</code> (<code>CodeGuardAgent</code>)</li>
+<li><code>etap_expert</code> (<code>ETAPExpertAgent</code>)</li>
+<li><code>etap_gui</code> (<code>ETAPGUIAgent</code>)</li>
+<li><code>ahmed_etap</code> (<code>AhmedETAPSkillAgent</code>)
+  <em>(ملاحظة: يحتوي السجل بالإضافة لهؤلاء على 3 أسماء مستعارة: <code>harmonic</code>, <code>opf</code>, <code>protection</code> ليصبح إجمالي مفاتيح القاموس 30 مفتاحاً تم فحصها وتحميلها بنجاح دون أي خطأ استيراد).</em></li>
+</ul>
+<hr />
+<h2 id="2">2. جدول المصفوفة وحالة التنفيذ وسلطة التعريف</h2>
+<p>أحكام الحالة المعتمدة:
+* <code>EXECUTABLE</code>: ينفذ فعلياً اليوم عبر مسار حي مثبت بالشاهد (<code>file:line</code>).
+* <code>NOT_EXECUTABLE</code>: كود الوكيل معرَّف في النظام لكن لا ينفذ عبر مسار إرسال الدراسات (<code>study_executor</code>).
+* <code>DEAD_CODE</code>: كود موجود في مسار الإرسال يستحيل وصول التنفيذ إليه بسبب خلل بنيوي أو شرط رافض قبله.
+* <code>UNKNOWN</code>: لا يوجد شاهد قطعي.</p>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>نوع الدراسة (<code>STUDY_DISPATCH</code>)</th>
+<th>الوكيل المسؤول في السجل (<code>registry.py</code>)</th>
+<th>حالة التنفيذ عبر <code>study_executor</code> اليوم</th>
+<th>سلطة التعريف الحالية (Authority of Definition)</th>
+<th>الشاهد والدليل القاطع (<code>file:line</code>)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>load_flow</code></td>
+<td><code>LoadFlowAgent</code></td>
+<td><strong>EXECUTABLE</strong></td>
+<td><code>engine/dispatch.py:102</code> + <code>engine/engine.py:50</code></td>
+<td>ينفذ عبر <code>PowerSystemEngine.run_load_flow</code> في <a href="file:///c:/Users/EWS-01/Desktop/etap/services/study_executor.py#L440">study_executor.py:440</a>.</td>
+</tr>
+<tr>
+<td>2</td>
+<td><code>short_circuit</code></td>
+<td><code>ShortCircuitAgent</code></td>
+<td><strong>EXECUTABLE</strong></td>
+<td><code>engine/dispatch.py:103</code> + <code>engine/engine.py:51</code></td>
+<td>ينفذ عبر <code>PowerSystemEngine.run_fault_analysis</code> في <a href="file:///c:/Users/EWS-01/Desktop/etap/services/study_executor.py#L445">study_executor.py:445</a>.</td>
+</tr>
+<tr>
+<td>3</td>
+<td><code>arc_flash</code></td>
+<td><code>ArcFlashAgent</code></td>
+<td><strong>EXECUTABLE</strong></td>
+<td><code>engine/dispatch.py:104</code> + <code>engine/engine.py:56</code></td>
+<td>ينفذ عبر <code>PowerSystemEngine.run_arc_flash</code> في <a href="file:///c:/Users/EWS-01/Desktop/etap/services/study_executor.py#L455">study_executor.py:455</a>.</td>
+</tr>
+<tr>
+<td>4</td>
+<td><code>protection_coordination</code></td>
+<td><code>ProtectionCoordinationAgent</code></td>
+<td><strong>EXECUTABLE</strong></td>
+<td><code>engine/dispatch.py:108</code> + <code>engine/engine.py:52</code></td>
+<td>ينفذ عبر <code>PowerSystemEngine.run_protection_coordination</code> في <a href="file:///c:/Users/EWS-01/Desktop/etap/services/study_executor.py#L467">study_executor.py:467</a>.</td>
+</tr>
+<tr>
+<td>5</td>
+<td><code>harmonic_analysis</code></td>
+<td><code>HarmonicAnalysisAgent</code></td>
+<td><strong>NOT_EXECUTABLE</strong></td>
+<td>تنازع بين <code>engine/dispatch.py:136</code> و <code>agents/__init__.py:82</code></td>
+<td>يرفع <code>ValueError</code> في <a href="file:///c:/Users/EWS-01/Desktop/etap/services/study_executor.py#L535">study_executor.py:535</a>. الوكيل حي لكن مسار التوجيه مفقود.</td>
+</tr>
+<tr>
+<td>6</td>
+<td><code>optimal_power_flow</code></td>
+<td><code>OptimalPowerFlowAgent</code></td>
+<td><strong>NOT_EXECUTABLE</strong></td>
+<td>تنازع بين <code>engine/dispatch.py:136</code> و <code>agents/__init__.py:83</code></td>
+<td>يرفع <code>ValueError</code> في <a href="file:///c:/Users/EWS-01/Desktop/etap/services/study_executor.py#L535">study_executor.py:535</a>.</td>
+</tr>
+<tr>
+<td>7</td>
+<td><code>motor_starting</code></td>
+<td><code>MotorStartingAgent</code></td>
+<td><strong>NOT_EXECUTABLE</strong></td>
+<td>تنازع بين <code>engine/dispatch.py:136</code> و <code>agents/__init__.py:85</code></td>
+<td>يرفع <code>ValueError</code> في <a href="file:///c:/Users/EWS-01/Desktop/etap/services/study_executor.py#L535">study_executor.py:535</a>.</td>
+</tr>
+<tr>
+<td>8</td>
+<td><code>transient_stability</code></td>
+<td><code>StabilityAgent</code></td>
+<td><strong>NOT_EXECUTABLE</strong></td>
+<td>تنازع بين <code>engine/dispatch.py:136</code> و <code>agents/__init__.py:86</code></td>
+<td>يرفع <code>ValueError</code> في <a href="file:///c:/Users/EWS-01/Desktop/etap/services/study_executor.py#L535">study_executor.py:535</a>.</td>
+</tr>
+<tr>
+<td>9</td>
+<td><code>cable_sizing</code></td>
+<td><code>CableSizingAgent</code></td>
+<td><strong>NOT_EXECUTABLE</strong></td>
+<td>تنازع بين <code>engine/dispatch.py:136</code> و <code>agents/__init__.py:88</code></td>
+<td>يرفع <code>ValueError</code> في <a href="file:///c:/Users/EWS-01/Desktop/etap/services/study_executor.py#L535">study_executor.py:535</a>.</td>
+</tr>
+<tr>
+<td>10</td>
+<td><code>earth_grid</code></td>
+<td><code>EarthGridAgent</code></td>
+<td><strong>NOT_EXECUTABLE</strong></td>
+<td>تنازع بين <code>engine/dispatch.py:136</code> و <code>agents/__init__.py:89</code></td>
+<td>يرفع <code>ValueError</code> في <a href="file:///c:/Users/EWS-01/Desktop/etap/services/study_executor.py#L535">study_executor.py:535</a>.</td>
+</tr>
+<tr>
+<td>11</td>
+<td><code>renewable_integration</code></td>
+<td><code>RenewableAgent</code></td>
+<td><strong>NOT_EXECUTABLE</strong></td>
+<td>تنازع بين <code>engine/dispatch.py:136</code> و <code>agents/__init__.py:90</code></td>
+<td>يرفع <code>ValueError</code> في <a href="file:///c:/Users/EWS-01/Desktop/etap/services/study_executor.py#L535">study_executor.py:535</a>.</td>
+</tr>
+<tr>
+<td>12</td>
+<td><code>battery_storage</code></td>
+<td><code>BatteryStorageAgent</code></td>
+<td><strong>NOT_EXECUTABLE</strong></td>
+<td>تنازع بين <code>engine/dispatch.py:136</code> و <code>agents/__init__.py:91</code></td>
+<td>يرفع <code>ValueError</code> في <a href="file:///c:/Users/EWS-01/Desktop/etap/services/study_executor.py#L535">study_executor.py:535</a>.</td>
+</tr>
+<tr>
+<td>13</td>
+<td><code>scada</code></td>
+<td><code>SCADAAgent</code></td>
+<td><strong>NOT_EXECUTABLE</strong></td>
+<td>تنازع بين <code>engine/dispatch.py:136</code> و <code>agents/__init__.py:92</code></td>
+<td>يرفع <code>ValueError</code> في <a href="file:///c:/Users/EWS-01/Desktop/etap/services/study_executor.py#L535">study_executor.py:535</a>.</td>
+</tr>
+<tr>
+<td>14</td>
+<td><code>digital_twin</code></td>
+<td><code>DigitalTwinAgent</code></td>
+<td><strong>NOT_EXECUTABLE</strong></td>
+<td>تنازع بين <code>engine/dispatch.py:136</code> و <code>agents/__init__.py:93</code></td>
+<td>يرفع <code>ValueError</code> في <a href="file:///c:/Users/EWS-01/Desktop/etap/services/study_executor.py#L535">study_executor.py:535</a>.</td>
+</tr>
+<tr>
+<td>15</td>
+<td><code>etap_expert</code></td>
+<td><code>ETAPExpertAgent</code></td>
+<td><strong>EXECUTABLE</strong></td>
+<td><code>engine/dispatch.py:136</code> + <code>agents/etap_expert_agent.py</code></td>
+<td>ينفذ عبر <code>ETAPExpertAgent().answer()</code> في <a href="file:///c:/Users/EWS-01/Desktop/etap/services/study_executor.py#L478-L485">study_executor.py:478-485</a>.</td>
+</tr>
+<tr>
+<td>16</td>
+<td><code>etap_gui</code></td>
+<td><code>ETAPGUIAgent</code></td>
+<td><strong>EXECUTABLE</strong></td>
+<td><code>engine/dispatch.py:136</code> + <code>agents/etap_gui_agent.py</code></td>
+<td>ينفذ عبر <code>ETAPGUIAgent().answer()</code> في <a href="file:///c:/Users/EWS-01/Desktop/etap/services/study_executor.py#L487-L494">study_executor.py:487-494</a>.</td>
+</tr>
+<tr>
+<td>17</td>
+<td><code>ahmed_etap_orchestration</code></td>
+<td><code>AhmedETAPSkillAgent</code></td>
+<td><strong>DEAD_CODE</strong></td>
+<td><code>engine/dispatch.py:149</code> (سجلت كـ external)</td>
+<td>يرفع السطر <a href="file:///c:/Users/EWS-01/Desktop/etap/services/study_executor.py#L426">study_executor.py:426</a> خطأ على external قبل بلوغ كتلة الكود في السطور <a href="file:///c:/Users/EWS-01/Desktop/etap/services/study_executor.py#L496-L533">496-533</a>.</td>
+</tr>
+<tr>
+<td>18</td>
+<td><code>optimization</code></td>
+<td><code>OptimizationAgent</code></td>
+<td><strong>NOT_EXECUTABLE</strong></td>
+<td><code>engine/dispatch.py:155</code> (نوعها external)</td>
+<td>يرفع <code>ValueError</code> في <a href="file:///c:/Users/EWS-01/Desktop/etap/services/study_executor.py#L426">study_executor.py:426</a>.</td>
+</tr>
+<tr>
+<td>19</td>
+<td><code>generative_design</code></td>
+<td><code>DesignAgent</code></td>
+<td><strong>NOT_EXECUTABLE</strong></td>
+<td><code>engine/dispatch.py:161</code> (وكيل هيكلي وراء علم معطل)</td>
+<td>يرفع <code>ValueError</code> في <a href="file:///c:/Users/EWS-01/Desktop/etap/services/study_executor.py#L535">study_executor.py:535</a>.</td>
+</tr>
+<tr>
+<td>20</td>
+<td><code>breaker_duty</code></td>
+<td>لا يوجد وكيل (Evaluator)</td>
+<td><strong>EXECUTABLE</strong> (behind flag)</td>
+<td><code>engine/dispatch.py:167</code> + <code>services/study_executor.py:413</code></td>
+<td>ينفذ عبر <code>BreakerDutyEvaluator</code> في <a href="file:///c:/Users/EWS-01/Desktop/etap/services/study_executor.py#L413-L420">study_executor.py:413-420</a> بشرط تفعيل العلم.</td>
+</tr>
+</tbody>
+</table>
+<p><em>(وكلاء الدعم والتحقق الإضافيون في السجل: <code>etap_execution</code>, <code>validation</code>, <code>report</code>, <code>anomaly</code>, <code>predictive</code>, <code>weather</code>, <code>goal_planner</code>, <code>code_guard</code> ليسوا دراسات مستقلة في جدول الإرسال وإنما وكلاء دعم ومهام فرعية).</em></p>
+<hr />
+<h2 id="3">3. الخلاصة الإلزامية والتحليل الحاكم للمسارات الميتة (نص تحليلي لا جدول)</h2>
+<p>بناءً على الفحص الجنائي الدقيق لكود التشغيل في <code>main @ 43fdd481f</code>:</p>
+<ol>
+<li><strong>حصر الدراسات التي لا تملك أي مسار تنفيذ حي اليوم عبر <code>study_executor</code>:</strong>
+   من أصل 20 دراسة مسجلة في <code>STUDY_DISPATCH</code>، يوجد <strong>13 دراسة لا تملك أي مسار تنفيذ حي اليوم عبر منفذ التنفيذ الرئيسي (<code>services/study_executor.py</code>)</strong>:</li>
+<li><strong>11 دراسة وكلاء معطلة بالتوجيه:</strong> <code>harmonic_analysis</code>, <code>optimal_power_flow</code>, <code>motor_starting</code>, <code>transient_stability</code>, <code>cable_sizing</code>, <code>earth_grid</code>, <code>renewable_integration</code>, <code>battery_storage</code>, <code>scada</code>, <code>digital_twin</code>, <code>generative_design</code>. هذه الوكلاء معرفة وتعمل بنجاح عند استدعائها المباشر في بيئة بايثون، ولكن عند إرسال طلب دراسة عبر <code>StudyExecutor._dispatch</code> تصطدم جميعها بالسطر <a href="file:///c:/Users/EWS-01/Desktop/etap/services/study_executor.py#L535">services/study_executor.py:535</a> الذي يرفع <code>ValueError("Unsupported agent-routed study type")</code> لعدم وجود كتل شرطية تستقبلها.</li>
+<li><strong>دراسة واحدة كود ميت بنيوياً:</strong> <code>ahmed_etap_orchestration</code>. هذه الدراسة لها كتلة معالجة كاملة مكتوبة في السطور <a href="file:///c:/Users/EWS-01/Desktop/etap/services/study_executor.py#L496-L533">496-533</a>، لكنها مسجلة كـ <code>handler_type="external"</code> في جدول الإرسال (<a href="file:///c:/Users/EWS-01/Desktop/etap/engine/dispatch.py#L149">engine/dispatch.py:149</a>)، مما يجعل دالة التوجيه ترفضها وتلقي استثناءً عند السطر <a href="file:///c:/Users/EWS-01/Desktop/etap/services/study_executor.py#L426">426</a> قبل أن تصل إلى دالة معالجة الوكلاء إطلاقاً.</li>
+<li>
+<p><strong>دراسة خارجية معطلة:</strong> <code>optimization</code>، مسجلة كـ <code>external</code> وترفع <code>ValueError</code> فوراً عند السطر 426 لغياب موجه للمهام الخارجية في <code>study_executor</code>.</p>
+</li>
+<li>
+<p><strong>تحليل المالك المحتمل للقرار (Ownership of Decision):</strong></p>
+</li>
+<li>بالنسبة للدراسات الـ 11 التابعة للوكلاء (<code>harmonic_analysis</code> إلى <code>generative_design</code>): <strong>المالك موجود تقنياً</strong> وهو فريق تطوير طبقة التنفيذ (<code>services/study_executor.py</code>). المطلوب هندسياً هو ربط موجه الوكلاء العام بسجل الوكلاء <code>STUDY_TYPE_AGENT_MAP</code> وتمرير <code>EngineeringTask</code> للوكيل بدلاً من قصر المعالجة على <code>etap_expert</code> و <code>etap_gui</code>.</li>
+<li>بالنسبة لـ <code>ahmed_etap_orchestration</code>: <strong>المالك مفقود بسبب تضارب التوصيف المعماري (Architectural Conflict)</strong>. قرار تصنيفها كـ <code>external</code> في ADR-0002 يتناقض مع وجود كود بايثون محلي لها في <code>agents/ahmed_etap_orchestrator.py</code> وكتلة تنفيذ داخل <code>study_executor.py</code>. يتطلب الأمر قراراً معمارياً موحداً: إما تغيير تصنيفها إلى <code>agent</code> لتعمل محلياً، أو حذف الكتلة الميتة وتوجيهها لخدمة هندسية خارجية عبر HTTP.</li>
+<li>بالنسبة لـ <code>optimization</code>: <strong>المالك غير موجود</strong>؛ الدراسة أُضيفت كمدخل في جدول الإرسال دون وجود مسار تكاملي خارجي نشط في الخدمة.</li>
+<li>بالنسبة لـ <code>breaker_duty</code>: <strong>المالك موجود</strong> ومُحكم؛ مسارها يعمل عبر المقيّم المتخصص خلف علم ميزة صارم، وتملك مسار تنفيذ مشروط وواضح.</li>
+</ol>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "search.suggest", "search.highlight"], "search": "../../assets/javascripts/workers/search.f8cc74c7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.c8b220af.min.js"></script>
+      
+    
+  </body>
+</html>
