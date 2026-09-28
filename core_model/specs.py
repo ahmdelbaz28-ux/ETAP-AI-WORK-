@@ -364,6 +364,8 @@ _ALLOWED_STUDY_TYPES: frozenset[str] = frozenset(
         "etap_expert",
         # ETAP GUI Agent — Computer Use Agent for desktop apps (ETAP, Revit, AutoCAD, etc.)
         "etap_gui",
+        # Optimization Specialist Agent (M3.5)
+        "optimization",
     }
 )
 

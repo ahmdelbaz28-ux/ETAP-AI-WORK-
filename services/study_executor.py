@@ -422,7 +422,7 @@ class StudyExecutor:
 
             return BreakerDutyEvaluator().execute_study(parameters)
 
-        if canonical in ("ahmed_etap_orchestration", "ahmed_etap"):
+        if canonical in ("ahmed_etap_orchestration", "ahmed_etap", "optimization"):
             return self._dispatch_agent(canonical, parameters)
 
         if registration.handler_type == "native":
@@ -542,6 +542,39 @@ class StudyExecutor:
             except Exception as exc:
                 raise SpecializedExecutionUnavailableError(
                     study_type, f"Orchestrator execution unavailable: {exc}"
+                ) from exc
+
+        if study_type == "optimization":
+            try:
+                from agents.models import EngineeringTask, StudyType
+                from agents.optimizers.optimization_agent import OptimizationAgent
+
+                agent = OptimizationAgent()
+                opt_task = EngineeringTask(
+                    task_id=f"optimization_{int(time.time())}",
+                    description=parameters.get("description", "Optimization study"),
+                    study_types=[StudyType.OPTIMAL_POWER_FLOW],
+                    parameters=parameters,
+                )
+                try:
+                    asyncio.get_running_loop()
+                    import concurrent.futures as _cf
+
+                    with _cf.ThreadPoolExecutor(max_workers=1) as pool:
+                        result = pool.submit(lambda: asyncio.run(agent.execute(opt_task))).result()
+                except RuntimeError:
+                    result = asyncio.run(agent.execute(opt_task))
+
+                if result.status.value != "completed":
+                    raise SpecializedExecutionUnavailableError(
+                        study_type, f"Optimization execution failed: {result.data.get('error', 'unknown error')}"
+                    )
+                return result.data
+            except SpecializedExecutionUnavailableError:
+                raise
+            except Exception as exc:
+                raise SpecializedExecutionUnavailableError(
+                    study_type, f"Optimization execution unavailable: {exc}"
                 ) from exc
 
         raise SpecializedExecutionUnavailableError(

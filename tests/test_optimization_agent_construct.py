@@ -120,3 +120,54 @@ def test_study_executor_import_block():
     orchestrator = get_orchestrator()
     assert orchestrator is not None
     assert hasattr(orchestrator, "agents")
+
+
+# ---------------------------------------------------------------------------
+# M3.5 Option A: StudyExecutor Local Dispatch Tests
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_study_executor_dispatches_optimization_locally(monkeypatch):
+    """M3.5 Option A: StudyExecutor dispatches 'optimization' locally to OptimizationAgent."""
+    from core_model.specs import StudyRequest
+    from services.study_executor import StudyExecutor
+
+    executor = StudyExecutor()
+    mock_payload = {
+        "optimal_allocations_mvar": [5.0, 10.0],
+        "initial_losses_mw": 1.25,
+        "optimized_losses_mw": 0.85,
+    }
+    monkeypatch.setattr(
+        OptimizationAgent,
+        "_run_placement",
+        lambda self, params: mock_payload,
+    )
+
+    req = StudyRequest(
+        study_type="optimization",
+        parameters={"optimization_type": "placement"},
+    )
+    result = await executor.execute(req)
+    assert result.success is True
+    for k, v in mock_payload.items():
+        assert result.data[k] == v
+    assert "risk_score" in result.data
+
+
+def test_study_executor_optimization_failure_raises_specialized_execution_unavailable():
+    """M3.5: Failed optimization raises SpecializedExecutionUnavailableError in _dispatch."""
+    from core.exceptions import SpecializedExecutionUnavailableError
+    from services.study_executor import StudyExecutor
+
+    executor = StudyExecutor()
+    with pytest.raises(SpecializedExecutionUnavailableError) as exc_info:
+        executor._dispatch(
+            study_type="optimization",
+            system=None,
+            parameters={"optimization_type": "unsupported_xyz"},
+        )
+
+    assert "optimization" in str(exc_info.value).lower()
+
