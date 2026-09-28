@@ -99,4 +99,10 @@ regexes = [
   # Allowlist inline marker - append to a line to skip it
   '''# pragma: allowlist secret''',
   '''# security: intentional''',
+  # Shell-variable credential templates, e.g. `curl -s -u "${SONAR_TOKEN}:"` in the
+  # rebuilt docs page `security/rotation-log/index.html` (gh-pages, Round 8 / E-1).
+  # Anchored: matches only pure `$VAR:` / `${VAR}:` placeholders (quoted or bare),
+  # never real token values. Removes the curl-auth-user false positive without
+  # adding new .gitleaksignore entries (ratchet ceiling preserved at 800).
+  '''^['"]?(?:\$\{[A-Za-z_][A-Za-z0-9_]*\}|\$[A-Za-z_][A-Za-z0-9_]*):?['"]?$''',
 ]
