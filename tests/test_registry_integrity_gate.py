@@ -9,13 +9,12 @@ Verifies that the check_registry_integrity.py guardian:
 
 from __future__ import annotations
 
+import importlib.util as _ilu
 import sys
 import textwrap
 from pathlib import Path
 
 import pytest
-
-import importlib.util as _ilu
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT))

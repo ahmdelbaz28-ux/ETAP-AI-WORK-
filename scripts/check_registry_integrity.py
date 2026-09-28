@@ -205,11 +205,11 @@ def run_registry_integrity_check(strict: bool = False) -> int:
         print("", file=sys.stderr)
         return 1
 
-    print(f"\n[OK] Registry Integrity Guard passed. No rogue study_type bindings detected.")
+    print("\n[OK] Registry Integrity Guard passed. No rogue study_type bindings detected.")
     print(f"  - Canonical study types verified: {len(canonical_study_types)}")
-    print(f"  - Rogue binding scan: CLEAN")
+    print("  - Rogue binding scan: CLEAN")
     if strict:
-        print(f"  - STUDY_DISPATCH ⊇ StudyType enum: VERIFIED")
+        print("  - STUDY_DISPATCH ⊇ StudyType enum: VERIFIED")
     print("")
     return 0
 

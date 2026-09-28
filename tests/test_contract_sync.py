@@ -205,6 +205,7 @@ def test_agent_models_linkage_fields_backward_compatible():
 def test_pydantic_contracts_instantiation():
     """All Pydantic contracts can be instantiated with required fields."""
     import uuid
+
     from contracts.ai import (
         ApprovalStateContract,
         EvidenceContract,
