@@ -173,6 +173,8 @@ jobs:
           cp -r integrations ml stage/
           # 7 مجلدات كانت مفقودة (RC-3 fix): curves visualization reporting digital_twin security gis_integration adms_control
           cp -r curves visualization reporting digital_twin security gis_integration adms_control stage/
+          # 5 runtime modules required by Dockerfile
+          cp -r contracts etap_integration scripts scada_model scada_protocols stage/
           # 5) data/ minus runtime DBs
           cp -r data stage/
           rm -f stage/data/*.db* 2>/dev/null || true
