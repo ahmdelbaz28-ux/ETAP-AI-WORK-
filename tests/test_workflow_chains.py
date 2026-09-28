@@ -11,8 +11,9 @@ Verifies inter-node data flow and cascading execution:
 from __future__ import annotations
 
 from typing import Any
-import pytest
 from unittest.mock import AsyncMock
+
+import pytest
 
 from agents.base import BaseAgent
 from agents.models import AgentResult, AgentStatus, EngineeringTask, StudyType

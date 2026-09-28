@@ -324,7 +324,7 @@ class WorkflowEngine:
                 topological_order=topological_order,
             )
             # Store computed batches on plan instance for orchestrator dispatch
-            setattr(plan, "_parallel_batches", batches)
+            plan._parallel_batches = batches
             self.last_execution_plan = plan
             return plan
         except Exception as exc:

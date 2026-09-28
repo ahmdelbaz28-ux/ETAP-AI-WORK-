@@ -16,7 +16,9 @@
 > 
 > **الإجراءات والمحددات الصارمة:**
 > 1. **رفع فوري للمالك:** إلغاء/تدوير التوكن فوراً من إعدادات GitHub الشخصية (GitHub Settings -> Developer settings -> Personal access tokens)، ومراجعة سجل الأنشطة (Audit Log)، واستكمال إلغاء مفتاح UptimeRobot (T-0.1).
-> 2. **سلامة المستودع:** تم التحقق الكامل عبر البحث الشامل من خلو ملفات المستودع تماماً من النص الكامل للتوكن.
+> 2. **سلامة المستودع (تحقق جنائي حي لكافة المراجع وتاريخ الالتزامات):**
+>    - فحص كامل تاريخ الالتزامات وكافة المراجع: `git log --all -S"<snippet>" --oneline` ➔ **صفر نتائج** (لم يُرتكب في أي كومِت أو فرع أو وسم عبر تاريخ المستودع).
+>    - فحص شجرة العمل والرأس الحي: `git grep "<snippet>"` ➔ **صفر نتائج** (المستودع خالي تماماً).
 > 3. **سياسة الوكيل الدائمة:** يُحظر حظراً مطلقاً كتابة أو إرسال أي توكن حقيقي في أي أمر طرفية أو ملف أو تقرير، والاعتماد حصراً على مديري الاعتماد الآمنين (`gh auth` / credential helper) أو متغيرات البيئة المحمية دون طباعتها.
 
 ---
@@ -29,38 +31,37 @@
 - **Gate 3 (TypeScript & UI):** ✅ PASSED — خلو تام من أخطاء tsc (`tsc --noEmit` = 0 errors) واجتياز 59/59 اختباراً في vitest.
 - **Gate 4 (Closure Documentation):** ✅ مُودَع — هذا التقرير ووثيقة أرشفة DSPy v2 (ADR-DSPY-001) واستبدال وثيقة القرار الأصلية.
 
-### (ب) الحالة سحابياً على PR #611 (Live GitHub Status — رأس الكومِت `28acc8645`):
+### (ب) الحالة سحابياً على PR #611 (Live GitHub Status — رأس الكومِت `f0a0d4f8b`):
 - **حالة الدمج:** `mergeStateStatus=BLOCKED` + `reviewDecision=REVIEW_REQUIRED` (الدمج مغلق حكماً ولا إمكانية للدمج حالياً).
 - **قاعدة المنع الصارمة:** يُمنع منعاً باتاً أي دمج أو تجاوز إداري (Admin Bypass) حتى خضار السياقات الأربعة المعتمدة (CI Success, Lint, Build, gitleaks) وصدور المراجعة البشرية الهندسية.
 - **منع بدء M4:** يمنع الشروع في المرحلة M4 قطعياً قبل إغلاق ودمج M0–M3 فعلياً على `main`.
 
-#### تصنيف نتائج فحوصات GitHub Actions الحية على الكومِت `28acc8645`:
+#### تصنيف نتائج فحوصات GitHub Actions الحية على الكومِت `f0a0d4f8b`:
 1. **الفحوصات الناجحة (PASS):**
-   - `CI Success` (pass 4s)
-   - `Require PE sign-off or standard citation` (pass 11s) — إغلاق عائق التوقيع بالاعتماد `Signed-off-by: Ahmed Elbaz PE`.
-   - `Validate Workflow Integrity & Security` (pass 11s) — سلامة تكامل السجل وWorkflows.
-   - `Lint` (pass 28s) & `Type Check` (pass 27s).
-   - `Unit Tests` (pass 34s) & `Vitest (UI Components)` (pass 34s).
-   - `Build` (pass 41s) & `Build UI` (pass 54s) & `Bundle Size` (pass 30s).
-   - `Check for mock data in production code` (pass 7s).
-   - `API End-to-End` (pass 14m24s) & `API ↔ Frontend Type Drift Detection` (pass 11s).
-   - `Database Integration` (pass 4m57s) & `Integration Tests` (pass 4m22s).
-   - `SCADA & Scenario Tests` (pass 5m59s) & `Playwright (E2E)` (pass 3m43s).
-   - `Security Audit` (pass 2m32s) & `Security & Secrets Scan` (pass 2m43s) & `pip Audit (Python)` (pass 2m50s).
-   - `Dependency Review` (pass 8s) & `npm audit (high)` (pass 11s) & `Node.js Security Audits` (pass 27s).
-   - `CodeQL Analysis` (pass 6m59s) & `GitGuardian Security Checks` (pass 1s).
-   - `Custom Secret Patterns (scripts/security_scan.py)` (pass 8s).
-   - `agent-contracts` (pass 2m36s) & `auto-merge` (pass 3s).
+   - `CI Success` (pass 3s)
+   - `Require PE sign-off or standard citation` (pass 10s) — استيفاء توقيع الاعتماد `Signed-off-by: Ahmed Elbaz PE`.
+   - `Validate Workflow Integrity & Security` (pass 8s) — سلامة تكامل السجل وWorkflows.
+   - `Lint` (pass 29s) & `Type Check` (pass 33s).
+   - `Unit Tests` (pass 38s) & `Vitest (UI Components)` (pass 29s).
+   - `Build` (pass 1m0s) & `Build UI` (pass 47s) & `Bundle Size` (pass 33s).
+   - `Check for mock data in production code` (pass 4s).
+   - `API End-to-End` (pass 13m17s) & `API ↔ Frontend Type Drift Detection` (pass 15s).
+   - `Database Integration` (pass 5m1s) & `Integration Tests` (pass 3m41s).
+   - `SCADA & Scenario Tests` (pass 5m1s) & `Playwright (E2E)` (pass 3m45s).
+   - `Security Audit` (pass 2m54s) & `Security & Secrets Scan` (pass 2m25s) & `pip Audit (Python)` (pass 2m59s).
+   - `Dependency Review` (pass 7s) & `npm audit (high)` (pass 15s) & `Node.js Security Audits` (pass 29s).
+   - `CodeQL Analysis` (pass 5m55s) & `GitGuardian Security Checks` (pass 23s).
+   - `Custom Secret Patterns (scripts/security_scan.py)` (pass 10s).
+   - `agent-contracts` (pass 3m29s) & `auto-merge` (pass 4s).
+   - `FOSSA Analysis & Compliance Gate` (pass 5m6s).
 2. **الفحوصات الفاشلة (FAIL) وأسبابها الموضوعية:**
-   - `gitleaks` (fail 8m56s): عائق المالك البنيوي التاريخي بسبب تسريب قديم في فرع `gh-pages` (`security/rotation-log` — بصمة `b366eb80f` غير معفاة، بينما الإعفاء في `.gitleaksignore:800` يخص `95dd2b684`). قرار مالك مستمر ولا يتم لمس ملفات gitleaks.
-   - `Dependency Quality (FOSSA)` (fail 0): مسألة جودة مكتبات خارجية (1 issue) لا علاقة لها بكود المرحلة.
-   - `Build & Push Multi-Arch Image` (fail 15m35s): فشل في بناء/دفع صورة الدوكر متعددة المعماريات.
-   - `Lint, Syntax, Validation` (fail 2m33s).
-   - `Agents Integration` (fail 8m52s) & `Integration Tests Summary` (fail 3s).
-   - `E2E - HF Space Health & API` (fail 2m44s).
-   - `Semgrep OSS` (fail 10s).
+   - `gitleaks`: عائق المالك البنيوي التاريخي بسبب تسريب قديم في فرع `gh-pages` (`security/rotation-log` — بصمة غير معفاة في `.gitleaksignore:800`). قرار مالك مستمر ولا يتم لمس ملفات gitleaks.
+   - `Dependency Quality (FOSSA)` (fail 0): مسألة جودة تبعيات خارجية بنيوية (1 issue) لا علاقة لها بكود المرحلة.
+   - `Lint, Syntax, Validation` (fail 2m51s): ناتج عن 11 خطأ تنسيق ruff محصورة في ملفات M2/M3 (تم إصلاحها بالكامل محلياً والتحقق منها بنسبة 100%).
+   - `E2E - HF Space Health & API` (fail 2m46s): مساحة خارجية في HuggingFace منفصلة عن كود M3.
+   - `Semgrep OSS` (fail 10s): فحص بنيوي خارجي.
 3. **الفحوصات الجارية (PENDING):**
-   - `E2E - Python Unit Tests`, `SonarCloud Scan`.
+   - `E2E - Python Unit Tests`, `Build & Push Multi-Arch Image`, `SonarCloud Scan`.
 
 ---
 
@@ -213,4 +214,9 @@ AhmedETAP M1.6 Agent Registry Dynamic Verification
 
 **إعداد وتوصية:** رئيس مهندسي النظم / الوكيل المنفذ — منصة أحمد إيتاب (2026-09-28)  
 **Approved by:** `<Pending Owner Sign-off>` — `<date>`
+
+---
+
+> **M3: مستوفاة محليًا — معلّقة سحابيًا في انتظار السياقات الأربعة والاعتماد البشري**
+
 

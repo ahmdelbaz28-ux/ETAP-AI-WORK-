@@ -10,8 +10,9 @@ Verifies:
 
 from __future__ import annotations
 
-import pytest
 from unittest.mock import MagicMock, patch
+
+import pytest
 
 from agents.models import AgentStatus, EngineeringTask, StudyType
 from agents.optimizers.optimization_agent import OptimizationAgent
