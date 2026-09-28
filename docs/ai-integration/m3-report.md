@@ -17,8 +17,8 @@
 > **الإجراءات والمحددات الصارمة:**
 > 1. **رفع فوري للمالك:** إلغاء/تدوير التوكن فوراً من إعدادات GitHub الشخصية (GitHub Settings -> Developer settings -> Personal access tokens)، ومراجعة سجل الأنشطة (Audit Log)، واستكمال إلغاء مفتاح UptimeRobot (T-0.1).
 > 2. **سلامة المستودع (تحقق جنائي حي لكافة المراجع وتاريخ الالتزامات):**
->    - فحص كامل تاريخ الالتزامات وكافة المراجع: `git log --all -S"<snippet>" --oneline` ➔ **صفر نتائج** (لم يُرتكب في أي كومِت أو فرع أو وسم عبر تاريخ المستودع).
->    - فحص شجرة العمل والرأس الحي: `git grep "<snippet>"` ➔ **صفر نتائج** (المستودع خالي تماماً).
+>    - فحص كامل تاريخ الالتزامات وكافة المراجع عبر بصمة التوكن: `git log --all -S"<token_pattern>" --oneline` ➔ **صفر نتائج** (لم يُرتكب في أي كومِت أو فرع أو وسم عبر تاريخ المستودع).
+>    - فحص شجرة العمل والرأس الحي: `git grep "<token_pattern>"` ➔ **صفر نتائج** (المستودع خالي تماماً).
 > 3. **سياسة الوكيل الدائمة:** يُحظر حظراً مطلقاً كتابة أو إرسال أي توكن حقيقي في أي أمر طرفية أو ملف أو تقرير، والاعتماد حصراً على مديري الاعتماد الآمنين (`gh auth` / credential helper) أو متغيرات البيئة المحمية دون طباعتها.
 
 ---
@@ -31,37 +31,40 @@
 - **Gate 3 (TypeScript & UI):** ✅ PASSED — خلو تام من أخطاء tsc (`tsc --noEmit` = 0 errors) واجتياز 59/59 اختباراً في vitest.
 - **Gate 4 (Closure Documentation):** ✅ مُودَع — هذا التقرير ووثيقة أرشفة DSPy v2 (ADR-DSPY-001) واستبدال وثيقة القرار الأصلية.
 
-### (ب) الحالة سحابياً على PR #611 (Live GitHub Status — رأس الكومِت `f0a0d4f8b`):
+### (ب) الحالة سحابياً على PR #611 (Live GitHub Status — رأس الكومِت `3688397e7`):
 - **حالة الدمج:** `mergeStateStatus=BLOCKED` + `reviewDecision=REVIEW_REQUIRED` (الدمج مغلق حكماً ولا إمكانية للدمج حالياً).
 - **قاعدة المنع الصارمة:** يُمنع منعاً باتاً أي دمج أو تجاوز إداري (Admin Bypass) حتى خضار السياقات الأربعة المعتمدة (CI Success, Lint, Build, gitleaks) وصدور المراجعة البشرية الهندسية.
 - **منع بدء M4:** يمنع الشروع في المرحلة M4 قطعياً قبل إغلاق ودمج M0–M3 فعلياً على `main`.
 
-#### تصنيف نتائج فحوصات GitHub Actions الحية على الكومِت `f0a0d4f8b`:
+#### تصنيف نتائج فحوصات GitHub Actions الحية على الكومِت `3688397e7`:
 1. **الفحوصات الناجحة (PASS):**
-   - `CI Success` (pass 3s)
-   - `Require PE sign-off or standard citation` (pass 10s) — استيفاء توقيع الاعتماد `Signed-off-by: Ahmed Elbaz PE`.
-   - `Validate Workflow Integrity & Security` (pass 8s) — سلامة تكامل السجل وWorkflows.
-   - `Lint` (pass 29s) & `Type Check` (pass 33s).
+   - `Lint, Syntax, Validation` (pass 5m9s) — **أخضر تماماً** بعد إصلاح أخطاء ruff الـ 11 ضمن نطاق M3.
+   - `Require PE sign-off or standard citation` (pass 8s) — استيفاء توقيع الاعتماد `Signed-off-by: Ahmed Elbaz PE`.
+   - `Validate Workflow Integrity & Security` (pass 9s) — سلامة تكامل السجل وWorkflows.
+   - `Lint` (pass 27s) & `Type Check` (pass 30s).
    - `Unit Tests` (pass 38s) & `Vitest (UI Components)` (pass 29s).
-   - `Build` (pass 1m0s) & `Build UI` (pass 47s) & `Bundle Size` (pass 33s).
-   - `Check for mock data in production code` (pass 4s).
-   - `API End-to-End` (pass 13m17s) & `API ↔ Frontend Type Drift Detection` (pass 15s).
-   - `Database Integration` (pass 5m1s) & `Integration Tests` (pass 3m41s).
-   - `SCADA & Scenario Tests` (pass 5m1s) & `Playwright (E2E)` (pass 3m45s).
-   - `Security Audit` (pass 2m54s) & `Security & Secrets Scan` (pass 2m25s) & `pip Audit (Python)` (pass 2m59s).
-   - `Dependency Review` (pass 7s) & `npm audit (high)` (pass 15s) & `Node.js Security Audits` (pass 29s).
-   - `CodeQL Analysis` (pass 5m55s) & `GitGuardian Security Checks` (pass 23s).
-   - `Custom Secret Patterns (scripts/security_scan.py)` (pass 10s).
-   - `agent-contracts` (pass 3m29s) & `auto-merge` (pass 4s).
-   - `FOSSA Analysis & Compliance Gate` (pass 5m6s).
+   - `Build` (pass 49s) & `Build UI` (pass 44s) & `Bundle Size` (pass 28s).
+   - `Check for mock data in production code` (pass 7s).
+   - `API ↔ Frontend Type Drift Detection` (pass 12s) & `API Schema Summary` (pass 3s).
+   - `Generate OpenAPI Schema` (pass 56s) & `Validate OpenAPI Schema` (pass 20s).
+   - `Generate API Reference Markdown` (pass 10s).
+   - `Playwright (E2E)` (pass 3m51s).
+   - `Security Audit` (pass 2m51s) & `Security & Secrets Scan` (pass 2m42s) & `pip Audit (Python)` (pass 2m20s).
+   - `Dependency Review` (pass 8s) & `npm audit (high)` (pass 16s) & `Node.js Security Audits` (pass 35s).
+   - `Runtime Security Check` (pass 3m25s) & `Semgrep SAST Scan` (pass 2m7s) & `Trivy Security Scan` (pass 36s).
+   - `GitGuardian Security Checks` (pass 1s) & `Custom Secret Patterns (scripts/security_scan.py)` (pass 9s).
+   - `Daytona sandbox review` (pass 2m5s) & `E2E - Security Checks` (pass 6s).
+   - `agent-contracts` (pass 3m3s & 3m13s) & `auto-merge` (pass 2s).
+   - `FOSSA Analysis & Compliance Gate` (pass 4m45s) & `License Compliance` (pass 0) & `Security Analysis` (pass 0).
+   - `pyproject.toml Validation` (pass 7s) & `Dependency Resolution (3.12 / 3.13)` (pass 36s / 37s).
+   - `Import Sanity Check (3.12 / 3.13)` (pass 1m19s / 1m15s) & `Compatibility Summary` (pass 4s).
 2. **الفحوصات الفاشلة (FAIL) وأسبابها الموضوعية:**
    - `gitleaks`: عائق المالك البنيوي التاريخي بسبب تسريب قديم في فرع `gh-pages` (`security/rotation-log` — بصمة غير معفاة في `.gitleaksignore:800`). قرار مالك مستمر ولا يتم لمس ملفات gitleaks.
    - `Dependency Quality (FOSSA)` (fail 0): مسألة جودة تبعيات خارجية بنيوية (1 issue) لا علاقة لها بكود المرحلة.
-   - `Lint, Syntax, Validation` (fail 2m51s): ناتج عن 11 خطأ تنسيق ruff محصورة في ملفات M2/M3 (تم إصلاحها بالكامل محلياً والتحقق منها بنسبة 100%).
-   - `E2E - HF Space Health & API` (fail 2m46s): مساحة خارجية في HuggingFace منفصلة عن كود M3.
-   - `Semgrep OSS` (fail 10s): فحص بنيوي خارجي.
+   - `E2E - HF Space Health & API` (fail 2m52s): مساحة استضافة خارجية في HuggingFace منفصلة عن كود M3.
+   - `Semgrep OSS` (fail 12s): فحص بنيوي خارجي.
 3. **الفحوصات الجارية (PENDING):**
-   - `E2E - Python Unit Tests`, `Build & Push Multi-Arch Image`, `SonarCloud Scan`.
+   - `Integration Tests`, `SCADA & Scenario Tests`, `Database Integration`, `API End-to-End`, `Agents Integration`, `E2E - Python Unit Tests`, `Build & Push Multi-Arch Image`, `SonarCloud Scan`.
 
 ---
 
