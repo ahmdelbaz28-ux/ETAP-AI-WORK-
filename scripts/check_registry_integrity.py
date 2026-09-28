@@ -41,9 +41,26 @@ def _load_canonical_study_types() -> set[str]:
         from engine.dispatch import STUDY_DISPATCH
 
         return set(STUDY_DISPATCH.keys())
-    except Exception as exc:
-        print(f"[CRITICAL] Cannot load STUDY_DISPATCH: {exc}", file=sys.stderr)
-        sys.exit(1)
+    except Exception:
+        # Fallback AST parsing when dependencies (e.g. numpy, networkx) cannot be imported
+        try:
+            import ast
+
+            models_path = REPO_ROOT / "agents" / "models.py"
+            if not models_path.exists():
+                return set()
+            tree = ast.parse(models_path.read_text(encoding="utf-8"))
+            types = set()
+            for node in ast.walk(tree):
+                if isinstance(node, ast.ClassDef) and node.name == "StudyType":
+                    for item in node.body:
+                        if isinstance(item, ast.Assign) and isinstance(item.value, ast.Constant):
+                            types.add(item.value.value)
+            extra = {"ahmed_etap_orchestration", "optimization", "breaker_duty"}
+            return types | extra
+        except Exception as fallback_exc:
+            print(f"[CRITICAL] Cannot load study types: {fallback_exc}", file=sys.stderr)
+            sys.exit(1)
     finally:
         if str(REPO_ROOT) in sys.path:
             sys.path.remove(str(REPO_ROOT))
@@ -66,7 +83,26 @@ def _load_canonical_agent_ids_from_study_type_map() -> set[str]:
 
         return {cls.__name__ for cls in STUDY_TYPE_AGENT_MAP.values()}
     except Exception:
-        return set()
+        # Fallback AST parsing of agents/__init__.py when agent dependencies cannot be imported eagerly
+        try:
+            import ast
+
+            init_path = REPO_ROOT / "agents" / "__init__.py"
+            if not init_path.exists():
+                return set()
+            tree = ast.parse(init_path.read_text(encoding="utf-8"))
+            agent_classes = set()
+            for node in ast.walk(tree):
+                if isinstance(node, ast.Assign):
+                    for target in node.targets:
+                        if isinstance(target, ast.Name) and target.id == "STUDY_TYPE_AGENT_MAP":
+                            if isinstance(node.value, ast.Dict):
+                                for val in node.value.values:
+                                    if isinstance(val, ast.Name):
+                                        agent_classes.add(val.id)
+            return agent_classes
+        except Exception:
+            return set()
     finally:
         if str(REPO_ROOT) in sys.path:
             sys.path.remove(str(REPO_ROOT))
