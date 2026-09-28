@@ -9,6 +9,8 @@ Enforces structural and security invariants across all GitHub Actions workflows:
 4. Valid branch trigger patterns (no malformed bracket suffixes like ain]).
 5. Overrides consistency between package.json and pnpm-workspace.yaml (T-2.1).
 6. Line count ratchet on .gitleaksignore (R-3).
+7. Unified Registry Integrity Guard (M2.4): any study_type bound outside the
+   canonical registry (engine/dispatch.py STUDY_DISPATCH) fails the build.
 """
 
 from __future__ import annotations
@@ -202,6 +204,23 @@ def main() -> int:
     check_gitleaksignore_ratchet(repo_root, violations)
     check_release_gate_job_names(repo_root, defined_job_names, violations)
 
+    # M2.4 — Unified Registry Integrity Guard (fail-closed)
+    try:
+        import importlib.util as _ilu
+
+        _guard_path = Path(__file__).parent / "check_registry_integrity.py"
+        _spec = _ilu.spec_from_file_location("check_registry_integrity", _guard_path)
+        _guard = _ilu.module_from_spec(_spec)  # type: ignore[arg-type]
+        _spec.loader.exec_module(_guard)  # type: ignore[union-attr]
+        registry_rc = _guard.run_registry_integrity_check(strict=False)
+        if registry_rc != 0:
+            violations.append(
+                "M2.4 Registry Integrity: rogue study_type binding detected — "
+                "run 'python scripts/check_registry_integrity.py' for details"
+            )
+    except Exception as exc:
+        violations.append(f"M2.4 Registry Integrity: guardian failed to run: {exc}")
+
     if violations:
         sys.stderr.write(f"\n[BLOCKED] Meta-CI found {len(violations)} workflow standard violation(s):\n")
         for v in violations:
@@ -216,7 +235,8 @@ def main() -> int:
     sys.stdout.write("  - Branch triggers: VALIDATED\n")
     sys.stdout.write("  - Overrides consistency (T-2.1): SYNCHRONIZED\n")
     sys.stdout.write("  - Gitleaksignore ratchet (R-3): ENFORCED (ceiling: 800)\n")
-    sys.stdout.write("  - Release Gate job names (G-3 / N28): VERIFIED\n\n")
+    sys.stdout.write("  - Release Gate job names (G-3 / N28): VERIFIED\n")
+    sys.stdout.write("  - Registry Integrity Guard (M2.4): CLEAN\n\n")
     sys.stdout.flush()
     return 0
 
