@@ -11,7 +11,13 @@ from __future__ import annotations
 import logging
 from typing import Any, Dict
 
-from agents.orchestrator import AgentResult, AgentStatus, BaseAgent, EngineeringTask
+from agents.orchestrator import (
+    AgentResult,
+    AgentStatus,
+    BaseAgent,
+    EngineeringTask,
+    StudyType,
+)
 from coordination.optimizers.pso_coordinator import PSOCoordinationEngine
 from engine.optimizers.filter_design_pso import HarmonicFilterOptimizer
 from engine.optimizers.placement_pso import OptimalPlacementPSO
@@ -38,6 +44,12 @@ class OptimizationAgent(BaseAgent):
         study_type = task.parameters.get("optimization_type", "placement")
         logger.info("OptimizationAgent executing study: %s", study_type)
 
+        study_type_enum = (
+            task.study_types[0]
+            if (task.study_types and isinstance(task.study_types[0], StudyType))
+            else StudyType.OPTIMAL_POWER_FLOW
+        )
+
         try:
             if study_type in ("capacitor_placement", "placement"):
                 res = self._run_placement(task.parameters)
@@ -48,26 +60,30 @@ class OptimizationAgent(BaseAgent):
             elif study_type in ("ac_opf", "pso_opf"):
                 res = self._run_opf(task.parameters)
             else:
+                err_msg = f"Unsupported optimization type: {study_type}"
                 return AgentResult(
-                    task_id=task.id,
                     agent_name=self.name,
+                    study_type=study_type_enum,
                     status=AgentStatus.FAILED,
-                    error=f"Unsupported optimization type: {study_type}",
+                    data={"error": err_msg},
+                    validation_errors=[err_msg],
                 )
 
             return AgentResult(
-                task_id=task.id,
                 agent_name=self.name,
-                status=AgentStatus.SUCCESS,
+                study_type=study_type_enum,
+                status=AgentStatus.COMPLETED,
                 data=res,
             )
         except Exception as exc:
             logger.exception("OptimizationAgent failed: %s", exc)
+            err_msg = str(exc)
             return AgentResult(
-                task_id=task.id,
                 agent_name=self.name,
+                study_type=study_type_enum,
                 status=AgentStatus.FAILED,
-                error=str(exc),
+                data={"error": err_msg},
+                validation_errors=[err_msg],
             )
 
     def _run_placement(self, params: Dict[str, Any]) -> Dict[str, Any]:

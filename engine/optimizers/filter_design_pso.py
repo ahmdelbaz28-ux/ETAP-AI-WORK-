@@ -191,7 +191,7 @@ class HarmonicFilterOptimizer:
         q_factor = math.sqrt(best_l / best_c) / best_r
         total_q_kvar = (3.0 * (self.v_phase_v ** 2) * (self.omega0 * best_c)) / 1000.0
 
-        compliant = (thd_after <= 5.0) and all(v <= 3.0 for v in v_h_after.values())
+        compliant = bool((thd_after <= 5.0) and all(v <= 3.0 for v in v_h_after.values()))
         cost_usd = total_q_kvar * 35.0 + best_l * 1000.0 * 20.0  # Estimated component price
 
         return FilterDesignResult(
@@ -207,5 +207,5 @@ class HarmonicFilterOptimizer:
             ieee_519_compliant=compliant,
             individual_harmonics_after_pct={h: round(v, 2) for h, v in v_h_after.items()},
             estimated_filter_cost_usd=round(cost_usd, 2),
-            converged=res.converged,
+            converged=bool(res.converged),
         )

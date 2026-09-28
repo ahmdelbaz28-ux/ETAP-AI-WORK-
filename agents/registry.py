@@ -1395,6 +1395,7 @@ STUDY_TYPE_MAPPING: dict[str, str] = {
     "battery_storage": "battery_storage",
     "scada": "scada",
     "digital_twin": "digital_twin",
+    "generative_design": "generative_design",
     "anomaly": "anomaly",
     "predictive": "predictive",
     "weather": "weather",
