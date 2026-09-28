@@ -92,7 +92,7 @@ jobs:
 
       - name: Publish test report
         if: always()
-        uses: dorny/test-reporter@31a54ee7ebcacc03a09ea97a7e5465a47b84aea5  # v1.9.1
+        uses: dorny/test-reporter@a43b3a5f7366b97d083190328d2c652e1a8b6aa2  # v3.0.0
         with:
           name: Helm Unit Tests
           path: 'helm/etap-ai/.unittest_results.xml'
