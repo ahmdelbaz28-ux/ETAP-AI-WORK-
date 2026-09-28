@@ -55,7 +55,7 @@ async def test_optimization_agent_successful_execution(monkeypatch):
         "optimized_losses_mw": 0.85,
         "loss_reduction_pct": 32.0,
     }
-    monkeypatch.setattr(agent, "_run_placement", lambda params: mock_payload)
+    monkeypatch.setattr(agent, "_run_placement", lambda params, **kwargs: mock_payload)
 
     task = EngineeringTask(
         task_id="opt_task_002",
@@ -81,7 +81,7 @@ async def test_optimization_agent_exception_handling(monkeypatch):
     """
     agent = OptimizationAgent()
 
-    def _failing_placement(params):
+    def _failing_placement(params, **kwargs):
         raise RuntimeError("Convergence timeout in PSO solver")
 
     monkeypatch.setattr(agent, "_run_placement", _failing_placement)
@@ -142,7 +142,7 @@ async def test_study_executor_dispatches_optimization_locally(monkeypatch):
     monkeypatch.setattr(
         OptimizationAgent,
         "_run_placement",
-        lambda self, params: mock_payload,
+        lambda self, params, **kwargs: mock_payload,
     )
 
     req = StudyRequest(

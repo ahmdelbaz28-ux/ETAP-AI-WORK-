@@ -214,7 +214,10 @@ class ChiefEngineeringOrchestrator:
             "result_ready",
             {
                 "task_id": task.task_id,
-                "studies_performed": [r.study_type.value for r in results],
+                "studies_performed": [
+                    r.study_type.value if hasattr(r.study_type, "value") else str(r.study_type)
+                    for r in results
+                ],
                 "all_validated": all_validated,
             },
         )
@@ -234,7 +237,10 @@ class ChiefEngineeringOrchestrator:
             "run_id": getattr(task, "run_id", None),
             "plan_id": getattr(task, "plan_id", None),
             "goal": user_goal,
-            "studies_performed": [r.study_type.value for r in results],
+            "studies_performed": [
+                r.study_type.value if hasattr(r.study_type, "value") else str(r.study_type)
+                for r in results
+            ],
             "results": results,
             "all_validated": all(r.validation_status for r in results),
             "execution_plan": getattr(self.workflow_engine, "last_execution_plan", None),
