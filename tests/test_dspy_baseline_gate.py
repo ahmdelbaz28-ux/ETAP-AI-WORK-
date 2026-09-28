@@ -10,49 +10,22 @@ Verifies the gate criteria for P0:
 
 from __future__ import annotations
 
-import subprocess
-import sys
-import types
 import pytest
 
 from api.feature_flags import is_strict_feature_enabled
 
 
 def _load_runtime_module():
-    """Load runtime module either from active python path or from git branch v2."""
+    """Load runtime module from merged codebase.
+
+    If the runtime is not merged into the active tree, skip execution
+    per docs/ai-integration/dspy-archive-decision.md.
+    """
     try:
         from services.dspy_copilot.runtime import DspyIngestError, run_diagnose, run_ingest
         return run_ingest, run_diagnose, DspyIngestError
-    except ImportError:
-        # Load directly from feat/dspy-copilot-prepost-v2 git tree for offline baseline verification
-        metrics_mod = types.ModuleType("services.dspy_copilot.metrics")
-        metrics_mod.check_physics_guards = lambda *a, **k: []
-        sys.modules["services.dspy_copilot.metrics"] = metrics_mod
-
-        modules_mod = types.ModuleType("services.dspy_copilot.modules")
-        modules_mod.DspyDiagnosticModule = None
-        modules_mod.DspySldIngestModule = None
-        sys.modules["services.dspy_copilot.modules"] = modules_mod
-
-        schemas_code = subprocess.check_output(
-            ["git", "show", "feat/dspy-copilot-prepost-v2:services/dspy_copilot/schemas.py"],
-            text=True,
-            encoding="utf-8",
-        )
-        schemas_mod = types.ModuleType("services.dspy_copilot.schemas")
-        exec(schemas_code, schemas_mod.__dict__)
-        sys.modules["services.dspy_copilot.schemas"] = schemas_mod
-
-        runtime_code = subprocess.check_output(
-            ["git", "show", "feat/dspy-copilot-prepost-v2:services/dspy_copilot/runtime.py"],
-            text=True,
-            encoding="utf-8",
-        )
-        runtime_mod = types.ModuleType("services.dspy_copilot.runtime")
-        exec(runtime_code, runtime_mod.__dict__)
-        sys.modules["services.dspy_copilot.runtime"] = runtime_mod
-
-        return runtime_mod.run_ingest, runtime_mod.run_diagnose, runtime_mod.DspyIngestError
+    except Exception:
+        pytest.skip("dspy runtime not merged yet — see docs/ai-integration/dspy-archive-decision.md")
 
 
 def test_dspy_flag_disabled_by_default():

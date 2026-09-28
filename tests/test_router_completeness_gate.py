@@ -17,6 +17,7 @@ Acceptance Gates:
 from __future__ import annotations
 
 import random
+
 import pytest
 
 from agents.models import StudyType
