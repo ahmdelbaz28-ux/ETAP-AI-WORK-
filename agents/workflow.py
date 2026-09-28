@@ -108,7 +108,7 @@ class WorkflowEngine:
         self.last_execution_trace: Any | None = None
 
     def build_execution_plan(self, task: EngineeringTask) -> Any | None:
-        """Build an ExecutionPlanContract DAG from task study types and dependency order (M3.3)."""
+        """Build an ExecutionPlanContract DAG from task study types, dependency order, and mappings (M3.2/M3.3)."""
         if ExecutionPlanContract is None or PlanNodeContract is None:
             return None
         try:
@@ -117,37 +117,205 @@ class WorkflowEngine:
             if not getattr(task, "plan_id", None):
                 task.plan_id = str(uuid.uuid4())
 
-            execution_order = determine_execution_order(task.study_types)
+            raw_types = list(task.study_types or [])
+            study_types = determine_execution_order(raw_types) if raw_types else []
             mapping = get_study_type_mapping()
 
+            # Identify if task provides custom nodes in parameters
+            custom_nodes_data = (task.parameters or {}).get("custom_nodes")
             nodes: list[Any] = []
-            load_flow_node_ids: list[str] = []
 
-            for idx, study_type in enumerate(execution_order):
-                s_val = study_type.value if hasattr(study_type, "value") else str(study_type)
-                node_id = f"node_{idx}_{s_val}"
-                agent_key = mapping.get(s_val, s_val)
-                agent_id = (
-                    agent_key if agent_key.endswith("-agent") else f"{agent_key.replace('_', '-')}-agent"
-                )
+            if custom_nodes_data and isinstance(custom_nodes_data, list):
+                for c_node in custom_nodes_data:
+                    node = PlanNodeContract(
+                        node_id=str(c_node.get("node_id", f"node_{len(nodes)}")),
+                        study_type=str(c_node.get("study_type", "load_flow")),
+                        agent_id=str(c_node.get("agent_id", "load-flow-agent")),
+                        depends_on=list(c_node.get("depends_on", [])),
+                        parameters=dict(c_node.get("parameters", {})),
+                        input_mapping=dict(c_node.get("input_mapping", {})),
+                        output_mapping=dict(c_node.get("output_mapping", {})),
+                    )
+                    nodes.append(node)
+            else:
+                # Build canonical node graph from study_types list
+                node_specs: list[dict[str, Any]] = []
+                for idx, st in enumerate(study_types):
+                    s_val = st.value if hasattr(st, "value") else str(st)
+                    node_id = f"node_{idx}_{s_val}"
+                    agent_key = mapping.get(s_val, s_val)
+                    agent_id = (
+                        agent_key if agent_key.endswith("-agent") else f"{agent_key.replace('_', '-')}-agent"
+                    )
+                    node_specs.append({
+                        "node_id": node_id,
+                        "study_type": s_val,
+                        "agent_id": agent_id,
+                        "depends_on": [],
+                        "input_mapping": {},
+                        "output_mapping": {},
+                    })
 
-                depends_on: list[str] = []
-                if study_type != StudyType.LOAD_FLOW and load_flow_node_ids:
-                    depends_on = list(load_flow_node_ids)
+                # Detect canonical chain dependencies and wire input/output mappings (M3.3)
+                # Chain 1: short_circuit -> protection_coordination -> arc_flash
+                sc_nodes = [n for n in node_specs if n["study_type"] in ("short_circuit", "fault_analysis")]
+                prot_nodes = [n for n in node_specs if n["study_type"] in ("protection_coordination", "protection")]
+                af_nodes = [n for n in node_specs if n["study_type"] in ("arc_flash", "arcflash")]
 
-                node = PlanNodeContract(
-                    node_id=node_id,
-                    study_type=s_val,
-                    agent_id=agent_id,
-                    depends_on=depends_on,
-                    parameters=dict(task.parameters) if task.parameters else {},
-                )
-                nodes.append(node)
+                for sc in sc_nodes:
+                    sc["output_mapping"].update({
+                        "fault_current_ka": "fault_current_ka",
+                        "sym_fault_current_ka": "fault_current_ka",
+                        "ik_ss_ka": "fault_current_ka",
+                        "fault_results": "fault_results",
+                    })
 
-                if study_type == StudyType.LOAD_FLOW:
-                    load_flow_node_ids.append(node_id)
+                for prot in prot_nodes:
+                    if sc_nodes:
+                        prot["depends_on"].append(sc_nodes[-1]["node_id"])
+                        prot["input_mapping"].update({
+                            "fault_current_ka": "fault_current_ka",
+                            "fault_results": "fault_results",
+                        })
+                    prot["output_mapping"].update({
+                        "clearing_time_s": "clearing_time_s",
+                        "trip_time_s": "clearing_time_s",
+                        "operating_time_s": "clearing_time_s",
+                        "coordination_curve": "coordination_curve",
+                    })
 
-            topological_order = [n.node_id for n in nodes]
+                for af in af_nodes:
+                    if prot_nodes:
+                        af["depends_on"].append(prot_nodes[-1]["node_id"])
+                        af["input_mapping"].update({
+                            "fault_current_ka": "fault_current_ka",
+                            "clearing_time_s": "clearing_time_s",
+                        })
+                    elif sc_nodes:
+                        af["depends_on"].append(sc_nodes[-1]["node_id"])
+                        af["input_mapping"].update({
+                            "fault_current_ka": "fault_current_ka",
+                        })
+                    af["output_mapping"].update({
+                        "incident_energy_cal_cm2": "incident_energy_cal_cm2",
+                        "arc_flash_boundary_mm": "arc_flash_boundary_mm",
+                        "ppe_category": "ppe_category",
+                    })
+
+                # Chain 2: load_flow -> optimal_power_flow -> load_flow
+                lf_nodes = [n for n in node_specs if n["study_type"] == "load_flow"]
+                opf_nodes = [n for n in node_specs if n["study_type"] in ("optimal_power_flow", "opf")]
+
+                if lf_nodes and opf_nodes:
+                    first_lf = lf_nodes[0]
+                    first_lf["output_mapping"].update({
+                        "bus_voltages": "initial_bus_voltages",
+                        "branch_flows": "initial_branch_flows",
+                        "total_losses_mw": "baseline_losses_mw",
+                    })
+                    first_opf = opf_nodes[0]
+                    first_opf["depends_on"].append(first_lf["node_id"])
+                    first_opf["input_mapping"].update({
+                        "initial_bus_voltages": "bus_voltages",
+                        "initial_branch_flows": "branch_flows",
+                    })
+                    first_opf["output_mapping"].update({
+                        "optimal_dispatch": "optimal_dispatch",
+                        "generator_dispatch": "optimal_dispatch",
+                        "control_setpoints": "control_setpoints",
+                        "voltage_profile": "voltage_profile",
+                    })
+
+                    # If there is a verification load flow following OPF
+                    if len(lf_nodes) > 1:
+                        verify_lf = lf_nodes[1]
+                        verify_lf["depends_on"].append(first_opf["node_id"])
+                        verify_lf["input_mapping"].update({
+                            "optimal_dispatch": "generator_dispatch",
+                            "control_setpoints": "control_settings",
+                        })
+                        verify_lf["output_mapping"].update({
+                            "bus_voltages": "verified_bus_voltages",
+                            "total_losses_mw": "verified_losses_mw",
+                        })
+
+                # Chain 3: harmonic_analysis -> optimization -> harmonic_analysis
+                harm_nodes = [n for n in node_specs if n["study_type"] in ("harmonic_analysis", "harmonics")]
+                opt_nodes = [n for n in node_specs if n["study_type"] in ("optimization", "filter_optimization")]
+
+                if harm_nodes and opt_nodes:
+                    first_harm = harm_nodes[0]
+                    first_harm["output_mapping"].update({
+                        "thd_voltage": "baseline_thd_v",
+                        "thd_v": "baseline_thd_v",
+                        "harmonic_spectrum": "harmonic_spectrum",
+                    })
+                    first_opt = opt_nodes[0]
+                    first_opt["depends_on"].append(first_harm["node_id"])
+                    first_opt["input_mapping"].update({
+                        "baseline_thd_v": "baseline_thd_v",
+                        "harmonic_spectrum": "harmonic_spectrum",
+                    })
+                    first_opt["output_mapping"].update({
+                        "filter_parameters": "filter_parameters",
+                        "filter_design": "filter_parameters",
+                        "filter_specs": "filter_parameters",
+                        "projected_thd_v": "projected_thd_v",
+                    })
+
+                    if len(harm_nodes) > 1:
+                        verify_harm = harm_nodes[1]
+                        verify_harm["depends_on"].append(first_opt["node_id"])
+                        verify_harm["input_mapping"].update({
+                            "filter_parameters": "installed_filters",
+                        })
+                        verify_harm["output_mapping"].update({
+                            "thd_voltage": "verified_thd_v",
+                            "thd_v": "verified_thd_v",
+                        })
+
+                # General fallback dependencies (e.g. non-load flow studies depend on initial load flow)
+                if lf_nodes:
+                    initial_lf_id = lf_nodes[0]["node_id"]
+                    for n in node_specs:
+                        if n["node_id"] != initial_lf_id and not n["depends_on"] and n["study_type"] != "load_flow":
+                            n["depends_on"].append(initial_lf_id)
+
+                for spec in node_specs:
+                    node = PlanNodeContract(
+                        node_id=spec["node_id"],
+                        study_type=spec["study_type"],
+                        agent_id=spec["agent_id"],
+                        depends_on=list(dict.fromkeys(spec["depends_on"])),
+                        parameters=dict(task.parameters) if task.parameters else {},
+                        input_mapping=spec["input_mapping"],
+                        output_mapping=spec["output_mapping"],
+                    )
+                    nodes.append(node)
+
+            # Reusable CPM and topological scheduling via AdaptiveTaskScheduler (M3.2)
+            try:
+                from agents.optimizers.adaptive_planner import AdaptiveTaskScheduler
+
+                scheduler = AdaptiveTaskScheduler()
+                raw_tasks = [
+                    {
+                        "name": n.node_id,
+                        "dependencies": list(n.depends_on),
+                        "estimated_hours": 1.0,
+                        "importance": "high",
+                        "urgency": "today",
+                    }
+                    for n in nodes
+                ]
+                sched_res = scheduler.schedule(raw_tasks)
+                topological_order = sched_res.recommended_execution_order or [n.node_id for n in nodes]
+                batches = sched_res.parallel_execution_batches
+            except Exception as sched_err:
+                self.logger.debug("AdaptiveTaskScheduler fallback: %s", sched_err)
+                topological_order = [n.node_id for n in nodes]
+                batches = [[n.node_id] for n in nodes]
+
             plan = ExecutionPlanContract(
                 plan_id=task.plan_id,
                 run_id=task.run_id,
@@ -155,6 +323,8 @@ class WorkflowEngine:
                 description=task.description or f"Plan for task {task.task_id}",
                 topological_order=topological_order,
             )
+            # Store computed batches on plan instance for orchestrator dispatch
+            setattr(plan, "_parallel_batches", batches)
             self.last_execution_plan = plan
             return plan
         except Exception as exc:
@@ -199,13 +369,19 @@ class WorkflowEngine:
                 agent_id = getattr(res, "agent_name", "unknown_agent")
 
                 if StudyResultContract is not None:
+                    is_success = bool(
+                        res.status == AgentStatus.COMPLETED
+                        and res.validation_status
+                        and res.status != AgentStatus.REJECTED
+                        and res.status != AgentStatus.SKIPPED_WITH_REASON
+                    )
                     study_res = StudyResultContract(
                         run_id=getattr(res, "run_id", None) or run_id,
                         plan_id=getattr(res, "plan_id", None) or plan_id,
                         node_id=node_id,
                         study_type=s_val,
                         agent_id=agent_id,
-                        success=bool(res.status == AgentStatus.COMPLETED and res.validation_status),
+                        success=is_success,
                         data=dict(res.data) if res.data else {},
                         warnings=[],
                         errors=list(res.validation_errors) if res.validation_errors else [],
@@ -259,7 +435,7 @@ class WorkflowEngine:
                 return node.node_id
         return None
 
-    def _get_agent_for_study(self, study_type: StudyType) -> BaseAgent | None:
+    def _get_agent_for_study(self, study_type: StudyType | str) -> BaseAgent | None:
         """Get appropriate agent for study type from the canonical mapping."""
         mapping = get_study_type_mapping()
         val = study_type.value if hasattr(study_type, "value") else str(study_type)
@@ -268,33 +444,140 @@ class WorkflowEngine:
 
     @trace_operation("_execute_workflow", attributes={"component": "orchestrator"})
     async def execute_workflow(self, task: EngineeringTask) -> list[AgentResult]:
-        """Execute workflow by coordinating agents with parallel execution."""
+        """Execute workflow by coordinating agents across DAG topological batches (M3.2/M3.3)."""
         start_time = datetime.now(UTC)
         results: list[AgentResult] = []
 
-        # Build contract-driven execution plan (M3.3)
+        # Build contract-driven execution plan (M3.2 / M3.3)
         plan = self.build_execution_plan(task)
 
-        # Determine execution order based on dependencies
-        execution_order = determine_execution_order(task.study_types)
+        # Context store for inter-node data flow (M3.3)
+        execution_context_data: dict[str, Any] = {}
+        node_results_by_id: dict[str, AgentResult] = {}
 
-        # Separate load flow (must run first) from independent studies
-        dependent_studies = [s for s in execution_order if s == StudyType.LOAD_FLOW]
-        independent_studies = [s for s in execution_order if s != StudyType.LOAD_FLOW]
+        nodes_by_id = {n.node_id: n for n in (plan.nodes if plan else [])}
+        batches = getattr(plan, "_parallel_batches", None)
 
-        # P3 JobProgress bridge: entering the solving phase
+        if not batches and plan and plan.nodes:
+            batches = [[n.node_id for n in plan.nodes]]
+        elif not batches:
+            # Fallback when plan contract cannot be generated
+            batches = [[f"node_{idx}_{getattr(st, 'value', str(st))}" for idx, st in enumerate(task.study_types)]]
+
+        total_batches = len(batches)
         _emit_session_progress(
             task,
             "solving",
             10,
-            f"Executing {len(dependent_studies + independent_studies)} studies",
+            f"Executing DAG pipeline across {total_batches} topological batches",
         )
 
-        # Phase 1: Run load flow first (dependency for others)
-        await self._run_dependent_studies(task, dependent_studies, results, plan=plan)
+        # Execute batches in topological dependency order
+        for b_idx, batch_node_ids in enumerate(batches):
+            pct = 15.0 + 65.0 * (b_idx / max(total_batches, 1))
+            _emit_session_progress(task, "solving", pct, f"Batch {b_idx + 1}/{total_batches}")
 
-        # Phase 2: Run independent studies in parallel
-        await self._run_independent_studies(task, independent_studies, results, plan=plan)
+            batch_tasks = []
+            for node_id in batch_node_ids:
+                node = nodes_by_id.get(node_id)
+                study_val = node.study_type if node else "unknown"
+
+                # Check predecessor status for fail-closed cascade
+                failed_predecessors = []
+                if node and node.depends_on:
+                    for dep_id in node.depends_on:
+                        dep_res = node_results_by_id.get(dep_id)
+                        if dep_res is None or dep_res.status in (
+                            AgentStatus.FAILED,
+                            AgentStatus.REJECTED,
+                            AgentStatus.SKIPPED_WITH_REASON,
+                        ) or not dep_res.validation_status:
+                            failed_predecessors.append(dep_id)
+
+                if failed_predecessors:
+                    dep_names = ", ".join(failed_predecessors)
+                    skip_reason = f"Predecessor node(s) [{dep_names}] failed, rejected, or skipped"
+                    self.logger.warning("Skipping node %s: %s", node_id, skip_reason)
+                    skipped_res = AgentResult(
+                        agent_name=node.agent_id if node else "unknown",
+                        study_type=study_val,
+                        status=AgentStatus.SKIPPED_WITH_REASON,
+                        data={"skip_reason": skip_reason, "failed_dependencies": failed_predecessors},
+                        validation_status=False,
+                        validation_errors=[skip_reason],
+                        execution_time=0.0,
+                    )
+                    skipped_res.run_id = getattr(task, "run_id", None)
+                    skipped_res.plan_id = getattr(task, "plan_id", None)
+                    skipped_res.node_id = node_id
+                    node_results_by_id[node_id] = skipped_res
+                    results.append(skipped_res)
+                    continue
+
+                # Prepare scoped node parameters from global context & input_mapping
+                node_params = dict(task.parameters or {})
+                if node and node.input_mapping:
+                    for src_ctx_key, target_param in node.input_mapping.items():
+                        if src_ctx_key in execution_context_data:
+                            node_params[target_param] = execution_context_data[src_ctx_key]
+
+                # Pass predecessor outputs under predecessor_data for seamless consumption
+                if node and node.depends_on:
+                    pred_data = {}
+                    for dep_id in node.depends_on:
+                        if dep_id in node_results_by_id and node_results_by_id[dep_id].data:
+                            pred_data[dep_id] = node_results_by_id[dep_id].data
+                    node_params["predecessor_data"] = pred_data
+
+                agent = self._get_agent_for_study(study_val)
+                if not agent:
+                    self.logger.warning("No agent registered for study type: %s", study_val)
+                    continue
+
+                sub_task = EngineeringTask(
+                    task_id=f"{task.task_id}_{node_id}",
+                    description=f"{task.description} [{study_val}]",
+                    study_types=[study_val],
+                    parameters=node_params,
+                )
+                sub_task.run_id = getattr(task, "run_id", None)
+                sub_task.plan_id = getattr(task, "plan_id", None)
+
+                async def _run_single_node(ag: BaseAgent, st_task: EngineeringTask, nid: str, nd: Any) -> tuple[str, Any, AgentResult]:
+                    t_start = time.perf_counter()
+                    res = await ag.execute(st_task)
+                    res.execution_time = time.perf_counter() - t_start
+                    res.run_id = st_task.run_id
+                    res.plan_id = st_task.plan_id
+                    res.node_id = nid
+                    return nid, nd, res
+
+                batch_tasks.append(_run_single_node(agent, sub_task, node_id, node))
+
+            if batch_tasks:
+                batch_outputs = await asyncio.gather(*batch_tasks, return_exceptions=True)
+                for out in batch_outputs:
+                    if isinstance(out, BaseException):
+                        self.logger.exception("Batch execution failure: %s", out)
+                        continue
+                    nid, nd, res = out
+                    node_results_by_id[nid] = res
+                    results.append(res)
+
+                    # Export node data into execution context via output_mapping (M3.3)
+                    if res.data:
+                        if nd and getattr(nd, "output_mapping", None):
+                            for out_key, ctx_key in nd.output_mapping.items():
+                                if out_key in res.data:
+                                    if ctx_key not in execution_context_data or out_key == ctx_key:
+                                        execution_context_data[ctx_key] = res.data[out_key]
+                        # Store raw keys and node-prefixed keys in execution context
+                        for k, v in res.data.items():
+                            execution_context_data[f"{nid}.{k}"] = v
+                            execution_context_data.setdefault(k, v)
+
+                    if not res.validation_status:
+                        self.logger.warning("Validation failed for node %s: %s", nid, res.validation_errors)
 
         # Phase 2.5: Engineering Assertion Gate (F-07 Fix)
         self._run_engineering_assertions(task, results)

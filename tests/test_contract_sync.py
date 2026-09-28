@@ -178,6 +178,80 @@ def test_ts_agent_ids_in_agent_registry():
         )
 
 
+def test_ts_agent_ids_match_exact_canonical_26():
+    """Witness M2.3: AGENT_REGISTRY in src/core/agents.ts defines the canonical 26 agents with valid prompt handles."""
+    import json
+    text = TS_AGENTS.read_text(encoding="utf-8")
+    ts_agent_ids = set(re.findall(r"'([\w-]+-agent)':", text))
+
+    expected_canonical_26 = {
+        "anomaly-agent",
+        "arcflash-agent",
+        "battery-storage-agent",
+        "cable-sizing-agent",
+        "code-guard-agent",
+        "digital-twin-agent",
+        "earth-grid-agent",
+        "etap-engineer-agent",
+        "etap-expert-agent",
+        "generative-design-agent",
+        "goal-planner-agent",
+        "harmonic-agent",
+        "load-flow-agent",
+        "motorstarting-agent",
+        "optimal-power-flow-agent",
+        "power-system-coordinator-agent",
+        "predictive-agent",
+        "protection-agent",
+        "qgis-agent",
+        "renewable-agent",
+        "report-agent",
+        "scada-agent",
+        "short-circuit-agent",
+        "transient-stability-agent",
+        "validation-agent",
+        "weather-agent",
+    }
+
+    assert ts_agent_ids == expected_canonical_26, (
+        f"Mismatched TS agent IDs. Difference: {ts_agent_ids ^ expected_canonical_26}"
+    )
+
+    prompts_file = REPO_ROOT / "prompts.json"
+    with open(prompts_file, encoding="utf-8") as pf:
+        pdata = json.load(pf)
+    canonical_prompts = set(pdata.get("prompts", {}).keys())
+
+    prompt_handles = re.findall(r"promptHandle:\s*'([^']+)'", text)
+    assert len(prompt_handles) == 26, f"Expected 26 prompt handles in agents.ts, found {len(prompt_handles)}"
+    for ph in prompt_handles:
+        assert ph in canonical_prompts, f"promptHandle '{ph}' in agents.ts not found in prompts.json"
+
+    # Cross-runtime sync: every calculation study type in Python maps to a corresponding agent
+    from agents.registry import get_study_type_mapping
+    py_map = get_study_type_mapping()
+    canonical_st_to_ts = {
+        "load_flow": "load-flow-agent",
+        "short_circuit": "short-circuit-agent",
+        "harmonic_analysis": "harmonic-agent",
+        "optimal_power_flow": "optimal-power-flow-agent",
+        "protection_coordination": "protection-agent",
+        "transient_stability": "transient-stability-agent",
+        "cable_sizing": "cable-sizing-agent",
+        "earth_grid": "earth-grid-agent",
+        "renewable_integration": "renewable-agent",
+        "battery_storage": "battery-storage-agent",
+        "scada": "scada-agent",
+        "digital_twin": "digital-twin-agent",
+        "motor_starting": "motorstarting-agent",
+        "arc_flash": "arcflash-agent",
+        "validation": "validation-agent",
+        "report": "report-agent",
+    }
+    for st_name, expected_agent in canonical_st_to_ts.items():
+        assert expected_agent in ts_agent_ids, f"Expected agent '{expected_agent}' for study '{st_name}' missing from TS"
+
+
 def test_agent_models_linkage_fields_backward_compatible():
     """AgentResult and EngineeringTask M2.2 linkage fields are optional (None by default)."""
     from agents.models import AgentResult, AgentStatus, EngineeringTask, StudyType

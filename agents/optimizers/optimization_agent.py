@@ -44,21 +44,37 @@ class OptimizationAgent(BaseAgent):
         study_type = task.parameters.get("optimization_type", "placement")
         logger.info("OptimizationAgent executing study: %s", study_type)
 
-        study_type_enum = (
-            task.study_types[0]
-            if (task.study_types and isinstance(task.study_types[0], StudyType))
-            else StudyType.OPTIMAL_POWER_FLOW
-        )
+        study_type_enum = getattr(StudyType, "OPTIMIZATION", StudyType.OPTIMAL_POWER_FLOW)
+        if task.study_types:
+            for st in task.study_types:
+                if isinstance(st, StudyType):
+                    study_type_enum = st
+                    break
+
+        seed = int(task.parameters.get("seed", 42))
 
         try:
+            violations: list[str] = []
             if study_type in ("capacitor_placement", "placement"):
                 res = self._run_placement(task.parameters)
+                if res.get("min_voltage_after", 1.0) < 0.90:
+                    violations.append(
+                        f"Voltage constraint violated: min voltage {res.get('min_voltage_after'):.3f} < 0.90 pu"
+                    )
             elif study_type in ("harmonic_filter", "filter_design"):
                 res = self._run_filter_design(task.parameters)
+                if not res.get("ieee_519_compliant", False) or res.get("thd_v_after_pct", 100.0) > 5.0:
+                    violations.append(
+                        f"IEEE 519 compliance failed: THD after filter is {res.get('thd_v_after_pct', 0.0):.2f}% (exceeds 5.0% limit)"
+                    )
             elif study_type in ("protection_coordination", "pso_coordination"):
                 res = self._run_coordination(task.parameters)
+                if not res.get("coordinated", False) and not res.get("success", False):
+                    violations.append("Relay coordination failed: time margin below selectivity threshold")
             elif study_type in ("ac_opf", "pso_opf"):
                 res = self._run_opf(task.parameters)
+                if not res.get("success", False):
+                    violations.append("AC-OPF constraints violated or failed to converge")
             else:
                 err_msg = f"Unsupported optimization type: {study_type}"
                 return AgentResult(
@@ -69,11 +85,25 @@ class OptimizationAgent(BaseAgent):
                     validation_errors=[err_msg],
                 )
 
+            res["seed"] = seed
+            res["violations"] = violations
+
+            if violations:
+                return AgentResult(
+                    agent_name=self.name,
+                    study_type=study_type_enum,
+                    status=AgentStatus.REJECTED,
+                    data=res,
+                    validation_status=False,
+                    validation_errors=violations,
+                )
+
             return AgentResult(
                 agent_name=self.name,
                 study_type=study_type_enum,
                 status=AgentStatus.COMPLETED,
                 data=res,
+                validation_status=True,
             )
         except Exception as exc:
             logger.exception("OptimizationAgent failed: %s", exc)
@@ -82,7 +112,7 @@ class OptimizationAgent(BaseAgent):
                 agent_name=self.name,
                 study_type=study_type_enum,
                 status=AgentStatus.FAILED,
-                data={"error": err_msg},
+                data={"error": err_msg, "seed": seed, "violations": [err_msg]},
                 validation_errors=[err_msg],
             )
 

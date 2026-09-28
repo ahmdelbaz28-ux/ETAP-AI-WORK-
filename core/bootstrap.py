@@ -380,6 +380,16 @@ async def lifespan(_app: Any) -> AsyncIterator[None]:
     global _study_cache
     _study_cache = await _initialize_cache_with_retry()
 
+    # M1.6: Fail-fast dynamic agent registry verification at startup
+    try:
+        from scripts.maintenance.verify_agents import verify_agent_registry
+
+        verify_agent_registry(fail_loudly=True)
+        logger.info("M1.6 Agent registry verified successfully at startup")
+    except Exception as ag_err:
+        logger.critical("M1.6 Fail-Fast: Agent registry verification failed: %s", ag_err)
+        raise RuntimeError(f"Startup aborted due to agent registry failure: {ag_err}") from ag_err
+
     # SCADA protocols wiring (additive, opt-in via env flag; default off).
     # Wrapped so a missing/broken protocol stack can never break app startup
     # (e.g. Linux builds without pymodbus/asyncua/c104 installed).

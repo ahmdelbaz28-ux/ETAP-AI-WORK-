@@ -17,3 +17,30 @@ class SpecializedExecutionUnavailableError(ValueError):
         if reason:
             msg += f": {reason}"
         super().__init__(msg)
+
+
+class RoutingResolutionError(ValueError):
+    """Raised when goal routing fails to reach an executable study type with required confidence.
+
+    Mandated by M3.1: replaces silent or generic answers with a precise reachability error.
+    """
+
+    def __init__(
+        self,
+        goal: str,
+        confidence: float,
+        threshold: float,
+        reason: str = "",
+    ) -> None:
+        self.goal = goal
+        self.confidence = confidence
+        self.threshold = threshold
+        self.code = "ROUTING_RESOLUTION_FAILED"
+        msg = (
+            f"Routing resolution failed for goal '{goal}': confidence {confidence:.2f} "
+            f"below required threshold {threshold:.2f}"
+        )
+        if reason:
+            msg += f" ({reason})"
+        super().__init__(msg)
+

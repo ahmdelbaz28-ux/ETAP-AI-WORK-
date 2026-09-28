@@ -12,7 +12,8 @@ import logging
 from dataclasses import dataclass
 from typing import Any
 
-from agents.models import StudyType
+from agents.models import PlanningIntent, StudyType
+from core.exceptions import RoutingResolutionError
 
 logger = logging.getLogger(__name__)
 
@@ -72,15 +73,49 @@ class RouterDecision:
     study_types: list[StudyType]
     confidence: float
     reason: str
+    is_bandit: bool = False
+
+    def is_confident(self, threshold: float = 0.65) -> bool:
+        """Check if decision meets or exceeds required confidence threshold (M3.1)."""
+        return self.confidence >= threshold
+
+    def to_planning_intent(
+        self,
+        raw_goal: str,
+        intent_type: str = "analysis",
+        parameters: dict[str, Any] | None = None,
+        constraints: list[str] | None = None,
+    ) -> PlanningIntent:
+        """Convert this decision into a typed PlanningIntent (M3.1)."""
+        return PlanningIntent(
+            raw_goal=raw_goal,
+            study_types=list(self.study_types),
+            confidence=self.confidence,
+            routing_source="bandit" if self.is_bandit else "keyword",
+            intent_type=intent_type,
+            parameters=dict(parameters or {}),
+            constraints=list(constraints or []),
+            reason=self.reason,
+        )
 
 
 class GoalRouter:
     """Typed router that analyzes user goals and maps them to executable StudyTypes."""
 
-    def __init__(self, custom_rules: list[tuple[list[str], StudyType]] | None = None) -> None:
+    def __init__(
+        self,
+        custom_rules: list[tuple[list[str], StudyType]] | None = None,
+        confidence_threshold: float = 0.5,
+    ) -> None:
         self.rules = custom_rules or KEYWORD_RULES
+        self.confidence_threshold = confidence_threshold
 
-    def route(self, goal: Any) -> RouterDecision:
+    def route(
+        self,
+        goal: Any,
+        min_confidence: float | None = None,
+        raise_on_unreachable: bool = False,
+    ) -> RouterDecision:
         """Route a user goal into a typed RouterDecision with confidence and reasoning.
 
         Supports:
@@ -89,21 +124,43 @@ class GoalRouter:
         3. Dict structure with 'study_types' or 'intent' fields.
         4. String input with keyword pattern extraction.
         Fallback returns [LOAD_FLOW, SHORT_CIRCUIT, HARMONIC_ANALYSIS].
+
+        If raise_on_unreachable=True and confidence < min_confidence (or self.confidence_threshold),
+        raises a precise RoutingResolutionError.
         """
+        threshold = min_confidence if min_confidence is not None else self.confidence_threshold
         if not goal or (isinstance(goal, str) and not goal.strip()):
-            return RouterDecision(
+            decision = RouterDecision(
                 study_types=list(DEFAULT_STUDIES),
                 confidence=0.5,
                 reason="Default baseline studies for empty/unspecified goal",
             )
+        elif isinstance(goal, (list, tuple)):
+            decision = self._resolve_list_goal(goal)
+        elif isinstance(goal, dict):
+            decision = self._resolve_dict_goal(goal)
+        else:
+            decision = self._resolve_string_goal(str(goal))
 
-        if isinstance(goal, (list, tuple)):
-            return self._resolve_list_goal(goal)
+        if raise_on_unreachable and decision.confidence < threshold:
+            raise RoutingResolutionError(
+                goal=str(goal),
+                confidence=decision.confidence,
+                threshold=threshold,
+                reason=decision.reason,
+            )
+        return decision
 
-        if isinstance(goal, dict):
-            return self._resolve_dict_goal(goal)
-
-        return self._resolve_string_goal(str(goal))
+    def resolve_intent(
+        self,
+        goal: Any,
+        min_confidence: float | None = None,
+        raise_on_unreachable: bool = False,
+        intent_type: str = "analysis",
+    ) -> PlanningIntent:
+        """Resolve user goal directly into a canonical PlanningIntent (M3.1)."""
+        decision = self.route(goal, min_confidence=min_confidence, raise_on_unreachable=raise_on_unreachable)
+        return decision.to_planning_intent(str(goal) if goal is not None else "", intent_type=intent_type)
 
     def _resolve_list_goal(self, goal: list | tuple) -> RouterDecision:
         """Resolve a list or tuple of StudyTypes or string identifiers."""

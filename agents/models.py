@@ -35,6 +35,8 @@ class AgentStatus(Enum):
     COMPLETED = "completed"
     FAILED = "failed"
     VALIDATING = "validating"
+    REJECTED = "rejected"
+    SKIPPED_WITH_REASON = "skipped_with_reason"
 
 
 class StudyType(Enum):
@@ -95,3 +97,39 @@ class EngineeringTask:
     # M2.2 wire contract linkage fields (backward-compatible: all optional)
     run_id: str | None = None
     plan_id: str | None = None
+
+
+@dataclass
+class PlanningIntent:
+    """Structured intent derived from user goal for engineering execution planning.
+
+    Mandated by M3.1 (explicitly distinct from deprecated/forbidden EngineeringIntent).
+    """
+
+    raw_goal: str
+    study_types: list[StudyType] = field(default_factory=list)
+    confidence: float = 1.0
+    routing_source: str = "keyword"  # "keyword", "bandit", "explicit"
+    intent_type: str = "analysis"  # "analysis", "optimization", "coordination", "design"
+    parameters: dict[str, Any] = field(default_factory=dict)
+    constraints: list[str] = field(default_factory=list)
+    target_system: str | None = None
+    reason: str = ""
+
+
+@dataclass
+class PlanningPlan:
+    """High-level engineering plan derived from a PlanningIntent.
+
+    Mandated by M3.1: binds intent to dependency-ordered execution batches and tasks.
+    """
+
+    plan_id: str
+    intent: PlanningIntent
+    execution_order: list[StudyType] = field(default_factory=list)
+    tasks: list[EngineeringTask] = field(default_factory=list)
+    critical_path: list[str] = field(default_factory=list)
+    execution_batches: list[list[str]] = field(default_factory=list)
+    status: str = "draft"
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+

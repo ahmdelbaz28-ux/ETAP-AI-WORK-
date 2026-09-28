@@ -550,6 +550,8 @@ class StudyExecutor:
                 from agents.optimizers.optimization_agent import OptimizationAgent
 
                 agent = OptimizationAgent()
+                # Canonical mapping: 'optimization' study maps to OptimizationAgent with StudyType.OPTIMAL_POWER_FLOW
+                # preserving the 17-member canonical StudyType specification per AGENTS.md / ADR-0001 without breaking compatibility.
                 opt_task = EngineeringTask(
                     task_id=f"optimization_{int(time.time())}",
                     description=parameters.get("description", "Optimization study"),
@@ -566,8 +568,13 @@ class StudyExecutor:
                     result = asyncio.run(agent.execute(opt_task))
 
                 if result.status.value != "completed":
+                    err_detail = (
+                        "; ".join(result.validation_errors)
+                        if result.validation_errors
+                        else result.data.get("error", "unknown error")
+                    )
                     raise SpecializedExecutionUnavailableError(
-                        study_type, f"Optimization execution failed: {result.data.get('error', 'unknown error')}"
+                        study_type, f"Optimization execution failed: {err_detail}"
                     )
                 return result.data
             except SpecializedExecutionUnavailableError:

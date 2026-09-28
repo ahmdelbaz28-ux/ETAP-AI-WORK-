@@ -43,6 +43,7 @@ class PSOOptimalPowerFlow:
         swarm_size: int = 40,
         max_iter: int = 70,
         seed: int = 42,
+        enable_reanalysis: bool = True,
     ) -> None:
         self.Ybus = np.asarray(ybus, dtype=complex)
         self.bus_ids = list(bus_ids)
@@ -55,6 +56,7 @@ class PSOOptimalPowerFlow:
         self.gen_buses = gen_buses
         self.load_data = load_data
         self.base_mva = base_mva
+        self.enable_reanalysis = enable_reanalysis
 
         # Limits
         self.voltage_limits = voltage_limits or dict.fromkeys(bus_ids, (0.90, 1.10))
@@ -152,8 +154,10 @@ class PSOOptimalPowerFlow:
         weight_cost: float = 1.0,
         weight_losses: float = 2.0,
         weight_voltage: float = 10.0,
+        enable_reanalysis: Optional[bool] = None,
     ) -> OPFResult:
-        """Execute AC-OPF with Multi-Objective PSO."""
+        """Execute AC-OPF with Multi-Objective PSO and independent Newton-Raphson re-analysis (M1.7)."""
+        reanalysis_flag = self.enable_reanalysis if enable_reanalysis is None else bool(enable_reanalysis)
         lb = []
         ub = []
         x0 = []
@@ -258,7 +262,67 @@ class PSOOptimalPowerFlow:
         best_p_gen = {self.gen_ids[i]: float(best_x[i]) for i in range(self.n_gen)}
         best_v_gen = {self.gen_ids[i]: float(best_x[self.n_gen + i]) for i in range(self.n_gen)}
 
-        conv, final_V, final_gen, final_losses = self._evaluate_ac_state(best_p_gen, best_v_gen)
+        if reanalysis_flag:
+            # Independent Newton-Raphson re-analysis from load_flow.solver (M1.7)
+            try:
+                from load_flow.solver import solve_load_flow_sparse
+
+                buses = []
+                for bid in self.bus_ids:
+                    idx = self.bus_index[bid]
+                    is_slack = (idx == 0)
+                    is_gen = any(self.gen_buses.get(gid) == bid for gid in self.gen_ids)
+                    s_load = self.load_data.get(bid, 0.0 + 0.0j)
+
+                    p_g = sum(best_p_gen.get(gid, 0.0) for gid in self.gen_ids if self.gen_buses.get(gid) == bid)
+                    v_target = 1.0
+                    for gid in self.gen_ids:
+                        if self.gen_buses.get(gid) == bid and gid in best_v_gen:
+                            v_target = best_v_gen[gid]
+                            break
+
+                    bus_type = "slack" if is_slack else ("pv" if is_gen else "pq")
+                    buses.append({
+                        "bus_id": bid,
+                        "bus_type": bus_type,
+                        "voltage_magnitude": float(v_target),
+                        "voltage_angle": 0.0,
+                        "p_generation": float(p_g) / self.base_mva,
+                        "q_generation": 0.0,
+                        "p_load": float(s_load.real) / self.base_mva,
+                        "q_load": float(s_load.imag) / self.base_mva,
+                        "v_scheduled": float(v_target),
+                    })
+
+                branches = []
+                for i, b1 in enumerate(self.bus_ids):
+                    for j, b2 in enumerate(self.bus_ids):
+                        if i < j and abs(self.Ybus[i, j]) > 1e-6:
+                            y_val = -self.Ybus[i, j]
+                            branches.append({
+                                "from_bus": b1,
+                                "to_bus": b2,
+                                "impedance": 1.0 / y_val,
+                                "shunt_admittance": 0.0j,
+                                "tap_ratio": 1.0,
+                                "phase_shift": 0.0,
+                            })
+
+                nr_res = solve_load_flow_sparse(buses, branches, options={"max_iter": 50, "tol": 1e-5})
+                if nr_res.get("converged"):
+                    conv = True
+                    final_V = np.array([nr_res["voltages"][bid] for bid in self.bus_ids], dtype=complex)
+                    I_final = self.Ybus.dot(final_V)
+                    final_losses = max(0.0, float(np.sum((final_V * np.conj(I_final)).real))) * self.base_mva
+                    final_gen = sum(best_p_gen.values())
+                else:
+                    conv, final_V, final_gen, final_losses = self._evaluate_ac_state(best_p_gen, best_v_gen)
+                    conv = False
+            except Exception as nr_err:
+                logger.warning("Independent Newton-Raphson re-analysis error: %s", nr_err)
+                conv, final_V, final_gen, final_losses = self._evaluate_ac_state(best_p_gen, best_v_gen)
+        else:
+            conv, final_V, final_gen, final_losses = self._evaluate_ac_state(best_p_gen, best_v_gen)
 
         bus_voltages = {bid: final_V[self.bus_index[bid]] for bid in self.bus_ids}
         generator_dispatch = {}
@@ -305,19 +369,22 @@ class PSOOptimalPowerFlow:
                     f"Generator {gid} Q {q_val:.2f} MVAR outside [{gc.q_min}, {gc.q_max}]"
                 )
 
-        success = bool(conv and res.converged and len(violations) == 0)
-
-        if success:
-            convergence_status = "Optimal dispatch found with real AC voltages"
-        elif not conv:
-            convergence_status = "AC power flow failed to converge"
-        elif len(violations) > 0:
-            if any("voltage" in v.lower() for v in violations):
-                convergence_status = f"Voltage constraints violated: {'; '.join(violations)}"
-            else:
-                convergence_status = f"Constraints violated: {'; '.join(violations)}"
+        if not reanalysis_flag:
+            success = False
+            convergence_status = "Independent Newton-Raphson re-analysis disabled (M1.7 certification failure)"
         else:
-            convergence_status = "PSO iteration limit reached without convergence"
+            success = bool(conv and res.converged and len(violations) == 0)
+            if success:
+                convergence_status = "Optimal dispatch found and verified with independent Newton-Raphson re-analysis"
+            elif not conv:
+                convergence_status = "Independent Newton-Raphson AC power flow failed to converge"
+            elif len(violations) > 0:
+                if any("voltage" in v.lower() for v in violations):
+                    convergence_status = f"Voltage constraints violated: {'; '.join(violations)}"
+                else:
+                    convergence_status = f"Constraints violated: {'; '.join(violations)}"
+            else:
+                convergence_status = "PSO iteration limit reached without convergence"
 
         total_cost = sum(self.generator_costs[gid].cost(best_p_gen[gid]) for gid in self.gen_ids)
 
