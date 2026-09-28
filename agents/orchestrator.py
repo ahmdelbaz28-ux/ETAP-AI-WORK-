@@ -100,8 +100,9 @@ class ChiefEngineeringOrchestrator:
         self,
         router: Any | None = None,
         enable_bandit_router: bool | None = None,
+        agents: dict[str, BaseAgent] | None = None,
     ) -> None:
-        self.agents = create_agent_registry(orchestrator_instance=self)
+        self.agents = agents if agents is not None else create_agent_registry(orchestrator_instance=self)
         self._code_guard_agent = self.agents.get("code_guard")
         # S-19: If CodeGuardAgent is not available, safety code review is DISABLED (logged as warning in agents.registry).
         self._etap_expert_agent = self.agents.get("etap_expert")
@@ -230,10 +231,14 @@ class ChiefEngineeringOrchestrator:
 
         return {
             "task_id": task.task_id,
+            "run_id": getattr(task, "run_id", None),
+            "plan_id": getattr(task, "plan_id", None),
             "goal": user_goal,
             "studies_performed": [r.study_type.value for r in results],
             "results": results,
             "all_validated": all(r.validation_status for r in results),
+            "execution_plan": getattr(self.workflow_engine, "last_execution_plan", None),
+            "execution_trace": getattr(self.workflow_engine, "last_execution_trace", None),
         }
 
     def route_user_goal(self, goal: Any) -> RouterDecision:
