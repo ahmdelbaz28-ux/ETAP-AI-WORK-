@@ -1,6 +1,6 @@
 # 📘 AhmedETAP — Complete Project Index v2.0.0
 
-> Auto-generated on **2026-09-28T11:37:52.501388+00:00** by indexer v2.0.0.
+> Auto-generated on **2026-09-28T12:17:37.490546+00:00** by indexer v2.0.0.
 > Re-run `python indexer.py` to refresh.
 
 ---
@@ -14,12 +14,12 @@
 | Python | Classes | 902 |
 | Python | Functions | 785 |
 | UI | Files (TSX/TS) | 241 |
-| Test | Files | 239 |
-| Total | Tests | 3590 |
+| Test | Files | 241 |
+| Total | Tests | 3615 |
 | Help | Topics | 0 |
 | Context | Mappings | 0 |
 | Environment | Variables | 440 |
-| Scripts | | 152 |
+| Scripts | | 153 |
 | AI | Agents | 31 |
 | Integrations | | 20 |
 | UI | Search Index Entries | 475 |
@@ -38,7 +38,7 @@
 | **Browser Cua Executor.Py** | `browser_cua_executor.py` | — | agents/browser_cua_executor.py — Browser-based CUA Loop (hea |
 | **Cable Sizing** | `cable_sizing_agent.py` | IEC 60364 | AhmedETAP - Cable Sizing Agent ============================= |
 | **Code Guard** | `code_guard_agent.py` | — | Code Guard Agent — AI-Powered Code Quality Review ========== |
-| **Coordination** | `coordination_agent.py` | IEEE 242, IEC 60255, IEC60255 | AhmedETAP - Protection Coordination Agent ================== |
+| **Coordination** | `coordination_agent.py` | IEC 60255, IEEE 242, IEC60255 | AhmedETAP - Protection Coordination Agent ================== |
 | **Cua Base Executor.Py** | `cua_base_executor.py` | — | agents/cua_base_executor.py — Base CUA Executor (Template Me |
 | **Cua Executor.Py** | `cua_executor.py` | — | agents/cua_executor.py — Computer Use Agent Executor (Deskto |
 | **Design** | `design_agent.py` | — | AhmedETAP - Generative Substation & Feeder Design Agent (Sca |
@@ -775,7 +775,7 @@ THE PROBLEM:
 - **def** `deactivate_kill_switch()` (line 298)
 - **def** `is_kill_switch_active()` (line 310)
 
-#### 📄 `agents/models.py` _2.9 KB_
+#### 📄 `agents/models.py` _3.2 KB_
 > Data models for the multi-agent engineering orchestration system.
 
 Contains the core data structures used across all agents and the
@@ -784,7 +784,7 @@ ChiefEngineeringOr
 - **Class** `AgentStatus` (line 30)
 - **Class** `StudyType` (line 40)
 - **Class** `AgentResult` (line 66)
-- **Class** `EngineeringTask` (line 80)
+- **Class** `EngineeringTask` (line 84)
 
 #### 📄 `agents/motor_starting_agent.py` _30.9 KB_
 > AhmedETAP - Motor Starting Analysis Agent
@@ -3278,13 +3278,13 @@ Separates real SCADA bridge communication (ETAPScadaBridge / IEC 61
 - **def** `generate_simulated_scada()` (line 36)
 - **def** `get_scada_telemetry()` (line 115)
 
-#### 📄 `services/study_executor.py` _33.8 KB_
+#### 📄 `services/study_executor.py` _35.1 KB_
 > Study Executor — deep module for the study execution pipeline.
 
 Owns the entire pipeline behind a single seam: validate → cache lookup →
 build system 
 
-- **Class** `StudyExecutor` (line 67)
+- **Class** `StudyExecutor` (line 81)
   - Methods: `execute()`
 
 #### 📄 `services/study_service.py` _19.2 KB_
@@ -5643,6 +5643,7 @@ Provides
 | `test_cli.py` | 1 | 0 | **1** |
 | `test_components_api.py` | 11 | 0 | **11** |
 | `test_concurrency_load_gate.py` | 4 | 0 | **4** |
+| `test_contract_sync.py` | 9 | 0 | **9** |
 | `test_coordination.py` | 0 | 1 | **18** |
 | `test_coordination_agent_calculations.py` | 0 | 6 | **11** |
 | `test_coordination_deep.py` | 0 | 5 | **27** |
@@ -5749,6 +5750,7 @@ Provides
 | `test_rasp_security.py` | 0 | 4 | **20** |
 | `test_rate_limit.py` | 0 | 2 | **12** |
 | `test_rbac.py` | 23 | 0 | **23** |
+| `test_registry_integrity_gate.py` | 5 | 0 | **5** |
 | `test_regression_fixes.py` | 0 | 9 | **22** |
 | `test_relays.py` | 0 | 5 | **50** |
 | `test_reporting.py` | 0 | 6 | **31** |
@@ -5781,7 +5783,7 @@ Provides
 | `test_standards_compliance_audit.py` | 0 | 4 | **5** |
 | `test_stress_tests.py` | 0 | 3 | **11** |
 | `test_study_engine_deep.py` | 5 | 0 | **5** |
-| `test_study_executor_deep.py` | 0 | 6 | **23** |
+| `test_study_executor_deep.py` | 0 | 6 | **34** |
 | `test_study_reachability_gate.py` | 0 | 4 | **10** |
 | `test_study_rerun_phase_b.py` | 7 | 0 | **7** |
 | `test_study_service.py` | 5 | 0 | **5** |
@@ -5854,8 +5856,9 @@ Provides
 | `scripts/check_docker_drift.py` | py | 2.9 KB | check_docker_drift.py — verifies Dockerfile COPY sources mat |
 | `scripts/check_hf_status.py` | py | 0.3 KB |  |
 | `scripts/check_prompt_consistency.py` | py | 5.8 KB | Check prompt-manifest consistency (Operation Iron Loop\, WP5 |
+| `scripts/check_registry_integrity.py` | py | 9.7 KB | scripts/check_registry_integrity.py — M2.4 Unified Registry  |
 | `scripts/check_results.py` | py | 0.6 KB |  |
-| `scripts/check_workflows_meta.py` | py | 9.1 KB | scripts/check_workflows_meta.py — Authoritative GitHub Workf |
+| `scripts/check_workflows_meta.py` | py | 10.1 KB | scripts/check_workflows_meta.py — Authoritative GitHub Workf |
 | `scripts/claims_audit.py` | py | 6.7 KB | scripts/claims_audit.py — Engineering Claims and Standards T |
 | `scripts/clean_git_history.py` | py | 5.5 KB | Git History Cleanup Script |
 | `scripts/connect_neo4j.py` | py | 8.1 KB | Neo4j Connection & Verification Script for AhmedETAP. |
