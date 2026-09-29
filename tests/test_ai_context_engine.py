@@ -212,10 +212,10 @@ class TestContextRetrievalAPI:
         assert result["count"] == 0
         assert result["chunks"] == []
 
-    def test_main_routes_endpoint_via_client(self):
-        from fastapi.testclient import TestClient
+    def test_main_routes_endpoint_via_client(self, monkeypatch):
+        import importlib
 
-        from api.routes import app
+        from fastapi.testclient import TestClient
 
         # HIGH #11 (AhmedETAP_Error_Report_AR.pdf): use a stable test API key
         # from the environment instead of a hardcoded literal. The value is
@@ -228,12 +228,25 @@ class TestContextRetrievalAPI:
         # Prefer the API key actually configured for the service under test
         # (CI sets ENGINEERING_SERVICE_API_KEY). With a matching key, both
         # _require_api_key and the CSRF middleware server-to-server bypass
-        # accept the request. Without it (local dev), fall back to a dummy
-        # key and expect 401 — still within the asserted status set.
-        _TEST_API_KEY = os.environ.get(
-            "ENGINEERING_SERVICE_API_KEY",
-            os.environ.get("TEST_CI_API_KEY", "ci-test-api-key-not-a-real-secret"),
+        # accept the request. An EMPTY value is treated as unset and falls
+        # back to a dummy key so the bypass always has a non-empty value to
+        # compare against.
+        _TEST_API_KEY = (
+            os.environ.get("ENGINEERING_SERVICE_API_KEY")
+            or os.environ.get("TEST_CI_API_KEY")
+            or "ci-test-api-key-not-a-real-secret"
         )
+        # Force the key HERE, hermetically, instead of inheriting whatever
+        # env state a previous test left behind (pytest-xdist workers run
+        # tests in arbitrary order — order-dependent 403s otherwise).
+        monkeypatch.setenv("ENGINEERING_SERVICE_API_KEY", _TEST_API_KEY)
+
+        # api/routes.py computes _EXPECTED_API_KEY/_API_KEY_CONFIGURED once at
+        # import time. Reload AFTER setting the env so those module-level
+        # constants match the key this test client will send.
+        import api.routes as routes_module
+
+        app = importlib.reload(routes_module).app
 
         client = TestClient(app)
         r = client.post(
@@ -361,20 +374,28 @@ class TestKnowledgeGraph:
 
 
 class TestImpactAnalysisAPI:
-    def test_impact_api_route(self):
-        from fastapi.testclient import TestClient
+    def test_impact_api_route(self, monkeypatch):
+        import importlib
 
-        from api.routes import app
+        from fastapi.testclient import TestClient
 
         # HIGH #11 (AhmedETAP_Error_Report_AR.pdf): use env-var-backed key
         # instead of a hardcoded literal so secret scanners don't flag it.
 
         # Prefer the API key actually configured for the service under test
-        # (see test_main_routes_endpoint_via_client note above).
-        _TEST_API_KEY = os.environ.get(
-            "ENGINEERING_SERVICE_API_KEY",
-            os.environ.get("TEST_CI_API_KEY", "ci-test-api-key-not-a-real-secret"),
+        # (see test_main_routes_endpoint_via_client note above). Same hermetic
+        # fix: force a non-empty key and reload api.routes so its import-time
+        # constants agree with the key this client sends.
+        _TEST_API_KEY = (
+            os.environ.get("ENGINEERING_SERVICE_API_KEY")
+            or os.environ.get("TEST_CI_API_KEY")
+            or "ci-test-api-key-not-a-real-secret"
         )
+        monkeypatch.setenv("ENGINEERING_SERVICE_API_KEY", _TEST_API_KEY)
+
+        import api.routes as routes_module
+
+        app = importlib.reload(routes_module).app
 
         client = TestClient(app)
         r = client.post(
