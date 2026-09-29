@@ -646,47 +646,20 @@
 </thead>
 <tbody>
 <tr>
-<td>2026-09-24</td>
-<td>SonarCloud API Token (<code>e0176c608df2…36d17</code>)</td>
-<td><code>commit a6258e5</code> (<code>.env.example:497</code>) &amp; <code>commit 18827d0</code> (<code>docs/generated/SONARCLOUD_REPORT.md:13</code>)</td>
-<td>SonarCloud</td>
-<td><strong>Revoked Dead Key (Live Proven)</strong></td>
-<td>Key entered in historical commit <code>a6258e57c</code> and removed from template in <code>eda09a5a5</code>. Live tracked file <code>docs/generated/SONARCLOUD_REPORT.md</code> removed from tree via <code>git rm</code>. Permanent revocation executed and verified live via SonarCloud authentication API on 2026-09-24T09:27:14Z: <code>curl -s -u "${SONAR_TOKEN}:" https://sonarcloud.io/api/authentication/validate</code> returning HTTP 200 <code>{"valid":false}</code> (details below). Historical fingerprints suppressed in <code>.gitleaksignore:797-798</code> as dead keys pending history rewrite.</td>
-</tr>
-<tr>
-<td>2026-09-24</td>
-<td>UptimeRobot API Key (<code>u3475686-dcae…ce22a</code>)</td>
-<td><code>commit 278a5a8</code> (<code>scripts/uptimerobot_check.py:10</code>)</td>
-<td>UptimeRobot</td>
-<td><strong>LIVE — Pending Manual Regeneration</strong></td>
-<td>Key removed from working tree in <code>fadb8db</code>. Live script strictly uses <code>os.environ.get("UPTIMEROBOT_API_KEY", "")</code>. Live API check on 2026-09-24 returned HTTP 200 <code>{"stat":"ok"}</code> confirming key is currently active until regenerated at provider dashboard. Requires manual regeneration by user at UptimeRobot dashboard (<code>API Settings -&gt; Regenerate API Key</code>). Historical fingerprint retained in <code>.gitleaksignore:780</code>.</td>
-</tr>
-<tr>
-<td>2026-09-23</td>
-<td>GitHub Fine-Grained PAT (<code>github_pat_11CCHF...</code>)</td>
+<td>2026-09-29</td>
+<td>GitHub Fine-Grained PAT (<code>github_pat_11CCHF4XA0ZntcCAbEBemA…K8eSX</code>)</td>
 <td>Conversation transcript disclosure</td>
 <td>GitHub</td>
 <td><strong>In Rotation / Pending User Revocation</strong></td>
-<td>Token used strictly in volatile memory during session; never committed to repo files. User instructed to delete/rotate token via GitHub Settings once automated CI/CD gating is finalized.</td>
-</tr>
-<tr>
-<td>2026-07-15</td>
-<td>Cloudflare R2 Documentation Placeholders</td>
-<td><code>cloudflare/R2_SETUP.md</code></td>
-<td>Cloudflare</td>
-<td><strong>Verified Placeholder</strong></td>
-<td>Verified as documentation placeholders (<code>your-account-id</code>, <code>your-access-key-id</code>). No live credentials.</td>
-</tr>
-<tr>
-<td>2026-07-15</td>
-<td>OPS Runbook Placeholders</td>
-<td><code>OPS_RUNBOOK.md</code></td>
-<td>Internal / ETAP</td>
-<td><strong>Verified Placeholder</strong></td>
-<td>Documentation placeholder strings (<code>YOUR_SECRET_HERE</code>).</td>
+<td>Token provided directly by the repository owner in a conversation transcript (2026-09-29) to authorize M3 closure actions (push of the hermetic CSRF/test fix bundle, merge of PR #611, and branch-protection restoration). Token used strictly in volatile memory during the session; NEVER committed to repo files, workflows, or documentation (only this truncated fingerprint). Owner-authorized operations executed: push (contents), PR merge (pull_requests), protection read/restore (administration). User instructed to rotate/delete the token via GitHub Settings → Developer settings → Fine-grained tokens immediately after M3 gate closure is finalized.</td>
 </tr>
 </tbody>
 </table>
+<p>| 2026-09-24 | SonarCloud API Token (<code>e0176c608df2…36d17</code>) | <code>commit a6258e5</code> (<code>.env.example:497</code>) &amp; <code>commit 18827d0</code> (<code>docs/generated/SONARCLOUD_REPORT.md:13</code>) | SonarCloud | <strong>Revoked Dead Key (Live Proven)</strong> | Key entered in historical commit <code>a6258e57c</code> and removed from template in <code>eda09a5a5</code>. Live tracked file <code>docs/generated/SONARCLOUD_REPORT.md</code> removed from tree via <code>git rm</code>. Permanent revocation executed and verified live via SonarCloud authentication API on 2026-09-24T09:27:14Z: <code>curl -s -u "${SONAR_TOKEN}:" https://sonarcloud.io/api/authentication/validate</code> returning HTTP 200 <code>{"valid":false}</code> (details below). Historical fingerprints suppressed in <code>.gitleaksignore:797-798</code> as dead keys pending history rewrite. |
+| 2026-09-24 | UptimeRobot API Key (<code>u3475686-dcae…ce22a</code>) | <code>commit 278a5a8</code> (<code>scripts/uptimerobot_check.py:10</code>) | UptimeRobot | <strong>LIVE — Pending Manual Regeneration</strong> | Key removed from working tree in <code>fadb8db</code>. Live script strictly uses <code>os.environ.get("UPTIMEROBOT_API_KEY", "")</code>. Live API check on 2026-09-24 returned HTTP 200 <code>{"stat":"ok"}</code> confirming key is currently active until regenerated at provider dashboard. Requires manual regeneration by user at UptimeRobot dashboard (<code>API Settings -&gt; Regenerate API Key</code>). Historical fingerprint retained in <code>.gitleaksignore:780</code>. |
+| 2026-09-23 | GitHub Fine-Grained PAT (<code>github_pat_11CCHF...</code>) | Conversation transcript disclosure | GitHub | <strong>In Rotation / Pending User Revocation</strong> | Token used strictly in volatile memory during session; never committed to repo files. User instructed to delete/rotate token via GitHub Settings once automated CI/CD gating is finalized. |
+| 2026-07-15 | Cloudflare R2 Documentation Placeholders | <code>cloudflare/R2_SETUP.md</code> | Cloudflare | <strong>Verified Placeholder</strong> | Verified as documentation placeholders (<code>your-account-id</code>, <code>your-access-key-id</code>). No live credentials. |
+| 2026-07-15 | OPS Runbook Placeholders | <code>OPS_RUNBOOK.md</code> | Internal / ETAP | <strong>Verified Placeholder</strong> | Documentation placeholder strings (<code>YOUR_SECRET_HERE</code>). |</p>
 <h3 id="11-live-revocation-verification-evidence-reproducible-commands">1.1 Live Revocation Verification Evidence &amp; Reproducible Commands</h3>
 <p>The following live API checks were executed to definitively verify credential status:</p>
 <ol>

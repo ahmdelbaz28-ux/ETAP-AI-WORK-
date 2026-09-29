@@ -544,9 +544,9 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#1-non-negotiable-architectural-decision" class="md-nav__link">
+  <a href="#1-v2-adr-dspy-001" class="md-nav__link">
     <span class="md-ellipsis">
-      1. القرار المحسوم (Non-Negotiable Architectural Decision)
+      1. القرار المحسوم (التاريخي — تم الاستبدال بأرشفة v2 في ADR-DSPY-001)
     </span>
   </a>
   
@@ -698,13 +698,19 @@
 <p><strong>المستودع:</strong> <code>https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-.git</code><br />
 <strong>نقطة الأساس الحية:</strong> <code>main @ 43fdd481f</code> (<code>43fdd481faf134f757914702db3b4ab596bfc429</code>)<br />
 <strong>تاريخ التوثيق:</strong> 2026-09-27<br />
-<strong>الحالة:</strong> قرار محسوم معتمد — Zero Speculation</p>
+<strong>الحالة:</strong> تم الاستبدال بـ ADR-DSPY-001 (Superseded &amp; Archived)</p>
+<blockquote>
+<p>[!IMPORTANT]
+<strong>SUPERSEDED BY ADR-DSPY-001 (<code>docs/ai-integration/dspy-archive-decision.md</code>)</strong><br />
+تم استبدال هذا المقترح وقرار دمج فرع <code>v2</code> رسمياً بقرار الأرشفة الصادر في 2026-09-28 (<a href="file:///c:/Users/EWS-01/Desktop/etap/docs/ai-integration/dspy-archive-decision.md">ADR-DSPY-001</a>). مسار DSPy Copilot ومسودة PR #607 تمت أرشفتها كمسار بحثي/تجريبي، مع الإبقاء على علم الميزة <code>dspy_copilot</code> معطلاً بشكل دائم ومغلق (Strictly Fail-Closed: <code>default=False, rollout=0%</code>) ودون دمجه في النواة التنفيذية لـ M1–M3.</p>
+</blockquote>
 <hr />
-<h2 id="1-non-negotiable-architectural-decision">1. القرار المحسوم (Non-Negotiable Architectural Decision)</h2>
-<p>القرار المعماري محسوم سلفاً ومثبت بالبراهين الفنية:
-1. <strong>الأساس المعتمد:</strong> فرع <code>feat/dspy-copilot-prepost-v2</code>.
+<h2 id="1-v2-adr-dspy-001">1. القرار المحسوم (التاريخي — تم الاستبدال بأرشفة v2 في ADR-DSPY-001)</h2>
+<p>القرار المعماري الأولي (المستبدل بـ ADR-DSPY-001):
+1. <strong>الأساس المقترح سابقاً:</strong> فرع <code>feat/dspy-copilot-prepost-v2</code> (مؤرشف حالياً).
 2. <strong>فوق الأساس:</strong> إعادة تشكيل فرع <code>fix/study-executor-study-type-gate</code> ليعمل بسلاسة فوقه.
-3. <strong>المحظور تماماً:</strong> يُمنع منعاً باتاً دمج فرع <code>feat/dspy-copilot-prepost</code> (v1) بأي شكل من الأشكال.</p>
+3. <strong>المحظور تماماً:</strong> يُمنع منعاً باتاً دمج فرع <code>feat/dspy-copilot-prepost</code> (v1) بأي شكل من الأشكال.
+4. <strong>التحديث الحاسم (2026-09-28):</strong> تقرر أرشفة مسار v2 بالكامل وعدم دمجه في main لتجنب الاعتماديات غير المستقرة، وإغلاق بوابة M0.3 على نحو Fail-Closed خالص.</p>
 <hr />
 <h2 id="2-git-topology-commits-audit">2. التحقق الرقمي الدقيق بين الفروع الثلاثة (Git Topology &amp; Commits Audit)</h2>
 <p>تم استخراج هذه الأرقام عبر أوامر Git المباشرة مقابل رأس <code>main @ 43fdd481f</code>:</p>

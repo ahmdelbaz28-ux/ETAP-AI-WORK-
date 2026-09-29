@@ -1,0 +1,1107 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Enterprise AI-Powered Power Systems Engineering Platform">
+      
+      
+        <meta name="author" content="AhmedETAP Team">
+      
+      
+      
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.11">
+    
+    
+      
+        <title>خطة المرحلة M3 — طبقة التخطيط والتوجيه (Planning & Coordination) - AhmedETAP Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.4af4bdda.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="deep-purple">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#m3-planning-coordination" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="AhmedETAP Documentation" class="md-header__button md-logo" aria-label="AhmedETAP Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            AhmedETAP Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              خطة المرحلة M3 — طبقة التخطيط والتوجيه (Planning &amp; Coordination)
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  الصفحة الرئيسية
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../ARCHITECTURE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  الهيكلية
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../API_REFERENCE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  واجهة برمجة التطبيقات
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../OPERATIONS_RUNBOOK/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  دليل التشغيل
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../TROUBLESHOOTING_GUIDE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  دليل الأعطال
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../SECURITY_OPERATIONS_MANUAL/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  البنية التحتية للأمان
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../ENTERPRISE_CERTIFICATION_REPORT/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  التقييم المؤسسي
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="AhmedETAP Documentation" class="md-nav__button md-logo" aria-label="AhmedETAP Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    AhmedETAP Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    الصفحة الرئيسية
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ARCHITECTURE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    الهيكلية
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../API_REFERENCE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    واجهة برمجة التطبيقات
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../OPERATIONS_RUNBOOK/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    دليل التشغيل
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../TROUBLESHOOTING_GUIDE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    دليل الأعطال
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../SECURITY_OPERATIONS_MANUAL/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    البنية التحتية للأمان
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ENTERPRISE_CERTIFICATION_REPORT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    التقييم المؤسسي
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. الأساس المرجعي والتفويض
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-component-inventory" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. جرد المكوّنات الحية (Component Inventory — كل سطر بشاهد قطعي)
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-gap-analysis" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. تحليل الفجوات (Gap Analysis — كل فجوة بشاهدين قطعيين على الأقل)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. تحليل الفجوات (Gap Analysis — كل فجوة بشاهدين قطعيين على الأقل)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#g1-cpm" class="md-nav__link">
+    <span class="md-ellipsis">
+      G1 — الجدولة التكيفية (CPM) معزولة عن مسار التخطيط
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#g2-linucb-orchestrator" class="md-nav__link">
+    <span class="md-ellipsis">
+      G2 — الموجّه التعلّمي (LinUCB) معزول عن الـ Orchestrator
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#g3-m2" class="md-nav__link">
+    <span class="md-ellipsis">
+      G3 — عقود M2 التنفيذية غير مستهلكة في زمن التشغيل
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#g4-m23" class="md-nav__link">
+    <span class="md-ellipsis">
+      G4 — ازدواجية سجل الوكلاء (البند المؤجل من M2.3)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#g5-optimization" class="md-nav__link">
+    <span class="md-ellipsis">
+      G5 — الالتباس التنفيذي لدراسة optimization (قرار معماري مطلوب)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#p0-drift-note" class="md-nav__link">
+    <span class="md-ellipsis">
+      تصحيحات تدقيقية على خط الأساس P0 (Drift Note — شفافية إلزامية)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-m31-m35" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. بنود العمل المقترحة (M3.1 → M3.5)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. بنود العمل المقترحة (M3.1 → M3.5)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#m31-cpm" class="md-nav__link">
+    <span class="md-ellipsis">
+      M3.1 — وصل الجدولة التكيفية (CPM) في مسار التخطيط
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#m32" class="md-nav__link">
+    <span class="md-ellipsis">
+      M3.2 — طبقة التوجيه التعلّمي (خلف علم ميزة — افتراضي معطّل)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#m33-m2" class="md-nav__link">
+    <span class="md-ellipsis">
+      M3.3 — استهلاك عقود M2 التنفيذية في زمن التشغيل
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#m34-ts-m23" class="md-nav__link">
+    <span class="md-ellipsis">
+      M3.4 — تصفية ازدواجية سجل الوكلاء TS (البند المؤجل من M2.3)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#m35-optimization" class="md-nav__link">
+    <span class="md-ellipsis">
+      M3.5 — حسم مسار دراسة optimization (قرار معماري + تنفيذ)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-m3-acceptance-gates" class="md-nav__link">
+    <span class="md-ellipsis">
+      5. بوابات الإغلاق المقترحة (M3 Acceptance Gates)
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-out-of-scope" class="md-nav__link">
+    <span class="md-ellipsis">
+      6. خارج النطاق (Out of Scope)
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7" class="md-nav__link">
+    <span class="md-ellipsis">
+      7. القرارات المفتوحة المطلوبة من المعمار الرئيسي
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8" class="md-nav__link">
+    <span class="md-ellipsis">
+      8. حالة الفرع والشواهد الختامية
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="m3-planning-coordination">خطة المرحلة M3 — طبقة التخطيط والتوجيه (Planning &amp; Coordination)</h1>
+<p><strong>المشروع:</strong> منصة أحمد إيتاب (AhmedETAP AI Engineering Platform)<br />
+<strong>المرحلة:</strong> M3 — Planning &amp; Coordination Layer<br />
+<strong>نقطة الأساس الحية:</strong> <code>main @ e683211fc</code> (بعد إغلاق M2 وفتح PR #610)<br />
+<strong>فرع العمل:</strong> <code>feat/ai-m3-planning-coordination</code> (متطابق تماماً مع رأس <code>main</code> — <code>git diff main...HEAD</code> فارغ)<br />
+<strong>تاريخ الإعداد:</strong> 2026-09-27<br />
+<strong>الحالة:</strong> خطة مقترحة (Proposal) بانتظار اعتماد المعمار الرئيسي — صفر تعديل كود، وكل شاهد مثبت <code>file:line</code> من الشجرة الحية (Zero Hallucination)</p>
+<hr />
+<h2 id="1">1. الأساس المرجعي والتفويض</h2>
+<ol>
+<li><strong>M2 مغلقة رسمياً</strong> — تقرير الإغلاق: <a href="../m2-report/"><code>docs/ai-integration/m2-report.md</code></a>، وطلب الدمج <code>#610</code> مفتوح وقابل للدمج (<code>feat/m2-contracts-registry → main</code>، حالة GitHub API الموثقة: <code>open</code> + <code>mergeable=true</code>).</li>
+<li><strong>بند مؤجل صراحةً من M2.3 إلى M3:</strong> إزالة ازدواجية سجل الوكلاء في <code>src/core/agents.ts</code> (11 معرّفاً) لأنها تتطلب إعادة هيكلة طبقة التوجيه Mastra — <a href="../m2-report/#6-المتطلبات-المؤجلة-إلى-m3">m2-report.md §6</a>.</li>
+<li><strong>موضوع المرحلة</strong> بحسب فرع العمل: وصل مكوّنات التخطيط (Planning) والتوجيه (Coordination) القائمة فعلاً في الشجرة، فوق عقود M2 التنفيذية، مع صفر تغيير سلوكي افتراضي (Fail-Closed).</li>
+<li><strong>ملاحظة تدقيقية:</strong> لا توجد في المستودع اليوم وثيقة M0–M6 رسمية (بحث شامل في <code>docs/ai-integration/</code>، تقارير <code>P0</code>–<code>P5</code>، و<code>ROADMAP.md</code>)؛ صيغت هذه الخطة حصراً من الشواهد الحية، وتنتظر الاعتماد أو المواءمة مع الوثيقة الرسمية إن وُجدت.</li>
+</ol>
+<hr />
+<h2 id="2-component-inventory">2. جرد المكوّنات الحية (Component Inventory — كل سطر بشاهد قطعي)</h2>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>المكوّن</th>
+<th>الموضع (<code>file:line</code>)</th>
+<th>الدور</th>
+<th>حالة الوصل اليوم</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>GoalRouter</code></td>
+<td><a href="file:///c:/Users/EWS-01/Desktop/etap/agents/router.py#L77">agents/router.py:77</a></td>
+<td>توجيه الأهداف نصياً إلى <code>StudyType</code> عبر قواعد كلمات مفتاحية</td>
+<td><strong>حي</strong> — يُنشأ في <a href="file:///c:/Users/EWS-01/Desktop/etap/agents/orchestrator.py#L111">orchestrator.py:111</a></td>
+</tr>
+<tr>
+<td>2</td>
+<td><code>RouterDecision</code></td>
+<td><a href="file:///c:/Users/EWS-01/Desktop/etap/agents/router.py#L69">agents/router.py:69</a></td>
+<td>قرار توجيه موحّد (<code>study_types</code>, <code>confidence</code>, <code>reason</code>)</td>
+<td><strong>حي</strong></td>
+</tr>
+<tr>
+<td>3</td>
+<td><code>determine_execution_order</code></td>
+<td><a href="file:///c:/Users/EWS-01/Desktop/etap/agents/router.py#L172">agents/router.py:172</a></td>
+<td>ترتيب تنفيذ ثابت بالأولوية (LOAD_FLOW أولاً ثم الباقي)</td>
+<td><strong>حي</strong> — مستدعى في <a href="file:///c:/Users/EWS-01/Desktop/etap/agents/workflow.py#L103">workflow.py:103</a></td>
+</tr>
+<tr>
+<td>4</td>
+<td><code>GoalPlannerAgent</code></td>
+<td><a href="file:///c:/Users/EWS-01/Desktop/etap/agents/goal_planner_agent.py#L54">agents/goal_planner_agent.py:54</a></td>
+<td>تفكيك الأهداف وتقدير الأولويات والاعتماديات</td>
+<td><strong>حي</strong> — أوزان تركيبية ثابتة <code>0.4/0.4/0.2</code> (<a href="file:///c:/Users/EWS-01/Desktop/etap/agents/goal_planner_agent.py#L92-L94">سطر 92-94</a>)</td>
+</tr>
+<tr>
+<td>5</td>
+<td><code>AdaptiveTaskScheduler</code></td>
+<td><a href="file:///c:/Users/EWS-01/Desktop/etap/agents/optimizers/adaptive_planner.py#L47">agents/optimizers/adaptive_planner.py:47</a></td>
+<td>جدولة CPM تكيفية: مسار حرج + دفعات تنفيذ متوازية</td>
+<td><strong>معزول (Orphan)</strong> — لا مستهلك إنتاجي واحد؛ الاستيراد الوحيد في <a href="file:///c:/Users/EWS-01/Desktop/etap/tests/test_multi_objective_and_planner.py#L10">tests/test_multi_objective_and_planner.py:10</a></td>
+</tr>
+<tr>
+<td>6</td>
+<td><code>ContextualBanditRouter</code></td>
+<td><a href="file:///c:/Users/EWS-01/Desktop/etap/agents/optimizers/bandit_router.py#L24">agents/optimizers/bandit_router.py:24</a></td>
+<td>توجيه تعلّمي LinUCB مع رجوع آمن إلى <code>GoalRouter</code> (<a href="file:///c:/Users/EWS-01/Desktop/etap/agents/optimizers/bandit_router.py#L43">سطر 43</a>)</td>
+<td><strong>معزول (Orphan)</strong> — لا مستهلك إنتاجي؛ الاستيراد الوحيد في <a href="file:///c:/Users/EWS-01/Desktop/etap/tests/test_bandit_and_cascade.py#L10">tests/test_bandit_and_cascade.py:10</a></td>
+</tr>
+<tr>
+<td>7</td>
+<td><code>WorkflowEngine</code></td>
+<td><a href="file:///c:/Users/EWS-01/Desktop/etap/agents/workflow.py#L77">agents/workflow.py:77</a></td>
+<td>منسّق خطوط التنفيذ متعددة الدراسات والتحقق النهائي</td>
+<td><strong>حي</strong> — موصول في <a href="file:///c:/Users/EWS-01/Desktop/etap/agents/orchestrator.py#L112">orchestrator.py:112</a></td>
+</tr>
+<tr>
+<td>8</td>
+<td>عقود M2 التنفيذية</td>
+<td><a href="file:///c:/Users/EWS-01/Desktop/etap/contracts/ai/models.py">contracts/ai/models.py</a> — السطور <a href="file:///c:/Users/EWS-01/Desktop/etap/contracts/ai/models.py#L111">111</a>, <a href="file:///c:/Users/EWS-01/Desktop/etap/contracts/ai/models.py#L135">135</a>, <a href="file:///c:/Users/EWS-01/Desktop/etap/contracts/ai/models.py#L152">152</a>, <a href="file:///c:/Users/EWS-01/Desktop/etap/contracts/ai/models.py#L173">173</a>, <a href="file:///c:/Users/EWS-01/Desktop/etap/contracts/ai/models.py#L254">254</a></td>
+<td>DAG الخطة، سياق التنفيذ، الطلب، سجل التتبع</td>
+<td><strong>معرّفة — صفر مستهلك في زمن التشغيل</strong></td>
+</tr>
+<tr>
+<td>9</td>
+<td>حقول الربط <code>run_id/plan_id/node_id</code></td>
+<td><a href="file:///c:/Users/EWS-01/Desktop/etap/agents/models.py#L77-L80">agents/models.py:77-80</a> (<code>AgentResult</code>) و <a href="file:///c:/Users/EWS-01/Desktop/etap/agents/models.py#L95-L97">95-97</a> (<code>EngineeringTask</code>)</td>
+<td>ربط نتائج الوكلاء بالعقد التنفيذي</td>
+<td><strong>معرّفة — لا تُملأ في أي مسار فعلي اليوم</strong></td>
+</tr>
+<tr>
+<td>10</td>
+<td>سجل الوكلاء TypeScript</td>
+<td><a href="file:///c:/Users/EWS-01/Desktop/etap/src/core/agents.ts#L54-L140">src/core/agents.ts:54-140</a></td>
+<td>11 معرّف وكيل + <code>promptHandle</code></td>
+<td><strong>حي</strong> — المستهلك الوحيد <a href="file:///c:/Users/EWS-01/Desktop/etap/src/routes/agents.ts#L7">src/routes/agents.ts:7</a> (تأجيل M2.3)</td>
+</tr>
+<tr>
+<td>11</td>
+<td><code>OptimizationAgent</code></td>
+<td><a href="file:///c:/Users/EWS-01/Desktop/etap/agents/optimizers/optimization_agent.py#L29">agents/optimizers/optimization_agent.py:29</a></td>
+<td>تحسينات swarm / metaheuristic</td>
+<td><strong>مسجَّل في السجل</strong> (مفتاح <code>optimization</code> ضمن 30 مفتاحاً) لكن study type خارجي غير مخدوم</td>
+</tr>
+<tr>
+<td>12</td>
+<td><code>SpecializedExecutionUnavailableError</code></td>
+<td><a href="file:///c:/Users/EWS-01/Desktop/etap/core/exceptions.py#L10">core/exceptions.py:10</a></td>
+<td>فشل مغلق (ValueError subclass) للدراسات المسجلة بلا معالج</td>
+<td><strong>حي</strong> — وسيلة الرفض الموحدة اليوم</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="3-gap-analysis">3. تحليل الفجوات (Gap Analysis — كل فجوة بشاهدين قطعيين على الأقل)</h2>
+<h3 id="g1-cpm">G1 — الجدولة التكيفية (CPM) معزولة عن مسار التخطيط</h3>
+<ul>
+<li><strong>الادعاء المعلن في الكود:</strong> <code>AdaptiveTaskScheduler</code> "يستبدل التقييم الثابت 0.4/0.4/0.2 في <code>GoalPlannerAgent</code>" — <a href="file:///c:/Users/EWS-01/Desktop/etap/agents/optimizers/adaptive_planner.py#L4-L6">adaptive_planner.py:4-6</a>.</li>
+<li><strong>الواقع الحي:</strong> الوكيل ما زال يجمع بالوزن الثابت (<a href="file:///c:/Users/EWS-01/Desktop/etap/agents/goal_planner_agent.py#L200-L209">goal_planner_agent.py:200-209</a>)، ولا يوجد أي استيراد إنتاجي للجدولة؛ الاستيراد الوحيد في الاختبارات (<a href="file:///c:/Users/EWS-01/Desktop/etap/tests/test_multi_objective_and_planner.py#L10">tests/test_multi_objective_and_planner.py:10</a>).</li>
+<li><strong>الأثر:</strong> قدرة المسار الحرج والدفعات المتوازية (<a href="file:///c:/Users/EWS-01/Desktop/etap/agents/optimizers/adaptive_planner.py#L119-L155">adaptive_planner.py:119-155</a>) غير مستفاد منها في أي تدفق تنفيذ.</li>
+</ul>
+<h3 id="g2-linucb-orchestrator">G2 — الموجّه التعلّمي (LinUCB) معزول عن الـ Orchestrator</h3>
+<ul>
+<li><strong>الشاهد 1:</strong> الفئة قائمة بخوارزميتها ورجوعها الآمن — <a href="file:///c:/Users/EWS-01/Desktop/etap/agents/optimizers/bandit_router.py#L24">bandit_router.py:24</a> و <a href="file:///c:/Users/EWS-01/Desktop/etap/agents/optimizers/bandit_router.py#L43">bandit_router.py:43</a>.</li>
+<li><strong>الشاهد 2:</strong> المنشأة الفعلية في الـ orchestrator تستخدم <code>GoalRouter</code> الصريح — <a href="file:///c:/Users/EWS-01/Desktop/etap/agents/orchestrator.py#L111">orchestrator.py:111</a>.</li>
+<li><strong>الفجوة المزدوجة:</strong> لا مسار تحديث مكافآت (reward/telemetry) من نتائج الدراسات إلى الأذرع، ولا علم ميزة يحكم التفعيل.</li>
+</ul>
+<h3 id="g3-m2">G3 — عقود M2 التنفيذية غير مستهلكة في زمن التشغيل</h3>
+<ul>
+<li><strong>الشاهد 1:</strong> العقود معرّفة ومختبَرة تزامنياً — <a href="file:///c:/Users/EWS-01/Desktop/etap/contracts/ai/models.py#L111">contracts/ai/models.py:111/135/173/254</a>، ومِرآتها TS في <code>src/core/contracts/ai.ts</code>.</li>
+<li><strong>الشاهد 2:</strong> <code>WorkflowEngine</code> يبني الترتيب من دالة أولوية ثابتة — <a href="file:///c:/Users/EWS-01/Desktop/etap/agents/workflow.py#L103">workflow.py:103</a> — ولا يُنتج <code>ExecutionPlanContract</code> ولا يُصدر <code>ExecutionTraceContract</code>، وحقول الربط في <a href="file:///c:/Users/EWS-01/Desktop/etap/agents/models.py#L77-L80">agents/models.py:77-80</a> لا تُملأ في أي مسار.</li>
+<li><strong>الأثر:</strong> الجسر التعاقدي Python↔TypeScript مبنيّ لكن غير مُفعَّل تشغيلياً (أساس M4+ المحتمل).</li>
+</ul>
+<h3 id="g4-m23">G4 — ازدواجية سجل الوكلاء (البند المؤجل من M2.3)</h3>
+<ul>
+<li><strong>الشاهد 1:</strong> 11 معرّفاً في TS — <a href="file:///c:/Users/EWS-01/Desktop/etap/src/core/agents.ts#L54-L140">src/core/agents.ts:54-140</a>.</li>
+<li><strong>الشاهد 2:</strong> السجل البايثوني الحيّ يسجل <strong>30 مفتاحاً</strong> (27 فئة فريدة + 3 أسماء مستعارة: <code>harmonic</code>, <code>opf</code>, <code>protection</code>) — قياس حي مباشر اليوم عبر <code>create_agent_registry()</code> المستدعاة في <a href="file:///c:/Users/EWS-01/Desktop/etap/agents/registry.py#L1422">agents/registry.py:1422</a>.</li>
+<li><strong>التفويض:</strong> مؤجل صراحة من <a href="../m2-report/#6-المتطلبات-المؤجلة-إلى-m3">m2-report.md §6</a> لاستلزامه إعادة هيكلة طبقة Mastra.</li>
+</ul>
+<h3 id="g5-optimization">G5 — الالتباس التنفيذي لدراسة <code>optimization</code> (قرار معماري مطلوب)</h3>
+<ul>
+<li><strong>الشاهد 1:</strong> <code>OptimizationAgent</code> فئة كاملة مسجّلة في السجل — <a href="file:///c:/Users/EWS-01/Desktop/etap/agents/optimizers/optimization_agent.py#L29">optimization_agent.py:29</a>.</li>
+<li><strong>الشاهد 2:</strong> <code>optimization</code> مسجَّلة <code>handler_type="external"</code> في جدول الإرسال — <a href="file:///c:/Users/EWS-01/Desktop/etap/engine/dispatch.py#L155-L160">engine/dispatch.py:155-160</a> — فتسقط في <a href="file:///c:/Users/EWS-01/Desktop/etap/services/study_executor.py#L432-L433">study_executor.py:432-433</a> على <code>SpecializedExecutionUnavailableError</code> دون أي موجّه HTTP خارجي نشط.</li>
+<li><strong>ملاحظة مقارنة:</strong> نفس الصنف من المشكلة عولج سابقاً لدراسة <code>ahmed_etap_orchestration</code> (M0.3) بإعادة توجيهها محلياً — <a href="file:///c:/Users/EWS-01/Desktop/etap/services/study_executor.py#L425-L426">study_executor.py:425-426</a> → <a href="file:///c:/Users/EWS-01/Desktop/etap/services/study_executor.py#L502-L545">_dispatch_agent:502-545</a>. يمكن اعتماد النمط نفسه أو قرار الحذف/التوثيق الصريح.</li>
+</ul>
+<h3 id="p0-drift-note">تصحيحات تدقيقية على خط الأساس P0 (Drift Note — شفافية إلزامية)</h3>
+<table>
+<thead>
+<tr>
+<th>ما قالته وثيقة P0 (خط أساس <code>43fdd481f</code>)</th>
+<th>الواقع الحي اليوم على <code>e683211fc</code></th>
+<th>الشاهد</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ahmed_etap_orchestration</code> كود ميت بنيوياً يرفع استثناءً عند الإرسال</td>
+<td><strong>عولج في M0.3:</strong> التوجيه الآن يمر إلى <code>_dispatch_agent</code> وينفّذ فعلياً</td>
+<td><a href="file:///c:/Users/EWS-01/Desktop/etap/services/study_executor.py#L425-L426">study_executor.py:425-426</a></td>
+</tr>
+<tr>
+<td>الرفض برفع <code>ValueError</code> نصي في موضعين</td>
+<td>الرفض الموحّد هو <code>SpecializedExecutionUnavailableError</code> (مصنَّف <code>code="SPECIALIZED_EXECUTION_UNAVAILABLE"</code>)</td>
+<td><a href="file:///c:/Users/EWS-01/Desktop/etap/core/exceptions.py#L10-L19">core/exceptions.py:10-19</a></td>
+</tr>
+<tr>
+<td>«13 دراسة ترفع الخطأ»</td>
+<td><strong>11 دراسة وكيلية</strong> فقط ما زالت غير مخدومة عبر المنفذ: <code>battery_storage, cable_sizing, digital_twin, earth_grid, generative_design, harmonic_analysis, motor_starting, optimal_power_flow, renewable_integration, scada, transient_stability</code> — القياس الحي: <code>STUDY_DISPATCH</code> = 20 مدخلاً (4 native + 13 agent + 3 external)</td>
+<td><a href="file:///c:/Users/EWS-01/Desktop/etap/services/study_executor.py#L547-L549">study_executor.py:547-549</a></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="4-m31-m35">4. بنود العمل المقترحة (M3.1 → M3.5)</h2>
+<p>لكل بند: الهدف، النطاق المقترح، شرط القبول، والمخاطر. الترقيم يتبع نمط M2 (M2.1 → M2.4).</p>
+<h3 id="m31-cpm">M3.1 — وصل الجدولة التكيفية (CPM) في مسار التخطيط</h3>
+<ul>
+<li><strong>الهدف:</strong> إنتاج جدولة حقيقية (مسار حرج + دفعات تنفيذ متوازية) من <code>GoalPlannerAgent</code> عبر <code>AdaptiveTaskScheduler</code> مع رجوع آمن إلى الأوزان الثابتة الحالية.</li>
+<li><strong>النطاق المقترح:</strong> <code>agents/goal_planner_agent.py</code> (دمج اختياري)، <code>agents/optimizers/__init__.py</code> (تصدير متماثل)، اختبارات وصل جديدة.</li>
+<li><strong>شرط القبول:</strong> بقاء <code>tests/test_multi_objective_and_planner.py</code> أخضر؛ مخرجات التقييم الافتراضية الحالية دون تغيير؛ اختبار يثبت الرجوع الآمن عند مدخلات ناقصة/معطوبة.</li>
+<li><strong>المخاطر:</strong> تغيير سلوكي غير مقصود — يحيَّد بجعل الوصل خلف معامل صريح + إثراء الإخراج (additive) حصراً.</li>
+</ul>
+<h3 id="m32">M3.2 — طبقة التوجيه التعلّمي (خلف علم ميزة — افتراضي معطّل)</h3>
+<ul>
+<li><strong>الهدف:</strong> تفعيل <code>ContextualBanditRouter</code> اختيارياً فوق <code>GoalRouter</code> مع مسار مكافآت من نتائج الدراسات، ورجوع آمن 100% إلى <code>KEYWORD_RULES</code> (المنصوص عليه أصلاً في <a href="file:///c:/Users/EWS-01/Desktop/etap/agents/optimizers/bandit_router.py#L6">bandit_router.py:6</a> و <a href="file:///c:/Users/EWS-01/Desktop/etap/agents/optimizers/bandit_router.py#L43">bandit_router.py:43</a>).</li>
+<li><strong>النطاق المقترح:</strong> نقطة الإنشاء <a href="file:///c:/Users/EWS-01/Desktop/etap/agents/orchestrator.py#L111">orchestrator.py:111</a>، واجهة حقن في <code>agents/router.py</code>، تجميع reward من <code>AgentResult</code>، اختبارات.</li>
+<li><strong>شرط القبول:</strong> <code>tests/test_router_regression.py</code> و <code>tests/test_router_completeness_gate.py</code> و <code>tests/test_bandit_and_cascade.py</code> خضراء؛ سلوك مطابق حرفياً لليوم عندما العلم معطّل (fail-closed default off).</li>
+<li><strong>المخاطر:</strong> عدم حتمية التعلّم — تُحيَّد بالعلم المعطّل افتراضياً وحدود أمان على القرار.</li>
+</ul>
+<h3 id="m33-m2">M3.3 — استهلاك عقود M2 التنفيذية في زمن التشغيل</h3>
+<ul>
+<li><strong>الهدف:</strong> <code>WorkflowEngine</code> يبني <code>ExecutionPlanContract</code> (عقد = دراسات، <code>depends_on</code> مستمدة من ترتيب الأولوية)، ويمرّر <code>run_id/plan_id/node_id</code> إلى نتائج الوكلاء، ويصدر تتبعاً نهائياً مطابقاً لـ <code>ExecutionTraceContract</code>.</li>
+<li><strong>النطاق المقترح:</strong> <code>agents/workflow.py</code>، تعبئة حقول <a href="file:///c:/Users/EWS-01/Desktop/etap/agents/models.py#L77-L80">agents/models.py:77-80</a>، اختبارات تزامن خطة جديدة فوق <code>tests/test_contract_sync.py</code>.</li>
+<li><strong>شرط القبول:</strong> بقاء <code>tests/test_contract_sync.py</code> أخضر + اختبارات جديدة تثبت تعبئة الحقول؛ صفر تغيير في نتائج الدراسات نفسها (بيانات إثرائية فقط).</li>
+<li><strong>المخاطر:</strong> تشابك مع المسار الحرج — يُنفَّذ كطبقة إثراء (additive) لا تحجب أي فشل أصلي.</li>
+</ul>
+<h3 id="m34-ts-m23">M3.4 — تصفية ازدواجية سجل الوكلاء TS (البند المؤجل من M2.3)</h3>
+<ul>
+<li><strong>الهدف:</strong> مصدر حقيقة واحد للبيانات الوصفية للوكلاء (11 في TS مقابل 27 فئة بايثونية) مع الحفاظ على الواجهات القائمة: <code>getAgent</code>, <code>listAgentIds</code>, <code>getAgentPromptHandle</code> (<a href="file:///c:/Users/EWS-01/Desktop/etap/src/core/agents.ts#L142-L153">agents.ts:142-153</a>).</li>
+<li><strong>النطاق المقترح:</strong> <code>src/core/agents.ts</code> و<code>src/routes/agents.ts:7</code>، وإعادة هيكلة طبقة توجيه Mastra بحسب الحاجة.</li>
+<li><strong>شرط القبول:</strong> بناء TS + Meta-CI + اختبارات <code>tests/unit/routes/agents.test.ts</code> خضراء؛ لا كسر لمفاتيح البرومبتات (<code>promptHandle</code>).</li>
+<li><strong>المخاطر:</strong> مسّ طبقة Mastra — يتطلب تشغيل حزمة اختبارات TS كاملة قبل الدمج.</li>
+</ul>
+<h3 id="m35-optimization">M3.5 — حسم مسار دراسة <code>optimization</code> (قرار معماري + تنفيذ)</h3>
+<ul>
+<li><strong>الهدف:</strong> إنهاء التباس G5 بخيار محسوم: (أ) توجيه محلي إلى <code>OptimizationAgent</code> على غرار معالجة <code>ahmed_etap_orchestration</code> في M0.3، أو (ب) إبقاؤها external مع توثيق صريح <code>NOT_EXECUTABLE</code> ورسالة رفض نهائية واضحة.</li>
+<li><strong>النطاق المقترح:</strong> <code>services/study_executor.py</code> (إن اختير أ) أو <a href="../capability-matrix/"><code>capability-matrix.md</code></a> (إن اختير ب)، + اختبار سلوكي واحد.</li>
+<li><strong>شرط القبول:</strong> اختبار يثبت السلوك النهائي صراحةً (نجاح منفَّذ أو فشل مغلق موثَّق) بلا أي غموض.</li>
+<li><strong>المخاطر:</strong> منخفضة — قرار مغلق بنطاق محدود جداً.</li>
+</ul>
+<hr />
+<h2 id="5-m3-acceptance-gates">5. بوابات الإغلاق المقترحة (M3 Acceptance Gates)</h2>
+<table>
+<thead>
+<tr>
+<th>البوابة</th>
+<th>الشرط</th>
+<th>آلية التحقق</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Gate 1</strong></td>
+<td>Meta-CI نظيف بالكامل</td>
+<td><code>python scripts/check_workflows_meta.py</code> (يتضمن Registry Integrity Guard من M2.4)</td>
+</tr>
+<tr>
+<td><strong>Gate 2</strong></td>
+<td>حزمة وصل M3 خضراء</td>
+<td>اختبارات الوصل الجديدة + <code>test_router_regression</code> + <code>test_router_completeness_gate</code> + <code>test_multi_objective_and_planner</code> + <code>test_bandit_and_cascade</code> + <code>test_contract_sync</code></td>
+</tr>
+<tr>
+<td><strong>Gate 3</strong></td>
+<td>الحزمة الأساسية 100% خضراء</td>
+<td>تشغيل كامل بلا انحدار</td>
+</tr>
+<tr>
+<td><strong>Gate 4</strong></td>
+<td>تقرير الإغلاق</td>
+<td><code>docs/ai-integration/m3-report.md</code> بنمط M2</td>
+</tr>
+<tr>
+<td><strong>قيد دائم</strong></td>
+<td>Fail-Closed</td>
+<td>كل ميزة تكييف/تعلّم جديدة معطّلة افتراضياً، وصفر تغيير سلوكي عند إطفائها</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="6-out-of-scope">6. خارج النطاق (Out of Scope)</h2>
+<ol>
+<li>إحياء الـ 11 دراسة الوكيلية غير المخدومة عبر <code>study_executor</code> — حزمة مستقلة لاحقة (تتطلب ربط موجه الوكلاء العام بـ <code>STUDY_TYPE_AGENT_MAP</code> وتمرير <code>EngineeringTask</code> للوكيل).</li>
+<li>أي تعديل على <code>engine/dispatch.py</code> (<code>STUDY_DISPATCH</code> = SSoT مقفل منذ M2.3).</li>
+<li>تعديلات <code>.github/workflows/</code> أو ملفات الأمان والسرية.</li>
+</ol>
+<hr />
+<h2 id="7">7. القرارات المفتوحة المطلوبة من المعمار الرئيسي</h2>
+<ol>
+<li><strong>اعتماد النطاق:</strong> هل يُعتمد M3.1–M3.5 كما هي، أم يعاد ترتيب الأولويات أو يُستبعد بند؟</li>
+<li><strong>وثيقة الخط الرئيسي M0–M6:</strong> لا توجد نسخة منها في المستودع اليوم (بحث شامل في <code>docs/ai-integration/*</code> وتقارير <code>P0</code>–<code>P5</code> و<code>ROADMAP.md</code>)؛ تُزوَّد للفريق إن وُجدت للمواءمة الحرفية للبوابات.</li>
+<li><strong>قرار M3.5:</strong> الخيار (أ) توجيه محلي إلى <code>OptimizationAgent</code> أم (ب) توثيق <code>NOT_EXECUTABLE</code> الصريح؟</li>
+</ol>
+<hr />
+<h2 id="8">8. حالة الفرع والشواهد الختامية</h2>
+<table>
+<thead>
+<tr>
+<th>البند</th>
+<th>القيمة</th>
+<th>الشاهد</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>رأس <code>main</code> المحلي</td>
+<td><code>e683211fc</code></td>
+<td><code>git log -1 --format=%h</code></td>
+</tr>
+<tr>
+<td>تفرع فرع M3 قبل إيداع هذه الوثيقة</td>
+<td>متطابق مع <code>main</code> (صفر تباعد)</td>
+<td><code>git diff main...HEAD</code> ← مخرج فارغ</td>
+</tr>
+<tr>
+<td>طلب دمج M2</td>
+<td><code>#610</code> — <code>open</code> / <code>mergeable=true</code></td>
+<td>GitHub REST API (تحقق مباشر)</td>
+</tr>
+<tr>
+<td>تعديلات كود في هذه الخطة</td>
+<td><strong>صفر</strong> — وثيقة مقترح فقط</td>
+<td><code>git diff --stat</code> بعد الإيداع = هذا الملف وحده</td>
+</tr>
+</tbody>
+</table>
+<p><strong>التوقيع:</strong> الوكيل المنفذ — منصة أحمد إيتاب<br />
+<strong>التاريخ:</strong> 2026-09-27</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "search.suggest", "search.highlight"], "search": "../../assets/javascripts/workers/search.f8cc74c7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.c8b220af.min.js"></script>
+      
+    
+  </body>
+</html>
