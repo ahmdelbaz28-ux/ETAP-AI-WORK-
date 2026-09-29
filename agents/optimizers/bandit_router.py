@@ -15,8 +15,9 @@ from typing import Any, Dict, List, Optional
 
 import numpy as np
 
-from agents.models import StudyType
+from agents.models import PlanningIntent, StudyType
 from agents.router import DEFAULT_STUDIES, KEYWORD_RULES, GoalRouter, RouterDecision
+from core.exceptions import RoutingResolutionError
 
 logger = logging.getLogger(__name__)
 
@@ -101,13 +102,28 @@ class ContextualBanditRouter:
 
         return x.reshape(-1, 1)
 
-    def route(self, goal: Any) -> RouterDecision:
-        """Analyze user goal and route to appropriate StudyType via LinUCB with fallback."""
+    def route(
+        self,
+        goal: Any,
+        min_confidence: float | None = None,
+        raise_on_unreachable: bool = False,
+    ) -> RouterDecision:
+        """Analyze user goal and route to appropriate StudyType via LinUCB with fallback (M3.1)."""
+        threshold = min_confidence if min_confidence is not None else self.confidence_threshold
+
         if not goal or (isinstance(goal, str) and not goal.strip()):
-            return self.fallback_router.route(goal)
+            return self.fallback_router.route(
+                goal,
+                min_confidence=min_confidence,
+                raise_on_unreachable=raise_on_unreachable,
+            )
 
         if isinstance(goal, (list, tuple, dict)):
-            return self.fallback_router.route(goal)
+            return self.fallback_router.route(
+                goal,
+                min_confidence=min_confidence,
+                raise_on_unreachable=raise_on_unreachable,
+            )
 
         goal_text = str(goal)
         x = self._extract_features(goal_text)
@@ -132,9 +148,13 @@ class ContextualBanditRouter:
         # Normalize confidence to [0.0, 1.0]
         confidence = 1.0 / (1.0 + math.exp(-max(0.0, max_p)))
 
-        # Fallback check
+        # Fallback check against threshold (0.65 default)
         if confidence < self.confidence_threshold:
-            fallback_res = self.fallback_router.route(goal_text)
+            fallback_res = self.fallback_router.route(
+                goal_text,
+                min_confidence=min_confidence,
+                raise_on_unreachable=raise_on_unreachable,
+            )
             logger.debug(
                 "Bandit confidence %.2f < threshold %.2f; delegating to fallback router: %s",
                 confidence,
@@ -143,12 +163,32 @@ class ContextualBanditRouter:
             )
             return fallback_res
 
-        # If best arm is confidently found
-        return RouterDecision(
+        decision = RouterDecision(
             study_types=[best_arm] if best_arm else list(DEFAULT_STUDIES),
             confidence=round(confidence, 4),
             reason=f"Contextual Bandit (LinUCB) intent resolution (score={max_p:.3f})",
+            is_bandit=True,
         )
+
+        if raise_on_unreachable and decision.confidence < threshold:
+            raise RoutingResolutionError(
+                goal=goal_text,
+                confidence=decision.confidence,
+                threshold=threshold,
+                reason=decision.reason,
+            )
+        return decision
+
+    def resolve_intent(
+        self,
+        goal: Any,
+        min_confidence: float | None = None,
+        raise_on_unreachable: bool = False,
+        intent_type: str = "analysis",
+    ) -> PlanningIntent:
+        """Resolve user goal into PlanningIntent via ContextualBanditRouter (M3.1)."""
+        decision = self.route(goal, min_confidence=min_confidence, raise_on_unreachable=raise_on_unreachable)
+        return decision.to_planning_intent(str(goal) if goal is not None else "", intent_type=intent_type)
 
     def update_reward(
         self,
@@ -186,3 +226,12 @@ class ContextualBanditRouter:
             "feature_dim": self.d,
             "arm_pulls": {arm.value: cnt for arm, cnt in self.arm_pulls.items()},
         }
+
+    def parse_user_goal(self, goal: Any) -> List[StudyType]:
+        """Parse user goal into study types (router interface parity)."""
+        return self.route(goal).study_types
+
+    def determine_execution_order(self, study_types: List[StudyType]) -> List[StudyType]:
+        """Determine dependency execution order using fallback router."""
+        return self.fallback_router.determine_execution_order(study_types)
+

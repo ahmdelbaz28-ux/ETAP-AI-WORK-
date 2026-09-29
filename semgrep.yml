@@ -116,12 +116,13 @@ rules:
       Logging a variable that may contain a secret. Never log API keys,
       tokens, passwords, or JWT secrets. If you must log a credential
       for debugging, mask it first (e.g., f"{key[:4]}...{key[-4:]}").
-    pattern-either:
-      - pattern: logger.$LEVEL($SECRET_VAR)
-      - pattern: print($SECRET_VAR)
-    metavariable-regex:
-      metavariable: $SECRET_VAR
-      regex: '.*(api_key|apikey|API_KEY|secret|SECRET|password|PASSWORD|token|TOKEN|jwt|JWT|fernet|FERNET).*'
+    patterns:
+      - pattern-either:
+          - pattern: logger.$LEVEL($SECRET_VAR)
+          - pattern: print($SECRET_VAR)
+      - metavariable-regex:
+          metavariable: $SECRET_VAR
+          regex: '.*(api_key|apikey|API_KEY|secret|SECRET|password|PASSWORD|token|TOKEN|jwt|JWT|fernet|FERNET).*'
 
   # ─── Cryptography ─────────────────────────────────────────────────────────
   - id: etap.crypto.weak-hash-md5

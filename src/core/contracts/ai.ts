@@ -71,6 +71,10 @@ export interface PlanNodeContract {
   status: NodeStatus;
   /** Evidence items supporting parameters (fail-closed requirement). */
   evidence: EvidenceContract[];
+  /** Mapping from upstream output keys to this node's parameter keys (M3.2/M3.3). */
+  input_mapping?: Record<string, string>;
+  /** Mapping from this node's output keys to downstream input keys (M3.2/M3.3). */
+  output_mapping?: Record<string, string>;
 }
 
 // ---------------------------------------------------------------------------

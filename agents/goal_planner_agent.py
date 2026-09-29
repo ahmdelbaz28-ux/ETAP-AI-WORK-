@@ -27,6 +27,12 @@ from typing import Any
 
 from agents.orchestrator import AgentResult, AgentStatus, BaseAgent, EngineeringTask, StudyType
 
+try:
+    from agents.optimizers.adaptive_planner import AdaptiveTaskScheduler, ScheduleResult
+except ImportError:  # pragma: no cover
+    AdaptiveTaskScheduler = None  # type: ignore[assignment,misc]
+    ScheduleResult = None  # type: ignore[assignment,misc]
+
 logger = logging.getLogger(__name__)
 
 
@@ -86,12 +92,20 @@ class GoalPlannerAgent(BaseAgent):
 
     prompt_handle = "goal_planner_agent"
 
-    def __init__(self) -> None:
+    def __init__(self, adaptive_scheduler: Any | None = None) -> None:
         super().__init__("GoalPlannerAgent")
         self.standards = ["PMI PMBOK", "CPM", "MoSCoW"]
         self.w_importance: float = 0.4
         self.w_urgency: float = 0.4
         self.w_dependency: float = 0.2
+        self.enable_adaptive_cpm: bool = False
+        self._adaptive_scheduler = adaptive_scheduler
+
+    @property
+    def adaptive_scheduler(self) -> Any:
+        if self._adaptive_scheduler is None and AdaptiveTaskScheduler is not None:
+            self._adaptive_scheduler = AdaptiveTaskScheduler()
+        return self._adaptive_scheduler
 
     # ------------------------------------------------------------------
     # Core computation methods
@@ -164,6 +178,7 @@ class GoalPlannerAgent(BaseAgent):
         self,
         tasks: list[dict[str, Any]],
         available_hours: float = 8.0,
+        use_adaptive_cpm: bool | None = None,
     ) -> dict[str, Any]:
         """
         Prioritize tasks using composite scoring and dependency
@@ -244,8 +259,36 @@ class GoalPlannerAgent(BaseAgent):
             completed.add(next_task["name"])
             remaining = [t for t in remaining if t["name"] != next_task["name"]]
 
-        # Determine critical path (longest dependency chain)
+        # Check if adaptive CPM scheduling is requested
+        if use_adaptive_cpm is None:
+            use_adaptive_cpm = self.enable_adaptive_cpm
+
+        adaptive_result: Any | None = None
+        if use_adaptive_cpm:
+            try:
+                scheduler = self.adaptive_scheduler
+                if scheduler is not None:
+                    adaptive_result = scheduler.schedule(tasks)
+            except Exception as exc:
+                logger.warning(
+                    "Adaptive CPM scheduling failed (%s); falling back to static scoring",
+                    exc,
+                )
+                adaptive_result = None
+
+        # Determine critical path (longest dependency chain or CPM result)
         critical_path = self._find_critical_path(scored_tasks)
+        if adaptive_result is not None and adaptive_result.critical_path:
+            critical_path = list(adaptive_result.critical_path)
+            # Enrich scored_tasks with adaptive CPM metadata
+            task_sched_map = {t.name: t for t in adaptive_result.tasks}
+            for st in scored_tasks:
+                sched_item = task_sched_map.get(st.get("name", ""))
+                if sched_item is not None:
+                    st["earliest_start"] = sched_item.earliest_start
+                    st["earliest_finish"] = sched_item.earliest_finish
+                    st["slack"] = sched_item.slack
+                    st["is_critical"] = sched_item.is_critical
 
         # Calculate schedule fit
         scheduled_hours = sum(t["estimated_hours"] for t in scheduled)
@@ -266,7 +309,7 @@ class GoalPlannerAgent(BaseAgent):
             (total_scheduled_hours / available_hours * 100.0) if available_hours > 0 else 0.0
         )
 
-        return {
+        out: dict[str, Any] = {
             "prioritized_tasks": scored_tasks,
             "scheduled_tasks": scheduled,
             "deferred_tasks": deferred,
@@ -281,6 +324,18 @@ class GoalPlannerAgent(BaseAgent):
                 "w_dependency": self.w_dependency,
             },
         }
+
+        if adaptive_result is not None:
+            out["adaptive_schedule"] = {
+                "critical_path": list(adaptive_result.critical_path),
+                "total_duration_hours": adaptive_result.total_duration_hours,
+                "total_slack_hours": adaptive_result.total_slack_hours,
+                "recommended_execution_order": list(adaptive_result.recommended_execution_order),
+                "parallel_execution_batches": [list(b) for b in adaptive_result.parallel_execution_batches],
+            }
+            out["parallel_execution_batches"] = [list(b) for b in adaptive_result.parallel_execution_batches]
+
+        return out
 
     def _find_critical_path(self, tasks: list[dict[str, Any]]) -> list[str]:
         """
@@ -429,9 +484,11 @@ class GoalPlannerAgent(BaseAgent):
             )
 
             # Step 2: Prioritize and schedule
+            use_adaptive_cpm = bool(task.parameters.get("use_adaptive_cpm", self.enable_adaptive_cpm))
             prioritization = self.prioritize_tasks(
                 tasks=extraction["tasks"],
                 available_hours=available_hours,
+                use_adaptive_cpm=use_adaptive_cpm,
             )
 
             # Step 3: Assess risks

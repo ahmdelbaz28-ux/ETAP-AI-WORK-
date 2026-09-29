@@ -122,3 +122,27 @@ def test_pso_ac_opf_infeasible_generator_q_limits(sample_3bus_network):
     assert result.success is False
     assert len(result.constraint_violations) > 0
     assert any("Generator" in v and "Q" in v for v in result.constraint_violations)
+
+
+def test_pso_ac_opf_disabled_reanalysis_fails_success(sample_3bus_network):
+    """Witness M1.7: Disabling independent Newton-Raphson re-analysis must prevent success=True."""
+    ybus, bus_ids, costs, gen_buses, load_data = sample_3bus_network
+
+    pso_opf = PSOOptimalPowerFlow(
+        ybus=ybus,
+        bus_ids=bus_ids,
+        generator_costs=costs,
+        gen_buses=gen_buses,
+        load_data=load_data,
+        swarm_size=25,
+        max_iter=30,
+        seed=42,
+        enable_reanalysis=False,
+    )
+
+    result = pso_opf.solve()
+
+    assert isinstance(result, OPFResult)
+    assert result.success is False
+    assert "re-analysis" in result.convergence_status.lower()
+

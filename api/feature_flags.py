@@ -154,6 +154,12 @@ DEFAULT_FEATURE_FLAGS: dict[str, dict[str, Any]] = {
         "description": "Enable cost-aware LLM cascade router (Economy → Standard → Reasoning)",
         "rollout_percentage": 0,
     },
+    "use_bandit_router": {
+        "enabled": False,
+        "status": "beta",
+        "description": "Enable Contextual Bandit (LinUCB) learning router for intent resolution with GoalRouter fallback",
+        "rollout_percentage": 0,
+    },
     "generative_design": {
         "enabled": False,
         "status": "experimental",

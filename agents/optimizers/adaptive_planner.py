@@ -66,8 +66,22 @@ class AdaptiveTaskScheduler:
         for t in raw_tasks:
             name = t.get("name", "Unnamed Task")
             dur = float(t.get("estimated_hours", self.latencies.get(name, 2.0)))
-            imp = float(t.get("importance", 3.0)) / 5.0
-            urg = float(t.get("urgency", 3.0)) / 5.0
+            raw_imp = t.get("importance", 3.0)
+            if isinstance(raw_imp, (int, float)):
+                imp = float(raw_imp) / 5.0
+            elif isinstance(raw_imp, str):
+                imp = {"critical": 5.0, "high": 4.0, "medium": 3.0, "low": 2.0, "optional": 1.0}.get(raw_imp.lower(), 3.0) / 5.0
+            else:
+                imp = 0.6
+
+            raw_urg = t.get("urgency", 3.0)
+            if isinstance(raw_urg, (int, float)):
+                urg = float(raw_urg) / 5.0
+            elif isinstance(raw_urg, str):
+                urg = {"immediate": 5.0, "today": 4.0, "this_week": 3.0, "this_month": 2.0, "backlog": 1.0}.get(raw_urg.lower(), 3.0) / 5.0
+            else:
+                urg = 0.6
+
             deps = list(t.get("dependencies", []))
             task_dict[name] = ScheduledTask(
                 name=name,

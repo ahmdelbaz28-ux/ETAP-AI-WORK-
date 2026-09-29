@@ -130,6 +130,14 @@ class PlanNodeContract(BaseModel):
         default_factory=list,
         description="Evidence items supporting parameters (fail-closed requirement).",
     )
+    input_mapping: dict[str, str] = Field(
+        default_factory=dict,
+        description="Mapping from upstream output keys to this node's parameter keys (M3.2/M3.3).",
+    )
+    output_mapping: dict[str, str] = Field(
+        default_factory=dict,
+        description="Mapping from this node's output keys to downstream input keys (M3.2/M3.3).",
+    )
 
 
 class ExecutionPlanContract(BaseModel):

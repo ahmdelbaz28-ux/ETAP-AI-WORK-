@@ -208,12 +208,13 @@ class CSRFMiddleware(_PureASGIMiddleware):
     def __init__(self, app: Any, *, tolerate_expired: bool = False) -> None:
         self.app = app
         self._tolerate_expired = tolerate_expired
-        self._api_key = os.environ.get("ENGINEERING_SERVICE_API_KEY", "")
-        # NOTE: auth_disabled_allowed() is evaluated PER REQUEST in __call__,
-        # not cached here. The middleware instance is created once at app
-        # startup (first lifespan), while tests (and operators) may change the
-        # env afterwards; caching made the CSRF behaviour depend on which test
-        # happened to start the app first (order-dependent 403s under xdist).
+        # NOTE: ENGINEERING_SERVICE_API_KEY is intentionally NOT cached here.
+        # Both this env var and auth_disabled_allowed() are evaluated PER
+        # REQUEST in __call__. The middleware instance is created once at app
+        # startup (first lifespan), while tests (and operators) may set env
+        # vars afterwards. Caching at init-time caused order-dependent 403s
+        # under pytest-xdist and in TestClient usage where the key is set
+        # after app import.
 
     async def __call__(self, scope: Any, receive: Any, send: Any) -> None:
         """Validate mutating requests without buffering the response body."""
@@ -227,10 +228,13 @@ class CSRFMiddleware(_PureASGIMiddleware):
             await self.app(scope, receive, send)
             return
 
-        # Skip CSRF check for API-key-authenticated clients (server-to-server)
-        if self._api_key:
+        # Skip CSRF check for API-key-authenticated clients (server-to-server).
+        # Re-read from env per-request so TestClient usage and runtime env
+        # changes (e.g. tests that set the var after import) work correctly.
+        _current_api_key = os.environ.get("ENGINEERING_SERVICE_API_KEY", "")
+        if _current_api_key:
             provided_key = request.headers.get("x-api-key", "")
-            if hmac.compare_digest(provided_key, self._api_key):
+            if hmac.compare_digest(provided_key, _current_api_key):
                 await self.app(scope, receive, send)
                 return
 

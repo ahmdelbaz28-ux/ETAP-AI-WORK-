@@ -96,8 +96,13 @@ class ChiefEngineeringOrchestrator:
 
     prompt_handle = "power_system_coordinator_agent"
 
-    def __init__(self) -> None:
-        self.agents = create_agent_registry(orchestrator_instance=self)
+    def __init__(
+        self,
+        router: Any | None = None,
+        enable_bandit_router: bool | None = None,
+        agents: dict[str, BaseAgent] | None = None,
+    ) -> None:
+        self.agents = agents if agents is not None else create_agent_registry(orchestrator_instance=self)
         self._code_guard_agent = self.agents.get("code_guard")
         # S-19: If CodeGuardAgent is not available, safety code review is DISABLED (logged as warning in agents.registry).
         self._etap_expert_agent = self.agents.get("etap_expert")
@@ -108,7 +113,22 @@ class ChiefEngineeringOrchestrator:
         self.completed_tasks: dict[str, EngineeringTask] = {}
         self.logger = logging.getLogger("orchestrator")
 
-        self.router = GoalRouter()
+        if router is not None:
+            self.router = router
+        else:
+            if enable_bandit_router is None:
+                try:
+                    from api.feature_flags import is_strict_feature_enabled
+
+                    enable_bandit_router = is_strict_feature_enabled(
+                        "use_bandit_router", default=False
+                    )
+                except Exception:
+                    enable_bandit_router = False
+            from agents.router import create_router
+
+            self.router = create_router(use_bandit=bool(enable_bandit_router))
+
         self.workflow_engine = WorkflowEngine(
             agents=self.agents,
             code_guard_agent=self._code_guard_agent,
@@ -194,17 +214,37 @@ class ChiefEngineeringOrchestrator:
             "result_ready",
             {
                 "task_id": task.task_id,
-                "studies_performed": [r.study_type.value for r in results],
+                "studies_performed": [
+                    r.study_type.value if hasattr(r.study_type, "value") else str(r.study_type)
+                    for r in results
+                ],
                 "all_validated": all_validated,
             },
         )
 
+        # Feedback loop: telemetry & reward update for learning routers (e.g. LinUCB Bandit)
+        if hasattr(self.router, "update_reward"):
+            try:
+                reward = 1.0 if (all_validated and results) else (0.5 if results and any(r.status == AgentStatus.COMPLETED for r in results) else 0.0)
+                for r in results:
+                    if hasattr(r, "study_type") and r.study_type:
+                        self.router.update_reward(r.study_type, user_goal, reward)
+            except Exception as exc:
+                self.logger.debug("Router reward update ignored: %s", exc)
+
         return {
             "task_id": task.task_id,
+            "run_id": getattr(task, "run_id", None),
+            "plan_id": getattr(task, "plan_id", None),
             "goal": user_goal,
-            "studies_performed": [r.study_type.value for r in results],
+            "studies_performed": [
+                r.study_type.value if hasattr(r.study_type, "value") else str(r.study_type)
+                for r in results
+            ],
             "results": results,
             "all_validated": all(r.validation_status for r in results),
+            "execution_plan": getattr(self.workflow_engine, "last_execution_plan", None),
+            "execution_trace": getattr(self.workflow_engine, "last_execution_trace", None),
         }
 
     def route_user_goal(self, goal: Any) -> RouterDecision:

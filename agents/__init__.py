@@ -41,7 +41,14 @@ from agents.digital_twin_agent import DigitalTwinAgent
 from agents.earth_grid_agent import EarthGridAgent
 from agents.etap_expert_agent import ETAPExpertAgent
 from agents.etap_gui_agent import ETAPGUIAgent
-from agents.models import AgentResult, AgentStatus, EngineeringTask, StudyType
+from agents.models import (
+    AgentResult,
+    AgentStatus,
+    EngineeringTask,
+    PlanningIntent,
+    PlanningPlan,
+    StudyType,
+)
 from agents.motor_starting_agent import MotorStartingAgent
 from agents.orchestrator import (
     ChiefEngineeringOrchestrator,
@@ -148,6 +155,8 @@ __all__ = [
     "AgentResult",
     "BaseAgent",
     "EngineeringTask",
+    "PlanningIntent",
+    "PlanningPlan",
     "StudyType",
     # Core agents (orchestrator.py)
     "LoadFlowAgent",

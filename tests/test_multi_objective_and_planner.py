@@ -87,3 +87,113 @@ def test_solver_parameter_tuner():
     params_large = tuner.get_optimal_parameters(large_sys)
     assert params_large.use_sparse_solver is True
     assert params_large.max_iterations == 80
+
+
+def test_optimizers_init_exports():
+    import agents.optimizers as opt
+
+    assert hasattr(opt, "AdaptiveTaskScheduler")
+    assert hasattr(opt, "ScheduledTask")
+    assert hasattr(opt, "ScheduleResult")
+    assert hasattr(opt, "ContextualBanditRouter")
+    assert hasattr(opt, "OptimizationAgent")
+
+
+def test_goal_planner_agent_default_static_behavior():
+    from agents.goal_planner_agent import GoalPlannerAgent
+
+    agent = GoalPlannerAgent()
+    assert agent.enable_adaptive_cpm is False
+
+    tasks = [
+        {"name": "Study A", "estimated_hours": 2.0, "importance": "high", "urgency": "today"},
+        {"name": "Study B", "estimated_hours": 4.0, "importance": "critical", "urgency": "immediate", "dependencies": ["Study A"]},
+    ]
+
+    out = agent.prioritize_tasks(tasks, available_hours=8.0)
+    assert "adaptive_schedule" not in out
+    assert "parallel_execution_batches" not in out
+    assert len(out["prioritized_tasks"]) == 2
+    assert out["fits_in_period"] is True
+    assert out["prioritization_criteria"]["w_importance"] == 0.4
+
+
+def test_goal_planner_agent_adaptive_cpm_integration():
+    from agents.goal_planner_agent import GoalPlannerAgent
+
+    agent = GoalPlannerAgent()
+    tasks = [
+        {"name": "Task A", "estimated_hours": 2.0, "dependencies": []},
+        {"name": "Task B", "estimated_hours": 3.0, "dependencies": ["Task A"]},
+        {"name": "Task C", "estimated_hours": 1.5, "dependencies": ["Task A"]},
+        {"name": "Task D", "estimated_hours": 2.0, "dependencies": ["Task B", "Task C"]},
+    ]
+
+    out = agent.prioritize_tasks(tasks, available_hours=10.0, use_adaptive_cpm=True)
+    assert "adaptive_schedule" in out
+    assert "parallel_execution_batches" in out
+
+    adaptive = out["adaptive_schedule"]
+    assert adaptive["total_duration_hours"] == 7.0
+    assert "Task A" in adaptive["critical_path"]
+    assert "Task B" in adaptive["critical_path"]
+    assert "Task D" in adaptive["critical_path"]
+    assert "Task C" not in adaptive["critical_path"]
+
+    # Scored tasks have CPM metadata
+    for t in out["prioritized_tasks"]:
+        assert "earliest_start" in t
+        assert "earliest_finish" in t
+        assert "slack" in t
+        assert "is_critical" in t
+
+
+def test_goal_planner_agent_adaptive_fallback_on_corrupt_input():
+    from agents.goal_planner_agent import GoalPlannerAgent
+
+    agent = GoalPlannerAgent()
+
+    class FaultyScheduler:
+        def schedule(self, raw_tasks):
+            raise RuntimeError("CPM solver simulation failure")
+
+    agent._adaptive_scheduler = FaultyScheduler()
+
+    tasks = [
+        {"name": "Task A", "estimated_hours": 2.0, "dependencies": []},
+        {"name": "Task B", "estimated_hours": 3.0, "dependencies": ["Task A"]},
+    ]
+
+    # Should not crash; gracefully falls back to static prioritization
+    out = agent.prioritize_tasks(tasks, available_hours=8.0, use_adaptive_cpm=True)
+    assert "adaptive_schedule" not in out
+    assert len(out["prioritized_tasks"]) == 2
+    assert "Task A" in out["critical_path"]
+
+
+@pytest.mark.asyncio
+async def test_goal_planner_agent_async_execute_with_adaptive_flag():
+    from agents.goal_planner_agent import GoalPlannerAgent
+    from agents.orchestrator import EngineeringTask, StudyType
+
+    agent = GoalPlannerAgent()
+    task = EngineeringTask(
+        task_id="task_m3_1",
+        description="Goal planning task for substation study",
+        study_types=[StudyType.LOAD_FLOW],
+        parameters={
+            "raw_input": "Run full substation study workflow",
+            "tasks": [
+                {"name": "Load Flow", "estimated_hours": 2.0, "importance": "high", "urgency": "today"},
+                {"name": "Short Circuit", "estimated_hours": 3.0, "importance": "critical", "urgency": "immediate", "dependencies": ["Load Flow"]},
+            ],
+            "use_adaptive_cpm": True,
+        },
+    )
+
+    result = await agent.execute(task)
+    assert result.status.value == "completed"
+    assert result.validation_status is True
+    assert "adaptive_schedule" in result.data["prioritization"]
+    assert result.data["prioritization"]["adaptive_schedule"]["total_duration_hours"] == 5.0
+

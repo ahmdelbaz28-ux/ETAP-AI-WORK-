@@ -44,21 +44,37 @@ class OptimizationAgent(BaseAgent):
         study_type = task.parameters.get("optimization_type", "placement")
         logger.info("OptimizationAgent executing study: %s", study_type)
 
-        study_type_enum = (
-            task.study_types[0]
-            if (task.study_types and isinstance(task.study_types[0], StudyType))
-            else StudyType.OPTIMAL_POWER_FLOW
-        )
+        study_type_enum = getattr(StudyType, "OPTIMIZATION", StudyType.OPTIMAL_POWER_FLOW)
+        if task.study_types:
+            for st in task.study_types:
+                if isinstance(st, StudyType):
+                    study_type_enum = st
+                    break
+
+        seed = int(task.parameters.get("seed", 42))
 
         try:
+            violations: list[str] = []
             if study_type in ("capacitor_placement", "placement"):
-                res = self._run_placement(task.parameters)
+                res = self._run_placement(task.parameters, seed=seed)
+                if res.get("min_voltage_after", 1.0) < 0.90:
+                    violations.append(
+                        f"Voltage constraint violated: min voltage {res.get('min_voltage_after'):.3f} < 0.90 pu"
+                    )
             elif study_type in ("harmonic_filter", "filter_design"):
-                res = self._run_filter_design(task.parameters)
+                res = self._run_filter_design(task.parameters, seed=seed)
+                if not res.get("ieee_519_compliant", False) or res.get("thd_v_after_pct", 100.0) > 5.0:
+                    violations.append(
+                        f"IEEE 519 compliance failed: THD after filter is {res.get('thd_v_after_pct', 0.0):.2f}% (exceeds 5.0% limit)"
+                    )
             elif study_type in ("protection_coordination", "pso_coordination"):
-                res = self._run_coordination(task.parameters)
+                res = self._run_coordination(task.parameters, seed=seed)
+                if not res.get("coordinated", False) and not res.get("success", False):
+                    violations.append("Relay coordination failed: time margin below selectivity threshold")
             elif study_type in ("ac_opf", "pso_opf"):
-                res = self._run_opf(task.parameters)
+                res = self._run_opf(task.parameters, seed=seed)
+                if not res.get("success", False):
+                    violations.append("AC-OPF constraints violated or failed to converge")
             else:
                 err_msg = f"Unsupported optimization type: {study_type}"
                 return AgentResult(
@@ -69,11 +85,25 @@ class OptimizationAgent(BaseAgent):
                     validation_errors=[err_msg],
                 )
 
+            res["seed"] = seed
+            res["violations"] = violations
+
+            if violations:
+                return AgentResult(
+                    agent_name=self.name,
+                    study_type=study_type_enum,
+                    status=AgentStatus.REJECTED,
+                    data=res,
+                    validation_status=False,
+                    validation_errors=violations,
+                )
+
             return AgentResult(
                 agent_name=self.name,
                 study_type=study_type_enum,
                 status=AgentStatus.COMPLETED,
                 data=res,
+                validation_status=True,
             )
         except Exception as exc:
             logger.exception("OptimizationAgent failed: %s", exc)
@@ -82,11 +112,11 @@ class OptimizationAgent(BaseAgent):
                 agent_name=self.name,
                 study_type=study_type_enum,
                 status=AgentStatus.FAILED,
-                data={"error": err_msg},
+                data={"error": err_msg, "seed": seed, "violations": [err_msg]},
                 validation_errors=[err_msg],
             )
 
-    def _run_placement(self, params: Dict[str, Any]) -> Dict[str, Any]:
+    def _run_placement(self, params: Dict[str, Any], seed: int = 42) -> Dict[str, Any]:
         ybus = params.get("ybus")
         bus_ids = params.get("bus_ids", [])
         load_data = params.get("load_data", {})
@@ -99,6 +129,7 @@ class OptimizationAgent(BaseAgent):
             load_data=load_data,
             candidate_buses=cand_buses,
             max_total_q_mvar=max_q,
+            seed=seed,
         )
         res = opt.optimize_capacitor_placement()
         return {
@@ -111,7 +142,7 @@ class OptimizationAgent(BaseAgent):
             "investment_cost_usd": res.estimated_investment_cost,
         }
 
-    def _run_filter_design(self, params: Dict[str, Any]) -> Dict[str, Any]:
+    def _run_filter_design(self, params: Dict[str, Any], seed: int = 42) -> Dict[str, Any]:
         v_kv = float(params.get("nominal_voltage_kv", 13.8))
         f0 = float(params.get("frequency_hz", 60.0))
         s_sc = float(params.get("short_circuit_mva", 200.0))
@@ -123,6 +154,7 @@ class OptimizationAgent(BaseAgent):
             system_frequency_hz=f0,
             short_circuit_mva=s_sc,
             harmonic_currents_a=harmonics,
+            seed=seed,
         )
         res = opt.design_filter_for_harmonic(target_harmonic=target_h)
         return {
@@ -137,23 +169,23 @@ class OptimizationAgent(BaseAgent):
             "filter_cost_usd": res.estimated_filter_cost_usd,
         }
 
-    def _run_coordination(self, params: Dict[str, Any]) -> Dict[str, Any]:
+    def _run_coordination(self, params: Dict[str, Any], seed: int = 42) -> Dict[str, Any]:
         r_up = params.get("upstream_relay")
         r_down = params.get("downstream_relay")
         faults = params.get("fault_currents", [5.0, 10.0])
         margin = float(params.get("target_margin", 0.2))
 
-        opt = PSOCoordinationEngine()
+        opt = PSOCoordinationEngine(seed=seed)
         return opt.optimize_coordination_2d(r_up, r_down, faults, target_margin=margin)
 
-    def _run_opf(self, params: Dict[str, Any]) -> Dict[str, Any]:
+    def _run_opf(self, params: Dict[str, Any], seed: int = 42) -> Dict[str, Any]:
         ybus = params.get("ybus")
         bus_ids = params.get("bus_ids")
         costs = params.get("generator_costs")
         gen_buses = params.get("gen_buses")
         load_data = params.get("load_data")
 
-        opt = PSOOptimalPowerFlow(ybus, bus_ids, costs, gen_buses, load_data)
+        opt = PSOOptimalPowerFlow(ybus, bus_ids, costs, gen_buses, load_data, seed=seed)
         res = opt.solve()
         return {
             "total_cost_usd": res.objective_value,

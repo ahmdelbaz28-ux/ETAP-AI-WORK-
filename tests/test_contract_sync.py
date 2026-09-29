@@ -178,6 +178,80 @@ def test_ts_agent_ids_in_agent_registry():
         )
 
 
+def test_ts_agent_ids_match_exact_canonical_26():
+    """Witness M2.3: AGENT_REGISTRY in src/core/agents.ts defines the canonical 26 agents with valid prompt handles."""
+    import json
+    text = TS_AGENTS.read_text(encoding="utf-8")
+    ts_agent_ids = set(re.findall(r"'([\w-]+-agent)':", text))
+
+    expected_canonical_26 = {
+        "anomaly-agent",
+        "arcflash-agent",
+        "battery-storage-agent",
+        "cable-sizing-agent",
+        "code-guard-agent",
+        "digital-twin-agent",
+        "earth-grid-agent",
+        "etap-engineer-agent",
+        "etap-expert-agent",
+        "generative-design-agent",
+        "goal-planner-agent",
+        "harmonic-agent",
+        "load-flow-agent",
+        "motorstarting-agent",
+        "optimal-power-flow-agent",
+        "power-system-coordinator-agent",
+        "predictive-agent",
+        "protection-agent",
+        "qgis-agent",
+        "renewable-agent",
+        "report-agent",
+        "scada-agent",
+        "short-circuit-agent",
+        "transient-stability-agent",
+        "validation-agent",
+        "weather-agent",
+    }
+
+    assert ts_agent_ids == expected_canonical_26, (
+        f"Mismatched TS agent IDs. Difference: {ts_agent_ids ^ expected_canonical_26}"
+    )
+
+    prompts_file = REPO_ROOT / "prompts.json"
+    with open(prompts_file, encoding="utf-8") as pf:
+        pdata = json.load(pf)
+    canonical_prompts = set(pdata.get("prompts", {}).keys())
+
+    prompt_handles = re.findall(r"promptHandle:\s*'([^']+)'", text)
+    assert len(prompt_handles) == 26, f"Expected 26 prompt handles in agents.ts, found {len(prompt_handles)}"
+    for ph in prompt_handles:
+        assert ph in canonical_prompts, f"promptHandle '{ph}' in agents.ts not found in prompts.json"
+
+    # Cross-runtime sync: every calculation study type in Python maps to a corresponding agent
+    from agents.registry import get_study_type_mapping
+    py_map = get_study_type_mapping()
+    canonical_st_to_ts = {
+        "load_flow": "load-flow-agent",
+        "short_circuit": "short-circuit-agent",
+        "harmonic_analysis": "harmonic-agent",
+        "optimal_power_flow": "optimal-power-flow-agent",
+        "protection_coordination": "protection-agent",
+        "transient_stability": "transient-stability-agent",
+        "cable_sizing": "cable-sizing-agent",
+        "earth_grid": "earth-grid-agent",
+        "renewable_integration": "renewable-agent",
+        "battery_storage": "battery-storage-agent",
+        "scada": "scada-agent",
+        "digital_twin": "digital-twin-agent",
+        "motor_starting": "motorstarting-agent",
+        "arc_flash": "arcflash-agent",
+        "validation": "validation-agent",
+        "report": "report-agent",
+    }
+    for st_name, expected_agent in canonical_st_to_ts.items():
+        assert expected_agent in ts_agent_ids, f"Expected agent '{expected_agent}' for study '{st_name}' missing from TS"
+
+
 def test_agent_models_linkage_fields_backward_compatible():
     """AgentResult and EngineeringTask M2.2 linkage fields are optional (None by default)."""
     from agents.models import AgentResult, AgentStatus, EngineeringTask, StudyType
@@ -272,3 +346,146 @@ def test_pydantic_contracts_instantiation():
         context=ctx,
     )
     assert trace.overall_success is False
+
+
+# ---------------------------------------------------------------------------
+# M3.3 Runtime Contract Consumption & Linkage Tests
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_workflow_engine_builds_execution_plan_contract():
+    """WorkflowEngine builds a valid ExecutionPlanContract with dependency ordering (M3.3)."""
+    from agents.models import EngineeringTask, StudyType
+    from agents.workflow import WorkflowEngine
+    from contracts.ai import ExecutionPlanContract
+
+    engine = WorkflowEngine(agents={})
+    task = EngineeringTask(
+        task_id="task_m33_plan",
+        description="Run LF and SC studies",
+        study_types=[StudyType.SHORT_CIRCUIT, StudyType.LOAD_FLOW],
+        parameters={"tenant_id": "test_tenant"},
+    )
+    plan = engine.build_execution_plan(task)
+    assert isinstance(plan, ExecutionPlanContract)
+    assert plan.plan_id == task.plan_id
+    assert plan.run_id == task.run_id
+    assert len(plan.nodes) == 2
+
+    # Check dependency: SHORT_CIRCUIT must depend on LOAD_FLOW
+    lf_nodes = [n for n in plan.nodes if n.study_type == "load_flow"]
+    sc_nodes = [n for n in plan.nodes if n.study_type == "short_circuit"]
+    assert len(lf_nodes) == 1
+    assert len(sc_nodes) == 1
+    assert lf_nodes[0].depends_on == []
+    assert lf_nodes[0].node_id in sc_nodes[0].depends_on
+    assert plan.topological_order == [n.node_id for n in plan.nodes]
+
+
+@pytest.mark.asyncio
+async def test_workflow_engine_execute_stamps_contract_linkage_fields():
+    """WorkflowEngine execute_workflow stamps run_id, plan_id, node_id on results (M3.3)."""
+    from unittest.mock import AsyncMock
+
+    from agents.base import BaseAgent
+    from agents.models import AgentResult, AgentStatus, EngineeringTask, StudyType
+    from agents.workflow import WorkflowEngine
+    from contracts.ai import ExecutionTraceContract
+
+    mock_lf = AsyncMock(spec=BaseAgent)
+    mock_lf.agent_name = "load_flow_agent"
+    mock_lf.execute.return_value = AgentResult(
+        agent_name="load_flow_agent",
+        study_type=StudyType.LOAD_FLOW,
+        status=AgentStatus.COMPLETED,
+        data={"voltage": [1.0, 0.99]},
+        validation_status=True,
+    )
+
+    mock_val = AsyncMock(spec=BaseAgent)
+    mock_val.agent_name = "validation_agent"
+    mock_val.execute.return_value = AgentResult(
+        agent_name="validation_agent",
+        study_type=StudyType.LOAD_FLOW,
+        status=AgentStatus.COMPLETED,
+        data={"passed": True},
+        validation_status=True,
+    )
+
+    engine = WorkflowEngine(agents={"load_flow": mock_lf, "validation": mock_val})
+    task = EngineeringTask(
+        task_id="task_m33_exec",
+        description="Verify contract stamping",
+        study_types=[StudyType.LOAD_FLOW],
+        parameters={"tenant_id": "tenant_abc", "user_id": "user_xyz"},
+    )
+
+    results = await engine.execute_workflow(task)
+    assert len(results) >= 1
+    assert task.run_id is not None
+    assert task.plan_id is not None
+
+    for r in results:
+        assert r.run_id == task.run_id
+        assert r.plan_id == task.plan_id
+        assert r.node_id is not None and len(r.node_id) > 0
+
+    assert isinstance(engine.last_execution_trace, ExecutionTraceContract)
+    assert engine.last_execution_trace.run_id == task.run_id
+    assert engine.last_execution_trace.plan_id == task.plan_id
+    assert engine.last_execution_trace.context.tenant_id == "tenant_abc"
+    assert engine.last_execution_trace.context.user_id == "user_xyz"
+    assert len(engine.last_execution_trace.node_results) >= 1
+    assert engine.last_execution_trace.overall_success is True
+
+
+@pytest.mark.asyncio
+async def test_orchestrator_autonomous_workflow_exposes_contracts():
+    """ChiefEngineeringOrchestrator exposes run_id, plan_id, plan, and trace (M3.3)."""
+    from unittest.mock import AsyncMock
+
+    from agents.base import BaseAgent
+    from agents.models import AgentResult, AgentStatus, StudyType
+    from agents.orchestrator import ChiefEngineeringOrchestrator
+    from contracts.ai import ExecutionPlanContract, ExecutionTraceContract
+
+    mock_lf = AsyncMock(spec=BaseAgent)
+    mock_lf.agent_name = "load_flow_agent"
+    mock_lf.get_agent_info.return_value = {"name": "LF"}
+    mock_lf.execute.return_value = AgentResult(
+        agent_name="load_flow_agent",
+        study_type=StudyType.LOAD_FLOW,
+        status=AgentStatus.COMPLETED,
+        data={"converged": True},
+        validation_status=True,
+    )
+
+    mock_val = AsyncMock(spec=BaseAgent)
+    mock_val.agent_name = "validation_agent"
+    mock_val.get_agent_info.return_value = {"name": "VAL"}
+    mock_val.execute.return_value = AgentResult(
+        agent_name="validation_agent",
+        study_type=StudyType.LOAD_FLOW,
+        status=AgentStatus.COMPLETED,
+        data={"all_passed": True},
+        validation_status=True,
+    )
+
+    orch = ChiefEngineeringOrchestrator(
+        agents={"load_flow": mock_lf, "validation": mock_val},
+        enable_bandit_router=False,
+    )
+
+    res = await orch.execute_autonomous_workflow(
+        user_goal="Run power flow calculation",
+        system_data={"bus_count": 5},
+    )
+
+    assert "run_id" in res and res["run_id"] is not None
+    assert "plan_id" in res and res["plan_id"] is not None
+    assert "execution_plan" in res and isinstance(res["execution_plan"], ExecutionPlanContract)
+    assert "execution_trace" in res and isinstance(res["execution_trace"], ExecutionTraceContract)
+    assert res["execution_trace"].run_id == res["run_id"]
+    assert res["execution_trace"].plan_id == res["plan_id"]
+

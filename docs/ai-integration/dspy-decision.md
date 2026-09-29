@@ -2,16 +2,21 @@
 **المستودع:** `https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-.git`  
 **نقطة الأساس الحية:** `main @ 43fdd481f` (`43fdd481faf134f757914702db3b4ab596bfc429`)  
 **تاريخ التوثيق:** 2026-09-27  
-**الحالة:** قرار محسوم معتمد — Zero Speculation
+**الحالة:** تم الاستبدال بـ ADR-DSPY-001 (Superseded & Archived)
+
+> [!IMPORTANT]
+> **SUPERSEDED BY ADR-DSPY-001 (`docs/ai-integration/dspy-archive-decision.md`)**  
+> تم استبدال هذا المقترح وقرار دمج فرع `v2` رسمياً بقرار الأرشفة الصادر في 2026-09-28 ([ADR-DSPY-001](file:///c:/Users/EWS-01/Desktop/etap/docs/ai-integration/dspy-archive-decision.md)). مسار DSPy Copilot ومسودة PR #607 تمت أرشفتها كمسار بحثي/تجريبي، مع الإبقاء على علم الميزة `dspy_copilot` معطلاً بشكل دائم ومغلق (Strictly Fail-Closed: `default=False, rollout=0%`) ودون دمجه في النواة التنفيذية لـ M1–M3.
 
 ---
 
-## 1. القرار المحسوم (Non-Negotiable Architectural Decision)
+## 1. القرار المحسوم (التاريخي — تم الاستبدال بأرشفة v2 في ADR-DSPY-001)
 
-القرار المعماري محسوم سلفاً ومثبت بالبراهين الفنية:
-1. **الأساس المعتمد:** فرع `feat/dspy-copilot-prepost-v2`.
+القرار المعماري الأولي (المستبدل بـ ADR-DSPY-001):
+1. **الأساس المقترح سابقاً:** فرع `feat/dspy-copilot-prepost-v2` (مؤرشف حالياً).
 2. **فوق الأساس:** إعادة تشكيل فرع `fix/study-executor-study-type-gate` ليعمل بسلاسة فوقه.
 3. **المحظور تماماً:** يُمنع منعاً باتاً دمج فرع `feat/dspy-copilot-prepost` (v1) بأي شكل من الأشكال.
+4. **التحديث الحاسم (2026-09-28):** تقرر أرشفة مسار v2 بالكامل وعدم دمجه في main لتجنب الاعتماديات غير المستقرة، وإغلاق بوابة M0.3 على نحو Fail-Closed خالص.
 
 ---
 

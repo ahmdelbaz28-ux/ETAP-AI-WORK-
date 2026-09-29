@@ -1,224 +1,132 @@
-from __future__ import annotations
-
 #!/usr/bin/env python3
 """
-Verification script to check that agents have proper structure and implementations.
-This runs static analysis to verify agents are correctly implemented.
+scripts/maintenance/verify_agents.py — Authoritative Agent Registry & Handler Verification (M1.6).
+
+Verifies at startup and in Meta-CI:
+1. All canonical agents in agents.registry are dynamically importable and constructible.
+2. Every agent inherits from BaseAgent.
+3. Every agent exposes a valid prompt_handle matching prompts.json.
+4. Every agent implements required interfaces (__init__, execute).
+5. Provides fail-fast execution wired into core/bootstrap.py lifespan.
 """
 
-import ast
-import os
+from __future__ import annotations
+
+import json
+import logging
 import sys
+from pathlib import Path
 
-# Add the project root to the Python path
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+logger = logging.getLogger("agents.verify")
 
-
-def _check_inherits_base(agent_class: ast.ClassDef) -> list[str]:
-    """Check if an agent class inherits from BaseAgent."""
-    for base in agent_class.bases:
-        is_base = (
-            isinstance(base, ast.Name)
-            and base.id == "BaseAgent"
-            or isinstance(base, ast.Attribute)
-            and base.attr == "BaseAgent"
-        )
-        if is_base:
-            return []
-    return [f"Class {agent_class.name} doesn't inherit from BaseAgent"]
+REPO_ROOT = Path(__file__).resolve().parent.parent.parent
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
 
 
-def _check_prompt_handle(agent_class: ast.ClassDef) -> list[str]:
-    """Check if an agent class has a prompt_handle assignment."""
-    for item in agent_class.body:
-        if isinstance(item, ast.Assign):
-            if any(isinstance(t, ast.Name) and t.id == "prompt_handle" for t in item.targets):
-                return []
-        elif (
-            isinstance(item, ast.AnnAssign)
-            and isinstance(item.target, ast.Name)
-            and item.target.id == "prompt_handle"
-        ):
-            return []
-    return [f"Class {agent_class.name} doesn't have prompt_handle attribute"]
+def verify_agent_registry(fail_loudly: bool = False) -> bool:
+    """Dynamically import and verify all registered agents and handlers (M1.6 fail-fast).
 
+    Parameters
+    ----------
+    fail_loudly : bool
+        If True, raises RuntimeError immediately upon encountering any invariant violation.
 
-def _check_required_methods(agent_class: ast.ClassDef) -> list[str]:
-    """Check if an agent class has __init__ and execute methods."""
-    methods = {
-        item.name
-        for item in agent_class.body
-        if isinstance(item, (ast.FunctionDef, ast.AsyncFunctionDef))
-    }
-    issues = []
-    if "__init__" not in methods:
-        issues.append(f"Class {agent_class.name} doesn't have __init__ method")
-    if "execute" not in methods:
-        issues.append(f"Class {agent_class.name} doesn't have execute method")
-    return issues
+    Returns
+    -------
+    bool
+        True if all agents are verified, False otherwise.
+    """
+    errors: list[str] = []
 
-
-def _check_agent_class(agent_class: ast.ClassDef, _filepath: str) -> list[str]:
-    """Run all checks on a single agent class."""
-    issues = []
-    issues.extend(_check_inherits_base(agent_class))
-    issues.extend(_check_prompt_handle(agent_class))
-    issues.extend(_check_required_methods(agent_class))
-    return issues
-
-
-def check_agent_class_structure(filepath: str) -> list[str]:
-    """Check if an agent file has a properly structured agent class."""
-    issues = []
-
-    try:
-        with open(filepath, encoding="utf-8") as f:
-            content = f.read()
-
-        tree = ast.parse(content)
-
-        # Find all class definitions that end with 'Agent'
-        agent_classes = [
-            node
-            for node in ast.walk(tree)
-            if isinstance(node, ast.ClassDef) and node.name.endswith("Agent")
-        ]
-
-        if not agent_classes:
-            issues.append(f"No class ending with 'Agent' found in {filepath}")
-            return issues
-
-        for agent_class in agent_classes:
-            issues.extend(_check_agent_class(agent_class, filepath))
-
-    except SyntaxError as e:
-        issues.append(f"Syntax error in {filepath}: {str(e)}")
-    except Exception as e:
-        issues.append(f"Error processing {filepath}: {str(e)}")
-
-    return issues
-
-
-def verify_all_agents():
-    """Verify all agent files have proper structure."""
-    print("Verifying agent file structures...\n")
-
-    agent_dir = os.path.join(os.path.dirname(__file__), "agents")
-    agent_files = [f for f in os.listdir(agent_dir) if f.endswith("_agent.py")]
-
-    all_issues = {}
-
-    for agent_file in agent_files:
-        filepath = os.path.join(agent_dir, agent_file)
-        print(f"Verifying {agent_file}...")
-
-        issues = check_agent_class_structure(filepath)
-        if issues:
-            all_issues[agent_file] = issues
-            for issue in issues:
-                print(f"  [FAIL] {issue}")
-        else:
-            print("  [OK] Structure OK")
-        print()
-
-    return all_issues
-
-
-def verify_orchestrator_agents():
-    """Verify that the orchestrator properly registers all agents."""
-    print("Verifying orchestrator agent registration...\n")
-
-    orchestrator_file = os.path.join(os.path.dirname(__file__), "agents", "orchestrator.py")
-
-    issues = []
-
-    try:
-        with open(orchestrator_file, encoding="utf-8") as f:
-            content = f.read()
-
-        # Check for the main agent classes
-        required_agents = [
-            "LoadFlowAgent",
-            "ShortCircuitAgent",
-            "HarmonicAnalysisAgent",
-            "OptimalPowerFlowAgent",
-            "ProtectionCoordinationAgent",
-            "ETAPExecutionAgent",
-            "ValidationAgent",
-            "ReportGenerationAgent",
-        ]
-
-        for agent in required_agents:
-            if f"class {agent}" not in content:
-                issues.append(f"Required agent class {agent} not found in orchestrator.py")
-            else:
-                print(f"[OK] {agent} found in orchestrator")
-
-        # Check for ALL_AGENT_CLASSES list in agents/__init__.py
-        init_file = os.path.join(os.path.dirname(__file__), "agents", "__init__.py")
+    # 1. Load prompts.json handles
+    prompts_path = REPO_ROOT / "prompts.json"
+    known_prompt_handles: set[str] = set()
+    if prompts_path.exists():
         try:
-            with open(init_file, encoding="utf-8") as f_init:
-                init_content = f_init.read()
-
-            if "ALL_AGENT_CLASSES" not in init_content:
-                issues.append("ALL_AGENT_CLASSES not found in agents/__init__.py")
-            else:
-                print("[OK] ALL_AGENT_CLASSES found in agents/__init__.py")
-
-            # Check for STUDY_TYPE_AGENT_MAP
-            if "STUDY_TYPE_AGENT_MAP" not in init_content:
-                issues.append("STUDY_TYPE_AGENT_MAP not found in agents/__init__.py")
-            else:
-                print("[OK] STUDY_TYPE_AGENT_MAP found in agents/__init__.py")
-        except Exception as e:
-            issues.append(f"Error reading agents/__init__.py: {str(e)}")
-
-    except Exception as e:
-        issues.append(f"Error reading orchestrator.py: {str(e)}")
-
-    if issues:
-        for issue in issues:
-            print(f"[FAIL] {issue}")
+            with open(prompts_path, encoding="utf-8") as pf:
+                pdata = json.load(pf)
+                known_prompt_handles = set(pdata.get("prompts", {}).keys())
+        except Exception as exc:
+            errors.append(f"Failed to parse prompts.json: {exc}")
     else:
-        print("[OK] All orchestrator checks passed")
+        errors.append(f"prompts.json not found at {prompts_path}")
 
-    return issues
-
-
-def main():
-    """Main verification function."""
-    print("Agent Verification Script")
-    print("=" * 50)
-
-    # Verify individual agent structures
-    agent_issues = verify_all_agents()
-
-    # Verify orchestrator
-    print("=" * 50)
-    orchestrator_issues = verify_orchestrator_agents()
-
-    # Summary
-    print("\n" + "=" * 50)
-    print("VERIFICATION SUMMARY")
-    print("=" * 50)
-
-    total_agent_issues = sum(len(issues) for issues in agent_issues.values())
-    print(f"Agent structure issues: {total_agent_issues}")
-
-    print(f"Orchestrator issues: {len(orchestrator_issues)}")
-
-    all_issues = total_agent_issues + len(orchestrator_issues)
-
-    if all_issues == 0:
-        print("\n[SUCCESS] All agents verified successfully!")
-        print("\nNote: Actual execution requires dependencies like numpy, scipy, etc.")
-        print("Install with: pip install numpy scipy pandas matplotlib")
-        return True
-    else:
-        print(f"\n[WARN] Found {all_issues} issues that need to be addressed")
+    # 2. Verify BaseAgent import
+    try:
+        from agents.base import BaseAgent
+    except Exception as exc:
+        msg = f"Cannot import BaseAgent: {exc}"
+        if fail_loudly:
+            raise RuntimeError(msg) from exc
+        errors.append(msg)
         return False
+
+    # 3. Import canonical agent registry
+    try:
+        from agents.registry import create_agent_registry, get_study_type_mapping
+        study_map = get_study_type_mapping()
+        agents = create_agent_registry()
+    except Exception as exc:
+        msg = f"Cannot load agent registry: {exc}"
+        if fail_loudly:
+            raise RuntimeError(msg) from exc
+        errors.append(msg)
+        return False
+
+    # 4. Dynamically verify each registered agent instance
+    for agent_key, ag in sorted(agents.items()):
+        cls = ag.__class__
+
+        # Verify inheritance
+        if not isinstance(ag, BaseAgent):
+            errors.append(f"Agent '{agent_key}' ({cls.__name__}) does not inherit from BaseAgent")
+
+        # Verify prompt_handle attribute
+        ph = getattr(ag, "prompt_handle", None)
+        if not ph or not isinstance(ph, str):
+            errors.append(f"Agent '{agent_key}' ({cls.__name__}) missing valid prompt_handle")
+        elif known_prompt_handles and ph not in known_prompt_handles:
+            errors.append(f"Agent '{agent_key}' ({cls.__name__}) prompt_handle '{ph}' not in prompts.json")
+
+        # Verify required methods
+        if not callable(getattr(ag, "execute", None)):
+            errors.append(f"Agent '{agent_key}' ({cls.__name__}) does not implement callable 'execute'")
+
+    # 5. Check study_type_mapping coverage
+    for study_val, target_agent_key in sorted(study_map.items()):
+        if target_agent_key not in agents:
+            errors.append(f"Study mapping '{study_val}' targets unregistered agent key '{target_agent_key}'")
+
+    if errors:
+        for err in errors:
+            logger.error("[FAIL] %s", err)
+            sys.stderr.write(f"  ❌ {err}\n")
+        if fail_loudly:
+            raise RuntimeError(f"M1.6 Agent Registry Verification FAILED with {len(errors)} error(s):\n" + "\n".join(errors))
+        return False
+
+    return True
+
+
+def main() -> int:
+    """CLI runner for verify_agents script."""
+    sys.stdout.write("=" * 60 + "\n")  # nosemgrep: etap.logging.secret-in-log
+    sys.stdout.write("AhmedETAP M1.6 Agent Registry Dynamic Verification\n")  # nosemgrep: etap.logging.secret-in-log
+    sys.stdout.write("=" * 60 + "\n")  # nosemgrep: etap.logging.secret-in-log
+
+    try:
+        success = verify_agent_registry(fail_loudly=False)
+        if success:
+            sys.stdout.write("\n[SUCCESS] All agents and handlers dynamically verified against canonical registry.\n")  # nosemgrep: etap.logging.secret-in-log
+            return 0
+        else:
+            sys.stdout.write("\n[BLOCKED] Agent registry verification failed.\n")  # nosemgrep: etap.logging.secret-in-log
+            return 1
+    except Exception as exc:
+        sys.stderr.write(f"\n[FATAL] Verification exception: {exc}\n")  # nosemgrep: etap.logging.secret-in-log
+        return 1
 
 
 if __name__ == "__main__":
-    success = main()
-    sys.exit(0 if success else 1)
+    sys.exit(main())
