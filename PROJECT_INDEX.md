@@ -1,6 +1,6 @@
 # 📘 AhmedETAP — Complete Project Index v2.0.0
 
-> Auto-generated on **2026-09-28T12:17:37.490546+00:00** by indexer v2.0.0.
+> Auto-generated on **2026-09-29T09:45:20.199290+00:00** by indexer v2.0.0.
 > Re-run `python indexer.py` to refresh.
 
 ---
@@ -11,11 +11,11 @@
 |:---|---:|
 | Python | Packages | 41 |
 | Python | Files | 376 |
-| Python | Classes | 902 |
-| Python | Functions | 785 |
+| Python | Classes | 905 |
+| Python | Functions | 786 |
 | UI | Files (TSX/TS) | 241 |
-| Test | Files | 241 |
-| Total | Tests | 3615 |
+| Test | Files | 243 |
+| Total | Tests | 3641 |
 | Help | Topics | 0 |
 | Context | Mappings | 0 |
 | Environment | Variables | 440 |
@@ -38,7 +38,7 @@
 | **Browser Cua Executor.Py** | `browser_cua_executor.py` | — | agents/browser_cua_executor.py — Browser-based CUA Loop (hea |
 | **Cable Sizing** | `cable_sizing_agent.py` | IEC 60364 | AhmedETAP - Cable Sizing Agent ============================= |
 | **Code Guard** | `code_guard_agent.py` | — | Code Guard Agent — AI-Powered Code Quality Review ========== |
-| **Coordination** | `coordination_agent.py` | IEC 60255, IEEE 242, IEC60255 | AhmedETAP - Protection Coordination Agent ================== |
+| **Coordination** | `coordination_agent.py` | IEC 60255, IEC60255, IEEE 242 | AhmedETAP - Protection Coordination Agent ================== |
 | **Cua Base Executor.Py** | `cua_base_executor.py` | — | agents/cua_base_executor.py — Base CUA Executor (Template Me |
 | **Cua Executor.Py** | `cua_executor.py` | — | agents/cua_executor.py — Computer Use Agent Executor (Deskto |
 | **Design** | `design_agent.py` | — | AhmedETAP - Generative Substation & Feeder Design Agent (Sca |
@@ -573,7 +573,7 @@ Total: **440** variables
 
 ### 📦 `agents/`
 
-#### 📄 `agents/__init__.py` _6.8 KB_
+#### 📄 `agents/__init__.py` _6.9 KB_
 
 #### 📄 `agents/ahmed_etap_orchestrator.py` _47.9 KB_
 > agents/ahmed_etap_orchestrator.py — AhmedETAP Agent Orchestration Skill
@@ -749,14 +749,14 @@ Implements the ETAP GUI Agent skill as a runtime-active agent that:
 - **def** `classify()` (line 216)
 - **def** `detect_target_app()` (line 260)
 
-#### 📄 `agents/goal_planner_agent.py` _18.3 KB_
+#### 📄 `agents/goal_planner_agent.py` _21.0 KB_
 > AhmedETAP - Goal Planner Agent
 ===================================================
 Goal decomposition, task extraction, and prioritized planning for
 e
 
-- **Class** `GoalPlannerAgent` (line 54)
-  - Methods: `extract_tasks()`, `prioritize_tasks()`, `assess_risks()`, `execute()`, `validate_result()`
+- **Class** `GoalPlannerAgent` (line 60)
+  - Methods: `adaptive_scheduler()`, `extract_tasks()`, `prioritize_tasks()`, `assess_risks()`, `execute()`, `validate_result()`
 
 #### 📄 `agents/life_safety.py` _41.3 KB_
 > agents/life_safety.py — Life Safety Guard for the CUA Loop
@@ -775,16 +775,18 @@ THE PROBLEM:
 - **def** `deactivate_kill_switch()` (line 298)
 - **def** `is_kill_switch_active()` (line 310)
 
-#### 📄 `agents/models.py` _3.2 KB_
+#### 📄 `agents/models.py` _4.5 KB_
 > Data models for the multi-agent engineering orchestration system.
 
 Contains the core data structures used across all agents and the
 ChiefEngineeringOr
 
 - **Class** `AgentStatus` (line 30)
-- **Class** `StudyType` (line 40)
-- **Class** `AgentResult` (line 66)
-- **Class** `EngineeringTask` (line 84)
+- **Class** `StudyType` (line 42)
+- **Class** `AgentResult` (line 68)
+- **Class** `EngineeringTask` (line 86)
+- **Class** `PlanningIntent` (line 103)
+- **Class** `PlanningPlan` (line 121)
 
 #### 📄 `agents/motor_starting_agent.py` _30.9 KB_
 > AhmedETAP - Motor Starting Analysis Agent
@@ -794,7 +796,7 @@ Motor starting current, voltage dip, torque, a
 - **Class** `MotorStartingAgent` (line 96)
   - Methods: `calculate_starting_current()`, `calculate_voltage_dip()`, `calculate_transient_voltage_drop()`, `calculate_starting_torque()`, `calculate_acceleration_time()`, `execute()`, `validate_result()`
 
-#### 📄 `agents/orchestrator.py` _9.7 KB_
+#### 📄 `agents/orchestrator.py` _11.5 KB_
 > AhmedETAP - Multi-Agent Orchestrator
 ====================================
 Chief Engineering Orchestrator that coordinates all specialized agents
@@ -802,7 +804,7 @@ for a
 
 - **Class** `ChiefEngineeringOrchestrator` (line 75)
   - Methods: `get_agents_info()`, `submit_task()`, `execute_autonomous_workflow()`, `route_user_goal()`, `get_study_type_mapping()`, `execute_parallel_studies()`, `get_task_status()`
-- **def** `get_orchestrator()` (line 262)
+- **def** `get_orchestrator()` (line 302)
 
 #### 📄 `agents/output_schema_guard.py` _11.7 KB_
 > agents/output_schema_guard.py — Code-Gated Output Validation
@@ -874,17 +876,19 @@ Solar PV and wind turbine integration analysis per
 - **Class** `RenewableAgent` (line 55)
   - Methods: `analyze_solar_pv()`, `analyze_wind()`, `check_ieee1547_compliance()`, `calculate_hosting_capacity()`, `execute()`, `validate_result()`
 
-#### 📄 `agents/router.py` _7.5 KB_
+#### 📄 `agents/router.py` _10.5 KB_
 > AhmedETAP - Power System Goal Router
 ====================================
 Typed goal router and dependency-aware study planner for multi-agent workflo
 
-- **Class** `RouterDecision` (line 69)
-- **Class** `GoalRouter` (line 77)
-  - Methods: `route()`, `parse_user_goal()`, `determine_execution_order()`
-- **def** `route_user_goal()` (line 181)
-- **def** `parse_user_goal()` (line 186)
-- **def** `determine_execution_order()` (line 191)
+- **Class** `RouterDecision` (line 70)
+  - Methods: `is_confident()`, `to_planning_intent()`
+- **Class** `GoalRouter` (line 102)
+  - Methods: `route()`, `resolve_intent()`, `parse_user_goal()`, `determine_execution_order()`
+- **def** `route_user_goal()` (line 238)
+- **def** `parse_user_goal()` (line 243)
+- **def** `determine_execution_order()` (line 248)
+- **def** `create_router()` (line 253)
 
 #### 📄 `agents/scada_agent.py` _35.1 KB_
 > AhmedETAP - SCADA Integration Agent
@@ -914,20 +918,20 @@ Weather information retrieval and power system
 - **Class** `WeatherAgent` (line 35)
   - Methods: `analyze_temperature_derating()`, `analyze_wind_impact()`, `process_weather_alert()`, `execute()`, `validate_result()`
 
-#### 📄 `agents/workflow.py` _19.3 KB_
+#### 📄 `agents/workflow.py` _44.4 KB_
 > AhmedETAP - Multi-Agent Workflow Engine
 =======================================
 Orchestrates autonomous study execution pipelines, parallel dispatch,
 
 
-- **Class** `WorkflowEngine` (line 77)
-  - Methods: `execute_workflow()`, `execute_parallel_studies()`
+- **Class** `WorkflowEngine` (line 95)
+  - Methods: `build_execution_plan()`, `export_execution_trace()`, `execute_workflow()`, `execute_parallel_studies()`
 
-#### 📄 `agents/optimizers/__init__.py` _0.2 KB_
+#### 📄 `agents/optimizers/__init__.py` _0.5 KB_
 > agents/optimizers — Learning and Optimization Agents for AhmedETAP.
 
 
-#### 📄 `agents/optimizers/adaptive_planner.py` _5.7 KB_
+#### 📄 `agents/optimizers/adaptive_planner.py` _6.3 KB_
 > agents/optimizers/adaptive_planner.py — Adaptive Critical Path Task Scheduling Optimizer.
 
 Replaces static 0.4/0.4/0.2 weight scoring in GoalPlannerAg
@@ -937,15 +941,15 @@ Replaces static 0.4/0.4/0.2 weight scoring in GoalPlannerAg
 - **Class** `AdaptiveTaskScheduler` (line 47)
   - Methods: `schedule()`
 
-#### 📄 `agents/optimizers/bandit_router.py` _6.4 KB_
+#### 📄 `agents/optimizers/bandit_router.py` _8.3 KB_
 > agents/optimizers/bandit_router.py — Adaptive Learning Contextual Bandit Goal Router.
 
 Replaces static heuristic routing with an online learning Conte
 
-- **Class** `ContextualBanditRouter` (line 24)
-  - Methods: `route()`, `update_reward()`, `to_dict()`
+- **Class** `ContextualBanditRouter` (line 25)
+  - Methods: `route()`, `resolve_intent()`, `update_reward()`, `to_dict()`, `parse_user_goal()`, `determine_execution_order()`
 
-#### 📄 `agents/optimizers/optimization_agent.py` _6.3 KB_
+#### 📄 `agents/optimizers/optimization_agent.py` _8.0 KB_
 > agents/optimizers/optimization_agent.py — Optimization Specialist Agent for AhmedETAP.
 
 Integrates Particle Swarm Optimization (PSO), multi-objective 
@@ -1388,7 +1392,7 @@ corresp
 - **Class** `CoverageAnalyzer` (line 364)
   - Methods: `run()`
 
-#### 📄 `api/csrf.py` _10.9 KB_
+#### 📄 `api/csrf.py` _11.1 KB_
 > CSRF Protection for AhmedETAP Engineering Service API.
 
 Provides token-based CSRF protection for state-changing endpoints.
@@ -1401,7 +1405,7 @@ Architecture
 - **Class** `CSRFMiddleware` (line 196)
 - **def** `generate_csrf_token()` (line 126)
 - **def** `validate_csrf_token()` (line 144)
-- **async def** `get_csrf_token()` (line 278)
+- **async def** `get_csrf_token()` (line 282)
 
   **API Routes:**
   - `GET /api/v1/csrf/token`
@@ -1687,25 +1691,25 @@ Provides:
   - `GET /history`
   - `GET /{project_id}/history`
 
-#### 📄 `api/feature_flags.py` _18.3 KB_
+#### 📄 `api/feature_flags.py` _18.6 KB_
 > api/feature_flags.py — Feature Flags Management API.
 
 Exposes endpoints for listing, viewing, and toggling runtime feature flags
 for AhmedETAP modules
 
-- **Class** `FeatureFlagOut` (line 358)
-- **Class** `FeatureFlagListOut` (line 367)
-- **Class** `FeatureFlagPatch` (line 375)
+- **Class** `FeatureFlagOut` (line 364)
+- **Class** `FeatureFlagListOut` (line 373)
+- **Class** `FeatureFlagPatch` (line 381)
   - Methods: `validate_at_least_one_field()`
-- **def** `is_enabled()` (line 245)
-- **def** `is_feature_enabled()` (line 250)
-- **def** `is_strict_feature_enabled()` (line 271)
-- **def** `get_disabled_studies()` (line 289)
-- **def** `get_flag_metadata()` (line 306)
-- **def** `evaluate_flag_with_rollout()` (line 337)
-- **async def** `list_feature_flags()` (line 418)
-- **async def** `get_feature_flag()` (line 450)
-- **async def** `update_feature_flag()` (line 487)
+- **def** `is_enabled()` (line 251)
+- **def** `is_feature_enabled()` (line 256)
+- **def** `is_strict_feature_enabled()` (line 277)
+- **def** `get_disabled_studies()` (line 295)
+- **def** `get_flag_metadata()` (line 312)
+- **def** `evaluate_flag_with_rollout()` (line 343)
+- **async def** `list_feature_flags()` (line 424)
+- **async def** `get_feature_flag()` (line 456)
+- **async def** `update_feature_flag()` (line 493)
 
   **API Routes:**
   - `GET /{key}`
@@ -2520,7 +2524,7 @@ Provides:
 - metrics
 
 
-#### 📄 `core/bootstrap.py` _15.6 KB_
+#### 📄 `core/bootstrap.py` _16.2 KB_
 > Bootstrap module for the Engineering Service.
 Handles initialization of logging, metrics, and core services with privacy controls.
 
@@ -2531,7 +2535,7 @@ Handles initialization of logging, metrics, and core services with privacy contr
 - **Class** `_PromStub` (line 33)
   - Methods: `labels()`, `inc()`, `dec()`, `observe()`, `set()`, `info()`
 - **async def** `lifespan()` (line 361)
-- **def** `get_logger()` (line 477)
+- **def** `get_logger()` (line 487)
 
 #### 📄 `core/error_tracking.py` _14.3 KB_
 > core/error_tracking.py — Sentry-ready error tracking hooks for AhmedETAP.
@@ -2545,12 +2549,13 @@ Provides a unified interface for error reporting that works with or without
 - **def** `flush()` (line 369)
 - **def** `setup_fastapi_error_tracking()` (line 383)
 
-#### 📄 `core/exceptions.py` _0.7 KB_
+#### 📄 `core/exceptions.py` _1.4 KB_
 > core/exceptions.py — Standardized exceptions for AhmedETAP platform.
 
 Provides unified error definitions across the study dispatch and execution pipel
 
 - **Class** `SpecializedExecutionUnavailableError` (line 10)
+- **Class** `RoutingResolutionError` (line 22)
 
 #### 📄 `core/extra_metrics.py` _0.9 KB_
 
@@ -3139,7 +3144,7 @@ dense (existing) and s
 > load_flow/optimizers — Metaheuristic and Advanced Solvers for Load Flow & OPF.
 
 
-#### 📄 `load_flow/optimizers/pso_opf.py` _13.0 KB_
+#### 📄 `load_flow/optimizers/pso_opf.py` _16.6 KB_
 > load_flow/optimizers/pso_opf.py — Swarm-Intelligence Hybrid AC-OPF Engine.
 
 Solves the genuine non-convex AC Optimal Power Flow problem with continuou
@@ -3278,7 +3283,7 @@ Separates real SCADA bridge communication (ETAPScadaBridge / IEC 61
 - **def** `generate_simulated_scada()` (line 36)
 - **def** `get_scada_telemetry()` (line 115)
 
-#### 📄 `services/study_executor.py` _35.1 KB_
+#### 📄 `services/study_executor.py` _37.1 KB_
 > Study Executor — deep module for the study execution pipeline.
 
 Owns the entire pipeline behind a single seam: validate → cache lookup →
@@ -4343,7 +4348,7 @@ Supports:
 - **Class** `MotorModel` (line 62)
   - Methods: `full_load_current()`, `starting_current()`, `starting_current_pu()`, `locked_rotor_current_pu()`, `running_current_pu()`, `acceleration_time()`, `voltage_dip_contribution()`, `calculate_starting_voltage_drop()`
 
-#### 📄 `core_model/specs.py` _17.6 KB_
+#### 📄 `core_model/specs.py` _17.7 KB_
 > Shared Pydantic spec models for power-system studies.
 
 These are the canonical request/response schemas for study execution.
@@ -4362,9 +4367,9 @@ Both `api/studies.py` (HT
   - Methods: `validate_power_finite_and_bounded()`
 - **Class** `SystemSpec` (line 305)
   - Methods: `validate_buses_count()`, `validate_base_mva()`
-- **Class** `StudyRequest` (line 371)
+- **Class** `StudyRequest` (line 373)
   - Methods: `validate_parameters_count()`, `validate_etap_project_path()`, `validate_study_type()`
-- **Class** `StudyResult` (line 431)
+- **Class** `StudyResult` (line 433)
   - Methods: `sync_data_and_results()`
 
 #### 📄 `core_model/system.py` _7.6 KB_
@@ -5536,10 +5541,10 @@ Provides
 
 | Type | Count |
 |:---|---:|
-| api-route | 92 |
 | ui-page | 61 |
-| python-module | 41 |
 | ui-component | 281 |
+| api-route | 92 |
+| python-module | 41 |
 | **TOTAL** | **475** |
 
 ---
@@ -5628,7 +5633,7 @@ Provides
 | `test_auth_enabled.py` | 0 | 1 | **9** |
 | `test_autodesk_connector.py` | 0 | 11 | **62** |
 | `test_backward_compatibility.py` | 7 | 0 | **7** |
-| `test_bandit_and_cascade.py` | 4 | 0 | **4** |
+| `test_bandit_and_cascade.py` | 7 | 0 | **7** |
 | `test_breaker_duty.py` | 0 | 1 | **10** |
 | `test_browser_cua_executor.py` | 14 | 0 | **14** |
 | `test_cache_manager.py` | 0 | 8 | **22** |
@@ -5643,7 +5648,7 @@ Provides
 | `test_cli.py` | 1 | 0 | **1** |
 | `test_components_api.py` | 11 | 0 | **11** |
 | `test_concurrency_load_gate.py` | 4 | 0 | **4** |
-| `test_contract_sync.py` | 9 | 0 | **9** |
+| `test_contract_sync.py` | 13 | 0 | **13** |
 | `test_coordination.py` | 0 | 1 | **18** |
 | `test_coordination_agent_calculations.py` | 0 | 6 | **11** |
 | `test_coordination_deep.py` | 0 | 5 | **27** |
@@ -5710,7 +5715,7 @@ Provides
 | `test_mfa_lockout_and_replay.py` | 0 | 3 | **12** |
 | `test_ml.py` | 0 | 3 | **22** |
 | `test_motor_starting_simulation.py` | 0 | 1 | **6** |
-| `test_multi_objective_and_planner.py` | 3 | 0 | **3** |
+| `test_multi_objective_and_planner.py` | 8 | 0 | **8** |
 | `test_multi_vendor_vision.py` | 19 | 0 | **19** |
 | `test_n1_contingency_scanner.py` | 0 | 1 | **3** |
 | `test_network_solver.py` | 0 | 2 | **30** |
@@ -5721,7 +5726,8 @@ Provides
 | `test_node_sandbox.py` | 0 | 4 | **33** |
 | `test_opencv_resilience.py` | 25 | 0 | **25** |
 | `test_opf_correctness.py` | 0 | 1 | **3** |
-| `test_optimization_agent_construct.py` | 4 | 0 | **4** |
+| `test_optimization_agent_construct.py` | 6 | 0 | **6** |
+| `test_optimization_agent_m3.py` | 4 | 0 | **4** |
 | `test_orchestrator_b1_b2.py` | 3 | 0 | **3** |
 | `test_p0_backend_auth_patch.py` | 0 | 6 | **29** |
 | `test_p7c_mcp_export.py` | 1 | 9 | **28** |
@@ -5744,7 +5750,7 @@ Provides
 | `test_prompt_registry_deep.py` | 4 | 0 | **4** |
 | `test_pso_coordinator.py` | 7 | 0 | **7** |
 | `test_pso_core.py` | 6 | 0 | **6** |
-| `test_pso_opf.py` | 3 | 0 | **3** |
+| `test_pso_opf.py` | 4 | 0 | **4** |
 | `test_rag_blueprint_adapter.py` | 4 | 0 | **4** |
 | `test_rag_retriever.py` | 3 | 0 | **3** |
 | `test_rasp_security.py` | 0 | 4 | **20** |
@@ -5756,7 +5762,7 @@ Provides
 | `test_reporting.py` | 0 | 6 | **31** |
 | `test_results_store.py` | 0 | 12 | **33** |
 | `test_router_completeness_gate.py` | 10 | 0 | **10** |
-| `test_router_regression.py` | 5 | 0 | **5** |
+| `test_router_regression.py` | 8 | 0 | **8** |
 | `test_run4_security_fixes.py` | 11 | 0 | **11** |
 | `test_run_study_behavioral_equivalence.py` | 0 | 4 | **17** |
 | `test_run_study_registry.py` | 0 | 2 | **12** |
@@ -5801,6 +5807,7 @@ Provides
 | `test_websocket_security.py` | 0 | 3 | **16** |
 | `test_worker_auth_contract.py` | 8 | 0 | **8** |
 | `test_worker_tasks.py` | 0 | 3 | **6** |
+| `test_workflow_chains.py` | 4 | 0 | **4** |
 | `test_arc_flash_scenario.py` | 0 | 1 | **6** |
 | `test_battery_storage_scenario.py` | 0 | 1 | **6** |
 | `test_cable_sizing_scenario.py` | 0 | 1 | **7** |
@@ -5909,7 +5916,7 @@ Provides
 | `scripts/maintenance/start_worker.py` | py | 0.7 KB | Script to start the Celery worker for the Engineering Servic |
 | `scripts/maintenance/validate_syntax.py` | py | 5.9 KB | Syntax and dependency validation script for the entire codeb |
 | `scripts/maintenance/validation_suite.py` | py | 2.8 KB | Validation Suite for the ETAP AI Engineering Platform. |
-| `scripts/maintenance/verify_agents.py` | py | 7.1 KB | Verification script to check that agents have proper structu |
+| `scripts/maintenance/verify_agents.py` | py | 4.8 KB | scripts/maintenance/verify_agents.py — Authoritative Agent R |
 | `scripts/merge_all_remote_branches.ps1` | ps1 | 6.3 KB |  |
 | `scripts/modify_scada.py` | py | 0.9 KB |  |
 | `scripts/monitor_hf.py` | py | 1.5 KB | Monitor HF Space build status. |
@@ -5999,7 +6006,7 @@ Provides
 
 | File | Size (KB) | Hash |
 |:---|---:|:---|
-| `Dockerfile` | 5.4 KB | `47869c5ff93c` |
+| `Dockerfile` | 5.7 KB | `06629698c517` |
 | `Dockerfile.engineering-service` | 4.7 KB | `b089e0c4259d` |
 | `Dockerfile.hf` | 3.7 KB | `edc59c0fec36` |
 | `Dockerfile.windows-worker` | 5.1 KB | `4c9794be2ff7` |
