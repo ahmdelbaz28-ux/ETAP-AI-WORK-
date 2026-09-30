@@ -84,10 +84,14 @@ UPSTREAM_TIMEOUT = httpx.Timeout(120.0, connect=10.0)
 # removed, renamed or re-keyed there changes this module automatically.
 # Import failures are fail-closed: a missing/invalid policy breaks the import
 # instead of silently serving a stale hard-coded allow-list.
+from integrations.provider_policy import (
+    allowed_provider_ids as _policy_allowed,
+)
 from integrations.provider_policy import (  # noqa: E402  (placed after config consts)
     provider_defaults as _policy_defaults,
+)
+from integrations.provider_policy import (
     provider_env_map as _policy_env_map,
-    allowed_provider_ids as _policy_allowed,
 )
 
 _POLICY_ENV = _policy_env_map()                      # {pid: {api_key, base_url, model}}
