@@ -1,6 +1,6 @@
 # 📘 AhmedETAP — Complete Project Index v2.0.0
 
-> Auto-generated on **2026-09-30T11:47:33.859256+00:00** by indexer v2.0.0.
+> Auto-generated on **2026-09-30T12:40:40.283300+00:00** by indexer v2.0.0.
 > Re-run `python indexer.py` to refresh.
 
 ---
@@ -14,8 +14,8 @@
 | Python | Classes | 908 |
 | Python | Functions | 811 |
 | UI | Files (TSX/TS) | 241 |
-| Test | Files | 250 |
-| Total | Tests | 3718 |
+| Test | Files | 251 |
+| Total | Tests | 3741 |
 | Help | Topics | 0 |
 | Context | Mappings | 0 |
 | Environment | Variables | 440 |
@@ -38,7 +38,7 @@
 | **Browser Cua Executor.Py** | `browser_cua_executor.py` | — | agents/browser_cua_executor.py — Browser-based CUA Loop (hea |
 | **Cable Sizing** | `cable_sizing_agent.py` | IEC 60364 | AhmedETAP - Cable Sizing Agent ============================= |
 | **Code Guard** | `code_guard_agent.py` | — | Code Guard Agent — AI-Powered Code Quality Review ========== |
-| **Coordination** | `coordination_agent.py` | IEEE 242, IEC60255, IEC 60255 | AhmedETAP - Protection Coordination Agent ================== |
+| **Coordination** | `coordination_agent.py` | IEEE 242, IEC 60255, IEC60255 | AhmedETAP - Protection Coordination Agent ================== |
 | **Cua Base Executor.Py** | `cua_base_executor.py` | — | agents/cua_base_executor.py — Base CUA Executor (Template Me |
 | **Cua Executor.Py** | `cua_executor.py` | — | agents/cua_executor.py — Computer Use Agent Executor (Deskto |
 | **Design** | `design_agent.py` | — | AhmedETAP - Generative Substation & Feeder Design Agent (Sca |
@@ -5573,9 +5573,9 @@ Provides
 
 | Type | Count |
 |:---|---:|
-| api-route | 92 |
-| ui-page | 61 |
 | ui-component | 281 |
+| ui-page | 61 |
+| api-route | 92 |
 | python-module | 41 |
 | **TOTAL** | **475** |
 
@@ -5588,7 +5588,7 @@ Provides
 | `adms_control` | `scada_model` | — |
 | `agents` | `api`, `coordination`, `copilot`, `core`, `curves`, `digital_twin`, `engine`, `etap_integration`, `fault_analysis`, `guards`, `integrations`, `load_flow`, `ml`, `relays`, `reporting`, `services` | `api`, `core`, `engine`, `services` |
 | `ai_context_engine` | — | `api` |
-| `api` | `agents`, `ai_context_engine`, `autodesk_connector`, `core`, `core_model`, `engine`, `etap_integration`, `fault_analysis`, `gis_integration`, `integrations`, `knowledge`, `load_flow`, `ml`, `security`, `services`, `worker` | `agents`, `coordination`, `core`, `engine`, `gis_integration`, `integrations`, `knowledge`, `load_flow`, `migrations`, `security`, `services` |
+| `api` | `agents`, `ai_context_engine`, `autodesk_connector`, `core`, `core_model`, `engine`, `etap_integration`, `fault_analysis`, `gis_integration`, `integrations`, `knowledge`, `load_flow`, `ml`, `security`, `services` | `agents`, `coordination`, `core`, `engine`, `gis_integration`, `integrations`, `knowledge`, `load_flow`, `migrations`, `security`, `services` |
 | `autodesk_connector` | — | `api`, `copilot` |
 | `coordination` | `api`, `curves`, `engine`, `relays` | `agents`, `digital_twin`, `engine` |
 | `copilot` | `autodesk_connector`, `digital_twin`, `etap_integration` | `agents`, `services` |
@@ -5619,7 +5619,7 @@ Provides
 | `services` | `agents`, `api`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `guards`, `integrations`, `utils` | `agents`, `api`, `core`, `integrations`, `worker` |
 | `utils` | `engine` | `services` |
 | `visualization` | `relays` | `engine` |
-| `worker` | `etap_integration`, `services` | `api` |
+| `worker` | `etap_integration`, `services` | — |
 | `zenon_user_guide` | — | — |
 
 ---
@@ -5749,6 +5749,7 @@ Provides
 | `test_m4_context_boundaries.py` | 21 | 0 | **21** |
 | `test_m5_assertions_rejected.py` | 12 | 0 | **12** |
 | `test_m5_cua_approvals.py` | 10 | 0 | **10** |
+| `test_m6_integration_acceptance.py` | 0 | 7 | **23** |
 | `test_mcp_config.py` | 1 | 0 | **1** |
 | `test_memory_service.py` | 0 | 5 | **27** |
 | `test_mfa_lockout_and_replay.py` | 0 | 3 | **12** |
@@ -5905,7 +5906,7 @@ Provides
 | `scripts/check_prompt_consistency.py` | py | 5.8 KB | Check prompt-manifest consistency (Operation Iron Loop\, WP5 |
 | `scripts/check_registry_integrity.py` | py | 9.7 KB | scripts/check_registry_integrity.py — M2.4 Unified Registry  |
 | `scripts/check_results.py` | py | 0.6 KB |  |
-| `scripts/check_workflows_meta.py` | py | 10.9 KB | scripts/check_workflows_meta.py — Authoritative GitHub Workf |
+| `scripts/check_workflows_meta.py` | py | 12.0 KB | scripts/check_workflows_meta.py — Authoritative GitHub Workf |
 | `scripts/claims_audit.py` | py | 6.7 KB | scripts/claims_audit.py — Engineering Claims and Standards T |
 | `scripts/clean_git_history.py` | py | 5.5 KB | Git History Cleanup Script |
 | `scripts/connect_neo4j.py` | py | 8.1 KB | Neo4j Connection & Verification Script for AhmedETAP. |
@@ -5956,7 +5957,7 @@ Provides
 | `scripts/maintenance/start_worker.py` | py | 0.7 KB | Script to start the Celery worker for the Engineering Servic |
 | `scripts/maintenance/validate_syntax.py` | py | 5.9 KB | Syntax and dependency validation script for the entire codeb |
 | `scripts/maintenance/validation_suite.py` | py | 2.8 KB | Validation Suite for the ETAP AI Engineering Platform. |
-| `scripts/maintenance/verify_agents.py` | py | 4.8 KB | scripts/maintenance/verify_agents.py — Authoritative Agent R |
+| `scripts/maintenance/verify_agents.py` | py | 18.7 KB | scripts/maintenance/verify_agents.py — Authoritative Agent R |
 | `scripts/merge_all_remote_branches.ps1` | ps1 | 6.3 KB |  |
 | `scripts/modify_scada.py` | py | 0.9 KB |  |
 | `scripts/monitor_hf.py` | py | 1.5 KB | Monitor HF Space build status. |
