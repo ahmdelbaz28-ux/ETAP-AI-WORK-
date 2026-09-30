@@ -1,6 +1,6 @@
 # 📘 AhmedETAP — Complete Project Index v2.0.0
 
-> Auto-generated on **2026-09-30T12:40:40.283300+00:00** by indexer v2.0.0.
+> Auto-generated on **2026-09-30T12:54:39.373078+00:00** by indexer v2.0.0.
 > Re-run `python indexer.py` to refresh.
 
 ---
@@ -15,7 +15,7 @@
 | Python | Functions | 811 |
 | UI | Files (TSX/TS) | 241 |
 | Test | Files | 251 |
-| Total | Tests | 3741 |
+| Total | Tests | 3742 |
 | Help | Topics | 0 |
 | Context | Mappings | 0 |
 | Environment | Variables | 440 |
@@ -38,7 +38,7 @@
 | **Browser Cua Executor.Py** | `browser_cua_executor.py` | — | agents/browser_cua_executor.py — Browser-based CUA Loop (hea |
 | **Cable Sizing** | `cable_sizing_agent.py` | IEC 60364 | AhmedETAP - Cable Sizing Agent ============================= |
 | **Code Guard** | `code_guard_agent.py` | — | Code Guard Agent — AI-Powered Code Quality Review ========== |
-| **Coordination** | `coordination_agent.py` | IEEE 242, IEC 60255, IEC60255 | AhmedETAP - Protection Coordination Agent ================== |
+| **Coordination** | `coordination_agent.py` | IEEE 242, IEC60255, IEC 60255 | AhmedETAP - Protection Coordination Agent ================== |
 | **Cua Base Executor.Py** | `cua_base_executor.py` | — | agents/cua_base_executor.py — Base CUA Executor (Template Me |
 | **Cua Executor.Py** | `cua_executor.py` | — | agents/cua_executor.py — Computer Use Agent Executor (Deskto |
 | **Design** | `design_agent.py` | — | AhmedETAP - Generative Substation & Feeder Design Agent (Sca |
@@ -53,12 +53,12 @@
 | **Orchestrator.Py** | `orchestrator.py` | — | AhmedETAP - Multi-Agent Orchestrator ======================= |
 | **Output Schema Guard.Py** | `output_schema_guard.py` | — | agents/output_schema_guard.py — Code-Gated Output Validation |
 | **Predictive** | `predictive_agent.py` | — | AhmedETAP - Predictive Analytics Agent ===================== |
-| **Prompt Loader.Py** | `prompt_loader.py` | IEEE 1584, IEC 60909 | AhmedETAP - Prompt Loader (Safety-Critical Edition) ======== |
+| **Prompt Loader.Py** | `prompt_loader.py` | IEC 60909, IEEE 1584 | AhmedETAP - Prompt Loader (Safety-Critical Edition) ======== |
 | **Registry.Py** | `registry.py` | — | AhmedETAP - Agent Registry & Specialist Agents ============= |
 | **Renewable** | `renewable_agent.py` | IEEE 1547 | AhmedETAP - Renewable Integration Agent ==================== |
 | **Router.Py** | `router.py` | — | AhmedETAP - Power System Goal Router ======================= |
 | **Scada** | `scada_agent.py` | IEC 61850 | AhmedETAP - SCADA Integration Agent ======================== |
-| **Stability** | `stability_agent.py` | IEEE 1584-2018, IEEE 399 | AhmedETAP - Stability Analysis Agent ======================= |
+| **Stability** | `stability_agent.py` | IEEE 399, IEEE 1584-2018 | AhmedETAP - Stability Analysis Agent ======================= |
 | **Weather** | `weather_agent.py` | — | AhmedETAP - Weather Impact Analysis Agent ================== |
 | **Workflow.Py** | `workflow.py` | — | AhmedETAP - Multi-Agent Workflow Engine ==================== |
 
@@ -5573,9 +5573,9 @@ Provides
 
 | Type | Count |
 |:---|---:|
-| ui-component | 281 |
-| ui-page | 61 |
 | api-route | 92 |
+| ui-page | 61 |
+| ui-component | 281 |
 | python-module | 41 |
 | **TOTAL** | **475** |
 
@@ -5749,7 +5749,7 @@ Provides
 | `test_m4_context_boundaries.py` | 21 | 0 | **21** |
 | `test_m5_assertions_rejected.py` | 12 | 0 | **12** |
 | `test_m5_cua_approvals.py` | 10 | 0 | **10** |
-| `test_m6_integration_acceptance.py` | 0 | 7 | **23** |
+| `test_m6_integration_acceptance.py` | 0 | 8 | **24** |
 | `test_mcp_config.py` | 1 | 0 | **1** |
 | `test_memory_service.py` | 0 | 5 | **27** |
 | `test_mfa_lockout_and_replay.py` | 0 | 3 | **12** |
