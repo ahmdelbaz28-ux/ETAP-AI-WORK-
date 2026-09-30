@@ -1,0 +1,856 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Enterprise AI-Powered Power Systems Engineering Platform">
+      
+      
+        <meta name="author" content="AhmedETAP Team">
+      
+      
+      
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.11">
+    
+    
+      
+        <title>M5 — Verification & Automation (التحقق والأتمتة) - AhmedETAP Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.4af4bdda.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="deep-purple">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#m5-verification-automation" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="AhmedETAP Documentation" class="md-header__button md-logo" aria-label="AhmedETAP Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            AhmedETAP Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              M5 — Verification &amp; Automation (التحقق والأتمتة)
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  الصفحة الرئيسية
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../ARCHITECTURE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  الهيكلية
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../API_REFERENCE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  واجهة برمجة التطبيقات
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../OPERATIONS_RUNBOOK/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  دليل التشغيل
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../TROUBLESHOOTING_GUIDE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  دليل الأعطال
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../SECURITY_OPERATIONS_MANUAL/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  البنية التحتية للأمان
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../ENTERPRISE_CERTIFICATION_REPORT/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  التقييم المؤسسي
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="AhmedETAP Documentation" class="md-nav__button md-logo" aria-label="AhmedETAP Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    AhmedETAP Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    الصفحة الرئيسية
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ARCHITECTURE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    الهيكلية
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../API_REFERENCE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    واجهة برمجة التطبيقات
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../OPERATIONS_RUNBOOK/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    دليل التشغيل
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../TROUBLESHOOTING_GUIDE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    دليل الأعطال
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../SECURITY_OPERATIONS_MANUAL/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    البنية التحتية للأمان
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ENTERPRISE_CERTIFICATION_REPORT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    التقييم المؤسسي
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-objective" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Objective
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-scope-implementation-matrix" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Scope &amp; Implementation Matrix
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-acceptance-gates-verification-evidence" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Acceptance Gates &amp; Verification Evidence
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Acceptance Gates &amp; Verification Evidence">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#test-battery-execution-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      Test Battery Execution Summary
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hardening-invariants-post-review-follow-up" class="md-nav__link">
+    <span class="md-ellipsis">
+      Hardening Invariants (Post-Review Follow-up)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-engineering-standards-criteria-enforced" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Engineering Standards &amp; Criteria Enforced
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-security-trace-integrity" class="md-nav__link">
+    <span class="md-ellipsis">
+      5. Security &amp; Trace Integrity
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="m5-verification-automation">M5 — Verification &amp; Automation (التحقق والأتمتة)</h1>
+<p><strong>Phase:</strong> M5 (verification-automation) · <strong>Status:</strong> ✅ Complete<br />
+<strong>Branch:</strong> <code>feat/ai-m5-verification-automation</code> · <strong>Date:</strong> 2026-09-30<br />
+<strong>Protocol:</strong> Architectural closure — mandatory audit report prior to PR merge to <code>main</code>.</p>
+<hr />
+<h2 id="1-objective">1. Objective</h2>
+<p>Phase M5 elevates the platform from unverified action execution and silent simulation fallbacks to a <strong>deterministic, fail-closed verification architecture</strong>:
+1. <strong>CUA Automation &amp; Governance (M5.1)</strong>: Transforms the Computer-Using Agent (CUA) layer into a secure, interactive execution model with multi-tenant isolation, application window coordinate bounds checks, tool policy whitelisting, interactive WebSocket human approvals, deterministic post-action verification, and automated state rollback.
+2. <strong>Engineering Assertions Layer (M5.2)</strong>: Integrates physics-based and standards-based criteria (IEEE C84.1, IEC 60909, IEC 60255, IEEE 1584, IEC 60364) across all study execution pathways (<code>StudyExecutor</code>, <code>study_service</code>, and <code>WorkflowEngine</code>), enforcing explicit <code>AgentStatus.REJECTED</code> and cascading fail-closed skipping of all downstream tasks.</p>
+<hr />
+<h2 id="2-scope-implementation-matrix">2. Scope &amp; Implementation Matrix</h2>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Architecture &amp; File Locations</th>
+<th>Verification Evidence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>M5.1(a)</strong></td>
+<td>Interactive Approvals &amp; HTTP Bridge</td>
+<td><code>api/agents.py:617-660</code>, <code>api/cua_confirmation_ws.py</code> — connected <code>_cua_confirmation_callback</code> into CUA execution loop. Checks DB pre-approval (<code>approval_id</code>), session auto-approve, and interactive WebSocket approvers before failing closed.</td>
+<td><code>test_cua_control_fails_closed_without_confirmation_callback</code><br><code>test_cua_control_fails_when_user_rejects_confirmation</code><br><code>test_cua_control_proceeds_when_user_confirms</code></td>
+</tr>
+<tr>
+<td><strong>M5.1(b)</strong></td>
+<td>Deterministic Post-Action Verification</td>
+<td><code>agents/cua_base_executor.py:730-765</code>, <code>agents/life_safety.py:740-770</code> — implemented STEP 10.5 post-action verification via <code>life_safety_guard.verify_post_action()</code>. Any discrepancy immediately halts execution and triggers automated rollback.</td>
+<td><code>test_cua_post_action_verification_failure_triggers_auto_rollback</code></td>
+</tr>
+<tr>
+<td><strong>M5.1(c)</strong></td>
+<td>Automated Rollback &amp; Audit Trail</td>
+<td><code>agents/life_safety.py:808-865</code>, <code>agents/cua_base_executor.py:745-758</code> — wired automated reversal handler callbacks (<code>register_auto_rollback_handler</code>) and recorded tamper-evident SHA-256 chain entries with <code>rollback_type="automated"</code>.</td>
+<td><code>test_life_safety_guard_auto_rollback_tamper_evident_audit</code></td>
+</tr>
+<tr>
+<td><strong>M5.1(d)</strong></td>
+<td>Coordinate Bounds &amp; Tenant Tool Policy</td>
+<td><code>agents/cua_base_executor.py:285-309, 485-525</code>, <code>agents/etap_gui_agent.py:110-155</code> — added <code>_assert_coordinate_bounds</code> preventing desktop window escapes, and enforced <code>allowed_tools</code> and <code>tenant_id</code> policies.</td>
+<td><code>test_cua_coordinate_bounds_violation_aborts_before_action</code><br><code>test_cua_tool_policy_violation_aborts_before_action</code></td>
+</tr>
+<tr>
+<td><strong>M5.2(a)</strong></td>
+<td>Mandatory StudyExecutor Assertions</td>
+<td><code>copilot/ai/engineering_assertions.py</code>, <code>services/study_executor.py:195-235</code>, <code>services/study_service.py:180-210</code> — unified simulation results verification using <code>EngineeringAssertionLayer.validate()</code>. Blocks unverified and non-compliant study outputs.</td>
+<td><code>test_study_executor_blocks_on_critical_assertion_failure</code></td>
+</tr>
+<tr>
+<td><strong>M5.2(b)</strong></td>
+<td>Dead Code Elimination (<code>validate_fallback_output</code>)</td>
+<td><code>copilot/ai/engineering_assertions.py:560-575</code> — revitalized <code>validate_fallback_output</code> by delegating directly to canonical <code>validate(data, study_type)</code> without logic drift.</td>
+<td><code>test_validate_fallback_output_active_and_wired</code></td>
+</tr>
+<tr>
+<td><strong>M5.2(c)</strong></td>
+<td><code>AgentStatus.REJECTED</code> &amp; Fail-Closed Cascade</td>
+<td><code>agents/workflow.py:276-320, 580-605, 780-840</code>, <code>agents/orchestrator.py:260-295</code> — on critical assertion failure, sets node status to <code>AgentStatus.REJECTED</code>, sets <code>validation_status=False</code>, halts execution of downstream dependents with <code>SKIPPED_WITH_REASON</code>, and sets <code>overall_success=False</code>.</td>
+<td><code>test_workflow_engine_sets_rejected_status_on_assertion_failure</code><br><code>test_workflow_engine_fail_closed_cascade_downstream_skipped</code><br><code>test_trace_export_overall_success_false_on_rejected_node</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="3-acceptance-gates-verification-evidence">3. Acceptance Gates &amp; Verification Evidence</h2>
+<p>All 5 mandatory gates were executed locally with 100% green verification:</p>
+<table>
+<thead>
+<tr>
+<th>Gate</th>
+<th>Requirement</th>
+<th>Tool / Target</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Gate 1</strong></td>
+<td>Negative CUA CONTROL test: commands without confirmed approval abort fail-closed</td>
+<td><code>pytest tests/test_m5_cua_approvals.py</code></td>
+<td><strong>PASSED</strong> (4 tests)</td>
+</tr>
+<tr>
+<td><strong>Gate 2</strong></td>
+<td>Post-action verification test: disabled/failed effect triggers automated rollback, honest manual_only fallback, missing screenshot non-passthrough</td>
+<td><code>pytest tests/test_m5_cua_approvals.py</code></td>
+<td><strong>PASSED</strong> (6 tests)</td>
+</tr>
+<tr>
+<td><strong>Gate 3</strong></td>
+<td>Engineering assertions &amp; REJECTED cascade propagation, warning-only non-blocking contract</td>
+<td><code>pytest tests/test_m5_assertions_rejected.py</code></td>
+<td><strong>PASSED</strong> (12 tests)</td>
+</tr>
+<tr>
+<td><strong>Gate 4</strong></td>
+<td>Meta-CI, Lint &amp; Type-checking: <code>check_workflows_meta.py</code>, <code>ruff</code>, <code>tsc</code> clean</td>
+<td>Python 3.8 / Node v22</td>
+<td><strong>PASSED</strong> (0 violations, 0 lints, 0 tsc errors)</td>
+</tr>
+<tr>
+<td><strong>Gate 5</strong></td>
+<td>Architectural closure report deposited in <code>docs/ai-integration/m5-report.md</code></td>
+<td>Markdown artifact</td>
+<td><strong>PASSED</strong> (this file)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="test-battery-execution-summary">Test Battery Execution Summary</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>tests/test_m5_assertions_rejected.py::test_assertion_layer_ieee_c84_1_voltage_bounds PASSED [  4%]
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>tests/test_m5_assertions_rejected.py::test_assertion_layer_iec_60909_short_circuit_bounds PASSED [  9%]
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>tests/test_m5_assertions_rejected.py::test_assertion_layer_ieee_1584_arc_flash_bounds PASSED [ 13%]
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>tests/test_m5_assertions_rejected.py::test_assertion_layer_coordination_selectivity PASSED [ 18%]
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>tests/test_m5_assertions_rejected.py::test_assertion_layer_cable_sizing_overload PASSED [ 22%]
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>tests/test_m5_assertions_rejected.py::test_validate_fallback_output_active_and_wired PASSED [ 27%]
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>tests/test_m5_assertions_rejected.py::test_study_executor_blocks_on_critical_assertion_failure PASSED [ 31%]
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>tests/test_m5_assertions_rejected.py::test_workflow_engine_sets_rejected_status_on_assertion_failure PASSED [ 36%]
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>tests/test_m5_assertions_rejected.py::test_workflow_engine_fail_closed_cascade_downstream_skipped PASSED [ 40%]
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>tests/test_m5_assertions_rejected.py::test_trace_export_overall_success_false_on_rejected_node PASSED [ 45%]
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>tests/test_m5_assertions_rejected.py::test_engineering_assertion_warning_only_does_not_block_study_executor PASSED [ 50%]
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>tests/test_m5_assertions_rejected.py::test_workflow_engine_warning_only_retains_completed_status PASSED [ 54%]
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>tests/test_m5_cua_approvals.py::test_cua_control_fails_closed_without_confirmation_callback PASSED [ 59%]
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>tests/test_m5_cua_approvals.py::test_cua_control_fails_when_user_rejects_confirmation PASSED [ 63%]
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>tests/test_m5_cua_approvals.py::test_cua_control_proceeds_when_user_confirms PASSED [ 68%]
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>tests/test_m5_cua_approvals.py::test_cua_post_action_verification_failure_triggers_auto_rollback PASSED [ 72%]
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>tests/test_m5_cua_approvals.py::test_life_safety_guard_auto_rollback_tamper_evident_audit PASSED [ 77%]
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>tests/test_m5_cua_approvals.py::test_cua_coordinate_bounds_violation_aborts_before_action PASSED [ 81%]
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>tests/test_m5_cua_approvals.py::test_cua_tool_policy_violation_aborts_before_action PASSED [ 86%]
+<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>tests/test_m5_cua_approvals.py::test_life_safety_guard_rollback_without_callback_manual_only PASSED [ 90%]
+<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>tests/test_m5_cua_approvals.py::test_verify_post_action_mutating_without_evidence_not_silently_verified PASSED [ 95%]
+<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>tests/test_m5_cua_approvals.py::test_cua_control_mode_missing_bounds_aborts_fail_closed PASSED [100%]
+<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>
+<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>============================= 22 passed in 37.24s =============================
+</code></pre></div>
+<h3 id="hardening-invariants-post-review-follow-up">Hardening Invariants (Post-Review Follow-up)</h3>
+<ol>
+<li><strong>Honest Rollback Semantics (<code>agents/life_safety.py</code>)</strong>: <code>rollback()</code> defaults to <code>_auto_rollback_enabled = False</code>. Only when registered rollback handler executes successfully is <code>rollback_type = "automated", automated = True</code> emitted. Otherwise emits <code>rollback_type = "manual_only", automated = False</code> in audit trail.</li>
+<li><strong>Deterministic Post-Action Verification (<code>agents/life_safety.py</code>, <code>agents/cua_base_executor.py</code>)</strong>: Mutating actions without screenshot evidence or verification hook return <code>verified=False, unverified_passthrough=True</code>. In CUA control mode, STEP 10.5 aborts unless explicit <code>allow_unverified=True</code> is provided.</li>
+<li><strong>Control Mode Strict Coordinate Bounds (<code>agents/cua_base_executor.py</code>)</strong>: When <code>mode=="control"</code>, missing bounds (<code>bounds is None</code>) immediately aborts fail-closed (<code>BOUNDS VIOLATION: missing-bounds</code>). Desktop bounds fallback is strictly prohibited in control mode.</li>
+<li><strong>Contract for <code>strict_mode=False</code> (<code>copilot/ai/engineering_assertions.py</code>, <code>services/study_executor.py</code>, <code>agents/workflow.py</code>)</strong>: Only CRITICAL and FATAL violations block execution (<code>status="failed"</code>, <code>AgentStatus.REJECTED</code>, setting <code>blocked_severity</code>). Non-critical WARNING checks retain <code>completed</code>/<code>success</code> status while preserving diagnostic warnings in <code>engineering_assertion_warnings</code>.</li>
+<li><strong>Unified Approval TTL (<code>api/cua_confirmation_ws.py</code>, <code>api/agents.py</code>)</strong>: Configured constant <code>APPROVAL_TTL_SECONDS = 300</code> consistently across confirmation broker and agent endpoints.</li>
+</ol>
+<p>In addition, the existing regression suites (<code>tests/test_life_safety.py</code> and <code>tests/test_workflow_chains.py</code>) were executed and verified: <strong>36 passed in 53.10s</strong> (100% green).</p>
+<hr />
+<h2 id="4-engineering-standards-criteria-enforced">4. Engineering Standards &amp; Criteria Enforced</h2>
+<p>The <code>EngineeringAssertionLayer</code> implements deterministic checks against authoritative engineering standards:
+- <strong>IEEE C84.1</strong>: Electric Power Systems and Equipment — Voltage Ratings (60 Hz). Enforces Range A (0.95–1.05 pu) and Range B (0.916–1.083 pu) bus voltage constraints.
+- <strong>IEC 60909</strong>: Short-circuit currents in three-phase a.c. systems. Validates peak make current ($i_p$) vs breaking capacity ($I_b$) and equipment withstand ratings.
+- <strong>IEC 60255 / IEEE C37.90</strong>: Measuring relays and protection equipment. Verifies protection selectivity margins ($t_{upstream} - t_{downstream} \ge 0.20\,\text{s}$) to avoid false trips.
+- <strong>IEEE 1584</strong>: Guide for Performing Arc-Flash Hazard Calculations. Confirms boundary compliance and working distance limits ($E \le 1.2\,\text{cal/cm}^2$ for basic PPE).
+- <strong>IEC 60364</strong>: Low-voltage electrical installations. Ensures cable ampacity ($I_b \le I_n \le I_z$) and prevents thermal overloads.</p>
+<hr />
+<h2 id="5-security-trace-integrity">5. Security &amp; Trace Integrity</h2>
+<ul>
+<li><strong>Fail-Closed Dual Control</strong>: Actions targeting life-safety equipment (switchgear breakers, relays, arc-flash barriers) cannot execute without affirmative human authorization recorded in the audit log.</li>
+<li><strong>Tamper-Evident SHA-256 Chain</strong>: Rollback events and post-action verification outcomes are appended to <code>safety_chain.jsonl</code> with linked hashes (<code>hash = SHA256(prev_hash + canonical_data + timestamp)</code>).</li>
+<li><strong>Zero Hallucination &amp; Honesty</strong>: Missing parameters or unverified execution results are never guessed or coerced; failed studies return <code>status=AgentStatus.REJECTED</code> and <code>overall_success=False</code>.</li>
+<li><strong>Zero Token Leakage</strong>: GitHub PATs and sensitive tokens are strictly preserved outside source trees and never logged or serialized.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "search.suggest", "search.highlight"], "search": "../../assets/javascripts/workers/search.f8cc74c7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.c8b220af.min.js"></script>
+      
+    
+  </body>
+</html>
