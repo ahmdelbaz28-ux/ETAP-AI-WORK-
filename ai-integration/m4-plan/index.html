@@ -1,0 +1,835 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Enterprise AI-Powered Power Systems Engineering Platform">
+      
+      
+        <meta name="author" content="AhmedETAP Team">
+      
+      
+      
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.11">
+    
+    
+      
+        <title>خطة المرحلة M4 — السياق والحدود (Context & Boundaries) - AhmedETAP Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.4af4bdda.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="deep-purple">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#m4-context-boundaries" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="AhmedETAP Documentation" class="md-header__button md-logo" aria-label="AhmedETAP Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            AhmedETAP Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              خطة المرحلة M4 — السياق والحدود (Context &amp; Boundaries)
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  الصفحة الرئيسية
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../ARCHITECTURE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  الهيكلية
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../API_REFERENCE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  واجهة برمجة التطبيقات
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../OPERATIONS_RUNBOOK/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  دليل التشغيل
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../TROUBLESHOOTING_GUIDE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  دليل الأعطال
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../SECURITY_OPERATIONS_MANUAL/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  البنية التحتية للأمان
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../ENTERPRISE_CERTIFICATION_REPORT/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  التقييم المؤسسي
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="AhmedETAP Documentation" class="md-nav__button md-logo" aria-label="AhmedETAP Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    AhmedETAP Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    الصفحة الرئيسية
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ARCHITECTURE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    الهيكلية
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../API_REFERENCE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    واجهة برمجة التطبيقات
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../OPERATIONS_RUNBOOK/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    دليل التشغيل
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../TROUBLESHOOTING_GUIDE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    دليل الأعطال
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../SECURITY_OPERATIONS_MANUAL/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    البنية التحتية للأمان
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ENTERPRISE_CERTIFICATION_REPORT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    التقييم المؤسسي
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-live-drift-audit" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. تدقيق الانحراف الحي (Live Drift Audit)
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-m41-m45" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. نطاق التنفيذ (M4.1 → M4.5)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. نطاق التنفيذ (M4.1 → M4.5)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#m41-contextfabric" class="md-nav__link">
+    <span class="md-ellipsis">
+      M4.1 — ContextFabric (ستة أنواع فوق المكونات القائمة)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#m42-mastra-python" class="md-nav__link">
+    <span class="md-ellipsis">
+      M4.2 — حدود «Mastra يخطط وPython ينفذ»
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#m43-fallback-llm" class="md-nav__link">
+    <span class="md-ellipsis">
+      M4.3 — إزالة fallback الـLLM العام
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#m44-ml-provenance" class="md-nav__link">
+    <span class="md-ellipsis">
+      M4.4 — ML provenance + السياق
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#m45" class="md-nav__link">
+    <span class="md-ellipsis">
+      M4.5 — سياسة المزودين الموحدة
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-m4" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. بوابات قبول M4 (من الخطة الرئيسية)
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="m4-context-boundaries">خطة المرحلة M4 — السياق والحدود (Context &amp; Boundaries)</h1>
+<p><strong>المشروع:</strong> منصة أحمد إيتاب (AhmedETAP AI Engineering Platform)<br />
+<strong>المرحلة:</strong> M4 — Context Fabric, Mastra/Python Boundaries, Fallback Elimination, ML Provenance, Unified Provider Policy<br />
+<strong>نقطة الأساس الحية:</strong> <code>main @ 852007b03</code> (بعد دمج M0–M3 عبر PR #609 / #610 / #611)<br />
+<strong>فرع العمل:</strong> <code>feat/ai-m4-context-boundaries</code><br />
+<strong>تاريخ الإعداد:</strong> 2026-09-29<br />
+<strong>البنود المرجعية:</strong> 8 (Context Fabric)، 9 (حدود Mastra/Python)، 10 (إزالة fallback العام)، 13 (provenance للـML)، 14 (سياسة مزودين واحدة)</p>
+<blockquote>
+<p><strong>قاعدة التحقق الحي:</strong> كل رقم سطر في برومبت الخطة الرئيسية مأخوذ من تدقيق <code>43fdd481f</code>. هذا المستند يمثل <strong>تدقيق الانحراف (Drift Audit)</strong> قبل أي تعديل — حيث اختلف الكود الحي عن الوصف، ثُبّت الحي وتوثق الفجوة أدناه قبل التنفيذ (بروتوكول المفاجآت).</p>
+</blockquote>
+<hr />
+<h2 id="1-live-drift-audit">1. تدقيق الانحراف الحي (Live Drift Audit)</h2>
+<table>
+<thead>
+<tr>
+<th>البند</th>
+<th>وصف الخطة (عند <code>43fdd481f</code>)</th>
+<th>الحقيقة الحية (<code>852007b03</code>)</th>
+<th>القرار المنفَّذ</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>M4.3</strong></td>
+<td><code>src/core/agents.ts:157-165</code> يبني <code>systemPrompt</code> من <code>agent.name + agent.description</code> ويضخه في <code>generateWithFailover</code> الخام بلا tools/schema</td>
+<td><code>src/core/agents.ts</code> أصبح <strong>سجلاً بياناتياً خالصاً</strong> (26 وكيلاً) بعد M2.3/M3.4 — لا يوجد فيه أي كود fallback. المكافئ الوظيفي الحي انتقل إلى <code>src/routes/agents.ts:149-227</code>: <code>ENGINEERING_GROUNDING_DIRECTIVE</code> + <code>getGroundedSystemPrompt</code> + <code>runDirectAi</code> (يستخدم برومبت YAML القانوني بدل name/description — تحسين P3 — لكنه <strong>ما زال يضخ البرومبت في <code>/chat/completions</code> خاماً بلا tools/schema ووسم <code>grounded_direct_ai_fallback</code></strong>)</td>
+<td>يُطبَّق <strong>قصد</strong> البند على الحي: حذف مسار الإجابة الهندسية الخام من <code>src/routes/agents.ts</code> كاملاً (runDirectAi + التوجيه + باني البرومبت)، والقدرة غير المتاحة ⇒ <code>SPECIALIZED_EXECUTION_UNAVAILABLE</code> (503 مغلق). إبقاء <code>generateWithFailover</code> للمسار الحافظ للقدرة فقط (Mastra proxy)</td>
+</tr>
+<tr>
+<td><strong>M4.1</strong></td>
+<td><code>retriever.py:131</code> يمرر <code>tenant_id</code> لكن adapter <code>:147</code> يسقطه</td>
+<td>✅ مؤكد حياً بالضبط: <code>ai_context_engine/retriever.py:131-132</code> يمرر <code>where={"tenant_id": ...}</code>؛ <code>ai_context_engine/rag_blueprint_adapter.py:147</code> يستدعي <code>retrieve(query, top_k=top_k * 2)</code> <strong>دون</strong> <code>tenant_id</code></td>
+<td>إصلاح دقيق: تمرير <code>tenant_id</code> عبر كامل سلسلة adapter + ContextFabric</td>
+</tr>
+<tr>
+<td><strong>M4.1</strong></td>
+<td><code>services/memory_service.py:433</code> <code>add_texts</code> عارية بلا metadata</td>
+<td>✅ مؤكد: <code>vector_db.add_texts([fact_text])</code> — لا محتوى provenance/tenant</td>
+<td>توسيع <code>save_to_vector_memory(fact_text, index_name, tenant_id, provenance)</code> وتمرير <code>metadatas</code> كاملة</td>
+</tr>
+<tr>
+<td><strong>M4.4</strong></td>
+<td><code>predictive/anomaly/digital_twin</code> مسجلة في <code>registry.py:1449-1451</code> وغير قابلة للتنفيذ عبر StudyExecutor</td>
+<td>✅ <code>registry.py:1449-1451</code> = سطر تسجيل الوكلاء الثلاثة في <code>create_agent_registry</code>. الحقائق الحية: مفاتيح السجل = <strong>30</strong> (27 أصلياً + 3 أسماء مستعارة <code>harmonic/opf/protection</code>). <code>digital_twin</code> <strong>عضو StudyType حي</strong> (<code>agents/models.py:61</code>، أُضيف 2026-07-26 لمنع سقوط صامت إلى LOAD_FLOW) ومدخل <code>STUDY_DISPATCH</code> مشتق عبر <code>STUDY_TYPE_AGENT_MAP</code>، وتنفيذه يرفع <code>SpecializedExecutionUnavailableError</code> (fail-closed). <code>predictive/anomaly</code> <strong>ليسا</strong> StudyType وليسا مدخلاً في الجدول</td>
+<td><strong>تسوية موثقة بأصغر نطاق:</strong> لا يُزال عضو <code>DIGITAL_TWIN</code> من enum (إزالته تعيد باگ السقوط الصامت الموثق + تكسر بوابة M1)؛ بدلاً من ذلك: تُثبَّت اختبارات انحدار تمنع تسجيل <code>predictive/anomaly</code> كـStudyType، وتمنع أي تنفيذ صامت لـ<code>digital_twin</code> (يبقى fail-closed حصراً)، وتُربط الثلاثة بـContextFabric كمزوّدي سياق</td>
+</tr>
+<tr>
+<td><strong>M4.5</strong></td>
+<td>cascade معطل بالعلم في <code>integrations/model_router.py</code></td>
+<td>✅ موضع التعطيل الحي: <code>integrations/langfuse_llm.py:466-477</code> يحرس <code>ModelCascadeRouter</code> بعلم <code>use_model_cascade</code> (<code>api/feature_flags.py:151-156</code>). التطبيقات المتنافسة الخمس: <code>src/core/providers.ts:88-105</code> (10 مزودين)، <code>src/mastra/lib/model-config.ts</code> (openai فقط)، <code>api/chat_stream.py:80</code> (3 مزودين + BYOK)، <code>ui/src/lib/llm-chat.ts</code> + <code>ui/src/lib/providers.ts</code> (localStorage)، <code>integrations/model_router.py</code> (معطل)</td>
+<td>إزالة حارس العلم ورفع <code>model_router</code> إلى <strong>نقطة السياسة الواحدة</strong> عبر بيان مشترك <code>config/llm-provider-policy.json</code>، وتوجيه المستهلكين إليه/اختبار تزامن صارم</td>
+</tr>
+<tr>
+<td><strong>M4.2</strong></td>
+<td>prompts.json (33 handle) عقد عابر للحدود؛ مفاتيح Python 27 (+3 أسماء مستعارة) مقابل docstring يقول 24</td>
+<td>✅ مؤكد: <code>prompts.json</code> = 33 مدخلاً؛ <code>create_agent_registry()</code> حياً = <strong>30 مفتاحاً</strong> (27 + 3 aliases)؛ docstring <code>agents/registry.py:1424</code> يقول "24" و<code>agents/__init__.py</code> يقول "15"</td>
+<td>إعلان مصدر واحد للمفاتيح: <code>CANONICAL_AGENT_KEYS</code> (27) + <code>AGENT_KEY_ALIASES</code> (3) + دالة تحقق fail-fast؛ تحديث docstrings؛ اختبار تزامن مع دوال البرومبت</td>
+</tr>
+</tbody>
+</table>
+<h2 id="2-m41-m45">2. نطاق التنفيذ (M4.1 → M4.5)</h2>
+<h3 id="m41-contextfabric">M4.1 — ContextFabric (ستة أنواع فوق المكونات القائمة)</h3>
+<ul>
+<li>حزمة جديدة <code>context_fabric/</code>: <code>ContextType</code> (ENGINEERING_KNOWLEDGE / ENGINEERING_HISTORY / PROJECT_STATE / CODE_CONTEXT / STANDARDS / USER_CONTEXT)، <code>ContextEvidence</code> (يفرض <code>source_type</code> + <code>content_hash</code> (sha256) + <code>tenant_id</code> إلزامياً)، <code>ContextFabric</code> بتسجيل مزوّدين لكل نوع.</li>
+<li>مزوّدات فوق المكونات القائمة <strong>لا إعادة بناء</strong>: <code>MemoryKnowledgeProvider</code> → <code>services/memory_service.py</code>؛ <code>CodeContextProvider</code> → <code>ai_context_engine</code>؛ <code>StandardsProvider</code> → <code>skills/etap-expert.md</code>؛ شرائح HISTORY/PROJECT_STATE/USER_CONTEXT قابلة للحقن (injectable) وتعلن عدم التوفر صراحةً عند غياب المزوّد — <strong>لا بيانات مزيفة</strong>.</li>
+<li>إصلاحا التسريب/الـmetadata (M4.1 أعلاه) + اختبارات.</li>
+</ul>
+<h3 id="m42-mastra-python">M4.2 — حدود «Mastra يخطط وPython ينفذ»</h3>
+<ul>
+<li><code>CANONICAL_AGENT_KEYS</code>/<code>AGENT_KEY_ALIASES</code>/<code>validate_agent_keys()</code> في <code>agents/registry.py</code> + استخدامها في فحص الإقلاع.</li>
+<li><code>ChiefEngineeringOrchestrator.execute_execution_plan(plan)</code> كـadapter خلف الحدود: يستهلك <code>ExecutionPlanContract</code> (عبر <code>custom_nodes</code> القائمة في WorkflowEngine) وينتج <code>ExecutionTraceContract</code> — إعادة استخدام كاملة لجدولة M3.</li>
+<li>اختبار تزامن دوال البرومبت: كل <code>prompt_handle</code> في Python و<code>promptHandle</code> في TS ⊆ مفاتيح <code>prompts.json</code> (توسيع لا استبدال).</li>
+</ul>
+<h3 id="m43-fallback-llm">M4.3 — إزالة fallback الـLLM العام</h3>
+<ul>
+<li>حذف <code>runDirectAi</code> + <code>getGroundedSystemPrompt</code> + <code>ENGINEERING_GROUNDING_DIRECTIVE</code> من <code>src/routes/agents.ts</code>.</li>
+<li>تعذّر المسار الحافظ للقدرة (Mastra proxy غير مهيأ/فاشل) ⇒ <code>503 {code: "SPECIALIZED_EXECUTION_UNAVAILABLE"}</code> — لا إجابة هندسية من مسار خام.</li>
+<li>فاحص حرماني دائم في meta-CI (<code>scripts/check_ai_fallback_guard.py</code>) + اختبار زرع خرق يفشل.</li>
+</ul>
+<h3 id="m44-ml-provenance">M4.4 — ML provenance + السياق</h3>
+<ul>
+<li><code>predictive_agent</code>: تعطيل <code>allow_synthetic</code> في prod (فحص بيئة <code>ENV</code>/<code>APP_ENV</code> غير dev/test)، وإلزام <code>model_version</code>/<code>input_window</code>/<code>drift_state</code> في مخرجات التنبؤ.</li>
+<li>توصيل بوابة الحقائق الثلاث (<code>digital_twin/validation_gateway.py</code>) في مسار <code>DigitalTwinAgent.execute</code>.</li>
+<li>إصلاح الإقرار الذاتي في <code>orchestrator.py</code>: <code>all_validated</code> يشترط تحققاً خارجياً (نتيجة ValidationAgent مستقلة) لا مجرد أعلام ذاتية.</li>
+<li>اختبارات سلبية.</li>
+</ul>
+<h3 id="m45">M4.5 — سياسة المزودين الموحدة</h3>
+<ul>
+<li><code>config/llm-provider-policy.json</code>: نقطة السياسة الواحدة (المزودون، الطبقات، النماذج المسموحة).</li>
+<li><code>integrations/model_router.py</code>: تحميل البيان + <code>get_provider_policy()</code> + <code>resolve_model()</code> والتحقق fail-closed.</li>
+<li>إزالة علم <code>use_model_cascade</code> من <code>api/feature_flags.py</code> وإزالة الحارس من <code>langfuse_llm.py</code>.</li>
+<li><code>api/chat_stream.py</code>: قائمة السماح من البيان. <code>src/core/providers.ts</code>: اشتقاق/مصادقة ضد البيان عند الإقلاع + اختبار vitest بمحاكاة تعديل البيان.</li>
+<li>اختبار أن تغيير البيان (النقطة الواحدة) يغيّر سلوك كل المستهلكين.</li>
+</ul>
+<hr />
+<h2 id="3-m4">3. بوابات قبول M4 (من الخطة الرئيسية)</h2>
+<table>
+<thead>
+<tr>
+<th>البوابة</th>
+<th>الشرط</th>
+<th>آلية التحقق</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>G1</strong></td>
+<td>مسار fallback الخام محذوف + فاحص حرماني في meta-CI يمنع عودته</td>
+<td>حذف <code>src/routes/agents.ts</code> + <code>check_ai_fallback_guard</code> + اختبار زرع</td>
+</tr>
+<tr>
+<td><strong>G2</strong></td>
+<td>كل Evidence من ContextFabric يحمل <code>source_type</code> + <code>hash</code> + <code>tenant_id</code></td>
+<td>اختبار بنيوي/سلوكي</td>
+</tr>
+<tr>
+<td><strong>G3</strong></td>
+<td><code>allow_synthetic=false</code> في prod مثبتة باختبار</td>
+<td>اختبار سلبي ببيئة prod</td>
+</tr>
+<tr>
+<td><strong>G4</strong></td>
+<td>قرار المزود من نقطة واحدة (model_router) — تغيير السياسة يغيّر السلوك كله</td>
+<td>اختبار Python + vitest</td>
+</tr>
+</tbody>
+</table>
+<p><strong>قيد دائم:</strong> Fail-Closed — لا مسارات إجابة صامتة، لا بيانات مزيفة، لا كسر لبوابات M0–M3 (reachability/registry/assertions).</p>
+<p><strong>التوقيع:</strong> الوكيل المنفذ — منصة أحمد إيتاب<br />
+<strong>التاريخ:</strong> 2026-09-29</p>
+<hr />
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "search.suggest", "search.highlight"], "search": "../../assets/javascripts/workers/search.f8cc74c7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.c8b220af.min.js"></script>
+      
+    
+  </body>
+</html>
