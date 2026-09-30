@@ -2,11 +2,8 @@
  * Agent listing + chat routes.
  */
 import type { Env, ExecutionContext } from '../core/types.js';
-import { type ModelMessage } from 'ai';
 import { jsonResponse, errorResponse, corsHeaders, getIdempotencyKey, extractClientIp } from '../utils/response.js';
-import { getAgent, AGENT_REGISTRY, getAgentPromptHandle } from '../core/agents.js';
-import { generateWithFailover, hasAnyProviderConfigured } from '../core/providers.js';
-import { getSystemPrompt } from '../mastra/prompts.js';
+import { getAgent, AGENT_REGISTRY } from '../core/agents.js';
 import { recordAudit } from '../utils/audit.js';
 import { bumpApiMetric, bumpPerKey, bumpPerRoute } from '../utils/metrics.js';
 import { getCachedResponse, cacheResponse } from '../core/idempotency.js';
@@ -35,8 +32,6 @@ export async function handleListAgents(
 // threshold of 15 — the original handler was 23).
 // ---------------------------------------------------------------------------
 
-const CHAT_VALID_ROLES = new Set(['system', 'user', 'assistant', 'tool']);
-
 interface ChatContext {
   request: Request;
   env: Env;
@@ -49,6 +44,13 @@ interface ChatContext {
   cors: Record<string, string>;
   idempotencyKey: string | null;
   route: string;
+}
+
+/** Parsed chat payload (M4.3: parsed once, then routed). */
+interface ChatPayload {
+  messages: Array<{ role: string; content: string }>;
+  threadId?: string;
+  resourceId?: string;
 }
 
 /** Build the common audit fields for a chat request. */
@@ -95,21 +97,23 @@ async function getIdempotentReplay(rc: ChatContext): Promise<Response | null> {
   });
 }
 
-/** Try the Mastra proxy. Returns a Response if the proxy succeeded, null if
- *  the proxy was skipped or failed (caller should fall back to direct AI). */
-async function tryMastraProxy(rc: ChatContext): Promise<Response | null> {
+/** Try the capability-preserving Mastra proxy. Returns a Response if the
+ *  proxy succeeded, null if the proxy was skipped or failed.
+ *
+ *  M4.3: this is the ONLY downstream execution path for agent chat. There is
+ *  no raw-LLM fallback anymore — when the capability-preserving path is
+ *  unreachable the caller must fail closed with
+ *  SPECIALIZED_EXECUTION_UNAVAILABLE. */
+async function tryMastraProxy(rc: ChatContext, payload: ChatPayload): Promise<Response | null> {
   if (!rc.env.MASTRA_API_URL) return null;
   try {
-    let body: unknown;
-    try { body = await rc.request.clone().json(); } catch { /* continue */ }
-    const messages = (body as { messages?: unknown[] })?.messages || [];
     const proxyRes = await fetch(`${rc.env.MASTRA_API_URL}/api/agents/${rc.agentId}/generate`, {
       method: 'POST',
       headers: { 'content-type': 'application/json', ...(rc.env.MASTRA_API_KEY ? { 'x-api-key': rc.env.MASTRA_API_KEY } : {}) },
       body: JSON.stringify({
-        messages,
-        threadId: (body as { threadId?: string })?.threadId,
-        resourceId: (body as { resourceId?: string })?.resourceId,
+        messages: payload.messages,
+        threadId: payload.threadId,
+        resourceId: payload.resourceId,
       }),
     });
     if (!proxyRes.ok) return null;
@@ -126,14 +130,18 @@ async function tryMastraProxy(rc: ChatContext): Promise<Response | null> {
       status: 200,
       headers: { 'content-type': 'application/json; charset=utf-8', ...rc.cors },
     });
-  } catch { /* fall through to direct AI */ }
+  } catch { /* fall through to fail-closed response */ }
   return null;
 }
 
-/** Parse and validate the chat request body. Returns the validated messages
- *  array, or a Response if parsing/validation failed. */
-async function parseChatBody(rc: ChatContext): Promise<Array<{ role: string; content: string }> | Response> {
-  let parsed: { messages?: Array<{ role: string; content: string }> };
+/** Parse and validate the chat request body. Returns the validated payload,
+ *  or a Response if parsing/validation failed. */
+async function parseChatBody(rc: ChatContext): Promise<ChatPayload | Response> {
+  let parsed: {
+    messages?: Array<{ role: string; content: string }>;
+    threadId?: string;
+    resourceId?: string;
+  };
   try {
     parsed = (await rc.request.json()) as typeof parsed;
   } catch {
@@ -143,87 +151,38 @@ async function parseChatBody(rc: ChatContext): Promise<Array<{ role: string; con
   if (!Array.isArray(messages) || messages.length === 0) {
     return errorResponse(400, 'messages array is required', rc.traceId, rc.cors);
   }
-  return messages;
+  return { messages, threadId: parsed.threadId, resourceId: parsed.resourceId };
 }
 
 /**
- * Engineering Grounding Directive to eliminate ungrounded hallucinations
- * during direct-AI chat fallback when no calculation engine is connected.
+ * Fail-closed response for an unreachable capability-preserving execution path
+ * (M4.3). Previously this endpoint answered through a raw LLM fallback built
+ * on `/chat/completions` without tools or schema — that path is deleted.
+ * An unregistered / unreachable capability must NEVER produce an engineering
+ * answer; it fails with the unified SPECIALIZED_EXECUTION_UNAVAILABLE error.
  */
-export const ENGINEERING_GROUNDING_DIRECTIVE = `
-[ENGINEERING GROUNDING & CONVERSATIONAL CONSTRAINTS]
-CRITICAL SAFETY DIRECTIVE:
-1. NO ENGINE CONNECTED: You are currently operating in conversational direct-AI fallback mode without an active execution engine (PowerSystemEngine/ETAP).
-2. ZERO HALLUCINATION & NO GUESSING: You MUST NOT invent, hallucinate, or fabricate numerical simulation results, bus voltages, fault currents, incident energy values, or protection trip times.
-3. PARAMETER CLARIFICATION: If the user requests a calculation or quantitative study, you must clearly identify the required engineering parameters per the referenced standards, state the missing inputs, and outline the exact calculation methodology.
-4. STANDARDS COMPLIANCE: Ground all qualitative technical guidance, formulas, and recommendations strictly in the international standards referenced in your system prompt.
-`.trim();
-
-/**
- * Assemble a grounded system prompt for an agent, combining its canonical
- * prompt with the Engineering Grounding Directive to prevent hallucination.
- */
-export async function getGroundedSystemPrompt(agentId: string): Promise<string> {
-  const handle = getAgentPromptHandle(agentId);
-  const basePrompt = await getSystemPrompt(handle);
-  return `${basePrompt}\n\n${ENGINEERING_GROUNDING_DIRECTIVE}`;
-}
-
-/** Run the direct-AI fallback. Always returns a Response (200 on success,
- *  502 on AI error). */
-async function runDirectAi(
-  rc: ChatContext,
-  messages: Array<{ role: string; content: string }>,
-): Promise<Response> {
-  if (!hasAnyProviderConfigured(rc.env)) {
-    return errorResponse(503, 'No AI provider is configured', rc.traceId, rc.cors);
-  }
-  const systemPrompt = await getGroundedSystemPrompt(rc.agentId);
-  const mappedMessages = messages.map((m) => ({
-    role: (CHAT_VALID_ROLES.has(m.role) ? m.role : 'user') as 'system' | 'user' | 'assistant' | 'tool',
-    content: typeof m.content === 'string' ? m.content : JSON.stringify(m.content),
-  })) as ModelMessage[];
-
-  try {
-    const result = await generateWithFailover(rc.env, systemPrompt, mappedMessages);
-    bumpApiMetric('agentChats');
-    const responseBody = JSON.stringify({
+function capabilityUnavailableResponse(rc: ChatContext): Response {
+  bumpApiMetric('errors');
+  recordAudit({
+    ...chatAuditFields(rc, 503, 'AGENT_CHAT_SPECIALIZED_UNAVAILABLE'),
+    details: { agentId: rc.agentId, code: 'SPECIALIZED_EXECUTION_UNAVAILABLE' },
+  });
+  return jsonResponse(
+    503,
+    {
+      error: true,
+      status: 503,
+      code: 'SPECIALIZED_EXECUTION_UNAVAILABLE',
+      message:
+        `Specialized execution unavailable for agent "${rc.agentId}". ` +
+        'The capability-preserving execution path (Mastra agent runtime) is not reachable; ' +
+        'no raw LLM answer is produced (fail-closed, M4.3).',
       agentId: rc.agentId,
-      text: result.text,
-      provider: result.provider,
-      model: result.model,
-      executionMode: 'grounded_direct_ai_fallback',
-      latencyMs: result.latencyMs,
-      promptTokens: result.promptTokens,
-      completionTokens: result.completionTokens,
-      finishReason: result.finishReason,
       traceId: rc.traceId,
-    });
-    recordAudit({
-      ...chatAuditFields(rc, 200, 'AGENT_CHAT'),
-      latencyMs: result.latencyMs,
-      details: {
-        agentId: rc.agentId,
-        provider: result.provider,
-        executionMode: 'grounded_direct_ai_fallback',
-      },
-    });
-    if (rc.idempotencyKey) {
-      rc.ctx.waitUntil(cacheResponse(rc.env, rc.apiKeyId, rc.route, rc.idempotencyKey, 200, responseBody, 'application/json; charset=utf-8'));
-    }
-    return new Response(responseBody, {
-      status: 200,
-      headers: { 'content-type': 'application/json; charset=utf-8', ...rc.cors },
-    });
-  } catch (aiError) {
-    bumpApiMetric('errors');
-    const msg = aiError instanceof Error ? aiError.message : 'AI generation failed';
-    recordAudit({
-      ...chatAuditFields(rc, 502, 'AGENT_CHAT_AI_ERROR'),
-      details: { agentId: rc.agentId, error: msg },
-    });
-    return errorResponse(502, msg, rc.traceId, rc.cors);
-  }
+      timestamp: new Date().toISOString(),
+    },
+    rc.cors,
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -248,11 +207,13 @@ export async function handleChat(
   const replayResponse = await getIdempotentReplay(rc);
   if (replayResponse) return replayResponse;
 
-  const proxyResponse = await tryMastraProxy(rc);
+  const payloadOrResponse = await parseChatBody(rc);
+  if (payloadOrResponse instanceof Response) return payloadOrResponse;
+
+  // M4.3: the ONLY downstream execution path is the capability-preserving
+  // Mastra agent runtime. No raw LLM fallback exists.
+  const proxyResponse = await tryMastraProxy(rc, payloadOrResponse);
   if (proxyResponse) return proxyResponse;
 
-  const messagesOrResponse = await parseChatBody(rc);
-  if (messagesOrResponse instanceof Response) return messagesOrResponse;
-
-  return runDirectAi(rc, messagesOrResponse);
+  return capabilityUnavailableResponse(rc);
 }

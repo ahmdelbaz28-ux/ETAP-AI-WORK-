@@ -395,6 +395,12 @@ class DigitalTwinAgent(BaseAgent):
                 },
             )
 
+            # M4.4 — three-truths gate (GIS = Spatial, Electrical = Mathematical,
+            # ADMS = Operational). Wired into the execution path: an applicable
+            # gate that reports blocking failures forces validation_status=False.
+            gate = self._run_three_truths_gate(task)
+            result.data["three_truths"] = gate
+
             result.validation_status = self.validate_result(result)
             execution_time = (datetime.now(UTC) - start_time).total_seconds()
             result.execution_time = execution_time
@@ -411,6 +417,108 @@ class DigitalTwinAgent(BaseAgent):
                 data={},
                 validation_errors=[str(e)],
             )
+
+    # ------------------------------------------------------------------
+    # Three-truths validation gateway (M4.4 — previously unwired)
+    # ------------------------------------------------------------------
+
+    #: Layer objects the caller may supply so the gateway can run for real.
+    _TRUTH_LAYER_KEYS = ("gis_db", "system", "scada_db", "adms_engine", "state_snapshot")
+
+    def _run_three_truths_gate(self, task: EngineeringTask) -> dict[str, Any]:
+        """Run the three-truths validation gateway (M4.4).
+
+        GIS is the Spatial Truth, the electrical model is the Mathematical
+        Truth, and ADMS is the Operational Truth. The gateway lives in
+        ``digital_twin/validation_gateway.py`` but was previously never called
+        from the agent path.
+
+        Layer objects are taken from ``task.parameters``. When **no** layer
+        object is supplied the gate reports ``applicable=False`` — it never
+        claims a pass it did not perform.
+
+        Returns a JSON-safe summary; blocking failures (ERROR/CRITICAL) mean
+        ``passed=False`` and therefore invalidate the agent result.
+        """
+        params = task.parameters or {}
+        gis_db = params.get("gis_db")
+        system = params.get("system")
+        scada_db = params.get("scada_db")
+        adms_engine = params.get("adms_engine")
+        state_snapshot = params.get("state_snapshot")
+
+        provided = [
+            name
+            for name, obj in (
+                ("gis_db", gis_db),
+                ("system", system),
+                ("scada_db", scada_db),
+                ("adms_engine", adms_engine),
+                ("state_snapshot", state_snapshot),
+            )
+            if obj is not None
+        ]
+
+        try:
+            from digital_twin.validation_gateway import (
+                ValidationGateway,
+                ValidationSeverity,
+            )
+        except ImportError as exc:  # pragma: no cover - dependency misconfig
+            logger.warning("ValidationGateway unavailable: %s", exc)
+            return {
+                "applicable": False,
+                "performed": False,
+                "reason": f"validation gateway unavailable: {exc}",
+            }
+
+        if not provided:
+            return {
+                "applicable": False,
+                "performed": False,
+                "reason": (
+                    "no layer objects supplied in task.parameters "
+                    "(gis_db/system/scada_db/adms_engine/state_snapshot); "
+                    "three-truths gate not exercised"
+                ),
+                "layers_provided": [],
+            }
+
+        gateway = ValidationGateway(strict_mode=False)
+        gw_results = gateway.validate_all(
+            gis_db, system, scada_db, adms_engine, state_snapshot
+        )
+
+        blocking = [
+            r
+            for r in gw_results
+            if not r.passed
+            and r.severity in (ValidationSeverity.ERROR, ValidationSeverity.CRITICAL)
+        ]
+        warnings = [
+            r
+            for r in gw_results
+            if not r.passed and r.severity is ValidationSeverity.WARNING
+        ]
+
+        return {
+            "applicable": True,
+            "performed": True,
+            "layers_provided": provided,
+            "rules_evaluated": len(gw_results),
+            "blocking_failures": len(blocking),
+            "warnings": len(warnings),
+            "passed": not blocking,
+            "failures": [
+                {
+                    "rule": r.rule.value,
+                    "severity": r.severity.value,
+                    "message": r.message,
+                }
+                for r in blocking
+            ],
+            "warning_rules": [r.rule.value for r in warnings],
+        }
 
     # ------------------------------------------------------------------
     # Validation
@@ -461,12 +569,24 @@ class DigitalTwinAgent(BaseAgent):
         - DQI is between 0 and 100
         - PCL is between 0 and 100
         - Synchronization status is valid
+        - M4.4: three-truths gate (when applicable) must have no blocking failures
         """
         errors: list[str] = []
 
         self._validate_model_deviation(result.data.get("model_deviation"), errors)
         self._validate_data_quality(result.data.get("data_quality"), errors)
         self._validate_predictive_confidence(result.data.get("predictive_confidence"), errors)
+
+        # M4.4 — an applicable gate with blocking ERROR/CRITICAL findings fails
+        # the result; an inapplicable gate is recorded honestly but does not fail.
+        gate = result.data.get("three_truths")
+        if isinstance(gate, dict) and gate.get("applicable"):
+            if not gate.get("passed"):
+                blocking = gate.get("blocking_failures", 0)
+                errors.append(
+                    f"Three-truths validation gateway failed: {blocking} blocking "
+                    f"failure(s)"
+                )
 
         result.validation_errors.extend(errors)
         return len(errors) == 0

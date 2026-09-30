@@ -77,35 +77,31 @@ MAX_RATE_BUCKETS = 4096  # bounded per-user bucket map (self-pruning)
 
 UPSTREAM_TIMEOUT = httpx.Timeout(120.0, connect=10.0)
 
-SUPPORTED_PROVIDERS = ("openai", "anthropic", "gemini")
+# ─── Providers (M4.5: derived from the single policy point) ─────────────────
+#
+# config/llm-provider-policy.json is THE provider policy decision point.
+# Everything below is derived from it at import time — a provider added,
+# removed, renamed or re-keyed there changes this module automatically.
+# Import failures are fail-closed: a missing/invalid policy breaks the import
+# instead of silently serving a stale hard-coded allow-list.
+from integrations.provider_policy import (  # noqa: E402  (placed after config consts)
+    provider_defaults as _policy_defaults,
+    provider_env_map as _policy_env_map,
+    allowed_provider_ids as _policy_allowed,
+)
+
+_POLICY_ENV = _policy_env_map()                      # {pid: {api_key, base_url, model}}
+_POLICY_DEFAULTS = _policy_defaults("chat_stream")   # {pid: {base_url, default_model}}
+
+SUPPORTED_PROVIDERS: tuple[str, ...] = _policy_allowed("chat_stream")
 
 # Environment variables holding server-side provider configuration.
 # NAMES are safe to expose; VALUES never leave the box.
-PROVIDER_API_KEY_ENV = {
-    "openai": "OPENAI_API_KEY",
-    "anthropic": "ANTHROPIC_API_KEY",
-    "gemini": "GEMINI_API_KEY",
-}
-PROVIDER_BASE_URL_ENV = {
-    "openai": "OPENAI_BASE_URL",
-    "anthropic": "ANTHROPIC_BASE_URL",
-    "gemini": "GEMINI_BASE_URL",
-}
-PROVIDER_DEFAULT_BASE_URL = {
-    "openai": "https://api.openai.com/v1",
-    "anthropic": "https://api.anthropic.com/v1",
-    "gemini": "https://generativelanguage.googleapis.com/v1beta",
-}
-PROVIDER_MODEL_ENV = {
-    "openai": "OPENAI_MODEL",
-    "anthropic": "ANTHROPIC_MODEL",
-    "gemini": "GEMINI_MODEL",
-}
-PROVIDER_DEFAULT_MODEL = {
-    "openai": "gpt-4o-mini",
-    "anthropic": "claude-3-5-haiku-latest",
-    "gemini": "gemini-1.5-flash",
-}
+PROVIDER_API_KEY_ENV = {pid: cfg["api_key"] for pid, cfg in _POLICY_ENV.items() if pid in SUPPORTED_PROVIDERS}
+PROVIDER_BASE_URL_ENV = {pid: cfg["base_url"] for pid, cfg in _POLICY_ENV.items() if pid in SUPPORTED_PROVIDERS}
+PROVIDER_DEFAULT_BASE_URL = {pid: d["base_url"] for pid, d in _POLICY_DEFAULTS.items()}
+PROVIDER_MODEL_ENV = {pid: cfg["model"] for pid, cfg in _POLICY_ENV.items() if pid in SUPPORTED_PROVIDERS}
+PROVIDER_DEFAULT_MODEL = {pid: d["default_model"] for pid, d in _POLICY_DEFAULTS.items()}
 
 ANTHROPIC_VERSION_HEADER = "2023-06-01"
 

@@ -1,28 +1,24 @@
 /**
- * tests/unit/routes/agents.test.ts — Unit tests for Agent Chat & Grounded Direct-AI Fallback (P3).
+ * tests/unit/routes/agents.test.ts — M4.3: Fail-Closed Agent Chat Pipeline.
  *
  * Verifies:
- * 1. getGroundedSystemPrompt loads the canonical prompt from prompts.json / prompts/
- *    and appends the Engineering Grounding Directive to prevent hallucination.
- * 2. Complete elimination of the legacy ungrounded 2-line system prompt.
- * 3. Correct promptHandle mapping across all registered agents in AGENT_REGISTRY.
- * 4. Response metadata includes executionMode: "grounded_direct_ai_fallback".
- * 5. Return HTTP 503 when no AI provider is configured.
- * 6. Return HTTP 502 when AI generation fails with failover.
+ * 1. The raw direct-AI fallback is GONE (no runDirectAi / grounding directive /
+ *    getGroundedSystemPrompt exports) — capability unavailable ⇒
+ *    SPECIALIZED_EXECUTION_UNAVAILABLE (HTTP 503), never a raw LLM answer.
+ * 2. The capability-preserving Mastra proxy remains the only downstream path
+ *    and returns 200 when reachable.
+ * 3. Prompt-handle mapping stays intact across all registered agents.
+ * 4. Request validation (400 invalid JSON) and agent lookup (404) unchanged.
  */
 
-import { describe, expect, it, vi, beforeEach } from 'vitest';
-import {
-  handleChat,
-  getGroundedSystemPrompt,
-  ENGINEERING_GROUNDING_DIRECTIVE,
-} from '../../../src/routes/agents.js';
+import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
+import { handleChat } from '../../../src/routes/agents.js';
+import * as routesAgents from '../../../src/routes/agents.js';
 import {
   AGENT_REGISTRY,
   getAgentPromptHandle,
   listAgentIds,
 } from '../../../src/core/agents.js';
-import * as providersModule from '../../../src/core/providers.js';
 import type { Env, ExecutionContext } from '../../../src/core/types.js';
 
 describe('P3: Agent Prompt Grounding & Fallback Elimination', () => {
@@ -30,184 +26,114 @@ describe('P3: Agent Prompt Grounding & Fallback Elimination', () => {
     vi.restoreAllMocks();
   });
 
-  describe('Prompt Grounding & Anti-Hallucination Directives', () => {
-    it('grounds load-flow-agent with IEEE 3002.7 and anti-hallucination directive', async () => {
-      const prompt = await getGroundedSystemPrompt('load-flow-agent');
-      expect(prompt).toContain('Load Flow Analysis Agent');
-      expect(prompt).toContain('IEEE 3002.7');
-      expect(prompt).toContain('Newton-Raphson');
-      expect(prompt).toContain(ENGINEERING_GROUNDING_DIRECTIVE);
-      expect(prompt).toContain('ZERO HALLUCINATION & NO GUESSING');
-      expect(prompt).toContain('NO ENGINE CONNECTED');
-      // Assert legacy ungrounded prompt is eliminated
-      expect(prompt).not.toContain(
-        'Respond with professional engineering analysis. Be concise, accurate'
-      );
+  function chatRequest(body: unknown): Request {
+    return new Request('http://localhost/api/v1/agents/load-flow-agent/chat', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+  }
+
+  const VALID_BODY = {
+    messages: [{ role: 'user', content: 'What are the required parameters for load flow?' }],
+  };
+
+  const mockCtx: ExecutionContext = {
+    waitUntil: vi.fn(),
+    passThroughOnException: vi.fn(),
+  };
+
+  describe('Fallback elimination (module surface)', () => {
+    it('no longer exports the raw fallback surface', () => {
+      const mod = routesAgents as Record<string, unknown>;
+      expect(mod.getGroundedSystemPrompt).toBeUndefined();
+      expect(mod.ENGINEERING_GROUNDING_DIRECTIVE).toBeUndefined();
+      expect(mod.runDirectAi).toBeUndefined();
     });
 
-    it('grounds short-circuit-agent with IEC 60909 and anti-hallucination directive', async () => {
-      const prompt = await getGroundedSystemPrompt('short-circuit-agent');
-      expect(prompt).toContain('Short Circuit Analysis Agent');
-      expect(prompt).toContain('IEC 60909');
-      expect(prompt).toContain(ENGINEERING_GROUNDING_DIRECTIVE);
-      expect(prompt).toContain('ZERO HALLUCINATION & NO GUESSING');
-    });
-
-    it('grounds arcflash-agent with IEEE 1584 and NFPA 70E', async () => {
-      const prompt = await getGroundedSystemPrompt('arcflash-agent');
-      expect(prompt).toContain('Arc Flash Hazard Analysis Agent');
-      expect(prompt).toContain('IEEE 1584');
-      expect(prompt).toContain(ENGINEERING_GROUNDING_DIRECTIVE);
-    });
-
-    it('grounds protection-agent with IEC 60255', async () => {
-      const prompt = await getGroundedSystemPrompt('protection-agent');
-      expect(prompt).toContain('Protection Coordination Agent');
-      expect(prompt).toContain('IEC 60255');
-      expect(prompt).toContain(ENGINEERING_GROUNDING_DIRECTIVE);
-    });
-
-    it('all registered agents have promptHandle and grounded system prompts', async () => {
+    it('all registered agents still have a promptHandle mapping', () => {
       const ids = listAgentIds();
       expect(ids.length).toBeGreaterThanOrEqual(10);
-
       for (const id of ids) {
         const handle = getAgentPromptHandle(id);
         expect(handle).toBeDefined();
         expect(handle.length).toBeGreaterThan(0);
         expect(AGENT_REGISTRY[id].promptHandle).toBe(handle);
-
-        const prompt = await getGroundedSystemPrompt(id);
-        expect(prompt).toBeDefined();
-        expect(prompt.length).toBeGreaterThan(200);
-        expect(prompt).toContain(ENGINEERING_GROUNDING_DIRECTIVE);
-        expect(prompt).toContain('ZERO HALLUCINATION & NO GUESSING');
       }
     });
   });
 
-  describe('Direct-AI Fallback Execution Gate & Metadata', () => {
-    const mockCtx: ExecutionContext = {
-      waitUntil: vi.fn(),
-      passThroughOnException: vi.fn(),
-    };
-
-    it('returns HTTP 503 when no AI provider is configured', async () => {
-      const emptyEnv: Env = {};
-      const req = new Request('http://localhost/api/v1/agents/load-flow-agent/chat', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({
-          messages: [{ role: 'user', content: 'Calculate load flow for 3-bus network' }],
-        }),
-      });
-
-      const res = await handleChat(
-        req,
-        emptyEnv,
-        mockCtx,
-        'test-key',
-        'admin',
-        'load-flow-agent',
-        'trace-p3-503'
-      );
-
+  describe('SPECIALIZED_EXECUTION_UNAVAILABLE fail-closed path', () => {
+    it('returns HTTP 503 with the unified code when Mastra is not configured', async () => {
+      const res = await handleChat(chatRequest(VALID_BODY), {}, mockCtx, 'k1', 'admin', 'load-flow-agent', 'trace-m4-503a');
       expect(res.status).toBe(503);
       const data = (await res.json()) as Record<string, unknown>;
       expect(data.status).toBe(503);
-      expect(data.message).toMatch(/No AI provider is configured/i);
+      expect(data.code).toBe('SPECIALIZED_EXECUTION_UNAVAILABLE');
+      expect(String(data.message)).toMatch(/fail-closed/i);
+      expect(data.agentId).toBe('load-flow-agent');
     });
 
-    it('executes runDirectAi with grounded prompt and returns executionMode metadata', async () => {
-      const envWithProvider: Env = {
-        OPENAI_API_KEY: 'sk-test-mock-key',
-      };
+    it('returns HTTP 503 when the Mastra proxy is unreachable (fetch throws)', async () => {
+      const env: Env = { MASTRA_API_URL: 'https://mastra.invalid' };
+      vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('connection refused')));
 
-      let capturedSystemPrompt = '';
-      vi.spyOn(providersModule, 'generateWithFailover').mockImplementation(
-        async (_env, system, _messages) => {
-          capturedSystemPrompt = system;
-          return {
-            text: 'Grounding directive acknowledged. Missing parameters: base MVA, line impedances.',
-            provider: 'openai',
-            model: 'gpt-4o',
-            latencyMs: 120,
-            promptTokens: 450,
-            completionTokens: 25,
-            finishReason: 'stop',
-          };
-        }
+      const res = await handleChat(chatRequest(VALID_BODY), env, mockCtx, 'k1', 'admin', 'load-flow-agent', 'trace-m4-503b');
+
+      expect(res.status).toBe(503);
+      const data = (await res.json()) as Record<string, unknown>;
+      expect(data.code).toBe('SPECIALIZED_EXECUTION_UNAVAILABLE');
+    });
+
+    it('returns HTTP 503 when the Mastra proxy responds with an error status', async () => {
+      const env: Env = { MASTRA_API_URL: 'https://mastra.invalid' };
+      vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('boom', { status: 502 })));
+
+      const res = await handleChat(chatRequest(VALID_BODY), env, mockCtx, 'k1', 'admin', 'load-flow-agent', 'trace-m4-503c');
+
+      expect(res.status).toBe(503);
+      const data = (await res.json()) as Record<string, unknown>;
+      expect(data.code).toBe('SPECIALIZED_EXECUTION_UNAVAILABLE');
+    });
+  });
+
+  describe('Capability-preserving proxy path', () => {
+    it('proxies successful Mastra responses and stamps the traceId', async () => {
+      const env: Env = { MASTRA_API_URL: 'https://mastra.example', MASTRA_API_KEY: 'mk' };
+      const proxyBody = { text: 'Engine-backed answer', provider: 'mastra' };
+      const fetchMock = vi.fn().mockResolvedValue(
+        new Response(JSON.stringify(proxyBody), { status: 200, headers: { 'content-type': 'application/json' } }),
       );
+      vi.stubGlobal('fetch', fetchMock);
 
-      const req = new Request('http://localhost/api/v1/agents/load-flow-agent/chat', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({
-          messages: [{ role: 'user', content: 'What are the required parameters for load flow?' }],
-        }),
-      });
-
-      const res = await handleChat(
-        req,
-        envWithProvider,
-        mockCtx,
-        'test-key',
-        'admin',
-        'load-flow-agent',
-        'trace-p3-200'
-      );
+      const res = await handleChat(chatRequest(VALID_BODY), env, mockCtx, 'k1', 'admin', 'load-flow-agent', 'trace-m4-200');
 
       expect(res.status).toBe(200);
       const data = (await res.json()) as Record<string, unknown>;
-
-      // Check execution mode metadata
-      expect(data.executionMode).toBe('grounded_direct_ai_fallback');
-      expect(data.agentId).toBe('load-flow-agent');
-      expect(data.provider).toBe('openai');
-      expect(data.model).toBe('gpt-4o');
-      expect(data.text).toContain('Missing parameters');
-
-      // Check captured system prompt contains standards and grounding directive
-      expect(capturedSystemPrompt).toContain('Load Flow Analysis Agent');
-      expect(capturedSystemPrompt).toContain('IEEE 3002.7');
-      expect(capturedSystemPrompt).toContain('[ENGINEERING GROUNDING & CONVERSATIONAL CONSTRAINTS]');
-      expect(capturedSystemPrompt).toContain('ZERO HALLUCINATION & NO GUESSING');
-      expect(capturedSystemPrompt).not.toContain(
-        'Respond with professional engineering analysis. Be concise, accurate'
-      );
+      expect(data.text).toBe('Engine-backed answer');
+      expect(data.traceId).toBe('trace-m4-200');
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+      const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+      expect(url).toBe('https://mastra.example/api/agents/load-flow-agent/generate');
+      expect((init.headers as Record<string, string>)['x-api-key']).toBe('mk');
     });
+  });
 
-    it('returns HTTP 502 when AI generation failover fails', async () => {
-      const envWithProvider: Env = {
-        OPENAI_API_KEY: 'sk-test-mock-key',
-      };
-
-      vi.spyOn(providersModule, 'generateWithFailover').mockRejectedValue(
-        new Error('Upstream AI provider timeout (504)')
-      );
-
+  describe('Unchanged request validation', () => {
+    it('returns HTTP 400 for an invalid JSON body', async () => {
       const req = new Request('http://localhost/api/v1/agents/load-flow-agent/chat', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({
-          messages: [{ role: 'user', content: 'Run analysis' }],
-        }),
+        body: '{not-json',
       });
 
-      const res = await handleChat(
-        req,
-        envWithProvider,
-        mockCtx,
-        'test-key',
-        'admin',
-        'load-flow-agent',
-        'trace-p3-502'
-      );
+      const res = await handleChat(req, {}, mockCtx, 'k1', 'admin', 'load-flow-agent', 'trace-m4-400');
+      expect(res.status).toBe(400);
+    });
 
-      expect(res.status).toBe(502);
-      const data = (await res.json()) as Record<string, unknown>;
-      expect(data.status).toBe(502);
-      expect(data.message).toContain('Upstream AI provider timeout');
+    it('returns HTTP 404 for an unknown agent', async () => {
+      const res = await handleChat(chatRequest(VALID_BODY), {}, mockCtx, 'k1', 'admin', 'does-not-exist', 'trace-m4-404');
+      expect(res.status).toBe(404);
     });
   });
 });

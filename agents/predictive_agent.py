@@ -22,6 +22,7 @@ Standards:
 from __future__ import annotations
 
 import logging
+import os
 from datetime import datetime, timezone
 
 UTC = timezone.utc  # noqa: UP017
@@ -32,6 +33,134 @@ import numpy as np
 from agents.orchestrator import AgentResult, AgentStatus, BaseAgent, EngineeringTask, StudyType
 
 logger = logging.getLogger(__name__)
+
+# ─────────────────────────────────────────────────────────────────────────────
+# M4.4 — Synthetic-data governance + mandatory ML provenance
+# ─────────────────────────────────────────────────────────────────────────────
+
+#: Immutable version tag attached to every predictive result (M4.4 provenance).
+MODEL_VERSION = "predictive-agent/1.0.0"
+
+#: Production-like environments where synthetic demo data MUST be refused.
+_PROD_ENVIRONMENTS = frozenset({"production", "prod", "staging"})
+
+#: Provenance keys that are mandatory on every successful predictive result.
+REQUIRED_PROVENANCE_KEYS = ("model_version", "input_window", "drift_state")
+
+
+def current_environment() -> str:
+    """Normalized ``ENVIRONMENT``/``ENV`` name (default ``development``)."""
+    return os.environ.get("ENVIRONMENT", os.environ.get("ENV", "development")).lower().strip()
+
+
+def is_production_environment() -> bool:
+    """True inside the explicit production allow-list.
+
+    Delegates to ``api.environment`` when importable so the definition stays
+    single-sourced; falls back to a local copy so ``agents.*`` never hard-depends
+    on the ``api`` package.
+    """
+    try:  # pragma: no cover - exercised only when api package is importable
+        from api.environment import is_production_environment as _canonical
+
+        return bool(_canonical())
+    except Exception:
+        return current_environment() in _PROD_ENVIRONMENTS
+
+
+def synthetic_data_allowed() -> bool:
+    """Synthetic demo data is NEVER allowed in production/staging (fail-closed)."""
+    return not is_production_environment()
+
+
+def resolve_allow_synthetic(task: EngineeringTask) -> bool:
+    """Honour ``task.parameters['allow_synthetic']`` subject to the prod gate.
+
+    Returns ``True`` only when the caller requested synthetic data **and** the
+    current environment is not production-like. Blocked requests are logged so
+    a silent downgrade is never mistaken for a successful synthetic run.
+    """
+    if not bool(task.parameters.get("allow_synthetic", False)):
+        return False
+    if not synthetic_data_allowed():
+        logger.warning(
+            "allow_synthetic requested for task %s but BLOCKED: synthetic data is "
+            "disabled in '%s' environment",
+            getattr(task, "task_id", "?"),
+            current_environment(),
+        )
+        return False
+    return True
+
+
+def derive_input_window(task: EngineeringTask, results: dict[str, Any]) -> int:
+    """Count the source observations actually fed into the executed analyses."""
+    params = task.parameters
+    window = 0
+    if "short_term_forecast" in results or "ml_short_term_forecast" in results:
+        window += len(params.get("historical_load_mw") or [])
+    if "long_term_forecast" in results:
+        peaks = params.get("peak_loads_mw")
+        window += len(peaks) if peaks else 8
+    if "failure_prediction" in results:
+        window += 1
+    if "maintenance_schedule" in results:
+        equipment = params.get("equipment_list")
+        window += len(equipment) if equipment else 3
+    if "ml_fault_prediction" in results:
+        labels = params.get("fault_labels")
+        if labels is not None:
+            window += len(labels)
+    return window
+
+
+def derive_drift_state(results: dict[str, Any]) -> str:
+    """Derive ``drift_state`` from measured backtest error, else ``unknown``.
+
+    Never fabricates a drift signal: when no MAPE is available the honest value
+    is ``unknown``, not ``stable``.
+    """
+    mape: float | None = None
+    for key in ("short_term_forecast", "ml_short_term_forecast", "long_term_forecast"):
+        block = results.get(key)
+        if isinstance(block, dict) and block.get("mape_percent") is not None:
+            try:
+                mape = float(block["mape_percent"])
+                break
+            except (TypeError, ValueError):
+                continue
+    if mape is None:
+        return "unknown"
+    if mape <= 5.0:
+        return "stable"
+    if mape <= 15.0:
+        return "drifting"
+    return "degraded"
+
+
+def build_provenance(
+    task: EngineeringTask,
+    results: dict[str, Any],
+    *,
+    allow_synthetic: bool,
+    model_version: str = MODEL_VERSION,
+) -> dict[str, Any]:
+    """Assemble the mandatory M4.4 provenance block for a predictive result."""
+    synthetic_used = any(
+        isinstance(block, dict) and block.get("status") == "synthetic_demo"
+        for block in results.values()
+    )
+    return {
+        "model_version": model_version,
+        "input_window": derive_input_window(task, results),
+        "drift_state": derive_drift_state(results),
+        "synthetic_data_used": synthetic_used,
+        "allow_synthetic_requested": bool(
+            task.parameters.get("allow_synthetic", False)
+        ),
+        "allow_synthetic_resolved": allow_synthetic,
+        "environment": current_environment(),
+    }
 
 
 class PredictiveAgent(BaseAgent):
@@ -505,12 +634,14 @@ class PredictiveAgent(BaseAgent):
 
             analysis_type = task.parameters.get("analysis_type", "full")
             results: dict[str, Any] = {}
+            # M4.4 — resolved once: prod/staging always refuses synthetic data.
+            allow_synthetic = resolve_allow_synthetic(task)
 
             # --- Short-term load forecast ---
             if analysis_type in ("short_term_forecast", "full"):
                 hist_load = task.parameters.get("historical_load_mw", [])
                 if not hist_load:
-                    if task.parameters.get("allow_synthetic", False):
+                    if allow_synthetic:
                         hours = 168  # 1 week
                         _noise_rng = np.random.default_rng(42)
                         hist_load = [
@@ -607,7 +738,7 @@ class PredictiveAgent(BaseAgent):
             if analysis_type in ("ml_short_term_forecast", "full_ml"):
                 hist_load = task.parameters.get("historical_load_mw", [])
                 if not hist_load:
-                    if task.parameters.get("allow_synthetic", False):
+                    if allow_synthetic:
                         hours = 168
                         _noise_rng = np.random.default_rng(42)
                         hist_load = [
@@ -656,6 +787,11 @@ class PredictiveAgent(BaseAgent):
                         "error": "fault_features and fault_labels required",
                     }
 
+            # M4.4 — mandatory provenance: model_version / input_window / drift_state
+            results["provenance"] = build_provenance(
+                task, results, allow_synthetic=allow_synthetic
+            )
+
             result = AgentResult(
                 agent_name=self.agent_name,
                 study_type=task.study_types[0] if task.study_types else StudyType.LOAD_FLOW,
@@ -697,8 +833,18 @@ class PredictiveAgent(BaseAgent):
         - MAPE is non-negative
         - Failure probabilities are between 0 and 1
         - Maintenance priorities are valid
+        - M4.4: provenance block present with model_version/input_window/drift_state
         """
         errors: list[str] = []
+
+        # M4.4 — provenance is mandatory, not decorative.
+        provenance = result.data.get("provenance")
+        if not isinstance(provenance, dict):
+            errors.append("Missing mandatory provenance block")
+        else:
+            for key in REQUIRED_PROVENANCE_KEYS:
+                if key not in provenance:
+                    errors.append(f"Missing mandatory provenance key: {key}")
 
         stf_data = result.data.get("short_term_forecast")
         if stf_data is not None:

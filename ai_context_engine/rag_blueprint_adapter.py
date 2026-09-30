@@ -136,15 +136,20 @@ class RAGBlueprintAdapter:
         top_k: int = 5,
         max_tokens: int = 2000,
         enforce_guardrails: bool = True,
+        tenant_id: str | None = None,
     ) -> dict:
         """
         End-to-end NVIDIA RAG Blueprint execution:
-        1. Retrieve candidate chunks from base retriever
+        1. Retrieve candidate chunks from base retriever (tenant-scoped)
         2. Perform hybrid RRF reranking (Dense + BM25)
         3. Compress & prune within token budget
         4. Validate against zero-hallucination guardrails
+
+        M4.1 fix: ``tenant_id`` is now forwarded to the base retriever. It was
+        previously dropped here, silently leaking cross-tenant code chunks
+        (retriever.py:131 applied the filter but never received the value).
         """
-        raw_chunks = self.base_retriever.retrieve(query, top_k=top_k * 2)
+        raw_chunks = self.base_retriever.retrieve(query, top_k=top_k * 2, tenant_id=tenant_id)
 
         # If ChromaDB collection is empty, raw_chunks might be empty; provide graceful fallback
         if not raw_chunks:

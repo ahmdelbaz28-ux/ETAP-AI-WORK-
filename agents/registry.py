@@ -2,14 +2,26 @@
 AhmedETAP - Agent Registry & Specialist Agents
 ===============================================
 Encapsulates registration, life-cycle management, and class definitions for all
-24 AhmedETAP specialized agents per AGENTS.md.
+AhmedETAP specialized agents per AGENTS.md.
+
+M4.2 — Single Source of Truth for agent keys
+---------------------------------------------
+This module declares the canonical agent-key namespace:
+
+* ``CANONICAL_AGENT_KEYS`` — 27 canonical keys (the authoritative namespace).
+* ``AGENT_KEY_ALIASES``    — 3 backward-compat aliases → canonical target.
+* ``validate_agent_keys()`` — fail-fast validator used at startup and in CI.
+
+Live fact at ``852007b03``: ``create_agent_registry()`` returns **30** keys
+(27 canonical + 3 aliases). The previous docstring claim of "24" and the
+``agents/__init__.py`` claim of "15" were both stale and are corrected here.
 """
 
 from __future__ import annotations
 
 import logging
 from datetime import datetime, timezone
-from typing import Any
+from typing import Any, Iterable, Mapping
 
 import numpy as np
 
@@ -28,6 +40,140 @@ from core.tracing import trace_operation
 UTC = timezone.utc  # noqa: UP017
 logger = logging.getLogger(__name__)
 _ENGINEERING_ASSERTION_FAILED = "Engineering assertion check failed: %s"
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# M4.2 — Canonical agent-key namespace (single source of truth)
+# ─────────────────────────────────────────────────────────────────────────────
+
+#: The 27 canonical agent keys. Any key not listed here and not listed in
+#: :data:`AGENT_KEY_ALIASES` is an *unregistered* capability and must not be
+#: silently accepted by any dispatcher, router, or API surface.
+CANONICAL_AGENT_KEYS: frozenset[str] = frozenset(
+    {
+        # Core specialists (built unconditionally below)
+        "load_flow",
+        "short_circuit",
+        "harmonic_analysis",
+        "optimal_power_flow",
+        "protection_coordination",
+        "etap_execution",
+        "validation",
+        "report",
+        # Standalone specialists
+        "arc_flash",
+        "motor_starting",
+        "transient_stability",
+        "cable_sizing",
+        "earth_grid",
+        "renewable_integration",
+        "battery_storage",
+        "scada",
+        "digital_twin",
+        "anomaly",
+        "predictive",
+        "weather",
+        "goal_planner",
+        "optimization",
+        "generative_design",
+        # Optional-import specialists
+        "code_guard",
+        "etap_expert",
+        "etap_gui",
+        "ahmed_etap",
+    }
+)
+
+#: Backward-compat aliases → canonical key. Aliases must never collide with a
+#: canonical key and must never be introduced for StudyType members.
+AGENT_KEY_ALIASES: Mapping[str, str] = {
+    "harmonic": "harmonic_analysis",
+    "opf": "optimal_power_flow",
+    "protection": "protection_coordination",
+}
+
+#: Keys constructed without any ``try/except`` guard — their absence is a
+#: hard registry corruption, not an optional capability gap.
+MANDATORY_AGENT_KEYS: frozenset[str] = frozenset(
+    {
+        "load_flow",
+        "short_circuit",
+        "harmonic_analysis",
+        "optimal_power_flow",
+        "protection_coordination",
+        "etap_execution",
+        "validation",
+        "report",
+    }
+)
+
+#: M4.4 — these capabilities are context-bound only. They MUST NOT be exposed
+#: as registerable ``StudyType`` members (they are not dispatchable through
+#: the deterministic study executors). Registered as regression guard.
+CONTEXT_BOUND_AGENT_KEYS: frozenset[str] = frozenset({"predictive", "anomaly"})
+
+
+class AgentRegistryError(RuntimeError):
+    """Raised when the agent registry violates the canonical key namespace."""
+
+
+def all_registered_keys() -> frozenset[str]:
+    """Return canonical keys ∪ alias keys — the full legal namespace."""
+    return CANONICAL_AGENT_KEYS | frozenset(AGENT_KEY_ALIASES)
+
+
+def resolve_agent_key(key: str) -> str:
+    """Resolve an alias to its canonical key (identity for canonical keys)."""
+    return AGENT_KEY_ALIASES.get(key, key)
+
+
+def validate_agent_keys(
+    registered: Mapping[str, Any] | Iterable[str],
+    *,
+    require_mandatory: bool = True,
+    allow_optional_missing: bool = True,
+) -> list[str]:
+    """Validate a live registry against the canonical namespace.
+
+    Returns the list of problems (empty ⇒ valid). Raises nothing itself so
+    callers decide between fail-fast (startup/CI) and logging.
+
+    Checks:
+      1. Every key is canonical or a declared alias (no smuggled keys).
+      2. Every mandatory key is present (corruption ⇒ failure).
+      3. Alias targets exist and are canonical.
+      4. Context-bound keys (``predictive``/``anomaly``) are never used as
+         ``StudyType`` members — guarded separately in tests.
+    """
+    keys = set(registered.keys()) if isinstance(registered, Mapping) else set(registered)
+    problems: list[str] = []
+
+    unknown = sorted(keys - all_registered_keys())
+    if unknown:
+        problems.append(
+            "unregistered agent key(s) outside canonical namespace: "
+            + ", ".join(unknown)
+        )
+
+    if require_mandatory:
+        missing = sorted(MANDATORY_AGENT_KEYS - keys)
+        if missing:
+            problems.append(
+                "missing mandatory agent key(s): " + ", ".join(missing)
+            )
+
+    for alias, target in sorted(AGENT_KEY_ALIASES.items()):
+        if alias in keys:
+            if target not in CANONICAL_AGENT_KEYS:
+                problems.append(f"alias '{alias}' targets non-canonical '{target}'")
+            elif allow_optional_missing and isinstance(registered, Mapping):
+                if target not in keys:
+                    problems.append(
+                        f"alias '{alias}' present but canonical target "
+                        f"'{target}' missing"
+                    )
+
+    return problems
 
 
 class LoadFlowAgent(BaseAgent):
@@ -1421,7 +1567,13 @@ def get_agent_for_study(agents: dict[str, BaseAgent], study_type: StudyType) -> 
 
 
 def create_agent_registry(orchestrator_instance: Any = None) -> dict[str, BaseAgent]:
-    """Create and register all 24 AhmedETAP specialized agents."""
+    """Create and register all canonical AhmedETAP specialized agents.
+
+    M4.2: the returned mapping is validated against
+    :data:`CANONICAL_AGENT_KEYS`/ :data:`AGENT_KEY_ALIASES` before it is
+    returned — a smuggled or misspelled key fails here, at construction time,
+    instead of at dispatch time.
+    """
     agents: dict[str, BaseAgent] = {
         "load_flow": LoadFlowAgent(),
         "short_circuit": ShortCircuitAgent(),
@@ -1500,6 +1652,13 @@ def create_agent_registry(orchestrator_instance: Any = None) -> dict[str, BaseAg
     except Exception as exc:
         _logger = logging.getLogger("orchestrator")
         _logger.warning("AhmedETAPSkillAgent not available: %s", exc)
+
+    # M4.2 — fail fast on namespace violations (unregistered/smuggled keys).
+    _problems = validate_agent_keys(agents)
+    if _problems:
+        raise AgentRegistryError(
+            "Agent registry violates canonical key namespace: " + "; ".join(_problems)
+        )
 
     return agents
 

@@ -15,6 +15,46 @@ from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
 from integrations.langfuse_llm import _PRICING_USD_PER_1K
+from integrations.provider_policy import (
+    ProviderPolicyError,
+    allowed_provider_ids,
+    cascade_enabled,
+    declared_tiers,
+    escalation_target,
+    get_provider_policy,
+    invalidate_policy_cache,
+    load_provider_policy,
+    provider_defaults,
+    provider_env_map,
+    tier_models,
+    tier_of_model,
+    validate_provider_policy,
+)
+
+__all__ = [
+    # Cascade router (existing public surface)
+    "ModelTier",
+    "ModelSelection",
+    "ModelCascadeRouter",
+    "TIER_MODELS",
+    "HIGH_COMPLEXITY_TRIGGERS",
+    # M4.5 — single policy point re-exports
+    "ProviderPolicyError",
+    "get_provider_policy",
+    "load_provider_policy",
+    "invalidate_policy_cache",
+    "validate_provider_policy",
+    "allowed_provider_ids",
+    "provider_env_map",
+    "provider_defaults",
+    "tier_models",
+    "declared_tiers",
+    "cascade_enabled",
+    "escalation_target",
+    "tier_of_model",
+    "policy_tier_models",
+    "resolve_model",
+]
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +65,13 @@ class ModelTier(str, Enum):
     REASONING = "tier_3_reasoning"  # Deep multi-step proofs, complex protection grading (e.g. gpt-4.1, claude-3-opus)
 
 
-# Default model candidates per tier in order of preference
+# Default model candidates per tier in order of preference.
+#
+# M4.5 NOTE: this constant is kept only as a human-readable mirror of the
+# *seed* tier composition. It is NOT consulted for decisions any more —
+# :func:`policy_tier_models` reads ``config/llm-provider-policy.json``, which
+# is the single provider/model policy decision point. A drift between this
+# constant and the policy is detected by tests/test_llm_provider_policy.py.
 TIER_MODELS: Dict[ModelTier, List[str]] = {
     ModelTier.ECONOMY: [
         "gpt-4o-mini",
@@ -71,6 +117,48 @@ class ModelSelection:
     reason: str = "Automated complexity analysis"
 
 
+def policy_tier_models(tier: ModelTier | str) -> List[str]:
+    """Models declared for ``tier`` by the single policy point (fail-closed).
+
+    Reads ``config/llm-provider-policy.json`` via
+    :mod:`integrations.provider_policy`. Raises
+    :class:`ProviderPolicyError` when the tier is undeclared — there is no
+    hard-coded backstop by design (M4.5).
+    """
+    name = tier.value if isinstance(tier, ModelTier) else str(tier)
+    return tier_models(name)
+
+
+def resolve_model(
+    prompt: str,
+    *,
+    force_tier: Optional[ModelTier] = None,
+    available_models: Optional[List[str]] = None,
+    policy_path: Optional[str] = None,
+) -> Optional[ModelSelection]:
+    """Single-point model decision (M4.5).
+
+    Returns the policy-driven :class:`ModelSelection`, or ``None`` when the
+    policy itself has ``cascade.enabled = false`` (the caller then keeps its
+    configured model — the policy said "do not re-route").
+
+    Raises :class:`ProviderPolicyError` when the policy document is missing or
+    invalid. Never falls back to a hard-coded decision.
+    """
+    if policy_path is not None:
+        load_provider_policy(policy_path, reload=True)
+
+    if not cascade_enabled():
+        logger.info("Model cascade disabled by provider policy — keeping configured model")
+        return None
+
+    return ModelCascadeRouter().select_model(
+        prompt,
+        available_models=available_models,
+        force_tier=force_tier,
+    )
+
+
 class ModelCascadeRouter:
     """Cost-Aware Model Cascade Router with Verification Gateways."""
 
@@ -111,7 +199,7 @@ class ModelCascadeRouter:
         self._total_requests += 1
         tier = force_tier or self.assess_complexity(prompt)
 
-        candidates = TIER_MODELS.get(tier, TIER_MODELS[ModelTier.STANDARD])
+        candidates = policy_tier_models(tier)
         if available_models:
             active_candidates = [m for m in candidates if m in available_models]
             if not active_candidates:
@@ -122,14 +210,13 @@ class ModelCascadeRouter:
 
         chosen_model = active_candidates[0] if active_candidates else "gpt-4o-mini"
 
-        # Determine escalation model if this tier fails validation
+        # Determine escalation model if this tier fails validation.
+        # M4.5: the escalation path comes from the policy, not code.
         escalation_model = None
-        if tier == ModelTier.ECONOMY:
-            std_candidates = TIER_MODELS[ModelTier.STANDARD]
-            escalation_model = std_candidates[0]
-        elif tier == ModelTier.STANDARD:
-            reas_candidates = TIER_MODELS[ModelTier.REASONING]
-            escalation_model = reas_candidates[0]
+        target_tier = escalation_target(tier.value)
+        if target_tier:
+            target_candidates = policy_tier_models(target_tier)
+            escalation_model = target_candidates[0] if target_candidates else None
 
         pricing = _PRICING_USD_PER_1K.get(chosen_model, {"input": 0.001, "output": 0.003})
 
