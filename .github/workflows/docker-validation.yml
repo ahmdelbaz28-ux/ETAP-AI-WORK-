@@ -244,6 +244,9 @@ jobs:
       - name: 🐳 Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
 
+      - name: 📁 Ensure ui-dist directory exists for Docker build context
+        run: mkdir -p ui-dist
+
       - name: 🏗️ Rebuild image for scanning
         uses: docker/build-push-action@v6
         with:
