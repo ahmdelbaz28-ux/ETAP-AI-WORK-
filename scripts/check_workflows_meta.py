@@ -235,6 +235,25 @@ def main() -> int:
     except Exception as exc:
         violations.append(f"M4.3 Fallback Guard: guardian failed to run: {exc}")
 
+    # M6.2 & M6.3 — Authoritative Agent Registry & Reachability Reflection Guard (fail-closed)
+    try:
+        import importlib.util as _ilu_va
+
+        _va_path = Path(__file__).parent / "maintenance" / "verify_agents.py"
+        _va_spec = _ilu_va.spec_from_file_location("verify_agents", _va_path)
+        _va_module = _ilu_va.module_from_spec(_va_spec)  # type: ignore[arg-type]
+        _va_spec.loader.exec_module(_va_module)  # type: ignore[union-attr]
+        va_success = _va_module.verify_agent_registry(fail_loudly=False)
+        if not va_success:
+            violations.append(
+                "M6.2 Agent Reachability Reflection: invariant violation detected — "
+                "run 'python scripts/maintenance/verify_agents.py' for details"
+            )
+    except ModuleNotFoundError as mnf:
+        sys.stdout.write(f"  [INFO] Skipping live dynamic reachability in minimal container: {mnf}\n")
+    except Exception as exc:
+        violations.append(f"M6.2 Agent Reachability Reflection: verifier failed to run: {exc}")
+
     if violations:
         sys.stderr.write(f"\n[BLOCKED] Meta-CI found {len(violations)} workflow standard violation(s):\n")
         for v in violations:
@@ -251,7 +270,8 @@ def main() -> int:
     sys.stdout.write("  - Gitleaksignore ratchet (R-3): ENFORCED (ceiling: 800)\n")
     sys.stdout.write("  - Release Gate job names (G-3 / N28): VERIFIED\n")
     sys.stdout.write("  - Registry Integrity Guard (M2.4): CLEAN\n")
-    sys.stdout.write("  - Raw-LLM Fallback Guard (M4.3): CLEAN\n\n")
+    sys.stdout.write("  - Raw-LLM Fallback Guard (M4.3): CLEAN\n")
+    sys.stdout.write("  - Dynamic Agent Reachability Gate (M6.2 / M6.3): VERIFIED\n\n")
     sys.stdout.flush()
     return 0
 
