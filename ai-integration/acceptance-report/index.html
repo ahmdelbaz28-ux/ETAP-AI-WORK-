@@ -1,0 +1,1002 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Enterprise AI-Powered Power Systems Engineering Platform">
+      
+      
+        <meta name="author" content="AhmedETAP Team">
+      
+      
+      
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.11">
+    
+    
+      
+        <title>AhmedETAP AI Engineering Platform — Final Acceptance Report (M0–M6 Closure) - AhmedETAP Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.4af4bdda.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="deep-purple">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#ahmedetap-ai-engineering-platform-final-acceptance-report-m0m6-closure" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="AhmedETAP Documentation" class="md-header__button md-logo" aria-label="AhmedETAP Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            AhmedETAP Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              AhmedETAP AI Engineering Platform — Final Acceptance Report (M0–M6 Closure)
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  الصفحة الرئيسية
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../ARCHITECTURE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  الهيكلية
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../API_REFERENCE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  واجهة برمجة التطبيقات
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../OPERATIONS_RUNBOOK/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  دليل التشغيل
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../TROUBLESHOOTING_GUIDE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  دليل الأعطال
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../SECURITY_OPERATIONS_MANUAL/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  البنية التحتية للأمان
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../ENTERPRISE_CERTIFICATION_REPORT/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  التقييم المؤسسي
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="AhmedETAP Documentation" class="md-nav__button md-logo" aria-label="AhmedETAP Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    AhmedETAP Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    الصفحة الرئيسية
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ARCHITECTURE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    الهيكلية
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../API_REFERENCE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    واجهة برمجة التطبيقات
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../OPERATIONS_RUNBOOK/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    دليل التشغيل
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../TROUBLESHOOTING_GUIDE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    دليل الأعطال
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../SECURITY_OPERATIONS_MANUAL/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    البنية التحتية للأمان
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ENTERPRISE_CERTIFICATION_REPORT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    التقييم المؤسسي
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-executive-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Executive Summary
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-milestone-architecture-closure-matrix-m0-m6" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Milestone Architecture &amp; Closure Matrix (M0 → M6)
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-items-119-reference-compliance-matrix" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Items 1–19 Reference Compliance Matrix
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-verification-evidence-test-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Verification Evidence &amp; Test Summary
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Verification Evidence &amp; Test Summary">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-integration-acceptance-battery-teststest_m6_integration_acceptancepy" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.1 Integration Acceptance Battery (tests/test_m6_integration_acceptance.py)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-dynamic-reachability-verifier-scriptsmaintenanceverify_agentspy" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.2 Dynamic Reachability Verifier (scripts/maintenance/verify_agents.py)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#43-meta-ci-workflow-standard-gatekeeper-scriptscheck_workflows_metapy" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.3 Meta-CI Workflow &amp; Standard Gatekeeper (scripts/check_workflows_meta.py)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-architectural-invariants-enforced-in-production" class="md-nav__link">
+    <span class="md-ellipsis">
+      5. Architectural Invariants Enforced in Production
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-sign-off-certification" class="md-nav__link">
+    <span class="md-ellipsis">
+      6. Sign-off &amp; Certification
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="ahmedetap-ai-engineering-platform-final-acceptance-report-m0m6-closure">AhmedETAP AI Engineering Platform — Final Acceptance Report (M0–M6 Closure)</h1>
+<p><strong>Project:</strong> AhmedETAP AI-Powered Power Engineering Platform<br />
+<strong>Milestone:</strong> M6 — Integration Battery, Dynamic Reachability Reflection &amp; Permanent Gatekeeper<br />
+<strong>Scope:</strong> Complete Architectural Closure of Reference Items 1 through 19 (Milestones M0 → M6)<br />
+<strong>Branch:</strong> <code>feat/ai-m6-integration-acceptance</code><br />
+<strong>Date:</strong> 2026-09-30<br />
+<strong>Status:</strong> ✅ <strong>ACCEPTED &amp; PRODUCTION READY (100% PASS)</strong>  </p>
+<hr />
+<h2 id="1-executive-summary">1. Executive Summary</h2>
+<p>This document represents the <strong>authoritative architectural closure</strong> of the AhmedETAP AI Engineering Platform transformation roadmap (Milestones M0 through M6). Over seven distinct engineering phases, the platform has evolved from decoupled, ungrounded prototypes into a hardened, dual-runtime industrial engineering system that guarantees:</p>
+<ol>
+<li><strong>Zero Hallucination &amp; Zero Ungrounded Execution</strong>: No general-purpose language model is ever permitted to answer electrical engineering calculations or provide unverified parameters. Any capability outside registered native solvers fails closed with <code>SpecializedExecutionUnavailableError</code> (<code>HTTP 503 SPECIALIZED_EXECUTION_UNAVAILABLE</code>).</li>
+<li><strong>Dual-Runtime Boundary Separation</strong>: Mastra (TypeScript/Node.js) governs planning, specialist agent routing, and structured goal decomposition. Python governs deterministic, validated power-system physics calculations (Newton-Raphson, IEC 60909, IEEE 1584, IEC 60255, IEEE 399).</li>
+<li><strong>Fail-Closed Dual Control &amp; CUA Safety</strong>: Computer-Using Agent (CUA) desktop automation operates under non-bypassable constraints: coordinate bounds checking, tenant tool whitelisting, interactive human approval brokers (300s TTL), deterministic post-action verification, automated rollback, and a cryptographic SHA-256 tamper-evident audit ledger.</li>
+<li><strong>Engineering Assertions &amp; REJECTED Propagation</strong>: Physics-based boundary checks (IEEE C84.1, IEC 60909, IEC 60255, IEEE 1584, IEC 60364) evaluate every simulation. Unmet criteria immediately mark execution nodes as <code>AgentStatus.REJECTED</code>, cascade fail-closed skipping to dependent tasks (<code>SKIPPED_WITH_REASON</code>), and emit <code>overall_success=False</code>.</li>
+<li><strong>Multi-Tenant Context Fabric</strong>: Strict isolation across all six context categories (Engineering Knowledge, History, Project State, Code Context, Standards, User Context), requiring verified tenant scoping and deterministic SHA-256 evidence hashing.</li>
+</ol>
+<hr />
+<h2 id="2-milestone-architecture-closure-matrix-m0-m6">2. Milestone Architecture &amp; Closure Matrix (M0 → M6)</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Milestone</th>
+<th style="text-align: left;">Codebase Target &amp; PR</th>
+<th style="text-align: left;">Core Mandate</th>
+<th style="text-align: left;">Invariants Enforced</th>
+<th style="text-align: center;">Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>M0</strong></td>
+<td style="text-align: left;">Baseline Audit (<code>feat/ai-m0-baseline</code>)</td>
+<td style="text-align: left;">Establish testing baseline, lock down requirements, catalog 277 test files.</td>
+<td style="text-align: left;">Zero regression baseline established.</td>
+<td style="text-align: center;">✅ COMPLETE</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>M1</strong></td>
+<td style="text-align: left;">Behavioral Safety &amp; Reachability (<code>PR #609</code>)</td>
+<td style="text-align: left;">Unify 20 dispatch entries in <code>STUDY_DISPATCH</code>; replace silent defaults with <code>SpecializedExecutionUnavailableError</code>.</td>
+<td style="text-align: left;">Zero silent fallback to <code>load_flow</code> on unregistered/unimplemented studies.</td>
+<td style="text-align: center;">✅ COMPLETE</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>M2</strong></td>
+<td style="text-align: left;">Goal Routing &amp; Ungrounded Fallback Elimination (<code>PR #610</code>)</td>
+<td style="text-align: left;">Synchronize TS <code>AGENT_REGISTRY</code> (26 agents); delete ungrounded direct-AI fallback paths.</td>
+<td style="text-align: left;">Raw LLM fallback paths permanently eliminated from serving routes.</td>
+<td style="text-align: center;">✅ COMPLETE</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>M3</strong></td>
+<td style="text-align: left;">Planning &amp; Coordination (<code>PR #611</code>)</td>
+<td style="text-align: left;">Implement 3 canonical multi-agent chains; wire 4 PSO engines with configurable seeds and rejection gates.</td>
+<td style="text-align: left;">Non-compliant optimization solutions yield <code>AgentStatus.REJECTED</code>.</td>
+<td style="text-align: center;">✅ COMPLETE</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>M4</strong></td>
+<td style="text-align: left;">Context Boundaries &amp; Provider Policy (<code>PR #636</code>)</td>
+<td style="text-align: left;">Launch <code>ContextFabric</code> with 6 context types; multi-tenant isolation; single-source provider policy.</td>
+<td style="text-align: left;">Mandatory <code>tenant_id</code> and SHA-256 evidence hashing across all context providers.</td>
+<td style="text-align: center;">✅ COMPLETE</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>M5</strong></td>
+<td style="text-align: left;">Verification &amp; Automation (<code>PR #637</code>)</td>
+<td style="text-align: left;">Interactive CUA approvals; post-action verification; automated rollback; engineering assertions layer.</td>
+<td style="text-align: left;">Life-safety operations require affirmative authorization; assertions block invalid physics.</td>
+<td style="text-align: center;">✅ COMPLETE</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>M6</strong></td>
+<td style="text-align: left;">Integration &amp; Final Gatekeeper (<code>feat/ai-m6-integration-acceptance</code>)</td>
+<td style="text-align: left;">Authoritative 34-test battery; real reachability reflection verifier; permanent Meta-CI prohibitory gates.</td>
+<td style="text-align: left;">All 20 dispatch entries and 27 canonical agents dynamically reflected and verified.</td>
+<td style="text-align: center;">✅ COMPLETE</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="3-items-119-reference-compliance-matrix">3. Items 1–19 Reference Compliance Matrix</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: center;">Item</th>
+<th style="text-align: left;">Reference Requirement</th>
+<th style="text-align: left;">Architectural Implementation</th>
+<th style="text-align: left;">Verification Evidence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: center;"><strong>1</strong></td>
+<td style="text-align: left;">Dual-Runtime Boundary Definition</td>
+<td style="text-align: left;">Clear demarcation: Mastra TS (planning/routing) ↔ Python API (<code>POST /api/v1/studies/run</code>).</td>
+<td style="text-align: left;"><code>tests/test_contract_sync.py</code>, <code>src/mastra/agents/</code></td>
+</tr>
+<tr>
+<td style="text-align: center;"><strong>2</strong></td>
+<td style="text-align: left;">Canonical StudyType Enum Synchronization</td>
+<td style="text-align: left;">17 canonical StudyTypes (ADR-0001) synchronized across TypeScript and Python runtimes.</td>
+<td style="text-align: left;"><code>agents/models.py</code>, <code>src/contracts/</code></td>
+</tr>
+<tr>
+<td style="text-align: center;"><strong>3</strong></td>
+<td style="text-align: left;">Manifest-First Prompt Management</td>
+<td style="text-align: left;">All 33 prompt handles declared in <code>prompts.json</code>, backed by local YAML files and Langfuse versioning.</td>
+<td style="text-align: left;"><code>prompts.json</code>, <code>agents/prompt_loader.py</code></td>
+</tr>
+<tr>
+<td style="text-align: center;"><strong>4</strong></td>
+<td style="text-align: left;">Non-Native Study Reachability</td>
+<td style="text-align: left;">All 14 non-native studies fail closed with <code>SpecializedExecutionUnavailableError</code> (<code>SPECIALIZED_EXECUTION_UNAVAILABLE</code>).</td>
+<td style="text-align: left;"><code>tests/test_m6_integration_acceptance.py::TestM6ReachabilityAndRegistry</code></td>
+</tr>
+<tr>
+<td style="text-align: center;"><strong>5</strong></td>
+<td style="text-align: left;">Native 4-Study Preservation</td>
+<td style="text-align: left;">Native engines (Load Flow, Short Circuit, Arc Flash, Protection) execute accurately per standards.</td>
+<td style="text-align: left;"><code>tests/test_m6_integration_acceptance.py::TestM6ReachabilityAndRegistry</code></td>
+</tr>
+<tr>
+<td style="text-align: center;"><strong>6</strong></td>
+<td style="text-align: left;">ETAP Expert Skill Integration</td>
+<td style="text-align: left;">4,400-line expert knowledge base (<code>skills/etap-expert.md</code>) wired deterministically with 6-step workflow.</td>
+<td style="text-align: left;"><code>agents/etap_expert_agent.py</code>, <code>tests/test_etap_expert_skill.py</code></td>
+</tr>
+<tr>
+<td style="text-align: center;"><strong>7</strong></td>
+<td style="text-align: left;">CUA GUI Automation Governance</td>
+<td style="text-align: left;">Window coordinate bounds checks, allowed tool policies, and emergency kill switches.</td>
+<td style="text-align: left;"><code>agents/cua_base_executor.py</code>, <code>agents/life_safety.py</code></td>
+</tr>
+<tr>
+<td style="text-align: center;"><strong>8</strong></td>
+<td style="text-align: left;">Context Fabric &amp; Multi-Tenant Boundaries</td>
+<td style="text-align: left;"><code>ContextFabric</code> supporting 6 context types; enforces <code>tenant_id</code> preconditions and prevents cross-tenant leaks.</td>
+<td style="text-align: left;"><code>tests/test_m6_integration_acceptance.py::TestM6ContextFabricTenantIsolation</code></td>
+</tr>
+<tr>
+<td style="text-align: center;"><strong>9</strong></td>
+<td style="text-align: left;">Mastra / Python Execution Interface</td>
+<td style="text-align: left;"><code>ChiefEngineeringOrchestrator.execute_execution_plan()</code> adapter consuming M3 execution plans.</td>
+<td style="text-align: left;"><code>agents/orchestrator.py</code>, <code>agents/workflow.py</code></td>
+</tr>
+<tr>
+<td style="text-align: center;"><strong>10</strong></td>
+<td style="text-align: left;">Elimination of Raw LLM Fallback</td>
+<td style="text-align: left;">Deleted <code>runDirectAi</code>, <code>getGroundedSystemPrompt</code>, and <code>ENGINEERING_GROUNDING_DIRECTIVE</code>.</td>
+<td style="text-align: left;"><code>scripts/check_ai_fallback_guard.py</code> (0 violations)</td>
+</tr>
+<tr>
+<td style="text-align: center;"><strong>11</strong></td>
+<td style="text-align: left;">Multi-Agent Chain Orchestration</td>
+<td style="text-align: left;">Three canonical chains: SC→Prot→AF, LF→OPF→Verify LF, and Harmonics→Filter Opt→Verify Harmonics.</td>
+<td style="text-align: left;"><code>tests/test_m6_integration_acceptance.py::TestM6ThreeCanonicalChains</code></td>
+</tr>
+<tr>
+<td style="text-align: center;"><strong>12</strong></td>
+<td style="text-align: left;">Particle Swarm Optimization (PSO) Gates</td>
+<td style="text-align: left;">Configurable seed propagation; constraint violations yield <code>AgentStatus.REJECTED</code> and <code>validation_status=False</code>.</td>
+<td style="text-align: left;"><code>tests/test_m6_integration_acceptance.py::TestM6PSOFourGatesNegativeRejection</code></td>
+</tr>
+<tr>
+<td style="text-align: center;"><strong>13</strong></td>
+<td style="text-align: left;">ML Provenance &amp; Three-Truths Gateway</td>
+<td style="text-align: left;">Synthetic data disallowed in prod; Three-Truths gateway (Spatial, Mathematical, Operational) active.</td>
+<td style="text-align: left;"><code>agents/predictive_agent.py</code>, <code>agents/digital_twin_agent.py</code></td>
+</tr>
+<tr>
+<td style="text-align: center;"><strong>14</strong></td>
+<td style="text-align: left;">Unified Provider Policy</td>
+<td style="text-align: left;">Single point of truth: <code>config/llm-provider-policy.json</code> controlling allowed models, providers, and tiers.</td>
+<td style="text-align: left;"><code>integrations/model_router.py</code>, <code>tests/test_llm_provider_policy.py</code></td>
+</tr>
+<tr>
+<td style="text-align: center;"><strong>15</strong></td>
+<td style="text-align: left;">CUA Interactive Approvals &amp; Rollback</td>
+<td style="text-align: left;">Interactive WebSocket approval broker (300s TTL); automated rollback on post-action verification failure.</td>
+<td style="text-align: left;"><code>tests/test_m6_integration_acceptance.py::TestM6CUAGovernanceAndApprovals</code></td>
+</tr>
+<tr>
+<td style="text-align: center;"><strong>16</strong></td>
+<td style="text-align: left;">Engineering Assertions Layer</td>
+<td style="text-align: left;">Unified physics validation (IEEE C84.1, IEC 60909, IEC 60255, IEEE 1584, IEC 60364); REJECTED cascade.</td>
+<td style="text-align: left;"><code>tests/test_m6_integration_acceptance.py::TestM6FailClosedRejectedPropagation</code></td>
+</tr>
+<tr>
+<td style="text-align: center;"><strong>17</strong></td>
+<td style="text-align: left;">Tamper-Evident SHA-256 Audit Trail</td>
+<td style="text-align: left;">Cryptographic HMAC-SHA256 chained audit entries in <code>safety_chain.jsonl</code> recording actions and rollbacks.</td>
+<td style="text-align: left;"><code>agents/life_safety.py</code>, <code>tests/test_m5_cua_approvals.py</code></td>
+</tr>
+<tr>
+<td style="text-align: center;"><strong>18</strong></td>
+<td style="text-align: left;">Comprehensive Integration Battery</td>
+<td style="text-align: left;">Full battery covering all dual-port reachability, chains, PSO rejections, and CUA approvals.</td>
+<td style="text-align: left;"><code>tests/test_m6_integration_acceptance.py</code> (34 tests passed)</td>
+</tr>
+<tr>
+<td style="text-align: center;"><strong>19</strong></td>
+<td style="text-align: left;">Dynamic Reachability Reflection Verifier</td>
+<td style="text-align: left;">Fail-fast reflection script at startup and Meta-CI checking all 27 canonical keys and 20 dispatch targets.</td>
+<td style="text-align: left;"><code>scripts/maintenance/verify_agents.py</code>, <code>scripts/check_workflows_meta.py</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="4-verification-evidence-test-summary">4. Verification Evidence &amp; Test Summary</h2>
+<h3 id="41-integration-acceptance-battery-teststest_m6_integration_acceptancepy">4.1 Integration Acceptance Battery (<code>tests/test_m6_integration_acceptance.py</code>)</h3>
+<p>Execution executed locally against Python 3.8.4 runtime:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>tests/test_m6_integration_acceptance.py::TestM6ReachabilityAndRegistry::test_study_dispatch_has_exactly_20_entries PASSED [  2%]
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>tests/test_m6_integration_acceptance.py::TestM6ReachabilityAndRegistry::test_canonical_agent_registry_coverage PASSED [  5%]
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>tests/test_m6_integration_acceptance.py::TestM6ReachabilityAndRegistry::test_study_type_mapping_no_silent_load_flow_fallback PASSED [  8%]
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>tests/test_m6_integration_acceptance.py::TestM6ReachabilityAndRegistry::test_all_20_study_dispatch_entries_reachability PASSED [ 11%]
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>tests/test_m6_integration_acceptance.py::TestM6ReachabilityAndRegistry::test_dual_port_parity_non_native_studies[harmonic_analysis] PASSED [ 14%]
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>tests/test_m6_integration_acceptance.py::TestM6ReachabilityAndRegistry::test_dual_port_parity_non_native_studies[optimal_power_flow] PASSED [ 17%]
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>tests/test_m6_integration_acceptance.py::TestM6ReachabilityAndRegistry::test_dual_port_parity_non_native_studies[motor_starting] PASSED [ 20%]
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>tests/test_m6_integration_acceptance.py::TestM6ReachabilityAndRegistry::test_dual_port_parity_non_native_studies[transient_stability] PASSED [ 23%]
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>tests/test_m6_integration_acceptance.py::TestM6ReachabilityAndRegistry::test_dual_port_parity_non_native_studies[cable_sizing] PASSED [ 26%]
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>tests/test_m6_integration_acceptance.py::TestM6ReachabilityAndRegistry::test_dual_port_parity_non_native_studies[earth_grid] PASSED [ 29%]
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>tests/test_m6_integration_acceptance.py::TestM6ReachabilityAndRegistry::test_dual_port_parity_non_native_studies[renewable_integration] PASSED [ 32%]
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>tests/test_m6_integration_acceptance.py::TestM6ReachabilityAndRegistry::test_dual_port_parity_non_native_studies[battery_storage] PASSED [ 35%]
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>tests/test_m6_integration_acceptance.py::TestM6ReachabilityAndRegistry::test_dual_port_parity_non_native_studies[scada] PASSED [ 38%]
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>tests/test_m6_integration_acceptance.py::TestM6ReachabilityAndRegistry::test_dual_port_parity_non_native_studies[digital_twin] PASSED [ 41%]
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>tests/test_m6_integration_acceptance.py::TestM6ReachabilityAndRegistry::test_dual_port_parity_non_native_studies[generative_design] PASSED [ 44%]
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>tests/test_m6_integration_acceptance.py::TestM6ReachabilityAndRegistry::test_dual_port_parity_non_native_studies[optimization] PASSED [ 47%]
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>tests/test_m6_integration_acceptance.py::TestM6ReachabilityAndRegistry::test_unregistered_study_raises_generic_value_error_no_silent_fallback PASSED [ 50%]
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>tests/test_m6_integration_acceptance.py::TestM6ThreeCanonicalChains::test_chain_1_short_circuit_protection_arc_flash PASSED [ 52%]
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>tests/test_m6_integration_acceptance.py::TestM6ThreeCanonicalChains::test_chain_2_load_flow_opf_verify_load_flow PASSED [ 55%]
+<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>tests/test_m6_integration_acceptance.py::TestM6ThreeCanonicalChains::test_chain_3_harmonics_filter_optimization_verify_harmonics PASSED [ 58%]
+<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>tests/test_m6_integration_acceptance.py::TestM6ThreeCanonicalChains::test_chain_failure_cascade_aborts_downstream PASSED [ 61%]
+<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>tests/test_m6_integration_acceptance.py::TestM6PSOFourGatesNegativeRejection::test_pso_gate_1_placement_voltage_violation_rejected PASSED [ 64%]
+<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>tests/test_m6_integration_acceptance.py::TestM6PSOFourGatesNegativeRejection::test_pso_gate_2_harmonic_filter_thd_violation_rejected PASSED [ 67%]
+<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>tests/test_m6_integration_acceptance.py::TestM6PSOFourGatesNegativeRejection::test_pso_gate_3_protection_coordination_margin_violation_rejected PASSED [ 70%]
+<a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>tests/test_m6_integration_acceptance.py::TestM6PSOFourGatesNegativeRejection::test_pso_gate_4_ac_opf_infeasibility_rejected PASSED [ 73%]
+<a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>tests/test_m6_integration_acceptance.py::TestM6AbsenceOfGenericFallback::test_raw_llm_fallback_guard_zero_violations PASSED [ 76%]
+<a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>tests/test_m6_integration_acceptance.py::TestM6AbsenceOfGenericFallback::test_specialized_execution_unavailable_fail_closed PASSED [ 79%]
+<a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>tests/test_m6_integration_acceptance.py::TestM6FailClosedRejectedPropagation::test_workflow_engine_rejection_marks_downstream_skipped PASSED [ 82%]
+<a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>tests/test_m6_integration_acceptance.py::TestM6ContextFabricTenantIsolation::test_context_fabric_query_without_tenant_raises_isolation_error PASSED [ 85%]
+<a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>tests/test_m6_integration_acceptance.py::TestM6ContextFabricTenantIsolation::test_context_evidence_mandatory_fields_and_hash PASSED [ 88%]
+<a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>tests/test_m6_integration_acceptance.py::TestM6ContextFabricTenantIsolation::test_context_fabric_cross_tenant_isolation PASSED [ 91%]
+<a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a>tests/test_m6_integration_acceptance.py::TestM6CUAGovernanceAndApprovals::test_cua_control_mode_requires_affirmative_approval PASSED [ 94%]
+<a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a>tests/test_m6_integration_acceptance.py::TestM6CUAGovernanceAndApprovals::test_cua_post_action_verification_failure_triggers_auto_rollback PASSED [ 97%]
+<a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a>tests/test_m6_integration_acceptance.py::TestM6CUAGovernanceAndApprovals::test_cua_coordinate_bounds_violation_aborts_before_action PASSED [100%]
+<a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a>
+<a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a>======================== 34 passed in 81.50s (0:01:21) ========================
+</code></pre></div></p>
+<h3 id="42-dynamic-reachability-verifier-scriptsmaintenanceverify_agentspy">4.2 Dynamic Reachability Verifier (<code>scripts/maintenance/verify_agents.py</code>)</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>============================================================
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>AhmedETAP M6.2 Agent Registry &amp; Reachability Reflection Gate
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>============================================================
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>[SUCCESS] All 27 canonical agents (+3 aliases) and all 20 STUDY_DISPATCH entries dynamically reflected and verified across dual execution ports.
+</code></pre></div>
+<h3 id="43-meta-ci-workflow-standard-gatekeeper-scriptscheck_workflows_metapy">4.3 Meta-CI Workflow &amp; Standard Gatekeeper (<code>scripts/check_workflows_meta.py</code>)</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>============================================================
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>[META-CI] Validating GitHub Actions Workflows &amp; Invariants
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>Found 50 workflow files.
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>============================================================
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>[M2.4] Unified Registry Integrity Guard: CLEAN
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>[M4.3] Raw-LLM Fallback Guard: CLEAN
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>[M6.2/M6.3] Dynamic Agent Reachability Gate: VERIFIED
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>[OK] All 50 GitHub Actions workflows comply with Meta-CI standards.
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>  - YAML syntax: VALID
+<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>  - Permissions: EXPLICIT
+<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>  - Job timeouts: ENFORCED
+<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a>  - Branch triggers: VALIDATED
+<a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a>  - Overrides consistency (T-2.1): SYNCHRONIZED
+<a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a>  - Gitleaksignore ratchet (R-3): ENFORCED (ceiling: 800)
+<a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a>  - Release Gate job names (G-3 / N28): VERIFIED
+<a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a>  - Registry Integrity Guard (M2.4): CLEAN
+<a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a>  - Raw-LLM Fallback Guard (M4.3): CLEAN
+<a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a>  - Dynamic Agent Reachability Gate (M6.2 / M6.3): VERIFIED
+</code></pre></div>
+<hr />
+<h2 id="5-architectural-invariants-enforced-in-production">5. Architectural Invariants Enforced in Production</h2>
+<ol>
+<li><strong>Deterministic Reachability (Fail-Closed)</strong>: No study execution can be invoked outside <code>STUDY_DISPATCH</code>. Non-native studies are explicitly surfaced as unavailable rather than falling back or guessing parameters.</li>
+<li><strong>Dual-Control Life Safety (Human-in-the-Loop)</strong>: Any control operation targeting breakers, protective relay curves, or transformers mandates Maker-Checker dual confirmation recorded in the cryptographic audit log.</li>
+<li><strong>Cryptographic Provenance</strong>: Every piece of engineering evidence emitted across <code>ContextFabric</code> carries a deterministic SHA-256 hash (<code>content_hash = SHA256(canonical_json)</code>) and an immutable <code>tenant_id</code>.</li>
+<li><strong>Permanent Meta-CI Guard</strong>: Regression attempts to reintroduce raw ungrounded direct-AI answering or rogue study bindings are blocked fail-closed at the pre-commit and CI pull request boundaries.</li>
+</ol>
+<hr />
+<h2 id="6-sign-off-certification">6. Sign-off &amp; Certification</h2>
+<p>With the successful execution of the M6 integration test suite, dynamic reachability reflection verifier, and Meta-CI gatekeeper, <strong>Milestones M0 through M6 are officially closed</strong>. The platform architecture satisfies all 19 reference items and is certified ready for merge to <code>main</code>.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "search.suggest", "search.highlight"], "search": "../../assets/javascripts/workers/search.f8cc74c7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.c8b220af.min.js"></script>
+      
+    
+  </body>
+</html>
