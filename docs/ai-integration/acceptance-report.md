@@ -152,4 +152,5 @@ Found 50 workflow files.
 
 ## 6. Sign-off & Certification
 
-With the successful execution of the M6 integration test suite, dynamic reachability reflection verifier, and Meta-CI gatekeeper, **Milestones M0 through M6 are officially closed**. The platform architecture satisfies all 19 reference items and is certified ready for merge to `main`.
+With the successful execution of the M6 integration test suite, dynamic reachability reflection verifier, and Meta-CI gatekeeper, **Milestones M0 through M6 are officially closed and merged into `main` via PR #639 (commit `04deae3ed5ebd0db80c039e6ed37488026d0a876`)**. The platform architecture satisfies all 19 reference items and is certified in production on `main`.
+

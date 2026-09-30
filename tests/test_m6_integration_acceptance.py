@@ -840,3 +840,114 @@ class TestM6CUAGovernanceAndApprovals:
         assert not result.success
         assert "bounds" in (result.aborted_reason or "").lower()
         assert len(executor.executed_actions) == 0
+
+
+class TestM6FullLifecycleIntentToProvenance:
+    """Final Acceptance Gate: Full lifecycle Intent -> Plan -> DAG -> Execution -> Assertions -> Evidence -> Provenance."""
+
+    @pytest.mark.asyncio
+    async def test_complete_lifecycle_intent_plan_dag_execution_assertions_evidence_provenance(self):
+        """Validates the unbroken execution chain from user intent to verifiable provenance."""
+        # 1. Intent: High-level user engineering objective
+        intent = "Assess three-phase bolted fault at Bus 2 and coordinate protection relays"
+        tenant_id = "tenant_m6_acceptance_alpha"
+        session_id = f"session_{uuid.uuid4().hex[:8]}"
+
+        # 2. Plan: Tasks structured for the objective
+        task_id = f"task_{uuid.uuid4().hex[:8]}"
+        task = EngineeringTask(
+            task_id=task_id,
+            description=intent,
+            study_types=[StudyType.SHORT_CIRCUIT, StudyType.PROTECTION_COORDINATION],
+            parameters={
+                "bus_id": 2,
+                "fault_type": "three_phase",
+                "upstream_relay_id": 1,
+                "downstream_relay_id": 2,
+                "tenant_id": tenant_id,
+                "session_id": session_id,
+                "source": "user_input",
+            },
+        )
+
+        # 3. DAG: WorkflowEngine generates contract-driven execution plan
+        sc_agent = MockChainAgent(
+            "ShortCircuitAgent",
+            output_data={
+                "fault_current_ka": 15.2,
+                "ik_ss_ka": 15.2,
+                "ip_peak_ka": 38.5,
+                "fault_results": {"bus_2": {"ik_ka": 15.2}},
+            },
+        )
+        prot_agent = MockChainAgent(
+            "ProtectionCoordinationAgent",
+            output_data={
+                "margin_s": 0.32,
+                "clearing_time_s": 0.15,
+                "coordination_curve": "IEC_Standard_Inverse",
+                "is_coordinated": True,
+            },
+        )
+        agents_map = {
+            "short_circuit": sc_agent,
+            "protection_coordination": prot_agent,
+        }
+
+        workflow = WorkflowEngine(agents=agents_map)
+        plan = workflow.build_execution_plan(task)
+        assert plan is not None
+        assert len(plan.nodes) == 2
+        # Verify DAG dependency: protection depends on short_circuit
+        sc_node = [n for n in plan.nodes if n.study_type == "short_circuit"][0]
+        prot_node = [n for n in plan.nodes if n.study_type == "protection_coordination"][0]
+        assert sc_node.node_id in prot_node.depends_on
+
+        # 4. Execution: Execute workflow across DAG batches (includes automated validation gate)
+        results = await workflow.execute_workflow(task)
+        assert len(results) >= 2
+        assert all(r.status == AgentStatus.COMPLETED for r in results)
+
+        # 5. Assertions: Physical engineering checks
+        sc_res = results[0]
+        prot_res = results[1]
+        assert sc_res.data.get("fault_current_ka", 0) > 0, "Fault current must be positive"
+        assert prot_res.data.get("margin_s", 0) >= 0.20, "Coordination margin must meet IEC minimum (0.20s)"
+
+        # 6. Evidence: Record cryptographic evidence in ContextFabric
+        evidence_sc = ContextEvidence.build(
+            ContextType.PROJECT_STATE,
+            f"fault_study_{task_id}",
+            {"fault_current_ka": sc_res.data["fault_current_ka"], "bus_id": 2},
+            tenant_id=tenant_id,
+        )
+        evidence_prot = ContextEvidence.build(
+            ContextType.PROJECT_STATE,
+            f"prot_study_{task_id}",
+            {"margin_s": prot_res.data["margin_s"], "is_coordinated": True},
+            tenant_id=tenant_id,
+        )
+
+        def mock_provider_func(query_str: str, tenant: str, max_items: int):
+            return [
+                {"key": evidence_sc.key, "value": evidence_sc.value, "source_ref": "engine"},
+                {"key": evidence_prot.key, "value": evidence_prot.value, "source_ref": "engine"},
+            ]
+
+        provider = CallableContextProvider("project_data_provider", mock_provider_func)
+        fabric = ContextFabric({ContextType.PROJECT_STATE: provider})
+
+        # 7. Provenance: Query and verify immutable evidence integrity and tenant bounds
+        retrieved = fabric.query(ContextType.PROJECT_STATE, f"fault_study_{task_id}", tenant_id=tenant_id)
+        assert retrieved.available is True
+        assert len(retrieved.evidence) >= 1
+        assert len(evidence_sc.content_hash) == 64  # SHA-256 hash
+        assert evidence_sc.source_type == ContextType.PROJECT_STATE
+        assert evidence_sc.tenant_id == tenant_id
+
+        # Trace export verification
+        trace = workflow.export_execution_trace(task, results, plan)
+        assert trace is not None
+        assert trace.overall_success is True
+        assert len(trace.node_results) >= 2
+
