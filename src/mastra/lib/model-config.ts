@@ -15,6 +15,32 @@ import { createOpenAI } from '@ai-sdk/openai';
 import type { LanguageModel } from 'ai';
 
 // ---------------------------------------------------------------------------
+// M4.5 — Single provider policy point (shared with Python and src/core)
+// ---------------------------------------------------------------------------
+// config/llm-provider-policy.json is THE provider/model policy document.
+// This Mastra runtime only consumes providers whose policy `surfaces` include
+// "mastra", so adding/removing a provider there changes this module too.
+import rawPolicy from '../../../config/llm-provider-policy.json';
+
+interface PolicyProvider {
+  id: string;
+  enabled: boolean;
+  surfaces: string[];
+  default_model: string;
+  base_url: string;
+  env: { api_key: string; base_url: string; model: string };
+}
+
+const POLICY = rawPolicy as unknown as { providers: PolicyProvider[] };
+
+/** Enabled providers declared for the "mastra" surface (policy-derived). */
+export function getPolicyProviders(): PolicyProvider[] {
+  return (POLICY.providers ?? []).filter(
+    (p) => p.enabled === true && Array.isArray(p.surfaces) && p.surfaces.includes('mastra'),
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
 
@@ -71,17 +97,20 @@ export function getActiveModelConfig(): LanguageModel {
 
 /**
  * Returns the list of configured providers with their non-secret details.
- * Currently only the 'openai' provider is supported (mirrors
- * mastra.config.ts).
+ *
+ * M4.5: derived from config/llm-provider-policy.json (surface = "mastra") —
+ * previously a hard-coded openai-only list, now policy-driven.
  */
 export function getProviderStatus(): ProviderConfig[] {
   const providers: ProviderConfig[] = [];
-  if (OPENAI_API_KEY) {
+  for (const p of getPolicyProviders()) {
+    const apiKey = process.env[p.env.api_key];
+    if (!apiKey) continue;
     providers.push({
-      name: 'openai',
-      apiKey: OPENAI_API_KEY,
-      baseURL: OPENAI_BASE_URL,
-      model: ACTIVE_MODEL_ID,
+      name: p.id,
+      apiKey,
+      baseURL: process.env[p.env.base_url] || p.base_url,
+      model: process.env[p.env.model] || p.default_model,
     });
   }
   return providers;

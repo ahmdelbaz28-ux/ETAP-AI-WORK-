@@ -221,6 +221,20 @@ def main() -> int:
     except Exception as exc:
         violations.append(f"M2.4 Registry Integrity: guardian failed to run: {exc}")
 
+    # M4.3 — Raw-LLM Fallback Guard (fail-closed)
+    try:
+        import importlib.util as _ilu_fb
+
+        _fb_path = Path(__file__).parent / "check_ai_fallback_guard.py"
+        _fb_spec = _ilu_fb.spec_from_file_location("check_ai_fallback_guard", _fb_path)
+        _fb_guard = _ilu_fb.module_from_spec(_fb_spec)  # type: ignore[arg-type]
+        _fb_spec.loader.exec_module(_fb_guard)  # type: ignore[union-attr]
+        fallback_violations = _fb_guard.run_ai_fallback_guard(repo_root)
+        for violation in fallback_violations:
+            violations.append(f"M4.3 Fallback Guard: {violation}")
+    except Exception as exc:
+        violations.append(f"M4.3 Fallback Guard: guardian failed to run: {exc}")
+
     if violations:
         sys.stderr.write(f"\n[BLOCKED] Meta-CI found {len(violations)} workflow standard violation(s):\n")
         for v in violations:
@@ -236,7 +250,8 @@ def main() -> int:
     sys.stdout.write("  - Overrides consistency (T-2.1): SYNCHRONIZED\n")
     sys.stdout.write("  - Gitleaksignore ratchet (R-3): ENFORCED (ceiling: 800)\n")
     sys.stdout.write("  - Release Gate job names (G-3 / N28): VERIFIED\n")
-    sys.stdout.write("  - Registry Integrity Guard (M2.4): CLEAN\n\n")
+    sys.stdout.write("  - Registry Integrity Guard (M2.4): CLEAN\n")
+    sys.stdout.write("  - Raw-LLM Fallback Guard (M4.3): CLEAN\n\n")
     sys.stdout.flush()
     return 0
 

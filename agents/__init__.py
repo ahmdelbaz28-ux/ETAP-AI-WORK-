@@ -2,8 +2,15 @@ from __future__ import annotations
 
 """AI Agents - Multi-agent engineering orchestration system.
 
-Provides 15 specialized engineering agents and a ChiefEngineeringOrchestrator
-that coordinates them for autonomous power system analysis and ETAP automation.
+Provides the AhmedETAP specialized engineering agents and a
+ChiefEngineeringOrchestrator that coordinates them for autonomous power
+system analysis and ETAP automation.
+
+M4.2 note: the canonical agent-key namespace (27 canonical keys + 3 aliases)
+lives in ``agents.registry`` as ``CANONICAL_AGENT_KEYS`` / ``AGENT_KEY_ALIASES``.
+The class inventory below (``ALL_AGENT_CLASSES``) is a *class* list, not the
+key namespace, and is intentionally a subset — see the audit note attached to
+``ALL_AGENT_CLASSES``.
 
 Core Agents (orchestrator.py):
     - LoadFlowAgent: Newton-Raphson / Fast Decoupled power flow analysis

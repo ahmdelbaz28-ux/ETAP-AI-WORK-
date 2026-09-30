@@ -11,9 +11,88 @@
  */
 import type { ModelMessage } from 'ai';
 import type { Env } from './types.js';
-import { CONFIG, BUILTIN_BASE_URLS, BUILTIN_MODELS, BUILTIN_PROVIDERS } from './config.js';
+import { CONFIG, BUILTIN_PROVIDERS } from './config.js';
 import { isCircuitOpen, recordProviderFailure, recordProviderSuccess } from './circuitBreaker.js';
 import { recordTokenUsage } from './tokenStats.js';
+
+// ---------------------------------------------------------------------------
+// M4.5 — Single provider policy point (shared with Python)
+// ---------------------------------------------------------------------------
+//
+// config/llm-provider-policy.json is THE provider/model policy document.
+// Python (api/chat_stream.py, integrations/model_router.py) and TypeScript
+// (this file, src/mastra/lib/model-config.ts) all derive from it, so changing
+// the document once changes every consumer.
+import rawPolicy from '../../config/llm-provider-policy.json';
+
+/** One provider declaration inside the policy document. */
+export interface ProviderPolicyEntry {
+  id: string;
+  enabled: boolean;
+  surfaces: string[];
+  default_model: string;
+  base_url: string;
+  env: { api_key: string; base_url: string; model: string };
+  extra_env?: string[];
+  base_url_transform?: string;
+}
+
+/** Shape of config/llm-provider-policy.json (M4.5). */
+export interface ProviderPolicy {
+  version: number;
+  policy_id: string;
+  surfaces: string[];
+  providers: ProviderPolicyEntry[];
+  model_tiers: Record<string, string[]>;
+  cascade: {
+    enabled: boolean;
+    default_tier: string;
+    escalation: Record<string, string | null>;
+  };
+}
+
+/** The loaded policy document. */
+export const PROVIDER_POLICY = rawPolicy as unknown as ProviderPolicy;
+
+/** Surface this runtime serves. */
+export const EDGE_GATEWAY_SURFACE = 'edge_gateway';
+
+/** Enabled providers declared for ``surface`` in the policy. */
+export function policyProvidersFor(
+  surface: string,
+  policy: ProviderPolicy = PROVIDER_POLICY,
+): ProviderPolicyEntry[] {
+  return (policy.providers ?? []).filter(
+    (p) => p.enabled === true && Array.isArray(p.surfaces) && p.surfaces.includes(surface),
+  );
+}
+
+/** Allow-list this gateway actually iterates (policy-derived, not hard-coded). */
+export const POLICY_PROVIDERS: readonly string[] = Object.freeze(
+  policyProvidersFor(EDGE_GATEWAY_SURFACE).map((p) => p.id),
+);
+
+/**
+ * Fail-closed startup check: ``src/core/config.ts`` must not drift from the
+ * policy document. Throws at module load if the two disagree, so a provider
+ * can never be added to one and forgotten in the other.
+ */
+export function assertPolicyConsistency(policy: ProviderPolicy = PROVIDER_POLICY): void {
+  const fromPolicy = policyProvidersFor(EDGE_GATEWAY_SURFACE, policy).map((p) => p.id);
+  const fromConfig = BUILTIN_PROVIDERS as readonly string[];
+  const onlyInPolicy = fromPolicy.filter((id) => !fromConfig.includes(id));
+  const onlyInConfig = fromConfig.filter((id) => !fromPolicy.includes(id));
+  if (onlyInPolicy.length || onlyInConfig.length) {
+    throw new Error(
+      `[M4.5] provider policy drift between config/llm-provider-policy.json and ` +
+        `src/core/config.ts — only in policy: [${onlyInPolicy.join(', ')}], ` +
+        `only in config.ts: [${onlyInConfig.join(', ')}]. ` +
+        `config/llm-provider-policy.json is the single decision point.`,
+    );
+  }
+}
+
+assertPolicyConsistency();
 
 export interface ProviderConfig {
   name: string;
@@ -84,29 +163,28 @@ interface ProviderDescriptor {
   transformBaseUrl?: (url: string, env: Env) => string;
 }
 
-/** Registry of all built-in providers and how to read their env vars. */
-const PROVIDER_REGISTRY: Record<string, ProviderDescriptor> = {
-  openai:       { envKey: 'OPENAI_API_KEY',       baseUrlKey: 'OPENAI_BASE_URL',       modelKey: 'OPENAI_MODEL' },
-  nvidia:       { envKey: 'NVIDIA_API_KEY',        baseUrlKey: 'NVIDIA_BASE_URL',       modelKey: 'NVIDIA_MODEL' },
-  fireworks:    { envKey: 'FIREWORKS_API_KEY',     baseUrlKey: 'FIREWORKS_BASE_URL',    modelKey: 'FIREWORKS_MODEL' },
-  'github-models': { envKey: 'GITHUB_MODELS_API_KEY', baseUrlKey: 'GITHUB_MODELS_BASE_URL', modelKey: 'GITHUB_MODELS_MODEL' },
-  modal:        { envKey: 'MODAL_API_KEY',         baseUrlKey: 'MODAL_BASE_URL',        modelKey: 'MODAL_MODEL' },
-  openmodel:    { envKey: 'OPENMODEL_API_KEY',     baseUrlKey: 'OPENMODEL_BASE_URL',    modelKey: 'OPENMODEL_MODEL' },
-  render:       { envKey: 'RENDER_API_KEY',        baseUrlKey: 'RENDER_BASE_URL',       modelKey: 'RENDER_MODEL' },
-  zenmux:       { envKey: 'ZENMUX_API_KEY',        baseUrlKey: 'ZENMUX_BASE_URL',       modelKey: 'ZENMUX_MODEL' },
-  bynara:       { envKey: 'BYNARA_API_KEY',        baseUrlKey: 'BYNARA_BASE_URL',       modelKey: 'BYNARA_MODEL' },
-  cloudflare:   {
-    envKey: 'CLOUDFLARE_API_KEY',
-    baseUrlKey: 'CLOUDFLARE_BASE_URL',
-    modelKey: 'CLOUDFLARE_MODEL',
-    extraKeys: ['CLOUDFLARE_ACCOUNT_ID'],
-    transformBaseUrl: (url, env) => url.replace('PLACEHOLDER', env.CLOUDFLARE_ACCOUNT_ID || ''),
-  },
-};
+/** Registry of all built-in providers, DERIVED from the policy document. */
+function _descriptorFor(p: ProviderPolicyEntry): ProviderDescriptor {
+  const desc: ProviderDescriptor = {
+    envKey: p.env.api_key,
+    baseUrlKey: p.env.base_url,
+    modelKey: p.env.model,
+  };
+  if (p.extra_env && p.extra_env.length > 0) desc.extraKeys = p.extra_env;
+  if (p.base_url_transform === 'placeholder_substitute') {
+    desc.transformBaseUrl = (url, env) => url.replace('PLACEHOLDER', env.CLOUDFLARE_ACCOUNT_ID || '');
+  }
+  return desc;
+}
 
-function _getProviderConfig(env: Env, name: string): ProviderConfig | null {
-  const desc = PROVIDER_REGISTRY[name];
-  if (!desc) return null;
+function _policyEntries(surface: string, policy: ProviderPolicy = PROVIDER_POLICY): ProviderPolicyEntry[] {
+  return policyProvidersFor(surface, policy);
+}
+
+function _getProviderConfig(env: Env, name: string, policy: ProviderPolicy = PROVIDER_POLICY): ProviderConfig | null {
+  const entry = _policyEntries(EDGE_GATEWAY_SURFACE, policy).find((p) => p.id === name);
+  if (!entry) return null;
+  const desc = _descriptorFor(entry);
 
   const e = env as Record<string, string | undefined>;
   const apiKey = e[desc.envKey];
@@ -119,7 +197,7 @@ function _getProviderConfig(env: Env, name: string): ProviderConfig | null {
     }
   }
 
-  let baseURL = e[desc.baseUrlKey] || BUILTIN_BASE_URLS[name as keyof typeof BUILTIN_BASE_URLS];
+  let baseURL = e[desc.baseUrlKey] || entry.base_url;
   if (desc.transformBaseUrl) {
     baseURL = desc.transformBaseUrl(baseURL!, env);
   }
@@ -128,21 +206,31 @@ function _getProviderConfig(env: Env, name: string): ProviderConfig | null {
     name,
     apiKey,
     baseURL: baseURL!,
-    model: e[desc.modelKey] || BUILTIN_MODELS[name as keyof typeof BUILTIN_MODELS],
+    model: e[desc.modelKey] || entry.default_model,
   };
 }
 
-function _listConfiguredProviders(env: Env): ProviderConfig[] {
+function _listConfiguredProviders(env: Env, policy: ProviderPolicy = PROVIDER_POLICY): ProviderConfig[] {
   const out: ProviderConfig[] = [];
-  for (const name of BUILTIN_PROVIDERS) {
-    const cfg = _getProviderConfig(env, name);
+  // M4.5: iterate the policy-derived allow-list, not a duplicated constant.
+  for (const entry of _policyEntries(EDGE_GATEWAY_SURFACE, policy)) {
+    const cfg = _getProviderConfig(env, entry.id, policy);
     if (cfg) out.push(cfg);
   }
   return out;
 }
 
-export function listConfiguredProviders(env: Env): ProviderConfig[] {
-  return _listConfiguredProviders(env);
+/**
+ * List configured providers.
+ *
+ * M4.5: accepts an optional policy document so a test (or a deployment) can
+ * prove that changing the single policy point changes this consumer's
+ * behaviour. The default is the shared ``config/llm-provider-policy.json``.
+ * Startup validation against ``src/core/config.ts`` happens once at module
+ * load (``assertPolicyConsistency()``), not per call.
+ */
+export function listConfiguredProviders(env: Env, policy?: ProviderPolicy): ProviderConfig[] {
+  return _listConfiguredProviders(env, policy ?? PROVIDER_POLICY);
 }
 
 export function hasAnyProviderConfigured(env: Env): boolean {

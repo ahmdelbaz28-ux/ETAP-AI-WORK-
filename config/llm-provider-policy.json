@@ -1,0 +1,181 @@
+{
+  "$schema_note": "M4.5 — THE single LLM provider/model policy decision point. Every runtime (Python api/chat_stream, Python integrations/model_router, TS src/core/providers.ts, TS src/mastra/lib/model-config.ts) derives its provider allow-list and tier models from this document. Do NOT add a provider anywhere else first.",
+  "version": 1,
+  "policy_id": "etap-llm-provider-policy",
+  "owner": "ahmedetap-platform",
+  "single_source_of_truth": true,
+  "surfaces": ["chat_stream", "edge_gateway", "mastra"],
+  "providers": [
+    {
+      "id": "openai",
+      "enabled": true,
+      "surfaces": ["chat_stream", "edge_gateway", "mastra"],
+      "default_model": "gpt-4o-mini",
+      "base_url": "https://api.openai.com/v1",
+      "env": {
+        "api_key": "OPENAI_API_KEY",
+        "base_url": "OPENAI_BASE_URL",
+        "model": "OPENAI_MODEL"
+      }
+    },
+    {
+      "id": "anthropic",
+      "enabled": true,
+      "surfaces": ["chat_stream"],
+      "default_model": "claude-3-5-haiku-latest",
+      "base_url": "https://api.anthropic.com/v1",
+      "env": {
+        "api_key": "ANTHROPIC_API_KEY",
+        "base_url": "ANTHROPIC_BASE_URL",
+        "model": "ANTHROPIC_MODEL"
+      }
+    },
+    {
+      "id": "gemini",
+      "enabled": true,
+      "surfaces": ["chat_stream"],
+      "default_model": "gemini-1.5-flash",
+      "base_url": "https://generativelanguage.googleapis.com/v1beta",
+      "env": {
+        "api_key": "GEMINI_API_KEY",
+        "base_url": "GEMINI_BASE_URL",
+        "model": "GEMINI_MODEL"
+      }
+    },
+    {
+      "id": "nvidia",
+      "enabled": true,
+      "surfaces": ["edge_gateway"],
+      "default_model": "meta/llama-3.1-8b-instruct",
+      "base_url": "https://integrate.api.nvidia.com/v1",
+      "env": {
+        "api_key": "NVIDIA_API_KEY",
+        "base_url": "NVIDIA_BASE_URL",
+        "model": "NVIDIA_MODEL"
+      }
+    },
+    {
+      "id": "fireworks",
+      "enabled": true,
+      "surfaces": ["edge_gateway"],
+      "default_model": "accounts/fireworks/models/kimi-k2p7-code",
+      "base_url": "https://api.fireworks.ai/inference/v1",
+      "env": {
+        "api_key": "FIREWORKS_API_KEY",
+        "base_url": "FIREWORKS_BASE_URL",
+        "model": "FIREWORKS_MODEL"
+      }
+    },
+    {
+      "id": "github-models",
+      "enabled": true,
+      "surfaces": ["edge_gateway"],
+      "default_model": "gpt-4o",
+      "base_url": "https://models.inference.ai.azure.com/v1",
+      "env": {
+        "api_key": "GITHUB_MODELS_API_KEY",
+        "base_url": "GITHUB_MODELS_BASE_URL",
+        "model": "GITHUB_MODELS_MODEL"
+      }
+    },
+    {
+      "id": "modal",
+      "enabled": true,
+      "surfaces": ["edge_gateway"],
+      "default_model": "zai-org/GLM-5.1-FP8",
+      "base_url": "https://api.us-west-2.modal.direct/v1",
+      "env": {
+        "api_key": "MODAL_API_KEY",
+        "base_url": "MODAL_BASE_URL",
+        "model": "MODAL_MODEL"
+      }
+    },
+    {
+      "id": "openmodel",
+      "enabled": true,
+      "surfaces": ["edge_gateway"],
+      "default_model": "gpt-4o",
+      "base_url": "https://api.openmodel.ai/v1",
+      "env": {
+        "api_key": "OPENMODEL_API_KEY",
+        "base_url": "OPENMODEL_BASE_URL",
+        "model": "OPENMODEL_MODEL"
+      }
+    },
+    {
+      "id": "render",
+      "enabled": true,
+      "surfaces": ["edge_gateway"],
+      "default_model": "gpt-4o-mini",
+      "base_url": "https://api.render.com/v1",
+      "env": {
+        "api_key": "RENDER_API_KEY",
+        "base_url": "RENDER_BASE_URL",
+        "model": "RENDER_MODEL"
+      }
+    },
+    {
+      "id": "zenmux",
+      "enabled": true,
+      "surfaces": ["edge_gateway"],
+      "default_model": "gpt-4o-mini",
+      "base_url": "https://api.zenmux.ai/v1",
+      "env": {
+        "api_key": "ZENMUX_API_KEY",
+        "base_url": "ZENMUX_BASE_URL",
+        "model": "ZENMUX_MODEL"
+      }
+    },
+    {
+      "id": "bynara",
+      "enabled": true,
+      "surfaces": ["edge_gateway"],
+      "default_model": "mimo-v2.5",
+      "base_url": "https://router.bynara.id/v1",
+      "env": {
+        "api_key": "BYNARA_API_KEY",
+        "base_url": "BYNARA_BASE_URL",
+        "model": "BYNARA_MODEL"
+      }
+    },
+    {
+      "id": "cloudflare",
+      "enabled": true,
+      "surfaces": ["edge_gateway"],
+      "default_model": "@cf/moonshotai/kimi-k2.6",
+      "base_url": "https://api.cloudflare.com/client/v4/accounts/PLACEHOLDER/ai/v1",
+      "env": {
+        "api_key": "CLOUDFLARE_API_KEY",
+        "base_url": "CLOUDFLARE_BASE_URL",
+        "model": "CLOUDFLARE_MODEL"
+      },
+      "extra_env": ["CLOUDFLARE_ACCOUNT_ID"],
+      "base_url_transform": "placeholder_substitute"
+    }
+  ],
+  "model_tiers": {
+    "tier_1_economy": [
+      "gpt-4o-mini",
+      "claude-3-5-haiku-20241022",
+      "gpt-4.1-mini"
+    ],
+    "tier_2_standard": [
+      "gpt-4o",
+      "claude-3-5-sonnet-20241022",
+      "gpt-4-turbo"
+    ],
+    "tier_3_reasoning": [
+      "gpt-4.1",
+      "claude-3-opus-20240229"
+    ]
+  },
+  "cascade": {
+    "enabled": true,
+    "default_tier": "tier_1_economy",
+    "escalation": {
+      "tier_1_economy": "tier_2_standard",
+      "tier_2_standard": "tier_3_reasoning",
+      "tier_3_reasoning": null
+    }
+  }
+}

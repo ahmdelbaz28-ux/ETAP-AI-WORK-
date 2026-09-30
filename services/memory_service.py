@@ -383,12 +383,23 @@ class AIMemoryService:
             logger.exception("Cypher query execution failed: %s", exc)
             return f"Error querying graph database: {exc}"
 
-    def save_to_vector_memory(self, fact_text: str, index_name: str = "ai_memory_index") -> bool:
+    def save_to_vector_memory(
+        self,
+        fact_text: str,
+        index_name: str = "ai_memory_index",
+        tenant_id: str = "",
+        provenance: dict | None = None,
+    ) -> bool:
         """Convert a fact text into embeddings and save it to the Qdrant Vector index.
 
         ARCHITECTURE AUDIT FIX (F-02): Refuses to save with
         DeterministicFallbackEmbeddings, which would pollute the vector
         index with semantically meaningless vectors.
+
+        M4.1 fix: every saved fact now carries mandatory provenance metadata
+        (tenant_id / source_type / source_ref). Previously ``add_texts`` was
+        called bare, leaving Qdrant points with no tenant scope, which made
+        tenant-isolated retrieval impossible.
         """
         if not self._initialized_qdrant and not self.initialize_qdrant():
             logger.error("Qdrant not initialized.")
@@ -424,13 +435,19 @@ class AIMemoryService:
                     ),
                 )
 
-            # Store using QdrantVectorStore wrapper
+            # Store using QdrantVectorStore wrapper (M4.1: provenance metadata)
             vector_db = QdrantVectorStore(
                 client=self._qdrant_client,
                 collection_name=index_name,
                 embedding=embeddings,
             )
-            vector_db.add_texts([fact_text])
+            prov = provenance or {}
+            metadata = {
+                "tenant_id": str(tenant_id or ""),
+                "source_type": str(prov.get("source_type", "engineering_knowledge")),
+                "source_ref": str(prov.get("source_ref", "services/memory_service.py")),
+            }
+            vector_db.add_texts([fact_text], metadatas=[metadata])
             logger.info("Successfully added fact to Qdrant collection '%s'", index_name)
             return True
         except Exception as exc:

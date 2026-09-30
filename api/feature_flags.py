@@ -148,12 +148,6 @@ DEFAULT_FEATURE_FLAGS: dict[str, dict[str, Any]] = {
         "description": "Enable warm-start voltage memory for Newton-Raphson load flow solver",
         "rollout_percentage": 0,
     },
-    "use_model_cascade": {
-        "enabled": False,
-        "status": "alpha",
-        "description": "Enable cost-aware LLM cascade router (Economy → Standard → Reasoning)",
-        "rollout_percentage": 0,
-    },
     "use_bandit_router": {
         "enabled": False,
         "status": "beta",
@@ -279,8 +273,10 @@ def is_strict_feature_enabled(key: str, default: bool = False) -> bool:
 
     Unlike is_feature_enabled(), this helper does not force True in dev/test environments.
     This guarantees that performance accelerators and experimental optimizers (e.g.
-    use_pso_coordination, use_warm_start, use_model_cascade) remain strictly opt-in,
+    use_pso_coordination, use_warm_start) remain strictly opt-in,
     preventing non-deterministic side-effects or regressions in standard regression suites.
+    (M4.5: `use_model_cascade` was removed from the flag registry — LLM provider/model
+    policy now lives exclusively in config/llm-provider-policy.json.)
     """
     env_override = os.getenv(f"FEATURE_FLAG_{key.upper()}")
     if env_override is not None:
