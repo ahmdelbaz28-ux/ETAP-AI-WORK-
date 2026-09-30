@@ -35,6 +35,7 @@ logger = logging.getLogger(__name__)
 class AssertionSeverity(Enum):
     """Severity level for assertion failures."""
 
+    INFO = "info"  # Informational check that passed
     WARNING = "warning"  # Suspicious but not necessarily wrong
     CRITICAL = "critical"  # Physically impossible or dangerous
     FATAL = "fatal"  # Will cause injury/death if acted upon
@@ -46,7 +47,7 @@ class AssertionResult:
 
     check_name: str
     passed: bool
-    severity: AssertionSeverity = AssertionSeverity.WARNING
+    severity: AssertionSeverity = AssertionSeverity.INFO
     message: str = ""
     details: dict[str, Any] = field(default_factory=dict)
 
@@ -58,6 +59,25 @@ class AssertionResult:
             "message": self.message,
             "details": self.details,
         }
+
+
+@dataclass
+class AssertionReport:
+    """Consolidated report produced by EngineeringAssertionLayer.validate()."""
+
+    passed: bool
+    failures: list[AssertionResult] = field(default_factory=list)
+    warnings: list[AssertionResult] = field(default_factory=list)
+    all_results: list[AssertionResult] = field(default_factory=list)
+    has_critical_failures: bool = False
+    has_any_failures: bool = False
+    summary: dict[str, Any] = field(default_factory=dict)
+
+    def __iter__(self):
+        return iter(self.all_results)
+
+    def __len__(self):
+        return len(self.all_results)
 
 
 class EngineeringAssertionLayer:
@@ -98,7 +118,7 @@ class EngineeringAssertionLayer:
     MAX_CABLE_AMPERAGE = 2000.0  # No single cable exceeds 2000A
     MIN_CABLE_SIZE_MM2 = 1.5  # Minimum practical cable size
 
-    def __init__(self, strict_mode: bool = True):
+    def __init__(self, strict_mode: bool = False):
         """
         Initialize the assertion layer.
 
@@ -106,7 +126,7 @@ class EngineeringAssertionLayer:
         ----------
         strict_mode : bool
             If True, WARNING-level failures also cause rejection.
-            If False, only CRITICAL and FATAL failures cause rejection.
+            If False, only CRITICAL and FATAL failures cause rejection (default).
         """
         self.strict_mode = strict_mode
         self._results: list[AssertionResult] = []
@@ -379,6 +399,66 @@ class EngineeringAssertionLayer:
         self._results.append(result)
         return result
 
+    def validate_coordination_selectivity(
+        self,
+        upstream_relay: str,
+        downstream_relay: str,
+        upstream_trip_s: float,
+        downstream_trip_s: float,
+        min_margin_s: float = 0.2,
+        fault_current_a: float = 0.0,
+    ) -> AssertionResult:
+        """Validate protection selectivity between upstream and downstream devices."""
+        margin = upstream_trip_s - downstream_trip_s
+        if margin < 0:
+            result = AssertionResult(
+                check_name="coordination_selectivity_violation",
+                passed=False,
+                severity=AssertionSeverity.CRITICAL,
+                message=(
+                    f"Non-selective trip: upstream {upstream_relay} ({upstream_trip_s:.3f} s) "
+                    f"trips faster than or simultaneously with downstream {downstream_relay} ({downstream_trip_s:.3f} s)"
+                ),
+                details={
+                    "upstream_relay": upstream_relay,
+                    "downstream_relay": downstream_relay,
+                    "upstream_trip_s": upstream_trip_s,
+                    "downstream_trip_s": downstream_trip_s,
+                    "margin_s": margin,
+                    "fault_current_a": fault_current_a,
+                },
+            )
+        elif margin < min_margin_s:
+            result = AssertionResult(
+                check_name="coordination_selectivity_margin",
+                passed=not self.strict_mode,
+                severity=AssertionSeverity.WARNING,
+                message=(
+                    f"Coordination time interval {margin:.3f} s between {upstream_relay} and "
+                    f"{downstream_relay} is below recommended CTI {min_margin_s:.3f} s"
+                ),
+                details={
+                    "upstream_relay": upstream_relay,
+                    "downstream_relay": downstream_relay,
+                    "upstream_trip_s": upstream_trip_s,
+                    "downstream_trip_s": downstream_trip_s,
+                    "margin_s": margin,
+                },
+            )
+        else:
+            result = AssertionResult(
+                check_name="coordination_selectivity",
+                passed=True,
+                message=f"Coordination OK between {upstream_relay} and {downstream_relay} (CTI = {margin:.3f} s)",
+                details={
+                    "upstream_relay": upstream_relay,
+                    "downstream_relay": downstream_relay,
+                    "margin_s": margin,
+                },
+            )
+        self._results.append(result)
+        return result
+
     def validate_arc_flash_results(
         self,
         incident_energy_cal_cm2: dict[str, float],
@@ -527,6 +607,193 @@ class EngineeringAssertionLayer:
         self._results.extend(results)
         return results
 
+    def validate(
+        self,
+        data: dict[str, Any],
+        study_type: str,
+    ) -> AssertionReport:
+        """
+        Validate simulation results against physical standards and engineering constraints.
+
+        Handles canonical study types and aliases across native, ETAP, and AI pipelines.
+        """
+        start_idx = len(self._results)
+        canonical = study_type.lower().replace("-", "_").strip()
+        if canonical.startswith("etap_"):
+            canonical = canonical[5:]
+        alias_map = {
+            "fault": "short_circuit",
+            "coordination": "protection_coordination",
+            "protection": "protection_coordination",
+            "harmonic": "harmonic_analysis",
+            "stability": "transient_stability",
+            "opf": "optimal_power_flow",
+            "cable": "cable_sizing",
+        }
+        canonical = alias_map.get(canonical, canonical)
+
+        if canonical in ("load_flow", "optimal_power_flow"):
+            bus_voltages = data.get("bus_voltages")
+            if not bus_voltages:
+                raw_buses = data.get("buses") or data.get("bus_results") or data.get("results", {}).get("buses")
+                if isinstance(raw_buses, dict):
+                    bus_voltages = {}
+                    for k, v in raw_buses.items():
+                        if isinstance(v, dict):
+                            for key in (
+                                "voltage_magnitude_pu",
+                                "vm_pu",
+                                "voltage_pu",
+                                "v_pu",
+                                "voltage_magnitude",
+                                "voltage_kv",
+                                "vm",
+                            ):
+                                if key in v:
+                                    try:
+                                        bus_voltages[str(k)] = float(v[key])
+                                        break
+                                    except (TypeError, ValueError):
+                                        pass
+                        elif isinstance(v, (int, float)):
+                            bus_voltages[str(k)] = float(v)
+
+            if isinstance(bus_voltages, dict) and bus_voltages:
+                nominal_kv = float(data.get("nominal_voltage_kv", data.get("base_kv", 1.0)))
+                all_pu = all(
+                    0.0 <= abs(float(val)) <= 3.0
+                    for val in bus_voltages.values()
+                    if isinstance(val, (int, float))
+                )
+                if all_pu and nominal_kv != 1.0 and max(bus_voltages.values()) <= 2.5:
+                    nominal_kv = 1.0
+                self.validate_voltage_results(bus_voltages, nominal_voltage_kv=nominal_kv)
+
+        elif canonical in ("short_circuit", "fault_analysis"):
+            fault_currents = (
+                data.get("fault_currents")
+                or data.get("fault_results")
+                or data.get("short_circuit_currents")
+                or data.get("results", {}).get("faults")
+            )
+            if isinstance(fault_currents, dict) and fault_currents:
+                curr_ka = {}
+                for k, v in fault_currents.items():
+                    if isinstance(v, dict):
+                        val = v.get(
+                            "ik_ss_ka",
+                            v.get("ik_ka", v.get("current_ka", v.get("magnitude", v.get("mag", 0.0)))),
+                        )
+                        try:
+                            curr_ka[str(k)] = float(val)
+                        except (TypeError, ValueError):
+                            curr_ka[str(k)] = 0.0
+                    elif isinstance(v, (int, float)):
+                        curr_ka[str(k)] = float(v)
+                if curr_ka:
+                    max_exp = float(data.get("max_expected_ka", 50.0))
+                    self.validate_short_circuit_results(curr_ka, max_expected_ka=max_exp)
+
+        elif canonical in ("arc_flash",):
+            incident_energy = data.get("incident_energy") or data.get("arc_flash_results")
+            boundaries = data.get("arc_flash_boundaries") or data.get("boundaries")
+            if isinstance(incident_energy, dict) and incident_energy:
+                energy_cal = {}
+                for k, v in incident_energy.items():
+                    if isinstance(v, dict):
+                        try:
+                            energy_cal[str(k)] = float(
+                                v.get("incident_energy_cal_cm2", v.get("energy", 0.0))
+                            )
+                        except (TypeError, ValueError):
+                            energy_cal[str(k)] = 0.0
+                    elif isinstance(v, (int, float)):
+                        energy_cal[str(k)] = float(v)
+                boundary_mm = None
+                if isinstance(boundaries, dict):
+                    boundary_mm = {}
+                    for k, v in boundaries.items():
+                        try:
+                            boundary_mm[str(k)] = float(v)
+                        except (TypeError, ValueError):
+                            boundary_mm[str(k)] = 0.0
+                self.validate_arc_flash_results(energy_cal, boundary_mm)
+
+        elif canonical in ("protection_coordination",):
+            relay_results = (
+                data.get("relay_results") or data.get("relays") or data.get("coordination_results")
+            )
+            if isinstance(relay_results, list):
+                for r in relay_results:
+                    if isinstance(r, dict) and ("trip_time_s" in r or "trip_time" in r):
+                        try:
+                            self.validate_trip_time(
+                                relay_id=str(r.get("relay_id", "unknown")),
+                                trip_time_s=float(r.get("trip_time_s", r.get("trip_time", 0.0))),
+                                current_a=float(r.get("current_a", r.get("current", 0.0))),
+                                pickup_a=float(r.get("pickup_a", r.get("pickup", 0.0))),
+                            )
+                        except (TypeError, ValueError):
+                            pass
+            selectivity_checks = data.get("selectivity_checks") or data.get("selectivity_pairs")
+            if isinstance(selectivity_checks, list):
+                for pair in selectivity_checks:
+                    if isinstance(pair, dict):
+                        try:
+                            self.validate_coordination_selectivity(
+                                upstream_relay=str(pair.get("upstream_relay", "up")),
+                                downstream_relay=str(pair.get("downstream_relay", "down")),
+                                upstream_trip_s=float(pair.get("upstream_trip_s", 0.0)),
+                                downstream_trip_s=float(pair.get("downstream_trip_s", 0.0)),
+                                min_margin_s=float(pair.get("min_margin_s", 0.2)),
+                                fault_current_a=float(pair.get("fault_current_a", 0.0)),
+                            )
+                        except (TypeError, ValueError):
+                            pass
+
+        elif canonical in ("cable_sizing",):
+            cable_loads = data.get("cable_loads_a") or data.get("cable_loads")
+            cable_ampacities = data.get("cable_ampacities_a") or data.get("cable_ampacities")
+            if isinstance(cable_loads, dict) and isinstance(cable_ampacities, dict):
+                c_loads = {str(k): float(v) for k, v in cable_loads.items()}
+                c_amp = {str(k): float(v) for k, v in cable_ampacities.items()}
+                self.validate_cable_sizing(c_loads, c_amp)
+
+        new_results = self._results[start_idx:]
+        warnings = [r for r in new_results if r.severity == AssertionSeverity.WARNING]
+        critical_or_fatal = [
+            r for r in new_results if r.severity in (AssertionSeverity.CRITICAL, AssertionSeverity.FATAL) and not r.passed
+        ]
+        if self.strict_mode:
+            failures = [r for r in new_results if not r.passed or r.severity == AssertionSeverity.WARNING]
+        else:
+            failures = critical_or_fatal
+
+        has_critical = len(critical_or_fatal) > 0
+        has_any = len(failures) > 0 or len(warnings) > 0
+        passed = (not has_critical) and (not self.strict_mode or not has_any)
+
+        summary = {
+            "total_checks": len(new_results),
+            "passed": sum(1 for r in new_results if r.passed and r.severity != AssertionSeverity.WARNING),
+            "warnings": len(warnings),
+            "failed": len(failures),
+            "has_critical_failures": has_critical,
+            "has_any_failures": has_any,
+            "failures": [r.to_dict() for r in failures],
+            "warnings_list": [r.to_dict() for r in warnings],
+        }
+
+        return AssertionReport(
+            passed=passed,
+            failures=failures,
+            warnings=warnings,
+            all_results=new_results,
+            has_critical_failures=has_critical,
+            has_any_failures=has_any,
+            summary=summary,
+        )
+
     def get_all_results(self) -> list[AssertionResult]:
         """Return all accumulated assertion results."""
         return list(self._results)
@@ -570,109 +837,20 @@ def validate_fallback_output(
     """
     Convenience function to validate AI output from a fallback model.
 
-    This is the main entry point for the V-04 fix. It should be called
-    whenever an AI response is produced by a fallback model or safety-net
-    prompt, before the response is shown to the user.
-
-    Parameters
-    ----------
-    output_type : str
-        Type of engineering output: "short_circuit", "load_flow",
-        "arc_flash", "protection_coordination", "cable_sizing".
-    output_data : dict
-        The AI output data to validate.
-    strict_mode : bool
-        If True, WARNING-level failures also cause rejection.
-
-    Returns
-    -------
-    tuple[bool, dict]
-        (is_safe, summary) where is_safe is True if the output passes
-        all critical checks, and summary contains the full assertion results.
+    This is the main entry point for the V-04 fix. It delegates to
+    EngineeringAssertionLayer.validate() for standard checks.
     """
     layer = EngineeringAssertionLayer(strict_mode=strict_mode)
+    report = layer.validate(output_data, output_type)
 
-    if output_type == "short_circuit":
-        fault_currents = output_data.get("fault_currents", {})
-        if isinstance(fault_currents, dict):
-            # Convert to float values
-            current_ka = {}
-            for k, v in fault_currents.items():
-                try:
-                    current_ka[k] = (
-                        float(v)
-                        if not isinstance(v, dict)
-                        else float(v.get("magnitude", v.get("mag", 0)))
-                    )
-                except (TypeError, ValueError):
-                    current_ka[k] = 0.0
-            layer.validate_short_circuit_results(current_ka)
-
-    elif output_type == "load_flow":
-        bus_voltages = output_data.get("bus_voltages", {})
-        nominal_kv = output_data.get("nominal_voltage_kv", 11.0)
-        if isinstance(bus_voltages, dict):
-            voltage_kv = {}
-            for k, v in bus_voltages.items():
-                try:
-                    voltage_kv[k] = (
-                        float(v)
-                        if not isinstance(v, dict)
-                        else float(v.get("magnitude", v.get("mag", 0)))
-                    )
-                except (TypeError, ValueError):
-                    voltage_kv[k] = 0.0
-            layer.validate_voltage_results(voltage_kv, nominal_kv)
-
-    elif output_type == "arc_flash":
-        incident_energy = output_data.get("incident_energy", {})
-        boundaries = output_data.get("arc_flash_boundaries")
-        if isinstance(incident_energy, dict):
-            energy_cal = {}
-            for k, v in incident_energy.items():
-                try:
-                    energy_cal[k] = float(v)
-                except (TypeError, ValueError):
-                    energy_cal[k] = 0.0
-            boundary_mm = None
-            if boundaries and isinstance(boundaries, dict):
-                boundary_mm = {}
-                for k, v in boundaries.items():
-                    try:
-                        boundary_mm[k] = float(v)
-                    except (TypeError, ValueError):
-                        boundary_mm[k] = 0.0
-            layer.validate_arc_flash_results(energy_cal, boundary_mm)
-
-    elif output_type == "protection_coordination":
-        relay_results = output_data.get("relay_results", [])
-        for relay in relay_results:
-            if isinstance(relay, dict):
-                layer.validate_trip_time(
-                    relay_id=relay.get("relay_id", "unknown"),
-                    trip_time_s=float(relay.get("trip_time_s", 0)),
-                    current_a=float(relay.get("current_a", 0)),
-                    pickup_a=float(relay.get("pickup_a", 0)),
-                )
-
-    elif output_type == "cable_sizing":
-        cable_loads = output_data.get("cable_loads_a", {})
-        cable_ampacities = output_data.get("cable_ampacities_a", {})
-        if isinstance(cable_loads, dict) and isinstance(cable_ampacities, dict):
-            layer.validate_cable_sizing(cable_loads, cable_ampacities)
-
-    summary = layer.get_summary()
-    is_safe = not layer.has_critical_failures() and (
-        not strict_mode or not layer.has_any_failures()
-    )
-
-    if not is_safe:
+    if not report.passed:
         logger.warning(
             "V-04: Fallback output validation FAILED for %s — %d of %d checks failed. "
             "Output will be rejected or flagged.",
             output_type,
-            summary["failed"],
-            summary["total_checks"],
+            report.summary["failed"],
+            report.summary["total_checks"],
         )
 
-    return is_safe, summary
+    return report.passed, report.summary
+

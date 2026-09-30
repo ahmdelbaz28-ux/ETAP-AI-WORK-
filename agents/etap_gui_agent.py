@@ -533,6 +533,10 @@ class ETAPGUIAgent(BaseAgent):
         on_confirmation_request=None,
         audit_dir: str | None = None,
         start_url: str | None = None,
+        tenant_id: str | None = None,
+        allowed_tools: list[str] | set[str] | None = None,
+        bounds: dict[str, int] | tuple[int, int, int, int] | None = None,
+        allow_unverified: bool = False,
     ) -> dict[str, Any]:
         """Run the actual CUA Loop — captures screenshots, analyzes them
         via Gemini Vision, and drives the appropriate executor to click/type/hotkey.
@@ -550,6 +554,9 @@ class ETAPGUIAgent(BaseAgent):
             on_confirmation_request: callable(action) -> bool; if returns False, abort
             audit_dir: directory for before/after screenshots (default /tmp/cua_audit)
             start_url: optional URL to navigate to (BrowserCUA only; ignored by Desktop)
+            tenant_id: optional tenant ID for isolation (M5.1(d))
+            allowed_tools: optional list of permitted CUA action types
+            bounds: optional window boundaries (min_x, min_y, max_x, max_y)
 
         Returns:
             Dict with: executed (bool), result (CUAExecutionResult.to_dict()),
@@ -599,6 +606,10 @@ class ETAPGUIAgent(BaseAgent):
                 on_confirmation_request=on_confirmation_request,
                 context=f"Target app: {app}. Mode: {cls}.",
                 mode=cls,
+                tenant_id=tenant_id,
+                allowed_tools=allowed_tools,
+                bounds=bounds,
+                allow_unverified=allow_unverified,
             )
         elif browser_deps["all_available"]:
             # Headless environment with Playwright — control a browser instead
@@ -613,6 +624,10 @@ class ETAPGUIAgent(BaseAgent):
                 require_confirmation=cls in ("control", "solve") and require_confirmation,
                 on_confirmation_request=on_confirmation_request,
                 context=f"Target app: {app}. Mode: {cls}. Browser CUA.",
+                tenant_id=tenant_id,
+                allowed_tools=allowed_tools,
+                bounds=bounds,
+                allow_unverified=allow_unverified,
             )
         else:
             # Neither available — Format U fallback

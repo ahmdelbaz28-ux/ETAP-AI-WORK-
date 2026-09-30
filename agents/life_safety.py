@@ -68,6 +68,7 @@ import logging
 import os
 import tempfile
 import time
+from collections.abc import Callable
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 
@@ -518,6 +519,9 @@ class LifeSafetyGuard:
         )
         self._last_control_action_time: float = 0.0
         self._last_safety_check: SafetyCheckResult | None = None
+        self._auto_rollback_enabled: bool = False
+        self._auto_rollback_handler: Callable[[dict[str, Any]], bool] | None = None
+        self._verification_hook: Callable[..., bool] | None = None
 
     # ─── Pre-action check — called before EVERY action ─────────────────────
 
@@ -741,6 +745,7 @@ class LifeSafetyGuard:
         self,
         snapshot_id: str,
         reason: str = "manual_rollback",
+        auto_reversal_callback: Callable[[dict[str, Any]], bool] | None = None,
     ) -> dict[str, Any]:
         """Attempt to rollback the last control action.
 
@@ -803,18 +808,43 @@ class LifeSafetyGuard:
                 "snapshot": None,
             }
 
-        # ── Determine manual rollback instructions ────────────────────────
+        # ── Determine rollback execution (M5.1(c)) ─────────────────────────
         action_type = snapshot.get("action", {}).get("type", "unknown")
         target = snapshot.get("action", {}).get("target", "unknown")
         screenshot = snapshot.get("screenshot_before")
 
-        manual_steps = (
-            f"MANUAL ROLLBACK REQUIRED (snapshot {snapshot_id}): "
-            f"Action type '{action_type}' targeted '{target}'. "
-            f"To reverse: re-open the dialog, locate the changed field, "
-            f"and restore the original value. "
-            f"Pre-action screenshot: {screenshot or 'not available'}. "
-        )
+        # Check for automated rollback handler or callback
+        auto_success = False
+        reversal_cb = auto_reversal_callback or getattr(self, "_auto_rollback_handler", None)
+        if reversal_cb is not None:
+            try:
+                import inspect
+
+                sig = inspect.signature(reversal_cb)
+                if len(sig.parameters) >= 2:
+                    auto_success = bool(reversal_cb(snapshot, reason))
+                else:
+                    auto_success = bool(reversal_cb(snapshot))
+            except Exception as rev_err:
+                logger.error("Automated rollback callback failed: %s", rev_err)
+
+        if auto_success:
+            rollback_type = "automated"
+            automated = True
+            rollback_msg = (
+                f"AUTOMATED ROLLBACK EXECUTED (snapshot {snapshot_id}): "
+                f"Action '{action_type}' targeting '{target}' was successfully reversed."
+            )
+        else:
+            rollback_type = "manual_only"
+            automated = False
+            rollback_msg = (
+                f"MANUAL ROLLBACK REQUIRED (snapshot {snapshot_id}): "
+                f"Action type '{action_type}' targeted '{target}'. "
+                f"To reverse: re-open the dialog, locate the changed field, "
+                f"and restore the original value. "
+                f"Pre-action screenshot: {screenshot or 'not available'}."
+            )
 
         # ── Log the rollback in the tamper-evident audit chain ────────────
         self._append_audit(
@@ -828,18 +858,129 @@ class LifeSafetyGuard:
             extra={
                 "rollback_reason": reason,
                 "snapshot_id": snapshot_id,
-                "manual_steps": manual_steps,
-                "rollback_type": "manual_only",
+                "rollback_type": rollback_type,
+                "automated": automated,
+                "manual_steps": rollback_msg,
             },
         )
 
-        logger.warning("⚠️ Rollback recorded for snapshot %s — %s", snapshot_id, manual_steps)
+        logger.warning("⚠️ Rollback recorded for snapshot %s (%s) — %s", snapshot_id, rollback_type, rollback_msg)
 
         return {
             "success": True,
-            "message": manual_steps,
+            "message": rollback_msg,
             "snapshot": snapshot,
+            "rollback_type": rollback_type,
+            "automated": automated,
         }
+
+    def register_auto_rollback_handler(
+        self, handler: Callable[[dict[str, Any]], bool] | None
+    ) -> None:
+        """Register a handler for automated rollback execution (M5.1(c))."""
+        self._auto_rollback_handler = handler
+
+    def verify_post_action(
+        self,
+        action: Any,
+        screenshot_before: str | None = None,
+        screenshot_after: str | None = None,
+        pre_snapshot_id: str | None = None,
+        verifier_callback: Callable[[Any, str | None, str | None], bool] | None = None,
+    ) -> dict[str, Any]:
+        """Deterministic post-action verification (M5.1(b)).
+
+        Real checks:
+          - If a verifier callback/hook is provided: executes deterministic state assertion.
+          - If screenshots before and after are provided and readable: compares SHA-256 hashes.
+            Different hashes = observable visual UI change verified.
+            Identical hashes = no state change occurred, fails verification.
+          - If non-mutating action ('done', 'wait'): bypasses verification as no UI mutation occurs.
+
+        Passthrough semantics:
+          - If no hook is registered AND screenshots are missing or unreadable for a mutating
+            action ('click', 'type', 'hotkey', 'drag', etc.): returns unverified_passthrough=True
+            with reason='No verifier evidence'.
+            In control mode, the CUA executor treats unverified_passthrough as fail-closed unless
+            allow_unverified=True is explicitly set.
+        """
+        # 1. Custom verifier hook check
+        cb = verifier_callback or getattr(self, "_verification_hook", None)
+        if cb is not None:
+            try:
+                ok = cb(action, screenshot_before, screenshot_after)
+                if not ok:
+                    return {
+                        "verified": False,
+                        "unverified_passthrough": False,
+                        "reason": "Deterministic verifier callback reported unverified state",
+                    }
+                return {"verified": True, "unverified_passthrough": False, "reason": "Verifier callback passed"}
+            except Exception as exc:
+                return {
+                    "verified": False,
+                    "unverified_passthrough": False,
+                    "reason": f"Verifier callback raised exception: {exc}",
+                }
+
+        # 2. Check if verification failure is explicitly simulated / configured
+        if getattr(self, "_force_verification_failure", False):
+            return {
+                "verified": False,
+                "unverified_passthrough": False,
+                "reason": "Verification failure forced by safety policy",
+            }
+
+        # 3. For actions that do not modify UI state (done, wait), no state change required
+        action_type = (
+            getattr(action, "type", "unknown")
+            if hasattr(action, "type")
+            else (action.get("type", "unknown") if isinstance(action, dict) else "unknown")
+        )
+        if action_type in ("done", "wait"):
+            return {"verified": True, "unverified_passthrough": False, "reason": f"Action '{action_type}' is non-mutating"}
+
+        # 4. Deterministic screenshot hash verification if screenshots are present
+        if screenshot_before and screenshot_after:
+            try:
+                p_before = Path(screenshot_before)
+                p_after = Path(screenshot_after)
+                if (
+                    p_before.exists()
+                    and p_after.exists()
+                    and p_before.stat().st_size > 0
+                    and p_after.stat().st_size > 0
+                ):
+                    h_b = hashlib.sha256(p_before.read_bytes()).hexdigest()
+                    h_a = hashlib.sha256(p_after.read_bytes()).hexdigest()
+                    if h_b != h_a:
+                        return {
+                            "verified": True,
+                            "unverified_passthrough": False,
+                            "reason": "Observable UI change confirmed by screenshot diff",
+                        }
+                    else:
+                        return {
+                            "verified": False,
+                            "unverified_passthrough": False,
+                            "reason": f"Action '{action_type}' produced no observable change in UI state (before and after screenshots identical)",
+                        }
+            except Exception as e:
+                logger.debug("Post-action screenshot check error: %s", e)
+
+        # 5. Mutating action with no verifier hook and missing/unreadable screenshots
+        return {
+            "verified": False,
+            "unverified_passthrough": True,
+            "reason": f"No verifier evidence: action '{action_type}' executed without verifier hook or visual screenshot diff",
+        }
+
+    def set_verification_hook(
+        self,
+        hook: Callable[[Any, str | None, str | None], bool] | None,
+    ) -> None:
+        """Set a verification hook for deterministic post-action verification (M5.1(b))."""
+        self._verification_hook = hook
 
     # ─── Internal: screenshot annotation ───────────────────────────────────
 
@@ -896,16 +1037,28 @@ class LifeSafetyGuard:
         Also forwards the event to the SIEM Syslog forwarder (if configured)
         so life-safety events appear in the enterprise SIEM in real time.
         """
+        if isinstance(action, dict):
+            action_payload = {
+                "type": action.get("type", "unknown"),
+                "x": action.get("x") or action.get("coordinates", {}).get("x"),
+                "y": action.get("y") or action.get("coordinates", {}).get("y"),
+                "text": action.get("text"),
+                "keys": action.get("keys", []),
+                "target": action.get("target"),
+            }
+        else:
+            action_payload = {
+                "type": getattr(action, "type", "unknown"),
+                "x": getattr(action, "x", None),
+                "y": getattr(action, "y", None),
+                "text": getattr(action, "text", None),
+                "keys": getattr(action, "keys", []),
+                "target": getattr(action, "target", None),
+            }
+
         data = {
             "event_type": event_type,
-            "action": {
-                "type": action.type,
-                "x": action.x,
-                "y": action.y,
-                "text": action.text,
-                "keys": action.keys,
-                "target": action.target,
-            },
+            "action": action_payload,
             "safety_level": result.safety_level,
             "blocked": result.blocked,
             "reason": result.reason,
