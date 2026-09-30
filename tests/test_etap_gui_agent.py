@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 
@@ -187,57 +188,40 @@ def gui_agent():
     return ETAPGUIAgent()
 
 
-def _maybe_skip_if_unavailable(agent):
-    """Skip format tests if GUI deps unavailable (Format U is tested elsewhere)."""
-    from agents.etap_gui_agent import _check_gui_deps
-
-    ok, _ = _check_gui_deps()
-    if not ok:
-        pytest.skip("GUI deps unavailable — Format U tested in test_fallback_when_deps_unavailable")
-
-
 def test_format_a_analyze_signature(gui_agent):
     """Format A must start with 👁️ GUI AGENT — ANALYZE MODE."""
-    _maybe_skip_if_unavailable(gui_agent)
-    result = gui_agent.answer("Take a screenshot of ETAP")
-    if result["format"] == "U":
-        pytest.skip("GUI deps unavailable")
-    assert result["format"] == "A"
-    assert "👁️ GUI AGENT — ANALYZE MODE" in result["response"]
-    assert "read-only" in result["response"].lower()
+    with patch("agents.etap_gui_agent._check_gui_deps", return_value=(True, [])):
+        result = gui_agent.answer("Take a screenshot of ETAP")
+        assert result["format"] == "A"
+        assert "👁️ GUI AGENT — ANALYZE MODE" in result["response"]
+        assert "read-only" in result["response"].lower()
 
 
 def test_format_b_monitor_signature(gui_agent):
     """Format B must start with 📊 GUI AGENT — MONITOR MODE."""
-    _maybe_skip_if_unavailable(gui_agent)
-    result = gui_agent.answer("Monitor the running study")
-    if result["format"] == "U":
-        pytest.skip("GUI deps unavailable")
-    assert result["format"] == "B"
-    assert "📊 GUI AGENT — MONITOR MODE" in result["response"]
+    with patch("agents.etap_gui_agent._check_gui_deps", return_value=(True, [])):
+        result = gui_agent.answer("Monitor the running study")
+        assert result["format"] == "B"
+        assert "📊 GUI AGENT — MONITOR MODE" in result["response"]
 
 
 def test_format_c_control_signature(gui_agent):
     """Format C must start with 🖱️ GUI AGENT — CONTROL MODE + require confirmation."""
-    _maybe_skip_if_unavailable(gui_agent)
-    result = gui_agent.answer("Click the Run button in ETAP")
-    if result["format"] == "U":
-        pytest.skip("GUI deps unavailable")
-    assert result["format"] == "C"
-    assert "🖱️ GUI AGENT — CONTROL MODE" in result["response"]
-    assert "CONFIRMATION REQUIRED" in result["response"]
-    assert "CONFIRM" in result["response"]
+    with patch("agents.etap_gui_agent._check_gui_deps", return_value=(True, [])):
+        result = gui_agent.answer("Click the Run button in ETAP")
+        assert result["format"] == "C"
+        assert "🖱️ GUI AGENT — CONTROL MODE" in result["response"]
+        assert "CONFIRMATION REQUIRED" in result["response"]
+        assert "CONFIRM" in result["response"]
 
 
 def test_format_d_solve_signature(gui_agent):
     """Format D must start with ⚡ GUI AGENT — SOLVE MODE + mention confirmation."""
-    _maybe_skip_if_unavailable(gui_agent)
-    result = gui_agent.answer("Solve the convergence problem step by step")
-    if result["format"] == "U":
-        pytest.skip("GUI deps unavailable")
-    assert result["format"] == "D"
-    assert "⚡ GUI AGENT — SOLVE MODE" in result["response"]
-    assert "confirmation" in result["response"].lower()
+    with patch("agents.etap_gui_agent._check_gui_deps", return_value=(True, [])):
+        result = gui_agent.answer("Solve the convergence problem step by step")
+        assert result["format"] == "D"
+        assert "⚡ GUI AGENT — SOLVE MODE" in result["response"]
+        assert "confirmation" in result["response"].lower()
 
 
 # ---------------------------------------------------------------------------
@@ -247,11 +231,9 @@ def test_format_d_solve_signature(gui_agent):
 
 def test_control_response_mentions_failsafe(gui_agent):
     """Format C (control) must mention failsafe safety rule."""
-    _maybe_skip_if_unavailable(gui_agent)
-    result = gui_agent.answer("Open ETAP and run Load Flow")
-    if result["format"] == "U":
-        pytest.skip("GUI deps unavailable")
-    if result["format"] == "C":
+    with patch("agents.etap_gui_agent._check_gui_deps", return_value=(True, [])):
+        result = gui_agent.answer("Open ETAP and run Load Flow")
+        assert result["format"] == "C"
         assert "failsafe" in result["response"].lower() or "FAILSAFE" in result["response"]
         assert "timeout" in result["response"].lower()
         assert "audit" in result["response"].lower()
@@ -259,26 +241,22 @@ def test_control_response_mentions_failsafe(gui_agent):
 
 def test_solve_response_mentions_integration(gui_agent):
     """Format D (solve) must mention integration with ETAP Expert Skill."""
-    _maybe_skip_if_unavailable(gui_agent)
-    result = gui_agent.answer("Fix the voltage drop problem")
-    if result["format"] == "U":
-        pytest.skip("GUI deps unavailable")
-    if result["format"] == "D":
+    with patch("agents.etap_gui_agent._check_gui_deps", return_value=(True, [])):
+        result = gui_agent.answer("Fix the voltage drop problem")
+        assert result["format"] == "D"
         assert "Expert Skill" in result["response"] or "etap-expert" in result["response"].lower()
 
 
 def test_unavailable_response_mentions_alternative():
     """Format U must suggest the ETAP Expert Skill as alternative."""
-    from agents.etap_gui_agent import ETAPGUIAgent, _check_gui_deps
+    from agents.etap_gui_agent import ETAPGUIAgent
 
-    ok, _ = _check_gui_deps()
-    if ok:
-        pytest.skip("GUI deps available — Format U not triggered")
-    agent = ETAPGUIAgent()
-    result = agent.answer("Open ETAP")
-    assert result["format"] == "U"
-    assert "etap_expert" in result["response"].lower()
-    assert "alternative" in result["response"].lower()
+    with patch("agents.etap_gui_agent._check_gui_deps", return_value=(False, ["pyautogui"])):
+        agent = ETAPGUIAgent()
+        result = agent.answer("Open ETAP")
+        assert result["format"] == "U"
+        assert "etap_expert" in result["response"].lower()
+        assert "alternative" in result["response"].lower()
 
 
 # ---------------------------------------------------------------------------

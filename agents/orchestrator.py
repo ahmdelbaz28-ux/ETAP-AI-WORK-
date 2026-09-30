@@ -409,7 +409,12 @@ class ChiefEngineeringOrchestrator:
         completed_at = datetime.now(UTC)
 
         task.results = results
-        task.status = AgentStatus.COMPLETED
+        if any(r.status == AgentStatus.REJECTED for r in results):
+            task.status = AgentStatus.REJECTED
+        elif any(r.status in (AgentStatus.FAILED, AgentStatus.SKIPPED_WITH_REASON) for r in results):
+            task.status = AgentStatus.FAILED
+        else:
+            task.status = AgentStatus.COMPLETED
         self.completed_tasks[task.task_id] = task
 
         # M4.4 honesty: an independent ValidationAgent pass must agree before

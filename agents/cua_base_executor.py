@@ -282,6 +282,36 @@ class BaseCUAExecutor(abc.ABC):
         Browser: closes the Chromium browser instance
         """
 
+    def _assert_coordinate_bounds(
+        self,
+        action: CUAAction,
+        bounds: dict[str, int] | tuple[int, int, int, int] | None = None,
+        mode: str = "control",
+    ) -> str | None:
+        """Validate that action coordinates lie within application screen boundaries (M5.1(d))."""
+        if action.x is None and action.y is None:
+            return None
+
+        # In control mode, bounds must be explicitly specified (no over-wide desktop fallback)
+        if mode == "control" and bounds is None:
+            return "BOUNDS VIOLATION: missing-bounds (window boundaries must be specified in control mode to prevent out-of-window operations)"
+
+        # Default bounds: desktop 0..3840 x 0..2160 allowed ONLY for observe/analyze mode
+        min_x, min_y, max_x, max_y = 0, 0, 3840, 2160
+        if isinstance(bounds, dict):
+            min_x = bounds.get("min_x", 0)
+            min_y = bounds.get("min_y", 0)
+            max_x = bounds.get("max_x", 3840)
+            max_y = bounds.get("max_y", 2160)
+        elif isinstance(bounds, (list, tuple)) and len(bounds) == 4:
+            min_x, min_y, max_x, max_y = bounds
+
+        if action.x is not None and (action.x < min_x or action.x > max_x):
+            return f"Coordinate x={action.x} is outside allowed window bounds [{min_x}, {max_x}]"
+        if action.y is not None and (action.y < min_y or action.y > max_y):
+            return f"Coordinate y={action.y} is outside allowed window bounds [{min_y}, {max_y}]"
+        return None
+
     # ─── Public: execute the full CUA loop ─────────────────────────────────
 
     def execute_loop(  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
@@ -292,6 +322,10 @@ class BaseCUAExecutor(abc.ABC):
         on_confirmation_request=None,
         context: str | None = None,
         mode: str = "control",
+        tenant_id: str | None = None,
+        allowed_tools: list[str] | set[str] | None = None,
+        bounds: dict[str, int] | tuple[int, int, int, int] | None = None,
+        allow_unverified: bool = False,
     ) -> CUAExecutionResult:
         """Run the CUA loop until objective is complete or max_steps reached.
 
@@ -303,6 +337,11 @@ class BaseCUAExecutor(abc.ABC):
                                      If returns False, the loop aborts.
             context: prior context (e.g., "User just opened ETAP manually")
             mode: execution mode ("control" or "observe")
+            tenant_id: optional tenant ID for isolation
+            allowed_tools: optional list of permitted CUA action types
+            bounds: optional window boundaries (min_x, min_y, max_x, max_y)
+            allow_unverified: if True, permits unverified passthrough in control mode
+                              when no verifier hook or visual screenshot diff is present
 
         Returns:
             CUAExecutionResult with full audit trail
@@ -444,6 +483,53 @@ class BaseCUAExecutor(abc.ABC):
                         success=False,
                         steps=steps,
                         aborted_reason=f"Vision could not determine action: {action.reason}",
+                        total_duration_ms=int((time.monotonic() - start_time) * 1000),
+                        execution_id=exec_id,
+                        resumed_from_step=resume_from,
+                        vision_source=analysis.get("source"),
+                    )
+
+                # STEP 5.5: Coordinate bounds and tool policy checks (M5.1(d))
+                bounds_err = self._assert_coordinate_bounds(action, bounds, mode=mode)
+                if bounds_err:
+                    step_result = CUAStepResult(
+                        step_number=step_num,
+                        action=action,
+                        success=False,
+                        screenshot_before=screenshot_before,
+                        gemini_analysis=analysis,
+                        error=f"BOUNDS VIOLATION: {bounds_err}",
+                        duration_ms=int((time.monotonic() - step_start) * 1000),
+                    )
+                    steps.append(step_result)
+                    return CUAExecutionResult(
+                        success=False,
+                        steps=steps,
+                        aborted_reason=f"Bounds violation: {bounds_err}",
+                        total_duration_ms=int((time.monotonic() - start_time) * 1000),
+                        execution_id=exec_id,
+                        resumed_from_step=resume_from,
+                        vision_source=analysis.get("source"),
+                    )
+
+                if allowed_tools is not None and action.type not in allowed_tools:
+                    policy_err = (
+                        f"Action '{action.type}' disallowed by tool policy for tenant '{tenant_id or 'default'}'"
+                    )
+                    step_result = CUAStepResult(
+                        step_number=step_num,
+                        action=action,
+                        success=False,
+                        screenshot_before=screenshot_before,
+                        gemini_analysis=analysis,
+                        error=f"TOOL POLICY VIOLATION: {policy_err}",
+                        duration_ms=int((time.monotonic() - step_start) * 1000),
+                    )
+                    steps.append(step_result)
+                    return CUAExecutionResult(
+                        success=False,
+                        steps=steps,
+                        aborted_reason=policy_err,
                         total_duration_ms=int((time.monotonic() - start_time) * 1000),
                         execution_id=exec_id,
                         resumed_from_step=resume_from,
@@ -646,6 +732,33 @@ class BaseCUAExecutor(abc.ABC):
                     exec_error=exec_error,
                 )
 
+                # STEP 10.5: Deterministic Post-Action Verification (M5.1(b))
+                if exec_error is None:
+                    verification = life_safety_guard.verify_post_action(
+                        action=action,
+                        screenshot_before=screenshot_before,
+                        screenshot_after=screenshot_after,
+                        pre_snapshot_id=safety_check.state_snapshot_id,
+                    )
+                    is_verified = verification.get("verified", False)
+                    is_unverified = verification.get("unverified_passthrough", False)
+
+                    if not is_verified and is_unverified and allow_unverified:
+                        is_verified = True
+                        logger.warning("Unverified post-action passthrough permitted by allow_unverified flag")
+
+                    if not is_verified:
+                        v_reason = verification.get("reason", "Post-action state verification failed")
+                        logger.error("Deterministic post-action verification FAILED: %s", v_reason)
+                        exec_error = f"Post-action verification failed: {v_reason}"
+                        # Automatic Rollback on verification failure (M5.1(c))
+                        if safety_check.state_snapshot_id:
+                            with contextlib.suppress(Exception):
+                                life_safety_guard.rollback(
+                                    snapshot_id=safety_check.state_snapshot_id,
+                                    reason=f"post_action_verification_failed: {v_reason}",
+                                )
+
                 step_result = CUAStepResult(
                     step_number=step_num,
                     action=action,
@@ -659,8 +772,16 @@ class BaseCUAExecutor(abc.ABC):
                 steps.append(step_result)
 
                 if exec_error:
-                    logger.warning("Step %d failed: %s", step_num, exec_error)
-                    # Continue — Gemini may recover in next iteration
+                    logger.warning("Step %d failed: %s — aborting CUA loop (fail-closed)", step_num, exec_error)
+                    return CUAExecutionResult(
+                        success=False,
+                        steps=steps,
+                        aborted_reason=f"Action execution or post-action verification failed: {exec_error}",
+                        total_duration_ms=int((time.monotonic() - start_time) * 1000),
+                        execution_id=exec_id,
+                        resumed_from_step=resume_from,
+                        vision_source=analysis.get("source"),
+                    )
 
                 # Update context for next iteration
                 current_context = (

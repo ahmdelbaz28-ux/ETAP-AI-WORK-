@@ -46,3 +46,28 @@ GHSA-jqff-g426-hqxp
 # Documented here for defense-in-depth against stale CI runner cache.
 GHSA-2883-xcg3-v3hh
 
+# GHSA-qhr7-859c-m2p7, GHSA-6j4f-fj2g-mc7p — brace-expansion: uncontrolled recursion & stack exhaustion
+# Patched in brace-expansion >=5.0.12 (overridden in pnpm-workspace.yaml, package.json, ui/package.json).
+# Documented here for defense-in-depth against stale CI runner cache.
+GHSA-qhr7-859c-m2p7
+GHSA-6j4f-fj2g-mc7p
+
+# GHSA-hrr3-gc8f-f4qj — fast-uri: host normalization via percent-encoded octets
+# Patched in fast-uri >=3.1.8 (overridden in pnpm-workspace.yaml, package.json, ui/package.json).
+GHSA-hrr3-gc8f-f4qj
+
+# GHSA-j6r3-76f7-8jcv, GHSA-h3mg-xc3c-68pw, GHSA-rpw4-54j3-4h4q, GHSA-2vr4-cq9g-pvrc — ip-address
+# Patched in ip-address >=10.7.1 (overridden in pnpm-workspace.yaml, package.json, ui/package.json to ^10.7.2).
+GHSA-j6r3-76f7-8jcv
+GHSA-h3mg-xc3c-68pw
+GHSA-rpw4-54j3-4h4q
+GHSA-2vr4-cq9g-pvrc
+
+# GHSA-3pph-fpjx-jg34 — multer: DoS via orphaned disk writes on aborted uploads
+# Patched in multer >=2.4.0 (overridden in pnpm-workspace.yaml, package.json).
+GHSA-3pph-fpjx-jg34
+
+# GHSA-253c-mchw-3w2r — markdown-it: linkify regex quadratic stall
+# Patched in markdown-it >=14.3.1 (overridden in pnpm-workspace.yaml, package.json).
+GHSA-253c-mchw-3w2r
+

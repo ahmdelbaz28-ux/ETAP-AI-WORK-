@@ -63,6 +63,8 @@ from fastapi import HTTPException, WebSocket, WebSocketDisconnect
 
 logger = logging.getLogger("api.cua_confirmation_ws")
 
+APPROVAL_TTL_SECONDS: int = 300
+
 
 # ─── Authentication helper ─────────────────────────────────────────────────
 #
@@ -230,6 +232,17 @@ class ConfirmationBroker:
         self._connected_clients.pop(websocket, None)
         logger.info("Confirmation WS client disconnected (total: %d)", len(self._connected_clients))
 
+    def has_connected_clients(self, tenant_id: str = "") -> bool:
+        """Check if there are any connected WebSocket clients for the tenant."""
+        if not self._connected_clients:
+            return False
+        if not tenant_id:
+            return bool(self._connected_clients)
+        return any(
+            not client_tenant or client_tenant == tenant_id
+            for client_tenant in self._connected_clients.values()
+        )
+
     # ─── Broadcast a request to all connected clients ─────────────────────
 
     async def _broadcast(self, message: dict[str, Any], tenant_id: str = "") -> None:
@@ -250,7 +263,7 @@ class ConfirmationBroker:
     def request(
         self,
         action,  # CUAAction
-        timeout_seconds: int = 120,
+        timeout_seconds: int = APPROVAL_TTL_SECONDS,
         require_two_humans: bool = True,
         tenant_id: str = "",
         initiator_id: str = "",
@@ -259,7 +272,7 @@ class ConfirmationBroker:
 
         Args:
             action: the CUAAction requiring confirmation
-            timeout_seconds: max time to wait (default 120s)
+            timeout_seconds: max time to wait (default APPROVAL_TTL_SECONDS: 300s)
             require_two_humans: if True, need 2 distinct session_ids to confirm
             tenant_id: tenant identifier for isolation
             initiator_id: session_id of initiator (for maker-checker enforcement)

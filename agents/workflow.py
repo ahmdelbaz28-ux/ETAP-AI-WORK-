@@ -406,6 +406,7 @@ class WorkflowEngine:
                 bool(results)
                 and all(r.status == AgentStatus.COMPLETED for r in results)
                 and all(r.validation_status for r in results)
+                and not any(r.status in (AgentStatus.REJECTED, AgentStatus.FAILED, AgentStatus.SKIPPED_WITH_REASON) for r in results)
             )
 
             trace = ExecutionTraceContract(
@@ -576,8 +577,18 @@ class WorkflowEngine:
                             execution_context_data[f"{nid}.{k}"] = v
                             execution_context_data.setdefault(k, v)
 
-                    if not res.validation_status:
-                        self.logger.warning("Validation failed for node %s: %s", nid, res.validation_errors)
+                    # Immediately apply engineering assertions to this node's result (M5.2)
+                    if res.data and res.status == AgentStatus.COMPLETED:
+                        try:
+                            from copilot.ai.engineering_assertions import EngineeringAssertionLayer
+
+                            layer = EngineeringAssertionLayer(strict_mode=False)
+                            self._apply_assertion_to_result(res, layer)
+                        except Exception as exc:
+                            self.logger.warning("Assertion check failed for node %s: %s", nid, exc)
+
+                    if not res.validation_status or res.status == AgentStatus.REJECTED:
+                        self.logger.warning("Validation/assertion failed for node %s: %s (status=%s)", nid, res.validation_errors, res.status.value)
 
         # Phase 2.5: Engineering Assertion Gate (F-07 Fix)
         self._run_engineering_assertions(task, results)
@@ -754,7 +765,7 @@ class WorkflowEngine:
         try:
             from copilot.ai.engineering_assertions import EngineeringAssertionLayer
 
-            assertion_layer = EngineeringAssertionLayer()
+            assertion_layer = EngineeringAssertionLayer(strict_mode=False)
         except ImportError:
             self.logger.info(
                 "EngineeringAssertionLayer not available — skipping F-07 assertion gate."
@@ -769,23 +780,72 @@ class WorkflowEngine:
             self._apply_assertion_to_result(result, assertion_layer)
 
     def _apply_assertion_to_result(self, result: AgentResult, assertion_layer) -> None:
-        """Apply engineering assertions to a single result."""
+        """Apply engineering assertions to a single result (M5.2).
+
+        strict_mode=False contract:
+        - Only CRITICAL and FATAL violations block the study (status=AgentStatus.REJECTED, validation_status=False).
+          Blocking examples:
+            * IEEE C84.1 Range B: voltage outside 0.916..1.083 pu (CRITICAL)
+            * >200kA peak fault current: equipment withstand exceeded (FATAL)
+            * Negative incident energy: unphysical arc flash calculation (FATAL)
+            * Cable overload >200% ampacity: thermal burn danger (FATAL)
+            * Protection selectivity margin <0.10s: breaker mis-coordination (CRITICAL)
+        - Non-critical failures (WARNING, INFO) are preserved in engineering_assertion_warnings
+          and do NOT block completion (status stays COMPLETED, validation_status stays True).
+        """
         study_type = result.study_type
         try:
-            assertion_results = assertion_layer.validate(
+            s_val = study_type.value if hasattr(study_type, "value") else str(study_type)
+            report = assertion_layer.validate(
                 data=result.data,
-                study_type=study_type.value if hasattr(study_type, "value") else str(study_type),
+                study_type=s_val,
             )
 
-            if assertion_results and hasattr(assertion_results, "failures"):
-                failures = [ar for ar in assertion_results.failures if not ar.passed]
-                if failures:
+            if report:
+                critical_failures = [
+                    f
+                    for f in getattr(report, "failures", [])
+                    if getattr(getattr(f, "severity", None), "value", "") in ("critical", "fatal")
+                ]
+                has_critical = getattr(report, "has_critical_failures", False) or bool(critical_failures)
+
+                if has_critical or (getattr(assertion_layer, "strict_mode", False) and getattr(report, "failures", [])):
                     result.validation_status = False
-                    self._record_assertion_failures(result, failures)
+                    result.status = AgentStatus.REJECTED
+                    max_sev = (
+                        "fatal"
+                        if any(
+                            getattr(getattr(f, "severity", None), "value", "") == "fatal"
+                            for f in critical_failures
+                        )
+                        else "critical"
+                    )
+                    result.data["blocked_severity"] = max_sev
+                    result.data["engineering_assertion_failures"] = [
+                        f.to_dict() if hasattr(f, "to_dict") else str(f) for f in getattr(report, "failures", [])
+                    ]
+                    self._record_assertion_failures(result, getattr(report, "failures", []))
+                    self.logger.error(
+                        "F-07: Engineering assertion REJECTED study %s (status=REJECTED, severity=%s)",
+                        s_val,
+                        max_sev,
+                    )
+                else:
+                    # Warning-only case (strict_mode=False): status stays COMPLETED, validation_status stays True
+                    warnings = getattr(report, "warnings", []) or [
+                        f
+                        for f in getattr(report, "failures", [])
+                        if getattr(getattr(f, "severity", None), "value", "") == "warning"
+                    ]
+                    if warnings:
+                        result.data["engineering_assertion_warnings"] = [
+                            f.to_dict() if hasattr(f, "to_dict") else str(f) for f in warnings
+                        ]
+                        self._record_assertion_failures(result, warnings)
 
         except Exception as assertion_err:
             self.logger.warning(
-                "Engineering assertion gate failed for %s (non-blocking): %s",
+                "Engineering assertion gate failed for %s: %s",
                 study_type.value if hasattr(study_type, "value") else str(study_type),
                 assertion_err,
             )

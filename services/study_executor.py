@@ -220,6 +220,44 @@ class StudyExecutor:
                     status = "failed"
                 data["ai_failure_mode_violations"] = violations
 
+        # Mandatory Engineering Assertions Layer (M5.2)
+        # strict_mode=False contract:
+        # - Only CRITICAL and FATAL violations block simulation results (status="failed").
+        #   Blocking examples:
+        #     * IEEE C84.1 Range B: voltage outside 0.916..1.083 pu (CRITICAL)
+        #     * >200kA peak fault current: equipment withstand exceeded (FATAL)
+        #     * Negative incident energy: unphysical arc flash calculation (FATAL)
+        #     * Cable overload >200% ampacity: thermal burn danger (FATAL)
+        #     * Protection selectivity margin <0.10s: breaker mis-coordination (CRITICAL)
+        # - Non-critical failures (WARNING, INFO) are preserved in engineering_assertion_warnings
+        #   and do NOT block completion (status stays "success").
+        try:
+            from copilot.ai.engineering_assertions import EngineeringAssertionLayer
+
+            assertion_layer = EngineeringAssertionLayer(strict_mode=False)
+            report = assertion_layer.validate(data, study_type)
+            if report.has_critical_failures:
+                crit_msgs = [
+                    f.message
+                    for f in report.failures
+                    if f.severity.value in ("critical", "fatal")
+                ]
+                max_sev = "fatal" if any(f.severity.value == "fatal" for f in report.failures) else "critical"
+                err_text = (
+                    f"Engineering assertions blocked result: {len(crit_msgs)} {max_sev.upper()} "
+                    f"violations detected ({'; '.join(crit_msgs[:2])})."
+                )
+                errors.insert(0, err_text)
+                data["engineering_assertion_failures"] = [f.to_dict() for f in report.failures]
+                data["blocked_severity"] = max_sev
+                status = "failed"
+            elif getattr(report, "warnings", []):
+                data["engineering_assertion_warnings"] = [f.to_dict() for f in report.warnings]
+            elif report.failures:
+                data["engineering_assertion_warnings"] = [f.to_dict() for f in report.failures]
+        except Exception as assertion_err:
+            logger.warning("Engineering assertion execution error in StudyExecutor: %s", assertion_err)
+
         if status == "success":
             risk_info = compute_risk(study_type, data)
             data["risk_score"] = risk_info["risk_score"]

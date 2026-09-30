@@ -22,12 +22,12 @@ overrides:
   langsmith: ^0.8.0
   # HIGH: axios prototype pollution + proxy inheritance + body limit bypass (10 alerts)
   axios: ^1.18.0
-  # HIGH: brace-expansion DoS via exponential-time expansion (8 alerts)
-  brace-expansion: ^5.0.9
-  # HIGH: fast-uri host confusion via failed IDN canonicalization (2 alerts)
-  fast-uri: ^3.1.7
-  # HIGH: ip-address CVE-2026-69192
-  ip-address: ^10.3.1
+  # HIGH: brace-expansion DoS via exponential-time expansion & stack exhaustion (GHSA-qhr7-859c-m2p7, GHSA-6j4f-fj2g-mc7p)
+  brace-expansion: ^5.0.12
+  # HIGH: fast-uri host confusion via failed IDN canonicalization (2 alerts, GHSA-hrr3-gc8f-f4qj)
+  fast-uri: ^3.1.8
+  # HIGH: ip-address CVE-2026-69192, GHSA-j6r3-76f7-8jcv, GHSA-h3mg-xc3c-68pw, GHSA-rpw4-54j3-4h4q
+  ip-address: ^10.7.2
   # MEDIUM: @xmldom/xmldom XML fragment injection (Alert #429)
   '@xmldom/xmldom': ^0.8.15
   # HIGH: hono (Dependabot alert #1565412111)
@@ -99,8 +99,10 @@ overrides:
   #   - GHSA-337j-9hxr-rhxg (MED)  Arbitrary Constructor Injection via deserialization
   react-router: ^7.18.2
   react-router-dom: ^7.18.2
-  # HIGH: multer ReDoS / body limit bypass (Dependabot alert #1564925488)
-  multer: ^2.3.0
+  # HIGH: multer ReDoS / body limit bypass (Dependabot alert #1564925488, GHSA-3pph-fpjx-jg34)
+  multer: ^2.4.0
+  # MODERATE: markdown-it quadratic regex event loop stall (GHSA-253c-mchw-3w2r)
+  markdown-it: ^14.3.1
   '@vitest/mocker': ^4.1.11
   vitest: ^4.1.11
   '@vitest/coverage-v8': ^4.1.11

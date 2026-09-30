@@ -5,10 +5,12 @@ tests/test_components_api.py — Unit and integration tests for Component Librar
 from __future__ import annotations
 
 import json
+import os
 
 import pytest
 from fastapi.testclient import TestClient
 
+from api.csrf import generate_csrf_token
 from api.dependencies import CurrentUser, get_current_user_from_header
 from api.routes import app
 
@@ -44,6 +46,24 @@ def viewer_user():
         role="viewer",
         tenant_id="tenant-alpha",
     )
+
+
+@pytest.fixture
+def client():
+    """Module-level TestClient ensuring explicit app and authentication headers."""
+    c = TestClient(app)
+    c.headers.update({
+        "x-csrf-token": generate_csrf_token(),
+        "x-api-key": os.environ.get("ENGINEERING_SERVICE_API_KEY", "test-key"),
+    })
+    yield c
+    c.app.dependency_overrides.clear()
+    app.dependency_overrides.clear()
+
+
+def _set_user(client: TestClient, user: CurrentUser) -> None:
+    client.app.dependency_overrides[get_current_user_from_header] = lambda: user
+    app.dependency_overrides[get_current_user_from_header] = lambda: user
 
 
 def test_seed_components_and_list(client: TestClient) -> None:
@@ -134,7 +154,7 @@ def test_contribute_and_admin_review_workflow(
 ) -> None:
     """Test end-to-end community contribution, pending queue, and admin verification."""
     # 1. Engineer submits a community component
-    app.dependency_overrides[get_current_user_from_header] = lambda: engineer_user
+    _set_user(client, engineer_user)
 
     submission = {
         "type": "cable",
@@ -166,7 +186,7 @@ def test_contribute_and_admin_review_workflow(
     assert created["name"] == submission["name"]
 
     # 2. Check pending queue as admin
-    app.dependency_overrides[get_current_user_from_header] = lambda: admin_user
+    _set_user(client, admin_user)
     res_pending = client.get("/api/v1/components/pending")
     assert res_pending.status_code == 200
     pending_items = res_pending.json()
@@ -185,7 +205,8 @@ def test_contribute_and_admin_review_workflow(
     assert verified_data["reviewed_by"] == admin_user.user_id
 
     # 4. Confirm it now appears in public verified catalog
-    app.dependency_overrides.clear()
+    client.app.dependency_overrides.pop(get_current_user_from_header, None)
+    app.dependency_overrides.pop(get_current_user_from_header, None)
     res_public = client.get(f"/api/v1/components/{comp_id}")
     assert res_public.status_code == 200
     assert res_public.json()["is_verified"] is True
@@ -197,7 +218,7 @@ def test_contribute_and_reject_workflow(
     admin_user: CurrentUser,
 ) -> None:
     """Test admin rejection flow with rejection reason."""
-    app.dependency_overrides[get_current_user_from_header] = lambda: engineer_user
+    _set_user(client, engineer_user)
 
     submission = {
         "type": "breaker",
@@ -213,7 +234,7 @@ def test_contribute_and_reject_workflow(
     comp_id = res_post.json()["id"]
 
     # Admin rejects
-    app.dependency_overrides[get_current_user_from_header] = lambda: admin_user
+    _set_user(client, admin_user)
     res_reject = client.post(
         f"/api/v1/components/{comp_id}/reject",
         json={"reason": "Missing interrupting rating (Icu) and test certificate reference."},
@@ -229,7 +250,7 @@ def test_etap_xml_bulk_import(
     engineer_user: CurrentUser,
 ) -> None:
     """Test importing components from an ETAP project XML file."""
-    app.dependency_overrides[get_current_user_from_header] = lambda: engineer_user
+    _set_user(client, engineer_user)
 
     sample_etap_xml = """<?xml version="1.0" encoding="utf-8"?>
 <EtapProject Version="21.0">
@@ -289,7 +310,7 @@ def test_json_import_ignores_user_supplied_ids(
     admin_user: CurrentUser,
 ) -> None:
     """JSON import endpoint must never accept user-provided IDs (IDOR protection)."""
-    app.dependency_overrides[get_current_user_from_header] = lambda: admin_user
+    _set_user(client, admin_user)
 
     attacker_chosen_id = "injected-custom-id-9999"
     payload = [
@@ -323,7 +344,7 @@ def test_pending_queue_tenant_isolation(
     admin_user: CurrentUser,
 ) -> None:
     """Test tenant filtering on pending submissions for non-platform admin."""
-    app.dependency_overrides[get_current_user_from_header] = lambda: admin_user
+    _set_user(client, admin_user)
     res = client.get("/api/v1/components/pending")
     assert res.status_code == 200
 
@@ -333,7 +354,7 @@ def test_category_regex_validation(
     engineer_user: CurrentUser,
 ) -> None:
     """Test regex pattern enforcement on category and subcategory."""
-    app.dependency_overrides[get_current_user_from_header] = lambda: engineer_user
+    _set_user(client, engineer_user)
 
     invalid_submission = {
         "type": "cable",

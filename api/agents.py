@@ -25,8 +25,10 @@ from typing import Any, List
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict, Field
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from api._messages import MSG_INTERNAL_ERROR
+from api.database import get_db
 from api.dependencies import get_api_key
 
 logger = logging.getLogger(__name__)
@@ -570,6 +572,26 @@ class ETAPGUIExecuteRequest(BaseModel):
             "controls the web page. Example: 'https://your-app.com/dashboard'"
         ),
     )
+    session_id: str | None = Field(
+        default=None,
+        description="Optional session ID for approval tracking (M5.1(a))",
+    )
+    tenant_id: str | None = Field(
+        default=None,
+        description="Optional tenant ID for isolation (M5.1(d))",
+    )
+    approval_id: str | None = Field(
+        default=None,
+        description="Pre-approved action ID from POST /api/v1/approvals",
+    )
+    allowed_tools: list[str] | None = Field(
+        default=None,
+        description="Optional list of permitted action types",
+    )
+    bounds: dict[str, int] | None = Field(
+        default=None,
+        description="Optional window boundary constraints",
+    )
 
 
 @router.post("/etap-gui/execute")
@@ -579,6 +601,7 @@ async def etap_gui_execute(
     _: str = Depends(
         get_api_key
     ),  # NOSONAR Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+    db: AsyncSession = Depends(get_db),
 ):
     """Execute the REAL CUA Loop — captures screenshots, analyzes them via
     Gemini Vision, and drives pyautogui to click/type/hotkey.
@@ -613,14 +636,81 @@ async def etap_gui_execute(
 
         agent = ETAPGUIAgent()
 
+        session_id = payload.session_id or f"cua_{trace_id}"
+        tenant_id = payload.tenant_id
+
+        # Check if pre-approved via approval_id
+        is_pre_approved = False
+        if payload.approval_id:
+            try:
+                from sqlalchemy import select
+
+                from api.approvals import PendingAction, _utc_now
+
+                stmt = select(PendingAction).where(
+                    PendingAction.id == payload.approval_id,
+                    PendingAction.status == "approved",
+                )
+                res = await db.execute(stmt)
+                action_row = res.scalar_one_or_none()
+                if action_row and action_row.expires_at > _utc_now():
+                    if (
+                        not action_row.tenant_id
+                        or not tenant_id
+                        or action_row.tenant_id == tenant_id
+                    ):
+                        is_pre_approved = True
+            except Exception as e:
+                logger.debug("Approval DB check exception: %s", e)
+
+        def _cua_confirmation_callback(action) -> bool:
+            """Interactive approval gateway callback (M5.1(a))."""
+            # 1. Pre-approved token check
+            if is_pre_approved:
+                return True
+
+            # 2. Session auto-approval check
+            try:
+                from api.session_ownership import is_auto_approve
+
+                if is_auto_approve(session_id):
+                    return True
+            except Exception:
+                pass
+
+            # 3. Interactive confirmation broker check
+            try:
+                from api.cua_confirmation_ws import (
+                    APPROVAL_TTL_SECONDS,
+                    confirmation_broker,
+                )
+
+                if confirmation_broker.has_connected_clients(tenant_id=tenant_id or ""):
+                    return confirmation_broker.request(
+                        action=action,
+                        timeout_seconds=APPROVAL_TTL_SECONDS,
+                        require_two_humans=getattr(action, "is_destructive", lambda: False)(),
+                        tenant_id=tenant_id or "",
+                        initiator_id=session_id,
+                    )
+            except Exception:
+                pass
+
+            # 4. Fail-closed: No approval granted
+            return False
+
         # Run in thread to avoid Playwright Sync API + asyncio conflict
         result = await to_thread(
             agent.execute_cua_loop,
             question=payload.question,
             max_steps=payload.max_steps,
             require_confirmation=payload.require_confirmation,
+            on_confirmation_request=_cua_confirmation_callback,
             audit_dir=payload.audit_dir,
             start_url=payload.start_url,
+            tenant_id=tenant_id,
+            allowed_tools=payload.allowed_tools,
+            bounds=payload.bounds,
         )
 
         return JSONResponse(
@@ -631,9 +721,6 @@ async def etap_gui_execute(
             },
         )
     except Exception as e:
-        from logging import getLogger
-
-        logger = getLogger("engineering_service")
         logger.exception("etap_gui_execute_failed error=%s", str(e), extra={"trace_id": trace_id})
         return JSONResponse(
             status_code=500,
