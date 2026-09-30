@@ -168,7 +168,19 @@ class EngineeringAssertionLayer:
                 )
                 continue
 
-            voltage_pu = voltage_kv / nominal_voltage_kv
+            if isinstance(voltage_kv, dict):
+                re_v = float(voltage_kv.get("re", voltage_kv.get("real", 0.0)))
+                im_v = float(voltage_kv.get("im", voltage_kv.get("imag", 0.0)))
+                mag = (re_v**2 + im_v**2) ** 0.5
+            elif isinstance(voltage_kv, complex) or hasattr(voltage_kv, "imag"):
+                mag = float(abs(voltage_kv))
+            else:
+                try:
+                    mag = abs(float(voltage_kv))
+                except (ValueError, TypeError):
+                    mag = 0.0
+
+            voltage_pu = mag / nominal_voltage_kv
 
             # Range B check (hard limit)
             if voltage_pu < self.VOLTAGE_PU_MIN_RANGE_B or voltage_pu > self.VOLTAGE_PU_MAX_RANGE_B:
@@ -633,41 +645,55 @@ class EngineeringAssertionLayer:
         canonical = alias_map.get(canonical, canonical)
 
         if canonical in ("load_flow", "optimal_power_flow"):
-            bus_voltages = data.get("bus_voltages")
-            if not bus_voltages:
-                raw_buses = data.get("buses") or data.get("bus_results") or data.get("results", {}).get("buses")
-                if isinstance(raw_buses, dict):
-                    bus_voltages = {}
-                    for k, v in raw_buses.items():
-                        if isinstance(v, dict):
-                            for key in (
-                                "voltage_magnitude_pu",
-                                "vm_pu",
-                                "voltage_pu",
-                                "v_pu",
-                                "voltage_magnitude",
-                                "voltage_kv",
-                                "vm",
-                            ):
-                                if key in v:
-                                    try:
-                                        bus_voltages[str(k)] = float(v[key])
-                                        break
-                                    except (TypeError, ValueError):
-                                        pass
-                        elif isinstance(v, (int, float)):
-                            bus_voltages[str(k)] = float(v)
+            if data.get("converged") is False:
+                # Unconverged load flow has no valid steady-state solution to validate
+                pass
+            else:
+                bus_voltages = data.get("bus_voltages")
+                if not bus_voltages:
+                    raw_buses = data.get("buses") or data.get("bus_results") or data.get("results", {}).get("buses")
+                    if isinstance(raw_buses, dict):
+                        bus_voltages = {}
+                        for k, v in raw_buses.items():
+                            if isinstance(v, dict):
+                                for key in (
+                                    "voltage_magnitude_pu",
+                                    "vm_pu",
+                                    "voltage_pu",
+                                    "v_pu",
+                                    "voltage_magnitude",
+                                    "voltage_kv",
+                                    "vm",
+                                ):
+                                    if key in v:
+                                        try:
+                                            bus_voltages[str(k)] = float(v[key])
+                                            break
+                                        except (TypeError, ValueError):
+                                            pass
+                            elif isinstance(v, (int, float)):
+                                bus_voltages[str(k)] = float(v)
 
-            if isinstance(bus_voltages, dict) and bus_voltages:
-                nominal_kv = float(data.get("nominal_voltage_kv", data.get("base_kv", 1.0)))
-                all_pu = all(
-                    0.0 <= abs(float(val)) <= 3.0
-                    for val in bus_voltages.values()
-                    if isinstance(val, (int, float))
-                )
-                if all_pu and nominal_kv != 1.0 and max(bus_voltages.values()) <= 2.5:
-                    nominal_kv = 1.0
-                self.validate_voltage_results(bus_voltages, nominal_voltage_kv=nominal_kv)
+                if isinstance(bus_voltages, dict) and bus_voltages:
+                    mags = {}
+                    for k, v in bus_voltages.items():
+                        if isinstance(v, dict):
+                            re_v = float(v.get("re", v.get("real", 0.0)))
+                            im_v = float(v.get("im", v.get("imag", 0.0)))
+                            mags[str(k)] = (re_v**2 + im_v**2) ** 0.5
+                        elif isinstance(v, complex) or hasattr(v, "imag"):
+                            mags[str(k)] = float(abs(v))
+                        else:
+                            try:
+                                mags[str(k)] = abs(float(v))
+                            except (ValueError, TypeError):
+                                mags[str(k)] = 0.0
+
+                    nominal_kv = float(data.get("nominal_voltage_kv", data.get("base_kv", 1.0)))
+                    all_pu = all(0.0 <= val <= 3.0 for val in mags.values())
+                    if all_pu and nominal_kv != 1.0 and (max(mags.values()) if mags else 0) <= 2.5:
+                        nominal_kv = 1.0
+                    self.validate_voltage_results(mags, nominal_voltage_kv=nominal_kv)
 
         elif canonical in ("short_circuit", "fault_analysis"):
             fault_currents = (

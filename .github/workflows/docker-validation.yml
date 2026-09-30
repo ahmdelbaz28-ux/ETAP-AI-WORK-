@@ -267,7 +267,7 @@ jobs:
             image --severity CRITICAL,HIGH \
                   --ignore-unfixed \
                   --ignorefile /repo/.trivyignore \
-                  --exit-code 0 \
+                  --exit-code 1 \
                   --format sarif \
                   --output /repo/trivy-${{ matrix.name }}.sarif \
                   etap-${{ matrix.name }}:scan

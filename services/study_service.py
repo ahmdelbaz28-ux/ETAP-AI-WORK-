@@ -488,32 +488,35 @@ def execute_study_logic(  # NOSONAR
         # - Only CRITICAL and FATAL violations block simulation results (status="failed").
         # - Non-critical failures (WARNING, INFO) are preserved in engineering_assertion_warnings
         #   and do NOT block completion (status stays "success").
-        try:
-            from copilot.ai.engineering_assertions import EngineeringAssertionLayer
+        # - Only evaluate converged physical simulation results; unconverged solver runs
+        #   (e.g. invalid networks without slack bus) retain raw execution status.
+        if data.get("converged", True):
+            try:
+                from copilot.ai.engineering_assertions import EngineeringAssertionLayer
 
-            assertion_layer = EngineeringAssertionLayer(strict_mode=False)
-            report = assertion_layer.validate(data, payload.study_type)
-            if report.has_critical_failures:
-                crit_msgs = [
-                    f.message
-                    for f in report.failures
-                    if f.severity.value in ("critical", "fatal")
-                ]
-                max_sev = "fatal" if any(f.severity.value == "fatal" for f in report.failures) else "critical"
-                errors.insert(
-                    0,
-                    f"Engineering assertions blocked result: {len(crit_msgs)} {max_sev.upper()} "
-                    f"violations detected ({'; '.join(crit_msgs[:2])}).",
-                )
-                data["engineering_assertion_failures"] = [f.to_dict() for f in report.failures]
-                data["blocked_severity"] = max_sev
-                status = "failed"
-            elif getattr(report, "warnings", []):
-                data["engineering_assertion_warnings"] = [f.to_dict() for f in report.warnings]
-            elif report.failures:
-                data["engineering_assertion_warnings"] = [f.to_dict() for f in report.failures]
-        except Exception as assertion_err:
-            logger.warning("Engineering assertion execution error in study_service: %s", assertion_err)
+                assertion_layer = EngineeringAssertionLayer(strict_mode=False)
+                report = assertion_layer.validate(data, payload.study_type)
+                if report.has_critical_failures:
+                    crit_msgs = [
+                        f.message
+                        for f in report.failures
+                        if f.severity.value in ("critical", "fatal")
+                    ]
+                    max_sev = "fatal" if any(f.severity.value == "fatal" for f in report.failures) else "critical"
+                    errors.insert(
+                        0,
+                        f"Engineering assertions blocked result: {len(crit_msgs)} {max_sev.upper()} "
+                        f"violations detected ({'; '.join(crit_msgs[:2])}).",
+                    )
+                    data["engineering_assertion_failures"] = [f.to_dict() for f in report.failures]
+                    data["blocked_severity"] = max_sev
+                    status = "failed"
+                elif getattr(report, "warnings", []):
+                    data["engineering_assertion_warnings"] = [f.to_dict() for f in report.warnings]
+                elif report.failures:
+                    data["engineering_assertion_warnings"] = [f.to_dict() for f in report.failures]
+            except Exception as assertion_err:
+                logger.warning("Engineering assertion execution error in study_service: %s", assertion_err)
     except Exception as e:
         _increment_counter("failed")
         logger.error(
