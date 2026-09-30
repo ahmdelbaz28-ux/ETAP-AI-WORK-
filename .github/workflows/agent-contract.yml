@@ -44,3 +44,7 @@ jobs:
               exit(1)
           print(f'OK: {len(registry)} Python agents comply with BaseAgent contract')
           "
+
+      - name: M6.2 Dynamic Agent Reachability Reflection Gate
+        run: python scripts/maintenance/verify_agents.py
+
