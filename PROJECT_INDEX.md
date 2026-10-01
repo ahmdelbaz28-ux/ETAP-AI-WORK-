@@ -1,6 +1,6 @@
 # 📘 AhmedETAP — Complete Project Index v2.0.0
 
-> Auto-generated on **2026-10-01T05:29:53.720179+00:00** by indexer v2.0.0.
+> Auto-generated on **2026-10-01T12:28:15.555647+00:00** by indexer v2.0.0.
 > Re-run `python indexer.py` to refresh.
 
 ---
@@ -11,11 +11,11 @@
 |:---|---:|
 | Python | Packages | 41 |
 | Python | Files | 377 |
-| Python | Classes | 908 |
-| Python | Functions | 811 |
+| Python | Classes | 909 |
+| Python | Functions | 813 |
 | UI | Files (TSX/TS) | 241 |
 | Test | Files | 251 |
-| Total | Tests | 3742 |
+| Total | Tests | 3745 |
 | Help | Topics | 0 |
 | Context | Mappings | 0 |
 | Environment | Variables | 440 |
@@ -32,13 +32,13 @@
 |:---|:---|:---|:---|
 | **Ahmed Etap Orchestrator.Py** | `ahmed_etap_orchestrator.py` | — | agents/ahmed_etap_orchestrator.py — AhmedETAP Agent Orchestr |
 | **Anomaly** | `anomaly_agent.py` | — | AhmedETAP - Anomaly Detection Agent ======================== |
-| **Arc Flash** | `arc_flash_agent.py` | IEEE 1584, IEEE 1584-2018 | AhmedETAP - Arc Flash Analysis Agent ======================= |
+| **Arc Flash** | `arc_flash_agent.py` | IEEE 1584-2018, IEEE 1584 | AhmedETAP - Arc Flash Analysis Agent ======================= |
 | **Base.Py** | `base.py` | — | Base agent class for the multi-agent engineering orchestrati |
 | **Battery Storage** | `battery_storage_agent.py` | IEC 62933 | AhmedETAP - Battery Storage Agent ========================== |
 | **Browser Cua Executor.Py** | `browser_cua_executor.py` | — | agents/browser_cua_executor.py — Browser-based CUA Loop (hea |
 | **Cable Sizing** | `cable_sizing_agent.py` | IEC 60364 | AhmedETAP - Cable Sizing Agent ============================= |
 | **Code Guard** | `code_guard_agent.py` | — | Code Guard Agent — AI-Powered Code Quality Review ========== |
-| **Coordination** | `coordination_agent.py` | IEC 60255, IEC60255, IEEE 242 | AhmedETAP - Protection Coordination Agent ================== |
+| **Coordination** | `coordination_agent.py` | IEC60255, IEC 60255, IEEE 242 | AhmedETAP - Protection Coordination Agent ================== |
 | **Cua Base Executor.Py** | `cua_base_executor.py` | — | agents/cua_base_executor.py — Base CUA Executor (Template Me |
 | **Cua Executor.Py** | `cua_executor.py` | — | agents/cua_executor.py — Computer Use Agent Executor (Deskto |
 | **Design** | `design_agent.py` | — | AhmedETAP - Generative Substation & Feeder Design Agent (Sca |
@@ -58,7 +58,7 @@
 | **Renewable** | `renewable_agent.py` | IEEE 1547 | AhmedETAP - Renewable Integration Agent ==================== |
 | **Router.Py** | `router.py` | — | AhmedETAP - Power System Goal Router ======================= |
 | **Scada** | `scada_agent.py` | IEC 61850 | AhmedETAP - SCADA Integration Agent ======================== |
-| **Stability** | `stability_agent.py` | IEEE 399, IEEE 1584-2018 | AhmedETAP - Stability Analysis Agent ======================= |
+| **Stability** | `stability_agent.py` | IEEE 1584-2018, IEEE 399 | AhmedETAP - Stability Analysis Agent ======================= |
 | **Weather** | `weather_agent.py` | — | AhmedETAP - Weather Impact Analysis Agent ================== |
 | **Workflow.Py** | `workflow.py` | — | AhmedETAP - Multi-Agent Workflow Engine ==================== |
 
@@ -574,7 +574,7 @@ Total: **440** variables
 
 ### 📦 `agents/`
 
-#### 📄 `agents/__init__.py` _7.3 KB_
+#### 📄 `agents/__init__.py` _7.0 KB_
 
 #### 📄 `agents/ahmed_etap_orchestrator.py` _47.9 KB_
 > agents/ahmed_etap_orchestrator.py — AhmedETAP Agent Orchestration Skill
@@ -759,22 +759,23 @@ e
 - **Class** `GoalPlannerAgent` (line 60)
   - Methods: `adaptive_scheduler()`, `extract_tasks()`, `prioritize_tasks()`, `assess_risks()`, `execute()`, `validate_result()`
 
-#### 📄 `agents/life_safety.py` _48.4 KB_
+#### 📄 `agents/life_safety.py` _50.1 KB_
 > agents/life_safety.py — Life Safety Guard for the CUA Loop
 
 THE PROBLEM:
     ETAP is electrical engineering software used to design power systems
     
 
-- **Class** `SafetyCheckResult` (line 320)
+- **Class** `SafetyCheckResult` (line 321)
   - Methods: `to_dict()`
-- **Class** `TamperEvidentAuditLog` (line 340)
+- **Class** `TamperEvidentAuditLog` (line 341)
   - Methods: `append()`, `verify_chain()`
-- **Class** `LifeSafetyGuard` (line 478)
+- **Class** `LifeSafetyGuard` (line 515)
   - Methods: `pre_action_check()`, `post_action_record()`, `rollback()`, `register_auto_rollback_handler()`, `verify_post_action()`, `set_verification_hook()`, `health_check()`
-- **def** `activate_kill_switch()` (line 254)
-- **def** `deactivate_kill_switch()` (line 299)
-- **def** `is_kill_switch_active()` (line 311)
+- **def** `activate_kill_switch()` (line 255)
+- **def** `deactivate_kill_switch()` (line 300)
+- **def** `is_kill_switch_active()` (line 312)
+- **def** `default_production_rollback_handler()` (line 476)
 
 #### 📄 `agents/models.py` _4.5 KB_
 > Data models for the multi-agent engineering orchestration system.
@@ -797,15 +798,15 @@ Motor starting current, voltage dip, torque, a
 - **Class** `MotorStartingAgent` (line 96)
   - Methods: `calculate_starting_current()`, `calculate_voltage_dip()`, `calculate_transient_voltage_drop()`, `calculate_starting_torque()`, `calculate_acceleration_time()`, `execute()`, `validate_result()`
 
-#### 📄 `agents/orchestrator.py` _20.3 KB_
+#### 📄 `agents/orchestrator.py` _25.6 KB_
 > AhmedETAP - Multi-Agent Orchestrator
 ====================================
 Chief Engineering Orchestrator that coordinates all specialized agents
 for a
 
-- **Class** `ChiefEngineeringOrchestrator` (line 75)
-  - Methods: `get_agents_info()`, `submit_task()`, `execute_autonomous_workflow()`, `execute_execution_plan()`, `route_user_goal()`, `get_study_type_mapping()`, `execute_parallel_studies()`, `get_task_status()`
-- **def** `get_orchestrator()` (line 515)
+- **Class** `ChiefEngineeringOrchestrator` (line 77)
+  - Methods: `get_agents_info()`, `assemble_task_context()`, `create_planning_plan()`, `submit_task()`, `execute_autonomous_workflow()`, `execute_execution_plan()`, `route_user_goal()`, `get_study_type_mapping()`
+- **def** `get_orchestrator()` (line 650)
 
 #### 📄 `agents/output_schema_guard.py` _11.7 KB_
 > agents/output_schema_guard.py — Code-Gated Output Validation
@@ -850,7 +851,7 @@ This module loa
 - **def** `get_prompt_cache_info()` (line 686)
 - **def** `list_available_prompts()` (line 706)
 
-#### 📄 `agents/registry.py` _63.1 KB_
+#### 📄 `agents/registry.py` _63.7 KB_
 > AhmedETAP - Agent Registry & Specialist Agents
 ===============================================
 Encapsulates registration, life-cycle management, and c
@@ -860,24 +861,24 @@ Encapsulates registration, life-cycle management, and c
   - Methods: `execute()`, `validate_result()`
 - **Class** `ShortCircuitAgent` (line 302)
   - Methods: `execute()`, `validate_result()`
-- **Class** `HarmonicAnalysisAgent` (line 453)
+- **Class** `HarmonicAnalysisAgent` (line 465)
   - Methods: `execute()`, `validate_result()`
-- **Class** `OptimalPowerFlowAgent` (line 571)
+- **Class** `OptimalPowerFlowAgent` (line 583)
   - Methods: `execute()`, `validate_result()`
-- **Class** `ProtectionCoordinationAgent` (line 703)
+- **Class** `ProtectionCoordinationAgent` (line 715)
   - Methods: `execute()`, `validate_result()`
-- **Class** `ETAPExecutionAgent` (line 806)
+- **Class** `ETAPExecutionAgent` (line 818)
   - Methods: `execute()`, `validate_result()`
-- **Class** `ValidationAgent` (line 920)
+- **Class** `ValidationAgent` (line 932)
   - Methods: `execute()`
-- **Class** `ReportGenerationAgent` (line 1253)
+- **Class** `ReportGenerationAgent` (line 1265)
   - Methods: `execute()`
 - **def** `all_registered_keys()` (line 120)
 - **def** `resolve_agent_key()` (line 125)
 - **def** `validate_agent_keys()` (line 130)
-- **def** `get_study_type_mapping()` (line 1556)
-- **def** `get_agent_for_study()` (line 1561)
-- **def** `create_agent_registry()` (line 1569)
+- **def** `get_study_type_mapping()` (line 1568)
+- **def** `get_agent_for_study()` (line 1573)
+- **def** `create_agent_registry()` (line 1581)
 
 #### 📄 `agents/renewable_agent.py` _35.4 KB_
 > AhmedETAP - Renewable Integration Agent
@@ -888,19 +889,19 @@ Solar PV and wind turbine integration analysis per
 - **Class** `RenewableAgent` (line 55)
   - Methods: `analyze_solar_pv()`, `analyze_wind()`, `check_ieee1547_compliance()`, `calculate_hosting_capacity()`, `execute()`, `validate_result()`
 
-#### 📄 `agents/router.py` _10.5 KB_
+#### 📄 `agents/router.py` _10.9 KB_
 > AhmedETAP - Power System Goal Router
 ====================================
 Typed goal router and dependency-aware study planner for multi-agent workflo
 
-- **Class** `RouterDecision` (line 70)
+- **Class** `RouterDecision` (line 78)
   - Methods: `is_confident()`, `to_planning_intent()`
-- **Class** `GoalRouter` (line 102)
+- **Class** `GoalRouter` (line 110)
   - Methods: `route()`, `resolve_intent()`, `parse_user_goal()`, `determine_execution_order()`
-- **def** `route_user_goal()` (line 238)
-- **def** `parse_user_goal()` (line 243)
-- **def** `determine_execution_order()` (line 248)
-- **def** `create_router()` (line 253)
+- **def** `route_user_goal()` (line 246)
+- **def** `parse_user_goal()` (line 251)
+- **def** `determine_execution_order()` (line 256)
+- **def** `create_router()` (line 261)
 
 #### 📄 `agents/scada_agent.py` _35.1 KB_
 > AhmedETAP - SCADA Integration Agent
@@ -930,7 +931,7 @@ Weather information retrieval and power system
 - **Class** `WeatherAgent` (line 35)
   - Methods: `analyze_temperature_derating()`, `analyze_wind_impact()`, `process_weather_alert()`, `execute()`, `validate_result()`
 
-#### 📄 `agents/workflow.py` _47.9 KB_
+#### 📄 `agents/workflow.py` _48.6 KB_
 > AhmedETAP - Multi-Agent Workflow Engine
 =======================================
 Orchestrates autonomous study execution pipelines, parallel dispatch,
@@ -961,7 +962,7 @@ Replaces static heuristic routing with an online learning Conte
 - **Class** `ContextualBanditRouter` (line 25)
   - Methods: `route()`, `resolve_intent()`, `update_reward()`, `to_dict()`, `parse_user_goal()`, `determine_execution_order()`
 
-#### 📄 `agents/optimizers/optimization_agent.py` _8.0 KB_
+#### 📄 `agents/optimizers/optimization_agent.py` _8.5 KB_
 > agents/optimizers/optimization_agent.py — Optimization Specialist Agent for AhmedETAP.
 
 Integrates Particle Swarm Optimization (PSO), multi-objective 
@@ -1074,7 +1075,7 @@ into real work
   - `POST /plan`
   - `POST /execute`
 
-#### 📄 `api/agents.py` _46.7 KB_
+#### 📄 `api/agents.py` _48.1 KB_
 > Agent Information API Router
 ===========================
 Handles all AI agent information endpoints.
@@ -1084,7 +1085,7 @@ Separated from main engineering service for bette
 - **Class** `ETAPExpertChatRequest` (line 404)
 - **Class** `ETAPGUIChatRequest` (line 475)
 - **Class** `ETAPGUIExecuteRequest` (line 541)
-- **Class** `AhmedETAPOrchestrateRequest` (line 984)
+- **Class** `AhmedETAPOrchestrateRequest` (line 1006)
 - **async def** `get_agents_list()` (line 166)
 - **async def** `list_mcp_servers()` (line 221)
 - **async def** `get_agent_by_id()` (line 310)
@@ -1092,9 +1093,9 @@ Separated from main engineering service for bette
 - **async def** `etap_expert_chat()` (line 423)
 - **async def** `etap_gui_chat()` (line 493)
 - **async def** `etap_gui_execute()` (line 598)
-- **async def** `etap_gui_health()` (line 732)
-- **async def** `etap_gui_activate_kill_switch()` (line 781)
-- **async def** `etap_gui_deactivate_kill_switch()` (line 820)
+- **async def** `etap_gui_health()` (line 754)
+- **async def** `etap_gui_activate_kill_switch()` (line 803)
+- **async def** `etap_gui_deactivate_kill_switch()` (line 842)
 
   **API Routes:**
   - `GET /`
@@ -1303,7 +1304,7 @@ Handles CAD/BIM transformation to NVIDIA SimReady 3D OpenUSD presentation assets
   - `GET /presets`
   - `POST /convert`
 
-#### 📄 `api/chat_stream.py` _28.9 KB_
+#### 📄 `api/chat_stream.py` _30.5 KB_
 > api/chat_stream.py — Server-side LLM chat streaming (P4b & S1 BYOK).
 
 ``POST /api/v1/chat/stream`` accepts ``{session_id, messages[],
@@ -1317,7 +1318,7 @@ provider?, model
 - **def** `reset_chat_rate_limiter()` (line 241)
 - **def** `enforce_chat_rate_limit()` (line 246)
 - **def** `sanitize_error_text()` (line 270)
-- **async def** `chat_stream_endpoint()` (line 648)
+- **async def** `chat_stream_endpoint()` (line 661)
 
 #### 📄 `api/cloudflare_protection.py` _13.0 KB_
 > api/cloudflare_protection.py — Cloudflare edge security integration for the origin.
@@ -1361,9 +1362,11 @@ Provides:
   - `POST /{id}/verify`
   - `POST /{id}/reject`
 
-#### 📄 `api/context_engine.py` _2.2 KB_
+#### 📄 `api/context_engine.py` _4.5 KB_
+- **Class** `FabricQueryRequest` (line 78)
 - **async def** `retrieve_context()` (line 33)
 - **async def** `analyze_impact()` (line 64)
+- **async def** `query_context_fabric()` (line 93)
 
 #### 📄 `api/copilot_config.py` _13.2 KB_
 > api/copilot_config.py — Copilot Configuration API
@@ -1910,16 +1913,16 @@ trade
 - **def** `get_prompt_registry()` (line 329)
 - **def** `reset_prompt_registry()` (line 339)
 
-#### 📄 `api/prompt_registry_redis.py` _15.9 KB_
+#### 📄 `api/prompt_registry_redis.py` _16.0 KB_
 > api/prompt_registry_redis.py — Distributed Prompt Registry using Redis.
 
 Replaces in-memory PromptRegistry for multi-instance horizontal scaling,
 with
 
-- **Class** `DistributedPromptRegistry` (line 31)
+- **Class** `DistributedPromptRegistry` (line 32)
   - Methods: `register_version()`, `get_active_version()`, `record_metrics()`, `promote_version()`, `get_tradeoff_report()`, `clear()`
-- **def** `get_distributed_prompt_registry()` (line 412)
-- **def** `reset_distributed_prompt_registry()` (line 420)
+- **def** `get_distributed_prompt_registry()` (line 426)
+- **def** `reset_distributed_prompt_registry()` (line 434)
 
 #### 📄 `api/r2_storage.py` _17.3 KB_
 > api/r2_storage.py — Cloudflare R2 object storage integration.
@@ -1938,20 +1941,20 @@ in Cloudflar
 - **def** `generate_key()` (line 495)
 - **def** `ensure_bucket_exists()` (line 524)
 
-#### 📄 `api/rag_retriever.py` _6.7 KB_
+#### 📄 `api/rag_retriever.py` _6.8 KB_
 > api/rag_retriever.py — RAG for Historical Results (Phase 3).
 
 Retrieves relevant previous power system study summaries and execution plans
 to provide 
 
-- **Class** `RAGResult` (line 27)
+- **Class** `RAGResult` (line 28)
   - Methods: `to_dict()`
-- **Class** `RAGRetriever` (line 44)
+- **Class** `RAGRetriever` (line 45)
   - Methods: `index_result()`, `retrieve()`, `clear()`
-- **def** `get_rag_retriever()` (line 206)
-- **def** `reset_rag_retriever()` (line 216)
+- **def** `get_rag_retriever()` (line 209)
+- **def** `reset_rag_retriever()` (line 219)
 
-#### 📄 `api/rag_retriever_redis.py` _7.7 KB_
+#### 📄 `api/rag_retriever_redis.py` _7.9 KB_
 > api/rag_retriever_redis.py — Distributed RAG Retriever using Redis.
 
 Replaces in-memory RAGRetriever for multi-instance horizontal scaling,
@@ -1959,8 +1962,8 @@ with seaml
 
 - **Class** `DistributedRAGRetriever` (line 32)
   - Methods: `index_result()`, `retrieve()`, `clear()`
-- **def** `get_distributed_rag_retriever()` (line 216)
-- **def** `reset_distributed_rag_retriever()` (line 224)
+- **def** `get_distributed_rag_retriever()` (line 228)
+- **def** `reset_distributed_rag_retriever()` (line 236)
 
 #### 📄 `api/rate_limit.py` _12.9 KB_
 > api/rate_limit.py — Unified SlowAPI rate limiting Module.
@@ -2131,30 +2134,30 @@ Implements defense-in-depth HTTP security headers and Host header validation
 - **Class** `HostValidationMiddleware` (line 21)
 - **Class** `SecurityHeadersMiddleware` (line 45)
 
-#### 📄 `api/semantic_cache.py` _13.6 KB_
+#### 📄 `api/semantic_cache.py` _13.7 KB_
 > api/semantic_cache.py — Semantic Cache Layer (Phase 2).
 
 Provides semantic caching for power system studies and LLM agent outputs.
 Key features:
 1. De
 
-- **Class** `CachedResult` (line 35)
-- **Class** `CacheStats` (line 47)
-- **Class** `SemanticCache` (line 83)
+- **Class** `CachedResult` (line 36)
+- **Class** `CacheStats` (line 48)
+- **Class** `SemanticCache` (line 84)
   - Methods: `lookup()`, `store()`, `get_stats()`, `clear()`
-- **def** `get_semantic_cache()` (line 357)
-- **def** `reset_semantic_cache()` (line 367)
+- **def** `get_semantic_cache()` (line 360)
+- **def** `reset_semantic_cache()` (line 370)
 
-#### 📄 `api/semantic_cache_redis.py` _10.7 KB_
+#### 📄 `api/semantic_cache_redis.py` _10.6 KB_
 > api/semantic_cache_redis.py — Distributed Semantic Cache using Redis.
 
 Replaces in-memory SemanticCache for multi-instance horizontal scaling,
 with se
 
 - **Class** `DistributedSemanticCache` (line 34)
-  - Methods: `lookup()`, `store()`, `get_stats()`, `clear()`
-- **def** `get_distributed_semantic_cache()` (line 280)
-- **def** `reset_distributed_semantic_cache()` (line 288)
+  - Methods: `validate_redis_client()`, `format_cached_response()`, `lookup()`, `store()`, `get_stats()`, `clear()`
+- **def** `get_distributed_semantic_cache()` (line 291)
+- **def** `reset_distributed_semantic_cache()` (line 299)
 
 #### 📄 `api/session_ownership.py` _7.2 KB_
 > api/session_ownership.py — Unified authority for session ownership and auto-approval.
@@ -2250,7 +2253,7 @@ Lightweight, dependency-free implementations of common logic use
 - **def** `handle_etap_expert_chat()` (line 798)
 - **def** `handle_etap_gui_chat()` (line 817)
 
-#### 📄 `api/solver_parameters.py` _8.6 KB_
+#### 📄 `api/solver_parameters.py` _8.5 KB_
 > api/solver_parameters.py — Solver Parameters Management API.
 
 Provides CRUD endpoints for managing power-flow solver parameters that
@@ -2263,8 +2266,8 @@ control convergen
 - **async def** `fetch_global_parameters()` (line 136)
 - **async def** `create_global_parameters()` (line 152)
 - **async def** `update_global_parameters()` (line 181)
-- **async def** `fetch_project_parameters()` (line 211)
-- **async def** `update_project_parameters()` (line 226)
+- **async def** `fetch_project_parameters()` (line 210)
+- **async def** `update_project_parameters()` (line 224)
 
 #### 📄 `api/storage_management.py` _22.7 KB_
 > api/storage_management.py — Storage management API for R2 object lifecycle.
@@ -2395,10 +2398,10 @@ chat history
 
 Replaces in-memory TokenBudgetManager for multi-instance horizontal scaling
 
-- **Class** `DistributedTokenBudgetManager` (line 29)
+- **Class** `DistributedTokenBudgetManager` (line 30)
   - Methods: `get_budget_for_agent()`, `check_and_reserve()`, `record_usage()`, `get_remaining()`, `get_session_summary()`, `prune_history()`, `reset_session()`
-- **async def** `get_distributed_budget_manager()` (line 227)
-- **def** `reset_distributed_budget_manager()` (line 234)
+- **def** `get_distributed_budget_manager()` (line 228)
+- **def** `reset_distributed_budget_manager()` (line 235)
 
 #### 📄 `api/tool_policy.py` _12.5 KB_
 > api/tool_policy.py — Tool Policy Engine.
@@ -2929,13 +2932,13 @@ Provides standard test case models and analytical reference solutions:
 Provides derivative-free swarm intelligence (PSO), warm-start cac
 
 
-#### 📄 `engine/optimizers/filter_design_pso.py` _7.9 KB_
+#### 📄 `engine/optimizers/filter_design_pso.py` _9.2 KB_
 > engine/optimizers/filter_design_pso.py — Passive Harmonic Filter Design Optimizer.
 
 Optimizes Single-Tuned and High-Pass Passive Harmonic Filters (R, 
 
 - **Class** `FilterDesignResult` (line 24)
-- **Class** `HarmonicFilterOptimizer` (line 42)
+- **Class** `HarmonicFilterOptimizer` (line 44)
   - Methods: `design_filter_for_harmonic()`
 
 #### 📄 `engine/optimizers/multi_objective.py` _7.4 KB_
@@ -2949,7 +2952,7 @@ Computes the Pareto Optimal Frontier for multi-criteria p
 - **Class** `MultiObjectivePSO` (line 48)
   - Methods: `optimize()`
 
-#### 📄 `engine/optimizers/placement_pso.py` _7.9 KB_
+#### 📄 `engine/optimizers/placement_pso.py` _8.0 KB_
 > engine/optimizers/placement_pso.py — Optimal Capacitor & DER Placement & Sizing via PSO.
 
 Determines the optimal bus locations and capacities for shun
@@ -3156,7 +3159,7 @@ dense (existing) and s
 > load_flow/optimizers — Metaheuristic and Advanced Solvers for Load Flow & OPF.
 
 
-#### 📄 `load_flow/optimizers/pso_opf.py` _16.6 KB_
+#### 📄 `load_flow/optimizers/pso_opf.py` _16.7 KB_
 > load_flow/optimizers/pso_opf.py — Swarm-Intelligence Hybrid AC-OPF Engine.
 
 Solves the genuine non-convex AC Optimal Power Flow problem with continuou
@@ -3295,7 +3298,7 @@ Separates real SCADA bridge communication (ETAPScadaBridge / IEC 61
 - **def** `generate_simulated_scada()` (line 36)
 - **def** `get_scada_telemetry()` (line 115)
 
-#### 📄 `services/study_executor.py` _39.3 KB_
+#### 📄 `services/study_executor.py` _40.0 KB_
 > Study Executor — deep module for the study execution pipeline.
 
 Owns the entire pipeline behind a single seam: validate → cache lookup →
@@ -3892,18 +3895,18 @@ Adapted from the docs-guard skill (github.com/amElnagdy/guard-skil
 - **Class** `DocsGuard` (line 31)
   - Methods: `scan()`
 
-#### 📄 `guards/prompt_rule_enforcement.py` _20.9 KB_
+#### 📄 `guards/prompt_rule_enforcement.py` _20.0 KB_
 > Prompt Rule Enforcement — Code-Gated Mandatory Rules (F-03 Fix)
 ================================================================
 
 ARCHITECTURE AUDIT F
 
-- **Class** `PromptRuleViolation` (line 131)
-- **Class** `PromptRuleResult` (line 143)
+- **Class** `PromptRuleViolation` (line 133)
+- **Class** `PromptRuleResult` (line 145)
   - Methods: `passed()`, `must_fix_count()`, `to_guard_result()`
-- **def** `validate_agent_response()` (line 181)
-- **def** `enforce_prompt_rules()` (line 334)
-- **def** `enforce_at_api_boundary()` (line 459)
+- **def** `validate_agent_response()` (line 183)
+- **def** `enforce_prompt_rules()` (line 318)
+- **def** `enforce_at_api_boundary()` (line 443)
 
 #### 📄 `guards/test_guard.py` _27.1 KB_
 > Test Guard — Test Code Quality Gate
@@ -3968,7 +3971,7 @@ engineering intent into:
 - **Class** `AIDrawingEngine` (line 849)
   - Methods: `process()`, `get_history()`, `get_statistics()`
 
-#### 📄 `copilot/ai/engineering_assertions.py` _35.7 KB_
+#### 📄 `copilot/ai/engineering_assertions.py` _36.4 KB_
 > Engineering Assertion Layer — Deterministic Validation for AI Outputs
 =====================================================================
 
@@ -3980,7 +3983,7 @@ Security
 - **Class** `AssertionReport` (line 65)
 - **Class** `EngineeringAssertionLayer` (line 83)
   - Methods: `validate_voltage_results()`, `validate_short_circuit_results()`, `validate_trip_time()`, `validate_coordination_selectivity()`, `validate_arc_flash_results()`, `validate_cable_sizing()`, `validate()`, `get_all_results()`
-- **def** `validate_fallback_output()` (line 858)
+- **def** `validate_fallback_output()` (line 867)
 
 #### 📄 `copilot/tests/test_copilot_unit.py` _19.2 KB_
 > Engineering Copilot — Integration Tests
@@ -4489,7 +4492,7 @@ Provides visual perception via Anthropic's Claude API (claude-3.5-sonnet,
 
 Parses ETAP project and library XML files to extract standardized
 
-- **Class** `ETAPComponentImporter` (line 50)
+- **Class** `ETAPComponentImporter` (line 51)
   - Methods: `parse_xml_content()`
 
 #### 📄 `integrations/gemini_vision.py` _10.0 KB_
@@ -5573,10 +5576,10 @@ Provides
 
 | Type | Count |
 |:---|---:|
-| ui-page | 61 |
-| ui-component | 281 |
 | api-route | 92 |
 | python-module | 41 |
+| ui-component | 281 |
+| ui-page | 61 |
 | **TOTAL** | **475** |
 
 ---
@@ -5588,10 +5591,10 @@ Provides
 | `adms_control` | `scada_model` | — |
 | `agents` | `api`, `coordination`, `copilot`, `core`, `curves`, `digital_twin`, `engine`, `etap_integration`, `fault_analysis`, `guards`, `integrations`, `load_flow`, `ml`, `relays`, `reporting`, `services` | `api`, `core`, `engine`, `services` |
 | `ai_context_engine` | — | `api` |
-| `api` | `agents`, `ai_context_engine`, `autodesk_connector`, `core`, `core_model`, `engine`, `etap_integration`, `fault_analysis`, `gis_integration`, `integrations`, `knowledge`, `load_flow`, `ml`, `security`, `services`, `worker` | `agents`, `coordination`, `core`, `engine`, `gis_integration`, `integrations`, `knowledge`, `load_flow`, `migrations`, `security`, `services` |
+| `api` | `agents`, `ai_context_engine`, `autodesk_connector`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `fault_analysis`, `gis_integration`, `integrations`, `knowledge`, `load_flow`, `ml`, `security`, `services` | `agents`, `coordination`, `core`, `engine`, `gis_integration`, `integrations`, `knowledge`, `load_flow`, `migrations`, `security`, `services` |
 | `autodesk_connector` | — | `api`, `copilot` |
 | `coordination` | `api`, `curves`, `engine`, `relays` | `agents`, `digital_twin`, `engine` |
-| `copilot` | `autodesk_connector`, `digital_twin`, `etap_integration` | `agents`, `services` |
+| `copilot` | `autodesk_connector`, `digital_twin`, `etap_integration` | `agents`, `api`, `services` |
 | `core` | `agents`, `api`, `digital_twin`, `engine`, `etap_integration`, `fault_analysis`, `integrations`, `load_flow`, `scada_model`, `services` | `agents`, `api`, `engine`, `etap_integration`, `services` |
 | `core_model` | — | `api`, `digital_twin`, `engine`, `etap_integration`, `load_flow`, `services` |
 | `curves` | — | `agents`, `coordination`, `relays` |
@@ -5619,7 +5622,7 @@ Provides
 | `services` | `agents`, `api`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `integrations`, `utils` | `agents`, `api`, `core`, `integrations`, `worker` |
 | `utils` | `engine` | `services` |
 | `visualization` | `relays` | `engine` |
-| `worker` | `etap_integration`, `services` | `api` |
+| `worker` | `etap_integration`, `services` | — |
 | `zenon_user_guide` | — | — |
 
 ---
@@ -5682,7 +5685,7 @@ Provides
 | `test_cli.py` | 1 | 0 | **1** |
 | `test_components_api.py` | 11 | 0 | **11** |
 | `test_concurrency_load_gate.py` | 4 | 0 | **4** |
-| `test_context_fabric.py` | 11 | 0 | **11** |
+| `test_context_fabric.py` | 13 | 0 | **13** |
 | `test_contract_sync.py` | 13 | 0 | **13** |
 | `test_coordination.py` | 0 | 1 | **18** |
 | `test_coordination_agent_calculations.py` | 0 | 6 | **11** |
@@ -5748,7 +5751,7 @@ Provides
 | `test_load_flow_deep.py` | 0 | 6 | **27** |
 | `test_m4_context_boundaries.py` | 21 | 0 | **21** |
 | `test_m5_assertions_rejected.py` | 12 | 0 | **12** |
-| `test_m5_cua_approvals.py` | 10 | 0 | **10** |
+| `test_m5_cua_approvals.py` | 11 | 0 | **11** |
 | `test_m6_integration_acceptance.py` | 0 | 8 | **24** |
 | `test_mcp_config.py` | 1 | 0 | **1** |
 | `test_memory_service.py` | 0 | 5 | **27** |
@@ -5904,9 +5907,9 @@ Provides
 | `scripts/check_docker_drift.py` | py | 2.9 KB | check_docker_drift.py — verifies Dockerfile COPY sources mat |
 | `scripts/check_hf_status.py` | py | 0.3 KB |  |
 | `scripts/check_prompt_consistency.py` | py | 5.8 KB | Check prompt-manifest consistency (Operation Iron Loop\, WP5 |
-| `scripts/check_registry_integrity.py` | py | 9.7 KB | scripts/check_registry_integrity.py — M2.4 Unified Registry  |
+| `scripts/check_registry_integrity.py` | py | 10.1 KB | scripts/check_registry_integrity.py — M2.4 Unified Registry  |
 | `scripts/check_results.py` | py | 0.6 KB |  |
-| `scripts/check_workflows_meta.py` | py | 12.0 KB | scripts/check_workflows_meta.py — Authoritative GitHub Workf |
+| `scripts/check_workflows_meta.py` | py | 11.9 KB | scripts/check_workflows_meta.py — Authoritative GitHub Workf |
 | `scripts/claims_audit.py` | py | 6.7 KB | scripts/claims_audit.py — Engineering Claims and Standards T |
 | `scripts/clean_git_history.py` | py | 5.5 KB | Git History Cleanup Script |
 | `scripts/connect_neo4j.py` | py | 8.1 KB | Neo4j Connection & Verification Script for AhmedETAP. |
@@ -5957,7 +5960,7 @@ Provides
 | `scripts/maintenance/start_worker.py` | py | 0.7 KB | Script to start the Celery worker for the Engineering Servic |
 | `scripts/maintenance/validate_syntax.py` | py | 5.9 KB | Syntax and dependency validation script for the entire codeb |
 | `scripts/maintenance/validation_suite.py` | py | 2.8 KB | Validation Suite for the ETAP AI Engineering Platform. |
-| `scripts/maintenance/verify_agents.py` | py | 18.7 KB | scripts/maintenance/verify_agents.py — Authoritative Agent R |
+| `scripts/maintenance/verify_agents.py` | py | 19.2 KB | scripts/maintenance/verify_agents.py — Authoritative Agent R |
 | `scripts/merge_all_remote_branches.ps1` | ps1 | 6.3 KB |  |
 | `scripts/modify_scada.py` | py | 0.9 KB |  |
 | `scripts/monitor_hf.py` | py | 1.5 KB | Monitor HF Space build status. |
@@ -6047,7 +6050,7 @@ Provides
 
 | File | Size (KB) | Hash |
 |:---|---:|:---|
-| `Dockerfile` | 5.7 KB | `06629698c517` |
+| `Dockerfile` | 5.8 KB | `f825c7b8b974` |
 | `Dockerfile.engineering-service` | 4.7 KB | `b089e0c4259d` |
 | `Dockerfile.hf` | 3.7 KB | `edc59c0fec36` |
 | `Dockerfile.windows-worker` | 5.1 KB | `4c9794be2ff7` |
@@ -6056,14 +6059,14 @@ Provides
 | `docker-compose.copilot.yml` | 8.1 KB | `c95aca46863a` |
 | `docker-compose.loki.yml` | 1.7 KB | `ed8530c457d6` |
 | `docker-compose.windows.yml` | 1.8 KB | `185d919edca6` |
-| `pyproject.toml` | 11.2 KB | `c3314bdd50d7` |
-| `requirements.txt` | 10.8 KB | `6e0e61740787` |
-| `requirements-prod.txt` | 3.0 KB | `dc5c486ae36d` |
+| `pyproject.toml` | 11.2 KB | `e89b0a3a499f` |
+| `requirements.txt` | 10.8 KB | `908e09d1afa7` |
+| `requirements-prod.txt` | 3.0 KB | `2648009158d0` |
 | `requirements-dev.txt` | 0.9 KB | `bee5b6192082` |
 | `requirements-minimal.txt` | 1.6 KB | `ef9727eefdac` |
 | `requirements-ml.txt` | 1.4 KB | `0c0b9a5ee454` |
-| `requirements.hf.txt` | 1.3 KB | `e4b6adccab65` |
-| `.github/workflows/security.yml` | 13.6 KB | `498d4a548c9b` |
+| `requirements.hf.txt` | 1.3 KB | `c902dd7fb39a` |
+| `.github/workflows/security.yml` | 13.6 KB | `102e636ede5a` |
 | `.github/workflows/release.yml` | 2.3 KB | `b5f5e424ccd9` |
 | `scripts/docker_deploy.sh` | 6.2 KB | `2cdc0572a33f` |
 | `scripts/docker_build.sh` | 10.7 KB | `946696eb4a11` |
@@ -6077,7 +6080,7 @@ Provides
 | `ui/vite.config.ts` | 2.4 KB | `d6c51c2d7c59` |
 | `ui/tsconfig.json` | 0.1 KB | `e8d6f7b50828` |
 | `mastra.config.ts` | 0.4 KB | `d5a9e78941a7` |
-| `pnpm-workspace.yaml` | 7.0 KB | `d5bc2204d8a9` |
+| `pnpm-workspace.yaml` | 7.1 KB | `aeea90d8b780` |
 | `tsconfig.json` | 0.7 KB | `356803570541` |
 
 ---
