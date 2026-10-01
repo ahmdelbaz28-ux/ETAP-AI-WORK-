@@ -96,7 +96,7 @@ const COMMAND_DEFS: ReadonlyArray<CommandDef> = [
     icon: Bot,
     shortcut: "G A",
     section: NAV_SECTION,
-    buildAction: (navigate) => () => navigate("/assistant"),
+    buildAction: (navigate) => () => navigate("/admin/chat-sandbox"),
   },
   {
     id: "nav-projects",
