@@ -19,7 +19,7 @@
 
 ## 2. تفاصيل التعديلات البرمجية (بالشواهد الحرفية)
 
-### أ. تعديل [agents/optimizers/optimization_agent.py](file:///c:/Users/EWS-01/Desktop/etap/agents/optimizers/optimization_agent.py):
+### أ. تعديل [agents/optimizers/optimization_agent.py](../../agents/optimizers/optimization_agent.py):
 1. **استيراد `StudyType`:**
    - **القديم (السطر 14):**
      ```python
@@ -106,7 +106,7 @@
      )
      ```
 
-### ب. تعديل [services/study_executor.py](file:///c:/Users/EWS-01/Desktop/etap/services/study_executor.py):
+### ب. تعديل [services/study_executor.py](../../services/study_executor.py):
 - **القديم (السطور 463-465):**
   ```python
   from agents.ahmed_etap_orchestrator import AhmedETAPSkillAgent

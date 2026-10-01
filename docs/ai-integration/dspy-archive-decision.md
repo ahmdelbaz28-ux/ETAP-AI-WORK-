@@ -28,7 +28,7 @@
    - علم الميزة `dspy_copilot` في `api/feature_flags.py` يبقى معطلاً بشكل قاطع ودائم (`default=False, rollout_percentage=0, status="disabled"`).
    - يتم رفض أي طلب لتشغيل ingest أو diagnose برفع استثناء الإغلاق المغلق الصارم `DspyIngestError("flag_disabled")` أو مخرج التشخيص `DiagnosticFinding("FLAG_DISABLED")`.
 3. **تطهير بوابة الاختبار M0.3:**
-   - إزالة أي منطق استدعاء هش أو كود مصنوع (Mock Stub) من [tests/test_dspy_baseline_gate.py](file:///c:/Users/EWS-01/Desktop/etap/tests/test_dspy_baseline_gate.py).
+   - إزالة أي منطق استدعاء هش أو كود مصنوع (Mock Stub) من [tests/test_dspy_baseline_gate.py](../../tests/test_dspy_baseline_gate.py).
    - التحقق الصارم والمباشر من حالة علم الميزة الافتراضية عبر `test_dspy_flag_disabled_by_default`.
    - استخدام التخطي الصريح الشفاف `pytest.skip("dspy runtime not merged yet — see docs/ai-integration/dspy-archive-decision.md")` عند فحص كود غير مدموج، بما يتوافق 100% مع معايير التدقيق المالي والهندسي.
 

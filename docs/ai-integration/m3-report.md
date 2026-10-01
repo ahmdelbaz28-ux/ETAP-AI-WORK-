@@ -164,7 +164,7 @@ AhmedETAP M1.6 Agent Registry Dynamic Verification
    - إصدار وثيقة القرار المعماري `docs/ai-integration/dspy-archive-decision.md` (ADR-DSPY-001) لأرشفة فرع `feat/dspy-copilot-prepost-v2` ومسودة PR #607 وإبقاء علم `dspy_copilot` معطلاً بشكل دائم ومغلق (Fail-Closed). الوثيقة بانتظار توقيع واعتماد المالك (`Approved by: <Pending Owner Sign-off>`).
    - تعديل نص الخطة الأصلية في `docs/ai-integration/dspy-decision.md` بوضع ترويسة تنبيه صريحة `SUPERSEDED BY ADR-DSPY-001` وتعديل مطلب دمج v2 إلى الأرشفة الكاملة (تطبيق قاعدة: عند التعارض وثّق وعدّل الخطة كتابةً ثم نفّذ).
    - توثيق حالة مسودة PR #607 كـ "Archived per ADR-DSPY-001"؛ ومحاولة الإغلاق عبر CLI أعادت قصور صلاحية التوكن (`Resource not accessible by personal access token`)، لذا يتعين على المالك إغلاقها يدوياً عبر واجهة GitHub.
-   - إزالة منطق الـ stub المصنوع بالكامل من [tests/test_dspy_baseline_gate.py](file:///c:/Users/EWS-01/Desktop/etap/tests/test_dspy_baseline_gate.py).
+   - إزالة منطق الـ stub المصنوع بالكامل من [tests/test_dspy_baseline_gate.py](../../tests/test_dspy_baseline_gate.py).
    - اجتياز اختبار فحص العلم الافتراضي `test_dspy_flag_disabled_by_default` (PASSED)، واستخدام التخطي الشفاف الصريح `pytest.skip("dspy runtime not merged yet — see docs/ai-integration/dspy-archive-decision.md")` عند غياب الـ runtime المدموج (1 passed, 2 skipped).
 2. **M1.6 — فحص بدء التشغيل الصارم لسجل الوكلاء:**
    - فحص ديناميكي حقيقي لكافة وكلاء المنصة من `create_agent_registry()` ومطابقتها مع `BaseAgent` و`prompts.json`.

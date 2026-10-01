@@ -4,6 +4,26 @@ This document defines the ubiquitous language for the AhmedETAP platform, ensuri
 
 ---
 
+> [!WARNING]
+> **ARCHITECTURAL ERRATA & HISTORICAL NOTICE (Milestones M0–M6 Closure)**
+> The Cloudflare Workers and KV Storage model (`TASK_STORE_KV`, `API_KEYS_KV`, `RATE_LIMIT_KV`) described in sections of this document is **OBSOLETE**.
+> 
+> The platform has converged on a hardened **Dual-Runtime Architecture**:
+> 1. **Mastra (TypeScript/Node.js)**: Planning, specialist agent routing, and structured goal decomposition.
+> 2. **Engineering Service (Python/FastAPI)**: Deterministic, validated power-system physics calculations (Newton-Raphson, IEC 60909, IEEE 1584, IEC 60255, IEEE 399).
+> 3. **Persistence & State**: Backed by FastAPI, SQLAlchemy (SQLite in local development, PostgreSQL in production), Redis for transient study caching, and Qdrant for dense semantic retrieval.
+> 
+> **Authoritative Truth Files**:
+> - [AGENTS.md](../AGENTS.md): Dual-runtime architecture, agent capabilities, and prompt loading system.
+> - [engine/dispatch.py](../engine/dispatch.py): Canonical 20-entry `STUDY_DISPATCH` table.
+> - [agents/registry.py](../agents/registry.py): 27 canonical agent keys and registry namespace.
+> - [services/study_executor.py](../services/study_executor.py): Dual-port study executor and fail-closed reachability.
+> - [core/bootstrap.py](../core/bootstrap.py): Lifespan startup dynamic agent reflection gatekeeper.
+> - [api/database.py](../api/database.py): Relational database models and connection management.
+> - [docs/ai-integration/README.md](./ai-integration/README.md): Master AI integration governance index.
+
+---
+
 ## Core Entities
 
 ### Agent
