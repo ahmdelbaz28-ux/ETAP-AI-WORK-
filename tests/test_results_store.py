@@ -758,3 +758,38 @@ class TestResultIdContract:
 
         result = StudyResult(success=True, result_id="abc")
         assert result.model_dump(by_alias=True)["resultId"] == "abc"
+
+
+def test_is_within_symlink_traversal_rejected(tmp_path):
+    from pathlib import Path
+
+    from api.results_store import _is_within
+
+    base_dir = tmp_path / "base"
+    base_dir.mkdir()
+    outside_dir = tmp_path / "outside"
+    outside_dir.mkdir()
+    target_file = outside_dir / "secret.txt"
+    target_file.write_text("secret")
+
+    symlink_file = base_dir / "symlink_secret.txt"
+    try:
+        symlink_file.symlink_to(target_file)
+    except (OSError, NotImplementedError):
+        pytest.skip("Symlinks not supported on this platform/permissions")
+
+    assert not _is_within(base_dir, symlink_file)
+
+
+def test_is_within_realpath_escaped():
+    from pathlib import Path
+    from unittest.mock import patch
+
+    from api.results_store import _is_within
+
+    base_dir = Path("/safe/base")
+    candidate = Path("/safe/base/link")
+    with patch("os.path.realpath", side_effect=lambda p: "/outside/evil" if "link" in str(p) else str(p)):
+        assert not _is_within(base_dir, candidate)
+
+

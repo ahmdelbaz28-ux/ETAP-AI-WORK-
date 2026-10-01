@@ -219,8 +219,8 @@ def _validate_file_path(rel_path: str) -> str:
 def _is_within(base: Path, candidate: Path) -> bool:
     """True when *candidate* (resolved) is strictly inside *base* (resolved)."""
     try:
-        base_resolved = os.path.abspath(str(base))
-        candidate_resolved = os.path.abspath(str(candidate))
+        base_resolved = os.path.realpath(str(base))
+        candidate_resolved = os.path.realpath(str(candidate))
         return os.path.commonpath([base_resolved, candidate_resolved]) == base_resolved
     except Exception:
         return False

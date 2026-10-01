@@ -33,8 +33,10 @@ from __future__ import annotations
 
 import logging
 import os
+import tempfile
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
+from pathlib import Path
 
 try:
     import matplotlib
@@ -46,6 +48,57 @@ except Exception:
 UTC = timezone.utc  # noqa: UP017 — datetime.UTC requires Python 3.11+
 
 logger = logging.getLogger(__name__)
+
+
+def _validate_output_path(output_path: str) -> str:
+    """Validate that output_path does not escape the configured reports directory.
+
+    Guards against path traversal (CWE-22) by ensuring target resolves inside
+    the base reports directory or permitted temporary test directories.
+    """
+    if not output_path or not isinstance(output_path, str):
+        raise ValueError("output_path must be a non-empty string")
+
+    if "\0" in output_path:
+        raise ValueError("Null bytes not permitted in output_path")
+
+    normalized = output_path.replace("\\", "/")
+    if "../" in normalized or normalized.startswith("..") or "/.." in normalized:
+        raise ValueError(f"output_path escapes reports directory: {output_path}")
+
+    base = Path(os.environ.get("REPORTS_OUTPUT_DIR", "./reports/output")).resolve()
+    p = Path(output_path)
+
+    if p.is_absolute():
+        target = p.resolve()
+    else:
+        target_from_cwd = p.resolve()
+        target_from_base = (base / p).resolve()
+        reports_root = Path("./reports").resolve()
+        if str(target_from_cwd).startswith(str(base)) or str(target_from_cwd).startswith(str(reports_root)):
+            target = target_from_cwd
+        else:
+            target = target_from_base
+
+    allowed_bases = [
+        base,
+        Path("./reports").resolve(),
+        Path(tempfile.gettempdir()).resolve(),
+    ]
+
+    is_safe = False
+    for allowed in allowed_bases:
+        try:
+            if os.path.commonpath([str(allowed), str(target)]) == str(allowed):
+                is_safe = True
+                break
+        except Exception:
+            continue
+
+    if not is_safe:
+        raise ValueError(f"output_path escapes reports directory: {output_path}")
+
+    return str(target)
 
 
 @dataclass
@@ -95,6 +148,7 @@ class ChartGenerator:
         Returns:
         Path to generated chart file
         """
+        output_path = _validate_output_path(output_path)
         try:
             import matplotlib.pyplot as plt
 
@@ -127,6 +181,7 @@ class ChartGenerator:
 
     def generate_fault_current_bar_chart(self, fault_data: dict, output_path: str) -> str:
         """Generate bar chart of fault currents."""
+        output_path = _validate_output_path(output_path)
         try:
             import matplotlib.pyplot as plt
             import numpy as np
@@ -182,6 +237,7 @@ class ChartGenerator:
 
     def generate_harmonic_spectrum_chart(self, harmonic_data: dict, output_path: str) -> str:
         """Generate harmonic spectrum chart."""
+        output_path = _validate_output_path(output_path)
         try:
             import matplotlib.pyplot as plt
 
@@ -330,6 +386,7 @@ class PDFReportGenerator:
         Returns:
         Path to generated PDF file
         """
+        output_path = _validate_output_path(output_path)
         try:
             # Try to use reportlab for professional PDF
             from reportlab.lib import colors  # noqa: F401
@@ -403,6 +460,7 @@ class PDFReportGenerator:
         output_path: str,
     ) -> str:
         """Generate PDF using ReportLab library."""
+        output_path = _validate_output_path(output_path)
         # Import ReportLab components at method level to ensure availability
         from reportlab.lib import colors
         from reportlab.lib.pagesizes import A4
@@ -502,6 +560,7 @@ class PDFReportGenerator:
         output_path: str,
     ) -> str:
         """Fallback PDF generation using text-to-PDF conversion."""
+        output_path = _validate_output_path(output_path)
         os.makedirs(output_path, exist_ok=True)
 
         filename = f"report_{metadata.report_id}_{datetime.now(UTC).strftime('%Y%m%d')}.txt"
@@ -544,6 +603,7 @@ class DOCXReportGenerator:
         output_path: str,
     ) -> str:
         """Generate DOCX report."""
+        output_path = _validate_output_path(output_path)
         try:
             from docx import Document
             from docx.enum.text import WD_ALIGN_PARAGRAPH
@@ -607,6 +667,7 @@ class XLSXReportGenerator:
         output_path: str,
     ) -> str:
         """Generate XLSX report."""
+        output_path = _validate_output_path(output_path)
         try:
             from openpyxl import Workbook
             from openpyxl.styles import Alignment, Font, PatternFill  # noqa: F401
@@ -697,6 +758,7 @@ class ReportGenerationAgent:
         Returns:
         Dictionary mapping format to file path
         """
+        output_path = _validate_output_path(output_path)
         if formats is None:
             formats = ["pdf", "docx", "xlsx"]
         self.logger.info("Starting complete report generation")
@@ -738,6 +800,7 @@ class ReportGenerationAgent:
 
     def _compile_sections(self, analysis_results: dict, output_path: str) -> list[ReportSection]:
         """Compile all analysis results into report sections."""
+        output_path = _validate_output_path(output_path)
         sections = []
 
         # Section 1: Executive Summary
