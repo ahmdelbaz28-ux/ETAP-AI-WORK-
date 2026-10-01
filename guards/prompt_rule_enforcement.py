@@ -98,28 +98,30 @@ LIFE_SAFETY_STUDY_TYPES = frozenset(
 # The regex is searched in the response text. If not found, the response
 # is missing a mandatory format field.
 
+_ASSUMPTIONS_REGEX = r"ASSUMPTIONS|assumptions"
+
 MANDATORY_FORMAT_RULES: dict[str, list[tuple[str, str]]] = {
     "arcflash-agent": [
         ("incident_energy", r"incident\s*energy|INCIDENT\s*ENERGY"),
         ("ppe_category", r"PPE\s*(CATEGORY|Level)|ppe"),
         ("arc_flash_boundary", r"arc\s*flash\s*boundary|AFB|ARC\s*FLASH\s*BOUNDARY"),
         ("standard", r"IEEE\s*1584"),
-        ("assumptions", r"ASSUMPTIONS|assumptions"),
+        ("assumptions", _ASSUMPTIONS_REGEX),
     ],
     "short-circuit-agent": [
         ("fault_current", r"fault\s*current|kA"),
         ("standard", r"IEC\s*60909|IEEE"),
-        ("assumptions", r"ASSUMPTIONS|assumptions"),
+        ("assumptions", _ASSUMPTIONS_REGEX),
     ],
     "load-flow-agent": [
         ("voltage", r"voltage|pu|kV"),
         ("convergence", r"converg|Convergence"),
-        ("assumptions", r"ASSUMPTIONS|assumptions"),
+        ("assumptions", _ASSUMPTIONS_REGEX),
     ],
     "protection-agent": [
         ("relay_settings", r"relay|pickup|time\s*dial|TCC"),
         ("standard", r"IEC\s*60255|IEEE\s*C37|IEEE\s*242"),
-        ("assumptions", r"ASSUMPTIONS|assumptions"),
+        ("assumptions", _ASSUMPTIONS_REGEX),
     ],
 }
 
@@ -285,30 +287,12 @@ def validate_agent_response(
     if agent_id == "fallback-agent":
         # Look for patterns like "X = 123.45 kA" or "result: 8.5 cal/cm²"
         # without a "REFUSE" or "cannot" disclaimer
-        numerical_pattern = r"\d+\.?\d*\s*(kA|MW|MVAr|cal/cm|pu|kV|mm|V|A|Ω|Hz)"
         numerical_pattern = r"\d+(?:\.\d+)?\s*(kA|MW|MVAr|cal/cm|pu|kV|mm|V|A|Ω|Hz)"  # noqa: S8786 — atomic non-capturing group
-
-        numerical_pattern = r"\d+\.?\d*\s*(kA|MW|MVAr|cal/cm|pu|kV|mm|V|A|Ω|Hz)"
         has_numerical = bool(re.search(numerical_pattern, response_text))
         has_refusal = bool(
             re.search(r"refuse|cannot|unable|not available|do not", response_text, re.IGNORECASE)
         )
         if has_numerical and not has_refusal:
-            violations.append(
-                PromptRuleViolation(
-                    rule_id="F03-FALL-numerical",
-                    agent_id=agent_id,
-                    rule_type="format_field",
-                    description=(
-                        "Fallback agent returned numerical answers for what may be a "
-                        "life-safety calculation without a refusal disclaimer. The prompt "
-                        "states: 'You MUST REFUSE to give numerical answers for any "
-                        "life-safety calculation.'"
-                    ),
-                    severity=GuardSeverity.MUST_FIX,
-                    evidence="response contains numerical values without refusal disclaimer",
-                )
-            )
             violations.append(
                 PromptRuleViolation(
                     rule_id="F03-FALL-numerical",

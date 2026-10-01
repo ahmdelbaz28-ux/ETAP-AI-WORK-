@@ -135,7 +135,7 @@ def wire_into_app(
         original_lifespan = getattr(app.router, "lifespan_context", None)
 
         @asynccontextmanager
-        async def _scada_protocols_lifespan(_app: FastAPI):
+        async def _scada_protocols_lifespan(_app: FastAPI):  # noqa: S7503
             try:
                 yield
             finally:
@@ -148,7 +148,7 @@ def wire_into_app(
             _original = original_lifespan
 
             @asynccontextmanager
-            async def _combined_lifespan(_app: FastAPI):
+            async def _combined_lifespan(_app: FastAPI):  # noqa: S7503
                 async with _original(_app):
                     async with _scada_protocols_lifespan(_app):
                         yield
@@ -160,7 +160,7 @@ def wire_into_app(
         # Fallback: add_event_handler (backward compatible without deprecated @app.on_event).
         logger.debug("falling back to add_event_handler shutdown: %s", exc)
 
-        async def _shutdown_scada_protocols() -> None:
+        async def _shutdown_scada_protocols() -> None:  # noqa: S7503
             if _WIRED_MANAGER is not None and _WIRED_MANAGER.is_started():
                 logger.info("Stopping SCADA protocols on app shutdown")
                 _WIRED_MANAGER.stop()

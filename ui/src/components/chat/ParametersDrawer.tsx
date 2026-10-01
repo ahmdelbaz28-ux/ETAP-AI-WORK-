@@ -114,15 +114,16 @@ export function ParametersDrawer({ open, onClose, projectId: propProjectId }: Pa
       tabIndex={0}
       aria-label="Close parameters drawer"
     >
-      <div
+      <dialog
+        open
         className={cn(
-          "w-full max-w-md h-full bg-[#1A1F26] border-l border-[#334155] shadow-2xl flex flex-col",
+          "w-full max-w-md h-full bg-[#1A1F26] border-0 border-l border-[#334155] shadow-2xl flex flex-col m-0 p-0 text-slate-100",
           "animate-in slide-in-from-right duration-300",
         )}
         onClick={(e) => e.stopPropagation()}
         onKeyDown={(e) => e.stopPropagation()}
-        role="dialog"
         aria-modal="true"
+        aria-labelledby="parameters-drawer-title"
         data-testid="parameters-drawer"
       >
         {/* Header */}
@@ -132,7 +133,7 @@ export function ParametersDrawer({ open, onClose, projectId: propProjectId }: Pa
               <Sliders className="w-4 h-4" />
             </div>
             <div>
-              <h2 className="text-sm font-semibold text-slate-100 flex items-center gap-2">
+              <h2 id="parameters-drawer-title" className="text-sm font-semibold text-slate-100 flex items-center gap-2">
                 Solver Parameters
                 <Badge variant="info" size="sm">
                   Newton-Raphson
@@ -296,7 +297,7 @@ export function ParametersDrawer({ open, onClose, projectId: propProjectId }: Pa
             </Button>
           </div>
         </div>
-      </div>
+      </dialog>
     </div>
   );
 }

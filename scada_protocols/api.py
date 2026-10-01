@@ -29,6 +29,7 @@ logger = logging.getLogger(__name__)
 # Module-level singleton — set via ``set_manager``.
 _manager_lock = threading.RLock()
 _manager_singleton: Any = None
+_NO_MANAGER_MSG = "No manager registered"
 
 
 def set_manager(manager: Any) -> None:
@@ -58,7 +59,7 @@ def build_router() -> APIRouter:
     # execute under automated/machine API keys alone. Starting and stopping operational
     # OT protocols can disrupt substation telemetry and grid switching; therefore, physical
     # SCADA control requires human administrator authentication and explicit user attribution.
-    async def _require_admin(
+    async def _require_admin(  # noqa: S7503
         user: Any = Depends(get_current_user_from_header),
     ) -> None:
         if getattr(user, "role", "") != "admin":
@@ -109,7 +110,7 @@ def build_router() -> APIRouter:
     def start_manager() -> Dict[str, Any]:
         mgr = get_manager()
         if mgr is None:
-            raise HTTPException(status_code=503, detail="No manager registered")
+            raise HTTPException(status_code=503, detail=_NO_MANAGER_MSG)
         mgr.start()
         return {"ok": True, "started": mgr.is_started()}
 
@@ -117,7 +118,7 @@ def build_router() -> APIRouter:
     def stop_manager() -> Dict[str, Any]:
         mgr = get_manager()
         if mgr is None:
-            raise HTTPException(status_code=503, detail="No manager registered")
+            raise HTTPException(status_code=503, detail=_NO_MANAGER_MSG)
         mgr.stop()
         return {"ok": True, "started": mgr.is_started()}
 
@@ -129,7 +130,7 @@ def build_router() -> APIRouter:
     def protocol_status(protocol: str) -> Dict[str, Any]:
         mgr = get_manager()
         if mgr is None:
-            raise HTTPException(status_code=503, detail="No manager registered")
+            raise HTTPException(status_code=503, detail=_NO_MANAGER_MSG)
         try:
             ptype = ProtocolType(protocol)
         except ValueError:
@@ -153,7 +154,7 @@ def build_router() -> APIRouter:
     def start_protocol(protocol: str) -> Dict[str, Any]:
         mgr = get_manager()
         if mgr is None:
-            raise HTTPException(status_code=503, detail="No manager registered")
+            raise HTTPException(status_code=503, detail=_NO_MANAGER_MSG)
         try:
             ptype = ProtocolType(protocol)
         except ValueError:
@@ -171,7 +172,7 @@ def build_router() -> APIRouter:
     def stop_protocol(protocol: str) -> Dict[str, Any]:
         mgr = get_manager()
         if mgr is None:
-            raise HTTPException(status_code=503, detail="No manager registered")
+            raise HTTPException(status_code=503, detail=_NO_MANAGER_MSG)
         try:
             ptype = ProtocolType(protocol)
         except ValueError:
