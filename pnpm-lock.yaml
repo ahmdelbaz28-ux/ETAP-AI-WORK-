@@ -269,8 +269,8 @@ importers:
         specifier: 0.5.3
         version: 0.5.3(eslint@10.10.0(jiti@2.7.0))
       eslint-plugin-security:
-        specifier: 3.0.1
-        version: 3.0.1
+        specifier: 4.0.1
+        version: 4.0.1
       globals:
         specifier: 17.12.0
         version: 17.12.0
@@ -3679,8 +3679,8 @@ packages:
     peerDependencies:
       eslint: ^9 || ^10
 
-  eslint-plugin-security@3.0.1:
-    resolution: {integrity: sha512-XjVGBhtDZJfyuhIxnQ/WMm385RbX3DBu7H1J7HNNhmB2tnGxMeqVSnYv79oAj992ayvIBZghsymwkYFS6cGH4Q==}
+  eslint-plugin-security@4.0.1:
+    resolution: {integrity: sha512-/lZCkOxPOWaf1jXAqgICrS8St3BMBccIPvhOSUYuV6VCr1o5nFVG998FnTLt6w2Nxb8Uo0nM8fzmnhp+GY/aEg==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
 
   eslint-scope@9.1.2:
@@ -10478,7 +10478,7 @@ snapshots:
     dependencies:
       eslint: 10.10.0(jiti@2.7.0)
 
-  eslint-plugin-security@3.0.1:
+  eslint-plugin-security@4.0.1:
     dependencies:
       safe-regex: 2.1.1
 
