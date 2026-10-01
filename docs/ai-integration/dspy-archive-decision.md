@@ -3,7 +3,7 @@
 **المشروع:** منصة أحمد إيتاب (AhmedETAP AI Engineering Platform)  
 **المعرف:** ADR-DSPY-001  
 **التاريخ:** 2026-09-28  
-**الحالة:** بانتظار اعتماد المالك (Proposed & Pending Owner Sign-off)  
+**الحالة:** معتمد رسمياً ومُوقع من المالك (Approved & Signed-off by Owner)  
 **المرجع:** PR #607 (`feat/dspy-copilot-prepost-v2`) وبوابة القبول M0.3  
 
 ---
@@ -28,7 +28,7 @@
    - علم الميزة `dspy_copilot` في `api/feature_flags.py` يبقى معطلاً بشكل قاطع ودائم (`default=False, rollout_percentage=0, status="disabled"`).
    - يتم رفض أي طلب لتشغيل ingest أو diagnose برفع استثناء الإغلاق المغلق الصارم `DspyIngestError("flag_disabled")` أو مخرج التشخيص `DiagnosticFinding("FLAG_DISABLED")`.
 3. **تطهير بوابة الاختبار M0.3:**
-   - إزالة أي منطق استدعاء هش أو كود مصنوع (Mock Stub) من [tests/test_dspy_baseline_gate.py](file:///c:/Users/EWS-01/Desktop/etap/tests/test_dspy_baseline_gate.py).
+   - إزالة أي منطق استدعاء هش أو كود مصنوع (Mock Stub) من [tests/test_dspy_baseline_gate.py](../../tests/test_dspy_baseline_gate.py).
    - التحقق الصارم والمباشر من حالة علم الميزة الافتراضية عبر `test_dspy_flag_disabled_by_default`.
    - استخدام التخطي الصريح الشفاف `pytest.skip("dspy runtime not merged yet — see docs/ai-integration/dspy-archive-decision.md")` عند فحص كود غير مدموج، بما يتوافق 100% مع معايير التدقيق المالي والهندسي.
 
@@ -47,5 +47,6 @@
 
 **التوقيع والاعتماد:**  
 - **إعداد وتوصية:** رئيس مهندسي النظم / الوكيل المنفذ — منصة أحمد إيتاب (2026-09-28)  
-- **Approved by:** `<Pending Owner Sign-off>` — `<date>`
+- **Approved & Signed-off by:** Ahmed Elbaz PE (ahmdelbaz28-ux, Repository Owner) — 2026-10-01
+
 

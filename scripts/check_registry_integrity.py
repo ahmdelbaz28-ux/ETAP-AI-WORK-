@@ -108,7 +108,10 @@ def _load_canonical_agent_ids_from_study_type_map() -> set[str]:
             sys.path.remove(str(REPO_ROOT))
 
 
-def _scan_rogue_bindings(canonical_study_types: set[str]) -> list[str]:
+def _scan_rogue_bindings(
+    canonical_study_types: set[str],
+    scan_dirs: list[Path] | None = None,
+) -> list[str]:
     """
     Scan Python source files for any string literal study_type assignment
     that references a study type not in the canonical registry.
@@ -130,12 +133,13 @@ def _scan_rogue_bindings(canonical_study_types: set[str]) -> list[str]:
         re.MULTILINE,
     )
 
-    scan_dirs = [
-        REPO_ROOT / "agents",
-        REPO_ROOT / "services",
-        REPO_ROOT / "engine",
-        REPO_ROOT / "api",
-    ]
+    if scan_dirs is None:
+        scan_dirs = [
+            REPO_ROOT / "agents",
+            REPO_ROOT / "services",
+            REPO_ROOT / "engine",
+            REPO_ROOT / "api",
+        ]
 
     # Files that are EXCLUDED from the scan.
     # These ARE registry/capability definition files and are allowed to contain
@@ -175,7 +179,10 @@ def _scan_rogue_bindings(canonical_study_types: set[str]) -> list[str]:
                     continue
                 if study_type not in canonical_study_types:
                     line_no = text[: match.start()].count("\n") + 1
-                    rel = py_file.relative_to(REPO_ROOT)
+                    try:
+                        rel = py_file.relative_to(REPO_ROOT)
+                    except ValueError:
+                        rel = py_file
                     violations.append(
                         f"ROGUE BINDING: '{study_type}' in {rel}:{line_no} is not in "
                         f"canonical registry ({EXPECTED_STUDY_TYPES_SOURCE})"
@@ -197,22 +204,26 @@ def run_registry_integrity_check(strict: bool = False) -> int:
     canonical_study_types = _load_canonical_study_types()
     print(f"[OK] Loaded {len(canonical_study_types)} canonical study types from {EXPECTED_STUDY_TYPES_SOURCE}.")
 
+    violations: list[str] = []
+
     # 1. Agent registry completeness check
     agent_class_names = _load_canonical_agent_ids_from_study_type_map()
     ts_agent_ids = _load_canonical_agent_ids_from_ts()
 
     if not agent_class_names:
-        print("[WARN] Could not load STUDY_TYPE_AGENT_MAP — skipping agent class check.")
+        print("[FAIL] Could not load STUDY_TYPE_AGENT_MAP — skipping agent class check.")
+        violations.append("Registry check failed: could not load STUDY_TYPE_AGENT_MAP.")
     else:
         print(f"[OK] Found {len(agent_class_names)} agent classes in STUDY_TYPE_AGENT_MAP.")
 
     if ts_agent_ids:
         print(f"[OK] Found {len(ts_agent_ids)} agent IDs in AGENT_REGISTRY (TS).")
     else:
-        print("[WARN] Could not extract TS agent IDs — skipping TS parity check.")
+        print("[FAIL] Could not extract TS agent IDs — TS parity failure.")
+        violations.append("TS parity check failed: AGENT_REGISTRY (TS) could not be loaded or is empty.")
 
     # 2. Rogue binding scan
-    violations = _scan_rogue_bindings(canonical_study_types)
+    violations.extend(_scan_rogue_bindings(canonical_study_types))
 
     if strict:
         # 3. Strict: verify STUDY_DISPATCH covers all StudyType enum values

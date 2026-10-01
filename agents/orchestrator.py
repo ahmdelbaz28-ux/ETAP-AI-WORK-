@@ -40,6 +40,8 @@ from agents.models import (  # noqa: F401
     AgentResult,
     AgentStatus,
     EngineeringTask,
+    PlanningIntent,
+    PlanningPlan,
     StudyType,
 )
 from agents.registry import (  # noqa: F401
@@ -135,6 +137,17 @@ class ChiefEngineeringOrchestrator:
             custom_logger=self.logger,
         )
 
+        # ContextFabric integration (M4.1 / R-4)
+        try:
+            from context_fabric.providers import build_default_fabric
+
+            self.context_fabric = build_default_fabric()
+        except Exception as exc:
+            self.logger.warning("Failed to initialize ContextFabric: %s", exc)
+            self.context_fabric = None
+
+        self.current_plan: PlanningPlan | None = None
+
         # Load orchestrator's own prompt for coordination guidance
         self._system_prompt: str | None = None
         self._load_prompt()
@@ -166,6 +179,102 @@ class ChiefEngineeringOrchestrator:
             "agents": {key: agent.get_agent_info() for key, agent in self.agents.items()},
         }
 
+    def assemble_task_context(
+        self,
+        task: EngineeringTask,
+        tenant_id: str,
+    ) -> dict[str, Any]:
+        """Assemble structured engineering context using ContextFabric (M4.1 / R-4).
+
+        Fail-closed tenant isolation: requires an explicit non-empty tenant_id.
+        """
+        if not tenant_id or not str(tenant_id).strip():
+            from context_fabric.fabric import ContextIsolationError
+
+            raise ContextIsolationError(
+                "assemble_task_context requires an explicit non-empty tenant_id (fail-closed)."
+            )
+        if self.context_fabric is None:
+            return {}
+        from context_fabric.fabric import ContextType
+
+        context_data: dict[str, Any] = {}
+        for ctype in (ContextType.STANDARDS, ContextType.ENGINEERING_KNOWLEDGE, ContextType.PROJECT_STATE):
+            try:
+                res = self.context_fabric.query(ctype, task.description, tenant_id=tenant_id, limit=3)
+                if res.available and res.evidence:
+                    context_data[ctype.value] = [
+                        {"key": e.key, "value": e.value, "hash": e.content_hash, "ref": e.source_ref}
+                        for e in res.evidence
+                    ]
+            except Exception as e:
+                self.logger.debug("ContextFabric query for %s skipped: %s", ctype, e)
+        return context_data
+
+    def create_planning_plan(
+        self,
+        user_goal: str,
+        system_data: Any = None,
+        parameters: dict | None = None,
+    ) -> PlanningPlan:
+        """Derive a canonical PlanningPlan from typed user intent (M3.1 / N-R11-4 item 5)."""
+        decision = self.router.route(user_goal, raise_on_unreachable=True)
+        task_id = f"workflow_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}"
+        task = EngineeringTask(
+            task_id=task_id,
+            description=user_goal,
+            study_types=decision.study_types,
+            parameters={"system": system_data, **(parameters or {})},
+        )
+        intent = decision.to_planning_intent(user_goal, parameters=parameters)
+        return PlanningPlan(
+            plan_id=f"plan_{task_id}",
+            intent=intent,
+            execution_order=list(decision.study_types),
+            tasks=[task],
+            status="draft",
+        )
+
+    def _persist_workflow_memory(
+        self,
+        task: EngineeringTask,
+        results: list[AgentResult],
+        tenant_id: str,
+    ) -> bool:
+        """Persist validated workflow findings into memory service (M4.1 / N-R11-4 item 6).
+
+        Fail-closed tenant isolation: requires an explicit non-empty tenant_id.
+        """
+        if not tenant_id or not str(tenant_id).strip():
+            self.logger.warning("Persisting workflow memory rejected: explicit tenant_id required (fail-closed).")
+            return False
+        try:
+            from services.memory_service import AIMemoryService
+
+            service = AIMemoryService()
+            fact_summary = (
+                f"Workflow {task.task_id} completed goal: {task.description} "
+                f"with {len(results)} validated studies."
+            )
+            provenance = {
+                "task_id": task.task_id,
+                "studies": [
+                    r.study_type.value if hasattr(r.study_type, "value") else str(r.study_type)
+                    for r in results
+                ],
+                "validated": True,
+            }
+            return bool(
+                service.save_to_vector_memory(
+                    fact_summary,
+                    tenant_id=tenant_id,
+                    provenance=provenance,
+                )
+            )
+        except Exception as exc:
+            self.logger.debug("Persisting workflow memory skipped: %s", exc)
+            return False
+
     async def submit_task(self, task: EngineeringTask) -> None:  # NOSONAR
         """Submit engineering task for execution."""
         self.task_queue.append(task)
@@ -181,8 +290,8 @@ class ChiefEngineeringOrchestrator:
         """Execute complete autonomous engineering workflow based on user goal."""
         self.logger.info("Starting autonomous workflow for goal: %s", user_goal)
 
-        # Parse user goal and determine required studies via typed router
-        decision = self.router.route(user_goal)
+        # Parse user goal and determine required studies via typed router (M3.1 / R-5)
+        decision = self.router.route(user_goal, raise_on_unreachable=True)
         required_studies = decision.study_types
 
         # Create task
@@ -192,6 +301,23 @@ class ChiefEngineeringOrchestrator:
             study_types=required_studies,
             parameters={"system": system_data, **(parameters or {})},
         )
+
+        # Bind and track canonical PlanningPlan (M3.1 / N-R11-4 item 5)
+        planning_intent = decision.to_planning_intent(user_goal, parameters=parameters)
+        self.current_plan = PlanningPlan(
+            plan_id=f"plan_{task.task_id}",
+            intent=planning_intent,
+            execution_order=list(required_studies),
+            tasks=[task],
+            status="executing",
+        )
+
+        # Multi-tenant ContextFabric assembly (M4.1 / R-4) - Fail-closed: require explicit tenant
+        tenant_id = (parameters or {}).get("tenant_id")
+        if tenant_id and str(tenant_id).strip():
+            task_context = self.assemble_task_context(task, tenant_id=str(tenant_id).strip())
+            if task_context:
+                task.parameters["context_fabric"] = task_context
 
         # P3 JobProgress bridge: announce the parsing phase
         _emit_session_progress(task, "parsing", 5, "Parsed goal into study plan")
@@ -217,6 +343,15 @@ class ChiefEngineeringOrchestrator:
             task, results
         )
         all_validated = bool(self_validated and external_valid)
+
+        # Update planning plan status
+        if self.current_plan:
+            self.current_plan.status = "completed" if all_validated else "failed"
+
+        # Persist validated workflow knowledge to memory service (N-R11-4 item 6)
+        if all_validated and tenant_id and str(tenant_id).strip():
+            self._persist_workflow_memory(task, results, tenant_id=str(tenant_id).strip())
+
         _emit_session_progress(task, "validating", 100, "Workflow completed")
         _emit_session_event(
             task,

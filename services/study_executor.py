@@ -255,6 +255,16 @@ class StudyExecutor:
                 data["engineering_assertion_warnings"] = [f.to_dict() for f in report.warnings]
             elif report.failures:
                 data["engineering_assertion_warnings"] = [f.to_dict() for f in report.failures]
+
+            # V-04 (ADR-0003): Deterministic Engineering Assertion Layer on AI / fallback output
+            if data.get("is_fallback") or data.get("fallback_model"):
+                from copilot.ai.engineering_assertions import validate_fallback_output
+
+                is_safe, fb_summary = validate_fallback_output(study_type, data, strict_mode=False)
+                data["fallback_validation"] = fb_summary
+                if not is_safe:
+                    status = "failed"
+                    errors.append(f"Fallback output validation failed for {study_type}.")
         except Exception as assertion_err:
             logger.warning("Engineering assertion execution error in StudyExecutor: %s", assertion_err)
 
@@ -583,6 +593,10 @@ class StudyExecutor:
                 ) from exc
 
         if study_type == "optimization":
+            if not parameters:
+                raise SpecializedExecutionUnavailableError(
+                    study_type, "Study type 'optimization' requires specific parameters; empty parameters provided"
+                )
             try:
                 from agents.models import EngineeringTask, StudyType
                 from agents.optimizers.optimization_agent import OptimizationAgent

@@ -11,9 +11,9 @@
 | # | البند | الحالة | الدليل والشاهد القاطع |
 |---|-------|--------|----------------------|
 | 1 | `P0-report.md` موجودة ومكتملة | **ناجحة** | الملف الحالي مكتمل بكافة أقسامه والقالب الإلزامي حرفياً. |
-| 2 | `capability-baseline.md` يغطي عدد الـ 20 الفعلي، وكل سطر يحمل file:line، وصفر Hallucination | **ناجحة** | موجود في [docs/ai-integration/capability-baseline.md](file:///c:/Users/EWS-01/Desktop/etap/docs/ai-integration/capability-baseline.md) ويغطي الـ 20 مدخلاً بالشواهد الحرفية. |
-| 3 | `capability-matrix.md` يغطي كل الوكلاء الفعليين + عمود ملكية التعريف | **ناجحة** | موجود في [docs/ai-integration/capability-matrix.md](file:///c:/Users/EWS-01/Desktop/etap/docs/ai-integration/capability-matrix.md) ويغطي 20 دراسة × 27 وكيلاً + عمود سلطة التعريف. |
-| 4 | اختبار fail-by-default أخضر | **ناجحة** | [tests/test_dspy_baseline_gate.py](file:///c:/Users/EWS-01/Desktop/etap/tests/test_dspy_baseline_gate.py) اجتاز الاختبارات الثلاثة بنجاح 100% (`3 passed in 15.48s`). |
+| 2 | `capability-baseline.md` يغطي عدد الـ 20 الفعلي، وكل سطر يحمل file:line، وصفر Hallucination | **ناجحة** | موجود في [docs/ai-integration/capability-baseline.md](./capability-baseline.md) ويغطي الـ 20 مدخلاً بالشواهد الحرفية. |
+| 3 | `capability-matrix.md` يغطي كل الوكلاء الفعليين + عمود ملكية التعريف | **ناجحة** | موجود في [docs/ai-integration/capability-matrix.md](./capability-matrix.md) ويغطي 20 دراسة × 27 وكيلاً + عمود سلطة التعريف. |
+| 4 | اختبار fail-by-default أخضر | **ناجحة** | [tests/test_dspy_baseline_gate.py](../../tests/test_dspy_baseline_gate.py) اجتاز الاختبارات الثلاثة بنجاح 100% (`3 passed in 15.48s`). |
 | 5 | `git diff main...HEAD --stat` يعرض ملفات `.md` وملفات الاختبار فقط | **ناجحة** | التغييرات تقتصر على 3 ملفات توثيق في `docs/ai-integration/` وملف تقرير وملف اختبار في `tests/`. لا يوجد أي تعديل على كود التشغيل. |
 | 6 | `.gitleaksignore` و `.gitleaks.toml` بلا أي فرق | **ناجحة** | مطابقان 100% لرأس `main`. |
 | 7 | `git diff main...HEAD -- .gitleaksignore .gitleaks.toml` فارغ | **ناجحة** | المخرج فارغ تماماً (Exit code 0). |
@@ -35,10 +35,10 @@
 
 | ما قاله الدليل | ما قاله الكود الحي | file:line | كيف عالجته |
 |----------------|-------------------|-----------|------------|
-| وجود خريطة سابعة في `src/core/agents.ts:157-165` | الملف 136 سطر فقط، وينتهي السجل عند السطر 129 والدوال المساعدة عند 136. لا وجود للأسطر المزعومة. | [src/core/agents.ts:1-136](file:///c:/Users/EWS-01/Desktop/etap/src/core/agents.ts#L1-L136) | تم إثبات انتهاء الملف عند السطر 136 وتوثيقه كـ "سجل وكلاء TypeScript/Mastra" يحوي 11 وكيلاً في `capability-baseline.md`. |
-| `study_service.py` و `engine.py` خريطتا إرسال كاملتان مثل `STUDY_DISPATCH` | `study_service.py` لا يستخدم `STUDY_DISPATCH` ويحوي فقط 4 دراسات أصلية و 7 دراسات ETAP؛ و `engine.py` shim لـ 4 دراسات فقط عبر `_STUDY_REGISTRY`. | [study_service.py:243-284](file:///c:/Users/EWS-01/Desktop/etap/services/study_service.py#L243-L284), [engine.py:49-60](file:///c:/Users/EWS-01/Desktop/etap/engine/engine.py#L49-L60) | تم توصيفهما بدقة كـ shims وتكرار مستقل مجتزأ في جدول المسارات المتوازية. |
-| "13 نوع agent ترفع ValueError" | المعالجة داخل `_dispatch_agent` تستقبل `etap_expert` و `etap_gui`، وترفع الخطأ لـ 11 نوع agent فقط. الرقم 13 ناتج عن إضافة دراستين خارجيتين ترفعان الخطأ في `_dispatch:426`. | [study_executor.py:426, 535](file:///c:/Users/EWS-01/Desktop/etap/services/study_executor.py#L426) | تم توثيق التفريق الدقيق: 11 نوع agent + 2 external = 13 دراسة إجمالية غير مدعومة في المنفذ. |
-| "27 وكيلًا في registry.py" | السجل ينشئ 27 فئة وكيل فريدة، لكن القاموس يحتوي على 30 مفتاحاً لاشتماله على 3 أسماء مستعارة (`harmonic`, `opf`, `protection`). | [agents/registry.py:1424-1503](file:///c:/Users/EWS-01/Desktop/etap/agents/registry.py#L1424-L1503) | تم توثيق الرقمين وتوضيح الفرق بين فئات الوكلاء ومفاتيح القاموس وتأكيد تحميل الـ 30 بنجاح. |
+| وجود خريطة سابعة في `src/core/agents.ts:157-165` | الملف 136 سطر فقط، وينتهي السجل عند السطر 129 والدوال المساعدة عند 136. لا وجود للأسطر المزعومة. | [src/core/agents.ts:1-136](../../src/core/agents.ts#L1-L136) | تم إثبات انتهاء الملف عند السطر 136 وتوثيقه كـ "سجل وكلاء TypeScript/Mastra" يحوي 11 وكيلاً في `capability-baseline.md`. |
+| `study_service.py` و `engine.py` خريطتا إرسال كاملتان مثل `STUDY_DISPATCH` | `study_service.py` لا يستخدم `STUDY_DISPATCH` ويحوي فقط 4 دراسات أصلية و 7 دراسات ETAP؛ و `engine.py` shim لـ 4 دراسات فقط عبر `_STUDY_REGISTRY`. | [study_service.py:243-284](../../services/study_service.py#L243-L284), [engine.py:49-60](../../engine/engine.py#L49-L60) | تم توصيفهما بدقة كـ shims وتكرار مستقل مجتزأ في جدول المسارات المتوازية. |
+| "13 نوع agent ترفع ValueError" | المعالجة داخل `_dispatch_agent` تستقبل `etap_expert` و `etap_gui`، وترفع الخطأ لـ 11 نوع agent فقط. الرقم 13 ناتج عن إضافة دراستين خارجيتين ترفعان الخطأ في `_dispatch:426`. | [study_executor.py:426, 535](../../services/study_executor.py#L426) | تم توثيق التفريق الدقيق: 11 نوع agent + 2 external = 13 دراسة إجمالية غير مدعومة في المنفذ. |
+| "27 وكيلًا في registry.py" | السجل ينشئ 27 فئة وكيل فريدة، لكن القاموس يحتوي على 30 مفتاحاً لاشتماله على 3 أسماء مستعارة (`harmonic`, `opf`, `protection`). | [agents/registry.py:1424-1503](../../agents/registry.py#L1424-L1503) | تم توثيق الرقمين وتوضيح الفرق بين فئات الوكلاء ومفاتيح القاموس وتأكيد تحميل الـ 30 بنجاح. |
 | فرعا `prepost` و `fix` "متأخران 1 و 2 عن main" | الفروع الثلاثة متفرعة مباشرة من كوميت main الحالي (`43fdd481f`) وعدد الكوميتات المتأخرة عن main هو صفر لكل منها. | `git rev-list --count <branch>..main` | تم تسجيل الإحصائيات الحقيقية لـ Git في وثيقة `dspy-decision.md`. |
 
 ---
@@ -47,11 +47,11 @@
 
 | ملف | الإجراء (جديد/معدّل) | سبب التغيير |
 |-----|----------------------|-------------|
-| [docs/ai-integration/capability-baseline.md](file:///c:/Users/EWS-01/Desktop/etap/docs/ai-integration/capability-baseline.md) | جديد | توثيق خط الأساس الجنائي للـ 20 مدخلاً في `STUDY_DISPATCH` وتصنيف إمكانية الوصول وجدول المسارات المتوازية الـ 8. |
-| [docs/ai-integration/capability-matrix.md](file:///c:/Users/EWS-01/Desktop/etap/docs/ai-integration/capability-matrix.md) | جديد | مصفوفة القدرات 20x27 وعمود سلطة التعريف والخلاصة الإلزامية للمسارات الميتة والمالك المحتمل. |
-| [docs/ai-integration/dspy-decision.md](file:///c:/Users/EWS-01/Desktop/etap/docs/ai-integration/dspy-decision.md) | جديد | توثيق قرار DSPy المعماري المحسوم، إحصائيات الفروع الثلاثة، براهين fail-by-default، واستبعاد v1. |
-| [tests/test_dspy_baseline_gate.py](file:///c:/Users/EWS-01/Desktop/etap/tests/test_dspy_baseline_gate.py) | جديد | اختبار بوابة fail-by-default للتأكد من إغلاق العلم صراحة واختبار سلوك `run_ingest` و `run_diagnose`. |
-| [P0-report.md](file:///c:/Users/EWS-01/Desktop/etap/P0-report.md) | جديد | تقرير الاعتماد والتدقيق الجنائي للحزمة P0 وفق القالب الرسمي. |
+| [docs/ai-integration/capability-baseline.md](./capability-baseline.md) | جديد | توثيق خط الأساس الجنائي للـ 20 مدخلاً في `STUDY_DISPATCH` وتصنيف إمكانية الوصول وجدول المسارات المتوازية الـ 8. |
+| [docs/ai-integration/capability-matrix.md](./capability-matrix.md) | جديد | مصفوفة القدرات 20x27 وعمود سلطة التعريف والخلاصة الإلزامية للمسارات الميتة والمالك المحتمل. |
+| [docs/ai-integration/dspy-decision.md](./dspy-decision.md) | جديد | توثيق قرار DSPy المعماري المحسوم، إحصائيات الفروع الثلاثة، براهين fail-by-default، واستبعاد v1. |
+| [tests/test_dspy_baseline_gate.py](../../tests/test_dspy_baseline_gate.py) | جديد | اختبار بوابة fail-by-default للتأكد من إغلاق العلم صراحة واختبار سلوك `run_ingest` و `run_diagnose`. |
+| [P0-report.md](./P0-report.md) | جديد | تقرير الاعتماد والتدقيق الجنائي للحزمة P0 وفق القالب الرسمي. |
 
 ---
 
@@ -128,8 +128,8 @@ git diff main -- .gitleaksignore .gitleaks.toml
 ## 6. لم يُنجز
 
 بكل شفافية ووضوح هندسي، لم يتم تنفيذ الآتي عمداً التزاماً بحدود الحزمة P0 وقواعد السلامة:
-1. **لم يتم تعديل أي سطر في كود التشغيل القائم:** لم يتم تعديل [services/study_executor.py](file:///c:/Users/EWS-01/Desktop/etap/services/study_executor.py) لتوصيل الـ 11 نوع وكيل المعطلة أو إحياء الكود الميت لدراسة `ahmed_etap_orchestration`، لأن شروط P0 الصارمة تحظر أي تغيير سلوكي في كود التشغيل ("صفر سطر كود تغيير").
-2. **لم يتم دمج كود الفروع الفعلي في شجرة الكود المصدرية:** تم إعداد وتوثيق قرار واستراتيجية الدمج بالبراهين والأرقام في [docs/ai-integration/dspy-decision.md](file:///c:/Users/EWS-01/Desktop/etap/docs/ai-integration/dspy-decision.md) دون إدماج كود بايثون الخاص بـ v2 في الفرع الحالي، احتراماً للبوابة 5 التي تحظر ظهور أي ملف بايثون مصدري خارج ملفات الاختبار في `git diff`.
+1. **لم يتم تعديل أي سطر في كود التشغيل القائم:** لم يتم تعديل [services/study_executor.py](../../services/study_executor.py) لتوصيل الـ 11 نوع وكيل المعطلة أو إحياء الكود الميت لدراسة `ahmed_etap_orchestration`، لأن شروط P0 الصارمة تحظر أي تغيير سلوكي في كود التشغيل ("صفر سطر كود تغيير").
+2. **لم يتم دمج كود الفروع الفعلي في شجرة الكود المصدرية:** تم إعداد وتوثيق قرار واستراتيجية الدمج بالبراهين والأرقام في [docs/ai-integration/dspy-decision.md](./dspy-decision.md) دون إدماج كود بايثون الخاص بـ v2 في الفرع الحالي، احتراماً للبوابة 5 التي تحظر ظهور أي ملف بايثون مصدري خارج ملفات الاختبار في `git diff`.
 3. **لم يتم تعديل أو توسيع تعداد `StudyType`:** تم توثيق نقص المداخل الثلاثة (`ahmed_etap_orchestration`, `optimization`, `breaker_duty`) دون التعديل على `agents/models.py`.
 
 ---

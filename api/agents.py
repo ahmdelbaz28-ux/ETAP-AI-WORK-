@@ -639,8 +639,8 @@ async def etap_gui_execute(
         session_id = payload.session_id or f"cua_{trace_id}"
         tenant_id = payload.tenant_id
 
-        # Check if pre-approved via approval_id
-        is_pre_approved = False
+        # Check if pre-approved via approval_id (M5.1 / R-6)
+        pre_approved_action: Any | None = None
         if payload.approval_id:
             try:
                 from sqlalchemy import select
@@ -659,15 +659,37 @@ async def etap_gui_execute(
                         or not tenant_id
                         or action_row.tenant_id == tenant_id
                     ):
-                        is_pre_approved = True
+                        pre_approved_action = action_row
             except Exception as e:
                 logger.debug("Approval DB check exception: %s", e)
 
         def _cua_confirmation_callback(action) -> bool:
-            """Interactive approval gateway callback (M5.1(a))."""
-            # 1. Pre-approved token check
-            if is_pre_approved:
-                return True
+            """Interactive approval gateway callback with strict binding (M5.1(a) / R-6)."""
+            # 1. Pre-approved token check with tool + args_hash + session binding
+            if pre_approved_action is not None:
+                from api.approvals import _utc_now, compute_args_hash
+
+                if pre_approved_action.expires_at > _utc_now():
+                    session_match = (
+                        not pre_approved_action.session_id
+                        or pre_approved_action.session_id == session_id
+                    )
+                    if session_match:
+                        action_type = getattr(action, "type", None) or getattr(action, "action_type", "cua_action")
+                        action_dict = (
+                            action.to_dict()
+                            if hasattr(action, "to_dict")
+                            else (
+                                action.__dict__
+                                if hasattr(action, "__dict__")
+                                else (action if isinstance(action, dict) else {"target": str(action)})
+                            )
+                        )
+                        tool_candidates = {str(action_type), f"cua_{action_type}", "etap_gui_agent", "cua_executor"}
+                        tool_match = pre_approved_action.tool in tool_candidates
+                        hash_match = (pre_approved_action.args_hash == compute_args_hash(action_dict))
+                        if tool_match and hash_match:
+                            return True
 
             # 2. Session auto-approval check
             try:

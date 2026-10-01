@@ -20,8 +20,10 @@ overrides:
   # The langwatch package transitively pulls langsmith 0.3.87 (vulnerable).
   # Dependabot suggested fix>=0.6.0, but latest npm release is 0.8.9 — using ^0.8.0.
   langsmith: ^0.8.0
-  # HIGH: axios prototype pollution + proxy inheritance + body limit bypass (10 alerts)
-  axios: ^1.18.0
+  # HIGH: axios prototype pollution + proxy inheritance + body limit bypass (12 alerts)
+  axios: ^1.20.0
+  # HIGH/LOW: @grpc/grpc-js certificate validation bypass and error exposure (CVE-2026-101916, CVE-2026-101915)
+  '@grpc/grpc-js': ^1.14.5
   # HIGH: brace-expansion DoS via exponential-time expansion & stack exhaustion (GHSA-qhr7-859c-m2p7, GHSA-6j4f-fj2g-mc7p)
   brace-expansion: ^5.0.12
   # HIGH: fast-uri host confusion via failed IDN canonicalization (2 alerts, GHSA-hrr3-gc8f-f4qj)

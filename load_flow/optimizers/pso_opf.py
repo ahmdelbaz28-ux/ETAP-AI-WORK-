@@ -320,7 +320,8 @@ class PSOOptimalPowerFlow:
                     conv = False
             except Exception as nr_err:
                 logger.warning("Independent Newton-Raphson re-analysis error: %s", nr_err)
-                conv, final_V, final_gen, final_losses = self._evaluate_ac_state(best_p_gen, best_v_gen)
+                _, final_V, final_gen, final_losses = self._evaluate_ac_state(best_p_gen, best_v_gen)
+                conv = False
         else:
             conv, final_V, final_gen, final_losses = self._evaluate_ac_state(best_p_gen, best_v_gen)
 

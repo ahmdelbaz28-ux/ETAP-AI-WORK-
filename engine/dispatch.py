@@ -10,9 +10,9 @@ Each entry maps a canonical ``study_type`` string to a ``StudyRegistration``
 that declares:
 
 - ``handler_type``: One of
-    - ``"native"``  — handled synchronously by ``PowerSystemEngine``
-    - ``"agent"``   — handled by a ``BaseAgent`` subclass in the Python runtime
-    - ``"external"`` — handled by the Engineering Service API (HTTP)
+    - ``"native"``   — handled synchronously by ``PowerSystemEngine``
+    - ``"agent"``    — handled by a ``BaseAgent`` subclass in the Python runtime
+    - ``"external"`` — handled by dedicated execution bridges (Engineering Service API HTTP endpoint or specialized local optimizer/orchestrator adapters)
 
 - ``handler``: Handler identifier (module path or class name or endpoint)
 

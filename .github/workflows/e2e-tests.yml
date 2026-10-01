@@ -141,9 +141,11 @@ jobs:
           python-version: '3.13'
 
       - name: Install dependencies
+        env:
+          PIP_DEFAULT_TIMEOUT: '120'
         run: |
-          pip install -r requirements.txt
-          pip install pytest pytest-cov pytest-asyncio pytest-timeout httpx aiosqlite pytest-xdist
+          pip install --retries 5 -r requirements.txt
+          pip install --retries 5 pytest pytest-cov pytest-asyncio pytest-timeout httpx aiosqlite pytest-xdist
 
       - name: Run syntax validation
         run: python validate_syntax.py

@@ -235,3 +235,48 @@ def test_default_fabric_standards_provider_is_live():
         assert ev.source_type is ContextType.STANDARDS
         assert ev.tenant_id == "t1"
         assert len(ev.content_hash) == 64
+
+
+def test_context_fabric_production_caller_prohibitory_guard():
+    """M4.1 / R-4 Prohibitory Gate: ContextFabric MUST be consumed by production code."""
+    import ast
+
+    prod_files = [
+        REPO_ROOT / "agents" / "orchestrator.py",
+        REPO_ROOT / "api" / "context_engine.py",
+    ]
+    found_prod_importers: list[str] = []
+
+    for pf in prod_files:
+        assert pf.exists(), f"Production file {pf} missing"
+        tree = ast.parse(pf.read_text(encoding="utf-8"))
+        for node in ast.walk(tree):
+            if isinstance(node, ast.ImportFrom) and node.module and "context_fabric" in node.module:
+                found_prod_importers.append(str(pf.relative_to(REPO_ROOT)))
+                break
+
+    assert len(found_prod_importers) >= 1, (
+        f"ContextFabric isolated! Expected production importers in {prod_files}, "
+        f"found {found_prod_importers}. Anti-pattern 'built but unconnected' violated."
+    )
+
+
+def test_orchestrator_assemble_context_fail_closed_without_tenant():
+    """Verify ChiefEngineeringOrchestrator.assemble_task_context raises ContextIsolationError if tenant_id is missing/empty."""
+    from agents.orchestrator import ChiefEngineeringOrchestrator, EngineeringTask
+    from context_fabric.fabric import ContextIsolationError
+
+    orch = ChiefEngineeringOrchestrator()
+    task = EngineeringTask(task_id="t1", description="IEC 60909 fault study", study_types=[], parameters={})
+
+    with pytest.raises(ContextIsolationError, match="explicit non-empty tenant_id"):
+        orch.assemble_task_context(task, tenant_id="")
+
+    with pytest.raises(ContextIsolationError, match="explicit non-empty tenant_id"):
+        orch.assemble_task_context(task, tenant_id=None)  # type: ignore[arg-type]
+
+    # Valid tenant_id succeeds
+    ctx = orch.assemble_task_context(task, tenant_id="tenant-123")
+    assert isinstance(ctx, dict)
+
+

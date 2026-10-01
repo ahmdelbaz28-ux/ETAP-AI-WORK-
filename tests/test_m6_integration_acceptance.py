@@ -33,7 +33,12 @@ from agents.cua_executor import CUAAction, CUAExecutionResult
 from agents.life_safety import LifeSafetyGuard, life_safety_guard
 from agents.models import AgentResult, AgentStatus, EngineeringTask, StudyType
 from agents.optimizers.optimization_agent import OptimizationAgent
-from agents.registry import CANONICAL_AGENT_KEYS, create_agent_registry, get_study_type_mapping
+from agents.registry import (
+    CANONICAL_AGENT_KEYS,
+    ShortCircuitAgent,
+    create_agent_registry,
+    get_study_type_mapping,
+)
 from agents.workflow import WorkflowEngine
 from context_fabric import (
     CallableContextProvider,
@@ -846,7 +851,7 @@ class TestM6FullLifecycleIntentToProvenance:
     """Final Acceptance Gate: Full lifecycle Intent -> Plan -> DAG -> Execution -> Assertions -> Evidence -> Provenance."""
 
     @pytest.mark.asyncio
-    async def test_complete_lifecycle_intent_plan_dag_execution_assertions_evidence_provenance(self):
+    async def test_complete_lifecycle_intent_plan_dag_execution_assertions_evidence_provenance(self, built_system):
         """Validates the unbroken execution chain from user intent to verifiable provenance."""
         # 1. Intent: High-level user engineering objective
         intent = "Assess three-phase bolted fault at Bus 2 and coordinate protection relays"
@@ -860,6 +865,8 @@ class TestM6FullLifecycleIntentToProvenance:
             description=intent,
             study_types=[StudyType.SHORT_CIRCUIT, StudyType.PROTECTION_COORDINATION],
             parameters={
+                "system": built_system,
+                "fault_buses": [2],
                 "bus_id": 2,
                 "fault_type": "three_phase",
                 "upstream_relay_id": 1,
@@ -871,15 +878,8 @@ class TestM6FullLifecycleIntentToProvenance:
         )
 
         # 3. DAG: WorkflowEngine generates contract-driven execution plan
-        sc_agent = MockChainAgent(
-            "ShortCircuitAgent",
-            output_data={
-                "fault_current_ka": 15.2,
-                "ik_ss_ka": 15.2,
-                "ip_peak_ka": 38.5,
-                "fault_results": {"bus_2": {"ik_ka": 15.2}},
-            },
-        )
+        # R-11: ShortCircuitAgent uses the real engine-backed agent rather than a pure mock
+        sc_agent = ShortCircuitAgent()
         prot_agent = MockChainAgent(
             "ProtectionCoordinationAgent",
             output_data={

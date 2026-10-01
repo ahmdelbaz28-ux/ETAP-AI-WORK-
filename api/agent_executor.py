@@ -704,6 +704,7 @@ async def execute_plan(
                 "execution_id": execution_id,
                 "status": EXECUTION_STATUS_FAILED,
                 "error_code": "EXECUTION_FAILED",
+                "tool": plan_rec.tool,
             },
         }
         _finish_idempotent(scoped_key, payload)

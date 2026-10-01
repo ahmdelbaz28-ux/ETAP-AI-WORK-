@@ -40,7 +40,7 @@ dependencies = [
     "cryptography>=50.0.0",  # SECURITY: CVE-2026-26007 (subgroup attack) + Bleichenbacher oracle (PKCS#7) + bundled OpenSSL CVEs fixed
     "hvac>=2.0.0",
     "bcrypt>=4.0.0",
-    "PyJWT>=2.13.0",  # SECURITY: CVE-2026-32597 + CVE-2026-48526 fixed
+    "PyJWT>=2.15.1",  # SECURITY: CVE-2026-102268 (CRITICAL), CVE-2026-101918, CVE-2026-103001 fixed
     "pydantic[email]>=2.0.0",
     "defusedxml>=0.7.1",  # Safe XML parsing (prevents entity expansion / billion laughs CVEs)
     # SECURITY: upgraded to 0.135.0+ to fix CVE-2026-54283, CVE-2026-48818,

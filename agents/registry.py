@@ -409,6 +409,11 @@ class ShortCircuitAgent(BaseAgent):
                     "standard": "IEC 60909-0:2016",
                     "base_mva": base_mva,
                     "base_kv": base_kv,
+                    "fault_current_ka": float(
+                        fault_results.get(fault_buses[0], {})
+                        .get("three_phase", {})
+                        .get("fault_current_ka", 0.0)
+                    ) if fault_buses and fault_buses[0] in fault_results else 0.0,
                 },
             )
 
@@ -440,12 +445,19 @@ class ShortCircuitAgent(BaseAgent):
         # Check that all fault currents are positive
         for bus_id, faults in fault_results.items():
             for fault_type, fault_data in faults.items():
-                if "fault_current" in fault_data:
+                if fault_type == "double_line_to_ground":
+                    current = max(
+                        float(fault_data.get("fault_current_b_magnitude", 0)),
+                        float(fault_data.get("fault_current_c_magnitude", 0)),
+                    )
+                elif "fault_current" in fault_data:
                     current = abs(fault_data["fault_current"])
-                    if current <= 0:
-                        result.validation_errors.append(
-                            f"Bus {bus_id} {fault_type}: Invalid fault current {current}",
-                        )
+                else:
+                    continue
+                if current <= 0:
+                    result.validation_errors.append(
+                        f"Bus {bus_id} {fault_type}: Invalid fault current {current}",
+                    )
 
         return len(result.validation_errors) == 0
 

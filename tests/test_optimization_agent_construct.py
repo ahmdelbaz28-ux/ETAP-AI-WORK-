@@ -50,6 +50,7 @@ async def test_optimization_agent_successful_execution(monkeypatch):
     """
     agent = OptimizationAgent()
     mock_payload = {
+        "converged": True,
         "optimal_allocations_mvar": [5.0, 10.0],
         "initial_losses_mw": 1.25,
         "optimized_losses_mw": 0.85,
@@ -135,6 +136,7 @@ async def test_study_executor_dispatches_optimization_locally(monkeypatch):
 
     executor = StudyExecutor()
     mock_payload = {
+        "converged": True,
         "optimal_allocations_mvar": [5.0, 10.0],
         "initial_losses_mw": 1.25,
         "optimized_losses_mw": 0.85,

@@ -93,16 +93,12 @@ ALL_AGENT_CLASSES = [
 
 # Mapping from StudyType to the agent that handles it.
 #
-# NOTE (audit item 2.10 — UI Coverage Audit 2026-07-29):
-#   This map is a static registry. It is NOT used by the runtime study
-#   dispatch path (api/studies.py dispatches via its own _run_native_study
-#   + agent special-cases, and the orchestrator uses its own internal
-#   dispatch). The map is consumed only by scripts/maintenance/verify_agents.py
-#   (which does a substring check that the symbol exists — it does NOT
-#   validate the values). Fixing the entries below therefore has no runtime
-#   effect — it only corrects the registry so that tooling and future
-#   dispatch code that consults this map see the right agent for each
-#   study type.
+# NOTE (Architectural Alignment M6.2 / R-10):
+#   This map serves as the authoritative Python agent association registry.
+#   It is imported by engine/dispatch.py to construct the live STUDY_DISPATCH
+#   table and is dynamically reflected and validated by verify_agents.py
+#   and the Meta-CI gate to guarantee dual-port reachability and prevent
+#   silent routing drift.
 #
 #   Fixed in this commit:
 #     - MOTOR_STARTING: was LoadFlowAgent (wrong) -> MotorStartingAgent

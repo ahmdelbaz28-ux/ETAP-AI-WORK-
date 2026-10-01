@@ -384,3 +384,37 @@ def test_cua_control_mode_missing_bounds_aborts_fail_closed():
     assert "bounds" in (result.aborted_reason or "").lower()
     assert "BOUNDS VIOLATION" in (result.steps[0].error or "")
     assert len(executor.executed_actions) == 0
+
+
+def test_default_production_rollback_handler_allowlist_precedence_and_word_boundaries():
+    """Verify that safe UI actions (like modal_close) take precedence over substring checks,
+    and word-boundary checks prevent false positives on harmless words like 'opened_panel'."""
+    from agents.life_safety import LifeSafetyGuard, default_production_rollback_handler
+
+    # 1. Allow-listed action (modal_close) has 'close' substring but MUST return True
+    snap_modal = {"action": {"type": "modal_close", "target": "settings_dialog"}}
+    assert default_production_rollback_handler(snap_modal) is True
+
+    snap_cancel = {"action": {"type": "ui_dialog_cancel", "target": "confirm_dialog"}}
+    assert default_production_rollback_handler(snap_cancel) is True
+
+    # 2. Target containing 'open' as substring (e.g. 'opened_panel') does not match \\bopen\\b
+    # and fail-closes safely without false-positive trigger
+    snap_opened = {"action": {"type": "navigate", "target": "opened_panel"}}
+    assert default_production_rollback_handler(snap_opened) is False
+
+    # 3. Safety-critical breaker / switch operations MUST strictly return False
+    snap_breaker_open = {"action": {"type": "breaker_open", "target": "breaker_52a"}}
+    assert default_production_rollback_handler(snap_breaker_open) is False
+
+    snap_switch_close = {"action": {"type": "switch", "target": "main_incomer"}}
+    assert default_production_rollback_handler(snap_switch_close) is False
+
+    snap_bus = {"action": {"type": "reconfigure", "target": "bus_101"}}
+    assert default_production_rollback_handler(snap_bus) is False
+
+    # 4. LifeSafetyGuard default state must be manual-only (_auto_rollback_enabled == False)
+    guard = LifeSafetyGuard()
+    assert guard._auto_rollback_enabled is False
+    assert guard._auto_rollback_handler is None
+

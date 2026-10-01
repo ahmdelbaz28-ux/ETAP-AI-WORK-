@@ -1,0 +1,32 @@
+{
+  "branch": "main",
+  "repository": "ahmdelbaz28-ux/ETAP-AI-WORK-",
+  "restored_at": "2026-10-01T05:50:50Z",
+  "restored_by": "Ahmed Elbaz PE (ahmdelbaz28-ux)",
+  "governance_policy": "docs/BRANCH_PROTECTION_GUIDE.md",
+  "protection_configuration": {
+    "required_status_checks": {
+      "strict": true,
+      "contexts": [
+        "CI Success",
+        "Lint",
+        "Build",
+        "gitleaks"
+      ]
+    },
+    "enforce_admins": true,
+    "required_pull_request_reviews": {
+      "dismiss_stale_reviews": true,
+      "require_code_owner_reviews": false,
+      "required_approving_review_count": 1
+    },
+    "restrictions": null,
+    "required_linear_history": false,
+    "allow_force_pushes": false,
+    "allow_deletions": false,
+    "block_creations": false,
+    "required_conversation_resolution": false,
+    "lock_branch": false,
+    "allow_fork_syncing": true
+  }
+}
