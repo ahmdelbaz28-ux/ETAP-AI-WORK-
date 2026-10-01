@@ -56,7 +56,7 @@ This document represents the **authoritative architectural closure** of the Ahme
 | **15** | CUA Interactive Approvals & Rollback | Interactive WebSocket approval broker (300s TTL); automated rollback on post-action verification failure. | `tests/test_m6_integration_acceptance.py::TestM6CUAGovernanceAndApprovals` |
 | **16** | Engineering Assertions Layer | Unified physics validation (IEEE C84.1, IEC 60909, IEC 60255, IEEE 1584, IEC 60364); REJECTED cascade. | `tests/test_m6_integration_acceptance.py::TestM6FailClosedRejectedPropagation` |
 | **17** | Tamper-Evident SHA-256 Audit Trail | Cryptographic HMAC-SHA256 chained audit entries in `safety_chain.jsonl` recording actions and rollbacks. | `agents/life_safety.py`, `tests/test_m5_cua_approvals.py` |
-| **18** | Comprehensive Integration Battery | Full battery covering all dual-port reachability, chains, PSO rejections, and CUA approvals. | `tests/test_m6_integration_acceptance.py` (34 tests passed) |
+| **18** | Comprehensive Integration Battery | Full battery covering all dual-port reachability, chains, PSO rejections, and CUA approvals. | `tests/test_m6_integration_acceptance.py` (35 tests passed) |
 | **19** | Dynamic Reachability Reflection Verifier | Fail-fast reflection script at startup and Meta-CI checking all 27 canonical keys and 20 dispatch targets. | `scripts/maintenance/verify_agents.py`, `scripts/check_workflows_meta.py` |
 
 ---
@@ -65,7 +65,7 @@ This document represents the **authoritative architectural closure** of the Ahme
 
 ### 4.1 Integration Acceptance Battery (`tests/test_m6_integration_acceptance.py`)
 
-Execution executed locally against Python 3.8.4 runtime:
+Execution executed locally against Python 3.12.10 runtime (pyproject mandated >= 3.12):
 ```text
 tests/test_m6_integration_acceptance.py::TestM6ReachabilityAndRegistry::test_study_dispatch_has_exactly_20_entries PASSED [  2%]
 tests/test_m6_integration_acceptance.py::TestM6ReachabilityAndRegistry::test_canonical_agent_registry_coverage PASSED [  5%]
@@ -98,11 +98,12 @@ tests/test_m6_integration_acceptance.py::TestM6FailClosedRejectedPropagation::te
 tests/test_m6_integration_acceptance.py::TestM6ContextFabricTenantIsolation::test_context_fabric_query_without_tenant_raises_isolation_error PASSED [ 85%]
 tests/test_m6_integration_acceptance.py::TestM6ContextFabricTenantIsolation::test_context_evidence_mandatory_fields_and_hash PASSED [ 88%]
 tests/test_m6_integration_acceptance.py::TestM6ContextFabricTenantIsolation::test_context_fabric_cross_tenant_isolation PASSED [ 91%]
-tests/test_m6_integration_acceptance.py::TestM6CUAGovernanceAndApprovals::test_cua_control_mode_requires_affirmative_approval PASSED [ 94%]
-tests/test_m6_integration_acceptance.py::TestM6CUAGovernanceAndApprovals::test_cua_post_action_verification_failure_triggers_auto_rollback PASSED [ 97%]
-tests/test_m6_integration_acceptance.py::TestM6CUAGovernanceAndApprovals::test_cua_coordinate_bounds_violation_aborts_before_action PASSED [100%]
+tests/test_m6_integration_acceptance.py::TestM6CUAGovernanceAndApprovals::test_cua_control_mode_requires_affirmative_approval PASSED [ 91%]
+tests/test_m6_integration_acceptance.py::TestM6CUAGovernanceAndApprovals::test_cua_post_action_verification_failure_triggers_auto_rollback PASSED [ 94%]
+tests/test_m6_integration_acceptance.py::TestM6CUAGovernanceAndApprovals::test_cua_coordinate_bounds_violation_aborts_before_action PASSED [ 97%]
+tests/test_m6_integration_acceptance.py::TestM6FullLifecycleIntentToProvenance::test_complete_lifecycle_intent_plan_dag_execution_assertions_evidence_provenance PASSED [100%]
 
-======================== 34 passed in 81.50s (0:01:21) ========================
+============================= 35 passed in 58.81s =============================
 ```
 
 ### 4.2 Dynamic Reachability Verifier (`scripts/maintenance/verify_agents.py`)
@@ -152,5 +153,6 @@ Found 50 workflow files.
 
 ## 6. Sign-off & Certification
 
-With the successful execution of the M6 integration test suite, dynamic reachability reflection verifier, and Meta-CI gatekeeper, **Milestones M0 through M6 are officially closed and merged into `main` via PR #639 (commit `04deae3ed5ebd0db80c039e6ed37488026d0a876`)**. The platform architecture satisfies all 19 reference items and is certified in production on `main`.
+With the successful execution of the M6 integration test suite against Python 3.12.10, dynamic reachability reflection verifier, and Meta-CI gatekeeper, **Milestones M0 through M6 and all Round 11 governance & code remediations are verified and locked into `main`**. The platform architecture satisfies all 19 reference items, eliminates mock stubs on physical simulations, enforces strict branch protection, and is certified for production.
+
 

@@ -706,10 +706,19 @@ class EngineeringAssertionLayer:
                 curr_ka = {}
                 for k, v in fault_currents.items():
                     if isinstance(v, dict):
-                        val = v.get(
-                            "ik_ss_ka",
-                            v.get("ik_ka", v.get("current_ka", v.get("magnitude", v.get("mag", 0.0)))),
-                        )
+                        if "three_phase" in v or "line_to_ground" in v or "line_to_line" in v:
+                            tp = v.get("three_phase") or {}
+                            val = tp.get("fault_current_ka", tp.get("fault_current_magnitude", 0.0))
+                            if not val:
+                                for f_item in v.values():
+                                    if isinstance(f_item, dict):
+                                        cand = f_item.get("fault_current_ka", f_item.get("fault_current_b_ka", 0.0))
+                                        val = max(float(val or 0.0), float(cand or 0.0))
+                        else:
+                            val = v.get(
+                                "ik_ss_ka",
+                                v.get("ik_ka", v.get("current_ka", v.get("magnitude", v.get("mag", 0.0)))),
+                            )
                         try:
                             curr_ka[str(k)] = float(val)
                         except (TypeError, ValueError):

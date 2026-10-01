@@ -249,8 +249,6 @@ def main() -> int:
                 "M6.2 Agent Reachability Reflection: invariant violation detected — "
                 "run 'python scripts/maintenance/verify_agents.py' for details"
             )
-    except ModuleNotFoundError as mnf:
-        sys.stdout.write(f"  [INFO] Skipping live dynamic reachability in minimal container: {mnf}\n")
     except Exception as exc:
         violations.append(f"M6.2 Agent Reachability Reflection: verifier failed to run: {exc}")
 

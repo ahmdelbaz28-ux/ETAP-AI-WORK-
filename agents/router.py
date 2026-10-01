@@ -1,9 +1,17 @@
 """
 AhmedETAP - Power System Goal Router
 ====================================
-Typed goal router and dependency-aware study planner for multi-agent workflows.
-Replaces unstructured keyword matching with typed intent resolution while
-preserving 100% regression compatibility with existing goal phrases and fallback defaults.
+Typed goal router and dependency-aware study planner for multi-agent workflows (M3.1 / R-5).
+
+Architecture & Governance:
+- Canonical Production Router: Deterministic keyword rule router with priority-ordered
+  resolution and strict confidence scoring (is_confident threshold >= 0.50).
+- Learning/Adaptive Router (Canary): BanditRouter (LinUCB contextual bandit) operates
+  as an opt-in canary path behind the strict feature flag ``use_bandit_router`` (rollout=0,
+  default=False).
+- Fail-Closed Security: Enforces ``is_confident()`` in live execution via
+  ``raise_on_unreachable=True`` to reject low-confidence, ungrounded intents with
+  ``RoutingResolutionError``.
 """
 
 from __future__ import annotations

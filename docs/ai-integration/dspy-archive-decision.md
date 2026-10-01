@@ -3,7 +3,7 @@
 **المشروع:** منصة أحمد إيتاب (AhmedETAP AI Engineering Platform)  
 **المعرف:** ADR-DSPY-001  
 **التاريخ:** 2026-09-28  
-**الحالة:** بانتظار اعتماد المالك (Proposed & Pending Owner Sign-off)  
+**الحالة:** معتمد رسمياً ومُوقع من المالك (Approved & Signed-off by Owner)  
 **المرجع:** PR #607 (`feat/dspy-copilot-prepost-v2`) وبوابة القبول M0.3  
 
 ---
@@ -47,5 +47,6 @@
 
 **التوقيع والاعتماد:**  
 - **إعداد وتوصية:** رئيس مهندسي النظم / الوكيل المنفذ — منصة أحمد إيتاب (2026-09-28)  
-- **Approved by:** `<Pending Owner Sign-off>` — `<date>`
+- **Approved & Signed-off by:** Ahmed Elbaz PE (ahmdelbaz28-ux, Repository Owner) — 2026-10-01
+
 

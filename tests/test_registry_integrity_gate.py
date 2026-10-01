@@ -67,39 +67,16 @@ def test_clean_repo_has_no_rogue_bindings():
 # 2. Rogue binding IS detected when planted
 # ---------------------------------------------------------------------------
 
-def test_rogue_binding_detected(rogue_py_file, monkeypatch):
-    """The guardian detects a planted rogue study_type binding."""
+def test_rogue_binding_detected(rogue_py_file):
+    """The guardian detects a planted rogue study_type binding using real scanner."""
     canonical = _load_canonical_study_types()
 
-    # Temporarily monkey-patch the scan dirs to include our rogue temp dir
-    import scripts.check_registry_integrity as guard_module
+    # Invoke the real scanner with scan_dirs set to the directory containing rogue_py_file
+    violations = _scan_rogue_bindings(canonical, scan_dirs=[rogue_py_file.parent])
 
-    original_repo_root = guard_module.REPO_ROOT
-
-    # We directly call _scan_rogue_bindings with a custom scan that includes
-    # the temp file; since we cannot patch REPO_ROOT easily, we simulate
-    # the rogue content inline.
-    rogue_text = rogue_py_file.read_text(encoding="utf-8")
-    import re
-    rogue_pattern = re.compile(
-        r'(?:dispatch\[|"study_type":\s*|study_type\s*=\s*)["\']([a-z_]+)["\']'
-    )
-    rogue_matches = [m.group(1) for m in rogue_pattern.finditer(rogue_text)]
-    assert "totally_nonexistent_study" in rogue_matches, (
-        "Pattern did not match the planted rogue binding"
-    )
-
-    # Verify the rogue study type is not in canonical set
-    assert "totally_nonexistent_study" not in canonical, (
-        "'totally_nonexistent_study' should NOT be in canonical registry"
-    )
-
-    # Confirm it would be flagged as a violation
-    violations_for_rogue = [
-        s for s in rogue_matches if s not in canonical and len(s) >= 5
-    ]
-    assert len(violations_for_rogue) >= 1, (
-        "Rogue binding should have been flagged as a violation"
+    # Verify that the rogue study type was actively detected and flagged
+    assert any("totally_nonexistent_study" in v for v in violations), (
+        f"Expected real scanner to flag 'totally_nonexistent_study', got violations: {violations}"
     )
 
 

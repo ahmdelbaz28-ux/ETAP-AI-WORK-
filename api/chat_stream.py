@@ -557,8 +557,21 @@ async def _chat_event_stream(
 
             full_text = "".join(collected_tokens).strip()
             try:
-                EngineerAnswer.model_validate_json(full_text)
+                ans_obj = EngineerAnswer.model_validate_json(full_text)
                 done_payload["structured"] = True
+
+                # V-04 (ADR-0003): Validate AI-generated parameters with deterministic assertion layer
+                try:
+                    from copilot.ai.engineering_assertions import validate_fallback_output
+
+                    st = getattr(ans_obj, "study_type", None) or "load_flow"
+                    p_data = getattr(ans_obj, "parameters", {}) or {}
+                    if isinstance(p_data, dict) and p_data:
+                        is_safe, summary = validate_fallback_output(str(st), p_data, strict_mode=False)
+                        done_payload["assertion_passed"] = is_safe
+                        done_payload["assertion_summary"] = summary
+                except Exception as val_exc:
+                    logger.debug("validate_fallback_output skipped in chat stream: %s", val_exc)
             except Exception as schema_err:
                 done_payload["structured"] = False
                 done_payload["structured_errors"] = [
@@ -658,8 +671,27 @@ async def chat_stream_endpoint(
     enforce_chat_rate_limit(user.user_id)
     user_api_key = request.headers.get("x-user-llm-key", "").strip() or None
     user_provider = request.headers.get("x-user-llm-provider", "").strip().lower() or None
+
+    # M4.5 / R-5: Single-point model cascade resolution when model is not explicitly pinned
+    target_model = payload.model
+    if not target_model and payload.messages:
+        try:
+            from integrations.model_router import resolve_model
+
+            prompt_content = " ".join(m.content for m in payload.messages if getattr(m, "content", None))
+            selection = resolve_model(prompt_content)
+            if selection is not None:
+                target_model = selection.model
+                logger.info(
+                    "chat stream resolved model via policy cascade: %s (tier: %s)",
+                    selection.model,
+                    selection.tier,
+                )
+        except Exception as exc:
+            logger.debug("resolve_model skipped in chat stream: %s", exc)
+
     cfg = resolve_provider_config(
-        payload.provider, payload.model, user_api_key=user_api_key, user_provider=user_provider
+        payload.provider, target_model, user_api_key=user_api_key, user_provider=user_provider
     )
     safe_sid = re.sub(_SAFE_SESSION_ID_PATTERN, "", str(payload.session_id or ""))[:32]
     safe_uid = re.sub(_SAFE_SESSION_ID_PATTERN, "", str(user.user_id or ""))[:32]

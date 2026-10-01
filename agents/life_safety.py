@@ -66,6 +66,7 @@ import hmac
 import json
 import logging
 import os
+import re
 import tempfile
 import time
 from collections.abc import Callable
@@ -470,6 +471,42 @@ class TamperEvidentAuditLog:
             return count + 1
         except OSError:
             return 1
+
+
+def default_production_rollback_handler(snapshot: dict[str, Any], reason: str = "") -> bool:
+    """Authoritative production rollback handler with fail-closed safety policy.
+
+    Engineering Governance & Life Safety (R-8 / N-R11-5):
+    - Physical and protection control actions (such as breaker operations, bus re-configurations,
+      relay trip settings, switching commands) strictly return False, forcing 'manual_only'
+      with full pre-action audit trail and screenshot guidance. Blind automated re-closing of
+      switchgear or breakers violates industrial electrical safety standards (NFPA 70E / IEEE 1584).
+    - Non-hazardous UI dialogs or reversible navigation actions can be safely marked automated.
+    """
+    action = (snapshot or {}).get("action", {}) or {}
+    action_type = str(action.get("type", "")).lower()
+    target = str(action.get("target", "")).lower()
+
+    # 1. Exact-match allow-list FIRST: Non-hazardous UI dialogs or reversible UI actions
+    safe_ui_actions = frozenset({"ui_dialog_cancel", "modal_close", "nav_back", "safe_ui_undo"})
+    if action_type in safe_ui_actions:
+        return True
+
+    # 2. Safety-critical actions: NEVER automatically revert physically.
+    # Use word boundaries (\b) so substrings like 'open' in 'opened_panel' do not falsely trigger.
+    safety_critical_pattern = re.compile(
+        r"\b(breaker|switch|relay|trip|close|open|voltage|current|impedance|bus|energize|transformer)\b",
+        re.IGNORECASE,
+    )
+    if safety_critical_pattern.search(action_type) or safety_critical_pattern.search(target):
+        logger.info(
+            "Rollback fail-closed: action '%s' targeting '%s' requires manual operator verification.",
+            action_type,
+            target,
+        )
+        return False
+
+    return False
 
 
 # ─── 5. Life Safety Guard — the main safety layer ──────────────────────────

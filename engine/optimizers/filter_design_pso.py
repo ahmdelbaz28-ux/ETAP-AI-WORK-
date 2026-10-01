@@ -37,6 +37,8 @@ class FilterDesignResult:
     individual_harmonics_after_pct: Dict[int, float]
     estimated_filter_cost_usd: float
     converged: bool
+    p_loss_kw: float = 0.0
+    power_balance_passed: bool = True
 
 
 class HarmonicFilterOptimizer:
@@ -194,6 +196,27 @@ class HarmonicFilterOptimizer:
         compliant = bool((thd_after <= 5.0) and all(v <= 3.0 for v in v_h_after.values()))
         cost_usd = total_q_kvar * 35.0 + best_l * 1000.0 * 20.0  # Estimated component price
 
+        # Power balance calculations (fundamental reactive power and active losses across spectrum)
+        x_c1 = 1.0 / (self.omega0 * best_c + 1e-12)
+        x_l1 = self.omega0 * best_l
+        z_filt1_mag_sq = best_r ** 2 + (x_l1 - x_c1) ** 2
+        i_f1 = self.v_phase_v / math.sqrt(max(1e-12, z_filt1_mag_sq))
+        p_loss_fund_kw = (3.0 * (i_f1 ** 2) * best_r) / 1000.0
+
+        p_loss_harm_kw = 0.0
+        for h, i_h in self.harmonics.items():
+            omega_h = 2.0 * math.pi * self.f0 * h
+            x_ch = 1.0 / (omega_h * best_c + 1e-12)
+            x_lh = omega_h * best_l
+            z_f_h = complex(best_r, x_lh - x_ch)
+            z_sys_h = self._calc_system_impedance(h)
+            i_filt_h = abs(i_h * (z_sys_h / (z_sys_h + z_f_h)))
+            p_loss_harm_kw += (3.0 * (i_filt_h ** 2) * best_r) / 1000.0
+
+        total_p_loss_kw = p_loss_fund_kw + p_loss_harm_kw
+        # Power balance criteria: active loss within thermal threshold (<15% of reactive kVAR capacity)
+        power_balance_ok = bool(total_p_loss_kw >= 0.0 and total_p_loss_kw <= (0.15 * total_q_kvar) and total_q_kvar > 0.0)
+
         return FilterDesignResult(
             harmonic_order=target_harmonic,
             resistance_ohms=round(best_r, 4),
@@ -208,4 +231,6 @@ class HarmonicFilterOptimizer:
             individual_harmonics_after_pct={h: round(v, 2) for h, v in v_h_after.items()},
             estimated_filter_cost_usd=round(cost_usd, 2),
             converged=bool(res.converged),
+            p_loss_kw=round(total_p_loss_kw, 2),
+            power_balance_passed=power_balance_ok,
         )

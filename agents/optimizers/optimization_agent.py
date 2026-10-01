@@ -57,6 +57,8 @@ class OptimizationAgent(BaseAgent):
             violations: list[str] = []
             if study_type in ("capacitor_placement", "placement"):
                 res = self._run_placement(task.parameters, seed=seed)
+                if not res.get("converged", False):
+                    violations.append("Capacitor placement optimization failed to converge")
                 if res.get("min_voltage_after", 1.0) < 0.90:
                     violations.append(
                         f"Voltage constraint violated: min voltage {res.get('min_voltage_after'):.3f} < 0.90 pu"
@@ -67,6 +69,8 @@ class OptimizationAgent(BaseAgent):
                     violations.append(
                         f"IEEE 519 compliance failed: THD after filter is {res.get('thd_v_after_pct', 0.0):.2f}% (exceeds 5.0% limit)"
                     )
+                if not res.get("power_balance_passed", True):
+                    violations.append("Harmonic filter power balance failed: active losses exceed allowable limits")
             elif study_type in ("protection_coordination", "pso_coordination"):
                 res = self._run_coordination(task.parameters, seed=seed)
                 if not res.get("coordinated", False) and not res.get("success", False):
@@ -133,6 +137,7 @@ class OptimizationAgent(BaseAgent):
         )
         res = opt.optimize_capacitor_placement()
         return {
+            "converged": bool(res.converged),
             "optimal_allocations_mvar": res.optimal_allocations,
             "initial_losses_mw": res.initial_losses_mw,
             "optimized_losses_mw": res.optimized_losses_mw,
@@ -167,6 +172,9 @@ class OptimizationAgent(BaseAgent):
             "thd_v_after_pct": res.thd_v_after_pct,
             "ieee_519_compliant": res.ieee_519_compliant,
             "filter_cost_usd": res.estimated_filter_cost_usd,
+            "q_reactive_kvar": res.q_reactive_kvar,
+            "p_loss_kw": res.p_loss_kw,
+            "power_balance_passed": res.power_balance_passed,
         }
 
     def _run_coordination(self, params: Dict[str, Any], seed: int = 42) -> Dict[str, Any]:

@@ -23,6 +23,8 @@ from typing import Any
 
 logger = logging.getLogger("agents.verify")
 
+EXECUTION_MODE: str = "dynamic"
+
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
@@ -246,6 +248,8 @@ def verify_agent_registry(fail_loudly: bool = False) -> bool:
         study_map = get_study_type_mapping()
         agents = create_agent_registry()
     except (ImportError, ModuleNotFoundError) as imp_err:
+        global EXECUTION_MODE
+        EXECUTION_MODE = "static"
         if fail_loudly:
             raise RuntimeError(
                 f"Missing required runtime dependencies for dynamic reflection: {imp_err}"
@@ -415,10 +419,16 @@ def main() -> int:
     try:
         success = verify_agent_registry(fail_loudly=False)
         if success:
-            sys.stdout.write(
-                "\n[SUCCESS] All 27 canonical agents (+3 aliases) and all 20 STUDY_DISPATCH "
-                "entries dynamically reflected and verified across dual execution ports.\n"
-            )  # nosemgrep: etap.logging.secret-in-log
+            if EXECUTION_MODE == "dynamic":
+                sys.stdout.write(
+                    "\n[SUCCESS - DYNAMIC REFLECTION] All 27 canonical agents (+3 aliases) and all 20 STUDY_DISPATCH "
+                    "entries dynamically reflected and verified across dual execution ports.\n"
+                )  # nosemgrep: etap.logging.secret-in-log
+            else:
+                sys.stdout.write(
+                    "\n[SUCCESS - STATIC AST FALLBACK] All 27 canonical agents (+3 aliases) and all 20 STUDY_DISPATCH "
+                    "entries verified via static AST inspection in minimal environment.\n"
+                )  # nosemgrep: etap.logging.secret-in-log
             return 0
         else:
             sys.stdout.write("\n[BLOCKED] Agent registry and reachability verification failed.\n")  # nosemgrep: etap.logging.secret-in-log

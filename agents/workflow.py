@@ -580,10 +580,20 @@ class WorkflowEngine:
                     # Immediately apply engineering assertions to this node's result (M5.2)
                     if res.data and res.status == AgentStatus.COMPLETED:
                         try:
-                            from copilot.ai.engineering_assertions import EngineeringAssertionLayer
+                            from copilot.ai.engineering_assertions import EngineeringAssertionLayer, validate_fallback_output
 
                             layer = EngineeringAssertionLayer(strict_mode=False)
                             self._apply_assertion_to_result(res, layer)
+
+                            # V-04 (ADR-0003): Validate fallback node outputs against physical constraints
+                            if res.data.get("is_fallback") or res.data.get("fallback_model"):
+                                fb_ok, fb_summary = validate_fallback_output(
+                                    str(res.study_type), res.data, strict_mode=False
+                                )
+                                res.data["fallback_validation"] = fb_summary
+                                if not fb_ok:
+                                    res.status = AgentStatus.REJECTED
+                                    res.validation_status = False
                         except Exception as exc:
                             self.logger.warning("Assertion check failed for node %s: %s", nid, exc)
 
