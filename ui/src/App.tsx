@@ -210,9 +210,9 @@ export default function App() {
                 }
               >
                 <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                {/* P0 chat-unify: redirect legacy /assistant and /chat to sandbox playground */}
-                <Route path="/assistant" element={<Navigate to="/admin/ai-playground" replace />} />
-                <Route path="/chat" element={<Navigate to="/admin/ai-playground" replace />} />
+                {/* P0 chat-unify: legacy /assistant + /chat -> isolated chat sandbox (/admin/chat-sandbox). ML playground stays at /admin/ai-playground */}
+                <Route path="/assistant" element={<Navigate to="/admin/chat-sandbox" replace />} />
+                <Route path="/chat" element={<Navigate to="/admin/chat-sandbox" replace />} />
                 <Route path="/results" element={<Navigate to="/advanced/studies" replace />} />
                 <Route path="/studies/results" element={<Navigate to="/advanced/studies" replace />} />
                 {/* P8 admin: RBAC surface stays put */}

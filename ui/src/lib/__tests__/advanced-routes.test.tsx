@@ -206,9 +206,9 @@ describe("P8 advanced routes — source-of-truth contract with App.tsx and Comma
       expect(advanced, `navTarget("${target}") must resolve to a valid /advanced target`).not.toBeNull();
     }
     // Chat-first core and RBAC surfaces keep their exact legacy paths.
-    expect(paletteSource).toContain('navigate("/admin/ai-playground")');
+    expect(paletteSource).toContain('navigate("/admin/chat-sandbox")');
     expect(paletteSource).toContain('navigate("/admin")');
-    expect(advancedTargetOf("/admin/ai-playground")).toBeNull();
+    expect(advancedTargetOf("/admin/chat-sandbox")).toBeNull();
     expect(advancedTargetOf("/admin")).toBeNull();
   });
 

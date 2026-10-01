@@ -114,7 +114,7 @@ describe("AIAssistant", () => {
     // The empty-state hero text. We wait for the agents fetch to settle so
     // any re-render triggered by it does not race with the assertion.
     await waitFor(() => expect(mockFetchAgents).toHaveBeenCalledOnce());
-    expect(screen.getByText("How can I help you today?")).toBeTruthy();
+    expect(screen.getByText("AI Playground (Sandbox) — How can I help you today?")).toBeTruthy();
   });
 
   it("loads agents on mount (calls fetchAgents once)", async () => {
@@ -197,7 +197,7 @@ describe("AIAssistant", () => {
 
     // After reset, the empty-state hero should be visible again.
     await waitFor(() => {
-      expect(screen.getByText("How can I help you today?")).toBeTruthy();
+      expect(screen.getByText("AI Playground (Sandbox) — How can I help you today?")).toBeTruthy();
     });
   });
 

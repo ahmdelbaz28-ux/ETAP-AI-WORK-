@@ -510,7 +510,7 @@ export default function AIAssistant() {
                 </span>
               </div>
               <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-gray-900 dark:text-white mb-3">
-                How can I help you today?
+                AI Playground (Sandbox) — How can I help you today?
               </h1>
               <p className="text-gray-500 dark:text-gray-400 max-w-md mx-auto text-sm">
                 I can write code, analyze power systems, solve short circuits, and help with ETAP
