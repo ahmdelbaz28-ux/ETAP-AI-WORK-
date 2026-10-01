@@ -210,9 +210,9 @@ export default function App() {
                 }
               >
                 <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                {/* P8 core: chat-first assistant stays put */}
-                <Route path="/assistant" element={<AIAssistantPage />} />
-                <Route path="/chat" element={<Navigate to="/assistant" replace />} />
+                {/* P0 chat-unify: redirect legacy /assistant and /chat to sandbox playground */}
+                <Route path="/assistant" element={<Navigate to="/admin/ai-playground" replace />} />
+                <Route path="/chat" element={<Navigate to="/admin/ai-playground" replace />} />
                 <Route path="/results" element={<Navigate to="/advanced/studies" replace />} />
                 <Route path="/studies/results" element={<Navigate to="/advanced/studies" replace />} />
                 {/* P8 admin: RBAC surface stays put */}
@@ -227,6 +227,7 @@ export default function App() {
                 <Route path="/admin/mfa" element={<MfaPage />} />
                 <Route path="/admin/agents" element={<AgentsControlPanelPage />} />
                 <Route path="/admin/ai-playground" element={<AIPlaygroundPage />} />
+                <Route path="/admin/chat-sandbox" element={<AIAssistantPage />} />
                 <Route path="/admin/email/webhooks" element={<EmailWebhooksPage />} />
                 <Route path="/admin/component-review" element={<ComponentReviewPage />} />
                 {/* P8 advanced: non-core pages under /advanced */}

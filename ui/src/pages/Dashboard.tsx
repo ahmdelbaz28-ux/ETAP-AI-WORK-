@@ -443,7 +443,7 @@ export default function Dashboard() {
           color="blue"
           trend="+2"
           sparklineData={sparklineDatasets[1]}
-          onClick={() => navigate("/assistant")}
+          onClick={() => navigate("/admin/agents")}
         />
         <StatCard
           icon={FlaskConical}
@@ -638,7 +638,7 @@ export default function Dashboard() {
               icon={<Bot className="w-4 h-4" />}
               action={
                 <button
-                  onClick={() => navigate("/assistant")}
+                  onClick={() => navigate("/admin/agents")}
                   className="text-xs text-brand-400 hover:text-brand-300 transition-colors flex items-center gap-1"
                   type="button"
                 >
@@ -651,7 +651,7 @@ export default function Dashboard() {
                 agents.map((agent) => (
                   <button
                     key={agent.id}
-                    onClick={() => navigate("/assistant")}
+                    onClick={() => navigate("/admin/agents")}
                     className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-[var(--bg-elevated)] transition-colors text-left group"
                     type="button"
                   >

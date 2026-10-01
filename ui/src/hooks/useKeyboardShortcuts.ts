@@ -22,7 +22,7 @@ const G_SEQUENCE_ROUTES: Record<string, string> = {
   d: "/dashboard",
   p: "/projects",
   s: "/studies",
-  a: "/assistant",
+  a: "/admin/ai-playground",
   r: "/reports",
   e: "/settings",
   t: "/digital-twin",

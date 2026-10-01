@@ -976,7 +976,7 @@ The AI Assistant page lets you chat with specialized AI agents (ETAP Expert, ETA
 - للمشاكل المعقدة، قسّمها لأسئلة أصغر متعددة`,
     },
     tags: ["ai", "assistant", "chat", "agent", "ذكاء", "اصطناعي", "مساعد"],
-    navigateTo: "/assistant",
+    navigateTo: "/admin/ai-playground",
     relatedTopics: ["dashboard.overview", "code-guard.overview"],
   },
 

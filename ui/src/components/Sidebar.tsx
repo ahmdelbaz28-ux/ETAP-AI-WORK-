@@ -55,7 +55,6 @@ interface NavItem {
 const navItems: NavItem[] = [
   { to: "/dashboard", icon: LayoutDashboard, labelKey: "sidebar.dashboard" },
   { to: "/studies", icon: FlaskConical, labelKey: "sidebar.studies" },
-  { to: "/assistant", icon: Bot, labelKey: "sidebar.assistant" },
   {
     to: "/projects",
     icon: FolderKanban,

@@ -1,5 +1,4 @@
 import {
-  Bot,
   Bug,
   ChevronLeft,
   ChevronRight,
@@ -42,7 +41,6 @@ const navItems: NavItem[] = [
   { to: "/dashboard", icon: LayoutDashboard, labelKey: "sidebar.dashboard" },
   { to: "/projects", icon: FolderKanban, labelKey: "sidebar.projects", section: "engineering" },
   { to: "/studies", icon: FlaskConical, labelKey: "sidebar.studies" },
-  { to: "/assistant", icon: Bot, labelKey: "sidebar.assistant" },
   {
     to: "/asset-management",
     icon: Network,

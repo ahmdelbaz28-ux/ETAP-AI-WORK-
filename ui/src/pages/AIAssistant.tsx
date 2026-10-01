@@ -181,33 +181,12 @@ export default function AIAssistant() {
   // cleanup also cancels to avoid state updates on unmounted components.
   const abortControllerRef = useRef<AbortController | null>(null);
 
-  // Check if any provider API key is configured in localStorage settings
+  // P0.4: Check active provider through cached configuration helper (never direct localStorage read)
   useEffect(() => {
     const checkApiKey = () => {
       try {
-        const stored = localStorage.getItem("etap-settings");
-        if (!stored) {
-          setHasApiKey(false);
-          return;
-        }
-        const parsed = JSON.parse(stored);
-        const hasAnyKey = [
-          // Coding agent platforms (new)
-          "PROVIDER_OPENCODE_KEY",
-          "PROVIDER_KILOCODE_KEY",
-          "PROVIDER_CLAUDECODE_KEY",
-          // Major cloud providers
-          "PROVIDER_OPENAI_KEY",
-          "PROVIDER_ANTHROPIC_KEY",
-          "PROVIDER_GEMINI_KEY",
-          "PROVIDER_DEEPSEEK_KEY",
-          "PROVIDER_GROQ_KEY",
-          "PROVIDER_COHERE_KEY",
-          "PROVIDER_HUGGINGFACE_KEY",
-          // Custom
-          "CUSTOM_API_KEY",
-        ].some((k) => !!parsed[k]);
-        setHasApiKey(hasAnyKey);
+        const provider = getActiveProvider();
+        setHasApiKey(Boolean(provider && provider.apiKey));
       } catch (err) {
         console.warn(
           "Failed to check API key status:",
@@ -397,6 +376,19 @@ export default function AIAssistant() {
 
   return (
     <div className="flex flex-col h-[calc(100vh-64px)] bg-[#fdfdfc] dark:bg-[#1a1b1e] text-[#1f2937] dark:text-[#e5e7eb] font-sans -mx-4 -my-4 sm:-mx-8 sm:-my-6">
+      {/* P0.2 / P0.4: Playground Disclaimer Banner */}
+      <div className="bg-amber-500/10 border-b border-amber-500/20 px-4 sm:px-8 py-2 text-xs text-amber-800 dark:text-amber-300 flex items-center justify-between shrink-0">
+        <div className="flex items-center gap-2">
+          <AlertCircle className="w-4 h-4 text-amber-500 shrink-0" />
+          <span>
+            <strong>Playground — ليست مصدر حقيقة هندسية:</strong> BYOK من المتصفح — لا يستخدم Approval Gateway
+          </span>
+        </div>
+        <span className="text-[10px] text-amber-600 dark:text-amber-400 font-mono">
+          Non-authoritative Sandbox
+        </span>
+      </div>
+
       {/* Top Header / Provider Selector */}
       <header className="flex items-center justify-between px-4 sm:px-8 py-3 border-b border-gray-200 dark:border-gray-800/50 bg-white/50 dark:bg-black/20 backdrop-blur-md sticky top-0 z-10">
         <div className="flex items-center gap-3 flex-wrap">
@@ -511,6 +503,11 @@ export default function AIAssistant() {
 
               <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-[#d97706] to-[#f59e0b] flex items-center justify-center mb-6 shadow-xl shadow-amber-500/20">
                 <Sparkles className="w-8 h-8 text-white" />
+              </div>
+              <div className="flex items-center gap-2 mb-2">
+                <span className="px-2 py-0.5 text-xs font-semibold uppercase tracking-wider bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 rounded-full">
+                  AI Playground (Sandbox)
+                </span>
               </div>
               <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-gray-900 dark:text-white mb-3">
                 How can I help you today?
