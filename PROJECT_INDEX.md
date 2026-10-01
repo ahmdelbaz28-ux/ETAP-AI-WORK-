@@ -1,6 +1,6 @@
 # 📘 AhmedETAP — Complete Project Index v2.0.0
 
-> Auto-generated on **2026-10-01T13:28:35.656451+00:00** by indexer v2.0.0.
+> Auto-generated on **2026-10-01T13:36:45.706055+00:00** by indexer v2.0.0.
 > Re-run `python indexer.py` to refresh.
 
 ---
@@ -14,8 +14,8 @@
 | Python | Classes | 909 |
 | Python | Functions | 813 |
 | UI | Files (TSX/TS) | 241 |
-| Test | Files | 254 |
-| Total | Tests | 3755 |
+| Test | Files | 255 |
+| Total | Tests | 3759 |
 | Help | Topics | 0 |
 | Context | Mappings | 0 |
 | Environment | Variables | 441 |
@@ -32,13 +32,13 @@
 |:---|:---|:---|:---|
 | **Ahmed Etap Orchestrator.Py** | `ahmed_etap_orchestrator.py` | — | agents/ahmed_etap_orchestrator.py — AhmedETAP Agent Orchestr |
 | **Anomaly** | `anomaly_agent.py` | — | AhmedETAP - Anomaly Detection Agent ======================== |
-| **Arc Flash** | `arc_flash_agent.py` | IEEE 1584, IEEE 1584-2018 | AhmedETAP - Arc Flash Analysis Agent ======================= |
+| **Arc Flash** | `arc_flash_agent.py` | IEEE 1584-2018, IEEE 1584 | AhmedETAP - Arc Flash Analysis Agent ======================= |
 | **Base.Py** | `base.py` | — | Base agent class for the multi-agent engineering orchestrati |
 | **Battery Storage** | `battery_storage_agent.py` | IEC 62933 | AhmedETAP - Battery Storage Agent ========================== |
 | **Browser Cua Executor.Py** | `browser_cua_executor.py` | — | agents/browser_cua_executor.py — Browser-based CUA Loop (hea |
 | **Cable Sizing** | `cable_sizing_agent.py` | IEC 60364 | AhmedETAP - Cable Sizing Agent ============================= |
 | **Code Guard** | `code_guard_agent.py` | — | Code Guard Agent — AI-Powered Code Quality Review ========== |
-| **Coordination** | `coordination_agent.py` | IEEE 242, IEC 60255, IEC60255 | AhmedETAP - Protection Coordination Agent ================== |
+| **Coordination** | `coordination_agent.py` | IEC 60255, IEEE 242, IEC60255 | AhmedETAP - Protection Coordination Agent ================== |
 | **Cua Base Executor.Py** | `cua_base_executor.py` | — | agents/cua_base_executor.py — Base CUA Executor (Template Me |
 | **Cua Executor.Py** | `cua_executor.py` | — | agents/cua_executor.py — Computer Use Agent Executor (Deskto |
 | **Design** | `design_agent.py` | — | AhmedETAP - Generative Substation & Feeder Design Agent (Sca |
@@ -53,12 +53,12 @@
 | **Orchestrator.Py** | `orchestrator.py` | — | AhmedETAP - Multi-Agent Orchestrator ======================= |
 | **Output Schema Guard.Py** | `output_schema_guard.py` | — | agents/output_schema_guard.py — Code-Gated Output Validation |
 | **Predictive** | `predictive_agent.py` | — | AhmedETAP - Predictive Analytics Agent ===================== |
-| **Prompt Loader.Py** | `prompt_loader.py` | IEEE 1584, IEC 60909 | AhmedETAP - Prompt Loader (Safety-Critical Edition) ======== |
+| **Prompt Loader.Py** | `prompt_loader.py` | IEC 60909, IEEE 1584 | AhmedETAP - Prompt Loader (Safety-Critical Edition) ======== |
 | **Registry.Py** | `registry.py` | — | AhmedETAP - Agent Registry & Specialist Agents ============= |
 | **Renewable** | `renewable_agent.py` | IEEE 1547 | AhmedETAP - Renewable Integration Agent ==================== |
 | **Router.Py** | `router.py` | — | AhmedETAP - Power System Goal Router ======================= |
 | **Scada** | `scada_agent.py` | IEC 61850 | AhmedETAP - SCADA Integration Agent ======================== |
-| **Stability** | `stability_agent.py` | IEEE 399, IEEE 1584-2018 | AhmedETAP - Stability Analysis Agent ======================= |
+| **Stability** | `stability_agent.py` | IEEE 1584-2018, IEEE 399 | AhmedETAP - Stability Analysis Agent ======================= |
 | **Weather** | `weather_agent.py` | — | AhmedETAP - Weather Impact Analysis Agent ================== |
 | **Workflow.Py** | `workflow.py` | — | AhmedETAP - Multi-Agent Workflow Engine ==================== |
 
@@ -1232,7 +1232,7 @@ log entries generated
   - `GET /`
   - `GET /stats`
 
-#### 📄 `api/auth.py` _70.5 KB_
+#### 📄 `api/auth.py` _71.3 KB_
 > api/auth.py — Authentication & user-management router.
 
 Exposes the following endpoints under the ``/api/v1/auth`` prefix:
@@ -1267,9 +1267,9 @@ Exposes the following endpoints under the ``/api/v1/auth`` prefix:
 - **async def** `get_me()` (line 1529)
 - **async def** `update_me()` (line 1566)
 - **async def** `change_password()` (line 1650)
-- **async def** `forgot_password()` (line 1744)
-- **async def** `reset_password()` (line 1857)
-- **async def** `list_users()` (line 1906)
+- **async def** `forgot_password()` (line 1763)
+- **async def** `reset_password()` (line 1876)
+- **async def** `list_users()` (line 1925)
 
 #### 📄 `api/autodesk_connectors.py` _12.9 KB_
 > Autodesk Connector Health & Test API Router
@@ -5578,8 +5578,8 @@ Provides
 | Type | Count |
 |:---|---:|
 | python-module | 41 |
-| ui-page | 61 |
 | ui-component | 281 |
+| ui-page | 61 |
 | api-route | 92 |
 | **TOTAL** | **475** |
 
@@ -5592,7 +5592,7 @@ Provides
 | `adms_control` | `scada_model` | — |
 | `agents` | `api`, `coordination`, `copilot`, `core`, `curves`, `digital_twin`, `engine`, `etap_integration`, `fault_analysis`, `guards`, `integrations`, `load_flow`, `ml`, `relays`, `reporting`, `services` | `api`, `core`, `engine`, `services` |
 | `ai_context_engine` | — | `api` |
-| `api` | `agents`, `ai_context_engine`, `autodesk_connector`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `fault_analysis`, `gis_integration`, `integrations`, `knowledge`, `load_flow`, `ml`, `security`, `services` | `agents`, `coordination`, `core`, `engine`, `gis_integration`, `integrations`, `knowledge`, `load_flow`, `migrations`, `security`, `services` |
+| `api` | `agents`, `ai_context_engine`, `autodesk_connector`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `fault_analysis`, `gis_integration`, `integrations`, `knowledge`, `load_flow`, `ml`, `security`, `services`, `worker` | `agents`, `coordination`, `core`, `engine`, `gis_integration`, `integrations`, `knowledge`, `load_flow`, `migrations`, `security`, `services` |
 | `autodesk_connector` | — | `api`, `copilot` |
 | `coordination` | `api`, `curves`, `engine`, `relays` | `agents`, `digital_twin`, `engine` |
 | `copilot` | `autodesk_connector`, `digital_twin`, `etap_integration` | `agents`, `api`, `services` |
@@ -5623,7 +5623,7 @@ Provides
 | `services` | `agents`, `api`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `integrations`, `utils` | `agents`, `api`, `core`, `integrations`, `worker` |
 | `utils` | `engine` | `services` |
 | `visualization` | `relays` | `engine` |
-| `worker` | `etap_integration`, `services` | — |
+| `worker` | `etap_integration`, `services` | `api` |
 | `zenon_user_guide` | — | — |
 
 ---
@@ -5667,7 +5667,8 @@ Provides
 | `test_audit_phase7_round5_fixes.py` | 0 | 6 | **25** |
 | `test_audit_phase8_medium_fixes.py` | 0 | 3 | **9** |
 | `test_audit_phase9_round6_fixes.py` | 0 | 4 | **11** |
-| `test_auth_api.py` | 0 | 11 | **38** |
+| `test_auth.py` | 1 | 0 | **1** |
+| `test_auth_api.py` | 0 | 11 | **39** |
 | `test_auth_disabled_fail_closed.py` | 6 | 0 | **6** |
 | `test_auth_enabled.py` | 0 | 1 | **9** |
 | `test_autodesk_connector.py` | 0 | 11 | **62** |
@@ -5706,7 +5707,7 @@ Provides
 | `test_dr_resilience_drill.py` | 4 | 0 | **4** |
 | `test_dspy_baseline_gate.py` | 3 | 0 | **3** |
 | `test_edge_cases.py` | 0 | 7 | **31** |
-| `test_email_webhooks.py` | 0 | 6 | **21** |
+| `test_email_webhooks.py` | 0 | 7 | **23** |
 | `test_engine_deep.py` | 0 | 6 | **18** |
 | `test_engineering_dual_control.py` | 4 | 0 | **4** |
 | `test_engineering_service.py` | 0 | 10 | **60** |
