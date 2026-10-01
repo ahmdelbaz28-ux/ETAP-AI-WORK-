@@ -76,3 +76,5 @@ alembic>=1.13.0
 
 # Cloudflare R2 storage (S3-compatible)
 boto3>=1.43.89
+protobuf>=4.25.8 # not directly required, pinned by Snyk to avoid a vulnerability
+urllib3>=2.8.0 # not directly required, pinned by Snyk to avoid a vulnerability
