@@ -1,6 +1,6 @@
 # 📘 AhmedETAP — Complete Project Index v2.0.0
 
-> Auto-generated on **2026-10-01T13:18:51.049367+00:00** by indexer v2.0.0.
+> Auto-generated on **2026-10-01T13:28:35.656451+00:00** by indexer v2.0.0.
 > Re-run `python indexer.py` to refresh.
 
 ---
@@ -14,11 +14,11 @@
 | Python | Classes | 909 |
 | Python | Functions | 813 |
 | UI | Files (TSX/TS) | 241 |
-| Test | Files | 253 |
-| Total | Tests | 3750 |
+| Test | Files | 254 |
+| Total | Tests | 3755 |
 | Help | Topics | 0 |
 | Context | Mappings | 0 |
-| Environment | Variables | 440 |
+| Environment | Variables | 441 |
 | Scripts | | 154 |
 | AI | Agents | 31 |
 | Integrations | | 21 |
@@ -38,7 +38,7 @@
 | **Browser Cua Executor.Py** | `browser_cua_executor.py` | — | agents/browser_cua_executor.py — Browser-based CUA Loop (hea |
 | **Cable Sizing** | `cable_sizing_agent.py` | IEC 60364 | AhmedETAP - Cable Sizing Agent ============================= |
 | **Code Guard** | `code_guard_agent.py` | — | Code Guard Agent — AI-Powered Code Quality Review ========== |
-| **Coordination** | `coordination_agent.py` | IEC60255, IEC 60255, IEEE 242 | AhmedETAP - Protection Coordination Agent ================== |
+| **Coordination** | `coordination_agent.py` | IEEE 242, IEC 60255, IEC60255 | AhmedETAP - Protection Coordination Agent ================== |
 | **Cua Base Executor.Py** | `cua_base_executor.py` | — | agents/cua_base_executor.py — Base CUA Executor (Template Me |
 | **Cua Executor.Py** | `cua_executor.py` | — | agents/cua_executor.py — Computer Use Agent Executor (Deskto |
 | **Design** | `design_agent.py` | — | AhmedETAP - Generative Substation & Feeder Design Agent (Sca |
@@ -120,7 +120,7 @@ Total: **0** mappings
 
 ## 🔐 Environment Variables
 
-Total: **440** variables
+Total: **441** variables
 
 ### General
 
@@ -489,6 +489,7 @@ Total: **440** variables
 - `REDIS_SOCKET_CONNECT_TIMEOUT`
 - `REDIS_SOCKET_TIMEOUT`
 - `REPLICA_COUNT`
+- `REPORTS_OUTPUT_DIR`
 - `RESEND_ENABLED`
 - `RESEND_FROM_EMAIL`
 - `RESEND_FROM_NAME`
@@ -3555,28 +3556,28 @@ Provides automated report generation for power system studies supporting
 PDF, DOCX, and XLSX output
 
 
-#### 📄 `reporting/advanced_reports.py` _33.5 KB_
+#### 📄 `reporting/advanced_reports.py` _35.8 KB_
 > Advanced Report Generation System
 ===================================
 Professional engineering report generation in multiple formats.
 
 Supported Forma
 
-- **Class** `ReportSection` (line 52)
-- **Class** `ReportMetadata` (line 64)
-- **Class** `ChartGenerator` (line 81)
+- **Class** `ReportSection` (line 105)
+- **Class** `ReportMetadata` (line 117)
+- **Class** `ChartGenerator` (line 134)
   - Methods: `generate_voltage_profile_chart()`, `generate_fault_current_bar_chart()`, `generate_harmonic_spectrum_chart()`
-- **Class** `TableGenerator` (line 212)
+- **Class** `TableGenerator` (line 268)
   - Methods: `generate_load_flow_table()`, `generate_fault_current_table()`, `generate_compliance_table()`
-- **Class** `PDFReportGenerator` (line 308)
+- **Class** `PDFReportGenerator` (line 364)
   - Methods: `generate_report()`
-- **Class** `DOCXReportGenerator` (line 534)
+- **Class** `DOCXReportGenerator` (line 593)
   - Methods: `generate_report()`
-- **Class** `XLSXReportGenerator` (line 597)
+- **Class** `XLSXReportGenerator` (line 657)
   - Methods: `generate_report()`
-- **Class** `ReportGenerationAgent` (line 666)
+- **Class** `ReportGenerationAgent` (line 727)
   - Methods: `generate_complete_report()`
-- **def** `get_report_agent()` (line 932)
+- **def** `get_report_agent()` (line 995)
 
 ### 📦 `digital_twin/`
 
@@ -5576,10 +5577,10 @@ Provides
 
 | Type | Count |
 |:---|---:|
-| api-route | 92 |
-| ui-component | 281 |
-| ui-page | 61 |
 | python-module | 41 |
+| ui-page | 61 |
+| ui-component | 281 |
+| api-route | 92 |
 | **TOTAL** | **475** |
 
 ---
@@ -5608,7 +5609,7 @@ Provides
 | `gis_validation` | `gis_integration`, `gis_validation_real` | `gis_validation_real` |
 | `gis_validation_electrical` | `gis_integration` | — |
 | `gis_validation_real` | `gis_integration`, `gis_validation` | `gis_validation` |
-| `guards` | — | `agents`, `security`, `services` |
+| `guards` | — | `agents`, `security` |
 | `integrations` | `api`, `engine`, `services` | `agents`, `api`, `core`, `reporting`, `services` |
 | `knowledge` | `api` | `api` |
 | `load_flow` | `api`, `core_model`, `engine` | `agents`, `api`, `core`, `digital_twin`, `engine` |
@@ -5619,7 +5620,7 @@ Provides
 | `reporting` | `integrations` | `agents` |
 | `scada_model` | `ml` | `adms_control`, `core`, `digital_twin` |
 | `security` | `api`, `guards` | `api`, `etap_integration` |
-| `services` | `agents`, `api`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `guards`, `integrations`, `utils` | `agents`, `api`, `core`, `integrations`, `worker` |
+| `services` | `agents`, `api`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `integrations`, `utils` | `agents`, `api`, `core`, `integrations`, `worker` |
 | `utils` | `engine` | `services` |
 | `visualization` | `relays` | `engine` |
 | `worker` | `etap_integration`, `services` | — |
@@ -5633,6 +5634,7 @@ Provides
 |:---|---:|---:|---:|
 | `test_abac.py` | 0 | 6 | **21** |
 | `test_active_alerting.py` | 2 | 0 | **2** |
+| `test_advanced_reports.py` | 3 | 0 | **3** |
 | `test_agent_executor.py` | 23 | 0 | **23** |
 | `test_agent_key_namespace.py` | 9 | 0 | **9** |
 | `test_agent_registration_regression.py` | 18 | 0 | **18** |
@@ -5804,7 +5806,7 @@ Provides
 | `test_regression_fixes.py` | 0 | 9 | **22** |
 | `test_relays.py` | 0 | 5 | **50** |
 | `test_reporting.py` | 0 | 6 | **31** |
-| `test_results_store.py` | 0 | 12 | **33** |
+| `test_results_store.py` | 2 | 12 | **35** |
 | `test_router_completeness_gate.py` | 10 | 0 | **10** |
 | `test_router_regression.py` | 8 | 0 | **8** |
 | `test_run4_security_fixes.py` | 11 | 0 | **11** |
