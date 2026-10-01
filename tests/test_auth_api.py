@@ -748,3 +748,37 @@ class TestDeleteUser:
         )
         assert resp.status_code == 400, f"Expected 400 for self-delete, got {resp.status_code}"
         assert "own account" in resp.json()["detail"].lower()
+
+    def test_deactivated_user_access_token_rejected(self, client, admin_headers):
+        """A deactivated user's access token must be rejected with 401."""
+        reg = client.post(
+            "/api/v1/auth/register",
+            json={
+                "username": "victim_user_test",
+                "email": "victim_test@example.com",
+                "password": TEST_USER_PASSWORD,
+            },
+        )
+        assert reg.status_code == 201
+        user_id = reg.json()["id"]
+
+        login_resp = client.post(
+            "/api/v1/auth/login",
+            json={
+                "username": "victim_user_test",
+                "password": TEST_USER_PASSWORD,
+            },
+        )
+        assert login_resp.status_code == 200
+        access_token = login_resp.json()["access_token"]
+        user_headers = {"Authorization": f"Bearer {access_token}"}
+
+        me_before = client.get("/api/v1/auth/me", headers=user_headers)
+        assert me_before.status_code == 200
+
+        del_resp = client.delete(f"/api/v1/auth/users/{user_id}", headers=admin_headers)
+        assert del_resp.status_code == 200
+
+        me_after = client.get("/api/v1/auth/me", headers=user_headers)
+        assert me_after.status_code == 401
+

@@ -1648,6 +1648,7 @@ async def update_me(
     },
 )
 async def change_password(
+    request: Request,
     body: ChangePasswordRequest,
     user: CurrentUserDep,
     db: DbDep,
@@ -1691,6 +1692,24 @@ async def change_password(
     db.add(db_user)
     await db.flush()
     await db.refresh(db_user)
+
+    # Invalidate current access token on password change
+    auth_header = request.headers.get("authorization") or ""
+    if auth_header.lower().startswith("bearer "):
+        try:
+            from api.dependencies import _decode_jwt, _extract_bearer_token
+
+            acc_token = _extract_bearer_token(auth_header)
+            acc_payload = _decode_jwt(acc_token, options={"verify_exp": False})
+            acc_jti = acc_payload.get("jti")
+            acc_exp = acc_payload.get("exp")
+            acc_ttl: Optional[int] = None
+            if isinstance(acc_exp, (int, float)):
+                acc_ttl = int(acc_exp - datetime.now(tz=UTC).timestamp())
+            if acc_jti:
+                await _blacklist_token(acc_jti, ttl_seconds=acc_ttl)
+        except Exception:
+            pass
 
     # Send password-change confirmation email via Resend
     try:

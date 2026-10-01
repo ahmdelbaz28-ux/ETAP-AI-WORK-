@@ -268,3 +268,48 @@ class TestSvixDeduplication:
             _processed_svix_ids["msg_svix_old"] = time.time() - 90000  # > 24 hours ago
         # Since it is expired, should return False (treated as fresh)
         assert _is_svix_id_duplicate("msg_svix_old") is False
+
+
+class TestWebhookDeliverySSRF:
+    """Verify that outbound webhook delivery blocks redirects and SSRF attempts."""
+
+    def test_delivery_direct_metadata_is_blocked(self) -> None:
+        from api.email_webhooks import WebhookEndpoint, _deliver_to_endpoint, _SSRFBlockedError
+
+        ep = WebhookEndpoint(
+            id="ep_ssrf_meta",
+            url="http://169.254.169.254/latest/meta-data/",
+            events=["email.sent"],
+            secret=_TEST_HMAC_SECRET,
+            is_active=True,
+            created_at="2026-07-11T00:00:00Z",
+        )
+
+        with pytest.raises(_SSRFBlockedError):
+            _deliver_to_endpoint(ep, b"{}", "sig", "email.sent")
+
+    def test_delivery_redirect_is_blocked(self) -> None:
+        from unittest.mock import MagicMock, patch
+
+        from api.email_webhooks import WebhookEndpoint, _deliver_to_endpoint, _SSRFBlockedError
+
+        ep = WebhookEndpoint(
+            id="ep_ssrf_redir",
+            url="https://example.com/webhook",
+            events=["email.sent"],
+            secret=_TEST_HMAC_SECRET,
+            is_active=True,
+            created_at="2026-07-11T00:00:00Z",
+        )
+
+        with patch("api.email_webhooks._validate_webhook_url", return_value="https://example.com/webhook"):
+            with patch("urllib.request.build_opener") as mock_build:
+                mock_opener = MagicMock()
+                mock_opener.open.side_effect = _SSRFBlockedError(
+                    "Webhook delivery redirects are forbidden (target redirected to http://169.254.169.254)"
+                )
+                mock_build.return_value = mock_opener
+
+                with pytest.raises(_SSRFBlockedError, match="redirects are forbidden"):
+                    _deliver_to_endpoint(ep, b"{}", "sig", "email.sent")
+
