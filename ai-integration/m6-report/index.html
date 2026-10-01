@@ -20,7 +20,7 @@
     
     
       
-        <title>M6 — Integration & Final Acceptance (التكامل والبوابة النهائية) - AhmedETAP Documentation</title>
+        <title>M6 — Integration Battery & Acceptance Verification Report - AhmedETAP Documentation</title>
       
     
     
@@ -70,7 +70,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#m6-integration-final-acceptance" class="md-skip">
+        <a href="#m6-integration-battery-acceptance-verification-report" class="md-skip">
           Skip to content
         </a>
       
@@ -104,7 +104,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              M6 — Integration &amp; Final Acceptance (التكامل والبوابة النهائية)
+              M6 — Integration Battery &amp; Acceptance Verification Report
             
           </span>
         </div>
@@ -544,9 +544,27 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#1-objective" class="md-nav__link">
+  <a href="#executive-summary-arabic" class="md-nav__link">
     <span class="md-ellipsis">
-      1. Objective
+      الملخص التنفيذي (Executive Summary — Arabic)
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#executive-summary-english" class="md-nav__link">
+    <span class="md-ellipsis">
+      Executive Summary (English)
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-objective-scope" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Objective &amp; Scope
     </span>
   </a>
   
@@ -571,11 +589,44 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#4-test-battery-execution-output" class="md-nav__link">
+  <a href="#4-test-battery-execution-evidence" class="md-nav__link">
     <span class="md-ellipsis">
-      4. Test Battery Execution Output
+      4. Test Battery Execution Evidence
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="4. Test Battery Execution Evidence">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-collect-only-verification-35-items" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.1 Collect-Only Verification (35 Items)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-full-execution-output" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.2 Full Execution Output
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#43-runtime-environment-deprecation-risk-disclosure" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.3 Runtime Environment &amp; Deprecation Risk Disclosure
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -589,11 +640,71 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#6-conclusion-production-readiness" class="md-nav__link">
+  <a href="#6-production-readiness-closure-status" class="md-nav__link">
     <span class="md-ellipsis">
-      6. Conclusion &amp; Production Readiness
+      6. Production Readiness &amp; Closure Status
     </span>
   </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-verification-appendix-verbatim-outputs" class="md-nav__link">
+    <span class="md-ellipsis">
+      7. Verification Appendix (Verbatim Outputs)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. Verification Appendix (Verbatim Outputs)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#command-1-study-dispatch-enumeration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Command 1: Study Dispatch Enumeration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#command-2-agent-registry-keys-namespace-parity" class="md-nav__link">
+    <span class="md-ellipsis">
+      Command 2: Agent Registry Keys &amp; Namespace Parity
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#command-3-dynamic-reachability-reflection-script" class="md-nav__link">
+    <span class="md-ellipsis">
+      Command 3: Dynamic Reachability Reflection Script
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#command-4-meta-ci-workflows-invariant-gatekeeper" class="md-nav__link">
+    <span class="md-ellipsis">
+      Command 4: Meta-CI Workflows &amp; Invariant Gatekeeper
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#command-5-file-test-count-audit" class="md-nav__link">
+    <span class="md-ellipsis">
+      Command 5: File &amp; Test Count Audit
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -616,204 +727,348 @@
   
 
 
-<h1 id="m6-integration-final-acceptance">M6 — Integration &amp; Final Acceptance (التكامل والبوابة النهائية)</h1>
-<p><strong>Phase:</strong> M6 (integration-acceptance) · <strong>Status:</strong> ✅ Complete<br />
-<strong>Branch:</strong> <code>feat/ai-m6-integration-acceptance</code> · <strong>Date:</strong> 2026-09-30<br />
-<strong>Protocol:</strong> Final Architectural Closure Report — Reference Items 18 &amp; 19 and M0–M6 Full Harmonization.</p>
+<h1 id="m6-integration-battery-acceptance-verification-report">M6 — Integration Battery &amp; Acceptance Verification Report</h1>
 <hr />
-<h2 id="1-objective">1. Objective</h2>
-<p>Phase M6 establishes the permanent acceptance and verification gatekeeper for the AhmedETAP AI Engineering Platform:
-1. <strong>Comprehensive Integration Suite (M6.1 / Item 18)</strong>: Consolidates the findings and safeguards of all 277 existing test modules into an authoritative, deterministic integration battery (<code>tests/test_m6_integration_acceptance.py</code>) covering:
-   - Full reachability of all 20 entries in <code>STUDY_DISPATCH</code> across dual execution ports (<code>StudyExecutor._dispatch</code> and <code>study_service._run_native_study</code> / <code>PowerSystemEngine</code>).
-   - Anti-drift protection against silent defaults to <code>load_flow</code> (enforcing the precedent documented in <code>tests/test_agent_registration_regression.py:7-26</code>).
-   - The 3 canonical multi-agent workflows (Short Circuit → Protection → Arc Flash; Load Flow → OPF → Verify Load Flow; Harmonics → Filter Optimization → Verify Harmonics).
-   - Negative rejection tests for the 4 Particle Swarm Optimization (PSO) gates (placement, harmonic filter, protection coordination, AC-OPF).
-   - Absolute absence of raw direct-AI fallback paths (<code>runDirectAi</code>, <code>grounded_direct_ai_fallback</code>).
-   - Fail-closed propagation of <code>AgentStatus.REJECTED</code> across workflow nodes and execution traces.
-   - Strict multi-tenant isolation and SHA-256 evidence provenance in <code>ContextFabric</code>.
-   - CUA governance: affirmative human approvals, deterministic post-action verification, automated rollback, and coordinate bounds enforcement.
-2. <strong>Dynamic Reachability Reflection Verifier (M6.2 / Item 19)</strong>: Upgrades <code>scripts/maintenance/verify_agents.py</code> into a dynamic reflection engine that tests real handler execution and dual-port reachability at startup (fail-fast) and in Meta-CI.
-3. <strong>Permanent Prohibitory Gatekeeper (M6.3 / Item 19)</strong>: Enforces static and dynamic architectural invariants across <code>.github/workflows/meta-ci.yml</code> and <code>scripts/check_workflows_meta.py</code> to prevent any future regression of ungrounded fallback or unregistered study bindings.
-4. <strong>Final Closure Report (M6.4)</strong>: Authoritative documentation of the complete M0–M6 journey in <code>docs/ai-integration/acceptance-report.md</code> and this milestone report.</p>
+<h2 id="executive-summary-arabic">الملخص التنفيذي (Executive Summary — Arabic)</h2>
+<p>يقدم هذا التقرير التوثيق النهائي المعتمد لحزمة الإغلاق المعماري للمرحلة M6 في منصة AhmedETAP الهندسية. تم التحقق من تماسك المنظومة عبر بيئة تشغيل بايثون 3.12.10، وتأكيد اجتياز كافة اختبارات حزمة القبول (35 اختباراً من أصل 35 دون أي إخفاق) واختبارات بوابات الوصول المزدوجة (21 اختباراً) وحارس سير العمل Meta-CI لجميع ملفات سير العمل الخمسين.</p>
+<p>أبرز النتائج الهندسية المؤكدة في هذا الإصدار:
+1. <strong>منع التخمين والانهيار الصامت (Zero Hallucination &amp; Fail-Closed)</strong>: لا يُسمح لأي نموذج لغوي عام بالإجابة المباشرة أو تخمين المعاملات الكهربائية. جميع الدراسات الـ 20 المسجلة في جدول التوجيه <code>STUDY_DISPATCH</code> إما أن تنفذ عبر محركات الحساب الفيزيائية المعتمدة أو ترفع استثناء الفشل المحكم <code>SpecializedExecutionUnavailableError</code>.
+2. <strong>عزل المستأجرين وحماية البيانات (Tenant Isolation)</strong>: فرض التحقق الإلزامي من وجود <code>tenant_id</code> غير فارغ في محرك السياق <code>ContextFabric</code> وفي طبقة تجميع المهام بالمنظم <code>assemble_task_context</code>، ومنع أي تسرب للذاكرة أو السياق المشترك بين المستأجرين.
+3. <strong>حوكمة أمان الحياة في التحكم المكتبي (Life Safety Guard)</strong>: إعطاء الأسبقية المطلقة للمطابقة الدقيقة للقائمة البيضاء للواجهات الآمنة قبل أي فحص للكلمات الحرجة، واستخدام حدود الكلمات لمنع الحجب الخاطئ، والإبقاء على وضع التراجع التلقائي اليدوي المحافظ افتراضياً لحماية الشبكات الكهربائية وفقاً لمعايير NFPA 70E و IEEE 1584.
+4. <strong>تنبيه بيئة التشغيل والمخاطر المتبقية</strong>: بيئة بايثون الافتراضية في المسار هي 3.8.4 الملحقة ببرنامج ETAP21 وهي بيئة متقادمة (EOL)، في حين أن المنظومة تتطلب إلزامياً بايثون &gt;= 3.12 وفق <code>pyproject.toml</code> وتعمل محلياً عبر <code>py -3.12</code>.</p>
+<hr />
+<h2 id="executive-summary-english">Executive Summary (English)</h2>
+<p>This document provides the authoritative architectural closure and verification record for Milestone M6 of the AhmedETAP AI Engineering Platform. Phase M6 consolidates all architectural safeguards across Milestones M0 through M5 into a single deterministic acceptance battery, dynamic reflection verifier, and permanent Meta-CI gatekeeper.</p>
+<p>Key architectural facts verified in this release:
+1. <strong>Deterministic Reachability &amp; Absence of Raw LLM Fallbacks</strong>: All 20 entries in <code>STUDY_DISPATCH</code> are strictly mapped and reach either verified physical calculation engines or raise <code>SpecializedExecutionUnavailableError</code>. Zero ungrounded direct-AI answering paths exist.
+2. <strong>Strict Multi-Tenant Isolation</strong>: <code>ContextFabric</code> and <code>ChiefEngineeringOrchestrator</code> strictly enforce explicit, non-empty <code>tenant_id</code> preconditions. Permissive fallback to "default" tenants has been eliminated.
+3. <strong>Life Safety Guard Precedence &amp; Manual-Only Protection</strong>: The CUA rollback handler evaluates exact-match safe UI actions first, utilizes regex word boundaries (<code>\b</code>) to eliminate false-positive keyword triggers, and defaults to <code>_auto_rollback_enabled: False</code> to maintain conservative electrical safety per IEEE 1584 and NFPA 70E.
+4. <strong>Empirical Verification Baseline</strong>: Exactly 35 integration tests pass in 80.13 seconds under Python 3.12.10. Startup fail-fast reflection verifies all 27 canonical keys and 20 dispatch entries.</p>
+<hr />
+<h2 id="1-objective-scope">1. Objective &amp; Scope</h2>
+<p>Milestone M6 establishes the permanent acceptance and verification gatekeeper for the AhmedETAP AI Engineering Platform:
+1. <strong>Comprehensive Acceptance Battery (<code>tests/test_m6_integration_acceptance.py</code>)</strong>:
+   Consolidates the testing surface (220 top-level test files, 251 test modules recursively) into an authoritative integration suite verifying:
+   - Reachability of all 20 entries in <code>STUDY_DISPATCH</code> across dual execution ports (<code>StudyExecutor._dispatch</code> and <code>study_service._run_native_study</code> / <code>PowerSystemEngine</code>).
+   - Anti-drift protection ensuring no specialized study type silently falls back to <code>load_flow</code>.
+   - The three canonical multi-agent workflows (SC→Prot→AF; LF→OPF→Verify LF; Harmonics→Filter Optimization→Verify Harmonics).
+   - Rejection verification across the 4 Particle Swarm Optimization (PSO) gates.
+   - Fail-closed propagation of <code>AgentStatus.REJECTED</code> and <code>SKIPPED_WITH_REASON</code>.
+   - ContextFabric multi-tenant isolation and SHA-256 evidence hashing.
+   - Computer-Using Agent (CUA) affirmative approvals, bounds checks, and rollback safety.
+2. <strong>Dynamic Reachability Reflection Verifier (<code>scripts/maintenance/verify_agents.py</code>)</strong>:
+   Provides dual-mode verification (dynamic reflection with AST static fallback) at application bootstrap (<code>core/bootstrap.py:385</code>) and CI.
+3. <strong>Permanent Prohibitory Gatekeeper (<code>scripts/check_workflows_meta.py</code>)</strong>:
+   Enforces workflow linting, registry integrity, and fallback guard invariants across all 50 GitHub Actions workflows.</p>
 <hr />
 <h2 id="2-scope-implementation-matrix">2. Scope &amp; Implementation Matrix</h2>
 <table>
 <thead>
 <tr>
-<th style="text-align: left;">ID</th>
-<th style="text-align: left;">Item</th>
-<th style="text-align: left;">Architecture &amp; File Locations</th>
-<th style="text-align: left;">Verification Evidence</th>
+<th style="text-align: left;">Component</th>
+<th style="text-align: left;">Target Location</th>
+<th style="text-align: center;">Dispatch Type</th>
+<th style="text-align: center;">Production Status</th>
+<th style="text-align: left;">Behavioral Description</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;"><strong>M6.1(a)</strong></td>
-<td style="text-align: left;">Dual-Port Reachability (20 entries)</td>
-<td style="text-align: left;"><code>engine/dispatch.py</code>, <code>services/study_executor.py:429-520</code>, <code>services/study_service.py</code> — verified that all 20 dispatch targets execute or fail closed with <code>SpecializedExecutionUnavailableError</code>.</td>
-<td style="text-align: left;"><code>test_all_20_study_dispatch_entries_reachability</code><br><code>test_dual_port_parity_non_native_studies</code></td>
+<td style="text-align: left;"><strong>Load Flow</strong></td>
+<td style="text-align: left;"><a href="../../engine/dispatch.py#L108">engine/dispatch.py:108</a></td>
+<td style="text-align: center;"><code>native</code></td>
+<td style="text-align: center;"><code>REACHABLE</code></td>
+<td style="text-align: left;">Solves AC load flow via Newton-Raphson (<code>load_flow/load_flow.py</code>).</td>
 </tr>
 <tr>
-<td style="text-align: left;"><strong>M6.1(b)</strong></td>
-<td style="text-align: left;">Silent Drift Elimination</td>
-<td style="text-align: left;"><code>agents/registry.py:get_study_type_mapping()</code>, <code>services/study_executor.py:438-445</code> — zero silent routing of specialized studies to <code>load_flow</code>.</td>
-<td style="text-align: left;"><code>test_study_type_mapping_no_silent_load_flow_fallback</code><br><code>test_unregistered_study_raises_generic_value_error_no_silent_fallback</code></td>
+<td style="text-align: left;"><strong>Short Circuit</strong></td>
+<td style="text-align: left;"><a href="../../engine/dispatch.py#L109">engine/dispatch.py:109</a></td>
+<td style="text-align: center;"><code>native</code></td>
+<td style="text-align: center;"><code>REACHABLE</code></td>
+<td style="text-align: left;">IEC 60909 fault calculations (3-phase, SLG, LL, DLG) via <code>fault_analysis/fault.py</code>.</td>
 </tr>
 <tr>
-<td style="text-align: left;"><strong>M6.1(c)</strong></td>
-<td style="text-align: left;">3 Canonical Multi-Agent Chains</td>
-<td style="text-align: left;"><code>agents/workflow.py</code>, <code>tests/test_m6_integration_acceptance.py</code> — verified end-to-end parameter passing and validation for SC→Prot→AF, LF→OPF→LF, and Harmonics→Filter→Harmonics.</td>
-<td style="text-align: left;"><code>test_chain_1_short_circuit_protection_arc_flash</code><br><code>test_chain_2_load_flow_opf_verify_load_flow</code><br><code>test_chain_3_harmonics_filter_optimization_verify_harmonics</code></td>
+<td style="text-align: left;"><strong>Arc Flash</strong></td>
+<td style="text-align: left;"><a href="../../engine/dispatch.py#L110">engine/dispatch.py:110</a></td>
+<td style="text-align: center;"><code>native</code></td>
+<td style="text-align: center;"><code>REACHABLE</code></td>
+<td style="text-align: left;">IEEE 1584-2018 incident energy and boundary evaluation.</td>
 </tr>
 <tr>
-<td style="text-align: left;"><strong>M6.1(d)</strong></td>
-<td style="text-align: left;">4 PSO Rejection Gates</td>
-<td style="text-align: left;"><code>agents/optimizers/optimization_agent.py:57-100</code> — voltage bounds, IEEE 519 THD, selectivity margins, and AC-OPF convergence constraints.</td>
-<td style="text-align: left;"><code>test_pso_gate_1_placement_voltage_violation_rejected</code><br><code>test_pso_gate_2_harmonic_filter_thd_violation_rejected</code><br><code>test_pso_gate_3_protection_coordination_margin_violation_rejected</code><br><code>test_pso_gate_4_ac_opf_infeasibility_rejected</code></td>
+<td style="text-align: left;"><strong>Protection Coordination</strong></td>
+<td style="text-align: left;"><a href="../../engine/dispatch.py#L114">engine/dispatch.py:114</a></td>
+<td style="text-align: center;"><code>native</code></td>
+<td style="text-align: center;"><code>REACHABLE</code></td>
+<td style="text-align: left;">IEC 60255 / IEEE C37.90 discrimination curves and margin verification.</td>
 </tr>
 <tr>
-<td style="text-align: left;"><strong>M6.1(e)</strong></td>
-<td style="text-align: left;">Fail-Closed REJECTED Cascade</td>
-<td style="text-align: left;"><code>agents/workflow.py:500-515, 590-605</code>, <code>contracts/ai/models.py:ExecutionTraceContract</code> — rejected node marks downstream as skipped with <code>overall_success=False</code>.</td>
-<td style="text-align: left;"><code>test_workflow_engine_rejection_marks_downstream_skipped</code></td>
+<td style="text-align: left;"><strong>Harmonic Analysis</strong></td>
+<td style="text-align: left;"><a href="../../engine/dispatch.py#L132">engine/dispatch.py:132</a></td>
+<td style="text-align: center;"><code>agent</code></td>
+<td style="text-align: center;"><code>REACHABLE</code></td>
+<td style="text-align: left;">IEEE 519 harmonic distortion analysis via <code>HarmonicAnalysisAgent</code>.</td>
 </tr>
 <tr>
-<td style="text-align: left;"><strong>M6.1(f)</strong></td>
-<td style="text-align: left;">ContextFabric Tenant Isolation</td>
-<td style="text-align: left;"><code>context_fabric/fabric.py</code>, <code>context_fabric/__init__.py</code> — queries require non-empty <code>tenant_id</code>; cross-tenant bleed impossible.</td>
-<td style="text-align: left;"><code>test_context_fabric_query_without_tenant_raises_isolation_error</code><br><code>test_context_evidence_mandatory_fields_and_hash</code><br><code>test_context_fabric_cross_tenant_isolation</code></td>
+<td style="text-align: left;"><strong>Optimal Power Flow</strong></td>
+<td style="text-align: left;"><a href="../../engine/dispatch.py#L132">engine/dispatch.py:132</a></td>
+<td style="text-align: center;"><code>agent</code></td>
+<td style="text-align: center;"><code>REACHABLE</code></td>
+<td style="text-align: left;">AC optimal power flow and loss minimization via <code>OptimalPowerFlowAgent</code>.</td>
 </tr>
 <tr>
-<td style="text-align: left;"><strong>M6.1(g)</strong></td>
-<td style="text-align: left;">CUA Governance &amp; Approvals</td>
-<td style="text-align: left;"><code>agents/cua_base_executor.py</code>, <code>agents/life_safety.py</code> — affirmative approval, post-action rollback, and coordinate bounds.</td>
-<td style="text-align: left;"><code>test_cua_control_mode_requires_affirmative_approval</code><br><code>test_cua_post_action_verification_failure_triggers_auto_rollback</code><br><code>test_cua_coordinate_bounds_violation_aborts_before_action</code></td>
+<td style="text-align: left;"><strong>Motor Starting</strong></td>
+<td style="text-align: left;"><a href="../../engine/dispatch.py#L132">engine/dispatch.py:132</a></td>
+<td style="text-align: center;"><code>agent</code></td>
+<td style="text-align: center;"><code>REACHABLE</code></td>
+<td style="text-align: left;">IEEE 399 motor starting transients and voltage dip evaluation.</td>
 </tr>
 <tr>
-<td style="text-align: left;"><strong>M6.2</strong></td>
-<td style="text-align: left;">Authoritative Reflection Verifier</td>
-<td style="text-align: left;"><code>scripts/maintenance/verify_agents.py</code> — dynamically inspects all 27 canonical keys, aliases, prompts, and dual ports at startup and CLI.</td>
-<td style="text-align: left;"><code>python scripts/maintenance/verify_agents.py</code> (Exit code 0)</td>
+<td style="text-align: left;"><strong>Transient Stability</strong></td>
+<td style="text-align: left;"><a href="../../engine/dispatch.py#L132">engine/dispatch.py:132</a></td>
+<td style="text-align: center;"><code>agent</code></td>
+<td style="text-align: center;"><code>REACHABLE</code></td>
+<td style="text-align: left;">Swing equation RK4 integration and critical clearing time analysis.</td>
 </tr>
 <tr>
-<td style="text-align: left;"><strong>M6.3</strong></td>
-<td style="text-align: left;">Permanent Meta-CI Gatekeeper</td>
-<td style="text-align: left;"><code>scripts/check_workflows_meta.py:237-255</code>, <code>.github/workflows/meta-ci.yml</code> — enforces registry integrity, fallback elimination, and reachability.</td>
-<td style="text-align: left;"><code>python scripts/check_workflows_meta.py</code> (Exit code 0)</td>
+<td style="text-align: left;"><strong>Cable Sizing</strong></td>
+<td style="text-align: left;"><a href="../../engine/dispatch.py#L132">engine/dispatch.py:132</a></td>
+<td style="text-align: center;"><code>agent</code></td>
+<td style="text-align: center;"><code>REACHABLE</code></td>
+<td style="text-align: left;">IEC 60364 thermal ampacity and voltage drop sizing.</td>
 </tr>
 <tr>
-<td style="text-align: left;"><strong>M6.4</strong></td>
-<td style="text-align: left;">Milestone Closure Documentation</td>
-<td style="text-align: left;"><code>docs/ai-integration/acceptance-report.md</code>, <code>docs/ai-integration/m6-report.md</code> — full audit trail and certification.</td>
-<td style="text-align: left;">Markdown artifacts</td>
+<td style="text-align: left;"><strong>Earth Grid</strong></td>
+<td style="text-align: left;"><a href="../../engine/dispatch.py#L132">engine/dispatch.py:132</a></td>
+<td style="text-align: center;"><code>agent</code></td>
+<td style="text-align: center;"><code>REACHABLE</code></td>
+<td style="text-align: left;">IEEE 80 touch and step potential ground grid calculations.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Renewable Integration</strong></td>
+<td style="text-align: left;"><a href="../../engine/dispatch.py#L132">engine/dispatch.py:132</a></td>
+<td style="text-align: center;"><code>agent</code></td>
+<td style="text-align: center;"><code>REACHABLE</code></td>
+<td style="text-align: left;">IEEE 1584 / IEEE 1547 solar PV and wind interconnection compliance.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Battery Storage</strong></td>
+<td style="text-align: left;"><a href="../../engine/dispatch.py#L132">engine/dispatch.py:132</a></td>
+<td style="text-align: center;"><code>agent</code></td>
+<td style="text-align: center;"><code>REACHABLE</code></td>
+<td style="text-align: left;">IEC 62933 BESS dispatch and state-of-charge management.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>SCADA</strong></td>
+<td style="text-align: left;"><a href="../../engine/dispatch.py#L132">engine/dispatch.py:132</a></td>
+<td style="text-align: center;"><code>agent</code></td>
+<td style="text-align: center;"><code>REACHABLE</code></td>
+<td style="text-align: left;">IEC 61850 data modeling and real-time state mapping.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Digital Twin</strong></td>
+<td style="text-align: left;"><a href="../../engine/dispatch.py#L132">engine/dispatch.py:132</a></td>
+<td style="text-align: center;"><code>agent</code></td>
+<td style="text-align: center;"><code>REACHABLE</code></td>
+<td style="text-align: left;">State estimation and real-time telemetry synchronization.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>ETAP Expert</strong></td>
+<td style="text-align: left;"><a href="../../engine/dispatch.py#L137">engine/dispatch.py:137</a></td>
+<td style="text-align: center;"><code>agent</code></td>
+<td style="text-align: center;"><code>REACHABLE</code></td>
+<td style="text-align: left;">Deterministic 6-step rule-based guidance from <code>skills/etap-expert.md</code>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>ETAP GUI</strong></td>
+<td style="text-align: left;"><a href="../../engine/dispatch.py#L138">engine/dispatch.py:138</a></td>
+<td style="text-align: center;"><code>agent</code></td>
+<td style="text-align: center;"><code>REACHABLE</code></td>
+<td style="text-align: left;">ETAP desktop navigation guidance and GUI modeling assistance.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Ahmed ETAP Orchestration</strong></td>
+<td style="text-align: left;"><a href="../../engine/dispatch.py#L149">engine/dispatch.py:149</a></td>
+<td style="text-align: center;"><code>external</code></td>
+<td style="text-align: center;"><code>REACHABLE</code></td>
+<td style="text-align: left;">Peer-reviewed multi-agent execution via <code>AhmedETAPSkillAgent</code>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Optimization</strong></td>
+<td style="text-align: left;"><a href="../../engine/dispatch.py#L155">engine/dispatch.py:155</a></td>
+<td style="text-align: center;"><code>external</code></td>
+<td style="text-align: center;"><code>REACHABLE</code></td>
+<td style="text-align: left;">Multi-objective PSO dispatch via <code>OptimizationAgent</code>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Generative Design</strong></td>
+<td style="text-align: left;"><a href="../../engine/dispatch.py#L167">engine/dispatch.py:167</a></td>
+<td style="text-align: center;"><code>agent</code></td>
+<td style="text-align: center;"><code>behind-flag</code></td>
+<td style="text-align: left;">Parametric SLD generation; flag <code>generative_design</code> disabled by default.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Breaker Duty</strong></td>
+<td style="text-align: left;"><a href="../../engine/dispatch.py#L175">engine/dispatch.py:175</a></td>
+<td style="text-align: center;"><code>external</code></td>
+<td style="text-align: center;"><code>behind-flag</code></td>
+<td style="text-align: left;">IEC 62271-100 rating check; flag <code>breaker_duty</code> disabled by default.</td>
 </tr>
 </tbody>
 </table>
 <hr />
 <h2 id="3-acceptance-gates-verification-summary">3. Acceptance Gates &amp; Verification Summary</h2>
-<p>All 5 mandatory acceptance gates of Milestone M6 were executed locally and passed with 100% green verification:</p>
+<p>All mandatory acceptance gates were executed locally under Python 3.12.10:</p>
 <table>
 <thead>
 <tr>
 <th style="text-align: left;">Gate</th>
 <th style="text-align: left;">Requirement</th>
-<th style="text-align: left;">Tool / Target</th>
-<th style="text-align: center;">Status</th>
+<th style="text-align: left;">Tool / Command</th>
+<th style="text-align: center;">Verified Status</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td style="text-align: left;"><strong>Gate 1</strong></td>
-<td style="text-align: left;">Comprehensive Integration Battery: All 34 tests covering reachability, chains, PSO rejections, CUA governance, and tenant isolation</td>
-<td style="text-align: left;"><code>pytest tests/test_m6_integration_acceptance.py -v</code></td>
-<td style="text-align: center;"><strong>PASSED</strong> (34/34 tests, 81.5s)</td>
+<td style="text-align: left;">Acceptance Battery: 35 integration tests</td>
+<td style="text-align: left;"><code>py -3.12 -m pytest tests/test_m6_integration_acceptance.py -q</code></td>
+<td style="text-align: center;"><strong>PASSED</strong> (35/35, 80.13s)</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>Gate 2</strong></td>
-<td style="text-align: left;">Dynamic Reachability Reflection: Authoritative verification of 27 canonical agents and 20 dispatch entries</td>
-<td style="text-align: left;"><code>python scripts/maintenance/verify_agents.py</code></td>
+<td style="text-align: left;">Dynamic Reachability Reflection Engine</td>
+<td style="text-align: left;"><code>py -3.12 scripts/maintenance/verify_agents.py</code></td>
 <td style="text-align: center;"><strong>PASSED</strong> (Exit 0)</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>Gate 3</strong></td>
-<td style="text-align: left;">Meta-CI Invariants &amp; Prohibitory Guards: Verification of all 50 workflows, registry integrity, and fallback guard</td>
-<td style="text-align: left;"><code>python scripts/check_workflows_meta.py</code></td>
-<td style="text-align: center;"><strong>PASSED</strong> (0 violations)</td>
+<td style="text-align: left;">Meta-CI Workflow &amp; Guard Invariants</td>
+<td style="text-align: left;"><code>py -3.12 scripts/check_workflows_meta.py</code></td>
+<td style="text-align: center;"><strong>PASSED</strong> (50/50 clean, Exit 0)</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>Gate 4</strong></td>
-<td style="text-align: left;">Startup Fail-Fast Lifespan: Wiring of <code>verify_agent_registry(fail_loudly=True)</code> into <code>core/bootstrap.py</code></td>
-<td style="text-align: left;"><code>core/bootstrap.py:385</code></td>
+<td style="text-align: left;">Startup Fail-Fast Lifespan Check</td>
+<td style="text-align: left;"><a href="../../core/bootstrap.py#L385">core/bootstrap.py:385</a></td>
 <td style="text-align: center;"><strong>VERIFIED</strong></td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>Gate 5</strong></td>
-<td style="text-align: left;">Final Architectural Acceptance &amp; Closure Documentation</td>
-<td style="text-align: left;"><code>docs/ai-integration/acceptance-report.md</code></td>
+<td style="text-align: left;">Architectural Acceptance Documentation</td>
+<td style="text-align: left;"><a href="../acceptance-report/">docs/ai-integration/acceptance-report.md</a></td>
 <td style="text-align: center;"><strong>COMPLETE</strong></td>
 </tr>
 </tbody>
 </table>
 <hr />
-<h2 id="4-test-battery-execution-output">4. Test Battery Execution Output</h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>============================= test session starts =============================
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>platform win32 -- Python 3.8.4, pytest-8.3.5, pluggy-1.5.0
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>rootdir: C:\Users\EWS-01\Desktop\etap
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>configfile: pyproject.toml
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>collected 34 items
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>tests/test_m6_integration_acceptance.py::TestM6ReachabilityAndRegistry::test_study_dispatch_has_exactly_20_entries PASSED [  2%]
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>tests/test_m6_integration_acceptance.py::TestM6ReachabilityAndRegistry::test_canonical_agent_registry_coverage PASSED [  5%]
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>tests/test_m6_integration_acceptance.py::TestM6ReachabilityAndRegistry::test_study_type_mapping_no_silent_load_flow_fallback PASSED [  8%]
-<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>tests/test_m6_integration_acceptance.py::TestM6ReachabilityAndRegistry::test_all_20_study_dispatch_entries_reachability PASSED [ 11%]
-<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>tests/test_m6_integration_acceptance.py::TestM6ReachabilityAndRegistry::test_dual_port_parity_non_native_studies[harmonic_analysis] PASSED [ 14%]
-<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>tests/test_m6_integration_acceptance.py::TestM6ReachabilityAndRegistry::test_dual_port_parity_non_native_studies[optimal_power_flow] PASSED [ 17%]
-<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>tests/test_m6_integration_acceptance.py::TestM6ReachabilityAndRegistry::test_dual_port_parity_non_native_studies[motor_starting] PASSED [ 20%]
-<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>tests/test_m6_integration_acceptance.py::TestM6ReachabilityAndRegistry::test_dual_port_parity_non_native_studies[transient_stability] PASSED [ 23%]
-<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>tests/test_m6_integration_acceptance.py::TestM6ReachabilityAndRegistry::test_dual_port_parity_non_native_studies[cable_sizing] PASSED [ 26%]
-<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>tests/test_m6_integration_acceptance.py::TestM6ReachabilityAndRegistry::test_dual_port_parity_non_native_studies[earth_grid] PASSED [ 29%]
-<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>tests/test_m6_integration_acceptance.py::TestM6ReachabilityAndRegistry::test_dual_port_parity_non_native_studies[renewable_integration] PASSED [ 32%]
-<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>tests/test_m6_integration_acceptance.py::TestM6ReachabilityAndRegistry::test_dual_port_parity_non_native_studies[battery_storage] PASSED [ 35%]
-<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>tests/test_m6_integration_acceptance.py::TestM6ReachabilityAndRegistry::test_dual_port_parity_non_native_studies[scada] PASSED [ 38%]
-<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>tests/test_m6_integration_acceptance.py::TestM6ReachabilityAndRegistry::test_dual_port_parity_non_native_studies[digital_twin] PASSED [ 41%]
-<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>tests/test_m6_integration_acceptance.py::TestM6ReachabilityAndRegistry::test_dual_port_parity_non_native_studies[generative_design] PASSED [ 44%]
-<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>tests/test_m6_integration_acceptance.py::TestM6ReachabilityAndRegistry::test_dual_port_parity_non_native_studies[optimization] PASSED [ 47%]
-<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>tests/test_m6_integration_acceptance.py::TestM6ReachabilityAndRegistry::test_unregistered_study_raises_generic_value_error_no_silent_fallback PASSED [ 50%]
-<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>tests/test_m6_integration_acceptance.py::TestM6ThreeCanonicalChains::test_chain_1_short_circuit_protection_arc_flash PASSED [ 52%]
-<a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>tests/test_m6_integration_acceptance.py::TestM6ThreeCanonicalChains::test_chain_2_load_flow_opf_verify_load_flow PASSED [ 55%]
-<a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>tests/test_m6_integration_acceptance.py::TestM6ThreeCanonicalChains::test_chain_3_harmonics_filter_optimization_verify_harmonics PASSED [ 58%]
-<a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>tests/test_m6_integration_acceptance.py::TestM6ThreeCanonicalChains::test_chain_failure_cascade_aborts_downstream PASSED [ 61%]
-<a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>tests/test_m6_integration_acceptance.py::TestM6PSOFourGatesNegativeRejection::test_pso_gate_1_placement_voltage_violation_rejected PASSED [ 64%]
-<a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>tests/test_m6_integration_acceptance.py::TestM6PSOFourGatesNegativeRejection::test_pso_gate_2_harmonic_filter_thd_violation_rejected PASSED [ 67%]
-<a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>tests/test_m6_integration_acceptance.py::TestM6PSOFourGatesNegativeRejection::test_pso_gate_3_protection_coordination_margin_violation_rejected PASSED [ 70%]
-<a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>tests/test_m6_integration_acceptance.py::TestM6PSOFourGatesNegativeRejection::test_pso_gate_4_ac_opf_infeasibility_rejected PASSED [ 73%]
-<a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a>tests/test_m6_integration_acceptance.py::TestM6AbsenceOfGenericFallback::test_raw_llm_fallback_guard_zero_violations PASSED [ 76%]
-<a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a>tests/test_m6_integration_acceptance.py::TestM6AbsenceOfGenericFallback::test_specialized_execution_unavailable_fail_closed PASSED [ 79%]
-<a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a>tests/test_m6_integration_acceptance.py::TestM6FailClosedRejectedPropagation::test_workflow_engine_rejection_marks_downstream_skipped PASSED [ 82%]
-<a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a>tests/test_m6_integration_acceptance.py::TestM6ContextFabricTenantIsolation::test_context_fabric_query_without_tenant_raises_isolation_error PASSED [ 85%]
-<a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a>tests/test_m6_integration_acceptance.py::TestM6ContextFabricTenantIsolation::test_context_evidence_mandatory_fields_and_hash PASSED [ 88%]
-<a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a>tests/test_m6_integration_acceptance.py::TestM6ContextFabricTenantIsolation::test_context_fabric_cross_tenant_isolation PASSED [ 91%]
-<a id="__codelineno-0-38" name="__codelineno-0-38" href="#__codelineno-0-38"></a>tests/test_m6_integration_acceptance.py::TestM6CUAGovernanceAndApprovals::test_cua_control_mode_requires_affirmative_approval PASSED [ 94%]
-<a id="__codelineno-0-39" name="__codelineno-0-39" href="#__codelineno-0-39"></a>tests/test_m6_integration_acceptance.py::TestM6CUAGovernanceAndApprovals::test_cua_post_action_verification_failure_triggers_auto_rollback PASSED [ 94%]
-<a id="__codelineno-0-40" name="__codelineno-0-40" href="#__codelineno-0-40"></a>tests/test_m6_integration_acceptance.py::TestM6CUAGovernanceAndApprovals::test_cua_coordinate_bounds_violation_aborts_before_action PASSED [ 97%]
-<a id="__codelineno-0-41" name="__codelineno-0-41" href="#__codelineno-0-41"></a>tests/test_m6_integration_acceptance.py::TestM6FullLifecycleIntentToProvenance::test_complete_lifecycle_intent_plan_dag_execution_assertions_evidence_provenance PASSED [100%]
-<a id="__codelineno-0-42" name="__codelineno-0-42" href="#__codelineno-0-42"></a>
-<a id="__codelineno-0-43" name="__codelineno-0-43" href="#__codelineno-0-43"></a>============================= 35 passed in 52.57s =============================
+<h2 id="4-test-battery-execution-evidence">4. Test Battery Execution Evidence</h2>
+<h3 id="41-collect-only-verification-35-items">4.1 Collect-Only Verification (35 Items)</h3>
+<p>Command executed:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>py<span class="w"> </span>-3.12<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/test_m6_integration_acceptance.py<span class="w"> </span>--collect-only<span class="w"> </span>-q
 </code></pre></div>
+Verbatim collection summary:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>35 tests collected in 2.16s
+</code></pre></div></p>
+<h3 id="42-full-execution-output">4.2 Full Execution Output</h3>
+<p>Command executed:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>py<span class="w"> </span>-3.12<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/test_m6_integration_acceptance.py<span class="w"> </span>-q
+</code></pre></div>
+Verbatim execution result:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>============================= test session starts =============================
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>platform win32 -- Python 3.12.10, pytest-8.3.4, pluggy-1.6.0
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>rootdir: C:\Users\EWS-01\Desktop\etap
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>configfile: pyproject.toml
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>plugins: anyio-4.13.0, Faker-40.23.0, hypothesis-6.124.7, langsmith-0.8.15, asyncio-0.25.2, base-url-2.1.0, cov-6.0.0, playwright-0.9.0, timeout-2.3.1, xdist-3.6.1, respx-0.23.1
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>asyncio: mode=Mode.AUTO, asyncio_default_fixture_loop_scope=function
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>collected 35 items
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>tests\test_m6_integration_acceptance.py ................................ [ 91%]
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>...                                                                      [100%]
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>
+<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>======================== 35 passed in 80.13s (0:01:20) ========================
+</code></pre></div></p>
+<h3 id="43-runtime-environment-deprecation-risk-disclosure">4.3 Runtime Environment &amp; Deprecation Risk Disclosure</h3>
+<ul>
+<li><strong>Execution Runtime</strong>: Verified under Python 3.12.10 (64-bit Windows).</li>
+<li><strong>Environment Risk Warning</strong>: The default <code>python</code> executable in PATH resolves to Python 3.8.4 (<code>D:\ETAP21\ThirdParty\Python\Python384\python.exe</code>), which is End-Of-Life (EOL) and triggers deprecation warnings from upstream libraries (e.g., <code>cryptography</code>).</li>
+<li><strong>Mitigation Requirement</strong>: All developers and CI jobs MUST invoke Python via <code>py -3.12</code> or explicitly activate a Python &gt;= 3.12 virtual environment as mandated by <code>pyproject.toml</code> (<code>requires-python = "&gt;=3.12"</code>).</li>
+</ul>
 <hr />
 <h2 id="5-engineering-standards-industrial-criteria-enforced">5. Engineering Standards &amp; Industrial Criteria Enforced</h2>
-<p>The complete integration battery validates compliance across authoritative industry standards:
-- <strong>IEEE 3002.7</strong>: Recommended Practice for Conducting Load-Flow Studies and Analysis of Industrial and Commercial Power Systems.
-- <strong>IEC 60909</strong>: Short-circuit currents in three-phase a.c. systems. Calculation of factors and thermal/mechanical stresses.
-- <strong>IEEE 1584-2018</strong>: Guide for Performing Arc-Flash Hazard Calculations. Standardized working distances and incident energy boundaries.
-- <strong>IEC 60255 / IEEE C37.90</strong>: Measuring relays and protection equipment. Discrimination margins ($t_{margin} \ge 0.20\,\text{s}$).
-- <strong>IEEE C84.1</strong>: Electric Power Systems and Equipment — Voltage Ratings (60 Hz). Enforces Range A and Range B limits.
-- <strong>IEEE 519</strong>: Standard for Harmonic Control in Electric Power Systems. Maximum allowable THD ($THD_V \le 5.0\%$).
-- <strong>IEC 60364</strong>: Low-voltage electrical installations — cable sizing and thermal ampacity limits.
-- <strong>IEC 62351</strong>: Power systems management and associated information exchange — Data and communications security (Dual-control Maker-Checker).</p>
+<ul>
+<li><strong>IEEE 3002.7</strong>: Load flow analysis, convergence tolerances, and line rating enforcement.</li>
+<li><strong>IEC 60909</strong>: Calculation of short-circuit currents and initial symmetrical fault powers.</li>
+<li><strong>IEEE 1584-2018</strong>: Arc-flash hazard distance, electrode configuration, and incident energy boundaries.</li>
+<li><strong>IEC 60255 / IEEE C37.90</strong>: Relay operating curves and minimum grading margin ($t_{margin} \ge 0.20\,\text{s}$).</li>
+<li><strong>IEEE C84.1</strong>: Service voltage range constraints (Range A: $\pm 5\%$, Range B: $+5.8\%/-8.3\%$).</li>
+<li><strong>IEEE 519</strong>: Total Harmonic Distortion limits ($THD_V \le 5.0\%$).</li>
+<li><strong>IEC 60364</strong>: Low-voltage cable ampacity, grouping factors, and voltage drop limits.</li>
+<li><strong>IEC 62351</strong>: Dual-control Maker-Checker enforcement on protective switching commands.</li>
+<li><strong>NFPA 70E</strong>: Arc flash PPE categorization and manual-only verification for physical breaker operations.</li>
+</ul>
 <hr />
-<h2 id="6-conclusion-production-readiness">6. Conclusion &amp; Production Readiness</h2>
-<p>With Milestone M6 fully verified and merged via PR #639 (commit <code>04deae3ed5ebd0db80c039e6ed37488026d0a876</code>), all 19 reference architectural items across Milestones M0 through M6 are complete, verified, and permanently locked into <code>main</code>. The AhmedETAP transformation is 100% complete and production-certified.</p>
+<h2 id="6-production-readiness-closure-status">6. Production Readiness &amp; Closure Status</h2>
+<ul>
+<li><strong>Git Lineage &amp; PR Traceability</strong>:</li>
+<li>Pull Request #639 was merged historically at commit <code>04deae3ed</code> (<code>feat/ai-m6-integration-acceptance</code>).</li>
+<li>Subsequent governance remediations (Life Safety allowlist precedence, tenant isolation fail-closed enforcement, adaptive CPM default correction, and Meta-CI static reflection) are committed at commit <code>64df788d5</code> on branch <code>main</code>.</li>
+<li><strong>Working Tree State &amp; Certification Status</strong>:</li>
+<li>Branch: <code>feat/m6-docs-remediation-closure</code> (targeted for PR into <code>main</code>)</li>
+<li>Base Commit: <code>64df788d5</code></li>
+<li>Status: <strong>STAGED FOR PR SUBMISSION &amp; CLEAN MERGE (100% PASS)</strong>.</li>
+<li>All documentation remediations, link sanitizations, and the master index are packaged into this dedicated feature branch for pull request review and merge.</li>
+<li><strong>Remediation Package Contents</strong>:<ul>
+<li><code>docs/CONTEXT.md</code> (errata note on KV/Workers model)</li>
+<li><code>docs/ai-integration/README.md</code> (master index &amp; archive proposal)</li>
+<li><code>docs/ai-integration/m6-report.md</code> &amp; <code>acceptance-report.md</code> (forensic re-issues)</li>
+<li><code>docs/ai-integration/*.md</code> (absolute links converted to relative paths)</li>
+</ul>
+</li>
+<li><strong>Leak Prevention &amp; Infrastructure Isolation</strong>:</li>
+<li>The branch protection backup file (<code>docs/security/etap-main-protection-backup.json</code>) represents an administrative infrastructure snapshot and MUST be excluded from public releases.</li>
+<li>Adding <code>.gitignore</code> exclusion for <code>*protection-backup.json</code> and <code>docs/security/*backup.json</code> is formally recommended prior to production package deployment.</li>
+</ul>
+<hr />
+<h2 id="7-verification-appendix-verbatim-outputs">7. Verification Appendix (Verbatim Outputs)</h2>
+<h3 id="command-1-study-dispatch-enumeration">Command 1: Study Dispatch Enumeration</h3>
+<p><div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>py<span class="w"> </span>-3.12<span class="w"> </span>-c<span class="w"> </span><span class="s2">"import engine.dispatch as d; print(len(d.STUDY_DISPATCH)); print(sorted(d.STUDY_DISPATCH.keys()))"</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>20
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>['ahmed_etap_orchestration', 'arc_flash', 'battery_storage', 'breaker_duty', 'cable_sizing', 'digital_twin', 'earth_grid', 'etap_expert', 'etap_gui', 'generative_design', 'harmonic_analysis', 'load_flow', 'motor_starting', 'optimal_power_flow', 'optimization', 'protection_coordination', 'renewable_integration', 'scada', 'short_circuit', 'transient_stability']
+</code></pre></div></p>
+<h3 id="command-2-agent-registry-keys-namespace-parity">Command 2: Agent Registry Keys &amp; Namespace Parity</h3>
+<p><div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>py<span class="w"> </span>-3.12<span class="w"> </span>-c<span class="w"> </span><span class="s2">"from agents.registry import create_agent_registry,CANONICAL_AGENT_KEYS; r=create_agent_registry(); print(len(r), len(CANONICAL_AGENT_KEYS))"</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>30 27
+</code></pre></div>
+<em>(30 active dictionary keys = 27 canonical keys + 3 aliases: <code>harmonic</code>, <code>opf</code>, <code>protection</code>)</em></p>
+<h3 id="command-3-dynamic-reachability-reflection-script">Command 3: Dynamic Reachability Reflection Script</h3>
+<p><div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>cmd<span class="w"> </span>/c<span class="w"> </span><span class="s2">"py -3.12 scripts/maintenance/verify_agents.py &amp;&amp; echo EXIT:0 || echo EXIT:1"</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>============================================================
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>AhmedETAP M6.2 Agent Registry &amp; Reachability Reflection Gate
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>============================================================
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>[SUCCESS - DYNAMIC REFLECTION] All 27 canonical agents (+3 aliases) and all 20 STUDY_DISPATCH entries dynamically reflected and verified across dual execution ports.
+<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>EXIT:0
+</code></pre></div></p>
+<h3 id="command-4-meta-ci-workflows-invariant-gatekeeper">Command 4: Meta-CI Workflows &amp; Invariant Gatekeeper</h3>
+<p><div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>cmd<span class="w"> </span>/c<span class="w"> </span><span class="s2">"py -3.12 scripts/check_workflows_meta.py &amp;&amp; echo EXIT:0 || echo EXIT:1"</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>[M2.4] Unified Registry Integrity Guard: CLEAN
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>[M4.3] Raw-LLM Fallback Guard: CLEAN
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>[M6.2/M6.3] Dynamic Agent Reachability Gate: VERIFIED
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>[OK] All 50 GitHub Actions workflows comply with Meta-CI standards.
+<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>EXIT:0
+</code></pre></div></p>
+<h3 id="command-5-file-test-count-audit">Command 5: File &amp; Test Count Audit</h3>
+<p><div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="nb">Get-ChildItem</span> <span class="n">tests</span><span class="p">/</span><span class="n">test_</span><span class="p">*.</span><span class="n">py</span> <span class="p">|</span> <span class="nb">Measure-Object</span><span class="p">;</span> <span class="nb">Get-ChildItem</span> <span class="n">docs</span> <span class="n">-Recurse</span> <span class="n">-Filter</span> <span class="p">*.</span><span class="nb">md </span><span class="p">|</span> <span class="nb">Measure-Object</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>Count    : 220 (tests/test_*.py top-level)
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>Count    : 259 (docs/**/*.md total)
+</code></pre></div>
+<em>(Note: Recursive search across all subdirectories yields 251 <code>test_*.py</code> files and 265 total Python modules in <code>tests/</code>, explaining historical reference variations).</em></p>
 
 
 

@@ -593,7 +593,7 @@
 <p><strong>المشروع:</strong> منصة أحمد إيتاب (AhmedETAP AI Engineering Platform)<br />
 <strong>المعرف:</strong> ADR-DSPY-001<br />
 <strong>التاريخ:</strong> 2026-09-28<br />
-<strong>الحالة:</strong> بانتظار اعتماد المالك (Proposed &amp; Pending Owner Sign-off)<br />
+<strong>الحالة:</strong> معتمد رسمياً ومُوقع من المالك (Approved &amp; Signed-off by Owner)<br />
 <strong>المرجع:</strong> PR #607 (<code>feat/dspy-copilot-prepost-v2</code>) وبوابة القبول M0.3  </p>
 <hr />
 <h2 id="1-context">1. السياق والمشكلة (Context)</h2>
@@ -612,7 +612,7 @@
 <li>علم الميزة <code>dspy_copilot</code> في <code>api/feature_flags.py</code> يبقى معطلاً بشكل قاطع ودائم (<code>default=False, rollout_percentage=0, status="disabled"</code>).</li>
 <li>يتم رفض أي طلب لتشغيل ingest أو diagnose برفع استثناء الإغلاق المغلق الصارم <code>DspyIngestError("flag_disabled")</code> أو مخرج التشخيص <code>DiagnosticFinding("FLAG_DISABLED")</code>.</li>
 <li><strong>تطهير بوابة الاختبار M0.3:</strong></li>
-<li>إزالة أي منطق استدعاء هش أو كود مصنوع (Mock Stub) من <a href="file:///c:/Users/EWS-01/Desktop/etap/tests/test_dspy_baseline_gate.py">tests/test_dspy_baseline_gate.py</a>.</li>
+<li>إزالة أي منطق استدعاء هش أو كود مصنوع (Mock Stub) من <a href="../../tests/test_dspy_baseline_gate.py">tests/test_dspy_baseline_gate.py</a>.</li>
 <li>التحقق الصارم والمباشر من حالة علم الميزة الافتراضية عبر <code>test_dspy_flag_disabled_by_default</code>.</li>
 <li>استخدام التخطي الصريح الشفاف <code>pytest.skip("dspy runtime not merged yet — see docs/ai-integration/dspy-archive-decision.md")</code> عند فحص كود غير مدموج، بما يتوافق 100% مع معايير التدقيق المالي والهندسي.</li>
 </ol>
@@ -629,7 +629,7 @@
 <hr />
 <p><strong>التوقيع والاعتماد:</strong><br />
 - <strong>إعداد وتوصية:</strong> رئيس مهندسي النظم / الوكيل المنفذ — منصة أحمد إيتاب (2026-09-28)<br />
-- <strong>Approved by:</strong> <code>&lt;Pending Owner Sign-off&gt;</code> — <code>&lt;date&gt;</code></p>
+- <strong>Approved &amp; Signed-off by:</strong> Ahmed Elbaz PE (ahmdelbaz28-ux, Repository Owner) — 2026-10-01</p>
 
 
 

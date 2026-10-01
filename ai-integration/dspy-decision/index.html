@@ -702,7 +702,7 @@
 <blockquote>
 <p>[!IMPORTANT]
 <strong>SUPERSEDED BY ADR-DSPY-001 (<code>docs/ai-integration/dspy-archive-decision.md</code>)</strong><br />
-تم استبدال هذا المقترح وقرار دمج فرع <code>v2</code> رسمياً بقرار الأرشفة الصادر في 2026-09-28 (<a href="file:///c:/Users/EWS-01/Desktop/etap/docs/ai-integration/dspy-archive-decision.md">ADR-DSPY-001</a>). مسار DSPy Copilot ومسودة PR #607 تمت أرشفتها كمسار بحثي/تجريبي، مع الإبقاء على علم الميزة <code>dspy_copilot</code> معطلاً بشكل دائم ومغلق (Strictly Fail-Closed: <code>default=False, rollout=0%</code>) ودون دمجه في النواة التنفيذية لـ M1–M3.</p>
+تم استبدال هذا المقترح وقرار دمج فرع <code>v2</code> رسمياً بقرار الأرشفة الصادر في 2026-09-28 (<a href="../dspy-archive-decision/">ADR-DSPY-001</a>). مسار DSPy Copilot ومسودة PR #607 تمت أرشفتها كمسار بحثي/تجريبي، مع الإبقاء على علم الميزة <code>dspy_copilot</code> معطلاً بشكل دائم ومغلق (Strictly Fail-Closed: <code>default=False, rollout=0%</code>) ودون دمجه في النواة التنفيذية لـ M1–M3.</p>
 </blockquote>
 <hr />
 <h2 id="1-v2-adr-dspy-001">1. القرار المحسوم (التاريخي — تم الاستبدال بأرشفة v2 في ADR-DSPY-001)</h2>
@@ -760,7 +760,7 @@
    اعتماد كود <code>v2</code> ودمجه عبر <code>git merge --no-ff</code> للحفاظ على التاريخ النظيف وشجرة المراجعة.</li>
 <li><strong>الخطوة الثانية (إعادة التشكيل):</strong>
    إعادة تموضع (rebase) فرع <code>fix/study-executor-study-type-gate</code> فوق رأس فرع <code>v2</code> المدمج، بدلاً من دمجهما بالتوازي.</li>
-<li><strong>السبب:</strong> فرع <code>fix</code> يعدل <a href="file:///c:/Users/EWS-01/Desktop/etap/services/study_executor.py">services/study_executor.py</a> واختباراته <a href="file:///c:/Users/EWS-01/Desktop/etap/tests/test_study_executor_deep.py">tests/test_study_executor_deep.py</a>. بينما فرع <code>v2</code> تجنب لمس <code>services/study_executor.py</code> واعتمد على المغلف المستقل <a href="file:///c:/Users/EWS-01/Desktop/etap/services/study_executor_copilot.py">services/study_executor_copilot.py</a>.</li>
+<li><strong>السبب:</strong> فرع <code>fix</code> يعدل <a href="../../services/study_executor.py">services/study_executor.py</a> واختباراته <a href="../../tests/test_study_executor_deep.py">tests/test_study_executor_deep.py</a>. بينما فرع <code>v2</code> تجنب لمس <code>services/study_executor.py</code> واعتمد على المغلف المستقل <a href="../../services/study_executor_copilot.py">services/study_executor_copilot.py</a>.</li>
 <li>هذا الفصل يضمن انعدام التعارض النصي أثناء الدمج.</li>
 </ol>
 <hr />
@@ -769,7 +769,7 @@
 <h3 id="1-run_ingest">1. سلوك <code>run_ingest</code> عند تعطيل العلم:</h3>
 <ul>
 <li><strong>السلوك:</strong> يلقي استثناء <code>DspyIngestError("flag_disabled")</code> ولا ينتج أبداً أي مواصفة شبكة أو كود تنفيذي.</li>
-<li><strong>الشاهد الصريح:</strong> في <a href="file:///c:/Users/EWS-01/Desktop/etap/services/dspy_copilot/runtime.py#L131-L133">services/dspy_copilot/runtime.py:131-133</a>:
+<li><strong>الشاهد الصريح:</strong> في <a href="../../services/dspy_copilot/runtime.py#L131-L133">services/dspy_copilot/runtime.py:131-133</a>:
   <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># Contract: run_ingest raises DspyIngestError on flag_disabled (fail-closed, never produces executable spec)</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="k">if</span> <span class="ow">not</span> <span class="n">is_enabled</span><span class="p">():</span>
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="k">raise</span> <span class="n">DspyIngestError</span><span class="p">(</span><span class="s2">"flag_disabled"</span><span class="p">)</span>
@@ -779,7 +779,7 @@
 <ul>
 <li><strong>السلوك:</strong> يعيد كائن تشخيص يحتوي على <code>code="FLAG_DISABLED"</code> مع رسالة واضحة دون أي استدعاء لنموذج الذكاء الاصطناعي (Graceful Degrade).</li>
 <li>
-<p><strong>الشاهد الصريح:</strong> في <a href="file:///c:/Users/EWS-01/Desktop/etap/services/dspy_copilot/runtime.py#L202-L214">services/dspy_copilot/runtime.py:202-214</a>:
+<p><strong>الشاهد الصريح:</strong> في <a href="../../services/dspy_copilot/runtime.py#L202-L214">services/dspy_copilot/runtime.py:202-214</a>:
   <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># Contract: run_diagnose returns DiagnosticOutput with code=FLAG_DISABLED on flag_disabled (graceful degrade)</span>
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="k">if</span> <span class="ow">not</span> <span class="n">is_enabled</span><span class="p">():</span>
 <a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>    <span class="k">return</span> <span class="n">DiagnosticOutput</span><span class="p">(</span>
@@ -799,7 +799,7 @@
 </code></pre></div></p>
 </li>
 <li>
-<p><strong>فحص الاسم التاريخي "RC-1":</strong> كما نبهت التعليمات، تم التأكد بالبحث أن نص "RC-1" غير موجود، وأن الاختبار يستند للسلوك الحقيقي المبرهن أعلاه والموثق في <a href="file:///c:/Users/EWS-01/Desktop/etap/tests/test_dspy_fallback.py#L46-L70">tests/test_dspy_fallback.py:46-70</a>.</p>
+<p><strong>فحص الاسم التاريخي "RC-1":</strong> كما نبهت التعليمات، تم التأكد بالبحث أن نص "RC-1" غير موجود، وأن الاختبار يستند للسلوك الحقيقي المبرهن أعلاه والموثق في <a href="../../tests/test_dspy_fallback.py#L46-L70">tests/test_dspy_fallback.py:46-70</a>.</p>
 </li>
 </ul>
 <hr />

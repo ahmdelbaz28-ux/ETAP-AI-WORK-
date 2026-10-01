@@ -653,29 +653,29 @@
 <strong>الحالة:</strong> معتمد جنائياً ومثبت كودياً (صفر تخمين — Zero Hallucination)</p>
 <hr />
 <h2 id="1-11">1. ملخص العد والتحقق الجنائي التمهيدي (الخطوة 1.1)</h2>
-<p>تم التحقق من الحجم الفعلي لجدول الإرسال الموحد <code>STUDY_DISPATCH</code> في <a href="file:///c:/Users/EWS-01/Desktop/etap/engine/dispatch.py">engine/dispatch.py</a> عبر الأمر:
+<p>تم التحقق من الحجم الفعلي لجدول الإرسال الموحد <code>STUDY_DISPATCH</code> في <a href="../../engine/dispatch.py">engine/dispatch.py</a> عبر الأمر:
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>python<span class="w"> </span>-c<span class="w"> </span><span class="s2">"import engine.dispatch as d; print('len:', len(d.STUDY_DISPATCH))"</span>
 </code></pre></div>
 * <strong>المخرج الحرفي للتحقق:</strong> <code>len: 20</code>.
 * <strong>العدد الفعلي:</strong> <strong>20 مدخلاً بالضبط</strong>.</p>
-<h3 id="20-enginedispatchpy99-170">هيكل بناء الـ 20 مدخلاً في <a href="file:///c:/Users/EWS-01/Desktop/etap/engine/dispatch.py#L99-L170">engine/dispatch.py:99-170</a>:</h3>
+<h3 id="20-enginedispatchpy99-170">هيكل بناء الـ 20 مدخلاً في <a href="../../engine/dispatch.py#L99-L170">engine/dispatch.py:99-170</a>:</h3>
 <ol>
-<li><strong>4 دراسات أصلية (native):</strong> <code>load_flow</code>, <code>short_circuit</code>, <code>arc_flash</code>, <code>protection_coordination</code> (مسندة إلى دوال <a href="file:///c:/Users/EWS-01/Desktop/etap/engine/engine.py#L434">PowerSystemEngine</a>).</li>
-<li><strong>12 دراسة وكلاء (agent):</strong> مشتقة من <code>STUDY_TYPE_AGENT_MAP</code> في <a href="file:///c:/Users/EWS-01/Desktop/etap/agents/__init__.py#L80-L97">agents/<strong>init</strong>.py:80-97</a> (بعد استثناء الـ 4 الأصلية):
+<li><strong>4 دراسات أصلية (native):</strong> <code>load_flow</code>, <code>short_circuit</code>, <code>arc_flash</code>, <code>protection_coordination</code> (مسندة إلى دوال <a href="../../engine/engine.py#L434">PowerSystemEngine</a>).</li>
+<li><strong>12 دراسة وكلاء (agent):</strong> مشتقة من <code>STUDY_TYPE_AGENT_MAP</code> في <a href="../../agents/__init__.py#L80-L97">agents/<strong>init</strong>.py:80-97</a> (بعد استثناء الـ 4 الأصلية):
    <code>harmonic_analysis</code>, <code>optimal_power_flow</code>, <code>motor_starting</code>, <code>transient_stability</code>, <code>cable_sizing</code>, <code>earth_grid</code>, <code>renewable_integration</code>, <code>battery_storage</code>, <code>scada</code>, <code>digital_twin</code>, <code>etap_expert</code>, <code>etap_gui</code>.</li>
 <li><strong>4 دراسات مضافة صراحة في نهاية الدالة <code>_build_dispatch()</code>:</strong></li>
-<li><code>ahmed_etap_orchestration</code> (<a href="file:///c:/Users/EWS-01/Desktop/etap/engine/dispatch.py#L149">engine/dispatch.py:149</a>): نوعها <code>external</code> مسندة إلى <code>AhmedETAPSkillAgent</code>.</li>
-<li><code>optimization</code> (<a href="file:///c:/Users/EWS-01/Desktop/etap/engine/dispatch.py#L155">engine/dispatch.py:155</a>): نوعها <code>external</code> مسندة إلى <code>OptimizationAgent</code>.</li>
-<li><code>generative_design</code> (<a href="file:///c:/Users/EWS-01/Desktop/etap/engine/dispatch.py#L161">engine/dispatch.py:161</a>): نوعها <code>agent</code> مسندة إلى <code>agents.design_agent.DesignAgent</code>.</li>
-<li><code>breaker_duty</code> (<a href="file:///c:/Users/EWS-01/Desktop/etap/engine/dispatch.py#L167">engine/dispatch.py:167</a>): نوعها <code>external</code> مسندة إلى <code>breaker_duty.evaluator.BreakerDutyEvaluator</code>.</li>
+<li><code>ahmed_etap_orchestration</code> (<a href="../../engine/dispatch.py#L149">engine/dispatch.py:149</a>): نوعها <code>external</code> مسندة إلى <code>AhmedETAPSkillAgent</code>.</li>
+<li><code>optimization</code> (<a href="../../engine/dispatch.py#L155">engine/dispatch.py:155</a>): نوعها <code>external</code> مسندة إلى <code>OptimizationAgent</code>.</li>
+<li><code>generative_design</code> (<a href="../../engine/dispatch.py#L161">engine/dispatch.py:161</a>): نوعها <code>agent</code> مسندة إلى <code>agents.design_agent.DesignAgent</code>.</li>
+<li><code>breaker_duty</code> (<a href="../../engine/dispatch.py#L167">engine/dispatch.py:167</a>): نوعها <code>external</code> مسندة إلى <code>breaker_duty.evaluator.BreakerDutyEvaluator</code>.</li>
 </ol>
 <hr />
 <h2 id="2-20-12">2. جدول إمكانية الوصول والتصنيف الجنائي للـ 20 مدخلاً (الخطوة 1.2)</h2>
 <p>يوثق هذا الجدول إمكانية الوصول الفعلية لكل مدخل من الـ 20 عبر المنافذ الأربعة الرئيسية في النظام:
-1. <code>study_executor</code>: <a href="file:///c:/Users/EWS-01/Desktop/etap/services/study_executor.py#L390-L536">services/study_executor.py:390-536</a>
-2. <code>study_service</code>: <a href="file:///c:/Users/EWS-01/Desktop/etap/services/study_service.py#L232-L285">services/study_service.py:232-285</a>
-3. <code>shim engine.py</code>: <a href="file:///c:/Users/EWS-01/Desktop/etap/engine/engine.py#L49-L60">engine/engine.py:49-60, 460-464</a>
-4. <code>shared_handlers</code>: <a href="file:///c:/Users/EWS-01/Desktop/etap/api/shared_handlers.py#L593-L785">api/shared_handlers.py:593-785</a></p>
+1. <code>study_executor</code>: <a href="../../services/study_executor.py#L390-L536">services/study_executor.py:390-536</a>
+2. <code>study_service</code>: <a href="../../services/study_service.py#L232-L285">services/study_service.py:232-285</a>
+3. <code>shim engine.py</code>: <a href="../../engine/engine.py#L49-L60">engine/engine.py:49-60, 460-464</a>
+4. <code>shared_handlers</code>: <a href="../../api/shared_handlers.py#L593-L785">api/shared_handlers.py:593-785</a></p>
 <p>قيم التصنيف المعتمدة حصراً:
 * <code>REACHABLE</code>: شاهد file:line يثبت استدعاءً وتنفيذاً فعلياً.
 * <code>UNREACHABLE</code>: شاهد file:line يثبت raise مبكر أو كوداً ميتاً.
@@ -707,7 +707,7 @@
 <td>REACHABLE</td>
 <td>REACHABLE</td>
 <td>REACHABLE</td>
-<td><a href="file:///c:/Users/EWS-01/Desktop/etap/services/study_executor.py#L440">study_executor.py:440</a>, <a href="file:///c:/Users/EWS-01/Desktop/etap/services/study_service.py#L243">study_service.py:243</a>, <a href="file:///c:/Users/EWS-01/Desktop/etap/engine/engine.py#L50">engine.py:50</a>, <a href="file:///c:/Users/EWS-01/Desktop/etap/api/shared_handlers.py#L716">shared_handlers.py:716</a></td>
+<td><a href="../../services/study_executor.py#L440">study_executor.py:440</a>, <a href="../../services/study_service.py#L243">study_service.py:243</a>, <a href="../../engine/engine.py#L50">engine.py:50</a>, <a href="../../api/shared_handlers.py#L716">shared_handlers.py:716</a></td>
 </tr>
 <tr>
 <td>2</td>
@@ -719,7 +719,7 @@
 <td>REACHABLE</td>
 <td>UNREACHABLE</td>
 <td>REACHABLE</td>
-<td><a href="file:///c:/Users/EWS-01/Desktop/etap/services/study_executor.py#L445">study_executor.py:445</a>, <a href="file:///c:/Users/EWS-01/Desktop/etap/services/study_service.py#L248">study_service.py:248</a>, <a href="file:///c:/Users/EWS-01/Desktop/etap/engine/engine.py#L51">engine.py:51</a>, <a href="file:///c:/Users/EWS-01/Desktop/etap/api/shared_handlers.py#L782">shared_handlers.py:782</a></td>
+<td><a href="../../services/study_executor.py#L445">study_executor.py:445</a>, <a href="../../services/study_service.py#L248">study_service.py:248</a>, <a href="../../engine/engine.py#L51">engine.py:51</a>, <a href="../../api/shared_handlers.py#L782">shared_handlers.py:782</a></td>
 </tr>
 <tr>
 <td>3</td>
@@ -731,7 +731,7 @@
 <td>REACHABLE</td>
 <td>UNREACHABLE</td>
 <td>REACHABLE</td>
-<td><a href="file:///c:/Users/EWS-01/Desktop/etap/services/study_executor.py#L455">study_executor.py:455</a>, <a href="file:///c:/Users/EWS-01/Desktop/etap/services/study_service.py#L257">study_service.py:257</a>, <a href="file:///c:/Users/EWS-01/Desktop/etap/engine/engine.py#L56">engine.py:56</a>, <a href="file:///c:/Users/EWS-01/Desktop/etap/api/shared_handlers.py#L782">shared_handlers.py:782</a></td>
+<td><a href="../../services/study_executor.py#L455">study_executor.py:455</a>, <a href="../../services/study_service.py#L257">study_service.py:257</a>, <a href="../../engine/engine.py#L56">engine.py:56</a>, <a href="../../api/shared_handlers.py#L782">shared_handlers.py:782</a></td>
 </tr>
 <tr>
 <td>4</td>
@@ -743,7 +743,7 @@
 <td>REACHABLE</td>
 <td>UNREACHABLE</td>
 <td>REACHABLE</td>
-<td><a href="file:///c:/Users/EWS-01/Desktop/etap/services/study_executor.py#L467">study_executor.py:467</a>, <a href="file:///c:/Users/EWS-01/Desktop/etap/services/study_service.py#L278">study_service.py:278</a>, <a href="file:///c:/Users/EWS-01/Desktop/etap/engine/engine.py#L52">engine.py:52</a>, <a href="file:///c:/Users/EWS-01/Desktop/etap/api/shared_handlers.py#L782">shared_handlers.py:782</a></td>
+<td><a href="../../services/study_executor.py#L467">study_executor.py:467</a>, <a href="../../services/study_service.py#L278">study_service.py:278</a>, <a href="../../engine/engine.py#L52">engine.py:52</a>, <a href="../../api/shared_handlers.py#L782">shared_handlers.py:782</a></td>
 </tr>
 <tr>
 <td>5</td>
@@ -755,7 +755,7 @@
 <td>UNREACHABLE</td>
 <td>UNREACHABLE</td>
 <td>UNREACHABLE</td>
-<td><a href="file:///c:/Users/EWS-01/Desktop/etap/services/study_executor.py#L535">study_executor.py:535</a>, <a href="file:///c:/Users/EWS-01/Desktop/etap/services/study_service.py#L284">study_service.py:284</a>, <a href="file:///c:/Users/EWS-01/Desktop/etap/engine/engine.py#L462">engine.py:462</a>, <a href="file:///c:/Users/EWS-01/Desktop/etap/api/shared_handlers.py#L782">shared_handlers.py:782</a></td>
+<td><a href="../../services/study_executor.py#L535">study_executor.py:535</a>, <a href="../../services/study_service.py#L284">study_service.py:284</a>, <a href="../../engine/engine.py#L462">engine.py:462</a>, <a href="../../api/shared_handlers.py#L782">shared_handlers.py:782</a></td>
 </tr>
 <tr>
 <td>6</td>
@@ -767,7 +767,7 @@
 <td>UNREACHABLE</td>
 <td>UNREACHABLE</td>
 <td>UNREACHABLE</td>
-<td><a href="file:///c:/Users/EWS-01/Desktop/etap/services/study_executor.py#L535">study_executor.py:535</a>, <a href="file:///c:/Users/EWS-01/Desktop/etap/services/study_service.py#L284">study_service.py:284</a>, <a href="file:///c:/Users/EWS-01/Desktop/etap/engine/engine.py#L462">engine.py:462</a>, <a href="file:///c:/Users/EWS-01/Desktop/etap/api/shared_handlers.py#L782">shared_handlers.py:782</a></td>
+<td><a href="../../services/study_executor.py#L535">study_executor.py:535</a>, <a href="../../services/study_service.py#L284">study_service.py:284</a>, <a href="../../engine/engine.py#L462">engine.py:462</a>, <a href="../../api/shared_handlers.py#L782">shared_handlers.py:782</a></td>
 </tr>
 <tr>
 <td>7</td>
@@ -779,7 +779,7 @@
 <td>UNREACHABLE</td>
 <td>UNREACHABLE</td>
 <td>UNREACHABLE</td>
-<td><a href="file:///c:/Users/EWS-01/Desktop/etap/services/study_executor.py#L535">study_executor.py:535</a>, <a href="file:///c:/Users/EWS-01/Desktop/etap/services/study_service.py#L284">study_service.py:284</a>, <a href="file:///c:/Users/EWS-01/Desktop/etap/engine/engine.py#L462">engine.py:462</a>, <a href="file:///c:/Users/EWS-01/Desktop/etap/api/shared_handlers.py#L782">shared_handlers.py:782</a></td>
+<td><a href="../../services/study_executor.py#L535">study_executor.py:535</a>, <a href="../../services/study_service.py#L284">study_service.py:284</a>, <a href="../../engine/engine.py#L462">engine.py:462</a>, <a href="../../api/shared_handlers.py#L782">shared_handlers.py:782</a></td>
 </tr>
 <tr>
 <td>8</td>
@@ -791,7 +791,7 @@
 <td>UNREACHABLE</td>
 <td>UNREACHABLE</td>
 <td>UNREACHABLE</td>
-<td><a href="file:///c:/Users/EWS-01/Desktop/etap/services/study_executor.py#L535">study_executor.py:535</a>, <a href="file:///c:/Users/EWS-01/Desktop/etap/services/study_service.py#L284">study_service.py:284</a>, <a href="file:///c:/Users/EWS-01/Desktop/etap/engine/engine.py#L462">engine.py:462</a>, <a href="file:///c:/Users/EWS-01/Desktop/etap/api/shared_handlers.py#L782">shared_handlers.py:782</a></td>
+<td><a href="../../services/study_executor.py#L535">study_executor.py:535</a>, <a href="../../services/study_service.py#L284">study_service.py:284</a>, <a href="../../engine/engine.py#L462">engine.py:462</a>, <a href="../../api/shared_handlers.py#L782">shared_handlers.py:782</a></td>
 </tr>
 <tr>
 <td>9</td>
@@ -803,7 +803,7 @@
 <td>UNREACHABLE</td>
 <td>UNREACHABLE</td>
 <td>UNREACHABLE</td>
-<td><a href="file:///c:/Users/EWS-01/Desktop/etap/services/study_executor.py#L535">study_executor.py:535</a>, <a href="file:///c:/Users/EWS-01/Desktop/etap/services/study_service.py#L284">study_service.py:284</a>, <a href="file:///c:/Users/EWS-01/Desktop/etap/engine/engine.py#L462">engine.py:462</a>, <a href="file:///c:/Users/EWS-01/Desktop/etap/api/shared_handlers.py#L782">shared_handlers.py:782</a></td>
+<td><a href="../../services/study_executor.py#L535">study_executor.py:535</a>, <a href="../../services/study_service.py#L284">study_service.py:284</a>, <a href="../../engine/engine.py#L462">engine.py:462</a>, <a href="../../api/shared_handlers.py#L782">shared_handlers.py:782</a></td>
 </tr>
 <tr>
 <td>10</td>
@@ -815,7 +815,7 @@
 <td>UNREACHABLE</td>
 <td>UNREACHABLE</td>
 <td>UNREACHABLE</td>
-<td><a href="file:///c:/Users/EWS-01/Desktop/etap/services/study_executor.py#L535">study_executor.py:535</a>, <a href="file:///c:/Users/EWS-01/Desktop/etap/services/study_service.py#L284">study_service.py:284</a>, <a href="file:///c:/Users/EWS-01/Desktop/etap/engine/engine.py#L462">engine.py:462</a>, <a href="file:///c:/Users/EWS-01/Desktop/etap/api/shared_handlers.py#L782">shared_handlers.py:782</a></td>
+<td><a href="../../services/study_executor.py#L535">study_executor.py:535</a>, <a href="../../services/study_service.py#L284">study_service.py:284</a>, <a href="../../engine/engine.py#L462">engine.py:462</a>, <a href="../../api/shared_handlers.py#L782">shared_handlers.py:782</a></td>
 </tr>
 <tr>
 <td>11</td>
@@ -827,7 +827,7 @@
 <td>UNREACHABLE</td>
 <td>UNREACHABLE</td>
 <td>UNREACHABLE</td>
-<td><a href="file:///c:/Users/EWS-01/Desktop/etap/services/study_executor.py#L535">study_executor.py:535</a>, <a href="file:///c:/Users/EWS-01/Desktop/etap/services/study_service.py#L284">study_service.py:284</a>, <a href="file:///c:/Users/EWS-01/Desktop/etap/engine/engine.py#L462">engine.py:462</a>, <a href="file:///c:/Users/EWS-01/Desktop/etap/api/shared_handlers.py#L782">shared_handlers.py:782</a></td>
+<td><a href="../../services/study_executor.py#L535">study_executor.py:535</a>, <a href="../../services/study_service.py#L284">study_service.py:284</a>, <a href="../../engine/engine.py#L462">engine.py:462</a>, <a href="../../api/shared_handlers.py#L782">shared_handlers.py:782</a></td>
 </tr>
 <tr>
 <td>12</td>
@@ -839,7 +839,7 @@
 <td>UNREACHABLE</td>
 <td>UNREACHABLE</td>
 <td>UNREACHABLE</td>
-<td><a href="file:///c:/Users/EWS-01/Desktop/etap/services/study_executor.py#L535">study_executor.py:535</a>, <a href="file:///c:/Users/EWS-01/Desktop/etap/services/study_service.py#L284">study_service.py:284</a>, <a href="file:///c:/Users/EWS-01/Desktop/etap/engine/engine.py#L462">engine.py:462</a>, <a href="file:///c:/Users/EWS-01/Desktop/etap/api/shared_handlers.py#L782">shared_handlers.py:782</a></td>
+<td><a href="../../services/study_executor.py#L535">study_executor.py:535</a>, <a href="../../services/study_service.py#L284">study_service.py:284</a>, <a href="../../engine/engine.py#L462">engine.py:462</a>, <a href="../../api/shared_handlers.py#L782">shared_handlers.py:782</a></td>
 </tr>
 <tr>
 <td>13</td>
@@ -851,7 +851,7 @@
 <td>UNREACHABLE</td>
 <td>UNREACHABLE</td>
 <td>UNREACHABLE</td>
-<td><a href="file:///c:/Users/EWS-01/Desktop/etap/services/study_executor.py#L535">study_executor.py:535</a>, <a href="file:///c:/Users/EWS-01/Desktop/etap/services/study_service.py#L284">study_service.py:284</a>, <a href="file:///c:/Users/EWS-01/Desktop/etap/engine/engine.py#L462">engine.py:462</a>, <a href="file:///c:/Users/EWS-01/Desktop/etap/api/shared_handlers.py#L782">shared_handlers.py:782</a></td>
+<td><a href="../../services/study_executor.py#L535">study_executor.py:535</a>, <a href="../../services/study_service.py#L284">study_service.py:284</a>, <a href="../../engine/engine.py#L462">engine.py:462</a>, <a href="../../api/shared_handlers.py#L782">shared_handlers.py:782</a></td>
 </tr>
 <tr>
 <td>14</td>
@@ -863,7 +863,7 @@
 <td>UNREACHABLE</td>
 <td>UNREACHABLE</td>
 <td>UNREACHABLE</td>
-<td><a href="file:///c:/Users/EWS-01/Desktop/etap/services/study_executor.py#L535">study_executor.py:535</a>, <a href="file:///c:/Users/EWS-01/Desktop/etap/services/study_service.py#L284">study_service.py:284</a>, <a href="file:///c:/Users/EWS-01/Desktop/etap/engine/engine.py#L462">engine.py:462</a>, <a href="file:///c:/Users/EWS-01/Desktop/etap/api/shared_handlers.py#L782">shared_handlers.py:782</a></td>
+<td><a href="../../services/study_executor.py#L535">study_executor.py:535</a>, <a href="../../services/study_service.py#L284">study_service.py:284</a>, <a href="../../engine/engine.py#L462">engine.py:462</a>, <a href="../../api/shared_handlers.py#L782">shared_handlers.py:782</a></td>
 </tr>
 <tr>
 <td>15</td>
@@ -875,7 +875,7 @@
 <td>UNREACHABLE</td>
 <td>REACHABLE</td>
 <td>REACHABLE</td>
-<td><a href="file:///c:/Users/EWS-01/Desktop/etap/services/study_executor.py#L478-L485">study_executor.py:478-485</a>, <a href="file:///c:/Users/EWS-01/Desktop/etap/api/shared_handlers.py#L621-L665">shared_handlers.py:621-665</a></td>
+<td><a href="../../services/study_executor.py#L478-L485">study_executor.py:478-485</a>, <a href="../../api/shared_handlers.py#L621-L665">shared_handlers.py:621-665</a></td>
 </tr>
 <tr>
 <td>16</td>
@@ -887,7 +887,7 @@
 <td>UNREACHABLE</td>
 <td>REACHABLE</td>
 <td>REACHABLE</td>
-<td><a href="file:///c:/Users/EWS-01/Desktop/etap/services/study_executor.py#L487-L494">study_executor.py:487-494</a>, <a href="file:///c:/Users/EWS-01/Desktop/etap/api/shared_handlers.py#L667-L714">shared_handlers.py:667-714</a></td>
+<td><a href="../../services/study_executor.py#L487-L494">study_executor.py:487-494</a>, <a href="../../api/shared_handlers.py#L667-L714">shared_handlers.py:667-714</a></td>
 </tr>
 <tr>
 <td>17</td>
@@ -899,7 +899,7 @@
 <td>UNREACHABLE</td>
 <td>UNREACHABLE</td>
 <td>EXTERNAL_ONLY</td>
-<td><a href="file:///c:/Users/EWS-01/Desktop/etap/engine/dispatch.py#L149">dispatch.py:149</a>, <a href="file:///c:/Users/EWS-01/Desktop/etap/services/study_executor.py#L426">study_executor.py:426</a>, <a href="file:///c:/Users/EWS-01/Desktop/etap/services/study_executor.py#L496-L533">study_executor.py:496-533</a></td>
+<td><a href="../../engine/dispatch.py#L149">dispatch.py:149</a>, <a href="../../services/study_executor.py#L426">study_executor.py:426</a>, <a href="../../services/study_executor.py#L496-L533">study_executor.py:496-533</a></td>
 </tr>
 <tr>
 <td>18</td>
@@ -911,7 +911,7 @@
 <td>UNREACHABLE</td>
 <td>UNREACHABLE</td>
 <td>EXTERNAL_ONLY</td>
-<td><a href="file:///c:/Users/EWS-01/Desktop/etap/engine/dispatch.py#L155">dispatch.py:155</a>, <a href="file:///c:/Users/EWS-01/Desktop/etap/services/study_executor.py#L426">study_executor.py:426</a>, <a href="file:///c:/Users/EWS-01/Desktop/etap/api/shared_handlers.py#L614">shared_handlers.py:614</a></td>
+<td><a href="../../engine/dispatch.py#L155">dispatch.py:155</a>, <a href="../../services/study_executor.py#L426">study_executor.py:426</a>, <a href="../../api/shared_handlers.py#L614">shared_handlers.py:614</a></td>
 </tr>
 <tr>
 <td>19</td>
@@ -923,7 +923,7 @@
 <td>UNREACHABLE</td>
 <td>UNREACHABLE</td>
 <td>UNREACHABLE</td>
-<td><a href="file:///c:/Users/EWS-01/Desktop/etap/engine/dispatch.py#L161">dispatch.py:161</a>, <a href="file:///c:/Users/EWS-01/Desktop/etap/services/study_executor.py#L535">study_executor.py:535</a>, <a href="file:///c:/Users/EWS-01/Desktop/etap/api/shared_handlers.py#L782">shared_handlers.py:782</a></td>
+<td><a href="../../engine/dispatch.py#L161">dispatch.py:161</a>, <a href="../../services/study_executor.py#L535">study_executor.py:535</a>, <a href="../../api/shared_handlers.py#L782">shared_handlers.py:782</a></td>
 </tr>
 <tr>
 <td>20</td>
@@ -935,40 +935,40 @@
 <td>UNREACHABLE</td>
 <td>UNREACHABLE</td>
 <td>REACHABLE</td>
-<td><a href="file:///c:/Users/EWS-01/Desktop/etap/services/study_executor.py#L413-L420">study_executor.py:413-420</a>, <a href="file:///c:/Users/EWS-01/Desktop/etap/api/shared_handlers.py#L614">shared_handlers.py:614</a></td>
+<td><a href="../../services/study_executor.py#L413-L420">study_executor.py:413-420</a>, <a href="../../api/shared_handlers.py#L614">shared_handlers.py:614</a></td>
 </tr>
 </tbody>
 </table>
 <hr />
 <h2 id="3">3. الفراغات والتدقيق الحرج في الكود الحي</h2>
-<h3 id="agent-servicesstudy_executorpy476-536">أ. فحص أنواع الـ <code>agent</code> داخل <a href="file:///c:/Users/EWS-01/Desktop/etap/services/study_executor.py#L476-L536">services/study_executor.py:476-536</a>:</h3>
+<h3 id="agent-servicesstudy_executorpy476-536">أ. فحص أنواع الـ <code>agent</code> داخل <a href="../../services/study_executor.py#L476-L536">services/study_executor.py:476-536</a>:</h3>
 <ul>
 <li>تدخل الطلبات الدالة <code>_dispatch</code> (السطر 390).</li>
 <li>عندما يكون <code>handler_type == "agent"</code> (السطر 424)، يتم استدعاء <code>_dispatch_agent(canonical, parameters)</code> (السطر 425).</li>
 <li>داخل دالة <code>_dispatch_agent</code>:</li>
-<li>السطور <a href="file:///c:/Users/EWS-01/Desktop/etap/services/study_executor.py#L478-L485">478-485</a>: تُعالج دراسة <code>etap_expert</code> وتستدعي <code>ETAPExpertAgent().answer(question)</code>.</li>
-<li>السطور <a href="file:///c:/Users/EWS-01/Desktop/etap/services/study_executor.py#L487-L494">487-494</a>: تُعالج دراسة <code>etap_gui</code> وتستدعي <code>ETAPGUIAgent().answer(question)</code>.</li>
-<li>السطر <a href="file:///c:/Users/EWS-01/Desktop/etap/services/study_executor.py#L535">535</a>: <strong>تصطدم جميع أنواع الـ agent الـ 11 الأخرى بـ:</strong>
+<li>السطور <a href="../../services/study_executor.py#L478-L485">478-485</a>: تُعالج دراسة <code>etap_expert</code> وتستدعي <code>ETAPExpertAgent().answer(question)</code>.</li>
+<li>السطور <a href="../../services/study_executor.py#L487-L494">487-494</a>: تُعالج دراسة <code>etap_gui</code> وتستدعي <code>ETAPGUIAgent().answer(question)</code>.</li>
+<li>السطر <a href="../../services/study_executor.py#L535">535</a>: <strong>تصطدم جميع أنواع الـ agent الـ 11 الأخرى بـ:</strong>
     <code>raise ValueError(f"Unsupported agent-routed study type: {study_type}")</code>.</li>
 <li><strong>العدد الفعلي لأنواع agent التي ترفع <code>ValueError</code>:</strong> <strong>11 نوعاً حصراً</strong> (وليس 13 كما توهم الدليل القديم).
   (الأنواع هي: <code>harmonic_analysis</code>, <code>optimal_power_flow</code>, <code>motor_starting</code>, <code>transient_stability</code>, <code>cable_sizing</code>, <code>earth_grid</code>, <code>renewable_integration</code>, <code>battery_storage</code>, <code>scada</code>, <code>digital_twin</code>, <code>generative_design</code>).</li>
 </ul>
 <h3 id="ahmed_etap_orchestration">ب. كشف الكود الميت الجنائي في <code>ahmed_etap_orchestration</code>:</h3>
 <ul>
-<li>في <a href="file:///c:/Users/EWS-01/Desktop/etap/engine/dispatch.py#L149">engine/dispatch.py:149</a>:
+<li>في <a href="../../engine/dispatch.py#L149">engine/dispatch.py:149</a>:
   <code>dispatch["ahmed_etap_orchestration"] = StudyRegistration(handler_type="external", handler="AhmedETAPSkillAgent", ...)</code></li>
-<li>في <a href="file:///c:/Users/EWS-01/Desktop/etap/services/study_executor.py#L422-L428">services/study_executor.py:422-428</a>:
+<li>في <a href="../../services/study_executor.py#L422-L428">services/study_executor.py:422-428</a>:
   التوجيه يفحص فقط:</li>
 <li><code>if registration.handler_type == "native": return self._dispatch_native(...)</code></li>
 <li><code>if registration.handler_type == "agent": return self._dispatch_agent(...)</code></li>
-<li>ثم السطر <a href="file:///c:/Users/EWS-01/Desktop/etap/services/study_executor.py#L426">426</a>:
+<li>ثم السطر <a href="../../services/study_executor.py#L426">426</a>:
     <code>raise ValueError(f"Unsupported handler_type '{registration.handler_type}' for study '{canonical}'")</code></li>
 <li><strong>البرهان:</strong> بما أن <code>handler_type</code> مسجل كـ <code>"external"</code>، فإن أي طلب لـ <code>ahmed_etap_orchestration</code> يرفع <code>ValueError</code> فوراً عند السطر 426، ولا يصل إطلاقاً إلى دالة <code>_dispatch_agent</code>.</li>
-<li><strong>النتيجة:</strong> الكتلة البرمجية المعرفة داخل <code>_dispatch_agent</code> في السطور <a href="file:///c:/Users/EWS-01/Desktop/etap/services/study_executor.py#L496-L533">496-533</a> (والتي تنشئ <code>AhmedETAPSkillAgent</code> وتنفذ حلقة المهام عبر <code>ThreadPoolExecutor</code>) هي <strong>كود ميت بنسبة 100% (Dead Code)</strong> يستحيل أن يبلغه أي مسار تنفيذ عبر <code>_dispatch</code>.</li>
+<li><strong>النتيجة:</strong> الكتلة البرمجية المعرفة داخل <code>_dispatch_agent</code> في السطور <a href="../../services/study_executor.py#L496-L533">496-533</a> (والتي تنشئ <code>AhmedETAPSkillAgent</code> وتنفذ حلقة المهام عبر <code>ThreadPoolExecutor</code>) هي <strong>كود ميت بنسبة 100% (Dead Code)</strong> يستحيل أن يبلغه أي مسار تنفيذ عبر <code>_dispatch</code>.</li>
 </ul>
 <h3 id="breaker_duty">ج. دراسة <code>breaker_duty</code> وحراستها بالعلم:</h3>
 <ul>
-<li>في <a href="file:///c:/Users/EWS-01/Desktop/etap/services/study_executor.py#L413-L420">services/study_executor.py:413-420</a>:
+<li>في <a href="../../services/study_executor.py#L413-L420">services/study_executor.py:413-420</a>:
   تم وضع تفرع خاص صريح قبل التعميم:
   <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">if</span> <span class="n">canonical</span> <span class="o">==</span> <span class="s2">"breaker_duty"</span><span class="p">:</span>
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>    <span class="kn">from</span><span class="w"> </span><span class="nn">api.feature_flags</span><span class="w"> </span><span class="kn">import</span> <span class="n">is_strict_feature_enabled</span>
@@ -996,67 +996,67 @@
 </thead>
 <tbody>
 <tr>
-<td><a href="file:///c:/Users/EWS-01/Desktop/etap/engine/dispatch.py">engine/dispatch.py</a></td>
+<td><a href="../../engine/dispatch.py">engine/dispatch.py</a></td>
 <td><strong>20</strong></td>
 <td>خريطة إرسال موحدة (<code>STUDY_DISPATCH</code>)</td>
 <td><strong>مصدر الحقيقة الموحد المقصود (ADR-0002)</strong></td>
-<td>جدول موحد يجمع Native و Agent و External (<a href="file:///c:/Users/EWS-01/Desktop/etap/engine/dispatch.py#L100-L170">dispatch.py:100-170</a>).</td>
+<td>جدول موحد يجمع Native و Agent و External (<a href="../../engine/dispatch.py#L100-L170">dispatch.py:100-170</a>).</td>
 </tr>
 <tr>
-<td><a href="file:///c:/Users/EWS-01/Desktop/etap/agents/models.py">agents/models.py</a></td>
+<td><a href="../../agents/models.py">agents/models.py</a></td>
 <td><strong>17</strong></td>
 <td>تعداد أساسي (<code>StudyType</code> enum)</td>
 <td><strong>مصدر الحقيقة لأسماء الدراسات المعيارية</strong></td>
-<td>كائن Enum معياري (<a href="file:///c:/Users/EWS-01/Desktop/etap/agents/models.py#L33-L51">models.py:33-51</a>). ينقصه <code>ahmed_etap_orchestration</code> و <code>optimization</code> و <code>breaker_duty</code>.</td>
+<td>كائن Enum معياري (<a href="../../agents/models.py#L33-L51">models.py:33-51</a>). ينقصه <code>ahmed_etap_orchestration</code> و <code>optimization</code> و <code>breaker_duty</code>.</td>
 </tr>
 <tr>
-<td><a href="file:///c:/Users/EWS-01/Desktop/etap/agents/__init__.py">agents/<strong>init</strong>.py</a></td>
+<td><a href="../../agents/__init__.py">agents/<strong>init</strong>.py</a></td>
 <td><strong>16</strong> (في STUDY_TYPE_AGENT_MAP)<br>+ <strong>8</strong> (في ETAP_EXECUTION_AGENT_MAP)<br>+ <strong>14</strong> (في ALL_AGENT_CLASSES)</td>
 <td>سجل فئات الوكلاء الثابت</td>
 <td><strong>تكرار جزئي / خريطة ربط ثابتة</strong></td>
-<td>يربط كل <code>StudyType</code> بفئة الوكيل المقابلة (<a href="file:///c:/Users/EWS-01/Desktop/etap/agents/__init__.py#L80-L97">agents/<strong>init</strong>.py:80-97</a>). ينقصه <code>generative_design</code>.</td>
+<td>يربط كل <code>StudyType</code> بفئة الوكيل المقابلة (<a href="../../agents/__init__.py#L80-L97">agents/<strong>init</strong>.py:80-97</a>). ينقصه <code>generative_design</code>.</td>
 </tr>
 <tr>
-<td><a href="file:///c:/Users/EWS-01/Desktop/etap/agents/registry.py">agents/registry.py</a></td>
+<td><a href="../../agents/registry.py">agents/registry.py</a></td>
 <td><strong>30</strong> مفتاحاً<br>(27 وكيلاً فريداً + 3 أسماء مستعارة)</td>
 <td>مصنع ومسجل الوكلاء الديناميكي (<code>create_agent_registry</code>)</td>
 <td><strong>سجل ديناميكي مستقل (DI Container)</strong></td>
-<td>ينشئ كائنات الوكلاء الحية (<a href="file:///c:/Users/EWS-01/Desktop/etap/agents/registry.py#L1422-L1503">agents/registry.py:1422-1503</a>).</td>
+<td>ينشئ كائنات الوكلاء الحية (<a href="../../agents/registry.py#L1422-L1503">agents/registry.py:1422-1503</a>).</td>
 </tr>
 <tr>
-<td><a href="file:///c:/Users/EWS-01/Desktop/etap/services/study_executor.py">services/study_executor.py</a></td>
+<td><a href="../../services/study_executor.py">services/study_executor.py</a></td>
 <td><strong>20</strong> (تستورد STUDY_DISPATCH)</td>
 <td>منفذ وموجه الدراسات الفعلي</td>
 <td><strong>مستهلك لـ STUDY_DISPATCH مع تنفيذ مجتزأ</strong></td>
-<td>ينفذ 4 Native و 2 Agent و 1 External وراء علم، ويفشل على الـ 13 الباقية (<a href="file:///c:/Users/EWS-01/Desktop/etap/services/study_executor.py#L399-L535">study_executor.py:399, 413, 422, 424, 535</a>).</td>
+<td>ينفذ 4 Native و 2 Agent و 1 External وراء علم، ويفشل على الـ 13 الباقية (<a href="../../services/study_executor.py#L399-L535">study_executor.py:399, 413, 422, 424, 535</a>).</td>
 </tr>
 <tr>
-<td><a href="file:///c:/Users/EWS-01/Desktop/etap/services/study_service.py">services/study_service.py</a></td>
+<td><a href="../../services/study_service.py">services/study_service.py</a></td>
 <td><strong>4</strong> (Native) + <strong>7</strong> (ETAP mapping)</td>
 <td>موجه طبقة الخدمة القديم</td>
 <td><strong>تكرار مستقل مجتزأ (Legacy Duplication)</strong></td>
-<td>يستخدم دوال hardcoded <code>_run_native_study</code> و <code>_run_etap_study</code> بمعزل تام عن <code>STUDY_DISPATCH</code> (<a href="file:///c:/Users/EWS-01/Desktop/etap/services/study_service.py#L243-L315">study_service.py:243-284, 307-315</a>).</td>
+<td>يستخدم دوال hardcoded <code>_run_native_study</code> و <code>_run_etap_study</code> بمعزل تام عن <code>STUDY_DISPATCH</code> (<a href="../../services/study_service.py#L243-L315">study_service.py:243-284, 307-315</a>).</td>
 </tr>
 <tr>
-<td><a href="file:///c:/Users/EWS-01/Desktop/etap/engine/engine.py">engine/engine.py</a></td>
+<td><a href="../../engine/engine.py">engine/engine.py</a></td>
 <td><strong>4</strong> (في <code>_STUDY_REGISTRY</code>)</td>
 <td>واجهة تكيفية قديمة (Deprecation Shim)</td>
 <td><strong>واجهة جزئية لمحرك الحسابات (Shim View)</strong></td>
-<td>تقتصر فقط على الدراسات الأربع الأصلية لمحرك <code>PowerSystemEngine</code> (<a href="file:///c:/Users/EWS-01/Desktop/etap/engine/engine.py#L49-L60">engine.py:49-60, 460-464</a>).</td>
+<td>تقتصر فقط على الدراسات الأربع الأصلية لمحرك <code>PowerSystemEngine</code> (<a href="../../engine/engine.py#L49-L60">engine.py:49-60, 460-464</a>).</td>
 </tr>
 <tr>
-<td><a href="file:///c:/Users/EWS-01/Desktop/etap/api/shared_handlers.py">api/shared_handlers.py</a></td>
+<td><a href="../../api/shared_handlers.py">api/shared_handlers.py</a></td>
 <td><strong>18</strong> (في <code>STUDY_TYPES</code>)</td>
 <td>معالج الطلبات السريعة (Lightweight Mock Handler)</td>
 <td><strong>تكرار مستقل مجتزأ مع محاكاة وهمية</strong></td>
-<td>مشتق من <code>StudyType</code> + <code>ahmed_etap_orchestration</code>. ينفذ <code>load_flow</code> و <code>etap_expert</code> و <code>etap_gui</code> ويعيد نتائج وهمية أو خطأ للباقي (<a href="file:///c:/Users/EWS-01/Desktop/etap/api/shared_handlers.py#L90-L785">shared_handlers.py:90, 613-785</a>). يجهل تماماً وجود <code>breaker_duty</code> و <code>optimization</code>.</td>
+<td>مشتق من <code>StudyType</code> + <code>ahmed_etap_orchestration</code>. ينفذ <code>load_flow</code> و <code>etap_expert</code> و <code>etap_gui</code> ويعيد نتائج وهمية أو خطأ للباقي (<a href="../../api/shared_handlers.py#L90-L785">shared_handlers.py:90, 613-785</a>). يجهل تماماً وجود <code>breaker_duty</code> و <code>optimization</code>.</td>
 </tr>
 <tr>
-<td><a href="file:///c:/Users/EWS-01/Desktop/etap/src/core/agents.ts">src/core/agents.ts</a></td>
+<td><a href="../../src/core/agents.ts">src/core/agents.ts</a></td>
 <td><strong>11</strong> (في <code>AGENT_REGISTRY</code>)</td>
 <td>سجل وكلاء TypeScript و Mastra</td>
 <td><strong>سجل مستقل لبيئة Node.js / Mastra</strong></td>
-<td>يعرف بيانات الوكلاء وقدراتهم لبيئة Mastra (<a href="file:///c:/Users/EWS-01/Desktop/etap/src/core/agents.ts#L54-L129">src/core/agents.ts:54-129</a>). ينتهي الملف عند السطر 136 تماماً.</td>
+<td>يعرف بيانات الوكلاء وقدراتهم لبيئة Mastra (<a href="../../src/core/agents.ts#L54-L129">src/core/agents.ts:54-129</a>). ينتهي الملف عند السطر 136 تماماً.</td>
 </tr>
 </tbody>
 </table>

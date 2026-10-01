@@ -1,0 +1,1107 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Enterprise AI-Powered Power Systems Engineering Platform">
+      
+      
+        <meta name="author" content="AhmedETAP Team">
+      
+      
+      
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.11">
+    
+    
+      
+        <title>تقرير الإنجاز الرسمي — الحزمة P4 (اكتمال توجيه الأهداف وجدولة الاعتماديات) - AhmedETAP Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.4af4bdda.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="deep-purple">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#p4" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="AhmedETAP Documentation" class="md-header__button md-logo" aria-label="AhmedETAP Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            AhmedETAP Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              تقرير الإنجاز الرسمي — الحزمة P4 (اكتمال توجيه الأهداف وجدولة الاعتماديات)
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  الصفحة الرئيسية
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../ARCHITECTURE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  الهيكلية
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../API_REFERENCE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  واجهة برمجة التطبيقات
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../OPERATIONS_RUNBOOK/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  دليل التشغيل
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../TROUBLESHOOTING_GUIDE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  دليل الأعطال
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../SECURITY_OPERATIONS_MANUAL/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  البنية التحتية للأمان
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../ENTERPRISE_CERTIFICATION_REPORT/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  التقييم المؤسسي
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="AhmedETAP Documentation" class="md-nav__button md-logo" aria-label="AhmedETAP Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    AhmedETAP Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    الصفحة الرئيسية
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ARCHITECTURE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    الهيكلية
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../API_REFERENCE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    واجهة برمجة التطبيقات
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../OPERATIONS_RUNBOOK/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    دليل التشغيل
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../TROUBLESHOOTING_GUIDE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    دليل الأعطال
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../SECURITY_OPERATIONS_MANUAL/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    البنية التحتية للأمان
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ENTERPRISE_CERTIFICATION_REPORT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    التقييم المؤسسي
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-executive-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. ملخص تنفيذي (Executive Summary)
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-gap-analysis-matrix" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. جدول المقارنة والتحليل الجنائي (Gap Analysis &amp; Matrix)
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. التعديلات الميدانية التفصيلية
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. التعديلات الميدانية التفصيلية">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31-agentsrouterpy-41" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.1 استكمال أولويات الاعتماديات في agents/router.py (المهمة 4.1)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32-agentsrouterpy-42" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.2 استكمال قواعد الكلمات المفتاحية في agents/router.py (المهمة 4.2)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#33-agentsregistrypy-43" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.3 استكمال تعيين الدراسات في agents/registry.py (المهمة 4.3)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#34-teststest_router_completeness_gatepy-44" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.4 حزمة اختبارات بوابة الاكتمال tests/test_router_completeness_gate.py (المهمة 4.4)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-verbatim-test-evidence" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. الأدلة الحرفية لاجتياز الاختبارات (Verbatim Test Evidence)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. الأدلة الحرفية لاجتياز الاختبارات (Verbatim Test Evidence)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-teststest_router_completeness_gatepy" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.1 تشغيل حزمة بوابة الاكتمال (tests/test_router_completeness_gate.py)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-61" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.2 التشغيل المدمج للاختبارات السابقة والجديدة (61 اختباراً)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#43-meta-ci-workflow-check" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.3 فحص سلامة تدفقات العمل (Meta-CI Workflow Check)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-scope-audit-git-diff" class="md-nav__link">
+    <span class="md-ellipsis">
+      5. التدقيق الجنائي لتعديل الملفات (Scope Audit &amp; Git Diff)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. التدقيق الجنائي لتعديل الملفات (Scope Audit &amp; Git Diff)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#51" class="md-nav__link">
+    <span class="md-ellipsis">
+      5.1 الملفات المعدلة والمضافة
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#52-git-diff" class="md-nav__link">
+    <span class="md-ellipsis">
+      5.2 الفروقات الميدانية الحرفية (git diff)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-acceptance-gates-evaluation" class="md-nav__link">
+    <span class="md-ellipsis">
+      6. تقييم بوابات القبول (Acceptance Gates Evaluation)
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="p4">تقرير الإنجاز الرسمي — الحزمة P4 (اكتمال توجيه الأهداف وجدولة الاعتماديات)</h1>
+<p><strong>المستودع:</strong> <code>https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-.git</code><br />
+<strong>الفرع:</strong> <code>feat/ai-m2-goal-routing-completeness</code><br />
+<strong>نقطة الانطلاق (Base Commit):</strong> <code>main @ 43fdd481f</code><br />
+<strong>التاريخ:</strong> 27 سبتمبر 2026<br />
+<strong>الحالة:</strong> مُنجز بنجاح 100% ومجتاز لكافة بوابات القبول (Acceptance Gates Passed)</p>
+<hr />
+<h2 id="1-executive-summary">1. ملخص تنفيذي (Executive Summary)</h2>
+<p>سدّت الحزمة P4 فجوة اكتمال توجيه الأهداف وجدولة الاعتماديات في منصة AhmedETAP؛ حيث كان تعداد <code>StudyType</code> في <code>agents/models.py</code> يضم 17 نوع دراسة معيارية، بينما كان جدول أولويات الاعتماديات <code>STUDY_PRIORITY</code> في <code>agents/router.py</code> يتوقف عند الأولوية 13 (<code>SCADA</code>)، وقاموس الكلمات المفتاحية <code>KEYWORD_RULES</code> يفتقر لقواعد الأنواع الأربعة المستحدثة (<code>DIGITAL_TWIN</code>, <code>ETAP_EXPERT</code>, <code>ETAP_GUI</code>, <code>GENERATIVE_DESIGN</code>)، وقاموس التعيين <code>STUDY_TYPE_MAPPING</code> في <code>agents/registry.py</code> يفتقد تعيين <code>"generative_design": "generative_design"</code>.</p>
+<p>تم تنفيذ الحزمة بالكامل مع الحفاظ الصارم على حدود التعديل المسموح بها (صفر تعديل على <code>agents/models.py</code> أو محركات التنفيذ أو ملفات CI)، واجتياز 100% من الاختبارات دون أي تراجع في السلوك القائم (Backward Compatibility).</p>
+<hr />
+<h2 id="2-gap-analysis-matrix">2. جدول المقارنة والتحليل الجنائي (Gap Analysis &amp; Matrix)</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">نوع الدراسة المعيارية (<code>StudyType</code>)</th>
+<th style="text-align: center;">الأولوية السابقة (<code>STUDY_PRIORITY</code>)</th>
+<th style="text-align: center;">الأولوية المعتمدة P4</th>
+<th style="text-align: left;">قواعد الكلمات المفتاحية (<code>KEYWORD_RULES</code>)</th>
+<th style="text-align: center;">التعيين في السجل (<code>STUDY_TYPE_MAPPING</code>)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>LOAD_FLOW</code></td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: left;"><code>load flow</code>, <code>power flow</code>, <code>voltage</code></td>
+<td style="text-align: center;"><code>load_flow</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>SHORT_CIRCUIT</code></td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: left;"><code>fault</code>, <code>short circuit</code>, <code>sc</code></td>
+<td style="text-align: center;"><code>short_circuit</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>HARMONIC_ANALYSIS</code></td>
+<td style="text-align: center;">3</td>
+<td style="text-align: center;">3</td>
+<td style="text-align: left;"><code>harmonic</code>, <code>distortion</code>, <code>thd</code></td>
+<td style="text-align: center;"><code>harmonic_analysis</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>OPTIMAL_POWER_FLOW</code></td>
+<td style="text-align: center;">4</td>
+<td style="text-align: center;">4</td>
+<td style="text-align: left;"><code>optimize</code>, <code>optimization</code>, <code>opf</code>, <code>economic</code></td>
+<td style="text-align: center;"><code>optimal_power_flow</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>PROTECTION_COORDINATION</code></td>
+<td style="text-align: center;">5</td>
+<td style="text-align: center;">5</td>
+<td style="text-align: left;"><code>protect</code>, <code>coordination</code>, <code>relay</code></td>
+<td style="text-align: center;"><code>protection_coordination</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>MOTOR_STARTING</code></td>
+<td style="text-align: center;">6</td>
+<td style="text-align: center;">6</td>
+<td style="text-align: left;"><code>motor</code>, <code>starting</code>, <code>inrush</code></td>
+<td style="text-align: center;"><code>motor_starting</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>ARC_FLASH</code></td>
+<td style="text-align: center;">7</td>
+<td style="text-align: center;">7</td>
+<td style="text-align: left;"><code>arc flash</code>, <code>incident energy</code>, <code>ppe</code></td>
+<td style="text-align: center;"><code>arc_flash</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>TRANSIENT_STABILITY</code></td>
+<td style="text-align: center;">8</td>
+<td style="text-align: center;">8</td>
+<td style="text-align: left;"><code>stability</code>, <code>transient</code>, <code>swing</code></td>
+<td style="text-align: center;"><code>transient_stability</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>CABLE_SIZING</code></td>
+<td style="text-align: center;">9</td>
+<td style="text-align: center;">9</td>
+<td style="text-align: left;"><code>cable</code>, <code>ampacity</code></td>
+<td style="text-align: center;"><code>cable_sizing</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>EARTH_GRID</code></td>
+<td style="text-align: center;">10</td>
+<td style="text-align: center;">10</td>
+<td style="text-align: left;"><code>earth</code>, <code>ground</code>, <code>grounding</code>, <code>grid</code></td>
+<td style="text-align: center;"><code>earth_grid</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>RENEWABLE_INTEGRATION</code></td>
+<td style="text-align: center;">11</td>
+<td style="text-align: center;">11</td>
+<td style="text-align: left;"><code>solar</code>, <code>wind</code>, <code>renewable</code>, <code>pv</code></td>
+<td style="text-align: center;"><code>renewable_integration</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>BATTERY_STORAGE</code></td>
+<td style="text-align: center;">12</td>
+<td style="text-align: center;">12</td>
+<td style="text-align: left;"><code>battery</code>, <code>bess</code>, <code>storage</code></td>
+<td style="text-align: center;"><code>battery_storage</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>SCADA</code></td>
+<td style="text-align: center;">13</td>
+<td style="text-align: center;">13</td>
+<td style="text-align: left;"><code>scada</code>, <code>telemetry</code>, <code>61850</code></td>
+<td style="text-align: center;"><code>scada</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>DIGITAL_TWIN</code></td>
+<td style="text-align: center;"><strong>مفقود (99)</strong></td>
+<td style="text-align: center;"><strong>14</strong></td>
+<td style="text-align: left;"><code>digital twin</code>, <code>twin model</code>, <code>real-time twin</code>, <code>state estimation twin</code></td>
+<td style="text-align: center;"><code>digital_twin</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>GENERATIVE_DESIGN</code></td>
+<td style="text-align: center;"><strong>مفقود (99)</strong></td>
+<td style="text-align: center;"><strong>15</strong></td>
+<td style="text-align: left;"><code>generative design</code>, <code>substation design</code>, <code>sld synthesis</code>, <code>topology synthesis</code></td>
+<td style="text-align: center;"><strong>مستحدث:</strong> <code>generative_design</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>ETAP_EXPERT</code></td>
+<td style="text-align: center;"><strong>مفقود (99)</strong></td>
+<td style="text-align: center;"><strong>16</strong></td>
+<td style="text-align: left;"><code>etap expert</code>, <code>expert advice</code>, <code>etap rule</code>, <code>format a</code>, <code>format b</code></td>
+<td style="text-align: center;"><code>etap_expert</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>ETAP_GUI</code></td>
+<td style="text-align: center;"><strong>مفقود (99)</strong></td>
+<td style="text-align: center;"><strong>17</strong></td>
+<td style="text-align: left;"><code>etap gui</code>, <code>gui guide</code>, <code>one-line diagram step</code>, <code>user interface guide</code></td>
+<td style="text-align: center;"><code>etap_gui</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="3">3. التعديلات الميدانية التفصيلية</h2>
+<h3 id="31-agentsrouterpy-41">3.1 استكمال أولويات الاعتماديات في <code>agents/router.py</code> (المهمة 4.1)</h3>
+<p>تمت إضافة الأنواع الأربعة إلى جدول <code>STUDY_PRIORITY</code> ليغطي كافة أعضاء <code>StudyType</code> الـ 17 وفق التسلسل الهندسي المعتمد:
+- <code>StudyType.DIGITAL_TWIN: 14</code> (يعتمد على التليمتري وحالة الشبكة وبيانات SCADA)
+- <code>StudyType.GENERATIVE_DESIGN: 15</code> (توليد الطوبولوجيا وتقدير البارامترات)
+- <code>StudyType.ETAP_EXPERT: 16</code> (استشارات وخبرة معيارية)
+- <code>StudyType.ETAP_GUI: 17</code> (إرشادات واجهة المستخدم وبناء المخطط الأحادي)</p>
+<h3 id="32-agentsrouterpy-42">3.2 استكمال قواعد الكلمات المفتاحية في <code>agents/router.py</code> (المهمة 4.2)</h3>
+<p>أُضيفت 4 قواعد جديدة بدقة إلى <code>KEYWORD_RULES</code> مع تجنب أي تعارض مع القواعد القائمة:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>    <span class="p">([</span><span class="s2">"digital twin"</span><span class="p">,</span> <span class="s2">"twin model"</span><span class="p">,</span> <span class="s2">"real-time twin"</span><span class="p">,</span> <span class="s2">"state estimation twin"</span><span class="p">],</span> <span class="n">StudyType</span><span class="o">.</span><span class="n">DIGITAL_TWIN</span><span class="p">),</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="p">([</span><span class="s2">"etap expert"</span><span class="p">,</span> <span class="s2">"expert advice"</span><span class="p">,</span> <span class="s2">"etap rule"</span><span class="p">,</span> <span class="s2">"format a"</span><span class="p">,</span> <span class="s2">"format b"</span><span class="p">],</span> <span class="n">StudyType</span><span class="o">.</span><span class="n">ETAP_EXPERT</span><span class="p">),</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="p">([</span><span class="s2">"etap gui"</span><span class="p">,</span> <span class="s2">"gui guide"</span><span class="p">,</span> <span class="s2">"one-line diagram step"</span><span class="p">,</span> <span class="s2">"user interface guide"</span><span class="p">],</span> <span class="n">StudyType</span><span class="o">.</span><span class="n">ETAP_GUI</span><span class="p">),</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="p">([</span><span class="s2">"generative design"</span><span class="p">,</span> <span class="s2">"substation design"</span><span class="p">,</span> <span class="s2">"sld synthesis"</span><span class="p">,</span> <span class="s2">"topology synthesis"</span><span class="p">],</span> <span class="n">StudyType</span><span class="o">.</span><span class="n">GENERATIVE_DESIGN</span><span class="p">),</span>
+</code></pre></div></p>
+<h3 id="33-agentsregistrypy-43">3.3 استكمال تعيين الدراسات في <code>agents/registry.py</code> (المهمة 4.3)</h3>
+<p>أُضيف التعيين المفقود إلى <code>STUDY_TYPE_MAPPING</code>:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>    <span class="s2">"generative_design"</span><span class="p">:</span> <span class="s2">"generative_design"</span><span class="p">,</span>
+</code></pre></div>
+ليصبح كل عضو في <code>StudyType</code> قابلاً للاستعلام والحل إلى اسم الوكيل المعني المسجل في <code>create_agent_registry</code>.</p>
+<h3 id="34-teststest_router_completeness_gatepy-44">3.4 حزمة اختبارات بوابة الاكتمال <code>tests/test_router_completeness_gate.py</code> (المهمة 4.4)</h3>
+<p>تم إنشاء ملف اختبارات شامل يحتوي على 26 اختباراً مستقلاً يغطي:
+1. الفحص البرمجي لاكتمال تغطية أعضاء <code>StudyType</code> الـ 17 بنسبة 100% في <code>STUDY_PRIORITY</code>.
+2. الفحص البرمجي لاكتمال تغطية أعضاء <code>StudyType</code> الـ 17 في <code>KEYWORD_RULES</code>.
+3. الفحص البرمجي لوجود كل قيمة نصية لـ <code>StudyType</code> في <code>STUDY_TYPE_MAPPING</code> ونجاح <code>get_agent_for_study</code>.
+4. التحقق المعياري الدقيق من توجيه الكلمات المفتاحية للأنواع الأربعة المستحدثة مع ثقة عالية (<code>confidence &gt;= 0.90</code>) وإرجاع أسباب التوجيه المطابقة.
+5. التحقق من ثبات التراجع الافتراضي <code>DEFAULT_STUDIES</code> عند تمرير مدخلات فارغة، بيضاء، مجهولة، أو هياكل قواميس غير مطابقة.
+6. التحقق من ترتيب الاعتماديات <code>determine_execution_order</code> لجميع الدراسات الـ 17، ولخلائط عشوائية تجمع دراسات تقليدية ومستحدثة.
+7. دعم الإدخال النمطي المباشر (Sequences و Dictionaries).</p>
+<hr />
+<h2 id="4-verbatim-test-evidence">4. الأدلة الحرفية لاجتياز الاختبارات (Verbatim Test Evidence)</h2>
+<h3 id="41-teststest_router_completeness_gatepy">4.1 تشغيل حزمة بوابة الاكتمال (<code>tests/test_router_completeness_gate.py</code>)</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>============================= test session starts =============================
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>platform win32 -- Python 3.8.4, pytest-8.3.5, pluggy-1.5.0 -- d:\etap21\thirdparty\python\python384\python.exe
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>cachedir: .pytest_cache
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>hypothesis profile 'default' -&gt; database=DirectoryBasedExampleDatabase(WindowsPath('C:/Users/EWS-01/Desktop/etap/.hypothesis/examples'))
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>rootdir: C:\Users\EWS-01\Desktop\etap
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>configfile: pyproject.toml
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>plugins: anyio-3.7.1, Faker-35.2.2, hypothesis-6.113.0, asyncio-0.24.0, cov-5.0.0, timeout-2.4.0, xdist-3.6.1, respx-0.23.1
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>asyncio: mode=auto, default_loop_scope=function
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>collecting ... collected 26 items
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>
+<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>tests/test_router_completeness_gate.py::test_all_17_study_types_in_study_priority PASSED [  3%]
+<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>tests/test_router_completeness_gate.py::test_all_17_study_types_covered_in_keyword_rules PASSED [  7%]
+<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a>tests/test_router_completeness_gate.py::test_all_17_study_types_mapped_in_registry PASSED [ 11%]
+<a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a>tests/test_router_completeness_gate.py::test_registry_get_agent_for_study PASSED [ 15%]
+<a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a>tests/test_router_completeness_gate.py::test_precision_keyword_routing_new_study_types[build a digital twin for real-time monitoring-StudyType.DIGITAL_TWIN] PASSED [ 19%]
+<a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a>tests/test_router_completeness_gate.py::test_precision_keyword_routing_new_study_types[twin model calibration with field telemetry-StudyType.DIGITAL_TWIN] PASSED [ 23%]
+<a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a>tests/test_router_completeness_gate.py::test_precision_keyword_routing_new_study_types[real-time twin synchronization-StudyType.DIGITAL_TWIN] PASSED [ 26%]
+<a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a>tests/test_router_completeness_gate.py::test_precision_keyword_routing_new_study_types[state estimation twin telemetry update-StudyType.DIGITAL_TWIN] PASSED [ 30%]
+<a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a>tests/test_router_completeness_gate.py::test_precision_keyword_routing_new_study_types[need etap expert assistance for design review-StudyType.ETAP_EXPERT] PASSED [ 34%]
+<a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a>tests/test_router_completeness_gate.py::test_precision_keyword_routing_new_study_types[provide expert advice for substation rating-StudyType.ETAP_EXPERT] PASSED [ 38%]
+<a id="__codelineno-2-21" name="__codelineno-2-21" href="#__codelineno-2-21"></a>tests/test_router_completeness_gate.py::test_precision_keyword_routing_new_study_types[etap rule compliance verification-StudyType.ETAP_EXPERT] PASSED [ 42%]
+<a id="__codelineno-2-22" name="__codelineno-2-22" href="#__codelineno-2-22"></a>tests/test_router_completeness_gate.py::test_precision_keyword_routing_new_study_types[output the results in format a-StudyType.ETAP_EXPERT] PASSED [ 46%]
+<a id="__codelineno-2-23" name="__codelineno-2-23" href="#__codelineno-2-23"></a>tests/test_router_completeness_gate.py::test_precision_keyword_routing_new_study_types[generate recommendation in format b-StudyType.ETAP_EXPERT] PASSED [ 50%]
+<a id="__codelineno-2-24" name="__codelineno-2-24" href="#__codelineno-2-24"></a>tests/test_router_completeness_gate.py::test_precision_keyword_routing_new_study_types[etap gui navigation instructions-StudyType.ETAP_GUI] PASSED [ 53%]
+<a id="__codelineno-2-25" name="__codelineno-2-25" href="#__codelineno-2-25"></a>tests/test_router_completeness_gate.py::test_precision_keyword_routing_new_study_types[gui guide for adding bus and transformer-StudyType.ETAP_GUI] PASSED [ 57%]
+<a id="__codelineno-2-26" name="__codelineno-2-26" href="#__codelineno-2-26"></a>tests/test_router_completeness_gate.py::test_precision_keyword_routing_new_study_types[follow one-line diagram step by step-StudyType.ETAP_GUI] PASSED [ 61%]
+<a id="__codelineno-2-27" name="__codelineno-2-27" href="#__codelineno-2-27"></a>tests/test_router_completeness_gate.py::test_precision_keyword_routing_new_study_types[user interface guide for one-line editor-StudyType.ETAP_GUI] PASSED [ 65%]
+<a id="__codelineno-2-28" name="__codelineno-2-28" href="#__codelineno-2-28"></a>tests/test_router_completeness_gate.py::test_precision_keyword_routing_new_study_types[generative design for 115kv substation-StudyType.GENERATIVE_DESIGN] PASSED [ 69%]
+<a id="__codelineno-2-29" name="__codelineno-2-29" href="#__codelineno-2-29"></a>tests/test_router_completeness_gate.py::test_precision_keyword_routing_new_study_types[substation design parameter estimation-StudyType.GENERATIVE_DESIGN] PASSED [ 73%]
+<a id="__codelineno-2-30" name="__codelineno-2-30" href="#__codelineno-2-30"></a>tests/test_router_completeness_gate.py::test_precision_keyword_routing_new_study_types[sld synthesis for industrial plant-StudyType.GENERATIVE_DESIGN] PASSED [ 76%]
+<a id="__codelineno-2-31" name="__codelineno-2-31" href="#__codelineno-2-31"></a>tests/test_router_completeness_gate.py::test_precision_keyword_routing_new_study_types[topology synthesis based on load requirements-StudyType.GENERATIVE_DESIGN] PASSED [ 80%]
+<a id="__codelineno-2-32" name="__codelineno-2-32" href="#__codelineno-2-32"></a>tests/test_router_completeness_gate.py::test_composite_goals_with_new_and_traditional_studies PASSED [ 84%]
+<a id="__codelineno-2-33" name="__codelineno-2-33" href="#__codelineno-2-33"></a>tests/test_router_completeness_gate.py::test_default_baseline_fallback_immutability PASSED [ 88%]
+<a id="__codelineno-2-34" name="__codelineno-2-34" href="#__codelineno-2-34"></a>tests/test_router_completeness_gate.py::test_determine_execution_order_sorting_all_17 PASSED [ 92%]
+<a id="__codelineno-2-35" name="__codelineno-2-35" href="#__codelineno-2-35"></a>tests/test_router_completeness_gate.py::test_determine_execution_order_mixed_subsets PASSED [ 96%]
+<a id="__codelineno-2-36" name="__codelineno-2-36" href="#__codelineno-2-36"></a>tests/test_router_completeness_gate.py::test_typed_sequence_and_dict_support_for_new_types PASSED [100%]
+<a id="__codelineno-2-37" name="__codelineno-2-37" href="#__codelineno-2-37"></a>
+<a id="__codelineno-2-38" name="__codelineno-2-38" href="#__codelineno-2-38"></a>============================= 26 passed in 45.23s =============================
+</code></pre></div>
+<h3 id="42-61">4.2 التشغيل المدمج للاختبارات السابقة والجديدة (61 اختباراً)</h3>
+<p><div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>pytest tests/test_router_regression.py tests/test_router_completeness_gate.py -v
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>======================== 61 passed in 86.63s (0:01:26) ========================
+</code></pre></div>
+- اجتياز كامل لجميع اختبارات الانحدار السابقة (35/35 PASSED).
+- اجتياز كامل لجميع اختبارات بوابة الاكتمال الجديدة (26/26 PASSED).</p>
+<h3 id="43-meta-ci-workflow-check">4.3 فحص سلامة تدفقات العمل (Meta-CI Workflow Check)</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>[META-CI] Validating GitHub Actions Workflows &amp; Invariants
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>Found 50 workflow files.
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>[OK] All 50 GitHub Actions workflows comply with Meta-CI standards.
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>  - YAML syntax: VALID
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>  - Permissions: EXPLICIT
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>  - Job timeouts: ENFORCED
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>  - Branch triggers: VALIDATED
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>  - Overrides consistency (T-2.1): SYNCHRONIZED
+<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>  - Gitleaksignore ratchet (R-3): ENFORCED (ceiling: 800)
+<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>  - Release Gate job names (G-3 / N28): VERIFIED
+</code></pre></div>
+<hr />
+<h2 id="5-scope-audit-git-diff">5. التدقيق الجنائي لتعديل الملفات (Scope Audit &amp; Git Diff)</h2>
+<h3 id="51">5.1 الملفات المعدلة والمضافة</h3>
+<p><div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>Modified:
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>  - agents/registry.py
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>  - agents/router.py
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>Untracked / Added:
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>  - tests/test_router_completeness_gate.py
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>  - P4-report.md
+</code></pre></div>
+- لم يتم المساس بأي من <code>agents/models.py</code>, <code>engine/dispatch.py</code>, أو أي خدمة أخرى.</p>
+<h3 id="52-git-diff">5.2 الفروقات الميدانية الحرفية (<code>git diff</code>)</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="gh">diff --git a/agents/registry.py b/agents/registry.py</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="gh">index be38f5c04..d8f2dbd17 100644</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="gd">--- a/agents/registry.py</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="gi">+++ b/agents/registry.py</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="gu">@@ -1395,6 +1395,7 @@ STUDY_TYPE_MAPPING: dict[str, str] = {</span>
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="w"> </span>    "battery_storage": "battery_storage",
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="w"> </span>    "scada": "scada",
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="w"> </span>    "digital_twin": "digital_twin",
+<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="gi">+    "generative_design": "generative_design",</span>
+<a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="w"> </span>    "anomaly": "anomaly",
+<a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a><span class="w"> </span>    "predictive": "predictive",
+<a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a><span class="w"> </span>    "weather": "weather",
+<a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a><span class="gh">diff --git a/agents/router.py b/agents/router.py</span>
+<a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a><span class="gh">index 50f0e53fc..e4078f33b 100644</span>
+<a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a><span class="gd">--- a/agents/router.py</span>
+<a id="__codelineno-6-16" name="__codelineno-6-16" href="#__codelineno-6-16"></a><span class="gi">+++ b/agents/router.py</span>
+<a id="__codelineno-6-17" name="__codelineno-6-17" href="#__codelineno-6-17"></a><span class="gu">@@ -31,6 +31,10 @@ STUDY_PRIORITY: dict[StudyType, int] = {</span>
+<a id="__codelineno-6-18" name="__codelineno-6-18" href="#__codelineno-6-18"></a><span class="w"> </span>    StudyType.RENEWABLE_INTEGRATION: 11,
+<a id="__codelineno-6-19" name="__codelineno-6-19" href="#__codelineno-6-19"></a><span class="w"> </span>    StudyType.BATTERY_STORAGE: 12,
+<a id="__codelineno-6-20" name="__codelineno-6-20" href="#__codelineno-6-20"></a><span class="w"> </span>    StudyType.SCADA: 13,
+<a id="__codelineno-6-21" name="__codelineno-6-21" href="#__codelineno-6-21"></a><span class="gi">+    StudyType.DIGITAL_TWIN: 14,</span>
+<a id="__codelineno-6-22" name="__codelineno-6-22" href="#__codelineno-6-22"></a><span class="gi">+    StudyType.GENERATIVE_DESIGN: 15,</span>
+<a id="__codelineno-6-23" name="__codelineno-6-23" href="#__codelineno-6-23"></a><span class="gi">+    StudyType.ETAP_EXPERT: 16,</span>
+<a id="__codelineno-6-24" name="__codelineno-6-24" href="#__codelineno-6-24"></a><span class="gi">+    StudyType.ETAP_GUI: 17,</span>
+<a id="__codelineno-6-25" name="__codelineno-6-25" href="#__codelineno-6-25"></a><span class="w"> </span>}
+<a id="__codelineno-6-26" name="__codelineno-6-26" href="#__codelineno-6-26"></a>
+<a id="__codelineno-6-27" name="__codelineno-6-27" href="#__codelineno-6-27"></a><span class="w"> </span># Canonical keyword dictionary for heuristic goal analysis
+<a id="__codelineno-6-28" name="__codelineno-6-28" href="#__codelineno-6-28"></a><span class="gu">@@ -48,6 +52,10 @@ KEYWORD_RULES: list[tuple[list[str], StudyType]] = [</span>
+<a id="__codelineno-6-29" name="__codelineno-6-29" href="#__codelineno-6-29"></a><span class="w"> </span>    (["solar", "wind", "renewable", "pv"], StudyType.RENEWABLE_INTEGRATION),
+<a id="__codelineno-6-30" name="__codelineno-6-30" href="#__codelineno-6-30"></a><span class="w"> </span>    (["battery", "bess", "storage"], StudyType.BATTERY_STORAGE),
+<a id="__codelineno-6-31" name="__codelineno-6-31" href="#__codelineno-6-31"></a><span class="w"> </span>    (["scada", "telemetry", "61850"], StudyType.SCADA),
+<a id="__codelineno-6-32" name="__codelineno-6-32" href="#__codelineno-6-32"></a><span class="gi">+    (["digital twin", "twin model", "real-time twin", "state estimation twin"], StudyType.DIGITAL_TWIN),</span>
+<a id="__codelineno-6-33" name="__codelineno-6-33" href="#__codelineno-6-33"></a><span class="gi">+    (["etap expert", "expert advice", "etap rule", "format a", "format b"], StudyType.ETAP_EXPERT),</span>
+<a id="__codelineno-6-34" name="__codelineno-6-34" href="#__codelineno-6-34"></a><span class="gi">+    (["etap gui", "gui guide", "one-line diagram step", "user interface guide"], StudyType.ETAP_GUI),</span>
+<a id="__codelineno-6-35" name="__codelineno-6-35" href="#__codelineno-6-35"></a><span class="gi">+    (["generative design", "substation design", "sld synthesis", "topology synthesis"], StudyType.GENERATIVE_DESIGN),</span>
+<a id="__codelineno-6-36" name="__codelineno-6-36" href="#__codelineno-6-36"></a><span class="w"> </span>]
+<a id="__codelineno-6-37" name="__codelineno-6-37" href="#__codelineno-6-37"></a>
+<a id="__codelineno-6-38" name="__codelineno-6-38" href="#__codelineno-6-38"></a><span class="w"> </span>DEFAULT_STUDIES: list[StudyType] = [
+</code></pre></div>
+<hr />
+<h2 id="6-acceptance-gates-evaluation">6. تقييم بوابات القبول (Acceptance Gates Evaluation)</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: center;">رقم البوابة</th>
+<th style="text-align: left;">الوصف</th>
+<th style="text-align: center;">النتيجة</th>
+<th style="text-align: left;">الدليل</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: center;">Gate 1</td>
+<td style="text-align: left;">تغطية كاملة بنسبة 100% لكافة أعضاء <code>StudyType</code> الـ 17 في <code>STUDY_PRIORITY</code> و <code>KEYWORD_RULES</code> و <code>STUDY_TYPE_MAPPING</code></td>
+<td style="text-align: center;">✅ محقق</td>
+<td style="text-align: left;">اختبارات Gate 1 و Gate 2 و Gate 3 تمر بنجاح بنسبة 100%</td>
+</tr>
+<tr>
+<td style="text-align: center;">Gate 2</td>
+<td style="text-align: left;">عدم كسر أي من السلوكيات أو اختبارات التوجيه السابقة (Backward Compatibility)</td>
+<td style="text-align: center;">✅ محقق</td>
+<td style="text-align: left;">اجتياز جميع اختبارات <code>test_router_regression.py</code> (35/35)</td>
+</tr>
+<tr>
+<td style="text-align: center;">Gate 3</td>
+<td style="text-align: left;">اجتياز اختبارات <code>tests/test_router_completeness_gate.py</code> بنسبة 100%</td>
+<td style="text-align: center;">✅ محقق</td>
+<td style="text-align: left;">26/26 نجاح في 45.23 ثانية</td>
+</tr>
+<tr>
+<td style="text-align: center;">Gate 4</td>
+<td style="text-align: left;">حصر التعديلات حصراً بالملفات المصرح بها في P4</td>
+<td style="text-align: center;">✅ محقق</td>
+<td style="text-align: left;">التعديلات مقتصرة تماماً على الملفات الـ 4 المصرح بها</td>
+</tr>
+<tr>
+<td style="text-align: center;">Gate 5</td>
+<td style="text-align: left;">تقديم تقرير <code>P4-report.md</code> متضمناً مخرجات الاختبار والأدلة الحرفية</td>
+<td style="text-align: center;">✅ محقق</td>
+<td style="text-align: left;">التقرير الحالي موثق ومكتمل بالأدلة الحرفية</td>
+</tr>
+</tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "search.suggest", "search.highlight"], "search": "../../assets/javascripts/workers/search.f8cc74c7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.c8b220af.min.js"></script>
+      
+    
+  </body>
+</html>

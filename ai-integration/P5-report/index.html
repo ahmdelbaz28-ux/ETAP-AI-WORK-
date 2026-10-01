@@ -1,0 +1,870 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Enterprise AI-Powered Power Systems Engineering Platform">
+      
+      
+        <meta name="author" content="AhmedETAP Team">
+      
+      
+      
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.11">
+    
+    
+      
+        <title>P5 Hardening & Verification Report: PSO Optimizers Safety, Convergence & Interface Hardening (M1.7) - AhmedETAP Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.4af4bdda.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="deep-purple">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#p5-hardening-verification-report-pso-optimizers-safety-convergence-interface-hardening-m17" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="AhmedETAP Documentation" class="md-header__button md-logo" aria-label="AhmedETAP Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            AhmedETAP Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              P5 Hardening &amp; Verification Report: PSO Optimizers Safety, Convergence &amp; Interface Hardening (M1.7)
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  الصفحة الرئيسية
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../ARCHITECTURE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  الهيكلية
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../API_REFERENCE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  واجهة برمجة التطبيقات
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../OPERATIONS_RUNBOOK/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  دليل التشغيل
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../TROUBLESHOOTING_GUIDE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  دليل الأعطال
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../SECURITY_OPERATIONS_MANUAL/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  البنية التحتية للأمان
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../ENTERPRISE_CERTIFICATION_REPORT/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  التقييم المؤسسي
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="AhmedETAP Documentation" class="md-nav__button md-logo" aria-label="AhmedETAP Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    AhmedETAP Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    الصفحة الرئيسية
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ARCHITECTURE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    الهيكلية
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../API_REFERENCE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    واجهة برمجة التطبيقات
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../OPERATIONS_RUNBOOK/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    دليل التشغيل
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../TROUBLESHOOTING_GUIDE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    دليل الأعطال
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../SECURITY_OPERATIONS_MANUAL/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    البنية التحتية للأمان
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ENTERPRISE_CERTIFICATION_REPORT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    التقييم المؤسسي
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-executive-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Executive Summary
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-hard-findings-implemented-fixes" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Hard Findings &amp; Implemented Fixes
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. Hard Findings &amp; Implemented Fixes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#a-load_flowoptimizerspso_opfpy" class="md-nav__link">
+    <span class="md-ellipsis">
+      A. load_flow/optimizers/pso_opf.py
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#b-coordinationoptimizerspso_coordinatorpy" class="md-nav__link">
+    <span class="md-ellipsis">
+      B. coordination/optimizers/pso_coordinator.py
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#c-engineoptimizersplacement_psopy" class="md-nav__link">
+    <span class="md-ellipsis">
+      C. engine/optimizers/placement_pso.py
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#d-engineoptimizersfilter_design_psopy" class="md-nav__link">
+    <span class="md-ellipsis">
+      D. engine/optimizers/filter_design_pso.py
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-test-suite-expansion-verbatim-results" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Test Suite Expansion &amp; Verbatim Results
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Test Suite Expansion &amp; Verbatim Results">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31-test-expansion" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.1 Test Expansion
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32-verbatim-test-output-full-pso-suite" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.2 Verbatim Test Output (Full PSO Suite)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#33-verbatim-meta-ci-verification" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.3 Verbatim Meta-CI Verification
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-git-diff-files-modified" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Git Diff &amp; Files Modified
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="p5-hardening-verification-report-pso-optimizers-safety-convergence-interface-hardening-m17">P5 Hardening &amp; Verification Report: PSO Optimizers Safety, Convergence &amp; Interface Hardening (M1.7)</h1>
+<p><strong>Repository:</strong> <code>https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-.git</code><br />
+<strong>Branch:</strong> <code>feat/ai-m1-7-pso-audit-hardening</code><br />
+<strong>Base Commit:</strong> <code>main @ 43fdd481f</code><br />
+<strong>Milestone:</strong> M1.7 (Swarm Intelligence &amp; PSO Optimization Engines)<br />
+<strong>Date:</strong> 27 September 2026<br />
+<strong>Status:</strong> 100% Passed (All Acceptance Gates &amp; Test Suites Verified)</p>
+<hr />
+<h2 id="1-executive-summary">1. Executive Summary</h2>
+<p>Milestone 1.7 introduced four Particle Swarm Optimization (PSO) engines:
+1. <code>load_flow/optimizers/pso_opf.py</code> (Hybrid AC Optimal Power Flow)
+2. <code>coordination/optimizers/pso_coordinator.py</code> (Protection Relay TMS / Pickup Coordination)
+3. <code>engine/optimizers/placement_pso.py</code> (Optimal Capacitor / Reactive Power Placement)
+4. <code>engine/optimizers/filter_design_pso.py</code> (IEEE 519 Single-Tuned Harmonic Filter Sizing)</p>
+<p>A pre-audit revealed safety and convergence gaps across the engines:
+- Unconditional <code>success=True</code> in AC-OPF masking power-flow non-convergence, branch overloads, and generator limits.
+- Dead <code>branch_limits</code> parameter accepted in <code>PSOOptimalPowerFlow.__init__</code> but never evaluated in objective penalties or recorded in violations.
+- Generator reactive power ($Q$) calculated from AC state not validated against generator $[Q_{min}, Q_{max}]$ bounds.
+- Missing convergence and feasibility guards in <code>PSOCoordinationEngine</code> when grading margins are physically unattainable within TMS bounds.
+- Power flow convergence blindness in <code>OptimalPlacementPSO</code> inner loop where non-converged power flows were accepted without penalty or notification.
+- Interface alignment for IEEE 519 compliance reporting vs PSO convergence reporting.</p>
+<p>All gaps have been remediated, verified, and hardened.</p>
+<hr />
+<h2 id="2-hard-findings-implemented-fixes">2. Hard Findings &amp; Implemented Fixes</h2>
+<h3 id="a-load_flowoptimizerspso_opfpy">A. <code>load_flow/optimizers/pso_opf.py</code></h3>
+<ul>
+<li><strong>Conditional <code>success</code> Evaluation</strong>:
+  Replaced unconditional <code>success=True</code> with:
+  <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">success</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">conv</span> <span class="ow">and</span> <span class="n">res</span><span class="o">.</span><span class="n">converged</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">violations</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+</code></pre></div>
+  <code>convergence_status</code> explicitly reports failure root causes (<code>"AC power flow failed to converge"</code>, <code>"Voltage constraints violated: ..."</code>, <code>"Branch limits violated: ..."</code>, or <code>"PSO iteration limit reached without convergence"</code>).</li>
+<li><strong>Active Branch Limits Enforcement</strong>:
+  In both the PSO objective penalty function and final solution verification:
+  $$|S_{ij}| = |v_i \cdot (y_{ij}^<em>(v_i^</em> - v_j^*))| \cdot S_{base}$$
+  Overloaded branches exceeding <code>branch_limits[(b1, b2)]</code> or <code>branch_limits[(b2, b1)]</code> are penalized quadratically ($+2000 \cdot \Delta S^2$) and recorded in <code>constraint_violations</code>.</li>
+<li><strong>Generator $Q$ Limits Enforcement</strong>:
+  Generator reactive power injections from the AC state are penalized if outside $[Q_{min}, Q_{max}]$ and flagged in <code>constraint_violations</code> if violated at optimal dispatch.</li>
+</ul>
+<h3 id="b-coordinationoptimizerspso_coordinatorpy">B. <code>coordination/optimizers/pso_coordinator.py</code></h3>
+<ul>
+<li><strong>Convergence &amp; Feasibility Guards</strong>:
+  In <code>suggest_tms_adjustment</code>: If <code>not res.converged</code> or <code>res.best_fitness &gt;= 1e5</code> (indicating uncoordinateable margin penalty was hit), the method returns <code>None</code> instead of returning a false TMS setting.
+  In <code>optimize_coordination_2d</code>: Added explicit <code>"converged": bool(res.converged)</code> and <code>"feasible": bool(res.best_fitness &lt; 1e5)</code> flags to the return dictionary.</li>
+<li><strong>Protocol Compliance</strong>:
+  Full 100% compliance with <code>CoordinationEngineProtocol</code> (<code>engine/interfaces.py:124</code>) preserved.</li>
+</ul>
+<h3 id="c-engineoptimizersplacement_psopy">C. <code>engine/optimizers/placement_pso.py</code></h3>
+<ul>
+<li><strong>Power Flow Convergence Flag &amp; Penalty</strong>:
+  <code>_solve_power_flow</code> upgraded with a robust Gauss-Seidel with Successive Over-Relaxation (SOR) solver that returns <code>(V, losses_mw, converged)</code>.
+  In <code>objective(x)</code>, unconverged candidate flows are hit with a steep penalty ($+2000.0$).</li>
+<li><strong>Convergence Transparency</strong>:
+  <code>PlacementResult</code> reports <code>converged: bool</code> reflecting <code>res.converged and base_flow_converged</code>.</li>
+</ul>
+<h3 id="d-engineoptimizersfilter_design_psopy">D. <code>engine/optimizers/filter_design_pso.py</code></h3>
+<ul>
+<li><strong>IEEE 519 Feasibility Status Alignment</strong>:
+  <code>FilterDesignResult</code> explicitly casts <code>ieee_519_compliant: bool</code> based strictly on IEEE 519 limits ($THD_v \le 5.0\%$, $V_h \le 3.0\%$) and <code>converged: bool</code> reflecting <code>res.converged</code> without either overriding the other.</li>
+</ul>
+<hr />
+<h2 id="3-test-suite-expansion-verbatim-results">3. Test Suite Expansion &amp; Verbatim Results</h2>
+<h3 id="31-test-expansion">3.1 Test Expansion</h3>
+<ul>
+<li><strong><code>tests/test_pso_opf.py</code></strong>:</li>
+<li><code>test_pso_ac_opf_convergence</code>: Verifies AC-OPF convergence, power balance, and real AC voltages.</li>
+<li><code>test_pso_ac_opf_branch_limit_violation_triggers_failure</code>: Verifies that impossible branch limits cause <code>success=False</code>, trigger descriptive <code>constraint_violations</code>, and update <code>convergence_status</code>.</li>
+<li><code>test_pso_ac_opf_infeasible_generator_q_limits</code>: Verifies that impossible generator reactive power limits cause <code>success=False</code> and report Q violations.</li>
+<li><strong><code>tests/test_pso_coordinator.py</code></strong>:</li>
+<li><code>test_suggest_tms_adjustment_uncoordinateable_pair</code>: Verifies <code>suggest_tms_adjustment</code> returns <code>None</code> when required margins cannot be achieved within TMS search bounds.</li>
+<li><code>test_optimize_coordination_2d_uncoordinateable</code>: Verifies <code>optimize_coordination_2d</code> reports <code>feasible=False</code> and <code>coordinated=False</code> when margins are violated.</li>
+<li>Assertions for <code>"converged"</code> and <code>"feasible"</code> keys in <code>optimize_coordination_2d</code>.</li>
+<li><strong><code>tests/test_placement_and_filter.py</code></strong>:</li>
+<li><code>test_capacitor_placement_loss_reduction</code>: Asserts <code>isinstance(result.converged, bool)</code>.</li>
+<li><code>test_capacitor_placement_power_flow_divergence_flag</code>: Asserts <code>_solve_power_flow</code> flags <code>converged=False</code> on unphysical/divergent loads.</li>
+<li><code>test_harmonic_filter_non_compliance_detection</code>: Injects heavy harmonic distortion with an undersized filter and verifies <code>ieee_519_compliant is False</code> while reporting <code>converged</code> boolean.</li>
+</ul>
+<h3 id="32-verbatim-test-output-full-pso-suite">3.2 Verbatim Test Output (Full PSO Suite)</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>pytest tests/test_pso_opf.py tests/test_pso_coordinator.py tests/test_placement_and_filter.py -v
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>============================= test session starts =============================
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>platform win32 -- Python 3.8.4, pytest-8.3.5, pluggy-1.5.0
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>rootdir: C:\Users\EWS-01\Desktop\etap
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>configfile: pyproject.toml
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>plugins: anyio-3.7.1, Faker-35.2.2, hypothesis-6.113.0, asyncio-0.24.0, cov-5.0.0, timeout-2.4.0, xdist-3.6.1, respx-0.23.1
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>asyncio: mode=auto, default_loop_scope=function
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>collected 14 items
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>tests/test_pso_opf.py::test_pso_ac_opf_convergence PASSED                [  7%]
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>tests/test_pso_opf.py::test_pso_ac_opf_branch_limit_violation_triggers_failure PASSED [ 14%]
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>tests/test_pso_opf.py::test_pso_ac_opf_infeasible_generator_q_limits PASSED [ 21%]
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>tests/test_pso_coordinator.py::test_protocol_conformance PASSED          [ 28%]
+<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>tests/test_pso_coordinator.py::test_check_coordination PASSED            [ 35%]
+<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>tests/test_pso_coordinator.py::test_check_coordination_range PASSED      [ 42%]
+<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a>tests/test_pso_coordinator.py::test_suggest_tms_adjustment_reaches_target_margin PASSED [ 50%]
+<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a>tests/test_pso_coordinator.py::test_suggest_tms_adjustment_uncoordinateable_pair PASSED [ 57%]
+<a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a>tests/test_pso_coordinator.py::test_optimize_coordination_2d PASSED      [ 64%]
+<a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a>tests/test_pso_coordinator.py::test_optimize_coordination_2d_uncoordinateable PASSED [ 71%]
+<a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a>tests/test_placement_and_filter.py::test_capacitor_placement_loss_reduction PASSED [ 78%]
+<a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a>tests/test_placement_and_filter.py::test_capacitor_placement_power_flow_divergence_flag PASSED [ 85%]
+<a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a>tests/test_placement_and_filter.py::test_harmonic_filter_ieee_519_compliance PASSED [ 92%]
+<a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a>tests/test_placement_and_filter.py::test_harmonic_filter_non_compliance_detection PASSED [100%]
+<a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a>
+<a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a>============================= 14 passed in 33.01s =============================
+</code></pre></div>
+<h3 id="33-verbatim-meta-ci-verification">3.3 Verbatim Meta-CI Verification</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>python scripts/check_workflows_meta.py
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>============================================================
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>[META-CI] Validating GitHub Actions Workflows &amp; Invariants
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>Found 50 workflow files.
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>============================================================
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>[OK] All 50 GitHub Actions workflows comply with Meta-CI standards.
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>  - YAML syntax: VALID
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>  - Permissions: EXPLICIT
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>  - Job timeouts: ENFORCED
+<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>  - Branch triggers: VALIDATED
+<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>  - Overrides consistency (T-2.1): SYNCHRONIZED
+<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a>  - Gitleaksignore ratchet (R-3): ENFORCED (ceiling: 800)
+<a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a>  - Release Gate job names (G-3 / N28): VERIFIED
+</code></pre></div>
+<hr />
+<h2 id="4-git-diff-files-modified">4. Git Diff &amp; Files Modified</h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>Modified Files:
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>- coordination/optimizers/pso_coordinator.py
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>- engine/optimizers/filter_design_pso.py
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>- engine/optimizers/placement_pso.py
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>- load_flow/optimizers/pso_opf.py
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>- tests/test_pso_opf.py
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>- tests/test_pso_coordinator.py
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>- tests/test_placement_and_filter.py
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>- P5-report.md
+</code></pre></div>
+<p>Untouched Areas Verified:
+- Zero modifications to <code>.github/workflows/</code>, CI scripts, security baseline, or core models.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "search.suggest", "search.highlight"], "search": "../../assets/javascripts/workers/search.f8cc74c7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.c8b220af.min.js"></script>
+      
+    
+  </body>
+</html>

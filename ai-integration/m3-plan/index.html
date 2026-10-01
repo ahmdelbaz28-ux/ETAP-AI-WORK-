@@ -776,84 +776,84 @@
 <tr>
 <td>1</td>
 <td><code>GoalRouter</code></td>
-<td><a href="file:///c:/Users/EWS-01/Desktop/etap/agents/router.py#L77">agents/router.py:77</a></td>
+<td><a href="../../agents/router.py#L77">agents/router.py:77</a></td>
 <td>توجيه الأهداف نصياً إلى <code>StudyType</code> عبر قواعد كلمات مفتاحية</td>
-<td><strong>حي</strong> — يُنشأ في <a href="file:///c:/Users/EWS-01/Desktop/etap/agents/orchestrator.py#L111">orchestrator.py:111</a></td>
+<td><strong>حي</strong> — يُنشأ في <a href="../../agents/orchestrator.py#L111">orchestrator.py:111</a></td>
 </tr>
 <tr>
 <td>2</td>
 <td><code>RouterDecision</code></td>
-<td><a href="file:///c:/Users/EWS-01/Desktop/etap/agents/router.py#L69">agents/router.py:69</a></td>
+<td><a href="../../agents/router.py#L69">agents/router.py:69</a></td>
 <td>قرار توجيه موحّد (<code>study_types</code>, <code>confidence</code>, <code>reason</code>)</td>
 <td><strong>حي</strong></td>
 </tr>
 <tr>
 <td>3</td>
 <td><code>determine_execution_order</code></td>
-<td><a href="file:///c:/Users/EWS-01/Desktop/etap/agents/router.py#L172">agents/router.py:172</a></td>
+<td><a href="../../agents/router.py#L172">agents/router.py:172</a></td>
 <td>ترتيب تنفيذ ثابت بالأولوية (LOAD_FLOW أولاً ثم الباقي)</td>
-<td><strong>حي</strong> — مستدعى في <a href="file:///c:/Users/EWS-01/Desktop/etap/agents/workflow.py#L103">workflow.py:103</a></td>
+<td><strong>حي</strong> — مستدعى في <a href="../../agents/workflow.py#L103">workflow.py:103</a></td>
 </tr>
 <tr>
 <td>4</td>
 <td><code>GoalPlannerAgent</code></td>
-<td><a href="file:///c:/Users/EWS-01/Desktop/etap/agents/goal_planner_agent.py#L54">agents/goal_planner_agent.py:54</a></td>
+<td><a href="../../agents/goal_planner_agent.py#L54">agents/goal_planner_agent.py:54</a></td>
 <td>تفكيك الأهداف وتقدير الأولويات والاعتماديات</td>
-<td><strong>حي</strong> — أوزان تركيبية ثابتة <code>0.4/0.4/0.2</code> (<a href="file:///c:/Users/EWS-01/Desktop/etap/agents/goal_planner_agent.py#L92-L94">سطر 92-94</a>)</td>
+<td><strong>حي</strong> — أوزان تركيبية ثابتة <code>0.4/0.4/0.2</code> (<a href="../../agents/goal_planner_agent.py#L92-L94">سطر 92-94</a>)</td>
 </tr>
 <tr>
 <td>5</td>
 <td><code>AdaptiveTaskScheduler</code></td>
-<td><a href="file:///c:/Users/EWS-01/Desktop/etap/agents/optimizers/adaptive_planner.py#L47">agents/optimizers/adaptive_planner.py:47</a></td>
+<td><a href="../../agents/optimizers/adaptive_planner.py#L47">agents/optimizers/adaptive_planner.py:47</a></td>
 <td>جدولة CPM تكيفية: مسار حرج + دفعات تنفيذ متوازية</td>
-<td><strong>معزول (Orphan)</strong> — لا مستهلك إنتاجي واحد؛ الاستيراد الوحيد في <a href="file:///c:/Users/EWS-01/Desktop/etap/tests/test_multi_objective_and_planner.py#L10">tests/test_multi_objective_and_planner.py:10</a></td>
+<td><strong>معزول (Orphan)</strong> — لا مستهلك إنتاجي واحد؛ الاستيراد الوحيد في <a href="../../tests/test_multi_objective_and_planner.py#L10">tests/test_multi_objective_and_planner.py:10</a></td>
 </tr>
 <tr>
 <td>6</td>
 <td><code>ContextualBanditRouter</code></td>
-<td><a href="file:///c:/Users/EWS-01/Desktop/etap/agents/optimizers/bandit_router.py#L24">agents/optimizers/bandit_router.py:24</a></td>
-<td>توجيه تعلّمي LinUCB مع رجوع آمن إلى <code>GoalRouter</code> (<a href="file:///c:/Users/EWS-01/Desktop/etap/agents/optimizers/bandit_router.py#L43">سطر 43</a>)</td>
-<td><strong>معزول (Orphan)</strong> — لا مستهلك إنتاجي؛ الاستيراد الوحيد في <a href="file:///c:/Users/EWS-01/Desktop/etap/tests/test_bandit_and_cascade.py#L10">tests/test_bandit_and_cascade.py:10</a></td>
+<td><a href="../../agents/optimizers/bandit_router.py#L24">agents/optimizers/bandit_router.py:24</a></td>
+<td>توجيه تعلّمي LinUCB مع رجوع آمن إلى <code>GoalRouter</code> (<a href="../../agents/optimizers/bandit_router.py#L43">سطر 43</a>)</td>
+<td><strong>معزول (Orphan)</strong> — لا مستهلك إنتاجي؛ الاستيراد الوحيد في <a href="../../tests/test_bandit_and_cascade.py#L10">tests/test_bandit_and_cascade.py:10</a></td>
 </tr>
 <tr>
 <td>7</td>
 <td><code>WorkflowEngine</code></td>
-<td><a href="file:///c:/Users/EWS-01/Desktop/etap/agents/workflow.py#L77">agents/workflow.py:77</a></td>
+<td><a href="../../agents/workflow.py#L77">agents/workflow.py:77</a></td>
 <td>منسّق خطوط التنفيذ متعددة الدراسات والتحقق النهائي</td>
-<td><strong>حي</strong> — موصول في <a href="file:///c:/Users/EWS-01/Desktop/etap/agents/orchestrator.py#L112">orchestrator.py:112</a></td>
+<td><strong>حي</strong> — موصول في <a href="../../agents/orchestrator.py#L112">orchestrator.py:112</a></td>
 </tr>
 <tr>
 <td>8</td>
 <td>عقود M2 التنفيذية</td>
-<td><a href="file:///c:/Users/EWS-01/Desktop/etap/contracts/ai/models.py">contracts/ai/models.py</a> — السطور <a href="file:///c:/Users/EWS-01/Desktop/etap/contracts/ai/models.py#L111">111</a>, <a href="file:///c:/Users/EWS-01/Desktop/etap/contracts/ai/models.py#L135">135</a>, <a href="file:///c:/Users/EWS-01/Desktop/etap/contracts/ai/models.py#L152">152</a>, <a href="file:///c:/Users/EWS-01/Desktop/etap/contracts/ai/models.py#L173">173</a>, <a href="file:///c:/Users/EWS-01/Desktop/etap/contracts/ai/models.py#L254">254</a></td>
+<td><a href="../../contracts/ai/models.py">contracts/ai/models.py</a> — السطور <a href="../../contracts/ai/models.py#L111">111</a>, <a href="../../contracts/ai/models.py#L135">135</a>, <a href="../../contracts/ai/models.py#L152">152</a>, <a href="../../contracts/ai/models.py#L173">173</a>, <a href="../../contracts/ai/models.py#L254">254</a></td>
 <td>DAG الخطة، سياق التنفيذ، الطلب، سجل التتبع</td>
 <td><strong>معرّفة — صفر مستهلك في زمن التشغيل</strong></td>
 </tr>
 <tr>
 <td>9</td>
 <td>حقول الربط <code>run_id/plan_id/node_id</code></td>
-<td><a href="file:///c:/Users/EWS-01/Desktop/etap/agents/models.py#L77-L80">agents/models.py:77-80</a> (<code>AgentResult</code>) و <a href="file:///c:/Users/EWS-01/Desktop/etap/agents/models.py#L95-L97">95-97</a> (<code>EngineeringTask</code>)</td>
+<td><a href="../../agents/models.py#L77-L80">agents/models.py:77-80</a> (<code>AgentResult</code>) و <a href="../../agents/models.py#L95-L97">95-97</a> (<code>EngineeringTask</code>)</td>
 <td>ربط نتائج الوكلاء بالعقد التنفيذي</td>
 <td><strong>معرّفة — لا تُملأ في أي مسار فعلي اليوم</strong></td>
 </tr>
 <tr>
 <td>10</td>
 <td>سجل الوكلاء TypeScript</td>
-<td><a href="file:///c:/Users/EWS-01/Desktop/etap/src/core/agents.ts#L54-L140">src/core/agents.ts:54-140</a></td>
+<td><a href="../../src/core/agents.ts#L54-L140">src/core/agents.ts:54-140</a></td>
 <td>11 معرّف وكيل + <code>promptHandle</code></td>
-<td><strong>حي</strong> — المستهلك الوحيد <a href="file:///c:/Users/EWS-01/Desktop/etap/src/routes/agents.ts#L7">src/routes/agents.ts:7</a> (تأجيل M2.3)</td>
+<td><strong>حي</strong> — المستهلك الوحيد <a href="../../src/routes/agents.ts#L7">src/routes/agents.ts:7</a> (تأجيل M2.3)</td>
 </tr>
 <tr>
 <td>11</td>
 <td><code>OptimizationAgent</code></td>
-<td><a href="file:///c:/Users/EWS-01/Desktop/etap/agents/optimizers/optimization_agent.py#L29">agents/optimizers/optimization_agent.py:29</a></td>
+<td><a href="../../agents/optimizers/optimization_agent.py#L29">agents/optimizers/optimization_agent.py:29</a></td>
 <td>تحسينات swarm / metaheuristic</td>
 <td><strong>مسجَّل في السجل</strong> (مفتاح <code>optimization</code> ضمن 30 مفتاحاً) لكن study type خارجي غير مخدوم</td>
 </tr>
 <tr>
 <td>12</td>
 <td><code>SpecializedExecutionUnavailableError</code></td>
-<td><a href="file:///c:/Users/EWS-01/Desktop/etap/core/exceptions.py#L10">core/exceptions.py:10</a></td>
+<td><a href="../../core/exceptions.py#L10">core/exceptions.py:10</a></td>
 <td>فشل مغلق (ValueError subclass) للدراسات المسجلة بلا معالج</td>
 <td><strong>حي</strong> — وسيلة الرفض الموحدة اليوم</td>
 </tr>
@@ -863,33 +863,33 @@
 <h2 id="3-gap-analysis">3. تحليل الفجوات (Gap Analysis — كل فجوة بشاهدين قطعيين على الأقل)</h2>
 <h3 id="g1-cpm">G1 — الجدولة التكيفية (CPM) معزولة عن مسار التخطيط</h3>
 <ul>
-<li><strong>الادعاء المعلن في الكود:</strong> <code>AdaptiveTaskScheduler</code> "يستبدل التقييم الثابت 0.4/0.4/0.2 في <code>GoalPlannerAgent</code>" — <a href="file:///c:/Users/EWS-01/Desktop/etap/agents/optimizers/adaptive_planner.py#L4-L6">adaptive_planner.py:4-6</a>.</li>
-<li><strong>الواقع الحي:</strong> الوكيل ما زال يجمع بالوزن الثابت (<a href="file:///c:/Users/EWS-01/Desktop/etap/agents/goal_planner_agent.py#L200-L209">goal_planner_agent.py:200-209</a>)، ولا يوجد أي استيراد إنتاجي للجدولة؛ الاستيراد الوحيد في الاختبارات (<a href="file:///c:/Users/EWS-01/Desktop/etap/tests/test_multi_objective_and_planner.py#L10">tests/test_multi_objective_and_planner.py:10</a>).</li>
-<li><strong>الأثر:</strong> قدرة المسار الحرج والدفعات المتوازية (<a href="file:///c:/Users/EWS-01/Desktop/etap/agents/optimizers/adaptive_planner.py#L119-L155">adaptive_planner.py:119-155</a>) غير مستفاد منها في أي تدفق تنفيذ.</li>
+<li><strong>الادعاء المعلن في الكود:</strong> <code>AdaptiveTaskScheduler</code> "يستبدل التقييم الثابت 0.4/0.4/0.2 في <code>GoalPlannerAgent</code>" — <a href="../../agents/optimizers/adaptive_planner.py#L4-L6">adaptive_planner.py:4-6</a>.</li>
+<li><strong>الواقع الحي:</strong> الوكيل ما زال يجمع بالوزن الثابت (<a href="../../agents/goal_planner_agent.py#L200-L209">goal_planner_agent.py:200-209</a>)، ولا يوجد أي استيراد إنتاجي للجدولة؛ الاستيراد الوحيد في الاختبارات (<a href="../../tests/test_multi_objective_and_planner.py#L10">tests/test_multi_objective_and_planner.py:10</a>).</li>
+<li><strong>الأثر:</strong> قدرة المسار الحرج والدفعات المتوازية (<a href="../../agents/optimizers/adaptive_planner.py#L119-L155">adaptive_planner.py:119-155</a>) غير مستفاد منها في أي تدفق تنفيذ.</li>
 </ul>
 <h3 id="g2-linucb-orchestrator">G2 — الموجّه التعلّمي (LinUCB) معزول عن الـ Orchestrator</h3>
 <ul>
-<li><strong>الشاهد 1:</strong> الفئة قائمة بخوارزميتها ورجوعها الآمن — <a href="file:///c:/Users/EWS-01/Desktop/etap/agents/optimizers/bandit_router.py#L24">bandit_router.py:24</a> و <a href="file:///c:/Users/EWS-01/Desktop/etap/agents/optimizers/bandit_router.py#L43">bandit_router.py:43</a>.</li>
-<li><strong>الشاهد 2:</strong> المنشأة الفعلية في الـ orchestrator تستخدم <code>GoalRouter</code> الصريح — <a href="file:///c:/Users/EWS-01/Desktop/etap/agents/orchestrator.py#L111">orchestrator.py:111</a>.</li>
+<li><strong>الشاهد 1:</strong> الفئة قائمة بخوارزميتها ورجوعها الآمن — <a href="../../agents/optimizers/bandit_router.py#L24">bandit_router.py:24</a> و <a href="../../agents/optimizers/bandit_router.py#L43">bandit_router.py:43</a>.</li>
+<li><strong>الشاهد 2:</strong> المنشأة الفعلية في الـ orchestrator تستخدم <code>GoalRouter</code> الصريح — <a href="../../agents/orchestrator.py#L111">orchestrator.py:111</a>.</li>
 <li><strong>الفجوة المزدوجة:</strong> لا مسار تحديث مكافآت (reward/telemetry) من نتائج الدراسات إلى الأذرع، ولا علم ميزة يحكم التفعيل.</li>
 </ul>
 <h3 id="g3-m2">G3 — عقود M2 التنفيذية غير مستهلكة في زمن التشغيل</h3>
 <ul>
-<li><strong>الشاهد 1:</strong> العقود معرّفة ومختبَرة تزامنياً — <a href="file:///c:/Users/EWS-01/Desktop/etap/contracts/ai/models.py#L111">contracts/ai/models.py:111/135/173/254</a>، ومِرآتها TS في <code>src/core/contracts/ai.ts</code>.</li>
-<li><strong>الشاهد 2:</strong> <code>WorkflowEngine</code> يبني الترتيب من دالة أولوية ثابتة — <a href="file:///c:/Users/EWS-01/Desktop/etap/agents/workflow.py#L103">workflow.py:103</a> — ولا يُنتج <code>ExecutionPlanContract</code> ولا يُصدر <code>ExecutionTraceContract</code>، وحقول الربط في <a href="file:///c:/Users/EWS-01/Desktop/etap/agents/models.py#L77-L80">agents/models.py:77-80</a> لا تُملأ في أي مسار.</li>
+<li><strong>الشاهد 1:</strong> العقود معرّفة ومختبَرة تزامنياً — <a href="../../contracts/ai/models.py#L111">contracts/ai/models.py:111/135/173/254</a>، ومِرآتها TS في <code>src/core/contracts/ai.ts</code>.</li>
+<li><strong>الشاهد 2:</strong> <code>WorkflowEngine</code> يبني الترتيب من دالة أولوية ثابتة — <a href="../../agents/workflow.py#L103">workflow.py:103</a> — ولا يُنتج <code>ExecutionPlanContract</code> ولا يُصدر <code>ExecutionTraceContract</code>، وحقول الربط في <a href="../../agents/models.py#L77-L80">agents/models.py:77-80</a> لا تُملأ في أي مسار.</li>
 <li><strong>الأثر:</strong> الجسر التعاقدي Python↔TypeScript مبنيّ لكن غير مُفعَّل تشغيلياً (أساس M4+ المحتمل).</li>
 </ul>
 <h3 id="g4-m23">G4 — ازدواجية سجل الوكلاء (البند المؤجل من M2.3)</h3>
 <ul>
-<li><strong>الشاهد 1:</strong> 11 معرّفاً في TS — <a href="file:///c:/Users/EWS-01/Desktop/etap/src/core/agents.ts#L54-L140">src/core/agents.ts:54-140</a>.</li>
-<li><strong>الشاهد 2:</strong> السجل البايثوني الحيّ يسجل <strong>30 مفتاحاً</strong> (27 فئة فريدة + 3 أسماء مستعارة: <code>harmonic</code>, <code>opf</code>, <code>protection</code>) — قياس حي مباشر اليوم عبر <code>create_agent_registry()</code> المستدعاة في <a href="file:///c:/Users/EWS-01/Desktop/etap/agents/registry.py#L1422">agents/registry.py:1422</a>.</li>
+<li><strong>الشاهد 1:</strong> 11 معرّفاً في TS — <a href="../../src/core/agents.ts#L54-L140">src/core/agents.ts:54-140</a>.</li>
+<li><strong>الشاهد 2:</strong> السجل البايثوني الحيّ يسجل <strong>30 مفتاحاً</strong> (27 فئة فريدة + 3 أسماء مستعارة: <code>harmonic</code>, <code>opf</code>, <code>protection</code>) — قياس حي مباشر اليوم عبر <code>create_agent_registry()</code> المستدعاة في <a href="../../agents/registry.py#L1422">agents/registry.py:1422</a>.</li>
 <li><strong>التفويض:</strong> مؤجل صراحة من <a href="../m2-report/#6-المتطلبات-المؤجلة-إلى-m3">m2-report.md §6</a> لاستلزامه إعادة هيكلة طبقة Mastra.</li>
 </ul>
 <h3 id="g5-optimization">G5 — الالتباس التنفيذي لدراسة <code>optimization</code> (قرار معماري مطلوب)</h3>
 <ul>
-<li><strong>الشاهد 1:</strong> <code>OptimizationAgent</code> فئة كاملة مسجّلة في السجل — <a href="file:///c:/Users/EWS-01/Desktop/etap/agents/optimizers/optimization_agent.py#L29">optimization_agent.py:29</a>.</li>
-<li><strong>الشاهد 2:</strong> <code>optimization</code> مسجَّلة <code>handler_type="external"</code> في جدول الإرسال — <a href="file:///c:/Users/EWS-01/Desktop/etap/engine/dispatch.py#L155-L160">engine/dispatch.py:155-160</a> — فتسقط في <a href="file:///c:/Users/EWS-01/Desktop/etap/services/study_executor.py#L432-L433">study_executor.py:432-433</a> على <code>SpecializedExecutionUnavailableError</code> دون أي موجّه HTTP خارجي نشط.</li>
-<li><strong>ملاحظة مقارنة:</strong> نفس الصنف من المشكلة عولج سابقاً لدراسة <code>ahmed_etap_orchestration</code> (M0.3) بإعادة توجيهها محلياً — <a href="file:///c:/Users/EWS-01/Desktop/etap/services/study_executor.py#L425-L426">study_executor.py:425-426</a> → <a href="file:///c:/Users/EWS-01/Desktop/etap/services/study_executor.py#L502-L545">_dispatch_agent:502-545</a>. يمكن اعتماد النمط نفسه أو قرار الحذف/التوثيق الصريح.</li>
+<li><strong>الشاهد 1:</strong> <code>OptimizationAgent</code> فئة كاملة مسجّلة في السجل — <a href="../../agents/optimizers/optimization_agent.py#L29">optimization_agent.py:29</a>.</li>
+<li><strong>الشاهد 2:</strong> <code>optimization</code> مسجَّلة <code>handler_type="external"</code> في جدول الإرسال — <a href="../../engine/dispatch.py#L155-L160">engine/dispatch.py:155-160</a> — فتسقط في <a href="../../services/study_executor.py#L432-L433">study_executor.py:432-433</a> على <code>SpecializedExecutionUnavailableError</code> دون أي موجّه HTTP خارجي نشط.</li>
+<li><strong>ملاحظة مقارنة:</strong> نفس الصنف من المشكلة عولج سابقاً لدراسة <code>ahmed_etap_orchestration</code> (M0.3) بإعادة توجيهها محلياً — <a href="../../services/study_executor.py#L425-L426">study_executor.py:425-426</a> → <a href="../../services/study_executor.py#L502-L545">_dispatch_agent:502-545</a>. يمكن اعتماد النمط نفسه أو قرار الحذف/التوثيق الصريح.</li>
 </ul>
 <h3 id="p0-drift-note">تصحيحات تدقيقية على خط الأساس P0 (Drift Note — شفافية إلزامية)</h3>
 <table>
@@ -904,17 +904,17 @@
 <tr>
 <td><code>ahmed_etap_orchestration</code> كود ميت بنيوياً يرفع استثناءً عند الإرسال</td>
 <td><strong>عولج في M0.3:</strong> التوجيه الآن يمر إلى <code>_dispatch_agent</code> وينفّذ فعلياً</td>
-<td><a href="file:///c:/Users/EWS-01/Desktop/etap/services/study_executor.py#L425-L426">study_executor.py:425-426</a></td>
+<td><a href="../../services/study_executor.py#L425-L426">study_executor.py:425-426</a></td>
 </tr>
 <tr>
 <td>الرفض برفع <code>ValueError</code> نصي في موضعين</td>
 <td>الرفض الموحّد هو <code>SpecializedExecutionUnavailableError</code> (مصنَّف <code>code="SPECIALIZED_EXECUTION_UNAVAILABLE"</code>)</td>
-<td><a href="file:///c:/Users/EWS-01/Desktop/etap/core/exceptions.py#L10-L19">core/exceptions.py:10-19</a></td>
+<td><a href="../../core/exceptions.py#L10-L19">core/exceptions.py:10-19</a></td>
 </tr>
 <tr>
 <td>«13 دراسة ترفع الخطأ»</td>
 <td><strong>11 دراسة وكيلية</strong> فقط ما زالت غير مخدومة عبر المنفذ: <code>battery_storage, cable_sizing, digital_twin, earth_grid, generative_design, harmonic_analysis, motor_starting, optimal_power_flow, renewable_integration, scada, transient_stability</code> — القياس الحي: <code>STUDY_DISPATCH</code> = 20 مدخلاً (4 native + 13 agent + 3 external)</td>
-<td><a href="file:///c:/Users/EWS-01/Desktop/etap/services/study_executor.py#L547-L549">study_executor.py:547-549</a></td>
+<td><a href="../../services/study_executor.py#L547-L549">study_executor.py:547-549</a></td>
 </tr>
 </tbody>
 </table>
@@ -930,21 +930,21 @@
 </ul>
 <h3 id="m32">M3.2 — طبقة التوجيه التعلّمي (خلف علم ميزة — افتراضي معطّل)</h3>
 <ul>
-<li><strong>الهدف:</strong> تفعيل <code>ContextualBanditRouter</code> اختيارياً فوق <code>GoalRouter</code> مع مسار مكافآت من نتائج الدراسات، ورجوع آمن 100% إلى <code>KEYWORD_RULES</code> (المنصوص عليه أصلاً في <a href="file:///c:/Users/EWS-01/Desktop/etap/agents/optimizers/bandit_router.py#L6">bandit_router.py:6</a> و <a href="file:///c:/Users/EWS-01/Desktop/etap/agents/optimizers/bandit_router.py#L43">bandit_router.py:43</a>).</li>
-<li><strong>النطاق المقترح:</strong> نقطة الإنشاء <a href="file:///c:/Users/EWS-01/Desktop/etap/agents/orchestrator.py#L111">orchestrator.py:111</a>، واجهة حقن في <code>agents/router.py</code>، تجميع reward من <code>AgentResult</code>، اختبارات.</li>
+<li><strong>الهدف:</strong> تفعيل <code>ContextualBanditRouter</code> اختيارياً فوق <code>GoalRouter</code> مع مسار مكافآت من نتائج الدراسات، ورجوع آمن 100% إلى <code>KEYWORD_RULES</code> (المنصوص عليه أصلاً في <a href="../../agents/optimizers/bandit_router.py#L6">bandit_router.py:6</a> و <a href="../../agents/optimizers/bandit_router.py#L43">bandit_router.py:43</a>).</li>
+<li><strong>النطاق المقترح:</strong> نقطة الإنشاء <a href="../../agents/orchestrator.py#L111">orchestrator.py:111</a>، واجهة حقن في <code>agents/router.py</code>، تجميع reward من <code>AgentResult</code>، اختبارات.</li>
 <li><strong>شرط القبول:</strong> <code>tests/test_router_regression.py</code> و <code>tests/test_router_completeness_gate.py</code> و <code>tests/test_bandit_and_cascade.py</code> خضراء؛ سلوك مطابق حرفياً لليوم عندما العلم معطّل (fail-closed default off).</li>
 <li><strong>المخاطر:</strong> عدم حتمية التعلّم — تُحيَّد بالعلم المعطّل افتراضياً وحدود أمان على القرار.</li>
 </ul>
 <h3 id="m33-m2">M3.3 — استهلاك عقود M2 التنفيذية في زمن التشغيل</h3>
 <ul>
 <li><strong>الهدف:</strong> <code>WorkflowEngine</code> يبني <code>ExecutionPlanContract</code> (عقد = دراسات، <code>depends_on</code> مستمدة من ترتيب الأولوية)، ويمرّر <code>run_id/plan_id/node_id</code> إلى نتائج الوكلاء، ويصدر تتبعاً نهائياً مطابقاً لـ <code>ExecutionTraceContract</code>.</li>
-<li><strong>النطاق المقترح:</strong> <code>agents/workflow.py</code>، تعبئة حقول <a href="file:///c:/Users/EWS-01/Desktop/etap/agents/models.py#L77-L80">agents/models.py:77-80</a>، اختبارات تزامن خطة جديدة فوق <code>tests/test_contract_sync.py</code>.</li>
+<li><strong>النطاق المقترح:</strong> <code>agents/workflow.py</code>، تعبئة حقول <a href="../../agents/models.py#L77-L80">agents/models.py:77-80</a>، اختبارات تزامن خطة جديدة فوق <code>tests/test_contract_sync.py</code>.</li>
 <li><strong>شرط القبول:</strong> بقاء <code>tests/test_contract_sync.py</code> أخضر + اختبارات جديدة تثبت تعبئة الحقول؛ صفر تغيير في نتائج الدراسات نفسها (بيانات إثرائية فقط).</li>
 <li><strong>المخاطر:</strong> تشابك مع المسار الحرج — يُنفَّذ كطبقة إثراء (additive) لا تحجب أي فشل أصلي.</li>
 </ul>
 <h3 id="m34-ts-m23">M3.4 — تصفية ازدواجية سجل الوكلاء TS (البند المؤجل من M2.3)</h3>
 <ul>
-<li><strong>الهدف:</strong> مصدر حقيقة واحد للبيانات الوصفية للوكلاء (11 في TS مقابل 27 فئة بايثونية) مع الحفاظ على الواجهات القائمة: <code>getAgent</code>, <code>listAgentIds</code>, <code>getAgentPromptHandle</code> (<a href="file:///c:/Users/EWS-01/Desktop/etap/src/core/agents.ts#L142-L153">agents.ts:142-153</a>).</li>
+<li><strong>الهدف:</strong> مصدر حقيقة واحد للبيانات الوصفية للوكلاء (11 في TS مقابل 27 فئة بايثونية) مع الحفاظ على الواجهات القائمة: <code>getAgent</code>, <code>listAgentIds</code>, <code>getAgentPromptHandle</code> (<a href="../../src/core/agents.ts#L142-L153">agents.ts:142-153</a>).</li>
 <li><strong>النطاق المقترح:</strong> <code>src/core/agents.ts</code> و<code>src/routes/agents.ts:7</code>، وإعادة هيكلة طبقة توجيه Mastra بحسب الحاجة.</li>
 <li><strong>شرط القبول:</strong> بناء TS + Meta-CI + اختبارات <code>tests/unit/routes/agents.test.ts</code> خضراء؛ لا كسر لمفاتيح البرومبتات (<code>promptHandle</code>).</li>
 <li><strong>المخاطر:</strong> مسّ طبقة Mastra — يتطلب تشغيل حزمة اختبارات TS كاملة قبل الدمج.</li>
