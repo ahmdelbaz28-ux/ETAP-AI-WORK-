@@ -93,3 +93,8 @@ CVE-2026-75931
 CVE-2026-75975
 CVE-2026-76172
 
+# ─── Debian base image OS package CVEs (pending base image point release) ───
+CVE-2026-103111
+CVE-2026-84782
+CVE-2026-75804
+

@@ -389,7 +389,7 @@ def test_cua_control_mode_missing_bounds_aborts_fail_closed():
 def test_default_production_rollback_handler_allowlist_precedence_and_word_boundaries():
     """Verify that safe UI actions (like modal_close) take precedence over substring checks,
     and word-boundary checks prevent false positives on harmless words like 'opened_panel'."""
-    from agents.life_safety import default_production_rollback_handler, LifeSafetyGuard
+    from agents.life_safety import LifeSafetyGuard, default_production_rollback_handler
 
     # 1. Allow-listed action (modal_close) has 'close' substring but MUST return True
     snap_modal = {"action": {"type": "modal_close", "target": "settings_dialog"}}

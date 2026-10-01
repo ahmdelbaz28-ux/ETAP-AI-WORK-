@@ -43,6 +43,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY hf-space/requirements.hf.txt /tmp/requirements.hf.txt
 RUN pip install --no-cache-dir --only-binary :all: --upgrade pip==25.0.1 && \
     pip install --no-cache-dir --only-binary :all: \
+        --default-timeout 100 --retries 5 \
         --requirement /tmp/requirements.hf.txt
 
 # Install Chromium for Playwright (BrowserCUAExecutor — headless CUA on HF Space).

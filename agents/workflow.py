@@ -580,7 +580,10 @@ class WorkflowEngine:
                     # Immediately apply engineering assertions to this node's result (M5.2)
                     if res.data and res.status == AgentStatus.COMPLETED:
                         try:
-                            from copilot.ai.engineering_assertions import EngineeringAssertionLayer, validate_fallback_output
+                            from copilot.ai.engineering_assertions import (
+                                EngineeringAssertionLayer,
+                                validate_fallback_output,
+                            )
 
                             layer = EngineeringAssertionLayer(strict_mode=False)
                             self._apply_assertion_to_result(res, layer)
