@@ -1,6 +1,6 @@
 # 📘 AhmedETAP — Complete Project Index v2.0.0
 
-> Auto-generated on **2026-10-01T13:12:38.530758+00:00** by indexer v2.0.0.
+> Auto-generated on **2026-10-01T13:18:51.049367+00:00** by indexer v2.0.0.
 > Re-run `python indexer.py` to refresh.
 
 ---
@@ -14,8 +14,8 @@
 | Python | Classes | 909 |
 | Python | Functions | 813 |
 | UI | Files (TSX/TS) | 241 |
-| Test | Files | 251 |
-| Total | Tests | 3745 |
+| Test | Files | 253 |
+| Total | Tests | 3750 |
 | Help | Topics | 0 |
 | Context | Mappings | 0 |
 | Environment | Variables | 440 |
@@ -38,7 +38,7 @@
 | **Browser Cua Executor.Py** | `browser_cua_executor.py` | — | agents/browser_cua_executor.py — Browser-based CUA Loop (hea |
 | **Cable Sizing** | `cable_sizing_agent.py` | IEC 60364 | AhmedETAP - Cable Sizing Agent ============================= |
 | **Code Guard** | `code_guard_agent.py` | — | Code Guard Agent — AI-Powered Code Quality Review ========== |
-| **Coordination** | `coordination_agent.py` | IEC 60255, IEC60255, IEEE 242 | AhmedETAP - Protection Coordination Agent ================== |
+| **Coordination** | `coordination_agent.py` | IEC60255, IEC 60255, IEEE 242 | AhmedETAP - Protection Coordination Agent ================== |
 | **Cua Base Executor.Py** | `cua_base_executor.py` | — | agents/cua_base_executor.py — Base CUA Executor (Template Me |
 | **Cua Executor.Py** | `cua_executor.py` | — | agents/cua_executor.py — Computer Use Agent Executor (Deskto |
 | **Design** | `design_agent.py` | — | AhmedETAP - Generative Substation & Feeder Design Agent (Sca |
@@ -1924,7 +1924,7 @@ with
 - **def** `get_distributed_prompt_registry()` (line 426)
 - **def** `reset_distributed_prompt_registry()` (line 434)
 
-#### 📄 `api/r2_storage.py` _17.3 KB_
+#### 📄 `api/r2_storage.py` _18.3 KB_
 > api/r2_storage.py — Cloudflare R2 object storage integration.
 
 Provides a simple interface for uploading, downloading, and managing files
@@ -1932,14 +1932,14 @@ in Cloudflar
 
 - **def** `is_r2_enabled()` (line 252)
 - **async def** `upload()` (line 257)
-- **async def** `download()` (line 338)
-- **async def** `delete()` (line 355)
-- **async def** `list_objects()` (line 370)
-- **async def** `delete_many()` (line 413)
-- **def** `presign()` (line 441)
-- **def** `public_url()` (line 484)
-- **def** `generate_key()` (line 495)
-- **def** `ensure_bucket_exists()` (line 524)
+- **async def** `download()` (line 350)
+- **async def** `delete()` (line 368)
+- **async def** `list_objects()` (line 383)
+- **async def** `delete_many()` (line 433)
+- **def** `presign()` (line 461)
+- **def** `public_url()` (line 507)
+- **def** `generate_key()` (line 519)
+- **def** `ensure_bucket_exists()` (line 551)
 
 #### 📄 `api/rag_retriever.py` _6.8 KB_
 > api/rag_retriever.py — RAG for Historical Results (Phase 3).
@@ -2269,23 +2269,23 @@ control convergen
 - **async def** `fetch_project_parameters()` (line 210)
 - **async def** `update_project_parameters()` (line 224)
 
-#### 📄 `api/storage_management.py` _22.7 KB_
+#### 📄 `api/storage_management.py` _23.8 KB_
 > api/storage_management.py — Storage management API for R2 object lifecycle.
 
 Provides endpoints for monitoring storage usage, purging temporary/old fi
 
-- **Class** `StorageObjectInfo` (line 120)
-- **Class** `ByPrefixBreakdown` (line 137)
-- **Class** `StorageMetricsResponse` (line 145)
-- **Class** `StoragePurgeRequest` (line 161)
-- **Class** `StoragePurgeResponse` (line 190)
-- **Class** `RetentionPolicyResponse` (line 204)
-- **Class** `RetentionPolicyUpdate` (line 219)
-- **async def** `get_storage_metrics()` (line 323)
-- **async def** `purge_storage()` (line 400)
-- **async def** `get_retention_policy()` (line 510)
-- **async def** `update_retention_policy()` (line 534)
-- **async def** `clear_cad_artifacts()` (line 581)
+- **Class** `StorageObjectInfo` (line 121)
+- **Class** `ByPrefixBreakdown` (line 138)
+- **Class** `StorageMetricsResponse` (line 146)
+- **Class** `StoragePurgeRequest` (line 162)
+- **Class** `StoragePurgeResponse` (line 191)
+- **Class** `RetentionPolicyResponse` (line 205)
+- **Class** `RetentionPolicyUpdate` (line 220)
+- **async def** `get_storage_metrics()` (line 339)
+- **async def** `purge_storage()` (line 417)
+- **async def** `get_retention_policy()` (line 534)
+- **async def** `update_retention_policy()` (line 558)
+- **async def** `clear_cad_artifacts()` (line 605)
 
 #### 📄 `api/studies.py` _12.7 KB_
 > Study Execution API Router
@@ -5576,10 +5576,10 @@ Provides
 
 | Type | Count |
 |:---|---:|
-| ui-component | 281 |
-| python-module | 41 |
 | api-route | 92 |
+| ui-component | 281 |
 | ui-page | 61 |
+| python-module | 41 |
 | **TOTAL** | **475** |
 
 ---
@@ -5794,6 +5794,7 @@ Provides
 | `test_pso_coordinator.py` | 7 | 0 | **7** |
 | `test_pso_core.py` | 6 | 0 | **6** |
 | `test_pso_opf.py` | 4 | 0 | **4** |
+| `test_r2_storage.py` | 3 | 0 | **3** |
 | `test_rag_blueprint_adapter.py` | 4 | 0 | **4** |
 | `test_rag_retriever.py` | 3 | 0 | **3** |
 | `test_rasp_security.py` | 0 | 4 | **20** |
@@ -5830,6 +5831,7 @@ Provides
 | `test_solver_parameter_service.py` | 2 | 0 | **2** |
 | `test_sparse_solver.py` | 0 | 1 | **10** |
 | `test_standards_compliance_audit.py` | 0 | 4 | **5** |
+| `test_storage_management.py` | 2 | 0 | **2** |
 | `test_stress_tests.py` | 0 | 3 | **11** |
 | `test_study_engine_deep.py` | 5 | 0 | **5** |
 | `test_study_executor_deep.py` | 0 | 6 | **34** |
