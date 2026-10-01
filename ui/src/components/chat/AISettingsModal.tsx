@@ -8,8 +8,8 @@ import { cn } from "../../utils/helpers";
 import { Button } from "../ui/Button";
 
 interface AISettingsModalProps {
-  open: boolean;
-  onClose: () => void;
+  readonly open: boolean;
+  readonly onClose: () => void;
 }
 
 export function AISettingsModal({ open, onClose }: AISettingsModalProps) {
@@ -34,10 +34,10 @@ export function AISettingsModal({ open, onClose }: AISettingsModalProps) {
   };
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-in fade-in-50"
+    <dialog
+      open
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-in fade-in-50 border-0 w-full h-full max-w-none max-h-none m-0"
       data-testid="ai-settings-modal"
-      role="dialog"
       aria-modal="true"
     >
       <div className="bg-[#14181F] border border-[#334155] rounded-xl w-full max-w-4xl h-[85vh] flex flex-col shadow-2xl overflow-hidden font-sans">
@@ -49,7 +49,7 @@ export function AISettingsModal({ open, onClose }: AISettingsModalProps) {
             </div>
             <div>
               <h2 className="text-sm font-semibold text-slate-100 flex items-center gap-2">
-                AI Engine & Agents Configuration
+                <span>AI Engine & Agents Configuration</span>
                 <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                   Live Sync
                 </span>
@@ -111,7 +111,7 @@ export function AISettingsModal({ open, onClose }: AISettingsModalProps) {
         <div className="flex items-center justify-between px-5 py-3 border-t border-[#334155] bg-[#1A1F26] shrink-0">
           <div className="text-[11px] text-slate-400 flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            Keys and agents sync automatically with the backend stream.
+            <span>Keys and agents sync automatically with the backend stream.</span>
           </div>
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="sm" onClick={onClose}>
@@ -130,7 +130,7 @@ export function AISettingsModal({ open, onClose }: AISettingsModalProps) {
           </div>
         </div>
       </div>
-    </div>
+    </dialog>
   );
 }
 

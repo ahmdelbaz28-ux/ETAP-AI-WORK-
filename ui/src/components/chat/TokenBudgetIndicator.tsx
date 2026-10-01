@@ -6,7 +6,7 @@ import { Badge } from "../ui/Badge";
 import { Button } from "../ui/Button";
 
 interface TokenBudgetIndicatorProps {
-  className?: string;
+  readonly className?: string;
 }
 
 export function TokenBudgetIndicator({ className }: TokenBudgetIndicatorProps) {
@@ -26,11 +26,22 @@ export function TokenBudgetIndicator({ className }: TokenBudgetIndicatorProps) {
   const formattedTokens = tokensUsed > 1000 ? `${(tokensUsed / 1000).toFixed(1)}k` : `${tokensUsed}`;
   const formattedLimit = totalBudget > 1000 ? `${(totalBudget / 1000).toFixed(0)}k` : `${totalBudget}`;
 
-  const statusColor = isExceeded
-    ? "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/30"
-    : isWarning
-      ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30"
-      : "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30";
+  let statusColor = "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30";
+  let progressBarColor = "bg-emerald-500";
+  let statusTextColor = "text-emerald-500";
+  let statusLabel = "Optimal";
+
+  if (isExceeded) {
+    statusColor = "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/30";
+    progressBarColor = "bg-rose-500";
+    statusTextColor = "text-rose-500";
+    statusLabel = "Exceeded";
+  } else if (isWarning) {
+    statusColor = "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30";
+    progressBarColor = "bg-amber-500";
+    statusTextColor = "text-amber-500";
+    statusLabel = "Warning";
+  }
 
   return (
     <div className={cn("relative inline-flex items-center", className)}>
@@ -82,7 +93,7 @@ export function TokenBudgetIndicator({ className }: TokenBudgetIndicatorProps) {
                 <div
                   className={cn(
                     "h-full transition-all duration-300",
-                    isExceeded ? "bg-rose-500" : isWarning ? "bg-amber-500" : "bg-emerald-500",
+                    progressBarColor,
                   )}
                   style={{ width: `${Math.min(100, percentUsed)}%` }}
                 />
@@ -110,8 +121,8 @@ export function TokenBudgetIndicator({ className }: TokenBudgetIndicatorProps) {
               </div>
               <div>
                 <span className="text-slate-500 dark:text-slate-400 block">Status</span>
-                <span className={cn("font-medium", isExceeded ? "text-rose-500" : isWarning ? "text-amber-500" : "text-emerald-500")}>
-                  {isExceeded ? "Exceeded" : isWarning ? "Warning" : "Optimal"}
+                <span className={cn("font-medium", statusTextColor)}>
+                  {statusLabel}
                 </span>
               </div>
             </div>

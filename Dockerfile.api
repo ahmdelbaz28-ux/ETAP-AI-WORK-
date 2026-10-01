@@ -14,9 +14,9 @@ FROM python:3.13-slim AS builder
 WORKDIR /build
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
     g++ \
     gcc \
-    curl \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt ./

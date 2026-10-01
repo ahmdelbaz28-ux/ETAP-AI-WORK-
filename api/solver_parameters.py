@@ -204,7 +204,6 @@ async def update_global_parameters(
 
 @router.get(
     "/{project_id}",
-    response_model=SolverParametersResponse,
     summary="Get solver parameters for a specific project",
     description="Returns the solver parameters stored for a specific project ID, falling back to defaults.",
 )
@@ -219,7 +218,6 @@ async def fetch_project_parameters(
 
 @router.put(
     "/{project_id}",
-    response_model=SolverParametersResponse,
     summary="Partially update solver parameters for a specific project",
     description="Updates only the solver parameters provided for a specific project.",
 )

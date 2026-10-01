@@ -130,7 +130,7 @@ export function loadSessionTokenUsage(sessionId: string): number {
   }
   try {
     const val = localStorage.getItem(STORAGE_PREFIX + sessionId);
-    return val ? parseInt(val, 10) || 0 : 0;
+    return val ? Number.parseInt(val, 10) || 0 : 0;
   } catch {
     return 0;
   }

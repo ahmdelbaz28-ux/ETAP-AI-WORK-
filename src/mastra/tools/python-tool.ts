@@ -3,8 +3,8 @@ import { z } from 'zod';
 import { runPython } from './secure-execution';
 
 // Budget limits from env (with safe defaults)
-const MAX_LLM_CALLS = parseInt(process.env.MAX_LLM_CALLS_PER_REQUEST || '15', 10);
-const MAX_TOKENS_EST = parseInt(process.env.MAX_TOKENS_PER_REQUEST || '50000', 10);
+const MAX_LLM_CALLS = Number.parseInt(process.env.MAX_LLM_CALLS_PER_REQUEST || '15', 10);
+const MAX_TOKENS_EST = Number.parseInt(process.env.MAX_TOKENS_PER_REQUEST || '50000', 10);
 
 // Request context key for tracking tool calls per request
 const TOOL_CALL_COUNT_KEY = 'etap:tool_call_count';

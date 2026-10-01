@@ -1194,16 +1194,11 @@ export interface ServerChatStreamOptions {
   stopSequences?: string[];
 }
 
-/**
- * Stream a reply through the server-side path (/api/v1/chat/stream).
- * SECURITY: the payload contains only session_id + messages + no keys.
- * Enforces unified 15s timeout on stream requests and token limits.
- */
-export async function* streamFromServerChat(
+function prepareServerChatRequest(
   messages: ChatMessage[],
   signalOrOptions?: AbortSignal | ServerChatStreamOptions,
   projectId?: string | null,
-): AsyncGenerator<string, void, unknown> {
+) {
   const isOptions =
     signalOrOptions && typeof signalOrOptions === "object" && !(signalOrOptions instanceof AbortSignal);
   const options = isOptions ? (signalOrOptions as ServerChatStreamOptions) : undefined;
@@ -1215,50 +1210,77 @@ export async function* streamFromServerChat(
   const headers = createServerChatHeaders();
   const { controller, cleanup } = createTimeoutController(signal);
 
+  const body = JSON.stringify({
+    session_id: getChatSessionId(),
+    messages,
+    project_id: resolvedProjectId || undefined,
+    max_tokens: maxTokens,
+    stop: stopSequences,
+  });
+
+  return { controller, cleanup, headers, body };
+}
+
+async function* processServerChatStream(
+  res: Response,
+  controller: AbortController,
+): AsyncGenerator<string, void, unknown> {
+  const reader = res.body?.getReader();
+  if (!reader) return;
+  const decoder = new TextDecoder();
+  let buffer = "";
+  const sseState = { currentEvent: "" };
+
+  while (true) {
+    if (controller.signal.aborted) return;
+    const readResult = await reader.read();
+    if (readResult.done) break;
+    buffer += decoder.decode(readResult.value, { stream: true });
+    const lines = buffer.split("\n");
+    buffer = lines.pop() || "";
+
+    for (const line of lines) {
+      const action = handleSseLine(line, sseState);
+      if (action.type === "token") {
+        yield action.delta;
+      } else if (action.type === "done") {
+        return;
+      } else if (action.type === "error") {
+        throw action.error;
+      }
+    }
+  }
+}
+
+/**
+ * Stream a reply through the server-side path (/api/v1/chat/stream).
+ * SECURITY: the payload contains only session_id + messages + no keys.
+ * Enforces unified 15s timeout on stream requests and token limits.
+ */
+export async function* streamFromServerChat(
+  messages: ChatMessage[],
+  signalOrOptions?: AbortSignal | ServerChatStreamOptions,
+  projectId?: string | null,
+): AsyncGenerator<string, void, unknown> {
+  const { controller, cleanup, headers, body } = prepareServerChatRequest(
+    messages,
+    signalOrOptions,
+    projectId,
+  );
+
   try {
     const res = await fetch(apiUrl("/api/v1/chat/stream"), {
       method: "POST",
       headers,
-      body: JSON.stringify({
-        session_id: getChatSessionId(),
-        messages,
-        project_id: resolvedProjectId || undefined,
-        max_tokens: maxTokens,
-        stop: stopSequences,
-      }),
+      body,
       signal: controller.signal,
     });
-
 
     if (!res.ok) {
       throw await buildServerChatHttpError(res);
     }
 
-    const reader = res.body?.getReader();
-    if (!reader) return;
-    const decoder = new TextDecoder();
-    let buffer = "";
-    const sseState = { currentEvent: "" };
-
-    while (true) {
-      if (controller.signal.aborted) return;
-      const readResult = await reader.read();
-      if (readResult.done) break;
-      buffer += decoder.decode(readResult.value, { stream: true });
-      const lines = buffer.split("\n");
-      buffer = lines.pop() || "";
-
-      for (const line of lines) {
-        const action = handleSseLine(line, sseState);
-        if (action.type === "token") {
-          yield action.delta;
-        } else if (action.type === "done") {
-          return;
-        } else if (action.type === "error") {
-          throw action.error;
-        }
-      }
-    }
+    yield* processServerChatStream(res, controller);
   } finally {
     cleanup();
   }

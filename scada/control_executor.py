@@ -104,13 +104,112 @@ def _resolve_device_address(device_id: str) -> int:
     )
 
 
+def _query_live_telemetry(device_id: str) -> Optional[Dict[str, Any]]:
+    """Query live feedback from SCADADatabase if available."""
+    try:
+        from scada_protocols.wiring import get_wired_manager
+
+        mgr = get_wired_manager()
+        if mgr is None or not mgr.is_started():
+            return None
+        db = mgr.bridge.has_scada_db() and mgr.bridge._resolve_scada_db()
+        if db is None:
+            return None
+        sw = db.get_switch_device(device_id)
+        if sw is not None:
+            return {
+                "status": sw.status.name if hasattr(sw.status, "name") else str(sw.status),
+                "quality": SignalQuality.GOOD.value,
+                "control_mode": "REMOTE",
+                "timestamp": datetime.now(UTC).isoformat(),
+            }
+        measurements = db.get_measurements_for_element(device_id)
+        if measurements:
+            latest_m = measurements[-1]
+            return {
+                "value": latest_m.value,
+                "status": "CLOSED" if latest_m.value > 0.5 else "OPEN",
+                "quality": latest_m.quality.name if hasattr(latest_m.quality, "name") else str(latest_m.quality),
+                "control_mode": "REMOTE",
+                "timestamp": getattr(latest_m, "source_timestamp", datetime.now(UTC).isoformat()),
+            }
+    except Exception as exc:
+        logger.debug("Live database readback query error: %s", exc)
+    return None
+
+
+def _resolve_modbus_endpoint() -> Tuple[Optional[str], int]:
+    host = os.getenv("MODBUS_HOST")
+    port = int(os.getenv("MODBUS_PORT", "502"))
+    cfg = _get_protocol_config()
+    if cfg and hasattr(cfg, "modbus") and cfg.modbus:
+        if not host and cfg.modbus.clients:
+            host = cfg.modbus.clients[0].get("host", host)
+            port = int(cfg.modbus.clients[0].get("port", port))
+        elif not host:
+            host = cfg.modbus.server_host
+            port = cfg.modbus.server_port
+    return host, port
+
+
+async def _execute_modbus_write(client: Any, command: ControlCommandRequest, target_address: int) -> None:
+    if command.action_type in (
+        ControlActionType.BREAKER_OPEN,
+        ControlActionType.BREAKER_CLOSE,
+    ):
+        coil_val = bool(command.target_value)
+        res = await client.write_coil(address=target_address, value=coil_val)
+        if hasattr(res, "isError") and res.isError():
+            raise RuntimeError(f"Modbus write_coil error: {res}")
+    else:
+        res = await client.write_register(
+            address=target_address, value=int(command.target_value)
+        )
+        if hasattr(res, "isError") and res.isError():
+            raise RuntimeError(f"Modbus write_register error: {res}")
+
+
+def _resolve_iec104_endpoint() -> Tuple[Optional[str], int, int]:
+    host = os.getenv("IEC104_HOST")
+    port = int(os.getenv("IEC104_PORT", "2404"))
+    ca = int(os.getenv("IEC104_CA", "1"))
+    cfg = _get_protocol_config()
+    if cfg and hasattr(cfg, "iec104") and cfg.iec104:
+        if not host and cfg.iec104.clients:
+            host = cfg.iec104.clients[0].get("host", host)
+            port = int(cfg.iec104.clients[0].get("port", port))
+            ca = int(cfg.iec104.clients[0].get("common_address", ca))
+        elif not host:
+            host = cfg.iec104.server_bind_ip
+            port = cfg.iec104.server_port
+            ca = cfg.iec104.common_address
+    return host, port, ca
+
+
+def _determine_iec104_cmd(c104: Any, command: ControlCommandRequest) -> Tuple[Any, Any]:
+    if command.action_type in (
+        ControlActionType.BREAKER_OPEN,
+        ControlActionType.BREAKER_CLOSE,
+    ):
+        cmd_type = getattr(c104.Type, "C_SC_NA_1", None) or getattr(
+            c104.Type, "C_DC_NA_1", None
+        )
+        cmd_val = bool(command.target_value)
+    else:
+        cmd_type = getattr(c104.Type, "C_SE_NC_1", None) or getattr(
+            c104.Type, "C_SE_NA_1", None
+        )
+        cmd_val = float(command.target_value)
+    return cmd_type, cmd_val
+
+
 class SCADAControlExecutor:
-    """Dispatches control commands to OT equipment with readback verification."""
+    """Enterprise multi-protocol SCADA execution bridge with verification feedback."""
 
     def __init__(
         self,
         is_simulation: Optional[bool] = None,
-        readback_poll_interval_sec: float = 0.1,
+        readback_poll_interval_sec: float = 0.05,
     ) -> None:
         if is_simulation is not None:
             self.is_simulation = is_simulation
@@ -126,41 +225,9 @@ class SCADAControlExecutor:
         fallback to _SIMULATED_DEVICES in simulation mode.
         """
         if not self.is_simulation:
-            try:
-                from scada_protocols.wiring import get_wired_manager
-
-                mgr = get_wired_manager()
-                if mgr is not None and mgr.is_started():
-                    db = mgr.bridge.has_scada_db() and mgr.bridge._resolve_scada_db()
-                    if db is not None:
-                        # Check switch device feedback
-                        sw = db.get_switch_device(device_id)
-                        if sw is not None:
-                            return {
-                                "status": sw.status.name
-                                if hasattr(sw.status, "name")
-                                else str(sw.status),
-                                "quality": SignalQuality.GOOD.value,
-                                "control_mode": "REMOTE",
-                                "timestamp": datetime.now(UTC).isoformat(),
-                            }
-                        # Check measurement feedback
-                        measurements = db.get_measurements_for_element(device_id)
-                        if measurements:
-                            latest_m = measurements[-1]
-                            return {
-                                "value": latest_m.value,
-                                "status": "CLOSED" if latest_m.value > 0.5 else "OPEN",
-                                "quality": latest_m.quality.name
-                                if hasattr(latest_m.quality, "name")
-                                else str(latest_m.quality),
-                                "control_mode": "REMOTE",
-                                "timestamp": getattr(
-                                    latest_m, "source_timestamp", datetime.now(UTC).isoformat()
-                                ),
-                            }
-            except Exception as exc:
-                logger.debug("Live database readback query error: %s", exc)
+            live = _query_live_telemetry(device_id)
+            if live is not None:
+                return live
 
         return _SIMULATED_DEVICES.get(
             device_id,
@@ -211,14 +278,15 @@ class SCADAControlExecutor:
 
         try:
             # 1. Dispatch via specific protocol handler
-            if command.protocol == ControlProtocol.OPC_UA:
-                await self._dispatch_opc_ua(command, expected_final_state)
-            elif command.protocol == ControlProtocol.MODBUS_TCP:
-                await self._dispatch_modbus(command, expected_final_state)
-            elif command.protocol == ControlProtocol.IEC_104:
-                await self._dispatch_iec104(command, expected_final_state)
-            elif command.protocol == ControlProtocol.IEC_61850:
-                await self._dispatch_iec61850_sbo(command, expected_final_state)
+            handlers = {
+                ControlProtocol.OPC_UA: self._dispatch_opc_ua,
+                ControlProtocol.MODBUS_TCP: self._dispatch_modbus,
+                ControlProtocol.IEC_104: self._dispatch_iec104,
+                ControlProtocol.IEC_61850: self._dispatch_iec61850_sbo,
+            }
+            dispatch_fn = handlers.get(command.protocol)
+            if dispatch_fn:
+                await dispatch_fn(command, expected_final_state)
 
             # 2. Verify-by-Readback
             verified, final_state = await self._verify_readback(
@@ -362,16 +430,7 @@ class SCADAControlExecutor:
 
     async def _dispatch_modbus(self, command: ControlCommandRequest, final_val: Any) -> None:
         """Modbus TCP write handler (FC 05 / 06 / 15 / 16) with fail-closed physical execution."""
-        host = os.getenv("MODBUS_HOST")
-        port = int(os.getenv("MODBUS_PORT", "502"))
-        cfg = _get_protocol_config()
-        if cfg and hasattr(cfg, "modbus") and cfg.modbus:
-            if not host and cfg.modbus.clients:
-                host = cfg.modbus.clients[0].get("host", host)
-                port = int(cfg.modbus.clients[0].get("port", port))
-            elif not host:
-                host = cfg.modbus.server_host
-                port = cfg.modbus.server_port
+        host, port = _resolve_modbus_endpoint()
 
         if not self.is_simulation:
             if not host:
@@ -381,20 +440,7 @@ class SCADAControlExecutor:
 
                 target_address = _resolve_device_address(command.device_id)
                 async with AsyncModbusTcpClient(host=host, port=port) as client:
-                    if command.action_type in (
-                        ControlActionType.BREAKER_OPEN,
-                        ControlActionType.BREAKER_CLOSE,
-                    ):
-                        coil_val = bool(command.target_value)
-                        res = await client.write_coil(address=target_address, value=coil_val)
-                        if hasattr(res, "isError") and res.isError():
-                            raise RuntimeError(f"Modbus write_coil error: {res}")
-                    else:
-                        res = await client.write_register(
-                            address=target_address, value=int(command.target_value)
-                        )
-                        if hasattr(res, "isError") and res.isError():
-                            raise RuntimeError(f"Modbus write_register error: {res}")
+                    await _execute_modbus_write(client, command, target_address)
                 return
             except Exception as exc:
                 logger.error("Modbus physical write failed: %s", exc)
@@ -412,19 +458,7 @@ class SCADAControlExecutor:
         - Type 48/50 (C_SE_NA_1 / C_SE_NC_1: Setpoint)
         Awaits ACTCON/ACTTERM; treats NACK/timeout as FAILED (Fail-Closed).
         """
-        host = os.getenv("IEC104_HOST")
-        port = int(os.getenv("IEC104_PORT", "2404"))
-        ca = int(os.getenv("IEC104_CA", "1"))
-        cfg = _get_protocol_config()
-        if cfg and hasattr(cfg, "iec104") and cfg.iec104:
-            if not host and cfg.iec104.clients:
-                host = cfg.iec104.clients[0].get("host", host)
-                port = int(cfg.iec104.clients[0].get("port", port))
-                ca = int(cfg.iec104.clients[0].get("common_address", ca))
-            elif not host:
-                host = cfg.iec104.server_bind_ip
-                port = cfg.iec104.server_port
-                ca = cfg.iec104.common_address
+        host, port, ca = _resolve_iec104_endpoint()
 
         if not self.is_simulation:
             if not host:
@@ -436,19 +470,7 @@ class SCADAControlExecutor:
                 conn = client.add_connection(ip=host, port=port)
                 station = conn.add_station(common_address=ca)
 
-                if command.action_type in (
-                    ControlActionType.BREAKER_OPEN,
-                    ControlActionType.BREAKER_CLOSE,
-                ):
-                    cmd_type = getattr(c104.Type, "C_SC_NA_1", None) or getattr(
-                        c104.Type, "C_DC_NA_1", None
-                    )
-                    cmd_val = bool(command.target_value)
-                else:
-                    cmd_type = getattr(c104.Type, "C_SE_NC_1", None) or getattr(
-                        c104.Type, "C_SE_NA_1", None
-                    )
-                    cmd_val = float(command.target_value)
+                cmd_type, cmd_val = _determine_iec104_cmd(c104, command)
 
                 target_io_address = _resolve_device_address(command.device_id)
                 pt = station.add_point(io_address=target_io_address, type=cmd_type)

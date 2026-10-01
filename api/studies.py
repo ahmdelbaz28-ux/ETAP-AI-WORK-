@@ -336,8 +336,8 @@ class StudyReRunRequest(BaseModel):
 async def re_run_study(
     body: StudyReRunRequest,
     _: Annotated[str, Depends(get_api_key)],
+    db: Annotated[AsyncSession, Depends(get_db)],
     idempotency_key: Annotated[Optional[str], Header(alias="Idempotency-Key")] = None,
-    db: AsyncSession = Depends(get_db),
     user: Annotated[Optional[CurrentUser], Depends(get_optional_current_user_from_header)] = None,
 ):
     """Execute study re-run with updated solver parameters, idempotency, and revision tracking."""

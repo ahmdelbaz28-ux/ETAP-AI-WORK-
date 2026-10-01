@@ -130,7 +130,6 @@ export function ProjectSelector() {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="w-full bg-[#20262E] text-xs text-slate-200 placeholder:text-slate-500 rounded-md pl-8 pr-2.5 py-1.5 border border-[#334155] focus:outline-none focus:border-brand-500 font-mono"
-                autoFocus
               />
             </div>
           </div>
@@ -212,7 +211,7 @@ export function ProjectSelector() {
             <span>Total Projects: {projects.length}</span>
             <span className="font-mono text-[10px] text-emerald-400 flex items-center gap-1">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              Active Project Context
+              <span>Active Project Context</span>
             </span>
           </div>
         </div>

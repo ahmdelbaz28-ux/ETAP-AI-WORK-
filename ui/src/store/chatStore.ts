@@ -379,6 +379,86 @@ function handleJobProgressEvent(
   set({ activity: [progress, ...get().activity].slice(0, MAX_LIST_ITEMS) });
 }
 
+function handleActionProposedEvent(
+  seq: number,
+  ts: string,
+  payload: Record<string, unknown>,
+  get: StoreGet,
+  set: StoreSet,
+): void {
+  const entry: ProposedActionEntry = { seq, ts, payload };
+  const rawHint = (payload.ui_hint ?? {}) as Record<string, unknown>;
+  const openHint = typeof rawHint.open === "string" ? rawHint.open.toLowerCase() : null;
+  if (openHint === "scada" || openHint === "gis" || openHint === "grid") {
+    set({ activeView: openHint });
+  }
+  set({ proposedActions: [entry, ...get().proposedActions].slice(0, MAX_LIST_ITEMS) });
+}
+
+function handleApprovalResultEvent(
+  seq: number,
+  ts: string,
+  payload: Record<string, unknown>,
+  get: StoreGet,
+  set: StoreSet,
+): void {
+  const approvalId = (payload.approval_id || payload.id) as string | undefined;
+  const entry: ApprovalResultEntry = {
+    seq,
+    ts,
+    tool: typeof payload.tool === "string" ? payload.tool : undefined,
+    decision: typeof payload.decision === "string" ? payload.decision : "unknown",
+    reason: typeof payload.reason === "string" ? payload.reason : undefined,
+  };
+  const currentApprovals = get().approvals;
+  const updatedApprovals = approvalId
+    ? currentApprovals.filter((a) => a.id !== approvalId)
+    : currentApprovals;
+  set({
+    approvals: updatedApprovals,
+    approvalResults: [entry, ...get().approvalResults].slice(0, MAX_LIST_ITEMS),
+  });
+}
+
+function handleDecisionRequestEvent(
+  seq: number,
+  ts: string,
+  payload: Record<string, unknown>,
+  get: StoreGet,
+  set: StoreSet,
+): void {
+  const entry: DecisionEntry = { seq, ts, payload };
+  set({ decisions: [entry, ...get().decisions].slice(0, MAX_LIST_ITEMS) });
+}
+
+function handleTokenUsageEvent(
+  payload: Record<string, unknown>,
+  get: StoreGet,
+  set: StoreSet,
+): void {
+  const totalUsed = typeof payload.total_used === "number" ? payload.total_used : undefined;
+  const budget = typeof payload.budget === "number" ? payload.budget : undefined;
+  if (totalUsed !== undefined) {
+    saveSessionTokenUsage(get().sessionId, totalUsed);
+    set({
+      tokenBudget: calculateTokenBudgetState(totalUsed, budget || get().tokenBudget.totalBudget),
+    });
+  }
+}
+
+const sessionEventHandlers: Record<
+  string,
+  (evt: Partial<SessionEvent>, ts: string, payload: Record<string, unknown>, get: StoreGet, set: StoreSet) => void
+> = {
+  token: (_evt, _ts, payload, get, set) => handleTokenEvent(payload, get, set),
+  result_ready: (_evt, ts, payload, get, set) => handleResultReadyEvent(payload, ts, get, set),
+  job_progress: (_evt, ts, payload, get, set) => handleJobProgressEvent(payload, ts, get, set),
+  action_proposed: (evt, ts, payload, get, set) => handleActionProposedEvent(evt.seq!, ts, payload, get, set),
+  approval_result: (evt, ts, payload, get, set) => handleApprovalResultEvent(evt.seq!, ts, payload, get, set),
+  decision_request: (evt, ts, payload, get, set) => handleDecisionRequestEvent(evt.seq!, ts, payload, get, set),
+  token_usage: (_evt, _ts, payload, get, set) => handleTokenUsageEvent(payload, get, set),
+};
+
 function appendStreamDelta(acc: string, get: StoreGet, set: StoreSet): void {
   const { messages } = get();
   const last = messages.at(-1);
@@ -594,63 +674,9 @@ export const useChatStore = create<ChatWorkspaceState>()((set, get) => ({
     const ts = typeof evt.ts === "string" ? evt.ts : new Date().toISOString();
     const payload = (evt.payload ?? {}) as Record<string, unknown>;
 
-    switch (evt.type) {
-      case "token":
-        handleTokenEvent(payload, get, set);
-        return;
-      case "result_ready":
-        handleResultReadyEvent(payload, ts, get, set);
-        return;
-      case "job_progress":
-        handleJobProgressEvent(payload, ts, get, set);
-        return;
-      case "action_proposed": {
-        const entry: ProposedActionEntry = { seq: evt.seq, ts, payload };
-        const rawHint = (payload.ui_hint ?? {}) as Record<string, unknown>;
-        const openHint = typeof rawHint.open === "string" ? rawHint.open.toLowerCase() : null;
-        if (openHint === "scada" || openHint === "gis" || openHint === "grid") {
-          set({ activeView: openHint });
-        }
-        set({ proposedActions: [entry, ...get().proposedActions].slice(0, MAX_LIST_ITEMS) });
-        return;
-      }
-      case "approval_result": {
-        const approvalId = (payload.approval_id || payload.id) as string | undefined;
-        const entry: ApprovalResultEntry = {
-          seq: evt.seq,
-          ts,
-          tool: typeof payload.tool === "string" ? payload.tool : undefined,
-          decision: typeof payload.decision === "string" ? payload.decision : "unknown",
-          reason: typeof payload.reason === "string" ? payload.reason : undefined,
-        };
-        const currentApprovals = get().approvals;
-        const updatedApprovals = approvalId
-          ? currentApprovals.filter((a) => a.id !== approvalId)
-          : currentApprovals;
-        set({
-          approvals: updatedApprovals,
-          approvalResults: [entry, ...get().approvalResults].slice(0, MAX_LIST_ITEMS),
-        });
-        return;
-      }
-      case "decision_request": {
-        const entry: DecisionEntry = { seq: evt.seq, ts, payload };
-        set({ decisions: [entry, ...get().decisions].slice(0, MAX_LIST_ITEMS) });
-        return;
-      }
-      case "token_usage": {
-        const totalUsed = typeof payload.total_used === "number" ? payload.total_used : undefined;
-        const budget = typeof payload.budget === "number" ? payload.budget : undefined;
-        if (totalUsed !== undefined) {
-          saveSessionTokenUsage(get().sessionId, totalUsed);
-          set({
-            tokenBudget: calculateTokenBudgetState(totalUsed, budget || get().tokenBudget.totalBudget),
-          });
-        }
-        return;
-      }
-      default:
-        return;
+    const handler = sessionEventHandlers[evt.type];
+    if (handler) {
+      handler(evt, ts, payload, get, set);
     }
   },
 

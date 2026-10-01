@@ -26,7 +26,7 @@ export function ApprovalCard({ approval }: ApprovalCardProps) {
     if (!approval.expires_at) return 300;
     const expiry = new Date(approval.expires_at).getTime();
     const diff = Math.floor((expiry - Date.now()) / 1000);
-    return Math.max(0, isNaN(diff) ? 300 : diff);
+    return Math.max(0, Number.isNaN(diff) ? 300 : diff);
   };
 
   const [secondsRemaining, setSecondsRemaining] = useState(getInitialSeconds);

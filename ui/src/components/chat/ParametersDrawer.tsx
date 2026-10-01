@@ -17,9 +17,9 @@ const DEFAULTS: SolverParams = {
 };
 
 interface ParametersDrawerProps {
-  open: boolean;
-  onClose: () => void;
-  projectId?: string | null;
+  readonly open: boolean;
+  readonly onClose: () => void;
+  readonly projectId?: string | null;
 }
 
 export function ParametersDrawer({ open, onClose, projectId: propProjectId }: ParametersDrawerProps) {
@@ -51,9 +51,9 @@ export function ParametersDrawer({ open, onClose, projectId: propProjectId }: Pa
             max_iterations: res.max_iterations ?? DEFAULTS.max_iterations,
           });
         }
-      } catch (err) {
+      } catch (_err) {
+        // Fallback to default parameters when project-scoped parameters cannot be fetched
         if (active) {
-          // Fallback to defaults
           setParams(DEFAULTS);
         }
       } finally {

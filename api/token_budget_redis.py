@@ -24,6 +24,7 @@ from api.token_budget import (
 logger = logging.getLogger(__name__)
 
 SESSION_TTL_SECONDS = 86400  # 24h
+_REDIS_UNAVAILABLE_MSG = "Redis client is unavailable"
 
 
 class DistributedTokenBudgetManager:
@@ -58,7 +59,7 @@ class DistributedTokenBudgetManager:
         try:
             r = await get_redis()
             if r is None:
-                raise ConnectionError("Redis client is unavailable")
+                raise ConnectionError(_REDIS_UNAVAILABLE_MSG)
 
             key = self._session_key(session_id)
             field = self._agent_field(agent_handle)
@@ -97,7 +98,7 @@ class DistributedTokenBudgetManager:
         try:
             r = await get_redis()
             if r is None:
-                raise ConnectionError("Redis client is unavailable")
+                raise ConnectionError(_REDIS_UNAVAILABLE_MSG)
 
             key = self._session_key(session_id)
             field = self._agent_field(agent_handle)
@@ -151,7 +152,7 @@ class DistributedTokenBudgetManager:
         try:
             r = await get_redis()
             if r is None:
-                raise ConnectionError("Redis client is unavailable")
+                raise ConnectionError(_REDIS_UNAVAILABLE_MSG)
 
             key = self._session_key(session_id)
             field = self._agent_field(agent_handle)
@@ -167,7 +168,7 @@ class DistributedTokenBudgetManager:
         try:
             r = await get_redis()
             if r is None:
-                raise ConnectionError("Redis client is unavailable")
+                raise ConnectionError(_REDIS_UNAVAILABLE_MSG)
 
             key = self._session_key(session_id)
             data = await r.hgetall(key)
@@ -224,7 +225,7 @@ class DistributedTokenBudgetManager:
 _distributed_budget_manager: Optional[DistributedTokenBudgetManager] = None
 
 
-async def get_distributed_budget_manager() -> DistributedTokenBudgetManager:
+def get_distributed_budget_manager() -> DistributedTokenBudgetManager:
     global _distributed_budget_manager
     if _distributed_budget_manager is None:
         _distributed_budget_manager = DistributedTokenBudgetManager()

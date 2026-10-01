@@ -117,6 +117,62 @@ class DistributedRAGRetriever:
             logger.debug("Redis RAG index_result failed, falling back to memory: %s", exc)
             await _get_in_memory_rag().index_result(result_id, summary, metadata)
 
+    async def _scan_matching_entries(
+        self,
+        r: Any,
+        q_tokens: List[str],
+        q_emb: np.ndarray,
+        norm_handle: str,
+    ) -> List[RAGResult]:
+        """Scan Redis RAG index and return matches above threshold."""
+        matches: List[RAGResult] = []
+        cursor = 0
+
+        while True:
+            cursor, data = await r.hscan(f"{self.namespace}:index", cursor=cursor, count=100)
+            items: List[Tuple[str, str]] = []
+            if isinstance(data, dict):
+                items = list(data.items())
+            elif isinstance(data, (list, tuple)):
+                if data and isinstance(data[0], (list, tuple)):
+                    items = [(k, v) for k, v in data]
+                else:
+                    for k in data:
+                        val = await r.hget(f"{self.namespace}:index", k)
+                        if val:
+                            items.append((k, val))
+
+            for k, val_json in items:
+                entry = json.loads(val_json)
+                stored_handle = entry.get("agent_handle", "")
+                if (
+                    stored_handle
+                    and norm_handle not in ("unknown", "")
+                    and stored_handle != norm_handle
+                ):
+                    continue
+
+                sim = self._calculate_similarity(
+                    q_tokens,
+                    q_emb,
+                    set(entry["tokens_set"]),
+                    np.array(entry["embedding"], dtype=np.float32),
+                )
+                if sim >= self.threshold:
+                    matches.append(
+                        RAGResult(
+                            result_id=k,
+                            similarity=round(sim, 4),
+                            summary=copy.deepcopy(entry["summary"]),
+                            metadata=copy.deepcopy(entry["metadata"]),
+                        )
+                    )
+
+            if cursor == 0:
+                break
+
+        return matches
+
     async def retrieve(
         self,
         query: str,
@@ -135,51 +191,7 @@ class DistributedRAGRetriever:
             if r is None:
                 raise ConnectionError("Redis client is unavailable")
 
-            matches: List[RAGResult] = []
-            cursor = 0
-
-            while True:
-                cursor, data = await r.hscan(f"{self.namespace}:index", cursor=cursor, count=100)
-                items: List[Tuple[str, str]] = []
-                if isinstance(data, dict):
-                    items = list(data.items())
-                elif isinstance(data, (list, tuple)):
-                    if data and isinstance(data[0], (list, tuple)):
-                        items = [(k, v) for k, v in data]
-                    else:
-                        for k in data:
-                            val = await r.hget(f"{self.namespace}:index", k)
-                            if val:
-                                items.append((k, val))
-
-                for k, val_json in items:
-                    entry = json.loads(val_json)
-                    stored_handle = entry.get("agent_handle", "")
-                    if (
-                        stored_handle
-                        and norm_handle not in ("unknown", "")
-                        and stored_handle != norm_handle
-                    ):
-                        continue
-
-                    sim = self._calculate_similarity(
-                        q_tokens,
-                        q_emb,
-                        set(entry["tokens_set"]),
-                        np.array(entry["embedding"], dtype=np.float32),
-                    )
-                    if sim >= self.threshold:
-                        matches.append(
-                            RAGResult(
-                                result_id=k,
-                                similarity=round(sim, 4),
-                                summary=copy.deepcopy(entry["summary"]),
-                                metadata=copy.deepcopy(entry["metadata"]),
-                            )
-                        )
-
-                if cursor == 0:
-                    break
+            matches = await self._scan_matching_entries(r, q_tokens, q_emb, norm_handle)
 
             matches.sort(key=lambda x: x.similarity, reverse=True)
             results = matches[: self.top_k]

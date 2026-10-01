@@ -26,6 +26,7 @@ from api.prompt_registry import (
 from api.redis_client import get_redis
 
 logger = logging.getLogger(__name__)
+_REDIS_UNAVAILABLE_MSG = "Redis client is unavailable"
 
 
 class DistributedPromptRegistry:
@@ -275,6 +276,108 @@ class DistributedPromptRegistry:
             self._mode = "memory"
             return _get_in_memory_registry().promote_version(version_id)
 
+    def _format_memory_report(self, in_mem: Any, agent_handle: Optional[str]) -> Dict[str, Any]:
+        """Format in-memory tradeoff report with fallback_source markers."""
+        mem_rep = in_mem.get_tradeoff_report(
+            agent_handle, max_age_seconds=self.local_ttl_seconds
+        )
+        for h_data in mem_rep.values():
+            for v in h_data.get("versions", []):
+                v["fallback_source"] = "local_memory"
+        return mem_rep
+
+    async def _scan_handles(self, r: Any, agent_handle: Optional[str]) -> List[str]:
+        """Scan Redis for versioned agent handles."""
+        if agent_handle:
+            return [agent_handle.strip().lower()]
+        handles: List[str] = []
+        cursor = 0
+        while True:
+            cursor, keys = await self._retry(
+                r.scan, cursor, match=f"{self.namespace}:versions:*", count=100
+            )
+            for k in keys:
+                k_str = k.decode() if isinstance(k, bytes) else str(k)
+                handles.append(k_str)
+            if cursor == 0:
+                break
+        return [k.replace(f"{self.namespace}:versions:", "") for k in handles]
+
+    async def _build_handle_report(
+        self, r: Any, handle: str, now: float
+    ) -> Optional[Dict[str, Any]]:
+        """Build metrics report for a single agent handle."""
+        vids = await self._retry(r.lrange, self._versions_key(handle), 0, -1)
+        if not vids:
+            return None
+
+        version_reports: List[Dict[str, Any]] = []
+        baseline_tokens: Optional[float] = None
+
+        for idx, vid in enumerate(vids):
+            v_data = await self._retry(r.get, self._version_key(vid))
+            m_data = await self._retry(r.get, self._metrics_key(vid))
+            if not v_data:
+                continue
+            ver = PromptVersion(**json.loads(v_data))
+            metrics = (
+                PromptMetrics(**json.loads(m_data))
+                if m_data
+                else PromptMetrics(version_id=vid)
+            )
+
+            avg_tok = metrics.avg_tokens
+            if idx == 0 and avg_tok > 0:
+                baseline_tokens = avg_tok
+
+            token_savings_pct = 0.0
+            if baseline_tokens and baseline_tokens > 0 and avg_tok > 0:
+                token_savings_pct = round(
+                    ((baseline_tokens - avg_tok) / baseline_tokens) * 100.0, 2
+                )
+
+            is_stale = (
+                (now - ver.created_at) > self.local_ttl_seconds
+                if self.local_ttl_seconds > 0
+                else False
+            )
+            version_reports.append(
+                {
+                    "version_id": vid,
+                    "is_active": ver.is_active,
+                    "temperature": ver.temperature,
+                    "created_at": ver.created_at,
+                    "is_stale": is_stale,
+                    "metrics": metrics.to_dict(),
+                    "token_savings_pct": token_savings_pct,
+                }
+            )
+
+        return {
+            "total_versions": len(version_reports),
+            "versions": version_reports,
+        }
+
+    def _merge_memory_fallback(
+        self, report: Dict[str, Any], in_mem: Any, agent_handle: Optional[str]
+    ) -> Dict[str, Any]:
+        """Union Redis report with in-memory report for missing entries."""
+        mem_report = in_mem.get_tradeoff_report(
+            agent_handle, max_age_seconds=self.local_ttl_seconds
+        )
+        if not report:
+            for h_data in mem_report.values():
+                for v in h_data.get("versions", []):
+                    v["fallback_source"] = "local_memory"
+            return mem_report
+
+        for h, h_data in mem_report.items():
+            if h not in report:
+                for v in h_data.get("versions", []):
+                    v["fallback_source"] = "local_memory"
+                report[h] = h_data
+        return report
+
     async def get_tradeoff_report(self, agent_handle: Optional[str] = None) -> Dict[str, Any]:
         in_mem = _get_in_memory_registry()
         if self.local_ttl_seconds > 0:
@@ -282,112 +385,23 @@ class DistributedPromptRegistry:
 
         r = await self._get_client()
         if r is None:
-            mem_rep = in_mem.get_tradeoff_report(
-                agent_handle, max_age_seconds=self.local_ttl_seconds
-            )
-            for h_data in mem_rep.values():
-                for v in h_data.get("versions", []):
-                    v["fallback_source"] = "local_memory"
-            return mem_rep
+            return self._format_memory_report(in_mem, agent_handle)
 
         try:
             report: Dict[str, Any] = {}
-            if agent_handle:
-                handles = [agent_handle.strip().lower()]
-            else:
-                handles = []
-                cursor = 0
-                while True:
-                    cursor, keys = await self._retry(
-                        r.scan, cursor, match=f"{self.namespace}:versions:*", count=100
-                    )
-                    for k in keys:
-                        k_str = k.decode() if isinstance(k, bytes) else str(k)
-                        handles.append(k_str)
-                    if cursor == 0:
-                        break
-                handles = [k.replace(f"{self.namespace}:versions:", "") for k in handles]
-
+            handles = await self._scan_handles(r, agent_handle)
             now = time.time()
+
             for handle in handles:
-                vids = await self._retry(r.lrange, self._versions_key(handle), 0, -1)
-                if not vids:
-                    continue
+                handle_data = await self._build_handle_report(r, handle, now)
+                if handle_data:
+                    report[handle] = handle_data
 
-                version_reports: List[Dict[str, Any]] = []
-                baseline_tokens: Optional[float] = None
-
-                for idx, vid in enumerate(vids):
-                    v_data = await self._retry(r.get, self._version_key(vid))
-                    m_data = await self._retry(r.get, self._metrics_key(vid))
-                    if not v_data:
-                        continue
-                    ver = PromptVersion(**json.loads(v_data))
-                    metrics = (
-                        PromptMetrics(**json.loads(m_data))
-                        if m_data
-                        else PromptMetrics(version_id=vid)
-                    )
-
-                    avg_tok = metrics.avg_tokens
-                    if idx == 0 and avg_tok > 0:
-                        baseline_tokens = avg_tok
-
-                    token_savings_pct = 0.0
-                    if baseline_tokens and baseline_tokens > 0 and avg_tok > 0:
-                        token_savings_pct = round(
-                            ((baseline_tokens - avg_tok) / baseline_tokens) * 100.0, 2
-                        )
-
-                    is_stale = (
-                        (now - ver.created_at) > self.local_ttl_seconds
-                        if self.local_ttl_seconds > 0
-                        else False
-                    )
-                    version_reports.append(
-                        {
-                            "version_id": vid,
-                            "is_active": ver.is_active,
-                            "temperature": ver.temperature,
-                            "created_at": ver.created_at,
-                            "is_stale": is_stale,
-                            "metrics": metrics.to_dict(),
-                            "token_savings_pct": token_savings_pct,
-                        }
-                    )
-
-                report[handle] = {
-                    "total_versions": len(version_reports),
-                    "versions": version_reports,
-                }
-
-            # Read-Your-Writes: If Redis returned an empty report or is missing requested handle,
-            # union with in-memory report with TTL staleness awareness.
-            mem_report = in_mem.get_tradeoff_report(
-                agent_handle, max_age_seconds=self.local_ttl_seconds
-            )
-            if not report:
-                for h_data in mem_report.values():
-                    for v in h_data.get("versions", []):
-                        v["fallback_source"] = "local_memory"
-                return mem_report
-
-            for h, h_data in mem_report.items():
-                if h not in report:
-                    for v in h_data.get("versions", []):
-                        v["fallback_source"] = "local_memory"
-                    report[h] = h_data
-            return report
+            return self._merge_memory_fallback(report, in_mem, agent_handle)
         except Exception as exc:
             logger.debug("Redis get_tradeoff_report failed, falling back to memory: %s", exc)
             self._mode = "memory"
-            mem_rep = in_mem.get_tradeoff_report(
-                agent_handle, max_age_seconds=self.local_ttl_seconds
-            )
-            for h_data in mem_rep.values():
-                for v in h_data.get("versions", []):
-                    v["fallback_source"] = "local_memory"
-            return mem_rep
+            return self._format_memory_report(in_mem, agent_handle)
 
     async def clear(self) -> None:
         r = await self._get_client()

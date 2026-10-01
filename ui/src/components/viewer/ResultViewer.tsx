@@ -801,6 +801,12 @@ function VersionsTab({ result }: { readonly result: ResultEntry }) {
           </div>
           {versions.map((ver) => {
             const isSelected = ver.id === selectedVer;
+            let versionBg = "bg-[#14181F] border-[#2A3441] hover:border-slate-600";
+            if (ver.version === 3 || ver.version === versions[0]?.version) {
+              versionBg = "bg-brand-600/10 border-brand-500/30";
+            } else if (isSelected) {
+              versionBg = "bg-[#20262E] border-slate-400";
+            }
             return (
               <div
                 key={ver.id}
@@ -814,11 +820,7 @@ function VersionsTab({ result }: { readonly result: ResultEntry }) {
                 tabIndex={0}
                 className={cn(
                   "p-3 rounded-lg border cursor-pointer transition-all",
-                  ver.version === 3 || ver.version === versions[0]?.version
-                    ? "bg-brand-600/10 border-brand-500/30"
-                    : isSelected
-                    ? "bg-[#20262E] border-slate-400"
-                    : "bg-[#14181F] border-[#2A3441] hover:border-slate-600",
+                  versionBg,
                 )}
                 data-testid={`version-item-${ver.id}`}
               >
@@ -1106,12 +1108,12 @@ export function ResultViewer({ result, onClose }: ResultViewerProps) {
       }
 
       // Client-side fallback download
-      const mime =
-        exportFormat === "csv"
-          ? "text/csv"
-          : exportFormat === "pdf"
-          ? "application/pdf"
-          : "application/vnd.ms-excel";
+      let mime = "application/vnd.ms-excel";
+      if (exportFormat === "csv") {
+        mime = "text/csv";
+      } else if (exportFormat === "pdf") {
+        mime = "application/pdf";
+      }
       const blob = new Blob([serialized], { type: mime });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -1136,10 +1138,10 @@ export function ResultViewer({ result, onClose }: ResultViewerProps) {
         project_id: projectId || "",
         tool: result.tool || "load_flow",
         parameters: {
-          convergence_tolerance: parseFloat(editParams.tolerance) || 1e-5,
-          max_iterations: parseInt(editParams.maxIter, 10) || 50,
-          bus_voltage: parseFloat(editParams.busVoltage) || 1.0,
-          fault_impedance: parseFloat(editParams.faultImpedance) || 0.0,
+          convergence_tolerance: Number.parseFloat(editParams.tolerance) || 1e-5,
+          max_iterations: Number.parseInt(editParams.maxIter, 10) || 50,
+          bus_voltage: Number.parseFloat(editParams.busVoltage) || 1.0,
+          fault_impedance: Number.parseFloat(editParams.faultImpedance) || 0.0,
         },
       });
       setEditDrawerOpen(false);
@@ -1159,11 +1161,12 @@ export function ResultViewer({ result, onClose }: ResultViewerProps) {
     icon: t.icon,
   }));
 
-  const revDisplay = result.version
-    ? `Rev ${result.version}`
-    : result.resultId
-      ? `Rev ${result.resultId.slice(0, 6)}`
-      : "Rev: —";
+  let revDisplay = "Rev: —";
+  if (result.version) {
+    revDisplay = `Rev ${result.version}`;
+  } else if (result.resultId) {
+    revDisplay = `Rev ${result.resultId.slice(0, 6)}`;
+  }
 
   return (
     <Modal
@@ -1245,8 +1248,9 @@ export function ResultViewer({ result, onClose }: ResultViewerProps) {
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs font-mono">
               <div className="space-y-1">
-                <label className="text-slate-400">Bus Voltage (pu):</label>
+                <label htmlFor="edit-bus-voltage" className="text-slate-400">Bus Voltage (pu):</label>
                 <input
+                  id="edit-bus-voltage"
                   type="text"
                   value={editParams.busVoltage}
                   onChange={(e) =>
@@ -1256,8 +1260,9 @@ export function ResultViewer({ result, onClose }: ResultViewerProps) {
                 />
               </div>
               <div className="space-y-1">
-                <label className="text-slate-400">Fault Imp Rf (Ω):</label>
+                <label htmlFor="edit-fault-impedance" className="text-slate-400">Fault Imp Rf (Ω):</label>
                 <input
+                  id="edit-fault-impedance"
                   type="text"
                   value={editParams.faultImpedance}
                   onChange={(e) =>
@@ -1267,8 +1272,9 @@ export function ResultViewer({ result, onClose }: ResultViewerProps) {
                 />
               </div>
               <div className="space-y-1">
-                <label className="text-slate-400">Tolerance:</label>
+                <label htmlFor="edit-tolerance" className="text-slate-400">Tolerance:</label>
                 <input
+                  id="edit-tolerance"
                   type="text"
                   value={editParams.tolerance}
                   onChange={(e) =>
@@ -1278,8 +1284,9 @@ export function ResultViewer({ result, onClose }: ResultViewerProps) {
                 />
               </div>
               <div className="space-y-1">
-                <label className="text-slate-400">Max Iterations:</label>
+                <label htmlFor="edit-max-iter" className="text-slate-400">Max Iterations:</label>
                 <input
+                  id="edit-max-iter"
                   type="text"
                   value={editParams.maxIter}
                   onChange={(e) =>

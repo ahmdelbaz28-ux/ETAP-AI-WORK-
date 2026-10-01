@@ -7,6 +7,7 @@ to provide historical context and avoid redundant re-computation.
 
 from __future__ import annotations
 
+import asyncio
 import copy
 import hashlib
 import json
@@ -111,6 +112,7 @@ class RAGRetriever:
         metadata: Optional[Dict[str, Any]] = None,
     ) -> None:
         """Add a study result to the RAG vector index."""
+        await asyncio.sleep(0)
         if not result_id:
             return
         meta = metadata or {}
@@ -140,6 +142,7 @@ class RAGRetriever:
         agent_handle: str = "unknown",
     ) -> List[RAGResult]:
         """Retrieve top_k matching historical results above similarity threshold."""
+        await asyncio.sleep(0)
         start_time = time.time()
         norm_handle = agent_handle.strip().lower()
         context_str = json.dumps(system_context or {}, default=str)

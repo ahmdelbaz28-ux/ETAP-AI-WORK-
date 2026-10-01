@@ -12,6 +12,7 @@ Key features:
 
 from __future__ import annotations
 
+import asyncio
 import copy
 import hashlib
 import json
@@ -177,6 +178,7 @@ class SemanticCache:
         agent_handle: str,
     ) -> Optional[CachedResult]:
         """Lookup cached result if match exists and is within TTL."""
+        await asyncio.sleep(0)
         norm_handle = agent_handle.strip().lower()
         key = self._make_cache_key(system_data, parameters, norm_handle)
 
@@ -260,6 +262,7 @@ class SemanticCache:
         custom_ttl: Optional[int] = None,
     ) -> None:
         """Store study result along with embedding, canonical key, and metadata."""
+        await asyncio.sleep(0)
         norm_handle = agent_handle.strip().lower()
         key = self._make_cache_key(system_data, parameters, norm_handle)
         meta = metadata or {}

@@ -24,6 +24,7 @@ except ImportError:
     import xml.etree.ElementTree as ET  # type: ignore
 
 logger = logging.getLogger("etap.component_importer")
+_ETAP_LIBRARY_NAME = "ETAP Library"
 
 
 def _safe_float(val: Any, default: Optional[float] = None) -> Optional[float]:
@@ -123,7 +124,7 @@ class ETAPComponentImporter:
                         "name": str(name),
                         "manufacturer": elem.attrib.get("Manufacturer")
                         or elem.findtext("Manufacturer")
-                        or "ETAP Library",
+                        or _ETAP_LIBRARY_NAME,
                         "model_number": elem.attrib.get("Model") or elem.findtext("Model") or None,
                         "specs": {
                             "conductor_material": mat.lower(),
@@ -188,7 +189,7 @@ class ETAPComponentImporter:
                         "name": str(name),
                         "manufacturer": elem.attrib.get("Manufacturer")
                         or elem.findtext("Manufacturer")
-                        or "ETAP Library",
+                        or _ETAP_LIBRARY_NAME,
                         "model_number": elem.attrib.get("Model") or elem.findtext("Model") or None,
                         "specs": {
                             "rated_power_kva": rated_power,
@@ -252,7 +253,7 @@ class ETAPComponentImporter:
                         "name": str(name),
                         "manufacturer": elem.attrib.get("Manufacturer")
                         or elem.findtext("Manufacturer")
-                        or "ETAP Library",
+                        or _ETAP_LIBRARY_NAME,
                         "model_number": elem.attrib.get("Model") or elem.findtext("Model") or None,
                         "specs": {
                             "rated_voltage_kv": rated_kv,
@@ -303,7 +304,7 @@ class ETAPComponentImporter:
                         "name": str(name),
                         "manufacturer": elem.attrib.get("Manufacturer")
                         or elem.findtext("Manufacturer")
-                        or "ETAP Library",
+                        or _ETAP_LIBRARY_NAME,
                         "model_number": elem.attrib.get("Model") or elem.findtext("Model") or None,
                         "specs": {
                             "ansi_function": function_ansi,

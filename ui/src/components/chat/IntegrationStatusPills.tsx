@@ -249,8 +249,12 @@ export function IntegrationStatusPills() {
 
             <div className="p-4 space-y-4 text-xs">
               {(() => {
-                const current =
-                  activeModal === "scada" ? scada : activeModal === "etap" ? etap : gis;
+                let current = gis;
+                if (activeModal === "scada") {
+                  current = scada;
+                } else if (activeModal === "etap") {
+                  current = etap;
+                }
                 return (
                   <>
                     <div className="flex items-center justify-between p-3 rounded-lg bg-[#20262E] border border-[#334155]">

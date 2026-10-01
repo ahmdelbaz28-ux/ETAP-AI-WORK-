@@ -1,7 +1,7 @@
 /**
  * Unit tests for Frontend Token Governance (heuristics, pruning, and chatStore integration).
  */
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import {
   calculateTokenBudgetState,
   DEFAULT_SESSION_BUDGET,

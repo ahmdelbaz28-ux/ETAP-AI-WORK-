@@ -96,6 +96,80 @@ class DistributedSemanticCache:
     def _is_degraded(self) -> bool:
         return not bool(os.getenv("OPENAI_API_KEY"))
 
+    async def validate_redis_client(self) -> Any:
+        """Validate and return connected Redis client or raise ConnectionError."""
+        r = await get_redis()
+        if r is None:
+            raise ConnectionError("Redis client is unavailable")
+        return r
+
+    def format_cached_response(
+        self,
+        entry: Dict[str, Any],
+        key: str,
+        similarity: float,
+        norm_handle: str,
+    ) -> CachedResult:
+        """Format and record telemetry for a cached hit."""
+        self._hits += 1
+        self._similarities.append(similarity)
+        tokens_saved = entry.get("tokens_saved", 2000)
+        tracker.record_cache_hit(tokens_saved, agent_handle=norm_handle)
+        return CachedResult(
+            result=copy.deepcopy(entry["result"]),
+            tokens_saved=tokens_saved,
+            similarity=round(similarity, 4),
+            cached_at=entry["cached_at"],
+            cache_key=key,
+            metadata=copy.deepcopy(entry.get("metadata", {})),
+        )
+
+    async def _scan_vector_similarity(
+        self,
+        r: Any,
+        query_emb: np.ndarray,
+        norm_handle: str,
+    ) -> Optional[Tuple[str, Dict[str, Any], float]]:
+        """Scan cache entries to find best matching vector above threshold."""
+        cursor = 0
+        best_match: Optional[Tuple[str, Dict[str, Any], float]] = None
+        best_sim = 0.0
+
+        while True:
+            cursor, data = await r.hscan(
+                f"{self.namespace}:entries", cursor=cursor, count=100
+            )
+            items: List[Tuple[str, str]] = []
+            if isinstance(data, dict):
+                items = list(data.items())
+            elif isinstance(data, (list, tuple)):
+                if data and isinstance(data[0], (list, tuple)):
+                    items = [(k, v) for k, v in data]
+                else:
+                    for k in data:
+                        val = await r.hget(f"{self.namespace}:entries", k)
+                        if val:
+                            items.append((k, val))
+
+            for k, val_json in items:
+                entry = json.loads(val_json)
+                if entry.get("agent_handle") != norm_handle:
+                    continue
+                if time.time() - entry["cached_at"] > entry.get("ttl", self.ttl):
+                    await r.hdel(f"{self.namespace}:entries", k)
+                    continue
+                sim = self._cosine_similarity(
+                    query_emb, np.array(entry["embedding"], dtype=np.float32)
+                )
+                if sim >= self.threshold and sim > best_sim:
+                    best_sim = sim
+                    best_match = (k, entry, sim)
+
+            if cursor == 0:
+                break
+
+        return best_match
+
     async def lookup(
         self,
         system_data: Any,
@@ -106,29 +180,15 @@ class DistributedSemanticCache:
         key = self._make_cache_key(system_data, parameters, norm_handle)
 
         try:
-            r = await get_redis()
-            if r is None:
-                raise ConnectionError("Redis client is unavailable")
+            r = await self.validate_redis_client()
 
             # 1. Exact match
             entry_json = await r.hget(f"{self.namespace}:entries", key)
             if entry_json:
                 entry = json.loads(entry_json)
                 if time.time() - entry["cached_at"] <= entry.get("ttl", self.ttl):
-                    self._hits += 1
-                    self._similarities.append(1.0)
-                    tokens_saved = entry.get("tokens_saved", 2000)
-                    tracker.record_cache_hit(tokens_saved, agent_handle=norm_handle)
-                    return CachedResult(
-                        result=copy.deepcopy(entry["result"]),
-                        tokens_saved=tokens_saved,
-                        similarity=1.0,
-                        cached_at=entry["cached_at"],
-                        cache_key=key,
-                        metadata=copy.deepcopy(entry.get("metadata", {})),
-                    )
-                else:
-                    await r.hdel(f"{self.namespace}:entries", key)
+                    return self.format_cached_response(entry, key, 1.0, norm_handle)
+                await r.hdel(f"{self.namespace}:entries", key)
 
             # 2. Vector similarity (only if not degraded)
             if not self._is_degraded():
@@ -136,57 +196,10 @@ class DistributedSemanticCache:
                 param_str = json.dumps(_canonicalize_value(parameters), sort_keys=True)
                 query_emb = self._embed(sys_str, param_str)
 
-                cursor = 0
-                best_match: Optional[Tuple[str, Dict[str, Any]]] = None
-                best_sim = 0.0
-
-                while True:
-                    cursor, data = await r.hscan(
-                        f"{self.namespace}:entries", cursor=cursor, count=100
-                    )
-                    items: List[Tuple[str, str]] = []
-                    if isinstance(data, dict):
-                        items = list(data.items())
-                    elif isinstance(data, (list, tuple)):
-                        if data and isinstance(data[0], (list, tuple)):
-                            items = [(k, v) for k, v in data]
-                        else:
-                            for k in data:
-                                val = await r.hget(f"{self.namespace}:entries", k)
-                                if val:
-                                    items.append((k, val))
-
-                    for k, val_json in items:
-                        entry = json.loads(val_json)
-                        if entry.get("agent_handle") != norm_handle:
-                            continue
-                        if time.time() - entry["cached_at"] > entry.get("ttl", self.ttl):
-                            await r.hdel(f"{self.namespace}:entries", k)
-                            continue
-                        sim = self._cosine_similarity(
-                            query_emb, np.array(entry["embedding"], dtype=np.float32)
-                        )
-                        if sim >= self.threshold and sim > best_sim:
-                            best_sim = sim
-                            best_match = (k, entry)
-
-                    if cursor == 0:
-                        break
-
+                best_match = await self._scan_vector_similarity(r, query_emb, norm_handle)
                 if best_match:
-                    matched_key, entry = best_match
-                    self._hits += 1
-                    self._similarities.append(best_sim)
-                    tokens_saved = entry.get("tokens_saved", 2000)
-                    tracker.record_cache_hit(tokens_saved, agent_handle=norm_handle)
-                    return CachedResult(
-                        result=copy.deepcopy(entry["result"]),
-                        tokens_saved=tokens_saved,
-                        similarity=round(best_sim, 4),
-                        cached_at=entry["cached_at"],
-                        cache_key=matched_key,
-                        metadata=copy.deepcopy(entry.get("metadata", {})),
-                    )
+                    matched_key, entry, sim = best_match
+                    return self.format_cached_response(entry, matched_key, sim, norm_handle)
 
             self._misses += 1
             tracker.record_cache_miss(agent_handle=norm_handle)
@@ -226,9 +239,7 @@ class DistributedSemanticCache:
         }
 
         try:
-            r = await get_redis()
-            if r is None:
-                raise ConnectionError("Redis client is unavailable")
+            r = await self.validate_redis_client()
 
             await r.hset(f"{self.namespace}:entries", key, json.dumps(entry))
             await r.expire(f"{self.namespace}:entries", self.ttl)
