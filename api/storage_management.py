@@ -50,6 +50,7 @@ from api.r2_storage import (
     is_r2_enabled,
     list_objects,
 )
+from api.rbac import require_permission
 
 # SECURITY: S5145 - strip control characters from user-controlled values
 # before they reach the logger. Prevents log injection / CRLF spoofing.
@@ -257,18 +258,26 @@ def _set_retention_state(days: Optional[int], auto_purge: Optional[bool]) -> Non
             _auto_purge_enabled = auto_purge
 
 
-async def _list_all_objects(prefix: str = "") -> list[dict[str, Any]]:
-    """List all objects under a prefix, paginating up to _METRICS_MAX_OBJECTS."""
+async def _list_all_objects(prefix: str = "", tenant_id: str | None = None) -> list[dict[str, Any]]:
+    """List all objects under a prefix, scoped by tenant_id and paginating up to _METRICS_MAX_OBJECTS."""
     all_objects: list[dict[str, Any]] = []
     continuation_token: Optional[str] = None  # noqa: F841
     fetched = 0
+
+    effective_prefix = prefix
+    if tenant_id:
+        if effective_prefix:
+            if not (effective_prefix.startswith(f"{tenant_id}/") or f"/{tenant_id}/" in f"/{effective_prefix}"):
+                effective_prefix = f"{tenant_id}/{effective_prefix.lstrip('/')}"
+        else:
+            effective_prefix = f"{tenant_id}/"
 
     while fetched < _METRICS_MAX_OBJECTS:
         batch_size = min(1000, _METRICS_MAX_OBJECTS - fetched)
         # R2 list_objects_v2 supports ContinuationToken for pagination.
         # Our list_objects wrapper doesn't expose it, so we fetch in
         # large batches and rely on the limit parameter.
-        batch = await list_objects(prefix=prefix, limit=batch_size)
+        batch = await list_objects(prefix=effective_prefix, limit=batch_size, tenant_id=tenant_id)
         if not batch:
             break
         all_objects.extend(batch)
@@ -283,16 +292,23 @@ async def _list_all_objects(prefix: str = "") -> list[dict[str, Any]]:
 def _filter_objects_by_age(
     objects: list[dict[str, Any]],
     older_than_days: int,
+    tenant_id: str | None = None,
 ) -> list[dict[str, Any]]:
-    """Filter objects to those older than ``older_than_days`` days."""
+    """Filter objects to those older than ``older_than_days`` days, scoped by tenant_id."""
     cutoff = _now_utc() - timedelta(days=older_than_days)
     filtered: list[dict[str, Any]] = []
     for obj in objects:
+        key = obj.get("key", "")
+        if tenant_id and not (key.startswith(f"{tenant_id}/") or f"/{tenant_id}/" in f"/{key}"):
+            continue
         last_modified_str = obj.get("last_modified")
         if not last_modified_str:
             continue
         try:
-            last_modified = datetime.fromisoformat(last_modified_str)
+            if isinstance(last_modified_str, datetime):
+                last_modified = last_modified_str
+            else:
+                last_modified = datetime.fromisoformat(str(last_modified_str).replace("Z", "+00:00"))
             # Ensure timezone-aware comparison
             if last_modified.tzinfo is None:
                 last_modified = last_modified.replace(tzinfo=UTC)
@@ -318,11 +334,11 @@ def _filter_objects_by_age(
     response_model=StorageMetricsResponse,
     summary="Get storage usage metrics",
     description="Return storage usage metrics including total objects, sizes, "
-    "and a breakdown by key prefix. Requires API key or JWT.",
+    "and a breakdown by key prefix. Requires storage:manage permission.",
 )
 async def get_storage_metrics(
     _api_key: ApiKeyDep,
-    user: Optional[CurrentUser] = Depends(get_optional_current_user_from_header),
+    user: CurrentUser = Depends(require_permission("storage", "manage")),
 ) -> StorageMetricsResponse:
     """Return storage usage metrics for the R2 bucket.
 
@@ -338,9 +354,10 @@ async def get_storage_metrics(
 
     logger.info("storage_metrics_requested")
 
-    tenant_prefix = f"{user.tenant_id}/" if (user and user.tenant_id) else ""
-    # Gather all objects (up to the safety bound)
-    all_objects = await _list_all_objects(prefix=tenant_prefix)
+    tenant_id = user.tenant_id if user else None
+    tenant_prefix = f"{tenant_id}/" if tenant_id else ""
+    # Gather all objects (up to the safety bound) scoped to tenant
+    all_objects = await _list_all_objects(prefix=tenant_prefix, tenant_id=tenant_id)
 
     total_size = sum(obj.get("size", 0) for obj in all_objects)
     total_objects = len(all_objects)
@@ -395,12 +412,12 @@ async def get_storage_metrics(
     description="Purge temporary or old files from R2 storage. "
     "Defaults to dry_run=true for safety — no files are deleted unless "
     "dry_run=false is explicitly set. Large purges (>100 objects) require "
-    "confirm=true in addition to dry_run=false.",
+    "confirm=true in addition to dry_run=false. Requires storage:manage permission.",
 )
 async def purge_storage(
     request: StoragePurgeRequest,
     _api_key: ApiKeyDep,
-    user: Optional[CurrentUser] = Depends(get_optional_current_user_from_header),
+    user: CurrentUser = Depends(require_permission("storage", "manage")),
 ) -> StoragePurgeResponse:
     """Purge temporary/old files from R2 storage with tenant isolation.
 
@@ -422,8 +439,9 @@ async def purge_storage(
             detail="R2 storage is not configured.",
         )
 
-    tenant_prefix = f"{user.tenant_id}/" if (user and user.tenant_id) else ""
-    prefix = f"{tenant_prefix}{request.prefix}" if request.prefix else tenant_prefix
+    tenant_id = user.tenant_id if user else None
+    tenant_prefix = f"{tenant_id}/" if tenant_id else ""
+    prefix = f"{tenant_prefix}{request.prefix.lstrip('/')}" if request.prefix else tenant_prefix
     older_than_days = request.older_than_days
 
     logger.info(
@@ -435,11 +453,17 @@ async def purge_storage(
     )
 
     # List objects matching the prefix
-    objects = await _list_all_objects(prefix=prefix)
+    objects = await _list_all_objects(prefix=prefix, tenant_id=tenant_id)
 
     # Filter by age if requested
     if older_than_days is not None:
-        objects = _filter_objects_by_age(objects, older_than_days)
+        objects = _filter_objects_by_age(objects, older_than_days, tenant_id=tenant_id)
+
+    if tenant_id:
+        objects = [
+            obj for obj in objects
+            if (obj.get("key", "").startswith(tenant_prefix) or f"/{tenant_id}/" in f"/{obj.get('key', '')}")
+        ]
 
     # Compute totals
     candidate_keys = [obj["key"] for obj in objects]

@@ -335,12 +335,25 @@ async def upload(
     return key
 
 
-async def download(key: str) -> bytes:
+def _validate_tenant_access(key: str, tenant_id: str | None) -> None:
+    """Validate that key is scoped to the given tenant_id.
+
+    SECURITY (S-TENANT): Enforces tenant isolation for R2 storage objects.
+    """
+    if not tenant_id:
+        return
+    normalized = f"/{key.lstrip('/')}"
+    if not (normalized.startswith(f"/{tenant_id}/") or f"/{tenant_id}/" in normalized):
+        raise ValueError(f"Key does not belong to tenant {tenant_id}: {key}")
+
+
+async def download(key: str, tenant_id: str | None = None) -> bytes:
     """Download an object from R2 and return its contents as bytes."""
+    key = _validate_key(key)  # SECURITY S-10: path traversal validation
+    _validate_tenant_access(key, tenant_id)
+
     if not R2_ENABLED:
         raise RuntimeError("R2 is not configured")
-
-    key = _validate_key(key)  # SECURITY S-10: path traversal validation
 
     client = _get_client()
     response = await asyncio.get_running_loop().run_in_executor(
@@ -371,6 +384,7 @@ async def list_objects(
     prefix: str = "",
     *,
     limit: int = 100,
+    tenant_id: str | None = None,
 ) -> list[dict[str, Any]]:
     """List objects in the bucket under a given prefix.
 
@@ -381,6 +395,12 @@ async def list_objects(
 
     # SECURITY: Bound limit to prevent abuse
     limit = max(1, min(limit, 1000))
+
+    if tenant_id:
+        if prefix:
+            _validate_tenant_access(prefix, tenant_id)
+        else:
+            prefix = f"{tenant_id}/"
 
     # SECURITY (S-10): Validate prefix against path traversal
     if prefix:
@@ -438,7 +458,7 @@ async def delete_many(keys: list[str]) -> int:
     return deleted_total
 
 
-def presign(key: str, *, expires: int = 3600) -> str:
+def presign(key: str, *, expires: int = 3600, tenant_id: str | None = None) -> str:
     """Generate a presigned URL for downloading an object.
 
     Parameters
@@ -447,17 +467,20 @@ def presign(key: str, *, expires: int = 3600) -> str:
         Object key
     expires : int
         URL validity in seconds (default: 1 hour, max: 7 days)
+    tenant_id : str | None
+        Tenant identifier for multi-tenant isolation
 
     Returns
     -------
     str
         Presigned HTTPS URL
     """
-    if not R2_ENABLED:
-        raise RuntimeError("R2 is not configured")
-
     # SECURITY (S-10): Validate key against path traversal
     _validate_key(key)
+    _validate_tenant_access(key, tenant_id)
+
+    if not R2_ENABLED:
+        raise RuntimeError("R2 is not configured")
 
     # SECURITY: Cap presigned URL expiry to 7 days maximum.
     # Without this, a caller could generate URLs valid for years.
@@ -481,15 +504,16 @@ def presign(key: str, *, expires: int = 3600) -> str:
     return url
 
 
-def public_url(key: str) -> str:
+def public_url(key: str, *, tenant_id: str | None = None) -> str:
     """Return the public URL for an object (if a custom domain is configured).
 
     If R2_PUBLIC_URL_PREFIX is not set, returns a presigned URL instead.
     """
     key = _validate_key(key)  # SECURITY S-10: path traversal validation
+    _validate_tenant_access(key, tenant_id)
     if R2_PUBLIC_URL_PREFIX:
         return f"{R2_PUBLIC_URL_PREFIX.rstrip('/')}/{key.lstrip('/')}"
-    return presign(key)
+    return presign(key, tenant_id=tenant_id)
 
 
 def generate_key(
@@ -497,14 +521,17 @@ def generate_key(
     prefix: str = "",
     extension: str = "",
     user_id: str | None = None,
+    tenant_id: str | None = None,
 ) -> str:
-    """Generate a unique object key with optional prefix and user scope.
+    """Generate a unique object key with optional prefix and user/tenant scope.
 
     Example:
-        generate_key(prefix="reports", extension="pdf", user_id="abc123")
-        → "reports/abc123/550e8400-e29b-41d4-a716-446655440000.pdf"
+        generate_key(prefix="reports", extension="pdf", tenant_id="tenant_a", user_id="abc123")
+        → "tenant_a/reports/abc123/550e8400-e29b-41d4-a716-446655440000.pdf"
     """
     parts = []
+    if tenant_id:
+        parts.append(tenant_id.strip("/"))
     if prefix:
         parts.append(prefix.strip("/"))
     if user_id:
